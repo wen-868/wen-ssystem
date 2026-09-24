@@ -1,0 +1,925 @@
+{
+  "meta": {
+    "generatedAt": "2026-09-24T20:13:39.735Z",
+    "root": "D:\\Users\\ZXQL\\wt-agents\\issue-97",
+    "scanned": "admin-web/src",
+    "script": "docs/evidence/S3-67/tools/s3-67-static-inventory.mjs",
+    "note": "静态清点：不做'哪个变量生效'的结论（R8.1）"
+  },
+  "counts": {
+    "filesScanned": 235,
+    "totalBorderNormalLines": 41,
+    "declarations": 1,
+    "referencePoints": 40,
+    "cardBaselineClaimed": 40,
+    "cardBaselineMatchedExactly": 40,
+    "liveRefsNotInCardBaseline": 0,
+    "tokenLineCounts": {
+      "--border-light": 100,
+      "--border-normal": 41,
+      "--table-border": 6,
+      "--input-border": 4,
+      "--el-border-color": 12
+    }
+  },
+  "declarationDrift": [
+    {
+      "token": "--border-normal",
+      "file": "admin-web/src/styles/tokens.css",
+      "cardLine": 115,
+      "cardValue": "#E2E2E2",
+      "liveLine": 118,
+      "liveValue": "#E2E2E2",
+      "drift": 3,
+      "matchedExactly": false
+    },
+    {
+      "token": "--border-light",
+      "file": "admin-web/src/styles/tokens.css",
+      "cardLine": 116,
+      "cardValue": "#F0F0F0",
+      "liveLine": 119,
+      "liveValue": "#F0F0F0",
+      "drift": 3,
+      "matchedExactly": false
+    },
+    {
+      "token": "--table-border",
+      "file": "admin-web/src/styles/tokens.css",
+      "cardLine": 274,
+      "cardValue": "#E2E2E2",
+      "liveLine": 277,
+      "liveValue": "#E2E2E2",
+      "drift": 3,
+      "matchedExactly": false
+    },
+    {
+      "token": "--input-border",
+      "file": "admin-web/src/styles/tokens.css",
+      "cardLine": 280,
+      "cardValue": "#888888",
+      "liveLine": 283,
+      "liveValue": "#888888",
+      "drift": 3,
+      "matchedExactly": false
+    }
+  ],
+  "declarations": [
+    {
+      "file": "admin-web/src/styles/tokens.css",
+      "line": 118,
+      "raw": "--border-normal: #E2E2E2;",
+      "isTokenDeclaration": true,
+      "selector": ":root（tokens.css 声明处）",
+      "selectorBraceLine": null,
+      "kind": "声明处（token 定义）",
+      "kindSource": "declaration",
+      "kindWhy": "token 声明本身不是引用点"
+    }
+  ],
+  "references": [
+    {
+      "file": "admin-web/src/components/AiChat/AiChatWindow.vue",
+      "line": 484,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".suggestion-chip",
+      "selectorBraceLine": 483,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/components/AiChat/AiMessageCard.vue",
+      "line": 371,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".tool-card",
+      "selectorBraceLine": 369,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/components/AiChat/AiPreviewCard.vue",
+      "line": 104,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".ai-preview-card",
+      "selectorBraceLine": 102,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/components/AiChat/AiSidePanel.vue",
+      "line": 475,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".suggestion-chip",
+      "selectorBraceLine": 473,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/layouts/MainLayout.vue",
+      "line": 1087,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".header-search kbd",
+      "selectorBraceLine": 1080,
+      "kind": "装饰",
+      "kindSource": "rule",
+      "kindWhy": "kbd 快捷键提示 ⇒ 纯装饰性元素"
+    },
+    {
+      "file": "admin-web/src/styles/tokens.css",
+      "line": 320,
+      "raw": "border: 1px solid var(--border-normal) !important;",
+      "isTokenDeclaration": false,
+      "selector": ".el-button--danger",
+      "selectorBraceLine": 318,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": "选择器 .el-button--danger ⇒ 按钮（可交互控件）边框"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 74,
+      "raw": "border-right: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".side",
+      "selectorBraceLine": 70,
+      "kind": "分隔线",
+      "kindSource": "rule",
+      "kindWhy": "仅单边实线边框 ⇒ 分区/表格分隔线"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 125,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".dashboard-hero",
+      "selectorBraceLine": 121,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 155,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".card",
+      "selectorBraceLine": 153,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "选择器指向容器/面板"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 194,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".stat-item",
+      "selectorBraceLine": 192,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 217,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".filter-area",
+      "selectorBraceLine": 215,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 245,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".table-card",
+      "selectorBraceLine": 243,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 251,
+      "raw": "--el-table-border-color: var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".table-card .el-table",
+      "selectorBraceLine": 250,
+      "kind": "分隔线候选",
+      "kindSource": "rule",
+      "kindWhy": "写 EP 表格边框变量（生效与否须 computed 定论）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 293,
+      "raw": "--el-table-border-color: var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".list-table",
+      "selectorBraceLine": 292,
+      "kind": "分隔线候选",
+      "kindSource": "rule",
+      "kindWhy": "写 EP 表格边框变量（生效与否须 computed 定论）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 317,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".detail-header",
+      "selectorBraceLine": 315,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 330,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".detail-tabs",
+      "selectorBraceLine": 328,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 448,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".dash-card",
+      "selectorBraceLine": 446,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 661,
+      "raw": "border-color: var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".el-card:hover",
+      "selectorBraceLine": 660,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "选择器指向容器/面板"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 709,
+      "raw": "--el-button-border-color: var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".el-button--default",
+      "selectorBraceLine": 707,
+      "kind": "控件候选",
+      "kindSource": "manual-override",
+      "kindWhy": "--el-button-border-color⇒EP 按钮边框变量（是否生效须 computed 定论）"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 1148,
+      "raw": "border-color: var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".card-hover:hover",
+      "selectorBraceLine": 1146,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "选择器指向容器/面板"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 1158,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".kbd",
+      "selectorBraceLine": 1153,
+      "kind": "装饰",
+      "kindSource": "rule",
+      "kindWhy": "kbd 快捷键提示 ⇒ 纯装饰性元素"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "line": 1321,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".stats-row .stat-card",
+      "selectorBraceLine": 1319,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/MessageCenter.vue",
+      "line": 285,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".msg-menu",
+      "selectorBraceLine": 284,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/MessageCenter.vue",
+      "line": 296,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".msg-list-panel",
+      "selectorBraceLine": 295,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/QuickEntryConfig.vue",
+      "line": 371,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".edit-panel",
+      "selectorBraceLine": 370,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/QuickEntryConfig.vue",
+      "line": 381,
+      "raw": "border-bottom: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".panel-title",
+      "selectorBraceLine": 377,
+      "kind": "分隔线",
+      "kindSource": "rule",
+      "kindWhy": "仅单边实线边框 ⇒ 分区/表格分隔线"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/TodoList.vue",
+      "line": 353,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".stat-card",
+      "selectorBraceLine": 351,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/views/order/OrderAftersaleView.vue",
+      "line": 624,
+      "raw": "border-top: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".dialog-actions",
+      "selectorBraceLine": 621,
+      "kind": "分隔线",
+      "kindSource": "rule",
+      "kindWhy": "仅单边实线边框 ⇒ 分区/表格分隔线"
+    },
+    {
+      "file": "admin-web/src/views/order/OrderBoardView.vue",
+      "line": 256,
+      "raw": "border-color: var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".order-card:hover",
+      "selectorBraceLine": 254,
+      "kind": "容器",
+      "kindSource": "rule",
+      "kindWhy": "既非控件也非单边分隔（默认按容器登记，运行期矩阵再定性）"
+    },
+    {
+      "file": "admin-web/src/views/order/OrderExceptionView.vue",
+      "line": 237,
+      "raw": "<div style=\"margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-normal); display: flex; gap: 12px; align-items: center\">",
+      "isTokenDeclaration": false,
+      "selector": "<inline style 属性（div）>",
+      "selectorBraceLine": null,
+      "kind": "分隔线",
+      "kindSource": "manual-override",
+      "kindWhy": "模板内联 style 的 border-top ⇒ 内容区分隔线"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 1819,
+      "raw": "box-shadow: 0 0 0 1px var(--border-normal) inset;",
+      "isTokenDeclaration": false,
+      "selector": ".product-search-input :deep(.el-input__wrapper)",
+      "selectorBraceLine": 1817,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": ".product-search-input .el-input__wrapper 内嵌 box-shadow 边框 ⇒ 输入框控件边框"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 2105,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".qty-btn",
+      "selectorBraceLine": 2102,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": ".qty-btn（加/减按钮）实线边框 ⇒ 控件边框"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 2148,
+      "raw": "border-top: 1px dashed var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".cart-summary",
+      "selectorBraceLine": 2147,
+      "kind": "分隔线",
+      "kindSource": "manual-override",
+      "kindWhy": "border-top: 1px dashed ⇒ 虚线分隔线（非控件识别边界）"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 2184,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".pay-method-btn",
+      "selectorBraceLine": 2178,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": ".pay-method-btn（支付方式按钮）实线边框 ⇒ 控件边框"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 2410,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".pay-method-card",
+      "selectorBraceLine": 2404,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": ".pay-method-card（支付方式卡片按钮）实线边框 ⇒ 控件边框"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 2456,
+      "raw": "border: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".numpad-key",
+      "selectorBraceLine": 2454,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": ".numpad-key（数字键盘按键）实线边框 ⇒ 控件边框"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 2687,
+      "raw": "box-shadow: 0 0 0 1px var(--border-normal) inset;",
+      "isTokenDeclaration": false,
+      "selector": ".pay-code-input :deep(.el-input__wrapper)",
+      "selectorBraceLine": 2685,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": ".pay-code-input .el-input__wrapper 内嵌 box-shadow 边框 ⇒ 输入框控件边框"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "line": 2750,
+      "raw": "box-shadow: 0 0 0 1px var(--border-normal) inset;",
+      "isTokenDeclaration": false,
+      "selector": ".trace-code-input :deep(.el-input__wrapper)",
+      "selectorBraceLine": 2748,
+      "kind": "控件",
+      "kindSource": "manual-override",
+      "kindWhy": ".trace-code-input .el-input__wrapper 内嵌 box-shadow 边框 ⇒ 输入框控件边框（追溯弹窗）"
+    },
+    {
+      "file": "admin-web/src/views/system/PaymentConfigView.vue",
+      "line": 684,
+      "raw": "border-top: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".action-bar",
+      "selectorBraceLine": 681,
+      "kind": "分隔线",
+      "kindSource": "rule",
+      "kindWhy": "仅单边实线边框 ⇒ 分区/表格分隔线"
+    },
+    {
+      "file": "admin-web/src/views/system/SystemConfigView.vue",
+      "line": 855,
+      "raw": "border-top: 1px solid var(--border-normal);",
+      "isTokenDeclaration": false,
+      "selector": ".action-bar",
+      "selectorBraceLine": 852,
+      "kind": "分隔线",
+      "kindSource": "rule",
+      "kindWhy": "仅单边实线边框 ⇒ 分区/表格分隔线"
+    }
+  ],
+  "cardBaselineDrift": [
+    {
+      "file": "admin-web/src/styles/tokens.css",
+      "cardLine": 320,
+      "liveLine": 320,
+      "drift": 0,
+      "matched": true,
+      "note": ".el-button--danger",
+      "selector": ".el-button--danger",
+      "raw": "border: 1px solid var(--border-normal) !important;"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 74,
+      "liveLine": 74,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".side",
+      "raw": "border-right: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 125,
+      "liveLine": 125,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".dashboard-hero",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 155,
+      "liveLine": 155,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 194,
+      "liveLine": 194,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".stat-item",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 217,
+      "liveLine": 217,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".filter-area",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 245,
+      "liveLine": 245,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".table-card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 251,
+      "liveLine": 251,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".table-card .el-table",
+      "raw": "--el-table-border-color: var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 293,
+      "liveLine": 293,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".list-table",
+      "raw": "--el-table-border-color: var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 317,
+      "liveLine": 317,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".detail-header",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 330,
+      "liveLine": 330,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".detail-tabs",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 448,
+      "liveLine": 448,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".dash-card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 661,
+      "liveLine": 661,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".el-card:hover",
+      "raw": "border-color: var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 709,
+      "liveLine": 709,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".el-button--default",
+      "raw": "--el-button-border-color: var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 1148,
+      "liveLine": 1148,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".card-hover:hover",
+      "raw": "border-color: var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 1158,
+      "liveLine": 1158,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".kbd",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/styles.css",
+      "cardLine": 1321,
+      "liveLine": 1321,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".stats-row .stat-card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/layouts/MainLayout.vue",
+      "cardLine": 1087,
+      "liveLine": 1087,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".header-search kbd",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/TodoList.vue",
+      "cardLine": 353,
+      "liveLine": 353,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".stat-card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/MessageCenter.vue",
+      "cardLine": 285,
+      "liveLine": 285,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".msg-menu",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/MessageCenter.vue",
+      "cardLine": 296,
+      "liveLine": 296,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".msg-list-panel",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/QuickEntryConfig.vue",
+      "cardLine": 371,
+      "liveLine": 371,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".edit-panel",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/dashboard/QuickEntryConfig.vue",
+      "cardLine": 381,
+      "liveLine": 381,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".panel-title",
+      "raw": "border-bottom: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/components/AiChat/AiSidePanel.vue",
+      "cardLine": 475,
+      "liveLine": 475,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".suggestion-chip",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/system/PaymentConfigView.vue",
+      "cardLine": 684,
+      "liveLine": 684,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".action-bar",
+      "raw": "border-top: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/system/SystemConfigView.vue",
+      "cardLine": 855,
+      "liveLine": 855,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".action-bar",
+      "raw": "border-top: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/components/AiChat/AiMessageCard.vue",
+      "cardLine": 371,
+      "liveLine": 371,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".tool-card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/components/AiChat/AiChatWindow.vue",
+      "cardLine": 484,
+      "liveLine": 484,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".suggestion-chip",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/components/AiChat/AiPreviewCard.vue",
+      "cardLine": 104,
+      "liveLine": 104,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".ai-preview-card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/order/OrderAftersaleView.vue",
+      "cardLine": 624,
+      "liveLine": 624,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".dialog-actions",
+      "raw": "border-top: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/order/OrderBoardView.vue",
+      "cardLine": 256,
+      "liveLine": 256,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".order-card:hover",
+      "raw": "border-color: var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/order/OrderExceptionView.vue",
+      "cardLine": 237,
+      "liveLine": 237,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": "<inline style 属性（div）>",
+      "raw": "<div style=\"margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-normal); display: flex; gap: 12px; align-items: center\">"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 1819,
+      "liveLine": 1819,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".product-search-input :deep(.el-input__wrapper)",
+      "raw": "box-shadow: 0 0 0 1px var(--border-normal) inset;"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 2105,
+      "liveLine": 2105,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".qty-btn",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 2148,
+      "liveLine": 2148,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".cart-summary",
+      "raw": "border-top: 1px dashed var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 2184,
+      "liveLine": 2184,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".pay-method-btn",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 2410,
+      "liveLine": 2410,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".pay-method-card",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 2456,
+      "liveLine": 2456,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".numpad-key",
+      "raw": "border: 1px solid var(--border-normal);"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 2687,
+      "liveLine": 2687,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".pay-code-input :deep(.el-input__wrapper)",
+      "raw": "box-shadow: 0 0 0 1px var(--border-normal) inset;"
+    },
+    {
+      "file": "admin-web/src/views/pos/CashierView.vue",
+      "cardLine": 2750,
+      "liveLine": 2750,
+      "drift": 0,
+      "matched": true,
+      "note": "",
+      "selector": ".trace-code-input :deep(.el-input__wrapper)",
+      "raw": "box-shadow: 0 0 0 1px var(--border-normal) inset;"
+    }
+  ],
+  "liveRefsNotInCardBaseline": []
+}

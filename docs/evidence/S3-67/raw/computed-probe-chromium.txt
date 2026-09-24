@@ -1,0 +1,995 @@
+S3-67 运行期 computed 矩阵（引擎=chromium 151.0.7922.34）
+取样时间=2026-09-24T20:23:18.543Z  baseURL=http://127.0.0.1:5173
+:root 候选变量现读值 = {"--border-normal":"#E2E2E2","--border-light":"#F0F0F0","--table-border":"#E2E2E2","--el-border-color":"#888888","--el-table-border-color":"#E2E2E2","--input-border":"#888888"}
+阶段 = [{"phase":"dashboard","prep":"none","finalUrl":"http://127.0.0.1:5173/dashboard"},{"phase":"customers","prep":"none","finalUrl":"http://127.0.0.1:5173/customers"},{"phase":"orders","prep":"none","finalUrl":"http://127.0.0.1:5173/orders"},{"phase":"retail-config","prep":"none","finalUrl":"http://127.0.0.1:5173/instant-retail/config"},{"phase":"system-config","prep":"none","finalUrl":"http://127.0.0.1:5173/system/config"},{"phase":"cashier","prep":"addItem","finalUrl":"http://127.0.0.1:5173/pos/cashier"},{"phase":"cashier-pay","prep":"openPay","finalUrl":"http://127.0.0.1:5173/pos/cashier"},{"phase":"cashier-trace","prep":"openTrace","finalUrl":"http://127.0.0.1:5173/pos/cashier"}]
+
+【基线：逐实例 computed 边界 / 背景 / 比值】
+EP-button  .el-button（全体）  found=7 sampled=7  sel=.el-button
+   [0] BUTTON.el-button el-button--small is-circle 24x24 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [1] BUTTON.el-button el-button--primary el-button--large quick-cashier-btn 109x40 "开单收银"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.07 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [2] BUTTON.el-button el-button--small is-circle 24x24 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [3] BUTTON.el-button el-button--small is-text ai-collapse-btn 34x24 ""
+       边界(无有效边界)=null(null) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/solid/rgba(0, 0, 0, 0) | Right:0px/solid/rgba(0, 0, 0, 0) | Bottom:0px/solid/rgba(0, 0, 0, 0) | Left:0px/solid/rgba(0, 0, 0, 0)
+       box-shadow=none
+   [4] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [5] BUTTON.el-button is-circle ai-image-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [6] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-default  .el-button--default  found=1 sampled=1  sel=.el-button--default
+   [0] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-primary  .el-button--primary  found=2 sampled=2  sel=.el-button--primary
+   [0] BUTTON.el-button el-button--primary el-button--large quick-cashier-btn 109x40 "开单收银"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.07 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [1] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=0 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-card  .el-card  found=6 sampled=6  sel=.el-card
+   [0] DIV.el-card is-hover-shadow metric-strip 1067x90 "今日销售额¥0今日订单0 单今日毛利¥0"
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.04 vs自身=1.14 判定=1.04 <3:1
+       ★判定值=1.04 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px
+   [1] DIV.el-card is-hover-shadow feed-card feed-card--feed 706x402 "经营动态全部销售收款客户预警通知今天销售"
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.04 vs自身=1.14 判定=1.04 <3:1
+       ★判定值=1.04 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px
+   [2] DIV.el-card is-hover-shadow feed-card feed-card--trend 706x422 "本月销售趋势"
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.04 vs自身=1.14 判定=1.04 <3:1
+       ★判定值=1.04 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px
+   [3] DIV.el-card is-hover-shadow side-card side-card--fill 345x311 "最新订单共 1 单-线下门店-¥0"
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.04 vs自身=1.14 判定=1.04 <3:1
+       ★判定值=1.04 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px
+   [4] DIV.el-card is-hover-shadow side-card side-card--fill 345x311 "待办与预警今日无待办事项"
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.04 vs自身=1.14 判定=1.04 <3:1
+       ★判定值=1.04 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px
+   [5] DIV.el-card is-hover-shadow side-card 345x186 "快捷入口开单收银销售单据消息中心库存预警"
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.04 vs自身=1.14 判定=1.04 <3:1
+       ★判定值=1.04 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px
+AI-textarea  AiSidePanel .ai-input-box .el-textarea__inner  found=1 sampled=1  sel=.ai-input-box .el-textarea__inner
+   [0] TEXTAREA.el-textarea__inner 296x61 ""
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(240, 240, 240)(a=1→#F0F0F0) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.14 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=none
+EP-button  .el-button（全体）  found=16 sampled=10  sel=.el-button
+   [0] BUTTON.el-button el-button--small is-circle 24x24 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [1] BUTTON.el-button 58x32 "刷新"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.25 vs自身=3.54 判定=3.25 ≥3:1
+       ★判定值=3.25 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [2] BUTTON.el-button el-button--primary 101x32 "新增客户"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.07 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [3] BUTTON.el-button el-button--primary 58x32 "查询"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [4] BUTTON.el-button el-button--primary el-button--small is-link 30x18 "详情"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [5] BUTTON.el-button el-button--primary el-button--small is-link 66x18 "分配管理员"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [6] BUTTON.el-button el-button--small is-link 54x18 "价格参考"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=none
+   [7] BUTTON.el-button el-button--success el-button--small is-link 30x18 "启用"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=none
+   [8] BUTTON.el-button el-button--primary el-button--small is-link 30x18 "详情"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [9] BUTTON.el-button el-button--primary el-button--small is-link 66x18 "分配管理员"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-default  .el-button--default  found=1 sampled=1  sel=.el-button--default
+   [0] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-primary  .el-button--primary  found=7 sampled=7  sel=.el-button--primary
+   [0] BUTTON.el-button el-button--primary 101x32 "新增客户"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.07 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [1] BUTTON.el-button el-button--primary 58x32 "查询"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [2] BUTTON.el-button el-button--primary el-button--small is-link 30x18 "详情"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [3] BUTTON.el-button el-button--primary el-button--small is-link 66x18 "分配管理员"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [4] BUTTON.el-button el-button--primary el-button--small is-link 30x18 "详情"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [5] BUTTON.el-button el-button--primary el-button--small is-link 66x18 "分配管理员"
+       边界(border 边色)=rgba(0, 0, 0, 0)(#000000) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(0, 0, 0, 0) vs祖先=21 vs自身=21 判定=21 ≥3:1
+       ★判定值=21 ≥3:1 四边读数: Top:1px/solid/rgba(0, 0, 0, 0) | Right:1px/solid/rgba(0, 0, 0, 0) | Bottom:1px/solid/rgba(0, 0, 0, 0) | Left:1px/solid/rgba(0, 0, 0, 0)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [6] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=0 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-input  .el-input__wrapper（通用）  found=2 sampled=2  sel=.el-input__wrapper
+   [0] DIV.el-input__wrapper 200x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [1] DIV.el-input__wrapper 56x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+EP-select  .el-select__wrapper  found=1 sampled=1  sel=.el-select__wrapper
+   [0] DIV.el-select__wrapper el-tooltip__trigger el-tooltip__trigger 128x32 "20条/页"
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+EP-table-th  .el-table th.el-table__cell  found=13 sampled=10  sel=.el-table th.el-table__cell
+   [0] TH.el-table_2_column_14 is-leaf el-table__cell zx-col-draggable 100x40 "客户ID"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [1] TH.el-table_2_column_15 is-leaf el-table__cell zx-col-draggable 140x40 "客户名称"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [2] TH.el-table_2_column_16 is-leaf el-table__cell zx-col-draggable 100x40 "联系人"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [3] TH.el-table_2_column_17 is-leaf el-table__cell zx-col-draggable 140x40 "手机号"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [4] TH.el-table_2_column_18 is-leaf el-table__cell zx-col-draggable 120x40 "客户类型"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [5] TH.el-table_2_column_19 is-leaf el-table__cell zx-col-draggable 140x40 "归属销售员"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [6] TH.el-table_2_column_20 is-leaf el-table__cell zx-col-draggable 80x40 "积分"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [7] TH.el-table_2_column_21 is-leaf el-table__cell zx-col-draggable 100x40 "客户等级"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [8] TH.el-table_2_column_22 is-leaf el-table__cell zx-col-draggable 80x40 "状态"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [9] TH.el-table_2_column_23 is-leaf el-table__cell zx-col-draggable 140x40 "地址"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+EP-table-td  .el-table td.el-table__cell  found=26 sampled=10  sel=.el-table td.el-table__cell
+   [0] TD.el-table_2_column_14 el-table__cell 100x48 "1"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [1] TD.el-table_2_column_15 el-table__cell 140x48 "默认零售客户"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [2] TD.el-table_2_column_16 el-table__cell 100x48 ""
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [3] TD.el-table_2_column_17 el-table__cell 140x48 "13900000000"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [4] TD.el-table_2_column_18 el-table__cell 120x48 "零售"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [5] TD.el-table_2_column_19 el-table__cell 140x48 ""
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [6] TD.el-table_2_column_20 el-table__cell 80x48 "120"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [7] TD.el-table_2_column_21 el-table__cell 100x48 "普通会员"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [8] TD.el-table_2_column_22 el-table__cell 80x48 "启用"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+   [9] TD.el-table_2_column_23 el-table__cell 140x48 ""
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+EP-table  .el-table（表格外框）  found=1 sampled=1  sel=.el-table
+   [0] DIV.el-table--fit el-table--striped el-table--border el-table--scrollable-x el-table--enable-row-transition el-table el-table--layout-fixed is-scrolling-left 1065x136 "客户ID客户名称联系人手机号客户类型归属"
+       边界(无有效边界)=null(null) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+EP-pagination  .el-pagination  found=1 sampled=1  sel=.el-pagination
+   [0] DIV.el-pagination is-background 445x34 "共 2 条20条/页 1 前往页"
+       边界(无有效边界)=null(null) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+EP-card  .el-card  found=0 sampled=0  sel=.el-card
+    ⚠ 本路由未渲染到该控件（未取得读数）
+AI-textarea  AiSidePanel .ai-input-box .el-textarea__inner  found=1 sampled=1  sel=.ai-input-box .el-textarea__inner
+   [0] TEXTAREA.el-textarea__inner 296x61 ""
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(240, 240, 240)(a=1→#F0F0F0) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.14 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=none
+EP-button  .el-button（全体）  found=7 sampled=7  sel=.el-button
+   [0] BUTTON.el-button el-button--small is-circle 24x24 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [1] BUTTON.el-button 75x32 "刷新"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.25 vs自身=3.54 判定=3.25 ≥3:1
+       ★判定值=3.25 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [2] BUTTON.el-button el-button--primary 58x32 "查询"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [3] BUTTON.el-button el-button--small is-text ai-collapse-btn 34x24 ""
+       边界(无有效边界)=null(null) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/solid/rgba(0, 0, 0, 0) | Right:0px/solid/rgba(0, 0, 0, 0) | Bottom:0px/solid/rgba(0, 0, 0, 0) | Left:0px/solid/rgba(0, 0, 0, 0)
+       box-shadow=none
+   [4] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [5] BUTTON.el-button is-circle ai-image-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [6] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-default  .el-button--default  found=1 sampled=1  sel=.el-button--default
+   [0] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-primary  .el-button--primary  found=2 sampled=2  sel=.el-button--primary
+   [0] BUTTON.el-button el-button--primary 58x32 "查询"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [1] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=0 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-input  .el-input__wrapper（通用）  found=2 sampled=2  sel=.el-input__wrapper
+   [0] DIV.el-input__wrapper 200x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [1] DIV.el-input__wrapper 56x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+EP-select  .el-select__wrapper  found=3 sampled=3  sel=.el-select__wrapper
+   [0] DIV.el-select__wrapper el-tooltip__trigger el-tooltip__trigger 200x32 "订单状态"
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [1] DIV.el-select__wrapper el-tooltip__trigger el-tooltip__trigger 200x32 "支付状态"
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [2] DIV.el-select__wrapper el-tooltip__trigger el-tooltip__trigger 128x32 "20条/页"
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+EP-table-th  .el-table th.el-table__cell  found=9 sampled=9  sel=.el-table th.el-table__cell
+   [0] TH.el-table_2_column_10 is-leaf el-table__cell zx-col-draggable 200x40 "订单号"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [1] TH.el-table_2_column_11 is-leaf el-table__cell zx-col-draggable 100x40 "客户类型"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [2] TH.el-table_2_column_12 is-leaf el-table__cell zx-col-draggable 100x40 "订单状态"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [3] TH.el-table_2_column_13 is-leaf el-table__cell zx-col-draggable 100x40 "支付状态"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [4] TH.el-table_2_column_14 is-leaf el-table__cell zx-col-draggable 120x40 "金额"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [5] TH.el-table_2_column_15 is-leaf el-table__cell zx-col-draggable 100x40 "收货人"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [6] TH.el-table_2_column_16 is-leaf el-table__cell zx-col-draggable 130x40 "联系电话"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [7] TH.el-table_2_column_17 is-leaf el-table__cell zx-col-draggable 160x40 "创建时间"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+   [8] TH.el-table_2_column_18 el-table-fixed-column--right is-first-column is-leaf el-table__cell zx-col-draggable 160x40 "操作"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(244, 247, 255)(a=1→#F4F7FF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.21 判定=1.21 <3:1
+       ★判定值=1.21 <3:1 四边读数: Top:0px/none/rgb(51, 51, 51) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:0px/none/rgb(51, 51, 51)
+       box-shadow=none
+EP-table-td  .el-table td.el-table__cell  found=0 sampled=0  sel=.el-table td.el-table__cell
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-table  .el-table（表格外框）  found=1 sampled=1  sel=.el-table
+   [0] DIV.el-table--fit el-table--striped el-table--border el-table--scrollable-x el-table el-table--layout-fixed is-scrolling-left 1065x419 "订单号客户类型订单状态支付状态金额收货人"
+       边界(无有效边界)=null(null) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+EP-pagination  .el-pagination  found=1 sampled=1  sel=.el-pagination
+   [0] DIV.el-pagination is-background 445x34 "共 0 条20条/页 1 前往页"
+       边界(无有效边界)=null(null) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+EP-card  .el-card  found=0 sampled=0  sel=.el-card
+    ⚠ 本路由未渲染到该控件（未取得读数）
+AI-textarea  AiSidePanel .ai-input-box .el-textarea__inner  found=1 sampled=1  sel=.ai-input-box .el-textarea__inner
+   [0] TEXTAREA.el-textarea__inner 296x61 ""
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(240, 240, 240)(a=1→#F0F0F0) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.14 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=none
+EP-button  .el-button（全体）  found=9 sampled=7  sel=.el-button
+   [0] BUTTON.el-button el-button--small is-circle 24x24 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [1] BUTTON.el-button el-button--primary 84x32 "保存设置"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [2] BUTTON.el-button 58x32 "重置"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [5] BUTTON.el-button el-button--small is-text ai-collapse-btn 34x24 ""
+       边界(无有效边界)=null(null) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/solid/rgba(0, 0, 0, 0) | Right:0px/solid/rgba(0, 0, 0, 0) | Bottom:0px/solid/rgba(0, 0, 0, 0) | Left:0px/solid/rgba(0, 0, 0, 0)
+       box-shadow=none
+   [6] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [7] BUTTON.el-button is-circle ai-image-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [8] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-default  .el-button--default  found=1 sampled=1  sel=.el-button--default
+   [0] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-primary  .el-button--primary  found=4 sampled=2  sel=.el-button--primary
+   [0] BUTTON.el-button el-button--primary 84x32 "保存设置"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [3] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=0 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-input  .el-input__wrapper（通用）  found=7 sampled=7  sel=.el-input__wrapper
+   [0] DIV.el-input__wrapper 368x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [1] DIV.el-input__wrapper 368x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [2] DIV.el-date-editor el-date-editor--timerange el-input__wrapper el-range-editor el-tooltip__trigger el-tooltip__trigger 880x32 "至"
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [3] DIV.el-input__wrapper 197x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [4] DIV.el-input__wrapper 197x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [5] DIV.el-input__wrapper 197x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [6] DIV.el-input__wrapper 197x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+EP-select  .el-select__wrapper  found=0 sampled=0  sel=.el-select__wrapper
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-textarea  .el-textarea__inner（通用）  found=3 sampled=3  sel=.el-textarea__inner
+   [0] TEXTAREA.el-textarea__inner 880x69 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [1] TEXTAREA.el-textarea__inner 880x88 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [2] TEXTAREA.el-textarea__inner 296x61 ""
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(240, 240, 240)(a=1→#F0F0F0) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.14 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=none
+EP-button  .el-button（全体）  found=18 sampled=1  sel=.el-button
+   [0] BUTTON.el-button el-button--small is-circle 24x24 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-default  .el-button--default  found=1 sampled=1  sel=.el-button--default
+   [0] BUTTON.el-button el-button--default is-circle ai-voice-btn 28x28 ""
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-primary  .el-button--primary  found=6 sampled=2  sel=.el-button--primary
+   [4] BUTTON.el-button el-button--primary 58x32 "保存"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [5] DISABLED BUTTON.el-button el-button--primary is-disabled is-circle ai-send-btn 30x30 ""
+       边界(border 边色)=rgba(63, 111, 239, 0.12)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.12)(a=0.12→#E8EEFD) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgba(63, 111, 239, 0.12) vs祖先=4.44 vs自身=3.81 判定=3.81 ≥3:1
+       ★判定值=3.81 ≥3:1 四边读数: Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=1 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-input  .el-input__wrapper（通用）  found=6 sampled=4  sel=.el-input__wrapper
+   [0] DIV.el-input__wrapper 320x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [1] DIV.el-input__wrapper 320x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [2] DIV.el-input__wrapper 320x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+   [3] DIV.el-input__wrapper 320x34 ""
+       边界(inset box-shadow 首色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(136, 136, 136) 0px 0px 0px 1px inset
+EP-select  .el-select__wrapper  found=2 sampled=0  sel=.el-select__wrapper
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-textarea  .el-textarea__inner（通用）  found=1 sampled=1  sel=.el-textarea__inner
+   [0] TEXTAREA.el-textarea__inner 296x61 ""
+       边界(border 边色)=rgb(240, 240, 240)(#F0F0F0) 自身底=rgb(240, 240, 240)(a=1→#F0F0F0) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(240, 240, 240) vs祖先=1.14 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)
+       box-shadow=none
+EP-button  .el-button（全体）  found=3 sampled=3  sel=.el-button
+   [0] BUTTON.el-button scan-button 74x32 "扫码"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [1] BUTTON.el-button el-button--primary search-button 58x32 "搜索"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [2] BUTTON.el-button settings-button 74x32 "设置"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+EP-button-default  .el-button--default  found=0 sampled=0  sel=.el-button--default
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-button-primary  .el-button--primary  found=1 sampled=1  sel=.el-button--primary
+   [0] BUTTON.el-button el-button--primary search-button 58x32 "搜索"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=0 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+CS-product-search  Cashier .product-search-input .el-input__wrapper  found=1 sampled=1  sel=.product-search-input .el-input__wrapper
+   [0] DIV.el-input__wrapper 583x34 ""
+       边界(inset box-shadow 首色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(226, 226, 226) 0px 0px 0px 1px inset
+CS-qty-btn  Cashier .qty-btn  found=2 sampled=2  sel=.qty-btn
+   [0] BUTTON.qty-btn 22x22 "−"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [1] BUTTON.qty-btn 22x22 "+"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+CS-cart-summary  Cashier .cart-summary（虚线分隔线引用点 2148）  found=1 sampled=1  sel=.cart-summary
+   [0] DIV.cart-summary 404x64 "商品件数1 件应收金额¥129.00"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/dashed/rgb(226, 226, 226) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+EP-button  .el-button（全体）  found=6 sampled=6  sel=.el-button
+   [0] BUTTON.el-button scan-button 74x32 "扫码"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [1] BUTTON.el-button el-button--primary search-button 58x32 "搜索"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [2] BUTTON.el-button settings-button 74x32 "设置"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [3] BUTTON.el-button el-button--success 84x32 "扫码收款"
+       边界(border 边色)=rgb(14, 168, 121)(#0EA879) 自身底=rgb(14, 168, 121)(a=1→#0EA879) 祖先底=rgb(248, 248, 248)
+         · border 边色 rgb(14, 168, 121) vs祖先=2.87 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(14, 168, 121) | Right:1px/solid/rgb(14, 168, 121) | Bottom:1px/solid/rgb(14, 168, 121) | Left:1px/solid/rgb(14, 168, 121)
+       box-shadow=none
+   [4] BUTTON.el-button 58x32 "取消"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [5] BUTTON.el-button el-button--primary el-button--large 92x40 "确认收款"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-default  .el-button--default  found=0 sampled=0  sel=.el-button--default
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-button-primary  .el-button--primary  found=2 sampled=2  sel=.el-button--primary
+   [0] BUTTON.el-button el-button--primary search-button 58x32 "搜索"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [1] BUTTON.el-button el-button--primary el-button--large 92x40 "确认收款"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=0 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+CS-product-search  Cashier .product-search-input .el-input__wrapper  found=1 sampled=1  sel=.product-search-input .el-input__wrapper
+   [0] DIV.el-input__wrapper 583x34 ""
+       边界(inset box-shadow 首色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(226, 226, 226) 0px 0px 0px 1px inset
+CS-pay-code  Cashier .pay-code-input .el-input__wrapper  found=1 sampled=1  sel=.pay-code-input .el-input__wrapper
+   [0] DIV.el-input__wrapper 458x34 ""
+       边界(inset box-shadow 首色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(248, 248, 248)
+         · inset box-shadow 首色 rgb(226, 226, 226) vs祖先=1.22 vs自身=1.3 判定=1.22 <3:1
+       ★判定值=1.22 <3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(226, 226, 226) 0px 0px 0px 1px inset
+CS-qty-btn  Cashier .qty-btn  found=2 sampled=2  sel=.qty-btn
+   [0] BUTTON.qty-btn 22x22 "−"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [1] BUTTON.qty-btn 22x22 "+"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+CS-numpad-key  Cashier .numpad-key  found=14 sampled=10  sel=.numpad-key
+   [0] BUTTON.numpad-key 188x44 "1"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [1] BUTTON.numpad-key 188x44 "2"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [2] BUTTON.numpad-key 188x44 "3"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [3] BUTTON.numpad-key 188x44 "4"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [4] BUTTON.numpad-key 188x44 "5"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [5] BUTTON.numpad-key 188x44 "6"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [6] BUTTON.numpad-key 188x44 "7"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [7] BUTTON.numpad-key 188x44 "8"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [8] BUTTON.numpad-key 188x44 "9"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [9] BUTTON.numpad-key 188x44 "."
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+CS-pay-method-btn  Cashier .pay-method-btn（未选中态）  found=3 sampled=3  sel=.pay-method-btn:not(.active)
+   [0] BUTTON.pay-method-btn 97x61 "微信"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [1] BUTTON.pay-method-btn 97x61 "支付宝"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [2] BUTTON.pay-method-btn 97x61 "余额"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+CS-pay-method-btn-active  Cashier .pay-method-btn.active（选中态）  found=1 sampled=1  sel=.pay-method-btn.active
+   [0] BUTTON.pay-method-btn active 97x61 "¥现金"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.06)(a=0.06→#F3F6FE) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=4.12 判定=4.12 ≥3:1
+       ★判定值=4.12 ≥3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=none
+CS-pay-method-card  Cashier .pay-method-card（未选中态）  found=3 sampled=3  sel=.pay-method-card:not(.active)
+   [0] BUTTON.pay-method-card 138x70 "微信"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [1] BUTTON.pay-method-card 138x70 "支付宝"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [2] BUTTON.pay-method-card 138x70 "余额"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+CS-pay-method-card-active  Cashier .pay-method-card.active（选中态）  found=1 sampled=1  sel=.pay-method-card.active
+   [0] BUTTON.pay-method-card active 138x70 "¥现金"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgba(63, 111, 239, 0.06)(a=0.06→#F3F6FE) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=4.12 判定=4.12 ≥3:1
+       ★判定值=4.12 ≥3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=none
+CS-cart-summary  Cashier .cart-summary（虚线分隔线引用点 2148）  found=1 sampled=1  sel=.cart-summary
+   [0] DIV.cart-summary 404x64 "商品件数1 件应收金额¥129.00"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/dashed/rgb(226, 226, 226) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+EP-button  .el-button（全体）  found=6 sampled=6  sel=.el-button
+   [0] BUTTON.el-button scan-button 74x32 "扫码"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [1] BUTTON.el-button el-button--primary search-button 58x32 "搜索"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [2] BUTTON.el-button settings-button 74x32 "设置"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [3] BUTTON.el-button el-button--success 84x32 "扫码收款"
+       边界(border 边色)=rgb(14, 168, 121)(#0EA879) 自身底=rgb(14, 168, 121)(a=1→#0EA879) 祖先底=rgb(248, 248, 248)
+         · border 边色 rgb(14, 168, 121) vs祖先=2.87 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(14, 168, 121) | Right:1px/solid/rgb(14, 168, 121) | Bottom:1px/solid/rgb(14, 168, 121) | Left:1px/solid/rgb(14, 168, 121)
+       box-shadow=none
+   [4] BUTTON.el-button 58x32 "取消"
+       边界(border 边色)=rgb(136, 136, 136)(#888888) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(136, 136, 136) vs祖先=3.54 vs自身=3.54 判定=3.54 ≥3:1
+       ★判定值=3.54 ≥3:1 四边读数: Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)
+       box-shadow=none
+   [5] BUTTON.el-button el-button--primary el-button--large 92x40 "确认收款"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-default  .el-button--default  found=0 sampled=0  sel=.el-button--default
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-button-primary  .el-button--primary  found=2 sampled=2  sel=.el-button--primary
+   [0] BUTTON.el-button el-button--primary search-button 58x32 "搜索"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+   [1] BUTTON.el-button el-button--primary el-button--large 92x40 "确认收款"
+       边界(border 边色)=rgb(63, 111, 239)(#3F6FEF) 自身底=rgb(63, 111, 239)(a=1→#3F6FEF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(63, 111, 239) vs祖先=4.44 vs自身=1 判定=1 <3:1
+       ★判定值=1 <3:1 四边读数: Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)
+       box-shadow=rgba(47, 91, 214, 0.18) 0px 2px 6px 0px
+EP-button-danger  .el-button--danger  found=0 sampled=0  sel=.el-button--danger
+    ⚠ 本路由未渲染到该控件（未取得读数）
+EP-dialog  .el-dialog（追溯码弹窗）  found=1 sampled=1  sel=.el-dialog
+   [0] DIV.el-dialog is-align-center pay-dialog 680x863 "收款结算应收金额¥129.001 件商品"
+       边界(无有效边界)=null(null) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(242, 245, 252)
+         · 无有效边界 null vs祖先=null vs自身=null 判定=null <3:1
+       ★判定值=null 无法判定（无有效边界/背景） 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgba(16, 24, 40, 0.18) 0px 24px 48px -12px, rgba(16, 24, 40, 0.1) 0px 8px 16px -8px
+CS-product-search  Cashier .product-search-input .el-input__wrapper  found=1 sampled=1  sel=.product-search-input .el-input__wrapper
+   [0] DIV.el-input__wrapper 583x34 ""
+       边界(inset box-shadow 首色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · inset box-shadow 首色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=rgb(226, 226, 226) 0px 0px 0px 1px inset
+CS-pay-code  Cashier .pay-code-input .el-input__wrapper  found=1 sampled=1  sel=.pay-code-input .el-input__wrapper
+   [0] DIV.el-input__wrapper 458x34 ""
+       边界(inset box-shadow 首色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(248, 248, 248)
+         · inset box-shadow 首色 rgb(226, 226, 226) vs祖先=1.22 vs自身=1.3 判定=1.22 <3:1
+       ★判定值=1.22 <3:1 四边读数: Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)
+       box-shadow=rgb(226, 226, 226) 0px 0px 0px 1px inset
+CS-trace-code  Cashier .trace-code-input .el-input__wrapper  found=0 sampled=0  sel=.trace-code-input .el-input__wrapper
+    ⚠ 本路由未渲染到该控件（未取得读数）
+CS-qty-btn  Cashier .qty-btn  found=2 sampled=2  sel=.qty-btn
+   [0] BUTTON.qty-btn 22x22 "−"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+   [1] BUTTON.qty-btn 22x22 "+"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgb(255, 255, 255)(a=1→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)
+       box-shadow=none
+CS-cart-summary  Cashier .cart-summary（虚线分隔线引用点 2148）  found=1 sampled=1  sel=.cart-summary
+   [0] DIV.cart-summary 404x64 "商品件数1 件应收金额¥129.00"
+       边界(border 边色)=rgb(226, 226, 226)(#E2E2E2) 自身底=rgba(0, 0, 0, 0)(a=0→#FFFFFF) 祖先底=rgb(255, 255, 255)
+         · border 边色 rgb(226, 226, 226) vs祖先=1.3 vs自身=1.3 判定=1.3 <3:1
+       ★判定值=1.3 <3:1 四边读数: Top:1px/dashed/rgb(226, 226, 226) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)
+       box-shadow=none
+
+【哨兵轮：把候选变量写为 #010203 后，各目标边界色集合的变化】
+
+◆ --border-normal（基线值=#E2E2E2）：变化 9 项 / 未变化 13 项（已渲染）
+   EP-button .el-button（全体）: ["rgb(136, 136, 136)","rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(136, 136, 136)","rgb(14, 168, 121)","rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-button-primary .el-button--primary: ["rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   CS-product-search Cashier .product-search-input .el-input__wrapper: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   CS-pay-code Cashier .pay-code-input .el-input__wrapper: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   CS-qty-btn Cashier .qty-btn: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   CS-numpad-key Cashier .numpad-key: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   CS-pay-method-btn Cashier .pay-method-btn（未选中态）: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   CS-pay-method-card Cashier .pay-method-card（未选中态）: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   CS-cart-summary Cashier .cart-summary（虚线分隔线引用点 2148）: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   未受影响（已渲染）：EP-button-default, EP-input, EP-select, EP-textarea, EP-table-th, EP-table-td, EP-table, EP-pagination, EP-card, EP-dialog, AI-textarea, CS-pay-method-btn-active, CS-pay-method-card-active
+
+◆ --border-light（基线值=#F0F0F0）：变化 5 项 / 未变化 17 项（已渲染）
+   EP-button .el-button（全体）: ["rgb(136, 136, 136)","rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(136, 136, 136)","rgb(14, 168, 121)","rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-button-primary .el-button--primary: ["rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-textarea .el-textarea__inner（通用）: ["rgb(136, 136, 136)","rgb(240, 240, 240)"] → ["rgb(1, 2, 3)","rgb(136, 136, 136)"]  ★变为哨兵色 rgb(1, 2, 3)
+   EP-card .el-card: ["rgb(240, 240, 240)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   AI-textarea AiSidePanel .ai-input-box .el-textarea__inner: ["rgb(240, 240, 240)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   未受影响（已渲染）：EP-button-default, EP-input, EP-select, EP-table-th, EP-table-td, EP-table, EP-pagination, EP-dialog, CS-product-search, CS-pay-code, CS-qty-btn, CS-numpad-key, CS-pay-method-btn, CS-pay-method-btn-active, CS-pay-method-card, CS-pay-method-card-active, CS-cart-summary
+
+◆ --table-border（基线值=#E2E2E2）：变化 4 项 / 未变化 18 项（已渲染）
+   EP-button .el-button（全体）: ["rgb(136, 136, 136)","rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(136, 136, 136)","rgb(14, 168, 121)","rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-button-primary .el-button--primary: ["rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-table-th .el-table th.el-table__cell: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   EP-table-td .el-table td.el-table__cell: ["rgb(226, 226, 226)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   未受影响（已渲染）：EP-button-default, EP-input, EP-select, EP-textarea, EP-table, EP-pagination, EP-card, EP-dialog, AI-textarea, CS-product-search, CS-pay-code, CS-qty-btn, CS-numpad-key, CS-pay-method-btn, CS-pay-method-btn-active, CS-pay-method-card, CS-pay-method-card-active, CS-cart-summary
+
+◆ --el-border-color（基线值=#888888）：变化 6 项 / 未变化 16 项（已渲染）
+   EP-button .el-button（全体）: ["rgb(136, 136, 136)","rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(11, 12, 13)","rgb(14, 168, 121)","rgb(2, 3, 4)","rgb(21, 22, 23)","rgb(5, 6, 7)","rgb(58, 59, 59)","rgb(63, 111, 239)","rgb(89, 89, 90)","rgb(89, 90, 90)","rgb(90, 90, 90)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-button-default .el-button--default: ["rgb(136, 136, 136)"] → ["rgb(21, 22, 23)","rgb(58, 59, 59)","rgb(89, 89, 90)","rgb(89, 90, 90)","rgb(90, 90, 90)"]  （变了但不是哨兵色）
+   EP-button-primary .el-button--primary: ["rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-input .el-input__wrapper（通用）: ["rgb(136, 136, 136)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   EP-select .el-select__wrapper: ["rgb(136, 136, 136)"] → ["rgb(1, 2, 3)"]  ★变为哨兵色 rgb(1, 2, 3)
+   EP-textarea .el-textarea__inner（通用）: ["rgb(136, 136, 136)","rgb(240, 240, 240)"] → ["rgb(1, 2, 3)","rgb(240, 240, 240)"]  ★变为哨兵色 rgb(1, 2, 3)
+   未受影响（已渲染）：EP-table-th, EP-table-td, EP-table, EP-pagination, EP-card, EP-dialog, AI-textarea, CS-product-search, CS-pay-code, CS-qty-btn, CS-numpad-key, CS-pay-method-btn, CS-pay-method-btn-active, CS-pay-method-card, CS-pay-method-card-active, CS-cart-summary
+
+◆ --el-table-border-color（基线值=#E2E2E2）：变化 2 项 / 未变化 20 项（已渲染）
+   EP-button .el-button（全体）: ["rgb(136, 136, 136)","rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(136, 136, 136)","rgb(14, 168, 121)","rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-button-primary .el-button--primary: ["rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   未受影响（已渲染）：EP-button-default, EP-input, EP-select, EP-textarea, EP-table-th, EP-table-td, EP-table, EP-pagination, EP-card, EP-dialog, AI-textarea, CS-product-search, CS-pay-code, CS-qty-btn, CS-numpad-key, CS-pay-method-btn, CS-pay-method-btn-active, CS-pay-method-card, CS-pay-method-card-active, CS-cart-summary
+
+◆ --input-border（基线值=#888888）：变化 2 项 / 未变化 20 项（已渲染）
+   EP-button .el-button（全体）: ["rgb(136, 136, 136)","rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(136, 136, 136)","rgb(14, 168, 121)","rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   EP-button-primary .el-button--primary: ["rgb(63, 111, 239)","rgba(63, 111, 239, 0.12)"] → ["rgb(63, 111, 239)","rgba(0, 0, 0, 0)","rgba(63, 111, 239, 0.12)"]  （变了但不是哨兵色）
+   未受影响（已渲染）：EP-button-default, EP-input, EP-select, EP-textarea, EP-table-th, EP-table-td, EP-table, EP-pagination, EP-card, EP-dialog, AI-textarea, CS-product-search, CS-pay-code, CS-qty-btn, CS-numpad-key, CS-pay-method-btn, CS-pay-method-btn-active, CS-pay-method-card, CS-pay-method-card-active, CS-cart-summary
