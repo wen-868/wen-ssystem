@@ -119,7 +119,8 @@
           <div class="mt8">
             <!-- 时间线接口未接入：恒为空数组 → 空态，不虚构任何对话内容/处理人 -->
             <div v-if="!timeline.length" class="empty tl-empty">
-              暂无对话记录 · 待接入 GET /platform/support/tickets/{id}/timeline
+              <!-- ③-b #55：去掉端点路径字样（前端不充当契约文档），补立项编号 -->
+              暂无对话记录（工单时间线待立项 S3-92）
             </div>
             <div v-for="item in timeline" :key="item.id" class="tl-row">
               <span class="ava" :class="item.avaTone">{{ item.avatarText }}</span>
@@ -256,7 +257,8 @@ const timeline = ref<TimelineItem[]>([])
 
 /** 接口未接入的诚实提示：不模拟任何成功结果 */
 function notReady(action: string, method: string, path: string) {
-  ElMessage.info(`${action}：待接入 ${method} ${path}`)
+  // ③-b #59：整域未实现，"待接入"是诚实的；补 S3-92 标识，避免被误认为短期可交付
+  ElMessage.info(`${action}：待接入 ${method} ${path}（工单域待立项 S3-92，本批不实现）`)
 }
 
 function openDetail(card: TicketCard) {
@@ -432,7 +434,8 @@ onMounted(load)
   gap: var(--space-2);
 }
 
-/* 接口未接入 → 按钮置灰禁用（仍可点击，仅给出待接入提示） */
+/* 接口未接入 → 按钮置灰禁用（仍可点击，仅给出待接入提示）
+   ③-b #61：占位态，S3-92 工单域落地后移除 */
 .zx-scope .btn.is-off {
   color: var(--g4);
   background: var(--g0);

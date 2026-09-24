@@ -1,0 +1,28 @@
+# C6-1B 凌舟独立复跑（2026-09-25）——执行方沙箱跑不了的两道门禁
+# 环境：2026-09-25T05:53:34
+
+## 1) npx vite build（CI 口径 npm --workspace saas-admin run build）
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 25.07s
+build exit=0
+
+## 2) node scripts/check-api-paths.mjs
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+[90m  前端调用点 81（去重 77）· 后端注册路由 1423[0m
+[90m  豁免清单 1 条（命中 1 条）[0m
+
+[32mPASS 未发现「前端有、后端无」的路径 / 方法[0m
+
+[90m已豁免（已知未立项项）：1 条[0m
+[90m  - POST /platform/tenants/{p}/audit  新发现（同类缺陷）：auditTenantApi 打 POST /platform/tenants/:id/audit，后端 platform-tenant.routes.ts 无该路由（实质 404），且全仓 0 调用点。属 D1/D2 同类问题，但文件不在 C6-1B 的 29 条清单内 ⇒ 未自行修改，已在回传卡申请另派或授权。[0m
+script exit=0
+
+## 3) D2 扩围证据核对：被删函数仅剩注释（无调用/定义）
+saas-admin/src\api\library.ts:231:// D2 同类清理（零调用点且后端无对应方法）：原 getBrandApi(id) 打 `GET /platform/library/brands/{id}`，
+saas-admin/src\api\library.ts:232:// 但后端该路径只注册了 PUT/DELETE（无 GET）⇒ 调用即 404；`rg -n 'getBrandApi' saas-admin/src` 仅命中定义处，已删除。
+saas-admin/src\api\library.ts:270:// D2 同类清理（零调用点且后端无对应方法）：原 getApiKeyApi(id) 打 `GET /platform/library/api-keys/{id}`，
+
+## 4) 反测探针已移除（应零命中）
+rg 'definitely-not-exist' saas-admin/src → 零命中 ✅

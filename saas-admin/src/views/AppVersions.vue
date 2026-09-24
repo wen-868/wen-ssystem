@@ -355,12 +355,12 @@ function closeWizard() {
   wizardVisible.value = false;
 }
 function handleSwitchPanel() {
-  // TODO: 待接入功能开关面板接口（建议 GET /padmin/feature-switches）
-  ElMessage.info("功能开关面板：待接入功能开关接口");
+  // ③-b #33：功能开关/灰度矩阵需新表（R101-C6-2 立项清单 T8），禁止改用 t_platform_config 键值（裁定 R8）
+  ElMessage.warning("功能开关面板：待立项（T8 功能开关/灰度矩阵建表后接入）");
 }
 async function saveDraft() {
-  // TODO: 待接入发布草稿保存接口（建议 POST /padmin/app-versions/draft）
-  ElMessage.info("存为草稿：待接入发布草稿接口");
+  // ③-b #35：草稿保存依赖 C2 加列（t_app_version.status，属 C6-1A ② 类；未落地前不假装成功）
+  ElMessage.warning("存为草稿：待 C2 加列后接入（当前不保存草稿）");
   closeWizard();
 }
 async function confirmPublish() {
@@ -396,11 +396,17 @@ function onRowAction(key: string, row: any) {
     case "pause":
     case "resume":
     case "archive":
-      // TODO: 待接入对应操作接口（建议 POST /padmin/app-versions/:id/{action}）
-      ElMessage.info(`「${labelOf(key)}」：待接入版本操作接口`);
+      // ③-b #37（逐 action 分口径）：health 待裁定不做（R5①）；announce 复用公告端点需产品定义
+      // 公告标题/正文与 type 取值，本卡不自拟业务文案；pause/resume/archive 依赖 C2 加列（status/gray_ratio/archived_at）
+      ElMessage.warning(
+        key === "health"
+          ? "「健康看板」：跨模块口径未定，本批不做（R5①）"
+          : `「${labelOf(key)}」：待 C2 加列 / 公告口径确认后接入（当前不执行任何变更）`,
+      );
       break;
     default:
-      ElMessage.info("待接入版本操作接口");
+      // ③-b #38：兜底文案
+      ElMessage.warning("该操作待立项（当前不执行任何变更）");
   }
 }
 function labelOf(key: string) {
@@ -423,8 +429,9 @@ async function handleRollback(row: any) {
     return;
   }
   try {
-    // TODO: 待接入回滚接口（建议 POST /padmin/app-versions/:id/rollback）
-    ElMessage.info("回滚：待接入回滚接口");
+    // ③-b #40：回滚端点属 C6-1A ② 类（零 DDL，未落地前不假装成功）
+    // 回滚口径已由 R5② 定为"上一个已发布版本（status=PUBLISHED 且 version_code 更小者）"
+    ElMessage.warning("回滚：待后端回滚接口（C6-1A #39）落地后接入（当前不执行任何变更）");
   } catch {
     /* noop */
   }

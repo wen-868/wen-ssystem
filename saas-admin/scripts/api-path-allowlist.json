@@ -1,0 +1,16 @@
+{
+  "$comment": [
+    "R101-C6-1B 路径比对豁免清单：仅登记「前端有、后端无」但**已被凌舟裁定为待立项/待后端落地**的条目。",
+    "每条必须写清 reason 与归属卡（owner），禁止用豁免掩盖真缺陷（D1 类）。",
+    "新增豁免前先确认：该路径在后端**确实没有**注册，且已有立项/裁定依据。"
+  ],
+  "entries": [
+    {
+      "method": "POST",
+      "path": "/platform/tenants/{p}/audit",
+      "file": "saas-admin/src/api/tenant.ts:93",
+      "owner": "本卡外（R101-C6-1B 未覆盖 saas-admin/src/api/tenant.ts）",
+      "reason": "新发现（同类缺陷）：auditTenantApi 打 POST /platform/tenants/:id/audit，后端 platform-tenant.routes.ts 无该路由（实质 404），且全仓 0 调用点。属 D1/D2 同类问题，但文件不在 C6-1B 的 29 条清单内 ⇒ 未自行修改，已在回传卡申请另派或授权。"
+    }
+  ]
+}

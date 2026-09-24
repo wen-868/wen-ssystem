@@ -8,11 +8,19 @@
         <p class="pd">渠道归属：渠道码与邀请码同时出现按「后触点优先」归因 · 注册后 24h 内可申诉改绑 · 反刷风控自动拦截关联单</p>
       </div>
       <div class="pg-act">
+        <!-- R7：渠道报表并入本页「渠道效果」子 Tab，不新增独立页面/路由/菜单 -->
         <span class="btn" @click="openReport">渠道效果报表</span>
         <span class="btn btn-p" @click="openCreateDialog">+ 生成推广码</span>
       </div>
     </div>
 
+    <!-- 子 Tab（R7 裁定：渠道报表并入本页，不新增独立页面/路由/菜单） -->
+    <div class="tabs">
+      <span class="tab" :class="{ on: activeTab === 'promo' }" @click="activeTab = 'promo'">推广码与台账</span>
+      <span class="tab" :class="{ on: activeTab === 'report' }" @click="activeTab = 'report'">渠道效果</span>
+    </div>
+
+    <template v-if="activeTab === 'promo'">
     <!-- ② 推广码列表 -->
     <div class="panel">
       <div class="p-hd">
@@ -46,7 +54,6 @@
         </table>
       </div>
     </div>
-
     <!-- ③ 老带新台账 -->
     <div class="panel mt12">
       <div class="p-hd">
@@ -97,6 +104,24 @@
         </span>
       </div>
     </div>
+    </template>
+
+    <!-- ③ 渠道效果（R7：并入子 Tab；数据源待立项 T11） -->
+    <template v-else>
+      <div class="panel">
+        <div class="p-hd">
+          <span class="pt">渠道效果报表</span>
+          <span class="ph-s">并入本页子 Tab（裁定 R7）· 不新增独立页面/路由/菜单</span>
+        </div>
+        <div class="p-bd">
+          <div class="empty">暂无渠道效果数据（渠道推广码 / 老带新台账数据模型待立项 T11）</div>
+          <p class="small mt8" style="color:var(--g5)">
+            报表口径（注册→付费转化漏斗 / 渠道佣金月结 / 有效期分布）需产品确认，见
+            <b>R101-C6-2 立项清单 T11</b>；本 Tab 不展示任何本地推算或示例数值。
+          </p>
+        </div>
+      </div>
+    </template>
 
     <!-- ⑥ 「生成推广码」弹窗（Element Plus 弹窗，内部用设计稿组件类，包一层 .zx-scope 启用样式） -->
     <el-dialog v-model="dialogVisible" title="生成推广码" width="var(--modal-width-sm)" :close-on-click-modal="false">
@@ -162,6 +187,8 @@ const promoCodes = ref<any[]>([]);
 const referralLedger = ref<any[]>([]);
 
 const searchKeyword = ref("");
+/** R7：本页子 Tab（promo = 推广码与台账 / report = 渠道效果报表，并入本页，不新增独立路由） */
+const activeTab = ref<"promo" | "report">("promo");
 
 const dialogVisible = ref(false);
 const saving = ref(false);
@@ -195,8 +222,9 @@ async function fetchReferralLedger() {
 }
 
 function openReport() {
-  // TODO: 待接入 渠道效果报表页 /platform/marketing/channel-report
-  ElMessage.info("渠道效果报表：接口待接入");
+  // ③-b #68 + 裁定 R7：不再指向独立报表页 `/platform/marketing/channel-report`，
+  // 改为切到本页「渠道效果」子 Tab（数据源待立项 T11，子 Tab 内为诚实空态）
+  activeTab.value = "report";
 }
 
 function openCreateDialog() {
@@ -218,9 +246,9 @@ async function handleGenerate() {
   }
   saving.value = true;
   try {
-    ElMessage.success("推广码已生成（演示）");
+    // 禁"假成功"（同 ③-a #46 口径）：POST /platform/marketing/promo-codes 属 T11 立项项（无表）⇒ 失败可见
+    ElMessage.warning("推广码生成接口尚未接入，未生成（待立项 T11：t_promo_code 建表后接入）");
     dialogVisible.value = false;
-    fetchPromoCodes();
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || "生成失败");
   } finally {
