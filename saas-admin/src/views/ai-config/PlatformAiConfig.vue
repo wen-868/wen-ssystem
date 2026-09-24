@@ -2,8 +2,8 @@
   <!-- ═══════════════════════════════════════════════════════════════
        05 AI 中心 · 模型接入（设计稿 v1.6 #sec-ai · 行 899~963，Tab ① 模型接入）
        根节点直接是内容片段，外层由 PlatformLayout 的 <main class="pf-main"> 包裹。
-       平台公共模型：设计稿示例（GLM-4-Plus / Qwen-Max / DeepSeek-V3）= 示例模型，严禁硬编码，
-       以空数组 + 空态渲染；接入逻辑以 TODO 占位。
+       平台公共模型：列表真源 = GET /api/platform/ai/public-models（C5-1 提供）；无数据即空态，
+       不硬编码任何示例模型；平台侧新增/编辑公共模型无接口 ⇒ 不提供入口（R101-C5-2 处置：移除无效入口）。
        租户自定义模型：复用现有外部模型 API（api/ai-config.listExternalModels 等）。
        ═══════════════════════════════════════════════════════════════ -->
   <div class="ai-model-access">
@@ -14,9 +14,6 @@
         <p class="pd">
           平台级密钥加密托管 · 租户永不接触模型密钥 · 请求统一经 AI 网关转发 · 免费版赠送额度仅可用于本区模型
         </p>
-      </div>
-      <div class="pg-act">
-        <span class="btn btn-p" @click="todo('接入新模型')">+ 接入新模型</span>
       </div>
     </div>
 
@@ -50,20 +47,17 @@
                 <em>{{ m.outputPrice }}</em>
               </div>
               <p class="model-foot">
-                今日调用 {{ m.todayCalls }} 次 · 成本 {{ m.todayCost }}
-                <span class="lk fr" @click="todo('编辑模型 ' + m.name)">编辑 ›</span>
+                今日调用 {{ m.todayCalls }} · 成本 {{ m.todayCost }}
               </p>
             </div>
           </div>
-          <div class="panel flush dashed add-card">
-            <div class="center">
-              <span class="add-ic">+</span>
-              <b class="rule-title">接入新模型</b>
-              <p class="small mt6">文本对话 / Embedding / 视觉理解<br />登记厂商·密钥·单价·限流并发</p>
-            </div>
-          </div>
         </div>
-        <div class="empty" v-else>暂无平台公共模型配置，点击右上角「+ 接入新模型」登记厂商与单价</div>
+        <div class="empty" v-else-if="publicModelsLoading">平台公共模型加载中…</div>
+        <div class="empty" v-else-if="publicModelsError">
+          平台公共模型加载失败：{{ publicModelsError }}
+          <span class="lk" @click="loadPublicModels">重试</span>
+        </div>
+        <div class="empty" v-else>暂无平台公共模型数据</div>
       </div>
     </div>
 
@@ -156,7 +150,9 @@
         </span>
         <span class="gate-action">
           <span class="small">解锁自定义模型能力 →</span>
-          <span class="btn btn-p" @click="todo('升级解锁')">升级解锁</span>
+          <!-- 本块是「免费版租户访问时」的付费墙示意：平台侧无升级/解锁接口 ⇒ 点击给出具名原因，
+               不做「看着能点、点了没反应」的静默无效入口（R101-C5-2 处置） -->
+          <span class="btn btn-p" @click="notSupported('升级解锁', '平台侧无升级/解锁接口，升级在租户侧套餐升级完成，本页不发起')">升级解锁</span>
         </span>
       </div>
     </div>
@@ -223,6 +219,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getPlatformAiPublicModels } from '../../api'
 import {
   listExternalModels,
   listExternalModelOptions,
@@ -235,8 +232,7 @@ import {
   type ExternalModelPayload,
 } from '../../api/ai-config'
 
-/** 平台公共模型（设计稿示例值请勿硬编码 → 以空数组 + 空态渲染） */
-// TODO: 待接入 GET /platform/ai/public-models —— 平台公共模型列表（含厂商 / 场景 / 输入 / 输出单价 / 今日调用）
+/** 平台公共模型：真源 = GET /api/platform/ai/public-models（C5-1 提供；无数据即空态，不硬编码示例值） */
 interface PublicModel {
   id: number
   name: string
@@ -250,6 +246,87 @@ interface PublicModel {
   todayCost: string
 }
 const publicModels = ref<PublicModel[]>([])
+const publicModelsLoading = ref(false)
+const publicModelsError = ref<string | null>(null)
+
+/** 解包：api 实例成功时原样返回 AxiosResponse ⇒ 取 res.data.data（与 AiBillingConfig 同口径） */
+function payloadOf(res: any): any {
+  if (res == null) return null
+  if (res.data != null && res.data.data != null) return res.data.data
+  if (res.data != null) return res.data
+  return res
+}
+/**
+ * 兼容读取字段：C5-1 的 JSON 字段名尚未冻结进 docs/API接口文档.md ⇒ 同时接受 camelCase / snake_case，
+ * 取不到返回 null（渲染为「—」），绝不造值（零假数据）。
+ */
+function pick(row: any, keys: string[]): any {
+  for (const k of keys) {
+    const v = row?.[k]
+    if (v !== undefined && v !== null && v !== '') return v
+  }
+  return null
+}
+/** 无值一律「—」 */
+function textOr(v: any): string {
+  return v === undefined || v === null || v === '' ? '—' : String(v)
+}
+/** 金额/计数：无值一律「—」（不得补 0） */
+function numOr(v: any): number | null {
+  if (v === undefined || v === null || v === '') return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
+}
+function fmtNum(v: any): string {
+  const n = numOr(v)
+  return n == null ? '—' : n.toLocaleString()
+}
+function fmtMoney(v: any): string {
+  const n = numOr(v)
+  return n == null ? '—' : '¥' + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })
+}
+/** 单价：带单位则附单位，无值「—」 */
+function fmtPrice(v: any, unit: any): string {
+  const n = numOr(v)
+  if (n == null) return '—'
+  const u = textOr(unit)
+  return n.toLocaleString(undefined, { maximumFractionDigits: 4 }) + (u === '—' ? '' : ' ' + u)
+}
+
+async function loadPublicModels() {
+  publicModelsLoading.value = true
+  publicModelsError.value = null
+  try {
+    const res: any = await getPlatformAiPublicModels()
+    const d = payloadOf(res)
+    const rows: any[] = Array.isArray(d) ? d : d?.records ?? d?.list ?? []
+    publicModels.value = rows.map((r, i) => {
+      const status = textOr(pick(r, ['statusText', 'status']))
+      const unit = pick(r, ['priceUnit', 'price_unit', 'unit'])
+      return {
+        id: numOr(pick(r, ['id', 'modelId', 'model_id'])) ?? i + 1,
+        name: textOr(pick(r, ['name', 'modelName', 'model_name', 'displayName', 'display_name'])),
+        vendor: textOr(pick(r, ['vendor', 'vendorName', 'vendor_name', 'provider', 'providerName'])),
+        scene: textOr(pick(r, ['scene', 'sceneName', 'scene_name', 'usageScene'])),
+        inputPrice: fmtPrice(pick(r, ['inputPrice', 'input_price', 'priceIn', 'price_in']), unit),
+        outputPrice: fmtPrice(pick(r, ['outputPrice', 'output_price', 'priceOut', 'price_out']), unit),
+        statusText: status,
+        statusClass: 'tag-b',
+        todayCalls: (() => {
+          const n = numOr(pick(r, ['todayCalls', 'today_calls', 'callsToday']))
+          return n == null ? '—' : n.toLocaleString() + ' 次'
+        })(),
+        todayCost: fmtMoney(pick(r, ['todayCost', 'today_cost', 'costToday'])),
+      }
+    })
+  } catch (e: any) {
+    // 失败态必须显式（原实现只靠请求拦截器提示、页面与空数据不可辨）
+    publicModels.value = []
+    publicModelsError.value = e?.message ? String(e.message) : '请求失败'
+  } finally {
+    publicModelsLoading.value = false
+  }
+}
 
 /** 租户自定义模型：复用现有外部模型 API（api/ai-config.listExternalModels） */
 interface CustomModelView extends ExternalModelView {
@@ -274,8 +351,12 @@ async function loadCustomModels() {
   }
 }
 
-function todo(msg: string) {
-  ElMessage.info(`${msg}（接口待接入）`)
+/**
+ * 本批「不做」的页内动作：后端无该接口（不得前端造状态冒充）。
+ * 具名原因逐条写清（口径同 Reconciliation.vue 的 notSupported）。
+ */
+function notSupported(label: string, reason: string) {
+  ElMessage.warning(`${label}暂不可用：${reason}`)
 }
 
 /* ───────────── 登记 / 编辑弹窗（复用外部模型 CRUD API） ───────────── */
@@ -388,7 +469,11 @@ async function removeModel(row: CustomModelView) {
   }
 }
 
-onMounted(loadCustomModels)
+onMounted(() => {
+  // 平台公共模型真源：GET /api/platform/ai/public-models（C5-1 提供）
+  loadPublicModels()
+  loadCustomModels()
+})
 </script>
 
 <style scoped>

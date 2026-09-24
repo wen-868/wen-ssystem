@@ -15,7 +15,7 @@
         </p>
       </div>
       <div class="pg-act">
-        <span class="btn" @click="todo('计费策略快照')">配置快照</span>
+        <span class="btn" @click="notSupported('配置快照', UNSUPPORTED.BILLING_SNAPSHOT)">配置快照</span>
       </div>
     </div>
 
@@ -138,7 +138,10 @@
                       </tbody>
                     </table>
                   </div>
-                  <div class="empty" v-if="tenantBillings.length === 0">暂无租户计费套餐 · 待接入 GET /platform/ai/billing（ai-base）</div>
+                  <!-- 空态只说明「表无数据」：该表格数据源早已接线（listAiBillings → AI 网关既有计费套餐接口）；
+                       原文案称接口尚未接入并给出不存在的 /platform/ai/billing（ai-base）路径，与事实不符
+                       （R101-C5-2 处置：改产品化文案，不动后端） -->
+                  <div class="empty" v-if="tenantBillings.length === 0">暂无租户计费套餐数据</div>
                 </div>
               </div>
             </div>
@@ -414,7 +417,7 @@
               <div class="frow">
                 <span class="sel">租户：全部 <span class="caret">▾</span></span>
                 <span class="sel">套餐版本：全部 <span class="caret">▾</span></span>
-                <span class="btn" @click="todo('导出抵扣流水')">导出</span>
+                <span class="btn" @click="notSupported('导出抵扣流水', UNSUPPORTED.POINTS_FLOW_EXPORT)">导出</span>
               </div>
             </div>
             <div class="tblwrap">
@@ -456,7 +459,7 @@
               <div style="font-size:14px">当前积分余额：<b style="font-size:19px;color:var(--color-primary-active)">—</b> <span style="color:var(--g5)">→</span> 约可抵扣 <b style="font-size:19px;color:var(--color-primary-active)">—</b></div>
               <p class="small" style="margin-top:2px">按当前配置汇率实时折算 · 展示于商户端 AI 页面 · 积分变动即时刷新可抵扣量</p>
             </div>
-            <span class="btn btn-p" style="flex:none" @click="todo('前往商户端预览')">前往商户端预览</span>
+            <span class="btn btn-p" style="flex:none" @click="notSupported('前往商户端预览', UNSUPPORTED.TENANT_PREVIEW)">前往商户端预览</span>
           </div>
         </div>
       </div>
@@ -952,8 +955,17 @@ interface PointsFlow {
 }
 const pointsFlow = ref<PointsFlow[]>([])
 
-function todo(msg: string) {
-  ElMessage.info(`${msg}（接口待接入）`)
+/**
+ * 本批「不做」的页内动作：后端无该端点（不得前端导出当前页 / 造状态冒充）。
+ * 具名原因逐条写清（口径同 Reconciliation.vue 的 notSupported）。
+ */
+const UNSUPPORTED = {
+  BILLING_SNAPSHOT: '后端未提供计费策略快照接口（本批 C5 未含）',
+  POINTS_FLOW_EXPORT: '后端未提供积分抵扣流水与导出接口（逐次冲抵明细无载体）',
+  TENANT_PREVIEW: '平台后台无「商户端 AI 页面」预览通道（跨端预览未实现）',
+} as const
+function notSupported(label: string, reason: string) {
+  ElMessage.warning(`${label}暂不可用：${reason}`)
 }
 
 onMounted(async () => {
