@@ -370,7 +370,7 @@ async function loadAbnormal() {
       .slice(0, 5)
     abnormalCount.value = abnormalThresholdSource.value === 'UNAVAILABLE'
       ? '—'
-      : countText(pick(d, ['count', 'abnormalCount', 'abnormal_count', 'total']))
+      : countText(pick(d, ['abnormalTenantCount', 'count', 'abnormalCount', 'abnormal_count', 'total']))
   } catch (e: any) {
     abnormalCount.value = '—'
     abnormalThresholdSource.value = null
