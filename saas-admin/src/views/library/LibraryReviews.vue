@@ -9,8 +9,9 @@
         </p>
       </div>
       <div class="pg-act">
-        <span class="btn" @click="todo('导出待审清单')">导出待审清单</span>
-        <span class="btn btn-p" @click="batchApprove">批量通过（置信度 ≥90%）</span>
+        <span class="btn" @click="todo('导出待审清单（待立项：并入 T2 导出中心）')">导出待审清单</span>
+        <!-- 批量通过走真实 PENDING 队列（① #20）；"置信度 ≥90% 快审"需 ai_confidence 列（C3 加列未落地）⇒ 当前按"当前页全部待审"执行 -->
+        <span class="btn btn-p" @click="batchApprove">批量通过（当前页待审）</span>
       </div>
     </div>
 
@@ -68,7 +69,7 @@
                 <td class="num">{{ r.confidence ?? '—' }}</td>
                 <td>{{ r.submitter }}</td>
                 <td>
-                  <span class="btn-t" @click="todo('查看')">查看</span>
+                  <span class="btn-t" @click="openDetail(r)">查看</span>
                   <span class="btn-t" style="color:var(--color-success);font-weight:600" @click="handleApprove(r)">通过</span>
                   <span class="btn-t dgr" @click="openReject(r)">驳回</span>
                 </td>
@@ -76,10 +77,12 @@
             </tbody>
           </table>
         </div>
-        <div v-if="rows.length === 0" class="empty">暂无待审核商品 · 待接入 GET /platform/library/reviews</div>
+        <!-- ③-a #30 整改：该页**已在**调用 listSpusApi({status:'PENDING'})，端点存在 ⇒ 空态只表达"无数据"，
+             不再写端点路径（前端不充当契约文档）；生产 t_library_spu=113 行，空态只代表当期无待审记录 -->
+        <div v-if="rows.length === 0" class="empty">暂无待审核商品 · 审核数据来自商品库 PENDING 队列</div>
 
         <div class="pagebar">
-          <span>共 {{ total }} 条 · 每页 20 条 · AI 采集 / 供应商提交 · 平均滞留 6.2 小时</span>
+          <span>共 {{ total }} 条 · 每页 {{ pageSize }} 条 · 数据源：商品库 status=PENDING</span>
           <div class="pgbtns">
             <span :class="{ on: page === 1 }" @click="goPage(page - 1)">‹</span>
             <span
@@ -150,20 +153,67 @@
         </div>
       </div>
     </div>
+
+    <!-- ════════ 商品详情（③-a #31「查看」接线：GET /platform/library/spus/:id） ════════ -->
+    <div v-if="detailVisible" class="ov" @click.self="detailVisible = false">
+      <div class="modal">
+        <div class="m-hd">
+          <span class="pt">商品详情 · {{ detail?.name || '—' }}</span>
+          <span class="d-x" @click="detailVisible = false">✕</span>
+        </div>
+        <div class="m-bd">
+          <div class="frow">
+            <span class="fld" style="flex:1"><span>SPU 编码</span><span class="ipt">{{ detail?.spuCode || '—' }}</span></span>
+            <span class="fld" style="flex:1"><span>品牌</span><span class="ipt">{{ detail?.brandName || '—' }}</span></span>
+            <span class="fld" style="flex:1"><span>规格 / 单位</span><span class="ipt">{{ detail?.specs || '—' }} / {{ detail?.unit || '—' }}</span></span>
+            <span class="fld" style="flex:1"><span>状态</span><span class="ipt">{{ statusLabel(detail?.status) }}</span></span>
+          </div>
+          <div class="tblwrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>SKU 规格</th>
+                  <th>SKU 条码</th>
+                  <th class="num">参考售价</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="!detailSkus.length">
+                  <td colspan="3" class="muted">{{ detailLoading ? '加载中…' : '暂无 SKU 明细' }}</td>
+                </tr>
+                <tr v-for="(k, i) in detailSkus" :key="i">
+                  <td>{{ k.specs }}</td>
+                  <td>{{ k.skuCode }}</td>
+                  <td class="num">¥{{ k.price }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tipbar" style="padding:8px 11px">
+            <span class="ic">i</span>
+            <span>字段取自 <b>GET /api/platform/library/spus/:id</b> 实时返回；取不到的以「—」显示，不做本地推算。审核流水（驳回原因留痕）待立项 T5。</span>
+          </div>
+        </div>
+        <div class="m-ft">
+          <span class="btn" @click="detailVisible = false">关闭</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+// 注：原 `reactive` 导入在本文件从未使用（TS noUnusedLocals 下会报错），随本卡一并清理
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  listSpusApi, approveSpuApi, rejectSpuApi,
+  listSpusApi, getSpuApi, approveSpuApi, rejectSpuApi,
   type SpuListItem,
 } from '../../api/library'
 
 /* ───────────────── 数据装载 ─────────────────
-   保留原审核业务接口 listSpusApi(status=PENDING)；接口无数据时
-   用设计稿演示行渲染，保证视觉完整（行 2411~2416）。 */
+   审核数据源 = listSpusApi({status:'PENDING'})（后端真实端点，见 platform-library.routes.ts:14）；
+   接口无数据/失败一律走空态，**不**用演示行兜底（禁模拟数据）。 */
 interface ReviewRow {
   id: number
   submitTime: string
@@ -256,7 +306,7 @@ function goPage(p: number) {
 
 /* ───────────────── 通过 / 批量通过（保留原业务） ───────────────── */
 async function handleApprove(r: ReviewRow) {
-  if (!r.raw) { todo('通过（演示数据）'); return }
+  if (!r.raw) { ElMessage.warning('该行缺少商品 ID，无法通过'); return }
   try {
     await ElMessageBox.confirm(`确定通过『${r.name}』的审核？`, '确认通过', { type: 'success' })
   } catch { return }
@@ -274,7 +324,7 @@ async function handleApprove(r: ReviewRow) {
 
 async function batchApprove() {
   const apiRows = rows.value.filter((r) => r.raw)
-  if (apiRows.length === 0) { todo('批量通过（当前为演示数据）'); return }
+  if (apiRows.length === 0) { ElMessage.warning('当前页没有可批量通过的商品'); return }
   try {
     await ElMessageBox.confirm(
       `确定批量通过当前页的 ${apiRows.length} 条商品审核吗？此操作不可撤销。`,
@@ -327,8 +377,7 @@ async function confirmReject() {
   }
   const reason = rejectChecked.value.join('；') + (rejectNote.value.trim() ? '；' + rejectNote.value.trim() : '')
   if (!rejectingRow.value?.raw) {
-    ElMessage.info(`已生成驳回记录：${reason}（演示数据，未接入后端）`)
-    rejectVisible.value = false
+    ElMessage.warning('该行缺少商品 ID，无法驳回')
     return
   }
   saving.value = true
@@ -344,8 +393,46 @@ async function confirmReject() {
   }
 }
 
+/* ───────────────── ③-a #31：查看改为既有点位详情（GET /spus/:id） ───────────────── */
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detail = ref<any>(null)
+const detailSkus = ref<any[]>([])
+const SPU_STATUS_LABEL: Record<string, string> = {
+  APPROVED: '已发布', PENDING: '审核中', REJECTED: '已拒绝', OFFLINE: '已下架',
+}
+function statusLabel(s?: string) {
+  return SPU_STATUS_LABEL[s || ''] || s || '—'
+}
+async function openDetail(r: ReviewRow) {
+  const id = r.raw?.id
+  if (!id) {
+    ElMessage.warning('该行缺少商品 ID，无法查看详情')
+    return
+  }
+  detail.value = null
+  detailSkus.value = []
+  detailVisible.value = true
+  detailLoading.value = true
+  try {
+    const res: any = await getSpuApi(id)
+    const data: any = res?.data || res
+    detail.value = data || null
+    detailSkus.value = (data?.skus || []).map((k: any) => ({
+      specs: [k.volume, k.packaging].filter(Boolean).join(' ') || k.skuName || '—',
+      skuCode: k.skuCode || k.barcode || '—',
+      price: k.suggestedRetailPrice ?? '—',
+    }))
+  } catch (e: any) {
+    ElMessage.error(e?.message || '商品详情加载失败')
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+/** 未接入操作的诚实提示：不写"接口待接入"（避免掩盖"后端已有能力"） */
 function todo(action: string) {
-  ElMessage.info(`${action}：待接入对应接口`)
+  ElMessage.warning(`${action}：尚未接入（不产生任何数据变更）`)
 }
 
 onMounted(fetchList)

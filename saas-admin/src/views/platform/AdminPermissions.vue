@@ -171,11 +171,17 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 /* ───────────────────────────────────────────────────────────
-   数据（均无对应接口，初始为空数组 → 空态；接入后端后填充）
+   数据（按主行分类，不写"均无对应接口"这类过期表述）：
+     · 管理员列表 / 启停：后端**服务层与控制器已实现**（admin-account.service.ts:53/144、
+       platform.controller.ts:69/98），只差路由挂载（属 C6-1A ② 类 #41/#53）⇒ 不是"待接入"
+     · 角色列表 / 权限点目录 / 自定义角色：无平台角色表 ⇒ 待立项 T6
+   本页在对应端点挂载前一律空态，不放假数据。
    ─────────────────────────────────────────────────────────── */
+const router = useRouter()
 // TODO: 待接入 GET /platform/admins —— 管理员账号列表
 //   字段建议：id / realName / account / roleName / roleType / dataScope / lastLogin / status
 const admins = ref<any[]>([])
@@ -242,7 +248,10 @@ function roleTagClass(type: string): string {
 }
 
 /* ───────────────────────────────────────────────────────────
-   交互（均为演示态：结构还原，提交/跳转接口待接入）
+   交互（③-b #44 整改：按主行分类，不再整块写"接口待接入"）
+     · 已可用：操作日志（GET /api/platform/audit-logs，① #47 本卡接线）
+     · 待挂载（C6-1A ② 类）：邀请建号 #45 / 重置密码 #51 / 启停 #53
+     · 待立项（T6）：角色列表 #42 / 权限点目录 #43 / 自定义角色 #49
    ─────────────────────────────────────────────────────────── */
 const showInvite = ref(false)
 const inviteForm = reactive({
@@ -253,12 +262,13 @@ const inviteForm = reactive({
 })
 
 function sendInvite() {
-  // TODO: 待接入 POST /platform/admins/invite { name, email, roleId, dataScope }
   if (!inviteForm.name || !inviteForm.email) {
     ElMessage.warning('请填写姓名与邮箱')
     return
   }
-  ElMessage.success('邀请已发送（演示：接口待接入）')
+  // ③-a #46 整改（禁"假成功"）：后端建号/邀请端点尚未挂载（C6-1A ② 类 #45，且裁定 R6 不发邮件短信）
+  // ⇒ 失败可见，绝不给出"已发送"的成功感；弹窗不关闭、表单不清空，避免误以为已生效
+  ElMessage.warning('邀请接口尚未接入，未发送（C6-1A #45 挂载后按 R6：建号 + 一次性展示初始口令，不发信）')
   showInvite.value = false
   inviteForm.name = ''
   inviteForm.email = ''
@@ -270,20 +280,21 @@ function cycleInviteScope() {
   inviteForm.dataScope = DATA_SCOPES[(idx + 1) % DATA_SCOPES.length]
 }
 function openAuditLog() {
-  // TODO: 待接入操作日志 —— 拉取 GET /platform/audit-logs 或跳转 /audit-logs
-  ElMessage.info('操作日志（接口待接入）')
+  // ① 类 #47 + ③-a #48 接线：后端已有 GET /api/platform/audit-logs（admin-platform-audit-log.routes.ts:8/12），
+  // 前端既有页面 AuditLogs.vue（路由 '/audit-logs'）+ 封装 getAuditLogs（src/api.ts:296）⇒ 直接跳转真实页面
+  router.push('/audit-logs')
 }
 function onCreateRole() {
-  // TODO: 待接入 POST /platform/admins/roles（自定义角色）
-  ElMessage.info('新建自定义角色（接口待接入）')
+  // ③-b #50：平台无角色表（t_sys_role 等为租户级）⇒ 待立项 T6
+  ElMessage.warning('新建自定义角色：待立项（T6 平台角色 + 权限点目录建表后接入）')
 }
 function onResetPwd(a: any) {
-  // TODO: 待接入 POST /platform/admins/{id}/reset-password
-  ElMessage.info(`重置密码：${a.realName || a.id}（接口待接入）`)
+  // ③-b #52：主行 #51 属 C6-1A ② 类（零 DDL，未落地）；裁定 R6 要求不发信、页面一次性展示新口令
+  ElMessage.warning(`重置密码：${a.realName || a.id}：待后端重置接口（C6-1A #51）落地后接入`)
 }
 function onToggleStatus(a: any) {
-  // TODO: 待接入 PUT /platform/admins/{id}/status
-  ElMessage.info(`切换状态：${a.realName || a.id}（接口待接入）`)
+  // ③-b #54：主行 #53 同属 C6-1A ② 类（服务层/控制器已实现，只差路由挂载）
+  ElMessage.warning(`切换状态：${a.realName || a.id}：待 C6-1A 挂载 PUT /platform/admins/:id/status 后接入`)
 }
 </script>
 

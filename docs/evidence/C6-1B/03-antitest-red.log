@@ -1,0 +1,9 @@
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+  前端调用点 82（去重 78）· 后端注册路由 1423
+  豁免清单 1 条（命中 1 条）
+
+FAIL 路径不存在（前端有、后端无）：1 条
+  - GET /platform/library/definitely-not-exist   saas-admin/src/api/monitor.ts:20
+
+已豁免（已知未立项项）：1 条
+  - POST /platform/tenants/{p}/audit  新发现（同类缺陷）：auditTenantApi 打 POST /platform/tenants/:id/audit，后端 platform-tenant.routes.ts 无该路由（实质 404），且全仓 0 调用点。属 D1/D2 同类问题，但文件不在 C6-1B 的 29 条清单内 ⇒ 未自行修改，已在回传卡申请另派或授权。

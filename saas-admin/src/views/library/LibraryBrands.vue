@@ -4,8 +4,12 @@
     作为 LibrarySpus 的 ② 类目管理 / ③ 品牌库 子 Tab 内嵌片段渲染；
     亦可作为独立路由 /library/brands 整页渲染（section 为 undefined 时显示完整「类目与品牌管理」）。
     根节点为内容片段，不写 .pf-main（由 PlatformLayout 包裹）。
-    数据：品牌库沿用现有 listBrandsApi/createBrandApi/updateBrandApi/deleteBrandApi（保留并沿用）；
-          类目树 / 编辑类目 / 授权状态等无对应接口 → 空态 + TODO。
+    数据（③-b #22 整改：按主行逐条分行，"授权状态"措辞已不实）：
+          · 品牌库：listBrandsApi/createBrandApi/updateBrandApi/deleteBrandApi（已有）
+          · 授权状态 + 暂停/启用：`PUT /api/platform/library/brands/:id {status}`（① #29，**接口已有，本卡接线**）
+          · 类目树 / 新增编辑类目：平台类目表按凌舟裁定 R3（甲）**不建**，改为租户类目只读聚合
+            （数据源 t_product_category）⇒ 依赖后端聚合端点（本卡已上报申请，未自拟路径）
+          · 授权书上传：待 C1 加列（t_library_brand.auth_letter_url 等三列）
   -->
   <div class="lib-brands">
     <!-- ════════ 独立路由：完整页头 ════════ -->
@@ -229,29 +233,31 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  listBrandsApi, createBrandApi, updateBrandApi,
+  listBrandsApi, createBrandApi, updateBrandApi, toggleBrandStatusApi,
   type BrandItem,
 } from '../../api/library'
 
 // section: 'category' | 'brand' | undefined（独立整页）
 defineProps<{ section?: string }>()
 
-/* ───────── 类目树（无接口，空态） ───────── */
-// TODO: 待接入 GET /platform/library/categories —— 返回三级类目树（id / name / path / 挂载商品数 / 对租户可见）
+/* ───────── 类目树（R3(甲)：改租户类目只读聚合；聚合端点待后端提供，未接线） ───────── */
+// 阻塞：平台侧无类目表（裁定 R3(甲) 不建 t_library_category），聚合 t_product_category 需后端
+// 只读端点（本卡在回传卡申请，路径未定 ⇒ 前端不自拟路径，保持空态）
 const categories = ref<any[]>([])
 const catForm = reactive({ id: null as number | null, name: '', code: '', sort: '', visible: true })
 function resetCatForm() {
   Object.assign(catForm, { id: null, name: '', code: '', sort: '', visible: true })
 }
 function saveCategory() {
-  // TODO: 待接入 POST/PUT /platform/library/categories —— 新增/编辑类目（含对租户可见开关）
-  ElMessage.info('保存类目（接口待接入）')
+  // ③-b #26：平台类目表按 R3(甲) 不建（原卡面写的"T4"已因 R3(甲) 退出新表清单）
+  // ⇒ 不再承诺"待接入新增/编辑接口"，改为如实说明只读聚合口径
+  ElMessage.warning('保存类目：平台类目表已按 R3(甲) 裁定不建，类目改为租户只读聚合（聚合端点待后端提供，已申请）')
 }
 function uploadAuth(b: BrandItem) {
-  // TODO: 待接入 POST /platform/library/brands/{id}/auth-letter —— 上传授权书
-  ElMessage.info(`上传授权书：${b.name}（接口待接入）`)
+  // ③-b #28：授权书上传依赖 C1 加列（t_library_brand.auth_letter_url），本批未落地 ⇒ 诚实占位
+  ElMessage.warning(`上传授权书：${b.name}：待立项（C1 加列后接入）`)
 }
 /** 授权状态：已过期 > 已授权 > 不适用（设计稿 v1.6 第 2333~2338 行） */
 type BrandAuth = 'EXPIRED' | 'AUTHORIZED' | 'NONE'
@@ -266,8 +272,28 @@ function brandAuthLabel(b: any) {
 function brandAuthTag(b: any) {
   return { EXPIRED: 'tag-r', AUTHORIZED: 'tag-g', NONE: 'tag-gy' }[brandAuth(b)]
 }
-function pauseBrand(b: any) {
-  ElMessage.info(`暂停使用：待接入 POST /platform/library/brands/${b?.id ?? ''}/pause`)
+/**
+ * ① 类 #29 接线（③-a 同类真缺陷）：后端**没有** `/brands/:id/pause` 动作式端点，
+ * 品牌暂停/启用走既有 `PUT /api/platform/library/brands/:id {status}`（platform-library.routes.ts:55
+ * → library.controller.ts:259/267 → library.service.ts:856-859），前端封装 toggleBrandStatusApi 已存在。
+ */
+async function pauseBrand(b: any) {
+  if (!b?.id) return
+  try {
+    await ElMessageBox.confirm(`确定暂停使用『${b.name}』？暂停后租户检索侧不再展示该品牌词。`, '暂停品牌', {
+      type: 'warning',
+      confirmButtonText: '暂停使用',
+    })
+  } catch {
+    return
+  }
+  try {
+    await toggleBrandStatusApi(b.id, 0)
+    ElMessage.success('已暂停使用')
+    fetchBrands()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '操作失败')
+  }
 }
 
 /* ───────── 品牌库（沿用现有接口） ───────── */

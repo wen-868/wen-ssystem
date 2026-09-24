@@ -4,8 +4,12 @@
     根节点为内容片段，不写 .pf-main（由 PlatformLayout 包裹）。
     结构：页头 → 5 张 KPI → 5 子 Tab（①②③④⑤）→ 租户调取机制面板 → 跨版块联动说明。
     ② 类目管理 / ③ 品牌库 子 Tab 由 <LibraryBrands> 片段渲染（对应「编辑类目」等子 Tab）。
-    数据：SPU 列表 / 品牌列表 沿用现有 listSpusApi / listBrandsApi（保留并沿用）；
-          KPI 汇总 / 调取统计 / 审核队列 / 类目树 暂无对应接口 → 空态 + TODO。
+    数据（③-b #4 整改：按主行逐条分行，不再整段写"暂无对应接口"）：
+          · SPU 列表 / 品牌列表：listSpusApi / listBrandsApi（已有）
+          · 商品详情 + SKU 明细：getSpuApi（① #10/#14，**接口已有，本卡接线**）
+          · 审核队列：listSpusApi({status:'PENDING'}) + PUT /spus/:id/status（① #20，**接口已有，本卡接线**）
+          · KPI 汇总（#6）、调取统计排行/趋势/类目分布（#8/#9/#16-18）、平台类目树（R3(甲)）：
+            无数据源 → 空态，逐条登记待立项（见 R101-C6-2 立项清单），不放假数据。
     存量缺陷（原第 1066 行 TypeError：drinkBrandDb[i % drinkBrandDb.length.specs.length]）
           随整文件重写已彻底移除全部假数据生成逻辑，不再存在该缺陷。
   -->
@@ -19,16 +23,16 @@
         </p>
       </div>
       <div class="pg-act">
-        <span class="btn" @click="todo('导出主数据')">
+        <span class="btn" @click="todo('导出主数据（待立项：并入 T2 导出中心 / CSV 直出）')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           导出主数据
         </span>
-        <span class="btn" @click="todo('批量导入 Excel')">批量导入 Excel</span>
+        <span class="btn" @click="goImport">批量导入 Excel</span>
         <span class="btn btn-p" @click="openSpuModal()">+ 录入商品</span>
       </div>
     </div>
 
-    <!-- ════════ KPI（汇总接口待接入） ════════ -->
+    <!-- ════════ KPI（汇总数据源待立项 #6） ════════ -->
     <!-- TODO: 待接入 GET /platform/library/stats —— 返回 商品总量/类目数/品牌数/本月调取/待审核 -->
     <div class="g5">
       <div class="kpi">
@@ -156,7 +160,7 @@
                         </template>
                         <template v-else>
                           <span class="btn-t" @click="openSpuModal(s)">编辑</span>
-                          <span class="btn-t" @click="todo('下架')">下架</span>
+                          <span class="btn-t" @click="offlineSpu">下架</span>
                           <span class="btn-t dgr" @click="removeSpu(s)">删除</span>
                         </template>
                       </td>
@@ -300,8 +304,9 @@
                   <span>提交时间</span>
                   <span class="sel">近 7 天 ▾</span>
                 </span>
-                <span class="btn" @click="todo('批量通过')">批量通过（置信度 ≥90%）</span>
-                <span class="btn" style="margin-left:auto" @click="todo('导出待审清单')">导出待审清单</span>
+                <!-- 批量通过：走真实 PENDING 队列（① #20）；"置信度 ≥90% 快审"需 ai_confidence 列（C3 加列，未落地）⇒ 当前按"当前页全部待审"执行 -->
+                <span class="btn" @click="batchApproveReview">批量通过（当前页待审）</span>
+                <span class="btn" style="margin-left:auto" @click="todo('导出待审清单（待立项：并入 T2 导出中心）')">导出待审清单</span>
               </div>
 
               <div class="tblwrap">
@@ -328,9 +333,9 @@
                       <td class="num">{{ r.confidence ?? '—' }}</td>
                       <td>{{ r.submitter }}</td>
                       <td>
-                        <span class="btn-t" @click="todo('查看')">查看</span>
-                        <span class="btn-t" style="color:var(--color-success);font-weight:600" @click="todo('通过')">通过</span>
-                        <span class="btn-t dgr" @click="todo('驳回')">驳回</span>
+                        <span class="btn-t" @click="openDetail(r.raw)">查看</span>
+                        <span class="btn-t" style="color:var(--color-success);font-weight:600" @click="approveReview(r)">通过</span>
+                        <span class="btn-t dgr" @click="rejectReview(r)">驳回</span>
                       </td>
                     </tr>
                   </tbody>
@@ -339,13 +344,11 @@
               <div v-if="reviewList.length === 0" class="empty">暂无待审核商品</div>
 
               <div class="pagebar">
-                <span>共 {{ reviewTotal }} 条 · 每页 20 条 · AI 采集 / 供应商提交 · 平均滞留 6.2 小时</span>
+                <span>共 {{ reviewTotal }} 条 · 每页 {{ reviewPageSize }} 条 · 数据源：商品库 status=PENDING</span>
                 <div class="pgbtns">
-                  <span class="on">1</span>
-                  <span>2</span>
-                  <span>3</span>
-                  <span>…</span>
-                  <span>19</span>
+                  <span :class="{ on: reviewPage === 1 }" @click="goReviewPage(reviewPage - 1)">‹</span>
+                  <span class="on">{{ reviewPage }}</span>
+                  <span v-if="reviewTotalPages > reviewPage" @click="goReviewPage(reviewPage + 1)">›</span>
                 </div>
               </div>
 
@@ -506,7 +509,8 @@
           <div class="frow">
             <span class="fld" style="flex:1.4">
               <span>类目路径</span>
-              <span class="ipt">食品饮料 &gt; 饮料 &gt; 包装饮用水</span>
+              <!-- ③ 类 #14：删除静态占位（原写死"食品饮料 > 饮料 > 包装饮用水"）；平台类目无表（R3(甲)）⇒ 无值显示 — -->
+              <span class="ipt">{{ detailSpu?.categoryPath || '—' }}</span>
             </span>
             <span class="fld" style="flex:1">
               <span>品牌</span>
@@ -530,7 +534,8 @@
               </thead>
               <tbody>
                 <tr v-if="!detailSkus.length">
-                  <td colspan="4" class="muted">—（暂无 SKU 明细，接口待接入）</td>
+                  <!-- ③ 类 #14：SKU 明细已接 getSpuApi（① #10/#14）⇒ 空态只表达"无数据"，不再说"接口待接入" -->
+                  <td colspan="4" class="muted">{{ detailLoading ? '加载中…' : '暂无 SKU 明细' }}</td>
                 </tr>
                 <tr v-for="(k, i) in detailSkus" :key="i">
                   <td>{{ k.specs }}</td>
@@ -578,7 +583,7 @@
       </div>
       <div class="m-ft">
         <span class="btn btn-p" @click="detailSpu && openSpuModal(detailSpu)">编辑商品</span>
-        <span class="btn btn-d" @click="todo('下架')">下架</span>
+        <span class="btn btn-d" @click="offlineSpu">下架</span>
       </div>
     </div>
   </div>
@@ -586,17 +591,20 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   listSpusApi, createSpuApi, updateSpuApi, deleteSpuApi,
+  getSpuApi, approveSpuApi, rejectSpuApi,
   listBrandsApi,
   type SpuListItem, type BrandItem, type SkuItem,
 } from '../../api/library'
 import LibraryBrands from './LibraryBrands.vue'
 
+const router = useRouter()
 const activeTab = ref<'spu' | 'category' | 'brand' | 'stats' | 'review'>('spu')
 
-/* ───────── KPI 汇总（接口待接入） ───────── */
+/* ───────── KPI 汇总（数据源待立项 #6） ───────── */
 // TODO: 待接入 GET /platform/library/stats
 const stats = ref<any>(null)
 
@@ -673,13 +681,37 @@ function spuSourceClass(s: string) {
 
 /* ───────── 商品详情弹窗（设计稿 sec-goods 第 2 figure） ───────── */
 const detailModal = ref(false)
-const detailSpu = ref<SpuListItem | null>(null)
+const detailSpu = ref<any>(null)
 const detailSkus = ref<any[]>([])
-// TODO: 待接入 GET /platform/library/spus/{id} 与 SKU 明细，当前用列表行数据 + 静态占位渲染
-function openDetail(s: SpuListItem) {
+const detailLoading = ref(false)
+/**
+ * ③ 类 #14 + ① 类 #10/#14 接线：详情与 SKU 明细改走 `GET /api/platform/library/spus/:id`
+ * （backend/src/routes/platform-library.routes.ts:20 → controller.getSpu → library.service.ts:353 getSpuById 返回 {...spu, skus}）。
+ * 先用列表行数据立即渲染骨架（不造假字段），随后用接口返回覆盖；接口失败保持"—"并提示。
+ */
+async function openDetail(s: SpuListItem) {
+  if (!s?.id) return
   detailSpu.value = s
   detailSkus.value = []
   detailModal.value = true
+  detailLoading.value = true
+  try {
+    const res: any = await getSpuApi(s.id)
+    const data: any = res?.data || res
+    if (!data) return
+    detailSpu.value = data
+    detailSkus.value = (data.skus || []).map((k: any) => ({
+      specs: [k.volume, k.packaging].filter(Boolean).join(' ') || k.skuName || '—',
+      skuCode: k.skuCode || k.barcode || '—',
+      // SKU 无参考进价字段（后端 SkuItem 不含 cost）⇒ 显式 —，不做本地推算
+      cost: '—',
+      price: k.suggestedRetailPrice ?? '—',
+    }))
+  } catch (e: any) {
+    ElMessage.error(e?.message || '商品详情加载失败')
+  } finally {
+    detailLoading.value = false
+  }
 }
 
 /* ───────── 录入/编辑商品（沿用现有接口） ───────── */
@@ -747,7 +779,7 @@ async function removeSpu(s: SpuListItem) {
   }
 }
 
-/* ───────── ④ 调取统计（接口待接入） ───────── */
+/* ───────── ④ 调取统计（待立项：T3） ───────── */
 // TODO: 待接入 GET /platform/library/stats/rank          租户调取排行 Top10
 // TODO: 待接入 GET /platform/library/stats/trend         近30天日调取次数
 // TODO: 待接入 GET /platform/library/stats/category-dist  按类目分布
@@ -756,18 +788,139 @@ const trend = ref<{ x: number; y: number }[]>([])
 const trendPoints = computed(() => trend.value.map((p) => `${p.x},${p.y}`).join(' '))
 const catDist = ref<{ name: string; calls: string; pct: number; color: string }[]>([])
 
-/* ───────── ⑤ 审核队列（接口待接入） ───────── */
-// TODO: 待接入 GET /platform/library/reviews —— 审核队列（提交时间/商品/来源/AI置信度/提交方/通过/驳回）
+/* ───────── ⑤ 审核队列（① 类 #20 接线：数据源 = 商品库 PENDING 队列） ───────── */
+/**
+ * 后端没有 `/platform/library/reviews`：审核队列即 `GET /api/platform/library/spus?status=PENDING`
+ * （backend/src/routes/platform-library.routes.ts:14 + library.service.ts:293-295 `s.status = ?`），
+ * 审核动作 = `PUT /api/platform/library/spus/:id/status`（同 #21/D1 的真实端点）。
+ * "AI 置信度"列无载体（t_library_spu 无 ai_confidence 列，见 C6-0 §4.4-C3）⇒ 显示 —，不伪造分数。
+ */
 const reviewList = ref<any[]>([])
 const reviewTotal = ref(0)
+const reviewPage = ref(1)
+const reviewPageSize = ref(20)
+const reviewTotalPages = computed(() => Math.max(1, Math.ceil(reviewTotal.value / reviewPageSize.value)))
 
+async function fetchReviewQueue() {
+  try {
+    const res: any = await listSpusApi({ page: reviewPage.value, pageSize: reviewPageSize.value, status: 'PENDING' })
+    const data = res?.data || res
+    const records: SpuListItem[] = data?.records || data?.list || []
+    reviewList.value = records.map((r) => ({
+      id: r.id,
+      submitTime: r.createdAt ? String(r.createdAt).replace('T', ' ').substring(5, 16) : '—',
+      name: r.name,
+      barcode: '—',
+      category: '—',
+      source: spuSourceLabel(r.source),
+      confidence: null,
+      submitter: r.brandName || '—',
+      raw: r,
+    }))
+    reviewTotal.value = data?.total ?? records.length
+  } catch {
+    reviewList.value = []
+    reviewTotal.value = 0
+  }
+}
+function goReviewPage(p: number) {
+  if (p < 1 || p > reviewTotalPages.value || p === reviewPage.value) return
+  reviewPage.value = p
+  fetchReviewQueue()
+}
+async function approveReview(r: any) {
+  if (!r?.id) return
+  try {
+    await ElMessageBox.confirm(`确定通过『${r.name}』的审核？`, '确认通过', { type: 'success' })
+  } catch {
+    return
+  }
+  try {
+    await approveSpuApi(r.id)
+    ElMessage.success('已通过审核')
+    fetchReviewQueue()
+    fetchSpus()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '操作失败')
+  }
+}
+async function rejectReview(r: any) {
+  if (!r?.id) return
+  let reason = ''
+  try {
+    const res: any = await ElMessageBox.prompt('请填写驳回原因（模板化原因：条码无法核验 / 图片不合规 / 类目挂载错误 / 与现有商品重复）', '驳回商品', {
+      inputPlaceholder: '驳回原因',
+      inputValidator: (v: string) => (v && v.trim() ? true : '请填写驳回原因'),
+    })
+    reason = String(res?.value || '').trim()
+  } catch {
+    return
+  }
+  try {
+    await rejectSpuApi(r.id, { reason })
+    ElMessage.success('已提交驳回')
+    fetchReviewQueue()
+    fetchSpus()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '操作失败')
+  }
+}
+async function batchApproveReview() {
+  const ids = reviewList.value.map((r) => r.id).filter(Boolean)
+  if (ids.length === 0) {
+    ElMessage.warning('当前页没有待审核商品')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确定批量通过当前页的 ${ids.length} 条商品审核吗？此操作不可撤销。`, '批量确认通过', {
+      type: 'warning',
+      confirmButtonText: '全部通过',
+    })
+  } catch {
+    return
+  }
+  let success = 0
+  let failed = 0
+  for (const id of ids) {
+    try {
+      await approveSpuApi(id)
+      success++
+    } catch {
+      failed++
+    }
+  }
+  ElMessage.success(`批量通过完成：成功 ${success} 条，失败 ${failed} 条`)
+  fetchReviewQueue()
+  fetchSpus()
+}
+
+/** 未接入操作的诚实提示：不使用"接口待接入"措辞（避免与"后端已有能力、仅差接线"混淆） */
 function todo(act: string) {
-  ElMessage.info(`${act}（接口待接入）`)
+  ElMessage.warning(`${act}：尚未接入（不产生任何数据变更）`)
+}
+
+/**
+ * ③-a #21 「批量导入 Excel」接线：跳转既有真实导入页（模板下载 / 文件解析 / 逐行 createSpuApi 均真实调用）
+ */
+function goImport() {
+  router.push('/library/import')
+}
+
+/**
+ * ③-a #21 「下架」= 阻塞上报（未接线，原因见下）：
+ * 后端 reviewSpu（backend/src/services/platform/library.service.ts:517-525）**仅**接受
+ * `PENDING → APPROVED/REJECTED`，传 `OFFLINE` 直接 400；且要求当前状态必须是 PENDING。
+ * ⇒ 已发布商品的下架 / 已下架商品的重新上架在当前后端下必然失败，故不接一个"必崩"的动作，
+ *   保留诚实提示并在回传卡申请后端放开状态流转（C6-0 §6.1 #21 的"可传 OFFLINE"经复核不成立）。
+ */
+function offlineSpu() {
+  ElMessage.warning('下架：后端尚未开放 OFFLINE 状态流转（reviewSpu 仅接受 APPROVED/REJECTED），已上报申请')
 }
 
 onMounted(() => {
   fetchBrandsForFilter()
   fetchSpus()
+  fetchReviewQueue()
 })
 </script>
 
