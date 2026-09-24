@@ -1,88 +1,45 @@
-# 回执 · R101-S3-65 影响面精确扫描（只读静态扫描）
+# ACTIVE 回执 · R101-C4-1c（`orphan-scan` 生产 500 + collation 家族级收口）
 
-> 汇报对象：凌舟（总负责人）
-> 汇报人：阿坚（后端域；本地子代理代执行）｜2026-09-21
-> 对应派单编号：**R101-S3-65-影响面**（派单卡 `docs/tasks/cards/R101-S3-65-影响面-派单卡.md`；开工第一步已按 AGENTS.md 读 `docs/tasks/inbox/ACTIVE.md` 全文）
-> 交付物：`docs/tasks/cards/R101-Ajian-S3-65-影响面.md`（本次唯一新建的报告文件）
-
----
-
-## 一、一句话结论
-
-三 helper 写路径调用点共 **356** 处（UPDATE 281 + DELETE 75），其中"修复前静默 0 行、修复后首次真正生效"的写操作调用点为 **38 处 / 27 个文件**；旧口径 10 处全部包含在内，新增 28 处（含生产 P0 现场 `services/admin/auth.service.ts:293` 改密）。
-
-## 二、改了什么（严格只读）
-
-| # | 动作 | 文件 | 说明 |
-|---|---|---|---|
-| 1 | 新建 | `docs/tasks/cards/R101-Ajian-S3-65-影响面.md` | 报告卡（唯一新建的报告文件），含写路径全量表 356 行、读路径按文件聚合 169 行、命中集逐条展开 38 行、反证 4 组、口径差异表、风险与需运行期确认清单、复跑命令、脚本附录 |
-| 2 | 新建 | `docs/tasks/inbox/ACTIVE-回执.md` | 本回执（署名齐全 + 复跑命令） |
-| 3 | 归档移动 | `docs/tasks/inbox/ACTIVE.md` → `docs/tasks/inbox/archive/ACTIVE-S3-65-影响面-20260921.md` | 按 inbox 铁律（同时只允许一张活动卡） |
-
-**未做**：未改任何 `backend/**` 源码与测试、未改 `docs/` 其他文件（含 `current-tasks.md`、`踩坑日志.md`、`R101-总进度与推进计划.md`）、未 commit/push/切分支/改 HEAD、未连数据库、未起服务与浏览器。
-
-## 三、证据（可复跑）
-
-1. **计数**（AST 调用点级；命令与输出同卡 §2.2）：
-   - `files scanned: 707  calls: 1842`；`byHelper: queryWithTenant 967 / queryOneWithTenant 851 / executeWithTenant 24`
-   - `byStmt: UPDATE 281 / DELETE 75 / INSERT 177 / SELECT 1298 / 动态+不可解析 11`
-   - `write rows: 356  hits: 38（27 files）`；删除类 75 处"首个 WHERE 前占位符"全部 = 0 ⇒ DELETE 无一命中
-2. **反证（真实函数两版复算）**：从 main 现版与分支 `fix/s3-65-change-password-fail` 提交 `1c46dd9c` 提取真实 `injectXxxTenant` 五函数，同进程复算（未连库）：
-   - `UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?` + `["$2b$12$HASH",7]` + `"default"`：
-     修复前 `["default","$2b$12$HASH",7]`（SET 拿到 `'default'`）；修复后 `["$2b$12$HASH","default",7]`（各归其位）
-   - 反例三条（SET 全字面量 / 已自带 tenant_id / SELECT 分支）两版输出**完全一致** ⇒ 判据可分辨
-   - 附带发现：`injectInsertTenant` 重建 SQL 对 `VALUES (..., NOW())` 会丢尾部括号，`services/admin/push.service.ts:371` 注入后括号不平衡（13 处可静态注入的 INSERT 中唯一 1 处）
-3. **只读性**：`git status --porcelain` 原始输出见报告卡 §8（仅本卡三项 + 凌舟开工前既有改动）。
-
-## 四、验收自评（逐条对照派单卡 §一 验收标准 1-6）
-
-| # | 验收标准 | 自评 | 依据 |
-|---|---|---|---|
-| 1 | 计数可独立复算（误差 0） | 通过 | §2.1 总表 + §2.2 命令（含"分母怎么数出来"+旧命令复跑对照） |
-| 2 | 命中集逐条可核对（文件:行号 + 展开后 SQL + tenantId 实参行） | 通过 | §3 共 38 行，动态 SET 一律展开为元素清单（如 `updates.join(", ")` ⇒ 6 个 `= ?` 元素）并给元素来源行号 |
-| 3 | 反证（不命中 ≥3 条归类 + 命中 ≥3 条两版参数对照） | 通过 | §4.1 命中 5 例（S1/S2/S3/S5/S6）+ 反例 3 例；§4.2 不命中 6 条逐条指明卡在哪一条件 |
-| 4 | 与旧口径（10 处 / 484 / 439）差异逐条解释 | 通过 | §5.1 一张对照表（10/10 全包含 + 28 新增分类与依据）；§5.2 484 不可复现（旧命令复跑 769）并给替代数字 356/396/26 |
-| 5 | 四条件逐项有依据（SET 原文片段 + tenantId 实参来源） | 通过 | §1.1 表内"SET 含占位符?"列即 SET 原文片段证据；"参数 tenantId @函数:行"与"实参行"两栏给溯源；§4.1 给真实下发参数 |
-| 6 | 只读性自查（`git status --porcelain`） | 通过 | §8，原始输出 + 逐项说明哪些属既有改动 |
-
-## 五、未完成与阻塞
-
-1. **旧数字 484/439 无法复现**（非本卡未做，而是旧扫描脚本未入库）：按旧卡 §七 命令复跑得 769 行，与 484 不符；本卡已给出可复算替代（三 helper 356 / 五 helper 396 / 事务内 `conn.*` 26）。
-2. **本通道无运行期能力**（Node 子进程 `spawn EPERM`、无浏览器、不连库）：所有"运行期相关"结论已单列报告卡 §7（**需运行期确认**），不计入命中集。
-3. 无其他未完成项。
-
-## 六、风险与自我报备
-
-1. 命中集 38 处中 **32 处**调用方不校验 `affectedRows`（有校验 6 处已列名）⇒ 修复后写入生效，但"0 行"仍不会被感知（另一批工作，本卡未动）。
-2. `services/admin/marketing-points.service.ts:292` 修复前存在"积分流水已写入（`:301` 的 INSERT 自带 tenant_id，未被注入短路影响）、用户余额未扣减"的矛盾数据 ⇒ **存量数据需人工清点**（本卡不能连库，未清点）。
-3. **附带发现两处范围外缺陷（本卡只读未修）**：① 读路径同族——`injectSelectTenant` 含 WHERE 分支（`config/database.ts:225`）同为前置写法，本卡扫得 1 处满足错位形态（`services/admin/report/sales-report.service.ts:154`），且修复分支 `1c46dd9c` **未触及**该函数，属**未根治**；② `injectInsertTenant`（`:251-266`）重建 SQL 会丢尾部括号（`push.service.ts:371`）。
-4. 判据口径说明（供凌舟复核判据本身）：本卡以"**首个 `where` 之前是否存在 `?` 占位符**"作为"注入后参数是否错位"的判据，与实现（`lowerSql.indexOf('where')` 首现位置 + `[tenantId, ...params]` 前置）一致；该判据已由 §4.1 两版复算正反各验。
-5. 本卡未按 `current-tasks.md` 更新看板：派单卡 §五.3 明确"本卡为只读扫描单，不涉及看板状态变更（由凌舟验收后统一更新）"，故本卡遵守派单卡、未动该文件。
-6. 扫描脚本临时产物写在 `%TEMP%\s365\`（仓外），仓库内未留任何脚本或临时文件。
-
-## 七、复跑命令（原样可粘贴）
-
-```powershell
-cd D:\Users\ZXQL\ZXQL-MS\wen-ssystem
-
-# 1) 关键锚点（main 现版 = 修复前；只读）
-rg -n 'modifiedParams: \[tenantId, \.\.\.params\]' backend/src/config/database.ts   # → :225（SELECT 含 WHERE）、:281（UPDATE 含 WHERE）
-rg -n 'placeholdersBeforeWhere' backend/src/config/database.ts                       # → main 现版 0 命中（该写法仅在分支 1c46dd9c）
-rg -n 'injectUpdateTenant|injectSelectTenant|injectInsertTenant|injectDeleteTenant' backend/src/config/database.ts
-
-# 2) 命中集最小复现（真实函数两版复算）——把报告卡「附录 B」脚本存为 %TEMP%\s365\replay.mjs 后执行
-New-Item -ItemType Directory -Force -Path "$env:TEMP\s365" | Out-Null
-git show 1c46dd9c:backend/src/config/database.ts | Set-Content -Encoding UTF8 "$env:TEMP\s365\database.fixed.ts"
-# （把附录 B 全文写入 "$env:TEMP\s365\replay.mjs"）
-node "$env:TEMP\s365\replay.mjs"
-
-# 3) 全量扫描（调用点计数 / 写路径全量表 / 命中集）——把报告卡「附录 A」脚本存为 %TEMP%\s365\scan.mjs 后执行
-# （把附录 A 全文写入 "$env:TEMP\s365\scan.mjs"）
-node "$env:TEMP\s365\scan.mjs"
+```text
+【汇报 C4-1c】orphan-scan 500 根因＝`LEFT JOIN t_tenant t ON t.id = f.tenant_id` 两侧 collation 不同
+（t_upload_file.tenant_id=utf8mb4_unicode_ci vs t_tenant.id=utf8mb4_0900_ai_ci，DDL 原文锁定）；
+已按 C5-1b 同法在非索引侧加显式 COLLATE utf8mb4_0900_ai_ci 修复 + 补回归锁 + 反测（RED=1）；
+家族级收口：JOIN t_tenant 18 处逐条判定 ⇒ 已修 2 / 无需改 16 / 仍有风险 0；全量 210 处列↔列 tenant 比较中
+仅 2 处涉及未统一 collation 的表，均已修。typecheck/build/lint/真执行断言全绿；vitest 沙箱 EPERM 不可跑、
+生产端点与真库无可用凭据 ⇒ 两项如实报备并交付可复跑取证命令。
+汇报对象：凌舟（总负责人）
+汇报人：阿坚（后端 · 本地子代理）｜2026-09-25
 ```
 
----
+## 一、改了什么（文件级）
 
-派单人：凌舟（总负责人）｜2026-09-21
-汇报人：阿坚（后端域；本地子代理代执行）｜2026-09-21
-关联卡：`docs/tasks/cards/R101-Ajian-S3-65-影响面.md`、`docs/tasks/cards/R101-S3-65-影响面-派单卡.md`
+| 文件 | 改动 | 行号（改后） |
+|---|---|---|
+| `backend/src/services/platform/platform-monitor-ops.service.ts` | ① `scanOrphanFiles` 的 JOIN 谓词加显式 `COLLATE utf8mb4_0900_ai_ci`（**只加在非索引侧 `f.tenant_id`**）；② 新增注释块记录两侧 DDL 依据与选侧理由 | 注释块 **L625-641**、谓词 **L643**（改前 L623）；筛选侧 `f.tenant_id = ?` **未动**（L614） |
+| `backend/src/__tests__/routes/platform-monitor-ops.test.ts` | ① 原 L611 断言收紧为含 `COLLATE utf8mb4_0900_ai_ci` 的精确串 + 新增「整条 SQL `COLLATE` 恰好 1 处」；② 新增「筛选侧 `f.tenant_id = ?` 不得带 COLLATE」 | **L611-617**、**L630-632** |
+| 回传卡 / 本回执 / 进度行 / inbox 归档 | 文档（无业务代码） | `docs/tasks/cards/R101-C4-1c-阿坚回传.md`、《总进度》§三十二、`docs/tasks/inbox/archive/ACTIVE-C4-1c-20260925.md` |
+
+**未动**：`docs/migrations/**`、`docs/API接口文档.md`、`docs/数据库变更清单.md`、`backend/src/shared/migration.ts`、`saas-admin/**`、`ai-platform.service.ts`，以及其余 16 处 `JOIN t_tenant`（只审计不改）；**零 DDL**；**未** commit/push（红线）。
+
+## 二、证据（可复跑）
+
+| 项 | 命令 | 结果 |
+|---|---|---|
+| 类型检查 | `cd backend; npm run typecheck` | exit 0（无输出） |
+| 构建 | `cd backend; npm run build` | exit 0（753 文件 / 1678 处导入路径） |
+| lint（改动文件） | `cd backend; npx eslint src/services/platform/platform-monitor-ops.service.ts src/__tests__/routes/platform-monitor-ops.test.ts` | exit 0 |
+| 单测文件 tsc | `npx tsc --noEmit --strict … src/__tests__/routes/platform-monitor-ops.test.ts` | exit 0 |
+| **真执行断言**（dist + 内存桩 db，抓生成 SQL） | 见回传卡 §2.4(6) | **8/8 PASS**；main SQL 原文含 `LEFT JOIN t_tenant t ON t.id = f.tenant_id COLLATE utf8mb4_0900_ai_ci` |
+| **反测（该红就红）** | 回退谓词里的 COLLATE 后重跑同一套断言（回传卡 §2.4(7)） | **RED 项数 = 1**（门禁确实会红） |
+| 家族收口 | `rg -n "JOIN\s+t_tenant" backend/src --glob "!*.spec.ts"` | 18 处逐条判定 ⇒ **已修 2 / 无需改 16 / 仍有风险 0**；全量 210 处列↔列 tenant 比较中仅 2 处涉及 unicode_ci 表、均已修 |
+| vitest | `cd backend; npx vitest run src/__tests__/routes/platform-monitor-ops.test.ts` | **跑不了**：`failed to load config … Error: spawn EPERM`（沙箱禁止子进程 ⇒ esbuild 不可用），如实报备，请凌舟本机复跑全量 |
+
+## 三、阻塞点
+
+1. 沙箱内 **vitest 不可跑**（`spawn EPERM`）⇒ 全量门禁（578 文件 / 6398 用例）需凌舟本机复跑。
+2. **生产端点 200 与真库 1267/EXPLAIN 未执行**：沙箱内 8080 可达，但平台登录默认凭据被拒（401 `用户名或密码错误`）、运行实例 `backend/.env` 的库凭据连接被 `ER_ACCESS_DENIED_ERROR` 拒绝（未回显任何密钥、无写操作）⇒ 交付可复跑命令块（回传卡 §四.①②）由凌舟在真机执行；**未伪造任何真库/生产输出**。
+3. 16 处「无需改」属**按 DDL 判定**（推论：DDL 未写 COLLATE ⇒ 继承库默认 0900，已由 t_tenant.id 生产实测反证）⇒ 需 §四.②⑤ 探针在真库坐实（预期仅 2 行 RISK）。
+
+> 完整内容（含 18 处逐条表、验收自评 5 条、风险自报 7 条）见 `docs/tasks/cards/R101-C4-1c-阿坚回传.md`。
+
+派单人：凌舟（总负责人）｜2026-09-25 ｜ 汇报人：阿坚（后端）｜2026-09-25
