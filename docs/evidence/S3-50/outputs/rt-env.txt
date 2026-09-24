@@ -1,0 +1,24 @@
+=====================  S3-50 反测环境取证（本沙箱能力边界）  =====================
+时间：2026-09-25 00:48:06 +08:00
+cwd：D:\Users\ZXQL\wt-agents\issue-98（worktree，分支 agent/issue-98）
+node：v24.18.0   npm：11.16.0   pwsh：7.6.5
+
+--- 1) 是否有可用 POSIX shell（决定能否原样执行 workflow 里的 bash 步骤）---
+C:\Program Files\Git\bin\bash.exe 存在，但实跑失败：
+3 [main] bash (15076) C:\Program Files\Git\bin\..\usr\bin\bash.exe: *** fatal error - couldn't create signal pipe, Win32 error 5
+⇒ 结论：无可用 POSIX shell，workflow 里的 bash 步骤**无法在本沙箱原样执行**（改用 PowerShell/Node 等效驱动，见各 RT 输出）
+
+--- 2) Node 子进程能力（决定 .mjs 版反测能否自驱子进程）---
+ERR EPERM
+⇒ 结论：node 的 child_process 被沙箱拒（EPERM）⇒ 反测改用 pwsh 驱动（pwsh 可 Start-Process/Start-Job）
+
+--- 3) 容器能力（决定能否起 MySQL 复现 migration-check）---
+docker：NOT FOUND   podman：NOT FOUND
+mysql/mysqld：NOT FOUND
+⇒ 结论：无法本地起 MySQL ⇒ migration-check 步骤无法本地复跑（只能引用远端 run 证据）
+
+--- 4) 远端只读访问（gh api）---
+Get "https://api.github.com/repos/wen-868/wen-ssystem/actions/runs?per_page=1": proxyconnect tcp: dial tcp 127.0.0.1:9: connectex: No connection could be made because the target machine actively refused it.
+⇒ 结论：本沙箱**无 GitHub 只读访问**（网络被拦 + keyring token 失效）⇒ 本卡无法采集新 run id、无法核对历史 run 的步骤级结论，只能引用仓库内已落卡/已归档的 run 记录，并把冲突项列入待核对
+
+=====================  环境取证结束  =====================

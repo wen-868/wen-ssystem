@@ -1,0 +1,20 @@
+=====================  S3-50 RT-C  E2E 密闭性取证反测  =====================
+后端进程：backend/dist/server.js  USE_MOCK_DB=true  PORT=18095
+后端日志：C:\Users\XIONG\AppData\Local\Temp\s3-50-rtC-backend-dbb4c438dd9143ba842654e2899170ca.log
+
+--- 启动等待（等价 CI 的 wait-on http://127.0.0.1:8080/health）: up ---
+--- 断言① 直连 mock：GET /api/platform/health -> HTTP 200 ---
+响应体: {"code":"0","msg":"成功","data":{"status":"healthy","timestamp":"2026-09-24T16:47:52.038Z","mode":"mock-db"},"traceId":"b50f6897-5184-4ea4-b8d8-9b8ff4de1f85"}
+✅ 断言① 通过：响应含 "mode":"mock-db"（实证确实打到 mock 后端）
+
+--- 断言① 负对照：抹掉 mock 标记后重跑同一条断言（期望失败）---
+✅ 负对照通过：标记被抹掉时断言失败 ⇒ 该断言有分辨力（不是恒真）
+
+--- 断言③ 登录探针落到 mock 后端日志 ---
+POST /api/admin/auth/login -> 异常（仍继续查日志）: Response status code does not indicate success: 400 (Bad Request).
+日志中 [mock-request] 计数: 3
+✅ 断言③ 通过：mock 后端确实收到登录请求（该日志仅 USE_MOCK_DB 下挂载）
+
+未覆盖（如实记账）：CI 里的断言②「经 admin-web dev server 5173 代理」需要 vite dev server，本反测未起 ⇒ 该条仍属未闭环（见未闭环清单 #4）。
+
+=====================  RT-C 结束  =====================

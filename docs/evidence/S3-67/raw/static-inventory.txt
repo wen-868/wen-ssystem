@@ -1,0 +1,137 @@
+S3-67 静态清点（admin-web/src，`--border-normal`）
+生成时间=2026-09-24T20:13:39.735Z
+扫描文件数=235  --border-normal 行命中=41（声明 1 + 引用 40）
+派单卡基线=40 条，行号精确命中=40，卡外新增引用=0
+各 token 行命中：{"--border-light":100,"--border-normal":41,"--table-border":6,"--input-border":4,"--el-border-color":12}
+
+【token 声明处（现场行号 + 现值）+ 派单卡行号漂移核对】
+--border-normal 卡:115(#E2E2E2) → 现场:118=#E2E2E2 Δ=+3 ⚠行号不一致
+--border-light 卡:116(#F0F0F0) → 现场:119=#F0F0F0 Δ=+3 ⚠行号不一致
+--table-border 卡:274(#E2E2E2) → 现场:277=#E2E2E2 Δ=+3 ⚠行号不一致
+--input-border 卡:280(#888888) → 现场:283=#888888 Δ=+3 ⚠行号不一致
+
+【引用点逐条（现场行号 + 所属选择器 + 四类判定）】
+admin-web/src/components/AiChat/AiChatWindow.vue:484  [容器](rule)  选择器=.suggestion-chip
+      border: 1px solid var(--border-normal);
+admin-web/src/components/AiChat/AiMessageCard.vue:371  [容器](rule)  选择器=.tool-card
+      border: 1px solid var(--border-normal);
+admin-web/src/components/AiChat/AiPreviewCard.vue:104  [容器](rule)  选择器=.ai-preview-card
+      border: 1px solid var(--border-normal);
+admin-web/src/components/AiChat/AiSidePanel.vue:475  [容器](rule)  选择器=.suggestion-chip
+      border: 1px solid var(--border-normal);
+admin-web/src/layouts/MainLayout.vue:1087  [装饰](rule)  选择器=.header-search kbd
+      border: 1px solid var(--border-normal);
+admin-web/src/styles/tokens.css:320  [控件](manual-override)  选择器=.el-button--danger
+      border: 1px solid var(--border-normal) !important;
+admin-web/src/styles.css:74  [分隔线](rule)  选择器=.side
+      border-right: 1px solid var(--border-normal);
+admin-web/src/styles.css:125  [容器](rule)  选择器=.dashboard-hero
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:155  [容器](rule)  选择器=.card
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:194  [容器](rule)  选择器=.stat-item
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:217  [容器](rule)  选择器=.filter-area
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:245  [容器](rule)  选择器=.table-card
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:251  [分隔线候选](rule)  选择器=.table-card .el-table
+      --el-table-border-color: var(--border-normal);
+admin-web/src/styles.css:293  [分隔线候选](rule)  选择器=.list-table
+      --el-table-border-color: var(--border-normal);
+admin-web/src/styles.css:317  [容器](rule)  选择器=.detail-header
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:330  [容器](rule)  选择器=.detail-tabs
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:448  [容器](rule)  选择器=.dash-card
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:661  [容器](rule)  选择器=.el-card:hover
+      border-color: var(--border-normal);
+admin-web/src/styles.css:709  [控件候选](manual-override)  选择器=.el-button--default
+      --el-button-border-color: var(--border-normal);
+admin-web/src/styles.css:1148  [容器](rule)  选择器=.card-hover:hover
+      border-color: var(--border-normal);
+admin-web/src/styles.css:1158  [装饰](rule)  选择器=.kbd
+      border: 1px solid var(--border-normal);
+admin-web/src/styles.css:1321  [容器](rule)  选择器=.stats-row .stat-card
+      border: 1px solid var(--border-normal);
+admin-web/src/views/dashboard/MessageCenter.vue:285  [容器](rule)  选择器=.msg-menu
+      border: 1px solid var(--border-normal);
+admin-web/src/views/dashboard/MessageCenter.vue:296  [容器](rule)  选择器=.msg-list-panel
+      border: 1px solid var(--border-normal);
+admin-web/src/views/dashboard/QuickEntryConfig.vue:371  [容器](rule)  选择器=.edit-panel
+      border: 1px solid var(--border-normal);
+admin-web/src/views/dashboard/QuickEntryConfig.vue:381  [分隔线](rule)  选择器=.panel-title
+      border-bottom: 1px solid var(--border-normal);
+admin-web/src/views/dashboard/TodoList.vue:353  [容器](rule)  选择器=.stat-card
+      border: 1px solid var(--border-normal);
+admin-web/src/views/order/OrderAftersaleView.vue:624  [分隔线](rule)  选择器=.dialog-actions
+      border-top: 1px solid var(--border-normal);
+admin-web/src/views/order/OrderBoardView.vue:256  [容器](rule)  选择器=.order-card:hover
+      border-color: var(--border-normal);
+admin-web/src/views/order/OrderExceptionView.vue:237  [分隔线](manual-override)  选择器=<inline style 属性（div）>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-normal); display: flex; gap: 12px; align-items: center">
+admin-web/src/views/pos/CashierView.vue:1819  [控件](manual-override)  选择器=.product-search-input :deep(.el-input__wrapper)
+      box-shadow: 0 0 0 1px var(--border-normal) inset;
+admin-web/src/views/pos/CashierView.vue:2105  [控件](manual-override)  选择器=.qty-btn
+      border: 1px solid var(--border-normal);
+admin-web/src/views/pos/CashierView.vue:2148  [分隔线](manual-override)  选择器=.cart-summary
+      border-top: 1px dashed var(--border-normal);
+admin-web/src/views/pos/CashierView.vue:2184  [控件](manual-override)  选择器=.pay-method-btn
+      border: 1px solid var(--border-normal);
+admin-web/src/views/pos/CashierView.vue:2410  [控件](manual-override)  选择器=.pay-method-card
+      border: 1px solid var(--border-normal);
+admin-web/src/views/pos/CashierView.vue:2456  [控件](manual-override)  选择器=.numpad-key
+      border: 1px solid var(--border-normal);
+admin-web/src/views/pos/CashierView.vue:2687  [控件](manual-override)  选择器=.pay-code-input :deep(.el-input__wrapper)
+      box-shadow: 0 0 0 1px var(--border-normal) inset;
+admin-web/src/views/pos/CashierView.vue:2750  [控件](manual-override)  选择器=.trace-code-input :deep(.el-input__wrapper)
+      box-shadow: 0 0 0 1px var(--border-normal) inset;
+admin-web/src/views/system/PaymentConfigView.vue:684  [分隔线](rule)  选择器=.action-bar
+      border-top: 1px solid var(--border-normal);
+admin-web/src/views/system/SystemConfigView.vue:855  [分隔线](rule)  选择器=.action-bar
+      border-top: 1px solid var(--border-normal);
+
+【与派单卡 §四 基线比对（行号漂移）】
+精确命中 卡:320 → 现场:320 (Δ=0) admin-web/src/styles/tokens.css  .el-button--danger
+精确命中 卡:74 → 现场:74 (Δ=0) admin-web/src/styles.css  .side
+精确命中 卡:125 → 现场:125 (Δ=0) admin-web/src/styles.css  .dashboard-hero
+精确命中 卡:155 → 现场:155 (Δ=0) admin-web/src/styles.css  .card
+精确命中 卡:194 → 现场:194 (Δ=0) admin-web/src/styles.css  .stat-item
+精确命中 卡:217 → 现场:217 (Δ=0) admin-web/src/styles.css  .filter-area
+精确命中 卡:245 → 现场:245 (Δ=0) admin-web/src/styles.css  .table-card
+精确命中 卡:251 → 现场:251 (Δ=0) admin-web/src/styles.css  .table-card .el-table
+精确命中 卡:293 → 现场:293 (Δ=0) admin-web/src/styles.css  .list-table
+精确命中 卡:317 → 现场:317 (Δ=0) admin-web/src/styles.css  .detail-header
+精确命中 卡:330 → 现场:330 (Δ=0) admin-web/src/styles.css  .detail-tabs
+精确命中 卡:448 → 现场:448 (Δ=0) admin-web/src/styles.css  .dash-card
+精确命中 卡:661 → 现场:661 (Δ=0) admin-web/src/styles.css  .el-card:hover
+精确命中 卡:709 → 现场:709 (Δ=0) admin-web/src/styles.css  .el-button--default
+精确命中 卡:1148 → 现场:1148 (Δ=0) admin-web/src/styles.css  .card-hover:hover
+精确命中 卡:1158 → 现场:1158 (Δ=0) admin-web/src/styles.css  .kbd
+精确命中 卡:1321 → 现场:1321 (Δ=0) admin-web/src/styles.css  .stats-row .stat-card
+精确命中 卡:1087 → 现场:1087 (Δ=0) admin-web/src/layouts/MainLayout.vue  .header-search kbd
+精确命中 卡:353 → 现场:353 (Δ=0) admin-web/src/views/dashboard/TodoList.vue  .stat-card
+精确命中 卡:285 → 现场:285 (Δ=0) admin-web/src/views/dashboard/MessageCenter.vue  .msg-menu
+精确命中 卡:296 → 现场:296 (Δ=0) admin-web/src/views/dashboard/MessageCenter.vue  .msg-list-panel
+精确命中 卡:371 → 现场:371 (Δ=0) admin-web/src/views/dashboard/QuickEntryConfig.vue  .edit-panel
+精确命中 卡:381 → 现场:381 (Δ=0) admin-web/src/views/dashboard/QuickEntryConfig.vue  .panel-title
+精确命中 卡:475 → 现场:475 (Δ=0) admin-web/src/components/AiChat/AiSidePanel.vue  .suggestion-chip
+精确命中 卡:684 → 现场:684 (Δ=0) admin-web/src/views/system/PaymentConfigView.vue  .action-bar
+精确命中 卡:855 → 现场:855 (Δ=0) admin-web/src/views/system/SystemConfigView.vue  .action-bar
+精确命中 卡:371 → 现场:371 (Δ=0) admin-web/src/components/AiChat/AiMessageCard.vue  .tool-card
+精确命中 卡:484 → 现场:484 (Δ=0) admin-web/src/components/AiChat/AiChatWindow.vue  .suggestion-chip
+精确命中 卡:104 → 现场:104 (Δ=0) admin-web/src/components/AiChat/AiPreviewCard.vue  .ai-preview-card
+精确命中 卡:624 → 现场:624 (Δ=0) admin-web/src/views/order/OrderAftersaleView.vue  .dialog-actions
+精确命中 卡:256 → 现场:256 (Δ=0) admin-web/src/views/order/OrderBoardView.vue  .order-card:hover
+精确命中 卡:237 → 现场:237 (Δ=0) admin-web/src/views/order/OrderExceptionView.vue  <inline style 属性（div）>
+精确命中 卡:1819 → 现场:1819 (Δ=0) admin-web/src/views/pos/CashierView.vue  .product-search-input :deep(.el-input__wrapper)
+精确命中 卡:2105 → 现场:2105 (Δ=0) admin-web/src/views/pos/CashierView.vue  .qty-btn
+精确命中 卡:2148 → 现场:2148 (Δ=0) admin-web/src/views/pos/CashierView.vue  .cart-summary
+精确命中 卡:2184 → 现场:2184 (Δ=0) admin-web/src/views/pos/CashierView.vue  .pay-method-btn
+精确命中 卡:2410 → 现场:2410 (Δ=0) admin-web/src/views/pos/CashierView.vue  .pay-method-card
+精确命中 卡:2456 → 现场:2456 (Δ=0) admin-web/src/views/pos/CashierView.vue  .numpad-key
+精确命中 卡:2687 → 现场:2687 (Δ=0) admin-web/src/views/pos/CashierView.vue  .pay-code-input :deep(.el-input__wrapper)
+精确命中 卡:2750 → 现场:2750 (Δ=0) admin-web/src/views/pos/CashierView.vue  .trace-code-input :deep(.el-input__wrapper)
+
+【卡基线之外的现场引用点】

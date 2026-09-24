@@ -608,7 +608,13 @@ describe("C4-1b 段二 C-4 GET /storage/orphan-scan（孤儿文件扫描）", ()
     expect(data.notes.join(" ")).toContain("待人工确认");
 
     const sql = sqlOf(hoisted.query.mock.calls[0]);
-    expect(sql).toContain("LEFT JOIN t_tenant t ON t.id = f.tenant_id");
+    // R101-C4-1c：JOIN 谓词必须显式钉 collation（t_upload_file.tenant_id=unicode_ci vs t_tenant.id=0900_ai_ci
+    // 在生产真库会报 ERROR 1267；mock/SQLite 无 collation 语义，只能锁生成的 SQL 文本）
+    expect(sql).toContain(
+      "LEFT JOIN t_tenant t ON t.id = f.tenant_id COLLATE utf8mb4_0900_ai_ci"
+    );
+    // 反测门禁：COLLATE 只允许出现在 JOIN 谓词这一处（加在筛选侧会丢 idx_tenant_status / idx_tenant_biz）
+    expect((sql.match(/COLLATE/g) ?? []).length).toBe(1);
     expect(sql).toContain("f.status = 1");
     expect(sql.toUpperCase()).not.toContain("DELETE");
     expect(sql.toUpperCase()).not.toContain("UPDATE");
@@ -622,6 +628,8 @@ describe("C4-1b 段二 C-4 GET /storage/orphan-scan（孤儿文件扫描）", ()
     expect(res.status).toBe(200);
     const sql = sqlOf(hoisted.query.mock.calls[0]);
     expect(sql).toContain("f.tenant_id = ?");
+    // R101-C4-1c：筛选侧不得加 COLLATE（参数 COERCIBLE，加 COLLATE 会让租户过滤丢索引）
+    expect(sql).not.toMatch(/f\.tenant_id\s*=\s*\?\s*COLLATE/i);
     expect(paramsOf(hoisted.query.mock.calls[0])).toEqual(["t1", 501]);
   });
 

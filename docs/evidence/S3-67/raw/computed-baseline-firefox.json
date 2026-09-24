@@ -1,0 +1,4074 @@
+{
+  "meta": {
+    "engine": "firefox",
+    "connection": "launch()",
+    "browserVersion": "153.0",
+    "baseURL": "http://127.0.0.1:5173",
+    "collectedAt": "2026-09-24T20:13:54.428Z",
+    "sentinel": "#010203",
+    "script": "docs/evidence/S3-67/tools/s3-67-computed-matrix.cjs",
+    "samplingSpec": {
+      "boundary": "inset box-shadow 首色优先；否则四边中任一有效边色（w>0 && style!=none）；都无 ⇒ 无有效边界",
+      "background": "vs 最近不透明祖先底 与 vs 控件自身底（alpha 合成到白），取较小者为判定值",
+      "ratio": "WCAG 相对亮度，脚本计算；门槛 3:1（WCAG 1.4.11）",
+      "identity": "sel/class/尺寸/文本片段(≤20字)/disabled"
+    },
+    "phases": [
+      {
+        "key": "dashboard",
+        "route": "/dashboard",
+        "prep": "none"
+      },
+      {
+        "key": "customers",
+        "route": "/customers",
+        "prep": "none"
+      },
+      {
+        "key": "orders",
+        "route": "/orders",
+        "prep": "none"
+      },
+      {
+        "key": "retail-config",
+        "route": "/instant-retail/config",
+        "prep": "none"
+      },
+      {
+        "key": "system-config",
+        "route": "/system/config",
+        "prep": "none"
+      },
+      {
+        "key": "cashier",
+        "route": "/pos/cashier",
+        "prep": "addItem"
+      },
+      {
+        "key": "cashier-pay",
+        "route": "/pos/cashier",
+        "prep": "openPay"
+      },
+      {
+        "key": "cashier-trace",
+        "route": "/pos/cashier",
+        "prep": "openTrace"
+      }
+    ],
+    "envNote": "admin-web dev(5173) → vite proxy → 127.0.0.1:8081 mock 后端（USE_MOCK_DB=true）"
+  },
+  "notes": [
+    "登录后 url=http://127.0.0.1:5173/login"
+  ],
+  "phasesObserved": [
+    {
+      "phase": "dashboard",
+      "prep": "none",
+      "finalUrl": "http://127.0.0.1:5173/dashboard"
+    },
+    {
+      "phase": "customers",
+      "prep": "none",
+      "finalUrl": "http://127.0.0.1:5173/customers"
+    },
+    {
+      "phase": "orders",
+      "prep": "none",
+      "finalUrl": "http://127.0.0.1:5173/orders"
+    },
+    {
+      "phase": "retail-config",
+      "prep": "none",
+      "finalUrl": "http://127.0.0.1:5173/instant-retail/config"
+    },
+    {
+      "phase": "system-config",
+      "prep": "none",
+      "finalUrl": "http://127.0.0.1:5173/system/config"
+    },
+    {
+      "phase": "cashier",
+      "prep": "addItem",
+      "finalUrl": "http://127.0.0.1:5173/pos/cashier"
+    },
+    {
+      "phase": "cashier-pay",
+      "prep": "openPay",
+      "finalUrl": "http://127.0.0.1:5173/pos/cashier"
+    },
+    {
+      "phase": "cashier-trace",
+      "prep": "openTrace",
+      "finalUrl": "http://127.0.0.1:5173/pos/cashier"
+    }
+  ],
+  "rootVars": {
+    "--border-normal": "#E2E2E2",
+    "--border-light": "#F0F0F0",
+    "--table-border": "#E2E2E2",
+    "--el-border-color": "#888888",
+    "--el-table-border-color": "#E2E2E2",
+    "--input-border": "#888888"
+  },
+  "baselineRaw": [
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 7,
+      "sampled": 7,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--small is-circle",
+          "text": "",
+          "disabled": false,
+          "w": 24,
+          "h": 24,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large quick-cashier-btn",
+          "text": "开单收银",
+          "disabled": false,
+          "w": 109,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--small is-circle",
+          "text": "",
+          "disabled": false,
+          "w": 24,
+          "h": 24,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--small is-text ai-collapse-btn",
+          "text": "",
+          "disabled": false,
+          "w": 34,
+          "h": 24,
+          "borderSides": "Top:0px/solid/rgba(0, 0, 0, 0) | Right:0px/solid/rgba(0, 0, 0, 0) | Bottom:0px/solid/rgba(0, 0, 0, 0) | Left:0px/solid/rgba(0, 0, 0, 0)",
+          "effectiveBorderColors": [],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(0, 0, 0, 0)",
+          "ownBgAlpha": 0,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary is-disabled is-circle ai-send-btn",
+          "text": "",
+          "disabled": true,
+          "w": 30,
+          "h": 30,
+          "borderSides": "Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)",
+          "effectiveBorderColors": [
+            "rgba(63, 111, 239, 0.12)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgba(63, 111, 239, 0.12)",
+          "ownBgAlpha": 0.12,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 5,
+          "tag": "BUTTON",
+          "cls": "el-button is-circle ai-image-btn",
+          "text": "",
+          "disabled": false,
+          "w": 28,
+          "h": 28,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 6,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--default is-disabled is-circle ai-voice-btn",
+          "text": "",
+          "disabled": true,
+          "w": 28,
+          "h": 28,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--default is-disabled is-circle ai-voice-btn",
+          "text": "",
+          "disabled": true,
+          "w": 28,
+          "h": 28,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 2,
+      "sampled": 2,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large quick-cashier-btn",
+          "text": "开单收银",
+          "disabled": false,
+          "w": 109,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary is-disabled is-circle ai-send-btn",
+          "text": "",
+          "disabled": true,
+          "w": 30,
+          "h": 30,
+          "borderSides": "Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)",
+          "effectiveBorderColors": [
+            "rgba(63, 111, 239, 0.12)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgba(63, 111, 239, 0.12)",
+          "ownBgAlpha": 0.12,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-card",
+      "name": ".el-card",
+      "sel": ".el-card",
+      "found": 6,
+      "sampled": 6,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow metric-strip",
+          "text": "今日销售额¥0今日订单0 单今日毛利¥0",
+          "disabled": false,
+          "w": 1067,
+          "h": 90,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow feed-card feed-card--feed",
+          "text": "经营动态全部销售收款客户预警通知今天销售",
+          "disabled": false,
+          "w": 706,
+          "h": 402,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow feed-card feed-card--trend",
+          "text": "本月销售趋势",
+          "disabled": false,
+          "w": 706,
+          "h": 422,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 3,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow side-card side-card--fill",
+          "text": "最新订单共 1 单-线下门店-¥0",
+          "disabled": false,
+          "w": 345,
+          "h": 311,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 4,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow side-card side-card--fill",
+          "text": "待办与预警今日无待办事项",
+          "disabled": false,
+          "w": 345,
+          "h": 311,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow side-card",
+          "text": "快捷入口开单收银销售单据消息中心库存预警",
+          "disabled": false,
+          "w": 345,
+          "h": 186,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AI-textarea",
+      "name": "AiSidePanel .ai-input-box .el-textarea__inner",
+      "sel": ".ai-input-box .el-textarea__inner",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "TEXTAREA",
+          "cls": "el-textarea__inner",
+          "text": "",
+          "disabled": false,
+          "w": 296,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "effectiveBorderColors": [
+            "rgb(240, 240, 240)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(240, 240, 240)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-th",
+      "name": ".el-table th.el-table__cell",
+      "sel": ".el-table th.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-td",
+      "name": ".el-table td.el-table__cell",
+      "sel": ".el-table td.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table",
+      "name": ".el-table（表格外框）",
+      "sel": ".el-table",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-pagination",
+      "name": ".el-pagination",
+      "sel": ".el-pagination",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-card",
+      "name": ".el-card",
+      "sel": ".el-card",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "AI-textarea",
+      "name": "AiSidePanel .ai-input-box .el-textarea__inner",
+      "sel": ".ai-input-box .el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-th",
+      "name": ".el-table th.el-table__cell",
+      "sel": ".el-table th.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-td",
+      "name": ".el-table td.el-table__cell",
+      "sel": ".el-table td.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table",
+      "name": ".el-table（表格外框）",
+      "sel": ".el-table",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-pagination",
+      "name": ".el-pagination",
+      "sel": ".el-pagination",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-card",
+      "name": ".el-card",
+      "sel": ".el-card",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "AI-textarea",
+      "name": "AiSidePanel .ai-input-box .el-textarea__inner",
+      "sel": ".ai-input-box .el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-textarea",
+      "name": ".el-textarea__inner（通用）",
+      "sel": ".el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-textarea",
+      "name": ".el-textarea__inner（通用）",
+      "sel": ".el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-product-search",
+      "name": "Cashier .product-search-input .el-input__wrapper",
+      "sel": ".product-search-input .el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-qty-btn",
+      "name": "Cashier .qty-btn",
+      "sel": ".qty-btn",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-cart-summary",
+      "name": "Cashier .cart-summary（虚线分隔线引用点 2148）",
+      "sel": ".cart-summary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 3,
+      "sampled": 3,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button scan-button",
+          "text": "扫码",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "el-button settings-button",
+          "text": "设置",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-product-search",
+      "name": "Cashier .product-search-input .el-input__wrapper",
+      "sel": ".product-search-input .el-input__wrapper",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-input__wrapper",
+          "text": "",
+          "disabled": false,
+          "w": 583,
+          "h": 34,
+          "borderSides": "Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "effectiveBorderColors": [],
+          "insetShadow": "rgb(226, 226, 226)",
+          "insetShadowColor": "rgb(226, 226, 226)",
+          "boxShadowRaw": "rgb(226, 226, 226) 0px 0px 0px 1px inset",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-code",
+      "name": "Cashier .pay-code-input .el-input__wrapper",
+      "sel": ".pay-code-input .el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-qty-btn",
+      "name": "Cashier .qty-btn",
+      "sel": ".qty-btn",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-numpad-key",
+      "name": "Cashier .numpad-key",
+      "sel": ".numpad-key",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-pay-method-btn",
+      "name": "Cashier .pay-method-btn（未选中态）",
+      "sel": ".pay-method-btn:not(.active)",
+      "found": 3,
+      "sampled": 3,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn",
+          "text": "微信",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "effectiveBorderColors": [
+            "rgb(226, 226, 226)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn",
+          "text": "支付宝",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "effectiveBorderColors": [
+            "rgb(226, 226, 226)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn",
+          "text": "余额",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "effectiveBorderColors": [
+            "rgb(226, 226, 226)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-method-btn-active",
+      "name": "Cashier .pay-method-btn.active（选中态）",
+      "sel": ".pay-method-btn.active",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn active",
+          "text": "¥现金",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(63, 111, 239, 0.06)",
+          "ownBgAlpha": 0.06,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-method-card",
+      "name": "Cashier .pay-method-card（未选中态）",
+      "sel": ".pay-method-card:not(.active)",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-pay-method-card-active",
+      "name": "Cashier .pay-method-card.active（选中态）",
+      "sel": ".pay-method-card.active",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-cart-summary",
+      "name": "Cashier .cart-summary（虚线分隔线引用点 2148）",
+      "sel": ".cart-summary",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "cart-summary",
+          "text": "商品件数0 件应收金额¥0.00",
+          "disabled": false,
+          "w": 404,
+          "h": 64,
+          "borderSides": "Top:1px/dashed/rgb(226, 226, 226) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "effectiveBorderColors": [
+            "rgb(226, 226, 226)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(0, 0, 0, 0)",
+          "ownBgAlpha": 0,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 6,
+      "sampled": 6,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button scan-button",
+          "text": "扫码",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "el-button settings-button",
+          "text": "设置",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--success",
+          "text": "扫码收款",
+          "disabled": false,
+          "w": 84,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(14, 168, 121) | Right:1px/solid/rgb(14, 168, 121) | Bottom:1px/solid/rgb(14, 168, 121) | Left:1px/solid/rgb(14, 168, 121)",
+          "effectiveBorderColors": [
+            "rgb(14, 168, 121)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(14, 168, 121)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(248, 248, 248)",
+          "vars": {
+            "--el-button-border-color": "#0EA879",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "el-button",
+          "text": "取消",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "effectiveBorderColors": [
+            "rgb(136, 136, 136)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 5,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large",
+          "text": "确认收款",
+          "disabled": false,
+          "w": 92,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 2,
+      "sampled": 2,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large",
+          "text": "确认收款",
+          "disabled": false,
+          "w": 92,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "effectiveBorderColors": [
+            "rgb(63, 111, 239)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-dialog",
+      "name": ".el-dialog（追溯码弹窗）",
+      "sel": ".el-dialog",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-dialog is-align-center pay-dialog",
+          "text": "收款结算应收金额¥129.001 件商品",
+          "disabled": false,
+          "w": 680,
+          "h": 863,
+          "borderSides": "Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "effectiveBorderColors": [],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "rgba(16, 24, 40, 0.18) 0px 24px 48px -12px, rgba(16, 24, 40, 0.1) 0px 8px 16px -8px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-product-search",
+      "name": "Cashier .product-search-input .el-input__wrapper",
+      "sel": ".product-search-input .el-input__wrapper",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-input__wrapper",
+          "text": "",
+          "disabled": false,
+          "w": 583,
+          "h": 34,
+          "borderSides": "Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "effectiveBorderColors": [],
+          "insetShadow": "rgb(226, 226, 226)",
+          "insetShadowColor": "rgb(226, 226, 226)",
+          "boxShadowRaw": "rgb(226, 226, 226) 0px 0px 0px 1px inset",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-code",
+      "name": "Cashier .pay-code-input .el-input__wrapper",
+      "sel": ".pay-code-input .el-input__wrapper",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-input__wrapper",
+          "text": "",
+          "disabled": false,
+          "w": 458,
+          "h": 34,
+          "borderSides": "Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)",
+          "effectiveBorderColors": [],
+          "insetShadow": "rgb(226, 226, 226)",
+          "insetShadowColor": "rgb(226, 226, 226)",
+          "boxShadowRaw": "rgb(226, 226, 226) 0px 0px 0px 1px inset",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(248, 248, 248)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-trace-code",
+      "name": "Cashier .trace-code-input .el-input__wrapper",
+      "sel": ".trace-code-input .el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-qty-btn",
+      "name": "Cashier .qty-btn",
+      "sel": ".qty-btn",
+      "found": 2,
+      "sampled": 2,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "qty-btn",
+          "text": "−",
+          "disabled": false,
+          "w": 22,
+          "h": 22,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "effectiveBorderColors": [
+            "rgb(226, 226, 226)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "qty-btn",
+          "text": "+",
+          "disabled": false,
+          "w": 22,
+          "h": 22,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "effectiveBorderColors": [
+            "rgb(226, 226, 226)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-cart-summary",
+      "name": "Cashier .cart-summary（虚线分隔线引用点 2148）",
+      "sel": ".cart-summary",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "cart-summary",
+          "text": "商品件数1 件应收金额¥129.00",
+          "disabled": false,
+          "w": 404,
+          "h": 64,
+          "borderSides": "Top:1px/dashed/rgb(226, 226, 226) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "effectiveBorderColors": [
+            "rgb(226, 226, 226)"
+          ],
+          "insetShadow": null,
+          "insetShadowColor": null,
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(0, 0, 0, 0)",
+          "ownBgAlpha": 0,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    }
+  ],
+  "baselineAnalyzed": [
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 7,
+      "sampled": 7,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--small is-circle",
+          "text": "",
+          "disabled": false,
+          "w": 24,
+          "h": 24,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large quick-cashier-btn",
+          "text": "开单收银",
+          "disabled": false,
+          "w": 109,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.07,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--small is-circle",
+          "text": "",
+          "disabled": false,
+          "w": 24,
+          "h": 24,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--small is-text ai-collapse-btn",
+          "text": "",
+          "disabled": false,
+          "w": 34,
+          "h": 24,
+          "borderSides": "Top:0px/solid/rgba(0, 0, 0, 0) | Right:0px/solid/rgba(0, 0, 0, 0) | Bottom:0px/solid/rgba(0, 0, 0, 0) | Left:0px/solid/rgba(0, 0, 0, 0)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(0, 0, 0, 0)",
+          "ownBgAlpha": 0,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": null,
+              "boundaryHex": null,
+              "source": "无有效边界",
+              "ratioVsAncestor": null,
+              "ratioVsOwnBg": null,
+              "minRatio": null
+            }
+          ],
+          "judgedBoundary": null,
+          "judgedBoundaryHex": null,
+          "judgedSource": "无有效边界",
+          "judgedRatio": null,
+          "verdict": "无法判定（无有效边界/背景）",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary is-disabled is-circle ai-send-btn",
+          "text": "",
+          "disabled": true,
+          "w": 30,
+          "h": 30,
+          "borderSides": "Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgba(63, 111, 239, 0.12)",
+          "ownBgAlpha": 0.12,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#E8EEFD",
+          "candidates": [
+            {
+              "boundary": "rgba(63, 111, 239, 0.12)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 3.81,
+              "minRatio": 3.81
+            }
+          ],
+          "judgedBoundary": "rgba(63, 111, 239, 0.12)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.81,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 5,
+          "tag": "BUTTON",
+          "cls": "el-button is-circle ai-image-btn",
+          "text": "",
+          "disabled": false,
+          "w": 28,
+          "h": 28,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 6,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--default is-disabled is-circle ai-voice-btn",
+          "text": "",
+          "disabled": true,
+          "w": 28,
+          "h": 28,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.14,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.14
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.14,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--default is-disabled is-circle ai-voice-btn",
+          "text": "",
+          "disabled": true,
+          "w": 28,
+          "h": 28,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.14,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.14
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.14,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 2,
+      "sampled": 2,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large quick-cashier-btn",
+          "text": "开单收银",
+          "disabled": false,
+          "w": 109,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.07,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary is-disabled is-circle ai-send-btn",
+          "text": "",
+          "disabled": true,
+          "w": 30,
+          "h": 30,
+          "borderSides": "Top:1px/solid/rgba(63, 111, 239, 0.12) | Right:1px/solid/rgba(63, 111, 239, 0.12) | Bottom:1px/solid/rgba(63, 111, 239, 0.12) | Left:1px/solid/rgba(63, 111, 239, 0.12)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgba(63, 111, 239, 0.12)",
+          "ownBgAlpha": 0.12,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#E8EEFD",
+          "candidates": [
+            {
+              "boundary": "rgba(63, 111, 239, 0.12)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 3.81,
+              "minRatio": 3.81
+            }
+          ],
+          "judgedBoundary": "rgba(63, 111, 239, 0.12)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.81,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-card",
+      "name": ".el-card",
+      "sel": ".el-card",
+      "found": 6,
+      "sampled": 6,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow metric-strip",
+          "text": "今日销售额¥0今日订单0 单今日毛利¥0",
+          "disabled": false,
+          "w": 1067,
+          "h": 90,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.04,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.04
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.04,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow feed-card feed-card--feed",
+          "text": "经营动态全部销售收款客户预警通知今天销售",
+          "disabled": false,
+          "w": 706,
+          "h": 402,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.04,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.04
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.04,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow feed-card feed-card--trend",
+          "text": "本月销售趋势",
+          "disabled": false,
+          "w": 706,
+          "h": 422,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.04,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.04
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.04,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 3,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow side-card side-card--fill",
+          "text": "最新订单共 1 单-线下门店-¥0",
+          "disabled": false,
+          "w": 345,
+          "h": 311,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.04,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.04
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.04,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 4,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow side-card side-card--fill",
+          "text": "待办与预警今日无待办事项",
+          "disabled": false,
+          "w": 345,
+          "h": 311,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.04,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.04
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.04,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 5,
+          "tag": "DIV",
+          "cls": "el-card is-hover-shadow side-card",
+          "text": "快捷入口开单收银销售单据消息中心库存预警",
+          "disabled": false,
+          "w": 345,
+          "h": 186,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.04,
+              "ratioVsOwnBg": 1.14,
+              "minRatio": 1.04
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.04,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "AI-textarea",
+      "name": "AiSidePanel .ai-input-box .el-textarea__inner",
+      "sel": ".ai-input-box .el-textarea__inner",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "TEXTAREA",
+          "cls": "el-textarea__inner",
+          "text": "",
+          "disabled": false,
+          "w": 296,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(240, 240, 240) | Right:1px/solid/rgb(240, 240, 240) | Bottom:1px/solid/rgb(240, 240, 240) | Left:1px/solid/rgb(240, 240, 240)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(240, 240, 240)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#F0F0F0",
+          "candidates": [
+            {
+              "boundary": "rgb(240, 240, 240)",
+              "boundaryHex": "#F0F0F0",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.14,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(240, 240, 240)",
+          "judgedBoundaryHex": "#F0F0F0",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-th",
+      "name": ".el-table th.el-table__cell",
+      "sel": ".el-table th.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-td",
+      "name": ".el-table td.el-table__cell",
+      "sel": ".el-table td.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table",
+      "name": ".el-table（表格外框）",
+      "sel": ".el-table",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-pagination",
+      "name": ".el-pagination",
+      "sel": ".el-pagination",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-card",
+      "name": ".el-card",
+      "sel": ".el-card",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "AI-textarea",
+      "name": "AiSidePanel .ai-input-box .el-textarea__inner",
+      "sel": ".ai-input-box .el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-th",
+      "name": ".el-table th.el-table__cell",
+      "sel": ".el-table th.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table-td",
+      "name": ".el-table td.el-table__cell",
+      "sel": ".el-table td.el-table__cell",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-table",
+      "name": ".el-table（表格外框）",
+      "sel": ".el-table",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-pagination",
+      "name": ".el-pagination",
+      "sel": ".el-pagination",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-card",
+      "name": ".el-card",
+      "sel": ".el-card",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "AI-textarea",
+      "name": "AiSidePanel .ai-input-box .el-textarea__inner",
+      "sel": ".ai-input-box .el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-textarea",
+      "name": ".el-textarea__inner（通用）",
+      "sel": ".el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-input",
+      "name": ".el-input__wrapper（通用）",
+      "sel": ".el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-select",
+      "name": ".el-select__wrapper",
+      "sel": ".el-select__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-textarea",
+      "name": ".el-textarea__inner（通用）",
+      "sel": ".el-textarea__inner",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-product-search",
+      "name": "Cashier .product-search-input .el-input__wrapper",
+      "sel": ".product-search-input .el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-qty-btn",
+      "name": "Cashier .qty-btn",
+      "sel": ".qty-btn",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-cart-summary",
+      "name": "Cashier .cart-summary（虚线分隔线引用点 2148）",
+      "sel": ".cart-summary",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 3,
+      "sampled": 3,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button scan-button",
+          "text": "扫码",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "el-button settings-button",
+          "text": "设置",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-product-search",
+      "name": "Cashier .product-search-input .el-input__wrapper",
+      "sel": ".product-search-input .el-input__wrapper",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-input__wrapper",
+          "text": "",
+          "disabled": false,
+          "w": 583,
+          "h": 34,
+          "borderSides": "Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "boxShadowRaw": "rgb(226, 226, 226) 0px 0px 0px 1px inset",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "inset box-shadow 首色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "inset box-shadow 首色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-code",
+      "name": "Cashier .pay-code-input .el-input__wrapper",
+      "sel": ".pay-code-input .el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-qty-btn",
+      "name": "Cashier .qty-btn",
+      "sel": ".qty-btn",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-numpad-key",
+      "name": "Cashier .numpad-key",
+      "sel": ".numpad-key",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-pay-method-btn",
+      "name": "Cashier .pay-method-btn（未选中态）",
+      "sel": ".pay-method-btn:not(.active)",
+      "found": 3,
+      "sampled": 3,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn",
+          "text": "微信",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn",
+          "text": "支付宝",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn",
+          "text": "余额",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-method-btn-active",
+      "name": "Cashier .pay-method-btn.active（选中态）",
+      "sel": ".pay-method-btn.active",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "pay-method-btn active",
+          "text": "¥现金",
+          "disabled": false,
+          "w": 97,
+          "h": 61,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(63, 111, 239, 0.06)",
+          "ownBgAlpha": 0.06,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#F3F6FE",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 4.12,
+              "minRatio": 4.12
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 4.12,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-method-card",
+      "name": "Cashier .pay-method-card（未选中态）",
+      "sel": ".pay-method-card:not(.active)",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-pay-method-card-active",
+      "name": "Cashier .pay-method-card.active（选中态）",
+      "sel": ".pay-method-card.active",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-cart-summary",
+      "name": "Cashier .cart-summary（虚线分隔线引用点 2148）",
+      "sel": ".cart-summary",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "cart-summary",
+          "text": "商品件数0 件应收金额¥0.00",
+          "disabled": false,
+          "w": 404,
+          "h": 64,
+          "borderSides": "Top:1px/dashed/rgb(226, 226, 226) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(0, 0, 0, 0)",
+          "ownBgAlpha": 0,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button",
+      "name": ".el-button（全体）",
+      "sel": ".el-button",
+      "found": 6,
+      "sampled": 6,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button scan-button",
+          "text": "扫码",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 2,
+          "tag": "BUTTON",
+          "cls": "el-button settings-button",
+          "text": "设置",
+          "disabled": false,
+          "w": 74,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 3,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--success",
+          "text": "扫码收款",
+          "disabled": false,
+          "w": 84,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(14, 168, 121) | Right:1px/solid/rgb(14, 168, 121) | Bottom:1px/solid/rgb(14, 168, 121) | Left:1px/solid/rgb(14, 168, 121)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(14, 168, 121)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(248, 248, 248)",
+          "ownBgComposited": "#0EA879",
+          "candidates": [
+            {
+              "boundary": "rgb(14, 168, 121)",
+              "boundaryHex": "#0EA879",
+              "source": "border 边色",
+              "ratioVsAncestor": 2.87,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(14, 168, 121)",
+          "judgedBoundaryHex": "#0EA879",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#0EA879",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 4,
+          "tag": "BUTTON",
+          "cls": "el-button",
+          "text": "取消",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(136, 136, 136) | Right:1px/solid/rgb(136, 136, 136) | Bottom:1px/solid/rgb(136, 136, 136) | Left:1px/solid/rgb(136, 136, 136)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(136, 136, 136)",
+              "boundaryHex": "#888888",
+              "source": "border 边色",
+              "ratioVsAncestor": 3.54,
+              "ratioVsOwnBg": 3.54,
+              "minRatio": 3.54
+            }
+          ],
+          "judgedBoundary": "rgb(136, 136, 136)",
+          "judgedBoundaryHex": "#888888",
+          "judgedSource": "border 边色",
+          "judgedRatio": 3.54,
+          "verdict": "≥3:1",
+          "vars": {
+            "--el-button-border-color": "#888888",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 5,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large",
+          "text": "确认收款",
+          "disabled": false,
+          "w": 92,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-default",
+      "name": ".el-button--default",
+      "sel": ".el-button--default",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-button-primary",
+      "name": ".el-button--primary",
+      "sel": ".el-button--primary",
+      "found": 2,
+      "sampled": 2,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary search-button",
+          "text": "搜索",
+          "disabled": false,
+          "w": 58,
+          "h": 32,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "el-button el-button--primary el-button--large",
+          "text": "确认收款",
+          "disabled": false,
+          "w": 92,
+          "h": 40,
+          "borderSides": "Top:1px/solid/rgb(63, 111, 239) | Right:1px/solid/rgb(63, 111, 239) | Bottom:1px/solid/rgb(63, 111, 239) | Left:1px/solid/rgb(63, 111, 239)",
+          "boxShadowRaw": "rgba(47, 91, 214, 0.18) 0px 2px 6px 0px",
+          "ownBg": "rgb(63, 111, 239)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#3F6FEF",
+          "candidates": [
+            {
+              "boundary": "rgb(63, 111, 239)",
+              "boundaryHex": "#3F6FEF",
+              "source": "border 边色",
+              "ratioVsAncestor": 4.44,
+              "ratioVsOwnBg": 1,
+              "minRatio": 1
+            }
+          ],
+          "judgedBoundary": "rgb(63, 111, 239)",
+          "judgedBoundaryHex": "#3F6FEF",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "#3F6FEF",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EP-button-danger",
+      "name": ".el-button--danger",
+      "sel": ".el-button--danger",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "EP-dialog",
+      "name": ".el-dialog（追溯码弹窗）",
+      "sel": ".el-dialog",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-dialog is-align-center pay-dialog",
+          "text": "收款结算应收金额¥129.001 件商品",
+          "disabled": false,
+          "w": 680,
+          "h": 863,
+          "borderSides": "Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "boxShadowRaw": "rgba(16, 24, 40, 0.18) 0px 24px 48px -12px, rgba(16, 24, 40, 0.1) 0px 8px 16px -8px",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(242, 245, 252)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": null,
+              "boundaryHex": null,
+              "source": "无有效边界",
+              "ratioVsAncestor": null,
+              "ratioVsOwnBg": null,
+              "minRatio": null
+            }
+          ],
+          "judgedBoundary": null,
+          "judgedBoundaryHex": null,
+          "judgedSource": "无有效边界",
+          "judgedRatio": null,
+          "verdict": "无法判定（无有效边界/背景）",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-product-search",
+      "name": "Cashier .product-search-input .el-input__wrapper",
+      "sel": ".product-search-input .el-input__wrapper",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-input__wrapper",
+          "text": "",
+          "disabled": false,
+          "w": 583,
+          "h": 34,
+          "borderSides": "Top:0px/none/rgb(0, 0, 0) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "boxShadowRaw": "rgb(226, 226, 226) 0px 0px 0px 1px inset",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "inset box-shadow 首色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "inset box-shadow 首色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-pay-code",
+      "name": "Cashier .pay-code-input .el-input__wrapper",
+      "sel": ".pay-code-input .el-input__wrapper",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "el-input__wrapper",
+          "text": "",
+          "disabled": false,
+          "w": 458,
+          "h": 34,
+          "borderSides": "Top:0px/none/rgb(68, 68, 68) | Right:0px/none/rgb(68, 68, 68) | Bottom:0px/none/rgb(68, 68, 68) | Left:0px/none/rgb(68, 68, 68)",
+          "boxShadowRaw": "rgb(226, 226, 226) 0px 0px 0px 1px inset",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(248, 248, 248)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "inset box-shadow 首色",
+              "ratioVsAncestor": 1.22,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.22
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "inset box-shadow 首色",
+          "judgedRatio": 1.22,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-trace-code",
+      "name": "Cashier .trace-code-input .el-input__wrapper",
+      "sel": ".trace-code-input .el-input__wrapper",
+      "found": 0,
+      "sampled": 0,
+      "instances": []
+    },
+    {
+      "id": "CS-qty-btn",
+      "name": "Cashier .qty-btn",
+      "sel": ".qty-btn",
+      "found": 2,
+      "sampled": 2,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "BUTTON",
+          "cls": "qty-btn",
+          "text": "−",
+          "disabled": false,
+          "w": 22,
+          "h": 22,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        },
+        {
+          "i": 1,
+          "tag": "BUTTON",
+          "cls": "qty-btn",
+          "text": "+",
+          "disabled": false,
+          "w": 22,
+          "h": 22,
+          "borderSides": "Top:1px/solid/rgb(226, 226, 226) | Right:1px/solid/rgb(226, 226, 226) | Bottom:1px/solid/rgb(226, 226, 226) | Left:1px/solid/rgb(226, 226, 226)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgb(255, 255, 255)",
+          "ownBgAlpha": 1,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CS-cart-summary",
+      "name": "Cashier .cart-summary（虚线分隔线引用点 2148）",
+      "sel": ".cart-summary",
+      "found": 1,
+      "sampled": 1,
+      "instances": [
+        {
+          "i": 0,
+          "tag": "DIV",
+          "cls": "cart-summary",
+          "text": "商品件数1 件应收金额¥129.00",
+          "disabled": false,
+          "w": 404,
+          "h": 64,
+          "borderSides": "Top:1px/dashed/rgb(226, 226, 226) | Right:0px/none/rgb(0, 0, 0) | Bottom:0px/none/rgb(0, 0, 0) | Left:0px/none/rgb(0, 0, 0)",
+          "boxShadowRaw": "none",
+          "ownBg": "rgba(0, 0, 0, 0)",
+          "ownBgAlpha": 0,
+          "ancestorBg": "rgb(255, 255, 255)",
+          "ownBgComposited": "#FFFFFF",
+          "candidates": [
+            {
+              "boundary": "rgb(226, 226, 226)",
+              "boundaryHex": "#E2E2E2",
+              "source": "border 边色",
+              "ratioVsAncestor": 1.3,
+              "ratioVsOwnBg": 1.3,
+              "minRatio": 1.3
+            }
+          ],
+          "judgedBoundary": "rgb(226, 226, 226)",
+          "judgedBoundaryHex": "#E2E2E2",
+          "judgedSource": "border 边色",
+          "judgedRatio": 1.3,
+          "verdict": "<3:1",
+          "vars": {
+            "--el-button-border-color": "",
+            "--border-normal": "#E2E2E2",
+            "--border-light": "#F0F0F0",
+            "--table-border": "#E2E2E2",
+            "--input-border": "#888888",
+            "--el-border-color": "#888888",
+            "--el-table-border-color": "#E2E2E2"
+          }
+        }
+      ]
+    }
+  ]
+}

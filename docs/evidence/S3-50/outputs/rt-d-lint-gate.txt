@@ -1,0 +1,20 @@
+=====================  S3-50 RT-D  Backend lint gate 反测  =====================
+eslint：node_modules/eslint/bin/eslint.js（v8.57.1）
+配置：backend/.eslintrc.cjs（仓库真实配置，规则 no-var=error）
+探针目录：C:\Users\XIONG\AppData\Local\Temp\s3-50-rtD-5a0d4482d158431eab4dc1c33d504bc5（系统临时目录，未在 backend/src 内新增任何文件）
+
+--- A) 干净探针（期望 exit 0）---
+exit=0
+
+通过：合法代码下 lint 绿
+
+--- B) 违规探针 var rtProbeUnused = 1;（期望 exit 1）---
+exit=1
+C:\Users\XIONG\AppData\Local\Temp\s3-50-rtD-5a0d4482d158431eab4dc1c33d504bc5\probe-dirty.ts
+  1:1  error    Unexpected var, use let or const instead            no-var
+  1:5  warning  'rtProbeUnused' is assigned a value but never used  @typescript-eslint/no-unused-vars
+✖ 2 problems (1 error, 1 warning)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+通过：lint 报 error 并非零退出 ⇒ 该步骤会红
+
+=====================  RT-D 结束  =====================

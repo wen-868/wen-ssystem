@@ -1,0 +1,159 @@
+===================================================================
+workflow: build-exe.yml   （文件 52 行；on: 见第 3 行；1 个 job）
+===================================================================
+
+── job: build-windows   （L11；runs-on=windows-latest）
+  step  1 L 14  [检查/执行] (无名)
+         uses: actions/checkout@v4
+  step  2 L 15  [检查/执行] (无名)
+         uses: actions/setup-node@v4
+  step  3 L 18  [检查/执行] Install deps
+         run: npm install --legacy-peer-deps
+  step  4 L 21  [检查/执行] Build Vite
+         run: npx vite build
+  step  5 L 28  [检查/执行] Build Electron EXE
+         run: |
+  step  6 L 40  [检查/执行] Upload artifacts
+         uses: actions/upload-artifact@v4
+  step  7 L 45  [检查/执行] Upload to release
+         uses: softprops/action-gh-release@v2
+         if: startsWith(github.ref, 'refs/tags/')
+
+===================================================================
+workflow: ci.yml   （文件 190 行；on: 见第 3 行；2 个 job）
+===================================================================
+
+── job: build-and-test   （L9；runs-on=ubuntu-latest）
+  step  1 L 14  [检查/执行] Checkout
+         uses: actions/checkout@v4
+  step  2 L 17  [检查/执行] Setup Node.js
+         uses: actions/setup-node@v4
+  step  3 L 23  [检查/执行] Install dependencies
+         run: npm ci --legacy-peer-deps
+  step  4 L 32  [检查/执行] Shell script syntax check (deploy/scripts)
+         run: |
+         if: always()
+  step  5 L 69  [检查/执行] Contrast / a11y token gate (WCAG AA)
+         run: node scripts/contrast-check.cjs
+         if: always()
+  step  6 L 73  [检查/执行] Backend unit tests
+         run: npm --workspace backend test
+  step  7 L 76  [检查/执行] Backend lint gate (zero error)
+         run: npm --workspace backend run lint
+  step  8 L 79  [检查/执行] Backend coverage gate (baseline 2026-08-15)
+         run: npm --workspace backend run test -- --coverage
+  step  9 L 82  [检查/执行] Dependency audit (non-blocking, baseline recorded)
+         run: npm audit --omit=dev --audit-level=high
+         continue-on-error: true
+  step 10 L 86  [检查/执行] Duplication check (non-blocking, baseline recorded)
+         run: npm run dup:check
+         continue-on-error: true
+  step 11 L 90  [检查/执行] Upload coverage report
+         uses: actions/upload-artifact@v4
+  step 12 L 97  [检查/执行] Build backend
+         run: npm --workspace backend run build
+  step 13 L100  [检查/执行] Build admin web
+         run: npm --workspace admin-web run build
+  step 14 L103  [检查/执行] Build saas admin
+         run: npm --workspace saas-admin run build
+  step 15 L106  [检查/执行] Start mock backend
+         run: USE_MOCK_DB=true NODE_ENV=development JWT_SECRET=ci-test-secret npm --workspace backend run start > /tmp/zhixiang-backend.log 2>&1 &
+  step 16 L111  [检查/执行] Wait for backend
+         run: npx wait-on -t 90000 http://127.0.0.1:8080/health || (echo "=== backend log ==="; cat /tmp/zhixiang-backend.log; exit 1)
+  step 17 L114  [检查/执行] Flow self test
+         run: npm run test:flow
+  step 18 L117  [检查/执行] QA regression test
+         run: npm run test:qa
+  step 19 L120  [检查/执行] Security smoke scan (basic DAST)
+         run: node scripts/security-smoke.mjs
+
+── job: migration-check   （L136；runs-on=ubuntu-latest）
+  step  1 L159  [检查/执行] Checkout
+         uses: actions/checkout@v4
+  step  2 L162  [检查/执行] Setup Node.js
+         uses: actions/setup-node@v4
+  step  3 L168  [检查/执行] Install dependencies
+         run: npm ci --legacy-peer-deps
+  step  4 L171  [检查/执行] Build backend
+         run: npm --workspace backend run build
+  step  5 L174  [检查/执行] Run migrations via server boot and verify tables
+         run: |
+
+===================================================================
+workflow: codeql.yml   （文件 40 行；on: 见第 3 行；1 个 job）
+===================================================================
+
+── job: analyze   （L13；runs-on=ubuntu-latest）
+  step  1 L 27  [检查/执行] Checkout repository
+         uses: actions/checkout@v4
+  step  2 L 30  [检查/执行] Initialize CodeQL
+         uses: github/codeql-action/init@v3
+  step  3 L 36  [检查/执行] Perform CodeQL Analysis
+         uses: github/codeql-action/analyze@v3
+
+===================================================================
+workflow: deploy.yml   （文件 56 行；on: 见第 3 行；1 个 job）
+===================================================================
+
+── job: deploy   （L42；runs-on=ubuntu-latest）
+  step  1 L 46  [检查/执行] Deploy via SSH
+         uses: appleboy/ssh-action@v1.0.3
+
+===================================================================
+workflow: e2e.yml   （文件 231 行；on: 见第 3 行；2 个 job）
+===================================================================
+
+── job: e2e   （L9；runs-on=ubuntu-latest）
+  step  1 L 33  [检查/执行] Checkout
+         uses: actions/checkout@v4
+  step  2 L 36  [检查/执行] Setup Node.js
+         uses: actions/setup-node@v4
+  step  3 L 42  [检查/执行] Install dependencies
+         run: npm ci --legacy-peer-deps
+  step  4 L 45  [检查/执行] Build backend
+         run: npm --workspace backend run build
+  step  5 L 48  [检查/执行] Start mock backend
+         run: |
+  step  6 L 53  [检查/执行] Start admin-web dev server
+         run: |
+  step  7 L 58  [检查/执行] Start saas-admin dev server
+         run: |
+  step  8 L 63  [检查/执行] 密闭性取证（S3-59.1）：/api 必须打到 mock，不得回落生产
+         run: |
+  step  9 L 92  [检查/执行] Install Playwright browsers
+         run: npx playwright install --with-deps chromium firefox
+  step 10 L 95  [检查/执行] Run E2E tests (admin-web, Playwright + axe) —— 排除 @a11y 漂移用例
+         run: npx playwright test --grep-invert @a11y
+  step 11 L106  [检查/执行] saas-admin a11y gate (contrast matrix)
+         run: node scripts/contrast-check.cjs
+  step 12 L111  [检查/执行] Upload E2E report
+         uses: actions/upload-artifact@v4
+         if: always()
+
+── job: a11y   （L136；runs-on=ubuntu-latest）
+  step  1 L139  [检查/执行] Checkout
+         uses: actions/checkout@v4
+  step  2 L142  [检查/执行] Setup Node.js
+         uses: actions/setup-node@v4
+  step  3 L148  [检查/执行] Install dependencies
+         run: npm ci --legacy-peer-deps
+  step  4 L151  [检查/执行] Build backend
+         run: npm --workspace backend run build
+  step  5 L154  [检查/执行] Start mock backend
+         run: |
+  step  6 L159  [检查/执行] Start admin-web dev server
+         run: |
+  step  7 L164  [检查/执行] Install Playwright browsers
+         run: npx playwright install --with-deps chromium firefox
+  step  8 L167  [检查/执行] a11y sampling x10 (observation only, never blocks)
+         run: |
+         continue-on-error: true
+  step  9 L192  [检查/执行] a11y sampling verdict (如实判定，红就是红)
+         run: |
+  step 10 L224  [检查/执行] Upload a11y observation samples
+         uses: actions/upload-artifact@v4
+         if: always()
+
+===================================================================
+合计：workflow 文件 5 个 ｜ job 7 个 ｜ 步骤 57 个
+===================================================================
