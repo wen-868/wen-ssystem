@@ -475,3 +475,26 @@ export function getAiPointsRate() {
 export function updateAiPointsRate(data: any) {
   return api.put('/platform/ai-billing/points-rate', data)
 }
+
+// ==================== AI 模型与用量（R101-C5-2；契约见 C5-1 卡 §一，前缀 /api/platform/ai） ====================
+// 4 条平台级只读 GET，路径由凌舟钉死、**逐字照用**（禁止在前端拼路径变体、禁止自造同义端点）。
+// 统一信封 { code, message, data }：api 实例成功时原样返回 AxiosResponse ⇒ 调用方取 res.data.data。
+// 零假数据：接口未返回 / 字段缺失 ⇒ 页面显示「—」或空态，**不得**补 0、不得造日期。
+export function getPlatformAiPublicModels() {
+  return api.get<any, { data: ApiResult<any> }>("/platform/ai/public-models");
+}
+
+/** 逐次计量流水（分页）。历史行 cost / deduct_source 为 NULL（C5-1 不回填）⇒ 按「无值」渲染，不得当 0 */
+export function getPlatformAiMeteringLog(params?: { page?: number; pageSize?: number }) {
+  return api.get<any, { data: ApiResult<any> }>("/platform/ai/metering-log", { params });
+}
+
+/** 异常用量租户（计数 + 明细；阈值来源由后端给，取不到即不出判定） */
+export function getPlatformAiAbnormalTenants() {
+  return api.get<any, { data: ApiResult<any> }>("/platform/ai/abnormal-tenants");
+}
+
+/** 模型消耗占比（后端只按 t_ai_audit_log 逐次明细 GROUP BY model，不得用日聚合近似） */
+export function getPlatformAiModelShare() {
+  return api.get<any, { data: ApiResult<any> }>("/platform/ai/model-share");
+}
