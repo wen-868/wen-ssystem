@@ -45,15 +45,34 @@
 
 ⇒ 若日后要动这一族，**影响面 = 上表被标 ❌ 的 8 处**（表格 2 + 收银台 6），不是"全站"。这与 S3-67 卡"先出矩阵再改值"的入场条件一致：**矩阵已出，但改值仍未获授权**。
 
-## 三、变量归属轮：本轮**无效**（如实报备，不得当作结论）
+## 三、变量归属：工具哨兵轮**无效**，改用**规则级权威取证**定论（2026-09-25 补）
 
-6 个变量（`--border-normal` / `--border-light` / `--table-border` / `--el-border-color` / `--el-table-border-color` / `--input-border`）的哨兵轮**全部**报「变化 N 项，**变了但不是哨兵色**」，**没有任何一个控件被归因成功**。
+### 3.1 工具哨兵轮为何无效（如实报备）
 
-**根因（可核对）**：基线轮多数阶段 `found=0`（控件尚未渲染），哨兵轮才渲染出值 ⇒ 工具把"**后渲染出来**"当成"**被变量改了**"。firefox 报"变化 14 项"、chromium 只报 2 项，正是这个时序差造成的假象。
+6 个变量的哨兵轮**全部**报「变化 N 项，**变了但不是哨兵色**」，**没有任何控件被归因成功**。根因：基线轮多数阶段 `found=0`（控件尚未渲染），哨兵轮才渲染出值 ⇒ 工具把"**后渲染出来**"当成"**被变量改了**"（firefox 报 14 项、chromium 报 2 项，正是时序差）。**该轮结论一律不采信。**
 
-**因此**：本卡的 §二 是**基线实测**（可信）；**"某控件到底读哪个变量"仍未定论**——`#E2E2E2` 同时是 `--border-normal` 与 `--table-border` 的值，仅凭值无法区分。
+### 3.2 改用两种权威方法（都属计算/引擎级，非"读源码猜层叠"）
 
-**待重跑要求（登记，不视为已完成）**：工具需先只统计"**基线轮与哨兵轮都已渲染**"的元素（取两轮交集），并在两轮都注入后再比较；修好前，任何"变量↔控件"归属结论一律**不采信**。
+**方法 A：CDP `CSS.getMatchedStylesForNode`**（Chromium 引擎给出的**真正匹配的规则序列**，按层叠顺序），对每个控件列出所有含 `border`/`box-shadow` 的匹配规则并判断胜出者。
+**方法 B：哨兵注入 + computed 回读**（把候选变量写成 `#010203`，看 computed 是否变成 `rgb(1,2,3)`；用于**验证**方法 A 的结论）。
+
+证据：`docs/evidence/S3-67/raw/attrib-cdp-styles.txt`。
+
+### 3.3 结论（现金台＝D2 的决策面）
+
+| 控件 | 胜出的规则（CDP 实际匹配） | **驱动变量** | computed | 比值 |
+|---|---|---|---|---|
+| `.product-search-input .el-input__wrapper`（收银台） | `.product-search-input[data-v-…] .el-input__wrapper`（特异性 **0,2,0**，高于 EP 的 0,1,0） | **`--border-normal`** | `rgb(226,226,226)` | 1.30 ❌ |
+| `.qty-btn` | `.qty-btn[data-v-…]` → `border: 1px solid var(--border-normal)` | **`--border-normal`** | `rgb(226,226,226)` | 1.30 ❌ |
+| `.cart-summary` | `.cart-summary[data-v-…]` → `border-top: 1px dashed var(--border-normal)` | **`--border-normal`**（方法 B 注入即翻转 ★） | `rgb(226,226,226)` | 1.30 ❌ |
+| 通用 `.el-input__wrapper`（`/customers` 等） | app 的 `.el-input__wrapper,.el-select__wrapper{…var(--input-border)…}` 与 EP 的 `.el-input__wrapper{…var(--el-input-border-color,var(--el-border-color))…}` **同特异性**，EP **后置**胜出 | **`--el-border-color`** | `rgb(136,136,136)` | 3.54 ✅ |
+| `.el-table th/td.el-table__cell` | CDP 未列出含 border 的匹配规则 ⇒ 边界来自 EP 表格变量/浏览器默认，**非本次候选 6 变量** | 未定（**不影响**本卡结论） | 见表 §二 | 1.21/1.30 ❌ |
+
+**⇒ 决策口径（比"值相同无法区分"更硬）**：`--border-normal` **确实**驱动收银台 4 类控件（方法 A 给出特异性更高的胜出规则、方法 B 在 `.cart-summary` 上实测翻转）；`--border-normal` 与 `--table-border` 同值 `#E2E2E2`，因此**只改 `--table-border` 不会修好收银台**，只改 `--border-normal` 也**不会**影响通用输入框（那些读 `--el-border-color`）。
+
+### 3.4 工具缺陷（登记，不阻断本卡）
+
+工具的哨兵轮需修：① 只统计"基线轮与哨兵轮**都已渲染**"的元素交集；② 注入前先禁用过渡（`transition:none`，否则读到动画中间帧——本次 `.qty-btn` 在未禁过渡的临时探针上就出现过"注入不翻转"的假象，`.cart-summary` 无过渡则立即翻转）。修好前，**工具输出的归属列不得采信**，以本卡 §3.3 的 CDP 结论为准。
 
 ## 四、与旧卡（2026-09-21）的关系
 

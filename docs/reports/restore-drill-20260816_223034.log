@@ -1,0 +1,12 @@
+==> 备份文件: /var/backups/mysql/liquor_inventory_20260816_180001.sql.gz
+==> 校验 gzip 完整性
+gzip 校验通过
+==> 校验备份头部（应为 mysqldump 产物）
+==> 创建临时库并恢复
+==> 对比表数量
+源库表数=478 恢复库表数=478
+==> 对比关键表行数
+t_sys_user: 源=5 恢复=5
+t_sale_bill: 源=309 恢复=303
+t_product_sku: 源=11 恢复=11
+==> 临时库已清理（--keep 可保留核验）
