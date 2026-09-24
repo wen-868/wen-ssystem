@@ -410,6 +410,25 @@ export function statementTarget(statement: string): string {
 }
 
 /**
+ * S3-106：是否是"本条语句就是要删表"的语句（剥离前导空白与注释后以 `DROP TABLE …` 开头）。
+ *
+ * **为什么不能用"语句文本里出现 DROP TABLE 字样"的包含判定**（原实现是
+ * `if (/DROP\s+TABLE/i.test(stmt)) continue;`）：外部迁移里的过程定义
+ * （`CREATE PROCEDURE … BEGIN … END`）经 splitSqlStatements 后会作为**一条完整语句**下发，
+ * 其体内只要出现 `DROP TABLE` 字样（例如拼动态 SQL 用的字符串 `SET @sql = 'DROP TABLE …'`），
+ * 包含判定就会把**整条过程定义**静默跳过——无日志、无报错，过程永远建不成；
+ * 本项目已因"静默跳过/静默失效"付出过代价（踩坑[63] 的丢块、MIG 系列），故收窄判据。
+ *
+ * 判据为何天然满足"不属于过程体内部"：过程定义整条下发时首关键字是 `CREATE`，
+ * 因此过程体内的 `DROP TABLE` 不可能成为本条语句的首关键字；只有本条语句本身就是
+ * `DROP TABLE …`（含被前导整行注释包裹的情形，如 `-- 说明` 换行后 `DROP TABLE IF EXISTS x`、
+ * 以及 `DELIMITER $$` 下的 `DROP TABLE x$$`）才会命中拦截。
+ */
+export function isDropTableStatement(statement: string): boolean {
+  return /^DROP\s+TABLE\b/i.test(stripLeadingComments(statement));
+}
+
+/**
  * 写闸门（block）判定 + 跳过日志：命中"数据写语句 / CALL"时返回 true（调用方据此跳过执行）。
  * 单独成函数的原因：`runMigrations` 已在该仓库 eslint `complexity` 告警线上（HEAD 44 / 上限 15），
  * 把闸门分支收进这里，可让本次改动不额外抬高 `runMigrations` 的复杂度数值。
@@ -1225,7 +1244,12 @@ export async function runMigrations(): Promise<void> {
           // 紧急保护（R95-03）：外部迁移含 DROP TABLE IF EXISTS（001/003 等），
           // 在已上线库上执行会删除重建核心表导致数据丢失（已在生产触发一次）。
           // 后续只允许补建缺失表，禁止任何 DROP。
-          if (/DROP\s+TABLE/i.test(stmt)) {
+          // S3-106：判据由"文本包含 DROP TABLE"收窄为"首关键字是 DROP TABLE"——过程定义
+          // （CREATE PROCEDURE … BEGIN … END）作为一条完整语句下发，体内含 `DROP TABLE`
+          // 字样（如拼动态 SQL 的字符串）时，包含判定会把整条过程定义静默跳过（无日志无报错），
+          // 收窄后只拦"本条语句就是要删表"的情形；为什么不能用包含判定的完整理由见
+          // isDropTableStatement 的注释。
+          if (isDropTableStatement(stmt)) {
             logger.warn(`[migration] ${file}: 跳过 DROP TABLE 语句（保护生产数据）`);
             continue;
           }
