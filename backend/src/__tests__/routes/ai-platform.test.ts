@@ -418,6 +418,43 @@ describe("C5-1 GET /metering-log（逐次计量流水）", () => {
     expect(dbMocks.query).not.toHaveBeenCalled();
     expect(dbMocks.queryOne).not.toHaveBeenCalled();
   });
+
+  /**
+   * 真库回归锁（2026-09-25 C5-1b，P0）：跨表 JOIN 的 collation 混用。
+   *
+   * 生产实测（2026-09-25 01:26 pm2 `zhixiang-api-out.log`）：
+   *   `[ERROR] [GET] /api/platform/ai/metering-log — Illegal mix of collations
+   *    (utf8mb4_0900_ai_ci,IMPLICIT) and (utf8mb4_unicode_ci,IMPLICIT) for operation '='`
+   * 依据 DDL：`t_ai_audit_log.tenant_id` = utf8mb4_unicode_ci（121:80 显式），
+   *   `t_tenant.id` = utf8mb4_0900_ai_ci（029:31 未写 COLLATE ⇒ 跟库默认，001:9）⇒ 两侧同为
+   *   IMPLICIT，真库 `=` 报 1267。
+   *
+   * ⚠️ 本断言在 mock / SQLite 下**盖不住**真库 1267：本文件 `shared/db` 全被 vi.mock 桩掉，
+   *   不会有任何真实比较发生（SQLite 也没有 MySQL 的 collation coercion 规则，"乱给 collation"
+   *   在 SQLite 里既不报错也不影响结果）。因此这里锁的是**生成的 SQL 文本**——把"必须显式
+   *   COLLATE"这条修复固化成回归门禁，防止后续重写 SQL 时静默退回。
+   */
+  it("跨表 JOIN 谓词带显式 COLLATE（utf8mb4_0900_ai_ci，加在非索引侧）", async () => {
+    setupDb({ meteringTotal: 0, meteringRows: [] });
+
+    const res = await get(`${PREFIX}/metering-log`).query({ tenantId: "t-1" });
+    expect(res.status).toBe(200);
+
+    const listSql = dbMocks.query.mock.calls
+      .map((call) => String(call[0]))
+      .find((sql) => sql.includes("LEFT JOIN t_tenant"));
+    expect(listSql).toBeTruthy();
+    // 正判据：JOIN 谓词上的比较 collation 被钉死（= t_tenant.id 自身 collation，保住 PRIMARY 探测）
+    expect(listSql).toContain("t.id = a.tenant_id COLLATE utf8mb4_0900_ai_ci");
+    // 且只此一处 COLLATE（筛选侧不得跟着加）
+    expect((listSql as string).match(/COLLATE/g)?.length).toBe(1);
+
+    // 反判据：筛选条件保持"裸列 = 参数"（参数 coercible，本来就无 1267；加 COLLATE 反使
+    // idx_tenant_id / idx_tenant_created（unicode_ci）collation 不匹配丢索引）。
+    expect(listSql).toContain("a.tenant_id = ?");
+    const countSql = sqlOf(dbMocks.queryOne.mock.calls[0]);
+    expect(countSql).not.toContain("COLLATE");
+  });
 });
 
 // =====================================================================
