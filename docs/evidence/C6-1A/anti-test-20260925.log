@@ -1,0 +1,35 @@
+
+## 反测 C1 迁移形状门禁（去掉第二条 ALTER 的 ALGORITHM=INSTANT）
+文件：D:\Users\ZXQL\wt-agents\issue-108\docs\migrations\178_library_brand_auth_app_version_status.sql；用例文件：src/__tests__/shared/migration-c6-columns.test.ts
+注入后（期望红）：      Tests  1 failed | 9 passed (10) |    Duration  2.17s (transform 1.02s, setup 167ms, import 1.30s, tests 58ms, environment 0ms)
+恢复后（期望绿）：      Tests  10 passed (10) |    Duration  1.96s (transform 851ms, setup 148ms, import 1.02s, tests 22ms, environment 0ms)
+
+## 反测 C2 路由挂载门禁（注释掉 GET /admins）
+文件：D:\Users\ZXQL\wt-agents\issue-108\backend\src\routes\platform.routes.ts；用例文件：src/__tests__/routes/platform-c6-1a.test.ts
+注入后（期望红）：      Tests  1 failed | 18 passed (19) |    Duration  5.57s (transform 1.72s, setup 114ms, import 4.26s, tests 713ms, environment 0ms)
+恢复后（期望绿）：      Tests  19 passed (19) |    Duration  6.30s (transform 2.22s, setup 203ms, import 4.95s, tests 515ms, environment 0ms)
+
+## 反测 C3 初始口令强度门禁（12 位改 8 位）
+文件：D:\Users\ZXQL\wt-agents\issue-108\backend\src\services\platform\admin-account.service.ts；用例文件：src/__tests__/services/platform/admin-account-c6.service.test.ts
+注入后（期望红）：      Tests  1 failed | 4 passed (5) |    Duration  1.58s (transform 260ms, setup 102ms, import 219ms, tests 732ms, environment 0ms)
+恢复后（期望绿）：      Tests  5 passed (5) |    Duration  1.25s (transform 206ms, setup 92ms, import 161ms, tests 558ms, environment 0ms)
+
+## 反测 C4 客户端版本过滤门禁（去掉 status=PUBLISHED 过滤）
+文件：D:\Users\ZXQL\wt-agents\issue-108\backend\src\services\platform\app-version.service.ts；用例文件：src/__tests__/services/platform/app-version-c6.service.test.ts
+注入后（期望红）：      Tests  1 failed | 12 passed (13) |    Duration  858ms (transform 273ms, setup 97ms, import 226ms, tests 46ms, environment 0ms)
+恢复后（期望绿）：      Tests  13 passed (13) |    Duration  710ms (transform 242ms, setup 93ms, import 191ms, tests 14ms, environment 0ms)
+
+## 反测 C5 回滚目标校验门禁（禁用 status=PUBLISHED 校验）
+文件：D:\Users\ZXQL\wt-agents\issue-108\backend\src\services\platform\app-version.service.ts；用例文件：src/__tests__/routes/platform-c6-1a.test.ts
+注入后（期望红）：      Tests  1 failed | 18 passed (19) |    Duration  4.40s (transform 1.40s, setup 82ms, import 3.42s, tests 449ms, environment 0ms)
+恢复后（期望绿）：      Tests  19 passed (19) |    Duration  5.08s (transform 1.71s, setup 113ms, import 3.98s, tests 514ms, environment 0ms)
+
+## 反测 C6 授权书扩展名门禁（禁用白名单校验）
+文件：D:\Users\ZXQL\wt-agents\issue-108\backend\src\controllers\platform\library.controller.ts；用例文件：src/__tests__/routes/platform-c6-1a.test.ts
+注入后（期望红）：      Tests  1 failed | 18 passed (19) |    Duration  3.93s (transform 1.33s, setup 91ms, import 3.08s, tests 391ms, environment 0ms)
+恢复后（期望绿）：      Tests  19 passed (19) |    Duration  3.60s (transform 1.16s, setup 69ms, import 2.80s, tests 402ms, environment 0ms)
+
+## 反测 C7 草稿防呆门禁（允许草稿覆盖已发布版本）
+文件：D:\Users\ZXQL\wt-agents\issue-108\backend\src\services\platform\app-version.service.ts；用例文件：src/__tests__/services/platform/app-version-c6.service.test.ts
+注入后（期望红）：      Tests  1 failed | 13 passed (14) |    Duration  1.82s (transform 798ms, setup 191ms, import 778ms, tests 80ms, environment 0ms)
+恢复后（期望绿）：      Tests  14 passed (14) |    Duration  1.90s (transform 718ms, setup 248ms, import 577ms, tests 31ms, environment 0ms)

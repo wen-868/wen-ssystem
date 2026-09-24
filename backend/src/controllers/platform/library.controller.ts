@@ -6,6 +6,9 @@
 
 import { ok, fail } from "../../shared/response";
 import { libraryService } from "../../services/platform/library.service";
+import fs from "node:fs";
+import path from "node:path";
+import { asyncHandler } from "../../middleware/async-handler";
 
 // ─── SPU 管理 ──────────────────────────────────────────────────
 
@@ -281,6 +284,85 @@ export async function deleteBrand(req: any, res: any) {
   const result = await libraryService.deleteBrand(id);
   res.json(ok(result));
 }
+
+// ─── 品牌授权书（C6-1A #27） ────────────────────────────────────
+
+/** 品牌授权书存储目录（backend/storage/brand-auth-letters，与商品图同款既有上传通道） */
+export function brandAuthLetterDir(): string {
+  const candidates = [
+    process.cwd(),
+    path.resolve(process.cwd(), ".."),
+    path.resolve(process.cwd(), "../.."),
+  ];
+  let base = process.cwd();
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, "backend")) && fs.existsSync(path.join(c, "docs"))) {
+      base = path.join(c, "backend");
+      break;
+    }
+  }
+  const dir = path.join(base, "storage", "brand-auth-letters");
+  fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+/** 授权书允许的扩展名（授权书常见为图片或 PDF） */
+const AUTH_LETTER_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".pdf"]);
+
+/**
+ * POST /api/platform/library/brands/:id/auth-letter —— 上传品牌授权书
+ *
+ * 清账依据：C6-0 §三.1 #27（LibraryBrands.vue:253）「无品牌授权书上传端点/列」。
+ * 通道：复用既有上传范式（multer 内存存储 + backend/storage 落盘 + /uploads 静态挂载，
+ * 与 `product-image.controller.ts` 同构），不引入 OSS/对象存储（凌舟裁定 C6-0-R4）。
+ * 落库：178 迁移新增的 auth_letter_url / auth_expired_at / auth_status 三列；
+ * 表单字段兼容 `file` 与 `letter` 两个名字（前端实现对上游 TODO 的口径未定，两种都收）。
+ */
+export const uploadBrandAuthLetter = asyncHandler(async (req: any, res: any) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json(fail("无效的品牌 ID", "400"));
+    return;
+  }
+
+  // multer 用 .fields() 时文件落在 req.files（按字段名分组）；两种形态都取，避免字段名口径分歧
+  const files = req.files as Record<string, Array<{ originalname?: string; buffer: Buffer }>> | undefined;
+  const file = req.file ?? files?.file?.[0] ?? files?.letter?.[0];
+  if (!file) {
+    res.status(400).json(fail("请选择授权书文件（表单字段名 file 或 letter）", "400"));
+    return;
+  }
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  if (!AUTH_LETTER_EXT.has(ext)) {
+    res.status(400).json(fail("仅支持 jpg/png/webp/pdf 授权书文件", "400"));
+    return;
+  }
+
+  const filename = `brand-${id}-${Date.now()}-${Math.round(Math.random() * 100000)}${ext}`;
+  fs.writeFileSync(path.join(brandAuthLetterDir(), filename), file.buffer);
+
+  const relativePath = `/uploads/brand-auth-letter/${filename}`;
+  const host = req.get("host") || "saas.onepan.cn";
+  const proto = req.headers["x-forwarded-proto"] === "https" || req.secure ? "https" : "http";
+  const url = `${proto}://${host}${relativePath}`;
+
+  const authExpiredAt =
+    typeof req.body?.authExpiredAt === "string" && req.body.authExpiredAt.trim() !== ""
+      ? req.body.authExpiredAt.trim()
+      : undefined;
+  const authStatus =
+    typeof req.body?.authStatus === "string" && req.body.authStatus.trim() !== ""
+      ? req.body.authStatus.trim()
+      : "AUTHORIZED";
+
+  const result = await libraryService.updateBrandAuthLetter(id, {
+    authLetterUrl: url,
+    authExpiredAt,
+    authStatus
+  });
+
+  res.json(ok({ ...result, url, path: relativePath }));
+});
 
 // ─── API Key 管理 ──────────────────────────────────────────────
 

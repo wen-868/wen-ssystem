@@ -1,8 +1,21 @@
 import { Router } from "express";
+import multer from "multer";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/library.controller";
+
+/**
+ * C6-1A #27：品牌授权书上传（复用既有上传范式，凌舟裁定 C6-0-R4 不引入 OSS）
+ * 字段名兼容 file / letter 两种写法（前端 TODO 未锁字段名），单文件、10MB 上限。
+ */
+const authLetterUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: 1 }
+}).fields([
+  { name: "file", maxCount: 1 },
+  { name: "letter", maxCount: 1 }
+]);
 
 export const platformLibraryRouter = Router();
 
@@ -56,6 +69,14 @@ platformLibraryRouter.put("/brands/:id", asyncHandler(controller.updateBrand));
 
 // DELETE /api/platform/library/brands/:id - 删除品牌
 platformLibraryRouter.delete("/brands/:id", asyncHandler(controller.deleteBrand));
+
+// POST /api/platform/library/brands/:id/auth-letter - 上传品牌授权书（C6-1A #27）
+// 注意：必须排在 /brands/:id 的其它方法之后无冲突（路径段更多、更具体）
+platformLibraryRouter.post(
+  "/brands/:id/auth-letter",
+  authLetterUpload,
+  controller.uploadBrandAuthLetter
+);
 
 // ─── API Key 路由 ──────────────────────────────────────────────
 // GET /api/platform/library/api-keys - API Key列表

@@ -24,6 +24,8 @@ import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.s
 import expressStatic from "express";
 import { avatarDir } from "./controllers/admin/avatar.controller";
 import { productImageDir } from "./controllers/admin/product-image.controller";
+import { brandAuthLetterDir } from "./controllers/platform/library.controller";
+import { platformLogoDir } from "./controllers/platform/platform-logo.controller";
 import "./jobs/report-aggregation.job.js";
 import "./jobs/auto-backup.job.js";
 import { insertErrorLog, cleanupOldLogs } from "./services/admin/error-log.service";
@@ -173,6 +175,10 @@ app.use(express.json({ limit: "2mb" }));
 app.use("/uploads", expressStatic.static(avatarDir()));
 // 商品主图静态文件（/uploads/product-image/xxx）
 app.use("/uploads/product-image", expressStatic.static(productImageDir()));
+// C6-1A #27 品牌授权书静态文件（/uploads/brand-auth-letter/xxx）
+app.use("/uploads/brand-auth-letter", expressStatic.static(brandAuthLetterDir()));
+// C6-1A #80 平台 Logo 静态文件（/uploads/platform-logo/xxx）
+app.use("/uploads/platform-logo", expressStatic.static(platformLogoDir()));
 app.use(responseTimeTracker);
 app.use(errorResponseInterceptor);
 
