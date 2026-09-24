@@ -3332,3 +3332,72 @@
 - **认证**：平台总后台令牌
 - **请求体**：`{ records: [{ code✅, name✅, content✅ }] }`（最多 50 项；`records` 非数组、模板缺字段、`code` 重复 → 400）
 - **响应**：`{ saved: true, total, records }`
+
+---
+
+## 平台域新增端点（2026-09-25 · C6-1A / S3-110）
+
+> 本节由凌舟维护（契约维护属总负责人职责，C6-1A 裁定 §四）。所有端点均为**平台令牌**鉴权（`requirePlatformAuth`，路由级 + `routeConfig.auth` 双层），响应统一 `{ code, msg, data, traceId, apiCost }`。
+> 前端接线（S3-111）**必须**以本节为准，不得自拟路径（D1 类缺陷的教训）。
+
+### 1. 平台管理员域（前缀 `/api/platform/admins`）
+
+| 方法 | 路径 | 用途 | 关键口径 |
+|---|---|---|---|
+| GET | `/api/platform/admins` | 管理员列表 | 挂载既有实现（此前无路由注册） |
+| POST | `/api/platform/admins` | 建号（口令由调用方给定） | 既有 `createAdmin` 一并挂载 |
+| POST | `/api/platform/admins/invite` | 邀请建号 | 服务端**生成 12 位初始口令**（去易混字符集），只存 bcrypt 哈希；明文**仅在响应体出现一次**（`passwordShownOnce: true`），**不落库、不进日志、不进审计明细**（裁定 R6：不发邮件短信 + 页面一次性展示）。兼容入参 `realName｜name`；**不接受** `roleId/dataScope`（平台无角色表，属 T6 立项） |
+| POST | `/api/platform/admins/:id/reset-password` | 管理员代重置密码 | 同上：新口令一次性返回 |
+| PUT | `/api/platform/admins/:id/status` | 启用/停用 | 挂载既有实现 |
+
+### 2. 应用版本域（前缀 `/api/padmin/app-versions`）
+
+| 方法 | 路径 | 用途 | 关键口径 |
+|---|---|---|---|
+| POST | `/api/padmin/app-versions/draft` | 存草稿 | **防呆**：命中同平台同版本号且该行为 `PUBLISHED/ARCHIVED` ⇒ **400 拒绝**（避免"存草稿"把线上版本静默下架）；仅 `DRAFT/PAUSED` 可被草稿覆盖 |
+| POST | `/api/padmin/app-versions/:id/pause｜resume｜archive` | 暂停 / 恢复 / 归档 | 状态列 `status`（`DRAFT/PUBLISHED/PAUSED/ARCHIVED`）；`enabled` 表示"当前启用版本"，两者语义分离 |
+| POST | `/api/padmin/app-versions/:id/rollback` | 回滚 | **`:id` = 要回滚到的目标版本**（裁定 Q7，显式优于隐式）；目标必须 `status='PUBLISHED'` 且 `version_code` **小于当前启用版本**；落地＝目标 `enabled=1`、同平台其它行 `enabled=0`、写 `t_platform_audit_log`（`action=ROLLBACK_VERSION`，含 from/to） |
+
+客户端侧：`getLatestVersion` 的 SQL 追加 `AND status='PUBLISHED'` ⇒ 草稿/暂停/归档不会被客户端取到（DRAFT 同时 `enabled=0`，双保险）。
+
+### 3. 商品库域（前缀 `/api/platform/library`）
+
+| 方法 | 路径 | 用途 | 关键口径 |
+|---|---|---|---|
+| PUT | `/api/platform/library/spus/:id/status` | **审核 + 上下架**（唯一状态入口） | **状态机（2026-09-25 放开）**：`PENDING → APPROVED／REJECTED` 保持不变；**新增允许 `APPROVED ↔ OFFLINE`**（下架／重新上架）。**`PENDING → OFFLINE` 仍 400**（范围边界）。前端"通过/驳回"即打本端点（**D1 修正**：旧的动作式自拟路径 `POST /spus/:id/approve｜reject` 已废弃，调用必 404） |
+| GET | `/api/platform/library/categories` | **类目只读聚合**（S3-110 新增） | 见下方契约块 |
+| POST | `/api/platform/library/brands/:id/auth-letter` | 品牌授权书上传 | multipart：`file｜letter` + 可选 `authExpiredAt/authStatus`；`auth_letter_url` 存**绝对 URL**（与既有 `t_library_brand.logo` 的"URL 文本"口径一致）；`authStatus` 缺省 `AUTHORIZED`；未设置一律 `NULL`（不用空串/0 冒充） |
+
+**`GET /api/platform/library/categories` 响应契约**
+
+```
+GET /api/platform/library/categories            端类型：超级后台（平台令牌）
+请求体：无（无 query 参数）
+响应：{ code:"0", msg:"成功", data:[ { tenantId, tenantName, categoryId, name,
+        parentId, status, productCount } ], traceId, apiCost }
+说明：productCount = 该租户挂在该类目下的 t_product_spu 行数（按 tenant_id + category_id 计数，
+      不额外过滤商品状态）；tenantName 取 t_tenant.tenant_name，缺省回退 company_name，均缺失为 null；
+      平台侧跨租户**只读**，无写入（含不写 t_platform_config）。
+```
+
+### 4. 平台设置域（前缀 `/api/platform/config`）
+
+| 方法 | 路径 | 用途 | 关键口径 |
+|---|---|---|---|
+| POST | `/api/platform/config/logo` | 平台 Logo 上传 | multipart：`file｜logo`，单文件 ≤5MB，复用既有上传范式（**不引入 OSS**，裁定 R4）；**只落盘并返回 URL，不写 `t_platform_config`**（该表是即时零售凭据表，裁定 §四）；**持久化由页面调用既有 `/api/platform/config/sys-config` 完成** |
+
+### 5. 积分规则（租户侧，`/api/admin/marketing-points`）——S3-109/S3-110 修正
+
+| 项 | 口径 |
+|---|---|
+| `redeem_ratio` | **`DECIMAL(10,2)`，默认 `100`**（"多少积分兑 1 元"的**除数**：`redeemAmount = floor(points / redeemRatio)`；旧类型 `(6,4)` 上限 99.9999 装不下 100，会导致该 ALTER 1067 失败并连带丢 4 列 —— 见 S3-109） |
+| 保存 INSERT | 必须**同时提供** `rule_name` 与 `earn_type`（两列均 **NOT NULL 无默认**；漏给 ⇒ `1364 ER_NO_DEFAULT_FOR_FIELD` —— 见 S3-110） |
+| `earn_type` 缺省值 | **`'purchase'`（小写）**——与系统真实消费方 `admin-web/src/views/customer/PointsRules.vue` 的标签映射键（`purchase/signin/birthday/referral`）一致；可被请求体覆盖 |
+| `earn_type` 契约说明 | 该列是**自由字符串**（`VARCHAR(20)` 无约束）；**新增取值必须同步前端映射表**，否则页面会原样显示无标签值 |
+| UPDATE 分支 | ⚠️ **当前尚未接 `ruleName/earnType`**（收下却丢弃）⇒ 已登记 **S3-113** 待补 |
+
+### 6. 关联的迁移形态（速查）
+
+| 迁移 | 形态 | 说明 |
+|---|---|---|
+| `178_library_brand_auth_app_version_status.sql` | **6 条逐列 ALTER**（S3-110 由"2 条合并 ALTER"改） | 合并版在"部分列已存在"时会整条 1060 失败、其余列**静默丢失**；逐列版可**自愈**补齐（真库验证见 `docs/evidence/S3-110/真库验证-凌舟独立.txt`） |
