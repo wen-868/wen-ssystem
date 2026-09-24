@@ -1,0 +1,2 @@
+### 命令: cd backend && npx eslint src/__tests__/shared/migration-points-columns.test.ts
+ESLINT_EXIT=0

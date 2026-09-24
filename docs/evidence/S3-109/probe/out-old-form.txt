@@ -1,0 +1,56 @@
+================================================================
+S3-109 反测 · label=old
+server  : 11.4.5-MariaDB @ 127.0.0.1:3399
+sql_mode: IGNORE_SPACE,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+sql file: docs/evidence/S3-109/probe/151-before.sql
+================================================================
+[setup] 临时库 s3_109_probe_old 已建（t_points_record / t_points_rule 取自 071 基线 DDL）
+[pipeline] 切块后待执行语句 14 条（整行注释先剥离 + 按 ';' 切块，与 migration.ts splitSqlStatements 同口径）
+
+  [ 1] OK      ALTER TABLE t_points_record ADD COLUMN member_id BIGINT UNSIGNED DEFAULT NULL COMMENT '会员ID(小程序会员积分明细)' AFTER id
+  [ 2] OK      ALTER TABLE t_points_record ADD COLUMN change_points INT DEFAULT NULL COMMENT '变动积分(正=获得,负=消耗,小程序设计)' AFTER type
+  [ 3] OK      ALTER TABLE t_points_record ADD COLUMN balance_points INT DEFAULT NULL COMMENT '变动后余额(小程序设计)' AFTER change_points
+  [ 4] OK      ALTER TABLE t_points_record ADD COLUMN user_id BIGINT UNSIGNED DEFAULT NULL COMMENT '用户ID(营销积分明细)' AFTER id
+  [ 5] OK      ALTER TABLE t_points_record ADD COLUMN amount INT DEFAULT NULL COMMENT '积分变动数(营销积分设计)' AFTER type
+  [ 6] OK      ALTER TABLE t_points_record ADD COLUMN balance INT DEFAULT NULL COMMENT '变动后余额(营销积分设计)' AFTER amount
+  [ 7] OK      ALTER TABLE t_points_record ADD COLUMN source_id VARCHAR(64) DEFAULT NULL COMMENT '来源ID(小程序/营销积分设计)' AFTER source_type
+  [ 8] OK      ALTER TABLE t_points_record ADD INDEX idx_points_record_user (user_id)
+  [ 9] OK      ALTER TABLE t_points_record ADD INDEX idx_points_record_member (member_id)
+  [10] OK      ALTER TABLE t_points_rule ADD COLUMN earn_ratio DECIMAL(6,4) DEFAULT 0 COMMENT '消费积分比例(营销积分设计)' AFTER earn_rate
+  [11] 失败    errno=1067 code=ER_INVALID_DEFAULT sqlState=42000
+        sqlMessage: Invalid default value for 'redeem_ratio'
+        sql       : ALTER TABLE t_points_rule ADD COLUMN redeem_ratio DECIMAL(6,4) DEFAULT 100 COMMENT '积分兑换比例(1积分可抵金额,营销积分设计)' AFTER earn_ratio
+  [12] 跳过    errno=1054 code=ER_BAD_FIELD_ERROR sqlState=42S22
+        sqlMessage: Unknown column 'redeem_ratio' in 't_points_rule'
+        sql       : ALTER TABLE t_points_rule ADD COLUMN min_redeem_amount DECIMAL(10,2) DEFAULT 0 COMMENT '最低兑换金额(营销积分设计)' AFTER redeem_ratio
+  [13] 跳过    errno=1054 code=ER_BAD_FIELD_ERROR sqlState=42S22
+        sqlMessage: Unknown column 'min_redeem_amount' in 't_points_rule'
+        sql       : ALTER TABLE t_points_rule ADD COLUMN max_redeem_ratio DECIMAL(6,4) DEFAULT 0.5 COMMENT '最高抵扣比例(营销积分设计)' AFTER min_redeem_amount
+  [14] 跳过    errno=1054 code=ER_BAD_FIELD_ERROR sqlState=42S22
+        sqlMessage: Unknown column 'max_redeem_ratio' in 't_points_rule'
+        sql       : ALTER TABLE t_points_rule ADD COLUMN expire_days INT NOT NULL DEFAULT 365 COMMENT '积分有效天数(营销积分设计)' AFTER max_redeem_ratio
+
+[汇总] 成功 10 / 失败 1 / 跳过(在生产即静默丢弃) 3
+
+[information_schema.COLUMNS] s3_109_probe_old.t_points_rule —— 10 列
+   1  id                   bigint(20)     default=NULL
+   2  rule_name            varchar(100)   default=NULL
+   3  earn_type            varchar(20)    default=NULL
+   4  earn_rate            decimal(6,4)   default=0.0000
+   5  earn_ratio           decimal(6,4)   default=0.0000
+   6  daily_limit          int(11)        default=0
+   7  enabled              tinyint(4)     default=1
+   8  tenant_id            varchar(64)    default=''
+   9  created_at           datetime       default=current_timestamp()
+  10  updated_at           datetime       default=current_timestamp()
+
+[断言] 本单 4 列存在性: 缺 4 列 -> redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days
+[断言] redeem_ratio 类型: (不存在)
+[断言] 151 需补的 5 列（earn_ratio + 本单 4 列）已存在 1/5
+
+[DML] 复刻 marketing-points.service.ts:95 的 INSERT INTO t_points_rule (earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id)
+  保存结果: 失败 errno=1054 code=ER_BAD_FIELD_ERROR sqlState=42S22
+  sqlMessage: Unknown column 'redeem_ratio' in 'INSERT INTO'
+[cleanup] 临时库 s3_109_probe_old 已删除
+
+[结论] label=old 期望 4 列全缺 -> 符合预期 PASS
