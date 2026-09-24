@@ -117,6 +117,21 @@ export interface BrandAuthLetterData {
 /** 授权状态枚举（与前端 LibraryBrands.vue 的 brandAuth() 三态一致：已授权/已过期/不适用） */
 export const BRAND_AUTH_STATUS = ["AUTHORIZED", "EXPIRED", "NONE"] as const;
 
+/**
+ * 类目只读聚合行（S3-110 ①）
+ *
+ * 一行 = 某租户的一个类目；`productCount` 为该租户挂在该类目下的商品数。
+ */
+interface PlatformCategoryRow {
+  tenantId: string;
+  tenantName: string | null;
+  categoryId: number | string;
+  name: string;
+  parentId: number | string | null;
+  status: number | string;
+  productCount: number | string;
+}
+
 /** API Key 创建数据 */
 export interface ApiKeyCreateData {
   appName: string;
@@ -534,10 +549,36 @@ async function updateSpu(id: number, data: SpuUpdateData) {
   return { id, updated: true };
 }
 
-/** 审核 SPU（PENDING → APPROVED / REJECTED） */
+/**
+ * SPU 状态机（S3-110 ②，凌舟裁定 C6-1B Q2）
+ *
+ * 允许的流转：`PENDING → APPROVED / REJECTED`（审核，保持不变）、`APPROVED ↔ OFFLINE`（上下架）。
+ * 修复前的实现只有 `PENDING → APPROVED / REJECTED` 一条边且要求当前状态必须是 PENDING
+ * ⇒ 已发布商品下架、已下架商品重新上架**必然 400**；OFFLINE 只能人工改库到达，
+ * 连带 deleteSpu 的「仅 OFFLINE 可删」也无法经 API 到达。
+ * 未列出的流转（如 PENDING → OFFLINE、APPROVED → REJECTED）一律 400，不放开。
+ */
+const SPU_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
+  PENDING: ["APPROVED", "REJECTED"],
+  APPROVED: ["OFFLINE"],
+  OFFLINE: ["APPROVED"]
+};
+
+/** 合法的目标状态全集（用于把「状态值非法」与「流转非法」区分开报错） */
+const SPU_TARGET_STATUSES: readonly string[] = ["APPROVED", "REJECTED", "OFFLINE"];
+
+/**
+ * SPU 状态流转（审核 / 上下架）
+ *
+ * 列名沿用既有 reviewed_by / reviewed_at（不新增列、不改既有列定义）：
+ * 两者记录「最近一次状态流转的操作人与时间」。
+ */
 async function reviewSpu(id: number, status: string, reviewedBy: number) {
-  if (!["APPROVED", "REJECTED"].includes(status)) {
-    throw Object.assign(new Error("无效的审核状态，仅允许 APPROVED 或 REJECTED"), { statusCode: 400 });
+  if (!SPU_TARGET_STATUSES.includes(status)) {
+    throw Object.assign(
+      new Error("无效的状态值，仅允许 APPROVED / REJECTED / OFFLINE"),
+      { statusCode: 400 }
+    );
   }
 
   const spu = await queryOne<StatusRow>(
@@ -547,8 +588,16 @@ async function reviewSpu(id: number, status: string, reviewedBy: number) {
   if (!spu) {
     throw Object.assign(new Error("SPU不存在"), { statusCode: 404 });
   }
-  if (spu.status !== "PENDING") {
-    throw Object.assign(new Error("仅待审核状态的SPU可以审核"), { statusCode: 400 });
+
+  const allowedTargets = SPU_STATUS_TRANSITIONS[String(spu.status)] ?? [];
+  if (!allowedTargets.includes(status)) {
+    throw Object.assign(
+      new Error(
+        `SPU 当前状态 ${spu.status} 不允许流转为 ${status}` +
+        `（允许：${allowedTargets.length > 0 ? allowedTargets.join(" / ") : "无"}）`
+      ),
+      { statusCode: 400 }
+    );
   }
 
   await query(
@@ -606,6 +655,39 @@ async function importSpus(list: SpuCreateData[]) {
   }
 
   return { total: list.length, successCount, failCount, errors };
+}
+
+// ─── 类目（只读聚合） ──────────────────────────────────────────
+
+/**
+ * 类目只读聚合（S3-110 ①，凌舟裁定 C6-1B Q1）
+ *
+ * 只读：全程单条 SELECT，不写入任何表（含 t_platform_config）。
+ * 平台侧跨租户聚合 `t_product_category`，左连 `t_tenant` 取租户展示名
+ * （`tenant_name` 优先、缺省回退 `company_name`，与 platform-monitor-ops.service.ts 同口径），
+ * 左连 `t_product_spu` 按 (tenant_id, category_id) 计数得「挂载商品数」
+ * （口径同 category.service.remove 的「该分类下有商品」判定：按租户 + 分类计数，不额外过滤商品状态）。
+ * 商品库为平台级数据，与同文件既有查询一致使用 `query()`（不注入 tenant_id 过滤）。
+ */
+async function getCategoryOverview() {
+  return query<PlatformCategoryRow>(
+    `SELECT c.tenant_id AS tenantId,
+            COALESCE(t.tenant_name, t.company_name) AS tenantName,
+            c.id AS categoryId,
+            c.name AS name,
+            c.parent_id AS parentId,
+            c.status AS status,
+            COALESCE(p.product_count, 0) AS productCount
+     FROM t_product_category c
+     LEFT JOIN t_tenant t ON t.id = c.tenant_id
+     LEFT JOIN (
+       SELECT tenant_id, category_id, COUNT(*) AS product_count
+       FROM t_product_spu
+       GROUP BY tenant_id, category_id
+     ) p ON p.tenant_id = c.tenant_id AND p.category_id = c.id
+     ORDER BY c.tenant_id ASC, c.sort_no ASC, c.id ASC`,
+    []
+  );
 }
 
 // ─── SKU 管理 ──────────────────────────────────────────────────
@@ -1122,6 +1204,9 @@ class LibraryService {
   reviewSpu = reviewSpu;
   deleteSpu = deleteSpu;
   importSpus = importSpus;
+
+  // 类目（只读聚合）
+  getCategoryOverview = getCategoryOverview;
 
   // SKU 管理
   getSkusBySpuId = getSkusBySpuId;

@@ -219,6 +219,19 @@ export async function deleteSku(req: any, res: any) {
   res.json(ok(result));
 }
 
+// ─── 类目（只读聚合） ──────────────────────────────────────────
+
+/**
+ * 类目只读聚合（S3-110 ①）
+ *
+ * GET /api/platform/library/categories：跨租户列出 t_product_category
+ * 及其租户名与挂载商品数。无入参、无写入（鉴权由路由级 requirePlatformAuth 兜住）。
+ */
+export async function listCategories(_req: any, res: any) {
+  const result = await libraryService.getCategoryOverview();
+  res.json(ok(result));
+}
+
 // ─── 品牌管理 ──────────────────────────────────────────────────
 
 /** 品牌列表 */

@@ -57,6 +57,10 @@ platformLibraryRouter.put("/skus/:id", asyncHandler(controller.updateSku));
 // DELETE /api/platform/library/skus/:id - 删除SKU
 platformLibraryRouter.delete("/skus/:id", asyncHandler(controller.deleteSku));
 
+// ─── 类目路由（只读聚合） ──────────────────────────────────────
+// GET /api/platform/library/categories - 类目只读聚合（S3-110 ①：跨租户聚合 + 挂载商品数）
+platformLibraryRouter.get("/categories", asyncHandler(controller.listCategories));
+
 // ─── 品牌路由 ──────────────────────────────────────────────────
 // GET /api/platform/library/brands - 品牌列表
 platformLibraryRouter.get("/brands", asyncHandler(controller.listBrands));

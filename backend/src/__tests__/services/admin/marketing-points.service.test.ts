@@ -64,14 +64,28 @@ describe("marketing-points.service - 积分规则与账户", () => {
     expect(params).toEqual([2, 0, 1]);
   });
 
-  it("updatePointsRule 不存在时插入默认规则", async () => {
+  it("updatePointsRule 不存在时插入默认规则（含 NOT NULL 的 rule_name / earn_type，S3-110 ④）", async () => {
     mocks.queryOneWithTenant
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(mockRule());
     await updatePointsRule({}, tenantId);
     const [sql, params] = mocks.queryWithTenant.mock.calls[0];
     expect(sql).toContain("INSERT INTO t_points_rule");
-    expect(params).toEqual([1, 100, 0, 0.5, 365, false, tenantId]);
+    // 回归保护（S3-110 ④）：t_points_rule.rule_name / earn_type 均 NOT NULL 且无默认值，
+    // 漏列即 1364 ER_NO_DEFAULT_FOR_FIELD（严格模式）⇒ 列清单与参数必须成对带上这两列。
+    expect(sql).toContain("rule_name");
+    expect(sql).toContain("earn_type");
+    expect(params).toEqual(["积分兑换规则", "CONSUMPTION", 1, 100, 0, 0.5, 365, false, tenantId]);
+  });
+
+  it("updatePointsRule 不存在时 ruleName / earnType 可被请求体覆盖（S3-110 ④）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(mockRule());
+    await updatePointsRule({ ruleName: "消费得积分", earnType: "PURCHASE" }, tenantId);
+    const [sql, params] = mocks.queryWithTenant.mock.calls[0];
+    expect(sql).toContain("INSERT INTO t_points_rule");
+    expect(params.slice(0, 2)).toEqual(["消费得积分", "PURCHASE"]);
   });
 
   it("getUserPoints 无记录时返回零账户", async () => {

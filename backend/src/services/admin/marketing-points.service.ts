@@ -66,6 +66,8 @@ export async function getPointsRule(tenantId: string) {
 }
 
 export async function updatePointsRule(body: {
+  ruleName?: string;
+  earnType?: string;
   earnRatio?: number;
   redeemRatio?: number;
   minRedeemAmount?: number;
@@ -91,10 +93,17 @@ export async function updatePointsRule(body: {
       await queryWithTenant(`UPDATE t_points_rule SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
     }
   } else {
+    // S3-110 ④：`t_points_rule.rule_name` 与 `earn_type` 均为 NOT NULL 且**无默认值**
+    // （生产 information_schema 实测）——修复前本 INSERT 只给 7 列、漏了这两列，
+    // 严格模式下必然 1364 ER_NO_DEFAULT_FOR_FIELD（规则永远建不出来）。
+    // 口径对照：同表另一写入方 services/admin/points.service.ts:77 一直带着这两列。
+    // 两者均可由请求体覆盖，缺省按「积分兑换规则 / CONSUMPTION」写入（列宽 VARCHAR(100)/VARCHAR(20)）。
     await queryWithTenant(
-      `INSERT INTO t_points_rule (earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO t_points_rule (rule_name, earn_type, earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
+        body.ruleName ?? "积分兑换规则",
+        body.earnType ?? "CONSUMPTION",
         body.earnRatio ?? 1,
         body.redeemRatio ?? 100,
         body.minRedeemAmount ?? 0,

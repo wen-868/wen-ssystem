@@ -1,0 +1,9 @@
+
+ ❯ src/__tests__/services/admin/marketing-points.service.test.ts (15 tests | 2 failed) 27ms
+     × updatePointsRule 不存在时插入默认规则（含 NOT NULL 的 rule_name / earn_type，S3-110 ④） 9ms
+     × updatePointsRule 不存在时 ruleName / earnType 可被请求体覆盖（S3-110 ④） 5ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  1 failed (1)
+      Tests  2 failed | 13 passed (15)
+   Duration  651ms (transform 221ms, setup 77ms, import 180ms, tests 27ms, environment 0ms)
+

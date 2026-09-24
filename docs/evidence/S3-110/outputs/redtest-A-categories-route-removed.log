@@ -1,0 +1,9 @@
+
+ ❯ src/__tests__/routes/platform-s3-110.test.ts (9 tests | 1 failed) 93ms
+     × 正向：返回 tenantId / tenantName / categoryId / name / parentId / status / productCount 16ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/__tests__/routes/platform-s3-110.test.ts > S3-110 ① · GET /api/platform/library/categories（只读聚合） > 正向：返回 tenantId / tenantName / categoryId / name / parentId / status / productCount
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Duration  2.87s (transform 876ms, setup 72ms, import 2.37s, tests 93ms, environment 0ms)
+
