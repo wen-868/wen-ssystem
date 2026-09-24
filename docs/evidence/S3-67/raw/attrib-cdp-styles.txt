@@ -1,0 +1,26 @@
+ready=True
+
+=== /pos/cashier  .cart-summary  匹配到的边界声明 1 条（后出现者特异性相同时胜出）===
+  [0] .cart-summary[data-v-cbf0dd31]
+        border-top: 1px dashed var(--border-normal)
+  computed: {"shadow":"none","first":null,"border":"rgb(226, 226, 226)"}
+
+=== /pos/cashier  .qty-btn  匹配到的边界声明 1 条（后出现者特异性相同时胜出）===
+  [0] .qty-btn[data-v-cbf0dd31]
+        border: 1px solid var(--border-normal)
+  computed: {"shadow":"none","first":null,"border":"rgb(226, 226, 226)"}
+
+=== /pos/cashier  .product-search-input .el-input__wrapper  匹配到的边界声明 4 条（后出现者特异性相同时胜出）===
+  [0] .el-input__wrapper, .el-textarea__inner
+        
+  [1] .el-input__wrapper, .el-select__wrapper
+        box-shadow: 0 0 0 1px var(--input-border) inset
+  [2] .el-input__wrapper
+        box-shadow:0 0 0 1px var(--el-input-border-color,var(--el-border-color)) inset
+  [3] .product-search-input[data-v-cbf0dd31] .el-input__wrapper
+        box-shadow: 0 0 0 1px var(--border-normal) inset
+  computed: {"shadow":"rgb(226, 226, 226) 0px 0px 0px 1px inset","first":"rgb(226, 226, 226)","border":"rgb(0, 0, 0)"}
+
+=== /orders  .el-table th.el-table__cell  匹配到的边界声明 0 条（后出现者特异性相同时胜出）===
+  computed: {"shadow":"none","first":null,"border":"rgb(51, 51, 51)"}
+stopped

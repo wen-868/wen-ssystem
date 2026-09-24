@@ -31,3 +31,5 @@ design.mjs
 .workbuddy/
 .playwright-cli/
 *.bak*
+# --- 证据例外（2026-09-25，凌舟环境卫生自执行）：裸 *.log 会连带吞掉 docs/ 下的证据日志（踩坑 [110]）---
+!docs/**/*.log
