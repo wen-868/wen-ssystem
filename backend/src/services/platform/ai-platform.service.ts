@@ -400,6 +400,23 @@ export async function listMeteringLog(params: MeteringLogParams): Promise<Meteri
       `SELECT COUNT(*) AS total FROM t_ai_audit_log a WHERE ${where}`,
       values
     ),
+    /**
+     * 跨表 JOIN 显式 `COLLATE`（真库 1267「Illegal mix of collations」的根治，非绕过）：
+     * - `t_ai_audit_log.tenant_id`：`docs/migrations/121_ai_base_tables.sql:80` 显式
+     *   `COLLATE=utf8mb4_unicode_ci`；
+     * - `t_tenant.id`：`docs/migrations/029_add_tenant.sql:31`（同 092:76 / `shared/migration.ts:368`）
+     *   只写 `DEFAULT CHARSET=utf8mb4`、**未**写 COLLATE ⇒ 跟随库默认 `utf8mb4_0900_ai_ci`
+     *   （`docs/migrations/001_phase1_schema.sql:7-9` 建库即 `DEFAULT COLLATE utf8mb4_0900_ai_ci`）。
+     *   两侧同为 IMPLICIT（coercibility 2）⇒ 真库 `=` 直接报 1267（2026-09-25 生产 pm2 日志）。
+     * - 修法：`COLLATE` 只加在**非索引侧**（`a.tenant_id`，LEFT JOIN 的被驱动值），目标 collation 取
+     *   `t_tenant.id` 自身的 `utf8mb4_0900_ai_ci` ⇒ 比较所用 collation 与 `t.id` 主键索引一致，
+     *   `t.id` 仍走 `PRIMARY` 做 join 探测；反之（加在 `t.id` 上或选 unicode_ci）比较 collation 偏离
+     *   该索引 ⇒ 丢主键探测。
+     * - 为什么**不**给筛选条件 `a.tenant_id = ?` 也加 COLLATE：参数是 coercible（coercibility 4），
+     *   比较按列的 collation 定，本来不会 1267；在那侧加 COLLATE 反而使 `idx_tenant_id` /
+     *   `idx_tenant_created`（unicode_ci）collation 不匹配而丢索引。
+     * - 本卡不授权 DDL ⇒ 不做 126（`126_retail_tenant_collation_fix.sql`）那种列级统一，只在 SQL 层对齐。
+     */
     query<RawMeteringLogRow>(
       `SELECT a.id, a.created_at AS createdAt, a.tenant_id AS tenantId,
               COALESCE(t.tenant_name, t.company_name) AS tenantName,
@@ -409,7 +426,7 @@ export async function listMeteringLog(params: MeteringLogParams): Promise<Meteri
               ${costSelect},
               a.success, a.error_message AS errorMessage
        FROM t_ai_audit_log a
-       LEFT JOIN t_tenant t ON t.id = a.tenant_id
+       LEFT JOIN t_tenant t ON t.id = a.tenant_id COLLATE utf8mb4_0900_ai_ci
        WHERE ${where}
        ORDER BY a.created_at DESC, a.id DESC
        LIMIT ? OFFSET ?`,
