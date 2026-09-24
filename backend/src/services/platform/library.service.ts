@@ -102,6 +102,21 @@ export interface BrandUpdateData {
   status?: number;
 }
 
+/**
+ * 品牌授权书数据（C6-1A #27）
+ *
+ * 三列均来自 178 迁移（`auth_letter_url` / `auth_expired_at` / `auth_status`）。
+ * 口径：未上传/未设置一律 NULL，不用空串或 0 冒充（清账卡 §4.4 C1）。
+ */
+export interface BrandAuthLetterData {
+  authLetterUrl?: string;
+  authExpiredAt?: string | null;
+  authStatus?: string;
+}
+
+/** 授权状态枚举（与前端 LibraryBrands.vue 的 brandAuth() 三态一致：已授权/已过期/不适用） */
+export const BRAND_AUTH_STATUS = ["AUTHORIZED", "EXPIRED", "NONE"] as const;
+
 /** API Key 创建数据 */
 export interface ApiKeyCreateData {
   appName: string;
@@ -194,6 +209,12 @@ interface BrandRow {
   originCountry: string | null;
   sortNo: number;
   status: number;
+  /** C6-1A：授权书 URL（178 迁移加列，NULL=未上传） */
+  authLetterUrl: string | null;
+  /** C6-1A：授权有效期截止（178 迁移加列，NULL=未设置） */
+  authExpiredAt: Date | string | null;
+  /** C6-1A：授权状态 AUTHORIZED/EXPIRED/NONE（178 迁移加列，NULL=未设置） */
+  authStatus: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -764,7 +785,10 @@ async function getBrands(params: BrandListParams) {
     ),
     query<BrandRow>(
       `SELECT id, name, logo, description, origin_country AS originCountry,
-              sort_no AS sortNo, status, created_at AS createdAt, updated_at AS updatedAt
+              sort_no AS sortNo, status,
+              auth_letter_url AS authLetterUrl, auth_expired_at AS authExpiredAt,
+              auth_status AS authStatus,
+              created_at AS createdAt, updated_at AS updatedAt
        FROM t_library_brand
        WHERE ${where}
        ORDER BY sort_no ASC, created_at DESC
@@ -868,6 +892,81 @@ async function updateBrand(id: number, data: BrandUpdateData) {
   );
 
   return { id, updated: true };
+}
+
+/**
+ * 更新品牌授权书信息（C6-1A #27：POST /api/platform/library/brands/:id/auth-letter）
+ *
+ * 清账依据：C6-0 §三.1 #27（LibraryBrands.vue:253）「无品牌授权书上传端点/列」，
+ * 落地方式 = 178 迁移 INSTANT 加列（C1 三列）+ 复用既有上传通道写 URL（裁定 R4：不引入 OSS）。
+ * 只写传入的字段，未传入的一律不动（避免用 NULL 覆盖既有授权信息）。
+ */
+async function updateBrandAuthLetter(id: number, data: BrandAuthLetterData) {
+  const existing = await queryOne<IdRow>(
+    "SELECT id FROM t_library_brand WHERE id = ?",
+    [id]
+  );
+  if (!existing) {
+    throw Object.assign(new Error("品牌不存在"), { statusCode: 404 });
+  }
+
+  if (data.authStatus !== undefined && !(BRAND_AUTH_STATUS as readonly string[]).includes(data.authStatus)) {
+    throw Object.assign(
+      new Error("授权状态只能是 AUTHORIZED/EXPIRED/NONE"),
+      { statusCode: 400 }
+    );
+  }
+  if (
+    data.authExpiredAt !== undefined &&
+    data.authExpiredAt !== null &&
+    !/^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}(:\d{2})?)?$/.test(data.authExpiredAt)
+  ) {
+    throw Object.assign(new Error("授权有效期格式应为 YYYY-MM-DD"), { statusCode: 400 });
+  }
+
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  if (data.authLetterUrl !== undefined) {
+    fields.push("auth_letter_url = ?");
+    values.push(data.authLetterUrl);
+  }
+  if (data.authExpiredAt !== undefined) {
+    fields.push("auth_expired_at = ?");
+    values.push(data.authExpiredAt);
+  }
+  if (data.authStatus !== undefined) {
+    fields.push("auth_status = ?");
+    values.push(data.authStatus);
+  }
+
+  if (fields.length === 0) {
+    return { id, updated: false };
+  }
+
+  values.push(id);
+  await query(
+    `UPDATE t_library_brand SET ${fields.join(", ")} WHERE id = ?`,
+    values
+  );
+
+  const row = await queryOne<{
+    authLetterUrl: string | null;
+    authExpiredAt: Date | string | null;
+    authStatus: string | null;
+  }>(
+    `SELECT auth_letter_url AS authLetterUrl, auth_expired_at AS authExpiredAt,
+            auth_status AS authStatus
+     FROM t_library_brand WHERE id = ?`,
+    [id]
+  );
+
+  return {
+    id,
+    updated: true,
+    authLetterUrl: row?.authLetterUrl ?? null,
+    authExpiredAt: row?.authExpiredAt ?? null,
+    authStatus: row?.authStatus ?? null
+  };
 }
 
 /** 删除品牌（检查 SPU 引用） */
@@ -1034,6 +1133,7 @@ class LibraryService {
   getBrands = getBrands;
   createBrand = createBrand;
   updateBrand = updateBrand;
+  updateBrandAuthLetter = updateBrandAuthLetter;
   deleteBrand = deleteBrand;
 
   // API Key 管理

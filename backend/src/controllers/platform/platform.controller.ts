@@ -108,6 +108,73 @@ export const updateAdminStatus = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+// ─── C6-1A 平台管理员建号 / 重置密码（零 DDL） ────────────────────
+
+/**
+ * 操作人上下文：从 requirePlatformAuth 解出的 req.user 取（middleware/auth.ts:147）
+ * 用途：写 t_platform_audit_log 留痕（admin_id / admin_name / ip）
+ */
+function operatorOf(req: any): adminAccountService.PlatformAdminOperator {
+  return {
+    adminId: Number(req.user?.id ?? 0),
+    adminName: String(req.user?.realName || req.user?.username || "platform"),
+    ip: req.ip ?? null
+  };
+}
+
+/**
+ * POST /api/platform/admins/invite —— 建号（「邀请」落地实现）
+ *
+ * 清账依据：C6-0 §三.1 #45（AdminPermissions.vue:256）「无邀请/建号端点」⇒ 零 DDL 可做。
+ * 口径依据：凌舟裁定 C6-0-R6「不发邮件短信：建号 + 生成初始口令 + 页面一次性展示」。
+ * 入参兼容：`realName` 与 `name` 二者取一（前端 TODO 写的是 name）；`roleId`/`dataScope`
+ * 依赖平台角色表（未建，属 T6 立项），本端点不接受、生效范围以 `role` 枚举为准。
+ */
+export const inviteAdmin = asyncHandler(async (req, res) => {
+  const body = z.object({
+    username: z.string().min(4).max(50),
+    realName: z.string().min(2).max(50).optional(),
+    name: z.string().min(2).max(50).optional(),
+    phone: z.string().min(11).max(20),
+    email: z.string().email().optional(),
+    role: z.enum(["SUPER_ADMIN", "ADMIN", "SUPPORT"]).default("ADMIN")
+  }).refine((v) => Boolean(v.realName || v.name), {
+    message: "请填写姓名"
+  }).parse(req.body);
+
+  const result = await adminAccountService.invitePlatformAdmin(
+    {
+      username: body.username,
+      realName: (body.realName ?? body.name) as string,
+      phone: body.phone,
+      email: body.email,
+      role: body.role
+    },
+    operatorOf(req)
+  );
+  res.json(ok(result));
+});
+
+/**
+ * POST /api/platform/admins/:id/reset-password —— 管理员代重置密码
+ *
+ * 清账依据：C6-0 §三.1 #51（AdminPermissions.vue:281）「无重置密码端点」⇒ 零 DDL
+ * （UPDATE t_platform_admin.password_hash）。新口令只在响应里一次性返回（裁定 R6）。
+ */
+export const resetAdminPassword = asyncHandler(async (req, res) => {
+  const adminId = Number(req.params.id);
+  if (!Number.isInteger(adminId) || adminId <= 0) {
+    res.status(400).json(fail("管理员 ID 不合法", "400"));
+    return;
+  }
+
+  const result = await adminAccountService.resetPlatformAdminPassword(
+    adminId,
+    operatorOf(req)
+  );
+  res.json(ok(result));
+});
+
 // ─── 数据统计 ────────────────────────────────────────────────
 
 export const getOverview = asyncHandler(async (_req, res) => {

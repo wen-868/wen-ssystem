@@ -9,7 +9,15 @@ appVersionPublicRouter.get("/version/:platform", appVersionController.checkAppVe
 /** 总台：版本管理 */
 export const appVersionAdminRouter = Router();
 appVersionAdminRouter.get("/app-versions", appVersionController.listAppVersions);
+// C6-1A（#34）：草稿保存 —— 具体路径必须排在 /app-versions/:id/... 之前
+appVersionAdminRouter.post("/app-versions/draft", appVersionController.saveAppVersionDraft);
 appVersionAdminRouter.post("/app-versions", appVersionController.createAppVersion);
+// C6-1A（#36）：放量控制与归档（t_app_version.status / gray_ratio / archived_at，178 迁移加列）
+appVersionAdminRouter.post("/app-versions/:id/pause", appVersionController.pauseAppVersion);
+appVersionAdminRouter.post("/app-versions/:id/resume", appVersionController.resumeAppVersion);
+appVersionAdminRouter.post("/app-versions/:id/archive", appVersionController.archiveAppVersion);
+// C6-1A（#39）：回滚到指定已发布版本（零 DDL，口径见凌舟裁定 R5②）
+appVersionAdminRouter.post("/app-versions/:id/rollback", appVersionController.rollbackAppVersion);
 appVersionAdminRouter.delete("/app-versions/:id", appVersionController.removeAppVersion);
 
 export const routeConfigs: RouteConfig[] = [
