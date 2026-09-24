@@ -1,0 +1,14 @@
+=====================  S3-50 RT-B  wait-on 失败路径反测  =====================
+wait-on 二进制：node_modules/wait-on/bin/wait-on（与 CI 上 npx wait-on 同一 npm 包）
+
+--- A) 探无人监听的端口（期望 exit != 0，兜底会判红）---
+url=http://127.0.0.1:59997/health  exit=1
+输出首行: Error: Timed out waiting for: http://127.0.0.1:59997/health
+通过：wait-on 非零退出，兜底会把该步骤判红
+
+--- B) 起真实临时服务再探（期望 exit 0，证明不是恒红）---
+url=http://127.0.0.1:18097/health  exit=0
+输出首行: 
+通过：可达时 exit 0，该检查有分辨力（能红也能绿）
+
+=====================  RT-B 结束  =====================

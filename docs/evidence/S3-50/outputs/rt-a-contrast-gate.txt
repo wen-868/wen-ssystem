@@ -1,0 +1,25 @@
+=====================  S3-50 RT-A  对比度矩阵门禁反测  =====================
+被检脚本（仓库真实文件）：scripts/contrast-check.cjs
+被检输入（仓库真实文件）：saas-admin/src/styles/tokens.css + admin-web/src/styles/theme.ts
+方法：复制到临时目录后执行；仓库工作区零改动（不触碰被检文件本身）
+
+--- A) 未改动（正对照，期望 exit 0）---
+exit=0
+| 分组 | 前景 token | surface 背景 | 比值 | 阈值(文本4.5/非文本3.0) | 结论 |
+|---|---|---|---|---|---|
+| saas-admin token | --text-primary #000000 | 白底 #FFFFFF | 21.00:1 | 4.5 | PASS |
+| saas-admin token | --text-primary #000000 | #f7f7f7(--g0/--bg-page) | 19.60:1 | 4.5 | PASS |
+| saas-admin token | --text-primary #000000 | #f0f0f0(--bg-soft 最严边界) | 18.43:1 | 4.5 | PASS |
+| saas-admin token | --text-secondary #444444 | 白底 #FFFFFF | 9.74:1 | 4.5 | PASS |
+
+--- B) --text-primary: #000000 -> #cccccc（期望 exit 1）---
+exit=1
+| saas-admin token | --text-primary #CCCCCC | 白底 #FFFFFF | 1.61:1 | 4.5 | FAIL |
+| saas-admin token | --text-primary #CCCCCC | #f7f7f7(--g0/--bg-page) | 1.50:1 | 4.5 | FAIL |
+| saas-admin token | --text-primary #CCCCCC | #f0f0f0(--bg-soft 最严边界) | 1.41:1 | 4.5 | FAIL |
+
+--- C) --input-border -> #eeeeee（期望 exit 1）---
+exit=1
+| saas-admin token (S3-54 裁定锁定) | --input-border (S3-54 输入框边框(1.4.11 最严边界 #f0f0f0)≥3:1) #EEEEEE | #f0f0f0(--bg-soft 最严边界) | 1.02:1 | 3 | FAIL |
+
+=====================  RT-A 结束  =====================

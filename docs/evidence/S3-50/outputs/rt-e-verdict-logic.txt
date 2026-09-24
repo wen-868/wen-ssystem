@@ -1,0 +1,43 @@
+=====================  S3-50 RT-E  a11y 汇总判定逻辑反测  =====================
+样本目录：C:\Users\XIONG\AppData\Local\Temp\s3-50-rtE-N6QWpZ
+
+--- A) 十次取样全 0（期望 exit 0）---
+[sample 1] exit=0
+[sample 2] exit=0
+[sample 3] exit=0
+[sample 4] exit=0
+[sample 5] exit=0
+[sample 6] exit=0
+[sample 7] exit=0
+[sample 8] exit=0
+[sample 9] exit=0
+[sample 10] exit=0
+exit=0  ✅ A 通过：全绿判绿
+
+--- B) 第 7 次取样非 0（期望 exit 1）---
+[sample 1] exit=0
+[sample 2] exit=0
+[sample 3] exit=0
+[sample 4] exit=0
+[sample 5] exit=0
+[sample 6] exit=0
+[sample 7] exit=1
+[sample 8] exit=0
+[sample 9] exit=0
+[sample 10] exit=0
+exit=1  ✅ B 通过：任一次非 0 即红（不被前 6 次绿洗掉）
+
+--- C) 样本文件缺失＝取样步骤被跳过（期望 exit 1）---
+[sample 1] exit=0
+[sample 2] exit=0
+[sample 3] exit=0
+[sample 4] exit=MISSING
+[sample 5] exit=0
+[sample 6] exit=0
+[sample 7] exit=1
+[sample 8] exit=0
+[sample 9] exit=0
+[sample 10] exit=0
+exit=1  ✅ C 通过：缺样本按非 0 处理，不会静默放行
+
+=====================  RT-E 结束  =====================
