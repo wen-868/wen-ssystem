@@ -615,12 +615,32 @@ export async function scanOrphanFiles(params: { tenantId?: string }): Promise<Or
     values.push(params.tenantId);
   }
 
+  /**
+   * R101-C4-1c（同族前例 C5-1b）：跨表 JOIN 的列↔列谓词**必须显式钉 collation**。
+   *
+   * 生产实测（凌舟 2026-09-25）：本端点 500，pm2 日志
+   * `Illegal mix of collations (utf8mb4_0900_ai_ci,IMPLICIT) and (utf8mb4_unicode_ci,IMPLICIT) for operation '='`。
+   * 两侧 collation 依据（DDL 原文，非猜测）：
+   * - `t_upload_file.tenant_id` = **utf8mb4_unicode_ci**：`docs/migrations/115_missing_tables.sql:66`
+   *   `) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='上传文件记录表';`
+   * - `t_tenant.id` = **utf8mb4_0900_ai_ci**：`docs/migrations/029_add_tenant.sql:31` 与
+   *   `docs/migrations/092_租户ID.sql:64-76` 均为 `ENGINE=... DEFAULT CHARSET=utf8mb4`（**未写 COLLATE**）
+   *   ⇒ 跟随库默认，见 `docs/migrations/001_phase1_schema.sql:7-9`
+   *   `CREATE DATABASE ... DEFAULT COLLATE utf8mb4_0900_ai_ci`。
+   *
+   * 修法（取 C5-1b 已验证口径，零 DDL）：
+   * - `COLLATE` 只加在**非索引侧** `f.tenant_id`；需要保住的是被探测侧 `t.id` 的 `PRIMARY`；
+   * - 目标 collation 取 `t.id` **自身**的 `utf8mb4_0900_ai_ci` ⇒ 比较 collation 与索引 collation 一致，
+   *   `EXPLAIN` 期望 `t` 行仍 `key=PRIMARY`（否则会退化成逐行全表扫 t_tenant）；
+   * - 筛选侧 `f.tenant_id = ?` **不加** COLLATE：参数为 COERCIBLE 本不触发 1267，
+   *   加了反而丢 `idx_tenant_status` / `idx_tenant_biz`。
+   */
   const rows = await query<RawOrphanRow>(
     `SELECT f.id, f.tenant_id AS tenantId, f.file_name AS fileName, f.file_path AS filePath,
             f.file_size AS fileSize, f.biz_type AS bizType, f.biz_id AS bizId,
             f.created_at AS createdAt, (t.id IS NULL) AS tenantMissing
        FROM t_upload_file f
-       LEFT JOIN t_tenant t ON t.id = f.tenant_id
+       LEFT JOIN t_tenant t ON t.id = f.tenant_id COLLATE utf8mb4_0900_ai_ci
       WHERE ${conditions.join(" AND ")}
       ORDER BY f.created_at DESC, f.id DESC
       LIMIT ?`,
