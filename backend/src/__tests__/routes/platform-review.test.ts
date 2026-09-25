@@ -6,6 +6,7 @@ vi.mock("../../services/admin/platform-review.service", () => ({
   listReviews: vi.fn(),
   getStats: vi.fn(),
   replyReview: vi.fn(),
+  getReviewById: vi.fn(),
 }));
 
 vi.mock("../../shared/response", () => ({
@@ -33,24 +34,31 @@ describe("routes/platform-review 集成测试", () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe("GET /", () => {
-    it("应返回审核列表", async () => {
-      (reviewService.listReviews as any).mockResolvedValue({ records: [], total: 0 });
+    it("应返回审核列表（不传租户：t_platform_review 是平台级表）", async () => {
+      (reviewService.listReviews as any).mockResolvedValue({ records: [], total: 0, page: 1, pageSize: 20 });
       const res = await request(app).get("/api/platform-review");
       expect(res.status).toBe(200);
       expect(res.body.code).toBe("0");
       expect(reviewService.listReviews).toHaveBeenCalledWith(
-        "test-tenant",
         expect.objectContaining({ page: 1, pageSize: 20 })
       );
+      // 只允许一个入参对象：不得再把 tenantId 当第一参数传下去（平台级语义）
+      expect((reviewService.listReviews as any).mock.calls[0]).toHaveLength(1);
     });
 
-    it("应传递筛选参数", async () => {
+    it("空表（0 行）返回 200 且结构为 { total, page, pageSize, records }", async () => {
+      (reviewService.listReviews as any).mockResolvedValue({ records: [], total: 0, page: 1, pageSize: 20 });
+      const res = await request(app).get("/api/platform-review");
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual({ records: [], total: 0, page: 1, pageSize: 20 });
+    });
+
+    it("应传递真实列筛选参数（platform / rating）", async () => {
       (reviewService.listReviews as any).mockResolvedValue({ records: [], total: 0 });
-      const res = await request(app).get("/api/platform-review?platformName=JD&reviewType=1&status=0&page=2&pageSize=10");
+      const res = await request(app).get("/api/platform-review?platform=JD&rating=5&page=2&pageSize=10");
       expect(res.status).toBe(200);
       expect(reviewService.listReviews).toHaveBeenCalledWith(
-        "test-tenant",
-        expect.objectContaining({ platformName: "JD", reviewType: 1, status: 0, page: 2, pageSize: 10 })
+        expect.objectContaining({ platform: "JD", rating: 5, page: 2, pageSize: 10 })
       );
     });
 
@@ -62,12 +70,14 @@ describe("routes/platform-review 集成测试", () => {
   });
 
   describe("GET /stats", () => {
-    it("应返回审核统计", async () => {
-      (reviewService.getStats as any).mockResolvedValue({ total: 10, pending: 5 });
+    it("空表返回 200 且结构为 { stats: [] }", async () => {
+      (reviewService.getStats as any).mockResolvedValue({ stats: [] });
       const res = await request(app).get("/api/platform-review/stats");
       expect(res.status).toBe(200);
       expect(res.body.code).toBe("0");
-      expect(reviewService.getStats).toHaveBeenCalledWith("test-tenant");
+      expect(res.body.data).toEqual({ stats: [] });
+      // 平台级聚合，无入参（不传租户）
+      expect(reviewService.getStats).toHaveBeenCalledWith();
     });
 
     it("service 抛错时返回500", async () => {
@@ -85,7 +95,7 @@ describe("routes/platform-review 集成测试", () => {
         .send({ replyContent: "回复内容" });
       expect(res.status).toBe(200);
       expect(res.body.code).toBe("0");
-      expect(reviewService.replyReview).toHaveBeenCalledWith("test-tenant", 1, "回复内容");
+      expect(reviewService.replyReview).toHaveBeenCalledWith(1, "回复内容");
     });
 
     it("replyContent 缺失时 zod 校验失败返回400", async () => {
@@ -110,6 +120,36 @@ describe("routes/platform-review 集成测试", () => {
         .post("/api/platform-review/1/reply")
         .send({ replyContent: "回复" });
       expect(res.status).toBe(500);
+    });
+  });
+
+  describe("GET /:id", () => {
+    it("应返回评价详情", async () => {
+      (reviewService.getReviewById as any).mockResolvedValue(null);
+      const res = await request(app).get("/api/platform-review/12");
+      expect(res.status).toBe(200);
+      expect(res.body.code).toBe("0");
+      expect(reviewService.getReviewById).toHaveBeenCalledWith(12);
+    });
+  });
+
+  describe("评价审核（真实表无审核状态载体）", () => {
+    it("PUT /:id/approval 明确 501，不写库、不造假成功", async () => {
+      const res = await request(app)
+        .put("/api/platform-review/1/approval")
+        .send({ status: 1 });
+      expect(res.status).toBe(501);
+      expect(res.body.code).toBe("501");
+      expect(res.body.msg).toContain("无审核状态字段");
+    });
+
+    it("POST /batch-approval 明确 501，不写库、不造假成功", async () => {
+      const res = await request(app)
+        .post("/api/platform-review/batch-approval")
+        .send({ ids: [1, 2], status: 1 });
+      expect(res.status).toBe(501);
+      expect(res.body.code).toBe("501");
+      expect(res.body.msg).toContain("无审核状态字段");
     });
   });
 });
