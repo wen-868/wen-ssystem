@@ -277,6 +277,18 @@ interface StatusRow {
   status: string;
 }
 
+/** 审核流水行（C6-2-T5，t_library_spu_review_log） */
+interface SpuReviewLogRow {
+  id: number;
+  action: string;
+  fromStatus: string | null;
+  toStatus: string;
+  operatorId: number | null;
+  operatorName: string | null;
+  reason: string | null;
+  createdAt: Date | string;
+}
+
 /** INSERT 返回结果行（mysql2 ResultSetHeader 包装） */
 interface InsertResult {
   insertId: number;
@@ -572,8 +584,17 @@ const SPU_TARGET_STATUSES: readonly string[] = ["APPROVED", "REJECTED", "OFFLINE
  *
  * 列名沿用既有 reviewed_by / reviewed_at（不新增列、不改既有列定义）：
  * 两者记录「最近一次状态流转的操作人与时间」。
+ *
+ * C6-2-T5：成功流转后在同一处追加一行审核流水（t_library_spu_review_log，迁移 183）。
+ * 既有语义一字不改 —— 合法转移集合、返回体、错误码全部保持原样，只是"成功时多写一行流水"。
  */
-async function reviewSpu(id: number, status: string, reviewedBy: number) {
+async function reviewSpu(
+  id: number,
+  status: string,
+  reviewedBy: number,
+  operatorName?: string | null,
+  reason?: string | null
+) {
   if (!SPU_TARGET_STATUSES.includes(status)) {
     throw Object.assign(
       new Error("无效的状态值，仅允许 APPROVED / REJECTED / OFFLINE"),
@@ -606,7 +627,78 @@ async function reviewSpu(id: number, status: string, reviewedBy: number) {
     [status, reviewedBy, id]
   );
 
+  // C6-2-T5 流水留痕：action 由真实转移推导，前后状态取真实值，操作人取当前平台令牌主体。
+  // 不吞错：写流水失败即整体失败（不用 try/catch 把失败洗成 200，红线④）。
+  await query(
+    `INSERT INTO t_library_spu_review_log
+       (spu_id, action, from_status, to_status, operator_id, operator_name, reason)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      deriveReviewAction(status),
+      normalizeReviewLogText(spu.status, 16),
+      normalizeReviewLogText(status, 16),
+      reviewedBy,
+      normalizeReviewLogText(operatorName, 64),
+      normalizeReviewLogText(reason, 255)
+    ]
+  );
+
   return { id, status, reviewedBy };
+}
+
+/**
+ * 审核流水动作推导（C6-2-T5 派单卡交付物③ 逐字口径）
+ *
+ * 既有状态机只有三条目标边（PENDING → APPROVED / REJECTED、APPROVED ↔ OFFLINE）：
+ *   → OFFLINE  ⇒ OFFLINE（下架）
+ *   → REJECTED ⇒ REJECT（驳回）
+ *   → APPROVED ⇒ APPROVE（PENDING 审核通过，或 OFFLINE 重新上架）
+ * SUBMIT（提交审核）当前无写点 —— 既有代码没有"提交审核"入口，故不产生该动作值。
+ */
+function deriveReviewAction(toStatus: string): "APPROVE" | "REJECT" | "OFFLINE" {
+  if (toStatus === "OFFLINE") return "OFFLINE";
+  if (toStatus === "REJECTED") return "REJECT";
+  return "APPROVE";
+}
+
+/**
+ * 流水文本列归一化：去首尾空白后为空 ⇒ NULL（不得用空串冒充"未填写"）；
+ * 超出列宽 ⇒ 截断到列宽（VARCHAR 列口径由迁移 183 钉死，详见本单回传卡"风险与自我报备"）。
+ */
+function normalizeReviewLogText(value: string | null | undefined, maxLength: number): string | null {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (text === "") return null;
+  return text.slice(0, maxLength);
+}
+
+/**
+ * SPU 审核流水读取（C6-2-T5 交付物②）
+ *
+ * GET /api/platform/library/spus/:id/review-logs 的唯一落点：
+ *   - SPU 不存在 ⇒ 抛 404（不返回空数组冒充"无流水"）；
+ *   - 无流水 ⇒ 空数组（诚实空态，零假数据）；
+ *   - 排序：created_at 降序，同秒按 id 降序（最新在最前）。
+ */
+async function getSpuReviewLogs(spuId: number) {
+  const spu = await queryOne<IdRow>(
+    "SELECT id FROM t_library_spu WHERE id = ?",
+    [spuId]
+  );
+  if (!spu) {
+    throw Object.assign(new Error("SPU不存在"), { statusCode: 404 });
+  }
+
+  return query<SpuReviewLogRow>(
+    `SELECT id, action, from_status AS fromStatus, to_status AS toStatus,
+            operator_id AS operatorId, operator_name AS operatorName,
+            reason, created_at AS createdAt
+     FROM t_library_spu_review_log
+     WHERE spu_id = ?
+     ORDER BY created_at DESC, id DESC`,
+    [spuId]
+  );
 }
 
 /** 删除 SPU（仅 OFFLINE 状态可删） */
@@ -1202,6 +1294,7 @@ class LibraryService {
   createSpu = createSpu;
   updateSpu = updateSpu;
   reviewSpu = reviewSpu;
+  getSpuReviewLogs = getSpuReviewLogs;
   deleteSpu = deleteSpu;
   importSpus = importSpus;
 
