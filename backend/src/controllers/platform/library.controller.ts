@@ -95,7 +95,13 @@ export async function updateSpu(req: any, res: any) {
   res.json(ok(result));
 }
 
-/** 审核 SPU（PENDING → APPROVED / REJECTED） */
+/**
+ * 审核 SPU（PENDING → APPROVED / REJECTED、APPROVED ↔ OFFLINE）
+ *
+ * C6-2-T5：成功流转时由服务层在同一落点追加一行审核流水；
+ * 这里只把"当前平台令牌主体"（realName 优先，回落 username）与可选 reason 透传下去，
+ * 既有请求体/返回体/错误码不变（reason 为可选透传，不填即 NULL）。
+ */
 export async function reviewSpu(req: any, res: any) {
   const id = Number(req.params.id);
   if (!id) {
@@ -103,7 +109,7 @@ export async function reviewSpu(req: any, res: any) {
     return;
   }
 
-  const { status } = req.body;
+  const { status, reason } = req.body;
   if (!status) {
     res.status(400).json(fail("缺少必填字段：status", "400"));
     return;
@@ -116,8 +122,28 @@ export async function reviewSpu(req: any, res: any) {
     return;
   }
 
-  const result = await libraryService.reviewSpu(id, status, Number(reviewedBy));
+  // 操作人名称取当前平台令牌主体（登录签发的 claims 含 username / realName）
+  const operatorName = req.user?.realName ?? req.user?.username ?? null;
+
+  const result = await libraryService.reviewSpu(id, status, Number(reviewedBy), operatorName, reason);
   res.json(ok(result));
+}
+
+/**
+ * SPU 审核流水（C6-2-T5）
+ *
+ * GET /api/platform/library/spus/:id/review-logs ⇒ { logs: [...] }（created_at 降序、同秒按 id 降序）
+ * SPU 不存在 ⇒ 404（服务层抛出，统一错误中间件出码）；无流水 ⇒ logs: []（诚实空态）。
+ */
+export async function listSpuReviewLogs(req: any, res: any) {
+  const id = Number(req.params.id);
+  if (!id) {
+    res.status(400).json(fail("无效的SPU ID", "400"));
+    return;
+  }
+
+  const logs = await libraryService.getSpuReviewLogs(id);
+  res.json(ok({ logs }));
 }
 
 /** 删除 SPU */

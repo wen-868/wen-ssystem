@@ -41,6 +41,9 @@ platformLibraryRouter.put("/spus/:id", asyncHandler(controller.updateSpu));
 // PUT /api/platform/library/spus/:id/status - 审核SPU
 platformLibraryRouter.put("/spus/:id/status", asyncHandler(controller.reviewSpu));
 
+// GET /api/platform/library/spus/:id/review-logs - 审核流水（C6-2-T5，只读；路径段更具体，不与 /spus/:id 冲突）
+platformLibraryRouter.get("/spus/:id/review-logs", asyncHandler(controller.listSpuReviewLogs));
+
 // DELETE /api/platform/library/spus/:id - 删除SPU
 platformLibraryRouter.delete("/spus/:id", asyncHandler(controller.deleteSpu));
 
