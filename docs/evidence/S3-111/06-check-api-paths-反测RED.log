@@ -1,0 +1,6 @@
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+  前端调用点 84（去重 78）· 后端注册路由 1436
+  豁免清单 0 条（命中 0 条）
+
+FAIL 路径不存在（前端有、后端无）：1 条
+  - GET /platform/library/__s311-antitest-not-registered   saas-admin/src/api/library.ts:348

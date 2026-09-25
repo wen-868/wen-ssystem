@@ -1,0 +1,33 @@
+=== 分支与基线 ===
+分支: agent/issue-120
+HEAD: 1c43e0e994ea315d4351e0c077df20636ca06580
+
+=== git status --porcelain ===
+ M saas-admin/scripts/api-path-allowlist.json
+ M saas-admin/src/api/library.ts
+ M saas-admin/src/api/tenant.ts
+ M saas-admin/src/views/PackageForm.vue
+ M saas-admin/src/views/Packages.vue
+ M saas-admin/src/views/TenantUsage.vue
+ M saas-admin/src/views/library/LibraryBrands.vue
+ M saas-admin/src/views/library/LibrarySpus.vue
+?? docs/evidence/S3-111/
+
+=== git diff --stat ===
+warning: in the working copy of 'saas-admin/scripts/api-path-allowlist.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'saas-admin/src/api/library.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'saas-admin/src/api/tenant.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'saas-admin/src/views/PackageForm.vue', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'saas-admin/src/views/Packages.vue', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'saas-admin/src/views/TenantUsage.vue', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'saas-admin/src/views/library/LibraryBrands.vue', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'saas-admin/src/views/library/LibrarySpus.vue', LF will be replaced by CRLF the next time Git touches it
+ saas-admin/scripts/api-path-allowlist.json     |  13 +--
+ saas-admin/src/api/library.ts                  |  47 +++++++++-
+ saas-admin/src/api/tenant.ts                   |   4 -
+ saas-admin/src/views/PackageForm.vue           |  73 +++++++--------
+ saas-admin/src/views/Packages.vue              |  12 +--
+ saas-admin/src/views/TenantUsage.vue           |   4 +-
+ saas-admin/src/views/library/LibraryBrands.vue |  76 +++++++++++-----
+ saas-admin/src/views/library/LibrarySpus.vue   | 119 +++++++++++++++++++++----
+ 8 files changed, 241 insertions(+), 107 deletions(-)

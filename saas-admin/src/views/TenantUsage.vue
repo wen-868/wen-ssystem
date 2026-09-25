@@ -81,7 +81,9 @@
       <el-col :span="8">
         <el-card style="margin-bottom: 20px;">
           <template #header><span>功能模块使用占比</span></template>
-          <div v-if="moduleEmpty" class="empty">暂无模块统计数据 · 待接入真实统计</div>
+          <!-- S3-111 ④（#85）：原「· 待接入真实统计」属内部措辞 ⇒ 产品化。
+               空态逻辑与数据口径不变：后端无该维度数据源时返回空数组，页面只表达"无数据"，不造数。 -->
+          <div v-if="moduleEmpty" class="empty">暂无模块使用统计数据（平台暂未采集该维度）</div>
           <div v-else ref="moduleChartRef" style="height: 340px;"></div>
         </el-card>
       </el-col>

@@ -1,0 +1,12 @@
+=== ④b 等价断言（前端不提供 PENDING→OFFLINE 入口）：LibrarySpus.vue 状态分支与守卫 ===
+
+157:                        <template v-if="s.status === 'PENDING'">
+160:                        <template v-else-if="s.status === 'OFFLINE'">
+161:                          <span class="btn-t" @click="relistSpu(s)">重新上架</span>
+167:                          <span v-if="s.status === 'APPROVED'" class="btn-t" @click="offlineSpu(s)">下架</span>
+592:        <span v-if="detailSpu?.status === 'APPROVED'" class="btn btn-d" @click="offlineSpu(detailSpu)">下架</span>
+593:        <span v-else-if="detailSpu?.status === 'OFFLINE'" class="btn" @click="relistSpu(detailSpu)">重新上架</span>
+948:async function offlineSpu(s: Pick<SpuListItem, 'id' | 'name' | 'status'> | null | undefined) {
+950:  if (s.status !== 'APPROVED') {
+973:async function relistSpu(s: Pick<SpuListItem, 'id' | 'name' | 'status'> | null | undefined) {
+975:  if (s.status !== 'OFFLINE') {

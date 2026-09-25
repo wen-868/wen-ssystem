@@ -8,7 +8,9 @@
           · SPU 列表 / 品牌列表：listSpusApi / listBrandsApi（已有）
           · 商品详情 + SKU 明细：getSpuApi（① #10/#14，**接口已有，本卡接线**）
           · 审核队列：listSpusApi({status:'PENDING'}) + PUT /spus/:id/status（① #20，**接口已有，本卡接线**）
-          · KPI 汇总（#6）、调取统计排行/趋势/类目分布（#8/#9/#16-18）、平台类目树（R3(甲)）：
+          · 上下架：PUT /spus/:id/status {status:'OFFLINE'|'APPROVED'}（S3-111 ②，S3-110 已放开 APPROVED↔OFFLINE）
+          · KPI「类目数」+ ② 类目子 Tab：GET /platform/library/categories（S3-111 ①，租户类目只读聚合）
+          · 其余 KPI 汇总（#6，除类目数外）、调取统计排行/趋势/类目分布（#8/#9/#16-18）：
             无数据源 → 空态，逐条登记待立项（见 R101-C6-2 立项清单），不放假数据。
     存量缺陷（原第 1066 行 TypeError：drinkBrandDb[i % drinkBrandDb.length.specs.length]）
           随整文件重写已彻底移除全部假数据生成逻辑，不再存在该缺陷。
@@ -32,8 +34,9 @@
       </div>
     </div>
 
-    <!-- ════════ KPI（汇总数据源待立项 #6） ════════ -->
-    <!-- TODO: 待接入 GET /platform/library/stats —— 返回 商品总量/类目数/品牌数/本月调取/待审核 -->
+    <!-- ════════ KPI ════════ -->
+    <!-- 「类目数」已接 GET /platform/library/categories（S3-111 ①，真值口径见 kd 说明）；
+         其余四项（商品总量/品牌数/本月租户调取/待审核）汇总数据源待立项 #6，不用假数据充数 -->
     <div class="g5">
       <div class="kpi">
         <div class="kt">商品总量</div>
@@ -42,8 +45,8 @@
       </div>
       <div class="kpi">
         <div class="kt">类目数</div>
-        <div class="kv">{{ stats ? stats.categoryTotal : '—' }}</div>
-        <div class="kd">一级 · 二级 · 三级</div>
+        <div class="kv">{{ categoryLoading ? '…' : categoryTotal }}</div>
+        <div class="kd">租户 × 类目聚合行数（接口返回数组长度）</div>
       </div>
       <div class="kpi">
         <div class="kt">品牌数</div>
@@ -155,12 +158,13 @@
                           <span class="btn-t" @click="todo('转审核')">转审核</span>
                         </template>
                         <template v-else-if="s.status === 'OFFLINE'">
-                          <span class="btn-t" @click="todo('重新上架')">重新上架</span>
+                          <span class="btn-t" @click="relistSpu(s)">重新上架</span>
                           <span class="btn-t dgr" @click="removeSpu(s)">删除</span>
                         </template>
                         <template v-else>
                           <span class="btn-t" @click="openSpuModal(s)">编辑</span>
-                          <span class="btn-t" @click="offlineSpu">下架</span>
+                          <!-- S3-111 ②：下架仅对 APPROVED 展示（PENDING/REJECTED → OFFLINE 后端 400，不给"必崩"入口） -->
+                          <span v-if="s.status === 'APPROVED'" class="btn-t" @click="offlineSpu(s)">下架</span>
                           <span class="btn-t dgr" @click="removeSpu(s)">删除</span>
                         </template>
                       </td>
@@ -188,7 +192,8 @@
 
         <!-- ───────── ② 类目管理 ───────── -->
         <div v-show="activeTab === 'category'">
-          <LibraryBrands section="category" />
+          <!-- 注入同一份聚合结果：KPI「类目数」与列表展示同源同口径（S3-111 ①） -->
+          <LibraryBrands section="category" :category-rows="categoryRows" :category-loading="categoryLoading" />
         </div>
 
         <!-- ───────── ③ 品牌库 ───────── -->
@@ -583,7 +588,9 @@
       </div>
       <div class="m-ft">
         <span class="btn btn-p" @click="detailSpu && openSpuModal(detailSpu)">编辑商品</span>
-        <span class="btn btn-d" @click="offlineSpu">下架</span>
+        <!-- S3-111 ②：详情页上下架按当前状态给出唯一合法方向（后端仅 APPROVED↔OFFLINE） -->
+        <span v-if="detailSpu?.status === 'APPROVED'" class="btn btn-d" @click="offlineSpu(detailSpu)">下架</span>
+        <span v-else-if="detailSpu?.status === 'OFFLINE'" class="btn" @click="relistSpu(detailSpu)">重新上架</span>
       </div>
     </div>
   </div>
@@ -595,7 +602,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   listSpusApi, createSpuApi, updateSpuApi, deleteSpuApi,
-  getSpuApi, approveSpuApi, rejectSpuApi,
+  getSpuApi, approveSpuApi, rejectSpuApi, offlineSpuApi, relistSpuApi,
+  listCategoriesApi, type PlatformCategoryItem,
   listBrandsApi,
   type SpuListItem, type BrandItem, type SkuItem,
 } from '../../api/library'
@@ -605,8 +613,33 @@ const router = useRouter()
 const activeTab = ref<'spu' | 'category' | 'brand' | 'stats' | 'review'>('spu')
 
 /* ───────── KPI 汇总（数据源待立项 #6） ───────── */
-// TODO: 待接入 GET /platform/library/stats
+// 汇总端点 GET /platform/library/stats 尚未立项落地 ⇒ 商品总量/品牌数/本月调取/待审核保持 —
+// 「类目数」不依赖该端点：取类目只读聚合接口的真实返回（见下方 categoryRows，S3-111 ①）
 const stats = ref<any>(null)
+
+/* ───────── 类目只读聚合（S3-111 ①：KPI「类目数」的真值来源） ───────── */
+const categoryRows = ref<PlatformCategoryItem[]>([])
+const categoryLoading = ref(false)
+/**
+ * KPI「类目数」口径 = 接口返回数组长度（= 聚合表格行数 = 「租户 × 类目」组合数）。
+ * 与展示一致：② 类目子 Tab 逐行渲染该数组，因此「KPI 值 === 表格行数」可直接点数核对。
+ * （categoryId 为租户内唯一，故「按 categoryId 去重」与数组长度同值，二者不需另行相减。）
+ */
+const categoryTotal = computed(() => categoryRows.value.length)
+
+async function fetchCategories() {
+  categoryLoading.value = true
+  try {
+    const res: any = await listCategoriesApi()
+    const data: any = res?.data ?? res
+    categoryRows.value = Array.isArray(data) ? data : []
+  } catch {
+    /* 类目聚合失败不阻断主列表：KPI 与 ② 子 Tab 回到空态，不造假值 */
+    categoryRows.value = []
+  } finally {
+    categoryLoading.value = false
+  }
+}
 
 /* ───────── ① SPU 列表（沿用现有接口） ───────── */
 const spuList = ref<SpuListItem[]>([])
@@ -907,20 +940,70 @@ function goImport() {
 }
 
 /**
- * ③-a #21 「下架」= 阻塞上报（未接线，原因见下）：
- * 后端 reviewSpu（backend/src/services/platform/library.service.ts:517-525）**仅**接受
- * `PENDING → APPROVED/REJECTED`，传 `OFFLINE` 直接 400；且要求当前状态必须是 PENDING。
- * ⇒ 已发布商品的下架 / 已下架商品的重新上架在当前后端下必然失败，故不接一个"必崩"的动作，
- *   保留诚实提示并在回传卡申请后端放开状态流转（C6-0 §6.1 #21 的"可传 OFFLINE"经复核不成立）。
+ * S3-111 ② 上下架接线（S3-110 ② 已放开后端状态机）：
+ * 唯一端点 `PUT /api/platform/library/spus/:id/status`（platform-library.routes.ts:42），
+ * 流转表（library.service.ts:561-565）只允许 `APPROVED ↔ OFFLINE`——
+ * PENDING → OFFLINE / APPROVED → REJECTED 仍 400，故前端只对合法起点展示对应动作。
  */
-function offlineSpu() {
-  ElMessage.warning('下架：后端尚未开放 OFFLINE 状态流转（reviewSpu 仅接受 APPROVED/REJECTED），已上报申请')
+async function offlineSpu(s: Pick<SpuListItem, 'id' | 'name' | 'status'> | null | undefined) {
+  if (!s?.id) return
+  if (s.status !== 'APPROVED') {
+    ElMessage.warning(`下架：仅「已发布」商品可下架（当前状态：${spuStatusLabel(s.status)}）`)
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确定下架『${s.name}』？下架后租户检索侧不再可见（数据保留，可重新上架）。`, '确认下架', {
+      type: 'warning',
+      confirmButtonText: '下架',
+    })
+  } catch {
+    return
+  }
+  try {
+    await offlineSpuApi(s.id)
+    ElMessage.success('已下架')
+    syncDetailStatus(s.id, 'OFFLINE')
+    fetchSpus()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '下架失败')
+  }
+}
+
+/** OFFLINE → APPROVED（重新上架）：与下架同一端点，仅 OFFLINE 态可调 */
+async function relistSpu(s: Pick<SpuListItem, 'id' | 'name' | 'status'> | null | undefined) {
+  if (!s?.id) return
+  if (s.status !== 'OFFLINE') {
+    ElMessage.warning(`重新上架：仅「已下架」商品可上架（当前状态：${spuStatusLabel(s.status)}）`)
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确定重新上架『${s.name}』？上架后回到「已发布」状态。`, '确认重新上架', {
+      type: 'success',
+      confirmButtonText: '重新上架',
+    })
+  } catch {
+    return
+  }
+  try {
+    await relistSpuApi(s.id)
+    ElMessage.success('已重新上架')
+    syncDetailStatus(s.id, 'APPROVED')
+    fetchSpus()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '上架失败')
+  }
+}
+
+/** 详情抽屉打开时同步其状态，避免「刚下架的商品在详情里仍显示可下架」 */
+function syncDetailStatus(id: number, status: string) {
+  if (detailSpu.value?.id === id) detailSpu.value = { ...detailSpu.value, status }
 }
 
 onMounted(() => {
   fetchBrandsForFilter()
   fetchSpus()
   fetchReviewQueue()
+  fetchCategories()
 })
 </script>
 
