@@ -2,44 +2,29 @@
   <div>
     <h2 style="margin-bottom: 24px;">平台评价管理</h2>
 
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="6" v-for="stat in stats" :key="stat.key">
-        <el-card shadow="hover">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <div style="font-size: 13px; color: var(--text-secondary);">{{ stat.label }}</div>
-              <div style="font-size: 28px; font-weight: 700; margin-top: 8px; color: var(--color-primary);">
-                {{ stat.value }}
-              </div>
-            </div>
-            <div style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;" :style="{ background: stat.bg }">
-              <el-icon :size="24" :color="stat.color"><component :is="stat.icon" /></el-icon>
-            </div>
+    <!-- 统计卡：只消费后端契约 { stats: [{ platform, cnt }] }（按平台分组），总量/平均分无契约 ⇒ 显式空态 -->
+    <el-row :gutter="20" style="margin-bottom: 4px;">
+      <el-col :span="6" v-for="stat in platformStats" :key="stat.platform">
+        <el-card shadow="hover" style="margin-bottom: 12px;">
+          <div style="font-size: 13px; color: var(--text-secondary);">{{ textOr(stat.platform, "未知平台") }}</div>
+          <div style="font-size: 28px; font-weight: 700; margin-top: 8px; color: var(--color-primary);">
+            {{ stat.cnt }}
           </div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">评价条数</div>
         </el-card>
       </el-col>
     </el-row>
 
     <el-card style="margin-bottom: 16px;">
+      <el-empty v-if="!platformStats.length" description="暂无平台评价统计" :image-size="60" />
+      <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+        统计口径：按平台分组的评价条数（接口返回 { stats: [{ platform, cnt }] }）。
+        总量 / 平均评分：后端暂无对应统计能力，本页暂不展示，也不使用近似值或前端自算冒充。
+      </div>
+    </el-card>
+
+    <el-card style="margin-bottom: 16px;">
       <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="搜索评价内容/用户"
-          clearable
-          style="width: 220px;"
-          @change="handleSearch"
-        />
-        <el-select
-          v-model="searchForm.status"
-          placeholder="状态"
-          clearable
-          style="width: 140px;"
-          @change="handleSearch"
-        >
-          <el-option label="待回复" value="PENDING" />
-          <el-option label="已回复" value="REPLIED" />
-          <el-option label="已隐藏" value="HIDDEN" />
-        </el-select>
         <el-select
           v-model="searchForm.rating"
           placeholder="评分"
@@ -53,15 +38,6 @@
           <el-option label="2星" :value="2" />
           <el-option label="1星" :value="1" />
         </el-select>
-        <el-date-picker
-          v-model="searchForm.dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          style="width: 260px;"
-          @change="handleSearch"
-        />
         <el-button type="primary" @click="handleSearch">搜索</el-button>
         <el-button @click="handleReset">重置</el-button>
       </div>
@@ -70,30 +46,49 @@
     <el-card>
       <el-table :data="list" v-loading="loading" border stripe style="width: 100%;">
         <el-table-column prop="id" label="ID" width="70" />
-        <el-table-column prop="tenantName" label="租户" width="140" show-overflow-tooltip />
-        <el-table-column prop="userName" label="评价人" width="100" />
+        <el-table-column label="平台" width="120">
+          <template #default="{ row }">{{ textOr(row.platform, "未知平台") }}</template>
+        </el-table-column>
+        <el-table-column label="平台评价ID" width="160" show-overflow-tooltip>
+          <template #default="{ row }">{{ textOr(row.platformReviewId, "暂无") }}</template>
+        </el-table-column>
+        <el-table-column label="关联订单号" width="170" show-overflow-tooltip>
+          <template #default="{ row }">{{ textOr(row.orderNo, "暂无") }}</template>
+        </el-table-column>
         <el-table-column label="评分" width="140">
           <template #default="{ row }">
             <el-rate v-model="row.rating" disabled show-score text-color="#ff9900" score-template="{value}分" />
           </template>
         </el-table-column>
-        <el-table-column prop="content" label="评价内容" min-width="240" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column label="评价内容" min-width="220" show-overflow-tooltip>
+          <template #default="{ row }">{{ textOr(row.content, "无内容") }}</template>
+        </el-table-column>
+        <el-table-column label="回复内容" min-width="220" show-overflow-tooltip>
+          <template #default="{ row }">{{ textOr(row.replyContent, "未回复") }}</template>
+        </el-table-column>
+        <el-table-column label="回复状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="statusTag(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
+            <el-tag :type="replyState(row).type" size="small">{{ replyState(row).label }}</el-tag>
           </template>
+        </el-table-column>
+        <el-table-column label="回复时间" width="180">
+          <template #default="{ row }">{{ textOr(row.repliedAt, "未回复") }}</template>
+        </el-table-column>
+        <el-table-column label="同步时间" width="180">
+          <template #default="{ row }">{{ textOr(row.syncedAt, "未同步") }}</template>
         </el-table-column>
         <el-table-column label="评价时间" width="180">
-          <template #default="{ row }">{{ row.createdAt || '-' }}</template>
+          <template #default="{ row }">{{ textOr(row.createdAt, "暂无") }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleReply(row)">回复</el-button>
-            <el-button link type="warning" size="small" @click="handleToggleHide(row)">
-              {{ row.status === 'HIDDEN' ? '显示' : '隐藏' }}
-            </el-button>
+            <el-button link type="warning" size="small" @click="handleToggleHide()">隐藏</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无平台评价数据" :image-size="60" />
+        </template>
       </el-table>
 
       <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
@@ -112,16 +107,16 @@
     <el-dialog v-model="replyVisible" title="回复评价" width="560px" :close-on-click-modal="false">
       <div v-if="currentReview" style="margin-bottom: 20px;">
         <div style="color: #909399; font-size: 13px; margin-bottom: 8px;">
-          {{ currentReview.userName }} 评价道：
+          {{ textOr(currentReview.platform, "未知平台") }} · 订单号 {{ textOr(currentReview.orderNo, "暂无") }}
         </div>
         <div style="padding: 12px; background: #f5f7fa; border-radius: 4px; line-height: 1.6;">
-          {{ currentReview.content }}
+          {{ textOr(currentReview.content, "无内容") }}
         </div>
       </div>
       <el-form :model="replyForm" label-width="80px">
         <el-form-item label="回复内容">
           <el-input
-            v-model="replyForm.reply"
+            v-model="replyForm.replyContent"
             type="textarea"
             :rows="5"
             placeholder="请输入回复内容"
@@ -150,56 +145,37 @@ const pageSize = ref(20);
 const total = ref(0);
 
 const searchForm = reactive({
-  keyword: "",
-  status: "",
-  rating: null as number | null,
-  dateRange: [] as string[]
+  rating: null as number | null
 });
 
-const stats = ref([
-  { key: "total", label: "总评价数", value: 0, icon: "ChatDotSquare", color: "#2563eb", bg: "#eff6ff" },
-  { key: "avgRating", label: "平均评分", value: "0.0", icon: "Star", color: "#f59e0b", bg: "#fffbeb" },
-  { key: "pending", label: "待回复", value: 0, icon: "Clock", color: "#ef4444", bg: "#fef2f2" },
-  { key: "replied", label: "已回复", value: 0, icon: "CircleCheck", color: "#10b981", bg: "#ecfdf5" }
-]);
+/** 统计：后端契约 { stats: [{ platform, cnt }] }（空表为 []） */
+const platformStats = ref<Array<{ platform: string; cnt: number }>>([]);
 
 const replyVisible = ref(false);
 const currentReview = ref<any>(null);
 const saving = ref(false);
 const replyForm = reactive({
-  reply: ""
+  replyContent: ""
 });
 
-function statusLabel(status: string): string {
-  const map: Record<string, string> = {
-    PENDING: "待回复",
-    REPLIED: "已回复",
-    HIDDEN: "已隐藏"
-  };
-  return map[status] || status || "-";
+/** 字段为空时的明确文案（不用 "—" 等占位符充数） */
+function textOr(value: any, fallback: string): string {
+  return value === null || value === undefined || value === "" ? fallback : String(value);
 }
 
-function statusTag(status: string): string {
-  const map: Record<string, string> = {
-    PENDING: "warning",
-    REPLIED: "success",
-    HIDDEN: "info"
-  };
-  return map[status] || "";
+/** 回复状态：真实表无状态列，只能由 replyContent / repliedAt 两个真实载体派生 */
+function replyState(row: any): { label: string; type: "success" | "warning" } {
+  const replied = Boolean(row?.repliedAt || row?.replyContent);
+  return replied ? { label: "已回复", type: "success" } : { label: "未回复", type: "warning" };
 }
 
 async function fetchStats() {
   try {
     const res = await getPlatformReviewStats();
     const data = res.data?.data || (res as any).data || res;
-    if (data) {
-      stats.value[0].value = data.totalCount || 0;
-      stats.value[1].value = data.avgRating ? data.avgRating.toFixed(1) : "0.0";
-      stats.value[2].value = data.pendingCount || 0;
-      stats.value[3].value = data.repliedCount || 0;
-    }
-  } catch {
-    // ignore
+    platformStats.value = Array.isArray(data?.stats) ? data.stats : [];
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "统计加载失败");
   }
 }
 
@@ -209,8 +185,6 @@ async function fetchList() {
     const res = await getPlatformReviews({
       page: page.value,
       pageSize: pageSize.value,
-      keyword: searchForm.keyword || undefined,
-      status: searchForm.status || undefined,
       rating: searchForm.rating || undefined
     });
     const data = res.data?.data || (res as any).data || res;
@@ -229,28 +203,25 @@ function handleSearch() {
 }
 
 function handleReset() {
-  searchForm.keyword = "";
-  searchForm.status = "";
   searchForm.rating = null;
-  searchForm.dateRange = [];
   page.value = 1;
   fetchList();
 }
 
 function handleReply(row: any) {
   currentReview.value = row;
-  replyForm.reply = row.replyContent || "";
+  replyForm.replyContent = row.replyContent || "";
   replyVisible.value = true;
 }
 
 async function submitReply() {
-  if (!replyForm.reply.trim()) {
+  if (!replyForm.replyContent.trim()) {
     ElMessage.warning("请输入回复内容");
     return;
   }
   saving.value = true;
   try {
-    await replyPlatformReview(currentReview.value.id, replyForm.reply);
+    await replyPlatformReview(currentReview.value.id, replyForm.replyContent);
     ElMessage.success("回复成功");
     replyVisible.value = false;
     fetchList();
@@ -262,8 +233,9 @@ async function submitReply() {
   }
 }
 
-function handleToggleHide(row: any) {
-  ElMessage.info("隐藏/显示功能待后端API支持");
+/** 隐藏/显示评价：真实表无隐藏字段、后端无该接口（S3-114 已定 501）⇒ 只给明确提示，不做假成功 */
+function handleToggleHide() {
+  ElMessage.info("后端暂无该能力：平台评价没有隐藏/显示字段与接口，本页不做假成功");
 }
 
 onMounted(() => {

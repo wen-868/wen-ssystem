@@ -348,22 +348,27 @@ export function deleteAnnouncement(id: number) {
 }
 
 // ==================== 平台评价 ====================
+// R101-S3-115：入参/返回类型严格对齐 S3-114 已定稿的后端契约
+// （backend/src/controllers/admin/platform-review.controller.ts）。后端只接受
+// page / pageSize / platform / rating；其余查询参数会被 zod strip（不报错、也不生效），
+// 因此这里**只声明后端真实支持的入参**，不得再透传无载体参数。
 export function getPlatformReviews(params?: {
   page?: number;
   pageSize?: number;
-  status?: string;
+  platform?: string;
   rating?: number;
-  keyword?: string;
 }) {
   return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/reviews", { params: { page: 1, pageSize: 20, ...params } });
 }
 
-export function getPlatformReviewStats(params?: any) {
-  return api.get<any, { data: ApiResult<any> }>("/platform/reviews/stats", { params });
+/** 统计契约：{ stats: [{ platform, cnt }] }（按平台分组的评价条数，无总量/平均分聚合） */
+export function getPlatformReviewStats() {
+  return api.get<any, { data: ApiResult<{ stats: Array<{ platform: string; cnt: number }> }> }>("/platform/reviews/stats");
 }
 
-export function replyPlatformReview(id: number, reply: string) {
-  return api.post<any, { data: ApiResult<any> }>(`/platform/reviews/${id}/reply`, { reply });
+/** 回复评价：后端 body 键为 replyContent（controller:31），键位不符会被 zod 拒绝 → 400 */
+export function replyPlatformReview(id: number, replyContent: string) {
+  return api.post<any, { data: ApiResult<any> }>(`/platform/reviews/${id}/reply`, { replyContent });
 }
 
 // ==================== 财务结算 ====================

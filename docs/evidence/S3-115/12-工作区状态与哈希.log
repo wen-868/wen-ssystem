@@ -1,0 +1,17 @@
+=== 工作区状态（本单未提交，按派单卡：提交/推送/PR 由凌舟执行） ===
+HEAD 分支: agent/issue-129
+HEAD 提交: 8ffc7ca83 docs(派单): C6-2 批1 T6（平台角色与权限点目录）与 S3-115（评论页契约收口）派单卡
+--- git status --porcelain ---
+ M saas-admin/scripts/check-api-paths.mjs
+ M saas-admin/src/api.ts
+ M saas-admin/src/views/PlatformReviews.vue
+?? docs/evidence/S3-115/
+--- git diff --stat ---
+ saas-admin/scripts/check-api-paths.mjs   |  75 +++++++++++++-
+ saas-admin/src/api.ts                    |  17 ++--
+ saas-admin/src/views/PlatformReviews.vue | 164 +++++++++++++------------------
+ 3 files changed, 152 insertions(+), 104 deletions(-)
+--- 改动文件 SHA256 ---
+saas-admin/src/api.ts 437A8AB44E8C8FB89F29E26FC41B56C9CC09D41A0D5D50C5EE0393C9E93FA3BC
+saas-admin/src/views/PlatformReviews.vue 8168B88700B92FE6515908BE7B5C3D42E7DD0EAD5DDD78BA590390F94A54D20B
+saas-admin/scripts/check-api-paths.mjs A211878FD9E78FF01D64D6F5E8C154DC9FC95870B38BC66872A44FABD5E9A13A

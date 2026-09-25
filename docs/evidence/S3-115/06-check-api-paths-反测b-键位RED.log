@@ -1,0 +1,12 @@
+=== 反测b：把 replyPlatformReview 的 body 键改回 reply（须变红） ===
+370:export function replyPlatformReview(id: number, reply: string) {
+371-  return api.post<any, { data: ApiResult<any> }>(`/platform/reviews/${id}/reply`, { reply });
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+  前端调用点 83（去重 77）· 后端注册路由 1436
+  豁免清单 0 条（命中 0 条）
+
+PASS 路径集合：未发现「前端有、后端无」的路径 / 方法
+FAIL 契约键位不符：2 条
+  - replyPlatformReview：body 键必须为 replyContent（实际解析到：{ reply }，后端契约见 backend/src/controllers/admin/platform-review.controller.ts:31）   saas-admin/src/api.ts
+  - replyPlatformReview：body 键不得为 reply，须为 replyContent（后端契约见 backend/src/controllers/admin/platform-review.controller.ts:31）   saas-admin/src/api.ts
+EXIT_red=1

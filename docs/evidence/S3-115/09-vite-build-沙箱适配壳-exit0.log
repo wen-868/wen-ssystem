@@ -1,0 +1,106 @@
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-129/saas-admin/vite.config.ts" points to missing source files
+vite v6.4.3 building for production...
+transforming...
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (3362:0): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (5780:22): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2396 modules transformed.
+rendering chunks...
+computing gzip size...
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/index.html                                   0.82 kB │ gzip:   0.51 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantForm-DpMgXC--.css               0.10 kB │ gzip:   0.12 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantUsage-DTiYlnL7.css              0.11 kB │ gzip:   0.10 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AiCognitionView-DEehhTC3.css          0.13 kB │ gzip:   0.13 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/MessageConfig-Bm6WIo7I.css            0.29 kB │ gzip:   0.16 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ApplicationList-46bEsP0w.css          0.37 kB │ gzip:   0.20 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AiUsageStats-BPmQZXjZ.css             0.38 kB │ gzip:   0.26 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformRegister-C3bubESB.css         0.50 kB │ gzip:   0.25 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/SubscriptionApplies-D2-pWZr8.css      0.74 kB │ gzip:   0.30 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/MonitorView-RD5y1TPC.css              0.79 kB │ gzip:   0.51 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ApplicationDetail-CXy3MdUO.css        0.91 kB │ gzip:   0.35 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Packages-DPCdCCSr.css                 1.14 kB │ gzip:   0.60 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Settings-DI0S7Tq4.css                 1.15 kB │ gzip:   0.52 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ChannelPromotion-XPbxTFS4.css         1.54 kB │ gzip:   0.61 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Dashboard-DCXGmKIt.css                1.77 kB │ gzip:   0.71 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibraryImport-TXY7oeCn.css            1.78 kB │ gzip:   0.84 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AppVersions-C28Bh8xY.css              2.83 kB │ gzip:   0.88 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantList-CGBtGDPk.css               2.91 kB │ gzip:   1.08 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AiBillingConfig-qlwnsjYw.css          3.06 kB │ gzip:   0.96 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantDetail-MdUnwgUo.css             3.23 kB │ gzip:   1.18 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibraryBrands-BmUqXlCf.css            3.50 kB │ gzip:   1.05 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Announcements-B2CsFYKk.css            3.51 kB │ gzip:   1.27 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibraryReviews-lLq1BjQ5.css           3.75 kB │ gzip:   1.26 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AdminPermissions-X-X8gcrF.css         3.98 kB │ gzip:   1.30 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibrarySpus-BH8PLoNE.css              4.04 kB │ gzip:   1.32 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TemplateCenter-BMS42ePY.css           4.37 kB │ gzip:   1.50 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/MobilePreview-D_FEchho.css            4.82 kB │ gzip:   1.35 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformAiConfig-BqNWJksR.css         4.84 kB │ gzip:   1.37 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TicketSystem-DNSPmjKy.css             5.06 kB │ gzip:   1.79 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformLogin-DnZ06jza.css            5.23 kB │ gzip:   1.44 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PackageForm-BtJ4_ICm.css              6.33 kB │ gzip:   1.82 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AgentManagement-C1-Rvjre.css          8.23 kB │ gzip:   1.79 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformLayout-Dga8KHiV.css           8.98 kB │ gzip:   2.20 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/index-G-Gr5my6.css                  418.28 kB │ gzip:  60.69 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/tenant-application-B1F4yl7X.js        0.65 kB │ gzip:   0.28 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/download-blob-CRyF4NSQ.js             2.02 kB │ gzip:   1.25 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/quota-zxJ5tryY.js                     2.31 kB │ gzip:   1.31 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/tenant-DBo97nyb.js                    2.92 kB │ gzip:   1.35 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/library-ocMByIyF.js                   4.19 kB │ gzip:   1.83 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/plan-features-C7jMb10b.js             5.35 kB │ gzip:   2.32 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/open-platform-DrBesTDx.js             5.38 kB │ gzip:   2.33 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ai-config-DRvziz6-.js                 8.83 kB │ gzip:   3.48 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformRegister-CIwwjMIM.js          8.94 kB │ gzip:   2.15 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ApplicationList-BC--o5OJ.js          10.63 kB │ gzip:   2.17 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantForm-DX-YscPv.js               11.57 kB │ gzip:   1.89 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/api-C6OKzwXK.js                      13.88 kB │ gzip:   5.12 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformLogin-BBblftVa.js            15.51 kB │ gzip:   4.06 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformLayout-BYvLvKt4.js           16.64 kB │ gzip:   4.47 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AuditLogs-BalWqWJq.js                19.51 kB │ gzip:   2.91 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ChannelPromotion-CuOIiXd4.js         19.61 kB │ gzip:   4.53 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TicketSystem-_t8Bit8p.js             19.79 kB │ gzip:   4.33 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ErrorLogs-CUZpAus8.js                22.15 kB │ gzip:   3.26 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/SubscriptionApplies-D0B45BGR.js      23.32 kB │ gzip:   3.50 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformReviews-IO-NDrIg.js          25.98 kB │ gzip:   4.25 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibraryImport-DMOYoLiW.js            27.17 kB │ gzip:   6.20 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AdminPermissions-DZXyUcT0.js         27.51 kB │ gzip:   6.01 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Packages-BXR26oJn.js                 27.67 kB │ gzip:   6.36 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantUsage-w_Ki6Ebh.js              30.31 kB │ gzip:   5.62 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/SubscriptionDetail-B5_JFCG0.js       31.83 kB │ gzip:   4.28 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantAiConfig-C30H_AGJ.js           32.32 kB │ gzip:   5.70 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AppVersions-V9o7IFzZ.js              32.34 kB │ gzip:   6.60 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/MessageConfig-DD7H3lcD.js            32.76 kB │ gzip:   4.05 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/MobilePreview-BPNSHCck.js            34.91 kB │ gzip:   5.53 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibraryReviews-hAGBBCE-.js           35.03 kB │ gzip:   7.17 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ApplicationDetail-Bct-UWw3.js        35.56 kB │ gzip:   4.08 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PlatformAiConfig-JufNncUK.js         36.59 kB │ gzip:   7.35 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AiCognitionView-DmU3PYqY.js          39.68 kB │ gzip:   4.85 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Dashboard-CfEDVq0N.js                40.30 kB │ gzip:   8.62 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AiUsageStats-w_8W6aZj.js             40.58 kB │ gzip:   8.48 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibraryBrands-Do7g8pUy.js            40.73 kB │ gzip:   7.23 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/WebhookList-DuOwTpcw.js              43.15 kB │ gzip:   7.23 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Subscriptions-B4bcMFU6.js            44.77 kB │ gzip:   5.46 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantList-BtMOuZbr.js               44.78 kB │ gzip:   8.87 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/PackageForm-Bi0U23pP.js              48.65 kB │ gzip:   9.17 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Settings-DSEFclo8.js                 49.18 kB │ gzip:   8.66 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TenantDetail-CBD6tpCg.js             51.45 kB │ gzip:   9.04 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Announcements-B9sSFUU6.js            59.14 kB │ gzip:  10.09 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/ApiKeyList-Cs6WqR-J.js               61.38 kB │ gzip:  10.61 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/TemplateCenter-CAfala_5.js           75.57 kB │ gzip:  12.10 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AgentManagement-BTVkeR4m.js          78.81 kB │ gzip:  11.48 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/AiBillingConfig-DVkq81-F.js          95.57 kB │ gzip:  15.35 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/LibrarySpus-Q_kPCCTd.js              96.98 kB │ gzip:  15.85 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/MonitorView-Cea3Q5CY.js              98.63 kB │ gzip:  18.12 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/Reconciliation-5O_Vpu2Z.js          127.84 kB │ gzip:  20.82 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/index-CYH8OCT7.js                   259.30 kB │ gzip:  55.86 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/vendor-QVSeu9aY.js                  573.02 kB │ gzip: 132.18 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/element-B4qbNdaB.js               2,603.93 kB │ gzip: 489.89 kB
+C:/Users/XIONG/AppData/Local/Temp/s3115/dist2/assets/echarts-KMRairnV.js               3,947.30 kB │ gzip: 859.13 kB
+✓ built in 28.28s
+EXIT_shim=0
