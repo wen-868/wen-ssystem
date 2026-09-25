@@ -128,7 +128,7 @@ describe("178_library_brand_auth_app_version_status.sql 形状约束", () => {
     expect(lines.filter((line) => line.trim().startsWith("--")).join("\n")).not.toContain(";");
   });
 
-  it("迁移编号唯一且为当前最高编号（178 只出现一次）", () => {
+  it("迁移编号唯一且单调不减（当前最高编号由文件集派生）", () => {
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith(".sql"));
     expect(files.filter((name) => name.startsWith("178_"))).toEqual([
       "178_library_brand_auth_app_version_status.sql",
@@ -137,6 +137,18 @@ describe("178_library_brand_auth_app_version_status.sql 形状约束", () => {
       .map((name) => (/^(\d{3})_/.exec(name) ?? [])[1])
       .filter((value): value is string => !!value)
       .map((value) => Number(value));
-    expect(Math.max(...numbered)).toBe(178);
+    // 最高编号由文件集派生：原写法 `expect(Math.max(...numbered)).toBe(178)` 恒等于 178，
+    // 新增任何 ≥179 的迁移都会必然判红（churn 型门禁），故改为断言不变量本身。
+    const max = Math.max(...numbered);
+    // 单调不减：编号不得回退到 178 以前
+    expect(max).toBeGreaterThanOrEqual(178);
+    // 最高编号唯一
+    expect(numbered.filter((value) => value === max)).toHaveLength(1);
+    // 全量编号唯一：同一编号只能对应 1 个文件（防重复编号）。
+    // 存量例外：126 / 127 / 137 / 154 各自对应 2 个文件，属本门禁建立之前的历史重复编号
+    // （重命名既有迁移不在本单授权范围内），此处仅放行这 4 个存量编号，**新增重复一律判红**。
+    const legacyDuplicateNumbers = [126, 127, 137, 154];
+    const duplicated = numbered.filter((value, index) => numbered.indexOf(value) !== index);
+    expect(duplicated.filter((value) => !legacyDuplicateNumbers.includes(value))).toEqual([]);
   });
 });
