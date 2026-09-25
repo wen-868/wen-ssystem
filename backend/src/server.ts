@@ -86,7 +86,7 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
 });
 
 /**
- * 创建限流器（R55-03）
+ * 构造限流器 options（R55-03 / S3-112）
  *
  * 存储策略：
  *  - 测试环境（NODE_ENV === "test"）或未配置 REDIS_URL：使用默认 MemoryStore（单进程内存）
@@ -94,20 +94,26 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
  *
  * 容错：RedisStore 初始化抛错时降级为 MemoryStore；Redis 运行时连接错误通过 error 事件记录日志。
  * 关联任务：R55-03 rate-limit 使用 MemoryStore
+ *
+ * ⚠️ S3-112：本函数**只返回 options，不返回中间件**，调用方必须在**注册点内联** `rateLimit(...)`。
+ *  原因：CodeQL 的 `js/missing-rate-limiting` 只把"注册点上直接出现的限流中间件调用"识别为限流证据；
+ *  若写成 `app.use(createRateLimiter(...))`（由 helper 内部才 `rateLimit(...)`），CodeQL 识别不到限流，
+ *  于是全仓**每新增一条路由**都被误报一条 high 告警（PR #116 / #119 实测新增告警全是这条规则）。
+ *  ⇒ 严禁把 `rateLimit(...)` 再包回 helper；形状由 `src/__tests__/config/rate-limit-options.test.ts` 断言兜住。
  */
-function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>) {
+function buildRateLimitOptions(options: NonNullable<Parameters<typeof rateLimit>[0]>) {
   // express-rate-limit v8 默认验证 X-Forwarded-For 头，Nginx 反代下需禁用验证
   // 信任 nginx 反代（app.set("trust proxy", 1) 已启用），限流按真实客户端 IP 计数；
   // 不能禁用 trustProxy，否则所有请求都算到 127.0.0.1，全站共享配额被限流(429)。
   const baseOptions = { standardHeaders: true, legacyHeaders: false, ...options };
   // 测试环境使用 MemoryStore，避免依赖真实 Redis 影响测试
   if (process.env.NODE_ENV === "test") {
-    return rateLimit(baseOptions);
+    return baseOptions;
   }
   // 未配置 REDIS_URL：开发/单进程环境使用 MemoryStore
   if (!env.REDIS_URL) {
     logger.info("[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）");
-    return rateLimit(baseOptions);
+    return baseOptions;
   }
   // 生产环境 + REDIS_URL：使用 RedisStore
   try {
@@ -126,13 +132,13 @@ function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>
         client.call(command, ...args) as Promise<RedisReply>,
     });
     logger.info("[rate-limit] 限流器启用 RedisStore（REDIS_URL 已配置）");
-    return rateLimit({ ...baseOptions, store });
+    return { ...baseOptions, store };
   } catch (err) {
     logger.error(
       "[rate-limit] RedisStore 初始化失败，降级 MemoryStore:",
       err instanceof Error ? err.message : err
     );
-    return rateLimit(baseOptions);
+    return baseOptions;
   }
 }
 
@@ -155,14 +161,24 @@ if (env.USE_MOCK_DB) {
 // 全局限流：生产环境 100 次/分钟/IP；非生产（开发/本地）放宽到 1000，避免脚本测试频繁触发 429
 if (process.env.NODE_ENV !== "test") {
   // 全局 Rate Limiting：每IP每分钟600请求（商用标准，避免正常浏览多页面触发429）
-  app.use(createRateLimiter({ windowMs: 60_000, max: process.env.NODE_ENV === "production" ? 600 : 2000 }));
+  // ⚠️ S3-112：`rateLimit(...)` 必须**内联在本注册点**（options 由 buildRateLimitOptions() 构造）。
+  //   CodeQL 只认注册点上的限流中间件调用，包成 helper 会让全仓每新增一条路由都被误报；
+  //   限流行为（store 选择、windowMs/max 取值、Redis 降级）与重构前一字未改。
+  app.use(
+    rateLimit(
+      buildRateLimitOptions({
+        windowMs: 60_000,
+        max: process.env.NODE_ENV === "production" ? 600 : 2000,
+      })
+    )
+  );
 }
 // 登录接口 Rate Limiting：每IP每15分钟20次（防暴力破解，兼顾测试）
 // admin 和 store 登录使用独立实例，避免互相影响计数
 // 放宽到 100 次/15分钟：移动端演示登录+多设备共享IP场景频繁登录，20次过严导致误伤429
 const loginLimitMax = process.env.NODE_ENV === "production" ? 100 : 1000;
-const adminLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" });
-const storeLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" });
+const adminLoginLimiter = rateLimit(buildRateLimitOptions({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" }));
+const storeLoginLimiter = rateLimit(buildRateLimitOptions({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" }));
 
 app.use(helmet());
 // CORS 允许域名：从 env.ts 集中管理（R63 修复 — 原先直接读取 process.env）
@@ -258,4 +274,4 @@ if (process.env.NODE_ENV !== "test") {
   });
 }
 
-export { app };
+export { app, buildRateLimitOptions };
