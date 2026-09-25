@@ -1,0 +1,7 @@
+=== vue-tsc 同一工作树改前/改后逐行对比（卡面验收②口径） ===
+改前错误行数: 11
+改后错误行数: 11
+本单改动文件命中（PlatformReviews.vue / src/api.ts）: 0 条
+Compare-Object 差异行数: 0
+
+CHECK8=exit1(vue-tsc -b 以既有错误退出，见下说明)

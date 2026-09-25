@@ -11,6 +11,9 @@
  *   3. 参数段归一化：`:id`、`${id}`、`{id}` 一律归一为 `{p}`，逐段比对；
  *   4. 输出两类问题：`路径不存在`（前端有、后端无）、`方法不存在`（路径在、方法没注册）；
  *   5. 命中 `api-path-allowlist.json` 的条目视为**已知未立项项**，不计入失败。
+ *   6. **契约键位定点断言**（S3-115 增补）：`saas-admin/src/api.ts` 里已定稿接口的 body 键
+ *      必须与后端契约一致（如平台评价回复必须传 `replyContent`，传 `reply` 会被 zod 拒绝 → 400）。
+ *      键位不符与路径不符同为**失败**（D1 同族缺陷：前端键位 ≠ 后端契约）。
  *
  * 用法（在仓库根目录或任意目录均可）：
  *   node saas-admin/scripts/check-api-paths.mjs
@@ -123,6 +126,60 @@ function scanFrontendPaths() {
   return items
 }
 
+/* ───────────────── 契约键位定点断言（S3-115 增补） ─────────────────
+ * 路径比对只看 URL，看不到 **body 键位**；而"前端键位 ≠ 后端契约"与"路径不存在"同族，
+ * 运行时同样是硬失败（zod 校验不过 → 400）。这里对已定稿契约做定点断言：
+ *   平台评价回复 = POST /api/platform/reviews/:id/reply，body 键必须为 `replyContent`
+ *   （后端：backend/src/controllers/admin/platform-review.controller.ts:31）。
+ */
+const BODY_KEY_CONTRACTS = [
+  {
+    file: resolve(REPO_ROOT, 'saas-admin', 'src', 'api.ts'),
+    fn: 'replyPlatformReview',
+    method: 'post',
+    pathRe: /\/platform\/reviews\/\$\{[^}]*\}\/reply/,
+    requiredKey: 'replyContent',
+    forbiddenKey: 'reply',
+    backendRef: 'backend/src/controllers/admin/platform-review.controller.ts:31',
+  },
+]
+
+/** 对象字面量里是否含某个键（兼容简写 `{ replyContent }` 与键值 `{ replyContent: x }`） */
+function hasBodyKey(objText, key) {
+  return new RegExp(`(?:^|[,{\\s])${key}\\s*(?::|,|\\s*\\})`).test(`{ ${objText} }`)
+}
+
+function checkBodyKeyContracts() {
+  const issues = []
+  for (const c of BODY_KEY_CONTRACTS) {
+    const rel = relative(REPO_ROOT, c.file).replace(/\\/g, '/')
+    const reason = (why) => issues.push({ file: rel, fn: c.fn, requiredKey: c.requiredKey, reason: why })
+    if (!existsSync(c.file)) {
+      reason('文件不存在')
+      continue
+    }
+    const text = readFileSync(c.file, 'utf8')
+    const matched = text.match(new RegExp(`export function ${c.fn}\\s*\\([\\s\\S]*?\\n\\}`))
+    if (!matched) {
+      reason(`未找到封装函数 ${c.fn}`)
+      continue
+    }
+    const body = matched[0]
+    if (!c.pathRe.test(body) || !new RegExp(`\\.\\s*${c.method}\\b`).test(body)) {
+      reason(`方法与路径不符（期望 ${c.method.toUpperCase()} /platform/reviews/{p}/reply）`)
+    }
+    const argMatch = body.match(/,\s*\{([^{}]*)\}\s*\)/)
+    const argsText = argMatch ? argMatch[1].trim() : ''
+    if (!hasBodyKey(argsText, c.requiredKey)) {
+      reason(`body 键必须为 ${c.requiredKey}（实际解析到：{ ${argsText} }，后端契约见 ${c.backendRef}）`)
+    }
+    if (hasBodyKey(argsText, c.forbiddenKey)) {
+      reason(`body 键不得为 ${c.forbiddenKey}，须为 ${c.requiredKey}（后端契约见 ${c.backendRef}）`)
+    }
+  }
+  return issues
+}
+
 /* ───────────────────────── 后端集合 ───────────────────────── */
 
 function walk(dir) {
@@ -192,6 +249,7 @@ function loadAllowlist() {
 const frontend = scanFrontendPaths()
 const backend = scanBackendRoutes()
 const allowlist = loadAllowlist()
+const bodyKeyViolations = checkBodyKeyContracts()
 
 const allowKey = (e) => `${e.method.toUpperCase()} ${normalizePath(e.path)}`
 const allowed = new Map(allowlist.map((e) => [allowKey(e), e]))
@@ -224,6 +282,7 @@ const report = {
   },
   pathMissing,
   methodMissing,
+  bodyKeyViolations,
   allowlisted: allowedHits.map((a) => ({ method: a.method, path: a.path, file: `${a.file}:${a.line}`, reason: a.allow.reason })),
   unusedAllowlist: allowlist.filter((e) => !allowedHits.some((a) => allowKey(a) === allowKey(e))).map((e) => ({ method: e.method, path: e.path, reason: e.reason })),
 }
@@ -242,7 +301,7 @@ if (AS_JSON) {
   console.log('')
 
   if (pathMissing.length === 0 && methodMissing.length === 0) {
-    console.log(green('PASS 未发现「前端有、后端无」的路径 / 方法'))
+    console.log(green('PASS 路径集合：未发现「前端有、后端无」的路径 / 方法'))
   } else {
     if (pathMissing.length > 0) {
       console.log(red(`FAIL 路径不存在（前端有、后端无）：${pathMissing.length} 条`))
@@ -255,6 +314,18 @@ if (AS_JSON) {
       for (const p of methodMissing) {
         console.log(red(`  - ${p.method} ${p.path}`) + gray(`   后端已注册方法：${p.backendMethods}   ${p.file}:${p.line}`))
       }
+    }
+  }
+
+  if (bodyKeyViolations.length === 0) {
+    for (const c of BODY_KEY_CONTRACTS) {
+      const rel = relative(REPO_ROOT, c.file).replace(/\\/g, '/')
+      console.log(green(`PASS 契约键位：${c.fn} body 键 = ${c.requiredKey}`) + gray(`   ${rel}（后端 ${c.backendRef}）`))
+    }
+  } else {
+    console.log(red(`FAIL 契约键位不符：${bodyKeyViolations.length} 条`))
+    for (const v of bodyKeyViolations) {
+      console.log(red(`  - ${v.fn}：${v.reason}`) + gray(`   ${v.file}`))
     }
   }
 
@@ -271,4 +342,4 @@ if (AS_JSON) {
   }
 }
 
-process.exit(pathMissing.length === 0 && methodMissing.length === 0 ? 0 : 1)
+process.exit(pathMissing.length === 0 && methodMissing.length === 0 && bodyKeyViolations.length === 0 ? 0 : 1)

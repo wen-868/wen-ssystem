@@ -1,0 +1,10 @@
+=== 反测b：恢复 body 键为 replyContent（须转绿）+ 哈希还原证明 ===
+改前基线哈希(SHA256, 反测前): 437A8AB44E8C8FB89F29E26FC41B56C9CC09D41A0D5D50C5EE0393C9E93FA3BC
+还原后哈希(SHA256): 437A8AB44E8C8FB89F29E26FC41B56C9CC09D41A0D5D50C5EE0393C9E93FA3BC
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+  前端调用点 83（去重 77）· 后端注册路由 1436
+  豁免清单 0 条（命中 0 条）
+
+PASS 路径集合：未发现「前端有、后端无」的路径 / 方法
+PASS 契约键位：replyPlatformReview body 键 = replyContent   saas-admin/src/api.ts（后端 backend/src/controllers/admin/platform-review.controller.ts:31）
+EXIT_green=0

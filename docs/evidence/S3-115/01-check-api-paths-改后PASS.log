@@ -1,0 +1,7 @@
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+  前端调用点 83（去重 77）· 后端注册路由 1436
+  豁免清单 0 条（命中 0 条）
+
+PASS 路径集合：未发现「前端有、后端无」的路径 / 方法
+PASS 契约键位：replyPlatformReview body 键 = replyContent   saas-admin/src/api.ts（后端 backend/src/controllers/admin/platform-review.controller.ts:31）
+EXIT=0
