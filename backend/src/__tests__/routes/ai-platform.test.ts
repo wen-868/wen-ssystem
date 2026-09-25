@@ -22,6 +22,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import { ZodError } from "zod";
 
 const hoisted = vi.hoisted(() => ({
@@ -56,6 +57,8 @@ const PREFIX = "/api/platform/ai";
  */
 const app = express();
 app.use(express.json());
+// S3-119：测试内自建 app 也必须显式挂限流——CodeQL `js/missing-rate-limiting` 只认注册点上内联出现的 `rateLimit(...)`
+app.use(rateLimit({ windowMs: 60_000, max: 10_000 })); // 测试用高上限 10000：避免用例之间互相触发 429
 app.use(PREFIX, requirePlatformAuth, aiPlatformRouter);
 app.use((err: any, _req: any, res: any, _next: any) => {
   // 与生产 error-handler 口径一致：zod 校验失败 ⇒ 400，其余按 statusCode

@@ -13,6 +13,7 @@
  */
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 
@@ -55,6 +56,8 @@ const TOKEN = jwt.sign(
 function buildApp(prefix: string, router: any) {
   const app = express();
   app.use(express.json());
+  // S3-119：测试内自建 app 也必须显式挂限流——CodeQL `js/missing-rate-limiting` 只认注册点上内联出现的 `rateLimit(...)`
+  app.use(rateLimit({ windowMs: 60_000, max: 10_000 })); // 测试用高上限 10000：避免用例之间互相触发 429
   app.use(prefix, requirePlatformAuth, router);
   app.use((err: any, _req: any, res: any, _next: any) => {
     res.status(err?.statusCode || 500).json({

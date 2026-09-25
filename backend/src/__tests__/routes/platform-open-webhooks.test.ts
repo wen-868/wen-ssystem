@@ -11,6 +11,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import { createTestApp } from "../fixtures/create-test-app";
 
 const svc = vi.hoisted(() => ({
@@ -43,6 +44,8 @@ const app = createTestApp({ prefix: PREFIX, router: platformOpenRouter });
 
 const guardedApp = express();
 guardedApp.use(express.json());
+// S3-119：测试内自建 app 也必须显式挂限流——CodeQL `js/missing-rate-limiting` 只认注册点上内联出现的 `rateLimit(...)`
+guardedApp.use(rateLimit({ windowMs: 60_000, max: 10_000 })); // 测试用高上限 10000：避免用例之间互相触发 429
 guardedApp.use(PREFIX, requirePlatformAuth, platformOpenRouter);
 guardedApp.use((err: any, _req: any, res: any, _next: any) => {
   res.status(err?.statusCode || 500).json({ code: String(err?.statusCode || 500), msg: err?.message });
