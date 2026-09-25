@@ -7,6 +7,8 @@ cd "${PROJECT_DIR}"
 mkdir -p "${LOG_DIR}"
 # S3-40：AI 底座部署失败项汇总（末尾统一上报，不再"静默成功"）
 AI_FAILURES=()
+# S3-118：冒烟测试失败项汇总（只读档，末尾与 AI 底座同机制统一上报）
+SMOKE_FAILURES=()
 
 echo "==> 拉取最新代码"
 git fetch origin main
@@ -127,9 +129,21 @@ if [ ${#AI_FAILURES[@]} -gt 0 ]; then
   for _it in "${AI_FAILURES[@]}"; do echo "   ${_it}"; done
 fi
 
-echo "==> 运行冒烟测试"
+echo "==> 运行冒烟测试（只读档；写入档禁止进部署 —— S3-118）"
 set -a && source "${PROJECT_DIR}/backend/.env" && set +a
-npm run test:mysql 2>/dev/null || echo "冒烟测试跳过"
+# S3-118：不再用 `|| echo 跳过` 吞掉失败——捕获退出码、stderr 落日志后打印尾部，
+# 非零即进失败汇总数组（与 AI 底座同一机制）；部署脚本只调只读档，绝不调写入档。
+SMOKE_LOG="$(mktemp)"
+if npm run test:mysql:readonly 2>&1 | tee "${SMOKE_LOG}"; then
+  echo "冒烟测试（只读档）通过 ✅"
+else
+  _smoke_rc="${PIPESTATUS[0]}"
+  echo "⚠️  冒烟测试（只读档）失败，退出码 ${_smoke_rc}；日志尾部："
+  tail -n 20 "${SMOKE_LOG}"
+  _smoke_reason="$(grep -F '  ❌ ' "${SMOKE_LOG}" | head -n 3 | tr -d '\r' | paste -sd '；' - || true)"
+  SMOKE_FAILURES+=("❌ [冒烟] 只读档失败（退出码 ${_smoke_rc}）：${_smoke_reason:-详见部署日志}")
+fi
+rm -f "${SMOKE_LOG}"
 
 echo "==> 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
 
@@ -146,13 +160,16 @@ else
   echo "工作区干净 ✅"
 fi
 
-# ---- 失败汇总（S3-40）：不阻断部署，但绝不"静默成功" ----
-if [ ${#AI_FAILURES[@]} -gt 0 ]; then
+# ---- 失败汇总（S3-40 / S3-118）：不阻断部署，但绝不"静默成功" ----
+FAILURES=()
+if [ ${#AI_FAILURES[@]} -gt 0 ]; then FAILURES+=("${AI_FAILURES[@]}"); fi
+if [ ${#SMOKE_FAILURES[@]} -gt 0 ]; then FAILURES+=("${SMOKE_FAILURES[@]}"); fi
+if [ ${#FAILURES[@]} -gt 0 ]; then
   echo "" >&2
-  echo "❌ 部署结束，但存在失败项（共 ${#AI_FAILURES[@]} 项）：" >&2
-  for _it in "${AI_FAILURES[@]}"; do echo "   ${_it}" >&2; done
-  echo "   → AI 底座未部署成功；主后端/前端不受影响（容错设计）。" >&2
-  echo "   → 请按上方原因排查后单独重跑：bash deploy/ai-base-deploy.sh" >&2
+  echo "❌ 部署结束，但存在失败项（共 ${#FAILURES[@]} 项）：" >&2
+  for _it in "${FAILURES[@]}"; do echo "   ${_it}" >&2; done
+  echo "   → 主后端/前端已部署；以上失败项需按原因排查后再放行（不静默成功）。" >&2
+  echo "   → 单独重跑：AI 底座 bash deploy/ai-base-deploy.sh；冒烟只读档 npm run test:mysql:readonly" >&2
   # 非交互（cron/CI 等自动化）或显式 DEPLOY_STRICT=1 时，以非零退出码结束，供上层流水线判定
   if [ "${DEPLOY_STRICT:-0}" = "1" ] || [ ! -t 0 ]; then
     echo "   → 自动化调用：以退出码 1 结束（非零 = 存在失败项）。" >&2
