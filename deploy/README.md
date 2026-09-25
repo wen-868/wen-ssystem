@@ -147,7 +147,7 @@ gunzip -c /var/backups/mysql/liquor_inventory_YYYYMMDD_HHMMSS.sql.gz | mysql -ur
 ```bash
 bash deploy/03-deploy.sh
 tail -f logs/backend.log
-npm run test:mysql
+npm run test:mysql            # 冒烟（默认=只读档；写入档 test:mysql:write 禁止对生产执行）
 npm run test:qa
 sudo bash deploy/02-mysql-backup.sh
 ls -lh /var/backups/mysql/
