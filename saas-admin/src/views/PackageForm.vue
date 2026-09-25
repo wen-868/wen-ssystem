@@ -5,7 +5,7 @@
       <div>
         <div class="pt4">{{ isEdit ? "编辑套餐" : "新建套餐" }}</div>
         <p class="pd">
-          {{ isEdit ? "改配置即改商品 · 价格类变更需超级管理员密码二次确认" : (copiedFromName ? `复制自：${copiedFromName} · ` : "") + "五段式配置（定价 / 周期 / 功能开关矩阵 / 资源配额 / 升降级与续费规则）" }}
+          {{ (isEdit ? "改配置即改商品 · 价格类变更需超级管理员密码二次确认" : "五段式配置（定价 / 周期 / 功能开关矩阵 / 资源配额 / 升降级与续费规则）") + (copiedFromName ? ` · 复制自：${copiedFromName}` : "") }}
         </p>
       </div>
       <div class="pg-act">
@@ -17,7 +17,7 @@
     <div class="drawer-page" v-loading="pageLoading">
       <div class="d-hd">
         <span class="pt">{{ isEdit ? "编辑套餐" : "新建套餐" }}</span>
-        <span class="small">{{ isEdit ? `套餐编码：${form.planCode || "--"}` : copiedFromName ? `复制自：${copiedFromName}` : "新建套餐（可从列表页「复制」进入）" }}</span>
+        <span class="small">{{ (isEdit ? `套餐编码：${form.planCode || "--"}` : "新建套餐（可从列表页「复制」进入）") + (copiedFromName ? ` · 复制自：${copiedFromName}` : "") }}</span>
         <span class="d-x" @click="goBack">✕</span>
       </div>
 
@@ -222,6 +222,7 @@ import {
   getPlanDetail,
   createPlan,
   updatePlan,
+  copyPlan,
   getPlanPolicy,
   updatePlanPolicy,
 } from "../api";
@@ -461,10 +462,12 @@ function goBack() {
 }
 
 onMounted(async () => {
+  // 复制来源提示（服务端复制后跳转本页编辑时由 ?copiedFrom=<源套餐名> 带回，设计稿 717 行「复制自：旗舰版」）
+  if (route.query.copiedFrom) copiedFromName.value = String(route.query.copiedFrom);
   if (isEdit.value) {
     await fetchDetail();
   } else if (route.query.copyFrom) {
-    // 复制套餐（设计稿第 717 行「复制自：旗舰版」）：载入源套餐配置作为新建初值，保存后生成新套餐
+    // 复制套餐（S3-111 ③ / #86）：服务端原子复制后跳转新套餐编辑页（见 copyFrom）
     await copyFrom(Number(route.query.copyFrom));
   }
   // 凌舟裁定：配额详情不单独开页 → 从列表页带 ?section=quota 进来时定位到「④ 资源配额」分区
@@ -474,51 +477,35 @@ onMounted(async () => {
   }
 });
 
-/* 复制套餐：读取源套餐详情回填表单（仅作初值，不落库） */
+/**
+ * 复制套餐（S3-111 ③ / #86 接线）
+ *
+ * 走后端真实端点 `POST /api/platform/plans/:planId/copy`（api.ts copyPlan → 需 x-csrf-token）：
+ * 服务端一次原子复制 features / moduleAccess / 策略包（t_platform_config），并读回自证。
+ * 取代原来的「读源详情 + 读策略包 + POST 新建 + PUT 策略包」四步等效实现（非原子、往返多）。
+ * 副本状态显式传 DRAFT（与新建表单默认态一致；后端缺省为 INACTIVE），
+ * 复制完成后跳转新套餐编辑页继续调整（可改名/改配置后再保存）。
+ */
 async function copyFrom(sourceId: number) {
   if (!sourceId) return;
   pageLoading.value = true;
   try {
-    const res = await getPlanDetail(sourceId);
-    const d = (res as any)?.data?.data || (res as any)?.data || {};
-    /* 源套餐策略包（t_platform_config）：仅作新建初值，不落库 */
-    const fea: any = await loadPolicy(sourceId);
-    Object.assign(form, {
-      planName: `${d.planName || ""} 副本`.trim(),
-      planCode: "",
-      description: d.description || "",
-      planType: d.planType || "",
-      durationDays: d.durationDays ?? null,
-      price: d.price ?? 0,
-      maxUsers: d.maxUsers ?? null,
-      maxProducts: d.maxProducts ?? null,
-      maxStores: d.maxStores ?? null,
-      maxStorageGb: d.maxStorageMb != null ? Math.round(d.maxStorageMb / 1024) : null,
-      apiQuota: fea?.quota?.apiDaily ?? null,
-      aiQuota: fea?.quota?.aiMonthly ?? null,
-      upgradeMode: fea?.upgrade?.mode ?? "",
-      downgradeMode: fea?.downgrade?.mode ?? "",
-      renewPolicy: fea?.renew?.policy ?? "",
-      promoPrice: fea?.promo?.price ?? null,
-      promoStart: fea?.promo?.start ?? "",
-      promoEnd: fea?.promo?.end ?? "",
-      sortOrder: d.sortOrder ?? 0,
+    const res: any = await copyPlan(sourceId, { status: "DRAFT" });
+    const d: any = res?.data?.data || res?.data || {};
+    const newId = Number(d.id || 0);
+    if (!newId) {
+      ElMessage.error("复制套餐失败：未取得新套餐 ID，请重试或改用新建套餐");
+      return;
+    }
+    /* 源套餐名由列表页带 ?copyFromName= 传入（读回新套餐名会含「（副本）」后缀，不能反推源名） */
+    copiedFromName.value = String(route.query.copyFromName || "");
+    ElMessage.success(`已复制为新套餐「${d.planName || newId}」（草稿），可继续调整后保存`);
+    await router.replace({
+      path: `/packages/${newId}/edit`,
+      query: copiedFromName.value ? { copiedFrom: copiedFromName.value } : {},
     });
-    // 功能开关矩阵按源套餐回填
-    const srcModules: string[] = Array.isArray(d.moduleAccess)
-      ? d.moduleAccess
-      : typeof d.moduleAccess === "string"
-        ? JSON.parse(d.moduleAccess || "[]")
-        : [];
-    featureGroups.forEach((g) =>
-      g.items.forEach((it) => {
-        checked[it.name] = srcModules.includes(it.name);
-      })
-    );
-    copiedFromName.value = d.planName || "";
-    // TODO: 后端提供 POST /platform/plans/:id/copy 后改为服务端复制，当前为「读取源配置 + 新建」的等效实现
-  } catch {
-    ElMessage.warning("未能读取源套餐配置，请确认接口 GET /platform/plans/:id 可用");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "复制套餐失败");
   } finally {
     pageLoading.value = false;
   }

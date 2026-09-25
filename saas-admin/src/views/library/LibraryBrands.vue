@@ -7,8 +7,9 @@
     数据（③-b #22 整改：按主行逐条分行，"授权状态"措辞已不实）：
           · 品牌库：listBrandsApi/createBrandApi/updateBrandApi/deleteBrandApi（已有）
           · 授权状态 + 暂停/启用：`PUT /api/platform/library/brands/:id {status}`（① #29，**接口已有，本卡接线**）
-          · 类目树 / 新增编辑类目：平台类目表按凌舟裁定 R3（甲）**不建**，改为租户类目只读聚合
-            （数据源 t_product_category）⇒ 依赖后端聚合端点（本卡已上报申请，未自拟路径）
+          · 类目只读聚合：`GET /api/platform/library/categories`（S3-110 ① 后端 / S3-111 ① 接线）
+            —— 平台类目表按凌舟裁定 R3（甲）**不建**，故类目按租户维度只读展示（租户名 · 类目 · 挂载商品数），
+            不提供新增/编辑/删除
           · 授权书上传：待 C1 加列（t_library_brand.auth_letter_url 等三列）
   -->
   <div class="lib-brands">
@@ -29,24 +30,24 @@
       <div class="panel">
         <div class="p-hd">
           <span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 2</span>类目管理</span>
-          <span class="ph-s">三级树形结构 · 拖拽排序即租户侧展示顺序 · 「对租户可见」控制租户检索侧目录</span>
+          <span class="ph-s">平台类目表按裁定 R3(甲) 不建 ⇒ 本页为租户类目只读聚合（租户名 · 类目 · 挂载商品数）· 跨租户只读，无新增/编辑/删除</span>
         </div>
         <div class="p-bd" style="display:grid;grid-template-columns:var(--rbac-side-w) 1fr;gap:var(--space-3);align-items:start">
-          <!-- 左：类目树 -->
+          <!-- 左：租户类目只读聚合（S3-111 ①：GET /api/platform/library/categories） -->
           <div class="cat-tree">
             <div class="cat-tree-hd">
-              <span>类目树（—）</span>
-              <span class="btn-t" style="margin-left:auto">+ 新增一级类目</span>
+              <span>租户类目聚合（{{ categories.length }} 行）</span>
+              <span class="btn-t" style="margin-left:auto" @click="addCategory">+ 新增一级类目</span>
             </div>
-            <!-- TODO: 待接入 GET /platform/library/categories —— 返回三级类目树（id/path/挂载商品数/对租户可见） -->
-            <div v-if="categories.length === 0" class="empty">暂无类目数据</div>
-            <div v-for="c in categories" :key="c.id" class="cat-node">
-              <span class="drag">⋮⋮</span>
-              <b>{{ c.name }}</b>
-              <span class="tag tag-gy">{{ c.countLabel }}</span>
-              <span v-if="c.visible" class="small" style="color:var(--g5)">对租户可见</span>
-              <span class="tg" :class="{ off: !c.visible }" style="margin-left:auto"></span>
-              <span class="btn-t">编辑</span>
+            <div v-if="categoryLoading" class="empty">加载中…</div>
+            <div v-else-if="categories.length === 0" class="empty">暂无租户类目数据</div>
+            <div v-for="c in categories" :key="`${c.tenantId}-${c.categoryId}`" class="cat-node">
+              <span class="small" style="color:var(--g5);max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.tenantName || c.tenantId }}</span>
+              <b>{{ c.name || '—' }}</b>
+              <span class="tag tag-gy" style="margin-left:auto">{{ c.productCount }} 个商品</span>
+            </div>
+            <div class="small" style="color:var(--g5);padding:var(--space-2) var(--space-3)">
+              数据源（只读）：GET /api/platform/library/categories · 一行 = 租户 × 类目 · 挂载商品数按 t_product_spu 计数
             </div>
           </div>
 
@@ -236,24 +237,50 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   listBrandsApi, createBrandApi, updateBrandApi, toggleBrandStatusApi,
-  type BrandItem,
+  listCategoriesApi,
+  type BrandItem, type PlatformCategoryItem,
 } from '../../api/library'
 
 // section: 'category' | 'brand' | undefined（独立整页）
-defineProps<{ section?: string }>()
+// categoryRows / categoryLoading：由父级（LibrarySpus 的 ② 类目子 Tab）注入同一份聚合结果，
+// 使「KPI 类目数」与列表展示同源同口径、只发一次请求；独立路由 /library/brands 未注入时自行拉取。
+const props = defineProps<{
+  section?: string
+  categoryRows?: PlatformCategoryItem[]
+  categoryLoading?: boolean
+}>()
 
-/* ───────── 类目树（R3(甲)：改租户类目只读聚合；聚合端点待后端提供，未接线） ───────── */
-// 阻塞：平台侧无类目表（裁定 R3(甲) 不建 t_library_category），聚合 t_product_category 需后端
-// 只读端点（本卡在回传卡申请，路径未定 ⇒ 前端不自拟路径，保持空态）
-const categories = ref<any[]>([])
+/* ───────── 类目只读聚合（S3-111 ①：GET /platform/library/categories） ───────── */
+// 平台侧无类目表（裁定 R3(甲) 不建 t_library_category）⇒ 前端按租户维度只读展示
+// t_product_category × t_product_spu 的真实聚合，一行 = 租户 × 类目（挂载商品数 productCount）
+const localCategories = ref<PlatformCategoryItem[]>([])
+const localCategoryLoading = ref(false)
+const categories = computed(() => props.categoryRows ?? localCategories.value)
+const categoryLoading = computed(() => props.categoryLoading ?? localCategoryLoading.value)
+async function fetchCategories() {
+  localCategoryLoading.value = true
+  try {
+    const res: any = await listCategoriesApi()
+    const data: any = res?.data ?? res
+    localCategories.value = Array.isArray(data) ? data : []
+  } catch (e: any) {
+    localCategories.value = []
+    ElMessage.error(e?.message || '加载租户类目聚合失败')
+  } finally {
+    localCategoryLoading.value = false
+  }
+}
 const catForm = reactive({ id: null as number | null, name: '', code: '', sort: '', visible: true })
 function resetCatForm() {
   Object.assign(catForm, { id: null, name: '', code: '', sort: '', visible: true })
 }
 function saveCategory() {
   // ③-b #26：平台类目表按 R3(甲) 不建（原卡面写的"T4"已因 R3(甲) 退出新表清单）
-  // ⇒ 不再承诺"待接入新增/编辑接口"，改为如实说明只读聚合口径
-  ElMessage.warning('保存类目：平台类目表已按 R3(甲) 裁定不建，类目改为租户只读聚合（聚合端点待后端提供，已申请）')
+  // ⇒ 不承诺"待接入新增/编辑接口"，如实说明只读聚合口径（聚合端点已由 S3-110 提供）
+  ElMessage.warning('保存类目：平台类目表按 R3(甲) 裁定不建；类目为租户侧数据，本页只读聚合，不提供编辑')
+}
+function addCategory() {
+  ElMessage.warning('新增类目：平台类目表按 R3(甲) 裁定不建；类目为租户侧数据，本页只读聚合，不提供新增')
 }
 function uploadAuth(b: BrandItem) {
   // ③-b #28：授权书上传依赖 C1 加列（t_library_brand.auth_letter_url），本批未落地 ⇒ 诚实占位
@@ -363,7 +390,8 @@ async function saveBrand() {
 }
 
 onMounted(() => {
-  // 类目树无接口，保持空态；品牌库沿用现有调用
+  // ② 类目：父级已注入聚合数据时不再重复请求（S3-111 ①）；③ 品牌库：沿用现有调用
+  if (!props.categoryRows) fetchCategories()
   fetchBrands()
 })
 </script>

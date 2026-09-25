@@ -1,0 +1,11 @@
+=== rg -n auditTenantApi saas-admin/src（期望 0 命中）===
+rg_exit=1（1=0 命中）
+
+=== rg -n 尚未开放|OFFLINE 状态流转 saas-admin/src（期望 0 命中）===
+rg_exit=1（1=0 命中）
+
+=== rg -n 待接入真实统计 saas-admin/src（期望 0 命中）===
+saas-admin/src\views\TenantUsage.vue:84:          <!-- S3-111 ④（#85）：原「· 待接入真实统计」属内部措辞 ⇒ 产品化。
+rg_exit=0（1=0 命中）
+补充：上面「待接入真实统计」的 1 条命中是 S3-111 自己写的解释性注释（非用户可见文案，见 TenantUsage.vue:84 行内注释），用户可见文案已换为「暂无模块使用统计数据（平台暂未采集该维度）」。
+

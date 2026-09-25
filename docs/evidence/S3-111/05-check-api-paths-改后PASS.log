@@ -1,0 +1,14 @@
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+  前端调用点 83（去重 77）· 后端注册路由 1436
+  豁免清单 0 条（命中 0 条）
+
+PASS 未发现「前端有、后端无」的路径 / 方法
+EXIT=0
+
+=== 卡面命令原样复跑：cd saas-admin && node scripts/check-api-paths.mjs ===
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+[90m  前端调用点 83（去重 77）· 后端注册路由 1436[0m
+[90m  豁免清单 0 条（命中 0 条）[0m
+
+[32mPASS 未发现「前端有、后端无」的路径 / 方法[0m
+EXIT=0

@@ -334,12 +334,14 @@ function onPlanAction(key: string, p: PlanCard) {
     case "edit":
     case "copy":
       if (p.id) {
-        router.push(key === "edit" ? `/packages/${p.id}/edit` : `/packages/create?copyFrom=${p.id}`);
+        router.push(
+          key === "edit"
+            ? `/packages/${p.id}/edit`
+            /* S3-111 ③ / #86：复制改走服务端原子复制（POST /platform/plans/:planId/copy），
+             * 故此处只需带源套餐 ID；copyFromName 供复制完成后页头显示「复制自：X」（源名无法从新套餐名反推） */
+            : `/packages/create?copyFrom=${p.id}&copyFromName=${encodeURIComponent(p.name || "")}`
+        );
       } else {
-        // 复制：既有流程本就可用 —— 跳新建页并带 copyFrom=源套餐ID，
-        // PackageForm.vue:466-468 会读取源套餐回填为初值，用户可改编码/名称后再落库。
-        // （C1-2 B2 另提供了 POST /platform/plans/:planId/copy 一键复制，
-        //   但改用它会丢掉「命名新套餐」这一步，故本单不改道，是否改道由凌舟裁定。）
         ElMessage.info("暂无套餐数据：无法编辑/复制");
       }
       break;

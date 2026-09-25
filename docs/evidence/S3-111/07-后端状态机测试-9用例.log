@@ -1,0 +1,50 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-120/backend
+
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/setup.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/routes/platform-s3-110.test.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/config/env.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/middleware/auth.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/shared/env.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/middleware/tenant.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/shared/response.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/routes/platform-library.routes.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/middleware/async-handler.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/controllers/platform/library.controller.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/services/platform/library.service.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/shared/db.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/config/database.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/shared/logger.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/shared/migration.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/shared/seed-data.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/shared/password.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-index.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-state.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-system.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-store.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-customer.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-product.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-inventory.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-order.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-finance.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-supplier.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/__tests__/mocks/mock-db-platform-miniapp.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-120/backend/src/middleware/slow-query-monitor.ts" points to missing source files
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ① · GET /api/platform/library/categories（只读聚合） > 反测：无令牌访问必须 401（端点是平台令牌保护的） 73ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ① · GET /api/platform/library/categories（只读聚合） > 正向：返回 tenantId / tenantName / categoryId / name / parentId / status / productCount 24ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ② · PUT /spus/:id/status 状态机（APPROVED ↔ OFFLINE） > APPROVED → OFFLINE 返回 200 并落 UPDATE 27ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ② · PUT /spus/:id/status 状态机（APPROVED ↔ OFFLINE） > OFFLINE → APPROVED 返回 200（重新上架） 9ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ② · PUT /spus/:id/status 状态机（APPROVED ↔ OFFLINE） > PENDING → APPROVED 仍返回 200（审核路径保持不变） 10ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ② · PUT /spus/:id/status 状态机（APPROVED ↔ OFFLINE） > 反测：PENDING → OFFLINE 仍 400（只放开 APPROVED ↔ OFFLINE，不放宽审核路径） 10ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ② · PUT /spus/:id/status 状态机（APPROVED ↔ OFFLINE） > 边界：APPROVED → REJECTED 仍 400（不得把已发布商品改判为驳回） 7ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ② · PUT /spus/:id/status 状态机（APPROVED ↔ OFFLINE） > 边界：非法状态值仍 400 且不进入服务层查询 7ms
+ ✓ src/__tests__/routes/platform-s3-110.test.ts > S3-110 ② · PUT /spus/:id/status 状态机（APPROVED ↔ OFFLINE） > 无令牌调用状态流转端点必须 401 8ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  07:25:32
+   Duration  6.03s (transform 2.01s, setup 140ms, import 4.96s, tests 178ms, environment 0ms)
+
+
+VITEST_EXIT=0
