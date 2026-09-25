@@ -1,0 +1,6 @@
+
+D:\Users\ZXQL\wt-agents\issue-121\backend\src\services\admin\marketing-points.service.ts
+  68:8  warning  Async function 'updatePointsRule' has a complexity of 20. Maximum allowed is 15  complexity
+
+✖ 1 problem (0 errors, 1 warning)
+

@@ -1,0 +1,9 @@
+backend/src/controllers/admin/marketing-points.controller.ts:13:    // S3-110 ④：t_points_rule.rule_name / earn_type 为 NOT NULL 无默认值，
+backend/src/controllers/admin/marketing-points.controller.ts:16:    earnType: z.string().min(1).max(20).optional(),
+backend/src/services/admin/marketing-points.service.ts:70:  earnType?: string;
+backend/src/services/admin/marketing-points.service.ts:84:    // S3-113 ②：zod 已收下 `ruleName` / `earnType`（S3-110 ④），但本分支此前只更新
+backend/src/services/admin/marketing-points.service.ts:89:    if (body.earnType !== undefined) { updates.push("earn_type = ?"); params.push(body.earnType); }
+backend/src/services/admin/marketing-points.service.ts:102:    // S3-110 ④：`t_points_rule.rule_name` 与 `earn_type` 均为 NOT NULL 且**无默认值**
+backend/src/services/admin/marketing-points.service.ts:107:    // S3-113 ①：`earn_type` 缺省值由 `'CONSUMPTION'` 改为 `'purchase'`——取值必须与真实消费方
+backend/src/services/admin/marketing-points.service.ts:111:      `INSERT INTO t_points_rule (rule_name, earn_type, earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id)
+backend/src/services/admin/marketing-points.service.ts:115:        body.earnType ?? "purchase",

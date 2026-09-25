@@ -1,0 +1,24 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-121/backend
+
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/setup.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/services/admin/marketing-points.service.test.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/services/admin/marketing-points.service.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/app-error.ts" points to missing source files
+ ❯ src/__tests__/services/admin/marketing-points.service.test.ts (17 tests | 1 failed) 19ms
+     × updatePointsRule 已存在时接住 ruleName / earnType（S3-113 ②：「收下却丢弃」回归保护） 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/services/admin/marketing-points.service.test.ts > marketing-points.service - 积分规则与账户 > updatePointsRule 已存在时接住 ruleName / earnType（S3-113 ②：「收下却丢弃」回归保护）
+AssertionError: S3-113 ②：携带 ruleName/earnType 时必须发出 UPDATE: expected undefined to be defined
+ ❯ src/__tests__/services/admin/a.ts:90:70
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 16 passed (17)
+   Start at  07:19:24
+   Duration  739ms (transform 266ms, setup 91ms, import 210ms, tests 19ms, environment 0ms)
+

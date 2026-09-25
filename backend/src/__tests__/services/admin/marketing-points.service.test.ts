@@ -75,7 +75,36 @@ describe("marketing-points.service - 积分规则与账户", () => {
     // 漏列即 1364 ER_NO_DEFAULT_FOR_FIELD（严格模式）⇒ 列清单与参数必须成对带上这两列。
     expect(sql).toContain("rule_name");
     expect(sql).toContain("earn_type");
-    expect(params).toEqual(["积分兑换规则", "CONSUMPTION", 1, 100, 0, 0.5, 365, false, tenantId]);
+    expect(params).toEqual(["积分兑换规则", "purchase", 1, 100, 0, 0.5, 365, false, tenantId]);
+    // S3-113 ①：缺省 earn_type 必须与前端标签映射键（小写 purchase/signin/birthday/referral）对齐，
+    // 单钉一条值断言，防止只断言"非空"时被改回 'CONSUMPTION' 也不报错。
+    expect(params[1]).toBe("purchase");
+  });
+
+  it("updatePointsRule 已存在时接住 ruleName / earnType（S3-113 ②：「收下却丢弃」回归保护）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1 })
+      .mockResolvedValueOnce(mockRule());
+    await updatePointsRule({ ruleName: "消费得积分", earnType: "signin" }, tenantId);
+    const updateCall = mocks.queryWithTenant.mock.calls.find((c) => String(c[0]).includes("UPDATE t_points_rule"));
+    expect(updateCall, "S3-113 ②：携带 ruleName/earnType 时必须发出 UPDATE").toBeDefined();
+    const [sql, params] = updateCall!;
+    expect(sql).toContain("rule_name = ?");
+    expect(sql).toContain("earn_type = ?");
+    expect(params).toEqual(["消费得积分", "signin", 1]);
+  });
+
+  it("updatePointsRule 已存在但未传 ruleName / earnType 时不得写这两列（S3-113 ②：存在才写）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1 })
+      .mockResolvedValueOnce(mockRule({ earnRatio: 2 }));
+    await updatePointsRule({ earnRatio: 2 }, tenantId);
+    const updateCall = mocks.queryWithTenant.mock.calls.find((c) => String(c[0]).includes("UPDATE t_points_rule"));
+    expect(updateCall, "S3-113 ②：只传 earnRatio 时 UPDATE 仍应发出").toBeDefined();
+    const [sql, params] = updateCall!;
+    expect(sql).not.toContain("rule_name");
+    expect(sql).not.toContain("earn_type");
+    expect(params).toEqual([2, 1]);
   });
 
   it("updatePointsRule 不存在时 ruleName / earnType 可被请求体覆盖（S3-110 ④）", async () => {

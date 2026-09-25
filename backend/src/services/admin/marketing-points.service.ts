@@ -81,6 +81,12 @@ export async function updatePointsRule(body: {
     const updates: string[] = [];
     const params: unknown[] = [];
 
+    // S3-113 ②：zod 已收下 `ruleName` / `earnType`（S3-110 ④），但本分支此前只更新
+    // earn_ratio/redeem_ratio/min_redeem_amount/max_redeem_ratio/expire_days/enabled，
+    // 于是"租户已有规则"时这两个字段被静默忽略（本项目判过的"收下却丢弃"模式）。
+    // 采用"存在才写"：缺省时不 push，避免把既有值覆盖成 undefined / 空串。
+    if (body.ruleName !== undefined) { updates.push("rule_name = ?"); params.push(body.ruleName); }
+    if (body.earnType !== undefined) { updates.push("earn_type = ?"); params.push(body.earnType); }
     if (body.earnRatio !== undefined) { updates.push("earn_ratio = ?"); params.push(body.earnRatio); }
     if (body.redeemRatio !== undefined) { updates.push("redeem_ratio = ?"); params.push(body.redeemRatio); }
     if (body.minRedeemAmount !== undefined) { updates.push("min_redeem_amount = ?"); params.push(body.minRedeemAmount); }
@@ -97,13 +103,16 @@ export async function updatePointsRule(body: {
     // （生产 information_schema 实测）——修复前本 INSERT 只给 7 列、漏了这两列，
     // 严格模式下必然 1364 ER_NO_DEFAULT_FOR_FIELD（规则永远建不出来）。
     // 口径对照：同表另一写入方 services/admin/points.service.ts:77 一直带着这两列。
-    // 两者均可由请求体覆盖，缺省按「积分兑换规则 / CONSUMPTION」写入（列宽 VARCHAR(100)/VARCHAR(20)）。
+    // 两者均可由请求体覆盖，缺省按「积分兑换规则 / purchase」写入（列宽 VARCHAR(100)/VARCHAR(20)）。
+    // S3-113 ①：`earn_type` 缺省值由 `'CONSUMPTION'` 改为 `'purchase'`——取值必须与真实消费方
+    // admin-web/src/views/customer/PointsRules.vue 的标签映射键（小写 purchase/signin/birthday/referral）
+    // 对齐，否则页面会原样显示一个没有标签的值（列是 VARCHAR(20) 无约束，不会报错但语义错）。
     await queryWithTenant(
       `INSERT INTO t_points_rule (rule_name, earn_type, earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         body.ruleName ?? "积分兑换规则",
-        body.earnType ?? "CONSUMPTION",
+        body.earnType ?? "purchase",
         body.earnRatio ?? 1,
         body.redeemRatio ?? 100,
         body.minRedeemAmount ?? 0,
