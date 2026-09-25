@@ -78,4 +78,22 @@ describe("179_平台角色与权限点目录.sql 纯 DDL 约束（C6-2-T6-F2）"
     // 注释行内不得出现 ASCII 分号（会把注释块切成两半，178 迁移同规）
     expect(lines.filter((line) => line.trim().startsWith("--")).join("\n")).not.toContain(";");
   });
+
+  it("两列 COMMENT 已改指代码常量 PERMISSION_CATALOG（反测：把 COMMENT 改回旧文案 ⇒ 本断言必红）", () => {
+    // F2B 背景：F2 之后目录的单一真相源 = 后端代码常量 PERMISSION_CATALOG（18 条），
+    // 而 t_platform_permission_catalog 表保留但本期不读不写（恒空）
+    // ⇒ 两列 COMMENT 若仍写"取值以该表为准"，即为指向已失效口径的假陈述。
+    const lines = sql.split(/\r?\n/);
+    const moduleCodeLine = lines.find((line) => line.includes("module_code VARCHAR(32)")) ?? "";
+    const dataScopeLine = lines.find((line) => line.includes("data_scope VARCHAR(32)")) ?? "";
+    expect(moduleCodeLine).toContain(
+      "COMMENT '功能域编码（取值以后端常量 PERMISSION_CATALOG 的 moduleCode 为准）'"
+    );
+    expect(dataScopeLine).toContain(
+      "COMMENT '数据范围（取值=后端常量 PERMISSION_CATALOG 中 permLevel=DATA 的 permCode，NULL=未设置）'"
+    );
+    // 两列都不得再出现指向已失效目录表的表述
+    expect(moduleCodeLine).not.toContain("t_platform_permission_catalog");
+    expect(dataScopeLine).not.toContain("t_platform_permission_catalog");
+  });
 });

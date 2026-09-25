@@ -60,7 +60,7 @@ export async function listRoles(_req: any, res: any) {
   res.json(ok(await service.listPlatformRoles()));
 }
 
-/** GET /api/platform/permissions/catalog —— 权限点目录（空目录 ⇒ modules: []） */
+/** GET /api/platform/permissions/catalog —— 权限点目录（数据源=服务层常量 PERMISSION_CATALOG，18 条） */
 export async function getPermissionCatalog(_req: any, res: any) {
   res.json(ok(await service.listPermissionCatalog()));
 }

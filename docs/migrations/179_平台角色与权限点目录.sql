@@ -14,10 +14,10 @@ CREATE TABLE IF NOT EXISTS t_platform_role (
 CREATE TABLE IF NOT EXISTS t_platform_role_permission (
   id INT AUTO_INCREMENT COMMENT '主键',
   role_id INT NOT NULL COMMENT '角色ID（t_platform_role.id）',
-  module_code VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '功能域编码（取值以 t_platform_permission_catalog.module_code 为准）',
+  module_code VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '功能域编码（取值以后端常量 PERMISSION_CATALOG 的 moduleCode 为准）',
   can_menu TINYINT NOT NULL DEFAULT 0 COMMENT '菜单级权限：1-有/0-无',
   can_page_btn TINYINT NOT NULL DEFAULT 0 COMMENT '页面按钮级权限：1-有/0-无',
-  data_scope VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '数据范围（取值=t_platform_permission_catalog 中 perm_level=DATA 的 perm_code，NULL=未设置）',
+  data_scope VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '数据范围（取值=后端常量 PERMISSION_CATALOG 中 permLevel=DATA 的 permCode，NULL=未设置）',
   PRIMARY KEY (id),
   UNIQUE KEY uk_role_module (role_id, module_code),
   KEY idx_role (role_id)
