@@ -1,0 +1,40 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-121/backend
+
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/setup.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/services/admin/marketing-points.service.test.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/routes/admin-marketing-points.test.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/controllers/admin/marketing-points.controller.test.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/routes/admin-marketing-points.routes.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/services/admin/marketing-points.service.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/app-error.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/controllers/admin/marketing-points.controller.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/middleware/async-handler.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/response.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/db.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/config/database.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/logger.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/env.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/config/env.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/migration.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/seed-data.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/shared/password.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-index.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-state.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-system.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-store.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-customer.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-product.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-inventory.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-order.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-finance.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-supplier.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/__tests__/mocks/mock-db-platform-miniapp.ts" points to missing source files
+Sourcemap for "D:/Users/ZXQL/wt-agents/issue-121/backend/src/middleware/slow-query-monitor.ts" points to missing source files
+
+ Test Files  3 passed (3)
+      Tests  28 passed (28)
+   Start at  07:19:58
+   Duration  10.67s (transform 6.73s, setup 662ms, import 11.50s, tests 120ms, environment 1ms)
+
