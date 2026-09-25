@@ -11,10 +11,15 @@ import { AppError } from "../../shared/app-error";
  * 口径（逐条可核对）：
  * - 平台级表（**无 tenant_id**）：用 query()/queryOne()，不走 queryWithTenant（不注入 tenant_id 条件）；
  * - 复用边界：**不复用也不修改** t_sys_role / t_sys_permission（租户级资产，含 tenant_id）；
- * - 零假数据：全部返回值来自真实查询；空表/空目录一律返回空态（roles: [] / permissions: [] / matrix 空值档），
+ * - 零假数据：角色/矩阵的返回值来自真实查询，空表一律返回空态（roles: [] / matrix 空值档），
  *   不写隐式种子、不硬编码兜底数据；
- * - 「域」的唯一来源是**权限点目录**：moduleCode 合法集合 = t_platform_permission_catalog 的 module_code 去重，
- *   dataScope 合法集合 = 目录中 perm_level='DATA' 行的 perm_code（同时接受其 perm_name 中文别名，见下）；
+ * - 「域」的唯一来源是**权限点目录常量** `PERMISSION_CATALOG`（本文件内，18 条）：
+ *   moduleCode 合法集合 = 常量中 moduleCode 去重；dataScope 合法集合 = 常量中 permLevel='DATA'
+ *   行的 permCode（同时接受其 permName 中文别名，见下）；
+ * - t_platform_permission_catalog 表**本期未启用**（MIG-4 写闸门默认 block：`resolveWriteGate()` 只认环境变量
+ *   `MIGRATION_WRITE_GATE`，而 `runMigrations()` 由 server.ts 每次启动调用、全仓无执行账本 ⇒ 迁移里的预置
+ *   INSERT 不会落库，放行 allow 又会随每次重启复利叠加）⇒ 表保留给将来"后台可配目录"，**不参与任何查询**；
+ *   目录由代码常量提供（C6-2-T6-F2 凌舟裁定，见 docs/migrations/179 文件头注释）；
  * - domainCount 口径：can_menu=1 的 module_code **去重计数**（前端 AdminPermissions.vue:209 的 permissionState.menu 语义），
  *   不是"矩阵行数"、也不是"角色行数"。
  */
@@ -77,14 +82,6 @@ interface RoleTypeRow {
   type: string;
 }
 
-interface CatalogRow {
-  moduleCode: string;
-  moduleName: string;
-  permCode: string;
-  permName: string;
-  permLevel: string;
-}
-
 interface StoredCellRow {
   moduleCode: string;
   canMenu: number | boolean | null;
@@ -107,35 +104,93 @@ function isDuplicateKeyError(err: unknown): boolean {
   return e?.code === "ER_DUP_ENTRY" || e?.errno === 1062;
 }
 
-/** 目录全量行（module_code / module_name / perm_code / perm_name / perm_level），按域与级别排序 */
-const CATALOG_SQL = `SELECT module_code AS moduleCode, module_name AS moduleName,
-       perm_code AS permCode, perm_name AS permName, perm_level AS permLevel
-  FROM t_platform_permission_catalog`;
+/** 权限点级别（三级）：MENU-菜单 / BUTTON-页面按钮 / DATA-数据范围 */
+export type PlatformPermLevel = "MENU" | "BUTTON" | "DATA";
 
-/** 权限点级别排序口径：MENU → BUTTON → DATA（同一域内） */
-const PERM_LEVEL_ORDER = `FIELD(perm_level, 'MENU', 'BUTTON', 'DATA')`;
-
-async function loadCatalog(): Promise<CatalogRow[]> {
-  const rows = await query(
-    `${CATALOG_SQL} ORDER BY module_code ASC, ${PERM_LEVEL_ORDER} ASC, perm_code ASC`
-  );
-  return rowsOf<CatalogRow>(rows);
+export interface PlatformCatalogEntry {
+  moduleCode: string;
+  moduleName: string;
+  permCode: string;
+  permName: string;
+  permLevel: PlatformPermLevel;
 }
 
 /**
- * 数据范围档位的可接受取值：目录中 perm_level='DATA' 的 perm_code（canonical，落库值）
- * + 同一行的 perm_name（中文别名，与前端 DATA_SCOPES 四项字面一致）。
+ * 权限点目录（单一真相源，C6-2-T6-F2 裁定）：7 个功能域各 1 条 MENU（<module>:view）
+ * + ticket 域 7 条 BUTTON + 4 条 DATA（scope:all / scope:gray-group / scope:follow-group /
+ * scope:billing-all）= 共 18 条；取值与「迁移 179 原预置 INSERT」逐字一致（该 INSERT 已删除）。
+ *
+ * 为什么目录放代码常量、不放迁移：MIG-4 写闸门默认 block（`resolveWriteGate()` 只认环境变量
+ * `MIGRATION_WRITE_GATE`，未设置/非法值一律 block），而 `runMigrations()` 由 server.ts 每次启动调用、
+ * 全仓没有执行账本表 ⇒ 迁移里的预置 INSERT 不落库，放行 allow 又会让所有迁移的写语句随每次重启复利叠加。
+ * 常量方案环境无关、无重复写风险（详见 docs/migrations/179 文件头注释）。
+ *
+ * 数组书写顺序 = 被删 INSERT 的原顺序（便于与派单卡 §四.2 逐行对照）；
+ * 分组与组内排序在 listPermissionCatalog() 里做（契约不变，只是数据源从表换成常量）。
+ */
+export const PERMISSION_CATALOG: ReadonlyArray<PlatformCatalogEntry> = [
+  { moduleCode: "tenant", moduleName: "租户管理", permCode: "tenant:view", permName: "查看租户管理", permLevel: "MENU" },
+  { moduleCode: "billing", moduleName: "套餐与计费", permCode: "billing:view", permName: "查看套餐与计费", permLevel: "MENU" },
+  { moduleCode: "sysconfig", moduleName: "全局系统配置", permCode: "sysconfig:view", permName: "查看全局系统配置", permLevel: "MENU" },
+  { moduleCode: "monitor", moduleName: "运维监控 / 日志", permCode: "monitor:view", permName: "查看运维监控与日志", permLevel: "MENU" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:view", permName: "查看工单系统", permLevel: "MENU" },
+  { moduleCode: "marketing", moduleName: "运营营销", permCode: "marketing:view", permName: "查看运营营销", permLevel: "MENU" },
+  { moduleCode: "ai", moduleName: "AI 能力管控", permCode: "ai:view", permName: "查看 AI 能力管控", permLevel: "MENU" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:reply", permName: "公开回复工单", permLevel: "BUTTON" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:note", permName: "内部备注", permLevel: "BUTTON" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:transfer", permName: "转交工单", permLevel: "BUTTON" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:resolve", permName: "标记已解决", permLevel: "BUTTON" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:close", permName: "关闭工单", permLevel: "BUTTON" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:report", permName: "查看服务报表", permLevel: "BUTTON" },
+  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:category:config", permName: "工单类型配置", permLevel: "BUTTON" },
+  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:all", permName: "全部租户", permLevel: "DATA" },
+  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:gray-group", permName: "灰度组租户", permLevel: "DATA" },
+  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:follow-group", permName: "指定跟进组", permLevel: "DATA" },
+  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:billing-all", permName: "账单口径全部", permLevel: "DATA" },
+];
+
+/** 权限点级别排序口径：MENU → BUTTON → DATA（同一域内，等价于原 SQL 的 FIELD(perm_level, …)） */
+const PERM_LEVEL_RANK: Record<PlatformPermLevel, number> = { MENU: 0, BUTTON: 1, DATA: 2 };
+
+/** 常量里的 moduleCode 去重并升序（8 个域；等价于原 SQL `ORDER BY module_code ASC`） */
+function catalogModuleCodes(): string[] {
+  return [...new Set(PERMISSION_CATALOG.map((entry) => entry.moduleCode))].sort();
+}
+
+/** 由常量派生目录分组（目录端点与矩阵端点共用同一份"有哪些域"的真相源） */
+function catalogModules(): CatalogModuleItem[] {
+  return catalogModuleCodes().map((moduleCode) => {
+    const entries = PERMISSION_CATALOG.filter((entry) => entry.moduleCode === moduleCode).sort(
+      (a, b) =>
+        PERM_LEVEL_RANK[a.permLevel] - PERM_LEVEL_RANK[b.permLevel] ||
+        (a.permCode < b.permCode ? -1 : a.permCode > b.permCode ? 1 : 0)
+    );
+    return {
+      moduleCode,
+      moduleName: entries[0].moduleName,
+      permissions: entries.map((entry) => ({
+        permCode: entry.permCode,
+        permName: entry.permName,
+        permLevel: entry.permLevel,
+      })),
+    };
+  });
+}
+
+/**
+ * 数据范围档位的可接受取值：常量中 permLevel='DATA' 的 permCode（canonical，落库值）
+ * + 同一行的 permName（中文别名，与前端 DATA_SCOPES 四项字面一致）。
  *
  * 为什么接受别名：派单卡「交付物①」把这 4 条定义成 perm_code（scope:all …）并注明
  * "对应前端 DATA_SCOPES 四项"，而前端常量是中文标签（AdminPermissions.vue:218）
  * ⇒ 两种写法都是卡内已给定字面，故都接受，统一归一化为 perm_code 后落库。
  */
-function buildScopeMap(catalog: CatalogRow[]): Map<string, string> {
+function buildScopeMap(): Map<string, string> {
   const map = new Map<string, string>();
-  for (const row of catalog) {
-    if (String(row.permLevel).toUpperCase() !== "DATA") continue;
-    map.set(row.permCode, row.permCode);
-    map.set(row.permName, row.permCode);
+  for (const entry of PERMISSION_CATALOG) {
+    if (entry.permLevel !== "DATA") continue;
+    map.set(entry.permCode, entry.permCode);
+    map.set(entry.permName, entry.permCode);
   }
   return map;
 }
@@ -165,28 +220,11 @@ export async function listPlatformRoles(): Promise<{ roles: PlatformRoleItem[] }
 
 /**
  * 权限点目录（GET /api/platform/permissions/catalog）
- * 按 module_code 分组，组内按 MENU→BUTTON→DATA 排序；目录为空 ⇒ modules: []
+ * 数据源 = 常量 `PERMISSION_CATALOG`（恒 18 条、**不查库**）；按 moduleCode 分组（组间升序），
+ * 组内 MENU→BUTTON→DATA、同级别按 permCode 升序（契约与迁移原 ORDER BY 等价）。
  */
-export async function listPermissionCatalog(): Promise<{ modules: CatalogModuleItem[] }> {
-  const catalog = await loadCatalog();
-  const modules: CatalogModuleItem[] = [];
-  const indexOfModule = new Map<string, number>();
-
-  for (const row of catalog) {
-    const moduleCode = String(row.moduleCode);
-    let index = indexOfModule.get(moduleCode);
-    if (index === undefined) {
-      index = modules.length;
-      indexOfModule.set(moduleCode, index);
-      modules.push({ moduleCode, moduleName: String(row.moduleName), permissions: [] });
-    }
-    modules[index].permissions.push({
-      permCode: String(row.permCode),
-      permName: String(row.permName),
-      permLevel: String(row.permLevel).toUpperCase(),
-    });
-  }
-  return { modules };
+export function listPermissionCatalog(): { modules: CatalogModuleItem[] } {
+  return { modules: catalogModules() };
 }
 
 /** 角色不存在 ⇒ 404（读角色类型，供内置角色保护用） */
@@ -314,7 +352,6 @@ export async function getRolePermissions(
   id: number
 ): Promise<{ roleId: number; matrix: RolePermissionCell[] }> {
   await requireRole(id);
-  const catalog = await loadCatalog();
   const stored = rowsOf<StoredCellRow>(
     await query(
       `SELECT module_code AS moduleCode, can_menu AS canMenu, can_page_btn AS canPageBtn,
@@ -328,20 +365,16 @@ export async function getRolePermissions(
     storedByModule.set(String(row.moduleCode), row);
   }
 
-  const matrix: RolePermissionCell[] = [];
-  const seen = new Set<string>();
-  for (const row of catalog) {
-    const moduleCode = String(row.moduleCode);
-    if (seen.has(moduleCode)) continue;
-    seen.add(moduleCode);
+  // 域名集合由常量派生（恒 8 行，顺序同目录端点）⇒ 权限点目录表不参与本查询
+  const matrix: RolePermissionCell[] = catalogModuleCodes().map((moduleCode) => {
     const cell = storedByModule.get(moduleCode);
-    matrix.push({
+    return {
       moduleCode,
       canMenu: Number(cell?.canMenu ?? 0) === 1,
       canPageBtn: Number(cell?.canPageBtn ?? 0) === 1,
       dataScope: String(cell?.dataScope ?? ""),
-    });
-  }
+    };
+  });
   return { roleId: id, matrix };
 }
 
@@ -357,9 +390,9 @@ export async function replaceRolePermissions(
   matrix: RolePermissionCell[]
 ): Promise<{ roleId: number; saved: number }> {
   await requireRole(id);
-  const catalog = await loadCatalog();
-  const moduleCodes = new Set(catalog.map((row) => String(row.moduleCode)));
-  const scopeMap = buildScopeMap(catalog);
+  // 合法集合由常量派生（moduleCode 域 / dataScope 4 档）：不查权限点目录表
+  const moduleCodes = new Set(catalogModuleCodes());
+  const scopeMap = buildScopeMap();
 
   interface NormalizedCell {
     moduleCode: string;

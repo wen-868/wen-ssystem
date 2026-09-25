@@ -3,13 +3,18 @@
  * （t_platform_role / t_platform_role_permission / t_platform_permission_catalog）
  *
  * 口径（对应 R101-派单-20260926-C6-2-T6 交付物②、验收标准⑥⑦）：
- * - 空表/空目录诚实空态：roles: [] / modules: [] / matrix 的 false+false+''，读路径零写库；
+ * - 空表诚实空态：roles: [] / matrix 的 false+false+''，读路径零写库；
  * - domainCount = 矩阵中 can_menu=1 的 module_code **去重数**（反测 c：不是角色行数/矩阵行数）；
  * - 内置角色保护：删除 ⇒ 400；改 name ⇒ 400（remark/enabled 可改）；
  * - code 唯一冲突 ⇒ 409（含唯一键竞态兜底）；
  * - 未传字段不得被覆盖成空（只写传了的字段）；
  * - moduleCode 必须在目录模块集合内、dataScope 必须在目录的 4 档内，否则 400；
  * - 整表替换在同一事务内先删后插。
+ *
+ * C6-2-T6-F2 变更（本文件随之更新的口径，对应 R101-派单-20260926-C6-2-T6-F2 交付物②③）：
+ * - 权限点目录的单一真相源 = 服务里的代码常量 `PERMISSION_CATALOG`（18 条），
+ *   目录端点**恒 18 条且不查库**（原「空目录 ⇒ modules: []」用例已不成立）；
+ * - moduleCode 合法集合 / dataScope 4 档同样由常量派生 ⇒ 全链路不再查 t_platform_permission_catalog。
  *
  * 注意：本沙箱 vitest 无法启动（spawn EPERM，踩坑[R101-C2-0]同例），用例只写好，执行由凌舟在本机跑。
  */
@@ -52,17 +57,16 @@ function execCalls(): ExecCall[] {
   }));
 }
 
-/** 目录行（与迁移 179 预置一致的 7 域 MENU + ticket 7 BUTTON + 4 DATA 的最小可用子集） */
-const CATALOG_ROWS = [
-  { moduleCode: "ai", moduleName: "AI 能力管控", permCode: "ai:view", permName: "查看 AI 能力管控", permLevel: "MENU" },
-  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:all", permName: "全部租户", permLevel: "DATA" },
-  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:billing-all", permName: "账单口径全部", permLevel: "DATA" },
-  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:follow-group", permName: "指定跟进组", permLevel: "DATA" },
-  { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:gray-group", permName: "灰度组租户", permLevel: "DATA" },
-  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:view", permName: "查看工单系统", permLevel: "MENU" },
-  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:reply", permName: "公开回复工单", permLevel: "BUTTON" },
-  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:note", permName: "内部备注", permLevel: "BUTTON" },
-  { moduleCode: "tenant", moduleName: "租户管理", permCode: "tenant:view", permName: "查看租户管理", permLevel: "MENU" },
+/** 常量派生的 8 个功能域（moduleCode 升序，目录端点与矩阵端点共用同一顺序） */
+const MODULE_CODES = [
+  "ai",
+  "billing",
+  "common",
+  "marketing",
+  "monitor",
+  "sysconfig",
+  "tenant",
+  "ticket",
 ];
 
 describe("C6-2-T6 · GET /api/platform/admins/roles（角色列表 + domainCount）", () => {
@@ -105,34 +109,68 @@ describe("C6-2-T6 · GET /api/platform/admins/roles（角色列表 + domainCount
   });
 });
 
-describe("C6-2-T6 · GET /api/platform/permissions/catalog（权限点目录）", () => {
+describe("C6-2-T6-F2 · GET /api/platform/permissions/catalog（目录由代码常量提供）", () => {
   beforeEach(() => vi.resetAllMocks());
 
-  it("空目录 ⇒ modules: []，读路径不写库", async () => {
-    mocks.query.mockResolvedValueOnce([]);
-    const result = await listPermissionCatalog();
+  it("恒 18 条、零查库零事务（原「空目录 ⇒ modules: []」已不成立：目录不再来自表）", () => {
+    const { modules } = listPermissionCatalog();
 
-    expect(result).toEqual({ modules: [] });
-    expect(mocks.query).toHaveBeenCalledTimes(1);
+    expect(modules.flatMap((m) => m.permissions)).toHaveLength(18);
+    expect(modules).toHaveLength(8);
+    expect(mocks.query).not.toHaveBeenCalled();
+    expect(mocks.queryOne).not.toHaveBeenCalled();
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
 
-  it("按 module_code 分组、组内 MENU→BUTTON→DATA 顺序保留，级别统一大写", async () => {
-    mocks.query.mockResolvedValueOnce(CATALOG_ROWS);
-    const { modules } = await listPermissionCatalog();
+  it("按 moduleCode 升序分组，组内 MENU→BUTTON→DATA（同级别按 permCode 升序）", () => {
+    const { modules } = listPermissionCatalog();
 
-    const sql = String(mocks.query.mock.calls[0][0]);
-    expect(sql).toContain("FROM t_platform_permission_catalog");
-    expect(sql).toContain("FIELD(perm_level, 'MENU', 'BUTTON', 'DATA')");
+    expect(modules.map((m) => m.moduleCode)).toEqual(MODULE_CODES);
+    const rank: Record<string, number> = { MENU: 0, BUTTON: 1, DATA: 2 };
+    for (const module of modules) {
+      const levels = module.permissions.map((p) => rank[p.permLevel]);
+      expect(levels).toEqual([...levels].sort((a, b) => a - b));
+      const sameLevel = module.permissions
+        .filter((p) => p.permLevel === "BUTTON")
+        .map((p) => p.permCode);
+      expect(sameLevel).toEqual([...sameLevel].sort());
+    }
+    // 组名取自常量（monitor 的 moduleName 含空格与斜杠，逐字保留）
+    expect(modules.find((m) => m.moduleCode === "monitor")?.moduleName).toBe("运维监控 / 日志");
+    expect(modules.find((m) => m.moduleCode === "common")?.moduleName).toBe("数据范围档位");
+  });
 
-    expect(modules.map((m) => m.moduleCode)).toEqual(["ai", "common", "ticket", "tenant"]);
+  it("ticket 域 = 1 条 MENU + 7 条 BUTTON（含 ticket:report；反测 a：删任一条 ⇒ 本断言必红）", () => {
+    const { modules } = listPermissionCatalog();
     const ticket = modules.find((m) => m.moduleCode === "ticket");
+
     expect(ticket?.moduleName).toBe("工单系统");
-    expect(ticket?.permissions).toEqual([
+    expect(ticket?.permissions).toHaveLength(8);
+    expect(ticket?.permissions.filter((p) => p.permLevel === "MENU")).toEqual([
       { permCode: "ticket:view", permName: "查看工单系统", permLevel: "MENU" },
-      { permCode: "ticket:reply", permName: "公开回复工单", permLevel: "BUTTON" },
-      { permCode: "ticket:note", permName: "内部备注", permLevel: "BUTTON" },
     ]);
+    expect(ticket?.permissions.filter((p) => p.permLevel === "BUTTON")).toEqual([
+      { permCode: "ticket:category:config", permName: "工单类型配置", permLevel: "BUTTON" },
+      { permCode: "ticket:close", permName: "关闭工单", permLevel: "BUTTON" },
+      { permCode: "ticket:note", permName: "内部备注", permLevel: "BUTTON" },
+      { permCode: "ticket:reply", permName: "公开回复工单", permLevel: "BUTTON" },
+      { permCode: "ticket:report", permName: "查看服务报表", permLevel: "BUTTON" },
+      { permCode: "ticket:resolve", permName: "标记已解决", permLevel: "BUTTON" },
+      { permCode: "ticket:transfer", permName: "转交工单", permLevel: "BUTTON" },
+    ]);
+  });
+
+  it("common 域 4 条 DATA = 4 档数据范围（permCode 升序，与前端 DATA_SCOPES 四项对应）", () => {
+    const { modules } = listPermissionCatalog();
+    const common = modules.find((m) => m.moduleCode === "common");
+
+    expect(common?.permissions.map((p) => p.permCode)).toEqual([
+      "scope:all",
+      "scope:billing-all",
+      "scope:follow-group",
+      "scope:gray-group",
+    ]);
+    expect(common?.permissions.every((p) => p.permLevel === "DATA")).toBe(true);
   });
 });
 
@@ -276,33 +314,34 @@ describe("C6-2-T6 · GET /api/platform/roles/:id/permissions（矩阵读取，�
     expect(mocks.query).not.toHaveBeenCalled();
   });
 
-  it("目录里的每个 module_code 都出现；无记录 ⇒ false/false/''（空态），有记录按落库值", async () => {
+  it("常量里的每个 moduleCode 都出现（恒 8 行、不查目录表）；无记录 ⇒ false/false/''，有记录按落库值", async () => {
     mocks.queryOne.mockResolvedValueOnce({ id: 2, type: "custom" });
-    mocks.query
-      .mockResolvedValueOnce(CATALOG_ROWS)
-      .mockResolvedValueOnce([
-        { moduleCode: "ticket", canMenu: 1, canPageBtn: 1, dataScope: "scope:follow-group" },
-      ]);
+    mocks.query.mockResolvedValueOnce([
+      { moduleCode: "ticket", canMenu: 1, canPageBtn: 1, dataScope: "scope:follow-group" },
+    ]);
 
     const result = await getRolePermissions(2);
 
     expect(result.roleId).toBe(2);
-    expect(result.matrix.map((c) => c.moduleCode)).toEqual(["ai", "common", "ticket", "tenant"]);
+    expect(result.matrix.map((c) => c.moduleCode)).toEqual(MODULE_CODES);
     expect(result.matrix[0]).toEqual({
       moduleCode: "ai",
       canMenu: false,
       canPageBtn: false,
       dataScope: "",
     });
-    expect(result.matrix[2]).toEqual({
+    expect(result.matrix.find((c) => c.moduleCode === "ticket")).toEqual({
       moduleCode: "ticket",
       canMenu: true,
       canPageBtn: true,
       dataScope: "scope:follow-group",
     });
-    expect(String(mocks.query.mock.calls[1][0])).toContain(
+    // 只查矩阵表一次，且不触碰权限点目录表（目录改由常量提供）
+    expect(mocks.query).toHaveBeenCalledTimes(1);
+    expect(String(mocks.query.mock.calls[0][0])).toContain(
       "FROM t_platform_role_permission WHERE role_id = ?"
     );
+    expect(String(mocks.query.mock.calls[0][0])).not.toContain("t_platform_permission_catalog");
   });
 });
 
@@ -311,7 +350,6 @@ describe("C6-2-T6 · PUT /api/platform/roles/:id/permissions（整表替换）",
     vi.resetAllMocks();
     mocks.transaction.mockImplementation(async (runner: any) => runner({}));
     mocks.queryOne.mockResolvedValue({ id: 3, type: "custom" });
-    mocks.query.mockResolvedValue(CATALOG_ROWS);
     mocks.connExecute.mockResolvedValue([{ affectedRows: 1 }, undefined]);
   });
 
@@ -323,6 +361,8 @@ describe("C6-2-T6 · PUT /api/platform/roles/:id/permissions（整表替换）",
 
     expect(result).toEqual({ roleId: 3, saved: 2 });
     expect(mocks.transaction).toHaveBeenCalledTimes(1);
+    // 合法集合由常量派生 ⇒ 校验阶段零查库（尤其是零查 t_platform_permission_catalog）
+    expect(mocks.query).not.toHaveBeenCalled();
     const calls = execCalls();
     expect(calls[0].sql).toContain("DELETE FROM t_platform_role_permission WHERE role_id = ?");
     expect(calls[1].sql).toContain("INSERT INTO t_platform_role_permission");
@@ -337,22 +377,27 @@ describe("C6-2-T6 · PUT /api/platform/roles/:id/permissions（整表替换）",
     expect(execCalls()[1].params).toEqual([3, "ticket", 0, 0, "scope:all"]);
   });
 
-  it("moduleCode 不在目录 ⇒ 400（反测 b：忽略非法值即变红），且不删不插", async () => {
+  it("moduleCode 不在目录常量内 ⇒ 400（反测 b：忽略非法值即变红），且不删不插、不查库", async () => {
     await expect(
       replaceRolePermissions(3, [
         { moduleCode: "not_in_catalog", canMenu: true, canPageBtn: false, dataScope: "" },
       ])
-    ).rejects.toMatchObject({ statusCode: 400 });
+    ).rejects.toMatchObject({
+      statusCode: 400,
+      message: "功能域不在权限点目录内：not_in_catalog",
+    });
     expect(mocks.transaction).not.toHaveBeenCalled();
+    expect(mocks.query).not.toHaveBeenCalled();
   });
 
-  it("dataScope 不在 4 档内 ⇒ 400，且不删不插", async () => {
+  it("dataScope 不在常量派生的 4 档内 ⇒ 400，且不删不插、不查库", async () => {
     await expect(
       replaceRolePermissions(3, [
         { moduleCode: "ticket", canMenu: true, canPageBtn: false, dataScope: "本人" },
       ])
-    ).rejects.toMatchObject({ statusCode: 400 });
+    ).rejects.toMatchObject({ statusCode: 400, message: "数据范围不在 4 档内：本人" });
     expect(mocks.transaction).not.toHaveBeenCalled();
+    expect(mocks.query).not.toHaveBeenCalled();
   });
 
   it("matrix 内 moduleCode 重复 ⇒ 400（否则会撞 uk_role_module 变 500，不做静默去重）", async () => {

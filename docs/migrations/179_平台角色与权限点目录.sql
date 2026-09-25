@@ -35,28 +35,6 @@ CREATE TABLE IF NOT EXISTS t_platform_permission_catalog (
   KEY idx_module_level (module_code, perm_level)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台权限点目录（系统能力枚举，非业务数据）';
 
-INSERT IGNORE INTO t_platform_permission_catalog
-  (module_code, module_name, perm_code, perm_name, perm_level)
-VALUES
-  ('tenant', '租户管理', 'tenant:view', '查看租户管理', 'MENU'),
-  ('billing', '套餐与计费', 'billing:view', '查看套餐与计费', 'MENU'),
-  ('sysconfig', '全局系统配置', 'sysconfig:view', '查看全局系统配置', 'MENU'),
-  ('monitor', '运维监控 / 日志', 'monitor:view', '查看运维监控与日志', 'MENU'),
-  ('ticket', '工单系统', 'ticket:view', '查看工单系统', 'MENU'),
-  ('marketing', '运营营销', 'marketing:view', '查看运营营销', 'MENU'),
-  ('ai', 'AI 能力管控', 'ai:view', '查看 AI 能力管控', 'MENU'),
-  ('ticket', '工单系统', 'ticket:reply', '公开回复工单', 'BUTTON'),
-  ('ticket', '工单系统', 'ticket:note', '内部备注', 'BUTTON'),
-  ('ticket', '工单系统', 'ticket:transfer', '转交工单', 'BUTTON'),
-  ('ticket', '工单系统', 'ticket:resolve', '标记已解决', 'BUTTON'),
-  ('ticket', '工单系统', 'ticket:close', '关闭工单', 'BUTTON'),
-  ('ticket', '工单系统', 'ticket:report', '查看服务报表', 'BUTTON'),
-  ('ticket', '工单系统', 'ticket:category:config', '工单类型配置', 'BUTTON'),
-  ('common', '数据范围档位', 'scope:all', '全部租户', 'DATA'),
-  ('common', '数据范围档位', 'scope:gray-group', '灰度组租户', 'DATA'),
-  ('common', '数据范围档位', 'scope:follow-group', '指定跟进组', 'DATA'),
-  ('common', '数据范围档位', 'scope:billing-all', '账单口径全部', 'DATA');
-
 SELECT COUNT(*) AS c179_new_table_count FROM information_schema.TABLES
  WHERE TABLE_SCHEMA = DATABASE()
    AND TABLE_NAME IN ('t_platform_role', 't_platform_role_permission', 't_platform_permission_catalog');
@@ -74,10 +52,11 @@ SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, COLLATION_NAME
 
 -- ============================================
 -- 迁移编号：179
--- 描述：C6-2-T6 平台角色与权限点目录（三张新表 + 权限点目录预置 18 条）
+-- 描述：C6-2-T6 平台角色与权限点目录（三张新表，纯 DDL 无预置数据）
 -- 创建人：阿坚（后端）
 -- 日期：2026-09-26
--- 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T6.md（交付物① 逐列口径 + 红线⑥ 预置闸门）
+-- 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T6-F2.md（交付物①：迁移回归纯 DDL，目录数据由代码常量提供）
+--       docs/tasks/cards/R101-派单-20260926-C6-2-T6.md（交付物① 逐列口径；其红线⑥ 的预置口径已被 F2 取代）
 --       docs/tasks/cards/R101-C6-2-批1-立项卡-T6+T7.md §三（T6 范围）、§二（文本列显式 COLLATE，禁默认继承）、
 --       §六（迁移口径：零改既有表 / 编号顺延 / 新表全新库可全量建成 / DML 闸门）
 --       docs/tasks/cards/R101-C6-0-阿坚清账.md §5.2-T6（表草案：t_platform_role / t_platform_role_permission /
@@ -88,23 +67,27 @@ SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, COLLATION_NAME
 --       ① t_platform_role 是角色主表，code 唯一，type 只允许 builtin|custom；
 --       ② t_platform_role_permission 是"角色 x 功能域"的三级权限矩阵（can_menu / can_page_btn / data_scope），
 --          role_id 指向 ①的 id（逻辑外键，按立项卡 §二不建物理外键，避免全新库因类型/引擎差异建表失败）；
---          module_code 的取值域由 ③ 决定（不是自由字符串）；
---       ③ t_platform_permission_catalog 是权限点目录（能力枚举）：module_code 定义"有哪些功能域"，
---          所以矩阵端点的行数 = 目录里的 module_code 去重数，目录里没有的 module_code 一律 400。
--- 语句位置：可执行语句（3 条 CREATE TABLE + 1 条 INSERT + 3 条跑后核对 SELECT）顶格放在注释块之前
+--          module_code 的取值域由后端代码常量 PERMISSION_CATALOG 决定（不是自由字符串，见 ③）；
+--       ③ t_platform_permission_catalog 是权限点目录表：为将来"后台可配目录"预留，**本期未启用**，
+--          不读不写、不参与任何查询。module_code 的取值域（"有哪些功能域"）由后端代码常量
+--          PERMISSION_CATALOG 决定 ⇒ 矩阵端点行数 = 常量里 module_code 去重数，常量外的 module_code 一律 400。
+-- 语句位置：可执行语句（3 条 CREATE TABLE + 3 条跑后核对 SELECT）顶格放在注释块之前
 --       —— 规避踩坑日志 [63]／MIG-1「以注释开头的整块语句被 runner 丢弃」。
 --       注释文字内不出现 ASCII 分号，避免注释块被 splitSqlStatements 切成两半（178 迁移同规）。
 -- 幂等（精确表述）：本仓无迁移账本表，每次后端启动都会重跑本文件。CREATE TABLE IF NOT EXISTS 重跑时整条被
---       safeExec 跳过（表已存在）⇒ 已建表不重复建；INSERT IGNORE 重跑时命中 uk_perm_code 的行被忽略
---       ⇒ 目录不会重复插入、也不会覆盖人工改动。仍然存在的边界：IGNORE 只按 perm_code 去重，
---       若有人手改了某条 perm_name 而不改 perm_code，重跑不会把它改回去（视为人工改动，不覆盖）。
--- 预置数据（红线⑥ 走 allow 档，凌舟口径）：t_platform_permission_catalog 预置 18 条 —— 7 域各 1 条 MENU
---       （<module>:view）+ ticket 域 7 条 BUTTON + 4 条 DATA（scope:all / scope:gray-group / scope:follow-group /
---       scope:billing-all）。除这 18 条外无任何预置；t_platform_role 与 t_platform_role_permission 零预置。
---       其余域的 BUTTON 级权限点本单不登记（无已确认能力来源，不为凑数虚构，派单卡交付物① 明确）。
--- 闸门提示：预置 INSERT 属"数据写语句"，外部迁移段的 fail-safe 写闸门默认 block（跳过并留日志），
---       仅当 MIGRATION_WRITE_GATE=allow 时落库 ⇒ 部署时若未设 allow，目录为空、GET /api/platform/permissions/catalog
---       返回 modules=[]（诚实空态，不造假数据）。
+--       safeExec 跳过（表已存在）⇒ 已建表不重复建；本文件无数据写语句、重跑无副作用。
+-- 目录数据不在迁移里写（C6-2-T6-F2 凌舟裁定，取代原单红线⑥"预置 18 条"口径）：
+--       MIG-4 写闸门默认 block —— resolveWriteGate() 只认环境变量 MIGRATION_WRITE_GATE，
+--       未设置或非法值一律回落 block（fail-safe），数据写语句与 CALL 一律跳过并逐条留日志，
+--       没有任何"按文件/按语句豁免"机制；而 runMigrations() 由 server.ts 每次启动调用、
+--       全仓无执行账本表 ⇒ 迁移里的预置 INSERT 根本不会落库，放行 allow 又会让所有迁移的写语句
+--       随每次重启复利叠加（这正是 MIG-4 建闸门要防的事）。
+--       因此目录的单一真相源 = 后端代码常量 PERMISSION_CATALOG（18 条：7 域各 1 条 MENU = <module>:view、
+--       ticket 域 7 条 BUTTON、4 条 DATA），定义在 backend/src/services/platform/platform-role.service.ts，
+--       由 GET /api/platform/permissions/catalog 直接给出，环境无关、无重复写风险。
+--       本文件末尾第 2 条跑后核对 SELECT 对目录表做 GROUP BY 统计：空表恒 0 行，
+--       这正是"迁移不写数据"的旁证（0 行是预期结果，不是缺陷）。
+--       口径与 MIG-4 一致：迁移只做结构，数据写入需显式、幂等、可追溯。
 -- 三表均无 tenant_id（平台级资产，与平台端 /api/platform/* 一致），文本列一律显式 CHARACTER SET utf8mb4
 --       COLLATE utf8mb4_0900_ai_ci（立项卡 §二 硬约束：不默认继承库 collation）。
 -- ============================================
