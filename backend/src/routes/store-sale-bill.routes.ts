@@ -1,12 +1,13 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePermission } from "../middleware/rbac-auth";
 import * as saleBillController from "../controllers/store/sale-bill.controller";
 export { storeSaleBillItemSchema, normalizeStoreSaleBillItem } from "../schemas/store-sale-bill";
 
 export const storeSaleBillRouter = Router();
 
 storeSaleBillRouter.get("/sale-bills", saleBillController.listSaleBills);
-storeSaleBillRouter.post("/sale-bills", saleBillController.createSaleBill);
+storeSaleBillRouter.post("/sale-bills", requirePermission("sale:create"), saleBillController.createSaleBill);
 storeSaleBillRouter.get("/sale-bills/overdue", saleBillController.listOverdueBills);
 storeSaleBillRouter.get("/sale-bills/overdue/check", saleBillController.checkOverdueBills);
 storeSaleBillRouter.get("/sale-bills/:billNo", saleBillController.getSaleBillDetail);

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePermission } from "../middleware/rbac-auth";
 
 import * as svcController from "../controllers/admin/store-value-card.controller";
 
@@ -9,7 +10,7 @@ storeValueCardRouter.post("/", svcController.createStoreValueCard);
 storeValueCardRouter.get("/:cardNo", svcController.getStoreValueCard);
 storeValueCardRouter.post("/:cardNo/recharge", svcController.rechargeCard);
 storeValueCardRouter.post("/:cardNo/consume", svcController.consumeCard);
-storeValueCardRouter.post("/:cardNo/refund", svcController.refundCard);
+storeValueCardRouter.post("/:cardNo/refund", requirePermission("finance:create"), svcController.refundCard);
 storeValueCardRouter.post("/:cardNo/freeze", svcController.freezeCard);
 storeValueCardRouter.post("/:cardNo/unfreeze", svcController.unfreezeCard);
 storeValueCardRouter.get("/:cardNo/transactions", svcController.listStoreValueTransactions);

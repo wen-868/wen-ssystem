@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePermission } from "../middleware/rbac-auth";
 
 import * as commissionController from "../controllers/admin/commission.controller";
 
@@ -13,7 +14,7 @@ commissionRouter.delete("/rules/:id", commissionController.deleteCommissionRule)
 
 // 计算引擎
 commissionRouter.post("/calculate", commissionController.calculateCommissions);
-commissionRouter.post("/settle", commissionController.settleCommissions);
+commissionRouter.post("/settle", requirePermission("finance:payment"), commissionController.settleCommissions);
 commissionRouter.get("/records", commissionController.listCommissionRecords);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
