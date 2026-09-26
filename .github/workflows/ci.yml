@@ -97,6 +97,40 @@ jobs:
       - name: Build backend
         run: npm --workspace backend run build
 
+      # S3-131：admin-web **lint 门禁**接进 CI（阻断）——**必须带 `--max-warnings 0`**。
+      #   凌舟实测：本仓 eslint 对 warning **不阻断**（在 `src/api/pos.ts` 插一个未使用变量，
+      #   `eslint src/` 只报 warning、退出码仍是 0）⇒ 不加 `--max-warnings 0` 就是假门禁：
+      #   "0 problems" 只是今天的快照，明天留 10 个 warning CI 照样绿。
+      #   ⚠️ 本步骤刻意**排在最前**：便宜（秒级），且避免被任何前置步骤的失败掩蔽
+      #   （踩坑 [78]「前置失败永久掩蔽后置缺陷」）。
+      - name: Admin web lint gate (zero warning)
+        run: npm --workspace admin-web run lint:check -- --max-warnings 0
+
+      # S3-129 追加：admin-web **守卫用例**接进 CI（阻断）。
+      #   S3-124 新增 `admin-web/tests/role-guard.spec.mjs` 与 `npm test` 脚本
+      #   （断言"空角色缺省拒绝 fail-closed"等三分支），但此前**无任何 workflow 调用**
+      #   ⇒ 同样会静默退化。纯 node、约 2s，无需浏览器。
+      - name: Admin web role guard tests
+        run: npm --workspace admin-web test
+
+      # S3-129：admin-web **类型门禁**接进 CI（阻断）。
+      #   背景：`admin-web/package.json` 的 `build` = `vite build`（esbuild 只转译、**不做类型检查**），
+      #   故 S3-123 清零的类型错误此前从未被 CI 守过；且 `build:check` 这个脚本
+      #   在接入前**没有任何 workflow 调用**。
+      #   形态选择（派单允许二选一，此处选**两步式**并说明原因）：
+      #     · `build:check` = `vue-tsc -b && vite build` —— `-b` 是 build mode，要求 composite /
+      #       project references；而 admin-web 只有**单个** tsconfig.json（无 references、无 composite），
+      #       实测 `-b` 与 `--noEmit` 的**错误集并不相同**（-b 报得更多），不利于与既有基线对齐；
+      #     · 两步式让"类型检查"独立成一步，失败时**步骤名自证**（验收①要求给出步骤名与耗时），
+      #       且不让类型问题混进 build 日志里。
+      #   ⚠️ 两处防假绿（都是实测踩出来的）：
+      #     1) `working-directory: admin-web` —— 仓库根**没有 tsconfig.json**，在根跑 vue-tsc
+      #        只会打印 tsc 帮助并 exit 1（并非"0 错误"）；必须把 cwd 落到子工程目录。
+      #     2) `npx --no-install` —— 禁止联网兜底安装，缺依赖**直接失败**，不会静默跳过。
+      - name: Admin web type gate (vue-tsc --noEmit)
+        working-directory: admin-web
+        run: npx --no-install vue-tsc --noEmit
+
       - name: Build admin web
         run: npm --workspace admin-web run build
 
