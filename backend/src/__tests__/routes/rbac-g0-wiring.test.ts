@@ -427,7 +427,16 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const G1_WIRED_TOTAL = [...G1_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8", () => {
+  // S3-126（G1b）追加说明：G1 判为「待裁 A 类」的 8 行改挂域内细码接线后，总数由 40 → 48。
+  // 同样只同步"总数 + 逐文件计数"的期望值（新增 S3_126_WIRED_FILES）；G0 名单行与其逐行 403/200
+  // 断言一字未动（对比见 S3-126 回传卡「风险与自我报备」第 1 条）。
+  const S3_126_WIRED_FILES = new Map<string, number>([
+    ["credit.routes.ts", 7],
+    ["commission.routes.ts", 1],
+  ]);
+  const S3_126_WIRED_TOTAL = [...S3_126_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -437,12 +446,13 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL);
-    expect(total).toBe(40);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL);
+    expect(total).toBe(48);
 
     const expected = new Map<string, number>();
     for (const m of MODULES) expected.set(m.file, (expected.get(m.file) ?? 0) + m.rows.length);
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
+    for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     expect([...perFile.entries()].sort()).toEqual([...expected.entries()].sort());
   });
 

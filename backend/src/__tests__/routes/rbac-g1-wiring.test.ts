@@ -24,6 +24,11 @@
  * 与 rbac-g0-wiring.test.ts 的关系：本文件只**新增**用例；G0 文件的逐行 403/200/401 断言与
  * F4 复算断言一字未改（G0 文件仅有一处"全量接线总数"快照期望值随本单 32 → 40 同步，见回传卡报备第 1 条）。
  * F1 更正（2026-09-26）：凌舟真跑 `npx vitest run` 判红（`holdersOf("sale:create")` 的期望漏记了自表 9004）→ 本单更正该期望值，其余一字未动。
+ *
+ * S3-126（G1b）追加（2026-09-26）：G1 判为「待裁 A 类」的 8 行经凌舟裁定，由建议权限点 `finance:create`
+ * 改挂**域内细码**（信用 7 行 → `customer:credit`；提成规则 1 行 → `sale:commission`）后接线，零角色数据变更。
+ * 本文件据此新增 `S126_WIRED` 名单（形状断言 + READONLY 403 + 店长经域通配 200 + 反证 3 角色 403），
+ * 并把这 8 行从 `UNWIRED` 移出（待裁 21 → 13 行）；G1 已接的 8 行与 B/C 类 13 行的断言**一字未动**。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
@@ -246,7 +251,10 @@ const WIRED_MODULES: G1Module[] = [
   },
 ];
 
-/** G1 待裁名单（**21 行**，本单**不得接线**；每行给出待裁原因，逐行证据见审计表） */
+/**
+ * G1 待裁名单（G1 时 21 行；S3-126/G1b 把其中 A 类 8 行改挂域内细码接线后，**本文件现为 13 行**）。
+ * 本单（S3-126）不得接线这 13 行；每行给出待裁原因，逐行证据见审计表。
+ */
 interface G1UnwiredRow {
   file: string;
   prefix: string;
@@ -260,16 +268,6 @@ interface G1UnwiredRow {
 }
 
 const UNWIRED: G1UnwiredRow[] = [
-  // ---- A：已证实的角色门禁冲突（前端页面允许的角色不持有建议权限点）----
-  { file: "commission.routes.ts", prefix: "/api/admin/commission", router: commissionRouter, routePath: "/rules", path: "/rules", reason: "A", note: "提成规则页 :111 [SUPER_ADMIN,STORE_MANAGER]，店长不持有 finance:create" },
-  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId", path: "/1", reason: "A", note: "信用管理页 :162 [SUPER_ADMIN,STORE_MANAGER]，店长不持有 finance:create（零调用点）" },
-  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/occupy", path: "/1/occupy", reason: "A", note: "同上（零调用点）" },
-  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/release", path: "/1/release", reason: "A", note: "同上（零调用点）" },
-  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/freeze", path: "/1/freeze", reason: "A", note: "同上（调用点 CreditView.vue:297）" },
-  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/unfreeze", path: "/1/unfreeze", reason: "A", note: "同上（调用点 CreditView.vue:309）" },
-  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/evaluate", path: "/1/evaluate", reason: "A", note: "同上（零调用点）" },
-  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/auto-init", path: "/1/auto-init", reason: "A", note: "同上（零调用点）" },
-
   // ---- B：app-mobile（商家端）无角色门禁的写调用点 ⇒ 判据不可判定 ----
   { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 门店管理页 stores.vue:241（bankAccountsApi.create）" },
   { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/:id/close", path: "/1/close", reason: "B", note: "app-mobile 门店管理页 stores.vue:263（bankAccountsApi.close）" },
@@ -301,6 +299,41 @@ const WIRED_CASES = WIRED_MODULES.flatMap((m) =>
 const ALLOWED_PAIRS = WIRED_CASES.flatMap((row) => row.allow.map((uid) => ({ ...row, uid })));
 const G1_WIRED_TOTAL = WIRED_CASES.length;
 const G1_UNWIRED_TOTAL = UNWIRED.length;
+
+/**
+ * S3-126（G1b）改挂域内细码后的接线名单（**8 行**，来源 = G1 审计表 §3.1「A 类」8 行）。
+ * 权限点口径 = 派单卡 `docs/tasks/cards/R101-派单-20260926-S3-126.md` §一（R7：只此一份）：
+ *   信用管理 7 行 → `customer:credit`（店长持 `customer:*` ⇒ 域通配命中）
+ *   提成规则 1 行 → `sale:commission`（店长持 `sale:*` ⇒ 域通配命中）
+ * 关键反证：`FINANCE_STAFF`（`finance:*`）、`STORE_OPERATOR`/`SALES_STAFF`（只持精确 `sale:create`）、
+ * `READONLY`（`*:view`）**均不持有**这两个码 ⇒ 仍然 403（不是靠 `finance:*` 放过的）。
+ */
+interface S126Row {
+  file: string;
+  prefix: string;
+  router: Router;
+  /** 路由文件中注册用的路径模式（形状断言用） */
+  routePath: string;
+  /** 测试请求 URL */
+  path: string;
+  perm: string;
+}
+
+const S126_WIRED: S126Row[] = [
+  // 信用管理页 :162 [SUPER_ADMIN, STORE_MANAGER]（7 行）
+  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId", path: "/1", perm: "customer:credit" },
+  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/occupy", path: "/1/occupy", perm: "customer:credit" },
+  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/release", path: "/1/release", perm: "customer:credit" },
+  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/freeze", path: "/1/freeze", perm: "customer:credit" },
+  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/unfreeze", path: "/1/unfreeze", perm: "customer:credit" },
+  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/evaluate", path: "/1/evaluate", perm: "customer:credit" },
+  { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/auto-init", path: "/1/auto-init", perm: "customer:credit" },
+  // 提成规则页 :111 [SUPER_ADMIN, STORE_MANAGER]（1 行）
+  { file: "commission.routes.ts", prefix: "/api/admin/commission", router: commissionRouter, routePath: "/rules", path: "/rules", perm: "sale:commission" },
+];
+
+const S126_CASES = S126_WIRED.map((r) => ({ ...r, label: `${r.file} POST ${r.prefix}${r.path}` }));
+const S126_WIRED_TOTAL = S126_CASES.length;
 
 /** 与生产挂载链等价（auth → tenant → csrf）的测试 App：req.user 由请求头注入 */
 function buildApp(prefix: string, router: Router, rawMount?: boolean) {
@@ -394,10 +427,11 @@ beforeEach(() => {
 });
 
 describe("S3-122-G1 · 名单自证（验收标准①）", () => {
-  it("29 行 = 可接 8 行 + 待裁 21 行", () => {
+  it("29 行 = G1 已接 8 行 + S3-126 新接 8 行（A 类改挂域内细码）+ 未接 13 行", () => {
     expect(G1_WIRED_TOTAL).toBe(8);
-    expect(G1_UNWIRED_TOTAL).toBe(21);
-    expect(G1_WIRED_TOTAL + G1_UNWIRED_TOTAL).toBe(29);
+    expect(S126_WIRED_TOTAL).toBe(8);
+    expect(G1_UNWIRED_TOTAL).toBe(13);
+    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + G1_UNWIRED_TOTAL).toBe(29);
   });
 
   it("已接 8 行分布：bank-account 2 / payment 1 / store-value-card 1 / flash-sale 4", () => {
@@ -521,7 +555,7 @@ describe("S3-122-G1 · b) 有权角色照常通过（不锁死）", () => {
   });
 });
 
-describe("S3-122-G1 · c) 未接的 21 行仍然不被拦（验收标准⑤，证明没偷偷接）", () => {
+describe("S3-122-G1 · c) 未接的 13 行仍然不被拦（验收标准⑤，证明没偷偷接）", () => {
   it.each(UNWIRED)("$file POST $routePath（待裁 $reason）：READONLY 仍然 200", async (row) => {
     const res = await call(appFor(row.file, row.prefix, row.router, row.rawMount), "post", `${row.prefix}${row.path}`, READONLY_USER, row.rawMount);
     expect(res.status, `${row.file} ${row.routePath}（${row.note}）`).toBe(200);
@@ -555,9 +589,14 @@ describe("S3-122-G1 · d) 未登录 401（既有行为不变）", () => {
 });
 
 describe("S3-122-G1 · 待裁原因可复核（A/B/C 三类证据锚点）", () => {
-  it("A 类 8 行：前端页面允许的角色（STORE_MANAGER）确实不在权限持有人集合里", () => {
+  it("原 A 类 8 行：判据（店长不持有 finance:create）仍成立；8 行已由 S3-126 改挂域内细码接线", () => {
     expect(holdersOf("finance:create")).not.toContain(STORE_MANAGER_PROD);
-    expect(UNWIRED.filter((r) => r.reason === "A").map((r) => `${r.file} ${r.routePath}`)).toEqual([
+    // S3-126 后 A 类不再留在待裁名单（8 行已接线），改由 S126_WIRED 名单承载
+    expect(UNWIRED.filter((r) => r.reason === "A")).toEqual([]);
+    // S3-126-F1 更正（红点 1）：原断言用 toEqual 直接比数组 ⇒ 把「源码扫描顺序」当契约。
+    // 改为顺序无关的硬清单比较（两侧 .sort() 后 toEqual），并额外断言条数以排除重复元素；
+    // 既不放宽为 arrayContaining，也不删除本断言（踩坑[127] 家族：绝对值/顺序不得写死）。
+    const expectKeys = [
       "commission.routes.ts /rules",
       "credit.routes.ts /:customerId",
       "credit.routes.ts /:customerId/occupy",
@@ -566,7 +605,13 @@ describe("S3-122-G1 · 待裁原因可复核（A/B/C 三类证据锚点）", () 
       "credit.routes.ts /:customerId/unfreeze",
       "credit.routes.ts /:customerId/evaluate",
       "credit.routes.ts /:customerId/auto-init",
-    ]);
+    ];
+    const actualKeys = S126_CASES.map((r) => `${r.file} ${r.routePath}`);
+    expect(actualKeys).toHaveLength(expectKeys.length);
+    expect([...actualKeys].sort()).toEqual([...expectKeys].sort());
+    // 改挂的两个细码：店长（生产实值）经 customer:* / sale:* 域通配命中（不锁死）
+    expect(holdersOf("customer:credit")).toContain(STORE_MANAGER_PROD);
+    expect(holdersOf("sale:commission")).toContain(STORE_MANAGER_PROD);
   });
 
   it("B 类 9 行：均为 app-mobile（无 meta.roles 门禁）的写调用点，判据不可判定", () => {
@@ -582,5 +627,94 @@ describe("S3-122-G1 · 待裁原因可复核（A/B/C 三类证据锚点）", () 
     for (const anchor of ["/best-price", "/VC1/recharge", "path: \"/\"", "sale-returns"]) {
       expect(g0).toContain(anchor);
     }
+  });
+});
+
+// ==================================================================================
+// S3-126（G1b）· A 类 8 行改挂域内细码后的接线验收
+//   派单卡：docs/tasks/cards/R101-派单-20260926-S3-126.md
+//   口径：信用 7 行 → customer:credit；提成规则 1 行 → sale:commission（零角色数据变更）
+//   反测（门禁铁律）：任取 1 行改回 finance:create ⇒ 本段「店长 ⇒ 200」用例必红。
+// ==================================================================================
+describe("S3-126 · 形状断言（改挂后的注册行；验收标准①，踩坑[134] 行级判据）", () => {
+  it.each(S126_CASES)("$label：注册行自带 requirePermission(\"$perm\")", (row) => {
+    const lines = registrationLines(row.file, "post", row.routePath);
+    expect(lines.map((l) => l.no)).toHaveLength(1);
+    expect(lines[0].line).toContain(`requirePermission("${row.perm}")`);
+  });
+
+  it("域通配命中复算：customer:credit 与 sale:commission 的持有人集合逐账号一致（= 超管/运营/店长两种口径）", () => {
+    // 逐账号复算（非人工誊写）：9002 SUPER_ADMIN(*) / 9004 店长种子(customer:*, sale:*) /
+    // 9009 店长生产实值(customer:*, sale:*) / 9010 OPERATION_ADMIN(*)
+    expect(holdersOf("customer:credit")).toEqual([9002, 9004, 9009, 9010]);
+    expect(holdersOf("sale:commission")).toEqual([9002, 9004, 9009, 9010]);
+  });
+
+  it("反证（不越权扩面）：READONLY / FINANCE_STAFF / STORE_OPERATOR / SALES_STAFF 对两个新码全不持有", () => {
+    for (const uid of [READONLY_USER, FINANCE_STAFF, STORE_OPERATOR, SALES_STAFF]) {
+      for (const perm of ["customer:credit", "sale:commission"]) {
+        expect(matchPermission(USERS[uid].perms, perm), `${USERS[uid].name} 不得持有 ${perm}`).toBe(false);
+      }
+    }
+  });
+});
+
+describe("S3-126 · a) 只读账号被拦（新细码 ⇒ 403，未到达业务层）", () => {
+  it.each(S126_CASES)("$label ⇒ 403 且 msg 含新权限点", async (row) => {
+    const res = await call(
+      appFor(row.file, row.prefix, row.router),
+      "post",
+      `${row.prefix}${row.path}`,
+      READONLY_USER
+    );
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe("403");
+    expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+    expect(res.body.handler).toBeUndefined();
+    expect(h.reached).toEqual([]);
+  });
+});
+
+describe("S3-126 · b) 店长经既有域通配通过（不锁死；反测命中此段）", () => {
+  it.each(S126_CASES)("$label：STORE_MANAGER（生产实值，持 customer:*/sale:*）⇒ 200（到达控制器）", async (row) => {
+    const res = await call(
+      appFor(row.file, row.prefix, row.router),
+      "post",
+      `${row.prefix}${row.path}`,
+      STORE_MANAGER_PROD
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(typeof res.body.handler).toBe("string");
+    expect(h.reached.length).toBeGreaterThan(0);
+  });
+
+  it("超管（*）同样通过 8 行（既有行为不变）", async () => {
+    for (const row of S126_CASES) {
+      const res = await call(appFor(row.file, row.prefix, row.router), "post", `${row.prefix}${row.path}`, SUPER_ADMIN_USER);
+      expect(res.status, row.label).toBe(200);
+    }
+  });
+});
+
+describe("S3-126 · c) 反证：其他角色不被放开（不越权扩面）", () => {
+  it.each(S126_CASES)("$label：STORE_OPERATOR / FINANCE_STAFF / SALES_STAFF ⇒ 403", async (row) => {
+    for (const uid of [STORE_OPERATOR, FINANCE_STAFF, SALES_STAFF]) {
+      const res = await call(
+        appFor(row.file, row.prefix, row.router),
+        "post",
+        `${row.prefix}${row.path}`,
+        uid
+      );
+      expect(res.status, `${row.label} uid=${uid}`).toBe(403);
+      expect(res.body.msg, `${row.label} uid=${uid}`).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+    }
+  });
+
+  it("FINANCE_STAFF 的 finance:*（域通配）**不能**通过新细码——证明不是靠 finance:* 放过的", () => {
+    // 与 S3-122-G1 的「域通配真实生效」用例互为反证：同一 matcher，不同域互不相通
+    expect(matchPermission(USERS[FINANCE_STAFF].perms, "customer:credit")).toBe(false);
+    expect(matchPermission(USERS[FINANCE_STAFF].perms, "sale:commission")).toBe(false);
+    expect(matchPermission(USERS[FINANCE_STAFF].perms, "finance:create")).toBe(true);
   });
 });
