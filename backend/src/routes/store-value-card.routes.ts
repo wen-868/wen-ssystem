@@ -9,7 +9,7 @@ storeValueCardRouter.get("/", svcController.listStoreValueCards);
 storeValueCardRouter.post("/", svcController.createStoreValueCard);
 storeValueCardRouter.get("/:cardNo", svcController.getStoreValueCard);
 storeValueCardRouter.post("/:cardNo/recharge", svcController.rechargeCard);
-storeValueCardRouter.post("/:cardNo/consume", svcController.consumeCard);
+storeValueCardRouter.post("/:cardNo/consume", requirePermission("finance:create"), svcController.consumeCard);
 storeValueCardRouter.post("/:cardNo/refund", requirePermission("finance:create"), svcController.refundCard);
 storeValueCardRouter.post("/:cardNo/freeze", svcController.freezeCard);
 storeValueCardRouter.post("/:cardNo/unfreeze", svcController.unfreezeCard);
