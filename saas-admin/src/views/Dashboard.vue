@@ -156,7 +156,7 @@
               <span class="btn" :class="{ 'btn-p': exportFormat === 'pdf' }" @click="exportFormat = 'pdf'">PDF</span>
             </span>
           </span>
-          <span class="btn btn-p export-submit" @click="handleExport">导出所选报表</span>
+          <span class="btn btn-p export-submit" @click="handleExport">{{ exportSubmitting ? '提交中…' : '导出所选报表' }}</span>
         </div>
 
         <div class="tblwrap mt10">
@@ -172,8 +172,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="!exportTasks.length">
-                <td colspan="6" class="tbl-empty">暂无导出任务 · 导出记录将在接口对接后展示</td>
+              <tr v-if="exportLoading">
+                <td colspan="6" class="tbl-empty">导出任务加载中…</td>
+              </tr>
+              <tr v-else-if="!exportTasks.length">
+                <td colspan="6" class="tbl-empty">暂无导出任务（点上方「导出所选报表」创建）</td>
               </tr>
               <tr v-for="t in exportTasks" :key="t.id">
                 <td><b>{{ t.name }}</b></td>
@@ -195,6 +198,31 @@
           </table>
         </div>
 
+        <!-- 业务提示区（R101-S2-01 裁定：toast 由 api 拦截器统一弹，页面只做内容区错误/业务提示） -->
+        <div v-if="exportNotice" class="tipbar r mt8">
+          <span class="ic">!</span>
+          <span>{{ exportNotice }}</span>
+        </div>
+
+        <!-- 任务日志（GET /api/platform/reports/export/:id/logs；created_at 升序） -->
+        <div v-if="taskLog.open" class="log-panel mt8">
+          <div class="p-hd">
+            <span class="pt">任务日志 · {{ taskLog.taskNo }}</span>
+            <span class="btn-t gy" @click="closeTaskLog">关闭</span>
+          </div>
+          <div class="p-bd">
+            <div v-if="taskLog.loading" class="small">加载中…</div>
+            <div v-else-if="!taskLog.items.length" class="small">暂无任务日志</div>
+            <template v-else>
+              <div v-for="(log, i) in taskLog.items" :key="i" class="small log-line">
+                <span class="log-time">{{ showTime(log.createdAt) }}</span>
+                <span>{{ log.level }}</span>
+                <span>{{ log.message }}</span>
+              </div>
+            </template>
+          </div>
+        </div>
+
         <p class="small mt8">
           导出说明：报表异步生成，完成后在「下载中心」取件，链接 <b>7 天内有效</b>；财务报表含租户名称 / 套餐 /
           应收实收 / 欠费，不含租户内部销售单、采购单等业务明细；导出行为全部留痕（谁 / 何时 / 导出范围）。
@@ -209,7 +237,15 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { Download } from '@element-plus/icons-vue'
-import { getPlatformOverview } from '../api'
+import {
+  createExportTask,
+  downloadExportTask,
+  getExportTaskLogs,
+  getExportTaskStatus,
+  getPlatformOverview,
+  listExportTasks,
+} from '../api'
+import { pickBackendMessage } from '../utils/http-error'
 
 /* ── 图表配色：一律读取 design token，避免在脚本里写死色值 ── */
 function token(name: string, fallback = ''): string {
@@ -335,24 +371,148 @@ const exportFormat = ref('excel')
 const exportTasks = ref<any[]>([])
 const lastMonthLabel = computed(() => '上月')
 
-/** 生成中的任务只展示「刷新」（设计稿 v1.6 第 511 行） */
-function isGenerating(t: any) {
-  const s = String(t?.status || '')
-  return s.includes('生成中') || s.toUpperCase().includes('GENERATING')
-}
-function onRefreshTask(t: any) {
-  ElMessage.info(`刷新导出任务状态：待接入 GET /api/platform/reports/export/${t?.id ?? ''}/status`)
-}
-function onDownloadTask(t: any) {
-  ElMessage.info(`下载：待接入 GET /api/platform/reports/export/${t?.id ?? ''}/download`)
-}
-function onTaskLog(t: any) {
-  ElMessage.info(`任务日志：待接入 GET /api/platform/reports/export/${t?.id ?? ''}/logs`)
+/* R101-C6-3-0 接线：平台报表导出任务中心（前缀 /api/platform/reports/export，端点已上线）
+   零假数据：列表/状态/日志均来自接口；下载无文件时后端 404 的中文业务文案原样上屏（不改写成成功）。 */
+const exportLoading = ref(false)
+const exportSubmitting = ref(false)
+/** 内容区业务提示（toast 一律由 api 拦截器弹，页面只做内容区提示，守 R101-S2-01 裁定①分层） */
+const exportNotice = ref('')
+const taskLog = ref<{ open: boolean; loading: boolean; taskNo: string; items: any[] }>({
+  open: false,
+  loading: false,
+  taskNo: '',
+  items: [],
+})
+
+/** 状态 → 展示文案/色板：取值与后端 EXPORT_TASK_STATUSES 逐字一致（PENDING/GENERATING/SUCCESS/FAILED） */
+const EXPORT_STATUS_VIEW: Record<string, { label: string; tagClass: string }> = {
+  PENDING: { label: '待生成', tagClass: 'tag-gy' },
+  GENERATING: { label: '生成中', tagClass: 'tag-o' },
+  SUCCESS: { label: '已完成', tagClass: 'tag-g' },
+  FAILED: { label: '失败', tagClass: 'tag-r' },
 }
 
-function handleExport() {
-  // TODO: 待接入 POST /api/platform/reports/export（异步生成，完成后在下载中心取件）
-  ElMessage.info('报表导出接口待对接（POST /api/platform/reports/export）')
+/** 时间戳展示：取 'YYYY-MM-DD HH:mm'；无值显示 —（不造时间） */
+function showTime(v: any): string {
+  return v ? String(v).replace('T', ' ').slice(0, 16) : '—'
+}
+
+/** 接口记录 → 表格行：字段全部来自接口，取不到显示 —，不补默认业务值 */
+function toExportRow(record: any) {
+  const statusRaw = String(record?.status ?? '')
+  const view = EXPORT_STATUS_VIEW[statusRaw] ?? { label: statusRaw || '—', tagClass: 'tag-gy' }
+  const typeLabel = reportTypes.find((t) => t.key === record?.exportType)?.label ?? String(record?.exportType ?? '—')
+  return {
+    id: Number(record?.id),
+    name: String(record?.taskNo ?? '—'),
+    summary: `${typeLabel} · ${record?.format ?? '—'}`,
+    scope: record?.period == null ? '未指定' : String(record.period),
+    status: view.label,
+    statusRaw,
+    tagClass: view.tagClass,
+    createdAt: showTime(record?.createdAt),
+  }
+}
+
+/** 拉取任务列表（GET /api/platform/reports/export；空表 ⇒ 空态） */
+async function loadExportTasks() {
+  exportLoading.value = true
+  try {
+    const res: any = await listExportTasks({ page: 1, pageSize: 20 })
+    const d = res?.data?.data ?? {}
+    exportTasks.value = Array.isArray(d.records) ? d.records.map(toExportRow) : []
+    exportNotice.value = ''
+  } catch {
+    // 失败可见：清空列表 + 内容区明示，绝不保留旧数据冒充最新
+    exportTasks.value = []
+    exportNotice.value = '导出任务列表加载失败（未取到任务数据）'
+  } finally {
+    exportLoading.value = false
+  }
+}
+
+/** 生成中的任务只展示「刷新」（设计稿 v1.6 第 511 行） */
+function isGenerating(t: any) {
+  return String(t?.statusRaw || '') === 'GENERATING'
+}
+
+/** 刷新单个任务状态（GET /api/platform/reports/export/:id/status；不存在 ⇒ 404） */
+async function onRefreshTask(t: any) {
+  try {
+    const res: any = await getExportTaskStatus(Number(t?.id))
+    const record = res?.data?.data
+    if (!record) return
+    const row = toExportRow(record)
+    exportTasks.value = exportTasks.value.map((x) => (x.id === row.id ? row : x))
+    exportNotice.value = ''
+  } catch {
+    exportNotice.value = `任务状态刷新失败：${t?.name ?? ''}`
+  }
+}
+
+/**
+ * 下载（GET /api/platform/reports/export/:id/download）
+ * 本期无导出生成器 ⇒ file_url 恒 NULL ⇒ 后端 404 + 业务文案；此处只把它**原样**展示，
+ * 不改写成「下载成功」，也不生成本地空文件。
+ */
+async function onDownloadTask(t: any) {
+  try {
+    await downloadExportTask(Number(t?.id))
+    exportNotice.value = '下载通道尚未接入：后端未返回文件（如已接通，请改用文件流下载方式）'
+  } catch (e: any) {
+    exportNotice.value = pickBackendMessage(e?.response?.data) || '导出文件下载失败'
+  }
+}
+
+/** 任务日志（GET /api/platform/reports/export/:id/logs；created_at 升序；无日志 ⇒ 空态） */
+async function onTaskLog(t: any) {
+  taskLog.value = { open: true, loading: true, taskNo: String(t?.name ?? ''), items: [] }
+  try {
+    const res: any = await getExportTaskLogs(Number(t?.id))
+    const logs = res?.data?.data?.logs
+    taskLog.value = { open: true, loading: false, taskNo: String(t?.name ?? ''), items: Array.isArray(logs) ? logs : [] }
+    exportNotice.value = ''
+  } catch {
+    taskLog.value = { open: false, loading: false, taskNo: '', items: [] }
+    exportNotice.value = '任务日志加载失败'
+  }
+}
+
+function closeTaskLog() {
+  taskLog.value = { open: false, loading: false, taskNo: '', items: [] }
+}
+
+/**
+ * 创建导出任务（POST /api/platform/reports/export）
+ * 格式口径：后端只接受 CSV|XLSX ⇒ 页面 Excel 一一对应 XLSX；PDF 不在后端枚举内，
+ * 如实提示且不静默改格式（禁止假成功）。自定义区间同理——页面暂无起止日期控件，不臆造区间。
+ */
+async function handleExport() {
+  if (exportSubmitting.value) return
+  if (exportFormat.value === 'pdf') {
+    ElMessage.warning('PDF 导出后端暂不支持（导出格式仅 CSV/XLSX），未发起导出')
+    return
+  }
+  if (exportPeriod.value === 'custom') {
+    ElMessage.warning('自定义区间需要起止日期（页面暂无日期控件），未发起导出')
+    return
+  }
+  exportSubmitting.value = true
+  try {
+    const res: any = await createExportTask({
+      exportType: exportType.value,
+      period: exportPeriod.value === 'lastMonth' ? '上月' : '本月',
+      format: 'XLSX',
+    })
+    const task = res?.data?.data ?? {}
+    ElMessage.success(`已创建导出任务 ${task.taskNo ?? ''}（状态 ${task.status ?? 'PENDING'}：等待生成器接入）`)
+    exportNotice.value = ''
+    await loadExportTasks()
+  } catch {
+    exportNotice.value = '导出任务创建失败'
+  } finally {
+    exportSubmitting.value = false
+  }
 }
 
 /* ── 图表实例管理 ── */
@@ -464,6 +624,8 @@ watch([hasTrend, hasPlan, hasIncome], async () => {
 
 onMounted(() => {
   load()
+  // 导出任务列表与大盘并行加载（各自独立空态/错误态，互不影响）
+  loadExportTasks()
   window.addEventListener('resize', resizeAll)
 })
 
@@ -512,6 +674,28 @@ onUnmounted(() => {
 .plan-dist-legend {
   flex: 1;
   min-width: 0;
+}
+/* 任务日志面板（仅用 token 组合，不写死色值/尺寸） */
+.log-panel {
+  border: 1px solid var(--g2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.log-panel .p-hd {
+  border-bottom: 1px solid var(--g2);
+}
+.log-line {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px dashed var(--g1);
+}
+.log-line:last-child {
+  border-bottom: none;
+}
+.log-time {
+  color: var(--g4);
+  flex: none;
 }
 .dot {
   width: 9px;
