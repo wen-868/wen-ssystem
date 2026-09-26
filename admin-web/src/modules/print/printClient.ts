@@ -162,7 +162,7 @@ th{background:#f5f5f5}
 .foot{margin-top:16px;text-align:center;color:#666;font-size:11px}
 </style></head><body>
 <h2>智享全链 · 单据</h2>
-<div>单号：{{billNo}}　日期：{{billDate}}　操作人：{{operatorName}}</div>
+<div>单号：{{billNo}} 日期：{{billDate}} 操作人：{{operatorName}}</div>
 <table><tr><th>#</th><th>商品</th><th>数量</th><th>金额</th></tr>{{items}}</table>
 <div class="total">合计：¥{{totalAmount}}</div>
 <div class="foot">{{footerText}}</div>

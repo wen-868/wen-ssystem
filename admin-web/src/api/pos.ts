@@ -237,7 +237,8 @@ export async function createStoreShift(payload: {
   return data.data;
 }
 
-export async function fetchStoreShiftDetail(shiftId: number) {
+// 后端历史接口不带单号（GET /store/shift/history），该参数暂为接口占位，按 ESLint 约定以 _ 前缀标注未使用
+export async function fetchStoreShiftDetail(_shiftId: number) {
   const { data } = await api.get(`/store/shift/history`);
   return data.data;
 }
