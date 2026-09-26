@@ -435,10 +435,6 @@ const openGroups = reactive({
   system: true,
 });
 
-const isCashierUser = computed(() => {
-  return currentUser.value?.roles?.includes("CASHIER") ?? false;
-});
-
 onMounted(() => {
   // 启动检查更新（有新版本提示刷新）
   checkWebUpdate();
