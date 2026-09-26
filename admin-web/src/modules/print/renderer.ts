@@ -8,7 +8,6 @@ import type { PrintVars } from "./types";
 import type {
   PrintCodeWidget,
   PrintModule,
-  PrintModuleType,
   PrintTemplateJson,
   PrintTemplateV3,
   PrintWidget,
@@ -440,7 +439,6 @@ function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string, s
           return `<tr>${tds}</tr>`;
         })
         .join("");
-      const pad = w.cellPadding ?? 1;
       // 编辑器画布字号按物理比例随纸面缩放：1pt = 0.3528mm，所见即打印；打印保持 pt 单位
       const fs = w.fontSize ?? 9;
       const fsCss = scale ? `${(fs * scale / 2.835).toFixed(1)}px` : `${fs}pt`;

@@ -104,21 +104,6 @@ function defaultTexts(billType: PrintBillType): Array<{ text: string; align: "le
   return [map[billType] ?? { text: "智享全链 · 单据", align: "center", size: 16 }];
 }
 
-/** 单据类型默认展示字段 */
-function defaultFieldKeys(billType: PrintBillType): string[] {
-  const map: Partial<Record<PrintBillType, string[]>> = {
-    SALE_RECEIPT: ["headerName", "billNo", "billDate", "operatorName", "customerName", "totalAmount", "paidAmount", "changeAmount", "paymentMethod", "remarkBlock", "footerText"],
-    SALE_BILL: ["headerName", "billNo", "billDate", "saleType", "customerName", "customerPhone", "operatorName", "auditorName", "salesmanName", "totalAmount", "discountAmount", "paidAmount", "amountChinese", "remarkBlock", "signRoles"],
-    SALE_RETURN: ["headerName", "billNo", "billDate", "customerName", "totalAmount", "paidAmount", "remarkBlock"],
-    PURCHASE_ORDER: ["headerName", "billNo", "billDate", "customerName", "totalAmount", "remarkBlock"],
-    REPORT: ["reportTitle", "reportPeriod"],
-    LABEL: ["productName", "skuName", "price", "unit"],
-    SHIFT: ["shiftNo", "billDate", "operatorName", "receiverName", "saleCount", "totalAmount"],
-    DAILY_SETTLE: ["billDate", "operatorName", "saleCount", "totalAmount", "cashAmount", "wechatAmount", "alipayAmount", "balanceAmount"],
-  };
-  return map[billType] ?? ["headerName", "billNo", "billDate", "operatorName", "totalAmount"];
-}
-
 /** 字段行定义（默认模板布局用） */
 interface FieldRow {
   /** 每格字段（整行字段放单元素数组） */
