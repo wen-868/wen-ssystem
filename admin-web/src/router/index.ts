@@ -307,9 +307,11 @@ router.beforeEach((to, _from, next) => {
   }
 
   // 角色权限检查：用户角色数组与路由允许角色数组任一命中即可（与后端 roles: string[] 对齐）
+  // 缺省拒绝（fail-closed）：路由声明了 meta.roles 而当前用户角色为空时判为拒绝（S3-124）——
+  // 空角色（如角色被停用/角色链接被删）不得"跳过校验直接放行"
   const userRoles = auth.userRoles;
   const allowedRoles = (to.meta.roles as string[] | undefined) || [];
-  if (allowedRoles.length > 0 && userRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
+  if (allowedRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
     ElMessage.warning("您没有权限访问该页面");
     next("/dashboard");
     return;

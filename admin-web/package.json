@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
+    "test": "node tests/role-guard.spec.mjs",
     "build:check": "vue-tsc -b && vite build",
     "lint": "eslint src/ --fix",
     "lint:check": "eslint src/",
