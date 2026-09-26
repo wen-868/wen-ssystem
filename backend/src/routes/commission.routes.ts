@@ -8,7 +8,7 @@ export const commissionRouter = Router();
 
 // 规则 CRUD
 commissionRouter.get("/rules", commissionController.listCommissionRules);
-commissionRouter.post("/rules", commissionController.createCommissionRule);
+commissionRouter.post("/rules", requirePermission("sale:commission"), commissionController.createCommissionRule);
 commissionRouter.put("/rules/:id", commissionController.updateCommissionRule);
 commissionRouter.delete("/rules/:id", commissionController.deleteCommissionRule);
 
