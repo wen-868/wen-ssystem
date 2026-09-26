@@ -1,4 +1,5 @@
 import { query, queryOne, transaction } from "../../shared/db";
+import logger from "../../shared/logger";
 
 // ==================== 类型定义 ====================
 
@@ -257,6 +258,62 @@ export async function setUserRoles(userId: number, roleIds: number[], tenantId: 
   return records;
 }
 
+/**
+ * 解析角色的 permissions 字段为权限码数组（fail-safe）。
+ *
+ * 该列在库中是 JSON 数组文本；驱动若已自动解析则直接是数组。
+ * 非数组 / 非 JSON / 解析异常一律按「空数组」处理（即无权限，拒绝），
+ * 只留一条 warn 日志，绝不让单个脏数据把鉴权链路整体打挂。
+ */
+function parseRolePermissions(raw: unknown): string[] {
+  if (raw === null || raw === undefined) {
+    return [];
+  }
+  let parsed: unknown = raw;
+  if (typeof raw === "string") {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      logger.warn("角色 permissions 字段不是合法 JSON，按无权限处理");
+      return [];
+    }
+  }
+  if (!Array.isArray(parsed)) {
+    logger.warn("角色 permissions 字段不是数组，按无权限处理");
+    return [];
+  }
+  return parsed.filter((item): item is string => typeof item === "string");
+}
+
+/**
+ * 权限码匹配（纯函数，按顺序判定）：
+ * 1) `"*"` ⇒ 全通过；
+ * 2) `"<dom>:*"` 模块通配（permCode 以 `<dom>:` 开头）⇒ 通过；
+ * 3) `"*:<action>"` 动作通配（permCode 以 `:<action>` 结尾）⇒ 通过；
+ * 4) 精确码 ⇒ 通过；其余 ⇒ 不通过。
+ */
+export function matchPermission(perms: string[], permCode: string): boolean {
+  if (!Array.isArray(perms) || typeof permCode !== "string" || permCode.length === 0) {
+    return false;
+  }
+  if (perms.includes("*")) {
+    return true;
+  }
+  const domIndex = permCode.indexOf(":");
+  if (domIndex > 0 && perms.includes(`${permCode.slice(0, domIndex)}:*`)) {
+    return true;
+  }
+  const actionIndex = permCode.lastIndexOf(":");
+  if (
+    actionIndex > -1 &&
+    actionIndex < permCode.length - 1 &&
+    perms.includes(`*:${permCode.slice(actionIndex + 1)}`)
+  ) {
+    return true;
+  }
+  return perms.includes(permCode);
+}
+
 export async function checkUserPermission(userId: number, tenantId: number, permCode: string): Promise<boolean> {
   const roles = await query<RolePermissionRow>(
     `SELECT r.permissions
@@ -267,8 +324,7 @@ export async function checkUserPermission(userId: number, tenantId: number, perm
   );
 
   for (const role of roles) {
-    const perms: string[] = role.permissions ? JSON.parse(role.permissions as string) : [];
-    if (perms.includes("*") || perms.includes(permCode)) {
+    if (matchPermission(parseRolePermissions(role.permissions), permCode)) {
       return true;
     }
   }
