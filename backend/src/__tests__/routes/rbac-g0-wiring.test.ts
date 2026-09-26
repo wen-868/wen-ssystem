@@ -15,6 +15,9 @@
  *        控制器（只记录「请求是否到达业务层」）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入）。
  *
  * 反测（门禁铁律）：摘掉任一条 `requirePermission(...)` ⇒ 本文件对应「READONLY ⇒ 403」用例必红。
+ * S3-122-F4 追加：日结端点改挂 `finance:daily-settle` 后，本文件补「角色 × 5 端点复算表」——
+ *   STORE_OPERATOR（F4 订正后）只过 #1 日结，#2–#5 四个收款类端点必须 403（反测：把 #1 改回
+ *   `finance:payment` ⇒ STORE_OPERATOR 行必红）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
@@ -135,6 +138,17 @@ const USERS: Record<number, { name: string; roles: string[]; perms: string[] }> 
     perms: ["finance:*", "report:*", "customer:statement", "supplier:statement", "dashboard:view"],
   },
   9007: { name: "purchase_staff", roles: ["PURCHASE_STAFF"], perms: ["purchase:*", "supplier:*", "inventory:inbound", "report:purchase"] },
+  /** S3-122-F4 角色数据订正后的两个角色（口径 = 派单卡 R3：操作员删 finance:payment、补 finance:daily-settle） */
+  9008: {
+    name: "store_operator",
+    roles: ["STORE_OPERATOR"],
+    perms: ["sale:create", "sale:view", "inventory:view", "dashboard:view", "sale:return", "finance:daily-settle"],
+  },
+  9009: {
+    name: "store_manager_f4",
+    roles: ["STORE_MANAGER"],
+    perms: ["store:*", "sale:*", "customer:*", "inventory:*", "report:*", "dashboard:*", "finance:payment", "goods:price", "finance:daily-settle"],
+  },
 };
 const READONLY_USER = 9001;
 const SUPER_ADMIN_USER = 9002;
@@ -230,7 +244,7 @@ const MODULES: G0Module[] = [
     file: "admin-finance.routes.ts",
     prefix: "/api/admin",
     router: adminFinanceRouter,
-    rows: [{ method: "post", path: "/daily-settlements", perm: "finance:payment", allow: [SUPER_ADMIN_USER, 9006] }],
+    rows: [{ method: "post", path: "/daily-settlements", perm: "finance:daily-settle", allow: [SUPER_ADMIN_USER, 9006] }],
   },
   {
     file: "commission.routes.ts",
@@ -295,6 +309,39 @@ const G0_CASES = MODULES.flatMap((m) =>
     label: `${m.file} ${r.method.toUpperCase()} ${m.prefix}${r.path}`,
   }))
 );
+
+/**
+ * S3-122-F4 · 本次拆分涉及的 5 条端点（**从 G0 名单派生**，避免两处口径漂移）：
+ * #1 日结（新码 finance:daily-settle）+ #2 提成结算 / #3 支付核销 / #4 收据核销 / #5 应收收款（仍为 finance:payment）。
+ */
+const F4_FILES = [
+  "admin-finance.routes.ts",
+  "commission.routes.ts",
+  "payment-new.routes.ts",
+  "receipt.routes.ts",
+  "store-receivable.routes.ts",
+];
+const F4_ROWS = MODULES.filter((m) => F4_FILES.includes(m.file)).flatMap((m) =>
+  m.rows.map((r) => ({
+    file: m.file,
+    prefix: m.prefix,
+    router: m.router,
+    rawMount: m.rawMount,
+    perm: r.perm,
+    method: r.method,
+    path: r.path,
+    label: `${m.file} ${r.method.toUpperCase()} ${m.prefix}${r.path}`,
+  }))
+);
+/** 期望顺序 = #1 日结、#2 提成结算、#3 支付核销、#4 收据核销、#5 应收收款 */
+const F4_EXPECTED_PATHS = ["/daily-settlements", "/settle", "/PAY202601/writeoff", "/RC202601/writeoff", "/receivables/AR202601/payment"];
+/** 角色 × 5 端点期望矩阵（口径 = 派单卡「验收标准⑤」，匹配语义 = F1 的 matchPermission） */
+const F4_ROLES: { name: string; uid: number; expectPass: boolean[] }[] = [
+  { name: "STORE_OPERATOR（F4 订正后：只持有 finance:daily-settle）", uid: 9008, expectPass: [true, false, false, false, false] },
+  { name: "STORE_MANAGER（F4 订正后：finance:payment + finance:daily-settle）", uid: 9009, expectPass: [true, true, true, true, true] },
+  { name: "FINANCE_STAFF（finance:* 域通配）", uid: 9006, expectPass: [true, true, true, true, true] },
+  { name: "READONLY（*:view 动作通配）", uid: READONLY_USER, expectPass: [false, false, false, false, false] },
+];
 
 /** 与生产挂载链等价（auth → tenant → csrf）的测试 App：req.user 由请求头注入 */
 function buildApp(prefix: string, router: Router, rawMount?: boolean) {
@@ -473,6 +520,52 @@ describe("S3-122-F2 G0 接线 · c) 未登录 401（既有行为不变）", () =
     expect(res.body.code).toBe("401");
     expect(res.body.msg).toBe("未登录");
     expect(h.reached).toEqual([]);
+  });
+});
+
+describe("S3-122-F4 日结权限点拆分 · 角色 × 5 端点复算（验收标准⑤）", () => {
+  it("五条端点名单与顺序固定：#1 日结 / #2 提成结算 / #3 支付核销 / #4 收据核销 / #5 应收收款", () => {
+    expect(F4_ROWS.length).toBe(5);
+    expect(F4_ROWS.map((r) => r.path)).toEqual(F4_EXPECTED_PATHS);
+    expect(F4_ROWS[0].perm).toBe("finance:daily-settle");
+    for (const row of F4_ROWS.slice(1)) expect(row.perm).toBe("finance:payment");
+  });
+
+  it.each(F4_ROLES)("$name：逐端点判定与预期矩阵一致（#1 日结 + #2–#5 收款类）", async (role) => {
+    const observed: boolean[] = [];
+    const detail: string[] = [];
+    for (const row of F4_ROWS) {
+      const res = await call(
+        appFor(row.file, row.prefix, row.router, row.rawMount),
+        row.method,
+        `${row.prefix}${row.path}`,
+        role.uid,
+        row.rawMount
+      );
+      const passed = res.status === 200;
+      observed.push(passed);
+      detail.push(`${row.label} ⇒ ${res.status}${passed ? "" : `（${res.body.msg ?? res.body.message ?? ""}）`}`);
+      if (!passed) {
+        expect(res.status, row.label).toBe(403);
+        expect(res.body.msg, row.label).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+        expect(res.body.handler, row.label).toBeUndefined();
+      }
+    }
+    expect(observed, detail.join(" | ")).toEqual(role.expectPass);
+  });
+
+  it("卡面点名：STORE_OPERATOR ⇒ #1 日结到达业务层，#2–#5 四个收款类端点全部 403", async () => {
+    const operator = 9008;
+    const daily = await call(appFor("admin-finance.routes.ts", "/api/admin", adminFinanceRouter), "post", "/api/admin/daily-settlements", operator);
+    expect(daily.status).toBe(200);
+    expect(daily.body.success).toBe(true);
+    expect(h.reached.length).toBeGreaterThan(0);
+
+    for (const row of F4_ROWS.slice(1)) {
+      const res = await call(appFor(row.file, row.prefix, row.router, row.rawMount), row.method, `${row.prefix}${row.path}`, operator, row.rawMount);
+      expect(res.status, row.label).toBe(403);
+      expect(res.body.msg, row.label).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+    }
   });
 });
 
