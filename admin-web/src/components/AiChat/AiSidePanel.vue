@@ -180,8 +180,8 @@ let recognition: {
 function getRecognition() {
   if (recognition) return recognition;
   const w = window as unknown as {
-    SpeechRecognition?: new () => typeof recognition;
-    webkitSpeechRecognition?: new () => typeof recognition;
+    SpeechRecognition?: new () => NonNullable<typeof recognition>;
+    webkitSpeechRecognition?: new () => NonNullable<typeof recognition>;
   };
   const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
   if (!Ctor) return null;

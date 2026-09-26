@@ -361,7 +361,7 @@ function loadStoreConfig() {
 
 function saveStoreConfig() {
   if (!storeFormRef.value) return;
-  storeFormRef.value.validate(async (valid) => {
+  storeFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     storeSaving.value = true;
     try {
@@ -523,7 +523,7 @@ function getLinkPlaceholder() {
 
 function saveBanner() {
   if (!bannerFormRef.value) return;
-  bannerFormRef.value.validate(async (valid) => {
+  bannerFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     bannerSaving.value = true;
     const payload: Record<string, unknown> = {
@@ -649,7 +649,7 @@ function handleCategoryIconChange(file: any) {
 
 function saveCategory() {
   if (!categoryFormRef.value) return;
-  categoryFormRef.value.validate(async (valid) => {
+  categoryFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     categorySaving.value = true;
     const payload: Record<string, unknown> = {

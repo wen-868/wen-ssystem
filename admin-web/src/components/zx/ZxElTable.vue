@@ -17,6 +17,11 @@ import { nextTick, onBeforeUnmount, onMounted, ref, useAttrs } from "vue";
 import { ElTable } from "element-plus/es/components/table/index";
 // 显式引入 Element Plus 表格样式（替换解析器后需手动补充，否则表头行高/内边距缺失）
 import "element-plus/es/components/table/style/css";
+// S3-123：ElMessageBox 原先靠 unplugin-auto-import 注入（含样式副作用）；显式 import 后 AutoImport 不再注入，
+// 故按 ElementPlusResolver 对该名字的实际解析结果逐行等价补入：1 条具名 import + 2 条 style/css 副作用。
+import { ElMessageBox } from "element-plus";
+import "element-plus/es/components/base/style/css";
+import "element-plus/es/components/message-box/style/css";
 
 const attrs = useAttrs();
 const innerRef = ref<any>(null);

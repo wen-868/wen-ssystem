@@ -295,7 +295,7 @@ function openEdit(row: any) {
 
 async function handleSubmit(keepOpen = false) {
   if (!formRef.value) return;
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     submitLoading.value = true;
     try {
@@ -356,7 +356,7 @@ function openResetPassword(row: any) {
 
 async function handleResetPassword() {
   if (!resetPasswordFormRef.value) return;
-  await resetPasswordFormRef.value.validate(async (valid) => {
+  await resetPasswordFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     resetPasswordLoading.value = true;
     try {

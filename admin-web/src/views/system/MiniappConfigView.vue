@@ -401,7 +401,7 @@ async function saveConfig() {
   const formRef = formRefs[activePlatform.value];
   if (!formRef) return;
 
-  formRef.validate(async (valid) => {
+  formRef.validate(async (valid: boolean) => {
     if (!valid) return;
     try {
       await saveMiniappConfig(activePlatform.value, {

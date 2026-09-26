@@ -665,7 +665,7 @@ function openBatchPriceDialog() {
 
 function handleBatchPrice() {
   if (!batchPriceFormRef.value) return;
-  batchPriceFormRef.value.validate((valid) => {
+  batchPriceFormRef.value.validate((valid: boolean) => {
     if (!valid) return;
     batchPriceLoading.value = true;
     setTimeout(() => {

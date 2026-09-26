@@ -183,7 +183,7 @@ function openAssignDialog(row: any) {
 
 async function handleAssign() {
   if (!assignFormRef.value || !assigningDeliveryId.value) return;
-  await assignFormRef.value.validate(async (valid) => {
+  await assignFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     assignLoading.value = true;
     try {

@@ -104,7 +104,7 @@ export async function fetchMemberStatements(id: number, params?: { page?: number
 }
 
 export async function createStore(payload: {
-  code: string;
+  code?: string;
   name: string;
   address?: string;
   phone?: string;
