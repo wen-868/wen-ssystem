@@ -621,28 +621,35 @@ async function reviewSpu(
     );
   }
 
-  await query(
-    `UPDATE t_library_spu SET status = ?, reviewed_by = ?, reviewed_at = NOW(), updated_at = NOW()
-     WHERE id = ?`,
-    [status, reviewedBy, id]
-  );
+  // S3-121：状态变更（UPDATE）与审核流水（INSERT）必须在**同一事务**内 ——
+  // 否则 INSERT 失败会留下"状态已改、流水缺失"的半成功。
+  // 两条语句的 SQL 与参数一字不改，只把执行入口换成事务连接 conn；
+  // 不吞错：写流水失败即整体失败并整体回滚（不用 try/catch 把失败洗成 200，红线④）。
+  await transaction(async (conn) => {
+    await connExecute<ResultSetHeader>(
+      conn,
+      `UPDATE t_library_spu SET status = ?, reviewed_by = ?, reviewed_at = NOW(), updated_at = NOW()
+       WHERE id = ?`,
+      [status, reviewedBy, id]
+    );
 
-  // C6-2-T5 流水留痕：action 由真实转移推导，前后状态取真实值，操作人取当前平台令牌主体。
-  // 不吞错：写流水失败即整体失败（不用 try/catch 把失败洗成 200，红线④）。
-  await query(
-    `INSERT INTO t_library_spu_review_log
-       (spu_id, action, from_status, to_status, operator_id, operator_name, reason)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      id,
-      deriveReviewAction(status),
-      normalizeReviewLogText(spu.status, 16),
-      normalizeReviewLogText(status, 16),
-      reviewedBy,
-      normalizeReviewLogText(operatorName, 64),
-      normalizeReviewLogText(reason, 255)
-    ]
-  );
+    // C6-2-T5 流水留痕：action 由真实转移推导，前后状态取真实值，操作人取当前平台令牌主体。
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_library_spu_review_log
+         (spu_id, action, from_status, to_status, operator_id, operator_name, reason)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        deriveReviewAction(status),
+        normalizeReviewLogText(spu.status, 16),
+        normalizeReviewLogText(status, 16),
+        reviewedBy,
+        normalizeReviewLogText(operatorName, 64),
+        normalizeReviewLogText(reason, 255)
+      ]
+    );
+  });
 
   return { id, status, reviewedBy };
 }

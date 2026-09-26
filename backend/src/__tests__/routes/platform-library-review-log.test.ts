@@ -34,6 +34,10 @@ vi.mock("../../shared/db", async (importOriginal) => {
     ...actual,
     query: hoisted.query,
     queryOne: hoisted.queryOne,
+    // S3-121：reviewSpu 的 UPDATE + 流水 INSERT 已收进同一事务；
+    // 事务内的 execute/query 一律指向同一个 hoisted.query，既有断言原样成立。
+    transaction: async (fn: any) =>
+      fn({ query: hoisted.query, execute: hoisted.query, queryOne: hoisted.queryOne }),
     queryWithTenant: hoisted.queryWithTenant
   };
 });
@@ -292,5 +296,53 @@ describe("C6-2-T5 · PUT /spus/:id/status 成功分支写流水（既有状态�
       .send({ status: "OFFLINE" });
     expect(res.status).toBe(401);
     expect(hoisted.query).not.toHaveBeenCalled();
+  });
+
+  /**
+   * S3-121-F2（形状断言，回归防护）：证明成功路径**必须经 `transaction`** ——
+   * 前面的 ⑧～⑬ 只断言 `hoisted.query`（mock 把 transaction 透传给同一个 query），
+   * 若有人把服务改回"两次独立 `query`（不经事务）"，那些断言照样全绿 ⇒ CI 不会红。
+   * 本用例在**运行期**把事务入口换成可计数的记录桩，只有"两次写都在同一个 conn 上"才能通过：
+   *   · 不进 transaction（改回两次独立 query）⇒ 无 conn 记录 ⇒ 必红；
+   *   · 两次写各开一个事务/一个事务内一个事务外 ⇒ 两个 conn（或 conn 里少一条 SQL）⇒ 必红。
+   */
+  it("⑭ 必须经 transaction：UPDATE 与流水 INSERT 同 conn（改回两次独立 query 必红）", async () => {
+    hoisted.queryOne.mockResolvedValue({ id: 5, status: "APPROVED" });
+    hoisted.query.mockResolvedValue({ affectedRows: 1 });
+
+    const sharedDb = await import("../../shared/db");
+    // 记录用的 conn 桩：自带 SQL 记录数组，断言"同一个 conn 上两条写都在"
+    const conns: Array<{ sqls: string[] }> = [];
+    const txSpy = vi.spyOn(sharedDb, "transaction").mockImplementation(async (fn: any) => {
+      const connStub: any = {
+        sqls: [] as string[],
+        execute: async (sql: string) => {
+          connStub.sqls.push(String(sql));
+          return [{ affectedRows: 1 }, []];
+        },
+        query: async (sql: string) => {
+          connStub.sqls.push(String(sql));
+          return [[{ affectedRows: 1 }], []];
+        },
+        queryOne: async () => null
+      };
+      conns.push(connStub);
+      return fn(connStub);
+    });
+
+    const res = await authed(
+      request(libraryApp).put("/api/platform/library/spus/5/status").send({ status: "OFFLINE" })
+    );
+
+    // 断言 A：成功路径必须经 transaction（调用次数 ≥ 1）
+    expect(txSpy).toHaveBeenCalled();
+    // 断言 B：两次写必须落在同一个 conn 桩上（只开一个事务、两条 SQL 同 conn）
+    expect(conns).toHaveLength(1);
+    const writes = conns[0].sqls;
+    expect(writes.some((sql) => sql.includes("UPDATE t_library_spu"))).toBe(true);
+    expect(writes.some((sql) => sql.includes("INSERT INTO t_library_spu_review_log"))).toBe(true);
+    expect(res.status).toBe(200);
+
+    txSpy.mockRestore();
   });
 });
