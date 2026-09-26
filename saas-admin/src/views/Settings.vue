@@ -42,11 +42,25 @@
               <span class="fld" style="flex: 1">
                 <span>平台 Logo</span>
                 <span class="logo-line">
-                  <span class="logo-badge">{{ logoText }}</span>
-                  <span class="btn" @click="onUploadLogo">重新上传</span>
-                  <span class="small">200×200 · PNG</span>
+                  <span class="logo-badge">
+                    <img v-if="config.logoUrl" :src="config.logoUrl" alt="平台 Logo" class="logo-img" />
+                    <template v-else>{{ logoText }}</template>
+                  </span>
+                  <input
+                    ref="logoInput"
+                    class="logo-file"
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    @change="onLogoPicked"
+                  />
+                  <span class="btn" @click="onUploadLogo">{{ logoUploading ? '上传中…' : '重新上传' }}</span>
+                  <span class="small">200×200 · PNG · 单文件 ≤5MB</span>
                 </span>
               </span>
+            </div>
+            <div v-if="logoNotice" class="tipbar r">
+              <span class="ic">!</span>
+              <span>{{ logoNotice }}</span>
             </div>
             <div class="fld">
               <span>登录页横幅文案</span>
@@ -328,13 +342,22 @@
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
-import { getPlatformConfig, updatePlatformConfig } from '../api'
+import { getPlatformConfig, updatePlatformConfig, uploadPlatformLogo } from '../api'
+import { pickBackendMessage } from '../utils/http-error'
 
 const loading = ref(false)
 const error = ref('')
 const saving = ref(false)
 
 const logoText = ref('智')
+const logoInput = ref<HTMLInputElement | null>(null)
+const logoUploading = ref(false)
+/** Logo 上传的业务提示（toast 由 api 拦截器统一弹，页面只做内容区提示） */
+const logoNotice = ref('')
+
+/** 与后端 multer 口径一致：单文件 ≤5MB，扩展名仅 jpg/jpeg/png/gif/webp */
+const LOGO_MAX_BYTES = 5 * 1024 * 1024
+const LOGO_ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
 
 const config = reactive<any>({
   platformName: '',
@@ -438,8 +461,53 @@ function saveDict() {
   showDictDialog.value = false
 }
 function onUploadLogo() {
-  // TODO: 待接入 Logo 上传（建议 POST /platform/config/logo）
-  ElMessage.info('Logo 上传接口待对接（POST /platform/config/logo）')
+  if (logoUploading.value) return
+  // 触发原生文件选择（按钮是设计稿入口，实际选择由隐藏 input 完成）
+  logoInput.value?.click()
+}
+
+/**
+ * Logo 上传（R101-C6-3-0 接线）
+ * 两步：① POST /api/platform/config/logo —— 只落盘并返回 URL（响应 persisted:false）；
+ *       ② 持久化走既有 PUT /api/platform/config/sys-config（整包 JSON，含 logoUrl），
+ *          **不写 t_platform_config 的键值行**（该表是即时零售凭据表，凌舟裁定 §四 / R8）。
+ */
+async function onLogoPicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  // 清空 value：允许同一个文件再次选择时仍触发 change
+  input.value = ''
+  if (!file) return
+  const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+  if (!LOGO_ALLOWED_EXT.includes(ext)) {
+    ElMessage.warning('仅支持 jpg / jpeg / png / gif / webp 图片')
+    return
+  }
+  if (file.size > LOGO_MAX_BYTES) {
+    ElMessage.warning('Logo 文件不得超过 5MB')
+    return
+  }
+  logoUploading.value = true
+  logoNotice.value = ''
+  try {
+    const res: any = await uploadPlatformLogo(file)
+    const url = res?.data?.data?.url
+    if (!url) {
+      logoNotice.value = 'Logo 上传未返回可访问地址，未保存'
+      return
+    }
+    // 持久化：整包提交（后端 PUT 为整包覆盖，未配置的组不上送，守护栏④）
+    const payload: Record<string, unknown> = { ...config, logoUrl: url }
+    if (switchesConfigured.value) payload.switches = switches
+    if (channelsConfigured.value) payload.channels = channels
+    await updatePlatformConfig(payload)
+    config.logoUrl = url
+    ElMessage.success('Logo 已上传并保存')
+  } catch (err: any) {
+    logoNotice.value = pickBackendMessage(err?.response?.data) || 'Logo 上传失败（未保存）'
+  } finally {
+    logoUploading.value = false
+  }
 }
 
 async function saveConfig() {
@@ -520,6 +588,17 @@ onMounted(load)
   place-items: center;
   font-weight: var(--font-bold);
   flex: none;
+  overflow: hidden;
+}
+/* 已上传 Logo 的展示（等比缩放填充徽标区） */
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* 隐藏的原生文件选择：由「重新上传」按钮触发 */
+.logo-file {
+  display: none;
 }
 .switch-row {
   display: flex;

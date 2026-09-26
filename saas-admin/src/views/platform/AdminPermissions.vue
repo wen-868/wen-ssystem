@@ -13,6 +13,12 @@
     </div>
   </div>
 
+  <!-- 加载失败提示（内容区，不与拦截器 toast 重复） -->
+  <div v-if="loadNotice" class="tipbar r mt8">
+    <span class="ic">!</span>
+    <span>{{ loadNotice }}</span>
+  </div>
+
   <!-- ════════ 管理员账号 ════════ -->
   <div class="panel">
     <div class="p-hd">
@@ -33,7 +39,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-if="admins.length === 0">
+          <tr v-if="adminsLoading">
+            <td colspan="7"><div class="empty">加载中…</div></td>
+          </tr>
+          <tr v-else-if="admins.length === 0">
             <td colspan="7"><div class="empty">暂无管理员账号</div></td>
           </tr>
           <tr v-for="a in admins" :key="a.id">
@@ -56,6 +65,9 @@
         </tbody>
       </table>
     </div>
+    <p class="small mt8">
+      数据范围档位未落库（后端管理员表无该字段）⇒ 该列显示 —；档位取值与读写见下方权限矩阵「数据权限」列（4 档，来源于后端权限点目录 DATA 级）。
+    </p>
   </div>
 
   <!-- ════════ 角色与权限配置（RBAC 权限树） ════════ -->
@@ -67,13 +79,14 @@
     <div class="p-bd rbac-grid">
       <!-- 左：角色列表 -->
       <div class="rbac-list">
-        <div v-if="roles.length === 0" class="empty">暂无角色</div>
+        <div v-if="rolesLoading" class="empty">加载中…</div>
+        <div v-else-if="roles.length === 0" class="empty">暂无角色</div>
         <div
           v-for="r in roles"
           :key="r.id"
           class="role-row"
           :class="{ active: r.id === activeRoleId }"
-          @click="activeRoleId = r.id"
+          @click="selectRole(r.id)"
         >
           <span class="tag" :class="roleTagClass(r.type)">{{ r.name }}</span>
           <span class="rr-spacer"></span>
@@ -99,7 +112,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="m in PERMISSION_MODULES" :key="m.code">
+              <tr v-if="!permissionModules.length">
+                <td colspan="4"><div class="empty">权限点目录未加载（后端目录接口未返回数据）</div></td>
+              </tr>
+              <tr v-for="m in permissionModules" :key="m.code">
                 <td><b>{{ m.name }}</b></td>
                 <td class="col-menu">
                   <span class="ck" :class="{ on: perm(m.code, 'menu') }" @click="toggle(m.code, 'menu')"></span>
@@ -108,11 +124,19 @@
                   <span class="ck" :class="{ on: perm(m.code, 'pageBtn') }" @click="toggle(m.code, 'pageBtn')"></span>
                 </td>
                 <td class="col-scope">
-                  <span class="sel" @click="cycleScope(m.code)">{{ perm(m.code, 'dataScope') || '—' }}</span>
+                  <span class="sel" @click="cycleScope(m.code)">{{ scopeLabel(perm(m.code, 'dataScope')) }}</span>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+        <div v-if="activeRoleId !== null" class="matrix-act mt8">
+          <span class="btn btn-p" @click="onSavePermissions">{{ savingMatrix ? '保存中…' : '保存权限矩阵' }}</span>
+          <span class="small">整表替换；目录外的功能域 / 4 档外的数据范围由后端 400 拒绝（如实提示，不吞错）</span>
+        </div>
+        <div v-if="matrixNotice" class="tipbar r mt8">
+          <span class="ic">!</span>
+          <span>{{ matrixNotice }}</span>
         </div>
         <p class="small mt10">
           权限红线：财务与运营互不为对方上级；内置角色调整仅限超级管理员；每次保存生成「变更前后对比快照」自动归档。权限矩阵覆盖<b>菜单权限 / 操作权限 / 数据权限</b>三类维度——「菜单」列控制入口可见、「页面 / 按钮」列控制操作许可、「数据权限」列限定可见数据范围（全部租户 / 灰度组租户 / 指定跟进组），账号表「数据范围」列与之联动 <span class="v15-tag lt">v1.5</span>。
@@ -155,7 +179,7 @@
       </span>
       <span class="fld">
         <span>数据范围</span>
-        <span class="sel" @click="cycleInviteScope">{{ inviteForm.dataScope }}</span>
+        <span class="sel" @click="cycleInviteScope">{{ scopeLabel(inviteForm.dataScope) }}</span>
       </span>
       <div class="tipbar">
         <span class="ic">i</span>
@@ -170,26 +194,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import {
+  getPermissionCatalog,
+  getPlatformAdmins,
+  getPlatformRoles,
+  getRolePermissions,
+  replaceRolePermissions
+} from '../../api'
+import { pickBackendMessage } from '../../utils/http-error'
 
 /* ───────────────────────────────────────────────────────────
-   数据（按主行分类，不写"均无对应接口"这类过期表述）：
-     · 管理员列表 / 启停：后端**服务层与控制器已实现**（admin-account.service.ts:53/144、
-       platform.controller.ts:69/98），只差路由挂载（属 C6-1A ② 类 #41/#53）⇒ 不是"待接入"
-     · 角色列表 / 权限点目录 / 自定义角色：无平台角色表 ⇒ 待立项 T6
-   本页在对应端点挂载前一律空态，不放假数据。
+   数据接线（R101-C6-3-0）：三处端点均已在 C6-1A / C6-2-T6 上线，本页改为真实调用：
+     · 管理员列表   GET /api/platform/admins                （platform.routes.ts:25）
+     · 角色列表     GET /api/platform/admins/roles           （platform-role.routes.ts:20）
+     · 权限点目录   GET /api/platform/permissions/catalog    （platform-role.routes.ts:24）
+     · 权限矩阵     GET|PUT /api/platform/roles/:id/permissions
+   零假数据：管理员/角色/目录/矩阵全部来自接口；取不到即空态，页面**不内置任何兜底清单**。
    ─────────────────────────────────────────────────────────── */
 const router = useRouter()
-// TODO: 待接入 GET /platform/admins —— 管理员账号列表
-//   字段建议：id / realName / account / roleName / roleType / dataScope / lastLogin / status
-const admins = ref<any[]>([])
 
-// TODO: 待接入 GET /platform/admins/roles —— 角色列表
-//   字段建议：id / name / type(builtin|custom) / domainCount
+/** 平台管理员角色枚举 → 中文（后端返回 role: SUPER_ADMIN|ADMIN|SUPPORT，无 roleName 字段） */
+const ADMIN_ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: '超级管理员',
+  ADMIN: '管理员',
+  SUPPORT: '客服'
+}
+
+const admins = ref<any[]>([])
+const adminsLoading = ref(false)
 const roles = ref<any[]>([])
+const rolesLoading = ref(false)
 const activeRoleId = ref<number | null>(null)
+/** 内容区失败提示（toast 由 api 拦截器统一弹，页面只做内容区提示） */
+const loadNotice = ref('')
 
 const customRoleCount = computed(
   () => roles.value.filter((r) => r.type === 'custom').length
@@ -198,24 +238,15 @@ const builtinRoleCount = computed(
   () => roles.value.filter((r) => r.type === 'builtin').length
 )
 
-// 功能域权限目录（RBAC 树结构骨架，属平台功能域而非虚构业务数据）
-// TODO: 待接入 GET /platform/permissions/catalog —— 返回功能域与三级权限点（菜单/操作/数据）
-const PERMISSION_MODULES = [
-  { code: 'tenant', name: '租户管理' },
-  { code: 'billing', name: '套餐与计费' },
-  { code: 'sysconfig', name: '全局系统配置' },
-  { code: 'monitor', name: '运维监控 / 日志' },
-  { code: 'ticket', name: '工单系统' },
-  { code: 'marketing', name: '运营营销' },
-  { code: 'ai', name: 'AI 能力管控' }
-]
+/** 权限点目录（GET /api/platform/permissions/catalog）：矩阵行与数据范围 4 档**均由后端目录派生** */
+const permissionModules = ref<Array<{ code: string; name: string }>>([])
+const dataScopeOptions = ref<Array<{ code: string; name: string }>>([])
 
 // 当前选中角色的权限状态：{ [moduleCode]: { menu, pageBtn, dataScope } }
 // 空 = 未加载，矩阵渲染未勾选空态
 const permissionState = ref<Record<string, { menu: boolean; pageBtn: boolean; dataScope: string }>>({})
-
-// 数据范围可选项（系统枚举，非虚构记录）
-const DATA_SCOPES = ['全部租户', '灰度组租户', '指定跟进组', '账单口径全部']
+const savingMatrix = ref(false)
+const matrixNotice = ref('')
 
 type PermKey = 'menu' | 'pageBtn' | 'dataScope'
 function perm(code: string, key: PermKey): any {
@@ -230,10 +261,135 @@ function toggle(code: string, key: 'menu' | 'pageBtn') {
 }
 function cycleScope(code: string) {
   const cur = permissionState.value[code] || { menu: false, pageBtn: false, dataScope: '' }
-  const idx = DATA_SCOPES.indexOf(cur.dataScope)
-  cur.dataScope = DATA_SCOPES[(idx + 1) % DATA_SCOPES.length]
+  const options = dataScopeOptions.value
+  if (!options.length) return
+  const idx = options.findIndex((o) => o.code === cur.dataScope)
+  cur.dataScope = options[(idx + 1) % options.length].code
   permissionState.value = { ...permissionState.value, [code]: cur }
 }
+/** 落库值 = 目录里的 permCode（scope:all 等）⇒ 展示其中文档位名；空值显示 — */
+function scopeLabel(code: string): string {
+  if (!code) return '—'
+  return dataScopeOptions.value.find((o) => o.code === code)?.name ?? code
+}
+
+/** 管理员列表：字段全部取自接口；数据范围档位后端无该字段 ⇒ 固定 —（不臆造） */
+async function loadAdmins() {
+  adminsLoading.value = true
+  try {
+    const res: any = await getPlatformAdmins({ page: 1, pageSize: 50 })
+    const records = res?.data?.data?.records
+    admins.value = (Array.isArray(records) ? records : []).map((r: any) => ({
+      id: r?.id,
+      realName: r?.realName ?? r?.username ?? '—',
+      account: r?.username ?? '—',
+      roleName: ADMIN_ROLE_LABELS[String(r?.role ?? '')] ?? String(r?.role ?? '—'),
+      roleType: String(r?.role ?? '').toLowerCase(),
+      dataScope: '—',
+      lastLogin: r?.lastLoginAt ? String(r.lastLoginAt).replace('T', ' ').slice(0, 16) : '',
+      status: String(r?.status ?? '')
+    }))
+    loadNotice.value = ''
+  } catch {
+    admins.value = []
+    loadNotice.value = '管理员列表加载失败（未取到管理员数据）'
+  } finally {
+    adminsLoading.value = false
+  }
+}
+
+/** 角色列表：空表 ⇒ roles: []（空态），不内置内置角色兜底 */
+async function loadRoles() {
+  rolesLoading.value = true
+  try {
+    const res: any = await getPlatformRoles()
+    const list = res?.data?.data?.roles
+    roles.value = Array.isArray(list) ? list : []
+    if (activeRoleId.value !== null && !roles.value.some((r) => r.id === activeRoleId.value)) {
+      activeRoleId.value = null
+      permissionState.value = {}
+    }
+  } catch {
+    roles.value = []
+  } finally {
+    rolesLoading.value = false
+  }
+}
+
+/** 权限点目录：矩阵行 = 含 MENU 级权限的功能域；数据范围 4 档 = DATA 级权限点 */
+async function loadCatalog() {
+  try {
+    const res: any = await getPermissionCatalog()
+    const modules = res?.data?.data?.modules
+    const list: any[] = Array.isArray(modules) ? modules : []
+    permissionModules.value = list
+      .filter((m) => Array.isArray(m?.permissions) && m.permissions.some((p: any) => p?.permLevel === 'MENU'))
+      .map((m) => ({ code: String(m.moduleCode), name: String(m.moduleName ?? m.moduleCode) }))
+    dataScopeOptions.value = list
+      .flatMap((m) => (Array.isArray(m?.permissions) ? m.permissions : []))
+      .filter((p: any) => p?.permLevel === 'DATA')
+      .map((p: any) => ({ code: String(p.permCode), name: String(p.permName ?? p.permCode) }))
+  } catch {
+    permissionModules.value = []
+    dataScopeOptions.value = []
+  }
+}
+
+/** 选中角色 → 拉取其已保存的权限矩阵（GET /platform/roles/:id/permissions） */
+async function selectRole(id: number) {
+  activeRoleId.value = id
+  permissionState.value = {}
+  matrixNotice.value = ''
+  try {
+    const res: any = await getRolePermissions(id)
+    const matrix = res?.data?.data?.matrix
+    const next: Record<string, { menu: boolean; pageBtn: boolean; dataScope: string }> = {}
+    for (const cell of Array.isArray(matrix) ? matrix : []) {
+      next[String(cell?.moduleCode)] = {
+        menu: !!cell?.canMenu,
+        pageBtn: !!cell?.canPageBtn,
+        dataScope: cell?.dataScope ? String(cell.dataScope) : ''
+      }
+    }
+    permissionState.value = next
+  } catch {
+    permissionState.value = {}
+    matrixNotice.value = '该角色权限矩阵加载失败（未取到矩阵数据）'
+  }
+}
+
+/** 保存矩阵：PUT 整表替换；目录外的域 / 4 档外的档位由后端 400 拒绝 ⇒ 原样提示，不吞错 */
+async function onSavePermissions() {
+  const id = activeRoleId.value
+  if (id === null || savingMatrix.value) return
+  savingMatrix.value = true
+  matrixNotice.value = ''
+  try {
+    const matrix = permissionModules.value.map((m) => {
+      const cell = permissionState.value[m.code] || { menu: false, pageBtn: false, dataScope: '' }
+      return {
+        moduleCode: m.code,
+        canMenu: !!cell.menu,
+        canPageBtn: !!cell.pageBtn,
+        dataScope: cell.dataScope || null
+      }
+    })
+    const res: any = await replaceRolePermissions(id, matrix)
+    const saved = res?.data?.data?.saved
+    ElMessage.success(`权限矩阵已保存（${saved ?? matrix.length} 个功能域）`)
+    await loadRoles() // domainCount 随之变化，刷新左侧列表
+  } catch (e: any) {
+    matrixNotice.value = pickBackendMessage(e?.response?.data) || '权限矩阵保存失败'
+  } finally {
+    savingMatrix.value = false
+  }
+}
+
+onMounted(() => {
+  loadAdmins()
+  loadCatalog()
+  loadRoles()
+})
 
 // 角色类型 → 标签色（与 .tag-* 对应，非硬编码名称）
 function roleTagClass(type: string): string {
@@ -248,17 +404,23 @@ function roleTagClass(type: string): string {
 }
 
 /* ───────────────────────────────────────────────────────────
-   交互（③-b #44 整改：按主行分类，不再整块写"接口待接入"）
-     · 已可用：操作日志（GET /api/platform/audit-logs，① #47 本卡接线）
-     · 待挂载（C6-1A ② 类）：邀请建号 #45 / 重置密码 #51 / 启停 #53
-     · 待立项（T6）：角色列表 #42 / 权限点目录 #43 / 自定义角色 #49
+   交互现状（2026-09-27 更新，事实逐条可核对）：
+     · 本卡已接线：操作日志（GET /api/platform/audit-logs，跳转真实页面）
+       + 管理员列表 / 角色列表 / 权限点目录 / 权限矩阵读写（C6-1A 与 C6-2-T6 端点）
+     · 后端已上线但本页**未接线**（归属后续批次）：邀请建号 POST /api/platform/admins/invite
+       —— 该端点要求 username + phone + role，而本页邀请表单只有「姓名 + 邮箱 + 角色」，
+       字段口径不一致，接线需先裁定表单字段；
+       重置密码 POST /api/platform/admins/:id/reset-password、启停 PUT /api/platform/admins/:id/status
+       —— 端点已上线，本页按钮仍为提示态（未接线）。
+     · 仍无后端能力：新建自定义角色 POST /api/platform/roles 已上线，但本页入口走的是
+       「自定义角色」弹窗流程，未接线（同上，归属后续批次）。
    ─────────────────────────────────────────────────────────── */
 const showInvite = ref(false)
 const inviteForm = reactive({
   name: '',
   email: '',
   role: null as number | null,
-  dataScope: '全部租户'
+  dataScope: ''
 })
 
 function sendInvite() {
@@ -266,18 +428,20 @@ function sendInvite() {
     ElMessage.warning('请填写姓名与邮箱')
     return
   }
-  // ③-a #46 整改（禁"假成功"）：后端建号/邀请端点尚未挂载（C6-1A ② 类 #45，且裁定 R6 不发邮件短信）
-  // ⇒ 失败可见，绝不给出"已发送"的成功感；弹窗不关闭、表单不清空，避免误以为已生效
-  ElMessage.warning('邀请接口尚未接入，未发送（C6-1A #45 挂载后按 R6：建号 + 一次性展示初始口令，不发信）')
+  // 禁"假成功"：后端邀请端点已上线（POST /api/platform/admins/invite），但要求 username + phone + role，
+  // 与本页表单（姓名 + 邮箱 + 角色）字段口径不一致 ⇒ 本页未接线，如实提示、绝不给出"已发送"的成功感
+  ElMessage.warning('邀请未发送：后端邀请接口要求「账号 + 姓名 + 手机号 + 角色」，本页表单字段不匹配（接线待裁定）')
   showInvite.value = false
   inviteForm.name = ''
   inviteForm.email = ''
   inviteForm.role = null
-  inviteForm.dataScope = '全部租户'
+  inviteForm.dataScope = ''
 }
 function cycleInviteScope() {
-  const idx = DATA_SCOPES.indexOf(inviteForm.dataScope)
-  inviteForm.dataScope = DATA_SCOPES[(idx + 1) % DATA_SCOPES.length]
+  const options = dataScopeOptions.value
+  if (!options.length) return
+  const idx = options.findIndex((o) => o.code === inviteForm.dataScope)
+  inviteForm.dataScope = options[(idx + 1) % options.length].code
 }
 function openAuditLog() {
   // ① 类 #47 + ③-a #48 接线：后端已有 GET /api/platform/audit-logs（admin-platform-audit-log.routes.ts:8/12），
@@ -285,20 +449,28 @@ function openAuditLog() {
   router.push('/audit-logs')
 }
 function onCreateRole() {
-  // ③-b #50：平台无角色表（t_sys_role 等为租户级）⇒ 待立项 T6
-  ElMessage.warning('新建自定义角色：待立项（T6 平台角色 + 权限点目录建表后接入）')
+  // 平台角色表与目录已就绪（C6-2-T6：POST /api/platform/roles），但本页只有入口、无建号表单 ⇒ 未接线
+  ElMessage.warning('新建自定义角色未发起：后端接口已上线，本页缺建号表单（角色名 + 编码），接线待裁定')
 }
 function onResetPwd(a: any) {
-  // ③-b #52：主行 #51 属 C6-1A ② 类（零 DDL，未落地）；裁定 R6 要求不发信、页面一次性展示新口令
-  ElMessage.warning(`重置密码：${a.realName || a.id}：待后端重置接口（C6-1A #51）落地后接入`)
+  // 后端已上线（POST /api/platform/admins/:id/reset-password，按裁定 R6 一次性返回新口令、不发信）——
+  // 本页按钮尚未接线（归属后续批次），此处如实提示，不假报成功
+  ElMessage.warning(`重置密码：${a.realName || a.id}：后端接口已上线，本页尚未接线，未执行`)
 }
 function onToggleStatus(a: any) {
-  // ③-b #54：主行 #53 同属 C6-1A ② 类（服务层/控制器已实现，只差路由挂载）
-  ElMessage.warning(`切换状态：${a.realName || a.id}：待 C6-1A 挂载 PUT /platform/admins/:id/status 后接入`)
+  // 后端已上线（PUT /api/platform/admins/:id/status）——本页按钮尚未接线（归属后续批次），不假报成功
+  ElMessage.warning(`切换状态：${a.realName || a.id}：后端接口已上线，本页尚未接线，未执行`)
 }
 </script>
 
 <style scoped>
+/* 权限矩阵保存区（仅用 token 组合） */
+.matrix-act {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
 /* ───── RBAC 双栏布局（设计稿 p-bd grid 200px 1fr，components.css 未移植，按令牌实现） ───── */
 .rbac-grid {
   display: grid;

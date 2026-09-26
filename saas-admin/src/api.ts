@@ -503,3 +503,133 @@ export function getPlatformAiAbnormalTenants() {
 export function getPlatformAiModelShare() {
   return api.get<any, { data: ApiResult<any> }>("/platform/ai/model-share");
 }
+
+// ==================== 平台报表导出任务中心（R101-C6-3-0；前缀 /api/platform/reports/export） ====================
+// 端点契约唯一真相源：backend/src/routes/platform-export-task.routes.ts + services/platform/platform-export-task.service.ts
+// 硬口径：创建 ⇒ 恒 PENDING/progress 0/fileURL null；下载 —— 无 file_url 时后端 404 并给出业务文案
+// （原文由后端 DOWNLOAD_NOT_READY_MSG 给出），前端**必须原样展示该文案**，不得改写成成功或本地空文件。
+export function listExportTasks(params?: { page?: number; pageSize?: number; status?: string }) {
+  return api.get<any, { data: ApiResult<any> }>("/platform/reports/export", { params });
+}
+
+/** 导出格式仅 CSV|XLSX（后端 EXPORT_TASK_FORMATS 强校验；传 PDF 会被 400 拒绝） */
+export function createExportTask(data: { exportType: string; period?: string | null; format: "CSV" | "XLSX" }) {
+  return api.post<any, { data: ApiResult<{ id: number; taskNo: string; status: string }> }>(
+    "/platform/reports/export",
+    data
+  );
+}
+
+export function getExportTaskStatus(id: number) {
+  return api.get<any, { data: ApiResult<any> }>(`/platform/reports/export/${id}/status`);
+}
+
+/**
+ * 导出文件下载。响应：本期无生成器 ⇒ 无 file_url ⇒ 404 + 业务文案；有 file_url 时后端 501（未接通下载通道）。
+ * ⚠️ 这里**刻意不设 responseType: 'blob'**：一旦设成 blob，错误响应体也会是 Blob，中文业务文案会被丢掉，
+ * 只剩状态码兜底文案（与卡内「原样展示 404 业务提示」冲突）。将来后端真能吐文件时，改走
+ * `utils/download-blob.ts` 的 saveBlobResponse + responseType: 'blob'。
+ */
+export function downloadExportTask(id: number) {
+  return api.get<any, { data: ApiResult<any> }>(`/platform/reports/export/${id}/download`);
+}
+
+/** 任务日志：{ logs: [{ level, message, createdAt }] }，created_at 升序；任务不存在 ⇒ 404 */
+export function getExportTaskLogs(id: number) {
+  return api.get<any, { data: ApiResult<{ logs: Array<{ level: string; message: string; createdAt: any }> }> }>(
+    `/platform/reports/export/${id}/logs`
+  );
+}
+
+// ==================== 平台管理员 / 角色 / 权限点目录（R101-C6-3-0；C6-1A + C6-2-T6 已上线） ====================
+// 路径逐字照用（不得自拟变体）：GET /platform/admins · /platform/admins/roles · /platform/permissions/catalog
+//                              · GET|PUT /platform/roles/:id/permissions
+/** 管理员列表：{ total, page, pageSize, records: [{ id, username, realName, phone, email, role, status, lastLoginAt, createdAt }] } */
+export function getPlatformAdmins(params?: { page?: number; pageSize?: number; role?: string; status?: string; keyword?: string }) {
+  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/admins", {
+    params: { page: 1, pageSize: 20, ...params },
+  });
+}
+
+/** 角色列表：{ roles: [{ id, name, code, type, domainCount }] }（空表 ⇒ roles: []） */
+export function getPlatformRoles() {
+  return api.get<any, { data: ApiResult<{ roles: any[] }> }>("/platform/admins/roles");
+}
+
+/** 权限点目录：{ modules: [{ moduleCode, moduleName, permissions: [{ permCode, permName, permLevel }] }] }（恒 18 条） */
+export function getPermissionCatalog() {
+  return api.get<any, { data: ApiResult<{ modules: any[] }> }>("/platform/permissions/catalog");
+}
+
+/** 角色权限矩阵：{ roleId, matrix: [{ moduleCode, canMenu, canPageBtn, dataScope }] }（目录内每个域都出现） */
+export function getRolePermissions(id: number) {
+  return api.get<any, { data: ApiResult<{ roleId: number; matrix: any[] }> }>(`/platform/roles/${id}/permissions`);
+}
+
+/** 整表替换权限矩阵；目录外的域 / 4 档外的数据范围 ⇒ 后端 400（前端如实提示，不吞错） */
+export function replaceRolePermissions(id: number, matrix: any[]) {
+  return api.put<any, { data: ApiResult<{ roleId: number; saved: number }> }>(`/platform/roles/${id}/permissions`, {
+    matrix,
+  });
+}
+
+// ==================== 平台工单（R101-C6-3-0；前缀 /api/platform/support） ====================
+// 端点契约唯一真相源：backend/src/routes/platform-ticket.routes.ts + platform-ticket.service.ts
+/** 看板：{ groups: { pending, processing, resolved }, summary: { pending, processing, resolved, closed } } */
+export function listSupportTickets(params?: { onlyMine?: boolean; status?: string; page?: number; pageSize?: number }) {
+  return api.get<any, { data: ApiResult<any> }>("/platform/support/tickets", { params });
+}
+
+export function getSupportTicket(id: number | string) {
+  return api.get<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}`);
+}
+
+/** 对话时间线（平台视角，含 PUBLIC/INTERNAL/TENANT）：{ items: [{ id, senderType, senderName, bubbleType, content, createdAt }] } */
+export function getSupportTicketTimeline(id: number | string) {
+  return api.get<any, { data: ApiResult<{ items: any[] }> }>(`/platform/support/tickets/${id}/timeline`);
+}
+
+export function replySupportTicket(id: number | string, content: string) {
+  return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/reply`, { content });
+}
+
+export function noteSupportTicket(id: number | string, content: string) {
+  return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/note`, { content });
+}
+
+export function transferSupportTicket(id: number | string, assigneeId: number) {
+  return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/transfer`, { assigneeId });
+}
+
+export function resolveSupportTicket(id: number | string) {
+  return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/resolve`);
+}
+
+export function closeSupportTicket(id: number | string) {
+  return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/close`);
+}
+
+/** 服务报表：口径未定 ⇒ { items: [], definitionPending: true }（前端须渲染「口径待定义」显式空态） */
+export function getSupportTicketReport() {
+  return api.get<any, { data: ApiResult<{ items: any[]; definitionPending: boolean }> }>("/platform/support/tickets/report");
+}
+
+/** 工单类型配置：{ categories: [{ id, name, slug, slaHours, sortNo, enabled }] }（零预置 ⇒ []） */
+export function listTicketCategories() {
+  return api.get<any, { data: ApiResult<{ categories: any[] }> }>("/platform/support/ticket-categories");
+}
+
+// ==================== 平台 Logo 上传（R101-C6-3-0；C6-1A #80 已上线） ====================
+/**
+ * POST /api/platform/config/logo —— multipart，字段名兼容 file/logo，单文件 ≤5MB。
+ * 硬口径：本端点**只落盘并返回 URL**（响应带 persisted:false + persistedNote），
+ * 持久化必须由调用方再调既有 PUT /api/platform/config/sys-config 完成（不得写 t_platform_config 键值行）。
+ */
+export function uploadPlatformLogo(file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return api.post<any, { data: ApiResult<{ url: string; path: string; persisted: boolean; persistedNote?: string }> }>(
+    "/platform/config/logo",
+    form
+  );
+}
