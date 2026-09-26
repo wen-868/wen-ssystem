@@ -9,7 +9,7 @@ export const paymentRouter = Router();
 const wechatPay = new WechatPay();
 const ctrl = createPaymentController(wechatPay);
 
-paymentRouter.post("/orders", requireAuthWithTenant, ctrl.createPaymentOrder);
+paymentRouter.post("/orders", requireAuthWithTenant, requirePermission("finance:create"), ctrl.createPaymentOrder);
 paymentRouter.post("/wx/callback", ctrl.handleWxCallback);
 paymentRouter.post("/refunds", requireAuthWithTenant, requirePermission("finance:create"), ctrl.createRefund);
 paymentRouter.get("/orders/:payNo", requireAuthWithTenant, ctrl.getPaymentOrder);
