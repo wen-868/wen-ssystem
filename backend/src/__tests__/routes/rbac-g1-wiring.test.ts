@@ -29,6 +29,8 @@
  * 改挂**域内细码**（信用 7 行 → `customer:credit`；提成规则 1 行 → `sale:commission`）后接线，零角色数据变更。
  * 本文件据此新增 `S126_WIRED` 名单（形状断言 + READONLY 403 + 店长经域通配 200 + 反证 3 角色 403），
  * 并把这 8 行从 `UNWIRED` 移出（待裁 21 → 13 行）；G1 已接的 8 行与 B/C 类 13 行的断言**一字未动**。
+ * S3-125（G2）追加（2026-09-27）：G2 把 expense.routes.ts POST / 判为可接并接线，再从 `UNWIRED` 移出 1 行
+ * （待裁 13 → 12 行）；该行的 403/200 断言由 rbac-g2-wiring.test.ts 承担。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
@@ -111,7 +113,6 @@ import { storeValueCardRouter } from "../../routes/store-value-card.routes";
 import { adminMarketingFlashSaleRouter } from "../../routes/admin-marketing-flash-sale.routes";
 import { commissionRouter } from "../../routes/commission.routes";
 import { creditRouter } from "../../routes/credit.routes";
-import { expenseRouter } from "../../routes/expense.routes";
 import { paymentNewRouter } from "../../routes/payment-new.routes";
 import { receiptRouter } from "../../routes/receipt.routes";
 import { reconciliationRouter } from "../../routes/reconciliation.routes";
@@ -252,7 +253,7 @@ const WIRED_MODULES: G1Module[] = [
 ];
 
 /**
- * G1 待裁名单（G1 时 21 行；S3-126/G1b 把其中 A 类 8 行改挂域内细码接线后，**本文件现为 13 行**）。
+ * G1 待裁名单（G1 时 21 行；S3-126/G1b 移出 A 类 8 行后 13 行；S3-125/G2 再移出 expense.routes.ts / 1 行，**本文件现为 12 行**）。
  * 本单（S3-126）不得接线这 13 行；每行给出待裁原因，逐行证据见审计表。
  */
 interface G1UnwiredRow {
@@ -271,7 +272,6 @@ const UNWIRED: G1UnwiredRow[] = [
   // ---- B：app-mobile（商家端）无角色门禁的写调用点 ⇒ 判据不可判定 ----
   { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 门店管理页 stores.vue:241（bankAccountsApi.create）" },
   { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/:id/close", path: "/1/close", reason: "B", note: "app-mobile 门店管理页 stores.vue:263（bankAccountsApi.close）" },
-  { file: "expense.routes.ts", prefix: "/api/admin/expenses", router: expenseRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 费用新建页 expense-create.vue:82（expenseApi.create）" },
   { file: "receipt.routes.ts", prefix: "/api/admin/receipts", router: receiptRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 开单页 create-sale.vue:2202（receiptApi.create）" },
   { file: "reconciliation.routes.ts", prefix: "/api/admin/reconciliation", router: reconciliationRouter, routePath: "/customer/:customerId/confirm", path: "/customer/1/confirm", reason: "B", note: "app-mobile 财务对账页 reconciliation.vue:256" },
   { file: "reconciliation.routes.ts", prefix: "/api/admin/reconciliation", router: reconciliationRouter, routePath: "/supplier/:supplierId/confirm", path: "/supplier/1/confirm", reason: "B", note: "app-mobile 财务对账页 reconciliation.vue:258" },
@@ -430,8 +430,10 @@ describe("S3-122-G1 · 名单自证（验收标准①）", () => {
   it("29 行 = G1 已接 8 行 + S3-126 新接 8 行（A 类改挂域内细码）+ 未接 13 行", () => {
     expect(G1_WIRED_TOTAL).toBe(8);
     expect(S126_WIRED_TOTAL).toBe(8);
-    expect(G1_UNWIRED_TOTAL).toBe(13);
-    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + G1_UNWIRED_TOTAL).toBe(29);
+    expect(G1_UNWIRED_TOTAL).toBe(12);
+    // S3-125（G2）已把 expense.routes.ts POST / 接线并移出本名单（1 行）⇒ 28 + 1 = 29
+    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + G1_UNWIRED_TOTAL).toBe(28);
+    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + G1_UNWIRED_TOTAL + 1).toBe(29);
   });
 
   it("已接 8 行分布：bank-account 2 / payment 1 / store-value-card 1 / flash-sale 4", () => {
@@ -614,9 +616,9 @@ describe("S3-122-G1 · 待裁原因可复核（A/B/C 三类证据锚点）", () 
     expect(holdersOf("sale:commission")).toContain(STORE_MANAGER_PROD);
   });
 
-  it("B 类 9 行：均为 app-mobile（无 meta.roles 门禁）的写调用点，判据不可判定", () => {
+  it("B 类 8 行（G2 已把 expense.routes.ts / 判为可接并接线，移出本名单）：均为 app-mobile 的写调用点", () => {
     const b = UNWIRED.filter((r) => r.reason === "B");
-    expect(b).toHaveLength(9);
+    expect(b).toHaveLength(8);
     for (const row of b) expect(row.note).toMatch(/app-mobile/);
   });
 
