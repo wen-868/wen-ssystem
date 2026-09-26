@@ -3401,3 +3401,83 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 | 迁移 | 形态 | 说明 |
 |---|---|---|
 | `178_library_brand_auth_app_version_status.sql` | **6 条逐列 ALTER**（S3-110 由"2 条合并 ALTER"改） | 合并版在"部分列已存在"时会整条 1060 失败、其余列**静默丢失**；逐列版可**自愈**补齐（真库验证见 `docs/evidence/S3-110/真库验证-凌舟独立.txt`） |
+
+---
+
+## 平台域新增端点（2026-09-26 · C6-2 批1/批2：T6 / T7 / T1 / T2 / T5）
+
+> 本节由凌舟维护（契约维护属总负责人职责）。全部端点**平台令牌**鉴权（`requirePlatformAuth`，路由级 + `routeConfig.auth` 双层），响应统一 `{ code, msg, data, traceId, apiCost }`。
+> **权限点口径（重要）**：本节 5 组端点的**按角色强制鉴权尚未实现** —— T1/T2/T7 的权限点（`notification:*` / `export:*` / `ticket:*`）**只以注释与常量登记**（写一个"永远放行的假校验"就是假鉴权，派单卡红线明令禁止）。
+> 是否把 `notification` / `export` 域补进 `PERMISSION_CATALOG` 属**产品口径项 S3-120**（停等业主裁定）；在裁定前这些端点靠"平台令牌 + 前端可见性"保护。
+
+### 1. T6 平台角色与权限点目录（3 个前缀，共 7 条）
+
+| 方法 | 路径 | 响应 | 关键口径 |
+|---|---|---|---|
+| GET | `/api/platform/admins/roles` | `{ roles:[{id,name,code,type,domainCount}] }` | 路径逐字对齐前端 `AdminPermissions.vue:189` |
+| GET | `/api/platform/permissions/catalog` | `{ modules:[{moduleCode,moduleName,permissions:[…]}] }` | 权限点目录**走 allow 档预置**（7 域 MENU + ticket 7 条 BUTTON + 4 条 DATA），与前端 `:197-212` 常量一致；前端 `:202` 字面期望 |
+| POST | `/api/platform/roles` | `{ id }` | `code` 重复 ⇒ **409**；角色表**零预置** |
+| PUT | `/api/platform/roles/:id` | `{ id, changedFields }` | 内置角色保护 ⇒ **400** |
+| DELETE | `/api/platform/roles/:id` | `{ id, deletedPermissions }` | 同上保护 |
+| GET | `/api/platform/roles/:id/permissions` | `{ roleId, matrix:[{moduleCode,canMenu,canPageBtn,dataScope}] }` | 权限矩阵表**零预置**（不用预置数据冒充业务口径） |
+| PUT | `/api/platform/roles/:id/permissions` | `{ roleId, saved }` | 目录外的域/档位 ⇒ **400** |
+
+### 2. T7 平台工单系统（前缀 `/api/platform/support`，共 10 条）
+
+| 方法 | 路径 | 响应 / 权限点 | 关键口径 |
+|---|---|---|---|
+| GET | `/tickets` | `{ groups, summary }` ← `ticket:view` | 看板分组 |
+| GET | `/tickets/:id` | 工单详情 ← `ticket:view` | 不存在 ⇒ 404 |
+| GET | `/tickets/:id/timeline` | `{ items }` ← `ticket:view` | 平台视角时间线 |
+| POST | `/tickets/:id/reply` | ← `ticket:reply` | |
+| POST | `/tickets/:id/note` | ← `ticket:note` | 内部备注 |
+| POST | `/tickets/:id/transfer` | ← `ticket:transfer` | |
+| POST | `/tickets/:id/resolve` | ← `ticket:resolve` | 状态机 `PENDING/PROCESSING/RESOLVED/CLOSED`；非法转移 ⇒ 400 |
+| POST | `/tickets/:id/close` | ← `ticket:close` | |
+| GET | `/tickets/report` | `{ items: [], definitionPending: true }` ← `ticket:report` | **服务报表口径未定 ⇒ 显式空态 + 标记待定义**，禁止近似值冒充 |
+| GET | `/ticket-categories` | `{ categories }` ← `ticket:category:config` | |
+
+**工单表口径**：`sla_deadline` 恒 `NULL`（SLA 口径未定、本期不计算）；`tenant_id varchar(36)` / `assignee_id int` 为**逻辑引用、不建物理外键**；`data_scope` 档位未定 ⇒ 字段留空、不计算。
+
+### 3. T1 平台通知（前缀 `/api/platform/notifications`，共 3 条）
+
+| 方法 | 路径 | 响应 / 权限点 | 关键口径 |
+|---|---|---|---|
+| GET | `/` | `{ total, page, pageSize, unreadCount, records[] }` ← `notification:view` | **未读数由服务端按当前管理员计算**（`unreadOnly` 可选）；空表 ⇒ 诚实空态 `records:[] / unreadCount:0` |
+| POST | `/read-all` | `{ marked }` ← `notification:read` | 标记**当前管理员可见**的全部未读；**字面量端点先于 `/:id/read` 注册** |
+| POST | `/:id/read` | ← `notification:read` | **幂等**；通知不存在或不可见 ⇒ 404 |
+
+**分页口径**：`pageSize > 100 / < 1 / 非数字`、`page < 1` 一律 **400**，**不静默夹取**。
+
+### 4. T2 平台报表导出任务中心（前缀 `/api/platform/reports/export`，共 6 条）
+
+| 方法 | 路径 | 响应 / 权限点 | 关键口径 |
+|---|---|---|---|
+| GET | `/` | `{ total, page, pageSize, records }` ← `export:view` | |
+| POST | `/` | `{ id, taskNo, status }` ← `export:create` | **创建即 `PENDING`**、`progress=0`、`file_url=null`；`taskNo` 形如 `EXP+yyyyMMddHHmmss+4位随机`；`format∈{CSV,XLSX}` |
+| GET | `/:id/status` | 任务状态 ← `export:view` | 不存在 ⇒ 404 |
+| GET | `/:id/download` | ← `export:view` | **无 `file_url` ⇒ 404「导出文件尚未生成（生成器待接入）」**（不返回空文件） |
+| GET | `/:id/logs` | `{ logs }` ← `export:view` | `created_at` 升序 |
+| POST | `/:id/retry` | ← `export:retry` | **仅 `FAILED → PENDING`**，其它状态 ⇒ 400 |
+
+**四态契约**：`PENDING（创建即此态）/ GENERATING（生成器接入后才出现）/ SUCCESS（仅生成器可置）/ FAILED`；**本批任何端点都不写 `file_url`**（只允许未来的生成器写入）。
+
+### 5. T5 商品库审核流水（`/api/platform/library`，新增 1 条）
+
+| 方法 | 路径 | 关键口径 |
+|---|---|---|
+| GET | `/api/platform/library/spus/:id/review-logs` | 只读；路径段比 `/spus/:id` 更具体故不冲突；承载 `SUBMIT/APPROVE/REJECT/OFFLINE` 四动作与 `from_status → to_status`、操作人、原因 |
+
+**一致性强约束（S3-121）**：`PUT /api/platform/library/spus/:id/status` 的**状态变更与审核流水写入必须在同一事务**内 —— 真库反测已证：修前"状态改了、流水没写"、修后整体回滚。
+
+### 6. 关联迁移（速查）
+
+| 迁移 | 形态 | 说明 |
+|---|---|---|
+| `179_平台角色与权限点目录.sql` | 3 张新表 | `t_platform_role`（`uk_code`）/ `t_platform_role_permission` / `t_platform_permission_catalog` |
+| `180_平台工单系统.sql` | 4 张新表 | `t_support_ticket`（`ticket_no` 唯一）/ `_message` / `_attachment` / `_category` |
+| `181_平台通知.sql` | 2 张新表 | `t_platform_notification` / `t_platform_notification_read` |
+| `182_平台报表导出任务.sql` | 2 张新表 | `t_platform_export_task`（`task_no` 唯一）/ `t_platform_export_task_log` |
+| `183_商品库审核流水.sql` | 1 张新表 | `t_library_spu_review_log`（`KEY idx_spu_created`） |
+
+> 全部迁移：`CREATE TABLE IF NOT EXISTS`（本仓无迁移账本、每次启动重跑 ⇒ 靠幂等自愈）、文本列**显式** `utf8mb4_0900_ai_ci`、**不建物理外键**、**零预置数据**（目录类数据用代码常量）。
