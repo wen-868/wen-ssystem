@@ -344,4 +344,5 @@ export async function notifyExpiringTenants(tenantIds: number[]) {
   return data.data;
 }
 
-export const __probe: number = "not a number";
+
+const __probeWarn = 1;
