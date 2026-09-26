@@ -269,7 +269,7 @@ function handlePageChange(p: number) {
 
 async function handleCreateMember(keepOpen = false) {
   if (!memberFormRef.value) return;
-  await memberFormRef.value.validate(async (valid) => {
+  await memberFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     submitLoading.value = true;
     try {

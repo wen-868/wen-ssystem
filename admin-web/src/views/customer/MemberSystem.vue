@@ -120,7 +120,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 async function handleRegister() {
   if (!registerFormRef.value) return;
-  await registerFormRef.value.validate(async (valid) => {
+  await registerFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     registerSubmitLoading.value = true;
     try {

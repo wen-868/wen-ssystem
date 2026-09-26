@@ -252,7 +252,7 @@ async function handleCreateCard() {
 
 async function handleCreateCardSubmit() {
   if (!createCardFormRef.value) return;
-  await createCardFormRef.value.validate(async (valid) => {
+  await createCardFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     createCardSubmitLoading.value = true;
     try {
@@ -289,7 +289,7 @@ function handleRecharge(row: any) {
 
 async function handleRechargeSubmit() {
   if (!rechargeFormRef.value) return;
-  await rechargeFormRef.value.validate(async (valid) => {
+  await rechargeFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     rechargeSubmitLoading.value = true;
     try {
@@ -325,7 +325,7 @@ function handleConsume(row: any) {
 
 async function handleConsumeSubmit() {
   if (!consumeFormRef.value) return;
-  await consumeFormRef.value.validate(async (valid) => {
+  await consumeFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     consumeSubmitLoading.value = true;
     try {
@@ -359,7 +359,7 @@ function handleRefund(row: any) {
 
 async function handleRefundSubmit() {
   if (!refundFormRef.value) return;
-  await refundFormRef.value.validate(async (valid) => {
+  await refundFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     refundSubmitLoading.value = true;
     try {

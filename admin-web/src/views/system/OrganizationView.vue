@@ -349,7 +349,7 @@ function openStaffDialog(row?: any) {
 
 async function handleSaveStaff() {
   if (!staffFormRef.value) return;
-  await staffFormRef.value.validate(async (valid) => {
+  await staffFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     saving.value = true;
     try {
@@ -398,7 +398,7 @@ function openResetPassword(row: any) {
 
 async function handleResetPassword() {
   if (!resetFormRef.value) return;
-  await resetFormRef.value.validate(async (valid) => {
+  await resetFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     saving.value = true;
     try {

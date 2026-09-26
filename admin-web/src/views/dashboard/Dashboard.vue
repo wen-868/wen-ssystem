@@ -648,13 +648,13 @@ async function loadAllData() {
     const notices = results[4].status === "fulfilled" ? (results[4].value?.records || []) : [];
     const members = results[5].status === "fulfilled" ? (results[5].value?.records || []) : [];
     // 最新订单：只显示进行中的（过滤已完成/作废/退货），合并多渠道来源，固定展示 10 条
-    const activeBills = bills.filter((b) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus));
+    const activeBills = bills.filter((b: any) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus));
     if (!overview.value.recentBills && activeBills.length) overview.value.recentBills = activeBills.slice(0, 10);
     if (!overview.value.recentReceipts && receipts.length) overview.value.recentReceipts = receipts.slice(0, 5);
     if (!overview.value.recentMembers && members.length) overview.value.recentMembers = members.slice(0, 5);
     if (!overview.value.recentNotices && notices.length) overview.value.recentNotices = notices.slice(0, 6);
     const overviewActiveBills = (overview.value.recentBills || []).filter(
-      (b) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus)
+      (b: any) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus)
     );
     const channelOrders = results[8].status === "fulfilled" ? (results[8].value?.records || []) : [];
     const channelItems = channelOrders

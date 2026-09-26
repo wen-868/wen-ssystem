@@ -427,7 +427,7 @@ function openLevelEdit(row: any) {
 
 async function handleLevelSubmit() {
   if (!levelFormRef.value) return;
-  await levelFormRef.value.validate(async (valid) => {
+  await levelFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     submitLoading.value = true;
     try {

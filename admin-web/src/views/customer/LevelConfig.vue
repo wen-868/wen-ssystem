@@ -190,7 +190,7 @@ function handleEditLevel(row: any) {
 
 async function handleLevelSubmit() {
   if (!levelFormRef.value) return;
-  await levelFormRef.value.validate(async (valid) => {
+  await levelFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     levelSubmitLoading.value = true;
     try {
@@ -295,7 +295,7 @@ async function handleManualUpgrade() {
 
 async function handleManualUpgradeSubmit() {
   if (!manualUpgradeFormRef.value) return;
-  await manualUpgradeFormRef.value.validate(async (valid) => {
+  await manualUpgradeFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     manualUpgradeSubmitLoading.value = true;
     try {

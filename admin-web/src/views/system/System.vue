@@ -410,7 +410,7 @@ function toggleStoreStatus(row: any) {
 
 async function handleStoreSubmit() {
   if (!storeFormRef.value) return;
-  await storeFormRef.value.validate(async (valid) => {
+  await storeFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     storeSubmitLoading.value = true;
     try {

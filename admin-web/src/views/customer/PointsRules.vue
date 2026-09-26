@@ -204,7 +204,7 @@ function handleEditRule(row: any) {
 
 async function handleRuleSubmit() {
   if (!ruleFormRef.value) return;
-  await ruleFormRef.value.validate(async (valid) => {
+  await ruleFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     ruleSubmitLoading.value = true;
     try {
@@ -287,7 +287,7 @@ function handleRecordsPageChange(p: number) {
 
 async function handleAdjustSubmit() {
   if (!adjustFormRef.value) return;
-  await adjustFormRef.value.validate(async (valid) => {
+  await adjustFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     adjustSubmitLoading.value = true;
     try {

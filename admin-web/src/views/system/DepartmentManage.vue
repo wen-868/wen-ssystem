@@ -272,7 +272,7 @@ async function handleDelete() {
 
 async function handleSubmit(keepOpen = false) {
   if (!formRef.value) return;
-  await formRef.value.validate(async (valid) => {
+  await formRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     submitLoading.value = true;
     try {

@@ -478,7 +478,7 @@ function openEditDialog() {
 
 async function handleEditSubmit() {
   if (!editFormRef.value) return;
-  await editFormRef.value.validate(async (valid) => {
+  await editFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     editLoading.value = true;
     try {
@@ -502,7 +502,7 @@ function openLevelDialog() {
 
 async function handleLevelSubmit() {
   if (!levelFormRef.value) return;
-  await levelFormRef.value.validate(async (valid) => {
+  await levelFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     levelLoading.value = true;
     try {

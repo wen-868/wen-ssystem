@@ -386,7 +386,7 @@ export async function fetchConsumerAddressDetail(id: number) {
 }
 
 // ==================== 客户类型管理 ====================
-export async function fetchCustomerTypes(params?: { status?: string; page?: number; pageSize?: number }) {
+export async function fetchCustomerTypes(params?: { status?: string | number; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/customer-types", { params: { page: 1, pageSize: 100, ...params } });
   return data.data;
 }

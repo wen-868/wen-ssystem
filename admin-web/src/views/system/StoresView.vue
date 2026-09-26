@@ -331,7 +331,7 @@ function handlePageChange(p: number) {
 
 async function handleCreateStore(keepOpen = false) {
   if (!storeFormRef.value) return;
-  await storeFormRef.value.validate(async (valid) => {
+  await storeFormRef.value.validate(async (valid: boolean) => {
     if (!valid) return;
     submitLoading.value = true;
     try {
