@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePermission } from "../middleware/rbac-auth";
 
 import * as dailySettlementController from "../controllers/admin/daily-settlement.controller";
 import * as financeDashboardController from "../controllers/admin/finance-dashboard.controller";
@@ -7,7 +8,7 @@ import * as financeDashboardController from "../controllers/admin/finance-dashbo
 export const adminFinanceRouter = Router();
 
 // ============ 日结 ============
-adminFinanceRouter.post("/daily-settlements", dailySettlementController.createDailySettlement);
+adminFinanceRouter.post("/daily-settlements", requirePermission("finance:payment"), dailySettlementController.createDailySettlement);
 adminFinanceRouter.get("/daily-settlements", dailySettlementController.listDailySettlements);
 adminFinanceRouter.get("/daily-settlements/:id", dailySettlementController.getDailySettlementDetail);
 

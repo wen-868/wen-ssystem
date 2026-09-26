@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePermission } from "../middleware/rbac-auth";
 
 import * as inventoryLossOrderController from "../controllers/admin/inventory-loss-order.controller";
 import * as inventoryProfitOrderController from "../controllers/admin/inventory-profit-order.controller";
@@ -10,16 +11,16 @@ export const inventoryProfitLossRouter = Router();
 // ============ 报损单管理 ============
 inventoryProfitLossRouter.get("/loss-orders", inventoryLossOrderController.listLossOrders);
 inventoryProfitLossRouter.get("/loss-orders/:id", inventoryLossOrderController.getLossOrderDetail);
-inventoryProfitLossRouter.post("/loss-orders", inventoryLossOrderController.createLossOrder);
-inventoryProfitLossRouter.post("/loss-orders/:id/approve", inventoryLossOrderController.approveLossOrder);
-inventoryProfitLossRouter.post("/loss-orders/:id/reject", inventoryLossOrderController.rejectLossOrder);
+inventoryProfitLossRouter.post("/loss-orders", requirePermission("inventory:create"), inventoryLossOrderController.createLossOrder);
+inventoryProfitLossRouter.post("/loss-orders/:id/approve", requirePermission("inventory:approve"), inventoryLossOrderController.approveLossOrder);
+inventoryProfitLossRouter.post("/loss-orders/:id/reject", requirePermission("inventory:approve"), inventoryLossOrderController.rejectLossOrder);
 
 // ============ 报溢单管理 ============
 inventoryProfitLossRouter.get("/profit-orders", inventoryProfitOrderController.listProfitOrders);
 inventoryProfitLossRouter.get("/profit-orders/:id", inventoryProfitOrderController.getProfitOrderDetail);
-inventoryProfitLossRouter.post("/profit-orders", inventoryProfitOrderController.createProfitOrder);
-inventoryProfitLossRouter.post("/profit-orders/:id/approve", inventoryProfitOrderController.approveProfitOrder);
-inventoryProfitLossRouter.post("/profit-orders/:id/reject", inventoryProfitOrderController.rejectProfitOrder);
+inventoryProfitLossRouter.post("/profit-orders", requirePermission("inventory:create"), inventoryProfitOrderController.createProfitOrder);
+inventoryProfitLossRouter.post("/profit-orders/:id/approve", requirePermission("inventory:approve"), inventoryProfitOrderController.approveProfitOrder);
+inventoryProfitLossRouter.post("/profit-orders/:id/reject", requirePermission("inventory:approve"), inventoryProfitOrderController.rejectProfitOrder);
 
 // ============ 损益统计 ============
 inventoryProfitLossRouter.get("/profit-loss/stats", profitLossStatsController.getProfitLossStats);

@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import { asyncHandler } from "../middleware/async-handler";
+import { requirePermission } from "../middleware/rbac-auth";
 import * as controller from "../controllers/admin/sale-return.controller";
 
 export const saleReturnRouter = Router();
@@ -11,7 +12,7 @@ saleReturnRouter.get("/:returnNo", asyncHandler(controller.getSaleReturnDetail))
 saleReturnRouter.post("/", asyncHandler(controller.createSaleReturn));
 saleReturnRouter.post("/:returnNo/approve", asyncHandler(controller.approveSaleReturn));
 saleReturnRouter.post("/:returnNo/reject", asyncHandler(controller.rejectSaleReturn));
-saleReturnRouter.post("/:returnNo/refund", asyncHandler(controller.refundSaleReturn));
+saleReturnRouter.post("/:returnNo/refund", requirePermission("sale:return"), asyncHandler(controller.refundSaleReturn));
 saleReturnRouter.get("/sale-bills/:billNo", asyncHandler(controller.getSaleBillForReturn));
 
 // ========== 路由自动发现配置 ==========
