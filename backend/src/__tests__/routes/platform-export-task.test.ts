@@ -7,9 +7,12 @@
  * 范式：src/__tests__/routes/platform-ticket.test.ts（create-test-app 夹具 + service mock）。
  * 鉴权反向：单独挂载**真实** requirePlatformAuth（不带 Authorization）⇒ 401。
  *
- * 路径口径（本单核心判据）：前缀 = 前端 saas-admin/src/views/Dashboard.vue 的**既有字面契约**
- * `/api/platform/reports/export`（:354 创建 / :344 status / :347 download / :350 logs）。
- * 下面的契约用例**从 Dashboard.vue 原文提取**这 4 处字面路径，逐条断言它们都落在后端注册路径上 ——
+ * 路径口径（本单核心判据）：前缀 = 前端**既有字面契约** `/api/platform/reports/export`。
+ * F1 更正（2026-09-27，C6-3-0 接线批把 4 条字面路径下沉到封装层）：字面路径现在位于
+ * `saas-admin/src/api.ts`（axios baseURL=/api ⇒ 写作 `/platform/...`），`Dashboard.vue` 只调用封装函数。
+ * ⇒ 提取器改为扫 **api.ts + Dashboard.vue 两个文件的并集**，并把 `/platform/…` 归一为 `/api/platform/…`；
+ * 契约强度不变（仍是"恰好那 4 条"），只是不再把口径绑死在某个文件位置上。
+ * 下面的契约用例从这两个文件原文提取这 4 处字面路径，逐条断言它们都落在后端注册路径上 ——
  * 路由前缀一旦漂移（例如改回 /api/platform/export-tasks），该断言必红（反测 ④a 的判红点）。
  * 另 2 条（list / retry）是后端新增，不与前端冲突，也不与前端既有 4 处重名。
  *
@@ -70,7 +73,7 @@ import { AppError } from "../../shared/app-error";
 import { routeConfigs, platformExportTaskRouter } from "../../routes/platform-export-task.routes";
 import { requirePlatformAuth } from "../../middleware/auth";
 
-/** 前端既有字面契约前缀（Dashboard.vue :344/:347/:350/:354）—— 独立常量，**不**从路由文件读取 */
+/** 前端既有字面契约前缀（C6-3-0 后其 4 条字面路径位于 saas-admin/src/api.ts）—— 独立常量，**不**从路由文件读取 */
 const PREFIX = "/api/platform/reports/export";
 
 /** 路由文件声明的前缀（是否等于前端字面契约，由下面的声明用例与契约用例单独把关） */
@@ -119,33 +122,70 @@ function declaredFullPaths(): string[] {
   return [...full].sort();
 }
 
+/* ── 契约提取器（F1 更正：口径从「绑死文件位置」改为「扫字面路径的真实使用文件」）── */
+/* >>>F1-CONTRACT-EXTRACTOR-START<<< */
+
+/**
+ * 前端承载导出端点字面路径的文件（**恰好这两个，不扫全仓**）：
+ * · api.ts —— C6-3-0 接线批把 4 条字面路径下沉到此处（写 `/platform/...`，前缀由 axios baseURL=/api 补）；
+ * · Dashboard.vue —— 页面层调用处/契约注释（写完整 `/api/platform/...`）。
+ * 今后字面路径若再次搬家，**必须同步改这个清单**（漏一个 ⇒ 提取集会少条 ⇒ 契约用例必红）。
+ */
+const EXPORT_CONTRACT_RELATIVE_PATHS = [
+  "saas-admin/src/api.ts",
+  "saas-admin/src/views/Dashboard.vue",
+];
+
 /**
  * 定位前端契约文件（兼容 cwd=backend / cwd=仓库根 / cwd=夹具目录三种跑法）。
- * 找不到**直接抛错**，不静默跳过 —— 契约用例静默跳过就等于假门禁。
+ * 清单内**每个文件都必须找到**；缺一个**直接抛错**，不静默跳过、不降级为"扫到几算几"
+ * —— 契约用例静默跳过就等于假门禁。
  */
-function locateDashboardVue(): string {
-  const candidates = [
-    resolve(process.cwd(), "../saas-admin/src/views/Dashboard.vue"),
-    resolve(process.cwd(), "saas-admin/src/views/Dashboard.vue"),
-    resolve(process.cwd(), "../../saas-admin/src/views/Dashboard.vue"),
-  ];
-  const found = candidates.find((candidate) => existsSync(candidate));
-  if (!found) {
-    throw new Error(`未找到前端契约文件 Dashboard.vue（已尝试：${candidates.join(" | ")}）`);
+function locateExportContractSources(): string[] {
+  const roots = ["..", ".", "../.."];
+  const found: string[] = [];
+  const missing: string[] = [];
+  for (const rel of EXPORT_CONTRACT_RELATIVE_PATHS) {
+    const hit = roots
+      .map((root) => resolve(process.cwd(), root, rel))
+      .find((candidate) => existsSync(candidate));
+    if (hit) {
+      found.push(hit);
+    } else {
+      missing.push(rel);
+    }
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `未找到前端契约文件：${missing.join(" | ")}（cwd=${process.cwd()}）—— ` +
+        `导出端点字面路径若再次搬家，必须同步更新 EXPORT_CONTRACT_RELATIVE_PATHS，不得静默放宽`
+    );
   }
   return found;
 }
 
 /**
- * 从前端原文提取导出端点字面契约：模板串里的 `${...}` 归一化为 `:id`。
- * 例：`GET /api/platform/reports/export/${t?.id ?? ''}/status` ⇒ `/api/platform/reports/export/:id/status`
+ * 从前端原文提取导出端点字面契约。
+ * · 前缀归一：`/api/platform/…`（Dashboard.vue 完整写法）与 `/platform/…`（api.ts 靠 baseURL=/api 补前缀）
+ *   两种写法统一归一为 `/api/platform/…`，再与后端注册路径逐字比较；
+ * · 模板串里的 `${...}` 归一化为 `:id`。
+ * 例：`/platform/reports/export/${id}/status` ⇒ `/api/platform/reports/export/:id/status`
  */
 function frontendExportContract(): string[] {
-  const source = readFileSync(locateDashboardVue(), "utf8");
-  const found =
-    source.match(/\/api\/platform\/reports\/export(?:\/\$\{[^}]*\}|\/[A-Za-z0-9_.-]+)*/g) ?? [];
-  return [...new Set(found.map((path) => path.replace(/\$\{[^}]*\}/g, ":id")))].sort();
+  const found: string[] = [];
+  for (const file of locateExportContractSources()) {
+    const source = readFileSync(file, "utf8");
+    const matches =
+      source.match(/(?:\/api)?\/platform\/reports\/export(?:\/\$\{[^}]*\}|\/[A-Za-z0-9_.-]+)*/g) ?? [];
+    found.push(...matches);
+  }
+  const normalized = found.map((path) =>
+    path.replace(/\$\{[^}]*\}/g, ":id").replace(/^\/platform\//, "/api/platform/")
+  );
+  return [...new Set(normalized)].sort();
 }
+
+/* >>>F1-CONTRACT-EXTRACTOR-END<<< */
 
 const TASK_DETAIL = {
   id: 7,
@@ -208,7 +248,7 @@ describe("C6-2-T2-F1 · 路由声明（路径钉死 + 全量 requirePlatformAuth
 });
 
 describe("C6-2-T2-F1 · 前后端字面契约一致性（本单核心判据）", () => {
-  it("前端 Dashboard.vue 的 4 处字面路径 4/4 逐字落到后端注册路径上（反测 ④a 的判红点）", () => {
+  it("前端 4 处字面路径（api.ts 封装 + Dashboard.vue）4/4 逐字落到后端注册路径上（反测 ④a 的判红点）", () => {
     const frontend = frontendExportContract();
     expect(frontend).toEqual([
       "/api/platform/reports/export",
