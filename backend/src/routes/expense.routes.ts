@@ -1,10 +1,11 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePermission } from "../middleware/rbac-auth";
 
 import * as expenseController from "../controllers/admin/expense.controller";
 
 export const expenseRouter = Router();
-expenseRouter.post("/", expenseController.createExpense);
+expenseRouter.post("/", requirePermission("finance:create"), expenseController.createExpense);
 expenseRouter.get("/", expenseController.listExpenses);
 expenseRouter.get("/summary", expenseController.getExpenseSummary);
 expenseRouter.get("/:expenseNo", expenseController.getExpenseDetail);
