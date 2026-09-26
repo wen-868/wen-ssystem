@@ -110,8 +110,25 @@ jobs:
       #   S3-124 新增 `admin-web/tests/role-guard.spec.mjs` 与 `npm test` 脚本
       #   （断言"空角色缺省拒绝 fail-closed"等三分支），但此前**无任何 workflow 调用**
       #   ⇒ 同样会静默退化。纯 node、约 2s，无需浏览器。
+      # ⚠️ 本步骤**必须**跑在 Node >= 22.15：`admin-web/tests/role-guard.spec.mjs:19` 用了
+      #   `import { registerHooks } from "node:module"`，而该导出在 **Node 20 上不存在**。
+      #   CI 实测（run 36273574809）本步骤在 Node v20.20.2 下 0 秒失败：
+      #     SyntaxError: The requested module 'node:module' does not provide an export named 'registerHooks'
+      #   而本机 Node 22.22.2 下 EXIT=0 / 3 passed ⇒ 典型"本机绿、CI 红"。
+      #   （与"a11y 违规可以是浏览器相关的"同族：结论必须绑定运行环境。）
+      #   ⇒ 仅本步骤临时切到 Node 22，随后立刻切回 20，避免改动其余步骤的既有构建环境。
+      - name: Use Node.js 22 for role guard tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Admin web role guard tests
         run: npm --workspace admin-web test
+
+      - name: Restore Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       # S3-129：admin-web **类型门禁**接进 CI（阻断）。
       #   背景：`admin-web/package.json` 的 `build` = `vite build`（esbuild 只转译、**不做类型检查**），

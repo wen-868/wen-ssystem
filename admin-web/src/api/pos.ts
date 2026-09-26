@@ -343,3 +343,5 @@ export async function notifyExpiringTenants(tenantIds: number[]) {
   const { data } = await api.post("/admin/monitor/notify-expiring", { tenantIds });
   return data.data;
 }
+
+export const __probe: number = "not a number";
