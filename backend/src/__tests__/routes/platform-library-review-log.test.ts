@@ -34,6 +34,10 @@ vi.mock("../../shared/db", async (importOriginal) => {
     ...actual,
     query: hoisted.query,
     queryOne: hoisted.queryOne,
+    // S3-121：reviewSpu 的 UPDATE + 流水 INSERT 已收进同一事务；
+    // 事务内的 execute/query 一律指向同一个 hoisted.query，既有断言原样成立。
+    transaction: async (fn: any) =>
+      fn({ query: hoisted.query, execute: hoisted.query, queryOne: hoisted.queryOne }),
     queryWithTenant: hoisted.queryWithTenant
   };
 });
