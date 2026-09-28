@@ -148,6 +148,20 @@ jobs:
         working-directory: admin-web
         run: npx --no-install vue-tsc --noEmit
 
+      # S3-135-F1：saas-admin **类型门禁**接进 CI（阻断）。
+      #   背景：`saas-admin/package.json` 的 `build` = `vite build`（esbuild 只转译、**不做类型检查**），
+      #   故 vue-tsc 清出来的类型错误此前从未被 CI 守过；`build:check`（= `vue-tsc -b && vite build`）
+      #   在接入前**没有任何 workflow 调用**（与 S3-129 admin-web 同形）。
+      #   形态：`vue-tsc -b` —— 与 saas-admin 自己的 `build:check` 脚本同款命令（不改语义、不新增标准）。
+      #   ⚠️ 两处防假绿（照抄 admin-web 步骤的同款实测教训）：
+      #     1) `working-directory: saas-admin` —— 仓库根**没有 tsconfig.json**，在根跑只会打印 tsc 帮助并 exit 1；
+      #     2) `npx --no-install` —— 禁止联网兜底安装，缺依赖**直接失败**，不会静默跳过。
+      #   反测（2026-09-29，S3-135-F1）：在 src 注入 1 处确定性类型错误 → 本步骤 exit 1 报 TS2322；
+      #   撤销注入 → exit 0，证明「它确实会红」（见 docs/tasks/cards/R101-S3-135-F1-阿坚回传.md）。
+      - name: Saas admin type gate (vue-tsc --noEmit)
+        working-directory: saas-admin
+        run: npx --no-install vue-tsc -b
+
       - name: Build admin web
         run: npm --workspace admin-web run build
 
