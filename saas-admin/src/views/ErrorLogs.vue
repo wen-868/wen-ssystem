@@ -208,7 +208,7 @@ function handleReset() {
   fetchList();
 }
 
-function handleExpand(row: any, expandedRows: any[]) {
+function handleExpand(row: any, expandedRows: any[] | boolean) {
   // 展开时不需要额外操作，数据已在 row 中
 }
 
