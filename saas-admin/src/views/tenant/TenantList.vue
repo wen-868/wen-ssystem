@@ -157,7 +157,7 @@
             <div v-if="quotaLoading" class="empty small">加载中…</div>
             <div v-else-if="quotaError" class="empty small">
               <span class="err-t">配额加载失败</span>
-              <span class="retry" @click="fetchQuota">重试</span>
+              <span class="retry" @click="retryQuota">重试</span>
             </div>
             <div v-else-if="!quotaRows.length" class="empty small">暂无配额数据</div>
             <div v-else class="qrow" v-for="row in quotaRows" :key="row.key">
@@ -501,6 +501,19 @@ async function fetchQuota(tenantId: number) {
   } finally {
     quotaLoading.value = false
   }
+}
+
+/*
+ * S3-135-F1（凌舟裁定方案 A）：重试必须把「当前抽屉租户 id」传给 fetchQuota。
+ * 原写法 `@click="fetchQuota"` 是「方法名式事件绑定」：Vue 会把**原生事件对象**当第一个实参传进去，
+ * 运行期请求打到 /api/platform/tenants/[object MouseEvent]/quota（已实测）⇒ 配额面板加载失败后
+ * 点「重试」必然失败，按钮等于不可用。这不是类型误报，是真缺陷。
+ * detail 即当前打开的抽屉数据（openDetail 内 getTenantApi 的返回），其 id 就是本抽屉的租户 id。
+ */
+function retryQuota() {
+  const tenantId = Number(detail.value?.id)
+  if (!tenantId) return
+  fetchQuota(tenantId)
 }
 
 function closeDetail() {
