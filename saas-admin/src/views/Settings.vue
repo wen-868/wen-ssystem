@@ -135,7 +135,7 @@
               :key="t.key"
               class="tab"
               :class="{ on: dictTab === t.key }"
-              @click="dictTab = t.key"
+              @click="switchDictTab(t.key)"
               >{{ t.label }}</span
             >
           </div>
@@ -152,10 +152,38 @@
                   <th>操作</th>
                 </tr>
               </thead>
-              <tbody></tbody>
+              <tbody>
+                <tr v-for="item in dictItems" :key="item.itemCode">
+                  <td>
+                    <b>{{ item.itemName }}</b>
+                    <span class="sub">{{ item.itemCode }}</span>
+                    <span v-if="item.remark" class="sub">备注：{{ item.remark }}</span>
+                  </td>
+                  <!-- 下面三列在本批后端字典项模型里没有对应字段/数据源，按「无数据源显示 —」处理，不用别处数据顶替 -->
+                  <td>—</td>
+                  <td>—</td>
+                  <td class="num">—</td>
+                  <td>{{ item.sortNo }}</td>
+                  <td>{{ item.status === 'ACTIVE' ? '启用' : item.status }}</td>
+                  <td>
+                    <span class="btn-t" @click="onEditDict(item)">编辑</span>
+                    <span class="btn-t dgr" @click="onDeleteDict(item)">删除</span>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
-          <div v-if="!dictItems.length" class="empty">暂无字典项 · 数据字典接口待对接</div>
+          <div v-if="dictError" class="tipbar r">
+            <span class="ic">!</span>
+            <span>{{ dictError }}</span>
+          </div>
+          <div v-if="!dictItems.length" class="empty">暂无字典项</div>
+          <p class="small mt8">
+            {{ dictTypeHint }}
+          </p>
+          <p class="small">
+            本批字典项字段为 编码 / 名称 / 排序 / 状态 / 备注；「换算关系」「预置模板标记」「引用租户数」当前无对应字段与数据源，显示「—」。
+          </p>
           <p class="small mt8">字典快照原则：修改仅影响新增数据，租户已生成单据上的历史值不受影响。</p>
         </div>
       </div>
@@ -311,22 +339,22 @@
       <div class="zx-scope">
         <div class="frow">
           <span class="fld" style="flex: 1">
-            <span>字典项名称</span>
-            <input class="ipt" v-model="dictForm.name" placeholder="如：件 / 箱 / kg" />
+            <span>字典项编码</span>
+            <input class="ipt" v-model="dictForm.itemCode" placeholder="如：bottle / box / kg（同类型内唯一）" />
           </span>
           <span class="fld" style="flex: 1">
-            <span>换算关系</span>
-            <input class="ipt" v-model="dictForm.relation" placeholder="如：1 箱 = 24 件" />
+            <span>字典项名称</span>
+            <input class="ipt" v-model="dictForm.itemName" placeholder="如：瓶 / 箱 / 件 / 千克" />
           </span>
         </div>
         <div class="frow mt10">
           <span class="fld" style="flex: 1">
-            <span>预置模板标记</span>
-            <span class="sel" @click="dictForm.preset = !dictForm.preset">{{ dictForm.preset ? '预置' : '非预置' }} ▾</span>
+            <span>排序</span>
+            <input class="ipt" v-model="dictForm.sortNo" placeholder="数字越小越靠前" />
           </span>
           <span class="fld" style="flex: 1">
-            <span>排序</span>
-            <input class="ipt" v-model="dictForm.sort" placeholder="数字越小越靠前" />
+            <span>备注</span>
+            <input class="ipt" v-model="dictForm.remark" placeholder="可空" />
           </span>
         </div>
       </div>
@@ -339,10 +367,17 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
-import { getPlatformConfig, updatePlatformConfig, uploadPlatformLogo } from '../api'
+import {
+  getPlatformConfig,
+  updatePlatformConfig,
+  uploadPlatformLogo,
+  listDataDictTypes,
+  listDataDictItems,
+  replaceDataDictItems,
+} from '../api'
 import { pickBackendMessage } from '../utils/http-error'
 
 const loading = ref(false)
@@ -419,15 +454,57 @@ function toggleSwitchEnabled(key: string) {
   switches[key].enabled = !switches[key].enabled
 }
 
-/* 数据字典 */
+/* 数据字典（R101-C6-3-1 接线：GET/PUT /api/platform/config/data-dict*，表 t_platform_dict(_item)，迁移 185）
+ * 四类字典类型是**卡内逐字的代码常量**（unit / category_template / payment_channel / bill_type）；
+ * 零预置：迁移与库内初始均无数据 ⇒ 接口读数即真值，页面不内置任何字典项、不兜假行。 */
 const dictTabs = [
   { key: 'unit', label: '计量单位' },
-  { key: 'category', label: '商品分类模板' },
-  { key: 'pay', label: '支付渠道' },
-  { key: 'doc', label: '单据类型' },
+  { key: 'category_template', label: '商品分类模板' },
+  { key: 'payment_channel', label: '支付渠道' },
+  { key: 'bill_type', label: '单据类型' },
 ]
 const dictTab = ref('unit')
 const dictItems = ref<any[]>([])
+const dictTypeRows = ref<any[]>([])
+const dictError = ref('')
+const dictSaving = ref(false)
+
+/**
+ * 四类字典的**预置内容**（卡 §三B③ 硬口径：走代码常量，不写进迁移、不入库、不参与读取路径）。
+ * 只登记卡内已明确给出的那一类内容（计量单位：瓶/箱/件/千克）；其余三类卡内未给口径，故保持空
+ * —— 「批量导入」对无预置的类会如实提示，不替产品编造字典内容。
+ */
+const DICT_PRESETS: Record<string, Array<{ itemCode: string; itemName: string; sortNo: number }>> = {
+  unit: [
+    { itemCode: 'bottle', itemName: '瓶', sortNo: 1 },
+    { itemCode: 'box', itemName: '箱', sortNo: 2 },
+    { itemCode: 'piece', itemName: '件', sortNo: 3 },
+    { itemCode: 'kg', itemName: '千克', sortNo: 4 },
+  ],
+  category_template: [],
+  payment_channel: [],
+  bill_type: [],
+}
+
+/** 当前类型的接口读数提示（来自 GET /platform/config/data-dict 的 itemCount/status；未落库即"未配置"） */
+const dictTypeHint = computed(() => {
+  const row = dictTypeRows.value.find((r: any) => r.dictType === dictTab.value)
+  if (!row) return '本类型尚未落库（未配置）· 条目数 0'
+  return `本类型状态：${row.status || '未配置'} · 条目数 ${row.itemCount ?? 0}`
+})
+
+/** 请求体：整包替换该类型字典项（字段名与后端 zod schema 逐字一致：items） */
+function buildDictPayload(items: Array<Record<string, unknown>>) {
+  const payload: Record<string, unknown> = {}
+  payload.items = items.map((i) => ({
+    itemCode: i.itemCode,
+    itemName: i.itemName,
+    sortNo: i.sortNo,
+    status: i.status,
+    remark: i.remark ?? null,
+  }))
+  return payload
+}
 
 /* 第三方对接：密钥/计数均来自接口，缺省展示脱敏占位 */
 const channels = reactive({
@@ -437,28 +514,129 @@ const channels = reactive({
   pay: { merchantWx: '', merchantAli: '', apiKey: '', lastRotate: '' },
 })
 
-/* 字典弹窗 */
+/* 字典弹窗（字段对齐后端字典项模型：编码/名称/排序/备注；类型与状态由当前 tab 决定） */
 const showDictDialog = ref(false)
 const editingDict = ref<any>(null)
-const dictForm = reactive({ name: '', relation: '', preset: true, sort: '' })
+const dictForm = reactive({ itemCode: '', itemName: '', sortNo: '', remark: '' })
+
+/** 读取字典类型列表（GET /platform/config/data-dict）——零预置 ⇒ 空表时保留"未配置"提示 */
+async function loadDictTypes() {
+  try {
+    const res: any = await listDataDictTypes()
+    const items = res?.data?.data?.items
+    dictTypeRows.value = Array.isArray(items) ? items : []
+  } catch {
+    dictTypeRows.value = []
+  }
+}
+
+/** 读取当前类型字典项（GET /platform/config/data-dict/:dictType/items）——空集即诚实空态 */
+async function loadDictItems() {
+  dictError.value = ''
+  try {
+    const res: any = await listDataDictItems(dictTab.value)
+    const items = res?.data?.data?.items
+    dictItems.value = Array.isArray(items) ? items : []
+  } catch {
+    dictItems.value = []
+    dictError.value = '字典项加载失败（该类型尚未落库或接口异常，当前为空态）'
+  }
+}
+
+function switchDictTab(key: string) {
+  dictTab.value = key
+  loadDictItems()
+}
 
 function onAddDict() {
   editingDict.value = null
-  Object.assign(dictForm, { name: '', relation: '', preset: true, sort: '' })
+  Object.assign(dictForm, { itemCode: '', itemName: '', sortNo: '', remark: '' })
   showDictDialog.value = true
 }
-function onImportDict() {
-  // TODO: 待接入字典批量导入（建议 POST /platform/config/data-dict/import）
-  ElMessage.info('字典批量导入接口待对接（POST /platform/config/data-dict/import）')
+
+function onEditDict(item: any) {
+  editingDict.value = item
+  Object.assign(dictForm, {
+    itemCode: item.itemCode ?? '',
+    itemName: item.itemName ?? '',
+    sortNo: String(item.sortNo ?? ''),
+    remark: item.remark ?? '',
+  })
+  showDictDialog.value = true
 }
-function saveDict() {
-  if (!dictForm.name) {
-    ElMessage.warning('请输入字典项名称')
+
+/** 整包替换入口（唯一写路径）：PUT /platform/config/data-dict/:dictType */
+async function submitDictItems(next: Array<Record<string, unknown>>, successText: string) {
+  if (dictSaving.value) return
+  dictSaving.value = true
+  try {
+    await replaceDataDictItems(dictTab.value, buildDictPayload(next) as any)
+    ElMessage.success(successText)
+    await loadDictItems()
+    await loadDictTypes()
+  } catch {
+    /* 错误文案由请求层统一处理（含 404 未知类型 / 400 编码重复） */
+  } finally {
+    dictSaving.value = false
+  }
+}
+
+/**
+ * 批量导入（原"待对接导入端点"占位已删除）：
+ * 本模块**没有**导入专用端点 ⇒ 用既有 PUT 整包替换入口写入「代码常量预置模板」。
+ * 注意：是"覆盖"该类型字典项（后端 PUT 语义为整包替换），不是增量合并。
+ */
+async function onImportDict() {
+  const preset = DICT_PRESETS[dictTab.value] ?? []
+  if (!preset.length) {
+    ElMessage.warning('该类型没有代码常量预置模板（本批只预置「计量单位」），未提交任何变更')
     return
   }
-  // TODO: 待接入字典保存（建议 PUT /platform/config/data-dict）；当前仅关闭弹窗占位
-  ElMessage.info('字典项保存接口待对接（PUT /platform/config/data-dict）')
+  await submitDictItems(
+    preset.map((p) => ({ ...p, status: 'ACTIVE', remark: null })),
+    `已按预置模板写入 ${preset.length} 条（整包替换）`
+  )
+}
+
+async function saveDict() {
+  const itemCode = dictForm.itemCode.trim()
+  const itemName = dictForm.itemName.trim()
+  if (!itemCode || !itemName) {
+    ElMessage.warning('请输入字典项编码与名称')
+    return
+  }
+  const next = dictItems.value
+    .filter((i: any) => i.itemCode !== itemCode && i.itemCode !== editingDict.value?.itemCode)
+    .map((i: any) => ({
+      itemCode: i.itemCode,
+      itemName: i.itemName,
+      sortNo: i.sortNo,
+      status: i.status,
+      remark: i.remark ?? null,
+    }))
+  next.push({
+    itemCode,
+    itemName,
+    sortNo: Number(dictForm.sortNo) || 0,
+    status: 'ACTIVE',
+    remark: dictForm.remark.trim() === '' ? null : dictForm.remark.trim(),
+  })
+  await submitDictItems(next, editingDict.value ? '字典项已更新' : '字典项已新增')
   showDictDialog.value = false
+}
+
+/** 删除：把该编码从整包里剔除后整包替换（不提供单行删除端点） */
+async function onDeleteDict(item: any) {
+  const next = dictItems.value
+    .filter((i: any) => i.itemCode !== item.itemCode)
+    .map((i: any) => ({
+      itemCode: i.itemCode,
+      itemName: i.itemName,
+      sortNo: i.sortNo,
+      status: i.status,
+      remark: i.remark ?? null,
+    }))
+  await submitDictItems(next, `已删除字典项 ${item.itemName}`)
 }
 function onUploadLogo() {
   if (logoUploading.value) return
@@ -568,7 +746,12 @@ async function load() {
   }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await load()
+  /* 字典域与系统配置是两套独立接口（不同表 / 不同端点），互不阻塞：一个失败不影响另一个的读取 */
+  await loadDictTypes()
+  await loadDictItems()
+})
 </script>
 
 <style scoped>

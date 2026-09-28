@@ -633,3 +633,92 @@ export function uploadPlatformLogo(file: File) {
     form
   );
 }
+
+// ==================== 平台全局功能开关（R101-C6-3-1；迁移 184 + 后端 platform-feature-switch.*） ====================
+// 端点契约唯一真相源：backend/src/routes/platform-config.routes.ts（前缀 /api/platform/config）
+// 分层口径：本域＝平台"能不能开"；套餐矩阵（租户"有没有"）仍走 t_subscription_plan，前端不经本模块。
+/**
+ * 功能开关行：{ featureCode, featureName, enabled, defaultForNewTenant, remark }
+ * 空表 ⇒ items: []（页面必须渲染"尚未登记功能开关"空态，不得内置假清单）。
+ */
+export interface FeatureSwitchRow {
+  featureCode: string;
+  featureName: string;
+  enabled: boolean;
+  defaultForNewTenant: boolean;
+  remark: string | null;
+}
+
+/** PUT 请求体：三个字段都可选，但**至少给一项**（后端 zod 反射 + 服务层"无变更 ⇒ 400"双护栏） */
+export interface FeatureSwitchUpdateBody {
+  enabled?: boolean;
+  defaultForNewTenant?: boolean;
+  remark?: string | null;
+}
+
+/** GET /platform/config/feature-switches —— 功能开关列表（空表 ⇒ items: []） */
+export function listFeatureSwitches() {
+  return api.get<any, { data: ApiResult<{ items: FeatureSwitchRow[] }> }>(
+    "/platform/config/feature-switches"
+  );
+}
+
+/**
+ * PUT /platform/config/feature-switches/:code —— 改 enabled / defaultForNewTenant / remark
+ * 响应：{ featureCode, changedFields }；未知 code ⇒ 404；提交值与现值一致（无变更）⇒ 400（拦截器按中文文案提示）。
+ */
+export function updateFeatureSwitch(code: string, body: FeatureSwitchUpdateBody) {
+  return api.put<any, { data: ApiResult<{ featureCode: string; changedFields: string[] }> }>(
+    `/platform/config/feature-switches/${code}`,
+    body
+  );
+}
+
+// ==================== 平台数据字典（R101-C6-3-1；迁移 185 + 后端 platform-dict.*） ====================
+// 四类字典类型（卡内逐字）：unit / category_template / payment_channel / bill_type
+// 硬口径：本模块**没有**批量导入专用端点（不得自拟导入类路径）——
+//   "预置内容"是页面侧代码常量，通过 PUT 整包替换入口写入（零预置：迁移与库内初始均为空）。
+/** 字典类型行：{ dictType, dictName, remark, status, itemCount }（零预置 ⇒ 空表 ⇒ items: []） */
+export interface DataDictTypeRow {
+  dictType: string;
+  dictName: string;
+  remark: string | null;
+  status: string | null;
+  itemCount: number;
+}
+
+/** 字典项请求体（PUT 整包替换时的单行；itemCode 在同一 dictType 内必须唯一） */
+export interface DataDictItemBody {
+  itemCode: string;
+  itemName: string;
+  sortNo?: number;
+  status?: string;
+  remark?: string | null;
+}
+
+/** PUT 请求体：整包替换该类型字典项（空数组＝清空该类型，仍幂等） */
+export interface DataDictReplaceBody {
+  items: DataDictItemBody[];
+}
+
+/** GET /platform/config/data-dict —— 已落库的字典类型列表（空表 ⇒ items: []） */
+export function listDataDictTypes() {
+  return api.get<any, { data: ApiResult<{ items: DataDictTypeRow[] }> }>(
+    "/platform/config/data-dict"
+  );
+}
+
+/** GET /platform/config/data-dict/:dictType/items —— 该类型字典项（合法类型未落库 ⇒ items: []；未知类型 ⇒ 404） */
+export function listDataDictItems(dictType: string) {
+  return api.get<any, { data: ApiResult<{ dictType: string; items: DataDictItemBody[] }> }>(
+    `/platform/config/data-dict/${dictType}/items`
+  );
+}
+
+/** PUT /platform/config/data-dict/:dictType —— 整包替换（幂等）→ { dictType, saved }；未知类型 ⇒ 404；itemCode 重复 ⇒ 400 */
+export function replaceDataDictItems(dictType: string, body: DataDictReplaceBody) {
+  return api.put<any, { data: ApiResult<{ dictType: string; saved: number }> }>(
+    `/platform/config/data-dict/${dictType}`,
+    body
+  );
+}
