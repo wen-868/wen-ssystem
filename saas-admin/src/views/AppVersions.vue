@@ -218,13 +218,102 @@
         </div>
       </div>
     </div>
+
+    <!-- ============ 功能开关面板（R101-C6-3-1：真实端点 GET/PUT /api/platform/config/feature-switches） ============ -->
+    <!-- 分层口径：本面板＝平台"能不能开"；某租户是否已开通由套餐矩阵（t_subscription_plan）决定，本页不涉及 -->
+    <div v-if="switchPanelVisible" class="ov" @click.self="closeSwitchPanel">
+      <div class="modal zx-scope">
+        <div class="m-hd">
+          <span class="pt">功能开关面板</span>
+          <span class="d-x" @click="closeSwitchPanel">✕</span>
+        </div>
+
+        <div class="m-bd">
+          <p class="small">
+            平台级启停：决定该能力<b>能不能开</b>（平台总开关）；「新租户默认」决定新租户初始化时该项的默认值。
+            请求体只提交本次发生变化的字段。
+          </p>
+
+          <div v-if="switchError" class="tipbar r">
+            <span class="ic">!</span>
+            <span>{{ switchError }}</span>
+          </div>
+
+          <!-- 诚实空态：空表不内置任何功能清单（不造假数据） -->
+          <div v-if="!switchLoading && !switchRows.length" class="empty">
+            尚未登记功能开关 · 该表为空，需先登记功能编码与名称后此处才能启停（本页不内置预设清单）
+          </div>
+
+          <div v-else class="tblwrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>功能编码 / 名称</th>
+                  <th>全局启停</th>
+                  <th>新租户默认</th>
+                  <th>备注</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in switchRows" :key="row.featureCode">
+                  <td>
+                    <b>{{ row.featureName }}</b>
+                    <span class="sub">{{ row.featureCode }}</span>
+                  </td>
+                  <td>
+                    <span
+                      class="tg"
+                      :class="{ off: !row.enabled }"
+                      @click="row.enabled = !row.enabled"
+                    ></span>
+                    {{ row.enabled ? '启用' : '停用' }}
+                  </td>
+                  <td>
+                    <span
+                      class="tg"
+                      :class="{ off: !row.defaultForNewTenant }"
+                      @click="row.defaultForNewTenant = !row.defaultForNewTenant"
+                    ></span>
+                    {{ row.defaultForNewTenant ? '默认启用' : '默认停用' }}
+                  </td>
+                  <td>
+                    <input class="ipt" v-model="row.remark" placeholder="备注（可空）" />
+                  </td>
+                  <td>
+                    <span class="btn-t" :class="{ gy: !rowDirty(row) }" @click="saveSwitchRow(row)">
+                      保存
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="small">
+            无变更时不提交（后端对"提交值与现值一致"返回 400 + 中文说明，不做静默成功）。
+          </p>
+        </div>
+
+        <div class="m-ft">
+          <span class="btn" style="margin-right: auto" @click="loadSwitches">刷新</span>
+          <span class="btn btn-p" @click="closeSwitchPanel">关闭</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { listAppVersions, publishAppVersion, deleteAppVersion } from "../api";
+import {
+  listAppVersions,
+  publishAppVersion,
+  deleteAppVersion,
+  listFeatureSwitches,
+  updateFeatureSwitch,
+} from "../api";
 
 /* ── 列表状态（空数组渲染空态） ── */
 const loading = ref(false);
@@ -354,10 +443,114 @@ function openWizard() {
 function closeWizard() {
   wizardVisible.value = false;
 }
-function handleSwitchPanel() {
-  // ③-b #33：功能开关/灰度矩阵需新表（R101-C6-2 立项清单 T8），禁止改用 t_platform_config 键值（裁定 R8）
-  ElMessage.warning("功能开关面板：待立项（T8 功能开关/灰度矩阵建表后接入）");
+
+/* ── 功能开关面板（R101-C6-3-1 接线：平台级启停 + 新租户默认项） ──────────────
+ * 数据源：GET/PUT /api/platform/config/feature-switches（表 t_platform_feature_switch，迁移 184）。
+ * 硬口径：空表 ⇒ 诚实空态（不内置功能清单）；保存只提交变化字段；无变更不提交也不假装成功。
+ * 明确不做：灰度矩阵（按比例放量）不在本单——t_app_version.gray_ratio 的生效点属版本域另立卡。 */
+const switchPanelVisible = ref(false);
+const switchLoading = ref(false);
+const switchError = ref("");
+const switchRows = ref<any[]>([]);
+/** 载入时的快照（按 featureCode 记录），用于计算 changedFields 与"是否有变更" */
+const switchOriginals = reactive<Record<string, { enabled: boolean; defaultForNewTenant: boolean; remark: string }>>({});
+
+function snapshotKey(row: any) {
+  return String(row.featureCode);
 }
+
+/** 归一 remark：null 与空串都视为"未填写"，避免把未填写冒充成有值 */
+function normalizeRemark(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/** 该行相对载入快照是否有变更（决定「保存」是否高亮、是否真的发请求） */
+function rowDirty(row: any): boolean {
+  const base = switchOriginals[snapshotKey(row)];
+  if (!base) return false;
+  return (
+    Boolean(row.enabled) !== base.enabled ||
+    Boolean(row.defaultForNewTenant) !== base.defaultForNewTenant ||
+    normalizeRemark(row.remark) !== base.remark
+  );
+}
+
+/** 请求体：只放变化字段（字段名与后端 zod schema 逐字一致：enabled/defaultForNewTenant/remark） */
+function buildSwitchPayload(row: any) {
+  const base = switchOriginals[snapshotKey(row)];
+  const payload: Record<string, unknown> = {};
+  if (!base) return payload;
+  if (Boolean(row.enabled) !== base.enabled) payload.enabled = Boolean(row.enabled);
+  if (Boolean(row.defaultForNewTenant) !== base.defaultForNewTenant) {
+    payload.defaultForNewTenant = Boolean(row.defaultForNewTenant);
+  }
+  if (normalizeRemark(row.remark) !== base.remark) {
+    payload.remark = normalizeRemark(row.remark) === "" ? null : normalizeRemark(row.remark);
+  }
+  return payload;
+}
+
+async function loadSwitches() {
+  switchLoading.value = true;
+  switchError.value = "";
+  try {
+    const res: any = await listFeatureSwitches();
+    const items = res?.data?.data?.items;
+    const arr = Array.isArray(items) ? items : [];
+    switchRows.value = arr.map((r: any) => ({
+      featureCode: String(r.featureCode ?? ""),
+      featureName: String(r.featureName ?? ""),
+      enabled: Boolean(r.enabled),
+      defaultForNewTenant: Boolean(r.defaultForNewTenant),
+      remark: typeof r.remark === "string" ? r.remark : "",
+    }));
+    for (const key of Object.keys(switchOriginals)) delete switchOriginals[key];
+    for (const row of switchRows.value) {
+      switchOriginals[snapshotKey(row)] = {
+        enabled: row.enabled,
+        defaultForNewTenant: row.defaultForNewTenant,
+        remark: normalizeRemark(row.remark),
+      };
+    }
+  } catch {
+    // 接口异常：保持空态 + 明确报错，不填充假数据（错误文案由请求层拦截器统一弹出）
+    switchRows.value = [];
+    switchError.value = "功能开关加载失败（空表或接口异常，当前不展示任何开关行）";
+  } finally {
+    switchLoading.value = false;
+  }
+}
+
+async function saveSwitchRow(row: any) {
+  const payload = buildSwitchPayload(row);
+  if (Object.keys(payload).length === 0) {
+    ElMessage.info("该行没有字段变更，未提交");
+    return;
+  }
+  try {
+    const res: any = await updateFeatureSwitch(snapshotKey(row), payload as any);
+    const changed: string[] = res?.data?.data?.changedFields ?? [];
+    // 保存成功后把快照推进到当前值（后续再改只提交新的差异）
+    switchOriginals[snapshotKey(row)] = {
+      enabled: Boolean(row.enabled),
+      defaultForNewTenant: Boolean(row.defaultForNewTenant),
+      remark: normalizeRemark(row.remark),
+    };
+    ElMessage.success(`已保存 ${row.featureName}（${changed.join("、") || "无"}）`);
+  } catch {
+    /* 错误提示由请求层统一处理（含 404 未知编码 / 400 无变更的中文文案），此处只保留行内状态 */
+  }
+}
+
+function handleSwitchPanel() {
+  switchPanelVisible.value = true;
+  loadSwitches();
+}
+
+function closeSwitchPanel() {
+  switchPanelVisible.value = false;
+}
+
 async function saveDraft() {
   // ③-b #35：草稿保存依赖 C2 加列（t_app_version.status，属 C6-1A ② 类；未落地前不假装成功）
   ElMessage.warning("存为草稿：待 C2 加列后接入（当前不保存草稿）");
