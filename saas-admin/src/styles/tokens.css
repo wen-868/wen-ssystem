@@ -48,8 +48,8 @@
   --ink: #171717;
   --g7: #404040;
   --g6: #525252;
-  --g5: #737373;
-  --g4: #a3a3a3;
+  --g5: #666666; /* S3-137-F1（可达性优先）：次要/辅助文字灰。原 #737373 在最严常见面 --g0 #f7f7f7 上仅 4.42:1（axe 实测 .pd / kbd）不达 WCAG AA 4.5:1；#666666 = #f7f7f7 上 5.35:1、#ffffff 上 5.73:1、--g1 #f0f0f0 上 5.03:1（.tag-gy 底色即 --g1）。取值说明：卡在「--g1 上也要 ≥4.5」这一条上，理论最亮为 #6D6D6D（4.54:1），为留余量并按 S3-54「复用既有灰阶少引入新值」建议，取设计系统既有 --gray-500 #666666；全仓 49 个引用点中背景填充 0 处、边框 0 处，改值不产生非文字风格位移 */
+  --g4: #6E6E6E; /* S3-137-F1（可达性优先）：占位/弱化文字灰。原 #a3a3a3 在 --g0 #f7f7f7 上仅 2.35:1、白底 2.52:1（axe 实测 .pf-sbox>span / .ph-s / .empty / .lg-foot）均不达标；#6E6E6E = #f7f7f7 上 4.75:1、白底 5.09:1 达标（取值即 R101-S3-54 分诊表 §九-1 的建议值，对 4.5:1 留 0.25 余量）。全仓 51 个引用点中背景填充 0 处（4 处为**非文本边框** 1.4.11 对象，改深属预期可达性提升），改动无非文字风格位移 */
   --g3: #d4d4d4;
   --g2: #e5e5e5;
   --g1: #f0f0f0;
@@ -62,6 +62,13 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --color-success: #16a34a;
   --color-success-soft: #f0fdf4;
+  /* S3-137-F1（可达性优先·分层 token）：状态色**文字**专用变体。
+     原文字与填充共用 --color-success #16a34a，在浅绿底 --color-success-soft #f0fdf4 上仅 3.14:1（axe 实测 /packages .tag-g ×4）不达标；
+     #15803D（同族 Tailwind green-700，最小视觉位移）在 #f0fdf4 上 4.79:1、白底 5.01:1 达标。
+     按 S3-72 §五之二 的裁定「同一语义的'底/边框'与'文字'可以分层取值，禁止把整条 token 轴一起改深」：
+     本 token 只用于 color/fill，**不得用于 background/border/box-shadow**；填充类继续用 --color-success（零风格位移）。
+     命名与 admin-web 既有 --color-success-text 一致（admin-web：tokens.css:41 `--color-success-text: #0A7655`，值不同属 S3-72 阶段 2「四端同值」收口范围）。 */
+  --color-success-text: #15803D;
   --color-warning: #ea580c;
   --color-warning-soft: #fff7ed;
   --color-danger: #dc2626;
@@ -496,6 +503,30 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   Element Plus 主题令牌对齐（S3-137-F1）
+   ───────────────────────────────────────────────────────────────
+   背景：浏览器 axe 实测（run 36479274432 的 a11y job）扫出 4 处 EP 默认色不达标，
+         且这 4 处都来自 **Element Plus 自己的默认令牌**，设计系统里没有对应值可依据：
+     · .el-select__placeholder > span      fg #a8abb2 / bg #ffffff = 2.29  ← --el-text-color-placeholder 默认值
+     · .el-button--primary > span          fg #ffffff / bg #409eff = 2.78  ← --el-color-primary 默认值
+     · .el-table__empty-text               fg #909399 / bg #ffffff = 3.07  ← --el-text-color-secondary 默认值
+     · .el-empty__description p（同源）     fg #909399 / bg #ffffff = 3.07
+   做法：与 admin-web/src/styles.css:24-53 的 `:root:root` 覆盖块同源同法（admin-web 早已把
+         --el-text-color-secondary 覆盖为 #6D6D6D），只覆盖必要的 3 个令牌，不逐处打补丁。
+   口径：只覆盖 Element Plus 命名空间（--el-*），设计系统自有令牌（--g4/--g5/--color-*）不动。
+   ═══════════════════════════════════════════════════════════════ */
+:root:root {
+  /* 主色对齐设计系统：设计系统自己的 .btn-p 用的是 --color-primary #2563eb（白字 5.16:1）；
+     Element Plus 默认 #409eff 白字只有 2.78:1，两者本来就不一致（本项同时消掉这个不一致）。 */
+  --el-color-primary: var(--color-primary);
+  /* 占位文本：接到 S3-54 已确立的 --text-placeholder #767676（白底 4.54:1）；
+     该 token 此前只有定义、零引用（死代码），本次把它真正接到 EP 占位色上。 */
+  --el-text-color-placeholder: var(--text-placeholder);
+  /* 次要文本 / 空态文案：#909399 白底 3.07:1 不达标；改用 S3-47 已确立的 --text-muted #6D6D6D（白底 5.16:1） */
+  --el-text-color-secondary: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    Button Styles — 危险按钮：灰边框 + 红字，不填红色底
    ═══════════════════════════════════════════════════════════════ */
 .el-button--danger {
@@ -520,7 +551,7 @@
 .el-tag--success {
   background: var(--color-success-soft) !important;
   border: none !important;
-  color: var(--color-success) !important;
+  color: var(--color-success-text) !important; /* S3-137-F1：文字用成功色**文字**变体（#f0fdf4 上 4.79:1；原 --color-success 仅 3.14:1） */
 }
 .el-tag--warning {
   background: var(--color-warning-soft) !important;

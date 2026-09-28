@@ -576,7 +576,7 @@ const kpi = computed(() => {
     },
     successRate: {
       value: successRate.value == null ? '—' : `${successRate.value}%`,
-      color: successRate.value == null ? '' : 'var(--color-success)',
+      color: successRate.value == null ? '' : 'var(--color-success-text)', /* S3-137-F1：文字用成功色文字变体（原 --color-success 白底 3.29:1 不达标） */
       sub: s
         ? `均值响应 ${s.avgResponseTime}ms（后端无 P95 字段）· 后端错误率 ${s.errorRate}%（累计错误 ${s.errorCount} 例 / 追踪请求 ${s.totalRequests}）`
         : '—',

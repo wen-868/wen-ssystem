@@ -83,7 +83,7 @@ const remainingText = computed(() => {
   white-space: nowrap;
 }
 .sla-bar__text.is-success {
-  color: var(--color-success);
+  color: var(--color-success-text); /* S3-137-F1：文字用成功色文字变体（原 --color-success 白底 3.29:1 不达标） */
 }
 .sla-bar__text.is-warning {
   color: var(--color-warning);

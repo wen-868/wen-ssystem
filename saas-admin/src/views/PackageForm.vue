@@ -687,7 +687,7 @@ async function copyFrom(sourceId: number) {
   border-radius: var(--radius-full);
   border: 1px solid var(--color-success-soft);
   background: var(--color-success-soft);
-  color: var(--color-success);
+  color: var(--color-success-text); /* S3-137-F1：文字用成功色文字变体（#f0fdf4 上 4.79:1；原 3.14:1 不达标） */
   white-space: nowrap;
 }
 .v11-ck .ck {

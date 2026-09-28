@@ -96,7 +96,7 @@ const deltaText = computed(() => {
   color: var(--g4);
 }
 .stat-card__delta.is-up {
-  color: var(--color-success);
+  color: var(--color-success-text); /* S3-137-F1：文字用成功色文字变体（白底 5.01:1；原 --color-success 3.29:1 不达标） */
 }
 .stat-card__delta.is-down {
   color: var(--color-danger);
