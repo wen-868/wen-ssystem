@@ -336,7 +336,7 @@ async function onSubmitProxy() {
   }
   proxySubmitting.value = true
   try {
-    await proxyLoginTenantApi(route.params.id, { reason: proxyForm.reason })
+    await proxyLoginTenantApi(route.params.id as string, { reason: proxyForm.reason })
     ElMessage.success('已提交代登录审批（已留痕，可于「运维 · 代登录审计」回放）')
     proxyVisible.value = false
     proxyForm.reason = ''
@@ -444,7 +444,7 @@ async function fetchOverview() {
   overviewLoading.value = true
   overviewError.value = false
   try {
-    const res: any = await getTenantOverviewApi(tenantId)
+    const res: any = await getTenantOverviewApi(tenantId as string)
     overview.value = { ...EMPTY_OVERVIEW, ...(res?.data || {}) }
   } catch {
     overview.value = { ...EMPTY_OVERVIEW }
@@ -512,7 +512,7 @@ async function onSubmitExpand() {
   }
   expandSubmitting.value = true
   try {
-    await expandTenantQuotaApi(route.params.id, {
+    await expandTenantQuotaApi(route.params.id as string, {
       field: expandForm.field,
       amount,
       days,

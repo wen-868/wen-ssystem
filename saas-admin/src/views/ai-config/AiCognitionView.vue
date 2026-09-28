@@ -97,10 +97,10 @@
             <el-table-column prop="proposedBy" label="提出人" width="100" />
             <el-table-column label="操作" width="260" fixed="right">
               <template #default="{ row }">
-                <el-button v-if="row.status === 'proposed'" size="small" type="primary" text @click="handleApprove(row)">批准</el-button>
-                <el-button v-if="row.status === 'proposed'" size="small" type="danger" text @click="handleReject(row)">驳回</el-button>
-                <el-button v-if="row.status === 'gray'" size="small" type="success" text @click="handleRollout(row)">生效</el-button>
-                <el-button v-if="row.status === 'rolled_out'" size="small" type="warning" text @click="handleRollback(row)">回滚</el-button>
+                <el-button v-if="row.status === 'proposed'" size="small" type="primary" text @click="handleApprove(row as EvolutionItem)">批准</el-button>
+                <el-button v-if="row.status === 'proposed'" size="small" type="danger" text @click="handleReject(row as EvolutionItem)">驳回</el-button>
+                <el-button v-if="row.status === 'gray'" size="small" type="success" text @click="handleRollout(row as EvolutionItem)">生效</el-button>
+                <el-button v-if="row.status === 'rolled_out'" size="small" type="warning" text @click="handleRollback(row as EvolutionItem)">回滚</el-button>
               </template>
             </el-table-column>
           </el-table>

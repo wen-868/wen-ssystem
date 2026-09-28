@@ -31,7 +31,7 @@
         </el-table-column>
         <el-table-column label="操作" width="120" fixed="right">
           <template #default="scope">
-            <el-button text size="small" @click="handleView(scope.row)">详情</el-button>
+            <el-button text size="small" @click="handleView(scope.row as SubscriptionApply)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
