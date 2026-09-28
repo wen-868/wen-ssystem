@@ -47,7 +47,7 @@ withDefaults(
 /* 绿=正常 */
 .status-tag--success {
   background: var(--color-success-soft);
-  color: var(--color-success);
+  color: var(--color-success-text); /* S3-137-F1：文字用成功色文字变体（#f0fdf4 上 4.79:1；原 3.14:1 不达标） */
 }
 /* 橙=欠费/预警 */
 .status-tag--warning {

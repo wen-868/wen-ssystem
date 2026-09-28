@@ -130,7 +130,7 @@
 }
 .pf-main .kpi .up,
 .zx-scope .kpi .up {
-  color: var(--color-success);
+  color: var(--color-success-text); /* S3-137-F1：文字用成功色文字变体（白底 5.01:1；原 --color-success 仅 3.29:1） */
 }
 .pf-main .kpi .dn,
 .zx-scope .kpi .dn {
@@ -166,7 +166,7 @@
 .pf-main .tag-g,
 .zx-scope .tag-g {
   background: var(--color-success-soft);
-  color: var(--color-success);
+  color: var(--color-success-text); /* S3-137-F1：文字用成功色文字变体（#f0fdf4 上 4.79:1；原 --color-success 仅 3.14:1，axe 实测 /packages .tag-g ×4 由此而来） */
 }
 .pf-main .tag-o,
 .zx-scope .tag-o {

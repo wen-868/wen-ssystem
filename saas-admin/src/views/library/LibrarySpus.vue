@@ -339,7 +339,7 @@
                       <td>{{ r.submitter }}</td>
                       <td>
                         <span class="btn-t" @click="openDetail(r.raw)">查看</span>
-                        <span class="btn-t" style="color:var(--color-success);font-weight:600" @click="approveReview(r)">通过</span>
+                        <span class="btn-t" style="color:var(--color-success-text);font-weight:600" @click="approveReview(r)">通过</span><!-- S3-137-F1：文字用成功色文字变体 -->
                         <span class="btn-t dgr" @click="rejectReview(r)">驳回</span>
                       </td>
                     </tr>

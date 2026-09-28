@@ -436,7 +436,7 @@
                       </div>
                       <p class="small wd-meta">{{ w.amount }} · {{ w.date }} · {{ w.method }}</p>
                       <p class="mt6 wd-act">
-                        <span class="btn-t" style="color: var(--color-success)" @click="todo('通过')">通过</span>
+                        <span class="btn-t" style="color: var(--color-success-text)" @click="todo('通过')">通过</span><!-- S3-137-F1：文字用成功色文字变体 -->
                         <span class="btn-t dgr" @click="todo('驳回')">驳回</span>
                         <span class="btn-t gy" @click="todo('详情')">详情</span>
                       </p>
