@@ -149,6 +149,7 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { ChatDotRound, Goods, OfficeBuilding, Van } from "@element-plus/icons-vue";
 import { adminLogin, demoLogin, seedDemoData } from "../api";
 import { useAuthStore } from "../stores/auth";
+import { resolveLandingPath } from "../router/landing";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -186,7 +187,9 @@ async function handleLogin() {
       const userInfo = res.data?.user || res.user || { realName: loginForm.username };
       auth.setAuth(token, userInfo, csrfToken);
       ElMessage.success("登录成功");
-      router.push("/dashboard");
+      // S3-132：登录落地按「角色可用页」解析（default_homepage → /dashboard → POS → /login），
+      // 不再硬编码 /dashboard，避免非 SUPER_ADMIN/STORE_MANAGER 角色登录即陷入重定向环
+      router.push(resolveLandingPath(auth.userRoles, auth.user?.defaultHomepage, router.getRoutes()));
     } else {
       ElMessage.error("登录失败：未获取到 token");
     }
@@ -209,7 +212,7 @@ async function handleDemoLogin() {
       ElMessage.success("已进入演示模式");
       // 幂等初始化演示数据（失败不阻塞进入）
       seedDemoData().catch(() => {});
-      router.push("/dashboard");
+      router.push(resolveLandingPath(auth.userRoles, auth.user?.defaultHomepage, router.getRoutes()));
     } else {
       ElMessage.error("演示登录失败：未获取到 token");
     }

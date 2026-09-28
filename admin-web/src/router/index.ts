@@ -75,6 +75,7 @@ import MainLayout from "../layouts/MainLayout.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFound from "../views/NotFound.vue";
 import { useAuthStore } from "../stores/auth";
+import { LOGIN_PATH, normalizePath, resolveLandingPath } from "./landing";
 
 const routes = [
   {
@@ -313,7 +314,13 @@ router.beforeEach((to, _from, next) => {
   const allowedRoles = (to.meta.roles as string[] | undefined) || [];
   if (allowedRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
     ElMessage.warning("您没有权限访问该页面");
-    next("/dashboard");
+    // S3-132：拒绝后跳「当前角色可访问」的落地页，不得再跳硬编码 /dashboard（其自身 meta.roles
+    // 会把非 SUPER_ADMIN/STORE_MANAGER 的角色再次拒回同一处，形成回跳环）；护栏：落点若仍是被拒
+    // 目标、或算不出可用页 ⇒ 清会话回 /login，不再往回跳（裁定 R2）
+    const landing = resolveLandingPath(userRoles, auth.user?.defaultHomepage, routes);
+    const target = landing === normalizePath(to.path) ? LOGIN_PATH : landing;
+    if (target === LOGIN_PATH) auth.clearAuth();
+    next(target);
     return;
   }
 
