@@ -161,10 +161,29 @@ jobs:
           VITE_API_BASE=/api VITE_API_PROXY_TARGET=http://127.0.0.1:8080 npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
           npx wait-on -t 90000 http://127.0.0.1:5173
 
+      # S3-137：saas-admin（总后台）浏览器 axe 扫描需要 dev server 在 5174。
+      #   ⚠️ saas-admin/vite.config.ts 的 /api proxy **硬编码** target=http://localhost:8080
+      #      （不像 admin-web 读 VITE_API_PROXY_TARGET），故天然指向本 job 的本地 mock 后端，
+      #      密闭性由 e2e/a11y.saas-admin.spec.ts 内的 assertSealedToMock 断言取证。
+      - name: Start saas-admin dev server
+        run: |
+          npm --workspace saas-admin run dev > /tmp/saas-admin.log 2>&1 &
+          npx wait-on -t 90000 http://127.0.0.1:5174
+
+      - name: 密闭性取证（saas-admin）：5174 的 /api 必须落在本地 mock
+        # 与 e2e job 同款判据：经 dev server 代理的 /api/platform/health 必须带 "mode":"mock-db"
+        # —— 该字段只在 USE_MOCK_DB=true 下注入，生产响应永不吐出，故可作为密闭性正向证据。
+        # 🔴 本步没有 continue-on-error：密闭性被破坏必须红。
+        run: |
+          PROXIED=$(curl -s http://127.0.0.1:5174/api/platform/health)
+          echo "proxied(5174): $PROXIED"
+          echo "$PROXIED" | grep -q '"mode":"mock-db"' || { echo "❌ 经 saas-admin 代理未带 mock 标记 —— /api 未打到 mock"; exit 1; }
+          echo "✅ saas-admin 密闭性取证通过：/api 打到本地 mock 后端"
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: a11y sampling x10 (observation only, never blocks)
+      - name: a11y sampling x10 (admin-web, observation only, never blocks)
         # 十次取样，每次独立跑完并打印命中明细（含 nodes target）。
         # continue-on-error 保证十次都跑完，不会因为第一次失败就跳过后面九次 ——
         # 观察漂移要看的是「每次结果分别是多少」，不是「有没有失败过一次」。
@@ -177,7 +196,11 @@ jobs:
           for i in 1 2 3 4 5 6 7 8 9 10; do
             echo "===== a11y sample $i / 10 ====="
             set +e
-            npx playwright test --grep @a11y --retries=0 --reporter=list 2>&1 | tee "/tmp/a11y-sample-$i.txt"
+            # S3-137：加 --grep-invert @saas，把 saas-admin 用例（同样带 @a11y 标签）
+            # 排除出 admin-web 的取样，避免两端互相污染计数。
+            # ⚠️ 其余参数（含未指定 --project，即 chromium+firefox 两 project）一律保持原样，
+            #    不动 admin-web 的既有取样口径。
+            npx playwright test --grep "@a11y" --grep-invert "@saas" --retries=0 --reporter=list 2>&1 | tee "/tmp/a11y-sample-$i.txt"
             code=${PIPESTATUS[0]}
             set -e
             echo "[sample $i] playwright exit=$code (PIPESTATUS[0]，排除 tee 干扰)"
@@ -221,10 +244,68 @@ jobs:
           fi
           echo "✅ a11y 观察期：十次取样均为 0"
 
+      # ─────────────────────────────────────────────────────────────
+      # S3-137：saas-admin（总后台）a11y 观察期取样 ×3
+      #
+      # 为什么是 3 次而不是 10 次：派单 §三③ 要求「3 次连续运行」即可判断稳定性；
+      # saas-admin 是**新接入**的覆盖，先取 3 次看是否漂移，再决定是否加严。
+      #
+      # 为什么只跑 chromium：取样口径必须单一且可复现（多浏览器会引入"浏览器相关"的
+      # 差异源，见 S3-47 教训：结论必须注明浏览器）。本处明示 = chromium。
+      #
+      # ⚠️ continue-on-error 只加在**取样步骤**：保证 3 次都跑完（观察漂移要看每次结果），
+      #    判定交给下方独立 verdict 步骤（**无** continue-on-error）——红就是红，不洗绿。
+      # ─────────────────────────────────────────────────────────────
+      - name: saas-admin a11y sampling x3 (observation only, never blocks)
+        continue-on-error: true
+        run: |
+          for i in 1 2 3; do
+            echo "===== saas-a11y sample $i / 3 ====="
+            set +e
+            npx playwright test --grep "@saas" --project=chromium --retries=0 --reporter=list 2>&1 | tee "/tmp/a11y-saas-sample-$i.txt"
+            code=${PIPESTATUS[0]}
+            set -e
+            echo "[saas sample $i] playwright exit=$code (PIPESTATUS[0]，排除 tee 干扰)"
+            echo "$code" > "/tmp/a11y-saas-exit-$i.txt"
+          done
+          echo "===== 三次取样汇总（每页违规计数）====="
+          for i in 1 2 3; do
+            echo "--- saas sample $i ---"
+            grep -E "\[saas-a11y\].*(total=|❌|✅)" "/tmp/a11y-saas-sample-$i.txt" || echo "  (无 [saas-a11y] 输出)"
+          done
+
+      - name: saas-admin a11y sampling verdict (如实判定，红就是红)
+        # 🔴 本步骤**没有** continue-on-error —— 与 admin-web 的 verdict 同一原则：
+        #    不阻断靠的是「本 job 非 required」，不是把失败洗成绿。
+        run: |
+          fail=0
+          for i in 1 2 3; do
+            code=$(cat "/tmp/a11y-saas-exit-$i.txt" 2>/dev/null || echo MISSING)
+            echo "[saas sample $i] exit=$code"
+            if [ "$code" != "0" ]; then fail=1; fi
+          done
+
+          echo "===== 稳定化降级统计 ====="
+          deg=0
+          for i in 1 2 3; do
+            n=$(grep -c "\[saas-a11y\]\[降级\]" "/tmp/a11y-saas-sample-$i.txt" 2>/dev/null) || n=0
+            echo "[saas sample $i] 降级标记数=$n"
+            deg=$((deg + n))
+          done
+          echo "降级标记总数=$deg（>0 表示有采样未取得「已静止」保证，须人工核查；不改变红绿判定）"
+
+          if [ "$fail" = "1" ]; then
+            echo "❌ saas-admin a11y 观察期：至少一次取样非零 —— 真实信号（本 job 非 required，不阻断合并）"
+            exit 1
+          fi
+          echo "✅ saas-admin a11y 观察期：三次取样均为 0"
+
       - name: Upload a11y observation samples
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: a11y-observation-samples
-          path: /tmp/a11y-sample-*.txt
+          path: |
+            /tmp/a11y-sample-*.txt
+            /tmp/a11y-saas-sample-*.txt
           retention-days: 30
