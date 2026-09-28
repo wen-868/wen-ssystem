@@ -127,8 +127,15 @@ async function waitForVisualSettled(page: Page): Promise<SettleStatus> {
 
 /**
  * 打印违规的**元素身份**（验收①：不接受只有类型名）。
- * 每个违规打印：type / impact / 节点总数 / 前 3 个节点的 target 选择器 + html 片段 + axe data。
+ * 每个违规打印：type / impact / 节点总数 / 前 MAX_NODES 个节点的 target 选择器 + html 片段 + axe data。
+ *
+ * 为什么从 3 提到 6（凌舟回卡 §四·遗留②）：
+ *    观察期实测单页最多 10 节点（#/packages），只打 3 个不足以定位「新增那一批」——
+ *    修复后若从 10 降到 5，只打 3 个根本看不出少了哪几个。
+ *    超出部分显式标注「其余 N 个省略」，避免把截断误读成全部（可观测性不能靠省略制造假象）。
  */
+const MAX_NODES = 6;
+
 function logViolations(tag: string, violations: any[]): void {
   if (violations.length === 0) {
     console.log(`[saas-a11y] ${tag} ✅ 无 critical/serious 违规`);
@@ -138,7 +145,7 @@ function logViolations(tag: string, violations: any[]): void {
     console.log(
       `[saas-a11y] ${tag} ❌ type=${v.id} impact=${v.impact} nodes=${v.nodes.length} help=${v.help}`
     );
-    v.nodes.slice(0, 3).forEach((n: any, i: number) => {
+    v.nodes.slice(0, MAX_NODES).forEach((n: any, i: number) => {
       const target = Array.isArray(n.target) ? n.target.join(" ") : String(n.target);
       const html = String(n.html ?? "").replace(/\s+/g, " ").slice(0, 160);
       console.log(`[saas-a11y] ${tag}   node[${i}] target=${target}`);
@@ -148,6 +155,11 @@ function logViolations(tag: string, violations: any[]): void {
         console.log(`[saas-a11y] ${tag}   node[${i}] axeData=${JSON.stringify(data)}`);
       }
     });
+    if (v.nodes.length > MAX_NODES) {
+      console.log(
+        `[saas-a11y] ${tag}   （其余 ${v.nodes.length - MAX_NODES} 个节点省略 —— 完整计数见上方 nodes=${v.nodes.length}；如需逐节点请把 MAX_NODES 调大）`
+      );
+    }
   }
 }
 
