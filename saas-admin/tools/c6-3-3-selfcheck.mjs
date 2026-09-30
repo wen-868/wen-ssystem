@@ -261,9 +261,17 @@ check(
 );
 
 /* ───────── ⑥ 迁移硬约束 ───────── */
-/** 统计前剥掉 SQL 注释行（否则注释里"INSERT 命中 0"这类说明文字会误计入） */
+/**
+ * 统计前剥掉 SQL 注释行（否则注释里"INSERT 命中 0"这类说明文字会误计入）。
+ *
+ * ⚠️ 必须先归一 CRLF：本仓 core.autocrlf=true ⇒ **检出的工作区文件是 CRLF**，
+ *    而 `/--.*$/` 里的 `$` 在 CRLF 行尾**不匹配**（`.` 不吃 `\r`）⇒ 注释剥不掉、
+ *    会把注释里的 "INSERT 命中 0" 计入，导致**在正常检出上假红**（凌舟 2026-10-01 实测：
+ *    本单提交前（LF 工作区）FAIL 0，rebase 后（CRLF 工作区）FAIL 3）。
+ */
 function stripSqlComments(sql) {
   return sql
+    .replace(/\r\n/g, "\n")
     .split("\n")
     .map((line) => line.replace(/--.*$/, ""))
     .join("\n");
