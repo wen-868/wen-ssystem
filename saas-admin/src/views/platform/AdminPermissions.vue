@@ -159,36 +159,86 @@
           <input v-model="inviteForm.name" class="ipt" placeholder="请输入姓名" />
         </span>
         <span class="fld fld-wide">
-          <span>邮箱（接收邀请）<i class="req">*</i></span>
-          <input v-model="inviteForm.email" class="ipt" placeholder="name@zxql.com" />
+          <span>登录账号 <i class="req">*</i></span>
+          <input v-model="inviteForm.username" class="ipt" placeholder="4-50 位字母/数字" />
         </span>
       </div>
       <span class="fld">
-        <span>分配角色 <i class="req">*</i></span>
-        <div class="role-chips">
-          <span
-            v-for="r in roles"
-            :key="r.id"
-            class="btn"
-            :class="{ 'btn-p': inviteForm.role === r.id }"
-            @click="inviteForm.role = r.id"
-          >{{ r.name }}</span>
-          <span v-if="roles.length === 0" class="muted small">暂无可选角色</span>
-          <span class="btn" @click="onCreateRole">自定义角色 ▾</span>
-        </div>
-      </span>
-      <span class="fld">
-        <span>数据范围</span>
-        <span class="sel" @click="cycleInviteScope">{{ scopeLabel(inviteForm.dataScope) }}</span>
+        <span>手机号 <i class="req">*</i></span>
+        <input v-model="inviteForm.phone" class="ipt" placeholder="11-20 位，用于账号核验" />
       </span>
       <div class="tipbar">
         <span class="ic">i</span>
-        <span>邀请邮件 72 小时内有效；首次登录强制改密（≥8 位，含大小写/数字/特殊字符至少三类）；密码策略与登录安全详见《非功能规划 6.1》。</span>
+        <span>不发邮件 / 短信：提交后由服务端生成 12 位初始口令，仅在弹窗展示一次，请立即复制转达本人；首次登录强制改密（≥8 位，含大小写 / 数字 / 特殊字符至少三类）。本单不绑定角色与数据范围（平台角色矩阵的绑定属下一档）。</span>
+      </div>
+      <div v-if="inviteNotice" class="tipbar r">
+        <span class="ic">!</span>
+        <span>{{ inviteNotice }}</span>
       </div>
     </div>
     <div class="m-ft">
       <span class="btn" @click="showInvite = false">取消</span>
-      <span class="btn btn-p" @click="sendInvite">发送邀请</span>
+      <span class="btn btn-p" @click="sendInvite">{{ inviting ? '提交中…' : '确认邀请' }}</span>
+    </div>
+  </div>
+
+  <!-- ════════ 一次性口令弹窗（邀请建号 / 重置密码共用，关闭即不可再查看） ════════ -->
+  <div v-if="pwdDialog.open" class="ov" @click.self="closePwdDialog"></div>
+  <div v-if="pwdDialog.open" class="modal modal-sm">
+    <div class="m-hd">
+      <span class="pt">初始口令（只显示一次）</span>
+      <span class="d-x" @click="closePwdDialog">✕</span>
+    </div>
+    <div class="m-bd">
+      <div class="tipbar r">
+        <span class="ic">!</span>
+        <span>只显示一次：服务端只存 bcrypt 哈希，关闭本窗口后无法再查看，也不发邮件 / 短信、不写日志与审计明细。请立即复制并转达本人。</span>
+      </div>
+      <span class="fld">
+        <span>{{ pwdDialog.title }}</span>
+        <div class="pwd-row">
+          <code class="pwd-code">{{ pwdDialog.password }}</code>
+          <span class="btn" @click="copyPassword">复制</span>
+        </div>
+      </span>
+    </div>
+    <div class="m-ft">
+      <span class="btn btn-p" @click="closePwdDialog">我已抄录，关闭</span>
+    </div>
+  </div>
+
+  <!-- ════════ 新建自定义角色弹窗 ════════ -->
+  <div v-if="showCreateRole" class="ov" @click.self="closeCreateRole"></div>
+  <div v-if="showCreateRole" class="modal modal-sm">
+    <div class="m-hd">
+      <span class="pt">新建自定义角色</span>
+      <span class="d-x" @click="closeCreateRole">✕</span>
+    </div>
+    <div class="m-bd">
+      <span class="fld">
+        <span>角色名称 <i class="req">*</i></span>
+        <input v-model="roleForm.name" class="ipt" placeholder="如：区域运营" />
+      </span>
+      <span class="fld">
+        <span>角色编码 <i class="req">*</i></span>
+        <input v-model="roleForm.code" class="ipt" placeholder="小写字母开头，2-32 位小写字母 / 数字 / 下划线" />
+      </span>
+      <span class="fld">
+        <span>备注</span>
+        <input v-model="roleForm.remark" class="ipt" placeholder="选填" />
+      </span>
+      <div class="tipbar">
+        <span class="ic">i</span>
+        <span>接口创建的角色一律为「自定义」类型（内置角色不可经接口创建）；编码重复时按后端原文提示（409）。</span>
+      </div>
+      <div v-if="roleNotice" class="tipbar r">
+        <span class="ic">!</span>
+        <span>{{ roleNotice }}</span>
+      </div>
+    </div>
+    <div class="m-ft">
+      <span class="btn" @click="closeCreateRole">取消</span>
+      <span class="btn btn-p" @click="submitCreateRole">{{ creatingRole ? '创建中…' : '创建' }}</span>
     </div>
   </div>
 </template>
@@ -196,22 +246,27 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
+  createPlatformRole,
   getPermissionCatalog,
   getPlatformAdmins,
   getPlatformRoles,
   getRolePermissions,
+  invitePlatformAdmin,
+  resetPlatformAdminPassword,
+  updatePlatformAdminStatus,
   replaceRolePermissions
 } from '../../api'
 import { pickBackendMessage } from '../../utils/http-error'
 
 /* ───────────────────────────────────────────────────────────
-   数据接线（R101-C6-3-0）：三处端点均已在 C6-1A / C6-2-T6 上线，本页改为真实调用：
-     · 管理员列表   GET /api/platform/admins                （platform.routes.ts:25）
-     · 角色列表     GET /api/platform/admins/roles           （platform-role.routes.ts:20）
-     · 权限点目录   GET /api/platform/permissions/catalog    （platform-role.routes.ts:24）
-     · 权限矩阵     GET|PUT /api/platform/roles/:id/permissions
+   数据接线（R101-C6-3-0 + C6-3-0b）：本页所有请求都走 src/api.ts 的封装函数，
+   页面内**不出现任何端点字面路径**（路径唯一出处＝api.ts，逐字对齐后端路由）：
+     · 管理员列表 / 角色列表 / 权限点目录 / 权限矩阵读写 → getPlatformAdmins / getPlatformRoles
+       / getPermissionCatalog / getRolePermissions / replaceRolePermissions
+     · 启停 / 重置密码 / 新建角色 / 邀请建号 → updatePlatformAdminStatus / resetPlatformAdminPassword
+       / createPlatformRole / invitePlatformAdmin
    零假数据：管理员/角色/目录/矩阵全部来自接口；取不到即空态，页面**不内置任何兜底清单**。
    ─────────────────────────────────────────────────────────── */
 const router = useRouter()
@@ -238,7 +293,7 @@ const builtinRoleCount = computed(
   () => roles.value.filter((r) => r.type === 'builtin').length
 )
 
-/** 权限点目录（GET /api/platform/permissions/catalog）：矩阵行与数据范围 4 档**均由后端目录派生** */
+/** 权限点目录（api.ts getPermissionCatalog）：矩阵行与数据范围 4 档**均由后端目录派生** */
 const permissionModules = ref<Array<{ code: string; name: string }>>([])
 const dataScopeOptions = ref<Array<{ code: string; name: string }>>([])
 
@@ -287,7 +342,12 @@ async function loadAdmins() {
       roleType: String(r?.role ?? '').toLowerCase(),
       dataScope: '—',
       lastLogin: r?.lastLoginAt ? String(r.lastLoginAt).replace('T', ' ').slice(0, 16) : '',
-      status: String(r?.status ?? '')
+      // 列表接口的 status 是 TINYINT（1=启用/0=禁用），启停接口返回的是 "ACTIVE"/"DISABLED" 字符串。
+      // 必须归一化：否则整列恒显示「正常」、启停按钮文案也不翻转，R4「以服务端返回为准刷新该行」无从体现。
+      status:
+        r?.status === 0 || r?.status === '0' || r?.status === 'DISABLED'
+          ? 'DISABLED'
+          : 'ACTIVE'
     }))
     loadNotice.value = ''
   } catch {
@@ -335,7 +395,7 @@ async function loadCatalog() {
   }
 }
 
-/** 选中角色 → 拉取其已保存的权限矩阵（GET /platform/roles/:id/permissions） */
+/** 选中角色 → 拉取其已保存的权限矩阵（api.ts getRolePermissions） */
 async function selectRole(id: number) {
   activeRoleId.value = id
   permissionState.value = {}
@@ -404,62 +464,187 @@ function roleTagClass(type: string): string {
 }
 
 /* ───────────────────────────────────────────────────────────
-   交互现状（2026-09-27 更新，事实逐条可核对）：
-     · 本卡已接线：操作日志（GET /api/platform/audit-logs，跳转真实页面）
-       + 管理员列表 / 角色列表 / 权限点目录 / 权限矩阵读写（C6-1A 与 C6-2-T6 端点）
-     · 后端已上线但本页**未接线**（归属后续批次）：邀请建号 POST /api/platform/admins/invite
-       —— 该端点要求 username + phone + role，而本页邀请表单只有「姓名 + 邮箱 + 角色」，
-       字段口径不一致，接线需先裁定表单字段；
-       重置密码 POST /api/platform/admins/:id/reset-password、启停 PUT /api/platform/admins/:id/status
-       —— 端点已上线，本页按钮仍为提示态（未接线）。
-     · 仍无后端能力：新建自定义角色 POST /api/platform/roles 已上线，但本页入口走的是
-       「自定义角色」弹窗流程，未接线（同上，归属后续批次）。
+   C6-3-0b 接线（2026-10-01 阿坚，事实逐条可核对）：
+     · 本页已接线：操作日志跳转 + 管理员列表 / 角色列表 / 权限点目录 / 权限矩阵读写
+       + **管理员启停 / 重置密码 / 新建角色 / 邀请建号** 4 个动作；
+       4 条字面路径只在 src/api.ts 出现，本页不散落任何端点字面量。
+     · 一次性口令（邀请 / 重置）：明文只出现在该次响应体，仅存于本页内存变量 pwdDialog.password，
+       关闭弹窗立即清空；不写浏览器本地存储、不写 URL、不打任何日志、不进审计明细。
    ─────────────────────────────────────────────────────────── */
 const showInvite = ref(false)
+const inviting = ref(false)
+const inviteNotice = ref('')
 const inviteForm = reactive({
+  username: '',
   name: '',
-  email: '',
-  role: null as number | null,
-  dataScope: ''
+  phone: ''
 })
 
-function sendInvite() {
-  if (!inviteForm.name || !inviteForm.email) {
-    ElMessage.warning('请填写姓名与邮箱')
+/** 一次性口令弹窗（邀请建号 / 重置密码共用）：口令只存内存，关闭即清空 */
+const pwdDialog = reactive({
+  open: false,
+  title: '',
+  password: ''
+})
+
+/**
+ * 动作失败文案：优先后端中文原文（HTTP 4xx/5xx 走 e.response.data，业务码非 0 走 e.message），
+ * 取不到才用兜底。页面不再弹 toast（api 拦截器已弹过一次），只把原文写进内容区/弹窗错误态。
+ */
+function actionErrorText(e: any, fallback: string): string {
+  const fromBody = pickBackendMessage(e?.response?.data)
+  if (fromBody) return fromBody
+  const message = typeof e?.message === 'string' ? e.message : ''
+  if (/[\u4e00-\u9fa5]/.test(message)) return message
+  return fallback
+}
+
+function showPasswordOnce(title: string, password: string) {
+  pwdDialog.title = title
+  pwdDialog.password = password
+  pwdDialog.open = true
+}
+function closePwdDialog() {
+  pwdDialog.open = false
+  pwdDialog.password = ''
+  pwdDialog.title = ''
+}
+function copyPassword() {
+  const text = pwdDialog.password
+  if (!text) return
+  navigator.clipboard?.writeText(text).then(
+    () => ElMessage.success('已复制初始口令'),
+    () => ElMessage.warning('复制失败，请手动选中后复制')
+  )
+}
+
+/** 邀请建号（api.ts invitePlatformAdmin）：不发邮件/短信；服务端生成 12 位初始口令，仅响应体一次 */
+async function sendInvite() {
+  if (inviting.value) return
+  if (!inviteForm.name.trim()) {
+    ElMessage.warning('请填写姓名')
     return
   }
-  // 禁"假成功"：后端邀请端点已上线（POST /api/platform/admins/invite），但要求 username + phone + role，
-  // 与本页表单（姓名 + 邮箱 + 角色）字段口径不一致 ⇒ 本页未接线，如实提示、绝不给出"已发送"的成功感
-  ElMessage.warning('邀请未发送：后端邀请接口要求「账号 + 姓名 + 手机号 + 角色」，本页表单字段不匹配（接线待裁定）')
-  showInvite.value = false
-  inviteForm.name = ''
-  inviteForm.email = ''
-  inviteForm.role = null
-  inviteForm.dataScope = ''
+  if (!inviteForm.username.trim()) {
+    ElMessage.warning('请填写登录账号')
+    return
+  }
+  if (!inviteForm.phone.trim()) {
+    ElMessage.warning('请填写手机号')
+    return
+  }
+  inviting.value = true
+  inviteNotice.value = ''
+  try {
+    const res: any = await invitePlatformAdmin({
+      username: inviteForm.username.trim(),
+      name: inviteForm.name.trim(),
+      phone: inviteForm.phone.trim()
+    })
+    const data = res?.data?.data ?? {}
+    const createdUsername = String(data.username ?? inviteForm.username)
+    showInvite.value = false
+    resetInviteForm()
+    await loadAdmins() // 新账号进列表
+    showPasswordOnce(`管理员 ${createdUsername} 的初始口令`, String(data.initialPassword ?? ''))
+  } catch (e: any) {
+    // 拦截器已弹一次中文提示，这里只补内容区错误态：不吞错、不重复弹 toast
+    inviteNotice.value = actionErrorText(e, '邀请建号失败，请稍后重试')
+  } finally {
+    inviting.value = false
+  }
 }
-function cycleInviteScope() {
-  const options = dataScopeOptions.value
-  if (!options.length) return
-  const idx = options.findIndex((o) => o.code === inviteForm.dataScope)
-  inviteForm.dataScope = options[(idx + 1) % options.length].code
+function resetInviteForm() {
+  inviteForm.username = ''
+  inviteForm.name = ''
+  inviteForm.phone = ''
 }
 function openAuditLog() {
-  // ① 类 #47 + ③-a #48 接线：后端已有 GET /api/platform/audit-logs（admin-platform-audit-log.routes.ts:8/12），
+  // ① 类 #47 + ③-a #48 接线：后端已有审计日志端点（admin-platform-audit-log.routes.ts:8/12），
   // 前端既有页面 AuditLogs.vue（路由 '/audit-logs'）+ 封装 getAuditLogs（src/api.ts:296）⇒ 直接跳转真实页面
   router.push('/audit-logs')
 }
+
+/** 新建自定义角色（api.ts createPlatformRole）：成功后就地刷新角色列表，409 原样展示后端文案（R5） */
+const showCreateRole = ref(false)
+const creatingRole = ref(false)
+const roleNotice = ref('')
+const roleForm = reactive({ name: '', code: '', remark: '' })
+
 function onCreateRole() {
-  // 平台角色表与目录已就绪（C6-2-T6：POST /api/platform/roles），但本页只有入口、无建号表单 ⇒ 未接线
-  ElMessage.warning('新建自定义角色未发起：后端接口已上线，本页缺建号表单（角色名 + 编码），接线待裁定')
+  roleForm.name = ''
+  roleForm.code = ''
+  roleForm.remark = ''
+  roleNotice.value = ''
+  showCreateRole.value = true
 }
-function onResetPwd(a: any) {
-  // 后端已上线（POST /api/platform/admins/:id/reset-password，按裁定 R6 一次性返回新口令、不发信）——
-  // 本页按钮尚未接线（归属后续批次），此处如实提示，不假报成功
-  ElMessage.warning(`重置密码：${a.realName || a.id}：后端接口已上线，本页尚未接线，未执行`)
+function closeCreateRole() {
+  showCreateRole.value = false
+  roleNotice.value = ''
 }
-function onToggleStatus(a: any) {
-  // 后端已上线（PUT /api/platform/admins/:id/status）——本页按钮尚未接线（归属后续批次），不假报成功
-  ElMessage.warning(`切换状态：${a.realName || a.id}：后端接口已上线，本页尚未接线，未执行`)
+async function submitCreateRole() {
+  if (creatingRole.value) return
+  const name = roleForm.name.trim()
+  const code = roleForm.code.trim()
+  if (!name) {
+    ElMessage.warning('请填写角色名称')
+    return
+  }
+  // 与后端 codeSchema 同口径（小写字母开头，2-32 位小写字母/数字/下划线）
+  if (!/^[a-z][a-z0-9_]{1,31}$/.test(code)) {
+    ElMessage.warning('角色编码须为小写字母开头、2-32 位小写字母/数字/下划线')
+    return
+  }
+  creatingRole.value = true
+  roleNotice.value = ''
+  try {
+    await createPlatformRole({ name, code, remark: roleForm.remark.trim() || undefined })
+    showCreateRole.value = false
+    ElMessage.success(`自定义角色已创建（${name}）`)
+    await loadRoles()
+  } catch (e: any) {
+    // 编码重复 ⇒ 后端 409，原文照登（不自行改写成「创建失败」）
+    roleNotice.value = actionErrorText(e, '新建角色失败，请稍后重试')
+  } finally {
+    creatingRole.value = false
+  }
+}
+
+/** 重置密码：先二次确认（文案写明旧口令立即失效），成功后一次性展示新口令（R3） */
+async function onResetPwd(a: any) {
+  try {
+    await ElMessageBox.confirm(
+      `确认重置「${a.realName || a.account}」的登录口令？重置后旧口令立即失效，新口令只在提交后展示一次。`,
+      '重置密码',
+      { confirmButtonText: '确认重置', cancelButtonText: '取消', type: 'warning' }
+    )
+  } catch {
+    return
+  }
+  loadNotice.value = ''
+  try {
+    const res: any = await resetPlatformAdminPassword(Number(a.id))
+    const data = res?.data?.data ?? {}
+    showPasswordOnce(`管理员 ${String(data.username ?? a.account)} 的新口令`, String(data.initialPassword ?? ''))
+  } catch (e: any) {
+    loadNotice.value = actionErrorText(e, '重置密码失败，请稍后重试')
+  }
+}
+
+/** 启停：前端不自行拦截（含停用自己 / 最后一个 SUPER_ADMIN），一律以后端返回为准刷新该行（R4） */
+async function onToggleStatus(a: any) {
+  const next = a.status === 'DISABLED' ? 'ACTIVE' : 'DISABLED'
+  loadNotice.value = ''
+  try {
+    const res: any = await updatePlatformAdminStatus(Number(a.id), next)
+    const applied = res?.data?.data?.status
+    if (applied === 'ACTIVE' || applied === 'DISABLED') a.status = applied
+    else await loadAdmins()
+    ElMessage.success(applied === 'DISABLED' ? '已停用该管理员' : '已启用该管理员')
+  } catch (e: any) {
+    // 后端拒绝时原文上屏（不掩盖、不自行判定）
+    loadNotice.value = actionErrorText(e, '启停失败，请稍后重试')
+  }
 }
 </script>
 
@@ -628,5 +813,27 @@ function onToggleStatus(a: any) {
   gap: var(--space-2);
   background: var(--g0);
   flex: none;
+}
+
+/* 一次性口令 / 新建角色弹窗（窄版）+ 口令展示行 */
+.modal-sm {
+  width: var(--modal-width-sm);
+}
+.pwd-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+.pwd-code {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--g2);
+  border-radius: var(--radius-md);
+  background: var(--g0);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-md);
+  letter-spacing: var(--ver-tag-tracking, 0.04em);
+  word-break: break-all;
 }
 </style>
