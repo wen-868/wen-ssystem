@@ -573,6 +573,74 @@ export function replaceRolePermissions(id: number, matrix: any[]) {
   });
 }
 
+/* ── C6-3-0b：4 个「后端已上线、页面未接」的动作（端点逐字，页面不得再散落字面路径） ──
+ * 端点唯一真相源：
+ *   PUT  /api/platform/admins/:id/status          backend/src/routes/platform.routes.ts:28
+ *   POST /api/platform/admins/:id/reset-password  backend/src/routes/platform.routes.ts:27
+ *   POST /api/platform/admins/invite              backend/src/routes/platform.routes.ts:26
+ *   POST /api/platform/roles                      backend/src/routes/platform-role.routes.ts（prefix /api/platform/roles）
+ */
+
+/** 启停管理员：请求体 { status: 'ACTIVE' | 'DISABLED' }；响应 { id, status }（页面以响应为准刷新该行） */
+export function updatePlatformAdminStatus(id: number, status: "ACTIVE" | "DISABLED") {
+  return api.put<any, { data: ApiResult<{ id: number; status: "ACTIVE" | "DISABLED" }> }>(
+    `/platform/admins/${id}/status`,
+    { status }
+  );
+}
+
+/** 重置管理员密码：无请求体；响应 { id, username, realName, initialPassword, passwordShownOnce }，明文口令仅此一次 */
+export function resetPlatformAdminPassword(id: number) {
+  return api.post<
+    any,
+    {
+      data: ApiResult<{
+        id: number;
+        username: string;
+        realName: string;
+        initialPassword: string;
+        passwordShownOnce: boolean;
+      }>;
+    }
+  >(`/platform/admins/${id}/reset-password`);
+}
+
+/** 邀请建号提交体：本单只收 username + name + phone（不带 roleId/dataScope） */
+export interface InvitePlatformAdminBody {
+  username: string;
+  name: string;
+  phone: string;
+}
+
+/** 邀请建号：响应在既有建号结果上追加 { initialPassword, passwordShownOnce }（不发邮件/短信，明文口令仅此一次） */
+export function invitePlatformAdmin(body: InvitePlatformAdminBody) {
+  return api.post<
+    any,
+    {
+      data: ApiResult<{
+        id: number;
+        username: string;
+        realName: string;
+        role: string;
+        initialPassword: string;
+        passwordShownOnce: boolean;
+      }>;
+    }
+  >("/platform/admins/invite", body);
+}
+
+/** 新建自定义角色提交体：{ name, code, remark? }（type 由后端固定为 custom，不接受入参） */
+export interface CreatePlatformRoleBody {
+  name: string;
+  code: string;
+  remark?: string;
+}
+
+/** 新建自定义角色：code 重复 ⇒ 后端 409，页面原样展示后端文案 */
+export function createPlatformRole(body: CreatePlatformRoleBody) {
+  return api.post<any, { data: ApiResult<{ id: number }> }>("/platform/roles", body);
+}
+
 // ==================== 平台工单（R101-C6-3-0；前缀 /api/platform/support） ====================
 // 端点契约唯一真相源：backend/src/routes/platform-ticket.routes.ts + platform-ticket.service.ts
 /** 看板：{ groups: { pending, processing, resolved }, summary: { pending, processing, resolved, closed } } */
