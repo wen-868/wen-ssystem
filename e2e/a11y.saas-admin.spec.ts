@@ -182,6 +182,21 @@ test.describe("saas-admin 无障碍扫描（WCAG 2.1 AA）", () => {
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2_000);
 
+    // ---- S3-137-F2 反测探针（一次性夹具；本 PR 关闭不合并，绝不可进 main）----
+    // 刻意往登录页追加一段低对比度文本（#8a8a8a on #ffffff ~ 3.45:1 < 4.5:1），
+    // 使 axe 必然报 color-contrast(serious) => 取样 exit!=0 => verdict 步骤必须红。
+    // 复原即删除本块。
+    await page.evaluate(() => {
+      const p = document.createElement("p");
+      p.id = "a11y-redtest-probe";
+      p.textContent = "S3-137-F2 反测探针：本段为刻意制造的低对比度文本（约 3.45:1）";
+      p.setAttribute(
+        "style",
+        "color:#8a8a8a;background:#ffffff;font-size:14px;font-weight:normal;line-height:1.5;margin:8px 0;padding:4px 8px"
+      );
+      (document.body ?? document.documentElement).appendChild(p);
+    });
+
     const st = await waitForVisualSettled(page);
     console.log(
       st.degraded
