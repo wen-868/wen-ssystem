@@ -183,19 +183,16 @@ test.describe("saas-admin 无障碍扫描（WCAG 2.1 AA）", () => {
     await page.waitForTimeout(2_000);
 
     // ---- S3-137-F2 反测探针（一次性夹具；本 PR 关闭不合并，绝不可进 main）----
-    // 刻意往登录页追加一段低对比度文本（#8a8a8a on #ffffff ~ 3.45:1 < 4.5:1），
-    // 使 axe 必然报 color-contrast(serious) => 取样 exit!=0 => verdict 步骤必须红。
+    // 把登录页临时变成"必然存在对比度问题的探针页"：强制前景色为 #8a8a8a，
+    // 该色在白底（#ffffff）上约 3.45:1、在灰底（#f7f7f7）上约 3.22:1，均 < 4.5:1
+    // => axe 必然对既有可见文本报 color-contrast(serious) => 取样 exit!=0 => verdict 必须红。
+    // 注：不用"追加一个 <p>"的做法，是因为登录页容器 overflow 裁剪会让追加元素被 axe 判为不可见。
     // 复原即删除本块。
-    await page.evaluate(() => {
-      const p = document.createElement("p");
-      p.id = "a11y-redtest-probe";
-      p.textContent = "S3-137-F2 反测探针：本段为刻意制造的低对比度文本（约 3.45:1）";
-      p.setAttribute(
-        "style",
-        "color:#8a8a8a;background:#ffffff;font-size:14px;font-weight:normal;line-height:1.5;margin:8px 0;padding:4px 8px"
-      );
-      (document.body ?? document.documentElement).appendChild(p);
+    await page.addStyleTag({
+      content: "*, *::before, *::after { color: #8a8a8a !important; }",
     });
+    console.log("[saas-a11y][F2-探针] 已注入降对比度样式 color:#8a8a8a，本页应报 color-contrast");
+
 
     const st = await waitForVisualSettled(page);
     console.log(
