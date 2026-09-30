@@ -237,9 +237,11 @@ export async function createStoreShift(payload: {
   return data.data;
 }
 
-// 后端历史接口不带单号（GET /store/shift/history），该参数暂为接口占位，按 ESLint 约定以 _ 前缀标注未使用
-export async function fetchStoreShiftDetail(_shiftId: number) {
-  const { data } = await api.get(`/store/shift/history`);
+// 交接班详情按班次编号取：GET /api/store/shifts/:shiftNo（store-shift.routes.ts → t_shift.shift_no），
+// 原实现误打到历史列表端点 GET /store/shift/history。形参放宽为 string | number：后端键是字符串编号，
+// 而调用点传入 Number(route.params.id)（调用点语义缺口见回传卡「风险与自我报备」，本单只修正端点与形参用法）。
+export async function fetchStoreShiftDetail(shiftNo: string | number) {
+  const { data } = await api.get(`/store/shifts/${shiftNo}`);
   return data.data;
 }
 
