@@ -3,6 +3,16 @@
     <!-- 页头 -->
     <page-header title="全部功能" @back="goBack" />
 
+    <!-- 权限信息加载失败明示（S3-136-F1：不再静默回退全量） -->
+    <view
+      class="mf-banner"
+      :style="{ background: AI_WARNING_SOFT, borderColor: AI_WARNING }"
+      v-if="menuStore.bannerText"
+    >
+      <text class="mf-banner-text">{{ menuStore.bannerText }}</text>
+      <text class="mf-banner-retry" :style="{ color: AI_WARNING }" v-if="menuStore.showRetry" @tap="retryMenus">重试</text>
+    </view>
+
     <!-- 高频功能 -->
     <view class="mf-section">
       <text class="mf-section-title">高频功能</text>
@@ -58,16 +68,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import {
   hotActions,
   dataTools,
-  filterGroupsByModules,
-  filterItemsByModules,
+  filterGroupsByCodes,
+  filterItemsByCodes,
   type FunctionItem,
 } from '@/config/function-menu'
-import { getUserMenus, toAllowedModules } from '@/api/modules/menu'
+import { useMenuStore } from '@/stores/menu'
 import {
   AI_BG_SOFT,
   AI_TAB_ACTIVE,
@@ -79,10 +89,15 @@ import {
   AI_DANGER_SOFT,
 } from '@/constants/colors'
 
-const allowedModules = ref<Set<string> | undefined>(undefined)
-const roleHotActions = computed(() => filterItemsByModules(hotActions, allowedModules.value))
-const roleDataTools = computed(() => filterItemsByModules(dataTools, allowedModules.value))
-const filteredGroups = computed(() => filterGroupsByModules(allowedModules.value))
+/**
+ * 角色可见性：共用 stores/menu.ts（functions.vue 与 more-functions.vue 同一份，不再各拉一次）；
+ * 判定口径见 config/function-menu.ts 的 isPageVisible（兼容态：code 精确命中 + 前缀回落）
+ */
+const menuStore = useMenuStore()
+const allowedVisibility = computed(() => menuStore.visibility)
+const roleHotActions = computed(() => filterItemsByCodes(hotActions, allowedVisibility.value))
+const roleDataTools = computed(() => filterItemsByCodes(dataTools, allowedVisibility.value))
+const filteredGroups = computed(() => filterGroupsByCodes(allowedVisibility.value))
 
 /** 图标配色：按序循环蓝/绿/橙/红软底（沿用原稿观感） */
 const PALETTE = [
@@ -113,18 +128,14 @@ function goto(path: string) {
   }
 }
 
-/** 角色过滤：拉取当前用户可见菜单 → 模块前缀集合；失败空则回退全量 */
-async function loadRoleMenus() {
-  try {
-    const menus = await getUserMenus()
-    allowedModules.value = toAllowedModules(menus)
-  } catch {
-    allowedModules.value = undefined
-  }
+/** 权限信息加载失败时的重试 */
+function retryMenus() {
+  menuStore.refresh()
 }
 
 onShow(() => {
-  loadRoleMenus()
+  // 共用 store：会话内只拉一次；失败回退由 store 负责（缓存集 / 失败关闭 + 明示）
+  menuStore.ensureLoaded()
 })
 </script>
 
@@ -171,6 +182,29 @@ onShow(() => {
 /* 区块 */
 .mf-section {
   margin: $uni-spacing-lg $uni-spacing-base 0;
+}
+
+/* 权限信息加载失败明示条（S3-136-F1：失败不再静默回退全量） */
+.mf-banner {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: $uni-spacing-base $uni-spacing-base 0;
+  padding: 16rpx 24rpx;
+  border: 1rpx solid $zx-black-30;
+  border-radius: $uni-border-radius-base;
+}
+
+.mf-banner-text {
+  flex: 1;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.mf-banner-retry {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  font-weight: 600;
 }
 
 .mf-section-title {

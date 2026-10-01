@@ -10,6 +10,16 @@
       </view>
     </view>
 
+    <!-- 权限信息加载失败明示（S3-136-F1：不再静默回退全量） -->
+    <view
+      class="func-banner"
+      :style="{ background: AI_WARNING_SOFT, borderColor: AI_WARNING }"
+      v-if="menuStore.bannerText"
+    >
+      <text class="func-banner-text">{{ menuStore.bannerText }}</text>
+      <text class="func-banner-retry" :style="{ color: AI_WARNING }" v-if="menuStore.showRetry" @tap="retryMenus">重试</text>
+    </view>
+
     <!-- 高频宫格（真实搜索过滤） -->
     <view class="func-grid" v-if="filteredHotActions.length > 0">
       <view class="func-grid-item" v-for="item in filteredHotActions" :key="item.label" @tap="goto(item.path)">
@@ -75,18 +85,23 @@ import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   hotActions,
   dataTools,
-  filterGroupsByModules,
-  filterItemsByModules,
+  filterGroupsByCodes,
+  filterItemsByCodes,
   type FunctionItem,
 } from '@/config/function-menu'
-import { getUserMenus, toAllowedModules } from '@/api/modules/menu'
-import { AI_BG_SOFT, AI_TAB_ACTIVE } from '@/constants/colors'
+import { useMenuStore } from '@/stores/menu'
+import { AI_BG_SOFT, AI_TAB_ACTIVE, AI_WARNING, AI_WARNING_SOFT } from '@/constants/colors'
 
 const keyword = ref('')
-const allowedModules = ref<Set<string> | undefined>(undefined)
+/**
+ * 角色可见性：共用 stores/menu.ts（functions.vue 与 more-functions.vue 同一份，不再各拉一次）；
+ * 判定口径见 config/function-menu.ts 的 isPageVisible（兼容态：code 精确命中 + 前缀回落）
+ */
+const menuStore = useMenuStore()
+const allowedVisibility = computed(() => menuStore.visibility)
 /** 按角色过滤后的高频 / 数据工具 */
-const roleHotActions = computed(() => filterItemsByModules(hotActions, allowedModules.value))
-const roleDataTools = computed(() => filterItemsByModules(dataTools, allowedModules.value))
+const roleHotActions = computed(() => filterItemsByCodes(hotActions, allowedVisibility.value))
+const roleDataTools = computed(() => filterItemsByCodes(dataTools, allowedVisibility.value))
 
 const navigate = (path: string) => {
   if (path) {
@@ -113,7 +128,7 @@ const filteredDataTools = computed(() => {
 
 const filteredGroups = computed(() => {
   // 排除 tool 项：「数据 · 工具」区块已单独展示（R96-07 去重复排列），避免同一功能两处出现
-  const base = filterGroupsByModules(allowedModules.value, false)
+  const base = filterGroupsByCodes(allowedVisibility.value, false)
     .map((g) => ({ ...g, items: g.items.filter((it) => !it.tool) }))
     .filter((g) => g.items.length > 0)
   const k = keyword.value.trim().toLowerCase()
@@ -147,18 +162,14 @@ function doSearch() {
   // 确认搜索：结果由 computed 实时渲染，无需额外处理
 }
 
-/** 角色过滤：拉取当前用户可见菜单 → 模块前缀集合；失败空则回退全量 */
-async function loadRoleMenus() {
-  try {
-    const menus = await getUserMenus()
-    allowedModules.value = toAllowedModules(menus)
-  } catch {
-    allowedModules.value = undefined
-  }
+/** 权限信息加载失败时的重试 */
+function retryMenus() {
+  menuStore.refresh()
 }
 
 onShow(() => {
-  loadRoleMenus()
+  // 共用 store：会话内只拉一次；失败回退由 store 负责（缓存集 / 失败关闭 + 明示）
+  menuStore.ensureLoaded()
 })
 </script>
 
@@ -202,6 +213,29 @@ onShow(() => {
 
 .search-placeholder {
   color: $uni-gray-400;
+}
+
+/* 权限信息加载失败明示条（S3-136-F1：失败不再静默回退全量） */
+.func-banner {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 0 $uni-spacing-base 8rpx;
+  padding: 16rpx 24rpx;
+  border: 1rpx solid $zx-black-30;
+  border-radius: $uni-border-radius-base;
+}
+
+.func-banner-text {
+  flex: 1;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.func-banner-retry {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  font-weight: 600;
 }
 
 /* 高频宫格 */

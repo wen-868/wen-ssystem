@@ -160,19 +160,99 @@ export const dataTools: FunctionItem[] = (() => {
 export const allGroups: FunctionGroup[] = homeGroups
 
 /**
- * 按「允许的模块前缀」过滤注册表（角色过滤）。
- * 若 allowedModules 为空/未传 → 回退全量（避免误隐藏）。
+ * 菜单节点最小结构（只取判定需要的字段；t_sys_menu 节点与 /admin/menus/user 返回结构都兼容）。
+ * 独立声明是为了让取数口径成为纯函数：api 层与"可见性对照表"脚本共用同一份实现，不各写一套。
  */
-export function filterGroupsByModules(
-  allowedModules: Set<string> | null | undefined,
+export interface MenuCodeNode {
+  menuCode?: string | null
+  children?: MenuCodeNode[] | null
+}
+
+/**
+ * 拍平菜单树 → 页面/模块 code 精确集合（阶段一取数口径）。
+ * 与旧 toAllowedModules 的唯一差别：收**整码**（如 goods:inventory）而不是前缀（goods）。
+ */
+export function collectMenuCodes(nodes: MenuCodeNode[] | null | undefined): Set<string> {
+  const set = new Set<string>()
+  const walk = (list: MenuCodeNode[] | null | undefined) => {
+    if (!list) return
+    for (const node of list) {
+      if (node.menuCode) set.add(node.menuCode)
+      if (node.children && node.children.length) walk(node.children)
+    }
+  }
+  walk(nodes)
+  return set
+}
+
+/**
+ * 菜单 code → 模块前缀。与改造前 api/modules/menu.ts 的 toAllowedModules（menuCode.split(':')[0]）
+ * **逐字等价**，是「兼容态」第二条口径的实现。
+ */
+export function menuPrefixOf(code: string): string {
+  return code.split(':')[0]
+}
+
+/**
+ * 可见性判定输入（S3-136-F1b「兼容态」）——**同时**持有两套口径，缺一不可：
+ *  - codes   ：本次 GET /admin/menus/user 拍平得到的页面 code 全集（精确命中，判定①）；
+ *  - prefixes：由 codes 派生的模块前缀集（回落既有前缀语义，判定②，见 isPageVisible 注释）。
+ * 前缀集在构建时一次算好（buildMenuVisibility），避免每次判定重复 split 字符串。
+ */
+export interface MenuVisibility {
+  codes: Set<string>
+  prefixes: Set<string>
+}
+
+/** 由「允许的页面 code 集合」派生判定输入（前缀集按 menuPrefixOf 现算，口径与改造前逐字一致） */
+export function buildMenuVisibility(codes: Set<string>): MenuVisibility {
+  const prefixes = new Set<string>()
+  for (const c of codes) prefixes.add(menuPrefixOf(c))
+  return { codes, prefixes }
+}
+
+/**
+ * 单页可见性判定（S3-136-F1b「兼容态」，全端唯一口径）：
+ *
+ *   visibility == null              ⇒ true                                  // 首屏尚未取到权限信息：维持改造前首屏口径（全量）
+ *   visibility.codes.has(code)      ⇒ true                                  // ① 页面 code 精确命中
+ *   否则                            ⇒ visibility.prefixes.has(前缀)          // ② code 未命中 ⇒ 回落改造前的模块前缀语义
+ *
+ * 为什么要保留②这条回退（而不是只认①的严格 code 判定）：
+ *   生产菜单库（t_sys_menu，当前 64 码）里**没有**手机端 44 页中 25 页的 code
+ *   （清单见 docs/migrations/186_app-mobile页面菜单码补齐.sql，尚未落库）。严格只认①时，
+ *   这 25 页对**所有角色**（含超管：超管拿的是库里全部码）都会从功能中心消失，
+ *   相对改造前是可见性变化，属于不能合并的差异；回退②使「生产当前数据」与「补码后数据」
+ *   两种状态下逐格都与改造前一致（对照表 A/B 各 8 角色 × 44 页，差异格 0）。
+ *
+ * 何时可以去掉②这条回退（改回严格 code 判定）：
+ *   S3-143 落地（25 码进入生产菜单库）**且**两张对照表都为 0 差异之后，由凌舟裁定再改。
+ *
+ * null 与空集是两码事：null = 尚未取到（放全量，维持改造前首屏行为）；空集 = 一页都不显示
+ * （沿用"失败关闭"口径）。接口失败时的回退由 stores/menu.ts 负责（上次成功集合 / 空集 + 明示 + 重试），
+ * **不得**传 undefined 静默放全量。
+ */
+export function isPageVisible(code: string, visibility: MenuVisibility | null | undefined): boolean {
+  if (!visibility) return true
+  if (visibility.codes.has(code)) return true
+  return visibility.prefixes.has(menuPrefixOf(code))
+}
+
+/**
+ * 按角色可见性过滤注册表分组（角色过滤；判定口径见 isPageVisible）。
+ * 传 null/undefined 表示"尚未取到权限信息"（首屏加载中）⇒ 返回全量，保持改造前首屏行为；
+ * 取到结果后调用方必须传**真实对象**（可以是空集，空集＝一页都不显示）。
+ */
+export function filterGroupsByCodes(
+  visibility: MenuVisibility | null | undefined,
   includeAdmin = true
 ): FunctionGroup[] {
   let base = allGroups
-  if (allowedModules && allowedModules.size > 0) {
+  if (visibility) {
     base = allGroups
       .map((g) => ({
         ...g,
-        items: g.items.filter((it) => allowedModules.has(it.code.split(':')[0])),
+        items: g.items.filter((it) => isPageVisible(it.code, visibility)),
       }))
       .filter((g) => g.items.length > 0)
   }
@@ -180,13 +260,13 @@ export function filterGroupsByModules(
   return base
 }
 
-/** 按模块前缀过滤单个条目列表（高频宫格/数据工具） */
-export function filterItemsByModules(
+/** 按角色可见性过滤单个条目列表（高频宫格/数据工具）；语义同 filterGroupsByCodes */
+export function filterItemsByCodes(
   items: FunctionItem[],
-  allowedModules: Set<string> | null | undefined
+  visibility: MenuVisibility | null | undefined
 ): FunctionItem[] {
-  if (!allowedModules || allowedModules.size === 0) return items
-  return items.filter((it) => allowedModules.has(it.code.split(':')[0]))
+  if (!visibility) return items
+  return items.filter((it) => isPageVisible(it.code, visibility))
 }
 
 /** 搜索：按 label / sub 过滤所有分组项 */
