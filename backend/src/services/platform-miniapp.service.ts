@@ -259,7 +259,16 @@ export async function getSubscriptionApply(applyId: number): Promise<Subscriptio
   return row ? mapApplyRow(row) : null;
 }
 
-/** 审核申请：通过/驳回，写入审核人与审核时间 */
+/**
+ * 审核申请：通过/驳回，写入审核人与审核时间
+ *
+ * S3-144 C 定案（落点②的 tenant_id 来源）：本表 tenant_id 列 DDL 为 NOT NULL DEFAULT 'default'，
+ * 且 submitSubscription 的 INSERT 不写该列 ⇒ 审核时取到的是共享默认租户 'default'。
+ * 订阅审核流程既不创建/关联真实租户、也不携带邀请码/代理商 ⇒ 不作为归因落点：
+ * 无对应租户时不写归因（严禁挂 'default'，见 S3-144 卡 §四.2），保持可追踪。
+ * 归因唯一写入路径 = tenant-register.service.approveTenantApplication（申请审批通过、真正创建租户那一步），
+ * 其 tenant_id 用该步 randomUUID() 生成的真实 t_tenant.id。
+ */
 export async function auditSubscriptionApply(
   applyId: number,
   action: "APPROVED" | "REJECTED",

@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { query, queryOne } from "../shared/db";
+import { makeBizNo } from "../shared/id";
 import bcrypt from "bcryptjs";
 
 export interface TenantRecord {
@@ -75,6 +77,21 @@ export async function checkTenantNameExists(name: string): Promise<boolean> {
 }
 
 // ============ 创建租户（含管理员） ============
+/**
+ * 平台侧开租户（POST /api/platform/tenants）——S3-144 A 项真缺陷修复
+ *
+ * 原实现的三处缺陷（卡 §一①）：
+ *  ① `t_tenant.id` 是 VARCHAR(36) 主键、无自增/默认值，原实现用 `insertId` 取 id ⇒ 恒为 0；
+ *  ② 原 INSERT 未提供 016 定义的 NOT NULL 列 `tenant_code` / `company_name` / `contact_person`
+ *     ⇒ 非严格模式"租户与管理员已写库、接口却返回 0"的脏写，严格模式 1364 直接失败；
+ *  ③ 原 INSERT 写 `status='ACTIVE'`（字符串），而 t_tenant.status 是 TINYINT（1=正常）⇒ 严格模式 1366。
+ *
+ * 修法（最小改动）：应用层 `randomUUID()` 生成主键、`makeBizNo("T")` 生成租户编码，
+ * 补齐 NOT NULL 列与数值状态；返回真实 tenant_id（字符串）而不是 insertId。
+ *
+ * 归因（S3-144 B/C 定案）：平台侧开租户**不是**邀请码注册的归因宿主（原本也非生产在用通道），
+ * `source` 固定 'MANUAL'，本函数不写 t_tenant_attribution。
+ */
 export async function createTenant(data: {
   tenantName: string;
   contactName: string;
@@ -83,19 +100,29 @@ export async function createTenant(data: {
   adminUsername: string;
   adminPassword: string;
   expireAt?: string | null;
-}): Promise<number> {
-  const result = await query<{ insertId: number }>(
-    `INSERT INTO t_tenant (tenant_name, contact_name, contact_mobile, contact_email, status, expire_at)
-     VALUES (?, ?, ?, ?, 'ACTIVE', ?)`,
-    [data.tenantName, data.contactName, data.contactMobile, data.contactEmail || "", data.expireAt || null]
-  );
-
-  const tenantId = (result as unknown as { insertId: number }).insertId;
-  const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
+}): Promise<string> {
+  const tenantId = randomUUID();
+  const tenantCode = makeBizNo("T");
 
   await query(
+    `INSERT INTO t_tenant (
+       id, tenant_code, name, tenant_name, company_name, company_short_name,
+       contact_name, contact_person, contact_mobile, contact_email,
+       source, status, expire_at
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MANUAL', 1, ?)`,
+    [
+      tenantId, tenantCode, data.tenantName, data.tenantName, data.tenantName, data.tenantName,
+      data.contactName, data.contactName, data.contactMobile, data.contactEmail || "",
+      data.expireAt || null,
+    ]
+  );
+
+  const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
+
+  // t_sys_user.status 是 TINYINT（1=正常），原实现写 'ACTIVE' 字符串在严格模式会 1366 —— 一并按数值落库
+  await query(
     `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, status, role)
-     VALUES (?, ?, ?, ?, ?, 'ACTIVE', 'ADMIN')`,
+     VALUES (?, ?, ?, ?, ?, 1, 'ADMIN')`,
     [tenantId, data.adminUsername, hashedPassword, data.contactName, data.contactMobile]
   );
 

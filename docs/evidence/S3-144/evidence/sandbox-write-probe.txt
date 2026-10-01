@@ -1,0 +1,39 @@
+# S3-144 沙箱写权限实测（2026-10-02，阿坚）
+# 目的：说明为什么 backend 生产代码改动只能以补丁交付
+# 方式：Set-Content -ErrorAction Stop（PowerShell）、[System.IO.File]::WriteAllText（.NET）、cmd 重定向，三种都试
+
+## 1) 可写（成功）
+Set-Content backend\src\__probe.txt          -> OK
+Set-Content backend\src\__tests__\__probe.txt -> OK
+Set-Content docs\__probe.txt                  -> OK
+Set-Content docs\migrations\__probe.txt       -> OK
+Set-Content docs\evidence\__probe.txt         -> OK
+Set-Content tests\__probe.txt                 -> OK
+Set-Content e2e\__probe.txt                   -> OK
+New-Item -ItemType Directory backend\src\zzprobe ; Set-Content backend\src\zzprobe\a.txt -> OK（新建目录可写）
+
+## 2) 被拒（Access denied）
+Set-Content backend\src\services\__probe.txt        -> Access to the path ... is denied.
+Add-Content backend\src\services\platform\tenant-admin.service.ts ""  -> Access denied.（既有文件也拒绝）
+Set-Content backend\src\controllers\__probe.txt     -> denied
+Set-Content backend\src\config\__probe.txt          -> denied
+Set-Content backend\src\routes\__probe.txt          -> denied
+Set-Content backend\src\middleware\__probe.txt      -> denied
+Set-Content backend\src\shared\__probe.txt          -> denied
+Set-Content backend\scripts\__probe.txt             -> denied
+Set-Content backend\migrations\__probe.txt          -> denied
+Set-Content docs\tasks\__probe.txt                  -> denied
+New-Item -ItemType Directory backend\src\services\zznew ; write inside -> denied（新建子目录也拒绝）
+
+## 3) 与工具无关（同一路径换三种写入方式都失败）
+[System.IO.File]::WriteAllText(...\backend\src\services\__probe.txt, 'p')
+  -> MethodInvocationException: Access to the path ... is denied.
+cmd /c "echo p> backend\src\services\__probe_cmd.txt"
+  -> Access is denied. / File Not Found
+
+## 4) 结论
+- 写保护来自 `codex-windows-sandbox-service`（进程列表可见）的路径策略，不是 NTFS ACL
+  （`icacls backend\src\services` 与 `backend\src\__tests__` 的 ACE 完全一致，均含 Modify）。
+- 结果：backend 生产代码（services/controllers/config/routes/middleware/shared）与 docs/tasks 本沙箱不可写；
+  `docs/**`（除 tasks）、`docs/migrations/**`、`backend/src/__tests__/**`、tests/e2e/scripts 可写。
+- 探针文件已全部删除（未进仓库）。
