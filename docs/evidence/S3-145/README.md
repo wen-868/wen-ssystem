@@ -15,7 +15,7 @@
 | `raw/f1-out-revert-red.log` | F1 版装置的真反测（同改坏） | `9 passed / 4 failed`（段2/2b/8/9 FAIL）、`GREEN_EXIT=1` |
 | `raw/f1-out-restored-green.log` | F1 复原后 green | `13 passed / 0 failed`、`GREEN_EXIT=0` |
 | `raw/f1-status-before.txt` / `raw/f1-status-after.txt` | 反测前后 `git status --short` | **逐条一致**（残留零） |
-| `raw/chain.mjs.f1-original.bak` | **F1 版装置原件**（补强前） | SHA256 = `2127F1384FB9C1EB55C94316435DC35E796663467354BBC761DA9D1D13FBEE10`（F2 回传卡引用的就是本文件；与入库版 `backend/scripts/s3-145-shift-chain.mjs` 逐行 diff = 19+/7−，仅 §段3/段2c/注释/路径四处） |
+| `raw/s3-145-shift-chain.f1-original.mjs` | **F1 版装置原件**（补强前） | SHA256 = `2127F1384FB9C1EB55C94316435DC35E796663467354BBC761DA9D1D13FBEE10`（F2 回传卡引用的就是本文件；与入库版 `backend/scripts/s3-145-shift-chain.mjs` 逐行 diff = 19+/7−，仅 §段3/段2c/注释/路径四处）。⚠️ 文件名**不带 `.bak`**：本仓 `.gitignore:33` 排除 `*.bak*`，原名会被忽略而**入不了库**（本次实测踩到，改名为 `.mjs` 才进得了索引） |
 
 ## 二、残留零的判据（文字记录，源工作区已收口）
 
