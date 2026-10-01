@@ -952,3 +952,89 @@ export function updateAgentLevel(id: number, body: AgentLevelUpdateBody) {
     body
   );
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   R101-C6-3-2a · 渠道推广码（t_promo_code / 迁移 188）
+   端点由派单卡 §四 逐字钉死，前端不得自拟路径 / 字段：
+     · GET  /api/platform/promo-codes                             分页 + 关键词 + 状态
+     · POST /api/platform/promo-codes                             生成（返回 { id, promoCode }）
+     · POST /api/platform/promo-codes/:id/disable                 停用（已停用 ⇒ 幂等 200）
+     · GET  /api/platform/promo-codes/:code/attributions          该码归因只读聚合
+   本模块**零金额**（红线①）：不涉及分润 / 佣金 / 结算 / 提现任何字段。
+   老带新台账与渠道效果报表归 C6-3-2b，本文件不提供对应函数。
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/** 推广码行：{ id, promoCode, channelType, channelName, ownerAdminId, expireAt, status, remark } */
+export interface PromoCodeRow {
+  id: number;
+  promoCode: string;
+  /** 来源渠道类型（市场渠道 / 异业合作 / 地推 / 其他，取值由业务侧约定，后端不限定枚举） */
+  channelType: string;
+  channelName: string;
+  /** 渠道负责人（逻辑引用 t_platform_admin.id，未指定 ⇒ null） */
+  ownerAdminId: number | null;
+  /** 有效期（null = 长期有效） */
+  expireAt: string | null;
+  /** ACTIVE-启用 / DISABLED-停用 */
+  status: "ACTIVE" | "DISABLED";
+  remark: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** 推广码分页结果（卡 §四 逐字：items/total/page/pageSize） */
+export interface PromoCodeListResult {
+  items: PromoCodeRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** POST /platform/promo-codes 请求体（与后端 createBodySchema 字段集逐字一致：4 项，无金额字段） */
+export interface PromoCodeCreateBody {
+  channelType: string;
+  channelName: string;
+  expireAt?: string | null;
+  remark?: string | null;
+}
+
+/** 归因明细行（只读聚合；attributionType：AGENT-代理商邀请 / PROMO-推广码 / REFERRAL-老带新） */
+export interface PromoCodeAttributionRow {
+  tenantId: string;
+  attributionType: "AGENT" | "PROMO" | "REFERRAL";
+  attributedAt: string;
+  promoCodeId: number | null;
+  agentId: number | null;
+}
+
+/** GET /platform/promo-codes —— 推广码列表（分页 + 关键词 + 状态；零预置 ⇒ 空表 ⇒ items: []） */
+export function listPromoCodes(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: "ACTIVE" | "DISABLED";
+}) {
+  return api.get<any, { data: ApiResult<PromoCodeListResult> }>("/platform/promo-codes", { params });
+}
+
+/** POST /platform/promo-codes —— 生成推广码（码值 PC + 8 位去易混大写字母数字）→ { id, promoCode } */
+export function createPromoCode(body: PromoCodeCreateBody) {
+  return api.post<any, { data: ApiResult<{ id: number; promoCode: string }> }>(
+    "/platform/promo-codes",
+    body
+  );
+}
+
+/** POST /platform/promo-codes/:id/disable —— 停用（未知 id ⇒ 404；已停用 ⇒ 幂等 200 + alreadyDisabled） */
+export function disablePromoCode(id: number) {
+  return api.post<any, { data: ApiResult<{ id: number; status: string; alreadyDisabled: boolean }> }>(
+    `/platform/promo-codes/${id}/disable`
+  );
+}
+
+/** GET /platform/promo-codes/:code/attributions —— 该码归因只读列表（未知码 ⇒ 404） */
+export function listPromoCodeAttributions(code: string) {
+  return api.get<any, { data: ApiResult<{ items: PromoCodeAttributionRow[] }> }>(
+    `/platform/promo-codes/${code}/attributions`
+  );
+}
