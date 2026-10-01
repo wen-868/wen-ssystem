@@ -3699,7 +3699,7 @@
 - **排队（前置已解锁 / 已出卡）**：**S3-148**（**移动端同源**：列表误调班结端点 + `shiftNo` 未贯通 + `completeShift` 误调 settle；前置＝S3-146 ✅；⚠️ `deploy/auto-deploy.sh:58` **跳过 app-mobile** ⇒ 产物由**凌舟**手工上传 `/var/www/app-mobile`）→ **C6-3-2b**（老带新台账/渠道报表；前置＝S3-144 ✅）→ **S3-151**（条码唯一键改 `(tenant_id,barcode)` + 撞键三处 400；**前置＝S3-149 ✅**）→ **S3-152**（生产"启动触达表"审计：12 张表来源与形状）→ **S3-142**（手工建品配额与权限）→ **C7 端级验收（DoD 8 条）＝阶段一终点**。
 - **工作区卫生（本轮清零）**：移除 **10** 个陈旧 worktree（194/195/196/197/198/205/206/207/212/213）、隔离 `issue-190` 部分副本与 195/213 的 `.tmp` 目录、杀掉 4 个残留服务进程；保留 `issue-204`（S3-144 参考）、`issue-215`、`issue-218`、`wt-docs6`。隔离区：`D:\Users\ZXQL\_hygiene-quarantine-20261002\`（可恢复）。删除 junction 一律用**非递归** `Directory.Delete`，事后主仓复跑 149 passed 证明 node_modules 未受损。
 
-- **开放项**：**S3-152**（生产"启动触达表"审计，小单待出卡）—— S3-149 上线后本次启动有 **12 张表** `CREATE_TIME` 落在 03:02:59–03:03:03（`t_sys_role` 12 行 / `t_transfer_order_item` 4 行 / `t_tenant_admin` 1 行 / `t_points_record` 1 行，其余 0 行；定义均在 `docs/migrations/*.sql`）⇒ 须审计"新建 vs 重建 + 形状是否与迁移定义一致 + 有数据的表来源"；**不得以"应该没事"结案**（应用侧暂无异常信号：Auto Deploy 只读冒烟通过、pm2 online）。
+- **✅ S3-152 已结案（凌舟只读审计，2026-10-02）**：12 张表**全部含 `id`+`tenant_id`**；`t_tenant_admin` 生产列与迁移 192 定义**逐列一致**；4 张有存量数据（`t_sys_role` 12/`t_transfer_order_item` 4/`t_tenant_admin` 1/`t_points_record` 1）⇒ `CREATE_TIME` 变化 ≠ 新建；脚本两处"缺列"告警（`earn_ratio`/`settlement_type`）**已逐条证伪为脚本假阳性**（分别属 `t_points_rule` 与 `t_member`/`t_miniapp_order`/`t_supplier`）⇒ **形状合规、无功能风险**；"0 行表的新建 vs 重建"**无法仅凭 information_schema 判定**，已如实登记并把"双快照对比 / binlog 归因"列为**可选加固**。证据：`docs/evidence/S3-152/`（工具+原始读数+结论）。
 
 **本轮纪律事件 2 起**
 

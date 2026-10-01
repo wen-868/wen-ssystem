@@ -1,0 +1,15 @@
+表	生产列数	迁移声明列数	CREATE 次数	缺列(声明但生产无)	生产多出列数
+t_delivery_record	16	1	2	-	15
+t_payment_config	20	10	1	-	10
+t_platform_order	9	9	1	-	0
+t_points_record	18	8	3	earn_ratio	11
+t_retail_category	10	10	2	-	0
+t_retail_order	31	26	2	-	5
+t_retail_product	17	17	2	-	0
+t_retail_review	17	17	1	-	0
+t_retail_shop_config	19	18	2	-	1
+t_sys_role	11	5	3	settlement_type	7
+t_tenant_admin	7	0	3	-	7
+t_transfer_order_item	14	6	1	-	8
+
+⚠️ 有 2 张表存在缺列，需人工复核
