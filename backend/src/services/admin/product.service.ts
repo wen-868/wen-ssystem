@@ -16,6 +16,38 @@ function normalizeImageUrls(raw?: string[] | string | null): string[] {
     .filter(Boolean);
 }
 
+/**
+ * S3-151：条码撞键的统一文案与判定
+ *
+ * 语义口径（三处统一）：建品 / 批量导入 / 改条码撞键，一律当作**业务错误 400 + 同一句中文文案**，
+ * 不得把回库报错原文（如 `Duplicate entry … for key …`）直接抛给前端或写进导入 errors。
+ * 键口径：迁移 194 起，t_product_sku 的条码唯一键是 (tenant_id, barcode)（uk_product_sku_tenant_barcode），
+ * 即"同租户内条码唯一"；跨租户同条码不再冲突。
+ */
+const BARCODE_DUPLICATE_MESSAGE = "该条码已被其他商品使用";
+
+/** 回库唯一键撞车判定：只认 1062（ER_DUP_ENTRY），不吞其它错误 */
+function isDuplicateEntryError(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    ((e as { code?: string }).code === "ER_DUP_ENTRY" ||
+      (e as { errno?: number }).errno === 1062)
+  );
+}
+
+/** 撞的偏偏是不是"条码"这一列（同一张表还有 uk_product_sku_code，不能混为一谈） */
+function isBarcodeDuplicateError(e: unknown): boolean {
+  return isDuplicateEntryError(e) && /barcode/i.test(String((e as { message?: string }).message ?? ""));
+}
+
+/** 批量导入单行失败文案：撞键走中文业务文案，其它保留原始信息便于排查 */
+function importRowErrorMessage(err: unknown): string {
+  if (isBarcodeDuplicateError(err)) return BARCODE_DUPLICATE_MESSAGE;
+  if (isDuplicateEntryError(err)) return "商品编码重复，请检查后重试";
+  return (err as Error)?.message || "导入失败";
+}
+
 // ==================== 类型定义 ====================
 
 /** 商品列表行（含SKU、价格、库存） */
@@ -400,53 +432,61 @@ export async function createProduct(body: {
     storePrice?: number | null;
   }>;
 }, tenantId: string, rawBody: Record<string, unknown>) {
-  const result = await transaction(async (conn) => {
-    const spuCode = makeBizNo("SPU");
-    const [spuResult] = await conn.query<ResultSetHeader>(
-      `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
-       main_image, image_urls, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
-       description, detail, status, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
-      [spuCode, body.name, body.categoryId,
-        body.brandId ?? null, body.unit ?? null, body.specs ?? null,
-        body.mainImage ?? null, JSON.stringify(normalizeImageUrls(body.imageUrls)),
-        JSON.stringify(body.saleChannels),
-        body.alcoholContent ?? null, body.origin ?? null,
-        body.sortNo ?? 0, body.isNew ? 1 : 0, body.isRecommend ? 1 : 0,
-        body.description ?? null, body.detail ?? null, tenantId]
-    );
-    const spuId = spuResult.insertId as number;
-    let firstSkuId: number | null = null;
-    for (const sku of body.skus) {
-      const skuCode = makeBizNo("SKU");
-      const [skuResult] = await conn.query<ResultSetHeader>(
-        `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
-         base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [spuId, skuCode, sku.barcode ?? null, sku.skuName,
-          sku.volume ?? null, sku.packaging ?? null,
-          sku.baseUnit ?? '瓶', sku.boxUnit ?? '箱',
-          sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold, tenantId]
+  try {
+    const result = await transaction(async (conn) => {
+      const spuCode = makeBizNo("SPU");
+      const [spuResult] = await conn.query<ResultSetHeader>(
+        `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
+         main_image, image_urls, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
+         description, detail, status, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
+        [spuCode, body.name, body.categoryId,
+          body.brandId ?? null, body.unit ?? null, body.specs ?? null,
+          body.mainImage ?? null, JSON.stringify(normalizeImageUrls(body.imageUrls)),
+          JSON.stringify(body.saleChannels),
+          body.alcoholContent ?? null, body.origin ?? null,
+          body.sortNo ?? 0, body.isNew ? 1 : 0, body.isRecommend ? 1 : 0,
+          body.description ?? null, body.detail ?? null, tenantId]
       );
-      const skuId = skuResult.insertId as number;
-      firstSkuId ??= skuId;
-      await conn.query(
-        `INSERT INTO t_product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [skuId, sku.costPrice, sku.retailPrice, sku.wholesalePrice ?? null, sku.miniappPrice ?? null, sku.storePrice ?? null, tenantId]
-      );
-      if (rawBody.initialQty !== undefined) {
-        await conn.query(
-          `INSERT INTO t_inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty, tenant_id)
-           VALUES (1, ?, ?, ?, 0, ?, ?)
-           ON DUPLICATE KEY UPDATE physical_qty = VALUES(physical_qty), available_qty = VALUES(available_qty), updated_at = NOW()`,
-          [skuId, rawBody.stockType ?? "OFFLINE", rawBody.initialQty, rawBody.initialQty, tenantId]
+      const spuId = spuResult.insertId as number;
+      let firstSkuId: number | null = null;
+      for (const sku of body.skus) {
+        const skuCode = makeBizNo("SKU");
+        const [skuResult] = await conn.query<ResultSetHeader>(
+          `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+           base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, tenant_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [spuId, skuCode, sku.barcode ?? null, sku.skuName,
+            sku.volume ?? null, sku.packaging ?? null,
+            sku.baseUnit ?? '瓶', sku.boxUnit ?? '箱',
+            sku.boxRatio, sku.temperature, sku.traceEnabled ? 1 : 0, sku.warningThreshold, tenantId]
         );
+        const skuId = skuResult.insertId as number;
+        firstSkuId ??= skuId;
+        await conn.query(
+          `INSERT INTO t_product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price, tenant_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [skuId, sku.costPrice, sku.retailPrice, sku.wholesalePrice ?? null, sku.miniappPrice ?? null, sku.storePrice ?? null, tenantId]
+        );
+        if (rawBody.initialQty !== undefined) {
+          await conn.query(
+            `INSERT INTO t_inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty, tenant_id)
+             VALUES (1, ?, ?, ?, 0, ?, ?)
+             ON DUPLICATE KEY UPDATE physical_qty = VALUES(physical_qty), available_qty = VALUES(available_qty), updated_at = NOW()`,
+            [skuId, rawBody.stockType ?? "OFFLINE", rawBody.initialQty, rawBody.initialQty, tenantId]
+          );
+        }
       }
+      return { id: spuId, spuId, skuId: firstSkuId, spuCode };
+    });
+    return result;
+  } catch (e: unknown) {
+    // S3-151：同租户内条码重复 ⇒ 业务错误 400 + 中文文案（此前无 try/catch，直接落 500）
+    if (isBarcodeDuplicateError(e)) {
+      throw Object.assign(new Error(BARCODE_DUPLICATE_MESSAGE), { statusCode: 400 });
     }
-    return { id: spuId, spuId, skuId: firstSkuId, spuCode };
-  });
-  return result;
+    throw e;
+  }
 }
 
 export async function updateProductStatus(spuId: number, status: string, tenantId: string) {
@@ -969,7 +1009,8 @@ export async function importProducts(
       });
       successCount++;
     } catch (err: unknown) {
-      errors.push({ row: rowNum, message: (err as Error).message || "导入失败" });
+      // S3-151：撞键一律输出中文业务文案，不得把回库报错原文（Duplicate entry … for key …）写进 errors
+      errors.push({ row: rowNum, message: importRowErrorMessage(err) });
     }
   }
   return { successCount, failCount: errors.length, errors };
