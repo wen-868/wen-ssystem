@@ -80,7 +80,8 @@ const EXPECTED_PREFIXES: readonly string[] = [
   "/api/platform/auth", "/api/platform/billing", "/api/platform/config",
   "/api/platform/dashboard", "/api/platform/library", "/api/platform/monitor",
   "/api/platform/notifications", "/api/platform/open", "/api/platform/permissions",
-  "/api/platform/plans", "/api/platform/reconciliation", "/api/platform/reports/export",
+  "/api/platform/plans", "/api/platform/promo-codes", "/api/platform/reconciliation",
+  "/api/platform/reports/export",
   "/api/platform/reviews", "/api/platform/roles", "/api/platform/settlements",
   "/api/platform/subscription-applies", "/api/platform/subscriptions-management",
   "/api/platform/support", "/api/platform/templates", "/api/platform/tenants",
@@ -94,7 +95,7 @@ const EXPECTED_PREFIXES: readonly string[] = [
 ];
 
 /**
- * src/routes/ 下的路由文件清单（185 个）。
+ * src/routes/ 下的路由文件清单（187 个）。
  * 用于「新增文件护栏」：目录里新出现的 *.routes.ts 若不在此清单/豁免表内 ⇒ 判红。
  */
 const EXPECTED_FILES: readonly string[] = [
@@ -138,7 +139,8 @@ const EXPECTED_FILES: readonly string[] = [
   "platform-export-task.routes.ts", "platform-library.routes.ts", "platform-miniapp.routes.ts",
   "platform-monitor-ops.routes.ts", "platform-monitor.routes.ts", "platform-msg-config.routes.ts",
   "platform-notification.routes.ts", "platform-open.routes.ts", "platform-plans.routes.ts",
-  "platform-reconciliation.routes.ts", "platform-review.routes.ts", "platform-role.routes.ts",
+  "platform-promo-code.routes.ts", "platform-reconciliation.routes.ts",
+  "platform-review.routes.ts", "platform-role.routes.ts",
   "platform-subscription-applies.routes.ts", "platform-templates.routes.ts",
   "platform-tenant.routes.ts", "platform-ticket.routes.ts", "platform.routes.ts",
   "points-mall.routes.ts", "points.routes.ts", "position.routes.ts", "price.routes.ts",
@@ -165,21 +167,21 @@ const EXPECTED_FILES: readonly string[] = [
 
 /**
  * 豁免表：确认**不注册任何前缀**的路由文件（如仅导出工具函数的文件）。
- * 当前为空——本次快照中 185 个文件无一例外都贡献了 ≥1 条注册。
+ * 当前为空——本次快照中 187 个文件无一例外都贡献了 ≥1 条注册。
  * 新增豁免需在评审时说明理由，避免用它把「注册失败」洗白。
  */
 const EXEMPT_FILES: readonly string[] = [];
 
 /**
  * 注册总数基线（= app.use 被调用的次数）。
- * 当前 routes/ 下 185 个文件共产生 199 条注册。
+ * 当前 routes/ 下 187 个文件共产生 201 条注册（C6-3-2a 新增 platform-promo-code.routes.ts 后由 186/200 递增）。
  *
  * 【这条为什么能补 toContain 的盲区】
  *   多个文件共享同一前缀（如 /api/store、/api/admin 各被多文件注册），
  *   单个共享文件掉线时该前缀仍被其他文件注册 ⇒ toContain 抓不到；
  *   但注册总数必然下降 ⇒ 本条必红。因快照中**每个文件都贡献 ≥1 条注册**，故总数守恒等价于「无文件掉线」。
  */
-const EXPECTED_REGISTRATION_COUNT = 200;
+const EXPECTED_REGISTRATION_COUNT = 201;
 
 /**
  * 耗时基线告警（治标 ②）
