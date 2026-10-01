@@ -3520,7 +3520,7 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 
 `GET /store/shift/current` · `POST /store/shift/settle` · `GET /store/shift/history` · `POST /store/shifts` · `GET /store/shifts/:shiftNo` · `GET /store/shifts/:shiftNo/sales` · `GET|POST /store/shifts/:shiftNo/check`
 
-> ⚠️ **语义边界（重要）**：`/store/shift/history` 读 **`t_daily_settlement`**（班结，`shift_no` 形如 `BJ…`）；`/store/shifts/:shiftNo` 与 `/sales`、`/check` 读 **`t_shift`**（交接班，`shifts_no` 形如 `JB…`）。
+> ⚠️ **语义边界（重要）**：`/store/shift/history` 读 **`t_daily_settlement`**（班结，`shift_no` 形如 `BJ…`）；`/store/shifts/:shiftNo` 与 `/sales`、`/check` 读 **`t_shift`**（交接班，形如 `JB…`）。
 > ⇒ 现"交接班列表（BJ…）→ 详情（JB…）"**跨表断链**（点进详情恒 404）；**定案单 S3-145**（要求列表与详情**同源**）。
 
 ### 6. 关联迁移（速查，2026-10-01 段）
