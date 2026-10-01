@@ -18,4 +18,12 @@ describe("routes/store-shift", () => {
     expect(typeof routeConfig.router.put).toBe("function");
     expect(typeof routeConfig.router.delete).toBe("function");
   });
+
+  it("应注册 S3-146 关闭交接班端点 POST /shifts/:shiftNo/close", () => {
+    const stack = ((routeConfig.router as any).stack ?? []) as any[];
+    const layer = stack.find(
+      (s) => s.route?.path === "/shifts/:shiftNo/close" && s.route?.methods?.post
+    );
+    expect(layer).toBeDefined();
+  });
 });

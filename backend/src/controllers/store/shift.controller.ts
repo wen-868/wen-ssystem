@@ -79,6 +79,20 @@ export const getShiftSalesStats = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+/**
+ * 关闭交接班（S3-146：「完成交接」的真实写路径）
+ * 返回落库后的交接班详情（status=CLOSED、endTime 为服务端时间）；未知单号/跨门店 ⇒ 404，
+ * 重复关闭 ⇒ 409（由 service 抛 AppError，errorHandler 统一转成业务码 + 中文文案）。
+ */
+export const closeShift = asyncHandler(async (req, res) => {
+  const result = await shiftService.closeShift(
+    req.tenantId!,
+    req.user?.storeId ?? 1,
+    String(req.params.shiftNo)
+  );
+  res.json(ok(result));
+});
+
 /** 交接班盘点（库存快照） */
 export const getShiftStockCheck = asyncHandler(async (req, res) => {
   const result = await shiftService.getShiftStockCheck(req.tenantId!, req.user?.storeId ?? 1);

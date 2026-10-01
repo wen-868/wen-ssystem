@@ -21,6 +21,7 @@ import {
   getShiftList,
   createShift,
   deriveShiftType,
+  closeShift,
 } from "../../../services/store/shift.service";
 
 describe("store/shift.service", () => {
@@ -154,5 +155,99 @@ describe("store/shift.service", () => {
 
     expect(result.total).toBe(1);
     expect(result.records.map((r) => r.shiftNo)).toEqual(["JB-E"]);
+  });
+
+  // ==================== S3-146：关闭交接班（OPEN → CLOSED） ====================
+
+  /** 交接班行（t_shift 详情投影形状） */
+  const shiftRow = (overrides: Record<string, unknown> = {}) => ({
+    id: 1,
+    shiftNo: "JB20261001001",
+    storeId: 1,
+    operatorId: 2,
+    operatorName: "门店经理",
+    startTime: "2026-10-01 20:15:00",
+    endTime: null,
+    status: "OPEN",
+    openingCash: 200,
+    remark: "",
+    ...overrides,
+  });
+
+  /** 回读详情时的三条统计 + 零渠道 */
+  const mockDetailStats = () => {
+    mocks.queryOne
+      .mockResolvedValueOnce({ totalSales: 0, orderCount: 0, cashOrderCount: 0, creditOrderCount: 0 })
+      .mockResolvedValueOnce({ returnOrderCount: 0 })
+      .mockResolvedValueOnce({ totalReceived: 0 });
+    mocks.query.mockResolvedValueOnce([]);
+  };
+
+  it("closeShift：OPEN → CLOSED，end_time 由服务端写入（SQL 取 NOW()，不接受前端传值）", async () => {
+    mocks.queryOne
+      .mockResolvedValueOnce(shiftRow()) // getShiftRow（关闭前）
+      .mockResolvedValueOnce(shiftRow({ status: "CLOSED", endTime: "2026-10-01 23:00:00" })); // 回读详情
+    mocks.query.mockResolvedValueOnce({ affectedRows: 1 }); // UPDATE t_shift
+    mockDetailStats();
+
+    const result = await closeShift("t1", 1, "JB20261001001");
+
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE t_shift"),
+      ["JB20261001001", "t1"]
+    );
+    const updateSql = String(mocks.query.mock.calls[0][0]);
+    expect(updateSql).toContain("status = 'CLOSED'");
+    expect(updateSql).toContain("end_time = NOW()");
+    expect(updateSql).toContain("status <> 'CLOSED'");
+    expect(updateSql).toContain("tenant_id = ?");
+    expect(result.status).toBe("CLOSED");
+    expect(result.endTime).toBe("2026-10-01 23:00:00");
+  });
+
+  it("closeShift：affectedRows 为数组形态（dev mock 归一化）也能判定成功", async () => {
+    mocks.queryOne
+      .mockResolvedValueOnce(shiftRow())
+      .mockResolvedValueOnce(shiftRow({ status: "CLOSED", endTime: "2026-10-01 23:00:00" }));
+    mocks.query.mockResolvedValueOnce([{ affectedRows: 1 }]); // mock 模式：query 归一化为 [header]
+    mockDetailStats();
+
+    const result = await closeShift("t1", 1, "JB20261001001");
+    expect(result.status).toBe("CLOSED");
+  });
+
+  it("closeShift：未知单号 ⇒ 业务级 404，且不写库", async () => {
+    mocks.queryOne.mockResolvedValueOnce(null);
+    await expect(closeShift("t1", 1, "JB-NOT-EXIST")).rejects.toMatchObject({
+      statusCode: 404,
+      message: "交接班不存在",
+    });
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  it("closeShift：跨门店单号 ⇒ 404，且不写库（一次性入口不得关闭他店交接班）", async () => {
+    mocks.queryOne.mockResolvedValueOnce(shiftRow({ storeId: 2 }));
+    await expect(closeShift("t1", 1, "JB20261001001")).rejects.toMatchObject({ statusCode: 404 });
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  it("closeShift：已 CLOSED 再调 ⇒ 显式 409（不静默 200 假成功、不重复写库）", async () => {
+    mocks.queryOne.mockResolvedValueOnce(
+      shiftRow({ status: "CLOSED", endTime: "2026-10-01 23:00:00" })
+    );
+    await expect(closeShift("t1", 1, "JB20261001001")).rejects.toMatchObject({
+      statusCode: 409,
+      message: "交接班已完成，无需重复关闭",
+    });
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  it("closeShift：并发下 UPDATE 命中 0 行 ⇒ 409（写操作 0 行 ≠ 改成功）", async () => {
+    mocks.queryOne.mockResolvedValueOnce(shiftRow());
+    mocks.query.mockResolvedValueOnce({ affectedRows: 0 });
+    await expect(closeShift("t1", 1, "JB20261001001")).rejects.toMatchObject({
+      statusCode: 409,
+      message: "交接班已完成，无需重复关闭",
+    });
   });
 });

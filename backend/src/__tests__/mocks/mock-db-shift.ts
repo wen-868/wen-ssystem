@@ -48,6 +48,12 @@ function projectShift(row: Row): Row {
 /** 严格匹配 `from t_shift`（带词边界），避免误吞 `from t_shift_stock_check` */
 const isShiftListSql = (s: string) => /\bfrom t_shift\b/.test(s);
 
+/** 本地时间 `YYYY-MM-DD HH:mm:ss`（与 createShift 按字面量落 DATETIME 的口径一致；不用 UTC ISO，避免 end_time 早于 start_time 的假象） */
+function localDateTimeString(date: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   // ① t_shift 单行（getShiftRow / shift.service.ts）：WHERE shift_no = ?
   (s, params) => {
@@ -223,6 +229,29 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
         ...record,
       });
       return result(id);
+    }
+    return null;
+  },
+
+  // t_shift 关闭（S3-146 closeShift）：status → CLOSED + end_time（服务端时间）
+  // 真实 SQL 为 `UPDATE t_shift SET status = 'CLOSED', end_time = NOW() WHERE shift_no = ? AND tenant_id = ? AND status <> 'CLOSED'`；
+  // 假连接无法执行 SQL 函数，按同一语义取"当前时间"；命中 0 行时按 MySQL 语义回 affectedRows=0（供服务层 fail-closed）。
+  (s, params) => {
+    if (/\bupdate t_shift\b/.test(s) && s.includes("set status = 'closed'")) {
+      const shiftNo = String(params[0] ?? "");
+      const tenantId = String(params[1] ?? "");
+      const row = shifts.find(
+        (r) => String(r.shift_no) === shiftNo && String(r.tenant_id) === tenantId
+      );
+      if (!row || String(row.status ?? "").toUpperCase() === "CLOSED") {
+        const zero: any = [{ affectedRows: 0 }, undefined];
+        zero.affectedRows = 0;
+        zero.insertId = 0;
+        return zero;
+      }
+      row.status = "CLOSED";
+      row.end_time = localDateTimeString();
+      return result(Number(row.id) || 0);
     }
     return null;
   },

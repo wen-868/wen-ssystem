@@ -1,0 +1,28 @@
+【装置】真实后端 = http://127.0.0.1:18811（USE_MOCK_DB=true，数据面 = mock-db-shift.ts）
+【模式】revert   日期=2026-10-01   node=v24.18.0
+
+  → POST /api/admin/auth/login [无令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJzdG9yZV9tYW5hZ2VyIiwicmVhbE5hbWUiOiLpl6jlupfnu4_nkIYiLCJyb2xlcyI6W10sInN0b3JlSWQiOjEsInRlbmFudElkIjoiZGVmYXVsdCIsImlhdCI6MTc5MDg3NTc2OSwiZXhwIjoxNzkwODkwMTY5LCJhdWQiOiJ6aGl4aWFuZy1jbGllbnQiLCJpc3MiOiJ6aGl4aWFuZy1zeXN0ZW0ifQ.2HLg8fY_797RunJrtQlZEAyiRzoEtKfwgNqiJ57dZpQ","user":{"id":2,"username":"store_manager","realName":"门店经理","storeId":1,"tenantId":"default","roles":[],"permissions":[],"accessModes":["CASHIER"],"defaultMode":"CASHIER"},"csrfToken":"d3f5c341c7884ed96168691779c3d123e802bb1b60de83d127c31c067106419d"},"traceId":"71024cec-b4d4-44b3-b545-c88c06bc53f6"}
+PASS  段0 真实登录签发令牌   ← status=200 token=eyJhbGciOiJI…
+  → POST /api/store/shifts [Authorization令牌 +x-csrf-token] ⇒ 200
+    {"code":"0","msg":"成功","data":{"shiftNo":"JB2026100277538","shiftType":"EVENING","startTime":"2026-10-01 20:15:00","status":"OPEN","operatorId":2,"operatorName":"张三","openingCash":200,"remark":"S3-146 运行期证据"},"traceId":"77441216-7644-44d9-b882-18cbd5a7ebc8"}
+PASS  段1 新建交接班（落 t_shift，单号 JB…）   ← status=200 shiftNo=JB2026100277538 status字段=OPEN
+  → GET /api/store/shifts?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"records":[{"id":1,"shiftNo":"JB2026100248224","shiftType":"EVENING","storeId":1,"operatorId":2,"operatorName":"张三","startTime":"2026-10-01 20:15:00","endTime":"2026-10-02 01:29:23","status":"CLOSED","openingCash":200,"remark":"S3-146 运行期证据","totalSalesAmount":0,"totalOrders":0},{"id":2,"shiftNo":"JB2026100277538","shiftType":"EVENING","storeId":1,"operatorId":2,"operatorName":"张三","startTime":"2026-10-01 20:15:00","endTime":null,"status":"OPEN","openingCash":200,"remark":"S3-146 运行期证据","totalSalesAmount":0,"totalOrders":0}],"total":2,"page":1,"pageSize":20},"traceId":"55cafb19-2abd-4944-ba28-abaf26e8e24a"}
+PASS  段2 列表行 status=OPEN（点击条件成立）   ← 行数=2 命中行={"id":2,"shiftNo":"JB2026100277538","shiftType":"EVENING","storeId":1,"operatorId":2,"operatorName":"张三","startTime":"2026-10-01 20:15:00","endTime":null,"status":"OPEN","openingCash":200,"remark":"S3-146 运行期证据","totalSalesAmount":0,"totalOrders":0}
+
+=== 旧口径复现：用旧路径 POST /store/shift/settle（只写 t_daily_settlement）代替 close ===
+  → POST /api/store/shift/settle [Authorization令牌 +x-csrf-token] ⇒ 200
+    {"code":"0","msg":"成功","data":{"shiftDate":"2026-10-01","startTime":"2026-10-01 00:00:00","operatingHours":"25时29分","totalSales":0,"orderCount":0,"cashOrderCount":0,"creditOrderCount":0,"returnOrderCount":0,"totalReceived":0,"paymentBreakdown":[],"settleNo":"BJ2026100264231"},"traceId":"7d5e3f6d-2a04-4a69-844a-564d171b6642"}
+PASS  反测-段3 旧路径返回 200「成功」   ← status=200 settleNo=BJ2026100264231
+  → GET /api/store/shifts/JB2026100277538 [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"id":2,"shiftNo":"JB2026100277538","shiftType":"EVENING","storeId":1,"operatorId":2,"operatorName":"张三","startTime":"2026-10-01 20:15:00","endTime":null,"status":"OPEN","openingCash":200,"remark":"S3-146 运行期证据","totalAmount":0,"totalCount":0,"cashAmount":0,"wechatAmount":0,"alipayAmount":0,"totalReceived":0,"returnOrderCount":0,"paymentBreakdown":[]},"traceId":"92b5d0ea-4b10-4313-8712-74bdc3d017f3"}
+PASS  反测-段4 旧路径后交接班仍 status=OPEN 且 end_time 为空（复现「假成功」）   ← status=OPEN endTime=null
+
+小结[revert]：5 passed / 0 failed（请求 5 条）
+  ★ POST /api/admin/auth/login [无令牌] ⇒ 200
+  ★ POST /api/store/shifts [Authorization令牌 +x-csrf-token] ⇒ 200
+  ★ GET /api/store/shifts?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+  ★ POST /api/store/shift/settle [Authorization令牌 +x-csrf-token] ⇒ 200
+  ★ GET /api/store/shifts/JB2026100277538 [Authorization令牌] ⇒ 200
+REVERT_EXIT=0
