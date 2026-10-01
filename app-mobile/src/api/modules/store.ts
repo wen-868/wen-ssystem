@@ -272,6 +272,8 @@ export interface StoreTransfer {
 // ==================== 交接班 ====================
 export interface ShiftRecord {
   id: number
+  /** 交接班单号（t_shift.shift_no，形如 JB…）——列表行点详情/完成交接必须用它，不能传数字 id（S3-148） */
+  shiftNo: string
   shiftType: string
   startTime: string
   endTime?: string
@@ -290,14 +292,6 @@ export interface CreateShiftParams {
   endTime?: string
   operatorId?: number
   operatorName?: string
-  remark?: string
-}
-
-export interface CompleteShiftParams {
-  endTime: string
-  actualCash?: number
-  actualWechat?: number
-  actualAlipay?: number
   remark?: string
 }
 
@@ -689,13 +683,15 @@ const storeApi = {
   // ---------- 交接班 ----------
   /** 交接班记录 */
   async fetchShifts(params?: PageParams & { date?: string; shiftType?: string }): Promise<PageResult<ShiftRecord>> {
-    // R94-03：原 /store/shifts 不存在；交接班历史真实接口为 /store/shift/history（store-shift.routes.ts）
-    const res: any = await get('/store/shift/history', params)
+    // S3-148：交接班列表改读 t_shift（GET /store/shifts，S3-145 新增，与详情/统计/盘点同源）；
+    // 原调的 /store/shift/history 是「班结历史」（t_daily_settlement，单号 BJ…），与详情跨表断链 ⇒ 点详情恒 404
+    const res: any = await get('/store/shifts', params)
     const raw = res?.result ?? res
     const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
     return {
       list: rows.map((r: any) => ({
         id: r.id,
+        shiftNo: r.shiftNo ?? r.shift_no ?? '',
         shiftType: r.shiftType ?? r.shift_type ?? '',
         startTime: r.startTime ?? r.start_time ?? '',
         endTime: r.endTime ?? r.end_time,
@@ -721,36 +717,38 @@ const storeApi = {
   },
 
   /** 交接班详情 */
-  async fetchShiftDetail(shiftId: number): Promise<ShiftRecord> {
-    // R100-04：GET /store/shifts/:shiftNo 交接班详情（含本班次销售统计）
-    const res: any = await get(`/store/shifts/${shiftId}`)
+  async fetchShiftDetail(shiftNo: string): Promise<ShiftRecord> {
+    // S3-148：后端按 shift_no（形如 JB…）查，路径参数名是 :shiftNo ⇒ 必须传列表行的 shiftNo，传数字 id 命中不了
+    const res: any = await get(`/store/shifts/${shiftNo}`)
     return (res?.result ?? res) as ShiftRecord
   },
 
-  /** 完成交接班 */
-  async completeShift(shiftId: number, params: CompleteShiftParams): Promise<any> {
-    // R94-03：原 /store/shifts/:shiftId/complete 不存在；交接班结算真实接口为 POST /store/shift/settle
-    return post('/store/shift/settle', params)
+  /** 完成交接班（关闭交接班） */
+  async completeShift(shiftNo: string): Promise<ShiftRecord> {
+    // S3-148：S3-146 的关闭端点（t_shift: OPEN → CLOSED + end_time 服务端写入，无请求体）；
+    // 原调的 POST /store/shift/settle 是「班结」（只写 t_daily_settlement，不关 t_shift）⇒ 会给假成功
+    const res: any = await post(`/store/shifts/${shiftNo}/close`)
+    return (res?.result ?? res) as ShiftRecord
   },
 
   /** 交接班销售统计 */
-  async fetchShiftSalesStats(shiftId: number): Promise<ShiftSalesStats> {
-    // R100-04：GET /store/shifts/:shiftNo/sales 本班次销售统计
-    const res: any = await get(`/store/shifts/${shiftId}/sales`)
+  async fetchShiftSalesStats(shiftNo: string): Promise<ShiftSalesStats> {
+    // S3-148：同族参数错位一并修正（路径参数是 :shiftNo，不是数字 id）
+    const res: any = await get(`/store/shifts/${shiftNo}/sales`)
     return (res?.result ?? res) as ShiftSalesStats
   },
 
   /** 交接班盘点 */
-  async fetchShiftStockCheck(shiftId: number): Promise<any> {
-    // R100-04：GET /store/shifts/:shiftNo/check 当前门店库存快照
-    const res: any = await get(`/store/shifts/${shiftId}/check`)
+  async fetchShiftStockCheck(shiftNo: string): Promise<any> {
+    // S3-148：同族参数错位一并修正
+    const res: any = await get(`/store/shifts/${shiftNo}/check`)
     return res?.result ?? res
   },
 
   /** 提交交接班盘点 */
-  async submitShiftStockCheck(shiftId: number, items: ShiftStockCheckItem[]): Promise<any> {
-    // R100-04：POST /store/shifts/:shiftNo/check 盘点明细落库
-    const res: any = await post(`/store/shifts/${shiftId}/check`, { items })
+  async submitShiftStockCheck(shiftNo: string, items: ShiftStockCheckItem[]): Promise<any> {
+    // S3-148：同族参数错位一并修正
+    const res: any = await post(`/store/shifts/${shiftNo}/check`, { items })
     return res?.result ?? res
   },
 
