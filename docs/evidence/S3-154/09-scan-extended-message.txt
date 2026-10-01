@@ -1,0 +1,100 @@
+backend/src\server.ts:48:    message: err.message || "未捕获的异常",
+backend/src\server.ts:54:    summary: `[FATAL] uncaughtException: ${err.message || "未捕获的异常"}`,
+backend/src\server.ts:57:      { label: "错误消息", value: err.message || "未知" },
+backend/src\server.ts:67:  const message = reason?.message || String(reason) || "未处理的 Promise 拒绝";
+backend/src\server.ts:127:      logger.error("[rate-limit] Redis 连接错误:", err.message);
+backend/src\server.ts:140:      err instanceof Error ? err.message : err
+backend/src\middleware\login-fail-limiter.ts:148:    message: opts.message,
+backend/src\middleware\error-handler.ts:12:  const errorMessage = err instanceof Error ? err.message : String(err);
+backend/src\middleware\error-handler.ts:21:      message: e.message,
+backend/src\controllers\miniapp\miniapp.controller.ts:141:    res.status(400).json(fail(result.message));
+backend/src\controllers\miniapp\miniapp.controller.ts:144:  res.json(ok({ message: result.message }));
+backend/src\controllers\miniapp\miniapp.controller.ts:156:    res.status(404).json(fail(result.message));
+backend/src\controllers\miniapp\miniapp.controller.ts:159:  res.json(ok({ message: result.message }));
+backend/src\controllers\miniapp\miniapp.controller.ts:282:    res.status(500).json({ code: "FAIL", message: e instanceof Error ? e.message : "回调处理失败" });
+backend/src\config\wechat-pay.ts:119:      throw new Error(result.message || '微信支付下单失败');
+backend/src\controllers\miniapp\checkout.controller.ts:33:    res.status(400).json(fail(result.message || "结算失败"));
+backend/src\controllers\miniapp\cart.controller.ts:28:    res.status(400).json(fail(result.message));
+backend/src\controllers\miniapp\cart.controller.ts:31:  res.json(ok({ message: result.message }));
+backend/src\controllers\miniapp\cart.controller.ts:44:    res.status(404).json(fail(result.message));
+backend/src\controllers\miniapp\cart.controller.ts:47:  res.json(ok({ message: result.message }));
+backend/src\config\redis.ts:33:      logger.error("[Redis] Connection error:", err.message);
+backend/src\config\redis.ts:66:    logger.error(`[Redis] cacheGet failed for key ${key}:`, err instanceof Error ? err.message : err);
+backend/src\config\redis.ts:80:    logger.error(`[Redis] cacheDel failed for key ${key}:`, err instanceof Error ? err.message : err);
+backend/src\config\redis.ts:96:    logger.error(`[Redis] cacheDelPattern failed for ${pattern}:`, err instanceof Error ? err.message : err);
+backend/src\jobs\auto-backup.job.ts:87:    logger.error(`[自动备份] 检查失败: ${e?.message || e}`);
+backend/src\controllers\admin\cart.controller.ts:30:    res.status(400).json(fail(result.message));
+backend/src\controllers\admin\cart.controller.ts:33:  res.json(ok({ message: result.message }));
+backend/src\controllers\admin\cart.controller.ts:45:    res.status(404).json(fail(result.message));
+backend/src\controllers\admin\cart.controller.ts:48:  res.json(ok({ message: result.message }));
+backend/src\controllers\admin\cart.controller.ts:95:    res.status(400).json(fail(result.message || "结算失败"));
+backend/src\shared\seed-data.ts:26:        logger.error(`[seed] ${label} 失败: ${err.message || String(e)}`);
+backend/src\controllers\admin\error-log.controller.ts:9:    message: req.body.message || "前端未知错误",
+backend/src\shared\migration.ts:316:    const msg = (err.message || "").toLowerCase();
+backend/src\shared\migration.ts:324:    logger.error(`[migration] ${label} 失败: ${err.message || String(e)}`);
+backend/src\shared\migration.ts:638:              logger.warn(`[migration] init_database 建表失败(${e.code}): ${String(e.message || "").slice(0, 120)}`);
+backend/src\shared\field-sync.ts:357:          error: err.message
+backend/src\shared\field-sync.ts:359:        logger.error(`[FieldSync] 同步失败: ${mapping.sourceTable}.${mapping.sourceField} → ${mapping.targetTable}.${mapping.targetField}`, err.message);
+backend/src\shared\auto-routes.ts:101:      logger.error(`[auto-routes] 无法加载路由模块 ${file}:`, err.message);
+backend/src\services\wechat-pay.service.ts:108:    throw new Error(`微信支付下单失败：${data.message || data.code || `HTTP ${resp.status}`}`);
+backend/src\services\wechat-pay.service.ts:154:    throw new Error(`微信查单失败：${data.message || data.code || `HTTP ${resp.status}`}`);
+backend/src\services\tenant-register.service.ts:359:    logger.warn(`[租户注册审核] 短信通知发送失败（不影响审核结果）：${e?.message || e}`);
+backend/src\services\sync\delta-sync.service.ts:771:            const errorMsg = err instanceof Error ? err.message : String(err);
+backend/src\controllers\platform\error-log.controller.ts:29:    message: row.message,
+backend/src\controllers\admin\payment.controller.ts:26:      res.status(400).json(fail(result.message, result.code));
+backend/src\controllers\admin\payment.controller.ts:43:      res.status(Number(result.code || "") || 400).json(fail(result.message || "", result.code as any));
+backend/src\services\store\sale-bill.service.ts:339:          throw new Error(`追溯码「${code}」${verify.message}`);
+backend/src\services\sms.service.ts:133:    logger.error(`[短信] 阿里云发送失败 mobile=${mobile} code=${body?.code} message=${body?.message}`);
+backend/src\services\sms.service.ts:134:    throw new AppError(`阿里云短信发送失败：${body?.message || body?.code || "未知错误"}`, 500);
+backend/src\services\hardware\unionpay.service.ts:77:      errMsg: String(data.msg || data.errMsg || data.message || `云闪付网关返回 ${response.status}`),
+backend/src\services\hardware\unionpay.service.ts:80:    return { success: false, errCode: "NETWORK_ERROR", errMsg: e instanceof Error ? e.message : String(e) };
+backend/src\services\hardware\payment-box.service.ts:151:    return { success: false, mode: "HTTP", reason: e instanceof Error ? e.message : String(e) };
+backend/src\services\hardware\cloud-speaker.service.ts:66:    return { success: false, reason: e instanceof Error ? e.message : String(e) };
+backend/src\services\instant-retail\inventory-deduction.service.ts:107:      logger.warn(`[inventory] 批量扣减失败并已整体回滚: ${err.message}`);
+backend/src\services\platform\captcha.service.ts:121:  return err instanceof Error ? err.message : String(err);
+backend/src\services\platform\open-webhook.service.ts:200:    logger.warn("[open-platform] 审计写入失败", e instanceof Error ? e.message : String(e));
+backend/src\services\platform\open-webhook.service.ts:377:      errorMessage = truncateError(e instanceof Error ? e.message : String(e));
+backend/src\services\platform\open-api-key.service.ts:137:    logger.warn("[open-platform] 审计写入失败", e instanceof Error ? e.message : String(e));
+backend/src\services\platform\library.service.ts:751:      const reason = err instanceof Error ? err.message : String(err);
+backend/src\services\platform\platform-export-task.service.ts:333:      message: String(row.message),
+backend/src\services\admin\category.service.ts:124:      logger.error("[FieldSync] 分类名称同步异常:", err.message);
+backend/src\services\admin\credit-collection.service.ts:353:      const message = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\error-log.service.ts:26:        entry.message,
+backend/src\services\admin\instant-retail.service.ts:470:    return { found: true, platform: parsedPlatform, connected: false, error: err instanceof Error ? err.message : String(err) };
+backend/src\services\admin\miniapp-publish.service.ts:257:        message: uploadResult.message || "体验版上传成功",
+backend/src\services\admin\miniapp-publish.service.ts:265:      const message = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\monitor.service.ts:192:      const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\notification-sender.service.ts:89:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\product.service.ts:499:    logger.error("[ProductSync] 状态同步异常:", err.message);
+backend/src\services\admin\product.service.ts:619:      logger.error("[FieldSync] 商品字段同步异常:", err.message);
+backend/src\services\admin\product.service.ts:627:      logger.error("[ProductSync] 全链路同步异常:", err.message);
+backend/src\services\admin\product.service.ts:720:        logger.error("[ProductSync] 价格同步异常:", err.message);
+backend/src\controllers\admin\price-level.controller.ts:25:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-level.controller.ts:45:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-level.controller.ts:56:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\services\admin\push.service.ts:160:            return { success: false, errorMsg: data.error?.message || `JPush HTTP ${resp.status}` };
+backend/src\services\admin\push.service.ts:162:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\push.service.ts:212:            return { success: false, errorMsg: data.error?.message || `FCM HTTP ${resp.status}` };
+backend/src\services\admin\push.service.ts:214:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\push.service.ts:253:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\push.service.ts:290:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\controllers\admin\price-management.controller.ts:30:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:51:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:62:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:79:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:107:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:118:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:129:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:140:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\services\admin\sys-config.service.ts:189:    const detail = (e?.stderr || e?.message || "").toString().slice(0, 200);
+backend/src\services\admin\sys-config.service.ts:206:    return { success: false, message: "备份失败", detail: e?.stderr || e?.message || "" };
+backend/src\services\admin\trace-records.service.ts:626:    if (verifyResult.message.includes("不存在")) {
+backend/src\services\admin\trace-records.service.ts:629:    } else if (verifyResult.message.includes("仿冒")) {
+backend/src\services\admin\trace-records.service.ts:632:    } else if (verifyResult.message.includes("过期")) {
+backend/src\services\admin\trace-records.service.ts:1017:    if (verifyResult.message.includes("不存在")) {
+backend/src\services\admin\trace-records.service.ts:1020:    } else if (verifyResult.message.includes("仿冒")) {
+backend/src\services\admin\trace-records.service.ts:1023:    } else if (verifyResult.message.includes("过期")) {
+backend/src\controllers\admin\system.controller.ts:33:    res.status(500).json({ ...fail(`迁移失败: ${e.message}`, "500"), logs });
+backend/src\controllers\admin\wechat.controller.ts:92:      res.status(400).json(fail(result.message!, result.code));
+backend/src\controllers\admin\wechat.controller.ts:108:      res.status(400).json(fail(result.message!, result.code));
+backend/src\controllers\admin\wechat.controller.ts:112:    res.json(ok({ message: result.message }));

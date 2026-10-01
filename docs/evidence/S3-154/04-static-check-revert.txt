@@ -1,0 +1,12 @@
+# S3-154 静态同口径断言 —— 反测（已把行级 catch 文案改回 e?.message 原文）
+# 被测文件：backend/src/services/admin/data-transfer.service.ts
+PASS  从生产源码提取 S3-154 映射函数   ← 提取 24 行并转译成功
+FAIL  行级 catch 走中文映射（productImportRowErrorMessage）   ← catch 行未使用映射函数：errors.push(`第 ${rIdx + 1} 行：${e?.message || "导入失败"}`);
+FAIL  行级 catch 不得直接回 e?.message 原文   ← catch 行仍直接把库报错原文回传：errors.push(`第 ${rIdx + 1} 行：${e?.message || "导入失败"}`);
+PASS  条码撞唯一键 ⇒ 中文业务文案（不含 Duplicate entry）   ← 该条码已被其他商品使用
+PASS  商品编码撞唯一键 ⇒ 中文业务文案（只认 errno=1062 也能判）   ← 商品编码重复，请检查后重试
+PASS  非撞键错误 ⇒ 保留原始信息（不误吞、不掩盖）   ← Data too long for column 'sku_name' at row 1
+PASS  非 Error 入参 ⇒ 兜底中文『导入失败』   ← 导入失败
+PASS  单测文件含 S3-154 撞键中文用例（断言不含 Duplicate entry）   ← 命中 3 条断言
+小结[s3-154]：6 passed / 2 failed
+反测成立：改回库报错原文后，静态断言确实变红（上面 FAIL 即原始红输出）
