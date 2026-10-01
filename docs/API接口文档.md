@@ -3481,3 +3481,55 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 | `183_商品库审核流水.sql` | 1 张新表 | `t_library_spu_review_log`（`KEY idx_spu_created`） |
 
 > 全部迁移：`CREATE TABLE IF NOT EXISTS`（本仓无迁移账本、每次启动重跑 ⇒ 靠幂等自愈）、文本列**显式** `utf8mb4_0900_ai_ci`、**不建物理外键**、**零预置数据**（目录类数据用代码常量）。
+
+---
+
+## 平台域新增端点（2026-10-01 · C6-3-0b / C6-3-3 / C6-3-2a 读侧 / S3-138 口径变更 / 交接班）
+
+> 登记人：凌舟（总负责人）｜2026-10-01｜来源：`R101-C6-3-0b-阿坚回传.md`、`R101-C6-3-3-阿坚回传.md`、`R101-C6-3-2a-阿坚回传.md`、`R101-S3-138-阿坚回传.md`、`R101-S3-140-墨回传.md`
+
+### 1. C6-3-0b 平台管理员动作（4 条，均挂 `requirePlatformAuth`）
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| `PUT` | `/api/platform/admins/:id/status` | 启停；请求体 `{status:'ACTIVE'\|'DISABLED'}`；未知数字 id ⇒ 404；**非数字 id ⇒ 400「管理员 ID 不合法」**（S3-138 修复，此前 500） |
+| `POST` | `/api/platform/admins/:id/reset-password` | 重置密码：服务端生成新口令，**仅响应体一次性返回**（不落日志/不落库明文） |
+| `POST` | `/api/platform/admins/invite` | 邀请建号：服务端生成 12 位初始口令（只存 bcrypt，明文仅响应体一次）；**不发邮件/短信**；入参 `username`/`name`/`phone`（后端 zod 要求 phone ≥11 位） |
+| `POST` | `/api/platform/roles` | 新建自定义角色；`code` 重复 ⇒ **409**（源码 `platform-role.service.ts:247` 预检 + `:266` 唯一键兜底）；`type` 由服务层固定 `custom` |
+
+### 2. C6-3-3 代理商域（前缀 `/api/platform/agents`，共 8 条）
+
+`GET /agents`（分页+关键词）· `GET /agents/:id`（详情）· `POST /agents`（`agentCode` 重复 ⇒ 409；`levelId` 不存在 ⇒ 400）· `PUT /agents/:id`（部分更新；不存在 ⇒ 404）· `POST /agents/:id/status`（状态机 PENDING→ACTIVE，ACTIVE↔FROZEN，ACTIVE/FROZEN→TERMINATED；非法流转 ⇒ 400）· `GET /agents/levels` · `POST /agents/levels` · `PUT /agents/levels/:id`
+
+> 档 1 只存"档案 + 层级权益**配置值**"，**不产生任何计提**；`profit_rate_*` 未配置即 NULL。
+
+### 3. C6-3-2a 渠道推广码（前缀 `/api/platform/promo-codes`，共 4 条，**读侧**）
+
+`GET /promo-codes`（分页+关键词+状态）· `POST /promo-codes`（生成规则 `PC`+8 位去易混；冲突重试 ≤5 次后 409；`owner_admin_id` 由服务层取当前平台管理员，**不由请求体控制**）· `POST /promo-codes/:id/disable`（幂等）· `GET /promo-codes/:code/attributions`（该码归因只读聚合；未知码 ⇒ **404**）
+
+> ⚠️ **归因写入尚未接线**（两条落点在生产均不可用，见 `R101-C6-3-2a-凌舟裁定.md`）⇒ 该只读聚合当前恒为**诚实空态**；定案单 **S3-144**。
+> ⚠️ `page=0` ⇒ **400**、`pageSize` 上限 100（不静默夹取）。
+
+### 4. S3-138 平台管理员域**口径变更**（无新端点）
+
+- 列表与启停的 `status` **对外统一为字符串** `'ACTIVE'`/`'DISABLED'`（DB 列仍 `TINYINT`，映射在服务层 `admin-account.service.ts`）；
+- 列表筛选 `?status=` 非法取值 ⇒ **400**（不静默兜底）；
+- `PUT /admins/:id/status` 非数字 id ⇒ **400**；未知数字 id ⇒ **404**（两条端点语义一致）。
+
+### 5. 交接班链路（`/api/store/shift*` 与 `/api/store/shifts*`，共 7 条，**此前无契约文档**）
+
+`GET /store/shift/current` · `POST /store/shift/settle` · `GET /store/shift/history` · `POST /store/shifts` · `GET /store/shifts/:shiftNo` · `GET /store/shifts/:shiftNo/sales` · `GET|POST /store/shifts/:shiftNo/check`
+
+> ⚠️ **语义边界（重要）**：`/store/shift/history` 读 **`t_daily_settlement`**（班结，`shift_no` 形如 `BJ…`）；`/store/shifts/:shiftNo` 与 `/sales`、`/check` 读 **`t_shift`**（交接班，`shifts_no` 形如 `JB…`）。
+> ⇒ 现"交接班列表（BJ…）→ 详情（JB…）"**跨表断链**（点进详情恒 404）；**定案单 S3-145**（要求列表与详情**同源**）。
+
+### 6. 关联迁移（速查，2026-10-01 段）
+
+| 迁移 | 形态 | 说明 |
+|---|---|---|
+| `186_平台代理商档案.sql` | 1 张新表 | `t_agent`（`uk_agent_code`；无任何金额列） |
+| `187_平台代理商层级.sql` | 1 张新表 | `t_agent_level`（`uk_level_code`；只存配置值，零计提） |
+| `188_平台渠道推广码.sql` | 1 张新表 | `t_promo_code`（`uk_promo_code`） |
+| `189_租户归因明细.sql` | 1 张新表 | `t_tenant_attribution`（`uk_tenant_attr` 一租户一条；**暂不写入**） |
+
+> 全部 `CREATE TABLE IF NOT EXISTS` + 文本列显式 `utf8mb4_0900_ai_ci` + **不建物理外键** + **零预置**；生产实测（2026-10-01）四表均**随启动自动建成**、行数 0。
