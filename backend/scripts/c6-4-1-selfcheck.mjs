@@ -18,8 +18,8 @@
  *    行尾 \r 之前，注释未被剥掉 → 在 CRLF 检出下误报 INSERT=1；本脚本一律先归一）。
  *
  * 用法：
- *   node backend/tools/c6-4-1-selfcheck.mjs            # 检查本仓库
- *   node backend/tools/c6-4-1-selfcheck.mjs <repoRoot> # 检查指定根目录（供"改坏⇒红"反测的副本）
+ *   node backend/scripts/c6-4-1-selfcheck.mjs            # 检查本仓库
+ *   node backend/scripts/c6-4-1-selfcheck.mjs <repoRoot> # 检查指定根目录（供"改坏⇒红"反测的副本）
  * 退出码：0 = 全绿；1 = 有 FAIL（可作门禁）
  */
 import fs from "node:fs";
