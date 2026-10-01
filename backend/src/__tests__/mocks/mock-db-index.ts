@@ -13,9 +13,16 @@ import { queryHandlers as orderQuery, executeHandlers as orderExecute } from "./
 import { queryHandlers as financeQuery, executeHandlers as financeExecute } from "./mock-db-finance";
 import { queryHandlers as supplierQuery, executeHandlers as supplierExecute } from "./mock-db-supplier";
 import { queryHandlers as platformMiniappQuery, executeHandlers as platformMiniappExecute } from "./mock-db-platform-miniapp";
+import { queryHandlers as shiftQuery, executeHandlers as shiftExecute } from "./mock-db-shift";
 
 // 按原 mock-db.ts 中的顺序组合所有 handler
 const allQueryHandlers = [
+  // S3-145：交接班链路（t_shift / t_daily_settlement / 盘点 JOIN）的 handler 放在最前。
+  // 原因：它们只匹配非常具体的 SQL（带词边界 from t_shift、from t_daily_settlement、
+  // `from t_inventory_balance ib` + join t_product_sku），前置可避免被 inventory 的
+  // 通用 handler（`fromTable(s,"inventory_balance")` → 返回全部库存行）先兜走，
+  // 导致盘点端点账面数量恒 0。
+  ...shiftQuery,
   ...systemQuery,     // sys_user, sys_user_role
   ...customerQuery,   // member
   ...storeQuery,      // store
@@ -36,6 +43,8 @@ const allQueryHandlers = [
 // 但实际测试中，由于各 handler 的 SQL 模式互斥，顺序影响不大
 
 const allExecuteHandlers = [
+  // S3-145：t_shift / t_daily_settlement 的 INSERT（交接班创建、班结写入）
+  ...shiftExecute,
   ...systemExecute,
   ...storeExecute,
   ...customerExecute,

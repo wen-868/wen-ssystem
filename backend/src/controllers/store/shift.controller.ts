@@ -32,14 +32,38 @@ export const getShiftHistory = asyncHandler(async (req, res) => {
 
 /** 创建交接班 */
 export const createShift = asyncHandler(async (req, res) => {
-  const { openingCash, remark } = req.body || {};
+  const { openingCash, remark, startTime, operatorName } = req.body || {};
   const result = await shiftService.createShift(
     req.tenantId!,
     req.user?.storeId ?? 1,
     req.user?.id ?? 1,
-    req.user?.realName || req.user?.username || "",
-    { openingCash: Number(openingCash) || 0, remark: remark || undefined }
+    // 用户填写的操作员优先，未填才回落到当前登录用户（S3-145：原先恒取登录用户，前端填了不生效）
+    operatorName || req.user?.realName || req.user?.username || "",
+    {
+      // 用户选定的开始时间（S3-145：原先被静默忽略，恒取 DB 默认 CURRENT_TIMESTAMP）
+      startTime: startTime || undefined,
+      openingCash: Number(openingCash) || 0,
+      remark: remark || undefined,
+    }
   );
+  res.json(ok(result));
+});
+
+/**
+ * 交接班列表（S3-145：与详情/统计/盘点同源，读 t_shift）
+ * 说明：请求体里的 `shiftType` 由服务层按「开始时间派生」的口径筛选（t_shift 无 shift_type 列）。
+ */
+export const getShiftList = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const pageSize = parseInt(req.query.pageSize as string) || 20;
+  const date = (req.query.date as string) || undefined;
+  const shiftType = (req.query.shiftType as string) || undefined;
+  const result = await shiftService.getShiftList(req.tenantId!, req.user?.storeId ?? 1, {
+    page,
+    pageSize,
+    date,
+    shiftType,
+  });
   res.json(ok(result));
 });
 

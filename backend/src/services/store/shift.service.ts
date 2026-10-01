@@ -42,6 +42,40 @@ interface ShiftHistoryRow {
   created_at: Date | string;
 }
 
+/**
+ * 交接班「班次类型」口径（S3-145 新增）
+ *
+ * 背景：`t_shift` 表**没有** `shift_type` 列（见 `docs/migrations/148_shift_stock_check.sql`：
+ * 该表列为 id/tenant_id/shift_no/store_id/operator_id/operator_name/start_time/end_time/
+ * status/opening_cash/remark/created_at/updated_at）。因此「班次类型」不落库，
+ * 只能在**读侧**按开始时间派生。
+ *
+ * 本函数是**唯一口径**：交接班列表（展示 + 筛选）与交接班详情徽标共用它，
+ * 避免"列表一个值、详情一个值"的不一致（原 `getShiftDetail` 硬编码 `shiftType: "DAY"`，
+ * 与列表筛选项 MORNING/AFTERNOON/EVENING 对不上）。
+ *
+ * 规则：< 12:00 早班 MORNING；12:00–17:59 中班 AFTERNOON；>= 18:00 晚班 EVENING。
+ * ⚠ 这是**派生值**，不是用户创建时选择的班次类型；若要"用户指定班次类型"，须给
+ * `t_shift` 增列 `shift_type`（DDL，属本单红线外，已在 S3-145 回传卡中申请）。
+ */
+export function deriveShiftType(startTime: Date | string | null | undefined): string {
+  const hour = shiftStartHour(startTime);
+  if (hour === null) return "";
+  if (hour < 12) return "MORNING";
+  if (hour < 18) return "AFTERNOON";
+  return "EVENING";
+}
+
+/** 取开始时间的小时数：字符串优先按字面量取，避免 ISO 串按 UTC 换算造成时区偏移 */
+function shiftStartHour(startTime: Date | string | null | undefined): number | null {
+  if (typeof startTime === "string") {
+    const matched = startTime.match(/[T ](\d{1,2}):/);
+    if (matched) return Number(matched[1]);
+  }
+  const date = startTime instanceof Date ? startTime : new Date(String(startTime ?? ""));
+  return Number.isNaN(date.getTime()) ? null : date.getHours();
+}
+
 export async function getCurrentShift(tenantId: string, storeId: number) {
   const today = new Date().toISOString().split("T")[0];
   const todayStart = `${today} 00:00:00`;
@@ -225,31 +259,57 @@ async function getShiftPeriodSales(tenantId: string, storeId: number, startTime:
   };
 }
 
-/** 创建交接班（OPEN，落 t_shift 表） */
+/**
+ * 创建交接班（OPEN，落 t_shift 表）
+ *
+ * S3-145：补上原先被静默忽略的创建入参——
+ *  · startTime：用户选定的开始时间（原实现恒取 DB 默认 CURRENT_TIMESTAMP，
+ *    前端"开始时间"填了也不生效）；
+ *  · operatorName：由 controller 按"用户填写优先、登录用户兜底"解析后传入。
+ *  · shiftType：`t_shift` 无 `shift_type` 列（见 `docs/migrations/148_shift_stock_check.sql`），
+ *    **仍然无法落库**；列表/详情按 `deriveShiftType(start_time)` 读侧派生，
+ *    要"用户指定班次类型"须增列（DDL，已在 S3-145 回传卡中作为申请项上报）。
+ */
 export async function createShift(
   tenantId: string,
   storeId: number,
   operatorId: number,
   operatorName: string,
-  body: { openingCash?: number; remark?: string }
+  body: { startTime?: string; openingCash?: number; remark?: string }
 ) {
   const shiftNo = makeBizNo("JB");
+  // 前端 value-format 为 "YYYY-MM-DD HH:mm:ss"。
+  // 注意：这里**按字符串入库**（不是 JS Date）——连接池 `timezone: "Z"` 会把 Date 先转 UTC 再落库，
+  // 用户填的 20:15 会变成 12:15；传字符串则按字面量落 DATETIME，与用户所填一致。
+  // 未传/非法时交给 DB 默认 CURRENT_TIMESTAMP。
+  const startTime = normalizeStartTime(body.startTime);
   const insert = (await query(
-    `INSERT INTO t_shift (tenant_id, shift_no, store_id, operator_id, operator_name, opening_cash, remark)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [tenantId, shiftNo, storeId, operatorId || null, operatorName || null, body.openingCash ?? 0, body.remark || null]
+    `INSERT INTO t_shift (tenant_id, shift_no, store_id, operator_id, operator_name, start_time, opening_cash, remark)
+     VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?)`,
+    [
+      tenantId, shiftNo, storeId, operatorId || null, operatorName || null,
+      startTime, body.openingCash ?? 0, body.remark || null
+    ]
   )) as unknown as { insertId: number };
   return {
     id: insert.insertId,
     shiftNo,
-    shiftType: "DAY",
-    startTime: new Date().toISOString(),
+    shiftType: deriveShiftType(startTime),
+    startTime: startTime ?? new Date().toISOString(),
     status: "OPEN",
     operatorId,
     operatorName: operatorName || "",
     openingCash: body.openingCash ?? 0,
     remark: body.remark || "",
   };
+}
+
+/** 校验并归一化"用户填写的开始时间"（YYYY-MM-DD HH:mm[:ss]）；非法值返回 null（回落 DB 默认） */
+function normalizeStartTime(value?: string): string | null {
+  if (!value) return null;
+  const matched = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::(\d{2}))?$/.exec(String(value).trim());
+  if (!matched) return null;
+  return `${matched[1]} ${matched[2]}:${matched[3] ?? "00"}`;
 }
 
 async function getShiftRow(tenantId: string, shiftNo: string): Promise<ShiftRow> {
@@ -267,6 +327,74 @@ async function getShiftRow(tenantId: string, shiftNo: string): Promise<ShiftRow>
   return row;
 }
 
+/**
+ * 交接班列表（S3-145 新增只读端点 GET /api/store/shifts 的服务实现）
+ *
+ * 与详情/统计/盘点**同源**：都读 `t_shift`。
+ * 修复根因：原交接班列表走 `getShiftHistory`（读 `t_daily_settlement`，单号 BJ…），
+ * 而详情/统计走 `t_shift`（单号 JB…），两者编号空间不相交 ⇒ 列表行点进详情恒业务级 404。
+ * `/store/shift/history`（t_daily_settlement）**保留"班结历史"语义**，不再承担交接班列表。
+ */
+export async function getShiftList(
+  tenantId: string,
+  storeId: number,
+  params: { page: number; pageSize: number; date?: string; shiftType?: string }
+) {
+  const page = params.page > 0 ? params.page : 1;
+  const pageSize = params.pageSize > 0 ? params.pageSize : 20;
+
+  const conditions = ["tenant_id = ?", "store_id = ?"];
+  const args: unknown[] = [tenantId, storeId];
+  if (params.date) {
+    conditions.push("DATE(start_time) = ?");
+    args.push(params.date);
+  }
+  const rows = await query<ShiftRow>(
+    `SELECT id, shift_no AS shiftNo, store_id AS storeId, operator_id AS operatorId,
+            operator_name AS operatorName, start_time AS startTime, end_time AS endTime,
+            status, opening_cash AS openingCash, remark
+     FROM t_shift
+     WHERE ${conditions.join(" AND ")}
+     ORDER BY start_time DESC, id DESC`,
+    args
+  );
+
+  // 班次类型是读侧派生值（t_shift 无 shift_type 列），故按派生值与展示同一口径筛选、分页，
+  // 保证"筛选条件"与"列表里看到的班次"永不互相打架（单店班次记录量小，内存筛选可接受）。
+  const filtered = params.shiftType
+    ? rows.filter((row) => deriveShiftType(row.startTime) === params.shiftType)
+    : rows;
+  const total = filtered.length;
+  const offset = (page - 1) * pageSize;
+  const pageRows = filtered.slice(offset, offset + pageSize);
+
+  const records = [];
+  for (const row of pageRows) {
+    const sales = await getShiftPeriodSales(
+      tenantId,
+      row.storeId,
+      new Date(row.startTime),
+      row.endTime ? new Date(row.endTime) : null
+    );
+    records.push({
+      id: row.id,
+      shiftNo: row.shiftNo,
+      shiftType: deriveShiftType(row.startTime),
+      storeId: row.storeId,
+      operatorId: row.operatorId,
+      operatorName: row.operatorName || "",
+      startTime: row.startTime,
+      endTime: row.endTime,
+      status: row.status,
+      openingCash: Number(row.openingCash ?? 0),
+      remark: row.remark || "",
+      totalSalesAmount: Number(sales.totalAmount ?? 0),
+      totalOrders: Number(sales.totalCount ?? 0),
+    });
+  }
+  return { records, total, page, pageSize };
+}
+
 /** 交接班详情（含本班次销售统计） */
 export async function getShiftDetail(tenantId: string, shiftNo: string) {
   const row = await getShiftRow(tenantId, shiftNo);
@@ -279,7 +407,8 @@ export async function getShiftDetail(tenantId: string, shiftNo: string) {
   return {
     id: row.id,
     shiftNo: row.shiftNo,
-    shiftType: "DAY",
+    // 与列表/筛选同一口径（读侧派生；t_shift 无 shift_type 列，见 deriveShiftType 说明）
+    shiftType: deriveShiftType(row.startTime),
     storeId: row.storeId,
     operatorId: row.operatorId,
     operatorName: row.operatorName || "",

@@ -220,8 +220,12 @@ export async function fetchStoreDailySettleHistory(params?: { page?: number; pag
 }
 
 // ---------- 交接班 ----------
+// S3-145：交接班列表改为与详情/统计/盘点**同源** —— GET /store/shifts（读 t_shift，单号形如 JB…，
+// 返回 { records, total }）。原实现打 GET /store/shift/history（**班结历史**语义，读 t_daily_settlement，
+// 单号形如 BJ…），与详情端点（t_shift）编号空间不相交 ⇒ 列表行点进详情恒业务级 404。
+// /store/shift/history 保留为班结历史端点，工作台"交接班管理"页不再使用它。
 export async function fetchStoreShifts(params?: { page?: number; pageSize?: number; date?: string; shiftType?: string }) {
-  const { data } = await api.get("/store/shift/history", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/store/shifts", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 

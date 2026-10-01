@@ -59,7 +59,7 @@
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="goToDetail(row.shiftNo)">详情</el-button>
             <el-button
-              v-if="row.status === 'IN_PROGRESS'"
+              v-if="row.status === 'OPEN'"
               size="small"
               link
               type="success"
@@ -157,7 +157,7 @@ import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { fetchStoreShifts, createStoreShift, completeStoreShift } from "../../api";
+import { fetchStoreShifts, createStoreShift } from "../../api";
 
 const router = useRouter();
 
@@ -179,7 +179,6 @@ const createForm = reactive({
 });
 
 const showCompleteDialogFlag = ref(false);
-const completingShiftId = ref(0);
 const completeForm = reactive({
   endTime: "",
   actualCash: 0,
@@ -208,6 +207,10 @@ function getShiftTypeTagType(type: string) {
 
 function getStatusName(status: string) {
   const map: Record<string, string> = {
+    // 交接班（t_shift）真实状态：OPEN / CLOSED
+    OPEN: "进行中",
+    CLOSED: "已完成",
+    // 下面四个为历史/其它来源状态，保留兜底展示
     PENDING: "待开始",
     IN_PROGRESS: "进行中",
     COMPLETED: "已完成",
@@ -218,6 +221,9 @@ function getStatusName(status: string) {
 
 function getStatusTagType(status: string) {
   const map: Record<string, string> = {
+    // 交接班（t_shift）真实状态：OPEN / CLOSED
+    OPEN: "warning",
+    CLOSED: "success",
     PENDING: "info",
     IN_PROGRESS: "warning",
     COMPLETED: "success",
@@ -235,9 +241,9 @@ async function loadShifts() {
       date: filterDate.value || undefined,
       shiftType: filterShiftType.value || undefined
     });
-    // 后端 GET /store/shift/history（shift.service.ts getShiftHistory）返回的是**数组**，
-    // 列名为 settle_date / shift_no / total_sales / total_received / status / created_at。
-    // 原实现按分页对象 data?.records 取数 ⇒ 列表恒空、goToDetail(row.id) 取到 undefined。
+    // S3-145：交接班列表已与详情/统计/盘点同源 —— GET /store/shifts（shift.service.ts getShiftList）
+    // 返回 { records, total }，字段为 t_shift 的 shiftNo/shiftType/operatorName/startTime/
+    // endTime/status(opening/closing)/openingCash + 本班次销售额/订单数。
     const raw = data as any;
     const rows: any[] = Array.isArray(raw) ? raw : raw?.records ?? raw?.list ?? [];
     shifts.value = rows.map((r: any) => ({
@@ -248,7 +254,7 @@ async function loadShifts() {
       endTime: r.endTime ?? r.end_time ?? "",
       status: r.status ?? "",
       totalSalesAmount: Number(r.totalSalesAmount ?? r.totalSales ?? r.total_sales ?? 0),
-      totalOrders: r.totalOrders ?? null
+      totalOrders: r.totalOrders ?? 0
     }));
     total.value = Array.isArray(raw) ? shifts.value.length : raw?.total ?? shifts.value.length;
   } catch {
@@ -284,7 +290,6 @@ function goToDetail(shiftNo: string) {
 }
 
 function showCompleteDialog(row: any) {
-  completingShiftId.value = row.id;
   completeForm.endTime = new Date().toISOString().slice(0, 16).replace("T", " ");
   completeForm.actualCash = 0;
   completeForm.actualWechat = 0;
@@ -322,20 +327,13 @@ async function handleComplete() {
     ElMessage.warning("请填写结束时间");
     return;
   }
-  try {
-    await completeStoreShift(completingShiftId.value, {
-      endTime: completeForm.endTime,
-      actualCash: completeForm.actualCash || undefined,
-      actualWechat: completeForm.actualWechat || undefined,
-      actualAlipay: completeForm.actualAlipay || undefined,
-      remark: completeForm.remark || undefined
-    });
-    ElMessage.success("交接班完成");
-    showCompleteDialogFlag.value = false;
-    loadShifts();
-  } catch {
-    ElMessage.error("操作失败");
-  }
+  // S3-145：真正"完成交接"需要关闭 t_shift 记录（UPDATE t_shift SET status='CLOSED', end_time=?），
+  // 属**新增端点**，超出本单授权（凌舟附注1：只允许新增 1 个只读列表端点 GET /store/shifts）。
+  // 原实现回落到班结端点 POST /store/shift/settle：它只写 t_daily_settlement、**不关闭 t_shift**，
+  // 会给出"交接班完成"的假成功（列表里该条仍是"进行中"）——故这里不写库，改为如实提示，
+  // 并把"交接班关闭能力"作为申请裁定项上报（见回传卡「申请裁定项」）。
+  ElMessage.info("完成交接需后端支持关闭交接班记录（已上报 S3-145 申请裁定）");
+  showCompleteDialogFlag.value = false;
 }
 
 onMounted(() => {
