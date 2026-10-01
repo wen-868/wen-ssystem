@@ -75,7 +75,8 @@ const EXPECTED_PREFIXES: readonly string[] = [
   "/api/miniapp/notifications", "/api/miniapp/trace", "/api/miniapp/wechat", "/api/monitor",
   "/api/open/library", "/api/padmin", "/api/pay", "/api/payment-config", "/api/platform",
   "/api/platform-miniapp", "/api/platform/admins", "/api/platform/ai", "/api/platform/ai-billing",
-  "/api/platform/announcements", "/api/platform/applications", "/api/platform/audit-logs",
+  "/api/platform/agents", "/api/platform/announcements", "/api/platform/applications",
+  "/api/platform/audit-logs",
   "/api/platform/auth", "/api/platform/billing", "/api/platform/config",
   "/api/platform/dashboard", "/api/platform/library", "/api/platform/monitor",
   "/api/platform/notifications", "/api/platform/open", "/api/platform/permissions",
@@ -130,7 +131,8 @@ const EXPECTED_FILES: readonly string[] = [
   "monitor.routes.ts", "notification.routes.ts", "open-library.routes.ts",
   "operation-log.routes.ts", "order-exception.routes.ts", "order-timeout.routes.ts",
   "payment-config.routes.ts", "payment-new.routes.ts", "payment.routes.ts",
-  "platform-app-version.routes.ts", "platform-applications.routes.ts", "platform-auth.routes.ts",
+  "platform-agent.routes.ts", "platform-app-version.routes.ts", "platform-applications.routes.ts",
+  "platform-auth.routes.ts",
   "platform-billing-arrears.routes.ts", "platform-billing.routes.ts", "platform-config.routes.ts",
   "platform-dashboard.routes.ts", "platform-error-log.routes.ts",
   "platform-export-task.routes.ts", "platform-library.routes.ts", "platform-miniapp.routes.ts",
@@ -177,7 +179,7 @@ const EXEMPT_FILES: readonly string[] = [];
  *   单个共享文件掉线时该前缀仍被其他文件注册 ⇒ toContain 抓不到；
  *   但注册总数必然下降 ⇒ 本条必红。因快照中**每个文件都贡献 ≥1 条注册**，故总数守恒等价于「无文件掉线」。
  */
-const EXPECTED_REGISTRATION_COUNT = 199;
+const EXPECTED_REGISTRATION_COUNT = 200;
 
 /**
  * 耗时基线告警（治标 ②）

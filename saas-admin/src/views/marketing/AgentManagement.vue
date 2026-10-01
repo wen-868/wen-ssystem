@@ -2,8 +2,10 @@
   <!-- ═══════════════════════════════════════════════════════════════
        16 营销 · 代理商管理（设计稿 v1.6 #sec-agent · 行 1965~2225）
        根节点直接是内容片段，外层由 PlatformLayout 的 <main class="pf-main"> 包裹。
-       数据：后端**未提供**代理商相关接口（待立项 T9：代理商主表 / 分润台账 / 结算 / 提现申请），
-       全部以空态 + 待立项占位；严禁硬编码业务示例值（代理商名称 / 分成比例 / 金额等）。
+       数据（R101-C6-3-3 档 1 已接线）：Tab① 代理商配置 = 代理商档案（GET/POST/PUT /platform/agents、
+       状态流转 POST /platform/agents/:id/status）+ 层级权益配置（GET/POST/PUT /platform/agents/levels）；
+       Tab② 代理商分润（台账 / 结算 / 提现 / 计提）属档 2/档 3，**未开工**，保持诚实空态并显式标注。
+       严禁硬编码业务示例值（代理商名称 / 分成比例 / 金额等）；未配置项一律留空（NULL），不得写 0 冒充。
        ═══════════════════════════════════════════════════════════════ -->
   <div class="agent-mgmt">
     <!-- 主面板：页签 ① 代理商配置 / ② 代理商分润 -->
@@ -34,34 +36,39 @@
         <div class="g4">
           <div class="kpi">
             <div class="kt">代理商总数</div>
-            <div class="kv">{{ kpi?.total ?? '—' }}</div>
-            <div class="kd">{{ kpi ? `一级 ${kpi.lvl1} · 二级 ${kpi.lvl2}` : '—' }}</div>
+            <div class="kv">{{ agentTotalText }}</div>
+            <div class="kd">来自代理商列表真实统计（层级分布按层级配置自行查看）</div>
           </div>
           <div class="kpi">
             <div class="kt">累计发展商户</div>
-            <div class="kv">{{ kpi?.merchants ?? '—' }}</div>
-            <div class="kd">占付费租户 <span class="up">{{ kpi?.merchantsPct ?? '—' }}</span></div>
+            <div class="kv">—</div>
+            <div class="kd">商户归属统计属档 2（未开工）· 不预置数值</div>
           </div>
           <div class="kpi">
             <div class="kt">本月分润（渠道成本线）</div>
-            <div class="kv">{{ money(kpi?.monthProfit) }}</div>
-            <div class="kd">现金分佣 · 与积分线并存</div>
+            <div class="kv">—</div>
+            <div class="kd">计提属档 2（未开工）· 本单不产生任何计提</div>
           </div>
           <div class="kpi">
             <div class="kt">待结算金额</div>
-            <div class="kv">{{ money(kpi?.pendingSettle) }}</div>
-            <div class="kd">{{ kpi?.pendingSettleCount ?? '—' }} 家 · 月结账期</div>
+            <div class="kv">—</div>
+            <div class="kd">结算属档 3（未开工）· 不预置数值</div>
           </div>
         </div>
 
-        <!-- 代理商列表 -->
+        <!-- 代理商列表（R101-C6-3-3 档 1：GET /platform/agents 真实数据；档 2 聚合列留「—」） -->
         <div class="panel mt12">
           <div class="p-hd">
             <span class="pt">代理商列表</span>
             <div class="frow">
-              <span class="sel">全部层级 ▾</span>
-              <span class="sel">全部状态 ▾</span>
-              <input class="ipt" placeholder="搜索名称 / 授权区域 / 推广码" />
+              <input
+                class="ipt"
+                v-model="agentKeyword"
+                placeholder="搜索编码 / 名称 / 区域 / 联系人"
+                @keyup.enter="searchAgents"
+              />
+              <span class="btn" @click="searchAgents">搜索</span>
+              <span class="btn" @click="loadAgents">刷新</span>
             </div>
           </div>
           <div class="tblwrap">
@@ -80,111 +87,141 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="agentList.length === 0">
-                  <td :colspan="9" class="empty">暂无代理商数据</td>
+                <tr v-if="agentLoading">
+                  <td :colspan="9" class="empty">加载中…</td>
                 </tr>
-                <tr v-for="a in agentList" :key="a.id">
-                  <td>
-                    <b>{{ a.name }}</b>
-                    <span class="sub">{{ a.sub }}</span>
-                  </td>
-                  <td><span class="tag" :class="a.levelClass">{{ a.level }}</span></td>
-                  <td>{{ a.region }}</td>
-                  <td>{{ a.contact }}<span class="sub">{{ a.contactPhone }}</span></td>
-                  <td class="num"><b>{{ a.merchantCount }}</b></td>
-                  <td class="num">{{ a.salesTotal }}</td>
-                  <td class="num"><b>{{ a.profitTotal }}</b></td>
-                  <td><span class="tag" :class="a.statusClass">{{ a.status }}</span></td>
-                  <td>
-                    <span class="btn-t">详情</span>
-                    <span class="btn-t">编辑</span>
-                    <span class="btn-t">台账</span>
-                    <span class="btn-t dgr">冻结</span>
-                  </td>
+                <tr v-else-if="agentError">
+                  <td :colspan="9" class="empty">{{ agentError }}</td>
                 </tr>
+                <tr v-else-if="agentList.length === 0">
+                  <td :colspan="9" class="empty">{{ agentKeyword ? '没有匹配的代理商' : '暂无代理商数据' }}</td>
+                </tr>
+                <template v-else>
+                  <tr v-for="a in agentList" :key="a.id">
+                    <td>
+                      <b>{{ a.agentName }}</b>
+                      <span class="sub">{{ a.agentCode }}</span>
+                    </td>
+                    <td><span class="tag tag-b">{{ a.levelName || '层级未匹配' }}</span></td>
+                    <td>{{ a.region || '—' }}</td>
+                    <td>{{ a.contactName || '—' }}<span class="sub">{{ a.contactPhone || '' }}</span></td>
+                    <td class="num">—</td>
+                    <td class="num">—</td>
+                    <td class="num">—</td>
+                    <td><span class="tag" :class="statusClass(a.status)">{{ statusText(a.status) }}</span></td>
+                    <td>
+                      <span class="btn-t" @click="openEdit(a)">编辑</span>
+                      <span v-if="a.status === 'PENDING'" class="btn-t" @click="changeStatus(a, 'ACTIVE')">通过</span>
+                      <span v-if="a.status === 'ACTIVE'" class="btn-t" @click="changeStatus(a, 'FROZEN')">冻结</span>
+                      <span v-if="a.status === 'FROZEN'" class="btn-t" @click="changeStatus(a, 'ACTIVE')">解冻</span>
+                      <span
+                        v-if="a.status === 'ACTIVE' || a.status === 'FROZEN'"
+                        class="btn-t dgr"
+                        @click="changeStatus(a, 'TERMINATED')"
+                      >终止</span>
+                      <span class="btn-t gy" title="分润台账属档 2，未开工">台账</span>
+                    </td>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>
           <div class="pagebar">
-            <span>共 {{ agentList.length }} 家代理商 · 每页 10 条</span>
+            <span>
+              共 {{ agentTotal === null ? '—' : agentTotal }} 家代理商 · 每页 {{ agentPageSize }} 条 ·
+              「发展商户数 / 累计销售额 / 累计分润」属档 2（未开工），一律留「—」
+            </span>
             <div class="pgbtns">
-              <span v-for="p in agentTotalPages" :key="p" :class="{ on: p === agentPage }">{{ p }}</span>
-              <span v-if="agentTotalPages > 1">›</span>
+              <span v-if="agentPage > 1" @click="gotoPage(agentPage - 1)">‹</span>
+              <span v-for="p in agentTotalPages" :key="p" :class="{ on: p === agentPage }" @click="gotoPage(p)">{{ p }}</span>
+              <span v-if="agentTotalPages > 1 && agentPage < agentTotalPages" @click="gotoPage(agentPage + 1)">›</span>
             </div>
           </div>
         </div>
 
-        <!-- 层级权益配置（一级 / 二级） -->
+        <!-- 层级权益配置（R101-C6-3-3 档 1：/platform/agents/levels 真实数据；D11③ 层级名称自定义） -->
         <div class="panel mt12">
           <div class="p-hd">
             <span class="pt">层级权益配置 <span class="v13-tag lt">v1.3</span></span>
-            <span class="ph-s">按层级统一预置，开通时自动套用；可对单个代理商单独微调并留痕</span>
+            <span class="ph-s">层级名称自定义（D11③）；未配置项一律留空（NULL），不预置任何数值</span>
+            <span class="btn" @click="showLevelForm = !showLevelForm">{{ showLevelForm ? '收起新建' : '+ 新建层级' }}</span>
+          </div>
+          <div class="p-bd" v-if="showLevelForm">
+            <div class="frow">
+              <span class="fld">
+                <span>层级编码 <i class="req">*</i></span>
+                <input class="ipt" v-model="levelForm.levelCode" placeholder="如 level_a" />
+              </span>
+              <span class="fld">
+                <span>层级名称 <i class="req">*</i></span>
+                <input class="ipt" v-model="levelForm.levelName" placeholder="自定义名称，不写死「一级/二级」" />
+              </span>
+              <span class="fld">
+                <span>排序号</span>
+                <input class="ipt" v-model="levelForm.sortNo" placeholder="0" />
+              </span>
+            </div>
+            <div class="frow mt8">
+              <span class="btn btn-p" @click="saveNewLevel">创建层级</span>
+              <span class="small">系统零预置：不内置任何层级、比例或折扣值，全部由管理员创建与配置</span>
+            </div>
           </div>
           <div class="p-bd">
-            <div class="g2">
-              <!-- 一级代理 -->
-              <div class="panel">
+            <div v-if="levelList.length === 0" class="empty">尚未创建层级 —— 系统不预置层级，请先「+ 新建层级」</div>
+            <div v-else class="g2">
+              <div class="panel" v-for="lv in levelList" :key="lv.id">
                 <div class="p-hd">
-                  <span class="pt lv-pt">一级代理</span>
-                  <span class="tag tag-b">可发展二级代理</span>
+                  <span class="pt lv-pt">{{ lv.levelName }}</span>
+                  <span class="tag" :class="lv.allowSubLevel ? 'tag-b' : 'tag-gy'">{{ lv.allowSubLevel ? '可发展下级代理' : '不发展下级' }}</span>
+                  <span class="tag tag-gy">{{ lv.status === 'ACTIVE' ? '启用' : '停用' }}</span>
                 </div>
                 <div class="p-bd lv-bd">
                   <div>
-                    <p class="b lv-label">可售套餐范围（从套餐模板勾选）</p>
+                    <p class="b lv-label">可售套餐范围（planId 数组；未勾选=未配置 ⇒ NULL）</p>
                     <div class="mx">
-                      <div class="mx-hd">套餐档位以「套餐管理」实时配置为准 · 免费版不参与分销</div>
+                      <div class="mx-hd">套餐来自「套餐管理」真实数据；系统不预置可售范围</div>
                       <div class="mx-bd">
-                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.basic }"></span>基础版</span>
-                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.standard }"></span>标准版</span>
-                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.flagship }"></span>旗舰版</span>
-                        <span class="mx-it mx-locked"><span class="ck"></span>免费版（不可勾选）</span>
+                        <span v-if="planOptions.length === 0" class="mx-it mx-locked"><span class="ck"></span>套餐管理暂无套餐</span>
+                        <span v-for="p in planOptions" :key="p.id" class="mx-it" @click="toggleScope(lv, p.id)">
+                          <span class="ck" :class="{ on: levelDrafts[lv.id].planScope.includes(p.id) }"></span>{{ p.planName }}
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div class="frow">
                     <span class="lv-sml">拿货折扣区间</span>
-                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="l1.discountLow" />
+                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="levelDrafts[lv.id].discountLow" placeholder="未配置" />
                     <span class="small">至</span>
-                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="l1.discountHigh" />
-                    <span class="small">低于下限需超级管理员审批</span>
+                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="levelDrafts[lv.id].discountHigh" placeholder="未配置" />
+                    <span class="small">留空=未配置（不写 0 冒充）</span>
                   </div>
                   <div class="lv-toggle">
-                    <span class="tg" :class="{ off: !l1.canDevelop }"></span>
+                    <span class="tg" :class="{ off: !levelDrafts[lv.id].allowSubLevel }" @click="levelDrafts[lv.id].allowSubLevel = !levelDrafts[lv.id].allowSubLevel"></span>
                     <b class="lv-toggle-t">允许发展下级代理</b>
-                    <span class="small">二级代理由一级自行招募 · 平台备案审核后生效</span>
-                  </div>
-                </div>
-              </div>
-              <!-- 二级代理 -->
-              <div class="panel">
-                <div class="p-hd">
-                  <span class="pt lv-pt">二级代理</span>
-                  <span class="tag tag-gy">层级封顶 · 不可再发展</span>
-                </div>
-                <div class="p-bd lv-bd">
-                  <div>
-                    <p class="b lv-label">可售套餐范围（从套餐模板勾选）</p>
-                    <div class="mx">
-                      <div class="mx-hd">受上级一级代理可售范围约束（取交集）</div>
-                      <div class="mx-bd">
-                        <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.basic }"></span>基础版</span>
-                        <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.standard }"></span>标准版</span>
-                        <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.flagship }"></span>旗舰版（未开放）</span>
-                        <span class="mx-it mx-locked"><span class="ck"></span>免费版（不可勾选）</span>
-                      </div>
-                    </div>
+                    <span class="small">按层级统一配置（点开关切换）</span>
                   </div>
                   <div class="frow">
-                    <span class="lv-sml">拿货折扣区间</span>
-                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="l2.discountLow" />
-                    <span class="small">至</span>
-                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="l2.discountHigh" />
-                    <span class="small">不得优于上级拿货价</span>
+                    <span class="lv-sml">分润模式</span>
+                    <span class="lv-radio" @click="levelDrafts[lv.id].profitModeSignup = !levelDrafts[lv.id].profitModeSignup">
+                      <span class="rd" :class="{ on: levelDrafts[lv.id].profitModeSignup }"></span>新签
+                    </span>
+                    <span class="lv-radio" @click="levelDrafts[lv.id].profitModeRenew = !levelDrafts[lv.id].profitModeRenew">
+                      <span class="rd" :class="{ on: levelDrafts[lv.id].profitModeRenew }"></span>续费
+                    </span>
+                    <span class="lv-radio lv-radio-off" title="D11②：增值收入初期关闭">
+                      <span class="rd"></span>增值（初期关闭）
+                    </span>
                   </div>
-                  <div class="lv-toggle">
-                    <span class="tg off"></span>
-                    <b class="lv-toggle-t">允许发展下级代理</b>
-                    <span class="small">二级为最末层级，开关锁定关闭</span>
+                  <div class="frow">
+                    <span class="lv-sml">分润比例（配置值）</span>
+                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="levelDrafts[lv.id].profitRateSignup" placeholder="未配置" />
+                    <span class="small">% 新签</span>
+                    <input class="ipt cell-num" :style="{ width: 'var(--mtx-cell-w)' }" v-model="levelDrafts[lv.id].profitRateRenew" placeholder="未配置" />
+                    <span class="small">% 续费</span>
+                  </div>
+                  <div class="frow">
+                    <span class="small">档 1 只保存配置值，<b>不产生任何计提</b>；台账 / 结算 / 提现属档 2/3（未开工）</span>
+                    <span class="btn btn-p" @click="saveLevel(lv)">保存层级配置</span>
                   </div>
                 </div>
               </div>
@@ -204,6 +241,16 @@
           <div class="pg-act">
             <span class="btn" @click="todo('分润试算器')">分润试算器</span>
           </div>
+        </div>
+
+        <!-- ★ 档 2 未开工声明（R101-C6-3-3 红线：本页不得产生任何计提，也不得预置任何示例数值） -->
+        <div class="tipbar w mt12">
+          <span class="ic">!</span>
+          <span>
+            <b>档 2 未开工：</b>分润台账 / 比例计提 / 结算 / 提现均<strong>未实现</strong>（代理商域分档交付，档 1 = 档案 + 层级权益配置，
+            <b>不产生任何计提</b>）。本页所有金额与比例一律留空（未配置=无值），<b>不预置任何示例值</b>；
+            待档 2 立项卡下达后再接线。
+          </span>
         </div>
 
         <!-- 分润规则配置 · 比例矩阵 -->
@@ -233,6 +280,9 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <tr v-if="matrix.length === 0">
+                    <td colspan="4" class="empty">暂无层级配置 —— 请先在「① 代理商配置 · 层级权益配置」创建层级</td>
+                  </tr>
                   <tr v-for="(row, ri) in matrix" :key="ri">
                     <td>
                       <b>{{ row.level }}</b>
@@ -244,6 +294,7 @@
                         :class="{ 'is-unset': c.value == null }"
                         v-model="c.value"
                         :placeholder="c.value == null ? '未设置' : ''"
+                        disabled
                       />
                       <span class="small">%</span>
                     </td>
@@ -495,142 +546,457 @@
     <div v-if="showCreate" class="ov" @click="closeCreate"></div>
     <div v-if="showCreate" class="drawer" role="dialog" aria-label="开通代理商">
       <div class="d-hd">
-        <span class="pt">开通代理商 <span class="v13-tag lt">v1.3</span></span>
+        <span class="pt">{{ editingId === null ? '开通代理商' : '编辑代理商' }} <span class="v13-tag lt">v1.3</span></span>
         <span class="d-x" @click="closeCreate">✕</span>
       </div>
       <div class="d-bd">
-        <!-- 基本信息 -->
+        <!-- 基本信息（字段集与后端 POST /platform/agents 逐字一致） -->
         <div>
           <p class="b d-sec">基本信息</p>
           <div class="fld">
+            <span>代理商编码 <i class="req">*</i></span>
+            <input class="ipt" v-model="form.agentCode" placeholder="唯一编码，如 AG001" :disabled="editingId !== null" />
+          </div>
+          <div class="fld mt8">
             <span>代理商名称 <i class="req">*</i></span>
-            <input class="ipt" v-model="form.name" placeholder="请输入代理商名称" />
+            <input class="ipt" v-model="form.agentName" placeholder="请输入代理商名称" />
           </div>
           <div class="frow mt8" style="align-items: flex-start">
             <span class="fld" style="flex: 1">
-              <span>联系人 <i class="req">*</i></span>
-              <input class="ipt" v-model="form.contact" placeholder="联系人" />
+              <span>联系人</span>
+              <input class="ipt" v-model="form.contactName" placeholder="联系人（可留空）" />
             </span>
             <span class="fld" style="flex: 1">
-              <span>手机号 <i class="req">*</i></span>
-              <input class="ipt" v-model="form.phone" placeholder="手机号" />
+              <span>手机号</span>
+              <input class="ipt" v-model="form.contactPhone" placeholder="手机号（可留空）" />
             </span>
           </div>
         </div>
-        <!-- 授权区域 -->
+        <!-- 授权区域（档 1 只落单列 region 文本；多选与重叠查重不在本单） -->
         <div>
           <p class="b d-sec">
             授权区域
-            <span class="small d-sec-sub">（省 / 市 / 区多选 · 与现有代理商授权范围实时查重）</span>
+            <span class="small d-sec-sub">（档 1 落单列文本；省/市/区多选与重叠查重不在本单）</span>
           </p>
           <div class="frow">
-            <span class="sel">江苏省 ▾</span>
-            <span class="sel">苏州市 ▾</span>
-            <span class="sel">工业园区 ▾</span>
-            <span class="btn btn-s" @click="todo('添加区域')">+ 添加区域</span>
+            <input class="ipt" style="flex: 1" v-model="form.region" placeholder="如：江苏省苏州市工业园区（可留空）" />
           </div>
-          <div class="zone-tags" v-if="form.zones.length">
-            <span class="v13-zone-tag" v-for="(z, i) in form.zones" :key="i">
-              <b>{{ z }}</b><i class="x" @click="form.zones.splice(i, 1)">✕</i>
-            </span>
-          </div>
-          <span v-if="hasOverlap" class="tag tag-o">与现有代理商授权重叠 {{ overlapCount }} 项 · 需仲裁</span>
         </div>
-        <!-- 层级选择 -->
+        <!-- 层级选择（真实层级来自层级权益配置；无层级时阻断并提示，不预置层级） -->
         <div>
           <p class="b d-sec">层级选择</p>
-          <div class="frow">
-            <span class="lv-radio"><span class="rd on"></span>一级代理（直接签约平台）</span>
-            <span class="lv-radio lv-radio-off"><span class="rd"></span>二级代理（需选择上级并备案）</span>
+          <div class="frow" v-if="levelList.length">
+            <select class="ipt" style="flex: 1" v-model.number="form.levelId">
+              <option :value="null" disabled>请选择层级</option>
+              <option v-for="lv in levelList" :key="lv.id" :value="lv.id">{{ lv.levelName }}（{{ lv.levelCode }}）</option>
+            </select>
           </div>
-          <p class="small mt8">套用层级权益：可售套餐 基础版 / 标准版 / 旗舰版 · 拿货折扣 7.5 ~ 8.8 折 · 允许发展下级代理</p>
+          <p class="small mt8" v-else>尚未创建层级：<b>档 1 不预置层级</b>，请先到「层级权益配置」新建层级后再建档。</p>
         </div>
-        <!-- 专属推广码 -->
+        <!-- 备注（档 1 字段集内） -->
         <div>
-          <p class="b d-sec">专属推广码</p>
-          <div class="promo-row">
-            <span class="mask">{{ form.promoCode || 'DL-****-****' }}</span>
-            <span class="tag tag-g">已自动生成 · 保存后激活</span>
-            <span class="btn-t" @click="todo('重新生成')">重新生成</span>
-            <span class="qr-box" aria-hidden="true">推广码二维码</span>
-          </div>
-          <p class="small mt6">推广码激活后，经此码注册的商户自动归因本代理商（归因优先级高于老带新）。</p>
+          <p class="b d-sec">备注</p>
+          <input class="ipt" style="width: 100%" v-model="form.remark" placeholder="可留空（未填写落 NULL，不写空串）" />
         </div>
-        <!-- 签约有效期 -->
-        <div>
-          <p class="b d-sec">签约有效期</p>
-          <div class="frow">
-            <span class="sel">2 年 ▾</span>
-            <input class="ipt" v-model="form.startDate" placeholder="起始日期" />
-            <span class="small">至</span>
-            <input class="ipt" v-model="form.endDate" placeholder="到期日期" />
-          </div>
-          <p class="small mt6">到期前 60 天自动提醒续签；未续签进入宽限期（30 天，仅可结算不出新单）。</p>
-        </div>
-        <!-- 结算账户信息 -->
-        <div>
-          <p class="b d-sec">结算账户信息</p>
-          <div class="frow" style="align-items: flex-start">
-            <span class="fld" style="flex: 1">
-              <span>开户名</span>
-              <input class="ipt" v-model="form.accountName" placeholder="开户名" />
-            </span>
-            <span class="fld" style="flex: 1">
-              <span>开户行</span>
-              <input class="ipt" v-model="form.bank" placeholder="开户行" />
-            </span>
-          </div>
-          <div class="frow mt8">
-            <span class="fld" style="flex: 1">
-              <span>银行账号</span>
-              <span class="mask">{{ form.bankAccount || '**** **** **** ****' }}</span>
-            </span>
-            <span class="fld" style="flex: 1">
-              <span>结算方式</span>
-              <span class="sel">对公转账 ▾</span>
-            </span>
-          </div>
-        </div>
+        <!-- 推广码 / 签约有效期 / 结算账户：档 1 后端不接收这些字段 ⇒ 不采集（避免"填了不落库"的假表单） -->
         <div class="tipbar">
           <span class="ic">i</span>
-          <span>保存后系统自动生成代理商账号并发送短信邀请；代理商可在其分账号后台查看商户、订单与分润台账。</span>
+          <span>
+            专属推广码（归因）属 C6-3-2、结算账户属档 3（未开工），<b>本期不采集、不落库</b>；
+            档 1 建档只写：编码 / 名称 / 层级 / 区域 / 联系人 / 备注。
+          </span>
         </div>
       </div>
       <div class="d-ft">
         <span class="btn" @click="closeCreate">取消</span>
-        <span class="btn btn-p" @click="saveAgent">保存并生成代理商账号</span>
+        <span class="btn btn-p" @click="saveAgent">{{ editingId === null ? '保存建档' : '保存修改' }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import {
+  listAgents,
+  createAgent,
+  updateAgent,
+  changeAgentStatus,
+  listAgentLevels,
+  createAgentLevel,
+  updateAgentLevel,
+  getPlans,
+  type AgentRow,
+  type AgentLevelRow,
+  type AgentUpdateBody,
+  type AgentLevelUpdateBody
+} from '../../api'
 
 /* ═══════════════════════════════════════════════════════════════
-   数据层：后端未提供代理商相关接口（③-b #70：删除"api.ts 未提供"这类会过期的实现细节）。
-   全部以空数组 / null 初始化并渲染空态；接入后端时在此补充调用。
-   待立项 T9（代理商域 4 表：主表 / 分润台账 / 结算 / 提现申请）——见 R101-C6-2 立项清单；
-   涉钱口径（分润、结算）须业主拍板后才开工。
+   数据层：R101-C6-3-3 **档 1** 已接线
+   · Tab① 代理商配置 = 代理商档案（列表/详情/新建/更新/状态流转）+ 层级权益配置（读写成套）
+   · Tab② 代理商分润（台账 / 结算 / 提现 / 计提）属档 2 / 档 3，**未开工**：
+     全部保持诚实空态并显式标注，页面不产生任何计提，也不预置任何示例数值。
    ═══════════════════════════════════════════════════════════════ */
-interface Kpi {
-  total?: number
-  lvl1?: number
-  lvl2?: number
-  merchants?: number
-  merchantsPct?: string
-  monthProfit?: number
-  pendingSettle?: number
-  pendingSettleCount?: number
-}
-const kpi = ref<Kpi | null>(null)
 
-const agentList = ref<any[]>([]) // TODO: GET /platform/agents
+/** 后端响应解包：axios 拦截器原样返回 AxiosResponse ⇒ data.data 为业务载荷 */
+function payloadOf(res: any): any {
+  return res?.data?.data ?? res?.data ?? null
+}
+
+/** 空白串 ⇒ null（列语义 NULL=未填写，不用空串冒充） */
+function blankToNull(value: string | null | undefined): string | null {
+  const text = String(value ?? '').trim()
+  return text === '' ? null : text
+}
+
+/* ── ① 代理商档案 ─────────────────────────────────────────── */
+const agentList = ref<AgentRow[]>([])
+const agentTotal = ref<number | null>(null)
 const agentPage = ref(1)
 const agentPageSize = 10
-const agentTotalPages = computed(() => Math.max(1, Math.ceil(agentList.value.length / agentPageSize)))
+const agentKeyword = ref('')
+const agentLoading = ref(false)
+const agentError = ref('')
+const agentTotalPages = computed(() =>
+  Math.max(1, Math.ceil((agentTotal.value ?? 0) / agentPageSize))
+)
+const agentTotalText = computed(() => (agentTotal.value === null ? '—' : String(agentTotal.value)))
 
-const ledgerList = ref<any[]>([]) // TODO: GET /platform/agents/profit-ledger
+const STATUS_TEXT: Record<string, string> = {
+  PENDING: '待审核',
+  ACTIVE: '正常',
+  FROZEN: '冻结',
+  TERMINATED: '终止'
+}
+const STATUS_CLASS: Record<string, string> = {
+  PENDING: 'tag-o',
+  ACTIVE: 'tag-b',
+  FROZEN: 'tag-gy',
+  TERMINATED: 'tag-gy'
+}
+function statusText(status: string): string {
+  return STATUS_TEXT[status] ?? status
+}
+function statusClass(status: string): string {
+  return STATUS_CLASS[status] ?? 'tag-gy'
+}
+
+async function loadAgents() {
+  agentLoading.value = true
+  agentError.value = ''
+  try {
+    const res: any = await listAgents({
+      page: agentPage.value,
+      pageSize: agentPageSize,
+      keyword: agentKeyword.value.trim() || undefined
+    })
+    const data = payloadOf(res)
+    agentList.value = Array.isArray(data?.items) ? data.items : []
+    const total = Number(data?.total)
+    agentTotal.value = Number.isFinite(total) ? total : agentList.value.length
+  } catch {
+    // 拦截器已给中文提示；这里只做内容区错误态，不造数
+    agentList.value = []
+    agentTotal.value = null
+    agentError.value = '代理商列表加载失败 —— 已留空，不造数'
+  } finally {
+    agentLoading.value = false
+  }
+}
+
+function searchAgents() {
+  agentPage.value = 1
+  void loadAgents()
+}
+
+function gotoPage(page: number) {
+  const next = Math.min(Math.max(1, page), agentTotalPages.value)
+  if (next === agentPage.value) return
+  agentPage.value = next
+  void loadAgents()
+}
+
+/* ── ①-b 层级权益配置（D11③ 层级名称自定义；零预置） ───────── */
+interface LevelDraft {
+  levelName: string
+  allowSubLevel: boolean
+  planScope: number[]
+  discountLow: string
+  discountHigh: string
+  profitModeSignup: boolean
+  profitModeRenew: boolean
+  profitModeUpsell: boolean
+  profitRateSignup: string
+  profitRateRenew: string
+  profitRateUpsell: string
+  sortNo: string
+  status: 'ACTIVE' | 'DISABLED'
+}
+
+const levelList = ref<AgentLevelRow[]>([])
+const levelDrafts = ref<Record<number, LevelDraft>>({})
+const planOptions = ref<{ id: number; planName: string }[]>([])
+const showLevelForm = ref(false)
+const levelForm = ref({ levelCode: '', levelName: '', sortNo: '' })
+
+/** 未配置 ⇒ 空串（输入框留空），不用 0 冒充；回填时 null 也落空串 */
+function numText(value: number | null): string {
+  return value === null || value === undefined ? '' : String(value)
+}
+
+function syncDrafts() {
+  const next: Record<number, LevelDraft> = {}
+  for (const lv of levelList.value) {
+    next[lv.id] = {
+      levelName: lv.levelName,
+      allowSubLevel: lv.allowSubLevel,
+      planScope: Array.isArray(lv.planScope) ? [...lv.planScope] : [],
+      discountLow: numText(lv.discountLow),
+      discountHigh: numText(lv.discountHigh),
+      profitModeSignup: lv.profitModeSignup,
+      profitModeRenew: lv.profitModeRenew,
+      profitModeUpsell: lv.profitModeUpsell,
+      profitRateSignup: numText(lv.profitRateSignup),
+      profitRateRenew: numText(lv.profitRateRenew),
+      profitRateUpsell: numText(lv.profitRateUpsell),
+      sortNo: String(lv.sortNo ?? 0),
+      status: lv.status === 'DISABLED' ? 'DISABLED' : 'ACTIVE'
+    }
+  }
+  levelDrafts.value = next
+}
+
+async function loadLevels() {
+  try {
+    const res: any = await listAgentLevels()
+    const items = payloadOf(res)?.items
+    levelList.value = Array.isArray(items) ? items : []
+  } catch {
+    levelList.value = []
+  }
+  syncDrafts()
+  buildProfitMatrix()
+}
+
+async function loadPlans() {
+  try {
+    const res: any = await getPlans()
+    const records = payloadOf(res)?.records
+    planOptions.value = (Array.isArray(records) ? records : [])
+      .map((p: any) => ({
+        id: Number(p.id ?? p.planId),
+        planName: String(p.planName || p.name || p.planCode || '')
+      }))
+      .filter((p) => Number.isFinite(p.id) && p.id > 0)
+  } catch {
+    // 套餐管理取不到 ⇒ 可售套餐范围面板显示「套餐管理暂无套餐」，不编造套餐名
+    planOptions.value = []
+  }
+}
+
+function toggleScope(lv: AgentLevelRow, planId: number) {
+  const draft = levelDrafts.value[lv.id]
+  if (!draft) return
+  const index = draft.planScope.indexOf(planId)
+  if (index >= 0) draft.planScope.splice(index, 1)
+  else draft.planScope.push(planId)
+}
+
+async function saveNewLevel() {
+  const lf = levelForm.value
+  if (!lf.levelCode.trim() || !lf.levelName.trim()) {
+    ElMessage.error('层级编码与层级名称为必填项')
+    return
+  }
+  try {
+    await createAgentLevel({
+      levelCode: lf.levelCode.trim(),
+      levelName: lf.levelName.trim(),
+      sortNo: lf.sortNo.trim() === '' ? undefined : Number(lf.sortNo)
+    })
+    ElMessage.success('层级已创建（比例 / 折扣 / 可售套餐范围未配置 ⇒ 留空为 NULL）')
+    levelForm.value = { levelCode: '', levelName: '', sortNo: '' }
+    showLevelForm.value = false
+    await loadLevels()
+  } catch {
+    // 拦截器已提示（重复编码 ⇒ 409 中文文案）
+  }
+}
+
+async function saveLevel(lv: AgentLevelRow) {
+  const draft = levelDrafts.value[lv.id]
+  if (!draft) return
+
+  const parseNum = (text: string): number | null => {
+    const trimmed = text.trim()
+    return trimmed === '' ? null : Number(trimmed)
+  }
+  const numeric = [
+    ['discountLow', parseNum(draft.discountLow), lv.discountLow],
+    ['discountHigh', parseNum(draft.discountHigh), lv.discountHigh],
+    ['profitRateSignup', parseNum(draft.profitRateSignup), lv.profitRateSignup],
+    ['profitRateRenew', parseNum(draft.profitRateRenew), lv.profitRateRenew]
+  ] as const
+  for (const [field, next] of numeric) {
+    if (next !== null && !Number.isFinite(next)) {
+      ElMessage.error(`${field} 须为数字，或留空表示未配置`)
+      return
+    }
+  }
+
+  const body: AgentLevelUpdateBody = {}
+  if (draft.allowSubLevel !== lv.allowSubLevel) body.allowSubLevel = draft.allowSubLevel
+  const nextScope = draft.planScope.length ? [...draft.planScope].sort((a, b) => a - b) : null
+  const currentScope = lv.planScope && lv.planScope.length ? [...lv.planScope].sort((a, b) => a - b) : null
+  if (JSON.stringify(nextScope) !== JSON.stringify(currentScope)) body.planScope = nextScope
+  for (const [field, next, current] of numeric) {
+    if (next !== current) (body as any)[field] = next
+  }
+  if (draft.profitModeSignup !== lv.profitModeSignup) body.profitModeSignup = draft.profitModeSignup
+  if (draft.profitModeRenew !== lv.profitModeRenew) body.profitModeRenew = draft.profitModeRenew
+
+  if (Object.keys(body).length === 0) {
+    ElMessage.info('层级配置没有变化，未提交')
+    return
+  }
+  try {
+    await updateAgentLevel(lv.id, body)
+    ElMessage.success('层级配置已保存（档 1 只存配置值，不产生任何计提）')
+    await loadLevels()
+  } catch {
+    // 拦截器已提示（折扣倒挂 / 无变更等 ⇒ 400 中文文案）
+  }
+}
+
+/* ── ①-c 建档 / 编辑抽屉（字段集与后端 POST /platform/agents 一致） ── */
+interface AgentForm {
+  agentCode: string
+  agentName: string
+  levelId: number | null
+  region: string
+  contactName: string
+  contactPhone: string
+  remark: string
+}
+
+const showCreate = ref(false)
+const editingId = ref<number | null>(null)
+const form = ref<AgentForm>({
+  agentCode: '',
+  agentName: '',
+  levelId: null,
+  region: '',
+  contactName: '',
+  contactPhone: '',
+  remark: ''
+})
+
+function openCreate() {
+  editingId.value = null
+  form.value = {
+    agentCode: '',
+    agentName: '',
+    levelId: null,
+    region: '',
+    contactName: '',
+    contactPhone: '',
+    remark: ''
+  }
+  showCreate.value = true
+}
+
+function openEdit(agent: AgentRow) {
+  editingId.value = agent.id
+  form.value = {
+    agentCode: agent.agentCode,
+    agentName: agent.agentName,
+    levelId: agent.levelId,
+    region: agent.region ?? '',
+    contactName: agent.contactName ?? '',
+    contactPhone: agent.contactPhone ?? '',
+    remark: agent.remark ?? ''
+  }
+  showCreate.value = true
+}
+
+function closeCreate() {
+  showCreate.value = false
+}
+
+async function saveAgent() {
+  const f = form.value
+  if (!f.agentName.trim()) {
+    ElMessage.error('请填写代理商名称')
+    return
+  }
+
+  if (editingId.value === null) {
+    if (!f.agentCode.trim()) {
+      ElMessage.error('请填写代理商编码')
+      return
+    }
+    if (f.levelId == null) {
+      ElMessage.error('请选择层级（若尚无层级，请先新建层级权益配置）')
+      return
+    }
+    try {
+      await createAgent({
+        agentCode: f.agentCode.trim(),
+        agentName: f.agentName.trim(),
+        levelId: f.levelId,
+        region: blankToNull(f.region),
+        contactName: blankToNull(f.contactName),
+        contactPhone: blankToNull(f.contactPhone),
+        remark: blankToNull(f.remark)
+      })
+      ElMessage.success('代理商档案已创建（状态：待审核）')
+      showCreate.value = false
+      await loadAgents()
+    } catch {
+      // 拦截器已提示（重复编码 ⇒ 409 / 层级不存在 ⇒ 400）
+    }
+    return
+  }
+
+  const current = agentList.value.find((item) => item.id === editingId.value)
+  const body: AgentUpdateBody = {}
+  if (current) {
+    if (f.agentName.trim() !== current.agentName) body.agentName = f.agentName.trim()
+    if (f.levelId != null && f.levelId !== current.levelId) body.levelId = f.levelId
+    if (blankToNull(f.region) !== (current.region ?? null)) body.region = blankToNull(f.region)
+    if (blankToNull(f.contactName) !== (current.contactName ?? null)) body.contactName = blankToNull(f.contactName)
+    if (blankToNull(f.contactPhone) !== (current.contactPhone ?? null)) body.contactPhone = blankToNull(f.contactPhone)
+    if (blankToNull(f.remark) !== (current.remark ?? null)) body.remark = blankToNull(f.remark)
+  }
+  if (Object.keys(body).length === 0) {
+    ElMessage.info('没有字段发生变化，未提交')
+    return
+  }
+  try {
+    await updateAgent(editingId.value, body)
+    ElMessage.success('代理商档案已保存')
+    showCreate.value = false
+    await loadAgents()
+  } catch {
+    // 拦截器已提示
+  }
+}
+
+/** 状态流转（状态机由后端裁决：非法流转 ⇒ 400 中文文案） */
+async function changeStatus(agent: AgentRow, status: 'ACTIVE' | 'FROZEN' | 'TERMINATED') {
+  try {
+    await changeAgentStatus(agent.id, { status })
+    ElMessage.success(`已流转：${statusText(agent.status)} → ${statusText(status)}`)
+    await loadAgents()
+  } catch {
+    // 拦截器已提示
+  }
+}
+
+/* ── ② 代理商分润（档 2 未开工；下面均为诚实空态 / 只读占位） ── */
+const ledgerList = ref<any[]>([])
 const ledgerPage = ref(1)
 const ledgerTotalPages = computed(() => Math.max(1, Math.ceil(ledgerList.value.length / agentPageSize)))
 
@@ -640,73 +1006,43 @@ interface Settle {
   pendingBatches?: number
   byAgent: { name: string; amount: number }[]
 }
-const settle = ref<Settle | null>(null) // TODO: GET /platform/agents/settlement-summary
-const withdrawList = ref<any[]>([]) // TODO: GET /platform/agents/withdraw-apply?status=PENDING
+const settle = ref<Settle | null>(null)
+const withdrawList = ref<any[]>([])
 
-/* 层级权益配置（配置型 UI，非业务记录；接入后由接口回填） */
-const l1 = ref({
-  tiers: { basic: true, standard: true, flagship: true, free: false },
-  discountLow: '7.5',
-  discountHigh: '8.8',
-  canDevelop: true,
-})
-const l2 = ref({
-  tiers: { basic: true, standard: true, flagship: false, free: false },
-  discountLow: '8.2',
-  discountHigh: '9.0',
-  canDevelop: false,
-})
-
-/* 分润比例矩阵（行=层级 / 列=套餐档位）；默认未配置（null=未设置），保存后生效 */
-const matrix = ref([
-  { level: '一级代理', sub: '直接签约平台', cells: [{ value: null }, { value: null }, { value: null }] },
-  { level: '二级代理', sub: '由一级发展 · 平台备案', cells: [{ value: null }, { value: null }, { value: null }] },
-])
+/**
+ * 比例矩阵：行 = 真实层级（D11③ 自定义命名），列 = 套餐档位。
+ * 档 2 未开工 ⇒ 单元格一律保持"未设置"且输入禁用（不产生任何计提、不落任何比例）。
+ */
+const MATRIX_PLACEHOLDER_COLUMNS = 3
+const matrix = ref<{ level: string; sub: string; cells: { value: null }[] }[]>([])
+function buildProfitMatrix() {
+  matrix.value = levelList.value.map((lv) => ({
+    level: lv.levelName,
+    sub: lv.levelCode,
+    cells: Array.from({ length: MATRIX_PLACEHOLDER_COLUMNS }, () => ({ value: null }))
+  }))
+}
 function resetMatrix() {
-  matrix.value.forEach((r) => r.cells.forEach((c) => (c.value = null)))
+  matrix.value.forEach((row) => row.cells.forEach((cell) => (cell.value = null)))
 }
 
-/* 分润模式开关（配置型 UI） */
-const sw = ref({ newOrder: true, renew: false, renewRate: 60, valueAdd: false })
+const sw = ref({ newOrder: false, renew: false, renewRate: '', valueAdd: false })
+const settleCfg = ref({ period: '月结', threshold: '', method: '对公转账' })
 
-/* 结算规则配置 */
-const settleCfg = ref({ period: '月结', threshold: '¥ 500', method: '对公转账' })
-
-/* 开通代理商抽屉表单 */
-const showCreate = ref(false)
-const hasOverlap = ref(false)
-const overlapCount = ref(0)
-const form = ref({
-  name: '',
-  contact: '',
-  phone: '',
-  zones: [] as string[],
-  promoCode: '',
-  startDate: '',
-  endDate: '',
-  accountName: '',
-  bank: '',
-  bankAccount: '',
-})
-
-function openCreate() {
-  showCreate.value = true
-}
-function closeCreate() {
-  showCreate.value = false
-}
-function saveAgent() {
-  // ③-b #77（主行 #76）：POST /platform/agents（创建代理商 + 生成账号）属 T9 立项项 ⇒ 不产生任何变更
-  showCreate.value = false
-}
 function todo(_name: string) {
-  // ③-b #77：分润规则 / 试算 / 导出 / 生成结算单 等操作同属 T9 立项项（S3 立项卡落地后接入）
+  // 档 2/档 3（台账 / 试算 / 结算 / 提现）未开工：不产生任何变更
 }
 
 function money(n: number | null | undefined): string {
   if (n == null) return '—'
   return '¥' + n.toLocaleString('zh-CN')
 }
+
+onMounted(() => {
+  void loadLevels()
+  void loadPlans()
+  void loadAgents()
+})
 </script>
 
 <style scoped>

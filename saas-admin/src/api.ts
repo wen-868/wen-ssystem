@@ -790,3 +790,165 @@ export function replaceDataDictItems(dictType: string, body: DataDictReplaceBody
     body
   );
 }
+
+// ==================== 平台代理商域（R101-C6-3-3 **档 1**；迁移 186/187 + 后端 platform-agent.*） ====================
+// 端点契约唯一真相源：backend/src/routes/platform-agent.routes.ts（前缀 /api/platform/agents，8 条）
+// 档 1 边界（红线①）：只有**档案**与**层级权益配置**；比例字段是"配置值"，本模块**不产生任何计提**——
+//   Tab② 分润台账 / 结算 / 提现属档 2/档 3，未开工，本文件不提供任何台账或结算函数。
+/** 代理商档案行：{ id, agentCode, agentName, levelId, levelName, region, contactName, contactPhone, status, remark } */
+export interface AgentRow {
+  id: number;
+  agentCode: string;
+  agentName: string;
+  levelId: number;
+  levelName: string | null;
+  region: string | null;
+  contactName: string | null;
+  contactPhone: string | null;
+  /** PENDING-待审核 / ACTIVE-正常 / FROZEN-冻结 / TERMINATED-终止 */
+  status: string;
+  remark: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** 代理商分页结果（卡 §四 逐字：items/total/page/pageSize） */
+export interface AgentListResult {
+  items: AgentRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** POST /platform/agents 请求体（与后端 createBodySchema 字段集逐字一致） */
+export interface AgentCreateBody {
+  agentCode: string;
+  agentName: string;
+  levelId: number;
+  region?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  remark?: string | null;
+}
+
+/** PUT /platform/agents/:id 请求体：全部可选，但**至少给一项**（后端 zod 反射 + 服务层"无变更 ⇒ 400"双护栏） */
+export interface AgentUpdateBody {
+  agentName?: string;
+  levelId?: number;
+  region?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  remark?: string | null;
+}
+
+/** POST /platform/agents/:id/status 请求体：取值同后端四态枚举，非法流转 ⇒ 400 */
+export interface AgentStatusBody {
+  status: "PENDING" | "ACTIVE" | "FROZEN" | "TERMINATED";
+}
+
+/** 层级权益配置行：比例/折扣/套餐范围**未配置即 null**（不得折成 0/空数组） */
+export interface AgentLevelRow {
+  id: number;
+  levelCode: string;
+  /** D11③ 自定义命名（不写死"一级/二级"） */
+  levelName: string;
+  allowSubLevel: boolean;
+  /** 可售套餐范围：planId 数组；未配置 ⇒ null */
+  planScope: number[] | null;
+  discountLow: number | null;
+  discountHigh: number | null;
+  profitModeSignup: boolean;
+  profitModeRenew: boolean;
+  /** D11② 增值收入初期关闭（默认 false） */
+  profitModeUpsell: boolean;
+  /** D11① 分润比例＝配置值；未配置 ⇒ null（档 1 不产生任何计提） */
+  profitRateSignup: number | null;
+  profitRateRenew: number | null;
+  profitRateUpsell: number | null;
+  sortNo: number;
+  status: string;
+}
+
+/** POST /platform/agents/levels 请求体（levelCode 必填；未配置项传 null 或不传，**不要传 0/空数组冒充**） */
+export interface AgentLevelCreateBody {
+  levelCode: string;
+  levelName: string;
+  allowSubLevel?: boolean;
+  planScope?: number[] | null;
+  discountLow?: number | null;
+  discountHigh?: number | null;
+  profitModeSignup?: boolean;
+  profitModeRenew?: boolean;
+  profitModeUpsell?: boolean;
+  profitRateSignup?: number | null;
+  profitRateRenew?: number | null;
+  profitRateUpsell?: number | null;
+  sortNo?: number;
+  status?: "ACTIVE" | "DISABLED";
+}
+
+/** PUT /platform/agents/levels/:id 请求体：levelCode 不可改，其余同上 */
+export interface AgentLevelUpdateBody {
+  levelName?: string;
+  allowSubLevel?: boolean;
+  planScope?: number[] | null;
+  discountLow?: number | null;
+  discountHigh?: number | null;
+  profitModeSignup?: boolean;
+  profitModeRenew?: boolean;
+  profitModeUpsell?: boolean;
+  profitRateSignup?: number | null;
+  profitRateRenew?: number | null;
+  profitRateUpsell?: number | null;
+  sortNo?: number;
+  status?: "ACTIVE" | "DISABLED";
+}
+
+/** GET /platform/agents —— 代理商列表（分页 + 关键词；空表 ⇒ items: []） */
+export function listAgents(params?: { page?: number; pageSize?: number; keyword?: string }) {
+  return api.get<any, { data: ApiResult<AgentListResult> }>("/platform/agents", { params });
+}
+
+/** GET /platform/agents/:id —— 详情（未知 id ⇒ 404） */
+export function getAgent(id: number) {
+  return api.get<any, { data: ApiResult<AgentRow> }>(`/platform/agents/${id}`);
+}
+
+/** POST /platform/agents —— 新建档案（agentCode 重复 ⇒ 409；levelId 不存在 ⇒ 400） */
+export function createAgent(body: AgentCreateBody) {
+  return api.post<any, { data: ApiResult<AgentRow> }>("/platform/agents", body);
+}
+
+/** PUT /platform/agents/:id —— 部分更新 → { id, changedFields }；未知 id ⇒ 404；无变更 ⇒ 400 */
+export function updateAgent(id: number, body: AgentUpdateBody) {
+  return api.put<any, { data: ApiResult<{ id: number; changedFields: string[] }> }>(
+    `/platform/agents/${id}`,
+    body
+  );
+}
+
+/** POST /platform/agents/:id/status —— 状态流转（非法流转 ⇒ 400；未知 id ⇒ 404） */
+export function changeAgentStatus(id: number, body: AgentStatusBody) {
+  return api.post<any, { data: ApiResult<{ id: number; status: string }> }>(
+    `/platform/agents/${id}/status`,
+    body
+  );
+}
+
+/** GET /platform/agents/levels —— 层级列表（零预置 ⇒ 空表 ⇒ items: []） */
+export function listAgentLevels() {
+  return api.get<any, { data: ApiResult<{ items: AgentLevelRow[] }> }>("/platform/agents/levels");
+}
+
+/** POST /platform/agents/levels —— 新建层级（levelCode 重复 ⇒ 409） */
+export function createAgentLevel(body: AgentLevelCreateBody) {
+  return api.post<any, { data: ApiResult<AgentLevelRow> }>("/platform/agents/levels", body);
+}
+
+/** PUT /platform/agents/levels/:id —— 层级部分更新 → { id, changedFields }；未知 id ⇒ 404；无变更 ⇒ 400 */
+export function updateAgentLevel(id: number, body: AgentLevelUpdateBody) {
+  return api.put<any, { data: ApiResult<{ id: number; changedFields: string[] }> }>(
+    `/platform/agents/levels/${id}`,
+    body
+  );
+}
