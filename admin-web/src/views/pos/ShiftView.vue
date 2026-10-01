@@ -57,7 +57,7 @@
         <el-table-column prop="totalOrders" label="订单数" width="80" />
         <el-table-column label="操作" width="160">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="goToDetail(row.id)">详情</el-button>
+            <el-button size="small" link type="primary" @click="goToDetail(row.shiftNo)">详情</el-button>
             <el-button
               v-if="row.status === 'IN_PROGRESS'"
               size="small"
@@ -235,8 +235,22 @@ async function loadShifts() {
       date: filterDate.value || undefined,
       shiftType: filterShiftType.value || undefined
     });
-    shifts.value = data?.records || [];
-    total.value = data?.total || 0;
+    // 后端 GET /store/shift/history（shift.service.ts getShiftHistory）返回的是**数组**，
+    // 列名为 settle_date / shift_no / total_sales / total_received / status / created_at。
+    // 原实现按分页对象 data?.records 取数 ⇒ 列表恒空、goToDetail(row.id) 取到 undefined。
+    const raw = data as any;
+    const rows: any[] = Array.isArray(raw) ? raw : raw?.records ?? raw?.list ?? [];
+    shifts.value = rows.map((r: any) => ({
+      shiftNo: r.shiftNo ?? r.shift_no ?? "",
+      shiftType: r.shiftType ?? r.shift_type ?? "",
+      operatorName: r.operatorName ?? r.operator_name ?? "",
+      startTime: r.startTime ?? r.start_time ?? "",
+      endTime: r.endTime ?? r.end_time ?? "",
+      status: r.status ?? "",
+      totalSalesAmount: Number(r.totalSalesAmount ?? r.totalSales ?? r.total_sales ?? 0),
+      totalOrders: r.totalOrders ?? null
+    }));
+    total.value = Array.isArray(raw) ? shifts.value.length : raw?.total ?? shifts.value.length;
   } catch {
     ElMessage.warning("交接班记录加载失败");
   } finally {
@@ -262,8 +276,11 @@ function resetFilter() {
   loadShifts();
 }
 
-function goToDetail(shiftId: number) {
-  router.push(`/pos/shifts/${shiftId}`);
+// 详情路由在 router/index.ts 中定义为 `pos/shift/:id`（参数承载交接班编号 shiftNo），
+// 原实现跳 `/pos/shifts/:id` 与定义不匹配（落 404）。
+function goToDetail(shiftNo: string) {
+  if (!shiftNo) return;
+  router.push(`/pos/shift/${shiftNo}`);
 }
 
 function showCompleteDialog(row: any) {

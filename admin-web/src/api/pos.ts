@@ -233,7 +233,9 @@ export async function createStoreShift(payload: {
   operatorName?: string;
   remark?: string;
 }) {
-  const { data } = await api.post("/store/shift/settle", payload);
+  // 创建交接班：后端真实端点为 POST /api/store/shifts（shift.controller.createShift → t_shift 落库）。
+  // 原实现误打到班结端点 POST /store/shift/settle（只写 t_daily_settlement，收 actualAmount，不创建交接班）。
+  const { data } = await api.post("/store/shifts", payload);
   return data.data;
 }
 
@@ -256,18 +258,26 @@ export async function completeStoreShift(shiftId: number, payload: {
   return data.data;
 }
 
-export async function getStoreShiftSalesStats(shiftId: number) {
-  const { data } = await api.get(`/store/shifts/${shiftId}/sales-stats`);
+// 「按单号」系列端点的真实路径见 backend/src/routes/store-shift.routes.ts（前缀 /api/store）：
+//   POST /store/shifts                 创建交接班（t_shift）
+//   GET  /store/shifts/:shiftNo        交接班详情
+//   GET  /store/shifts/:shiftNo/sales  本班次销售统计
+//   GET  /store/shifts/:shiftNo/check  门店库存快照
+//   POST /store/shifts/:shiftNo/check  提交盘点明细
+// 形参统一为 shiftNo（t_shift.shift_no 为字符串编号，如 JB…），与 fetchStoreShiftDetail 保持一致；
+// 原实现打的是 `/store/shifts/:id/sales-stats`、`/store/shifts/:id/stock-check`，后端均未注册（必 404）。
+export async function getStoreShiftSalesStats(shiftNo: string | number) {
+  const { data } = await api.get(`/store/shifts/${shiftNo}/sales`);
   return data.data;
 }
 
-export async function getStoreShiftStockCheck(shiftId: number) {
-  const { data } = await api.get(`/store/shifts/${shiftId}/stock-check`);
+export async function getStoreShiftStockCheck(shiftNo: string | number) {
+  const { data } = await api.get(`/store/shifts/${shiftNo}/check`);
   return data.data;
 }
 
-export async function submitStoreShiftStockCheck(shiftId: number, items: Array<{ skuId: number; bookQty: number; actualQty: number; diffReason?: string }>) {
-  const { data } = await api.post(`/store/shifts/${shiftId}/stock-check`, { items });
+export async function submitStoreShiftStockCheck(shiftNo: string | number, items: Array<{ skuId: number; bookQty: number; actualQty: number; diffReason?: string }>) {
+  const { data } = await api.post(`/store/shifts/${shiftNo}/check`, { items });
   return data.data;
 }
 
