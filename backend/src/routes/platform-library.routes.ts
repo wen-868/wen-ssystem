@@ -4,6 +4,12 @@ import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/library.controller";
+import {
+  listCallLogs,
+  getCallStats,
+  getTenantRank,
+  getCallTrend,
+} from "../controllers/platform/library-call-log.controller";
 
 /**
  * C6-1A #27：品牌授权书上传（复用既有上传范式，凌舟裁定 C6-0-R4 不引入 OSS）
@@ -100,6 +106,14 @@ platformLibraryRouter.delete("/api-keys/:id", asyncHandler(controller.deleteApiK
 
 // GET /api/platform/library/api-keys/:id/stats - 调用统计
 platformLibraryRouter.get("/api-keys/:id/stats", asyncHandler(controller.getApiKeyStats));
+
+// ─── R101-C6-4-1：平台侧调取统计（4 条，路径逐字对齐立项草案 §4.3 P1~P4） ────
+// 取数点唯一 = t_library_call_log（禁用 t_library_spu.hit_count，那是扫码命中）
+// 传 librarySpuId 即"某商品被哪些租户调取"；P5 类目分布按 Q9 不注册（无类目载体）
+platformLibraryRouter.get("/call-logs", asyncHandler(listCallLogs));
+platformLibraryRouter.get("/stats", asyncHandler(getCallStats));
+platformLibraryRouter.get("/stats/rank", asyncHandler(getTenantRank));
+platformLibraryRouter.get("/stats/trend", asyncHandler(getCallTrend));
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/library",
