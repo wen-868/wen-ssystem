@@ -1,4 +1,6 @@
-import { queryOne } from "../../shared/db";
+import { queryOne, connQueryOne } from "../../shared/db";
+import type { PoolConnection } from "mysql2/promise";
+import type { RowDataPacket } from "mysql2";
 
 /**
  * R101-S2-01 批 4 · 租户「资源配额使用情况」只读聚合
@@ -185,5 +187,64 @@ export async function getTenantQuota(tenantId: string): Promise<TenantQuotaResul
       aiMonthly,
     },
     unavailable,
+  };
+}
+
+// ─── R101-C6-4-1：商品配额单一口径（COPY 调取与租户侧预览共用） ────────────────
+
+/** 商品配额快照 */
+export interface ProductQuota {
+  /** 已用：COUNT(t_product_spu WHERE tenant_id = ?) —— 与既有只读聚合的 used 同源同口径 */
+  used: number;
+  /** 上限：t_subscription_plan.max_products（无订阅 ⇒ null，不得落 0 冒充"上限 0"） */
+  limit: number | null;
+  /** 剩余：limit - used（无上限 ⇒ null，不假装有额度） */
+  remaining: number | null;
+}
+
+interface PlanMaxProductsRow extends RowDataPacket {
+  maxProducts: number | null;
+}
+
+interface ProductSpuCountRow extends RowDataPacket {
+  total: number | string;
+}
+
+/**
+ * 取租户「商品配额」（唯一口径，供两处复用）
+ *
+ * ① COPY 调取前置校验：`conn` 传事务连接时，计数与后续写入落在**同一事务**内，
+ *    避免并发多请求同时放行造成超卖；未命中套餐上限（limit = null）⇒ 不拦截。
+ * ② 租户侧调取预览端点（GET /api/admin/library/spus/:id）复用同一口径，
+ *    避免出现第二份 COUNT 口径（标准 §零.3"公共逻辑只写一次"）。
+ *
+ * 口径与 getTenantQuota 的 products 维一致：上限取"最近一次 ACTIVE 订阅优先"的套餐 max_products，
+ * 用量取 COUNT(t_product_spu)。本函数不改变 getTenantQuota 既有行为（该函数仍走自己的并发聚合并保持原样）。
+ */
+export async function getProductQuota(
+  tenantId: string,
+  conn?: PoolConnection
+): Promise<ProductQuota> {
+  const planSql =
+    `SELECT p.max_products AS maxProducts
+     FROM t_subscription s JOIN t_subscription_plan p ON p.id = s.plan_id
+     WHERE s.tenant_id = ?
+     ORDER BY (s.status = 'ACTIVE') DESC, s.created_at DESC, s.id DESC
+     LIMIT 1`;
+  const usedSql = `SELECT COUNT(*) AS total FROM t_product_spu WHERE tenant_id = ?`;
+
+  const planRow = conn
+    ? await connQueryOne<PlanMaxProductsRow>(conn, planSql, [tenantId])
+    : await queryOne<PlanMaxProductsRow>(planSql, [tenantId]);
+  const usedRow = conn
+    ? await connQueryOne<ProductSpuCountRow>(conn, usedSql, [tenantId])
+    : await queryOne<ProductSpuCountRow>(usedSql, [tenantId]);
+
+  const limit = planLimit(planRow?.maxProducts);
+  const used = Number(usedRow?.total ?? 0);
+  return {
+    used,
+    limit,
+    remaining: limit == null ? null : Math.max(limit - used, 0),
   };
 }
