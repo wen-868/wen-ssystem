@@ -97,6 +97,14 @@ export const createAdmin = asyncHandler(async (req, res) => {
 
 export const updateAdminStatus = asyncHandler(async (req, res) => {
   const adminId = Number(req.params.id);
+  // S3-138：与 resetAdminPassword 同语义、同文案（非数字 / 非正整数 ⇒ 400）。
+  // 修复前 Number("abc")=NaN 直接进 service，参数化后 NaN 被转义成字面量 NaN 打到 SQL 上，
+  // 落到 errorHandler 的「未知错误」分支返回 500，污染监控与告警。
+  if (!Number.isInteger(adminId) || adminId <= 0) {
+    res.status(400).json(fail("管理员 ID 不合法", "400"));
+    return;
+  }
+
   const body = z.object({
     status: z.enum(["ACTIVE", "DISABLED"])
   }).parse(req.body);

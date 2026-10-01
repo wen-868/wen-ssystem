@@ -18,7 +18,9 @@ vi.mock("../../../services/admin/platform-audit-log.service", () => ({
 
 import {
   invitePlatformAdmin,
-  resetPlatformAdminPassword
+  resetPlatformAdminPassword,
+  listPlatformAdmins,
+  updatePlatformAdminStatus
 } from "../../../services/platform/admin-account.service";
 
 const operator = { adminId: 1, adminName: "凌舟", ip: "10.0.0.1" };
@@ -112,6 +114,71 @@ describe("C6-1A · resetPlatformAdminPassword（#51 管理员代重置，零 DDL
   it("管理员不存在时 404（不静默成功）", async () => {
     mocks.queryOne.mockResolvedValue(null);
     await expect(resetPlatformAdminPassword(999, operator)).rejects.toMatchObject({ statusCode: 404 });
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+});
+
+// S3-138：status 的对外口径统一为字符串 'ACTIVE'/'DISABLED'（DB 列仍是 TINYINT，映射只在服务层）
+describe("S3-138 · 平台管理员 status 口径统一", () => {
+  const buildRow = (over: Record<string, unknown>) => ({
+    id: 1,
+    username: "admin",
+    realName: "超管",
+    phone: "13800138000",
+    email: null,
+    role: "SUPER_ADMIN",
+    status: 1,
+    lastLoginAt: null,
+    createdAt: "2026-10-01 00:00:00",
+    ...over
+  });
+
+  it("列表读：DB TINYINT 1/0 ⇒ 'ACTIVE'/'DISABLED'（与启停端点同形）", async () => {
+    mocks.query.mockResolvedValue([buildRow({ id: 1, status: 1 }), buildRow({ id: 2, status: 0 })]);
+    mocks.queryOne.mockResolvedValue({ total: 2 });
+
+    const res = await listPlatformAdmins(1, 20);
+
+    expect(res.records.map((r) => r.status)).toEqual(["ACTIVE", "DISABLED"]);
+  });
+
+  it("列表筛选入参走同一口径并映射回 TINYINT（ACTIVE ⇒ 1、DISABLED ⇒ 0）", async () => {
+    mocks.query.mockResolvedValue([]);
+    mocks.queryOne.mockResolvedValue({ total: 0 });
+
+    await listPlatformAdmins(1, 20, { status: "ACTIVE" });
+    expect((mocks.query.mock.calls[0][1] as unknown[])[0]).toBe(1);
+
+    mocks.query.mockClear();
+    await listPlatformAdmins(1, 20, { status: "DISABLED" });
+    expect((mocks.query.mock.calls[0][1] as unknown[])[0]).toBe(0);
+  });
+
+  it("列表筛选入参不在口径内 ⇒ 400（不静默兜底成 ACTIVE）", async () => {
+    await expect(listPlatformAdmins(1, 20, { status: "ON" })).rejects.toMatchObject({
+      statusCode: 400
+    });
+    expect(mocks.query).not.toHaveBeenCalled();
+    expect(mocks.queryOne).not.toHaveBeenCalled();
+  });
+
+  it("启停写：响应体是字符串口径，DB 落库仍是 TINYINT", async () => {
+    mocks.queryOne.mockResolvedValue({ id: 7 });
+    mocks.query.mockResolvedValue({ affectedRows: 1 });
+
+    const res = await updatePlatformAdminStatus(7, "DISABLED");
+
+    expect(res).toEqual({ id: 7, status: "DISABLED" });
+    const [sql, params] = mocks.query.mock.calls[0];
+    expect(String(sql)).toContain("UPDATE t_platform_admin SET status = ?");
+    expect((params as unknown[])[0]).toBe(0);
+  });
+
+  it("启停写：管理员不存在 ⇒ 404（与 reset-password 一致，不静默成功）", async () => {
+    mocks.queryOne.mockResolvedValue(null);
+    await expect(updatePlatformAdminStatus(999999, "ACTIVE")).rejects.toMatchObject({
+      statusCode: 404
+    });
     expect(mocks.query).not.toHaveBeenCalled();
   });
 });

@@ -34,6 +34,28 @@ interface PlatformAdminListRow {
   createdAt: Date | string;
 }
 
+/**
+ * S3-138：平台管理员 status 的**对外唯一口径**（字符串）。
+ * DB 列 `t_platform_admin.status` 仍是 TINYINT(1=启用/0=禁用)，只在服务层做映射；
+ * 列表（读）与启停（写）两条路径返回同一形态，前端不再需要按两种形态各判一次。
+ */
+export type PlatformAdminStatus = "ACTIVE" | "DISABLED";
+
+/** DB TINYINT ⇒ 对外字符串：0/'0'/'DISABLED' ⇒ DISABLED，其余（1/'1'）⇒ ACTIVE */
+export function toPlatformAdminStatus(
+  value: number | string | null | undefined
+): PlatformAdminStatus {
+  return value === 0 || value === "0" || value === "DISABLED" ? "DISABLED" : "ACTIVE";
+}
+
+/** 对外字符串 ⇒ DB TINYINT；取值不在统一口径内 ⇒ null（调用方按 400 处理，不静默兜底） */
+export function toPlatformAdminStatusValue(value: string | number): 0 | 1 | null {
+  const text = String(value);
+  if (text === "ACTIVE" || text === "1") return 1;
+  if (text === "DISABLED" || text === "0") return 0;
+  return null;
+}
+
 /** 总数行 */
 interface CountRow {
   total: number;
@@ -70,8 +92,17 @@ export async function listPlatformAdmins(
     params.push(filters.role);
   }
   if (filters?.status) {
+    // S3-138：筛选入参也用对外口径（ACTIVE/DISABLED），在此映射回 DB 的 TINYINT。
+    // 修复前直接把 'ACTIVE' 交给 SQL，MySQL 把字符串转成 0 ⇒ 筛「启用」实际返回「停用」。
+    const statusValue = toPlatformAdminStatusValue(filters.status);
+    if (statusValue === null) {
+      throw Object.assign(
+        new Error("status 取值不合法（应为 ACTIVE / DISABLED）"),
+        { statusCode: 400 }
+      );
+    }
     conditions.push("status = ?");
-    params.push(filters.status);
+    params.push(statusValue);
   }
   if (filters?.keyword) {
     conditions.push("(username LIKE ? OR real_name LIKE ? OR phone LIKE ?)");
@@ -100,7 +131,7 @@ export async function listPlatformAdmins(
     total: Number(totalRow?.total ?? 0),
     page,
     pageSize,
-    records: rows
+    records: rows.map((row) => ({ ...row, status: toPlatformAdminStatus(row.status) }))
   };
 }
 
@@ -145,8 +176,8 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
  */
 export async function updatePlatformAdminStatus(
   adminId: number,
-  status: "ACTIVE" | "DISABLED"
-) {
+  status: PlatformAdminStatus
+): Promise<{ id: number; status: PlatformAdminStatus }> {
   const existing = await queryOne<IdRow>(
     "SELECT id FROM t_platform_admin WHERE id = ?",
     [adminId]

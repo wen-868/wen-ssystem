@@ -139,6 +139,75 @@ describe("C6-1A · #41/#53/#64 平台管理员端点挂载", () => {
     );
     expect(updateCall).toBeTruthy();
     expect((updateCall as any)[1][0]).toBe(0);
+    // S3-138：启停响应体也是字符串口径（与列表同形）
+    expect(res.body.data.status).toBe("DISABLED");
+  });
+});
+
+// S3-138：① 非数字 id ⇒ 400（不再 500，与 reset-password 同语义）；② 未知数字 id ⇒ 404；③ status 读写同形（字符串）
+describe("S3-138 · 平台管理员 status 端点口径", () => {
+  it("PUT /api/platform/admins/abc/status ⇒ 400「管理员 ID 不合法」，且不落库（不得 500）", async () => {
+    const res = await authed(
+      request(platformApp).put("/api/platform/admins/abc/status").send({ status: "DISABLED" })
+    );
+    expect(res.status).toBe(400);
+    expect(res.body.msg).toBe("管理员 ID 不合法");
+    expect(hoisted.queryOne).not.toHaveBeenCalled();
+    expect(hoisted.query).not.toHaveBeenCalled();
+  });
+
+  it("POST /api/platform/admins/abc/reset-password ⇒ 400（对照：两条端点同语义同文案）", async () => {
+    const res = await authed(request(platformApp).post("/api/platform/admins/abc/reset-password"));
+    expect(res.status).toBe(400);
+    expect(res.body.msg).toBe("管理员 ID 不合法");
+    expect(hoisted.queryOne).not.toHaveBeenCalled();
+  });
+
+  it("PUT /api/platform/admins/999999/status ⇒ 404「管理员不存在」（合法但不存在）", async () => {
+    hoisted.queryOne.mockResolvedValue(null);
+    const res = await authed(
+      request(platformApp).put("/api/platform/admins/999999/status").send({ status: "ACTIVE" })
+    );
+    expect(res.status).toBe(404);
+    expect(res.body.msg).toBe("管理员不存在");
+  });
+
+  it("POST /api/platform/admins/999999/reset-password ⇒ 404（与 status 端点一致）", async () => {
+    hoisted.queryOne.mockResolvedValue(null);
+    const res = await authed(request(platformApp).post("/api/platform/admins/999999/reset-password"));
+    expect(res.status).toBe(404);
+    expect(res.body.msg).toBe("管理员不存在");
+  });
+
+  it("GET /api/platform/admins 列表 status 输出字符串（DB TINYINT 1/0 ⇒ ACTIVE/DISABLED）", async () => {
+    hoisted.query.mockResolvedValue([
+      { id: 1, username: "admin", realName: "超管", role: "SUPER_ADMIN", status: 1 },
+      { id: 2, username: "ops", realName: "运营", role: "ADMIN", status: 0 }
+    ]);
+    hoisted.queryOne.mockResolvedValue({ total: 2 });
+
+    const res = await authed(request(platformApp).get("/api/platform/admins?page=1&pageSize=20"));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.records.map((r: any) => r.status)).toEqual(["ACTIVE", "DISABLED"]);
+  });
+
+  it("列表筛选 status=ACTIVE ⇒ 映射回 TINYINT 1（不再把字符串直接交给 SQL）", async () => {
+    hoisted.query.mockResolvedValue([]);
+    hoisted.queryOne.mockResolvedValue({ total: 0 });
+
+    const res = await authed(request(platformApp).get("/api/platform/admins?status=ACTIVE"));
+
+    expect(res.status).toBe(200);
+    const listCall = hoisted.query.mock.calls[0];
+    expect(String(listCall[0])).toContain("status = ?");
+    expect((listCall[1] as unknown[])[0]).toBe(1);
+  });
+
+  it("列表筛选 status=UNKNOWN ⇒ 400（取值不在口径内不静默兜底）", async () => {
+    const res = await authed(request(platformApp).get("/api/platform/admins?status=UNKNOWN"));
+    expect(res.status).toBe(400);
+    expect(hoisted.query).not.toHaveBeenCalled();
   });
 });
 

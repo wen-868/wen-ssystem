@@ -161,6 +161,28 @@ describe("platform/platform.controller", () => {
       expect(adminAccountService.updatePlatformAdminStatus).toHaveBeenCalledWith(1, "DISABLED");
       expect(ok).toHaveBeenCalled();
     });
+
+    // S3-138：非数字 id 从 500 收敛为 400，语义/文案与同文件 resetAdminPassword 一致
+    it("updateAdminStatus - 非数字 id 应 400「管理员 ID 不合法」且不调用服务层", async () => {
+      const req = mockReq({ params: { id: "abc" }, body: { status: "DISABLED" } });
+      const res = mockRes();
+      await updateAdminStatus(req as any, res as any, vi.fn());
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(fail).toHaveBeenCalledWith("管理员 ID 不合法", "400");
+      expect(adminAccountService.updatePlatformAdminStatus).not.toHaveBeenCalled();
+    });
+
+    it("updateAdminStatus - id 为空串 / 0 / 负数同样按非法处理（同语义同文案）", async () => {
+      for (const bad of ["", "0", "-3"]) {
+        vi.clearAllMocks();
+        const req = mockReq({ params: { id: bad }, body: { status: "ACTIVE" } });
+        const res = mockRes();
+        await updateAdminStatus(req as any, res as any, vi.fn());
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(fail).toHaveBeenCalledWith("管理员 ID 不合法", "400");
+        expect(adminAccountService.updatePlatformAdminStatus).not.toHaveBeenCalled();
+      }
+    });
   });
 
   describe("数据统计", () => {
