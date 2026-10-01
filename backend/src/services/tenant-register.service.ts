@@ -229,6 +229,8 @@ export async function approveTenantApplication(applicationId: number, reviewerId
   const tenantId = randomUUID();
   const tenantCode = makeBizNo("T");
   // 租户展示名：t_tenant.name 为 NOT NULL 必填列（2026-09-08 生产实证缺列报错），取简称兜底全称
+  // S3-150：t_tenant.tenant_name 是平台租户列表/详情用的展示名（migration 152 新增，可空），
+  // 此前审批建租户漏写该列 ⇒ 平台列表名称为空；现与 name 同源写入。
   const displayName = application.company_short_name || application.company_name;
 
   // S3-144 B/C：先解析归因目标（越早失败越好）——邀请码不存在/已停用 ⇒ 400，不建"没有归因的半成品租户"
@@ -244,14 +246,14 @@ export async function approveTenantApplication(applicationId: number, reviewerId
     await connExecute<ResultSetHeader>(
       conn,
       `INSERT INTO t_tenant (
-        id, tenant_code, name, company_name, company_short_name,
+        id, tenant_code, name, tenant_name, company_name, company_short_name,
         contact_person, contact_mobile, contact_email,
         province, city, district, address,
         business_license, legal_person, industry, company_scale,
         source, status, review_status, reviewed_at, reviewed_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'APPROVED', NOW(), ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'APPROVED', NOW(), ?)`,
       [
-        tenantId, tenantCode, displayName, application.company_name, application.company_short_name || "",
+        tenantId, tenantCode, displayName, displayName, application.company_name, application.company_short_name || "",
         application.contact_person, application.contact_mobile, application.contact_email || "",
         application.province || "", application.city || "", application.district || "", application.address || "",
         application.business_license || "", application.legal_person || "",

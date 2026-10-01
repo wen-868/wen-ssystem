@@ -6,6 +6,7 @@ import {
   createTenant,
   updateTenant,
   toggleTenantStatus,
+  type TenantStatus,
 } from "../../services/platform-tenant.service";
 
 /** 租户列表 */
@@ -19,7 +20,7 @@ export async function listPlatformTenants(req: any, res: any) {
 
 /** 租户详情 */
 export async function getPlatformTenantById(req: any, res: any) {
-  const tenant = await getTenantById(Number(req.params.id));
+  const tenant = await getTenantById(String(req.params.id));
   if (!tenant) {
     res.status(404).json(fail("租户不存在", "404"));
     return;
@@ -51,7 +52,7 @@ export async function createPlatformTenant(req: any, res: any) {
 
 /** 更新租户 */
 export async function updatePlatformTenant(req: any, res: any) {
-  await updateTenant(Number(req.params.id), req.body);
+  await updateTenant(String(req.params.id), req.body);
   res.json(ok({ success: true }));
 }
 
@@ -62,6 +63,6 @@ export async function togglePlatformTenantStatus(req: any, res: any) {
     res.status(400).json(fail("无效的状态值", "400"));
     return;
   }
-  await toggleTenantStatus(Number(req.params.id), status);
-  res.json(ok({ success: true }));
+  const applied = await toggleTenantStatus(String(req.params.id), status as TenantStatus);
+  res.json(ok({ success: true, status: applied }));
 }

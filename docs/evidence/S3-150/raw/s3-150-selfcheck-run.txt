@@ -1,0 +1,56 @@
+# S3-150 自检/反测（私有 MariaDB @127.0.0.1:3399，datadir=C:\Users\XIONG\AppData\Local\Temp\s3-150-mdb-20261002-030818）
+# 时间：2026-10-02T03:08:18
+mariadb-install-db exit=0
+mysqld pid=19820
+
+## 正测（期望 SUMMARY 全 PASS，EXIT=0）
+[源码] 仓库内已是修复版：backend/src/services/platform-tenant.service.ts
+[源码] 仓库内已是修复版：backend/src/services/tenant-register.service.ts
+环境：11.4.5-MariaDB | @@sql_mode=IGNORE_SPACE,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+PASS | 私有实例开启 STRICT_TRANS_TABLES（1366 的前提） | actual=true
+起点读数：SELECT id, tenant_name, status FROM t_tenant WHERE id='11111111-1111-4111-8111-111111111111' ⇒ {"id":"11111111-1111-4111-8111-111111111111","tenant_name":"酒行UUID","status":1}
+原始请求：POST /api/platform/tenants/11111111-1111-4111-8111-111111111111/toggle {"status":"ACTIVE"} ⇒ HTTP 200 {"code":"0","msg":"成功","data":{"success":true,"status":"ACTIVE"},"traceId":"b13e6061-e98a-4e67-9898-1aba3cd04d2c"}
+落库读数：SELECT status FROM t_tenant WHERE id='11111111-1111-4111-8111-111111111111' ⇒ {"status":1}
+PASS | ①a 启停 ACTIVE：响应 status='ACTIVE' | actual="ACTIVE"
+PASS | ①b 启停 ACTIVE：DB status=1 | actual=1
+原始请求：POST /api/platform/tenants/11111111-1111-4111-8111-111111111111/toggle {"status":"DISABLED"} ⇒ HTTP 200 {"code":"0","msg":"成功","data":{"success":true,"status":"DISABLED"},"traceId":"ca94adae-0d34-41a0-ab2d-799596afa072"}
+落库读数：SELECT status FROM t_tenant WHERE id='11111111-1111-4111-8111-111111111111' ⇒ {"status":0}
+PASS | ①c 启停 DISABLED：响应 status='DISABLED' | actual="DISABLED"
+PASS | ①d 启停 DISABLED：DB status=0 | actual=0
+原始请求：GET /api/platform/tenants/11111111-1111-4111-8111-111111111111 ⇒ HTTP 200 {"id":"11111111-1111-4111-8111-111111111111","tenantCode":"T001","tenantName":"酒行UUID","contactName":"李四","contactMobile":"13900000000","contactEmail":"d@e.f","status":"ACTIVE","expireAt":null,"createdAt":"2026-10-02T03:08:37.000Z"}
+PASS | ②a UUID 型 id 详情可定位（HTTP 200） | actual=200
+PASS | ②b 详情 tenantName 非空 | actual="酒行UUID"
+PASS | ②c 详情 status 为字符串口径 | actual="ACTIVE"
+原始请求：GET /api/platform/tenants?page=1&pageSize=20 ⇒ HTTP 200 records.id=["default","11111111-1111-4111-8111-111111111111"] records.status=["ACTIVE"]
+PASS | ②d 列表出口 status 全为字符串口径 | actual=true
+PASS | ②e 列表 id 原样为字符串（含 UUID） | actual=true
+原始请求：POST /api/platform/tenants/123/toggle ⇒ HTTP 404 {"code":"404","msg":"租户不存在","traceId":"0425bd9b-493c-4026-b4eb-015ae16b5cab"}
+PASS | ③a 未知数字型 id 启停 ⇒ 404 | actual=404
+原始请求：POST /api/platform/tenants/not-exist-xyz/toggle ⇒ HTTP 404 {"code":"404","msg":"租户不存在","traceId":"453ac204-4c40-448c-b776-fd04beff1726"}
+PASS | ③b 未知非 UUID 字符串 id 启停 ⇒ 404 | actual=404
+PASS | ③c 未知数字型 id 详情 ⇒ 404 | actual=404
+PASS | ③d 未知 id 更新 ⇒ 404 | actual=404
+PASS | ③e 非法 status 值 ⇒ 400（不落库、不静默成功） | actual=400
+审批建租户：approveTenantApplication(applicationId=1) ⇒ tenantId=8f3790e0-74f3-4367-964c-1ac8d8788542
+落库读数：SELECT id, name, tenant_name, status FROM t_tenant WHERE id='8f3790e0-74f3-4367-964c-1ac8d8788542' ⇒ {"id":"8f3790e0-74f3-4367-964c-1ac8d8788542","name":"测试简称","tenant_name":"测试简称","status":1}
+PASS | ④a 审批建租户成功且返回 UUID 型 tenantId | actual=true
+PASS | ④b 审批建租户后 tenant_name 非空（= name 同源展示名） | actual="测试简称"
+平台列表按新租户名检索：GET /api/platform/tenants?keyword=测试简称 ⇒ {"id":"8f3790e0-74f3-4367-964c-1ac8d8788542","tenantCode":"T2026100259534","tenantName":"测试简称","contactName":null,"contactMobile":"13700000000","contactEmail":"","status":"ACTIVE","expireAt":null,"createdAt":"2026-10-02T03:08:37.000Z"}
+PASS | ④c 平台租户列表按名称可检索到新租户（名称不再空白） | actual="测试简称"
+SUMMARY: 18/18 PASS
+POSITIVE_EXIT=0
+
+## 反测（S3_150_NEGATIVE_TEST=1，期望 1366 + 端点 500，EXIT=0）
+[源码] 仓库内已是修复版：backend/src/services/platform-tenant.service.ts
+[源码] 仓库内已是修复版：backend/src/services/tenant-register.service.ts
+环境：11.4.5-MariaDB | @@sql_mode=IGNORE_SPACE,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+PASS | 私有实例开启 STRICT_TRANS_TABLES（1366 的前提） | actual=true
+反测模式：已在内存中把服务层 `SET status = ?` 的入参从映射值改回原始字符串（磁盘文件未改）
+      原始输出：code=ER_TRUNCATED_WRONG_VALUE_FOR_FIELD errno=1366 sqlState=22007 message=Incorrect integer value: 'ACTIVE' for column `s3_150_probe`.`t_tenant`.`status` at row 1
+PASS | 反测① 直接写字符串 'ACTIVE' 到 TINYINT 列 ⇒ 必报 1366 | actual={"code":"ER_TRUNCATED_WRONG_VALUE_FOR_FIELD","errno":1366}
+      端点原始响应：HTTP 500 body={"code":"500","msg":"服务器内部错误","traceId":"ba2d1a2f-0553-4859-9434-fe320d02c26f"}
+PASS | 反测② 去掉映射后 POST /:id/toggle ⇒ 500（证明「应为 200 且落库 1」这条断言会红） | actual=500
+      服务层原始错误：code=ER_TRUNCATED_WRONG_VALUE_FOR_FIELD errno=1366 sqlState=22007 message=Incorrect integer value: 'ACTIVE' for column `s3_150_probe`.`t_tenant`.`status` at row 1
+PASS | 反测③ 去掉映射后直接调 toggleTenantStatus ⇒ 抛 1366 | actual={"code":"ER_TRUNCATED_WRONG_VALUE_FOR_FIELD","errno":1366}
+SUMMARY: 4/4 PASS
+NEGATIVE_EXIT=0
