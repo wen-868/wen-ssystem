@@ -262,12 +262,21 @@ export async function completeStoreShift(shiftId: number, payload: {
   return data.data;
 }
 
+// 完成交接（S3-146）：唯一写端点 POST /store/shifts/:shiftNo/close —— 后端把该租户该门店的 t_shift
+// 由 OPEN 置 CLOSED 并落 end_time（**服务端时间**，前端不得传）。成功返回落库后的交接班详情；
+// 重复关闭 ⇒ HTTP 409（业务码 409，文案「交接班已完成，无需重复关闭」）。形参与详情端点一致，取编号 shiftNo。
+export async function closeStoreShift(shiftNo: string | number) {
+  const { data } = await api.post(`/store/shifts/${shiftNo}/close`);
+  return data.data;
+}
+
 // 「按单号」系列端点的真实路径见 backend/src/routes/store-shift.routes.ts（前缀 /api/store）：
 //   POST /store/shifts                 创建交接班（t_shift）
 //   GET  /store/shifts/:shiftNo        交接班详情
 //   GET  /store/shifts/:shiftNo/sales  本班次销售统计
 //   GET  /store/shifts/:shiftNo/check  门店库存快照
 //   POST /store/shifts/:shiftNo/check  提交盘点明细
+//   POST /store/shifts/:shiftNo/close  完成交接（关闭交接班，S3-146）
 // 形参统一为 shiftNo（t_shift.shift_no 为字符串编号，如 JB…），与 fetchStoreShiftDetail 保持一致；
 // 原实现打的是 `/store/shifts/:id/sales-stats`、`/store/shifts/:id/stock-check`，后端均未注册（必 404）。
 export async function getStoreShiftSalesStats(shiftNo: string | number) {

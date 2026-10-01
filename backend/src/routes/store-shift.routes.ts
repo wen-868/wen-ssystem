@@ -17,6 +17,8 @@ storeShiftRouter.get("/shifts/:shiftNo", shiftController.getShiftDetail);
 storeShiftRouter.get("/shifts/:shiftNo/sales", shiftController.getShiftSalesStats);
 storeShiftRouter.get("/shifts/:shiftNo/check", shiftController.getShiftStockCheck);
 storeShiftRouter.post("/shifts/:shiftNo/check", shiftController.submitShiftStockCheck);
+// S3-146：完成交接 —— 唯一写端点，把该租户该门店的 t_shift 由 OPEN 置 CLOSED 并落 end_time（服务端时间）
+storeShiftRouter.post("/shifts/:shiftNo/close", shiftController.closeShift);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

@@ -1,5 +1,6 @@
 import { query, queryOne } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import { AppError } from "../../shared/app-error";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -430,6 +431,50 @@ export async function getShiftSalesStats(tenantId: string, shiftNo: string) {
     new Date(row.startTime),
     row.endTime ? new Date(row.endTime) : null
   );
+}
+
+/**
+ * 关闭交接班（S3-146：把「完成交接」从"按钮摆着但不写库"变成**真能关闭**）
+ *
+ * 语义（钉死，与详情端点同口径）：
+ *  · 范围：**该租户该门店**的 `t_shift`（跨门店单号与不存在同样按业务级 404 处理，不透出其它门店数据）；
+ *  · 动作：`status: OPEN → CLOSED`，并落 `end_time`——**一律取服务端时间**（不接受前端传值）；
+ *  · 未知 shiftNo ⇒ 业务级 **404**（沿用 getShiftRow 的「交接班不存在」）；
+ *  · 已 CLOSED 再调 ⇒ **显式业务结果**（HTTP 409 + 文案「交接班已完成，无需重复关闭」）：
+ *    既不做静默 200 假成功，也不把数据库错误泄露出去；
+ *  · 并发保护：UPDATE 带 `status <> 'CLOSED'` 条件并**校验 affectedRows**（S3-65 教训：写操作
+ *    0 行 ≠ 改成功），为 0 时按"已被并发关闭"返回同一 409 结果。
+ *
+ * 说明：`t_shift.status` 取值域当前为 `OPEN`/`CLOSED`（DDL 默认 `OPEN`，本单**不得**改动取值域），
+ * 故 `status <> 'CLOSED'` 等价于「未完成」。
+ */
+export async function closeShift(tenantId: string, storeId: number, shiftNo: string) {
+  const row = await getShiftRow(tenantId, shiftNo);
+  if (Number(row.storeId) !== Number(storeId)) {
+    throw new AppError("交接班不存在", 404);
+  }
+  if (String(row.status || "").toUpperCase() === "CLOSED") {
+    throw new AppError("交接班已完成，无需重复关闭", 409);
+  }
+
+  const writeResult = (await query(
+    `UPDATE t_shift
+      SET status = 'CLOSED', end_time = NOW()
+      WHERE shift_no = ? AND tenant_id = ? AND status <> 'CLOSED'`,
+    [shiftNo, tenantId]
+  )) as unknown as { affectedRows?: number } | Array<{ affectedRows?: number }>;
+  // 真实库返回 ResultSetHeader（对象）；dev mock 归一化为 [header]（数组）——两种形状都取 affectedRows
+  const affectedRows = Number(
+    (writeResult as { affectedRows?: number })?.affectedRows ??
+      (Array.isArray(writeResult) ? writeResult[0]?.affectedRows : 0) ??
+      0
+  );
+  if (affectedRows === 0) {
+    throw new AppError("交接班已完成，无需重复关闭", 409);
+  }
+
+  // 回读详情：把落库后的 status / end_time（服务端时间）如实回给调用方，便于前端与验收直接核对
+  return getShiftDetail(tenantId, shiftNo);
 }
 
 /** 交接班盘点：返回当前门店库存快照（账面数量） */

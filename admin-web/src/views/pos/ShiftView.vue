@@ -63,7 +63,7 @@
               size="small"
               link
               type="success"
-              @click="showCompleteDialog(row)"
+              @click="handleComplete(row)"
             >
               完成交接
             </el-button>
@@ -118,46 +118,15 @@
       </template>
     </el-dialog>
 
-    <!-- 完成交接班弹窗 -->
-    <el-dialog v-model="showCompleteDialogFlag" title="完成交接班" width="480px">
-      <el-form :model="completeForm" label-width="120px">
-        <el-form-item label="结束时间" required>
-          <el-date-picker
-            v-model="completeForm.endTime"
-            type="datetime"
-            format="YYYY-MM-DD HH:mm"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            placeholder="选择结束时间"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="现金金额">
-          <el-input-number v-model="completeForm.actualCash" :precision="2" :min="0" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="微信金额">
-          <el-input-number v-model="completeForm.actualWechat" :precision="2" :min="0" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="支付宝金额">
-          <el-input-number v-model="completeForm.actualAlipay" :precision="2" :min="0" style="width: 100%" />
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="completeForm.remark" type="textarea" :rows="3" placeholder="备注信息" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showCompleteDialogFlag = false">取消</el-button>
-        <el-button type="primary" @click="handleComplete">确认完成</el-button>
-      </template>
-    </el-dialog>
 </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { fetchStoreShifts, createStoreShift } from "../../api";
+import { fetchStoreShifts, createStoreShift, closeStoreShift, getErrorMessage } from "../../api";
 
 const router = useRouter();
 
@@ -175,15 +144,6 @@ const createForm = reactive({
   shiftType: "MORNING",
   startTime: "",
   operatorName: "",
-  remark: ""
-});
-
-const showCompleteDialogFlag = ref(false);
-const completeForm = reactive({
-  endTime: "",
-  actualCash: 0,
-  actualWechat: 0,
-  actualAlipay: 0,
   remark: ""
 });
 
@@ -289,15 +249,6 @@ function goToDetail(shiftNo: string) {
   router.push(`/pos/shift/${shiftNo}`);
 }
 
-function showCompleteDialog(row: any) {
-  completeForm.endTime = new Date().toISOString().slice(0, 16).replace("T", " ");
-  completeForm.actualCash = 0;
-  completeForm.actualWechat = 0;
-  completeForm.actualAlipay = 0;
-  completeForm.remark = "";
-  showCompleteDialogFlag.value = true;
-}
-
 async function handleCreate() {
   if (!createForm.shiftType || !createForm.startTime) {
     ElMessage.warning("请填写必填项");
@@ -322,18 +273,34 @@ async function handleCreate() {
   }
 }
 
-async function handleComplete() {
-  if (!completeForm.endTime) {
-    ElMessage.warning("请填写结束时间");
+async function handleComplete(row: any) {
+  // S3-146：完成交接 = 调 POST /store/shifts/:shiftNo/close（后端把 t_shift 由 OPEN 置 CLOSED
+  // 并写 end_time，**服务端时间**，前端不传时间）。判据是运行期：列表行 OPEN → 点按钮 → 该条变 CLOSED。
+  // 原 S3-145 实现是"只提示、不写库"，本单已补上真实写路径；不再需要收集结束时间/现金金额的表单
+  // （这些值后端不接受，留着会让用户误以为填了会生效）。
+  const shiftNo = String(row?.shiftNo ?? "");
+  if (!shiftNo) {
+    ElMessage.warning("缺少交接班编号，无法完成交接");
     return;
   }
-  // S3-145：真正"完成交接"需要关闭 t_shift 记录（UPDATE t_shift SET status='CLOSED', end_time=?），
-  // 属**新增端点**，超出本单授权（凌舟附注1：只允许新增 1 个只读列表端点 GET /store/shifts）。
-  // 原实现回落到班结端点 POST /store/shift/settle：它只写 t_daily_settlement、**不关闭 t_shift**，
-  // 会给出"交接班完成"的假成功（列表里该条仍是"进行中"）——故这里不写库，改为如实提示，
-  // 并把"交接班关闭能力"作为申请裁定项上报（见回传卡「申请裁定项」）。
-  ElMessage.info("完成交接需后端支持关闭交接班记录（已上报 S3-145 申请裁定）");
-  showCompleteDialogFlag.value = false;
+  try {
+    await ElMessageBox.confirm(
+      `确认完成交接班 ${shiftNo}？完成后该记录状态将变为「已完成」，结束时间由系统记录。`,
+      "完成交接",
+      { type: "warning", confirmButtonText: "确认完成", cancelButtonText: "取消" }
+    );
+  } catch {
+    return; // 用户取消
+  }
+  try {
+    await closeStoreShift(shiftNo);
+    ElMessage.success("交接班已完成");
+    loadShifts();
+  } catch (error) {
+    // 后端对"重复关闭"回 409 + 明确文案 —— 如实展示，不吞成"假成功"，也不只 console
+    ElMessage.error(getErrorMessage(error, "完成交接失败"));
+    loadShifts();
+  }
 }
 
 onMounted(() => {

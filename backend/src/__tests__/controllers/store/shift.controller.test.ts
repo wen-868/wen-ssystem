@@ -6,6 +6,7 @@ vi.mock("../../../services/store/shift.service", () => ({
   getShiftHistory: vi.fn(),
   getShiftList: vi.fn(),
   createShift: vi.fn(),
+  closeShift: vi.fn(),
 }));
 
 vi.mock("../../../shared/response", () => ({
@@ -19,7 +20,7 @@ vi.mock("../../../middleware/async-handler", () => ({
 
 import * as shiftService from "../../../services/store/shift.service";
 import { ok } from "../../../shared/response";
-import { getCurrentShift, settleShift, getShiftHistory, getShiftList, createShift } from "../../../controllers/store/shift.controller";
+import { getCurrentShift, settleShift, getShiftHistory, getShiftList, createShift, closeShift } from "../../../controllers/store/shift.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
@@ -114,5 +115,14 @@ describe("store/shift.controller", () => {
       remark: "r",
     });
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("closeShift - 应把 tenantId/storeId/shiftNo 透传给服务层并返回统一成功体（S3-146）", async () => {
+    (shiftService.closeShift as any).mockResolvedValue({ shiftNo: "JB20261001001", status: "CLOSED" });
+    const req = mockReq({ params: { shiftNo: "JB20261001001" }, body: {} });
+    const res = mockRes();
+    await closeShift(req as any, res as any, vi.fn());
+    expect(shiftService.closeShift).toHaveBeenCalledWith("t1", 1, "JB20261001001");
+    expect(ok).toHaveBeenCalledWith({ shiftNo: "JB20261001001", status: "CLOSED" });
   });
 });
