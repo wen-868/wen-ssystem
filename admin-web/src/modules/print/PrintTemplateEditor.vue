@@ -221,7 +221,6 @@
                   </el-select>
                 </el-form-item>
                 <el-form-item label="显示表头"><el-switch v-model="selectedTable!.showHeader" size="small" @change="mutate" /></el-form-item>
-                <el-form-item label="行高"><el-input-number v-model="selectedTable!.rowHeight" :min="3" :max="20" size="small" controls-position="right" @change="mutate" /> mm</el-form-item>
                 <div class="props-tip">列配置：拖拽上下调整顺序，勾选显示</div>
                 <div class="table-col-list">
                   <div v-for="(col, ci) in selectedTable!.columns" :key="col.key" class="table-col-row">

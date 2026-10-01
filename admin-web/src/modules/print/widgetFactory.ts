@@ -69,9 +69,6 @@ export function createWidget(
         dataSource: "itemsRows",
         columns: defaultTableColumns(),
         showHeader: true,
-        rowHeight: 5,
-        headerFontSize: 10,
-        cellPadding: 1,
         fontSize: 10,
       };
     case "image":
@@ -298,8 +295,6 @@ export function createDefaultV3Template(
     dataSource: string;
     columns: Array<{ key: string; label: string; width: number; align: string }>;
     showHeader: boolean;
-    rowHeight: number;
-    cellPadding: number;
     fontSize: number;
     height: number;
   };
@@ -324,8 +319,6 @@ export function createDefaultV3Template(
     ];
   }
   table.showHeader = true;
-  table.rowHeight = isReceipt ? 5 : 6;
-  table.cellPadding = 1;
   table.fontSize = isReceipt ? 9 : 10;
   widgets.push(table);
   Y += table.height + (isReceipt ? 4 : 6);
@@ -487,8 +480,6 @@ function createStandardSaleBill(paper: PrintPaperSettings): PrintTemplateV3 {
     dataSource: string;
     columns: Array<{ key: string; label: string; width: number; align: string }>;
     showHeader: boolean;
-    rowHeight: number;
-    cellPadding: number;
     fontSize: number;
     height: number;
   };
@@ -505,8 +496,6 @@ function createStandardSaleBill(paper: PrintPaperSettings): PrintTemplateV3 {
     { key: "amount", label: "合计金额", width: Math.round(W * 0.13), align: "right" },
   ];
   table.showHeader = true;
-  table.rowHeight = 7;
-  table.cellPadding = 1;
   table.fontSize = 10;
   widgets.push(table);
   Y += table.height + 4;
