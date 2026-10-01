@@ -444,7 +444,8 @@ CREATE TABLE IF NOT EXISTS t_product_sku (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uk_product_sku_code (sku_code),
-  UNIQUE KEY uk_product_sku_barcode (barcode),
+  -- S3-151：条码唯一键由 (barcode) 全库唯一改为 (tenant_id, barcode) 租户内唯一；与 docs/migrations/194 同口径
+  UNIQUE KEY uk_product_sku_tenant_barcode (tenant_id, barcode),
   KEY idx_product_sku_spu_id (spu_id),
   KEY idx_product_sku_trace_enabled (trace_enabled)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SKU表';

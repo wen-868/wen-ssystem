@@ -194,7 +194,7 @@ function imageUrlsParam(raw: unknown): string {
   return JSON.stringify([]);
 }
 
-/** 条码撞全库唯一键（uk_product_sku_barcode）判定：只认 1062，不吞其它错误 */
+/** 条码撞租户内唯一键（S3-151 起为 uk_product_sku_tenant_barcode，此前是全库唯一）判定：只认 1062，不吞其它错误 */
 function isDuplicateEntry(err: unknown): boolean {
   return (
     typeof err === "object" &&
@@ -225,7 +225,7 @@ async function loadChosenSkus(
 
 /**
  * 复制一条 SKU（含价格行）。
- * 条码撞全库唯一键时按 Q2 裁定②降级：改写 barcode = NULL 并往 warnings 追加显式原因（不得 500、不得静默）。
+ * 条码撞租户内唯一键时按 Q2 裁定②降级：改写 barcode = NULL 并往 warnings 追加显式原因（不得 500、不得静默）。
  */
 async function insertCopiedSku(
   conn: PoolConnection,

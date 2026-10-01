@@ -881,7 +881,8 @@ export async function runMigrations(): Promise<void> {
           updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
           PRIMARY KEY (id),
           UNIQUE KEY uk_product_sku_code (sku_code),
-          UNIQUE KEY uk_product_sku_barcode (barcode),
+          -- S3-151：条码唯一键由 (barcode) 全库唯一改为 (tenant_id, barcode) 租户内唯一；与 docs/migrations/194 同口径
+          UNIQUE KEY uk_product_sku_tenant_barcode (tenant_id, barcode),
           KEY idx_product_sku_spu (spu_id),
           KEY idx_product_sku_trace (trace_enabled),
           KEY idx_product_sku_tenant (tenant_id)
