@@ -1,0 +1,15 @@
+ M admin-web/src/api/pos.ts
+ M admin-web/src/views/pos/ShiftDetailView.vue
+ M admin-web/src/views/pos/ShiftView.vue
+ M backend/src/__tests__/controllers/store/shift.controller.test.ts
+ M backend/src/__tests__/mocks/mock-db-index.ts
+ M backend/src/__tests__/services/store/shift.service.test.ts
+ M backend/src/controllers/store/shift.controller.ts
+ M backend/src/routes/store-shift.routes.ts
+ M backend/src/services/store/shift.service.ts
+ D "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247.md"
+?? backend/src/__tests__/mocks/mock-db-shift.ts
+?? "docs/tasks/cards/R101-S3-145-\345\207\214\350\210\237\351\252\214\346\224\266.md"
+?? "docs/tasks/cards/R101-S3-145-\351\230\277\345\235\232\345\233\236\344\274\240.md"
+?? docs/tasks/inbox/archive/ACTIVE-S3-145-20261001.md
+?? "docs/tasks/inbox/archive/ACTIVE-\345\233\236\346\211\247-D1-R1-S3-57.md"

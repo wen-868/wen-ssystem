@@ -1,0 +1,24 @@
+【装置】真实后端 = http://127.0.0.1:18811（USE_MOCK_DB=true，数据面 = mock-db-shift.ts）
+【模式】revert   日期=2026-10-01   node=v24.18.0
+
+  → POST /api/admin/auth/login [无令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJzdG9yZV9tYW5hZ2VyIiwicmVhbE5hbWUiOiLpl6jlupfnu4_nkIYiLCJyb2xlcyI6W10sInN0b3JlSWQiOjEsInRlbmFudElkIjoiZGVmYXVsdCIsImlhdCI6MTc5MDg3MjkyNywiZXhwIjoxNzkwODg3MzI3LCJhdWQiOiJ6aGl4aWFuZy1jbGllbnQiLCJpc3MiOiJ6aGl4aWFuZy1zeXN0ZW0ifQ.Ku55uQ9M49D0RmMgq4PKacixjOsfqAYURQlY779CJSs","user":{"id":2,"username":"store_manager","realName":"门店经理","storeId":1,"tenantId":"default","roles":[],"permissions":[],"accessModes":["CASHIER"],"defaultMode":"CASHIER"},"csrfToken":"d3f5c341c7884ed96168691779c3d123e802bb1b60de83d127c31c067106419d"},"traceId":"bf1ed192-318f-4b71-9afc-29d1df038060"}
+PASS  段0 真实登录签发令牌   ← status=200 token=eyJhbGciOiJI…
+
+=== 反测：把交接班列表源改回旧写法（t_daily_settlement / 班结口径） ===
+  → POST /api/store/shift/settle [Authorization令牌 +x-csrf-token] ⇒ 200
+    {"code":"0","msg":"成功","data":{"shiftDate":"2026-10-01","startTime":"2026-10-01 00:00:00","operatingHours":"24时42分","totalSales":0,"orderCount":0,"cashOrderCount":0,"creditOrderCount":0,"returnOrderCount":0,"totalReceived":0,"paymentBreakdown":[],"settleNo":"BJ2026100224031"},"traceId":"d822787e-88d5-4c4a-b64d-654d8a7250c7"}
+PASS  反测-段1 写入一条班结记录（BJ…，settleShift → t_daily_settlement）   ← settleNo=BJ2026100224031
+  → GET /api/store/shifts?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"records":[{"id":2,"shiftNo":"BJ2026100224031","shiftType":"MORNING","storeId":1,"operatorId":null,"operatorName":"","startTime":"2026-10-01","endTime":null,"status":"completed","openingCash":0,"remark":"","totalSalesAmount":0,"totalOrders":0},{"id":1,"shiftNo":"BJ2026100268103","shiftType":"MORNING","storeId":1,"operatorId":null,"operatorName":"","startTime":"2026-10-01","endTime":null,"status":"completed","openingCash":0,"remark":"","totalSalesAmount":0,"totalOrders":0}],"total":2,"page":1,"pageSize":20},"traceId":"c66fbefc-e3a1-4dba-97c3-589b7f068744"}
+PASS  反测-段2 列表（旧源）返回班结单号 BJ…   ← 行数=2 首行=BJ2026100224031
+  → GET /api/store/shifts/BJ2026100224031 [Authorization令牌] ⇒ 404
+    {"code":"404","msg":"交接班不存在","traceId":"b6981f59-f388-4516-b745-36394f0ac7b3"}
+PASS  反测-段3 列表行（BJ…）点进详情 ⇒ 业务级 404（复现原缺陷）   ← status=404 code=404 msg=交接班不存在
+
+小结[revert]：4 passed / 0 failed（请求 4 条）
+  ★ POST /api/admin/auth/login [无令牌] ⇒ 200
+  ★ POST /api/store/shift/settle [Authorization令牌 +x-csrf-token] ⇒ 200
+  ★ GET /api/store/shifts?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+  ★ GET /api/store/shifts/BJ2026100224031 [Authorization令牌] ⇒ 404
+REVERT_EXIT=0

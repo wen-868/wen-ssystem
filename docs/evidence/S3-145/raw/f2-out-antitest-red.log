@@ -1,0 +1,58 @@
+【装置】真实后端 = http://127.0.0.1:18811（USE_MOCK_DB=true，数据面 = mock-db-shift.ts）
+【模式】green   日期=2026-10-01   node=v24.18.0
+
+  → POST /api/admin/auth/login [无令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJzdG9yZV9tYW5hZ2VyIiwicmVhbE5hbWUiOiLpl6jlupfnu4_nkIYiLCJyb2xlcyI6W10sInN0b3JlSWQiOjEsInRlbmFudElkIjoiZGVmYXVsdCIsImlhdCI6MTc5MDg3MjkyMiwiZXhwIjoxNzkwODg3MzIyLCJhdWQiOiJ6aGl4aWFuZy1jbGllbnQiLCJpc3MiOiJ6aGl4aWFuZy1zeXN0ZW0ifQ.Kd6lLhrsPO1Q3cEeQZiwzmGUpL3CFyq3dWSkrWUWUys","user":{"id":2,"username":"store_manager","realName":"门店经理","storeId":1,"tenantId":"default","roles":[],"permissions":[],"accessModes":["CASHIER"],"defaultMode":"CASHIER"},"csrfToken":"d3f5c341c7884ed96168691779c3d123e802bb1b60de83d127c31c067106419d"},"traceId":"5bfdf79b-b13e-4ea8-b2b3-8233353a9fb3"}
+PASS  段0 真实登录签发令牌   ← status=200 token=eyJhbGciOiJI…
+  → POST /api/store/shifts [Authorization令牌 +x-csrf-token] ⇒ 200
+    {"code":"0","msg":"成功","data":{"shiftNo":"JB2026100269136","shiftType":"EVENING","startTime":"2026-10-01 20:15:00","status":"OPEN","operatorId":2,"operatorName":"张三","openingCash":200,"remark":"S3-145 运行期证据"},"traceId":"8cebabee-dd57-4b35-80ce-4a5b2793b349"}
+PASS  段1 新建交接班（落 t_shift，单号 JB…）   ← status=200 shiftNo=JB2026100269136 shiftType=EVENING startTime=2026-10-01 20:15:00
+  → POST /api/store/shifts [Authorization令牌 +x-csrf-token] ⇒ 200
+    {"code":"0","msg":"成功","data":{"shiftNo":"JB2026100277436","shiftType":"MORNING","startTime":"2026-10-01 09:30:00","status":"OPEN","operatorId":2,"operatorName":"李四","openingCash":100,"remark":""},"traceId":"c9035bf3-0426-4d2e-9c2c-02dc21da74aa"}
+PASS  段1b 第二条交接班（早班 09:30）   ← shiftNo=JB2026100277436 shiftType=MORNING
+  → GET /api/store/shifts?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"records":[],"total":0,"page":1,"pageSize":20},"traceId":"09649fe9-5afb-4d01-9ee5-dd193150df8c"}
+FAIL  段2 列表（GET /api/store/shifts，读 t_shift）返回 ≥1 行且含新建记录   ← 行数=0 total=0 首行=null
+FAIL  段2b 列表行的 operatorName/startTime 取自用户输入（原被后端忽略）   ← operatorName=undefined startTime=undefined shiftType=undefined status=undefined
+FAIL  段2c 列表行 status=OPEN（t_shift 真实状态 ⇒「完成交接」按钮条件可命中，原恒不命中）   ← 行数=0 状态集合=[]
+  → GET /api/store/shifts/__S3145_NO_LIST_ROW__ [Authorization令牌] ⇒ 404
+    {"code":"404","msg":"交接班不存在","traceId":"c3070814-b3b2-434a-9acf-ebe34e19baaf"}
+FAIL  段3 列表行 → 详情 200（原恒 404）   ← 列表行单号=（列表无行） status=404 返回单号=undefined status字段=undefined
+  → GET /api/store/shifts/JB2026100269136/sales [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"totalAmount":0,"totalCount":0,"cashAmount":0,"wechatAmount":0,"alipayAmount":0,"totalReceived":0,"returnOrderCount":0,"paymentBreakdown":[]},"traceId":"1da59bfc-ec61-4eee-b930-75b7d65c551d"}
+PASS  段4 统计 200（有字段返回）   ← status=200 totalAmount=0 totalCount=0
+  → GET /api/store/shifts/JB2026100269136/check [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"records":[{"skuId":1,"skuName":"示例白酒 53度 500ml 常温","productName":"示例白酒 53度 500ml","spec":"","bookQty":120,"actualQty":120},{"skuId":1,"skuName":"示例白酒 53度 500ml 常温","productName":"示例白酒 53度 500ml","spec":"","bookQty":9999,"actualQty":9999},{"skuId":2,"skuName":"茅台飞天 53度 500ml 单瓶","productName":"茅台飞天 53度 500ml","spec":"","bookQty":20,"actualQty":20},{"skuId":3,"skuName":"五粮液 52度 500ml 单瓶","productName":"五粮液 52度 500ml","spec":"","bookQty":35,"actualQty":35},{"skuId":4,"skuName":"青岛啤酒 经典10度 330ml 罐装","productName":"青岛啤酒 经典10度 330ml","spec":"","bookQty":480,"actualQty":480},{"skuId":5,"skuName":"雪花啤酒 勇闯天涯 500ml 瓶装","productName":"雪花啤酒 勇闯天涯 500ml","spec":"","bookQty":360,"actualQty":360},{"skuId":6,"skuName":"张裕干红葡萄酒 750ml 单瓶","productName":"张裕干红葡萄酒 750ml","spec":"","bookQty":58,"actualQty":58},{"skuId":7,"skuName":"轩尼诗VSOP 干邑白兰地 700ml 单瓶","productName":"轩尼诗VSOP …(截断)
+PASS  段5 盘点 200 且有数据（账面数量）   ← status=200 records=18 首行={"skuId":1,"skuName":"示例白酒 53度 500ml 常温","productName":"示例白酒 53度 500ml","spec":"","bookQty":120,"actualQty":120}
+  → GET /api/store/shifts/__S3145_DEFINITELY_NOT_EXIST__ [Authorization令牌] ⇒ 404
+    {"code":"404","msg":"交接班不存在","traceId":"4413297d-bdac-4751-b5bf-54bd152a4228"}
+PASS  段6 带令牌打不存在的交接班 ⇒ 业务级 404（端点已注册，非 401）   ← status=404 code=404 msg=交接班不存在
+  → POST /api/store/shift/settle [Authorization令牌 +x-csrf-token] ⇒ 200
+    {"code":"0","msg":"成功","data":{"shiftDate":"2026-10-01","startTime":"2026-10-01 00:00:00","operatingHours":"24时42分","totalSales":0,"orderCount":0,"cashOrderCount":0,"creditOrderCount":0,"returnOrderCount":0,"totalReceived":0,"paymentBreakdown":[],"settleNo":"BJ2026100268103"},"traceId":"bda63632-1ace-4f5f-b9e5-d151f41aea33"}
+  → GET /api/store/shift/history?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":[{"id":1,"created_at":"2026-10-01 16:42:02","settle_date":"2026-10-01","shift_no":"BJ2026100268103","store_id":1,"operator_id":2,"tenant_id":"default","total_sales":0,"total_received":0,"total_refund":"0","cash_amount":0,"wechat_amount":0,"alipay_amount":0,"transfer_amount":0,"other_amount":0,"status":"completed","remark":""}],"traceId":"254a262a-8895-447d-9208-c9c7856a5ba1"}
+PASS  段7 班结历史端点保留（POST /shift/settle 写 BJ…；GET /shift/history 读 t_daily_settlement）   ← settleNo=BJ2026100268103 history行数=1 首行单号=BJ2026100268103
+  → GET /api/store/shifts?page=1&pageSize=20&date=2026-10-01&shiftType=EVENING [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"records":[],"total":0,"page":1,"pageSize":20},"traceId":"feb9ddc8-3b77-4774-a30e-05843534c886"}
+  → GET /api/store/shifts?page=1&pageSize=20&shiftType=MORNING [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"records":[{"id":1,"shiftNo":"BJ2026100268103","shiftType":"MORNING","storeId":1,"operatorId":null,"operatorName":"","startTime":"2026-10-01","endTime":null,"status":"completed","openingCash":0,"remark":"","totalSalesAmount":0,"totalOrders":0}],"total":1,"page":1,"pageSize":20},"traceId":"dd38e57b-7369-4763-9693-2737dd85a96e"}
+FAIL  段8 列表筛选参数生效（date=今日&shiftType=EVENING 只命中晚班；shiftType=MORNING 只命中早班）   ← EVENING行数=0 单号=undefined；MORNING行数=1 单号=BJ2026100268103
+  → GET /api/store/shifts?page=2&pageSize=1 [Authorization令牌] ⇒ 200
+    {"code":"0","msg":"成功","data":{"records":[],"total":0,"page":2,"pageSize":1},"traceId":"78c7697d-63ed-49d4-8a5f-7509c7a76641"}
+FAIL  段9 分页 total 为真值（2 条记录、每页 1 条 ⇒ 第 2 页 1 行且 total=2）   ← total=0 全量行数=0 第2页行数=0
+
+小结[green]：7 passed / 6 failed（请求 13 条）
+  ★ POST /api/admin/auth/login [无令牌] ⇒ 200
+  ★ POST /api/store/shifts [Authorization令牌 +x-csrf-token] ⇒ 200
+  ★ POST /api/store/shifts [Authorization令牌 +x-csrf-token] ⇒ 200
+  ★ GET /api/store/shifts?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+  ★ GET /api/store/shifts/__S3145_NO_LIST_ROW__ [Authorization令牌] ⇒ 404
+  ★ GET /api/store/shifts/JB2026100269136/sales [Authorization令牌] ⇒ 200
+  ★ GET /api/store/shifts/JB2026100269136/check [Authorization令牌] ⇒ 200
+  ★ GET /api/store/shifts/__S3145_DEFINITELY_NOT_EXIST__ [Authorization令牌] ⇒ 404
+  ★ POST /api/store/shift/settle [Authorization令牌 +x-csrf-token] ⇒ 200
+  ★ GET /api/store/shift/history?page=1&pageSize=20 [Authorization令牌] ⇒ 200
+  ★ GET /api/store/shifts?page=1&pageSize=20&date=2026-10-01&shiftType=EVENING [Authorization令牌] ⇒ 200
+  ★ GET /api/store/shifts?page=1&pageSize=20&shiftType=MORNING [Authorization令牌] ⇒ 200
+  ★ GET /api/store/shifts?page=2&pageSize=1 [Authorization令牌] ⇒ 200
+GREEN_EXIT=1
