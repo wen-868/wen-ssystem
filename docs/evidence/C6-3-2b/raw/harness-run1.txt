@@ -1,0 +1,82 @@
+—— 装置源码指纹（逐字节复制，唯一替换模块 = shared/db.ts）——
+   shared/app-error.ts  sha256:85be56335307ebee  bytes:509
+   shared/pagination.ts  sha256:69c0be2de6d56e1d  bytes:3436
+   services/platform/platform-referral-ledger.service.ts  sha256:64d650063f8e5d5f  bytes:18315
+   services/platform/platform-tenant-attribution.service.ts  sha256:3e8bccb26bec8157  bytes:11037
+   services/platform/platform-channel-report.service.ts  sha256:5d8bd33c84fd5792  bytes:9009
+   shared/db.ts  已被装置替换为假 db（真实模块依赖 mysql2 连接池，本沙箱无库）
+PASS · ① 口径常量：20% / 60000 / 状态三值
+PASS · ② 20% 计点：1000→200 / 999→199 / 5→1 / 0→0 · 实际=[200,199,1,0]
+PASS · ②-b 基数非法（-1）⇒ 400（不落 0 蒙混）
+PASS · ③-a 额度充足 ⇒ 全额计入
+PASS · ③-b 将超过上限 ⇒ 按剩余额度截断（2000 请求 / 已计 59500 ⇒ 记 500） · gave=500 reason=本年度老带新奖励积分已达上限 60000（已计入 59500），本条按剩余额度 500 截断计入
+PASS · ③-c 额度用尽 ⇒ 记 0 分 + 原因（不是失败、不是负数）
+PASS · ③-d 边界：恰好补齐到 60000 ⇒ 不截断（500 请求 / 已计 59500）
+PASS · ④-a 正常登记：20% ⇒ 200 分、状态固定 PENDING、返回口径明细 · insert 参数=["tenant-a","tenant-b","T20261002001",200,"subscribe_amount",null]
+PASS · ④-b 一被邀请租户一条：已存在 ⇒ 409，且不 INSERT · statusCode=409 msg=该被邀请租户已在老带新台账中（一被邀请租户只记一次），不可重复登记：tenant-b
+PASS · ④-c 并发撞唯一键（ER_DUP_ENTRY）⇒ 409 · statusCode=409 msg=该被邀请租户已在老带新台账中（一被邀请租户只记一次），不可重复登记：tenant-b
+PASS · ④-d 上限截断落库：请求 2000 / 年度已计 59500 ⇒ reward_points=500，remark 写明原因 · remark=本年度老带新奖励积分已达上限 60000（已计入 59500），本条按剩余额度 500 截断计入
+PASS · ④-e 本年度额度用尽 ⇒ 本条记 0 分，remark 写明不再累计 · remark=本年度老带新奖励积分已达上限 60000（已计入 60000），本条不再累计，记 0 分
+PASS · ⑤-a 空表 ⇒ items: []、total 0、page/pageSize 归一
+PASS · ⑤-b 读路径零写语句、零金额表（红线①）
+PASS · ⑤-c 邀请人年度累计走独立预聚合（status<>'REVOKED'）且不受列表过滤污染
+PASS · ⑥-a 聚合明细复算：同 fixture 下每维度 tenantCount == 手算表 · 服务=[["PROMO",4,0,0],["AGENT",2,1,2600],["REFERRAL",1,1,1000]]
+PASS · ⑥-b 合计复算：tenantCount 7 / referralCount 2 / rewardPoints 3600 · 服务={"tenantCount":7,"referralCount":2,"rewardPoints":3600}
+PASS · ⑥-c SQL 与口径逐字对应：COUNT(DISTINCT) / REFERRAL 计数 / 排除 REVOKED / uk 关联
+PASS · ⑥-d 只读 + 零金额：聚合 SQL 无写语句、不读订阅/结算/佣金表
+PASS · ⑦ 无归因数据 ⇒ items: [] 且 totals 全 0（不造数）
+PASS · ⑧ 过滤条件：进 SQL 参数 + 回显在 filters（口径随响应返回）
+PASS · ⑧-b 非法归因类型 ⇒ 400（不查库）
+
+—— ⑥ 渠道效果聚合 SQL（真库复算用，逐字来自服务）——
+SELECT a.attribution_type AS dimension,
+   a.agent_id AS agentId,
+   g.agent_name AS agentName,
+   a.promo_code_id AS promoCodeId,
+   p.promo_code AS promoCode,
+   p.channel_type AS channelType,
+   p.channel_name AS channelName,
+   COUNT(DISTINCT a.tenant_id) AS tenantCount,
+   SUM(CASE WHEN a.attribution_type = 'REFERRAL' THEN 1 ELSE 0 END) AS referralCount,
+   COALESCE(SUM(CASE WHEN l.status <> 'REVOKED' THEN l.reward_points ELSE 0 END), 0) AS rewardPoints
+   FROM t_tenant_attribution a
+   LEFT JOIN t_promo_code p ON p.id = a.promo_code_id
+   LEFT JOIN t_agent g ON g.id = a.agent_id
+   LEFT JOIN t_referral_ledger l ON l.invitee_tenant_id = a.tenant_id
+   GROUP BY a.attribution_type, a.agent_id, g.agent_name, a.promo_code_id,
+   p.promo_code, p.channel_type, p.channel_name
+   ORDER BY tenantCount DESC, rewardPoints DESC, a.attribution_type ASC
+
+—— ⑤ 台账列表 SQL（真库复算用）——
+SELECT COUNT(*) AS total FROM t_referral_ledger l
+   LEFT JOIN t_tenant ti ON ti.id = l.inviter_tenant_id
+   LEFT JOIN t_tenant tn ON tn.id = l.invitee_tenant_id 
+SELECT l.id,
+   l.inviter_tenant_id AS inviterTenantId,
+   COALESCE(ti.tenant_name, ti.company_name) AS inviterName,
+   l.invitee_tenant_id AS inviteeTenantId,
+   l.invitee_tenant_code AS inviteeTenantCode,
+   COALESCE(tn.tenant_name, tn.company_name) AS inviteeName,
+   l.reward_points AS rewardPoints,
+   l.reward_basis AS rewardBasis,
+   COALESCE(y.inviterYearPoints, 0) AS inviterYearPoints,
+   l.status,
+   l.granted_at AS grantedAt,
+   l.remark,
+   l.created_at AS createdAt,
+   l.updated_at AS updatedAt
+   FROM t_referral_ledger l
+   LEFT JOIN t_tenant ti ON ti.id = l.inviter_tenant_id
+   LEFT JOIN t_tenant tn ON tn.id = l.invitee_tenant_id
+   LEFT JOIN (
+   SELECT inviter_tenant_id, YEAR(created_at) AS referralYear,
+   SUM(reward_points) AS inviterYearPoints
+   FROM t_referral_ledger
+   WHERE status <> 'REVOKED'
+   GROUP BY inviter_tenant_id, YEAR(created_at)
+   ) y ON y.inviter_tenant_id = l.inviter_tenant_id
+   AND y.referralYear = YEAR(l.created_at)
+   ORDER BY l.id DESC
+   LIMIT ? OFFSET ?
+
+合计 22 项断言，FAIL 0 项 / EXIT=0

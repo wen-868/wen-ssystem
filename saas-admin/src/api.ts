@@ -1038,3 +1038,103 @@ export function listPromoCodeAttributions(code: string) {
     `/platform/promo-codes/${code}/attributions`
   );
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   R101-C6-3-2b · 老带新台账 + 渠道效果报表（迁移 195 / t_referral_ledger）
+   端点由派单卡 §四 逐字钉死，前端不得自拟路径 / 字段：
+     · GET /api/platform/referral-ledger                分页 + 关键词 + 状态（老带新台账）
+     · GET /api/platform/channel-reports/effect         按归因维度聚合（渠道效果）
+   **无任何"写台账"端点**：台账由归因事件驱动，前端只读、不提供手工补录入口。
+   零金额（红线①）：本模块只出现"奖励积分"与"计奖基数口径名"，不涉及金额/分润/佣金/结算/提现。
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/** 老带新台账行（t_referral_ledger；rewardBasisLabel 是后端给的口径中文名，前端不拼口径字面） */
+export interface ReferralLedgerRow {
+  id: number;
+  inviterTenantId: string;
+  /** 邀请人名称（t_tenant.tenant_name / company_name，空 ⇒ null） */
+  inviterName: string | null;
+  inviteeTenantId: string;
+  inviteeTenantCode: string | null;
+  /** 被邀请人名称（空 ⇒ null） */
+  inviteeName: string | null;
+  /** 本条奖励积分（20% 口径，且受年度上限 60000 截断；0 = 本年度额度已满本条不累计） */
+  rewardPoints: number;
+  /** 计奖基数口径名（如 subscribe_amount，只存口径不存金额） */
+  rewardBasis: string;
+  /** 计奖基数口径的中文展示名（如"订阅实收"） */
+  rewardBasisLabel: string;
+  /** 邀请人该行所属自然年的累计奖励积分（status<>REVOKED 口径） */
+  inviterYearPoints: number;
+  status: "PENDING" | "GRANTED" | "REVOKED";
+  grantedAt: string | null;
+  remark: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** 台账分页结果（卡 §四 逐字：items/total/page/pageSize） */
+export interface ReferralLedgerListResult {
+  items: ReferralLedgerRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/** 渠道效果报表项（按 t_tenant_attribution 维度聚合） */
+export interface ChannelEffectItemRow {
+  /** AGENT-代理商邀请 / PROMO-渠道推广码 / REFERRAL-老带新 */
+  dimension: "AGENT" | "PROMO" | "REFERRAL";
+  agentId: number | null;
+  agentName: string | null;
+  promoCodeId: number | null;
+  promoCode: string | null;
+  channelType: string | null;
+  channelName: string | null;
+  tenantCount: number;
+  referralCount: number;
+  rewardPoints: number;
+}
+
+/** 报表口径说明（后端随响应返回，前端原样展示，不自行解释口径） */
+export interface ChannelEffectBasis {
+  dimension: string;
+  tenantCount: string;
+  referralCount: string;
+  rewardPoints: string;
+  rewardRate: number;
+  annualCapPoints: number;
+  emptyState: string;
+  scope: string;
+}
+
+export interface ChannelEffectReport {
+  items: ChannelEffectItemRow[];
+  basis: ChannelEffectBasis;
+  /** 本次实际生效的过滤条件回显（null = 该项不过滤） */
+  filters: { attributionType: string | null; channelType: string | null };
+  totals: { tenantCount: number; referralCount: number; rewardPoints: number };
+}
+
+/** GET /platform/referral-ledger —— 老带新台账（分页 + 关键词 + 状态；零预置 ⇒ 空表 ⇒ items: []） */
+export function listReferralLedger(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  status?: "PENDING" | "GRANTED" | "REVOKED";
+}) {
+  return api.get<any, { data: ApiResult<ReferralLedgerListResult> }>("/platform/referral-ledger", {
+    params,
+  });
+}
+
+/** GET /platform/channel-reports/effect —— 渠道效果聚合（无归因数据 ⇒ items: [] 且 totals 全 0） */
+export function getChannelEffectReport(params?: {
+  attributionType?: "AGENT" | "PROMO" | "REFERRAL";
+  channelType?: string;
+}) {
+  return api.get<any, { data: ApiResult<ChannelEffectReport> }>(
+    "/platform/channel-reports/effect",
+    { params }
+  );
+}

@@ -1,0 +1,14 @@
+—— 装置入口：backend\dist\shared\auto-routes.js（编译产物 dist，与 CI 语义一致）——
+PASS · 快照字面量自洽：前缀 159 条 / 文件 189 个 / 基线 203 条 · EXPECTED_REGISTRATION_COUNT=203
+PASS · 判据2 新增文件护栏：routes/ 下无未登记文件 · 未登记=[]
+PASS · 判据1 固定前缀清单：159 条全部被注册 · 缺=[]
+PASS · 判据3 注册总数守恒：运行期 203 == 快照 203 · 差值=0
+PASS · C6-3-2b 两条新前缀确实被注册（referral-ledger / channel-reports） · 实际=["/api/platform/channel-reports","/api/platform/referral-ledger"]
+PASS · 文件清单条数 == routes/ 实际文件数 · 清单=189 实际=189
+
+合计 6 项断言，FAIL 0 项 / EXIT=0
+[2026-10-02 06:08:07.369 +0800] [32mINFO[39m (29336): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-10-02 06:08:07.454 +0800] [32mINFO[39m (29336): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-02 06:08:07.710 +0800] [32mINFO[39m (29336): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-02 06:08:07.822 +0800] [33mWARN[39m (29336): [36m[auto-routes] 检测到 11 个重复前缀：/api/admin (19次), /api/admin/marketing (7次), /api/miniapp (2次), /api/platform/billing (3次), /api/store (10次), /api/admin/reports (2次), /api/admin/instant-retail (2次), /api/admin/inventory (3次), /api/monitor (2次), /api/platform (3次), /api/platform/monitor (2次)。请确认端点无重复注册。[39m
+[2026-10-02 06:08:07.822 +0800] [32mINFO[39m (29336): [36m[auto-routes] 已自动注册 203 个路由[39m

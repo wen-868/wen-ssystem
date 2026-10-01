@@ -1,0 +1,17 @@
+控制组 EXIT=0 · （期望 0）
+PASS(红) · 反测1 路由前缀改坏（referral-ledgers） · EXIT=1 · 期望命中=① 后端注册端点恰好是卡内 2 条
+    FAIL 行：FAIL · ① 前缀声明：backend/src/routes/platform-referral-ledger.routes.ts ⇒ /api/platform/referral-ledger · 实际=/api/platform/referral-ledgers | FAIL · ① 后端注册端点恰好是卡内 2 条（方法 + 路径逐字） · backend=["GET /api/platform/channel-reports/effect","GET /api/platform/referral-ledgers"] | FAIL · ② 前端 api.ts 调用端点 ↔ 后端注册端点逐字一致（集合相等） · frontend=["GET /api/platform/channel-reports/effect","GET /api/platform/referral-ledger"] | FAIL · ③ 前端出现的本单路径全部已在后端注册（无自拟变体） · unregistered=["/api/platform/referral-ledger"]
+PASS(红) · 反测2 迁移塞 INSERT（零预置被破坏） · EXIT=1 · 期望命中=⑤-a 恰好 1 条 CREATE TABLE IF NOT EXISTS
+    FAIL 行：FAIL · ⑤-a 恰好 1 条 CREATE TABLE IF NOT EXISTS（实际 1）/ 零预置（INSERT 1 / UPDATE 0 / DELETE 0）
+PASS(红) · 反测3 唯一键 uk_invitee 被降级为普通索引 · EXIT=1 · 期望命中=⑤-d 一被邀请租户一条
+    FAIL 行：FAIL · ⑤-d 一被邀请租户一条：UNIQUE KEY uk_invitee (invitee_tenant_id) 在位
+PASS(红) · 反测4 年度上限常量改坏（60000⇒50000） · EXIT=1 · 期望命中=⑥-a 比例 20% 与年度上限 60000
+    FAIL 行：FAIL · ⑥-a 比例 20% 与年度上限 60000 在服务源码中逐字可见
+PASS(红) · 反测5 页面断开渠道效果接线 · EXIT=1 · 期望命中=④-a 页面调用 listReferralLedger
+    FAIL 行：FAIL · ④-a 页面调用 listReferralLedger 与 getChannelEffectReport（两端真实接线）
+PASS(红) · 反测6 偷偷加写台账端点（POST） · EXIT=1 · 期望命中=⑦ 台账域只有只读端点
+    FAIL 行：FAIL · ① 后端注册端点恰好是卡内 2 条（方法 + 路径逐字） · backend=["GET /api/platform/channel-reports/effect","GET /api/platform/referral-ledger","POST /api/platform/referral-ledger"] | FAIL · ⑦ 台账域只有只读端点（无 post/put/patch/delete） · 写方法命中=1 | FAIL · ② 前端 api.ts 调用端点 ↔ 后端注册端点逐字一致（集合相等） · frontend=["GET /api/platform/channel-reports/effect","GET /api/platform/referral-ledger"]
+PASS(红) · 反测7 新增迁移未同步 EXPECTED_MAX_MIGRATION · EXIT=1 · 期望命中=⑧ 迁移编号
+    FAIL 行：FAIL · ⑧ 迁移编号：仓内最大编号 195 = 本单 195（唯一），且快照 EXPECTED_MAX_MIGRATION=194 · max=195 快照=194 195 出现次数=1
+
+反测合计 8 项，PASS 8 项 / EXIT=0

@@ -1,0 +1,42 @@
+PASS · ①-a 后端注册端点恰好是卡内 4 条（方法 + 路径逐字） · backend=["GET /api/platform/promo-codes","GET /api/platform/promo-codes/:param/attributions","POST /api/platform/promo-codes","POST /api/platform/promo-codes/:param/disable"]
+PASS · ①-b 前缀声明为 /api/platform/promo-codes（不新开前缀） · prefix=/api/platform/promo-codes
+PASS · ② 前端 api.ts 调用端点 ↔ 后端注册端点逐字一致（集合相等） · frontend=["GET /api/platform/promo-codes","GET /api/platform/promo-codes/:param/attributions","POST /api/platform/promo-codes","POST /api/platform/promo-codes/:param/disable"]
+PASS · ③ 前端出现的 /platform/promo-codes 路径全部已在后端注册（无自拟变体） · unregistered=[]
+PASS · ④ 生成体字段集一致（interface PromoCodeCreateBody ↔ const createBodySchema） · frontend=["channelName","channelType","expireAt","remark"] backend=["channelName","channelType","expireAt","remark"]
+PASS · ⑤-a 生成提交体字段 ⊆ PromoCodeCreateBody 声明集 · payload=["channelName","channelType","expireAt","remark"]
+PASS · ⑤-b 页面停用/归因走已注册端点函数（disablePromoCode / listPromoCodeAttributions 均在 api.ts 调用）
+PASS · ⑤-c 页面数据层零金额：表单/请求体标识符不含 commission/profit/amount/settle/withdraw/money · 命中=[]
+PASS · ⑥-a 188_平台渠道推广码.sql：IF NOT EXISTS 1 条 / INSERT 0 条 / unicode_ci 0 处 / 外键 0 处 · 要求：恰好 1 条 CREATE TABLE IF NOT EXISTS、INSERT=0、unicode_ci=0、不建物理外键
+PASS · ⑥-b 188_平台渠道推广码.sql：5 个文本列全部显式 COLLATE utf8mb4_0900_ai_ci · 缺少 collate 的行数=0
+PASS · ⑥-c 188_平台渠道推广码.sql：无金额/结算/提现/分润类列（零涉钱） · 命中=[]
+PASS · ⑥-a 189_租户归因明细.sql：IF NOT EXISTS 1 条 / INSERT 0 条 / unicode_ci 0 处 / 外键 0 处 · 要求：恰好 1 条 CREATE TABLE IF NOT EXISTS、INSERT=0、unicode_ci=0、不建物理外键
+PASS · ⑥-b 189_租户归因明细.sql：2 个文本列全部显式 COLLATE utf8mb4_0900_ai_ci · 缺少 collate 的行数=0
+PASS · ⑥-c 189_租户归因明细.sql：无金额/结算/提现/分润类列（零涉钱） · 命中=[]
+PASS · ⑥-d 两个迁移文件合计恰好 2 张新表 · count=2
+
+—— 前端 /platform/promo-codes 字面逐条（文件:行 ⇒ 归一化路径） ——
+   saas-admin\src\api.ts:959  /api/platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:960  /api/platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:961  /api/platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:962  /api/platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:993  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:1010  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:1017  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:1020  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:1023  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:1028  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:1031  /platform/promo-codes/${id}/disable  ⇒  /api/platform/promo-codes/:param/disable
+   saas-admin\src\api.ts:1035  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\api.ts:1038  /platform/promo-codes/${code}/attributions  ⇒  /api/platform/promo-codes/:param/attributions
+   saas-admin\src\views\marketing\ChannelPromotion.vue:334  /api/platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\views\marketing\ChannelPromotion.vue:396  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\views\marketing\ChannelPromotion.vue:472  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\views\marketing\ChannelPromotion.vue:501  /platform/promo-codes  ⇒  /api/platform/promo-codes
+   saas-admin\src\views\marketing\ChannelPromotion.vue:553  /platform/promo-codes  ⇒  /api/platform/promo-codes
+—— 后端注册端点 ——
+   GET /api/platform/promo-codes
+   GET /api/platform/promo-codes/:param/attributions
+   POST /api/platform/promo-codes
+   POST /api/platform/promo-codes/:param/disable
+
+合计 15 项断言，FAIL 0 项 / EXIT=0
