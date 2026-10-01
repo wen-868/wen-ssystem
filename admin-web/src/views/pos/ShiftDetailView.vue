@@ -243,7 +243,8 @@ function handleSubmitShift() {
 }
 
 function goBack() {
-  router.push("/pos/shifts");
+  // 列表路由在 router/index.ts 中定义为 `pos/shift`（原回退写 `/pos/shifts` ⇒ 404）。
+  router.push("/pos/shift");
 }
 
 function getShiftTypeName(type: string) {
@@ -285,10 +286,12 @@ function getStatusTagType(status: string) {
 }
 
 async function loadShiftDetail() {
-  const shiftId = Number(route.params.id);
-  if (!shiftId) return;
+  // 路由参数承载的是交接班编号 shiftNo（后端 t_shift.shift_no 为字符串，如 JB…），
+  // 原实现 Number(route.params.id) 对编号取数得 NaN ⇒ 三个请求全部提前 return、详情恒空。
+  const shiftNo = String(route.params.id ?? "");
+  if (!shiftNo) return;
   try {
-    const data = await fetchStoreShiftDetail(shiftId);
+    const data = await fetchStoreShiftDetail(shiftNo);
     shift.value = data;
   } catch {
     ElMessage.warning("交接班详情加载失败");
@@ -296,10 +299,10 @@ async function loadShiftDetail() {
 }
 
 async function loadSalesStats() {
-  const shiftId = Number(route.params.id);
-  if (!shiftId) return;
+  const shiftNo = String(route.params.id ?? "");
+  if (!shiftNo) return;
   try {
-    const data = await getStoreShiftSalesStats(shiftId);
+    const data = await getStoreShiftSalesStats(shiftNo);
     salesStats.value = data;
   } catch {
     ElMessage.warning("销售统计加载失败");
@@ -307,12 +310,13 @@ async function loadSalesStats() {
 }
 
 async function loadStockCheck() {
-  const shiftId = Number(route.params.id);
-  if (!shiftId) return;
+  const shiftNo = String(route.params.id ?? "");
+  if (!shiftNo) return;
   stockCheckLoading.value = true;
   try {
-    const data = await getStoreShiftStockCheck(shiftId);
-    stockCheckItems.value = data?.items || [];
+    const data = await getStoreShiftStockCheck(shiftNo);
+    // 后端 getShiftStockCheck（shift.service.ts）返回 { records: [...] }，原实现读 data?.items ⇒ 盘点表恒空。
+    stockCheckItems.value = data?.records || data?.items || [];
     stockCheckSubmitted.value = data?.submitted || false;
   } catch {
     ElMessage.warning("库存盘点数据加载失败");
@@ -322,8 +326,8 @@ async function loadStockCheck() {
 }
 
 async function handleSubmitStockCheck() {
-  const shiftId = Number(route.params.id);
-  if (!shiftId) return;
+  const shiftNo = String(route.params.id ?? "");
+  if (!shiftNo) return;
   const items = stockCheckItems.value.map((item) => ({
     skuId: item.skuId,
     bookQty: item.bookQty,
@@ -331,7 +335,7 @@ async function handleSubmitStockCheck() {
     diffReason: item.diffReason || undefined
   }));
   try {
-    await submitStoreShiftStockCheck(shiftId, items);
+    await submitStoreShiftStockCheck(shiftNo, items);
     ElMessage.success("库存盘点提交成功");
     showStockCheckDialog.value = false;
     stockCheckSubmitted.value = true;
