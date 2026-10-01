@@ -1,0 +1,144 @@
+════════ 证据一：node:sqlite 真实 UNIQUE 约束语义（与 MySQL UNIQUE 在本组情形一致） ════════
+【证据一 · 现键 UNIQUE(barcode)（= 生产 uk_product_sku_barcode）】
+   t-001 + 6900000000017 ⇒ 写入成功
+   t-002 + 6900000000017 ⇒ 被拒：UNIQUE constraint failed: t_product_sku.barcode
+   t-002 + 6900000000017 ⇒ 被拒：UNIQUE constraint failed: t_product_sku.barcode
+   t-002 + null ⇒ 写入成功
+   t-002 + null ⇒ 写入成功
+
+【证据一 · 拟改键 UNIQUE(tenant_id, barcode)】
+   t-001 + 6900000000017 ⇒ 写入成功
+   t-002 + 6900000000017 ⇒ 写入成功
+   t-002 + 6900000000017 ⇒ 被拒：UNIQUE constraint failed: t_product_sku.tenant_id, t_product_sku.barcode
+   t-002 + null ⇒ 写入成功
+   t-002 + null ⇒ 写入成功
+
+════════ 证据二：真实 product.service 代码路径（db 层 = 内存迷你库，错误处理 = 真实 errorHandler） ════════
+【场景 A · 现键语义 UNIQUE(barcode)】
+[2026-10-02 01:28:08.838 +0800] [31mERROR[39m (27456): [36m该条码已被其他商品使用[39m
+    err: {
+      "type": "Error",
+      "message": "该条码已被其他商品使用",
+      "stack":
+          Error: 该条码已被其他商品使用
+              at Module.updateSkuBarcode (file:///D:/Users/ZXQL/wt-agents/issue-221/backend/src/services/admin/product.service.ts:711:27)
+              at scenario (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:277:36)
+              at async file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:307:2
+      "statusCode": 400
+    }
+[2026-10-02 01:28:08.995 +0800] [31mERROR[39m (27456): [36mDuplicate entry '6900000000017' for key 'uk_product_sku_barcode'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'",
+      "stack":
+          Error: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+              at duplicateEntryError (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:149:15)
+              at assertBarcodeFree (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:163:18)
+              at query (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:178:5)
+              at Object.query (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:204:83)
+              at file:///D:/Users/ZXQL/wt-agents/issue-221/backend/src/services/admin/product.service.ts:422:38
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-02 01:28:08.996 +0800] [33mWARN[39m (27456): [36m⚠ [feishu-report] 未配置 FEISHU_WEBHOOK_URL，跳过飞书消息发送。[39m
+[2026-10-02 01:28:08.996 +0800] [32mINFO[39m (27456): [36m— 汇报摘要 —
+【工作汇报】🚧 阻塞
+
+📌 阶段: 系统错误告警
+📝 汇总: [ERROR] [POST] /api/admin/products — Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+👤 汇报人: 系统自动告警
+🕐 时间: 2026-10-02 01:28
+
+--- 明细 ---
+• 请求URL: POST /api/admin/products
+• 用户ID: 未登录
+• 租户ID: N/A
+• 状态码: 500
+• 错误消息: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+• 错误堆栈: Error: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+    at duplicateEntryError (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:149:15)
+    at assertBarcodeFree (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:163:18)
+— — —[39m
+[2026-10-02 01:28:09.153 +0800] [31mERROR[39m (27456): [36mDuplicate entry '6900000000017' for key 'uk_product_sku_barcode'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'",
+      "stack":
+          Error: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+              at duplicateEntryError (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:149:15)
+              at assertBarcodeFree (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:163:18)
+              at query (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:178:5)
+              at Object.query (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:204:83)
+              at file:///D:/Users/ZXQL/wt-agents/issue-221/backend/src/services/admin/product.service.ts:422:38
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-02 01:28:09.154 +0800] [33mWARN[39m (27456): [36m⚠ [feishu-report] 未配置 FEISHU_WEBHOOK_URL，跳过飞书消息发送。[39m
+[2026-10-02 01:28:09.154 +0800] [32mINFO[39m (27456): [36m— 汇报摘要 —
+【工作汇报】🚧 阻塞
+
+📌 阶段: 系统错误告警
+📝 汇总: [ERROR] [POST] /api/admin/products — Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+👤 汇报人: 系统自动告警
+🕐 时间: 2026-10-02 01:28
+
+--- 明细 ---
+• 请求URL: POST /api/admin/products
+• 用户ID: 未登录
+• 租户ID: N/A
+• 状态码: 500
+• 错误消息: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+• 错误堆栈: Error: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+    at duplicateEntryError (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:149:15)
+    at assertBarcodeFree (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:163:18)
+— — —[39m
+a1 t-001 建品(条码 6900000000017) ⇒ 成功 skuId=502
+a2 t-002 建品(无条码)          ⇒ 成功 skuId=505
+a3 t-002 改条码 → 6900000000017       ⇒ 被拒 HTTP 400 {"code":"400","msg":"该条码已被其他商品使用","traceId":"55ce39a6-9f17-4415-8d1f-2c8a53f870c6"}
+a4 t-003 建品(跨租户同条码)    ⇒ 被拒 HTTP 500 {"code":"500","msg":"服务器内部错误","traceId":"06d0ed40-85c7-49aa-a582-d86741599d45"}
+a5 t-002 同租户重复条码        ⇒ 被拒 HTTP 500 {"code":"500","msg":"服务器内部错误","traceId":"23243d7a-1ca0-4c5e-942d-687c0e7c313d"}
+
+【场景 B · 拟改键语义 UNIQUE(tenant_id, barcode)】
+[2026-10-02 01:28:09.310 +0800] [31mERROR[39m (27456): [36mDuplicate entry '6900000000017' for key 'uk_product_sku_barcode'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'",
+      "stack":
+          Error: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+              at duplicateEntryError (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:149:15)
+              at assertBarcodeFree (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:163:18)
+              at query (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:178:5)
+              at Object.query (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:204:83)
+              at file:///D:/Users/ZXQL/wt-agents/issue-221/backend/src/services/admin/product.service.ts:422:38
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-02 01:28:09.311 +0800] [33mWARN[39m (27456): [36m⚠ [feishu-report] 未配置 FEISHU_WEBHOOK_URL，跳过飞书消息发送。[39m
+[2026-10-02 01:28:09.311 +0800] [32mINFO[39m (27456): [36m— 汇报摘要 —
+【工作汇报】🚧 阻塞
+
+📌 阶段: 系统错误告警
+📝 汇总: [ERROR] [POST] /api/admin/products — Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+👤 汇报人: 系统自动告警
+🕐 时间: 2026-10-02 01:28
+
+--- 明细 ---
+• 请求URL: POST /api/admin/products
+• 用户ID: 未登录
+• 租户ID: N/A
+• 状态码: 500
+• 错误消息: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+• 错误堆栈: Error: Duplicate entry '6900000000017' for key 'uk_product_sku_barcode'
+    at duplicateEntryError (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:149:15)
+    at assertBarcodeFree (file:///D:/Users/ZXQL/wt-agents/issue-221/.mimosa/s3-141/barcode-key-repro.mjs:163:18)
+— — —[39m
+a1 t-001 建品(条码 6900000000017) ⇒ 成功 skuId=502
+a2 t-002 建品(无条码)          ⇒ 成功 skuId=505
+a3 t-002 改条码 → 6900000000017       ⇒ 成功 {"skuId":505,"barcode":"6900000000017"}
+a4 t-003 建品(跨租户同条码)    ⇒ 成功 skuId=508
+a5 t-002 同租户重复条码        ⇒ 被拒 HTTP 500 {"code":"500","msg":"服务器内部错误","traceId":"8cb94fb3-58d6-4133-9f06-9270940f0954"}
+
+════════ 结论摘要 ════════
+· 现键：跨租户同条码 ⇒ 改品路径 HTTP 400（「该条码已被其他商品使用」虽是别家租户）；建品路径未捕获 ⇒ HTTP 500。
+· 拟改键：跨租户同条码不再互斥；同租户内重复仍被拒（a5）。
+· 建品路径的 500 属错误处理缺陷，与键的形状无关，改键后仍在（a5），建议另行立项。

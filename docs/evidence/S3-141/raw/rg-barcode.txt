@@ -1,0 +1,251 @@
+backend/src\shared\seed-data.ts:210:            { spuCode: "SPU_MT_53", skuCode: "SKU_MT_53", barcode: "6901234567001", name: "茅台飞天 53度 500ml", volume: "500ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:211:            { spuCode: "SPU_WLY_52", skuCode: "SKU_WLY_52", barcode: "6901234567002", name: "五粮液 52度 500ml", volume: "500ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:212:            { spuCode: "SPU_QD_TS", skuCode: "SKU_QD_TS", barcode: "6901234567003", name: "青岛啤酒 经典10度 330ml", volume: "330ml", packaging: "罐装", boxRatio: 24 },
+backend/src\shared\seed-data.ts:213:            { spuCode: "SPU_SN_TS", skuCode: "SKU_SN_TS", barcode: "6901234567004", name: "雪花啤酒 勇闯天涯 500ml", volume: "500ml", packaging: "瓶装", boxRatio: 12 },
+backend/src\shared\seed-data.ts:214:            { spuCode: "SPU_ZY_DR", skuCode: "SKU_ZY_DR", barcode: "6901234567005", name: "张裕干红葡萄酒 750ml", volume: "750ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:215:            { spuCode: "SPU_GY_DR", skuCode: "SKU_GY_DR", barcode: "6901234567006", name: "长城海岸赤霞珠干红 750ml", volume: "750ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:216:            { spuCode: "SPU_HX_VS", skuCode: "SKU_HX_VS", barcode: "6901234567007", name: "轩尼诗VSOP 干邑白兰地 700ml", volume: "700ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:217:            { spuCode: "SPU_MK_12", skuCode: "SKU_MK_12", barcode: "6901234567008", name: "麦卡伦12年 双桶单一麦芽威士忌 700ml", volume: "700ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:218:            { spuCode: "SPU_MT_JC", skuCode: "SKU_MT_JC", barcode: "6901234567009", name: "茅台王子酒 酱香经典 500ml", volume: "500ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:219:            { spuCode: "SPU_WLJ_JC", skuCode: "SKU_WLJ_JC", barcode: "6901234567010", name: "剑南春 水晶剑 52度 500ml", volume: "500ml", packaging: "瓶装", boxRatio: 6 },
+backend/src\shared\seed-data.ts:229:        INSERT INTO t_product_sku (tenant_id, spu_id, sku_code, barcode, sku_name, volume, packaging, base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, status)
+backend/src\shared\seed-data.ts:231:      `, [TENANT_ID, spu.id, s.skuCode, s.barcode, s.name, s.volume, s.packaging, s.boxRatio], `插入SKU ${s.name}`);
+backend/src\services\sync\delta-sync.service.ts:30:    barcode: string | null;
+backend/src\services\sync\delta-sync.service.ts:126:    barcode: string | null;
+backend/src\services\sync\delta-sync.service.ts:253:        barcode: row.barcode ?? null,
+backend/src\services\sync\delta-sync.service.ts:414:       s.id AS skuId, s.spu_id AS spuId, s.sku_code AS skuCode, s.barcode, s.sku_name AS skuName,
+backend/src\controllers\store\product.controller.ts:8:    barcode: String(req.query.barcode || ""),
+backend/src\services\supplier.service.ts:92:  barcode: string | null;
+backend/src\services\supplier.service.ts:676:      conditions.push("(poi.sku_name LIKE ? OR poi.barcode LIKE ?)");
+backend/src\services\supplier.service.ts:693:        `SELECT DISTINCT poi.sku_id, poi.sku_name, poi.barcode
+backend/src\services\store\sale-bill.service.ts:119:  barcode?: string | null;
+backend/src\services\store\sale-bill.service.ts:225:    `SELECT sku_id AS skuId, sku_name AS skuName, sku_spec AS skuSpec, unit, barcode,
+backend/src\services\store\sale-bill.service.ts:243:    spec?: string; unit?: string; barcode?: string;
+backend/src\services\store\sale-bill.service.ts:264:      barcode?: string | null; itemRemark?: string | null; itemDiscount?: number;
+backend/src\services\store\sale-bill.service.ts:269:        `SELECT s.sku_name, s.volume, s.packaging, s.base_unit, s.barcode,
+backend/src\services\store\sale-bill.service.ts:291:        barcode: item.barcode || price.barcode || null,
+backend/src\services\store\sale-bill.service.ts:313:        `INSERT INTO t_sale_bill_item (bill_no, sku_id, sku_name, sku_spec, unit, barcode,
+backend/src\services\store\sale-bill.service.ts:317:        [billNo, item.skuId, item.skuName, item.skuSpec ?? null, item.unit ?? "瓶", item.barcode ?? null,
+backend/src\controllers\platform\library.controller.ts:195:  const { skuName, barcode, volume, packaging, baseUnit, boxUnit, boxRatio, skuImage } = req.body;
+backend/src\controllers\platform\library.controller.ts:199:    barcode,
+backend/src\controllers\platform\library.controller.ts:219:  const { skuName, barcode, volume, packaging, baseUnit, boxUnit, boxRatio, skuImage, status } = req.body;
+backend/src\controllers\platform\library.controller.ts:223:    barcode,
+backend/src\services\store\product.service.ts:21:  id: number; skuCode: string; skuName: string; barcode: string | null;
+backend/src\services\store\product.service.ts:33:  skuName: string; barcode: string | null;
+backend/src\services\store\product.service.ts:74:    `SELECT s.id, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+backend/src\services\store\product.service.ts:95:  barcode?: string;
+backend/src\services\store\product.service.ts:101:  const { keyword = "", barcode = "", categoryId, tagIds, storeId, tenantId } = params;
+backend/src\services\store\product.service.ts:104:            s.sku_name AS skuName, s.barcode, pp.retail_price AS retailPrice,
+backend/src\services\store\product.service.ts:114:       AND (? = '' OR s.barcode = ?)`;
+backend/src\services\store\product.service.ts:115:  const paramsArr: unknown[] = [storeId, tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, barcode, barcode];
+backend/src\shared\migration.ts:855:          barcode VARCHAR(128) DEFAULT NULL COMMENT '商品条码',
+backend/src\shared\migration.ts:870:          UNIQUE KEY uk_product_sku_barcode (barcode),
+backend/src\routes\admin-product.routes.ts:39:adminProductRouter.put("/products/skus/:skuId/barcode", productController.updateSkuBarcode);
+backend/src\controllers\open\library.controller.ts:20:  "id", "spu_id", "sku_code", "barcode", "sku_name",
+backend/src\controllers\open\library.controller.ts:89: * GET /sku/barcode/:barcode — 按条码查询 SKU + SPU 信息
+backend/src\controllers\open\library.controller.ts:93:  const barcode = req.params.barcode;
+backend/src\controllers\open\library.controller.ts:94:  if (!barcode) {
+backend/src\controllers\open\library.controller.ts:107:     WHERE k.barcode = ? AND k.status = 'APPROVED'`,
+backend/src\controllers\open\library.controller.ts:108:    [barcode]
+backend/src\services\store\inventory.service.ts:63:       AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
+backend/src\routes\open-library.routes.ts:23:openLibraryRouter.get("/sku/barcode/:barcode", asyncHandler(controller.getSkuByBarcode));
+backend/src\services\instant-retail\retail-ops-ext.service.ts:40:  barcode: string | null;
+backend/src\services\instant-retail\retail-ops-ext.service.ts:138:  barcode: string | null;
+backend/src\services\instant-retail\retail-ops-ext.service.ts:226:    barcode: row.barcode,
+backend/src\services\instant-retail\retail-ops-ext.service.ts:345:    conditions.push("(spu.name LIKE ? OR ps.sku_code LIKE ? OR ps.barcode LIKE ?)");
+backend/src\services\instant-retail\retail-ops-ext.service.ts:366:            ps.sku_code AS sku, ps.barcode,
+backend/src\controllers\miniapp\miniapp.controller.ts:65:      barcode: sku.barcode,
+backend/src\services\platform\library.service.ts:57:  barcode?: string;
+backend/src\services\platform\library.service.ts:69:  barcode?: string;
+backend/src\services\platform\library.service.ts:205:  barcode: string | null;
+backend/src\services\platform\library.service.ts:402:    `SELECT id, spu_id AS spuId, sku_code AS skuCode, barcode, sku_name AS skuName,
+backend/src\services\platform\library.service.ts:472:           (spu_id, sku_code, barcode, sku_name, volume, packaging,
+backend/src\services\platform\library.service.ts:478:            sku.barcode ?? null,
+backend/src\services\platform\library.service.ts:797:    `SELECT id, spu_id AS spuId, sku_code AS skuCode, barcode, sku_name AS skuName,
+backend/src\services\platform\library.service.ts:820:  // 如果有 barcode，检查唯一性
+backend/src\services\platform\library.service.ts:821:  if (data.barcode) {
+backend/src\services\platform\library.service.ts:823:      "SELECT id FROM t_library_sku WHERE barcode = ?",
+backend/src\services\platform\library.service.ts:824:      [data.barcode]
+backend/src\services\platform\library.service.ts:836:     (spu_id, sku_code, barcode, sku_name, volume, packaging,
+backend/src\services\platform\library.service.ts:842:      data.barcode ?? null,
+backend/src\services\platform\library.service.ts:867:  // 如果更新 barcode，检查唯一性
+backend/src\services\platform\library.service.ts:868:  if (data.barcode) {
+backend/src\services\platform\library.service.ts:870:      "SELECT id FROM t_library_sku WHERE barcode = ? AND id != ?",
+backend/src\services\platform\library.service.ts:871:      [data.barcode, id]
+backend/src\services\platform\library.service.ts:885:  if (data.barcode !== undefined) {
+backend/src\services\platform\library.service.ts:886:    fields.push("barcode = ?");
+backend/src\services\platform\library.service.ts:887:    values.push(data.barcode);
+backend/src\services\purchase.service.ts:80:  barcode: string | null;
+backend/src\services\purchase.service.ts:123:    barcode?: string;
+backend/src\services\purchase.service.ts:141:    barcode?: string;
+backend/src\services\purchase.service.ts:303:      `SELECT sku_id AS skuId, sku_name AS skuName, barcode, box_qty AS boxQty,
+backend/src\services\purchase.service.ts:373:            order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
+backend/src\services\purchase.service.ts:380:            item.barcode || null,
+backend/src\services\purchase.service.ts:472:              order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
+backend/src\services\purchase.service.ts:479:              item.barcode || null,
+backend/src\services\admin\report.service.ts:61:  barcode: string | null;
+backend/src\services\admin\report.service.ts:300:    conditions.push("(ps.sku_name LIKE ? OR ps.sku_code LIKE ? OR ps.barcode LIKE ?)");
+backend/src\services\admin\report.service.ts:315:            ps.sku_name AS skuName, ps.barcode, ib.stock_type AS stockType,
+backend/src\services\admin\library-lookup.service.ts:29:    barcode: string;
+backend/src\services\admin\library-lookup.service.ts:63:   * @param barcode - 商品条码
+backend/src\services\admin\library-lookup.service.ts:66:  async lookupByBarcode(barcode: string): Promise<LookupResult> {
+backend/src\services\admin\library-lookup.service.ts:69:      `SELECT id, spu_id, sku_code, barcode, sku_name, volume, packaging,
+backend/src\services\admin\library-lookup.service.ts:72:       WHERE barcode = ? AND status = 'APPROVED'`,
+backend/src\services\admin\library-lookup.service.ts:73:      [barcode]
+backend/src\services\admin\library-lookup.service.ts:130:        barcode: sku.barcode,
+backend/src\services\admin\library-copy.service.ts:84:  barcode: string | null;
+backend/src\services\admin\library-copy.service.ts:197:/** 条码撞全库唯一键（uk_product_sku_barcode）判定：只认 1062，不吞其它错误 */
+backend/src\services\admin\library-copy.service.ts:215:    `SELECT id, spu_id AS spuId, sku_code AS skuCode, barcode, sku_name AS skuName,
+backend/src\services\admin\library-copy.service.ts:228: * 条码撞全库唯一键时按 Q2 裁定②降级：改写 barcode = NULL 并往 warnings 追加显式原因（不得 500、不得静默）。
+backend/src\services\admin\library-copy.service.ts:241:  const barcode = sku.barcode && String(sku.barcode).trim() ? String(sku.barcode) : null;
+backend/src\services\admin\library-copy.service.ts:242:  const insertSku = async (barcodeValue: string | null): Promise<number> => {
+backend/src\services\admin\library-copy.service.ts:245:      `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+backend/src\services\admin\library-copy.service.ts:251:        barcodeValue,
+backend/src\services\admin\library-copy.service.ts:266:    skuId = await insertSku(barcode);
+backend/src\services\admin\library-copy.service.ts:270:    warnings.push(`条码 ${barcode} 已被其他商品占用，SKU「${sku.skuName}」已降级为不带条码（可稍后在商品详情补录）`);
+backend/src\services\admin\library-copy.service.ts:286:  barcode?: string;
+backend/src\services\admin\library-copy.service.ts:296:  const { tenantId, keyword, barcode, brandId, page, pageSize } = params;
+backend/src\services\admin\library-copy.service.ts:301:    conditions.push("(s.name LIKE ? OR s.spu_code LIKE ? OR EXISTS (SELECT 1 FROM t_library_sku k WHERE k.spu_id = s.id AND k.barcode LIKE ? AND k.status = 'APPROVED'))");
+backend/src\services\admin\library-copy.service.ts:305:  if (barcode) {
+backend/src\services\admin\library-copy.service.ts:306:    conditions.push("EXISTS (SELECT 1 FROM t_library_sku k WHERE k.spu_id = s.id AND k.barcode = ? AND k.status = 'APPROVED')");
+backend/src\services\admin\library-copy.service.ts:307:    whereParams.push(barcode);
+backend/src\services\admin\library-copy.service.ts:379:    `SELECT id, spu_id AS spuId, sku_code AS skuCode, barcode, sku_name AS skuName,
+backend/src\services\admin\library-copy.service.ts:413:      barcode: sku.barcode ?? "",
+backend/src\services\admin\inventory-share.service.ts:35:  barcode: string | null;
+backend/src\services\admin\inventory-share.service.ts:190:    conditions.push("(isp.spu_name LIKE ? OR isp.sku_name LIKE ? OR isp.barcode LIKE ?)");
+backend/src\services\admin\inventory-share.service.ts:198:            isp.sku_id AS skuId, isp.sku_name AS skuName, isp.barcode,
+backend/src\services\admin\inventory-share.service.ts:229:    barcode?: string;
+backend/src\services\admin\inventory-share.service.ts:234:  const { spuId, spuName, skuId, skuName, barcode, shareQty, minKeepQty } = params;
+backend/src\services\admin\inventory-share.service.ts:248:      spu_id, spu_name, sku_id, sku_name, barcode,
+backend/src\services\admin\inventory-share.service.ts:256:      barcode ?? null,
+backend/src\services\admin\inventory-share.service.ts:275:    barcode?: string;
+backend/src\services\admin\inventory-share.service.ts:297:          spu_id, spu_name, sku_id, sku_name, barcode,
+backend/src\services\admin\inventory-share.service.ts:305:          product.barcode ?? null,
+backend/src\services\admin\inventory-profit-order.service.ts:68:  barcode: string | null;
+backend/src\services\admin\inventory-profit-order.service.ts:174:            sku_id AS skuId, sku_name AS skuName, barcode,
+backend/src\services\admin\inventory-profit-order.service.ts:199:    barcode?: string;
+backend/src\services\admin\inventory-profit-order.service.ts:237:          barcode, specification, unit_name, qty, cost_price, subtotal_amount, profit_reason, tenant_id)
+backend/src\services\admin\inventory-profit-order.service.ts:239:        [profitOrderId, profitNo, item.skuId, item.skuName, item.barcode ?? null,
+backend/src\services\admin\inventory-loss-order.service.ts:68:  barcode: string | null;
+backend/src\services\admin\inventory-loss-order.service.ts:174:            sku_id AS skuId, sku_name AS skuName, barcode,
+backend/src\services\admin\inventory-loss-order.service.ts:199:    barcode?: string;
+backend/src\services\admin\inventory-loss-order.service.ts:237:          barcode, specification, unit_name, qty, cost_price, subtotal_amount, loss_reason, tenant_id)
+backend/src\services\admin\inventory-loss-order.service.ts:239:        [lossOrderId, lossNo, item.skuId, item.skuName, item.barcode ?? null,
+backend/src\services\admin\export.service.ts:34:  barcode: string | null;
+backend/src\services\admin\export.service.ts:150:    conditions.push("(p.name LIKE ? OR s.sku_code LIKE ? OR s.sku_name LIKE ? OR s.barcode LIKE ?)");
+backend/src\services\admin\export.service.ts:155:    `SELECT s.id, s.sku_code AS skuCode, s.barcode, s.sku_name AS skuName,
+backend/src\services\miniapp.service.ts:184:       AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
+backend/src\services\admin\combo-product.service.ts:47:  barcode: string | null;
+backend/src\services\admin\combo-product.service.ts:138:            sku_id AS skuId, sku_name AS skuName, barcode,
+backend/src\services\admin\combo-product.service.ts:175:    barcode?: string;
+backend/src\services\admin\combo-product.service.ts:216:        `INSERT INTO t_combo_product_option (combo_id, group_name, sku_id, sku_name, barcode,
+backend/src\services\admin\combo-product.service.ts:219:        [comboId, opt.groupName, opt.skuId, opt.skuName, opt.barcode ?? null,
+backend/src\services\admin\combo-product.service.ts:248:      barcode?: string;
+backend/src\services\admin\combo-product.service.ts:315:          `INSERT INTO t_combo_product_option (combo_id, group_name, sku_id, sku_name, barcode,
+backend/src\services\admin\combo-product.service.ts:318:          [id, opt.groupName, opt.skuId, opt.skuName, opt.barcode ?? null,
+backend/src\services\admin\report\product-report.service.ts:12:  barcode?: string | null;
+backend/src\services\admin\report\product-report.service.ts:124:              ps.barcode, pp.cost_price AS costPrice,
+backend/src\services\admin\report\product-report.service.ts:133:       GROUP BY ib.sku_id, ps.sku_name, ps.sku_code, ps.barcode, pp.cost_price
+backend/src\services\admin\batch-price.service.ts:170:    conditions.push("(s.name LIKE ? OR sku.sku_name LIKE ? OR sku.barcode LIKE ?)");
+backend/src\services\admin\batch-price.service.ts:286:    conditions.push("(s.name LIKE ? OR sku.sku_name LIKE ? OR sku.barcode LIKE ?)");
+backend/src\services\admin\demo.service.ts:97:        `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+backend/src\services\admin\data-transfer.service.ts:27:  "条码": "barcode", "barcode": "barcode", "条形码": "barcode", "商品条码": "barcode",
+backend/src\services\admin\data-transfer.service.ts:60:    "条码": r.barcode ?? "",
+backend/src\services\admin\data-transfer.service.ts:363: * 同时兼容英文表头 sku_code,barcode,sku_name,category 等同类叫法。
+backend/src\services\admin\data-transfer.service.ts:375:  const iBarcode = idx("barcode");
+backend/src\services\admin\data-transfer.service.ts:401:    const barcode = iBarcode !== null ? (r[iBarcode] || "").trim() : "";
+backend/src\services\admin\data-transfer.service.ts:423:        : barcode
+backend/src\services\admin\data-transfer.service.ts:424:          ? await query<{ id: number }>("SELECT id FROM t_product_sku WHERE barcode = ? AND tenant_id = ? LIMIT 1", [barcode, tenantId])
+backend/src\services\admin\data-transfer.service.ts:430:          `UPDATE t_product_sku SET sku_name = ?, barcode = COALESCE(?, barcode), warning_threshold = ?, updated_at = NOW() WHERE id = ?`,
+backend/src\services\admin\data-transfer.service.ts:431:          [skuName, barcode || null, threshold, skuId]
+backend/src\services\admin\data-transfer.service.ts:440:          `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, base_unit, box_unit, box_ratio,
+backend/src\services\admin\data-transfer.service.ts:443:          [spuId, finalSkuCode, barcode || null, skuName, threshold, tenantId]
+backend/src\services\miniapp\wholesale.service.ts:74:  barcode: string | null;
+backend/src\services\miniapp\wholesale.service.ts:409:            s.barcode, s.volume, s.packaging, s.base_unit AS baseUnit,
+backend/src\services\miniapp\wholesale.service.ts:452:      barcode: sku.barcode,
+backend/src\schemas\store-sale-bill.ts:13:  barcode: z.string().optional(),
+backend/src\schemas\store-sale-bill.ts:32:    barcode: item.barcode,
+backend/src\services\admin\quote-push.service.ts:35:  barcode?: string;
+backend/src\services\admin\quote-push.service.ts:120:  barcode: string | null;
+backend/src\services\admin\quote-push.service.ts:197:  barcode: string | null;
+backend/src\services\admin\quote-push.service.ts:219:  barcode: string | null;
+backend/src\services\admin\quote-push.service.ts:257:    conditions.push("(s.name LIKE ? OR sk.sku_name LIKE ? OR sk.barcode LIKE ?)");
+backend/src\services\admin\quote-push.service.ts:305:            sk.barcode, s.unit, s.main_image AS imageUrl,
+backend/src\services\admin\quote-push.service.ts:349:      barcode: row.barcode ?? undefined,
+backend/src\services\admin\quote-push.service.ts:566:            sk.barcode, sk.sku_code AS skuCode, s.unit, s.main_image AS imageUrl
+backend/src\services\admin\quote-push.service.ts:582:      barcode: item.barcode,
+backend/src\services\admin\quote-push.service.ts:717:            sk.barcode, s.unit, s.main_image AS imageUrl
+backend/src\services\admin\quote-push.service.ts:743:      barcode: item.barcode,
+backend/src\services\admin\print-templates.ts:113:        content: '{"version":3,"paper":{"type":"A4","width":210,"height":297,"orientation":"portrait","marginTop":5,"marginBottom":5,"marginLeft":5,"marginRight":5},"widgets":[{"id":"w_msqccxfu_ohnp1l","x":5,"y":5,"zIndex":0,"visible":true,"fontSize":18,"fontWeight":"bold","align":"center","color":"#000","kind":"field","width":200,"height":10,"fieldKey":"storeName","label":"","showLabel":false},{"id":"w_msqccxfv_6hd0nz","x":5,"y":17,"zIndex":0,"visible":true,"fontSize":16,"fontWeight":"bold","align":"center","color":"#000","kind":"text","width":200,"height":9,"text":"销 售 单"},{"id":"w_msqccxfv_95fkow","x":5,"y":28,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"left","color":"#000","kind":"field","width":58,"height":7,"fieldKey":"customerName","label":"客户名称","showLabel":true},{"id":"w_msqccxfv_dixoku","x":63,"y":28,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"left","color":"#000","kind":"field","width":58,"height":7,"fieldKey":"customerPhone","label":"联系人","showLabel":true},{"id":"w_msqccxfv_978hnh","x":121,"y":28,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"right","color":"#000","kind":"field","width":84,"height":7,"fieldKey":"billDate","label":"销售日期","showLabel":true},{"id":"w_msqccxfv_nvjrxm","x":5,"y":36,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"left","color":"#000","kind":"field","width":58,"height":7,"fieldKey":"storeAddress","label":"客户地址","showLabel":true},{"id":"w_msqccxfv_wht35j","x":63,"y":36,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"left","color":"#000","kind":"field","width":58,"height":7,"fieldKey":"customerPhone","label":"联系电话","showLabel":true},{"id":"w_msqccxfv_i9qtlu","x":121,"y":36,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"right","color":"#000","kind":"field","width":84,"height":7,"fieldKey":"billNo","label":"单号","showLabel":true},{"id":"w_msqccxfv_dsqzbe","x":5,"y":44,"zIndex":0,"visible":true,"fontSize":11,"fontWeight":"normal","align":"left","color":"#000","kind":"line","width":200,"height":1,"borderWidth":1,"lineStyle":"solid"},{"id":"w_msqccxfv_rwfs8u","x":5,"y":47,"zIndex":0,"visible":true,"fontSize":10,"fontWeight":"normal","align":"left","color":"#000","kind":"table","width":200,"height":52,"dataSource":"itemsRows","columns":[{"key":"index","label":"序号","width":14,"align":"center"},{"key":"barcode","label":"条码","width":28,"align":"center"},{"key":"name","label":"商品名称","width":40,"align":"left"},{"key":"spec","label":"规格","width":24,"align":"left"},{"key":"price","label":"单价","width":24,"align":"right"},{"key":"unit","label":"单位","width":20,"align":"center"},{"key":"qty","label":"数量","width":24,"align":"right"},{"key":"amount","label":"合计金额","width":26,"align":"right"}],"showHeader":true,"rowHeight":7,"headerFontSize":10,"cellPadding":1},{"id":"w_msqccxfv_ea7a6b","x":115.00000000000001,"y":103,"zIndex":0,"visible":true,"fontSize":13,"fontWeight":"bold","align":"right","color":"#000","kind":"field","width":90,"height":8,"fieldKey":"totalAmount","label":"合计金额（小写）","showLabel":true},{"id":"w_msqccxfv_s11jfa","x":5,"y":103,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"left","color":"#000","kind":"field","width":110.00000000000001,"height":8,"fieldKey":"amountChinese","label":"合计（大写）","showLabel":true},{"id":"w_msqccxfv_npkppb","x":5,"y":112,"zIndex":0,"visible":true,"fontSize":12,"fontWeight":"normal","align":"left","color":"#000","kind":"field","width":200,"height":8,"fieldKey":"remarkBlock","label":"备注","showLabel":true},{"id":"w_msqccxfv_iji3ox","x":5,"y":121,"zIndex":0,"visible":true,"fontSize":11,"fontWeight":"normal","align":"left","color":"#000","kind":"text","width":200,"height":7,"text":"（追溯码）"},{"id":"w_msqccxfv_ilrncs","x":5,"y":129,"zIndex":0,"visible":true,"fontSize":11,"fontWeight":"normal","align":"left","color":"#000","kind":"text","width":200,"height":7,"text":"此栏声明内容"},{"id":"w_msqccxfv_vtc9k1","x":5,"y":137,"zIndex":0,"visible":true,"fontSize":11,"fontWeight":"normal","align":"left","color":"#000","kind":"text","width":50,"height":8,"text":"制单：{{operatorName}}"},{"id":"w_msqccxfv_agev1q","x":55,"y":137,"zIndex":0,"visible":true,"fontSize":11,"fontWeight":"normal","align":"left","color":"#000","kind":"text","width":50,"height":8,"text":"审核：{{auditorName}}"},{"id":"w_msqccxfv_10q20m","x":105,"y":137,"zIndex":0,"visible":true,"fontSize":11,"fontWeight":"normal","align":"left","color":"#000","kind":"text","width":50,"height":8,"text":"业务：{{salesmanName}}"},{"id":"w_msqccxfv_vjznuf","x":155,"y":137,"zIndex":0,"visible":true,"fontSize":11,"fontWeight":"normal","align":"left","color":"#000","kind":"text","width":50,"height":8,"text":"客户签收："}]}',
+backend/src\services\admin\print-templates.ts:180:            m("billInfo", ["skuName", "barcode", "unit"]),
+backend/src\services\admin\price-review.service.ts:16:  barcode: string | null;
+backend/src\services\admin\price-review.service.ts:79:    where.push("(spu.name LIKE ? OR sku.sku_name LIKE ? OR sku.barcode LIKE ?)");
+backend/src\services\admin\price-review.service.ts:95:            spu.specs AS spec, sku.barcode AS barcode,
+backend/src\services\admin\price-review.service.ts:117:        barcode: r.barcode || "",
+backend/src\services\admin\purchase-order.service.ts:46:  barcode: string | null;
+backend/src\services\admin\purchase-order.service.ts:160:    `SELECT id, order_no AS orderNo, sku_id AS skuId, sku_name AS skuName, barcode,
+backend/src\services\admin\purchase-order.service.ts:183:    barcode?: string;
+backend/src\services\admin\purchase-order.service.ts:233:        `INSERT INTO t_purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
+backend/src\services\admin\purchase-order.service.ts:236:        [orderNo, item.skuId, item.skuName, item.barcode ?? null,
+backend/src\services\admin\purchase-order.service.ts:255:    barcode?: string;
+backend/src\services\admin\purchase-order.service.ts:312:          `INSERT INTO t_purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
+backend/src\services\admin\purchase-order.service.ts:315:          [existing.orderNo, item.skuId, item.skuName, item.barcode ?? null,
+backend/src\services\admin\product-bundle.service.ts:31:  barcode: string | null;
+backend/src\services\admin\product-bundle.service.ts:144:            barcode, qty, unit_price AS unitPrice,
+backend/src\services\admin\product-bundle.service.ts:166:    barcode?: string;
+backend/src\services\admin\product-bundle.service.ts:204:        `INSERT INTO t_product_bundle_item (bundle_id, sku_id, sku_name, barcode, qty,
+backend/src\services\admin\product-bundle.service.ts:207:        [bundleId, item.skuId, item.skuName, item.barcode ?? null, item.qty,
+backend/src\services\admin\product-bundle.service.ts:233:      barcode?: string;
+backend/src\services\admin\product-bundle.service.ts:293:          `INSERT INTO t_product_bundle_item (bundle_id, sku_id, sku_name, barcode, qty,
+backend/src\services\admin\product-bundle.service.ts:296:          [id, item.skuId, item.skuName, item.barcode ?? null, item.qty,
+backend/src\services\admin\product.service.ts:48:  barcode: string | null;
+backend/src\services\admin\product.service.ts:107:  barcode: string | null;
+backend/src\services\admin\product.service.ts:130:  barcode: string | null;
+backend/src\services\admin\product.service.ts:208:              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode, s.box_barcode AS boxBarcode,
+backend/src\services\admin\product.service.ts:222:       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
+backend/src\services\admin\product.service.ts:224:         WHEN s.barcode = ? THEN 0
+backend/src\services\admin\product.service.ts:239:       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
+backend/src\services\admin\product.service.ts:257:              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode, s.box_barcode AS boxBarcode,
+backend/src\services\admin\product.service.ts:306:    `SELECT s.id, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode, s.box_barcode AS boxBarcode,
+backend/src\services\admin\product.service.ts:327:      `SELECT id, sku_id AS skuId, unit_name AS unitName, ratio, barcode,
+backend/src\services\admin\product.service.ts:387:    barcode?: string;
+backend/src\services\admin\product.service.ts:423:        `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+backend/src\services\admin\product.service.ts:426:        [spuId, skuCode, sku.barcode ?? null, sku.skuName,
+backend/src\services\admin\product.service.ts:467:  barcode?: string;
+backend/src\services\admin\product.service.ts:559:  if (body.barcode !== undefined) {
+backend/src\services\admin\product.service.ts:560:    await queryWithTenant("UPDATE t_product_sku SET barcode = ? WHERE spu_id = ? AND tenant_id = ?", [body.barcode, spuId, tenantId], tenantId);
+backend/src\services\admin\product.service.ts:690: * 注意：t_product_sku.barcode 有唯一约束，重复条码需提示
+backend/src\services\admin\product.service.ts:694:  barcode: string,
+backend/src\services\admin\product.service.ts:697:  const trimmed = (barcode || "").trim();
+backend/src\services\admin\product.service.ts:700:      `UPDATE t_product_sku SET barcode = ?, updated_at = NOW() WHERE id = ?`,
+backend/src\services\admin\product.service.ts:707:    return { skuId, barcode: trimmed || null };
+backend/src\services\admin\product.service.ts:753:  if (body.boxBarcode !== undefined) { sets.push("box_barcode = ?"); params.push(body.boxBarcode || null); }
+backend/src\services\admin\product.service.ts:770:/** 同步 SKU 遗留字段（base_unit/box_unit/box_ratio/box_barcode），保证销售/库存旧流程可用 */
+backend/src\services\admin\product.service.ts:772:  const units = await queryWithTenant<{ unit_name: string; ratio: number | string; barcode: string | null; is_base: number }>(
+backend/src\services\admin\product.service.ts:773:    `SELECT unit_name, ratio, barcode, is_base FROM t_product_sku_unit
+backend/src\services\admin\product.service.ts:783:     SET base_unit = ?, box_unit = ?, box_ratio = ?, box_barcode = ?
+backend/src\services\admin\product.service.ts:789:      firstNonBase?.barcode ?? null,
+backend/src\services\admin\product.service.ts:803:    barcode?: string;
+backend/src\services\admin\product.service.ts:824:       (sku_id, unit_name, ratio, barcode, retail_price, wholesale_price, store_price, miniapp_price, is_base, sort_no, tenant_id)
+backend/src\services\admin\product.service.ts:827:      [skuId, unitName, ratio, body.barcode?.trim() || null,
+backend/src\services\admin\product.service.ts:851:    barcode?: string;
+backend/src\services\admin\product.service.ts:880:  if (body.barcode !== undefined) { sets.push("barcode = ?"); params.push(body.barcode?.trim() || null); }
+backend/src\services\admin\product.service.ts:951:          `INSERT INTO t_product_sku (spu_id, sku_code, barcode, sku_name, volume, packaging,
+backend/src\services\admin\product.service.ts:954:          [spuId, skuCode, row.barcode ?? null, row.skuName,
+backend/src\controllers\admin\export.controller.ts:45:  const rows = records.map((r: any) => [r.skuCode, r.barcode, r.skuName, r.specs, r.baseUnit, r.categoryName, r.brandName, r.costPrice, r.retailPrice, r.wholesalePrice, r.quantity, r.warningThreshold]);
+backend/src\controllers\admin\inventory-share.controller.ts:47:    barcode: req.body.barcode,
+backend/src\controllers\admin\library-copy.controller.ts:26:  barcode: z.string().trim().min(1, "条码不能为空").optional(),
+backend/src\controllers\admin\library-copy.controller.ts:54:    barcode: query.barcode,
+backend/src\controllers\admin\library.controller.ts:9: * 请求体：{ barcode: string }
+backend/src\controllers\admin\library.controller.ts:13:  const { barcode } = req.body;
+backend/src\controllers\admin\library.controller.ts:16:  if (!barcode) {
+backend/src\controllers\admin\library.controller.ts:20:  const result = await libraryLookupService.lookupByBarcode(String(barcode));
+backend/src\controllers\admin\product.controller.ts:59:      barcode: z.string().optional(),
+backend/src\controllers\admin\product.controller.ts:78:      barcode: rawBody.barcode,
+backend/src\controllers\admin\product.controller.ts:110:    barcode: z.string().optional(),
+backend/src\controllers\admin\product.controller.ts:168:    barcode: z.string().optional(),
+backend/src\controllers\admin\product.controller.ts:189:    barcode: z.string().optional(),
+backend/src\controllers\admin\product.controller.ts:246:    barcode: z.string().max(128).default(""),
+backend/src\controllers\admin\product.controller.ts:248:  const result = await productService.updateSkuBarcode(skuId, body.barcode, tenantId);
+backend/src\controllers\admin\purchase.controller.ts:58:      barcode: z.string().max(128).optional(),
+backend/src\controllers\admin\purchase.controller.ts:117:      barcode: z.string().max(128).optional(),
