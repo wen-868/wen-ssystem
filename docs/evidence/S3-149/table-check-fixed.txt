@@ -1,0 +1,12 @@
+DB=s3149_e2e_fresh
+DECLARED_TABLES=62
+PRESENT_IN_DB=310
+MISSING_DECLARED=0
+---- 逐表核对（init_database.sql 声明的每一张表） ----
+01 EXISTS  t_sys_config
+02 EXISTS  t_sys_user
+03 EXISTS  t_sys_role
+04 EXISTS  t_sys_permission
+05 EXISTS  t_store
+06 EXISTS  t_product_category
+07 EXISTS  t_supplier

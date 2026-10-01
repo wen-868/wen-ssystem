@@ -1,0 +1,8 @@
+DB=s3149_neg_fresh
+DECLARED_TABLES=62
+PRESENT_IN_DB=309
+MISSING_DECLARED=1 -> t_sys_config
+---- 逐表核对（init_database.sql 声明的每一张表） ----
+01 MISSING t_sys_config
+02 EXISTS  t_sys_user
+03 EXISTS  t_sys_role
