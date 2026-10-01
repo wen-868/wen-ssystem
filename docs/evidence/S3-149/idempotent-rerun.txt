@@ -1,0 +1,1124 @@
+{"level":30,"time":1790880073371,"pid":15060,"hostname":"XIONG","msg":"[migration] 检查/创建核心系统表..."}
+{"level":30,"time":1790880073382,"pid":15060,"hostname":"XIONG","msg":"[migration] 创建/修复 t_tenant 表..."}
+{"level":30,"time":1790880073390,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.name: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073395,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.contact_name: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073400,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.contact_phone: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073406,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.plan: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073412,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.status: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073416,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.expire_at: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073422,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.created_at: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073428,"pid":15060,"hostname":"XIONG","msg":"[migration] t_tenant.updated_at: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073453,"pid":15060,"hostname":"XIONG","msg":"[migration] 检查/创建业务表（init_database.sql）..."}
+{"level":30,"time":1790880073571,"pid":15060,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总62张，实际建62，已存在跳过0）"}
+{"level":30,"time":1790880073571,"pid":15060,"hostname":"XIONG","msg":"[migration] 为 72 张表添加 tenant_id..."}
+{"level":30,"time":1790880073578,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073583,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_config.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073589,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_user.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073596,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_user.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073609,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_role.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073615,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_role.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073624,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_permission.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073630,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_permission.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073636,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_user_role.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073641,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_user_role.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073650,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_role_permission.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073656,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_role_permission.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073664,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073669,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073673,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_category.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073679,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_category.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073686,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_spu.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073691,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_spu.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073700,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_sku.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073706,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_sku.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073714,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_price.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073721,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_price.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073730,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sku_price.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073735,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sku_price.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073742,"pid":15060,"hostname":"XIONG","msg":"[migration] t_brand.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073771,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073776,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073787,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier_contact.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073791,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier_contact.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073801,"pid":15060,"hostname":"XIONG","msg":"[migration] t_member.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073807,"pid":15060,"hostname":"XIONG","msg":"[migration] t_member.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073813,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_type.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073845,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_price_binding.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073850,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_price_binding.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073860,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_credit.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073866,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_credit.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073871,"pid":15060,"hostname":"XIONG","msg":"[migration] t_inventory_balance.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073877,"pid":15060,"hostname":"XIONG","msg":"[migration] t_inventory_balance.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073883,"pid":15060,"hostname":"XIONG","msg":"[migration] t_inventory_batch.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073888,"pid":15060,"hostname":"XIONG","msg":"[migration] t_inventory_batch.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073893,"pid":15060,"hostname":"XIONG","msg":"[migration] t_inventory_ledger.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073899,"pid":15060,"hostname":"XIONG","msg":"[migration] t_inventory_ledger.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073908,"pid":15060,"hostname":"XIONG","msg":"[migration] t_price_level.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073914,"pid":15060,"hostname":"XIONG","msg":"[migration] t_price_level.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073923,"pid":15060,"hostname":"XIONG","msg":"[migration] t_price_change_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073928,"pid":15060,"hostname":"XIONG","msg":"[migration] t_price_change_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073937,"pid":15060,"hostname":"XIONG","msg":"[migration] t_alert_rule.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073943,"pid":15060,"hostname":"XIONG","msg":"[migration] t_alert_rule.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073951,"pid":15060,"hostname":"XIONG","msg":"[migration] t_alert_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073957,"pid":15060,"hostname":"XIONG","msg":"[migration] t_alert_record.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073966,"pid":15060,"hostname":"XIONG","msg":"[migration] t_expiry_alert_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073972,"pid":15060,"hostname":"XIONG","msg":"[migration] t_expiry_alert_config.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073980,"pid":15060,"hostname":"XIONG","msg":"[migration] t_expiry_alert_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880073986,"pid":15060,"hostname":"XIONG","msg":"[migration] t_expiry_alert_record.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880073995,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074000,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_config.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074009,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_code.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074016,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_code.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074025,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_event_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074031,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_event_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074040,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_scan_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074046,"pid":15060,"hostname":"XIONG","msg":"[migration] t_trace_scan_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074056,"pid":15060,"hostname":"XIONG","msg":"[migration] t_recall_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074062,"pid":15060,"hostname":"XIONG","msg":"[migration] t_recall_record.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074071,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store_control_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074076,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store_control_config.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074085,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store_status_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074091,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store_status_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074097,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_bill.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074102,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_bill.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074108,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_bill_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074113,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_bill_item.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074121,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_return.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074127,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_return.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074136,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_return_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074141,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_return_item.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074150,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_payment.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074156,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sale_payment.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074166,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074171,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_order.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074180,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_order_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074187,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_order_item.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074192,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_in_stock.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074198,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_in_stock.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074207,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_in_stock_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074212,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_in_stock_item.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074222,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_return.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074228,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_return.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074236,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_return_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074241,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_return_item.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074249,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_payment.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074255,"pid":15060,"hostname":"XIONG","msg":"[migration] t_purchase_payment.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074264,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier_statement.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074270,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier_statement.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074278,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier_statement_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074283,"pid":15060,"hostname":"XIONG","msg":"[migration] t_supplier_statement_item.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074292,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_statement.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074298,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_statement.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074307,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_payment.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074313,"pid":15060,"hostname":"XIONG","msg":"[migration] t_customer_payment.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074322,"pid":15060,"hostname":"XIONG","msg":"[migration] t_receivable_account.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074327,"pid":15060,"hostname":"XIONG","msg":"[migration] t_receivable_account.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074335,"pid":15060,"hostname":"XIONG","msg":"[migration] t_payment_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074341,"pid":15060,"hostname":"XIONG","msg":"[migration] t_payment_order.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074349,"pid":15060,"hostname":"XIONG","msg":"[migration] t_refund_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074355,"pid":15060,"hostname":"XIONG","msg":"[migration] t_refund_order.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074364,"pid":15060,"hostname":"XIONG","msg":"[migration] t_hold_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074369,"pid":15060,"hostname":"XIONG","msg":"[migration] t_hold_order.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074377,"pid":15060,"hostname":"XIONG","msg":"[migration] t_miniapp_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074383,"pid":15060,"hostname":"XIONG","msg":"[migration] t_miniapp_order.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074389,"pid":15060,"hostname":"XIONG","msg":"[migration] t_miniapp_order_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074394,"pid":15060,"hostname":"XIONG","msg":"[migration] t_miniapp_order_item.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074403,"pid":15060,"hostname":"XIONG","msg":"[migration] t_collection_link.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074408,"pid":15060,"hostname":"XIONG","msg":"[migration] t_collection_link.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074416,"pid":15060,"hostname":"XIONG","msg":"[migration] t_collection_view_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074421,"pid":15060,"hostname":"XIONG","msg":"[migration] t_collection_view_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074430,"pid":15060,"hostname":"XIONG","msg":"[migration] t_collection_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074435,"pid":15060,"hostname":"XIONG","msg":"[migration] t_collection_record.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074445,"pid":15060,"hostname":"XIONG","msg":"[migration] t_credit_operation_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074450,"pid":15060,"hostname":"XIONG","msg":"[migration] t_credit_operation_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074459,"pid":15060,"hostname":"XIONG","msg":"[migration] t_notification.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074465,"pid":15060,"hostname":"XIONG","msg":"[migration] t_notification.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074474,"pid":15060,"hostname":"XIONG","msg":"[migration] t_operation_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074480,"pid":15060,"hostname":"XIONG","msg":"[migration] t_operation_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074489,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_price_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074493,"pid":15060,"hostname":"XIONG","msg":"[migration] t_product_price_log.idx_tenant: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880074722,"pid":15060,"hostname":"XIONG","msg":"[migration] t_daily_settlement.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074748,"pid":15060,"hostname":"XIONG","msg":"[migration] t_stock_warning.tenant_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074766,"pid":15060,"hostname":"XIONG","msg":"[migration] 修复 t_sys_config 唯一键为 (config_key, tenant_id)..."}
+{"level":50,"time":1790880074767,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists"}
+{"level":30,"time":1790880074779,"pid":15060,"hostname":"XIONG","msg":"[migration] 创建缺失的表和字段..."}
+{"level":30,"time":1790880074788,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store.miniapp_appid: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074794,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store.wx_merchant_name: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074800,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store.wx_service_phone: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074806,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store.wx_head_img: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074812,"pid":15060,"hostname":"XIONG","msg":"[migration] t_store.wx_qrcode_url: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074817,"pid":15060,"hostname":"XIONG","msg":"[migration] sys_user.email: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074829,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.brand_id: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074834,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.brand: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074839,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.unit: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074845,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.specs: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074850,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.alcohol_content: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074856,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.origin: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074862,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.sale_channels: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074867,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.description: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074872,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.marketing_tags: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074878,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.enabled: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074883,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.shelf_life_on: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074890,"pid":15060,"hostname":"XIONG","msg":"[migration] product_spu.batch_on: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880074938,"pid":15060,"hostname":"XIONG","msg":"[migration] 5.5.8 AI底座建表: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880075016,"pid":15060,"hostname":"XIONG","msg":"[migration] 5.5.8 AI底座5张表兜底建表完成"}
+{"level":30,"time":1790880075016,"pid":15060,"hostname":"XIONG","msg":"[migration] 检查/初始化种子数据..."}
+{"level":30,"time":1790880075019,"pid":15060,"hostname":"XIONG","msg":"[seed] 开始检查/初始化种子数据..."}
+{"level":30,"time":1790880075048,"pid":15060,"hostname":"XIONG","msg":"[seed] t_store 已有数据，跳过"}
+{"level":30,"time":1790880075906,"pid":15060,"hostname":"XIONG","msg":"[seed] 演示账号 store_manager 创建成功（密码 admin123）"}
+{"level":30,"time":1790880076736,"pid":15060,"hostname":"XIONG","msg":"[seed] 演示账号 store_operator 创建成功（密码 admin123）"}
+{"level":30,"time":1790880076738,"pid":15060,"hostname":"XIONG","msg":"[seed] t_product_category 为空，插入5个分类..."}
+{"level":30,"time":1790880076755,"pid":15060,"hostname":"XIONG","msg":"[seed] t_product_spu 为空，插入10个商品..."}
+{"level":30,"time":1790880076788,"pid":15060,"hostname":"XIONG","msg":"[seed] t_product_sku 为空，插入10个SKU..."}
+{"level":30,"time":1790880076813,"pid":15060,"hostname":"XIONG","msg":"[seed] t_product_price 为空，插入10条价格..."}
+{"level":30,"time":1790880076833,"pid":15060,"hostname":"XIONG","msg":"[seed] t_inventory_balance 为空，插入10条库存..."}
+{"level":30,"time":1790880076857,"pid":15060,"hostname":"XIONG","msg":"[seed] t_member 为空，插入3个会员..."}
+{"level":30,"time":1790880076867,"pid":15060,"hostname":"XIONG","msg":"[seed] t_supplier 为空，插入2个供应商..."}
+{"level":30,"time":1790880076878,"pid":15060,"hostname":"XIONG","msg":"[seed] t_sale_bill 为空，插入示例销售单..."}
+{"level":30,"time":1790880076898,"pid":15060,"hostname":"XIONG","msg":"[seed] t_purchase_order 为空，插入示例采购单..."}
+{"level":30,"time":1790880076908,"pid":15060,"hostname":"XIONG","msg":"[seed] 种子数据初始化完成"}
+{"level":30,"time":1790880076908,"pid":15060,"hostname":"XIONG","msg":"[migration] 检查/创建默认管理员账号..."}
+{"level":30,"time":1790880076912,"pid":15060,"hostname":"XIONG","msg":"[migration] 外部迁移写闸门=block（默认）：数据写语句 INSERT/UPDATE/DELETE/REPLACE 与 CALL 一律跳过，放行需显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880076914,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 001_phase1_schema.sql"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076924,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076927,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076929,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076930,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076931,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076932,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076933,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076935,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076936,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076937,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076938,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076939,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076940,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076941,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076941,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076943,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076944,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076945,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076946,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076947,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076948,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076948,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076949,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076950,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076952,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076953,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880076954,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076954,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_store）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880076956,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 002_phase1_seed.sql"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_category）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_sku）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_price）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880076957,"pid":15060,"hostname":"XIONG","msg":"[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_inventory_balance）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880076959,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 003_phase2_schema.sql"}
+{"level":40,"time":1790880076963,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076963,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076964,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076966,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076967,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076970,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076971,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076972,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076973,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076974,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880076974,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076974,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076975,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076977,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076983,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":40,"time":1790880076983,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076983,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076985,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076986,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880076986,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076987,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076989,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 004_phase3_schema.sql"}
+{"level":40,"time":1790880076991,"pid":15060,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880076991,"pid":15060,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076992,"pid":15060,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880076994,"pid":15060,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880076994,"pid":15060,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_alert_rule）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880076997,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 005_phase3_sys_config.sql"}
+{"level":40,"time":1790880076997,"pid":15060,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880076999,"pid":15060,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880076999,"pid":15060,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077001,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 006_phase4_schema.sql"}
+{"level":40,"time":1790880077003,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077004,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077005,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077006,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077007,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 price_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077007,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077008,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077010,"pid":15060,"hostname":"XIONG","msg":"[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880077017,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 007_phase5_schema.sql"}
+{"level":40,"time":1790880077019,"pid":15060,"hostname":"XIONG","msg":"[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077020,"pid":15060,"hostname":"XIONG","msg":"[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077021,"pid":15060,"hostname":"XIONG","msg":"[migration] 007_phase5_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 expiry_alert_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077021,"pid":15060,"hostname":"XIONG","msg":"[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077022,"pid":15060,"hostname":"XIONG","msg":"[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077023,"pid":15060,"hostname":"XIONG","msg":"[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880077029,"pid":15060,"hostname":"XIONG","msg":"[migration] 007_phase5_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077032,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 008_phase6_schema.sql"}
+{"level":40,"time":1790880077039,"pid":15060,"hostname":"XIONG","msg":"[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077039,"pid":15060,"hostname":"XIONG","msg":"[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077039,"pid":15060,"hostname":"XIONG","msg":"[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077039,"pid":15060,"hostname":"XIONG","msg":"[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077041,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 009_phase7_approval_schema.sql"}
+{"level":30,"time":1790880077044,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077046,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077049,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077053,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077056,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077058,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880077058,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_approval_rule）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077058,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_approval_approver）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077060,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 010_phase7_credit_tenant.sql"}
+{"level":30,"time":1790880077066,"pid":15060,"hostname":"XIONG","msg":"[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077071,"pid":15060,"hostname":"XIONG","msg":"[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077077,"pid":15060,"hostname":"XIONG","msg":"[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077083,"pid":15060,"hostname":"XIONG","msg":"[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077089,"pid":15060,"hostname":"XIONG","msg":"[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077095,"pid":15060,"hostname":"XIONG","msg":"[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077096,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 011_phase7_member_fields.sql"}
+{"level":30,"time":1790880077103,"pid":15060,"hostname":"XIONG","msg":"[migration] 011_phase7_member_fields.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077109,"pid":15060,"hostname":"XIONG","msg":"[migration] 011_phase7_member_fields.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077110,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 012_phase7_price_tenant.sql"}
+{"level":30,"time":1790880077116,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077122,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077128,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077135,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077140,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077146,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077151,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077157,"pid":15060,"hostname":"XIONG","msg":"[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077158,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 013_phase7_sale_bill_credit.sql"}
+{"level":30,"time":1790880077164,"pid":15060,"hostname":"XIONG","msg":"[migration] 013_phase7_sale_bill_credit.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077170,"pid":15060,"hostname":"XIONG","msg":"[migration] 013_phase7_sale_bill_credit.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077172,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 014_phase7_sku_fields.sql"}
+{"level":30,"time":1790880077178,"pid":15060,"hostname":"XIONG","msg":"[migration] 014_phase7_sku_fields.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077183,"pid":15060,"hostname":"XIONG","msg":"[migration] 014_phase7_sku_fields.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077185,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 015_phase8_customer_visit.sql"}
+{"level":30,"time":1790880077190,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 016_phase9_tenant_subscription.sql"}
+{"level":30,"time":1790880077209,"pid":15060,"hostname":"XIONG","msg":"[migration] 016_phase9_tenant_subscription.sql: 跳过 (ER_CANT_CREATE_TABLE)"}
+{"level":40,"time":1790880077212,"pid":15060,"hostname":"XIONG","msg":"[migration] 016_phase9_tenant_subscription.sql: 写闸门 block 跳过 INSERT 语句（目标 t_subscription_plan）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077213,"pid":15060,"hostname":"XIONG","msg":"[migration] 016_phase9_tenant_subscription.sql: 写闸门 block 跳过 INSERT 语句（目标 t_tenant）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077213,"pid":15060,"hostname":"XIONG","msg":"[migration] 016_phase9_tenant_subscription.sql: 写闸门 block 跳过 INSERT 语句（目标 t_tenant_module_access）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077214,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 017_phase10_instant_retail.sql"}
+{"level":30,"time":1790880077239,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 018_phase10_marketing.sql"}
+{"level":30,"time":1790880077260,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 019_migrate_v2.sql"}
+{"level":30,"time":1790880077268,"pid":15060,"hostname":"XIONG","msg":"[migration] 019_migrate_v2.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077274,"pid":15060,"hostname":"XIONG","msg":"[migration] 019_migrate_v2.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077291,"pid":15060,"hostname":"XIONG","msg":"[migration] 019_migrate_v2.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077297,"pid":15060,"hostname":"XIONG","msg":"[migration] 019_migrate_v2.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077299,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 020_migrate_v3_payment_miniapp.sql"}
+{"level":40,"time":1790880077303,"pid":15060,"hostname":"XIONG","msg":"[migration] 020_migrate_v3_payment_miniapp.sql: 写闸门 block 跳过 INSERT 语句（目标 t_payment_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077303,"pid":15060,"hostname":"XIONG","msg":"[migration] 020_migrate_v3_payment_miniapp.sql: 写闸门 block 跳过 INSERT 语句（目标 t_payment_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077308,"pid":15060,"hostname":"XIONG","msg":"[migration] 020_migrate_v3_payment_miniapp.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077312,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 029_add_tenant.sql"}
+{"level":30,"time":1790880077315,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 030_add_subscription_plan.sql"}
+{"level":30,"time":1790880077318,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 031_add_subscription.sql"}
+{"level":30,"time":1790880077321,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 032_add_tenant_module_access.sql"}
+{"level":30,"time":1790880077337,"pid":15060,"hostname":"XIONG","msg":"[migration] 032_add_tenant_module_access.sql: 跳过 (ER_CANT_CREATE_TABLE)"}
+{"level":30,"time":1790880077339,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 033_add_subscription_operation_log.sql"}
+{"level":30,"time":1790880077341,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 034_add_tenant_admin.sql"}
+{"level":30,"time":1790880077347,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 035_add_coupon_template.sql"}
+{"level":30,"time":1790880077351,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 036_add_user_coupon.sql"}
+{"level":30,"time":1790880077355,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 037_add_promotion_activity.sql"}
+{"level":30,"time":1790880077358,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 038_add_full_reduction_rule.sql"}
+{"level":30,"time":1790880077362,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 039_add_seckill_product.sql"}
+{"level":30,"time":1790880077365,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 040_add_group_buy_activity.sql"}
+{"level":30,"time":1790880077370,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 041_add_group_buy_record.sql"}
+{"level":30,"time":1790880077374,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 042_add_group_buy_participant.sql"}
+{"level":30,"time":1790880077377,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 043_add_promotion_stack_rule.sql"}
+{"level":30,"time":1790880077380,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 044_add_marketing_operation_log.sql"}
+{"level":30,"time":1790880077383,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 045_add_delivery_config.sql"}
+{"level":30,"time":1790880077387,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 046_add_delivery_record.sql"}
+{"level":30,"time":1790880077390,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 047_add_retail_operation_log.sql"}
+{"level":30,"time":1790880077395,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 048_add_customer_visit.sql"}
+{"level":30,"time":1790880077399,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 049_add_order_sync_log.sql"}
+{"level":30,"time":1790880077401,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 050_add_platform_reconciliation.sql"}
+{"level":30,"time":1790880077405,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 051_add_platform_review.sql"}
+{"level":30,"time":1790880077408,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 052_add_retail_announcement.sql"}
+{"level":30,"time":1790880077415,"pid":15060,"hostname":"XIONG","msg":"[migration] 052_add_retail_announcement.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077421,"pid":15060,"hostname":"XIONG","msg":"[migration] 052_add_retail_announcement.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077423,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 053_add_retail_cart.sql"}
+{"level":30,"time":1790880077426,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 054_add_retail_consumer_address.sql"}
+{"level":30,"time":1790880077430,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 055_add_points_mall_item.sql"}
+{"level":30,"time":1790880077433,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 056_add_points_mall_order.sql"}
+{"level":30,"time":1790880077437,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 057_add_marketing_asset.sql"}
+{"level":30,"time":1790880077440,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 058_add_sys_department.sql"}
+{"level":30,"time":1790880077443,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 059_add_user_session.sql"}
+{"level":30,"time":1790880077447,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 060_add_custom_report_template.sql"}
+{"level":30,"time":1790880077449,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 061_add_custom_report_schedule.sql"}
+{"level":30,"time":1790880077452,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 062_add_report_permission_matrix.sql"}
+{"level":30,"time":1790880077455,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 063_add_verification_code.sql"}
+{"level":30,"time":1790880077457,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 064_add_push_config.sql"}
+{"level":30,"time":1790880077460,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 065_add_push_template.sql"}
+{"level":30,"time":1790880077463,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 066_add_push_log.sql"}
+{"level":30,"time":1790880077466,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 067_add_unit_group.sql"}
+{"level":30,"time":1790880077473,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 068_银行费用发票.sql"}
+{"level":30,"time":1790880077480,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 069_商品SPU增加品牌ID.sql"}
+{"level":30,"time":1790880077485,"pid":15060,"hostname":"XIONG","msg":"[migration] 069_商品SPU增加品牌ID.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":40,"time":1790880077486,"pid":15060,"hostname":"XIONG","msg":"[migration] 069_商品SPU增加品牌ID.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_product_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077578,"pid":15060,"hostname":"XIONG","msg":"[migration] 069_商品SPU增加品牌ID.sql: 跳过 (ER_CANT_CREATE_TABLE)"}
+{"level":30,"time":1790880077584,"pid":15060,"hostname":"XIONG","msg":"[migration] 069_商品SPU增加品牌ID.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077586,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 070_品牌表.sql"}
+{"level":30,"time":1790880077590,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 071_客户积分.sql"}
+{"level":30,"time":1790880077601,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 072_客户价格.sql"}
+{"level":30,"time":1790880077605,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 073_客户标签画像.sql"}
+{"level":30,"time":1790880077618,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 074_即时零售表.sql"}
+{"level":30,"time":1790880077640,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 075_reset_admin_password_bcrypt.sql"}
+{"level":40,"time":1790880077641,"pid":15060,"hostname":"XIONG","msg":"[migration] 075_reset_admin_password_bcrypt.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077642,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 076_营销P1.sql"}
+{"level":30,"time":1790880077658,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 077_营销标签.sql"}
+{"level":30,"time":1790880077663,"pid":15060,"hostname":"XIONG","msg":"[migration] 077_营销标签.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077665,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 078_性能索引.sql"}
+{"level":30,"time":1790880077670,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077675,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077681,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077686,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077691,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077696,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077701,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077706,"pid":15060,"hostname":"XIONG","msg":"[migration] 078_性能索引.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077708,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 079_权限矩阵.sql"}
+{"level":30,"time":1790880077712,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077714,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077717,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077721,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 080_平台管理员.sql"}
+{"level":30,"time":1790880077725,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 081_platform_admin_seed_and_fix.sql"}
+{"level":30,"time":1790880077752,"pid":15060,"hostname":"XIONG","msg":"[migration] 081_platform_admin_seed_and_fix.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077766,"pid":15060,"hostname":"XIONG","msg":"[migration] 081_platform_admin_seed_and_fix.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":40,"time":1790880077767,"pid":15060,"hostname":"XIONG","msg":"[migration] 081_platform_admin_seed_and_fix.sql: 写闸门 block 跳过 INSERT 语句（目标 t_platform_admin）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077772,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 082_商品标签.sql"}
+{"level":40,"time":1790880077779,"pid":15060,"hostname":"XIONG","msg":"[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag_group）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077779,"pid":15060,"hostname":"XIONG","msg":"[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077779,"pid":15060,"hostname":"XIONG","msg":"[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077779,"pid":15060,"hostname":"XIONG","msg":"[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077779,"pid":15060,"hostname":"XIONG","msg":"[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077780,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 083_采购合同.sql"}
+{"level":30,"time":1790880077783,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 084_采购计划.sql"}
+{"level":30,"time":1790880077788,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 085_报价推送.sql"}
+{"level":40,"time":1790880077789,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077789,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":40,"time":1790880077789,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 DROP TABLE 语句（保护生产数据）"}
+{"level":30,"time":1790880077791,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077792,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077795,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+{"level":30,"time":1790880077808,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077822,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077825,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 086_收款支付.sql"}
+{"level":30,"time":1790880077836,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 087_报表汇总表.sql"}
+{"level":30,"time":1790880077846,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 088_销售佣金.sql"}
+{"level":30,"time":1790880077851,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 089_库存盘点表.sql"}
+{"level":30,"time":1790880077856,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 090_库存预警配置.sql"}
+{"level":30,"time":1790880077859,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 091_储值卡.sql"}
+{"level":30,"time":1790880077866,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 092_租户ID.sql"}
+{"level":40,"time":1790880077882,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 INSERT 语句（目标 t_tenant）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077883,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077884,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077885,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077886,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077887,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077888,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077889,"pid":15060,"hostname":"XIONG","msg":"[migration] 092_租户ID.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_store）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077901,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 093_库存增加租户ID.sql"}
+{"level":30,"time":1790880077907,"pid":15060,"hostname":"XIONG","msg":"[migration] 093_库存增加租户ID.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077913,"pid":15060,"hostname":"XIONG","msg":"[migration] 093_库存增加租户ID.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077917,"pid":15060,"hostname":"XIONG","msg":"[migration] 093_库存增加租户ID.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077918,"pid":15060,"hostname":"XIONG","msg":"[migration] 093_库存增加租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880077920,"pid":15060,"hostname":"XIONG","msg":"[migration] 093_库存增加租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880077921,"pid":15060,"hostname":"XIONG","msg":"[migration] 093_库存增加租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880077924,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 094_调拨订单表.sql"}
+{"level":30,"time":1790880077930,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 095_单位表.sql"}
+{"level":30,"time":1790880077932,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 096_用户设置.sql"}
+{"level":30,"time":1790880077938,"pid":15060,"hostname":"XIONG","msg":"[migration] 096_用户设置.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077942,"pid":15060,"hostname":"XIONG","msg":"[migration] 096_用户设置.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880077944,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 099_seed_data.sql"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 store）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_category）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_sku）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_price）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 price_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 alert_rule）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 expiry_alert_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 member）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 supplier）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 supplier_contact）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 inventory_balance）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880077946,"pid":15060,"hostname":"XIONG","msg":"[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sku_price）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077948,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 100_login_failure_lock.sql"}
+{"level":30,"time":1790880077953,"pid":15060,"hostname":"XIONG","msg":"[migration] 100_login_failure_lock.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077954,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 101_tobacco_category_online_sale.sql"}
+{"level":30,"time":1790880077959,"pid":15060,"hostname":"XIONG","msg":"[migration] 101_tobacco_category_online_sale.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":40,"time":1790880077959,"pid":15060,"hostname":"XIONG","msg":"[migration] 101_tobacco_category_online_sale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_category）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077960,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 102_tenant_register.sql"}
+{"level":30,"time":1790880077966,"pid":15060,"hostname":"XIONG","msg":"[migration] 102_tenant_register.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077969,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 103_member_register.sql"}
+{"level":30,"time":1790880077974,"pid":15060,"hostname":"XIONG","msg":"[migration] 103_member_register.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880077978,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 104_platform_announcement.sql"}
+{"level":30,"time":1790880077981,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 105_product_marketing_tag.sql"}
+{"level":40,"time":1790880077982,"pid":15060,"hostname":"XIONG","msg":"[migration] 105_product_marketing_tag.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_marketing_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077983,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 106_data_permission.sql"}
+{"level":40,"time":1790880077987,"pid":15060,"hostname":"XIONG","msg":"[migration] 106_data_permission.sql: 写闸门 block 跳过 INSERT 语句（目标 t_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880077989,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 107_sys_position.sql"}
+{"level":30,"time":1790880077991,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 108_miniapp_member_wholesale.sql"}
+{"level":30,"time":1790880078006,"pid":15060,"hostname":"XIONG","msg":"[migration] 108_miniapp_member_wholesale.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":40,"time":1790880078006,"pid":15060,"hostname":"XIONG","msg":"[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078007,"pid":15060,"hostname":"XIONG","msg":"[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078007,"pid":15060,"hostname":"XIONG","msg":"[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078007,"pid":15060,"hostname":"XIONG","msg":"[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078007,"pid":15060,"hostname":"XIONG","msg":"[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078008,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 109_p2_custom_report.sql"}
+{"level":30,"time":1790880078015,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 110_p2_product_review.sql"}
+{"level":30,"time":1790880078018,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 111_p2_bargain.sql"}
+{"level":30,"time":1790880078024,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 112_order_timeout.sql"}
+{"level":30,"time":1790880078029,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 113_p2_bundle_combo_profit_loss.sql"}
+{"level":30,"time":1790880078042,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 114_p2_transfer_share_report_permission.sql"}
+{"level":30,"time":1790880078051,"pid":15060,"hostname":"XIONG","msg":"[migration] 114_p2_transfer_share_report_permission.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078059,"pid":15060,"hostname":"XIONG","msg":"[migration] 114_p2_transfer_share_report_permission.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078068,"pid":15060,"hostname":"XIONG","msg":"[migration] 114_p2_transfer_share_report_permission.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078071,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 115_missing_tables.sql"}
+{"level":30,"time":1790880078078,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 117_library_spu_sku.sql"}
+{"level":30,"time":1790880078084,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 118_library_brand.sql"}
+{"level":40,"time":1790880078086,"pid":15060,"hostname":"XIONG","msg":"[migration] 118_library_brand.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_brand）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078088,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 119_library_seed_data.sql"}
+{"level":40,"time":1790880078090,"pid":15060,"hostname":"XIONG","msg":"[migration] 119_library_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_brand）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078090,"pid":15060,"hostname":"XIONG","msg":"[migration] 119_library_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078090,"pid":15060,"hostname":"XIONG","msg":"[migration] 119_library_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_sku）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078092,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 120_stock_warning.sql"}
+{"level":30,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 120a_合规凭证字段.sql"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078191,"pid":15060,"hostname":"XIONG","msg":"[migration] 120a_合规凭证字段.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078193,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 120b_商品SPU扩展字段.sql"}
+{"level":30,"time":1790880078199,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078205,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078209,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078214,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078220,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078226,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078232,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078237,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078242,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078247,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078252,"pid":15060,"hostname":"XIONG","msg":"[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078254,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 120c_performance_indexes.sql"}
+{"level":30,"time":1790880078260,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078265,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078270,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078275,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078280,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+{"level":30,"time":1790880078284,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078290,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078295,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078319,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078341,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078363,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078369,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078374,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+{"level":30,"time":1790880078379,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+{"level":30,"time":1790880078385,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078391,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+{"level":30,"time":1790880078397,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078401,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078406,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078412,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078416,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078421,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078426,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078432,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078437,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078441,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078442,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880078444,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880078445,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880078446,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880078450,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078455,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078460,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078465,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+{"level":30,"time":1790880078470,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078475,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078481,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078487,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+{"level":30,"time":1790880078494,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078499,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078507,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078513,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078518,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078525,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078548,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078557,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078562,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078566,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078572,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078596,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880078597,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)"}
+{"level":30,"time":1790880078603,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+{"level":30,"time":1790880078605,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 120d_fix_server_3bugs.sql"}
+{"level":30,"time":1790880078623,"pid":15060,"hostname":"XIONG","msg":"[migration] 120d_fix_server_3bugs.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880078647,"pid":15060,"hostname":"XIONG","msg":"[migration] 120d_fix_server_3bugs.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":40,"time":1790880078647,"pid":15060,"hostname":"XIONG","msg":"[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078648,"pid":15060,"hostname":"XIONG","msg":"[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078650,"pid":15060,"hostname":"XIONG","msg":"[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_subscription_plan）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078650,"pid":15060,"hostname":"XIONG","msg":"[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_subscription）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078671,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 120e_transfer_stock_log.sql"}
+{"level":30,"time":1790880078674,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 121_ai_base_tables.sql"}
+{"level":40,"time":1790880078678,"pid":15060,"hostname":"XIONG","msg":"[migration] 121_ai_base_tables.sql: 写闸门 block 跳过 INSERT 语句（目标 t_platform_ai_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078712,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 122_ai_rag.sql"}
+{"level":30,"time":1790880078740,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 123_member_contact.sql"}
+{"level":40,"time":1790880078740,"pid":15060,"hostname":"XIONG","msg":"[migration] 123_member_contact.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078758,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 124_drift_tables_fill.sql"}
+{"level":30,"time":1790880078803,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 125_instant_retail_admin_fix.sql"}
+{"level":40,"time":1790880078803,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078803,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078803,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078803,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078803,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078804,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078804,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078804,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078804,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078804,"pid":15060,"hostname":"XIONG","msg":"[migration] 125_instant_retail_admin_fix.sql: 写闸门 block 跳过 CALL 语句（目标 add_index_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078821,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 126_bills.sql"}
+{"level":30,"time":1790880078824,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 126_retail_tenant_collation_fix.sql"}
+{"level":30,"time":1790880078970,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 127_fix_demo_accounts.sql"}
+{"level":40,"time":1790880078971,"pid":15060,"hostname":"XIONG","msg":"[migration] 127_fix_demo_accounts.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078971,"pid":15060,"hostname":"XIONG","msg":"[migration] 127_fix_demo_accounts.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078971,"pid":15060,"hostname":"XIONG","msg":"[migration] 127_fix_demo_accounts.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078974,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 127_order_routing_exception.sql"}
+{"level":30,"time":1790880078981,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 128_fix_roles_binding.sql"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078982,"pid":15060,"hostname":"XIONG","msg":"[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880078990,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 129_sale_bill_item_compliance.sql"}
+{"level":40,"time":1790880078990,"pid":15060,"hostname":"XIONG","msg":"[migration] 129_sale_bill_item_compliance.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078990,"pid":15060,"hostname":"XIONG","msg":"[migration] 129_sale_bill_item_compliance.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078990,"pid":15060,"hostname":"XIONG","msg":"[migration] 129_sale_bill_item_compliance.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078990,"pid":15060,"hostname":"XIONG","msg":"[migration] 129_sale_bill_item_compliance.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078990,"pid":15060,"hostname":"XIONG","msg":"[migration] 129_sale_bill_item_compliance.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880078990,"pid":15060,"hostname":"XIONG","msg":"[migration] 129_sale_bill_item_compliance.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079000,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 130_miniapp_template_r96.sql"}
+{"level":40,"time":1790880079000,"pid":15060,"hostname":"XIONG","msg":"[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079000,"pid":15060,"hostname":"XIONG","msg":"[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079000,"pid":15060,"hostname":"XIONG","msg":"[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079000,"pid":15060,"hostname":"XIONG","msg":"[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079006,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 131_platform_subscription_apply.sql"}
+{"level":30,"time":1790880079012,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 132_product_box_barcode.sql"}
+{"level":40,"time":1790880079012,"pid":15060,"hostname":"XIONG","msg":"[migration] 132_product_box_barcode.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079030,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 133_product_sku_unit.sql"}
+{"level":40,"time":1790880079031,"pid":15060,"hostname":"XIONG","msg":"[migration] 133_product_sku_unit.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_sku_unit）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079032,"pid":15060,"hostname":"XIONG","msg":"[migration] 133_product_sku_unit.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_sku_unit）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079035,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 134_sale_bill_role_fields.sql"}
+{"level":40,"time":1790880079035,"pid":15060,"hostname":"XIONG","msg":"[migration] 134_sale_bill_role_fields.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079035,"pid":15060,"hostname":"XIONG","msg":"[migration] 134_sale_bill_role_fields.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079035,"pid":15060,"hostname":"XIONG","msg":"[migration] 134_sale_bill_role_fields.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079035,"pid":15060,"hostname":"XIONG","msg":"[migration] 134_sale_bill_role_fields.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079035,"pid":15060,"hostname":"XIONG","msg":"[migration] 134_sale_bill_role_fields.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079045,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 135_print_templates.sql"}
+{"level":30,"time":1790880079049,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 136_sms_template.sql"}
+{"level":40,"time":1790880079051,"pid":15060,"hostname":"XIONG","msg":"[migration] 136_sms_template.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sms_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079053,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 137_sys_user_dept_position.sql"}
+{"level":40,"time":1790880079053,"pid":15060,"hostname":"XIONG","msg":"[migration] 137_sys_user_dept_position.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079053,"pid":15060,"hostname":"XIONG","msg":"[migration] 137_sys_user_dept_position.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079055,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 137_tenant_register_sms_template.sql"}
+{"level":40,"time":1790880079055,"pid":15060,"hostname":"XIONG","msg":"[migration] 137_tenant_register_sms_template.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sms_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079055,"pid":15060,"hostname":"XIONG","msg":"[migration] 137_tenant_register_sms_template.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sms_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079056,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 138_approval_business_link.sql"}
+{"level":40,"time":1790880079056,"pid":15060,"hostname":"XIONG","msg":"[migration] 138_approval_business_link.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880079056,"pid":15060,"hostname":"XIONG","msg":"[migration] 138_approval_business_link.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079057,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 139_pos_hardware_payment.sql"}
+{"level":30,"time":1790880079066,"pid":15060,"hostname":"XIONG","msg":"[migration] 139_pos_hardware_payment.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079072,"pid":15060,"hostname":"XIONG","msg":"[migration] 139_pos_hardware_payment.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079077,"pid":15060,"hostname":"XIONG","msg":"[migration] 139_pos_hardware_payment.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079078,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 140_hardware_config.sql"}
+{"level":30,"time":1790880079081,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 141_app_version.sql"}
+{"level":40,"time":1790880079083,"pid":15060,"hostname":"XIONG","msg":"[migration] 141_app_version.sql: 写闸门 block 跳过 INSERT 语句（目标 t_app_version）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079084,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 142_fix_payment_schema.sql"}
+{"level":30,"time":1790880079090,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079095,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079100,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079105,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079110,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079115,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079120,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079125,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079130,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079135,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079141,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079146,"pid":15060,"hostname":"XIONG","msg":"[migration] 142_fix_payment_schema.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079147,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 143_payment_config_columns.sql"}
+{"level":30,"time":1790880079173,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 144_app_version_arch_urls.sql"}
+{"level":30,"time":1790880079182,"pid":15060,"hostname":"XIONG","msg":"[migration] 144_app_version_arch_urls.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079189,"pid":15060,"hostname":"XIONG","msg":"[migration] 144_app_version_arch_urls.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079194,"pid":15060,"hostname":"XIONG","msg":"[migration] 144_app_version_arch_urls.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079195,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 145_sys_user_avatar.sql"}
+{"level":30,"time":1790880079200,"pid":15060,"hostname":"XIONG","msg":"[migration] 145_sys_user_avatar.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079202,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 146_price_review.sql"}
+{"level":30,"time":1790880079205,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 147_level_config_status.sql"}
+{"level":30,"time":1790880079213,"pid":15060,"hostname":"XIONG","msg":"[migration] 147_level_config_status.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079215,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 148_shift_stock_check.sql"}
+{"level":30,"time":1790880079221,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 149_seckill_order.sql"}
+{"level":30,"time":1790880079230,"pid":15060,"hostname":"XIONG","msg":"[migration] 149_seckill_order.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079234,"pid":15060,"hostname":"XIONG","msg":"[migration] 149_seckill_order.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079239,"pid":15060,"hostname":"XIONG","msg":"[migration] 149_seckill_order.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079244,"pid":15060,"hostname":"XIONG","msg":"[migration] 149_seckill_order.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079249,"pid":15060,"hostname":"XIONG","msg":"[migration] 149_seckill_order.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079252,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 150_mfa.sql"}
+{"level":30,"time":1790880079257,"pid":15060,"hostname":"XIONG","msg":"[migration] 150_mfa.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079263,"pid":15060,"hostname":"XIONG","msg":"[migration] 150_mfa.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079264,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 151_points_columns_fill.sql"}
+{"level":30,"time":1790880079273,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079278,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079283,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079288,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079293,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079298,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079303,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079308,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079313,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079321,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079325,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079331,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079336,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079341,"pid":15060,"hostname":"XIONG","msg":"[migration] 151_points_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079342,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 152_business_columns_fill.sql"}
+{"level":30,"time":1790880079348,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079354,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079358,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079364,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079368,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079373,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079378,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079383,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079389,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079393,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079398,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079403,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079408,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079413,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079417,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079423,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079428,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079433,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079439,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079443,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079448,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079453,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079458,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079463,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079468,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079473,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079478,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079482,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079487,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079492,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079497,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079505,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079510,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079516,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079522,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079526,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079531,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079537,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079542,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079548,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079553,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079558,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079563,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079567,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079572,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079580,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079584,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079592,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079598,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079604,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079608,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079613,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079617,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079623,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079628,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079633,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079638,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079643,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079652,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079657,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079662,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079666,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079670,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079675,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079680,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079687,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079692,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079698,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079703,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079708,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079716,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079723,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079728,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079735,"pid":15060,"hostname":"XIONG","msg":"[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079737,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 153_select_columns_fill.sql"}
+{"level":30,"time":1790880079742,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079747,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079751,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079757,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079762,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079768,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079773,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079779,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079784,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079789,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079794,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079799,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079805,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079810,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079815,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079820,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079825,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079833,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079838,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079843,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079848,"pid":15060,"hostname":"XIONG","msg":"[migration] 153_select_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079849,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 154_ai_external_model.sql"}
+{"level":30,"time":1790880079853,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 154_wholesale_cart_selected.sql"}
+{"level":30,"time":1790880079860,"pid":15060,"hostname":"XIONG","msg":"[migration] 154_wholesale_cart_selected.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079862,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 155_hot_search.sql"}
+{"level":40,"time":1790880079864,"pid":15060,"hostname":"XIONG","msg":"[migration] 155_hot_search.sql: 写闸门 block 跳过 INSERT 语句（目标 t_hot_search）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880079865,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 156_miniapp_order_deleted.sql"}
+{"level":30,"time":1790880079871,"pid":15060,"hostname":"XIONG","msg":"[migration] 156_miniapp_order_deleted.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079872,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 157_ai_review_task.sql"}
+{"level":30,"time":1790880079875,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 158_ai_ltm.sql"}
+{"level":30,"time":1790880079882,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 159_ai_learning.sql"}
+{"level":30,"time":1790880079884,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 160_ai_evolution.sql"}
+{"level":30,"time":1790880079888,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 161_price_review_price_type.sql"}
+{"level":30,"time":1790880079896,"pid":15060,"hostname":"XIONG","msg":"[migration] 161_price_review_price_type.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079898,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 162_tenant_add_tax_no.sql"}
+{"level":30,"time":1790880079902,"pid":15060,"hostname":"XIONG","msg":"[migration] 162_tenant_add_tax_no.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079904,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 163_transfer_order_columns_fill.sql"}
+{"level":30,"time":1790880079912,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079916,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079921,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079926,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079931,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079936,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079941,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079946,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079950,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079955,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079960,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079965,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079970,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079974,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079980,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079984,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079989,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880079993,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079998,"pid":15060,"hostname":"XIONG","msg":"[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880079999,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 164_relax_legacy_not_null.sql"}
+{"level":30,"time":1790880080115,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 165_transfer_execution_columns.sql"}
+{"level":30,"time":1790880080122,"pid":15060,"hostname":"XIONG","msg":"[migration] 165_transfer_execution_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080127,"pid":15060,"hostname":"XIONG","msg":"[migration] 165_transfer_execution_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080131,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 166_transfer_order_actual_date.sql"}
+{"level":30,"time":1790880080137,"pid":15060,"hostname":"XIONG","msg":"[migration] 166_transfer_order_actual_date.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080142,"pid":15060,"hostname":"XIONG","msg":"[migration] 166_transfer_order_actual_date.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080143,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 167_member_profile_columns.sql"}
+{"level":30,"time":1790880080149,"pid":15060,"hostname":"XIONG","msg":"[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080154,"pid":15060,"hostname":"XIONG","msg":"[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080159,"pid":15060,"hostname":"XIONG","msg":"[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080165,"pid":15060,"hostname":"XIONG","msg":"[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080170,"pid":15060,"hostname":"XIONG","msg":"[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080174,"pid":15060,"hostname":"XIONG","msg":"[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080180,"pid":15060,"hostname":"XIONG","msg":"[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080181,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 168_stock_check_report_perm_columns.sql"}
+{"level":30,"time":1790880080187,"pid":15060,"hostname":"XIONG","msg":"[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080191,"pid":15060,"hostname":"XIONG","msg":"[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080197,"pid":15060,"hostname":"XIONG","msg":"[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080202,"pid":15060,"hostname":"XIONG","msg":"[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080207,"pid":15060,"hostname":"XIONG","msg":"[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080212,"pid":15060,"hostname":"XIONG","msg":"[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080214,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 169_tenant_admin_uuid.sql"}
+{"level":50,"time":1790880080219,"pid":15060,"hostname":"XIONG","msg":"[migration] 169_tenant_admin_uuid.sql 失败: Can't DROP FOREIGN KEY `t_tenant_admin_ibfk_1`; check that it exists"}
+{"level":30,"time":1790880080247,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 170_platform_announcement_status_enum.sql"}
+{"level":40,"time":1790880080247,"pid":15060,"hostname":"XIONG","msg":"[migration] 170_platform_announcement_status_enum.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_platform_announcement）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":40,"time":1790880080247,"pid":15060,"hostname":"XIONG","msg":"[migration] 170_platform_announcement_status_enum.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_platform_announcement）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880080248,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 171_platform_templates.sql"}
+{"level":30,"time":1790880080257,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 172_sale_bill_item_tenant_backfill.sql"}
+{"level":40,"time":1790880080257,"pid":15060,"hostname":"XIONG","msg":"[migration] 172_sale_bill_item_tenant_backfill.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sale_bill_item）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"}
+{"level":30,"time":1790880080262,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 173_open_platform_api_key_columns.sql"}
+{"level":30,"time":1790880080271,"pid":15060,"hostname":"XIONG","msg":"[migration] 173_open_platform_api_key_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080276,"pid":15060,"hostname":"XIONG","msg":"[migration] 173_open_platform_api_key_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080282,"pid":15060,"hostname":"XIONG","msg":"[migration] 173_open_platform_api_key_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080287,"pid":15060,"hostname":"XIONG","msg":"[migration] 173_open_platform_api_key_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080292,"pid":15060,"hostname":"XIONG","msg":"[migration] 173_open_platform_api_key_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080297,"pid":15060,"hostname":"XIONG","msg":"[migration] 173_open_platform_api_key_columns.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080316,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 174_open_platform_webhook.sql"}
+{"level":30,"time":1790880080328,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 175_open_platform_api_call_daily.sql"}
+{"level":30,"time":1790880080334,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 176_平台增值扣费流水.sql"}
+{"level":30,"time":1790880080340,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 177_ai_audit_log_cost_deduct_source.sql"}
+{"level":30,"time":1790880080350,"pid":15060,"hostname":"XIONG","msg":"[migration] 177_ai_audit_log_cost_deduct_source.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080385,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 178_library_brand_auth_app_version_status.sql"}
+{"level":30,"time":1790880080396,"pid":15060,"hostname":"XIONG","msg":"[migration] 178_library_brand_auth_app_version_status.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080401,"pid":15060,"hostname":"XIONG","msg":"[migration] 178_library_brand_auth_app_version_status.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080406,"pid":15060,"hostname":"XIONG","msg":"[migration] 178_library_brand_auth_app_version_status.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080412,"pid":15060,"hostname":"XIONG","msg":"[migration] 178_library_brand_auth_app_version_status.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080417,"pid":15060,"hostname":"XIONG","msg":"[migration] 178_library_brand_auth_app_version_status.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080422,"pid":15060,"hostname":"XIONG","msg":"[migration] 178_library_brand_auth_app_version_status.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080451,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 179_平台角色与权限点目录.sql"}
+{"level":30,"time":1790880080497,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 180_平台工单系统.sql"}
+{"level":30,"time":1790880080533,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 181_平台通知.sql"}
+{"level":30,"time":1790880080564,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 182_平台报表导出任务.sql"}
+{"level":30,"time":1790880080608,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 183_商品库审核流水.sql"}
+{"level":30,"time":1790880080639,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 184_平台功能开关.sql"}
+{"level":30,"time":1790880080653,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 185_平台数据字典.sql"}
+{"level":30,"time":1790880080681,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 186_平台代理商档案.sql"}
+{"level":30,"time":1790880080696,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 187_平台代理商层级.sql"}
+{"level":30,"time":1790880080715,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 188_平台渠道推广码.sql"}
+{"level":30,"time":1790880080734,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 189_租户归因明细.sql"}
+{"level":30,"time":1790880080750,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 190_商品库调取流水.sql"}
+{"level":30,"time":1790880080778,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 191_租户商品库调取映射.sql"}
+{"level":30,"time":1790880080795,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 192_租户建租户与归因落点补列.sql"}
+{"level":30,"time":1790880080803,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080809,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880080814,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080820,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080825,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080830,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080836,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080841,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080846,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080851,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080857,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080862,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080866,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080872,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080876,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080882,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080888,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080893,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080898,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080906,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080913,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080917,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_KEYNAME)"}
+{"level":30,"time":1790880080923,"pid":15060,"hostname":"XIONG","msg":"[migration] 192_租户建租户与归因落点补列.sql: 跳过 (ER_DUP_FIELDNAME)"}
+{"level":30,"time":1790880080956,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 20260720_print_record.sql"}
+{"level":30,"time":1790880080959,"pid":15060,"hostname":"XIONG","msg":"[migration] 执行外部迁移: 20260720_push_token.sql"}
+{"level":30,"time":1790880080962,"pid":15060,"hostname":"XIONG","msg":"[migration] 所有迁移完成"}
+RUN_MIGRATIONS_RETURNED

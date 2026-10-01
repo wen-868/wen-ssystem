@@ -1,0 +1,9 @@
+PASS | 前导注释 + CREATE TABLE 保留 | 
+PASS | 纯注释块返回空数组 | 
+PASS | 语句中间 -- 不截断 | 
+PASS | 行内注释原样保留 | 
+PASS | USE/DELIMITER 行被剔除 | 
+PASS | 过程/DROP 仍进入拆分结果 | 
+PASS | init_database.sql 解析出 CREATE TABLE 条数 = 62（旧写法为 0） | statements.length=62
+PASS | 旧写法（反测）复现 0 条 | old.length=0
+EQUIV_SUMMARY failed=0

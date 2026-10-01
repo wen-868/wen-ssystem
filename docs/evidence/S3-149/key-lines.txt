@@ -1,0 +1,497 @@
+# S3-149 关键行（逐字切片；前缀 = 来源文件:行号；同名同文重复行只留首次出现）
+
+===== run-fresh-fixed.txt
+run-fresh-fixed.txt:12: {"level":30,"time":1790879537767,"pid":29808,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总62张，实际建62，已存在跳过0）"}
+run-fresh-fixed.txt:97: {"level":50,"time":1790879539179,"pid":29808,"hostname":"XIONG","msg":"[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists"}
+run-fresh-fixed.txt:143: {"level":30,"time":1790879541201,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:144: {"level":30,"time":1790879541202,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:145: {"level":30,"time":1790879541205,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:146: {"level":30,"time":1790879541206,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:147: {"level":30,"time":1790879541209,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:148: {"level":30,"time":1790879541210,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:149: {"level":30,"time":1790879541213,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:150: {"level":30,"time":1790879541214,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:151: {"level":30,"time":1790879541217,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:152: {"level":30,"time":1790879541219,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:153: {"level":30,"time":1790879541222,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:154: {"level":30,"time":1790879541232,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:155: {"level":30,"time":1790879541236,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:156: {"level":30,"time":1790879541239,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:157: {"level":30,"time":1790879541243,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:158: {"level":30,"time":1790879541247,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:159: {"level":30,"time":1790879541250,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:160: {"level":30,"time":1790879541253,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:161: {"level":30,"time":1790879541255,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:162: {"level":30,"time":1790879541258,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:163: {"level":30,"time":1790879541261,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:164: {"level":30,"time":1790879541263,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:165: {"level":30,"time":1790879541266,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:166: {"level":30,"time":1790879541269,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:167: {"level":30,"time":1790879541272,"pid":29808,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:184: {"level":30,"time":1790879541287,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:185: {"level":30,"time":1790879541289,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:193: {"level":30,"time":1790879541294,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:194: {"level":30,"time":1790879541297,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:195: {"level":30,"time":1790879541299,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:196: {"level":30,"time":1790879541303,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:197: {"level":30,"time":1790879541305,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:198: {"level":30,"time":1790879541309,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:199: {"level":30,"time":1790879541313,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:202: {"level":30,"time":1790879541315,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:203: {"level":30,"time":1790879541319,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:207: {"level":30,"time":1790879541330,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:208: {"level":30,"time":1790879541332,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:210: {"level":30,"time":1790879541334,"pid":29808,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:214: {"level":30,"time":1790879541341,"pid":29808,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:215: {"level":30,"time":1790879541345,"pid":29808,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:219: {"level":30,"time":1790879541348,"pid":29808,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-fresh-fixed.txt:611: {"level":30,"time":1790879545414,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:613: {"level":30,"time":1790879545463,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:614: {"level":30,"time":1790879545469,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:615: {"level":30,"time":1790879545475,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:617: {"level":30,"time":1790879545488,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:620: {"level":30,"time":1790879545508,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:621: {"level":30,"time":1790879545514,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:623: {"level":30,"time":1790879545527,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:635: {"level":30,"time":1790879545721,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:638: {"level":30,"time":1790879545761,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:639: {"level":30,"time":1790879545893,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:640: {"level":30,"time":1790879545917,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:641: {"level":30,"time":1790879545976,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:643: {"level":30,"time":1790879546001,"pid":29808,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-fresh-fixed.txt:813: PASS | 迁移 192：全新库 t_tenant 补齐缺列 | 命中列 = company_name,contact_person,source,tenant_code
+run-fresh-fixed.txt:814: PASS | 迁移 192：t_tenant_register_application 增 promo_code/agent_id | 命中列 = agent_id,promo_code
+run-fresh-fixed.txt:815: PASS | 反测：原实现 INSERT 复现失败 | ER_NO_DEFAULT_FOR_FIELD Field 'id' doesn't have a default value
+run-fresh-fixed.txt:816: PASS | 反证：VARCHAR 主键 INSERT 的 insertId 恒为 0 | insertId=0
+run-fresh-fixed.txt:817: PASS | A 项：createTenant 返回真实 UUID（非 0） | tenantId=c5b7cb36-890a-4faf-9eff-ddc87c1eae5a
+run-fresh-fixed.txt:818: PASS | A 项：建租户落库（tenant_code 非空 / source=MANUAL / status=1） | {"id":"c5b7cb36-890a-4faf-9eff-ddc87c1eae5a","tenant_code":"T2026100249023","name":"S3144 平台建租户","company_name":"S3144 平台建租户","source":"MANUAL","status":1}
+run-fresh-fixed.txt:819: PASS | A 项：平台侧开租户不写归因 | attribution rows=0
+run-fresh-fixed.txt:820: PASS | A 项反测：缺必填 ⇒ 400 且不落库 | status=400 body={"code":"400","msg":"缺少必填字段","traceId":"482ca293-143e-42da-954a-780894fbf07d"}
+run-fresh-fixed.txt:822: S3144_E2E_SUMMARY total=8 passed=8 failed=0
+run-fresh-fixed.txt:823: DEVICE_EXIT=0
+
+===== run-full-fixed.txt
+run-full-fixed.txt:12: {"level":30,"time":1790879559658,"pid":8852,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总62张，实际建62，已存在跳过0）"}
+run-full-fixed.txt:97: {"level":50,"time":1790879561111,"pid":8852,"hostname":"XIONG","msg":"[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists"}
+run-full-fixed.txt:143: {"level":30,"time":1790879563668,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:144: {"level":30,"time":1790879563669,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:145: {"level":30,"time":1790879563671,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:146: {"level":30,"time":1790879563672,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:147: {"level":30,"time":1790879563673,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:148: {"level":30,"time":1790879563674,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:149: {"level":30,"time":1790879563676,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:150: {"level":30,"time":1790879563678,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:151: {"level":30,"time":1790879563680,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:152: {"level":30,"time":1790879563682,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:153: {"level":30,"time":1790879563685,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:154: {"level":30,"time":1790879563687,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:155: {"level":30,"time":1790879563689,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:156: {"level":30,"time":1790879563693,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:157: {"level":30,"time":1790879563696,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:158: {"level":30,"time":1790879563698,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:159: {"level":30,"time":1790879563701,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:160: {"level":30,"time":1790879563703,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:161: {"level":30,"time":1790879563705,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:162: {"level":30,"time":1790879563707,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:163: {"level":30,"time":1790879563711,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:164: {"level":30,"time":1790879563713,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:165: {"level":30,"time":1790879563715,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:166: {"level":30,"time":1790879563718,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:167: {"level":30,"time":1790879563720,"pid":8852,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:184: {"level":30,"time":1790879563731,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:185: {"level":30,"time":1790879563735,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:193: {"level":30,"time":1790879563737,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:194: {"level":30,"time":1790879563739,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:195: {"level":30,"time":1790879563741,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:196: {"level":30,"time":1790879563748,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:197: {"level":30,"time":1790879563753,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:198: {"level":30,"time":1790879563756,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:199: {"level":30,"time":1790879563759,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:202: {"level":30,"time":1790879563761,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:203: {"level":30,"time":1790879563763,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:207: {"level":30,"time":1790879563773,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:208: {"level":30,"time":1790879563775,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:210: {"level":30,"time":1790879563777,"pid":8852,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:214: {"level":30,"time":1790879563782,"pid":8852,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:215: {"level":30,"time":1790879563784,"pid":8852,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:219: {"level":30,"time":1790879563788,"pid":8852,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+run-full-fixed.txt:611: {"level":30,"time":1790879568007,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:613: {"level":30,"time":1790879568048,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:614: {"level":30,"time":1790879568054,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:615: {"level":30,"time":1790879568058,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:617: {"level":30,"time":1790879568070,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:620: {"level":30,"time":1790879568089,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:621: {"level":30,"time":1790879568094,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:623: {"level":30,"time":1790879568104,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:635: {"level":30,"time":1790879568263,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:638: {"level":30,"time":1790879568297,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:639: {"level":30,"time":1790879568405,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:640: {"level":30,"time":1790879568426,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:641: {"level":30,"time":1790879568483,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:643: {"level":30,"time":1790879568506,"pid":8852,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+run-full-fixed.txt:813: PASS | 迁移 192：全新库 t_tenant 补齐缺列 | 命中列 = company_name,contact_person,source,tenant_code
+run-full-fixed.txt:814: PASS | 迁移 192：t_tenant_register_application 增 promo_code/agent_id | 命中列 = agent_id,promo_code
+run-full-fixed.txt:815: PASS | 反测：原实现 INSERT 复现失败 | ER_NO_DEFAULT_FOR_FIELD Field 'id' doesn't have a default value
+run-full-fixed.txt:816: PASS | 反证：VARCHAR 主键 INSERT 的 insertId 恒为 0 | insertId=0
+run-full-fixed.txt:817: PASS | A 项：createTenant 返回真实 UUID（非 0） | tenantId=d91c0920-116a-44e3-b6d4-b350bef709b6
+run-full-fixed.txt:818: PASS | A 项：建租户落库（tenant_code 非空 / source=MANUAL / status=1） | {"id":"d91c0920-116a-44e3-b6d4-b350bef709b6","tenant_code":"T2026100293978","name":"S3144 平台建租户","company_name":"S3144 平台建租户","source":"MANUAL","status":1}
+run-full-fixed.txt:819: PASS | A 项：平台侧开租户不写归因 | attribution rows=0
+run-full-fixed.txt:820: PASS | A 项反测：缺必填 ⇒ 400 且不落库 | status=400 body={"code":"400","msg":"缺少必填字段","traceId":"20755bd7-4167-4c78-8f0c-d76e767dbcc3"}
+run-full-fixed.txt:821: PASS | B 项：带邀请码注册申请落库 | applicationId=1
+run-full-fixed.txt:824: PASS | B 项：审批通过返回真实 tenant_id（UUID） | tenantId=4b40fbce-638d-434f-9423-68942cbdf522
+run-full-fixed.txt:825: PASS | B 项：t_tenant.source 合规（既有三取值之一，邀请码 ⇒ INVITATION） | {"id":"4b40fbce-638d-434f-9423-68942cbdf522","tenant_code":"T2026100288898","name":"S3144 邀请码注册公司","company_name":"S3144 邀请码注册公司","contact_person":"王五","contact_mobile":"13900000001","source":"INVITATION"}
+run-full-fixed.txt:826: PASS | B 项：联系人/手机号落库未串位（原实现把 contact_person/contact_mobile 传反） | contact_person=王五 contact_mobile=13900000001
+run-full-fixed.txt:827: PASS | D 项：归因 +1（t_tenant_attribution 新增 1 行且指向该租户） | {"tenant_id":"4b40fbce-638d-434f-9423-68942cbdf522","promo_code_id":1,"agent_id":null,"attribution_type":"PROMO","attributed_at":"2026-10-01T18:32:57.000Z"}；总数 0 → 1
+run-full-fixed.txt:829: PASS | 反测：坏邀请码 ⇒ 400 且不建租户 | err=推广码不存在：PCNOTEXIST；租户数 3 → 3
+run-full-fixed.txt:830: PASS | D 项反测：一租户一条归因，二次写 ⇒ 409 + 明确文案 | err=该租户已存在归因记录（一租户一条归因），不可重复归因：4b40fbce-638d-434f-9423-68942cbdf522
+run-full-fixed.txt:832: S3144_E2E_SUMMARY total=15 passed=15 failed=0
+run-full-fixed.txt:833: DEVICE_EXIT=0
+
+===== table-check-fixed.txt
+table-check-fixed.txt:2: DECLARED_TABLES=62
+table-check-fixed.txt:3: PRESENT_IN_DB=310
+table-check-fixed.txt:4: MISSING_DECLARED=0
+
+===== neg-run-fresh-old.txt
+neg-run-fresh-old.txt:12: {"level":30,"time":1790879640210,"pid":5272,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总0张，实际建0，已存在跳过0）"}
+neg-run-fresh-old.txt:182: {"level":50,"time":1790879640894,"pid":5272,"hostname":"XIONG","msg":"[seed] 获取门店ID失败: Table 's3149_neg_fresh.t_store' doesn't exist"}
+neg-run-fresh-old.txt:216: {"level":30,"time":1790879641982,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:217: {"level":30,"time":1790879641983,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:218: {"level":30,"time":1790879641999,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:219: {"level":30,"time":1790879642042,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:220: {"level":30,"time":1790879642044,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:221: {"level":30,"time":1790879642046,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:222: {"level":30,"time":1790879642047,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:223: {"level":30,"time":1790879642122,"pid":5272,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:247: {"level":30,"time":1790879642273,"pid":5272,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-fresh-old.txt:260: {"level":30,"time":1790879642473,"pid":5272,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:411: {"level":30,"time":1790879645491,"pid":5272,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:644: {"level":30,"time":1790879646780,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:645: {"level":30,"time":1790879646834,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:646: {"level":30,"time":1790879646839,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:647: {"level":30,"time":1790879646844,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:648: {"level":30,"time":1790879646866,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:651: {"level":30,"time":1790879646884,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:652: {"level":30,"time":1790879646889,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:654: {"level":30,"time":1790879646899,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:664: {"level":30,"time":1790879647066,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:666: {"level":30,"time":1790879647108,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:667: {"level":30,"time":1790879647212,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:668: {"level":30,"time":1790879647233,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:669: {"level":30,"time":1790879647287,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:670: {"level":30,"time":1790879647293,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:672: {"level":30,"time":1790879647299,"pid":5272,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-fresh-old.txt:843: PASS | 迁移 192：全新库 t_tenant 补齐缺列 | 命中列 = company_name,contact_person,source,tenant_code
+neg-run-fresh-old.txt:844: PASS | 迁移 192：t_tenant_register_application 增 promo_code/agent_id | 命中列 = agent_id,promo_code
+neg-run-fresh-old.txt:845: PASS | 反测：原实现 INSERT 复现失败 | ER_NO_DEFAULT_FOR_FIELD Field 'id' doesn't have a default value
+neg-run-fresh-old.txt:846: PASS | 反证：VARCHAR 主键 INSERT 的 insertId 恒为 0 | insertId=0
+neg-run-fresh-old.txt:847: PASS | A 项：createTenant 返回真实 UUID（非 0） | tenantId=402ca539-5103-4e70-8736-6f52df4fa3e3
+neg-run-fresh-old.txt:848: PASS | A 项：建租户落库（tenant_code 非空 / source=MANUAL / status=1） | {"id":"402ca539-5103-4e70-8736-6f52df4fa3e3","tenant_code":"T2026100232696","name":"S3144 平台建租户","company_name":"S3144 平台建租户","source":"MANUAL","status":1}
+neg-run-fresh-old.txt:849: PASS | A 项：平台侧开租户不写归因 | attribution rows=0
+neg-run-fresh-old.txt:850: PASS | A 项反测：缺必填 ⇒ 400 且不落库 | status=400 body={"code":"400","msg":"缺少必填字段","traceId":"0c5a83f6-5436-465e-b015-6a41789bf1ff"}
+neg-run-fresh-old.txt:852: S3144_E2E_SUMMARY total=8 passed=8 failed=0
+neg-run-fresh-old.txt:853: DEVICE_EXIT=0
+
+===== neg-run-full-old.txt
+neg-run-full-old.txt:12: {"level":30,"time":1790879663054,"pid":30968,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总0张，实际建0，已存在跳过0）"}
+neg-run-full-old.txt:182: {"level":50,"time":1790879663737,"pid":30968,"hostname":"XIONG","msg":"[seed] 获取门店ID失败: Table 's3149_neg_full.t_store' doesn't exist"}
+neg-run-full-old.txt:216: {"level":30,"time":1790879664919,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:217: {"level":30,"time":1790879664920,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:218: {"level":30,"time":1790879664936,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:219: {"level":30,"time":1790879664979,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:220: {"level":30,"time":1790879664981,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:221: {"level":30,"time":1790879664984,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:222: {"level":30,"time":1790879664987,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:223: {"level":30,"time":1790879665066,"pid":30968,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:247: {"level":30,"time":1790879665224,"pid":30968,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+neg-run-full-old.txt:260: {"level":30,"time":1790879665450,"pid":30968,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:411: {"level":30,"time":1790879668528,"pid":30968,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:644: {"level":30,"time":1790879670010,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:645: {"level":30,"time":1790879670068,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:646: {"level":30,"time":1790879670074,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:647: {"level":30,"time":1790879670079,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:648: {"level":30,"time":1790879670102,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:651: {"level":30,"time":1790879670123,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:652: {"level":30,"time":1790879670131,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:654: {"level":30,"time":1790879670141,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:664: {"level":30,"time":1790879670322,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:666: {"level":30,"time":1790879670369,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:667: {"level":30,"time":1790879670483,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:668: {"level":30,"time":1790879670505,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:669: {"level":30,"time":1790879670564,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:670: {"level":30,"time":1790879670571,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:672: {"level":30,"time":1790879670578,"pid":30968,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+neg-run-full-old.txt:843: PASS | 迁移 192：全新库 t_tenant 补齐缺列 | 命中列 = company_name,contact_person,source,tenant_code
+neg-run-full-old.txt:844: PASS | 迁移 192：t_tenant_register_application 增 promo_code/agent_id | 命中列 = agent_id,promo_code
+neg-run-full-old.txt:845: PASS | 反测：原实现 INSERT 复现失败 | ER_NO_DEFAULT_FOR_FIELD Field 'id' doesn't have a default value
+neg-run-full-old.txt:846: PASS | 反证：VARCHAR 主键 INSERT 的 insertId 恒为 0 | insertId=0
+neg-run-full-old.txt:847: PASS | A 项：createTenant 返回真实 UUID（非 0） | tenantId=57aaad88-c2ee-44c1-a14e-d6f2c98103b0
+neg-run-full-old.txt:848: PASS | A 项：建租户落库（tenant_code 非空 / source=MANUAL / status=1） | {"id":"57aaad88-c2ee-44c1-a14e-d6f2c98103b0","tenant_code":"T2026100290307","name":"S3144 平台建租户","company_name":"S3144 平台建租户","source":"MANUAL","status":1}
+neg-run-full-old.txt:849: PASS | A 项：平台侧开租户不写归因 | attribution rows=0
+neg-run-full-old.txt:850: PASS | A 项反测：缺必填 ⇒ 400 且不落库 | status=400 body={"code":"400","msg":"缺少必填字段","traceId":"c3f6596e-d5ef-4179-bc69-8f9bc958c630"}
+neg-run-full-old.txt:855: Error: Table 's3149_neg_full.t_sys_config' doesn't exist
+neg-run-full-old.txt:866: sqlMessage: "Table 's3149_neg_full.t_sys_config' doesn't exist",
+neg-run-full-old.txt:871: DEVICE_EXIT=1
+
+===== neg-table-check-old.txt
+neg-table-check-old.txt:2: DECLARED_TABLES=62
+neg-table-check-old.txt:3: PRESENT_IN_DB=309
+neg-table-check-old.txt:4: MISSING_DECLARED=1 -> t_sys_config
+
+===== restore-run-fresh.txt
+restore-run-fresh.txt:12: {"level":30,"time":1790879744737,"pid":32648,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总62张，实际建62，已存在跳过0）"}
+restore-run-fresh.txt:97: {"level":50,"time":1790879746167,"pid":32648,"hostname":"XIONG","msg":"[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists"}
+restore-run-fresh.txt:143: {"level":30,"time":1790879748257,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:144: {"level":30,"time":1790879748258,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:145: {"level":30,"time":1790879748261,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:146: {"level":30,"time":1790879748262,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:147: {"level":30,"time":1790879748263,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:148: {"level":30,"time":1790879748264,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:149: {"level":30,"time":1790879748267,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:150: {"level":30,"time":1790879748269,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:151: {"level":30,"time":1790879748270,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:152: {"level":30,"time":1790879748272,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:153: {"level":30,"time":1790879748274,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:154: {"level":30,"time":1790879748276,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:155: {"level":30,"time":1790879748278,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:156: {"level":30,"time":1790879748280,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:157: {"level":30,"time":1790879748282,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:158: {"level":30,"time":1790879748284,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:159: {"level":30,"time":1790879748287,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:160: {"level":30,"time":1790879748288,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:161: {"level":30,"time":1790879748291,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:162: {"level":30,"time":1790879748293,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:163: {"level":30,"time":1790879748294,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:164: {"level":30,"time":1790879748296,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:165: {"level":30,"time":1790879748298,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:166: {"level":30,"time":1790879748301,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:167: {"level":30,"time":1790879748303,"pid":32648,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:184: {"level":30,"time":1790879748314,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:185: {"level":30,"time":1790879748317,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:193: {"level":30,"time":1790879748319,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:194: {"level":30,"time":1790879748321,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:195: {"level":30,"time":1790879748323,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:196: {"level":30,"time":1790879748326,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:197: {"level":30,"time":1790879748327,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:198: {"level":30,"time":1790879748329,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:199: {"level":30,"time":1790879748331,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:202: {"level":30,"time":1790879748334,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:203: {"level":30,"time":1790879748337,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:207: {"level":30,"time":1790879748347,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:208: {"level":30,"time":1790879748349,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:210: {"level":30,"time":1790879748352,"pid":32648,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:214: {"level":30,"time":1790879748356,"pid":32648,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:215: {"level":30,"time":1790879748359,"pid":32648,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:219: {"level":30,"time":1790879748362,"pid":32648,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-fresh.txt:611: {"level":30,"time":1790879752576,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:613: {"level":30,"time":1790879752623,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:614: {"level":30,"time":1790879752628,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:615: {"level":30,"time":1790879752634,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:617: {"level":30,"time":1790879752653,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:620: {"level":30,"time":1790879752692,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:621: {"level":30,"time":1790879752697,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:623: {"level":30,"time":1790879752713,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:635: {"level":30,"time":1790879752913,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:638: {"level":30,"time":1790879752965,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:639: {"level":30,"time":1790879753099,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:640: {"level":30,"time":1790879753122,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:641: {"level":30,"time":1790879753183,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:643: {"level":30,"time":1790879753210,"pid":32648,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-fresh.txt:813: PASS | 迁移 192：全新库 t_tenant 补齐缺列 | 命中列 = company_name,contact_person,source,tenant_code
+restore-run-fresh.txt:814: PASS | 迁移 192：t_tenant_register_application 增 promo_code/agent_id | 命中列 = agent_id,promo_code
+restore-run-fresh.txt:815: PASS | 反测：原实现 INSERT 复现失败 | ER_NO_DEFAULT_FOR_FIELD Field 'id' doesn't have a default value
+restore-run-fresh.txt:816: PASS | 反证：VARCHAR 主键 INSERT 的 insertId 恒为 0 | insertId=0
+restore-run-fresh.txt:817: PASS | A 项：createTenant 返回真实 UUID（非 0） | tenantId=89fee38b-8012-44f4-949a-dd94ada25c49
+restore-run-fresh.txt:818: PASS | A 项：建租户落库（tenant_code 非空 / source=MANUAL / status=1） | {"id":"89fee38b-8012-44f4-949a-dd94ada25c49","tenant_code":"T2026100219121","name":"S3144 平台建租户","company_name":"S3144 平台建租户","source":"MANUAL","status":1}
+restore-run-fresh.txt:819: PASS | A 项：平台侧开租户不写归因 | attribution rows=0
+restore-run-fresh.txt:820: PASS | A 项反测：缺必填 ⇒ 400 且不落库 | status=400 body={"code":"400","msg":"缺少必填字段","traceId":"a56e8a9e-17b3-4259-a4dc-f187247fd546"}
+restore-run-fresh.txt:822: S3144_E2E_SUMMARY total=8 passed=8 failed=0
+restore-run-fresh.txt:823: DEVICE_EXIT=0
+
+===== restore-run-full.txt
+restore-run-full.txt:12: {"level":30,"time":1790879768564,"pid":21700,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总62张，实际建62，已存在跳过0）"}
+restore-run-full.txt:97: {"level":50,"time":1790879770257,"pid":21700,"hostname":"XIONG","msg":"[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists"}
+restore-run-full.txt:143: {"level":30,"time":1790879772734,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:144: {"level":30,"time":1790879772735,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:145: {"level":30,"time":1790879772738,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:146: {"level":30,"time":1790879772739,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:147: {"level":30,"time":1790879772741,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:148: {"level":30,"time":1790879772742,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:149: {"level":30,"time":1790879772744,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:150: {"level":30,"time":1790879772746,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:151: {"level":30,"time":1790879772748,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:152: {"level":30,"time":1790879772749,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:153: {"level":30,"time":1790879772750,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:154: {"level":30,"time":1790879772752,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:155: {"level":30,"time":1790879772754,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:156: {"level":30,"time":1790879772756,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:157: {"level":30,"time":1790879772758,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:158: {"level":30,"time":1790879772759,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:159: {"level":30,"time":1790879772761,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:160: {"level":30,"time":1790879772763,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:161: {"level":30,"time":1790879772765,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:162: {"level":30,"time":1790879772766,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:163: {"level":30,"time":1790879772768,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:164: {"level":30,"time":1790879772770,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:165: {"level":30,"time":1790879772772,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:166: {"level":30,"time":1790879772774,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:167: {"level":30,"time":1790879772775,"pid":21700,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:184: {"level":30,"time":1790879772788,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:185: {"level":30,"time":1790879772790,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:193: {"level":30,"time":1790879772791,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:194: {"level":30,"time":1790879772793,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:195: {"level":30,"time":1790879772796,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:196: {"level":30,"time":1790879772798,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:197: {"level":30,"time":1790879772799,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:198: {"level":30,"time":1790879772801,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:199: {"level":30,"time":1790879772803,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:202: {"level":30,"time":1790879772806,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:203: {"level":30,"time":1790879772807,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:207: {"level":30,"time":1790879772816,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:208: {"level":30,"time":1790879772818,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:210: {"level":30,"time":1790879772821,"pid":21700,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:214: {"level":30,"time":1790879772827,"pid":21700,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:215: {"level":30,"time":1790879772830,"pid":21700,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:219: {"level":30,"time":1790879772833,"pid":21700,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+restore-run-full.txt:611: {"level":30,"time":1790879776842,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:613: {"level":30,"time":1790879776895,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:614: {"level":30,"time":1790879776901,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:615: {"level":30,"time":1790879776907,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:617: {"level":30,"time":1790879776918,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:620: {"level":30,"time":1790879776940,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:621: {"level":30,"time":1790879776946,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:623: {"level":30,"time":1790879776958,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:635: {"level":30,"time":1790879777139,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:638: {"level":30,"time":1790879777187,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:639: {"level":30,"time":1790879777325,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:640: {"level":30,"time":1790879777348,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:641: {"level":30,"time":1790879777407,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:643: {"level":30,"time":1790879777429,"pid":21700,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+restore-run-full.txt:813: PASS | 迁移 192：全新库 t_tenant 补齐缺列 | 命中列 = company_name,contact_person,source,tenant_code
+restore-run-full.txt:814: PASS | 迁移 192：t_tenant_register_application 增 promo_code/agent_id | 命中列 = agent_id,promo_code
+restore-run-full.txt:815: PASS | 反测：原实现 INSERT 复现失败 | ER_NO_DEFAULT_FOR_FIELD Field 'id' doesn't have a default value
+restore-run-full.txt:816: PASS | 反证：VARCHAR 主键 INSERT 的 insertId 恒为 0 | insertId=0
+restore-run-full.txt:817: PASS | A 项：createTenant 返回真实 UUID（非 0） | tenantId=747ea862-b44c-4951-b844-5f13ec787c88
+restore-run-full.txt:818: PASS | A 项：建租户落库（tenant_code 非空 / source=MANUAL / status=1） | {"id":"747ea862-b44c-4951-b844-5f13ec787c88","tenant_code":"T2026100241903","name":"S3144 平台建租户","company_name":"S3144 平台建租户","source":"MANUAL","status":1}
+restore-run-full.txt:819: PASS | A 项：平台侧开租户不写归因 | attribution rows=0
+restore-run-full.txt:820: PASS | A 项反测：缺必填 ⇒ 400 且不落库 | status=400 body={"code":"400","msg":"缺少必填字段","traceId":"0c4d0647-732b-44d2-adbf-e6bba068d251"}
+restore-run-full.txt:822: PASS | B 项：带邀请码注册申请落库 | applicationId=1
+restore-run-full.txt:824: PASS | B 项：审批通过返回真实 tenant_id（UUID） | tenantId=314a0b45-e493-4c9a-90b8-c46cf30f8cbf
+restore-run-full.txt:825: PASS | B 项：t_tenant.source 合规（既有三取值之一，邀请码 ⇒ INVITATION） | {"id":"314a0b45-e493-4c9a-90b8-c46cf30f8cbf","tenant_code":"T2026100255692","name":"S3144 邀请码注册公司","company_name":"S3144 邀请码注册公司","contact_person":"王五","contact_mobile":"13900000001","source":"INVITATION"}
+restore-run-full.txt:826: PASS | B 项：联系人/手机号落库未串位（原实现把 contact_person/contact_mobile 传反） | contact_person=王五 contact_mobile=13900000001
+restore-run-full.txt:827: PASS | D 项：归因 +1（t_tenant_attribution 新增 1 行且指向该租户） | {"tenant_id":"314a0b45-e493-4c9a-90b8-c46cf30f8cbf","promo_code_id":1,"agent_id":null,"attribution_type":"PROMO","attributed_at":"2026-10-01T18:36:26.000Z"}；总数 0 → 1
+restore-run-full.txt:829: PASS | 反测：坏邀请码 ⇒ 400 且不建租户 | err=推广码不存在：PCNOTEXIST；租户数 3 → 3
+restore-run-full.txt:830: PASS | D 项反测：一租户一条归因，二次写 ⇒ 409 + 明确文案 | err=该租户已存在归因记录（一租户一条归因），不可重复归因：314a0b45-e493-4c9a-90b8-c46cf30f8cbf
+restore-run-full.txt:832: S3144_E2E_SUMMARY total=15 passed=15 failed=0
+restore-run-full.txt:833: DEVICE_EXIT=0
+
+===== guard-zero-statements.txt
+guard-zero-statements.txt:12: {"level":50,"time":1790879801872,"pid":24008,"hostname":"XIONG","extra":["init_database.sql 存在且非空，但解析出 0 条 CREATE TABLE 语句（语句切分疑似退化，拒绝假成功）"],"msg":"[migration] init_database.sql 解析失败（已启动 Step5.5 兜底建表）:"}
+guard-zero-statements.txt:182: {"level":50,"time":1790879802750,"pid":24008,"hostname":"XIONG","msg":"[seed] 获取门店ID失败: Table 's3149_guard.t_store' doesn't exist"}
+guard-zero-statements.txt:216: {"level":30,"time":1790879804333,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:217: {"level":30,"time":1790879804335,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:218: {"level":30,"time":1790879804348,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:219: {"level":30,"time":1790879804391,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:220: {"level":30,"time":1790879804392,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:221: {"level":30,"time":1790879804395,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:222: {"level":30,"time":1790879804397,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:223: {"level":30,"time":1790879804478,"pid":24008,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:247: {"level":30,"time":1790879804652,"pid":24008,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+guard-zero-statements.txt:260: {"level":30,"time":1790879804868,"pid":24008,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:411: {"level":30,"time":1790879807392,"pid":24008,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:644: {"level":30,"time":1790879808888,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:645: {"level":30,"time":1790879808939,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:646: {"level":30,"time":1790879808944,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:647: {"level":30,"time":1790879808949,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:648: {"level":30,"time":1790879808969,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:651: {"level":30,"time":1790879808987,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:652: {"level":30,"time":1790879808991,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:654: {"level":30,"time":1790879809000,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:664: {"level":30,"time":1790879809158,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:666: {"level":30,"time":1790879809199,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:667: {"level":30,"time":1790879809299,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:668: {"level":30,"time":1790879809320,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:669: {"level":30,"time":1790879809369,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:670: {"level":30,"time":1790879809376,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:672: {"level":30,"time":1790879809381,"pid":24008,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+guard-zero-statements.txt:843: RUN_MIGRATIONS_RETURNED
+
+===== idempotent-rerun.txt
+idempotent-rerun.txt:12: {"level":30,"time":1790880073571,"pid":15060,"hostname":"XIONG","msg":"[migration] init_database.sql 业务表完成（总62张，实际建62，已存在跳过0）"}
+idempotent-rerun.txt:143: {"level":50,"time":1790880074767,"pid":15060,"hostname":"XIONG","msg":"[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists"}
+idempotent-rerun.txt:208: {"level":30,"time":1790880076927,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:209: {"level":30,"time":1790880076929,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:210: {"level":30,"time":1790880076930,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:211: {"level":30,"time":1790880076931,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:212: {"level":30,"time":1790880076932,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:213: {"level":30,"time":1790880076933,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:214: {"level":30,"time":1790880076935,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:215: {"level":30,"time":1790880076936,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:216: {"level":30,"time":1790880076937,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:217: {"level":30,"time":1790880076938,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:218: {"level":30,"time":1790880076939,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:219: {"level":30,"time":1790880076940,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:220: {"level":30,"time":1790880076941,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:222: {"level":30,"time":1790880076943,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:223: {"level":30,"time":1790880076944,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:224: {"level":30,"time":1790880076945,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:225: {"level":30,"time":1790880076946,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:226: {"level":30,"time":1790880076947,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:227: {"level":30,"time":1790880076948,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:229: {"level":30,"time":1790880076949,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:230: {"level":30,"time":1790880076950,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:231: {"level":30,"time":1790880076952,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:232: {"level":30,"time":1790880076953,"pid":15060,"hostname":"XIONG","msg":"[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:249: {"level":30,"time":1790880076964,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:250: {"level":30,"time":1790880076965,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:258: {"level":30,"time":1790880076966,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:259: {"level":30,"time":1790880076967,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:260: {"level":30,"time":1790880076970,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:261: {"level":30,"time":1790880076971,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:262: {"level":30,"time":1790880076972,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:263: {"level":30,"time":1790880076973,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:264: {"level":30,"time":1790880076974,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:267: {"level":30,"time":1790880076975,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:268: {"level":30,"time":1790880076977,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:272: {"level":30,"time":1790880076985,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:273: {"level":30,"time":1790880076986,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:275: {"level":30,"time":1790880076987,"pid":15060,"hostname":"XIONG","msg":"[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:279: {"level":30,"time":1790880076992,"pid":15060,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:280: {"level":30,"time":1790880076994,"pid":15060,"hostname":"XIONG","msg":"[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:284: {"level":30,"time":1790880076999,"pid":15060,"hostname":"XIONG","msg":"[migration] 005_phase3_sys_config.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:309: {"level":30,"time":1790880077044,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:310: {"level":30,"time":1790880077046,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:311: {"level":30,"time":1790880077049,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:312: {"level":30,"time":1790880077053,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:313: {"level":30,"time":1790880077056,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:314: {"level":30,"time":1790880077058,"pid":15060,"hostname":"XIONG","msg":"[migration] 009_phase7_approval_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:427: {"level":30,"time":1790880077712,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:428: {"level":30,"time":1790880077714,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:429: {"level":30,"time":1790880077716,"pid":15060,"hostname":"XIONG","msg":"[migration] 079_权限矩阵.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:469: {"level":30,"time":1790880077791,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:470: {"level":30,"time":1790880077792,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:471: {"level":30,"time":1790880077795,"pid":15060,"hostname":"XIONG","msg":"[migration] 085_报价推送.sql: 跳过 (ER_TABLE_EXISTS_ERROR)"}
+idempotent-rerun.txt:718: {"level":30,"time":1790880078280,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+idempotent-rerun.txt:726: {"level":30,"time":1790880078374,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+idempotent-rerun.txt:727: {"level":30,"time":1790880078379,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+idempotent-rerun.txt:729: {"level":30,"time":1790880078391,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+idempotent-rerun.txt:747: {"level":30,"time":1790880078465,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+idempotent-rerun.txt:751: {"level":30,"time":1790880078487,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+idempotent-rerun.txt:765: {"level":30,"time":1790880078603,"pid":15060,"hostname":"XIONG","msg":"[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)"}
+idempotent-rerun.txt:1124: RUN_MIGRATIONS_RETURNED
+
+===== unit-equiv-output.txt
+unit-equiv-output.txt:1: PASS | 前导注释 + CREATE TABLE 保留 |
+unit-equiv-output.txt:2: PASS | 纯注释块返回空数组 |
+unit-equiv-output.txt:3: PASS | 语句中间 -- 不截断 |
+unit-equiv-output.txt:4: PASS | 行内注释原样保留 |
+unit-equiv-output.txt:5: PASS | USE/DELIMITER 行被剔除 |
+unit-equiv-output.txt:6: PASS | 过程/DROP 仍进入拆分结果 |
+unit-equiv-output.txt:7: PASS | init_database.sql 解析出 CREATE TABLE 条数 = 62（旧写法为 0） | statements.length=62
+unit-equiv-output.txt:8: PASS | 旧写法（反测）复现 0 条 | old.length=0
+unit-equiv-output.txt:9: EQUIV_SUMMARY failed=0
+
+===== vitest-blocked.txt
+vitest-blocked.txt:4: Error: spawn EPERM
+vitest-blocked.txt:16: code: 'EPERM',
+

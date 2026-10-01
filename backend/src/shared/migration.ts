@@ -605,10 +605,24 @@ export async function runMigrations(): Promise<void> {
         initSql = initSql.replace(/SET\s+NAMES[^;]+;/gi, "");
 
         // 拆分语句，只执行 CREATE TABLE 语句
-        const statements = initSql
-          .split(";")
-          .map(s => s.trim())
-          .filter(s => s.length > 0 && s.toUpperCase().startsWith("CREATE TABLE"));
+        //
+        // S3-149：改用与外部迁移段同源的 splitSqlStatements 切分。
+        // 旧写法 `initSql.split(";").map(trim).filter(s => s.toUpperCase().startsWith("CREATE TABLE"))`
+        // 会把"以 `--` 注释行开头的整块语句"连同紧随其后的 CREATE TABLE 一起丢弃——而
+        // docs/init_database.sql 每块建表都以注释行开头 ⇒ 实际命中 **0 条**，却仍打印
+        // "业务表完成（总0张）"这种假成功：空库缺 t_sys_config（注册链路 ER_NO_SUCH_TABLE），
+        // 且 t_store 被 001_phase1_schema.sql 的旧定义抢先建成（缺 tenant_id / status 为 tinyint）。
+        // 拆块语义（剥块首整行注释后再判空、过程体不拆、字面量内分隔符不切）见 splitSqlStatements 注释。
+        const statements = splitSqlStatements(initSql)
+          .filter(s => /^CREATE\s+TABLE\b/i.test(s));
+
+        // S3-149 防再退化：文件存在且非空却解析出 0 条 CREATE TABLE（切分逻辑退回旧写法即命中）
+        // ⇒ 显式判红，不允许再打印"业务表完成（总0张）"的假成功。
+        if (statements.length === 0 && initSql.trim().length > 0) {
+          throw new Error(
+            "init_database.sql 存在且非空，但解析出 0 条 CREATE TABLE 语句（语句切分疑似退化，拒绝假成功）"
+          );
+        }
 
         let created = 0;
         let skipped = 0;
