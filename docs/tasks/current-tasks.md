@@ -3691,8 +3691,8 @@
 
 **在跑 / 排队**
 
-- **在跑**：**S3-144**（Issue **#218**，归因落点定案；迁移从 **192** 起；D 项＝**新建**写入口，参考草稿在 `wt-agents/issue-204`）。
-- **排队（已定范围，待出派单卡）**：**S3-146**（交接班"完成交接"关闭能力 `POST /store/shifts/:shiftNo/close` + app-mobile 同源/按钮闭合）→ **S3-147**（`t_shift.shift_type` DDL + API 契约 + 统计判据补强/数据面种子）→ **C6-3-2b**（前置 S3-144）→ **S3-141 / S3-142**（条码唯一键影响面、手工建品配额与权限）→ **C7 端级验收（DoD 8 条）＝阶段一终点**。
+- **在跑**：**S3-144**（Issue **#218**，归因落点定案；迁移 **192** 起；D 项＝**新建**写入口，参考草稿在 `wt-agents/issue-204`）、**S3-146**（Issue **#220**，交接班"完成交接"关闭能力 `POST /store/shifts/:shiftNo/close` + admin-web 按钮闭合；卡 `R101-派单-20261002-S3-146.md`）。
+- **排队（已定范围，待出派单卡）**：**S3-147**（`t_shift.shift_type` DDL + API 契约 + 统计判据补强/数据面种子）→ **S3-148**（**移动端同源**：`app-mobile/src/api/modules/store.ts:691-693` 列表误调班结端点 `/store/shift/history`、`:731-733` `completeShift` 误调 `/store/shift/settle`；属移动端构建/发布面）→ **C6-3-2b**（前置 S3-144）→ **S3-141 / S3-142**（条码唯一键影响面、手工建品配额与权限）→ **C7 端级验收（DoD 8 条）＝阶段一终点**。
 - **工作区卫生（本轮清零）**：移除 **10** 个陈旧 worktree（194/195/196/197/198/205/206/207/212/213）、隔离 `issue-190` 部分副本与 195/213 的 `.tmp` 目录、杀掉 4 个残留服务进程；保留 `issue-204`（S3-144 参考）、`issue-215`、`issue-218`、`wt-docs6`。隔离区：`D:\Users\ZXQL\_hygiene-quarantine-20261002\`（可恢复）。删除 junction 一律用**非递归** `Directory.Delete`，事后主仓复跑 149 passed 证明 node_modules 未受损。
 
 **本轮纪律事件 2 起**
