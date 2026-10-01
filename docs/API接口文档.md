@@ -3599,4 +3599,6 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 >    **读侧唯一口径** `resolveShiftType`：**落库值优先**（大写）；**空串 ⇒ 回退按 `start_time` 派生**（`<12:00 MORNING`；`12:00–17:59 AFTERNOON`；`≥18:00 EVENING`）——存量行与"创建时未传"都走这条，**展示口径与改动前一致**。
 >    **写侧**（`POST /api/store/shifts`）：`shiftType` 合法值（**忽略大小写与首尾空白**，落库为大写）；**未传 ⇒ 落 `''`**；**非法值 ⇒ 400**（不落库、不静默忽略）。
 >    相关迁移：**193_t_shift_shift_type.sql**（DDL-only / `ALGORITHM=INSTANT` / 幂等；**零 DML**，不对存量回填）。
-> 3. **「完成交接」的关闭能力尚未开放**（`POST /store/shifts/:shiftNo/close` 不存在）⇒ 前端按钮保留但**不写库**、明确提示"需后端支持"，**不得**以假成功日志掩盖 ⇒ 归 **S3-146**。
+> 3. **「完成交接」的关闭能力已开放（S3-146，main `f5878a8c`）**：`POST /api/store/shifts/:shiftNo/close` —— `t_shift.status: OPEN → CLOSED` + `end_time` **一律服务端 `NOW()`**（无请求体）；**跨门店/未知单号同按业务级 404**；**重复关闭 ⇒ 409**（不做静默 200 假成功）；UPDATE 带 `status <> 'CLOSED'` 且校验 `affectedRows`。
+>    接线现状：**admin-web**「完成交接」按钮已接（S3-146，删除了后端从未接受的 endTime/现金/微信/支付宝字段）；**app-mobile** 已同源接线（S3-148：`completeShift(shiftNo)` 打该端点，且列表改读 `GET /store/shifts`、详情按 `shiftNo` 传参）。
+>    ⚠️ 遗留：app-mobile **当前没有交接班页面**（API 模块已同源但无调用点）⇒ 页面化另立 **S3-153** 登记。
