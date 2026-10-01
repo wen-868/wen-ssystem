@@ -3572,3 +3572,28 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 | `191_租户商品库调取映射.sql` | 1 张新表 | `t_tenant_library_copy`（幂等 / 版本映射；`uk_tenant_library (tenant_id, library_spu_id)`） |
 
 > 两表均 `CREATE TABLE IF NOT EXISTS` + 文本列**显式** `utf8mb4_0900_ai_ci` + **不建物理外键** + **零预置**；生产只读实测（2026-10-02）：两表**随启动自动建成**、行数 **0**、外键数 **0**。
+
+---
+
+## 交接班端点契约（2026-10-02 · S3-145 补齐登记）
+
+> 登记人：凌舟（总负责人）｜2026-10-02｜来源：`R101-S3-145-阿坚回传.md`、`R101-S3-145-凌舟验收.md`（F-3 裁定：由凌舟落笔）
+> 合并：PR #219 → main `db07952db5c2694a3a21463ef8dd373f57a46cf4`
+> 挂载：`backend/src/routes/store-shift.routes.ts`，前缀 **`/api/store`**，`auth: requireAuthWithTenant`（无令牌 ⇒ **401**）。
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/store/shift/current` | **当前班结** |
+| POST | `/api/store/shift/settle` | **班结落库**（写 `t_daily_settlement`，单号形如 `BJ2026100219703`） |
+| GET | `/api/store/shift/history` | **班结历史**（读 `t_daily_settlement`；**保留既有语义**，不是交接班） |
+| POST | `/api/store/shifts` | **创建交接班**（写 `t_shift`，单号形如 `JB2026100275621`；入参 `shiftType` / `startTime` / `operatorName` / `openingCash` / `remark`） |
+| **GET** | **`/api/store/shifts`** | **交接班列表（S3-145 新增，唯一只读列表端点）** —— 取数 **`t_shift`**，与详情/统计/盘点**同源**；支持 `page` / `pageSize` / `date` / `shiftType`（`shiftType` 为**读侧派生值**，见下）；`total` 为真值 |
+| GET | `/api/store/shifts/:shiftNo` | 交接班**详情**（读 `t_shift`）；未知单号 ⇒ **业务级 404**（`交接班不存在`） |
+| GET | `/api/store/shifts/:shiftNo/sales` | 本班次**销售统计**（返回结构完整；无销售单数据时 `totalAmount=0 / totalCount=0`，**成因见 S3-147**） |
+| GET | `/api/store/shifts/:shiftNo/check` | 本班次**库存盘点**（账面数量快照） |
+| POST | `/api/store/shifts/:shiftNo/check` | **盘点明细落库** |
+
+> 🔴 **两条口径（不得混用）**：
+> 1. **`t_daily_settlement`（班结，`BJ…`）与 `t_shift`（交接班，`JB…`）不是同一个对象** —— 故**不做**"详情端点兼容两种编号"；交接班列表**必须**读 `t_shift`，否则列表行点进详情恒 404（S3-145 修的正是这条）。
+> 2. **`shift_type` 是读侧派生值**（`t_shift` **无 `shift_type` 列**，按 `start_time` 派生晚班/早班）⇒ 若日后要"用户显式指定班次类型"，须走 **S3-147**（DDL + 契约变更）后回来改本表。
+> 3. **「完成交接」的关闭能力尚未开放**（`POST /store/shifts/:shiftNo/close` 不存在）⇒ 前端按钮保留但**不写库**、明确提示"需后端支持"，**不得**以假成功日志掩盖 ⇒ 归 **S3-146**。
