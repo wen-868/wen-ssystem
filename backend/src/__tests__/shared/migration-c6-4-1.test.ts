@@ -31,6 +31,13 @@ const MIG_190 = "190_商品库调取流水.sql";
 const MIG_191 = "租户商品库调取映射.sql";
 const FILE_191 = `191_${MIG_191}`;
 
+/**
+ * 当前最高迁移编号快照：192 = S3-144（租户建租户与归因落点补列）。
+ * 本快照随每批迁移**显式同步**（同 C6-4-1-F2 口径：新增迁移必须被人显式承认），
+ * 不得改为"只断言不重复"或删除"最高编号"断言。
+ */
+const EXPECTED_MAX_MIGRATION = 192;
+
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);
 
@@ -115,7 +122,7 @@ describe("C6-4-1 两表的列/索引口径", () => {
 });
 
 describe("迁移编号不变量（190/191 各一号，最高编号唯一）", () => {
-  it("190/191 各只对应一个文件，且 191 为当前最高编号", () => {
+  it("190/191 各只对应一个文件，且最高编号 = 声明的 EXPECTED_MAX_MIGRATION（唯一）", () => {
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith(".sql"));
     expect(files.filter((name) => name.startsWith("190_"))).toEqual([MIG_190]);
     expect(files.filter((name) => name.startsWith("191_"))).toEqual([FILE_191]);
@@ -125,7 +132,7 @@ describe("迁移编号不变量（190/191 各一号，最高编号唯一）", ()
       .filter((value): value is string => !!value)
       .map(Number);
     const max = Math.max(...numbered);
-    expect(max).toBe(191);
+    expect(max).toBe(EXPECTED_MAX_MIGRATION);
     expect(numbered.filter((value) => value === max)).toHaveLength(1);
   });
 });

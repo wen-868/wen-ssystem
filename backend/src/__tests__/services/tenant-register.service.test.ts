@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   validatePassword: vi.fn(),
   isSmsVerifyEnabled: vi.fn(),
   sendSms: vi.fn(),
+  resolveAttributionTarget: vi.fn(),
+  writeTenantAttribution: vi.fn(),
 }));
 
 vi.mock("../../shared/db", () => ({
@@ -18,6 +20,7 @@ vi.mock("../../shared/db", () => ({
   queryOneWithTenant: vi.fn(),
   transaction: mocks.transaction,
   connExecute: mocks.connExecute,
+  connQueryOne: vi.fn(),
 }));
 
 vi.mock("../../shared/password", () => ({
@@ -27,6 +30,11 @@ vi.mock("../../shared/password", () => ({
 
 vi.mock("../../shared/logger", () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
+
+vi.mock("../../services/platform/platform-tenant-attribution.service", () => ({
+  resolveAttributionTarget: mocks.resolveAttributionTarget,
+  writeTenantAttribution: mocks.writeTenantAttribution,
 }));
 
 vi.mock("../../services/sms.service", () => ({
@@ -50,6 +58,9 @@ describe("tenant-register.service", () => {
     mocks.hashPassword.mockResolvedValue("hashed_password");
     mocks.query.mockResolvedValue({ insertId: 1 });
     mocks.isSmsVerifyEnabled.mockResolvedValue(false);
+    // S3-144：默认未携带邀请码/代理商（官网自注册，不写归因）
+    mocks.resolveAttributionTarget.mockResolvedValue(null);
+    mocks.writeTenantAttribution.mockResolvedValue({ id: 1 });
   });
 
   describe("applyTenantRegister", () => {
@@ -120,6 +131,36 @@ describe("tenant-register.service", () => {
       expect(mocks.hashPassword).toHaveBeenCalledWith("Pass@1234");
       expect(mocks.query).toHaveBeenCalled();
     });
+
+    it("S3-144：带推广码/代理商注册时随申请落库（camelCase 也受理）", async () => {
+      mocks.queryOne.mockResolvedValue(null);
+      mocks.query.mockResolvedValue({ insertId: 321 });
+
+      await applyTenantRegister({
+        ...validInput,
+        promoCode: "PCABCDEFGH",
+        agentId: 7,
+      } as any);
+
+      const [sql, params] = mocks.query.mock.calls[0];
+      expect(String(sql)).toContain("promo_code, agent_id");
+      // 列顺序 = company_name, company_short_name, contact_person, contact_mobile, contact_email（原实现传反，随本单修正）
+      expect(params[2]).toBe("张三");
+      expect(params[3]).toBe("13800000000");
+      expect(params.slice(-2)).toEqual(["PCABCDEFGH", 7]);
+    });
+
+    it("S3-144：推广码超长（>32）⇒ 400", async () => {
+      await expect(
+        applyTenantRegister({ ...validInput, promo_code: "P".repeat(33) })
+      ).rejects.toThrow("推广码格式不正确");
+    });
+
+    it("S3-144：代理商ID非法 ⇒ 400", async () => {
+      await expect(
+        applyTenantRegister({ ...validInput, agent_id: "abc" })
+      ).rejects.toThrow("代理商ID不合法");
+    });
   });
 
   describe("approveTenantApplication", () => {
@@ -134,6 +175,8 @@ describe("tenant-register.service", () => {
       admin_password_hash: "hashed",
       admin_real_name: "张三",
       status: "PENDING",
+      promo_code: null,
+      agent_id: null,
     };
 
     it("申请不存在应拒绝", async () => {
@@ -162,6 +205,53 @@ describe("tenant-register.service", () => {
       expect(sqlCalls.some((s) => s.includes("INSERT INTO t_price_level"))).toBe(true);
       expect(sqlCalls.some((s) => s.includes("INSERT INTO t_payment_method"))).toBe(true);
       expect(sqlCalls.some((s) => s.includes("UPDATE t_tenant_register_application"))).toBe(true);
+      // 未携带邀请码/代理商 ⇒ 官网自注册，不写归因
+      expect(mocks.writeTenantAttribution).not.toHaveBeenCalled();
+    });
+
+    it("S3-144：带推广码注册，审批通过写归因且 source=INVITATION", async () => {
+      mocks.queryOne.mockResolvedValue({ ...applicationRow, promo_code: "PCABCDEFGH" });
+      mocks.resolveAttributionTarget.mockResolvedValue({
+        attributionType: "PROMO",
+        promoCodeId: 12,
+        agentId: null,
+      });
+      const calls: Array<{ sql: string; params: unknown[] }> = [];
+      mocks.connExecute.mockImplementation(async (_conn: any, sql: string, params: unknown[]) => {
+        calls.push({ sql, params });
+        return [{ insertId: 1 }];
+      });
+      mocks.transaction.mockImplementation(async (cb: any) => {
+        await cb({});
+      });
+
+      const result = await approveTenantApplication(1, 99);
+
+      expect(mocks.resolveAttributionTarget).toHaveBeenCalledWith({
+        promoCode: "PCABCDEFGH",
+        agentId: null,
+      });
+      expect(mocks.writeTenantAttribution).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId: result.tenantId,
+          attributionType: "PROMO",
+          promoCodeId: 12,
+          agentId: null,
+        }),
+        expect.anything()
+      );
+      const tenantInsert = calls.find((c) => c.sql.includes("INSERT INTO t_tenant"));
+      expect(tenantInsert?.params).toContain("INVITATION");
+    });
+
+    it("S3-144：邀请码非法 ⇒ 400 且不建租户（不产生半成品）", async () => {
+      mocks.queryOne.mockResolvedValue({ ...applicationRow, promo_code: "PCNOTEXIST" });
+      mocks.resolveAttributionTarget.mockRejectedValue(
+        Object.assign(new Error("推广码不存在：PCNOTEXIST"), { statusCode: 400 })
+      );
+
+      await expect(approveTenantApplication(1, 99)).rejects.toThrow("推广码不存在");
+      expect(mocks.transaction).not.toHaveBeenCalled();
     });
 
     it("短信开关开启时发送审核通过通知", async () => {

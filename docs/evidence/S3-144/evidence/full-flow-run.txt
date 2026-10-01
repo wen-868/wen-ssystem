@@ -1,0 +1,18 @@
+{"level":50,"time":1790875057783,"pid":28296,"hostname":"XIONG","msg":"[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists"}
+PASS | 迁移 192：全新库 t_tenant 补齐缺列 | 命中列 = company_name,contact_person,source,tenant_code
+PASS | 迁移 192：t_tenant_register_application 增 promo_code/agent_id | 命中列 = agent_id,promo_code
+PASS | 反测：原实现 INSERT 复现失败 | ER_NO_DEFAULT_FOR_FIELD Field 'id' doesn't have a default value
+PASS | 反证：VARCHAR 主键 INSERT 的 insertId 恒为 0 | insertId=0
+PASS | A 项：createTenant 返回真实 UUID（非 0） | tenantId=b803f36e-e8f9-4424-8c2c-f993df4c1527
+PASS | A 项：建租户落库（tenant_code 非空 / source=MANUAL / status=1） | {"id":"b803f36e-e8f9-4424-8c2c-f993df4c1527","tenant_code":"T2026100257760","name":"S3144 平台建租户","company_name":"S3144 平台建租户","source":"MANUAL","status":1}
+PASS | A 项：平台侧开租户不写归因 | attribution rows=0
+PASS | A 项反测：缺必填 ⇒ 400 且不落库 | status=400 body={"code":"400","msg":"缺少必填字段","traceId":"a7354e2a-32f1-410b-adf8-b94643d3903d"}
+PASS | B 项：带邀请码注册申请落库 | applicationId=1
+PASS | B 项：审批通过返回真实 tenant_id（UUID） | tenantId=ba8a7a97-3127-433e-8719-af687982b4f4
+PASS | B 项：t_tenant.source 合规（既有三取值之一，邀请码 ⇒ INVITATION） | {"id":"ba8a7a97-3127-433e-8719-af687982b4f4","tenant_code":"T2026100273399","name":"S3144 邀请码注册公司","company_name":"S3144 邀请码注册公司","contact_person":"王五","contact_mobile":"13900000001","source":"INVITATION"}
+PASS | B 项：联系人/手机号落库未串位（原实现把 contact_person/contact_mobile 传反） | contact_person=王五 contact_mobile=13900000001
+PASS | D 项：归因 +1（t_tenant_attribution 新增 1 行且指向该租户） | {"tenant_id":"ba8a7a97-3127-433e-8719-af687982b4f4","promo_code_id":1,"agent_id":null,"attribution_type":"PROMO","attributed_at":"2026-10-01T17:17:59.000Z"}；总数 0 → 1
+PASS | 反测：坏邀请码 ⇒ 400 且不建租户 | err=推广码不存在：PCNOTEXIST；租户数 3 → 3
+PASS | D 项反测：一租户一条归因，二次写 ⇒ 409 + 明确文案 | err=该租户已存在归因记录（一租户一条归因），不可重复归因：ba8a7a97-3127-433e-8719-af687982b4f4
+
+S3144_E2E_SUMMARY total=15 passed=15 failed=0

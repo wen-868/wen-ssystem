@@ -1,11 +1,16 @@
 import { randomUUID } from "node:crypto";
-import type { ResultSetHeader } from "mysql2";
-import { connExecute, query, queryOne, transaction } from "../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
+import { connExecute, connQueryOne, query, queryOne, transaction } from "../shared/db";
 import { hashPassword, validatePassword } from "../shared/password";
 import { AppError } from "../shared/app-error";
 import logger from "../shared/logger";
 import { makeBizNo } from "../shared/id";
 import { verifySmsCode, isSmsVerifyEnabled, sendSms } from "./sms.service";
+import {
+  resolveAttributionTarget,
+  writeTenantAttribution,
+} from "./platform/platform-tenant-attribution.service";
+import type { AttributionRunner } from "./platform/platform-tenant-attribution.service";
 
 export interface TenantRegisterInput {
   // 与前端注册表单字段一致（snake_case）
@@ -26,6 +31,10 @@ export interface TenantRegisterInput {
   admin_password: string;
   admin_real_name: string;
   sms_code?: string;
+  /** S3-144 B：注册携带的渠道推广码（可选；NULL=官网自注册，不分配归属） */
+  promo_code?: string;
+  /** S3-144 B：注册携带的代理商ID（可选；逻辑引用 t_agent.id） */
+  agent_id?: number | string;
 }
 
 export interface TenantApplication {
@@ -87,7 +96,31 @@ interface TenantRegisterAppRawRow {
   admin_password_hash: string;
   admin_real_name: string;
   status: string;
+  /** S3-144：注册申请携带的归因信息（迁移 192 补列） */
+  promo_code: string | null;
+  agent_id: number | null;
   [key: string]: unknown;
+}
+
+/** 归一为受理的推广码：空白 ⇒ null（NULL=未携带，不写归因）；超长 ⇒ 400（列宽 32） */
+function normalizePromoCodeInput(raw: unknown): string | null {
+  if (raw === undefined || raw === null) return null;
+  const value = String(raw).trim();
+  if (!value) return null;
+  if (value.length > 32) {
+    throw new AppError("推广码格式不正确（最长 32 位）", 400);
+  }
+  return value;
+}
+
+/** 归一为受理的代理商ID：空白 ⇒ null；非正整数 ⇒ 400 */
+function normalizeAgentIdInput(raw: unknown): number | null {
+  if (raw === undefined || raw === null || String(raw).trim() === "") return null;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new AppError("代理商ID不合法", 400);
+  }
+  return value;
 }
 
 export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ applicationId: number }> {
@@ -102,6 +135,10 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
 
   // 公司名称非必填：未填时以手机号兜底，保证可注册
   const finalCompanyName = companyName.trim() || `${contactMobile || "新"}商户`;
+
+  // S3-144 B：邀请码/代理商随申请落库（审批通过时用于归因，见 approveTenantApplication）
+  const promoCode = normalizePromoCodeInput(body.promo_code ?? anyBody.promoCode);
+  const agentId = normalizeAgentIdInput(body.agent_id ?? anyBody.agentId);
 
   // 手机短信验证码校验（总台开关开启时必填，防止恶意注册；关闭时无需验证码）
   if (!contactMobile) {
@@ -157,17 +194,24 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
     `INSERT INTO t_tenant_register_application (
       company_name, company_short_name, contact_person, contact_mobile, contact_email,
       province, city, district, address, business_license, legal_person,
-      industry, company_scale, admin_username, admin_password_hash, admin_real_name
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      industry, company_scale, admin_username, admin_password_hash, admin_real_name,
+      promo_code, agent_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      finalCompanyName, body.company_short_name || anyBody.companyShortName || "", contactMobile, contactPerson, body.contact_email || anyBody.contactEmail || "",
+      // 列顺序 = company_name, company_short_name, contact_person, contact_mobile, contact_email
+      // 原实现此处把 contactPerson/contactMobile 传反（联系人存成手机号、手机号存成姓名），随本单修正
+      finalCompanyName, body.company_short_name || anyBody.companyShortName || "", contactPerson, contactMobile, body.contact_email || anyBody.contactEmail || "",
       body.province || "", body.city || "", body.district || "", body.address || "", body.business_license || "",
-      body.legal_person || anyBody.legalPerson || "", body.industry || "", body.company_scale || anyBody.companyScale || "", adminUsername, passwordHash, adminRealName
+      body.legal_person || anyBody.legalPerson || "", body.industry || "", body.company_scale || anyBody.companyScale || "", adminUsername, passwordHash, adminRealName,
+      promoCode, agentId,
     ]
   );
 
   const applicationId = (result as unknown as { insertId: number }).insertId;
-  logger.info(`[租户注册] 申请提交成功 applicationId=${applicationId} companyName=${finalCompanyName}`);
+  logger.info(
+    `[租户注册] 申请提交成功 applicationId=${applicationId} companyName=${finalCompanyName} ` +
+    `promoCode=${promoCode ?? "-"} agentId=${agentId ?? "-"}`
+  );
 
   return { applicationId };
 }
@@ -187,6 +231,14 @@ export async function approveTenantApplication(applicationId: number, reviewerId
   // 租户展示名：t_tenant.name 为 NOT NULL 必填列（2026-09-08 生产实证缺列报错），取简称兜底全称
   const displayName = application.company_short_name || application.company_name;
 
+  // S3-144 B/C：先解析归因目标（越早失败越好）——邀请码不存在/已停用 ⇒ 400，不建"没有归因的半成品租户"
+  const attributionTarget = await resolveAttributionTarget({
+    promoCode: application.promo_code ?? null,
+    agentId: application.agent_id ?? null,
+  });
+  // 来源列只写既有三取值：带邀请码/代理商 ⇒ INVITATION；官网自注册（未带）⇒ SELF_REGISTER，且不写归因行
+  const tenantSource = attributionTarget ? "INVITATION" : "SELF_REGISTER";
+
   await transaction(async (conn) => {
     // 1) 创建租户（id 为 UUID，status 为 tinyint：1=启用）
     await connExecute<ResultSetHeader>(
@@ -197,16 +249,31 @@ export async function approveTenantApplication(applicationId: number, reviewerId
         province, city, district, address,
         business_license, legal_person, industry, company_scale,
         source, status, review_status, reviewed_at, reviewed_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SELF_REGISTER', 1, 'APPROVED', NOW(), ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'APPROVED', NOW(), ?)`,
       [
         tenantId, tenantCode, displayName, application.company_name, application.company_short_name || "",
         application.contact_person, application.contact_mobile, application.contact_email || "",
         application.province || "", application.city || "", application.district || "", application.address || "",
         application.business_license || "", application.legal_person || "",
         application.industry || "", application.company_scale || "",
-        reviewerId
+        tenantSource, reviewerId
       ]
     );
+
+    // 1.1) S3-144 D：归因行与建租户**同事务**写入（唯一写入口＝platform-tenant-attribution.service）
+    if (attributionTarget) {
+      const runner: AttributionRunner = {
+        queryOne: async (sql, params = []) => {
+          const row = await connQueryOne<RowDataPacket>(conn, sql, params);
+          return row ? (row as unknown as Record<string, unknown>) : null;
+        },
+        query: async (sql, params = []) => {
+          const [result] = await connExecute<ResultSetHeader>(conn, sql, params);
+          return result;
+        },
+      };
+      await writeTenantAttribution({ tenantId, ...attributionTarget }, runner);
+    }
 
     // 2) 创建管理员账号（tenant_id 关联新租户）
     const [userResult] = await connExecute<ResultSetHeader>(
@@ -270,7 +337,10 @@ export async function approveTenantApplication(applicationId: number, reviewerId
     );
   });
 
-  logger.info(`[租户注册审核] 申请通过 applicationId=${applicationId} tenantId=${tenantId}`);
+  logger.info(
+    `[租户注册审核] 申请通过 applicationId=${applicationId} tenantId=${tenantId} ` +
+    `source=${tenantSource} attribution=${attributionTarget ? attributionTarget.attributionType : "none"}`
+  );
 
   // 7) 审核结果短信通知（短信开关关闭/未配置时不阻塞审核，静默跳过）
   try {

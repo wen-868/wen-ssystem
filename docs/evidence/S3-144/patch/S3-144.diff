@@ -1,0 +1,968 @@
+diff --git a/backend/src/__tests__/services/platform-tenant.service.test.ts b/backend/src/__tests__/services/platform-tenant.service.test.ts
+index 78a4d29..5e37791 100644
+--- a/backend/src/__tests__/services/platform-tenant.service.test.ts
++++ b/backend/src/__tests__/services/platform-tenant.service.test.ts
+@@ -10,15 +10,21 @@ vi.mock("../../shared/db", () => ({
+   queryOne: mocks.queryOne,
+ }));
+ 
++vi.mock("bcryptjs", () => ({
++  default: { hash: vi.fn().mockResolvedValue("hashed_password") },
++}));
++
+ import {
+   listTenants,
+   getTenantById,
+   checkTenantNameExists,
+   toggleTenantStatus,
++  createTenant,
+ } from "../../services/platform-tenant.service";
+ 
+ beforeEach(() => {
+   vi.clearAllMocks();
++  mocks.query.mockResolvedValue({ insertId: 0 });
+ });
+ 
+ describe("platform-tenant.service - 平台租户管理", () => {
+@@ -60,4 +66,57 @@ describe("platform-tenant.service - 平台租户管理", () => {
+     expect(sql).toContain("UPDATE t_tenant");
+     expect(params).toEqual(["SUSPENDED", 1]);
+   });
++
++  describe("createTenant（S3-144 A 项真缺陷修复）", () => {
++    const input = {
++      tenantName: "测试租户",
++      contactName: "张三",
++      contactMobile: "13800000000",
++      adminUsername: "admin",
++      adminPassword: "Pass@1234",
++    };
++
++    it("返回真实 UUID（非 0 insertId）且补齐 NOT NULL 列", async () => {
++      const tenantId = await createTenant(input);
++
++      // 真实 tenant_id 由应用层生成，绝不是 MySQL insertId（VARCHAR 主键下恒 0）
++      expect(tenantId).toMatch(
++        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
++      );
++      expect(tenantId).not.toBe("0");
++
++      const [sql, params] = mocks.query.mock.calls[0];
++      expect(String(sql)).toContain("INSERT INTO t_tenant");
++      for (const column of [
++        "id",
++        "tenant_code",
++        "name",
++        "company_name",
++        "contact_person",
++        "contact_mobile",
++        "source",
++      ]) {
++        expect(String(sql)).toContain(column);
++      }
++      // 数值状态（t_tenant.status 是 TINYINT），来源固定 MANUAL（平台侧开租户不是归因宿主）
++      expect(String(sql)).toContain("'MANUAL', 1");
++      expect(params[0]).toBe(tenantId);
++      expect(params[1]).toMatch(/^T\d{8}\d{5}$/);
++    });
++
++    it("租户编码按 T+日期+随机 生成且同批两次不同", async () => {
++      await createTenant(input);
++      await createTenant({ ...input, tenantName: "测试租户2" });
++      const code1 = mocks.query.mock.calls[0][1][1];
++      const code2 = mocks.query.mock.calls[2][1][1];
++      expect(code1).not.toBe(code2);
++    });
++
++    it("管理员账号落在新租户下（tenant_id 用同一个 UUID）", async () => {
++      const tenantId = await createTenant(input);
++      const userInsert = mocks.query.mock.calls[1];
++      expect(String(userInsert[0])).toContain("INSERT INTO t_sys_user");
++      expect(userInsert[1][0]).toBe(tenantId);
++    });
++  });
+ });
+diff --git a/backend/src/__tests__/services/platform/platform-tenant-attribution.service.test.ts b/backend/src/__tests__/services/platform/platform-tenant-attribution.service.test.ts
+new file mode 100644
+index 0000000..a0aaf06
+--- /dev/null
++++ b/backend/src/__tests__/services/platform/platform-tenant-attribution.service.test.ts
+@@ -0,0 +1,195 @@
++/**
++ * S3-144：租户归因唯一写入口（t_tenant_attribution，迁移 189）
++ *
++ * 口径（对应派单卡 §二 D 与 §四）：
++ * - 代理商邀请（AGENT）优先于渠道推广码（PROMO）；
++ * - 一租户一条（uk_tenant_attr）⇒ 重复归因 409（含并发 ER_DUP_ENTRY）；
++ * - 未带码且未带代理商 ⇒ 不写归因（resolveAttributionTarget 返回 null）；
++ * - t_tenant.source 只写既有三取值（MANUAL / SELF_REGISTER / INVITATION），SELF_REGISTER 不被覆盖。
++ */
++import { describe, it, expect, vi, beforeEach } from "vitest";
++
++const mocks = vi.hoisted(() => ({
++  query: vi.fn(),
++  queryOne: vi.fn(),
++}));
++
++vi.mock("../../../shared/db", () => ({
++  query: mocks.query,
++  queryOne: mocks.queryOne,
++}));
++
++import {
++  ATTRIBUTION_TYPES,
++  TENANT_SOURCES,
++  formatDateTime,
++  resolveAttributionTarget,
++  resolveTenantSource,
++  writeTenantAttribution,
++} from "../../../services/platform/platform-tenant-attribution.service";
++
++beforeEach(() => {
++  vi.resetAllMocks();
++});
++
++describe("platform-tenant-attribution.service - 归因唯一写入口", () => {
++  describe("常量口径", () => {
++    it("归因类型与来源取值与迁移 189/016 一致", () => {
++      expect([...ATTRIBUTION_TYPES]).toEqual(["AGENT", "PROMO", "REFERRAL"]);
++      expect([...TENANT_SOURCES]).toEqual(["MANUAL", "SELF_REGISTER", "INVITATION"]);
++    });
++  });
++
++  describe("resolveAttributionTarget", () => {
++    it("未带推广码且未带代理商 ⇒ 返回 null（不写归因）", async () => {
++      expect(await resolveAttributionTarget({})).toBeNull();
++      expect(await resolveAttributionTarget({ promoCode: "  ", agentId: null })).toBeNull();
++      expect(mocks.queryOne).not.toHaveBeenCalled();
++    });
++
++    it("代理商ID非法 ⇒ 400", async () => {
++      await expect(resolveAttributionTarget({ agentId: "abc" })).rejects.toThrow("代理商ID不合法");
++      expect(mocks.queryOne).not.toHaveBeenCalled();
++    });
++
++    it("代理商不存在 ⇒ 400", async () => {
++      mocks.queryOne.mockResolvedValueOnce(null);
++      await expect(resolveAttributionTarget({ agentId: 3 })).rejects.toThrow("代理商不存在");
++    });
++
++    it("代理商存在 ⇒ AGENT 目标", async () => {
++      mocks.queryOne.mockResolvedValueOnce({ id: 3 });
++      const target = await resolveAttributionTarget({ agentId: 3 });
++      expect(target).toEqual({ attributionType: "AGENT", promoCodeId: null, agentId: 3 });
++    });
++
++    it("同带代理商与推广码 ⇒ 只解析代理商（AGENT 优先，不再查码）", async () => {
++      mocks.queryOne.mockResolvedValueOnce({ id: 5 });
++      const target = await resolveAttributionTarget({ agentId: 5, promoCode: "PCABCDEFGH" });
++      expect(target?.attributionType).toBe("AGENT");
++      expect(mocks.queryOne).toHaveBeenCalledTimes(1);
++      expect(String(mocks.queryOne.mock.calls[0][0])).toContain("t_agent");
++    });
++
++    it("推广码不存在 ⇒ 400", async () => {
++      mocks.queryOne.mockResolvedValueOnce(null);
++      await expect(resolveAttributionTarget({ promoCode: "PC00000000" })).rejects.toThrow("推广码不存在");
++    });
++
++    it("推广码已停用 ⇒ 400", async () => {
++      mocks.queryOne.mockResolvedValueOnce({ id: 9, status: "DISABLED" });
++      await expect(resolveAttributionTarget({ promoCode: "PC00000001" })).rejects.toThrow("推广码已停用");
++    });
++
++    it("推广码有效 ⇒ PROMO 目标", async () => {
++      mocks.queryOne.mockResolvedValueOnce({ id: 9, status: "ACTIVE" });
++      const target = await resolveAttributionTarget({ promoCode: " PC00000002 " });
++      expect(target).toEqual({ attributionType: "PROMO", promoCodeId: 9, agentId: null });
++    });
++  });
++
++  describe("resolveTenantSource", () => {
++    it("SELF_REGISTER 保持不受影响", () => {
++      expect(resolveTenantSource("SELF_REGISTER", "PROMO")).toBe("SELF_REGISTER");
++      expect(resolveTenantSource("SELF_REGISTER", "AGENT")).toBe("SELF_REGISTER");
++    });
++
++    it("AGENT / PROMO ⇒ INVITATION（既有取值）", () => {
++      expect(resolveTenantSource("MANUAL", "PROMO")).toBe("INVITATION");
++      expect(resolveTenantSource(null, "AGENT")).toBe("INVITATION");
++    });
++
++    it("REFERRAL ⇒ null（不改写来源列）", () => {
++      expect(resolveTenantSource("MANUAL", "REFERRAL")).toBeNull();
++    });
++  });
++
++  describe("writeTenantAttribution", () => {
++    it("缺租户ID ⇒ 400", async () => {
++      await expect(
++        writeTenantAttribution({ tenantId: "  ", attributionType: "PROMO", promoCodeId: 1, agentId: null })
++      ).rejects.toThrow("缺少租户ID");
++    });
++
++    it("推广码与代理商皆空 ⇒ 400", async () => {
++      await expect(
++        writeTenantAttribution({ tenantId: "t-1", attributionType: "PROMO", promoCodeId: null, agentId: null })
++      ).rejects.toThrow("至少需要推广码或代理商");
++    });
++
++    it("该租户已有归因 ⇒ 409（一租户一条）", async () => {
++      mocks.queryOne.mockResolvedValueOnce({ id: 1 });
++      await expect(
++        writeTenantAttribution({ tenantId: "t-1", attributionType: "PROMO", promoCodeId: 1, agentId: null })
++      ).rejects.toThrow("已存在归因记录");
++    });
++
++    it("租户不存在 ⇒ 404", async () => {
++      mocks.queryOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
++      await expect(
++        writeTenantAttribution({ tenantId: "t-404", attributionType: "PROMO", promoCodeId: 1, agentId: null })
++      ).rejects.toThrow("租户不存在");
++    });
++
++    it("写入成功：SELF_REGISTER 不被改写（sourceUpdated=false）", async () => {
++      mocks.queryOne
++        .mockResolvedValueOnce(null)
++        .mockResolvedValueOnce({ source: "SELF_REGISTER" });
++      mocks.query.mockResolvedValue({ insertId: 7 });
++
++      const result = await writeTenantAttribution({
++        tenantId: "t-1",
++        attributionType: "PROMO",
++        promoCodeId: 3,
++        agentId: null,
++      });
++
++      expect(result.id).toBe(7);
++      expect(result.source).toBe("SELF_REGISTER");
++      expect(result.sourceUpdated).toBe(false);
++      expect(mocks.query).toHaveBeenCalledTimes(1);
++      expect(String(mocks.query.mock.calls[0][0])).toContain("INSERT INTO t_tenant_attribution");
++    });
++
++    it("写入成功：MANUAL + PROMO ⇒ 改写为 INVITATION", async () => {
++      mocks.queryOne
++        .mockResolvedValueOnce(null)
++        .mockResolvedValueOnce({ source: "MANUAL" });
++      mocks.query.mockResolvedValueOnce({ insertId: 8 }).mockResolvedValueOnce({ affectedRows: 1 });
++
++      const result = await writeTenantAttribution({
++        tenantId: "t-2",
++        attributionType: "PROMO",
++        promoCodeId: 4,
++        agentId: null,
++      });
++
++      expect(result.source).toBe("INVITATION");
++      expect(result.sourceUpdated).toBe(true);
++      expect(String(mocks.query.mock.calls[1][0])).toContain("UPDATE t_tenant SET source = ?");
++      expect(mocks.query.mock.calls[1][1]).toEqual(["INVITATION", "t-2"]);
++    });
++
++    it("并发撞唯一键 ER_DUP_ENTRY ⇒ 409 而非 500", async () => {
++      mocks.queryOne
++        .mockResolvedValueOnce(null)
++        .mockResolvedValueOnce({ source: "MANUAL" });
++      const dupError = Object.assign(new Error("Duplicate entry"), { code: "ER_DUP_ENTRY" });
++      mocks.query.mockRejectedValueOnce(dupError);
++
++      await expect(
++        writeTenantAttribution({ tenantId: "t-3", attributionType: "AGENT", promoCodeId: null, agentId: 9 })
++      ).rejects.toThrow("已存在归因记录");
++    });
++  });
++
++  describe("formatDateTime", () => {
++    it("非法时间 ⇒ 400", () => {
++      expect(() => formatDateTime("not-a-date")).toThrow("时间格式不正确");
++    });
++
++    it("输出 'YYYY-MM-DD HH:mm:ss'", () => {
++      expect(formatDateTime(new Date(2026, 9, 2, 8, 5, 6))).toBe("2026-10-02 08:05:06");
++    });
++  });
++});
+diff --git a/backend/src/__tests__/services/tenant-register.service.test.ts b/backend/src/__tests__/services/tenant-register.service.test.ts
+index 88a6a32..3b17b77 100644
+--- a/backend/src/__tests__/services/tenant-register.service.test.ts
++++ b/backend/src/__tests__/services/tenant-register.service.test.ts
+@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
+   validatePassword: vi.fn(),
+   isSmsVerifyEnabled: vi.fn(),
+   sendSms: vi.fn(),
++  resolveAttributionTarget: vi.fn(),
++  writeTenantAttribution: vi.fn(),
+ }));
+ 
+ vi.mock("../../shared/db", () => ({
+@@ -18,6 +20,7 @@ vi.mock("../../shared/db", () => ({
+   queryOneWithTenant: vi.fn(),
+   transaction: mocks.transaction,
+   connExecute: mocks.connExecute,
++  connQueryOne: vi.fn(),
+ }));
+ 
+ vi.mock("../../shared/password", () => ({
+@@ -29,6 +32,11 @@ vi.mock("../../shared/logger", () => ({
+   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+ }));
+ 
++vi.mock("../../services/platform/platform-tenant-attribution.service", () => ({
++  resolveAttributionTarget: mocks.resolveAttributionTarget,
++  writeTenantAttribution: mocks.writeTenantAttribution,
++}));
++
+ vi.mock("../../services/sms.service", () => ({
+   verifySmsCode: vi.fn().mockResolvedValue(undefined),
+   isSmsVerifyEnabled: mocks.isSmsVerifyEnabled,
+@@ -50,6 +58,9 @@ describe("tenant-register.service", () => {
+     mocks.hashPassword.mockResolvedValue("hashed_password");
+     mocks.query.mockResolvedValue({ insertId: 1 });
+     mocks.isSmsVerifyEnabled.mockResolvedValue(false);
++    // S3-144：默认未携带邀请码/代理商（官网自注册，不写归因）
++    mocks.resolveAttributionTarget.mockResolvedValue(null);
++    mocks.writeTenantAttribution.mockResolvedValue({ id: 1 });
+   });
+ 
+   describe("applyTenantRegister", () => {
+@@ -120,6 +131,36 @@ describe("tenant-register.service", () => {
+       expect(mocks.hashPassword).toHaveBeenCalledWith("Pass@1234");
+       expect(mocks.query).toHaveBeenCalled();
+     });
++
++    it("S3-144：带推广码/代理商注册时随申请落库（camelCase 也受理）", async () => {
++      mocks.queryOne.mockResolvedValue(null);
++      mocks.query.mockResolvedValue({ insertId: 321 });
++
++      await applyTenantRegister({
++        ...validInput,
++        promoCode: "PCABCDEFGH",
++        agentId: 7,
++      } as any);
++
++      const [sql, params] = mocks.query.mock.calls[0];
++      expect(String(sql)).toContain("promo_code, agent_id");
++      // 列顺序 = company_name, company_short_name, contact_person, contact_mobile, contact_email（原实现传反，随本单修正）
++      expect(params[2]).toBe("张三");
++      expect(params[3]).toBe("13800000000");
++      expect(params.slice(-2)).toEqual(["PCABCDEFGH", 7]);
++    });
++
++    it("S3-144：推广码超长（>32）⇒ 400", async () => {
++      await expect(
++        applyTenantRegister({ ...validInput, promo_code: "P".repeat(33) })
++      ).rejects.toThrow("推广码格式不正确");
++    });
++
++    it("S3-144：代理商ID非法 ⇒ 400", async () => {
++      await expect(
++        applyTenantRegister({ ...validInput, agent_id: "abc" })
++      ).rejects.toThrow("代理商ID不合法");
++    });
+   });
+ 
+   describe("approveTenantApplication", () => {
+@@ -134,6 +175,8 @@ describe("tenant-register.service", () => {
+       admin_password_hash: "hashed",
+       admin_real_name: "张三",
+       status: "PENDING",
++      promo_code: null,
++      agent_id: null,
+     };
+ 
+     it("申请不存在应拒绝", async () => {
+@@ -162,6 +205,53 @@ describe("tenant-register.service", () => {
+       expect(sqlCalls.some((s) => s.includes("INSERT INTO t_price_level"))).toBe(true);
+       expect(sqlCalls.some((s) => s.includes("INSERT INTO t_payment_method"))).toBe(true);
+       expect(sqlCalls.some((s) => s.includes("UPDATE t_tenant_register_application"))).toBe(true);
++      // 未携带邀请码/代理商 ⇒ 官网自注册，不写归因
++      expect(mocks.writeTenantAttribution).not.toHaveBeenCalled();
++    });
++
++    it("S3-144：带推广码注册，审批通过写归因且 source=INVITATION", async () => {
++      mocks.queryOne.mockResolvedValue({ ...applicationRow, promo_code: "PCABCDEFGH" });
++      mocks.resolveAttributionTarget.mockResolvedValue({
++        attributionType: "PROMO",
++        promoCodeId: 12,
++        agentId: null,
++      });
++      const calls: Array<{ sql: string; params: unknown[] }> = [];
++      mocks.connExecute.mockImplementation(async (_conn: any, sql: string, params: unknown[]) => {
++        calls.push({ sql, params });
++        return [{ insertId: 1 }];
++      });
++      mocks.transaction.mockImplementation(async (cb: any) => {
++        await cb({});
++      });
++
++      const result = await approveTenantApplication(1, 99);
++
++      expect(mocks.resolveAttributionTarget).toHaveBeenCalledWith({
++        promoCode: "PCABCDEFGH",
++        agentId: null,
++      });
++      expect(mocks.writeTenantAttribution).toHaveBeenCalledWith(
++        expect.objectContaining({
++          tenantId: result.tenantId,
++          attributionType: "PROMO",
++          promoCodeId: 12,
++          agentId: null,
++        }),
++        expect.anything()
++      );
++      const tenantInsert = calls.find((c) => c.sql.includes("INSERT INTO t_tenant"));
++      expect(tenantInsert?.params).toContain("INVITATION");
++    });
++
++    it("S3-144：邀请码非法 ⇒ 400 且不建租户（不产生半成品）", async () => {
++      mocks.queryOne.mockResolvedValue({ ...applicationRow, promo_code: "PCNOTEXIST" });
++      mocks.resolveAttributionTarget.mockRejectedValue(
++        Object.assign(new Error("推广码不存在：PCNOTEXIST"), { statusCode: 400 })
++      );
++
++      await expect(approveTenantApplication(1, 99)).rejects.toThrow("推广码不存在");
++      expect(mocks.transaction).not.toHaveBeenCalled();
+     });
+ 
+     it("短信开关开启时发送审核通过通知", async () => {
+diff --git a/backend/src/services/platform-miniapp.service.ts b/backend/src/services/platform-miniapp.service.ts
+index 1aa89ab..6a2e2a1 100644
+--- a/backend/src/services/platform-miniapp.service.ts
++++ b/backend/src/services/platform-miniapp.service.ts
+@@ -259,7 +259,16 @@ export async function getSubscriptionApply(applyId: number): Promise<Subscriptio
+   return row ? mapApplyRow(row) : null;
+ }
+ 
+-/** 审核申请：通过/驳回，写入审核人与审核时间 */
++/**
++ * 审核申请：通过/驳回，写入审核人与审核时间
++ *
++ * S3-144 C 定案（落点②的 tenant_id 来源）：本表 tenant_id 列 DDL 为 NOT NULL DEFAULT 'default'，
++ * 且 submitSubscription 的 INSERT 不写该列 ⇒ 审核时取到的是共享默认租户 'default'。
++ * 订阅审核流程既不创建/关联真实租户、也不携带邀请码/代理商 ⇒ 不作为归因落点：
++ * 无对应租户时不写归因（严禁挂 'default'，见 S3-144 卡 §四.2），保持可追踪。
++ * 归因唯一写入路径 = tenant-register.service.approveTenantApplication（申请审批通过、真正创建租户那一步），
++ * 其 tenant_id 用该步 randomUUID() 生成的真实 t_tenant.id。
++ */
+ export async function auditSubscriptionApply(
+   applyId: number,
+   action: "APPROVED" | "REJECTED",
+diff --git a/backend/src/services/platform-tenant.service.ts b/backend/src/services/platform-tenant.service.ts
+index d7cc0bc..6f8f19c 100644
+--- a/backend/src/services/platform-tenant.service.ts
++++ b/backend/src/services/platform-tenant.service.ts
+@@ -1,4 +1,6 @@
++import { randomUUID } from "node:crypto";
+ import { query, queryOne } from "../shared/db";
++import { makeBizNo } from "../shared/id";
+ import bcrypt from "bcryptjs";
+ 
+ export interface TenantRecord {
+@@ -75,6 +77,21 @@ export async function checkTenantNameExists(name: string): Promise<boolean> {
+ }
+ 
+ // ============ 创建租户（含管理员） ============
++/**
++ * 平台侧开租户（POST /api/platform/tenants）——S3-144 A 项真缺陷修复
++ *
++ * 原实现的三处缺陷（卡 §一①）：
++ *  ① `t_tenant.id` 是 VARCHAR(36) 主键、无自增/默认值，原实现用 `insertId` 取 id ⇒ 恒为 0；
++ *  ② 原 INSERT 未提供 016 定义的 NOT NULL 列 `tenant_code` / `company_name` / `contact_person`
++ *     ⇒ 非严格模式"租户与管理员已写库、接口却返回 0"的脏写，严格模式 1364 直接失败；
++ *  ③ 原 INSERT 写 `status='ACTIVE'`（字符串），而 t_tenant.status 是 TINYINT（1=正常）⇒ 严格模式 1366。
++ *
++ * 修法（最小改动）：应用层 `randomUUID()` 生成主键、`makeBizNo("T")` 生成租户编码，
++ * 补齐 NOT NULL 列与数值状态；返回真实 tenant_id（字符串）而不是 insertId。
++ *
++ * 归因（S3-144 B/C 定案）：平台侧开租户**不是**邀请码注册的归因宿主（原本也非生产在用通道），
++ * `source` 固定 'MANUAL'，本函数不写 t_tenant_attribution。
++ */
+ export async function createTenant(data: {
+   tenantName: string;
+   contactName: string;
+@@ -83,19 +100,29 @@ export async function createTenant(data: {
+   adminUsername: string;
+   adminPassword: string;
+   expireAt?: string | null;
+-}): Promise<number> {
+-  const result = await query<{ insertId: number }>(
+-    `INSERT INTO t_tenant (tenant_name, contact_name, contact_mobile, contact_email, status, expire_at)
+-     VALUES (?, ?, ?, ?, 'ACTIVE', ?)`,
+-    [data.tenantName, data.contactName, data.contactMobile, data.contactEmail || "", data.expireAt || null]
++}): Promise<string> {
++  const tenantId = randomUUID();
++  const tenantCode = makeBizNo("T");
++
++  await query(
++    `INSERT INTO t_tenant (
++       id, tenant_code, name, tenant_name, company_name, company_short_name,
++       contact_name, contact_person, contact_mobile, contact_email,
++       source, status, expire_at
++     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MANUAL', 1, ?)`,
++    [
++      tenantId, tenantCode, data.tenantName, data.tenantName, data.tenantName, data.tenantName,
++      data.contactName, data.contactName, data.contactMobile, data.contactEmail || "",
++      data.expireAt || null,
++    ]
+   );
+ 
+-  const tenantId = (result as unknown as { insertId: number }).insertId;
+   const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
+ 
++  // t_sys_user.status 是 TINYINT（1=正常），原实现写 'ACTIVE' 字符串在严格模式会 1366 —— 一并按数值落库
+   await query(
+     `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, status, role)
+-     VALUES (?, ?, ?, ?, ?, 'ACTIVE', 'ADMIN')`,
++     VALUES (?, ?, ?, ?, ?, 1, 'ADMIN')`,
+     [tenantId, data.adminUsername, hashedPassword, data.contactName, data.contactMobile]
+   );
+ 
+@@ -133,4 +160,4 @@ export async function updateTenant(id: number, data: {
+ // ============ 启用/禁用租户 ============
+ export async function toggleTenantStatus(id: number, status: string): Promise<void> {
+   await query("UPDATE t_tenant SET status = ? WHERE id = ?", [status, id]);
+-}
+\ No newline at end of file
++}
+diff --git a/backend/src/services/platform/platform-tenant-attribution.service.ts b/backend/src/services/platform/platform-tenant-attribution.service.ts
+new file mode 100644
+index 0000000..6081ca7
+--- /dev/null
++++ b/backend/src/services/platform/platform-tenant-attribution.service.ts
+@@ -0,0 +1,264 @@
++/**
++ * S3-144：租户归因**唯一写入口**（t_tenant_attribution，迁移 189）
++ *
++ * 依据：`docs/evidence/S3-144/派单-S3-144-活动任务卡.md` §二 B/C/D 与 §四（归因口径底线）
++ *
++ * 本文件是该域**唯一**写 `t_tenant_attribution` 与改写 `t_tenant.source` 的地方（公共逻辑只写一次）。
++ * 落点（C 定案）：只有 `tenant-register.service.approveTenantApplication`（注册申请审批通过、真正创建
++ * 租户那一步）调用本服务写入，租户 id 用该步 `randomUUID()` 生成的真实 id。订阅审核通过
++ * （`platform-miniapp.service.auditSubscriptionApply`）既不创建/关联租户、也不携带邀请码
++ * ⇒ **不作为归因落点**（无对应租户时不写归因，严禁挂 'default'）。
++ *
++ * 口径：
++ * - 优先级：代理商邀请（AGENT）优先于渠道推广码（PROMO）——同带两者只记 AGENT，promo_code_id 置 NULL。
++ * - 一租户一条（uk_tenant_attr）：已存在 ⇒ **409 + 明确中文文案**；并发撞唯一键（ER_DUP_ENTRY）同样按 409 报。
++ * - `t_tenant.source` 只写既有三取值（MANUAL / SELF_REGISTER / INVITATION），取值定义一字不改。
++ * - 未带 promoCode 且未带 agentId ⇒ `resolveAttributionTarget()` 返回 null，调用方**不写任何行**。
++ */
++import { query, queryOne } from "../../shared/db";
++import { AppError } from "../../shared/app-error";
++
++/** 归因类型（迁移 189 列注释原文；本单只写 AGENT / PROMO） */
++export const ATTRIBUTION_TYPES = ["AGENT", "PROMO", "REFERRAL"] as const;
++export type AttributionType = (typeof ATTRIBUTION_TYPES)[number];
++
++/** `t_tenant.source` 既有三取值（016/029 迁移的列注释原文，不得改写） */
++export const TENANT_SOURCES = ["MANUAL", "SELF_REGISTER", "INVITATION"] as const;
++export type TenantSource = (typeof TENANT_SOURCES)[number];
++
++/** 结果行（列名统一用别名，避免依赖驱动大小写） */
++type Row = Record<string, unknown>;
++
++/**
++ * 可注入的查询执行器。
++ *
++ * 默认走连接池（`poolRunner`）；在事务内写入时传入 `conn` 适配器，
++ * 让归因行与建租户同事务提交，避免"租户建好、归因丢失"的半成品状态。
++ */
++export interface AttributionRunner {
++  queryOne(sql: string, params?: unknown[]): Promise<Row | null>;
++  query(sql: string, params?: unknown[]): Promise<unknown>;
++}
++
++const poolRunner: AttributionRunner = {
++  queryOne: (sql, params = []) => queryOne<Row>(sql, params),
++  query: (sql, params = []) => query(sql, params),
++};
++
++export interface AttributionTargetInput {
++  /** 推广码码值（不是主键 id） */
++  promoCode?: string | null;
++  /** 代理商主键（t_agent.id） */
++  agentId?: number | string | null;
++}
++
++/** 解析后的归因目标：promoCodeId 与 agentId 至少一个非空 */
++export interface ResolvedAttributionTarget {
++  attributionType: AttributionType;
++  promoCodeId: number | null;
++  agentId: number | null;
++}
++
++export interface WriteTenantAttributionInput extends ResolvedAttributionTarget {
++  tenantId: string;
++  attributedAt?: Date | string | null;
++}
++
++export interface WriteTenantAttributionResult {
++  id: number;
++  tenantId: string;
++  attributionType: AttributionType;
++  promoCodeId: number | null;
++  agentId: number | null;
++  attributedAt: string;
++  /** 写入后的来源列取值（既有三取值之一；null = 不改写） */
++  source: string | null;
++  /** 是否真的改写了 t_tenant.source（已等于目标值时 false） */
++  sourceUpdated: boolean;
++}
++
++/** 空白串（含 "" 与纯空格）归一为 null —— 列语义 NULL=未填写，不用空串冒充 */
++function normalizeNullableText(value: unknown): string | null {
++  if (value === undefined || value === null) return null;
++  const trimmed = String(value).trim();
++  return trimmed === "" ? null : trimmed;
++}
++
++/** 归一为正整数主键；非法（0/负数/小数/非数字）返回 null */
++function normalizePositiveId(value: unknown): number | null {
++  if (value === undefined || value === null || value === "") return null;
++  const num = Number(value);
++  if (!Number.isInteger(num) || num <= 0) return null;
++  return num;
++}
++
++/** 时间列统一格式化为 'YYYY-MM-DD HH:mm:ss'（本地时区，与 DATETIME 语义一致） */
++export function formatDateTime(value: Date | string): string {
++  const date = value instanceof Date ? value : new Date(value);
++  if (Number.isNaN(date.getTime())) {
++    throw new AppError(`时间格式不正确：${String(value)}`, 400);
++  }
++  const pad = (n: number) => String(n).padStart(2, "0");
++  return (
++    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
++    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
++  );
++}
++
++/** 从 query() 的返回里取新增主键（真实库是 ResultSetHeader，mock 库可能是数组） */
++function extractInsertId(result: unknown): number {
++  const single = Array.isArray(result) ? result[0] : result;
++  const id = (single as { insertId?: unknown } | undefined)?.insertId;
++  return Number(id ?? 0);
++}
++
++/**
++ * 解析归因目标（**校验 + 归一，不写库**）
++ *
++ * 在**创建租户之前**调用：目标非法（代理商不存在/推广码不存在或已停用）时直接 400，
++ * 不留下"没有归因的半成品租户"。
++ *
++ * · 未带 promoCode 且未带 agentId ⇒ 返回 null（不得造默认归因）
++ * · agentId 优先：同带两者时只解析代理商，不查码
++ * · 推广码必须存在且 status='ACTIVE'（已停用的码不可再用于归因）
++ */
++export async function resolveAttributionTarget(
++  input: AttributionTargetInput = {},
++  runner: AttributionRunner = poolRunner
++): Promise<ResolvedAttributionTarget | null> {
++  const rawAgentId = input.agentId;
++  const hasRawAgentId =
++    rawAgentId !== undefined && rawAgentId !== null && String(rawAgentId).trim() !== "";
++  const agentId = hasRawAgentId ? normalizePositiveId(rawAgentId) : null;
++  const promoCode = normalizeNullableText(input.promoCode);
++
++  if (hasRawAgentId && agentId === null) {
++    throw new AppError(`代理商ID不合法：${String(rawAgentId)}`, 400);
++  }
++
++  // 未带码、未带代理商 ⇒ 不写归因行（不得造默认归因）
++  if (agentId === null && promoCode === null) return null;
++
++  // 代理商邀请优先于渠道推广码
++  if (agentId !== null) {
++    const agent = await runner.queryOne("SELECT id FROM t_agent WHERE id = ?", [agentId]);
++    if (!agent) {
++      throw new AppError(`代理商不存在：${agentId}`, 400);
++    }
++    return { attributionType: "AGENT", promoCodeId: null, agentId };
++  }
++
++  const promo = await runner.queryOne(
++    "SELECT id, status FROM t_promo_code WHERE promo_code = ?",
++    [promoCode]
++  );
++  if (!promo) {
++    throw new AppError(`推广码不存在：${promoCode}`, 400);
++  }
++  if (String(promo.status) !== "ACTIVE") {
++    throw new AppError(`推广码已停用，不可用于归因：${promoCode}`, 400);
++  }
++  return { attributionType: "PROMO", promoCodeId: Number(promo.id), agentId: null };
++}
++
++/**
++ * 由"当前来源 + 归因类型"推导写入后的来源列取值（**只使用既有三取值**）
++ *
++ * · 当前已是 SELF_REGISTER ⇒ 原样保持（业主口径"自注册保持 SELF_REGISTER 不受影响"）
++ * · AGENT / PROMO ⇒ INVITATION（代理商邀请 / 渠道推广码都属"被邀请而来"）
++ * · 其它（含 REFERRAL，本单不写）⇒ null，表示不改写来源列
++ */
++export function resolveTenantSource(
++  currentSource: string | null | undefined,
++  attributionType: AttributionType
++): TenantSource | null {
++  const current = normalizeNullableText(currentSource);
++  if (current === "SELF_REGISTER") return "SELF_REGISTER";
++  if (attributionType === "AGENT" || attributionType === "PROMO") return "INVITATION";
++  return null;
++}
++
++/**
++ * 写入一条租户归因（**唯一写入口**）
++ *
++ * 前置：调用方必须先 `resolveAttributionTarget()` 拿到 promoCodeId / agentId。
++ * 失败语义：租户不存在 ⇒ 404；该租户已有归因行 ⇒ 409；缺租户ID / 两者皆空 ⇒ 400。
++ */
++export async function writeTenantAttribution(
++  input: WriteTenantAttributionInput,
++  runner: AttributionRunner = poolRunner
++): Promise<WriteTenantAttributionResult> {
++  const tenantId = normalizeNullableText(input.tenantId);
++  if (!tenantId) {
++    throw new AppError("缺少租户ID，无法写入归因", 400);
++  }
++  if (!input.promoCodeId && !input.agentId) {
++    throw new AppError("归因写入至少需要推广码或代理商之一", 400);
++  }
++
++  // 一租户一条：先查一次给明确文案
++  const existing = await runner.queryOne(
++    "SELECT id FROM t_tenant_attribution WHERE tenant_id = ?",
++    [tenantId]
++  );
++  if (existing) {
++    throw new AppError(
++      `该租户已存在归因记录（一租户一条归因），不可重复归因：${tenantId}`,
++      409
++    );
++  }
++
++  // 归因对象必须真实存在；取当前 source 以便按既有语义决定是否改写
++  const tenant = await runner.queryOne("SELECT source FROM t_tenant WHERE id = ?", [tenantId]);
++  if (!tenant) {
++    throw new AppError(`租户不存在，无法写入归因：${tenantId}`, 404);
++  }
++
++  const attributedAt = input.attributedAt
++    ? formatDateTime(input.attributedAt)
++    : formatDateTime(new Date());
++
++  let insertId: number;
++  try {
++    const result = await runner.query(
++      `INSERT INTO t_tenant_attribution
++         (tenant_id, promo_code_id, agent_id, attributed_at, attribution_type)
++       VALUES (?, ?, ?, ?, ?)`,
++      [tenantId, input.promoCodeId, input.agentId, attributedAt, input.attributionType]
++    );
++    insertId = extractInsertId(result);
++  } catch (err) {
++    // 并发窗口：唯一键撞车同样按 409 报，不落 500
++    if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
++      throw new AppError(
++        `该租户已存在归因记录（一租户一条归因），不可重复归因：${tenantId}`,
++        409
++      );
++    }
++    throw err;
++  }
++
++  if (!insertId) {
++    throw new AppError("归因写入失败：未取得新增主键", 500);
++  }
++
++  // 来源列：只写既有三取值，且必须真正变化才 UPDATE（避免无意义写与审计噪声）
++  const currentSource = normalizeNullableText(tenant.source);
++  const nextSource = resolveTenantSource(currentSource, input.attributionType);
++  let sourceUpdated = false;
++  if (nextSource && nextSource !== currentSource) {
++    await runner.query("UPDATE t_tenant SET source = ? WHERE id = ?", [nextSource, tenantId]);
++    sourceUpdated = true;
++  }
++
++  return {
++    id: insertId,
++    tenantId,
++    attributionType: input.attributionType,
++    promoCodeId: input.promoCodeId ?? null,
++    agentId: input.agentId ?? null,
++    attributedAt,
++    source: nextSource ?? currentSource,
++    sourceUpdated,
++  };
++}
+diff --git a/backend/src/services/tenant-register.service.ts b/backend/src/services/tenant-register.service.ts
+index eff704d..7ffa937 100644
+--- a/backend/src/services/tenant-register.service.ts
++++ b/backend/src/services/tenant-register.service.ts
+@@ -1,11 +1,16 @@
+ import { randomUUID } from "node:crypto";
+-import type { ResultSetHeader } from "mysql2";
+-import { connExecute, query, queryOne, transaction } from "../shared/db";
++import type { ResultSetHeader, RowDataPacket } from "mysql2";
++import { connExecute, connQueryOne, query, queryOne, transaction } from "../shared/db";
+ import { hashPassword, validatePassword } from "../shared/password";
+ import { AppError } from "../shared/app-error";
+ import logger from "../shared/logger";
+ import { makeBizNo } from "../shared/id";
+ import { verifySmsCode, isSmsVerifyEnabled, sendSms } from "./sms.service";
++import {
++  resolveAttributionTarget,
++  writeTenantAttribution,
++} from "./platform/platform-tenant-attribution.service";
++import type { AttributionRunner } from "./platform/platform-tenant-attribution.service";
+ 
+ export interface TenantRegisterInput {
+   // 与前端注册表单字段一致（snake_case）
+@@ -26,6 +31,10 @@ export interface TenantRegisterInput {
+   admin_password: string;
+   admin_real_name: string;
+   sms_code?: string;
++  /** S3-144 B：注册携带的渠道推广码（可选；NULL=官网自注册，不分配归属） */
++  promo_code?: string;
++  /** S3-144 B：注册携带的代理商ID（可选；逻辑引用 t_agent.id） */
++  agent_id?: number | string;
+ }
+ 
+ export interface TenantApplication {
+@@ -87,9 +96,33 @@ interface TenantRegisterAppRawRow {
+   admin_password_hash: string;
+   admin_real_name: string;
+   status: string;
++  /** S3-144：注册申请携带的归因信息（迁移 192 补列） */
++  promo_code: string | null;
++  agent_id: number | null;
+   [key: string]: unknown;
+ }
+ 
++/** 归一为受理的推广码：空白 ⇒ null（NULL=未携带，不写归因）；超长 ⇒ 400（列宽 32） */
++function normalizePromoCodeInput(raw: unknown): string | null {
++  if (raw === undefined || raw === null) return null;
++  const value = String(raw).trim();
++  if (!value) return null;
++  if (value.length > 32) {
++    throw new AppError("推广码格式不正确（最长 32 位）", 400);
++  }
++  return value;
++}
++
++/** 归一为受理的代理商ID：空白 ⇒ null；非正整数 ⇒ 400 */
++function normalizeAgentIdInput(raw: unknown): number | null {
++  if (raw === undefined || raw === null || String(raw).trim() === "") return null;
++  const value = Number(raw);
++  if (!Number.isInteger(value) || value <= 0) {
++    throw new AppError("代理商ID不合法", 400);
++  }
++  return value;
++}
++
+ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ applicationId: number }> {
+   // 兼容 camelCase / snake_case 字段（移动端与总台注册均传 camelCase）
+   const anyBody = body as unknown as Record<string, unknown>;
+@@ -103,6 +136,10 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{
+   // 公司名称非必填：未填时以手机号兜底，保证可注册
+   const finalCompanyName = companyName.trim() || `${contactMobile || "新"}商户`;
+ 
++  // S3-144 B：邀请码/代理商随申请落库（审批通过时用于归因，见 approveTenantApplication）
++  const promoCode = normalizePromoCodeInput(body.promo_code ?? anyBody.promoCode);
++  const agentId = normalizeAgentIdInput(body.agent_id ?? anyBody.agentId);
++
+   // 手机短信验证码校验（总台开关开启时必填，防止恶意注册；关闭时无需验证码）
+   if (!contactMobile) {
+     throw new AppError("联系电话不能为空", 400);
+@@ -157,17 +194,24 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{
+     `INSERT INTO t_tenant_register_application (
+       company_name, company_short_name, contact_person, contact_mobile, contact_email,
+       province, city, district, address, business_license, legal_person,
+-      industry, company_scale, admin_username, admin_password_hash, admin_real_name
+-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
++      industry, company_scale, admin_username, admin_password_hash, admin_real_name,
++      promo_code, agent_id
++    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     [
+-      finalCompanyName, body.company_short_name || anyBody.companyShortName || "", contactMobile, contactPerson, body.contact_email || anyBody.contactEmail || "",
++      // 列顺序 = company_name, company_short_name, contact_person, contact_mobile, contact_email
++      // 原实现此处把 contactPerson/contactMobile 传反（联系人存成手机号、手机号存成姓名），随本单修正
++      finalCompanyName, body.company_short_name || anyBody.companyShortName || "", contactPerson, contactMobile, body.contact_email || anyBody.contactEmail || "",
+       body.province || "", body.city || "", body.district || "", body.address || "", body.business_license || "",
+-      body.legal_person || anyBody.legalPerson || "", body.industry || "", body.company_scale || anyBody.companyScale || "", adminUsername, passwordHash, adminRealName
++      body.legal_person || anyBody.legalPerson || "", body.industry || "", body.company_scale || anyBody.companyScale || "", adminUsername, passwordHash, adminRealName,
++      promoCode, agentId,
+     ]
+   );
+ 
+   const applicationId = (result as unknown as { insertId: number }).insertId;
+-  logger.info(`[租户注册] 申请提交成功 applicationId=${applicationId} companyName=${finalCompanyName}`);
++  logger.info(
++    `[租户注册] 申请提交成功 applicationId=${applicationId} companyName=${finalCompanyName} ` +
++    `promoCode=${promoCode ?? "-"} agentId=${agentId ?? "-"}`
++  );
+ 
+   return { applicationId };
+ }
+@@ -187,6 +231,14 @@ export async function approveTenantApplication(applicationId: number, reviewerId
+   // 租户展示名：t_tenant.name 为 NOT NULL 必填列（2026-09-08 生产实证缺列报错），取简称兜底全称
+   const displayName = application.company_short_name || application.company_name;
+ 
++  // S3-144 B/C：先解析归因目标（越早失败越好）——邀请码不存在/已停用 ⇒ 400，不建"没有归因的半成品租户"
++  const attributionTarget = await resolveAttributionTarget({
++    promoCode: application.promo_code ?? null,
++    agentId: application.agent_id ?? null,
++  });
++  // 来源列只写既有三取值：带邀请码/代理商 ⇒ INVITATION；官网自注册（未带）⇒ SELF_REGISTER，且不写归因行
++  const tenantSource = attributionTarget ? "INVITATION" : "SELF_REGISTER";
++
+   await transaction(async (conn) => {
+     // 1) 创建租户（id 为 UUID，status 为 tinyint：1=启用）
+     await connExecute<ResultSetHeader>(
+@@ -197,17 +249,32 @@ export async function approveTenantApplication(applicationId: number, reviewerId
+         province, city, district, address,
+         business_license, legal_person, industry, company_scale,
+         source, status, review_status, reviewed_at, reviewed_by
+-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SELF_REGISTER', 1, 'APPROVED', NOW(), ?)`,
++      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'APPROVED', NOW(), ?)`,
+       [
+         tenantId, tenantCode, displayName, application.company_name, application.company_short_name || "",
+         application.contact_person, application.contact_mobile, application.contact_email || "",
+         application.province || "", application.city || "", application.district || "", application.address || "",
+         application.business_license || "", application.legal_person || "",
+         application.industry || "", application.company_scale || "",
+-        reviewerId
++        tenantSource, reviewerId
+       ]
+     );
+ 
++    // 1.1) S3-144 D：归因行与建租户**同事务**写入（唯一写入口＝platform-tenant-attribution.service）
++    if (attributionTarget) {
++      const runner: AttributionRunner = {
++        queryOne: async (sql, params = []) => {
++          const row = await connQueryOne<RowDataPacket>(conn, sql, params);
++          return row ? (row as unknown as Record<string, unknown>) : null;
++        },
++        query: async (sql, params = []) => {
++          const [result] = await connExecute<ResultSetHeader>(conn, sql, params);
++          return result;
++        },
++      };
++      await writeTenantAttribution({ tenantId, ...attributionTarget }, runner);
++    }
++
+     // 2) 创建管理员账号（tenant_id 关联新租户）
+     const [userResult] = await connExecute<ResultSetHeader>(
+       conn,
+@@ -270,7 +337,10 @@ export async function approveTenantApplication(applicationId: number, reviewerId
+     );
+   });
+ 
+-  logger.info(`[租户注册审核] 申请通过 applicationId=${applicationId} tenantId=${tenantId}`);
++  logger.info(
++    `[租户注册审核] 申请通过 applicationId=${applicationId} tenantId=${tenantId} ` +
++    `source=${tenantSource} attribution=${attributionTarget ? attributionTarget.attributionType : "none"}`
++  );
+ 
+   // 7) 审核结果短信通知（短信开关关闭/未配置时不阻塞审核，静默跳过）
+   try {
