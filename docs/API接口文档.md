@@ -3587,7 +3587,7 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 | POST | `/api/store/shift/settle` | **班结落库**（写 `t_daily_settlement`，单号形如 `BJ2026100219703`） |
 | GET | `/api/store/shift/history` | **班结历史**（读 `t_daily_settlement`；**保留既有语义**，不是交接班） |
 | POST | `/api/store/shifts` | **创建交接班**（写 `t_shift`，单号形如 `JB2026100275621`；入参 `shiftType` / `startTime` / `operatorName` / `openingCash` / `remark`） |
-| **GET** | **`/api/store/shifts`** | **交接班列表（S3-145 新增，唯一只读列表端点）** —— 取数 **`t_shift`**，与详情/统计/盘点**同源**；支持 `page` / `pageSize` / `date` / `shiftType`（`shiftType` 为**读侧派生值**，见下）；`total` 为真值 |
+| **GET** | **`/api/store/shifts`** | **交接班列表（S3-145 新增，唯一只读列表端点）** —— 取数 **`t_shift`**，与详情/统计/盘点**同源**；支持 `page` / `pageSize` / `date` / `shiftType`；`total` 为真值 |
 | GET | `/api/store/shifts/:shiftNo` | 交接班**详情**（读 `t_shift`）；未知单号 ⇒ **业务级 404**（`交接班不存在`） |
 | GET | `/api/store/shifts/:shiftNo/sales` | 本班次**销售统计**（返回结构完整；无销售单数据时 `totalAmount=0 / totalCount=0`，**成因见 S3-147**） |
 | GET | `/api/store/shifts/:shiftNo/check` | 本班次**库存盘点**（账面数量快照） |
@@ -3595,5 +3595,8 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 
 > 🔴 **两条口径（不得混用）**：
 > 1. **`t_daily_settlement`（班结，`BJ…`）与 `t_shift`（交接班，`JB…`）不是同一个对象** —— 故**不做**"详情端点兼容两种编号"；交接班列表**必须**读 `t_shift`，否则列表行点进详情恒 404（S3-145 修的正是这条）。
-> 2. **`shift_type` 是读侧派生值**（`t_shift` **无 `shift_type` 列**，按 `start_time` 派生晚班/早班）⇒ 若日后要"用户显式指定班次类型"，须走 **S3-147**（DDL + 契约变更）后回来改本表。
+> 2. **`shift_type` 口径（S3-147 起，迁移 193）**：`t_shift` **已增列** `shift_type VARCHAR(16) NOT NULL DEFAULT ''`（**值域 `''` / `MORNING` / `AFTERNOON` / `EVENING`**）。
+>    **读侧唯一口径** `resolveShiftType`：**落库值优先**（大写）；**空串 ⇒ 回退按 `start_time` 派生**（`<12:00 MORNING`；`12:00–17:59 AFTERNOON`；`≥18:00 EVENING`）——存量行与"创建时未传"都走这条，**展示口径与改动前一致**。
+>    **写侧**（`POST /api/store/shifts`）：`shiftType` 合法值（**忽略大小写与首尾空白**，落库为大写）；**未传 ⇒ 落 `''`**；**非法值 ⇒ 400**（不落库、不静默忽略）。
+>    相关迁移：**193_t_shift_shift_type.sql**（DDL-only / `ALGORITHM=INSTANT` / 幂等；**零 DML**，不对存量回填）。
 > 3. **「完成交接」的关闭能力尚未开放**（`POST /store/shifts/:shiftNo/close` 不存在）⇒ 前端按钮保留但**不写库**、明确提示"需后端支持"，**不得**以假成功日志掩盖 ⇒ 归 **S3-146**。
