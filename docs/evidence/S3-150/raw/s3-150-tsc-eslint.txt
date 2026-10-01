@@ -1,0 +1,29 @@
+# S3-150 门禁证据（tsc / eslint / 含测试 tsc）—— 2026-10-02
+# 一、权威结论：仓库真实落盘状态（6 个交付物均已落盘）
+
+$ cd backend && node ../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit
+
+REPO_TSC_EXIT=0
+
+$ cd backend && node ../node_modules/eslint/bin/eslint.js src/services/platform-tenant.service.ts src/services/tenant-register.service.ts src/controllers/platform/tenant.controller.ts src/__tests__/services/platform-tenant.service.test.ts src/__tests__/services/tenant-register.service.test.ts src/__tests__/routes/platform-tenant.test.ts
+D:\Users\ZXQL\wt-agents\issue-225\backend\src\services\tenant-register.service.ts
+  93:8  warning  Async function 'applyTenantRegister' has a complexity of 36. Maximum allowed is 15  complexity
+
+✖ 1 problem (0 errors, 1 warning)
+REPO_ESLINT_EXIT=0
+# 该 warning 属存量：仓库原文件同一行/同一函数同样命中（本单未触及 applyTenantRegister）
+
+# 二、含测试的 tsc（tsconfig.test.json，非本单门禁）：本单 6 个文件 0 处错误；全仓 224 处为存量
+TEST_TSC_TOTAL_ERRORS=224 / TOUCHED_FILES_ERRORS=0
+# 存量分布示例：src/__tests__/services/admin/trace-records.service.test.ts 31、src/__tests__/services/platform/tenant-quota.service.test.ts 29、src/__tests__/routes/tenant-register.test.ts 12 …
+
+# 三、落盘前的中转态记录（供复核口径；已被上面的真实状态取代）
+落盘前仓库状态（controller 已改、service 未落盘）曾报 4 处错误：
+src/controllers/platform/tenant.controller.ts(9,8): error TS2305: Module '../../services/platform-tenant.service' has no exported member 'TenantStatus'.
+src/controllers/platform/tenant.controller.ts(23,38): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/controllers/platform/tenant.controller.ts(55,22): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+src/controllers/platform/tenant.controller.ts(66,44): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+INREPO_TSC_EXIT=2（中转态，非最终态）
+
+# 四、方法留痕：早期也曾用 shadow 树（backend/src 全量副本 + 暂存覆盖）验证，结论同上（TSC_EXIT=0 / ESLINT_EXIT=0）
+# shadow 示例：C:\Users\XIONG\AppData\Local\Temp\s3-150-verify-024341（临时目录，可删）

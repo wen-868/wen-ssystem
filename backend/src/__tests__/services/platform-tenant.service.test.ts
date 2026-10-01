@@ -18,9 +18,15 @@ import {
   listTenants,
   getTenantById,
   checkTenantNameExists,
+  updateTenant,
   toggleTenantStatus,
   createTenant,
+  toTenantStatus,
+  toTenantStatusValue,
 } from "../../services/platform-tenant.service";
+
+/** t_tenant.id 是 VARCHAR(36)：存量有 'default' 与 UUID 两种值 */
+const UUID_ID = "11111111-1111-4111-8111-111111111111";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -28,12 +34,14 @@ beforeEach(() => {
 });
 
 describe("platform-tenant.service - 平台租户管理", () => {
-  it("listTenants 无关键词返回全量分页", async () => {
+  it("listTenants 无关键词返回全量分页，且出口 status 统一为字符串口径", async () => {
     mocks.queryOne.mockResolvedValue({ total: 1 });
-    mocks.query.mockResolvedValue([{ id: 1, tenantName: "酒行A" }]);
+    mocks.query.mockResolvedValue([{ id: UUID_ID, tenantName: "酒行A", status: 1 }]);
     const res = await listTenants(1, 20);
     expect(res.total).toBe(1);
     expect(res.records[0].tenantName).toBe("酒行A");
+    expect(res.records[0].id).toBe(UUID_ID);
+    expect(res.records[0].status).toBe("ACTIVE");
     expect(mocks.query.mock.calls[0][0]).toContain("LIMIT ? OFFSET ?");
   });
 
@@ -46,25 +54,80 @@ describe("platform-tenant.service - 平台租户管理", () => {
     expect(mocks.query.mock.calls[0][1]).toEqual(["%酒%", 10, 10]);
   });
 
-  it("getTenantById 返回租户详情", async () => {
-    mocks.queryOne.mockResolvedValue({ id: 1, tenantName: "酒行A", status: "ACTIVE" });
-    const res = await getTenantById(1);
+  it("getTenantById 按字符串主键查询（UUID 不再被 Number() 成 NaN），并映射 status", async () => {
+    mocks.queryOne.mockResolvedValue({ id: UUID_ID, tenantName: "酒行A", status: 0 });
+    const res = await getTenantById(UUID_ID);
+    expect(mocks.queryOne.mock.calls[0][1]).toEqual([UUID_ID]);
     expect(res?.tenantName).toBe("酒行A");
+    expect(res?.status).toBe("DISABLED");
+  });
+
+  it("getTenantById 未命中返回 null（调用方按 404 处理）", async () => {
+    mocks.queryOne.mockResolvedValue(null);
+    expect(await getTenantById("not-exist")).toBeNull();
   });
 
   it("checkTenantNameExists 命中返回 true，未命中 false", async () => {
-    mocks.queryOne.mockResolvedValueOnce({ id: 1 });
+    mocks.queryOne.mockResolvedValueOnce({ id: "default" });
     expect(await checkTenantNameExists("酒行A")).toBe(true);
     mocks.queryOne.mockResolvedValueOnce(null);
     expect(await checkTenantNameExists("不存在")).toBe(false);
   });
 
-  it("toggleTenantStatus 更新状态", async () => {
-    mocks.query.mockResolvedValue([{ affectedRows: 1 }]);
-    await toggleTenantStatus(1, "SUSPENDED");
-    const [sql, params] = mocks.query.mock.calls[0];
-    expect(sql).toContain("UPDATE t_tenant");
-    expect(params).toEqual(["SUSPENDED", 1]);
+  it("updateTenant 未知 id ⇒ 业务级 404（不静默成功）", async () => {
+    mocks.queryOne.mockResolvedValue(null);
+    await expect(updateTenant("not-exist", { tenantName: "改名" })).rejects.toMatchObject({
+      statusCode: 404,
+      message: "租户不存在",
+    });
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  describe("toggleTenantStatus - 对外字符串 / 对库 TINYINT（S3-150）", () => {
+    it("ACTIVE ⇒ 落库 1，回读返回 'ACTIVE'（主键原样字符串传参）", async () => {
+      mocks.query.mockResolvedValue({ affectedRows: 1 });
+      mocks.queryOne.mockResolvedValue({ status: 1 });
+
+      const applied = await toggleTenantStatus(UUID_ID, "ACTIVE");
+
+      expect(applied).toBe("ACTIVE");
+      expect(mocks.query.mock.calls[0][0]).toContain("UPDATE t_tenant SET status = ?");
+      expect(mocks.query.mock.calls[0][1]).toEqual([1, UUID_ID]);
+      expect(mocks.queryOne.mock.calls[0][1]).toEqual([UUID_ID]);
+    });
+
+    it("DISABLED ⇒ 落库 0，回读返回 'DISABLED'", async () => {
+      mocks.query.mockResolvedValue({ affectedRows: 1 });
+      mocks.queryOne.mockResolvedValue({ status: 0 });
+
+      const applied = await toggleTenantStatus(UUID_ID, "DISABLED");
+
+      expect(applied).toBe("DISABLED");
+      expect(mocks.query.mock.calls[0][1]).toEqual([0, UUID_ID]);
+    });
+
+    it("兼容 mock 模式把写结果包成数组的归一化形态", async () => {
+      mocks.query.mockResolvedValue([{ affectedRows: 1 }]);
+      mocks.queryOne.mockResolvedValue({ status: 1 });
+      expect(await toggleTenantStatus(UUID_ID, "ACTIVE")).toBe("ACTIVE");
+    });
+
+    it("未知 id（affectedRows=0）⇒ 404，不当成功返回（S3-65 教训）", async () => {
+      mocks.query.mockResolvedValue({ affectedRows: 0 });
+
+      await expect(toggleTenantStatus("not-exist", "ACTIVE")).rejects.toMatchObject({
+        statusCode: 404,
+        message: "租户不存在",
+      });
+      expect(mocks.queryOne).not.toHaveBeenCalled();
+    });
+
+    it("非法 status 取值 ⇒ 400 且不落库（不静默兜底）", async () => {
+      await expect(toggleTenantStatus(UUID_ID, "SUSPENDED" as never)).rejects.toMatchObject({
+        statusCode: 400,
+      });
+      expect(mocks.query).not.toHaveBeenCalled();
+    });
   });
 
   describe("createTenant（S3-144 A 项真缺陷修复）", () => {
@@ -118,5 +181,21 @@ describe("platform-tenant.service - 平台租户管理", () => {
       expect(String(userInsert[0])).toContain("INSERT INTO t_sys_user");
       expect(userInsert[1][0]).toBe(tenantId);
     });
+  });
+
+  it("映射函数：DB 值 ↔ 对外字符串（与 S3-138 平台管理员同口径）", () => {
+    expect(toTenantStatus(1)).toBe("ACTIVE");
+    expect(toTenantStatus("1")).toBe("ACTIVE");
+    expect(toTenantStatus("ACTIVE")).toBe("ACTIVE");
+    expect(toTenantStatus(0)).toBe("DISABLED");
+    expect(toTenantStatus("0")).toBe("DISABLED");
+    expect(toTenantStatus("DISABLED")).toBe("DISABLED");
+    expect(toTenantStatus(null)).toBe("ACTIVE");
+
+    expect(toTenantStatusValue("ACTIVE")).toBe(1);
+    expect(toTenantStatusValue("1")).toBe(1);
+    expect(toTenantStatusValue("DISABLED")).toBe(0);
+    expect(toTenantStatusValue("0")).toBe(0);
+    expect(toTenantStatusValue("SUSPENDED")).toBeNull();
   });
 });

@@ -1,16 +1,53 @@
 import { randomUUID } from "node:crypto";
 import { query, queryOne } from "../shared/db";
 import { makeBizNo } from "../shared/id";
+import { AppError } from "../shared/app-error";
 import bcrypt from "bcryptjs";
 
+/**
+ * S3-150：租户 status 的**对外唯一口径**（字符串）。
+ * DB 列 `t_tenant.status` 是 TINYINT（1=启用 / 0=停用），只在服务层做映射；
+ * 列表/详情（读）与启停（写）两条路径返回同一形态。
+ * 存量库同时存在 `1` 与老写法 `ACTIVE` 两套取值，故两者都按启用处理
+ * （与 platform/tenant-status-stats.service.ts 的枚举口径一致）。
+ */
+export type TenantStatus = "ACTIVE" | "DISABLED";
+
+/** DB 值 ⇒ 对外字符串：0/"0"/"DISABLED" ⇒ DISABLED，其余（1/"1"/"ACTIVE"）⇒ ACTIVE */
+export function toTenantStatus(value: number | string | null | undefined): TenantStatus {
+  return value === 0 || value === "0" || value === "DISABLED" ? "DISABLED" : "ACTIVE";
+}
+
+/** 对外字符串 ⇒ DB TINYINT；取值不在统一口径内 ⇒ null（调用方按 400 处理，不静默兜底） */
+export function toTenantStatusValue(value: string | number): 0 | 1 | null {
+  const text = String(value);
+  if (text === "ACTIVE" || text === "1") return 1;
+  if (text === "DISABLED" || text === "0") return 0;
+  return null;
+}
+
 export interface TenantRecord {
-  id: number;
+  /** S3-150：t_tenant.id 是 VARCHAR(36)（default / UUID），一律按字符串传递 */
+  id: string;
   tenantName: string;
   tenantCode: string;
   contactName: string;
   contactMobile: string;
   contactEmail: string;
-  status: string;
+  status: TenantStatus;
+  expireAt: string | null;
+  createdAt: string;
+}
+
+/** 库内原始行：status 为 TINYINT（存量数据可能是 1/"1"/"ACTIVE"），出口统一映射为字符串 */
+interface TenantRow {
+  id: string;
+  tenantName: string;
+  tenantCode: string;
+  contactName: string;
+  contactMobile: string;
+  contactEmail: string;
+  status: number | string | null;
   expireAt: string | null;
   createdAt: string;
 }
@@ -27,7 +64,8 @@ interface CountTotalRow {
 }
 
 interface IdRow {
-  id: number;
+  /** t_tenant.id 为 VARCHAR(36) */
+  id: string;
 }
 
 // ============ 租户列表 ============
@@ -43,9 +81,9 @@ export async function listTenants(page: number, pageSize: number, keyword?: stri
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const [totalResult, records] = await Promise.all([
+  const [totalResult, rows] = await Promise.all([
     queryOne<CountTotalRow>(`SELECT COUNT(*) AS total FROM t_tenant ${where}`, params),
-    query<TenantRecord>(
+    query<TenantRow>(
       `SELECT id, tenant_code AS tenantCode, tenant_name AS tenantName, contact_name AS contactName,
               contact_mobile AS contactMobile, contact_email AS contactEmail,
               status, expire_at AS expireAt, created_at AS createdAt
@@ -56,18 +94,20 @@ export async function listTenants(page: number, pageSize: number, keyword?: stri
     ),
   ]);
 
+  const records: TenantRecord[] = rows.map((row) => ({ ...row, status: toTenantStatus(row.status) }));
   return { total: totalResult?.total || 0, page, pageSize, records };
 }
 
 // ============ 租户详情 ============
-export async function getTenantById(id: number): Promise<TenantRecord | null> {
-  return queryOne<TenantRecord>(
+export async function getTenantById(id: string): Promise<TenantRecord | null> {
+  const row = await queryOne<TenantRow>(
     `SELECT id, tenant_code AS tenantCode, tenant_name AS tenantName, contact_name AS contactName,
             contact_mobile AS contactMobile, contact_email AS contactEmail,
             status, expire_at AS expireAt, created_at AS createdAt
      FROM t_tenant WHERE id = ?`,
     [id]
   );
+  return row ? { ...row, status: toTenantStatus(row.status) } : null;
 }
 
 // ============ 检查租户名重复 ============
@@ -130,7 +170,7 @@ export async function createTenant(data: {
 }
 
 // ============ 更新租户 ============
-export async function updateTenant(id: number, data: {
+export async function updateTenant(id: string, data: {
   tenantName?: string;
   contactName?: string;
   contactMobile?: string;
@@ -158,6 +198,31 @@ export async function updateTenant(id: number, data: {
 }
 
 // ============ 启用/禁用租户 ============
-export async function toggleTenantStatus(id: number, status: string): Promise<void> {
-  await query("UPDATE t_tenant SET status = ? WHERE id = ?", [status, id]);
+export async function toggleTenantStatus(id: string, status: TenantStatus): Promise<TenantStatus> {
+  const statusValue = toTenantStatusValue(status);
+  if (statusValue === null) {
+    throw new AppError("无效的状态值", 400);
+  }
+
+  const raw = await query<{ affectedRows: number }>(
+    "UPDATE t_tenant SET status = ? WHERE id = ?",
+    [statusValue, id]
+  );
+  // 真实库（mysql2）写操作返回 ResultSetHeader 对象；mock 模式的 query 统一包成数组 —— 两种都兼容
+  const result = (Array.isArray(raw) ? raw[0] : raw) as { affectedRows?: number } | undefined;
+
+  // S3-65 教训：affectedRows=0 不得当成功返回，按「租户不存在」处理
+  if (!result || Number(result.affectedRows || 0) === 0) {
+    throw new AppError("租户不存在", 404);
+  }
+
+  // 回读：以库内真实值为准（不凭入参臆断），出口统一字符串口径
+  const row = await queryOne<{ status: number | string | null }>(
+    "SELECT status FROM t_tenant WHERE id = ?",
+    [id]
+  );
+  if (!row) {
+    throw new AppError("租户不存在", 404);
+  }
+  return toTenantStatus(row.status);
 }

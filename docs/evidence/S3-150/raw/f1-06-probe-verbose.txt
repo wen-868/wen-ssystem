@@ -1,0 +1,34 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-225/backend
+
+stdout | src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > 申请审核通过并初始化门店/价格等级/支付方式
+[PROBE] t_tenant* 插入 ⇒ sql="INSERT INTO t_tenant (\n        id, tenant_code, name" params=["1c524e0c-d72c-48d1-aefd-832761eb7151","T2026100289490","测试","测试","测试公司","测试","张三","13800000000","test@test.com","","","","","","","","",99]
+
+stdout | src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > 申请审核通过并初始化门店/价格等级/支付方式
+[PROBE] t_tenant* 插入 ⇒ sql="INSERT INTO t_tenant_admin (tenant_id, user_id, role" params=["1c524e0c-d72c-48d1-aefd-832761eb7151",1]
+
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 密码强度不足应拒绝 8ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 公司名称已存在应拒绝 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 手机号已存在应拒绝 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 管理员账号已被使用（申请表）应拒绝 3ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 管理员账号已被使用（用户表）应拒绝 2ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 短信开关开启时验证码必填 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 短信开关开启且验证码正确时提交成功 3ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > applyTenantRegister > 注册申请提交成功 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > 申请不存在应拒绝 2ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > 申请审核通过并初始化门店/价格等级/支付方式 4ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > company_short_name 为空时 tenant_name 回退 company_name（S3-150） 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > 短信开关开启时发送审核通过通知 3ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > rejectTenantApplication > 申请不存在应拒绝 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > rejectTenantApplication > 申请驳回成功 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > listTenantApplications > 查询申请列表 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > listTenantApplications > 按状态筛选申请列表 2ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > getTenantApplication > 查询申请详情 1ms
+ ✓ src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > getTenantApplication > 申请不存在返回null 0ms
+
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+   Start at  03:04:39
+   Duration  644ms (transform 276ms, setup 82ms, import 252ms, tests 36ms, environment 0ms)
+
+

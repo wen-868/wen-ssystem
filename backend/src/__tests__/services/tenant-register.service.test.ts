@@ -13,6 +13,10 @@ const mocks = vi.hoisted(() => ({
   writeTenantAttribution: vi.fn(),
 }));
 
+// S3-150-F1：判定"插入 t_tenant 本表"。表名后必须紧跟 `(`，
+// 以排除 `t_tenant_admin (...)`、`t_tenant_register_application (...)` 等同前缀表。
+const isTenantInsert = (sql: string) => /INSERT\s+INTO\s+t_tenant\s*\(/i.test(sql);
+
 vi.mock("../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
@@ -187,9 +191,13 @@ describe("tenant-register.service", () => {
     it("申请审核通过并初始化门店/价格等级/支付方式", async () => {
       mocks.queryOne.mockResolvedValue(applicationRow);
       const sqlCalls: string[] = [];
-      mocks.connExecute.mockImplementation(async (_conn: any, sql: string) => {
+      const tenantInsertCalls: { sql: string; params: unknown[] }[] = [];
+      mocks.connExecute.mockImplementation(async (_conn: any, sql: string, params: unknown[] = []) => {
         sqlCalls.push(sql);
-        if (sql.includes("INSERT INTO t_tenant")) return [{ insertId: 100 }];
+        if (isTenantInsert(sql)) {
+          tenantInsertCalls.push({ sql, params });
+          return [{ insertId: 100 }];
+        }
         return [{ insertId: 1 }];
       });
       mocks.transaction.mockImplementation(async (cb: any) => {
@@ -207,6 +215,12 @@ describe("tenant-register.service", () => {
       expect(sqlCalls.some((s) => s.includes("UPDATE t_tenant_register_application"))).toBe(true);
       // 未携带邀请码/代理商 ⇒ 官网自注册，不写归因
       expect(mocks.writeTenantAttribution).not.toHaveBeenCalled();
+
+      // S3-150：审批建租户必须写 tenant_name（此前漏写 ⇒ 平台租户列表名称为空）
+      expect(tenantInsertCalls.length).toBe(1);
+      expect(tenantInsertCalls[0].sql).toContain("tenant_name");
+      expect(tenantInsertCalls[0].params[2]).toBe("测试"); // name
+      expect(tenantInsertCalls[0].params[3]).toBe("测试"); // tenant_name（与 name 同源）
     });
 
     it("S3-144：带推广码注册，审批通过写归因且 source=INVITATION", async () => {
@@ -240,7 +254,7 @@ describe("tenant-register.service", () => {
         }),
         expect.anything()
       );
-      const tenantInsert = calls.find((c) => c.sql.includes("INSERT INTO t_tenant"));
+      const tenantInsert = calls.find((c) => isTenantInsert(c.sql));
       expect(tenantInsert?.params).toContain("INVITATION");
     });
 
@@ -252,6 +266,27 @@ describe("tenant-register.service", () => {
 
       await expect(approveTenantApplication(1, 99)).rejects.toThrow("推广码不存在");
       expect(mocks.transaction).not.toHaveBeenCalled();
+    });
+
+    it("company_short_name 为空时 tenant_name 回退 company_name（S3-150）", async () => {
+      mocks.queryOne.mockResolvedValue({ ...applicationRow, company_short_name: "" });
+      const tenantInsertCalls: { sql: string; params: unknown[] }[] = [];
+      mocks.connExecute.mockImplementation(async (_conn: any, sql: string, params: unknown[] = []) => {
+        if (isTenantInsert(sql)) {
+          tenantInsertCalls.push({ sql, params });
+        }
+        return [{ insertId: 1 }];
+      });
+      mocks.transaction.mockImplementation(async (cb: any) => {
+        await cb({});
+      });
+
+      await approveTenantApplication(1, 99);
+
+      expect(tenantInsertCalls.length).toBe(1);
+      expect(tenantInsertCalls[0].sql).toContain("tenant_name");
+      expect(tenantInsertCalls[0].params[2]).toBe("测试公司");
+      expect(tenantInsertCalls[0].params[3]).toBe("测试公司");
     });
 
     it("短信开关开启时发送审核通过通知", async () => {

@@ -1,0 +1,54 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-225/backend
+
+ ❯ src/__tests__/services/tenant-register.service.test.ts (18 tests | 2 failed) 58ms
+       × 申请审核通过并初始化门店/价格等级/支付方式 18ms
+       × company_short_name 为空时 tenant_name 回退 company_name（S3-150） 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > 申请审核通过并初始化门店/价格等级/支付方式
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/__tests__/services/tenant-register.service.test.ts:142:46
+    142|
+    143|     it("申请不存在应拒绝", async () => {
+    144|       mocks.queryOne.mockResolvedValue(null);
+       |          ^
+    145|       await expect(approveTenantApplication(999, 1)).rejects.toThrow("…
+    146|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/services/tenant-register.service.test.ts > tenant-register.service > approveTenantApplication > company_short_name 为空时 tenant_name 回退 company_name（S3-150）
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/__tests__/services/tenant-register.service.test.ts:160:46
+    158|         return [{ insertId: 1 }];
+    159|       });
+    160|       mocks.transaction.mockImplementation(async (cb: any) => {
+       |                                              ^
+    161|         const mockConn = {};
+    162|         await cb(mockConn);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 16 passed (18)
+   Start at  03:01:25
+   Duration  1.36s (transform 620ms, setup 159ms, import 602ms, tests 58ms, environment 0ms)
+
+
