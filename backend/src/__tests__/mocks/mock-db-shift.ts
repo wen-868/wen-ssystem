@@ -15,6 +15,11 @@
  *  2. 单号口径：t_shift → `JB…`（createShift），t_daily_settlement → `BJ…`（settleShift）；
  *  3. 盘点端点的 JOIN 投影也在此实现（否则会被 inventory 的通用 handler 兜走，
  *     账面数量恒 0）——它属于同一"交接班链路"的数据面。
+ *  4. S3-147：补销售/收款/退货最小行（t_sale_bill / t_payment_order / t_sale_return），
+ *     让"本班次统计"（getShiftPeriodSales / getCurrentShift）能返回真值 > 0，
+ *     补掉 S3-145 段4 只能断言"结构完整"的判据缺口（F-6）。这些行按既有读法的
+ *     SQL 形状（别名 totalSales/orderCount/returnOrderCount/totalReceived、group by channel）
+ *     做**真实过滤**（门店/租户/时间窗/状态），不是常量返回。
  */
 import { state, result, Row, fromTable } from "./mock-db-state";
 
@@ -22,6 +27,51 @@ import { state, result, Row, fromTable } from "./mock-db-state";
 const shifts: Row[] = [];
 /** 班结/日结记录（t_daily_settlement） */
 const dailySettlements: Row[] = [];
+
+/**
+ * S3-147 本班次统计的最小数据面（与 shift.service.ts 的读法一一对应）
+ *
+ * 时间口径：取"业务日"（UTC 日期，与装置脚本 TODAY 同源）的 21:00 之后，
+ * 落在交接班当班时间窗 [start_time, now] 之内——模拟"当前这个还没关的班次里发生的销售/收款"。
+ * 只被本文件下方三个**形状特定**的 handler 使用，不进 `state`（避免被 order/finance 的通用
+ * handler 兜走，污染其它用例）。值固定不写库、不随调用变化。
+ */
+const FIXTURE_DAY = new Date().toISOString().slice(0, 10);
+const shiftSaleBills: Row[] = [
+  { id: 1, tenant_id: "default", store_id: 1, created_at: `${FIXTURE_DAY} 21:00:00`, receivable_amount: 328.5, sale_type: "CASH", business_status: "COMPLETED" },
+  { id: 2, tenant_id: "default", store_id: 1, created_at: `${FIXTURE_DAY} 21:12:00`, receivable_amount: 1499, sale_type: "CREDIT", business_status: "COMPLETED" },
+];
+const shiftPaymentOrders: Row[] = [
+  { id: 1, tenant_id: "default", paid_at: `${FIXTURE_DAY} 21:05:00`, amount: 328.5, channel: "CASH", status: "SUCCESS" },
+  { id: 2, tenant_id: "default", paid_at: `${FIXTURE_DAY} 21:15:00`, amount: 1499, channel: "WECHAT", status: "SUCCESS" },
+];
+const shiftSaleReturns: Row[] = [
+  { id: 1, tenant_id: "default", created_at: `${FIXTURE_DAY} 21:30:00`, refund_amount: 88, return_status: "COMPLETED" },
+];
+
+const toTime = (value: unknown): number => {
+  const date = value instanceof Date ? value : new Date(String(value ?? ""));
+  return Number.isNaN(date.getTime()) ? NaN : date.getTime();
+};
+
+/**
+ * 时间窗判定：与 shift.service.ts 的两种读法保持一致——
+ *  · `DATE(col) = ?`（getCurrentShift）⇒ 只比日期部分，日期参数在 params[offset]；
+ *  · `col >= ? AND col <= ?`（getShiftPeriodSales）⇒ [params[offset], params[offset+1]] 区间。
+ */
+function inTimeWindow(value: unknown, s: string, params: unknown[], offset: number): boolean {
+  if (s.includes("date(")) {
+    return String(value).slice(0, 10) === String(params[offset] ?? "");
+  }
+  const target = toTime(value);
+  const start = toTime(params[offset]);
+  const end = toTime(params[offset + 1]);
+  if ([target, start, end].some((n) => Number.isNaN(n))) return false;
+  return target >= start && target <= end;
+}
+
+const sumOf = (rows: Row[], column: string): number =>
+  rows.reduce((acc, row) => acc + Number(row[column] ?? 0), 0);
 
 /** 重置本数据面（供测试用例隔离；server 进程内首次为空即可） */
 export function resetShiftMockState() {
@@ -42,6 +92,8 @@ function projectShift(row: Row): Row {
     status: row.status,
     openingCash: row.opening_cash,
     remark: row.remark,
+    // S3-147：落库的班次类型（空串/缺失 ⇒ 服务层 resolveShiftType 回退派生）
+    shiftType: row.shift_type,
   };
 }
 
@@ -119,6 +171,75 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
         });
     }
     return null;
+  },
+
+  // ⑤ 本班次销售统计（getShiftPeriodSales / getCurrentShift 的 SUM/COUNT 口径，S3-147）
+  //    形状特征：别名 as totalSales + as orderCount（其余 sale_bill 读法不带这组别名，
+  //    不会被本 handler 兜走；orderQuery 的 sale_bill 通用 handler 排在 shiftQuery 之后）。
+  (s, params) => {
+    if (!fromTable(s, "sale_bill") || !s.includes("as totalsales") || !s.includes("as ordercount")) {
+      return null;
+    }
+    const storeId = Number(params[0] ?? 0);
+    const tenantId = String(params[1] ?? "");
+    // 销售统计两种读法的前两个参数都是 [storeId, tenantId] ⇒ 时间参数从下标 2 起
+    const dateOffset = 2;
+    const rows = shiftSaleBills.filter(
+      (r) =>
+        Number(r.store_id) === storeId &&
+        String(r.tenant_id) === tenantId &&
+        !["DRAFT", "VOIDED"].includes(String(r.business_status).toUpperCase()) &&
+        inTimeWindow(r.created_at, s, params, dateOffset)
+    );
+    return [
+      {
+        totalSales: sumOf(rows, "receivable_amount"),
+        orderCount: rows.length,
+        cashOrderCount: rows.filter((r) => r.sale_type === "CASH").length,
+        creditOrderCount: rows.filter((r) => r.sale_type === "CREDIT").length,
+      },
+    ];
+  },
+
+  // ⑥ 本班次退货统计（别名 as returnOrderCount，S3-147）
+  (s, params) => {
+    if (!fromTable(s, "sale_return") || !s.includes("as returnordercount")) return null;
+    const tenantId = String(params[0] ?? "");
+    const rows = shiftSaleReturns.filter(
+      (r) => String(r.tenant_id) === tenantId && inTimeWindow(r.created_at, s, params, 1)
+    );
+    return [{ returnOrderCount: rows.length }];
+  },
+
+  // ⑦ 本班次收款合计（别名 as totalReceived，S3-147）
+  (s, params) => {
+    if (!fromTable(s, "payment_order") || !s.includes("as totalreceived")) return null;
+    const tenantId = String(params[0] ?? "");
+    const rows = shiftPaymentOrders.filter(
+      (r) =>
+        String(r.tenant_id) === tenantId &&
+        String(r.status).toUpperCase() === "SUCCESS" &&
+        inTimeWindow(r.paid_at, s, params, 1)
+    );
+    return [{ totalReceived: sumOf(rows, "amount") }];
+  },
+
+  // ⑧ 本班次收款渠道分组（getShiftPeriodSales / getCurrentShift 的 GROUP BY channel，S3-147）
+  (s, params) => {
+    if (!fromTable(s, "payment_order") || !s.includes("group by channel")) return null;
+    const tenantId = String(params[0] ?? "");
+    const rows = shiftPaymentOrders.filter(
+      (r) =>
+        String(r.tenant_id) === tenantId &&
+        String(r.status).toUpperCase() === "SUCCESS" &&
+        inTimeWindow(r.paid_at, s, params, 1)
+    );
+    const byChannel = new Map<string, number>();
+    rows.forEach((r) => {
+      const channel = String(r.channel);
+      byChannel.set(channel, (byChannel.get(channel) ?? 0) + Number(r.amount ?? 0));
+    });
+    return [...byChannel.entries()].map(([channel, amount]) => ({ channel, amount }));
   },
 ];
 

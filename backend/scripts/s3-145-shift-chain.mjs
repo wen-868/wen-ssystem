@@ -160,10 +160,16 @@ report(
 );
 
 // ─── 4. 统计（本班次销售统计） ───
+// ★ S3-147 收紧（F-6）：原判据只断言"有字段返回"，而当时 mock 数据面无销售/收款行
+//   ⇒ totalAmount/totalCount 恒为 0，绿得没有判别力。现要求 totalAmount>0 且 totalCount>0
+//   （同时保留 200）。数据面见 backend/src/__tests__/mocks/mock-db-shift.ts 的销售/收款最小行；
+//   反测：把该数据面的销售行去掉 ⇒ 本段必红。
 const sales = await call("GET", `/api/store/shifts/${shiftNo}/sales`, { token });
+const salesAmount = Number(dataOf(sales)?.totalAmount ?? 0);
+const salesCount = Number(dataOf(sales)?.totalCount ?? 0);
 report(
-  "段4 统计 200（有字段返回）",
-  sales.status === 200 && dataOf(sales) !== undefined,
+  "段4 统计 200 且 totalAmount>0 且 totalCount>0（本班次存在销售行）",
+  sales.status === 200 && salesAmount > 0 && salesCount > 0,
   `status=${sales.status} totalAmount=${dataOf(sales)?.totalAmount} totalCount=${dataOf(sales)?.totalCount}`
 );
 

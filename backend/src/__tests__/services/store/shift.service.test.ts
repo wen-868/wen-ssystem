@@ -19,8 +19,9 @@ import {
   getCurrentShift,
   settleShift,
   getShiftList,
+  getShiftDetail,
   createShift,
-  deriveShiftType,
+  resolveShiftType,
   closeShift,
 } from "../../../services/store/shift.service";
 
@@ -69,13 +70,20 @@ describe("store/shift.service", () => {
     );
   });
 
-  it("deriveShiftType：按开始时间派生班次（t_shift 无 shift_type 列，读侧唯一口径）", () => {
-    expect(deriveShiftType("2026-10-01 09:00:00")).toBe("MORNING");
-    expect(deriveShiftType("2026-10-01 13:30:00")).toBe("AFTERNOON");
-    expect(deriveShiftType("2026-10-01 19:05:00")).toBe("EVENING");
-    expect(deriveShiftType("2026-10-01T09:00:00")).toBe("MORNING");
-    expect(deriveShiftType(null)).toBe("");
-    expect(deriveShiftType("")).toBe("");
+  it("resolveShiftType：shift_type 为空时按开始时间派生（存量行/未传路径）", () => {
+    expect(resolveShiftType({ shiftType: "", startTime: "2026-10-01 09:00:00" })).toBe("MORNING");
+    expect(resolveShiftType({ shiftType: "", startTime: "2026-10-01 13:30:00" })).toBe("AFTERNOON");
+    expect(resolveShiftType({ shiftType: "", startTime: "2026-10-01 19:05:00" })).toBe("EVENING");
+    expect(resolveShiftType({ shiftType: "", startTime: "2026-10-01T09:00:00" })).toBe("MORNING");
+    expect(resolveShiftType({ startTime: null })).toBe("");
+    expect(resolveShiftType({ shiftType: null, startTime: "" })).toBe("");
+    expect(resolveShiftType(null)).toBe("");
+  });
+
+  it("resolveShiftType：shift_type 非空时优先用落库值（不被 start_time 覆盖，S3-147）", () => {
+    // 09:30 的派生值是 MORNING，落库 AFTERNOON ⇒ 必须返回 AFTERNOON
+    expect(resolveShiftType({ shiftType: "AFTERNOON", startTime: "2026-10-01 09:30:00" })).toBe("AFTERNOON");
+    expect(resolveShiftType({ shiftType: "morning", startTime: "2026-10-01 20:15:00" })).toBe("MORNING");
   });
 
   it("createShift：startTime 生效（原被静默忽略，恒取 DB 默认）", async () => {
@@ -94,6 +102,59 @@ describe("store/shift.service", () => {
     // 按字符串入库（不是 Date）：连接池 timezone="Z" 会把 Date 转 UTC，导致用户填的 19:00 变 11:00
     expect(args[5]).toBe("2026-10-01 19:00:00");
     expect(result.shiftType).toBe("EVENING");
+    // 未传 shiftType ⇒ 落空串（读侧回退派生）
+    expect(args[6]).toBe("");
+  });
+
+  it("createShift：显式 shiftType 合法值落库并读回一致（S3-147）", async () => {
+    mocks.query.mockResolvedValueOnce({ insertId: 11 });
+    const result = await createShift("t1", 1, 2, "门店经理", {
+      startTime: "2026-10-01 09:30:00",
+      shiftType: "AFTERNOON",
+      openingCash: 300,
+    });
+    const [sql, args] = mocks.query.mock.calls[0] as [string, unknown[]];
+    expect(sql).toContain("shift_type");
+    expect(args[6]).toBe("AFTERNOON");
+    // 09:30 派生为 MORNING，返回值是落库的 AFTERNOON ⇒ 证明显式值不被 start_time 覆盖
+    expect(result.shiftType).toBe("AFTERNOON");
+  });
+
+  it("createShift：非法 shiftType ⇒ 400 且不写库（S3-147）", async () => {
+    await expect(
+      createShift("t1", 1, 2, "门店经理", { startTime: "2026-10-01 09:30:00", shiftType: "NIGHT" })
+    ).rejects.toMatchObject({ statusCode: 400 });
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  it("getShiftDetail：返回落库班次类型，空串时回落派生（S3-147）", async () => {
+    mocks.queryOne
+      .mockResolvedValueOnce({
+        id: 1, shiftNo: "JB1", storeId: 1, operatorId: 2, operatorName: "门店经理",
+        startTime: "2026-10-01 09:30:00", endTime: null, status: "OPEN",
+        openingCash: 100, remark: "", shiftType: "AFTERNOON",
+      })
+      .mockResolvedValueOnce({ totalSales: 100, orderCount: 2, cashOrderCount: 1, creditOrderCount: 1 })
+      .mockResolvedValueOnce({ returnOrderCount: 0 })
+      .mockResolvedValueOnce({ totalReceived: 50 });
+    mocks.query.mockResolvedValueOnce([{ channel: "CASH", amount: 50 }]);
+    const detail = await getShiftDetail("t1", "JB1");
+    expect(detail.shiftType).toBe("AFTERNOON");
+  });
+
+  it("getShiftList：筛选优先生效落库值（09:00 显式 AFTERNOON ⇒ shiftType=AFTERNOON 命中）", async () => {
+    mocks.query.mockResolvedValueOnce([
+      { id: 1, shiftNo: "JB-A", storeId: 1, operatorId: null, operatorName: "", startTime: "2026-10-01 09:00:00", endTime: null, status: "OPEN", openingCash: 0, remark: "", shiftType: "AFTERNOON" },
+    ]);
+    mocks.queryOne
+      .mockResolvedValueOnce({ totalSales: 0, orderCount: 0, cashOrderCount: 0, creditOrderCount: 0 })
+      .mockResolvedValueOnce({ returnOrderCount: 0 })
+      .mockResolvedValueOnce({ totalReceived: 0 });
+    mocks.query.mockResolvedValueOnce([]);
+
+    const hit = await getShiftList("t1", 1, { page: 1, pageSize: 20, shiftType: "AFTERNOON" });
+    expect(hit.records.map((r) => r.shiftNo)).toEqual(["JB-A"]);
+    expect(hit.records[0].shiftType).toBe("AFTERNOON");
   });
 
   it("createShift：非法 startTime 回落 DB 默认（不写坏库）", async () => {

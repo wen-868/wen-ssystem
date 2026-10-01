@@ -44,22 +44,48 @@ interface ShiftHistoryRow {
 }
 
 /**
- * 交接班「班次类型」口径（S3-145 新增）
- *
- * 背景：`t_shift` 表**没有** `shift_type` 列（见 `docs/migrations/148_shift_stock_check.sql`：
- * 该表列为 id/tenant_id/shift_no/store_id/operator_id/operator_name/start_time/end_time/
- * status/opening_cash/remark/created_at/updated_at）。因此「班次类型」不落库，
- * 只能在**读侧**按开始时间派生。
- *
- * 本函数是**唯一口径**：交接班列表（展示 + 筛选）与交接班详情徽标共用它，
- * 避免"列表一个值、详情一个值"的不一致（原 `getShiftDetail` 硬编码 `shiftType: "DAY"`，
- * 与列表筛选项 MORNING/AFTERNOON/EVENING 对不上）。
- *
- * 规则：< 12:00 早班 MORNING；12:00–17:59 中班 AFTERNOON；>= 18:00 晚班 EVENING。
- * ⚠ 这是**派生值**，不是用户创建时选择的班次类型；若要"用户指定班次类型"，须给
- * `t_shift` 增列 `shift_type`（DDL，属本单红线外，已在 S3-145 回传卡中申请）。
+ * 交接班「班次类型」合法取值（S3-147：由读侧派生升级为**可显式指定并落库**）
  */
-export function deriveShiftType(startTime: Date | string | null | undefined): string {
+export const SHIFT_TYPES = ["MORNING", "AFTERNOON", "EVENING"] as const;
+export type ShiftType = (typeof SHIFT_TYPES)[number];
+
+/**
+ * 交接班「班次类型」读侧**唯一口径**（S3-147）
+ *
+ * 口径：`t_shift.shift_type` 非空 ⇒ 用落库值（用户创建交接班时显式指定的班次类型）；
+ *       空串 / 未落库（存量行、创建时未传）⇒ 回退按 `start_time` 派生。
+ *
+ * 交接班列表（展示 + `shiftType` 筛选）、详情、统计/导出等**所有出口一律只调用本函数**，
+ * 不允许出现第二处口径（避免"列表一个值、详情一个值"的历史不一致）。
+ */
+export function resolveShiftType(
+  row: { shiftType?: string | null; startTime?: Date | string | null } | null | undefined
+): string {
+  const stored = String(row?.shiftType ?? "").trim();
+  if (stored) return stored.toUpperCase();
+  return deriveShiftType(row?.startTime);
+}
+
+/**
+ * 写侧校验：把 `POST /api/store/shifts` 的 `shiftType` 归一化为可落库取值。
+ *  · 未传 / 空串 ⇒ 返回空串（不落具体类型，读侧回退派生，保持存量与省略路径兼容）；
+ *  · MORNING/AFTERNOON/EVENING（忽略大小写与首尾空白）⇒ 返回大写规范值；
+ *  · 其它任何取值 ⇒ 抛 AppError 400（非法值既不落库、也不被静默忽略）。
+ */
+export function normalizeShiftTypeForWrite(value: unknown): string {
+  if (value === undefined || value === null) return "";
+  const normalized = String(value).trim().toUpperCase();
+  if (normalized === "") return "";
+  if ((SHIFT_TYPES as readonly string[]).includes(normalized)) return normalized;
+  throw new AppError(`班次类型不合法：仅支持 ${SHIFT_TYPES.join("/")}`, 400);
+}
+
+/**
+ * 班次类型派生（`t_shift.shift_type` 为空时的**回退口径**）
+ * 规则：< 12:00 早班 MORNING；12:00–17:59 中班 AFTERNOON；>= 18:00 晚班 EVENING。
+ * ⚠ 不对外导出：唯一调用点是 resolveShiftType，防止出现第二处口径。
+ */
+function deriveShiftType(startTime: Date | string | null | undefined): string {
   const hour = shiftStartHour(startTime);
   if (hour === null) return "";
   if (hour < 12) return "MORNING";
@@ -207,6 +233,8 @@ interface ShiftRow {
   status: string;
   openingCash: number | string;
   remark: string | null;
+  /** 落库的班次类型（S3-147；空串=未显式指定，读侧回退派生） */
+  shiftType: string | null;
 }
 
 /** 指定时间段销售统计（与 getCurrentShift 统计口径一致） */
@@ -267,16 +295,17 @@ async function getShiftPeriodSales(tenantId: string, storeId: number, startTime:
  *  · startTime：用户选定的开始时间（原实现恒取 DB 默认 CURRENT_TIMESTAMP，
  *    前端"开始时间"填了也不生效）；
  *  · operatorName：由 controller 按"用户填写优先、登录用户兜底"解析后传入。
- *  · shiftType：`t_shift` 无 `shift_type` 列（见 `docs/migrations/148_shift_stock_check.sql`），
- *    **仍然无法落库**；列表/详情按 `deriveShiftType(start_time)` 读侧派生，
- *    要"用户指定班次类型"须增列（DDL，已在 S3-145 回传卡中作为申请项上报）。
+ * S3-147：shiftType 落库——
+ *  · 合法值（MORNING/AFTERNOON/EVENING）写成 `t_shift.shift_type`，读侧优先返回该值；
+ *  · 非法值抛 400（不落库、不静默忽略）；
+ *  · 未传 ⇒ 落空串，读侧回退按 start_time 派生（存量/省略路径兼容）。
  */
 export async function createShift(
   tenantId: string,
   storeId: number,
   operatorId: number,
   operatorName: string,
-  body: { startTime?: string; openingCash?: number; remark?: string }
+  body: { startTime?: string; shiftType?: string; openingCash?: number; remark?: string }
 ) {
   const shiftNo = makeBizNo("JB");
   // 前端 value-format 为 "YYYY-MM-DD HH:mm:ss"。
@@ -284,18 +313,21 @@ export async function createShift(
   // 用户填的 20:15 会变成 12:15；传字符串则按字面量落 DATETIME，与用户所填一致。
   // 未传/非法时交给 DB 默认 CURRENT_TIMESTAMP。
   const startTime = normalizeStartTime(body.startTime);
+  // 写侧校验：合法值才落库，非法值直接 400（在写库之前抛出，不留半成品数据）
+  const shiftType = normalizeShiftTypeForWrite(body.shiftType);
   const insert = (await query(
-    `INSERT INTO t_shift (tenant_id, shift_no, store_id, operator_id, operator_name, start_time, opening_cash, remark)
-     VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?)`,
+    `INSERT INTO t_shift (tenant_id, shift_no, store_id, operator_id, operator_name, start_time, shift_type, opening_cash, remark)
+     VALUES (?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?, ?)`,
     [
       tenantId, shiftNo, storeId, operatorId || null, operatorName || null,
-      startTime, body.openingCash ?? 0, body.remark || null
+      startTime, shiftType, body.openingCash ?? 0, body.remark || null
     ]
   )) as unknown as { insertId: number };
   return {
     id: insert.insertId,
     shiftNo,
-    shiftType: deriveShiftType(startTime),
+    // 与列表/详情同一口径：落库值优先，空串回落派生
+    shiftType: resolveShiftType({ shiftType, startTime }),
     startTime: startTime ?? new Date().toISOString(),
     status: "OPEN",
     operatorId,
@@ -317,7 +349,7 @@ async function getShiftRow(tenantId: string, shiftNo: string): Promise<ShiftRow>
   const row = await queryOne<ShiftRow>(
     `SELECT id, shift_no AS shiftNo, store_id AS storeId, operator_id AS operatorId,
             operator_name AS operatorName, start_time AS startTime, end_time AS endTime,
-            status, opening_cash AS openingCash, remark
+            status, opening_cash AS openingCash, remark, shift_type AS shiftType
      FROM t_shift
      WHERE shift_no = ? AND tenant_id = ?`,
     [shiftNo, tenantId]
@@ -353,17 +385,17 @@ export async function getShiftList(
   const rows = await query<ShiftRow>(
     `SELECT id, shift_no AS shiftNo, store_id AS storeId, operator_id AS operatorId,
             operator_name AS operatorName, start_time AS startTime, end_time AS endTime,
-            status, opening_cash AS openingCash, remark
+            status, opening_cash AS openingCash, remark, shift_type AS shiftType
      FROM t_shift
      WHERE ${conditions.join(" AND ")}
      ORDER BY start_time DESC, id DESC`,
     args
   );
 
-  // 班次类型是读侧派生值（t_shift 无 shift_type 列），故按派生值与展示同一口径筛选、分页，
+  // 班次类型走 resolveShiftType（落库值优先、空值回落派生），筛选与展示同一口径，
   // 保证"筛选条件"与"列表里看到的班次"永不互相打架（单店班次记录量小，内存筛选可接受）。
   const filtered = params.shiftType
-    ? rows.filter((row) => deriveShiftType(row.startTime) === params.shiftType)
+    ? rows.filter((row) => resolveShiftType(row) === String(params.shiftType).toUpperCase())
     : rows;
   const total = filtered.length;
   const offset = (page - 1) * pageSize;
@@ -380,7 +412,7 @@ export async function getShiftList(
     records.push({
       id: row.id,
       shiftNo: row.shiftNo,
-      shiftType: deriveShiftType(row.startTime),
+      shiftType: resolveShiftType(row),
       storeId: row.storeId,
       operatorId: row.operatorId,
       operatorName: row.operatorName || "",
@@ -408,8 +440,8 @@ export async function getShiftDetail(tenantId: string, shiftNo: string) {
   return {
     id: row.id,
     shiftNo: row.shiftNo,
-    // 与列表/筛选同一口径（读侧派生；t_shift 无 shift_type 列，见 deriveShiftType 说明）
-    shiftType: deriveShiftType(row.startTime),
+    // 与列表/筛选同一口径（落库值优先，空值回落派生）
+    shiftType: resolveShiftType(row),
     storeId: row.storeId,
     operatorId: row.operatorId,
     operatorName: row.operatorName || "",

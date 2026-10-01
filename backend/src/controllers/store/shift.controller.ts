@@ -32,7 +32,7 @@ export const getShiftHistory = asyncHandler(async (req, res) => {
 
 /** 创建交接班 */
 export const createShift = asyncHandler(async (req, res) => {
-  const { openingCash, remark, startTime, operatorName } = req.body || {};
+  const { openingCash, remark, startTime, operatorName, shiftType } = req.body || {};
   const result = await shiftService.createShift(
     req.tenantId!,
     req.user?.storeId ?? 1,
@@ -42,6 +42,8 @@ export const createShift = asyncHandler(async (req, res) => {
     {
       // 用户选定的开始时间（S3-145：原先被静默忽略，恒取 DB 默认 CURRENT_TIMESTAMP）
       startTime: startTime || undefined,
+      // 用户选定的班次类型（S3-147：合法值才落库，非法值由服务层抛 400）
+      shiftType: shiftType || undefined,
       openingCash: Number(openingCash) || 0,
       remark: remark || undefined,
     }
@@ -51,7 +53,7 @@ export const createShift = asyncHandler(async (req, res) => {
 
 /**
  * 交接班列表（S3-145：与详情/统计/盘点同源，读 t_shift）
- * 说明：请求体里的 `shiftType` 由服务层按「开始时间派生」的口径筛选（t_shift 无 shift_type 列）。
+ * 说明：查询参数 `shiftType` 由服务层按 resolveShiftType（落库值优先、空值回落派生）筛选。
  */
 export const getShiftList = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page as string) || 1;
