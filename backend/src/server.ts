@@ -12,6 +12,7 @@ import { errorHandler } from "./middleware/error-handler";
 import { errorResponseInterceptor } from "./shared/error-response-interceptor";
 import { responseTimeTracker } from "./middleware/response-tracker";
 import { runMigrations } from "./shared/migration";
+import { ensureAppMobileMenus } from "./shared/app-mobile-menu-catalog";
 import { setupRoutes } from "./shared/auto-routes";
 import * as authController from "./controllers/admin/auth.controller";
 import * as orderController from "./controllers/admin/order.controller";
@@ -238,6 +239,9 @@ async function start() {
   if (!env.USE_MOCK_DB) {
     await initDatabase();
     await runMigrations();
+    // S3-143：app-mobile 25 个页面菜单码的启动幂等自愈（存在则跳过、缺失则补；不写迁移、不开写闸门）。
+    // 内部已吞掉异常（失败只记日志），不会阻断启动。
+    await ensureAppMobileMenus();
   }
 
   /* S3-35：显式传 HOST，默认 127.0.0.1 仅回环；不传 host 会监听全网卡（公网直达暴露面） */
