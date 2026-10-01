@@ -235,12 +235,11 @@ export interface PrintTableWidget extends PrintWidgetBase {
   columns: PrintTableColumn[];
   /** 是否显示表头 */
   showHeader: boolean;
-  /** 行高（mm） */
-  rowHeight?: number;
-  /** 表头字号（pt） */
-  headerFontSize?: number;
-  /** 单元格内边距（mm） */
-  cellPadding?: number;
+  // 【已废止，禁止再写入】rowHeight / headerFontSize / cellPadding 三个打印表格属性于 S3-139（2026-10-01）
+  // 统一废止：它们从来不被打印渲染器读取，写入后无任何效果，控件调了也不变。
+  // 表格的实际版式由 renderer.ts 写死决定——单元格内边距：票据类（RECEIPT_*）上下 0mm、其余上下 1mm，左右一律 1mm；
+  // 行高随字号与行内容自适应；表头字号与表体共用控件 fontSize。
+  // 已保存的旧模板 JSON 若仍带这三个键，按未知字段忽略即可（类型忽略 + 渲染器不读），无需数据迁移，渲染输出零变化。
 }
 
 /** 图片控件 */
