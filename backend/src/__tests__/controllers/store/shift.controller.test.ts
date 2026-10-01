@@ -4,6 +4,8 @@ vi.mock("../../../services/store/shift.service", () => ({
   getCurrentShift: vi.fn(),
   settleShift: vi.fn(),
   getShiftHistory: vi.fn(),
+  getShiftList: vi.fn(),
+  createShift: vi.fn(),
 }));
 
 vi.mock("../../../shared/response", () => ({
@@ -17,7 +19,7 @@ vi.mock("../../../middleware/async-handler", () => ({
 
 import * as shiftService from "../../../services/store/shift.service";
 import { ok } from "../../../shared/response";
-import { getCurrentShift, settleShift, getShiftHistory } from "../../../controllers/store/shift.controller";
+import { getCurrentShift, settleShift, getShiftHistory, getShiftList, createShift } from "../../../controllers/store/shift.controller";
 
 const mockReq = (overrides: any = {}) => ({
   tenantId: "t1",
@@ -82,6 +84,35 @@ describe("store/shift.controller", () => {
     const res = mockRes();
     await getShiftHistory(req as any, res as any, vi.fn());
     expect(shiftService.getShiftHistory).toHaveBeenCalledWith("t1", 1, 1, 20);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getShiftList - 应把 page/pageSize/date/shiftType 透传给服务层（S3-145）", async () => {
+    (shiftService.getShiftList as any).mockResolvedValue({ records: [], total: 0 });
+    const req = mockReq({ query: { page: "3", pageSize: "5", date: "2026-10-01", shiftType: "EVENING" } });
+    const res = mockRes();
+    await getShiftList(req as any, res as any, vi.fn());
+    expect(shiftService.getShiftList).toHaveBeenCalledWith("t1", 1, {
+      page: 3,
+      pageSize: 5,
+      date: "2026-10-01",
+      shiftType: "EVENING",
+    });
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("createShift - startTime/operatorName 应透传给服务层（S3-145）", async () => {
+    (shiftService.createShift as any).mockResolvedValue({ shiftNo: "JB1" });
+    const req = mockReq({
+      body: { startTime: "2026-10-01 19:00:00", operatorName: "张三", openingCash: 100, remark: "r" },
+    });
+    const res = mockRes();
+    await createShift(req as any, res as any, vi.fn());
+    expect(shiftService.createShift).toHaveBeenCalledWith("t1", 1, 1, "张三", {
+      startTime: "2026-10-01 19:00:00",
+      openingCash: 100,
+      remark: "r",
+    });
     expect(ok).toHaveBeenCalled();
   });
 });

@@ -19,7 +19,7 @@
         </el-tag>
       </div>
       <el-button
-        v-if="shift && shift.status === 'IN_PROGRESS'"
+        v-if="shift && shift.status === 'OPEN'"
         type="primary"
         size="small"
         @click="handleSubmitShift"
@@ -117,7 +117,7 @@
         <div class="card-header">
           <span>库存盘点核对</span>
           <el-button
-            v-if="shift && shift.status === 'IN_PROGRESS' && !stockCheckSubmitted"
+            v-if="shift && shift.status === 'OPEN' && !stockCheckSubmitted"
             type="primary"
             size="small"
             @click="showStockCheckDialog = true"
@@ -267,6 +267,10 @@ function getShiftTypeTagType(type: string) {
 
 function getStatusName(status: string) {
   const map: Record<string, string> = {
+    // 交接班（t_shift）真实状态：OPEN / CLOSED
+    OPEN: "进行中",
+    CLOSED: "已完成",
+    // 下面四个为历史/其它来源状态，保留兜底展示
     PENDING: "待开始",
     IN_PROGRESS: "进行中",
     COMPLETED: "已完成",
@@ -277,6 +281,9 @@ function getStatusName(status: string) {
 
 function getStatusTagType(status: string) {
   const map: Record<string, string> = {
+    // 交接班（t_shift）真实状态：OPEN / CLOSED
+    OPEN: "warning",
+    CLOSED: "success",
     PENDING: "info",
     IN_PROGRESS: "warning",
     COMPLETED: "success",
