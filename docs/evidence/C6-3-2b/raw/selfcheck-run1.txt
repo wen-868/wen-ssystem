@@ -1,0 +1,41 @@
+PASS · ① 前缀声明：backend/src/routes/platform-referral-ledger.routes.ts ⇒ /api/platform/referral-ledger · 实际=/api/platform/referral-ledger
+PASS · ① 前缀声明：backend/src/routes/platform-channel-report.routes.ts ⇒ /api/platform/channel-reports · 实际=/api/platform/channel-reports
+PASS · ① 后端注册端点恰好是卡内 2 条（方法 + 路径逐字） · backend=["GET /api/platform/channel-reports/effect","GET /api/platform/referral-ledger"]
+PASS · ⑦ 台账域只有只读端点（无 post/put/patch/delete） · 写方法命中=0
+PASS · ② 前端 api.ts 调用端点 ↔ 后端注册端点逐字一致（集合相等） · frontend=["GET /api/platform/channel-reports/effect","GET /api/platform/referral-ledger"]
+PASS · ③ 前端出现的本单路径全部已在后端注册（无自拟变体） · unregistered=[]
+PASS · ④-a 页面调用 listReferralLedger 与 getChannelEffectReport（两端真实接线）
+PASS · ④-b 子 Tab 保留（R7：并入本页，不新增页面/路由/菜单）且空态文案在位
+PASS · ④-c 页面只读：台账无补录/写入调用（无 createReferral / postReferral 之类）
+PASS · ⑤-a 恰好 1 条 CREATE TABLE IF NOT EXISTS（实际 1）/ 零预置（INSERT 0 / UPDATE 0 / DELETE 0）
+PASS · ⑤-b 文本列 6 个全部显式 COLLATE utf8mb4_0900_ai_ci（缺 0）且无 unicode_ci（0）
+PASS · ⑤-c 不建物理外键（命中 0）
+PASS · ⑤-d 一被邀请租户一条：UNIQUE KEY uk_invitee (invitee_tenant_id) 在位
+PASS · ⑤-e 零金额：无任何金额/结算/提现/佣金类列（只看列名+类型） · 命中=[]
+PASS · ⑤-f 语句在注释块之前（踩坑 [63]：注释开头的块会被 runner 丢弃）
+PASS · ⑤-g 注释文字内无 ASCII 分号（否则注释块会被切成两半）
+PASS · ⑥-a 比例 20% 与年度上限 60000 在服务源码中逐字可见
+PASS · ⑥-b 20% 计点复算：1000→200 / 999→199 / 5→1 / 0→0
+PASS · ⑥-c 年度上限复算：59500+2000→500 / 60000+2000→0 / 0+2000→2000 / 59500+500→500（恰好补齐不算截断） · [[10000,59500,500],[10000,60000,0],[10000,0,2000],[2500,59500,500]]
+PASS · ⑥-d 聚合复算（同 fixture）：分维度 tenantCount 与手算表一致 · 复算={"PROMO":4,"AGENT":2,"REFERRAL":1} 手算={"PROMO":4,"AGENT":2,"REFERRAL":1}
+PASS · ⑥-e 聚合复算（同 fixture）：合计 7 / 2 / 3600 · 复算={"tenantCount":7,"referralCount":2,"rewardPoints":3600}
+PASS · ⑥-f 报表口径常量与 SQL 同源：rewardRate/annualCapPoints 由服务常量导出，排除 REVOKED 写在 SQL
+PASS · ⑧ 迁移编号：仓内最大编号 195 = 本单 195（唯一），且快照 EXPECTED_MAX_MIGRATION=195 · max=195 快照=195 195 出现次数=1
+
+—— 前端本单路径字面逐条（文件:行 ⇒ 归一化路径） ——
+   saas-admin\src\api.ts:1045  /api/platform/referral-ledger  ⇒  /api/platform/referral-ledger
+   saas-admin\src\api.ts:1046  /api/platform/channel-reports/effect  ⇒  /api/platform/channel-reports/effect
+   saas-admin\src\api.ts:1119  /platform/referral-ledger  ⇒  /api/platform/referral-ledger
+   saas-admin\src\api.ts:1126  /platform/referral-ledger  ⇒  /api/platform/referral-ledger
+   saas-admin\src\api.ts:1131  /platform/channel-reports/effect  ⇒  /api/platform/channel-reports/effect
+   saas-admin\src\api.ts:1137  /platform/channel-reports/effect  ⇒  /api/platform/channel-reports/effect
+   saas-admin\src\views\marketing\ChannelPromotion.vue:175  /api/platform/channel-reports/effect  ⇒  /api/platform/channel-reports/effect
+   saas-admin\src\views\marketing\ChannelPromotion.vue:336  /api/platform/referral-ledger  ⇒  /api/platform/referral-ledger
+   saas-admin\src\views\marketing\ChannelPromotion.vue:337  /api/platform/channel-reports/effect  ⇒  /api/platform/channel-reports/effect
+   saas-admin\src\views\marketing\ChannelPromotion.vue:416  /platform/referral-ledger  ⇒  /api/platform/referral-ledger
+   saas-admin\src\views\marketing\ChannelPromotion.vue:436  /platform/channel-reports/effect  ⇒  /api/platform/channel-reports/effect
+—— 后端注册端点 ——
+   GET /api/platform/channel-reports/effect
+   GET /api/platform/referral-ledger
+
+合计 23 项断言，FAIL 0 项 / EXIT=0

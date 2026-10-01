@@ -18,8 +18,8 @@
 
     <!-- 子 Tab（R7 裁定：渠道报表并入本页，不新增独立页面/路由/菜单） -->
     <div class="tabs">
-      <span class="tab" :class="{ on: activeTab === 'promo' }" @click="activeTab = 'promo'">推广码与台账</span>
-      <span class="tab" :class="{ on: activeTab === 'report' }" @click="activeTab = 'report'">渠道效果</span>
+      <span class="tab" :class="{ on: activeTab === 'promo' }" @click="setTab('promo')">推广码与台账</span>
+      <span class="tab" :class="{ on: activeTab === 'report' }" @click="setTab('report')">渠道效果</span>
     </div>
 
     <template v-if="activeTab === 'promo'">
@@ -79,22 +79,38 @@
           </tbody>
         </table>
       </div>
-      <!-- 渠道转化指标（注册数 / 注册转化数 / 付费转化）无数据模型，归 C6-3-2b：
-           本单只接码档案与归因，不展示任何推算值、不预置示例数字。 -->
+      <!-- 渠道转化指标（注册数 / 注册转化数 / 付费转化）无数据模型：
+           本页只接码档案与归因（+ C6-3-2b 的真实台账与渠道效果），不展示任何推算值、不预置示例数字。 -->
       <p class="small mt8" style="padding:0 var(--panel-body-padding) var(--space-3)">
-        渠道转化指标（注册数 / 付费转化）与老带新台账归 <b>C6-3-2b</b>，本单不接数据、不展示任何推算值。
+        渠道转化指标（注册数 / 付费转化）无数据模型，不展示推算值；老带新台账见下方真实数据（来源 <b>t_referral_ledger</b>）。
       </p>
     </div>
     <!-- ③ 老带新台账 -->
     <div class="panel mt12">
       <div class="p-hd">
         <span class="pt">老带新台账</span>
-        <div class="lg-row">
-          <span class="tag tag-b">奖励比例 20%</span>
-          <span class="tag tag-b">年度上限 60,000 积分</span>
-          <span class="tag tag-b">冷静期 7 天</span>
-          <span class="tag tag-b">积分有效期 24 个月</span>
+        <div class="frow">
+          <el-select v-model="ledgerStatus" placeholder="状态：全部" clearable style="width:140px" @change="fetchReferralLedger">
+            <el-option label="待发放" value="PENDING" />
+            <el-option label="已发放" value="GRANTED" />
+            <el-option label="已冲回" value="REVOKED" />
+          </el-select>
+          <input
+            class="ipt"
+            v-model="ledgerKeyword"
+            placeholder="搜索邀请人 / 被邀请人"
+            @keyup.enter="fetchReferralLedger"
+          />
+          <span class="btn" @click="fetchReferralLedger">查询</span>
         </div>
+      </div>
+      <div class="lg-row" style="padding:0 var(--panel-body-padding) var(--space-2)">
+        <span class="tag tag-b">奖励比例 20%</span>
+        <span class="tag tag-b">年度上限 60,000 积分</span>
+        <span class="tag tag-b">冷静期 7 天</span>
+        <span class="tag tag-b">积分有效期 24 个月</span>
+        <span class="tag tag-b">一被邀请租户一条</span>
+        <span class="tag tag-b">无写入口（事件驱动）</span>
       </div>
       <div class="tblwrap">
         <table class="tbl">
@@ -102,20 +118,39 @@
             <tr>
               <th>邀请人</th>
               <th>被邀请人</th>
-              <th>关联账单</th>
-              <th class="num">计奖基数</th>
+              <th>计奖基数口径</th>
               <th class="num">奖励积分（20%）</th>
               <th class="num">邀请人年度累计</th>
               <th>状态</th>
+              <th>备注</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-if="referralLedger.length === 0">
-              <td colspan="8"><div class="empty">暂无老带新台账数据（归 C6-3-2b，本单未接数据）</div></td>
+            <tr v-if="referralItems.length === 0">
+              <td colspan="8"><div class="empty">{{ ledgerLoading ? "加载中…" : "暂无老带新台账数据" }}</div></td>
+            </tr>
+            <tr v-for="row in referralItems" :key="row.id">
+              <td>{{ row.inviterName || row.inviterTenantId }}</td>
+              <td>{{ row.inviteeName || row.inviteeTenantId }}<span v-if="row.inviteeTenantCode"> · {{ row.inviteeTenantCode }}</span></td>
+              <td>{{ row.rewardBasisLabel }}</td>
+              <td class="num">{{ row.rewardPoints }}</td>
+              <td class="num">{{ row.inviterYearPoints }}</td>
+              <td>{{ ledgerStatusLabel(row.status) }}</td>
+              <td>{{ row.remark || "—" }}</td>
+              <td>—</td>
             </tr>
           </tbody>
         </table>
+      </div>
+      <p class="small mt8" style="padding:0 var(--panel-body-padding) var(--space-3)">
+        数据来源：<b>t_referral_ledger</b>（迁移 195）· 奖励 = 计奖基数 × 20%，同一邀请人<b>自然年</b>累计不超过 60,000 积分
+        （超出按剩余额度截断，额度用尽本条记 0 分并在备注写明原因）· 台账由归因事件驱动写入，本页<b>只读</b>（无补录 / 无手工发放入口；
+        发放、冲回、积分出口见版块 05 与 T9 档 2/3，不在本单）。
+      </p>
+      <div class="lg-row" style="padding:0 var(--panel-body-padding) var(--space-3)">
+        <span class="tag tag-b">关联账单</span>
+        <span class="small">本表无账单号数据源（本单不涉金额），故不单列该列，避免展示空列</span>
       </div>
 
       <!-- ④ 冲回机制 + 积分出口说明 -->
@@ -137,20 +172,65 @@
     </div>
     </template>
 
-    <!-- ③ 渠道效果（R7：并入子 Tab；数据源待立项 T11） -->
+    <!-- ③ 渠道效果（R7：并入子 Tab；C6-3-2b 已接线 → GET /api/platform/channel-reports/effect） -->
     <template v-else>
       <div class="panel">
         <div class="p-hd">
           <span class="pt">渠道效果报表</span>
-          <span class="ph-s">并入本页子 Tab（裁定 R7）· 不新增独立页面/路由/菜单</span>
+          <div class="frow">
+            <el-select
+              v-model="effectType"
+              placeholder="归因类型：全部"
+              clearable
+              style="width:160px"
+              @change="fetchEffect"
+            >
+              <el-option label="代理商邀请" value="AGENT" />
+              <el-option label="渠道推广码" value="PROMO" />
+              <el-option label="老带新" value="REFERRAL" />
+            </el-select>
+            <span class="btn" @click="fetchEffect">刷新</span>
+          </div>
         </div>
-        <div class="p-bd">
-          <div class="empty">暂无渠道效果数据（渠道效果报表 / 老带新台账归 C6-3-2b，本单未接数据）</div>
-          <p class="small mt8" style="color:var(--g5)">
-            报表口径（注册→付费转化漏斗 / 渠道佣金月结 / 有效期分布）需产品确认，见
-            <b>C6-3-2b（R101-C6-2 立项清单 T11）</b>；本 Tab 不展示任何本地推算或示例数值。
-          </p>
+        <div class="tblwrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>渠道 / 代理商</th>
+                <th>归因维度</th>
+                <th class="num">归因租户数</th>
+                <th class="num">老带新租户数</th>
+                <th class="num">奖励积分合计</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="effectItems.length === 0">
+                <td colspan="5"><div class="empty">{{ effectLoading ? "加载中…" : "暂无渠道效果数据" }}</div></td>
+              </tr>
+              <tr v-for="(row, i) in effectItems" :key="`${row.dimension}-${row.promoCodeId ?? row.agentId ?? 'none'}-${i}`">
+                <td>{{ effectTargetLabel(row) }}</td>
+                <td>{{ dimensionLabel(row.dimension) }}</td>
+                <td class="num">{{ row.tenantCount }}</td>
+                <td class="num">{{ row.referralCount }}</td>
+                <td class="num">{{ row.rewardPoints }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        <p class="small mt8" style="padding:0 var(--panel-body-padding) var(--space-3)">
+          合计：归因租户 <b>{{ effectTotals.tenantCount }}</b> · 老带新租户 <b>{{ effectTotals.referralCount }}</b> ·
+          奖励积分 <b>{{ effectTotals.rewardPoints }}</b> · 当前过滤：归因类型
+          {{ effectFilters.attributionType ? dimensionLabel(effectFilters.attributionType) : "全部" }}；渠道类型
+          {{ effectFilters.channelType || "全部" }}
+        </p>
+        <p class="small" style="padding:0 var(--panel-body-padding) var(--space-3);color:var(--g5)">
+          口径（由接口随响应返回）：① {{ effectBasis.dimension }}；② {{ effectBasis.tenantCount }}；
+          ③ {{ effectBasis.referralCount }}；④ {{ effectBasis.rewardPoints }}。
+        </p>
+        <p class="small" style="padding:0 var(--panel-body-padding) var(--space-3);color:var(--g5)">
+          并入本页子 Tab（裁定 R7）· 不新增独立页面 / 路由 / 菜单 · {{ effectBasis.emptyState }} ·
+          奖励口径：{{ effectBasis.rewardRate * 100 }}%，年度上限 {{ effectBasis.annualCapPoints }}。
+        </p>
       </div>
     </template>
 
@@ -241,25 +321,57 @@ import {
   createPromoCode,
   disablePromoCode,
   listPromoCodeAttributions,
-  type PromoCodeRow
+  listReferralLedger,
+  getChannelEffectReport,
+  type PromoCodeRow,
+  type ReferralLedgerRow,
+  type ChannelEffectItemRow,
+  type ChannelEffectBasis
 } from "../../api";
 
 /* ═══════════════════════════════════════════════════════════════
-   数据层：R101-C6-3-2a **已接线**（Tab① 推广码与台账）
+   数据层：R101-C6-3-2a（Tab① 推广码）+ R101-C6-3-2b（Tab① 老带新台账 + Tab② 渠道效果）**均已接线**
    · 推广码：列表（分页 + 关键词 + 状态）/ 生成 / 停用 —— 真实调用 /api/platform/promo-codes
    · 归因：按码查看只读聚合（t_tenant_attribution）
-   · 老带新台账 + 渠道效果报表归 C6-3-2b：保持诚实空态，不调用任何接口、不造数
+   · 老带新台账：只读列表 —— 真实调用 /api/platform/referral-ledger（t_referral_ledger，迁移 195）
+   · 渠道效果：按归因维度聚合 —— 真实调用 /api/platform/channel-reports/effect（口径随响应返回）
+   · 两侧**无数据即空态**（不造数）：后端无预置数据时列表就是空的
    · 零金额：本页不出现任何金额 / 分润 / 佣金 / 结算 / 提现字段
    ═══════════════════════════════════════════════════════════════ */
 
 const loading = ref(false);
 const promoCodes = ref<PromoCodeRow[]>([]);
-const referralLedger = ref<any[]>([]);
 
 const searchKeyword = ref("");
 const queryStatus = ref<"ACTIVE" | "DISABLED" | "">("");
 /** R7：本页子 Tab（promo = 推广码与台账 / report = 渠道效果报表，并入本页，不新增独立路由） */
 const activeTab = ref<"promo" | "report">("promo");
+
+/** C6-3-2b · 老带新台账（只读，数据源 t_referral_ledger） */
+const ledgerLoading = ref(false);
+const ledgerKeyword = ref("");
+const ledgerStatus = ref<"" | "PENDING" | "GRANTED" | "REVOKED">("");
+const referralItems = ref<ReferralLedgerRow[]>([]);
+
+/** C6-3-2b · 渠道效果报表（只读聚合；basis/filters/totals 全部来自接口返回） */
+const effectLoading = ref(false);
+const effectType = ref<"" | "AGENT" | "PROMO" | "REFERRAL">("");
+const effectItems = ref<ChannelEffectItemRow[]>([]);
+const effectTotals = ref({ tenantCount: 0, referralCount: 0, rewardPoints: 0 });
+const effectFilters = ref<{ attributionType: string | null; channelType: string | null }>({
+  attributionType: null,
+  channelType: null
+});
+const effectBasis = ref<ChannelEffectBasis>({
+  dimension: "",
+  tenantCount: "",
+  referralCount: "",
+  rewardPoints: "",
+  rewardRate: 0.2,
+  annualCapPoints: 60000,
+  emptyState: "",
+  scope: ""
+});
 
 const dialogVisible = ref(false);
 const saving = ref(false);
@@ -301,14 +413,55 @@ async function fetchPromoCodes() {
   }
 }
 
-/** 老带新台账归 C6-3-2b（无表、无端点）⇒ 诚实空态；不调用任何接口，也不展示推算值 */
+/** GET /platform/referral-ledger —— 老带新台账（空表 ⇒ items: []，不造数） */
 async function fetchReferralLedger() {
-  referralLedger.value = [];
+  ledgerLoading.value = true;
+  try {
+    const res: any = await listReferralLedger({
+      page: 1,
+      pageSize: 50,
+      keyword: ledgerKeyword.value.trim() || undefined,
+      status: ledgerStatus.value || undefined
+    });
+    const data = payloadOf(res);
+    referralItems.value = Array.isArray(data?.items) ? data.items : [];
+  } catch {
+    // 拦截器已给中文提示；这里只清空列表，不造数、不假成功
+    referralItems.value = [];
+  } finally {
+    ledgerLoading.value = false;
+  }
+}
+
+/** GET /platform/channel-reports/effect —— 渠道效果聚合（空态 ⇒ items: [] 且 totals 全 0） */
+async function fetchEffect() {
+  effectLoading.value = true;
+  try {
+    const res: any = await getChannelEffectReport({
+      attributionType: effectType.value || undefined
+    });
+    const data = payloadOf(res);
+    effectItems.value = Array.isArray(data?.items) ? data.items : [];
+    effectTotals.value = data?.totals ?? { tenantCount: 0, referralCount: 0, rewardPoints: 0 };
+    effectFilters.value = data?.filters ?? { attributionType: null, channelType: null };
+    if (data?.basis) effectBasis.value = data.basis;
+  } catch {
+    effectItems.value = [];
+    effectTotals.value = { tenantCount: 0, referralCount: 0, rewardPoints: 0 };
+  } finally {
+    effectLoading.value = false;
+  }
+}
+
+/** 子 Tab 切换：切到「渠道效果」时才请求聚合（避免进页就多发一次请求） */
+function setTab(tab: "promo" | "report") {
+  activeTab.value = tab;
+  if (tab === "report") fetchEffect();
 }
 
 function openReport() {
   // ③-b #68 + 裁定 R7：不指向独立报表页，改为切到本页「渠道效果」子 Tab（数据源归 C6-3-2b）
-  activeTab.value = "report";
+  setTab("report");
 }
 
 function openCreateDialog() {
@@ -370,6 +523,31 @@ function attributionTypeLabel(type: string): string {
   if (type === "PROMO") return "渠道推广码";
   if (type === "REFERRAL") return "老带新";
   return type;
+}
+
+/** 台账状态中文（PENDING/GRANTED/REVOKED，与迁移 195 列注释一致） */
+function ledgerStatusLabel(status: string): string {
+  if (status === "PENDING") return "待发放";
+  if (status === "GRANTED") return "已发放";
+  if (status === "REVOKED") return "已冲回";
+  return status;
+}
+
+/** 归因维度中文（渠道效果报表用） */
+function dimensionLabel(dimension: string): string {
+  return attributionTypeLabel(dimension);
+}
+
+/** 聚合行归属：推广码维度显示 码值 / 渠道；代理商维度显示 代理商名；老带新显示"老带新" */
+function effectTargetLabel(row: ChannelEffectItemRow): string {
+  if (row.dimension === "PROMO") {
+    const code = row.promoCode || `#${row.promoCodeId ?? "?"}`;
+    return row.channelType || row.channelName ? `${code} · ${row.channelType ?? ""}${row.channelName ? ` / ${row.channelName}` : ""}` : code;
+  }
+  if (row.dimension === "AGENT") {
+    return row.agentName || `代理商 #${row.agentId ?? "?"}`;
+  }
+  return "老带新";
 }
 
 /** GET /platform/promo-codes/:code/attributions —— 该码归因只读列表 */
