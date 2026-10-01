@@ -3533,3 +3533,42 @@ GET /api/platform/library/categories            端类型：超级后台（平�
 | `189_租户归因明细.sql` | 1 张新表 | `t_tenant_attribution`（`uk_tenant_attr` 一租户一条；**暂不写入**） |
 
 > 全部 `CREATE TABLE IF NOT EXISTS` + 文本列显式 `utf8mb4_0900_ai_ci` + **不建物理外键** + **零预置**；生产实测（2026-10-01）四表均**随启动自动建成**、行数 0。
+
+---
+
+## 商品库调取 COPY 新增端点（2026-10-02 · C6-4-1）
+
+> 登记人：凌舟（总负责人）｜2026-10-02｜来源：`R101-C6-4-1-阿坚回传.md`、`R101-C6-4-1-F2-阿坚回传.md`、`R101-C6-4-1-凌舟验收.md`
+> 合并：PR #217 → main `a9e3a50732b36a3908d27effeb9777e2003a7b4d`（Auto Deploy run 36892729067）
+> **统计边界（凌舟钉死，不得改）**：**COPY ＝ 调取**（写 `t_library_call_log` + 扣商品配额）；**SCAN / API ＝ 查询**（**不得**写本表）；页面人工检索不落库。
+
+### 1. 租户侧（前缀 `/api/admin/library`，新增 4 条）
+
+| 方法 | 路径 | 说明 | 权限与语义 |
+|---|---|---|---|
+| GET | `/api/admin/library/spus` | 库内商品库检索（预览） | `library:view`（`*:view` 自动命中）；分页 `page` / `pageSize` |
+| GET | `/api/admin/library/spus/:id` | 单条商品库商品详情 | `library:view`；**未知 / 未上架 id ⇒ 业务级 404**（`商品库商品不存在或未上架：<id>`），非 401 冒充 |
+| GET | `/api/admin/library/copies` | 我的调取记录（只读） | `library:view`；取数 = `t_library_call_log`（本租户） |
+| POST | `/api/admin/library/copies` | **执行调取（COPY）** | `library:copy`；请求体 `{ librarySpuIds: string[], skuSelection?: ... }`；成功 ⇒ 生成租户私有档案 + 写流水 + 扣商品配额；重复调取 ⇒ `result: "SKIPPED"`（含软删后仍 SKIPPED）；**配额不足 ⇒ HTTP 400 + 业务码 1001**（被拒不扣、不写流水） |
+
+### 2. 平台侧（前缀 `/api/platform/library`，新增 4 条）
+
+| 方法 | 路径 | 说明 | 备注 |
+|---|---|---|---|
+| GET | `/api/platform/library/call-logs` | 调取流水查询 | 取数**唯一** = `t_library_call_log`；`?librarySpuId=` 即"某商品被哪些租户调取"（同一端点过滤视图，不另造端点） |
+| GET | `/api/platform/library/stats` | 调取统计聚合（月度调取数 / 租户排行） | 不可得项由 `unavailable[]` **显式**返回（如 `categoryDist`：无类目载体，Q9 本期不实现）——**不得**返回假图 |
+| GET | `/api/platform/library/stats/rank` | 租户调取排行 | 同上源 |
+| GET | `/api/platform/library/stats/trend` | 调取趋势（`?days=`，默认 30） | 同上源 |
+
+> 🔴 **禁字段铁律**：平台侧"调取次数"**不得**取 `t_library_spu.hit_count`（那是**扫码命中**）；`/api/open/library/*` 与扫码查询**不得**写 `t_library_call_log`。
+> 权限点 `library:view` / `library:copy` 以**代码常量**落地（`backend/src/shared/library-permission-codes.ts`），**迁移零预置**授权（授权走既有权限矩阵端点/后台配置）。
+> 生产只读核验（2026-10-02）：平台侧 4 条**带令牌**实测 HTTP 200（空态结构完整）；租户侧 4 条见 `R101-C6-4-1-凌舟验收.md` §5.6 的核对口径。
+
+### 3. 关联迁移（速查，2026-10-02 段）
+
+| 迁移 | 形态 | 说明 |
+|---|---|---|
+| `190_商品库调取流水.sql` | 1 张新表 | `t_library_call_log`（调取流水；存 `library_spu_code` / `library_spu_name` 快照 ⇒ 主数据删除后仍可读；`call_type` 等） |
+| `191_租户商品库调取映射.sql` | 1 张新表 | `t_tenant_library_copy`（幂等 / 版本映射；`uk_tenant_library (tenant_id, library_spu_id)`） |
+
+> 两表均 `CREATE TABLE IF NOT EXISTS` + 文本列**显式** `utf8mb4_0900_ai_ci` + **不建物理外键** + **零预置**；生产只读实测（2026-10-02）：两表**随启动自动建成**、行数 **0**、外键数 **0**。
