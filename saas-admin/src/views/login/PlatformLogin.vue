@@ -175,7 +175,7 @@ async function handleLogin() {
 
 function onForgot() {
   // ③-b #3（主行 #2）：找回密码端点属 C6-1A ② 类（零 DDL：Redis 一次性令牌 + UPDATE password_hash），
-  // 其后端契约未落地 ⇒ 本卡不接线；文案不再写"待接入流程"（避免暗示已有入口）
+  // 其后端契约未落地 ⇒ 本卡不接线；文案不再写"流程未开放"类措辞（避免暗示已有入口）
   ElMessage.warning('找回密码：待后端接口（C6-1A #2）落地后接入；当前请由超级管理员重置')
 }
 </script>

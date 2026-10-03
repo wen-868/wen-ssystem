@@ -430,7 +430,7 @@ async function openDetail(r: ReviewRow) {
   }
 }
 
-/** 未接入操作的诚实提示：不写"接口待接入"（避免掩盖"后端已有能力"） */
+/** 未接入操作的诚实提示：不复述"能力缺失"类措辞（避免掩盖"后端已有能力"） */
 function todo(action: string) {
   ElMessage.warning(`${action}：尚未接入（不产生任何数据变更）`)
 }

@@ -6,6 +6,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "build:check": "vue-tsc -b && vite build",
+    "test": "vitest run",
     "preview": "vite preview --host 0.0.0.0"
   },
   "overrides": {
