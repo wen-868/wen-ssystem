@@ -1,4 +1,18 @@
-import { get, post } from '../request'
+import { get, post, request } from '../request'
+
+/**
+ * 演示凭据（**唯一出处**）
+ *
+ * 口径同工作台单 C6-9：一键「演示登录」会把这两个值明文填入表单并自动提交，
+ * 用户零输入、零二次点击。值来自构建期环境变量 VITE_DEMO_ACCOUNT / VITE_DEMO_PASSWORD
+ * （见 app-mobile/.env.example，注明"演示账号，可替换"）；未配置时回退到默认值。
+ *
+ * ⚠️ 禁止在页面/组件里再写字面量——凭据只能从这里出。
+ */
+export const DEMO_ACCOUNT: string =
+  (import.meta.env?.VITE_DEMO_ACCOUNT as string | undefined) || 'demo'
+export const DEMO_PASSWORD: string =
+  (import.meta.env?.VITE_DEMO_PASSWORD as string | undefined) || 'Demo@2026'
 
 export interface LoginParams {
   username: string
@@ -60,6 +74,23 @@ const authApi = {
   /** 登录（商户端store端点） */
   login(params: LoginParams): Promise<LoginResult> {
     return post('/store/auth/login', params)
+  },
+
+  /**
+   * 演示登录用的密码登录（silent：出错不弹后端 toast）
+   *
+   * 与 login() 同一后端 controller（server.ts 中 /api/store/auth/login 与 /api/admin/auth/login
+   * 均指向 authController.login）。演示场景要自行判断"锁定"并降级免密通道，
+   * 若沿用非 silent 通道，用户会先收到一条"账号已锁定"toast、再收到"演示通道已接管"，
+   * 两条提示互相打架，故这里静默，由页面统一提示。
+   */
+  loginSilent(params: LoginParams): Promise<LoginResult> {
+    return request<LoginResult>({ url: '/store/auth/login', method: 'POST', data: params, silent: true })
+  },
+
+  /** 免密演示通道（降级兜底）：自动建号、幂等绑超管、被锁定/禁用自动恢复 */
+  demoLogin(): Promise<LoginResult> {
+    return post('/admin/auth/demo-login')
   },
 
   /** 获取当前用户信息（统一 JWT，复用 /admin/auth/me；原 /store/me 后端无此路由，登录态拉取会 404 踢回登录页） */
