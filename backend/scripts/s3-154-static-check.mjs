@@ -7,6 +7,9 @@
  * 不得直接回 `e?.message` 原文；② 行为断言 —— 从生产源码里**原样提取** S3-154 的映射函数
  * （经 typescript 的 transpileModule 在进程内转译，不 spawn），验证撞键/非撞键两种语义。
  *
+ * 注（S3-155，2026-10-03）：S3-155 把本单的映射实现抽成共享模块 `backend/src/shared/db-error-message.ts`
+ * 并让 `data-transfer.service.ts` 改为引用 ⇒ 本装置的"源码提取"锚点与 catch 行断言随之更新（行为断言口径不变）。
+ *
  * 用法：
  *   node backend/scripts/s3-154-static-check.mjs            正测（绿）
  *   node backend/scripts/s3-154-static-check.mjs --revert   反测：把文案改回库报错原文 ⇒ 同一断言必红
@@ -21,6 +24,8 @@ import ts from "typescript";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..", "..");
 const SERVICE = path.join(REPO, "backend", "src", "services", "admin", "data-transfer.service.ts");
+/** S3-155 起，映射实现的唯一出处（本装置改为从共享模块提取） */
+const SHARED_IMPL = path.join(REPO, "backend", "src", "shared", "db-error-message.ts");
 
 /** 改造前的原始写法（S3-154 之前的 HEAD 原文），反测用它替换回去 */
 const ORIGINAL_CATCH = 'errors.push(`第 ${rIdx + 1} 行：${e?.message || "导入失败"}`);';
@@ -29,7 +34,14 @@ const ORIGINAL_CATCH = 'errors.push(`第 ${rIdx + 1} 行：${e?.message || "导�
  * 注意：同一函数里还有一条静态文案（`第 ${rIdx + 1} 行：缺少商品名称`），必须用
  * "行：后面紧跟 ${变量}" 精确区分，否则会匹配到错的那条（本装置第一版就踩了这个坑）。
  */
-const CATCH_LINE_RE = /errors\.push\(`第 \$\{rIdx \+ 1\} 行：\$\{.*`\);/;
+const CATCH_LINE_RE = /errors\.push\(`第 \$\{rIdx \+ 1\} 行：\$\{[\s\S]*?\}`\);/;
+
+/** 与 data-transfer 调用点完全一致的文案口径（S3-154 定，S3-155 未改语义） */
+const ROW_OPTIONS = {
+  barcodeMessage: "该条码已被其他商品使用",
+  dupMessage: "商品编码重复，请检查后重试",
+  fallback: "导入失败",
+};
 
 const revertMode = process.argv.includes("--revert");
 const originalSource = readFileSync(SERVICE, "utf8");
@@ -56,35 +68,38 @@ function assert(cond, msg) {
   if (!cond) throw new Error(msg);
 }
 
-/* ── ① 从生产源码原样提取 S3-154 映射函数并转译（进程内，不 spawn） ── */
+/* ── ① 从共享模块原样提取 S3-154 的文案函数并转译（进程内，不 spawn；S3-155 起实现唯一出处为共享模块） ── */
 let rowErrorMessage = null;
 let extracted = "";
-check("从生产源码提取 S3-154 映射函数", () => {
-  const start = source.indexOf("const BARCODE_DUPLICATE_MESSAGE");
-  assert(start >= 0, "未找到 BARCODE_DUPLICATE_MESSAGE 常量（映射函数未落地？）");
-  const body = source.indexOf('return (err as Error)?.message || "导入失败";', start);
-  assert(body > start, "未找到 productImportRowErrorMessage 的兜底返回");
-  const end = source.indexOf("\n}", body);
-  assert(end > body, "未找到函数结束花括号");
-  extracted = source.slice(start, end + 2);
+check("从共享实现提取 S3-154 的文案函数", () => {
+  const sharedSource = readFileSync(SHARED_IMPL, "utf8");
+  const start = sharedSource.indexOf("export const BARCODE_DUPLICATE_MESSAGE");
+  assert(start >= 0, "未找到 BARCODE_DUPLICATE_MESSAGE（共享实现未落地？）");
+  extracted = sharedSource.slice(start);
   const js = ts.transpileModule(extracted, {
     compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS },
   }).outputText;
-  const factory = new Function(`${js}\nreturn { productImportRowErrorMessage };`);
-  rowErrorMessage = factory().productImportRowErrorMessage;
-  assert(typeof rowErrorMessage === "function", "提取出的 productImportRowErrorMessage 不是函数");
+  // 提取块带 `export` 关键字，CJS 转译产物写 `exports.*` ⇒ 给 Function 一个本地 exports 对象
+  const factory = new Function("exports", `${js}\nreturn exports;`);
+  const mod = factory({});
+  rowErrorMessage = (err) => mod.rowErrorMessage(err, ROW_OPTIONS);
+  assert(typeof rowErrorMessage === "function", "提取出的 rowErrorMessage 不是函数");
   return `提取 ${extracted.split("\n").length} 行并转译成功`;
 });
 
 /* ── ② 静态断言：行级 catch 必须走映射，不得回原文 ── */
 let catchLine = "";
-check("行级 catch 走中文映射（productImportRowErrorMessage）", () => {
+check("行级 catch 走中文映射（rowErrorMessage）", () => {
   const m = source.match(CATCH_LINE_RE);
   assert(m, "未找到商品导入的 errors.push 行级文案");
   catchLine = m[0];
   assert(
-    catchLine.includes("productImportRowErrorMessage(e)"),
+    catchLine.includes("rowErrorMessage(e"),
     `catch 行未使用映射函数：${catchLine}`,
+  );
+  assert(
+    catchLine.includes('dupMessage: "商品编码重复，请检查后重试"'),
+    `catch 行商品编码文案语义被改动：${catchLine}`,
   );
   return catchLine.trim();
 });

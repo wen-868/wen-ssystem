@@ -1,0 +1,5 @@
+# 命令：cd backend; npx tsc -p tsconfig.json --noEmit
+# 采集时间：2026-10-03（终态复跑）
+
+（无输出）
+EXIT=0

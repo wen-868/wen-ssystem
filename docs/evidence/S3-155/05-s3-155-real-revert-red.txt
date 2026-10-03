@@ -1,0 +1,37 @@
+# 真实文件级反测：把 credit-collection.service.ts 的调用点改回 `err instanceof Error ? err.message : String(err)` 后复跑
+# 命令：node backend/scripts/s3-155-static-check.mjs --run-service
+# 采集时间：2026-10-03
+
+# S3-155 静态同口径断言 —— 正测（源码原样，未做替换）
+# 被测文件：backend/src/shared/db-error-message.ts + 三处调用点 + data-transfer.service.ts
+PASS  共享实现存在且导出四项（常量 + 两个判定 + rowErrorMessage）   ← backend/src/shared/db-error-message.ts（53 行）
+PASS  四处引用 ①：data-transfer.service.ts 引共享实现（import + 调用 rowErrorMessage）   ← import + 调用齐
+PASS  四处引用 ②：data-transfer.service.ts 无本地重复实现（ER_DUP_ENTRY 字面量 = 0）   ← 0 处
+FAIL  四处引用 ①：credit-collection.service.ts 引共享实现（import + 调用 rowErrorMessage）   ← 未调用 rowErrorMessage
+PASS  四处引用 ②：credit-collection.service.ts 无本地重复实现（ER_DUP_ENTRY 字面量 = 0）   ← 0 处
+PASS  四处引用 ①：library.service.ts 引共享实现（import + 调用 rowErrorMessage）   ← import + 调用齐
+PASS  四处引用 ②：library.service.ts 无本地重复实现（ER_DUP_ENTRY 字面量 = 0）   ← 0 处
+PASS  四处引用 ①：delta-sync.service.ts 引共享实现（import + 调用 rowErrorMessage）   ← import + 调用齐
+PASS  四处引用 ②：delta-sync.service.ts 无本地重复实现（ER_DUP_ENTRY 字面量 = 0）   ← 0 处
+PASS  S3-154 本地副本已删除（常量/两个判定/文案函数均不在 data-transfer）   ← 本地副本 0 处，文案语义原样保留
+FAIL  本单改口：催收批量提醒 不再直接回 err.message 原文   ← 仍有逐行 catch 直接回 err.message 原文：催收批量提醒
+PASS  本单改口：商品库批量导入 不再直接回 err.message 原文   ← 无 err.message 原文写法
+PASS  本单改口：离线销售单提交 不再直接回 err.message 原文   ← 无 err.message 原文写法
+PASS  从生产源码提取共享实现并转译成功   ← 提取 39 行并转译成功
+PASS  只认 1062：code / errno 两种形态都判；1452 与纯文本 Duplicate entry 不判   ← code/errno ⇒ true；1452/纯文本 ⇒ false
+PASS  条码列 / 非条码列 区分   ← barcode ⇒ true；uk_product_sku_code ⇒ false
+PASS  撞条码 ⇒ 统一中文业务文案（不含 Duplicate entry）   ← 该条码已被其他商品使用
+PASS  撞其它唯一键 ⇒ 调用方给的领域化中文文案   ← 该单据号已存在，请勿重复提交
+PASS  非撞键错误 ⇒ 保留原始信息（不误吞、不掩盖）   ← Data too long for column 'sku_name' at row 1
+PASS  非 Error / 非字符串入参 ⇒ 兜底文案（缺省「处理失败」，可覆盖）   ← undefined ⇒ 兜底；字符串 ⇒ 原文
+PASS  单测已落地：共享实现 + 三处调用点（撞键中文 / 非撞键原文）   ← 4 个测试文件命中
+FAIL  真函数（loader 桩 db）：催收撞唯一键 ⇒ 领域化中文、无 Duplicate entry   ← 实际 errors=["客户1处理失败: Duplicate entry '1-2026-10-03' for key 'uk_collection_record_daily'"]
+PASS  真函数（loader 桩 db）：催收非撞键错误保留原文   ← 客户1处理失败: Data too long for column 'collection_content' at row 1
+PASS  真函数（loader 桩 db）：商品库撞唯一键 ⇒ 领域化中文、无 Duplicate entry   ← 商品库中已存在相同编码或同名同品牌同规格的商品
+PASS  真函数（loader 桩 db）：商品库撞条码键 ⇒ 统一条码文案   ← 该条码已被其他商品使用
+PASS  真函数（loader 桩 db）：商品库非撞键错误保留原文   ← Connection lost: The server closed the connection
+PASS  真函数（loader 桩 db）：离线单撞销售单号唯一键 ⇒ 领域化中文、无 Duplicate entry   ← 该单据号已存在，请勿重复提交
+PASS  真函数（loader 桩 db）：离线单非撞键错误保留原文   ← Lock wait timeout exceeded
+小结[s3-155]：25 passed / 3 failed
+
+EXIT=1

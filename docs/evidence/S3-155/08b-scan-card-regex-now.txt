@@ -1,0 +1,69 @@
+# 命令：rg -n "err\.message|error\.message|ER_DUP_ENTRY" backend/src --glob '!*test*'
+# 采集时间：2026-10-03（终态）
+
+backend/src\server.ts:48:    message: err.message || "未捕获的异常",
+backend/src\server.ts:54:    summary: `[FATAL] uncaughtException: ${err.message || "未捕获的异常"}`,
+backend/src\server.ts:57:      { label: "错误消息", value: err.message || "未知" },
+backend/src\server.ts:127:      logger.error("[rate-limit] Redis 连接错误:", err.message);
+backend/src\server.ts:140:      err instanceof Error ? err.message : err
+backend/src\shared\auto-routes.ts:101:      logger.error(`[auto-routes] 无法加载路由模块 ${file}:`, err.message);
+backend/src\shared\field-sync.ts:357:          error: err.message
+backend/src\shared\field-sync.ts:359:        logger.error(`[FieldSync] 同步失败: ${mapping.sourceTable}.${mapping.sourceField} → ${mapping.targetTable}.${mapping.targetField}`, err.message);
+backend/src\shared\db-error-message.ts:17:/** 回库唯一键撞车判定：只认 1062（ER_DUP_ENTRY），不吞其它错误 */
+backend/src\shared\db-error-message.ts:22:    ((e as { code?: string }).code === "ER_DUP_ENTRY" ||
+backend/src\shared\db-error-message.ts:50:  const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
+backend/src\shared\migration.ts:33:  "ER_DUP_FIELDNAME", "ER_DUP_KEYNAME", "ER_DUP_ENTRY",
+backend/src\shared\migration.ts:316:    const msg = (err.message || "").toLowerCase();
+backend/src\shared\migration.ts:324:    logger.error(`[migration] ${label} 失败: ${err.message || String(e)}`);
+backend/src\shared\seed-data.ts:22:        if (err.code === "ER_DUP_ENTRY" || err.code === "ER_DUP_KEY") {
+backend/src\shared\seed-data.ts:26:        logger.error(`[seed] ${label} 失败: ${err.message || String(e)}`);
+backend/src\middleware\error-handler.ts:12:  const errorMessage = err instanceof Error ? err.message : String(err);
+backend/src\services\instant-retail\inventory-deduction.service.ts:107:      logger.warn(`[inventory] 批量扣减失败并已整体回滚: ${err.message}`);
+backend/src\services\platform\platform-agent.service.ts:11: * - agent_code 重复 ⇒ AppError 409（先查一次，再兜住并发下的 ER_DUP_ENTRY）；
+backend/src\services\platform\platform-agent.service.ts:238:    if (err?.code === "ER_DUP_ENTRY") {
+backend/src\services\platform\platform-agent-level.service.ts:211:    if (err?.code === "ER_DUP_ENTRY") {
+backend/src\services\platform\platform-tenant-attribution.service.ts:14: * - 一租户一条（uk_tenant_attr）：已存在 ⇒ **409 + 明确中文文案**；并发撞唯一键（ER_DUP_ENTRY）同样按 409 报。
+backend/src\services\platform\platform-tenant-attribution.service.ts:232:    if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
+backend/src\services\platform\platform-template.service.ts:178:  return e?.code === "ER_DUP_ENTRY" || e?.errno === 1062;
+backend/src\services\platform\captcha.service.ts:121:  return err instanceof Error ? err.message : String(err);
+backend/src\services\platform\platform-role.service.ts:104:  return e?.code === "ER_DUP_ENTRY" || e?.errno === 1062;
+backend/src\services\platform\platform-referral-ledger.service.ts:12: * - 一被邀请租户一条：uk_invitee，重复登记 ⇒ 409（并发撞唯一键 ER_DUP_ENTRY 同样 409）；
+backend/src\services\platform\platform-referral-ledger.service.ts:417:    if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
+backend/src\services\platform\platform-promo-code.service.ts:9: *   仍冲突 ⇒ AppError 409（并发窗口下兜住唯一键 ER_DUP_ENTRY，同样按 409 / 重试处理）；
+backend/src\services\platform\platform-promo-code.service.ts:235: * · 并发窗口下的唯一键撞车（ER_DUP_ENTRY）同样计入重试，不落 500
+backend/src\services\platform\platform-promo-code.service.ts:282:      if (err?.code === "ER_DUP_ENTRY") continue;
+backend/src\config\redis.ts:33:      logger.error("[Redis] Connection error:", err.message);
+backend/src\config\redis.ts:66:    logger.error(`[Redis] cacheGet failed for key ${key}:`, err instanceof Error ? err.message : err);
+backend/src\config\redis.ts:80:    logger.error(`[Redis] cacheDel failed for key ${key}:`, err instanceof Error ? err.message : err);
+backend/src\config\redis.ts:96:    logger.error(`[Redis] cacheDelPattern failed for ${pattern}:`, err instanceof Error ? err.message : err);
+backend/src\services\admin\category.service.ts:124:      logger.error("[FieldSync] 分类名称同步异常:", err.message);
+backend/src\controllers\admin\price-management.controller.ts:30:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:51:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:62:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:79:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:107:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:118:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:129:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-management.controller.ts:140:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-level.controller.ts:25:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-level.controller.ts:45:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\controllers\admin\price-level.controller.ts:56:    res.status(Number(result.error.code)).json({ code: result.error.code, message: result.error.message });
+backend/src\services\admin\library-copy.service.ts:202:    ((err as { code?: string }).code === "ER_DUP_ENTRY" ||
+backend/src\services\admin\instant-retail.service.ts:470:    return { found: true, platform: parsedPlatform, connected: false, error: err instanceof Error ? err.message : String(err) };
+backend/src\services\admin\push.service.ts:162:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\push.service.ts:214:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\push.service.ts:253:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\push.service.ts:290:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\miniapp-publish.service.ts:265:      const message = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\notification-sender.service.ts:89:            const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\monitor.service.ts:192:      const msg = err instanceof Error ? err.message : String(err);
+backend/src\services\admin\product.service.ts:29:/** 回库唯一键撞车判定：只认 1062（ER_DUP_ENTRY），不吞其它错误 */
+backend/src\services\admin\product.service.ts:34:    ((e as { code?: string }).code === "ER_DUP_ENTRY" ||
+backend/src\services\admin\product.service.ts:499:    logger.error("[ProductSync] 状态同步异常:", err.message);
+backend/src\services\admin\product.service.ts:619:      logger.error("[FieldSync] 商品字段同步异常:", err.message);
+backend/src\services\admin\product.service.ts:627:      logger.error("[ProductSync] 全链路同步异常:", err.message);
+backend/src\services\admin\product.service.ts:720:        logger.error("[ProductSync] 价格同步异常:", err.message);
+backend/src\services\admin\product.service.ts:750:    if (e?.code === "ER_DUP_ENTRY") {
+backend/src\services\admin\product.service.ts:877:    if (e?.code === "ER_DUP_ENTRY") {
+
+命中数=64

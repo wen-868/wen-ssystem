@@ -8,6 +8,7 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { query, queryOne, transaction, connExecute } from "../../shared/db";
+import { BARCODE_DUPLICATE_MESSAGE, rowErrorMessage } from "../../shared/db-error-message";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
@@ -748,7 +749,11 @@ async function importSpus(list: SpuCreateData[]) {
       successCount++;
     } catch (err: unknown) {
       failCount++;
-      const reason = err instanceof Error ? err.message : String(err);
+      // S3-155：撞唯一键不得把回库报错原文回给调用方（条码/其它键分别给商品库领域文案）
+      const reason = rowErrorMessage(err, {
+        barcodeMessage: BARCODE_DUPLICATE_MESSAGE,
+        dupMessage: "商品库中已存在相同编码或同名同品牌同规格的商品",
+      });
       errors.push({ index: i, name: item.name, reason });
     }
   }

@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { rowErrorMessage } from "../../shared/db-error-message";
 import type { ServiceContext, PageResult } from "../../types/index";
 
 export interface CollectionCreateDTO {
@@ -350,7 +351,8 @@ export async function batchRemind(dto: BatchRemindDTO, ctx: ServiceContext): Pro
 
       successCount++;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
+      // S3-155：撞唯一键不得把回库报错原文回给调用方；非撞键错误保留原文（不误吞、不掩盖）
+      const message = rowErrorMessage(err, { dupMessage: "该客户存在重复的催收记录" });
       errors.push(`客户${customerId}处理失败: ${message}`);
     }
   }
