@@ -2,6 +2,9 @@ import { Router } from "express";
 import multer from "multer";
 import type { RouteConfig } from "../shared/auto-routes";
 
+import { requirePermission } from "../middleware/rbac-auth";
+import { PERM_GOODS_CREATE } from "../shared/goods-permission-codes";
+
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as productController from "../controllers/admin/product.controller";
 import { uploadProductImage } from "../controllers/admin/product-image.controller";
@@ -30,7 +33,8 @@ adminProductRouter.get("/products/categories", categoryController.listCategories
 adminProductRouter.get("/products", productController.listProducts);
 adminProductRouter.post("/products/upload-image", upload.single("image"), uploadProductImage);
 adminProductRouter.get("/products/:spuId(\\d+)", productController.getProductDetail);
-adminProductRouter.post("/products", productController.createProduct);
+// S3-142：手工建品补挂权限点（既有码 goods:create，079 权限矩阵 :201），未登录仍是 401、无权限 403
+adminProductRouter.post("/products", requirePermission(PERM_GOODS_CREATE), productController.createProduct);
 adminProductRouter.put("/products/:id/status", productController.updateProductStatus);
 adminProductRouter.put("/products/:id", productController.updateProduct);
 adminProductRouter.put("/products/:id/disable", productController.disableProduct);

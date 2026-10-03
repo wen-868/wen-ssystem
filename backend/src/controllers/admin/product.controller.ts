@@ -87,8 +87,19 @@ export const createProduct = asyncHandler(async (req, res) => {
       warningThreshold: rawBody.warningThreshold ?? 0
     }]
   });
-  const result = await productService.createProduct(body, tenantId, rawBody);
-  res.json(ok(result));
+  try {
+    const result = await productService.createProduct(body, tenantId, rawBody);
+    res.json(ok(result));
+  } catch (e) {
+    // S3-142：商品配额不足 ⇒ 400 + 业务码 "1001"（文案带已用/上限读数）。
+    // 不能走 AppError/errorHandler：后者会把 code 归一成 String(statusCode) = "400"，
+    // 丢掉业务码；这里与 COPY 调取（library-copy.controller.ts:86）保持同一形态。
+    if (e && typeof e === "object" && (e as { businessCode?: string }).businessCode === "1001") {
+      res.status(400).json(fail((e as Error).message, "1001"));
+      return;
+    }
+    throw e;
+  }
 });
 
 export const updateProductStatus = asyncHandler(async (req, res) => {

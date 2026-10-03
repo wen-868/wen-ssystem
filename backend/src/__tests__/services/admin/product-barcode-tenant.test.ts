@@ -24,6 +24,11 @@ vi.mock("../../../shared/db", () => ({
   queryWithTenant: mocks.queryWithTenant,
   queryOneWithTenant: mocks.queryOneWithTenant,
   transaction: mocks.transaction,
+  // S3-142：建品事务内新增「商品配额计数」（getProductQuota 走 queryOne / connQueryOne）。
+  // 本文件只证条码撞键语义，不涉及配额；桩返回空 ⇒ 无订阅口径（limit=null ⇒ 不拦），
+  // S3-151 的既有断言一条未改。
+  queryOne: vi.fn(),
+  connQueryOne: vi.fn(),
 }));
 
 vi.mock("../../../shared/redis-cache", () => ({
