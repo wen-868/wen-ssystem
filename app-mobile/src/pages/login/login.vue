@@ -113,10 +113,10 @@
             @tap="handleDemoLogin"
           >
             <text v-if="demoLoading" class="demo-btn-text">进入中...</text>
-            <text v-else class="demo-btn-text">演示登录</text>
+            <text v-else class="demo-btn-text">演示登录（一键进入）</text>
           </button>
         </view>
-        <text class="demo-tip">演示登录无需注册，直接体验全部功能</text>
+        <text class="demo-tip">无需输入，自动填入演示账号并登录</text>
       </view>
     </view>
 
@@ -124,11 +124,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, nextTick } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
-import { authApi } from '@/api/modules/auth'
+import { authApi, DEMO_ACCOUNT, DEMO_PASSWORD } from '@/api/modules/auth'
 import manifest from '@/manifest.json'
 
 const userStore = useUserStore()
@@ -211,16 +211,74 @@ async function handleMfaVerify() {
   }
 }
 
-/** 演示账号一键登录：免输入，直接进入演示环境 */
+/**
+ * 后端 auth.service.ts 的锁定文案（HTTP 400）：
+ *   `账号已锁定，请${remainingMinutes}分钟后重试`
+ *   `登录失败次数过多，账号已锁定${LOCK_DURATION_MINUTES}分钟`
+ * ⇒ 只有命中这两类才降级免密通道；网络/其它错误一律原样报错，**不误降级**。
+ */
+function isLockedError(msg: string): boolean {
+  return msg.includes('锁定') || msg.includes('失败次数过多')
+}
+
+/**
+ * 演示登录（**一键**）：自动填入演示账号+口令 → 自动提交 → 锁定时降级免密通道。
+ *
+ * 口径与工作台单 C6-9 完全一致（凌舟裁定 R11）：
+ *   ① 先把账号框/口令框**明文填成演示凭据**（口令框仍由组件自身以掩码显示），随后**自动提交**，
+ *      用户全程零输入、零二次点击；
+ *   ② 凭据唯一出处 = `DEMO_ACCOUNT` / `DEMO_PASSWORD`（VITE_DEMO_*，见 .env.example），
+ *      此处不再出现任何字面量；
+ *   ③ 正常登录返回"锁定/失败次数过多" ⇒ 自动改走 `demoLogin()` 免密通道，并**如实提示**
+ *      「演示通道已接管」（禁止静默假装走的是密码登录）；其它错误按原样报错；
+ *   ④ 本端现状无演示数据初始化逻辑，登录成功后按现状直达首页。
+ */
 async function handleDemoLogin() {
   errorMsg.value = ''
   demoLoading.value = true
   try {
-    await userStore.login('store_manager', 'admin123')
+    // ① 自动填入（明文赋值 → 响应式驱动输入框；口令框 type=password 由组件自身掩码）
+    loginForm.username = DEMO_ACCOUNT
+    loginForm.password = DEMO_PASSWORD
+    clearError('username')
+    clearError('password')
+    // 可核对打点：证明两个字段都有值，且与随后的提交同属一次点击
+    console.log('[demo-login] 自动填入 username=%s password=%s', loginForm.username, loginForm.password)
+    // 等一帧，确保 DOM 上两个输入框确实带上值（运行期取证要能看见"填入"这一步）
+    await nextTick()
+
+    const result = await authApi.loginSilent({
+      username: loginForm.username.trim(),
+      password: loginForm.password,
+    })
+    console.log('[demo-login] 密码登录成功 username=%s', result?.user?.username)
+
+    if (result.mfaRequired) {
+      mfaRequired.value = true
+      mfaToken.value = result.mfaToken || ''
+      return
+    }
+    userStore.applyLoginResult(result)
     uni.showToast({ title: '已进入演示环境', icon: 'success' })
     goHome()
   } catch (err: any) {
-    errorMsg.value = err?.message || '演示登录失败，请稍后重试'
+    const msg = String(err?.message || '')
+    if (isLockedError(msg)) {
+      console.log('[demo-login] 密码登录被锁定（%s），降级免密通道', msg)
+      try {
+        const result = await authApi.demoLogin()
+        userStore.applyLoginResult(result)
+        // ③ 如实提示：不静默、不假装是密码登录
+        uni.showToast({ title: '演示通道已接管', icon: 'none', duration: 2500 })
+        console.log('[demo-login] 降级成功，提示：演示通道已接管')
+        goHome()
+      } catch (fallbackErr: any) {
+        errorMsg.value = fallbackErr?.message || '演示通道不可用，请稍后重试'
+      }
+      return
+    }
+    // 非锁定错误：原样报错
+    errorMsg.value = msg || '演示登录失败，请稍后重试'
   } finally {
     demoLoading.value = false
   }
