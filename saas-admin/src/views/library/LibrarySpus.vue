@@ -10,8 +10,11 @@
           · 审核队列：listSpusApi({status:'PENDING'}) + PUT /spus/:id/status（① #20，**接口已有，本卡接线**）
           · 上下架：PUT /spus/:id/status {status:'OFFLINE'|'APPROVED'}（S3-111 ②，S3-110 已放开 APPROVED↔OFFLINE）
           · KPI「类目数」+ ② 类目子 Tab：GET /platform/library/categories（S3-111 ①，租户类目只读聚合）
-          · 其余 KPI 汇总（#6，除类目数外）、调取统计排行/趋势/类目分布（#8/#9/#16-18）：
-            无数据源 → 空态，逐条登记待立项（见 R101-C6-2 立项清单），不放假数据。
+          · KPI「本月租户调取」+ ④ 调取统计（排行 / 趋势）：GET /platform/library/stats | stats/rank | stats/trend
+            （C6-4-1 后端已就绪，C6-5 前端接线）→ 无数据走诚实空态；请求失败走**错误态**（不静默成 0 / 空态）
+          · 审核流水（详情弹窗）：GET /platform/library/spus/:id/review-logs（C6-2-T5，C6-5 接线）
+          · 按类目分布：本期不提供（R1 裁定：公共类目树不存在、t_library_spu 无类目列）→ 只给说明，不画假图
+          · 「商品总量 / 品牌数 / 待审核」三个 KPI：后端无汇总端点 ⇒ 保持 —（登记立项，不用假数充数）
     存量缺陷（原第 1066 行 TypeError：drinkBrandDb[i % drinkBrandDb.length.specs.length]）
           随整文件重写已彻底移除全部假数据生成逻辑，不再存在该缺陷。
   -->
@@ -35,12 +38,13 @@
     </div>
 
     <!-- ════════ KPI ════════ -->
-    <!-- 「类目数」已接 GET /platform/library/categories（S3-111 ①，真值口径见 kd 说明）；
-         其余四项（商品总量/品牌数/本月租户调取/待审核）汇总数据源待立项 #6，不用假数据充数 -->
+    <!-- ①「类目数」接 GET /platform/library/categories（S3-111 ①，真值口径见 kd 说明）；
+         ②「本月租户调取」接 GET /platform/library/stats（C6-5：失败 ⇒ 错误态，无数据 ⇒ 暂无数据，均不冒充 0）；
+         ③「商品总量 / 品牌数 / 待审核」后端无汇总端点 ⇒ 保持诚实空态 —，不用假数充数 -->
     <div class="g5">
       <div class="kpi">
         <div class="kt">商品总量</div>
-        <div class="kv">{{ stats ? stats.spuTotal : '—' }}</div>
+        <div class="kv">—</div>
         <div class="kd">已发布 · 审核中 · 已下架</div>
       </div>
       <div class="kpi">
@@ -50,17 +54,17 @@
       </div>
       <div class="kpi">
         <div class="kt">品牌数</div>
-        <div class="kv">{{ stats ? stats.brandTotal : '—' }}</div>
+        <div class="kv">—</div>
         <div class="kd">已授权 · 待授权</div>
       </div>
       <div class="kpi">
         <div class="kt">本月租户调取</div>
-        <div class="kv">{{ stats ? stats.monthCalls + ' 次' : '—' }}</div>
-        <div class="kd">较上月 <span class="up">+18.6%</span> · Top10 占 24.3%</div>
+        <div class="kv" :style="statsError ? { color: 'var(--color-danger)' } : undefined">{{ kpiMonthCallText }}</div>
+        <div class="kd">{{ statsError ? '请求失败（错误态，非"无数据"）' : '当月 1 日至今 · 数据源：调取流水' }}</div>
       </div>
       <div class="kpi">
         <div class="kt">待审核商品</div>
-        <div class="kv">{{ stats ? stats.pendingReview : '—' }}</div>
+        <div class="kv">—</div>
         <div class="kd">AI 采集 · 供应商提交</div>
       </div>
     </div>
@@ -84,11 +88,12 @@
               <span class="ph-s">平台运营录入 / AI 采集 / 供应商提交三源归一 · 标准条码 GS1 优先，无 GS1 用平台编码（P-年份-流水）</span>
             </div>
             <div class="p-bd">
-              <!-- 筛选器（结构完整；类目路径 / 数据来源 暂无对应接口参数 → TODO） -->
+              <!-- 筛选器：品牌 / 状态 / 关键词为真实筛选参数；「类目路径」「数据来源」本期不支持
+                   （后端 /spus 无对应筛选参数）⇒ 保留结构并显式标注，不复述能力缺失类措辞 -->
               <div class="frow" style="margin-bottom:10px">
                 <span class="fld" style="flex:1">
                   <span>类目路径</span>
-                  <span class="sel">全部类目 ▾</span>
+                  <span class="sel" title="本期不支持（后端 /spus 无类目筛选参数）">全部类目 ▾</span>
                 </span>
                 <span class="fld" style="width:var(--rbac-perm-col-w)">
                   <span>品牌</span>
@@ -108,10 +113,13 @@
                 </span>
                 <span class="fld" style="width:160px">
                   <span>数据来源</span>
-                  <span class="sel">全部来源 ▾</span>
+                  <span class="sel" title="本期不支持（后端 /spus 无数据来源筛选参数）">全部来源 ▾</span>
                 </span>
                 <input class="ipt" style="width:210px" placeholder="搜索条码 / 商品名称 / 别名" v-model="spuFilter.keyword" @keyup.enter="searchSpus" />
                 <span class="btn" @click="searchSpus">重置</span>
+              </div>
+              <div class="muted" style="font-size:var(--text-xs);margin:-2px 0 8px">
+                注：「类目路径」「数据来源」两项筛选本期不支持（后端 /spus 无对应筛选参数，不参与查询）
               </div>
 
               <div class="tblwrap">
@@ -205,7 +213,7 @@
         <div v-show="activeTab === 'stats'">
           <div class="p-hd" style="border-bottom:none;padding-bottom:4px">
             <span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 4</span>调取统计</span>
-            <span class="ph-s">本月累计 84,213 次 · 较上月 +18.6% · 租户名按脱敏规范展示</span>
+            <span class="ph-s">数据源：调取流水（当月 1 日至今）· 无数据不补 0 · 请求失败显示错误态</span>
           </div>
 
           <div class="g2" style="align-items:start">
@@ -213,30 +221,36 @@
             <div class="panel" style="box-shadow:none">
               <div class="p-hd">
                 <span class="pt">租户调取排行 Top10（本月）</span>
-                <span class="ph-s">Top10 合计 20,422 次 · 占 24.3%</span>
+                <span class="ph-s">{{ rankSummaryText }}</span>
               </div>
               <div class="p-bd">
-                <div class="tblwrap">
-                  <table class="tbl">
-                    <thead>
-                      <tr>
-                        <th style="width:44px">排名</th>
-                        <th>租户（脱敏）</th>
-                        <th class="num">本月调取</th>
-                        <th>常用类目</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(t, i) in tenantRank" :key="i">
-                        <td><span class="tag" :class="i < 5 ? 'tag-b' : 'tag-gy'">{{ i + 1 }}</span></td>
-                        <td><b>{{ t.name }}</b></td>
-                        <td class="num"><b>{{ t.calls }}</b></td>
-                        <td>{{ t.category }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div v-if="tenantRank.length === 0" class="empty">暂无调取排行数据</div>
+                <!-- 失败 ⇒ 错误态；无数据 ⇒ 空态；两种呈现必须可区分（不得把失败静默成空） -->
+                <div v-if="rankState === 'error'" class="empty" style="color:var(--color-danger)">数据加载失败：{{ rankError }}</div>
+                <div v-else-if="rankState === 'loading'" class="empty">加载中…</div>
+                <template v-else>
+                  <div class="tblwrap">
+                    <table class="tbl">
+                      <thead>
+                        <tr>
+                          <th style="width:44px">排名</th>
+                          <th>租户</th>
+                          <th class="num">本月调取</th>
+                          <th>常用类目</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="t in tenantRank" :key="t.tenantId || t.rank">
+                          <td><span class="tag" :class="t.rank <= 5 ? 'tag-b' : 'tag-gy'">{{ t.rank }}</span></td>
+                          <td><b>{{ t.tenantName }}</b></td>
+                          <td class="num"><b>{{ t.callCount }}</b></td>
+                          <!-- 常用类目无数据源（按类目分布本卡 R1 裁定本期不实现）⇒ 显式 —，不编类目 -->
+                          <td class="muted">—</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div v-if="rankState === 'empty'" class="empty">暂无调取排行数据</div>
+                </template>
               </div>
             </div>
 
@@ -248,8 +262,10 @@
               </div>
               <div class="p-bd">
                 <div class="chart-box">
-                  <!-- TODO: 待接入 GET /platform/library/stats/trend —— 返回近30天日调取次数 -->
-                  <div v-if="trend.length === 0" class="empty">暂无调取趋势数据</div>
+                  <!-- 接 GET /platform/library/stats/trend（C6-5）→ { days, items: [{date,count}] }；失败走错误态 -->
+                  <div v-if="trendState === 'error'" class="empty" style="color:var(--color-danger)">数据加载失败：{{ trendError }}</div>
+                  <div v-else-if="trendState === 'empty'" class="empty">暂无调取趋势数据</div>
+                  <div v-else-if="trendState === 'loading'" class="empty">加载中…</div>
                   <svg v-else class="chart" viewBox="0 0 640 170" role="img" aria-label="近30天租户调取趋势折线图">
                     <g stroke="var(--chart-grid)" stroke-width="1">
                       <line x1="40" y1="18" x2="620" y2="18" />
@@ -262,28 +278,20 @@
                 </div>
                 <div class="tipbar mt8" style="padding:8px 11px">
                   <span class="ic">i</span>
-                  <span>趋势含<b>在线检索 + 档案调取</b>两类动作；两次峰值分别来自 AI 采集批次上线与三级类目扩充（类目可见性放开后租户检索频次上升）。</span>
+                  <span>口径：按日聚合<b>调取流水</b>（COPY 调取计入；扫码反查 / 接口查询不计入）；<b>无调取的日期不补 0</b>，折线只连真实有数据的点。</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 按类目分布 -->
+          <!-- 按类目分布：R1 裁定本期不实现（公共类目树不存在、t_library_spu 无类目列）⇒ 只给「本期不提供」说明 -->
           <div class="panel mt12" style="box-shadow:none">
             <div class="p-hd">
-              <span class="pt">按类目分布（本月 84,213 次）</span>
-              <span class="ph-s">五类合计 100%</span>
+              <span class="pt">按类目分布</span>
+              <span class="ph-s">本期不提供</span>
             </div>
-            <div class="p-bd" style="display:grid;gap:8px">
-              <!-- TODO: 待接入 GET /platform/library/stats/category-dist —— 返回各类目调取次数与占比 -->
-              <div v-if="catDist.length === 0" class="empty">暂无类目分布数据</div>
-              <div v-for="d in catDist" :key="d.name" style="display:flex;align-items:center;gap:10px;font-size:var(--text-sm)">
-                <span style="width:76px;flex:none;text-align:right;color:var(--g5)">{{ d.name }}</span>
-                <div style="flex:1;height:16px;border-radius:var(--radius-pill);background:var(--g0);overflow:hidden">
-                  <div :style="{ width: d.pct + '%', height: '100%', background: 'var(' + d.color + ')', borderRadius: 'var(--radius-pill)' }"></div>
-                </div>
-                <b style="width:150px;flex:none">{{ d.calls }} 次 · {{ d.pct }}%</b>
-              </div>
+            <div class="p-bd">
+              <div class="empty">{{ categoryDistNote }}</div>
             </div>
           </div>
         </div>
@@ -539,7 +547,7 @@
               </thead>
               <tbody>
                 <tr v-if="!detailSkus.length">
-                  <!-- ③ 类 #14：SKU 明细已接 getSpuApi（① #10/#14）⇒ 空态只表达"无数据"，不再说"接口待接入" -->
+                  <!-- ③ 类 #14：SKU 明细已接 getSpuApi（① #10/#14）⇒ 空态只表达"无数据"，不复述能力缺失类措辞 -->
                   <td colspan="4" class="muted">{{ detailLoading ? '加载中…' : '暂无 SKU 明细' }}</td>
                 </tr>
                 <tr v-for="(k, i) in detailSkus" :key="i">
@@ -570,7 +578,23 @@
           <!-- 审核记录 -->
           <div style="border:1px solid var(--g2);border-radius:var(--radius-md);padding:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2)">
             <div style="font-size:var(--text-sm);font-weight:var(--font-bold)">审核记录</div>
-            <div class="muted">—（审核流水接口待接入）</div>
+            <!-- 接 GET /api/platform/library/spus/:id/review-logs（C6-2-T5，C6-5 接线）：只读，按时间倒序 -->
+            <div v-if="reviewLogLoading" class="muted">加载中…</div>
+            <div v-else-if="reviewLogError" class="muted" style="color:var(--color-danger)">数据加载失败：{{ reviewLogError }}</div>
+            <div v-else-if="detailReviewLogs.length === 0" class="muted">暂无审核记录</div>
+            <div v-else style="display:flex;flex-direction:column;gap:6px;font-size:var(--text-sm)">
+              <div
+                v-for="log in detailReviewLogs"
+                :key="log.id ?? log.createdAt"
+                style="display:flex;gap:8px;flex-wrap:wrap;align-items:baseline"
+              >
+                <b>{{ log.actionLabel }}</b>
+                <span class="muted">{{ log.statusText }}</span>
+                <span class="muted">{{ log.operatorName }}</span>
+                <span class="muted">{{ log.createdAt }}</span>
+                <span v-if="log.reason" class="muted">原因：{{ log.reason }}</span>
+              </div>
+            </div>
           </div>
 
           <!-- 调取热度 -->
@@ -605,17 +629,58 @@ import {
   getSpuApi, approveSpuApi, rejectSpuApi, offlineSpuApi, relistSpuApi,
   listCategoriesApi, type PlatformCategoryItem,
   listBrandsApi,
+  getCallStatsApi, getCallRankApi, getCallTrendApi, listSpuReviewLogsApi,
   type SpuListItem, type BrandItem, type SkuItem,
 } from '../../api/library'
+import {
+  formatCategoryDistNote,
+  formatMonthCallText,
+  formatRankSummary,
+  normalizeCallStats,
+  normalizeCallTrend,
+  normalizeReviewLogs,
+  normalizeTenantRank,
+  resolveBlockState,
+  toTrendPolyline,
+  unwrapApiData,
+  type CallStatsView,
+  type ReviewLogRow,
+  type TenantRankRow,
+  type TrendPoint,
+} from './library-stats'
 import LibraryBrands from './LibraryBrands.vue'
 
 const router = useRouter()
 const activeTab = ref<'spu' | 'category' | 'brand' | 'stats' | 'review'>('spu')
 
-/* ───────── KPI 汇总（数据源待立项 #6） ───────── */
-// 汇总端点 GET /platform/library/stats 尚未立项落地 ⇒ 商品总量/品牌数/本月调取/待审核保持 —
-// 「类目数」不依赖该端点：取类目只读聚合接口的真实返回（见下方 categoryRows，S3-111 ①）
-const stats = ref<any>(null)
+/* ───────── KPI 汇总 + ④ 调取统计（C6-5：接 C6-4-1 已就绪的 3 条只读端点） ───────── */
+// ① GET /platform/library/stats       → KPI「本月租户调取」+ unavailable[]（显式声明无载体维度）
+// ② GET /platform/library/stats/rank  → 租户调取排行 Top10
+// ③ GET /platform/library/stats/trend → 近 30 天日调取次数
+// 「商品总量 / 品牌数 / 待审核」后端无汇总端点 ⇒ 保持 —（不用假数）；「类目数」走 categoryRows（S3-111 ①）
+const callStats = ref<CallStatsView | null>(null)
+const statsError = ref<string | null>(null)
+const tenantRank = ref<TenantRankRow[]>([])
+const rankLoading = ref(false)
+const rankError = ref<string | null>(null)
+const trend = ref<TrendPoint[]>([])
+const trendLoading = ref(false)
+const trendError = ref<string | null>(null)
+
+const kpiMonthCallText = computed(() =>
+  statsError.value ? '加载失败' : formatMonthCallText(callStats.value?.monthCallCount ?? null)
+)
+const rankSummaryText = computed(() =>
+  formatRankSummary(tenantRank.value, callStats.value?.monthCallCount ?? null)
+)
+const trendPoints = computed(() => toTrendPolyline(trend.value))
+const categoryDistNote = computed(() => formatCategoryDistNote(callStats.value))
+const rankState = computed(() =>
+  resolveBlockState({ loading: rankLoading.value, error: rankError.value, hasData: tenantRank.value.length > 0 })
+)
+const trendState = computed(() =>
+  resolveBlockState({ loading: trendLoading.value, error: trendError.value, hasData: trend.value.length > 0 })
+)
 
 /* ───────── 类目只读聚合（S3-111 ①：KPI「类目数」的真值来源） ───────── */
 const categoryRows = ref<PlatformCategoryItem[]>([])
@@ -717,6 +782,28 @@ const detailModal = ref(false)
 const detailSpu = ref<any>(null)
 const detailSkus = ref<any[]>([])
 const detailLoading = ref(false)
+const detailReviewLogs = ref<ReviewLogRow[]>([])
+const reviewLogLoading = ref(false)
+const reviewLogError = ref<string | null>(null)
+
+/**
+ * 审核流水：`GET /api/platform/library/spus/:id/review-logs`（C6-2-T5，只读）
+ * 与详情并行走（详情弹窗不因流水慢而白屏）；失败 ⇒ 错误态，空集 ⇒ "暂无审核记录"。
+ */
+async function fetchSpuReviewLogs(spuId: number) {
+  reviewLogLoading.value = true
+  reviewLogError.value = null
+  detailReviewLogs.value = []
+  try {
+    const res: any = await listSpuReviewLogsApi(spuId)
+    detailReviewLogs.value = normalizeReviewLogs(requirePayload(res))
+  } catch (e: any) {
+    reviewLogError.value = e?.message || '审核流水加载失败'
+  } finally {
+    reviewLogLoading.value = false
+  }
+}
+
 /**
  * ③ 类 #14 + ① 类 #10/#14 接线：详情与 SKU 明细改走 `GET /api/platform/library/spus/:id`
  * （backend/src/routes/platform-library.routes.ts:20 → controller.getSpu → library.service.ts:353 getSpuById 返回 {...spu, skus}）。
@@ -726,8 +813,11 @@ async function openDetail(s: SpuListItem) {
   if (!s?.id) return
   detailSpu.value = s
   detailSkus.value = []
+  detailReviewLogs.value = []
+  reviewLogError.value = null
   detailModal.value = true
   detailLoading.value = true
+  void fetchSpuReviewLogs(s.id)
   try {
     const res: any = await getSpuApi(s.id)
     const data: any = res?.data || res
@@ -812,14 +902,53 @@ async function removeSpu(s: SpuListItem) {
   }
 }
 
-/* ───────── ④ 调取统计（待立项：T3） ───────── */
-// TODO: 待接入 GET /platform/library/stats/rank          租户调取排行 Top10
-// TODO: 待接入 GET /platform/library/stats/trend         近30天日调取次数
-// TODO: 待接入 GET /platform/library/stats/category-dist  按类目分布
-const tenantRank = ref<any[]>([])
-const trend = ref<{ x: number; y: number }[]>([])
-const trendPoints = computed(() => trend.value.map((p) => `${p.x},${p.y}`).join(' '))
-const catDist = ref<{ name: string; calls: string; pct: number; color: string }[]>([])
+/* ───────── ④ 调取统计取数（C6-5 接线；归一化在 library-stats.ts，单一实现） ───────── */
+/** 响应体必须是对象：拿不到数据体 ⇒ 走错误态（不得静默成"暂无数据"） */
+function requirePayload(raw: unknown): Record<string, unknown> {
+  const payload: any = unwrapApiData(raw)
+  if (!payload || typeof payload !== 'object') throw new Error('响应数据缺失')
+  return payload
+}
+
+async function fetchCallStats() {
+  try {
+    const res: any = await getCallStatsApi()
+    callStats.value = normalizeCallStats(requirePayload(res))
+    statsError.value = null
+  } catch (e: any) {
+    // 失败必须显式上屏：路径写错 / 后端 500 都应看到"加载失败"，而不是 0 或"暂无数据"
+    callStats.value = null
+    statsError.value = e?.message || '调取统计加载失败'
+  }
+}
+
+async function fetchTenantRank() {
+  rankLoading.value = true
+  try {
+    const res: any = await getCallRankApi()
+    tenantRank.value = normalizeTenantRank(requirePayload(res))
+    rankError.value = null
+  } catch (e: any) {
+    tenantRank.value = []
+    rankError.value = e?.message || '租户调取排行加载失败'
+  } finally {
+    rankLoading.value = false
+  }
+}
+
+async function fetchTrend() {
+  trendLoading.value = true
+  try {
+    const res: any = await getCallTrendApi(30)
+    trend.value = normalizeCallTrend(requirePayload(res))
+    trendError.value = null
+  } catch (e: any) {
+    trend.value = []
+    trendError.value = e?.message || '调取趋势加载失败'
+  } finally {
+    trendLoading.value = false
+  }
+}
 
 /* ───────── ⑤ 审核队列（① 类 #20 接线：数据源 = 商品库 PENDING 队列） ───────── */
 /**
@@ -927,7 +1056,7 @@ async function batchApproveReview() {
   fetchSpus()
 }
 
-/** 未接入操作的诚实提示：不使用"接口待接入"措辞（避免与"后端已有能力、仅差接线"混淆） */
+/** 未接入操作的诚实提示：不使用"能力缺失"类措辞（避免与"后端已有能力、仅差接线"混淆） */
 function todo(act: string) {
   ElMessage.warning(`${act}：尚未接入（不产生任何数据变更）`)
 }
@@ -1004,6 +1133,9 @@ onMounted(() => {
   fetchSpus()
   fetchReviewQueue()
   fetchCategories()
+  fetchCallStats()
+  fetchTenantRank()
+  fetchTrend()
 })
 </script>
 

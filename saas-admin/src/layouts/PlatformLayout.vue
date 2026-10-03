@@ -118,7 +118,12 @@ const userLabel = computed(() => {
   return `${info.realName || info.username} · 超级管理员`
 })
 
-/** 通知未读数：待接入真实接口后填充，当前不虚构数据 */
+/**
+ * 通知未读数：本期不接入（R101-C6-5 R2 裁定），当前不虚构数据。
+ * 注：后端 `/api/platform/notifications` **已有**未读数据模型（迁移 181 + C6-2-T1 端点，
+ * `backend/src/routes/platform-notification.routes.ts`），与本卡 R2 的"无通知数据模型"前提不符；
+ * 已在 C6-5 回传卡列「需凌舟裁定」，未擅自改判为接线。
+ */
 const unreadCount = computed(() => 0)
 
 function handleLogout() {

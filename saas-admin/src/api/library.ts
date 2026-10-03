@@ -342,3 +342,37 @@ export function getApiKeyStatsApi(id: number) {
 
 // D2（凌舟裁定 §六）：已删除「商品库统计」，理由是自拟路径 `/platform/library/api-keys/stats/summary`
 // 在后端 0 命中、且全仓无调用点。KPI 汇总的真实数据源登记为 T3/T5 等立项项（见 R101-C6-2 立项清单）。
+
+// ==================== 调取统计端点（R101-C6-4-1 已就绪 · C6-5 前端接线） ====================
+
+/**
+ * KPI 汇总：`GET /api/platform/library/stats`
+ * 后端出处：backend/src/controllers/platform/library-call-log.controller.ts（getCallStats）
+ * 返回 `{ monthCallCount, tenantRank[], unavailable[] }`；unavailable 显式声明"无载体"维度（如 categoryDist）。
+ * 归一化与空态/错误态判定见 `views/library/library-stats.ts`（单一实现，组件不重写）。
+ */
+export function getCallStatsApi() {
+  return request.get('/platform/library/stats')
+}
+
+/** 本月租户调取排行 Top10：`GET /api/platform/library/stats/rank` → `{ items: [...] }` */
+export function getCallRankApi() {
+  return request.get('/platform/library/stats/rank')
+}
+
+/**
+ * 近 N 天日调取次数：`GET /api/platform/library/stats/trend?days=30` → `{ days, items: [...] }`
+ * 后端口径：**无调取的日期不补 0**（无数据返回空数组），前端不得用 0 连线冒充。
+ */
+export function getCallTrendApi(days = 30) {
+  return request.get('/platform/library/stats/trend', { params: { days } })
+}
+
+/**
+ * SPU 审核流水（只读）：`GET /api/platform/library/spus/:id/review-logs`（C6-2-T5）
+ * 后端出处：backend/src/routes/platform-library.routes.ts:50 → controller.listSpuReviewLogs
+ *           → library.service.ts getSpuReviewLogs（按 created_at DESC 返回 `{ logs: [...] }`）
+ */
+export function listSpuReviewLogsApi(spuId: number) {
+  return request.get(`/platform/library/spus/${spuId}/review-logs`)
+}

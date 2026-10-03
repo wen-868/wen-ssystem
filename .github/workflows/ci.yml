@@ -162,6 +162,20 @@ jobs:
         working-directory: saas-admin
         run: npx --no-install vue-tsc -b
 
+      # C6-5：saas-admin **最小测试能力**接进 CI（阻断，**零 `continue-on-error`**）。
+      #   DoD 第 4 条：该端不能长期零测试。此前 saas-admin 连 `test` 脚本都没有、workflow 也无调用
+      #   ⇒ 前端纯逻辑改动没有任何回归网。
+      #   形态说明（为什么不新增依赖）：vitest 4.1.10 由 backend 的 devDependency 提供，
+      #   经 npm workspaces 提升到仓库根 `node_modules/.bin`（实测
+      #   `npm --workspace saas-admin exec -- vitest --version` = vitest/4.1.10）⇒ 直接 `vitest run` 即可；
+      #   **不往 saas-admin 写新依赖**，故 package-lock.json 零改动（本卡 diff 白名单只到 saas-admin/** + 本文件）。
+      #   ⚠️ 反测状态（2026-10-03，C6-5 执行会话）：**断言级**红/绿已实证 ——
+      #     `node saas-admin/scripts/verify-library-stats.mjs --logic-only`：改坏 `formatMonthCallText`
+      #     ⇒ FAIL / exit 1；复原 ⇒ 全 PASS / exit 0。**本步骤（vitest）自身的红/绿反测仍须补**：
+      #     执行沙箱禁止 node 子进程（esbuild `spawn EPERM`）⇒ 本机跑不了 vitest，详见回传卡"未完成与阻塞"。
+      - name: Saas admin unit tests (vitest)
+        run: npm --workspace saas-admin test
+
       - name: Build admin web
         run: npm --workspace admin-web run build
 
