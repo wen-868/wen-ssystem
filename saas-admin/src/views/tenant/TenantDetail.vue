@@ -353,8 +353,9 @@ async function onSubmitProxy() {
 const resetReasons = ['租户主动申请', '测试数据清理', '数据错乱恢复']
 const resetForm = reactive({ name: '', reason: '' })
 function onConfirmReset() {
-  // ⛔ C1-2 后端未实现：POST /platform/tenants/:id/reset（双因子 + 操作留痕）
-  // 原实现弹「已提交数据重置」——属**谎报成功**，本单改为如实提示并保持弹窗不关。
+  // 本期不提供：平台租户域无 POST /platform/tenants/:id/reset（凌舟全仓核对 0 命中）。
+  // 该动作属高危写操作，需双因子校验 + 操作留痕的专项设计与审批（涉新表）⇒ 凌舟裁定 R6 本期不做；
+  // 原实现弹「已提交数据重置」属谎报成功，本单改为如实告知「本期不提供」并保持弹窗不关。
   if (resetForm.name !== tenantName.value) {
     ElMessage.warning('输入的租户名称与确认不一致')
     return
@@ -363,7 +364,7 @@ function onConfirmReset() {
     ElMessage.warning('请选择重置原因')
     return
   }
-  ElMessage.warning('数据重置：POST /platform/tenants/:id/reset 后端接口未就绪，已转 C1-2，本次未提交')
+  ElMessage.warning('数据重置本期不提供：该操作需双因子校验与操作留痕的专项设计与审批（涉新表），本次未提交')
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -377,17 +378,19 @@ const exportRanges = reactive([
 const exportFormats = ['Excel', 'CSV']
 const exportFormat = ref('Excel')
 function onCreateExport() {
-  // ⛔ C1-2 后端未实现：POST /platform/tenants/:id/export（异步加密任务）
-  // 原实现弹「已创建导出任务」——属**谎报成功**，本单改为如实提示并保持弹窗不关。
-  ElMessage.warning('数据导出：POST /platform/tenants/:id/export 后端接口未就绪，已转 C1-2，本次未创建')
+  // 本期不提供（详情页级导出）：平台租户域无 POST /platform/tenants/:id/export（凌舟全仓核对 0 命中）。
+  // 已有的是**列表级**导出 GET /api/platform/tenants/export（platform-tenant.routes.ts:27，返回 CSV）⇒ R7 改为指路真实能力。
+  ElMessage.info('详情页数据导出本期不提供：请到「租户列表」页用「导出列表」按钮，导出当前筛选结果为 CSV（列表级导出已接通）')
 }
 
 /* ───────────────────────────────────────────────────────────
    续费 / 冻结
    ─────────────────────────────────────────────────────────── */
-// ⛔ C1-2 后端未实现：POST /platform/tenants/:id/renew
+/* 凌舟裁定 R8（C6-8，与 C6-7 的 R5 同口径）：平台租户域**无** POST /platform/tenants/:id/renew（全仓 0 命中），
+   续费语义属**订阅实体**（在订阅管理中办理）⇒ 删除对不存在路径的承诺，改为「指路」订阅管理；
+   且**不得**改调订阅端点来「凑通」。 */
 function onRenew() {
-  ElMessage.warning('立即续费：POST /platform/tenants/:id/renew 后端接口未就绪，已转 C1-2')
+  ElMessage.info('续费属订阅实体：请在「订阅管理」中找到该租户的订阅记录办理续费')
 }
 // ✅ 已联调：POST /platform/tenants/:id/toggle（platform-tenant.routes.ts:34，已存在）
 //    后端真实语义是「启用/禁用」，设计稿文案为「冻结」，本处按后端语义给提示，避免谎报动作名。

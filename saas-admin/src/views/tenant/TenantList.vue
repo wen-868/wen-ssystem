@@ -336,7 +336,7 @@ function goPage(p: number) {
        ⇒ 后端**强校验**的合法值只有 ACTIVE / DISABLED 两个
    - backend/src/services/platform-tenant.service.ts:89  新建租户写入 status='ACTIVE'
    - backend/src/services/platform/tenant-usage.service.ts:158  rank 过滤 `t.status = 'ACTIVE'`
-   ⇒ 设计稿四态中的「欠费」「已注销」在后端**无对应枚举**，已转 C1-2。
+   ⇒ 设计稿四态中的「欠费」「已注销」在后端**无对应枚举**（枚举口径差距，非端点缺口）⇒ 界面只按后端真实枚举显示，不为不存在的状态造分支。
    ⚠️ 命名口径待凌舟裁定：设计稿把禁用的租户叫「冻结」，后端语义是「禁用」，
       二者不是同一业务动作，本处按后端语义显示「已停用」，避免把「禁用」谎报成「冻结」。
    ─────────────────────────────────────────────────────────── */
@@ -440,9 +440,9 @@ async function onExportList() {
     /* request 拦截器已统一弹中文错误，页面不重复提示 */
   }
 }
-// ⛔ C1-2 后端未实现：批量操作接口
+// 本期不提供：平台租户域无任何 batch/bulk 端点（凌舟全仓核对 0 命中；现有 batch 路由属订单/催收/库存等其它域）⇒ 凌舟裁定 R9 本期不做。
 function onBatch() {
-  ElMessage.warning('批量操作：后端暂无批量接口，已转 C1-2')
+  ElMessage.warning('批量操作本期不提供：平台租户域暂无批量接口，本版仅支持逐条操作，本次未提交')
 }
 // ✅ 已联调：跳真实新建页（路由 /tenants/create → TenantForm.vue:75 调 POST /platform/tenants）
 function onCreate() {
