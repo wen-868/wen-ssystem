@@ -3701,7 +3701,7 @@
 - **✅ 本轮已闭环（续 2）**：**C6-3-2b**（#230 → `ed78ed8d`：迁移 195 `t_referral_ledger` + 20%/60k 截断 + 2 平台端点；生产 `uk_invitee` 唯一键生效、两端点 200 且口径随响应返回）、**S3-151**（#232 → `dc03198465`：条码唯一键改 `(tenant_id,barcode)`；生产**旧键已删、新复合唯一键生效、12 行不变、0 重复组**）。
 - **在跑**：无（执行方队列已清空）。
 - **排队（前置已解锁 / 已出卡）**：**S3-153**（移动端交接班页面；S3-148 报备 A-2 立项，`app-mobile` 当前**无**交接班页面）→ **C7 端级验收（DoD 8 条）＝阶段一终点**。
-- **本轮（2026-10-03 凌舟）**：✅ 已闭环 **S3-154**（#238 → `297847c6`，Auto Deploy `37123279761` success，生产 dist 双文案各命中 1 次；Issue #237 已关）｜✅ 已闭环 **S3-142**（#240 → `7d8e63d1`，Auto Deploy success，dist 三处命中）｜🟡 在跑 **S3-155**（#239，余额中断后本轮重派，工作树已对齐 `297847c6`）｜🧹 主仓卫生事件已隔离（踩坑 [160]）
+- **本轮（2026-10-03 凌舟）**：✅ 已闭环 **S3-154**（#238 → `297847c6`，Auto Deploy `37123279761` success，生产 dist 双文案各命中 1 次；Issue #237 已关）｜✅ 已闭环 **S3-142**（#240 → `7d8e63d1`，Auto Deploy success，dist 三处命中）｜✅ 已闭环 **S3-155**（#241 → `db0ee5fd`，Auto Deploy success，dist 四处引用共享实现）｜🧹 主仓卫生事件已隔离（踩坑 [160]）
 - **工作区卫生（本轮清零）**：移除 **10** 个陈旧 worktree（194/195/196/197/198/205/206/207/212/213）、隔离 `issue-190` 部分副本与 195/213 的 `.tmp` 目录、杀掉 4 个残留服务进程；保留 `issue-204`（S3-144 参考）、`issue-215`、`issue-218`、`wt-docs6`。隔离区：`D:\Users\ZXQL\_hygiene-quarantine-20261002\`（可恢复）。删除 junction 一律用**非递归** `Directory.Delete`，事后主仓复跑 149 passed 证明 node_modules 未受损。
 
 - **✅ S3-152 已结案（凌舟只读审计，2026-10-02）**：12 张表**全部含 `id`+`tenant_id`**；`t_tenant_admin` 生产列与迁移 192 定义**逐列一致**；4 张有存量数据（`t_sys_role` 12/`t_transfer_order_item` 4/`t_tenant_admin` 1/`t_points_record` 1）⇒ `CREATE_TIME` 变化 ≠ 新建；脚本两处"缺列"告警（`earn_ratio`/`settlement_type`）**已逐条证伪为脚本假阳性**（分别属 `t_points_rule` 与 `t_member`/`t_miniapp_order`/`t_supplier`）⇒ **形状合规、无功能风险**；"0 行表的新建 vs 重建"**无法仅凭 information_schema 判定**，已如实登记并把"双快照对比 / binlog 归因"列为**可选加固**。证据：`docs/evidence/S3-152/`（工具+原始读数+结论）。
