@@ -1,0 +1,10 @@
+ M backend/src/__tests__/services/admin/data-transfer.service.test.ts
+ M backend/src/services/admin/data-transfer.service.ts
+?? backend/scripts/s3-154-static-check.mjs
+?? docs/evidence/S3-154/
+?? "docs/tasks/cards/R101-S3-154-\351\230\277\345\235\232\345\233\236\344\274\240.md"
+ .../services/admin/data-transfer.service.test.ts   | 80 ++++++++++++++++++++++
+ .../src/services/admin/data-transfer.service.ts    | 33 ++++++++-
+ 2 files changed, 112 insertions(+), 1 deletion(-)
+80	0	backend/src/__tests__/services/admin/data-transfer.service.test.ts
+32	1	backend/src/services/admin/data-transfer.service.ts

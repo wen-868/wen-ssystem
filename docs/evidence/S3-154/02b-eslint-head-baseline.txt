@@ -1,0 +1,7 @@
+
+D:\Users\ZXQL\wt-agents\issue-237\backend\src\services\admin\data-transfer.service.ts
+  184:8  warning  Async function 'importCustomersCsv' has a complexity of 19. Maximum allowed is 15  complexity
+  367:8  warning  Async function 'importProductsCsv' has a complexity of 39. Maximum allowed is 15   complexity
+
+✖ 2 problems (0 errors, 2 warnings)
+

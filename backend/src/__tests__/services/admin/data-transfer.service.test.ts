@@ -237,5 +237,85 @@ describe("data-transfer.service", () => {
       expect(res.skipped).toBe(1);
       expect(res.updated).toBe(1);
     });
+
+    // S3-154：撞唯一键不得把回库报错原文写进 errors（与 S3-151 建品/导入同口径）
+    // 行号口径沿用本函数既有写法 `第 ${rIdx + 1} 行`（表头计作第 1 行，故首条数据行为「第 2 行」）
+    it("条码撞唯一键 ⇒ errors 为中文业务文案（不含 Duplicate entry）", async () => {
+      const dupBarcode = Object.assign(
+        new Error("Duplicate entry '6901234567890' for key 'uk_product_sku_tenant_barcode'"),
+        { code: "ER_DUP_ENTRY", errno: 1062 },
+      );
+      mocks.query
+        .mockResolvedValueOnce([]) // 分类查重：不存在
+        .mockResolvedValueOnce({ insertId: 10 }) // 建分类
+        .mockResolvedValueOnce([]) // SPU 查重：不存在
+        .mockResolvedValueOnce({ insertId: 20 }) // 建 SPU
+        .mockResolvedValueOnce({}) // patchSpu
+        .mockResolvedValueOnce([]) // SKU 查重：不存在
+        .mockRejectedValueOnce(dupBarcode) // 建 SKU：条码撞唯一键
+        .mockResolvedValue({});
+      const csv = "商品编码,条码,商品名称,规格型号,单位,品牌,售价\nSKU001,6901234567890,五粮液 52度 500ml,500ml,瓶,五粮液,450";
+      const res = await importProductsCsv(csv, "t1");
+      expect(res.imported).toBe(0);
+      expect(res.skipped).toBe(1);
+      expect(res.errors).toEqual(["第 2 行：该条码已被其他商品使用"]);
+      expect(res.errors.join("|")).not.toContain("Duplicate entry");
+    });
+
+    it("商品编码撞唯一键 ⇒ 中文文案（按撞的列区分，同样不含库报错原文）", async () => {
+      const dupCode = Object.assign(
+        new Error("Duplicate entry 'SKU001' for key 'uk_product_sku_code'"),
+        { code: "ER_DUP_ENTRY", errno: 1062 },
+      );
+      mocks.query
+        .mockResolvedValueOnce([]) // 分类查重：不存在
+        .mockResolvedValueOnce({ insertId: 10 }) // 建分类
+        .mockResolvedValueOnce([]) // SPU 查重：不存在
+        .mockResolvedValueOnce({ insertId: 20 }) // 建 SPU
+        .mockResolvedValueOnce({}) // patchSpu
+        .mockResolvedValueOnce([]) // SKU 查重：不存在
+        .mockRejectedValueOnce(dupCode) // 建 SKU：商品编码撞唯一键
+        .mockResolvedValue({});
+      const csv = "商品编码,条码,商品名称,规格型号,单位,品牌,售价\nSKU001,6901234567890,五粮液 52度 500ml,500ml,瓶,五粮液,450";
+      const res = await importProductsCsv(csv, "t1");
+      expect(res.errors).toEqual(["第 2 行：商品编码重复，请检查后重试"]);
+      expect(res.errors.join("|")).not.toContain("Duplicate entry");
+    });
+
+    it("非撞键的 DB 错误保留原始信息（不误吞、不掩盖）", async () => {
+      const otherErr = new Error("Data too long for column 'sku_name' at row 1");
+      mocks.query
+        .mockResolvedValueOnce([]) // 分类查重：不存在
+        .mockResolvedValueOnce({ insertId: 10 }) // 建分类
+        .mockResolvedValueOnce([]) // SPU 查重：不存在
+        .mockResolvedValueOnce({ insertId: 20 }) // 建 SPU
+        .mockResolvedValueOnce({}) // patchSpu
+        .mockResolvedValueOnce([]) // SKU 查重：不存在
+        .mockRejectedValueOnce(otherErr) // 建 SKU：非撞键错误
+        .mockResolvedValue({});
+      const csv = "商品编码,条码,商品名称,规格型号,单位,品牌,售价\nSKU001,6901234567890,五粮液 52度 500ml,500ml,瓶,五粮液,450";
+      const res = await importProductsCsv(csv, "t1");
+      expect(res.errors).toEqual(["第 2 行：Data too long for column 'sku_name' at row 1"]);
+    });
+
+    it("正常新增行仍按原语义成功（本单改动未破坏主链路）", async () => {
+      mocks.query
+        .mockResolvedValueOnce([]) // 分类查重：不存在
+        .mockResolvedValueOnce({ insertId: 10 }) // 建分类
+        .mockResolvedValueOnce([]) // SPU 查重：不存在
+        .mockResolvedValueOnce({ insertId: 20 }) // 建 SPU
+        .mockResolvedValueOnce({}) // patchSpu
+        .mockResolvedValueOnce([]) // SKU 查重：不存在
+        .mockResolvedValueOnce({ insertId: 30 }) // 建 SKU
+        .mockResolvedValueOnce([]) // 价格查重：不存在
+        .mockResolvedValueOnce({ insertId: 40 }) // 建价格
+        .mockResolvedValueOnce([{ id: 1 }]) // 默认门店
+        .mockResolvedValue({});
+      const csv = "商品编码,条码,商品名称,规格型号,单位,品牌,售价\nSKU001,6901234567890,五粮液 52度 500ml,500ml,瓶,五粮液,450";
+      const res = await importProductsCsv(csv, "t1");
+      expect(res.imported).toBe(1);
+      expect(res.skipped).toBe(0);
+      expect(res.errors).toEqual([]);
+    });
   });
 });
