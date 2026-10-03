@@ -362,6 +362,87 @@ export function removeCsrfToken(): void {
   uni.removeStorageSync(SENSITIVE_KEYS.CSRF_TOKEN)
 }
 
+// ────────────────────── 记住我 / 已保存凭据（S3-161） ──────────────────────
+
+/**
+ * 「记住我」专用存储 Key（**不复用 token 的 key**）
+ *
+ * 背景（S3-161）：商家端 JWT 仅 4h（backend/src/middleware/auth.ts:74），
+ * 隔几小时重开客户端就会被 401 踢回登录页。配套后端单 S3-160 提供
+ * 「rememberMe ⇒ 30 天 token」；本端只负责消费它：
+ *   - 登录时把 rememberMe 透传给后端；
+ *   - 勾选时把账号/口令写入**加密存储**，下次打开登录页自动带出（用户零输入）；
+ *   - 取消勾选时清除，不留残留。
+ *
+ * ⚠️ 这三个 Key 是**新增专用 Key**，刻意**未加入**上方 SENSITIVE_KEYS：
+ *    SENSITIVE_KEYS 会驱动「旧明文迁移」与 uni API 拦截器，
+ *    而这些 Key 历史上不存在明文形态，加入只会引入无谓的迁移/拦截分支。
+ *    加密能力由 utils/crypto.ts 的 setSecureStorage / getSecureStorage
+ *    直接提供（AES-256-GCM），与 token 走同一套算法，不新增算法。
+ */
+const CREDENTIAL_KEYS = {
+  ACCOUNT: 'merchant_saved_account',
+  PASSWORD: 'merchant_saved_password',
+  REMEMBER_ME: 'merchant_remember_me',
+} as const
+
+/** 读取「记住我」勾选状态。**缺省返回 true**（派单：默认勾选） */
+export function getRememberMe(): boolean {
+  const raw = getSecureStorage(CREDENTIAL_KEYS.REMEMBER_ME)
+  if (!raw) return true
+  try {
+    return JSON.parse(raw) !== false
+  } catch {
+    return true
+  }
+}
+
+/** 写入「记住我」勾选状态 */
+export function setRememberMe(value: boolean): void {
+  setSecureStorage(CREDENTIAL_KEYS.REMEMBER_ME, value)
+}
+
+/** 读取已保存账号（无则返回空串） */
+export function getSavedAccount(): string {
+  const raw = getSecureStorage(CREDENTIAL_KEYS.ACCOUNT)
+  if (!raw) return ''
+  try {
+    const parsed = JSON.parse(raw)
+    return typeof parsed === 'string' ? parsed : String(parsed ?? '')
+  } catch {
+    return raw
+  }
+}
+
+/** 读取已保存口令（无则返回空串）。⚠️ 调用方不得打印/回显该值，取证只留哈希 */
+export function getSavedPassword(): string {
+  const raw = getSecureStorage(CREDENTIAL_KEYS.PASSWORD)
+  if (!raw) return ''
+  try {
+    const parsed = JSON.parse(raw)
+    return typeof parsed === 'string' ? parsed : String(parsed ?? '')
+  } catch {
+    return raw
+  }
+}
+
+/** 登录成功后调用：勾选 ⇒ 落加密存储；未勾选 ⇒ 清掉残留 */
+export function syncSavedCredentials(remember: boolean, username: string, password: string): void {
+  if (remember) {
+    setSecureStorage(CREDENTIAL_KEYS.ACCOUNT, username)
+    setSecureStorage(CREDENTIAL_KEYS.PASSWORD, password)
+  } else {
+    clearSavedCredentials()
+  }
+  setRememberMe(remember)
+}
+
+/** 清掉已保存的账号与口令（不动 token，也不动勾选状态本身） */
+export function clearSavedCredentials(): void {
+  removeSecureStorage(CREDENTIAL_KEYS.ACCOUNT)
+  removeSecureStorage(CREDENTIAL_KEYS.PASSWORD)
+}
+
 // ──────────────────────────── Clear All ────────────────────────────
 
 /**

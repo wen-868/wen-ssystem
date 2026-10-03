@@ -52,6 +52,15 @@
           <text class="error-text">{{ errors.password }}</text>
         </view>
 
+        <!-- 记住我（S3-161）：默认勾选 ⇒ 消费后端 30 天长效 token + 账号口令自动带出 -->
+        <view class="remember-row" @tap="rememberMe = !rememberMe">
+          <view class="remember-box" :class="{ 'remember-box--checked': rememberMe }">
+            <text class="remember-box-icon" v-if="rememberMe">✓</text>
+          </view>
+          <text class="remember-text">记住我</text>
+          <text class="remember-hint">记住账号密码，下次自动登录</text>
+        </view>
+
         <view class="login-error" v-if="errorMsg">
           <text class="error-text">{{ errorMsg }}</text>
         </view>
@@ -129,14 +138,33 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { authApi, DEMO_ACCOUNT, DEMO_PASSWORD } from '@/api/modules/auth'
+import { getSavedAccount, getSavedPassword, syncSavedCredentials, getRememberMe } from '@/api/storage'
 import manifest from '@/manifest.json'
 
 const userStore = useUserStore()
 
 // 已登录（如跳转失败后刷新/重新显示本页）时自动进入系统
 onLoad(() => {
+  restoreSavedCredentials()
   if (userStore.isLoggedIn) goHome()
 })
+
+/**
+ * S3-161：把「记住我」保存的账号/口令自动带出（用户零输入）
+ * - 仅当 rememberMe 为 true 时才有值；未勾选时存储已被清空，读回空串。
+ * - 口令只在内存与加密存储之间流转，**不打印、不回显**（取证只留哈希）。
+ */
+function restoreSavedCredentials() {
+  if (!rememberMe.value) return
+  const savedAccount = getSavedAccount()
+  const savedPassword = getSavedPassword()
+  if (savedAccount) loginForm.username = savedAccount
+  if (savedPassword) loginForm.password = savedPassword
+  if (savedAccount || savedPassword) {
+    // 打点只证明「带出了」，不含任何凭据内容
+    console.log('[login] 已自动带出记住的账号 accountLen=%d passwordLen=%d', savedAccount.length, savedPassword.length)
+  }
+}
 onShow(() => {
   if (userStore.isLoggedIn && userStore.initialized) goHome()
 })
@@ -148,6 +176,8 @@ const mfaRequired = ref(false)
 const mfaToken = ref('')
 const mfaCode = ref('')
 const mfaVerifying = ref(false)
+/** 「记住我」：默认勾选（派单口径）；有历史选择时以历史为准 */
+const rememberMe = ref<boolean>(getRememberMe())
 const errorMsg = ref('')
 
 const loginForm = reactive({
@@ -174,13 +204,19 @@ async function handleLogin() {
 
   loading.value = true
   try {
-    const result = await authApi.login({ username: loginForm.username.trim(), password: loginForm.password })
+    const result = await authApi.login({
+      username: loginForm.username.trim(),
+      password: loginForm.password,
+      rememberMe: rememberMe.value,
+    })
     if (result.mfaRequired) {
       mfaRequired.value = true
       mfaToken.value = result.mfaToken || ''
       errorMsg.value = ''
     } else {
       userStore.applyLoginResult(result)
+      // 勾选 ⇒ 账号口令落加密存储；未勾选 ⇒ 清掉残留（派单④）
+      syncSavedCredentials(rememberMe.value, loginForm.username.trim(), loginForm.password)
       uni.showToast({ title: '登录成功', icon: 'success' })
       goHome()
     }
@@ -202,6 +238,7 @@ async function handleMfaVerify() {
   try {
     const result = await authApi.verifyMfa(mfaToken.value, mfaCode.value)
     userStore.applyLoginResult(result)
+    syncSavedCredentials(rememberMe.value, loginForm.username.trim(), loginForm.password)
     uni.showToast({ title: '登录成功', icon: 'success' })
     goHome()
   } catch (err: any) {
@@ -616,6 +653,47 @@ function goRegister() {
   font-size: 22rpx;
   color: $uni-text-color-placeholder;
   margin-top: $uni-spacing-sm;
+}
+
+/* ── 记住我（S3-161） ── */
+.remember-row {
+  display: flex;
+  align-items: center;
+  margin-top: $uni-spacing-sm;
+  padding: 4rpx 0;
+}
+
+.remember-box {
+  width: 32rpx;
+  height: 32rpx;
+  border: 2rpx solid $uni-border-color;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remember-box--checked {
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
+}
+
+.remember-box-icon {
+  font-size: 20rpx;
+  line-height: 1;
+  color: $uni-text-color-inverse;
+}
+
+.remember-text {
+  margin-left: $uni-spacing-sm;
+  font-size: 26rpx;
+  color: $uni-text-color;
+}
+
+.remember-hint {
+  margin-left: auto;
+  font-size: 22rpx;
+  color: $uni-text-color-placeholder;
 }
 
 /* ── 底部 ── */
