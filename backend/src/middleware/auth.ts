@@ -68,10 +68,22 @@ export const MERCHANT_JWT_AUDIENCE = "zhixiang-client";
 export const PLATFORM_JWT_ISSUER = "zhixiang-platform";
 export const PLATFORM_JWT_AUDIENCE = "zhixiang-platform-client";
 
-export function signToken(user: AuthUser) {
+/**
+ * 商家端 JWT 有效期（S3-160）。
+ * - 缺省（不勾选「记住我」）＝ `4h`：与合入前逐字一致，不放松默认会话边界；
+ * - 勾选「记住我」＝ `30d` 长效 token。
+ * 只允许这两个取值，禁止把默认值直接改成长效。
+ */
+export const MERCHANT_TOKEN_TTL_DEFAULT = "4h";
+export const MERCHANT_TOKEN_TTL_REMEMBER_ME = "30d";
+export type MerchantTokenTtl =
+  | typeof MERCHANT_TOKEN_TTL_DEFAULT
+  | typeof MERCHANT_TOKEN_TTL_REMEMBER_ME;
+
+export function signToken(user: AuthUser, ttl: MerchantTokenTtl = MERCHANT_TOKEN_TTL_DEFAULT) {
   return jwt.sign(user, env.JWT_SECRET, {
     algorithm: "HS256",
-    expiresIn: "4h",
+    expiresIn: ttl,
     issuer: MERCHANT_JWT_ISSUER,
     audience: MERCHANT_JWT_AUDIENCE,
   });

@@ -54,7 +54,17 @@ describe("auth.controller", () => {
     const req = mockReq({ body: { username: "admin", password: "Admin@123" } });
     const res = mockRes();
     await login(req as any, res as any, vi.fn());
-    expect(authService.login).toHaveBeenCalledWith("admin", "Admin@123");
+    // S3-160：未传 rememberMe 时归一为 false（缺省仍 4h）
+    expect(authService.login).toHaveBeenCalledWith("admin", "Admin@123", false);
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("login - rememberMe=true 原样透传到 service（S3-160 长效）", async () => {
+    (authService.login as any).mockResolvedValue({ token: "token123", user: { id: 1 } });
+    const req = mockReq({ body: { username: "admin", password: "Admin@123", rememberMe: true } });
+    const res = mockRes();
+    await login(req as any, res as any, vi.fn());
+    expect(authService.login).toHaveBeenCalledWith("admin", "Admin@123", true);
     expect(ok).toHaveBeenCalled();
   });
 
