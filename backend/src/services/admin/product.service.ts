@@ -5,6 +5,30 @@ import { makeBizNo } from "../../shared/id";
 import { detectChangedFields, syncChangedFields } from "../../shared/field-sync";
 import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync";
 import { cacheGet, CacheKeys } from "../../shared/redis-cache";
+import { getProductQuota } from "../platform/tenant-quota.service";
+
+/**
+ * S3-142：商品配额不足（业务失败 ⇒ 控制器映射 HTTP 400 + 业务码 "1001"）
+ *
+ * 口径与 COPY 调取（library-copy.service.ts:485-492）**完全一致**：
+ *   · limit === null（无订阅 / 未配上限）⇒ 不拦；
+ *   · limit !== null && used >= limit ⇒ 拒绝，文案带"已用 / 上限"读数；
+ *   · 计数与写入同一事务（getProductQuota(tenantId, conn)），防并发超卖。
+ *
+ * 为什么不在服务层直接落 400：错误处理器（middleware/error-handler.ts）会把带 statusCode 的
+ * 错误统一映射成 code = String(statusCode)（即 "400"），拿不到业务码 "1001"；
+ * 业务码必须由控制器显式落（与 controllers/admin/library-copy.controller.ts:86 同一形态）。
+ */
+export class ProductQuotaExceededError extends Error {
+  public readonly statusCode = 400;
+  /** 业务码：与标准 §3.3「租户配额超限」一致 */
+  public readonly businessCode = "1001";
+
+  constructor(used: number, limit: number) {
+    super(`商品配额不足（已用 ${used} 个 / 上限 ${limit} 个），请升级套餐或清理已有商品后重试`);
+    this.name = "ProductQuotaExceededError";
+  }
+}
 
 /** 规范图片 URL 列表：兼容数组与换行/逗号分隔字符串 */
 function normalizeImageUrls(raw?: string[] | string | null): string[] {
@@ -434,6 +458,13 @@ export async function createProduct(body: {
 }, tenantId: string, rawBody: Record<string, unknown>) {
   try {
     const result = await transaction(async (conn) => {
+      // S3-142：商品配额校验（口径与 COPY 调取一致）——
+      // 计数与后续 INSERT 落在**同一事务**内（防并发建品同时放行造成超卖）；
+      // limit === null（无订阅 / 未配上限）⇒ 不设上限、不拦。
+      const quota = await getProductQuota(tenantId, conn);
+      if (quota.limit !== null && quota.used >= quota.limit) {
+        throw new ProductQuotaExceededError(quota.used, quota.limit);
+      }
       const spuCode = makeBizNo("SPU");
       const [spuResult] = await conn.query<ResultSetHeader>(
         `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
