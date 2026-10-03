@@ -187,7 +187,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   listTenantsApi,
   getTenantApi,
@@ -196,6 +196,7 @@ import {
   toggleTenantApi,
   getTenantStatusStatsApi,
   exportTenantsApi,
+  proxyLoginTenantApi,
 } from '../../api/tenant'
 import { buildQuotaRows, type QuotaRow } from './quota'
 
@@ -335,7 +336,7 @@ function goPage(p: number) {
        ⇒ 后端**强校验**的合法值只有 ACTIVE / DISABLED 两个
    - backend/src/services/platform-tenant.service.ts:89  新建租户写入 status='ACTIVE'
    - backend/src/services/platform/tenant-usage.service.ts:158  rank 过滤 `t.status = 'ACTIVE'`
-   ⇒ 设计稿四态中的「欠费」「已注销」在后端**无对应枚举**，已转 C1-2。
+   ⇒ 设计稿四态中的「欠费」「已注销」在后端**无对应枚举**（枚举口径差距，非端点缺口）⇒ 界面只按后端真实枚举显示，不为不存在的状态造分支。
    ⚠️ 命名口径待凌舟裁定：设计稿把禁用的租户叫「冻结」，后端语义是「禁用」，
       二者不是同一业务动作，本处按后端语义显示「已停用」，避免把「禁用」谎报成「冻结」。
    ─────────────────────────────────────────────────────────── */
@@ -386,9 +387,10 @@ function rowActions(row: any) {
   return [...base, { key: 'overview', label: '概况', cls: '' }]
 }
 
-/* ⛔ C1-2 后端仍缺（不得谎报成功）：renew / :id/export / reset 三个写操作 */
+/* 平台租户域**确实没有**的写操作（不得谎报成功，也不得承诺不存在的路径）：export / reset 后端全仓 0 命中。
+   ⚠️ renew **不在其中**：平台租户域无该 renew 端点（凌舟裁定 R5 · C6-7 本期不做），
+      续费属**订阅实体**（在订阅管理中办理）⇒ 见 onRenew()「指路」，不再列在此处。 */
 const BLOCKED_ACTIONS: Record<string, string> = {
-  renew: '续费（POST /platform/tenants/:id/renew）',
   export: '数据导出（POST /platform/tenants/:id/export，仅列表级 /tenants/export 已落地）',
   reset: '重置数据（POST /platform/tenants/:id/reset）',
 }
@@ -400,7 +402,9 @@ async function onRowAction(key: string, row: any) {
   // 启用/停用：接已存在的 POST /platform/tenants/:id/toggle
   if (key === 'freeze') return toggleTenantStatus(row, 'DISABLED')
   if (key === 'unfreeze') return toggleTenantStatus(row, 'ACTIVE')
-  ElMessage.warning(`${BLOCKED_ACTIONS[key] || key}：后端接口未就绪，已转 C1-2`)
+  // 续费：平台租户域无该端点（R5 本期不做）⇒ 指路订阅管理，不再弹「未就绪」
+  if (key === 'renew') return onRenew()
+  ElMessage.warning(`${BLOCKED_ACTIONS[key] || key}：后端暂无该写操作接口，本次未提交`)
 }
 
 /** POST /platform/tenants/:id/toggle（platform-tenant.routes.ts:34，已存在） */
@@ -436,9 +440,9 @@ async function onExportList() {
     /* request 拦截器已统一弹中文错误，页面不重复提示 */
   }
 }
-// ⛔ C1-2 后端未实现：批量操作接口
+// 本期不提供：平台租户域无任何 batch/bulk 端点（凌舟全仓核对 0 命中；现有 batch 路由属订单/催收/库存等其它域）⇒ 凌舟裁定 R9 本期不做。
 function onBatch() {
-  ElMessage.warning('批量操作：后端暂无批量接口，已转 C1-2')
+  ElMessage.warning('批量操作本期不提供：平台租户域暂无批量接口，本版仅支持逐条操作，本次未提交')
 }
 // ✅ 已联调：跳真实新建页（路由 /tenants/create → TenantForm.vue:75 调 POST /platform/tenants）
 function onCreate() {
@@ -555,13 +559,50 @@ function onExpandQuota() {
   closeDetail()
   router.push(`/tenants/${id}`)
 }
-// ⛔ C1-2 后端未实现：POST /platform/tenants/:id/renew
+/* 凌舟裁定 R5（C6-7）：平台租户域**无**该 renew 端点（全仓 0 命中），
+   续费语义属**订阅实体**（订阅管理中办理）⇒ 本期不做：删除对不存在路径的承诺，
+   改为「指路」到订阅管理；且**不得**改调订阅端点来「凑通」。 */
 function onRenew() {
-  ElMessage.warning('立即续费：POST /platform/tenants/:id/renew 后端接口未就绪，已转 C1-2')
+  closeDetail()
+  ElMessage.info('续费属订阅实体：请在「订阅管理」中找到该租户的订阅记录办理续费')
+  router.push('/subscriptions')
 }
-// ⛔ C1-2 后端未实现：POST /platform/tenants/:id/proxy-login
-function onProxyLogin() {
-  ElMessage.warning('代登录（需审批）：POST /platform/tenants/:id/proxy-login 后端接口未就绪，已转 C1-2')
+
+/* 凌舟裁定 R4（C6-7）：后端 POST /api/platform/tenants/:id/proxy-login（platform-tenant.routes.ts:48）
+   与 api 层 proxyLoginTenantApi（C1-2 A4，写 t_platform_audit_log 留痕）**均已就绪**，
+   原「后端未就绪」的说法是过期口径 ⇒ 本单真接线。
+   reason 必填（后端 tenant-ops.controller.ts 校验 trim 后 2-200 字）⇒ 前端先拦，不把 400 留给用户看。 */
+async function onProxyLogin() {
+  const id = detail.value?.id
+  if (!id) return
+  let reason = ''
+  try {
+    const { value } = await ElMessageBox.prompt(
+      '代登录将写入平台审计日志（t_platform_audit_log）留痕，请填写代登录事由：',
+      '代登录（需审批）',
+      {
+        confirmButtonText: '确认代登录',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入代登录事由（2-200 字）',
+        inputValidator: (v: string) => (!!v && v.trim().length >= 2) || '代登录事由必填（2-200 字）',
+      },
+    )
+    reason = String(value ?? '').trim()
+  } catch {
+    return // 用户取消
+  }
+  // 双保险：即便弹窗校验被绕过，也不把后端 400 留给用户
+  if (reason.length < 2) {
+    ElMessage.warning('代登录事由必填（2-200 字）')
+    return
+  }
+  try {
+    await proxyLoginTenantApi(id, { reason })
+    ElMessage.success(`已代登录并留痕：${currentTenantName.value}`)
+    closeDetail()
+  } catch {
+    /* request 拦截器已统一弹中文错误，页面不重复提示 */
+  }
 }
 // ✅ 已联调：抽屉「冻结」→ POST /platform/tenants/:id/toggle（后端真实语义为「停用」）
 async function onFreeze() {
