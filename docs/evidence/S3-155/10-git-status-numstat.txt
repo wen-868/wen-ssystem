@@ -1,0 +1,44 @@
+# 命令：git status --porcelain; git diff --numstat; git ls-files --others --exclude-standard
+# 采集时间：2026-10-03（终态）
+
+ M backend/scripts/s3-154-static-check.mjs
+ M backend/src/__tests__/services/admin/credit-collection.test.ts
+ M backend/src/__tests__/services/sync/delta-sync.service.test.ts
+ M backend/src/services/admin/credit-collection.service.ts
+ M backend/src/services/admin/data-transfer.service.ts
+ M backend/src/services/platform/library.service.ts
+ M backend/src/services/sync/delta-sync.service.ts
+?? backend/scripts/s3-155-static-check.mjs
+?? backend/src/__tests__/services/platform/library.service.test.ts
+?? backend/src/__tests__/shared/db-error-message.test.ts
+?? backend/src/shared/db-error-message.ts
+?? docs/evidence/S3-155/
+
+--- git diff --numstat ---
+30	15	backend/scripts/s3-154-static-check.mjs
+34	0	backend/src/__tests__/services/admin/credit-collection.test.ts
+30	0	backend/src/__tests__/services/sync/delta-sync.service.test.ts
+3	1	backend/src/services/admin/credit-collection.service.ts
+7	32	backend/src/services/admin/data-transfer.service.ts
+6	1	backend/src/services/platform/library.service.ts
+3	1	backend/src/services/sync/delta-sync.service.ts
+
+--- untracked ---
+backend/scripts/s3-155-static-check.mjs
+backend/src/__tests__/services/platform/library.service.test.ts
+backend/src/__tests__/shared/db-error-message.test.ts
+backend/src/shared/db-error-message.ts
+docs/evidence/S3-155/01-tsc.txt
+docs/evidence/S3-155/02-eslint-changed-files.txt
+docs/evidence/S3-155/02b-eslint-HEAD-baseline.txt
+docs/evidence/S3-155/03-s3-155-green.txt
+docs/evidence/S3-155/04-s3-155-revert-inmemory.txt
+docs/evidence/S3-155/05-s3-155-real-revert-red.txt
+docs/evidence/S3-155/06-s3-155-restore-green.txt
+docs/evidence/S3-155/07-vitest-attempt.txt
+docs/evidence/S3-155/08-scan-card-regex-HEAD.txt
+docs/evidence/S3-155/08b-scan-card-regex-now.txt
+docs/evidence/S3-155/09-scan-ER_DUP_ENTRY-now.txt
+docs/evidence/S3-155/10-git-status-numstat.txt
+docs/evidence/S3-155/11-s3-154-device-green.txt
+

@@ -17,6 +17,7 @@
  */
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { AppError } from "../../shared/app-error";
+import { rowErrorMessage } from "../../shared/db-error-message";
 import logger from "../../shared/logger";
 import type { RowDataPacket } from "mysql2";
 
@@ -768,7 +769,8 @@ export async function submitOfflineOrders(
             successCount++;
         } catch (err: unknown) {
             // 错误隔离：单条失败不影响其他订单
-            const errorMsg = err instanceof Error ? err.message : String(err);
+            // S3-155：撞唯一键不得把回库报错原文回给调用方；非撞键错误保留原文（不误吞、不掩盖）
+            const errorMsg = rowErrorMessage(err, { dupMessage: "该单据号已存在，请勿重复提交" });
             logger.warn(`[离线订单提交] 失败 draftNo=${order.draftNo}: ${errorMsg}`);
             results.push({ draftNo: order.draftNo, success: false, errorMsg });
             failureCount++;

@@ -614,6 +614,36 @@ describe("delta-sync.service - submitOfflineOrders", () => {
         expect(mocks.transaction).not.toHaveBeenCalled();
     });
 
+    // S3-155：单条订单撞唯一键 ⇒ 领域化中文文案，不得把回库报错原文回给调用方
+    it("S3-155 撞销售单号唯一键 ⇒ 领域化中文（不含 Duplicate entry）", async () => {
+        const dupBill = Object.assign(
+            new Error("Duplicate entry 'DRAFT-DUP' for key 'uk_sale_bill_no'"),
+            { code: "ER_DUP_ENTRY", errno: 1062 },
+        );
+        mocks.queryOneWithTenant.mockResolvedValue(null);  // 预查重未命中（并发窗口）
+        mocks.transaction.mockRejectedValueOnce(dupBill);
+        const orders = [
+            { draftNo: "DRAFT-DUP", items: [buildOrderItem()], totalAmount: 774, createdAt: "2026-07-19T10:00:00Z" },
+        ];
+        const res = await submitOfflineOrders(orders, TENANT_A, 1);
+        expect(res.successCount).toBe(0);
+        expect(res.failureCount).toBe(1);
+        expect(res.results[0].success).toBe(false);
+        expect(res.results[0].errorMsg).toBe("该单据号已存在，请勿重复提交");
+        expect(String(res.results[0].errorMsg)).not.toContain("Duplicate entry");
+    });
+
+    it("S3-155 非撞键错误保留原文（不误吞）", async () => {
+        mocks.queryOneWithTenant.mockResolvedValue(null);
+        mocks.transaction.mockRejectedValueOnce(new Error("Lock wait timeout exceeded"));
+        const orders = [
+            { draftNo: "DRAFT-LOCK", items: [buildOrderItem()], totalAmount: 774, createdAt: "2026-07-19T10:00:00Z" },
+        ];
+        const res = await submitOfflineOrders(orders, TENANT_A, 1);
+        expect(res.results[0].success).toBe(false);
+        expect(res.results[0].errorMsg).toBe("Lock wait timeout exceeded");
+    });
+
     it("items 为空 — 返回失败 errorMsg", async () => {
         mocks.queryOneWithTenant.mockResolvedValue(null);
         mockTransactionResolve();

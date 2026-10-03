@@ -5,6 +5,7 @@
 import { query } from "../../shared/db";
 import { AppError } from "../../shared/app-error";
 import { makeBizNo } from "../../shared/id";
+import { BARCODE_DUPLICATE_MESSAGE, rowErrorMessage } from "../../shared/db-error-message";
 import { exportProducts, exportCustomers } from "./export.service";
 
 /* ── 行业通用模板（中文表头，兼容管家婆/用友/金蝶等同行导出格式） ── */
@@ -358,36 +359,6 @@ async function upsertInventory(skuId: number, quantity: number, tenantId: string
 }
 
 /**
- * S3-154：CSV 商品导入单行失败文案，与 S3-151（`product.service.ts` 的 importRowErrorMessage）同口径：
- * 撞唯一键一律给中文业务文案，**不得**把回库报错原文（如 `Duplicate entry … for key …`）写进 errors；
- * 其它错误保留原始信息，便于排查（不误吞、不掩盖）。
- */
-const BARCODE_DUPLICATE_MESSAGE = "该条码已被其他商品使用";
-const SKU_CODE_DUPLICATE_MESSAGE = "商品编码重复，请检查后重试";
-
-/** 回库唯一键撞车判定：只认 1062（ER_DUP_ENTRY），不吞其它错误 */
-function isDuplicateEntryError(e: unknown): boolean {
-  return (
-    typeof e === "object" &&
-    e !== null &&
-    ((e as { code?: string }).code === "ER_DUP_ENTRY" ||
-      (e as { errno?: number }).errno === 1062)
-  );
-}
-
-/** 撞的是不是"条码"这一列（同一张表还有 uk_product_sku_code，不能混为一谈） */
-function isBarcodeDuplicateError(e: unknown): boolean {
-  return isDuplicateEntryError(e) && /barcode/i.test(String((e as { message?: string }).message ?? ""));
-}
-
-/** 导入单行失败文案：撞键走中文业务文案，其它保留原始信息 */
-function productImportRowErrorMessage(err: unknown): string {
-  if (isBarcodeDuplicateError(err)) return BARCODE_DUPLICATE_MESSAGE;
-  if (isDuplicateEntryError(err)) return SKU_CODE_DUPLICATE_MESSAGE;
-  return (err as Error)?.message || "导入失败";
-}
-
-/**
  * 商品 CSV 导入（行业通用中文模板）：
  * 商品编码,条码,商品名称,规格型号,单位,分类,品牌,进价,售价,批发价,库存数量,预警值
  * 同时兼容英文表头 sku_code,barcode,sku_name,category 等同类叫法。
@@ -480,8 +451,12 @@ export async function importProductsCsv(csv: string, tenantId: string): Promise<
       }
     } catch (e: any) {
       skipped++;
-      // S3-154：撞键等 DB 错误不得把回库报错原文写进 errors（与 S3-151 建品/导入同口径）
-      errors.push(`第 ${rIdx + 1} 行：${productImportRowErrorMessage(e)}`);
+      // S3-154 / S3-155：撞键等 DB 错误不得把回库报错原文写进 errors（与 S3-151 建品/导入同口径）
+      errors.push(`第 ${rIdx + 1} 行：${rowErrorMessage(e, {
+        barcodeMessage: BARCODE_DUPLICATE_MESSAGE,
+        dupMessage: "商品编码重复，请检查后重试",
+        fallback: "导入失败",
+      })}`);
     }
   }
 

@@ -168,6 +168,40 @@ describe("admin credit-collection.service - batchRemind", () => {
     expect(res.failCount).toBe(1);
     expect(res.errors).toEqual(["客户1处理失败: 数据库连接失败"]);
   });
+
+  // S3-155：写库撞唯一键 ⇒ 领域化中文文案，不得把回库报错原文回给调用方
+  it("S3-155 写催收记录撞唯一键 ⇒ 领域化中文（不含 Duplicate entry）", async () => {
+    const dupRecord = Object.assign(
+      new Error("Duplicate entry '1-2026-10-03' for key 'uk_collection_record_daily'"),
+      { code: "ER_DUP_ENTRY", errno: 1062 },
+    );
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1, name: "张三", mobile: "13800000001" })  // customer
+      .mockResolvedValueOnce({ credit_used: 5000, credit_limit: 10000 });  // credit
+    mocks.queryWithTenant.mockRejectedValueOnce(dupRecord);  // INSERT 撞唯一键
+    const res = await batchRemind({
+      customerIds: [1], method: "SMS", content: "请尽快还款", collectionLevel: "REMIND",
+    }, ctx);
+    expect(res.successCount).toBe(0);
+    expect(res.failCount).toBe(1);
+    expect(res.errors).toEqual(["客户1处理失败: 该客户存在重复的催收记录"]);
+    expect(res.errors!.join("|")).not.toContain("Duplicate entry");
+  });
+
+  it("S3-155 非撞键的 DB 错误保留原始信息（不误吞）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1, name: "张三", mobile: "13800000001" })
+      .mockResolvedValueOnce({ credit_used: 5000, credit_limit: 10000 });
+    mocks.queryWithTenant.mockRejectedValueOnce(
+      new Error("Data too long for column 'collection_content' at row 1"),
+    );
+    const res = await batchRemind({
+      customerIds: [1], method: "SMS", content: "催收", collectionLevel: "REMIND",
+    }, ctx);
+    expect(res.errors).toEqual([
+      "客户1处理失败: Data too long for column 'collection_content' at row 1",
+    ]);
+  });
 });
 
 // ============ getCollectionStatistics ============

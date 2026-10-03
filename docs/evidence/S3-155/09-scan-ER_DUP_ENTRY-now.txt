@@ -1,0 +1,26 @@
+# 命令：rg -n "ER_DUP_ENTRY" backend/src --glob '!*test*'
+# 采集时间：2026-10-03（终态）
+
+backend/src\shared\db-error-message.ts:17:/** 回库唯一键撞车判定：只认 1062（ER_DUP_ENTRY），不吞其它错误 */
+backend/src\shared\db-error-message.ts:22:    ((e as { code?: string }).code === "ER_DUP_ENTRY" ||
+backend/src\shared\migration.ts:33:  "ER_DUP_FIELDNAME", "ER_DUP_KEYNAME", "ER_DUP_ENTRY",
+backend/src\shared\seed-data.ts:22:        if (err.code === "ER_DUP_ENTRY" || err.code === "ER_DUP_KEY") {
+backend/src\services\platform\platform-agent.service.ts:11: * - agent_code 重复 ⇒ AppError 409（先查一次，再兜住并发下的 ER_DUP_ENTRY）；
+backend/src\services\platform\platform-agent.service.ts:238:    if (err?.code === "ER_DUP_ENTRY") {
+backend/src\services\platform\platform-agent-level.service.ts:211:    if (err?.code === "ER_DUP_ENTRY") {
+backend/src\services\platform\platform-promo-code.service.ts:9: *   仍冲突 ⇒ AppError 409（并发窗口下兜住唯一键 ER_DUP_ENTRY，同样按 409 / 重试处理）；
+backend/src\services\platform\platform-promo-code.service.ts:235: * · 并发窗口下的唯一键撞车（ER_DUP_ENTRY）同样计入重试，不落 500
+backend/src\services\platform\platform-promo-code.service.ts:282:      if (err?.code === "ER_DUP_ENTRY") continue;
+backend/src\services\platform\platform-role.service.ts:104:  return e?.code === "ER_DUP_ENTRY" || e?.errno === 1062;
+backend/src\services\platform\platform-template.service.ts:178:  return e?.code === "ER_DUP_ENTRY" || e?.errno === 1062;
+backend/src\services\platform\platform-referral-ledger.service.ts:12: * - 一被邀请租户一条：uk_invitee，重复登记 ⇒ 409（并发撞唯一键 ER_DUP_ENTRY 同样 409）；
+backend/src\services\platform\platform-referral-ledger.service.ts:417:    if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
+backend/src\services\platform\platform-tenant-attribution.service.ts:14: * - 一租户一条（uk_tenant_attr）：已存在 ⇒ **409 + 明确中文文案**；并发撞唯一键（ER_DUP_ENTRY）同样按 409 报。
+backend/src\services\platform\platform-tenant-attribution.service.ts:232:    if ((err as { code?: string })?.code === "ER_DUP_ENTRY") {
+backend/src\services\admin\library-copy.service.ts:202:    ((err as { code?: string }).code === "ER_DUP_ENTRY" ||
+backend/src\services\admin\product.service.ts:29:/** 回库唯一键撞车判定：只认 1062（ER_DUP_ENTRY），不吞其它错误 */
+backend/src\services\admin\product.service.ts:34:    ((e as { code?: string }).code === "ER_DUP_ENTRY" ||
+backend/src\services\admin\product.service.ts:750:    if (e?.code === "ER_DUP_ENTRY") {
+backend/src\services\admin\product.service.ts:877:    if (e?.code === "ER_DUP_ENTRY") {
+
+命中数=21

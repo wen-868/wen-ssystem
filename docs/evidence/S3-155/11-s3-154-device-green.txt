@@ -1,0 +1,24 @@
+# 命令：node backend/scripts/s3-154-static-check.mjs --run-service
+# 采集时间：2026-10-03（终态复跑；装置已随实现搬迁更新提取源）
+
+# S3-154 静态同口径断言 —— 正测（源码原样，未做替换）
+# 被测文件：backend/src/services/admin/data-transfer.service.ts
+PASS  从共享实现提取 S3-154 的文案函数   ← 提取 39 行并转译成功
+PASS  行级 catch 走中文映射（rowErrorMessage）   ← errors.push(`第 ${rIdx + 1} 行：${rowErrorMessage(e, {
+        barcodeMessage: BARCODE_DUPLICATE_MESSAGE,
+        dupMessage: "商品编码重复，请检查后重试",
+        fallback: "导入失败",
+      })}`);
+PASS  行级 catch 不得直接回 e?.message 原文   ← 无 e?.message
+PASS  条码撞唯一键 ⇒ 中文业务文案（不含 Duplicate entry）   ← 该条码已被其他商品使用
+PASS  商品编码撞唯一键 ⇒ 中文业务文案（只认 errno=1062 也能判）   ← 商品编码重复，请检查后重试
+PASS  非撞键错误 ⇒ 保留原始信息（不误吞、不掩盖）   ← Data too long for column 'sku_name' at row 1
+PASS  非 Error 入参 ⇒ 兜底中文『导入失败』   ← 导入失败
+PASS  单测文件含 S3-154 撞键中文用例（断言不含 Duplicate entry）   ← 命中 3 条断言
+PASS  真函数（loader 桩 db）：正常行仍新增成功（imported=1/skipped=0/errors=[]）   ← {"imported":1,"updated":0,"skipped":0}，共 9 次 query
+PASS  真函数（loader 桩 db）：第 7 步写 SKU 撞条码键 ⇒ errors[] 中文、无 Duplicate entry   ← 第 2 行：该条码已被其他商品使用
+PASS  真函数（loader 桩 db）：写 SKU 撞商品编码键 ⇒ errors[] 中文、无 Duplicate entry   ← 第 2 行：商品编码重复，请检查后重试
+PASS  真函数（loader 桩 db）：非撞键错误保留原文（不误吞）   ← 第 2 行：Data too long for column 'sku_name' at row 1
+小结[s3-154]：12 passed / 0 failed
+
+EXIT=0
