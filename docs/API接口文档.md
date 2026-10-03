@@ -100,7 +100,7 @@
 
 | # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
 |:-:|:---|:---|:---|:---|:---|:---|
-| A1 | `POST /api/admin/auth/login` | 工作台登录 | username:string✅, password:string✅ | token:string, user:{id,username,realName,role} | auth.routes.ts + auth.service.ts | admin-web/src/api/auth.ts + LoginView.vue |
+| A1 | `POST /api/admin/auth/login` | 工作台登录 | username:string✅, password:string✅, **rememberMe?:boolean**（S3-160：勾选 ⇒ 30 天长效 token；缺省/`false` ⇒ 4h） | token:string, user:{id,username,realName,role}, **expiresIn:number**（本次签发有效期，秒） | auth.routes.ts + auth.service.ts | admin-web/src/api/auth.ts + LoginView.vue |
 | A2 | `GET /api/admin/auth/me` | 当前登录用户 | — | {id,username,realName,tenantId,roles[]} | auth.routes.ts | admin-web/src/api/auth.ts |
 | A3 | `GET /api/admin/dashboard/summary` | 看板汇总 | —（含 ?days=30） | {sales,receivable,profit,customerCount,top5Products[]} | dashboard.service.ts + dashboard.routes.ts | admin-web/src/views/dashboard/DashboardView.vue |
 | A4 | `GET /api/admin/dashboard/sales-trend` | 销售趋势 | ?days=30 | [{date,amount,count}] | dashboard.service.ts getSalesTrend() | DashboardView.vue |
@@ -278,6 +278,9 @@
 |------|------|------|------|
 | username | string | 是 | 用户名 |
 | password | string | 是 | 密码 |
+| rememberMe | boolean | 否 | S3-160：勾选「记住我」⇒ 签发 **30 天**长效 token；缺省或 `false` ⇒ **4 小时**（默认不放松） |
+
+> **S3-160（2026-10-04）**：商家端（`/api/admin/auth/login` 与 `/api/store/auth/login` 共用同一 controller）新增 `rememberMe`；响应新增 `expiresIn`（秒，等于本次实签有效期）。平台端 `signPlatformToken`（8h）不受影响。
 
 - **响应**:
 
@@ -2107,7 +2110,8 @@
 #### POST /api/store/auth/login
 - **描述**: 门店登录
 - **认证**: 无需认证
-- **请求体**: { username, password }
+- **请求体**: { username, password, rememberMe? }（`rememberMe`：S3-160，勾选 ⇒ 30 天长效 token，缺省 ⇒ 4h）
+- **响应**: `{ token, user, csrfToken, expiresIn }`（`expiresIn` = 本次签发有效期，秒）
 
 #### GET /api/store/auth/me
 - **描述**: 获取当前门店用户信息
