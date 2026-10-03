@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 import { checkAppUpdate } from '@/utils/update'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 onLaunch(() => {
   // 启动检查更新（有新版本及时提示）
@@ -15,7 +18,16 @@ onLaunch(() => {
   if (!token) {
     // 未登录，跳转登录页
     uni.reLaunch({ url: '/pages/login/login' })
+    return
   }
+  // S3-161：本地已有 token ⇒ 恢复用户态（拉 /me 重建 user/initialized）。
+  // 缺口补齐：stores/user.ts 的 init() 此前定义了但全仓无人调用，
+  // 导致「有 token 却停在登录页/首页拿不到用户信息」。
+  // 真 401（token 确实失效）时 request.ts 会清 token 并 reLaunch 登录页，
+  // 此处不重复处理、也不改 request.ts 的 401 逻辑（派单红线）。
+  userStore.init().catch((err: any) => {
+    console.error('[app] 恢复登录态失败:', err?.message || err)
+  })
 })
 
 onShow(() => {

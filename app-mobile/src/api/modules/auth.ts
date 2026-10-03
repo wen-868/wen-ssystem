@@ -17,6 +17,13 @@ export const DEMO_PASSWORD: string =
 export interface LoginParams {
   username: string
   password: string
+  /**
+   * 「记住我」（S3-161，消费后端单 S3-160）
+   * - true  ⇒ 后端下发长效 token（目标 30 天），本端同时记住账号口令
+   * - false / 不传 ⇒ 维持现状（商家端 JWT 4h）
+   * ⚠️ 后端未落地该参数前，多带一个字段不影响既有逻辑（未知字段被忽略）。
+   */
+  rememberMe?: boolean
 }
 
 export interface LoginResult {

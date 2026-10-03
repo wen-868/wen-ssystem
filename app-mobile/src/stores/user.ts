@@ -6,7 +6,8 @@ import {
   setUser, removeUser,
   setTenant, removeTenant,
   getUser, getTenant,
-  setCsrfToken, removeCsrfToken
+  setCsrfToken, removeCsrfToken,
+  getRememberMe, clearSavedCredentials
 } from '@/api/storage'
 
 export const useUserStore = defineStore('user', () => {
@@ -20,8 +21,12 @@ export const useUserStore = defineStore('user', () => {
   const storeId = computed(() => user.value?.storeId ?? null)
   const storeName = computed(() => user.value?.realName ?? '')
 
-  async function login(username: string, password: string) {
-    const result = await authApi.login({ username, password })
+  /**
+   * 登录
+   * @param rememberMe 「记住我」：透传后端（S3-160 ⇒ 30 天长效 token），缺省 false 维持 4h
+   */
+  async function login(username: string, password: string, rememberMe: boolean = false) {
+    const result = await authApi.login({ username, password, rememberMe })
     applyLoginResult(result)
   }
 
@@ -86,6 +91,13 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 退出登录
+   * - 始终清 token / 用户态 / 租户 / CSRF
+   * - **账号口令是否保留，按「记住我」勾选状态决定**（S3-161 口径，与回传卡一致）：
+   *   勾选 ⇒ 保留（下次回来仍零输入）；未勾选 ⇒ 清除，不留残留。
+   *   注：退出是主动动作，不是安全事件；真正的凭据销毁靠「取消记住我并登录一次」。
+   */
   function logout() {
     token.value = ''
     user.value = null
@@ -95,6 +107,9 @@ export const useUserStore = defineStore('user', () => {
     removeUser()
     removeTenant()
     removeCsrfToken()
+    if (!getRememberMe()) {
+      clearSavedCredentials()
+    }
     uni.reLaunch({ url: '/pages/login/login' })
   }
 
