@@ -7,7 +7,7 @@ import {
   setTenant, removeTenant,
   getUser, getTenant,
   setCsrfToken, removeCsrfToken,
-  getRememberMe, clearSavedCredentials
+  clearSavedCredentials, setRememberMe
 } from '@/api/storage'
 
 export const useUserStore = defineStore('user', () => {
@@ -92,11 +92,16 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /**
-   * 退出登录
-   * - 始终清 token / 用户态 / 租户 / CSRF
-   * - **账号口令是否保留，按「记住我」勾选状态决定**（S3-161 口径，与回传卡一致）：
-   *   勾选 ⇒ 保留（下次回来仍零输入）；未勾选 ⇒ 清除，不留残留。
-   *   注：退出是主动动作，不是安全事件；真正的凭据销毁靠「取消记住我并登录一次」。
+   * 退出登录 ＝ **退出凭证的唯一出口**（S3-162 口径，覆盖 S3-161 的「按勾选态决定」）
+   *
+   * 业主当轮口径：退出帐号即退出凭证。因此**无论「记住我」是否勾选**：
+   *   ① 始终清 token / 用户态 / 租户 / CSRF；
+   *   ② **无条件**清掉本机已记住的账号与口令；
+   *   ③ 把「记住我」勾选态**复位为默认（勾选）并落盘**，
+   *      使下次打开登录页是「干净的默认态」而非上一次的残留选择。
+   *
+   * 「记住我」的语义因此收窄为：**只表示"登录时把账号口令记在本机、下次自动带出"**，
+   * 不再表示"勾了就不用再登录"（会话长度由后端签发策略决定）。
    */
   function logout() {
     token.value = ''
@@ -107,9 +112,10 @@ export const useUserStore = defineStore('user', () => {
     removeUser()
     removeTenant()
     removeCsrfToken()
-    if (!getRememberMe()) {
-      clearSavedCredentials()
-    }
+    // ② 无条件清已记住的账号口令（与勾选态无关）
+    clearSavedCredentials()
+    // ③ 勾选态复位为默认（勾选）并落盘
+    setRememberMe(true)
     uni.reLaunch({ url: '/pages/login/login' })
   }
 

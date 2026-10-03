@@ -272,10 +272,20 @@ function showAbout() {
   })
 }
 
+/**
+ * 退出登录（S3-162：退出登录 ＝ 退出凭证的唯一出口）
+ *
+ * 二次确认文案**必须写明"将同时清除本机记住的账号密码"**——
+ * 用户点下「退出」时会一并丢掉自己勾选「记住我」换来的零输入，
+ * 这是不可逆的代价，不告知等于静默销毁用户数据。
+ * 点「取消」则**不动任何东西**（不清凭据、不复位勾选态、不跳转）。
+ */
 function handleLogout() {
   uni.showModal({
     title: '退出登录',
-    content: '确定要退出登录吗？',
+    content: '退出后将同时清除本机记住的账号密码，下次打开需重新输入。确定退出吗？',
+    confirmText: '确定退出',
+    cancelText: '取消',
     success: (res) => {
       if (res.confirm) {
         userStore.logout()

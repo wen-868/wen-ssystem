@@ -52,13 +52,14 @@
           <text class="error-text">{{ errors.password }}</text>
         </view>
 
-        <!-- 记住我（S3-161）：默认勾选 ⇒ 消费后端 30 天长效 token + 账号口令自动带出 -->
+        <!-- 记住我（S3-161/S3-162）：默认勾选 ⇒ 仅表示"账号口令记在本机、下次自动带出"，
+             不代表会话时长（会话长度由后端签发策略决定，正式账号一律 4h） -->
         <view class="remember-row" @tap="rememberMe = !rememberMe">
           <view class="remember-box" :class="{ 'remember-box--checked': rememberMe }">
             <text class="remember-box-icon" v-if="rememberMe">✓</text>
           </view>
           <text class="remember-text">记住我</text>
-          <text class="remember-hint">记住账号密码，下次自动登录</text>
+          <text class="remember-hint">记住账号密码，下次自动带出</text>
         </view>
 
         <view class="login-error" v-if="errorMsg">
