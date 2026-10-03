@@ -397,10 +397,6 @@ export function getTenantUsageStats(params?: {
   return api.get<any, { data: ApiResult<any> }>("/platform/tenants/usage-stats", { params });
 }
 
-export function getTenantStatistics() {
-  return api.get<any, { data: ApiResult<any> }>("/platform/tenants/statistics/overview");
-}
-
 export function getTenantRank(params?: {
   sortBy?: string;
   limit?: number;
