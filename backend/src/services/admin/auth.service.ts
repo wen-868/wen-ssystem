@@ -1,5 +1,12 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
-import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth";
+import {
+  signToken,
+  getUserAccessInfo,
+  AuthUser,
+  MERCHANT_TOKEN_TTL_DEFAULT,
+  MERCHANT_TOKEN_TTL_REMEMBER_ME,
+  MerchantTokenTtl,
+} from "../../middleware/auth";
 import { verifyPassword, validatePassword, hashPassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import { generateCsrfToken } from "../../middleware/csrf";
@@ -107,7 +114,7 @@ async function getUserPermissions(userId: number, tenantId: string): Promise<str
   return Array.from(permSet);
 }
 
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string, rememberMe = false) {
   const account = await queryOne<SysUserLoginRow>(
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until, mfa_secret, mfa_enabled FROM t_sys_user WHERE username = ? LIMIT 1",
     [username]
@@ -164,13 +171,15 @@ export async function login(username: string, password: string) {
     };
   }
 
-  return issueLoginResult(account);
+  return issueLoginResult(account, rememberMe);
 }
 
 /**
  * 根据已通过密码校验的账号签发完整登录结果（登录/MFA 二次验证共用）
+ *
+ * `rememberMe`（S3-160）：`true` ⇒ 30 天长效 token；`false`/缺省 ⇒ 4h（现状不变）。
  */
-export async function issueLoginResult(account: SysUserLoginRow) {
+export async function issueLoginResult(account: SysUserLoginRow, rememberMe = false) {
   const resolvedTenantId = account.tenant_id || 'default';
   const roles = await query<RoleCodeRow>(
     `SELECT r.role_code
@@ -204,7 +213,16 @@ export async function issueLoginResult(account: SysUserLoginRow) {
     permissions,
     ...accessInfo
   };
-  return { token: signToken(authUser), user, csrfToken: generateCsrfToken(account.id) };
+  // S3-160：如实回一个字段说明本次签发的是长效还是短效（秒），便于前端与验收核对；不含任何密钥信息
+  const ttl: MerchantTokenTtl = rememberMe
+    ? MERCHANT_TOKEN_TTL_REMEMBER_ME
+    : MERCHANT_TOKEN_TTL_DEFAULT;
+  return {
+    token: signToken(authUser, ttl),
+    user,
+    csrfToken: generateCsrfToken(account.id),
+    expiresIn: rememberMe ? 30 * 24 * 3600 : 4 * 3600,
+  };
 }
 
 /**
