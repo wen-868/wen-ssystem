@@ -8,6 +8,9 @@ vi.mock("../../../middleware/auth", () => ({
   signToken: vi.fn(() => "mock-service-token"),
   getUserAccessInfo: vi.fn(),
   AuthUser: {},
+  MERCHANT_TOKEN_TTL_DEFAULT: "4h",
+  MERCHANT_TOKEN_TTL_REMEMBER_ME: "30d",
+  MERCHANT_TOKEN_TTL_SECONDS: { "4h": 4 * 3600, "30d": 30 * 24 * 3600 },
 }));
 
 vi.mock("../../../config/env", async () => {
