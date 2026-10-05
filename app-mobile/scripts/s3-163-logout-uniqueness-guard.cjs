@@ -48,7 +48,7 @@ function stripComments(src) {
 /** .vue 只取 script 段（模板里的同名字符串不算实现） */
 function codeOf(file, raw) {
   if (file.endsWith('.vue')) {
-    const m = raw.match(/<script[^>]*>([\s\S]*?)<\/script>/)
+    const m = raw.match(/<script[^>]*>([\s\S]*?)<\/script>/i)
     return m ? m[1] : ''
   }
   return raw
