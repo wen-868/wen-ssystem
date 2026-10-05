@@ -19,6 +19,7 @@
  * 退出码：0 = 三条全部符合预期；1 = 有断言失败（反测时"应当红"即为预期结果）。
  */
 import jwt from "jsonwebtoken";
+import { createHash } from "node:crypto";
 
 const BASE = process.env.S3_160_BASE || "http://127.0.0.1:18160";
 const SECRET = process.env.S3_160_JWT_SECRET || "s3-160-evidence-secret";
@@ -28,6 +29,18 @@ const ONLY = (process.env.S3_160_ONLY || "").trim();
 
 const FOUR_HOURS = 4 * 3600;
 const THIRTY_DAYS = 30 * 24 * 3600;
+
+/**
+ * 脱敏（S3-160-F1，修复 CodeQL `Clear-text logging of sensitive information`）：
+ * 令牌/口令类值只输出「长度 + SHA-256 前 8 位」的指纹，绝不落明文。
+ * 注意：请求体里的**口令**在本文件里连长度/哈希都不输出（见 caseTtl），
+ * 只用固定占位符 —— 这样口令的值不以任何形式进入 stdout，彻底切断 taint 链。
+ */
+function redact(value) {
+  if (value === undefined || value === null) return "（无）";
+  const s = typeof value === "string" ? value : JSON.stringify(value);
+  return `<已脱敏 len=${s.length} sha256=${createHash("sha256").update(s).digest("hex").slice(0, 8)}>`;
+}
 
 let passed = 0;
 let failed = 0;
@@ -65,14 +78,19 @@ function decode(token) {
 
 async function caseTtl(name, body, expectedTtl) {
   if (ONLY && ONLY !== name) return;
-  console.log(`\n==== 用例 ${name}：请求体 ${JSON.stringify(body)} ====`);
+  // 不回显请求体：其中含口令。用例名已唯一标识该条（缺省/ false / true）。
+  console.log(`\n==== 用例 ${name}：登录请求（口令不回显）====`);
   const r = await login(body);
-  console.log(`原始响应 HTTP ${r.status}：${r.raw}`);
   if (r.status !== 200 || !r.json || r.json.code !== "0" || !r.json.data?.token) {
+    console.log(`原始响应 HTTP ${r.status}：code=${r.json?.code ?? "?"}（未取到 token，不回显响应体）`);
     report(false, `${name} 登录成功`, `HTTP ${r.status} / code ${r.json?.code}`);
     return;
   }
   const data = r.json.data;
+  console.log(
+    `原始响应 HTTP ${r.status}：code=${r.json.code} token=${redact(data.token)} ` +
+      `csrfToken=${redact(data.csrfToken)} expiresIn=${data.expiresIn} user=${data.user?.username ?? "?"}`,
+  );
   const payload = decode(data.token);
   const delta = payload.exp - payload.iat;
   console.log(

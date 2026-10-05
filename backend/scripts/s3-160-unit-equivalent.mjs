@@ -27,7 +27,7 @@ const JWT_SECRET = "s3-160-unit-equivalent-secret";
 const FOUR_HOURS = 4 * 3600;
 const THIRTY_DAYS = 30 * 24 * 3600;
 
-const ACCOUNT = {
+const FORMAL_ACCOUNT = {
   id: 2,
   username: "store_manager",
   password_hash: "hashed",
@@ -38,6 +38,19 @@ const ACCOUNT = {
   login_fail_count: 0,
   locked_until: null,
 };
+
+/** 演示账号：用户名在 load 后回填 svc.DEMO_USERNAME（后端唯一来源），脚本内不写死字面量 */
+const DEMO_ACCOUNT = {
+  ...FORMAL_ACCOUNT,
+  id: 3,
+  username: "",
+  real_name: "演示账号",
+  store_id: null,
+};
+
+function pickAccount(username) {
+  return username === DEMO_ACCOUNT.username ? DEMO_ACCOUNT : FORMAL_ACCOUNT;
+}
 
 /* ── 进程内 TS(CJS) 加载器：只桩外部依赖，其余走真实源码 ── */
 const TS_OPTS = {
@@ -57,7 +70,11 @@ class AppErrorStub extends Error {
   }
 }
 
-const dbState = { queryOne: async () => ACCOUNT, query: async () => [] };
+const dbState = {
+  queryOne: async (_sql, params) =>
+    pickAccount(Array.isArray(params) ? params[0] : undefined),
+  query: async () => [],
+};
 stubs.set(path.join(SRC, "shared", "db.ts"), {
   query: (sql, params) => dbState.query(sql, params),
   queryOne: (sql, params) => dbState.queryOne(sql, params),
@@ -130,6 +147,7 @@ function report(ok, label, detail) {
 
 const authMod = load(path.join(SRC, "middleware", "auth.ts"));
 const svc = load(path.join(SRC, "services", "admin", "auth.service.ts"));
+DEMO_ACCOUNT.username = svc.DEMO_USERNAME;
 
 function decode(token) {
   return jwt.verify(token, JWT_SECRET, {
@@ -139,11 +157,11 @@ function decode(token) {
   });
 }
 
-async function runCase(label, rememberMe, expectedTtl) {
+async function runCase(label, account, rememberMe, expectedTtl) {
   const res =
     rememberMe === undefined
-      ? await svc.login("store_manager", "x")
-      : await svc.login("store_manager", "x", rememberMe);
+      ? await svc.login(account.username, "x")
+      : await svc.login(account.username, "x", rememberMe);
   const payload = decode(res.token);
   const delta = payload.exp - payload.iat;
   console.log(
@@ -151,21 +169,32 @@ async function runCase(label, rememberMe, expectedTtl) {
   );
   report(delta === expectedTtl, `${label} exp-iat=${expectedTtl}s`, `实测 ${delta}s`);
   report(res.expiresIn === expectedTtl, `${label} 响应 expiresIn`, `实测 ${res.expiresIn}`);
+  report(
+    res.expiresIn === delta,
+    `${label} 响应 expiresIn == 实签 exp-iat（S3-160-F1 同源绑死）`,
+    `expiresIn=${res.expiresIn} / exp-iat=${delta}`,
+  );
   return payload;
 }
 
-const shortPayload = await runCase("缺省-不传 rememberMe", undefined, FOUR_HOURS);
-const falsePayload = await runCase("rememberMe=false", false, FOUR_HOURS);
-const longPayload = await runCase("rememberMe=true", true, THIRTY_DAYS);
+const formalShortDefault = await runCase("正式账号+缺省", FORMAL_ACCOUNT, undefined, FOUR_HOURS);
+const formalShortFalse = await runCase("正式账号+false", FORMAL_ACCOUNT, false, FOUR_HOURS);
+const formalLongBlocked = await runCase("正式账号+true（不得长效）", FORMAL_ACCOUNT, true, FOUR_HOURS);
+const demoLong = await runCase("演示账号+true", DEMO_ACCOUNT, true, THIRTY_DAYS);
+const demoShortDefault = await runCase("演示账号+缺省", DEMO_ACCOUNT, undefined, FOUR_HOURS);
+const demoShortFalse = await runCase("演示账号+false", DEMO_ACCOUNT, false, FOUR_HOURS);
 
 report(
-  longPayload.iss === shortPayload.iss &&
-    longPayload.aud === shortPayload.aud &&
-    longPayload.iss === authMod.MERCHANT_JWT_ISSUER &&
-    longPayload.aud === authMod.MERCHANT_JWT_AUDIENCE &&
-    falsePayload.iss === shortPayload.iss,
+  demoLong.iss === formalShortDefault.iss &&
+    demoLong.aud === formalShortDefault.aud &&
+    demoLong.iss === authMod.MERCHANT_JWT_ISSUER &&
+    demoLong.aud === authMod.MERCHANT_JWT_AUDIENCE &&
+    formalShortFalse.iss === formalShortDefault.iss &&
+    demoShortDefault.iss === formalShortDefault.iss &&
+    demoShortFalse.iss === formalShortDefault.iss &&
+    formalLongBlocked.iss === formalShortDefault.iss,
   "长短效 token 的 issuer/audience 完全一致（只差 TTL）",
-  `iss=${longPayload.iss} aud=${longPayload.aud}`,
+  `iss=${demoLong.iss} aud=${demoLong.aud}`,
 );
 
 console.log(`\n小结：${passed} passed / ${failed} failed`);

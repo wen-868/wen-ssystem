@@ -80,6 +80,18 @@ export type MerchantTokenTtl =
   | typeof MERCHANT_TOKEN_TTL_DEFAULT
   | typeof MERCHANT_TOKEN_TTL_REMEMBER_ME;
 
+/**
+ * S3-160-F1：商家端 TTL 的**唯一秒数来源**。
+ * 键 = 同两个 TTL 常量（`"4h"` / `"30d"`），值 = 对应秒数。
+ * 响应字段 `expiresIn` 与任何需要秒数的落点一律从这里取，
+ * 禁止在别处再写 `4 * 3600` / `30 * 24 * 3600` 字面量，
+ * 避免"只改常量、字段没跟着改"导致响应与实签 token 不符（谎报）。
+ */
+export const MERCHANT_TOKEN_TTL_SECONDS: Record<MerchantTokenTtl, number> = {
+  [MERCHANT_TOKEN_TTL_DEFAULT]: 4 * 3600,
+  [MERCHANT_TOKEN_TTL_REMEMBER_ME]: 30 * 24 * 3600,
+};
+
 export function signToken(user: AuthUser, ttl: MerchantTokenTtl = MERCHANT_TOKEN_TTL_DEFAULT) {
   return jwt.sign(user, env.JWT_SECRET, {
     algorithm: "HS256",
