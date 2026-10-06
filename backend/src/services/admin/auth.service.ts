@@ -1,5 +1,13 @@
 import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
-import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth";
+import {
+  signToken,
+  getUserAccessInfo,
+  AuthUser,
+  MERCHANT_TOKEN_TTL_DEFAULT,
+  MERCHANT_TOKEN_TTL_REMEMBER_ME,
+  MERCHANT_TOKEN_TTL_SECONDS,
+  MerchantTokenTtl,
+} from "../../middleware/auth";
 import { verifyPassword, validatePassword, hashPassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import { generateCsrfToken } from "../../middleware/csrf";
@@ -45,6 +53,14 @@ interface UserPasswordRow {
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
+
+/**
+ * 演示账号用户名（唯一来源）。
+ *
+ * S3-160-F1b：`demoLogin()` 与 `issueLoginResult()` 的「记住我」长效判定共用此常量，
+ * 全文件不得再出现第二处演示账号用户名硬编码字面量。
+ */
+export const DEMO_USERNAME = "demo";
 
 /**
  * 规范化角色 permissions 字段为字符串数组
@@ -107,7 +123,7 @@ async function getUserPermissions(userId: number, tenantId: string): Promise<str
   return Array.from(permSet);
 }
 
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string, rememberMe = false) {
   const account = await queryOne<SysUserLoginRow>(
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until, mfa_secret, mfa_enabled FROM t_sys_user WHERE username = ? LIMIT 1",
     [username]
@@ -164,13 +180,17 @@ export async function login(username: string, password: string) {
     };
   }
 
-  return issueLoginResult(account);
+  return issueLoginResult(account, rememberMe);
 }
 
 /**
  * 根据已通过密码校验的账号签发完整登录结果（登录/MFA 二次验证共用）
+ *
+ * 记住我（S3-160 / F1b 收窄）：仅**演示账号**（`username === DEMO_USERNAME`）且显式
+ * `rememberMe === true` 才签发 30 天长效 token；其余一切情形（含正式账号传 `true`、
+ * 缺省/`false`）一律 4h 短效。
  */
-export async function issueLoginResult(account: SysUserLoginRow) {
+export async function issueLoginResult(account: SysUserLoginRow, rememberMe = false) {
   const resolvedTenantId = account.tenant_id || 'default';
   const roles = await query<RoleCodeRow>(
     `SELECT r.role_code
@@ -204,7 +224,18 @@ export async function issueLoginResult(account: SysUserLoginRow) {
     permissions,
     ...accessInfo
   };
-  return { token: signToken(authUser), user, csrfToken: generateCsrfToken(account.id) };
+  // S3-160：如实回一个字段说明本次签发的是长效还是短效（秒），便于前端与验收核对；不含任何密钥信息
+  // S3-160-F1b：只有演示账号 + 显式勾选记住我才长效；正式账号传 true 也只签 4h
+  const ttl: MerchantTokenTtl =
+    account.username === DEMO_USERNAME && rememberMe === true
+      ? MERCHANT_TOKEN_TTL_REMEMBER_ME
+      : MERCHANT_TOKEN_TTL_DEFAULT;
+  return {
+    token: signToken(authUser, ttl),
+    user,
+    csrfToken: generateCsrfToken(account.id),
+    expiresIn: MERCHANT_TOKEN_TTL_SECONDS[ttl],
+  };
 }
 
 /**
@@ -238,7 +269,7 @@ export async function issueServiceToken(
     tenantId: tenantId || "default",
   };
   const token = signToken(authUser);
-  return { token, expiresIn: 4 * 3600 };
+  return { token, expiresIn: MERCHANT_TOKEN_TTL_SECONDS[MERCHANT_TOKEN_TTL_DEFAULT] };
 }
 
 export async function getMe(user: AuthUser) {
@@ -310,7 +341,6 @@ export async function changePassword(userId: number, oldPassword: string, newPas
  * 演示账号仅用于产品演示，不暴露真实密码。
  */
 export async function demoLogin() {
-  const DEMO_USERNAME = "demo";
   const DEMO_TENANT = "default";
 
   let account = await queryOne<SysUserLoginRow>(

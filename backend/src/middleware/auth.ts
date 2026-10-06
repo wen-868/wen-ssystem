@@ -68,10 +68,34 @@ export const MERCHANT_JWT_AUDIENCE = "zhixiang-client";
 export const PLATFORM_JWT_ISSUER = "zhixiang-platform";
 export const PLATFORM_JWT_AUDIENCE = "zhixiang-platform-client";
 
-export function signToken(user: AuthUser) {
+/**
+ * 商家端 JWT 有效期（S3-160）。
+ * - 缺省（不勾选「记住我」）＝ `4h`：与合入前逐字一致，不放松默认会话边界；
+ * - 勾选「记住我」＝ `30d` 长效 token。
+ * 只允许这两个取值，禁止把默认值直接改成长效。
+ */
+export const MERCHANT_TOKEN_TTL_DEFAULT = "4h";
+export const MERCHANT_TOKEN_TTL_REMEMBER_ME = "30d";
+export type MerchantTokenTtl =
+  | typeof MERCHANT_TOKEN_TTL_DEFAULT
+  | typeof MERCHANT_TOKEN_TTL_REMEMBER_ME;
+
+/**
+ * S3-160-F1：商家端 TTL 的**唯一秒数来源**。
+ * 键 = 同两个 TTL 常量（`"4h"` / `"30d"`），值 = 对应秒数。
+ * 响应字段 `expiresIn` 与任何需要秒数的落点一律从这里取，
+ * 禁止在别处再写 `4 * 3600` / `30 * 24 * 3600` 字面量，
+ * 避免"只改常量、字段没跟着改"导致响应与实签 token 不符（谎报）。
+ */
+export const MERCHANT_TOKEN_TTL_SECONDS: Record<MerchantTokenTtl, number> = {
+  [MERCHANT_TOKEN_TTL_DEFAULT]: 4 * 3600,
+  [MERCHANT_TOKEN_TTL_REMEMBER_ME]: 30 * 24 * 3600,
+};
+
+export function signToken(user: AuthUser, ttl: MerchantTokenTtl = MERCHANT_TOKEN_TTL_DEFAULT) {
   return jwt.sign(user, env.JWT_SECRET, {
     algorithm: "HS256",
-    expiresIn: "4h",
+    expiresIn: ttl,
     issuer: MERCHANT_JWT_ISSUER,
     audience: MERCHANT_JWT_AUDIENCE,
   });

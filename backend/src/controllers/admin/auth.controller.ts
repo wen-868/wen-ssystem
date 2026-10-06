@@ -5,8 +5,11 @@ import * as authService from "../../services/admin/auth.service";
 import * as mfaService from "../../services/admin/mfa.service";
 
 export const login = asyncHandler(async (req, res) => {
-  const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
-  const result = await authService.login(body.username, body.password);
+  // S3-160：可选 rememberMe（true ⇒ 30d 长效 token；false/缺省 ⇒ 维持 4h）
+  const body = z
+    .object({ username: z.string(), password: z.string(), rememberMe: z.boolean().optional() })
+    .parse(req.body);
+  const result = await authService.login(body.username, body.password, body.rememberMe === true);
   res.json(ok(result));
 });
 
