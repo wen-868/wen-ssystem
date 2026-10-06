@@ -1,0 +1,14 @@
+# 行尾纪律（S3-167-F1，2026-10-07）
+#
+# 为什么需要：
+#   本仓 core.autocrlf=true 且此前**没有 .gitattributes** ⇒ .sh 的**工作副本**行尾不受保护。
+#   实测（2026-10-07）：把 Windows 工作副本（CRLF）直接 scp 到 Linux，`bash -n` 立即报
+#       syntax error near unexpected token $'do\r'
+#   —— 整段脚本不可执行，症状是"部署脚本莫名语法错"。
+#   同一次用 LF 副本送上去则 `SYNTAX_OK`。
+#   另实测 `git ls-files --eol '*.sh'`：索引侧均为 `i/lf`，但工作副本出现 `w/crlf` 与 `w/mixed`
+#   （`deploy/02-mysql-backup.sh`、`deploy/06-onepan-bootstrap.sh` 为 w/mixed）——即本机状态已不一致。
+#
+# 处置：只钉 shell 脚本，**不做全仓 text=auto 重归一化**（那会造成大面积行尾漂移，风险远大于收益）。
+#   索引侧本来就是 LF，故本文件不改变任何已跟踪内容的字节。
+*.sh text eol=lf
