@@ -6,13 +6,20 @@ export const state = {
   users: [
     { id: 1, username: "admin", password_hash: hashPasswordSync("admin123"), real_name: "系统管理员", store_id: null, status: 1, tenant_id: "default" },
     // 门店/商家端登录账号（qa-regression-test 门店端场景使用）
-    { id: 2, username: "store_manager", password_hash: hashPasswordSync("admin123"), real_name: "门店经理", store_id: 1, status: 1, tenant_id: "default" }
+    { id: 2, username: "store_manager", password_hash: hashPasswordSync("admin123"), real_name: "门店经理", store_id: 1, status: 1, tenant_id: "default" },
+    // 演示账号：与生产同源（生产 t_sys_user.username='demo' 已用产品端点设为 Demo@2026，
+    // 2026-10-07 实测生产 POST /api/admin/auth/login demo/Demo@2026 => 200）。
+    // 登录页「演示登录（一键进入）」走的就是这条口令登录路径（C6-9），故 mock 必须同源，否则 e2e 失真。
+    // ⚠️ 后端唯一来源常量：backend/src/services/admin/auth.service.ts 的 DEMO_USERNAME === "demo"。
+    { id: 3, username: "demo", password_hash: hashPasswordSync("Demo@2026"), real_name: "演示账号", store_id: null, status: 1, tenant_id: "default" }
   ],
   roles: [
     { id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 }
   ],
   userRoles: [
-    { user_id: 1, role_code: "SUPER_ADMIN" }
+    { user_id: 1, role_code: "SUPER_ADMIN" },
+    // 演示账号需有角色，否则登录后 resolveLandingPath 无处可去（生产 demo 亦为 SUPER_ADMIN）
+    { user_id: 3, role_code: "SUPER_ADMIN" }
   ],
   members: [
     { id: 1, name: "默认零售客户", mobile: "13900000000", customer_type: "RETAIL", settlement_type: "CASH", points: 120, level_code: "NORMAL", status: 1, staff_id: null as number | null },

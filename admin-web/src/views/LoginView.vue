@@ -118,9 +118,9 @@
             @click="handleDemoLogin"
           >
             <el-icon class="demo-login-icon"><Van /></el-icon>
-            演示账号登录（免密体验）
+            演示登录（一键进入）
           </el-button>
-          <p class="demo-login-tip">无需注册，一键进入工作台，自动填充演示数据</p>
+          <p class="demo-login-tip">无需输入，自动填入演示账号并登录</p>
         </el-form>
 
         <div class="register-hint">
@@ -147,7 +147,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { ChatDotRound, Goods, OfficeBuilding, Van } from "@element-plus/icons-vue";
-import { adminLogin, demoLogin, seedDemoData } from "../api";
+import { DEMO_ACCOUNT, DEMO_FALLBACK_NOTICE, DEMO_PASSWORD, adminLogin, demoLogin, isAccountLockedError, seedDemoData } from "../api";
 import { useAuthStore } from "../stores/auth";
 import { resolveLandingPath } from "../router/landing";
 
@@ -200,16 +200,36 @@ async function handleLogin() {
   }
 }
 
-/** 演示账号登录：免密进入工作台，自动初始化演示数据 */
+/**
+ * 演示登录（一键两步合一，C6-9）：
+ *   ① 先把演示账号与口令填入表单（明文进表单，密码框由组件自身掩码显示），用户零输入；
+ *   ② 随即自动提交正常登录 adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD)，用户无需第二次点击；
+ *   ③ 仅当因「账号已锁定 / 失败次数过多」失败时，自动降级走免密 demoLogin()，并如实提示「演示通道已接管」；
+ *      其它错误（网络等）原样报错，不降级、不假装。
+ * 凭据唯一出处：src/api/common.ts 的 DEMO_ACCOUNT / DEMO_PASSWORD（构建期由 VITE_DEMO_* 覆盖）。
+ */
 async function handleDemoLogin() {
   loading.value = true;
+  // ① 自动填入演示凭据（明文进表单，密码框自身以掩码显示；非假占位）
+  loginForm.username = DEMO_ACCOUNT;
+  loginForm.password = DEMO_PASSWORD;
   try {
-    const res = await demoLogin();
-    const token = res.token;
+    // ② 自动提交正常登录（用户不需要再点第二次）
+    let res: any;
+    try {
+      res = await adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD);
+    } catch (e: any) {
+      // ③ 仅「账号锁定/失败次数过多」降级免密演示通道；其它错误（网络等）原样抛出
+      if (!isAccountLockedError(e)) throw e;
+      res = { ...(await demoLogin()), __fallback: true };
+      ElMessage.warning(DEMO_FALLBACK_NOTICE);
+    }
+    const token = res.token || res.data?.token;
     if (token) {
-      const userInfo: any = { ...(res.user || {}), demo: true };
-      auth.setAuth(token, userInfo, res.csrfToken);
-      ElMessage.success("已进入演示模式");
+      const csrfToken = res.csrfToken || res.data?.csrfToken;
+      const userInfo: any = { ...(res.data?.user || res.user || {}), demo: true };
+      auth.setAuth(token, userInfo, csrfToken);
+      if (!res.__fallback) ElMessage.success("登录成功");
       // 幂等初始化演示数据（失败不阻塞进入）
       seedDemoData().catch(() => {});
       router.push(resolveLandingPath(auth.userRoles, auth.user?.defaultHomepage, router.getRoutes()));
