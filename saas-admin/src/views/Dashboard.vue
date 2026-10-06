@@ -14,6 +14,12 @@
       </div>
     </div>
 
+    <!-- 大盘接口错误态：取不到指标时显式报错（不留静默空白，也不拿 0 冒充） -->
+    <div v-if="loadError" class="tipbar r mt8">
+      <span class="ic">!</span>
+      <span>{{ loadError }}</span>
+    </div>
+
     <!-- ② 六项核心指标（设计稿 .g6 > .kpi） -->
     <div class="g6">
       <div v-for="card in kpiCards" :key="card.key" class="kpi">
@@ -60,7 +66,8 @@
                   <span style="width: 0; flex: 1"></span>
                   <em style="width: auto">{{ row.value }}</em>
                 </div>
-                <p class="small mt8">升级流向：免费→付费 本月 {{ flow.upgrade ?? '--' }} 家 ｜ 降级 {{ flow.downgrade ?? '--' }} 家</p>
+                <!-- S3-12：接已上线的 GET /api/platform/plans/upgrade-flow-report（无数据/失败都有显式状态） -->
+                <p class="small mt8" :class="{ 'flow-err': !!flowState.error }">{{ flowText }}</p>
               </div>
             </div>
           </div>
@@ -109,9 +116,10 @@
           <div class="p-bd health-bd">
             <div v-for="row in healthRows" :key="row.key" class="qrow">
               <span class="health-label">{{ row.label }}</span>
-              <span class="bar" :class="row.tone" style="flex: 1">
+              <span v-if="row.percent !== null" class="bar" :class="row.tone" style="flex: 1">
                 <i :style="{ width: row.percent + '%' }"></i>
               </span>
+              <span v-else class="bar is-unknown" style="flex: 1" title="无百分比载体，不画水位条（避免被读成 0%/用尽）"></span>
               <em>{{ row.value }}</em>
             </div>
             <p class="small mt8 health-alarm">{{ alarmText }}</p>
@@ -243,6 +251,7 @@ import {
   getExportTaskLogs,
   getExportTaskStatus,
   getPlatformOverview,
+  getPlanUpgradeFlowReport,
   listExportTasks,
 } from '../api'
 import { pickBackendMessage } from '../utils/http-error'
@@ -272,6 +281,68 @@ const updatedAt = ref('')
 const raw = ref<Record<string, any>>({})
 
 /**
+ * 大盘接口错误态（S3-10/S3-11 反测用）：
+ * 取不到指标时**显式报错**，不允许页面安静地全显 `--`——那样接线断开与"确实没数据"无法区分。
+ */
+const loadError = ref('')
+
+/** 后端显式声明「无载体」的字段清单（key → 前端展示「待接入」，不显示 0/—） */
+const unavailableKeys = computed(
+  () => new Set<string>((raw.value?.unavailable || []).map((item: any) => String(item?.key ?? ''))),
+)
+
+/** 指标取值：无载体 → 「待接入」；无值 → 「--」；有值原样返回（不换算、不补 0） */
+function metric(value: any, key: string): any {
+  if (unavailableKeys.value.has(key)) return '待接入'
+  return value === null || value === undefined || value === '' ? '--' : value
+}
+
+/* ── S3-12：套餐升降级流向（接已上线的后端端点，无数据/失败均显式呈现） ── */
+const flowState = ref<{
+  loading: boolean
+  error: string
+  empty: boolean
+  upgrade: number | null
+  downgrade: number | null
+}>({ loading: true, error: '', empty: false, upgrade: null, downgrade: null })
+
+const flowText = computed(() => {
+  const s = flowState.value
+  if (s.loading) return '升级流向：加载中…'
+  if (s.error) return `升级流向：${s.error}`
+  if (s.empty) return '升级流向：本月暂无升降级记录（空态，不造数）'
+  return `升级流向：本月升级 ${s.upgrade} 家 ｜ 降级 ${s.downgrade} 家`
+})
+
+async function loadPlanFlow() {
+  flowState.value = { loading: true, error: '', empty: false, upgrade: null, downgrade: null }
+  try {
+    const res: any = await getPlanUpgradeFlowReport('month')
+    const data = res?.data?.data ?? {}
+    const records: any[] = Array.isArray(data.records) ? data.records : []
+    if (!records.length) {
+      flowState.value = { loading: false, error: '', empty: true, upgrade: null, downgrade: null }
+      return
+    }
+    // 口径：接口按 (原套餐 → 新套餐) 分组，dir=UP/DOWN；家数取各分组 tenantCount 之和。
+    const sumBy = (dir: string) =>
+      records
+        .filter((row) => String(row?.dir ?? '') === dir)
+        .reduce((sum, row) => sum + Number(row?.tenantCount ?? 0), 0)
+    flowState.value = { loading: false, error: '', empty: false, upgrade: sumBy('UP'), downgrade: sumBy('DOWN') }
+  } catch {
+    // 失败可见：不留旧的流向数字，改为显式错误态
+    flowState.value = {
+      loading: false,
+      error: '当月流向数据加载失败（未取到数据，未沿用旧值）',
+      empty: false,
+      upgrade: null,
+      downgrade: null,
+    }
+  }
+}
+
+/**
  * 千分位格式化。**只格式化，不做任何单位换算**——
  * 按 R101-S2-01 裁定③，元↔万元的换算一律由后端完成（接口同时给 amount 与 amountWan），
  * 前端若自己除 10000，会变成每个调用点各写一遍、四舍五入口径还可能不一致。
@@ -292,14 +363,14 @@ const kpiCards = computed(() => {
   return [
     { key: 'total', title: '租户总数', value: d.totalTenants ?? '--', hint: '较上月', ...delta(d.tenantDelta) },
     { key: 'today', title: '今日新增租户', value: d.todayNewTenants ?? '--', hint: '其中付费', deltaText: d.todayNewPaid ?? '--', deltaTone: 'up' },
-    { key: 'active', title: '有效租户', value: d.activeTenants ?? '--', hint: '近7日活跃', deltaText: d.activeRate ?? '--', deltaTone: 'muted' },
+    { key: 'active', title: '有效租户', value: d.activeTenants ?? '--', hint: '近7日活跃', deltaText: metric(d.activeRate, 'activeRate'), deltaTone: 'muted' },
     // 本月收入：设计稿口径为「万元」（v1.6 第 418 行 `¥218.46万`），按裁定③取后端换算好的
     // monthlyRevenueWan，前端只做千分位格式化、不做除法换算。
     { key: 'income', title: '本月收入', value: d.monthlyRevenueWan == null ? '--' : `¥${thousands(d.monthlyRevenueWan)}万`, hint: '较上月', ...delta(d.incomeDelta, '%') },
     { key: 'orders', title: '平台订单总量', value: d.totalOrders ?? '--', hint: '今日', deltaText: d.todayOrders ?? '--', deltaTone: 'up' },
-    // 大模型消耗：设计稿口径为「元 + 千分位」（v1.6 第 420 行 `¥86,420`）。后端暂无该数据源，
-    // 按裁定③留空态并登记 S3；此处只保留取数与格式化，不填充任何示例值。
-    { key: 'ai', title: '大模型消耗总额', value: d.aiCost == null ? '--' : `¥${thousands(d.aiCost)}`, hint: '本月 · Token', deltaText: d.aiTokens ?? '--', deltaTone: 'muted' },
+    // 大模型消耗：设计稿口径为「元 + 千分位」（v1.6 第 420 行 `¥86,420`）。
+    // S3-10 起后端由 t_ai_usage_daily 真实聚合（本月费用 / 本月 Token），无数据仍为 0 或 '--'，不造数。
+    { key: 'ai', title: '大模型消耗总额', value: d.aiCost == null ? '--' : `¥${thousands(d.aiCost)}`, hint: '本月 · Token', deltaText: d.aiTokens == null ? '--' : thousands(d.aiTokens), deltaTone: 'muted' },
   ]
 })
 
@@ -307,7 +378,6 @@ const kpiCards = computed(() => {
 const trend = computed<any[]>(() => raw.value?.tenantTrend || [])
 const planDist = computed<any[]>(() => raw.value?.planDistribution || [])
 const incomeComp = computed<any[]>(() => raw.value?.incomeComposition || [])
-const flow = computed<Record<string, any>>(() => raw.value?.planFlow || {})
 const hasTrend = computed(() => trend.value.length > 0)
 const hasPlan = computed(() => planDist.value.length > 0)
 const hasIncome = computed(() => incomeComp.value.length > 0)
@@ -332,31 +402,67 @@ const planRows = computed(() => {
 /* ── 待办四类 ── */
 const todoItems = computed(() => {
   const t = raw.value?.todos || {}
-  const n = (v: any) => (v == null ? '--' : v)
+  // 无载体（后端显式 unavailable）→ 「待接入」；无值 → '--'；有值原样展示
+  const n = (v: any, key: string) => metric(v, key)
   return [
-    { key: 'audit', label: '审核', title: '待审核租户', desc: '官网自助注册开户待初审', count: n(t.audit), tagClass: 'tag-o', countColor: 'var(--color-warning)', alert: false },
-    { key: 'arrears', label: '欠费', title: '欠费租户', desc: '含宽限期 / 功能降级 / 已冻结', count: n(t.arrears), tagClass: 'tag-o', countColor: 'var(--color-warning)', alert: true },
-    { key: 'ticket', label: '工单', title: '工单待处理', desc: '故障类 / 账单类 / 功能咨询', count: n(t.ticket), tagClass: 'tag-b', countColor: 'var(--color-primary)', alert: false },
-    { key: 'approval', label: '审批', title: '提现审批 / 配额扩容审批', desc: '财务待审 / 临时扩容待批', count: n(t.approval), tagClass: 'tag-p', countColor: 'var(--color-purple)', alert: false },
+    { key: 'audit', label: '审核', title: '待审核租户', desc: '官网自助注册开户待初审', count: n(t.audit, 'todos.audit'), tagClass: 'tag-o', countColor: 'var(--color-warning)', alert: false },
+    { key: 'arrears', label: '欠费', title: '欠费租户', desc: '待结算账单 > 0 的租户数', count: n(t.arrears, 'todos.arrears'), tagClass: 'tag-o', countColor: 'var(--color-warning)', alert: true },
+    { key: 'ticket', label: '工单', title: '工单待处理', desc: '待处理 + 处理中', count: n(t.ticket, 'todos.ticket'), tagClass: 'tag-b', countColor: 'var(--color-primary)', alert: false },
+    { key: 'approval', label: '审批', title: '提现审批 / 配额扩容审批', desc: '财务待审 / 临时扩容待批', count: n(t.approval, 'todos.approval'), tagClass: 'tag-p', countColor: 'var(--color-purple)', alert: false },
   ]
 })
 
 /* ── 系统健康状态 ── */
 const health = computed<Record<string, any>>(() => raw.value?.health || {})
-const healthOk = computed(() => Object.keys(health.value).length > 0)
+/** 「整体正常」判据：至少一个健康维度取到真实值（全为无载体时不冒充正常） */
+const healthOk = computed(
+  () => health.value.apiSuccessRate != null || health.value.aiGatewaySuccessRate != null,
+)
 const healthRows = computed(() => {
   const h = health.value
-  const FALLBACK_PERCENT = 0
+  const NA = '待接入'
+  /** 百分比只在有真实载体时给（否则 null ⇒ 不画水位条，避免被读成 0%） */
+  const pct = (v: any) => (v == null ? null : Math.max(0, Math.min(100, Number(v))))
   return [
-    { key: 'api', label: 'API 成功率', value: h.apiSuccessRate ?? '--', percent: h.apiSuccessPercent ?? FALLBACK_PERCENT, tone: 'g' },
-    { key: 'rt', label: '平均响应', value: h.avgResponse ?? '--', percent: h.avgResponsePercent ?? FALLBACK_PERCENT, tone: '' },
-    { key: 'storage', label: '存储水位', value: h.storageUsage ?? '--', percent: h.storagePercent ?? FALLBACK_PERCENT, tone: 'o' },
-    { key: 'ai', label: 'AI 网关', value: h.aiGateway ?? '--', percent: h.aiGatewayPercent ?? FALLBACK_PERCENT, tone: 'g' },
-    { key: 'mq', label: '消息队列', value: h.messageQueue ?? '--', percent: h.messageQueuePercent ?? FALLBACK_PERCENT, tone: 'g' },
+    {
+      key: 'api',
+      label: 'API 成功率（近60秒）',
+      value: h.apiSuccessRate == null ? NA : `${h.apiSuccessRate}%`,
+      percent: pct(h.apiSuccessRate),
+      tone: 'g',
+    },
+    {
+      key: 'rt',
+      label: '平均响应（近60秒）',
+      value: h.avgResponseMs == null ? NA : `${h.avgResponseMs} ms`,
+      percent: null,
+      tone: '',
+    },
+    {
+      key: 'storage',
+      label: '存储已用',
+      value: h.storageUsedGb == null ? NA : `${thousands(h.storageUsedGb)} GB`,
+      percent: pct(h.storagePercent),
+      tone: 'o',
+    },
+    {
+      key: 'ai',
+      label: 'AI 网关（近24h）',
+      value: h.aiGatewaySuccessRate == null ? NA : `${h.aiGatewaySuccessRate}%`,
+      percent: pct(h.aiGatewaySuccessRate),
+      tone: 'g',
+    },
+    {
+      key: 'mq',
+      label: '消息队列',
+      value: h.messageQueue == null ? NA : String(h.messageQueue),
+      percent: null,
+      tone: 'gy',
+    },
   ]
 })
 const alarmText = computed(() =>
-  raw.value?.lastAlarm ? `最近告警：${raw.value.lastAlarm}` : '最近告警：暂无告警记录（待接口对接）',
+  raw.value?.lastAlarm ? `最近告警：${raw.value.lastAlarm}` : '最近告警：暂无告警记录',
 )
 
 /* ── 报表导出 ── */
@@ -531,7 +637,11 @@ function renderTrend() {
     grid: { left: 36, right: 20, top: 16, bottom: 24 },
     tooltip: { trigger: 'axis' },
     xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: COLOR.grid } }, axisLabel: { color: COLOR.axis, fontSize: 10 }, axisTick: { show: false } },
-    yAxis: { type: 'value', splitLine: { lineStyle: { color: COLOR.grid } }, axisLabel: { color: COLOR.axis, fontSize: 10 } },
+    // 左轴＝日新增；右轴＝累计租户数（S3-20 后端 tenantTrend[].cumCount）
+    yAxis: [
+      { type: 'value', splitLine: { lineStyle: { color: COLOR.grid } }, axisLabel: { color: COLOR.axis, fontSize: 10 } },
+      { type: 'value', splitLine: { show: false }, axisLabel: { color: COLOR.axis, fontSize: 10 } },
+    ],
     series: [
       {
         name: '日新增',
@@ -542,6 +652,17 @@ function renderTrend() {
         lineStyle: { color: COLOR.primary, width: 2.5 },
         itemStyle: { color: COLOR.primary },
         areaStyle: { color: COLOR.primarySoft, opacity: 0.35 },
+      },
+      {
+        name: '累计（右轴）',
+        type: 'line',
+        yAxisIndex: 1,
+        smooth: false,
+        symbolSize: 6,
+        // 后端已按「截至该日租户总数」算好；缺失即不画点（不补 0 冒充累计）
+        data: trend.value.map((x: any) => (x.cumCount == null ? null : x.cumCount)),
+        lineStyle: { color: COLOR.primarySoft, width: 2, type: 'dashed' },
+        itemStyle: { color: COLOR.primarySoft },
       },
     ],
   })
@@ -600,13 +721,20 @@ function resizeAll() {
 }
 
 async function load() {
+  loadError.value = ''
   try {
     const res: any = await getPlatformOverview()
-    raw.value = res?.data?.data || res?.data || {}
+    const data = res?.data?.data || res?.data || {}
+    raw.value = data && typeof data === 'object' ? data : {}
+    if (!raw.value || Object.keys(raw.value).length === 0) {
+      // 接口通了但没有任何字段 ⇒ 也按错误态显式提示（避免页面全 '--' 却看不出原因）
+      loadError.value = '大盘接口未返回任何指标字段（可能后端版本不匹配），当前展示空态'
+    }
     updatedAt.value = raw.value?.updatedAt || ''
   } catch {
-    /* 接口不可用时保持空态，不填充示例数据 */
+    // 失败可见：显式错误态 + 清空数据，不填充示例数据、不沿用旧值
     raw.value = {}
+    loadError.value = '大盘指标加载失败（未取到指标数据），当前展示空态'
   } finally {
     await nextTick()
     renderTrend()
@@ -624,6 +752,8 @@ watch([hasTrend, hasPlan, hasIncome], async () => {
 
 onMounted(() => {
   load()
+  // S3-12：升降级流向独立请求（与大盘解耦，各自独立错误态）
+  loadPlanFlow()
   // 导出任务列表与大盘并行加载（各自独立空态/错误态，互不影响）
   loadExportTasks()
   window.addEventListener('resize', resizeAll)
@@ -665,6 +795,15 @@ onUnmounted(() => {
 .health-alarm {
   border-top: 1px dashed var(--g2);
   padding-top: var(--space-2);
+}
+/* 无百分比载体的健康项：不画实心水位条（避免被读成 0%/用尽） */
+.bar.is-unknown {
+  background: transparent;
+  border: 1px dashed var(--g2);
+}
+/* 升降级流向取数失败时的高亮（不静默） */
+.flow-err {
+  color: var(--color-danger);
 }
 .plan-dist {
   display: flex;

@@ -39,7 +39,7 @@ let aiBaseWarned = false;
 function warnAiBaseMissing(): string {
   const msg =
     "AI 服务地址未配置（VITE_AI_BASE_URL）。生产构建需注入该变量，例如 " +
-    "VITE_AI_BASE_URL=https://saas.onepan.cn/ai-api";
+    "VITE_AI_BASE_URL=/ai-api（同源，经 nginx 反代到 AI 底座；S3-42 口径）";
   if (!aiBaseWarned) {
     aiBaseWarned = true;
     ElMessage.error(msg);

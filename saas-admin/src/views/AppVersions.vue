@@ -21,6 +21,12 @@
       <span>{{ error }}（接口待对接或异常，当前展示空态）</span>
     </div>
 
+    <!-- S3-24：接线自检——后端返回的字段与本页契约不匹配时显式报警，不静默显示 '-' -->
+    <div v-if="wireNotice" class="tipbar r mt8">
+      <span class="ic">!</span>
+      <span>{{ wireNotice }}</span>
+    </div>
+
     <!-- ============ 版本列表面板（设计稿 .panel / .tblwrap） ============ -->
     <div class="panel">
       <div class="p-hd">
@@ -53,21 +59,22 @@
               <td>{{ row.updateNote || '-' }}</td>
               <td>
                 <span v-if="row.grayTag" class="tag" :class="row.grayTagCls">{{ row.grayTag }}</span>
-                {{ row.grayRange || '-' }}
+                {{ row.grayRange ?? '—' }}
               </td>
               <td>
                 <div class="mbar">
-                  <span class="bar" :class="row.barCls">
+                  <span v-if="row.progress !== null" class="bar" :class="row.barCls">
                     <i :style="{ width: (row.progress || 0) + '%' }"></i>
                   </span>
-                  <em>{{ row.batchText || '' }}</em>
+                  <span v-else class="bar is-unknown" title="无放量比例载体，不画 0% 进度条"></span>
+                  <em>{{ row.batchText ?? '—' }}</em>
                 </div>
               </td>
-              <td class="num">{{ row.adoption || '-' }}</td>
+              <td class="num">{{ row.adoption ?? '—' }}</td>
               <td>
                 <span class="tag" :class="releaseStatusView(row).cls">{{ releaseStatusView(row).text }}</span>
               </td>
-              <td>{{ row.releaseWindow || '-' }}</td>
+              <td>{{ row.releaseWindow ?? '—' }}</td>
               <td>
                 <span
                   v-for="a in actionsFor(row)"
@@ -91,6 +98,10 @@
       <p class="small mt8 rule-note">
         放量守门规则：内测标签租户（含自家门店）先行运行 ≥48h 且无 P0/P1 告警 → 旗舰等指定租户
         → 按比例放量；任一批次错误率超阈值自动暂停并告警；回滚为上一版本，秒级生效。重大操作习惯变更需全量前 3 天推送预告公告。
+      </p>
+      <p class="small mt8 rule-note">
+        字段口径（S3-24）：灰度范围 / 批次进度取自后端 <b>status</b> 与 <b>gray_ratio</b>（178 迁移已入库）；
+        采纳率 / 发布窗口 / 批次文案在 <b>t_app_version 无对应列</b>，按「—」如实展示（不造数，待后端加列后接入）。
       </p>
 
       <!-- 分页（设计稿结构补全） -->
@@ -319,6 +330,8 @@ import {
 const loading = ref(false);
 const list = ref<any[]>([]);
 const error = ref("");
+/** S3-24 接线自检：后端字段与前端契约不匹配时的显式提示（空串＝无异常） */
+const wireNotice = ref("");
 
 /* ── 页头概览占位（接口未接入时用占位符） ── */
 const currentVersion = ref("--");
@@ -378,12 +391,86 @@ const form = reactive({
 /* ── 状态映射 ── */
 function releaseStatusView(row: any) {
   const map: Record<string, { cls: string; text: string }> = {
+    DRAFT: { cls: "tag-gy", text: "草稿" },
     GRAYING: { cls: "tag-b", text: "灰度中" },
     FULL: { cls: "tag-g", text: "已全量" },
     PAUSED: { cls: "tag-o", text: "已暂停" },
-    ROLLED_BACK: { cls: "tag-r", text: "已回滚" },
+    ARCHIVED: { cls: "tag-gy", text: "已归档" },
   };
-  return map[row.releaseStatus] || { cls: "tag-gy", text: row.releaseStatus || "草稿" };
+  // 状态未知/缺失时如实展示「未知」，**不回落成「草稿」**（回落会把未接线读成真实业务态）
+  return map[row.releaseStatus] || { cls: "tag-gy", text: "未知（后端未给状态）" };
+}
+
+/**
+ * S3-24：把后端行（status / gray_ratio 已入库）归一成表格展示字段。
+ * - 有载体的：灰度范围/批次进度/发布状态由 status + gray_ratio 真实派生；
+ * - 无载体的（采纳率/发布窗口/批次文案）：显式 null → 模板展示「—」，不造数；
+ * - 契约不符（status / grayRatio 键缺失＝接线断开）：置 wireMissing，页面显式报警，不静默成 '-'。
+ */
+const PLATFORM_LABEL: Record<string, string> = {
+  admin_web: "工作台",
+  app_mobile: "移动端",
+  print_agent: "打印助手",
+};
+
+function toVersionRow(raw: any) {
+  const hasStatus = raw != null && Object.prototype.hasOwnProperty.call(raw, "status");
+  const hasGray = raw != null && Object.prototype.hasOwnProperty.call(raw, "grayRatio");
+  const status = String(raw?.status ?? "").trim().toUpperCase();
+  const ratioNum = hasGray && raw.grayRatio !== null && raw.grayRatio !== "" ? Number(raw.grayRatio) : null;
+  const ratio = ratioNum !== null && Number.isFinite(ratioNum) ? ratioNum : null;
+  const rangeText = ratio === null ? null : `${ratio}%`;
+
+  let releaseStatus = "";
+  let grayTag: string | null = null;
+  let grayTagCls = "tag-gy";
+  let barCls = "";
+  if (status === "DRAFT") {
+    releaseStatus = "DRAFT";
+    grayTag = "草稿";
+  } else if (status === "PAUSED") {
+    releaseStatus = "PAUSED";
+    grayTag = "已暂停";
+    grayTagCls = "tag-o";
+    barCls = "o";
+  } else if (status === "ARCHIVED") {
+    releaseStatus = "ARCHIVED";
+    grayTag = "已归档";
+  } else if (status === "PUBLISHED") {
+    // 全量判据＝放量比例 100%；未达 100%（含 0）均为灰度中，比例原样展示
+    if (ratio !== null && ratio >= 100) {
+      releaseStatus = "FULL";
+      grayTag = "全量";
+      grayTagCls = "tag-g";
+      barCls = "g";
+    } else {
+      releaseStatus = "GRAYING";
+      grayTag = "灰度中";
+      grayTagCls = "tag-b";
+    }
+  } else if (status) {
+    grayTag = `未知(${status})`;
+  }
+
+  const platform = String(raw?.platform ?? "");
+  return {
+    // 透传后端原始字段（id / versionName / updateNote 等直接使用，不改名）
+    ...(raw ?? {}),
+    // 副标题＝端别（后端真实字段 platform 的中文名；无该字段则留空，不编造）
+    subTitle: PLATFORM_LABEL[platform] ?? platform,
+    releaseStatus,
+    grayTag,
+    grayTagCls,
+    // gray_ratio 已入库：必须展示；为 null 时如实说「未设置放量比例」
+    grayRange: hasGray ? rangeText ?? "未设置放量比例" : null,
+    barCls,
+    progress: hasGray ? ratio : null,
+    // 无载体字段（t_app_version 无对应列）——显式 null
+    batchText: null,
+    adoption: null,
+    releaseWindow: null,
+    wireMissing: !hasStatus || !hasGray,
+  };
 }
 function actionsFor(row: any) {
   const map: Record<string, { key: string; label: string; cls: string }[]> = {
@@ -418,11 +505,18 @@ async function fetchList() {
     const res = await listAppVersions({ platform: "admin_web" });
     const data = res?.data?.data || (res as any).data || res;
     const arr = Array.isArray(data) ? data : [];
+    const rows = arr.map(toVersionRow);
+    // 接线自检：任一行的 status / grayRatio 缺失 ⇒ 显式报警（不静默显示 '-'）
+    const missing = rows.filter((r: any) => r.wireMissing).length;
+    wireNotice.value = missing
+      ? `后端返回的版本数据缺少 status / grayRatio 字段（${missing} 行）——前端接线可能已失效，灰度范围/批次进度不可信，请检查接口契约`
+      : "";
     list.value = statusIdx.value === 0
-      ? arr
-      : arr.filter((r: any) => releaseStatusView(r).text === statusCycle[statusIdx.value]);
+      ? rows
+      : rows.filter((r: any) => releaseStatusView(r).text === statusCycle[statusIdx.value]);
   } catch {
     error.value = "版本列表加载失败";
+    wireNotice.value = "";
   } finally {
     loading.value = false;
   }
@@ -760,5 +854,11 @@ onMounted(fetchList);
 }
 .rule-note {
   padding: 0 var(--space-3) var(--space-3);
+}
+/* 无放量比例载体：不画实心进度条（避免被读成 0% 放量） */
+.bar.is-unknown {
+  background: transparent;
+  border: 1px dashed var(--g2);
+  width: 110px;
 }
 </style>
