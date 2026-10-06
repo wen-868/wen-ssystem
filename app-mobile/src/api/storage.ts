@@ -443,17 +443,3 @@ export function clearSavedCredentials(): void {
   removeSecureStorage(CREDENTIAL_KEYS.PASSWORD)
 }
 
-// ──────────────────────────── Clear All ────────────────────────────
-
-/**
- * 退出登录：清除所有敏感信息并跳转登录页
- * - 清除 Token / User / Tenant / CsrfToken（含加密存储）
- * - 跳转到登录页（reLaunch）
- */
-export function logout(): void {
-  removeToken()
-  removeUser()
-  removeTenant()
-  removeCsrfToken()
-  uni.reLaunch({ url: '/pages/login/login' })
-}
