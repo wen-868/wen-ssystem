@@ -1,7 +1,17 @@
 import { vi, describe, it, beforeEach, expect } from "vitest";
 
+const envMocks = vi.hoisted(() => ({ isDemoLoginEnabled: vi.fn() }));
+
+// S3-165（F1）：`config/env` 必须做「部分 mock」——整体替换会把 `env` 等其余导出变成
+// undefined，导致 `shared/logger.ts` 读 `env.LOG_LEVEL` 时整个测试文件加载失败。
+vi.mock("../../../config/env", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../../config/env")>()),
+  isDemoLoginEnabled: envMocks.isDemoLoginEnabled,
+}));
+
 vi.mock("../../../services/admin/auth.service", () => ({
   login: vi.fn(),
+  demoLogin: vi.fn(),
   changePassword: vi.fn(),
   getMe: vi.fn(),
   getSettings: vi.fn(),
@@ -22,6 +32,7 @@ import * as authService from "../../../services/admin/auth.service";
 import { ok } from "../../../shared/response";
 import {
   login,
+  demoLogin,
   changePassword,
   getMe,
   getSettings,
@@ -66,6 +77,30 @@ describe("auth.controller", () => {
     await login(req as any, res as any, vi.fn());
     expect(authService.login).toHaveBeenCalledWith("admin", "Admin@123", true);
     expect(ok).toHaveBeenCalled();
+  });
+
+  // ── S3-165：演示免密登录按环境门控 ──
+  it("demoLogin - 生产环境（门控关闭）应拒绝：403 + 明确文案，且不调用 service、不签发令牌", async () => {
+    envMocks.isDemoLoginEnabled.mockReturnValue(false);
+    const req = mockReq();
+    const res = mockRes();
+    await expect(demoLogin(req as any, res as any, vi.fn())).rejects.toMatchObject({
+      message: "演示登录在生产环境已禁用",
+      statusCode: 403,
+    });
+    expect(authService.demoLogin).not.toHaveBeenCalled();
+    expect(res.json).not.toHaveBeenCalled();
+  });
+
+  it("demoLogin - 非生产（门控开启）仍返回令牌", async () => {
+    envMocks.isDemoLoginEnabled.mockReturnValue(true);
+    (authService.demoLogin as any).mockResolvedValue({ token: "demo-token", demo: true });
+    const req = mockReq();
+    const res = mockRes();
+    await demoLogin(req as any, res as any, vi.fn());
+    expect(authService.demoLogin).toHaveBeenCalledTimes(1);
+    expect(ok).toHaveBeenCalledWith({ token: "demo-token", demo: true });
+    expect(res.json).toHaveBeenCalledTimes(1);
   });
 
   it("changePassword - 应修改密码成功", async () => {

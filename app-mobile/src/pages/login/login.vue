@@ -311,7 +311,12 @@ async function handleDemoLogin() {
         console.log('[demo-login] 降级成功，提示：演示通道已接管')
         goHome()
       } catch (fallbackErr: any) {
-        errorMsg.value = fallbackErr?.message || '演示通道不可用，请稍后重试'
+        // S3-165：生产已停用免密 demo-login（后端 403「演示登录在生产环境已禁用」），
+        // 降级必然失败 —— 必须给出可操作的出路，不得只留"演示通道不可用"这种死路文案。
+        const fallbackMsg = String(fallbackErr?.message || '')
+        errorMsg.value = /禁用|停用/.test(fallbackMsg)
+          ? '演示通道已停用，请用演示账号登录'
+          : (fallbackMsg || '演示通道已停用，请用演示账号登录')
       }
       return
     }

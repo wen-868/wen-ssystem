@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
+import { AppError } from "../../shared/app-error";
+import { isDemoLoginEnabled } from "../../config/env";
 import * as authService from "../../services/admin/auth.service";
 import * as mfaService from "../../services/admin/mfa.service";
 
@@ -13,8 +15,15 @@ export const login = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
-/** 演示账号登录（免密，仅供产品演示） */
+/**
+ * 演示账号登录（免密，仅供产品演示）
+ * S3-165：生产环境关闭该免密通道（判定口径唯一来源 config/env.ts 的 isDemoLoginEnabled），
+ * 非生产保持现状可用；禁用时必须给出明确文案，不得静默 200。
+ */
 export const demoLogin = asyncHandler(async (_req, res) => {
+  if (!isDemoLoginEnabled()) {
+    throw new AppError("演示登录在生产环境已禁用", 403);
+  }
   const result = await authService.demoLogin();
   res.json(ok(result));
 });
