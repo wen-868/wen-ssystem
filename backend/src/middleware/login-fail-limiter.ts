@@ -25,6 +25,17 @@
  *    较晚者（≤ 15 分钟），**不是**「命中时刻起算精确 15 分钟」。
  *  - 存储用默认 MemoryStore（与 `platform-miniapp.routes.ts` 的限流范式一致），
  *    **进程内计数、不建表**；局限是多实例部署不共享（已报备）。
+ *
+ * S3-58-F1 R2（2026-10-06）——**限流维度改造**（背景：业主已定「总台必须可从公网登录」）：
+ *  原缺陷：账号维度键是纯 `acct:<username>`，攻击者只要制造 5 次失败，
+ *  就能把**合法账号**锁死 15 分钟（换任何来源 IP 都登不上）——这是一条 DoS 式稳定性问题。
+ *  改造后（凭据错误 401 通道）：
+ *   - **主键 = 账号 + 归一化 IP**（`acct:<name>|ip:<ipKey>`）：单一来源失败只锁「该来源 + 该账号」，
+ *     合法用户换一个来源仍能登录。阈值语义不变（5 次 / 5 分钟 → 最长锁 15 分钟）。
+ *   - **保留账号维度高阈值兜底**（键仍是 `acct:<name>`，60 次 / 1 小时）：拦「分布式多 IP 打同一账号」。
+ *     单一来源受 5min/15min 快锁限制，最多只能贡献 5 次 / 15 分钟，故 60 次 / 1 小时
+ *     **至少需要 3 个不同来源**才可能触发 —— 单一来源依旧锁不死合法账号。
+ *   - IP 维度（纯 IP，5 次 / 5 分钟 + 5 次 / 15 分钟）**保持不变**，继续拦「同来源轮换账号名」。
  */
 
 import rateLimit, { ipKeyGenerator, MemoryStore } from "express-rate-limit";
@@ -38,6 +49,21 @@ export const LOGIN_FAIL_MAX = 5;
 export const LOGIN_FAIL_WINDOW_MS = 5 * 60_000;
 /** 凭据错误锁定窗口：15 分钟 */
 export const LOGIN_FAIL_LOCK_MS = 15 * 60_000;
+
+/**
+ * 账号维度兜底阈值（S3-58-F1 R2 新增）：60 次 / 1 小时。
+ *
+ * 取值理由（不是拍脑袋，是按上层快锁的「贡献上限」倒推的）：
+ *  - 账号维度的**主键**已改为 (账号 + 归一化 IP)，单一来源每 5 分钟最多
+ *    贡献 5 次失败，且 15 分钟窗口同样 `max=5`（触发后本窗口内不再累计），
+ *    于是**单一来源最多只能向兜底桶贡献 5 次 / 15 分钟 ≈ 20 次 / 小时**；
+ *  - 兜底阈值取 60 次 / 1 小时 ⇒ **至少要 3 个不同来源**才可能触发，
+ *    「攻击者用单一来源锁死合法账号」在数学上被排除；
+ *  - 同时 60 次 / 小时对「分布式多 IP 爆破同一账号」仍是一道有效闸门（不会无上限）。
+ */
+export const ACCOUNT_BACKSTOP_MAX = 60;
+/** 账号维度兜底窗口：1 小时 */
+export const ACCOUNT_BACKSTOP_WINDOW_MS = 60 * 60_000;
 
 /** 验证码错误阈值：20 次（裁定③ 放宽） */
 export const CAPTCHA_FAIL_MAX = 20;
@@ -63,6 +89,13 @@ export const CAPTCHA_FAIL_MESSAGE = {
   traceId: "",
 };
 
+/** 账号维度兜底的兜底文案（同上，动态生成） */
+export const ACCOUNT_BACKSTOP_MESSAGE = {
+  code: "429",
+  msg: "该账号登录失败次数过多，已临时锁定，请稍后重试",
+  traceId: "",
+};
+
 // ─── 键 ───────────────────────────────────────────────────────
 
 /**
@@ -79,12 +112,26 @@ function ipKey(req: Request): string {
 
 /**
  * 账号维度键：账号名统一小写；未提交账号时退回 IP，避免所有匿名请求共用一个桶。
- * **仅凭据错误使用**——验证码错误按裁定只走 IP 维度，不进这个桶。
+ * **仅用于「账号维度兜底」高阈值通道**（S3-58-F1 R2）——验证码错误按裁定只走 IP 维度，不进这个桶。
  */
 function accountKey(req: Request): string {
   const raw = (req as { body?: { username?: unknown } }).body?.username;
   const name = typeof raw === "string" ? raw.trim().toLowerCase() : "";
   return name ? `acct:${name}` : `anon:${ipKey(req)}`;
+}
+
+/**
+ * **账号 + 来源 IP 复合键**（S3-58-F1 R2 的凭据通道主键）：`acct:<name>|ip:<ipKey>`。
+ *
+ * 目的：把「快锁」的作用域从『账号』收窄到『账号 + 来源』——
+ * 攻击者从单一来源连续失败，只会锁住「自己这个来源 + 该账号」，
+ * **不会**把合法用户从其它来源一并锁死（这正是原实现的根因）。
+ * 未提交账号时退回 IP 桶（与 accountKey 同口径）。
+ */
+function accountIpKey(req: Request): string {
+  const raw = (req as { body?: { username?: unknown } }).body?.username;
+  const name = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  return name ? `acct:${name}|ip:${ipKey(req)}` : `anon:${ipKey(req)}`;
 }
 
 type KeyGen = (req: Request) => string;
@@ -103,7 +150,7 @@ function remainText(resetTime?: Date): string {
  * 生成带「失败次数 + 剩余时间」的中文文案。
  * 裁定③ 明确要求：超限不能只丢一句「请求过于频繁」，要说清第几次、还要等多久。
  */
-function buildMessage(kind: "credential" | "captcha") {
+function buildMessage(kind: "credential" | "captcha" | "account") {
   return (req: Request): Record<string, unknown> => {
     const info = (req as unknown as { rateLimit?: { used?: number; resetTime?: Date } }).rateLimit;
     // express-rate-limit 在拦截时给出的 used 是**含本次被拦请求**的计数，
@@ -111,11 +158,18 @@ function buildMessage(kind: "credential" | "captcha") {
     // （阈值 20 却显示「已达 21 次」）。故减 1 还原真实失败次数。
     const used = Math.max(0, Number(info?.used ?? 0) - 1);
     const tail = remainText(info?.resetTime);
-    const base = kind === "credential" ? LOGIN_FAIL_MESSAGE : CAPTCHA_FAIL_MESSAGE;
+    const base =
+      kind === "credential"
+        ? LOGIN_FAIL_MESSAGE
+        : kind === "captcha"
+          ? CAPTCHA_FAIL_MESSAGE
+          : ACCOUNT_BACKSTOP_MESSAGE;
     const head =
       kind === "credential"
         ? `登录失败次数过多（已连续失败 ${used} 次），该账号与来源 IP 已临时锁定`
-        : `图形验证码错误次数过多（已达 ${used} 次），请重新获取验证码`;
+        : kind === "captcha"
+          ? `图形验证码错误次数过多（已达 ${used} 次），请重新获取验证码`
+          : `登录失败次数过多（该账号 1 小时内已累计失败 ${used} 次，来源分散），账号已临时锁定`;
     return { ...base, msg: tail ? `${head}，${tail}` : head };
   };
 }
@@ -160,7 +214,8 @@ function makeLimiter(opts: {
  */
 export function createLoginFailLimiters(max: number = LOGIN_FAIL_MAX) {
   const message = buildMessage("credential");
-  const build = (keyGenerator: KeyGen) => [
+  /** 快锁：短窗口（5min）+ 长窗口（15min），两把都 `max` 次 → 任一超限即拒绝 */
+  const buildFast = (keyGenerator: KeyGen) => [
     makeLimiter({
       keyGenerator,
       windowMs: LOGIN_FAIL_WINDOW_MS,
@@ -176,13 +231,27 @@ export function createLoginFailLimiters(max: number = LOGIN_FAIL_MAX) {
       message,
     }),
   ];
-  const byIp = build(ipKey);
-  const byAccount = build(accountKey);
-  const all = [...byIp, ...byAccount];
+  // IP 维度：维持原样（拦「同来源轮换账号名」）
+  const byIp = buildFast(ipKey);
+  // 账号维度主键：账号 + 归一化 IP（S3-58-F1 R2）——单一来源锁不死合法账号
+  const byAccount = buildFast(accountIpKey);
+  // 账号维度兜底：纯账号键 + 显著抬高阈值（拦「分布式多 IP 打同一账号」）
+  const backstop = makeLimiter({
+    keyGenerator: accountKey,
+    windowMs: ACCOUNT_BACKSTOP_WINDOW_MS,
+    max: ACCOUNT_BACKSTOP_MAX,
+    countStatus: CREDENTIAL_FAIL_STATUS,
+    message: buildMessage("account"),
+  });
+  // 兜底放最后：只有通过前面快锁的请求才会计入兜底桶，
+  // 被锁来源不会继续把兜底桶填满（否则单一来源也能靠时间堆到 60 次）。
+  const all = [...byIp, ...byAccount, backstop];
   return {
     byIp: byIp.map((e) => e.middleware),
     byAccount: byAccount.map((e) => e.middleware),
-    /** 双维度串联：任一超限即拒绝 */
+    /** 账号维度兜底（高阈值，1 小时窗口） */
+    byAccountBackstop: backstop.middleware,
+    /** 三组串联：任一超限即拒绝 */
     all: all.map((e) => e.middleware),
     /**
      * 清空全部计数。

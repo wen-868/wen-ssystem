@@ -52,7 +52,7 @@ const captchaMocks = vi.hoisted(() => ({
 
 vi.mock("../../services/platform/captcha.service", () => captchaMocks);
 
-import { queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 import { platformAuthRouter } from "../../routes/platform-auth.routes";
 import {
   loginFailLimiters,
@@ -60,6 +60,10 @@ import {
   LOGIN_FAIL_MAX,
   CAPTCHA_FAIL_MAX,
 } from "../../middleware/login-fail-limiter";
+// S3-58-F1 R3：MFA 用例用**真** TOTP 模块（纯算法，无外部依赖）+ 真挑战令牌签发/校验
+import { generateTOTP, generateSecret } from "../../shared/totp";
+import { generateCsrfToken } from "../../middleware/csrf";
+import { signMfaToken } from "../../middleware/mfa-token";
 
 const app = createTestApp({ prefix: "/api/platform-auth", router: platformAuthRouter });
 
@@ -267,6 +271,202 @@ describe("routes/platform-auth 集成测试", () => {
       (queryOne as any).mockRejectedValue(new Error("db error"));
       const res = await request(app).get("/api/platform-auth/me");
       expect(res.status).toBe(500);
+    });
+  });
+
+  /**
+   * S3-58-F1 R3（2026-10-06）——平台端 MFA（零 DDL，读写 t_platform_admin）。
+   *
+   * 与租户端（t_sys_user / /api/admin/auth/mfa/*）完全独立；
+   * 默认不强制：mfa_enabled=0 直发令牌，=1 只回挑战令牌，正式令牌须二次验证。
+   * 挑战令牌是**真** JWT（非 mock），租户端令牌不得被平台端点接受。
+   */
+  describe("平台 MFA（S3-58-F1 R3）", () => {
+    // 真 TOTP secret（32 位 base32）；动态码由真 generateTOTP 现算
+    const SECRET = generateSecret();
+    const csrf = generateCsrfToken(1);
+
+    const adminRow = (over: Record<string, unknown> = {}) => ({
+      id: 1,
+      username: "admin",
+      password_hash: "hash",
+      real_name: "管理员",
+      mfa_secret: SECRET,
+      mfa_enabled: 0,
+      ...over,
+    });
+
+    async function mockPasswordOk() {
+      const bcrypt = await import("bcryptjs");
+      (bcrypt.default.compare as any).mockResolvedValue(true);
+    }
+
+    /** 构造一个**必然错误**的 6 位动态码（避开 ±1 时间窗口内的全部有效码） */
+    function wrongCode(secret: string): string {
+      const now = Date.now();
+      const valid = new Set([-1, 0, 1].map((o) => generateTOTP(secret, now + o * 30_000)));
+      for (let i = 0; i < 1_000_000; i++) {
+        const s = String(i).padStart(6, "0");
+        if (!valid.has(s)) return s;
+      }
+      return "000000";
+    }
+
+    async function loginForMfaToken() {
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_enabled: 1 }));
+      await mockPasswordOk();
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "right" });
+      return res;
+    }
+
+    it("④-1 未开启 MFA ⇒ 登录直发正式 token（现状不变）", async () => {
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_enabled: 0 }));
+      await mockPasswordOk();
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "right" });
+      expect(res.status).toBe(200);
+      expect(typeof res.body.data.token).toBe("string");
+      expect(res.body.data.mfaRequired).toBeUndefined();
+      expect(typeof res.body.data.csrfToken).toBe("string");
+    });
+
+    it("④-2 开启 MFA ⇒ 登录只回 {mfaRequired, mfaToken}，**不发**正式 token", async () => {
+      const res = await loginForMfaToken();
+      expect(res.status).toBe(200);
+      expect(res.body.data.mfaRequired).toBe(true);
+      expect(typeof res.body.data.mfaToken).toBe("string");
+      // 🔴 关键断言：不得直接下发正式令牌 / CSRF
+      expect(res.body.data.token).toBeUndefined();
+      expect(res.body.data.csrfToken).toBeUndefined();
+      expect(res.body.data.admin).toBeUndefined();
+    });
+
+    it("④-3 错误验证码 ⇒ 拒绝且不发令牌", async () => {
+      const login = await loginForMfaToken();
+      const mfaToken = login.body.data.mfaToken;
+      const bad = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken, code: wrongCode(SECRET) });
+      expect(bad.status).toBe(400);
+      expect(bad.body.data).toBeUndefined();
+      expect(bad.body.msg).toMatch(/验证码/);
+    });
+
+    it("④-4 正确验证码 ⇒ 发正式令牌", async () => {
+      const login = await loginForMfaToken();
+      const mfaToken = login.body.data.mfaToken;
+      const ok = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken, code: generateTOTP(SECRET) });
+      expect(ok.status).toBe(200);
+      expect(typeof ok.body.data.token).toBe("string");
+      expect(ok.body.data.admin.username).toBe("admin");
+      expect(typeof ok.body.data.csrfToken).toBe("string");
+    });
+
+    it("④-5 未启用 MFA 的账号：挑战令牌也无法换令牌（不校验即发 = 红线）", async () => {
+      const login = await loginForMfaToken();
+      const mfaToken = login.body.data.mfaToken;
+      // 二次验证时该账号已在库里被关闭 MFA
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_enabled: 0 }));
+      const res = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken, code: generateTOTP(SECRET) });
+      expect(res.status).toBe(400);
+      expect(res.body.data).toBeUndefined();
+    });
+
+    it("跨端隔离：租户端 MFA 挑战令牌**不能**被平台二次验证接受", async () => {
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_enabled: 1 }));
+      const merchantMfaToken = signMfaToken({ id: 1, username: "admin", tenantId: "default" });
+      const res = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken: merchantMfaToken, code: generateTOTP(SECRET) });
+      expect(res.status).toBe(401);
+      expect(res.body.data).toBeUndefined();
+    });
+
+    it("⑤ 四件套：status / setup / confirm / disable 可用，SQL 全部打在 t_platform_admin", async () => {
+      // status
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_enabled: 0 }));
+      const st = await request(app).get("/api/platform-auth/mfa/status");
+      expect(st.status).toBe(200);
+      expect(st.body.data).toEqual({ enabled: false, hasSecret: true });
+      expect(String((queryOne as any).mock.calls.at(-1)[0])).toContain("t_platform_admin");
+
+      // setup（写操作，必须带 CSRF）
+      (query as any).mockResolvedValue({ affectedRows: 1 });
+      const su = await request(app)
+        .post("/api/platform-auth/mfa/setup")
+        .set("x-csrf-token", csrf)
+        .send({});
+      expect(su.status).toBe(200);
+      const setupSecret: string = (query as any).mock.calls.at(-1)[1][0];
+      expect(typeof setupSecret).toBe("string");
+      expect(setupSecret.length).toBe(32);
+      expect(String(su.body.data.otpauthUrl)).toContain("otpauth://totp/");
+      expect(su.body.data.enabled).toBe(false);
+      expect(String((query as any).mock.calls.at(-1)[0])).toContain("UPDATE t_platform_admin SET mfa_secret");
+
+      // confirm（用 setup 落库的 secret 现算真动态码）
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_secret: setupSecret, mfa_enabled: 0 }));
+      const cf = await request(app)
+        .post("/api/platform-auth/mfa/confirm")
+        .set("x-csrf-token", csrf)
+        .send({ code: generateTOTP(setupSecret) });
+      expect(cf.status).toBe(200);
+      expect(cf.body.data).toEqual({ enabled: true });
+      expect(String((query as any).mock.calls.at(-1)[0])).toContain("mfa_enabled = 1");
+
+      // disable（清空 secret）
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_secret: setupSecret, mfa_enabled: 1 }));
+      const dis = await request(app)
+        .post("/api/platform-auth/mfa/disable")
+        .set("x-csrf-token", csrf)
+        .send({ code: generateTOTP(setupSecret) });
+      expect(dis.status).toBe(200);
+      expect(dis.body.data).toEqual({ enabled: false });
+      const disableSql = String((query as any).mock.calls.at(-1)[0]);
+      expect(disableSql).toContain("mfa_secret = NULL");
+      expect(disableSql).toContain("t_platform_admin");
+    });
+
+    it("⑤-2 CSRF：setup 缺 x-csrf-token ⇒ 403（写操作确实挂了 csrfMiddleware）", async () => {
+      (queryOne as any).mockResolvedValue(adminRow({ mfa_enabled: 0 }));
+      (query as any).mockResolvedValue({ affectedRows: 1 });
+      const noCsrf = await request(app).post("/api/platform-auth/mfa/setup").send({});
+      expect(noCsrf.status).toBe(403);
+    });
+
+    it("⑤-3 未鉴权访问 MFA 端点 ⇒ 401（四件套走 requirePlatformAuth）", async () => {
+      // 本文件把 requirePlatformAuth mock 成放行，故此处只断言路由确实挂了该中间件
+      // （真实鉴权由 middleware/auth 的单测覆盖）
+      const st = await request(app).get("/api/platform-auth/mfa/status");
+      expect(st.status).toBe(200);
+      expect(st.body.data).toHaveProperty("enabled");
+    });
+
+    it("GET /me 增 MFA 提示位 mfaEnabled（默认不强制）", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "admin",
+        real_name: "管理员",
+        mfa_enabled: 1,
+      });
+      const on = await request(app).get("/api/platform-auth/me");
+      expect(on.body.data.mfaEnabled).toBe(true);
+
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "admin",
+        real_name: "管理员",
+        mfa_enabled: 0,
+      });
+      const off = await request(app).get("/api/platform-auth/me");
+      expect(off.body.data.mfaEnabled).toBe(false);
     });
   });
 });
