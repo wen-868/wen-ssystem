@@ -11,6 +11,34 @@ export async function demoLogin() {
   return data.data as { token: string; user: unknown; csrfToken?: string; demo?: boolean };
 }
 
+/**
+ * 演示账号凭据（唯一出处，禁止在其它业务代码里再写演示账号字面量）。
+ * 构建期可用 VITE_DEMO_ACCOUNT / VITE_DEMO_PASSWORD 覆盖；未配置时回退默认 demo / Demo@2026。
+ * 口令合规：≥8 位 + 字母 + 数字 + 特殊字符（满足 backend/src/shared/password.ts 的校验口径）。
+ */
+export const DEMO_ACCOUNT: string = import.meta.env.VITE_DEMO_ACCOUNT || "demo";
+export const DEMO_PASSWORD: string = import.meta.env.VITE_DEMO_PASSWORD || "Demo@2026";
+
+/** 账号被锁定、免密演示通道接管时的如实提示文案 */
+export const DEMO_FALLBACK_NOTICE = "演示通道已接管";
+
+/**
+ * 判断登录失败是否属于「账号已锁定 / 失败次数过多」——命中才允许降级走免密演示通道。
+ * 后端口径（backend/src/services/admin/auth.service.ts:124-147）：AppError(msg, 400) ⇒
+ * HTTP 400 + { code: "400", msg: "账号已锁定，请N分钟后重试" | "登录失败次数过多，账号已锁定15分钟" }。
+ * 其它错误（网络中断、账号或密码错误、登录限流 429 等）一律返回 false ⇒ 不降级。
+ */
+export function isAccountLockedError(error: unknown): boolean {
+  const data = (error as {
+    response?: { data?: { code?: unknown; msg?: unknown; message?: unknown } };
+  } | undefined)?.response?.data;
+  if (!data) return false;
+  const code = String(data.code ?? "");
+  const msg = String(data.msg ?? data.message ?? "");
+  // 业务码非 0（无 code 视为业务失败）且提示含「锁定」
+  return code !== "0" && msg.includes("锁定");
+}
+
 /** 初始化演示数据（幂等：业务表为空时自动填充） */
 export async function seedDemoData() {
   const { data } = await api.post("/admin/demo/seed");
