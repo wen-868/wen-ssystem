@@ -147,6 +147,26 @@ rm -f "${SMOKE_LOG}"
 
 echo "==> 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
 
+# ---- 运维卫生（S3-167）：防磁盘被 npm 缓存吃光 ----
+echo "==> 运维卫生：npm 缓存 / git 对象"
+# 2026-10-07 实测：服务器 /root/.npm 累积到 **8.7GB**（历次 `npm ci` 的下载缓存），
+#   占 40GB 系统盘用量的 ~40% —— 这是"服务器会爆"的直接来源（不是代码问题）。
+#   处置：**超过阈值才清**，既封住磁盘增长，又保留正常部署的下载缓存加速。
+#   npm 缓存只是下载缓存，清掉后 npm 按需重新下载；本步在全部构建之后执行，不影响本次部署。
+#   ⚠️ 一律 `|| true`：卫生步骤失败绝不能把一次成功部署判成失败。
+NPM_CACHE_MB="$(du -sm /root/.npm 2>/dev/null | cut -f1 || echo 0)"
+if [ "${NPM_CACHE_MB:-0}" -gt 3000 ]; then
+  echo "  /root/.npm = ${NPM_CACHE_MB} MB > 阈值 3000MB ⇒ 执行 npm cache clean --force"
+  npm cache clean --force >/dev/null 2>&1 || true
+  echo "  清理后 /root/.npm = $(du -sm /root/.npm 2>/dev/null | cut -f1 || echo '?') MB"
+else
+  echo "  /root/.npm = ${NPM_CACHE_MB:-?} MB ≤ 阈值 3000MB ⇒ 跳过"
+fi
+# git 对象同样会随每次 fetch 累积 pack（2026-10-07 实测本仓 .git 曾积到 1.18GB / 52 个 pack）。
+#   `--auto` 只在超过 gc.autoPackLimit 等阈值时才真正干活，代价极低。
+git gc --auto --quiet >/dev/null 2>&1 || true
+echo "  .git = $(du -sm .git 2>/dev/null | cut -f1 || echo '?') MB"
+
 # ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
 echo "==> 工作区自检（部署不应产生脏改动）"
 if [[ ! -d .git ]]; then
