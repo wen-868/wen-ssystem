@@ -8,6 +8,9 @@ export const renewSubscription = asyncHandler(async (req, res) => {
   const subscriptionId = Number(req.params.subscriptionId);
   const body = z.object({
     planId: z.number().int().positive().optional(),
+    // S3-29④：前端「续费金额」「续至日期」显式接收（此前被 zod 静默丢弃）
+    amount: z.number().finite().min(0, "续费金额必须为不小于 0 的数字").optional(),
+    endDate: z.string().optional(),
     paymentMethod: z.enum(["WECHAT", "ALIPAY", "BANK_TRANSFER", "CASH"]).optional(),
     remark: z.string().max(500).optional(),
   }).parse(req.body);

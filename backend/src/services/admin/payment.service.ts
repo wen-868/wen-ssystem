@@ -180,7 +180,9 @@ export async function handleWxCallback(
     });
   }
 
-  return { success: true, code: "SUCCESS", message: "成功" };
+  // S3-19：成功码统一为本仓口径 code="0"（原为非标准 "SUCCESS"）。
+  // 该返回值仅由 payment.controller 判 success 后回 ok()，不直接作为对外协议响应体。
+  return { success: true, code: "0", message: "成功" };
 }
 
 export async function createRefund(

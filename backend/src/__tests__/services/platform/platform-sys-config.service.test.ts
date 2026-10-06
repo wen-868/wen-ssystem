@@ -89,4 +89,43 @@ describe("platform/platform-sys-config.service（R101-S2-02 组4①）", () => {
     const json = JSON.parse(String(mocks.query.mock.calls[0][1][0]));
     expect(json.version).toBe(1);
   });
+
+  it("S3-22：loginBanner / copyrightInfo / icpNumber 在 DEFAULTS 中（空串初值），未落库时列入 _unconfigured", async () => {
+    mocks.queryOne.mockResolvedValueOnce(null);
+    const cfg = await getSysConfig();
+    expect(cfg.loginBanner).toBe("");
+    expect(cfg.copyrightInfo).toBe("");
+    expect(cfg.icpNumber).toBe("");
+    const unconf = cfg._unconfigured as string[];
+    expect(unconf).toContain("loginBanner");
+    expect(unconf).toContain("copyrightInfo");
+    expect(unconf).toContain("icpNumber");
+  });
+
+  it("S3-22：写入 → 读回一致（三个合规/文案键走既有 t_platform_config 整包 JSON）", async () => {
+    const payload = {
+      loginBanner: "让批零生意，全链路智能运转",
+      copyrightInfo: "© 2026 智享全链",
+      icpNumber: "京ICP备12345678号",
+    };
+
+    // 写入：已存在配置行 ⇒ UPDATE
+    mocks.queryOne.mockResolvedValueOnce({ id: 7 });
+    mocks.query.mockResolvedValueOnce({ affectedRows: 1 });
+    await updateSysConfig(payload, "platform");
+
+    const writtenJson = String(mocks.query.mock.calls[0][1][0]);
+    const written = JSON.parse(writtenJson);
+    expect(written.loginBanner).toBe(payload.loginBanner);
+    expect(written.copyrightInfo).toBe(payload.copyrightInfo);
+    expect(written.icpNumber).toBe(payload.icpNumber);
+
+    // 读回：库中 config_value 即写入的 JSON
+    mocks.queryOne.mockResolvedValueOnce({ config_value: writtenJson });
+    const cfg = await getSysConfig();
+    expect(cfg.loginBanner).toBe(payload.loginBanner);
+    expect(cfg.copyrightInfo).toBe(payload.copyrightInfo);
+    expect(cfg.icpNumber).toBe(payload.icpNumber);
+    expect((cfg._unconfigured as string[])).not.toContain("icpNumber");
+  });
 });
