@@ -19,6 +19,12 @@ const DEFAULTS: Record<string, unknown> = {
   platformName: "",
   servicePhone: "",
   serviceEmail: "",
+  // S3-22：saas-admin Settings.vue 的「平台基础信息」三项（登录页横幅文案 / 版权信息 / 备案号）。
+  // 此前 DEFAULTS 无这三键 ⇒ 后端 0 命中、前端读不到；补入后随既有整包 JSON 机制读写。
+  // 备案号（icpNumber）属合规信息，务必可用。
+  loginBanner: "",
+  copyrightInfo: "",
+  icpNumber: "",
   trialDays: 7,
   defaultPlanId: null,
   taxRate: 0,

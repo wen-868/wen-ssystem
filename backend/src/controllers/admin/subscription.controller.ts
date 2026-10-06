@@ -36,6 +36,9 @@ export const createSubscription = asyncHandler(async (req, res) => {
     tenantId: z.number().int().positive(),
     planId: z.number().int().positive(),
     startDate: z.string(),
+    // S3-29④：前端「金额」「结束日期」显式接收（此前被 zod 静默丢弃）
+    amount: z.number().finite().min(0, "金额必须为不小于 0 的数字").optional(),
+    endDate: z.string().optional(),
     paymentMethod: z.enum(["WECHAT", "ALIPAY", "BANK_TRANSFER", "CASH"]).optional(),
     autoRenew: z.number().int().min(0).max(1).default(0),
     remark: z.string().max(500).optional(),
@@ -59,6 +62,8 @@ export const changePlan = asyncHandler(async (req, res) => {
   const subscriptionId = Number(req.params.subscriptionId);
   const body = z.object({
     newPlanId: z.number().int().positive(),
+    // S3-29④：前端「补差金额」显式接收（此前被 zod 静默丢弃）
+    amount: z.number().finite().min(0, "补差金额必须为不小于 0 的数字").optional(),
     paymentMethod: z.enum(["WECHAT", "ALIPAY", "BANK_TRANSFER", "CASH"]).optional(),
     remark: z.string().max(500).optional(),
   }).parse(req.body);

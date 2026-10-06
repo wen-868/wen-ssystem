@@ -1,5 +1,6 @@
 import { queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import { resolveTenantModuleAccess } from "../../shared/module-catalog";
 
 // ========== 类型定义 ==========
 
@@ -15,6 +16,8 @@ interface SubscriptionRow {
   endDate: string;
   durationDays: number;
   price: number;
+  /** S3-26：套餐原价（只读聚合，来自 t_subscription_plan.original_price；无对应套餐时为 null） */
+  originalAmount: number | null;
   paymentStatus: string;
   paymentMethod: string | null;
   paidAt: string | null;
@@ -43,6 +46,8 @@ interface SubscriptionOperationLogRow {
   newEndDate: string | null;
   amount: number | null;
   operatorName: string | null;
+  /** S3-26：操作详情（只读聚合，取既有无结构表列 remark，不改表） */
+  detail: string | null;
   remark: string | null;
   createdAt: string;
 }
@@ -127,7 +132,7 @@ export async function listSubscriptions(
             s.tenant_id AS tenantId, t.company_name AS tenantName,
             s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType,
             s.start_date AS startDate, s.end_date AS endDate, s.duration_days AS durationDays,
-            s.price, s.payment_status AS paymentStatus,
+            s.price, p.original_price AS originalAmount, s.payment_status AS paymentStatus,
             s.payment_method AS paymentMethod, s.paid_at AS paidAt,
             s.transaction_no AS transactionNo,
             s.auto_renew AS autoRenew, s.renew_price AS renewPrice,
@@ -136,6 +141,7 @@ export async function listSubscriptions(
             s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt
      FROM t_subscription s
      LEFT JOIN t_tenant t ON t.id = s.tenant_id
+     LEFT JOIN t_subscription_plan p ON p.id = s.plan_id
      ${where}
      ORDER BY s.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -163,7 +169,7 @@ export async function getSubscription(subscriptionId: number, tenantId: string) 
             s.tenant_id AS tenantId, t.company_name AS tenantName,
             s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType,
             s.start_date AS startDate, s.end_date AS endDate, s.duration_days AS durationDays,
-            s.price, s.payment_status AS paymentStatus,
+            s.price, p.original_price AS originalAmount, s.payment_status AS paymentStatus,
             s.payment_method AS paymentMethod, s.paid_at AS paidAt,
             s.transaction_no AS transactionNo,
             s.auto_renew AS autoRenew, s.renew_price AS renewPrice,
@@ -172,6 +178,7 @@ export async function getSubscription(subscriptionId: number, tenantId: string) 
             s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt
      FROM t_subscription s
      LEFT JOIN t_tenant t ON t.id = s.tenant_id
+     LEFT JOIN t_subscription_plan p ON p.id = s.plan_id
      WHERE s.id = ?`,
     [subscriptionId],
     tenantId
@@ -185,7 +192,8 @@ export async function getSubscription(subscriptionId: number, tenantId: string) 
     `SELECT id, operation_type AS operationType,
             old_plan_id AS oldPlanId, new_plan_id AS newPlanId,
             old_end_date AS oldEndDate, new_end_date AS newEndDate,
-            amount, operator_name AS operatorName, remark, created_at AS createdAt
+            amount, operator_name AS operatorName,
+            remark AS detail, remark, created_at AS createdAt
      FROM t_subscription_operation_log
      WHERE subscription_id = ?
      ORDER BY created_at DESC`,
@@ -201,6 +209,10 @@ export async function createSubscription(
     tenantId: number;
     planId: number;
     startDate: string;
+    /** S3-29④：实付金额（前端「金额」项）。缺省回退套餐价 plan.price */
+    amount?: number;
+    /** S3-29④：结束日期（前端「结束日期」项）。缺省按 startDate + 套餐时长推导 */
+    endDate?: string;
     paymentMethod?: string;
     autoRenew: number;
     remark?: string;
@@ -225,10 +237,40 @@ export async function createSubscription(
     return { code: "404", message: "套餐不存在或已下架" };
   }
 
-  const subscriptionNo = makeBizNo("SUB");
+  // S3-29④：amount / endDate 显式接收并生效（禁止 zod 静默丢弃）；非法值显式拒绝
   const startDate = new Date(body.startDate);
-  const endDate = new Date(startDate);
+  if (Number.isNaN(startDate.getTime())) {
+    return { code: "400", message: "开始日期格式不正确" };
+  }
+  let endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + plan.duration_days);
+  if (body.endDate !== undefined) {
+    const provided = new Date(body.endDate);
+    if (Number.isNaN(provided.getTime())) {
+      return { code: "400", message: "结束日期格式不正确" };
+    }
+    if (provided.getTime() <= startDate.getTime()) {
+      return { code: "400", message: "结束日期必须晚于开始日期" };
+    }
+    endDate = provided;
+  }
+  const amount = body.amount === undefined ? plan.price : body.amount;
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
+    return { code: "400", message: "金额必须为不小于 0 的数字" };
+  }
+
+  // S3-34：按码表解析 module_access；非码表值显式拒绝（禁止中文文案写进 module_code）
+  const moduleAccess = resolveTenantModuleAccess(plan.module_access);
+  if (!moduleAccess.ok) {
+    return {
+      code: "400",
+      message: `套餐模块配置含非码表值：${moduleAccess.invalid.join("、")}`
+    };
+  }
+
+  const subscriptionNo = makeBizNo("SUB");
+  const endDateStr = endDate.toISOString().slice(0, 10);
+  const endDateTime = endDate.toISOString().slice(0, 19).replace("T", " ");
 
   await transaction(async (conn) => {
     await conn.execute(
@@ -240,7 +282,7 @@ export async function createSubscription(
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, 'ACTIVE', ?)`,
       [
         subscriptionNo, body.tenantId, body.planId, plan.plan_name, plan.plan_type,
-        body.startDate, endDate.toISOString().slice(0, 10), plan.duration_days, plan.price,
+        body.startDate, endDateStr, plan.duration_days, amount,
         body.paymentMethod || null, body.autoRenew, plan.price,
         body.remark || null
       ]
@@ -249,23 +291,22 @@ export async function createSubscription(
     await conn.execute(
       `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, new_plan_id, new_end_date, amount, operator_id, operator_name, remark)
        VALUES (?, 'CREATE', ?, ?, ?, ?, ?, ?)`,
-      [subscriptionNo, body.planId, endDate.toISOString().slice(0, 10), plan.price,
+      [subscriptionNo, body.planId, endDateStr, amount,
         userId, username, `创建订阅: ${subscriptionNo}`]
     );
 
     await conn.execute(
       "UPDATE t_tenant SET expire_at = ? WHERE id = ?",
-      [endDate.toISOString().slice(0, 19).replace("T", " "), body.tenantId]
+      [endDateTime, body.tenantId]
     );
 
     if (plan.module_access) {
-      const modules = JSON.parse(plan.module_access);
       await conn.execute("DELETE FROM t_tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [body.tenantId]);
-      for (const mod of modules) {
+      for (const mod of moduleAccess.modules) {
         await conn.execute(
           `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
            VALUES (?, ?, ?, 1, 'PLAN', ?)`,
-          [body.tenantId, mod, mod, endDate.toISOString().slice(0, 19).replace("T", " ")]
+          [body.tenantId, mod.code, mod.name, endDateTime]
         );
       }
     }
@@ -285,6 +326,8 @@ export async function changePlan(
   subscriptionId: number,
   body: {
     newPlanId: number;
+    /** S3-29④：补差金额（前端「补差金额」项）。缺省按套餐价差推导 */
+    amount?: number;
     paymentMethod?: string;
     remark?: string;
   },
@@ -318,7 +361,21 @@ export async function changePlan(
     [existing.plan_id]
   );
 
+  // 判定口径不变：UPGRADE/DOWNGRADE 仍由套餐价差决定；amount 仅决定实际记录的补差金额
   const priceDiff = Math.max(0, newPlan.price - (oldPlan?.price || 0));
+  const chargeAmount = body.amount === undefined ? priceDiff : body.amount;
+  if (typeof chargeAmount !== "number" || !Number.isFinite(chargeAmount) || chargeAmount < 0) {
+    return { code: "400", message: "补差金额必须为不小于 0 的数字" };
+  }
+
+  // S3-34：按码表解析 module_access；非码表值显式拒绝（禁止中文文案写进 module_code）
+  const moduleAccess = resolveTenantModuleAccess(newPlan.module_access);
+  if (!moduleAccess.ok) {
+    return {
+      code: "400",
+      message: `套餐模块配置含非码表值：${moduleAccess.invalid.join("、")}`
+    };
+  }
 
   await transaction(async (conn) => {
     await conn.execute(
@@ -330,19 +387,18 @@ export async function changePlan(
       `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, amount, operator_id, operator_name, remark)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [subscriptionId, priceDiff > 0 ? "UPGRADE" : "DOWNGRADE",
-        existing.plan_id, body.newPlanId, priceDiff,
+        existing.plan_id, body.newPlanId, chargeAmount,
         userId, username,
         `套餐变更: ${oldPlan?.plan_name} -> ${newPlan.plan_name}`]
     );
 
     if (newPlan.module_access) {
-      const modules = JSON.parse(newPlan.module_access);
       await conn.execute("DELETE FROM t_tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [existing.tenant_id]);
-      for (const mod of modules) {
+      for (const mod of moduleAccess.modules) {
         await conn.execute(
           `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
            VALUES (?, ?, ?, 1, 'PLAN', ?)`,
-          [existing.tenant_id, mod, mod, existing.end_date]
+          [existing.tenant_id, mod.code, mod.name, existing.end_date]
         );
       }
     }
@@ -356,7 +412,7 @@ export async function changePlan(
     );
   });
 
-  return { price_diff: priceDiff };
+  return { price_diff: chargeAmount };
 }
 
 export async function cancelSubscription(

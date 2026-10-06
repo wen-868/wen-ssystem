@@ -1,5 +1,6 @@
 import { queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import { resolveTenantModuleAccess } from "../../shared/module-catalog";
 
 /** 订阅详情行 */
 interface SubscriptionDetailRow {
@@ -54,6 +55,10 @@ export async function renewSubscription(
   subscriptionId: number,
   body: {
     planId?: number;
+    /** S3-29④：续费金额（前端「续费金额」项）。缺省回退套餐价 */
+    amount?: number;
+    /** S3-29④：续至日期（前端「续至日期」项）。缺省按当前到期日 + 套餐时长推导 */
+    endDate?: string;
     paymentMethod?: string;
     remark?: string;
   },
@@ -84,11 +89,37 @@ export async function renewSubscription(
     return { code: "404", message: "套餐不存在或已下架" };
   }
 
+  // S3-29④：amount / endDate 显式接收并生效（禁止 zod 静默丢弃）；非法值显式拒绝
   const renewStartDate = new Date(existing.end_date);
-  const renewEndDate = new Date(renewStartDate);
+  let renewEndDate = new Date(renewStartDate);
   renewEndDate.setDate(renewEndDate.getDate() + plan.duration_days);
+  if (body.endDate !== undefined) {
+    const provided = new Date(body.endDate);
+    if (Number.isNaN(provided.getTime())) {
+      return { code: "400", message: "续至日期格式不正确" };
+    }
+    if (Number.isNaN(renewStartDate.getTime()) || provided.getTime() <= renewStartDate.getTime()) {
+      return { code: "400", message: "续至日期必须晚于当前到期日" };
+    }
+    renewEndDate = provided;
+  }
+  const amount = body.amount === undefined ? plan.price : body.amount;
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
+    return { code: "400", message: "续费金额必须为不小于 0 的数字" };
+  }
+
+  // S3-34：按码表解析 module_access；非码表值显式拒绝（禁止中文文案写进 module_code）
+  const moduleAccess = resolveTenantModuleAccess(plan.module_access);
+  if (!moduleAccess.ok) {
+    return {
+      code: "400",
+      message: `套餐模块配置含非码表值：${moduleAccess.invalid.join("、")}`
+    };
+  }
 
   const subscriptionNo = makeBizNo("SUB");
+  const renewEndDateStr = renewEndDate.toISOString().slice(0, 10);
+  const renewEndDateTime = renewEndDate.toISOString().slice(0, 19).replace("T", " ");
 
   await transaction(async (conn) => {
     await conn.execute(
@@ -99,8 +130,8 @@ export async function renewSubscription(
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', ?, 'ACTIVE', ?)`,
       [
         subscriptionNo, existing.tenant_id, plan.id, plan.plan_name, plan.plan_type,
-        renewStartDate.toISOString().slice(0, 10), renewEndDate.toISOString().slice(0, 10),
-        plan.duration_days, plan.price,
+        renewStartDate.toISOString().slice(0, 10), renewEndDateStr,
+        plan.duration_days, amount,
         body.paymentMethod || null, body.remark || null
       ]
     );
@@ -109,23 +140,22 @@ export async function renewSubscription(
       `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, old_end_date, new_end_date, amount, operator_id, operator_name, remark)
        VALUES (?, 'RENEW', ?, ?, ?, ?, ?, ?, ?, ?)`,
       [subscriptionId, existing.plan_id, plan.id, existing.end_date,
-        renewEndDate.toISOString().slice(0, 10), plan.price,
+        renewEndDateStr, amount,
         userId, username, `续费订阅: ${subscriptionNo}`]
     );
 
     await conn.execute(
       "UPDATE t_tenant SET expire_at = ? WHERE id = ?",
-      [renewEndDate.toISOString().slice(0, 19).replace("T", " "), existing.tenant_id]
+      [renewEndDateTime, existing.tenant_id]
     );
 
     if (plan.module_access) {
-      const modules = JSON.parse(plan.module_access);
       await conn.execute("DELETE FROM t_tenant_module_access WHERE tenant_id = ? AND granted_by = 'PLAN'", [existing.tenant_id]);
-      for (const mod of modules) {
+      for (const mod of moduleAccess.modules) {
         await conn.execute(
           `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at)
            VALUES (?, ?, ?, 1, 'PLAN', ?)`,
-          [existing.tenant_id, mod, mod, renewEndDate.toISOString().slice(0, 19).replace("T", " ")]
+          [existing.tenant_id, mod.code, mod.name, renewEndDateTime]
         );
       }
     }

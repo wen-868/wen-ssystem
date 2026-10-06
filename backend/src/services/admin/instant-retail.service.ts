@@ -257,7 +257,8 @@ function buildWebhookResponse(platform: PlatformType, success: boolean, message?
     return success ? { data: "OK" } : { data: "FAIL", message: message ?? "error" };
   }
   if (platform === "ELEME") {
-    return success ? { code: "200", message: message ?? "success" } : { code: "500", message: message ?? "error" };
+    // S3-19：成功码统一为本仓口径 code="0"（原为非标准 "200"）
+    return success ? { code: "0", message: message ?? "success" } : { code: "500", message: message ?? "error" };
   }
   return { code: success ? "0" : "1", message: message ?? (success ? "success" : "error") };
 }
