@@ -36,7 +36,7 @@ vi.mock("../../../shared/password", () => ({
   validatePassword: mocks.validatePassword,
 }));
 
-import { login, getMe, getSettings, updateSettings, changePassword } from "../../../services/admin/auth.service";
+import { login, demoLogin, getMe, getSettings, updateSettings, changePassword } from "../../../services/admin/auth.service";
 
 describe("auth.service", () => {
   beforeEach(() => vi.resetAllMocks());
@@ -306,6 +306,84 @@ describe("auth.service", () => {
       mocks.queryOneWithTenant.mockResolvedValue(null);
       await expect(changePassword(1, "old", "new", "t2")).rejects.toThrow("用户不存在");
       expect(mocks.queryWithTenant).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── S3-165：演示免密登录的既有逻辑不回归（本单只加环境门控，不动其幂等/自动恢复） ──
+  describe("demoLogin", () => {
+    it("账号已存在且被禁用/锁定：不重复建号，幂等绑超管并自动恢复，返回完整令牌", async () => {
+      mocks.queryOne
+        .mockResolvedValueOnce({
+          id: 3, username: "demo", password_hash: "h", real_name: "演示账号",
+          store_id: null, status: 0, tenant_id: "default",
+          login_fail_count: 5, locked_until: new Date(Date.now() + 600000),
+        })
+        .mockResolvedValueOnce({ id: 7, role_code: "SUPER_ADMIN" });
+      mocks.query.mockImplementation((sql: string) => {
+        if (sql.includes("FROM t_sys_user_role ur")) {
+          return Promise.resolve([{ role_code: "SUPER_ADMIN", permissions: JSON.stringify(["*"]) }]);
+        }
+        return Promise.resolve([]);
+      });
+      mocks.getUserAccessInfo.mockReturnValue({ defaultMode: "ADMIN" });
+      mocks.signToken.mockReturnValue("demo-token");
+
+      const res = await demoLogin();
+
+      expect(res.token).toBe("demo-token");
+      expect(res.demo).toBe(true);
+      expect(res.user.id).toBe(3);
+      expect(res.user.tenantId).toBe("default");
+      expect(res.user.roles).toEqual(["SUPER_ADMIN"]);
+      expect(typeof res.csrfToken).toBe("string");
+      // 自动恢复：被禁用 → 启用
+      expect(mocks.query).toHaveBeenCalledWith(
+        expect.stringContaining("SET status = 1"),
+        [3]
+      );
+      // 自动恢复：锁定计数清零
+      expect(mocks.query).toHaveBeenCalledWith(
+        expect.stringContaining("login_fail_count = 0, locked_until = NULL"),
+        [3]
+      );
+      // 幂等：已存在账号时不重复建号
+      const createdAccount = mocks.query.mock.calls.some((c: any[]) =>
+        String(c[0]).includes("INSERT INTO t_sys_user (username")
+      );
+      expect(createdAccount).toBe(false);
+      expect(mocks.query).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT IGNORE INTO t_sys_user_role"),
+        [3, 7, "default"]
+      );
+    });
+
+    it("账号不存在：自动建号（随机哈希占位）+ 绑超管 + 返回令牌", async () => {
+      mocks.queryOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ id: 7, role_code: "SUPER_ADMIN" });
+      mocks.query.mockImplementation((sql: string) => {
+        if (sql.includes("INSERT INTO t_sys_user (username")) {
+          return Promise.resolve({ insertId: 9 });
+        }
+        if (sql.includes("FROM t_sys_user_role ur")) {
+          return Promise.resolve([{ role_code: "SUPER_ADMIN", permissions: ["*"] }]);
+        }
+        return Promise.resolve([]);
+      });
+      mocks.hashPassword.mockResolvedValue("hashed-random");
+      mocks.getUserAccessInfo.mockReturnValue({});
+      mocks.signToken.mockReturnValue("demo-token-2");
+
+      const res = await demoLogin();
+
+      expect(res.token).toBe("demo-token-2");
+      expect(res.user.id).toBe(9);
+      expect(res.demo).toBe(true);
+      expect(mocks.hashPassword).toHaveBeenCalledTimes(1);
+      expect(mocks.query).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO t_sys_user (username, password_hash"),
+        ["demo", "hashed-random", "演示账号", "default"]
+      );
     });
   });
 });

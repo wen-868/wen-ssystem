@@ -186,3 +186,16 @@ export const env = {
   /** 华为推送 AppSecret */
   HMS_APP_SECRET: process.env.HMS_APP_SECRET || "",
 };
+
+/**
+ * 演示免密登录（`POST /api/admin/auth/demo-login`）是否可用 —— **唯一判定口径**。
+ *
+ * 背景（S3-165，P0 安全项）：该端点空 body 即签发 `default` 租户 `SUPER_ADMIN` 令牌，且被锁定会自动恢复，
+ * 生产环境公网可用等于"免凭据超管入口"。因此**生产必须关闭**；非生产（本地联调、CI 的
+ * `USE_MOCK_DB=true` + `NODE_ENV=development`）保持现状可用。
+ *
+ * 约定：任何地方判断该端点是否可用，只允许调用本函数，禁止再写第二处 `NODE_ENV === "production"`。
+ */
+export function isDemoLoginEnabled(): boolean {
+  return env.NODE_ENV !== "production";
+}
