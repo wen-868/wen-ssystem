@@ -5,6 +5,7 @@
  */
 
 import { query, queryOne } from "../../shared/db";
+import { getStats as getResponseTrackerStats } from "../../shared/response-time-tracker";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -207,6 +208,29 @@ function toWan(amount: number): number {
   return Math.round(Number(amount || 0) / 10000 * 100) / 100;
 }
 
+/** 计数归一：null/非法 ⇒ 0（计数为 0 是真实语义；「无载体」用 null 显式表达，不在此列） */
+function toCount(value: unknown): number {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num : 0;
+}
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * 最近告警文案：`MM-DD HH:mm <message>`（message 超长截断）。
+ * 无记录或时间解析失败 ⇒ null（前端展示「暂无告警记录」，不造时间）。
+ */
+function formatAlarm(at: unknown, message: unknown): string | null {
+  if (at == null || at === "") return null;
+  const date = at instanceof Date ? at : new Date(String(at).replace(" ", "T"));
+  if (Number.isNaN(date.getTime())) return null;
+  const text = message == null ? "" : String(message);
+  const brief = text.length > 40 ? `${text.slice(0, 40)}…` : text;
+  return `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(
+    date.getMinutes()
+  )}${brief ? ` ${brief}` : ""}`;
+}
+
 /** 平台看板总览 */
 export interface PlatformDashboardOverview {
   totalTenants: number;
@@ -222,13 +246,43 @@ export interface PlatformDashboardOverview {
   activeSubscriptions: number;
   totalAdmins: number;
   incomeTrend: { period: string; amount: number }[];
-  /** 近 30 天每日新增租户；仅返回有新增的日期，不补零 */
-  tenantTrend: { date: string; newCount: number }[];
+  /**
+   * 近 30 天每日新增租户；仅返回有新增的日期，不补零。
+   * `cumCount`（S3-20）＝截至该日的租户总数，供趋势图右轴「累计」折线使用。
+   */
+  tenantTrend: { date: string; newCount: number; cumCount: number }[];
   /** 收入构成（本月，按套餐聚合；amount 为元，amountWan 为万元） */
   incomeComposition: { name: string; amount: number; amountWan: number }[];
   planDistribution: { planName: string; count: number }[];
   tenantStatus: { status: string; count: number }[];
   recentTenants: { companyName: string; planName: string; status: string; createdAt: string }[];
+  // ── S3-10 / S3-11：大盘经营指标与右侧面板（无载体维度一律 null，另见 `unavailable`） ──
+  todayNewTenants: number;
+  todayNewPaid: number;
+  tenantDelta: number;
+  incomeDelta: number | null;
+  totalOrders: number;
+  todayOrders: number;
+  aiCost: number;
+  aiTokens: number;
+  activeRate: string | null;
+  todos: {
+    audit: number | null;
+    arrears: number;
+    ticket: number;
+    approval: number | null;
+  };
+  health: {
+    apiSuccessRate: number | null;
+    avgResponseMs: number | null;
+    storageUsedGb: number;
+    storagePercent: number | null;
+    aiGatewaySuccessRate: number | null;
+    messageQueue: string | null;
+  };
+  lastAlarm: string | null;
+  /** 无载体字段清单（key + 原因），前端据此展示「— / 待接入」而不是 0 */
+  unavailable: { key: string; reason: string }[];
 }
 
 /** 每日新增租户行 */
@@ -253,6 +307,23 @@ interface DashboardOverviewStatsRow {
   newTenantsWeek: number;
   activeSubscriptions: number;
   totalAdmins: number;
+  todayNewTenants: number | string | null;
+  todayNewPaid: number | string | null;
+  newTenantsMonth: number | string | null;
+  newTenantsLastMonth: number | string | null;
+  monthRevenue: number | string | null;
+  lastMonthRevenue: number | string | null;
+  totalOrders: number | string | null;
+  todayOrders: number | string | null;
+  aiCostMonth: number | string | null;
+  aiTokensMonth: number | string | null;
+  arrearsTenants: number | string | null;
+  openTickets: number | string | null;
+  alarmAt: unknown;
+  alarmMessage: unknown;
+  storageUsedBytes: number | string | null;
+  aiCalls24h: number | string | null;
+  aiCallsOk24h: number | string | null;
 }
 
 /** 收入趋势行 */
@@ -296,8 +367,51 @@ export async function getPlatformDashboardOverview(): Promise<PlatformDashboardO
        (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE status = 'ACTIVE') AS totalRevenue,
        (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS newTenantsWeek,
        (SELECT COUNT(*) FROM t_subscription WHERE status = 'ACTIVE') AS activeSubscriptions,
-       (SELECT COUNT(*) FROM t_platform_admin) AS totalAdmins
-     `
+       (SELECT COUNT(*) FROM t_platform_admin) AS totalAdmins,
+       -- S3-10：今日新增租户 / 其中已付费（付费口径＝该租户已有 payment_status='PAID' 的订阅）
+       (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) = CURDATE()) AS todayNewTenants,
+       (SELECT COUNT(DISTINCT s.tenant_id) FROM t_subscription s
+          JOIN t_tenant t2 ON t2.id = s.tenant_id
+         WHERE DATE(t2.created_at) = CURDATE() AND s.payment_status = 'PAID') AS todayNewPaid,
+       -- S3-10：租户环比（本月新增 VS 上月新增，取绝对差；前端「较上月 +N」）
+       (SELECT COUNT(*) FROM t_tenant WHERE created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS newTenantsMonth,
+       (SELECT COUNT(*) FROM t_tenant
+         WHERE created_at >= DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01')
+           AND created_at <  DATE_FORMAT(NOW(), '%Y-%m-01')) AS newTenantsLastMonth,
+       -- S3-10：收入环比基准（自然月口径：本月 / 上月，均限 status='ACTIVE'）
+       (SELECT IFNULL(SUM(amount), 0) FROM t_subscription
+         WHERE status = 'ACTIVE' AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS monthRevenue,
+       (SELECT IFNULL(SUM(amount), 0) FROM t_subscription
+         WHERE status = 'ACTIVE'
+           AND created_at >= DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01')
+           AND created_at <  DATE_FORMAT(NOW(), '%Y-%m-01')) AS lastMonthRevenue,
+       -- S3-10：平台订单总量 / 今日（口径＝平台订阅订单，与 getRevenueStatistics.totalOrders 同源）
+       (SELECT COUNT(*) FROM t_subscription) AS totalOrders,
+       (SELECT COUNT(*) FROM t_subscription WHERE DATE(created_at) = CURDATE()) AS todayOrders,
+       -- S3-10：大模型消耗（t_ai_usage_daily 本月费用合计 / 总 Token）
+       (SELECT IFNULL(SUM(total_cost), 0) FROM t_ai_usage_daily
+         WHERE stat_date >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS aiCostMonth,
+       (SELECT IFNULL(SUM(total_tokens), 0) FROM t_ai_usage_daily
+         WHERE stat_date >= DATE_FORMAT(NOW(), '%Y-%m-01')) AS aiTokensMonth,
+       -- S3-11：待办计数（欠费＝有待结算金额的账单所属租户数；工单＝待处理+处理中）
+       (SELECT COUNT(DISTINCT tenant_id) FROM t_platform_settlement
+         WHERE status <> 'CANCELLED' AND pending_amount > 0) AS arrearsTenants,
+       (SELECT COUNT(*) FROM t_support_ticket WHERE status IN ('PENDING', 'PROCESSING')) AS openTickets,
+       -- S3-11：最近告警（t_error_logs 中最近一条 FATAL/ERROR/WARN）
+       (SELECT created_at FROM t_error_logs
+         WHERE severity IN ('FATAL', 'ERROR', 'WARN')
+         ORDER BY created_at DESC, id DESC LIMIT 1) AS alarmAt,
+       (SELECT message FROM t_error_logs
+         WHERE severity IN ('FATAL', 'ERROR', 'WARN')
+         ORDER BY created_at DESC, id DESC LIMIT 1) AS alarmMessage,
+       -- S3-11：平台存储已用（t_upload_file 未软删行合计；无平台总配额载体 ⇒ 只给已用值）
+       (SELECT IFNULL(SUM(file_size), 0) FROM t_upload_file WHERE status = 1) AS storageUsedBytes,
+       -- S3-11：AI 网关健康（t_ai_audit_log 近 24h 调用数与成功数）
+       (SELECT COUNT(*) FROM t_ai_audit_log
+         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)) AS aiCalls24h,
+       (SELECT COUNT(*) FROM t_ai_audit_log
+         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) AND success = 1) AS aiCallsOk24h
+    `
   );
 
   const [incomeTrend, tenantTrend, incomeComposition, planDistribution, tenantStatus, recentTenants] =
@@ -355,6 +469,113 @@ export async function getPlatformDashboardOverview(): Promise<PlatformDashboardO
   const monthlyRevenue = Number(stats?.monthlyRevenue ?? 0);
   const totalRevenue = Number(stats?.totalRevenue ?? 0);
 
+  /* ── S3-20：趋势图「累计（右轴）」 ──
+   * 口径：cumCount = 截至该日期的租户总数 = 窗口开始前已有租户数 + 窗口内累计新增。
+   * 窗口开始前基数由 totalTenants 与窗口内新增合计反推（不额外查库、不补零行）。
+   * 数据异常（基数算成负数）时按 0 兜底，宁可少算也不编造。 */
+  const trendTotalInWindow = tenantTrend.reduce((sum, row) => sum + Number(row.newCount ?? 0), 0);
+  const trendBase = Math.max(0, Number(stats?.totalTenants ?? 0) - trendTotalInWindow);
+  let trendRunning = 0;
+  const tenantTrendWithCum = tenantTrend.map((row) => {
+    const newCount = Number(row.newCount ?? 0);
+    trendRunning += newCount;
+    return {
+      date: String(row.date ?? ""),
+      newCount,
+      cumCount: trendBase + trendRunning,
+    };
+  });
+
+  /* ── S3-10：环比派生（后端一次算好，前端零换算） ── */
+  const todayNewTenants = toCount(stats?.todayNewTenants);
+  const todayNewPaid = toCount(stats?.todayNewPaid);
+  const newTenantsMonth = toCount(stats?.newTenantsMonth);
+  const newTenantsLastMonth = toCount(stats?.newTenantsLastMonth);
+  const monthRevenue = toCount(stats?.monthRevenue);
+  const lastMonthRevenue = toCount(stats?.lastMonthRevenue);
+  // 租户环比＝本月新增 − 上月新增（绝对差，设计稿口径「较上月 +86」）
+  const tenantDelta = newTenantsMonth - newTenantsLastMonth;
+  // 收入环比＝(本月 − 上月) / 上月 × 100（上月为 0 时不计算，返回 null 而不是 0/∞）
+  const incomeDelta =
+    lastMonthRevenue > 0
+      ? Math.round(((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 1000) / 10
+      : null;
+  const aiCost = toCount(stats?.aiCostMonth);
+  const aiTokens = toCount(stats?.aiTokensMonth);
+
+  /* ── S3-11：待办 / 系统健康 / 最近告警 ──
+   * 有载体的维度给真实聚合；无载体的维度一律返回 null 并在 unavailable 里逐条说明
+   * （系统不内置默认值、不填 0 冒充，守「禁模拟数据」铁律）。 */
+  const arrearsTenants = toCount(stats?.arrearsTenants);
+  const openTickets = toCount(stats?.openTickets);
+
+  const tracker = getResponseTrackerStats();
+  const apiSuccessRate =
+    tracker.totalRequests > 0
+      ? Math.round(((tracker.totalRequests - tracker.errorCount) / tracker.totalRequests) * 10000) / 100
+      : null;
+  const avgResponseMs = tracker.totalRequests > 0 ? tracker.avgResponseTime : null;
+
+  const storageUsedBytes = toCount(stats?.storageUsedBytes);
+  const storageUsedGb = Math.round((storageUsedBytes / 1024 ** 3) * 100) / 100;
+
+  const aiCalls24h = toCount(stats?.aiCalls24h);
+  const aiCallsOk24h = toCount(stats?.aiCallsOk24h);
+  const aiGatewaySuccessRate = aiCalls24h > 0 ? Math.round((aiCallsOk24h / aiCalls24h) * 10000) / 100 : null;
+
+  const lastAlarm = formatAlarm(stats?.alarmAt, stats?.alarmMessage);
+
+  const todos = {
+    // 待审核租户：后端实际写入/比较的租户状态只有 ACTIVE/DISABLED/EXPIRED，无 PENDING 写入方
+    // ⇒ 无载体，返回 null（不拿恒 0 的计数冒充「没有待审核」）。
+    audit: null as number | null,
+    arrears: arrearsTenants,
+    ticket: openTickets,
+    // 提现审批 / 配额扩容审批：仓库无审批流表 ⇒ 无载体。
+    approval: null as number | null,
+  };
+
+  const health = {
+    /** API 成功率（%，近 60 秒进程内滑窗；窗口内无请求 ⇒ null） */
+    apiSuccessRate,
+    /** 平均响应（毫秒；窗口内无请求 ⇒ null） */
+    avgResponseMs,
+    /** 平台存储已用（GB，后端一次换算） */
+    storageUsedGb,
+    /** 存储水位（%；平台总配额无载体 ⇒ null，不按租户配额汇总冒充） */
+    storagePercent: null as number | null,
+    /** AI 网关成功率（t_ai_audit_log 近 24h；无调用 ⇒ null） */
+    aiGatewaySuccessRate,
+    /** 消息队列（仓库无 MQ 载体 ⇒ null） */
+    messageQueue: null as string | null,
+  };
+
+  const unavailable: { key: string; reason: string }[] = [
+    {
+      key: "activeRate",
+      reason: "近 7 日活跃率无载体：仓库无租户级登录/活跃时间列（t_tenant 无 last_login 类字段），不按其它维度近似",
+    },
+    {
+      key: "todos.audit",
+      reason: "待审核租户无载体：t_tenant 实际写入/比较的状态只有 ACTIVE/DISABLED/EXPIRED（tenant-status-stats.service 已取证），无 PENDING 写入方",
+    },
+    {
+      key: "todos.approval",
+      reason: "提现审批 / 配额扩容审批无载体：仓库无审批流表",
+    },
+    {
+      key: "health.storagePercent",
+      reason: "平台存储水位无载体：无「平台总配额」列/配置（t_tenant_config.storage_limit 是租户级），不把租户配额加总冒充平台总配额",
+    },
+    {
+      key: "health.messageQueue",
+      reason: "消息队列无载体：本项目未引入 MQ 组件",
+    },
+  ];
+
+  const todayOrders = toCount(stats?.todayOrders);
+  const totalOrders = toCount(stats?.totalOrders);
+
   return {
     totalTenants: Number(stats?.totalTenants ?? 0),
     activeTenants: Number(stats?.activeTenants ?? 0),
@@ -366,14 +587,26 @@ export async function getPlatformDashboardOverview(): Promise<PlatformDashboardO
     newTenantsWeek: Number(stats?.newTenantsWeek ?? 0),
     activeSubscriptions: Number(stats?.activeSubscriptions ?? 0),
     totalAdmins: Number(stats?.totalAdmins ?? 0),
+    // ── S3-10：大盘 9 项经营指标 ──
+    todayNewTenants,
+    todayNewPaid,
+    tenantDelta,
+    incomeDelta,
+    totalOrders,
+    todayOrders,
+    aiCost,
+    aiTokens,
+    activeRate: null as string | null,
+    // ── S3-11：待办 / 健康 / 最近告警 ──
+    todos,
+    health,
+    lastAlarm,
+    unavailable,
     incomeTrend: incomeTrend.map((row) => ({
       period: row.period,
       amount: Number(row.amount ?? 0),
     })),
-    tenantTrend: tenantTrend.map((row) => ({
-      date: String(row.date ?? ""),
-      newCount: Number(row.newCount ?? 0),
-    })),
+    tenantTrend: tenantTrendWithCum,
     incomeComposition: incomeComposition.map((row) => {
       const amount = Number(row.amount ?? 0);
       return { name: String(row.name ?? ""), amount, amountWan: toWan(amount) };

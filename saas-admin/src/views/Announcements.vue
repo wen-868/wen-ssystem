@@ -61,10 +61,10 @@
               <td>
                 <span class="tag" :class="typeView(row).cls">{{ typeView(row).text }}</span>
               </td>
-              <td>{{ row.scope || '-' }}</td>
-              <td>{{ row.channel || '-' }}</td>
+              <td>{{ row.scope ?? '—' }}</td>
+              <td>{{ row.channel ?? '—' }}</td>
               <td>{{ row.publishAt || '-' }}</td>
-              <td class="num">{{ row.reach || '-' }}</td>
+              <td class="num">{{ row.reach ?? '—' }}</td>
               <td>
                 <span class="tag" :class="statusView(row).cls">{{ statusView(row).text }}</span>
               </td>
@@ -86,6 +86,13 @@
       <div v-if="!list.length" class="empty">
         暂无公告，点击「+ 新建公告」发布平台通知
       </div>
+
+      <!-- S3-23：无载体字段的**运行时自检**——取到行却缺列就显式说明，不静默显示 '-' -->
+      <p v-if="missingFieldKeys.length" class="small mt8 rule-note">
+        字段口径（S3-23）：后端返回的公告行缺少 {{ missingFieldKeys.join(" / ") }} ——
+        <b>t_platform_announcement 无对应列</b>（接口不返回这些键），故相关列显示「—」，属诚实空态（不是 0）；
+        补列已登记为 <b>S3-82</b>（凌舟记账：公告触达/已读 + scope/channel 列，涉新增列另批裁定）。
+      </p>
 
       <!-- 分页（设计稿结构补全） -->
       <div v-if="total > 0" class="pagebar">
@@ -364,6 +371,12 @@ const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);
 const error = ref("");
+/**
+ * S3-23 接线自检：后端返回的行里**实际缺失**的展示列（scope / channel / reach）。
+ * 有行才判定；缺列 ⇒ 页面显式说明「无载体」，而不是让三列静静显示 '-'（读起来像"值是空"）。
+ * 后端口径：t_platform_announcement 无这三列，listAnnouncements 也不返回这三个键。
+ */
+const missingFieldKeys = ref<string[]>([]);
 
 /* ── 页头概览：草稿 / 已发布 / 公告模板取真实计数；取不到时显示「—」，不写死数值 ── */
 const stats = reactive({
@@ -486,8 +499,15 @@ async function fetchList() {
     );
     list.value = data.records || [];
     total.value = Number(data.total || 0);
+    const rows = list.value as any[];
+    missingFieldKeys.value = rows.length
+      ? ["scope", "channel", "reach"].filter((key) =>
+          rows.some((row) => !Object.prototype.hasOwnProperty.call(row ?? {}, key)),
+        )
+      : [];
   } catch {
     error.value = "公告列表加载失败";
+    missingFieldKeys.value = [];
   } finally {
     loading.value = false;
   }
@@ -905,5 +925,9 @@ onMounted(() => {
 /* 公告模板清单行（编码 / 名称 / 正文 / 删除） */
 .tpl-row {
   align-items: flex-end;
+}
+/* 无载体字段口径说明（S3-23） */
+.rule-note {
+  padding: 0 var(--space-3) var(--space-3);
 }
 </style>

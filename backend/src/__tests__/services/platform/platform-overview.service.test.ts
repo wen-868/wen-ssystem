@@ -71,7 +71,7 @@ describe("platform-overview.service · getPlatformDashboardOverview（批 3）",
     expect(r.totalRevenueWan).toBe(5123.46);
   });
 
-  it("tenantTrend 透传 [{date,newCount}]，date 为字符串、newCount 为数字", async () => {
+  it("tenantTrend 透传 [{date,newCount,cumCount}]，date 为字符串、计数为数字（S3-20 累计）", async () => {
     stubQueries({
       tenantTrend: [
         { date: "2026-08-15", newCount: "3" }, // DB 可能给字符串数字
@@ -80,12 +80,125 @@ describe("platform-overview.service · getPlatformDashboardOverview（批 3）",
     });
     const r = await getPlatformDashboardOverview();
 
+    // 窗口前基数 = totalTenants(12) − 窗口内新增合计(3+5) = 4
     expect(r.tenantTrend).toEqual([
-      { date: "2026-08-15", newCount: 3 },
-      { date: "2026-08-16", newCount: 5 },
+      { date: "2026-08-15", newCount: 3, cumCount: 7 },
+      { date: "2026-08-16", newCount: 5, cumCount: 12 },
     ]);
     expect(typeof r.tenantTrend[0].date).toBe("string");
     expect(typeof r.tenantTrend[0].newCount).toBe("number");
+    expect(typeof r.tenantTrend[0].cumCount).toBe("number");
+  });
+
+  it("S3-20：窗口前基数算成负数时按 0 兜底（不编造累计值），且不补零行", async () => {
+    stubQueries({ tenantTrend: [{ date: "2026-08-15", newCount: 20 }] });
+    const r = await getPlatformDashboardOverview();
+    expect(r.tenantTrend).toEqual([{ date: "2026-08-15", newCount: 20, cumCount: 20 }]);
+  });
+
+  it("S3-10：9 项经营指标取自聚合；上月收入为 0 时收入环比返回 null（不填 0 冒充）", async () => {
+    mocks.queryOne.mockResolvedValue({
+      totalTenants: 100,
+      activeTenants: 63,
+      pendingTenants: 0,
+      monthlyRevenue: 2184600,
+      totalRevenue: 51234567,
+      newTenantsWeek: 3,
+      activeSubscriptions: 9,
+      totalAdmins: 4,
+      todayNewTenants: 12,
+      todayNewPaid: 4,
+      newTenantsMonth: 86,
+      newTenantsLastMonth: 70,
+      monthRevenue: 2184600,
+      lastMonthRevenue: 0,
+      totalOrders: 3842105,
+      todayOrders: 26431,
+      aiCostMonth: "86420.5",
+      aiTokensMonth: "420000000",
+    });
+    stubQueries();
+    const r = await getPlatformDashboardOverview();
+
+    expect(r.todayNewTenants).toBe(12);
+    expect(r.todayNewPaid).toBe(4);
+    expect(r.tenantDelta).toBe(16); // 86 − 70
+    expect(r.incomeDelta).toBeNull(); // 上月为 0 ⇒ 不计算
+    expect(r.totalOrders).toBe(3842105);
+    expect(r.todayOrders).toBe(26431);
+    expect(r.aiCost).toBe(86420.5);
+    expect(r.aiTokens).toBe(420000000);
+    expect(r.activeRate).toBeNull(); // 近 7 日活跃率无载体
+  });
+
+  it("S3-10：上月收入非 0 时收入环比按 (本月−上月)/上月 ×100 计算（1 位小数）", async () => {
+    mocks.queryOne.mockResolvedValue({
+      totalTenants: 1,
+      activeTenants: 1,
+      pendingTenants: 0,
+      monthlyRevenue: 100,
+      totalRevenue: 100,
+      newTenantsWeek: 0,
+      activeSubscriptions: 0,
+      totalAdmins: 0,
+      newTenantsMonth: 0,
+      newTenantsLastMonth: 0,
+      monthRevenue: 1124,
+      lastMonthRevenue: 1000,
+    });
+    stubQueries();
+    const r = await getPlatformDashboardOverview();
+    expect(r.incomeDelta).toBe(12.4);
+    expect(r.tenantDelta).toBe(0);
+  });
+
+  it("S3-11：有载体的待办/健康维度给真实值，无载体维度返回 null 并逐条列入 unavailable", async () => {
+    mocks.queryOne.mockResolvedValue({
+      totalTenants: 1,
+      activeTenants: 1,
+      pendingTenants: 0,
+      monthlyRevenue: 0,
+      totalRevenue: 0,
+      newTenantsWeek: 0,
+      activeSubscriptions: 0,
+      totalAdmins: 0,
+      arrearsTenants: 18,
+      openTickets: 7,
+      storageUsedBytes: 19971597926, // ≈ 18.6 GB
+      aiCalls24h: 100,
+      aiCallsOk24h: 99,
+      alarmAt: "2026-09-06 22:14:00",
+      alarmMessage: "存储水位 ≥60%",
+    });
+    stubQueries();
+    const r = await getPlatformDashboardOverview();
+
+    expect(r.todos).toEqual({ audit: null, arrears: 18, ticket: 7, approval: null });
+    expect(r.health.storageUsedGb).toBeCloseTo(18.6, 1);
+    expect(r.health.storagePercent).toBeNull();
+    expect(r.health.aiGatewaySuccessRate).toBe(99);
+    expect(r.health.messageQueue).toBeNull();
+    expect(r.lastAlarm).toBe("09-06 22:14 存储水位 ≥60%");
+    // 无载体字段必须显式列出（禁止静默当成 0）
+    const keys = r.unavailable.map((item) => item.key);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        "activeRate",
+        "todos.audit",
+        "todos.approval",
+        "health.storagePercent",
+        "health.messageQueue",
+      ])
+    );
+  });
+
+  it("S3-11：无告警记录时 lastAlarm 为 null；无 AI 调用时网关成功率不造值", async () => {
+    mocks.queryOne.mockResolvedValue({ totalTenants: 0, aiCalls24h: 0, aiCallsOk24h: 0 });
+    stubQueries();
+    const r = await getPlatformDashboardOverview();
+    expect(r.lastAlarm).toBeNull();
+    expect(r.health.aiGatewaySuccessRate).toBeNull();
+    expect(r.health.apiSuccessRate).toBeNull(); // 进程内滑窗无请求
   });
 
   it("incomeComposition 同时给 amount 与 amountWan", async () => {
