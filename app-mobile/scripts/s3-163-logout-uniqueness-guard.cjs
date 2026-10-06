@@ -45,12 +45,22 @@ function stripComments(src) {
   return src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1')
 }
 
+/** 纯字符串扫描取出 .vue 的 script 段：只取第一个 <script…> 与 </script…> 之间的内容（找不到返回空串）。
+ *  全程用 indexOf/slice 定位，不使用任何正则，避免再次被 CodeQL js/bad-html-filtering-regexp 启发式命中。 */
+function scriptSectionOf(raw) {
+  const lower = raw.toLowerCase()
+  const open = lower.indexOf('<script')
+  if (open === -1) return ''
+  const gt = raw.indexOf('>', open)
+  if (gt === -1) return ''
+  const close = lower.indexOf('</script', gt)
+  if (close === -1) return ''
+  return raw.slice(gt + 1, close)
+}
+
 /** .vue 只取 script 段（模板里的同名字符串不算实现） */
 function codeOf(file, raw) {
-  if (file.endsWith('.vue')) {
-    const m = raw.match(/<script[^>]*>([\s\S]*?)<\/script>/i)
-    return m ? m[1] : ''
-  }
+  if (file.endsWith('.vue')) return scriptSectionOf(raw)
   return raw
 }
 
