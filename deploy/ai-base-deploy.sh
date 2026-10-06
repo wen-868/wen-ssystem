@@ -48,12 +48,44 @@ AI_LEGACY_DIR="${PROJECT_DIR}/backend/ai-base"
 AI_DIR=""
 BACKEND_ENV="${PROJECT_DIR}/backend/.env"
 LOG_DIR="${PROJECT_DIR}/logs"
+# S3-166-F1：AI 底座服务端口（健康检查与就绪探针共用同一变量；默认值与原字面量一致，可用环境变量覆盖）
+AI_PORT="${AI_PORT:-3016}"
 # S3-40：失败原因（软失败——健康检查等仍可继续的失败先记下，收尾统一出标记）
 AI_FAIL_REASON=""
 # S3-40：硬失败统一出口——打印统一标记后以 0 退出（不阻断主部署），由 auto-deploy.sh 汇总判定
 ai_fail() {  # $1 = 失败原因
   echo "❌ [AI底座] 部署失败：$1" >&2
   exit 0
+}
+
+# S3-166：迁移失败统一出口——同样是"❌ [AI底座] 部署失败：<原因>"标记（auto-deploy.sh
+#   的失败项汇总沿用同一条 grep），但**以非零码退出**（硬阻断）。
+#   为什么不复用 ai_fail 的 exit 0：迁移没跑成却继续重启进程，正是本单要根治的
+#   "代码已部署、数据库结构没跟上、服务实际不可用却报部署成功"的历史故障模式。
+ai_migration_fail() {  # $1 = 失败原因
+  echo "❌ [AI底座] 部署失败：$1" >&2
+  exit 1
+}
+
+# S3-166-F1：迁移"已应用"错误的白名单判定。
+#   为什么需要：生产已应用过 004/005（裸 ADD COLUMN）⇒ 重跑必报 1060；若一律硬阻断，
+#   本脚本一上线就把 AI 底座发版掐死。故对"已应用/已存在"这一**窄类**错误容忍。
+#   白名单只认这四个错误码，且**必须整条输出全部命中**才容忍（白名单式，不是"包含 1060 就算过"）：
+#     1060 Duplicate column name ｜ 1061 Duplicate key name
+#     1050 Table already exists ｜ 1091 Can't DROP ...; check that column/key exists
+#   任一非白名单内容（1064 语法错、1146 表不存在、2002 连不上、其他任何码/关键字/告警行）
+#   ⇒ 判定失败（fail-closed），由调用方走硬阻断。
+ai_mig_error_all_tolerated() {  # $1 = mysql 的错误输出；返回值 0 = 全部属"已应用"
+  local out="$1"
+  [ -n "${out}" ] || return 1
+  local rest
+  # 1) 剔除全部白名单错误行（格式：`ERROR 1060 (42S21) at line 3: ...`）后，必须不剩任何非空行
+  rest="$(printf '%s\n' "${out}" \
+    | grep -vE '^[[:space:]]*ERROR[[:space:]]+(1060|1061|1050|1091)([[:space:]]|\(|:|$)' \
+    | grep -vE '^[[:space:]]*$')"
+  [ -z "${rest}" ] || return 1
+  # 2) 且必须至少命中一条白名单错误（空输出/纯噪声不算"已应用"）
+  printf '%s\n' "${out}" | grep -qE '^[[:space:]]*ERROR[[:space:]]+(1060|1061|1050|1091)([[:space:]]|\(|:|$)'
 }
 
 echo "==> [AI底座] 开始部署 $(date '+%Y-%m-%d %H:%M:%S')"
@@ -215,6 +247,118 @@ pnpm install --frozen-lockfile 2>&1 | tail -8 || ai_fail "pnpm install --frozen-
 echo "==> [AI底座] pnpm build"
 pnpm build 2>&1 | tail -8 || ai_fail "pnpm build 失败（见上方构建日志）"
 
+# ---- 4.5 数据库迁移补齐（S3-166：根治"代码已部署、结构没跟上"） ----
+# 背景：2026-09-27 / 10-03 / 10-05 连续三次复测均为「AI 底座进程健康，但 007~011 未应用」
+#   ⇒ `/api/health/ready` 探针 degraded ⇒ `/api/chat` 500 全挂。根因是本脚本只拉代码构建、
+#   从来不跑迁移（迁移文件在独立仓库 ZXQL-AI 的 migrations/，需人工执行，而无人会"想起来"）。
+# 做法：对 ${AI_DIR}/migrations/*.sql 按文件名数字序逐个执行（NNN_ 三位零填充前缀 ⇒ C 字节序 == 数字序）。
+# 前提（缺一即本步骤会在生产报错并阻断部署，属 AI 底座仓 ZXQL-AI 侧待修项，见回传卡）：
+#   ① 迁移脚本必须幂等：业务库 004_platform_ai_config_fallback.sql / 005_session_archive_billing.sql
+#      目前是裸 `ADD COLUMN`（无 information_schema 判定）⇒ 重跑报 1060 Duplicate column；
+#   ② SQL 注释必须合法：007_e5_auto_close.sql:7 与 009_audit_lane_categories.sql:9 写成 `--（`
+#      （`--` 后无空白，直跟中文）⇒ MySQL 报 1064，需改为 `-- （`。
+# 约束：迁移文件必须**整文件执行**（依赖 @ai_db 会话变量与 PREPARE），故用 `mysql < 文件` 投喂，
+#   不得按分号拆分到多条连接逐条执行（拆分会丢会话变量）。
+# 失败语义（S3-166-F1 修订）：任一脚本非 0 ⇒ **先看错误内容**：
+#   · 若且仅若输出里的错误**全部**落在白名单 {1060,1061,1050,1091}（=已应用/已存在）内
+#     ⇒ 记为 MIG_ALREADY（日志点名 + 汇总单列，绝不静默），继续跑下一个脚本；
+#   · 其余任何错误（1064 语法错、1146 表不存在、2002 连不上…）⇒ 立即硬阻断
+#     （见 ai_migration_fail），并在日志与失败汇总里点名脚本。
+#   容忍只解决"已应用的迁移重放不致死"，**结构是否真的跟上**由第 6.1 步就绪探针终判。
+echo "==> [AI底座] 迁移补齐 $(date '+%Y-%m-%d %H:%M:%S')"
+AI_MIGRATIONS_DIR="${AI_DIR}/migrations"
+AI_MIGRATIONS_SKIPPED=0
+if [ ! -d "${AI_MIGRATIONS_DIR}" ]; then
+  if [ "${AI_DIR}" = "${AI_LEGACY_DIR}" ]; then
+    # 内嵌回退副本（backend/ai-base）不含 migrations/：迁移只由独立仓库 ZXQL-AI 维护
+    echo "==> [AI底座] 迁移补齐：内嵌回退副本无 migrations/，跳过（独立仓库不可用时本就没有新迁移可补）"
+    AI_MIGRATIONS_SKIPPED=1
+  else
+    ai_migration_fail "未找到迁移目录 ${AI_MIGRATIONS_DIR}（独立仓库检出异常，无法保证数据库结构；拒绝报部署成功）"
+  fi
+fi
+if [ "${AI_MIGRATIONS_SKIPPED}" = "0" ]; then
+  if ! command -v mysql >/dev/null 2>&1; then
+    ai_migration_fail "未找到 mysql 客户端（迁移补齐依赖 mysql CLI，用法同 deploy/restore-drill.sh；请确认服务器已安装 mysql-server）"
+  fi
+  # 连接串沿用本脚本既有取法：读 AI 底座 .env 的 DB_* 键（该 .env 由第 2 步从 backend/.env 同步生成），
+  #   不新增任何硬编码凭据；密码走 MYSQL_PWD（与 deploy/02-mysql-backup.sh、deploy/restore-drill.sh 同款）。
+  MIG_ENV_FILE="${AI_DIR}/.env"
+  MIG_DB_HOST="$(grep '^DB_HOST=' "${MIG_ENV_FILE}" 2>/dev/null | head -1 | cut -d= -f2-)"
+  MIG_DB_PORT="$(grep '^DB_PORT=' "${MIG_ENV_FILE}" 2>/dev/null | head -1 | cut -d= -f2-)"
+  MIG_DB_USER="$(grep '^DB_USERNAME=' "${MIG_ENV_FILE}" 2>/dev/null | head -1 | cut -d= -f2-)"
+  if [ -z "${MIG_DB_USER}" ]; then
+    MIG_DB_USER="$(grep '^DB_USER=' "${MIG_ENV_FILE}" 2>/dev/null | head -1 | cut -d= -f2-)"
+  fi
+  MIG_DB_PASSWORD="$(grep '^DB_PASSWORD=' "${MIG_ENV_FILE}" 2>/dev/null | head -1 | cut -d= -f2-)"
+  MIG_DB_NAME="$(grep '^DB_DATABASE=' "${MIG_ENV_FILE}" 2>/dev/null | head -1 | cut -d= -f2-)"
+  if [ -z "${MIG_DB_NAME}" ]; then
+    MIG_DB_NAME="$(grep '^DB_NAME=' "${MIG_ENV_FILE}" 2>/dev/null | head -1 | cut -d= -f2-)"
+  fi
+  MIG_DB_HOST="${MIG_DB_HOST:-127.0.0.1}"
+  MIG_DB_PORT="${MIG_DB_PORT:-3306}"
+  if [ -z "${MIG_DB_USER}" ] || [ -z "${MIG_DB_NAME}" ]; then
+    ai_migration_fail "AI 底座 .env（${MIG_ENV_FILE}）缺少 DB_USERNAME/DB_DATABASE（或 DB_USER/DB_NAME），无法确定业务库连接"
+  fi
+  echo "==> [AI底座] 迁移补齐：目标 ${MIG_DB_USER}@${MIG_DB_HOST}:${MIG_DB_PORT}/${MIG_DB_NAME}，目录 ${AI_MIGRATIONS_DIR}"
+  MIG_TOTAL=0
+  MIG_OK=0
+  MIG_SKIP=0
+  MIG_ALREADY=0
+  MIG_ALREADY_LIST=""
+  MIG_FAILED=""
+  # LC_ALL=C ⇒ 字节序排序；NNN_ 前缀零填充 ⇒ 007 < 008 < ... < 011（数字序即字节序）
+  while IFS= read -r MIG_FILE; do
+    [ -n "${MIG_FILE}" ] || continue
+    MIG_NAME="$(basename "${MIG_FILE}")"
+    MIG_TOTAL=$((MIG_TOTAL + 1))
+    MIG_OUT="$(MYSQL_PWD="${MIG_DB_PASSWORD}" mysql \
+      --host="${MIG_DB_HOST}" \
+      --port="${MIG_DB_PORT}" \
+      --user="${MIG_DB_USER}" \
+      --default-character-set=utf8mb4 \
+      "${MIG_DB_NAME}" < "${MIG_FILE}" 2>&1)"
+    MIG_RC=$?
+    if [ "${MIG_RC}" -ne 0 ]; then
+      if ai_mig_error_all_tolerated "${MIG_OUT}"; then
+        # S3-166-F1：全部错误码都在白名单内 ⇒ "已应用"（重放），容忍但必须显式记账
+        MIG_TOL_ERRNOS="$(printf '%s\n' "${MIG_OUT}" \
+          | grep -oE '^[[:space:]]*ERROR[[:space:]]+[0-9]{4}' \
+          | grep -oE '[0-9]{4}' | LC_ALL=C sort -u | tr '\n' ',' | sed -e 's/,$//')"
+        [ -n "${MIG_OUT}" ] && echo "${MIG_OUT}" >&2
+        echo "==> [AI底座][迁移] ${MIG_NAME} → 容忍（已应用：错误码 ${MIG_TOL_ERRNOS}）"
+        MIG_ALREADY=$((MIG_ALREADY + 1))
+        MIG_ALREADY_LIST="${MIG_ALREADY_LIST} ${MIG_NAME}"
+        continue
+      fi
+      [ -n "${MIG_OUT}" ] && echo "${MIG_OUT}" >&2
+      echo "==> [AI底座][迁移] ${MIG_NAME} → 失败（EXIT=${MIG_RC}）" >&2
+      MIG_FAILED="${MIG_FAILED} ${MIG_NAME}(EXIT=${MIG_RC})"
+      break
+    fi
+    if printf '%s' "${MIG_OUT}" | grep -q '已存在，跳过'; then
+      echo "==> [AI底座][迁移] ${MIG_NAME} → 跳过（EXIT=0，幂等：已存在，跳过）"
+      MIG_SKIP=$((MIG_SKIP + 1))
+    else
+      [ -n "${MIG_OUT}" ] && echo "${MIG_OUT}"
+      echo "==> [AI底座][迁移] ${MIG_NAME} → 成功（EXIT=0）"
+      MIG_OK=$((MIG_OK + 1))
+    fi
+  done < <(find "${AI_MIGRATIONS_DIR}" -maxdepth 1 -type f -name '*.sql' 2>/dev/null | LC_ALL=C sort)
+  echo "==> [AI底座][迁移] 结果汇总：尝试 ${MIG_TOTAL} 个 / 成功 ${MIG_OK} / 跳过 ${MIG_SKIP} / 容忍（已应用） ${MIG_ALREADY} / 失败 $(if [ -n "${MIG_FAILED}" ]; then echo 1; else echo 0; fi)"
+  if [ "${MIG_ALREADY}" -gt 0 ]; then
+    # 容忍项单列（不与"失败"混为一谈）：谁被容忍、容忍了几个，一眼可查
+    MIG_ALREADY_NAMES="$(printf '%s' "${MIG_ALREADY_LIST}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/[[:space:]][[:space:]]*/, /g')"
+    echo "==> [AI底座][迁移] 容忍（已应用）= ${MIG_ALREADY} 个：${MIG_ALREADY_NAMES}"
+  fi
+  if [ -n "${MIG_FAILED}" ]; then
+    ai_migration_fail "数据库迁移失败，已阻断本次 AI 底座部署（未重启进程，旧版本继续服务）；失败脚本：${MIG_FAILED# }"
+  fi
+  if [ "${MIG_TOTAL}" -eq 0 ]; then
+    ai_migration_fail "迁移目录 ${AI_MIGRATIONS_DIR} 内没有 *.sql（无法保证数据库结构；拒绝报部署成功）"
+  fi
+fi
+
 # ---- 5. 启动 PM2 ----
 echo "==> [AI底座] pm2 启动 zhixiang-ai-base"
 pm2 delete zhixiang-ai-base 2>/dev/null || true
@@ -227,11 +371,11 @@ pm2 start dist/main.js \
 pm2 save
 
 # ---- 6. 健康检查 ----
-echo "==> [AI底座] 健康检查 http://127.0.0.1:3016/api/health"
+echo "==> [AI底座] 健康检查 http://127.0.0.1:${AI_PORT}/api/health"
 sleep 5
 READY=0
 for i in {1..15}; do
-  if curl -fsS "http://127.0.0.1:3016/api/health" >/dev/null 2>&1; then
+  if curl -fsS "http://127.0.0.1:${AI_PORT}/api/health" >/dev/null 2>&1; then
     echo "==> [AI底座] 健康检查通过（第 ${i} 次）"
     READY=1
     break
@@ -240,7 +384,41 @@ for i in {1..15}; do
 done
 if [ "${READY}" != "1" ]; then
   # S3-40：软失败——nginx 反代等后续步骤仍照常执行，收尾统一出标记
-  AI_FAIL_REASON="健康检查未通过（15 次探测 http://127.0.0.1:3016/api/health 均失败），日志：${LOG_DIR}/ai-base.log"
+  AI_FAIL_REASON="健康检查未通过（15 次探测 http://127.0.0.1:${AI_PORT}/api/health 均失败），日志：${LOG_DIR}/ai-base.log"
+fi
+
+# ---- 6.1 就绪探针：终态闸门（S3-166-F1） ----
+# 为什么单列一条：/api/health 只证明**进程活着**；迁移步骤容忍了"已应用"类错误（1060 等）之后，
+#   必须有终态判据，否则"容忍"会退化成"把结构缺失一起放过"。就绪探针（缺表/缺列 ⇒ degraded）
+#   就是那个判据——容忍是手段，探针才是"结构真的跟上了"的裁判。
+# 失败出口：沿用 ai_migration_fail（同一条 ❌ 标记 + 非 0 退出），点名"探针未就绪"并打印响应摘要。
+# 口径说明：只有进程健康检查通过时才探（进程都没起来属第 6 步已有的软失败口径，不重复升级为硬阻断）。
+if [ "${READY}" != "1" ]; then
+  echo "==> [AI底座] 就绪探针跳过：健康检查未通过（同上软失败口径，收尾统一出标记）"
+else
+  AI_HEALTH_READY_URL="http://127.0.0.1:${AI_PORT}/api/health/ready"
+  echo "==> [AI底座] 就绪探针 ${AI_HEALTH_READY_URL}"
+  AI_READY_OK=0
+  AI_READY_STATUS=""
+  AI_READY_BODY=""
+  AI_READY_NOTE=""
+  for i in {1..15}; do
+    AI_READY_NOTE=""
+    # 不加 -f：非 2xx（如 503 + degraded JSON）也要把响应体读回来做摘要
+    AI_READY_BODY="$(curl -sS --max-time 5 "${AI_HEALTH_READY_URL}" 2>&1)" || AI_READY_NOTE="curl 退出码非 0（服务不可达/连接被拒）"
+    AI_READY_STATUS="$(printf '%s' "${AI_READY_BODY}" \
+      | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+      | sed -e 's/.*:[[:space:]]*"\([^"]*\)"$/\1/')"
+    if [ "${AI_READY_STATUS}" = "ready" ]; then
+      AI_READY_OK=1
+      echo "==> [AI底座] 就绪探针通过（status=ready，第 ${i} 次）"
+      break
+    fi
+    sleep 2
+  done
+  if [ "${AI_READY_OK}" != "1" ]; then
+    ai_migration_fail "探针未就绪：${AI_HEALTH_READY_URL} 未返回 status=ready（实际 status='${AI_READY_STATUS:-<空>}'${AI_READY_NOTE:+；${AI_READY_NOTE}}；响应摘要：$(printf '%s' "${AI_READY_BODY}" | tr -d '\n' | head -c 300)）"
+  fi
 fi
 
 # ---- 7. nginx /ai-api/ 反代自动配置（SSE 流式对话 + WebSocket 实时推送） ----
