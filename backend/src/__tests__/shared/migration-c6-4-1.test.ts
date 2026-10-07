@@ -32,16 +32,17 @@ const MIG_191 = "租户商品库调取映射.sql";
 const FILE_191 = `191_${MIG_191}`;
 
 /**
- * 当前最高迁移编号快照：195 = C6-3-2b（老带新台账 t_referral_ledger）。
+ * 当前最高迁移编号快照：196 = S3-58-F1-F1（平台管理员 t_platform_admin 补 MFA 两列）。
  * 190 = C6-4-1（商品库调取流水）、191 = C6-4-1（租户商品库调取映射）、192 = S3-144（租户建租户与
  * 归因落点补列）；193 = S3-147（租户班次类型）、194 = S3-151（条码唯一键改 `(tenant_id, barcode)`，见下）、
- * 195 = C6-3-2b（老带新台账 `t_referral_ledger`）。本快照取**当时最高编号**（并行单若取更高号，以最高者为准）。
+ * 195 = C6-3-2b（老带新台账 `t_referral_ledger`）、196 = S3-58-F1-F1（平台管理员 `t_platform_admin`
+ * 补 `mfa_secret` VARCHAR(128) NULL ＋ `mfa_enabled` TINYINT NOT NULL DEFAULT 0）。本快照取**当时最高编号**（并行单若取更高号，以最高者为准）。
  * 本快照随每批迁移**显式同步**（同 C6-4-1-F2 口径：新增迁移必须被人显式承认），
  * 不得改为"只断言不重复"或删除"最高编号"断言。
  * 编号沿革：192 = S3-144（租户建租户与归因落点补列）；193 = S3-147 预留（只加 t_shift.shift_type 列，
  * 尚未合入 main，故本分支上按文件实算的最高编号就是 194）。
  */
-const EXPECTED_MAX_MIGRATION = 195;
+const EXPECTED_MAX_MIGRATION = 196;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);

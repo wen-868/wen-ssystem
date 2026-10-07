@@ -30,6 +30,9 @@ echo "==> 执行数据库迁移（新增表结构，容错不阻断部署）"
 cd "${PROJECT_DIR}/backend"
 node ../scripts/run-migration.mjs ../docs/migrations/126_bills.sql || echo "迁移 126 执行失败，请手动执行（票据功能将显示空列表）"
 node ../scripts/run-migration.mjs ../docs/migrations/127_order_routing_exception.sql || echo "迁移 127 执行失败，请手动执行（订单路由/异常功能将显示空列表）"
+# S3-58-F1-F1：平台管理员 MFA 两列（mfa_secret / mfa_enabled）——不接入流水线等于改了不生效；
+#   迁移未跑时后端有缺列防御（platform-auth.service.ts），登录按 mfa_enabled=0 处理，不会 500。
+node ../scripts/run-migration.mjs ../docs/migrations/196_平台管理员MFA.sql || echo "迁移 196 执行失败，请手动执行（平台端 MFA 列缺失，登录按未启用处理）"
 cd "${PROJECT_DIR}"
 
 echo "==> 构建前端（相对路径 /api；AI 底座走 /ai-api nginx 代理 → 服务器 3016）"
