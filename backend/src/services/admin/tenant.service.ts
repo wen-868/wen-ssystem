@@ -1,6 +1,8 @@
 import { query, queryOne, transaction } from "../../shared/db";
 
 import { makeBizNo } from "../../shared/id";
+// S3-150 口径对齐：t_tenant.status 是 TINYINT（1/0），对外唯一口径为字符串 —— 读写统一走映射
+import { toTenantStatus, toTenantStatusValue } from "../platform-tenant.service";
 
 // ==================== 类型定义 ====================
 
@@ -93,8 +95,15 @@ export async function listTenants(params: {
     queryParams.push(kw, kw, kw);
   }
   if (status) {
+    // S3-150/S3-176 B0：对外字符串口径 ⇒ DB TINYINT。
+    // 非法值**必须 400**：原先"不加过滤条件 ⇒ 返回全量"是 fail-open
+    // （客户端以为筛了「已停用」，实际拿到全部租户）。
+    const statusVal = toTenantStatusValue(status);
+    if (statusVal === null) {
+      throw Object.assign(new Error("非法的租户状态筛选值"), { statusCode: 400 });
+    }
     conditions.push("t.status = ?");
-    queryParams.push(status);
+    queryParams.push(statusVal);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -126,7 +135,7 @@ export async function listTenants(params: {
     total: Number(totalRow?.total ?? 0),
     page,
     pageSize,
-    records
+    records: records.map((r) => ({ ...r, status: toTenantStatus(r.status) }))
   };
 }
 
@@ -162,7 +171,8 @@ export async function getTenantDetail(tenantId: number) {
     [tenantId]
   );
 
-  return { ...record, modules };
+  // S3-150：出口映射为对外字符串口径
+  return { ...record, status: toTenantStatus(record.status), modules };
 }
 
 // ========== 创建租户 ==========
@@ -183,7 +193,7 @@ export async function createTenant(body: {
         province, city, district, address,
         business_license, legal_person, industry, company_scale,
         source, status, remark
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
       [
         tenantCode, body.companyName, body.companyShortName || null,
         body.contactPerson, body.contactMobile, body.contactEmail || null,
@@ -289,10 +299,18 @@ export async function changeTenantStatus(tenantId: number, body: {
     throw Object.assign(new Error("租户不存在"), { statusCode: 404 });
   }
 
-  const updates: string[] = ["status = ?", "updated_at = NOW()"];
-  const params: unknown[] = [body.status];
+  // S3-150/S3-176 B0：对外字符串口径 ⇒ DB TINYINT（ACTIVE→1；DISABLED→0，停用原因单独落列）
+  const statusValue = toTenantStatusValue(body.status);
+  if (statusValue === null) {
+    throw Object.assign(new Error("非法的租户状态值"), { statusCode: 400 });
+  }
 
-  if (body.status === "SUSPENDED") {
+  const updates: string[] = ["status = ?", "updated_at = NOW()"];
+  const params: unknown[] = [statusValue];
+
+  // S3-176 B0：可写状态统一为 ACTIVE/DISABLED —— 停用原因随 DISABLED 一起记
+  //   （沿用原 SUSPENDED 的列语义 suspend_reason / suspended_at，功能不丢）
+  if (body.status === "DISABLED") {
     updates.push("suspend_reason = ?", "suspended_at = NOW()");
     params.push(body.reason || null, new Date());
   } else if (body.status === "ACTIVE") {
@@ -319,7 +337,8 @@ export async function changeTenantStatus(tenantId: number, body: {
     [tenantId]
   );
 
-  return record;
+  // S3-150：出口映射为对外字符串口径
+  return record ? { ...record, status: toTenantStatus(record.status) } : record;
 }
 
 // ========== 获取租户模块访问权限 ==========

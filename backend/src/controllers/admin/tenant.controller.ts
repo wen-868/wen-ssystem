@@ -65,7 +65,12 @@ export const updateTenant = asyncHandler(async (req, res) => {
 
 export const changeTenantStatus = asyncHandler(async (req, res) => {
   const body = z.object({
-    status: z.enum(["ACTIVE", "SUSPENDED", "EXPIRED", "CLOSED"]),
+    // S3-176 B0：租户状态**可写值唯一口径** = ACTIVE / DISABLED（与 platform-tenant.service 的
+    //   TenantStatus、与服务层 toTenantStatusValue、与 saas-admin 前端发送值一致）。
+    //   SUSPENDED/EXPIRED/CLOSED 不再是可写状态：EXPIRED 由 expire_at 派生展示；
+    //   停用原因改由 DISABLED 携带（服务层写 suspend_reason/suspended_at）。
+    //   未知值一律 400（原枚举与前端不发同一套值，导致「冻结租户」走 400）。
+    status: z.enum(["ACTIVE", "DISABLED"]),
     reason: z.string().max(255).optional(),
   }).parse(req.body);
 
