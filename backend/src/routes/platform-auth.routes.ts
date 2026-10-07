@@ -60,11 +60,22 @@ const platformMfaVerifyLimiter = rateLimit({
   message: () => ({ code: "429", msg: "动态验证码错误次数过多，请重新登录后再试", traceId: "" }),
   validate: { trustProxy: false, xForwardedForHeader: false },
 });
+// 四件套的管理操作限流：CodeQL `js/missing-rate-limiting` 要求「做了鉴权的路由必须限流」
+//   （PR #273 首跑即因此报 4 条 high）。这里是已登录管理员的自助操作，正常使用远低于阈值，
+//   按 IP 维度 60 次 / 5 分钟兜底，防「拿到令牌后狂打 setup/confirm/disable」。
+const platformMfaManageLimiter = rateLimit({
+  windowMs: 5 * 60_000,
+  limit: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: () => ({ code: "429", msg: "操作过于频繁，请稍后再试", traceId: "" }),
+  validate: { trustProxy: false, xForwardedForHeader: false },
+});
 // 四件套需要平台鉴权；写操作（setup/confirm/disable）额外过 CSRF
-platformAuthRouter.get("/mfa/status", requirePlatformAuth, asyncHandler(getPlatformMfaStatus));
-platformAuthRouter.post("/mfa/setup", requirePlatformAuth, csrfMiddleware, asyncHandler(setupPlatformMfa));
-platformAuthRouter.post("/mfa/confirm", requirePlatformAuth, csrfMiddleware, asyncHandler(confirmPlatformMfa));
-platformAuthRouter.post("/mfa/disable", requirePlatformAuth, csrfMiddleware, asyncHandler(disablePlatformMfa));
+platformAuthRouter.get("/mfa/status", platformMfaManageLimiter, requirePlatformAuth, asyncHandler(getPlatformMfaStatus));
+platformAuthRouter.post("/mfa/setup", platformMfaManageLimiter, requirePlatformAuth, csrfMiddleware, asyncHandler(setupPlatformMfa));
+platformAuthRouter.post("/mfa/confirm", platformMfaManageLimiter, requirePlatformAuth, csrfMiddleware, asyncHandler(confirmPlatformMfa));
+platformAuthRouter.post("/mfa/disable", platformMfaManageLimiter, requirePlatformAuth, csrfMiddleware, asyncHandler(disablePlatformMfa));
 // 登录二次验证：无鉴权（凭短时效挑战令牌），独立限流防爆破
 platformAuthRouter.post("/mfa/verify", platformMfaVerifyLimiter, asyncHandler(verifyPlatformMfa));
 
