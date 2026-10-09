@@ -1,11 +1,17 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
+import { csrfMiddleware } from "../middleware/csrf";
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as ctrl from "../controllers/miniapp/miniapp.controller";
 
 export const miniappRouter = Router();
 miniappRouter.use(priceResponseFilter());
+
+// ========== 写端点 CSRF 防护（S3-177） ==========
+// 本文件混有公开端点（POST /login、微信支付回调 POST /pay/notify），routeConfig.auth 只能保持 none，
+// 无法走声明式（auto-routes 不会附加 CSRF）；故所有**已认证**的写端点显式挂载 csrfMiddleware，
+// 顺序必须"认证在前"（csrfMiddleware 依赖 req.user）。同款既有合规写法：platform-auth.routes.ts:46。
 
 // ========== 登录 ==========
 miniappRouter.post("/login", ctrl.getProfile); // 简化登录，直接返回用户信息
@@ -17,44 +23,45 @@ miniappRouter.get("/categories", requireAuthWithTenant, ctrl.getCategories);
 
 // ========== 购物车模块 ==========
 miniappRouter.get("/cart", requireAuthWithTenant, ctrl.getCart);
-miniappRouter.post("/cart", requireAuthWithTenant, ctrl.addToCart);
-miniappRouter.put("/cart/:id", requireAuthWithTenant, ctrl.updateCartItem);
-miniappRouter.delete("/cart/:id", requireAuthWithTenant, ctrl.deleteCartItem);
-miniappRouter.delete("/cart", requireAuthWithTenant, ctrl.clearCart);
+miniappRouter.post("/cart", requireAuthWithTenant, csrfMiddleware, ctrl.addToCart);
+miniappRouter.put("/cart/:id", requireAuthWithTenant, csrfMiddleware, ctrl.updateCartItem);
+miniappRouter.delete("/cart/:id", requireAuthWithTenant, csrfMiddleware, ctrl.deleteCartItem);
+miniappRouter.delete("/cart", requireAuthWithTenant, csrfMiddleware, ctrl.clearCart);
 
 // ========== 订单模块 ==========
-miniappRouter.post("/orders", requireAuthWithTenant, ctrl.createOrder);
+miniappRouter.post("/orders", requireAuthWithTenant, csrfMiddleware, ctrl.createOrder);
 miniappRouter.get("/orders", requireAuthWithTenant, ctrl.getOrders);
 miniappRouter.get("/orders/:id", requireAuthWithTenant, ctrl.getOrderDetail);
-miniappRouter.post("/orders/:id/pay", requireAuthWithTenant, ctrl.payOrder);
-miniappRouter.post("/orders/:id/cancel", requireAuthWithTenant, ctrl.cancelOrder);
-miniappRouter.post("/orders/:id/confirm-receive", requireAuthWithTenant, ctrl.confirmReceipt);
+miniappRouter.post("/orders/:id/pay", requireAuthWithTenant, csrfMiddleware, ctrl.payOrder);
+miniappRouter.post("/orders/:id/cancel", requireAuthWithTenant, csrfMiddleware, ctrl.cancelOrder);
+miniappRouter.post("/orders/:id/confirm-receive", requireAuthWithTenant, csrfMiddleware, ctrl.confirmReceipt);
 miniappRouter.get("/orders/:id/pay-result", requireAuthWithTenant, ctrl.queryPayResult);
 miniappRouter.get("/orders/:id/logistics", requireAuthWithTenant, ctrl.getOrderLogistics);
-miniappRouter.put("/orders/:id/delete", requireAuthWithTenant, ctrl.deleteMiniappOrder);
+miniappRouter.put("/orders/:id/delete", requireAuthWithTenant, csrfMiddleware, ctrl.deleteMiniappOrder);
 
-// 微信支付回调（无登录态，微信服务器直调）
+// 微信支付回调（无登录态，微信服务器直调）：请求方不会携带 x-csrf-token，
+// 必须保持"无鉴权 + 无 CSRF"（不得挂 csrfMiddleware，否则正常回调被打成 403）
 miniappRouter.post("/pay/notify", ctrl.payNotify);
 
 // ========== 储值卡 ==========
 miniappRouter.get("/stored-card", requireAuthWithTenant, ctrl.getStoredCardInfo);
 miniappRouter.get("/stored-card/records", requireAuthWithTenant, ctrl.getStoredCardRecords);
 miniappRouter.get("/stored-card/recharge-options", requireAuthWithTenant, ctrl.getStoredRechargeOptions);
-miniappRouter.post("/stored-card/recharge", requireAuthWithTenant, ctrl.rechargeStoredCard);
+miniappRouter.post("/stored-card/recharge", requireAuthWithTenant, csrfMiddleware, ctrl.rechargeStoredCard);
 
 // ========== 用户模块 ==========
 miniappRouter.get("/user/profile", requireAuthWithTenant, ctrl.getProfile);
-miniappRouter.put("/user/profile", requireAuthWithTenant, ctrl.updateProfile);
+miniappRouter.put("/user/profile", requireAuthWithTenant, csrfMiddleware, ctrl.updateProfile);
 miniappRouter.get("/user/addresses", requireAuthWithTenant, ctrl.getAddresses);
-miniappRouter.post("/user/addresses", requireAuthWithTenant, ctrl.createAddress);
-miniappRouter.put("/user/addresses/:id", requireAuthWithTenant, ctrl.updateAddress);
-miniappRouter.delete("/user/addresses/:id", requireAuthWithTenant, ctrl.deleteAddress);
-miniappRouter.post("/user/addresses/:id/default", requireAuthWithTenant, ctrl.setDefaultAddress);
+miniappRouter.post("/user/addresses", requireAuthWithTenant, csrfMiddleware, ctrl.createAddress);
+miniappRouter.put("/user/addresses/:id", requireAuthWithTenant, csrfMiddleware, ctrl.updateAddress);
+miniappRouter.delete("/user/addresses/:id", requireAuthWithTenant, csrfMiddleware, ctrl.deleteAddress);
+miniappRouter.post("/user/addresses/:id/default", requireAuthWithTenant, csrfMiddleware, ctrl.setDefaultAddress);
 
 // ========== 营销模块 ==========
 miniappRouter.get("/promotions", requireAuthWithTenant, ctrl.getPromotions);
 miniappRouter.get("/coupons", requireAuthWithTenant, ctrl.getCoupons);
-miniappRouter.post("/coupons/:id/use", requireAuthWithTenant, ctrl.useCoupon);
+miniappRouter.post("/coupons/:id/use", requireAuthWithTenant, csrfMiddleware, ctrl.useCoupon);
 
 // ========== 会员模块 ==========
 miniappRouter.get("/member/profile", requireAuthWithTenant, ctrl.getMemberProfile);
@@ -62,31 +69,31 @@ miniappRouter.get("/member/levels", requireAuthWithTenant, ctrl.getMemberLevels)
 miniappRouter.get("/member/points", requireAuthWithTenant, ctrl.getMemberPoints);
 miniappRouter.get("/member/growth", requireAuthWithTenant, ctrl.getMemberGrowth);
 miniappRouter.get("/member/coupons", requireAuthWithTenant, ctrl.getMemberCoupons);
-miniappRouter.post("/member/coupons/:id/receive", requireAuthWithTenant, ctrl.receiveCoupon);
+miniappRouter.post("/member/coupons/:id/receive", requireAuthWithTenant, csrfMiddleware, ctrl.receiveCoupon);
 
 // ========== 用户设置模块 ==========
-miniappRouter.put("/user/profile-update", requireAuthWithTenant, ctrl.updateUserProfile);
-miniappRouter.post("/user/change-password", requireAuthWithTenant, ctrl.changePassword);
+miniappRouter.put("/user/profile-update", requireAuthWithTenant, csrfMiddleware, ctrl.updateUserProfile);
+miniappRouter.post("/user/change-password", requireAuthWithTenant, csrfMiddleware, ctrl.changePassword);
 
 // ========== 批发模块 ==========
 miniappRouter.get("/wholesale/products", requireAuthWithTenant, ctrl.getWholesaleProducts);
 miniappRouter.get("/wholesale/products/:id", requireAuthWithTenant, ctrl.getWholesaleProductDetail);
 miniappRouter.get("/wholesale/categories", requireAuthWithTenant, ctrl.getWholesaleCategories);
 miniappRouter.get("/wholesale/cart", requireAuthWithTenant, ctrl.getWholesaleCart);
-miniappRouter.post("/wholesale/cart", requireAuthWithTenant, ctrl.addWholesaleCartItem);
-miniappRouter.put("/wholesale/cart/:id", requireAuthWithTenant, ctrl.updateWholesaleCartItem);
-miniappRouter.delete("/wholesale/cart/:id", requireAuthWithTenant, ctrl.deleteWholesaleCartItem);
-miniappRouter.post("/wholesale/orders", requireAuthWithTenant, ctrl.createWholesaleOrder);
+miniappRouter.post("/wholesale/cart", requireAuthWithTenant, csrfMiddleware, ctrl.addWholesaleCartItem);
+miniappRouter.put("/wholesale/cart/:id", requireAuthWithTenant, csrfMiddleware, ctrl.updateWholesaleCartItem);
+miniappRouter.delete("/wholesale/cart/:id", requireAuthWithTenant, csrfMiddleware, ctrl.deleteWholesaleCartItem);
+miniappRouter.post("/wholesale/orders", requireAuthWithTenant, csrfMiddleware, ctrl.createWholesaleOrder);
 miniappRouter.get("/wholesale/orders", requireAuthWithTenant, ctrl.getWholesaleOrders);
 miniappRouter.get("/wholesale/orders/:id", requireAuthWithTenant, ctrl.getWholesaleOrderDetail);
 miniappRouter.get("/wholesale/calculate-price", requireAuthWithTenant, ctrl.calculateWholesaleTierPrice);
-miniappRouter.post("/wholesale/cart/delete", requireAuthWithTenant, ctrl.deleteWholesaleCartItems);
-miniappRouter.put("/wholesale/cart/:itemId/select", requireAuthWithTenant, ctrl.toggleWholesaleCartSelect);
-miniappRouter.put("/wholesale/cart/select-all", requireAuthWithTenant, ctrl.toggleWholesaleCartSelectAll);
-miniappRouter.post("/wholesale/orders/:orderId/cancel", requireAuthWithTenant, ctrl.cancelWholesaleOrder);
-miniappRouter.post("/wholesale/orders/:orderId/confirm-receive", requireAuthWithTenant, ctrl.confirmWholesaleReceive);
+miniappRouter.post("/wholesale/cart/delete", requireAuthWithTenant, csrfMiddleware, ctrl.deleteWholesaleCartItems);
+miniappRouter.put("/wholesale/cart/:itemId/select", requireAuthWithTenant, csrfMiddleware, ctrl.toggleWholesaleCartSelect);
+miniappRouter.put("/wholesale/cart/select-all", requireAuthWithTenant, csrfMiddleware, ctrl.toggleWholesaleCartSelectAll);
+miniappRouter.post("/wholesale/orders/:orderId/cancel", requireAuthWithTenant, csrfMiddleware, ctrl.cancelWholesaleOrder);
+miniappRouter.post("/wholesale/orders/:orderId/confirm-receive", requireAuthWithTenant, csrfMiddleware, ctrl.confirmWholesaleReceive);
 miniappRouter.get("/wholesale/orders/confirm/preview", requireAuthWithTenant, ctrl.wholesaleOrderConfirmPreview);
-miniappRouter.post("/wholesale/orders/buy-now", requireAuthWithTenant, ctrl.buyWholesaleNow);
+miniappRouter.post("/wholesale/orders/buy-now", requireAuthWithTenant, csrfMiddleware, ctrl.buyWholesaleNow);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
