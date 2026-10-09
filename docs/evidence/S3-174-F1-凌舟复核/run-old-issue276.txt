@@ -1,0 +1,25 @@
+=== 迁移前基线 ===
+{"demo_tenant":0,"user_in_demo":0,"bind_demo":0,"bind_out":2,"menus_demo":0,"menus_default":89}
+PASS  基线：demo 用户在 default、无 demo 租户、无 demo 菜单  <- {"demo_tenant":0,"user_in_demo":0,"bind_demo":0,"bind_out":2,"menus_demo":0,"menus_default":89}
+
+=== 跑 197（第一遍）===
+{"demo_tenant":0,"user_in_demo":1,"bind_demo":0,"bind_out":0,"menus_demo":0,"menus_default":89}
+FAIL  197 建成 demo 租户  <- demo_tenant=0
+PASS  197 把 demo 用户迁到 demo 租户  <- user_in_demo=1
+FAIL  197 后 demo 用户在 demo 租户**有角色绑定**（不是归零）  <- bind_demo=0
+PASS  197 后 demo 用户在其它租户**无残留绑定**  <- bind_out=0
+FAIL  197 克隆了菜单（demo 菜单数 = default 菜单数）  <- demo=0 default=89
+
+=== 跑 197（第二遍，幂等）===
+{"demo_tenant":0,"user_in_demo":1,"bind_demo":0,"bind_out":0,"menus_demo":0,"menus_default":89}
+PASS  幂等：第二遍后各计数与第一遍一致  <- {"demo_tenant":0,"user_in_demo":1,"bind_demo":0,"bind_out":0,"menus_demo":0,"menus_default":89} vs {"demo_tenant":0,"user_in_demo":1,"bind_demo":0,"bind_out":0,"menus_demo":0,"menus_default":89}
+
+=== 功能可用性：按生产真实 SQL 形状复算演示账号的 角色/权限/菜单 ===
+FAIL  A. JWT roles 含 SUPER_ADMIN（issueLoginResult 形状）  <- []
+FAIL  B. permissions 非空（getUserPermissions 形状）  <- rows=0
+FAIL  C. getUserMenus 能识别超管（否则菜单接口返回空 ⇒ 手机端功能中心整屏消失）  <- []
+
+=== 反测：去掉任一 NOT NULL 列 ⇒ 必须报错停下（不得静默跳过）===
+PASS  缺 company_name 的 INSERT 报错（证明无 INSERT IGNORE 掩盖）  <- ER_NO_DEFAULT_FOR_FIELD / Field 'company_name' doesn't have a default value
+
+小结：5 passed / 6 failed
