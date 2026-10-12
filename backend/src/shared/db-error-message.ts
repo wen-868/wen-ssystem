@@ -50,3 +50,63 @@ export function rowErrorMessage(err: unknown, options: RowErrorMessageOptions): 
   const raw = err instanceof Error ? err.message : typeof err === "string" ? err : "";
   return raw || fallback;
 }
+
+/* ============================================================================
+ * S3-181：单条写请求（非逐行导入）的「回库错误 → 业务文案」口径
+ *
+ * 背景：写端点把库报错直接抛到全局 errorHandler 时，`ER_DUP_ENTRY` /
+ * `ER_BAD_NULL_ERROR` / `ER_NO_DEFAULT_FOR_FIELD` 都没有 statusCode ⇒ 一律落进
+ * "未知错误"分支 ⇒ 500（生产实例：`Column 'mobile' cannot be null`、
+ * `Duplicate entry '13900000001' for key 't_member.uk_member_mobile'`）。
+ *
+ * 口径（与上方 rowErrorMessage 同源，不另立第二套）：
+ *  - 撞唯一键 ⇒ 人类可读业务文案，**不回显 SQL 原文**、不回显字段值（手机号属 PII）；
+ *  - 缺列（1048/1364）⇒ 报出列名，便于定位缺哪个必填参数；
+ *  - 其余码 ⇒ 不在此映射，保持原有 500 + 日志栈（不误吞）。
+ * ========================================================================== */
+
+/** 唯一键名 → 本领域中文文案（表内其它唯一键不得张冠李戴；未登记的键走通用兜底） */
+export const UNIQUE_KEY_MESSAGES: Record<string, string> = {
+  uk_member_mobile: "该手机号已存在",
+  uk_member_openid: "该微信账号已绑定其它会员",
+  uk_product_sku_barcode: BARCODE_DUPLICATE_MESSAGE,
+  uk_product_sku_tenant_barcode: BARCODE_DUPLICATE_MESSAGE,
+};
+
+/** 撞了未登记唯一键时的兜底文案（仍不回显 SQL 原文） */
+export const DUPLICATE_ENTRY_FALLBACK_MESSAGE = "该记录已存在，请检查是否重复提交";
+
+/** 从驱动文案里取唯一键名（`Duplicate entry 'x' for key 'uk_y'` ⇒ `uk_y`） */
+function uniqueKeyName(e: unknown): string {
+  const raw = (e as { message?: string })?.message ?? "";
+  const matched = /for key '([^']+)'/i.exec(String(raw));
+  return matched?.[1] ?? "";
+}
+
+/**
+ * `ER_DUP_ENTRY`（1062）⇒ 人类可读业务文案。
+ * 已登记的键返回领域文案；未登记的键返回通用文案 —— 两者都不含 SQL 原文与字段值。
+ */
+export function duplicateEntryMessage(e: unknown): string {
+  const key = uniqueKeyName(e);
+  // 驱动可能把键名写成 `db.table.key` 或 `table.key`，取最后一段再查表
+  const leaf = key.includes(".") ? key.slice(key.lastIndexOf(".") + 1) : key;
+  return UNIQUE_KEY_MESSAGES[leaf] ?? DUPLICATE_ENTRY_FALLBACK_MESSAGE;
+}
+
+/** `ER_NO_DEFAULT_FOR_FIELD`(1364) 的驱动文案：`Field 'x' doesn't have a default value` */
+const NO_DEFAULT_FIELD_RE = /Field '([^']+)' doesn't have a default value/i;
+/** `ER_BAD_NULL_ERROR`(1048) 的驱动文案：`Column 'x' cannot be null` */
+const BAD_NULL_COLUMN_RE = /Column '([^']+)' cannot be null/i;
+
+/**
+ * 入参缺列类错误（1048 / 1364）⇒ 缺的列名；非此类返回 `null`。
+ * 只认这两个已定性的码，其余 DB 错误仍交给全局 500 分支（保留日志栈）。
+ */
+export function missingColumnName(e: unknown): string | null {
+  const code = (e as { code?: string })?.code;
+  const raw = String((e as { message?: string })?.message ?? "");
+  if (code === "ER_BAD_NULL_ERROR") return BAD_NULL_COLUMN_RE.exec(raw)?.[1] ?? "";
+  if (code === "ER_NO_DEFAULT_FOR_FIELD") return NO_DEFAULT_FIELD_RE.exec(raw)?.[1] ?? "";
+  return null;
+}

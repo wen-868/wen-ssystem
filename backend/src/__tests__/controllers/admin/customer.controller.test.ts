@@ -65,10 +65,17 @@ describe("customer.controller", () => {
 
   it("createCustomer - 应创建客户", async () => {
     (customerService.createCustomer as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({ body: { name: "新客户", phone: "13800000000" } });
+    // S3-181：controller 增加 zod 校验后，入参按契约收口 ——
+    //   · 字段名从 mock 里的 `phone`（合同外，AI 底座误用）改为契约口径的 `mobile`；
+    //   · `customerType` 缺省按契约补 `RETAIL` 后再下发 service。
+    const req = mockReq({ body: { name: "新客户", mobile: "13800000000" } });
     const res = mockRes();
     await createCustomer(req as any, res as any, vi.fn());
-    expect(customerService.createCustomer).toHaveBeenCalledWith("t1", { name: "新客户", phone: "13800000000" });
+    expect(customerService.createCustomer).toHaveBeenCalledWith("t1", {
+      name: "新客户",
+      mobile: "13800000000",
+      customerType: "RETAIL",
+    });
     expect(ok).toHaveBeenCalled();
   });
 
