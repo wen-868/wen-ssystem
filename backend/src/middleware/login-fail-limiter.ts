@@ -36,10 +36,19 @@
  *     单一来源受 5min/15min 快锁限制，最多只能贡献 5 次 / 15 分钟，故 60 次 / 1 小时
  *     **至少需要 3 个不同来源**才可能触发 —— 单一来源依旧锁不死合法账号。
  *   - IP 维度（纯 IP，5 次 / 5 分钟 + 5 次 / 15 分钟）**保持不变**，继续拦「同来源轮换账号名」。
+ *
+ * S3-172（2026-10-07）——**演示账号在账号维度豁免计数**：
+ *  业主口径「演示登陆要解除帐号锁定不要限制」。演示口令是**公开值**（登录页一键演示），
+ *  对它按账号累计失败只会毁演示、没有安全收益，故 `createLoginFailLimiters()` 产出的
+ *  **账号维度**限流器（`accountIpKey` 快锁 + `accountKey` 兜底）对演示账号整体 `skip`
+ *  （既不计数、也不拦截）。**IP 维度一字不动**——同一来源轮换账号名的滥用仍被 IP 桶拦住，
+ *  防爆破门闩不因本单降低。演示账号名与 `services/admin/auth.service.ts` 同源
+ *  （`config/constants.ts` 的 `DEMO_USERNAME`），判定函数 `isDemoExemptUsername` 一并导出供单测断言。
  */
 
 import rateLimit, { ipKeyGenerator, MemoryStore } from "express-rate-limit";
 import type { Request } from "express";
+import { constants } from "../config/constants";
 
 // ─── 常量 ─────────────────────────────────────────────────────
 
@@ -74,6 +83,31 @@ export const CAPTCHA_FAIL_WINDOW_MS = 5 * 60_000;
 export const CREDENTIAL_FAIL_STATUS = 401;
 /** 计入验证码限流的响应码 */
 export const CAPTCHA_FAIL_STATUS = 400;
+
+/**
+ * 演示账号用户名（S3-172）——值取自 `config/constants.ts` 的 `DEMO_USERNAME`，
+ * 与 `services/admin/auth.service.ts` 的 `DEMO_USERNAME` **同一个来源**，不存在第二处口径。
+ *
+ * 导出本常量与 `isDemoExemptUsername` 是为了让单测能直接断言「豁免对象是谁」，
+ * 而不必靠"连打 N 次看状态码"反推。
+ */
+export const DEMO_EXEMPT_USERNAME = constants.DEMO_USERNAME;
+
+/**
+ * 该请求提交的账号是否为「账号维度豁免」的演示账号。
+ *
+ * 归一化口径与下方 `accountKey` / `accountIpKey` 完全一致（trim + 小写），
+ * 避免出现「限流按 `DEMO` 归桶、豁免却不认」这种半豁免。
+ */
+export function isDemoExemptUsername(raw: unknown): boolean {
+  const name = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+  return name !== "" && name === DEMO_EXEMPT_USERNAME;
+}
+
+/** 从请求体取账号名并判断是否演示账号（演示账号在账号维度不计数、不拦截） */
+function isDemoExemptRequest(req: Request): boolean {
+  return isDemoExemptUsername((req as { body?: { username?: unknown } }).body?.username);
+}
 
 /** 凭据错误的兜底文案（实际响应由 buildMessage 动态生成，含失败次数与剩余时间） */
 export const LOGIN_FAIL_MESSAGE = {
@@ -189,6 +223,11 @@ function makeLimiter(opts: {
   /** 只统计该状态码；其余响应一律不计数（裁定③ 的分流核心） */
   countStatus: number;
   message: (req: Request) => unknown;
+  /**
+   * S3-172：演示账号整体跳过本限流器（不计入、也不拦截）。
+   * 只给**账号维度**限流器打开；IP 维度必须保持 false，否则等于拆掉「单机滥用」门闩。
+   */
+  exemptDemoAccount?: boolean;
 }): LimiterEntry {
   const store = new MemoryStore();
   const middleware = rateLimit({
@@ -196,6 +235,9 @@ function makeLimiter(opts: {
     max: opts.max,
     keyGenerator: opts.keyGenerator,
     store,
+    // express-rate-limit 在取键/计数**之前**判定 skip：返回 true 即 next()，
+    // 本请求既不进 store 也不可能被 429（详见 dist/index.mjs 的 `const skip = await config.skip(...)`）。
+    skip: opts.exemptDemoAccount ? isDemoExemptRequest : undefined,
     // 「成功」= 不是我们要计数的那个状态码 → 只有 countStatus 会被计入
     skipSuccessfulRequests: true,
     requestWasSuccessful: (_req, res) => res.statusCode !== opts.countStatus,
@@ -214,14 +256,18 @@ function makeLimiter(opts: {
  */
 export function createLoginFailLimiters(max: number = LOGIN_FAIL_MAX) {
   const message = buildMessage("credential");
-  /** 快锁：短窗口（5min）+ 长窗口（15min），两把都 `max` 次 → 任一超限即拒绝 */
-  const buildFast = (keyGenerator: KeyGen) => [
+  /**
+   * 快锁：短窗口（5min）+ 长窗口（15min），两把都 `max` 次 → 任一超限即拒绝。
+   * `exemptDemoAccount` 只由**账号维度**传入 true（S3-172）；IP 维度一律 false。
+   */
+  const buildFast = (keyGenerator: KeyGen, exemptDemoAccount = false) => [
     makeLimiter({
       keyGenerator,
       windowMs: LOGIN_FAIL_WINDOW_MS,
       max,
       countStatus: CREDENTIAL_FAIL_STATUS,
       message,
+      exemptDemoAccount,
     }),
     makeLimiter({
       keyGenerator,
@@ -229,19 +275,23 @@ export function createLoginFailLimiters(max: number = LOGIN_FAIL_MAX) {
       max,
       countStatus: CREDENTIAL_FAIL_STATUS,
       message,
+      exemptDemoAccount,
     }),
   ];
-  // IP 维度：维持原样（拦「同来源轮换账号名」）
+  // IP 维度：维持原样（拦「同来源轮换账号名」）——**不豁免演示账号**
   const byIp = buildFast(ipKey);
-  // 账号维度主键：账号 + 归一化 IP（S3-58-F1 R2）——单一来源锁不死合法账号
-  const byAccount = buildFast(accountIpKey);
-  // 账号维度兜底：纯账号键 + 显著抬高阈值（拦「分布式多 IP 打同一账号」）
+  // 账号维度主键：账号 + 归一化 IP（S3-58-F1 R2）——单一来源锁不死合法账号；
+  // S3-172：演示账号在此整体 skip（演示口令公开，锁它只毁演示）
+  const byAccount = buildFast(accountIpKey, true);
+  // 账号维度兜底：纯账号键 + 显著抬高阈值（拦「分布式多 IP 打同一账号」）；
+  // S3-172：演示账号同样豁免（否则分布式来源仍能锁死演示入口）
   const backstop = makeLimiter({
     keyGenerator: accountKey,
     windowMs: ACCOUNT_BACKSTOP_WINDOW_MS,
     max: ACCOUNT_BACKSTOP_MAX,
     countStatus: CREDENTIAL_FAIL_STATUS,
     message: buildMessage("account"),
+    exemptDemoAccount: true,
   });
   // 兜底放最后：只有通过前面快锁的请求才会计入兜底桶，
   // 被锁来源不会继续把兜底桶填满（否则单一来源也能靠时间堆到 60 次）。

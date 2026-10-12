@@ -219,8 +219,11 @@ const INITIAL_PASSWORD_LENGTH = 12;
  *
  * 依据：凌舟裁定 C6-0-R6「不发邮件短信：建号 + 生成初始口令 + 页面一次性展示，重置同理」。
  * 因此本函数产出的明文口令**只在响应体出现一次**，不落库、不进日志、不进审计明细。
+ *
+ * S3-172：导出本函数给 `tenant-ops.service.ts` 的「代重置租户账号口令」复用，
+ * 保证平台侧两处一次性口令**同一套字符集与长度**（不在别处再写第二份生成器）。
  */
-function generateInitialPassword(): string {
+export function generateInitialPassword(): string {
   let out = "";
   for (let i = 0; i < INITIAL_PASSWORD_LENGTH; i += 1) {
     out += INITIAL_PASSWORD_ALPHABET[randomInt(INITIAL_PASSWORD_ALPHABET.length)];

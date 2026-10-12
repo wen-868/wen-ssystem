@@ -14,7 +14,10 @@ import {
   ACCOUNT_BACKSTOP_MAX,
   ACCOUNT_BACKSTOP_WINDOW_MS,
   ACCOUNT_BACKSTOP_MESSAGE,
+  DEMO_EXEMPT_USERNAME,
+  isDemoExemptUsername,
 } from "../../middleware/login-fail-limiter";
+import { DEMO_USERNAME } from "../../services/admin/auth.service";
 
 /**
  * 平台登录限流单测（R101-S2-01 批 2.1 建立，批 2.2 改为「按失败类型分流」）
@@ -281,5 +284,89 @@ describe("middleware/login-fail-limiter（S3-58-F1 R2 维度改造）", () => {
     expect((await failFrom(app, "203.0.113.50", "boss")).status).toBe(429);
     // 兜底桶只记到 5 次（A 来源被快锁挡住后不再计入）——远低于 60，账号未被兜底锁
     expect((await failFrom(app, "203.0.113.51", "boss")).status).toBe(401);
+  });
+});
+
+/**
+ * S3-172（2026-10-07）——演示账号在**账号维度**豁免计数。
+ *
+ * 业主口径「演示登陆要解除帐号锁定不要限制」：演示口令是公开值，按账号累计失败只毁演示。
+ * 本组用例钉死两件事：
+ *   ① 账号维度（`accountIpKey` 快锁 + `accountKey` 兜底）对演示账号真的不计数、不拦截；
+ *   ② **IP 维度一字不改**（同一来源轮换账号名的滥用仍被拦）——豁免是定向的，不是整体放宽。
+ */
+describe("middleware/login-fail-limiter（S3-172 演示账号账号维度豁免）", () => {
+  it("豁免对象与登录服务**同源**：DEMO_EXEMPT_USERNAME === auth.service 的 DEMO_USERNAME", () => {
+    expect(DEMO_EXEMPT_USERNAME).toBe(DEMO_USERNAME);
+    expect(DEMO_EXEMPT_USERNAME).toBe("demo");
+  });
+
+  it("判定函数口径与归桶一致：trim + 小写后相等才算（非字符串/空串一律不豁免）", () => {
+    expect(isDemoExemptUsername("demo")).toBe(true);
+    expect(isDemoExemptUsername("  DEMO ")).toBe(true);
+    expect(isDemoExemptUsername("demo1")).toBe(false);
+    expect(isDemoExemptUsername("")).toBe(false);
+    expect(isDemoExemptUsername("   ")).toBe(false);
+    expect(isDemoExemptUsername(undefined)).toBe(false);
+    expect(isDemoExemptUsername(123)).toBe(false);
+  });
+
+  it("① 账号维度快锁（账号+IP）：演示账号连错 10 次仍是 401，从不 429", async () => {
+    const app = makeApp(createLoginFailLimiters(2).byAccount);
+    for (let i = 0; i < 10; i++) {
+      expect((await credFail(app, DEMO_USERNAME)).status).toBe(401);
+    }
+    // ★ 对照：同一实例下非演示账号照旧被快锁 —— 证明豁免是**定向**的，不是把阈值整体放宽
+    expect((await credFail(app, "alice")).status).toBe(401);
+    expect((await credFail(app, "alice")).status).toBe(401);
+    expect((await credFail(app, "alice")).status).toBe(429);
+  });
+
+  it("① 账号维度兜底（纯账号键，60 次/小时）：演示账号打满 70 次仍 401；对照账号到阈值即 429", async () => {
+    const demoApp = makeApp([createLoginFailLimiters().byAccountBackstop]);
+    for (let i = 0; i < ACCOUNT_BACKSTOP_MAX + 10; i++) {
+      expect((await credFail(demoApp, DEMO_USERNAME)).status).toBe(401);
+    }
+
+    // ★ 对照：同样的兜底桶对非演示账号照旧在 60 次后锁死
+    const otherApp = makeApp([createLoginFailLimiters().byAccountBackstop]);
+    for (let i = 0; i < ACCOUNT_BACKSTOP_MAX; i++) {
+      expect((await credFail(otherApp, "alice")).status).toBe(401);
+    }
+    expect((await credFail(otherApp, "alice")).status).toBe(429);
+  });
+
+  it("② IP 维度**保持不变**：演示账号从同一来源连错超阈值，照样被 IP 桶拦住（防单机滥用）", async () => {
+    const app = makeApp(createLoginFailLimiters(3).byIp);
+    for (let i = 0; i < 3; i++) {
+      expect((await credFail(app, DEMO_USERNAME)).status).toBe(401);
+    }
+    const blocked = await credFail(app, DEMO_USERNAME);
+    expect(blocked.status).toBe(429);
+    expect(blocked.body.code).toBe("429");
+  });
+
+  it("② 按生产挂载口径（all）：演示账号的失败由 IP 维度兜底，账号维度不参与计数", async () => {
+    const app = makeApp(createLoginFailLimiters().all);
+    // 阈值内（5 次）全部落到业务层
+    for (let i = 0; i < LOGIN_FAIL_MAX; i++) {
+      expect((await credFail(app, DEMO_USERNAME)).status).toBe(401);
+    }
+    // 第 6 次被 IP 维度拦下（若账号维度也计数，前面就已 429 —— 该断言即反测锚点）
+    expect((await credFail(app, DEMO_USERNAME)).status).toBe(429);
+    // IP 桶已被演示账号自己的失败填满 → 同来源换账号同样被拦（IP 维度生效的旁证）
+    expect((await credFail(app, "alice")).status).toBe(429);
+  });
+
+  it("豁免只影响**账号维度**计数，不改响应语义：演示账号正确口令 200、错误口令 401、IP 维度照常 429", async () => {
+    const app = makeApp(createLoginFailLimiters(1).all);
+    // 阈值 1：成功登录不消耗额度（skipSuccessfulRequests），故第 1 次 200
+    expect((await okLogin(app, DEMO_USERNAME)).status).toBe(200);
+    // 错误口令仍落到业务层 → 401（豁免没有把演示账号的失败语义改写成别的）
+    expect((await credFail(app, DEMO_USERNAME)).status).toBe(401);
+    // ★ 反测锚点：豁免**只作用于账号维度**，IP 维度一字不动 ⇒ 阈值 1 且已计 1 次失败时，
+    // 同来源的下一次请求（口令正确也一样）被 IP 桶拦下 ⇒ 429。
+    // 若豁免串到 IP 维度（或响应语义被改写），这里会是 200。
+    expect((await okLogin(app, DEMO_USERNAME)).status).toBe(429);
   });
 });

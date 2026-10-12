@@ -48,6 +48,15 @@ platformTenantRouter.post("/:id/toggle", asyncHandler(controller.togglePlatformT
 platformTenantRouter.post("/:id/proxy-login", opsController.proxyLoginCtrl);
 platformTenantRouter.post("/:id/quota-expand", opsController.expandTenantQuotaCtrl);
 
+// S3-172：平台超管代重置「指定租户」账号口令（写操作，写 t_platform_audit_log 留痕）。
+// 路径里的 :tenantId 必须与该账号的 tenant_id 同时命中才动手（跨租户 ⇒ 404，见 service）。
+// 鉴权：本文件 router 级已 use(requirePlatformAuth)，CSRF 由 auto-routes 的
+// routeConfig.auth="requirePlatformAuth" 统一附加（与上面两条写操作同门）。
+platformTenantRouter.post(
+  "/:tenantId/users/:userId/reset-password",
+  asyncHandler(opsController.resetTenantUserPasswordCtrl)
+);
+
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/tenants",
   router: platformTenantRouter,

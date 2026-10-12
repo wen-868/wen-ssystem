@@ -5,6 +5,7 @@ import {
   QUOTA_EXPAND_FIELDS,
   expandTenantQuota,
   proxyLogin,
+  resetTenantUserPassword,
   type OperatorInfo,
 } from "../../services/platform/tenant-ops.service";
 
@@ -75,6 +76,33 @@ export const expandTenantQuotaCtrl = asyncHandler(async (req, res, next) => {
       days: Number(body.days),
       reason: body.reason == null ? undefined : String(body.reason),
     },
+    operatorOf(req),
+    clientIp(req)
+  );
+  res.json(ok(result));
+});
+
+/**
+ * POST /api/platform/tenants/:tenantId/users/:userId/reset-password - 代重置租户账号口令
+ * （S3-172，写操作 + 审计留痕；要求「忘记密码怎么找回」的紧急完善）
+ *
+ * 入参校验在本层挡（400 且不调 service）；「userId 是否确属该 tenantId」由 service
+ * 用 `WHERE id = ? AND tenant_id = ?` 判定（不命中 ⇒ 404，不允许跨租户重置）。
+ */
+export const resetTenantUserPasswordCtrl = asyncHandler(async (req, res, next) => {
+  const tenantId = req.params.tenantId;
+  if (!tenantId) {
+    return next(new AppError("租户 ID 不能为空", 400));
+  }
+
+  const userId = Number(req.params.userId);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return next(new AppError("账号 ID 不合法", 400));
+  }
+
+  const result = await resetTenantUserPassword(
+    String(tenantId),
+    userId,
     operatorOf(req),
     clientIp(req)
   );
