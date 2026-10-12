@@ -55,9 +55,11 @@ console.log(`【装置】真实后端 = ${BASE}（USE_MOCK_DB=true，数据面 =
 console.log(`【模式】${MODE}   日期=${TODAY}   node=${process.version}`);
 console.log("");
 
-// ─── 0. 真实登录（store_manager / admin123，mock §state.users） ───
+// ─── 0. 真实登录（store_manager / 统一演示口令，mock §state.users） ───
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
 const login = await call("POST", "/api/admin/auth/login", {
-  body: { username: "store_manager", password: "admin123" },
+  body: { username: "store_manager", password: DEMO_PASSWORD },
 });
 const token = dataOf(login)?.token;
 const csrf = dataOf(login)?.csrfToken;

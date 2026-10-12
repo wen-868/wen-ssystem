@@ -11,6 +11,9 @@ const SAAS_URL = "https://saas.onepan.cn";
 const M_URL = "https://m.onepan.cn";
 const WWW_URL = "https://www.onepan.cn";
 
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+
 const results = [];
 let passed = 0;
 let failed = 0;
@@ -131,7 +134,7 @@ console.log("\n========== 阶段 3：API 核心接口检查 ==========");
 await test("admin 登录接口正常", async () => {
   const body = await apiCall("/admin/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username: "admin", password: "admin123" })
+    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
   });
   if (!body.data?.token) throw new Error("未返回 token");
 });
@@ -139,7 +142,7 @@ await test("admin 登录接口正常", async () => {
 await test("admin 商品列表接口正常", async () => {
   const login = await apiCall("/admin/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username: "admin", password: "admin123" })
+    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
   });
   const auth = { Authorization: `Bearer ${login.data.token}` };
   const body = await apiCall("/admin/products", { headers: auth });
@@ -149,7 +152,7 @@ await test("admin 商品列表接口正常", async () => {
 await test("平台登录接口正常", async () => {
   const body = await apiCall("/platform/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username: "admin", password: "admin123" })
+    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
   });
   if (!body.data?.token) throw new Error("未返回 token");
 });

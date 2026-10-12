@@ -22,7 +22,7 @@
 - 后端：Node.js + Express + mock-db（端口 3000）
 - 前端：Vue 3 + Element Plus + Vite（端口 5173）
 - 浏览器：Chrome 最新版
-- 测试账号：admin / admin123
+- 测试账号：admin / Demo@2026（演示/测试账号；真实超管口令不在仓内）
 
 ---
 

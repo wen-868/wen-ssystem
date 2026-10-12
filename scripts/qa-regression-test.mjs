@@ -1,5 +1,8 @@
 const base = process.env.API_BASE || "http://localhost:8080/api";
 
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+
 async function request(path, options = {}) {
   const mergedHeaders = {
     "content-type": "application/json",
@@ -26,7 +29,7 @@ async function request(path, options = {}) {
 
 const login = await request("/admin/auth/login", {
   method: "POST",
-  body: JSON.stringify({ username: "admin", password: "admin123" })
+  body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
 });
 // 写操作需携带 x-csrf-token（auto-routes csrfMiddleware 契约）
 const auth = { Authorization: `Bearer ${login.token}`, "X-CSRF-Token": login.csrfToken };
@@ -217,7 +220,7 @@ await testReceivableCollection();
 // 验证商家端登录接口可用
 const storeLogin = await request("/store/auth/login", {
   method: "POST",
-  body: JSON.stringify({ username: "store_manager", password: "admin123" })
+  body: JSON.stringify({ username: "store_manager", password: DEMO_PASSWORD })
 });
 if (!storeLogin.token) throw new Error("商家端登录应返回 token");
 const storeAuth = { Authorization: `Bearer ${storeLogin.token}` };

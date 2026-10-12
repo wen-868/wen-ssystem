@@ -106,7 +106,7 @@ export const options = {
   duration: "30s",
 };
 
-const loginBody = JSON.stringify({ username: "admin", password: "admin123" });
+const loginBody = JSON.stringify({ username: "admin", password: "Demo@2026" });
 const loginParams = { headers: { "Content-Type": "application/json" } };
 
 export default function () {
@@ -134,7 +134,7 @@ export const options = {
 // 先登录获取 token (setup 只执行一次)
 export function setup() {
   const loginRes = http.post("http://localhost:8080/api/admin/auth/login",
-    JSON.stringify({ username: "admin", password: "admin123" }),
+    JSON.stringify({ username: "admin", password: "Demo@2026" }),
     { headers: { "Content-Type": "application/json" } });
   const body = JSON.parse(loginRes.body || "{}");
   return { token: body.data?.token || "" };

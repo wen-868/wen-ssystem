@@ -13,7 +13,8 @@ test("工作台登录旅程（账号+密码 → 进入系统）", async ({ page 
 
   // 填写并提交
   await page.getByPlaceholder("账号").fill("admin");
-  await page.getByPlaceholder("密码").fill("admin123");
+  // S3-175：演示/测试账号口令全系统统一为 Demo@2026（mock 库 admin 亦用同一口径）
+  await page.getByPlaceholder("密码").fill("Demo@2026");
   await page.getByRole("button", { name: "立即登录" }).click();
 
   // 登录成功：进入工作台（URL 离开登录页，导航或看板出现）

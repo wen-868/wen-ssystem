@@ -24,7 +24,8 @@ import { createHash } from "node:crypto";
 const BASE = process.env.S3_160_BASE || "http://127.0.0.1:18160";
 const SECRET = process.env.S3_160_JWT_SECRET || "s3-160-evidence-secret";
 const USERNAME = process.env.S3_160_USERNAME || "store_manager";
-const PASSWORD = process.env.S3_160_PASSWORD || "admin123";
+// S3-175：演示/测试账号口令全系统统一（S3_160_PASSWORD / DEMO_PASSWORD 均可覆盖）
+const PASSWORD = process.env.S3_160_PASSWORD || process.env.DEMO_PASSWORD || "Demo@2026";
 const ONLY = (process.env.S3_160_ONLY || "").trim();
 
 const FOUR_HOURS = 4 * 3600;

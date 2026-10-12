@@ -23,6 +23,7 @@ vi.mock("../../../shared/password", () => ({
 }));
 
 import { login } from "../../../services/store/auth.service";
+import { constants } from "../../../config/constants";
 
 describe("store/auth.service login", () => {
   beforeEach(() => {
@@ -41,7 +42,7 @@ describe("store/auth.service login", () => {
       .mockResolvedValueOnce([{ role_code: "STORE_MANAGER" }]); // roles
     mocks.getUserAccessInfo.mockReturnValueOnce({ permissions: ["store:*"], accessModes: ["CASHIER"] });
 
-    const result = await login("admin", "admin123");
+    const result = await login("admin", constants.DEMO_PASSWORD);
     expect(result.token).toBe("token123");
     expect(mocks.query).toHaveBeenCalledWith(
       expect.stringContaining("UPDATE t_sys_user SET login_fail_count = 0"),
@@ -69,7 +70,7 @@ describe("store/auth.service login", () => {
       store_id: 1, status: 1, tenant_id: "t1", login_fail_count: 5,
       locked_until: new Date(Date.now() + 600000),
     });
-    await expect(login("admin", "admin123")).rejects.toThrow("账号已锁定");
+    await expect(login("admin", constants.DEMO_PASSWORD)).rejects.toThrow("账号已锁定");
   });
 
   it("账号不存在但存在待审注册申请 → 提示审核中而非密码错误", async () => {

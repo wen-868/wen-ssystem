@@ -109,9 +109,11 @@ console.log("");
 
 const LEGACY_SETTLE_PATH = "/store/shift/settle"; // 旧路径（S3-148 之前 completeShift 打的端点），仅 revert 模式造数据用
 
-// ─── 段0：真实登录（mock §state.users: store_manager / admin123） ───
+// ─── 段0：真实登录（mock §state.users: store_manager / 统一演示口令） ───
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
 const login = await call("POST", "/admin/auth/login", {
-  body: { username: "store_manager", password: "admin123" },
+  body: { username: "store_manager", password: DEMO_PASSWORD },
 });
 const token = dataOf(login)?.token;
 const csrf = dataOf(login)?.csrfToken;

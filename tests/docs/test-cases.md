@@ -22,7 +22,7 @@
 
 | ID | 用例名称 | 步骤 | 预期 | 优先级 |
 |---|---|---|---|---|
-| TC-AUTH-001 | 管理员正确登录 | 1. POST `/api/admin/auth/login` body `{"username":"admin","password":"admin123"} | HTTP 200，返回 `code=0`，`data.token` 非空 | P0 |
+| TC-AUTH-001 | 管理员正确登录 | 1. POST `/api/admin/auth/login` body `{"username":"admin","password":"Demo@2026"}（演示/测试账号；真实超管口令不在仓内） | HTTP 200，返回 `code=0`，`data.token` 非空 | P0 |
 | TC-AUTH-002 | 错误密码登录 | 1. POST `/api/admin/auth/login` body `{"username":"admin","password":"wrongpass"}` | HTTP 401，返回 `code=401`，`message` 包含"账号或密码错误" | P0 |
 | TC-AUTH-003 | 空密码登录 | 1. POST `/api/admin/auth/login` body `{"username":"admin","password":""}` | HTTP 400/401，返回错误 | P1 |
 | TC-AUTH-004 | 未提供 body 的请求 | 1. POST `/api/admin/auth/login` 无 body | HTTP 400 或 Zod validation 错误 | P2 |

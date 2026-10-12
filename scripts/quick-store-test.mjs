@@ -1,5 +1,8 @@
 const base = process.env.API_BASE || "http://localhost:8080/api";
 
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+
 async function request(path, options = {}) {
   const res = await fetch(`${base}${path}`, {
     ...options,
@@ -18,7 +21,7 @@ async function request(path, options = {}) {
 
 const login = await request("/admin/auth/login", {
   method: "POST",
-  body: JSON.stringify({ username: "admin", password: "admin123" })
+  body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
 });
 const auth = { Authorization: `Bearer ${login.token}` };
 

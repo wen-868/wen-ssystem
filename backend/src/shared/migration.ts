@@ -6,6 +6,7 @@
  */
 import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
+import { randomBytes } from "crypto";
 import mysql from "mysql2/promise";
 import { env } from "./env";
 import logger from "./logger";
@@ -698,10 +699,13 @@ export async function runMigrations(): Promise<void> {
       const users = shaUsers as Record<string, unknown>[];
       if (users.length > 0) {
         logger.info(`[migration] 修复 ${users.length} 个 SHA256 密码为 bcrypt...`);
-        const hash = bcrypt.hashSync("admin123", 10);
+        // S3-175（P0 安全）：旧 SHA256 口令**禁止**静默重置为**公开的固定弱口令**（迁移原先即如此），
+        // 改为每个账号**各自随机**；明文口令不落日志，需人工设定。
         for (const user of users) {
+          const hash = bcrypt.hashSync(randomBytes(24).toString("hex"), 10);
           await conn.query("UPDATE t_sys_user SET password_hash = ? WHERE id = ?", [hash, user.id]);
         }
+        logger.info(`[migration] 已将 ${users.length} 个账号口令重置为随机值，需人工设定（明文不入日志）`);
       }
     } catch (e: unknown) {
       logger.error("[migration] 密码修复失败:", (e as any).message);
@@ -1135,17 +1139,24 @@ export async function runMigrations(): Promise<void> {
     try {
       const bcrypt = await import("bcryptjs");
 
-      // 7.1 平台管理员 admin / Admin@2026（写入 t_sys_user）
+      // S3-175（P0 安全）：默认管理员口令**不再写死公开值**。
+      // 口径：优先读 env `SEED_ADMIN_PASSWORD`；未配置则**逐账号随机**生成。
+      // 明文口令一律不写进日志、不写进代码默认值。
+      const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD || "";
+
+      // 7.1 平台管理员 admin（口令：SEED_ADMIN_PASSWORD 优先，未配置则随机；写入 t_sys_user）
       const [adminRows] = await conn.query(
         "SELECT id FROM t_sys_user WHERE username = 'admin' AND tenant_id = 'default'"
       ) as unknown as [Record<string, unknown>[]];
       if ((adminRows as unknown as any[]).length === 0) {
-        const adminHash = bcrypt.hashSync("Admin@2026", 10);
+        const adminHash = bcrypt.hashSync(seedAdminPassword || randomBytes(24).toString("hex"), 10);
         await conn.query(`
           INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
           VALUES ('admin', ?, '系统管理员', 1, 'default', NOW(), NOW())
         `, [adminHash]);
-        logger.info("[migration] 已创建平台管理员 admin / Admin@2026");
+        logger.info(seedAdminPassword
+          ? "[migration] 已创建平台管理员 admin（口令取自 SEED_ADMIN_PASSWORD）"
+          : "[migration] 已创建平台管理员 admin：未配置 SEED_ADMIN_PASSWORD ⇒ 已生成随机口令，请立即人工设定（明文不入日志）");
 
         // 给 admin 分配超级管理员角色
         const [adminUser] = await conn.query(
@@ -1172,17 +1183,19 @@ export async function runMigrations(): Promise<void> {
         }
       }
 
-      // 7.2 租户管理员 tenant_admin / Admin@2026
+      // 7.2 租户管理员 tenant_admin（口令：SEED_ADMIN_PASSWORD 优先，未配置则随机）
       const [tenantRows] = await conn.query(
         "SELECT id FROM t_sys_user WHERE username = 'tenant_admin' AND tenant_id = 'default'"
       ) as unknown as [Record<string, unknown>[]];
       if ((tenantRows as unknown as any[]).length === 0) {
-        const tenantHash = bcrypt.hashSync("Admin@2026", 10);
+        const tenantHash = bcrypt.hashSync(seedAdminPassword || randomBytes(24).toString("hex"), 10);
         await conn.query(`
           INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
           VALUES ('tenant_admin', ?, '租户管理员', 1, 'default', NOW(), NOW())
         `, [tenantHash]);
-        logger.info("[migration] 已创建租户管理员 tenant_admin / Admin@2026");
+        logger.info(seedAdminPassword
+          ? "[migration] 已创建租户管理员 tenant_admin（口令取自 SEED_ADMIN_PASSWORD）"
+          : "[migration] 已创建租户管理员 tenant_admin：未配置 SEED_ADMIN_PASSWORD ⇒ 已生成随机口令，请立即人工设定（明文不入日志）");
 
         // 给 tenant_admin 分配管理员角色
         const [tenantUser] = await conn.query(

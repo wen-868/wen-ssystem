@@ -9,6 +9,7 @@
 import mysql from "mysql2/promise";
 import logger from "./logger";
 import { hashPasswordSync } from "./password";
+import { constants } from "../config/constants";
 
 const TENANT_ID = "default";
 
@@ -76,7 +77,8 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
 
     // ============================================================
     // 1.1 确保演示账号存在（幂等：已存在则跳过，不覆盖密码）
-    // 演示账号：store_manager / admin123（店长，绑定总店，可体验全部业务数据）
+    // 演示/测试账号：store_manager（店长）/ store_operator（店员），绑定总店，可体验全部业务数据
+    // S3-175：口令全系统统一为 constants.DEMO_PASSWORD（已生效口径 Demo@2026），不再各自写死。
     // ============================================================
     const demoAccounts = [
         { username: "store_manager", realName: "默认店长", mobile: "13800000001", storeId },
@@ -99,7 +101,7 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
         const [insertResult] = await conn.query(
             `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, store_id, status, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())`,
-            [TENANT_ID, acc.username, hashPasswordSync("admin123"), acc.realName, acc.mobile, acc.storeId]
+            [TENANT_ID, acc.username, hashPasswordSync(constants.DEMO_PASSWORD), acc.realName, acc.mobile, acc.storeId]
         );
         const userId = (insertResult as { insertId?: number }).insertId;
         if (userId) {
@@ -109,7 +111,7 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
                  ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)`,
                 [userId, TENANT_ID, demoRoleCodes[acc.username]]
             );
-            logger.info(`[seed] 演示账号 ${acc.username} 创建成功（密码 admin123）`);
+            logger.info(`[seed] 演示账号 ${acc.username} 创建成功（口令取自统一演示口径 DEMO_PASSWORD，不打印明文）`);
         }
     }
 
