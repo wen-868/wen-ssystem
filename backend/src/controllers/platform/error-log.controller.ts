@@ -1,6 +1,36 @@
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
+import logger from "../../shared/logger";
 import * as service from "../../services/admin/error-log.service";
+
+/**
+ * S3-179 ②：平台端前端错误上报（同端端点）
+ *
+ * 背景：saas-admin 原先打 `/api/admin/error-report`（`requireAuthWithTenant` = 商家端鉴权），
+ * 平台总后台只有平台令牌 ⇒ **恒 401 且被前端静默吞掉**，线上排障少一只眼睛。
+ *
+ * 最小实现（本卡红线：不新增表）：落服务端日志即可；字段与商家端端点对齐
+ * （error_type / message / stack / url / source / timestamp），便于两端口径一致地排障。
+ */
+export const reportPlatformFrontendError = asyncHandler(async (req, res) => {
+  const { error_type, message, stack, url, method, status_code, source, timestamp } = req.body ?? {};
+  logger.error(
+    "[platform-error-report] 平台端前端错误上报",
+    {
+      reportSource: "saas-admin",
+      errorType: error_type || "frontend",
+      message: message || "前端未知错误",
+      requestUrl: url || null,
+      requestMethod: method || null,
+      statusCode: status_code ?? null,
+      clientSource: source || null,
+      clientTimestamp: timestamp || null,
+      platformAdminId: req.user?.id ?? null,
+      stack: typeof stack === "string" ? stack.slice(0, 2000) : null,
+    }
+  );
+  res.json(ok(null));
+});
 
 /**
  * R97-01: 平台版错误日志列表（全租户范围）

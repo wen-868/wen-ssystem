@@ -3,6 +3,7 @@ import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 // R101-S2-01 裁定 2：错误文案集中一处，与旧客户端 src/api.ts 共用同一份
 import { isBizFailure, resolveBizErrorText, resolveHttpErrorText } from './http-error'
+import { reportPlatformError } from './error-report'
 
 const request = axios.create({
   baseURL: '/api',
@@ -37,15 +38,8 @@ function reportHttpError(payload: {
   // 纯时间节流：1秒内最多上报1次，不依赖 fetch 完成状态
   if (now - lastReportTime < 1000) return
   lastReportTime = now
-  fetch('/api/admin/error-report', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...payload,
-      source: 'saas-admin',
-      timestamp: new Date().toISOString(),
-    }),
-  }).catch(() => { })
+  // S3-179 ②：打平台端自己的 /api/platform/error-report（原 /api/admin/error-report 是商家端鉴权 ⇒ 恒 401 被静默丢弃）
+  void reportPlatformError(payload)
 }
 
 request.interceptors.response.use(

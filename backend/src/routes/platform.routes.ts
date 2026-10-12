@@ -1,7 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
-import { getPlatformOverview, listPlatformTenants } from "../controllers/admin/platform.controller";
+import { getPlatformOverview } from "../controllers/admin/platform.controller";
 import {
   listAdmins,
   createAdmin,
@@ -15,7 +15,9 @@ export const platformRouter = Router();
 
 // ========== 平台总览 ==========
 platformRouter.get("/overview", asyncHandler(getPlatformOverview));
-platformRouter.get("/tenants", asyncHandler(listPlatformTenants));
+// GET /api/platform/tenants：S3-179 删除死代码（与上面假公告同一性质）。
+// 该完整路径由 platform-tenant.routes.ts（prefix "/api/platform/tenants"）唯一提供，
+// 该文件按文件名排序先注册（"platform-tenant…" < "platform…"）⇒ 这里原来的 get("/tenants") 永不执行。
 
 // ========== 平台管理员（C6-1A 挂载，R101-C6-0 §三.1 #41/#45/#51/#53/#64） ==========
 // 说明：controller/services/platform/admin-account.service.ts 的实现早已存在，
