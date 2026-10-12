@@ -391,10 +391,20 @@ function tenantToken(uid: number) {
   );
 }
 
+/**
+ * 发起请求。
+ *
+ * S3-177 同步（契约变化，不是放宽断言）：`payment`/`aftersale`/`miniapp` 三个 `auth:"none"` 文件的写端点
+ * 补挂了**端点级** `csrfMiddleware`（顺序 `requireAuthWithTenant → csrfMiddleware → requirePermission`），
+ * 与挂载层契约一致——csrf 先于路由匹配（见本文件 :368 注释、踩坑[34]）。
+ * 因此 `rawMount=true`（模拟 `auth:"none"` 挂载）的写请求**现在也要**携带有效 `x-csrf-token`：
+ * 该 token 由端点级 csrfMiddleware 按 `req.user.id` 校验，不携带会先被拦成「CSRF token 无效或缺失」，
+ * 从而掩盖真实的权限判定结果（本文件 a) 403 文案 / b) 200 用例即因此变红）。
+ */
 function call(app: express.Express, method: Method, url: string, uid?: number, rawMount?: boolean) {
   const req = request(app)[method](url);
   if (uid) {
-    if (rawMount) req.set("Authorization", `Bearer ${tenantToken(uid)}`);
+    if (rawMount) req.set("Authorization", `Bearer ${tenantToken(uid)}`).set("x-csrf-token", generateCsrfToken(uid));
     else req.set("x-test-user", String(uid)).set("x-csrf-token", generateCsrfToken(uid));
   }
   return req.send({});
