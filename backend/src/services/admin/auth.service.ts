@@ -63,6 +63,18 @@ const LOCK_DURATION_MINUTES = 15;
 export const DEMO_USERNAME = "demo";
 
 /**
+ * 演示账号归属租户（唯一来源）。
+ *
+ * S3-174-F1（P0 安全）：演示口令 Demo@2026 是**公开值**（写在前端打包产物与仓内 .env.example），
+ * 而演示账号原先落在 `default` —— 也就是**真实业务租户**（生产 t_sale_bill 在 default 有 524 行）。
+ * 任何人用公开口令登录即可持 default 租户的 SUPER_ADMIN 读真实经营数据。
+ * 故演示账号必须独立落在演示租户 `demo` 下：归属由迁移
+ * docs/migrations/197_演示租户隔离.sql 搬（账号行 + 该账号自己的角色绑定 + demo 菜单），
+ * 本常量保证登录路径的**自愈口径**与迁移一致，否则演示账号一旦被删号重建，又会被放回真实租户。
+ */
+export const DEMO_TENANT = "demo";
+
+/**
  * 规范化角色 permissions 字段为字符串数组
  *
  * 兼容 mysql2 对 JSON 类型的多种返回形态（R54-15 引入 getUserPermissions 后的生产 500 修复）：
@@ -341,8 +353,6 @@ export async function changePassword(userId: number, oldPassword: string, newPas
  * 演示账号仅用于产品演示，不暴露真实密码。
  */
 export async function demoLogin() {
-  const DEMO_TENANT = "default";
-
   let account = await queryOne<SysUserLoginRow>(
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
     [DEMO_USERNAME]
@@ -375,14 +385,36 @@ export async function demoLogin() {
     account.status = 1;
   }
 
-  // 确保绑定 SUPER_ADMIN 角色（幂等）
+  // S3-174-F1：归属自愈 —— 演示账号必须落在演示租户 DEMO_TENANT，否则令牌里的 tenantId 与实际归属
+  // 不一致（历史数据在 default；迁移 197 的写语句也可能被 MIG-4 写闸门跳过，见该迁移文件「五」）。
+  // 口径与迁移 197 第 2/3 条一致：改账号归属 + 把**该账号自己的**绑定行原地改租户（不做"先插后删"，
+  // 唯一键 uk_sys_user_role (user_id, role_id) 不含 tenant_id，原地 UPDATE 才不会撞键），
+  // 且**不删除**其它租户里的历史绑定（破坏性写入只归迁移 197 管，登录路径不做删除）。
+  if (account.tenant_id !== DEMO_TENANT) {
+    await query("UPDATE t_sys_user SET tenant_id = ?, updated_at = NOW() WHERE id = ?", [DEMO_TENANT, account.id]);
+    await query("UPDATE t_sys_user_role SET tenant_id = ? WHERE user_id = ? AND tenant_id <> ?", [
+      DEMO_TENANT,
+      account.id,
+      DEMO_TENANT,
+    ]);
+    account.tenant_id = DEMO_TENANT;
+  }
+
+  // 确保绑定 SUPER_ADMIN 角色（幂等：存在则跳过、缺失才补，不用 INSERT IGNORE 掩盖冲突）
+  // S3-174-F2：角色行是**租户内实体**（t_sys_role 唯一键 uk_role_code_tenant），此查询必须限定
+  // DEMO_TENANT —— 不限租户时 LIMIT 1 会命中 default 租户的 SUPER_ADMIN 行，登录一次就把
+  // default 的角色 id 绑进 demo（该跨租户绑定过不了 getUserPermissions 的 r.tenant_id = ur.tenant_id，
+  // 还会让随后重跑迁移 197 的"按 role_code 重指向"撞上 uk_sys_user_role (user_id, role_id) 唯一键）。
   const superRole = await queryOne<RoleRow>(
-    "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' LIMIT 1"
+    "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = ? LIMIT 1",
+    [DEMO_TENANT]
   );
   if (superRole) {
     await query(
-      "INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
-      [account.id, superRole.id, DEMO_TENANT]
+      `INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
+       SELECT ?, ?, ? FROM (SELECT 1 AS whether_to_bind) AS bind_probe
+       WHERE NOT EXISTS (SELECT 1 FROM t_sys_user_role WHERE user_id = ? AND role_id = ?)`,
+      [account.id, superRole.id, DEMO_TENANT, account.id, superRole.id]
     );
   }
 

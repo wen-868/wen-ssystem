@@ -336,7 +336,8 @@ describe("auth.service", () => {
       expect(res.token).toBe("demo-token");
       expect(res.demo).toBe(true);
       expect(res.user.id).toBe(3);
-      expect(res.user.tenantId).toBe("default");
+      // S3-174-F1：演示账号必须落在演示租户 demo（不得留在真实业务租户 default）
+      expect(res.user.tenantId).toBe("demo");
       expect(res.user.roles).toEqual(["SUPER_ADMIN"]);
       expect(typeof res.csrfToken).toBe("string");
       // 自动恢复：被禁用 → 启用
@@ -355,8 +356,15 @@ describe("auth.service", () => {
       );
       expect(createdAccount).toBe(false);
       expect(mocks.query).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT IGNORE INTO t_sys_user_role"),
-        [3, 7, "default"]
+        expect.stringContaining("INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)"),
+        [3, 7, "demo", 3, 7]
+      );
+      // S3-174-F2：超管角色查询必须限定 demo 租户 —— 不限租户（LIMIT 1 命中 default 的角色行）
+      // 登录一次就把 default 的角色 id 绑进 demo，且会让随后重跑 197 的"按 role_code 重指向"
+      // 撞上 uk_sys_user_role (user_id, role_id) 唯一键
+      expect(mocks.queryOne).toHaveBeenCalledWith(
+        expect.stringContaining("role_code = 'SUPER_ADMIN' AND tenant_id = ?"),
+        ["demo"]
       );
     });
 
@@ -385,7 +393,7 @@ describe("auth.service", () => {
       expect(mocks.hashPassword).toHaveBeenCalledTimes(1);
       expect(mocks.query).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO t_sys_user (username, password_hash"),
-        ["demo", "hashed-random", "演示账号", "default"]
+        ["demo", "hashed-random", "演示账号", "demo"]
       );
     });
   });

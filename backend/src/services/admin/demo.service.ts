@@ -7,18 +7,27 @@ import type { ResultSetHeader } from "mysql2";
  * 演示数据与系统初始化服务
  * - seedDemoData：幂等填充演示业务数据（商品/客户/供应商/销售单/采购单/库存）
  * - resetSystemData：清空业务数据，保留系统账号、角色、菜单与平台配置
+ *
+ * S3-174：演示数据的写入租户一律来自**调用者租户**（controller 传 req.tenantId）。
+ * 本文件原有一个 `DEMO_TENANT = "default"` 常量（死代码，全文件无引用），
+ * 它会让维护者误以为"演示数据固定写 default 租户"，已删除。
  */
-
-const DEMO_TENANT = "default";
 
 function demoNo(prefix: string) {
   return `${prefix}${Date.now().toString().slice(-9)}${Math.floor(Math.random() * 900 + 100)}`;
 }
 
-/** 取演示操作人：优先 admin，其次任意启用用户 */
+/**
+ * 取演示操作人：优先**本租户**的 admin，其次本租户任意启用用户。
+ *
+ * S3-174：原实现查 admin 时**不带租户条件**，会把别租户（生产为 default）的管理员 id 写进
+ * 演示租户的业务数据（operator_id 跨租户引用）。演示账号迁到 demo 租户后，演示种子必须
+ * 只在本租户内取操作人。
+ */
 async function resolveOperatorId(tenantId: string): Promise<number> {
   const admin = await queryOne<{ id: number }>(
-    "SELECT id FROM t_sys_user WHERE username = 'admin' AND status = 1 LIMIT 1"
+    "SELECT id FROM t_sys_user WHERE username = 'admin' AND status = 1 AND tenant_id = ? LIMIT 1",
+    [tenantId]
   );
   if (admin) return admin.id;
   const anyUser = await queryOne<{ id: number }>(

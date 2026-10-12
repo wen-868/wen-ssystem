@@ -1,0 +1,24 @@
+=== S3-174-F1 验证装置 · mode=state · DB root@127.0.0.1:3410/s3174_prod ===
+
+── state：迁移后状态正向断言（不重建夹具） ──
+  t_tenant id='demo'      : [{"id":"demo","company_name":"演示租户","contact_person":"演示联系人","contact_mobile":"13800000000","tenant_code":"DEMO","status":1}]
+  t_sys_user username=demo: [{"id":3,"username":"demo","tenant_id":"demo"}]
+  角色绑定                : [{"tenant_id":"demo","role_code":"STORE_OPERATOR"},{"tenant_id":"demo","role_code":"SUPER_ADMIN"}]
+  菜单 demo / default     : 32 / 32
+  t_sale_bill 按租户      : [{"tenant_id":"default","c":524}]
+PASS  当前库：demo 租户存在（company_name=演示租户 / tenant_code=DEMO）
+PASS  当前库：demo 租户 company_name 已写值（NOT NULL 无默认值列全部命中）
+PASS  当前库：demo 租户 contact_person 已写值（NOT NULL 无默认值列全部命中）
+PASS  当前库：demo 租户 contact_mobile 已写值（NOT NULL 无默认值列全部命中）
+PASS  当前库：demo 租户 tenant_code 已写值（NOT NULL 无默认值列全部命中）
+PASS  当前库：演示账号归属 = demo（且不在其它租户）
+PASS  当前库：demo 租户内角色绑定 >= 1（实际 2）
+PASS  当前库：其它租户无残留绑定
+PASS  当前库：demo 租户下仍是 SUPER_ADMIN
+PASS  当前库：demo 租户菜单数 > 0（实际 32）
+PASS  当前库：demo 菜单数与 default 一致（32 = 32）
+PASS  当前库：default 租户业务数据零损（t_sale_bill = 524，期望 524）
+  演示登录 roles = ["SUPER_ADMIN","STORE_OPERATOR"]
+PASS  演示登录 roles 非空且含 SUPER_ADMIN
+
+EXIT=0 state 全部断言通过

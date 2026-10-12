@@ -1,0 +1,28 @@
+--- 第 1 遍：每条写语句 affectedRows / changedRows ---
+    1 /   0  INSERT INTO t_tenant (id, name, company_name, 
+    2 /   0  INSERT INTO t_sys_role (role_code, role_name, 
+    1 /   1  UPDATE t_sys_user SET tenant_id = 'demo', upda
+    2 /   2  UPDATE t_sys_user_role ur JOIN t_sys_user u ON
+    0 /   0  INSERT INTO t_sys_user_role (user_id, role_id,
+   11 /   0  INSERT INTO t_sys_menu (parent_id, menu_code, 
+   78 /   0  INSERT INTO t_sys_menu (parent_id, menu_code, 
+第 1 遍后计数：{"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+--- 第 2 遍：每条写语句 affectedRows / changedRows ---
+    0 /   0  INSERT INTO t_tenant (id, name, company_name, 
+    0 /   0  INSERT INTO t_sys_role (role_code, role_name, 
+    0 /   0  UPDATE t_sys_user SET tenant_id = 'demo', upda
+    0 /   0  UPDATE t_sys_user_role ur JOIN t_sys_user u ON
+    0 /   0  INSERT INTO t_sys_user_role (user_id, role_id,
+    0 /   0  INSERT INTO t_sys_menu (parent_id, menu_code, 
+    0 /   0  INSERT INTO t_sys_menu (parent_id, menu_code, 
+第 2 遍后计数：{"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+PASS  第二遍每条写语句 changedRows 全 0（零行变更）  <- [0,0,0,0,0,0,0]
+PASS  第 1 遍真实写入（不是恒 0 的空跑）：角色行克隆 2 行 / 绑定重指向 2 行 / 兜底补绑定 0 行  <- ["1/0","2/0","1/1","2/2","0/0","11/0","78/0"]
+PASS  demo 角色行 = default 角色行（2 = 2）  <- {"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+PASS  绑定无残留：演示账号绑定全在 demo（bind_out = 0）  <- {"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+--- 幂等两遍后：演示账号绑定行明细 ---
+  ur.id=2650 role_id=8156 role_code=STORE_OPERATOR 绑定租户=demo 角色行租户=demo
+  ur.id=2651 role_id=8155 role_code=SUPER_ADMIN 绑定租户=demo 角色行租户=demo
+  跨租户绑定（绑定租户 ≠ 角色行租户）条数 = 0
+
+小结（本装置自身断言）：4 passed / 0 failed
