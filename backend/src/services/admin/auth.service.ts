@@ -12,6 +12,7 @@ import { verifyPassword, validatePassword, hashPassword } from "../../shared/pas
 import { AppError } from "../../shared/app-error";
 import { generateCsrfToken } from "../../middleware/csrf";
 import { env } from "../../config/env";
+import { constants } from "../../config/constants";
 import { signMfaToken } from "../../middleware/mfa-token";
 
 // ==================== 类型定义 ====================
@@ -59,8 +60,12 @@ const LOCK_DURATION_MINUTES = 15;
  *
  * S3-160-F1b：`demoLogin()` 与 `issueLoginResult()` 的「记住我」长效判定共用此常量，
  * 全文件不得再出现第二处演示账号用户名硬编码字面量。
+ *
+ * S3-172：值本身移入 `config/constants.ts`（无依赖的业务常量文件），
+ * 好让 `middleware/login-fail-limiter.ts` 能在**不引入 services 层**的前提下共用同一口径；
+ * 本常量仍是本文件与外部的对外入口（引用路径不变）。
  */
-export const DEMO_USERNAME = "demo";
+export const DEMO_USERNAME = constants.DEMO_USERNAME;
 
 /**
  * 演示账号归属租户（唯一来源）。
@@ -149,12 +154,24 @@ export async function login(username: string, password: string, rememberMe = fal
     throw new AppError("账号已禁用", 400);
   }
 
-  if (account.locked_until && new Date(account.locked_until) > new Date()) {
+  // S3-172：演示账号对「账号锁定」免疫。
+  // 理由：演示口令是**公开值**（登录页一键演示用），锁它只会毁演示、没有任何安全收益；
+  // 真实的滥用防护在限流层（IP 维度，见 middleware/login-fail-limiter.ts）。
+  // 只跳过「锁定阻断」与「失败累加」两处，其余分支（禁用判定、成功清零、MFA、签发）一字不改。
+  const isDemoAccount = account.username === DEMO_USERNAME;
+
+  if (!isDemoAccount && account.locked_until && new Date(account.locked_until) > new Date()) {
     const remainingMinutes = Math.ceil((new Date(account.locked_until).getTime() - Date.now()) / 60000);
     throw new AppError(`账号已锁定，请${remainingMinutes}分钟后重试`, 400);
   }
 
   if (!(await verifyPassword(password, account.password_hash))) {
+    // S3-172：演示账号口令错误时**不累加** login_fail_count、**不写** locked_until
+    // （其它账号一字不改：仍是 5 次锁 15 分钟 + 剩余次数提示）。
+    if (isDemoAccount) {
+      throw new AppError("账号或密码错误", 400);
+    }
+
     const newFailCount = (account.login_fail_count || 0) + 1;
     let lockedUntil = null;
 

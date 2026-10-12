@@ -2,8 +2,10 @@ import jwt from "jsonwebtoken";
 import { query, queryOne } from "../../shared/db";
 import { env } from "../../shared/env";
 import { AppError } from "../../shared/app-error";
+import { hashPassword } from "../../shared/password";
 import { MERCHANT_JWT_AUDIENCE, MERCHANT_JWT_ISSUER } from "../../middleware/auth";
 import { insertPlatformAuditLog } from "../admin/platform-audit-log.service";
+import { generateInitialPassword } from "./admin-account.service";
 
 /**
  * C1-2 A4 / A5：租户写操作（代登录、临时扩容）
@@ -329,6 +331,115 @@ export async function expandTenantQuota(
     days,
     expireAt: record.expireAt,
     records,
+    auditLogId,
+  };
+}
+
+// ============ A6：代重置租户账号口令（S3-172） ============
+
+/**
+ * 业主口径：「忘记密码怎么找回？这些都要紧急完善」。
+ *
+ * 现状：平台侧只有 `POST /api/platform/admins/:id/reset-password`（重置**平台**管理员），
+ * 租户超管忘了口令只能运维上服务器改库（见派单卡 §〇）。本函数补上「平台超管代重置
+ * **指定租户**账号口令」这条路径，零 DDL（`UPDATE t_sys_user.password_hash`）。
+ *
+ * 硬性口径：
+ * 1. **跨租户必须拒**：账号查询与 UPDATE 的 WHERE 都同时带 `id` + `tenant_id`，
+ *    光有 `userId` 不足以命中（防「拿 B 租户的 userId 改 A 租户路径」）。
+ * 2. **一次性口令**：与平台管理员重置同源（`generateInitialPassword`），
+ *    明文只在响应体出现一次，不落库、不进审计明细（审计里只记账号与操作人）。
+ * 3. **不得假成功**（S3-65 教训）：UPDATE 必须校验受影响行数，0 行即报错。
+ * 4. 顺带清空该账号的锁定状态（`login_fail_count = 0` / `locked_until = NULL`）：
+ *    忘记口令的账号往往已被锁，「重置了却仍登不上」等于假修复。
+ *    **只对本次被点名的这一个账号生效**，不改任何登录/锁定/限流的既有判定。
+ */
+export interface TenantUserResetResult {
+  tenantId: string;
+  tenantCode: string;
+  userId: number;
+  username: string;
+  realName: string | null;
+  initialPassword: string;
+  passwordShownOnce: true;
+  auditLogId: number;
+}
+
+interface TenantUserRow {
+  id: number;
+  username: string;
+  realName: string | null;
+}
+
+/** UPDATE 受影响行数：mock 模式返回 `[header]`，生产 mysql2 返回 ResultSetHeader 对象，两种形态都要认 */
+function affectedRowsOf(result: unknown): number {
+  const row = Array.isArray(result) ? result[0] : result;
+  return Number((row as { affectedRows?: unknown } | null | undefined)?.affectedRows ?? 0);
+}
+
+export async function resetTenantUserPassword(
+  tenantId: string,
+  userId: number,
+  operator: OperatorInfo,
+  ip: string | null
+): Promise<TenantUserResetResult> {
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new AppError("账号 ID 不合法", 400);
+  }
+
+  const tenant = await requireTenant(tenantId);
+
+  // 跨租户防御：id 与 tenant_id 必须同时命中
+  const user = await queryOne<TenantUserRow>(
+    `SELECT id, username, real_name AS realName FROM t_sys_user
+     WHERE id = ? AND tenant_id = ? LIMIT 1`,
+    [userId, tenantId]
+  );
+  if (!user) {
+    throw new AppError("该租户下不存在该账号", 404);
+  }
+
+  const initialPassword = generateInitialPassword();
+  const passwordHash = await hashPassword(initialPassword);
+
+  const updateResult = await query(
+    `UPDATE t_sys_user
+        SET password_hash = ?, login_fail_count = 0, locked_until = NULL, updated_at = NOW()
+      WHERE id = ? AND tenant_id = ?`,
+    [passwordHash, userId, tenantId]
+  );
+  if (affectedRowsOf(updateResult) === 0) {
+    throw new AppError("口令重置失败：未更新任何记录（账号不存在或租户不匹配）", 500);
+  }
+
+  const auditLogId = await insertPlatformAuditLog({
+    adminId: operator.id,
+    adminName: operator.name,
+    module: "tenant",
+    auditType: "RESET_TENANT_USER_PASSWORD",
+    action: "RESET_TENANT_USER_PASSWORD",
+    targetType: "tenant_user",
+    targetId: user.id,
+    description: `代重置租户「${tenant.tenantName || tenant.id}」账号 ${user.username} 的口令（新口令一次性展示）`,
+    // 审计明细**不含口令**（明文只在响应体出现一次）
+    detail: {
+      tenantId: tenant.id,
+      tenantCode: tenant.tenantCode,
+      userId: user.id,
+      username: user.username,
+      chargeMethod: "initial_password_once",
+    },
+    ip,
+  });
+
+  return {
+    tenantId: String(tenant.id),
+    tenantCode: tenant.tenantCode ?? "",
+    userId: user.id,
+    username: user.username,
+    realName: user.realName,
+    initialPassword,
+    passwordShownOnce: true,
     auditLogId,
   };
 }

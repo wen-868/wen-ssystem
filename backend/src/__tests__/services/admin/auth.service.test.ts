@@ -39,7 +39,7 @@ vi.mock("../../../shared/password", () => ({
   validatePassword: mocks.validatePassword,
 }));
 
-import { login, demoLogin, getMe, getSettings, updateSettings, changePassword } from "../../../services/admin/auth.service";
+import { login, demoLogin, getMe, getSettings, updateSettings, changePassword, DEMO_USERNAME } from "../../../services/admin/auth.service";
 
 describe("auth.service", () => {
   beforeEach(() => vi.resetAllMocks());
@@ -309,6 +309,99 @@ describe("auth.service", () => {
       mocks.queryOneWithTenant.mockResolvedValue(null);
       await expect(changePassword(1, "old", "new", "t2")).rejects.toThrow("用户不存在");
       expect(mocks.queryWithTenant).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── S3-172：演示账号对「账号锁定」免疫（口令错不计数、不写 locked_until），其它账号一字不改 ──
+  describe("login - 演示账号锁定免疫（S3-172）", () => {
+    /** login() 未启用 MFA 时返回完整登录结果；这里收窄 union，便于断言 token */
+    function tokenResult(res: Awaited<ReturnType<typeof login>>) {
+      if (!("token" in res)) throw new Error("期望登录返回 token，实际落到 MFA 挑战分支");
+      return res;
+    }
+
+    /** 演示账号：与真实账号同在 default 租户（生产事实），且已被锁定 10 分钟 */
+    const lockedDemo = {
+      id: 3,
+      username: DEMO_USERNAME,
+      password_hash: "h",
+      real_name: "演示账号",
+      store_id: null,
+      status: 1,
+      tenant_id: "default",
+      login_fail_count: 5,
+      locked_until: new Date(Date.now() + 600_000),
+    };
+
+    it("① locked_until 在未来仍签发 token（跳过锁定阻断），并按成功路径清空锁定状态", async () => {
+      mocks.queryOne.mockResolvedValue(lockedDemo);
+      mocks.verifyPassword.mockResolvedValue(true);
+      mocks.query.mockResolvedValue([]);
+      mocks.getUserAccessInfo.mockReturnValue({ defaultMode: "ADMIN" });
+      mocks.signToken.mockReturnValue("demo-token");
+
+      const res = tokenResult(await login(DEMO_USERNAME, "Demo@2026"));
+
+      expect(res.token).toBe("demo-token");
+      // 成功路径把锁定状态清零（演示账号被锁过也不影响下次登录）
+      expect(mocks.query).toHaveBeenCalledWith(
+        expect.stringContaining("login_fail_count = 0, locked_until = NULL"),
+        [3]
+      );
+    });
+
+    it("① 口令连错 10 次：一次都不写库（login_fail_count 仍 0、locked_until 仍 NULL）", async () => {
+      for (let i = 0; i < 10; i++) {
+        mocks.queryOne.mockResolvedValue({ ...lockedDemo, login_fail_count: 0, locked_until: null });
+        mocks.verifyPassword.mockResolvedValue(false);
+
+        await expect(login(DEMO_USERNAME, "wrong")).rejects.toMatchObject({
+          message: "账号或密码错误",
+          statusCode: 400,
+        });
+      }
+      // 关键：演示账号的口令错误分支不得触碰 DB（既不累加计数、也不写 locked_until）
+      expect(mocks.query).not.toHaveBeenCalled();
+    });
+
+    it("⑥ 对照（豁免是定向的）：非演示账号锁定期间照旧被拒", async () => {
+      mocks.queryOne.mockResolvedValue({
+        id: 2,
+        username: "store_manager",
+        password_hash: "h",
+        real_name: "门店经理",
+        store_id: 1,
+        status: 1,
+        tenant_id: "default",
+        login_fail_count: 5,
+        locked_until: new Date(Date.now() + 600_000),
+      });
+
+      await expect(login("store_manager", "admin123")).rejects.toThrow("账号已锁定");
+      expect(mocks.query).not.toHaveBeenCalled();
+    });
+
+    it("⑥ 对照：非演示账号第 5 次失败仍照旧累加计数并写 locked_until", async () => {
+      mocks.queryOne.mockResolvedValue({
+        id: 2,
+        username: "store_manager",
+        password_hash: "h",
+        real_name: "门店经理",
+        store_id: 1,
+        status: 1,
+        tenant_id: "default",
+        login_fail_count: 4,
+        locked_until: null,
+      });
+      mocks.verifyPassword.mockResolvedValue(false);
+      mocks.query.mockResolvedValue(undefined);
+
+      await expect(login("store_manager", "wrong")).rejects.toThrow("账号已锁定15分钟");
+      const [sql, params] = mocks.query.mock.calls[0];
+      expect(String(sql)).toContain("UPDATE t_sys_user SET login_fail_count");
+      expect((params as unknown[])[0]).toBe(5);
+      expect((params as unknown[])[1]).toBeInstanceOf(Date);
+      expect((params as unknown[])[2]).toBe(2);
     });
   });
 

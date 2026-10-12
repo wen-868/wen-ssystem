@@ -48,6 +48,9 @@ vi.mock("../../services/platform/tenant-ops.service", () => ({
   QUOTA_EXPAND_CONFIG_KEY: "quota_expand",
   proxyLogin: vi.fn(),
   expandTenantQuota: vi.fn(),
+  // S3-172：控制器新增「代重置租户账号口令」，本 mock 必须同步补出该导出
+  // （Vite 模块运行器会校验静态导入名是否都在命名空间里，缺一个即整文件 SyntaxError）
+  resetTenantUserPassword: vi.fn(),
 }));
 
 vi.mock("../../services/platform/tenant-usage.service", () => ({

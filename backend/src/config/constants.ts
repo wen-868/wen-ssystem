@@ -1,5 +1,13 @@
 /** 业务常量 */
 export const constants = {
+  /**
+   * 演示账号用户名（登录页「一键演示」用的那条账号）。
+   *
+   * S3-172：本常量是演示账号的**唯一事实来源**（`services/admin/auth.service.ts` 的
+   * `DEMO_USERNAME` 与 `middleware/login-fail-limiter.ts` 的账号维度豁免都由它派生）。
+   * 任何地方需要判断「是不是演示账号」，只允许引用本常量，禁止再写第二处 `"demo"` 字面量。
+   */
+  DEMO_USERNAME: "demo",
   /** 默认箱规 */
   DEFAULT_BOX_RATIO: 12,
   /** 导出上限 */
