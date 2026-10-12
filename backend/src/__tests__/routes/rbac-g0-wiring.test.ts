@@ -465,7 +465,14 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   const S3_142_WIRED_FILES = new Map<string, number>([["admin-product.routes.ts", 1]]);
   const S3_142_WIRED_TOTAL = [...S3_142_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1", () => {
+  // S3-180 追加说明：S3-180（批B2-1 报表域试点）在 admin-report.routes.ts 新增 2 处接线
+  // （POST /collection-links/:linkNo/revoke、POST /sale-bills/batch-collection-link，均挂既有码
+  // report:finance）后总数由 54 → 56。同样只同步"总数 + 逐文件计数"的期望值（新增 S3_180_WIRED_FILES）；
+  // G0 名单行与其逐行 403/200 断言一字未动（见 S3-180 回传卡「风险与自我报备」）。
+  const S3_180_WIRED_FILES = new Map<string, number>([["admin-report.routes.ts", 2]]);
+  const S3_180_WIRED_TOTAL = [...S3_180_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -475,15 +482,16 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL);
-    expect(total).toBe(54);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL);
+    expect(total).toBe(56);
 
     const expected = new Map<string, number>();
     for (const m of MODULES) expected.set(m.file, (expected.get(m.file) ?? 0) + m.rows.length);
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of G2_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
-    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES]) expected.set(f, (expected.get(f) ?? 0) + n);
+    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES])
+      expected.set(f, (expected.get(f) ?? 0) + n);
     expect([...perFile.entries()].sort()).toEqual([...expected.entries()].sort());
   });
 
