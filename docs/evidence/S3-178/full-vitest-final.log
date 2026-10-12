@@ -1,0 +1,56 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-286/backend
+
+[2026-10-13 01:01:55.567 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-13 01:01:55.568 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-13 01:01:56.582 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-13 01:01:56.582 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-13 01:01:58.606 +0800] [31mERROR[39m (15868): [36m[push.fcm] 推送失败: FCM 网络错误[39m
+[2026-10-13 01:01:58.619 +0800] [33mWARN[39m (15868): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-13 01:01:58.619 +0800] [33mWARN[39m (15868): [36m[http-retry] https://api.jpush.cn/v3/push 第 1 次重试（1000ms 后）[39m
+[2026-10-13 01:01:59.622 +0800] [33mWARN[39m (15868): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-13 01:01:59.622 +0800] [33mWARN[39m (15868): [36m[http-retry] https://api.jpush.cn/v3/push 第 2 次重试（2000ms 后）[39m
+[2026-10-13 01:02:01.627 +0800] [31mERROR[39m (15868): [36m[push.jpush] 推送失败: 连接超时[39m
+[2026-10-13 01:02:01.656 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-13 01:02:01.656 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-13 01:02:02.663 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-13 01:02:02.663 +0800] [33mWARN[39m (15868): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-13 01:02:04.677 +0800] [31mERROR[39m (15868): [36m[push.fcm] 推送失败: network down[39m
+[2026-10-13 01:02:04.683 +0800] [33mWARN[39m (15868): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-13 01:02:04.683 +0800] [33mWARN[39m (15868): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 1 次重试（1000ms 后）[39m
+[2026-10-13 01:02:05.688 +0800] [33mWARN[39m (15868): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-13 01:02:05.689 +0800] [33mWARN[39m (15868): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 2 次重试（2000ms 后）[39m
+[2026-10-13 01:02:07.710 +0800] [31mERROR[39m (15868): [36m[push.hms] 获取 access_token 失败: token endpoint down[39m
+[2026-10-13 01:02:07.719 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-13 01:02:07.719 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-13 01:02:08.722 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-13 01:02:08.723 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-13 01:02:10.744 +0800] [31mERROR[39m (15868): [36m[push.hms] 推送失败: HTTP 500[39m
+[2026-10-13 01:02:10.748 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-13 01:02:10.748 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-13 01:02:11.761 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-13 01:02:11.762 +0800] [33mWARN[39m (15868): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-13 01:02:13.778 +0800] [31mERROR[39m (15868): [36m[push.hms] 推送失败: push endpoint down[39m
+[2026-10-13 01:03:02.108 +0800] [32mINFO[39m (13392): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-10-13 01:03:02.460 +0800] [32mINFO[39m (13392): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-13 01:03:03.732 +0800] [32mINFO[39m (13392): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-13 01:03:04.326 +0800] [33mWARN[39m (13392): [36m[auto-routes] 检测到 11 个重复前缀：/api/admin (19次), /api/admin/marketing (7次), /api/miniapp (2次), /api/platform/billing (3次), /api/store (10次), /api/admin/reports (2次), /api/admin/instant-retail (2次), /api/admin/inventory (3次), /api/monitor (2次), /api/platform (3次), /api/platform/monitor (2次)。请确认端点无重复注册。[39m
+[2026-10-13 01:03:04.331 +0800] [32mINFO[39m (13392): [36m[auto-routes] 已自动注册 203 个路由[39m
+[2026-10-13 01:03:04.382 +0800] [32mINFO[39m (13392): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-13 01:03:04.396 +0800] [32mINFO[39m (13392): [36m[rate-limit] 限流器启用 RedisStore（REDIS_URL 已配置）[39m
+[2026-10-13 01:03:04.399 +0800] [31mERROR[39m (13392): [36m[rate-limit] Redis 连接错误:[39m
+    [35mextra[39m: [
+      "boom"
+    ]
+[2026-10-13 01:03:04.402 +0800] [31mERROR[39m (13392): [36m[rate-limit] RedisStore 初始化失败，降级 MemoryStore:[39m
+    [35mextra[39m: [
+      "mock RedisStore 初始化失败"
+    ]
+[2026-10-13 01:03:04.409 +0800] [32mINFO[39m (13392): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+{"level":30,"time":1791824585867,"pid":6200,"hostname":"XIONG","msg":"production test"}
+
+ Test Files  643 passed (643)
+      Tests  7616 passed (7616)
+   Start at  01:01:53
+   Duration  329.82s (transform 99.17s, setup 10.18s, import 1110.93s, tests 176.12s, environment 320ms)
+

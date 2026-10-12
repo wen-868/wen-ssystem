@@ -1,0 +1,15 @@
+===== S3-178 取证：改前(baseline faabc6df) （http://127.0.0.1:8098） =====
+[A0] demo-login => code=0 user=demo id=3 tokenA.len=336 csrfA.len=64
+[A1-无凭证+body.userId=B] POST /api/miniapp/marketing/coupons/claim => HTTP <404> | {"code":"404","msg":"优惠券不存在或已过期","traceId":"a0f7ef6a-83ea-4340-8169-d11402c74bf6"}
+[A2-A的凭证+body.userId=B+CSRF] POST /api/miniapp/marketing/coupons/claim => HTTP <404> | {"code":"404","msg":"优惠券不存在或已过期","traceId":"7c21773f-8824-4474-9950-8ce793f8598f"}
+[A3-A的凭证+body.userId=B(无CSRF头)] POST /api/miniapp/marketing/coupons/claim => HTTP <404> | {"code":"404","msg":"优惠券不存在或已过期","traceId":"1d0ef247-4971-4e9a-96d2-adeb02c05123"}
+[A4-A的凭证+body.userId=A+CSRF] POST /api/miniapp/marketing/coupons/claim => HTTP <404> | {"code":"404","msg":"优惠券不存在或已过期","traceId":"fe33549c-4061-4022-aae8-f6e4f54c3edb"}
+[B1-A的凭证+body.userId=B(秒杀)] POST /api/miniapp/marketing/flash-sales/grab => HTTP <404> | {"code":"404","msg":"秒杀活动不存在或已结束","traceId":"f4c57ee4-94a1-455a-82c1-2ac27fc1db14"}
+[B2-A的凭证+body.userId=B(拼团)] POST /api/miniapp/marketing/group-buys/teams/join => HTTP <404> | {"code":"404","msg":"拼团组不存在或已结束","traceId":"1ca07395-f000-45bd-aa93-64dbe1fe72bd"}
+[C1-query.userId=B 读B的券] GET /api/miniapp/marketing/coupons/my?userId=4242 => HTTP <200> | {"code":"0","msg":"成功","data":{"total":0,"page":1,"pageSize":20,"records":[]},"traceId":"57691f5b-48ea-42c7-b70a-ca776118c5bb"}
+[C2-query.userId=B 读B的积分] GET /api/miniapp/marketing/points/my-records?userId=4242 => HTTP <200> | {"code":"0","msg":"成功","data":{"total":0,"page":1,"pageSize":20,"records":[]},"traceId":"57da4573-4b64-4564-8193-49718785f23a"}
+[D1-公开浏览面(应保持公开)] GET /api/miniapp/marketing/coupons/available => HTTP <200> | {"code":"0","msg":"成功","data":{"total":0,"records":[]},"traceId":"10752073-c510-4bda-aca8-1e253769b121"}
+[E1-无CSRF头] POST /api/store/instant-retail/orders/PLAT-178/confirm => HTTP <403> | {"code":"403","msg":"CSRF token 无效或缺失","traceId":"bdd89417-d783-4a10-abb7-eee8b980880f"}
+[E2-带CSRF头] POST /api/store/instant-retail/orders/PLAT-178/confirm => HTTP <404> | {"code":"404","msg":"订单不存在","traceId":"62d6f28b-6d86-4d9f-a6ab-a42ee359a842"}
+[E3-GET(安全方法)] GET /api/store/instant-retail/orders => HTTP <200> | {"code":"0","msg":"成功","data":{"total":0,"page":1,"pageSize":20,"records":[]},"traceId":"0e249b85-a11d-4f2e-ae9b-a17fa20ec45c"}
+===== 取证结束：改前(baseline faabc6df) =====
