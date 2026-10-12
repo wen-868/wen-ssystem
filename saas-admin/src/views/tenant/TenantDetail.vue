@@ -100,6 +100,57 @@
       </div>
     </div>
 
+    <!-- ════════ 租户账号口令（平台代重置，S3-172 端点 / S3-173 入口） ════════ -->
+    <div class="panel mt12">
+      <div class="p-hd">
+        <span class="pt">租户账号口令</span>
+        <span class="btn-t" @click="fetchTenantUsers">刷新</span>
+      </div>
+      <div class="p-bd">
+        <p class="small">
+          平台超管可为该租户的管理员 / 员工重置登录口令：成功后系统只展示<b>一次</b>初始口令，
+          旧口令立即失效，请让用户首次登录后立即改密。
+        </p>
+
+        <!-- 四态互斥：加载 → 错误（含「接口未就绪」）→ 空 → 就绪 -->
+        <p v-if="usersState === 'loading'" class="small mt8">加载中…</p>
+        <p v-else-if="usersState === 'error'" class="small mt8 quota-err">
+          账号列表加载失败：{{ usersError }}<span class="retry" @click="fetchTenantUsers">重试</span>
+        </p>
+        <p v-else-if="usersState === 'empty'" class="small mt8">该租户暂无账号</p>
+        <div v-else class="tblwrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>姓名</th>
+                <th>账号</th>
+                <th>角色</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="u in tenantUsers" :key="u.userId">
+                <td><b>{{ u.realName }}</b></td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.roleLabel }}</td>
+                <td>{{ u.statusLabel }}</td>
+                <td>
+                  <span class="btn-t gy" @click="onResetUserPassword(u)">重置该账号口令</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 重置失败：如实展示后端原因（拦截器已弹同一条中文提示，页面不重复弹 toast） -->
+        <p v-if="resetError" class="small mt8 quota-err">重置失败：{{ resetError }}</p>
+        <p v-if="usersState === 'error'" class="small mt8">
+          账号列表由 S3-172 提供（GET /api/platform/tenants/:tenantId/users）；未就绪前本面板不可用，不做任何本地造数。
+        </p>
+      </div>
+    </div>
+
     <!-- ════════ 弹窗：模拟登录确认 ════════ -->
     <el-dialog v-model="proxyVisible" :show-header="false" :width="MODAL_W" :close-on-click-modal="true">
       <div class="zx-scope">
@@ -259,13 +310,41 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- ════════ 弹窗：一次性初始口令（S3-173 ③，关闭即不可再查看） ════════ -->
+    <el-dialog v-model="pwdVisible" :show-header="false" :width="MODAL_W" :close-on-click-modal="false">
+      <div class="zx-scope">
+        <div class="m-hd">
+          <span class="pt">初始口令 · {{ pwdTarget.name }}<span class="tag tag-r">仅展示一次</span></span>
+          <span class="d-x" @click="closePwdDialog">✕</span>
+        </div>
+        <div class="m-bd">
+          <div class="tipbar w">
+            <span class="ic">!</span>
+            <span>该口令<b>只在本窗口展示一次</b>，关闭后不可再查看；请立即交给用户，并提醒其<b>首次登录后立即改密</b>。</span>
+          </div>
+          <div class="fld">
+            <span>账号</span>
+            <span class="ipt">{{ pwdTarget.account }}</span>
+          </div>
+          <div class="fld">
+            <span>初始口令</span>
+            <span class="ipt" data-testid="initial-password">{{ initialPassword }}</span>
+          </div>
+        </div>
+        <div class="m-ft">
+          <span class="btn" @click="copyInitialPassword">复制口令</span>
+          <span class="btn btn-p" @click="closePwdDialog">我已记录，关闭</span>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getTenantApi,
   getTenantQuotaApi,
@@ -273,8 +352,17 @@ import {
   toggleTenantApi,
   proxyLoginTenantApi,
   expandTenantQuotaApi,
+  listTenantUsersApi,
+  resetTenantUserPasswordApi,
 } from '../../api/tenant'
 import { buildQuotaRows, type QuotaRow } from './quota'
+import {
+  buildResetConfirmText,
+  normalizeTenantUsers,
+  performTenantUserReset,
+  resolveUserListState,
+  type TenantUserRow,
+} from './tenant-account-reset'
 
 const route = useRoute()
 const MODAL_W = 'var(--modal-width)'
@@ -462,6 +550,86 @@ function toast(msg: string) {
 }
 
 /* ───────────────────────────────────────────────────────────
+   租户账号口令（平台代重置）· S3-173 ③
+   · 列表：GET  /api/platform/tenants/:tenantId/users（S3-172 提供；未就绪则如实提示，不造数）
+   · 重置：POST /api/platform/tenants/:tenantId/users/:userId/reset-password ⇒ 一次性初始口令
+   · 失败一律如实报错（拦截器弹中文原因 + 页面留痕），绝不假装成功
+   ─────────────────────────────────────────────────────────── */
+const tenantUsers = ref<TenantUserRow[]>([])
+const usersLoading = ref(false)
+const usersError = ref('')
+const usersState = computed(() =>
+  resolveUserListState({ loading: usersLoading.value, error: usersError.value, rows: tenantUsers.value })
+)
+const resetError = ref('')
+const pwdVisible = ref(false)
+const initialPassword = ref('')
+const pwdTarget = reactive({ name: '—', account: '—' })
+
+async function fetchTenantUsers() {
+  const tenantId = route.params.id
+  if (!tenantId) return
+  usersLoading.value = true
+  usersError.value = ''
+  try {
+    const res: any = await listTenantUsersApi(tenantId as string)
+    tenantUsers.value = normalizeTenantUsers(res)
+  } catch (e: any) {
+    tenantUsers.value = []
+    // 接口未就绪（404）与真实故障对运营是同一件事：都说清楚，都别假装有数据
+    usersError.value = String(e?.message || '账号列表接口未就绪')
+  } finally {
+    usersLoading.value = false
+  }
+}
+
+/** 重置该账号口令：行内按钮 → 二次确认 → 真调后端 → 成功才展示一次性口令 */
+async function onResetUserPassword(user: TenantUserRow) {
+  resetError.value = ''
+  try {
+    await ElMessageBox.confirm(buildResetConfirmText(user), '重置该账号口令', {
+      confirmButtonText: '确认重置',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+  } catch {
+    return // 用户取消：不发请求
+  }
+  const outcome = await performTenantUserReset(
+    { reset: (tenantId, userId) => resetTenantUserPasswordApi(tenantId, userId) },
+    route.params.id as string,
+    user.userId
+  )
+  if (!outcome.ok) {
+    // request 拦截器已弹同一条中文原因；此处留页面内痕迹供截图取证，不重复弹 toast
+    resetError.value = outcome.errorText || '重置失败，请稍后重试'
+    return
+  }
+  initialPassword.value = outcome.initialPassword || ''
+  pwdTarget.name = user.realName
+  pwdTarget.account = user.username
+  pwdVisible.value = true
+}
+
+/** 关闭即清空：一次性口令不得留在内存/视图里 */
+function closePwdDialog() {
+  pwdVisible.value = false
+  initialPassword.value = ''
+  pwdTarget.name = '—'
+  pwdTarget.account = '—'
+}
+
+async function copyInitialPassword() {
+  if (!initialPassword.value) return
+  try {
+    await navigator.clipboard.writeText(initialPassword.value)
+    ElMessage.success('初始口令已复制')
+  } catch {
+    ElMessage.warning('复制失败，请手动选中口令复制')
+  }
+}
+
+/* ───────────────────────────────────────────────────────────
    资源配额使用情况（批 4：接真实数据，禁止模拟数据上屏）
    仅做「百分比用于画条」，数值换算/除法展示一律不在此处发生（后端已换算）
    ─────────────────────────────────────────────────────────── */
@@ -536,6 +704,7 @@ onMounted(() => {
   fetchDetail()
   fetchQuota()
   fetchOverview()
+  fetchTenantUsers()
 })
 </script>
 
