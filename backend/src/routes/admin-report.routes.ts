@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
+import { requirePermission } from "../middleware/rbac-auth";
 import * as reportController from "../controllers/admin/report.controller";
 
 export const adminReportRouter = Router();
@@ -15,8 +16,12 @@ adminReportRouter.get("/refund-orders", reportController.listRefundOrders);
 
 // ============ 分享链接管理 ============
 adminReportRouter.get("/collection-links/stats", reportController.getCollectionLinkStats);
-adminReportRouter.post("/collection-links/:linkNo/revoke", reportController.revokeCollectionLink);
-adminReportRouter.post("/sale-bills/batch-collection-link", reportController.batchCreateCollectionLinks);
+// S3-180 批B2-1（报表域试点）：收款链接的「撤销 / 批量生成」是管理面写动作，补既有权限码 report:finance
+// （079_权限矩阵.sql:185「财务报表」MENU 码）。持有者 = STORE_MANAGER / FINANCE_STAFF（`report:*`）
+// + SUPER_ADMIN（`*`）；页面「收款关联」的角色正是 SUPER_ADMIN + STORE_MANAGER（router/index.ts:110）
+// ⇒ 接线后不会让现有页面角色 403（持有核对见 docs/tasks/R101-RBAC接线缺口清单.md §三）。
+adminReportRouter.post("/collection-links/:linkNo/revoke", requirePermission("report:finance"), reportController.revokeCollectionLink);
+adminReportRouter.post("/sale-bills/batch-collection-link", requirePermission("report:finance"), reportController.batchCreateCollectionLinks);
 
 // ============ 销售报表 ============
 // 注：sales-ranking / sales-trend 已合并到 report.routes.ts（新实现支持 product/customer/staff 三维度聚合 + limit + 自动时间窗口）
