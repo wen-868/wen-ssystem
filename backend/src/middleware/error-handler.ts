@@ -5,6 +5,7 @@ import { fail } from "../shared/response";
 import { insertErrorLog } from "../services/admin/error-log.service";
 import { reportToLingZhou } from "../shared/feishu-report";
 import { env } from "../shared/env";
+import { duplicateEntryMessage, isDuplicateEntryError, missingColumnName } from "../shared/db-error-message";
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   logger.error(err);
@@ -74,6 +75,48 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
         webhookUrl: env.FEISHU_ALERT_WEBHOOK_URL || undefined,
       }).catch((e) => logger.error("reportToLingZhou failed", e));
     }
+    return;
+  }
+
+  // 已定性的回库错误（S3-181）：唯一键撞车 ⇒ 409、入参缺列 ⇒ 400。
+  // 只映射这三类已定性的码；其余 DB 错误继续走下方「未知错误」分支（保持 500 + 日志栈，
+  // 不把真 bug 静默吞成 4xx）。消息一律为业务文案，不回显 SQL 原文与字段值。
+  if (isDuplicateEntryError(err)) {
+    const duplicateMessage = duplicateEntryMessage(err);
+    logger.warn(`[error-handler] 唯一键撞车（409）：${requestMethod} ${requestUrl}`);
+    insertErrorLog({
+      error_type: "validation",
+      severity: "WARN",
+      message: duplicateMessage,
+      stack: errorStack,
+      request_url: requestUrl,
+      request_method: requestMethod,
+      status_code: 409,
+      user_id: (req as { user?: { id: number } }).user?.id || undefined,
+      tenant_id: (req as { tenantId?: number | string }).tenantId || undefined,
+      source: "backend",
+    }).catch((e) => logger.error("insertErrorLog failed", e));
+    res.status(409).json(fail(duplicateMessage, "409"));
+    return;
+  }
+
+  const missingColumn = missingColumnName(err);
+  if (missingColumn !== null) {
+    const missingMessage = missingColumn ? `缺少必填参数：${missingColumn}` : "缺少必填参数";
+    logger.warn(`[error-handler] 入参缺列（400）：${requestMethod} ${requestUrl} — ${missingColumn}`);
+    insertErrorLog({
+      error_type: "validation",
+      severity: "WARN",
+      message: missingMessage,
+      stack: errorStack,
+      request_url: requestUrl,
+      request_method: requestMethod,
+      status_code: 400,
+      user_id: (req as { user?: { id: number } }).user?.id || undefined,
+      tenant_id: (req as { tenantId?: number | string }).tenantId || undefined,
+      source: "backend",
+    }).catch((e) => logger.error("insertErrorLog failed", e));
+    res.status(400).json(fail(missingMessage, "400"));
     return;
   }
 

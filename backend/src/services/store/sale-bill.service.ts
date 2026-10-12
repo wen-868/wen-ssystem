@@ -4,6 +4,7 @@ import { computeSellingPrice, getPriceType, type CustomerType } from "../../shar
 import { updateTraceCodesBySkuList, verifyTraceCode } from "../../shared/trace-code";
 // S3-78：切到「落库 + 推送」入口（原来是只落库的重复写入器；无推送凭据时推送分支自动降级为 no-op）
 import { sendNotificationWithPush } from "../admin/notification-sender.service";
+import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
 import type { RowDataPacket } from "mysql2";
 
@@ -273,7 +274,9 @@ export async function createSaleBill(params: {
         [item.skuId, tenantId],
         tenantId
       );
-      if (!price) throw new Error(`SKU不存在：${item.skuId}`);
+      // S3-181：客户传入的 skuId 在本租户查不到（无商品或无可售价格）属**入参错误**，
+      // 原先抛裸 Error（无 statusCode）⇒ 落进全局"未知错误"分支 ⇒ 500。改为 400。
+      if (!price) throw new AppError(`SKU不存在：${item.skuId}`, 400);
       const customerType = member?.customer_type ?? "RETAIL";
       const computedPrice = item.unitPrice ?? computeSellingPrice(customerType as CustomerType, price.wholesale_price, price.store_price, price.retail_price);
       const subtotal = computedPrice * item.totalBottleQty;
@@ -336,7 +339,8 @@ export async function createSaleBill(params: {
       for (const code of userTraceCodes) {
         const verify = await verifyTraceCode(conn, tenantId, code);
         if (!verify.valid) {
-          throw new Error(`追溯码「${code}」${verify.message}`);
+          // S3-181：客户传入的追溯码不可用同属入参错误 ⇒ 400（原先裸 Error ⇒ 500）
+          throw new AppError(`追溯码「${code}」${verify.message}`, 400);
         }
         await conn.execute(
           `UPDATE t_trace_code
