@@ -19,14 +19,19 @@ describe("routes/instant-retail-admin-platform", () => {
     expect(typeof routeConfig.router.delete).toBe("function");
   });
 
-  it("应注册货架 shelf 端点", () => {
+  // S3-179：原用例断言「本文件注册 /shelf 端点」，但这 4 条与 instant-retail-admin-ops.routes.ts
+  // 的 /shelf 完全同「方法 + 完整路径」，而本文件按文件名排序**后**注册 ⇒ 它们从未被执行（死代码）。
+  // 断言翻转为**反向护栏**：/shelf 不得再出现在本文件（唯一提供方是 ops 文件，
+  // 其正向断言见 instant-retail-admin-ops.test.ts）；若有人再次加回，auto-routes 的"真重复端点"
+  // 阻断会在启动时直接拒绝，本用例则更早一步在单测里变红。
+  it("不得注册货架 shelf 端点（死代码已删，唯一提供方是 ops 文件）", () => {
     const router = routeConfig.router as any;
     const paths = router.stack
       .filter((s: any) => s.route)
       .map((s: any) => `${Object.keys(s.route.methods)[0].toLowerCase()} ${s.route.path}`);
-    expect(paths).toContain("get /shelf");
-    expect(paths).toContain("post /shelf");
-    expect(paths).toContain("put /shelf/:id");
-    expect(paths).toContain("delete /shelf/:id");
+    expect(paths).not.toContain("get /shelf");
+    expect(paths).not.toContain("post /shelf");
+    expect(paths).not.toContain("put /shelf/:id");
+    expect(paths).not.toContain("delete /shelf/:id");
   });
 });

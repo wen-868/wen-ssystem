@@ -22,7 +22,9 @@ miniappRouter.get("/products/:id", requireAuthWithTenant, ctrl.getProductDetail)
 miniappRouter.get("/categories", requireAuthWithTenant, ctrl.getCategories);
 
 // ========== 购物车模块 ==========
-miniappRouter.get("/cart", requireAuthWithTenant, ctrl.getCart);
+// GET /api/miniapp/cart：S3-179 删除死代码。
+// cart.routes.ts（prefix "/api/miniapp/cart"，get("/")）按文件名排序先注册
+// （"cart…" < "miniapp…"）⇒ 这一行永不执行；本文件其余 /cart 写端点（POST/PUT/DELETE）无冲突，保持原样。
 miniappRouter.post("/cart", requireAuthWithTenant, csrfMiddleware, ctrl.addToCart);
 miniappRouter.put("/cart/:id", requireAuthWithTenant, csrfMiddleware, ctrl.updateCartItem);
 miniappRouter.delete("/cart/:id", requireAuthWithTenant, csrfMiddleware, ctrl.deleteCartItem);

@@ -183,9 +183,29 @@ const storeLoginLimiter = rateLimit(buildRateLimitOptions({ windowMs: 15 * 60_00
 
 app.use(helmet());
 // CORS 允许域名：从 env.ts 集中管理（R63 修复 — 原先直接读取 process.env）
-const allowedOrigins = env.CORS_ORIGINS
-  ? env.CORS_ORIGINS.split(",").map((s: string) => s.trim())
-  : true; // 生产环境配置CORS_ORIGINS环境变量；默认允许所有来源
+// S3-179 ①（E2 默认安全）：未配置 CORS_ORIGINS 时**生产必须 fail-fast**。
+//   原实现回退 `origin: true` + `credentials: true` ⇒ 任意站点可携带凭据跨域调用本服务
+//   （浏览器会放行任意 Origin 的带 Cookie/Authorization 请求，等同放弃同源保护）。
+//   非生产（开发/CI/测试）保留宽松默认，但必须打醒目 warn，避免"本地能跑就以为生产也安全"。
+const corsWhitelist = env.CORS_ORIGINS.split(",")
+  .map((s: string) => s.trim())
+  .filter(Boolean);
+if (corsWhitelist.length === 0) {
+  if (env.NODE_ENV === "production") {
+    logger.error(
+      "[cors] 生产环境（NODE_ENV=production）未配置 CORS_ORIGINS ⇒ 拒绝启动。" +
+        " 缺省 origin:true + credentials:true 会让任意站点携带凭据跨域调用本服务。" +
+        " 处置：配置 CORS_ORIGINS（逗号分隔白名单，如 https://admin.onepan.cn,https://saas.onepan.cn），" +
+        " 或显式设置 NODE_ENV=development（仅限本地/联调）。"
+    );
+    process.exit(1);
+  }
+  logger.warn(
+    `[cors] 当前为开发态（NODE_ENV=${env.NODE_ENV}）且未配置 CORS_ORIGINS ⇒ 全放行（origin: true, credentials: true），` +
+      " 仅供本地/CI 使用，**禁止用于生产**。"
+  );
+}
+const allowedOrigins = corsWhitelist.length > 0 ? corsWhitelist : true;
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 // 头像等静态文件（/uploads/avatar/xxx，nginx /uploads 反代到本服务）

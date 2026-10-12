@@ -2,7 +2,6 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import * as platformIntegrationController from "../controllers/instant-retail/platform-integration.controller";
 import * as retailAdminController from "../controllers/admin/instant-retail.controller";
-import * as retailExtController from "../controllers/admin/instant-retail-ext.controller";
 
 export const instantRetailAdminPlatformRouter = Router();
 
@@ -36,11 +35,12 @@ instantRetailAdminPlatformRouter.post("/products", retailAdminController.addReta
 instantRetailAdminPlatformRouter.put("/products/:id", retailAdminController.updateRetailProduct);
 instantRetailAdminPlatformRouter.delete("/products/:id", retailAdminController.deleteRetailProduct);
 
-// 商品货架（shelf）
-instantRetailAdminPlatformRouter.get("/shelf", retailExtController.listShelfProducts);
-instantRetailAdminPlatformRouter.post("/shelf", retailExtController.addShelfProduct);
-instantRetailAdminPlatformRouter.put("/shelf/:id", retailExtController.updateShelfProduct);
-instantRetailAdminPlatformRouter.delete("/shelf/:id", retailExtController.removeShelfProduct);
+// 商品货架（shelf）：S3-179 删除死代码。
+// 本文件与 instant-retail-admin-ops.routes.ts 共用同一 prefix "/api/admin/instant-retail"，
+// auto-routes 按文件名排序注册（"…-ops…" < "…-platform…"），Express 对同一「方法 + 完整路径」
+// 只命中先注册者 ⇒ 本文件这 4 条 /shelf 永远不会被调用（08-10 ce157807「上架接真实数据、
+// 后端补 shelf 接口」已在 ops 文件里以 instant-retail-fix.controller 唯一提供）。
+// 删除不丢功能；若再次在本文件新增 /shelf，auto-routes 的"真重复端点"阻断会直接拒绝启动。
 
 // Banner
 instantRetailAdminPlatformRouter.get("/banners", retailAdminController.listBanners);

@@ -6,6 +6,7 @@ import "./styles/tokens.css";
 import "./styles/components.css";
 import App from "./App.vue";
 import router from "./router";
+import { reportPlatformError } from "./utils/error-report";
 
 // ==================== 前端错误捕获上报 ====================
 let isReportingError = false;
@@ -21,15 +22,8 @@ function reportFrontendError(payload: {
   if (isReportingError || now - lastReportTime < 1000) return;
   isReportingError = true;
   lastReportTime = now;
-  fetch("/api/admin/error-report", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...payload,
-      source: "saas-admin",
-      timestamp: new Date().toISOString(),
-    }),
-  }).catch(() => {}).finally(() => {
+  // S3-179 ②：打平台端自己的 /api/platform/error-report（原 /api/admin/error-report 是商家端鉴权 ⇒ 恒 401 被静默丢弃）
+  reportPlatformError(payload).finally(() => {
     isReportingError = false;
   });
 }
