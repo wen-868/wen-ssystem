@@ -1,5 +1,48 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { logCoverage, logViolations, logIncomplete, type ScannedRoute } from "./a11y-gate-log";
+
+/**
+ * ─── S3-59 ②：覆盖清单（扫了哪些页面、哪些没扫）───
+ * 缺陷二的定义：门禁只报「有没有违规」，不报「扫了哪些页面」⇒「没扫到」与「扫了没问题」
+ * 在输出里无法区分，覆盖不闭合。修法：每次取样都把「声明路由总数 / 本次扫描 / 未扫清单」
+ * 打出来，**未扫清单逐条列出、不允许静默省略**。
+ *
+ * 🔴 「未扫」≠「通过」：未扫路由是未覆盖面，不因本次绿而结案（S3-59 §2）。
+ *    清单来源是路由表的**声明**（只读源码文本），不是"我配过了"这句话。
+ */
+const ADMIN_WEB_ROUTER_SRC = "admin-web/src/router/index.ts";
+const ADMIN_WEB_SCANNED: ScannedRoute[] = [
+  {
+    path: "/login",
+    name: "登录页（用例从 `/` 进入，未登录时被路由守卫重定向到 `/login`）",
+    by: "登录页无 critical/serious 违规",
+  },
+  { path: "/dashboard", name: "工作台（登录后落地页）", by: "登录后工作台无 critical/serious 违规" },
+  { path: "/customers", name: "客户管理", by: "非文本对比度守卫" },
+  { path: "/instant-retail/config", name: "即时零售·平台配置", by: "非文本对比度守卫" },
+];
+const ADMIN_WEB_UNSCANNED_REASON =
+  "本次浏览器 axe 扫描只覆盖上列 4 个路由；其余路由属未覆盖面（S3-59 缺陷二），" +
+  "不因本次取样为绿而视为通过；纳入需逐个补进场用例（依赖该页在 mock 数据下可渲染），按 S3-59② 分批推进。";
+
+/** 打印覆盖清单（每个 worker 进程只打一次）并断言清单自身完整 —— 读不到源码 ⇒ 清单不完整 ⇒ 不给假绿。 */
+let coverageManifestPrinted = false;
+function ensureCoverageManifest(): void {
+  if (!coverageManifestPrinted) {
+    coverageManifestPrinted = true;
+    const cov = logCoverage("a11y", ADMIN_WEB_ROUTER_SRC, ADMIN_WEB_SCANNED, ADMIN_WEB_UNSCANNED_REASON);
+    // ① 清单可证明：读不到路由源码 ⇒ 覆盖情况不可知 ⇒ 按「未完成」处理（不是"跳过"）
+    expect(
+      cov.readError,
+      `覆盖清单不可用（读不到 ${ADMIN_WEB_ROUTER_SRC}）：${cov.readError}`
+    ).toBeNull();
+    // ② 清单不漂移：本次声称扫过的路由必须仍存在于路由表（改名/下线即清单过期，须先改清单）
+    const declared = new Set(cov.declared);
+    const stale = cov.scanned.filter((p) => !declared.has(p));
+    expect(stale, `本次扫描的路由未在路由表中声明（清单可能已过期）：${stale.join(",")}`).toEqual([]);
+  }
+}
 
 /**
  * 无障碍自动化扫描（WCAG 2.1 AA，axe-core）
@@ -299,6 +342,7 @@ async function collectNonTextContrast(page: Page): Promise<NonTextResult> {
 }
 
 test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11y", async ({ page }) => {
+  ensureCoverageManifest();
   await page.goto("/");
   await page.getByPlaceholder("账号").fill("admin");
   await page.getByPlaceholder("密码").fill("admin123");
@@ -384,6 +428,7 @@ test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11
 
 test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
   test("登录页无 critical/serious 违规 @a11y", async ({ page }) => {
+    ensureCoverageManifest();
     await page.goto("/");
     await page.getByPlaceholder("账号").waitFor();
 
@@ -412,14 +457,18 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
         console.log(
           `[a11y] 登录页 nodes target: type=${v.id}, count=${v.nodes.length}, first5=${targets}`
         );
-        console.log(`[a11y] axe data: ${JSON.stringify(v.nodes.slice(0, 3).map((n) => n.any?.[0]?.data ?? null))}`);
       });
     }
+    // S3-59 ③：违规必须带 target + html（不再只有类型/数量；html 用于区分"同一选择器下的哪个实例"）
+    logViolations("a11y", "登录页", criticalSerious);
+    // S3-59 ④：incomplete 不得整类丢弃（打印计数 + 抽样；只打印、不判定，不新增抖动源）
+    logIncomplete("a11y", "登录页", results);
 
     expect(criticalSerious.length).toBe(0);
   });
 
   test("登录后工作台无 critical/serious 违规 @a11y", async ({ page }) => {
+    ensureCoverageManifest();
     await page.goto("/");
     await page.getByPlaceholder("账号").fill("admin");
     await page.getByPlaceholder("密码").fill("admin123");
@@ -452,9 +501,12 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
         console.log(
           `[a11y] 工作台 nodes target: type=${v.id}, count=${v.nodes.length}, first5=${targets}`
         );
-        console.log(`[a11y] axe data: ${JSON.stringify(v.nodes.slice(0, 3).map((n) => n.any?.[0]?.data ?? null))}`);
       });
     }
+    // S3-59 ③：违规必须带 target + html（不再只有类型/数量；html 用于区分"同一选择器下的哪个实例"）
+    logViolations("a11y", "工作台", criticalSerious);
+    // S3-59 ④：incomplete 不得整类丢弃（打印计数 + 抽样；只打印、不判定，不新增抖动源）
+    logIncomplete("a11y", "工作台", results);
 
     expect(criticalSerious.length).toBe(0);
   });

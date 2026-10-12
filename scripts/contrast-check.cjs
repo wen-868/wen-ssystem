@@ -137,6 +137,15 @@ const S3_54_TOKENS = [
   { name: 'text-placeholder', surfaces: ['white'], threshold: TEXT_THRESHOLD, kind: 'text', note: 'S3-54 占位提示文本(白底输入框内)≥4.5:1' },
   { name: 'input-border', surfaces: ['soft'], threshold: NON_TEXT_THRESHOLD, kind: 'non-text', note: 'S3-54 输入框边框(1.4.11 最严边界 #f0f0f0)≥3:1' },
   { name: 'ctl-border', surfaces: ['soft'], threshold: NON_TEXT_THRESHOLD, kind: 'non-text', note: 'S3-54 控件边框 .btn/.ipt/.sel(1.4.11 最严边界)≥3:1' },
+  // S3-54①-a：通用弱化灰 --g4（分诊表：A 类**文本** 24 处 + B 类**非文本边框/指示器** 29 处，
+  //   **背景填充 0 处**）。取值 #6E6E6E 即分诊表 §九-1 的建议值（S3-137-F1 已落地）。
+  //   按类分别锁：文本 4.5:1 / 非文本 3:1；相邻面取**分诊表逐条给出的实际面**：
+  //     · A 类文本最严面 = #F7F7F7(--g0/画布底) ⇒ 测 white + g0
+  //     · B 类边框/指示器同样落在 white / #F7F7F7 上 ⇒ 测 white + g0 + soft
+  //   ⚠️ 在本次加入前，把 --g4 改回 #A3A3A3(2.52:1) **不会**让本门禁变红（门禁盲区）；
+  //      加入后改回坏值必红（反测见 R101-批D-墨回传）。
+  { name: 'g4', surfaces: ['white', 'g0'], threshold: TEXT_THRESHOLD, kind: 'text', note: 'S3-54①-a 通用弱化灰·文本用途(分诊表 A 类 24 处；背景填充 0 处)' },
+  { name: 'g4', surfaces: ['white', 'g0', 'soft'], threshold: NON_TEXT_THRESHOLD, kind: 'non-text', note: 'S3-54①-a 通用弱化灰·边框/指示器用途(分诊表 B 类 29 处)' },
 ];
 
 const rows = [];

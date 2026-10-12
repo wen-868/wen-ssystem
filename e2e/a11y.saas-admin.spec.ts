@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import crypto from "node:crypto";
+import { logCoverage, logViolations, logIncomplete, type ScannedRoute } from "./a11y-gate-log";
 
 /**
  * saas-admin（总后台）无障碍扫描（WCAG 2.1 AA，axe-core）—— S3-137
@@ -134,33 +135,38 @@ async function waitForVisualSettled(page: Page): Promise<SettleStatus> {
  *    修复后若从 10 降到 5，只打 3 个根本看不出少了哪几个。
  *    超出部分显式标注「其余 N 个省略」，避免把截断误读成全部（可观测性不能靠省略制造假象）。
  */
-const MAX_NODES = 6;
+// ③ 违规定位（type/impact/节点数 + 每节点 target+html+axeData）已抽到 e2e/a11y-gate-log.ts，
+//    与 admin-web 共用同一实现（输出形状不变：前缀 `[saas-a11y] <tag> …`）。
+//    本文件此前的 MAX_NODES/logViolations 为就地实现，S3-59③ 收口时改为共用，
+//    避免两端各写一份、其中一份悄悄退化（同一类"两份实现走样"是本项目的已知踩坑形状）。
 
-function logViolations(tag: string, violations: any[]): void {
-  if (violations.length === 0) {
-    console.log(`[saas-a11y] ${tag} ✅ 无 critical/serious 违规`);
-    return;
-  }
-  for (const v of violations) {
-    console.log(
-      `[saas-a11y] ${tag} ❌ type=${v.id} impact=${v.impact} nodes=${v.nodes.length} help=${v.help}`
-    );
-    v.nodes.slice(0, MAX_NODES).forEach((n: any, i: number) => {
-      const target = Array.isArray(n.target) ? n.target.join(" ") : String(n.target);
-      const html = String(n.html ?? "").replace(/\s+/g, " ").slice(0, 160);
-      console.log(`[saas-a11y] ${tag}   node[${i}] target=${target}`);
-      console.log(`[saas-a11y] ${tag}   node[${i}] html=${html}`);
-      const data = n.any?.[0]?.data ?? n.all?.[0]?.data ?? null;
-      if (data !== null) {
-        console.log(`[saas-a11y] ${tag}   node[${i}] axeData=${JSON.stringify(data)}`);
-      }
-    });
-    if (v.nodes.length > MAX_NODES) {
-      console.log(
-        `[saas-a11y] ${tag}   （其余 ${v.nodes.length - MAX_NODES} 个节点省略 —— 完整计数见上方 nodes=${v.nodes.length}；如需逐节点请把 MAX_NODES 调大）`
-      );
-    }
-  }
+/**
+ * ─── S3-59 ②：覆盖清单（扫了哪些页面、哪些没扫）───
+ * 缺陷二：门禁只报"有没有违规"，不报"扫了哪些页面" ⇒「没扫到」与「扫了没问题」不可区分。
+ * 清单来源是 saas-admin 路由表的**声明**（只读源码文本），未扫路由逐条列出、不允许静默省略。
+ */
+const SAAS_ROUTER_SRC = "saas-admin/src/router/index.ts";
+const SAAS_SCANNED: ScannedRoute[] = [
+  { path: "/#/login", name: "登录页", by: "登录页无 critical/serious 违规" },
+  { path: "/#/tenants", name: "租户列表", by: "列表页 /tenants 无 critical/serious 违规" },
+  { path: "/#/packages", name: "套餐列表", by: "列表页 /packages 无 critical/serious 违规" },
+  { path: "/#/subscriptions", name: "订阅列表", by: "列表页 /subscriptions 无 critical/serious 违规" },
+];
+const SAAS_UNSCANNED_REASON =
+  "本次浏览器 axe 扫描只覆盖上列 4 个路由；其余路由属未覆盖面（S3-59 缺陷二），" +
+  "不因本次取样为绿而视为通过；其中部分页面仍受【一次性图形验证码 / 多级详情】限制，" +
+  "由 scripts/contrast-check.cjs 的对比度矩阵降级覆盖（S3-53 已登记为降级、不是已覆盖）。";
+
+/** 打印覆盖清单（每个 worker 进程只打一次）并断言清单自身完整 —— 读不到源码 ⇒ 不给假绿。 */
+let saasCoveragePrinted = false;
+function ensureSaasCoverage(): void {
+  if (saasCoveragePrinted) return;
+  saasCoveragePrinted = true;
+  const cov = logCoverage("saas-a11y", SAAS_ROUTER_SRC, SAAS_SCANNED, SAAS_UNSCANNED_REASON);
+  expect(cov.readError, `覆盖清单不可用（读不到 ${SAAS_ROUTER_SRC}）：${cov.readError}`).toBeNull();
+  const declared = new Set(cov.declared);
+  const stale = cov.scanned.filter((p) => !declared.has(p));
+  expect(stale, `本次扫描的路由未在路由表中声明（清单可能已过期）：${stale.join(",")}`).toEqual([]);
 }
 
 /** 密闭性：经 saas-admin dev server 代理的 /api 必须落在本地 mock（带 mode:mock-db） */
@@ -181,6 +187,7 @@ test.describe("saas-admin 无障碍扫描（WCAG 2.1 AA）", () => {
     await page.goto(`${SAAS_BASE}/#/login`);
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(2_000);
+    ensureSaasCoverage();
 
     const st = await waitForVisualSettled(page);
     console.log(
@@ -200,7 +207,8 @@ test.describe("saas-admin 无障碍扫描（WCAG 2.1 AA）", () => {
       `[saas-a11y] 登录页: total=${results.violations.length}, critical/serious=${criticalSerious.length}` +
         (criticalSerious.length ? `, types=${criticalSerious.map((v) => v.id).join(",")}` : "")
     );
-    logViolations("登录页", criticalSerious);
+    logViolations("saas-a11y", "登录页", criticalSerious);
+    logIncomplete("saas-a11y", "登录页", results);
     expect(criticalSerious.length).toBe(0);
   });
 
@@ -229,6 +237,7 @@ test.describe("saas-admin 无障碍扫描（WCAG 2.1 AA）", () => {
       await page.waitForLoadState("domcontentloaded");
       await page.waitForTimeout(3_000); // SPA 渲染等待（S3-63 同款：不加等待会取到空 DOM）
       console.log(`[saas-a11y] route=${route} url=${page.url()}`);
+      ensureSaasCoverage();
 
       const st = await waitForVisualSettled(page);
       console.log(
@@ -248,7 +257,7 @@ test.describe("saas-admin 无障碍扫描（WCAG 2.1 AA）", () => {
         `[saas-a11y] ${route}: total=${results.violations.length}, critical/serious=${criticalSerious.length}` +
           (criticalSerious.length ? `, types=${criticalSerious.map((v) => v.id).join(",")}` : "")
       );
-      logViolations(route, criticalSerious);
+      logViolations("saas-a11y", route, criticalSerious);
 
       // 密闭性收口：扫描期间不得有任何外部域名请求
       console.log(
@@ -258,6 +267,7 @@ test.describe("saas-admin 无障碍扫描（WCAG 2.1 AA）", () => {
       );
       expect(external, `${route} 扫描期间出现外部域名请求，密闭性被破坏`).toEqual([]);
 
+      logIncomplete("saas-a11y", route, results);
       expect(criticalSerious.length).toBe(0);
     });
   }
