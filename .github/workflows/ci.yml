@@ -76,6 +76,25 @@ jobs:
       - name: Backend lint gate (zero error)
         run: npm --workspace backend run lint
 
+      # S3-176 B0c：账号 / 鉴权域两道门禁接进 CI（**阻断**步骤）。
+      #   背景（`docs/tasks/R101-账号权限域-统一收口计划.md` §七.2 实测）：
+      #   `backend/scripts/guard-route-auth.mjs`（G3）与 `backend/scripts/guard-tenant-status.mjs`（G2）
+      #   原本**不在任何 workflow 里** ⇒ 这两道门禁**不阻断任何人**，纯摆设
+      #   （G3 当时实测红 14 条，照样能合进 main）。
+      #   两者都是纯 node 脚本、不依赖 node_modules，故加 `if: always()`：不被任何前置步骤
+      #   （`npm ci` / backend 单测 / lint）的失败掩蔽 —— 同 S3-46 的教训（前置一红，后置门禁被
+      #   静默 skipped，等于没检；见上方 Shell script syntax check 的注释）。
+      #   ⚠️ 防假门禁三条：① 不用 `continue-on-error`；② 不用 `|| true` / `|| echo` 吞退出码；
+      #   ③ 两道门禁**各占一步、不串联** —— 串在一条 `run` 里时，前一条失败会被后一条的退出码掩盖，
+      #   且红在哪一道看不清（本步骤一失败即让整个 job 红）。
+      - name: Route auth guard (G3, blocking)
+        if: always()
+        run: node backend/scripts/guard-route-auth.mjs
+
+      - name: Tenant status guard (G2, blocking)
+        if: always()
+        run: node backend/scripts/guard-tenant-status.mjs
+
       - name: Backend coverage gate (baseline 2026-08-15)
         run: npm --workspace backend run test -- --coverage
 
