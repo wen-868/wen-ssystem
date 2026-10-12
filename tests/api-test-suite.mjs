@@ -14,6 +14,9 @@ const BASE_URL = process.env.API_BASE || "http://localhost:8080";
 const API_PREFIX = "/api";
 const TIMEOUT_MS = 15000;
 
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+
 const COLORS = {
   reset: "\x1b[0m",
   red: "\x1b[31m",
@@ -127,7 +130,7 @@ async function run() {
   // 2.1 正确登录
   try {
     const r = await request("POST", `${API_PREFIX}/admin/auth/login`, {
-      username: "admin", password: "admin123",
+      username: "admin", password: DEMO_PASSWORD,
     });
     const ok = assertSuccess(r) && r.json.data?.token;
     if (ok) adminToken = r.json.data.token;

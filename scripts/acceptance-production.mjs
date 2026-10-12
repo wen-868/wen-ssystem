@@ -1,7 +1,8 @@
 const ADMIN_URL = process.env.ADMIN_URL || "https://admin.onepan.cn";
 const API_BASE = process.env.API_BASE || "https://api.onepan.cn/api";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+// S3-175：默认口令不再写死弱口令；生产口令由 env 注入（ADMIN_PASSWORD / DEMO_PASSWORD）
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.DEMO_PASSWORD || "Demo@2026";
 
 async function mustFetch(url) {
   const res = await fetch(url);

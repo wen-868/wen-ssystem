@@ -670,11 +670,22 @@ describe("runMigrations", () => {
       return Promise.resolve([{ affectedRows: 0 }]);
     });
 
+    // mockHashSync 是模块级 vi.fn()，本文件其它用例也会调用它 ⇒ 只统计本次 runMigrations 产生的调用
+    const callsBefore = mockHashSync.mock.calls.length;
     await runMigrations();
 
     expect(shaQueryCalled).toBe(true);
     expect(updateCalled).toBe(true);
-    expect(mockHashSync).toHaveBeenCalledWith("admin123", 10);
+    // S3-175：SHA256 旧口令改为**逐账号随机**重置，不再统一写成同一个公开弱口令。
+    // 分辨口径：本步骤用 cost=10；`seed-data` 的演示口令走 `hashPasswordSync`（SALT_ROUNDS=12），
+    // 两者 cost 不同，故只取本次调用里 cost=10 的那一条。
+    const resetCalls = (mockHashSync.mock.calls.slice(callsBefore) as Array<[string, number]>).filter(
+      ([, rounds]) => rounds === 10
+    );
+    expect(resetCalls).toHaveLength(1);
+    const [generatedPassword] = resetCalls[0];
+    expect(typeof generatedPassword).toBe("string");
+    expect(generatedPassword.length).toBeGreaterThanOrEqual(32);
   });
 
   it("SHA256 密码修复过程中出错时应捕获异常（line 216）", async () => {

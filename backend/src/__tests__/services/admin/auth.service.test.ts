@@ -40,6 +40,7 @@ vi.mock("../../../shared/password", () => ({
 }));
 
 import { login, demoLogin, getMe, getSettings, updateSettings, changePassword, DEMO_USERNAME } from "../../../services/admin/auth.service";
+import { constants } from "../../../config/constants";
 
 describe("auth.service", () => {
   beforeEach(() => vi.resetAllMocks());
@@ -377,7 +378,7 @@ describe("auth.service", () => {
         locked_until: new Date(Date.now() + 600_000),
       });
 
-      await expect(login("store_manager", "admin123")).rejects.toThrow("账号已锁定");
+      await expect(login("store_manager", constants.DEMO_PASSWORD)).rejects.toThrow("账号已锁定");
       expect(mocks.query).not.toHaveBeenCalled();
     });
 

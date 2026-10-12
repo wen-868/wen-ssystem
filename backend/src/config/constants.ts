@@ -8,6 +8,18 @@ export const constants = {
    * 任何地方需要判断「是不是演示账号」，只允许引用本常量，禁止再写第二处 `"demo"` 字面量。
    */
   DEMO_USERNAME: "demo",
+  /**
+   * 演示/测试账号的**统一口令**（唯一来源）。
+   *
+   * S3-175（业主口径「演示帐号密码一定要统一」）：`demo`、`store_manager`、
+   * `store_operator`、mock 态 `admin` 与全部测试脚本/测试文档一律使用本值。
+   * 前端回退值另在 `admin-web/src/api/common.ts`、`app-mobile/src/api/modules/auth.ts`
+   * （读 `VITE_DEMO_PASSWORD`，默认与本值同）。
+   *
+   * ⚠️ 真实超管（租户 `admin` / `tenant_admin` / 平台 `t_platform_admin.admin`）口令
+   * **不参与统一**，且禁止在代码或迁移里写回任何公开值（见 shared/migration.ts）。
+   */
+  DEMO_PASSWORD: "Demo@2026",
   /** 默认箱规 */
   DEFAULT_BOX_RATIO: 12,
   /** 导出上限 */

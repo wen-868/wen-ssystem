@@ -30,6 +30,9 @@ const DURATION_MS = Number(arg("--duration", "15")) * 1000;
 const TARGET_QPS = Number(arg("--qps", "0"));
 const SCENARIO = arg("--scenario", "api");
 
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+
 // 请求间隔节流（毫秒）：达到目标 QPS 时每个 worker 的发送间隔
 const WORKER_INTERVAL_MS = TARGET_QPS > 0 ? Math.max(1, (CONCURRENCY / TARGET_QPS) * 1000) : 0;
 
@@ -59,7 +62,7 @@ async function scenarioRequest(token = "") {
     return timedFetch(`${BASE}/api/store/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "store_manager", password: "admin123" }),
+      body: JSON.stringify({ username: "store_manager", password: DEMO_PASSWORD }),
     });
   }
   // api 场景：预热登录已取得 token，压测核心业务接口
@@ -76,7 +79,7 @@ async function run() {
     const login = await timedFetch(`${BASE}/api/store/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "store_manager", password: "admin123" }),
+      body: JSON.stringify({ username: "store_manager", password: DEMO_PASSWORD }),
     });
     try {
       const data = JSON.parse(login.rawBody || "{}");

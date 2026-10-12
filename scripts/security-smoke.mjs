@@ -19,6 +19,9 @@ const BASE = process.argv.includes("--base")
   ? process.argv[process.argv.indexOf("--base") + 1]
   : "http://127.0.0.1:8080";
 
+// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+
 async function req(path, options = {}) {
   try {
     const res = await fetch(`${BASE}${path}`, {
@@ -37,7 +40,7 @@ async function login() {
     const res = await fetch(`${BASE}/api/store/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: "admin123" }),
+      body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD }),
       signal: AbortSignal.timeout(10_000),
     });
     const data = await res.json();

@@ -1,12 +1,14 @@
 import { hashPasswordSync } from "../../shared/password";
+import { constants } from "../../config/constants";
 
 export type Row = Record<string, any>;
 
 export const state = {
   users: [
-    { id: 1, username: "admin", password_hash: hashPasswordSync("admin123"), real_name: "系统管理员", store_id: null, status: 1, tenant_id: "default" },
+    // S3-175：mock 态测试账号口令与全系统统一口径同源（constants.DEMO_PASSWORD）。
+    { id: 1, username: "admin", password_hash: hashPasswordSync(constants.DEMO_PASSWORD), real_name: "系统管理员", store_id: null, status: 1, tenant_id: "default" },
     // 门店/商家端登录账号（qa-regression-test 门店端场景使用）
-    { id: 2, username: "store_manager", password_hash: hashPasswordSync("admin123"), real_name: "门店经理", store_id: 1, status: 1, tenant_id: "default" },
+    { id: 2, username: "store_manager", password_hash: hashPasswordSync(constants.DEMO_PASSWORD), real_name: "门店经理", store_id: 1, status: 1, tenant_id: "default" },
     // 演示账号：与生产同源（生产 t_sys_user.username='demo' 已用产品端点设为 Demo@2026，
     // 2026-10-07 实测生产 POST /api/admin/auth/login demo/Demo@2026 => 200）。
     // 登录页「演示登录（一键进入）」走的就是这条口令登录路径（C6-9），故 mock 必须同源，否则 e2e 失真。
@@ -95,7 +97,9 @@ export const state = {
   platformCredentials: [] as Row[],
   platformOrders: [] as Row[],
   platformAdmins: [
-    { id: 1, username: "platform_admin", password: hashPasswordSync("admin123"), real_name: "平台管理员", email: "admin@onepan.cn", phone: "13800000000", role: "SUPER_ADMIN", status: 1 }
+    // S3-175：本行只是**本地 mock 夹具**（USE_MOCK_DB=true 时生效，不进生产）；
+    // 口令同样收敛到统一测试口径，避免第三处写死值。生产 t_platform_admin 口令不在仓内。
+    { id: 1, username: "platform_admin", password: hashPasswordSync(constants.DEMO_PASSWORD), real_name: "平台管理员", email: "admin@onepan.cn", phone: "13800000000", role: "SUPER_ADMIN", status: 1 }
   ],
   // ===== 第一/二阶段新增表 =====
   // 供应商种子（与真实库同构；mock 重启后仍保留，供本地预览/QA 回归使用）

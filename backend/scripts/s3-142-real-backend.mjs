@@ -29,7 +29,9 @@ const DB = {
   password: process.env.S3_142_DB_PASSWORD ?? "",
   name: process.env.S3_142_DB_NAME || "s3142_verify",
 };
-const ADMIN_PASSWORD = "Admin@2026";
+// S3-175：管理员口令不再写死公开值 —— 与迁移口径一致（迁移读 SEED_ADMIN_PASSWORD，
+// 未被注入时用随机值）。本机取证装置由 s3-142-real-backend.ps1 注入 SEED_ADMIN_PASSWORD=统一演示口令。
+const ADMIN_PASSWORD = process.env.S3_142_ADMIN_PASSWORD || process.env.DEMO_PASSWORD || "Demo@2026";
 const NO_PERM_USER = "s3142_norole";
 const EVIDENCE_DIR = process.env.S3_142_EVIDENCE_DIR || join(tmpdir(), "s3-142-evidence");
 const PLAN_CODE = "S3142QUOTA";
