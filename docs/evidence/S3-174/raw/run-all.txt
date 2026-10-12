@@ -1,0 +1,106 @@
+=== S3-174-F1 验证装置 · mode=all · DB root@127.0.0.1:3410/s3174_prod ===
+
+── shape：迁移 197 形状断言（真实 splitSqlStatements / addTablePrefix） ──
+  [0] INSERT  写=true INSERT INTO t_tenant (id, name, company_name, contact_person, contact_
+  [1] UPDATE  写=true UPDATE t_sys_user
+  [2] UPDATE  写=true UPDATE t_sys_user_role
+  [3] INSERT  写=true INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
+  [4] INSERT  写=true INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, pa
+  [5] INSERT  写=true INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, pa
+  [6] SELECT  写=false SELECT
+  [7] SELECT  写=false SELECT CONCAT(
+PASS  切块后 8 条语句（实际 8）
+PASS  其中 6 条数据写语句（实际 6）
+PASS  2 条跑后核对 SELECT
+PASS  红线：可执行语句里无 INSERT IGNORE（判红 ① 的根因）
+PASS  第 1 条 = 建演示租户（显式列清单，非 IGNORE）
+PASS  第 1 条显式写入 NOT NULL 列 company_name
+PASS  第 1 条显式写入 NOT NULL 列 contact_person
+PASS  第 1 条显式写入 NOT NULL 列 contact_mobile
+PASS  第 1 条显式写入 NOT NULL 列 tenant_code
+PASS  存在性判定用 WHERE NOT EXISTS（幂等）
+PASS  不用 FROM DUAL（addTablePrefix 会改写成 t_DUAL）
+PASS  判红②：角色绑定是 UPDATE 原地改租户
+PASS  判红②：可执行语句里无 DELETE（禁止先插后删）
+PASS  判红③：菜单克隆 2 条（顶级 + 子级），实际 2
+PASS  菜单克隆源 = default 租户
+PASS  子菜单 parent_id 重指向 demo 自己的父行
+PASS  零业务数据搬迁：语句流不出现 t_sale_bill
+PASS  零业务数据搬迁：语句流不出现 t_member
+PASS  零业务数据搬迁：语句流不出现 t_product_spu
+PASS  零业务数据搬迁：语句流不出现 t_purchase_order
+PASS  零业务数据搬迁：语句流不出现 t_store
+PASS  只碰四张系统表（实际 ["t_sys_menu","t_sys_role","t_sys_user","t_sys_user_role","t_tenant"]）
+PASS  addTablePrefix 不产生 t_t_ 前缀污染
+PASS  注释块存在（96 行）
+PASS  注释文字内无 ASCII 分号（规避踩坑[63] 丢块）
+PASS  含写闸门警告与正确执行方式
+PASS  末两条 = 跑后核对 SELECT（demo_tenant_rows）+ result 摘要（run-migration.mjs 的完成标志）
+PASS  docs/migrations 下 197 唯一
+
+── pos：正向 —— 生产同构夹具 → 跑迁移 → 逐条断言 → 再跑一遍（幂等） ──
+夹具就绪：init 建表 66 条（跳过 0）、菜单语句 3 条、default 菜单 32 行、demo 菜单 0 行、default 销售单 524 行
+PASS  迁移前：demo 租户不存在（反测前置）
+PASS  迁移前：演示账号仍在真实租户 default（判红实测形态）
+PASS  迁移前：demo 租户菜单 0 行（判红 §二.3）
+PASS  迁移 197 执行成功（EXIT 0 口径：本句未抛错）
+  t_tenant id='demo'      : [{"id":"demo","company_name":"演示租户","contact_person":"演示联系人","contact_mobile":"13800000000","tenant_code":"DEMO","status":1}]
+  t_sys_user username=demo: [{"id":3,"username":"demo","tenant_id":"demo"}]
+  角色绑定                : [{"tenant_id":"demo","role_code":"STORE_OPERATOR"},{"tenant_id":"demo","role_code":"SUPER_ADMIN"}]
+  菜单 demo / default     : 32 / 32
+  t_sale_bill 按租户      : [{"tenant_id":"default","c":524}]
+PASS  跑完一遍：demo 租户存在（company_name=演示租户 / tenant_code=DEMO）
+PASS  跑完一遍：demo 租户 company_name 已写值（NOT NULL 无默认值列全部命中）
+PASS  跑完一遍：demo 租户 contact_person 已写值（NOT NULL 无默认值列全部命中）
+PASS  跑完一遍：demo 租户 contact_mobile 已写值（NOT NULL 无默认值列全部命中）
+PASS  跑完一遍：demo 租户 tenant_code 已写值（NOT NULL 无默认值列全部命中）
+PASS  跑完一遍：演示账号归属 = demo（且不在其它租户）
+PASS  跑完一遍：demo 租户内角色绑定 >= 1（实际 2）
+PASS  跑完一遍：其它租户无残留绑定
+PASS  跑完一遍：demo 租户下仍是 SUPER_ADMIN
+PASS  跑完一遍：demo 租户菜单数 > 0（实际 32）
+PASS  跑完一遍：demo 菜单数与 default 一致（32 = 32）
+PASS  跑完一遍：default 租户业务数据零损（t_sale_bill = 524，期望 524）
+  演示登录 roles = ["SUPER_ADMIN","STORE_OPERATOR"]
+PASS  演示登录 roles 非空且含 SUPER_ADMIN
+  第二遍 6 条写语句 affectedRows = [0,0,0,0,0,0]
+PASS  幂等：第二遍 6 条写语句全部 0 行变更
+  t_tenant id='demo'      : [{"id":"demo","company_name":"演示租户","contact_person":"演示联系人","contact_mobile":"13800000000","tenant_code":"DEMO","status":1}]
+  t_sys_user username=demo: [{"id":3,"username":"demo","tenant_id":"demo"}]
+  角色绑定                : [{"tenant_id":"demo","role_code":"STORE_OPERATOR"},{"tenant_id":"demo","role_code":"SUPER_ADMIN"}]
+  菜单 demo / default     : 32 / 32
+  t_sale_bill 按租户      : [{"tenant_id":"default","c":524}]
+PASS  连跑两遍后：demo 租户存在（company_name=演示租户 / tenant_code=DEMO）
+PASS  连跑两遍后：demo 租户 company_name 已写值（NOT NULL 无默认值列全部命中）
+PASS  连跑两遍后：demo 租户 contact_person 已写值（NOT NULL 无默认值列全部命中）
+PASS  连跑两遍后：demo 租户 contact_mobile 已写值（NOT NULL 无默认值列全部命中）
+PASS  连跑两遍后：demo 租户 tenant_code 已写值（NOT NULL 无默认值列全部命中）
+PASS  连跑两遍后：演示账号归属 = demo（且不在其它租户）
+PASS  连跑两遍后：demo 租户内角色绑定 >= 1（实际 2）
+PASS  连跑两遍后：其它租户无残留绑定
+PASS  连跑两遍后：demo 租户下仍是 SUPER_ADMIN
+PASS  连跑两遍后：demo 租户菜单数 > 0（实际 32）
+PASS  连跑两遍后：demo 菜单数与 default 一致（32 = 32）
+PASS  连跑两遍后：default 租户业务数据零损（t_sale_bill = 524，期望 524）
+PASS  幂等：菜单无重复（两次都是 32）
+PASS  幂等：角色绑定无重复（两次都是 2 条）
+  旁证（不算本单验收项）：getUserPermissions 的 r.tenant_id = ur.tenant_id 连接命中 0 行、getUserMenus 的 r.tenant_id = '<tenant>' 过滤命中 0 行 ⇒ 角色的 tenant_id 仍是 'default'，见回传卡「风险与自我报备」
+
+── neg-notnull：反向① —— 去掉 company_name ⇒ 迁移必须报错停下 ──
+PASS  反测样本已构造（company_name 从列清单与值清单同时去掉）
+PASS  迁移**报错停下**（不得静默跳过）
+  原始错误：code=ER_NO_DEFAULT_FOR_FIELD message=Field 'company_name' doesn't have a default value
+PASS  错误码为 1364 ER_NO_DEFAULT_FOR_FIELD（实际 code=ER_NO_DEFAULT_FOR_FIELD errno=1364）
+PASS  反测后 demo 租户仍未建出（0 行）—— 说明是「停下」而非「跳过继续」
+PASS  反测后演示账号仍在 default（没有被半途改走）
+
+── neg-binding：反向② —— 退回「先插后删」 ⇒ 绑定必须归零（复现判红 §二.2） ──
+  旧写法执行后：该账号绑定总数 0 条（其中 demo 租户内 0 条）
+PASS  旧写法确实把绑定清零（证明判红 §二.2 成立，本单的 UPDATE 写法是必要的）
+
+── neg-menu：反向③ —— 不迁菜单 ⇒ demo 菜单必须为 0（复现判红 §二.3） ──
+  不迁菜单时 demo 租户菜单 0 行
+PASS  不迁菜单 ⇒ demo 菜单确实为 0（证明判红 §二.3 成立，菜单克隆是必要的）
+PASS  同一轮里账号侧仍然迁移成功（说明只是把菜单那两段拿掉做对照）
+
+EXIT=0 all 全部断言通过

@@ -1,0 +1,41 @@
+=== S3-174-F1 验证装置 · mode=shape · DB root@127.0.0.1:3410/s3174_prod ===
+
+── shape：迁移 197 形状断言（真实 splitSqlStatements / addTablePrefix） ──
+  [0] INSERT  写=true INSERT INTO t_tenant (id, name, company_name, contact_person, contact_
+  [1] UPDATE  写=true UPDATE t_sys_user
+  [2] UPDATE  写=true UPDATE t_sys_user_role
+  [3] INSERT  写=true INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
+  [4] INSERT  写=true INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, pa
+  [5] INSERT  写=true INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, pa
+  [6] SELECT  写=false SELECT
+  [7] SELECT  写=false SELECT CONCAT(
+PASS  切块后 8 条语句（实际 8）
+PASS  其中 6 条数据写语句（实际 6）
+PASS  2 条跑后核对 SELECT
+PASS  红线：可执行语句里无 INSERT IGNORE（判红 ① 的根因）
+PASS  第 1 条 = 建演示租户（显式列清单，非 IGNORE）
+PASS  第 1 条显式写入 NOT NULL 列 company_name
+PASS  第 1 条显式写入 NOT NULL 列 contact_person
+PASS  第 1 条显式写入 NOT NULL 列 contact_mobile
+PASS  第 1 条显式写入 NOT NULL 列 tenant_code
+PASS  存在性判定用 WHERE NOT EXISTS（幂等）
+PASS  不用 FROM DUAL（addTablePrefix 会改写成 t_DUAL）
+PASS  判红②：角色绑定是 UPDATE 原地改租户
+PASS  判红②：可执行语句里无 DELETE（禁止先插后删）
+PASS  判红③：菜单克隆 2 条（顶级 + 子级），实际 2
+PASS  菜单克隆源 = default 租户
+PASS  子菜单 parent_id 重指向 demo 自己的父行
+PASS  零业务数据搬迁：语句流不出现 t_sale_bill
+PASS  零业务数据搬迁：语句流不出现 t_member
+PASS  零业务数据搬迁：语句流不出现 t_product_spu
+PASS  零业务数据搬迁：语句流不出现 t_purchase_order
+PASS  零业务数据搬迁：语句流不出现 t_store
+PASS  只碰四张系统表（实际 ["t_sys_menu","t_sys_role","t_sys_user","t_sys_user_role","t_tenant"]）
+PASS  addTablePrefix 不产生 t_t_ 前缀污染
+PASS  注释块存在（96 行）
+PASS  注释文字内无 ASCII 分号（规避踩坑[63] 丢块）
+PASS  含写闸门警告与正确执行方式
+PASS  末两条 = 跑后核对 SELECT（demo_tenant_rows）+ result 摘要（run-migration.mjs 的完成标志）
+PASS  docs/migrations 下 197 唯一
+
+EXIT=0 shape 全部断言通过

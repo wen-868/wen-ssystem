@@ -1,0 +1,11 @@
+=== S3-174-F1 验证装置 · mode=setup · DB root@127.0.0.1:3410/s3174_prod ===
+
+── setup：建「生产同构」夹具 ──
+夹具就绪：init 建表 66 条（跳过 0）、菜单语句 3 条、default 菜单 32 行、demo 菜单 0 行、default 销售单 524 行
+  t_tenant id='demo'      : []
+  t_sys_user username=demo: [{"id":3,"username":"demo","tenant_id":"default"}]
+  角色绑定                : [{"tenant_id":"default","role_code":"STORE_OPERATOR"},{"tenant_id":"default","role_code":"SUPER_ADMIN"}]
+  菜单 demo / default     : 0 / 32
+  t_sale_bill 按租户      : [{"tenant_id":"default","c":524}]
+
+EXIT=0 setup 全部断言通过

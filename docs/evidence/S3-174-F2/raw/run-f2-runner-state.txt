@@ -1,0 +1,13 @@
+库 s3174f2_runner 跑后读数：{"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+--- 官方执行载体（scripts/run-migration.mjs）跑后 A/B/C ---
+A. JWT roles 含 SUPER_ADMIN      -> PASS ["SUPER_ADMIN","STORE_OPERATOR"]
+B. permissions 非空             -> PASS rows=2
+C. getUserMenus 能识别超管      -> PASS ["SUPER_ADMIN","STORE_OPERATOR"]
+--- 跑后：演示账号绑定行明细 ---
+  ur.id=2650 role_id=8156 role_code=STORE_OPERATOR 绑定租户=demo 角色行租户=demo
+  ur.id=2651 role_id=8155 role_code=SUPER_ADMIN 绑定租户=demo 角色行租户=demo
+  跨租户绑定（绑定租户 ≠ 角色行租户）条数 = 0
+PASS  demo 角色行 > 0（角色行克隆生效）  <- demo_role_rows=2
+PASS  绑定全在 demo 且命中本租户角色（bind_out = 0）  <- {"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+
+小结（本装置自身断言）：2 passed / 0 failed

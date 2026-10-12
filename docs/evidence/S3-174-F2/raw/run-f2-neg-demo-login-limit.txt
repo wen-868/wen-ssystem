@@ -1,0 +1,82 @@
+PASS  从源码抽到超管角色查询  <- "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = ? LIMIT 1"
+PASS  源码里的查询已限定租户（③ 在位）  <- "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = ? LIMIT 1"
+PASS  去掉限定后的变体（反向②用）  <- "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' LIMIT 1"
+
+--- auth.service.ts 第 403-416 行（本次要复算的真实写路径）---
+  403:   // 确保绑定 SUPER_ADMIN 角色（幂等：存在则跳过、缺失才补，不用 INSERT IGNORE 掩盖冲突）
+  404:   // S3-174-F2：角色行是**租户内实体**（t_sys_role 唯一键 uk_role_code_tenant），此查询必须限定
+  405:   // DEMO_TENANT —— 不限租户时 LIMIT 1 会命中 default 租户的 SUPER_ADMIN 行，登录一次就把
+  406:   // default 的角色 id 绑进 demo（该跨租户绑定过不了 getUserPermissions 的 r.tenant_id = ur.tenant_id，
+  407:   // 还会让随后重跑迁移 197 的"按 role_code 重指向"撞上 uk_sys_user_role (user_id, role_id) 唯一键）。
+  408:   const superRole = await queryOne<RoleRow>(
+  409:     "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = ? LIMIT 1",
+  410:     [DEMO_TENANT]
+  411:   );
+  412:   if (superRole) {
+  413:     await query(
+  414:       `INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
+  415:        SELECT ?, ?, ? FROM (SELECT 1 AS whether_to_bind) AS bind_probe
+  416:        WHERE NOT EXISTS (SELECT 1 FROM t_sys_user_role WHERE user_id = ? AND role_id = ?)`,
+PASS  源码含该 INSERT 的判据片段（防止本装置与源码形状漂移）
+
+########## 反向②：去掉 DEMO_TENANT 限定 ##########
+197 跑完一遍：{"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+--- 197 后（登录前）基线 ---
+A. JWT roles 含 SUPER_ADMIN      -> PASS ["STORE_OPERATOR","SUPER_ADMIN"]
+B. permissions 非空             -> PASS rows=2
+C. getUserMenus 能识别超管      -> PASS ["SUPER_ADMIN","STORE_OPERATOR"]
+--- 197 后（登录前）：演示账号绑定行明细 ---
+  ur.id=2650 role_id=8156 role_code=STORE_OPERATOR 绑定租户=demo 角色行租户=demo
+  ur.id=2651 role_id=8155 role_code=SUPER_ADMIN 绑定租户=demo 角色行租户=demo
+  跨租户绑定（绑定租户 ≠ 角色行租户）条数 = 0
+登录路径第 1 步：account.tenant_id = demo ⇒ 归属自愈跳过
+登录路径第 2 步：执行超管查询 "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' LIMIT 1"
+  -> 命中 role id=6961（该角色行 tenant_id=default）
+登录路径第 3 步：缺失才插 affectedRows=1（0 = 已有同 (user_id, role_id) 绑定，未新增）
+--- 登录一次后：演示账号绑定行明细 ---
+  ur.id=2650 role_id=8156 role_code=STORE_OPERATOR 绑定租户=demo 角色行租户=demo
+  ur.id=2651 role_id=8155 role_code=SUPER_ADMIN 绑定租户=demo 角色行租户=demo
+  ur.id=2654 role_id=6961 role_code=SUPER_ADMIN 绑定租户=demo 角色行租户=default
+  跨租户绑定（绑定租户 ≠ 角色行租户）条数 = 1
+--- 登录一次后 ---
+A. JWT roles 含 SUPER_ADMIN      -> PASS ["STORE_OPERATOR","SUPER_ADMIN","SUPER_ADMIN"]
+B. permissions 非空             -> PASS rows=2
+C. getUserMenus 能识别超管      -> PASS ["SUPER_ADMIN","STORE_OPERATOR"]
+计数：{"demo_role_rows":2,"default_role_rows":2,"bind_demo":3,"bind_out":0,"menus_demo":89}
+读数小结：B/C 在登录后 仍为 PASS（登录路径是「缺失才插」的追加式写入，不覆盖已修好的绑定）；跨租户绑定 1 条
+PASS  反向②：去掉限定 ⇒ 超管查询命中 **default** 租户的角色行（③ 必须存在）  <- role_id=6961 role.Tenant=default
+PASS  反向②：登录一次后，该账号多出一条跨租户绑定（指向 default 的角色行）  <- 跨租户绑定 1 条
+
+--- 反向② 后果：再跑一遍 197（凌舟装置的幂等断言正是「连跑两遍」）---
+  重跑 197 报错停下：code=ER_DUP_ENTRY message=Duplicate entry '3-8155' for key 'uk_sys_user_role'
+PASS  反向② 后果：登录留下的跨租户绑定会让重跑 197 撞唯一键报错（红）  <- ER_DUP_ENTRY
+
+########## 对照组：限定 DEMO_TENANT（③ 已修） ##########
+197 跑完一遍：{"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+--- 197 后（登录前）基线 ---
+A. JWT roles 含 SUPER_ADMIN      -> PASS ["STORE_OPERATOR","SUPER_ADMIN"]
+B. permissions 非空             -> PASS rows=2
+C. getUserMenus 能识别超管      -> PASS ["SUPER_ADMIN","STORE_OPERATOR"]
+--- 197 后（登录前）：演示账号绑定行明细 ---
+  ur.id=2650 role_id=8156 role_code=STORE_OPERATOR 绑定租户=demo 角色行租户=demo
+  ur.id=2651 role_id=8155 role_code=SUPER_ADMIN 绑定租户=demo 角色行租户=demo
+  跨租户绑定（绑定租户 ≠ 角色行租户）条数 = 0
+登录路径第 1 步：account.tenant_id = demo ⇒ 归属自愈跳过
+登录路径第 2 步：执行超管查询 "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = ? LIMIT 1"
+  -> 命中 role id=8155（该角色行 tenant_id=demo）
+登录路径第 3 步：缺失才插 affectedRows=0（0 = 已有同 (user_id, role_id) 绑定，未新增）
+--- 登录一次后：演示账号绑定行明细 ---
+  ur.id=2650 role_id=8156 role_code=STORE_OPERATOR 绑定租户=demo 角色行租户=demo
+  ur.id=2651 role_id=8155 role_code=SUPER_ADMIN 绑定租户=demo 角色行租户=demo
+  跨租户绑定（绑定租户 ≠ 角色行租户）条数 = 0
+--- 登录一次后 ---
+A. JWT roles 含 SUPER_ADMIN      -> PASS ["STORE_OPERATOR","SUPER_ADMIN"]
+B. permissions 非空             -> PASS rows=2
+C. getUserMenus 能识别超管      -> PASS ["SUPER_ADMIN","STORE_OPERATOR"]
+计数：{"demo_role_rows":2,"default_role_rows":2,"bind_demo":2,"bind_out":0,"menus_demo":89}
+读数小结：B/C 在登录后 仍为 PASS（登录路径是「缺失才插」的追加式写入，不覆盖已修好的绑定）；跨租户绑定 0 条
+PASS  对照组：限定租户 ⇒ 超管查询命中 **demo** 租户的角色行  <- role_id=8155 role.Tenant=demo
+PASS  对照组：登录后不新增任何跨租户绑定  <- 跨租户绑定 0 条
+PASS  对照组：登录后重跑 197 不报错（幂等保持）  <- 无错误
+
+小结（本装置自身断言）：10 passed / 0 failed

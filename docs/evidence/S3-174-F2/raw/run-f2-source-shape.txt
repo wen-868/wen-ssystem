@@ -1,0 +1,17 @@
+PASS  auth.service.ts 里能抽到超管角色查询原文  <- "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = ? LIMIT 1"
+PASS  ③ 修复在位：该查询已限定租户（含 tenant_id = ?）  <- "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND tenant_id = ? LIMIT 1"
+--- 197 语句流 ---
+  [0] INSERT INSERT INTO t_tenant (id, name, company_name, contact_person, contact_mobile, tenant_code, plan,
+  [1] INSERT INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tena
+  [2] UPDATE UPDATE t_sys_user SET tenant_id = 'demo', updated_at = NOW() WHERE username = 'demo' AND (tenant
+  [3] UPDATE UPDATE t_sys_user_role ur JOIN t_sys_user u ON u.id = ur.user_id AND u.username = 'demo' JOIN t_
+  [4] INSERT INSERT INTO t_sys_user_role (user_id, role_id, tenant_id) SELECT u.id, r.id, 'demo' FROM t_sys_u
+  [5] INSERT INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, path, component, icon, sort_
+  [6] INSERT INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, path, component, icon, sort_
+  [7] SELECT SELECT (SELECT COUNT(*) FROM t_tenant WHERE id = 'demo') AS demo_tenant_rows, (SELECT COUNT(*) F
+  [8] SELECT SELECT CONCAT( '迁移 197 完成：demo 租户 ', (SELECT COUNT(*) FROM t_tenant WHERE id = 'demo'), ' 行', '，
+PASS  语句流 9 条（7 写 + 2 核对 SELECT）  <- 实际 9
+PASS  第 2 条 = 克隆角色行  <- INSERT INTO t_sys_role (role_code, role_name, description, d
+PASS  第 4 条 = 绑定 UPDATE 原地改角色指向  <- UPDATE t_sys_user_role ur JOIN t_sys_user u ON u.id = ur.user_id AND u.username 
+
+小结（本装置自身断言）：5 passed / 0 failed
