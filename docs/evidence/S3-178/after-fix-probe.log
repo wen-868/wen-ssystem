@@ -1,0 +1,18 @@
+===== S3-178 取证：改后(S3-178 修复版) （http://127.0.0.1:8098） =====
+[A0] demo-login => code=0 user=demo id=3 tokenA.len=336 csrfA.len=64
+[A1-无凭证+body.userId=B] POST /api/miniapp/marketing/coupons/claim => HTTP <401> | {"code":"401","msg":"未登录","traceId":"f67eb95f-22cf-410c-95e3-a41863b34a18"}
+[A2-A的凭证+body.userId=B+CSRF] POST /api/miniapp/marketing/coupons/claim => HTTP <403> | {"code":"403","msg":"禁止以客户端字段声明用户身份","traceId":"1fffbeef-f4fa-4872-b61c-e6f09a4510d8"}
+[A3-A的凭证+body.userId=B(无CSRF头)] POST /api/miniapp/marketing/coupons/claim => HTTP <403> | {"code":"403","msg":"CSRF token 无效或缺失","traceId":"c6360645-9260-4f52-bf4d-b6d1815f7877"}
+[A4-A的凭证+body.userId=A+CSRF] POST /api/miniapp/marketing/coupons/claim => HTTP <403> | {"code":"403","msg":"禁止以客户端字段声明用户身份","traceId":"f8209502-28a0-482c-b54e-b5ce7e0480de"}
+[A5-A的凭证+body.userId=登录态id(动态)] POST /api/miniapp/marketing/coupons/claim => HTTP <404> | {"code":"404","msg":"优惠券不存在或已过期","traceId":"6d80b036-dab0-49c6-8d6e-f380335ca5b1"}
+[A6-A的凭证+不传userId] POST /api/miniapp/marketing/coupons/claim => HTTP <404> | {"code":"404","msg":"优惠券不存在或已过期","traceId":"964258ac-4e7a-4d7c-b956-a7d775575724"}
+[B1-A的凭证+body.userId=B(秒杀)] POST /api/miniapp/marketing/flash-sales/grab => HTTP <403> | {"code":"403","msg":"禁止以客户端字段声明用户身份","traceId":"1d87ca6b-f6a7-44b0-ace4-7ffd5efbbfce"}
+[B2-A的凭证+body.userId=B(拼团)] POST /api/miniapp/marketing/group-buys/teams/join => HTTP <403> | {"code":"403","msg":"禁止以客户端字段声明用户身份","traceId":"f70e819f-3a91-4c6e-8b58-3f243745b7aa"}
+[C1-query.userId=B 读B的券] GET /api/miniapp/marketing/coupons/my?userId=4242 => HTTP <401> | {"code":"401","msg":"未登录","traceId":"ab46b057-77d9-43ee-9eda-573eaa4af456"}
+[C2-query.userId=B 读B的积分] GET /api/miniapp/marketing/points/my-records?userId=4242 => HTTP <401> | {"code":"401","msg":"未登录","traceId":"62ab4435-619e-4eec-b4b1-13cf84ac40a5"}
+[D1-公开浏览面(应保持公开)] GET /api/miniapp/marketing/coupons/available => HTTP <200> | {"code":"0","msg":"成功","data":{"total":0,"records":[]},"traceId":"4b38e71a-4280-4a73-8120-d1fc848ef1bc"}
+[E1-无CSRF头] POST /api/store/instant-retail/orders/PLAT-178/confirm => HTTP <403> | {"code":"403","msg":"CSRF token 无效或缺失","traceId":"3e746383-a4ca-4904-b689-8058df3767c3"}
+[E2-带CSRF头] POST /api/store/instant-retail/orders/PLAT-178/confirm => HTTP <404> | {"code":"404","msg":"订单不存在","traceId":"db253c6d-340e-401f-95ad-17822a710943"}
+[E3-GET(安全方法)] GET /api/store/instant-retail/orders => HTTP <200> | {"code":"0","msg":"成功","data":{"total":0,"page":1,"pageSize":20,"records":[]},"traceId":"4c61ebff-e7d1-40f6-b766-df2adb839d66"}
+[E4-不存在的路径(证明是前缀级前置中间件,而非路径级)] POST /api/store/instant-retail/orders/PLAT-178/not-a-route => HTTP <403> | {"code":"403","msg":"CSRF token 无效或缺失","traceId":"b4217cc2-c328-4da9-9e5c-2633eef2e187"}
+===== 取证结束：改后(S3-178 修复版) =====

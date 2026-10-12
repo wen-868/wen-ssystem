@@ -1,0 +1,81 @@
+[2026-10-13 01:00:18.457 +0800] [32mINFO[39m (13612): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-13 01:00:18.462 +0800] [32mINFO[39m (13612): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-13 01:00:18.463 +0800] [32mINFO[39m (13612): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-13 01:00:21.245 +0800] [32mINFO[39m (13612): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-10-13 01:00:21.659 +0800] [32mINFO[39m (13612): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-13 01:00:23.273 +0800] [32mINFO[39m (13612): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-13 01:00:23.902 +0800] [33mWARN[39m (13612): [36m[auto-routes] 检测到 11 个重复前缀：/api/admin (19次), /api/admin/marketing (7次), /api/miniapp (2次), /api/platform/billing (3次), /api/store (10次), /api/admin/reports (2次), /api/admin/instant-retail (2次), /api/admin/inventory (3次), /api/monitor (2次), /api/platform (3次), /api/platform/monitor (2次)。请确认端点无重复注册。[39m
+[2026-10-13 01:00:23.906 +0800] [32mINFO[39m (13612): [36m[auto-routes] 已自动注册 203 个路由[39m
+[2026-10-13 01:00:23.918 +0800] [32mINFO[39m (13612): [36mzhixiang-backend listening on http://127.0.0.1:8098[39m
+[2026-10-13 01:00:23.918 +0800] [32mINFO[39m (13612): [36m[预警引擎] 定时检查已启动，间隔 3600 秒[39m
+[2026-10-13 01:00:23.918 +0800] [32mINFO[39m (13612): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-13 01:00:23.920 +0800] [32mINFO[39m (13612): [36m[OverdueScanner] 超期检测定时任务已启动[39m
+[2026-10-13 01:00:23.920 +0800] [32mINFO[39m (13612): [36m[SubscriptionExpiry] 启动订阅到期检查定时任务[39m
+[2026-10-13 01:00:23.920 +0800] [32mINFO[39m (13612): [36m[SubscriptionExpiry] 开始检查订阅到期...[39m
+[2026-10-13 01:00:23.928 +0800] [32mINFO[39m (13612): [36m[SubscriptionExpiry] 检查完成，发现 0 个即将到期，0 个已过期[39m
+[mock-request] POST /api/admin/auth/demo-login
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/flash-sales/grab
+[mock-request] POST /api/miniapp/marketing/group-buys/teams/join
+[mock-request] GET /api/miniapp/marketing/coupons/my?userId=4242
+[mock-request] GET /api/miniapp/marketing/points/my-records?userId=4242
+[mock-request] GET /api/miniapp/marketing/coupons/available
+[2026-10-13 01:00:42.440 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT id, template_name AS name, coupon_type AS type, coupon_value AS value,
+            min_purcha[39m
+[mock-request] POST /api/store/instant-retail/orders/PLAT-178/confirm
+[mock-request] POST /api/store/instant-retail/orders/PLAT-178/confirm
+[2026-10-13 01:00:42.544 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT[39m
+[mock-request] GET /api/store/instant-retail/orders
+[2026-10-13 01:00:42.594 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
+            status, orde[39m
+[2026-10-13 01:00:42.594 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT COUNT(*) AS total FROM t_platform_order [39m
+[2026-10-13 01:00:53.925 +0800] [32mINFO[39m (13612): [36m[预警引擎] 首次检查完成，新增预警 0 条[39m
+[mock-request] POST /api/admin/auth/demo-login
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[2026-10-13 01:01:15.446 +0800] [31mERROR[39m (13612): [36m优惠券不存在或已过期[39m
+    err: {
+      "type": "Error",
+      "message": "优惠券不存在或已过期",
+      "stack":
+          Error: 优惠券不存在或已过期
+              at <anonymous> (D:\Users\ZXQL\wt-agents\issue-286\backend\src\services\admin\marketing-coupon.service.ts:466:27)
+              at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at async Module.claimCoupon (D:\Users\ZXQL\wt-agents\issue-286\backend\src\services\admin\marketing-coupon.service.ts:453:3)
+              at async <anonymous> (D:\Users\ZXQL\wt-agents\issue-286\backend\src\controllers\admin\marketing-coupon.controller.ts:121:18)
+      "statusCode": 404
+    }
+[mock-request] POST /api/miniapp/marketing/coupons/claim
+[2026-10-13 01:01:15.498 +0800] [31mERROR[39m (13612): [36m优惠券不存在或已过期[39m
+    err: {
+      "type": "Error",
+      "message": "优惠券不存在或已过期",
+      "stack":
+          Error: 优惠券不存在或已过期
+              at <anonymous> (D:\Users\ZXQL\wt-agents\issue-286\backend\src\services\admin\marketing-coupon.service.ts:466:27)
+              at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at async Module.claimCoupon (D:\Users\ZXQL\wt-agents\issue-286\backend\src\services\admin\marketing-coupon.service.ts:453:3)
+              at async <anonymous> (D:\Users\ZXQL\wt-agents\issue-286\backend\src\controllers\admin\marketing-coupon.controller.ts:121:18)
+      "statusCode": 404
+    }
+[mock-request] POST /api/miniapp/marketing/flash-sales/grab
+[mock-request] POST /api/miniapp/marketing/group-buys/teams/join
+[mock-request] GET /api/miniapp/marketing/coupons/my?userId=4242
+[mock-request] GET /api/miniapp/marketing/points/my-records?userId=4242
+[mock-request] GET /api/miniapp/marketing/coupons/available
+[2026-10-13 01:01:15.724 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT id, template_name AS name, coupon_type AS type, coupon_value AS value,
+            min_purcha[39m
+[mock-request] POST /api/store/instant-retail/orders/PLAT-178/confirm
+[mock-request] POST /api/store/instant-retail/orders/PLAT-178/confirm
+[2026-10-13 01:01:15.813 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT[39m
+[mock-request] GET /api/store/instant-retail/orders
+[2026-10-13 01:01:15.857 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
+            status, orde[39m
+[2026-10-13 01:01:15.858 +0800] [33mWARN[39m (13612): [36m[mock-db] WARNING: queryWithTenant 调用缺少 tenant_id 条件: SELECT COUNT(*) AS total FROM t_platform_order [39m
+[mock-request] POST /api/store/instant-retail/orders/PLAT-178/not-a-route

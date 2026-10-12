@@ -81,9 +81,10 @@ const NONE_ALLOWLIST = {
   "instant-retail-store.routes.ts":
     "① 必须公开：无 —— 6 条端点全部过门店鉴权（L9 `instantRetailStoreRouter.use(...requireStoreAuth)`）。本条登记的是" +
     "「auth:none + 自有挂载」这一形态本身（非公开端点）。" +
-    " ② 其余写端点：4 个写端点（L13 .../confirm、L14 .../cancel、L15 .../start-delivery、L16 .../complete-delivery）由 L9 覆盖；" +
-    "`requireStoreAuth` = [...requireAuthWithTenant, 门店校验]（middleware/store-auth.ts:5-14）⇒ **认证有、csrfMiddleware 无**。" +
-    "这是本文件真实存在的 CSRF 缺口，已登记在回传卡「七、范围外发现」，**不以登记当成已修复**。" +
+    " ② 其余写端点：4 个写端点（L17-L20 .../confirm、.../cancel、.../start-delivery、.../complete-delivery）**已补 `csrfMiddleware`**" +
+    "（S3-178；认证来自 L10 `use(...requireStoreAuth)` = [...requireAuthWithTenant, 门店校验]，见 middleware/store-auth.ts:5-14）。" +
+    "另注（前缀撞车，S3-178 回传卡 §七.4）：整机下 `/api/store/**` 还会被 `commerce-fix.routes.ts:28` 的声明式认证+CSRF **前缀级**前置覆盖，" +
+    "故本文件的审计判据在整机 HTTP 上分辨不出（不存在的子路径也 403）。" +
     " ③ 不能改声明式：门店校验（`req.user.storeId`，store-auth.ts:8-13）无法用 routeConfig.auth 的三个取值表达；" +
     "改声明式只能覆盖 requireAuth* 家族，门店校验要么重复注册（认证中间件跑两遍）要么丢失（功能回退）。",
 
@@ -94,15 +95,14 @@ const NONE_ALLOWLIST = {
     " ③ 不能改声明式：全部为外部平台回调；挂鉴权 ⇒ 平台回调 401，挂 csrfMiddleware ⇒ 平台回调 403（回调方无会话、无 x-csrf-token）。",
 
   "marketing-miniapp.routes.ts":
-    "① 必须公开：小程序消费者侧的浏览类端点（GET /coupons/available、/coupons/my、/full-reductions/active、/full-reductions/available、" +
-    "/points/my、/points/my-records、/flash-sales/active、/group-buys/active、/group-buys/teams/:teamId）—— 未登录也要能浏览营销内容；" +
-    "本文件**路由层一条认证中间件都没挂**。" +
-    " ② 其余写端点：4 条写端点（L14 POST /coupons/claim、L27 POST /flash-sales/grab、L32 POST /group-buys/teams/join、L35 POST /calculate）" +
-    "**既无认证、也无 csrfMiddleware**；身份由 controller 自取（`controllers/admin/marketing-coupon.controller.ts:22-24` " +
-    "`getUserId()` = `req.user?.id || req.body.userId || req.query.userId || 0`）⇒ 属「客户端自带 userId + 无 CSRF」的历史欠账，" +
-    "已登记在回传卡「七、范围外发现」，**不视为合规**。" +
-    " ③ 不能改声明式：本 router 同时承载公开浏览面与写端点，声明式会无差别套鉴权、把未登录浏览一起打成 401；" +
-    "真正需要的是「端点级鉴权 + CSRF + 去掉客户端 userId」的跨文件改造，不在本卡（只改 scripts 与 ci.yml）范围。",
+    "① 必须公开：小程序消费者侧的**匿名浏览**面（GET /coupons/available、/full-reductions/active、/full-reductions/available、" +
+    "/flash-sales/active、/group-buys/active、/group-buys/teams/:teamId）—— 未登录也要能浏览营销内容；" +
+    "**注意**：`/coupons/my`、`/points/my-records` 是「我的」数据，自 S3-178 起**需登录态**，不再属公开面。" +
+    " ② 其余写端点：需登录态的端点已**同行**挂 `requireAuthWithTenant`（写端点再挂 `csrfMiddleware`），" +
+    "并由消费者侧 `bindSelfIdentity` 绑定登录态身份（客户端自带 `userId` 与登录态不一致 ⇒ 403；S3-178 已落地）。" +
+    "**遗留**：`GET /points/my` 的身份仍取路由参数且恒 NaN ⇒ 见 S3-178 回传卡 §七.2，另立小单。" +
+    " ③ 不能改声明式：本 router 同时承载公开浏览面与需登录态端点，声明式会无差别套鉴权、把未登录浏览一起打成 401；" +
+    "故按**端点级**挂载收口（S3-178）。",
 
   "member-register.routes.ts":
     "① 必须公开：POST /sms-code（注册短信验证码）、POST /register（会员自助注册）—— 未注册用户调用，必须无鉴权。" +

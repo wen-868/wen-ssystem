@@ -1,0 +1,316 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-286/backend
+
+ ❯ src/__tests__/routes/instant-retail-store-s3-178.test.ts (5 tests | 1 failed) 100ms
+     × 有凭证、无 x-csrf-token ⇒ 403（CSRF token 无效或缺失），业务层未被调用 24ms
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts (16 tests | 14 failed) 140ms
+     × 无凭证 ⇒ 401，且服务层未被调用 40ms
+     × A 的凭证 + 无 CSRF 头 ⇒ 403（CSRF 门禁生效），服务层未被调用 9ms
+     × A 的凭证 + body 声明 userId=B ⇒ 403，服务层未被调用（B 的数据无变化） 5ms
+     × A 的凭证 + body 声明 userId=A ⇒ 200，服务层收到的 userId 是 A 5ms
+     × A 的凭证 + 完全不传 userId ⇒ 200，身份仍取自登录态 6ms
+     × （越权反例·红证据口径）服务层永远收不到客户端声明的 userId=B 8ms
+     × 无凭证 ⇒ 401 6ms
+     × A 的凭证 + query.userId=B ⇒ 403 4ms
+     × query.userId 与登录态一致（或省略）时才放行，且服务层收到 A 8ms
+     × 无凭证 ⇒ 401 4ms
+     × A 的凭证 + query.userId=B ⇒ 403；query.userId=A 或省略 ⇒ 服务层收到 A 4ms
+     × 无凭证 ⇒ 401，服务层未被调用 5ms
+     × A 的凭证 + body 声明 userId=B ⇒ 403（两侧都不落库） 4ms
+     × 无凭证 ⇒ 401；A 的凭证 + CSRF ⇒ 非 401（走到业务层） 7ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 15 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/instant-retail-store-s3-178.test.ts > S3-178 #2 · /api/store/instant-retail 写端点 CSRF 两侧 > 有凭证、无 x-csrf-token ⇒ 403（CSRF token 无效或缺失），业务层未被调用
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/instant-retail-store-s3-178.test.ts:58:24
+     56|   it("有凭证、无 x-csrf-token ⇒ 403（CSRF token 无效或缺失），业务层未被调用", async () =>…
+     57|     const res = await request(app).post("/api/store/instant-retail/ord…
+     58|     expect(res.status).toBe(403);
+       |                        ^
+     59|     expect(res.body.msg).toContain("CSRF");
+     60|     expect(orderReceivingController.confirmOrder).not.toHaveBeenCalled…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /coupons/claim 的身份来自登录态 > 无凭证 ⇒ 401，且服务层未被调用
+AssertionError: expected 200 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:72:24
+     70|   it("无凭证 ⇒ 401，且服务层未被调用", async () => {
+     71|     const res = await request(app).post("/api/miniapp/marketing/coupon…
+     72|     expect(res.status).toBe(401);
+       |                        ^
+     73|     expect(couponService.claimCoupon).not.toHaveBeenCalled();
+     74|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /coupons/claim 的身份来自登录态 > A 的凭证 + 无 CSRF 头 ⇒ 403（CSRF 门禁生效），服务层未被调用
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:81:24
+     79|       .set(authOnly())
+     80|       .send({ templateId: 1, userId: USER_A.id });
+     81|     expect(res.status).toBe(403);
+       |                        ^
+     82|     expect(couponService.claimCoupon).not.toHaveBeenCalled();
+     83|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /coupons/claim 的身份来自登录态 > A 的凭证 + body 声明 userId=B ⇒ 403，服务层未被调用（B 的数据无变化）
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:90:24
+     88|       .set(authAndCsrf())
+     89|       .send({ templateId: 1, userId: USER_B_ID });
+     90|     expect(res.status).toBe(403);
+       |                        ^
+     91|     expect(res.body.msg).toContain("身份");
+     92|     expect(couponService.claimCoupon).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /coupons/claim 的身份来自登录态 > A 的凭证 + body 声明 userId=A ⇒ 200，服务层收到的 userId 是 A
+AssertionError: expected undefined to be 't1' // Object.is equality
+
+- Expected:
+"t1"
+
++ Received:
+undefined
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:104:21
+    102|     const call = couponService.claimCoupon.mock.calls[0];
+    103|     expect(call[1]).toBe(USER_A.id);
+    104|     expect(call[2]).toBe("t1");
+       |                     ^
+    105|   });
+    106|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /coupons/claim 的身份来自登录态 > A 的凭证 + 完全不传 userId ⇒ 200，身份仍取自登录态
+AssertionError: expected 400 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 400
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:109:24
+    107|   it("A 的凭证 + 完全不传 userId ⇒ 200，身份仍取自登录态", async () => {
+    108|     const res = await request(app).post("/api/miniapp/marketing/coupon…
+    109|     expect(res.status).toBe(200);
+       |                        ^
+    110|     expect(couponService.claimCoupon.mock.calls[0][1]).toBe(USER_A.id);
+    111|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /coupons/claim 的身份来自登录态 > （越权反例·红证据口径）服务层永远收不到客户端声明的 userId=B
+AssertionError: 服务层收到的 userId 列表（出现 4242 即为越权写进 B）: expected [ 4242 ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   4242,
++ ]
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:120:63
+    118|     const seenUserIds = couponService.claimCoupon.mock.calls.map((c) =…
+    119|     // 先断言身份流向（越权反例的红点就落在这里：出现 4242 即为写进 B）
+    120|     expect(seenUserIds, "服务层收到的 userId 列表（出现 4242 即为越权写进 B）").toEqual(…
+       |                                                               ^
+    121|     expect(res.status).toBe(403);
+    122|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · GET /coupons/my 的身份来自登录态 > 无凭证 ⇒ 401
+AssertionError: expected 200 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:128:24
+    126|   it("无凭证 ⇒ 401", async () => {
+    127|     const res = await request(app).get("/api/miniapp/marketing/coupons…
+    128|     expect(res.status).toBe(401);
+       |                        ^
+    129|     expect(couponService.listMyCoupons).not.toHaveBeenCalled();
+    130|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · GET /coupons/my 的身份来自登录态 > A 的凭证 + query.userId=B ⇒ 403
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:134:24
+    132|   it("A 的凭证 + query.userId=B ⇒ 403", async () => {
+    133|     const res = await request(app).get(`/api/miniapp/marketing/coupons…
+    134|     expect(res.status).toBe(403);
+       |                        ^
+    135|     expect(couponService.listMyCoupons).not.toHaveBeenCalled();
+    136|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · GET /coupons/my 的身份来自登录态 > query.userId 与登录态一致（或省略）时才放行，且服务层收到 A
+AssertionError: expected 400 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 400
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:145:31
+    143|     vi.clearAllMocks();
+    144|     const noQueryRes = await request(app).get("/api/miniapp/marketing/…
+    145|     expect(noQueryRes.status).toBe(200);
+       |                               ^
+    146|     expect(couponService.listMyCoupons.mock.calls[0][0]).toBe(USER_A.i…
+    147|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · GET /points/my-records 的身份来自登录态 > 无凭证 ⇒ 401
+AssertionError: expected 200 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:153:24
+    151|   it("无凭证 ⇒ 401", async () => {
+    152|     const res = await request(app).get("/api/miniapp/marketing/points/…
+    153|     expect(res.status).toBe(401);
+       |                        ^
+    154|     expect(pointsService.listMyPointsRecords).not.toHaveBeenCalled();
+    155|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · GET /points/my-records 的身份来自登录态 > A 的凭证 + query.userId=B ⇒ 403；query.userId=A 或省略 ⇒ 服务层收到 A
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:159:24
+    157|   it("A 的凭证 + query.userId=B ⇒ 403；query.userId=A 或省略 ⇒ 服务层收到 A", asyn…
+    158|     const bad = await request(app).get(`/api/miniapp/marketing/points/…
+    159|     expect(bad.status).toBe(403);
+       |                        ^
+    160|     expect(pointsService.listMyPointsRecords).not.toHaveBeenCalled();
+    161|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /flash-sales/grab 与 /group-buys/teams/join > 无凭证 ⇒ 401，服务层未被调用
+AssertionError: expected 200 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:171:25
+    169|   it("无凭证 ⇒ 401，服务层未被调用", async () => {
+    170|     const grab = await request(app).post("/api/miniapp/marketing/flash…
+    171|     expect(grab.status).toBe(401);
+       |                         ^
+    172|     expect(flashSaleService.buyFlashSale).not.toHaveBeenCalled();
+    173|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /flash-sales/grab 与 /group-buys/teams/join > A 的凭证 + body 声明 userId=B ⇒ 403（两侧都不落库）
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:181:25
+    179|   it("A 的凭证 + body 声明 userId=B ⇒ 403（两侧都不落库）", async () => {
+    180|     const grab = await request(app).post("/api/miniapp/marketing/flash…
+    181|     expect(grab.status).toBe(403);
+       |                         ^
+    182|     expect(flashSaleService.buyFlashSale).not.toHaveBeenCalled();
+    183|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/15]⎯
+
+ FAIL  src/__tests__/routes/marketing-miniapp-s3-178.test.ts > S3-178 #1 · POST /calculate（纯试算，无身份）也要认证 + CSRF > 无凭证 ⇒ 401；A 的凭证 + CSRF ⇒ 非 401（走到业务层）
+AssertionError: expected 500 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 500
+
+ ❯ src/__tests__/routes/marketing-miniapp-s3-178.test.ts:203:25
+    201|   it("无凭证 ⇒ 401；A 的凭证 + CSRF ⇒ 非 401（走到业务层）", async () => {
+    202|     const anon = await request(app).post("/api/miniapp/marketing/calcu…
+    203|     expect(anon.status).toBe(401);
+       |                         ^
+    204|     expect(calculationService.calculatePromotion).not.toHaveBeenCalled…
+    205|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/15]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  15 failed | 6 passed (21)
+   Start at  00:56:54
+   Duration  1.04s (transform 392ms, setup 57ms, import 1.08s, tests 239ms, environment 0ms)
+
