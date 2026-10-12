@@ -250,25 +250,16 @@ async function handleMfaVerify() {
 }
 
 /**
- * 后端 auth.service.ts 的锁定文案（HTTP 400）：
- *   `账号已锁定，请${remainingMinutes}分钟后重试`
- *   `登录失败次数过多，账号已锁定${LOCK_DURATION_MINUTES}分钟`
- * ⇒ 只有命中这两类才降级免密通道；网络/其它错误一律原样报错，**不误降级**。
- */
-function isLockedError(msg: string): boolean {
-  return msg.includes('锁定') || msg.includes('失败次数过多')
-}
-
-/**
- * 演示登录（**一键**）：自动填入演示账号+口令 → 自动提交 → 锁定时降级免密通道。
+ * 演示登录（**一键**）：自动填入演示账号+口令 → 自动提交正常登录。
  *
  * 口径与工作台单 C6-9 完全一致（凌舟裁定 R11）：
  *   ① 先把账号框/口令框**明文填成演示凭据**（口令框仍由组件自身以掩码显示），随后**自动提交**，
  *      用户全程零输入、零二次点击；
  *   ② 凭据唯一出处 = `DEMO_ACCOUNT` / `DEMO_PASSWORD`（VITE_DEMO_*，见 .env.example），
  *      此处不再出现任何字面量；
- *   ③ 正常登录返回"锁定/失败次数过多" ⇒ 自动改走 `demoLogin()` 免密通道，并**如实提示**
- *      「演示通道已接管」（禁止静默假装走的是密码登录）；其它错误按原样报错；
+ *   ③ S3-173 ④：**已删除「锁定 ⇒ 降级免密 demoLogin()」分支**。依据：S3-172 已让演示账号在后端
+ *      永不被账号锁定 / 限流阻断（定向豁免）；而免密通道自 S3-165 起在生产一律 403 ⇒ 降级分支是
+ *      死代码 ＋ 对用户的错误承诺。失败一律原样报错，不降级、不假装；
  *   ④ 本端现状无演示数据初始化逻辑，登录成功后按现状直达首页。
  */
 async function handleDemoLogin() {
@@ -285,6 +276,7 @@ async function handleDemoLogin() {
     // 等一帧，确保 DOM 上两个输入框确实带上值（运行期取证要能看见"填入"这一步）
     await nextTick()
 
+    // ② 自动提交正常登录（用户不需要再点第二次）
     const result = await authApi.loginSilent({
       username: loginForm.username.trim(),
       password: loginForm.password,
@@ -300,27 +292,8 @@ async function handleDemoLogin() {
     uni.showToast({ title: '已进入演示环境', icon: 'success' })
     goHome()
   } catch (err: any) {
+    // 一律原样报错：不降级、不假装
     const msg = String(err?.message || '')
-    if (isLockedError(msg)) {
-      console.log('[demo-login] 密码登录被锁定（%s），降级免密通道', msg)
-      try {
-        const result = await authApi.demoLogin()
-        userStore.applyLoginResult(result)
-        // ③ 如实提示：不静默、不假装是密码登录
-        uni.showToast({ title: '演示通道已接管', icon: 'none', duration: 2500 })
-        console.log('[demo-login] 降级成功，提示：演示通道已接管')
-        goHome()
-      } catch (fallbackErr: any) {
-        // S3-165：生产已停用免密 demo-login（后端 403「演示登录在生产环境已禁用」），
-        // 降级必然失败 —— 必须给出可操作的出路，不得只留"演示通道不可用"这种死路文案。
-        const fallbackMsg = String(fallbackErr?.message || '')
-        errorMsg.value = /禁用|停用/.test(fallbackMsg)
-          ? '演示通道已停用，请用演示账号登录'
-          : (fallbackMsg || '演示通道已停用，请用演示账号登录')
-      }
-      return
-    }
-    // 非锁定错误：原样报错
     errorMsg.value = msg || '演示登录失败，请稍后重试'
   } finally {
     demoLoading.value = false

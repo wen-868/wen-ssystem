@@ -95,7 +95,7 @@
           </el-form-item>
           <div class="login-options">
             <el-checkbox v-model="loginForm.rememberMe">记住账号</el-checkbox>
-            <span class="forgot-link">忘记密码？</span>
+            <span class="forgot-link" @click="forgotVisible = true">忘记密码？</span>
           </div>
           <el-button
             type="primary"
@@ -139,6 +139,32 @@
         </div>
       </div>
     </div>
+
+    <!--
+      S3-173 ①：忘记密码人工找回指引（按角色分流）。
+      🔴 生产没有任何可送达用户的通道（无短信 / 无 SMTP/EMAIL，sms_verify_enabled=0），
+      故此处**只能**给人工指引，禁止出现「输入手机号即可自助重置 / 验证码 / 邮件链接」等假承诺。
+      联系方式按现网实际填（来源：website 页脚与 legal 页 —— 电话 13410954557、邮箱 xbe868@126.com）。
+    -->
+    <el-dialog v-model="forgotVisible" title="忘记密码怎么办？" width="480px">
+      <div class="forgot-body">
+        <p class="forgot-lead">
+          本系统暂未开放自助找回（短信 / 邮件通道未接入），请按你的身份联系管理员协助重置：
+        </p>
+        <div class="forgot-item">
+          <div class="forgot-role">门店员工</div>
+          <div class="forgot-desc">请联系本店管理员，在其【员工管理】中为你重置密码。</div>
+        </div>
+        <div class="forgot-item">
+          <div class="forgot-role">租户管理员（老板 / 超级管理员）</div>
+          <div class="forgot-desc">请联系平台管理员协助重置登录口令。</div>
+        </div>
+        <p class="forgot-contact">平台联系方式：电话 13410954557 ／ 邮箱 xbe868@126.com</p>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="forgotVisible = false">我知道了</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -147,7 +173,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { ChatDotRound, Goods, OfficeBuilding, Van } from "@element-plus/icons-vue";
-import { DEMO_ACCOUNT, DEMO_FALLBACK_NOTICE, DEMO_PASSWORD, adminLogin, demoLogin, isAccountLockedError, seedDemoData } from "../api";
+import { DEMO_ACCOUNT, DEMO_PASSWORD, adminLogin, seedDemoData } from "../api";
 import { useAuthStore } from "../stores/auth";
 import { resolveLandingPath } from "../router/landing";
 
@@ -155,6 +181,8 @@ const router = useRouter();
 const auth = useAuthStore();
 const loginFormRef = ref<FormInstance>();
 const loading = ref(false);
+/** S3-173 ①：忘记密码指引弹窗 */
+const forgotVisible = ref(false);
 
 const loginForm = reactive({
   username: "",
@@ -203,9 +231,12 @@ async function handleLogin() {
 /**
  * 演示登录（一键两步合一，C6-9）：
  *   ① 先把演示账号与口令填入表单（明文进表单，密码框由组件自身掩码显示），用户零输入；
- *   ② 随即自动提交正常登录 adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD)，用户无需第二次点击；
- *   ③ 仅当因「账号已锁定 / 失败次数过多」失败时，自动降级走免密 demoLogin()，并如实提示「演示通道已接管」；
- *      其它错误（网络等）原样报错，不降级、不假装。
+ *   ② 随即自动提交正常登录 adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD)，用户无需第二次点击。
+ *
+ * S3-173 ②：**已删除「锁定 ⇒ 降级免密 demoLogin()」分支**。
+ *   依据：S3-172 已让演示账号在后端永不被账号锁定 / 限流阻断（auth.service + login-fail-limiter 定向豁免）；
+ *   而免密通道 /admin/auth/demo-login 自 S3-165 起在生产一律 403 ⇒ 降级分支是死代码 ＋ 对用户的错误承诺。
+ *   失败一律原样报错，不降级、不假装。
  * 凭据唯一出处：src/api/common.ts 的 DEMO_ACCOUNT / DEMO_PASSWORD（构建期由 VITE_DEMO_* 覆盖）。
  */
 async function handleDemoLogin() {
@@ -215,21 +246,13 @@ async function handleDemoLogin() {
   loginForm.password = DEMO_PASSWORD;
   try {
     // ② 自动提交正常登录（用户不需要再点第二次）
-    let res: any;
-    try {
-      res = await adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD);
-    } catch (e: any) {
-      // ③ 仅「账号锁定/失败次数过多」降级免密演示通道；其它错误（网络等）原样抛出
-      if (!isAccountLockedError(e)) throw e;
-      res = { ...(await demoLogin()), __fallback: true };
-      ElMessage.warning(DEMO_FALLBACK_NOTICE);
-    }
+    const res: any = await adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD);
     const token = res.token || res.data?.token;
     if (token) {
       const csrfToken = res.csrfToken || res.data?.csrfToken;
       const userInfo: any = { ...(res.data?.user || res.user || {}), demo: true };
       auth.setAuth(token, userInfo, csrfToken);
-      if (!res.__fallback) ElMessage.success("登录成功");
+      ElMessage.success("登录成功");
       // 幂等初始化演示数据（失败不阻塞进入）
       seedDemoData().catch(() => {});
       router.push(resolveLandingPath(auth.userRoles, auth.user?.defaultHomepage, router.getRoutes()));
@@ -629,5 +652,39 @@ async function handleDemoLogin() {
   height: 16px;
   vertical-align: -2px;
   margin-right: 4px;
+}
+
+/* ─── 忘记密码指引弹窗（S3-173 ①） ─── */
+.forgot-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.forgot-lead {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+}
+
+.forgot-item {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(63, 111, 239, 0.05);
+  border: 1px solid rgba(63, 111, 239, 0.14);
+}
+
+.forgot-role {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.forgot-desc {
+  color: var(--text-secondary);
+}
+
+.forgot-contact {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
 }
 </style>

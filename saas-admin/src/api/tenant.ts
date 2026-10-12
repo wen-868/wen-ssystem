@@ -78,6 +78,20 @@ export function expandTenantQuotaApi(
   return request.post(`/platform/tenants/${id}/quota-expand`, data)
 }
 
+/**
+ * S3-172/S3-173：平台代重置**租户账号**口令。
+ *   列表：GET  /api/platform/tenants/:tenantId/users
+ *   重置：POST /api/platform/tenants/:tenantId/users/:userId/reset-password ⇒ 一次性初始口令
+ * 端点由 S3-172（后端）提供；未就绪时页面必须如实提示「账号列表接口未就绪」，不得本地造数、不得假装成功。
+ */
+export function listTenantUsersApi(tenantId: number | string) {
+  return request.get(`/platform/tenants/${tenantId}/users`)
+}
+
+export function resetTenantUserPasswordApi(tenantId: number | string, userId: number | string) {
+  return request.post(`/platform/tenants/${tenantId}/users/${userId}/reset-password`)
+}
+
 export function createTenantApi(data: any) {
   return request.post('/platform/tenants', data)
 }
