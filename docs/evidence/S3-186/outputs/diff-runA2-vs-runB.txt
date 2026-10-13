@@ -1,0 +1,47 @@
+基线: docs\evidence\S3-186\outputs\runA2-snapshot.json (db=s3186_a2) tables=311 columns=4119 indexes=1608 routines=0
+被测: docs\evidence\S3-186\outputs\runB-snapshot.json (db=s3186_a2) tables=311 columns=4137 indexes=1612 routines=2
+
+差异合计 = 22
+ 缺表 0 / 多表 0
+ 缺列 0 / 多列 18
+ 缺索引 0 / 多索引 4
+ 列定义不一致 0
+ 存储过程残留（基线 0 / 被测 2）
+
+## 缺表（基线有、被测无）（0）
+
+## 多表（被测多出）（0）
+
+## 缺列（基线有、被测无）（0）
+
+## 多列（被测多出）（18）
+t_member.contact
+t_miniapp_order_sync_log.platform_order_no
+t_miniapp_order_sync_log.response
+t_miniapp_order_sync_log.tenant_id
+t_miniapp_order_sync_log.updated_at
+t_product_sku.box_barcode
+t_retail_cart.tenant_id
+t_sale_bill.auditor_id
+t_sale_bill.auditor_name
+t_sale_bill.operator_name
+t_sale_bill.salesman_id
+t_sale_bill.salesman_name
+t_sale_bill_item.barcode
+t_sale_bill_item.item_discount
+t_sale_bill_item.item_remark
+t_sale_bill_item.sku_spec
+t_sale_bill_item.trace_codes
+t_sale_bill_item.unit
+
+## 缺索引（0）
+
+## 多索引（4）
+t_delivery_record.idx_delivery_record_rider_id
+t_miniapp_order_sync_log.idx_sync_log_platform_order_no
+t_miniapp_order_sync_log.idx_sync_log_tenant
+t_retail_cart.idx_retail_cart_tenant
+
+## 列定义不一致（0）
+
+存储过程残留 基线=[] 被测=[add_column_if_not_exists,add_index_if_not_exists]

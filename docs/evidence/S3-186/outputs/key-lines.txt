@@ -1,0 +1,36 @@
+===== runA-migration.log（关键行抽取；完整日志见工作区外 _s3186-evidence\logs）=====
+[2026-10-13 23:17:23.929 +0800] [32mINFO[39m (17432): [36m[migration] 外部迁移写闸门=block（默认）：数据写语句 INSERT/UPDATE/DELETE/REPLACE 与 CALL 一律跳过，放行需显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-13 23:17:25.866 +0800] [33mWARN[39m (17432): [36m[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-13 23:17:25.867 +0800] [33mWARN[39m (17432): [36m[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+（写闸门 block 跳过 CALL 总条数：173）
+（ER_SP_DOES_NOT_EXIST 跳过条数：0）
+[2026-10-13 23:17:22.717 +0800] [31mERROR[39m (17432): [36m[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists[39m
+[2026-10-13 23:17:23.695 +0800] [31mERROR[39m (17432): [36m[migration] 种子数据初始化失败:[39m
+[2026-10-13 23:17:23.940 +0800] [32mINFO[39m (17432): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+
+===== runA2-migration.log（关键行抽取；完整日志见工作区外 _s3186-evidence\logs）=====
+[2026-10-13 23:17:43.678 +0800] [32mINFO[39m (11864): [36m[migration] 外部迁移写闸门=allow（显式配置）：数据写语句与 CALL 全部放行[39m
+（写闸门 block 跳过 CALL 总条数：0）
+（ER_SP_DOES_NOT_EXIST 跳过条数：35）
+[2026-10-13 23:17:42.225 +0800] [31mERROR[39m (11864): [36m[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists[39m
+[2026-10-13 23:17:43.383 +0800] [31mERROR[39m (11864): [36m[migration] 种子数据初始化失败:[39m
+[2026-10-13 23:17:43.690 +0800] [32mINFO[39m (11864): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+
+===== runC-migration.log（关键行抽取；完整日志见工作区外 _s3186-evidence\logs）=====
+[2026-10-13 23:23:12.156 +0800] [32mINFO[39m (9580): [36m[migration] 外部迁移写闸门=block（默认）：数据写语句 INSERT/UPDATE/DELETE/REPLACE 与 CALL 一律跳过，放行需显式设置 MIGRATION_WRITE_GATE=allow[39m
+（写闸门 block 跳过 CALL 总条数：0）
+（ER_SP_DOES_NOT_EXIST 跳过条数：0）
+[2026-10-13 23:23:11.030 +0800] [31mERROR[39m (9580): [36m[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists[39m
+[2026-10-13 23:23:11.976 +0800] [31mERROR[39m (9580): [36m[migration] 种子数据初始化失败:[39m
+[2026-10-13 23:23:12.163 +0800] [32mINFO[39m (9580): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+
+===== runD-migration.log（关键行抽取；完整日志见工作区外 _s3186-evidence\logs）=====
+[2026-10-13 23:27:06.075 +0800] [32mINFO[39m (18524): [36m[migration] 外部迁移写闸门=block（默认）：数据写语句 INSERT/UPDATE/DELETE/REPLACE 与 CALL 一律跳过，放行需显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-13 23:27:08.076 +0800] [33mWARN[39m (18524): [36m[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-13 23:27:08.076 +0800] [33mWARN[39m (18524): [36m[migration] 092_租户ID.sql: 写闸门 block 跳过 CALL 语句（目标 add_column_if_not_exists）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+（写闸门 block 跳过 CALL 总条数：173）
+（ER_SP_DOES_NOT_EXIST 跳过条数：0）
+[2026-10-13 23:27:04.387 +0800] [31mERROR[39m (18524): [36m[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists[39m
+[2026-10-13 23:27:05.807 +0800] [31mERROR[39m (18524): [36m[migration] 种子数据初始化失败:[39m
+[2026-10-13 23:27:06.085 +0800] [32mINFO[39m (18524): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+

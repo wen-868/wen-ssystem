@@ -1,0 +1,691 @@
+﻿### S3-186 用例 chk_fix  db=s3186_fix  writeGate=<未设置=block>  2026-10-14T00:08:15.4182481+08:00
+[2026-10-14 00:08:16.427 +0800] [32mINFO[39m (18816): [36m[migration] 检查/创建核心系统表...[39m
+[2026-10-14 00:08:16.480 +0800] [32mINFO[39m (18816): [36m[migration] 创建/修复 t_tenant 表...[39m
+[2026-10-14 00:08:16.501 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.name: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.509 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.contact_name: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.516 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.contact_phone: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.521 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.plan: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.527 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.status: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.533 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.expire_at: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.539 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.created_at: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.545 +0800] [32mINFO[39m (18816): [36m[migration] t_tenant.updated_at: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:16.579 +0800] [32mINFO[39m (18816): [36m[migration] 检查/创建业务表（init_database.sql）...[39m
+[2026-10-14 00:08:17.535 +0800] [32mINFO[39m (18816): [36m[migration] init_database.sql 业务表完成（总62张，实际建62，已存在跳过0）[39m
+[2026-10-14 00:08:17.535 +0800] [32mINFO[39m (18816): [36m[migration] 为 72 张表添加 tenant_id...[39m
+[2026-10-14 00:08:17.543 +0800] [32mINFO[39m (18816): [36m[migration] t_sys_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.569 +0800] [32mINFO[39m (18816): [36m[migration] t_sys_user.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.595 +0800] [32mINFO[39m (18816): [36m[migration] t_sys_role.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.620 +0800] [32mINFO[39m (18816): [36m[migration] t_sys_permission.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.646 +0800] [32mINFO[39m (18816): [36m[migration] t_sys_user_role.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.672 +0800] [32mINFO[39m (18816): [36m[migration] t_sys_role_permission.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.698 +0800] [32mINFO[39m (18816): [36m[migration] t_store.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.723 +0800] [32mINFO[39m (18816): [36m[migration] t_product_category.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.750 +0800] [32mINFO[39m (18816): [36m[migration] t_product_spu.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.777 +0800] [32mINFO[39m (18816): [36m[migration] t_product_sku.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.802 +0800] [32mINFO[39m (18816): [36m[migration] t_product_price.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.826 +0800] [32mINFO[39m (18816): [36m[migration] t_sku_price.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.846 +0800] [32mINFO[39m (18816): [36m[migration] t_brand.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:17.847 +0800] [32mINFO[39m (18816): [36m[migration] t_brand.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:17.854 +0800] [32mINFO[39m (18816): [36m[migration] t_supplier.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.879 +0800] [32mINFO[39m (18816): [36m[migration] t_supplier_contact.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.902 +0800] [32mINFO[39m (18816): [36m[migration] t_member.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.921 +0800] [32mINFO[39m (18816): [36m[migration] t_customer_type.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:17.923 +0800] [32mINFO[39m (18816): [36m[migration] t_customer_type.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:17.930 +0800] [32mINFO[39m (18816): [36m[migration] t_customer_price_binding.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.954 +0800] [32mINFO[39m (18816): [36m[migration] t_customer_credit.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:17.977 +0800] [32mINFO[39m (18816): [36m[migration] t_inventory_balance.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.002 +0800] [32mINFO[39m (18816): [36m[migration] t_inventory_batch.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.026 +0800] [32mINFO[39m (18816): [36m[migration] t_inventory_ledger.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.051 +0800] [32mINFO[39m (18816): [36m[migration] t_price_level.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.076 +0800] [32mINFO[39m (18816): [36m[migration] t_price_change_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.101 +0800] [32mINFO[39m (18816): [36m[migration] t_alert_rule.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.128 +0800] [32mINFO[39m (18816): [36m[migration] t_alert_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.152 +0800] [32mINFO[39m (18816): [36m[migration] t_expiry_alert_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.175 +0800] [32mINFO[39m (18816): [36m[migration] t_expiry_alert_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.200 +0800] [32mINFO[39m (18816): [36m[migration] t_trace_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.228 +0800] [32mINFO[39m (18816): [36m[migration] t_trace_code.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.258 +0800] [32mINFO[39m (18816): [36m[migration] t_trace_event_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.285 +0800] [32mINFO[39m (18816): [36m[migration] t_trace_scan_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.315 +0800] [32mINFO[39m (18816): [36m[migration] t_recall_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.344 +0800] [32mINFO[39m (18816): [36m[migration] t_store_control_config.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.373 +0800] [32mINFO[39m (18816): [36m[migration] t_store_status_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.402 +0800] [32mINFO[39m (18816): [36m[migration] t_sale_bill.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.430 +0800] [32mINFO[39m (18816): [36m[migration] t_sale_bill_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.459 +0800] [32mINFO[39m (18816): [36m[migration] t_sale_return.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.484 +0800] [32mINFO[39m (18816): [36m[migration] t_sale_return_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.511 +0800] [32mINFO[39m (18816): [36m[migration] t_sale_payment.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.537 +0800] [32mINFO[39m (18816): [36m[migration] t_purchase_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.564 +0800] [32mINFO[39m (18816): [36m[migration] t_purchase_order_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.590 +0800] [32mINFO[39m (18816): [36m[migration] t_purchase_in_stock.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.616 +0800] [32mINFO[39m (18816): [36m[migration] t_purchase_in_stock_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.644 +0800] [32mINFO[39m (18816): [36m[migration] t_purchase_return.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.670 +0800] [32mINFO[39m (18816): [36m[migration] t_purchase_return_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.696 +0800] [32mINFO[39m (18816): [36m[migration] t_purchase_payment.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.721 +0800] [32mINFO[39m (18816): [36m[migration] t_supplier_statement.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.748 +0800] [32mINFO[39m (18816): [36m[migration] t_supplier_statement_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.776 +0800] [32mINFO[39m (18816): [36m[migration] t_customer_statement.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.802 +0800] [32mINFO[39m (18816): [36m[migration] t_customer_payment.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.832 +0800] [32mINFO[39m (18816): [36m[migration] t_receivable_account.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.858 +0800] [32mINFO[39m (18816): [36m[migration] t_payment_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.885 +0800] [32mINFO[39m (18816): [36m[migration] t_refund_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.911 +0800] [32mINFO[39m (18816): [36m[migration] t_hold_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.945 +0800] [32mINFO[39m (18816): [36m[migration] t_miniapp_order.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:18.981 +0800] [32mINFO[39m (18816): [36m[migration] t_miniapp_order_item.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.012 +0800] [32mINFO[39m (18816): [36m[migration] t_collection_link.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.042 +0800] [32mINFO[39m (18816): [36m[migration] t_collection_view_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.068 +0800] [32mINFO[39m (18816): [36m[migration] t_collection_record.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.095 +0800] [32mINFO[39m (18816): [36m[migration] t_credit_operation_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.121 +0800] [32mINFO[39m (18816): [36m[migration] t_notification.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.146 +0800] [32mINFO[39m (18816): [36m[migration] t_operation_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.173 +0800] [32mINFO[39m (18816): [36m[migration] t_product_price_log.tenant_id: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:19.191 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_rule.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.192 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_rule.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.193 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_instance.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.194 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_instance.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.195 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_task.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.196 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_task.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.198 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_log.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.199 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_log.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.200 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_approver.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.201 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_approver.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.202 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_notification.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.203 +0800] [32mINFO[39m (18816): [36m[migration] t_approval_notification.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.204 +0800] [32mINFO[39m (18816): [36m[migration] t_daily_settlement.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.205 +0800] [32mINFO[39m (18816): [36m[migration] t_daily_settlement.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.206 +0800] [32mINFO[39m (18816): [36m[migration] t_stock_warning.tenant_id: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.207 +0800] [32mINFO[39m (18816): [36m[migration] t_stock_warning.idx_tenant: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:19.207 +0800] [32mINFO[39m (18816): [36m[migration] 修复 t_sys_config 唯一键为 (config_key, tenant_id)...[39m
+[2026-10-14 00:08:19.210 +0800] [31mERROR[39m (18816): [36m[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists[39m
+[2026-10-14 00:08:19.225 +0800] [32mINFO[39m (18816): [36m[migration] 创建缺失的表和字段...[39m
+[2026-10-14 00:08:19.329 +0800] [32mINFO[39m (18816): [36m[migration] sys_user.email: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:20.448 +0800] [32mINFO[39m (18816): [36m[migration] product_spu.brand: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:20.453 +0800] [32mINFO[39m (18816): [36m[migration] product_spu.unit: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:20.458 +0800] [32mINFO[39m (18816): [36m[migration] product_spu.specs: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:20.623 +0800] [32mINFO[39m (18816): [36m[migration] product_spu.sale_channels: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:20.629 +0800] [32mINFO[39m (18816): [36m[migration] product_spu.description: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:21.065 +0800] [32mINFO[39m (18816): [36m[migration] 5.5.8 AI底座建表: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:21.104 +0800] [32mINFO[39m (18816): [36m[migration] 5.5.8 AI底座5张表兜底建表完成[39m
+[2026-10-14 00:08:21.104 +0800] [32mINFO[39m (18816): [36m[migration] 检查/初始化种子数据...[39m
+[2026-10-14 00:08:21.106 +0800] [32mINFO[39m (18816): [36m[seed] 开始检查/初始化种子数据...[39m
+[2026-10-14 00:08:21.110 +0800] [32mINFO[39m (18816): [36m[seed] t_store 为空，插入默认门店...[39m
+[2026-10-14 00:08:21.898 +0800] [31mERROR[39m (18816): [36m[migration] 种子数据初始化失败:[39m
+    [35mextra[39m: [
+      "Unknown column 'mobile' in 'INSERT INTO'"
+    ]
+[2026-10-14 00:08:21.898 +0800] [32mINFO[39m (18816): [36m[migration] 检查/创建默认管理员账号...[39m
+[2026-10-14 00:08:22.080 +0800] [32mINFO[39m (18816): [36m[migration] 已创建平台管理员 admin：未配置 SEED_ADMIN_PASSWORD ⇒ 已生成随机口令，请立即人工设定（明文不入日志）[39m
+[2026-10-14 00:08:22.089 +0800] [32mINFO[39m (18816): [36m[migration] 已为 admin 分配 SUPER_ADMIN 角色[39m
+[2026-10-14 00:08:22.283 +0800] [32mINFO[39m (18816): [36m[migration] 已创建租户管理员 tenant_admin：未配置 SEED_ADMIN_PASSWORD ⇒ 已生成随机口令，请立即人工设定（明文不入日志）[39m
+[2026-10-14 00:08:22.288 +0800] [32mINFO[39m (18816): [36m[migration] 已为 tenant_admin 分配 ADMIN 角色[39m
+[2026-10-14 00:08:22.289 +0800] [32mINFO[39m (18816): [36m[migration] 外部迁移写闸门=block（默认）：数据写语句 INSERT/UPDATE/DELETE/REPLACE 与 CALL 一律跳过，放行需显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.289 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 001_phase1_schema.sql[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.299 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.300 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.302 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.303 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.305 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.306 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.308 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.309 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.311 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.314 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.316 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.318 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.320 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.323 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.325 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.327 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.329 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.331 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.333 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.335 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.336 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.339 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.341 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.343 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.345 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.348 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.350 +0800] [32mINFO[39m (18816): [36m[migration] 001_phase1_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.350 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.350 +0800] [33mWARN[39m (18816): [36m[migration] 001_phase1_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_store）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.351 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 002_phase1_seed.sql[39m
+[2026-10-14 00:08:22.351 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.351 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.351 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.351 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.351 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.352 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_category）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.352 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.352 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_sku）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.352 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_price）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.352 +0800] [33mWARN[39m (18816): [36m[migration] 002_phase1_seed.sql: 写闸门 block 跳过 INSERT 语句（目标 t_inventory_balance）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.352 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 003_phase2_schema.sql[39m
+[2026-10-14 00:08:22.356 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.356 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.358 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.360 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.360 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.360 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.360 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.360 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.360 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.360 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.360 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.363 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.365 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.367 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.369 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.372 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.375 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.377 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.377 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.377 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.380 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.382 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.391 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.391 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.391 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.393 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.395 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.395 +0800] [33mWARN[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.398 +0800] [32mINFO[39m (18816): [36m[migration] 003_phase2_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.399 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 004_phase3_schema.sql[39m
+[2026-10-14 00:08:22.400 +0800] [33mWARN[39m (18816): [36m[migration] 004_phase3_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.400 +0800] [33mWARN[39m (18816): [36m[migration] 004_phase3_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.402 +0800] [32mINFO[39m (18816): [36m[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.403 +0800] [32mINFO[39m (18816): [36m[migration] 004_phase3_schema.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.403 +0800] [33mWARN[39m (18816): [36m[migration] 004_phase3_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_alert_rule）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.405 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 005_phase3_sys_config.sql[39m
+[2026-10-14 00:08:22.405 +0800] [33mWARN[39m (18816): [36m[migration] 005_phase3_sys_config.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.406 +0800] [32mINFO[39m (18816): [36m[migration] 005_phase3_sys_config.sql: 跳过 (ER_TABLE_EXISTS_ERROR)[39m
+[2026-10-14 00:08:22.406 +0800] [33mWARN[39m (18816): [36m[migration] 005_phase3_sys_config.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.406 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 006_phase4_schema.sql[39m
+[2026-10-14 00:08:22.409 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.412 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.414 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.416 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.418 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 price_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.418 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.419 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.421 +0800] [33mWARN[39m (18816): [36m[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.432 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 007_phase5_schema.sql[39m
+[2026-10-14 00:08:22.434 +0800] [33mWARN[39m (18816): [36m[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.436 +0800] [33mWARN[39m (18816): [36m[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.437 +0800] [33mWARN[39m (18816): [36m[migration] 007_phase5_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 expiry_alert_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.437 +0800] [33mWARN[39m (18816): [36m[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.439 +0800] [33mWARN[39m (18816): [36m[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.441 +0800] [33mWARN[39m (18816): [36m[migration] 007_phase5_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:22.448 +0800] [32mINFO[39m (18816): [36m[migration] 007_phase5_schema.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.449 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 008_phase6_schema.sql[39m
+[2026-10-14 00:08:22.457 +0800] [33mWARN[39m (18816): [36m[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.458 +0800] [33mWARN[39m (18816): [36m[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.458 +0800] [33mWARN[39m (18816): [36m[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.458 +0800] [33mWARN[39m (18816): [36m[migration] 008_phase6_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.458 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 009_phase7_approval_schema.sql[39m
+[2026-10-14 00:08:22.534 +0800] [33mWARN[39m (18816): [36m[migration] 009_phase7_approval_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_approval_rule）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.535 +0800] [33mWARN[39m (18816): [36m[migration] 009_phase7_approval_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 t_approval_approver）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.535 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 010_phase7_credit_tenant.sql[39m
+[2026-10-14 00:08:22.542 +0800] [32mINFO[39m (18816): [36m[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.563 +0800] [32mINFO[39m (18816): [36m[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.588 +0800] [32mINFO[39m (18816): [36m[migration] 010_phase7_credit_tenant.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.609 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 011_phase7_member_fields.sql[39m
+[2026-10-14 00:08:22.650 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 012_phase7_price_tenant.sql[39m
+[2026-10-14 00:08:22.660 +0800] [32mINFO[39m (18816): [36m[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.693 +0800] [32mINFO[39m (18816): [36m[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.727 +0800] [32mINFO[39m (18816): [36m[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.757 +0800] [32mINFO[39m (18816): [36m[migration] 012_phase7_price_tenant.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.774 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 013_phase7_sale_bill_credit.sql[39m
+[2026-10-14 00:08:22.783 +0800] [32mINFO[39m (18816): [36m[migration] 013_phase7_sale_bill_credit.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:22.802 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 014_phase7_sku_fields.sql[39m
+[2026-10-14 00:08:22.839 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 015_phase8_customer_visit.sql[39m
+[2026-10-14 00:08:22.861 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 016_phase9_tenant_subscription.sql[39m
+[2026-10-14 00:08:22.918 +0800] [32mINFO[39m (18816): [36m[migration] 016_phase9_tenant_subscription.sql: 跳过 (ER_CANT_CREATE_TABLE)[39m
+[2026-10-14 00:08:22.951 +0800] [32mINFO[39m (18816): [36m[migration] 016_phase9_tenant_subscription.sql: 跳过 (ER_CANT_CREATE_TABLE)[39m
+[2026-10-14 00:08:22.952 +0800] [33mWARN[39m (18816): [36m[migration] 016_phase9_tenant_subscription.sql: 写闸门 block 跳过 INSERT 语句（目标 t_subscription_plan）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.952 +0800] [33mWARN[39m (18816): [36m[migration] 016_phase9_tenant_subscription.sql: 写闸门 block 跳过 INSERT 语句（目标 t_tenant）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.952 +0800] [33mWARN[39m (18816): [36m[migration] 016_phase9_tenant_subscription.sql: 写闸门 block 跳过 INSERT 语句（目标 t_tenant_module_access）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:22.952 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 017_phase10_instant_retail.sql[39m
+[2026-10-14 00:08:23.053 +0800] [32mINFO[39m (18816): [36m[migration] 017_phase10_instant_retail.sql: 跳过 (ER_CANT_CREATE_TABLE)[39m
+[2026-10-14 00:08:23.087 +0800] [32mINFO[39m (18816): [36m[migration] 017_phase10_instant_retail.sql: 跳过 (ER_CANT_CREATE_TABLE)[39m
+[2026-10-14 00:08:23.103 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 018_phase10_marketing.sql[39m
+[2026-10-14 00:08:23.281 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 019_migrate_v2.sql[39m
+[2026-10-14 00:08:23.289 +0800] [32mINFO[39m (18816): [36m[migration] 019_migrate_v2.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:23.290 +0800] [32mINFO[39m (18816): [36m[migration] 019_migrate_v2.sql: 跳过 (ER_BAD_FIELD_ERROR)[39m
+[2026-10-14 00:08:23.291 +0800] [32mINFO[39m (18816): [36m[migration] 019_migrate_v2.sql: 跳过 (ER_BAD_FIELD_ERROR)[39m
+[2026-10-14 00:08:23.299 +0800] [32mINFO[39m (18816): [36m[migration] 019_migrate_v2.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:23.307 +0800] [32mINFO[39m (18816): [36m[migration] 019_migrate_v2.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:23.309 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 020_migrate_v3_payment_miniapp.sql[39m
+[2026-10-14 00:08:23.322 +0800] [33mWARN[39m (18816): [36m[migration] 020_migrate_v3_payment_miniapp.sql: 写闸门 block 跳过 INSERT 语句（目标 t_payment_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:23.322 +0800] [33mWARN[39m (18816): [36m[migration] 020_migrate_v3_payment_miniapp.sql: 写闸门 block 跳过 INSERT 语句（目标 t_payment_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:23.362 +0800] [33mWARN[39m (18816): [36m[migration] 020_migrate_v3_payment_miniapp.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:23.379 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 029_add_tenant.sql[39m
+[2026-10-14 00:08:23.381 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 030_add_subscription_plan.sql[39m
+[2026-10-14 00:08:23.384 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 031_add_subscription.sql[39m
+[2026-10-14 00:08:23.387 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 032_add_tenant_module_access.sql[39m
+[2026-10-14 00:08:23.404 +0800] [32mINFO[39m (18816): [36m[migration] 032_add_tenant_module_access.sql: 跳过 (ER_CANT_CREATE_TABLE)[39m
+[2026-10-14 00:08:23.404 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 033_add_subscription_operation_log.sql[39m
+[2026-10-14 00:08:23.407 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 034_add_tenant_admin.sql[39m
+[2026-10-14 00:08:23.425 +0800] [32mINFO[39m (18816): [36m[migration] 034_add_tenant_admin.sql: 跳过 (ER_CANT_CREATE_TABLE)[39m
+[2026-10-14 00:08:23.425 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 035_add_coupon_template.sql[39m
+[2026-10-14 00:08:23.428 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 036_add_user_coupon.sql[39m
+[2026-10-14 00:08:23.432 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 037_add_promotion_activity.sql[39m
+[2026-10-14 00:08:23.434 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 038_add_full_reduction_rule.sql[39m
+[2026-10-14 00:08:23.437 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 039_add_seckill_product.sql[39m
+[2026-10-14 00:08:23.440 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 040_add_group_buy_activity.sql[39m
+[2026-10-14 00:08:23.442 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 041_add_group_buy_record.sql[39m
+[2026-10-14 00:08:23.444 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 042_add_group_buy_participant.sql[39m
+[2026-10-14 00:08:23.447 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 043_add_promotion_stack_rule.sql[39m
+[2026-10-14 00:08:23.450 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 044_add_marketing_operation_log.sql[39m
+[2026-10-14 00:08:23.453 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 045_add_delivery_config.sql[39m
+[2026-10-14 00:08:23.455 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 046_add_delivery_record.sql[39m
+[2026-10-14 00:08:23.472 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 047_add_retail_operation_log.sql[39m
+[2026-10-14 00:08:23.475 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 048_add_customer_visit.sql[39m
+[2026-10-14 00:08:23.478 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 049_add_order_sync_log.sql[39m
+[2026-10-14 00:08:23.495 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 050_add_platform_reconciliation.sql[39m
+[2026-10-14 00:08:23.511 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 051_add_platform_review.sql[39m
+[2026-10-14 00:08:23.528 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 052_add_retail_announcement.sql[39m
+[2026-10-14 00:08:23.554 +0800] [32mINFO[39m (18816): [36m[migration] 052_add_retail_announcement.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:23.560 +0800] [32mINFO[39m (18816): [36m[migration] 052_add_retail_announcement.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:23.560 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 053_add_retail_cart.sql[39m
+[2026-10-14 00:08:23.580 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 054_add_retail_consumer_address.sql[39m
+[2026-10-14 00:08:23.594 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 055_add_points_mall_item.sql[39m
+[2026-10-14 00:08:23.608 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 056_add_points_mall_order.sql[39m
+[2026-10-14 00:08:23.626 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 057_add_marketing_asset.sql[39m
+[2026-10-14 00:08:23.642 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 058_add_sys_department.sql[39m
+[2026-10-14 00:08:23.658 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 059_add_user_session.sql[39m
+[2026-10-14 00:08:23.674 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 060_add_custom_report_template.sql[39m
+[2026-10-14 00:08:23.692 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 061_add_custom_report_schedule.sql[39m
+[2026-10-14 00:08:23.708 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 062_add_report_permission_matrix.sql[39m
+[2026-10-14 00:08:23.725 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 063_add_verification_code.sql[39m
+[2026-10-14 00:08:23.740 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 064_add_push_config.sql[39m
+[2026-10-14 00:08:23.756 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 065_add_push_template.sql[39m
+[2026-10-14 00:08:23.773 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 066_add_push_log.sql[39m
+[2026-10-14 00:08:23.789 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 067_add_unit_group.sql[39m
+[2026-10-14 00:08:23.820 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 068_银行费用发票.sql[39m
+[2026-10-14 00:08:23.863 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 069_商品SPU增加品牌ID.sql[39m
+[2026-10-14 00:08:23.872 +0800] [32mINFO[39m (18816): [36m[migration] 069_商品SPU增加品牌ID.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:23.872 +0800] [33mWARN[39m (18816): [36m[migration] 069_商品SPU增加品牌ID.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_product_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:23.984 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 070_品牌表.sql[39m
+[2026-10-14 00:08:23.987 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 071_客户积分.sql[39m
+[2026-10-14 00:08:24.076 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 072_客户价格.sql[39m
+[2026-10-14 00:08:24.095 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 073_客户标签画像.sql[39m
+[2026-10-14 00:08:24.201 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 074_即时零售表.sql[39m
+[2026-10-14 00:08:24.297 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 075_reset_admin_password_bcrypt.sql[39m
+[2026-10-14 00:08:24.297 +0800] [33mWARN[39m (18816): [36m[migration] 075_reset_admin_password_bcrypt.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.298 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 076_营销P1.sql[39m
+[2026-10-14 00:08:24.422 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 077_营销标签.sql[39m
+[2026-10-14 00:08:24.432 +0800] [32mINFO[39m (18816): [36m[migration] 077_营销标签.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:24.432 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 078_性能索引.sql[39m
+[2026-10-14 00:08:24.608 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 079_权限矩阵.sql[39m
+[2026-10-14 00:08:24.661 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.661 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.661 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.661 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.661 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.662 +0800] [33mWARN[39m (18816): [36m[migration] 079_权限矩阵.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_field_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.664 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 080_平台管理员.sql[39m
+[2026-10-14 00:08:24.690 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 081_platform_admin_seed_and_fix.sql[39m
+[2026-10-14 00:08:24.767 +0800] [33mWARN[39m (18816): [36m[migration] 081_platform_admin_seed_and_fix.sql: 写闸门 block 跳过 INSERT 语句（目标 t_platform_admin）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.771 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 082_商品标签.sql[39m
+[2026-10-14 00:08:24.814 +0800] [33mWARN[39m (18816): [36m[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag_group）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.814 +0800] [33mWARN[39m (18816): [36m[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.814 +0800] [33mWARN[39m (18816): [36m[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.814 +0800] [33mWARN[39m (18816): [36m[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.814 +0800] [33mWARN[39m (18816): [36m[migration] 082_商品标签.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:24.815 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 083_采购合同.sql[39m
+[2026-10-14 00:08:24.834 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 084_采购计划.sql[39m
+[2026-10-14 00:08:24.868 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 085_报价推送.sql[39m
+[2026-10-14 00:08:24.869 +0800] [33mWARN[39m (18816): [36m[migration] 085_报价推送.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:24.869 +0800] [33mWARN[39m (18816): [36m[migration] 085_报价推送.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:24.869 +0800] [33mWARN[39m (18816): [36m[migration] 085_报价推送.sql: 跳过 DROP TABLE 语句（保护生产数据）[39m
+[2026-10-14 00:08:24.997 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 086_收款支付.sql[39m
+[2026-10-14 00:08:25.106 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 087_报表汇总表.sql[39m
+[2026-10-14 00:08:25.185 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 088_销售佣金.sql[39m
+[2026-10-14 00:08:25.219 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 089_库存盘点表.sql[39m
+[2026-10-14 00:08:25.259 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 090_库存预警配置.sql[39m
+[2026-10-14 00:08:25.277 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 091_储值卡.sql[39m
+[2026-10-14 00:08:25.314 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 092_租户ID.sql[39m
+[2026-10-14 00:08:25.345 +0800] [33mWARN[39m (18816): [36m[migration] 092_租户ID.sql: 写闸门 block 跳过 INSERT 语句（目标 t_tenant）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:25.377 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:25.393 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:25.409 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:25.438 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:25.453 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:25.468 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:26.691 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:26.700 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:26.707 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:26.715 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:26.723 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:26.730 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:26.737 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:28.254 +0800] [32mINFO[39m (18816): [36m[migration] 092_租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:28.255 +0800] [33mWARN[39m (18816): [36m[migration] 092_租户ID.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.255 +0800] [33mWARN[39m (18816): [36m[migration] 092_租户ID.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_store）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.266 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 093_库存增加租户ID.sql[39m
+[2026-10-14 00:08:28.274 +0800] [32mINFO[39m (18816): [36m[migration] 093_库存增加租户ID.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:28.283 +0800] [32mINFO[39m (18816): [36m[migration] 093_库存增加租户ID.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:28.290 +0800] [32mINFO[39m (18816): [36m[migration] 093_库存增加租户ID.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:28.292 +0800] [32mINFO[39m (18816): [36m[migration] 093_库存增加租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:28.293 +0800] [32mINFO[39m (18816): [36m[migration] 093_库存增加租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:28.294 +0800] [32mINFO[39m (18816): [36m[migration] 093_库存增加租户ID.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:28.311 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 094_调拨订单表.sql[39m
+[2026-10-14 00:08:28.348 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 095_单位表.sql[39m
+[2026-10-14 00:08:28.362 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 096_用户设置.sql[39m
+[2026-10-14 00:08:28.369 +0800] [32mINFO[39m (18816): [36m[migration] 096_用户设置.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:28.390 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 099_seed_data.sql[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 store）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_category）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_sku）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 product_price）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 price_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 alert_rule）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 expiry_alert_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sys_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 member）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 supplier）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 supplier_contact）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 inventory_balance）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.393 +0800] [33mWARN[39m (18816): [36m[migration] 099_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 sku_price）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.394 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 100_login_failure_lock.sql[39m
+[2026-10-14 00:08:28.401 +0800] [32mINFO[39m (18816): [36m[migration] 100_login_failure_lock.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:28.402 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 101_tobacco_category_online_sale.sql[39m
+[2026-10-14 00:08:28.411 +0800] [32mINFO[39m (18816): [36m[migration] 101_tobacco_category_online_sale.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:28.411 +0800] [33mWARN[39m (18816): [36m[migration] 101_tobacco_category_online_sale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_category）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.411 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 102_tenant_register.sql[39m
+[2026-10-14 00:08:28.449 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 103_member_register.sql[39m
+[2026-10-14 00:08:28.484 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 104_platform_announcement.sql[39m
+[2026-10-14 00:08:28.499 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 105_product_marketing_tag.sql[39m
+[2026-10-14 00:08:28.515 +0800] [33mWARN[39m (18816): [36m[migration] 105_product_marketing_tag.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_marketing_tag）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.515 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 106_data_permission.sql[39m
+[2026-10-14 00:08:28.546 +0800] [33mWARN[39m (18816): [36m[migration] 106_data_permission.sql: 写闸门 block 跳过 INSERT 语句（目标 t_data_permission）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.546 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 107_sys_position.sql[39m
+[2026-10-14 00:08:28.563 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 108_miniapp_member_wholesale.sql[39m
+[2026-10-14 00:08:28.678 +0800] [33mWARN[39m (18816): [36m[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.678 +0800] [33mWARN[39m (18816): [36m[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.678 +0800] [33mWARN[39m (18816): [36m[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.678 +0800] [33mWARN[39m (18816): [36m[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.678 +0800] [33mWARN[39m (18816): [36m[migration] 108_miniapp_member_wholesale.sql: 写闸门 block 跳过 INSERT 语句（目标 t_member_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:28.679 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 109_p2_custom_report.sql[39m
+[2026-10-14 00:08:28.715 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 110_p2_product_review.sql[39m
+[2026-10-14 00:08:28.736 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 111_p2_bargain.sql[39m
+[2026-10-14 00:08:28.791 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 112_order_timeout.sql[39m
+[2026-10-14 00:08:28.819 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 113_p2_bundle_combo_profit_loss.sql[39m
+[2026-10-14 00:08:28.952 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 114_p2_transfer_share_report_permission.sql[39m
+[2026-10-14 00:08:29.067 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 115_missing_tables.sql[39m
+[2026-10-14 00:08:29.112 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 117_library_spu_sku.sql[39m
+[2026-10-14 00:08:29.161 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 118_library_brand.sql[39m
+[2026-10-14 00:08:29.174 +0800] [33mWARN[39m (18816): [36m[migration] 118_library_brand.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_brand）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:29.176 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 119_library_seed_data.sql[39m
+[2026-10-14 00:08:29.179 +0800] [33mWARN[39m (18816): [36m[migration] 119_library_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_brand）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:29.179 +0800] [33mWARN[39m (18816): [36m[migration] 119_library_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_spu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:29.179 +0800] [33mWARN[39m (18816): [36m[migration] 119_library_seed_data.sql: 写闸门 block 跳过 INSERT 语句（目标 t_library_sku）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:29.179 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 120_stock_warning.sql[39m
+[2026-10-14 00:08:29.290 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 120a_合规凭证字段.sql[39m
+[2026-10-14 00:08:29.318 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.333 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.351 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.367 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.381 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.395 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.412 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.428 +0800] [32mINFO[39m (18816): [36m[migration] 120a_合规凭证字段.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.429 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 120b_商品SPU扩展字段.sql[39m
+[2026-10-14 00:08:29.438 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.444 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.450 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.456 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.461 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.468 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.474 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.482 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.488 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.493 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.499 +0800] [32mINFO[39m (18816): [36m[migration] 120b_商品SPU扩展字段.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:29.500 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 120c_performance_indexes.sql[39m
+[2026-10-14 00:08:29.549 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.555 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.563 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.588 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.614 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.620 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.626 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.632 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.638 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.645 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.651 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.659 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.666 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.671 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.677 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.685 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.691 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.699 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.723 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.768 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.847 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.848 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.849 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.850 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:29.890 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.895 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.902 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:29.909 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.914 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_DUP_KEYNAME)[39m
+[2026-10-14 00:08:29.959 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:30.166 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:30.191 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:30.276 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:30.297 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:30.302 +0800] [32mINFO[39m (18816): [36m[migration] 120c_performance_indexes.sql: 跳过 (ER_KEY_COLUMN_DOES_NOT_EXITS)[39m
+[2026-10-14 00:08:30.303 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 120d_fix_server_3bugs.sql[39m
+[2026-10-14 00:08:30.377 +0800] [33mWARN[39m (18816): [36m[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:30.377 +0800] [33mWARN[39m (18816): [36m[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:30.381 +0800] [33mWARN[39m (18816): [36m[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_subscription_plan）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:30.381 +0800] [33mWARN[39m (18816): [36m[migration] 120d_fix_server_3bugs.sql: 写闸门 block 跳过 INSERT 语句（目标 t_subscription）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:30.408 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 120e_transfer_stock_log.sql[39m
+[2026-10-14 00:08:30.423 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 121_ai_base_tables.sql[39m
+[2026-10-14 00:08:30.430 +0800] [33mWARN[39m (18816): [36m[migration] 121_ai_base_tables.sql: 写闸门 block 跳过 INSERT 语句（目标 t_platform_ai_config）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:30.464 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 122_ai_rag.sql[39m
+[2026-10-14 00:08:30.506 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 123_member_contact.sql[39m
+[2026-10-14 00:08:30.569 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 124_drift_tables_fill.sql[39m
+[2026-10-14 00:08:30.958 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 125_instant_retail_admin_fix.sql[39m
+[2026-10-14 00:08:31.338 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 126_bills.sql[39m
+[2026-10-14 00:08:31.353 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 126_retail_tenant_collation_fix.sql[39m
+[2026-10-14 00:08:31.615 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 127_fix_demo_accounts.sql[39m
+[2026-10-14 00:08:31.615 +0800] [33mWARN[39m (18816): [36m[migration] 127_fix_demo_accounts.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.615 +0800] [33mWARN[39m (18816): [36m[migration] 127_fix_demo_accounts.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.615 +0800] [33mWARN[39m (18816): [36m[migration] 127_fix_demo_accounts.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.618 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 127_order_routing_exception.sql[39m
+[2026-10-14 00:08:31.660 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 128_fix_roles_binding.sql[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.661 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.662 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.662 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.662 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.662 +0800] [33mWARN[39m (18816): [36m[migration] 128_fix_roles_binding.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.670 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 129_sale_bill_item_compliance.sql[39m
+[2026-10-14 00:08:31.909 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 130_miniapp_template_r96.sql[39m
+[2026-10-14 00:08:31.910 +0800] [33mWARN[39m (18816): [36m[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.910 +0800] [33mWARN[39m (18816): [36m[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.910 +0800] [33mWARN[39m (18816): [36m[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.910 +0800] [33mWARN[39m (18816): [36m[migration] 130_miniapp_template_r96.sql: 写闸门 block 跳过 INSERT 语句（目标 t_miniapp_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:31.913 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 131_platform_subscription_apply.sql[39m
+[2026-10-14 00:08:31.934 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 132_product_box_barcode.sql[39m
+[2026-10-14 00:08:31.979 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 133_product_sku_unit.sql[39m
+[2026-10-14 00:08:32.001 +0800] [33mWARN[39m (18816): [36m[migration] 133_product_sku_unit.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_sku_unit）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:32.001 +0800] [33mWARN[39m (18816): [36m[migration] 133_product_sku_unit.sql: 写闸门 block 跳过 INSERT 语句（目标 t_product_sku_unit）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:32.005 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 134_sale_bill_role_fields.sql[39m
+[2026-10-14 00:08:32.232 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 135_print_templates.sql[39m
+[2026-10-14 00:08:32.247 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 136_sms_template.sql[39m
+[2026-10-14 00:08:32.262 +0800] [33mWARN[39m (18816): [36m[migration] 136_sms_template.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sms_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:32.262 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 137_sys_user_dept_position.sql[39m
+[2026-10-14 00:08:32.279 +0800] [32mINFO[39m (18816): [36m[migration] 137_sys_user_dept_position.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:32.296 +0800] [32mINFO[39m (18816): [36m[migration] 137_sys_user_dept_position.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:32.297 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 137_tenant_register_sms_template.sql[39m
+[2026-10-14 00:08:32.297 +0800] [33mWARN[39m (18816): [36m[migration] 137_tenant_register_sms_template.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sms_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:32.297 +0800] [33mWARN[39m (18816): [36m[migration] 137_tenant_register_sms_template.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sms_template）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:32.297 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 138_approval_business_link.sql[39m
+[2026-10-14 00:08:32.313 +0800] [32mINFO[39m (18816): [36m[migration] 138_approval_business_link.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:32.331 +0800] [32mINFO[39m (18816): [36m[migration] 138_approval_business_link.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:32.332 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 139_pos_hardware_payment.sql[39m
+[2026-10-14 00:08:32.384 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 140_hardware_config.sql[39m
+[2026-10-14 00:08:32.398 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 141_app_version.sql[39m
+[2026-10-14 00:08:32.411 +0800] [33mWARN[39m (18816): [36m[migration] 141_app_version.sql: 写闸门 block 跳过 INSERT 语句（目标 t_app_version）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:32.411 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 142_fix_payment_schema.sql[39m
+[2026-10-14 00:08:32.616 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 143_payment_config_columns.sql[39m
+[2026-10-14 00:08:32.659 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 144_app_version_arch_urls.sql[39m
+[2026-10-14 00:08:32.710 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 145_sys_user_avatar.sql[39m
+[2026-10-14 00:08:32.726 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 146_price_review.sql[39m
+[2026-10-14 00:08:32.743 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 147_level_config_status.sql[39m
+[2026-10-14 00:08:32.765 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 148_shift_stock_check.sql[39m
+[2026-10-14 00:08:32.797 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 149_seckill_order.sql[39m
+[2026-10-14 00:08:32.909 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 150_mfa.sql[39m
+[2026-10-14 00:08:32.944 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 151_points_columns_fill.sql[39m
+[2026-10-14 00:08:33.226 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 152_business_columns_fill.sql[39m
+[2026-10-14 00:08:34.497 +0800] [32mINFO[39m (18816): [36m[migration] 152_business_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:34.532 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 153_select_columns_fill.sql[39m
+[2026-10-14 00:08:35.029 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 154_ai_external_model.sql[39m
+[2026-10-14 00:08:35.043 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 154_wholesale_cart_selected.sql[39m
+[2026-10-14 00:08:35.060 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 155_hot_search.sql[39m
+[2026-10-14 00:08:35.075 +0800] [33mWARN[39m (18816): [36m[migration] 155_hot_search.sql: 写闸门 block 跳过 INSERT 语句（目标 t_hot_search）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:35.075 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 156_miniapp_order_deleted.sql[39m
+[2026-10-14 00:08:35.093 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 157_ai_review_task.sql[39m
+[2026-10-14 00:08:35.109 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 158_ai_ltm.sql[39m
+[2026-10-14 00:08:35.153 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 159_ai_learning.sql[39m
+[2026-10-14 00:08:35.167 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 160_ai_evolution.sql[39m
+[2026-10-14 00:08:35.180 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 161_price_review_price_type.sql[39m
+[2026-10-14 00:08:35.198 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 162_tenant_add_tax_no.sql[39m
+[2026-10-14 00:08:35.215 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 163_transfer_order_columns_fill.sql[39m
+[2026-10-14 00:08:35.229 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.235 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.241 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.248 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.253 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.260 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.265 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.272 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.278 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.284 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.290 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.296 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.303 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.311 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.318 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.324 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.330 +0800] [32mINFO[39m (18816): [36m[migration] 163_transfer_order_columns_fill.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.367 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 164_relax_legacy_not_null.sql[39m
+[2026-10-14 00:08:35.546 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 165_transfer_execution_columns.sql[39m
+[2026-10-14 00:08:35.586 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 166_transfer_order_actual_date.sql[39m
+[2026-10-14 00:08:35.612 +0800] [32mINFO[39m (18816): [36m[migration] 166_transfer_order_actual_date.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.612 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 167_member_profile_columns.sql[39m
+[2026-10-14 00:08:35.636 +0800] [32mINFO[39m (18816): [36m[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.643 +0800] [32mINFO[39m (18816): [36m[migration] 167_member_profile_columns.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.748 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 168_stock_check_report_perm_columns.sql[39m
+[2026-10-14 00:08:35.808 +0800] [32mINFO[39m (18816): [36m[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.813 +0800] [32mINFO[39m (18816): [36m[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.825 +0800] [32mINFO[39m (18816): [36m[migration] 168_stock_check_report_perm_columns.sql: 跳过 (ER_DUP_FIELDNAME)[39m
+[2026-10-14 00:08:35.825 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 169_tenant_admin_uuid.sql[39m
+[2026-10-14 00:08:35.826 +0800] [32mINFO[39m (18816): [36m[migration] 169_tenant_admin_uuid.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:35.828 +0800] [32mINFO[39m (18816): [36m[migration] 169_tenant_admin_uuid.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:35.829 +0800] [32mINFO[39m (18816): [36m[migration] 169_tenant_admin_uuid.sql: 跳过 (ER_NO_SUCH_TABLE)[39m
+[2026-10-14 00:08:35.829 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 170_platform_announcement_status_enum.sql[39m
+[2026-10-14 00:08:35.830 +0800] [33mWARN[39m (18816): [36m[migration] 170_platform_announcement_status_enum.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_platform_announcement）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:35.830 +0800] [33mWARN[39m (18816): [36m[migration] 170_platform_announcement_status_enum.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_platform_announcement）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:35.830 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 171_platform_templates.sql[39m
+[2026-10-14 00:08:35.886 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 172_sale_bill_item_tenant_backfill.sql[39m
+[2026-10-14 00:08:35.886 +0800] [33mWARN[39m (18816): [36m[migration] 172_sale_bill_item_tenant_backfill.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sale_bill_item）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:35.892 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 173_open_platform_api_key_columns.sql[39m
+[2026-10-14 00:08:36.038 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 174_open_platform_webhook.sql[39m
+[2026-10-14 00:08:36.075 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 175_open_platform_api_call_daily.sql[39m
+[2026-10-14 00:08:36.092 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 176_平台增值扣费流水.sql[39m
+[2026-10-14 00:08:36.110 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 177_ai_audit_log_cost_deduct_source.sql[39m
+[2026-10-14 00:08:36.199 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 178_library_brand_auth_app_version_status.sql[39m
+[2026-10-14 00:08:36.346 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 179_平台角色与权限点目录.sql[39m
+[2026-10-14 00:08:36.422 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 180_平台工单系统.sql[39m
+[2026-10-14 00:08:36.499 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 181_平台通知.sql[39m
+[2026-10-14 00:08:36.557 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 182_平台报表导出任务.sql[39m
+[2026-10-14 00:08:36.623 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 183_商品库审核流水.sql[39m
+[2026-10-14 00:08:36.648 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 184_平台功能开关.sql[39m
+[2026-10-14 00:08:36.679 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 185_平台数据字典.sql[39m
+[2026-10-14 00:08:36.736 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 186_平台代理商档案.sql[39m
+[2026-10-14 00:08:36.780 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 187_平台代理商层级.sql[39m
+[2026-10-14 00:08:36.812 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 188_平台渠道推广码.sql[39m
+[2026-10-14 00:08:36.846 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 189_租户归因明细.sql[39m
+[2026-10-14 00:08:36.877 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 190_商品库调取流水.sql[39m
+[2026-10-14 00:08:36.919 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 191_租户商品库调取映射.sql[39m
+[2026-10-14 00:08:36.952 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 192_租户建租户与归因落点补列.sql[39m
+[2026-10-14 00:08:37.415 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 193_t_shift_shift_type.sql[39m
+[2026-10-14 00:08:37.437 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 194_条码唯一键改租户内唯一.sql[39m
+[2026-10-14 00:08:37.449 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 195_老带新台账.sql[39m
+[2026-10-14 00:08:37.493 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 196_平台管理员MFA.sql[39m
+[2026-10-14 00:08:37.560 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 197_演示租户隔离.sql[39m
+[2026-10-14 00:08:37.561 +0800] [33mWARN[39m (18816): [36m[migration] 197_演示租户隔离.sql: 写闸门 block 跳过 INSERT 语句（目标 t_tenant）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.561 +0800] [33mWARN[39m (18816): [36m[migration] 197_演示租户隔离.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.561 +0800] [33mWARN[39m (18816): [36m[migration] 197_演示租户隔离.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sys_user）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.561 +0800] [33mWARN[39m (18816): [36m[migration] 197_演示租户隔离.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.561 +0800] [33mWARN[39m (18816): [36m[migration] 197_演示租户隔离.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.561 +0800] [33mWARN[39m (18816): [36m[migration] 197_演示租户隔离.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.561 +0800] [33mWARN[39m (18816): [36m[migration] 197_演示租户隔离.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.575 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 198_租户角色菜单补全.sql[39m
+[2026-10-14 00:08:37.576 +0800] [33mWARN[39m (18816): [36m[migration] 198_租户角色菜单补全.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.576 +0800] [33mWARN[39m (18816): [36m[migration] 198_租户角色菜单补全.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.576 +0800] [33mWARN[39m (18816): [36m[migration] 198_租户角色菜单补全.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_menu）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.576 +0800] [33mWARN[39m (18816): [36m[migration] 198_租户角色菜单补全.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.576 +0800] [33mWARN[39m (18816): [36m[migration] 198_租户角色菜单补全.sql: 写闸门 block 跳过 INSERT 语句（目标 t_sys_user_role）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow[39m
+[2026-10-14 00:08:37.584 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 20260720_print_record.sql[39m
+[2026-10-14 00:08:37.600 +0800] [32mINFO[39m (18816): [36m[migration] 执行外部迁移: 20260720_push_token.sql[39m
+RUN_MIGRATIONS_RETURNED
+[2026-10-14 00:08:37.616 +0800] [32mINFO[39m (18816): [36m[migration] 所有迁移完成[39m
+RUNNER_EXIT=0
+SNAPSHOT OK db=s3186_fix tables=311 columns=4137 indexes=1612 routines=0

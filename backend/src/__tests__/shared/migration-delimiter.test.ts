@@ -13,7 +13,10 @@
  *   A. `splitSqlStatements` 纯函数：DELIMITER 切换 + BEGIN…END 块边界 + 既有口径不回归；
  *   B. 真实 `092_租户ID.sql` 驱动 `runMigrations()`（假连接捕获**实际下发的语句序列**）：
  *      两个 `CREATE PROCEDURE` 块各作为**一条**完整语句下发；末尾两条 `DROP PROCEDURE` 被下发；
- *   C. 同批未放宽红线：默认 block 写闸门下 092 的 `CALL` 一条都不下发（MIG-4 不回归）。
+ *   C. 同批未放宽红线：默认 block 写闸门下 `CALL` 一条都不下发（MIG-4 不回归）。
+ *      S3-186 后 092 内的 173 条补列 `CALL` 已改写为不依赖存储过程的幂等写法（首关键字 SET，结构语句，
+ *      默认闸门下可执行）⇒ 092 文本里已无 `CALL`；本层改为注入一条**同形状合成 CALL**，
+ *      保证"MIG-4 仍挡 CALL"这条判据不因失去对象而空转（判据有分辨力见 S3-186 回传卡反测）。
  *
  * 夹具读取说明：本文件 `vi.mock("fs")` 之后，顶层 `import ... from "node:fs"` 会被 mock 命中
  * （vitest 4 的 `normalizeModuleId` 剥掉 `node:` 前缀），故真实文件走 `createRequire` 原生 require 读取
@@ -340,14 +343,22 @@ describe("092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过
 
   it("红线未放宽：默认 block 写闸门下 092 的 CALL 一条都不下发", async () => {
     assertReal092Fixture();
+    // S3-186：092 内已无 CALL（173 条已改写为 SET + information_schema 守卫 + PREPARE/EXECUTE），
+    // 故注入一条同形状合成 CALL —— 判据对象由"092 的 CALL"换成"同形状 CALL"，红线判据不空转。
+    const syntheticCall = "CALL add_column_if_not_exists('t_demo', 'demo_col', 'INT');";
+    const fixtureWithCall = `${REAL_092}\n${syntheticCall}\n`;
+    mockReadFileSync.mockImplementation((pathArg: unknown) =>
+      String(pathArg).endsWith(REAL_MIGRATION_FILE) ? fixtureWithCall : "SELECT 1;"
+    );
     await runMigrations();
     const queries = dispatchedStatements();
     assert092WasConsumed();
 
     expect(queries.filter((s) => /^\s*CALL\b/i.test(s))).toEqual([]);
-    // 092 的 CALL 全部被闸门挡下并逐条留日志（数量与文件里的 CALL 条数一致）
+    // 合成 CALL 被闸门挡下并留日志（数量与文件里的 CALL 条数一致）
     const callSkips = gateSkipLogs().filter((m) => m.includes("CALL 语句"));
-    const callCountInFile = (REAL_092.match(/^\s*CALL\s/gim) ?? []).length;
+    const callCountInFile = (fixtureWithCall.match(/^\s*CALL\s/gim) ?? []).length;
+    expect(callCountInFile, "合成夹具必须恰好含 1 条 CALL（否则本判据失去对象）").toBe(1);
     expect(callSkips).toHaveLength(callCountInFile);
     expect(callSkips[0]).toContain("CALL 语句");
   });
