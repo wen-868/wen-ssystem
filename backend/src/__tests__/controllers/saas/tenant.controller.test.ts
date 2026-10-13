@@ -143,7 +143,7 @@ describe("saas/tenant.controller", () => {
 
   it("toggleTenantStatus - 租户不存在应返回404", async () => {
     (tenantService.toggleTenantStatus as any).mockResolvedValue(null);
-    const req = mockReq({ params: { id: "999" }, body: { status: "SUSPENDED" } });
+    const req = mockReq({ params: { id: "999" }, body: { status: "DISABLED" } });
     const res = mockRes();
     await toggleTenantStatus(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
@@ -152,11 +152,26 @@ describe("saas/tenant.controller", () => {
 
   it("toggleTenantStatus - 应切换租户状态", async () => {
     (tenantService.toggleTenantStatus as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({ params: { id: "1" }, body: { status: "SUSPENDED" } });
+    const req = mockReq({ params: { id: "1" }, body: { status: "DISABLED" } });
     const res = mockRes();
     await toggleTenantStatus(req as any, res as any, vi.fn());
-    expect(tenantService.toggleTenantStatus).toHaveBeenCalledWith(1, "SUSPENDED");
+    expect(tenantService.toggleTenantStatus).toHaveBeenCalledWith(1, "DISABLED");
     expect(ok).toHaveBeenCalled();
+  });
+
+  // S3-192：入参值域收敛到 ACTIVE / DISABLED —— 越界值在 controller 层（Zod）就被拦下，不进服务层
+  it("toggleTenantStatus - 越界状态值被 Zod 拦下，不进服务层", async () => {
+    const req = mockReq({ params: { id: "1" }, body: { status: "SUSPENDED" } });
+    const res = mockRes();
+    await expect(toggleTenantStatus(req as any, res as any, vi.fn())).rejects.toThrow();
+    expect(tenantService.toggleTenantStatus).not.toHaveBeenCalled();
+  });
+
+  it("auditTenant - 越界状态值被 Zod 拦下，不进服务层", async () => {
+    const req = mockReq({ params: { id: "1" }, body: { status: "EXPIRED" } });
+    const res = mockRes();
+    await expect(auditTenant(req as any, res as any, vi.fn())).rejects.toThrow();
+    expect(tenantService.auditTenant).not.toHaveBeenCalled();
   });
 
   it("getTenantStatistics - 应返回租户统计", async () => {

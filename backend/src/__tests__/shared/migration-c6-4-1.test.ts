@@ -41,13 +41,16 @@ const FILE_191 = `191_${MIG_191}`;
  * 补 `mfa_secret` VARCHAR(128) NULL ＋ `mfa_enabled` TINYINT NOT NULL DEFAULT 0）、
  * 197 = S3-174-F1（演示账号迁出真实租户，判红后重做版；197 无 DDL 变更）、
  * 198 = S3-183（存量租户角色/菜单补全 + 跨租户绑定原地改指；只写 t_sys_role / t_sys_menu /
- * t_sys_user_role 三张系统表，无 DDL 变更）。本快照取**当时最高编号**（并行单若取更高号，以最高者为准）。
+ * t_sys_user_role 三张系统表，无 DDL 变更）、
+ * 199 = S3-192（租户状态值域收敛：把 t_tenant.status 的**越界状态值**订正到唯一可写值域
+ * ACTIVE / DISABLED；只写 t_tenant 一张表，零 DDL、零结构变更）。本快照取**当时最高编号**
+ * （并行单若取更高号，以最高者为准）。
  * 本快照随每批迁移**显式同步**（同 C6-4-1-F2 口径：新增迁移必须被人显式承认），
  * 不得改为"只断言不重复"或删除"最高编号"断言。
  * 编号沿革：192 = S3-144（租户建租户与归因落点补列）；193 = S3-147 预留（只加 t_shift.shift_type 列，
  * 尚未合入 main，故本分支上按文件实算的最高编号就是 194）。
  */
-const EXPECTED_MAX_MIGRATION = 198;
+const EXPECTED_MAX_MIGRATION = 199;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);

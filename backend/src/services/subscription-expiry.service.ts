@@ -1,5 +1,31 @@
 import { query } from "../shared/db";
 import logger from "../shared/logger";
+import { toTenantStatusValue } from "./platform-tenant.service";
+
+/**
+ * 租户「停用」在库里的写值。
+ *
+ * `t_tenant.status` 的**权威形态是 TINYINT（1=启用 / 0=停用）**：
+ *   · `backend/src/shared/migration.ts:539` 与 `docs/migrations/092_租户ID.sql:76` 都按 TINYINT 建表；
+ *   · 证据 `docs/evidence/MIG-1/outputs/02-plan.json:2043` 的注记「与 092 迁移及生产一致」、
+ *     收口卡 `R101-C4-0-阿坚清账.md:437`（A7）、迁移 `169_tenant_admin_uuid.sql` 的注释（生产
+ *     写 'ACTIVE' 字符串 ⇒ 500）均指向数值列；S3-150 已在真库复现 1366（写字符串）。
+ * 故"落 DISABLED"在库层就是写 0 —— 取值经唯一映射点 `toTenantStatusValue` 得出，不在本文件另立口径。
+ * 读写两侧都用 `toTenantStatus`/`toTenantStatusValue` 的口径（0/'0'/'DISABLED' ⇒ DISABLED）。
+ */
+const TENANT_STATUS_DISABLED_DB = toTenantStatusValue("DISABLED") ?? 0;
+
+/**
+ * "当前启用"的判定（供 WHERE 用）：按**字符串**比较 status。
+ *
+ * 为什么不用 `status = 'ACTIVE'`：在 TINYINT 列上 MySQL 会把 'ACTIVE' 隐式转成 0
+ * ⇒ 谓词变成 `status = 0`，命中的是**停用**行（语义反了；本文件原 L84/L93 两处即此写法）。
+ * 而 `status = 1` 在 `docs/migrations/016/029` 声明的 VARCHAR(16) 老库上又不命中 'ACTIVE'。
+ * 转字符串后比较在两种 schema 下语义一致：
+ *   · TINYINT ⇒ CAST(1) = '1' 命中、CAST(0) = '0' 不命中；
+ *   · VARCHAR ⇒ 'ACTIVE'/'1' 命中、'DISABLED'/'0' 不命中。
+ */
+const TENANT_ACTIVE_SQL_PREDICATE = `CAST(status AS CHAR) IN ('1', 'ACTIVE')`;
 
 let schedulerInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -81,7 +107,7 @@ export async function checkSubscriptionExpiry() {
        LEFT JOIN t_tenant t ON t.id = s.tenant_id
        WHERE s.status = 'ACTIVE'
          AND s.end_date < CURDATE()
-         AND t.status = 'ACTIVE'
+         AND CAST(t.status AS CHAR) IN ('1', 'ACTIVE')
        ORDER BY s.end_date ASC`
     );
 
@@ -89,10 +115,15 @@ export async function checkSubscriptionExpiry() {
       logger.info(`[SubscriptionExpiry] 订阅 ${sub.subscription_no} 已过期 ${sub.overdue_days} 天`);
 
       // 自动停用租户
+      //  · status 落「DISABLED」的库值（唯一映射点 toTenantStatusValue ⇒ 0，见文件头常量说明）：
+      //    原写法直接写字符串 EXPIRED，在 TINYINT 列上触发
+      //    ER_TRUNCATED_WRONG_VALUE_FOR_FIELD(1366) ⇒ 本语句自上线起**从未成功过**
+      //    （同一缺陷 S3-150 已在真库复现；生产 sql_mode 含 STRICT_TRANS_TABLES）。
+      //  · WHERE 用「转字符串比较」判定"当前启用"（原 'ACTIVE' 在 TINYINT 列上被转成 0 ⇒ 语义反了）。
       await query(
-        `UPDATE t_tenant SET status = 'EXPIRED', suspend_reason = '订阅已到期', suspended_at = NOW()
-         WHERE id = ? AND status = 'ACTIVE'`,
-        [sub.tenant_id]
+        `UPDATE t_tenant SET status = ?, suspend_reason = '订阅已到期', suspended_at = NOW()
+         WHERE id = ? AND ${TENANT_ACTIVE_SQL_PREDICATE}`,
+        [TENANT_STATUS_DISABLED_DB, sub.tenant_id]
       );
 
       // 更新订阅状态（平台级定时任务：sub.tenant_id 作为双保险加入 WHERE 条件）

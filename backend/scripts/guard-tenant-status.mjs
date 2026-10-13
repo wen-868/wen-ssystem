@@ -22,6 +22,19 @@
  *      选 (b)「显式清单 + 漏登检测」而非 (a)「纯自动发现」的理由：纯自动发现必须把信号放宽到
  *      "出现 ACTIVE/DISABLED 字面量"，而这两个词在**券/秒杀/满减等其它域**同样是合法枚举
  *      （`t_coupon_template.status='ACTIVE'` 等），放宽即误伤；故清单保持权威、探测器只补"漏登"这一缺口。
+ *   R4（S3-192 新增，收口总清单第 59 项）**收编 + 只读例外显式化**：R3 新发现的 4 个"写租户状态"文件里，
+ *      两个被凌舟裁定收编进域清单（它们写 t_tenant.status 的语句现已无越界字面量）：
+ *        · services/subscription-expiry.service.ts（订阅到期作业：改为写 DISABLED 的**库值**）
+ *        · services/saas/tenant.service.ts（租户审核/启停：改为一律落 ACTIVE/DISABLED，越界入参 400）
+ *      另把 controllers/saas/tenant.controller.ts 一并收编（它是同一域的**写入口**，原先的 Zod 枚举
+ *      自带第二套取值 SUSPENDED/EXPIRED/PENDING；R3 的信号识别不到 controller 这种"经服务层写"的入口，
+ *      属已知覆盖缺口 ⇒ 用显式清单补上）。
+ *      R1 的"带引号即命中"口径**未放宽**；收编后文件中仍有 3 处命中，全部按**条目级**登记理由
+ *      （LITERAL_ALLOWLIST），且门禁每次运行都会把登记项打印出来（"登记≠合规"，见 R4 输出段）。
+ *      ⚠️ 例外条目由「字面量 + 必须同时命中的上下文片段」定位（**不再用行号**）：
+ *        原实现按"理由串里含行号"放行 —— 行号随文件增删漂移，会让例外**静默失效或错放行**
+ *        （S3-192 反测实测：往文件顶部加一行注释，原 L340 的例外即失效、门禁改报 341 行红）。
+ *        改成上下文匹配后，例外与内容绑定（漂移不影响判定），且每条例外都能被独立核对。
  *
  * 用法：node backend/scripts/guard-tenant-status.mjs    退出码 0=绿 / 1=红
  */
@@ -38,18 +51,63 @@ const DOMAIN_FILES = [
   "services/admin/tenant.service.ts",
   "controllers/admin/tenant.controller.ts",
   "controllers/platform/tenant.controller.ts",
+  // ── S3-192 收编（原为 SIGNAL_EXEMPT 登记豁免）──
+  "services/subscription-expiry.service.ts",
+  "services/saas/tenant.service.ts",
+  // ── S3-192：同域的**写入口**（R3 信号识别不到"经服务层写"的 controller，故显式补入）──
+  "controllers/saas/tenant.controller.ts",
 ];
 
-/** 允许出现的例外（必须逐条给理由；键 = 文件相对 SRC 的路径） */
+/**
+ * 允许出现的例外（必须逐条给理由；键 = 文件相对 SRC 的路径）。
+ *
+ * 条目形态：`{ literal, mustInclude, reason }`
+ *   · literal     —— 被禁字面量（SUSPENDED / EXPIRED / CLOSED / PENDING 之一）；
+ *   · mustInclude —— 该命中行**必须同时包含**的上下文片段（用于把例外钉在具体语句上，
+ *                    而不是"这一行随便出现什么被禁字面量都放行"）；
+ *   · reason      —— 为什么这一处属"另一张表 / 只读分支"，不算租户状态域的可写值。
+ */
 const LITERAL_ALLOWLIST = {
   "controllers/admin/tenant.controller.ts": [
-    // 仅为注释中说明"这些不再是可写状态"，非引号字面量，本不会被 R1 命中；
-    // 若将来确需保留引号字面量，在此登记理由。
+    // 空表：该文件里只在注释中裸写状态词（非引号字面量，本就不会被 R1 命中）。
+    // 若将来确需保留引号字面量，在此按 { literal, mustInclude, reason } 登记。
+  ],
+  // ── S3-192：两个原"登记豁免"文件收编后，R1 命中的**非租户状态域 / 只读**出现处 ──
+  "services/subscription-expiry.service.ts": [
+    {
+      literal: "EXPIRED",
+      mustInclude: "t_subscription",
+      reason:
+        "`UPDATE t_subscription SET status = 'EXPIRED'`：写的是**另一张表** t_subscription 的 status" +
+        "（该列是 VARCHAR(16)，ACTIVE/EXPIRED/CANCELLED/SUSPENDED 就是它的合法值域，见" +
+        " docs/migrations/016_phase9_tenant_subscription.sql:86），不属租户状态域。" +
+        "本文件写 t_tenant.status 的语句已无越界字面量（R1 覆盖之）；此条只为「另一张表」放行。",
+    },
+  ],
+  "services/saas/tenant.service.ts": [
+    {
+      literal: "SUSPENDED",
+      mustInclude: "AS suspendedTenants",
+      reason:
+        "GET /statistics/overview 的**只读**统计分支（`COUNT(*) ... WHERE status = 'SUSPENDED'`），" +
+        "仍按旧值域计数，存量收敛后这一桶恒为 0。改写为「按 suspend_reason 归因」属**口径设计**，" +
+        "卡面 §二 未授权（只列两处写入）⇒ 本单保留原样并在回执里报回待裁定" +
+        "（见 docs/tasks/inbox/ACTIVE-回执-S3-192.md 的「读侧未收敛清单」）。",
+    },
+    {
+      literal: "EXPIRED",
+      mustInclude: "AS expiredTenants",
+      reason:
+        "同上统计分支的另一桶（`COUNT(*) ... WHERE status = 'EXPIRED'`）：只读、存量收敛后恒为 0；" +
+        "改写口径需凌舟裁定，本单不动。",
+    },
   ],
 };
 
 const FORBIDDEN = ["SUSPENDED", "EXPIRED", "CLOSED", "PENDING"];
 const problems = [];
+/** R4：被登记的命中（打印用，便于"登记≠合规"可审计） */
+const tolerated = [];
 
 /**
  * R3 的"域外但机械信号命中"登记表（键 = 相对 `src/` 的路径，值 = 逐条理由）。
@@ -61,20 +119,13 @@ const SIGNAL_EXEMPT = {
     "它是**一次性引导**，不参与租户状态的运行时口径（没有 ACTIVE/DISABLED 映射逻辑），故不属本域；" +
     "其状态字面量由迁移语料自身的一致性单测（migration-*.test.ts）守。",
   // ── S3-189 ②：机械信号**新发现**的 4 个"写租户状态"文件（旧域清单只有 4 条，从未覆盖它们） ──
-  // ⚠️ 登记 ≠ 合规：这 4 条是"登记为待裁定 / 暂不纳入钝刀 R1"的理由，不是"它们没问题"的证明。
-  "services/subscription-expiry.service.ts":
-    "订阅到期作业：L93 `UPDATE t_tenant SET status = 'EXPIRED', suspend_reason=…, suspended_at=NOW()` 直接写租户状态" +
-    "（另有 L100 写**另一张表** t_subscription.status）。未纳入 DOMAIN_FILES 的原因：本文件的 'EXPIRED' 有一处落在 t_subscription，" +
-    "R1 是「带引号即命中」的钝刀、会误伤 ⇒ 是否把 R1 细化为「语句级/表级」口径后再收编，需凌舟裁定。" +
-    " ⚠️ 同时报回（本次升级**新暴露**的存量问题）：L93 直接写 'EXPIRED' 与「租户状态可写值仅 ACTIVE/DISABLED、EXPIRED 由 expire_at 派生」的口径**冲突**。",
+  // ⚠️ 登记 ≠ 合规：登记只说明"它不属该域 / 已被别处守"，不是"它没问题"的证明。
+  // ✅ S3-192：其中 2 条已**收编**进 DOMAIN_FILES（subscription-expiry / saas tenant，见上方清单）；
+  //    它们残留的、属"另一张表"或"只读分支"的命中改按**行级**登记（LITERAL_ALLOWLIST）。
   "services/tenant-register.service.ts":
     "租户注册审核通过时 INSERT INTO t_tenant（L253，含 status 列）—— 真实「写租户状态」路径。" +
     "未纳入 DOMAIN_FILES 的原因：本文件另有 2 处 `t_tenant_register_application.status='PENDING'`（L226/386，**另一张表**的合法值），" +
     "纳入钝刀 R1 会误伤。报回：随 R1 口径细化一并收编（该文件写入 t_tenant 的取值本身未发现被禁字面量）。",
-  "services/saas/tenant.service.ts":
-    "写 t_tenant：INSERT（L179）+ `UPDATE t_tenant SET status = ?`（L295，值为**参数**非字面量）。" +
-    "未纳入 DOMAIN_FILES 的原因：本文件含读/统计语句里的 'SUSPENDED'/'EXPIRED'（L321/322）与输入分支 `body.status === \"SUSPENDED\"`（L265），" +
-    "纳入钝刀 R1 会误伤。 ⚠️ 另报回：L265 说明该接口**接受** SUSPENDED 入参（口径上属被禁值），是否按「接受即违规」另行判定，需凌舟裁定。",
   "services/platform/tenant-admin.service.ts":
     "写 t_tenant：`UPDATE t_tenant SET ${fields}`（L409，**动态字段**，可能含 status）。" +
     "未纳入 DOMAIN_FILES 的原因：本文件含类型联合 `status?: \"ACTIVE\" | \"DISABLED\" | \"EXPIRED\"`（L35）与多处读/统计语句，纳入钝刀 R1 会误伤；" +
@@ -144,11 +195,16 @@ for (const rel of DOMAIN_FILES) {
       // 只认带引号的字面量：'ACTIVE' / "ACTIVE"
       const re = new RegExp(`["']${word}["']`);
       if (re.test(line)) {
-        const allow = (LITERAL_ALLOWLIST[rel] || []).some((reason) => reason.includes(`${idx + 1}`));
-        if (!allow) {
+        // 例外条目按「字面量 + 上下文片段」匹配（不是行号，避免行号漂移导致例外静默失效/错放行）
+        const entry = (LITERAL_ALLOWLIST[rel] || []).find(
+          (candidate) => candidate.literal === word && line.includes(candidate.mustInclude)
+        );
+        if (!entry) {
           problems.push(
             `${rel}:${idx + 1}: 出现被禁的租户状态字面量 "${word}" —— 租户状态可写值唯一口径是 ACTIVE / DISABLED（EXPIRED 由 expire_at 派生）`
           );
+        } else {
+          tolerated.push(`${rel}:${idx + 1}: "${word}"（已登记上下文：${entry.mustInclude}）`);
         }
       }
     }
@@ -214,6 +270,14 @@ for (const item of comparison) {
 const notDetected = DOMAIN_FILES.filter((f) => !discovered.includes(f));
 if (notDetected.length > 0) {
   console.log(`   · 清单内但机械信号未命中（属人工判断补入，非自动发现）：${notDetected.join(", ")}`);
+}
+
+// ── R4：把"已登记放行"的命中打印出来（登记≠合规，必须可审计、不得静默） ──
+if (tolerated.length > 0) {
+  console.log(`   · [已登记放行的域内命中 ${tolerated.length} 处（登记≠合规）]`);
+  for (const t of tolerated) {
+    console.log(`       - ${t}`);
+  }
 }
 
 if (problems.length > 0) {
