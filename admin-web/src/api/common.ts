@@ -198,12 +198,22 @@ export async function fetchCollectionLinks(params?: { page?: number; pageSize?: 
 }
 
 export async function batchCreateCollectionLinks(payload: { billNos: string[]; shareChannel?: string; amount?: number; expireHours?: number }) {
-  const { data } = await api.post("/admin/collection-links/batch", payload);
+  // S3-184（收口总清单第 44 项）：后端真实注册的是 POST /api/admin/sale-bills/batch-collection-link
+  // （admin-report.routes.ts:24）；原路径 /admin/collection-links/batch 未注册 ⇒ 404，页面批量生成实际打不到。
+  // 契约对齐（report.controller.ts 的 zod）：amount 必须为正数且可选，表单里的 0 表示"收全部未收金额"（=不传）。
+  const { billNos, shareChannel, amount, expireHours } = payload;
+  const body: { billNos: string[]; shareChannel?: string; amount?: number; expireHours?: number } = { billNos };
+  if (shareChannel) body.shareChannel = shareChannel;
+  if (typeof amount === "number" && amount > 0) body.amount = amount;
+  if (typeof expireHours === "number") body.expireHours = expireHours;
+  const { data } = await api.post("/admin/sale-bills/batch-collection-link", body);
   return data.data;
 }
 
 export async function revokeCollectionLink(linkNo: string) {
-  const { data } = await api.put(`/admin/collection-links/${linkNo}/revoke`);
+  // S3-184（收口总清单第 44 项）：后端注册的是 POST /api/admin/collection-links/:linkNo/revoke
+  // （admin-report.routes.ts:23）；原 PUT 方法未注册 ⇒ 404，页面撤销实际打不到。
+  const { data } = await api.post(`/admin/collection-links/${linkNo}/revoke`);
   return data.data;
 }
 

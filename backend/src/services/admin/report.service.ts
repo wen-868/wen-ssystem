@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { AppError } from "../../shared/app-error";
 
 // ========== 数据库行类型定义 ==========
 /** 仪表盘销售汇总行（amount + count） */
@@ -431,9 +432,11 @@ export async function getCollectionLinkStats(tenantId: string) {
 
 export async function revokeCollectionLink(linkNo: string, tenantId: string) {
   const link = await queryOneWithTenant<CollectionLinkStatusRow>("SELECT link_no, status FROM t_collection_link WHERE link_no = ? AND tenant_id = ?", [linkNo, tenantId], tenantId);
-  if (!link) throw new Error("分享链接不存在");
-  if (link.status === "REVOKED") throw new Error("链接已撤销");
-  if (link.status === "PAID") throw new Error("已支付的链接不可撤销");
+  // S3-184（收口总清单第 45 项）：原先三处均为裸 Error（无 statusCode）⇒ 落进全局"未知错误"分支变 500。
+  // 缺资源 ⇒ 404；链接当前状态不允许该操作 ⇒ 409。
+  if (!link) throw new AppError("分享链接不存在", 404);
+  if (link.status === "REVOKED") throw new AppError("链接已撤销", 409);
+  if (link.status === "PAID") throw new AppError("已支付的链接不可撤销", 409);
   await queryWithTenant("UPDATE t_collection_link SET status = 'REVOKED' WHERE link_no = ? AND tenant_id = ?", [linkNo, tenantId], tenantId);
   return { linkNo, status: "REVOKED" };
 }
