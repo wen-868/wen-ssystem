@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS t_subscription (
 -- 4. 租户模块访问权限表（tenant_module_access）
 CREATE TABLE IF NOT EXISTS t_tenant_module_access (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  tenant_id INT NOT NULL COMMENT '租户ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   module_code VARCHAR(64) NOT NULL COMMENT '模块编码（如：sales/purchase/inventory/marketing）',
   module_name VARCHAR(128) NOT NULL COMMENT '模块名称',
   enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS t_subscription_operation_log (
 -- 6. 租户管理员表（tenant_admin）
 CREATE TABLE IF NOT EXISTS t_tenant_admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  tenant_id INT NOT NULL COMMENT '租户ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   user_id INT NOT NULL COMMENT '用户ID（关联sys_user）',
   role VARCHAR(32) NOT NULL DEFAULT 'ADMIN' COMMENT '角色（ADMIN/SUPER_ADMIN）',
   is_primary TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否主管理员',

@@ -1,0 +1,10 @@
+[步骤1] 探针库已建 t_tenant（形状取自修复后真库的 SHOW CREATE TABLE）
+[步骤2] 016 的 t_tenant_admin 语句（经 runner addTablePrefix 改写后）首行：
+        CREATE TABLE IF NOT EXISTS t_tenant_admin (
+        FOREIGN KEY (tenant_id) REFERENCES t_tenant(id) ON DELETE CASCADE
+[步骤2] 执行成功（无 errno 3780）
+[步骤3] information_schema 外键行数 = 1
+        t_tenant_admin_ibfk_1: tenant_id → t_tenant.id
+[步骤3] SHOW CREATE TABLE 外键行：CONSTRAINT `t_tenant_admin_ibfk_1` FOREIGN KEY (`tenant_id`) REFERENCES `t_tenant` (`id`) ON DELETE CASCADE
+[步骤4] 执行既有 169 的 DROP FOREIGN KEY 后，外键行数 = 0（⇒ 第 6 条外键是被既有 169 迁移按既有口径移除的，非本单删除）
+[步骤4] 探针库列定义：tenant_id 类型 = varchar(36)

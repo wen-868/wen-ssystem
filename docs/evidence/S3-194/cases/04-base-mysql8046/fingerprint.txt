@@ -1,0 +1,19 @@
+﻿tag        = 04-base-mysql8046
+repo       = D:\Users\ZXQL\wt-agents\S3-194-base
+db         = s3194_base46 @ 127.0.0.1:3408
+time       = 2026-10-14 03:56:57
+node       = v24.18.0
+HEAD       = 25728007c18d3d3077809c5e5ef7af3a57fb7711
+branch     = HEAD
+dirty      = 0 项
+src  sha256 C5D0031DDD2486ED  016_phase9_tenant_subscription.sql
+src  sha256 FBD9B78D73CCBA9F  017_phase10_instant_retail.sql
+src  sha256 4AA9EEF97E39D43A  031_add_subscription.sql
+src  sha256 C3C63798AAB1F3B7  032_add_tenant_module_access.sql
+src  sha256 8276346507430BB8  034_add_tenant_admin.sql
+src  sha256 9F7493083CD25474  192_租户建租户与归因落点补列.sql
+src  sha256 8167BED3DA849730  backend\src\shared\migration.ts
+src  sha256 F085128059D6B251  backend\src\shared\seed-data.ts
+dist sha256 B5161C983607288B  backend\dist\shared\migration.js
+dist sha256 47C1C091BB17E098  backend\dist\shared\seed-data.js
+dist sha256 F77389A7F7C30FF9  backend\dist\server.js

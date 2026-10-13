@@ -1,7 +1,7 @@
 -- 编号: 032, 描述: 添加租户模块访问表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS t_tenant_module_access (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  tenant_id INT NOT NULL COMMENT '租户ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   module_code VARCHAR(64) NOT NULL COMMENT '模块编码（如：sales/purchase/inventory/marketing）',
   module_name VARCHAR(128) NOT NULL COMMENT '模块名称',
   enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用',

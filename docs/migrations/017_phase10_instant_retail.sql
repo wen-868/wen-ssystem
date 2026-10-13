@@ -137,19 +137,23 @@ CREATE TABLE IF NOT EXISTS t_retail_order (
 
 -- 6. 即时零售订单商品表（retail_order_item）
 CREATE TABLE IF NOT EXISTS t_retail_order_item (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  order_id INT NOT NULL COMMENT '订单ID',
-  product_id INT NOT NULL COMMENT '商品ID',
-  product_name VARCHAR(128) NOT NULL COMMENT '商品名称',
-  product_image VARCHAR(255) COMMENT '商品图片',
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  order_id BIGINT NOT NULL COMMENT '订单ID',
+  product_id BIGINT NOT NULL COMMENT '商品ID',
+  sku_id BIGINT DEFAULT NULL COMMENT 'SKU ID',
+  product_name VARCHAR(200) NOT NULL COMMENT '商品名称',
+  product_image VARCHAR(500) COMMENT '商品图片',
   price DECIMAL(10,2) NOT NULL COMMENT '单价',
-  quantity INT NOT NULL COMMENT '数量',
-  subtotal DECIMAL(10,2) NOT NULL COMMENT '小计金额',
+  quantity INT NOT NULL DEFAULT 1 COMMENT '数量',
+  subtotal DECIMAL(10,2) NOT NULL COMMENT '小计',
+  tenant_id VARCHAR(32) NOT NULL COMMENT '租户ID',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   
-  INDEX idx_order (order_id),
-  INDEX idx_product (product_id),
-  FOREIGN KEY (order_id) REFERENCES retail_order(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售订单商品表';
+  INDEX idx_order_id (order_id),
+  INDEX idx_product_id (product_id),
+  INDEX idx_tenant_id (tenant_id),
+  CONSTRAINT fk_retail_order_item_order FOREIGN KEY (order_id) REFERENCES retail_order(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售订单明细表';
 
 -- 7. 配送配置表（delivery_config）
 CREATE TABLE IF NOT EXISTS t_delivery_config (
@@ -173,7 +177,7 @@ CREATE TABLE IF NOT EXISTS t_delivery_config (
 -- 8. 配送记录表（delivery_record）
 CREATE TABLE IF NOT EXISTS t_delivery_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  order_id INT NOT NULL COMMENT '订单ID',
+  order_id BIGINT NOT NULL COMMENT '订单ID',
   delivery_no VARCHAR(32) COMMENT '配送单号',
   delivery_type VARCHAR(16) NOT NULL COMMENT '配送类型',
   rider_name VARCHAR(64) COMMENT '骑手姓名',

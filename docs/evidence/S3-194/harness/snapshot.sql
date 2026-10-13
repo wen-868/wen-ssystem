@@ -1,0 +1,7 @@
+-- S3-194 结构快照（占位说明文件；实际查询写在 snapshot.ps1 的 Dump 调用里，便于按库名参数化）
+-- 采集口径：
+--   tables  = information_schema.TABLES（引擎 + 表级排序规则）
+--   columns = information_schema.COLUMNS（类型 / 可空 / 默认值 / 字符集 / 排序规则 / EXTRA）
+--   indexes = information_schema.STATISTICS（索引名 / 唯一性 / 列序）
+--   fks     = KEY_COLUMN_USAGE × REFERENTIAL_CONSTRAINTS（外键名 / 两侧列 / 更新删除规则）
+--   6 张本单目标表另存 SHOW CREATE TABLE 原文
