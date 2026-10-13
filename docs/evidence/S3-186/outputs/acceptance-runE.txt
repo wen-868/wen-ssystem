@@ -1,0 +1,25 @@
+基线: D:\Users\ZXQL\wt-agents\S3-186\docs\evidence\S3-186\outputs\runB-snapshot.json (db=s3186_a2) tables=311 columns=4137 indexes=1612 routines=2
+被测: D:\Users\ZXQL\wt-agents\S3-186\docs\evidence\S3-186\outputs\runE-snapshot.json (db=s3186_e) tables=311 columns=4137 indexes=1612 routines=0
+
+差异合计 = 0
+ 缺表 0 / 多表 0
+ 缺列 0 / 多列 0
+ 缺索引 0 / 多索引 0
+ 列定义不一致 0
+ 存储过程残留（基线 2 / 被测 0）
+
+## 缺表（基线有、被测无）（0）
+
+## 多表（被测多出）（0）
+
+## 缺列（基线有、被测无）（0）
+
+## 多列（被测多出）（0）
+
+## 缺索引（0）
+
+## 多索引（0）
+
+## 列定义不一致（0）
+
+存储过程残留 基线=[add_column_if_not_exists,add_index_if_not_exists] 被测=[]

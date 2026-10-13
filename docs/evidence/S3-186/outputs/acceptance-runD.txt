@@ -1,0 +1,108 @@
+基线: D:\Users\ZXQL\wt-agents\S3-186\docs\evidence\S3-186\outputs\runB-snapshot.json (db=s3186_a2) tables=311 columns=4137 indexes=1612 routines=2
+被测: D:\Users\ZXQL\wt-agents\S3-186\docs\evidence\S3-186\outputs\runD-snapshot.json (db=s3186_d) tables=311 columns=4113 indexes=1553 routines=0
+
+差异合计 = 83
+ 缺表 0 / 多表 0
+ 缺列 24 / 多列 0
+ 缺索引 59 / 多索引 0
+ 列定义不一致 0
+ 存储过程残留（基线 2 / 被测 0）
+
+## 缺表（基线有、被测无）（0）
+
+## 多表（被测多出）（0）
+
+## 缺列（基线有、被测无）（24）
+t_approval_approver.tenant_id
+t_approval_instance.tenant_id
+t_approval_log.tenant_id
+t_approval_notification.tenant_id
+t_approval_rule.tenant_id
+t_approval_task.tenant_id
+t_member.contact
+t_miniapp_order_sync_log.platform_order_no
+t_miniapp_order_sync_log.response
+t_miniapp_order_sync_log.tenant_id
+t_miniapp_order_sync_log.updated_at
+t_product_sku.box_barcode
+t_retail_cart.tenant_id
+t_sale_bill.auditor_id
+t_sale_bill.auditor_name
+t_sale_bill.operator_name
+t_sale_bill.salesman_id
+t_sale_bill.salesman_name
+t_sale_bill_item.barcode
+t_sale_bill_item.item_discount
+t_sale_bill_item.item_remark
+t_sale_bill_item.sku_spec
+t_sale_bill_item.trace_codes
+t_sale_bill_item.unit
+
+## 多列（被测多出）（0）
+
+## 缺索引（59）
+t_alert_record.idx_alert_record_tenant
+t_alert_rule.idx_alert_rule_tenant
+t_approval_approver.idx_approval_approver_tenant
+t_approval_instance.idx_approval_instance_tenant
+t_approval_log.idx_approval_log_tenant
+t_approval_notification.idx_approval_notification_tenant
+t_approval_rule.idx_approval_rule_tenant
+t_approval_task.idx_approval_task_tenant
+t_collection_link.idx_collection_link_tenant
+t_collection_view_log.idx_collection_view_log_tenant
+t_customer_payment.idx_customer_payment_tenant
+t_customer_statement.idx_customer_statement_tenant
+t_delivery_record.idx_delivery_record_rider_id
+t_expiry_alert_config.idx_expiry_alert_config_tenant
+t_expiry_alert_record.idx_expiry_alert_record_tenant
+t_hold_order.idx_hold_order_tenant
+t_inventory_balance.idx_inventory_balance_tenant
+t_inventory_batch.idx_inventory_batch_tenant
+t_inventory_ledger.idx_inventory_ledger_tenant
+t_member.idx_member_tenant
+t_miniapp_order.idx_miniapp_order_tenant
+t_miniapp_order_item.idx_miniapp_order_item_tenant
+t_miniapp_order_sync_log.idx_sync_log_platform_order_no
+t_miniapp_order_sync_log.idx_sync_log_tenant
+t_notification.idx_notification_tenant
+t_operation_log.idx_operation_log_tenant
+t_payment_order.idx_payment_order_tenant
+t_product_category.idx_product_category_tenant
+t_product_price.idx_product_price_tenant
+t_product_price_log.idx_product_price_log_tenant
+t_product_sku.idx_product_sku_tenant
+t_product_spu.idx_product_spu_tenant
+t_purchase_in_stock.idx_purchase_in_stock_tenant
+t_purchase_in_stock_item.idx_purchase_in_stock_item_tenant
+t_purchase_order.idx_purchase_order_tenant
+t_purchase_order_item.idx_purchase_order_item_tenant
+t_purchase_payment.idx_purchase_payment_tenant
+t_purchase_return.idx_purchase_return_tenant
+t_purchase_return_item.idx_purchase_return_item_tenant
+t_recall_record.idx_recall_record_tenant
+t_receivable_account.idx_receivable_account_tenant
+t_refund_order.idx_refund_order_tenant
+t_retail_cart.idx_retail_cart_tenant
+t_sale_bill.idx_sale_bill_tenant
+t_sale_bill_item.idx_sale_bill_item_tenant
+t_sale_payment.idx_sale_payment_tenant
+t_sale_return.idx_sale_return_tenant
+t_sale_return_item.idx_sale_return_item_tenant
+t_store.idx_store_tenant
+t_store_control_config.idx_store_control_config_tenant
+t_store_status_log.idx_store_status_log_tenant
+t_supplier.idx_supplier_tenant
+t_supplier_contact.idx_supplier_contact_tenant
+t_supplier_statement.idx_supplier_statement_tenant
+t_supplier_statement_item.idx_supplier_statement_item_tenant
+t_trace_code.idx_trace_code_tenant
+t_trace_config.idx_trace_config_tenant
+t_trace_event_log.idx_trace_event_log_tenant
+t_trace_scan_log.idx_trace_scan_log_tenant
+
+## 多索引（0）
+
+## 列定义不一致（0）
+
+存储过程残留 基线=[add_column_if_not_exists,add_index_if_not_exists] 被测=[]

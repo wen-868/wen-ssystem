@@ -1,0 +1,25 @@
+基线: docs\evidence\S3-186\outputs\runA-snapshot.json (db=s3186_a) tables=311 columns=4113 indexes=1553 routines=0
+被测: docs\evidence\S3-186\outputs\runD-snapshot.json (db=s3186_d) tables=311 columns=4113 indexes=1553 routines=0
+
+差异合计 = 0
+ 缺表 0 / 多表 0
+ 缺列 0 / 多列 0
+ 缺索引 0 / 多索引 0
+ 列定义不一致 0
+ 存储过程残留（基线 0 / 被测 0）
+
+## 缺表（基线有、被测无）（0）
+
+## 多表（被测多出）（0）
+
+## 缺列（基线有、被测无）（0）
+
+## 多列（被测多出）（0）
+
+## 缺索引（0）
+
+## 多索引（0）
+
+## 列定义不一致（0）
+
+存储过程残留 基线=[] 被测=[]

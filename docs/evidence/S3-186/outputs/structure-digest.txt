@@ -1,0 +1,9 @@
+runA-snapshot.json	tables=311	columns=4113	indexes=1553	routines=0	structure_sha256=09d537e7f1f722780adc8f48060efd28adeffe864f162879436ab04b8855fd27
+runA2-snapshot.json	tables=311	columns=4119	indexes=1608	routines=0	structure_sha256=5f82cf7a761263c0d3ff42b15c372a841562ba73a204e22567cc4cfd9410c76d
+runA2nd-snapshot.json	tables=311	columns=4137	indexes=1630	routines=0	structure_sha256=a3bf7bd1fd02ede70b49339b5634c6e14998bf07985cc73725f6617faf35fd98
+runB-snapshot.json	tables=311	columns=4137	indexes=1612	routines=2	structure_sha256=508e32be69563125338583ec1395f844ae63f8bce32dc98e867e53317664f553
+runC-snapshot.json	tables=311	columns=4137	indexes=1612	routines=0	structure_sha256=9b7e8aec2648c49d6155764b2cd25ba7fdc1077dc10ec76de22672039838ff11
+runC2-snapshot.json	tables=311	columns=4137	indexes=1630	routines=0	structure_sha256=d731751744eec9d7f907bd2e2c7d945d06c7a3f537353326a0dd1afc8e249dc0
+runC3-snapshot.json	tables=311	columns=4137	indexes=1612	routines=0	structure_sha256=9b7e8aec2648c49d6155764b2cd25ba7fdc1077dc10ec76de22672039838ff11
+runD-snapshot.json	tables=311	columns=4113	indexes=1553	routines=0	structure_sha256=09d537e7f1f722780adc8f48060efd28adeffe864f162879436ab04b8855fd27
+runE-snapshot.json	tables=311	columns=4137	indexes=1612	routines=0	structure_sha256=9b7e8aec2648c49d6155764b2cd25ba7fdc1077dc10ec76de22672039838ff11

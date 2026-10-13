@@ -1,0 +1,1258 @@
+{
+ "totalCalls": 173,
+ "perFile": [
+  {
+   "file": "092_租户ID.sql",
+   "calls": 138
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "calls": 8
+  },
+  {
+   "file": "123_member_contact.sql",
+   "calls": 1
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "calls": 10
+  },
+  {
+   "file": "129_sale_bill_item_compliance.sql",
+   "calls": 6
+  },
+  {
+   "file": "132_product_box_barcode.sql",
+   "calls": 1
+  },
+  {
+   "file": "134_sale_bill_role_fields.sql",
+   "calls": 5
+  },
+  {
+   "file": "137_sys_user_dept_position.sql",
+   "calls": 2
+  },
+  {
+   "file": "138_approval_business_link.sql",
+   "calls": 2
+  }
+ ],
+ "byTarget": {
+  "add_column_if_not_exists": 100,
+  "add_index_if_not_exists": 73
+ },
+ "calls": [
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 6,
+   "stmt": "CALL add_column_if_not_exists('sys_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 7,
+   "stmt": "CALL add_column_if_not_exists('sys_user', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_user', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 8,
+   "stmt": "CALL add_column_if_not_exists('sys_role', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_role', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 9,
+   "stmt": "CALL add_column_if_not_exists('sys_permission', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_permission', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 10,
+   "stmt": "CALL add_column_if_not_exists('sys_user_role', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_user_role', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 11,
+   "stmt": "CALL add_column_if_not_exists('sys_role_permission', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_role_permission', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 12,
+   "stmt": "CALL add_column_if_not_exists('t_store', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_store', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 13,
+   "stmt": "CALL add_column_if_not_exists('t_product_category', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_product_category', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 14,
+   "stmt": "CALL add_column_if_not_exists('t_product_spu', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_product_spu', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 15,
+   "stmt": "CALL add_column_if_not_exists('t_product_sku', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_product_sku', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 16,
+   "stmt": "CALL add_column_if_not_exists('t_product_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_product_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 17,
+   "stmt": "CALL add_column_if_not_exists('t_sku_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sku_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 18,
+   "stmt": "CALL add_column_if_not_exists('t_supplier', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_supplier', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 19,
+   "stmt": "CALL add_column_if_not_exists('t_supplier_contact', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_supplier_contact', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 20,
+   "stmt": "CALL add_column_if_not_exists('t_member', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_member', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 21,
+   "stmt": "CALL add_column_if_not_exists('t_customer_price_binding', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_customer_price_binding', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 22,
+   "stmt": "CALL add_column_if_not_exists('t_customer_credit', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_customer_credit', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 23,
+   "stmt": "CALL add_column_if_not_exists('t_inventory_balance', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_inventory_balance', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 24,
+   "stmt": "CALL add_column_if_not_exists('t_inventory_batch', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_inventory_batch', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 25,
+   "stmt": "CALL add_column_if_not_exists('t_inventory_ledger', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_inventory_ledger', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 26,
+   "stmt": "CALL add_column_if_not_exists('t_price_level', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_price_level', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 27,
+   "stmt": "CALL add_column_if_not_exists('t_price_change_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_price_change_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 28,
+   "stmt": "CALL add_column_if_not_exists('t_alert_rule', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_alert_rule', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 29,
+   "stmt": "CALL add_column_if_not_exists('t_alert_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_alert_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 30,
+   "stmt": "CALL add_column_if_not_exists('t_expiry_alert_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_expiry_alert_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 31,
+   "stmt": "CALL add_column_if_not_exists('t_expiry_alert_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_expiry_alert_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 32,
+   "stmt": "CALL add_column_if_not_exists('t_trace_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_trace_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 33,
+   "stmt": "CALL add_column_if_not_exists('t_trace_code', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_trace_code', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 34,
+   "stmt": "CALL add_column_if_not_exists('t_trace_event_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_trace_event_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 35,
+   "stmt": "CALL add_column_if_not_exists('t_trace_scan_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_trace_scan_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 36,
+   "stmt": "CALL add_column_if_not_exists('t_recall_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_recall_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 37,
+   "stmt": "CALL add_column_if_not_exists('t_store_control_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_store_control_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 38,
+   "stmt": "CALL add_column_if_not_exists('t_store_status_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_store_status_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 39,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 40,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 41,
+   "stmt": "CALL add_column_if_not_exists('t_sale_return', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_return', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 42,
+   "stmt": "CALL add_column_if_not_exists('t_sale_return_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_return_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 43,
+   "stmt": "CALL add_column_if_not_exists('t_sale_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 44,
+   "stmt": "CALL add_column_if_not_exists('t_purchase_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_purchase_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 45,
+   "stmt": "CALL add_column_if_not_exists('t_purchase_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_purchase_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 46,
+   "stmt": "CALL add_column_if_not_exists('t_purchase_in_stock', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_purchase_in_stock', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 47,
+   "stmt": "CALL add_column_if_not_exists('t_purchase_in_stock_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_purchase_in_stock_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 48,
+   "stmt": "CALL add_column_if_not_exists('t_purchase_return', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_purchase_return', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 49,
+   "stmt": "CALL add_column_if_not_exists('t_purchase_return_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_purchase_return_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 50,
+   "stmt": "CALL add_column_if_not_exists('t_purchase_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_purchase_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 51,
+   "stmt": "CALL add_column_if_not_exists('t_supplier_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_supplier_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 52,
+   "stmt": "CALL add_column_if_not_exists('t_supplier_statement_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_supplier_statement_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 53,
+   "stmt": "CALL add_column_if_not_exists('t_customer_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_customer_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 54,
+   "stmt": "CALL add_column_if_not_exists('t_customer_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_customer_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 55,
+   "stmt": "CALL add_column_if_not_exists('t_receivable_account', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_receivable_account', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 56,
+   "stmt": "CALL add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 57,
+   "stmt": "CALL add_column_if_not_exists('t_refund_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_refund_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 58,
+   "stmt": "CALL add_column_if_not_exists('t_hold_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_hold_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 59,
+   "stmt": "CALL add_column_if_not_exists('t_miniapp_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_miniapp_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 60,
+   "stmt": "CALL add_column_if_not_exists('t_miniapp_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_miniapp_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 61,
+   "stmt": "CALL add_column_if_not_exists('t_collection_link', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_collection_link', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 62,
+   "stmt": "CALL add_column_if_not_exists('t_collection_view_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_collection_view_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 63,
+   "stmt": "CALL add_column_if_not_exists('t_collection_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_collection_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 64,
+   "stmt": "CALL add_column_if_not_exists('t_credit_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_credit_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 65,
+   "stmt": "CALL add_column_if_not_exists('t_notification', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_notification', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 66,
+   "stmt": "CALL add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 67,
+   "stmt": "CALL add_column_if_not_exists('t_product_price_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_product_price_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 68,
+   "stmt": "CALL add_column_if_not_exists('t_approval_rule', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_approval_rule', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 69,
+   "stmt": "CALL add_column_if_not_exists('t_approval_instance', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_approval_instance', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 70,
+   "stmt": "CALL add_column_if_not_exists('t_approval_task', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_approval_task', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 71,
+   "stmt": "CALL add_column_if_not_exists('t_approval_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_approval_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 72,
+   "stmt": "CALL add_column_if_not_exists('t_approval_approver', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_approval_approver', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 73,
+   "stmt": "CALL add_column_if_not_exists('t_approval_notification', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_approval_notification', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 74,
+   "stmt": "CALL add_column_if_not_exists('t_daily_settlement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_daily_settlement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 75,
+   "stmt": "CALL add_index_if_not_exists('sys_config', 'idx_sys_config_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('sys_config', 'idx_sys_config_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 76,
+   "stmt": "CALL add_index_if_not_exists('sys_user', 'idx_sys_user_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('sys_user', 'idx_sys_user_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 77,
+   "stmt": "CALL add_index_if_not_exists('sys_role', 'idx_sys_role_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('sys_role', 'idx_sys_role_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 78,
+   "stmt": "CALL add_index_if_not_exists('sys_permission', 'idx_sys_permission_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('sys_permission', 'idx_sys_permission_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 79,
+   "stmt": "CALL add_index_if_not_exists('sys_user_role', 'idx_sys_user_role_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('sys_user_role', 'idx_sys_user_role_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 80,
+   "stmt": "CALL add_index_if_not_exists('sys_role_permission', 'idx_sys_role_permission_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('sys_role_permission', 'idx_sys_role_permission_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 81,
+   "stmt": "CALL add_index_if_not_exists('t_store', 'idx_store_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_store', 'idx_store_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 82,
+   "stmt": "CALL add_index_if_not_exists('t_product_category', 'idx_product_category_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_product_category', 'idx_product_category_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 83,
+   "stmt": "CALL add_index_if_not_exists('t_product_spu', 'idx_product_spu_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_product_spu', 'idx_product_spu_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 84,
+   "stmt": "CALL add_index_if_not_exists('t_product_sku', 'idx_product_sku_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_product_sku', 'idx_product_sku_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 85,
+   "stmt": "CALL add_index_if_not_exists('t_product_price', 'idx_product_price_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_product_price', 'idx_product_price_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 86,
+   "stmt": "CALL add_index_if_not_exists('t_sku_price', 'idx_sku_price_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_sku_price', 'idx_sku_price_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 87,
+   "stmt": "CALL add_index_if_not_exists('t_supplier', 'idx_supplier_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_supplier', 'idx_supplier_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 88,
+   "stmt": "CALL add_index_if_not_exists('t_supplier_contact', 'idx_supplier_contact_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_supplier_contact', 'idx_supplier_contact_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 89,
+   "stmt": "CALL add_index_if_not_exists('t_member', 'idx_member_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_member', 'idx_member_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 90,
+   "stmt": "CALL add_index_if_not_exists('t_customer_price_binding', 'idx_customer_price_binding_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_customer_price_binding', 'idx_customer_price_binding_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 91,
+   "stmt": "CALL add_index_if_not_exists('t_customer_credit', 'idx_customer_credit_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_customer_credit', 'idx_customer_credit_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 92,
+   "stmt": "CALL add_index_if_not_exists('t_inventory_balance', 'idx_inventory_balance_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_inventory_balance', 'idx_inventory_balance_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 93,
+   "stmt": "CALL add_index_if_not_exists('t_inventory_batch', 'idx_inventory_batch_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_inventory_batch', 'idx_inventory_batch_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 94,
+   "stmt": "CALL add_index_if_not_exists('t_inventory_ledger', 'idx_inventory_ledger_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_inventory_ledger', 'idx_inventory_ledger_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 95,
+   "stmt": "CALL add_index_if_not_exists('t_price_level', 'idx_price_level_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_price_level', 'idx_price_level_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 96,
+   "stmt": "CALL add_index_if_not_exists('t_price_change_log', 'idx_price_change_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_price_change_log', 'idx_price_change_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 97,
+   "stmt": "CALL add_index_if_not_exists('t_alert_rule', 'idx_alert_rule_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_alert_rule', 'idx_alert_rule_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 98,
+   "stmt": "CALL add_index_if_not_exists('t_alert_record', 'idx_alert_record_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_alert_record', 'idx_alert_record_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 99,
+   "stmt": "CALL add_index_if_not_exists('t_expiry_alert_config', 'idx_expiry_alert_config_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_expiry_alert_config', 'idx_expiry_alert_config_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 100,
+   "stmt": "CALL add_index_if_not_exists('t_expiry_alert_record', 'idx_expiry_alert_record_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_expiry_alert_record', 'idx_expiry_alert_record_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 101,
+   "stmt": "CALL add_index_if_not_exists('t_trace_config', 'idx_trace_config_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_trace_config', 'idx_trace_config_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 102,
+   "stmt": "CALL add_index_if_not_exists('t_trace_code', 'idx_trace_code_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_trace_code', 'idx_trace_code_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 103,
+   "stmt": "CALL add_index_if_not_exists('t_trace_event_log', 'idx_trace_event_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_trace_event_log', 'idx_trace_event_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 104,
+   "stmt": "CALL add_index_if_not_exists('t_trace_scan_log', 'idx_trace_scan_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_trace_scan_log', 'idx_trace_scan_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 105,
+   "stmt": "CALL add_index_if_not_exists('t_recall_record', 'idx_recall_record_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_recall_record', 'idx_recall_record_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 106,
+   "stmt": "CALL add_index_if_not_exists('t_store_control_config', 'idx_store_control_config_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_store_control_config', 'idx_store_control_config_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 107,
+   "stmt": "CALL add_index_if_not_exists('t_store_status_log', 'idx_store_status_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_store_status_log', 'idx_store_status_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 108,
+   "stmt": "CALL add_index_if_not_exists('t_sale_bill', 'idx_sale_bill_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_sale_bill', 'idx_sale_bill_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 109,
+   "stmt": "CALL add_index_if_not_exists('t_sale_bill_item', 'idx_sale_bill_item_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_sale_bill_item', 'idx_sale_bill_item_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 110,
+   "stmt": "CALL add_index_if_not_exists('t_sale_return', 'idx_sale_return_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_sale_return', 'idx_sale_return_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 111,
+   "stmt": "CALL add_index_if_not_exists('t_sale_return_item', 'idx_sale_return_item_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_sale_return_item', 'idx_sale_return_item_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 112,
+   "stmt": "CALL add_index_if_not_exists('t_sale_payment', 'idx_sale_payment_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_sale_payment', 'idx_sale_payment_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 113,
+   "stmt": "CALL add_index_if_not_exists('t_purchase_order', 'idx_purchase_order_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_purchase_order', 'idx_purchase_order_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 114,
+   "stmt": "CALL add_index_if_not_exists('t_purchase_order_item', 'idx_purchase_order_item_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_purchase_order_item', 'idx_purchase_order_item_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 115,
+   "stmt": "CALL add_index_if_not_exists('t_purchase_in_stock', 'idx_purchase_in_stock_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_purchase_in_stock', 'idx_purchase_in_stock_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 116,
+   "stmt": "CALL add_index_if_not_exists('t_purchase_in_stock_item', 'idx_purchase_in_stock_item_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_purchase_in_stock_item', 'idx_purchase_in_stock_item_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 117,
+   "stmt": "CALL add_index_if_not_exists('t_purchase_return', 'idx_purchase_return_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_purchase_return', 'idx_purchase_return_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 118,
+   "stmt": "CALL add_index_if_not_exists('t_purchase_return_item', 'idx_purchase_return_item_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_purchase_return_item', 'idx_purchase_return_item_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 119,
+   "stmt": "CALL add_index_if_not_exists('t_purchase_payment', 'idx_purchase_payment_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_purchase_payment', 'idx_purchase_payment_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 120,
+   "stmt": "CALL add_index_if_not_exists('t_supplier_statement', 'idx_supplier_statement_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_supplier_statement', 'idx_supplier_statement_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 121,
+   "stmt": "CALL add_index_if_not_exists('t_supplier_statement_item', 'idx_supplier_statement_item_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_supplier_statement_item', 'idx_supplier_statement_item_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 122,
+   "stmt": "CALL add_index_if_not_exists('t_customer_statement', 'idx_customer_statement_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_customer_statement', 'idx_customer_statement_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 123,
+   "stmt": "CALL add_index_if_not_exists('t_customer_payment', 'idx_customer_payment_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_customer_payment', 'idx_customer_payment_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 124,
+   "stmt": "CALL add_index_if_not_exists('t_receivable_account', 'idx_receivable_account_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_receivable_account', 'idx_receivable_account_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 125,
+   "stmt": "CALL add_index_if_not_exists('t_payment_order', 'idx_payment_order_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_payment_order', 'idx_payment_order_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 126,
+   "stmt": "CALL add_index_if_not_exists('t_refund_order', 'idx_refund_order_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_refund_order', 'idx_refund_order_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 127,
+   "stmt": "CALL add_index_if_not_exists('t_hold_order', 'idx_hold_order_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_hold_order', 'idx_hold_order_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 128,
+   "stmt": "CALL add_index_if_not_exists('t_miniapp_order', 'idx_miniapp_order_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_miniapp_order', 'idx_miniapp_order_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 129,
+   "stmt": "CALL add_index_if_not_exists('t_miniapp_order_item', 'idx_miniapp_order_item_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_miniapp_order_item', 'idx_miniapp_order_item_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 130,
+   "stmt": "CALL add_index_if_not_exists('t_collection_link', 'idx_collection_link_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_collection_link', 'idx_collection_link_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 131,
+   "stmt": "CALL add_index_if_not_exists('t_collection_view_log', 'idx_collection_view_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_collection_view_log', 'idx_collection_view_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 132,
+   "stmt": "CALL add_index_if_not_exists('t_collection_record', 'idx_collection_record_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_collection_record', 'idx_collection_record_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 133,
+   "stmt": "CALL add_index_if_not_exists('t_credit_operation_log', 'idx_credit_operation_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_credit_operation_log', 'idx_credit_operation_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 134,
+   "stmt": "CALL add_index_if_not_exists('t_notification', 'idx_notification_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_notification', 'idx_notification_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 135,
+   "stmt": "CALL add_index_if_not_exists('t_operation_log', 'idx_operation_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_operation_log', 'idx_operation_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 136,
+   "stmt": "CALL add_index_if_not_exists('t_product_price_log', 'idx_product_price_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_product_price_log', 'idx_product_price_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 137,
+   "stmt": "CALL add_index_if_not_exists('t_approval_rule', 'idx_approval_rule_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_approval_rule', 'idx_approval_rule_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 138,
+   "stmt": "CALL add_index_if_not_exists('t_approval_instance', 'idx_approval_instance_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_approval_instance', 'idx_approval_instance_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 139,
+   "stmt": "CALL add_index_if_not_exists('t_approval_task', 'idx_approval_task_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_approval_task', 'idx_approval_task_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 140,
+   "stmt": "CALL add_index_if_not_exists('t_approval_log', 'idx_approval_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_approval_log', 'idx_approval_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 141,
+   "stmt": "CALL add_index_if_not_exists('t_approval_approver', 'idx_approval_approver_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_approval_approver', 'idx_approval_approver_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 142,
+   "stmt": "CALL add_index_if_not_exists('t_approval_notification', 'idx_approval_notification_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_approval_notification', 'idx_approval_notification_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "092_租户ID.sql",
+   "stmtIndex": 143,
+   "stmt": "CALL add_index_if_not_exists('t_daily_settlement', 'idx_daily_settlement_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_daily_settlement', 'idx_daily_settlement_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('sale_bill_item', 'unit', \"VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照（瓶/箱）'\")",
+   "prefixed": "CALL add_column_if_not_exists('sale_bill_item', 'unit', \"VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照（瓶/箱）'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 1,
+   "stmt": "CALL add_column_if_not_exists('sale_bill_item', 'barcode', \"VARCHAR(128) DEFAULT NULL COMMENT '条形码快照'\")",
+   "prefixed": "CALL add_column_if_not_exists('sale_bill_item', 'barcode', \"VARCHAR(128) DEFAULT NULL COMMENT '条形码快照'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 2,
+   "stmt": "CALL add_column_if_not_exists('sale_bill_item', 'spec', \"VARCHAR(128) DEFAULT NULL COMMENT '规格描述快照（如：500ml/瓶）'\")",
+   "prefixed": "CALL add_column_if_not_exists('sale_bill_item', 'spec', \"VARCHAR(128) DEFAULT NULL COMMENT '规格描述快照（如：500ml/瓶）'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 3,
+   "stmt": "CALL add_column_if_not_exists('sale_bill', 'store_name', \"VARCHAR(128) DEFAULT NULL COMMENT '门店名称快照'\")",
+   "prefixed": "CALL add_column_if_not_exists('sale_bill', 'store_name', \"VARCHAR(128) DEFAULT NULL COMMENT '门店名称快照'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 4,
+   "stmt": "CALL add_column_if_not_exists('sale_bill', 'store_address', \"VARCHAR(255) DEFAULT NULL COMMENT '门店地址快照'\")",
+   "prefixed": "CALL add_column_if_not_exists('sale_bill', 'store_address', \"VARCHAR(255) DEFAULT NULL COMMENT '门店地址快照'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 5,
+   "stmt": "CALL add_column_if_not_exists('sale_bill', 'store_contact', \"VARCHAR(64) DEFAULT NULL COMMENT '门店联系方式快照'\")",
+   "prefixed": "CALL add_column_if_not_exists('sale_bill', 'store_contact', \"VARCHAR(64) DEFAULT NULL COMMENT '门店联系方式快照'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 6,
+   "stmt": "CALL add_column_if_not_exists('collection_link', 'display_config', \"JSON DEFAULT NULL COMMENT '显示字段配置'\")",
+   "prefixed": "CALL add_column_if_not_exists('collection_link', 'display_config', \"JSON DEFAULT NULL COMMENT '显示字段配置'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "120a_合规凭证字段.sql",
+   "stmtIndex": 7,
+   "stmt": "CALL add_column_if_not_exists('collection_link', 'document_title', \"VARCHAR(128) DEFAULT '销售单' COMMENT '单据标题'\")",
+   "prefixed": "CALL add_column_if_not_exists('collection_link', 'document_title', \"VARCHAR(128) DEFAULT '销售单' COMMENT '单据标题'\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "123_member_contact.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('t_member', 'contact', \"VARCHAR(64) DEFAULT NULL COMMENT '联系人' AFTER name\")",
+   "prefixed": "CALL add_column_if_not_exists('t_member', 'contact', \"VARCHAR(64) DEFAULT NULL COMMENT '联系人' AFTER name\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 1,
+   "stmt": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'platform_order_no', \"VARCHAR(64) DEFAULT NULL COMMENT '平台订单号' AFTER order_no\")",
+   "prefixed": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'platform_order_no', \"VARCHAR(64) DEFAULT NULL COMMENT '平台订单号' AFTER order_no\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 2,
+   "stmt": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'response', \"TEXT DEFAULT NULL COMMENT '同步响应内容' AFTER response_data\")",
+   "prefixed": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'response', \"TEXT DEFAULT NULL COMMENT '同步响应内容' AFTER response_data\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 3,
+   "stmt": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'updated_at', \"DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' AFTER created_at\")",
+   "prefixed": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'updated_at', \"DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' AFTER created_at\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 4,
+   "stmt": "CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 5,
+   "stmt": "CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_platform_order_no', '(platform_order_no)')",
+   "prefixed": "CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_platform_order_no', '(platform_order_no)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 6,
+   "stmt": "CALL add_column_if_not_exists('t_retail_cart', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_retail_cart', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 7,
+   "stmt": "CALL add_index_if_not_exists('t_retail_cart', 'idx_retail_cart_tenant', '(tenant_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_retail_cart', 'idx_retail_cart_tenant', '(tenant_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 8,
+   "stmt": "CALL add_column_if_not_exists('t_delivery_record', 'rider_id', \"BIGINT DEFAULT NULL COMMENT '骑手ID' AFTER rider_phone\")",
+   "prefixed": "CALL add_column_if_not_exists('t_delivery_record', 'rider_id', \"BIGINT DEFAULT NULL COMMENT '骑手ID' AFTER rider_phone\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "125_instant_retail_admin_fix.sql",
+   "stmtIndex": 9,
+   "stmt": "CALL add_index_if_not_exists('t_delivery_record', 'idx_delivery_record_rider_id', '(rider_id)')",
+   "prefixed": "CALL add_index_if_not_exists('t_delivery_record', 'idx_delivery_record_rider_id', '(rider_id)')",
+   "target": "add_index_if_not_exists"
+  },
+  {
+   "file": "129_sale_bill_item_compliance.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill_item', 'sku_spec', \"VARCHAR(128) DEFAULT NULL COMMENT '规格快照' AFTER sku_name\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill_item', 'sku_spec', \"VARCHAR(128) DEFAULT NULL COMMENT '规格快照' AFTER sku_name\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "129_sale_bill_item_compliance.sql",
+   "stmtIndex": 1,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill_item', 'unit', \"VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照' AFTER sku_spec\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill_item', 'unit', \"VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照' AFTER sku_spec\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "129_sale_bill_item_compliance.sql",
+   "stmtIndex": 2,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill_item', 'barcode', \"VARCHAR(128) DEFAULT NULL COMMENT '条码快照' AFTER unit\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill_item', 'barcode', \"VARCHAR(128) DEFAULT NULL COMMENT '条码快照' AFTER unit\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "129_sale_bill_item_compliance.sql",
+   "stmtIndex": 3,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill_item', 'item_remark', \"VARCHAR(255) DEFAULT NULL COMMENT '行备注' AFTER subtotal_amount\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill_item', 'item_remark', \"VARCHAR(255) DEFAULT NULL COMMENT '行备注' AFTER subtotal_amount\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "129_sale_bill_item_compliance.sql",
+   "stmtIndex": 4,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill_item', 'item_discount', \"DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '行折扣率%' AFTER item_remark\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill_item', 'item_discount', \"DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '行折扣率%' AFTER item_remark\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "129_sale_bill_item_compliance.sql",
+   "stmtIndex": 5,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill_item', 'trace_codes', \"JSON DEFAULT NULL COMMENT '追溯码列表' AFTER item_discount\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill_item', 'trace_codes', \"JSON DEFAULT NULL COMMENT '追溯码列表' AFTER item_discount\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "132_product_box_barcode.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('t_product_sku', 'box_barcode', \"VARCHAR(128) DEFAULT NULL COMMENT '组合单位条码（箱码，一品多码）' AFTER barcode\")",
+   "prefixed": "CALL add_column_if_not_exists('t_product_sku', 'box_barcode', \"VARCHAR(128) DEFAULT NULL COMMENT '组合单位条码（箱码，一品多码）' AFTER barcode\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "134_sale_bill_role_fields.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill', 'operator_name', \"VARCHAR(64) DEFAULT NULL COMMENT '制单人快照' AFTER operator_id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill', 'operator_name', \"VARCHAR(64) DEFAULT NULL COMMENT '制单人快照' AFTER operator_id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "134_sale_bill_role_fields.sql",
+   "stmtIndex": 1,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill', 'auditor_id', \"BIGINT UNSIGNED DEFAULT NULL COMMENT '审核人ID' AFTER operator_name\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill', 'auditor_id', \"BIGINT UNSIGNED DEFAULT NULL COMMENT '审核人ID' AFTER operator_name\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "134_sale_bill_role_fields.sql",
+   "stmtIndex": 2,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill', 'auditor_name', \"VARCHAR(64) DEFAULT NULL COMMENT '审核人快照' AFTER auditor_id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill', 'auditor_name', \"VARCHAR(64) DEFAULT NULL COMMENT '审核人快照' AFTER auditor_id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "134_sale_bill_role_fields.sql",
+   "stmtIndex": 3,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill', 'salesman_id', \"BIGINT UNSIGNED DEFAULT NULL COMMENT '业务员ID' AFTER auditor_name\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill', 'salesman_id', \"BIGINT UNSIGNED DEFAULT NULL COMMENT '业务员ID' AFTER auditor_name\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "134_sale_bill_role_fields.sql",
+   "stmtIndex": 4,
+   "stmt": "CALL add_column_if_not_exists('t_sale_bill', 'salesman_name', \"VARCHAR(64) DEFAULT NULL COMMENT '业务员快照' AFTER salesman_id\")",
+   "prefixed": "CALL add_column_if_not_exists('t_sale_bill', 'salesman_name', \"VARCHAR(64) DEFAULT NULL COMMENT '业务员快照' AFTER salesman_id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "137_sys_user_dept_position.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('sys_user', 'department_id', \"BIGINT DEFAULT NULL COMMENT '所属部门ID' AFTER store_id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_user', 'department_id', \"BIGINT DEFAULT NULL COMMENT '所属部门ID' AFTER store_id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "137_sys_user_dept_position.sql",
+   "stmtIndex": 1,
+   "stmt": "CALL add_column_if_not_exists('sys_user', 'position_id', \"BIGINT DEFAULT NULL COMMENT '所属岗位ID' AFTER department_id\")",
+   "prefixed": "CALL add_column_if_not_exists('sys_user', 'position_id', \"BIGINT DEFAULT NULL COMMENT '所属岗位ID' AFTER department_id\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "138_approval_business_link.sql",
+   "stmtIndex": 0,
+   "stmt": "CALL add_column_if_not_exists('purchase_order', 'approval_instance_no', \"VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号' AFTER order_status\")",
+   "prefixed": "CALL add_column_if_not_exists('purchase_order', 'approval_instance_no', \"VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号' AFTER order_status\")",
+   "target": "add_column_if_not_exists"
+  },
+  {
+   "file": "138_approval_business_link.sql",
+   "stmtIndex": 1,
+   "stmt": "CALL add_column_if_not_exists('sale_return', 'approval_instance_no', \"VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号' AFTER return_status\")",
+   "prefixed": "CALL add_column_if_not_exists('sale_return', 'approval_instance_no', \"VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号' AFTER return_status\")",
+   "target": "add_column_if_not_exists"
+  }
+ ]
+}

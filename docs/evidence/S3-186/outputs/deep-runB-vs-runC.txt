@@ -1,0 +1,13 @@
+A=docs\evidence\S3-186\outputs\runB-snapshot.json
+B=docs\evidence\S3-186\outputs\runC-snapshot.json
+列顺序不一致 10 条 / 同名索引组成不一致 0 条
+  POS t_delivery_record.status: A#7 vs B#8
+  POS t_delivery_record.picked_up_at: A#8 vs B#9
+  POS t_delivery_record.delivered_at: A#9 vs B#10
+  POS t_delivery_record.delivery_latitude: A#10 vs B#11
+  POS t_delivery_record.delivery_longitude: A#11 vs B#12
+  POS t_delivery_record.remark: A#12 vs B#13
+  POS t_delivery_record.tenant_id: A#13 vs B#14
+  POS t_delivery_record.created_at: A#14 vs B#15
+  POS t_delivery_record.updated_at: A#15 vs B#16
+  POS t_delivery_record.rider_id: A#16 vs B#7

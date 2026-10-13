@@ -1,0 +1,40 @@
+基线: docs\evidence\S3-186\outputs\runC-snapshot.json (db=s3186_c) tables=311 columns=4137 indexes=1612 routines=0
+被测: docs\evidence\S3-186\outputs\runC2-snapshot.json (db=s3186_c) tables=311 columns=4137 indexes=1630 routines=0
+
+差异合计 = 15
+ 缺表 0 / 多表 0
+ 缺列 0 / 多列 0
+ 缺索引 0 / 多索引 15
+ 列定义不一致 0
+ 存储过程残留（基线 0 / 被测 0）
+
+## 缺表（基线有、被测无）（0）
+
+## 多表（被测多出）（0）
+
+## 缺列（基线有、被测无）（0）
+
+## 多列（被测多出）（0）
+
+## 缺索引（0）
+
+## 多索引（15）
+t_approval_approver.idx_t_approval_approver_tenant
+t_approval_instance.idx_t_approval_instance_tenant
+t_approval_log.idx_t_approval_log_tenant
+t_approval_notification.idx_t_approval_notification_tenant
+t_approval_rule.idx_t_approval_rule_tenant
+t_approval_task.idx_t_approval_task_tenant
+t_brand.idx_t_brand_tenant
+t_coupon_template.idx_coupon_template_type
+t_customer_type.idx_t_customer_type_tenant
+t_daily_settlement.idx_t_daily_settlement_tenant
+t_sale_bill.idx_sale_bill_customer_status
+t_sale_bill.idx_sale_bill_status
+t_sale_bill.idx_sale_bill_status_created
+t_sale_bill.idx_sale_bill_tenant_status
+t_stock_warning.idx_t_stock_warning_tenant
+
+## 列定义不一致（0）
+
+存储过程残留 基线=[] 被测=[]

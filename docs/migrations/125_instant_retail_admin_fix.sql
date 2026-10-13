@@ -15,24 +15,54 @@
 -- ────────────────────────────────────────────────────────────
 -- 1. t_miniapp_order_sync_log 补列
 -- ────────────────────────────────────────────────────────────
-CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'platform_order_no', "VARCHAR(64) DEFAULT NULL COMMENT '平台订单号' AFTER order_no");
-CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'response', "TEXT DEFAULT NULL COMMENT '同步响应内容' AFTER response_data");
-CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'updated_at', "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' AFTER created_at");
-CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_platform_order_no', '(platform_order_no)');
+-- S3-186：原 CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_miniapp_order_sync_log', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_miniapp_order_sync_log.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
+-- S3-186：原 CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'platform_order_no', "VARCHAR(64) DEFAULT NULL COMMENT '平台订单号' AFTER order_no");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_miniapp_order_sync_log', @s3186_name = 'platform_order_no';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(64) DEFAULT NULL COMMENT ''平台订单号'' AFTER order_no'), 'SELECT ''跳过 t_miniapp_order_sync_log.platform_order_no'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
+-- S3-186：原 CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'response', "TEXT DEFAULT NULL COMMENT '同步响应内容' AFTER response_data");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_miniapp_order_sync_log', @s3186_name = 'response';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'TEXT DEFAULT NULL COMMENT ''同步响应内容'' AFTER response_data'), 'SELECT ''跳过 t_miniapp_order_sync_log.response'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
+-- S3-186：原 CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'updated_at', "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' AFTER created_at");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_miniapp_order_sync_log', @s3186_name = 'updated_at';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''更新时间'' AFTER created_at'), 'SELECT ''跳过 t_miniapp_order_sync_log.updated_at'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
+-- S3-186：原 CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_miniapp_order_sync_log', @s3186_name = 'idx_sync_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_miniapp_order_sync_log.idx_sync_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
+-- S3-186：原 CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_platform_order_no', '(platform_order_no)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_miniapp_order_sync_log', @s3186_name = 'idx_sync_log_platform_order_no';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(platform_order_no)'), 'SELECT ''跳过 t_miniapp_order_sync_log.idx_sync_log_platform_order_no'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 
 -- ────────────────────────────────────────────────────────────
 -- 2. t_retail_cart 补租户列
 -- ────────────────────────────────────────────────────────────
-CALL add_column_if_not_exists('t_retail_cart', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_index_if_not_exists('t_retail_cart', 'idx_retail_cart_tenant', '(tenant_id)');
+-- S3-186：原 CALL add_column_if_not_exists('t_retail_cart', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_retail_cart', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_retail_cart.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
+-- S3-186：原 CALL add_index_if_not_exists('t_retail_cart', 'idx_retail_cart_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_retail_cart', @s3186_name = 'idx_retail_cart_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_retail_cart.idx_retail_cart_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 
 -- ────────────────────────────────────────────────────────────
 -- 3. t_delivery_record 补骑手ID列
 -- ────────────────────────────────────────────────────────────
-CALL add_column_if_not_exists('t_delivery_record', 'rider_id', "BIGINT DEFAULT NULL COMMENT '骑手ID' AFTER rider_phone");
-CALL add_index_if_not_exists('t_delivery_record', 'idx_delivery_record_rider_id', '(rider_id)');
+-- S3-186：原 CALL add_column_if_not_exists('t_delivery_record', 'rider_id', "BIGINT DEFAULT NULL COMMENT '骑手ID' AFTER rider_phone");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_delivery_record', @s3186_name = 'rider_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'BIGINT DEFAULT NULL COMMENT ''骑手ID'' AFTER rider_phone'), 'SELECT ''跳过 t_delivery_record.rider_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
+-- S3-186：原 CALL add_index_if_not_exists('t_delivery_record', 'idx_delivery_record_rider_id', '(rider_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
+SET @s3186_tbl = 't_delivery_record', @s3186_name = 'idx_delivery_record_rider_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(rider_id)'), 'SELECT ''跳过 t_delivery_record.idx_delivery_record_rider_id'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 
 -- ============================================================
 -- 验证 SQL（information_schema 核对列存在与定义）
