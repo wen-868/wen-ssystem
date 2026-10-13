@@ -200,7 +200,7 @@ MySQL 8 空库整轮迁移：`safeExec 记失败行数 = 0`、`seed 记失败行
 | `backend/src/shared/migration.ts` | `8167BED3DA849730` → `D6A5F202850DB5BF` | +6 / −0 | 模式表补 `CREATE INDEX … ON`（含 S3-197 注释） |
 | `docs/migrations/092_租户ID.sql` | `ECA62DBE18874C1B` → `9204BBF232D45C3E` | +132 / −124 | 62 条索引名归一（每块改 SET 行 + 跳过标签）+ 文件头 8 行说明 |
 | `docs/migrations/010_phase7_credit_tenant.sql` | `C97CD611F85D5D63` → `1D80FB7D3C017FE9` | +9 / −3 | 3 条索引名归一 + 文件头说明 |
-| `docs/migrations/012_phase7_price_tenant.sql` | `27D55D5075F8EB D6` → `6ECFF7D4DB728717` | +10 / −4 | 4 条索引名归一 + 文件头说明 |
+| `docs/migrations/012_phase7_price_tenant.sql` | `27D55D5075F8EBD6` → `6ECFF7D4DB728717` | +10 / −4 | 4 条索引名归一 + 文件头说明 |
 
 **未动**：业务路由 / 控制器 / 服务（除 `migration.ts` 的 `addTablePrefix` 模式表外 `backend/src/**` 零改动）、`.github/**`、`deploy/**`、`R101-收口总清单.md`、`docs/数据库变更清单.md`、其它迁移语料、`ACTIVE.md` 路由表、`current-tasks.md`、记忆文件。
 
