@@ -1,0 +1,11 @@
+文件 | 严格UTF-8 | 替换字符数 | 非ASCII字符数 | 字节数
+backend/src/routes/alert.routes.ts | OK | 12 | 14 | 697
+backend/src/routes/customer-merge.routes.ts | OK | 12 | 14 | 710
+backend/src/routes/export.routes.ts | OK | 12 | 14 | 972
+backend/src/routes/miniapp-order-sync.routes.ts | OK | 1 | 18 | 702
+backend/src/routes/stock-check.routes.ts | OK | 16 | 24 | 1509
+backend/src/routes/sys-config.routes.ts | OK | 12 | 14 | 1045
+backend/src/routes/payment.routes.ts | OK | 0 | 138 | 1787
+
+扫描文件数：7
+严格 UTF-8 解码失败（真含非法字节）：0 个

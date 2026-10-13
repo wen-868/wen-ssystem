@@ -1,0 +1,35 @@
+backend/src\shared\migration.ts:695:      const bcrypt = await import("bcryptjs");
+backend/src\shared\migration.ts:1140:      const bcrypt = await import("bcryptjs");
+backend/src\controllers\share.controller.ts:25:  const { WechatPay } = await import("../shared/wechat-pay.js");
+backend/src\shared\auto-routes.ts:215:      mod = await import(modulePath);
+backend/src\services\wechat-pay.service.ts:224:    const { completeRecharge } = await import("./miniapp/stored-card.service");
+backend/src\services\wechat-pay.service.ts:228:  const { markOrderPaid } = await import("./miniapp.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:243:  const { createJsapiPayment } = await import("../../services/wechat-pay.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:277:    const { handlePayNotify } = await import("../../services/wechat-pay.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:289:  const { getMyStoredCard } = await import("../../services/miniapp/stored-card.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:296:  const { getMyStoredRecords } = await import("../../services/miniapp/stored-card.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:306:  const { getRechargeOptions } = await import("../../services/miniapp/stored-card.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:311:  const { createRecharge } = await import("../../services/miniapp/stored-card.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:334:  const { calculateTierPrice } = await import("../../services/miniapp/wholesale.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:345:  const { deleteWholesaleCartItems: svc } = await import("../../services/miniapp/wholesale.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:352:  const { toggleWholesaleCartSelect: svc } = await import("../../services/miniapp/wholesale.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:359:  const { toggleWholesaleCartSelectAll: svc } = await import("../../services/miniapp/wholesale.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:366:  const { cancelWholesaleOrder: svc } = await import("../../services/miniapp/wholesale.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:373:  const { confirmWholesaleReceive: svc } = await import("../../services/miniapp/wholesale.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:379:  const { getWholesaleOrderConfirm } = await import("../../services/miniapp/wholesale.service");
+backend/src\controllers\miniapp\miniapp.controller.ts:389:  const { buyWholesaleNow: svc } = await import("../../services/miniapp/wholesale.service");
+backend/src\services\platform\tenant-admin.service.ts:300:  const adminPassword = await import("bcryptjs").then(m => m.hash("123456", 10));
+backend/src\services\miniapp.service.ts:457:    const { queryWechatPayOrder } = await import("./wechat-pay.service");
+backend/src\controllers\admin\export.controller.ts:15:function sendCsv(res: import("express").Response, filename: string, header: string[], rows: unknown[][]) {
+backend/src\services\miniapp\stored-card.service.ts:124:  const { createJsapiPayment } = await import("../wechat-pay.service");
+backend/src\services\miniapp\member.service.ts:742:  const { verifyPassword, hashPassword, validatePassword } = await import("../../shared/password");
+backend/src\services\admin\miniapp-ci.service.ts:33:    const ci = await import("miniprogram-ci");
+backend/src\services\admin\sys-config.service.ts:178:  const { execFile } = await import("child_process");
+backend/src\services\admin\sys-config.service.ts:179:  const { promisify } = await import("util");
+backend/src\services\admin\sys-config.service.ts:196:  const { execFile } = await import("child_process");
+backend/src\services\admin\sys-config.service.ts:197:  const { promisify } = await import("util");
+backend/src\services\admin\sys-config.service.ts:198:  const { resolve } = await import("path");
+backend/src\services\admin\sys-config.service.ts:215:  const fs = await import("fs");
+backend/src\services\admin\sys-config.service.ts:216:  const path = await import("path");
+backend/src\services\admin\sys-config.service.ts:239:  const fs = await import("fs");
+backend/src\controllers\admin\report.controller.ts:99:  const result = await (await import("../../services/store/sale-bill.service.js")).batchCreateCollectionLinks({

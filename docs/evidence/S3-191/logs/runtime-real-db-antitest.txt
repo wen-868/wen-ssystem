@@ -1,0 +1,2 @@
+HTTP 500
+{"code":"FAIL","message":"Cannot find module 'D:\\Users\\ZXQL\\wt-agents\\S3-191\\backend\\dist\\services\\wechat-pay.service' imported from D:\\Users\\ZXQL\\wt-agents\\S3-191\\backend\\dist\\controllers\\miniapp\\miniapp.controller.js"}

@@ -1,0 +1,33 @@
+动态相对 import() 处数：21
+  OK   controllers/admin/report.controller.js -> ../../services/store/sale-bill.service.js -> services/store/sale-bill.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/wechat-pay.service.js -> services/wechat-pay.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/wechat-pay.service.js -> services/wechat-pay.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/stored-card.service.js -> services/miniapp/stored-card.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/stored-card.service.js -> services/miniapp/stored-card.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/stored-card.service.js -> services/miniapp/stored-card.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/stored-card.service.js -> services/miniapp/stored-card.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/miniapp/miniapp.controller.js -> ../../services/miniapp/wholesale.service.js -> services/miniapp/wholesale.service.js
+  OK   controllers/share.controller.js -> ../shared/wechat-pay.js -> shared/wechat-pay.js
+  OK   services/miniapp/member.service.js -> ../../shared/password.js -> shared/password.js
+  OK   services/miniapp/stored-card.service.js -> ../wechat-pay.service.js -> services/wechat-pay.service.js
+  OK   services/miniapp.service.js -> ./wechat-pay.service.js -> services/wechat-pay.service.js
+  OK   services/wechat-pay.service.js -> ./miniapp/stored-card.service.js -> services/miniapp/stored-card.service.js
+  OK   services/wechat-pay.service.js -> ./miniapp.service.js -> services/miniapp.service.js
+
+去重后的目标模块：7 个，逐个真实 import：
+  LOAD OK   services/miniapp.service.js
+  LOAD OK   services/miniapp/stored-card.service.js
+  LOAD OK   services/miniapp/wholesale.service.js
+  LOAD OK   services/store/sale-bill.service.js
+  LOAD OK   services/wechat-pay.service.js
+  LOAD OK   shared/password.js
+  LOAD OK   shared/wechat-pay.js
+
+目标文件缺失：0；加载失败：0

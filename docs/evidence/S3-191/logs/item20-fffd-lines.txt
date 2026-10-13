@@ -1,0 +1,7 @@
+backend/src/routes/alert.routes.ts:14 | FFFD=12 | // ========== U+B7U+FFFDU+FFFDU+FFFDU+536U+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFD ==========
+backend/src/routes/customer-merge.routes.ts:11 | FFFD=12 | // ========== U+B7U+FFFDU+FFFDU+FFFDU+536U+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFD ==========
+backend/src/routes/export.routes.ts:19 | FFFD=12 | // ========== U+B7U+FFFDU+FFFDU+FFFDU+536U+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFD ==========
+backend/src/routes/miniapp-order-sync.routes.ts:9 | FFFD=1 | // ========== U+8BA2U+5355U+540CU+6B65U+65E5U+5FD7U+5217U+8868U+FF08U+5206U+FFFD?U+7B5BU+9009U+FF09 ==========
+backend/src/routes/stock-check.routes.ts:19 | FFFD=4 | // ==================== Store U+FFFDU+335U+FFFDU+B7U+FFFDU+FFFD ====================
+backend/src/routes/stock-check.routes.ts:27 | FFFD=12 | // ========== U+B7U+FFFDU+FFFDU+FFFDU+536U+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFD ==========
+backend/src/routes/sys-config.routes.ts:19 | FFFD=12 | // ========== U+B7U+FFFDU+FFFDU+FFFDU+536U+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFDU+FFFD ==========

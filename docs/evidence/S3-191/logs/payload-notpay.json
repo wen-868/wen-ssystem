@@ -1,0 +1,1 @@
+{"id":"s3191-runtime-proof","event_type":"TRANSACTION.SUCCESS","resource":{"algorithm":"AEAD_AES_256_GCM","ciphertext":"/D2WrfCGkxsQGTVGlBLKP0QwXMJJYLUd/JDFZbbGuEMKl5z4Y+nWJd9dOUFG+T1UVV54aZbGd7yj20fkLAoRT3EImqjMNzCy","nonce":"123456789012","associated_data":"transaction"}}

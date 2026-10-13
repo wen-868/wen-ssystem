@@ -1,0 +1,27 @@
+扫描 dist：backend\dist
+JS 文件数：798
+
+== 缺扩展名的【静态】相对导入：0 处 ==
+
+== 缺扩展名的【动态】相对 import()：19 处 ==
+  controllers/miniapp/miniapp.controller.js:215 | dynamic | "../../services/wechat-pay.service"
+  controllers/miniapp/miniapp.controller.js:244 | dynamic | "../../services/wechat-pay.service"
+  controllers/miniapp/miniapp.controller.js:255 | dynamic | "../../services/miniapp/stored-card.service"
+  controllers/miniapp/miniapp.controller.js:261 | dynamic | "../../services/miniapp/stored-card.service"
+  controllers/miniapp/miniapp.controller.js:270 | dynamic | "../../services/miniapp/stored-card.service"
+  controllers/miniapp/miniapp.controller.js:274 | dynamic | "../../services/miniapp/stored-card.service"
+  controllers/miniapp/miniapp.controller.js:295 | dynamic | "../../services/miniapp/wholesale.service"
+  controllers/miniapp/miniapp.controller.js:305 | dynamic | "../../services/miniapp/wholesale.service"
+  controllers/miniapp/miniapp.controller.js:311 | dynamic | "../../services/miniapp/wholesale.service"
+  controllers/miniapp/miniapp.controller.js:317 | dynamic | "../../services/miniapp/wholesale.service"
+  controllers/miniapp/miniapp.controller.js:323 | dynamic | "../../services/miniapp/wholesale.service"
+  controllers/miniapp/miniapp.controller.js:329 | dynamic | "../../services/miniapp/wholesale.service"
+  controllers/miniapp/miniapp.controller.js:334 | dynamic | "../../services/miniapp/wholesale.service"
+  controllers/miniapp/miniapp.controller.js:343 | dynamic | "../../services/miniapp/wholesale.service"
+  services/miniapp/member.service.js:399 | dynamic | "../../shared/password"
+  services/miniapp/stored-card.service.js:72 | dynamic | "../wechat-pay.service"
+  services/miniapp.service.js:232 | dynamic | "./wechat-pay.service"
+  services/wechat-pay.service.js:180 | dynamic | "./miniapp/stored-card.service"
+  services/wechat-pay.service.js:184 | dynamic | "./miniapp.service"
+
+== 动态 import() 使用模板串（未纳入自动补全）：0 处 ==

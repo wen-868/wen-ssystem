@@ -1,0 +1,6 @@
+### 探针1：POST /api/miniapp/pay/notify  body={}
+HTTP 500
+{"code":"FAIL","message":"回调缺少 resource 密文"}
+### 探针2：POST 同上 body={"resource":{"ciphertext":"AAAA","nonce":"123456789012"}}
+HTTP 500
+{"code":"FAIL","message":"无启用微信支付的租户配置，拒绝回调"}
