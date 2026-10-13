@@ -31,6 +31,21 @@
  *      ⇒ 本门禁**看不穿**它们内部的挂载。instant-retail-store.routes.ts / wechat.routes.ts 的真实
  *      CSRF 状况已由 B0b 登记为「范围外发现」——**登记不等于合规**，不表示它们被本门禁守住了。
  *
+ * ── S3-189 ①（收口总清单第 21 项）：auth 声明**逐条**参与判定 ──────────────────────────
+ *   旧实现只取**第一个** `auth:` 匹配、且 `auth !== "none"` 就直接 return ⇒ 「多配置文件里 none
+ *   **不在第一条**」时 R1/R2 全都不跑（真盲区）。本次改为 `collectAuthDecls()` 逐条收集（含
+ *   `routeConfigs` 数组形态），R1 看"是否存在 none 声明"、R2 只要文件里有 none 声明就逐端点判定，
+ *   违规输出都带「第几处声明 + 行号」。
+ *   实测（反测见回传卡 §二）：夹具 B（第一条 requireAuthWithTenant、第二条 none，且 none 分支有
+ *   "挂了认证但没挂 CSRF"的写端点）旧判据 **不红** / 新判据 **红**。
+ *   ⚠️ 卡面原文写的"第一条 none、第二条 requireAuth 且无 CSRF"形态在**旧**判据下就已会红
+ *   （第一条是 none ⇒ R1/R2 照跑），故真正的盲区是**反排**，夹具按此构造（见回传卡 §八.1 报备）。
+ *
+ *   ⚠️ 升级后**新暴露**的存量缺口（登记≠合规，本单不改业务路由）：
+ *     · `notification.routes.ts:23/24`（miniapp 分支的 2 个写端点：认证已挂、CSRF 未挂）⇒ R2 点名；
+ *     · `admin-quote-push.routes.ts` / `trace.routes.ts` 的 none 分支原先**未登记** ⇒ 本次补登记
+ *       （NONE_ALLOWLIST 末尾三条，逐条回答①②③）。
+ *
  * 用法：node backend/scripts/guard-route-auth.mjs     退出码 0=绿 / 1=红
  *
  * 反测（2026-10-12 B0c，两侧原始输出见 docs/tasks/cards/R101-B0b-B0c-阿坚-回传.md）：
@@ -169,6 +184,34 @@ const NONE_ALLOWLIST = {
     "（缺 CSRF ⇒ 403 / 带对 ⇒ 到业务层；反测：摘掉 `req.user` 赋值 ⇒ 缺 CSRF 的请求变 200）。" +
     "⚠️ 本文件的 CSRF 状况**仍不由本门禁守护**（它看不穿 `requireWxAuth`），故以用例锁死，不以登记当合规。" +
     " ③ 不能改声明式：本前缀用微信自有令牌体系，routeConfig.auth 的三个取值都不对应这套凭证；改声明式等于换鉴权体系（越界改动）。",
+
+  // ── S3-189 ①：多配置文件里 **auth:"none" 不在第一条** 的形态（旧判据的盲区，本次补登记） ──
+  "admin-quote-push.routes.ts":
+    "① 必须公开：GET /api/quote-share/share/:token（L24）—— 拿到分享链接的买家（可能未登录）查看报价，token 本身即凭据；" +
+    "routeConfigs 第 2 条（L28）用 auth:\"none\" 单独挂 /api/quote-share 就是为了不让 requireAuth 拦掉它。" +
+    " ② 其余写端点：本文件 6 个写端点全部属 adminQuotePushRouter（L8-L13），由第 1 条配置" +
+    " `{ prefix: \"/api/admin/quote-push\", auth: \"requireAuthWithTenant\" }`（L27）**声明式**统一挂认证 + CSRF；" +
+    "none 分支（quoteShareRouter）内只有一条 GET，无写端点。" +
+    " ③ 不能改声明式：同一文件混「公开分享查看」与「后台报价写」两种面，单条配置表达不了" +
+    "（改成鉴权会把分享链接打成 401；改成 none 会让写端点裸奔）。",
+
+  "notification.routes.ts":
+    "① 必须公开：无 —— 两条配置（L27 /api/admin/notifications、L28 /api/miniapp/notifications）承载的端点**都要登录态**" +
+    "（miniapp 分支 L21-L24 每个端点都同行挂 requireAuthWithTenant）；本条登记的是「auth:none + 端点内联挂载」这一写法本身。" +
+    " ② 其余写端点：admin 分支 5 个写端点（L12/13/14/16/17）由第 1 条配置声明式覆盖（认证 + CSRF 自动齐）；" +
+    "miniapp 分支 2 个写端点 L23 PUT /:id/read、L24 POST /read-all **只挂了认证、未挂 csrfMiddleware** ⇒" +
+    " 本门禁 R2 自 S3-189 起会点名它们（旧判据因 none 不在第一条而整文件跳过 R2）；**登记不等于合规**，" +
+    "已报回凌舟另立单（补法同 S3-177/S3-178：认证之后补 csrfMiddleware）。" +
+    " ③ 不能改声明式：miniapp 分支**可以**改成声明式 requireAuthWithTenant（auto-routes 会自动补 CSRF，属更干净的根治）——" +
+    "但那要改业务路由，需凌舟授权；本单只做判据升级 + 登记现状，不擅自改业务文件。",
+
+  "trace.routes.ts":
+    "① 必须公开：GET /api/miniapp/trace/c/query/:traceCode 与 POST /api/miniapp/trace/c/verify（L38-L39）—— 消费者扫码追溯，" +
+    "契约明写「无需认证」（docs/API接口文档.md:2874-2881），无登录态。" +
+    " ② 其余写端点：admin 分支 15 个写端点由第 1 条配置（L43 auth:\"requireAuthWithTenant\"）声明式覆盖；" +
+    "none 分支唯一写端点 POST /c/verify（L39）是**未过鉴权的公开写端点**（与回调/登录同类）⇒ 不在 R2 范围" +
+    "（没有登录态就没有可校验的 CSRF 令牌，见 middleware/csrf.ts:39-42）。" +
+    " ③ 不能改声明式：同一文件混「消费者公开追溯面」与「后台追溯配置写面」，单条配置表达不了。",
 };
 
 const AUTH_MIDDLEWARES = ["requireAuthWithTenant", "requirePlatformAuth", "requireAuth"];
@@ -220,22 +263,49 @@ function covers(scope, path) {
   return path === scope || path.startsWith(`${scope}/`);
 }
 
+/**
+ * 逐条收集文件里的 `auth: "<值>"` 声明（S3-189 ①）。
+ * 用于取代"只取第一个匹配"的旧写法：多配置（`routeConfigs` 数组）文件里**每一条**声明都要参与判定，
+ * 违规输出要能**指到条**（第几处声明 + 行号）。
+ */
+function collectAuthDecls(src) {
+  const decls = [];
+  const re = /\bauth:\s*["']([A-Za-z]+)["']/g;
+  let m;
+  while ((m = re.exec(src)) !== null) {
+    decls.push({ value: m[1], line: lineOf(src, m.index), ordinal: decls.length + 1 });
+  }
+  return decls;
+}
+
 function check(file, src) {
-  const authMatch = /\bauth:\s*["']([A-Za-z]+)["']/.exec(src);
-  const auth = authMatch ? authMatch[1] : null;
   const lines = src.split(/\r?\n/);
   const hasWrite = WRITE_LINE_RE.test(src);
 
-  // R1：写方法 + auth:none ⇒ 必须显式登记为「公开端点」
-  if (hasWrite && auth === "none" && !NONE_ALLOWLIST[file]) {
+  // ── S3-189 ①：逐条读**所有** `auth:` 声明（含 routeConfigs 数组形态），每条都参与 R1/R2 ──
+  // 【为什么必须改】原实现用 `/\bauth:\s*["']([A-Za-z]+)["']/` 只取**第一个**匹配，随后
+  //   `if (auth !== "none") return;` 直接结束 —— 于是「多配置文件中 none **不在第一条**」时，
+  //   R1/R2 **都不跑**（`aftersale`/`platform-app-version` 是 none 在前的形态所以侥幸没漏；
+  //   `notification`/`trace`/`admin-quote-push` 是 none 在后 ⇒ 一直是盲区，实测见回传卡 §二）。
+  const decls = collectAuthDecls(src);
+  const noneDecls = decls.filter((d) => d.value === "none");
+  const declText = decls.length
+    ? decls.map((d) => `第${d.ordinal}处 L${d.line}="${d.value}"`).join("、")
+    : "（无 auth 声明）";
+
+  // R1：写方法 + 任一 auth:"none" 声明 ⇒ 必须显式登记为「公开端点」
+  if (hasWrite && noneDecls.length > 0 && !NONE_ALLOWLIST[file]) {
     rules.push(
-      `${file}: 含写方法但 auth:"none" 且未登记为公开端点 ⇒ 该文件的写端点不经过 auto-routes 的 CSRF 挂载。` +
+      `${file}: 含写方法，且声明了 auth:"none"（${noneDecls.map((d) => `第${d.ordinal}处 L${d.line}`).join("、")}）` +
+        `但未登记为公开端点 ⇒ 该文件的写端点不经过 auto-routes 的 CSRF 挂载。` +
         ` 若确为公开端点（webhook/回调/注册/自有鉴权），请在 NONE_ALLOWLIST 里逐条写明理由` +
-        `（① 哪些端点必须公开 + ② 其余写端点的认证/CSRF 现状 + ③ 为什么不能改声明式）；否则改 routeConfig.auth 声明式。`
+        `（① 哪些端点必须公开 + ② 其余写端点的认证/CSRF 现状 + ③ 为什么不能改声明式）；否则改 routeConfig.auth 声明式。` +
+        ` 本文件全部 auth 声明：${declText}`
     );
   }
 
-  if (auth !== "none") return;
+  // R2 的适用范围：文件中**存在** auth:"none" 声明（不再是"第一条必须是 none"）
+  if (noneDecls.length === 0) return;
 
   // R2（新口径：逐端点）—— 旧版是"文件级"判据 `/\bcsrfMiddleware\b/.test(src)`：只要文件里出现过一次
   //   该标识就整文件判绿 ⇒ **只摘掉某一个端点的 csrfMiddleware 不会变红**，门禁抓不到它本该抓的那类
@@ -287,7 +357,8 @@ function check(file, src) {
       : `路径受 L${coveringAuthMounts[0].line} 的 use("${coveringAuthMounts[0].scope}", 认证中间件) 覆盖，` +
         `但同 scope 没有 use("${coveringAuthMounts[0].scope}", csrfMiddleware) 成对挂载`;
     rules.push(
-      `${file}:${lineNo}: auth:"none" 的**写**端点 ${path || "?"}：${how} ⇒ 该写端点无 CSRF 防护（R2 逐端点判据）`
+      `${file}:${lineNo}: auth:"none" 的**写**端点 ${path || "?"}：${how} ⇒ 该写端点无 CSRF 防护（R2 逐端点判据）；` +
+        `本文件 auth 声明：${declText}`
     );
   });
 }

@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "strict": true,
+    "allowJs": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -18,6 +19,6 @@
       "@controllers/*": ["src/controllers/*"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/shared/route-prefix-rules.js"],
   "exclude": ["src/__tests__/**/*.ts"]
 }
