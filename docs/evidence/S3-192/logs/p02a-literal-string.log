@@ -1,0 +1,6 @@
+--------------
+UPDATE t_tenant SET status = 'EXPIRED', suspend_reason = '订阅已到期', suspended_at = NOW()
+ WHERE id = 'num-active' AND status = 'ACTIVE'
+--------------
+
+ERROR 1292 (22007) at line 5: Truncated incorrect DECIMAL value: 'ACTIVE'

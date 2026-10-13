@@ -1,0 +1,19 @@
+[guard:tenant-status] 扫描 7 个域内文件 + 唯一映射函数；机械信号发现 7 个文件（清单内 4 / 清单外已登记豁免 3 / 漏登 0）
+   · [清单内·受 R1/R2 守] services/admin/tenant.service.ts ← 信号：调用 toTenantStatusValue ×2；INSERT INTO t_tenant + status
+   · [清单内·受 R1/R2 守] services/platform-tenant.service.ts ← 信号：调用 toTenantStatusValue ×1；INSERT INTO t_tenant + status
+   · [清单外·已登记豁免（⚠️ 登记≠合规）] services/platform/tenant-admin.service.ts ← 信号：INSERT INTO t_tenant + status
+       理由：写 t_tenant：`UPDATE t_tenant SET ${fields}`（L409，**动态字段**，可能含 status）。未纳入 DOMAIN_FILES 的原因：本文件含类型联合 `status?: "ACTIVE" | "DISABLED" | "EXPIRED"`（L35）与多处读/统计语句，纳入钝刀 R1 会误伤；另：动态字段写法使「是否写了 status」静态不可判，建议收编时同批把 SQL 改成显式列。
+   · [清单内·受 R1/R2 守] services/saas/tenant.service.ts ← 信号：调用 toTenantStatusValue ×2；INSERT INTO t_tenant + status
+   · [清单内·受 R1/R2 守] services/subscription-expiry.service.ts ← 信号：调用 toTenantStatusValue ×1；UPDATE t_tenant + status
+   · [清单外·已登记豁免（⚠️ 登记≠合规）] services/tenant-register.service.ts ← 信号：INSERT INTO t_tenant + status
+       理由：租户注册审核通过时 INSERT INTO t_tenant（L253，含 status 列）—— 真实「写租户状态」路径。未纳入 DOMAIN_FILES 的原因：本文件另有 2 处 `t_tenant_register_application.status='PENDING'`（L226/386，**另一张表**的合法值），纳入钝刀 R1 会误伤。报回：随 R1 口径细化一并收编（该文件写入 t_tenant 的取值本身未发现被禁字面量）。
+   · [清单外·已登记豁免（⚠️ 登记≠合规）] shared/migration.ts ← 信号：INSERT INTO t_tenant + status
+       理由：迁移/引导 SQL（建库默认租户：INSERT INTO t_tenant 含 status 列 + UPDATE t_tenant SET name）。它是**一次性引导**，不参与租户状态的运行时口径（没有 ACTIVE/DISABLED 映射逻辑），故不属本域；其状态字面量由迁移语料自身的一致性单测（migration-*.test.ts）守。
+   · 清单内但机械信号未命中（属人工判断补入，非自动发现）：controllers/admin/tenant.controller.ts, controllers/platform/tenant.controller.ts, controllers/saas/tenant.controller.ts
+   · [已登记放行的域内命中 3 处（登记≠合规）]
+       - services/subscription-expiry.service.ts:131: "EXPIRED"
+       - services/saas/tenant.service.ts:339: "SUSPENDED"
+       - services/saas/tenant.service.ts:340: "EXPIRED"
+
+❌ G2 违规 1 条：
+   services/subscription-expiry.service.ts:124: 出现被禁的租户状态字面量 "EXPIRED" —— 租户状态可写值唯一口径是 ACTIVE / DISABLED（EXPIRED 由 expire_at 派生）

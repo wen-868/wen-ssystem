@@ -1,0 +1,15 @@
+probe	affected_rows
+P1a3: affectedRows（0 = 目标行没被匹配）	0
+probe
+P1a3: 全表状态
+id	status_raw	suspend_reason
+num-active	1	NULL
+num-disabled	0	NULL
+probe
+P1a3: 判据命中谁 —— status IN (EXPIRED,SUSPENDED) 在数值列上等价于 status = 0
+id	status_raw
+num-disabled	0
+probe
+P1a3: 对照 —— status = ACTIVE 同样只命中 status = 0
+id	status_raw
+num-disabled	0

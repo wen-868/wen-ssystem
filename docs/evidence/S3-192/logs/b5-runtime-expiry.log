@@ -1,0 +1,11 @@
+[S3-192] ① 作业执行前：
+   t_tenant: [{"id":"s3192-runtime-tenant","status_raw":"1","suspend_reason":null,"suspended_at":null}]
+   t_subscription: [{"subscription_no":"SUB-S3192-RT","status":"ACTIVE","end_date":"2026-10-04T00:00:00.000Z"}]
+[S3-192] ② 作业执行后：
+   t_tenant: [{"id":"s3192-runtime-tenant","status_raw":"0","suspend_reason":"订阅已到期","has_suspended_at":1}]
+   t_subscription: [{"subscription_no":"SUB-S3192-RT","status":"EXPIRED","end_date":"2026-10-04T00:00:00.000Z"}]
+[2026-10-14 04:26:54.535 +0800] [33mWARN[39m (4700): [36m[slow-query] 121ms | SQL: DELETE FROM t_subscription WHERE tenant_id = ? | Params: ["s3192-runtime-tenant"][39m
+[2026-10-14 04:26:54.558 +0800] [32mINFO[39m (4700): [36m[SubscriptionExpiry] 开始检查订阅到期...[39m
+[2026-10-14 04:26:54.564 +0800] [32mINFO[39m (4700): [36m[SubscriptionExpiry] 订阅 SUB-S3192-RT 已过期 10 天[39m
+[2026-10-14 04:26:54.571 +0800] [32mINFO[39m (4700): [36m[SubscriptionExpiry] 租户 S3-192 运行期探针租户 已自动停用[39m
+[2026-10-14 04:26:54.571 +0800] [32mINFO[39m (4700): [36m[SubscriptionExpiry] 检查完成，发现 0 个即将到期，1 个已过期[39m

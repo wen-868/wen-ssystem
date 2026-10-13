@@ -1,0 +1,36 @@
+Field	Type	Null	Key	Default	Extra
+id	varchar(36)	NO	PRI	NULL	
+name	varchar(100)	NO		NULL	
+contact_name	varchar(50)	YES		NULL	
+contact_phone	varchar(20)	YES		NULL	
+plan	varchar(20)	YES		basic	
+status	tinyint(4)	YES	MUL	1	
+expire_at	datetime	YES	MUL	NULL	
+created_at	datetime	YES		current_timestamp()	
+updated_at	datetime	YES		current_timestamp()	on update current_timestamp()
+review_status	varchar(16)	NO		APPROVED	
+review_remark	varchar(500)	YES		NULL	
+reviewed_at	datetime	YES		NULL	
+reviewed_by	int(11)	YES		NULL	
+tenant_id	varchar(36)	YES		NULL	
+tenant_name	varchar(128)	YES		NULL	
+created_by	varchar(64)	YES		NULL	
+tax_no	varchar(64)	YES		NULL	
+tenant_code	varchar(32)	YES	UNI	NULL	
+company_name	varchar(128)	YES		NULL	
+company_short_name	varchar(64)	YES		NULL	
+contact_person	varchar(64)	YES		NULL	
+contact_mobile	varchar(20)	YES		NULL	
+contact_email	varchar(128)	YES		NULL	
+province	varchar(64)	YES		NULL	
+city	varchar(64)	YES		NULL	
+district	varchar(64)	YES		NULL	
+address	varchar(255)	YES		NULL	
+business_license	varchar(128)	YES		NULL	
+legal_person	varchar(64)	YES		NULL	
+industry	varchar(64)	YES		NULL	
+company_scale	varchar(32)	YES		NULL	
+source	varchar(32)	YES		MANUAL	
+suspend_reason	varchar(255)	YES		NULL	
+suspended_at	datetime	YES		NULL	
+remark	varchar(500)	YES		NULL	

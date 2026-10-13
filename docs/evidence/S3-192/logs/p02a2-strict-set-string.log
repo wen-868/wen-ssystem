@@ -1,0 +1,6 @@
+--------------
+UPDATE t_tenant SET status = 'EXPIRED', suspend_reason = '订阅已到期', suspended_at = NOW()
+ WHERE id = 'num-active'
+--------------
+
+ERROR 1366 (22007) at line 5: Incorrect integer value: 'EXPIRED' for column `s3192_num`.`t_tenant`.`status` at row 1
