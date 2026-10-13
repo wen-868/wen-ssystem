@@ -9,6 +9,14 @@
 --   这 12 条从未生效（S3-186 改写时"语义按原样保留"，缺前缀一并被保留）。
 --   本次**只补表名前缀**（sys_config ⇒ t_sys_config 等）：列定义/索引定义/守卫条件/动态 SQL 一字未改；
 --   下方每条 "原 CALL" 注释保留的是 S3-186 改前原文（含缺前缀的表名）。
+-- S3-197（原收口第 60 项②）：第3步「为所有表添加 tenant_id 索引」的索引名与 `migration.ts` 第2步
+--   对 TENANT_TABLES 统一建的 `idx_<表名>_tenant`（例：t_sys_config ⇒ idx_t_sys_config_tenant）
+--   **双轨命名**⇒ 同一张表同一列上出现两个索引（仅命名不同）。本文件把其中 62 条
+--   「规范名与语料名在库内同时存在、纯属重复」的语句的 @s3186_name 统一到规范名 ⇒ 守卫命中"已存在"
+--   而跳过，空库上净效果 = **只少了重复项**（详见 docs/evidence/S3-197/README.md §四）。
+--   另有 7 条（t_approval_rule/instance/task/log/approver/notification、t_daily_settlement）的规范名
+--   此时并不存在（这些表在第2步时尚未建出）⇒ 不是重复项，**原名保留未动**。
+--   下方每条 "原 CALL" 注释保留 S3-186 改前原文（索引名含未归一的历史写法），属留档，未改。
 
 USE liquor_inventory;
 
@@ -412,252 +420,252 @@ PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186
 -- ============================================================
 
 -- S3-186：原 CALL add_index_if_not_exists('sys_config', 'idx_sys_config_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sys_config', @s3186_name = 'idx_sys_config_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_config.idx_sys_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_config', @s3186_name = 'idx_t_sys_config_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_config.idx_t_sys_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_user', 'idx_sys_user_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sys_user', @s3186_name = 'idx_sys_user_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_user.idx_sys_user_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_user', @s3186_name = 'idx_t_sys_user_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_user.idx_t_sys_user_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_role', 'idx_sys_role_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sys_role', @s3186_name = 'idx_sys_role_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_role.idx_sys_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_role', @s3186_name = 'idx_t_sys_role_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_role.idx_t_sys_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_permission', 'idx_sys_permission_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sys_permission', @s3186_name = 'idx_sys_permission_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_permission.idx_sys_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_permission', @s3186_name = 'idx_t_sys_permission_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_permission.idx_t_sys_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_user_role', 'idx_sys_user_role_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sys_user_role', @s3186_name = 'idx_sys_user_role_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_user_role.idx_sys_user_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_user_role', @s3186_name = 'idx_t_sys_user_role_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_user_role.idx_t_sys_user_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_role_permission', 'idx_sys_role_permission_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sys_role_permission', @s3186_name = 'idx_sys_role_permission_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_role_permission.idx_sys_role_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_role_permission', @s3186_name = 'idx_t_sys_role_permission_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_role_permission.idx_t_sys_role_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_store', 'idx_store_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_store', @s3186_name = 'idx_store_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_store.idx_store_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_store', @s3186_name = 'idx_t_store_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_store.idx_t_store_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_product_category', 'idx_product_category_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_product_category', @s3186_name = 'idx_product_category_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_category.idx_product_category_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_product_category', @s3186_name = 'idx_t_product_category_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_category.idx_t_product_category_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_product_spu', 'idx_product_spu_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_product_spu', @s3186_name = 'idx_product_spu_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_spu.idx_product_spu_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_product_spu', @s3186_name = 'idx_t_product_spu_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_spu.idx_t_product_spu_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_product_sku', 'idx_product_sku_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_product_sku', @s3186_name = 'idx_product_sku_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_sku.idx_product_sku_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_product_sku', @s3186_name = 'idx_t_product_sku_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_sku.idx_t_product_sku_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_product_price', 'idx_product_price_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_product_price', @s3186_name = 'idx_product_price_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_price.idx_product_price_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_product_price', @s3186_name = 'idx_t_product_price_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_price.idx_t_product_price_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_sku_price', 'idx_sku_price_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sku_price', @s3186_name = 'idx_sku_price_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sku_price.idx_sku_price_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sku_price', @s3186_name = 'idx_t_sku_price_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sku_price.idx_t_sku_price_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_supplier', 'idx_supplier_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_supplier', @s3186_name = 'idx_supplier_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier.idx_supplier_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_supplier', @s3186_name = 'idx_t_supplier_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier.idx_t_supplier_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_supplier_contact', 'idx_supplier_contact_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_supplier_contact', @s3186_name = 'idx_supplier_contact_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier_contact.idx_supplier_contact_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_supplier_contact', @s3186_name = 'idx_t_supplier_contact_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier_contact.idx_t_supplier_contact_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_member', 'idx_member_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_member', @s3186_name = 'idx_member_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_member.idx_member_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_member', @s3186_name = 'idx_t_member_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_member.idx_t_member_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_customer_price_binding', 'idx_customer_price_binding_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_customer_price_binding', @s3186_name = 'idx_customer_price_binding_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_price_binding.idx_customer_price_binding_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_customer_price_binding', @s3186_name = 'idx_t_customer_price_binding_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_price_binding.idx_t_customer_price_binding_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_customer_credit', 'idx_customer_credit_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_customer_credit', @s3186_name = 'idx_customer_credit_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_credit.idx_customer_credit_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_customer_credit', @s3186_name = 'idx_t_customer_credit_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_credit.idx_t_customer_credit_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_inventory_balance', 'idx_inventory_balance_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_inventory_balance', @s3186_name = 'idx_inventory_balance_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_inventory_balance.idx_inventory_balance_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_inventory_balance', @s3186_name = 'idx_t_inventory_balance_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_inventory_balance.idx_t_inventory_balance_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_inventory_batch', 'idx_inventory_batch_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_inventory_batch', @s3186_name = 'idx_inventory_batch_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_inventory_batch.idx_inventory_batch_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_inventory_batch', @s3186_name = 'idx_t_inventory_batch_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_inventory_batch.idx_t_inventory_batch_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_inventory_ledger', 'idx_inventory_ledger_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_inventory_ledger', @s3186_name = 'idx_inventory_ledger_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_inventory_ledger.idx_inventory_ledger_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_inventory_ledger', @s3186_name = 'idx_t_inventory_ledger_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_inventory_ledger.idx_t_inventory_ledger_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_price_level', 'idx_price_level_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_price_level', @s3186_name = 'idx_price_level_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_price_level.idx_price_level_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_price_level', @s3186_name = 'idx_t_price_level_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_price_level.idx_t_price_level_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_price_change_log', 'idx_price_change_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_price_change_log', @s3186_name = 'idx_price_change_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_price_change_log.idx_price_change_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_price_change_log', @s3186_name = 'idx_t_price_change_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_price_change_log.idx_t_price_change_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_alert_rule', 'idx_alert_rule_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_alert_rule', @s3186_name = 'idx_alert_rule_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_alert_rule.idx_alert_rule_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_alert_rule', @s3186_name = 'idx_t_alert_rule_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_alert_rule.idx_t_alert_rule_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_alert_record', 'idx_alert_record_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_alert_record', @s3186_name = 'idx_alert_record_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_alert_record.idx_alert_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_alert_record', @s3186_name = 'idx_t_alert_record_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_alert_record.idx_t_alert_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_expiry_alert_config', 'idx_expiry_alert_config_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_expiry_alert_config', @s3186_name = 'idx_expiry_alert_config_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_expiry_alert_config.idx_expiry_alert_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_expiry_alert_config', @s3186_name = 'idx_t_expiry_alert_config_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_expiry_alert_config.idx_t_expiry_alert_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_expiry_alert_record', 'idx_expiry_alert_record_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_expiry_alert_record', @s3186_name = 'idx_expiry_alert_record_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_expiry_alert_record.idx_expiry_alert_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_expiry_alert_record', @s3186_name = 'idx_t_expiry_alert_record_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_expiry_alert_record.idx_t_expiry_alert_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_trace_config', 'idx_trace_config_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_trace_config', @s3186_name = 'idx_trace_config_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_config.idx_trace_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_trace_config', @s3186_name = 'idx_t_trace_config_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_config.idx_t_trace_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_trace_code', 'idx_trace_code_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_trace_code', @s3186_name = 'idx_trace_code_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_code.idx_trace_code_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_trace_code', @s3186_name = 'idx_t_trace_code_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_code.idx_t_trace_code_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_trace_event_log', 'idx_trace_event_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_trace_event_log', @s3186_name = 'idx_trace_event_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_event_log.idx_trace_event_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_trace_event_log', @s3186_name = 'idx_t_trace_event_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_event_log.idx_t_trace_event_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_trace_scan_log', 'idx_trace_scan_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_trace_scan_log', @s3186_name = 'idx_trace_scan_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_scan_log.idx_trace_scan_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_trace_scan_log', @s3186_name = 'idx_t_trace_scan_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_trace_scan_log.idx_t_trace_scan_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_recall_record', 'idx_recall_record_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_recall_record', @s3186_name = 'idx_recall_record_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_recall_record.idx_recall_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_recall_record', @s3186_name = 'idx_t_recall_record_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_recall_record.idx_t_recall_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_store_control_config', 'idx_store_control_config_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_store_control_config', @s3186_name = 'idx_store_control_config_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_store_control_config.idx_store_control_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_store_control_config', @s3186_name = 'idx_t_store_control_config_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_store_control_config.idx_t_store_control_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_store_status_log', 'idx_store_status_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_store_status_log', @s3186_name = 'idx_store_status_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_store_status_log.idx_store_status_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_store_status_log', @s3186_name = 'idx_t_store_status_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_store_status_log.idx_t_store_status_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_sale_bill', 'idx_sale_bill_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sale_bill', @s3186_name = 'idx_sale_bill_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_bill.idx_sale_bill_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sale_bill', @s3186_name = 'idx_t_sale_bill_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_bill.idx_t_sale_bill_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_sale_bill_item', 'idx_sale_bill_item_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sale_bill_item', @s3186_name = 'idx_sale_bill_item_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_bill_item.idx_sale_bill_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sale_bill_item', @s3186_name = 'idx_t_sale_bill_item_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_bill_item.idx_t_sale_bill_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_sale_return', 'idx_sale_return_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sale_return', @s3186_name = 'idx_sale_return_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_return.idx_sale_return_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sale_return', @s3186_name = 'idx_t_sale_return_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_return.idx_t_sale_return_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_sale_return_item', 'idx_sale_return_item_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sale_return_item', @s3186_name = 'idx_sale_return_item_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_return_item.idx_sale_return_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sale_return_item', @s3186_name = 'idx_t_sale_return_item_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_return_item.idx_t_sale_return_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_sale_payment', 'idx_sale_payment_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_sale_payment', @s3186_name = 'idx_sale_payment_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_payment.idx_sale_payment_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sale_payment', @s3186_name = 'idx_t_sale_payment_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sale_payment.idx_t_sale_payment_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_purchase_order', 'idx_purchase_order_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_purchase_order', @s3186_name = 'idx_purchase_order_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_order.idx_purchase_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_purchase_order', @s3186_name = 'idx_t_purchase_order_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_order.idx_t_purchase_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_purchase_order_item', 'idx_purchase_order_item_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_purchase_order_item', @s3186_name = 'idx_purchase_order_item_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_order_item.idx_purchase_order_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_purchase_order_item', @s3186_name = 'idx_t_purchase_order_item_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_order_item.idx_t_purchase_order_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_purchase_in_stock', 'idx_purchase_in_stock_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_purchase_in_stock', @s3186_name = 'idx_purchase_in_stock_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_in_stock.idx_purchase_in_stock_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_purchase_in_stock', @s3186_name = 'idx_t_purchase_in_stock_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_in_stock.idx_t_purchase_in_stock_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_purchase_in_stock_item', 'idx_purchase_in_stock_item_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_purchase_in_stock_item', @s3186_name = 'idx_purchase_in_stock_item_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_in_stock_item.idx_purchase_in_stock_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_purchase_in_stock_item', @s3186_name = 'idx_t_purchase_in_stock_item_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_in_stock_item.idx_t_purchase_in_stock_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_purchase_return', 'idx_purchase_return_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_purchase_return', @s3186_name = 'idx_purchase_return_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_return.idx_purchase_return_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_purchase_return', @s3186_name = 'idx_t_purchase_return_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_return.idx_t_purchase_return_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_purchase_return_item', 'idx_purchase_return_item_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_purchase_return_item', @s3186_name = 'idx_purchase_return_item_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_return_item.idx_purchase_return_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_purchase_return_item', @s3186_name = 'idx_t_purchase_return_item_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_return_item.idx_t_purchase_return_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_purchase_payment', 'idx_purchase_payment_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_purchase_payment', @s3186_name = 'idx_purchase_payment_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_payment.idx_purchase_payment_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_purchase_payment', @s3186_name = 'idx_t_purchase_payment_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_purchase_payment.idx_t_purchase_payment_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_supplier_statement', 'idx_supplier_statement_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_supplier_statement', @s3186_name = 'idx_supplier_statement_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier_statement.idx_supplier_statement_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_supplier_statement', @s3186_name = 'idx_t_supplier_statement_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier_statement.idx_t_supplier_statement_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_supplier_statement_item', 'idx_supplier_statement_item_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_supplier_statement_item', @s3186_name = 'idx_supplier_statement_item_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier_statement_item.idx_supplier_statement_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_supplier_statement_item', @s3186_name = 'idx_t_supplier_statement_item_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_supplier_statement_item.idx_t_supplier_statement_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_customer_statement', 'idx_customer_statement_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_customer_statement', @s3186_name = 'idx_customer_statement_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_statement.idx_customer_statement_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_customer_statement', @s3186_name = 'idx_t_customer_statement_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_statement.idx_t_customer_statement_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_customer_payment', 'idx_customer_payment_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_customer_payment', @s3186_name = 'idx_customer_payment_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_payment.idx_customer_payment_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_customer_payment', @s3186_name = 'idx_t_customer_payment_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_customer_payment.idx_t_customer_payment_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_receivable_account', 'idx_receivable_account_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_receivable_account', @s3186_name = 'idx_receivable_account_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_receivable_account.idx_receivable_account_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_receivable_account', @s3186_name = 'idx_t_receivable_account_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_receivable_account.idx_t_receivable_account_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_payment_order', 'idx_payment_order_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_payment_order', @s3186_name = 'idx_payment_order_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_payment_order.idx_payment_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_payment_order', @s3186_name = 'idx_t_payment_order_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_payment_order.idx_t_payment_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_refund_order', 'idx_refund_order_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_refund_order', @s3186_name = 'idx_refund_order_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_refund_order.idx_refund_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_refund_order', @s3186_name = 'idx_t_refund_order_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_refund_order.idx_t_refund_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_hold_order', 'idx_hold_order_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_hold_order', @s3186_name = 'idx_hold_order_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_hold_order.idx_hold_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_hold_order', @s3186_name = 'idx_t_hold_order_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_hold_order.idx_t_hold_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_miniapp_order', 'idx_miniapp_order_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_miniapp_order', @s3186_name = 'idx_miniapp_order_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_miniapp_order.idx_miniapp_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_miniapp_order', @s3186_name = 'idx_t_miniapp_order_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_miniapp_order.idx_t_miniapp_order_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_miniapp_order_item', 'idx_miniapp_order_item_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_miniapp_order_item', @s3186_name = 'idx_miniapp_order_item_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_miniapp_order_item.idx_miniapp_order_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_miniapp_order_item', @s3186_name = 'idx_t_miniapp_order_item_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_miniapp_order_item.idx_t_miniapp_order_item_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_collection_link', 'idx_collection_link_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_collection_link', @s3186_name = 'idx_collection_link_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_collection_link.idx_collection_link_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_collection_link', @s3186_name = 'idx_t_collection_link_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_collection_link.idx_t_collection_link_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_collection_view_log', 'idx_collection_view_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_collection_view_log', @s3186_name = 'idx_collection_view_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_collection_view_log.idx_collection_view_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_collection_view_log', @s3186_name = 'idx_t_collection_view_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_collection_view_log.idx_t_collection_view_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_collection_record', 'idx_collection_record_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_collection_record', @s3186_name = 'idx_collection_record_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_collection_record.idx_collection_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_collection_record', @s3186_name = 'idx_t_collection_record_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_collection_record.idx_t_collection_record_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_credit_operation_log', 'idx_credit_operation_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_credit_operation_log', @s3186_name = 'idx_credit_operation_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_credit_operation_log.idx_credit_operation_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_credit_operation_log', @s3186_name = 'idx_t_credit_operation_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_credit_operation_log.idx_t_credit_operation_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_notification', 'idx_notification_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_notification', @s3186_name = 'idx_notification_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_notification.idx_notification_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_notification', @s3186_name = 'idx_t_notification_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_notification.idx_t_notification_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_operation_log', 'idx_operation_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_operation_log', @s3186_name = 'idx_operation_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_operation_log.idx_operation_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_operation_log', @s3186_name = 'idx_t_operation_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_operation_log.idx_t_operation_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_product_price_log', 'idx_product_price_log_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 't_product_price_log', @s3186_name = 'idx_product_price_log_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_price_log.idx_product_price_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_product_price_log', @s3186_name = 'idx_t_product_price_log_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_product_price_log.idx_t_product_price_log_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_approval_rule', 'idx_approval_rule_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
 SET @s3186_tbl = 't_approval_rule', @s3186_name = 'idx_approval_rule_tenant';

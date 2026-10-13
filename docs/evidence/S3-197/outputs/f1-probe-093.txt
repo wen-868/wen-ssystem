@@ -1,0 +1,11 @@
+库 = s3197_pre
+修复前 addTablePrefix 来自 = D:\Users\ZXQL\wt-agents\S3-197-base
+修复后 addTablePrefix 来自 = D:\Users\ZXQL\wt-agents\S3-197
+序号	态	下发 SQL	执行结果
+1	修复前	CREATE INDEX idx_tenant_ib ON inventory_balance(tenant_id);	ER_NO_SUCH_TABLE: Table 's3197_pre.inventory_balance' doesn't exist
+1	修复后	CREATE INDEX idx_tenant_ib ON t_inventory_balance(tenant_id);	成功
+2	修复前	CREATE INDEX idx_tenant_ibat ON inventory_batch(tenant_id);	ER_NO_SUCH_TABLE: Table 's3197_pre.inventory_batch' doesn't exist
+2	修复后	CREATE INDEX idx_tenant_ibat ON t_inventory_batch(tenant_id);	成功
+3	修复前	CREATE INDEX idx_tenant_il ON inventory_ledger(tenant_id);	ER_NO_SUCH_TABLE: Table 's3197_pre.inventory_ledger' doesn't exist
+3	修复后	CREATE INDEX idx_tenant_il ON t_inventory_ledger(tenant_id);	成功
+探针结论：两态差异与预期一致（修复前恒 ER_NO_SUCH_TABLE / 修复后成功）

@@ -93,6 +93,12 @@ export function addTablePrefix(sql: string): string {
   const patterns = [
     /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     /(ALTER\s+TABLE\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    // S3-197（原收口第 60 项①）：补 `CREATE INDEX … ON <表名>` 模式。
+    // 093_库存增加租户ID.sql:8/9/10 的 `CREATE INDEX idx_tenant_ib ON inventory_balance(tenant_id)`
+    // 表名裸写，而原模式表里没有这一种 ⇒ addTablePrefix 看不到表名 ⇒ 恒
+    // `ER_NO_SUCH_TABLE`（该索引从未建出；同根因残留 3 处，见 S3-190 回执 §五.4）。
+    // 索引名本身不加前缀（不是表），只对 `ON` 后面的表名加——与 CREATE TABLE/ALTER TABLE 同口径。
+    /(CREATE\s+(?:UNIQUE\s+|FULLTEXT\s+|SPATIAL\s+)?INDEX\s+`?[a-z_][a-z0-9_]*`?\s+ON\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     // MIG-5：补 IGNORE，使 `INSERT IGNORE INTO x` 不再依赖下面那条过宽的通用 INTO
     /(INSERT\s+(?:IGNORE\s+)?INTO\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     // 仅匹配语句开头的 UPDATE（防止误伤 ON UPDATE CURRENT_TIMESTAMP / ON DUPLICATE KEY UPDATE col）
