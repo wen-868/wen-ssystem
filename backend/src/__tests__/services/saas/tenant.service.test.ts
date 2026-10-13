@@ -100,6 +100,31 @@ describe("saas tenant.service", () => {
       expect(res.companyShortName).toBe("完整");
       expect(res.contactEmail).toBe("test@test.com");
     });
+
+    it("建租户必须显式写 id（varchar(36) 主键无默认值）且状态按数字落库（S3-183-F1 / 收口总清单第 48 项）", async () => {
+      mocks.makeBizNo.mockReturnValue("T20260101003");
+      // 真实驱动对 varchar 主键返回的 insertId 恒为 0 —— 用它当主键取行会取不到
+      mocks.query.mockResolvedValue({ insertId: 0 });
+      mocks.queryOne.mockResolvedValue({ id: "x", tenantCode: "T20260101003" });
+
+      await createTenant({
+        companyName: "测试公司",
+        contactPerson: "张三",
+        contactMobile: "13800138000",
+      });
+
+      const [sql, params] = mocks.query.mock.calls[0] as [string, unknown[]];
+      // ① 显式列清单第一列必须是 id（原实现漏写 ⇒ 1364 ⇒ 400「缺少必填参数：id」）
+      //    紧随其后的 name 是**第二个** NOT NULL 无默认列（补上 id 后实测报「缺少必填参数：name」）
+      expect(sql).toMatch(/INSERT INTO t_tenant \(\s*id,\s*tenant_code,\s*name,/);
+      // ② 主键由应用层生成（UUID 类，口径同 platform-tenant.service.ts 的 randomUUID）
+      const tenantId = params[0] as string;
+      expect(tenantId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+      // ③ t_tenant.status 是 TINYINT：不得再往数字列写字符串字面量 'ACTIVE'（严格模式 1366）
+      expect(sql).not.toContain("'ACTIVE'");
+      // ④ 取回真实落库行按生成的 uuid，而不是 insertId
+      expect(mocks.queryOne.mock.calls[0][1]).toEqual([tenantId]);
+    });
   });
 
   describe("updateTenant", () => {
