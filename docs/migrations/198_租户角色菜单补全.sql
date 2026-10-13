@@ -45,16 +45,22 @@ WHERE s.tenant_id <> ur.tenant_id
 -- ⑤ 租户管理员"零绑定"兜底：仅对**该租户已登记的管理员**（t_tenant_admin 中登记过，或平台开通链路的
 --    固定账号名 admin）且**一条绑定都没有**的账号补一条本租户 SUPER_ADMIN 绑定 —— 不是无差别发放，
 --    已绑定的账号一律跳过（ur.id IS NULL 守卫）
+--    ⚠️ S3-183-F1：状态判据过去写成**跨类型比较**（`r.status = 1` 把字符串列当数字、`u.status = 'ACTIVE'`
+--    把字符串常量塞给数字列），INSERT…SELECT 在严格模式下会 1292 中止（生产实测
+--    `Truncated incorrect DOUBLE value: 'ACTIVE'`）⇒ 已按列的真实类型改写为**同类型比较**：
+--      字符串列 r.status（varchar(20) DEFAULT 'ACTIVE'）只与字符串比 ⇒ IN ('ACTIVE','1')
+--      数字列   u.status（tinyint DEFAULT 1）       只与数字比   ⇒ = 1
+--    两个取值都保留，是因为后端启动期运行迁移第 5 步会把 'ACTIVE' 改写成 '1'，两种形态在生产并存。
 INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
 SELECT u.id, r.id, u.tenant_id
 FROM t_sys_user u
 JOIN t_sys_role r
   ON r.tenant_id = u.tenant_id
  AND r.role_code = 'SUPER_ADMIN'
- AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')
+ AND r.status IN ('ACTIVE', '1')
 LEFT JOIN t_sys_user_role ur ON ur.user_id = u.id
 WHERE u.tenant_id <> 'default'
-  AND (u.status = 1 OR u.status = 'ACTIVE' OR u.status = '1')
+  AND u.status = 1
   AND ur.id IS NULL
   AND (
     EXISTS (SELECT 1 FROM t_tenant_admin ta WHERE ta.tenant_id = u.tenant_id AND ta.user_id = u.id)
@@ -169,4 +175,20 @@ SELECT CONCAT(
 --     "只补 t_tenant_admin 登记过的账号"，去掉 `OR u.username = 'admin'` 一处即可（单行改动）。
 --   · ④ 的守卫会把"该用户已有指向目标角色行的绑定"的跨租户残留保留下来，由末尾
 --     cross_tenant_bindings 报数 —— 这是**有意的**：宁可如实报数，也不为了转绿而删绑定（零 DELETE）。
+--
+-- 八、S3-183-F1 修订（2026-10-13，收口总清单第 49 项）—— 只改 ⑤ 的两处**比较方式**
+--   · 症状：生产执行 `node scripts/run-migration.mjs docs/migrations/198_*.sql` 在 ⑤ 处中止，
+--     报 `迁移失败: Truncated incorrect DOUBLE value: 'ACTIVE'`；①②③④ 已生效 ⇒ 留下"部分执行"。
+--   · 根因：⑤ 的过滤条件把两种列类型混着比 —— 字符串列 `t_sys_role.status`（VARCHAR(20)，
+--     默认 'ACTIVE'）被拿去和**数字** 1 比（`r.status = 1`），数字列 `t_sys_user.status`（TINYINT，
+--     默认 1）被拿去和**字符串** 'ACTIVE' 比（`u.status = 'ACTIVE'`）。INSERT…SELECT 在严格模式下
+--     会把这两种跨类型转换的 1292 警告**升级为错误**并中止整份迁移（纯 SELECT 只告警，所以
+--     上一轮"只跑 SELECT 看数"的夹具漏过；夹具数据里也没有 status≠1 的非 default 用户，进一步掩盖）。
+--   · 改法（语义等价、不放松判据）：
+--       原 `(r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')`  ⇒  新 `r.status IN ('ACTIVE', '1')`
+--       原 `(u.status = 1 OR u.status = 'ACTIVE' OR u.status = '1')`  ⇒  新 `u.status = 1`
+--   · 取值为两个（'ACTIVE' 与 '1'）不是放宽：backend/src/shared/migration.ts 第 5 步启动期会把
+--     'ACTIVE' 改写成 '1'，生产两种形态并存；只留 'ACTIVE' 会让 ⑤ 在生产**静默不生效**。
+--   · 本修订**不动** ⑤ 的兜底口径（登记管理员 / 固定账号名 admin / 一条绑定都没有），
+--     也不动 ①②③④，也不动任何列类型。
 -- ============================================

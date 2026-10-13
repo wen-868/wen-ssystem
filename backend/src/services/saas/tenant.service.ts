@@ -1,4 +1,5 @@
 import { query, queryOne } from "../../shared/db";
+import { randomUUID } from "node:crypto";
 import { makeBizNo } from "../../shared/id";
 
 export interface Tenant {
@@ -127,7 +128,7 @@ export async function listTenants(params: {
   };
 }
 
-export async function getTenantDetail(id: number): Promise<TenantDetail | null> {
+export async function getTenantDetail(id: number | string): Promise<TenantDetail | null> {
   const record = await queryOne<Tenant>(
     `SELECT t.id, t.tenant_code AS tenantCode, t.company_name AS companyName,
             t.company_short_name AS companyShortName,
@@ -164,18 +165,27 @@ export async function getTenantDetail(id: number): Promise<TenantDetail | null> 
 
 export async function createTenant(body: TenantCreateRequest): Promise<Tenant> {
   const tenantCode = makeBizNo("T");
+  // S3-183-F1（收口总清单第 48 项）：t_tenant.id 是 varchar(36) NOT NULL 且**无默认值**，
+  // 原 INSERT 不写 id ⇒ MySQL 1364 ⇒ 被 error-handler 映射成 400「缺少必填参数：id」
+  // （生产实测 POST /api/saas/tenants 400）。口径照主链路 services/platform-tenant.service.ts：
+  // 应用层 randomUUID() 生成主键。
+  // 同一处还有第二个 NOT NULL 无默认列 `name`（本机同构库实测：补上 id 后立刻报
+  // 400「缺少必填参数：name」）⇒ 必须一并写入；`tenant_name` / `contact_name` 是
+  // `name` / `contact_person` 的同义列，平台租户清单（GET /api/platform/tenants）正是读这两列，
+  // 主链路也是同写，缺了会建出一个在清单里没有名字/联系人的租户。
+  const tenantId = randomUUID();
 
-  const result = await query(
+  await query(
     `INSERT INTO t_tenant (
-      tenant_code, company_name, company_short_name,
-      contact_person, contact_mobile, contact_email,
+      id, tenant_code, name, tenant_name, company_name, company_short_name,
+      contact_name, contact_person, contact_mobile, contact_email,
       province, city, district, address,
       business_license, legal_person, industry, company_scale,
       source, status, remark
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
     [
-      tenantCode, body.companyName, body.companyShortName || null,
-      body.contactPerson, body.contactMobile, body.contactEmail || null,
+      tenantId, tenantCode, body.companyName, body.companyName, body.companyName, body.companyShortName || null,
+      body.contactPerson, body.contactPerson, body.contactMobile, body.contactEmail || null,
       body.province || null, body.city || null, body.district || null, body.address || null,
       body.businessLicense || null, body.legalPerson || null,
       body.industry || null, body.companyScale || null,
@@ -183,9 +193,9 @@ export async function createTenant(body: TenantCreateRequest): Promise<Tenant> {
     ]
   );
 
-  const insertId = (result as unknown as { insertId: number }).insertId;
-
-  const newTenant = await getTenantDetail(insertId);
+  // 按**生成的主键**取回真实落库行：varchar 主键无 AUTO_INCREMENT ⇒ insertId 恒 0，
+  // 沿用原写法会取不到行（接口 200 但 data 为 null）
+  const newTenant = await getTenantDetail(tenantId);
   return newTenant!;
 }
 
