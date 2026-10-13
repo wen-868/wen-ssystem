@@ -1,0 +1,86 @@
+### S3-193 现状复核（可复跑）· 工作树 D:\Users\ZXQL\wt-agents\S3-193 · 基线 origin/main = 25728007
+
+### CMD: (Get-ChildItem backend/src/routes -Filter platform*.routes.ts).Count
+29
+
+### CMD: rg -n --glob platform*.routes.ts "requirePermission" backend/src/routes
+EXIT=1
+
+### CMD: rg -n --glob platform*.routes.ts "requirePlatformPermission" backend/src/routes   （本单接线后）
+backend/src/routes\platform-msg-config.routes.ts:4:import { requirePlatformPermission } from "../middleware/platform-rbac";
+backend/src/routes\platform-msg-config.routes.ts:21:// `requirePlatformPermission("sysconfig:manage")` —— 平台权限中间件（middleware/platform-rbac.ts）
+backend/src/routes\platform-msg-config.routes.ts:28:  requirePlatformPermission("sysconfig:manage"),
+backend/src/routes\platform-msg-config.routes.ts:34:  requirePlatformPermission("sysconfig:manage"),
+backend/src/routes\platform-msg-config.routes.ts:39:  requirePlatformPermission("sysconfig:manage"),
+backend/src/routes\platform-msg-config.routes.ts:44:  requirePlatformPermission("sysconfig:manage"),
+EXIT=0
+
+### CMD: rg -n -A22 "export const requirePlatformAuth" backend/src/middleware/auth.ts
+154:export const requirePlatformAuth: RequestHandler = (req, res, next) => {
+155-  const authorization = req.headers.authorization || "";
+156-  const token = authorization.replace(/^Bearer\s+/i, "");
+157-  if (!token) {
+158-    res.status(401).json(fail("未登录", "401"));
+159-    return;
+160-  }
+161-  try {
+162-    const decoded = jwt.verify(token, env.JWT_SECRET, {
+163-      algorithms: ["HS256"],
+164-      issuer: PLATFORM_JWT_ISSUER,
+165-      audience: PLATFORM_JWT_AUDIENCE,
+166-    }) as { type?: string; id?: number; tenantId?: number };
+167-    if (decoded.type !== "platform_admin") {
+168-      res.status(403).json(fail("无权限", "403"));
+169-      return;
+170-    }
+171-    req.user = decoded as any as AuthUser;
+172-    next();
+173-  } catch {
+174-    res.status(401).json(fail("登录已失效", "401"));
+175-  }
+176-};
+
+### CMD: rg -n -A12 "export function signPlatformToken" backend/src/middleware/auth.ts
+107:export function signPlatformToken(payload: Record<string, unknown>) {
+108-  return jwt.sign(payload, env.JWT_SECRET, {
+109-    algorithm: "HS256",
+110-    expiresIn: "8h",
+111-    issuer: PLATFORM_JWT_ISSUER,
+112-    audience: PLATFORM_JWT_AUDIENCE,
+113-  });
+114-}
+115-
+116-export function requireRoles(allowedRoles: string[]): RequestHandler {
+117-  return (req, res, next) => {
+118-    if (!req.user) {
+119-      res.status(401).json(fail("未登录", "401"));
+
+### CMD: rg -n -A14 "export const PERMISSION_CATALOG" backend/src/services/platform/platform-role.service.ts
+131:export const PERMISSION_CATALOG: ReadonlyArray<PlatformCatalogEntry> = [
+132-  { moduleCode: "tenant", moduleName: "租户管理", permCode: "tenant:view", permName: "查看租户管理", permLevel: "MENU" },
+133-  { moduleCode: "billing", moduleName: "套餐与计费", permCode: "billing:view", permName: "查看套餐与计费", permLevel: "MENU" },
+134-  { moduleCode: "sysconfig", moduleName: "全局系统配置", permCode: "sysconfig:view", permName: "查看全局系统配置", permLevel: "MENU" },
+135-  { moduleCode: "monitor", moduleName: "运维监控 / 日志", permCode: "monitor:view", permName: "查看运维监控与日志", permLevel: "MENU" },
+136-  { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:view", permName: "查看工单系统", permLevel: "MENU" },
+137-  { moduleCode: "marketing", moduleName: "运营营销", permCode: "marketing:view", permName: "查看运营营销", permLevel: "MENU" },
+
+### CMD: rg -n "role VARCHAR" docs/migrations/080_平台管理员.sql docs/migrations/081_platform_admin_seed_and_fix.sql
+docs/migrations/080_平台管理员.sql:17:  role VARCHAR(32) NOT NULL DEFAULT 'PLATFORM_ADMIN' COMMENT '角色: PLATFORM_ADMIN / PLATFORM_SUPER_ADMIN',
+docs/migrations/081_platform_admin_seed_and_fix.sql:20:  role VARCHAR(32) NOT NULL DEFAULT 'PLATFORM_ADMIN' COMMENT '角色: PLATFORM_ADMIN / PLATFORM_SUPER_ADMIN',
+docs/migrations/081_platform_admin_seed_and_fix.sql:52:  'PLATFORM_SUPER_ADMIN',
+
+### CMD: rg -n "CREATE TABLE IF NOT EXISTS t_platform_role" -A12 docs/migrations/179_平台角色与权限点目录.sql
+1:CREATE TABLE IF NOT EXISTS t_platform_role (
+2-  id INT AUTO_INCREMENT COMMENT '主键',
+3-  name VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '角色名称',
+4-  code VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '角色编码（唯一，小写字母开头 2-32 位）',
+5-  type VARCHAR(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'custom' COMMENT '角色类型：builtin-内置/custom-自定义（仅此两值）',
+6-  remark VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '备注（NULL=未填写）',
+7-  enabled TINYINT NOT NULL DEFAULT 1 COMMENT '是否启用：1-启用/0-停用',
+8-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+9-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+10-  PRIMARY KEY (id),
+11-  UNIQUE KEY uk_code (code)
+12-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='平台角色';
+13-
+

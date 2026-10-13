@@ -1,0 +1,38 @@
+### 门禁（S3-193 工作树，接线后）
+
+### CMD: node backend/scripts/guard-route-auth.mjs
+[guard:route-auth] 扫描 189 个路由文件
+✅ G3 通过：无「绕过声明式鉴权/CSRF」的路由文件（auth:"none" 的公开端点已登记 18 个文件）
+EXIT=0
+
+### CMD: node backend/scripts/guard-tenant-status.mjs
+       理由：迁移/引导 SQL（建库默认租户：INSERT INTO t_tenant 含 status 列 + UPDATE t_tenant SET name）。它是**一次性引导**，不参与租户状态的运行时口径（没有 ACTIVE/DISABLED 映射逻辑），故不属本域；其状态字面量由迁移语料自身的一致性单测（migration-*.test.ts）守。
+   · 清单内但机械信号未命中（属人工判断补入，非自动发现）：controllers/admin/tenant.controller.ts, controllers/platform/tenant.controller.ts
+✅ G2 通过：租户状态域只有 ACTIVE / DISABLED 一套口径
+EXIT=0
+
+### CMD: node backend/scripts/guard-route-prefix.mjs
+   · 放行 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。
+   · 放行 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。
+✅ G36 通过：重复前缀 12 个（均已逐条登记理由，白名单 12 条）、未登记重复前缀 0 个、真重复端点 0 个
+EXIT=0
+
+### CMD: node backend/scripts/guard-rbac-wiring.mjs
+[guard:rbac-wiring] 扫描 189 个路由文件 · 762 个写端点
+[guard:rbac-wiring] 已接线 57 处 ／ **无权限检查 705 处**（分布在 161 个文件）
+[guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）
+EXIT=0
+
+### CMD: node backend/scripts/guard-rbac-wiring.mjs --strict（基线在接线前即为红：3 条未登记缺口属 marketing-miniapp，非本单）
+   ❌ 未登记：marketing-miniapp.routes.ts:55 POST /api/miniapp/marketing/coupons/:templateId/claim
+   ❌ 未登记：marketing-miniapp.routes.ts:72 POST /api/miniapp/marketing/flash-sale/:id/buy
+   ❌ 未登记：marketing-miniapp.routes.ts:80 POST /api/miniapp/marketing/group-buy/:teamId/join
+
+❌ [--strict] 存在 3 处**未登记**的无权限写端点 ⇒ exit 1（若确为既有欠账，请在 REGISTERED_GAPS 逐条登记并在缺口清单文档写明判定）
+EXIT=1
+
+### CMD: 产物内含平台权限中间件（dist）+ ESM 扩展名
+D:\Users\ZXQL\wt-agents\S3-193\backend\dist\middleware\platform-rbac.js
+3:import { requirePlatformPermission } from "../middleware/platform-rbac.js";
+11:// `requirePlatformPermission("sysconfig:manage")` —— 平台权限中间件（middleware/platform-rbac.ts）
+16:platformMsgConfigRouter.put("/msg-config", requirePlatformPermission("sysconfig:manage"), asyncHandler(updateMsgConfigHandler));

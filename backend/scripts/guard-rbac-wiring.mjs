@@ -21,6 +21,10 @@
  *   · 「有权限检查」= 该端点调用的同一语句内出现 `requirePermission(...)`（**同行/同调用内联**），
  *     或该端点路径被本文件一条 `router.use(<scope>, ..., requirePermission(x))` 的 scope 覆盖
  *     （scope 是路径前缀，且挂载行在端点之前）；
+ *   · **平台侧同理**（S3-193 起）：`requirePlatformPermission(...)`（middleware/platform-rbac.ts）
+ *     与租户侧 `requirePermission(...)` 同判（两者都是"写端点挂了权限中间件"），数据源不同
+ *     （平台= t_platform_role_permission 矩阵 + 平台超管口径；租户= t_sys_role.permissions）。
+ *     不识别平台机制会让平台域接线后仍被报成"无权限检查"（台账失真），故两条都算。
  *   · `routeConfig` 声明式（auth: requireAuthWithTenant / requirePlatformAuth / none）**不携带权限码**
  *     ⇒ 只挂认证的写端点一律记「无权限检查」。这是**有意的**：认证≠授权。
  *   · 注释行 / import 行不算（踩坑[134]：注释里的 `requirePermission(` 不是调用）。
@@ -57,7 +61,18 @@ const ROUTES_DIR = resolve(HERE, "..", "src", "routes");
 
 const WRITE_METHODS = ["post", "put", "patch", "delete"];
 const WRITE_CALL_RE = /([A-Za-z_$][\w$]*)\s*\.\s*(post|put|patch|delete)\s*\(/g;
+/** 租户侧权限中间件（数据源：`t_sys_role.permissions` + `matchPermission`） */
 const PERM_CALL_RE = /\brequirePermission\s*\(/;
+/**
+ * 平台侧权限中间件（S3-193：数据源 `t_platform_role_permission` 矩阵 + 平台超管口径）。
+ * 两个机制**判据同形**（"该写端点挂了权限中间件"），数据源与语义不同，故都算「有权限检查」；
+ * 若不识别平台机制，平台域接线后本门禁会把已接线的端点继续报成"无权限检查"（台账失真）。
+ */
+const PLATFORM_PERM_CALL_RE = /\brequirePlatformPermission\s*\(/;
+/** 任一机制命中即记为「有权限检查」（判据的唯一入口，供挂载判定与端点判定共用） */
+const ANY_PERM_CALL_RE = new RegExp(
+  `(?:${PERM_CALL_RE.source})|(?:${PLATFORM_PERM_CALL_RE.source})`
+);
 const USE_CALL_RE = /\.\s*use\s*\(/g;
 /** 注释行 / import 行不是调用（踩坑[134]） */
 const NON_CALL_LINE_RE = /^\s*(?:\/\/|\*|\/\*|import\b)/;
@@ -226,7 +241,7 @@ function scanFile(file, src) {
   const receiverVars = [...new Set([...src.matchAll(WRITE_CALL_RE)].map((m) => m[1]))];
   const prefixMap = prefixByRouter(src, receiverVars);
 
-  // 1) `router.use(...)` 挂载：scope + 是否含 requirePermission
+  // 1) `router.use(...)` 挂载：scope + 是否含权限中间件（租户/平台任一机制）
   const mounts = [];
   for (const um of src.matchAll(USE_CALL_RE)) {
     const line = lineOf(src, um.index);
@@ -236,7 +251,7 @@ function scanFile(file, src) {
       line,
       receiver: src.slice(0, um.index).match(/([A-Za-z_$][\w$]*)\s*$/)?.[1] ?? null,
       scope: firstStringLiteral(call),
-      hasPerm: PERM_CALL_RE.test(call),
+      hasPerm: ANY_PERM_CALL_RE.test(call),
     });
   }
 
@@ -249,7 +264,8 @@ function scanFile(file, src) {
     const routePath = firstStringLiteral(call) ?? "?";
     const prefix = prefixMap.get(m[1]) ?? "?";
     const fullPath = `${prefix === "?" ? "?" : prefix}${routePath === "?" ? "" : routePath}`;
-    const inlinePerm = PERM_CALL_RE.test(call) || PERM_CALL_RE.test(lines[lineNo - 1] || "");
+    const inlinePerm =
+      ANY_PERM_CALL_RE.test(call) || ANY_PERM_CALL_RE.test(lines[lineNo - 1] || "");
     const coveringMounts = mounts.filter(
       (x) => x.hasPerm && x.scope && x.line < lineNo && covers(x.scope, routePath)
     );
