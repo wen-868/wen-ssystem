@@ -221,6 +221,26 @@ const WRITE_METHODS = ["post", "put", "patch", "delete"];
 const WRITE_LINE_RE = new RegExp(`\\.(${WRITE_METHODS.join("|")})\\s*\\(`);
 const rules = [];
 
+// ── R2 的**逐端点**显式豁免台账（S3-189 裁定②，凌舟 2026-10-14）──────────────────
+// 为什么需要：R2 原本对 `auth:"none"` 文件里的"已鉴权写端点"是绝对判据，只有"同一行挂 CSRF"
+//   或"同 scope 成对挂载"两条出路。但确实存在第三种情形：**该端点已过鉴权，而 CSRF 在业务上
+//   不适用（认证载体不是浏览器自动附带的凭据）**，且当前客户端不具备携带 CSRF 令牌的能力——
+//   此时盲挂 csrfMiddleware 不是"更安全"，而是把功能打成 403（用假门禁换绿的反面）。
+// 登记纪律：每条必须写全 ① 认证载体 ② 为什么不可利用/不可挂 ③ **移除条件**（何时删掉本豁免）。
+// 失效自检：登记了却全程 0 命中 ⇒ 打 WARN（端点可能已补 CSRF / 路径已改），**只告警不判红**，
+//   避免"豁免被遗忘后继续静默掩盖新缺口"。
+const R2_EXEMPT = {
+  "notification.routes.ts::/:id/read":
+    "消费者端 miniapp「标记单条已读」。① 认证载体 = `Authorization: Bearer`（middleware/auth.ts 全仓不读 cookie；CSRF 的防护对象是「浏览器会自动附带的凭据」）；" +
+    "② 故本端点不构成可利用的 CSRF —— 跨站页面无法让浏览器自动带上 Authorization 头；且当前客户端（miniapp/pages/notifications/index.js:128-133）用**裸 wx.request** 只带 Bearer，" +
+    "盲挂 csrfMiddleware 会把它打成 403（功能回退），按「不以新增假门禁换绿」不挂；" +
+    "③ **移除条件**：收口总清单第 58 项（消费者端 CSRF/身份适配层）落地、客户端统一走 request 封装并能携带 `x-csrf-token` 之后，**必须删除本豁免并给该端点补 csrfMiddleware**。",
+  "notification.routes.ts::/read-all":
+    "消费者端 miniapp「全部标记已读」，与 `/:id/read` **同源同因**（同一客户端、同一认证载体、同一 403 风险）。③ 移除条件同上（第 58 项落地后删除本豁免并补 csrfMiddleware）。",
+};
+/** 命中计数：用于上面的失效自检 */
+const exemptHit = {};
+
 /** 字符下标 → 1-based 行号 */
 function lineOf(src, index) {
   return src.slice(0, index).split("\n").length;
@@ -356,6 +376,12 @@ function check(file, src) {
       ? "同一行内联挂载了认证中间件，但**同一行没有 csrfMiddleware**"
       : `路径受 L${coveringAuthMounts[0].line} 的 use("${coveringAuthMounts[0].scope}", 认证中间件) 覆盖，` +
         `但同 scope 没有 use("${coveringAuthMounts[0].scope}", csrfMiddleware) 成对挂载`;
+    // 逐端点豁免（见 R2_EXEMPT）：只在本可判违规时才消费豁免，故"已补 CSRF"的端点不会消耗它。
+    const exemptKey = `${file}::${path || "?"}`;
+    if (R2_EXEMPT[exemptKey]) {
+      exemptHit[exemptKey] = (exemptHit[exemptKey] || 0) + 1;
+      return;
+    }
     rules.push(
       `${file}:${lineNo}: auth:"none" 的**写**端点 ${path || "?"}：${how} ⇒ 该写端点无 CSRF 防护（R2 逐端点判据）；` +
         `本文件 auth 声明：${declText}`
@@ -372,6 +398,15 @@ const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
 for (const f of files) check(f, readFileSync(join(ROUTES_DIR, f), "utf8"));
 
 console.log(`[guard:route-auth] 扫描 ${files.length} 个路由文件`);
+// 豁免失效自检（只告警不判红）：登记了却全程 0 命中 ⇒ 端点可能已补 CSRF / 路径已改 ⇒ 该删掉这条豁免
+for (const key of Object.keys(R2_EXEMPT)) {
+  if (!exemptHit[key]) {
+    console.warn(
+      `[guard:route-auth][豁免失效告警] R2_EXEMPT 登记的「${key}」本次 0 命中 —— 该端点可能已补 CSRF 或路径已改，` +
+        `请删除这条豁免（豁免只应在本可判违规时被消费）。`
+    );
+  }
+}
 if (rules.length > 0) {
   console.error(`\n❌ G3 违规 ${rules.length} 条：`);
   for (const r of rules) console.error(`   ${r}`);
