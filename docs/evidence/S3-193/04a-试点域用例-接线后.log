@@ -1,0 +1,8 @@
+[2026-10-14 03:59:50.744 +0800] [33mWARN[39m (20192): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny POST /api/platform/sms-templates[39m
+[2026-10-14 03:59:50.797 +0800] [33mWARN[39m (20192): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/sms-templates/5[39m
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  03:59:41
+   Duration  9.42s (transform 2.30s, setup 100ms, import 7.61s, tests 446ms, environment 0ms)
+

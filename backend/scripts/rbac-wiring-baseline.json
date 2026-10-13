@@ -2,8 +2,8 @@
   "_README": "S3-180 批B2-1 · guard:rbac-wiring 的**已登记缺口台账**（逐条登记）。人读判定见 docs/tasks/R101-RBAC接线缺口清单.md；本文件是机读镜像，仅由人工审阅后落盘，脚本不提供自动写入开关（避免新缺口被'重新生成台账'静默洗绿）。登记 ≠ 合规。",
   "_generatedFrom": "node backend/scripts/guard-rbac-wiring.mjs --json",
   "_counts": {
-    "files": 162,
-    "endpoints": 709
+    "files": 161,
+    "endpoints": 705
   },
   "gaps": {
     "admin-auth.routes.ts": [
@@ -579,12 +579,6 @@
     ],
     "platform-monitor.routes.ts": [
       "POST /api/platform/monitor/notify-expiring"
-    ],
-    "platform-msg-config.routes.ts": [
-      "PUT /api/platform/msg-config",
-      "POST /api/platform/sms-templates",
-      "PUT /api/platform/sms-templates/:id",
-      "DELETE /api/platform/sms-templates/:id"
     ],
     "platform-notification.routes.ts": [
       "POST /api/platform/notifications/read-all",

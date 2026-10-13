@@ -1,0 +1,18 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-193/backend
+
+[2026-10-14 04:25:15.349 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/msg-config[39m
+[2026-10-14 04:25:15.383 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=no_admin_role PUT /api/platform/msg-config[39m
+[2026-10-14 04:25:15.397 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_missing PUT /api/platform/msg-config[39m
+[2026-10-14 04:25:15.416 +0800] [31mERROR[39m (21408): [36m[platform-rbac] 权限校验失败（fail-closed，已拒绝）：adminId=42 code=sysconfig:manage err=ER_NO_SUCH_TABLE[39m
+[2026-10-14 04:25:15.417 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=check_error PUT /api/platform/msg-config[39m
+[2026-10-14 04:25:15.417 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝留痕写入失败（不影响 403）：adminId=42 code=sysconfig:manage err=Cannot read properties of undefined (reading 'insertId')[39m
+[2026-10-14 04:25:15.443 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny DELETE /api/platform/sms-templates/5[39m
+[2026-10-14 04:25:15.462 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny POST /api/platform/sms-templates[39m
+[2026-10-14 04:25:15.480 +0800] [33mWARN[39m (21408): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/sms-templates/5[39m
+
+ Test Files  2 passed (2)
+      Tests  19 passed (19)
+   Start at  04:25:08
+   Duration  7.09s (transform 1.33s, setup 118ms, import 6.34s, tests 315ms, environment 0ms)
+

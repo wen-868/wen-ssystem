@@ -1,0 +1,26 @@
+
+ FAIL  src/__tests__/routes/platform-rbac-pilot.test.ts > S3-193 · 试点域 sysconfig 写端点权限中间件（两侧齐 + 反测） > ⑦ DB 异常 ⇒ 403（fail-closed），不回 500/200
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/platform-rbac-pilot.test.ts:203:24
+    201|       .set("x-csrf-token", CSRF)
+    202|       .send([]);
+    203|     expect(res.status).toBe(403);
+       |                        ^
+    204|   });
+    205|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 5 passed (9)
+   Start at  04:00:21
+   Duration  12.34s (transform 3.29s, setup 119ms, import 10.46s, tests 599ms, environment 0ms)
+
