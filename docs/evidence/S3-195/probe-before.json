@@ -1,0 +1,326 @@
+[
+ {
+  "file": "store.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/products"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/products",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-dashboard.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/me"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/me",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-hardware.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/hardware/configs"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/hardware/configs",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-inventory.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/inventory"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/inventory",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-order.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/orders"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/orders",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-receivable.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/collection-links"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/collection-links",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-sale-bill.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/sale-bills"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/sale-bills",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-shift.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "get",
+   "url": "/api/store/shift/current"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "GET",
+    "url": "/api/store/shift/current",
+    "status": 401
+   }
+  ]
+ },
+ {
+  "file": "store-trace.routes.ts",
+  "prefixes": [
+   "/api/store"
+  ],
+  "ownEndpoint": {
+   "method": "post",
+   "url": "/api/store/trace/verify"
+  },
+  "probes": [
+   {
+    "label": "不存在的子路径",
+    "method": "POST",
+    "url": "/api/store/no-such-path",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开注册端点",
+    "method": "POST",
+    "url": "/api/store/members/register",
+    "status": 401
+   },
+   {
+    "label": "兄弟文件公开回调端点",
+    "method": "POST",
+    "url": "/api/store/hardware/callbacks/cloud-speaker/t-195",
+    "status": 401
+   },
+   {
+    "label": "本文件自有端点（无令牌）",
+    "method": "POST",
+    "url": "/api/store/trace/verify",
+    "status": 401
+   }
+  ]
+ }
+]

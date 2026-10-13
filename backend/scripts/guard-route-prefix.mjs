@@ -301,6 +301,8 @@ if (JSON_MODE) {
         unlistedDuplicatePrefixes: report.unlistedDuplicatePrefixes,
         duplicateEndpoints: report.duplicateEndpoints,
         nestedRouterFiles: report.nestedRouterFiles,
+        // S3-195 ③：根前缀被多文件共享（**只出声、不判红**，不参与 ok 判定）
+        sharedRootPrefixes: report.sharedRootPrefixes,
         allowlistInUse,
         allowlistSize: Object.keys(DUPLICATE_PREFIX_ALLOWLIST).length,
         // 静态扫描的原始账目（供与启动期做一致性比对；启动期是权威）
@@ -319,6 +321,15 @@ console.log(
 );
 for (const item of allowlistInUse) {
   console.log(`   · 放行 ${item.prefix} (${item.count}次) ← ${item.reason ?? "⚠️ 白名单缺理由（不应发生）"}`);
+}
+// S3-195 ③：根前缀被多文件共享 ⇒ 只说、不判红（与启动期同一份判据，见 src/shared/route-prefix-rules.js）
+if (report.sharedRootPrefixes.length > 0) {
+  console.warn(
+    `   · ⚠️ 根前缀共享告警（只出声、不判红）${report.sharedRootPrefixes.length} 条：` +
+      report.sharedRootPrefixes.map((d) => `${d.prefix} (${d.files.length}次)`).join("、") +
+      ` —— 根前缀的声明式认证会覆盖整段 /api/**（含兄弟文件的公开端点与不存在的子路径）；` +
+      `请核对是否已按「只声明自己拥有的路径段」收窄。`
+  );
 }
 if (report.nestedRouterFiles.length > 0) {
   console.log(

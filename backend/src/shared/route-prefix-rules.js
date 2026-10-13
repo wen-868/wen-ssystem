@@ -33,8 +33,11 @@ export const DUPLICATE_PREFIX_ALLOWLIST = {
     "工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。" +
     "合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。",
   "/api/store":
-    "门店端根前缀，按收银/库存/订单/对账/班次/追溯等能力拆文件共用 /api/store；" +
-    "路径段互不重叠。这是 auto-routes 注释里就举过的合法共享前缀范例。",
+    "门店端根前缀（历史条目）。S3-195 已把原先以根前缀注册的 9 个文件逐个收窄到「自己拥有的路径段」" +
+    "（store.routes / store-dashboard / store-hardware / store-inventory / store-order / store-receivable /" +
+    " store-sale-bill / store-shift / store-trace）⇒ 当前**已无文件**以本前缀注册，" +
+    "`POST /api/store/no-such-path` 由 401 回到 404。本条保留作回归记录，不再构成放行理由：" +
+    "若再有文件以根前缀注册，会先被『根前缀共享告警』点名，并应改按自有路径段注册。",
   "/api/admin/marketing":
     "营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；" +
     "每个玩法是个独立小模块，路径段互不重叠。",
@@ -65,7 +68,37 @@ export const DUPLICATE_PREFIX_ALLOWLIST = {
     "监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。",
   "/api/platform/monitor":
     "平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。",
+  // ↓ S3-195 新增：收窄后 store.routes.ts 的会员段与 member-register.routes.ts 在同一前缀下并存
+  "/api/store/members":
+    "门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与" +
+    "member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:\"none\"）共用。" +
+    "S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠" +
+    "（store.routes 拥有 `/`、`/manage`、`/:id(\\d+)`…；member-register 拥有 `/register`、`/sms-code`），" +
+    "真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`" +
+    "排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及" +
+    "（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。",
 };
+
+/**
+ * ── S3-195 ③：「根前缀被多文件共享」的**告警**判据（只出声、不判红）────────────────────
+ *
+ * 【为什么要有】以**根前缀**（形如 `/api/store`、`/api/admin`）注册的文件，
+ *   `app.use(前缀, 认证+CSRF, router)` 会把**整段** `/api/xxx/**`（含该文件不拥有的路径、
+ *   乃至根本不存在的子路径）都先套上认证 + CSRF ⇒ 兄弟文件里的 `auth:"none"` 公开端点会被拦成
+ *   401、不存在的路径会回 401 而不是 404（S3-187 实测 `/api/store/members/register`、
+ *   `/api/store/hardware/callbacks/*`；S3-195 全量收窄后 `/api/store` 已无声明方）。
+ *   这类写法**不违反**既有判据（路径段互不重叠即「合法共享前缀」），所以不能判红；
+ *   但它每次都靠人记得去核，故在此**机器出声**，避免下次再靠人记。
+ *
+ * 【口径】只对 `/api/xxx` 这种**根前缀**（直接子段）出声；更深的共享前缀（如 `/api/store/coupons`、
+ *   `/api/admin/marketing`）不受本条约束 —— 它们的覆盖范围本就只到自己的业务段。
+ */
+export const ROOT_PREFIX_RE = /^\/api\/[^/]+$/;
+
+/** 从 `duplicatePrefixes` 里筛出根前缀（S3-195 ③ 的判据；纯函数，供启动期与门禁脚本共用） */
+export function findSharedRootPrefixes(duplicatePrefixes) {
+  return (duplicatePrefixes ?? []).filter((d) => ROOT_PREFIX_RE.test(d.prefix));
+}
 
 /**
  * 拼出端点的完整路径（prefix + 路由路径），并做两处归一：
@@ -127,5 +160,7 @@ export function classifyRoutePrefixes(entries) {
     unlistedDuplicatePrefixes: duplicatePrefixes.filter((d) => !(d.prefix in DUPLICATE_PREFIX_ALLOWLIST)),
     duplicateEndpoints,
     nestedRouterFiles: Array.from(nestedRouterFiles).sort(),
+    /** S3-195 ③：根前缀被多文件共享（**只出声、不判红**，见 findSharedRootPrefixes 的说明） */
+    sharedRootPrefixes: findSharedRootPrefixes(duplicatePrefixes),
   };
 }

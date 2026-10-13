@@ -1,0 +1,1431 @@
+{
+  "ok": true,
+  "scannedFiles": 189,
+  "registrations": 225,
+  "duplicatePrefixes": [
+    {
+      "prefix": "/api/admin",
+      "files": [
+        "admin-bill-history.routes.ts",
+        "admin-credit.routes.ts",
+        "admin-customer.routes.ts",
+        "admin-finance.routes.ts",
+        "admin-inventory.routes.ts",
+        "admin-order.routes.ts",
+        "admin-product.routes.ts",
+        "admin-report.routes.ts",
+        "admin-staff.routes.ts",
+        "admin-system.routes.ts",
+        "aftersale.routes.ts",
+        "avatar.routes.ts",
+        "commerce-fix.routes.ts",
+        "error-log.routes.ts",
+        "feedback.routes.ts",
+        "order-exception.routes.ts",
+        "product-bundle.routes.ts",
+        "tag.routes.ts",
+        "workbench.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/admin/marketing",
+      "files": [
+        "admin-marketing-calculation.routes.ts",
+        "admin-marketing-coupon.routes.ts",
+        "admin-marketing-flash-sale.routes.ts",
+        "admin-marketing-full-reduction.routes.ts",
+        "admin-marketing-group-buy.routes.ts",
+        "admin-marketing-points.routes.ts",
+        "admin-marketing-stack-rule.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/admin/inventory",
+      "files": [
+        "inventory-cost.routes.ts",
+        "inventory-loss-gain.routes.ts",
+        "inventory-profit-loss.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/platform",
+      "files": [
+        "platform-error-log.routes.ts",
+        "platform-msg-config.routes.ts",
+        "platform.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/platform/billing",
+      "files": [
+        "billing-config.routes.ts",
+        "platform-billing-arrears.routes.ts",
+        "platform-billing.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/admin/instant-retail",
+      "files": [
+        "instant-retail-admin-ops.routes.ts",
+        "instant-retail-admin-platform.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/admin/reports",
+      "files": [
+        "custom-report-v2.routes.ts",
+        "report.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/miniapp",
+      "files": [
+        "aftersale.routes.ts",
+        "miniapp.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/monitor",
+      "files": [
+        "monitor-slow-query.routes.ts",
+        "monitor-system.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/platform/monitor",
+      "files": [
+        "platform-monitor-ops.routes.ts",
+        "platform-monitor.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/store/coupons",
+      "files": [
+        "commerce-fix.routes.ts",
+        "store-coupon.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/store/members",
+      "files": [
+        "member-register.routes.ts",
+        "store.routes.ts"
+      ]
+    }
+  ],
+  "unlistedDuplicatePrefixes": [],
+  "duplicateEndpoints": [],
+  "nestedRouterFiles": [],
+  "sharedRootPrefixes": [
+    {
+      "prefix": "/api/admin",
+      "files": [
+        "admin-bill-history.routes.ts",
+        "admin-credit.routes.ts",
+        "admin-customer.routes.ts",
+        "admin-finance.routes.ts",
+        "admin-inventory.routes.ts",
+        "admin-order.routes.ts",
+        "admin-product.routes.ts",
+        "admin-report.routes.ts",
+        "admin-staff.routes.ts",
+        "admin-system.routes.ts",
+        "aftersale.routes.ts",
+        "avatar.routes.ts",
+        "commerce-fix.routes.ts",
+        "error-log.routes.ts",
+        "feedback.routes.ts",
+        "order-exception.routes.ts",
+        "product-bundle.routes.ts",
+        "tag.routes.ts",
+        "workbench.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/platform",
+      "files": [
+        "platform-error-log.routes.ts",
+        "platform-msg-config.routes.ts",
+        "platform.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/miniapp",
+      "files": [
+        "aftersale.routes.ts",
+        "miniapp.routes.ts"
+      ]
+    },
+    {
+      "prefix": "/api/monitor",
+      "files": [
+        "monitor-slow-query.routes.ts",
+        "monitor-system.routes.ts"
+      ]
+    }
+  ],
+  "allowlistInUse": [
+    {
+      "prefix": "/api/admin",
+      "count": 19,
+      "files": [
+        "admin-bill-history.routes.ts",
+        "admin-credit.routes.ts",
+        "admin-customer.routes.ts",
+        "admin-finance.routes.ts",
+        "admin-inventory.routes.ts",
+        "admin-order.routes.ts",
+        "admin-product.routes.ts",
+        "admin-report.routes.ts",
+        "admin-staff.routes.ts",
+        "admin-system.routes.ts",
+        "aftersale.routes.ts",
+        "avatar.routes.ts",
+        "commerce-fix.routes.ts",
+        "error-log.routes.ts",
+        "feedback.routes.ts",
+        "order-exception.routes.ts",
+        "product-bundle.routes.ts",
+        "tag.routes.ts",
+        "workbench.routes.ts"
+      ],
+      "reason": "工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。"
+    },
+    {
+      "prefix": "/api/admin/marketing",
+      "count": 7,
+      "files": [
+        "admin-marketing-calculation.routes.ts",
+        "admin-marketing-coupon.routes.ts",
+        "admin-marketing-flash-sale.routes.ts",
+        "admin-marketing-full-reduction.routes.ts",
+        "admin-marketing-group-buy.routes.ts",
+        "admin-marketing-points.routes.ts",
+        "admin-marketing-stack-rule.routes.ts"
+      ],
+      "reason": "营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。"
+    },
+    {
+      "prefix": "/api/admin/inventory",
+      "count": 3,
+      "files": [
+        "inventory-cost.routes.ts",
+        "inventory-loss-gain.routes.ts",
+        "inventory-profit-loss.routes.ts"
+      ],
+      "reason": "库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。"
+    },
+    {
+      "prefix": "/api/platform",
+      "count": 3,
+      "files": [
+        "platform-error-log.routes.ts",
+        "platform-msg-config.routes.ts",
+        "platform.routes.ts"
+      ],
+      "reason": "平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。"
+    },
+    {
+      "prefix": "/api/platform/billing",
+      "count": 3,
+      "files": [
+        "billing-config.routes.ts",
+        "platform-billing-arrears.routes.ts",
+        "platform-billing.routes.ts"
+      ],
+      "reason": "计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。"
+    },
+    {
+      "prefix": "/api/admin/instant-retail",
+      "count": 2,
+      "files": [
+        "instant-retail-admin-ops.routes.ts",
+        "instant-retail-admin-platform.routes.ts"
+      ],
+      "reason": "即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。"
+    },
+    {
+      "prefix": "/api/admin/reports",
+      "count": 2,
+      "files": [
+        "custom-report-v2.routes.ts",
+        "report.routes.ts"
+      ],
+      "reason": "报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。"
+    },
+    {
+      "prefix": "/api/miniapp",
+      "count": 2,
+      "files": [
+        "aftersale.routes.ts",
+        "miniapp.routes.ts"
+      ],
+      "reason": "小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。"
+    },
+    {
+      "prefix": "/api/monitor",
+      "count": 2,
+      "files": [
+        "monitor-slow-query.routes.ts",
+        "monitor-system.routes.ts"
+      ],
+      "reason": "监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。"
+    },
+    {
+      "prefix": "/api/platform/monitor",
+      "count": 2,
+      "files": [
+        "platform-monitor-ops.routes.ts",
+        "platform-monitor.routes.ts"
+      ],
+      "reason": "平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。"
+    },
+    {
+      "prefix": "/api/store/coupons",
+      "count": 2,
+      "files": [
+        "commerce-fix.routes.ts",
+        "store-coupon.routes.ts"
+      ],
+      "reason": "门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。"
+    },
+    {
+      "prefix": "/api/store/members",
+      "count": 2,
+      "files": [
+        "member-register.routes.ts",
+        "store.routes.ts"
+      ],
+      "reason": "门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:\"none\"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。"
+    }
+  ],
+  "allowlistSize": 13,
+  "configs": [
+    {
+      "file": "admin-auth.routes.ts",
+      "prefix": "/api/admin/auth",
+      "endpoints": 8
+    },
+    {
+      "file": "admin-bill-history.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 1
+    },
+    {
+      "file": "admin-credit.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 0
+    },
+    {
+      "file": "admin-customer.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 19
+    },
+    {
+      "file": "admin-finance.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 14
+    },
+    {
+      "file": "admin-inventory.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 4
+    },
+    {
+      "file": "admin-library.routes.ts",
+      "prefix": "/api/admin/library",
+      "endpoints": 5
+    },
+    {
+      "file": "admin-marketing-calculation.routes.ts",
+      "prefix": "/api/admin/marketing",
+      "endpoints": 1
+    },
+    {
+      "file": "admin-marketing-coupon.routes.ts",
+      "prefix": "/api/admin/marketing",
+      "endpoints": 9
+    },
+    {
+      "file": "admin-marketing-flash-sale.routes.ts",
+      "prefix": "/api/admin/marketing",
+      "endpoints": 9
+    },
+    {
+      "file": "admin-marketing-full-reduction.routes.ts",
+      "prefix": "/api/admin/marketing",
+      "endpoints": 7
+    },
+    {
+      "file": "admin-marketing-group-buy.routes.ts",
+      "prefix": "/api/admin/marketing",
+      "endpoints": 11
+    },
+    {
+      "file": "admin-marketing-points.routes.ts",
+      "prefix": "/api/admin/marketing",
+      "endpoints": 8
+    },
+    {
+      "file": "admin-marketing-stack-rule.routes.ts",
+      "prefix": "/api/admin/marketing",
+      "endpoints": 4
+    },
+    {
+      "file": "admin-order.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 11
+    },
+    {
+      "file": "admin-platform-announcement.routes.ts",
+      "prefix": "/api/platform/announcements",
+      "endpoints": 8
+    },
+    {
+      "file": "admin-platform-audit-log.routes.ts",
+      "prefix": "/api/platform/audit-logs",
+      "endpoints": 2
+    },
+    {
+      "file": "admin-platform-settlement.routes.ts",
+      "prefix": "/api/platform/settlements",
+      "endpoints": 5
+    },
+    {
+      "file": "admin-product.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 18
+    },
+    {
+      "file": "admin-quote-push.routes.ts",
+      "prefix": "/api/admin/quote-push",
+      "endpoints": 6
+    },
+    {
+      "file": "admin-quote-push.routes.ts",
+      "prefix": "/api/quote-share",
+      "endpoints": 1
+    },
+    {
+      "file": "admin-report.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 11
+    },
+    {
+      "file": "admin-staff.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 6
+    },
+    {
+      "file": "admin-store.routes.ts",
+      "prefix": "/api/admin/system",
+      "endpoints": 5
+    },
+    {
+      "file": "admin-system.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 0
+    },
+    {
+      "file": "admin-tenant-usage.routes.ts",
+      "prefix": "/api/admin/tenant-usage",
+      "endpoints": 4
+    },
+    {
+      "file": "aftersale.routes.ts",
+      "prefix": "/api/miniapp",
+      "endpoints": 6
+    },
+    {
+      "file": "aftersale.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 8
+    },
+    {
+      "file": "ai-billing.routes.ts",
+      "prefix": "/api/platform/ai-billing",
+      "endpoints": 8
+    },
+    {
+      "file": "ai-platform.routes.ts",
+      "prefix": "/api/platform/ai",
+      "endpoints": 4
+    },
+    {
+      "file": "alert.routes.ts",
+      "prefix": "/api/admin/alerts",
+      "endpoints": 6
+    },
+    {
+      "file": "approval.routes.ts",
+      "prefix": "/api/admin/approval",
+      "endpoints": 12
+    },
+    {
+      "file": "archive.routes.ts",
+      "prefix": "/api/admin/archive",
+      "endpoints": 1
+    },
+    {
+      "file": "audit.routes.ts",
+      "prefix": "/api/admin/system/audit-logs",
+      "endpoints": 2
+    },
+    {
+      "file": "avatar.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 1
+    },
+    {
+      "file": "bank-account.routes.ts",
+      "prefix": "/api/admin/bank-accounts",
+      "endpoints": 8
+    },
+    {
+      "file": "billing-config.routes.ts",
+      "prefix": "/api/platform/billing",
+      "endpoints": 4
+    },
+    {
+      "file": "brand.routes.ts",
+      "prefix": "/api/admin/brands",
+      "endpoints": 4
+    },
+    {
+      "file": "cart.routes.ts",
+      "prefix": "/api/miniapp/cart",
+      "endpoints": 8
+    },
+    {
+      "file": "category.routes.ts",
+      "prefix": "/api/admin/products/categories",
+      "endpoints": 4
+    },
+    {
+      "file": "commerce-fix.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 11
+    },
+    {
+      "file": "commerce-fix.routes.ts",
+      "prefix": "/api/store/coupons",
+      "endpoints": 1
+    },
+    {
+      "file": "commission.routes.ts",
+      "prefix": "/api/admin/commission",
+      "endpoints": 7
+    },
+    {
+      "file": "community-marketing.routes.ts",
+      "prefix": "/api/marketing/group-buy",
+      "endpoints": 6
+    },
+    {
+      "file": "community-marketing.routes.ts",
+      "prefix": "/api/marketing/bargain",
+      "endpoints": 6
+    },
+    {
+      "file": "community-marketing.routes.ts",
+      "prefix": "/api/marketing/seckill",
+      "endpoints": 7
+    },
+    {
+      "file": "credit.routes.ts",
+      "prefix": "/api/admin/credits",
+      "endpoints": 24
+    },
+    {
+      "file": "custom-report-v2.routes.ts",
+      "prefix": "/api/admin/reports",
+      "endpoints": 7
+    },
+    {
+      "file": "custom-report.routes.ts",
+      "prefix": "/api/custom-report",
+      "endpoints": 11
+    },
+    {
+      "file": "customer-care.routes.ts",
+      "prefix": "/api/admin/members/care",
+      "endpoints": 6
+    },
+    {
+      "file": "customer-merge.routes.ts",
+      "prefix": "/api/admin/customer-merge",
+      "endpoints": 4
+    },
+    {
+      "file": "customer-payment.routes.ts",
+      "prefix": "/api/store/customer-payments",
+      "endpoints": 4
+    },
+    {
+      "file": "customer-price.routes.ts",
+      "prefix": "/api/admin/customer-prices",
+      "endpoints": 4
+    },
+    {
+      "file": "customer-segment.routes.ts",
+      "prefix": "/api/admin/members/segments",
+      "endpoints": 6
+    },
+    {
+      "file": "customer-statement.routes.ts",
+      "prefix": "/api/store/customer-statements",
+      "endpoints": 5
+    },
+    {
+      "file": "customer-tag.routes.ts",
+      "prefix": "/api/admin/members/tags",
+      "endpoints": 7
+    },
+    {
+      "file": "customer-type.routes.ts",
+      "prefix": "/api/admin/customer-types",
+      "endpoints": 5
+    },
+    {
+      "file": "customer-visit.routes.ts",
+      "prefix": "/api/admin/customer-visits",
+      "endpoints": 9
+    },
+    {
+      "file": "dashboard.routes.ts",
+      "prefix": "/api/admin/dashboard",
+      "endpoints": 22
+    },
+    {
+      "file": "data-permission.routes.ts",
+      "prefix": "/api/admin/data-permissions",
+      "endpoints": 10
+    },
+    {
+      "file": "data-transfer.routes.ts",
+      "prefix": "/api/admin/data-transfer",
+      "endpoints": 6
+    },
+    {
+      "file": "demo.routes.ts",
+      "prefix": "/api/admin/demo",
+      "endpoints": 2
+    },
+    {
+      "file": "department.routes.ts",
+      "prefix": "/api/department",
+      "endpoints": 6
+    },
+    {
+      "file": "error-log.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 2
+    },
+    {
+      "file": "expense.routes.ts",
+      "prefix": "/api/admin/expenses",
+      "endpoints": 7
+    },
+    {
+      "file": "export.routes.ts",
+      "prefix": "/api/admin/export",
+      "endpoints": 8
+    },
+    {
+      "file": "feedback.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 3
+    },
+    {
+      "file": "hardware-callback.routes.ts",
+      "prefix": "/api/store/hardware",
+      "endpoints": 2
+    },
+    {
+      "file": "instant-retail-admin-ops.routes.ts",
+      "prefix": "/api/admin/instant-retail",
+      "endpoints": 38
+    },
+    {
+      "file": "instant-retail-admin-platform.routes.ts",
+      "prefix": "/api/admin/instant-retail",
+      "endpoints": 22
+    },
+    {
+      "file": "instant-retail-store.routes.ts",
+      "prefix": "/api/store/instant-retail",
+      "endpoints": 6
+    },
+    {
+      "file": "instant-retail-webhook.routes.ts",
+      "prefix": "/api/instant-retail",
+      "endpoints": 3
+    },
+    {
+      "file": "inventory-batch.routes.ts",
+      "prefix": "/api/admin/inventory-batch",
+      "endpoints": 15
+    },
+    {
+      "file": "inventory-cost.routes.ts",
+      "prefix": "/api/admin/inventory",
+      "endpoints": 2
+    },
+    {
+      "file": "inventory-loss-gain.routes.ts",
+      "prefix": "/api/admin/inventory",
+      "endpoints": 2
+    },
+    {
+      "file": "inventory-profit-loss.routes.ts",
+      "prefix": "/api/admin/inventory",
+      "endpoints": 11
+    },
+    {
+      "file": "inventory-share.routes.ts",
+      "prefix": "/api/admin/inventory-share",
+      "endpoints": 8
+    },
+    {
+      "file": "marketing-asset.routes.ts",
+      "prefix": "/api/marketing-asset",
+      "endpoints": 4
+    },
+    {
+      "file": "marketing-dashboard.routes.ts",
+      "prefix": "/api/admin/marketing/dashboard",
+      "endpoints": 9
+    },
+    {
+      "file": "marketing-gift-rule.routes.ts",
+      "prefix": "/api/admin/marketing/gift-rules",
+      "endpoints": 10
+    },
+    {
+      "file": "marketing-limited-discount.routes.ts",
+      "prefix": "/api/admin/marketing/limited-discounts",
+      "endpoints": 10
+    },
+    {
+      "file": "marketing-material.routes.ts",
+      "prefix": "/api/admin/marketing/materials",
+      "endpoints": 11
+    },
+    {
+      "file": "marketing-miniapp.routes.ts",
+      "prefix": "/api/miniapp/marketing",
+      "endpoints": 13
+    },
+    {
+      "file": "marketing-points-mall.routes.ts",
+      "prefix": "/api/admin/marketing/points-mall",
+      "endpoints": 12
+    },
+    {
+      "file": "member-register.routes.ts",
+      "prefix": "/api/store/members",
+      "endpoints": 2
+    },
+    {
+      "file": "menu-permission.routes.ts",
+      "prefix": "/api/admin/menus",
+      "endpoints": 2
+    },
+    {
+      "file": "miniapp-config.routes.ts",
+      "prefix": "/api/miniapp-config",
+      "endpoints": 11
+    },
+    {
+      "file": "miniapp-order-sync.routes.ts",
+      "prefix": "/api/miniapp-order-sync",
+      "endpoints": 2
+    },
+    {
+      "file": "miniapp.routes.ts",
+      "prefix": "/api/miniapp",
+      "endpoints": 58
+    },
+    {
+      "file": "monitor-slow-query.routes.ts",
+      "prefix": "/api/monitor",
+      "endpoints": 1
+    },
+    {
+      "file": "monitor-system.routes.ts",
+      "prefix": "/api/monitor",
+      "endpoints": 2
+    },
+    {
+      "file": "monitor.routes.ts",
+      "prefix": "/api/admin/monitor",
+      "endpoints": 4
+    },
+    {
+      "file": "notification.routes.ts",
+      "prefix": "/api/admin/notifications",
+      "endpoints": 8
+    },
+    {
+      "file": "notification.routes.ts",
+      "prefix": "/api/miniapp/notifications",
+      "endpoints": 4
+    },
+    {
+      "file": "open-library.routes.ts",
+      "prefix": "/api/open/library",
+      "endpoints": 4
+    },
+    {
+      "file": "operation-log.routes.ts",
+      "prefix": "/api/admin/operation-logs",
+      "endpoints": 4
+    },
+    {
+      "file": "order-exception.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 5
+    },
+    {
+      "file": "order-timeout.routes.ts",
+      "prefix": "/api/admin/order-timeout",
+      "endpoints": 6
+    },
+    {
+      "file": "payment-config.routes.ts",
+      "prefix": "/api/payment-config",
+      "endpoints": 9
+    },
+    {
+      "file": "payment-new.routes.ts",
+      "prefix": "/api/admin/payments-new",
+      "endpoints": 5
+    },
+    {
+      "file": "payment.routes.ts",
+      "prefix": "/api/pay",
+      "endpoints": 5
+    },
+    {
+      "file": "platform-agent.routes.ts",
+      "prefix": "/api/platform/agents",
+      "endpoints": 8
+    },
+    {
+      "file": "platform-app-version.routes.ts",
+      "prefix": "/api/app",
+      "endpoints": 1
+    },
+    {
+      "file": "platform-app-version.routes.ts",
+      "prefix": "/api/padmin",
+      "endpoints": 8
+    },
+    {
+      "file": "platform-applications.routes.ts",
+      "prefix": "/api/platform/applications",
+      "endpoints": 4
+    },
+    {
+      "file": "platform-auth.routes.ts",
+      "prefix": "/api/platform/auth",
+      "endpoints": 9
+    },
+    {
+      "file": "platform-billing-arrears.routes.ts",
+      "prefix": "/api/platform/billing",
+      "endpoints": 3
+    },
+    {
+      "file": "platform-billing.routes.ts",
+      "prefix": "/api/platform/billing",
+      "endpoints": 6
+    },
+    {
+      "file": "platform-channel-report.routes.ts",
+      "prefix": "/api/platform/channel-reports",
+      "endpoints": 1
+    },
+    {
+      "file": "platform-config.routes.ts",
+      "prefix": "/api/platform/config",
+      "endpoints": 10
+    },
+    {
+      "file": "platform-dashboard.routes.ts",
+      "prefix": "/api/platform/dashboard",
+      "endpoints": 4
+    },
+    {
+      "file": "platform-error-log.routes.ts",
+      "prefix": "/api/platform",
+      "endpoints": 2
+    },
+    {
+      "file": "platform-export-task.routes.ts",
+      "prefix": "/api/platform/reports/export",
+      "endpoints": 6
+    },
+    {
+      "file": "platform-library.routes.ts",
+      "prefix": "/api/platform/library",
+      "endpoints": 27
+    },
+    {
+      "file": "platform-miniapp.routes.ts",
+      "prefix": "/api/platform-miniapp",
+      "endpoints": 3
+    },
+    {
+      "file": "platform-monitor-ops.routes.ts",
+      "prefix": "/api/platform/monitor",
+      "endpoints": 9
+    },
+    {
+      "file": "platform-monitor.routes.ts",
+      "prefix": "/api/platform/monitor",
+      "endpoints": 6
+    },
+    {
+      "file": "platform-msg-config.routes.ts",
+      "prefix": "/api/platform",
+      "endpoints": 6
+    },
+    {
+      "file": "platform-notification.routes.ts",
+      "prefix": "/api/platform/notifications",
+      "endpoints": 3
+    },
+    {
+      "file": "platform-open.routes.ts",
+      "prefix": "/api/platform/open",
+      "endpoints": 16
+    },
+    {
+      "file": "platform-plans.routes.ts",
+      "prefix": "/api/platform/plans",
+      "endpoints": 10
+    },
+    {
+      "file": "platform-promo-code.routes.ts",
+      "prefix": "/api/platform/promo-codes",
+      "endpoints": 4
+    },
+    {
+      "file": "platform-reconciliation.routes.ts",
+      "prefix": "/api/platform/reconciliation",
+      "endpoints": 6
+    },
+    {
+      "file": "platform-referral-ledger.routes.ts",
+      "prefix": "/api/platform/referral-ledger",
+      "endpoints": 1
+    },
+    {
+      "file": "platform-review.routes.ts",
+      "prefix": "/api/platform/reviews",
+      "endpoints": 6
+    },
+    {
+      "file": "platform-role.routes.ts",
+      "prefix": "/api/platform/admins",
+      "endpoints": 1
+    },
+    {
+      "file": "platform-role.routes.ts",
+      "prefix": "/api/platform/permissions",
+      "endpoints": 1
+    },
+    {
+      "file": "platform-role.routes.ts",
+      "prefix": "/api/platform/roles",
+      "endpoints": 5
+    },
+    {
+      "file": "platform-subscription-applies.routes.ts",
+      "prefix": "/api/platform/subscription-applies",
+      "endpoints": 3
+    },
+    {
+      "file": "platform-templates.routes.ts",
+      "prefix": "/api/platform/templates",
+      "endpoints": 10
+    },
+    {
+      "file": "platform-tenant.routes.ts",
+      "prefix": "/api/platform/tenants",
+      "endpoints": 14
+    },
+    {
+      "file": "platform-ticket.routes.ts",
+      "prefix": "/api/platform/support",
+      "endpoints": 10
+    },
+    {
+      "file": "platform.routes.ts",
+      "prefix": "/api/platform",
+      "endpoints": 6
+    },
+    {
+      "file": "points-mall.routes.ts",
+      "prefix": "/api/points-mall",
+      "endpoints": 8
+    },
+    {
+      "file": "points.routes.ts",
+      "prefix": "/api/admin/members",
+      "endpoints": 10
+    },
+    {
+      "file": "position.routes.ts",
+      "prefix": "/api/admin/positions",
+      "endpoints": 6
+    },
+    {
+      "file": "price.routes.ts",
+      "prefix": "/api/admin/prices",
+      "endpoints": 21
+    },
+    {
+      "file": "print.routes.ts",
+      "prefix": "/api/admin/print",
+      "endpoints": 12
+    },
+    {
+      "file": "product-bundle.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 13
+    },
+    {
+      "file": "product-marketing-tag.routes.ts",
+      "prefix": "/api/admin/product-tags",
+      "endpoints": 4
+    },
+    {
+      "file": "product-review.routes.ts",
+      "prefix": "/api/admin/product-reviews",
+      "endpoints": 7
+    },
+    {
+      "file": "purchase-contract.routes.ts",
+      "prefix": "/api/admin/purchase-contracts",
+      "endpoints": 5
+    },
+    {
+      "file": "purchase-in-stock.routes.ts",
+      "prefix": "/api/admin/purchase-in-stocks",
+      "endpoints": 5
+    },
+    {
+      "file": "purchase-payment.routes.ts",
+      "prefix": "/api/admin/purchase-payments",
+      "endpoints": 5
+    },
+    {
+      "file": "purchase-plan.routes.ts",
+      "prefix": "/api/admin/purchase-plans",
+      "endpoints": 4
+    },
+    {
+      "file": "purchase-return.routes.ts",
+      "prefix": "/api/admin/purchase-returns",
+      "endpoints": 5
+    },
+    {
+      "file": "purchase.routes.ts",
+      "prefix": "/api/admin/purchase-orders",
+      "endpoints": 9
+    },
+    {
+      "file": "push.routes.ts",
+      "prefix": "/api/admin/push",
+      "endpoints": 4
+    },
+    {
+      "file": "rbac.routes.ts",
+      "prefix": "/api/admin/system/roles",
+      "endpoints": 8
+    },
+    {
+      "file": "receipt.routes.ts",
+      "prefix": "/api/admin/receipts",
+      "endpoints": 5
+    },
+    {
+      "file": "receivable.routes.ts",
+      "prefix": "/api/admin/receivables",
+      "endpoints": 6
+    },
+    {
+      "file": "reconciliation.routes.ts",
+      "prefix": "/api/admin/reconciliation",
+      "endpoints": 6
+    },
+    {
+      "file": "report-permissions.routes.ts",
+      "prefix": "/api/admin/report-permissions",
+      "endpoints": 10
+    },
+    {
+      "file": "report.routes.ts",
+      "prefix": "/api/admin/reports",
+      "endpoints": 28
+    },
+    {
+      "file": "retail-announcement.routes.ts",
+      "prefix": "/api/retail-announcement",
+      "endpoints": 5
+    },
+    {
+      "file": "retail-announcements-admin.routes.ts",
+      "prefix": "/api/admin/retail-announcements",
+      "endpoints": 4
+    },
+    {
+      "file": "retail-cart.routes.ts",
+      "prefix": "/api/admin/retail-cart",
+      "endpoints": 1
+    },
+    {
+      "file": "retail-consumer-address.routes.ts",
+      "prefix": "/api/retail-consumer-address",
+      "endpoints": 5
+    },
+    {
+      "file": "saas-subscription.routes.ts",
+      "prefix": "/api/saas/subscriptions",
+      "endpoints": 7
+    },
+    {
+      "file": "saas-tenant.routes.ts",
+      "prefix": "/api/saas/tenants",
+      "endpoints": 7
+    },
+    {
+      "file": "sale-return.routes.ts",
+      "prefix": "/api/store/sale-returns",
+      "endpoints": 7
+    },
+    {
+      "file": "sale-return.routes.ts",
+      "prefix": "/api/admin/sale-returns",
+      "endpoints": 7
+    },
+    {
+      "file": "seckill.routes.ts",
+      "prefix": "/api/seckill",
+      "endpoints": 4
+    },
+    {
+      "file": "share.routes.ts",
+      "prefix": "/api/share",
+      "endpoints": 4
+    },
+    {
+      "file": "sms-template.routes.ts",
+      "prefix": "/api/admin/sms-templates",
+      "endpoints": 4
+    },
+    {
+      "file": "stock-check.routes.ts",
+      "prefix": "/api/admin/stock-checks",
+      "endpoints": 10
+    },
+    {
+      "file": "stock-check.routes.ts",
+      "prefix": "/api/store/stock-checks",
+      "endpoints": 4
+    },
+    {
+      "file": "stock-warning.routes.ts",
+      "prefix": "/api/admin/stock-warnings",
+      "endpoints": 3
+    },
+    {
+      "file": "store-control.routes.ts",
+      "prefix": "/api/admin/store-control",
+      "endpoints": 8
+    },
+    {
+      "file": "store-control.routes.ts",
+      "prefix": "/api/store/control",
+      "endpoints": 2
+    },
+    {
+      "file": "store-coupon.routes.ts",
+      "prefix": "/api/store/coupons",
+      "endpoints": 4
+    },
+    {
+      "file": "store-dashboard.routes.ts",
+      "prefix": "/api/store/me",
+      "endpoints": 1
+    },
+    {
+      "file": "store-dashboard.routes.ts",
+      "prefix": "/api/store/info",
+      "endpoints": 1
+    },
+    {
+      "file": "store-dashboard.routes.ts",
+      "prefix": "/api/store/dashboard",
+      "endpoints": 1
+    },
+    {
+      "file": "store-dashboard.routes.ts",
+      "prefix": "/api/store/daily-sales",
+      "endpoints": 1
+    },
+    {
+      "file": "store-hardware.routes.ts",
+      "prefix": "/api/store/hardware/configs",
+      "endpoints": 3
+    },
+    {
+      "file": "store-hardware.routes.ts",
+      "prefix": "/api/store/hardware/cloud-speaker",
+      "endpoints": 1
+    },
+    {
+      "file": "store-hardware.routes.ts",
+      "prefix": "/api/store/hardware/box",
+      "endpoints": 1
+    },
+    {
+      "file": "store-hardware.routes.ts",
+      "prefix": "/api/store/hardware/box-config",
+      "endpoints": 3
+    },
+    {
+      "file": "store-hardware.routes.ts",
+      "prefix": "/api/store/hardware/unionpay",
+      "endpoints": 1
+    },
+    {
+      "file": "store-inventory.routes.ts",
+      "prefix": "/api/store/inventory",
+      "endpoints": 5
+    },
+    {
+      "file": "store-order.routes.ts",
+      "prefix": "/api/store/orders",
+      "endpoints": 7
+    },
+    {
+      "file": "store-order.routes.ts",
+      "prefix": "/api/store/hold-orders",
+      "endpoints": 4
+    },
+    {
+      "file": "store-receivable.routes.ts",
+      "prefix": "/api/store/collection-links",
+      "endpoints": 1
+    },
+    {
+      "file": "store-receivable.routes.ts",
+      "prefix": "/api/store/payment-orders",
+      "endpoints": 1
+    },
+    {
+      "file": "store-receivable.routes.ts",
+      "prefix": "/api/store/refund-orders",
+      "endpoints": 1
+    },
+    {
+      "file": "store-receivable.routes.ts",
+      "prefix": "/api/store/receivables",
+      "endpoints": 2
+    },
+    {
+      "file": "store-sale-bill.routes.ts",
+      "prefix": "/api/store/sale-bills",
+      "endpoints": 9
+    },
+    {
+      "file": "store-sale-bill.routes.ts",
+      "prefix": "/api/store/payment",
+      "endpoints": 1
+    },
+    {
+      "file": "store-shift.routes.ts",
+      "prefix": "/api/store/shift",
+      "endpoints": 3
+    },
+    {
+      "file": "store-shift.routes.ts",
+      "prefix": "/api/store/shifts",
+      "endpoints": 7
+    },
+    {
+      "file": "store-trace.routes.ts",
+      "prefix": "/api/store/trace",
+      "endpoints": 1
+    },
+    {
+      "file": "store-value-card.routes.ts",
+      "prefix": "/api/admin/store-value-cards",
+      "endpoints": 9
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/products",
+      "endpoints": 4
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/product-categories",
+      "endpoints": 1
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/members",
+      "endpoints": 8
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/tags",
+      "endpoints": 1
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/tag-groups",
+      "endpoints": 1
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/batches",
+      "endpoints": 2
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/banners",
+      "endpoints": 1
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/categories",
+      "endpoints": 1
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/activities",
+      "endpoints": 1
+    },
+    {
+      "file": "store.routes.ts",
+      "prefix": "/api/store/search",
+      "endpoints": 1
+    },
+    {
+      "file": "subscription.routes.ts",
+      "prefix": "/api/platform/subscriptions-management",
+      "endpoints": 15
+    },
+    {
+      "file": "supplier-contact.routes.ts",
+      "prefix": "/api/admin/supplier-contacts",
+      "endpoints": 6
+    },
+    {
+      "file": "supplier-statement.routes.ts",
+      "prefix": "/api/admin/supplier-statements",
+      "endpoints": 5
+    },
+    {
+      "file": "supplier.routes.ts",
+      "prefix": "/api/admin/suppliers",
+      "endpoints": 10
+    },
+    {
+      "file": "sync.routes.ts",
+      "prefix": "/api/sync",
+      "endpoints": 12
+    },
+    {
+      "file": "sys-config.routes.ts",
+      "prefix": "/api/admin/sys-config",
+      "endpoints": 11
+    },
+    {
+      "file": "sys-user.routes.ts",
+      "prefix": "/api/admin/sys-users",
+      "endpoints": 6
+    },
+    {
+      "file": "system.routes.ts",
+      "prefix": "/api/system",
+      "endpoints": 3
+    },
+    {
+      "file": "tag.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 10
+    },
+    {
+      "file": "tenant-register.routes.ts",
+      "prefix": "/api/tenant",
+      "endpoints": 7
+    },
+    {
+      "file": "tenant.routes.ts",
+      "prefix": "/api/platform/tenants-management",
+      "endpoints": 7
+    },
+    {
+      "file": "trace.routes.ts",
+      "prefix": "/api/admin/trace",
+      "endpoints": 17
+    },
+    {
+      "file": "trace.routes.ts",
+      "prefix": "/api/miniapp/trace",
+      "endpoints": 2
+    },
+    {
+      "file": "transfer-order.routes.ts",
+      "prefix": "/api/admin/transfer-orders",
+      "endpoints": 10
+    },
+    {
+      "file": "transfer.routes.ts",
+      "prefix": "/api/admin/transfers",
+      "endpoints": 11
+    },
+    {
+      "file": "transfer.routes.ts",
+      "prefix": "/api/store/transfers",
+      "endpoints": 3
+    },
+    {
+      "file": "unit-group.routes.ts",
+      "prefix": "/api/admin/unit-groups",
+      "endpoints": 5
+    },
+    {
+      "file": "unit.routes.ts",
+      "prefix": "/api/admin/units",
+      "endpoints": 4
+    },
+    {
+      "file": "user-session.routes.ts",
+      "prefix": "/api/user-session",
+      "endpoints": 4
+    },
+    {
+      "file": "warehouse.routes.ts",
+      "prefix": "/api/admin/warehouses",
+      "endpoints": 4
+    },
+    {
+      "file": "wechat.routes.ts",
+      "prefix": "/api/miniapp/wechat",
+      "endpoints": 6
+    },
+    {
+      "file": "workbench.routes.ts",
+      "prefix": "/api/admin",
+      "endpoints": 17
+    }
+  ],
+  "inferredFiles": []
+}

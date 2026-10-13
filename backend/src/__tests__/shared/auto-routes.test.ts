@@ -89,10 +89,23 @@ const EXPECTED_PREFIXES: readonly string[] = [
   "/api/platform/support", "/api/platform/templates", "/api/platform/tenants",
   "/api/platform/tenants-management", "/api/points-mall", "/api/quote-share",
   "/api/retail-announcement", "/api/retail-consumer-address", "/api/saas/subscriptions",
-  "/api/saas/tenants", "/api/seckill", "/api/share", "/api/store", "/api/store/control",
+  "/api/saas/tenants", "/api/seckill", "/api/share", "/api/store/control",
   "/api/store/coupons", "/api/store/customer-payments", "/api/store/customer-statements",
   "/api/store/hardware", "/api/store/instant-retail", "/api/store/members",
   "/api/store/sale-returns", "/api/store/stock-checks", "/api/store/transfers", "/api/sync",
+  // ↓ S3-195：门店 9 文件从**根前缀** /api/store 收窄为「自己拥有的路径段」后的实际前缀
+  //   （根前缀 /api/store 已无任何文件声明，故从本清单移除；对应 HTTP 行为见
+  //   src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts：/api/store/no-such-path ⇒ 404）
+  "/api/store/me", "/api/store/info", "/api/store/dashboard", "/api/store/daily-sales",
+  "/api/store/hardware/configs", "/api/store/hardware/cloud-speaker", "/api/store/hardware/box",
+  "/api/store/hardware/box-config", "/api/store/hardware/unionpay",
+  "/api/store/inventory", "/api/store/orders", "/api/store/hold-orders",
+  "/api/store/collection-links", "/api/store/payment-orders", "/api/store/refund-orders",
+  "/api/store/receivables", "/api/store/sale-bills", "/api/store/payment",
+  "/api/store/shift", "/api/store/shifts", "/api/store/trace",
+  "/api/store/products", "/api/store/product-categories", "/api/store/tags", "/api/store/tag-groups",
+  "/api/store/batches", "/api/store/banners", "/api/store/categories", "/api/store/activities",
+  "/api/store/search",
   "/api/system", "/api/tenant", "/api/user-session",
 ];
 
@@ -178,15 +191,16 @@ const EXEMPT_FILES: readonly string[] = [];
 
 /**
  * 注册总数基线（= app.use 被调用的次数）。
- * 当前 routes/ 下 189 个文件共产生 203 条注册（C6-3-2b 新增 platform-referral-ledger.routes.ts 与
- * platform-channel-report.routes.ts 后由 201 递增）。
+ * 当前 routes/ 下 189 个文件共产生 225 条注册（C6-3-2b 新增 platform-referral-ledger.routes.ts 与
+ * platform-channel-report.routes.ts 后由 201 递增到 203；S3-195 把门店 9 个以根前缀 /api/store 注册
+ * 的文件按「自己拥有的路径段」拆成 31 条注册后 +22）。
  *
  * 【这条为什么能补 toContain 的盲区】
  *   多个文件共享同一前缀（如 /api/store、/api/admin 各被多文件注册），
  *   单个共享文件掉线时该前缀仍被其他文件注册 ⇒ toContain 抓不到；
  *   但注册总数必然下降 ⇒ 本条必红。因快照中**每个文件都贡献 ≥1 条注册**，故总数守恒等价于「无文件掉线」。
  */
-const EXPECTED_REGISTRATION_COUNT = 203;
+const EXPECTED_REGISTRATION_COUNT = 225;
 
 /**
  * 耗时基线告警（治标 ②）

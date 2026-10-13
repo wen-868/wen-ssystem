@@ -1,0 +1,141 @@
+[
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/products",
+   "GET /api/store/product-categories",
+   "GET /api/store/products/:spuId/tags",
+   "GET /api/store/products/:spuId/batches",
+   "GET /api/store/products/:spuId",
+   "GET /api/store/members",
+   "GET /api/store/members/manage",
+   "POST /api/store/members/manage",
+   "PUT /api/store/members/:id(\\d+)",
+   "GET /api/store/members/:id(\\d+)",
+   "GET /api/store/members/:id(\\d+)/points",
+   "GET /api/store/members/:id(\\d+)/points/logs",
+   "GET /api/store/members/:id(\\d+)/orders",
+   "GET /api/store/tags",
+   "GET /api/store/tag-groups",
+   "GET /api/store/batches/:id",
+   "GET /api/store/batches/:id/trace",
+   "GET /api/store/banners",
+   "GET /api/store/categories",
+   "GET /api/store/activities",
+   "GET /api/store/search/hot"
+  ]
+ },
+ {
+  "file": "store-dashboard.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/me",
+   "GET /api/store/info",
+   "GET /api/store/dashboard",
+   "GET /api/store/daily-sales"
+  ]
+ },
+ {
+  "file": "store-hardware.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/hardware/configs",
+   "PUT /api/store/hardware/configs/:category",
+   "POST /api/store/hardware/configs/:category/test",
+   "POST /api/store/hardware/cloud-speaker/announce",
+   "POST /api/store/hardware/box/pay",
+   "GET /api/store/hardware/box-config",
+   "PUT /api/store/hardware/box-config",
+   "POST /api/store/hardware/box-config/test",
+   "POST /api/store/hardware/unionpay/test"
+  ]
+ },
+ {
+  "file": "store-inventory.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/inventory",
+   "POST /api/store/inventory/adjust",
+   "GET /api/store/inventory/logs",
+   "GET /api/store/inventory/alerts",
+   "PUT /api/store/inventory/alerts/:skuId/threshold"
+  ]
+ },
+ {
+  "file": "store-order.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/orders",
+   "GET /api/store/orders/:orderNo",
+   "POST /api/store/orders/:orderNo/accept",
+   "POST /api/store/orders/:orderNo/start-delivery",
+   "POST /api/store/orders/:orderNo/complete-delivery",
+   "POST /api/store/orders/:orderNo/reject",
+   "POST /api/store/orders/:orderNo/cancel",
+   "POST /api/store/hold-orders",
+   "GET /api/store/hold-orders",
+   "POST /api/store/hold-orders/:holdNo/restore",
+   "DELETE /api/store/hold-orders/:holdNo"
+  ]
+ },
+ {
+  "file": "store-receivable.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/collection-links",
+   "GET /api/store/payment-orders",
+   "GET /api/store/refund-orders",
+   "GET /api/store/receivables",
+   "POST /api/store/receivables/:receivableNo/payment"
+  ]
+ },
+ {
+  "file": "store-sale-bill.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/sale-bills",
+   "POST /api/store/sale-bills",
+   "GET /api/store/sale-bills/overdue",
+   "GET /api/store/sale-bills/overdue/check",
+   "GET /api/store/sale-bills/:billNo",
+   "POST /api/store/sale-bills/:billNo/collection-link",
+   "POST /api/store/sale-bills/:billNo/offline-payment",
+   "POST /api/store/sale-bills/:billNo/payment",
+   "POST /api/store/sale-bills/:billNo/pay-by-code",
+   "GET /api/store/payment/channels"
+  ]
+ },
+ {
+  "file": "store-shift.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/shift/current",
+   "POST /api/store/shift/settle",
+   "GET /api/store/shift/history",
+   "POST /api/store/shifts",
+   "GET /api/store/shifts",
+   "GET /api/store/shifts/:shiftNo",
+   "GET /api/store/shifts/:shiftNo/sales",
+   "GET /api/store/shifts/:shiftNo/check",
+   "POST /api/store/shifts/:shiftNo/check",
+   "POST /api/store/shifts/:shiftNo/close"
+  ]
+ },
+ {
+  "file": "store-trace.routes.ts",
+  "prefix": "/api/store",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "POST /api/store/trace/verify"
+  ]
+ }
+]

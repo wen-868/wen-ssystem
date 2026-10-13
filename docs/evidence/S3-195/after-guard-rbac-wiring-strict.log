@@ -1,0 +1,1040 @@
+[guard:rbac-wiring] 扫描 189 个路由文件 · 762 个写端点
+[guard:rbac-wiring] 已接线 57 处 ／ **无权限检查 705 处**（分布在 161 个文件）
+[guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）
+
+—— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无权限检查）——
+
+admin-auth.routes.ts  (5 处)
+   L21: PUT /api/admin/auth/settings ⇒ 无权限检查
+   L22: POST /api/admin/auth/change-password ⇒ 无权限检查
+   L24: POST /api/admin/auth/mfa/setup ⇒ 无权限检查
+   L25: POST /api/admin/auth/mfa/confirm ⇒ 无权限检查
+   L26: POST /api/admin/auth/mfa/disable ⇒ 无权限检查
+
+admin-customer.routes.ts  (6 处)
+   L12: POST /api/admin/members ⇒ 无权限检查
+   L16: PUT /api/admin/members/:id ⇒ 无权限检查
+   L17: PUT /api/admin/members/:id/disable ⇒ 无权限检查
+   L18: PUT /api/admin/members/:id/assign-staff ⇒ 无权限检查
+   L25: POST /api/admin/members/register ⇒ 无权限检查
+   L27: PUT /api/admin/members/:id/member-level ⇒ 无权限检查
+
+admin-library.routes.ts  (1 处)
+   L23: POST /api/admin/library/lookup ⇒ 无权限检查
+
+admin-marketing-calculation.routes.ts  (1 处)
+   L9: POST /api/admin/marketing/calculate ⇒ 无权限检查
+
+admin-marketing-coupon.routes.ts  (5 处)
+   L11: POST /api/admin/marketing/coupons/templates ⇒ 无权限检查
+   L14: PUT /api/admin/marketing/coupons/templates/:id ⇒ 无权限检查
+   L15: DELETE /api/admin/marketing/coupons/templates/:id ⇒ 无权限检查
+   L16: POST /api/admin/marketing/coupons/templates/:id/activate ⇒ 无权限检查
+   L17: POST /api/admin/marketing/coupons/templates/:id/pause ⇒ 无权限检查
+
+admin-marketing-flash-sale.routes.ts  (2 处)
+   L13: PUT /api/admin/marketing/flash-sales/:id ⇒ 无权限检查
+   L14: DELETE /api/admin/marketing/flash-sales/:id ⇒ 无权限检查
+
+admin-marketing-full-reduction.routes.ts  (5 处)
+   L9: POST /api/admin/marketing/full-reductions ⇒ 无权限检查
+   L12: PUT /api/admin/marketing/full-reductions/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/marketing/full-reductions/:id ⇒ 无权限检查
+   L14: POST /api/admin/marketing/full-reductions/:id/activate ⇒ 无权限检查
+   L15: POST /api/admin/marketing/full-reductions/:id/pause ⇒ 无权限检查
+
+admin-marketing-group-buy.routes.ts  (6 处)
+   L9: POST /api/admin/marketing/group-buys ⇒ 无权限检查
+   L12: PUT /api/admin/marketing/group-buys/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/marketing/group-buys/:id ⇒ 无权限检查
+   L14: POST /api/admin/marketing/group-buys/:id/activate ⇒ 无权限检查
+   L17: POST /api/admin/marketing/group-buys/teams ⇒ 无权限检查
+   L19: POST /api/admin/marketing/group-buys/teams/:teamId/join ⇒ 无权限检查
+
+admin-marketing-points.routes.ts  (2 处)
+   L10: PUT /api/admin/marketing/points/rule ⇒ 无权限检查
+   L15: POST /api/admin/marketing/points/redeem ⇒ 无权限检查
+
+admin-marketing-stack-rule.routes.ts  (3 处)
+   L9: POST /api/admin/marketing/stack-rules ⇒ 无权限检查
+   L11: PUT /api/admin/marketing/stack-rules/:id ⇒ 无权限检查
+   L12: DELETE /api/admin/marketing/stack-rules/:id ⇒ 无权限检查
+
+admin-order.routes.ts  (4 处)
+   L15: POST /api/admin/orders/batch-status ⇒ 无权限检查
+   L17: POST /api/admin/orders/:orderNo/cancel ⇒ 无权限检查
+   L18: PUT /api/admin/orders/:orderNo/remark ⇒ 无权限检查
+   L19: PUT /api/admin/orders/:orderNo/status ⇒ 无权限检查
+
+admin-platform-announcement.routes.ts  (5 处)
+   L13: PUT /api/platform/announcements/templates ⇒ 无权限检查
+   L15: POST /api/platform/announcements/ ⇒ 无权限检查
+   L16: PUT /api/platform/announcements/:id ⇒ 无权限检查
+   L17: DELETE /api/platform/announcements/:id ⇒ 无权限检查
+   L18: POST /api/platform/announcements/:id/publish ⇒ 无权限检查
+
+admin-platform-settlement.routes.ts  (2 处)
+   L11: POST /api/platform/settlements/ ⇒ 无权限检查
+   L12: PUT /api/platform/settlements/:id ⇒ 无权限检查
+
+admin-product.routes.ts  (13 处)
+   L34: POST /api/admin/products/upload-image ⇒ 无权限检查
+   L38: PUT /api/admin/products/:id/status ⇒ 无权限检查
+   L39: PUT /api/admin/products/:id ⇒ 无权限检查
+   L40: PUT /api/admin/products/:id/disable ⇒ 无权限检查
+   L42: PUT /api/admin/products/:skuId/price ⇒ 无权限检查
+   L43: PUT /api/admin/products/skus/:skuId/barcode ⇒ 无权限检查
+   L44: PUT /api/admin/products/skus/:skuId ⇒ 无权限检查
+   L45: POST /api/admin/products/skus/:skuId/units ⇒ 无权限检查
+   L46: PUT /api/admin/products/skus/:skuId/units/:unitId ⇒ 无权限检查
+   L47: DELETE /api/admin/products/skus/:skuId/units/:unitId ⇒ 无权限检查
+   L48: POST /api/admin/products/import ⇒ 无权限检查
+   L49: PUT /api/admin/products/:spuId/marketing-tags ⇒ 无权限检查
+   L50: PUT /api/admin/products/:id/warning-threshold ⇒ 无权限检查
+
+admin-quote-push.routes.ts  (4 处)
+   L8: POST /api/admin/quote-push/preview ⇒ 无权限检查
+   L9: POST /api/admin/quote-push/ ⇒ 无权限检查
+   L12: POST /api/admin/quote-push/:id/push ⇒ 无权限检查
+   L13: POST /api/admin/quote-push/:id/cancel ⇒ 无权限检查
+
+admin-staff.routes.ts  (5 处)
+   L10: POST /api/admin/staff ⇒ 无权限检查
+   L11: PUT /api/admin/staff/:id ⇒ 无权限检查
+   L12: PUT /api/admin/staff/:id/status ⇒ 无权限检查
+   L13: PUT /api/admin/staff/:id/disable ⇒ 无权限检查
+   L14: POST /api/admin/staff/:id/restore ⇒ 无权限检查
+
+admin-store.routes.ts  (2 处)
+   L10: POST /api/admin/system/stores ⇒ 无权限检查
+   L12: PUT /api/admin/system/stores/:id ⇒ 无权限检查
+
+aftersale.routes.ts  (9 处)
+   L24: POST /api/miniapp/aftersales ⇒ 无权限检查
+   L31: POST /api/miniapp/aftersales/:aftersaleNo/cancel ⇒ 无权限检查
+   L33: POST /api/miniapp/aftersales/:aftersaleNo/return-logistics ⇒ 无权限检查
+   L38: POST /api/miniapp/aftersales/:aftersaleNo/rate ⇒ 无权限检查
+   L46: POST /api/admin/aftersales/:id/approve ⇒ 无权限检查
+   L48: POST /api/admin/aftersales/:id/reject ⇒ 无权限检查
+   L53: POST /api/admin/aftersales/:id/confirm-receipt ⇒ 无权限检查
+   L55: POST /api/admin/aftersales/:id/inspect ⇒ 无权限检查
+   L60: POST /api/admin/aftersales/:id/complete ⇒ 无权限检查
+
+ai-billing.routes.ts  (4 处)
+   L16: PUT /api/platform/ai-billing/billing-strategy ⇒ 无权限检查
+   L22: PUT /api/platform/ai-billing/free-grant ⇒ 无权限检查
+   L28: PUT /api/platform/ai-billing/quota-packs ⇒ 无权限检查
+   L34: PUT /api/platform/ai-billing/points-rate ⇒ 无权限检查
+
+alert.routes.ts  (3 处)
+   L10: PUT /api/admin/alerts/:id/handle ⇒ 无权限检查
+   L12: PUT /api/admin/alerts/rules/:id ⇒ 无权限检查
+   L13: POST /api/admin/alerts/check ⇒ 无权限检查
+
+approval.routes.ts  (7 处)
+   L10: POST /api/admin/approval/rules ⇒ 无权限检查
+   L11: PUT /api/admin/approval/rules/:id ⇒ 无权限检查
+   L12: DELETE /api/admin/approval/rules/:id ⇒ 无权限检查
+   L16: POST /api/admin/approval/instances/submit ⇒ 无权限检查
+   L21: POST /api/admin/approval/tasks/:id/approve ⇒ 无权限检查
+   L22: POST /api/admin/approval/tasks/:id/reject ⇒ 无权限检查
+   L26: POST /api/admin/approval/notifications/:id/read ⇒ 无权限检查
+
+archive.routes.ts  (1 处)
+   L8: POST /api/admin/archive/execute ⇒ 无权限检查
+
+avatar.routes.ts  (1 处)
+   L20: POST /api/admin/auth/avatar ⇒ 无权限检查
+
+bank-account.routes.ts  (3 处)
+   L10: POST /api/admin/bank-accounts/ ⇒ 无权限检查
+   L11: PUT /api/admin/bank-accounts/:id ⇒ 无权限检查
+   L14: POST /api/admin/bank-accounts/:id/close ⇒ 无权限检查
+
+billing-config.routes.ts  (2 处)
+   L16: PUT /api/platform/billing/arrears-policy ⇒ 无权限检查
+   L22: PUT /api/platform/billing/addon-price ⇒ 无权限检查
+
+brand.routes.ts  (3 处)
+   L10: POST /api/admin/brands/ ⇒ 无权限检查
+   L11: PUT /api/admin/brands/:id ⇒ 无权限检查
+   L12: DELETE /api/admin/brands/:id ⇒ 无权限检查
+
+cart.routes.ts  (6 处)
+   L12: POST /api/miniapp/cart/add ⇒ 无权限检查
+   L13: PUT /api/miniapp/cart/items/:skuId ⇒ 无权限检查
+   L14: DELETE /api/miniapp/cart/items/:skuId ⇒ 无权限检查
+   L15: POST /api/miniapp/cart/clear ⇒ 无权限检查
+   L19: POST /api/miniapp/cart/checkout/preview ⇒ 无权限检查
+   L20: POST /api/miniapp/cart/checkout/create ⇒ 无权限检查
+
+category.routes.ts  (4 处)
+   L13: POST /api/admin/products/categories/ ⇒ 无权限检查
+   L14: PUT /api/admin/products/categories/:id ⇒ 无权限检查
+   L15: DELETE /api/admin/products/categories/:id ⇒ 无权限检查
+   L16: PUT /api/admin/products/categories/:id/sort ⇒ 无权限检查
+
+commerce-fix.routes.ts  (4 处)
+   L15: DELETE /api/admin/consumer-addresses/:id ⇒ 无权限检查
+   L18: PUT /api/admin/bills/:id ⇒ 无权限检查
+   L19: DELETE /api/admin/bills/:id ⇒ 无权限检查
+   L21: POST /api/admin/bills/:id/void ⇒ 无权限检查
+
+commission.routes.ts  (3 处)
+   L12: PUT /api/admin/commission/rules/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/commission/rules/:id ⇒ 无权限检查
+   L16: POST /api/admin/commission/calculate ⇒ 无权限检查
+
+community-marketing.routes.ts  (10 处)
+   L12: POST /api/marketing/group-buy/:id/join ⇒ 无权限检查
+   L13: POST /api/marketing/group-buy/:id/start ⇒ 无权限检查
+   L14: POST /api/marketing/group-buy/:id/end ⇒ 无权限检查
+   L22: POST /api/marketing/bargain/:id/start ⇒ 无权限检查
+   L23: POST /api/marketing/bargain/:id/help ⇒ 无权限检查
+   L24: POST /api/marketing/bargain/:id/end ⇒ 无权限检查
+   L32: POST /api/marketing/seckill/:id/buy ⇒ 无权限检查
+   L33: POST /api/marketing/seckill/:orderNo/pay ⇒ 无权限检查
+   L34: POST /api/marketing/seckill/:orderNo/cancel ⇒ 无权限检查
+   L35: POST /api/marketing/seckill/:id/end ⇒ 无权限检查
+
+credit.routes.ts  (6 处)
+   L26: POST /api/admin/credits/collections ⇒ 无权限检查
+   L27: PUT /api/admin/credits/collections/:id ⇒ 无权限检查
+   L29: POST /api/admin/credits/collections/auto-generate ⇒ 无权限检查
+   L30: POST /api/admin/credits/collections/batch-remind ⇒ 无权限检查
+   L50: PUT /api/admin/credits/:customerId/limit ⇒ 无权限检查
+   L51: PUT /api/admin/credits/:customerId/term ⇒ 无权限检查
+
+custom-report-v2.routes.ts  (4 处)
+   L11: POST /api/admin/reports/ ⇒ 无权限检查
+   L15: PUT /api/admin/reports/:id(\d+) ⇒ 无权限检查
+   L16: DELETE /api/admin/reports/:id(\d+) ⇒ 无权限检查
+   L19: POST /api/admin/reports/:id(\d+)/generate ⇒ 无权限检查
+
+custom-report.routes.ts  (9 处)
+   L11: POST /api/custom-report/templates ⇒ 无权限检查
+   L12: PUT /api/custom-report/templates/:id ⇒ 无权限检查
+   L13: DELETE /api/custom-report/templates/:id ⇒ 无权限检查
+   L14: POST /api/custom-report/templates/:id/execute ⇒ 无权限检查
+   L18: POST /api/custom-report/schedules ⇒ 无权限检查
+   L19: PUT /api/custom-report/schedules/:id ⇒ 无权限检查
+   L20: DELETE /api/custom-report/schedules/:id ⇒ 无权限检查
+   L21: PUT /api/custom-report/schedules/:id/toggle ⇒ 无权限检查
+   L22: POST /api/custom-report/schedules/:id/run ⇒ 无权限检查
+
+customer-care.routes.ts  (4 处)
+   L8: POST /api/admin/members/care/rules ⇒ 无权限检查
+   L9: PUT /api/admin/members/care/rules/:id ⇒ 无权限检查
+   L10: DELETE /api/admin/members/care/rules/:id ⇒ 无权限检查
+   L12: POST /api/admin/members/care/rules/:id/execute ⇒ 无权限检查
+
+customer-merge.routes.ts  (1 处)
+   L10: POST /api/admin/customer-merge/merge ⇒ 无权限检查
+
+customer-payment.routes.ts  (2 处)
+   L10: POST /api/store/customer-payments/ ⇒ 无权限检查
+   L11: POST /api/store/customer-payments/:receiptNo/void ⇒ 无权限检查
+
+customer-price.routes.ts  (3 处)
+   L9: POST /api/admin/customer-prices/ ⇒ 无权限检查
+   L10: PUT /api/admin/customer-prices/:id ⇒ 无权限检查
+   L11: DELETE /api/admin/customer-prices/:id ⇒ 无权限检查
+
+customer-segment.routes.ts  (4 处)
+   L8: POST /api/admin/members/segments/ ⇒ 无权限检查
+   L9: PUT /api/admin/members/segments/:id ⇒ 无权限检查
+   L10: DELETE /api/admin/members/segments/:id ⇒ 无权限检查
+   L11: POST /api/admin/members/segments/:id/refresh ⇒ 无权限检查
+
+customer-statement.routes.ts  (3 处)
+   L10: POST /api/store/customer-statements/ ⇒ 无权限检查
+   L11: POST /api/store/customer-statements/:statementNo/confirm ⇒ 无权限检查
+   L12: POST /api/store/customer-statements/:statementNo/paid ⇒ 无权限检查
+
+customer-tag.routes.ts  (5 处)
+   L8: POST /api/admin/members/tags/ ⇒ 无权限检查
+   L9: PUT /api/admin/members/tags/:id ⇒ 无权限检查
+   L10: DELETE /api/admin/members/tags/:id ⇒ 无权限检查
+   L11: POST /api/admin/members/tags/:id/tags ⇒ 无权限检查
+   L12: DELETE /api/admin/members/tags/:id/tags/:tagId ⇒ 无权限检查
+
+customer-type.routes.ts  (3 处)
+   L11: POST /api/admin/customer-types/ ⇒ 无权限检查
+   L12: PUT /api/admin/customer-types/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/customer-types/:id ⇒ 无权限检查
+
+customer-visit.routes.ts  (5 处)
+   L15: POST /api/admin/customer-visits/ ⇒ 无权限检查
+   L18: PUT /api/admin/customer-visits/:visitNo ⇒ 无权限检查
+   L21: POST /api/admin/customer-visits/:visitNo/checkin ⇒ 无权限检查
+   L24: POST /api/admin/customer-visits/:visitNo/checkout ⇒ 无权限检查
+   L27: POST /api/admin/customer-visits/:visitNo/cancel ⇒ 无权限检查
+
+data-permission.routes.ts  (6 处)
+   L9: POST /api/admin/data-permissions/ ⇒ 无权限检查
+   L11: PUT /api/admin/data-permissions/:id ⇒ 无权限检查
+   L12: DELETE /api/admin/data-permissions/:id ⇒ 无权限检查
+   L15: POST /api/admin/data-permissions/roles/:roleId ⇒ 无权限检查
+   L16: DELETE /api/admin/data-permissions/roles/:roleId/:dataPermissionId ⇒ 无权限检查
+   L19: POST /api/admin/data-permissions/users/:userId/check ⇒ 无权限检查
+
+data-transfer.routes.ts  (2 处)
+   L20: POST /api/admin/data-transfer/import/customers ⇒ 无权限检查
+   L23: POST /api/admin/data-transfer/import/products ⇒ 无权限检查
+
+demo.routes.ts  (2 处)
+   L9: POST /api/admin/demo/seed ⇒ 无权限检查
+   L10: POST /api/admin/demo/reset ⇒ 无权限检查
+
+department.routes.ts  (4 处)
+   L11: POST /api/department/ ⇒ 无权限检查
+   L12: PUT /api/department/:id ⇒ 无权限检查
+   L13: DELETE /api/department/:id ⇒ 无权限检查
+   L14: PUT /api/department/:id/move ⇒ 无权限检查
+
+error-log.routes.ts  (1 处)
+   L8: POST /api/admin/error-report ⇒ 无权限检查
+
+expense.routes.ts  (3 处)
+   L12: PUT /api/admin/expenses/:expenseNo ⇒ 无权限检查
+   L13: POST /api/admin/expenses/:expenseNo/approve ⇒ 无权限检查
+   L14: POST /api/admin/expenses/:expenseNo/void ⇒ 无权限检查
+
+feedback.routes.ts  (2 处)
+   L10: POST /api/admin/feedback ⇒ 无权限检查
+   L16: PUT /api/admin/feedback/:id ⇒ 无权限检查
+
+hardware-callback.routes.ts  (2 处)
+   L11: POST /api/store/hardware/callbacks/cloud-speaker/:tenantId ⇒ 无权限检查
+   L12: POST /api/store/hardware/callbacks/box/:tenantId ⇒ 无权限检查
+
+instant-retail-admin-ops.routes.ts  (12 处)
+   L19: POST /api/admin/instant-retail/orders/:orderNo/status ⇒ 无权限检查
+   L41: POST /api/admin/instant-retail/routing-rules ⇒ 无权限检查
+   L42: PUT /api/admin/instant-retail/routing-rules/:id ⇒ 无权限检查
+   L43: DELETE /api/admin/instant-retail/routing-rules/:id ⇒ 无权限检查
+   L49: POST /api/admin/instant-retail/exceptions/:id/handle ⇒ 无权限检查
+   L54: POST /api/admin/instant-retail/shelf ⇒ 无权限检查
+   L55: PUT /api/admin/instant-retail/shelf/:id ⇒ 无权限检查
+   L56: DELETE /api/admin/instant-retail/shelf/:id ⇒ 无权限检查
+   L60: POST /api/admin/instant-retail/deliveries/:deliveryId/assign ⇒ 无权限检查
+   L61: PUT /api/admin/instant-retail/deliveries/:deliveryId/status ⇒ 无权限检查
+   L67: POST /api/admin/instant-retail/reviews/:id/reply ⇒ 无权限检查
+   L68: POST /api/admin/instant-retail/reviews/sync ⇒ 无权限检查
+
+instant-retail-admin-platform.routes.ts  (15 处)
+   L16: POST /api/admin/instant-retail/configs ⇒ 无权限检查
+   L17: POST /api/admin/instant-retail/configs/:platform/test ⇒ 无权限检查
+   L18: POST /api/admin/instant-retail/configs/:platform/sync-orders ⇒ 无权限检查
+   L19: POST /api/admin/instant-retail/configs/:platform/sync-products ⇒ 无权限检查
+   L20: DELETE /api/admin/instant-retail/configs/:platform ⇒ 无权限检查
+   L24: POST /api/admin/instant-retail/shop-config ⇒ 无权限检查
+   L28: POST /api/admin/instant-retail/categories ⇒ 无权限检查
+   L29: PUT /api/admin/instant-retail/categories/:id ⇒ 无权限检查
+   L30: DELETE /api/admin/instant-retail/categories/:id ⇒ 无权限检查
+   L34: POST /api/admin/instant-retail/products ⇒ 无权限检查
+   L35: PUT /api/admin/instant-retail/products/:id ⇒ 无权限检查
+   L36: DELETE /api/admin/instant-retail/products/:id ⇒ 无权限检查
+   L47: POST /api/admin/instant-retail/banners ⇒ 无权限检查
+   L48: PUT /api/admin/instant-retail/banners/:id ⇒ 无权限检查
+   L49: DELETE /api/admin/instant-retail/banners/:id ⇒ 无权限检查
+
+instant-retail-store.routes.ts  (4 处)
+   L17: POST /api/store/instant-retail/orders/:platformOrderId/confirm ⇒ 无权限检查
+   L18: POST /api/store/instant-retail/orders/:platformOrderId/cancel ⇒ 无权限检查
+   L19: POST /api/store/instant-retail/orders/:platformOrderId/start-delivery ⇒ 无权限检查
+   L20: POST /api/store/instant-retail/orders/:platformOrderId/complete-delivery ⇒ 无权限检查
+
+instant-retail-webhook.routes.ts  (3 处)
+   L11: POST /api/instant-retail/webhook/jd ⇒ 无权限检查
+   L12: POST /api/instant-retail/webhook/meituan ⇒ 无权限检查
+   L13: POST /api/instant-retail/webhook/eleme ⇒ 无权限检查
+
+inventory-batch.routes.ts  (7 处)
+   L15: POST /api/admin/inventory-batch/batches ⇒ 无权限检查
+   L16: PUT /api/admin/inventory-batch/batches/:id ⇒ 无权限检查
+   L17: POST /api/admin/inventory-batch/batches/:id/split ⇒ 无权限检查
+   L27: POST /api/admin/inventory-batch/expiry-configs ⇒ 无权限检查
+   L28: PUT /api/admin/inventory-batch/expiry-configs/:id ⇒ 无权限检查
+   L29: DELETE /api/admin/inventory-batch/expiry-configs/:id ⇒ 无权限检查
+   L35: PUT /api/admin/inventory-batch/expiry-alerts/:id/handle ⇒ 无权限检查
+
+inventory-loss-gain.routes.ts  (1 处)
+   L8: POST /api/admin/inventory/report-loss-gain ⇒ 无权限检查
+
+inventory-share.routes.ts  (6 处)
+   L9: PUT /api/admin/inventory-share/settings ⇒ 无权限检查
+   L11: POST /api/admin/inventory-share/products ⇒ 无权限检查
+   L12: POST /api/admin/inventory-share/products/batch-add ⇒ 无权限检查
+   L13: POST /api/admin/inventory-share/products/batch-remove ⇒ 无权限检查
+   L14: PUT /api/admin/inventory-share/products/:id ⇒ 无权限检查
+   L15: DELETE /api/admin/inventory-share/products/:id ⇒ 无权限检查
+
+marketing-asset.routes.ts  (3 处)
+   L10: POST /api/marketing-asset/ ⇒ 无权限检查
+   L11: PUT /api/marketing-asset/:id ⇒ 无权限检查
+   L12: DELETE /api/marketing-asset/:id ⇒ 无权限检查
+
+marketing-gift-rule.routes.ts  (8 处)
+   L9: POST /api/admin/marketing/gift-rules/ ⇒ 无权限检查
+   L12: PUT /api/admin/marketing/gift-rules/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/marketing/gift-rules/:id ⇒ 无权限检查
+   L14: POST /api/admin/marketing/gift-rules/:id/activate ⇒ 无权限检查
+   L15: POST /api/admin/marketing/gift-rules/:id/pause ⇒ 无权限检查
+   L16: POST /api/admin/marketing/gift-rules/:id/levels ⇒ 无权限检查
+   L17: PUT /api/admin/marketing/gift-rules/:id/levels/:levelId ⇒ 无权限检查
+   L18: DELETE /api/admin/marketing/gift-rules/:id/levels/:levelId ⇒ 无权限检查
+
+marketing-limited-discount.routes.ts  (7 处)
+   L9: POST /api/admin/marketing/limited-discounts/ ⇒ 无权限检查
+   L12: PUT /api/admin/marketing/limited-discounts/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/marketing/limited-discounts/:id ⇒ 无权限检查
+   L14: POST /api/admin/marketing/limited-discounts/:id/activate ⇒ 无权限检查
+   L15: POST /api/admin/marketing/limited-discounts/:id/pause ⇒ 无权限检查
+   L17: POST /api/admin/marketing/limited-discounts/:id/products ⇒ 无权限检查
+   L18: DELETE /api/admin/marketing/limited-discounts/:id/products/:productId ⇒ 无权限检查
+
+marketing-material.routes.ts  (8 处)
+   L9: POST /api/admin/marketing/materials/ ⇒ 无权限检查
+   L12: PUT /api/admin/marketing/materials/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/marketing/materials/:id ⇒ 无权限检查
+   L14: POST /api/admin/marketing/materials/:id/publish ⇒ 无权限检查
+   L15: POST /api/admin/marketing/materials/:id/archive ⇒ 无权限检查
+   L17: POST /api/admin/marketing/materials/categories ⇒ 无权限检查
+   L18: PUT /api/admin/marketing/materials/categories/:id ⇒ 无权限检查
+   L19: DELETE /api/admin/marketing/materials/categories/:id ⇒ 无权限检查
+
+marketing-miniapp.routes.ts  (4 处)
+   L55: POST /api/miniapp/marketing/coupons/:templateId/claim ⇒ 无权限检查
+   L72: POST /api/miniapp/marketing/flash-sale/:id/buy ⇒ 无权限检查
+   L80: POST /api/miniapp/marketing/group-buy/:teamId/join ⇒ 无权限检查
+   L84: POST /api/miniapp/marketing/calculate ⇒ 无权限检查
+
+marketing-points-mall.routes.ts  (7 处)
+   L9: POST /api/admin/marketing/points-mall/products ⇒ 无权限检查
+   L12: PUT /api/admin/marketing/points-mall/products/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/marketing/points-mall/products/:id ⇒ 无权限检查
+   L14: POST /api/admin/marketing/points-mall/products/:id/toggle ⇒ 无权限检查
+   L17: POST /api/admin/marketing/points-mall/exchange ⇒ 无权限检查
+   L18: POST /api/admin/marketing/points-mall/exchange-records/:id/cancel ⇒ 无权限检查
+   L19: POST /api/admin/marketing/points-mall/exchange-records/:id/confirm ⇒ 无权限检查
+
+member-register.routes.ts  (2 处)
+   L8: POST /api/store/members/sms-code ⇒ 无权限检查
+   L9: POST /api/store/members/register ⇒ 无权限检查
+
+miniapp-config.routes.ts  (4 处)
+   L24: PUT /api/miniapp-config/configs/:platform ⇒ 无权限检查
+   L27: POST /api/miniapp-config/packages ⇒ 无权限检查
+   L30: POST /api/miniapp-config/upload-key ⇒ 无权限检查
+   L32: POST /api/miniapp-config/publish ⇒ 无权限检查
+
+miniapp-order-sync.routes.ts  (1 处)
+   L13: POST /api/miniapp-order-sync/:orderNo/retry ⇒ 无权限检查
+
+miniapp.routes.ts  (31 处)
+   L17: POST /api/miniapp/login ⇒ 无权限检查
+   L28: POST /api/miniapp/cart ⇒ 无权限检查
+   L29: PUT /api/miniapp/cart/:id ⇒ 无权限检查
+   L30: DELETE /api/miniapp/cart/:id ⇒ 无权限检查
+   L31: DELETE /api/miniapp/cart ⇒ 无权限检查
+   L34: POST /api/miniapp/orders ⇒ 无权限检查
+   L37: POST /api/miniapp/orders/:id/pay ⇒ 无权限检查
+   L38: POST /api/miniapp/orders/:id/cancel ⇒ 无权限检查
+   L39: POST /api/miniapp/orders/:id/confirm-receive ⇒ 无权限检查
+   L42: PUT /api/miniapp/orders/:id/delete ⇒ 无权限检查
+   L46: POST /api/miniapp/pay/notify ⇒ 无权限检查
+   L52: POST /api/miniapp/stored-card/recharge ⇒ 无权限检查
+   L56: PUT /api/miniapp/user/profile ⇒ 无权限检查
+   L58: POST /api/miniapp/user/addresses ⇒ 无权限检查
+   L59: PUT /api/miniapp/user/addresses/:id ⇒ 无权限检查
+   L60: DELETE /api/miniapp/user/addresses/:id ⇒ 无权限检查
+   L61: POST /api/miniapp/user/addresses/:id/default ⇒ 无权限检查
+   L66: POST /api/miniapp/coupons/:id/use ⇒ 无权限检查
+   L74: POST /api/miniapp/member/coupons/:id/receive ⇒ 无权限检查
+   L77: PUT /api/miniapp/user/profile-update ⇒ 无权限检查
+   L78: POST /api/miniapp/user/change-password ⇒ 无权限检查
+   L85: POST /api/miniapp/wholesale/cart ⇒ 无权限检查
+   L86: PUT /api/miniapp/wholesale/cart/:id ⇒ 无权限检查
+   L87: DELETE /api/miniapp/wholesale/cart/:id ⇒ 无权限检查
+   L88: POST /api/miniapp/wholesale/orders ⇒ 无权限检查
+   L92: POST /api/miniapp/wholesale/cart/delete ⇒ 无权限检查
+   L93: PUT /api/miniapp/wholesale/cart/:itemId/select ⇒ 无权限检查
+   L94: PUT /api/miniapp/wholesale/cart/select-all ⇒ 无权限检查
+   L95: POST /api/miniapp/wholesale/orders/:orderId/cancel ⇒ 无权限检查
+   L96: POST /api/miniapp/wholesale/orders/:orderId/confirm-receive ⇒ 无权限检查
+   L98: POST /api/miniapp/wholesale/orders/buy-now ⇒ 无权限检查
+
+monitor.routes.ts  (1 处)
+   L11: POST /api/admin/monitor/notify-expiring ⇒ 无权限检查
+
+notification.routes.ts  (7 处)
+   L12: PUT /api/admin/notifications/:id/read ⇒ 无权限检查
+   L13: POST /api/admin/notifications/read-all ⇒ 无权限检查
+   L14: POST /api/admin/notifications/send ⇒ 无权限检查
+   L16: DELETE /api/admin/notifications/:id ⇒ 无权限检查
+   L17: POST /api/admin/notifications/batch-delete ⇒ 无权限检查
+   L23: PUT /api/miniapp/notifications/:id/read ⇒ 无权限检查
+   L24: POST /api/miniapp/notifications/read-all ⇒ 无权限检查
+
+order-exception.routes.ts  (3 处)
+   L11: POST /api/admin/order-exceptions ⇒ 无权限检查
+   L12: PUT /api/admin/order-exceptions/:id(\d+)/status ⇒ 无权限检查
+   L13: PUT /api/admin/order-exceptions/:id(\d+) ⇒ 无权限检查
+
+order-timeout.routes.ts  (3 处)
+   L12: POST /api/admin/order-timeout/configs ⇒ 无权限检查
+   L13: PUT /api/admin/order-timeout/configs/:id ⇒ 无权限检查
+   L14: DELETE /api/admin/order-timeout/configs/:id ⇒ 无权限检查
+
+payment-config.routes.ts  (6 处)
+   L9: PUT /api/payment-config/configs/:provider ⇒ 无权限检查
+   L10: POST /api/payment-config/configs/:provider/test ⇒ 无权限检查
+   L13: POST /api/payment-config/bank-accounts ⇒ 无权限检查
+   L14: PUT /api/payment-config/bank-accounts/:id ⇒ 无权限检查
+   L15: DELETE /api/payment-config/bank-accounts/:id ⇒ 无权限检查
+   L16: POST /api/payment-config/bank-accounts/:id/default ⇒ 无权限检查
+
+payment-new.routes.ts  (2 处)
+   L8: POST /api/admin/payments-new/ ⇒ 无权限检查
+   L12: POST /api/admin/payments-new/:paymentNo/void ⇒ 无权限检查
+
+payment.routes.ts  (1 处)
+   L20: POST /api/pay/wx/callback ⇒ 无权限检查
+
+platform-agent.routes.ts  (5 处)
+   L37: POST /api/platform/agents/levels ⇒ 无权限检查
+   L38: PUT /api/platform/agents/levels/:id ⇒ 无权限检查
+   L42: POST /api/platform/agents/ ⇒ 无权限检查
+   L44: PUT /api/platform/agents/:id ⇒ 无权限检查
+   L45: POST /api/platform/agents/:id/status ⇒ 无权限检查
+
+platform-app-version.routes.ts  (7 处)
+   L13: POST /api/padmin/app-versions/draft ⇒ 无权限检查
+   L14: POST /api/padmin/app-versions ⇒ 无权限检查
+   L16: POST /api/padmin/app-versions/:id/pause ⇒ 无权限检查
+   L17: POST /api/padmin/app-versions/:id/resume ⇒ 无权限检查
+   L18: POST /api/padmin/app-versions/:id/archive ⇒ 无权限检查
+   L20: POST /api/padmin/app-versions/:id/rollback ⇒ 无权限检查
+   L21: DELETE /api/padmin/app-versions/:id ⇒ 无权限检查
+
+platform-applications.routes.ts  (2 处)
+   L23: PUT /api/platform/applications/:id/approve ⇒ 无权限检查
+   L26: PUT /api/platform/applications/:id/reject ⇒ 无权限检查
+
+platform-auth.routes.ts  (6 处)
+   L37: POST /api/platform/auth/login ⇒ 无权限检查
+   L46: POST /api/platform/auth/admin/create ⇒ 无权限检查
+   L76: POST /api/platform/auth/mfa/setup ⇒ 无权限检查
+   L77: POST /api/platform/auth/mfa/confirm ⇒ 无权限检查
+   L78: POST /api/platform/auth/mfa/disable ⇒ 无权限检查
+   L80: POST /api/platform/auth/mfa/verify ⇒ 无权限检查
+
+platform-billing-arrears.routes.ts  (1 处)
+   L19: POST /api/platform/billing/arrears/urge ⇒ 无权限检查
+
+platform-billing.routes.ts  (3 处)
+   L30: POST /api/platform/billing/generate ⇒ 无权限检查
+   L31: POST /api/platform/billing/statement/export ⇒ 无权限检查
+   L32: POST /api/platform/billing/invoice ⇒ 无权限检查
+
+platform-config.routes.ts  (5 处)
+   L43: PUT /api/platform/config/ ⇒ 无权限检查
+   L49: PUT /api/platform/config/sys-config ⇒ 无权限检查
+   L53: POST /api/platform/config/logo ⇒ 无权限检查
+   L58: PUT /api/platform/config/feature-switches/:code ⇒ 无权限检查
+   L64: PUT /api/platform/config/data-dict/:dictType ⇒ 无权限检查
+
+platform-error-log.routes.ts  (1 处)
+   L13: POST /api/platform/error-report ⇒ 无权限检查
+
+platform-export-task.routes.ts  (2 处)
+   L28: POST /api/platform/reports/export/ ⇒ 无权限检查
+   L37: POST /api/platform/reports/export/:id/retry ⇒ 无权限检查
+
+platform-library.routes.ts  (15 处)
+   L36: POST /api/platform/library/spus/import ⇒ 无权限检查
+   L42: POST /api/platform/library/spus ⇒ 无权限检查
+   L45: PUT /api/platform/library/spus/:id ⇒ 无权限检查
+   L48: PUT /api/platform/library/spus/:id/status ⇒ 无权限检查
+   L54: DELETE /api/platform/library/spus/:id ⇒ 无权限检查
+   L61: POST /api/platform/library/spus/:spuId/skus ⇒ 无权限检查
+   L64: PUT /api/platform/library/skus/:id ⇒ 无权限检查
+   L67: DELETE /api/platform/library/skus/:id ⇒ 无权限检查
+   L78: POST /api/platform/library/brands ⇒ 无权限检查
+   L81: PUT /api/platform/library/brands/:id ⇒ 无权限检查
+   L84: DELETE /api/platform/library/brands/:id ⇒ 无权限检查
+   L88: POST /api/platform/library/brands/:id/auth-letter ⇒ 无权限检查
+   L99: POST /api/platform/library/api-keys ⇒ 无权限检查
+   L102: PUT /api/platform/library/api-keys/:id ⇒ 无权限检查
+   L105: DELETE /api/platform/library/api-keys/:id ⇒ 无权限检查
+
+platform-miniapp.routes.ts  (1 处)
+   L23: POST /api/platform-miniapp/subscriptions ⇒ 无权限检查
+
+platform-monitor-ops.routes.ts  (1 处)
+   L38: PUT /api/platform/monitor/thresholds ⇒ 无权限检查
+
+platform-monitor.routes.ts  (1 处)
+   L34: POST /api/platform/monitor/notify-expiring ⇒ 无权限检查
+
+platform-notification.routes.ts  (2 处)
+   L25: POST /api/platform/notifications/read-all ⇒ 无权限检查
+   L29: POST /api/platform/notifications/:id/read ⇒ 无权限检查
+
+platform-open.routes.ts  (10 处)
+   L24: POST /api/platform/open/api-keys ⇒ 无权限检查
+   L26: POST /api/platform/open/api-keys/:id/enable ⇒ 无权限检查
+   L28: POST /api/platform/open/api-keys/:id/rotate ⇒ 无权限检查
+   L30: POST /api/platform/open/api-keys/:id/rotate-complete ⇒ 无权限检查
+   L34: PUT /api/platform/open/api-keys/:id ⇒ 无权限检查
+   L36: DELETE /api/platform/open/api-keys/:id ⇒ 无权限检查
+   L46: POST /api/platform/open/webhooks ⇒ 无权限检查
+   L48: POST /api/platform/open/webhooks/:id/test ⇒ 无权限检查
+   L50: POST /api/platform/open/webhooks/:id/redeliver ⇒ 无权限检查
+   L52: POST /api/platform/open/webhooks/:id/resume ⇒ 无权限检查
+
+platform-plans.routes.ts  (6 处)
+   L17: POST /api/platform/plans/ ⇒ 无权限检查
+   L26: PUT /api/platform/plans/:planId ⇒ 无权限检查
+   L29: DELETE /api/platform/plans/:planId ⇒ 无权限检查
+   L32: PUT /api/platform/plans/:planId/features ⇒ 无权限检查
+   L38: PUT /api/platform/plans/:planId/policy ⇒ 无权限检查
+   L41: POST /api/platform/plans/:planId/copy ⇒ 无权限检查
+
+platform-promo-code.routes.ts  (2 处)
+   L29: POST /api/platform/promo-codes/ ⇒ 无权限检查
+   L30: POST /api/platform/promo-codes/:id/disable ⇒ 无权限检查
+
+platform-reconciliation.routes.ts  (3 处)
+   L14: PUT /api/platform/reconciliation/:id/settle ⇒ 无权限检查
+   L17: POST /api/platform/reconciliation/ ⇒ 无权限检查
+   L18: PUT /api/platform/reconciliation/:id ⇒ 无权限检查
+
+platform-review.routes.ts  (3 处)
+   L10: POST /api/platform/reviews/:id/reply ⇒ 无权限检查
+   L11: PUT /api/platform/reviews/:id/approval ⇒ 无权限检查
+   L12: POST /api/platform/reviews/batch-approval ⇒ 无权限检查
+
+platform-role.routes.ts  (4 处)
+   L28: POST /api/platform/roles/ ⇒ 无权限检查
+   L30: PUT /api/platform/roles/:id/permissions ⇒ 无权限检查
+   L31: PUT /api/platform/roles/:id ⇒ 无权限检查
+   L32: DELETE /api/platform/roles/:id ⇒ 无权限检查
+
+platform-subscription-applies.routes.ts  (1 处)
+   L15: PUT /api/platform/subscription-applies/:id/audit ⇒ 无权限检查
+
+platform-templates.routes.ts  (5 处)
+   L21: POST /api/platform/templates/init ⇒ 无权限检查
+   L25: PUT /api/platform/templates/init/:id ⇒ 无权限检查
+   L31: POST /api/platform/templates/print/upload ⇒ 无权限检查
+   L33: POST /api/platform/templates/print/:id/public ⇒ 无权限检查
+   L39: POST /api/platform/templates/import-export ⇒ 无权限检查
+
+platform-tenant.routes.ts  (6 处)
+   L39: POST /api/platform/tenants/ ⇒ 无权限检查
+   L42: PUT /api/platform/tenants/:id ⇒ 无权限检查
+   L45: POST /api/platform/tenants/:id/toggle ⇒ 无权限检查
+   L48: POST /api/platform/tenants/:id/proxy-login ⇒ 无权限检查
+   L49: POST /api/platform/tenants/:id/quota-expand ⇒ 无权限检查
+   L55: POST /api/platform/tenants/:tenantId/users/:userId/reset-password ⇒ 无权限检查
+
+platform-ticket.routes.ts  (5 处)
+   L40: POST /api/platform/support/tickets/:id/reply ⇒ 无权限检查
+   L42: POST /api/platform/support/tickets/:id/note ⇒ 无权限检查
+   L44: POST /api/platform/support/tickets/:id/transfer ⇒ 无权限检查
+   L46: POST /api/platform/support/tickets/:id/resolve ⇒ 无权限检查
+   L48: POST /api/platform/support/tickets/:id/close ⇒ 无权限检查
+
+platform.routes.ts  (4 处)
+   L28: POST /api/platform/admins/invite ⇒ 无权限检查
+   L29: POST /api/platform/admins/:id/reset-password ⇒ 无权限检查
+   L30: PUT /api/platform/admins/:id/status ⇒ 无权限检查
+   L32: POST /api/platform/admins ⇒ 无权限检查
+
+points-mall.routes.ts  (6 处)
+   L11: POST /api/points-mall/items ⇒ 无权限检查
+   L12: PUT /api/points-mall/items/:id ⇒ 无权限检查
+   L13: DELETE /api/points-mall/items/:id ⇒ 无权限检查
+   L14: PUT /api/points-mall/items/:id/status ⇒ 无权限检查
+   L17: PUT /api/points-mall/orders/:id/deliver ⇒ 无权限检查
+   L18: PUT /api/points-mall/orders/:id/cancel ⇒ 无权限检查
+
+points.routes.ts  (7 处)
+   L8: POST /api/admin/members/rules ⇒ 无权限检查
+   L9: PUT /api/admin/members/rules/:id ⇒ 无权限检查
+   L10: POST /api/admin/members/:id/points/adjust ⇒ 无权限检查
+   L13: POST /api/admin/members/levels/config ⇒ 无权限检查
+   L14: PUT /api/admin/members/levels/config/:id ⇒ 无权限检查
+   L15: PUT /api/admin/members/levels/config/:id/status ⇒ 无权限检查
+   L16: DELETE /api/admin/members/levels/config/:id ⇒ 无权限检查
+
+position.routes.ts  (3 处)
+   L10: POST /api/admin/positions/ ⇒ 无权限检查
+   L11: PUT /api/admin/positions/:id ⇒ 无权限检查
+   L12: DELETE /api/admin/positions/:id ⇒ 无权限检查
+
+price.routes.ts  (2 处)
+   L26: POST /api/admin/prices/best-price ⇒ 无权限检查
+   L39: POST /api/admin/prices/batch/preview ⇒ 无权限检查
+
+print.routes.ts  (7 处)
+   L26: POST /api/admin/print/records ⇒ 无权限检查
+   L35: POST /api/admin/print/records/:id/reprint ⇒ 无权限检查
+   L49: POST /api/admin/print/templates ⇒ 无权限检查
+   L52: PUT /api/admin/print/templates/:id ⇒ 无权限检查
+   L55: DELETE /api/admin/print/templates/:id ⇒ 无权限检查
+   L58: POST /api/admin/print/templates/:id/reset ⇒ 无权限检查
+   L61: POST /api/admin/print/templates/:id/set-default ⇒ 无权限检查
+
+product-bundle.routes.ts  (8 处)
+   L13: POST /api/admin/product-bundles ⇒ 无权限检查
+   L14: PUT /api/admin/product-bundles/:id ⇒ 无权限检查
+   L15: DELETE /api/admin/product-bundles/:id ⇒ 无权限检查
+   L16: POST /api/admin/product-bundles/:id/publish ⇒ 无权限检查
+   L17: POST /api/admin/product-bundles/:id/unpublish ⇒ 无权限检查
+   L22: POST /api/admin/combo-products ⇒ 无权限检查
+   L23: PUT /api/admin/combo-products/:id ⇒ 无权限检查
+   L24: DELETE /api/admin/combo-products/:id ⇒ 无权限检查
+
+product-marketing-tag.routes.ts  (3 处)
+   L12: POST /api/admin/product-tags/ ⇒ 无权限检查
+   L15: PUT /api/admin/product-tags/:id ⇒ 无权限检查
+   L18: DELETE /api/admin/product-tags/:id ⇒ 无权限检查
+
+product-review.routes.ts  (5 处)
+   L10: POST /api/admin/product-reviews/ ⇒ 无权限检查
+   L13: POST /api/admin/product-reviews/:id/approve ⇒ 无权限检查
+   L14: POST /api/admin/product-reviews/:id/reject ⇒ 无权限检查
+   L15: POST /api/admin/product-reviews/batch-approve ⇒ 无权限检查
+   L16: POST /api/admin/product-reviews/batch-reject ⇒ 无权限检查
+
+purchase-contract.routes.ts  (4 处)
+   L10: POST /api/admin/purchase-contracts/ ⇒ 无权限检查
+   L11: PUT /api/admin/purchase-contracts/:contractNo ⇒ 无权限检查
+   L12: DELETE /api/admin/purchase-contracts/:contractNo ⇒ 无权限检查
+   L13: POST /api/admin/purchase-contracts/:contractNo/upload ⇒ 无权限检查
+
+purchase-in-stock.routes.ts  (3 处)
+   L9: POST /api/admin/purchase-in-stocks/ ⇒ 无权限检查
+   L10: POST /api/admin/purchase-in-stocks/:stockNo/approve ⇒ 无权限检查
+   L11: POST /api/admin/purchase-in-stocks/:stockNo/void ⇒ 无权限检查
+
+purchase-payment.routes.ts  (3 处)
+   L9: POST /api/admin/purchase-payments/ ⇒ 无权限检查
+   L10: POST /api/admin/purchase-payments/:paymentNo/approve ⇒ 无权限检查
+   L11: POST /api/admin/purchase-payments/:paymentNo/void ⇒ 无权限检查
+
+purchase-plan.routes.ts  (2 处)
+   L9: POST /api/admin/purchase-plans/ ⇒ 无权限检查
+   L11: POST /api/admin/purchase-plans/:planNo/convert ⇒ 无权限检查
+
+purchase-return.routes.ts  (3 处)
+   L9: POST /api/admin/purchase-returns/ ⇒ 无权限检查
+   L10: POST /api/admin/purchase-returns/:returnNo/approve ⇒ 无权限检查
+   L11: POST /api/admin/purchase-returns/:returnNo/void ⇒ 无权限检查
+
+purchase.routes.ts  (5 处)
+   L12: POST /api/admin/purchase-orders/ ⇒ 无权限检查
+   L14: POST /api/admin/purchase-orders/:orderNo/approve ⇒ 无权限检查
+   L15: POST /api/admin/purchase-orders/:orderNo/cancel ⇒ 无权限检查
+   L16: PUT /api/admin/purchase-orders/:orderNo ⇒ 无权限检查
+   L17: DELETE /api/admin/purchase-orders/:orderNo ⇒ 无权限检查
+
+push.routes.ts  (3 处)
+   L26: POST /api/admin/push/register ⇒ 无权限检查
+   L29: POST /api/admin/push/unregister ⇒ 无权限检查
+   L35: POST /api/admin/push/test ⇒ 无权限检查
+
+rbac.routes.ts  (5 处)
+   L10: POST /api/admin/system/roles/ ⇒ 无权限检查
+   L12: PUT /api/admin/system/roles/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/system/roles/:id ⇒ 无权限检查
+   L14: PUT /api/admin/system/roles/:id/data-permissions ⇒ 无权限检查
+   L17: PUT /api/admin/system/roles/users/:userId/roles ⇒ 无权限检查
+
+receipt.routes.ts  (2 处)
+   L8: POST /api/admin/receipts/ ⇒ 无权限检查
+   L12: POST /api/admin/receipts/:receiptNo/void ⇒ 无权限检查
+
+reconciliation.routes.ts  (2 处)
+   L9: POST /api/admin/reconciliation/customer/:customerId/confirm ⇒ 无权限检查
+   L12: POST /api/admin/reconciliation/supplier/:supplierId/confirm ⇒ 无权限检查
+
+report-permissions.routes.ts  (4 处)
+   L9: PUT /api/admin/report-permissions/matrix ⇒ 无权限检查
+   L11: PUT /api/admin/report-permissions/data-scope ⇒ 无权限检查
+   L15: POST /api/admin/report-permissions/batch ⇒ 无权限检查
+   L17: PUT /api/admin/report-permissions/user/:userId ⇒ 无权限检查
+
+report.routes.ts  (1 处)
+   L57: POST /api/admin/reports/export ⇒ 无权限检查
+
+retail-announcement.routes.ts  (3 处)
+   L38: POST /api/retail-announcement/admin/retail-announcements ⇒ 无权限检查
+   L39: PUT /api/retail-announcement/admin/retail-announcements/:id ⇒ 无权限检查
+   L40: DELETE /api/retail-announcement/admin/retail-announcements/:id ⇒ 无权限检查
+
+retail-announcements-admin.routes.ts  (3 处)
+   L9: POST /api/admin/retail-announcements/ ⇒ 无权限检查
+   L10: PUT /api/admin/retail-announcements/:id ⇒ 无权限检查
+   L11: DELETE /api/admin/retail-announcements/:id ⇒ 无权限检查
+
+retail-consumer-address.routes.ts  (4 处)
+   L9: POST /api/retail-consumer-address/miniapp/addresses ⇒ 无权限检查
+   L10: PUT /api/retail-consumer-address/miniapp/addresses/:id ⇒ 无权限检查
+   L11: DELETE /api/retail-consumer-address/miniapp/addresses/:id ⇒ 无权限检查
+   L12: PUT /api/retail-consumer-address/miniapp/addresses/:id/default ⇒ 无权限检查
+
+saas-subscription.routes.ts  (4 处)
+   L14: POST /api/saas/subscriptions/ ⇒ 无权限检查
+   L16: POST /api/saas/subscriptions/:id/renew ⇒ 无权限检查
+   L18: POST /api/saas/subscriptions/:id/upgrade ⇒ 无权限检查
+   L20: POST /api/saas/subscriptions/:id/cancel ⇒ 无权限检查
+
+saas-tenant.routes.ts  (4 处)
+   L14: POST /api/saas/tenants/ ⇒ 无权限检查
+   L16: PUT /api/saas/tenants/:id ⇒ 无权限检查
+   L18: POST /api/saas/tenants/:id/audit ⇒ 无权限检查
+   L20: POST /api/saas/tenants/:id/toggle-status ⇒ 无权限检查
+
+sale-return.routes.ts  (3 处)
+   L12: POST /api/admin/sale-returns/ ⇒ 无权限检查
+   L13: POST /api/admin/sale-returns/:returnNo/approve ⇒ 无权限检查
+   L14: POST /api/admin/sale-returns/:returnNo/reject ⇒ 无权限检查
+
+seckill.routes.ts  (3 处)
+   L10: POST /api/seckill/ ⇒ 无权限检查
+   L11: PUT /api/seckill/:id ⇒ 无权限检查
+   L12: DELETE /api/seckill/:id ⇒ 无权限检查
+
+share.routes.ts  (2 处)
+   L10: POST /api/share/collections/:token/pay ⇒ 无权限检查
+   L11: POST /api/share/collections/:token/wx-notify ⇒ 无权限检查
+
+sms-template.routes.ts  (3 处)
+   L15: POST /api/admin/sms-templates/ ⇒ 无权限检查
+   L16: PUT /api/admin/sms-templates/:id ⇒ 无权限检查
+   L17: DELETE /api/admin/sms-templates/:id ⇒ 无权限检查
+
+stock-check.routes.ts  (9 处)
+   L8: POST /api/admin/stock-checks/ ⇒ 无权限检查
+   L12: PUT /api/admin/stock-checks/:id ⇒ 无权限检查
+   L13: POST /api/admin/stock-checks/:id/start ⇒ 无权限检查
+   L14: POST /api/admin/stock-checks/:id/complete ⇒ 无权限检查
+   L15: POST /api/admin/stock-checks/:id/cancel ⇒ 无权限检查
+   L16: POST /api/admin/stock-checks/:id/handle-diff ⇒ 无权限检查
+   L17: POST /api/admin/stock-checks/:id/items ⇒ 无权限检查
+   L24: PUT /api/store/stock-checks/:id/items/:itemId ⇒ 无权限检查
+   L25: POST /api/store/stock-checks/:id/submit ⇒ 无权限检查
+
+stock-warning.routes.ts  (1 处)
+   L9: POST /api/admin/stock-warnings/config ⇒ 无权限检查
+
+store-control.routes.ts  (5 处)
+   L12: PUT /api/admin/store-control/configs/:storeId ⇒ 无权限检查
+   L13: POST /api/admin/store-control/:storeId/open ⇒ 无权限检查
+   L14: POST /api/admin/store-control/:storeId/close ⇒ 无权限检查
+   L15: POST /api/admin/store-control/:storeId/suspend ⇒ 无权限检查
+   L16: POST /api/admin/store-control/:storeId/resume ⇒ 无权限检查
+
+store-coupon.routes.ts  (2 处)
+   L13: POST /api/store/coupons/verify ⇒ 无权限检查
+   L14: POST /api/store/coupons/manual-verify ⇒ 无权限检查
+
+store-hardware.routes.ts  (7 处)
+   L12: PUT /api/store/hardware/configs/:category ⇒ 无权限检查
+   L13: POST /api/store/hardware/configs/:category/test ⇒ 无权限检查
+   L14: POST /api/store/hardware/cloud-speaker/announce ⇒ 无权限检查
+   L15: POST /api/store/hardware/box/pay ⇒ 无权限检查
+   L17: PUT /api/store/hardware/box-config/ ⇒ 无权限检查
+   L18: POST /api/store/hardware/box-config/test ⇒ 无权限检查
+   L19: POST /api/store/hardware/unionpay/test ⇒ 无权限检查
+
+store-inventory.routes.ts  (1 处)
+   L13: PUT /api/store/inventory/alerts/:skuId/threshold ⇒ 无权限检查
+
+store-order.routes.ts  (8 处)
+   L12: POST /api/store/orders/:orderNo/accept ⇒ 无权限检查
+   L13: POST /api/store/orders/:orderNo/start-delivery ⇒ 无权限检查
+   L14: POST /api/store/orders/:orderNo/complete-delivery ⇒ 无权限检查
+   L15: POST /api/store/orders/:orderNo/reject ⇒ 无权限检查
+   L16: POST /api/store/orders/:orderNo/cancel ⇒ 无权限检查
+   L19: POST /api/store/hold-orders/ ⇒ 无权限检查
+   L21: POST /api/store/hold-orders/:holdNo/restore ⇒ 无权限检查
+   L22: DELETE /api/store/hold-orders/:holdNo ⇒ 无权限检查
+
+store-sale-bill.routes.ts  (4 处)
+   L15: POST /api/store/sale-bills/:billNo/collection-link ⇒ 无权限检查
+   L16: POST /api/store/sale-bills/:billNo/offline-payment ⇒ 无权限检查
+   L17: POST /api/store/sale-bills/:billNo/payment ⇒ 无权限检查
+   L18: POST /api/store/sale-bills/:billNo/pay-by-code ⇒ 无权限检查
+
+store-shift.routes.ts  (4 处)
+   L10: POST /api/store/shift/settle ⇒ 无权限检查
+   L14: POST /api/store/shifts/ ⇒ 无权限检查
+   L20: POST /api/store/shifts/:shiftNo/check ⇒ 无权限检查
+   L22: POST /api/store/shifts/:shiftNo/close ⇒ 无权限检查
+
+store-trace.routes.ts  (1 处)
+   L8: POST /api/store/trace/verify ⇒ 无权限检查
+
+store-value-card.routes.ts  (4 处)
+   L9: POST /api/admin/store-value-cards/ ⇒ 无权限检查
+   L11: POST /api/admin/store-value-cards/:cardNo/recharge ⇒ 无权限检查
+   L14: POST /api/admin/store-value-cards/:cardNo/freeze ⇒ 无权限检查
+   L15: POST /api/admin/store-value-cards/:cardNo/unfreeze ⇒ 无权限检查
+
+store.routes.ts  (2 处)
+   L44: POST /api/store/members/manage ⇒ 无权限检查
+   L45: PUT /api/store/members/:id(\d+) ⇒ 无权限检查
+
+subscription.routes.ts  (8 处)
+   L13: POST /api/platform/subscriptions-management/plans ⇒ 无权限检查
+   L14: PUT /api/platform/subscriptions-management/plans/:planId ⇒ 无权限检查
+   L19: PUT /api/platform/subscriptions-management/plans/:planId/policy ⇒ 无权限检查
+   L24: POST /api/platform/subscriptions-management/ ⇒ 无权限检查
+   L25: POST /api/platform/subscriptions-management/:subscriptionId/change-plan ⇒ 无权限检查
+   L26: POST /api/platform/subscriptions-management/:subscriptionId/cancel ⇒ 无权限检查
+   L27: POST /api/platform/subscriptions-management/:subscriptionId/pay ⇒ 无权限检查
+   L30: POST /api/platform/subscriptions-management/:subscriptionId/renew ⇒ 无权限检查
+
+supplier-contact.routes.ts  (4 处)
+   L14: POST /api/admin/supplier-contacts/supplier/:supplierId ⇒ 无权限检查
+   L16: PUT /api/admin/supplier-contacts/:id ⇒ 无权限检查
+   L18: DELETE /api/admin/supplier-contacts/:id ⇒ 无权限检查
+   L20: POST /api/admin/supplier-contacts/:id/set-primary ⇒ 无权限检查
+
+supplier-statement.routes.ts  (3 处)
+   L8: POST /api/admin/supplier-statements/generate ⇒ 无权限检查
+   L11: POST /api/admin/supplier-statements/:statementNo/confirm ⇒ 无权限检查
+   L12: POST /api/admin/supplier-statements/:statementNo/dispute ⇒ 无权限检查
+
+supplier.routes.ts  (4 处)
+   L11: POST /api/admin/suppliers/ ⇒ 无权限检查
+   L12: PUT /api/admin/suppliers/:id ⇒ 无权限检查
+   L13: POST /api/admin/suppliers/:id/contacts ⇒ 无权限检查
+   L14: DELETE /api/admin/suppliers/:id/contacts/:contactId ⇒ 无权限检查
+
+sync.routes.ts  (3 处)
+   L11: POST /api/sync/price ⇒ 无权限检查
+   L16: POST /api/sync/product ⇒ 无权限检查
+   L28: POST /api/sync/offline-orders ⇒ 无权限检查
+
+sys-config.routes.ts  (6 处)
+   L10: DELETE /api/admin/sys-config/backups/:name ⇒ 无权限检查
+   L12: PUT /api/admin/sys-config/tenant-info ⇒ 无权限检查
+   L15: PUT /api/admin/sys-config/batch ⇒ 无权限检查
+   L16: POST /api/admin/sys-config/ ⇒ 无权限检查
+   L17: POST /api/admin/sys-config/test-mail ⇒ 无权限检查
+   L18: POST /api/admin/sys-config/manual-backup ⇒ 无权限检查
+
+sys-user.routes.ts  (4 处)
+   L10: POST /api/admin/sys-users/ ⇒ 无权限检查
+   L12: PUT /api/admin/sys-users/:id ⇒ 无权限检查
+   L13: POST /api/admin/sys-users/:id/reset-password ⇒ 无权限检查
+   L14: DELETE /api/admin/sys-users/:id ⇒ 无权限检查
+
+system.routes.ts  (1 处)
+   L11: POST /api/system/migrate ⇒ 无权限检查
+
+tag.routes.ts  (7 处)
+   L11: POST /api/admin/tags/groups ⇒ 无权限检查
+   L12: PUT /api/admin/tags/groups/:id ⇒ 无权限检查
+   L13: DELETE /api/admin/tags/groups/:id ⇒ 无权限检查
+   L18: POST /api/admin/tags ⇒ 无权限检查
+   L19: PUT /api/admin/tags/:id ⇒ 无权限检查
+   L20: DELETE /api/admin/tags/:id ⇒ 无权限检查
+   L25: PUT /api/admin/products/:spuId/tags ⇒ 无权限检查
+
+tenant-register.routes.ts  (4 处)
+   L14: POST /api/tenant/register ⇒ 无权限检查
+   L17: POST /api/tenant/register/sms-code ⇒ 无权限检查
+   L34: POST /api/tenant/applications/:id/approve ⇒ 无权限检查
+   L37: POST /api/tenant/applications/:id/reject ⇒ 无权限检查
+
+tenant.routes.ts  (4 处)
+   L9: POST /api/platform/tenants-management/ ⇒ 无权限检查
+   L10: PUT /api/platform/tenants-management/:tenantId ⇒ 无权限检查
+   L11: PUT /api/platform/tenants-management/:tenantId/status ⇒ 无权限检查
+   L13: PUT /api/platform/tenants-management/:tenantId/modules ⇒ 无权限检查
+
+trace.routes.ts  (11 处)
+   L12: POST /api/admin/trace/configs ⇒ 无权限检查
+   L13: PUT /api/admin/trace/configs/:id ⇒ 无权限检查
+   L14: DELETE /api/admin/trace/configs/:id ⇒ 无权限检查
+   L15: POST /api/admin/trace/configs/check ⇒ 无权限检查
+   L18: POST /api/admin/trace/codes/generate ⇒ 无权限检查
+   L21: POST /api/admin/trace/codes/:traceCode/status ⇒ 无权限检查
+   L26: POST /api/admin/trace/verify ⇒ 无权限检查
+   L29: POST /api/admin/trace/recalls ⇒ 无权限检查
+   L32: POST /api/admin/trace/recalls/:recallNo/execute ⇒ 无权限检查
+   L33: PUT /api/admin/trace/recalls/:recallNo/complete ⇒ 无权限检查
+   L39: POST /api/miniapp/trace/c/verify ⇒ 无权限检查
+
+transfer-order.routes.ts  (7 处)
+   L10: PUT /api/admin/transfer-orders/:id ⇒ 无权限检查
+   L11: DELETE /api/admin/transfer-orders/:id ⇒ 无权限检查
+   L12: POST /api/admin/transfer-orders/:id/approve ⇒ 无权限检查
+   L13: POST /api/admin/transfer-orders/:id/reject ⇒ 无权限检查
+   L14: POST /api/admin/transfer-orders/:id/confirm-out ⇒ 无权限检查
+   L15: POST /api/admin/transfer-orders/:id/confirm-in ⇒ 无权限检查
+   L17: POST /api/admin/transfer-orders/ ⇒ 无权限检查
+
+transfer.routes.ts  (8 处)
+   L12: POST /api/admin/transfers/ ⇒ 无权限检查
+   L17: PUT /api/admin/transfers/:id ⇒ 无权限检查
+   L18: POST /api/admin/transfers/:id/submit ⇒ 无权限检查
+   L19: POST /api/admin/transfers/:id/approve ⇒ 无权限检查
+   L20: POST /api/admin/transfers/:id/reject ⇒ 无权限检查
+   L23: POST /api/admin/transfers/:id/cancel ⇒ 无权限检查
+   L24: POST /api/admin/transfers/:id/ship ⇒ 无权限检查
+   L29: POST /api/store/transfers/:id/receive ⇒ 无权限检查
+
+unit-group.routes.ts  (3 处)
+   L10: POST /api/admin/unit-groups/ ⇒ 无权限检查
+   L11: PUT /api/admin/unit-groups/:id ⇒ 无权限检查
+   L12: DELETE /api/admin/unit-groups/:id ⇒ 无权限检查
+
+unit.routes.ts  (3 处)
+   L10: POST /api/admin/units/ ⇒ 无权限检查
+   L11: PUT /api/admin/units/:id ⇒ 无权限检查
+   L12: DELETE /api/admin/units/:id ⇒ 无权限检查
+
+user-session.routes.ts  (2 处)
+   L10: DELETE /api/user-session/:id ⇒ 无权限检查
+   L11: DELETE /api/user-session/user/:userId ⇒ 无权限检查
+
+warehouse.routes.ts  (3 处)
+   L15: POST /api/admin/warehouses/ ⇒ 无权限检查
+   L16: PUT /api/admin/warehouses/:id ⇒ 无权限检查
+   L17: DELETE /api/admin/warehouses/:id ⇒ 无权限检查
+
+wechat.routes.ts  (5 处)
+   L22: POST /api/miniapp/wechat/auth/login ⇒ 无权限检查
+   L26: POST /api/miniapp/wechat/auth/decrypt-phone ⇒ 无权限检查
+   L27: PUT /api/miniapp/wechat/auth/profile ⇒ 无权限检查
+   L29: POST /api/miniapp/wechat/auth/bind ⇒ 无权限检查
+   L30: POST /api/miniapp/wechat/auth/unbind ⇒ 无权限检查
+
+workbench.routes.ts  (11 处)
+   L13: POST /api/admin/todos ⇒ 无权限检查
+   L14: PUT /api/admin/todos/:id/complete ⇒ 无权限检查
+   L15: PUT /api/admin/todos/:id/dismiss ⇒ 无权限检查
+   L16: DELETE /api/admin/todos/:id ⇒ 无权限检查
+   L20: POST /api/admin/quick-entries ⇒ 无权限检查
+   L21: PUT /api/admin/quick-entries/sort ⇒ 无权限检查
+   L22: PUT /api/admin/quick-entries/:id ⇒ 无权限检查
+   L23: DELETE /api/admin/quick-entries/:id ⇒ 无权限检查
+   L29: PUT /api/admin/wb-notifications/:id/read ⇒ 无权限检查
+   L30: POST /api/admin/wb-notifications/read-all ⇒ 无权限检查
+   L31: DELETE /api/admin/wb-notifications/:id ⇒ 无权限检查
+
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+已登记缺口 705 条 ／ 未登记缺口 3 条 ／ 已登记但当前无缺口 3 条（仅提示，不判红）
+   ❌ 未登记：marketing-miniapp.routes.ts:55 POST /api/miniapp/marketing/coupons/:templateId/claim
+   ❌ 未登记：marketing-miniapp.routes.ts:72 POST /api/miniapp/marketing/flash-sale/:id/buy
+   ❌ 未登记：marketing-miniapp.routes.ts:80 POST /api/miniapp/marketing/group-buy/:teamId/join
+
+❌ [--strict] 存在 3 处**未登记**的无权限写端点 ⇒ exit 1（若确为既有欠账，请在 REGISTERED_GAPS 逐条登记并在缺口清单文档写明判定）

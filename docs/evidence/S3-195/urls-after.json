@@ -1,0 +1,295 @@
+[
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/products",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/products",
+   "GET /api/store/products/:spuId/tags",
+   "GET /api/store/products/:spuId/batches",
+   "GET /api/store/products/:spuId"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/product-categories",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/product-categories"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/members",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/members",
+   "GET /api/store/members/manage",
+   "POST /api/store/members/manage",
+   "PUT /api/store/members/:id(\\d+)",
+   "GET /api/store/members/:id(\\d+)",
+   "GET /api/store/members/:id(\\d+)/points",
+   "GET /api/store/members/:id(\\d+)/points/logs",
+   "GET /api/store/members/:id(\\d+)/orders"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/tags",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/tags"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/tag-groups",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/tag-groups"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/batches",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/batches/:id",
+   "GET /api/store/batches/:id/trace"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/banners",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/banners"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/categories",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/categories"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/activities",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/activities"
+  ]
+ },
+ {
+  "file": "store.routes.ts",
+  "prefix": "/api/store/search",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/search/hot"
+  ]
+ },
+ {
+  "file": "store-dashboard.routes.ts",
+  "prefix": "/api/store/me",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/me"
+  ]
+ },
+ {
+  "file": "store-dashboard.routes.ts",
+  "prefix": "/api/store/info",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/info"
+  ]
+ },
+ {
+  "file": "store-dashboard.routes.ts",
+  "prefix": "/api/store/dashboard",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/dashboard"
+  ]
+ },
+ {
+  "file": "store-dashboard.routes.ts",
+  "prefix": "/api/store/daily-sales",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/daily-sales"
+  ]
+ },
+ {
+  "file": "store-hardware.routes.ts",
+  "prefix": "/api/store/hardware/configs",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/hardware/configs",
+   "PUT /api/store/hardware/configs/:category",
+   "POST /api/store/hardware/configs/:category/test"
+  ]
+ },
+ {
+  "file": "store-hardware.routes.ts",
+  "prefix": "/api/store/hardware/cloud-speaker",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "POST /api/store/hardware/cloud-speaker/announce"
+  ]
+ },
+ {
+  "file": "store-hardware.routes.ts",
+  "prefix": "/api/store/hardware/box",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "POST /api/store/hardware/box/pay"
+  ]
+ },
+ {
+  "file": "store-hardware.routes.ts",
+  "prefix": "/api/store/hardware/box-config",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/hardware/box-config",
+   "PUT /api/store/hardware/box-config",
+   "POST /api/store/hardware/box-config/test"
+  ]
+ },
+ {
+  "file": "store-hardware.routes.ts",
+  "prefix": "/api/store/hardware/unionpay",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "POST /api/store/hardware/unionpay/test"
+  ]
+ },
+ {
+  "file": "store-inventory.routes.ts",
+  "prefix": "/api/store/inventory",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/inventory",
+   "POST /api/store/inventory/adjust",
+   "GET /api/store/inventory/logs",
+   "GET /api/store/inventory/alerts",
+   "PUT /api/store/inventory/alerts/:skuId/threshold"
+  ]
+ },
+ {
+  "file": "store-order.routes.ts",
+  "prefix": "/api/store/orders",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/orders",
+   "GET /api/store/orders/:orderNo",
+   "POST /api/store/orders/:orderNo/accept",
+   "POST /api/store/orders/:orderNo/start-delivery",
+   "POST /api/store/orders/:orderNo/complete-delivery",
+   "POST /api/store/orders/:orderNo/reject",
+   "POST /api/store/orders/:orderNo/cancel"
+  ]
+ },
+ {
+  "file": "store-order.routes.ts",
+  "prefix": "/api/store/hold-orders",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "POST /api/store/hold-orders",
+   "GET /api/store/hold-orders",
+   "POST /api/store/hold-orders/:holdNo/restore",
+   "DELETE /api/store/hold-orders/:holdNo"
+  ]
+ },
+ {
+  "file": "store-receivable.routes.ts",
+  "prefix": "/api/store/collection-links",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/collection-links"
+  ]
+ },
+ {
+  "file": "store-receivable.routes.ts",
+  "prefix": "/api/store/payment-orders",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/payment-orders"
+  ]
+ },
+ {
+  "file": "store-receivable.routes.ts",
+  "prefix": "/api/store/refund-orders",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/refund-orders"
+  ]
+ },
+ {
+  "file": "store-receivable.routes.ts",
+  "prefix": "/api/store/receivables",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/receivables",
+   "POST /api/store/receivables/:receivableNo/payment"
+  ]
+ },
+ {
+  "file": "store-sale-bill.routes.ts",
+  "prefix": "/api/store/sale-bills",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/sale-bills",
+   "POST /api/store/sale-bills",
+   "GET /api/store/sale-bills/overdue",
+   "GET /api/store/sale-bills/overdue/check",
+   "GET /api/store/sale-bills/:billNo",
+   "POST /api/store/sale-bills/:billNo/collection-link",
+   "POST /api/store/sale-bills/:billNo/offline-payment",
+   "POST /api/store/sale-bills/:billNo/payment",
+   "POST /api/store/sale-bills/:billNo/pay-by-code"
+  ]
+ },
+ {
+  "file": "store-sale-bill.routes.ts",
+  "prefix": "/api/store/payment",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/payment/channels"
+  ]
+ },
+ {
+  "file": "store-shift.routes.ts",
+  "prefix": "/api/store/shift",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "GET /api/store/shift/current",
+   "POST /api/store/shift/settle",
+   "GET /api/store/shift/history"
+  ]
+ },
+ {
+  "file": "store-shift.routes.ts",
+  "prefix": "/api/store/shifts",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "POST /api/store/shifts",
+   "GET /api/store/shifts",
+   "GET /api/store/shifts/:shiftNo",
+   "GET /api/store/shifts/:shiftNo/sales",
+   "GET /api/store/shifts/:shiftNo/check",
+   "POST /api/store/shifts/:shiftNo/check",
+   "POST /api/store/shifts/:shiftNo/close"
+  ]
+ },
+ {
+  "file": "store-trace.routes.ts",
+  "prefix": "/api/store/trace",
+  "auth": "requireAuthWithTenant",
+  "endpoints": [
+   "POST /api/store/trace/verify"
+  ]
+ }
+]
