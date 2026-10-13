@@ -1,0 +1,59 @@
+### CMD: rg -n --glob 'platform*.routes.ts' 'requirePermission' backend/src/routes
+
+EXIT=1
+
+### CMD: rg -n 'can_page_btn|platform-role.service' backend/src --glob '*.ts'
+backend/src\__tests__\shared\migration-179-ddonly.test.ts:13: * 后端代码常量 PERMISSION_CATALOG（见 platform-role.service.ts），故迁移必须零写语句。
+backend/src\controllers\platform\platform-role.controller.ts:3:import * as service from "../../services/platform/platform-role.service";
+backend/src\__tests__\services\platform\platform-ticket.service.test.ts:47:import { PERMISSION_CATALOG } from "../../../services/platform/platform-role.service";
+backend/src\__tests__\services\platform\platform-role.service.test.ts:45:} from "../../../services/platform/platform-role.service";
+backend/src\__tests__\services\platform\platform-notification.service.test.ts:40:import { PERMISSION_CATALOG } from "../../../services/platform/platform-role.service";
+backend/src\__tests__\services\platform\platform-export-task.service.test.ts:59:import { PERMISSION_CATALOG } from "../../../services/platform/platform-role.service";
+backend/src\__tests__\routes\platform-role.test.ts:27:vi.mock("../../services/platform/platform-role.service", () => ({
+backend/src\shared\app-mobile-menu-catalog.ts:9: *  - 项目既有口径：**目录走代码常量、迁移只做 DDL**（先例：`platform-role.service.ts` 的 PERMISSION_CATALOG）。
+backend/src\services\platform\platform-export-task.service.ts:31: * （backend/src/services/platform/platform-role.service.ts）当前只有 7 个功能域（tenant/billing/sysconfig/
+backend/src\services\platform\platform-notification.service.ts:26: * marketing/ai/common，共 18 条，见 backend/src/services/platform/platform-role.service.ts）
+backend/src\services\platform\platform-role.service.ts:357:      `SELECT module_code AS moduleCode, can_menu AS canMenu, can_page_btn AS canPageBtn,
+backend/src\services\platform\platform-role.service.ts:443:           (role_id, module_code, can_menu, can_page_btn, data_scope)
+backend/src\services\platform\platform-ticket.service.ts:30: * **逐字一致**（backend/src/services/platform/platform-role.service.ts）；本文件只在端点处用注释声明对应权限点，
+
+EXIT=0
+
+### CMD: rg -n 'requirePermission' backend/src/routes -l
+backend/src/routes\admin-finance.routes.ts
+backend/src/routes\admin-library.routes.ts
+backend/src/routes\admin-marketing-flash-sale.routes.ts
+backend/src/routes\admin-product.routes.ts
+backend/src/routes\admin-report.routes.ts
+backend/src/routes\bank-account.routes.ts
+backend/src/routes\credit.routes.ts
+backend/src/routes\commission.routes.ts
+backend/src/routes\expense.routes.ts
+backend/src/routes\commerce-fix.routes.ts
+backend/src/routes\inventory-profit-loss.routes.ts
+backend/src/routes\rbac.routes.ts
+backend/src/routes\purchase.routes.ts
+backend/src/routes\price.routes.ts
+backend/src/routes\sale-return.routes.ts
+backend/src/routes\payment.routes.ts
+backend/src/routes\receipt.routes.ts
+backend/src/routes\store-value-card.routes.ts
+backend/src/routes\store-sale-bill.routes.ts
+backend/src/routes\store-receivable.routes.ts
+backend/src/routes\store-inventory.routes.ts
+backend/src/routes\payment-new.routes.ts
+
+
+### CMD: rg -n 'PLATFORM_ADMIN' docs/migrations/080_平台管理员.sql docs/migrations/081_platform_admin_seed_and_fix.sql
+docs/migrations/081_platform_admin_seed_and_fix.sql:20:  role VARCHAR(32) NOT NULL DEFAULT 'PLATFORM_ADMIN' COMMENT '角色: PLATFORM_ADMIN / PLATFORM_SUPER_ADMIN',
+docs/migrations/080_平台管理员.sql:17:  role VARCHAR(32) NOT NULL DEFAULT 'PLATFORM_ADMIN' COMMENT '角色: PLATFORM_ADMIN / PLATFORM_SUPER_ADMIN',
+
+
+### CMD: rg -n 'role|permissions' backend/src/middleware/auth.ts
+11:  roles: string[];
+27:  const hasAdminRole = user.roles.some(r => ADMIN_ROLES.includes(r));
+28:  const hasCashierRole = user.roles.some(r => CASHIER_ROLES.includes(r));
+45:  if (user.roles.includes("SUPER_ADMIN")) return true;
+46:  return allowedRoles.some((role) => user.roles.includes(role));
+51:  if (user.roles.includes("SUPER_ADMIN") || user.roles.includes("OPERATION_ADMIN")) return true;
+

@@ -1,0 +1,40 @@
+### CMD: Invoke-WebRequest https://admin.onepan.cn/register
+HTTP STATUS=200  LEN=697
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="智享全链管理系统 — 工作台，覆盖进销存、即时零售、财务往来、数据报表全流程" />
+    <title>智享全链管理系统 - 工作台</title>
+    <script type="module" crossorigin src="/assets/index-UWGJzoON.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vue-vendor-B4Gs5s1G.js">
+    <link rel="modulepreload" crossorigin href="/assets/axios-DhXgJQ-f.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-B8j0V0ch.css">
+
+
+### CMD: 拉取部署态 index 包并校验注册页 chunk 是否含注册表单标志串
+index bundle = index-UWGJzoON.js
+RegisterView chunk = RegisterView-CsuUquu0.js
+  RegisterView-CsuUquu0.js : 含'注册商户账号' = True ; 含'注册申请已提交' = True
+
+### CMD: rg -n 'createWebHashHistory|createWebHistory|electronAPI' admin-web/src/router/index.ts
+1:import { createRouter, createWebHistory } from "vue-router";
+3:import { createWebHashHistory } from "vue-router";
+281:    typeof window !== "undefined" && (window as any).electronAPI
+282:      ? createWebHashHistory()
+283:      : createWebHistory(),
+
+### CMD: rg -n 'register' admin-web/src/views/LoginView.vue
+126:        <div class="register-hint">
+127:          还没账号？<span class="register-link" @click="router.push('/register')">立即注册</span>
+627:.register-hint {
+635:.register-link {
+
+### CMD: rg -n 'admin\.onepan\.cn' website/src  (改后)
+website/src\views\HomeView.vue:18:          <a href="https://admin.onepan.cn/register" target="_blank" class="btn btn-primary" style="padding:10px 20px;font-size:.9rem;">免费试用</a>
+website/src\views\HomeView.vue:31:            <a href="https://admin.onepan.cn/register" target="_blank" class="btn btn-primary">免费试用</a>
+website/src\views\HomeView.vue:107:        <a href="https://admin.onepan.cn/register" target="_blank" class="btn btn-white" style="font-size:1.1rem;padding:16px 40px;">免费注册试用 →</a>
+website/src\views\HomeView.vue:127:            <a href="https://admin.onepan.cn" target="_blank">工作台</a>
+
