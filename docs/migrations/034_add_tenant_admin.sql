@@ -1,7 +1,7 @@
 -- 编号: 034, 描述: 添加租户管理员表, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS t_tenant_admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  tenant_id INT NOT NULL COMMENT '租户ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   user_id INT NOT NULL COMMENT '用户ID（关联sys_user）',
   role VARCHAR(32) NOT NULL DEFAULT 'ADMIN' COMMENT '角色（ADMIN/SUPER_ADMIN）',
   is_primary TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否主管理员',

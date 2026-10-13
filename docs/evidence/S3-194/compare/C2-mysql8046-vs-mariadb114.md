@@ -1,0 +1,2792 @@
+# 结构快照对比：C2 修复后 MySQL 8.0.46 vs 修复后 MariaDB 11.4.5（隔离"引擎"效应）
+
+- 左（A）：D:\Users\ZXQL\wt-agents\_s3194-evidence\07-fixed-final-mysql8046\structure
+- 右（B）：D:\Users\ZXQL\wt-agents\_s3194-evidence\08-fixed-final-mariadb\structure
+
+| 类别 | 条数 | 含义 |
+|---|---|---|
+| A | 1206 | 仅整数显示宽度不同（MySQL 8.0.19+ 移除显示宽度 / MariaDB 保留）→ 引擎天然差异 |
+| B | 1613 | 仅排序规则 0900_ai_ci ↔ general_ci → 引擎天然差异 |
+| C | 0 | 表/列/索引/外键存在性差异 → 真实结构差异 |
+| D | 2738 | 其余字段差异 → 需人工核对 |
+
+## C 类（真实差异，全量）
+
+（无）
+
+## D 类（需人工核对，全量）
+
+- 列 t_aftersale.aftersale_type 默认值：REFUND vs 'REFUND'
+- 列 t_aftersale.order_id 默认值：<NULL> vs NULL
+- 列 t_aftersale.order_no 默认值：<NULL> vs NULL
+- 列 t_aftersale.customer_id 默认值：<NULL> vs NULL
+- 列 t_aftersale.store_id 默认值：<NULL> vs NULL
+- 列 t_aftersale.reason 默认值：<NULL> vs NULL
+- 列 t_aftersale.reason_detail 默认值：<NULL> vs NULL
+- 列 t_aftersale.exchange_sku_id 默认值：<NULL> vs NULL
+- 列 t_aftersale.status 默认值：PENDING vs 'PENDING'
+- 列 t_aftersale.process_remark 默认值：<NULL> vs NULL
+- 列 t_aftersale.processed_by 默认值：<NULL> vs NULL
+- 列 t_aftersale.inspected_by 默认值：<NULL> vs NULL
+- 列 t_aftersale.inspect_result 默认值：<NULL> vs NULL
+- 列 t_aftersale.inspect_images 默认值：<NULL> vs NULL
+- 列 t_aftersale.images 默认值：<NULL> vs NULL
+- 列 t_aftersale.items 类型：json vs longtext
+- 列 t_aftersale.items 默认值：<NULL> vs NULL
+- 列 t_aftersale.items 字符集： vs utf8mb4
+- 列 t_aftersale.receiver_name 默认值：<NULL> vs NULL
+- 列 t_aftersale.receiver_mobile 默认值：<NULL> vs NULL
+- 列 t_aftersale.receiver_address 默认值：<NULL> vs NULL
+- 列 t_aftersale.return_logistics_company 默认值：<NULL> vs NULL
+- 列 t_aftersale.return_logistics_no 默认值：<NULL> vs NULL
+- 列 t_aftersale.customer_comment 默认值：<NULL> vs NULL
+- 列 t_aftersale.satisfaction 默认值：<NULL> vs NULL
+- 列 t_aftersale.deadline 默认值：<NULL> vs NULL
+- 列 t_aftersale.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_aftersale.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_aftersale.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_aftersale.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_agent.region 默认值：<NULL> vs NULL
+- 列 t_agent.contact_name 默认值：<NULL> vs NULL
+- 列 t_agent.contact_phone 默认值：<NULL> vs NULL
+- 列 t_agent.status 默认值：PENDING vs 'PENDING'
+- 列 t_agent.remark 默认值：<NULL> vs NULL
+- 列 t_agent.updated_by 默认值：<NULL> vs NULL
+- 列 t_agent.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_agent.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_agent.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_agent.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_agent_level.plan_scope 类型：json vs longtext
+- 列 t_agent_level.plan_scope 默认值：<NULL> vs NULL
+- 列 t_agent_level.plan_scope 字符集： vs utf8mb4
+- 列 t_agent_level.discount_low 默认值：<NULL> vs NULL
+- 列 t_agent_level.discount_high 默认值：<NULL> vs NULL
+- 列 t_agent_level.profit_rate_signup 默认值：<NULL> vs NULL
+- 列 t_agent_level.profit_rate_renew 默认值：<NULL> vs NULL
+- 列 t_agent_level.profit_rate_upsell 默认值：<NULL> vs NULL
+- 列 t_agent_level.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_agent_level.updated_by 默认值：<NULL> vs NULL
+- 列 t_agent_level.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_agent_level.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_agent_level.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_agent_level.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_ai_audit_log.user_id 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.session_id 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.provider 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.model 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.intent 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.user_message 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.tool_calls 类型：json vs longtext
+- 列 t_ai_audit_log.tool_calls 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.tool_calls 字符集： vs utf8mb4
+- 列 t_ai_audit_log.latency_ms 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.error_message 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_audit_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_audit_log.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_audit_log.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_ai_audit_log.cost 默认值：<NULL> vs NULL
+- 列 t_ai_audit_log.deduct_source 默认值：<NULL> vs NULL
+- 列 t_ai_evolution.status 默认值：proposed vs 'proposed'
+- 列 t_ai_evolution.current_snapshot 默认值：<NULL> vs NULL
+- 列 t_ai_evolution.proposed_diff 默认值：<NULL> vs NULL
+- 列 t_ai_evolution.rationale 默认值：<NULL> vs NULL
+- 列 t_ai_evolution.review_id 默认值：<NULL> vs NULL
+- 列 t_ai_evolution.proposed_by 默认值：<NULL> vs NULL
+- 列 t_ai_evolution.reviewed_by 默认值：<NULL> vs NULL
+- 列 t_ai_evolution.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_evolution.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_evolution.rolled_out_at 默认值：<NULL> vs NULL
+- 列 t_ai_external_model.api_key 默认值：<NULL> vs NULL
+- 列 t_ai_external_model.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_external_model.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_external_model.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_external_model.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_ai_knowledge_chunks.embedding 类型：json vs longtext
+- 列 t_ai_knowledge_chunks.embedding 字符集： vs utf8mb4
+- 列 t_ai_knowledge_chunks.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_knowledge_chunks.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_knowledge_chunks.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_knowledge_chunks.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_ai_learning_log.exp_id 默认值：<NULL> vs NULL
+- 列 t_ai_learning_log.hint_key 默认值：<NULL> vs NULL
+- 列 t_ai_learning_log.applied_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_learning_log.applied_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_learning_log.effect 默认值：<NULL> vs NULL
+- 列 t_ai_learning_log.note 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_archival.body 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_archival.source 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_archival.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_ltm_archival.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_ltm_episodic.summary 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_episodic.what 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_episodic.why 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_episodic.outcome 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_episodic.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_ltm_episodic.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_ltm_profile.entity_type 默认值：tenant vs 'tenant'
+- 列 t_ai_ltm_profile.entity_id 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_profile.v_json 类型：json vs longtext
+- 列 t_ai_ltm_profile.v_json 默认值：<NULL> vs NULL
+- 列 t_ai_ltm_profile.v_json 字符集： vs utf8mb4
+- 列 t_ai_ltm_profile.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_ltm_profile.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_ai_ltm_profile.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_ltm_profile.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_review_task.session_id 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.graph_id 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.node_id 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.tool_name 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.payload 类型：json vs longtext
+- 列 t_ai_review_task.payload 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.payload 字符集： vs utf8mb4
+- 列 t_ai_review_task.status 默认值：pending vs 'pending'
+- 列 t_ai_review_task.reject_reason 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.created_by 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.reviewed_by 默认值：<NULL> vs NULL
+- 列 t_ai_review_task.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_review_task.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_review_task.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_review_task.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_ai_review_task.reviewed_at 默认值：<NULL> vs NULL
+- 列 t_ai_usage_daily.provider 默认值：<NULL> vs NULL
+- 列 t_ai_usage_daily.model 默认值：<NULL> vs NULL
+- 列 t_ai_usage_daily.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_usage_daily.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_ai_usage_daily.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_ai_usage_daily.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_alert_record.alert_level 默认值：WARNING vs 'WARNING'
+- 列 t_alert_record.description 默认值：<NULL> vs NULL
+- 列 t_alert_record.biz_type 默认值：<NULL> vs NULL
+- 列 t_alert_record.biz_id 默认值：<NULL> vs NULL
+- 列 t_alert_record.biz_no 默认值：<NULL> vs NULL
+- 列 t_alert_record.current_value 默认值：<NULL> vs NULL
+- 列 t_alert_record.threshold_value 默认值：<NULL> vs NULL
+- 列 t_alert_record.status 默认值：PENDING vs 'PENDING'
+- 列 t_alert_record.handler_id 默认值：<NULL> vs NULL
+- 列 t_alert_record.handler_name 默认值：<NULL> vs NULL
+- 列 t_alert_record.handle_time 默认值：<NULL> vs NULL
+- 列 t_alert_record.handle_remark 默认值：<NULL> vs NULL
+- 列 t_alert_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_alert_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_alert_record.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_alert_record.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_alert_rule.threshold_unit 默认值：DAYS vs 'DAYS'
+- 列 t_alert_rule.extra_config 类型：json vs longtext
+- 列 t_alert_rule.extra_config 默认值：<NULL> vs NULL
+- 列 t_alert_rule.extra_config 字符集： vs utf8mb4
+- 列 t_alert_rule.description 默认值：<NULL> vs NULL
+- 列 t_alert_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_alert_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_alert_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_alert_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_app_version.update_url 默认值： vs ''
+- 列 t_app_version.package_url 默认值： vs ''
+- 列 t_app_version.update_note 默认值：<NULL> vs NULL
+- 列 t_app_version.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_app_version.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_app_version.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_app_version.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_app_version.update_url_x64 默认值： vs ''
+- 列 t_app_version.update_url_ia32 默认值： vs ''
+- 列 t_app_version.update_url_arm64 默认值： vs ''
+- 列 t_app_version.status 默认值：PUBLISHED vs 'PUBLISHED'
+- 列 t_app_version.archived_at 默认值：<NULL> vs NULL
+- 列 t_approval_approver.tenant_id 默认值：default vs 'default'
+- 列 t_approval_approver.backup_approver_id 默认值：<NULL> vs NULL
+- 列 t_approval_approver.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_approver.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_approver.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_approver.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_approval_instance.tenant_id 默认值：default vs 'default'
+- 列 t_approval_instance.status 默认值：PENDING vs 'PENDING'
+- 列 t_approval_instance.submitted_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_instance.submitted_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_instance.completed_at 默认值：<NULL> vs NULL
+- 列 t_approval_instance.remark 默认值：<NULL> vs NULL
+- 列 t_approval_instance.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_instance.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_instance.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_instance.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_approval_log.tenant_id 默认值：default vs 'default'
+- 列 t_approval_log.task_id 默认值：<NULL> vs NULL
+- 列 t_approval_log.from_status 默认值：<NULL> vs NULL
+- 列 t_approval_log.to_status 默认值：<NULL> vs NULL
+- 列 t_approval_log.comment 默认值：<NULL> vs NULL
+- 列 t_approval_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_notification.tenant_id 默认值：default vs 'default'
+- 列 t_approval_notification.task_id 默认值：<NULL> vs NULL
+- 列 t_approval_notification.channel 默认值：SYSTEM vs 'SYSTEM'
+- 列 t_approval_notification.sent_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_notification.sent_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_notification.read_at 默认值：<NULL> vs NULL
+- 列 t_approval_notification.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_notification.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_rule.tenant_id 默认值：default vs 'default'
+- 列 t_approval_rule.trigger_condition 类型：json vs longtext
+- 列 t_approval_rule.trigger_condition 字符集： vs utf8mb4
+- 列 t_approval_rule.approval_chain 类型：json vs longtext
+- 列 t_approval_rule.approval_chain 字符集： vs utf8mb4
+- 列 t_approval_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_approval_task.tenant_id 默认值：default vs 'default'
+- 列 t_approval_task.task_status 默认值：PENDING vs 'PENDING'
+- 列 t_approval_task.received_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_task.received_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_task.processed_at 默认值：<NULL> vs NULL
+- 列 t_approval_task.approval_comment 默认值：<NULL> vs NULL
+- 列 t_approval_task.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_task.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_approval_task.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_approval_task.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_audit_log.user_id 默认值：<NULL> vs NULL
+- 列 t_audit_log.user_name 默认值：<NULL> vs NULL
+- 列 t_audit_log.role 默认值：<NULL> vs NULL
+- 列 t_audit_log.resource_type 默认值：<NULL> vs NULL
+- 列 t_audit_log.resource_id 默认值：<NULL> vs NULL
+- 列 t_audit_log.detail 默认值：<NULL> vs NULL
+- 列 t_audit_log.ip 默认值：<NULL> vs NULL
+- 列 t_audit_log.user_agent 默认值：<NULL> vs NULL
+- 列 t_audit_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_audit_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_bank_account.branch_name 默认值： vs ''
+- 列 t_bank_account.bank_code 默认值： vs ''
+- 列 t_bank_account.qr_code_url 默认值： vs ''
+- 列 t_bank_account.status 默认值：active vs 'active'
+- 列 t_bank_account.remark 默认值： vs ''
+- 列 t_bank_account.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bank_account.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_bank_account.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bank_account.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_bank_account.bank_branch 默认值：<NULL> vs NULL
+- 列 t_bargain_activity.activity_desc 默认值：<NULL> vs NULL
+- 列 t_bargain_activity.sku_id 默认值：<NULL> vs NULL
+- 列 t_bargain_activity.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_bargain_activity.created_by 默认值：<NULL> vs NULL
+- 列 t_bargain_activity.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bargain_activity.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_bargain_activity.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bargain_activity.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_bargain_help.helper_name 默认值：<NULL> vs NULL
+- 列 t_bargain_help.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bargain_help.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_bargain_record.status 默认值：ONGOING vs 'ONGOING'
+- 列 t_bargain_record.order_id 默认值：<NULL> vs NULL
+- 列 t_bargain_record.success_at 默认值：<NULL> vs NULL
+- 列 t_bargain_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bargain_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_bargain_record.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bargain_record.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_bill.bill_type 默认值：INVOICE vs 'INVOICE'
+- 列 t_bill.issue_date 默认值：<NULL> vs NULL
+- 列 t_bill.due_date 默认值：<NULL> vs NULL
+- 列 t_bill.status 默认值：PENDING vs 'PENDING'
+- 列 t_bill.verified_at 默认值：<NULL> vs NULL
+- 列 t_bill.remark 默认值：<NULL> vs NULL
+- 列 t_bill.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bill.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_bill.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_bill.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_brand.logo 默认值：<NULL> vs NULL
+- 列 t_brand.description 默认值：<NULL> vs NULL
+- 列 t_brand.tenant_id 默认值：default vs 'default'
+- 列 t_brand.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_brand.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_brand.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_brand.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_cart_item.sku_name 默认值：<NULL> vs NULL
+- 列 t_cart_item.name 默认值：<NULL> vs NULL
+- 列 t_cart_item.main_image 默认值：<NULL> vs NULL
+- 列 t_cart_item.retail_price 默认值：<NULL> vs NULL
+- 列 t_cart_item.miniapp_price 默认值：<NULL> vs NULL
+- 列 t_cart_item.wholesale_price 默认值：<NULL> vs NULL
+- 列 t_cart_item.available_qty 默认值：<NULL> vs NULL
+- 列 t_cart_item.added_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_cart_item.added_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_cart_item.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_cart_item.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_cash_flow.related_type 默认值：<NULL> vs NULL
+- 列 t_cash_flow.related_no 默认值：<NULL> vs NULL
+- 列 t_cash_flow.remark 默认值：<NULL> vs NULL
+- 列 t_cash_flow.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_cash_flow.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_collection_link.customer_id 默认值：<NULL> vs NULL
+- 列 t_collection_link.status 默认值：PENDING vs 'PENDING'
+- 列 t_collection_link.share_time 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_collection_link.share_time EXTRA：DEFAULT_GENERATED vs 
+- 列 t_collection_link.last_view_time 默认值：<NULL> vs NULL
+- 列 t_collection_link.pay_no 默认值：<NULL> vs NULL
+- 列 t_collection_link.closed_reason 默认值：<NULL> vs NULL
+- 列 t_collection_link.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_collection_link.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_collection_link.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_collection_link.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_collection_link.display_config 类型：json vs longtext
+- 列 t_collection_link.display_config 默认值：<NULL> vs NULL
+- 列 t_collection_link.display_config 字符集： vs utf8mb4
+- 列 t_collection_link.document_title 默认值：销售单 vs '销售单'
+- 列 t_collection_link.last_pay_time 默认值：<NULL> vs NULL
+- 列 t_collection_link.store_id 默认值：<NULL> vs NULL
+- 列 t_collection_record.receivable_no 默认值：<NULL> vs NULL
+- 列 t_collection_record.collection_content 默认值：<NULL> vs NULL
+- 列 t_collection_record.contact_person 默认值： vs ''
+- 列 t_collection_record.contact_result 默认值：<NULL> vs NULL
+- 列 t_collection_record.promised_amount 默认值：<NULL> vs NULL
+- 列 t_collection_record.promised_date 默认值：<NULL> vs NULL
+- 列 t_collection_record.next_follow_up_date 默认值：<NULL> vs NULL
+- 列 t_collection_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_collection_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_collection_view_log.ip 默认值：<NULL> vs NULL
+- 列 t_collection_view_log.user_agent 默认值：<NULL> vs NULL
+- 列 t_collection_view_log.viewed_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_collection_view_log.viewed_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_combo_product.combo_type 默认值：FIXED vs 'FIXED'
+- 列 t_combo_product.category_id 默认值：<NULL> vs NULL
+- 列 t_combo_product.cover_image 默认值：<NULL> vs NULL
+- 列 t_combo_product.description 默认值：<NULL> vs NULL
+- 列 t_combo_product.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_combo_product.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_combo_product.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_combo_product.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_combo_product_option.barcode 默认值：<NULL> vs NULL
+- 列 t_combo_product_option.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_combo_product_option.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_combo_product_option.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_combo_product_option.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_coupon_template.max_discount 默认值：<NULL> vs NULL
+- 列 t_coupon_template.applicable_scope 默认值：ALL vs 'ALL'
+- 列 t_coupon_template.applicable_ids 类型：json vs longtext
+- 列 t_coupon_template.applicable_ids 默认值：<NULL> vs NULL
+- 列 t_coupon_template.applicable_ids 字符集： vs utf8mb4
+- 列 t_coupon_template.valid_start 默认值：<NULL> vs NULL
+- 列 t_coupon_template.valid_end 默认值：<NULL> vs NULL
+- 列 t_coupon_template.valid_days 默认值：<NULL> vs NULL
+- 列 t_coupon_template.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_coupon_template.description 默认值：<NULL> vs NULL
+- 列 t_coupon_template.created_by 默认值：<NULL> vs NULL
+- 列 t_coupon_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_coupon_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_coupon_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_coupon_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_coupon_template.name 默认值：<NULL> vs NULL
+- 列 t_coupon_template.type 默认值：<NULL> vs NULL
+- 列 t_credit_operation_log.related_order_no 默认值：<NULL> vs NULL
+- 列 t_credit_operation_log.remark 默认值： vs ''
+- 列 t_credit_operation_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_credit_operation_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_custom_report.config 类型：json vs longtext
+- 列 t_custom_report.config 字符集： vs utf8mb4
+- 列 t_custom_report.chart_type 默认值：TABLE vs 'TABLE'
+- 列 t_custom_report.description 默认值：<NULL> vs NULL
+- 列 t_custom_report.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_custom_report.created_by 默认值：<NULL> vs NULL
+- 列 t_custom_report.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_custom_report.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_custom_report.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_custom_report.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_custom_report_log.generated_by 默认值：<NULL> vs NULL
+- 列 t_custom_report_log.params 类型：json vs longtext
+- 列 t_custom_report_log.params 默认值：<NULL> vs NULL
+- 列 t_custom_report_log.params 字符集： vs utf8mb4
+- 列 t_custom_report_log.file_url 默认值：<NULL> vs NULL
+- 列 t_custom_report_log.export_format 默认值：<NULL> vs NULL
+- 列 t_custom_report_log.status 默认值：SUCCESS vs 'SUCCESS'
+- 列 t_custom_report_log.error_msg 默认值：<NULL> vs NULL
+- 列 t_custom_report_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_custom_report_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_custom_report_schedule.export_format 默认值：EXCEL vs 'EXCEL'
+- 列 t_custom_report_schedule.recipients 类型：json vs longtext
+- 列 t_custom_report_schedule.recipients 默认值：<NULL> vs NULL
+- 列 t_custom_report_schedule.recipients 字符集： vs utf8mb4
+- 列 t_custom_report_schedule.last_run_at 默认值：<NULL> vs NULL
+- 列 t_custom_report_schedule.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_custom_report_schedule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_custom_report_schedule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_custom_report_schedule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_custom_report_schedule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_custom_report_template.config 类型：json vs longtext
+- 列 t_custom_report_template.config 字符集： vs utf8mb4
+- 列 t_custom_report_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_custom_report_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_custom_report_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_custom_report_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_care_log.sent_content 默认值：<NULL> vs NULL
+- 列 t_customer_care_log.sent_at 默认值：<NULL> vs NULL
+- 列 t_customer_care_log.status 默认值：PENDING vs 'PENDING'
+- 列 t_customer_care_log.tenant_id 默认值： vs ''
+- 列 t_customer_care_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_care_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_care_rule.template_content 默认值：<NULL> vs NULL
+- 列 t_customer_care_rule.reward_coupon_id 默认值：<NULL> vs NULL
+- 列 t_customer_care_rule.tenant_id 默认值： vs ''
+- 列 t_customer_care_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_care_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_care_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_care_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_credit.credit_available 默认值：<NULL> vs NULL
+- 列 t_customer_credit.payment_term 默认值：COD vs 'COD'
+- 列 t_customer_credit.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_customer_credit.freeze_reason 默认值：<NULL> vs NULL
+- 列 t_customer_credit.frozen_at 默认值：<NULL> vs NULL
+- 列 t_customer_credit.unfrozen_at 默认值：<NULL> vs NULL
+- 列 t_customer_credit.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_credit.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_credit.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_credit.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_level.level_name 默认值：VIP1 vs 'VIP1'
+- 列 t_customer_level.upgraded_at 默认值：<NULL> vs NULL
+- 列 t_customer_level.tenant_id 默认值： vs ''
+- 列 t_customer_level.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_level.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_level.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_level.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_payment.payment_method 默认值：CASH vs 'CASH'
+- 列 t_customer_payment.source_type 默认值：<NULL> vs NULL
+- 列 t_customer_payment.source_no 默认值：<NULL> vs NULL
+- 列 t_customer_payment.voucher_no 默认值：<NULL> vs NULL
+- 列 t_customer_payment.status 默认值：COMPLETED vs 'COMPLETED'
+- 列 t_customer_payment.remark 默认值：<NULL> vs NULL
+- 列 t_customer_payment.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_payment.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_payment.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_payment.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_points.tenant_id 默认值： vs ''
+- 列 t_customer_points.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_points.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_points.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_points.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_price.effective_start 默认值：<NULL> vs NULL
+- 列 t_customer_price.effective_end 默认值：<NULL> vs NULL
+- 列 t_customer_price.tenant_id 默认值： vs ''
+- 列 t_customer_price.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_price.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_price.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_price.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_price_binding.apply_reason 默认值： vs ''
+- 列 t_customer_price_binding.status 默认值：PENDING vs 'PENDING'
+- 列 t_customer_price_binding.approved_by 默认值：<NULL> vs NULL
+- 列 t_customer_price_binding.approved_at 默认值：<NULL> vs NULL
+- 列 t_customer_price_binding.expire_at 默认值：<NULL> vs NULL
+- 列 t_customer_price_binding.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_price_binding.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_price_binding.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_price_binding.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_price_binding.price 默认值：<NULL> vs NULL
+- 列 t_customer_price_binding.sku_id 默认值：<NULL> vs NULL
+- 列 t_customer_profile.age_group 默认值：<NULL> vs NULL
+- 列 t_customer_profile.gender 默认值：<NULL> vs NULL
+- 列 t_customer_profile.prefer_category 默认值：<NULL> vs NULL
+- 列 t_customer_profile.prefer_brand 默认值：<NULL> vs NULL
+- 列 t_customer_profile.last_order_at 默认值：<NULL> vs NULL
+- 列 t_customer_profile.member_level 默认值：<NULL> vs NULL
+- 列 t_customer_profile.lifecycle_stage 默认值：PROSPECT vs 'PROSPECT'
+- 列 t_customer_profile.tenant_id 默认值： vs ''
+- 列 t_customer_profile.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_profile.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_quote.customer_phone 默认值：<NULL> vs NULL
+- 列 t_customer_quote.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_customer_quote.remark 默认值：<NULL> vs NULL
+- 列 t_customer_quote.share_token 默认值：<NULL> vs NULL
+- 列 t_customer_quote.tenant_id 默认值：default vs 'default'
+- 列 t_customer_quote.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_quote.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_quote.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_quote.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_quote_item.tenant_id 默认值：default vs 'default'
+- 列 t_customer_quote_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_quote_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_quote_item.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_quote_item.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_quote_push_log.content 默认值：<NULL> vs NULL
+- 列 t_customer_quote_push_log.target 默认值：<NULL> vs NULL
+- 列 t_customer_quote_push_log.status 默认值：SUCCESS vs 'SUCCESS'
+- 列 t_customer_quote_push_log.error_msg 默认值：<NULL> vs NULL
+- 列 t_customer_quote_push_log.tenant_id 默认值：default vs 'default'
+- 列 t_customer_quote_push_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_quote_push_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_segment.conditions 类型：json vs longtext
+- 列 t_customer_segment.conditions 字符集： vs utf8mb4
+- 列 t_customer_segment.tenant_id 默认值： vs ''
+- 列 t_customer_segment.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_segment.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_segment.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_segment.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_segment_member.tenant_id 默认值： vs ''
+- 列 t_customer_segment_member.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_segment_member.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_statement.customer_mobile 默认值：<NULL> vs NULL
+- 列 t_customer_statement.statement_type 默认值：MONTHLY vs 'MONTHLY'
+- 列 t_customer_statement.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_customer_statement.confirmed_at 默认值：<NULL> vs NULL
+- 列 t_customer_statement.remark 默认值：<NULL> vs NULL
+- 列 t_customer_statement.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_statement.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_statement.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_statement.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_tag.tag_type 默认值：MANUAL vs 'MANUAL'
+- 列 t_customer_tag.tag_group 默认值：<NULL> vs NULL
+- 列 t_customer_tag.tenant_id 默认值： vs ''
+- 列 t_customer_tag.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_tag.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_tag_relation.tenant_id 默认值： vs ''
+- 列 t_customer_tag_relation.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_tag_relation.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_type.tenant_id 默认值：default vs 'default'
+- 列 t_customer_type.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_type.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_type.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_type.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_customer_visit.customer_mobile 默认值：<NULL> vs NULL
+- 列 t_customer_visit.visit_type 默认值：ONSITE vs 'ONSITE'
+- 列 t_customer_visit.visit_purpose 默认值：ROUTINE vs 'ROUTINE'
+- 列 t_customer_visit.start_time 默认值：<NULL> vs NULL
+- 列 t_customer_visit.end_time 默认值：<NULL> vs NULL
+- 列 t_customer_visit.duration_minutes 默认值：<NULL> vs NULL
+- 列 t_customer_visit.address 默认值：<NULL> vs NULL
+- 列 t_customer_visit.latitude 默认值：<NULL> vs NULL
+- 列 t_customer_visit.longitude 默认值：<NULL> vs NULL
+- 列 t_customer_visit.contact_person 默认值：<NULL> vs NULL
+- 列 t_customer_visit.contact_position 默认值：<NULL> vs NULL
+- 列 t_customer_visit.contact_mobile 默认值：<NULL> vs NULL
+- 列 t_customer_visit.visit_summary 默认值：<NULL> vs NULL
+- 列 t_customer_visit.follow_up_date 默认值：<NULL> vs NULL
+- 列 t_customer_visit.follow_up_content 默认值：<NULL> vs NULL
+- 列 t_customer_visit.next_action 默认值：<NULL> vs NULL
+- 列 t_customer_visit.status 默认值：PLANNED vs 'PLANNED'
+- 列 t_customer_visit.related_order_no 默认值：<NULL> vs NULL
+- 列 t_customer_visit.images 类型：json vs longtext
+- 列 t_customer_visit.images 默认值：<NULL> vs NULL
+- 列 t_customer_visit.images 字符集： vs utf8mb4
+- 列 t_customer_visit.remark 默认值：<NULL> vs NULL
+- 列 t_customer_visit.tenant_id 默认值：default vs 'default'
+- 列 t_customer_visit.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_visit.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_customer_visit.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_customer_visit.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_daily_settlement.shift_no 默认值：<NULL> vs NULL
+- 列 t_daily_settlement.operator_id 默认值：<NULL> vs NULL
+- 列 t_daily_settlement.status 默认值：COMPLETED vs 'COMPLETED'
+- 列 t_daily_settlement.remark 默认值：<NULL> vs NULL
+- 列 t_daily_settlement.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_daily_settlement.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_data_permission.description 默认值：<NULL> vs NULL
+- 列 t_data_permission.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_data_permission.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_data_permission.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_data_permission.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_delivery_config.free_delivery_amount 默认值：<NULL> vs NULL
+- 列 t_delivery_config.delivery_radius 默认值：<NULL> vs NULL
+- 列 t_delivery_config.estimated_time 默认值：<NULL> vs NULL
+- 列 t_delivery_config.contact_phone 默认值：<NULL> vs NULL
+- 列 t_delivery_config.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_delivery_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_delivery_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_delivery_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_delivery_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_delivery_record.delivery_no 默认值：<NULL> vs NULL
+- 列 t_delivery_record.rider_name 默认值：<NULL> vs NULL
+- 列 t_delivery_record.rider_phone 默认值：<NULL> vs NULL
+- 列 t_delivery_record.rider_id 默认值：<NULL> vs NULL
+- 列 t_delivery_record.status 默认值：PENDING vs 'PENDING'
+- 列 t_delivery_record.picked_up_at 默认值：<NULL> vs NULL
+- 列 t_delivery_record.delivered_at 默认值：<NULL> vs NULL
+- 列 t_delivery_record.delivery_latitude 默认值：<NULL> vs NULL
+- 列 t_delivery_record.delivery_longitude 默认值：<NULL> vs NULL
+- 列 t_delivery_record.remark 默认值：<NULL> vs NULL
+- 列 t_delivery_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_delivery_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_delivery_record.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_delivery_record.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_error_logs.severity 默认值：ERROR vs 'ERROR'
+- 列 t_error_logs.stack 默认值：<NULL> vs NULL
+- 列 t_error_logs.request_url 默认值：<NULL> vs NULL
+- 列 t_error_logs.request_method 默认值：<NULL> vs NULL
+- 列 t_error_logs.status_code 默认值：<NULL> vs NULL
+- 列 t_error_logs.user_id 默认值：<NULL> vs NULL
+- 列 t_error_logs.tenant_id 默认值：default vs 'default'
+- 列 t_error_logs.source 默认值：backend vs 'backend'
+- 列 t_error_logs.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_error_logs.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_expense.expense_type 默认值：DAILY vs 'DAILY'
+- 列 t_expense.category 默认值：<NULL> vs NULL
+- 列 t_expense.payee 默认值：<NULL> vs NULL
+- 列 t_expense.payment_method 默认值：<NULL> vs NULL
+- 列 t_expense.bank_account_id 默认值：<NULL> vs NULL
+- 列 t_expense.invoice_no 默认值：<NULL> vs NULL
+- 列 t_expense.expense_date 默认值：<NULL> vs NULL
+- 列 t_expense.status 默认值：PENDING vs 'PENDING'
+- 列 t_expense.remark 默认值：<NULL> vs NULL
+- 列 t_expense.operator_id 默认值：<NULL> vs NULL
+- 列 t_expense.tenant_id 默认值： vs ''
+- 列 t_expense.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_expense.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_expense.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_expense.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_expiry_alert_config.description 默认值： vs ''
+- 列 t_expiry_alert_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_expiry_alert_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_expiry_alert_record.sku_name 默认值： vs ''
+- 列 t_expiry_alert_record.batch_no 默认值： vs ''
+- 列 t_expiry_alert_record.production_date 默认值：<NULL> vs NULL
+- 列 t_expiry_alert_record.expiry_date 默认值：<NULL> vs NULL
+- 列 t_expiry_alert_record.status 默认值：PENDING vs 'PENDING'
+- 列 t_expiry_alert_record.handled_by 默认值：<NULL> vs NULL
+- 列 t_expiry_alert_record.handled_at 默认值：<NULL> vs NULL
+- 列 t_expiry_alert_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_expiry_alert_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_flash_sale.price 默认值：<NULL> vs NULL
+- 列 t_flash_sale.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_flash_sale.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_flash_sale.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_flash_sale.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_flash_sale.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_flash_sale_record.name 默认值：<NULL> vs NULL
+- 列 t_flash_sale_record.total_stock 默认值：<NULL> vs NULL
+- 列 t_flash_sale_record.sold_count 默认值：<NULL> vs NULL
+- 列 t_flash_sale_record.status 默认值：SUCCESS vs 'SUCCESS'
+- 列 t_flash_sale_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_flash_sale_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_full_reduction.rules 类型：json vs longtext
+- 列 t_full_reduction.rules 默认值：<NULL> vs NULL
+- 列 t_full_reduction.rules 字符集： vs utf8mb4
+- 列 t_full_reduction.applicable_scope 默认值：ALL vs 'ALL'
+- 列 t_full_reduction.applicable_ids 默认值：<NULL> vs NULL
+- 列 t_full_reduction.description 默认值：<NULL> vs NULL
+- 列 t_full_reduction.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_full_reduction.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_full_reduction.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_full_reduction.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_full_reduction.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_full_reduction_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_full_reduction_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_gift_rule.rule_desc 默认值：<NULL> vs NULL
+- 列 t_gift_rule.threshold_type 默认值：AMOUNT vs 'AMOUNT'
+- 列 t_gift_rule.threshold_amount 默认值：<NULL> vs NULL
+- 列 t_gift_rule.threshold_quantity 默认值：<NULL> vs NULL
+- 列 t_gift_rule.applicable_scope 默认值：ALL vs 'ALL'
+- 列 t_gift_rule.applicable_ids 类型：json vs longtext
+- 列 t_gift_rule.applicable_ids 默认值：<NULL> vs NULL
+- 列 t_gift_rule.applicable_ids 字符集： vs utf8mb4
+- 列 t_gift_rule.gift_stock_limit 默认值：<NULL> vs NULL
+- 列 t_gift_rule.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_gift_rule.created_by 默认值：<NULL> vs NULL
+- 列 t_gift_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_gift_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_gift_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_gift_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_gift_rule_level.threshold_amount 默认值：<NULL> vs NULL
+- 列 t_gift_rule_level.gift_sku_id 默认值：<NULL> vs NULL
+- 列 t_gift_rule_level.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_gift_rule_level.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_group_buy.activity_id 默认值：<NULL> vs NULL
+- 列 t_group_buy.leader_id 默认值：<NULL> vs NULL
+- 列 t_group_buy.leader_order_id 默认值：<NULL> vs NULL
+- 列 t_group_buy.expires_at 默认值：<NULL> vs NULL
+- 列 t_group_buy.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_group_buy.completed_at 默认值：<NULL> vs NULL
+- 列 t_group_buy.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_group_buy.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_group_buy_activity.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy_activity.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_group_buy_member.order_id 默认值：<NULL> vs NULL
+- 列 t_group_buy_member.joined_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy_member.joined_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_group_buy_participant.order_no 默认值：<NULL> vs NULL
+- 列 t_group_buy_participant.joined_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy_participant.joined_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_group_buy_record.status 默认值：FORMING vs 'FORMING'
+- 列 t_group_buy_record.success_at 默认值：<NULL> vs NULL
+- 列 t_group_buy_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_group_buy_record.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy_record.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_group_buy_team.name 默认值：<NULL> vs NULL
+- 列 t_group_buy_team.leader_id 默认值：<NULL> vs NULL
+- 列 t_group_buy_team.leader_order_id 默认值：<NULL> vs NULL
+- 列 t_group_buy_team.sku_id 默认值：<NULL> vs NULL
+- 列 t_group_buy_team.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_group_buy_team.expires_at 默认值：<NULL> vs NULL
+- 列 t_group_buy_team.completed_at 默认值：<NULL> vs NULL
+- 列 t_group_buy_team.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_group_buy_team.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_growth_record.source_id 默认值：<NULL> vs NULL
+- 列 t_growth_record.remark 默认值：<NULL> vs NULL
+- 列 t_growth_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_growth_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_hardware_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_hardware_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_hold_order.customer_name 默认值：<NULL> vs NULL
+- 列 t_hold_order.customer_mobile 默认值：<NULL> vs NULL
+- 列 t_hold_order.payload 类型：json vs longtext
+- 列 t_hold_order.payload 字符集： vs utf8mb4
+- 列 t_hold_order.remark 默认值：<NULL> vs NULL
+- 列 t_hold_order.status 默认值：HELD vs 'HELD'
+- 列 t_hold_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_hold_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_hold_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_hold_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_hot_search.tenant_id 默认值：default vs 'default'
+- 列 t_hot_search.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_hot_search.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_hot_search.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_hot_search.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_inventory_balance.stock_type 默认值：OFFLINE vs 'OFFLINE'
+- 列 t_inventory_balance.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_balance.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_inventory_balance.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_balance.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_balance.sku_name 默认值：<NULL> vs NULL
+- 列 t_inventory_batch.production_date 默认值：<NULL> vs NULL
+- 列 t_inventory_batch.expiry_date 默认值：<NULL> vs NULL
+- 列 t_inventory_batch.cost_price 默认值：<NULL> vs NULL
+- 列 t_inventory_batch.supplier_id 默认值：<NULL> vs NULL
+- 列 t_inventory_batch.inbound_order_id 默认值：<NULL> vs NULL
+- 列 t_inventory_batch.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_batch.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_batch.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_batch.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_inventory_ledger.operator_id 默认值：<NULL> vs NULL
+- 列 t_inventory_ledger.remark 默认值：<NULL> vs NULL
+- 列 t_inventory_ledger.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_ledger.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_loss_gain.reason 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_gain.operator_id 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_gain.status 默认值：PENDING vs 'PENDING'
+- 列 t_inventory_loss_gain.tenant_id 默认值： vs ''
+- 列 t_inventory_loss_gain.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_loss_gain.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_loss_gain.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_loss_gain.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_inventory_loss_order.store_name 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.loss_type 默认值：NORMAL vs 'NORMAL'
+- 列 t_inventory_loss_order.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_inventory_loss_order.reason 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.reject_reason 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.operator_id 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.operator_name 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.auditor_id 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.auditor_name 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.audited_at 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.remark 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_loss_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_loss_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_loss_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_inventory_loss_order_item.barcode 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order_item.specification 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order_item.unit_name 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order_item.loss_reason 默认值：<NULL> vs NULL
+- 列 t_inventory_loss_order_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_loss_order_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_profit_order.store_name 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.profit_type 默认值：NORMAL vs 'NORMAL'
+- 列 t_inventory_profit_order.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_inventory_profit_order.reason 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.reject_reason 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.operator_id 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.operator_name 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.auditor_id 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.auditor_name 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.audited_at 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.remark 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_profit_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_profit_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_profit_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_inventory_profit_order_item.barcode 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order_item.specification 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order_item.unit_name 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order_item.profit_reason 默认值：<NULL> vs NULL
+- 列 t_inventory_profit_order_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_profit_order_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_share_product.sku_id 默认值：<NULL> vs NULL
+- 列 t_inventory_share_product.sku_name 默认值：<NULL> vs NULL
+- 列 t_inventory_share_product.barcode 默认值：<NULL> vs NULL
+- 列 t_inventory_share_product.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_share_product.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_share_product.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_share_product.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_inventory_share_setting.share_scope 默认值：ALL vs 'ALL'
+- 列 t_inventory_share_setting.specified_store_ids 默认值：<NULL> vs NULL
+- 列 t_inventory_share_setting.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_share_setting.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_inventory_share_setting.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_inventory_share_setting.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_invoice.related_type 默认值：<NULL> vs NULL
+- 列 t_invoice.related_no 默认值：<NULL> vs NULL
+- 列 t_invoice.issue_date 默认值：<NULL> vs NULL
+- 列 t_invoice.issuer 默认值：<NULL> vs NULL
+- 列 t_invoice.status 默认值：PENDING vs 'PENDING'
+- 列 t_invoice.tenant_id 默认值： vs ''
+- 列 t_invoice.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_invoice.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_level_config.status 默认值：active vs 'active'
+- 列 t_level_config.benefits 类型：json vs longtext
+- 列 t_level_config.benefits 默认值：<NULL> vs NULL
+- 列 t_level_config.benefits 字符集： vs utf8mb4
+- 列 t_level_config.tenant_id 默认值： vs ''
+- 列 t_level_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_level_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_level_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_level_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_library_api_key.tenant_id 默认值：default vs 'default'
+- 列 t_library_api_key.api_secret 默认值：<NULL> vs NULL
+- 列 t_library_api_key.allowed_ips 类型：json vs longtext
+- 列 t_library_api_key.allowed_ips 默认值：<NULL> vs NULL
+- 列 t_library_api_key.allowed_ips 字符集： vs utf8mb4
+- 列 t_library_api_key.scopes 类型：json vs longtext
+- 列 t_library_api_key.scopes 默认值：<NULL> vs NULL
+- 列 t_library_api_key.scopes 字符集： vs utf8mb4
+- 列 t_library_api_key.last_called_at 默认值：<NULL> vs NULL
+- 列 t_library_api_key.remark 默认值：<NULL> vs NULL
+- 列 t_library_api_key.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_api_key.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_library_api_key.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_api_key.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_library_api_key.prev_api_key 默认值：<NULL> vs NULL
+- 列 t_library_api_key.prev_api_secret 默认值：<NULL> vs NULL
+- 列 t_library_api_key.rotate_expire_at 默认值：<NULL> vs NULL
+- 列 t_library_brand.logo 默认值：<NULL> vs NULL
+- 列 t_library_brand.description 默认值：<NULL> vs NULL
+- 列 t_library_brand.origin_country 默认值：<NULL> vs NULL
+- 列 t_library_brand.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_brand.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_library_brand.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_brand.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_library_brand.auth_letter_url 默认值：<NULL> vs NULL
+- 列 t_library_brand.auth_expired_at 默认值：<NULL> vs NULL
+- 列 t_library_brand.auth_status 默认值：<NULL> vs NULL
+- 列 t_library_call_log.call_type 默认值：COPY vs 'COPY'
+- 列 t_library_call_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_library_call_log.operator_name 默认值：<NULL> vs NULL
+- 列 t_library_call_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_call_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_library_sku.volume 默认值：<NULL> vs NULL
+- 列 t_library_sku.packaging 默认值：<NULL> vs NULL
+- 列 t_library_sku.base_unit 默认值：<NULL> vs NULL
+- 列 t_library_sku.box_unit 默认值：<NULL> vs NULL
+- 列 t_library_sku.box_ratio 默认值：<NULL> vs NULL
+- 列 t_library_sku.sku_image 默认值：<NULL> vs NULL
+- 列 t_library_sku.status 默认值：PENDING vs 'PENDING'
+- 列 t_library_sku.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_sku.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_library_sku.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_sku.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_library_spu.unit 默认值：<NULL> vs NULL
+- 列 t_library_spu.main_image 默认值：<NULL> vs NULL
+- 列 t_library_spu.image_urls 类型：json vs longtext
+- 列 t_library_spu.image_urls 默认值：<NULL> vs NULL
+- 列 t_library_spu.image_urls 字符集： vs utf8mb4
+- 列 t_library_spu.properties 类型：json vs longtext
+- 列 t_library_spu.properties 默认值：<NULL> vs NULL
+- 列 t_library_spu.properties 字符集： vs utf8mb4
+- 列 t_library_spu.description 默认值：<NULL> vs NULL
+- 列 t_library_spu.detail 默认值：<NULL> vs NULL
+- 列 t_library_spu.suggested_retail_price 默认值：<NULL> vs NULL
+- 列 t_library_spu.status 默认值：PENDING vs 'PENDING'
+- 列 t_library_spu.source 默认值：OFFICIAL vs 'OFFICIAL'
+- 列 t_library_spu.reviewed_by 默认值：<NULL> vs NULL
+- 列 t_library_spu.reviewed_at 默认值：<NULL> vs NULL
+- 列 t_library_spu.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_spu.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_library_spu.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_spu.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_library_spu_review_log.from_status 默认值：<NULL> vs NULL
+- 列 t_library_spu_review_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_library_spu_review_log.operator_name 默认值：<NULL> vs NULL
+- 列 t_library_spu_review_log.reason 默认值：<NULL> vs NULL
+- 列 t_library_spu_review_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_library_spu_review_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_limited_discount.activity_desc 默认值：<NULL> vs NULL
+- 列 t_limited_discount.discount_type 默认值：PERCENT vs 'PERCENT'
+- 列 t_limited_discount.applicable_scope 默认值：ALL vs 'ALL'
+- 列 t_limited_discount.applicable_ids 类型：json vs longtext
+- 列 t_limited_discount.applicable_ids 默认值：<NULL> vs NULL
+- 列 t_limited_discount.applicable_ids 字符集： vs utf8mb4
+- 列 t_limited_discount.limit_per_user 默认值：<NULL> vs NULL
+- 列 t_limited_discount.per_order_limit 默认值：<NULL> vs NULL
+- 列 t_limited_discount.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_limited_discount.created_by 默认值：<NULL> vs NULL
+- 列 t_limited_discount.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_limited_discount.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_limited_discount.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_limited_discount.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_limited_discount_product.sku_id 默认值：<NULL> vs NULL
+- 列 t_limited_discount_product.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_limited_discount_product.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_marketing_asset.url 默认值：<NULL> vs NULL
+- 列 t_marketing_asset.thumbnail_url 默认值：<NULL> vs NULL
+- 列 t_marketing_asset.content 默认值：<NULL> vs NULL
+- 列 t_marketing_asset.category 默认值：<NULL> vs NULL
+- 列 t_marketing_asset.tags 类型：json vs longtext
+- 列 t_marketing_asset.tags 默认值：<NULL> vs NULL
+- 列 t_marketing_asset.tags 字符集： vs utf8mb4
+- 列 t_marketing_asset.file_size 默认值：<NULL> vs NULL
+- 列 t_marketing_asset.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_marketing_asset.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_marketing_asset.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_marketing_asset.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_marketing_asset.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_marketing_material.material_desc 默认值：<NULL> vs NULL
+- 列 t_marketing_material.file_size 默认值：<NULL> vs NULL
+- 列 t_marketing_material.file_format 默认值：<NULL> vs NULL
+- 列 t_marketing_material.image_width 默认值：<NULL> vs NULL
+- 列 t_marketing_material.image_height 默认值：<NULL> vs NULL
+- 列 t_marketing_material.category_id 默认值：<NULL> vs NULL
+- 列 t_marketing_material.tags 类型：json vs longtext
+- 列 t_marketing_material.tags 默认值：<NULL> vs NULL
+- 列 t_marketing_material.tags 字符集： vs utf8mb4
+- 列 t_marketing_material.usage_scene 默认值：<NULL> vs NULL
+- 列 t_marketing_material.related_activity_id 默认值：<NULL> vs NULL
+- 列 t_marketing_material.related_activity_type 默认值：<NULL> vs NULL
+- 列 t_marketing_material.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_marketing_material.created_by 默认值：<NULL> vs NULL
+- 列 t_marketing_material.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_marketing_material.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_marketing_material.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_marketing_material.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_marketing_operation_log.user_id 默认值：<NULL> vs NULL
+- 列 t_marketing_operation_log.user_name 默认值：<NULL> vs NULL
+- 列 t_marketing_operation_log.detail 默认值：<NULL> vs NULL
+- 列 t_marketing_operation_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_marketing_operation_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_material_category.parent_id 默认值：<NULL> vs NULL
+- 列 t_material_category.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_material_category.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_member.openid 默认值：<NULL> vs NULL
+- 列 t_member.unionid 默认值：<NULL> vs NULL
+- 列 t_member.address 默认值：<NULL> vs NULL
+- 列 t_member.remark 默认值：<NULL> vs NULL
+- 列 t_member.name 默认值：<NULL> vs NULL
+- 列 t_member.contact 默认值：<NULL> vs NULL
+- 列 t_member.avatar 默认值：<NULL> vs NULL
+- 列 t_member.nickname 默认值：<NULL> vs NULL
+- 列 t_member.birthday 默认值：<NULL> vs NULL
+- 列 t_member.customer_type 默认值：RETAIL vs 'RETAIL'
+- 列 t_member.settlement_type 默认值：CASH vs 'CASH'
+- 列 t_member.staff_id 默认值：<NULL> vs NULL
+- 列 t_member.level_code 默认值：<NULL> vs NULL
+- 列 t_member.last_order_at 默认值：<NULL> vs NULL
+- 列 t_member.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_member.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_member.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_member.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_member.password_hash 默认值：<NULL> vs NULL
+- 列 t_member.register_source 默认值：ADMIN vs 'ADMIN'
+- 列 t_member.card_no 默认值：<NULL> vs NULL
+- 列 t_member.province 默认值：<NULL> vs NULL
+- 列 t_member.city 默认值：<NULL> vs NULL
+- 列 t_member.district 默认值：<NULL> vs NULL
+- 列 t_member.tags 默认值：<NULL> vs NULL
+- 列 t_member_level.level_icon 默认值：<NULL> vs NULL
+- 列 t_member_level.description 默认值：<NULL> vs NULL
+- 列 t_member_level.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_member_level.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_member_level.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_member_level.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_member_sms_code.purpose 默认值：REGISTER vs 'REGISTER'
+- 列 t_member_sms_code.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_member_sms_code.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_miniapp_config.app_id 默认值： vs ''
+- 列 t_miniapp_config.app_secret 默认值： vs ''
+- 列 t_miniapp_config.app_name 默认值： vs ''
+- 列 t_miniapp_config.app_description 默认值： vs ''
+- 列 t_miniapp_config.app_icon 默认值： vs ''
+- 列 t_miniapp_config.app_version 默认值： vs ''
+- 列 t_miniapp_config.template_id 默认值：<NULL> vs NULL
+- 列 t_miniapp_config.status 默认值：draft vs 'draft'
+- 列 t_miniapp_config.audit_status 默认值：pending vs 'pending'
+- 列 t_miniapp_config.audit_reason 默认值： vs ''
+- 列 t_miniapp_config.publish_version 默认值： vs ''
+- 列 t_miniapp_config.published_at 默认值：<NULL> vs NULL
+- 列 t_miniapp_config.contact_name 默认值： vs ''
+- 列 t_miniapp_config.contact_email 默认值： vs ''
+- 列 t_miniapp_config.contact_phone 默认值： vs ''
+- 列 t_miniapp_config.domain_whitelist 类型：json vs longtext
+- 列 t_miniapp_config.domain_whitelist 默认值：<NULL> vs NULL
+- 列 t_miniapp_config.domain_whitelist 字符集： vs utf8mb4
+- 列 t_miniapp_config.business_domain 类型：json vs longtext
+- 列 t_miniapp_config.business_domain 默认值：<NULL> vs NULL
+- 列 t_miniapp_config.business_domain 字符集： vs utf8mb4
+- 列 t_miniapp_config.webview_domain 类型：json vs longtext
+- 列 t_miniapp_config.webview_domain 默认值：<NULL> vs NULL
+- 列 t_miniapp_config.webview_domain 字符集： vs utf8mb4
+- 列 t_miniapp_config.qrcode_url 默认值： vs ''
+- 列 t_miniapp_config.privacy_url 默认值： vs ''
+- 列 t_miniapp_config.service_agreement_url 默认值： vs ''
+- 列 t_miniapp_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_miniapp_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_miniapp_order.order_status 默认值：PENDING_PAYMENT vs 'PENDING_PAYMENT'
+- 列 t_miniapp_order.pay_status 默认值：UNPAID vs 'UNPAID'
+- 列 t_miniapp_order.settlement_type 默认值：CASH vs 'CASH'
+- 列 t_miniapp_order.delivery_status 默认值：WAITING vs 'WAITING'
+- 列 t_miniapp_order.receiver_name 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.receiver_mobile 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.receiver_address 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.remark 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.internal_remark 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.expire_at 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.paid_at 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.completed_at 默认值：<NULL> vs NULL
+- 列 t_miniapp_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_miniapp_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_miniapp_order.deleted_at 默认值：<NULL> vs NULL
+- 列 t_miniapp_order_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_order_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_miniapp_order_sync_log.tenant_id 默认值：default vs 'default'
+- 列 t_miniapp_order_sync_log.platform_order_no 默认值：<NULL> vs NULL
+- 列 t_miniapp_order_sync_log.request_data 类型：json vs longtext
+- 列 t_miniapp_order_sync_log.request_data 默认值：<NULL> vs NULL
+- 列 t_miniapp_order_sync_log.request_data 字符集： vs utf8mb4
+- 列 t_miniapp_order_sync_log.response_data 类型：json vs longtext
+- 列 t_miniapp_order_sync_log.response_data 默认值：<NULL> vs NULL
+- 列 t_miniapp_order_sync_log.response_data 字符集： vs utf8mb4
+- 列 t_miniapp_order_sync_log.response 默认值：<NULL> vs NULL
+- 列 t_miniapp_order_sync_log.error_msg 默认值：<NULL> vs NULL
+- 列 t_miniapp_order_sync_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_order_sync_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_miniapp_order_sync_log.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_order_sync_log.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_miniapp_publish_log.platform 默认值：WECHAT vs 'WECHAT'
+- 列 t_miniapp_publish_log.template_id 默认值：<NULL> vs NULL
+- 列 t_miniapp_publish_log.version 默认值： vs ''
+- 列 t_miniapp_publish_log.remark 默认值： vs ''
+- 列 t_miniapp_publish_log.status 默认值： vs ''
+- 列 t_miniapp_publish_log.error_msg 默认值：<NULL> vs NULL
+- 列 t_miniapp_publish_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_publish_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_miniapp_template.tenant_id 默认值：DEFAULT vs 'DEFAULT'
+- 列 t_miniapp_template.description 默认值： vs ''
+- 列 t_miniapp_template.thumbnail 默认值： vs ''
+- 列 t_miniapp_template.preview_urls 类型：json vs longtext
+- 列 t_miniapp_template.preview_urls 默认值：<NULL> vs NULL
+- 列 t_miniapp_template.preview_urls 字符集： vs utf8mb4
+- 列 t_miniapp_template.style_config 类型：json vs longtext
+- 列 t_miniapp_template.style_config 字符集： vs utf8mb4
+- 列 t_miniapp_template.page_config 类型：json vs longtext
+- 列 t_miniapp_template.page_config 字符集： vs utf8mb4
+- 列 t_miniapp_template.version 默认值：1.0.0 vs '1.0.0'
+- 列 t_miniapp_template.status 默认值：active vs 'active'
+- 列 t_miniapp_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_miniapp_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_miniapp_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_notification.recipient_type 默认值：ADMIN vs 'ADMIN'
+- 列 t_notification.content 默认值：<NULL> vs NULL
+- 列 t_notification.type 默认值：SYSTEM vs 'SYSTEM'
+- 列 t_notification.related_id 默认值：<NULL> vs NULL
+- 列 t_notification.related_type 默认值：<NULL> vs NULL
+- 列 t_notification.sent_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_notification.sent_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_notification.read_at 默认值：<NULL> vs NULL
+- 列 t_notification.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_notification.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_open_api_call_daily.tenant_id 默认值：default vs 'default'
+- 列 t_open_api_call_daily.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_open_api_call_daily.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_open_api_call_daily.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_open_api_call_daily.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_open_webhook.tenant_id 默认值：default vs 'default'
+- 列 t_open_webhook.retry_policy 默认值：1m/5m/30m x3 vs '1m/5m/30m x3'
+- 列 t_open_webhook.last_trigger_at 默认值：<NULL> vs NULL
+- 列 t_open_webhook.last_status 默认值：<NULL> vs NULL
+- 列 t_open_webhook.last_error 默认值：<NULL> vs NULL
+- 列 t_open_webhook.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_open_webhook.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_open_webhook.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_open_webhook.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_open_webhook_delivery.tenant_id 默认值：default vs 'default'
+- 列 t_open_webhook_delivery.payload 类型：json vs longtext
+- 列 t_open_webhook_delivery.payload 默认值：<NULL> vs NULL
+- 列 t_open_webhook_delivery.payload 字符集： vs utf8mb4
+- 列 t_open_webhook_delivery.http_status 默认值：<NULL> vs NULL
+- 列 t_open_webhook_delivery.error 默认值：<NULL> vs NULL
+- 列 t_open_webhook_delivery.triggered_by 默认值：AUTO vs 'AUTO'
+- 列 t_open_webhook_delivery.duration_ms 默认值：<NULL> vs NULL
+- 列 t_open_webhook_delivery.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_open_webhook_delivery.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_operation_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_operation_log.operator_name 默认值：<NULL> vs NULL
+- 列 t_operation_log.biz_no 默认值：<NULL> vs NULL
+- 列 t_operation_log.before_data 类型：json vs longtext
+- 列 t_operation_log.before_data 默认值：<NULL> vs NULL
+- 列 t_operation_log.before_data 字符集： vs utf8mb4
+- 列 t_operation_log.after_data 类型：json vs longtext
+- 列 t_operation_log.after_data 默认值：<NULL> vs NULL
+- 列 t_operation_log.after_data 字符集： vs utf8mb4
+- 列 t_operation_log.ip 默认值：<NULL> vs NULL
+- 列 t_operation_log.user_agent 默认值：<NULL> vs NULL
+- 列 t_operation_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_operation_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_operation_log.log_no 默认值：<NULL> vs NULL
+- 列 t_operation_log.user_id 默认值：<NULL> vs NULL
+- 列 t_operation_log.user_name 默认值：<NULL> vs NULL
+- 列 t_operation_log.target_id 默认值：<NULL> vs NULL
+- 列 t_operation_log.target_type 默认值：<NULL> vs NULL
+- 列 t_operation_log.detail 默认值：<NULL> vs NULL
+- 列 t_operation_log.remark 默认值：<NULL> vs NULL
+- 列 t_operation_log.target 默认值：<NULL> vs NULL
+- 列 t_operation_log.category 默认值：<NULL> vs NULL
+- 列 t_order_coupon.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_coupon.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_order_exception.exception_level 默认值：WARNING vs 'WARNING'
+- 列 t_order_exception.channel_order_no 默认值：<NULL> vs NULL
+- 列 t_order_exception.channel_type 默认值：<NULL> vs NULL
+- 列 t_order_exception.exception_type 默认值：OTHER vs 'OTHER'
+- 列 t_order_exception.exception_detail 默认值：<NULL> vs NULL
+- 列 t_order_exception.handle_status 默认值：PENDING vs 'PENDING'
+- 列 t_order_exception.handler_id 默认值：<NULL> vs NULL
+- 列 t_order_exception.handler_name 默认值：<NULL> vs NULL
+- 列 t_order_exception.handle_result 默认值：<NULL> vs NULL
+- 列 t_order_exception.handled_at 默认值：<NULL> vs NULL
+- 列 t_order_exception.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_exception.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_order_exception.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_exception.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_order_exception_log.handler_name 默认值：<NULL> vs NULL
+- 列 t_order_exception_log.result 默认值：<NULL> vs NULL
+- 列 t_order_exception_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_exception_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_order_routing_rule.store_id 默认值：<NULL> vs NULL
+- 列 t_order_routing_rule.store_name 默认值：<NULL> vs NULL
+- 列 t_order_routing_rule.condition_summary 默认值：<NULL> vs NULL
+- 列 t_order_routing_rule.action_type 默认值：ASSIGN_STORE vs 'ASSIGN_STORE'
+- 列 t_order_routing_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_routing_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_order_routing_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_routing_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_order_timeout_config.description 默认值：<NULL> vs NULL
+- 列 t_order_timeout_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_timeout_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_order_timeout_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_timeout_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_order_timeout_log.remark 默认值：<NULL> vs NULL
+- 列 t_order_timeout_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_order_timeout_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_payable.supplier_name 默认值：<NULL> vs NULL
+- 列 t_payable.due_date 默认值：<NULL> vs NULL
+- 列 t_payable.status 默认值：PENDING vs 'PENDING'
+- 列 t_payable.tenant_id 默认值： vs ''
+- 列 t_payable.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payable.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_payable.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payable.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_payment.supplier_name 默认值：<NULL> vs NULL
+- 列 t_payment.payment_type 默认值：PURCHASE vs 'PURCHASE'
+- 列 t_payment.payment_method 默认值：<NULL> vs NULL
+- 列 t_payment.bank_account_id 默认值：<NULL> vs NULL
+- 列 t_payment.paid_date 默认值：<NULL> vs NULL
+- 列 t_payment.status 默认值：PENDING vs 'PENDING'
+- 列 t_payment.remark 默认值：<NULL> vs NULL
+- 列 t_payment.operator_id 默认值：<NULL> vs NULL
+- 列 t_payment.tenant_id 默认值： vs ''
+- 列 t_payment.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_payment.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_payment_config.config_key 默认值： vs ''
+- 列 t_payment_config.config_value 默认值：<NULL> vs NULL
+- 列 t_payment_config.description 默认值： vs ''
+- 列 t_payment_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_payment_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_payment_config.api_key 默认值： vs ''
+- 列 t_payment_config.box_config 默认值：<NULL> vs NULL
+- 列 t_payment_config.app_id 默认值： vs ''
+- 列 t_payment_config.mch_id 默认值： vs ''
+- 列 t_payment_config.api_v3_key 默认值： vs ''
+- 列 t_payment_config.serial_no 默认值： vs ''
+- 列 t_payment_config.private_key 默认值：<NULL> vs NULL
+- 列 t_payment_config.notify_url 默认值： vs ''
+- 列 t_payment_config.alipay_public_key 默认值：<NULL> vs NULL
+- 列 t_payment_method.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_payment_method.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment_method.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_payment_method.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment_method.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_payment_order.channel 默认值：WECHAT vs 'WECHAT'
+- 列 t_payment_order.status 默认值：PENDING vs 'PENDING'
+- 列 t_payment_order.wx_prepay_id 默认值：<NULL> vs NULL
+- 列 t_payment_order.wx_transaction_id 默认值：<NULL> vs NULL
+- 列 t_payment_order.callback_raw 类型：json vs longtext
+- 列 t_payment_order.callback_raw 默认值：<NULL> vs NULL
+- 列 t_payment_order.callback_raw 字符集： vs utf8mb4
+- 列 t_payment_order.paid_at 默认值：<NULL> vs NULL
+- 列 t_payment_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_payment_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_payment_order.auth_code 默认值： vs ''
+- 列 t_payment_order.payment_method 默认值： vs ''
+- 列 t_payment_order.transaction_id 默认值： vs ''
+- 列 t_payment_writeoff.tenant_id 默认值： vs ''
+- 列 t_payment_writeoff.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_payment_writeoff.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_addon_charge.unit_price 默认值：<NULL> vs NULL
+- 列 t_platform_addon_charge.amount 默认值：<NULL> vs NULL
+- 列 t_platform_addon_charge.period_start 默认值：<NULL> vs NULL
+- 列 t_platform_addon_charge.period_end 默认值：<NULL> vs NULL
+- 列 t_platform_addon_charge.status 默认值：PENDING vs 'PENDING'
+- 列 t_platform_addon_charge.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_addon_charge.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_addon_charge.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_addon_charge.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_admin.mfa_secret 默认值：<NULL> vs NULL
+- 列 t_platform_admin.email 默认值：<NULL> vs NULL
+- 列 t_platform_admin.phone 默认值：<NULL> vs NULL
+- 列 t_platform_admin.role 默认值：PLATFORM_ADMIN vs 'PLATFORM_ADMIN'
+- 列 t_platform_admin.last_login_at 默认值：<NULL> vs NULL
+- 列 t_platform_admin.created_by 默认值：system vs 'system'
+- 列 t_platform_admin.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_admin.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_admin.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_admin.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_ai_config.default_provider 默认值：deepseek vs 'deepseek'
+- 列 t_platform_ai_config.default_model 默认值：deepseek-chat vs 'deepseek-chat'
+- 列 t_platform_ai_config.default_api_key 默认值：<NULL> vs NULL
+- 列 t_platform_ai_config.default_endpoint 默认值：<NULL> vs NULL
+- 列 t_platform_ai_config.default_system_prompt 默认值：<NULL> vs NULL
+- 列 t_platform_ai_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_ai_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_ai_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_ai_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_announcement.type 默认值：NOTICE vs 'NOTICE'
+- 列 t_platform_announcement.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_platform_announcement.publish_at 默认值：<NULL> vs NULL
+- 列 t_platform_announcement.offline_at 默认值：<NULL> vs NULL
+- 列 t_platform_announcement.created_by 默认值：<NULL> vs NULL
+- 列 t_platform_announcement.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_announcement.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_announcement.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_announcement.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_audit_log.target_id 默认值：<NULL> vs NULL
+- 列 t_platform_audit_log.detail 类型：json vs longtext
+- 列 t_platform_audit_log.detail 默认值：<NULL> vs NULL
+- 列 t_platform_audit_log.detail 字符集： vs utf8mb4
+- 列 t_platform_audit_log.ip 默认值：<NULL> vs NULL
+- 列 t_platform_audit_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_audit_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_audit_log.ip_address 默认值：<NULL> vs NULL
+- 列 t_platform_audit_log.module 默认值：<NULL> vs NULL
+- 列 t_platform_config.store_id 默认值：<NULL> vs NULL
+- 列 t_platform_config.app_key 默认值：<NULL> vs NULL
+- 列 t_platform_config.app_secret 默认值：<NULL> vs NULL
+- 列 t_platform_config.merchant_id 默认值：<NULL> vs NULL
+- 列 t_platform_config.access_token 默认值：<NULL> vs NULL
+- 列 t_platform_config.refresh_token 默认值：<NULL> vs NULL
+- 列 t_platform_config.token_expire_at 默认值：<NULL> vs NULL
+- 列 t_platform_config.config_json 类型：json vs longtext
+- 列 t_platform_config.config_json 默认值：<NULL> vs NULL
+- 列 t_platform_config.config_json 字符集： vs utf8mb4
+- 列 t_platform_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_config.category 默认值：<NULL> vs NULL
+- 列 t_platform_config.config_key 默认值：<NULL> vs NULL
+- 列 t_platform_config.config_value 默认值：<NULL> vs NULL
+- 列 t_platform_config.description 默认值：<NULL> vs NULL
+- 列 t_platform_config.updated_by 默认值：<NULL> vs NULL
+- 列 t_platform_dict.remark 默认值：<NULL> vs NULL
+- 列 t_platform_dict.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_platform_dict.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_dict.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_dict.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_dict.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_dict_item.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_platform_dict_item.remark 默认值：<NULL> vs NULL
+- 列 t_platform_dict_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_dict_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_dict_item.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_dict_item.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_export_task.period 默认值：<NULL> vs NULL
+- 列 t_platform_export_task.format 默认值：CSV vs 'CSV'
+- 列 t_platform_export_task.status 默认值：PENDING vs 'PENDING'
+- 列 t_platform_export_task.file_url 默认值：<NULL> vs NULL
+- 列 t_platform_export_task.file_size 默认值：<NULL> vs NULL
+- 列 t_platform_export_task.error_message 默认值：<NULL> vs NULL
+- 列 t_platform_export_task.admin_id 默认值：<NULL> vs NULL
+- 列 t_platform_export_task.started_at 默认值：<NULL> vs NULL
+- 列 t_platform_export_task.finished_at 默认值：<NULL> vs NULL
+- 列 t_platform_export_task.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_export_task.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_export_task_log.level 默认值：INFO vs 'INFO'
+- 列 t_platform_export_task_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_export_task_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_feature_switch.remark 默认值：<NULL> vs NULL
+- 列 t_platform_feature_switch.updated_by 默认值：<NULL> vs NULL
+- 列 t_platform_feature_switch.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_feature_switch.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_feature_switch.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_feature_switch.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_io_template.version 默认值：v1 vs 'v1'
+- 列 t_platform_io_template.compat 默认值： vs ''
+- 列 t_platform_io_template.field_desc 默认值：<NULL> vs NULL
+- 列 t_platform_io_template.file_name 默认值：<NULL> vs NULL
+- 列 t_platform_io_template.file_content 默认值：<NULL> vs NULL
+- 列 t_platform_io_template.created_by 默认值：<NULL> vs NULL
+- 列 t_platform_io_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_io_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_io_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_io_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_notification.content 默认值：<NULL> vs NULL
+- 列 t_platform_notification.level 默认值：INFO vs 'INFO'
+- 列 t_platform_notification.target_admin_id 默认值：<NULL> vs NULL
+- 列 t_platform_notification.link_url 默认值：<NULL> vs NULL
+- 列 t_platform_notification.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_notification.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_notification_read.read_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_notification_read.read_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_order.store_id 默认值：<NULL> vs NULL
+- 列 t_platform_order.status 默认值：PENDING vs 'PENDING'
+- 列 t_platform_order.order_data_json 类型：json vs longtext
+- 列 t_platform_order.order_data_json 默认值：<NULL> vs NULL
+- 列 t_platform_order.order_data_json 字符集： vs utf8mb4
+- 列 t_platform_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_print_template.paper_type 默认值：RECEIPT_80 vs 'RECEIPT_80'
+- 列 t_platform_print_template.content 默认值：<NULL> vs NULL
+- 列 t_platform_print_template.spec 默认值： vs ''
+- 列 t_platform_print_template.created_by 默认值：<NULL> vs NULL
+- 列 t_platform_print_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_print_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_print_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_print_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_product_map.platform_sku_id 默认值：<NULL> vs NULL
+- 列 t_platform_product_map.platform_spu_id 默认值：<NULL> vs NULL
+- 列 t_platform_product_map.sync_status 默认值：UNSYNCED vs 'UNSYNCED'
+- 列 t_platform_product_map.sync_msg 默认值：<NULL> vs NULL
+- 列 t_platform_product_map.synced_at 默认值：<NULL> vs NULL
+- 列 t_platform_product_map.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_product_map.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_product_map.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_product_map.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_reconciliation.commission_amount 默认值：<NULL> vs NULL
+- 列 t_platform_reconciliation.status 默认值：PENDING vs 'PENDING'
+- 列 t_platform_reconciliation.operator_id 默认值：<NULL> vs NULL
+- 列 t_platform_reconciliation.adjusted_at 默认值：<NULL> vs NULL
+- 列 t_platform_reconciliation.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_reconciliation.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_reconciliation.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_reconciliation.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_reconciliation.tenant_id 默认值：default vs 'default'
+- 列 t_platform_reconciliation.platform_no 默认值：<NULL> vs NULL
+- 列 t_platform_reconciliation.platform_name 默认值：<NULL> vs NULL
+- 列 t_platform_reconciliation.reconciliation_no 默认值：<NULL> vs NULL
+- 列 t_platform_reconciliation.type 默认值：<NULL> vs NULL
+- 列 t_platform_reconciliation.recorded_at 默认值：<NULL> vs NULL
+- 列 t_platform_review.platform_review_id 默认值：<NULL> vs NULL
+- 列 t_platform_review.content 默认值：<NULL> vs NULL
+- 列 t_platform_review.reply_content 默认值：<NULL> vs NULL
+- 列 t_platform_review.replied_at 默认值：<NULL> vs NULL
+- 列 t_platform_review.synced_at 默认值：<NULL> vs NULL
+- 列 t_platform_review.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_review.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_review.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_review.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_role.type 默认值：custom vs 'custom'
+- 列 t_platform_role.remark 默认值：<NULL> vs NULL
+- 列 t_platform_role.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_role.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_role.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_role.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_role_permission.data_scope 默认值：<NULL> vs NULL
+- 列 t_platform_settlement.tenant_name 默认值：<NULL> vs NULL
+- 列 t_platform_settlement.status 默认值：PENDING vs 'PENDING'
+- 列 t_platform_settlement.remark 默认值：<NULL> vs NULL
+- 列 t_platform_settlement.created_by 默认值：<NULL> vs NULL
+- 列 t_platform_settlement.settled_at 默认值：<NULL> vs NULL
+- 列 t_platform_settlement.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_settlement.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_settlement.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_settlement.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_subscription_apply.openid 默认值： vs ''
+- 列 t_platform_subscription_apply.plan_name 默认值： vs ''
+- 列 t_platform_subscription_apply.remark 默认值： vs ''
+- 列 t_platform_subscription_apply.status 默认值：PENDING vs 'PENDING'
+- 列 t_platform_subscription_apply.audit_remark 默认值： vs ''
+- 列 t_platform_subscription_apply.audited_by 默认值：<NULL> vs NULL
+- 列 t_platform_subscription_apply.audited_at 默认值：<NULL> vs NULL
+- 列 t_platform_subscription_apply.tenant_id 默认值：default vs 'default'
+- 列 t_platform_subscription_apply.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_subscription_apply.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_subscription_apply.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_subscription_apply.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_template.applicable 默认值： vs ''
+- 列 t_platform_template.code_rule 默认值： vs ''
+- 列 t_platform_template.convert_rule 默认值： vs ''
+- 列 t_platform_template.print_ref 默认值： vs ''
+- 列 t_platform_template.default_wh_account 默认值： vs ''
+- 列 t_platform_template.config_json 类型：json vs longtext
+- 列 t_platform_template.config_json 默认值：<NULL> vs NULL
+- 列 t_platform_template.config_json 字符集： vs utf8mb4
+- 列 t_platform_template.created_by 默认值：<NULL> vs NULL
+- 列 t_platform_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_platform_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_platform_template_version.config_json 类型：json vs longtext
+- 列 t_platform_template_version.config_json 默认值：<NULL> vs NULL
+- 列 t_platform_template_version.config_json 字符集： vs utf8mb4
+- 列 t_platform_template_version.change_note 默认值：<NULL> vs NULL
+- 列 t_platform_template_version.created_by 默认值：<NULL> vs NULL
+- 列 t_platform_template_version.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_platform_template_version.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_points_exchange_record.status 默认值：PENDING vs 'PENDING'
+- 列 t_points_exchange_record.delivery_type 默认值：SELF_PICKUP vs 'SELF_PICKUP'
+- 列 t_points_exchange_record.delivery_status 默认值：<NULL> vs NULL
+- 列 t_points_exchange_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_exchange_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_points_exchange_record.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_exchange_record.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_points_mall_item.image 默认值：<NULL> vs NULL
+- 列 t_points_mall_item.valid_start 默认值：<NULL> vs NULL
+- 列 t_points_mall_item.valid_end 默认值：<NULL> vs NULL
+- 列 t_points_mall_item.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_points_mall_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_mall_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_points_mall_item.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_mall_item.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_points_mall_order.receiver_name 默认值：<NULL> vs NULL
+- 列 t_points_mall_order.receiver_mobile 默认值：<NULL> vs NULL
+- 列 t_points_mall_order.receiver_address 默认值：<NULL> vs NULL
+- 列 t_points_mall_order.status 默认值：PENDING vs 'PENDING'
+- 列 t_points_mall_order.delivered_at 默认值：<NULL> vs NULL
+- 列 t_points_mall_order.cancelled_at 默认值：<NULL> vs NULL
+- 列 t_points_mall_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_mall_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_points_mall_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_mall_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_points_product.product_image 默认值：<NULL> vs NULL
+- 列 t_points_product.product_desc 默认值：<NULL> vs NULL
+- 列 t_points_product.exchange_limit_per_user 默认值：<NULL> vs NULL
+- 列 t_points_product.exchange_limit_total 默认值：<NULL> vs NULL
+- 列 t_points_product.market_price 默认值：<NULL> vs NULL
+- 列 t_points_product.status 默认值：ON vs 'ON'
+- 列 t_points_product.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_product.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_points_product.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_product.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_points_record.user_id 默认值：<NULL> vs NULL
+- 列 t_points_record.member_id 默认值：<NULL> vs NULL
+- 列 t_points_record.amount 默认值：<NULL> vs NULL
+- 列 t_points_record.balance 默认值：<NULL> vs NULL
+- 列 t_points_record.change_points 默认值：<NULL> vs NULL
+- 列 t_points_record.balance_points 默认值：<NULL> vs NULL
+- 列 t_points_record.source_type 默认值：<NULL> vs NULL
+- 列 t_points_record.source_id 默认值：<NULL> vs NULL
+- 列 t_points_record.source_no 默认值：<NULL> vs NULL
+- 列 t_points_record.remark 默认值：<NULL> vs NULL
+- 列 t_points_record.tenant_id 默认值： vs ''
+- 列 t_points_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_points_rule.tenant_id 默认值： vs ''
+- 列 t_points_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_points_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_points_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_price_change_log.old_price 默认值：<NULL> vs NULL
+- 列 t_price_change_log.new_price 默认值：<NULL> vs NULL
+- 列 t_price_change_log.change_reason 默认值： vs ''
+- 列 t_price_change_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_price_change_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_price_level.description 默认值： vs ''
+- 列 t_price_level.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_price_level.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_price_level.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_price_level.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_price_review.sku_name 默认值：<NULL> vs NULL
+- 列 t_price_review.spec 默认值：<NULL> vs NULL
+- 列 t_price_review.reason 默认值：<NULL> vs NULL
+- 列 t_price_review.status 默认值：PENDING vs 'PENDING'
+- 列 t_price_review.created_by 默认值：<NULL> vs NULL
+- 列 t_price_review.created_by_name 默认值：<NULL> vs NULL
+- 列 t_price_review.reviewed_by 默认值：<NULL> vs NULL
+- 列 t_price_review.reviewed_by_name 默认值：<NULL> vs NULL
+- 列 t_price_review.reviewed_at 默认值：<NULL> vs NULL
+- 列 t_price_review.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_price_review.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_price_review.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_price_review.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_price_review.price_type 默认值：RETAIL vs 'RETAIL'
+- 列 t_print_record.store_id 默认值：<NULL> vs NULL
+- 列 t_print_record.printer_mac 默认值：<NULL> vs NULL
+- 列 t_print_record.print_content 默认值：<NULL> vs NULL
+- 列 t_print_record.operator_id 默认值：<NULL> vs NULL
+- 列 t_print_record.status 默认值：SUCCESS vs 'SUCCESS'
+- 列 t_print_record.error_msg 默认值：<NULL> vs NULL
+- 列 t_print_record.original_id 默认值：<NULL> vs NULL
+- 列 t_print_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_print_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_print_record.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_print_record.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_print_template.tenant_id 默认值：default vs 'default'
+- 列 t_print_template.store_id 默认值：<NULL> vs NULL
+- 列 t_print_template.paper_type 默认值：RECEIPT_80 vs 'RECEIPT_80'
+- 列 t_print_template.template_name 默认值： vs ''
+- 列 t_print_template.content 默认值：<NULL> vs NULL
+- 列 t_print_template.updated_by 默认值：<NULL> vs NULL
+- 列 t_print_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_print_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_print_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_print_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_bundle.category_id 默认值：<NULL> vs NULL
+- 列 t_product_bundle.cover_image 默认值：<NULL> vs NULL
+- 列 t_product_bundle.description 默认值：<NULL> vs NULL
+- 列 t_product_bundle.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_bundle.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_bundle.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_bundle.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_bundle_item.barcode 默认值：<NULL> vs NULL
+- 列 t_product_bundle_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_bundle_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_category.parent_id 默认值：<NULL> vs NULL
+- 列 t_product_category.icon 默认值：<NULL> vs NULL
+- 列 t_product_category.code 默认值：<NULL> vs NULL
+- 列 t_product_category.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_category.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_category.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_category.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_marketing_tag.color 默认值：#409EFF vs '#409EFF'
+- 列 t_product_marketing_tag.tenant_id 默认值： vs ''
+- 列 t_product_marketing_tag.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_marketing_tag.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_marketing_tag.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_marketing_tag.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_price.wholesale_price 默认值：<NULL> vs NULL
+- 列 t_product_price.miniapp_price 默认值：<NULL> vs NULL
+- 列 t_product_price.store_price 默认值：<NULL> vs NULL
+- 列 t_product_price.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_price.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_price.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_price.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_price_log.old_price 默认值：<NULL> vs NULL
+- 列 t_product_price_log.new_price 默认值：<NULL> vs NULL
+- 列 t_product_price_log.change_reason 默认值：<NULL> vs NULL
+- 列 t_product_price_log.batch_no 默认值：<NULL> vs NULL
+- 列 t_product_price_log.ip 默认值：<NULL> vs NULL
+- 列 t_product_price_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_price_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_review.submitter_name 默认值：<NULL> vs NULL
+- 列 t_product_review.review_type 默认值：CREATE vs 'CREATE'
+- 列 t_product_review.change_content 类型：json vs longtext
+- 列 t_product_review.change_content 默认值：<NULL> vs NULL
+- 列 t_product_review.change_content 字符集： vs utf8mb4
+- 列 t_product_review.status 默认值：PENDING vs 'PENDING'
+- 列 t_product_review.reviewer_id 默认值：<NULL> vs NULL
+- 列 t_product_review.reviewer_name 默认值：<NULL> vs NULL
+- 列 t_product_review.review_comment 默认值：<NULL> vs NULL
+- 列 t_product_review.reviewed_at 默认值：<NULL> vs NULL
+- 列 t_product_review.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_review.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_review.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_review.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_sku.barcode 默认值：<NULL> vs NULL
+- 列 t_product_sku.box_barcode 默认值：<NULL> vs NULL
+- 列 t_product_sku.alcohol_degree 默认值：<NULL> vs NULL
+- 列 t_product_sku.origin 默认值：<NULL> vs NULL
+- 列 t_product_sku.volume 默认值：<NULL> vs NULL
+- 列 t_product_sku.packaging 默认值：<NULL> vs NULL
+- 列 t_product_sku.base_unit 默认值：瓶 vs '瓶'
+- 列 t_product_sku.box_unit 默认值：箱 vs '箱'
+- 列 t_product_sku.temperature 默认值：NORMAL vs 'NORMAL'
+- 列 t_product_sku.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_sku.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_sku.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_sku.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_sku.name 默认值：<NULL> vs NULL
+- 列 t_product_sku.image 默认值：<NULL> vs NULL
+- 列 t_product_sku.unit 默认值：<NULL> vs NULL
+- 列 t_product_sku_unit.barcode 默认值：<NULL> vs NULL
+- 列 t_product_sku_unit.retail_price 默认值：<NULL> vs NULL
+- 列 t_product_sku_unit.wholesale_price 默认值：<NULL> vs NULL
+- 列 t_product_sku_unit.store_price 默认值：<NULL> vs NULL
+- 列 t_product_sku_unit.miniapp_price 默认值：<NULL> vs NULL
+- 列 t_product_sku_unit.tenant_id 默认值：default vs 'default'
+- 列 t_product_sku_unit.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_sku_unit.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_sku_unit.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_sku_unit.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_spu.brand 默认值：<NULL> vs NULL
+- 列 t_product_spu.unit 默认值：<NULL> vs NULL
+- 列 t_product_spu.specs 默认值：<NULL> vs NULL
+- 列 t_product_spu.main_image 默认值：<NULL> vs NULL
+- 列 t_product_spu.image_urls 类型：json vs longtext
+- 列 t_product_spu.image_urls 默认值：<NULL> vs NULL
+- 列 t_product_spu.image_urls 字符集： vs utf8mb4
+- 列 t_product_spu.detail 默认值：<NULL> vs NULL
+- 列 t_product_spu.sale_channels 类型：json vs longtext
+- 列 t_product_spu.sale_channels 字符集： vs utf8mb4
+- 列 t_product_spu.description 默认值：<NULL> vs NULL
+- 列 t_product_spu.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_product_spu.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_spu.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_spu.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_spu.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_spu.brand_id 默认值：<NULL> vs NULL
+- 列 t_product_spu.alcohol_content 默认值：<NULL> vs NULL
+- 列 t_product_spu.origin 默认值：<NULL> vs NULL
+- 列 t_product_spu.marketing_tags 类型：json vs longtext
+- 列 t_product_spu.marketing_tags 默认值：<NULL> vs NULL
+- 列 t_product_spu.marketing_tags 字符集： vs utf8mb4
+- 列 t_product_spu.store_id 默认值：<NULL> vs NULL
+- 列 t_product_tag.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_tag.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_tag_group.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_tag_group.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_product_tag_group.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_tag_group.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_product_tag_relation.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_product_tag_relation.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_promo_code.owner_admin_id 默认值：<NULL> vs NULL
+- 列 t_promo_code.expire_at 默认值：<NULL> vs NULL
+- 列 t_promo_code.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_promo_code.remark 默认值：<NULL> vs NULL
+- 列 t_promo_code.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promo_code.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_promo_code.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promo_code.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_promo_stack_rule.type_combination 类型：json vs longtext
+- 列 t_promo_stack_rule.type_combination 字符集： vs utf8mb4
+- 列 t_promo_stack_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promo_stack_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_promo_stack_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promo_stack_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_promotion_activity.activity_desc 默认值：<NULL> vs NULL
+- 列 t_promotion_activity.applicable_scope 默认值：ALL vs 'ALL'
+- 列 t_promotion_activity.applicable_ids 类型：json vs longtext
+- 列 t_promotion_activity.applicable_ids 默认值：<NULL> vs NULL
+- 列 t_promotion_activity.applicable_ids 字符集： vs utf8mb4
+- 列 t_promotion_activity.rules 类型：json vs longtext
+- 列 t_promotion_activity.rules 字符集： vs utf8mb4
+- 列 t_promotion_activity.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_promotion_activity.created_by 默认值：<NULL> vs NULL
+- 列 t_promotion_activity.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promotion_activity.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_promotion_activity.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promotion_activity.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_promotion_stack_rule.stack_types 类型：json vs longtext
+- 列 t_promotion_stack_rule.stack_types 字符集： vs utf8mb4
+- 列 t_promotion_stack_rule.max_discount 默认值：<NULL> vs NULL
+- 列 t_promotion_stack_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promotion_stack_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_promotion_stack_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_promotion_stack_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_contract.contract_type 默认值：PURCHASE vs 'PURCHASE'
+- 列 t_purchase_contract.sign_date 默认值：<NULL> vs NULL
+- 列 t_purchase_contract.start_date 默认值：<NULL> vs NULL
+- 列 t_purchase_contract.end_date 默认值：<NULL> vs NULL
+- 列 t_purchase_contract.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_purchase_contract.file_url 默认值：<NULL> vs NULL
+- 列 t_purchase_contract.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_contract.tenant_id 默认值： vs ''
+- 列 t_purchase_contract.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_contract.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_contract.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_contract.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_in_stock.order_no 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock.stock_status 默认值：PENDING vs 'PENDING'
+- 列 t_purchase_in_stock.auditor_id 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock.audited_at 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_in_stock.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_in_stock.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_in_stock.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_in_stock_item.batch_no 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock_item.production_date 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock_item.expiry_date 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock_item.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_in_stock_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_in_stock_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_order.order_status 默认值：DRAFT vs 'DRAFT'
+- 列 t_purchase_order.approval_instance_no 默认值：<NULL> vs NULL
+- 列 t_purchase_order.expected_date 默认值：<NULL> vs NULL
+- 列 t_purchase_order.actual_date 默认值：<NULL> vs NULL
+- 列 t_purchase_order.auditor_id 默认值：<NULL> vs NULL
+- 列 t_purchase_order.audited_at 默认值：<NULL> vs NULL
+- 列 t_purchase_order.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_order.warehouse_status 默认值：<NULL> vs NULL
+- 列 t_purchase_order_archive.order_status 默认值：DRAFT vs 'DRAFT'
+- 列 t_purchase_order_archive.expected_date 默认值：<NULL> vs NULL
+- 列 t_purchase_order_archive.actual_date 默认值：<NULL> vs NULL
+- 列 t_purchase_order_archive.auditor_id 默认值：<NULL> vs NULL
+- 列 t_purchase_order_archive.audited_at 默认值：<NULL> vs NULL
+- 列 t_purchase_order_archive.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_order_archive.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_order_archive.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_order_archive.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_order_archive.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_order_item.barcode 默认值：<NULL> vs NULL
+- 列 t_purchase_order_item.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_order_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_order_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_order_item_archive.barcode 默认值：<NULL> vs NULL
+- 列 t_purchase_order_item_archive.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_order_item_archive.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_order_item_archive.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_payment.payment_type 默认值：ORDER vs 'ORDER'
+- 列 t_purchase_payment.source_type 默认值：<NULL> vs NULL
+- 列 t_purchase_payment.source_no 默认值：<NULL> vs NULL
+- 列 t_purchase_payment.payment_method 默认值：BANK vs 'BANK'
+- 列 t_purchase_payment.bank_account 默认值：<NULL> vs NULL
+- 列 t_purchase_payment.bank_account_name 默认值：<NULL> vs NULL
+- 列 t_purchase_payment.bank_name 默认值：<NULL> vs NULL
+- 列 t_purchase_payment.voucher_no 默认值：<NULL> vs NULL
+- 列 t_purchase_payment.status 默认值：PENDING vs 'PENDING'
+- 列 t_purchase_payment.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_payment.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_payment.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_payment.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_payment.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_plan.plan_status 默认值：DRAFT vs 'DRAFT'
+- 列 t_purchase_plan.tenant_id 默认值： vs ''
+- 列 t_purchase_plan.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_plan.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_plan.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_plan.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_plan_item.reason 默认值：<NULL> vs NULL
+- 列 t_purchase_plan_item.tenant_id 默认值： vs ''
+- 列 t_purchase_return.order_no 默认值：<NULL> vs NULL
+- 列 t_purchase_return.stock_no 默认值：<NULL> vs NULL
+- 列 t_purchase_return.return_status 默认值：PENDING vs 'PENDING'
+- 列 t_purchase_return.auditor_id 默认值：<NULL> vs NULL
+- 列 t_purchase_return.audited_at 默认值：<NULL> vs NULL
+- 列 t_purchase_return.remark 默认值：<NULL> vs NULL
+- 列 t_purchase_return.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_return.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_purchase_return.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_return.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_purchase_return.status 默认值：<NULL> vs NULL
+- 列 t_purchase_return_item.reason 默认值：<NULL> vs NULL
+- 列 t_purchase_return_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_purchase_return_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_push_config.quiet_start 默认值：<NULL> vs NULL
+- 列 t_push_config.quiet_end 默认值：<NULL> vs NULL
+- 列 t_push_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_push_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_push_log.template_id 默认值：<NULL> vs NULL
+- 列 t_push_log.error_msg 默认值：<NULL> vs NULL
+- 列 t_push_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_push_template.wechat_template_id 默认值：<NULL> vs NULL
+- 列 t_push_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_push_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_push_token.provider 默认值：jpush vs 'jpush'
+- 列 t_push_token.app_version 默认值：<NULL> vs NULL
+- 列 t_push_token.last_active_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_token.last_active_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_push_token.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_token.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_push_token.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_push_token.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_quick_entries.icon 默认值：<NULL> vs NULL
+- 列 t_quick_entries.group_name 默认值：<NULL> vs NULL
+- 列 t_quick_entries.visible_roles 类型：json vs longtext
+- 列 t_quick_entries.visible_roles 默认值：<NULL> vs NULL
+- 列 t_quick_entries.visible_roles 字符集： vs utf8mb4
+- 列 t_quick_entries.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_quick_entries.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_quick_entries.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_quick_entries.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_recall_record.target_name 默认值： vs ''
+- 列 t_recall_record.status 默认值：CREATED vs 'CREATED'
+- 列 t_recall_record.notify_content 默认值：<NULL> vs NULL
+- 列 t_recall_record.started_at 默认值：<NULL> vs NULL
+- 列 t_recall_record.completed_at 默认值：<NULL> vs NULL
+- 列 t_recall_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_recall_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_recall_record.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_recall_record.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_receipt.customer_name 默认值：<NULL> vs NULL
+- 列 t_receipt.receipt_type 默认值：SALE vs 'SALE'
+- 列 t_receipt.payment_method 默认值：<NULL> vs NULL
+- 列 t_receipt.bank_account_id 默认值：<NULL> vs NULL
+- 列 t_receipt.received_date 默认值：<NULL> vs NULL
+- 列 t_receipt.status 默认值：PENDING vs 'PENDING'
+- 列 t_receipt.remark 默认值：<NULL> vs NULL
+- 列 t_receipt.operator_id 默认值：<NULL> vs NULL
+- 列 t_receipt.tenant_id 默认值： vs ''
+- 列 t_receipt.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_receipt.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_receipt.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_receipt.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_receipt_writeoff.tenant_id 默认值： vs ''
+- 列 t_receipt_writeoff.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_receipt_writeoff.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_receivable.customer_name 默认值：<NULL> vs NULL
+- 列 t_receivable.due_date 默认值：<NULL> vs NULL
+- 列 t_receivable.status 默认值：PENDING vs 'PENDING'
+- 列 t_receivable.tenant_id 默认值： vs ''
+- 列 t_receivable.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_receivable.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_receivable.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_receivable.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_receivable_account.customer_id 默认值：<NULL> vs NULL
+- 列 t_receivable_account.customer_name 默认值：<NULL> vs NULL
+- 列 t_receivable_account.customer_mobile 默认值：<NULL> vs NULL
+- 列 t_receivable_account.status 默认值：UNPAID vs 'UNPAID'
+- 列 t_receivable_account.last_payment_time 默认值：<NULL> vs NULL
+- 列 t_receivable_account.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_receivable_account.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_receivable_account.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_receivable_account.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_referral_ledger.invitee_tenant_code 默认值：<NULL> vs NULL
+- 列 t_referral_ledger.status 默认值：PENDING vs 'PENDING'
+- 列 t_referral_ledger.granted_at 默认值：<NULL> vs NULL
+- 列 t_referral_ledger.remark 默认值：<NULL> vs NULL
+- 列 t_referral_ledger.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_referral_ledger.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_referral_ledger.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_referral_ledger.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_refund_order.reason 默认值：<NULL> vs NULL
+- 列 t_refund_order.status 默认值：PENDING vs 'PENDING'
+- 列 t_refund_order.wx_refund_id 默认值：<NULL> vs NULL
+- 列 t_refund_order.operator_id 默认值：<NULL> vs NULL
+- 列 t_refund_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_refund_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_refund_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_refund_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_report_collection_stats.avg_pay_cycle_hours 默认值：<NULL> vs NULL
+- 列 t_report_collection_stats.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_collection_stats.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_report_collection_stats.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_collection_stats.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_report_customer_stats.repurchase_rate 默认值：<NULL> vs NULL
+- 列 t_report_customer_stats.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_customer_stats.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_report_customer_stats.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_customer_stats.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_report_inventory_daily.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_inventory_daily.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_report_inventory_daily.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_inventory_daily.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_report_permission_audit_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_report_permission_audit_log.operator_name 默认值：<NULL> vs NULL
+- 列 t_report_permission_audit_log.target_name 默认值：<NULL> vs NULL
+- 列 t_report_permission_audit_log.report_code 默认值：<NULL> vs NULL
+- 列 t_report_permission_audit_log.before_value 默认值：<NULL> vs NULL
+- 列 t_report_permission_audit_log.after_value 默认值：<NULL> vs NULL
+- 列 t_report_permission_audit_log.remark 默认值：<NULL> vs NULL
+- 列 t_report_permission_audit_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_permission_audit_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_report_permission_matrix.store_scope 默认值：SELF vs 'SELF'
+- 列 t_report_permission_matrix.tenant_id 默认值： vs ''
+- 列 t_report_permission_matrix.store_ids 默认值：<NULL> vs NULL
+- 列 t_report_permission_matrix.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_permission_matrix.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_report_permission_matrix.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_permission_matrix.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_report_product_sales.sku_name 默认值：<NULL> vs NULL
+- 列 t_report_product_sales.category_name 默认值：<NULL> vs NULL
+- 列 t_report_product_sales.rank_in_store 默认值：<NULL> vs NULL
+- 列 t_report_product_sales.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_product_sales.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_report_product_sales.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_product_sales.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_report_sales_daily.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_sales_daily.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_report_sales_daily.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_report_sales_daily.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_announcement.tenant_id 默认值：default vs 'default'
+- 列 t_retail_announcement.start_time 默认值：<NULL> vs NULL
+- 列 t_retail_announcement.end_time 默认值：<NULL> vs NULL
+- 列 t_retail_announcement.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_announcement.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_announcement.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_announcement.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_banner.link_type 默认值：<NULL> vs NULL
+- 列 t_retail_banner.link_value 默认值：<NULL> vs NULL
+- 列 t_retail_banner.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_retail_banner.start_time 默认值：<NULL> vs NULL
+- 列 t_retail_banner.end_time 默认值：<NULL> vs NULL
+- 列 t_retail_banner.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_banner.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_banner.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_banner.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_cart.tenant_id 默认值：default vs 'default'
+- 列 t_retail_cart.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_cart.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_cart.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_cart.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_category.category_icon 默认值：<NULL> vs NULL
+- 列 t_retail_category.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_retail_category.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_category.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_category.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_category.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_consumer_address.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_consumer_address.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_consumer_address.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_consumer_address.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_operation_log.user_id 默认值：<NULL> vs NULL
+- 列 t_retail_operation_log.user_name 默认值：<NULL> vs NULL
+- 列 t_retail_operation_log.detail 默认值：<NULL> vs NULL
+- 列 t_retail_operation_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_operation_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_order.user_name 默认值：<NULL> vs NULL
+- 列 t_retail_order.user_phone 默认值：<NULL> vs NULL
+- 列 t_retail_order.delivery_address 默认值：<NULL> vs NULL
+- 列 t_retail_order.delivery_time 默认值：<NULL> vs NULL
+- 列 t_retail_order.receiver_name 默认值：<NULL> vs NULL
+- 列 t_retail_order.receiver_phone 默认值：<NULL> vs NULL
+- 列 t_retail_order.receiver_latitude 默认值：<NULL> vs NULL
+- 列 t_retail_order.receiver_longitude 默认值：<NULL> vs NULL
+- 列 t_retail_order.remark 默认值：<NULL> vs NULL
+- 列 t_retail_order.payment_status 默认值：UNPAID vs 'UNPAID'
+- 列 t_retail_order.payment_method 默认值：<NULL> vs NULL
+- 列 t_retail_order.payment_time 默认值：<NULL> vs NULL
+- 列 t_retail_order.transaction_no 默认值：<NULL> vs NULL
+- 列 t_retail_order.order_status 默认值：PENDING vs 'PENDING'
+- 列 t_retail_order.cancel_reason 默认值：<NULL> vs NULL
+- 列 t_retail_order.cancelled_at 默认值：<NULL> vs NULL
+- 列 t_retail_order.completed_at 默认值：<NULL> vs NULL
+- 列 t_retail_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_order_item.sku_id 默认值：<NULL> vs NULL
+- 列 t_retail_order_item.product_image 默认值：<NULL> vs NULL
+- 列 t_retail_order_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_order_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_product.category_id 默认值：<NULL> vs NULL
+- 列 t_retail_product.original_price 默认值：<NULL> vs NULL
+- 列 t_retail_product.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_retail_product.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_product.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_product.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_product.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_review.product_id 默认值：<NULL> vs NULL
+- 列 t_retail_review.platform 默认值：<NULL> vs NULL
+- 列 t_retail_review.platform_review_id 默认值：<NULL> vs NULL
+- 列 t_retail_review.review_content 默认值：<NULL> vs NULL
+- 列 t_retail_review.review_images 类型：json vs longtext
+- 列 t_retail_review.review_images 默认值：<NULL> vs NULL
+- 列 t_retail_review.review_images 字符集： vs utf8mb4
+- 列 t_retail_review.review_tags 类型：json vs longtext
+- 列 t_retail_review.review_tags 默认值：<NULL> vs NULL
+- 列 t_retail_review.review_tags 字符集： vs utf8mb4
+- 列 t_retail_review.reply 默认值：<NULL> vs NULL
+- 列 t_retail_review.reply_at 默认值：<NULL> vs NULL
+- 列 t_retail_review.status 默认值：PUBLISHED vs 'PUBLISHED'
+- 列 t_retail_review.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_review.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_review.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_review.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_retail_shop_config.shop_logo 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.shop_description 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.contact_phone 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.business_hours 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.free_delivery_amount 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.delivery_radius 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.estimated_delivery_time 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.announcement 默认值：<NULL> vs NULL
+- 列 t_retail_shop_config.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_retail_shop_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_shop_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_retail_shop_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_retail_shop_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_role_data_permission.scope_values 类型：json vs longtext
+- 列 t_role_data_permission.scope_values 默认值：<NULL> vs NULL
+- 列 t_role_data_permission.scope_values 字符集： vs utf8mb4
+- 列 t_role_data_permission.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_role_data_permission.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sale_bill.customer_id 默认值：<NULL> vs NULL
+- 列 t_sale_bill.customer_name 默认值：<NULL> vs NULL
+- 列 t_sale_bill.customer_mobile 默认值：<NULL> vs NULL
+- 列 t_sale_bill.customer_type 默认值：RETAIL vs 'RETAIL'
+- 列 t_sale_bill.sale_type 默认值：CASH vs 'CASH'
+- 列 t_sale_bill.business_status 默认值：CREATED vs 'CREATED'
+- 列 t_sale_bill.collection_status 默认值：UNPAID vs 'UNPAID'
+- 列 t_sale_bill.due_date 默认值：<NULL> vs NULL
+- 列 t_sale_bill.statement_id 默认值：<NULL> vs NULL
+- 列 t_sale_bill.last_share_time 默认值：<NULL> vs NULL
+- 列 t_sale_bill.last_payment_time 默认值：<NULL> vs NULL
+- 列 t_sale_bill.operator_name 默认值：<NULL> vs NULL
+- 列 t_sale_bill.auditor_id 默认值：<NULL> vs NULL
+- 列 t_sale_bill.auditor_name 默认值：<NULL> vs NULL
+- 列 t_sale_bill.salesman_id 默认值：<NULL> vs NULL
+- 列 t_sale_bill.salesman_name 默认值：<NULL> vs NULL
+- 列 t_sale_bill.remark 默认值：<NULL> vs NULL
+- 列 t_sale_bill.internal_remark 默认值：<NULL> vs NULL
+- 列 t_sale_bill.void_reason 默认值：<NULL> vs NULL
+- 列 t_sale_bill.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_bill.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sale_bill.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_bill.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sale_bill.store_name 默认值：<NULL> vs NULL
+- 列 t_sale_bill.store_address 默认值：<NULL> vs NULL
+- 列 t_sale_bill.store_contact 默认值：<NULL> vs NULL
+- 列 t_sale_bill.status 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.customer_id 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.customer_name 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.customer_mobile 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.customer_type 默认值：RETAIL vs 'RETAIL'
+- 列 t_sale_bill_archive.sale_type 默认值：CASH vs 'CASH'
+- 列 t_sale_bill_archive.business_status 默认值：CREATED vs 'CREATED'
+- 列 t_sale_bill_archive.collection_status 默认值：UNPAID vs 'UNPAID'
+- 列 t_sale_bill_archive.due_date 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.statement_id 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.last_share_time 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.last_payment_time 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.remark 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.internal_remark 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.void_reason 默认值：<NULL> vs NULL
+- 列 t_sale_bill_archive.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_bill_archive.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sale_bill_archive.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_bill_archive.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sale_bill_item.sku_spec 默认值：<NULL> vs NULL
+- 列 t_sale_bill_item.item_remark 默认值：<NULL> vs NULL
+- 列 t_sale_bill_item.trace_codes 类型：json vs longtext
+- 列 t_sale_bill_item.trace_codes 默认值：<NULL> vs NULL
+- 列 t_sale_bill_item.trace_codes 字符集： vs utf8mb4
+- 列 t_sale_bill_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_bill_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sale_bill_item.unit 默认值：瓶 vs '瓶'
+- 列 t_sale_bill_item.barcode 默认值：<NULL> vs NULL
+- 列 t_sale_bill_item.spec 默认值：<NULL> vs NULL
+- 列 t_sale_bill_item_archive.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_bill_item_archive.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sale_payment.customer_id 默认值：<NULL> vs NULL
+- 列 t_sale_payment.customer_name 默认值：<NULL> vs NULL
+- 列 t_sale_payment.payment_method 默认值：CASH vs 'CASH'
+- 列 t_sale_payment.voucher_no 默认值：<NULL> vs NULL
+- 列 t_sale_payment.status 默认值：COMPLETED vs 'COMPLETED'
+- 列 t_sale_payment.remark 默认值：<NULL> vs NULL
+- 列 t_sale_payment.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_payment.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sale_payment.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_payment.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sale_return.source_bill_no 默认值：<NULL> vs NULL
+- 列 t_sale_return.customer_id 默认值：<NULL> vs NULL
+- 列 t_sale_return.customer_name 默认值：<NULL> vs NULL
+- 列 t_sale_return.customer_mobile 默认值：<NULL> vs NULL
+- 列 t_sale_return.return_status 默认值：PENDING vs 'PENDING'
+- 列 t_sale_return.approval_instance_no 默认值：<NULL> vs NULL
+- 列 t_sale_return.refund_method 默认值：<NULL> vs NULL
+- 列 t_sale_return.auditor_id 默认值：<NULL> vs NULL
+- 列 t_sale_return.audited_at 默认值：<NULL> vs NULL
+- 列 t_sale_return.remark 默认值：<NULL> vs NULL
+- 列 t_sale_return.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_return.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sale_return.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_return.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sale_return_item.reason 默认值：<NULL> vs NULL
+- 列 t_sale_return_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sale_return_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sales_commission_record.rate 默认值：<NULL> vs NULL
+- 列 t_sales_commission_record.status 默认值：PENDING vs 'PENDING'
+- 列 t_sales_commission_record.settled_at 默认值：<NULL> vs NULL
+- 列 t_sales_commission_record.tenant_id 默认值： vs ''
+- 列 t_sales_commission_record.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sales_commission_record.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sales_commission_rule.config 类型：json vs longtext
+- 列 t_sales_commission_rule.config 字符集： vs utf8mb4
+- 列 t_sales_commission_rule.effective_start 默认值：<NULL> vs NULL
+- 列 t_sales_commission_rule.effective_end 默认值：<NULL> vs NULL
+- 列 t_sales_commission_rule.remark 默认值：<NULL> vs NULL
+- 列 t_sales_commission_rule.tenant_id 默认值： vs ''
+- 列 t_sales_commission_rule.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sales_commission_rule.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sales_commission_rule.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sales_commission_rule.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_seckill_order.member_name 默认值：<NULL> vs NULL
+- 列 t_seckill_order.member_mobile 默认值：<NULL> vs NULL
+- 列 t_seckill_order.status 默认值：PENDING_PAY vs 'PENDING_PAY'
+- 列 t_seckill_order.paid_at 默认值：<NULL> vs NULL
+- 列 t_seckill_order.cancelled_at 默认值：<NULL> vs NULL
+- 列 t_seckill_order.cancel_reason 默认值：<NULL> vs NULL
+- 列 t_seckill_order.tenant_id 默认值： vs ''
+- 列 t_seckill_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_seckill_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_seckill_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_seckill_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_seckill_product.start_time 默认值：<NULL> vs NULL
+- 列 t_seckill_product.end_time 默认值：<NULL> vs NULL
+- 列 t_seckill_product.status 默认值：PENDING vs 'PENDING'
+- 列 t_seckill_product.tenant_id 默认值： vs ''
+- 列 t_seckill_product.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_seckill_product.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_shift.operator_id 默认值：<NULL> vs NULL
+- 列 t_shift.operator_name 默认值：<NULL> vs NULL
+- 列 t_shift.start_time 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_shift.start_time EXTRA：DEFAULT_GENERATED vs 
+- 列 t_shift.end_time 默认值：<NULL> vs NULL
+- 列 t_shift.status 默认值：OPEN vs 'OPEN'
+- 列 t_shift.remark 默认值：<NULL> vs NULL
+- 列 t_shift.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_shift.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_shift.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_shift.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_shift.shift_type 默认值： vs ''
+- 列 t_shift_stock_check.diff_reason 默认值：<NULL> vs NULL
+- 列 t_shift_stock_check.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_shift_stock_check.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sku_price.effective_start 默认值：<NULL> vs NULL
+- 列 t_sku_price.effective_end 默认值：<NULL> vs NULL
+- 列 t_sku_price.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sku_price.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sku_price.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sku_price.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sms_template.tenant_id 默认值：default vs 'default'
+- 列 t_sms_template.purpose 默认值： vs ''
+- 列 t_sms_template.status 默认值：ENABLED vs 'ENABLED'
+- 列 t_sms_template.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sms_template.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sms_template.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sms_template.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_stock_check.check_status 默认值：PENDING vs 'PENDING'
+- 列 t_stock_check.operator_id 默认值：<NULL> vs NULL
+- 列 t_stock_check.auditor_id 默认值：<NULL> vs NULL
+- 列 t_stock_check.audited_at 默认值：<NULL> vs NULL
+- 列 t_stock_check.tenant_id 默认值： vs ''
+- 列 t_stock_check.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_stock_check.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_stock_check.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_stock_check.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_stock_check.status 默认值：<NULL> vs NULL
+- 列 t_stock_check.remark 默认值：<NULL> vs NULL
+- 列 t_stock_check.completed_at 默认值：<NULL> vs NULL
+- 列 t_stock_check_item.actual_qty 默认值：<NULL> vs NULL
+- 列 t_stock_check_item.diff_reason 默认值：<NULL> vs NULL
+- 列 t_stock_check_item.tenant_id 默认值： vs ''
+- 列 t_stock_check_item.check_id 默认值：<NULL> vs NULL
+- 列 t_stock_check_item.sku_name 默认值：<NULL> vs NULL
+- 列 t_stock_check_item.batch_no 默认值：<NULL> vs NULL
+- 列 t_stock_warning.tenant_id 默认值：default vs 'default'
+- 列 t_stock_warning.sku_id 默认值：<NULL> vs NULL
+- 列 t_stock_warning.sku_name 默认值：<NULL> vs NULL
+- 列 t_stock_warning.warning_level 默认值：WARNING vs 'WARNING'
+- 列 t_stock_warning.store_name 默认值：<NULL> vs NULL
+- 列 t_stock_warning.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_stock_warning.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_stock_warning.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_stock_warning.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_stock_warning.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_stock_warning_config.tenant_id 默认值： vs ''
+- 列 t_stock_warning_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_stock_warning_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_stock_warning_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_stock_warning_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_store.lng 默认值：<NULL> vs NULL
+- 列 t_store.lat 默认值：<NULL> vs NULL
+- 列 t_store.contact 默认值：<NULL> vs NULL
+- 列 t_store.phone 默认值：<NULL> vs NULL
+- 列 t_store.business_status 默认值：OPEN vs 'OPEN'
+- 列 t_store.status 默认值：OPEN vs 'OPEN'
+- 列 t_store.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_store.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_store.miniapp_appid 默认值：<NULL> vs NULL
+- 列 t_store.wx_merchant_name 默认值：<NULL> vs NULL
+- 列 t_store.wx_service_phone 默认值：<NULL> vs NULL
+- 列 t_store.wx_head_img 默认值：<NULL> vs NULL
+- 列 t_store.wx_qrcode_url 默认值：<NULL> vs NULL
+- 列 t_store.store_name 默认值：<NULL> vs NULL
+- 列 t_store.store_type 默认值：STORE vs 'STORE'
+- 列 t_store_control_config.auto_open_time 默认值：<NULL> vs NULL
+- 列 t_store_control_config.auto_close_time 默认值：<NULL> vs NULL
+- 列 t_store_control_config.max_daily_orders 默认值：<NULL> vs NULL
+- 列 t_store_control_config.max_order_amount 默认值：<NULL> vs NULL
+- 列 t_store_control_config.suspended_reason 默认值：<NULL> vs NULL
+- 列 t_store_control_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store_control_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_store_control_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store_control_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_store_status_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_store_status_log.remark 默认值： vs ''
+- 列 t_store_status_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store_status_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_store_value_card.customer_name 默认值：<NULL> vs NULL
+- 列 t_store_value_card.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_store_value_card.tenant_id 默认值： vs ''
+- 列 t_store_value_card.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store_value_card.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_store_value_card.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store_value_card.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_store_value_transaction.pay_method 默认值：<NULL> vs NULL
+- 列 t_store_value_transaction.source_no 默认值：<NULL> vs NULL
+- 列 t_store_value_transaction.remark 默认值：<NULL> vs NULL
+- 列 t_store_value_transaction.operator_id 默认值：<NULL> vs NULL
+- 列 t_store_value_transaction.tenant_id 默认值： vs ''
+- 列 t_store_value_transaction.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_store_value_transaction.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_subscription.payment_status 默认值：UNPAID vs 'UNPAID'
+- 列 t_subscription.payment_method 默认值：<NULL> vs NULL
+- 列 t_subscription.paid_at 默认值：<NULL> vs NULL
+- 列 t_subscription.transaction_no 默认值：<NULL> vs NULL
+- 列 t_subscription.renew_price 默认值：<NULL> vs NULL
+- 列 t_subscription.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_subscription.cancel_reason 默认值：<NULL> vs NULL
+- 列 t_subscription.cancelled_at 默认值：<NULL> vs NULL
+- 列 t_subscription.expire_notify_at 默认值：<NULL> vs NULL
+- 列 t_subscription.remark 默认值：<NULL> vs NULL
+- 列 t_subscription.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_subscription.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_subscription.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_subscription.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_subscription.order_no 默认值：<NULL> vs NULL
+- 列 t_subscription.plan_code 默认值：<NULL> vs NULL
+- 列 t_subscription.amount 默认值：<NULL> vs NULL
+- 列 t_subscription.created_by 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.old_plan_id 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.new_plan_id 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.old_end_date 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.new_end_date 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.amount 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.operator_name 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.remark 默认值：<NULL> vs NULL
+- 列 t_subscription_operation_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_subscription_operation_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_subscription_plan.original_price 默认值：<NULL> vs NULL
+- 列 t_subscription_plan.features 类型：json vs longtext
+- 列 t_subscription_plan.features 默认值：<NULL> vs NULL
+- 列 t_subscription_plan.features 字符集： vs utf8mb4
+- 列 t_subscription_plan.module_access 类型：json vs longtext
+- 列 t_subscription_plan.module_access 默认值：<NULL> vs NULL
+- 列 t_subscription_plan.module_access 字符集： vs utf8mb4
+- 列 t_subscription_plan.description 默认值：<NULL> vs NULL
+- 列 t_subscription_plan.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_subscription_plan.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_subscription_plan.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_subscription_plan.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_subscription_plan.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_supplier.short_name 默认值：<NULL> vs NULL
+- 列 t_supplier.category 默认值：<NULL> vs NULL
+- 列 t_supplier.province 默认值：<NULL> vs NULL
+- 列 t_supplier.city 默认值：<NULL> vs NULL
+- 列 t_supplier.district 默认值：<NULL> vs NULL
+- 列 t_supplier.address 默认值：<NULL> vs NULL
+- 列 t_supplier.credit_level 默认值：B vs 'B'
+- 列 t_supplier.settlement_type 默认值：CASH vs 'CASH'
+- 列 t_supplier.settlement_day 默认值：<NULL> vs NULL
+- 列 t_supplier.bank_name 默认值：<NULL> vs NULL
+- 列 t_supplier.bank_account 默认值：<NULL> vs NULL
+- 列 t_supplier.bank_account_name 默认值：<NULL> vs NULL
+- 列 t_supplier.remark 默认值：<NULL> vs NULL
+- 列 t_supplier.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_supplier.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_supplier.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_supplier.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_supplier.contact_name 默认值：<NULL> vs NULL
+- 列 t_supplier_contact.mobile 默认值：<NULL> vs NULL
+- 列 t_supplier_contact.phone 默认值：<NULL> vs NULL
+- 列 t_supplier_contact.email 默认值：<NULL> vs NULL
+- 列 t_supplier_contact.wechat 默认值：<NULL> vs NULL
+- 列 t_supplier_contact.position 默认值：<NULL> vs NULL
+- 列 t_supplier_contact.remark 默认值：<NULL> vs NULL
+- 列 t_supplier_contact.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_supplier_contact.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_supplier_contact.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_supplier_contact.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_supplier_statement.balance_amount 默认值：<NULL> vs NULL
+- 列 t_supplier_statement.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_supplier_statement.confirmed_by 默认值：<NULL> vs NULL
+- 列 t_supplier_statement.confirmed_at 默认值：<NULL> vs NULL
+- 列 t_supplier_statement.remark 默认值：<NULL> vs NULL
+- 列 t_supplier_statement.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_supplier_statement.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_supplier_statement.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_supplier_statement.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_supplier_statement.start_date 默认值：<NULL> vs NULL
+- 列 t_supplier_statement.end_date 默认值：<NULL> vs NULL
+- 列 t_supplier_statement.statement_status 默认值：<NULL> vs NULL
+- 列 t_supplier_statement_item.balance 默认值：<NULL> vs NULL
+- 列 t_supplier_statement_item.statement_no 默认值：<NULL> vs NULL
+- 列 t_supplier_statement_item.item_no 默认值：<NULL> vs NULL
+- 列 t_supplier_statement_item.item_type 默认值：<NULL> vs NULL
+- 列 t_supplier_statement_item.status 默认值：<NULL> vs NULL
+- 列 t_support_ticket.description 默认值：<NULL> vs NULL
+- 列 t_support_ticket.priority 默认值：NORMAL vs 'NORMAL'
+- 列 t_support_ticket.status 默认值：PENDING vs 'PENDING'
+- 列 t_support_ticket.assignee_id 默认值：<NULL> vs NULL
+- 列 t_support_ticket.sla_deadline 默认值：<NULL> vs NULL
+- 列 t_support_ticket.resolved_at 默认值：<NULL> vs NULL
+- 列 t_support_ticket.closed_at 默认值：<NULL> vs NULL
+- 列 t_support_ticket.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_support_ticket.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_support_ticket.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_support_ticket.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_support_ticket_attachment.message_id 默认值：<NULL> vs NULL
+- 列 t_support_ticket_attachment.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_support_ticket_attachment.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_support_ticket_category.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_support_ticket_category.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_support_ticket_category.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_support_ticket_category.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_support_ticket_message.sender_id 默认值：<NULL> vs NULL
+- 列 t_support_ticket_message.sender_name 默认值：<NULL> vs NULL
+- 列 t_support_ticket_message.bubble_type 默认值：PUBLIC vs 'PUBLIC'
+- 列 t_support_ticket_message.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_support_ticket_message.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sync_cache.sync_data 默认值：<NULL> vs NULL
+- 列 t_sync_cache.sync_status 默认值：pending vs 'pending'
+- 列 t_sync_cache.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sync_cache.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sync_cache.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sync_cache.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_config.config_value 默认值：<NULL> vs NULL
+- 列 t_sys_config.config_group 默认值：system vs 'system'
+- 列 t_sys_config.description 默认值：<NULL> vs NULL
+- 列 t_sys_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_data_permission.condition_value 默认值：<NULL> vs NULL
+- 列 t_sys_data_permission.description 默认值：<NULL> vs NULL
+- 列 t_sys_data_permission.tenant_id 默认值：default vs 'default'
+- 列 t_sys_data_permission.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_data_permission.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_data_permission.filter_type 默认值：<NULL> vs NULL
+- 列 t_sys_data_permission.filter_value 默认值：<NULL> vs NULL
+- 列 t_sys_department.parent_id 默认值：<NULL> vs NULL
+- 列 t_sys_department.store_id 默认值：<NULL> vs NULL
+- 列 t_sys_department.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_department.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_department.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_department.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_field_permission.description 默认值：<NULL> vs NULL
+- 列 t_sys_field_permission.tenant_id 默认值：default vs 'default'
+- 列 t_sys_field_permission.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_field_permission.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_menu.parent_id 默认值：<NULL> vs NULL
+- 列 t_sys_menu.menu_type 默认值：MENU vs 'MENU'
+- 列 t_sys_menu.path 默认值：<NULL> vs NULL
+- 列 t_sys_menu.component 默认值：<NULL> vs NULL
+- 列 t_sys_menu.icon 默认值：<NULL> vs NULL
+- 列 t_sys_menu.tenant_id 默认值：default vs 'default'
+- 列 t_sys_menu.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_menu.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_menu.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_menu.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_permission.parent_id 默认值：<NULL> vs NULL
+- 列 t_sys_permission.path 默认值：<NULL> vs NULL
+- 列 t_sys_permission.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_permission.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_permission.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_permission.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_position.position_code 默认值：<NULL> vs NULL
+- 列 t_sys_position.department_id 默认值：<NULL> vs NULL
+- 列 t_sys_position.remark 默认值：<NULL> vs NULL
+- 列 t_sys_position.tenant_id 默认值： vs ''
+- 列 t_sys_position.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_position.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_position.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_position.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_role.description 默认值：<NULL> vs NULL
+- 列 t_sys_role.data_scope 默认值：SELF vs 'SELF'
+- 列 t_sys_role.permissions 类型：json vs longtext
+- 列 t_sys_role.permissions 默认值：<NULL> vs NULL
+- 列 t_sys_role.permissions 字符集： vs utf8mb4
+- 列 t_sys_role.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_sys_role.tenant_id 默认值：default vs 'default'
+- 列 t_sys_role.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_role.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_role.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_role.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_role.name 默认值：<NULL> vs NULL
+- 列 t_sys_role_menu.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_role_menu.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_role_permission.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_role_permission.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_user.mfa_secret 默认值：<NULL> vs NULL
+- 列 t_sys_user.real_name 默认值：<NULL> vs NULL
+- 列 t_sys_user.avatar 默认值：<NULL> vs NULL
+- 列 t_sys_user.email 默认值：<NULL> vs NULL
+- 列 t_sys_user.phone 默认值：<NULL> vs NULL
+- 列 t_sys_user.store_id 默认值：<NULL> vs NULL
+- 列 t_sys_user.department_id 默认值：<NULL> vs NULL
+- 列 t_sys_user.position_id 默认值：<NULL> vs NULL
+- 列 t_sys_user.tenant_id 默认值：default vs 'default'
+- 列 t_sys_user.locked_until 默认值：<NULL> vs NULL
+- 列 t_sys_user.last_login_at 默认值：<NULL> vs NULL
+- 列 t_sys_user.default_homepage 默认值：<NULL> vs NULL
+- 列 t_sys_user.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_user.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_user.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_user.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_sys_user.password 默认值：<NULL> vs NULL
+- 列 t_sys_user.role 默认值：<NULL> vs NULL
+- 列 t_sys_user.mobile 默认值：<NULL> vs NULL
+- 列 t_sys_user_login.user_id 默认值：<NULL> vs NULL
+- 列 t_sys_user_login.username 默认值：<NULL> vs NULL
+- 列 t_sys_user_login.login_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_user_login.login_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_user_login.ip 默认值：<NULL> vs NULL
+- 列 t_sys_user_login.user_agent 默认值：<NULL> vs NULL
+- 列 t_sys_user_login.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_user_login.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_sys_user_role.tenant_id 默认值：default vs 'default'
+- 列 t_sys_user_role.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_sys_user_role.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_system_feedback.contact 默认值：<NULL> vs NULL
+- 列 t_system_feedback.screenshot_urls 默认值：<NULL> vs NULL
+- 列 t_system_feedback.page_url 默认值：<NULL> vs NULL
+- 列 t_system_feedback.browser_info 默认值：<NULL> vs NULL
+- 列 t_system_feedback.status 默认值：PENDING vs 'PENDING'
+- 列 t_system_feedback.reply 默认值：<NULL> vs NULL
+- 列 t_system_feedback.user_id 默认值：<NULL> vs NULL
+- 列 t_system_feedback.tenant_id 默认值：default vs 'default'
+- 列 t_system_feedback.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_system_feedback.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_system_feedback.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_system_feedback.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant.contact_name 默认值：<NULL> vs NULL
+- 列 t_tenant.contact_phone 默认值：<NULL> vs NULL
+- 列 t_tenant.plan 默认值：basic vs 'basic'
+- 列 t_tenant.expire_at 默认值：<NULL> vs NULL
+- 列 t_tenant.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant.review_status 默认值：APPROVED vs 'APPROVED'
+- 列 t_tenant.review_remark 默认值：<NULL> vs NULL
+- 列 t_tenant.reviewed_at 默认值：<NULL> vs NULL
+- 列 t_tenant.reviewed_by 默认值：<NULL> vs NULL
+- 列 t_tenant.tenant_id 默认值：<NULL> vs NULL
+- 列 t_tenant.tenant_name 默认值：<NULL> vs NULL
+- 列 t_tenant.created_by 默认值：<NULL> vs NULL
+- 列 t_tenant.tax_no 默认值：<NULL> vs NULL
+- 列 t_tenant.tenant_code 默认值：<NULL> vs NULL
+- 列 t_tenant.company_name 默认值：<NULL> vs NULL
+- 列 t_tenant.company_short_name 默认值：<NULL> vs NULL
+- 列 t_tenant.contact_person 默认值：<NULL> vs NULL
+- 列 t_tenant.contact_mobile 默认值：<NULL> vs NULL
+- 列 t_tenant.contact_email 默认值：<NULL> vs NULL
+- 列 t_tenant.province 默认值：<NULL> vs NULL
+- 列 t_tenant.city 默认值：<NULL> vs NULL
+- 列 t_tenant.district 默认值：<NULL> vs NULL
+- 列 t_tenant.address 默认值：<NULL> vs NULL
+- 列 t_tenant.business_license 默认值：<NULL> vs NULL
+- 列 t_tenant.legal_person 默认值：<NULL> vs NULL
+- 列 t_tenant.industry 默认值：<NULL> vs NULL
+- 列 t_tenant.company_scale 默认值：<NULL> vs NULL
+- 列 t_tenant.source 默认值：MANUAL vs 'MANUAL'
+- 列 t_tenant.suspend_reason 默认值：<NULL> vs NULL
+- 列 t_tenant.suspended_at 默认值：<NULL> vs NULL
+- 列 t_tenant.remark 默认值：<NULL> vs NULL
+- 列 t_tenant_admin.role 默认值：ADMIN vs 'ADMIN'
+- 列 t_tenant_admin.granted_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_admin.granted_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_admin.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_admin.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_ai_billing.plan_type 默认值：pay_as_you_go vs 'pay_as_you_go'
+- 列 t_tenant_ai_billing.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_ai_billing.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_ai_billing.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_ai_billing.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant_ai_config.provider 默认值：deepseek vs 'deepseek'
+- 列 t_tenant_ai_config.api_key 默认值：<NULL> vs NULL
+- 列 t_tenant_ai_config.api_endpoint 默认值：<NULL> vs NULL
+- 列 t_tenant_ai_config.model 默认值：deepseek-chat vs 'deepseek-chat'
+- 列 t_tenant_ai_config.system_prompt 默认值：<NULL> vs NULL
+- 列 t_tenant_ai_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_ai_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_ai_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_ai_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant_attribution.promo_code_id 默认值：<NULL> vs NULL
+- 列 t_tenant_attribution.agent_id 默认值：<NULL> vs NULL
+- 列 t_tenant_attribution.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_attribution.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_attribution.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_attribution.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant_config.config_value 默认值：<NULL> vs NULL
+- 列 t_tenant_config.config_type 默认值：string vs 'string'
+- 列 t_tenant_config.storage_limit 默认值：<NULL> vs NULL
+- 列 t_tenant_config.storage_limit_unit 默认值：<NULL> vs NULL
+- 列 t_tenant_config.description 默认值：<NULL> vs NULL
+- 列 t_tenant_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant_library_copy.copied_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_library_copy.copied_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_library_copy.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_library_copy.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant_module_access.granted_by 默认值：PLAN vs 'PLAN'
+- 列 t_tenant_module_access.granted_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_module_access.granted_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_module_access.expire_at 默认值：<NULL> vs NULL
+- 列 t_tenant_module_access.remark 默认值：<NULL> vs NULL
+- 列 t_tenant_module_access.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_module_access.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_module_access.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_module_access.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant_register_application.company_short_name 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.contact_email 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.province 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.city 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.district 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.address 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.business_license 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.legal_person 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.industry 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.company_scale 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.status 默认值：PENDING vs 'PENDING'
+- 列 t_tenant_register_application.reject_reason 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.reviewed_at 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.reviewed_by 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_register_application.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_tenant_register_application.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_tenant_register_application.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_tenant_register_application.promo_code 默认值：<NULL> vs NULL
+- 列 t_tenant_register_application.agent_id 默认值：<NULL> vs NULL
+- 列 t_todos.type 默认值：<NULL> vs NULL
+- 列 t_todos.source 默认值：<NULL> vs NULL
+- 列 t_todos.priority 默认值：NORMAL vs 'NORMAL'
+- 列 t_todos.status 默认值：PENDING vs 'PENDING'
+- 列 t_todos.due_date 默认值：<NULL> vs NULL
+- 列 t_todos.remark 默认值：<NULL> vs NULL
+- 列 t_todos.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_todos.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_trace_code.sku_name 默认值： vs ''
+- 列 t_trace_code.batch_no 默认值： vs ''
+- 列 t_trace_code.production_date 默认值：<NULL> vs NULL
+- 列 t_trace_code.expiry_date 默认值：<NULL> vs NULL
+- 列 t_trace_code.shelf_life_days 默认值：<NULL> vs NULL
+- 列 t_trace_code.code_mode 默认值：ONE_PER_BATCH vs 'ONE_PER_BATCH'
+- 列 t_trace_code.category_id 默认值：<NULL> vs NULL
+- 列 t_trace_code.current_status 默认值：PRODUCED vs 'PRODUCED'
+- 列 t_trace_code.current_location 默认值： vs ''
+- 列 t_trace_code.store_id 默认值：<NULL> vs NULL
+- 列 t_trace_code.warehouse_id 默认值：<NULL> vs NULL
+- 列 t_trace_code.order_id 默认值：<NULL> vs NULL
+- 列 t_trace_code.supplier_id 默认值：<NULL> vs NULL
+- 列 t_trace_code.quality_check_result 默认值：PENDING vs 'PENDING'
+- 列 t_trace_code.first_scan_at 默认值：<NULL> vs NULL
+- 列 t_trace_code.first_scan_ip 默认值：<NULL> vs NULL
+- 列 t_trace_code.produced_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_trace_code.produced_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_trace_code.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_trace_code.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_trace_code.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_trace_code.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_trace_config.target_name 默认值： vs ''
+- 列 t_trace_config.code_mode 默认值：ONE_PER_BATCH vs 'ONE_PER_BATCH'
+- 列 t_trace_config.code_prefix 默认值：TR vs 'TR'
+- 列 t_trace_config.remark 默认值： vs ''
+- 列 t_trace_config.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_trace_config.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_trace_config.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_trace_config.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_trace_event_log.from_status 默认值：<NULL> vs NULL
+- 列 t_trace_event_log.to_status 默认值：<NULL> vs NULL
+- 列 t_trace_event_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_trace_event_log.operator_name 默认值： vs ''
+- 列 t_trace_event_log.store_id 默认值：<NULL> vs NULL
+- 列 t_trace_event_log.order_id 默认值：<NULL> vs NULL
+- 列 t_trace_event_log.location 默认值： vs ''
+- 列 t_trace_event_log.remark 默认值： vs ''
+- 列 t_trace_event_log.extra 类型：json vs longtext
+- 列 t_trace_event_log.extra 默认值：<NULL> vs NULL
+- 列 t_trace_event_log.extra 字符集： vs utf8mb4
+- 列 t_trace_event_log.ip 默认值： vs ''
+- 列 t_trace_event_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_trace_event_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_trace_scan_log.user_id 默认值：<NULL> vs NULL
+- 列 t_trace_scan_log.ip 默认值： vs ''
+- 列 t_trace_scan_log.result 默认值：SUCCESS vs 'SUCCESS'
+- 列 t_trace_scan_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_trace_scan_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_transfer_order.status 默认值：DRAFT vs 'DRAFT'
+- 列 t_transfer_order.expected_date 默认值：<NULL> vs NULL
+- 列 t_transfer_order.created_by 默认值：<NULL> vs NULL
+- 列 t_transfer_order.approved_by 默认值：<NULL> vs NULL
+- 列 t_transfer_order.approved_at 默认值：<NULL> vs NULL
+- 列 t_transfer_order.shipped_by 默认值：<NULL> vs NULL
+- 列 t_transfer_order.shipped_at 默认值：<NULL> vs NULL
+- 列 t_transfer_order.received_by 默认值：<NULL> vs NULL
+- 列 t_transfer_order.received_at 默认值：<NULL> vs NULL
+- 列 t_transfer_order.cancel_reason 默认值：<NULL> vs NULL
+- 列 t_transfer_order.remark 默认值：<NULL> vs NULL
+- 列 t_transfer_order.transfer_status 默认值：PENDING vs 'PENDING'
+- 列 t_transfer_order.operator_id 默认值：<NULL> vs NULL
+- 列 t_transfer_order.tenant_id 默认值： vs ''
+- 列 t_transfer_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_transfer_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_transfer_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_transfer_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_transfer_order.from_store_name 默认值：<NULL> vs NULL
+- 列 t_transfer_order.to_store_name 默认值：<NULL> vs NULL
+- 列 t_transfer_order.created_by_name 默认值：<NULL> vs NULL
+- 列 t_transfer_order.actual_date 默认值：<NULL> vs NULL
+- 列 t_transfer_order_item.transfer_no 默认值：<NULL> vs NULL
+- 列 t_transfer_order_item.sku_name 默认值： vs ''
+- 列 t_transfer_order_item.tenant_id 默认值： vs ''
+- 列 t_transfer_stock_log.operator_id 默认值：<NULL> vs NULL
+- 列 t_transfer_stock_log.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_transfer_stock_log.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_unit.type 默认值：BASE vs 'BASE'
+- 列 t_unit.tenant_id 默认值：default vs 'default'
+- 列 t_unit.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_unit.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_unit.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_unit.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_unit_group.tenant_id 默认值：default vs 'default'
+- 列 t_unit_group.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_unit_group.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_unit_group.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_unit_group.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_unit_group_item.tenant_id 默认值：default vs 'default'
+- 列 t_unit_group_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_unit_group_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_unit_group_item.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_unit_group_item.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_upload_file.file_type 默认值：<NULL> vs NULL
+- 列 t_upload_file.file_hash 默认值：<NULL> vs NULL
+- 列 t_upload_file.uploader_id 默认值：<NULL> vs NULL
+- 列 t_upload_file.biz_type 默认值：<NULL> vs NULL
+- 列 t_upload_file.biz_id 默认值：<NULL> vs NULL
+- 列 t_upload_file.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_upload_file.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_upload_file.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_upload_file.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_user_binding.binding_type 默认值：WECHAT vs 'WECHAT'
+- 列 t_user_binding.username 默认值：<NULL> vs NULL
+- 列 t_user_binding.real_name 默认值：<NULL> vs NULL
+- 列 t_user_binding.status 默认值：ACTIVE vs 'ACTIVE'
+- 列 t_user_binding.bound_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_user_binding.bound_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_user_binding.unbound_at 默认值：<NULL> vs NULL
+- 列 t_user_binding.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_user_binding.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_user_coupon.max_discount 默认值：<NULL> vs NULL
+- 列 t_user_coupon.applicable_ids 类型：json vs longtext
+- 列 t_user_coupon.applicable_ids 默认值：<NULL> vs NULL
+- 列 t_user_coupon.applicable_ids 字符集： vs utf8mb4
+- 列 t_user_coupon.status 默认值：UNUSED vs 'UNUSED'
+- 列 t_user_coupon.used_at 默认值：<NULL> vs NULL
+- 列 t_user_coupon.used_order_no 默认值：<NULL> vs NULL
+- 列 t_user_coupon.used_amount 默认值：<NULL> vs NULL
+- 列 t_user_coupon.discount_amount 默认值：<NULL> vs NULL
+- 列 t_user_coupon.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_user_coupon.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_user_coupon.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_user_coupon.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_user_coupon.customer_id 默认值：<NULL> vs NULL
+- 列 t_user_points.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_user_points.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_user_points.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_user_points.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_user_session.device_type 默认值：<NULL> vs NULL
+- 列 t_user_session.device_info 默认值：<NULL> vs NULL
+- 列 t_user_session.ip 默认值：<NULL> vs NULL
+- 列 t_user_session.last_activity_at 默认值：<NULL> vs NULL
+- 列 t_user_session.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_user_session.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_verification_code.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_verification_code.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_wholesale_cart.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_wholesale_cart.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_wholesale_cart.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_wholesale_cart.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_wholesale_order.store_id 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.order_status 默认值：PENDING vs 'PENDING'
+- 列 t_wholesale_order.pay_status 默认值：UNPAID vs 'UNPAID'
+- 列 t_wholesale_order.receiver_name 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.receiver_mobile 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.receiver_province 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.receiver_city 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.receiver_district 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.receiver_address 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.remark 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.coupon_id 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.paid_at 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.shipped_at 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.completed_at 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.cancelled_at 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.cancel_reason 默认值：<NULL> vs NULL
+- 列 t_wholesale_order.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_wholesale_order.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_wholesale_order.updated_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_wholesale_order.updated_at EXTRA：DEFAULT_GENERATED on update CURRENT_TIMESTAMP vs on update current_timestamp()
+- 列 t_wholesale_order_item.sku_image 默认值：<NULL> vs NULL
+- 列 t_wholesale_order_item.spec_info 默认值：<NULL> vs NULL
+- 列 t_wholesale_order_item.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_wholesale_order_item.created_at EXTRA：DEFAULT_GENERATED vs 
+- 列 t_wx_user.unionid 默认值：<NULL> vs NULL
+- 列 t_wx_user.nickname 默认值：<NULL> vs NULL
+- 列 t_wx_user.avatar_url 默认值：<NULL> vs NULL
+- 列 t_wx_user.phone 默认值：<NULL> vs NULL
+- 列 t_wx_user.country 默认值：<NULL> vs NULL
+- 列 t_wx_user.province 默认值：<NULL> vs NULL
+- 列 t_wx_user.city 默认值：<NULL> vs NULL
+- 列 t_wx_user.session_key 默认值：<NULL> vs NULL
+- 列 t_wx_user.last_login_at 默认值：<NULL> vs NULL
+- 列 t_wx_user.created_at 默认值：CURRENT_TIMESTAMP vs current_timestamp()
+- 列 t_wx_user.created_at EXTRA：DEFAULT_GENERATED vs 
+- 外键 ﻿t_delivery_record.t_delivery_record_ibfk_1：order_id→t_retail_order.id del=CASCADE upd=NO ACTION vs order_id→t_retail_order.id del=CASCADE upd=RESTRICT
+- 外键 t_full_reduction_rule.t_full_reduction_rule_ibfk_1：activity_id→t_promotion_activity.id del=CASCADE upd=NO ACTION vs activity_id→t_promotion_activity.id del=CASCADE upd=RESTRICT
+- 外键 t_group_buy_activity.t_group_buy_activity_ibfk_1：activity_id→t_promotion_activity.id del=CASCADE upd=NO ACTION vs activity_id→t_promotion_activity.id del=CASCADE upd=RESTRICT
+- 外键 t_group_buy_participant.t_group_buy_participant_ibfk_1：group_id→t_group_buy_record.id del=CASCADE upd=NO ACTION vs group_id→t_group_buy_record.id del=CASCADE upd=RESTRICT
+- 外键 t_product_spu.fk_product_spu_brand：brand_id→t_brand.id del=SET NULL upd=NO ACTION vs brand_id→t_brand.id del=SET NULL upd=RESTRICT
+- 外键 t_product_tag.t_product_tag_ibfk_1：group_id→t_product_tag_group.id del=NO ACTION upd=NO ACTION vs group_id→t_product_tag_group.id del=RESTRICT upd=RESTRICT
+- 外键 t_product_tag_relation.t_product_tag_relation_ibfk_1：spu_id→t_product_spu.id del=NO ACTION upd=NO ACTION vs spu_id→t_product_spu.id del=RESTRICT upd=RESTRICT
+- 外键 t_product_tag_relation.t_product_tag_relation_ibfk_2：tag_id→t_product_tag.id del=NO ACTION upd=NO ACTION vs tag_id→t_product_tag.id del=RESTRICT upd=RESTRICT
+- 外键 t_retail_order_item.fk_retail_order_item_order：order_id→t_retail_order.id del=CASCADE upd=NO ACTION vs order_id→t_retail_order.id del=CASCADE upd=RESTRICT
+- 外键 t_seckill_product.t_seckill_product_ibfk_1：activity_id→t_promotion_activity.id del=CASCADE upd=NO ACTION vs activity_id→t_promotion_activity.id del=CASCADE upd=RESTRICT
+- 外键 t_subscription.t_subscription_ibfk_1：tenant_id→t_tenant.id del=CASCADE upd=NO ACTION vs tenant_id→t_tenant.id del=CASCADE upd=RESTRICT
+- 外键 t_subscription.t_subscription_ibfk_2：plan_id→t_subscription_plan.id del=RESTRICT upd=NO ACTION vs plan_id→t_subscription_plan.id del=RESTRICT upd=RESTRICT
+- 外键 t_subscription_operation_log.t_subscription_operation_log_ibfk_1：subscription_id→t_subscription.id del=CASCADE upd=NO ACTION vs subscription_id→t_subscription.id del=CASCADE upd=RESTRICT
+- 外键 t_tenant_module_access.t_tenant_module_access_ibfk_1：tenant_id→t_tenant.id del=CASCADE upd=NO ACTION vs tenant_id→t_tenant.id del=CASCADE upd=RESTRICT
+- 外键 t_unit_group_item.fk_item_group：group_id→t_unit_group.id del=CASCADE upd=NO ACTION vs group_id→t_unit_group.id del=CASCADE upd=RESTRICT
+
+## A 类（引擎天然差异，前 15 条）
+
+- 列 ﻿t_aftersale.id 仅整数显示宽度不同：bigint unsigned vs bigint(20) unsigned
+- 列 t_aftersale.order_id 仅整数显示宽度不同：bigint vs bigint(20)
+- 列 t_aftersale.customer_id 仅整数显示宽度不同：bigint vs bigint(20)
+- 列 t_aftersale.store_id 仅整数显示宽度不同：bigint vs bigint(20)
+- 列 t_aftersale.exchange_qty 仅整数显示宽度不同：int vs int(11)
+- 列 t_aftersale.exchange_sku_id 仅整数显示宽度不同：bigint vs bigint(20)
+- 列 t_aftersale.processed_by 仅整数显示宽度不同：bigint vs bigint(20)
+- 列 t_aftersale.inspected_by 仅整数显示宽度不同：bigint vs bigint(20)
+- 列 t_aftersale.satisfaction 仅整数显示宽度不同：int vs int(11)
+- 列 t_aftersale.version 仅整数显示宽度不同：int vs int(11)
+- 列 t_agent.id 仅整数显示宽度不同：bigint unsigned vs bigint(20) unsigned
+- 列 t_agent.level_id 仅整数显示宽度不同：bigint unsigned vs bigint(20) unsigned
+- 列 t_agent.updated_by 仅整数显示宽度不同：int vs int(11)
+- 列 t_agent_level.id 仅整数显示宽度不同：bigint unsigned vs bigint(20) unsigned
+- 列 t_agent_level.allow_sub_level 仅整数显示宽度不同：tinyint vs tinyint(4)
+
+## B 类（引擎天然差异，前 15 条）
+
+- 表 ﻿t_aftersale 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_alert_record 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_alert_rule 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_app_version 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_approval_approver 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_approval_instance 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_approval_log 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_approval_notification 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_approval_rule 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_approval_task 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_audit_log 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_bank_account 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_bill 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_brand 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci
+- 表 t_cart_item 排序规则：utf8mb4_0900_ai_ci vs utf8mb4_general_ci

@@ -1,0 +1,19 @@
+﻿tag        = 10-反测-复原-绿
+repo       = D:\Users\ZXQL\wt-agents\S3-194
+db         = s3194_rtgreen @ 127.0.0.1:3408
+time       = 2026-10-14 04:14:21
+node       = v24.18.0
+HEAD       = 25728007c18d3d3077809c5e5ef7af3a57fb7711
+branch     = fix/s3-194-mysql8-fk-incompatible
+dirty      = 4 项
+src  sha256 BF2F9BDC396E4DC0  016_phase9_tenant_subscription.sql
+src  sha256 6151D754F77593E9  017_phase10_instant_retail.sql
+src  sha256 4AA9EEF97E39D43A  031_add_subscription.sql
+src  sha256 C29E24CCF815B4E9  032_add_tenant_module_access.sql
+src  sha256 E8A3F947A3865F35  034_add_tenant_admin.sql
+src  sha256 9F7493083CD25474  192_租户建租户与归因落点补列.sql
+src  sha256 8167BED3DA849730  backend\src\shared\migration.ts
+src  sha256 F085128059D6B251  backend\src\shared\seed-data.ts
+dist sha256 B5161C983607288B  backend\dist\shared\migration.js
+dist sha256 47C1C091BB17E098  backend\dist\shared\seed-data.js
+dist sha256 F77389A7F7C30FF9  backend\dist\server.js
