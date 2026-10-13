@@ -440,10 +440,14 @@ export async function demoLogin() {
     [account.id]
   );
 
+  // S3-183（收口总清单第 17 项）：roles 查询必须限定"角色行属于该绑定行所在租户"。
+  // 缺这条过滤时，只要存在一条跨租户绑定（如绑定指向 default 的 SUPER_ADMIN），登录返回的
+  // roles 里就会出现重复的 SUPER_ADMIN（同一 role_code 命中两行）。必须与第 18 项的存量修复
+  // （198 把绑定指回本租户角色行）**同批**上线：先加过滤会把尚未修复的账号打空。
   const roles = await query<RoleCodeRow>(
     `SELECT r.role_code
      FROM t_sys_user_role ur
-     JOIN t_sys_role r ON r.id = ur.role_id
+     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
      WHERE ur.user_id = ? AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')`,
     [account.id]
   );

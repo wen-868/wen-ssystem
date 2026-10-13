@@ -8,6 +8,12 @@ import { query, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import type mysql from "mysql2/promise";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
+// S3-183（收口总清单第 18 项）：开通链路必须克隆角色/菜单并把首个管理员绑到本租户的角色行
+import {
+  bindTenantAdminToOwnSuperAdmin,
+  provisionTenantRbac,
+  type SqlRunner,
+} from "./tenant-rbac-provision.service";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -292,12 +298,21 @@ async function initializeTenantDefaults(
 ) {
   // 创建默认管理员账号
   const adminPassword = await import("bcryptjs").then(m => m.hash("123456", 10));
-  await conn.query(
+  const [adminResult] = await conn.query(
     `INSERT INTO t_sys_user
      (tenant_id, username, password, real_name, phone, role, status, is_default)
      VALUES (?, ?, ?, ?, ?, 'SUPER_ADMIN', 'ACTIVE', 1)`,
     [tenantId, "admin", adminPassword, adminName, adminPhone]
   );
+
+  // S3-183：克隆 default 的角色/菜单到本租户，并把首个管理员绑到本租户自己的 SUPER_ADMIN 角色行
+  // （改前只建账号、不建角色行也不建绑定 ⇒ 该租户登录后 permissions=[]、menus=[]）
+  const rbacRun: SqlRunner = (sql, params) => conn.query(sql, params as never);
+  await provisionTenantRbac(rbacRun, tenantId);
+  const adminUserId = Number((adminResult as unknown as { insertId?: number })?.insertId ?? 0);
+  if (adminUserId > 0) {
+    await bindTenantAdminToOwnSuperAdmin(rbacRun, tenantId, adminUserId);
+  }
 
   // 创建默认仓库
   await conn.query(

@@ -3,11 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
   queryOne: vi.fn(),
+  connExecute: vi.fn(),
+  transaction: vi.fn(),
 }));
 
 vi.mock("../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
+  connExecute: mocks.connExecute,
+  transaction: mocks.transaction,
 }));
 
 vi.mock("bcryptjs", () => ({
@@ -139,6 +143,23 @@ describe("platform-tenant.service - 平台租户管理", () => {
       adminPassword: "Pass@1234",
     };
 
+    /** S3-183：createTenant 改为事务内执行（租户 + 管理员 + 角色/菜单 + 绑定必须原子产出） */
+    let connCalls: { sql: string; params: unknown[] }[];
+    beforeEach(() => {
+      connCalls = [];
+      const conn = {
+        query: vi.fn(async (sql: string, params: unknown[] = []) => {
+          connCalls.push({ sql: String(sql), params });
+          return [{ affectedRows: 1 }];
+        }),
+        execute: vi.fn(),
+      };
+      mocks.transaction.mockImplementation(async (cb: (c: unknown) => Promise<unknown>) => cb(conn));
+      mocks.connExecute.mockResolvedValue([{ insertId: 77 }]);
+    });
+
+    const tenantInsertCalls = () => connCalls.filter((c) => /INSERT INTO t_tenant \(/i.test(c.sql));
+
     it("返回真实 UUID（非 0 insertId）且补齐 NOT NULL 列", async () => {
       const tenantId = await createTenant(input);
 
@@ -148,7 +169,7 @@ describe("platform-tenant.service - 平台租户管理", () => {
       );
       expect(tenantId).not.toBe("0");
 
-      const [sql, params] = mocks.query.mock.calls[0];
+      const [{ sql, params }] = tenantInsertCalls();
       expect(String(sql)).toContain("INSERT INTO t_tenant");
       for (const column of [
         "id",
@@ -170,16 +191,42 @@ describe("platform-tenant.service - 平台租户管理", () => {
     it("租户编码按 T+日期+随机 生成且同批两次不同", async () => {
       await createTenant(input);
       await createTenant({ ...input, tenantName: "测试租户2" });
-      const code1 = mocks.query.mock.calls[0][1][1];
-      const code2 = mocks.query.mock.calls[2][1][1];
+      const [first, second] = tenantInsertCalls();
+      const code1 = first.params[1];
+      const code2 = second.params[1];
       expect(code1).not.toBe(code2);
     });
 
     it("管理员账号落在新租户下（tenant_id 用同一个 UUID）", async () => {
       const tenantId = await createTenant(input);
-      const userInsert = mocks.query.mock.calls[1];
-      expect(String(userInsert[0])).toContain("INSERT INTO t_sys_user");
-      expect(userInsert[1][0]).toBe(tenantId);
+      const userInsert = mocks.connExecute.mock.calls[0];
+      // connExecute(conn, sql, params)
+      expect(String(userInsert[1])).toContain("INSERT INTO t_sys_user");
+      expect((userInsert[2] as unknown[])[0]).toBe(tenantId);
+    });
+
+    it("S3-183：同事务内克隆角色/菜单并把首管绑到本租户 SUPER_ADMIN（否则新租户功能中心空白）", async () => {
+      const tenantId = await createTenant(input);
+
+      const roleClone = connCalls.find((c) => /^INSERT INTO t_sys_role/i.test(c.sql.trim()));
+      const menuClones = connCalls.filter((c) => /^INSERT INTO t_sys_menu/i.test(c.sql.trim()));
+      const bind = connCalls.find((c) => /^INSERT INTO t_sys_user_role/i.test(c.sql.trim()));
+
+      expect(roleClone, "缺少角色克隆语句").toBeTruthy();
+      expect(menuClones).toHaveLength(2);
+      expect(bind, "缺少管理员绑定语句").toBeTruthy();
+      // 三条供给语句都必须落在**新租户**上，且绑定的角色查询限定本租户
+      expect(roleClone!.params).toContain(tenantId);
+      expect(bind!.sql).toContain("r.tenant_id = ? AND r.role_code = ?");
+      expect(bind!.params[1]).toBe(tenantId);
+      // 次序：先建租户与管理员，再克隆角色/菜单，最后绑定
+      expect(connCalls.map((c) => c.sql.trim().split(/\s+/).slice(0, 3).join(" "))).toEqual([
+        "INSERT INTO t_tenant",
+        "INSERT INTO t_sys_role",
+        "INSERT INTO t_sys_menu",
+        "INSERT INTO t_sys_menu",
+        "INSERT INTO t_sys_user_role",
+      ]);
     });
   });
 

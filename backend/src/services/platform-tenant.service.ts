@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { query, queryOne } from "../shared/db";
+import type { ResultSetHeader } from "mysql2";
+import { connExecute, query, queryOne, transaction } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import { AppError } from "../shared/app-error";
+import {
+  bindTenantAdminToOwnSuperAdmin,
+  provisionTenantRbac,
+  type SqlRunner,
+} from "./platform/tenant-rbac-provision.service";
 import bcrypt from "bcryptjs";
 
 /**
@@ -144,27 +150,38 @@ export async function createTenant(data: {
   const tenantId = randomUUID();
   const tenantCode = makeBizNo("T");
 
-  await query(
-    `INSERT INTO t_tenant (
-       id, tenant_code, name, tenant_name, company_name, company_short_name,
-       contact_name, contact_person, contact_mobile, contact_email,
-       source, status, expire_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MANUAL', 1, ?)`,
-    [
-      tenantId, tenantCode, data.tenantName, data.tenantName, data.tenantName, data.tenantName,
-      data.contactName, data.contactName, data.contactMobile, data.contactEmail || "",
-      data.expireAt || null,
-    ]
-  );
-
   const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
 
-  // t_sys_user.status 是 TINYINT（1=正常），原实现写 'ACTIVE' 字符串在严格模式会 1366 —— 一并按数值落库
-  await query(
-    `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, status, role)
-     VALUES (?, ?, ?, ?, ?, 1, 'ADMIN')`,
-    [tenantId, data.adminUsername, hashedPassword, data.contactName, data.contactMobile]
-  );
+  // S3-183（收口总清单第 18 项）：开通链路必须**原子地**产出「租户 + 首个管理员 + 角色/菜单 + 管理员绑定」，
+  // 否则中途失败只留下一半，正是"能登录但功能中心空白"的坏租户（本单要修的现象）。
+  await transaction(async (conn) => {
+    const run: SqlRunner = (sql, params) => conn.query(sql, params as never);
+
+    await conn.query(
+      `INSERT INTO t_tenant (
+         id, tenant_code, name, tenant_name, company_name, company_short_name,
+         contact_name, contact_person, contact_mobile, contact_email,
+         source, status, expire_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MANUAL', 1, ?)`,
+      [
+        tenantId, tenantCode, data.tenantName, data.tenantName, data.tenantName, data.tenantName,
+        data.contactName, data.contactName, data.contactMobile, data.contactEmail || "",
+        data.expireAt || null,
+      ] as never
+    );
+
+    // t_sys_user.status 是 TINYINT（1=正常），原实现写 'ACTIVE' 字符串在严格模式会 1366 —— 一并按数值落库
+    const [userResult] = await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, status, role)
+       VALUES (?, ?, ?, ?, ?, 1, 'ADMIN')`,
+      [tenantId, data.adminUsername, hashedPassword, data.contactName, data.contactMobile]
+    );
+
+    // 克隆角色 + 菜单（照 197 口径），再把该租户首个管理员绑到**本租户自己的** SUPER_ADMIN 角色行
+    await provisionTenantRbac(run, tenantId);
+    await bindTenantAdminToOwnSuperAdmin(run, tenantId, Number(userResult.insertId));
+  });
 
   return tenantId;
 }
