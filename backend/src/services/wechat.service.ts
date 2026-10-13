@@ -1,5 +1,6 @@
 import { query, queryOne } from "../shared/db";
 import { verifyPassword } from "../shared/password";
+import { generateCsrfToken } from "../middleware/csrf";
 
 interface WxUserInfoRow {
   id: number;
@@ -66,6 +67,10 @@ export async function login(wxData: { openid: string; session_key: string; union
 
   return {
     token,
+    // S3-187 E：wechat 的 4 个写端点自本次起校验 x-csrf-token（HMAC(userId)，与商家端同一实现）。
+    //   客户端拿不到 CSRF_SECRET，令牌只能由登录响应下发；否则老 miniapp 的
+    //   decrypt-phone / profile(GET 除外) / bind / unbind 会从"能调通"退化成 403。
+    csrfToken: generateCsrfToken(wxUserId),
     userInfo: {
       id: userInfo!.id,
       nickname: userInfo!.nickname || "微信用户",

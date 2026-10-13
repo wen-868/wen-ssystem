@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
-import { ok } from "../../shared/response";
+import { ok, fail } from "../../shared/response";
 import * as flashSaleService from "../../services/admin/marketing-flash-sale.service";
 
 export const createFlashSale = asyncHandler(async (req, res) => {
@@ -77,7 +77,12 @@ export const listActiveFlashSales = asyncHandler(async (req, res) => {
 });
 
 export const buyFlashSale = asyncHandler(async (req, res) => {
+  // S3-187 A：秒杀活动 id 先校验参数本身合法（路由此前无 :id ⇒ NaN 直落业务层）
   const flashSaleId = Number(req.params.id);
+  if (!Number.isInteger(flashSaleId) || flashSaleId <= 0) {
+    res.status(400).json(fail("秒杀活动ID无效", "400"));
+    return;
+  }
   const body = z.object({
     userId: z.number().int().positive(),
     quantity: z.number().int().min(1)

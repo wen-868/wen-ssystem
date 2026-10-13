@@ -66,16 +66,18 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("S3-178 #1 · POST /coupons/claim 的身份来自登录态", () => {
+// S3-187 A：路径已按契约改为带参形态（/coupons/:templateId/claim），故本组用例的 URL 同步更新；
+// 断言口径（身份一律取登录态、客户端字段声明他人即 403）保持不变。
+describe("S3-178 #1 · POST /coupons/:templateId/claim 的身份来自登录态", () => {
   it("无凭证 ⇒ 401，且服务层未被调用", async () => {
-    const res = await request(app).post("/api/miniapp/marketing/coupons/claim").send({ templateId: 1, userId: USER_B_ID });
+    const res = await request(app).post("/api/miniapp/marketing/coupons/1/claim").send({ templateId: 1, userId: USER_B_ID });
     expect(res.status).toBe(401);
     expect(couponService.claimCoupon).not.toHaveBeenCalled();
   });
 
   it("A 的凭证 + 无 CSRF 头 ⇒ 403（CSRF 门禁生效），服务层未被调用", async () => {
     const res = await request(app)
-      .post("/api/miniapp/marketing/coupons/claim")
+      .post("/api/miniapp/marketing/coupons/1/claim")
       .set(authOnly())
       .send({ templateId: 1, userId: USER_A.id });
     expect(res.status).toBe(403);
@@ -84,7 +86,7 @@ describe("S3-178 #1 · POST /coupons/claim 的身份来自登录态", () => {
 
   it("A 的凭证 + body 声明 userId=B ⇒ 403，服务层未被调用（B 的数据无变化）", async () => {
     const res = await request(app)
-      .post("/api/miniapp/marketing/coupons/claim")
+      .post("/api/miniapp/marketing/coupons/1/claim")
       .set(authAndCsrf())
       .send({ templateId: 1, userId: USER_B_ID });
     expect(res.status).toBe(403);
@@ -94,25 +96,26 @@ describe("S3-178 #1 · POST /coupons/claim 的身份来自登录态", () => {
 
   it("A 的凭证 + body 声明 userId=A ⇒ 200，服务层收到的 userId 是 A", async () => {
     const res = await request(app)
-      .post("/api/miniapp/marketing/coupons/claim")
+      .post("/api/miniapp/marketing/coupons/1/claim")
       .set(authAndCsrf())
       .send({ templateId: 1, userId: USER_A.id });
     expect(res.status).toBe(200);
     expect(couponService.claimCoupon).toHaveBeenCalledTimes(1);
     const call = couponService.claimCoupon.mock.calls[0];
+    expect(call[0]).toBe(1); // 被操作对象来自路径参数（不再是 NaN）
     expect(call[1]).toBe(USER_A.id);
     expect(call[2]).toBe("t1");
   });
 
   it("A 的凭证 + 完全不传 userId ⇒ 200，身份仍取自登录态", async () => {
-    const res = await request(app).post("/api/miniapp/marketing/coupons/claim").set(authAndCsrf()).send({ templateId: 1 });
+    const res = await request(app).post("/api/miniapp/marketing/coupons/1/claim").set(authAndCsrf()).send({ templateId: 1 });
     expect(res.status).toBe(200);
     expect(couponService.claimCoupon.mock.calls[0][1]).toBe(USER_A.id);
   });
 
   it("（越权反例·红证据口径）服务层永远收不到客户端声明的 userId=B", async () => {
     const res = await request(app)
-      .post("/api/miniapp/marketing/coupons/claim")
+      .post("/api/miniapp/marketing/coupons/1/claim")
       .set(authAndCsrf())
       .send({ templateId: 1, userId: USER_B_ID });
     const seenUserIds = couponService.claimCoupon.mock.calls.map((c) => c[1]);
@@ -165,34 +168,37 @@ describe("S3-178 #1 · GET /points/my-records 的身份来自登录态", () => {
   });
 });
 
-describe("S3-178 #1 · POST /flash-sales/grab 与 /group-buys/teams/join", () => {
+// S3-187 A：两条路径按契约改成带参形态（/flash-sale/:id/buy、/group-buy/:teamId/join）。
+describe("S3-178 #1 · POST /flash-sale/:id/buy 与 /group-buy/:teamId/join", () => {
   it("无凭证 ⇒ 401，服务层未被调用", async () => {
-    const grab = await request(app).post("/api/miniapp/marketing/flash-sales/grab").send({ userId: USER_B_ID, quantity: 1 });
+    const grab = await request(app).post("/api/miniapp/marketing/flash-sale/1/buy").send({ userId: USER_B_ID, quantity: 1 });
     expect(grab.status).toBe(401);
     expect(flashSaleService.buyFlashSale).not.toHaveBeenCalled();
 
-    const join = await request(app).post("/api/miniapp/marketing/group-buys/teams/join").send({ userId: USER_B_ID, quantity: 1 });
+    const join = await request(app).post("/api/miniapp/marketing/group-buy/1/join").send({ userId: USER_B_ID, quantity: 1 });
     expect(join.status).toBe(401);
     expect(groupBuyService.joinGroupBuyTeam).not.toHaveBeenCalled();
   });
 
   it("A 的凭证 + body 声明 userId=B ⇒ 403（两侧都不落库）", async () => {
-    const grab = await request(app).post("/api/miniapp/marketing/flash-sales/grab").set(authAndCsrf()).send({ userId: USER_B_ID, quantity: 1 });
+    const grab = await request(app).post("/api/miniapp/marketing/flash-sale/1/buy").set(authAndCsrf()).send({ userId: USER_B_ID, quantity: 1 });
     expect(grab.status).toBe(403);
     expect(flashSaleService.buyFlashSale).not.toHaveBeenCalled();
 
-    const join = await request(app).post("/api/miniapp/marketing/group-buys/teams/join").set(authAndCsrf()).send({ userId: USER_B_ID, quantity: 1 });
+    const join = await request(app).post("/api/miniapp/marketing/group-buy/1/join").set(authAndCsrf()).send({ userId: USER_B_ID, quantity: 1 });
     expect(join.status).toBe(403);
     expect(groupBuyService.joinGroupBuyTeam).not.toHaveBeenCalled();
   });
 
   it("body.userId 与登录态一致时放行，服务层收到 A", async () => {
-    const grab = await request(app).post("/api/miniapp/marketing/flash-sales/grab").set(authAndCsrf()).send({ userId: USER_A.id, quantity: 2 });
+    const grab = await request(app).post("/api/miniapp/marketing/flash-sale/1/buy").set(authAndCsrf()).send({ userId: USER_A.id, quantity: 2 });
     expect(grab.status).toBe(200);
+    expect(flashSaleService.buyFlashSale.mock.calls[0][0]).toBe(1); // 被操作对象来自路径参数
     expect(flashSaleService.buyFlashSale.mock.calls[0][1]).toBe(USER_A.id);
 
-    const join = await request(app).post("/api/miniapp/marketing/group-buys/teams/join").set(authAndCsrf()).send({ userId: USER_A.id, quantity: 1 });
+    const join = await request(app).post("/api/miniapp/marketing/group-buy/1/join").set(authAndCsrf()).send({ userId: USER_A.id, quantity: 1 });
     expect(join.status).toBe(200);
+    expect(groupBuyService.joinGroupBuyTeam.mock.calls[0][0]).toBe(1); // 被操作对象来自路径参数
     expect(groupBuyService.joinGroupBuyTeam.mock.calls[0][1]).toBe(USER_A.id);
   });
 });

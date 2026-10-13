@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
-import { ok } from "../../shared/response";
+import { ok, fail } from "../../shared/response";
 import * as groupBuyService from "../../services/admin/marketing-group-buy.service";
 
 export const createGroupBuy = asyncHandler(async (req, res) => {
@@ -109,7 +109,12 @@ export const getGroupBuyTeam = asyncHandler(async (req, res) => {
 });
 
 export const joinGroupBuyTeam = asyncHandler(async (req, res) => {
+  // S3-187 A：团 id 先校验参数本身合法（路由此前无 :teamId ⇒ NaN 直落业务层）
   const teamId = Number(req.params.teamId);
+  if (!Number.isInteger(teamId) || teamId <= 0) {
+    res.status(400).json(fail("拼团团队ID无效", "400"));
+    return;
+  }
   const body = z.object({
     userId: z.number().int().positive(),
     quantity: z.number().int().min(1).default(1)

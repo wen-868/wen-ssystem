@@ -44,7 +44,15 @@ const bindSelfIdentity: RequestHandler = (req, res, next) => {
 
 // 小程序 - 优惠券
 miniappMarketingRouter.get("/coupons/available", couponController.listAvailableCoupons);
-miniappMarketingRouter.post("/coupons/claim", requireAuthWithTenant, csrfMiddleware, bindSelfIdentity, couponController.claimCoupon);
+// S3-187 A：路径参数必须与 controller 读取的参数名一致（此前三条写端点都没有路径参数，
+//   controller 读到 undefined ⇒ Number(undefined)=NaN ⇒ 业务层恒 404）。路径按契约
+//   docs/API接口文档.md:2839/2852/2868 的带参形态注册（契约是权威口径，只照着改代码）：
+//   POST /coupons/:templateId/claim、POST /flash-sale/:id/buy、POST /group-buy/:teamId/join。
+//   「被操作对象」（templateId / id / teamId）的归属与存在性校验在服务层按
+//   `tenant_id = ?` + 命中不到即 404 实现（marketing-coupon.service.ts:459/466、
+//   marketing-flash-sale.service.ts:351/358、marketing-group-buy.service.ts:414-423），
+//   控制器侧补「参数本身是否合法」（非整数/非正数 ⇒ 400，不让 NaN 落到 SQL）。
+miniappMarketingRouter.post("/coupons/:templateId/claim", requireAuthWithTenant, csrfMiddleware, bindSelfIdentity, couponController.claimCoupon);
 miniappMarketingRouter.get("/coupons/my", requireAuthWithTenant, bindSelfIdentity, couponController.listMyCoupons);
 
 // 小程序 - 满减
@@ -52,17 +60,24 @@ miniappMarketingRouter.get("/full-reductions/active", fullReductionController.li
 miniappMarketingRouter.get("/full-reductions/available", fullReductionController.listFullReductions);
 
 // 小程序 - 积分
-miniappMarketingRouter.get("/points/my", pointsController.getUserPoints);
+// S3-187 C：身份改取登录态（此前路由无 :userId 而 controller 读 req.params.userId ⇒ 恒 NaN）。
+//   与管理员代查端点 /api/admin/marketing/points/user/:userId 共用同一 controller 函数，
+//   故函数内做显式分支：有 param ⇒ 用 param（管理员代查，租户隔离在服务层）；
+//   无 param ⇒ 用登录态身份。本路由属「我的」数据，故补 requireAuthWithTenant + bindSelfIdentity。
+miniappMarketingRouter.get("/points/my", requireAuthWithTenant, bindSelfIdentity, pointsController.getUserPoints);
 miniappMarketingRouter.get("/points/my-records", requireAuthWithTenant, bindSelfIdentity, pointsController.listMyPointsRecords);
 
 // 小程序 - 秒杀
 miniappMarketingRouter.get("/flash-sales/active", flashSaleController.listActiveFlashSales);
-miniappMarketingRouter.post("/flash-sales/grab", requireAuthWithTenant, csrfMiddleware, bindSelfIdentity, flashSaleController.buyFlashSale);
+miniappMarketingRouter.post("/flash-sale/:id/buy", requireAuthWithTenant, csrfMiddleware, bindSelfIdentity, flashSaleController.buyFlashSale);
 
 // 小程序 - 拼团
 miniappMarketingRouter.get("/group-buys/active", groupBuyController.listActiveGroupBuys);
 miniappMarketingRouter.get("/group-buys/teams/:teamId", groupBuyController.getGroupBuyTeam);
-miniappMarketingRouter.post("/group-buys/teams/join", requireAuthWithTenant, csrfMiddleware, bindSelfIdentity, groupBuyController.joinGroupBuyTeam);
+// 参数名用 :teamId（而不是契约占位符 :id）——被操作对象是「团」：服务函数
+// joinGroupBuyTeam(teamId,…) 按组 id 查 t_group_buy_team；契约 L2864 对同一资源也明写 :teamId，
+// 管理员侧同族端点为 /api/admin/marketing/group-buys/teams/:teamId/join（参数名逐字一致）。
+miniappMarketingRouter.post("/group-buy/:teamId/join", requireAuthWithTenant, csrfMiddleware, bindSelfIdentity, groupBuyController.joinGroupBuyTeam);
 
 // 小程序 - 试算
 // 试算不落库、也无需身份，但按 S3-178 卡 §二.1「每个写端点前补认证」补认证 + CSRF（同类既有写法：cart.routes.ts 的幂等只读型 POST）

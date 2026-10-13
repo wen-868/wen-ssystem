@@ -83,8 +83,9 @@ const NONE_ALLOWLIST = {
     "「auth:none + 自有挂载」这一形态本身（非公开端点）。" +
     " ② 其余写端点：4 个写端点（L17-L20 .../confirm、.../cancel、.../start-delivery、.../complete-delivery）**已补 `csrfMiddleware`**" +
     "（S3-178；认证来自 L10 `use(...requireStoreAuth)` = [...requireAuthWithTenant, 门店校验]，见 middleware/store-auth.ts:5-14）。" +
-    "另注（前缀撞车，S3-178 回传卡 §七.4）：整机下 `/api/store/**` 还会被 `commerce-fix.routes.ts:28` 的声明式认证+CSRF **前缀级**前置覆盖，" +
-    "故本文件的审计判据在整机 HTTP 上分辨不出（不存在的子路径也 403）。" +
+    "另注（前缀撞车，S3-178 回传卡 §七.4 / S3-187 B）：以**根前缀** `/api/store` 注册的文件（store.routes.ts 等 store-*.routes.ts）" +
+    "其声明式认证+CSRF 仍会**前缀级**前置覆盖本前缀下的全部路径，故本文件的审计判据在整机 HTTP 上分辨不出（不存在的子路径也 403）。" +
+    "`commerce-fix.routes.ts` 原先就是这种写法，S3-187 已把它收窄到 `/api/store/coupons`（只覆盖自己拥有的路径段）。" +
     " ③ 不能改声明式：门店校验（`req.user.storeId`，store-auth.ts:8-13）无法用 routeConfig.auth 的三个取值表达；" +
     "改声明式只能覆盖 requireAuth* 家族，门店校验要么重复注册（认证中间件跑两遍）要么丢失（功能回退）。",
 
@@ -97,10 +98,12 @@ const NONE_ALLOWLIST = {
   "marketing-miniapp.routes.ts":
     "① 必须公开：小程序消费者侧的**匿名浏览**面（GET /coupons/available、/full-reductions/active、/full-reductions/available、" +
     "/flash-sales/active、/group-buys/active、/group-buys/teams/:teamId）—— 未登录也要能浏览营销内容；" +
-    "**注意**：`/coupons/my`、`/points/my-records` 是「我的」数据，自 S3-178 起**需登录态**，不再属公开面。" +
+    "**注意**：`/coupons/my`、`/points/my`、`/points/my-records` 是「我的」数据，自 S3-178 / S3-187 起**需登录态**，不再属公开面。" +
     " ② 其余写端点：需登录态的端点已**同行**挂 `requireAuthWithTenant`（写端点再挂 `csrfMiddleware`），" +
     "并由消费者侧 `bindSelfIdentity` 绑定登录态身份（客户端自带 `userId` 与登录态不一致 ⇒ 403；S3-178 已落地）。" +
-    "**遗留**：`GET /points/my` 的身份仍取路由参数且恒 NaN ⇒ 见 S3-178 回传卡 §七.2，另立小单。" +
+    "**S3-187 更新**：三条写端点按契约改为**带参路径**（`/coupons/:templateId/claim`、`/flash-sale/:id/buy`、" +
+    "`/group-buy/:teamId/join`，原写法无路径参数 ⇒ controller 读到 NaN ⇒ 业务层恒 404）；`GET /points/my` 的身份改取登录态，" +
+    "原「读不存在的路由参数、恒 NaN」的遗留已消除（S3-178 回传卡 §七.2 结项）。" +
     " ③ 不能改声明式：本 router 同时承载公开浏览面与需登录态端点，声明式会无差别套鉴权、把未登录浏览一起打成 401；" +
     "故按**端点级**挂载收口（S3-178）。",
 
@@ -160,7 +163,11 @@ const NONE_ALLOWLIST = {
     "① 必须公开：POST /auth/login（微信 code2Session 换登录态）—— 登录入口本身必须公开（未登录时调用）。" +
     " ② 其余写端点：POST /auth/decrypt-phone、PUT /auth/profile、POST /auth/bind、POST /auth/unbind 由 `requireWxAuth` 保护" +
     "（微信自有令牌：Bearer + JWT 内 wxUserId/openid，middleware/wechat-auth.ts）——该中间件名**不在本门禁的三种声明名内**，" +
-    "R2 判据看不穿；这 4 个写端点无 csrfMiddleware，已登记在回传卡「七、范围外发现」，**不以登记当成已修复**。" +
+    "R2 判据看不穿（本门禁的已知边界，仍成立）；**S3-187 E 已按裁定方案 A 补实**：`requireWxAuth` 校验通过后同时设" +
+    "`req.user`（最小可用形状，id = 微信用户 id）与 `req.tenantId`，4 个写端点同行挂 `csrfMiddleware`（认证在前），" +
+    "并由登录响应下发 `csrfToken`；两侧行为由 `src/__tests__/routes/wechat-csrf-s3-187.test.ts` 锁定" +
+    "（缺 CSRF ⇒ 403 / 带对 ⇒ 到业务层；反测：摘掉 `req.user` 赋值 ⇒ 缺 CSRF 的请求变 200）。" +
+    "⚠️ 本文件的 CSRF 状况**仍不由本门禁守护**（它看不穿 `requireWxAuth`），故以用例锁死，不以登记当合规。" +
     " ③ 不能改声明式：本前缀用微信自有令牌体系，routeConfig.auth 的三个取值都不对应这套凭证；改声明式等于换鉴权体系（越界改动）。",
 };
 
