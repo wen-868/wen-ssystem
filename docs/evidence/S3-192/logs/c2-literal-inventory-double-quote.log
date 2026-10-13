@@ -1,0 +1,129 @@
+backend/src\middleware\circuit-breaker.ts:16:type State = "CLOSED" | "OPEN" | "HALF_OPEN";
+backend/src\middleware\circuit-breaker.ts:48:    state = { state: "CLOSED", failures: 0, total: 0, openedAt: 0, windowStart: Date.now() };
+backend/src\middleware\circuit-breaker.ts:104:          state.state = "CLOSED";
+backend/src\services\platform-miniapp.service.ts:26:  status: "PENDING" | "APPROVED" | "REJECTED";
+backend/src\services\platform-miniapp.service.ts:61:  status: "PENDING" | "APPROVED" | "REJECTED";
+backend/src\services\miniapp\wholesale.service.ts:887:      orderStatus: "PENDING",
+backend/src\services\miniapp\member.service.ts:500:    } else if (status === "EXPIRED") {
+backend/src\services\miniapp\member.service.ts:540:        actualStatus = "EXPIRED";
+backend/src\services\marketing\community-marketing.service.ts:330:        isCompleted ? "COMPLETED" : "PENDING",
+backend/src\services\platform\tenant-status-stats.service.ts:41:const EXPIRED_VALUES = new Set(["EXPIRED"]);
+backend/src\services\platform\tenant-admin.service.ts:35:  status?: "ACTIVE" | "DISABLED" | "EXPIRED";
+backend/src\services\platform\platform-ticket.service.ts:45:export const TICKET_STATUSES = ["PENDING", "PROCESSING", "RESOLVED", "CLOSED"] as const;
+backend/src\services\platform\platform-ticket.service.ts:242:    ["pending", "PENDING"],
+backend/src\services\platform\platform-ticket.service.ts:286:      pending: countByStatus.get("PENDING") ?? 0,
+backend/src\services\platform\platform-ticket.service.ts:289:      closed: countByStatus.get("CLOSED") ?? 0,
+backend/src\services\platform\platform-ticket.service.ts:362:  const promote = ticket.status === "PENDING";
+backend/src\services\platform\platform-ticket.service.ts:458:  if (ticket.status !== "PENDING" && ticket.status !== "PROCESSING") {
+backend/src\services\platform\platform-ticket.service.ts:487:  return { id: ticketId, status: "CLOSED" };
+backend/src\services\instant-retail\retail-ops-ext.service.ts:245:    case "PENDING":
+backend/src\services\instant-retail\retail-ops-ext.service.ts:247:    case "CLOSED":
+backend/src\services\instant-retail\retail-ops-ext.service.ts:289:  const status = row.status === "PENDING" ? "pending" : row.status === "COMPLETED" ? "completed" : "processing";
+backend/src\services\transfer-order.service.ts:287:    if (order.status !== "PENDING") throw new Error("仅待审核状态可审批");
+backend/src\services\transfer-order.service.ts:308:    if (order.status !== "PENDING") throw new Error("仅待审核状态可拒绝");
+backend/src\services\platform\platform-referral-ledger.service.ts:27:export const REFERRAL_LEDGER_STATUSES = ["PENDING", "GRANTED", "REVOKED"] as const;
+backend/src\services\instant-retail\product-sync.service.ts:92:      await updateMappingStatus(platform, skuId, "PENDING", undefined, undefined, undefined, tenantId);
+backend/src\services\instant-retail\platform-integration.service.ts:96:    if (unified.status === "ACCEPTED" || unified.status === "PENDING") {
+backend/src\services\platform\platform-monitor-ops.service.ts:347:  sessionStatus: "ONGOING" | "EXPIRED" | "UNKNOWN";
+backend/src\services\platform\platform-monitor-ops.service.ts:418:    sessionStatus: expiresDate.getTime() > nowDate.getTime() ? "ONGOING" : "EXPIRED",
+backend/src\services\platform\platform-export-task.service.ts:57:export const EXPORT_TASK_STATUSES = ["PENDING", "GENERATING", "SUCCESS", "FAILED"] as const;
+backend/src\services\platform\platform-export-task.service.ts:72:export const CREATED_STATUS: ExportTaskStatus = "PENDING";
+backend/src\services\platform\platform-export-task.service.ts:82:export const RETRY_TO_STATUS: ExportTaskStatus = "PENDING";
+backend/src\services\platform\platform-billing.service.ts:386:export const PLATFORM_INVOICE_STATUS = "PENDING";
+backend/src\services\platform\platform-agent.service.ts:22:export const AGENT_STATUSES = ["PENDING", "ACTIVE", "FROZEN", "TERMINATED"] as const;
+backend/src\services\instant-retail\adapters\meituan-adapter.ts:132:      pending: "PENDING",
+backend/src\services\instant-retail\adapters\meituan-adapter.ts:151:      status: statusMap[raw.status as string] ?? "PENDING",
+backend/src\services\instant-retail\adapters\meituan-adapter.ts:222:          this.createMockOrder(`MT${Date.now()}${i}`, params?.status ?? "PENDING")
+backend/src\services\instant-retail\adapters\jd-adapter.ts:131:      WAIT_ACCEPT: "PENDING",
+backend/src\services\instant-retail\adapters\jd-adapter.ts:150:      status: statusMap[raw.orderStatus as string] ?? "PENDING",
+backend/src\services\instant-retail\adapters\jd-adapter.ts:218:          this.createMockOrder(`JD${Date.now()}${i}`, params?.status ?? "PENDING")
+backend/src\services\instant-retail\adapters\eleme-adapter.ts:131:      pending: "PENDING",
+backend/src\services\instant-retail\adapters\eleme-adapter.ts:151:      status: statusMap[raw.orderStatus as string] ?? "PENDING",
+backend/src\services\instant-retail\adapters\eleme-adapter.ts:219:          this.createMockOrder(`ELM${Date.now()}${i}`, params?.status ?? "PENDING")
+backend/src\services\platform\library.service.ts:119:export const BRAND_AUTH_STATUS = ["AUTHORIZED", "EXPIRED", "NONE"] as const;
+backend/src\services\alert.service.ts:634:  if (existing.status !== "PENDING") throw Object.assign(new Error("该预警已处理，无法重复操作"), { statusCode: 400 });
+backend/src\services\share.service.ts:159:  if (expired && link.status === "PENDING") {
+backend/src\services\share.service.ts:161:    link.status = "EXPIRED";
+backend/src\services\share.service.ts:163:  if (link.status === "EXPIRED") {
+backend/src\services\share.service.ts:230:    if (link.status === "REVOKED" || link.status === "EXPIRED") {
+backend/src\services\share.service.ts:289:    if (!link || !["PENDING", "PARTIAL"].includes(link.status)) {
+backend/src\services\sale-return.service.ts:302:    if (returnOrder.return_status !== "PENDING") {
+backend/src\services\sale-return.service.ts:372:    if (returnOrder.return_status !== "PENDING") {
+backend/src\services\purchase.service.ts:414:    if (!["DRAFT", "PENDING"].includes(existing.status)) {
+backend/src\services\purchase.service.ts:567:    await updateOrderStatus(orderNo, "PENDING", ctx.tenantId);
+backend/src\services\purchase.service.ts:593:    if (order.status !== "PENDING") {
+backend/src\services\purchase.service.ts:616:    if (!["DRAFT", "PENDING"].includes(order.status)) {
+backend/src\services\transfer-execution.service.ts:105:    if (order.status !== "DRAFT" && order.status !== "PENDING") {
+backend/src\services\store\shift.service.ts:488:  if (String(row.status || "").toUpperCase() === "CLOSED") {
+backend/src\services\store\sale-bill.service.ts:403:  return { linkNo, sourceType: "SALE_BILL", sourceNo: billNo, amount, taxEnabled, taxRate, taxAmount, paidAmount: 0, status: "PENDING", shareUrl: `/share/collections/${token}`, token };
+backend/src\services\store\sale-bill.service.ts:579:    results.push({ billNo, linkNo, token, amount: linkAmount, status: "PENDING", shareUrl: `/share/collections/${token}` });
+backend/src\shared\trace-code.ts:54:  if (code.currentStatus === "DESTROYED" || code.currentStatus === "EXPIRED") {
+backend/src\shared\store-control-scheduler.ts:50:        if (config.auto_open_time && currentStatus === "CLOSED" && currentTime >= config.auto_open_time && currentTime < (config.auto_close_time || "23:59")) {
+backend/src\controllers\platform\platform.controller.ts:60:    status: z.enum(["ACTIVE", "DISABLED", "EXPIRED"]).optional()
+backend/src\controllers\platform\platform-ticket.controller.ts:30:const statusSchema = z.enum(["PENDING", "PROCESSING", "RESOLVED", "CLOSED"]);
+backend/src\controllers\platform\platform-referral-ledger.controller.ts:21:  status: z.enum(["PENDING", "GRANTED", "REVOKED"], {
+backend/src\controllers\platform\platform-export-task.controller.ts:30:const statusSchema = z.enum(["PENDING", "GENERATING", "SUCCESS", "FAILED"]);
+backend/src\controllers\inventory-batch.controller.ts:40:  status: z.enum(["ACTIVE", "FROZEN", "EXPIRED"]).optional(),
+backend/src\controllers\inventory-batch.controller.ts:145:    status: req.query.status as "PENDING" | "HANDLED" | "EXPIRED" | undefined,
+backend/src\services\admin\credit-scoring.service.ts:376:  if (credit.status === "CLOSED") {
+backend/src\config\wechat-pay-v2.ts:182:      if (q.trade_state === "PAYERROR" || q.trade_state === "CLOSED" || q.trade_state === "REVOKED") {
+backend/src\services\admin\credit-limit.service.ts:348:  if (existing.status === "CLOSED") {
+backend/src\services\admin\credit-adjust.service.ts:108:    if (existing.status === "CLOSED") {
+backend/src\services\admin\feedback.service.ts:97:  status: "PENDING" | "PROCESSING" | "RESOLVED" | "REJECTED",
+backend/src\services\admin\expense.service.ts:73:  return { expenseNo, expenseType, amount, status: "PENDING" };
+backend/src\services\admin\expense.service.ts:116:  if (expense.status !== "PENDING") throw new Error("只有待审批的费用可以审批");
+backend/src\services\admin\marketing-group-buy.service.ts:457:        isCompleted ? "COMPLETED" : "PENDING",
+backend/src\services\admin\inventory-profit-order.service.ts:270:  if (existing.status !== "PENDING" && existing.status !== "DRAFT") {
+backend/src\services\admin\inventory-profit-order.service.ts:337:  if (existing.status !== "PENDING" && existing.status !== "DRAFT") {
+backend/src\services\admin\inventory-loss-order.service.ts:270:  if (existing.status !== "PENDING" && existing.status !== "DRAFT") {
+backend/src\services\admin\inventory-loss-order.service.ts:337:  if (existing.status !== "PENDING" && existing.status !== "DRAFT") {
+backend/src\services\admin\instant-retail.service.ts:301:    if (unified.status === "ACCEPTED" || unified.status === "PENDING") {
+backend/src\services\admin\order-timeout.service.ts:209:      statusValue = "PENDING";
+backend/src\services\admin\order-timeout.service.ts:218:      statusValue = "PENDING";
+backend/src\services\admin\marketing-points-mall.service.ts:191:  if (record.status !== "PENDING") throw new Error("只能取消待处理的兑换");
+backend/src\services\admin\price-review.service.ts:200:  return { id: insert.insertId, reviewNo, status: "PENDING" };
+backend/src\services\admin\price-management.service.ts:494:  if (existing && (existing.status === "PENDING" || existing.status === "REJECTED")) {
+backend/src\services\admin\price-management.service.ts:537:  if (existing.status !== "PENDING") {
+backend/src\services\admin\price-management.service.ts:568:  if (existing.status !== "PENDING") {
+backend/src\services\admin\price-management.service.ts:606:  return { data: { bindingId, status: "EXPIRED" } };
+backend/src\services\admin\print.service.ts:33:export type PrintStatus = "SUCCESS" | "FAILED" | "PENDING";
+backend/src\services\admin\print.service.ts:101:    "PENDING",
+backend/src\services\admin\print.service.ts:315:            "PENDING",
+backend/src\services\admin\product-review.service.ts:149:  if (existing.status !== "PENDING") {
+backend/src\services\admin\product-review.service.ts:179:  if (existing.status !== "PENDING") {
+backend/src\services\admin\bank-account.service.ts:126:  return { id, status: "CLOSED" };
+backend/src\services\admin\approval-records.service.ts:316:    return { started: true, instanceNo, businessType: body.businessType, businessNo: body.businessNo, status: "PENDING" };
+backend/src\services\admin\approval-records.service.ts:426:    if (task.task_status !== "PENDING") throw new AppError("任务已处理", 400);
+backend/src\services\admin\approval-records.service.ts:505:    if (task.task_status !== "PENDING") throw new AppError("任务已处理", 400);
+backend/src\services\admin\aftersale.service.ts:54:  return { aftersaleNo, status: "PENDING", deadline: deadline.toISOString(), message: "售后申请已提交" };
+backend/src\controllers\admin\approval-records.controller.ts:78:  const taskStatus = getQueryStringOrNull(req, "taskStatus") ?? "PENDING";
+backend/src\services\admin\purchase-order.service.ts:274:  if (!["DRAFT", "PENDING"].includes(existing.orderStatus)) {
+backend/src\services\admin\purchase-order.service.ts:353:  if (!["DRAFT", "PENDING"].includes(existing.orderStatus)) {
+backend/src\services\admin\purchase-order.service.ts:374:  if (existing.orderStatus !== "DRAFT" && existing.orderStatus !== "PENDING") {
+backend/src\services\admin\purchase-in-stock.service.ts:287:  if (stock.stock_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的入库单可以审核"), { statusCode: 400 });
+backend/src\services\admin\purchase-in-stock.service.ts:363:  if (stock.stock_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的入库单可以作废"), { statusCode: 400 });
+backend/src\services\admin\purchase-payment.service.ts:128:  if (payment.status !== "PENDING") throw Object.assign(new Error("只有待审核状态的付款单可以审核"), { statusCode: 400 });
+backend/src\services\admin\purchase-payment.service.ts:165:  if (payment.status !== "PENDING") throw Object.assign(new Error("只有待审核状态的付款单可以作废"), { statusCode: 400 });
+backend/src\services\admin\purchase-return.service.ts:218:  if (returnOrder.return_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的退货单可以审核"), { statusCode: 400 });
+backend/src\services\admin\purchase-return.service.ts:271:  if (returnOrder.return_status !== "PENDING") throw Object.assign(new Error("只有待审核状态的退货单可以作废"), { statusCode: 400 });
+backend/src\controllers\admin\feedback.controller.ts:17:  status: z.enum(["PENDING", "PROCESSING", "RESOLVED", "REJECTED"]),
+backend/src\controllers\admin\instant-retail-ext.controller.ts:76:  status: z.enum(["PENDING", "ASSIGNED", "PICKING", "DELIVERING", "COMPLETED", "CANCELLED"]),
+backend/src\controllers\admin\instant-retail.controller.ts:63:  status: z.enum(["OPEN", "CLOSED", "RESTING"]).optional(),
+backend/src\controllers\admin\inventory-batch.controller.ts:141:    status: z.enum(["PENDING", "HANDLED", "EXPIRED"]).optional(),
+backend/src\services\admin\store-control.service.ts:129:    const fromStatus = store.status || "CLOSED";
+backend/src\services\admin\store-control.service.ts:169:  return { storeId, status: "CLOSED" };
+backend/src\services\admin\store-control.service.ts:204:  return { storeId, status: "SUSPENDED" };
+backend/src\services\admin\store-control.service.ts:220:    const fromStatus = store.status || "SUSPENDED";
+backend/src\services\admin\transfer-order.service.ts:452:  if (existing.status !== "PENDING") {
+backend/src\services\admin\transfer-order.service.ts:482:  if (existing.status !== "PENDING") {
+backend/src\services\admin\transfer-order.service.ts:656:    pendingCount: statusMap["PENDING"] ?? 0,
+backend/src\services\admin\trace-records.service.ts:459:    qualityCheckResult?: "PASS" | "FAIL" | "PENDING";
+backend/src\services\admin\trace-records.service.ts:622:  let result: "SUCCESS" | "INVALID" | "NOT_FOUND" | "FRAUD_ALERT" | "EXPIRED" = "NOT_FOUND";
+backend/src\services\admin\trace-records.service.ts:633:      result = "EXPIRED";
+backend/src\services\admin\trace-records.service.ts:1013:  let result: "SUCCESS" | "INVALID" | "NOT_FOUND" | "FRAUD_ALERT" | "EXPIRED" = "NOT_FOUND";
+backend/src\services\admin\trace-records.service.ts:1024:      result = "EXPIRED";
+backend/src\controllers\admin\order-exception.controller.ts:46:    status: z.enum(["PENDING", "PROCESSING", "RESOLVED", "CLOSED"]).optional(),
+backend/src\controllers\admin\print.controller.ts:36:const statusEnum = z.enum(["SUCCESS", "FAILED", "PENDING"]);
+backend/src\controllers\admin\trace-records.controller.ts:61:      "DESTROYED", "EXPIRED", "RECALLED"]),
+backend/src\controllers\admin\trace-records.controller.ts:67:    qualityCheckResult: z.enum(["PASS", "FAIL", "PENDING"]).optional()
+backend/src\controllers\admin\transfer-order.controller.ts:39:    status: z.enum(["DRAFT", "PENDING", "APPROVED", "TRANSIT", "RECEIVED", "CANCELLED"]).optional(),

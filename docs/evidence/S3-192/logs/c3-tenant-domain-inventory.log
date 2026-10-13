@@ -1,0 +1,12 @@
+backend/src/services/subscription-expiry.service.ts:131:        "UPDATE t_subscription SET status = 'EXPIRED' WHERE id = ? AND tenant_id = ?",
+backend/src/services/tenant-register.service.ts:226:    `SELECT * FROM t_tenant_register_application WHERE id = ? AND status = 'PENDING'`,
+backend/src/services/tenant-register.service.ts:386:    `SELECT id FROM t_tenant_register_application WHERE id = ? AND status = 'PENDING'`,
+backend/src/services/platform/tenant-admin.service.ts:35:  status?: "ACTIVE" | "DISABLED" | "EXPIRED";
+backend/src/services/platform/tenant-status-stats.service.ts:12: *   · `backend/src/services/subscription-expiry.service.ts:93` 订阅到期写 `'EXPIRED'`
+backend/src/services/platform/tenant-status-stats.service.ts:41:const EXPIRED_VALUES = new Set(["EXPIRED"]);
+backend/src/services/saas/tenant.service.ts:339:       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'SUSPENDED'), 0) AS suspendedTenants,
+backend/src/services/saas/tenant.service.ts:340:       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'EXPIRED'), 0) AS expiredTenants,
+backend/src/controllers/platform/platform.controller.ts:60:    status: z.enum(["ACTIVE", "DISABLED", "EXPIRED"]).optional()
+backend/src/services/platform/platform-overview.service.ts:126:       (SELECT COUNT(*) FROM t_tenant WHERE status = 'EXPIRED') AS expiredTenants,
+backend/src/services/platform/platform-overview.service.ts:364:       (SELECT COUNT(*) FROM t_tenant WHERE status = 'PENDING') AS pendingTenants,
+backend/src/services/platform/platform-overview.service.ts:399:       (SELECT COUNT(*) FROM t_support_ticket WHERE status IN ('PENDING', 'PROCESSING')) AS openTickets,

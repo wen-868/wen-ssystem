@@ -1,0 +1,168 @@
+backend/src\shared\store-control-scheduler.ts:37:         AND s.status IN ('OPEN', 'CLOSED')`,
+backend/src\shared\store-control-scheduler.ts:52:            "UPDATE t_store SET status = 'OPEN' WHERE id = ? AND tenant_id = ? AND status = 'CLOSED'",
+backend/src\shared\store-control-scheduler.ts:57:             VALUES (?, ?, 'CLOSED', 'OPEN', 'SCHEDULED', NULL, '定时自动开门')`,
+backend/src\shared\store-control-scheduler.ts:65:            "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+backend/src\shared\store-control-scheduler.ts:70:             VALUES (?, ?, 'OPEN', 'CLOSED', 'SCHEDULED', NULL, '定时自动关门')`,
+backend/src\shared\store-control-scheduler.ts:85:              "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+backend/src\shared\store-control-scheduler.ts:90:               VALUES (?, ?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
+backend/src\shared\store-control-scheduler.ts:106:              "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
+backend/src\shared\store-control-scheduler.ts:111:               VALUES (?, ?, 'OPEN', 'CLOSED', 'AUTO', NULL, ?)`,
+backend/src\shared\product-sync.ts:183:           AND sb.status IN ('DRAFT', 'PENDING', 'CONFIRMED')`,
+backend/src\shared\product-sync.ts:225:           AND po.status IN ('DRAFT', 'PENDING', 'APPROVED')`,
+backend/src\shared\product-sync.ts:538:             AND sb.status IN ('DRAFT', 'PENDING')`,
+backend/src\shared\product-sync.ts:576:             AND po.status IN ('DRAFT', 'PENDING')`,
+backend/src\shared\migration.ts:1048:        status VARCHAR(16) NOT NULL DEFAULT 'PENDING' COMMENT '状态: PENDING/PROCESSING/RESOLVED/REJECTED',
+backend/src\shared\field-sync.ts:178:    condition: "status IN ('DRAFT', 'PENDING', 'APPROVED')",
+backend/src\shared\field-sync.ts:187:    condition: "status IN ('DRAFT', 'PENDING')",
+backend/src\shared\field-sync.ts:208:    condition: "status IN ('DRAFT', 'PENDING', 'CONFIRMED')",
+backend/src\shared\field-sync.ts:217:    condition: "status IN ('DRAFT', 'PENDING')",
+backend/src\services\subscription-expiry.service.ts:131:        "UPDATE t_subscription SET status = 'EXPIRED' WHERE id = ? AND tenant_id = ?",
+backend/src\services\platform-miniapp.service.ts:156:    `SELECT id FROM t_platform_subscription_apply WHERE mobile = ? AND status = 'PENDING'`,
+backend/src\services\platform-miniapp.service.ts:164:    `SELECT id FROM t_platform_subscription_apply WHERE company = ? AND status = 'PENDING'`,
+backend/src\services\platform-miniapp.service.ts:174:     VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\platform-miniapp.service.ts:242:       ORDER BY FIELD(status, 'PENDING') DESC, id DESC
+backend/src\services\platform-miniapp.service.ts:279:    `SELECT id FROM t_platform_subscription_apply WHERE id = ? AND status = 'PENDING'`,
+backend/src\services\share.service.ts:160:    await query("UPDATE t_collection_link SET status = 'EXPIRED' WHERE link_no = ? AND tenant_id = ?", [link.linkNo, link.tenantId]);
+backend/src\services\share.service.ts:297:       WHERE source_type = 'COLLECTION_LINK' AND source_no = ? AND channel = 'WECHAT' AND status = 'PENDING'
+backend/src\services\share.service.ts:307:         VALUES (?, ?, 'COLLECTION_LINK', ?, 'WECHAT', ?, 'PENDING')`,
+backend/src\services\transfer-order.service.ts:270:      "UPDATE t_transfer_order SET status = 'PENDING' WHERE id = ? AND tenant_id = ?",
+backend/src\services\sale-return.service.ts:226:        ) VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, 0, ?, ?, ?)`,
+backend/src\services\saas\tenant.service.ts:339:       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'SUSPENDED'), 0) AS suspendedTenants,
+backend/src\services\saas\tenant.service.ts:340:       COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'EXPIRED'), 0) AS expiredTenants,
+backend/src\services\saas\subscription.service.ts:290:       COALESCE((SELECT COUNT(*) FROM t_subscription WHERE status = 'EXPIRED'), 0) AS expiredSubscriptions,
+backend/src\services\platform\tenant-status-stats.service.ts:12: *   · `backend/src/services/subscription-expiry.service.ts:93` 订阅到期写 `'EXPIRED'`
+backend/src\services\platform\platform-ticket.service.ts:483:      "UPDATE t_support_ticket SET status = 'CLOSED', closed_at = NOW(), updated_at = NOW() WHERE id = ?",
+backend/src\services\platform\platform-referral-ledger.service.ts:402:       VALUES (?, ?, ?, ?, ?, 'PENDING', ?${occurredAt ? ", ?" : ""})`,
+backend/src\services\platform\platform-overview.service.ts:126:       (SELECT COUNT(*) FROM t_tenant WHERE status = 'EXPIRED') AS expiredTenants,
+backend/src\services\platform\platform-overview.service.ts:364:       (SELECT COUNT(*) FROM t_tenant WHERE status = 'PENDING') AS pendingTenants,
+backend/src\services\platform\platform-overview.service.ts:399:       (SELECT COUNT(*) FROM t_support_ticket WHERE status IN ('PENDING', 'PROCESSING')) AS openTickets,
+backend/src\services\platform\platform-billing.service.ts:268:   VALUES (?, ?, ?, ?, 0.00, 0.00, 'PENDING', ?, 'system')`;
+backend/src\services\platform\platform-agent.service.ts:223:       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)`,
+backend/src\services\platform\library.service.ts:447:       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+backend/src\services\platform\library.service.ts:475:           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\platform\library.service.ts:843:     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\miniapp\wholesale.service.ts:818:       VALUES (?, ?, 'PENDING', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
+backend/src\services\miniapp\wholesale.service.ts:1162:       WHERE order_no = ? AND member_id = ? AND tenant_id = ? AND order_status = 'PENDING' AND pay_status = 'UNPAID'
+backend/src\services\miniapp\member.service.ts:255:       SUM(CASE WHEN (status = 'UNUSED' AND valid_end <= NOW()) OR status = 'EXPIRED' THEN 1 ELSE 0 END) AS expiredCount
+backend/src\services\miniapp\member.service.ts:501:      conditions.push("(status = 'EXPIRED' OR (status = 'UNUSED' AND valid_end <= NOW()))");
+backend/src\services\tenant-register.service.ts:226:    `SELECT * FROM t_tenant_register_application WHERE id = ? AND status = 'PENDING'`,
+backend/src\services\tenant-register.service.ts:386:    `SELECT id FROM t_tenant_register_application WHERE id = ? AND status = 'PENDING'`,
+backend/src\services\alert.service.ts:183:       WHERE tenant_id = ? AND rule_type = 'STOCK_LOW' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
+backend/src\services\alert.service.ts:196:         VALUES (?, ?, ?, 'STOCK_LOW', ?, ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\alert.service.ts:249:         WHERE tenant_id = ? AND rule_type = 'EXPIRY' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
+backend/src\services\alert.service.ts:262:           VALUES (?, ?, ?, 'EXPIRY', ?, ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\alert.service.ts:310:       WHERE tenant_id = ? AND rule_type = 'CREDIT' AND biz_type = 'CUSTOMER' AND status = 'PENDING' AND biz_id IN (?)`,
+backend/src\services\alert.service.ts:328:           VALUES (?, ?, ?, 'CREDIT', ?, ?, ?, 'CUSTOMER', ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\alert.service.ts:360:       AND collection_status NOT IN ('PAID', 'CLOSED')
+backend/src\services\alert.service.ts:375:       WHERE tenant_id = ? AND rule_type = 'OVERDUE' AND biz_type = 'BILL' AND status = 'PENDING' AND biz_no IN (?)`,
+backend/src\services\alert.service.ts:389:         VALUES (?, ?, ?, 'OVERDUE', ?, ?, ?, 'BILL', NULL, ?, ?, ?, 'PENDING')`,
+backend/src\services\alert.service.ts:439:       WHERE tenant_id = ? AND rule_type = 'STOCK_OVERSTOCK' AND biz_type = 'SKU' AND status = 'PENDING' AND biz_id IN (?)`,
+backend/src\services\alert.service.ts:452:         VALUES (?, ?, ?, 'STOCK_OVERSTOCK', 'WARNING', ?, ?, 'SKU', ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\alert.service.ts:572:     WHERE tenant_id = ? AND status = 'PENDING'
+backend/src\services\alert.service.ts:579:    "SELECT COUNT(*) AS count FROM t_alert_record WHERE tenant_id = ? AND status = 'PENDING'",
+backend/src\services\alert.service.ts:599:     WHERE tenant_id = ? AND status = 'PENDING'
+backend/src\services\marketing\community-marketing.service.ts:234:       VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
+backend/src\services\marketing\community-marketing.service.ts:284:       WHERE gbt.id = ? AND gbt.tenant_id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
+backend/src\services\admin\aftersale.service.ts:32:    `SELECT id FROM t_aftersale WHERE order_no = ? AND customer_id = ? AND tenant_id = ? AND status NOT IN ('CANCELLED', 'COMPLETED', 'REJECTED', 'EXPIRED', 'CLOSED')`,
+backend/src\services\admin\aftersale.service.ts:45:     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)`,
+backend/src\services\admin\aftersale.service.ts:113:     WHERE aftersale_no = ? AND customer_id = ? AND tenant_id = ? AND status = 'PENDING'`,
+backend/src\services\admin\aftersale.service.ts:235:     WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
+backend/src\services\admin\aftersale.service.ts:249:     WHERE id = ? AND tenant_id = ? AND status = 'PENDING' AND version = ?`,
+backend/src\services\admin\aftersale.service.ts:340:     FROM t_aftersale ${storeFilter} AND status IN ('COMPLETED', 'CLOSED')`,
+backend/src\services\admin\aftersale.service.ts:357:    `SELECT COUNT(*) AS total FROM t_aftersale ${storeFilter} AND deadline IS NOT NULL AND status NOT IN ('COMPLETED', 'CLOSED', 'CANCELLED') AND deadline < NOW()`,
+backend/src\services\admin\approval-records.service.ts:271:       VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'PENDING', ?, ?)`,
+backend/src\services\admin\approval-records.service.ts:296:         VALUES (?, ?, ?, ?, 'PENDING', ?, ?)`,
+backend/src\services\admin\approval-records.service.ts:312:       VALUES (?, 'SUBMIT', ?, ?, NULL, 'PENDING', ?, ?)`,
+backend/src\services\admin\approval-records.service.ts:436:       WHERE instance_id = ? AND approval_level = ? AND task_status = 'PENDING' AND tenant_id = ?`,
+backend/src\services\admin\approval-records.service.ts:456:       VALUES (?, ?, 'APPROVE', ?, ?, 'PENDING', 'APPROVED', ?, ?)`,
+backend/src\services\admin\approval-records.service.ts:522:       VALUES (?, ?, 'REJECT', ?, ?, 'PENDING', 'REJECTED', ?, ?)`,
+backend/src\services\admin\bank-account.service.ts:125:  await queryWithTenant("UPDATE t_bank_account SET status = 'CLOSED' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+backend/src\services\admin\commerce-fix.service.ts:82:            COALESCE(SUM(CASE WHEN status = 'PENDING' THEN commission_amount ELSE 0 END), 0) AS pendingAmount,
+backend/src\services\admin\commerce-fix.service.ts:198:     VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+backend/src\services\admin\commerce-fix.service.ts:233:    "UPDATE t_bill SET status = 'VERIFIED', verified_at = NOW(), updated_at = NOW() WHERE id = ? AND tenant_id = ? AND status = 'PENDING'",
+backend/src\services\admin\commerce-fix.service.ts:243:    "UPDATE t_bill SET status = 'VOID', updated_at = NOW() WHERE id = ? AND tenant_id = ? AND status = 'PENDING'",
+backend/src\services\admin\commerce-fix.service.ts:262:      status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+backend/src\services\store\shift.service.ts:477: *  · 并发保护：UPDATE 带 `status <> 'CLOSED'` 条件并**校验 affectedRows**（S3-65 教训：写操作
+backend/src\services\store\shift.service.ts:481: * 故 `status <> 'CLOSED'` 等价于「未完成」。
+backend/src\services\store\shift.service.ts:494:      SET status = 'CLOSED', end_time = NOW()
+backend/src\services\store\shift.service.ts:495:      WHERE shift_no = ? AND tenant_id = ? AND status <> 'CLOSED'`,
+backend/src\services\instant-retail\adapters\index.ts:57:  const rawStatus = String(raw.status ?? raw.orderStatus ?? raw.order_status ?? 'PENDING');
+backend/src\services\instant-retail\adapters\index.ts:59:    '1': 'PENDING', '2': 'ACCEPTED', '4': 'ACCEPTED', '6': 'DELIVERING',
+backend/src\services\instant-retail\adapters\index.ts:61:    'PENDING': 'PENDING', 'ACCEPTED': 'ACCEPTED', 'DELIVERING': 'DELIVERING',
+backend/src\services\instant-retail\adapters\index.ts:63:    '\u5F85\u63A5\u5355': 'PENDING', '\u5F85\u914D\u9001': 'ACCEPTED',
+backend/src\services\instant-retail\adapters\index.ts:67:  const status = statusMap[rawStatus] ?? 'PENDING';
+backend/src\services\store\sale-bill.service.ts:394:     VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
+backend/src\services\store\sale-bill.service.ts:570:       VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)`,
+backend/src\services\store\member.service.ts:146:                      WHERE o.member_id = m.id AND o.order_status NOT IN ('CANCELLED', 'CLOSED')), 0) AS totalConsume
+backend/src\services\store\auth.service.ts:54:      "SELECT id FROM t_tenant_register_application WHERE admin_username = ? AND status = 'PENDING' LIMIT 1",
+backend/src\services\admin\credit-adjust.service.ts:65:       WHERE customer_id = ? AND tenant_id = ? AND status != 'CLOSED'`,
+backend/src\services\admin\commission.service.ts:228:       VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+backend/src\services\admin\commission.service.ts:245:     WHERE record_no IN (${placeholders}) AND tenant_id = ? AND status = 'PENDING'`,
+backend/src\services\admin\dashboard.service.ts:521:     WHERE tenant_id = ? AND status = 'PENDING'
+backend/src\services\admin\expense.service.ts:70:     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,'PENDING', ?)`,
+backend/src\services\admin\feedback.service.ts:32:    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
+backend/src\services\admin\finance-dashboard.service.ts:97:    "SELECT COALESCE(SUM(balance), 0) AS total FROM t_receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')",
+backend/src\services\admin\finance-dashboard.service.ts:101:    "SELECT COALESCE(SUM(balance), 0) AS total FROM t_payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')",
+backend/src\services\admin\finance-dashboard.service.ts:190:     FROM t_receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')
+backend/src\services\admin\finance-dashboard.service.ts:199:     FROM t_payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL')
+backend/src\services\admin\miniapp-order-sync.service.ts:63:    "UPDATE t_miniapp_order_sync_log SET status = 'PENDING', updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+backend/src\services\instant-retail\retail-analytics.service.ts:76:     WHERE tenant_id = ? AND (payment_status = 'UNPAID' OR order_status = 'PENDING') ${storeCondition}`,
+backend/src\services\instant-retail\retail-ops-ext.service.ts:257:  return "status IN ('PENDING','FAILED','CLOSED')";
+backend/src\services\instant-retail\retail-ops-ext.service.ts:726:     WHERE tenant_id = ? AND status IN ('PENDING','ACCEPTED','PREPARING','DELIVERING','COMPLETED')
+backend/src\services\admin\marketing-group-buy.service.ts:342:       VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
+backend/src\services\admin\marketing-group-buy.service.ts:415:       WHERE gbt.id = ? AND gbt.tenant_id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
+backend/src\services\admin\marketing-calculation.service.ts:115:       WHERE gbt.id = ? AND gbt.status = 'PENDING' AND gb.status = 'ACTIVE'`,
+backend/src\services\admin\inventory-loss-gain.service.ts:37:     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+backend/src\services\admin\inventory-batch.service.ts:368:    `SELECT alert_level, COUNT(*) AS count, SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END) AS pending_count
+backend/src\services\admin\inventory-batch.service.ts:377:    "SELECT COUNT(*) AS total FROM t_expiry_alert_record WHERE status = 'PENDING' AND tenant_id = ?",
+backend/src\services\admin\inventory-batch.service.ts:440:            "UPDATE t_expiry_alert_record SET status = 'EXPIRED' WHERE batch_id = ? AND tenant_id = ? AND status = 'PENDING'",
+backend/src\services\admin\inventory-batch.service.ts:449:          "SELECT id FROM t_expiry_alert_record WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
+backend/src\services\admin\inventory-batch.service.ts:455:            "UPDATE t_expiry_alert_record SET days_remaining = ? WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
+backend/src\services\admin\inventory-batch.service.ts:463:           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\admin\instant-retail-fix.service.ts:288:      COALESCE(SUM(CASE WHEN handle_status IN ('PENDING', 'PROCESSING') THEN 1 ELSE 0 END), 0) AS pending,
+backend/src\services\admin\instant-retail-fix.service.ts:290:      COALESCE(SUM(CASE WHEN handle_status IN ('RESOLVED', 'CLOSED') AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END), 0) AS weekResolved,
+backend/src\services\admin\instant-retail-fix.service.ts:301:            COALESCE(SUM(CASE WHEN handle_status IN ('PENDING', 'PROCESSING') THEN 1 ELSE 0 END), 0) AS abnormal
+backend/src\services\admin\payment.service.ts:73:     VALUES (?, ?, ?, 'WECHAT', ?, 'PENDING', ?)`,
+backend/src\services\admin\payment-new.service.ts:125:    await queryWithTenant("UPDATE t_payable SET paid_amount = paid_amount - ?, balance = balance + ?, status = CASE WHEN balance + ? >= payable_amount THEN 'PAID' WHEN paid_amount > 0 THEN 'PARTIAL' ELSE 'PENDING' END WHERE id = ? AND tenant_id = ?", [wo.writeoff_amount, wo.writeoff_amount, wo.writeoff_amount, wo.payable_id, tenantId], tenantId);
+backend/src\services\admin\payment-new.service.ts:137:    "INSERT INTO t_payable (supplier_id, supplier_name, source_type, source_no, payable_amount, paid_amount, balance, status, tenant_id) VALUES (?, ?, 'PURCHASE_ORDER', ?, ?, 0, ?, 'PENDING', ?)",
+backend/src\services\admin\order-timeout.service.ts:206:      extraWhere = "AND order_status = 'PENDING'";
+backend/src\services\admin\price-management.service.ts:497:       SET price_level_id = ?, apply_reason = ?, status = 'PENDING',
+backend/src\services\admin\price-management.service.ts:506:       VALUES (?, ?, ?, ?, 'PENDING', ?)`,
+backend/src\services\admin\price-management.service.ts:601:    "UPDATE t_customer_price_binding SET status = 'EXPIRED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+backend/src\services\admin\points-mall.service.ts:84:    `UPDATE t_points_mall_order SET status='CANCELLED', cancelled_at=NOW() WHERE id=? AND status='PENDING'`,
+backend/src\services\admin\points-mall.service.ts:111:    `UPDATE t_points_mall_order SET status='DELIVERED', delivered_at=NOW() WHERE id=? AND status='PENDING'`,
+backend/src\services\admin\platform-settlement.service.ts:120:     VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, 'system')`,
+backend/src\services\admin\platform-settlement.service.ts:168:        WHERE status = 'PENDING') AS pendingSettlement,
+backend/src\services\admin\product-review.service.ts:116:     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
+backend/src\services\admin\product-review.service.ts:217:     WHERE id IN (${placeholders}) AND tenant_id = ? AND status = 'PENDING'`,
+backend/src\services\admin\product-review.service.ts:250:     WHERE id IN (${placeholders}) AND tenant_id = ? AND status = 'PENDING'`,
+backend/src\services\instant-retail\types.ts:11:  | 'PENDING'
+backend/src\services\instant-retail\types.ts:51:  syncStatus: 'SYNCED' | 'PENDING' | 'FAILED' | 'UNSYNCED';
+backend/src\services\admin\transfer-order.service.ts:428:    "UPDATE t_transfer_order SET status = 'PENDING' WHERE id = ? AND tenant_id = ?",
+backend/src\services\admin\seckill.service.ts:57:    [data.productId, data.seckillPrice, stock, stock, stock, data.limitPerUser || 1, data.startTime, data.endTime, data.status || 'PENDING', data.tenantId || '']
+backend/src\services\admin\trace-records.service.ts:710:     AND current_status NOT IN ('DESTROYED', 'EXPIRED')`,
+backend/src\services\admin\trace-records.service.ts:859:       AND current_status NOT IN ('DESTROYED', 'EXPIRED', 'RECALLED')`,
+backend/src\services\admin\report.service.ts:216:  const pending = await queryOneWithTenant<AmountRow>("SELECT COALESCE(SUM(unreceived_amount),0) AS amount FROM t_sale_bill WHERE collection_status IN ('UNPAID','PENDING','SHARED','PARTIAL') AND tenant_id = ?", [tenantId], tenantId);
+backend/src\services\admin\todo.service.ts:103:     WHERE tenant_id = ? AND status = 'PENDING'
+backend/src\services\admin\todo.service.ts:136:     VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?, NOW())`,
+backend/src\services\admin\report-export.service.ts:169:                   CASE lg.status WHEN 'PENDING' THEN '待审核' WHEN 'APPROVED' THEN '已通过' WHEN 'REJECTED' THEN '已驳回' ELSE lg.status END AS status,
+backend/src\services\admin\reconciliation.service.ts:107:  await queryWithTenant("UPDATE t_receivable SET status = 'CONFIRMED' WHERE customer_id = ? AND tenant_id = ? AND status = 'PENDING'", [customerId, tenantId], tenantId);
+backend/src\services\admin\reconciliation.service.ts:151:  await queryWithTenant("UPDATE t_payable SET status = 'CONFIRMED' WHERE supplier_id = ? AND tenant_id = ? AND status = 'PENDING'", [supplierId, tenantId], tenantId);
+backend/src\services\admin\receivable.service.ts:133:     FROM t_receivable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL') AND due_date IS NOT NULL
+backend/src\services\admin\receivable.service.ts:147:     FROM t_payable WHERE tenant_id = ? AND status IN ('PENDING', 'PARTIAL') AND due_date IS NOT NULL
+backend/src\services\admin\receipt.service.ts:127:    await queryWithTenant("UPDATE t_receivable SET received_amount = received_amount - ?, balance = balance + ?, status = CASE WHEN balance + ? >= receivable_amount THEN 'PAID' WHEN received_amount > 0 THEN 'PARTIAL' ELSE 'PENDING' END WHERE id = ? AND tenant_id = ?", [wo.writeoff_amount, wo.writeoff_amount, wo.writeoff_amount, wo.receivable_id, tenantId], tenantId);
+backend/src\services\admin\receipt.service.ts:139:    "INSERT INTO t_receivable (customer_id, customer_name, source_type, source_no, receivable_amount, received_amount, balance, status, tenant_id) VALUES (?, ?, 'SALE_BILL', ?, ?, 0, ?, 'PENDING', ?)",
+backend/src\services\admin\store-control.service.ts:159:      "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ?",
+backend/src\services\admin\store-control.service.ts:164:       VALUES (?, ?, 'CLOSED', 'MANUAL', ?, '手动关门', ?)`,
+backend/src\services\admin\store-control.service.ts:188:      "UPDATE t_store SET status = 'SUSPENDED' WHERE id = ? AND tenant_id = ?",
+backend/src\services\admin\store-control.service.ts:193:       VALUES (?, ?, 'SUSPENDED', 'MANUAL', ?, ?, ?)`,
+backend/src\services\admin\store-control.service.ts:334:       AND s.status IN ('OPEN', 'CLOSED')`,
+backend/src\services\admin\purchase-return.service.ts:189:       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?)`,
+backend/src\services\admin\purchase-return.service.ts:330:       VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, 0, ?, ?, ?)`,
+backend/src\services\admin\purchase-plan.service.ts:71:              WHERE poi.sku_id = ib.sku_id AND po.order_status IN ('PENDING', 'APPROVED', 'IN_TRANSIT')
+backend/src\services\admin\purchase-plan.service.ts:200:     VALUES (?, ?, ?, 'PENDING', 0, ?)`,
+backend/src\services\admin\purchase-payment.service.ts:105:       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)`,
+backend/src\services\admin\purchase-in-stock.service.ts:257:       VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
+backend/src\services\admin\purchase-in-stock.service.ts:425:       VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
+backend/src\services\admin\profit-loss-stats.service.ts:103:    `SELECT COUNT(*) AS count FROM t_inventory_loss_order WHERE tenant_id = ? AND status = 'PENDING'`,
+backend/src\services\admin\profit-loss-stats.service.ts:108:    `SELECT COUNT(*) AS count FROM t_inventory_profit_order WHERE tenant_id = ? AND status = 'PENDING'`,
