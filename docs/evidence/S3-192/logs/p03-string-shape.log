@@ -1,0 +1,16 @@
+probe
+P3: 执行前
+id	status	suspend_reason
+str-active	ACTIVE	NULL
+str-disabled	DISABLED	NULL
+str-expired	EXPIRED	NULL
+str-suspended	SUSPENDED	NULL
+probe	affected_rows
+P3: affectedRows	1
+probe
+P3: 执行后
+id	status	suspend_reason
+str-active	0	订阅已到期
+str-disabled	DISABLED	NULL
+str-expired	EXPIRED	NULL
+str-suspended	SUSPENDED	NULL

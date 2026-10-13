@@ -34,17 +34,42 @@ describe("subscription-expiry.service - 订阅到期检查", () => {
     expect(updateCall[1]).toEqual([1, "t1"]);
   });
 
-  it("已过期订阅自动停用租户并更新订阅状态", async () => {
+  // S3-192（收口总清单第 59 项）护栏：到期停用必须写**库值**（t_tenant.status 是 TINYINT，1 启用 / 0 停用），
+  // 且停用原因/时间同写；原实现写字符串 'EXPIRED' ⇒ 严格模式 1366，语句自上线起从未成功。
+  it("已过期订阅自动停用租户：status 落 DISABLED 库值 0 + suspend_reason/suspended_at 同写", async () => {
     mocks.query
       .mockResolvedValueOnce([]) // 无即将到期
       .mockResolvedValueOnce([{ id: 2, subscription_no: "SUB2", tenant_id: "t2", end_date: "2026-07-01", company_name: "酒行B", tenant_status: "ACTIVE", overdue_days: 45 }]);
     await checkSubscriptionExpiry();
-    const tenantCall = mocks.query.mock.calls.find((c: any) => String(c[0]).includes("UPDATE t_tenant SET status = 'EXPIRED'"));
-    const subCall = mocks.query.mock.calls.find((c: any) => String(c[0]).includes("UPDATE t_subscription SET status = 'EXPIRED'"));
+    const tenantCall = mocks.query.mock.calls.find((c: any) => String(c[0]).includes("UPDATE t_tenant SET status = ?"));
     expect(tenantCall).toBeTruthy();
-    expect(tenantCall[1]).toEqual(["t2"]);
+    const sql = String(tenantCall![0]);
+    // ① 不得再写字符串状态（EXPIRED / DISABLED 都不行：数值列写字符串必 1366）
+    expect(sql).not.toContain("'EXPIRED'");
+    expect(sql).not.toContain("'DISABLED'");
+    // ② 落 toTenantStatusValue("DISABLED") 的库值 0
+    expect(tenantCall![1]).toEqual([0, "t2"]);
+    // ③ 停用原因与时间必须写
+    expect(sql).toContain("suspend_reason = '订阅已到期'");
+    expect(sql).toContain("suspended_at = NOW()");
+    // ④ WHERE 是类型无关判据：TINYINT 列命中 '1'、VARCHAR 列命中 'ACTIVE'
+    //    （原写法 status = 'ACTIVE' 在 TINYINT 列上被隐式转成 status = 0 ⇒ 命中"停用"行，语义反了）
+    expect(sql).toContain("CAST(status AS CHAR) IN ('1', 'ACTIVE')");
+    // ⑤ 订阅侧（另一张表，VARCHAR 值域）保持原样
+    const subCall = mocks.query.mock.calls.find((c: any) => String(c[0]).includes("UPDATE t_subscription SET status = 'EXPIRED'"));
     expect(subCall).toBeTruthy();
-    expect(subCall[1]).toEqual([2, "t2"]);
+    expect(subCall![1]).toEqual([2, "t2"]);
+  });
+
+  it("候选到期订阅的筛选同样只认「当前启用」的租户（类型无关判据）", async () => {
+    mocks.query.mockResolvedValue([]);
+    await checkSubscriptionExpiry();
+    const expiredSelect = mocks.query.mock.calls.find((c: any) =>
+      String(c[0]).includes("DATEDIFF(CURDATE(), s.end_date)")
+    );
+    expect(expiredSelect).toBeTruthy();
+    expect(String(expiredSelect![0])).toContain("CAST(t.status AS CHAR) IN ('1', 'ACTIVE')");
+    expect(String(expiredSelect![0])).not.toContain("t.status = 'ACTIVE'");
   });
 
   it("无到期订阅时正常返回", async () => {

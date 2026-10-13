@@ -1,0 +1,24 @@
+[S3-192] ① 作业执行前：
+   t_tenant: [{"id":"s3192-runtime-tenant","status_raw":"1","suspend_reason":null,"suspended_at":null}]
+   t_subscription: [{"subscription_no":"SUB-S3192-RT","status":"ACTIVE","end_date":"2026-10-04T00:00:00.000Z"}]
+[S3-192] ② 作业执行后：
+   t_tenant: [{"id":"s3192-runtime-tenant","status_raw":"1","suspend_reason":null,"has_suspended_at":0}]
+   t_subscription: [{"subscription_no":"SUB-S3192-RT","status":"ACTIVE","end_date":"2026-10-04T00:00:00.000Z"}]
+[2026-10-14 04:24:44.401 +0800] [32mINFO[39m (1400): [36m[SubscriptionExpiry] 开始检查订阅到期...[39m
+[2026-10-14 04:24:44.409 +0800] [32mINFO[39m (1400): [36m[SubscriptionExpiry] 订阅 SUB-S3192-RT 已过期 10 天[39m
+[2026-10-14 04:24:44.412 +0800] [31mERROR[39m (1400): [36m[SubscriptionExpiry] 检查失败:[39m
+    err: {
+      "type": "Error",
+      "message": "Incorrect integer value: 'EXPIRED' for column `s3192_full`.`t_tenant`.`status` at row 1",
+      "stack":
+          Error: Incorrect integer value: 'EXPIRED' for column `s3192_full`.`t_tenant`.`status` at row 1
+              at query (file:///D:/Users/ZXQL/wt-agents/S3-192/backend/dist/config/database.js:102:31)
+              at checkSubscriptionExpiry (file:///D:/Users/ZXQL/wt-agents/S3-192/backend/dist/services/subscription-expiry.service.js:79:19)
+              at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at async file:///D:/Users/ZXQL/wt-agents/S3-192/docs/evidence/S3-192/harness/06-runtime-expiry.mjs:53:1
+      "code": "ER_TRUNCATED_WRONG_VALUE_FOR_FIELD",
+      "errno": 1366,
+      "sqlState": "22007",
+      "sqlMessage": "Incorrect integer value: 'EXPIRED' for column `s3192_full`.`t_tenant`.`status` at row 1",
+      "sql": "UPDATE t_tenant SET status = 'EXPIRED', suspend_reason = '订阅已到期', suspended_at = NOW()\n         WHERE id = 's3192-runtime-tenant' AND CAST(status AS CHAR) IN ('1', 'ACTIVE')"
+    }

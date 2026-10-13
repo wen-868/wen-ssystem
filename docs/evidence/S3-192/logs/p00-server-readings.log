@@ -1,0 +1,6 @@
+version	sql_mode	port
+11.4.5-MariaDB	STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION	3406
+Field	Type	Null	Key	Default	Extra
+status	tinyint(4)	YES	MUL	1	
+Tables_in_s3192_full (t_tenant)
+t_tenant

@@ -1,6 +1,8 @@
 import { query, queryOne } from "../../shared/db";
 import { randomUUID } from "node:crypto";
 import { makeBizNo } from "../../shared/id";
+import { AppError } from "../../shared/app-error";
+import { toTenantStatusValue } from "../platform-tenant.service";
 
 export interface Tenant {
   id: number;
@@ -251,6 +253,17 @@ export async function auditTenant(id: number, body: {
   status: string;
   remark?: string;
 }): Promise<Tenant | null> {
+  // S3-192（收口总清单第 59 项）：t_tenant.status 的**唯一可写值域 = ACTIVE / DISABLED**。
+  //  · 原实现把入参原样写库：SUSPENDED 分支与 else 分支（任意值，如 PENDING）都会落库；
+  //    且字符串写进 `t_tenant.status`（TINYINT，见 S3-150 口径）在严格模式报 1366 ⇒ 端点 500。
+  //  · 现按凌舟裁定的方案 (b)：非 ACTIVE / DISABLED 的入参**直接 400 拒绝**，不静默改写、不落脏值；
+  //    "暂停 / 到期停用"是**原因**不是状态 —— 由既有列 suspend_reason + suspended_at 表达，
+  //    status 一律落 DISABLED（库值 0，取自唯一映射点 toTenantStatusValue）。
+  const statusValue = toTenantStatusValue(body.status);
+  if (statusValue === null) {
+    throw new AppError("无效的状态值，仅允许 ACTIVE / DISABLED", 400);
+  }
+
   const existing = await queryOne<{ id: number; status: string }>(
     "SELECT id, status FROM t_tenant WHERE id = ?",
     [id]
@@ -262,15 +275,13 @@ export async function auditTenant(id: number, body: {
   const updates: string[] = [];
   const params: unknown[] = [];
 
-  if (body.status === "SUSPENDED") {
+  if (statusValue === 0) {
+    // DISABLED（原 SUSPENDED 的落库语义：记停用原因与时间）
     updates.push("status = ?", "suspend_reason = ?", "suspended_at = NOW()");
-    params.push(body.status, body.remark || null);
-  } else if (body.status === "ACTIVE") {
-    updates.push("status = ?", "suspend_reason = NULL", "suspended_at = NULL");
-    params.push(body.status);
+    params.push(statusValue, body.remark || null);
   } else {
-    updates.push("status = ?");
-    params.push(body.status);
+    updates.push("status = ?", "suspend_reason = NULL", "suspended_at = NULL");
+    params.push(statusValue);
   }
 
   params.push(id);
@@ -283,6 +294,13 @@ export async function auditTenant(id: number, body: {
 }
 
 export async function toggleTenantStatus(id: number, status: string): Promise<Tenant | null> {
+  // S3-192：与 auditTenant 同域同口径 —— 可写值域 ACTIVE / DISABLED，非法直接 400；
+  // 且**写入库值**（TINYINT 1/0）。原实现 `[status, id]` 把字符串写进数值列 ⇒ 严格模式 1366 → 500。
+  const statusValue = toTenantStatusValue(status);
+  if (statusValue === null) {
+    throw new AppError("无效的状态值，仅允许 ACTIVE / DISABLED", 400);
+  }
+
   const existing = await queryOne<{ id: number; status: string }>(
     "SELECT id, status FROM t_tenant WHERE id = ?",
     [id]
@@ -293,7 +311,7 @@ export async function toggleTenantStatus(id: number, status: string): Promise<Te
 
   await query(
     "UPDATE t_tenant SET status = ?, updated_at = NOW() WHERE id = ?",
-    [status, id]
+    [statusValue, id]
   );
 
   return getTenantDetail(id);

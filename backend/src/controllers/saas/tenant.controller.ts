@@ -76,8 +76,12 @@ export const updateTenant = asyncHandler(async (req, res) => {
 
 export const auditTenant = asyncHandler(async (req, res) => {
   const tenantId = Number(req.params.id);
+  // S3-192（收口总清单第 59 项）：入参值域收敛到**唯一可写值域** ACTIVE / DISABLED。
+  // 原枚举含 SUSPENDED、EXPIRED、PENDING —— 这正是 G2 门禁（guard-tenant-status）头部记录的
+  // 根因形态「controller 的 Zod 枚举另有一套」；且服务层已按方案 (b) 对越界值 400，
+  // 若这里仍放行，会出现"校验通过但服务层 400"的自相矛盾，同时 DISABLED 反被拦在门外。
   const body = z.object({
-    status: z.enum(["ACTIVE", "SUSPENDED", "EXPIRED", "PENDING"]),
+    status: z.enum(["ACTIVE", "DISABLED"]),
     remark: z.string().max(500).optional(),
   }).parse(req.body);
 
@@ -91,8 +95,9 @@ export const auditTenant = asyncHandler(async (req, res) => {
 
 export const toggleTenantStatus = asyncHandler(async (req, res) => {
   const tenantId = Number(req.params.id);
+  // S3-192：同上，启停入参只允许 ACTIVE / DISABLED（与 platform/tenant.controller.ts:62 强校验一致）
   const body = z.object({
-    status: z.enum(["ACTIVE", "SUSPENDED"]),
+    status: z.enum(["ACTIVE", "DISABLED"]),
   }).parse(req.body);
 
   const result = await tenantService.toggleTenantStatus(tenantId, body.status);

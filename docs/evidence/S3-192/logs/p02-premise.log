@@ -1,0 +1,20 @@
+probe
+P1b: status IN (EXPIRED,SUSPENDED) 命中的行
+id	status_raw	status_native
+num-disabled	0	0
+probe
+P1c: status = ACTIVE 命中的行（期望只该有启用行）
+id	status_raw	status_native
+num-disabled	0	0
+probe
+P2: 修复后语句执行前
+id	status_raw	suspend_reason
+num-active	1	NULL
+num-disabled	0	NULL
+probe	affected_rows
+P2: 修复后语句 affectedRows	1
+probe
+P2: 修复后语句执行后
+id	status_raw	suspend_reason	has_suspended_at
+num-active	0	订阅已到期	1
+num-disabled	0	NULL	0

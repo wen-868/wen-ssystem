@@ -171,14 +171,33 @@ describe("saas tenant.service", () => {
       expect(res!.suspendReason).toBeNull();
     });
 
-    it("审核不通过设置为SUSPENDED", async () => {
+    // S3-192（收口总清单第 59 项）护栏：唯一可写值域 = ACTIVE / DISABLED；
+    // "暂停/停用"的原因由 suspend_reason + suspended_at 表达，status 一律落 DISABLED（库值 0）。
+    it("审核停用落 DISABLED 的库值 0，并把原因/时间写进 suspend_reason / suspended_at", async () => {
       mocks.queryOne
-        .mockResolvedValueOnce({ id: 1, status: "ACTIVE" })
-        .mockResolvedValueOnce({ id: 1, status: "SUSPENDED", suspendReason: "资料不全", suspendedAt: new Date() });
+        .mockResolvedValueOnce({ id: 1, status: 1 })
+        .mockResolvedValueOnce({ id: 1, status: 0, suspendReason: "资料不全", suspendedAt: new Date() });
       mocks.query.mockResolvedValue({ affectedRows: 1 });
-      const res = await auditTenant(1, { status: "SUSPENDED", remark: "资料不全" });
-      expect(res!.status).toBe("SUSPENDED");
+      const res = await auditTenant(1, { status: "DISABLED", remark: "资料不全" });
       expect(res!.suspendReason).toBe("资料不全");
+      const [sql, params] = mocks.query.mock.calls[0] as [string, unknown[]];
+      expect(sql).toContain("suspend_reason = ?");
+      expect(sql).toContain("suspended_at = NOW()");
+      // 落库值必须是数字 0（TINYINT），不是字符串 'DISABLED'（严格模式 1366）
+      expect(params).toEqual([0, "资料不全", 1]);
+    });
+
+    it("越界入参（SUSPENDED / EXPIRED / PENDING / CLOSED）一律 400，且不写库", async () => {
+      for (const bad of ["SUSPENDED", "EXPIRED", "PENDING", "CLOSED"]) {
+        mocks.query.mockClear();
+        mocks.queryOne.mockClear();
+        await expect(auditTenant(1, { status: bad })).rejects.toMatchObject({
+          name: "AppError",
+          statusCode: 400,
+        });
+        expect(mocks.query).not.toHaveBeenCalled();
+        expect(mocks.queryOne).not.toHaveBeenCalled();
+      }
     });
   });
 
@@ -189,13 +208,33 @@ describe("saas tenant.service", () => {
       expect(res).toBeNull();
     });
 
-    it("切换状态成功", async () => {
+    it("切换状态写入库值（DISABLED ⇒ 0 / ACTIVE ⇒ 1），不写字符串", async () => {
       mocks.queryOne
-        .mockResolvedValueOnce({ id: 1, status: "ACTIVE" })
-        .mockResolvedValueOnce({ id: 1, status: "SUSPENDED" });
+        .mockResolvedValueOnce({ id: 1, status: 1 })
+        .mockResolvedValueOnce({ id: 1, status: 0 });
       mocks.query.mockResolvedValue({ affectedRows: 1 });
-      const res = await toggleTenantStatus(1, "SUSPENDED");
-      expect(res!.status).toBe("SUSPENDED");
+      await toggleTenantStatus(1, "DISABLED");
+      expect(mocks.query.mock.calls[0][1]).toEqual([0, 1]);
+
+      mocks.query.mockClear();
+      mocks.queryOne
+        .mockResolvedValueOnce({ id: 1, status: 0 })
+        .mockResolvedValueOnce({ id: 1, status: 1 });
+      await toggleTenantStatus(1, "ACTIVE");
+      expect(mocks.query.mock.calls[0][1]).toEqual([1, 1]);
+    });
+
+    it("越界入参（SUSPENDED / EXPIRED）一律 400，且不写库", async () => {
+      for (const bad of ["SUSPENDED", "EXPIRED"]) {
+        mocks.query.mockClear();
+        mocks.queryOne.mockClear();
+        await expect(toggleTenantStatus(1, bad)).rejects.toMatchObject({
+          name: "AppError",
+          statusCode: 400,
+        });
+        expect(mocks.query).not.toHaveBeenCalled();
+        expect(mocks.queryOne).not.toHaveBeenCalled();
+      }
     });
   });
 

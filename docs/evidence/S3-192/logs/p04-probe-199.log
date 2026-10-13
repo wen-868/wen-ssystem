@@ -1,0 +1,41 @@
+probe	cnt
+P4a 订正前：越界状态值行数（期望 2）	2
+probe	status	cnt
+P4a 订正前：status 分布	0	1
+P4a 订正前：status 分布	DISABLED	1
+P4a 订正前：status 分布	EXPIRED	1
+P4a 订正前：status 分布	SUSPENDED	1
+probe	changed_rows
+P4a 第一遍 变更行数	2
+probe	cnt
+P4a 订正后：越界状态值行数（期望 0）	0
+probe	status	cnt
+P4a 订正后：status 分布	0	3
+P4a 订正后：status 分布	DISABLED	1
+probe	matched_rows
+P4a 第二遍执行前：匹配行数（期望 0 = WHERE 守卫，幂等的前提）	0
+probe	changed_rows
+P4a 第二遍 变更行数（期望 0 = 幂等）	0
+probe	matched_rows
+P4b 匹配行数（期望 0：数值列上不存在越界字符串值）	0
+probe	changed_rows
+P4b 第一遍 变更行数（期望 0）	0
+probe	changed_rows
+P4b 第二遍 变更行数（期望 0）	0
+probe
+P4b 数值库行为未被改坏（num-active 仍 = 0 且有原因；num-disabled 仍 = 0）
+id	status_raw	suspend_reason
+num-active	0	订阅已到期
+num-disabled	0	NULL
+probe	changed_rows
+P5 反测 第一遍 变更行数（期望 4 = 全表）	4
+probe	matched_rows
+P5 反测：去掉 WHERE 时每次执行都会匹配全表（matched_rows = 4，与上一遍无关）	4
+s3192_sleep_done
+0
+probe	changed_rows
+P5 反测 第二遍 变更行数（期望 > 0 ⇒ 每次全表重写 = 不幂等 = 红）	4
+probe	matched_rows
+P5 复原后 匹配行数（期望 0）	0
+probe	changed_rows
+P5 复原后 变更行数（期望 0 = 绿）	0
