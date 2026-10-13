@@ -73,6 +73,7 @@ node docs\evidence\S3-191\harness\make-notify-payload.mjs S3191RuntimeProofKey01
 | `enum-antitest.txt` | 反测（脚本动态分支复原）：静态 0 / 动态 19（红） |
 | `runtime-mock-fixed.txt` | mock 模式两探针（500 business message，非模块错误） |
 | `runtime-real-db-fixed.txt` | 真库 + 真产物：**HTTP 200** `{"code":"SUCCESS","message":"非成功交易，忽略"}` |
+| `runtime-real-db-final.txt` | **反测复原后的最终产物**（凌舟要验收的那份 dist）再跑一次：**HTTP 200**（同一报文），日志 `server-real-db-final.out.log` |
 | `runtime-real-db-antitest.txt` | 反测：同一报文 **HTTP 500** `Cannot find module '...dist/services/wechat-pay.service'` |
 | `resolve-and-load.txt` | 21 处动态相对导入 → 目标文件全部存在；7 个目标模块逐个 import OK |
 | `no-false-positive.txt` | 包名/node 内置动态 import 未被误改；`.js.js` 双扩展名 0 处 |

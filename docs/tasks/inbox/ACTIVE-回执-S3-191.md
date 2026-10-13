@@ -65,6 +65,7 @@
 | 侧 | 命令/报文 | 原始响应 | 文件 |
 |:--|:--|:--|:--|
 | 修复后（真库） | 同一条回调报文 | **HTTP 200** `{"code":"SUCCESS","message":"非成功交易，忽略"}` | `logs/runtime-real-db-fixed.txt` |
+| 修复后（真库 · **反测复原后的最终产物**） | 同一条回调报文 | **HTTP 200** `{"code":"SUCCESS","message":"非成功交易，忽略"}`（证明"我验证的那份 dist"= "你将要验收的那份 dist"） | `logs/runtime-real-db-final.txt` |
 | 反测（脚本动态分支复原） | **同一条报文、同一库** | **HTTP 500** `{"code":"FAIL","message":"Cannot find module 'D:\\...\\backend\\dist\\services\\wechat-pay.service' imported from D:\\...\\backend\\dist\\controllers\\miniapp\\miniapp.controller.js"}` | `logs/runtime-real-db-antitest.txt` |
 | 修复后（mock 模式两探针） | `{}` / 带 `resource` 的报文 | 500 `回调缺少 resource 密文` / 500 `无启用微信支付的租户配置，拒绝回调`（**均为业务错误，非模块错误**） | `logs/runtime-mock-fixed.txt` |
 
