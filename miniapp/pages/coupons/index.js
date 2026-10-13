@@ -1,3 +1,17 @@
+/**
+ * 优惠券页（旧 miniapp·微信原生客户端）。
+ *
+ * S3-187 D 定性 = **仍在用**：Taro 新端由 `miniapp/config/index.js`(sourceRoot:src) 构建，
+ * 本目录（pages/*.js）由 `scripts/check-miniapp-release.mjs`（npm run test:miniapp-release）断言、
+ * 并由 `deploy/deploy-production.sh` 的「部署小程序源码」步骤发布 ⇒ 不能按"已弃用"删除。
+ *
+ * ⚠️ 未解决的载体缺口（本单如实登记，不在客户端硬塞 JWT）：
+ *   `/api/miniapp/marketing/*` 的写端点与「我的」端点由后端 `requireAuthWithTenant` 保护，要的是
+ *   **商家端 JWT**（issuer=zhixiang-system，payload 含 id/roles/tenantId）；本客户端持有的却是
+ *   微信登录令牌（`/api/miniapp/wechat/auth/login` 下发，payload 只有 wxUserId/openid）⇒ 即便路径已对齐，
+ *   这三个调用仍会被 401。需先由凌舟裁定登录态载体（换 /api/miniapp/login 的商家 JWT，或后端为消费者
+ *   端点接受微信令牌），再谈"可用"。本单只做**路径对齐**（消除恒 404）。
+ */
 const { injectTheme } = require('../../utils/theme')
 
 Page({
@@ -71,7 +85,9 @@ Page({
     }
     this.setData({ myLoading: true })
     wx.request({
-      url: `${app.globalData.apiBase}/miniapp/marketing/coupons/mine`,
+      // S3-187 D：路径对齐后端（后端只有 /coupons/my，没有 /coupons/mine）——
+      // 旧写法对 /api/miniapp/marketing/* 恒 404，属"看起来能用、实际打不通"的入口。
+      url: `${app.globalData.apiBase}/miniapp/marketing/coupons/my`,
       method: 'GET',
       header: {
         'Content-Type': 'application/json',

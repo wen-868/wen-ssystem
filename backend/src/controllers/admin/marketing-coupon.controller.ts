@@ -112,7 +112,13 @@ export const listAvailableCoupons = asyncHandler(async (req, res) => {
 });
 
 export const claimCoupon = asyncHandler(async (req, res) => {
+  // S3-187 A：被操作对象（模板）必须先校验「参数本身合法」，再交给服务层做租户归属/存在性校验。
+  //   此前只 Number(req.params.templateId)：路由无该参数时得到 NaN 并被当成业务 id 传下去。
   const templateId = Number(req.params.templateId);
+  if (!Number.isInteger(templateId) || templateId <= 0) {
+    res.status(400).json(fail("优惠券模板ID无效", "400"));
+    return;
+  }
   const userId = getUserId(req);
   if (!userId) {
     res.status(400).json(fail("缺少用户ID", "400"));

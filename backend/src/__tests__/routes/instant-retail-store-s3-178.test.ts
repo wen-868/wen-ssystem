@@ -5,10 +5,12 @@
  * （= [...requireAuthWithTenant, 门店校验]）鉴权，**没有 csrfMiddleware** ⇒ 有认证无 CSRF。
  *
  * 为什么必须**单独挂这个 router** 做判据（重要）：
- *   整机装配下，commerce-fix.routes.ts 以 `{ prefix: "/api/store", auth: "requireAuthWithTenant" }`
- *   先于本文件注册（文件名 c < i），其声明式挂载的 requireAuthWithTenant + csrfMiddleware 会先跑，
- *   把 /api/store/** 的 POST 全部拦成"没带 x-csrf-token ⇒ 403"——**运行期看起来"有 CSRF"，实为该前缀
- *   被另一个文件顺手覆盖**。若只用整机 HTTP 取证，改前/改后都是 403，根本分不出本文件是否挂了 CSRF。
+ *   整机装配下，凡以根前缀 `{ prefix: "/api/store", auth: "requireAuthWithTenant" }` 注册的文件
+ *   （如 store.routes.ts 等 store-*.routes.ts）其声明式挂载的 requireAuthWithTenant + csrfMiddleware
+ *   会先跑，把 /api/store/** 的 POST 拦成"没带 x-csrf-token ⇒ 403"——**运行期看起来"有 CSRF"，
+ *   实为该前缀被同前缀的另一个文件顺手覆盖**。若只用整机 HTTP 取证，改前/改后都是 403，
+ *   根本分不出本文件是否挂了 CSRF。（S3-187 B 已把 commerce-fix.routes.ts 从根前缀收窄到
+ *   /api/store/coupons；同前缀的 store-*.routes.ts 仍属该形态，本判据继续单独挂载。）
  *   故本用例按"本文件单独挂载"取证，直接锁定文件自身的挂载链。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";

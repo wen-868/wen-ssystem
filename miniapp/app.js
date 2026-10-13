@@ -6,6 +6,7 @@ App({
     demoMode: false,
     theme: theme,
     token: "",       // 微信登录token
+    csrfToken: "",   // S3-187 E：wechat 写端点自本次起校验 x-csrf-token，登录响应下发
     wxUserInfo: null // 微信用户信息
   },
 
@@ -41,6 +42,11 @@ App({
               const token = body.data.token;
               this.globalData.token = token;
               wx.setStorageSync("miniapp_token", token);
+              // S3-187 E：CSRF 令牌随登录态一起保存（客户端无法自行计算 HMAC，只能由后端下发）
+              if (body.data.csrfToken) {
+                this.globalData.csrfToken = body.data.csrfToken;
+                wx.setStorageSync("miniapp_csrf_token", body.data.csrfToken);
+              }
               if (body.data.userInfo) {
                 this.globalData.wxUserInfo = body.data.userInfo;
               }
@@ -80,9 +86,12 @@ App({
   /** 封装请求方法，自动带 token */
   request(options) {
     const token = this.globalData.token || wx.getStorageSync("miniapp_token") || "";
+    const csrfToken = this.globalData.csrfToken || wx.getStorageSync("miniapp_csrf_token") || "";
     const header = {
       "Content-Type": "application/json",
-      ...(token ? { "Authorization": "Bearer " + token } : {})
+      ...(token ? { "Authorization": "Bearer " + token } : {}),
+      // S3-187 E：写端点（POST/PUT/DELETE）必须带 CSRF 令牌，否则 403
+      ...(csrfToken ? { "x-csrf-token": csrfToken } : {})
     };
     // 合并自定义header
     if (options.header) {
@@ -106,7 +115,9 @@ App({
   /** 退出登录 */
   logout() {
     this.globalData.token = "";
+    this.globalData.csrfToken = "";
     this.globalData.wxUserInfo = null;
     wx.removeStorageSync("miniapp_token");
+    wx.removeStorageSync("miniapp_csrf_token");
   }
 });

@@ -37,7 +37,25 @@ export const listPointsRecords = asyncHandler(async (req, res) => {
 });
 
 export const getUserPoints = asyncHandler(async (req, res) => {
-  const userId = Number(req.params.userId);
+  // S3-187 C：同一函数被两个端点共用——管理员代查 /api/admin/marketing/points/user/:userId
+  //   与消费者侧 /api/miniapp/marketing/points/my。显式分支：
+  //   ① 有 :userId ⇒ 用 param（管理员代查，归属/租户隔离由服务层按 tenant_id 兜住）；
+  //   ② 无 :userId ⇒ 用登录态身份（此前读 req.params.userId 得到的恒为 NaN ⇒ 身份失真）。
+  const paramUserId = req.params.userId === undefined ? undefined : Number(req.params.userId);
+  let userId: number;
+  if (paramUserId !== undefined) {
+    if (!Number.isInteger(paramUserId) || paramUserId <= 0) {
+      res.status(400).json(fail("用户ID无效", "400"));
+      return;
+    }
+    userId = paramUserId;
+  } else {
+    userId = Number(req.user?.id || 0);
+    if (!userId) {
+      res.status(401).json(fail("未登录", "401"));
+      return;
+    }
+  }
   const result = await pointsService.getUserPoints(userId, req.tenantId!);
   res.json(ok(result));
 });

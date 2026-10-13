@@ -142,6 +142,11 @@ Page({
             if (body.code === "0" && body.data) {
               wx.setStorageSync("miniapp_token", body.data.token || "");
               app.globalData.token = body.data.token || "";
+              // S3-187 E：保存登录响应下发的 CSRF 令牌（wechat 写端点现在会校验它）
+              if (body.data.csrfToken) {
+                app.globalData.csrfToken = body.data.csrfToken;
+                wx.setStorageSync("miniapp_csrf_token", body.data.csrfToken);
+              }
               this.setData({ isLoggedIn: true });
               wx.showToast({ title: "已登录", icon: "success" });
               this.refreshProfile();

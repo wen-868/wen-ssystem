@@ -38,8 +38,10 @@ export const couponApi = {
   },
 
   claimCoupon: (templateId: number): Promise<ClaimResponse> => {
-    // 后端 marketing-miniapp 路由：POST /api/miniapp/marketing/coupons/claim（body 传 templateId）
-    return post('/miniapp/marketing/coupons/claim', { templateId } as unknown as Record<string, unknown>)
+    // 后端 marketing-miniapp 路由：POST /api/miniapp/marketing/coupons/:templateId/claim
+    // S3-187 A：契约（docs/API接口文档.md:2839）为带参路径，模板 id 走路径参数——
+    // 旧写法把 templateId 放 body、而路由无该参数，controller 读到 NaN ⇒ 恒 404。
+    return post(`/miniapp/marketing/coupons/${templateId}/claim`)
   },
 
   getMyCoupons: (params?: { page?: number; pageSize?: number; status?: string }): Promise<{

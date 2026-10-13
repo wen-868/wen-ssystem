@@ -99,6 +99,12 @@ export const DUPLICATE_PREFIX_ALLOWLIST: Record<string, string> = {
   "/api/miniapp":
     "小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠" +
     "（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。",
+  "/api/store/coupons":
+    "门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与" +
+    "commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀" +
+    "「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把" +
+    "/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:\"none\" 端点拦成 401；" +
+    "现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。",
   "/api/monitor":
     "监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。",
   "/api/platform/monitor":
