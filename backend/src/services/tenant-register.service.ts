@@ -11,6 +11,11 @@ import {
   writeTenantAttribution,
 } from "./platform/platform-tenant-attribution.service";
 import type { AttributionRunner } from "./platform/platform-tenant-attribution.service";
+import {
+  bindTenantAdminToOwnSuperAdmin,
+  provisionTenantRbac,
+  type SqlRunner,
+} from "./platform/tenant-rbac-provision.service";
 
 export interface TenantRegisterInput {
   // 与前端注册表单字段一致（snake_case）
@@ -286,16 +291,16 @@ export async function approveTenantApplication(applicationId: number, reviewerId
     );
     const userId = userResult.insertId;
 
-    // 3) 绑定超级管理员角色（优先当前租户角色，其次 default 全局角色）
-    await connExecute<ResultSetHeader>(
-      conn,
-      `INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
-       SELECT ?, id, ? FROM t_sys_role
-       WHERE role_code = 'SUPER_ADMIN' AND (status = 'ACTIVE' OR status = 1 OR status = '1')
-       ORDER BY CASE WHEN tenant_id = ? THEN 0 ELSE 1 END
-       LIMIT 1`,
-      [userId, tenantId, tenantId]
-    );
+    // 3) S3-183（收口总清单第 18 项）：先把 default 的角色/菜单克隆到本租户，再把管理员绑到
+    //    **本租户自己的** SUPER_ADMIN 角色行。
+    //    改前是"优先当前租户角色，其次 default 全局角色"——新租户此刻在本租户内还没有任何角色行，
+    //    于是必然绑到 default 的角色行 ⇒ 跨租户绑定过不了两条按租户匹配的读路径
+    //    （auth.service.ts 的 getUserPermissions 用 r.tenant_id = ur.tenant_id、
+    //    menu-permission.service.ts 的 getUserMenus 用 r.tenant_id = ?）⇒ permissions=[]、menus=[]，
+    //    手机端「功能中心 / 更多功能」整屏空白（真实受害租户 f0cbfe78-…）。
+    const rbacRun: SqlRunner = (sql, params) => connExecute<ResultSetHeader>(conn, sql, params);
+    await provisionTenantRbac(rbacRun, tenantId);
+    await bindTenantAdminToOwnSuperAdmin(rbacRun, tenantId, userId);
 
     // 4) 记录租户管理员
     await connExecute<ResultSetHeader>(
