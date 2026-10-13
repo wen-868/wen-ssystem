@@ -383,8 +383,9 @@ export async function createCollectionLink(params: {
 }) {
   const { billNo, shareChannel, amount, taxEnabled, taxRate, expireHours, remark, userId, tenantId } = params;
   const bill = await queryOneWithTenant<UnreceivedRow>("SELECT bill_no, unreceived_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
-  if (!bill) throw new Error("销售单不存在");
-  if (amount <= 0 || amount > Number(bill.unreceived_amount)) throw new Error("收款金额必须大于0且不能超过未收金额");
+  // S3-184（收口总清单第 45 项）：写路径裸 throw（无 statusCode）⇒ 500。缺资源 ⇒ 404；入参非法 ⇒ 400。
+  if (!bill) throw new AppError("销售单不存在", 404);
+  if (amount <= 0 || amount > Number(bill.unreceived_amount)) throw new AppError("收款金额必须大于0且不能超过未收金额", 400);
   const linkNo = makeBizNo("SK");
   const token = makeToken();
   const taxAmount = taxEnabled ? Number((amount * taxRate).toFixed(2)) : 0;
@@ -414,7 +415,7 @@ export async function offlinePayment(params: {
       [billNo, tenantId]
     );
     const bill = rows[0];
-    if (!bill) throw new Error("销售单不存在");
+    if (!bill) throw new AppError("销售单不存在", 404);
     const existingDeductRows = await conn.query<LedgerConnRow[]>(
       "SELECT id FROM t_inventory_ledger WHERE biz_type = 'SALE_OUT' AND biz_no = ? AND tenant_id = ? LIMIT 1",
       [billNo, tenantId]
@@ -422,7 +423,7 @@ export async function offlinePayment(params: {
     const alreadyDeducted = existingDeductRows[0].length > 0;
     const received = Number(bill.received_amount) + amount;
     const receivable = Number(bill.receivable_amount);
-    if (amount <= 0 || amount > Math.max(receivable - Number(bill.received_amount), 0)) throw new Error("收款金额不合法");
+    if (amount <= 0 || amount > Math.max(receivable - Number(bill.received_amount), 0)) throw new AppError("收款金额不合法", 400);
     const status = received >= receivable ? "PAID" : "PARTIAL";
     await conn.execute(
       `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
@@ -444,7 +445,8 @@ export async function offlinePayment(params: {
         const inventory = inventoryRows[0];
         const beforeQty = Number(inventory?.availableQty ?? 0);
         const quantity = Number(item.quantity ?? item.totalBottleQty);
-        if (beforeQty < quantity) throw new Error("库存不足，无法完成收款出库");
+        // 当前库存状态不允许本次出库 ⇒ 409（与"入参非法"区分：金额/单号都对，是货物状态冲突）
+        if (beforeQty < quantity) throw new AppError("库存不足，无法完成收款出库", 409);
         const afterQty = beforeQty - quantity;
         await conn.execute(
           `UPDATE t_inventory_balance SET physical_qty = physical_qty - ?, available_qty = available_qty - ?, updated_at = NOW() WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?`,
@@ -472,10 +474,10 @@ export async function paymentOnSaleBill(params: {
       [billNo, tenantId]
     );
     const bill = rows[0];
-    if (!bill) throw new Error("销售单不存在");
+    if (!bill) throw new AppError("销售单不存在", 404);
     const received = Number(bill.received_amount) + amount;
     const receivable = Number(bill.receivable_amount);
-    if (amount <= 0 || amount > Math.max(receivable - Number(bill.received_amount), 0)) throw new Error("收款金额不合法");
+    if (amount <= 0 || amount > Math.max(receivable - Number(bill.received_amount), 0)) throw new AppError("收款金额不合法", 400);
     const status = received >= receivable ? "PAID" : "PARTIAL";
     await conn.execute(
       `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
