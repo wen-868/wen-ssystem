@@ -1,0 +1,115 @@
+### CMD: npm --workspace saas-admin run build
+
+> saas-admin@0.1.0 build
+> vite build
+
+vite v6.4.3 building for production...
+transforming...
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (3362:0): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (5780:22): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2399 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                   0.82 kB │ gzip:   0.51 kB
+dist/assets/TenantUsage-DpDbcjGg.css              0.09 kB │ gzip:   0.08 kB
+dist/assets/TenantForm-DLUpd8Cl.css               0.09 kB │ gzip:   0.11 kB
+dist/assets/AiCognitionView-85CwNNNP.css          0.11 kB │ gzip:   0.12 kB
+dist/assets/MessageConfig-DIZ7_vSG.css            0.23 kB │ gzip:   0.14 kB
+dist/assets/AiUsageStats-CfCT78zn.css             0.27 kB │ gzip:   0.19 kB
+dist/assets/ApplicationList-BRTU1oxD.css          0.32 kB │ gzip:   0.18 kB
+dist/assets/PlatformRegister-BY0yxZW6.css         0.44 kB │ gzip:   0.23 kB
+dist/assets/MonitorView-DevcPdFa.css              0.45 kB │ gzip:   0.23 kB
+dist/assets/SubscriptionApplies-DCFoIlqZ.css      0.66 kB │ gzip:   0.29 kB
+dist/assets/Packages-C0DCjHzI.css                 0.78 kB │ gzip:   0.37 kB
+dist/assets/ApplicationDetail-OdLiTpH2.css        0.81 kB │ gzip:   0.33 kB
+dist/assets/Settings-CMnT1dag.css                 1.00 kB │ gzip:   0.42 kB
+dist/assets/LibraryImport-DGXaC0uL.css            1.17 kB │ gzip:   0.49 kB
+dist/assets/ChannelPromotion-D9vV6-iR.css         1.18 kB │ gzip:   0.44 kB
+dist/assets/TenantList-BDlUQGjo.css               1.85 kB │ gzip:   0.64 kB
+dist/assets/Dashboard-C3q8mHv6.css                1.87 kB │ gzip:   0.64 kB
+dist/assets/TenantDetail-C65AHdGh.css             2.14 kB │ gzip:   0.69 kB
+dist/assets/AiBillingConfig-BwZ_wFzt.css          2.31 kB │ gzip:   0.73 kB
+dist/assets/AppVersions-C7TyNm2B.css              2.34 kB │ gzip:   0.77 kB
+dist/assets/Announcements-C6EWs2wm.css            2.60 kB │ gzip:   0.83 kB
+dist/assets/LibraryBrands-DHJTzGxK.css            2.68 kB │ gzip:   0.80 kB
+dist/assets/LibraryReviews-B4-30AIl.css           2.86 kB │ gzip:   0.85 kB
+dist/assets/TemplateCenter-CkKYCJi3.css           2.95 kB │ gzip:   0.85 kB
+dist/assets/TicketSystem-Cp8OTGzU.css             2.96 kB │ gzip:   0.86 kB
+dist/assets/LibrarySpus-CyVrYDAJ.css              2.97 kB │ gzip:   0.87 kB
+dist/assets/AdminPermissions-GUrKDiO3.css         3.34 kB │ gzip:   0.99 kB
+dist/assets/MobilePreview-vZWJc6uF.css            3.52 kB │ gzip:   0.99 kB
+dist/assets/PlatformAiConfig-vMfpfw1Q.css         3.78 kB │ gzip:   1.09 kB
+dist/assets/PlatformLogin-BU7sFetq.css            4.20 kB │ gzip:   1.08 kB
+dist/assets/PackageForm-AhZz4EbQ.css              4.57 kB │ gzip:   1.16 kB
+dist/assets/PlatformLayout-WhoAE9Pt.css           5.57 kB │ gzip:   1.25 kB
+dist/assets/AgentManagement-BEnYoL7m.css          6.02 kB │ gzip:   1.28 kB
+dist/assets/index-X-55Rmq6.css                  389.01 kB │ gzip:  54.34 kB
+dist/assets/tenant-application-Duj2OeRX.js        0.38 kB │ gzip:   0.20 kB
+dist/assets/download-blob-CTPt5BA_.js             0.68 kB │ gzip:   0.41 kB
+dist/assets/quota-DttjMcUS.js                     0.74 kB │ gzip:   0.49 kB
+dist/assets/tenant-BPd2iWbW.js                    0.99 kB │ gzip:   0.35 kB
+dist/assets/open-platform-9pB6IPCA.js             1.24 kB │ gzip:   0.36 kB
+dist/assets/library-PFHOBUP9.js                   1.42 kB │ gzip:   0.42 kB
+dist/assets/plan-features-CGeZbqKd.js             2.33 kB │ gzip:   1.27 kB
+dist/assets/ai-config-AqWJnQrN.js                 2.73 kB │ gzip:   1.16 kB
+dist/assets/ApplicationList-GvsWPgN2.js           2.87 kB │ gzip:   1.48 kB
+dist/assets/PlatformRegister-CdUy9zgC.js          3.00 kB │ gzip:   1.51 kB
+dist/assets/TenantForm-BMQaDPyg.js                3.39 kB │ gzip:   1.31 kB
+dist/assets/PlatformLayout-BSVBjjFH.js            4.63 kB │ gzip:   2.22 kB
+dist/assets/AuditLogs-BfAD3ZJ5.js                 4.95 kB │ gzip:   2.08 kB
+dist/assets/ErrorLogs-Dbnqsefb.js                 5.60 kB │ gzip:   2.25 kB
+dist/assets/SubscriptionApplies-3fx4DtYp.js       5.61 kB │ gzip:   2.34 kB
+dist/assets/PlatformLogin-BVl3_R7W.js             6.03 kB │ gzip:   2.67 kB
+dist/assets/PlatformReviews-4nVlSbE6.js           7.38 kB │ gzip:   2.94 kB
+dist/assets/ApplicationDetail-C-pK-cDD.js         7.75 kB │ gzip:   2.69 kB
+dist/assets/api-DYHvgfcu.js                       7.87 kB │ gzip:   2.05 kB
+dist/assets/SubscriptionDetail-B3yjii__.js        8.28 kB │ gzip:   2.98 kB
+dist/assets/MessageConfig-BsNIb9xP.js             8.42 kB │ gzip:   2.82 kB
+dist/assets/TenantUsage-C537tddr.js               8.46 kB │ gzip:   3.60 kB
+dist/assets/AiCognitionView-CLB5tNao.js           8.69 kB │ gzip:   3.31 kB
+dist/assets/TenantAiConfig-CyOcUfqx.js            9.14 kB │ gzip:   3.65 kB
+dist/assets/Packages-A052TAGv.js                  9.56 kB │ gzip:   4.15 kB
+dist/assets/MobilePreview-c0ouSRPi.js            10.05 kB │ gzip:   3.60 kB
+dist/assets/LibraryImport-KhWu-5kU.js            10.39 kB │ gzip:   4.61 kB
+dist/assets/Subscriptions-D2lVMOz4.js            11.86 kB │ gzip:   3.81 kB
+dist/assets/LibraryReviews-ZvqtskyA.js           12.20 kB │ gzip:   5.21 kB
+dist/assets/TicketSystem-VpI2Ns5f.js             12.55 kB │ gzip:   4.63 kB
+dist/assets/PlatformAiConfig-CQ9yT_Tc.js         12.95 kB │ gzip:   4.97 kB
+dist/assets/LibraryBrands-rmWNTjS0.js            13.01 kB │ gzip:   4.84 kB
+dist/assets/TenantList-C2g5e-0g.js               13.77 kB │ gzip:   5.27 kB
+dist/assets/WebhookList-DlfmGzH_.js              13.86 kB │ gzip:   5.04 kB
+dist/assets/AiUsageStats-CcRgHaZq.js             14.17 kB │ gzip:   5.49 kB
+dist/assets/PackageForm-CjaExk93.js              15.66 kB │ gzip:   5.70 kB
+dist/assets/ChannelPromotion-C-CqwJs7.js         16.09 kB │ gzip:   5.79 kB
+dist/assets/AppVersions-CkBpE46-.js              16.20 kB │ gzip:   6.54 kB
+dist/assets/AdminPermissions-CmZUmk_D.js         16.94 kB │ gzip:   6.32 kB
+dist/assets/Announcements-B2eCXSYm.js            18.75 kB │ gzip:   6.74 kB
+dist/assets/ApiKeyList-BzzUTB-W.js               19.29 kB │ gzip:   7.02 kB
+dist/assets/Dashboard-CB4vz2RJ.js                19.75 kB │ gzip:   7.57 kB
+dist/assets/Settings-r_a7c7FL.js                 20.61 kB │ gzip:   7.81 kB
+dist/assets/TenantDetail-CWS4n6_W.js             20.75 kB │ gzip:   7.81 kB
+dist/assets/index-DW8neXg-.js                    21.77 kB │ gzip:   8.40 kB
+dist/assets/TemplateCenter-BW080NEs.js           24.38 kB │ gzip:   7.77 kB
+dist/assets/AiBillingConfig-ANR4_wt6.js          31.25 kB │ gzip:  10.12 kB
+dist/assets/AgentManagement-rP2-781r.js          33.19 kB │ gzip:  10.94 kB
+dist/assets/MonitorView-BXPP6Rj-.js              35.87 kB │ gzip:  12.24 kB
+dist/assets/LibrarySpus-t_FfZBjF.js              39.01 kB │ gzip:  12.66 kB
+dist/assets/Reconciliation-BaYmnLEk.js           40.26 kB │ gzip:  12.79 kB
+dist/assets/vendor-Bw-2VfX-.js                  143.33 kB │ gzip:  55.06 kB
+dist/assets/element-CeNPSj_O.js                 940.37 kB │ gzip: 303.28 kB
+dist/assets/echarts-BB8VCqSB.js               1,128.93 kB │ gzip: 379.03 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1m 28s
+EXIT=0

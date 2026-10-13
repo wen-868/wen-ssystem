@@ -1,0 +1,16 @@
+### CMD: rg -n 'noteSupportTicket|getAgent|...' saas-admin --glob '*.ts' --glob '*.vue' --glob '*.mjs'  (删除后复查：仅剩同名前缀的 *Api 变体)
+saas-admin\src\api\announcement.ts:89:export function deleteAnnouncementApi(id: number) {
+saas-admin\src\views\Announcements.vue:352:  deleteAnnouncementApi,
+saas-admin\src\views\Announcements.vue:763:    await deleteAnnouncementApi(row.id);
+
+EXIT=0
+
+### CMD: rg -n '^export ' -c saas-admin/src/api.ts  (改动前 139 → 改动后)
+122
+
+
+### CMD: git diff --stat
+ saas-admin/src/api.ts          | 89 +++---------------------------------------
+ website/src/views/HomeView.vue |  6 +--
+ 2 files changed, 8 insertions(+), 87 deletions(-)
+

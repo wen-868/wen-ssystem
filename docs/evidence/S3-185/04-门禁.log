@@ -1,0 +1,10 @@
+### guard:route-auth
+[guard:route-auth] 扫描 189 个路由文件
+✅ G3 通过：无「绕过声明式鉴权/CSRF」的路由文件（auth:"none" 的公开端点已登记 15 个文件）
+
+EXIT=0
+### guard:tenant-status
+[guard:tenant-status] 扫描 4 个域内文件 + 唯一映射函数
+✅ G2 通过：租户状态域只有 ACTIVE / DISABLED 一套口径
+
+EXIT=0

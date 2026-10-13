@@ -1,0 +1,137 @@
+# 文件数=29 写端点总数=105
+# file	line	method	subPath	fullPath
+## platform-agent.routes.ts  endpoints=5  prefix=["/api/platform/agents"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-agent.routes.ts	37	POST	/levels	/api/platform/agents/levels
+platform-agent.routes.ts	38	PUT	/levels/:id	/api/platform/agents/levels/:id
+platform-agent.routes.ts	42	POST	/	/api/platform/agents/
+platform-agent.routes.ts	44	PUT	/:id	/api/platform/agents/:id
+platform-agent.routes.ts	45	POST	/:id/status	/api/platform/agents/:id/status
+## platform-app-version.routes.ts  endpoints=7  prefix=["/api/app","/api/padmin"]  auth=["none","requirePlatformAuth"]  innerRequirePermission=[]
+platform-app-version.routes.ts	13	POST	/app-versions/draft	/api/app + /api/padmin/app-versions/draft
+platform-app-version.routes.ts	14	POST	/app-versions	/api/app + /api/padmin/app-versions
+platform-app-version.routes.ts	16	POST	/app-versions/:id/pause	/api/app + /api/padmin/app-versions/:id/pause
+platform-app-version.routes.ts	17	POST	/app-versions/:id/resume	/api/app + /api/padmin/app-versions/:id/resume
+platform-app-version.routes.ts	18	POST	/app-versions/:id/archive	/api/app + /api/padmin/app-versions/:id/archive
+platform-app-version.routes.ts	20	POST	/app-versions/:id/rollback	/api/app + /api/padmin/app-versions/:id/rollback
+platform-app-version.routes.ts	21	DELETE	/app-versions/:id	/api/app + /api/padmin/app-versions/:id
+## platform-applications.routes.ts  endpoints=2  prefix=["/api/platform/applications"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-applications.routes.ts	23	PUT	/:id/approve	/api/platform/applications/:id/approve
+platform-applications.routes.ts	26	PUT	/:id/reject	/api/platform/applications/:id/reject
+## platform-auth.routes.ts  endpoints=6  prefix=["/api/platform/auth"]  auth=["none"]  innerRequirePermission=[]
+platform-auth.routes.ts	37	POST	/login	/api/platform/auth/login
+platform-auth.routes.ts	46	POST	/admin/create	/api/platform/auth/admin/create
+platform-auth.routes.ts	76	POST	/mfa/setup	/api/platform/auth/mfa/setup
+platform-auth.routes.ts	77	POST	/mfa/confirm	/api/platform/auth/mfa/confirm
+platform-auth.routes.ts	78	POST	/mfa/disable	/api/platform/auth/mfa/disable
+platform-auth.routes.ts	80	POST	/mfa/verify	/api/platform/auth/mfa/verify
+## platform-billing-arrears.routes.ts  endpoints=1  prefix=["/api/platform/billing"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-billing-arrears.routes.ts	19	POST	/arrears/urge	/api/platform/billing/arrears/urge
+## platform-billing.routes.ts  endpoints=3  prefix=["/api/platform/billing"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-billing.routes.ts	30	POST	/generate	/api/platform/billing/generate
+platform-billing.routes.ts	31	POST	/statement/export	/api/platform/billing/statement/export
+platform-billing.routes.ts	32	POST	/invoice	/api/platform/billing/invoice
+## platform-channel-report.routes.ts  endpoints=0  prefix=["/api/platform/channel-reports"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+## platform-config.routes.ts  endpoints=5  prefix=["/api/platform/config"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-config.routes.ts	43	PUT	/	/api/platform/config/
+platform-config.routes.ts	49	PUT	/sys-config	/api/platform/config/sys-config
+platform-config.routes.ts	53	POST	/logo	/api/platform/config/logo
+platform-config.routes.ts	58	PUT	/feature-switches/:code	/api/platform/config/feature-switches/:code
+platform-config.routes.ts	64	PUT	/data-dict/:dictType	/api/platform/config/data-dict/:dictType
+## platform-dashboard.routes.ts  endpoints=0  prefix=["/api/platform/dashboard"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+## platform-error-log.routes.ts  endpoints=1  prefix=["/api/platform"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-error-log.routes.ts	13	POST	/error-report	/api/platform/error-report
+## platform-export-task.routes.ts  endpoints=2  prefix=["/api/platform/reports/export"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-export-task.routes.ts	28	POST	/	/api/platform/reports/export/
+platform-export-task.routes.ts	37	POST	/:id/retry	/api/platform/reports/export/:id/retry
+## platform-library.routes.ts  endpoints=15  prefix=["/api/platform/library"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-library.routes.ts	36	POST	/spus/import	/api/platform/library/spus/import
+platform-library.routes.ts	42	POST	/spus	/api/platform/library/spus
+platform-library.routes.ts	45	PUT	/spus/:id	/api/platform/library/spus/:id
+platform-library.routes.ts	48	PUT	/spus/:id/status	/api/platform/library/spus/:id/status
+platform-library.routes.ts	54	DELETE	/spus/:id	/api/platform/library/spus/:id
+platform-library.routes.ts	61	POST	/spus/:spuId/skus	/api/platform/library/spus/:spuId/skus
+platform-library.routes.ts	64	PUT	/skus/:id	/api/platform/library/skus/:id
+platform-library.routes.ts	67	DELETE	/skus/:id	/api/platform/library/skus/:id
+platform-library.routes.ts	78	POST	/brands	/api/platform/library/brands
+platform-library.routes.ts	81	PUT	/brands/:id	/api/platform/library/brands/:id
+platform-library.routes.ts	84	DELETE	/brands/:id	/api/platform/library/brands/:id
+platform-library.routes.ts	88	POST	/brands/:id/auth-letter	/api/platform/library/brands/:id/auth-letter
+platform-library.routes.ts	99	POST	/api-keys	/api/platform/library/api-keys
+platform-library.routes.ts	102	PUT	/api-keys/:id	/api/platform/library/api-keys/:id
+platform-library.routes.ts	105	DELETE	/api-keys/:id	/api/platform/library/api-keys/:id
+## platform-miniapp.routes.ts  endpoints=1  prefix=["/api/platform-miniapp"]  auth=["none"]  innerRequirePermission=[]
+platform-miniapp.routes.ts	23	POST	/subscriptions	/api/platform-miniapp/subscriptions
+## platform-monitor-ops.routes.ts  endpoints=1  prefix=["/api/platform/monitor"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-monitor-ops.routes.ts	38	PUT	/thresholds	/api/platform/monitor/thresholds
+## platform-monitor.routes.ts  endpoints=1  prefix=["/api/platform/monitor"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-monitor.routes.ts	34	POST	/notify-expiring	/api/platform/monitor/notify-expiring
+## platform-msg-config.routes.ts  endpoints=4  prefix=["/api/platform"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-msg-config.routes.ts	19	PUT	/msg-config	/api/platform/msg-config
+platform-msg-config.routes.ts	21	POST	/sms-templates	/api/platform/sms-templates
+platform-msg-config.routes.ts	22	PUT	/sms-templates/:id	/api/platform/sms-templates/:id
+platform-msg-config.routes.ts	23	DELETE	/sms-templates/:id	/api/platform/sms-templates/:id
+## platform-notification.routes.ts  endpoints=2  prefix=["/api/platform/notifications"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-notification.routes.ts	25	POST	/read-all	/api/platform/notifications/read-all
+platform-notification.routes.ts	29	POST	/:id/read	/api/platform/notifications/:id/read
+## platform-open.routes.ts  endpoints=10  prefix=["/api/platform/open"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-open.routes.ts	24	POST	/api-keys	/api/platform/open/api-keys
+platform-open.routes.ts	26	POST	/api-keys/:id/enable	/api/platform/open/api-keys/:id/enable
+platform-open.routes.ts	28	POST	/api-keys/:id/rotate	/api/platform/open/api-keys/:id/rotate
+platform-open.routes.ts	30	POST	/api-keys/:id/rotate-complete	/api/platform/open/api-keys/:id/rotate-complete
+platform-open.routes.ts	34	PUT	/api-keys/:id	/api/platform/open/api-keys/:id
+platform-open.routes.ts	36	DELETE	/api-keys/:id	/api/platform/open/api-keys/:id
+platform-open.routes.ts	46	POST	/webhooks	/api/platform/open/webhooks
+platform-open.routes.ts	48	POST	/webhooks/:id/test	/api/platform/open/webhooks/:id/test
+platform-open.routes.ts	50	POST	/webhooks/:id/redeliver	/api/platform/open/webhooks/:id/redeliver
+platform-open.routes.ts	52	POST	/webhooks/:id/resume	/api/platform/open/webhooks/:id/resume
+## platform-plans.routes.ts  endpoints=6  prefix=["/api/platform/plans"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-plans.routes.ts	17	POST	/	/api/platform/plans/
+platform-plans.routes.ts	26	PUT	/:planId	/api/platform/plans/:planId
+platform-plans.routes.ts	29	DELETE	/:planId	/api/platform/plans/:planId
+platform-plans.routes.ts	32	PUT	/:planId/features	/api/platform/plans/:planId/features
+platform-plans.routes.ts	38	PUT	/:planId/policy	/api/platform/plans/:planId/policy
+platform-plans.routes.ts	41	POST	/:planId/copy	/api/platform/plans/:planId/copy
+## platform-promo-code.routes.ts  endpoints=2  prefix=["/api/platform/promo-codes"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-promo-code.routes.ts	29	POST	/	/api/platform/promo-codes/
+platform-promo-code.routes.ts	30	POST	/:id/disable	/api/platform/promo-codes/:id/disable
+## platform-reconciliation.routes.ts  endpoints=3  prefix=["/api/platform/reconciliation"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-reconciliation.routes.ts	14	PUT	/:id/settle	/api/platform/reconciliation/:id/settle
+platform-reconciliation.routes.ts	17	POST	/	/api/platform/reconciliation/
+platform-reconciliation.routes.ts	18	PUT	/:id	/api/platform/reconciliation/:id
+## platform-referral-ledger.routes.ts  endpoints=0  prefix=["/api/platform/referral-ledger"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+## platform-review.routes.ts  endpoints=3  prefix=["/api/platform/reviews"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-review.routes.ts	10	POST	/:id/reply	/api/platform/reviews/:id/reply
+platform-review.routes.ts	11	PUT	/:id/approval	/api/platform/reviews/:id/approval
+platform-review.routes.ts	12	POST	/batch-approval	/api/platform/reviews/batch-approval
+## platform-role.routes.ts  endpoints=4  prefix=["/api/platform/admins","/api/platform/permissions","/api/platform/roles"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-role.routes.ts	28	POST	/	/api/platform/admins + /api/platform/permissions + /api/platform/roles/
+platform-role.routes.ts	30	PUT	/:id/permissions	/api/platform/admins + /api/platform/permissions + /api/platform/roles/:id/permissions
+platform-role.routes.ts	31	PUT	/:id	/api/platform/admins + /api/platform/permissions + /api/platform/roles/:id
+platform-role.routes.ts	32	DELETE	/:id	/api/platform/admins + /api/platform/permissions + /api/platform/roles/:id
+## platform-subscription-applies.routes.ts  endpoints=1  prefix=["/api/platform/subscription-applies"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-subscription-applies.routes.ts	15	PUT	/:id/audit	/api/platform/subscription-applies/:id/audit
+## platform-templates.routes.ts  endpoints=5  prefix=["/api/platform/templates"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-templates.routes.ts	21	POST	/init	/api/platform/templates/init
+platform-templates.routes.ts	25	PUT	/init/:id	/api/platform/templates/init/:id
+platform-templates.routes.ts	31	POST	/print/upload	/api/platform/templates/print/upload
+platform-templates.routes.ts	33	POST	/print/:id/public	/api/platform/templates/print/:id/public
+platform-templates.routes.ts	39	POST	/import-export	/api/platform/templates/import-export
+## platform-tenant.routes.ts  endpoints=6  prefix=["/api/platform/tenants"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-tenant.routes.ts	39	POST	/	/api/platform/tenants/
+platform-tenant.routes.ts	42	PUT	/:id	/api/platform/tenants/:id
+platform-tenant.routes.ts	45	POST	/:id/toggle	/api/platform/tenants/:id/toggle
+platform-tenant.routes.ts	48	POST	/:id/proxy-login	/api/platform/tenants/:id/proxy-login
+platform-tenant.routes.ts	49	POST	/:id/quota-expand	/api/platform/tenants/:id/quota-expand
+platform-tenant.routes.ts	55	POST	/:tenantId/users/:userId/reset-password	/api/platform/tenants/:tenantId/users/:userId/reset-password
+## platform-ticket.routes.ts  endpoints=5  prefix=["/api/platform/support"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform-ticket.routes.ts	40	POST	/tickets/:id/reply	/api/platform/support/tickets/:id/reply
+platform-ticket.routes.ts	42	POST	/tickets/:id/note	/api/platform/support/tickets/:id/note
+platform-ticket.routes.ts	44	POST	/tickets/:id/transfer	/api/platform/support/tickets/:id/transfer
+platform-ticket.routes.ts	46	POST	/tickets/:id/resolve	/api/platform/support/tickets/:id/resolve
+platform-ticket.routes.ts	48	POST	/tickets/:id/close	/api/platform/support/tickets/:id/close
+## platform.routes.ts  endpoints=4  prefix=["/api/platform"]  auth=["requirePlatformAuth"]  innerRequirePermission=[]
+platform.routes.ts	28	POST	/admins/invite	/api/platform/admins/invite
+platform.routes.ts	29	POST	/admins/:id/reset-password	/api/platform/admins/:id/reset-password
+platform.routes.ts	30	PUT	/admins/:id/status	/api/platform/admins/:id/status
+platform.routes.ts	32	POST	/admins	/api/platform/admins
+# 按方法： {"POST":67,"PUT":29,"DELETE":9}

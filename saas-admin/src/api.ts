@@ -2,6 +2,8 @@ import axios from "axios";
 import { ElMessage } from "element-plus";
 // R101-S2-01 裁定 2：错误文案集中一处，与新客户端 src/utils/request.ts 共用同一份
 import { isBizFailure, resolveBizErrorText, resolveHttpErrorText } from "./utils/http-error";
+// S3-185 ④：401 需清 store（与新客户端 src/utils/request.ts 同一出口）
+import { useAuthStore } from "./stores/auth";
 
 /** 401 提示节流时间戳：并发请求同时 401 时只提示一次 */
 let lastAuthTipTime = 0;
@@ -53,7 +55,9 @@ api.interceptors.response.use(
         lastAuthTipTime = Date.now();
         ElMessage.error(resolveHttpErrorText(error));
       }
-      localStorage.removeItem("platform_token");
+      // S3-185 ④：原写法只删 localStorage 的 platform_token ⇒ 内存登录态与 platform_csrf_token 残留。
+      // 改为走 auth store 的唯一出口 logout()（清 token / csrfToken / adminInfo + 两个 localStorage 键）。
+      useAuthStore().logout();
       if (typeof window !== "undefined") {
         window.location.hash = "#/login";
       }
@@ -129,30 +133,6 @@ export function getTenants(params: {
   pageSize?: number;
 }) {
   return api.get<any, { data: ApiResult<PaginatedResult<TenantItem>> }>("/platform/tenants-management", { params });
-}
-
-export function getTenantDetail(id: number) {
-  return api.get<any, { data: ApiResult<TenantDetail> }>(`/platform/tenants-management/${id}`);
-}
-
-export function createTenant(data: any) {
-  return api.post<any, { data: ApiResult<{ tenant_code: string }> }>("/platform/tenants-management", data);
-}
-
-export function updateTenant(id: number, data: any) {
-  return api.put<any, { data: ApiResult<TenantItem> }>(`/platform/tenants-management/${id}`, data);
-}
-
-export function changeTenantStatus(id: number, status: string, reason?: string) {
-  return api.put<any, { data: ApiResult<TenantItem> }>(`/platform/tenants-management/${id}/status`, { status, reason });
-}
-
-export function getTenantModules(id: number) {
-  return api.get<any, { data: ApiResult<PaginatedResult<TenantModule>> }>(`/platform/tenants-management/${id}/modules`);
-}
-
-export function updateTenantModules(id: number, modules: TenantModule[]) {
-  return api.put<any, { data: ApiResult<PaginatedResult<TenantModule>> }>(`/platform/tenants-management/${id}/modules`, { modules });
 }
 
 // ==================== 套餐管理 ====================
@@ -295,56 +275,6 @@ export function updatePlatformConfig(data: any) {
 // ==================== 操作日志 ====================
 export function getAuditLogs(params?: { keyword?: string; action?: string; userId?: number; page?: number; pageSize?: number }) {
   return api.get<any, { data: ApiResult<any> }>("/platform/audit-logs", { params: { page: 1, pageSize: 20, ...params } });
-}
-
-// ==================== 监控告警 ====================
-export function fetchDbStatus() {
-  return api.get<any, { data: ApiResult<any> }>("/platform/monitor/db-status");
-}
-
-export function fetchApiStats() {
-  return api.get<any, { data: ApiResult<any> }>("/platform/monitor/api-stats");
-}
-
-export function fetchExpiringTenants(days?: number) {
-  return api.get<any, { data: ApiResult<any> }>("/platform/monitor/expiring-tenants", { params: { days } });
-}
-
-export function notifyExpiringTenants(tenantIds: number[]) {
-  return api.post<any, { data: ApiResult<any> }>("/platform/monitor/notify-expiring", { tenantIds });
-}
-
-// ==================== 平台公告 ====================
-export function getAnnouncements(params?: {
-  page?: number;
-  pageSize?: number;
-  status?: string;
-  keyword?: string;
-}) {
-  return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/announcements", { params: { page: 1, pageSize: 20, ...params } });
-}
-
-export function getAnnouncementDetail(id: number) {
-  return api.get<any, { data: ApiResult<any> }>(`/platform/announcements/${id}`);
-}
-
-export function createAnnouncement(data: {
-  title: string;
-  content: string;
-  type?: string;
-  status?: string;
-  startTime?: string;
-  endTime?: string;
-}) {
-  return api.post<any, { data: ApiResult<any> }>("/platform/announcements", data);
-}
-
-export function updateAnnouncement(id: number, data: any) {
-  return api.put<any, { data: ApiResult<any> }>(`/platform/announcements/${id}`, data);
-}
-
-export function deleteAnnouncement(id: number) {
-  return api.delete<any, { data: ApiResult<any> }>(`/platform/announcements/${id}`);
 }
 
 // ==================== 平台评价 ====================
@@ -657,10 +587,6 @@ export function replySupportTicket(id: number | string, content: string) {
   return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/reply`, { content });
 }
 
-export function noteSupportTicket(id: number | string, content: string) {
-  return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/note`, { content });
-}
-
 export function transferSupportTicket(id: number | string, assigneeId: number) {
   return api.post<any, { data: ApiResult<any> }>(`/platform/support/tickets/${id}/transfer`, { assigneeId });
 }
@@ -903,11 +829,6 @@ export interface AgentLevelUpdateBody {
 /** GET /platform/agents —— 代理商列表（分页 + 关键词；空表 ⇒ items: []） */
 export function listAgents(params?: { page?: number; pageSize?: number; keyword?: string }) {
   return api.get<any, { data: ApiResult<AgentListResult> }>("/platform/agents", { params });
-}
-
-/** GET /platform/agents/:id —— 详情（未知 id ⇒ 404） */
-export function getAgent(id: number) {
-  return api.get<any, { data: ApiResult<AgentRow> }>(`/platform/agents/${id}`);
 }
 
 /** POST /platform/agents —— 新建档案（agentCode 重复 ⇒ 409；levelId 不存在 ⇒ 400） */

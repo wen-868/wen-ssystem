@@ -1,0 +1,9 @@
+### CMD: node saas-admin/scripts/check-api-paths.mjs --no-color  (S3-185 工作树，cwd=wt-agents\S3-185)
+check-api-paths · 前端 API 路径 ↔ 后端注册路由
+  前端调用点 89（去重 83）· 后端注册路由 1492
+  豁免清单 0 条（命中 0 条）
+
+FAIL 路径不存在（前端有、后端无）：1 条
+  - GET /platform/tenants/{p}/users   saas-admin/src/api/tenant.ts:88
+PASS 契约键位：replyPlatformReview body 键 = replyContent   saas-admin/src/api.ts（后端 backend/src/controllers/admin/platform-review.controller.ts:31）
+EXIT=1

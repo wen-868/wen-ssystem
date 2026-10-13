@@ -1,0 +1,3210 @@
+{
+ "total": 139,
+ "counts": {
+  "functions": 109,
+  "values": 1,
+  "interfaces": 29
+ },
+ "namespaceImports": [],
+ "report": {
+  "functions": [
+   {
+    "name": "getTenants",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue",
+     "saas-admin/src/views/Subscriptions.vue",
+     "saas-admin/src/views/TenantUsage.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: getTenants,",
+     "saas-admin/src/views/Reconciliation.vue: const res: any = await getTenants({ page: 1, pageSize: 100, keyword: keyword || undefined })",
+     "saas-admin/src/views/Subscriptions.vue: import { getSubscriptions, createSubscription, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans, getTenants } from \"../a",
+     "saas-admin/src/views/Subscriptions.vue: getTenants({ pageSize: 999 }),",
+     "saas-admin/src/views/TenantUsage.vue: import { getTenantUsageStats, getTenants, getTenantRank } from \"../api\";",
+     "saas-admin/src/views/TenantUsage.vue: const res = await getTenants({ pageSize: 100 });"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/platform.controller.ts: const data = await platformService.getTenants();",
+     "backend/src/jobs/report-aggregation.job.ts: async function getTenants(): Promise<string[]> {",
+     "backend/src/jobs/report-aggregation.job.ts: const tenants = await getTenants();",
+     "backend/src/services/platform.service.ts: export async function getTenants() {",
+     "backend/src/__tests__/jobs/report-aggregation.job.test.ts: // getTenants 返回租户列表",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | 3-4 | `api.ts:126,127` | `getTenants` 入参 | 保留 | 租户管理列表端点；本单范围外，未核验（Q2） |"
+    ],
+    "counts": {
+     "saasSrc": 6,
+     "saasTools": 0,
+     "other": 6
+    }
+   },
+   {
+    "name": "getTenantDetail",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/tenant.controller.ts: export const getTenantDetail = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/tenant.controller.ts: const result = await service.getTenantDetail(Number(req.params.tenantId));",
+     "backend/src/controllers/platform/platform.controller.ts: export const getTenantDetail = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/saas/tenant.controller.ts: export const getTenantDetail = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/saas/tenant.controller.ts: const result = await tenantService.getTenantDetail(tenantId);",
+     "backend/src/routes/saas-tenant.routes.ts: saasTenantRouter.get(\"/:id\", tenantController.getTenantDetail);"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 37
+    }
+   },
+   {
+    "name": "createTenant",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/tenant.controller.ts: export const createTenant = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/tenant.controller.ts: const result = await service.createTenant(body, req.user!.id, req.user!.username);",
+     "backend/src/controllers/platform/platform.controller.ts: export const createTenant = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/platform/tenant.controller.ts: createTenant,",
+     "backend/src/controllers/platform/tenant.controller.ts: const tenantId = await createTenant({",
+     "backend/src/controllers/saas/tenant.controller.ts: export const createTenant = asyncHandler(async (req, res) => {"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 98
+    }
+   },
+   {
+    "name": "updateTenant",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/tenant.controller.ts: export const updateTenant = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/tenant.controller.ts: const result = await service.updateTenant(Number(req.params.tenantId), body, req.user!.id, req.user!.username);",
+     "backend/src/controllers/platform/platform.controller.ts: export const updateTenant = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/platform/tenant.controller.ts: updateTenant,",
+     "backend/src/controllers/platform/tenant.controller.ts: await updateTenant(String(req.params.id), req.body);",
+     "backend/src/controllers/saas/tenant.controller.ts: export const updateTenant = asyncHandler(async (req, res) => {"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 51
+    }
+   },
+   {
+    "name": "changeTenantStatus",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/tenant.controller.ts: export const changeTenantStatus = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/tenant.controller.ts: const result = await service.changeTenantStatus(Number(req.params.tenantId), body, req.user!.id, req.user!.username);",
+     "backend/src/routes/tenant.routes.ts: tenantRouter.put(\"/:tenantId/status\", requirePlatformAuth, ctrl.changeTenantStatus);",
+     "backend/src/services/admin/tenant.service.ts: export async function changeTenantStatus(tenantId: number, body: {",
+     "backend/src/__tests__/controllers/tenant.controller.test.ts: changeTenantStatus: vi.fn(),",
+     "backend/src/__tests__/controllers/tenant.controller.test.ts: import { listTenants, getTenantDetail, createTenant, updateTenant, changeTenantStatus, getTenantModules, setTenantModules } from \"@controllers/admin/tenant.cont"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 12
+    }
+   },
+   {
+    "name": "getTenantModules",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/tenant.controller.ts: export const getTenantModules = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/tenant.controller.ts: const result = await service.getTenantModules(Number(req.params.tenantId));",
+     "backend/src/routes/tenant.routes.ts: tenantRouter.get(\"/:tenantId/modules\", requirePlatformAuth, ctrl.getTenantModules);",
+     "backend/src/services/admin/tenant.service.ts: export async function getTenantModules(tenantId: number) {",
+     "backend/src/__tests__/controllers/tenant.controller.test.ts: getTenantModules: vi.fn(),",
+     "backend/src/__tests__/controllers/tenant.controller.test.ts: import { listTenants, getTenantDetail, createTenant, updateTenant, changeTenantStatus, getTenantModules, setTenantModules } from \"@controllers/admin/tenant.cont"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 11
+    }
+   },
+   {
+    "name": "updateTenantModules",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "docs/R101-S2-02-module_access影响面评估.md: | 风险定性 | **哑弹**：一旦按 code 的菜单 / 接口门禁上线（或 `updateTenantModules` 接入 UI），**立即**表现为功能不可用 |",
+     "docs/R101-S2-02-module_access影响面评估.md: - 前端 `saas-admin/src/api.ts:151,155` 定义了 `getTenantModules` / `updateTenantModules`，但**无任何 `.vue` 调用** → 该 API 目前是死代码。"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "getPlans",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue",
+     "saas-admin/src/views/marketing/AgentManagement.vue",
+     "saas-admin/src/views/Packages.vue",
+     "saas-admin/src/views/SubscriptionDetail.vue",
+     "saas-admin/src/views/Subscriptions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: import { getPlans } from '../../api'",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: // ==================== 套餐列表（复用现有 api.getPlans 填充「套餐」列） ====================",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: const res: any = await getPlans()",
+     "saas-admin/src/views/marketing/AgentManagement.vue: getPlans,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: const res: any = await getPlans()",
+     "saas-admin/src/views/Packages.vue: import { getPlans, updatePlan, deletePlan, getPlanUpgradeFlowReport } from \"../api\";",
+     "saas-admin/src/views/Packages.vue: /* ── 列表加载：保留 getPlans 调用 ── */",
+     "saas-admin/src/views/Packages.vue: const res = await getPlans({});",
+     "saas-admin/src/views/SubscriptionDetail.vue: import { getSubscriptionDetail, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans } from \"../api\";",
+     "saas-admin/src/views/SubscriptionDetail.vue: const pRes = await getPlans();"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/R101-S2-02-组3-AI类配置契约.md: | `AiBillingConfig.vue` 计费套餐对接 | 只调 `getPlans()` | 补调 `listAiBillings()` / `updateTenantAiBilling()`（`t_tenant_ai_billing` 已存在，封装已有但未调用） |",
+     "docs/tasks/cards/R101-C1-1-林夕回传.md: 1. **删除套餐的前缀不能照抄 `getPlans`**。`subscription.routes.ts`（prefix `/api/platform/subscriptions-management`）只注册了 GET/POST/PUT `/plans`、`/plans/:planId`、`/plans/:plan",
+     "docs/tasks/cards/R101-S2-02-底数与边界报备.md: | 4 | `saas-admin/src/views/ai-config/AiBillingConfig.vue:373-384` | 用旧客户端取 `getPlans` 却按 `res.list/res.records` 解包 → 恒失败，回退到**写死的 `['免费版','基础版','标准版','旗舰版']`**",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | 7 | `api.ts:159` | `getPlans` 入参 | 保留 | 套餐列表端点；未核验（Q2） |"
+    ],
+    "counts": {
+     "saasSrc": 12,
+     "saasTools": 0,
+     "other": 4
+    }
+   },
+   {
+    "name": "getPlanDetail",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PackageForm.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PackageForm.vue: getPlanDetail,",
+     "saas-admin/src/views/PackageForm.vue: /* ── 编辑态回填（保留 getPlanDetail 逻辑） ── */",
+     "saas-admin/src/views/PackageForm.vue: const res = await getPlanDetail(planId.value);"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "createPlan",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PackageForm.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PackageForm.vue: createPlan,",
+     "saas-admin/src/views/PackageForm.vue: const created: any = await createPlan(payload);"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription-plan.controller.ts: export const createPlan = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription-plan.controller.ts: const result = await subscriptionPlanService.createPlan(body);",
+     "backend/src/routes/platform-plans.routes.ts: platformPlansRouter.post(\"/\", planController.createPlan);",
+     "backend/src/routes/subscription.routes.ts: subscriptionRouter.post(\"/plans\", requirePlatformAuth, subscriptionPlanController.createPlan);",
+     "backend/src/services/admin/subscription-plan.service.ts: export async function createPlan(body: {",
+     "backend/src/services/platform/plan-copy.service.ts: /** 组装 createPlan 入参：源套餐结构化字段 + features/moduleAccess（策略包另走 t_platform_config） */"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 26
+    }
+   },
+   {
+    "name": "updatePlan",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PackageForm.vue",
+     "saas-admin/src/views/Packages.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PackageForm.vue: updatePlan,",
+     "saas-admin/src/views/PackageForm.vue: await updatePlan(planId.value, payload);",
+     "saas-admin/src/views/Packages.vue: import { getPlans, updatePlan, deletePlan, getPlanUpgradeFlowReport } from \"../api\";",
+     "saas-admin/src/views/Packages.vue: await updatePlan(p.id, { status: newStatus });"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription-plan.controller.ts: export const updatePlan = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription-plan.controller.ts: const result = await subscriptionPlanService.updatePlan(planId, body);",
+     "backend/src/routes/platform-plans.routes.ts: platformPlansRouter.put(\"/:planId\", planController.updatePlan);",
+     "backend/src/routes/subscription.routes.ts: subscriptionRouter.put(\"/plans/:planId\", requirePlatformAuth, subscriptionPlanController.updatePlan);",
+     "backend/src/services/admin/subscription-plan.service.ts: export async function updatePlan(planId: number, body: {",
+     "backend/src/__tests__/controllers/admin/subscription-plan.controller.test.ts: updatePlan: vi.fn(),"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 14
+    }
+   },
+   {
+    "name": "deletePlan",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Packages.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Packages.vue: import { getPlans, updatePlan, deletePlan, getPlanUpgradeFlowReport } from \"../api\";",
+     "saas-admin/src/views/Packages.vue: await deletePlan(p.id as number);"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription-plan.controller.ts: export const deletePlan = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription-plan.controller.ts: const result = await subscriptionPlanService.deletePlan(planId);",
+     "backend/src/routes/platform-plans.routes.ts: platformPlansRouter.delete(\"/:planId\", planController.deletePlan);",
+     "backend/src/services/admin/subscription-plan.service.ts: export async function deletePlan(planId: number) {",
+     "backend/src/__tests__/controllers/admin/subscription-plan.controller.test.ts: deletePlan: vi.fn(),",
+     "backend/src/__tests__/controllers/admin/subscription-plan.controller.test.ts: deletePlan,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 17
+    }
+   },
+   {
+    "name": "getPlanUpgradeFlowReport",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Dashboard.vue",
+     "saas-admin/src/views/Packages.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Dashboard.vue: getPlanUpgradeFlowReport,",
+     "saas-admin/src/views/Dashboard.vue: const res: any = await getPlanUpgradeFlowReport('month')",
+     "saas-admin/src/views/Packages.vue: import { getPlans, updatePlan, deletePlan, getPlanUpgradeFlowReport } from \"../api\";",
+     "saas-admin/src/views/Packages.vue: const res: any = await getPlanUpgradeFlowReport(RANGE_MAP[flowRange.value] ?? \"month\");"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C1-1-林夕回传.md: | `saas-admin/src/api.ts` | 新增 `deletePlan` / `getPlanUpgradeFlowReport` / `copyPlan`（+34） |",
+     "docs/tasks/cards/R101-批B-墨回传.md: | 1 | S3-12 | **半成品**：Dashboard 仍在读 `raw.planFlow`（旧口径恒空），已上线的 `/plans/upgrade-flow-report` 未被调用 | `Dashboard.vue` 旧 `flow` computed；`api.ts:195` 早有 `getPlanUpg",
+     "docs/tasks/cards/R101-批B-墨回传.md: - 断线（`getPlanUpgradeFlowReport` reject）⇒ `升级流向：当月流向数据加载失败（未取到数据，未沿用旧值）` + `.flow-err` 高亮存在，**且不残留任何旧数字**；"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "copyPlan",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PackageForm.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PackageForm.vue: copyPlan,",
+     "saas-admin/src/views/PackageForm.vue: * 走后端真实端点 `POST /api/platform/plans/:planId/copy`（api.ts copyPlan → 需 x-csrf-token）：",
+     "saas-admin/src/views/PackageForm.vue: const res: any = await copyPlan(sourceId, { status: \"DRAFT\" });"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/plan-copy.controller.ts: import { copyPlan } from \"../../services/platform/plan-copy.service\";",
+     "backend/src/controllers/platform/plan-copy.controller.ts: const result = await copyPlan(",
+     "backend/src/services/platform/plan-copy.service.ts: export async function copyPlan(",
+     "backend/src/__tests__/routes/platform-c1-2-plan.test.ts: copyPlan: vi.fn(),",
+     "backend/src/__tests__/routes/platform-c1-2-plan.test.ts: (copyService.copyPlan as any).mockResolvedValue({",
+     "backend/src/__tests__/routes/platform-c1-2-plan.test.ts: expect(copyService.copyPlan).toHaveBeenCalledWith("
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 25
+    }
+   },
+   {
+    "name": "getPlanPolicy",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PackageForm.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PackageForm.vue: getPlanPolicy,",
+     "saas-admin/src/views/PackageForm.vue: const res = await getPlanPolicy(id);"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription-plan.controller.ts: export const getPlanPolicy = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription-plan.controller.ts: const result = await planPolicyService.getPlanPolicy(planId);",
+     "backend/src/routes/platform-plans.routes.ts: platformPlansRouter.get(\"/:planId/policy\", planController.getPlanPolicy);",
+     "backend/src/routes/subscription.routes.ts: subscriptionRouter.get(\"/plans/:planId/policy\", requirePlatformAuth, subscriptionPlanController.getPlanPolicy);",
+     "backend/src/services/platform/plan-copy.service.ts: import { getPlanPolicy, updatePlanPolicy } from \"./plan-policy.service\";",
+     "backend/src/services/platform/plan-copy.service.ts: const policy = await getPlanPolicy(sourcePlanId);"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 18
+    }
+   },
+   {
+    "name": "updatePlanPolicy",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PackageForm.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PackageForm.vue: updatePlanPolicy,",
+     "saas-admin/src/views/PackageForm.vue: await updatePlanPolicy("
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription-plan.controller.ts: export const updatePlanPolicy = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription-plan.controller.ts: const result = await planPolicyService.updatePlanPolicy(planId, body, operator);",
+     "backend/src/routes/platform-plans.routes.ts: platformPlansRouter.put(\"/:planId/policy\", planController.updatePlanPolicy);",
+     "backend/src/routes/subscription.routes.ts: subscriptionRouter.put(\"/plans/:planId/policy\", requirePlatformAuth, subscriptionPlanController.updatePlanPolicy);",
+     "backend/src/services/platform/plan-copy.service.ts: import { getPlanPolicy, updatePlanPolicy } from \"./plan-policy.service\";",
+     "backend/src/services/platform/plan-copy.service.ts: if (hasPolicy) await updatePlanPolicy(newId, policyPayload, operator);"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 19
+    }
+   },
+   {
+    "name": "getArrearsPolicy",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: getArrearsPolicy,",
+     "saas-admin/src/views/Reconciliation.vue: const res: any = await getArrearsPolicy()"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/billing-config.controller.ts: export const getArrearsPolicy = asyncHandler(async (_req, res) => {",
+     "backend/src/controllers/admin/billing-config.controller.ts: const result = await billingConfigService.getArrearsPolicy();",
+     "backend/src/routes/billing-config.routes.ts: billingConfigRouter.get(\"/arrears-policy\", billingConfigController.getArrearsPolicy);",
+     "backend/src/services/platform/billing-config.service.ts: export function getArrearsPolicy(): Promise<Record<string, unknown>> {",
+     "backend/src/services/platform/platform-billing-arrears.service.ts: import { getArrearsPolicy } from \"./billing-config.service\";",
+     "backend/src/services/platform/platform-billing-arrears.service.ts: const pkg = await getArrearsPolicy();"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 9
+    }
+   },
+   {
+    "name": "updateArrearsPolicy",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: updateArrearsPolicy,",
+     "saas-admin/src/views/Reconciliation.vue: await updateArrearsPolicy(payload)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/billing-config.controller.ts: export const updateArrearsPolicy = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/billing-config.controller.ts: const result = await billingConfigService.updateArrearsPolicy(body, operator);",
+     "backend/src/routes/billing-config.routes.ts: billingConfigRouter.put(\"/arrears-policy\", billingConfigController.updateArrearsPolicy);",
+     "backend/src/services/platform/billing-config.service.ts: export function updateArrearsPolicy(",
+     "backend/src/__tests__/services/platform/billing-config.service.test.ts: updateArrearsPolicy,",
+     "backend/src/__tests__/services/platform/billing-config.service.test.ts: await updateArrearsPolicy({ graceEndDays: 15, channels: [\"IN_APP\"] }, \"platform_admin\");"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 9
+    }
+   },
+   {
+    "name": "getAddonPrice",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: getAddonPrice,",
+     "saas-admin/src/views/Reconciliation.vue: const res: any = await getAddonPrice()"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/billing-config.controller.ts: export const getAddonPrice = asyncHandler(async (_req, res) => {",
+     "backend/src/controllers/admin/billing-config.controller.ts: const result = await billingConfigService.getAddonPrice();",
+     "backend/src/routes/billing-config.routes.ts: billingConfigRouter.get(\"/addon-price\", billingConfigController.getAddonPrice);",
+     "backend/src/services/platform/billing-config.service.ts: export function getAddonPrice(): Promise<Record<string, unknown>> {",
+     "backend/src/__tests__/services/platform/billing-config.service.test.ts: getAddonPrice,",
+     "backend/src/__tests__/services/platform/billing-config.service.test.ts: const a = await getAddonPrice();"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 6
+    }
+   },
+   {
+    "name": "updateAddonPrice",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: updateAddonPrice,",
+     "saas-admin/src/views/Reconciliation.vue: await updateAddonPrice(payload)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/billing-config.controller.ts: export const updateAddonPrice = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/billing-config.controller.ts: const result = await billingConfigService.updateAddonPrice(body, operator);",
+     "backend/src/routes/billing-config.routes.ts: billingConfigRouter.put(\"/addon-price\", billingConfigController.updateAddonPrice);",
+     "backend/src/services/platform/billing-config.service.ts: export function updateAddonPrice(",
+     "backend/src/__tests__/services/platform/billing-config.service.test.ts: updateAddonPrice,",
+     "backend/src/__tests__/services/platform/billing-config.service.test.ts: await updateAddonPrice({ apiPer10k: 50 }, \"platform_admin\");"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 6
+    }
+   },
+   {
+    "name": "getSubscriptions",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Subscriptions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Subscriptions.vue: import { getSubscriptions, createSubscription, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans, getTenants } from \"../a",
+     "saas-admin/src/views/Subscriptions.vue: const res = await getSubscriptions({"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | 9 | `api.ts:249` | `getSubscriptions` 入参 | 保留 | 订阅列表端点；未核验（Q2） |"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "getSubscriptionDetail",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/SubscriptionDetail.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/SubscriptionDetail.vue: import { getSubscriptionDetail, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans } from \"../api\";",
+     "saas-admin/src/views/SubscriptionDetail.vue: const res = await getSubscriptionDetail(id);"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/saas/subscription.controller.ts: export const getSubscriptionDetail = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/saas/subscription.controller.ts: const result = await subscriptionService.getSubscriptionDetail(subscriptionId);",
+     "backend/src/routes/saas-subscription.routes.ts: saasSubscriptionRouter.get(\"/:id\", subscriptionController.getSubscriptionDetail);",
+     "backend/src/services/saas/subscription.service.ts: export async function getSubscriptionDetail(id: number): Promise<SubscriptionDetail | null> {",
+     "backend/src/services/saas/subscription.service.ts: const newSubscription = await getSubscriptionDetail(insertId);",
+     "backend/src/services/saas/subscription.service.ts: return getSubscriptionDetail(id);"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 21
+    }
+   },
+   {
+    "name": "createSubscription",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Subscriptions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Subscriptions.vue: import { getSubscriptions, createSubscription, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans, getTenants } from \"../a",
+     "saas-admin/src/views/Subscriptions.vue: await createSubscription(createForm);"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription.controller.ts: export const createSubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription.controller.ts: const result = await subscriptionService.createSubscription(",
+     "backend/src/controllers/platform/platform.controller.ts: export const createSubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/saas/subscription.controller.ts: export const createSubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/saas/subscription.controller.ts: const result = await subscriptionService.createSubscription({",
+     "backend/src/routes/saas-subscription.routes.ts: saasSubscriptionRouter.post(\"/\", subscriptionController.createSubscription);"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 45
+    }
+   },
+   {
+    "name": "renewSubscription",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/SubscriptionDetail.vue",
+     "saas-admin/src/views/Subscriptions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/SubscriptionDetail.vue: import { getSubscriptionDetail, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans } from \"../api\";",
+     "saas-admin/src/views/SubscriptionDetail.vue: await renewSubscription(id, { amount: renewForm.amount, endDate: renewForm.endDate });",
+     "saas-admin/src/views/Subscriptions.vue: import { getSubscriptions, createSubscription, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans, getTenants } from \"../a",
+     "saas-admin/src/views/Subscriptions.vue: await renewSubscription(renewTarget.value.id, {"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription-renewal.controller.ts: export const renewSubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription-renewal.controller.ts: const result = await subscriptionRenewalService.renewSubscription(",
+     "backend/src/controllers/saas/subscription.controller.ts: export const renewSubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/saas/subscription.controller.ts: const result = await subscriptionService.renewSubscription(subscriptionId, body);",
+     "backend/src/routes/saas-subscription.routes.ts: saasSubscriptionRouter.post(\"/:id/renew\", subscriptionController.renewSubscription);",
+     "backend/src/routes/subscription.routes.ts: subscriptionRouter.post(\"/:subscriptionId/renew\", requirePlatformAuth, subscriptionRenewalController.renewSubscription);"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 37
+    }
+   },
+   {
+    "name": "changeSubscriptionPlan",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/SubscriptionDetail.vue",
+     "saas-admin/src/views/Subscriptions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/SubscriptionDetail.vue: import { getSubscriptionDetail, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans } from \"../api\";",
+     "saas-admin/src/views/SubscriptionDetail.vue: await changeSubscriptionPlan(id, { newPlanId: changeForm.newPlanId, amount: changeForm.amount || 0 });",
+     "saas-admin/src/views/Subscriptions.vue: import { getSubscriptions, createSubscription, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans, getTenants } from \"../a",
+     "saas-admin/src/views/Subscriptions.vue: await changeSubscriptionPlan(changeTarget.value.id, {"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "cancelSubscription",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/SubscriptionDetail.vue",
+     "saas-admin/src/views/Subscriptions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/SubscriptionDetail.vue: import { getSubscriptionDetail, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans } from \"../api\";",
+     "saas-admin/src/views/SubscriptionDetail.vue: await cancelSubscription(id, value || undefined);",
+     "saas-admin/src/views/Subscriptions.vue: import { getSubscriptions, createSubscription, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans, getTenants } from \"../a",
+     "saas-admin/src/views/Subscriptions.vue: await cancelSubscription(row.id, value || undefined);"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription.controller.ts: export const cancelSubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription.controller.ts: const result = await subscriptionService.cancelSubscription(",
+     "backend/src/controllers/saas/subscription.controller.ts: export const cancelSubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/saas/subscription.controller.ts: const result = await subscriptionService.cancelSubscription(subscriptionId, body);",
+     "backend/src/routes/saas-subscription.routes.ts: saasSubscriptionRouter.post(\"/:id/cancel\", subscriptionController.cancelSubscription);",
+     "backend/src/routes/subscription.routes.ts: subscriptionRouter.post(\"/:subscriptionId/cancel\", requirePlatformAuth, subscriptionController.cancelSubscription);"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 28
+    }
+   },
+   {
+    "name": "paySubscription",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/SubscriptionDetail.vue",
+     "saas-admin/src/views/Subscriptions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/SubscriptionDetail.vue: import { getSubscriptionDetail, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans } from \"../api\";",
+     "saas-admin/src/views/SubscriptionDetail.vue: await paySubscription(id, { paymentMethod: \"MANUAL\" });",
+     "saas-admin/src/views/Subscriptions.vue: import { getSubscriptions, createSubscription, renewSubscription, changeSubscriptionPlan, cancelSubscription, paySubscription, getPlans, getTenants } from \"../a",
+     "saas-admin/src/views/Subscriptions.vue: await paySubscription(row.id, { paymentMethod: \"MANUAL\" });"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/subscription.controller.ts: export const paySubscription = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/subscription.controller.ts: const result = await subscriptionService.paySubscription(",
+     "backend/src/routes/subscription.routes.ts: subscriptionRouter.post(\"/:subscriptionId/pay\", requirePlatformAuth, subscriptionController.paySubscription);",
+     "backend/src/services/admin/subscription.service.ts: export async function paySubscription(",
+     "backend/src/__tests__/controllers/admin/subscription.controller.test.ts: paySubscription: vi.fn(),",
+     "backend/src/__tests__/controllers/admin/subscription.controller.test.ts: paySubscription: mocks.paySubscription,"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 12
+    }
+   },
+   {
+    "name": "getPlatformOverview",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Dashboard.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Dashboard.vue: getPlatformOverview,",
+     "saas-admin/src/views/Dashboard.vue: const res: any = await getPlatformOverview()"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/platform.controller.ts: export async function getPlatformOverview(_req: any, res: any) {",
+     "backend/src/controllers/platform/dashboard.controller.ts: const result = await overviewService.getPlatformOverview();",
+     "backend/src/controllers/platform/platform.controller.ts: const result = await overviewService.getPlatformOverview();",
+     "backend/src/routes/platform.routes.ts: import { getPlatformOverview } from \"../controllers/admin/platform.controller\";",
+     "backend/src/routes/platform.routes.ts: platformRouter.get(\"/overview\", asyncHandler(getPlatformOverview));",
+     "backend/src/services/platform/platform-overview.service.ts: export async function getPlatformOverview() {"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 20
+    }
+   },
+   {
+    "name": "getPlatformConfig",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Settings.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Settings.vue: getPlatformConfig,",
+     "saas-admin/src/views/Settings.vue: const res: any = await getPlatformConfig()"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/admin/instant-retail.service.ts: import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from \"../instant-retail/common.service\";",
+     "backend/src/services/admin/instant-retail.service.ts: const config = await getPlatformConfig(platform);",
+     "backend/src/services/instant-retail/common.service.ts: export async function getPlatformConfig(",
+     "backend/src/services/instant-retail/platform-integration.service.ts: import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from \"./common.service\";",
+     "backend/src/services/instant-retail/platform-integration.service.ts: const config = await getPlatformConfig(platform);",
+     "docs/evidence/B-2b/其他漏点处理建议.md: 但 `common.service.ts:33-63 getPlatformConfig()` 的返回体 `PlatformCredentials`（`instant-retail/types.ts:19-30`）**没有暴露它**，"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 10
+    }
+   },
+   {
+    "name": "updatePlatformConfig",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Settings.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Settings.vue: updatePlatformConfig,",
+     "saas-admin/src/views/Settings.vue: await updatePlatformConfig(payload)",
+     "saas-admin/src/views/Settings.vue: await updatePlatformConfig(payload)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-manage.controller.ts: const result = await configService.updatePlatformConfig(",
+     "backend/src/controllers/platform/platform.controller.ts: const result = await configService.updatePlatformConfig(",
+     "backend/src/services/platform/platform-config.service.ts: export async function updatePlatformConfig(",
+     "backend/src/__tests__/controllers/platform/platform-manage.controller.test.ts: (configService.updatePlatformConfig as vi.Mock).mockResolvedValue(mockResult);",
+     "backend/src/__tests__/controllers/platform/platform-manage.controller.test.ts: expect(configService.updatePlatformConfig).toHaveBeenCalledWith(\"test\", \"new_value\", \"platform\");",
+     "backend/src/__tests__/controllers/platform/platform.controller.test.ts: updatePlatformConfig: vi.fn(),"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 9
+    }
+   },
+   {
+    "name": "getAuditLogs",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/AuditLogs.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/AuditLogs.vue: import { getAuditLogs } from \"../api\";",
+     "saas-admin/src/views/AuditLogs.vue: const res = await getAuditLogs({",
+     "saas-admin/src/views/platform/AdminPermissions.vue: // 前端既有页面 AuditLogs.vue（路由 '/audit-logs'）+ 封装 getAuditLogs（src/api.ts:296）⇒ 直接跳转真实页面"
+    ],
+    "saasTools": [],
+    "other": [
+     "app-mobile/src/api/modules/report-permission.ts: async getAuditLogs(params?: {",
+     "app-mobile/src/pages-sub/admin/report-permission/audit-logs.vue: const res = await reportPermissionApi.getAuditLogs({",
+     "backend/src/controllers/admin/report-permission-v2.controller.ts: export const getAuditLogs = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/report-permission-v2.controller.ts: const result = await reportPermissionV2Service.getAuditLogs({",
+     "backend/src/routes/report-permissions.routes.ts: reportPermissionRouter.get(\"/audit-logs\", reportPermissionV2Controller.getAuditLogs);",
+     "backend/src/services/admin/report-permission-v2.service.ts: export async function getAuditLogs(params: AuditLogQueryParams) {"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 20
+    }
+   },
+   {
+    "name": "fetchDbStatus",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "admin-web/src/api/system.ts: export async function fetchDbStatus() {",
+     "admin-web/src/views/system/MonitorView.vue: import { fetchDbStatus, fetchApiStats, fetchExpiringTenants, notifyExpiringTenants } from \"../../api\";",
+     "admin-web/src/views/system/MonitorView.vue: const data = await fetchDbStatus();",
+     "docs/API接口文档.md: | P25 | `GET /api/platform/monitor/db-status` | 数据库状态（R97-01） | — | {connection,database,uptime,tableCount} | platform-monitor.routes.ts 复用 admin/monitor.contro"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 4
+    }
+   },
+   {
+    "name": "fetchApiStats",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "admin-web/src/api/system.ts: export async function fetchApiStats() {",
+     "admin-web/src/views/system/MonitorView.vue: import { fetchDbStatus, fetchApiStats, fetchExpiringTenants, notifyExpiringTenants } from \"../../api\";",
+     "admin-web/src/views/system/MonitorView.vue: const data = await fetchApiStats();",
+     "docs/API接口文档.md: | P26 | `GET /api/platform/monitor/api-stats` | API 调用统计（R97-01） | — | {totalRequests,errorCount,errorRate,statusCodes,...} | platform-monitor.routes.ts 复用 admi",
+     "docs/tasks/cards/R101-C4-0-阿坚清账.md: | A5 | `MonitorView.vue` 的 KPI/趋势取自 `GET /api/platform/monitor`，但该端点返回的是**进程运行态**（`uptime/connections/qps/memory/cpu/nodeVersion/platform/lastError`），**没有** `to",
+     "docs/tasks/cards/R101-C4-1b-阿坚回传-段二包C.md: | 2 | A5 KPI/趋势真实源错配（页面读 `todayApiRequests/successRate/activeAlerts/trend`，`/api/platform/monitor` 不返回） | 优先走前端 C4-F 改接线（`fetchApiStats` 已在 `api.ts`）；后端**不**为 K"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 9
+    }
+   },
+   {
+    "name": "fetchExpiringTenants",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "admin-web/src/api/pos.ts: export async function fetchExpiringTenants(days?: number) {",
+     "admin-web/src/views/system/MonitorView.vue: import { fetchDbStatus, fetchApiStats, fetchExpiringTenants, notifyExpiringTenants } from \"../../api\";",
+     "admin-web/src/views/system/MonitorView.vue: const data = await fetchExpiringTenants();",
+     "docs/API接口文档.md: | P27 | `GET /api/platform/monitor/expiring-tenants` | 即将到期租户（R97-01） | ?days=7 | [{id,tenantCode,companyName,expireAt,daysLeft}] | platform-monitor.routes.ts 复"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 4
+    }
+   },
+   {
+    "name": "notifyExpiringTenants",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "admin-web/src/api/pos.ts: export async function notifyExpiringTenants(tenantIds: number[]) {",
+     "admin-web/src/views/system/MonitorView.vue: import { fetchDbStatus, fetchApiStats, fetchExpiringTenants, notifyExpiringTenants } from \"../../api\";",
+     "admin-web/src/views/system/MonitorView.vue: await notifyExpiringTenants(selectedTenants.value);",
+     "backend/src/controllers/admin/monitor.controller.ts: import { getDbStatus, getApiStats, getExpiringTenants, notifyExpiringTenants } from \"../../services/admin/monitor.service\";",
+     "backend/src/controllers/admin/monitor.controller.ts: const count = await notifyExpiringTenants(tenantIds || []);",
+     "backend/src/services/admin/monitor.service.ts: export async function notifyExpiringTenants(tenantIds: string[]): Promise<number> {"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 16
+    }
+   },
+   {
+    "name": "getAnnouncements",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C2-F-墨回传.md: 6. **`api.ts` 既有 5 个公告函数已无调用方**：`getAnnouncements / getAnnouncementDetail / createAnnouncement / updateAnnouncement / deleteAnnouncement`",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | 12-13 | `api.ts:321,322` | `getAnnouncements` 入参 | 保留 | 公告列表端点；未核验（Q2） |"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "getAnnouncementDetail",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C2-0-阿坚清账.md: | A09 | Announcements.vue:451 | `// preview / read 等：待接入详情接口（建议 GET /platform/announcements/:id）` | **①后端已有** | 路由 `backend/src/routes/admin-platform-announceme",
+     "docs/tasks/cards/R101-C2-F-墨回传.md: 6. **`api.ts` 既有 5 个公告函数已无调用方**：`getAnnouncements / getAnnouncementDetail / createAnnouncement / updateAnnouncement / deleteAnnouncement`"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "createAnnouncement",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/platform-announcement.controller.ts: export async function createAnnouncement(req: any, res: any) {",
+     "backend/src/controllers/admin/platform-announcement.controller.ts: const result = await announcementService.createAnnouncement(data);",
+     "backend/src/controllers/admin/retail-announcement.controller.ts: export const createAnnouncement = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/retail-announcement.controller.ts: const result = await retailAnnouncementService.createAnnouncement(",
+     "backend/src/controllers/admin/retail-announcements-admin.controller.ts: export const createAnnouncement = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/retail-announcements-admin.controller.ts: const result = await retailAnnouncementService.createAnnouncement("
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 57
+    }
+   },
+   {
+    "name": "updateAnnouncement",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/platform-announcement.controller.ts: export async function updateAnnouncement(req: any, res: any) {",
+     "backend/src/controllers/admin/platform-announcement.controller.ts: const result = await announcementService.updateAnnouncement(id, data);",
+     "backend/src/controllers/admin/retail-announcement.controller.ts: export const updateAnnouncement = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/retail-announcement.controller.ts: const result = await retailAnnouncementService.updateAnnouncement(",
+     "backend/src/controllers/admin/retail-announcements-admin.controller.ts: export const updateAnnouncement = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/retail-announcements-admin.controller.ts: const result = await retailAnnouncementService.updateAnnouncement("
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 44
+    }
+   },
+   {
+    "name": "deleteAnnouncement",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/platform-announcement.controller.ts: export async function deleteAnnouncement(req: any, res: any) {",
+     "backend/src/controllers/admin/platform-announcement.controller.ts: const result = await announcementService.deleteAnnouncement(id);",
+     "backend/src/controllers/admin/retail-announcement.controller.ts: export const deleteAnnouncement = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/retail-announcement.controller.ts: await retailAnnouncementService.deleteAnnouncement(id, storeId, tenantId);",
+     "backend/src/controllers/admin/retail-announcements-admin.controller.ts: export const deleteAnnouncement = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/retail-announcements-admin.controller.ts: await retailAnnouncementService.deleteAnnouncement(id, storeId, tenantId);"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 38
+    }
+   },
+   {
+    "name": "getPlatformReviews",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PlatformReviews.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PlatformReviews.vue: import { getPlatformReviews, getPlatformReviewStats, replyPlatformReview } from \"../api\";",
+     "saas-admin/src/views/PlatformReviews.vue: const res = await getPlatformReviews({"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | :355-363 `getPlatformReviews` | 入参 `page/pageSize/**status**/rating/**keyword**` | `page/pageSize/**platform**/rating` | S3-114 定稿契约只接受 `page/pageSize/platfor"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "getPlatformReviewStats",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PlatformReviews.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PlatformReviews.vue: import { getPlatformReviews, getPlatformReviewStats, replyPlatformReview } from \"../api\";",
+     "saas-admin/src/views/PlatformReviews.vue: const res = await getPlatformReviewStats();"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-S3-115-墨回传.md: ① `saas-admin/src/api.ts`（平台评价三处封装，改后 :350-372）：list 入参收敛为 `page/pageSize/platform/rating`（删 status/keyword；platformName/reviewType 前端从未出现，rg 命中 0）；`replyPlatfo",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | :365-367 `getPlatformReviewStats` | `(params?: any)` + `ApiResult<any>`，把任意参数透传给后端 | 无参 + `ApiResult<{ stats: Array<{ platform: string; cnt: number }> }>` | 统"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "replyPlatformReview",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/PlatformReviews.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/PlatformReviews.vue: import { getPlatformReviews, getPlatformReviewStats, replyPlatformReview } from \"../api\";",
+     "saas-admin/src/views/PlatformReviews.vue: await replyPlatformReview(currentReview.value.id, replyForm.replyContent);"
+    ],
+    "saasTools": [
+     "saas-admin/scripts/check-api-paths.mjs: fn: 'replyPlatformReview',"
+    ],
+    "other": [
+     "docs/memories/墨-记忆.md: - PlatformReview（3个）：fetchPlatformReviews, replyPlatformReview, fetchPlatformReviewStats",
+     "docs/tasks/cards/R101-S3-114-阿坚回传.md: | 8 | api.ts:366 `replyPlatformReview` | body `{ reply }` | 后端契约为 `body { replyContent }` | **前端改键**，否则 zod 400（本次未后端兼容，见待裁定 Q2） |",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: ① `saas-admin/src/api.ts`（平台评价三处封装，改后 :350-372）：list 入参收敛为 `page/pageSize/platform/rating`（删 status/keyword；platformName/reviewType 前端从未出现，rg 命中 0）；`replyPlatfo",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: · `node saas-admin/scripts/check-api-paths.mjs --no-color` → `PASS 路径集合：未发现「前端有、后端无」的路径 / 方法` + `PASS 契约键位：replyPlatformReview body 键 = replyContent   saas-admi",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: · 反测 b：把 `replyPlatformReview` body 键改回 `reply` ⇒ `FAIL 契约键位不符：2 条`（\"必须为 replyContent\"+\"不得为 reply\"），EXIT=1；改回后 EXIT=0 且 api.ts SHA256 回到反测前的 `437A8AB4…`（逐字节还原）→",
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | :370-372 `replyPlatformReview` | body `{ reply }` | body `{ replyContent }`（形参同步更名） | 后端 `z.object({ replyContent: z.string().min(1) }).parse(req.body)`（contr"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 1,
+     "other": 12
+    }
+   },
+   {
+    "name": "getPlatformReconciliations",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: getPlatformReconciliations,",
+     "saas-admin/src/views/Reconciliation.vue: // ====== Tab1 账单流水（沿用 getPlatformReconciliations） ======",
+     "saas-admin/src/views/Reconciliation.vue: const res: any = await getPlatformReconciliations({"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | 15-16 | `api.ts:378,381` | `getPlatformReconciliations` 入参 | 保留 | 财务对账端点；未核验（Q2） |"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "getPlatformReconciliationDetail",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: getPlatformReconciliationDetail,",
+     "saas-admin/src/views/Reconciliation.vue: const res: any = await getPlatformReconciliationDetail(row.id)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-reconciliation.controller.ts: export const getPlatformReconciliationDetail = asyncHandler(async (req, res) => {",
+     "backend/src/routes/platform-reconciliation.routes.ts: platformReconciliationRouter.get(\"/:id\", asyncHandler(platformController.getPlatformReconciliationDetail));",
+     "docs/tasks/cards/R101-C4-0-阿坚清账.md: rg -n 'getPlatformReconciliationDetail' backend/src/controllers/platform/platform-reconciliation.controller.ts"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "getTenantUsageStats",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/TenantUsage.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/TenantUsage.vue: import { getTenantUsageStats, getTenants, getTenantRank } from \"../api\";",
+     "saas-admin/src/views/TenantUsage.vue: const res = await getTenantUsageStats({"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-6-墨回传.md: - **改了什么**：删除该函数定义体 3 行（`export function getTenantStatistics() {` / `return api.get<...>(\"/platform/tenants/statistics/overview\");` / `}`）并消掉随之多出的 1 个空行，合计 -4 行",
+     "docs/tasks/cards/R101-C6-6-墨回传.md: @@ -397,10 +397,6 @@ export function getTenantUsageStats(params?: {"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "getTenantRank",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/TenantUsage.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/library/library-stats.ts: *           backend/src/services/platform/library-call-log.service.ts（getCallStats / getTenantRank / getCallTrend）",
+     "saas-admin/src/views/TenantUsage.vue: import { getTenantUsageStats, getTenants, getTenantRank } from \"../api\";",
+     "saas-admin/src/views/TenantUsage.vue: const res = await getTenantRank({"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/library-call-log.controller.ts: export async function getTenantRank(_req: any, res: any) {",
+     "backend/src/controllers/platform/library-call-log.controller.ts: res.json(ok(await service.getTenantRank()));",
+     "backend/src/routes/platform-library.routes.ts: getTenantRank,",
+     "backend/src/routes/platform-library.routes.ts: platformLibraryRouter.get(\"/stats/rank\", asyncHandler(getTenantRank));",
+     "backend/src/services/platform/library-call-log.service.ts: export async function getTenantRank(limit: number = DEFAULT_RANK_LIMIT) {",
+     "backend/src/services/platform/library-call-log.service.ts: const rank = await getTenantRank(DEFAULT_RANK_LIMIT);"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 13
+    }
+   },
+   {
+    "name": "getReconciliationStats",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: getReconciliationStats,",
+     "saas-admin/src/views/Reconciliation.vue: // ====== KPI（沿用 getReconciliationStats） ======",
+     "saas-admin/src/views/Reconciliation.vue: const res: any = await getReconciliationStats()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "settleReconciliation",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Reconciliation.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Reconciliation.vue: settleReconciliation,",
+     "saas-admin/src/views/Reconciliation.vue: await settleReconciliation(row.id)"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getErrorLogs",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/monitor/MonitorView.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/monitor/MonitorView.vue: import { getErrorLogs } from '../../api'",
+     "saas-admin/src/views/monitor/MonitorView.vue: const d = unwrap(await getErrorLogs({ page: 1, pageSize: 50 }))"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/memories/凌舟-记忆.md: > - 不达标：① **违反禁模拟数据**——`Packages.vue` demo 套餐（671 家/1,286/¥4,800 等设计稿样例数字）、`LibraryReviews.vue` 6 条编造审核记录 + 写死 `total=372`，接口空/失败时兜底渲染；② **未定义引用残留**——`MonitorVi",
+     "docs/R101-S1-UI还原-凌舟验收结论.md: | 「MonitorView 失效 import 已修」 | `MonitorView.vue:417` 仍 `await getErrorLogs({ pageSize: 20 })`，全仓库无 `getErrorLogs` 定义（TS2304） | **报告与实现不符**：只修了 import，漏了调用点（现被内层",
+     "docs/R101-S1-UI还原-凌舟验收结论.md: | P0-3 | 清未定义函数 | `MonitorView.vue` 的 `getErrorLogs` 调用已移除，改为 `errorTop.value = []` + 说明注释（原文仅存在于注释中） | ✅ |",
+     "docs/tasks/cards/R101-S1-R1-林夕返工卡.md: - **MonitorView.vue:417**：`await getErrorLogs({ pageSize: 20 })` —— 全仓库无此函数（TS2304），现被内层 `try/catch` 吞掉，表现为\"错误日志 TOP 恒空\"。删除该调用改为空态，或接入真实接口后再启用；**不要再留下未定义引用**。",
+     "docs/tasks/cards/R101-S1-R1-林夕返工回传.md: `MonitorView.vue` 原 416~421 行的 `await getErrorLogs({ pageSize: 20 })` 整段删除，改为显式空态 + TODO（注释说明全仓无该函数定义、待后端提供 `GET /platform/error-logs` 再接回）。",
+     "docs/tasks/cards/R101-S1-R1-林夕返工回传.md: | `views/monitor/MonitorView.vue` | 1 | **0** | 移除未定义 `getErrorLogs` 调用 |"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 15
+    }
+   },
+   {
+    "name": "listAppVersions",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/AppVersions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/AppVersions.vue: listAppVersions,",
+     "saas-admin/src/views/AppVersions.vue: /* ── 列表加载：保留 listAppVersions 调用（含 loading/空态/错误处理） ── */",
+     "saas-admin/src/views/AppVersions.vue: const res = await listAppVersions({ platform: \"admin_web\" });"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/app-version.controller.ts: export const listAppVersions = asyncHandler(async (req, res) => {",
+     "backend/src/routes/platform-app-version.routes.ts: appVersionAdminRouter.get(\"/app-versions\", appVersionController.listAppVersions);"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "publishAppVersion",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/AppVersions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/AppVersions.vue: publishAppVersion,",
+     "saas-admin/src/views/AppVersions.vue: await publishAppVersion({"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "deleteAppVersion",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/AppVersions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/AppVersions.vue: deleteAppVersion,"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 1,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getAiBillingStrategy",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: getAiBillingStrategy,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: const res: any = await getAiBillingStrategy()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "updateAiBillingStrategy",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: updateAiBillingStrategy,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: await updateAiBillingStrategy(payload)"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getAiFreeGrant",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: getAiFreeGrant,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: const res: any = await getAiFreeGrant()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "updateAiFreeGrant",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: updateAiFreeGrant,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: await updateAiFreeGrant(payload)"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getAiQuotaPacks",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: getAiQuotaPacks,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: const res: any = await getAiQuotaPacks()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "updateAiQuotaPacks",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: updateAiQuotaPacks,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: await updateAiQuotaPacks({ version: 1, packs })"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getAiPointsRate",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: getAiPointsRate,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: const res: any = await getAiPointsRate()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "updateAiPointsRate",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: updateAiPointsRate,",
+     "saas-admin/src/views/ai-config/AiBillingConfig.vue: await updateAiPointsRate({"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getPlatformAiPublicModels",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/PlatformAiConfig.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/PlatformAiConfig.vue: import { getPlatformAiPublicModels } from '../../api'",
+     "saas-admin/src/views/ai-config/PlatformAiConfig.vue: const res: any = await getPlatformAiPublicModels()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getPlatformAiMeteringLog",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiUsageStats.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiUsageStats.vue: getPlatformAiMeteringLog,",
+     "saas-admin/src/views/ai-config/AiUsageStats.vue: const res: any = await getPlatformAiMeteringLog({ page: meteringPage.value, pageSize: meteringPageSize })"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getPlatformAiAbnormalTenants",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiUsageStats.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiUsageStats.vue: getPlatformAiAbnormalTenants,",
+     "saas-admin/src/views/ai-config/AiUsageStats.vue: const res: any = await getPlatformAiAbnormalTenants()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "getPlatformAiModelShare",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ai-config/AiUsageStats.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ai-config/AiUsageStats.vue: getPlatformAiModelShare,",
+     "saas-admin/src/views/ai-config/AiUsageStats.vue: const res: any = await getPlatformAiModelShare()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "listExportTasks",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Dashboard.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Dashboard.vue: listExportTasks,",
+     "saas-admin/src/views/Dashboard.vue: const res: any = await listExportTasks({ page: 1, pageSize: 20 })"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-export-task.controller.ts: export async function listExportTasks(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-export-task.controller.ts: await service.listExportTasks({",
+     "backend/src/routes/platform-export-task.routes.ts: platformExportTaskRouter.get(\"/\", asyncHandler(controller.listExportTasks));",
+     "backend/src/services/platform/platform-export-task.service.ts: export async function listExportTasks(input: ExportTaskListQuery = {}): Promise<ExportTaskList> {",
+     "backend/src/__tests__/routes/platform-export-task.test.ts: listExportTasks: vi.fn(),",
+     "backend/src/__tests__/routes/platform-export-task.test.ts: listExportTasks: mocks.listExportTasks,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 23
+    }
+   },
+   {
+    "name": "createExportTask",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Dashboard.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Dashboard.vue: createExportTask,",
+     "saas-admin/src/views/Dashboard.vue: const res: any = await createExportTask({"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-export-task.controller.ts: export async function createExportTask(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-export-task.controller.ts: await service.createExportTask({",
+     "backend/src/routes/platform-export-task.routes.ts: platformExportTaskRouter.post(\"/\", asyncHandler(controller.createExportTask));",
+     "backend/src/services/platform/platform-export-task.service.ts: export async function createExportTask(",
+     "backend/src/__tests__/routes/platform-export-task.test.ts: createExportTask: vi.fn(),",
+     "backend/src/__tests__/routes/platform-export-task.test.ts: createExportTask: mocks.createExportTask,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 23
+    }
+   },
+   {
+    "name": "getExportTaskStatus",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Dashboard.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Dashboard.vue: getExportTaskStatus,",
+     "saas-admin/src/views/Dashboard.vue: const res: any = await getExportTaskStatus(Number(t?.id))"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-export-task.controller.ts: export async function getExportTaskStatus(req: any, res: any) {",
+     "backend/src/routes/platform-export-task.routes.ts: platformExportTaskRouter.get(\"/:id/status\", asyncHandler(controller.getExportTaskStatus));",
+     "docs/tasks/cards/R101-C6-2-T2-F1-阿坚回传.md: ② backend/src/controllers/platform/platform-export-task.controller.ts —— getExportTaskStatus（承接 T2 详情，原样透出）+ downloadExportTask（新增，只读；无 fileUrl ⇒ 404「导出文件尚未生成（生",
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 导出任务 | `listExportTasks:511`、`createExportTask:516`、`getExportTaskStatus:523`、`downloadExportTask:533`、`getExportTaskLogs:538` |"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 4
+    }
+   },
+   {
+    "name": "downloadExportTask",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Dashboard.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Dashboard.vue: downloadExportTask,",
+     "saas-admin/src/views/Dashboard.vue: await downloadExportTask(Number(t?.id))"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-export-task.controller.ts: export async function downloadExportTask(req: any, res: any) {",
+     "backend/src/routes/platform-export-task.routes.ts: platformExportTaskRouter.get(\"/:id/download\", asyncHandler(controller.downloadExportTask));",
+     "docs/tasks/cards/R101-C6-2-T2-F1-阿坚回传.md: ② backend/src/controllers/platform/platform-export-task.controller.ts —— getExportTaskStatus（承接 T2 详情，原样透出）+ downloadExportTask（新增，只读；无 fileUrl ⇒ 404「导出文件尚未生成（生",
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 导出任务 | `listExportTasks:511`、`createExportTask:516`、`getExportTaskStatus:523`、`downloadExportTask:533`、`getExportTaskLogs:538` |"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 4
+    }
+   },
+   {
+    "name": "getExportTaskLogs",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Dashboard.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Dashboard.vue: getExportTaskLogs,",
+     "saas-admin/src/views/Dashboard.vue: const res: any = await getExportTaskLogs(Number(t?.id))"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-export-task.controller.ts: export async function getExportTaskLogs(req: any, res: any) {",
+     "backend/src/routes/platform-export-task.routes.ts: platformExportTaskRouter.get(\"/:id/logs\", asyncHandler(controller.getExportTaskLogs));",
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 导出任务 | `listExportTasks:511`、`createExportTask:516`、`getExportTaskStatus:523`、`downloadExportTask:533`、`getExportTaskLogs:538` |"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "getPlatformAdmins",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: getPlatformAdmins,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: · 管理员列表 / 角色列表 / 权限点目录 / 权限矩阵读写 → getPlatformAdmins / getPlatformRoles",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await getPlatformAdmins({ page: 1, pageSize: 50 })"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 管理员 / 角色 / 目录 | `getPlatformAdmins:548`、`getPlatformRoles:555`、`getPermissionCatalog:560`、`getRolePermissions:565`、`replaceRolePermissions:570` |",
+     "docs/tasks/cards/R101-S3-138-阿坚回传.md: | `saas-admin/src/api.ts:547-556`（`getPlatformAdmins`） | 类型为 `any`/`string` 可选参数，字符串口径兼容；`status` 筛选参数当前无人使用 |"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "getPlatformRoles",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: getPlatformRoles,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: · 管理员列表 / 角色列表 / 权限点目录 / 权限矩阵读写 → getPlatformAdmins / getPlatformRoles",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await getPlatformRoles()"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 管理员 / 角色 / 目录 | `getPlatformAdmins:548`、`getPlatformRoles:555`、`getPermissionCatalog:560`、`getRolePermissions:565`、`replaceRolePermissions:570` |"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "getPermissionCatalog",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: getPermissionCatalog,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: / getPermissionCatalog / getRolePermissions / replaceRolePermissions",
+     "saas-admin/src/views/platform/AdminPermissions.vue: /** 权限点目录（api.ts getPermissionCatalog）：矩阵行与数据范围 4 档**均由后端目录派生** */",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await getPermissionCatalog()"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-role.controller.ts: export async function getPermissionCatalog(_req: any, res: any) {",
+     "backend/src/routes/platform-role.routes.ts: platformPermissionsRouter.get(\"/catalog\", asyncHandler(controller.getPermissionCatalog));",
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 管理员 / 角色 / 目录 | `getPlatformAdmins:548`、`getPlatformRoles:555`、`getPermissionCatalog:560`、`getRolePermissions:565`、`replaceRolePermissions:570` |"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "getRolePermissions",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: getRolePermissions,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: / getPermissionCatalog / getRolePermissions / replaceRolePermissions",
+     "saas-admin/src/views/platform/AdminPermissions.vue: /** 选中角色 → 拉取其已保存的权限矩阵（api.ts getRolePermissions） */",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await getRolePermissions(id)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/admin/menu-permission.controller.ts: export const getRolePermissions = asyncHandler(async (req, res) => {",
+     "backend/src/controllers/admin/menu-permission.controller.ts: const permissions = await menuPermissionService.getRolePermissions(roleId, req.tenantId!);",
+     "backend/src/controllers/platform/platform-role.controller.ts: export async function getRolePermissions(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-role.controller.ts: res.json(ok(await service.getRolePermissions(id)));",
+     "backend/src/routes/platform-role.routes.ts: platformRolesRouter.get(\"/:id/permissions\", asyncHandler(controller.getRolePermissions));",
+     "backend/src/services/admin/menu-permission.service.ts: export async function getRolePermissions(roleId: number, tenantId: string): Promise<RolePermissions> {"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 23
+    }
+   },
+   {
+    "name": "replaceRolePermissions",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: replaceRolePermissions",
+     "saas-admin/src/views/platform/AdminPermissions.vue: / getPermissionCatalog / getRolePermissions / replaceRolePermissions",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await replaceRolePermissions(id, matrix)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-role.controller.ts: export async function replaceRolePermissions(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-role.controller.ts: res.json(ok(await service.replaceRolePermissions(id, matrix)));",
+     "backend/src/routes/platform-role.routes.ts: platformRolesRouter.put(\"/:id/permissions\", asyncHandler(controller.replaceRolePermissions));",
+     "backend/src/services/platform/platform-role.service.ts: export async function replaceRolePermissions(",
+     "backend/src/__tests__/routes/platform-role.test.ts: replaceRolePermissions: vi.fn(),",
+     "backend/src/__tests__/routes/platform-role.test.ts: replaceRolePermissions: mocks.replaceRolePermissions,"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 20
+    }
+   },
+   {
+    "name": "updatePlatformAdminStatus",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: updatePlatformAdminStatus,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: · 启停 / 重置密码 / 新建角色 / 邀请建号 → updatePlatformAdminStatus / resetPlatformAdminPassword",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await updatePlatformAdminStatus(Number(a.id), next)"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const statusFnText = topLevelFnSource(apiSrc, \"export function updatePlatformAdminStatus\");"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform.controller.ts: const result = await adminAccountService.updatePlatformAdminStatus(",
+     "backend/src/services/platform/admin-account.service.ts: export async function updatePlatformAdminStatus(",
+     "backend/src/__tests__/controllers/platform/platform.controller.test.ts: updatePlatformAdminStatus: vi.fn(),",
+     "backend/src/__tests__/controllers/platform/platform.controller.test.ts: (adminAccountService.updatePlatformAdminStatus as any).mockResolvedValue({ id: 1 });",
+     "backend/src/__tests__/controllers/platform/platform.controller.test.ts: expect(adminAccountService.updatePlatformAdminStatus).toHaveBeenCalledWith(1, \"DISABLED\");",
+     "backend/src/__tests__/controllers/platform/platform.controller.test.ts: expect(adminAccountService.updatePlatformAdminStatus).not.toHaveBeenCalled();"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 1,
+     "other": 19
+    }
+   },
+   {
+    "name": "resetPlatformAdminPassword",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: resetPlatformAdminPassword,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: · 启停 / 重置密码 / 新建角色 / 邀请建号 → updatePlatformAdminStatus / resetPlatformAdminPassword",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await resetPlatformAdminPassword(Number(a.id))"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const resetFnBlock = balancedBlock(apiSrc.slice(apiSrc.indexOf(\"export function resetPlatformAdminPassword\")), \"{\");",
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const names = [\"export function invitePlatformAdmin\", \"export function resetPlatformAdminPassword\"];"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform.controller.ts: const result = await adminAccountService.resetPlatformAdminPassword(",
+     "backend/src/services/platform/admin-account.service.ts: export async function resetPlatformAdminPassword(",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: resetPlatformAdminPassword,",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: describe(\"C6-1A · resetPlatformAdminPassword（#51 管理员代重置，零 DDL）\", () => {",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: const res = await resetPlatformAdminPassword(3, operator);",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: await expect(resetPlatformAdminPassword(999, operator)).rejects.toMatchObject({ statusCode: 404 });"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 2,
+     "other": 7
+    }
+   },
+   {
+    "name": "invitePlatformAdmin",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: invitePlatformAdmin,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: / createPlatformRole / invitePlatformAdmin",
+     "saas-admin/src/views/platform/AdminPermissions.vue: /** 邀请建号（api.ts invitePlatformAdmin）：不发邮件/短信；服务端生成 12 位初始口令，仅响应体一次 */",
+     "saas-admin/src/views/platform/AdminPermissions.vue: const res: any = await invitePlatformAdmin({"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const invitePayloadKeys = pagePayloadKeys(pageSrc, \"invitePlatformAdmin\");",
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const names = [\"export function invitePlatformAdmin\", \"export function resetPlatformAdminPassword\"];"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform.controller.ts: const result = await adminAccountService.invitePlatformAdmin(",
+     "backend/src/services/platform/admin-account.service.ts: export async function invitePlatformAdmin(",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: invitePlatformAdmin,",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: describe(\"C6-1A · invitePlatformAdmin（#45 建号，裁定 R6：不发信 + 初始口令一次性展示）\", () => {",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: const res = await invitePlatformAdmin(",
+     "backend/src/__tests__/services/platform/admin-account-c6.service.test.ts: const res = await invitePlatformAdmin("
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 2,
+     "other": 8
+    }
+   },
+   {
+    "name": "createPlatformRole",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/platform/AdminPermissions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/platform/AdminPermissions.vue: createPlatformRole,",
+     "saas-admin/src/views/platform/AdminPermissions.vue: / createPlatformRole / invitePlatformAdmin",
+     "saas-admin/src/views/platform/AdminPermissions.vue: /** 新建自定义角色（api.ts createPlatformRole）：成功后就地刷新角色列表，409 原样展示后端文案（R5） */",
+     "saas-admin/src/views/platform/AdminPermissions.vue: await createPlatformRole({ name, code, remark: roleForm.remark.trim() || undefined })"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const rolePayloadKeys = pagePayloadKeys(pageSrc, \"createPlatformRole\");"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform-role.controller.ts: res.status(201).json(ok(await service.createPlatformRole(body)));",
+     "backend/src/services/platform/platform-role.service.ts: export async function createPlatformRole(input: RoleCreateInput): Promise<{ id: number }> {",
+     "backend/src/__tests__/routes/platform-role.test.ts: createPlatformRole: vi.fn(),",
+     "backend/src/__tests__/routes/platform-role.test.ts: createPlatformRole: mocks.createPlatformRole,",
+     "backend/src/__tests__/routes/platform-role.test.ts: expect(mocks.createPlatformRole).not.toHaveBeenCalled();",
+     "backend/src/__tests__/routes/platform-role.test.ts: mocks.createPlatformRole.mockResolvedValue({ id: 12 });"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 1,
+     "other": 14
+    }
+   },
+   {
+    "name": "listSupportTickets",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: listSupportTickets,",
+     "saas-admin/src/views/ops/TicketSystem.vue: const res: any = await listSupportTickets({ onlyMine: onlyMine.value, page: 1, pageSize: 50 })"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "getSupportTicket",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: getSupportTicket,",
+     "saas-admin/src/views/ops/TicketSystem.vue: getSupportTicket(id),"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "getSupportTicketTimeline",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: getSupportTicketTimeline,",
+     "saas-admin/src/views/ops/TicketSystem.vue: getSupportTicketTimeline(id),"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "replySupportTicket",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: replySupportTicket,",
+     "saas-admin/src/views/ops/TicketSystem.vue: await replySupportTicket(id, String(value).trim())"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "noteSupportTicket",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60",
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: > `noteSupportTicket`（内部备注 `POST /tickets/:id/note`）**已封装但本页无入口**：设计稿 `docs/智享全链_总后台UI设计稿_v1.6.html:1740` 的抽屉底部只有「回复租户 / 转交·改派 / 标记解决 / 关闭工单」四个按钮，内部备注只作为时间线气泡类型"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "transferSupportTicket",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: transferSupportTicket,",
+     "saas-admin/src/views/ops/TicketSystem.vue: await transferSupportTicket(id, Number(String(value).trim()))"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "resolveSupportTicket",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: resolveSupportTicket,",
+     "saas-admin/src/views/ops/TicketSystem.vue: await resolveSupportTicket(id)"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "closeSupportTicket",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: closeSupportTicket,",
+     "saas-admin/src/views/ops/TicketSystem.vue: await closeSupportTicket(id)"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "getSupportTicketReport",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: getSupportTicketReport,",
+     "saas-admin/src/views/ops/TicketSystem.vue: const res: any = await getSupportTicketReport()"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | 工单 | `listSupportTickets:579`、`getSupportTicket:583`、`getSupportTicketTimeline:588`、`replySupportTicket:592`、`noteSupportTicket:596`、`transferSupportTicket:60"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "listTicketCategories",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/ops/TicketSystem.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/ops/TicketSystem.vue: listTicketCategories,",
+     "saas-admin/src/views/ops/TicketSystem.vue: const res: any = await listTicketCategories()"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-ticket.controller.ts: export async function listTicketCategories(_req: any, res: any) {",
+     "backend/src/controllers/platform/platform-ticket.controller.ts: res.json(ok(await service.listTicketCategories()));",
+     "backend/src/routes/platform-ticket.routes.ts: platformSupportRouter.get(\"/ticket-categories\", asyncHandler(controller.listTicketCategories));",
+     "backend/src/services/platform/platform-ticket.service.ts: export async function listTicketCategories(): Promise<{ categories: TicketCategoryItem[] }> {",
+     "backend/src/__tests__/routes/platform-ticket.test.ts: listTicketCategories: vi.fn(),",
+     "backend/src/__tests__/routes/platform-ticket.test.ts: listTicketCategories: mocks.listTicketCategories,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 12
+    }
+   },
+   {
+    "name": "uploadPlatformLogo",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Settings.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Settings.vue: uploadPlatformLogo,",
+     "saas-admin/src/views/Settings.vue: const res: any = await uploadPlatformLogo(file)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-logo.controller.ts: export const uploadPlatformLogo = asyncHandler(async (req: any, res: any) => {",
+     "backend/src/routes/platform-config.routes.ts: import { uploadPlatformLogo } from \"../controllers/platform/platform-logo.controller\";",
+     "backend/src/routes/platform-config.routes.ts: platformConfigRouter.post(\"/logo\", logoUpload, uploadPlatformLogo);",
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: 封装层：`api.ts:628 uploadPlatformLogo`",
+     "docs/tasks/cards/R101-C6-3-0-阿坚-接线对照.md: | Logo | `uploadPlatformLogo:628` |"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 5
+    }
+   },
+   {
+    "name": "listFeatureSwitches",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/AppVersions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/AppVersions.vue: listFeatureSwitches,",
+     "saas-admin/src/views/AppVersions.vue: const res: any = await listFeatureSwitches();"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-feature-switch.controller.ts: export async function listFeatureSwitches(_req: any, res: any) {",
+     "backend/src/controllers/platform/platform-feature-switch.controller.ts: res.json(ok(await service.listFeatureSwitches()));",
+     "backend/src/routes/platform-config.routes.ts: listFeatureSwitches,",
+     "backend/src/routes/platform-config.routes.ts: platformConfigRouter.get(\"/feature-switches\", asyncHandler(listFeatureSwitches));",
+     "backend/src/services/platform/platform-feature-switch.service.ts: export async function listFeatureSwitches(): Promise<{ items: FeatureSwitchItem[] }> {",
+     "backend/src/__tests__/routes/platform-config-c6-3-1.test.ts: listFeatureSwitches: vi.fn(),"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 17
+    }
+   },
+   {
+    "name": "updateFeatureSwitch",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/AppVersions.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/AppVersions.vue: updateFeatureSwitch,",
+     "saas-admin/src/views/AppVersions.vue: const res: any = await updateFeatureSwitch(snapshotKey(row), payload as any);"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-feature-switch.controller.ts: export async function updateFeatureSwitch(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-feature-switch.controller.ts: await service.updateFeatureSwitch(",
+     "backend/src/routes/platform-config.routes.ts: updateFeatureSwitch,",
+     "backend/src/routes/platform-config.routes.ts: platformConfigRouter.put(\"/feature-switches/:code\", asyncHandler(updateFeatureSwitch));",
+     "backend/src/services/platform/platform-feature-switch.service.ts: export async function updateFeatureSwitch(",
+     "backend/src/__tests__/routes/platform-config-c6-3-1.test.ts: updateFeatureSwitch: vi.fn(),"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 29
+    }
+   },
+   {
+    "name": "listDataDictTypes",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Settings.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Settings.vue: listDataDictTypes,",
+     "saas-admin/src/views/Settings.vue: const res: any = await listDataDictTypes()"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "listDataDictItems",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Settings.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Settings.vue: listDataDictItems,",
+     "saas-admin/src/views/Settings.vue: const res: any = await listDataDictItems(dictTab.value)"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "replaceDataDictItems",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/Settings.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/Settings.vue: replaceDataDictItems,",
+     "saas-admin/src/views/Settings.vue: await replaceDataDictItems(dictTab.value, buildDictPayload(next) as any)"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "listAgents",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/AgentManagement.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: listAgents,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: const res: any = await listAgents({"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-agent.controller.ts: export async function listAgents(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent.controller.ts: res.json(ok(await service.listAgents(query)));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.get(\"/\", asyncHandler(agentController.listAgents));",
+     "backend/src/services/platform/platform-agent.service.ts: export async function listAgents(input: AgentListInput = {}): Promise<AgentListResult> {",
+     "backend/src/__tests__/routes/platform-agent.test.ts: listAgents: vi.fn(),",
+     "backend/src/__tests__/routes/platform-agent.test.ts: listAgents: mocks.listAgents,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 17
+    }
+   },
+   {
+    "name": "getAgent",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-agent.controller.ts: export async function getAgent(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent.controller.ts: res.json(ok(await service.getAgent(id)));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.get(\"/:id\", asyncHandler(agentController.getAgent));",
+     "backend/src/services/platform/platform-agent.service.ts: export async function getAgent(id: number): Promise<AgentView> {",
+     "backend/src/services/platform/platform-agent.service.ts: return getAgent(insertId);",
+     "backend/src/__tests__/routes/platform-agent.test.ts: getAgent: vi.fn(),"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 18
+    }
+   },
+   {
+    "name": "createAgent",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/AgentManagement.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: createAgent,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: await createAgent({"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: const pageCreateKeys = objectLiteralKeys(pageSource, \"await createAgent(\");"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform-agent.controller.ts: export async function createAgent(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent.controller.ts: res.json(ok(await service.createAgent(body, currentAdminId(req))));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.post(\"/\", asyncHandler(agentController.createAgent));",
+     "backend/src/services/platform/platform-agent.service.ts: export async function createAgent(",
+     "backend/src/__tests__/routes/platform-agent.test.ts: createAgent: vi.fn(),",
+     "backend/src/__tests__/routes/platform-agent.test.ts: createAgent: mocks.createAgent,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 1,
+     "other": 19
+    }
+   },
+   {
+    "name": "updateAgent",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/AgentManagement.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: updateAgent,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: await updateAgent(editingId.value, body)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-agent.controller.ts: export async function updateAgent(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent.controller.ts: res.json(ok(await service.updateAgent(id, body, currentAdminId(req))));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.put(\"/:id\", asyncHandler(agentController.updateAgent));",
+     "backend/src/services/platform/platform-agent.service.ts: export async function updateAgent(",
+     "backend/src/__tests__/routes/platform-agent.test.ts: updateAgent: vi.fn(),",
+     "backend/src/__tests__/routes/platform-agent.test.ts: updateAgent: mocks.updateAgent,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 17
+    }
+   },
+   {
+    "name": "changeAgentStatus",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/AgentManagement.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: changeAgentStatus,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: await changeAgentStatus(agent.id, { status })"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-agent.controller.ts: export async function changeAgentStatus(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent.controller.ts: res.json(ok(await service.changeAgentStatus(id, body.status, currentAdminId(req))));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.post(\"/:id/status\", asyncHandler(agentController.changeAgentStatus));",
+     "backend/src/services/platform/platform-agent.service.ts: export async function changeAgentStatus(",
+     "backend/src/__tests__/routes/platform-agent.test.ts: changeAgentStatus: vi.fn(),",
+     "backend/src/__tests__/routes/platform-agent.test.ts: changeAgentStatus: mocks.changeAgentStatus,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 20
+    }
+   },
+   {
+    "name": "listAgentLevels",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/AgentManagement.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: listAgentLevels,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: const res: any = await listAgentLevels()"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-agent-level.controller.ts: export async function listAgentLevels(_req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent-level.controller.ts: res.json(ok(await service.listAgentLevels()));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.get(\"/levels\", asyncHandler(levelController.listAgentLevels));",
+     "backend/src/services/platform/platform-agent-level.service.ts: export async function listAgentLevels(): Promise<{ items: AgentLevelView[] }> {",
+     "backend/src/__tests__/routes/platform-agent.test.ts: listAgentLevels: vi.fn(),",
+     "backend/src/__tests__/routes/platform-agent.test.ts: listAgentLevels: mocks.listAgentLevels,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 14
+    }
+   },
+   {
+    "name": "createAgentLevel",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/AgentManagement.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: createAgentLevel,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: await createAgentLevel({"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: const pageLevelCreateKeys = objectLiteralKeys(pageSource, \"await createAgentLevel(\");"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform-agent-level.controller.ts: export async function createAgentLevel(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent-level.controller.ts: res.json(ok(await service.createAgentLevel(body, currentAdminId(req))));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.post(\"/levels\", asyncHandler(levelController.createAgentLevel));",
+     "backend/src/services/platform/platform-agent-level.service.ts: export async function createAgentLevel(",
+     "backend/src/__tests__/routes/platform-agent.test.ts: createAgentLevel: vi.fn(),",
+     "backend/src/__tests__/routes/platform-agent.test.ts: createAgentLevel: mocks.createAgentLevel,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 1,
+     "other": 18
+    }
+   },
+   {
+    "name": "updateAgentLevel",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/AgentManagement.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: updateAgentLevel,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: await updateAgentLevel(lv.id, body)"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-agent-level.controller.ts: export async function updateAgentLevel(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-agent-level.controller.ts: res.json(ok(await service.updateAgentLevel(id, body, currentAdminId(req))));",
+     "backend/src/routes/platform-agent.routes.ts: platformAgentRouter.put(\"/levels/:id\", asyncHandler(levelController.updateAgentLevel));",
+     "backend/src/services/platform/platform-agent-level.service.ts: export async function updateAgentLevel(",
+     "backend/src/__tests__/routes/platform-agent.test.ts: updateAgentLevel: vi.fn(),",
+     "backend/src/__tests__/routes/platform-agent.test.ts: updateAgentLevel: mocks.updateAgentLevel,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 16
+    }
+   },
+   {
+    "name": "listPromoCodes",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: listPromoCodes,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const res: any = await listPromoCodes({"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/controllers/platform/platform-promo-code.controller.ts: export async function listPromoCodes(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-promo-code.controller.ts: res.json(ok(await service.listPromoCodes(query)));",
+     "backend/src/routes/platform-promo-code.routes.ts: platformPromoCodeRouter.get(\"/\", asyncHandler(controller.listPromoCodes));",
+     "backend/src/services/platform/platform-promo-code.service.ts: export async function listPromoCodes(input: PromoCodeListInput = {}): Promise<PromoCodeListResult> {",
+     "backend/src/__tests__/routes/platform-promo-code.test.ts: listPromoCodes: vi.fn(),",
+     "backend/src/__tests__/routes/platform-promo-code.test.ts: listPromoCodes: mocks.listPromoCodes,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 17
+    }
+   },
+   {
+    "name": "createPromoCode",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: createPromoCode,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const res: any = await createPromoCode({"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: const pageCreateKeys = keysOf(balancedBlock(pageSource, \"await createPromoCode(\"));"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform-promo-code.controller.ts: export async function createPromoCode(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-promo-code.controller.ts: res.json(ok(await service.createPromoCode(body, currentAdminId(req))));",
+     "backend/src/routes/platform-promo-code.routes.ts: platformPromoCodeRouter.post(\"/\", asyncHandler(controller.createPromoCode));",
+     "backend/src/services/platform/platform-promo-code.service.ts: export async function createPromoCode(",
+     "backend/src/__tests__/routes/platform-promo-code.test.ts: createPromoCode: vi.fn(),",
+     "backend/src/__tests__/routes/platform-promo-code.test.ts: createPromoCode: mocks.createPromoCode,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 1,
+     "other": 22
+    }
+   },
+   {
+    "name": "disablePromoCode",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: disablePromoCode,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const res: any = await disablePromoCode(row.id);"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: \"⑤-b 页面停用/归因走已注册端点函数（disablePromoCode / listPromoCodeAttributions 均在 api.ts 调用）\",",
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: pageSource.includes(\"disablePromoCode\") &&"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform-promo-code.controller.ts: export async function disablePromoCode(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-promo-code.controller.ts: res.json(ok(await service.disablePromoCode(id)));",
+     "backend/src/routes/platform-promo-code.routes.ts: platformPromoCodeRouter.post(\"/:id/disable\", asyncHandler(controller.disablePromoCode));",
+     "backend/src/services/platform/platform-promo-code.service.ts: export async function disablePromoCode(id: number): Promise<PromoCodeDisableResult> {",
+     "backend/src/__tests__/routes/platform-promo-code.test.ts: disablePromoCode: vi.fn(),",
+     "backend/src/__tests__/routes/platform-promo-code.test.ts: disablePromoCode: mocks.disablePromoCode,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 2,
+     "other": 17
+    }
+   },
+   {
+    "name": "listPromoCodeAttributions",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: listPromoCodeAttributions,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const res: any = await listPromoCodeAttributions(row.promoCode);"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: \"⑤-b 页面停用/归因走已注册端点函数（disablePromoCode / listPromoCodeAttributions 均在 api.ts 调用）\",",
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: pageSource.includes(\"listPromoCodeAttributions\") &&"
+    ],
+    "other": [],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 2,
+     "other": 0
+    }
+   },
+   {
+    "name": "listReferralLedger",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: listReferralLedger,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const res: any = await listReferralLedger({"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-2b-selfcheck.mjs: \"④-a 页面调用 listReferralLedger 与 getChannelEffectReport（两端真实接线）\",",
+     "saas-admin/tools/c6-3-2b-selfcheck.mjs: pageSource.includes(\"listReferralLedger\") && pageSource.includes(\"getChannelEffectReport\")"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform-referral-ledger.controller.ts: export async function listReferralLedger(req: any, res: any) {",
+     "backend/src/controllers/platform/platform-referral-ledger.controller.ts: res.json(ok(await service.listReferralLedger(query)));",
+     "backend/src/routes/platform-referral-ledger.routes.ts: platformReferralLedgerRouter.get(\"/\", asyncHandler(controller.listReferralLedger));",
+     "backend/src/services/platform/platform-referral-ledger.service.ts: export async function listReferralLedger(",
+     "backend/src/__tests__/routes/platform-referral-ledger.test.ts: listReferralLedger: vi.fn(),",
+     "backend/src/__tests__/routes/platform-referral-ledger.test.ts: listReferralLedger: mocks.listReferralLedger,"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 2,
+     "other": 23
+    }
+   },
+   {
+    "name": "getChannelEffectReport",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: getChannelEffectReport,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const res: any = await getChannelEffectReport({"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-2b-selfcheck.mjs: \"④-a 页面调用 listReferralLedger 与 getChannelEffectReport（两端真实接线）\",",
+     "saas-admin/tools/c6-3-2b-selfcheck.mjs: pageSource.includes(\"listReferralLedger\") && pageSource.includes(\"getChannelEffectReport\")"
+    ],
+    "other": [
+     "backend/src/controllers/platform/platform-channel-report.controller.ts: res.json(ok(await service.getChannelEffectReport(query)));",
+     "backend/src/services/platform/platform-channel-report.service.ts: export async function getChannelEffectReport(",
+     "backend/src/__tests__/routes/platform-channel-report.test.ts: getChannelEffectReport: vi.fn(),",
+     "backend/src/__tests__/routes/platform-channel-report.test.ts: getChannelEffectReport: mocks.getChannelEffectReport,",
+     "backend/src/__tests__/routes/platform-channel-report.test.ts: expect(mocks.getChannelEffectReport).not.toHaveBeenCalled();",
+     "backend/src/__tests__/routes/platform-channel-report.test.ts: mocks.getChannelEffectReport.mockResolvedValueOnce({"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 2,
+     "other": 23
+    }
+   }
+  ],
+  "interfaces": [
+   {
+    "name": "TenantItem",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/api/tenant.ts: export interface TenantItem {"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-S3-115-墨回传.md: | 2 | `api.ts:85` | `TenantItem` 类型 | 保留 | 租户实体字段（`t_tenant.status`），非平台评价 |"
+    ],
+    "counts": {
+     "saasSrc": 1,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "TenantDetail",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/router/index.ts: name: 'TenantDetail',",
+     "saas-admin/src/router/index.ts: component: () => import('../views/tenant/TenantDetail.vue'),",
+     "saas-admin/src/views/tenant/quota.ts: * C1-1：租户「资源配额使用情况」行渲染 —— TenantList 抽屉与 TenantDetail 共用同一口径",
+     "saas-admin/src/views/tenant/quota.ts: * 三条硬规则（禁编造，与 TenantDetail 原实现一致，此处抽为单一事实来源）："
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/saas/tenant.service.ts: export interface TenantDetail extends Tenant {",
+     "backend/src/services/saas/tenant.service.ts: export async function getTenantDetail(id: number): Promise<TenantDetail | null> {",
+     "docs/API接口文档.md: | P35 | `GET /api/platform/tenants/:id/quota` | 租户资源配额使用情况（R101-S2-01 批4） | 路径 `:id` | {tenantId,planName,quota:{accounts,products,stores,storage,apiDaily,aiMon",
+     "docs/API接口文档.md: | P42 | `GET /api/platform/tenants/:id/overview` | 单租户概况聚合（R101-C1-2 新增） | 路径 `:id` | 概况聚合（含套餐上限 / 存储水位；复用 `getTenantQuota()`） | platform-tenant.routes.ts + ser",
+     "docs/API接口文档.md: | P43 | `POST /api/platform/tenants/:id/proxy-login` | 平台代登录（R101-C1-2 新增，需 x-csrf-token） | reason:string✅, username?:string | 短时登录令牌；**写留痕** `t_platform_audit_",
+     "docs/API接口文档.md: | P44 | `POST /api/platform/tenants/:id/quota-expand` | 临时扩容（R101-C1-2 新增，需 x-csrf-token） | 扩容幅度 + 有效期 + reason | 落 `t_tenant_config`；**写留痕** `t_platform_audit_"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 127
+    }
+   },
+   {
+    "name": "TenantModule",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "docs/memories/阿坚-记忆.md: 3. **占位符检测放构造器而非启动函数**：CryptoService 是 NestJS 单例 provider，AppModule 引导时被 TenantModule 急切实例化，构造器 throw 会沿 `NestFactory.create` 冒泡到 main.ts 的 catch（打印「AI底座启动失败」+ ",
+     "docs/tasks/current-tasks.md: 5. `TenantModule`：注册TypeORM Entity + 中间件（forRoutes('chat')）",
+     "docs/tasks/current-tasks.md: 8. `AppModule`+`GatewayModule`导入TenantModule",
+     "docs/tasks/当前批次.md: - `evolution.module.ts` 补 `TenantModule`（附无环校验）"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 4
+    }
+   },
+   {
+    "name": "PaginatedResult",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/api/ai-config.ts: export interface PaginatedResult<T> {",
+     "saas-admin/src/api/ai-config.ts: return aiRequest.get<unknown, PaginatedResult<TenantConfigView>>(\"/api/admin/ai-config/tenants\", { params });",
+     "saas-admin/src/api/ai-config.ts: return aiRequest.get<unknown, PaginatedResult<TenantBillingItem>>(\"/api/admin/ai-config/billing\", { params });"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/shared/pagination.ts: export interface PaginatedResult<T> {",
+     "backend/src/shared/pagination.ts: export function paginate<T>(records: T[], total: number, page: number, pageSize: number): PaginatedResult<T> {",
+     "backend/src/shared/pagination.ts: ): Promise<PaginatedResult<T>> {",
+     "backend/src/shared/pagination.ts: ): Promise<PaginatedResult<T>> {",
+     "docs/memories/阿坚-记忆.md: - `src/tools/definitions/check-inventory.tool.ts` — 修复 R70-09 遗留 bug：真实后端返回 `records` 非 `list`，PaginatedResult 改为双字段兼容",
+     "docs/踩坑日志.md: - 解决：① 在 `service-client.ts` 将 `CUSTOMERS` 改为 `'/api/admin/members'`，并加中文注释说明真实路由来源；② 在 `search-customer.tool.ts` 将 `PaginatedResult<T>` 的 `list` 改为可选并新增 `recor"
+    ],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 6
+    }
+   },
+   {
+    "name": "ApiResult",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C5-2-墨回传.md: saas-admin/src/api.ts:484:  return api.get<any, { data: ApiResult<any> }>(\"/platform/ai/public-models\");",
+     "docs/tasks/cards/R101-C5-2-墨回传.md: saas-admin/src/api.ts:489:  return api.get<any, { data: ApiResult<any> }>(\"/platform/ai/metering-log\", { params });",
+     "docs/tasks/cards/R101-C5-2-墨回传.md: saas-admin/src/api.ts:494:  return api.get<any, { data: ApiResult<any> }>(\"/platform/ai/abnormal-tenants\");",
+     "docs/tasks/cards/R101-C5-2-墨回传.md: saas-admin/src/api.ts:499:  return api.get<any, { data: ApiResult<any> }>(\"/platform/ai/model-share\");",
+     "docs/tasks/cards/R101-C6-6-墨回传.md: - **连带死代码复查**：该函数仅用到全文件共用的 `api`（`./utils/request`）与 `ApiResult` 类型，无专属 import/类型 ⇒ **无连带死代码需清理**，`ApiResult` 原样保留。",
+     "docs/tasks/cards/R101-C6-6-墨回传.md: return api.get<any, { data: ApiResult<any> }>(\"/platform/tenants/usage-stats\", { params });"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 9
+    }
+   },
+   {
+    "name": "InvitePlatformAdminBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const inviteFeKeys = keysOf(balancedBlock(apiSrc, \"export interface InvitePlatformAdminBody\"));"
+    ],
+    "other": [],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 1,
+     "other": 0
+    }
+   },
+   {
+    "name": "CreatePlatformRoleBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-0b-selfcheck.mjs: const roleFeKeys = keysOf(balancedBlock(apiSrc, \"export interface CreatePlatformRoleBody\"));"
+    ],
+    "other": [],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 1,
+     "other": 0
+    }
+   },
+   {
+    "name": "FeatureSwitchRow",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-feature-switch.service.ts: interface FeatureSwitchRow {",
+     "backend/src/services/platform/platform-feature-switch.service.ts: function toItem(row: FeatureSwitchRow): FeatureSwitchItem {",
+     "backend/src/services/platform/platform-feature-switch.service.ts: const rows = await query<FeatureSwitchRow>(",
+     "backend/src/services/platform/platform-feature-switch.service.ts: const existing = await queryOne<FeatureSwitchRow>("
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 4
+    }
+   },
+   {
+    "name": "FeatureSwitchUpdateBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-1-selfcheck.mjs: const feSwitchKeys = keysOf(balancedBlock(apiSource, \"interface FeatureSwitchUpdateBody\"));",
+     "saas-admin/tools/c6-3-1-selfcheck.mjs: \"③-a 功能开关请求体字段集一致（前端 FeatureSwitchUpdateBody ↔ 后端 updateBodySchema）\","
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-1-阿坚-交付对照.md: | API 封装 | `saas-admin/src/api.ts:644-679`（接口 `:653`、函数 `:660` / `:670`） | 统一走 `api.ts`，页面零字面路径；`FeatureSwitchUpdateBody` 与后端 zod 字段集逐字一致（自检 ③-a/③-b 守） |",
+     "docs/tasks/cards/R101-C6-3-1-阿坚回传.md: FAIL · ③-a 功能开关请求体字段集一致（前端 FeatureSwitchUpdateBody ↔ 后端 updateBodySchema） · frontend=[\"defaultForNewTenants\",\"enabled\",\"remark\"] backend=[\"defaultForNewTenant\",",
+     "docs/tasks/cards/R101-C6-3-1-阿坚回传.md: - `saas-admin/src/api.ts` 的 `FeatureSwitchUpdateBody` 只有 `enabled / defaultForNewTenant / remark`，**不含** `updatedBy`（自检 ③-a/③-b 守）。**未改此文件**。"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 2,
+     "other": 3
+    }
+   },
+   {
+    "name": "DataDictTypeRow",
+    "state": "ZERO",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "DataDictItemBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-1-selfcheck.mjs: const feDictItemKeys = keysOf(balancedBlock(apiSource, \"interface DataDictItemBody\"));",
+     "saas-admin/tools/c6-3-1-selfcheck.mjs: \"③-d 字典项字段集一致（前端 DataDictItemBody ↔ 后端 itemSchema）\","
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-1-阿坚-交付对照.md: | API 封装 | `saas-admin/src/api.ts:682-724`（接口 `:682` / `:691` / `:700`，函数 `:705` / `:712` / `:719`） | 三条路径逐字；`DataDictReplaceBody { items }`、`DataDictItemBody` "
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 2,
+     "other": 1
+    }
+   },
+   {
+    "name": "DataDictReplaceBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-1-selfcheck.mjs: const feDictBodyKeys = keysOf(balancedBlock(apiSource, \"interface DataDictReplaceBody\"));"
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-1-阿坚-交付对照.md: | API 封装 | `saas-admin/src/api.ts:682-724`（接口 `:682` / `:691` / `:700`，函数 `:705` / `:712` / `:719`） | 三条路径逐字；`DataDictReplaceBody { items }`、`DataDictItemBody` "
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 1,
+     "other": 1
+    }
+   },
+   {
+    "name": "AgentRow",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: type AgentRow,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: const agentList = ref<AgentRow[]>([])",
+     "saas-admin/src/views/marketing/AgentManagement.vue: function openEdit(agent: AgentRow) {",
+     "saas-admin/src/views/marketing/AgentManagement.vue: async function changeStatus(agent: AgentRow, status: 'ACTIVE' | 'FROZEN' | 'TERMINATED') {"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-agent.service.ts: interface AgentRow {",
+     "backend/src/services/platform/platform-agent.service.ts: function toView(row: AgentRow): AgentView {",
+     "backend/src/services/platform/platform-agent.service.ts: const rows = await query<AgentRow>(",
+     "backend/src/services/platform/platform-agent.service.ts: const row = await queryOne<AgentRow>(",
+     "backend/src/services/platform/platform-agent.service.ts: const existing = await queryOne<AgentRow>(",
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 6
+    }
+   },
+   {
+    "name": "AgentListResult",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-agent.service.ts: export interface AgentListResult {",
+     "backend/src/services/platform/platform-agent.service.ts: export async function listAgents(input: AgentListInput = {}): Promise<AgentListResult> {",
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "AgentCreateBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: { label: \"代理商新建体\", fe: \"interface AgentCreateBody\", be: \"const createBodySchema\" },",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: const declaredCreate = keysOf(balancedBlock(apiSource, \"interface AgentCreateBody\"));",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: \"⑤-a 建档提交体字段 ⊆ AgentCreateBody 声明集\","
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 3,
+     "other": 1
+    }
+   },
+   {
+    "name": "AgentUpdateBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: type AgentUpdateBody,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: const body: AgentUpdateBody = {}"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: { label: \"代理商更新体\", fe: \"interface AgentUpdateBody\", be: \"const updateBodySchema\" },",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: const declaredUpdate = keysOf(balancedBlock(apiSource, \"interface AgentUpdateBody\"));",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: \"⑤-c 代理商更新提交体字段 ⊆ AgentUpdateBody 声明集\","
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 3,
+     "other": 1
+    }
+   },
+   {
+    "name": "AgentStatusBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: { label: \"状态流转体\", fe: \"interface AgentStatusBody\", be: \"const statusBodySchema\" },"
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 1,
+     "other": 1
+    }
+   },
+   {
+    "name": "AgentLevelRow",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: type AgentLevelRow,",
+     "saas-admin/src/views/marketing/AgentManagement.vue: const levelList = ref<AgentLevelRow[]>([])",
+     "saas-admin/src/views/marketing/AgentManagement.vue: function toggleScope(lv: AgentLevelRow, planId: number) {",
+     "saas-admin/src/views/marketing/AgentManagement.vue: async function saveLevel(lv: AgentLevelRow) {"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-agent-level.service.ts: interface AgentLevelRow {",
+     "backend/src/services/platform/platform-agent-level.service.ts: function toView(row: AgentLevelRow): AgentLevelView {",
+     "backend/src/services/platform/platform-agent-level.service.ts: const rows = await query<AgentLevelRow>(",
+     "backend/src/services/platform/platform-agent-level.service.ts: const created = await queryOne<AgentLevelRow>(",
+     "backend/src/services/platform/platform-agent-level.service.ts: const existing = await queryOne<AgentLevelRow>(",
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 6
+    }
+   },
+   {
+    "name": "AgentLevelCreateBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: { label: \"层级新建体\", fe: \"interface AgentLevelCreateBody\", be: \"const levelCreateBodySchema\" },",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: const declaredLevelCreate = keysOf(balancedBlock(apiSource, \"interface AgentLevelCreateBody\"));",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: \"⑤-b 新建层级提交体字段 ⊆ AgentLevelCreateBody 声明集\","
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 3,
+     "other": 1
+    }
+   },
+   {
+    "name": "AgentLevelUpdateBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/AgentManagement.vue: type AgentLevelUpdateBody",
+     "saas-admin/src/views/marketing/AgentManagement.vue: const body: AgentLevelUpdateBody = {}"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: { label: \"层级更新体\", fe: \"interface AgentLevelUpdateBody\", be: \"const levelUpdateBodySchema\" },",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: const declaredLevelUpdate = keysOf(balancedBlock(apiSource, \"interface AgentLevelUpdateBody\"));",
+     "saas-admin/tools/c6-3-3-selfcheck.mjs: \"⑤-d 层级更新提交体字段（含数组驱动的数值字段） ⊆ AgentLevelUpdateBody 声明集\","
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-3-阿坚回传.md: ⑤ saas-admin/src/api.ts 新增 8 个一功能一函数 + 5 个请求体 interface（AgentRow/AgentListResult/AgentCreateBody/AgentUpdateBody/AgentStatusBody + AgentLevelRow/AgentLevelCreat"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 3,
+     "other": 1
+    }
+   },
+   {
+    "name": "PromoCodeRow",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: type PromoCodeRow,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const promoCodes = ref<PromoCodeRow[]>([]);",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: async function handleDisable(row: PromoCodeRow) {",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: async function openAttributionDialog(row: PromoCodeRow) {"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-promo-code.service.ts: interface PromoCodeRow {",
+     "backend/src/services/platform/platform-promo-code.service.ts: function toView(row: PromoCodeRow): PromoCodeView {",
+     "backend/src/services/platform/platform-promo-code.service.ts: const rows = await query<PromoCodeRow>("
+    ],
+    "counts": {
+     "saasSrc": 4,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "PromoCodeListResult",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-promo-code.service.ts: export interface PromoCodeListResult {",
+     "backend/src/services/platform/platform-promo-code.service.ts: export async function listPromoCodes(input: PromoCodeListInput = {}): Promise<PromoCodeListResult> {"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "PromoCodeCreateBody",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: /** 生成体字段集 = PromoCodeCreateBody（api.ts 声明 ↔ 后端 createBodySchema 逐字一致） */"
+    ],
+    "saasTools": [
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: *   ④ 请求体字段集一致：前端 interface PromoCodeCreateBody ↔ 后端 zod createBodySchema；",
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: const feKeys = keysOf(balancedBlock(apiSource, \"interface PromoCodeCreateBody\"));",
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: \"④ 生成体字段集一致（interface PromoCodeCreateBody ↔ const createBodySchema）\",",
+     "saas-admin/tools/c6-3-2a-selfcheck.mjs: \"⑤-a 生成提交体字段 ⊆ PromoCodeCreateBody 声明集\","
+    ],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-2a-阿坚回传.md: | 3 | 给前端 `interface PromoCodeCreateBody` 偷加后端不存在的 `evilExtra` | `FAIL ④ frontend=[\"channelName\",\"channelType\",\"evilExtra\",\"expireAt\",\"remark\"] backend=[…4 项]`；"
+    ],
+    "counts": {
+     "saasSrc": 1,
+     "saasTools": 4,
+     "other": 1
+    }
+   },
+   {
+    "name": "PromoCodeAttributionRow",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-promo-code.service.ts: export interface PromoCodeAttributionRow {",
+     "backend/src/services/platform/platform-promo-code.service.ts: items: PromoCodeAttributionRow[];",
+     "backend/src/services/platform/platform-promo-code.service.ts: const rows = await query<PromoCodeAttributionRow>("
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "ReferralLedgerRow",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: type ReferralLedgerRow,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const referralItems = ref<ReferralLedgerRow[]>([]);"
+    ],
+    "saasTools": [],
+    "other": [
+     "docs/tasks/cards/R101-C6-3-2b-阿坚回传.md: | `saas-admin/src/api.ts` | 1052 / 1111 / 1120 / 1132 | `ReferralLedgerRow` / `ChannelEffectReport` / `listReferralLedger` / `getChannelEffectReport` |"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 1
+    }
+   },
+   {
+    "name": "ReferralLedgerListResult",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-referral-ledger.service.ts: export interface ReferralLedgerListResult {",
+     "backend/src/services/platform/platform-referral-ledger.service.ts: ): Promise<ReferralLedgerListResult> {"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 2
+    }
+   },
+   {
+    "name": "ChannelEffectItemRow",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: type ChannelEffectItemRow,",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const effectItems = ref<ChannelEffectItemRow[]>([]);",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: function effectTargetLabel(row: ChannelEffectItemRow): string {"
+    ],
+    "saasTools": [],
+    "other": [],
+    "counts": {
+     "saasSrc": 3,
+     "saasTools": 0,
+     "other": 0
+    }
+   },
+   {
+    "name": "ChannelEffectBasis",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: type ChannelEffectBasis",
+     "saas-admin/src/views/marketing/ChannelPromotion.vue: const effectBasis = ref<ChannelEffectBasis>({"
+    ],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-channel-report.service.ts: export interface ChannelEffectBasis {",
+     "backend/src/services/platform/platform-channel-report.service.ts: basis: ChannelEffectBasis;",
+     "backend/src/services/platform/platform-channel-report.service.ts: export const CHANNEL_EFFECT_BASIS: ChannelEffectBasis = {"
+    ],
+    "counts": {
+     "saasSrc": 2,
+     "saasTools": 0,
+     "other": 3
+    }
+   },
+   {
+    "name": "ChannelEffectReport",
+    "state": "WORD-HIT-ONLY",
+    "importedFromApiTs": [],
+    "nsUsed": [],
+    "saasSrc": [],
+    "saasTools": [],
+    "other": [
+     "backend/src/services/platform/platform-channel-report.service.ts: export interface ChannelEffectReport {",
+     "backend/src/services/platform/platform-channel-report.service.ts: ): Promise<ChannelEffectReport> {",
+     "docs/tasks/cards/R101-C6-3-2b-阿坚回传.md: | `saas-admin/src/api.ts` | 1052 / 1111 / 1120 / 1132 | `ReferralLedgerRow` / `ChannelEffectReport` / `listReferralLedger` / `getChannelEffectReport` |"
+    ],
+    "counts": {
+     "saasSrc": 0,
+     "saasTools": 0,
+     "other": 3
+    }
+   }
+  ],
+  "values": [
+   {
+    "name": "api",
+    "state": "USED-IMPORT",
+    "importedFromApiTs": [
+     "saas-admin/src/api/billing.ts",
+     "saas-admin/src/api/monitor-ops.ts",
+     "saas-admin/src/views/ErrorLogs.vue"
+    ],
+    "nsUsed": [],
+    "saasSrc": [
+     "saas-admin/src/api/ai-config.ts: * 端点列表（底座全局前缀 /api）：",
+     "saas-admin/src/api/ai-config.ts: *   - GET  /api/admin/ai-config/platform          获取平台默认配置",
+     "saas-admin/src/api/ai-config.ts: *   - PUT  /api/admin/ai-config/platform          更新平台默认配置",
+     "saas-admin/src/api/ai-config.ts: *   - GET  /api/admin/ai-config/tenants           租户 AI 配置列表（分页，可 tenantId 过滤）",
+     "saas-admin/src/api/ai-config.ts: *   - GET  /api/admin/ai-config/tenants/:tenantId 租户配置详情",
+     "saas-admin/src/api/ai-config.ts: *   - PUT  /api/admin/ai-config/tenants/:tenantId 更新租户配置（apiKey 加密后存储）",
+     "saas-admin/src/api/ai-config.ts: *   - GET  /api/admin/ai-config/usage             用量统计（startDate/endDate/tenantId）",
+     "saas-admin/src/api/ai-config.ts: *   - GET  /api/admin/ai-config/billing           计费套餐列表（分页，可 tenantId 过滤）",
+     "saas-admin/src/api/ai-config.ts: *   - PUT  /api/admin/ai-config/billing/:tenantId 更新租户计费套餐",
+     "saas-admin/src/api/ai-config.ts: \"VITE_AI_BASE_URL=/ai-api（同源，经 nginx 反代到 AI 底座；S3-42 口径）\";"
+    ],
+    "saasTools": [
+     "saas-admin/package-lock.json: \"node_modules/@vue/devtools-api\": {",
+     "saas-admin/package-lock.json: \"resolved\": \"https://registry.npmjs.org/@vue/devtools-api/-/devtools-api-6.6.4.tgz\",",
+     "saas-admin/package-lock.json: \"@vue/devtools-api\": \"^7.7.7\"",
+     "saas-admin/package-lock.json: \"node_modules/pinia/node_modules/@vue/devtools-api\": {",
+     "saas-admin/package-lock.json: \"resolved\": \"https://registry.npmjs.org/@vue/devtools-api/-/devtools-api-7.7.10.tgz\",",
+     "saas-admin/package-lock.json: \"@vue/devtools-api\": \"^6.6.4\"",
+     "saas-admin/README.md: This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script set",
+     "saas-admin/scripts/check-api-paths.mjs: *   1. 前端集合：`saas-admin/src/api/*.ts` 里 `request.<method>('路径')` 的路径字面量；",
+     "saas-admin/scripts/check-api-paths.mjs: *   5. 命中 `api-path-allowlist.json` 的条目视为**已知未立项项**，不计入失败。",
+     "saas-admin/scripts/check-api-paths.mjs: *   6. **契约键位定点断言**（S3-115 增补）：`saas-admin/src/api.ts` 里已定稿接口的 body 键"
+    ],
+    "other": [
+     "admin-web/electron/main.cjs: // 后端 API 地址（桌面版直连远程服务器；api.onepan.cn 解析到生产服务器 IP：159.75.153.59）",
+     "admin-web/electron/main.cjs: const API_BASE = \"https://api.onepan.cn/api\";",
+     "admin-web/electron/main.cjs: // AI 底座地址（桌面版通过 nginx /ai-api 代理访问）",
+     "admin-web/electron/main.cjs: const AI_BASE = \"https://admin.onepan.cn/ai-api\";",
+     "admin-web/electron/main.cjs: ipcMain.handle(\"get-api-base\", () => API_BASE);",
+     "admin-web/electron/main.cjs: ipcMain.on(\"get-api-base-sync\", (event) => {"
+    ],
+    "counts": {
+     "saasSrc": 338,
+     "saasTools": 152,
+     "other": 11435
+    }
+   }
+  ]
+ }
+}
