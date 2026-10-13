@@ -1,0 +1,7 @@
+i/lf    w/crlf  attr/                 	backend/src/routes/alert.routes.ts
+i/lf    w/crlf  attr/                 	backend/src/routes/customer-merge.routes.ts
+i/lf    w/crlf  attr/                 	backend/src/routes/export.routes.ts
+i/lf    w/crlf  attr/                 	backend/src/routes/miniapp-order-sync.routes.ts
+i/lf    w/crlf  attr/                 	backend/src/routes/payment.routes.ts
+i/lf    w/crlf  attr/                 	backend/src/routes/stock-check.routes.ts
+i/lf    w/crlf  attr/                 	backend/src/routes/sys-config.routes.ts

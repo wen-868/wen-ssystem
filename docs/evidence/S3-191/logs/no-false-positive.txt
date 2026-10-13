@@ -1,0 +1,18 @@
+### 包名/node 内置模块的动态 import 必须保持原样（不得被补 .js）:
+.\shared\migration.js:630:import("bcryptjs")
+.\shared\migration.js:1047:import("bcryptjs")
+.\services\admin\miniapp-ci.service.js:11:import("miniprogram-ci")
+.\services\admin\sys-config.service.js:103:import("child_process")
+.\services\admin\sys-config.service.js:104:import("util")
+.\services\admin\sys-config.service.js:117:import("child_process")
+.\services\admin\sys-config.service.js:118:import("util")
+.\services\admin\sys-config.service.js:119:import("path")
+.\services\admin\sys-config.service.js:135:import("fs")
+.\services\admin\sys-config.service.js:136:import("path")
+.\services\admin\sys-config.service.js:158:import("fs")
+.\services\platform\tenant-admin.service.js:137:import("bcryptjs")
+
+### 双扩展名（.js.js）出现的处数（必须 0）:
+命中文件数=0
+
+### 非相对（node: 前缀）动态 import 保持原样:
