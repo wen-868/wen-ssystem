@@ -1,0 +1,2 @@
+[2026-10-14 02:40:32.736 +0800] [31mERROR[39m (18908): [36m[migration] t_sys_config.uk_config_key_tenant 失败: Can't DROP INDEX `uk_config_key`; check that it exists[39m
+[2026-10-14 02:40:35.456 +0800] [31mERROR[39m (18908): [36m[migration] 种子数据初始化失败:[39m

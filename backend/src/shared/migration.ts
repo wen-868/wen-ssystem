@@ -668,13 +668,43 @@ export async function runMigrations(): Promise<void> {
     // 第2.5步：t_sys_config 唯一键改为按租户隔离 (config_key, tenant_id)
     // 原 uk_config_key 仅对 config_key 全局唯一，多租户同配置键会冲突；
     // 后端读写均为 config_key + tenant_id（batchUpdateConfigs/platform-msg-config）。
-    // 幂等：DROP 不存在/ADD 已存在均由 safeExec 跳过。
+    // S3-190（原收口第 56 项）：原写法 `DROP INDEX uk_config_key, ADD UNIQUE KEY …` **无守卫**——
+    // 该表由 init_database.sql:42（本文件第1步执行）与 005_phase3_sys_config.sql:22 直接建出
+    // `uk_config_key_tenant`，**从来不建 uk_config_key** ⇒ 空库上 DROP 恒报
+    // `Can't DROP INDEX 'uk_config_key'; check that it exists`（ER_CANT_DROP_FIELD_OR_KEY 不在
+    // SKIP_ERRORS ⇒ 恒红日志），且同一条 ALTER 里的 ADD 一并回滚（非幂等）。
+    // 改为"存在才 DROP、不存在才 ADD"两步守卫，判据取 information_schema.STATISTICS（与 173 条同款口径）。
     // ============================================================
     logger.info("[migration] 修复 t_sys_config 唯一键为 (config_key, tenant_id)...");
-    await safeExec(conn,
-      "ALTER TABLE t_sys_config DROP INDEX uk_config_key, ADD UNIQUE KEY uk_config_key_tenant (config_key, tenant_id)",
-      "t_sys_config.uk_config_key_tenant"
-    );
+    try {
+      const [ukRows] = await conn.query(
+        `SELECT
+           (SELECT COUNT(*) FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't_sys_config'
+               AND INDEX_NAME = 'uk_config_key') AS legacy_uk,
+           (SELECT COUNT(*) FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't_sys_config'
+               AND INDEX_NAME = 'uk_config_key_tenant') AS tenant_uk`
+      ) as unknown as Record<string, unknown>[];
+      const legacyUk = Number((ukRows[0] as any)?.legacy_uk ?? 0);
+      const tenantUk = Number((ukRows[0] as any)?.tenant_uk ?? 0);
+      if (legacyUk > 0) {
+        await safeExec(conn,
+          "ALTER TABLE t_sys_config DROP INDEX uk_config_key",
+          "t_sys_config.uk_config_key（存在才 DROP）"
+        );
+      }
+      if (tenantUk === 0) {
+        await safeExec(conn,
+          "ALTER TABLE t_sys_config ADD UNIQUE KEY uk_config_key_tenant (config_key, tenant_id)",
+          "t_sys_config.uk_config_key_tenant"
+        );
+      } else {
+        logger.info("[migration] t_sys_config.uk_config_key_tenant 已存在，跳过 ADD（守卫生效）");
+      }
+    } catch (e: unknown) {
+      logger.error("[migration] t_sys_config 唯一键修复失败:", (e as any).message);
+    }
 
     // ============================================================
     // 第3步：更新已有数据的 tenant_id
@@ -1123,16 +1153,6 @@ export async function runMigrations(): Promise<void> {
     }
 
     // ============================================================
-    // 第6步：初始化种子数据（仅在表为空时插入，不覆盖已有数据）
-    // ============================================================
-    logger.info("[migration] 检查/初始化种子数据...");
-    try {
-      await seedData(conn);
-    } catch (e: unknown) {
-      logger.error("[migration] 种子数据初始化失败:", (e as any).message);
-    }
-
-    // ============================================================
     // 第7步：确保默认管理员账号存在
     // ============================================================
     logger.info("[migration] 检查/创建默认管理员账号...");
@@ -1290,6 +1310,24 @@ export async function runMigrations(): Promise<void> {
           await safeExec(conn, prefixedStmt, `${file}`);
         }
       }
+    }
+
+    // ============================================================
+    // 第8.5步：初始化种子数据（仅在表为空时插入，不覆盖已有数据）
+    // S3-190（原收口第 55 项）：本步**原先在第6步执行、位于外部迁移（第8步）之前**，而种子写到的
+    // 列有相当一部分是外部迁移才补的（典型：t_sys_user.mobile，由
+    // 192_租户建租户与归因落点补列.sql:23 补出）⇒ 空库上种子必然
+    // `Unknown column 'mobile' in 'INSERT INTO'` 中断，且 try 块内"插入默认门店"之后的全部种子
+    // （演示账号 store_manager/store_operator、分类、SPU/SKU、价格、库存、会员、供应商、示例销售单、
+    // 采购单）一并未执行 ⇒ 新环境/灾备重建得到的是"静默半成品"。
+    // 实测（修复前空库）：t_store=1、t_member=0、t_sale_bill=0、演示账号 0 行，全库只剩 admin/tenant_admin。
+    // 顺序修正为"语料先、种子后"——种子依赖的列与表由外部迁移建齐后再插种子。
+    // ============================================================
+    logger.info("[migration] 检查/初始化种子数据...");
+    try {
+      await seedData(conn);
+    } catch (e: unknown) {
+      logger.error("[migration] 种子数据初始化失败:", (e as any).message);
     }
 
     logger.info("[migration] 所有迁移完成");

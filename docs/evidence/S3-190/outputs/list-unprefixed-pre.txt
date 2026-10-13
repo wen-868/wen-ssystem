@@ -1,0 +1,27 @@
+文件	行号	原表名	应有表名	列/索引名
+092_租户ID.sql	88	sys_config	t_sys_config	tenant_id
+092_租户ID.sql	92	sys_user	t_sys_user	tenant_id
+092_租户ID.sql	96	sys_role	t_sys_role	tenant_id
+092_租户ID.sql	100	sys_permission	t_sys_permission	tenant_id
+092_租户ID.sql	104	sys_user_role	t_sys_user_role	tenant_id
+092_租户ID.sql	108	sys_role_permission	t_sys_role_permission	tenant_id
+092_租户ID.sql	409	sys_config	t_sys_config	idx_sys_config_tenant
+092_租户ID.sql	413	sys_user	t_sys_user	idx_sys_user_tenant
+092_租户ID.sql	417	sys_role	t_sys_role	idx_sys_role_tenant
+092_租户ID.sql	421	sys_permission	t_sys_permission	idx_sys_permission_tenant
+092_租户ID.sql	425	sys_user_role	t_sys_user_role	idx_sys_user_role_tenant
+092_租户ID.sql	429	sys_role_permission	t_sys_role_permission	idx_sys_role_permission_tenant
+120a_合规凭证字段.sql	14	sale_bill_item	t_sale_bill_item	unit
+120a_合规凭证字段.sql	18	sale_bill_item	t_sale_bill_item	barcode
+120a_合规凭证字段.sql	22	sale_bill_item	t_sale_bill_item	spec
+120a_合规凭证字段.sql	27	sale_bill	t_sale_bill	store_name
+120a_合规凭证字段.sql	31	sale_bill	t_sale_bill	store_address
+120a_合规凭证字段.sql	35	sale_bill	t_sale_bill	store_contact
+120a_合规凭证字段.sql	40	collection_link	t_collection_link	display_config
+120a_合规凭证字段.sql	44	collection_link	t_collection_link	document_title
+137_sys_user_dept_position.sql	3	sys_user	t_sys_user	department_id
+137_sys_user_dept_position.sql	7	sys_user	t_sys_user	position_id
+138_approval_business_link.sql	3	purchase_order	t_purchase_order	approval_instance_no
+138_approval_business_link.sql	7	sale_return	t_sale_return	approval_instance_no
+合计 = 24 条
+按文件：092_租户ID.sql=12 120a_合规凭证字段.sql=8 137_sys_user_dept_position.sql=2 138_approval_business_link.sql=2

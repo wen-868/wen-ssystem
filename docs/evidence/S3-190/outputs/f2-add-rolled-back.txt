@@ -1,0 +1,9 @@
+﻿# 目标准备：删掉 uk_config_key_tenant（使其成为要 ADD 的目标）
+# 删后目标键计数（应为 0）：0
+# 直发原语句（无守卫版）：
+--------------
+ALTER TABLE t_sys_config DROP INDEX uk_config_key, ADD UNIQUE KEY uk_config_key_tenant (config_key, tenant_id)
+--------------
+
+ERROR 1091 (42000) at line 1: Can't DROP INDEX `uk_config_key`; check that it exists
+# 语句后目标键计数（若仍为 0 ⇒ ADD 一并未执行）：0

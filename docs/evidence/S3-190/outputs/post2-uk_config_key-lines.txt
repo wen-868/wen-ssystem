@@ -1,0 +1,1 @@
+[2026-10-14 02:41:29.839 +0800] [32mINFO[39m (21064): [36m[migration] t_sys_config.uk_config_key_tenant 已存在，跳过 ADD（守卫生效）[39m

@@ -1,0 +1,43 @@
+基线: D:\Users\ZXQL\wt-agents\_s3190-verify-lz\outputs\base2-snapshot.json (db=s3190_base2) tables=311 columns=4143 indexes=1618 routines=0
+被测: D:\Users\ZXQL\wt-agents\_s3190-verify-lz\outputs\f1red-snapshot.json (db=s3190_f1red) tables=311 columns=4137 indexes=1612 routines=0
+
+差异合计 = 18
+ 缺表 0 / 多表 0
+ 缺列 6 / 多列 0
+ 缺索引 6 / 多索引 0
+ 列定义不一致 6
+ 存储过程残留（基线 0 / 被测 0）
+
+## 缺表（基线有、被测无）（0）
+
+## 多表（被测多出）（0）
+
+## 缺列（基线有、被测无）（6）
+t_collection_link.display_config
+t_collection_link.document_title
+t_sale_bill.store_address
+t_sale_bill.store_contact
+t_sale_bill.store_name
+t_sale_bill_item.spec
+
+## 多列（被测多出）（0）
+
+## 缺索引（6）
+t_sys_config.idx_sys_config_tenant
+t_sys_permission.idx_sys_permission_tenant
+t_sys_role.idx_sys_role_tenant
+t_sys_role_permission.idx_sys_role_permission_tenant
+t_sys_user.idx_sys_user_tenant
+t_sys_user_role.idx_sys_user_role_tenant
+
+## 多索引（0）
+
+## 列定义不一致（6）
+t_purchase_order.approval_instance_no: 基线[varchar(64)|YES|NULL||关联审批实例号] 被测[varchar(64)|YES|NULL||审批实例编号]
+t_sale_bill_item.unit: 基线[varchar(16)|NO|'瓶'||单位快照（瓶/箱）] 被测[varchar(16)|NO|'瓶'||单位快照]
+t_sale_bill_item.barcode: 基线[varchar(128)|YES|NULL||条形码快照] 被测[varchar(128)|YES|NULL||条码快照]
+t_sale_return.approval_instance_no: 基线[varchar(64)|YES|NULL||关联审批实例号] 被测[varchar(64)|YES|NULL||审批实例编号]
+t_sys_user.department_id: 基线[bigint(20)|YES|NULL||所属部门ID] 被测[int(11)|YES|NULL||部门ID(员工管理)]
+t_sys_user.position_id: 基线[bigint(20)|YES|NULL||所属岗位ID] 被测[int(11)|YES|NULL||岗位ID(员工管理)]
+
+存储过程残留 基线=[] 被测=[]

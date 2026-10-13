@@ -1,0 +1,18 @@
+库 = s3190_f3green
+-- 关键表行数 --
+表	行数
+t_store	1
+t_sys_user	4
+t_product_spu	10
+t_product_sku	10
+t_supplier	2
+t_member	3
+t_sale_bill	5
+t_purchase_order	3
+-- 账号（t_sys_user）--
+id	username	tenant_id	store_id	status
+1	admin	default	null	1
+2	tenant_admin	default	null	1
+3	store_manager	default	1	1
+4	store_operator	default	1	1
+账号总数 = 4

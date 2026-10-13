@@ -1,0 +1,6 @@
+idx_config_group	1	1	config_group
+idx_sys_config_tenant	1	1	tenant_id
+idx_t_sys_config_tenant	1	1	tenant_id
+PRIMARY	0	1	id
+uk_config_key_tenant	0	1	config_key
+uk_config_key_tenant	0	2	tenant_id

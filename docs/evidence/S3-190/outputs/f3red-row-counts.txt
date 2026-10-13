@@ -1,0 +1,16 @@
+库 = s3190_f3red
+-- 关键表行数 --
+表	行数
+t_store	1
+t_sys_user	2
+t_product_spu	0
+t_product_sku	0
+t_supplier	0
+t_member	0
+t_sale_bill	0
+t_purchase_order	0
+-- 账号（t_sys_user）--
+id	username	tenant_id	store_id	status
+1	admin	default	null	1
+2	tenant_admin	default	null	1
+账号总数 = 2

@@ -1,0 +1,219 @@
+库 = s3190_post2
+日志 = D:\Users\ZXQL\wt-agents\_s3190-evidence\outputs\post2-migration.log
+-- ① 按文件的 ER_NO_SUCH_TABLE 跳过计数 --
+文件	跳过条数
+092_租户ID.sql	2
+093_库存增加租户ID.sql	3
+120c_performance_indexes.sql	5
+169_tenant_admin_uuid.sql	3
+-- ② 这些文件里的补列/补索引目标（表存在性 + 是否属「缺 t_ 前缀」缺陷类）--
+文件	表名	对象名	表是否存在	缺前缀缺陷类?
+092_租户ID.sql	t_sys_config	tenant_id	存在	否
+092_租户ID.sql	t_sys_user	tenant_id	存在	否
+092_租户ID.sql	t_sys_role	tenant_id	存在	否
+092_租户ID.sql	t_sys_permission	tenant_id	存在	否
+092_租户ID.sql	t_sys_user_role	tenant_id	存在	否
+092_租户ID.sql	t_sys_role_permission	tenant_id	存在	否
+092_租户ID.sql	t_store	tenant_id	存在	否
+092_租户ID.sql	t_product_category	tenant_id	存在	否
+092_租户ID.sql	t_product_spu	tenant_id	存在	否
+092_租户ID.sql	t_product_sku	tenant_id	存在	否
+092_租户ID.sql	t_product_price	tenant_id	存在	否
+092_租户ID.sql	t_sku_price	tenant_id	存在	否
+092_租户ID.sql	t_supplier	tenant_id	存在	否
+092_租户ID.sql	t_supplier_contact	tenant_id	存在	否
+092_租户ID.sql	t_member	tenant_id	存在	否
+092_租户ID.sql	t_customer_price_binding	tenant_id	存在	否
+092_租户ID.sql	t_customer_credit	tenant_id	存在	否
+092_租户ID.sql	t_inventory_balance	tenant_id	存在	否
+092_租户ID.sql	t_inventory_batch	tenant_id	存在	否
+092_租户ID.sql	t_inventory_ledger	tenant_id	存在	否
+092_租户ID.sql	t_price_level	tenant_id	存在	否
+092_租户ID.sql	t_price_change_log	tenant_id	存在	否
+092_租户ID.sql	t_alert_rule	tenant_id	存在	否
+092_租户ID.sql	t_alert_record	tenant_id	存在	否
+092_租户ID.sql	t_expiry_alert_config	tenant_id	存在	否
+092_租户ID.sql	t_expiry_alert_record	tenant_id	存在	否
+092_租户ID.sql	t_trace_config	tenant_id	存在	否
+092_租户ID.sql	t_trace_code	tenant_id	存在	否
+092_租户ID.sql	t_trace_event_log	tenant_id	存在	否
+092_租户ID.sql	t_trace_scan_log	tenant_id	存在	否
+092_租户ID.sql	t_recall_record	tenant_id	存在	否
+092_租户ID.sql	t_store_control_config	tenant_id	存在	否
+092_租户ID.sql	t_store_status_log	tenant_id	存在	否
+092_租户ID.sql	t_sale_bill	tenant_id	存在	否
+092_租户ID.sql	t_sale_bill_item	tenant_id	存在	否
+092_租户ID.sql	t_sale_return	tenant_id	存在	否
+092_租户ID.sql	t_sale_return_item	tenant_id	存在	否
+092_租户ID.sql	t_sale_payment	tenant_id	存在	否
+092_租户ID.sql	t_purchase_order	tenant_id	存在	否
+092_租户ID.sql	t_purchase_order_item	tenant_id	存在	否
+092_租户ID.sql	t_purchase_in_stock	tenant_id	存在	否
+092_租户ID.sql	t_purchase_in_stock_item	tenant_id	存在	否
+092_租户ID.sql	t_purchase_return	tenant_id	存在	否
+092_租户ID.sql	t_purchase_return_item	tenant_id	存在	否
+092_租户ID.sql	t_purchase_payment	tenant_id	存在	否
+092_租户ID.sql	t_supplier_statement	tenant_id	存在	否
+092_租户ID.sql	t_supplier_statement_item	tenant_id	存在	否
+092_租户ID.sql	t_customer_statement	tenant_id	存在	否
+092_租户ID.sql	t_customer_payment	tenant_id	存在	否
+092_租户ID.sql	t_receivable_account	tenant_id	存在	否
+092_租户ID.sql	t_payment_order	tenant_id	存在	否
+092_租户ID.sql	t_refund_order	tenant_id	存在	否
+092_租户ID.sql	t_hold_order	tenant_id	存在	否
+092_租户ID.sql	t_miniapp_order	tenant_id	存在	否
+092_租户ID.sql	t_miniapp_order_item	tenant_id	存在	否
+092_租户ID.sql	t_collection_link	tenant_id	存在	否
+092_租户ID.sql	t_collection_view_log	tenant_id	存在	否
+092_租户ID.sql	t_collection_record	tenant_id	存在	否
+092_租户ID.sql	t_credit_operation_log	tenant_id	存在	否
+092_租户ID.sql	t_notification	tenant_id	存在	否
+092_租户ID.sql	t_operation_log	tenant_id	存在	否
+092_租户ID.sql	t_product_price_log	tenant_id	存在	否
+092_租户ID.sql	t_approval_rule	tenant_id	存在	否
+092_租户ID.sql	t_approval_instance	tenant_id	存在	否
+092_租户ID.sql	t_approval_task	tenant_id	存在	否
+092_租户ID.sql	t_approval_log	tenant_id	存在	否
+092_租户ID.sql	t_approval_approver	tenant_id	存在	否
+092_租户ID.sql	t_approval_notification	tenant_id	存在	否
+092_租户ID.sql	t_daily_settlement	tenant_id	存在	否
+092_租户ID.sql	t_sys_config	idx_sys_config_tenant	存在	否
+092_租户ID.sql	t_sys_user	idx_sys_user_tenant	存在	否
+092_租户ID.sql	t_sys_role	idx_sys_role_tenant	存在	否
+092_租户ID.sql	t_sys_permission	idx_sys_permission_tenant	存在	否
+092_租户ID.sql	t_sys_user_role	idx_sys_user_role_tenant	存在	否
+092_租户ID.sql	t_sys_role_permission	idx_sys_role_permission_tenant	存在	否
+092_租户ID.sql	t_store	idx_store_tenant	存在	否
+092_租户ID.sql	t_product_category	idx_product_category_tenant	存在	否
+092_租户ID.sql	t_product_spu	idx_product_spu_tenant	存在	否
+092_租户ID.sql	t_product_sku	idx_product_sku_tenant	存在	否
+092_租户ID.sql	t_product_price	idx_product_price_tenant	存在	否
+092_租户ID.sql	t_sku_price	idx_sku_price_tenant	存在	否
+092_租户ID.sql	t_supplier	idx_supplier_tenant	存在	否
+092_租户ID.sql	t_supplier_contact	idx_supplier_contact_tenant	存在	否
+092_租户ID.sql	t_member	idx_member_tenant	存在	否
+092_租户ID.sql	t_customer_price_binding	idx_customer_price_binding_tenant	存在	否
+092_租户ID.sql	t_customer_credit	idx_customer_credit_tenant	存在	否
+092_租户ID.sql	t_inventory_balance	idx_inventory_balance_tenant	存在	否
+092_租户ID.sql	t_inventory_batch	idx_inventory_batch_tenant	存在	否
+092_租户ID.sql	t_inventory_ledger	idx_inventory_ledger_tenant	存在	否
+092_租户ID.sql	t_price_level	idx_price_level_tenant	存在	否
+092_租户ID.sql	t_price_change_log	idx_price_change_log_tenant	存在	否
+092_租户ID.sql	t_alert_rule	idx_alert_rule_tenant	存在	否
+092_租户ID.sql	t_alert_record	idx_alert_record_tenant	存在	否
+092_租户ID.sql	t_expiry_alert_config	idx_expiry_alert_config_tenant	存在	否
+092_租户ID.sql	t_expiry_alert_record	idx_expiry_alert_record_tenant	存在	否
+092_租户ID.sql	t_trace_config	idx_trace_config_tenant	存在	否
+092_租户ID.sql	t_trace_code	idx_trace_code_tenant	存在	否
+092_租户ID.sql	t_trace_event_log	idx_trace_event_log_tenant	存在	否
+092_租户ID.sql	t_trace_scan_log	idx_trace_scan_log_tenant	存在	否
+092_租户ID.sql	t_recall_record	idx_recall_record_tenant	存在	否
+092_租户ID.sql	t_store_control_config	idx_store_control_config_tenant	存在	否
+092_租户ID.sql	t_store_status_log	idx_store_status_log_tenant	存在	否
+092_租户ID.sql	t_sale_bill	idx_sale_bill_tenant	存在	否
+092_租户ID.sql	t_sale_bill_item	idx_sale_bill_item_tenant	存在	否
+092_租户ID.sql	t_sale_return	idx_sale_return_tenant	存在	否
+092_租户ID.sql	t_sale_return_item	idx_sale_return_item_tenant	存在	否
+092_租户ID.sql	t_sale_payment	idx_sale_payment_tenant	存在	否
+092_租户ID.sql	t_purchase_order	idx_purchase_order_tenant	存在	否
+092_租户ID.sql	t_purchase_order_item	idx_purchase_order_item_tenant	存在	否
+092_租户ID.sql	t_purchase_in_stock	idx_purchase_in_stock_tenant	存在	否
+092_租户ID.sql	t_purchase_in_stock_item	idx_purchase_in_stock_item_tenant	存在	否
+092_租户ID.sql	t_purchase_return	idx_purchase_return_tenant	存在	否
+092_租户ID.sql	t_purchase_return_item	idx_purchase_return_item_tenant	存在	否
+092_租户ID.sql	t_purchase_payment	idx_purchase_payment_tenant	存在	否
+092_租户ID.sql	t_supplier_statement	idx_supplier_statement_tenant	存在	否
+092_租户ID.sql	t_supplier_statement_item	idx_supplier_statement_item_tenant	存在	否
+092_租户ID.sql	t_customer_statement	idx_customer_statement_tenant	存在	否
+092_租户ID.sql	t_customer_payment	idx_customer_payment_tenant	存在	否
+092_租户ID.sql	t_receivable_account	idx_receivable_account_tenant	存在	否
+092_租户ID.sql	t_payment_order	idx_payment_order_tenant	存在	否
+092_租户ID.sql	t_refund_order	idx_refund_order_tenant	存在	否
+092_租户ID.sql	t_hold_order	idx_hold_order_tenant	存在	否
+092_租户ID.sql	t_miniapp_order	idx_miniapp_order_tenant	存在	否
+092_租户ID.sql	t_miniapp_order_item	idx_miniapp_order_item_tenant	存在	否
+092_租户ID.sql	t_collection_link	idx_collection_link_tenant	存在	否
+092_租户ID.sql	t_collection_view_log	idx_collection_view_log_tenant	存在	否
+092_租户ID.sql	t_collection_record	idx_collection_record_tenant	存在	否
+092_租户ID.sql	t_credit_operation_log	idx_credit_operation_log_tenant	存在	否
+092_租户ID.sql	t_notification	idx_notification_tenant	存在	否
+092_租户ID.sql	t_operation_log	idx_operation_log_tenant	存在	否
+092_租户ID.sql	t_product_price_log	idx_product_price_log_tenant	存在	否
+092_租户ID.sql	t_approval_rule	idx_approval_rule_tenant	存在	否
+092_租户ID.sql	t_approval_instance	idx_approval_instance_tenant	存在	否
+092_租户ID.sql	t_approval_task	idx_approval_task_tenant	存在	否
+092_租户ID.sql	t_approval_log	idx_approval_log_tenant	存在	否
+092_租户ID.sql	t_approval_approver	idx_approval_approver_tenant	存在	否
+092_租户ID.sql	t_approval_notification	idx_approval_notification_tenant	存在	否
+092_租户ID.sql	t_daily_settlement	idx_daily_settlement_tenant	存在	否
+092_租户ID.sql	IF	（ALTER/CREATE 直写）	**不存在**	**是（缺陷类命中）**
+092_租户ID.sql	t_tenant	（ALTER/CREATE 直写）	存在	否
+093_库存增加租户ID.sql	t_inventory_balance	（ALTER/CREATE 直写）	存在	否
+093_库存增加租户ID.sql	t_inventory_batch	（ALTER/CREATE 直写）	存在	否
+093_库存增加租户ID.sql	t_inventory_ledger	（ALTER/CREATE 直写）	存在	否
+093_库存增加租户ID.sql	t_inventory_loss_gain	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_spu	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_spu	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_spu	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_spu	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_price	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_price	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_sku	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_sku	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill_item	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill_item	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_miniapp_order	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_miniapp_order	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_miniapp_order	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_miniapp_order	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_miniapp_order_item	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_miniapp_order_item	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_member	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_member	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_member	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_member	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_member	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_customer_payment	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_customer_payment	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_customer_payment	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_inventory	（ALTER/CREATE 直写）	**不存在**	否
+120c_performance_indexes.sql	t_inventory	（ALTER/CREATE 直写）	**不存在**	否
+120c_performance_indexes.sql	t_inventory	（ALTER/CREATE 直写）	**不存在**	否
+120c_performance_indexes.sql	t_inventory	（ALTER/CREATE 直写）	**不存在**	否
+120c_performance_indexes.sql	t_inventory_batch	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_inventory_batch	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_inventory_batch	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_purchase_order	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_purchase_order	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_purchase_order	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_purchase_in_stock	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_purchase_in_stock	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_receivable	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_receivable	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_receivable	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_coupon_template	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_coupon_template	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_coupon_template	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_user_coupon	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_user_coupon	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_user_coupon	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_product_spu	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_sale_bill	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_member	（ALTER/CREATE 直写）	存在	否
+120c_performance_indexes.sql	t_inventory	（ALTER/CREATE 直写）	**不存在**	否
+120c_performance_indexes.sql	t_miniapp_order	（ALTER/CREATE 直写）	存在	否
+169_tenant_admin_uuid.sql	t_tenant_admin	（ALTER/CREATE 直写）	存在	否
+169_tenant_admin_uuid.sql	t_tenant_admin	（ALTER/CREATE 直写）	存在	否
+169_tenant_admin_uuid.sql	t_tenant_admin	（ALTER/CREATE 直写）	存在	否
+-- ③ 汇总 --
+解析到的结构语句目标总数 = 204
+属"表名缺 t_ 前缀"缺陷类的条数 = 1
+目标表在**最终库中仍不存在**的条数（另有类别：历史遗留表名/未建表）= 6
+其余（表最终存在 ⇒ 跳过只可能来自"执行时点该表尚未建出"）= 197

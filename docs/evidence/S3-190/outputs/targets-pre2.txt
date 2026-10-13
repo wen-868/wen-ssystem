@@ -1,0 +1,27 @@
+库 = s3190_pre2
+kind	应有表名	目标名	①缺前缀表名查得行数	②应有表名查得行数	②实测定义/TABLE_NAME
+column	t_sys_config	tenant_id	0	1	t_sys_config | varchar(36) | NO | NULL | 租户ID	语料要求=VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'
+column	t_sys_user	tenant_id	0	1	t_sys_user | varchar(36) | NO | 'default' | 租户ID	语料要求=VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'
+column	t_sys_role	tenant_id	0	1	t_sys_role | varchar(36) | NO | 'default' | 租户ID	语料要求=VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'
+column	t_sys_permission	tenant_id	0	1	t_sys_permission | varchar(36) | NO | NULL | 租户ID	语料要求=VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'
+column	t_sys_user_role	tenant_id	0	1	t_sys_user_role | varchar(36) | NO | 'default' | 租户ID	语料要求=VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'
+column	t_sys_role_permission	tenant_id	0	1	t_sys_role_permission | varchar(36) | NO | NULL | 租户ID	语料要求=VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'
+index	t_sys_config	idx_sys_config_tenant	0	0	**不存在**	语料要求=(tenant_id)
+index	t_sys_user	idx_sys_user_tenant	0	0	**不存在**	语料要求=(tenant_id)
+index	t_sys_role	idx_sys_role_tenant	0	0	**不存在**	语料要求=(tenant_id)
+index	t_sys_permission	idx_sys_permission_tenant	0	0	**不存在**	语料要求=(tenant_id)
+index	t_sys_user_role	idx_sys_user_role_tenant	0	0	**不存在**	语料要求=(tenant_id)
+index	t_sys_role_permission	idx_sys_role_permission_tenant	0	0	**不存在**	语料要求=(tenant_id)
+column	t_sale_bill_item	unit	0	1	t_sale_bill_item | varchar(16) | NO | '瓶' | 单位快照	语料要求=VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照（瓶/箱）'
+column	t_sale_bill_item	barcode	0	1	t_sale_bill_item | varchar(128) | YES | NULL | 条码快照	语料要求=VARCHAR(128) DEFAULT NULL COMMENT '条形码快照'
+column	t_sale_bill_item	spec	0	0	**不存在**	语料要求=VARCHAR(128) DEFAULT NULL COMMENT '规格描述快照（如：500ml/瓶）'
+column	t_sale_bill	store_name	0	0	**不存在**	语料要求=VARCHAR(128) DEFAULT NULL COMMENT '门店名称快照'
+column	t_sale_bill	store_address	0	0	**不存在**	语料要求=VARCHAR(255) DEFAULT NULL COMMENT '门店地址快照'
+column	t_sale_bill	store_contact	0	0	**不存在**	语料要求=VARCHAR(64) DEFAULT NULL COMMENT '门店联系方式快照'
+column	t_collection_link	display_config	0	0	**不存在**	语料要求=JSON DEFAULT NULL COMMENT '显示字段配置'
+column	t_collection_link	document_title	0	0	**不存在**	语料要求=VARCHAR(128) DEFAULT '销售单' COMMENT '单据标题'
+column	t_sys_user	department_id	0	1	t_sys_user | int(11) | YES | NULL | 部门ID(员工管理)	语料要求=BIGINT DEFAULT NULL COMMENT '所属部门ID'
+column	t_sys_user	position_id	0	1	t_sys_user | int(11) | YES | NULL | 岗位ID(员工管理)	语料要求=BIGINT DEFAULT NULL COMMENT '所属岗位ID'
+column	t_purchase_order	approval_instance_no	0	1	t_purchase_order | varchar(64) | YES | NULL | 审批实例编号	语料要求=VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号'
+column	t_sale_return	approval_instance_no	0	1	t_sale_return | varchar(64) | YES | NULL | 审批实例编号	语料要求=VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号'
+应有目标 24 条；②实查"不存在"的 = 12 条
