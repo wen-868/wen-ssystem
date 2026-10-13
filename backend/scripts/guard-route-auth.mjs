@@ -27,7 +27,8 @@
  *        · 仍排除导入行与注释行；仍只对 auth:"none" 的文件生效。
  *   ⚠️ 已知边界（本版有意接受，写在明处不藏着）：`requireStoreAuth`
  *      （= [...requireAuthWithTenant, 门店校验]，middleware/store-auth.ts:5-14）与 `requireWxAuth`
- *      （微信自有令牌，middleware/wechat-auth.ts）这类**自定义包装中间件**不在 R2 的三种声明名之内
+ *      （微信自有令牌，middleware/wechat-auth.ts）这类**自定义包装中间件**不在 R2 的声明名清单之内
+ *      （清单见下方 AUTH_MIDDLEWARES；S3-196 已把消费者端的 `requireConsumerAuthWithTenant` 登记进去）
  *      ⇒ 本门禁**看不穿**它们内部的挂载。instant-retail-store.routes.ts / wechat.routes.ts 的真实
  *      CSRF 状况已由 B0b 登记为「范围外发现」——**登记不等于合规**，不表示它们被本门禁守住了。
  *
@@ -43,6 +44,7 @@
  *
  *   ⚠️ 升级后**新暴露**的存量缺口（登记≠合规，本单不改业务路由）：
  *     · `notification.routes.ts:23/24`（miniapp 分支的 2 个写端点：认证已挂、CSRF 未挂）⇒ R2 点名；
+ *       **（S3-196 / 总清单第 58 项已收口：两个端点补上 csrfMiddleware，对应 R2_EXEMPT 豁免一并删除）**
  *     · `admin-quote-push.routes.ts` / `trace.routes.ts` 的 none 分支原先**未登记** ⇒ 本次补登记
  *       （NONE_ALLOWLIST 末尾三条，逐条回答①②③）。
  *
@@ -197,13 +199,12 @@ const NONE_ALLOWLIST = {
 
   "notification.routes.ts":
     "① 必须公开：无 —— 两条配置（L27 /api/admin/notifications、L28 /api/miniapp/notifications）承载的端点**都要登录态**" +
-    "（miniapp 分支 L21-L24 每个端点都同行挂 requireAuthWithTenant）；本条登记的是「auth:none + 端点内联挂载」这一写法本身。" +
+    "（miniapp 分支每个端点都同行挂认证）；本条登记的是「auth:none + 端点内联挂载」这一写法本身。" +
     " ② 其余写端点：admin 分支 5 个写端点（L12/13/14/16/17）由第 1 条配置声明式覆盖（认证 + CSRF 自动齐）；" +
-    "miniapp 分支 2 个写端点 L23 PUT /:id/read、L24 POST /read-all **只挂了认证、未挂 csrfMiddleware** ⇒" +
-    " 本门禁 R2 自 S3-189 起会点名它们（旧判据因 none 不在第一条而整文件跳过 R2）；**登记不等于合规**，" +
-    "已报回凌舟另立单（补法同 S3-177/S3-178：认证之后补 csrfMiddleware）。" +
-    " ③ 不能改声明式：miniapp 分支**可以**改成声明式 requireAuthWithTenant（auto-routes 会自动补 CSRF，属更干净的根治）——" +
-    "但那要改业务路由，需凌舟授权；本单只做判据升级 + 登记现状，不擅自改业务文件。",
+    "miniapp 分支 2 个写端点 PUT /:id/read、POST /read-all 自 **S3-196（总清单第 58 项）** 起已补 csrfMiddleware" +
+    "（认证在前），客户端统一走 request 封装携带 x-csrf-token ⇒ 原先的 R2_EXEMPT 豁免已删除，改由 R2 真覆盖守住。" +
+    " ③ 不能改声明式：同一文件是双配置（routeConfigs 数组），miniapp 分支要接受微信令牌（消费者身份适配层），" +
+    "admin 分支要商家 JWT —— 两条配置的载体不同，且 admin 分支已声明式覆盖，故 miniapp 分支保持端点内联挂载。",
 
   "trace.routes.ts":
     "① 必须公开：GET /api/miniapp/trace/c/query/:traceCode 与 POST /api/miniapp/trace/c/verify（L38-L39）—— 消费者扫码追溯，" +
@@ -214,7 +215,15 @@ const NONE_ALLOWLIST = {
     " ③ 不能改声明式：同一文件混「消费者公开追溯面」与「后台追溯配置写面」，单条配置表达不了。",
 };
 
-const AUTH_MIDDLEWARES = ["requireAuthWithTenant", "requirePlatformAuth", "requireAuth"];
+// S3-196（总清单第 52 项）：消费者端新增 requireConsumerAuthWithTenant（商家 JWT 或微信令牌 →
+// 绑定会员身份 + tenantMiddleware）。本清单是 R2「已过鉴权」判据的识别名，必须同步登记，
+// 否则消费者端内联挂载会被当成"无鉴权"→ 判据反向失真。
+const AUTH_MIDDLEWARES = [
+  "requireAuthWithTenant",
+  "requirePlatformAuth",
+  "requireAuth",
+  "requireConsumerAuthWithTenant",
+];
 const AUTH_RE = new RegExp(`\\b(${AUTH_MIDDLEWARES.join("|")})\\b`);
 const CSRF_RE = /\bcsrfMiddleware\b/;
 const WRITE_METHODS = ["post", "put", "patch", "delete"];
@@ -229,15 +238,15 @@ const rules = [];
 // 登记纪律：每条必须写全 ① 认证载体 ② 为什么不可利用/不可挂 ③ **移除条件**（何时删掉本豁免）。
 // 失效自检：登记了却全程 0 命中 ⇒ 打 WARN（端点可能已补 CSRF / 路径已改），**只告警不判红**，
 //   避免"豁免被遗忘后继续静默掩盖新缺口"。
-const R2_EXEMPT = {
-  "notification.routes.ts::/:id/read":
-    "消费者端 miniapp「标记单条已读」。① 认证载体 = `Authorization: Bearer`（middleware/auth.ts 全仓不读 cookie；CSRF 的防护对象是「浏览器会自动附带的凭据」）；" +
-    "② 故本端点不构成可利用的 CSRF —— 跨站页面无法让浏览器自动带上 Authorization 头；且当前客户端（miniapp/pages/notifications/index.js:128-133）用**裸 wx.request** 只带 Bearer，" +
-    "盲挂 csrfMiddleware 会把它打成 403（功能回退），按「不以新增假门禁换绿」不挂；" +
-    "③ **移除条件**：收口总清单第 58 项（消费者端 CSRF/身份适配层）落地、客户端统一走 request 封装并能携带 `x-csrf-token` 之后，**必须删除本豁免并给该端点补 csrfMiddleware**。",
-  "notification.routes.ts::/read-all":
-    "消费者端 miniapp「全部标记已读」，与 `/:id/read` **同源同因**（同一客户端、同一认证载体、同一 403 风险）。③ 移除条件同上（第 58 项落地后删除本豁免并补 csrfMiddleware）。",
-};
+//
+// 【当前为空（S3-196 / 收口总清单第 58 项，2026-10-14）】原先仅有的两条——
+//   `notification.routes.ts::/:id/read` 与 `::/read-all`——的**移除条件已达成**：
+//   客户端统一走 request 封装（老端 app.request / Taro 端 src/api/request.ts）并携带
+//   `x-csrf-token`，两个端点也已补 csrfMiddleware（认证在前）⇒ 按登记纪律**删除豁免**，
+//   改由 R2 的真覆盖（同排 csrfMiddleware）守住，不再靠豁免台账。
+//   机制本身保留：将来若再出现"已过鉴权但 CSRF 在业务上不适用"的第三种情形，仍按
+//   ①②③ 三问登记；**空表即无豁免**，不允许把"没登记"当成"默认放行"。
+const R2_EXEMPT = {};
 /** 命中计数：用于上面的失效自检 */
 const exemptHit = {};
 

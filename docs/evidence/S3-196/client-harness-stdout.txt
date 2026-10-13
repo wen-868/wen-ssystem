@@ -1,0 +1,70 @@
+{
+  "note": "头由 miniapp/app.js 的 request() 统一封装产生（非手写），再用它打真实后端 fixed 实例",
+  "wxUserId": 9001,
+  "openid": "openid-s196",
+  "tenant": "default",
+  "results": [
+    {
+      "label": "营销券-领取（老端 coupons 页）",
+      "endpoint": "POST /api/miniapp/marketing/coupons/1/claim",
+      "clientHeaders": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3eFVzZXJJZCI6OTAwMSwib3BlbmlkIjoib3BlbmlkLXMxOTYiLCJpYXQiOjE3OTE5MjkyMzR9.sL12ftPDoCItXs1LAd9SBPcPYDFdyUFlS968s36ur4Q",
+        "x-csrf-token": "b28a557df66d60f7823aec123afe9829e406b36c616a636ef0ed94f9a7c1c1f8"
+      },
+      "status": 400,
+      "code": "400",
+      "msg": "您已领取过该优惠券"
+    },
+    {
+      "label": "营销券-我的（老端 coupons 页）",
+      "endpoint": "GET /api/miniapp/marketing/coupons/my",
+      "clientHeaders": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3eFVzZXJJZCI6OTAwMSwib3BlbmlkIjoib3BlbmlkLXMxOTYiLCJpYXQiOjE3OTE5MjkyMzR9.sL12ftPDoCItXs1LAd9SBPcPYDFdyUFlS968s36ur4Q",
+        "x-csrf-token": "b28a557df66d60f7823aec123afe9829e406b36c616a636ef0ed94f9a7c1c1f8"
+      },
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    {
+      "label": "通知-标记已读（老端 notifications 页）",
+      "endpoint": "PUT /api/miniapp/notifications/1/read",
+      "clientHeaders": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3eFVzZXJJZCI6OTAwMSwib3BlbmlkIjoib3BlbmlkLXMxOTYiLCJpYXQiOjE3OTE5MjkyMzR9.sL12ftPDoCItXs1LAd9SBPcPYDFdyUFlS968s36ur4Q",
+        "x-csrf-token": "b28a557df66d60f7823aec123afe9829e406b36c616a636ef0ed94f9a7c1c1f8"
+      },
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    {
+      "label": "通知-全部已读",
+      "endpoint": "POST /api/miniapp/notifications/read-all",
+      "clientHeaders": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3eFVzZXJJZCI6OTAwMSwib3BlbmlkIjoib3BlbmlkLXMxOTYiLCJpYXQiOjE3OTE5MjkyMzR9.sL12ftPDoCItXs1LAd9SBPcPYDFdyUFlS968s36ur4Q",
+        "x-csrf-token": "b28a557df66d60f7823aec123afe9829e406b36c616a636ef0ed94f9a7c1c1f8"
+      },
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    {
+      "label": "购物车-加入（老端 home 页）",
+      "endpoint": "POST /api/miniapp/cart/add",
+      "clientHeaders": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ3eFVzZXJJZCI6OTAwMSwib3BlbmlkIjoib3BlbmlkLXMxOTYiLCJpYXQiOjE3OTE5MjkyMzR9.sL12ftPDoCItXs1LAd9SBPcPYDFdyUFlS968s36ur4Q",
+        "x-csrf-token": "b28a557df66d60f7823aec123afe9829e406b36c616a636ef0ed94f9a7c1c1f8"
+      },
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  ],
+  "blocked": 0
+}
+HARNESS_OK

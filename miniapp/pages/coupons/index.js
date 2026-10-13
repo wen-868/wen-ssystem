@@ -5,12 +5,11 @@
  * 本目录（pages/*.js）由 `scripts/check-miniapp-release.mjs`（npm run test:miniapp-release）断言、
  * 并由 `deploy/deploy-production.sh` 的「部署小程序源码」步骤发布 ⇒ 不能按"已弃用"删除。
  *
- * ⚠️ 未解决的载体缺口（本单如实登记，不在客户端硬塞 JWT）：
- *   `/api/miniapp/marketing/*` 的写端点与「我的」端点由后端 `requireAuthWithTenant` 保护，要的是
- *   **商家端 JWT**（issuer=zhixiang-system，payload 含 id/roles/tenantId）；本客户端持有的却是
- *   微信登录令牌（`/api/miniapp/wechat/auth/login` 下发，payload 只有 wxUserId/openid）⇒ 即便路径已对齐，
- *   这三个调用仍会被 401。需先由凌舟裁定登录态载体（换 /api/miniapp/login 的商家 JWT，或后端为消费者
- *   端点接受微信令牌），再谈"可用"。本单只做**路径对齐**（消除恒 404）。
+ * S3-196（总清单第 52＋58 项）已收口上一版登记的载体缺口：
+ *   · 后端 `/api/miniapp/**` 改用 `requireConsumerAuthWithTenant`：接受**微信令牌**并解析出绑定的
+ *     消费者（会员）身份注入 `req.user`（roles 恒空），租户取「令牌 → X-Tenant-Id」；
+ *   · 客户端调用点一律走 `app.request()` 统一封装（自动带 Authorization + x-csrf-token）；
+ *   · **身份一律由登录态决定**，客户端不再声明 `userId`（声明了反而会与登录态不一致被 403）。
  */
 const { injectTheme } = require('../../utils/theme')
 
@@ -54,7 +53,7 @@ Page({
   loadAvailable(done) {
     const app = getApp()
     this.setData({ availableLoading: true, errorText: '' })
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/marketing/coupons/available`,
       method: 'GET',
       header: { 'Content-Type': 'application/json' },
@@ -77,23 +76,19 @@ Page({
   },
   loadMine() {
     const app = getApp()
-    const token = wx.getStorageSync('miniapp_token') || ''
-    const userId = this.getUserId()
-    if (!userId) {
+    // S3-196：登录态判定只看令牌是否存在；身份由服务端按令牌解析（会员绑定）
+    if (!app.isLoggedIn()) {
       this.setData({ myList: [] })
       return
     }
     this.setData({ myLoading: true })
-    wx.request({
+    app.request({
       // S3-187 D：路径对齐后端（后端只有 /coupons/my，没有 /coupons/mine）——
       // 旧写法对 /api/miniapp/marketing/* 恒 404，属"看起来能用、实际打不通"的入口。
       url: `${app.globalData.apiBase}/miniapp/marketing/coupons/my`,
       method: 'GET',
-      header: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
-      },
-      data: { userId: userId, status: this.data.myStatus },
+      header: { 'Content-Type': 'application/json' },
+      data: { status: this.data.myStatus },
       success: (res) => {
         const body = res.data || {}
         if (body.code === '0') {
@@ -109,21 +104,16 @@ Page({
   claimCoupon(e) {
     const templateId = e.currentTarget.dataset.id
     const app = getApp()
-    const token = wx.getStorageSync('miniapp_token') || ''
-    const userId = this.getUserId()
-    if (!userId) {
+    if (!app.isLoggedIn()) {
       wx.showToast({ title: '请先登录', icon: 'none' })
       return
     }
     wx.showLoading({ title: '领取中...' })
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/marketing/coupons/${templateId}/claim`,
       method: 'POST',
-      header: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
-      },
-      data: { userId: userId },
+      header: { 'Content-Type': 'application/json' },
+      data: {},
       success: (res) => {
         const body = res.data || {}
         if (body.code === '0') {
@@ -142,26 +132,6 @@ Page({
       }
     })
   },
-  getUserId() {
-    const app = getApp()
-    // 优先从 globalData 获取，其次尝试从 token 解析
-    if (app.globalData.wxUserInfo && app.globalData.wxUserInfo.id) {
-      return String(app.globalData.wxUserInfo.id)
-    }
-    const token = wx.getStorageSync('miniapp_token') || ''
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
-        if (payload.sub) return String(payload.sub)
-        if (payload.userId) return String(payload.userId)
-        if (payload.id) return String(payload.id)
-      } catch (e) {
-        // 解析失败则忽略
-      }
-    }
-    return wx.getStorageSync('user_id') || ''
-  },
-
   formatCouponValue(coupon) {
     if (coupon.type === 'PERCENT') return coupon.value + '折'
     return '\u00A5' + coupon.value

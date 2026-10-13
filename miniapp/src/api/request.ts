@@ -23,10 +23,14 @@ const request = async <T = unknown>(options: RequestOptions): Promise<T> => {
 
   const userStore = useUserStore()
   const token = userStore.token
+  // S3-196（总清单第 58 项）：消费者端写端点（POST/PUT/DELETE）会校验 x-csrf-token；
+  // 令牌由登录响应下发（客户端算不出 HMAC），登录时存入 userStore 并持久化。
+  const csrfToken = userStore.csrfToken
 
   const defaultHeader: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(csrfToken ? { 'x-csrf-token': csrfToken } : {})
   }
 
   try {

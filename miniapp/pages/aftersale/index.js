@@ -59,7 +59,7 @@ Page({
       statusParam = 'COMPLETED,CLOSED,CANCELLED,REJECTED,EXPIRED'
     }
 
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/aftersales/aftersales/mine`,
       method: 'GET',
       header: {

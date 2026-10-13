@@ -62,7 +62,7 @@ Page({
       return;
     }
     this.setData({ loading: true });
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/share/collections/${token}`,
       method: "GET",
       success: (res) => {
@@ -104,7 +104,7 @@ Page({
       return;
     }
     this.setData({ loading: true });
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/share/collections/${this.data.token}/pay`,
       method: "POST",
       success: (res) => {

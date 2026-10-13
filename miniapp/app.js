@@ -31,6 +31,8 @@ App({
     wx.login({
       success: (loginRes) => {
         if (!loginRes.code) return;
+        // S3-196：登录本身是「令牌的来源」，此刻还没有 token/csrfToken 可带，
+        // 故保持裸 wx.request（统一封装的默认头对它是空集）；登录成功后由 app.request() 统一携带。
         wx.request({
           url: `${this.globalData.apiBase}/miniapp/wechat/auth/login`,
           method: "POST",
@@ -67,7 +69,8 @@ App({
   /** 获取微信用户详细信息 */
   fetchWxProfile() {
     if (!this.globalData.token) return;
-    wx.request({
+    // S3-196：消费者端调用点一律走统一封装（自动带 Authorization + x-csrf-token）
+    this.request({
       url: `${this.globalData.apiBase}/miniapp/wechat/auth/profile`,
       method: "GET",
       header: {
