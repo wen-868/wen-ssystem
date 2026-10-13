@@ -269,10 +269,21 @@ jobs:
       - name: Build backend
         run: npm --workspace backend run build
 
+      # ── S3-190（凌舟，2026-10-14）修正一处「假门禁」─────────────────────────────
+      # 症状：本 job 自 PR #290（B3 的 CORS fail-fast）起**恒红**，但它红的原因与迁移无关：
+      #   本步骤以 `NODE_ENV=production` 起后端却**没给 `CORS_ORIGINS`** ⇒ B3 的 fail-fast 让
+      #   应用直接**拒绝启动**（日志原文：`拒绝启动。缺省 origin:true + credentials:true 会让任意
+      #   站点携带凭据跨域调用本服务。处置：配置 CORS_ORIGINS …`）⇒ `wait-on /health` 120s 超时
+      #   ⇒ 步骤 exit 1。也就是说：**这段时间里它一次都没真正跑过迁移**（红点没人看，属假门禁）。
+      # 处置：显式给一个 CI 内可达的 origin（保持 production 语义，不用 NODE_ENV=development 绕过）。
+      # ⚠️ 修好之后本 job 才第一次有真信号：末尾 `grep -q "失败"` 会抓到**空库上的真实迁移/种子失败**
+      #   （当前命中收口总清单第 55 项「空库 seed 中断」与第 56 项「未加守卫的 DROP INDEX」）。
+      #   那些是**真红**，须由第 55/56 项修复后消除；不得用放宽 grep 或吞错误的方式换绿。
       - name: Run migrations via server boot and verify tables
         run: |
           DB_HOST=127.0.0.1 DB_PORT=3306 DB_USER=root DB_PASSWORD=root \
           DB_NAME=liquor_inventory NODE_ENV=production JWT_SECRET=ci-migration-secret \
+          CORS_ORIGINS=http://127.0.0.1:8095 \
           PORT=8095 node backend/dist/server.js > /tmp/mig.log 2>&1 &
           npx wait-on -t 120000 http://127.0.0.1:8095/health || (echo "=== 迁移日志 ==="; cat /tmp/mig.log; exit 1)
           mysql -h127.0.0.1 -uroot -proot liquor_inventory -e "
