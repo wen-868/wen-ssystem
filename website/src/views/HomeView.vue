@@ -15,7 +15,7 @@
           <a href="#contact" @click="closeMenu">联系我们</a>
         </nav>
         <div class="nav-cta">
-          <a href="https://admin.onepan.cn" target="_blank" class="btn btn-primary" style="padding:10px 20px;font-size:.9rem;">免费试用</a>
+          <a href="https://admin.onepan.cn/register" target="_blank" class="btn btn-primary" style="padding:10px 20px;font-size:.9rem;">免费试用</a>
           <button class="menu-btn" @click="menuOpen = !menuOpen">☰</button>
         </div>
       </div>
@@ -28,7 +28,7 @@
           <h1>让生意<span>更简单</span></h1>
           <p>智享全链管理系统，覆盖商品、采购、库存、销售、订单、客户、营销、财务全链路。多租户 SaaS 架构，一部手机管好生意。</p>
           <div class="hero-actions">
-            <a href="https://admin.onepan.cn" target="_blank" class="btn btn-primary">免费试用</a>
+            <a href="https://admin.onepan.cn/register" target="_blank" class="btn btn-primary">免费试用</a>
             <a href="#features" class="btn btn-outline">了解更多</a>
           </div>
         </div>
@@ -104,7 +104,7 @@
       <div class="container">
         <h2 class="section-title">准备好提升经营效率了吗？</h2>
         <p class="section-subtitle">立即注册，免费体验智享全链管理系统的强大功能</p>
-        <a href="https://admin.onepan.cn" target="_blank" class="btn btn-white" style="font-size:1.1rem;padding:16px 40px;">免费注册试用 →</a>
+        <a href="https://admin.onepan.cn/register" target="_blank" class="btn btn-white" style="font-size:1.1rem;padding:16px 40px;">免费注册试用 →</a>
       </div>
     </section>
 
