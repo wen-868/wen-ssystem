@@ -1,0 +1,4 @@
+store_manager: rows=1 id=3 tenant=default store_id=1 mobile=13800000001 status=1 verifyPassword(DEMO_PASSWORD)=true enabled=true
+store_operator: rows=1 id=4 tenant=default store_id=1 mobile=13800000002 status=1 verifyPassword(DEMO_PASSWORD)=true enabled=true
+DEMO_PASSWORD=Demo@2026
+DEMO_LOGIN_CHECK=PASS

@@ -3,6 +3,12 @@
 -- 负责人：阿坚
 -- 修复：将 ALTER TABLE IF EXISTS / ADD COLUMN IF NOT EXISTS / ADD INDEX IF NOT EXISTS
 --       改为 MySQL 兼容的存储过程，通过 information_schema 检查列和索引是否存在
+-- S3-190（原收口第 53 项）：本文件 12 条补列/补索引语句原先传的表名**缺 t_ 前缀**
+--   （sys_config / sys_user / sys_role / sys_permission / sys_user_role / sys_role_permission，各 1 列 + 1 索引），
+--   而辅助过程把 tbl_name **原样**拼进 ALTER TABLE（见下方过程体）⇒ 空库恒 ER_NO_SUCH_TABLE，
+--   这 12 条从未生效（S3-186 改写时"语义按原样保留"，缺前缀一并被保留）。
+--   本次**只补表名前缀**（sys_config ⇒ t_sys_config 等）：列定义/索引定义/守卫条件/动态 SQL 一字未改；
+--   下方每条 "原 CALL" 注释保留的是 S3-186 改前原文（含缺前缀的表名）。
 
 USE liquor_inventory;
 
@@ -85,28 +91,28 @@ ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- 系统配置表
 -- S3-186：原 CALL add_column_if_not_exists('sys_config', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_config', @s3186_name = 'tenant_id';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 sys_config.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_config', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_sys_config.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_column_if_not_exists('sys_user', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_user', @s3186_name = 'tenant_id';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 sys_user.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_user', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_sys_user.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_column_if_not_exists('sys_role', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_role', @s3186_name = 'tenant_id';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 sys_role.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_role', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_sys_role.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_column_if_not_exists('sys_permission', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_permission', @s3186_name = 'tenant_id';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 sys_permission.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_permission', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_sys_permission.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_column_if_not_exists('sys_user_role', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_user_role', @s3186_name = 'tenant_id';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 sys_user_role.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_user_role', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_sys_user_role.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_column_if_not_exists('sys_role_permission', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");（改为不依赖存储过程的幂等写法：守卫 information_schema.COLUMNS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_role_permission', @s3186_name = 'tenant_id';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 sys_role_permission.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_role_permission', @s3186_name = 'tenant_id';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD COLUMN `', @s3186_name, '` ', 'VARCHAR(36) NOT NULL DEFAULT ''default'' COMMENT ''租户ID'' AFTER id'), 'SELECT ''跳过 t_sys_role_permission.tenant_id'' AS result') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND COLUMN_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 
 -- 门店相关
@@ -406,28 +412,28 @@ PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186
 -- ============================================================
 
 -- S3-186：原 CALL add_index_if_not_exists('sys_config', 'idx_sys_config_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_config', @s3186_name = 'idx_sys_config_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 sys_config.idx_sys_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_config', @s3186_name = 'idx_sys_config_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_config.idx_sys_config_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_user', 'idx_sys_user_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_user', @s3186_name = 'idx_sys_user_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 sys_user.idx_sys_user_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_user', @s3186_name = 'idx_sys_user_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_user.idx_sys_user_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_role', 'idx_sys_role_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_role', @s3186_name = 'idx_sys_role_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 sys_role.idx_sys_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_role', @s3186_name = 'idx_sys_role_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_role.idx_sys_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_permission', 'idx_sys_permission_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_permission', @s3186_name = 'idx_sys_permission_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 sys_permission.idx_sys_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_permission', @s3186_name = 'idx_sys_permission_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_permission.idx_sys_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_user_role', 'idx_sys_user_role_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_user_role', @s3186_name = 'idx_sys_user_role_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 sys_user_role.idx_sys_user_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_user_role', @s3186_name = 'idx_sys_user_role_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_user_role.idx_sys_user_role_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('sys_role_permission', 'idx_sys_role_permission_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
-SET @s3186_tbl = 'sys_role_permission', @s3186_name = 'idx_sys_role_permission_tenant';
-SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 sys_role_permission.idx_sys_role_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
+SET @s3186_tbl = 't_sys_role_permission', @s3186_name = 'idx_sys_role_permission_tenant';
+SET @s3186_sql = (SELECT IF(COUNT(*) = 0, CONCAT('ALTER TABLE `', @s3186_tbl, '` ADD INDEX `', @s3186_name, '` ', '(tenant_id)'), 'SELECT ''跳过 t_sys_role_permission.idx_sys_role_permission_tenant'' AS result') FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @s3186_tbl AND INDEX_NAME = @s3186_name);
 PREPARE s3186_stmt FROM @s3186_sql; EXECUTE s3186_stmt; DEALLOCATE PREPARE s3186_stmt;
 -- S3-186：原 CALL add_index_if_not_exists('t_store', 'idx_store_tenant', '(tenant_id)');（改为不依赖存储过程的幂等写法：守卫 information_schema.STATISTICS + PREPARE/EXECUTE，语义与 092 过程体逐字对应）
 SET @s3186_tbl = 't_store', @s3186_name = 'idx_store_tenant';
