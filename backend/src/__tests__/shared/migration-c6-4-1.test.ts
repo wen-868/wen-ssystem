@@ -45,12 +45,14 @@ const FILE_191 = `191_${MIG_191}`;
  * 199 = S3-192（租户状态值域收敛：把 t_tenant.status 的**越界状态值**订正到唯一可写值域
  * ACTIVE / DISABLED；只写 t_tenant 一张表，零 DDL、零结构变更）。本快照取**当时最高编号**
  * （并行单若取更高号，以最高者为准）。
+ * 200 = S3-204（跨线协作：t_product_price_log 补 source 列，区分 admin=后台改价 / ai=AI 底座改价；
+ * 只加一列 + 一条跑后核对 SELECT，零 DML、零数据回填；幂等守卫走 information_schema + PREPARE/EXECUTE）。
  * 本快照随每批迁移**显式同步**（同 C6-4-1-F2 口径：新增迁移必须被人显式承认），
  * 不得改为"只断言不重复"或删除"最高编号"断言。
  * 编号沿革：192 = S3-144（租户建租户与归因落点补列）；193 = S3-147 预留（只加 t_shift.shift_type 列，
  * 尚未合入 main，故本分支上按文件实算的最高编号就是 194）。
  */
-const EXPECTED_MAX_MIGRATION = 199;
+const EXPECTED_MAX_MIGRATION = 200;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);

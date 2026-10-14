@@ -1,0 +1,439 @@
+[
+  {
+    "name": "[1] 后端 /health 200（启动期迁移 + 种子已完成）",
+    "ok": true
+  },
+  {
+    "name": "[1] 启动期外部迁移执行到了 200_价格日志来源列.sql",
+    "ok": true,
+    "detail": "{\"level\":30,\"time\":1792003745576,\"pid\":2284,\"hostname\":\"XIONG\",\"msg\":\"[migration] 执行外部迁移: 200_价格日志来源列.sql\"}"
+  },
+  {
+    "name": "[1] t_product_price_log.source 已由迁移建出（VARCHAR(16) NOT NULL DEFAULT 'admin'）",
+    "ok": true,
+    "detail": [
+      {
+        "COLUMN_TYPE": "varchar(16)",
+        "IS_NULLABLE": "NO",
+        "COLUMN_DEFAULT": "admin",
+        "COLUMN_COMMENT": "价格来源：admin=后台改价(工作台/移动端/批量)，ai=AI 底座改价"
+      }
+    ]
+  },
+  {
+    "name": "[3a] admin 登录成功（code=0 且下发 token/csrfToken）",
+    "ok": true
+  },
+  {
+    "name": "[3b] sales-series（sku，近 12 期）code=0",
+    "ok": true,
+    "detail": "成功"
+  },
+  {
+    "name": "[3b] sku 序列=08/09/10 三期，数值正确（DRAFT/VOIDED 已剔除，跨租户未混入）",
+    "ok": true,
+    "detail": [
+      {
+        "period": "2026-08",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 2
+      },
+      {
+        "period": "2026-09",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 1
+      },
+      {
+        "period": "2026-10",
+        "qty": 4,
+        "amount": 516,
+        "orderCount": 1
+      }
+    ]
+  },
+  {
+    "name": "[3c] sales-series（product=SPU）按 SPU 汇总（含同 SPU 的另一 SKU ⇒ 大于 sku 维度）",
+    "ok": true,
+    "detail": [
+      {
+        "period": "2026-08",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 2
+      },
+      {
+        "period": "2026-09",
+        "qty": 7,
+        "amount": 845,
+        "orderCount": 2
+      },
+      {
+        "period": "2026-10",
+        "qty": 4,
+        "amount": 516,
+        "orderCount": 1
+      }
+    ]
+  },
+  {
+    "name": "[3c] sales-series（category）含同分类全部 SKU（sku1+skuNew+sku2）",
+    "ok": true,
+    "detail": [
+      {
+        "period": "2026-08",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 2
+      },
+      {
+        "period": "2026-09",
+        "qty": 8,
+        "amount": 935,
+        "orderCount": 3
+      },
+      {
+        "period": "2026-10",
+        "qty": 4,
+        "amount": 516,
+        "orderCount": 1
+      }
+    ]
+  },
+  {
+    "name": "[3c] sales-series（customer=1）含该客户全部 SKU 明细",
+    "ok": true,
+    "detail": [
+      {
+        "period": "2026-08",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 2
+      },
+      {
+        "period": "2026-09",
+        "qty": 8,
+        "amount": 935,
+        "orderCount": 3
+      },
+      {
+        "period": "2026-10",
+        "qty": 4,
+        "amount": 516,
+        "orderCount": 1
+      }
+    ]
+  },
+  {
+    "name": "[3d] day 粒度 + 显式区间 ⇒ 按期返回（08-10/08-25/09-18/10-04 共 4 期）",
+    "ok": true,
+    "detail": [
+      {
+        "period": "2026-08-10",
+        "qty": 2,
+        "amount": 258,
+        "orderCount": 1
+      },
+      {
+        "period": "2026-08-25",
+        "qty": 3,
+        "amount": 387,
+        "orderCount": 1
+      },
+      {
+        "period": "2026-09-18",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 1
+      },
+      {
+        "period": "2026-10-04",
+        "qty": 4,
+        "amount": 516,
+        "orderCount": 1
+      }
+    ]
+  },
+  {
+    "name": "[3d] start/end 别名：只返回 2026-09",
+    "ok": true,
+    "detail": [
+      {
+        "period": "2026-09",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 1
+      }
+    ]
+  },
+  {
+    "name": "[3d] 无数据目标 ⇒ data=[] 且 code=0（空数组不报错）",
+    "ok": true,
+    "detail": {
+      "code": "0",
+      "msg": "成功",
+      "data": [],
+      "traceId": "7845a953-5a44-4b73-82ae-ec670ca2f6e6"
+    }
+  },
+  {
+    "name": "[3d] 非法 dimension ⇒ code=400",
+    "ok": true,
+    "detail": "参数校验失败"
+  },
+  {
+    "name": "[3e] 后台改价成功（未带 source ⇒ 应落 admin）",
+    "ok": true,
+    "detail": "成功"
+  },
+  {
+    "name": "[3f] AI 形态改价成功（X-Tenant-Id + x-csrf-token + Authorization，带 source=ai）",
+    "ok": true,
+    "detail": "成功"
+  },
+  {
+    "name": "[3f] 两条改价路径各落一条历史，source 分别 admin / ai",
+    "ok": true,
+    "detail": [
+      {
+        "id": 1,
+        "skuId": 1,
+        "priceType": "RETAIL",
+        "oldPrice": "2999.00",
+        "newPrice": "3010.00",
+        "source": "admin",
+        "operatorId": 1,
+        "actionType": "UPDATE",
+        "createdAt": "2026-10-14T18:49:12.000Z"
+      },
+      {
+        "id": 2,
+        "skuId": 1,
+        "priceType": "WHOLESALE",
+        "oldPrice": "2699.00",
+        "newPrice": "2706.00",
+        "source": "ai",
+        "operatorId": 1,
+        "actionType": "UPDATE",
+        "createdAt": "2026-10-14T18:49:12.000Z"
+      }
+    ]
+  },
+  {
+    "name": "[3g] price-history 返回 2 条（id 倒序）且含归一化 date/priceLevel/price",
+    "ok": true,
+    "detail": [
+      {
+        "id": 2,
+        "skuId": 1,
+        "priceType": "WHOLESALE",
+        "oldPrice": "2699.00",
+        "newPrice": "2706.00",
+        "actionType": "UPDATE",
+        "operatorId": 1,
+        "operatorName": "系统管理员",
+        "source": "ai",
+        "createdAt": "2026-10-15T02:49:12.000Z",
+        "date": "2026-10-15 10:49:12",
+        "priceLevel": "WHOLESALE",
+        "price": 2706
+      },
+      {
+        "id": 1,
+        "skuId": 1,
+        "priceType": "RETAIL",
+        "oldPrice": "2999.00",
+        "newPrice": "3010.00",
+        "actionType": "UPDATE",
+        "operatorId": 1,
+        "operatorName": "系统管理员",
+        "source": "admin",
+        "createdAt": "2026-10-15T02:49:12.000Z",
+        "date": "2026-10-15 10:49:12",
+        "priceLevel": "RETAIL",
+        "price": 3010
+      }
+    ]
+  },
+  {
+    "name": "[3g] price-history 带 operatorName（联表）与 source",
+    "ok": true,
+    "detail": [
+      {
+        "id": 2,
+        "skuId": 1,
+        "priceType": "WHOLESALE",
+        "oldPrice": "2699.00",
+        "newPrice": "2706.00",
+        "actionType": "UPDATE",
+        "operatorId": 1,
+        "operatorName": "系统管理员",
+        "source": "ai",
+        "createdAt": "2026-10-15T02:49:12.000Z",
+        "date": "2026-10-15 10:49:12",
+        "priceLevel": "WHOLESALE",
+        "price": 2706
+      },
+      {
+        "id": 1,
+        "skuId": 1,
+        "priceType": "RETAIL",
+        "oldPrice": "2999.00",
+        "newPrice": "3010.00",
+        "actionType": "UPDATE",
+        "operatorId": 1,
+        "operatorName": "系统管理员",
+        "source": "admin",
+        "createdAt": "2026-10-15T02:49:12.000Z",
+        "date": "2026-10-15 10:49:12",
+        "priceLevel": "RETAIL",
+        "price": 3010
+      }
+    ]
+  },
+  {
+    "name": "[3g] priceLevel=retail（小写入参统一转大写）只返回 RETAIL 一条",
+    "ok": true,
+    "detail": [
+      {
+        "id": 1,
+        "skuId": 1,
+        "priceType": "RETAIL",
+        "oldPrice": "2999.00",
+        "newPrice": "3010.00",
+        "actionType": "UPDATE",
+        "operatorId": 1,
+        "operatorName": "系统管理员",
+        "source": "admin",
+        "createdAt": "2026-10-15T02:49:12.000Z",
+        "date": "2026-10-15 10:49:12",
+        "priceLevel": "RETAIL",
+        "price": 3010
+      }
+    ]
+  },
+  {
+    "name": "[3g] 日期区间无命中 ⇒ records=[] 且 code=0",
+    "ok": true,
+    "detail": {
+      "records": []
+    }
+  },
+  {
+    "name": "[3g] limit=0 ⇒ code=400（参数校验）",
+    "ok": true,
+    "detail": "参数校验失败"
+  },
+  {
+    "name": "[3h] 交叉核对：sales-series（customer 维度）金额/单数与 querySaleBills 端点（单据应收）逐期一致",
+    "ok": true,
+    "detail": {
+      "apiCross": [
+        {
+          "period": "2026-08",
+          "amount": 645,
+          "orderCount": 2
+        },
+        {
+          "period": "2026-09",
+          "amount": 935,
+          "orderCount": 3
+        },
+        {
+          "period": "2026-10",
+          "amount": 516,
+          "orderCount": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "[4a] SQL 直查（明细口径）与接口逐期一致",
+    "ok": true,
+    "detail": {
+      "sqlCross": [
+        {
+          "period": "2026-08",
+          "qty": "5",
+          "amount": "645.00",
+          "orderCount": 2
+        },
+        {
+          "period": "2026-09",
+          "qty": "5",
+          "amount": "645.00",
+          "orderCount": 1
+        },
+        {
+          "period": "2026-10",
+          "qty": "4",
+          "amount": "516.00",
+          "orderCount": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "[4b] 租户隔离反例：另一租户同 SKU 的 999 瓶/99999 元未进入本租户序列",
+    "ok": true,
+    "detail": {
+      "otherTenant": [
+        {
+          "billCount": 1,
+          "amount": "99999.00"
+        }
+      ],
+      "series": [
+        {
+          "period": "2026-08",
+          "qty": 5,
+          "amount": 645,
+          "orderCount": 2
+        },
+        {
+          "period": "2026-09",
+          "qty": 5,
+          "amount": 645,
+          "orderCount": 1
+        },
+        {
+          "period": "2026-10",
+          "qty": 4,
+          "amount": 516,
+          "orderCount": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "[4c] 范围外发现复现：既有 sales-ranking(product) 的 sku 行读数 = A+B 两租户之和（跨租户聚合缺陷，只报不改）",
+    "ok": true,
+    "detail": {
+      "端点": {
+        "id": 1,
+        "name": "S3204夹具SKU",
+        "totalQty": 1008,
+        "totalAmount": 101160,
+        "receivedAmount": 0,
+        "orderCount": 0
+      },
+      "仅A": {
+        "qty": "9",
+        "amount": "1161.00"
+      },
+      "A加B": {
+        "qty": "1008",
+        "amount": "101160.00"
+      }
+    }
+  },
+  {
+    "name": "[4d] 迁移 200 幂等：连跑三遍（启动 1 + 手工 2）零报错、source 列仍唯一",
+    "ok": true,
+    "detail": {
+      "migReplayError": null,
+      "sourceColumnCount": 1
+    }
+  }
+]

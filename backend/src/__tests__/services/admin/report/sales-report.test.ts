@@ -101,7 +101,7 @@ describe("admin report/sales-report.service - getSalesTrend", () => {
 
 // ============ getSalesSeries（S3-204 需求 1）============
 describe("admin report/sales-report.service - getSalesSeries", () => {
-  it("dimension=sku + 缺省粒度(month) + 未传日期 ⇒ 走近 12 个月窗口，参数含 dateFormat/targetId", async () => {
+  it("dimension=sku + 缺省粒度(month) + 未传日期 ⇒ 走近 12 个月窗口，显式带租户条件", async () => {
     mocks.queryWithTenant.mockResolvedValue([
       { period: "2026-07", qty: 12, amount: 960, orderCount: 3 }
     ]);
@@ -111,7 +111,10 @@ describe("admin report/sales-report.service - getSalesSeries", () => {
     expect(sql).toContain("12 MONTH");
     expect(sql).toContain("sbi.sku_id = ?");
     expect(sql).toContain("sb.business_status NOT IN ('DRAFT', 'VOIDED')");
-    expect(params).toEqual(["%Y-%m", 101]);
+    // 显式租户条件：SQL 里出现 tenant_id（JOIN 等值）会让 queryWithTenant 的自动注入短路，
+    // 因此租户过滤必须自己写进 WHERE 并自己传参（漏了就是跨租户聚合）
+    expect(sql).toContain("WHERE sb.tenant_id = ?");
+    expect(params).toEqual(["%Y-%m", "t1", 101]);
     expect(t).toBe(tenantId);
   });
 
@@ -122,7 +125,7 @@ describe("admin report/sales-report.service - getSalesSeries", () => {
     const [sql, params] = mocks.queryWithTenant.mock.calls[0];
     expect(sql).toContain("JOIN t_product_sku s ON s.id = sbi.sku_id AND s.tenant_id = sbi.tenant_id");
     expect(sql).toContain("s.spu_id = ?");
-    expect(params).toEqual(["%Y-%m", 7]);
+    expect(params).toEqual(["%Y-%m", "t1", 7]);
   });
 
   it("dimension=category ⇒ sku → spu.category_id 反查", async () => {
@@ -131,7 +134,7 @@ describe("admin report/sales-report.service - getSalesSeries", () => {
     const [sql, params] = mocks.queryWithTenant.mock.calls[0];
     expect(sql).toContain("JOIN t_product_spu sp ON sp.id = s.spu_id AND sp.tenant_id = s.tenant_id");
     expect(sql).toContain("sp.category_id = ?");
-    expect(params).toEqual(["%Y-%m", 3]);
+    expect(params).toEqual(["%Y-%m", "t1", 3]);
   });
 
   it("dimension=customer ⇒ 直接按 t_sale_bill.customer_id", async () => {
@@ -139,7 +142,7 @@ describe("admin report/sales-report.service - getSalesSeries", () => {
     await getSalesSeries(tenantId, { dimension: "customer", targetId: 9 });
     const [sql, params] = mocks.queryWithTenant.mock.calls[0];
     expect(sql).toContain("sb.customer_id = ?");
-    expect(params).toEqual(["%Y-%m", 9]);
+    expect(params).toEqual(["%Y-%m", "t1", 9]);
   });
 
   it("granularity=day + 传日期区间 ⇒ BETWEEN 模式，窗口按粒度兜底", async () => {
@@ -154,7 +157,7 @@ describe("admin report/sales-report.service - getSalesSeries", () => {
     const [sql, params] = mocks.queryWithTenant.mock.calls[0];
     expect(sql).toContain("DATE(sb.created_at) BETWEEN ? AND ?");
     expect(sql).toContain("DATE_FORMAT(sb.created_at, ?)");
-    expect(params).toEqual(["%Y-%m-%d", 1, "2026-01-01", "2026-01-31"]);
+    expect(params).toEqual(["%Y-%m-%d", "t1", 1, "2026-01-01", "2026-01-31"]);
   });
 
   it("只传 dateEnd（缺 dateStart）⇒ dateStart 用粒度窗口兜底，不报错", async () => {
@@ -162,7 +165,7 @@ describe("admin report/sales-report.service - getSalesSeries", () => {
     await getSalesSeries(tenantId, { dimension: "sku", targetId: 1, granularity: "week", dateEnd: "2026-07-09" });
     const [sql, params] = mocks.queryWithTenant.mock.calls[0];
     expect(sql).toContain("BETWEEN ? AND ?");
-    expect(params).toEqual(["%Y-%u", 1, "2026-06-09", "2026-07-09"]); // getDefaultDateStart mock = 2026-06-09
+    expect(params).toEqual(["%Y-%u", "t1", 1, "2026-06-09", "2026-07-09"]); // getDefaultDateStart mock = 2026-06-09
   });
 
   it("无数据 ⇒ 返回空数组（不报错）", async () => {

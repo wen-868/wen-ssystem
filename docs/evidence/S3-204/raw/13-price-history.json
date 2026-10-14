@@ -1,0 +1,42 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "records": [
+        {
+          "id": 2,
+          "skuId": 1,
+          "priceType": "WHOLESALE",
+          "oldPrice": "2699.00",
+          "newPrice": "2706.00",
+          "actionType": "UPDATE",
+          "operatorId": 1,
+          "operatorName": "系统管理员",
+          "source": "ai",
+          "createdAt": "2026-10-15T02:49:12.000Z",
+          "date": "2026-10-15 10:49:12",
+          "priceLevel": "WHOLESALE",
+          "price": 2706
+        },
+        {
+          "id": 1,
+          "skuId": 1,
+          "priceType": "RETAIL",
+          "oldPrice": "2999.00",
+          "newPrice": "3010.00",
+          "actionType": "UPDATE",
+          "operatorId": 1,
+          "operatorName": "系统管理员",
+          "source": "admin",
+          "createdAt": "2026-10-15T02:49:12.000Z",
+          "date": "2026-10-15 10:49:12",
+          "priceLevel": "RETAIL",
+          "price": 3010
+        }
+      ]
+    },
+    "traceId": "b834d792-931d-4b5e-8de4-96a528395e52"
+  }
+}

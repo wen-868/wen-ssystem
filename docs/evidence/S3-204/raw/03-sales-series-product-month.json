@@ -1,0 +1,28 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": [
+      {
+        "period": "2026-08",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 2
+      },
+      {
+        "period": "2026-09",
+        "qty": 7,
+        "amount": 845,
+        "orderCount": 2
+      },
+      {
+        "period": "2026-10",
+        "qty": 4,
+        "amount": 516,
+        "orderCount": 1
+      }
+    ],
+    "traceId": "0eecf044-ab50-4246-a56f-d71348f61f69"
+  }
+}

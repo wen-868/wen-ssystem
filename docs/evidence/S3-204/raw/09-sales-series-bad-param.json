@@ -1,0 +1,15 @@
+{
+  "status": 400,
+  "body": {
+    "code": "400",
+    "msg": "参数校验失败",
+    "traceId": "f3568e36-a43f-4112-911e-44730443b4b5",
+    "errors": [
+      {
+        "field": "root",
+        "message": "Invalid enum value. Expected 'product' | 'sku' | 'category' | 'customer', received 'nope'",
+        "code": "invalid_enum_value"
+      }
+    ]
+  }
+}

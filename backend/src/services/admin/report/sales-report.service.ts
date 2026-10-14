@@ -261,12 +261,14 @@ export async function getSalesSeries(
      FROM t_sale_bill_item sbi
      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
      ${dimensionJoin[dimension]}
-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE sb.tenant_id = ?
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND ${targetCondition[dimension]}
        AND ${windowCondition}
      GROUP BY period
      ORDER BY period ASC`,
-    [dateFormat, targetId, ...windowParams],
+    // 参数按 SQL 中占位符出现顺序：SELECT 的 DATE_FORMAT 格式 → WHERE 的 tenantId → targetId → 窗口
+    [dateFormat, tenantId, targetId, ...windowParams],
     tenantId
   );
 

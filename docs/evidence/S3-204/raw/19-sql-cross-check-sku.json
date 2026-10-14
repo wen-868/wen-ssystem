@@ -1,0 +1,20 @@
+[
+  {
+    "period": "2026-08",
+    "qty": "5",
+    "amount": "645.00",
+    "orderCount": 2
+  },
+  {
+    "period": "2026-09",
+    "qty": "5",
+    "amount": "645.00",
+    "orderCount": 1
+  },
+  {
+    "period": "2026-10",
+    "qty": "4",
+    "amount": "516.00",
+    "orderCount": 1
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "skuId": 1
+    },
+    "traceId": "cac7abb5-1aa7-4836-a042-7b8e126bd199"
+  }
+}
