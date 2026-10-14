@@ -1,0 +1,8 @@
+=== APPLY 结果 ===
+002_phase1_seed.sql | 命中行=5 | 原行尾=CRLF | 已插入 | before=25b8cd13b4737b561533d88aadba8e562a904a675d161226951cda266d3a2848 | after=fd585d03a4c41ce13537382ce9f7f53609b1cc659e4c95180811a540a0a1eaee | // 002 头部注释「默认密码：admin123」
+075_reset_admin_password_bcrypt.sql | 命中行=4 | 原行尾=CRLF | 已插入 | before=90d90629d19e628167573e5879a76bac27668ee218802dcabfd4d1431056f51b | after=ba72aae931fc99d9d940fc591f290506dbccdb509bbbed6a1ad7d5c2e0738f19 | // 075 头部注释「默认密码：admin123」
+075_reset_admin_password_bcrypt.sql | 命中行=9 | 原行尾=CRLF | 已插入 | before=90d90629d19e628167573e5879a76bac27668ee218802dcabfd4d1431056f51b | after=83fac813a5be0ed394ee6f20e7749b890a22fe230defaa98a131e09d6d647ff7 | // 075 头部注释「生成方式：bcrypt.hashSync('admin123', 12)」
+081_platform_admin_seed_and_fix.sql | 命中行=43 | 原行尾=CRLF | 已插入 | before=e5ddcf37bf931c5c520c247fe9d8aad5e51248f14ab90b6a802e93362ecf05e0 | after=22005a86b26dc6a63d38fc040970476918c0128a1a99c709231632af083fa8a8 | // 081 注释「插入默认平台超级管理员（admin / admin123）」
+099_seed_data.sql | 命中行=20 | 原行尾=CRLF | 已插入 | before=72dff34b8e8af9474e25a23007fce476265b4e9dc17cef65ecb5cea892cbe6c6 | after=9fcd6eb430e0e35fedfa1f22be3f6ac520771fdf04725e5d745f4c4d10a5e80b | // 099 注释「默认密码：123456 -> bcrypt hash」
+127_fix_demo_accounts.sql | 命中行=1 | 原行尾=CRLF | 已插入 | before=59078393fbd73018036961b9c0b8373bc722fbd94390d55b3cae6a7ec9093e39 | after=5badea73f12d3c584172b846f90453431d499c98b71d2f1de8cef27ede45a33c | // 127 首行注释（描述含密码 admin123）
+127_fix_demo_accounts.sql | 命中行=8 | 原行尾=CRLF | 已插入 | before=59078393fbd73018036961b9c0b8373bc722fbd94390d55b3cae6a7ec9093e39 | after=e7c7c3cb5414e779d01c3d803895bb421b4b09a40a54b393947eef5a409c6f42 | // 127 注释「1) 修复演示账号密码哈希（...admin123...）」

@@ -40,6 +40,7 @@ SET @sql = IF(@col_exists = 0,
   'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+-- ⚠️ 历史示例口令，勿照抄；当前口径见 backend/src/config/constants.ts 的 DEMO_PASSWORD（S3-175 收敛为 Demo@2026）。
 -- 3. 插入默认平台超级管理员（admin / admin123）
 --    密码哈希：bcrypt.hashSync('admin123', 12)，前缀 v2$ 为系统版本标识
 INSERT INTO t_platform_admin (username, password_hash, real_name, email, phone, role, status)
