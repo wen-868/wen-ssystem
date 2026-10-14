@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-198/backend
+
+
+ Test Files  1 passed (1)
+      Tests  202 passed (202)
+   Start at  00:36:44
+   Duration  4.40s (transform 665ms, setup 41ms, import 2.88s, tests 1.11s, environment 0ms)
+

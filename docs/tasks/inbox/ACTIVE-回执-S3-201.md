@@ -34,6 +34,7 @@
 - **门禁**：`guard-rbac-wiring.mjs --strict` **EXIT=0**（台账 680 条已登记 / 未登记 0）；`guard-route-auth.mjs` **EXIT=0**；`guard-tenant-status.mjs` **EXIT=0**；`guard-route-prefix.mjs` **EXIT=0**
 - **静态与构建**：`npm --workspace backend run typecheck`（`tsc --noEmit`）**EXIT=0**（无输出）；`npm --workspace backend run build` **EXIT=0**（`已处理 800 个 JS 文件，修复 1890 处导入路径`）
 - **原始输出留档**：`docs/evidence/S3-201/`（README + `outputs/01`~`11`，含 CI 失败摘录、CI 独有文件清单、复现红、修复绿、四条 guard、typecheck、build、全量 660/7957）
+- **门禁反测**（本单改过的两行断言必须证明它会红）：① 删掉 `store-inventory.routes.ts` 的阈值注册行 ⇒ **红 3 条**（`注册行**不含** requirePermission(`、整文件子串、`READONLY 仍 200` 实际 404）；② 给该行**误加** `requirePermission("inventory:adjust")` ⇒ **红 3 条**（后两条变为 `expected 403 to be 200`）；复原 ⇒ `202 passed`，且 `store-inventory.routes.ts` 复原后 `git hash-object` = `aa624b82…` = `HEAD` blob、`git status --porcelain` 无该文件改动（`outputs/12`/`13`/`14`）
 
 ## 三、阻塞点与未完成
 

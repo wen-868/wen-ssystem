@@ -55,3 +55,11 @@ cd ..; npm --workspace backend run build             # EXIT=0（outputs/10）
 
 `outputs/03-merged-tree-repro-5-failed.log` 是**未打修复**的同一棵合并树上的原始输出：5 条红、断言与 CI 逐字一致
 （证明修复前该命令会红）；`outputs/04` 是同命令在修复后的原始输出（绿）。两侧原始输出都已留档。
+
+另对本单**改过的那两行断言**做了双向反测（证明改后仍有分辨力，没有变成恒绿假门禁）：
+
+| 反测 | 故意制造的失败 | 结果 |
+|:--|:--|:--|
+| A（→ `outputs/12`） | 删掉 `store-inventory.routes.ts` 的 `put("/alerts/:skuId/threshold", …)` 注册行 | **红 3 条**：`注册行**不含** requirePermission(`、`整文件子串不足以判定`、`READONLY 仍 200`（实际 404） |
+| B（→ `outputs/13`） | 给同一行**误加** `requirePermission("inventory:adjust")` | **红 3 条**：同上两条 + `READONLY 仍 200`（实际 403，`expected 403 to be 200`） |
+| 复原（→ `outputs/14`） | — | `Test Files 1 passed (1)` / `Tests 202 passed (202)`；`store-inventory.routes.ts` 复原后 `git hash-object` = `aa624b82…` = `HEAD` blob，`git status --porcelain` 无该文件改动 |
