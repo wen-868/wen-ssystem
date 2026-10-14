@@ -1,0 +1,353 @@
+{
+ "092_租户ID.sql": [
+  {
+   "canonical": "idx_t_sys_config_tenant",
+   "legacy": "idx_sys_config_tenant",
+   "table": "t_sys_config"
+  },
+  {
+   "canonical": "idx_t_sys_user_tenant",
+   "legacy": "idx_sys_user_tenant",
+   "table": "t_sys_user"
+  },
+  {
+   "canonical": "idx_t_sys_role_tenant",
+   "legacy": "idx_sys_role_tenant",
+   "table": "t_sys_role"
+  },
+  {
+   "canonical": "idx_t_sys_permission_tenant",
+   "legacy": "idx_sys_permission_tenant",
+   "table": "t_sys_permission"
+  },
+  {
+   "canonical": "idx_t_sys_user_role_tenant",
+   "legacy": "idx_sys_user_role_tenant",
+   "table": "t_sys_user_role"
+  },
+  {
+   "canonical": "idx_t_sys_role_permission_tenant",
+   "legacy": "idx_sys_role_permission_tenant",
+   "table": "t_sys_role_permission"
+  },
+  {
+   "canonical": "idx_t_store_tenant",
+   "legacy": "idx_store_tenant",
+   "table": "t_store"
+  },
+  {
+   "canonical": "idx_t_product_category_tenant",
+   "legacy": "idx_product_category_tenant",
+   "table": "t_product_category"
+  },
+  {
+   "canonical": "idx_t_product_spu_tenant",
+   "legacy": "idx_product_spu_tenant",
+   "table": "t_product_spu"
+  },
+  {
+   "canonical": "idx_t_product_sku_tenant",
+   "legacy": "idx_product_sku_tenant",
+   "table": "t_product_sku"
+  },
+  {
+   "canonical": "idx_t_product_price_tenant",
+   "legacy": "idx_product_price_tenant",
+   "table": "t_product_price"
+  },
+  {
+   "canonical": "idx_t_sku_price_tenant",
+   "legacy": "idx_sku_price_tenant",
+   "table": "t_sku_price"
+  },
+  {
+   "canonical": "idx_t_supplier_tenant",
+   "legacy": "idx_supplier_tenant",
+   "table": "t_supplier"
+  },
+  {
+   "canonical": "idx_t_supplier_contact_tenant",
+   "legacy": "idx_supplier_contact_tenant",
+   "table": "t_supplier_contact"
+  },
+  {
+   "canonical": "idx_t_member_tenant",
+   "legacy": "idx_member_tenant",
+   "table": "t_member"
+  },
+  {
+   "canonical": "idx_t_customer_price_binding_tenant",
+   "legacy": "idx_customer_price_binding_tenant",
+   "table": "t_customer_price_binding"
+  },
+  {
+   "canonical": "idx_t_customer_credit_tenant",
+   "legacy": "idx_customer_credit_tenant",
+   "table": "t_customer_credit"
+  },
+  {
+   "canonical": "idx_t_inventory_balance_tenant",
+   "legacy": "idx_inventory_balance_tenant",
+   "table": "t_inventory_balance"
+  },
+  {
+   "canonical": "idx_t_inventory_batch_tenant",
+   "legacy": "idx_inventory_batch_tenant",
+   "table": "t_inventory_batch"
+  },
+  {
+   "canonical": "idx_t_inventory_ledger_tenant",
+   "legacy": "idx_inventory_ledger_tenant",
+   "table": "t_inventory_ledger"
+  },
+  {
+   "canonical": "idx_t_price_level_tenant",
+   "legacy": "idx_price_level_tenant",
+   "table": "t_price_level"
+  },
+  {
+   "canonical": "idx_t_price_change_log_tenant",
+   "legacy": "idx_price_change_log_tenant",
+   "table": "t_price_change_log"
+  },
+  {
+   "canonical": "idx_t_alert_rule_tenant",
+   "legacy": "idx_alert_rule_tenant",
+   "table": "t_alert_rule"
+  },
+  {
+   "canonical": "idx_t_alert_record_tenant",
+   "legacy": "idx_alert_record_tenant",
+   "table": "t_alert_record"
+  },
+  {
+   "canonical": "idx_t_expiry_alert_config_tenant",
+   "legacy": "idx_expiry_alert_config_tenant",
+   "table": "t_expiry_alert_config"
+  },
+  {
+   "canonical": "idx_t_expiry_alert_record_tenant",
+   "legacy": "idx_expiry_alert_record_tenant",
+   "table": "t_expiry_alert_record"
+  },
+  {
+   "canonical": "idx_t_trace_config_tenant",
+   "legacy": "idx_trace_config_tenant",
+   "table": "t_trace_config"
+  },
+  {
+   "canonical": "idx_t_trace_code_tenant",
+   "legacy": "idx_trace_code_tenant",
+   "table": "t_trace_code"
+  },
+  {
+   "canonical": "idx_t_trace_event_log_tenant",
+   "legacy": "idx_trace_event_log_tenant",
+   "table": "t_trace_event_log"
+  },
+  {
+   "canonical": "idx_t_trace_scan_log_tenant",
+   "legacy": "idx_trace_scan_log_tenant",
+   "table": "t_trace_scan_log"
+  },
+  {
+   "canonical": "idx_t_recall_record_tenant",
+   "legacy": "idx_recall_record_tenant",
+   "table": "t_recall_record"
+  },
+  {
+   "canonical": "idx_t_store_control_config_tenant",
+   "legacy": "idx_store_control_config_tenant",
+   "table": "t_store_control_config"
+  },
+  {
+   "canonical": "idx_t_store_status_log_tenant",
+   "legacy": "idx_store_status_log_tenant",
+   "table": "t_store_status_log"
+  },
+  {
+   "canonical": "idx_t_sale_bill_tenant",
+   "legacy": "idx_sale_bill_tenant",
+   "table": "t_sale_bill"
+  },
+  {
+   "canonical": "idx_t_sale_bill_item_tenant",
+   "legacy": "idx_sale_bill_item_tenant",
+   "table": "t_sale_bill_item"
+  },
+  {
+   "canonical": "idx_t_sale_return_tenant",
+   "legacy": "idx_sale_return_tenant",
+   "table": "t_sale_return"
+  },
+  {
+   "canonical": "idx_t_sale_return_item_tenant",
+   "legacy": "idx_sale_return_item_tenant",
+   "table": "t_sale_return_item"
+  },
+  {
+   "canonical": "idx_t_sale_payment_tenant",
+   "legacy": "idx_sale_payment_tenant",
+   "table": "t_sale_payment"
+  },
+  {
+   "canonical": "idx_t_purchase_order_tenant",
+   "legacy": "idx_purchase_order_tenant",
+   "table": "t_purchase_order"
+  },
+  {
+   "canonical": "idx_t_purchase_order_item_tenant",
+   "legacy": "idx_purchase_order_item_tenant",
+   "table": "t_purchase_order_item"
+  },
+  {
+   "canonical": "idx_t_purchase_in_stock_tenant",
+   "legacy": "idx_purchase_in_stock_tenant",
+   "table": "t_purchase_in_stock"
+  },
+  {
+   "canonical": "idx_t_purchase_in_stock_item_tenant",
+   "legacy": "idx_purchase_in_stock_item_tenant",
+   "table": "t_purchase_in_stock_item"
+  },
+  {
+   "canonical": "idx_t_purchase_return_tenant",
+   "legacy": "idx_purchase_return_tenant",
+   "table": "t_purchase_return"
+  },
+  {
+   "canonical": "idx_t_purchase_return_item_tenant",
+   "legacy": "idx_purchase_return_item_tenant",
+   "table": "t_purchase_return_item"
+  },
+  {
+   "canonical": "idx_t_purchase_payment_tenant",
+   "legacy": "idx_purchase_payment_tenant",
+   "table": "t_purchase_payment"
+  },
+  {
+   "canonical": "idx_t_supplier_statement_tenant",
+   "legacy": "idx_supplier_statement_tenant",
+   "table": "t_supplier_statement"
+  },
+  {
+   "canonical": "idx_t_supplier_statement_item_tenant",
+   "legacy": "idx_supplier_statement_item_tenant",
+   "table": "t_supplier_statement_item"
+  },
+  {
+   "canonical": "idx_t_customer_statement_tenant",
+   "legacy": "idx_customer_statement_tenant",
+   "table": "t_customer_statement"
+  },
+  {
+   "canonical": "idx_t_customer_payment_tenant",
+   "legacy": "idx_customer_payment_tenant",
+   "table": "t_customer_payment"
+  },
+  {
+   "canonical": "idx_t_receivable_account_tenant",
+   "legacy": "idx_receivable_account_tenant",
+   "table": "t_receivable_account"
+  },
+  {
+   "canonical": "idx_t_payment_order_tenant",
+   "legacy": "idx_payment_order_tenant",
+   "table": "t_payment_order"
+  },
+  {
+   "canonical": "idx_t_refund_order_tenant",
+   "legacy": "idx_refund_order_tenant",
+   "table": "t_refund_order"
+  },
+  {
+   "canonical": "idx_t_hold_order_tenant",
+   "legacy": "idx_hold_order_tenant",
+   "table": "t_hold_order"
+  },
+  {
+   "canonical": "idx_t_miniapp_order_tenant",
+   "legacy": "idx_miniapp_order_tenant",
+   "table": "t_miniapp_order"
+  },
+  {
+   "canonical": "idx_t_miniapp_order_item_tenant",
+   "legacy": "idx_miniapp_order_item_tenant",
+   "table": "t_miniapp_order_item"
+  },
+  {
+   "canonical": "idx_t_collection_link_tenant",
+   "legacy": "idx_collection_link_tenant",
+   "table": "t_collection_link"
+  },
+  {
+   "canonical": "idx_t_collection_view_log_tenant",
+   "legacy": "idx_collection_view_log_tenant",
+   "table": "t_collection_view_log"
+  },
+  {
+   "canonical": "idx_t_collection_record_tenant",
+   "legacy": "idx_collection_record_tenant",
+   "table": "t_collection_record"
+  },
+  {
+   "canonical": "idx_t_credit_operation_log_tenant",
+   "legacy": "idx_credit_operation_log_tenant",
+   "table": "t_credit_operation_log"
+  },
+  {
+   "canonical": "idx_t_notification_tenant",
+   "legacy": "idx_notification_tenant",
+   "table": "t_notification"
+  },
+  {
+   "canonical": "idx_t_operation_log_tenant",
+   "legacy": "idx_operation_log_tenant",
+   "table": "t_operation_log"
+  },
+  {
+   "canonical": "idx_t_product_price_log_tenant",
+   "legacy": "idx_product_price_log_tenant",
+   "table": "t_product_price_log"
+  }
+ ],
+ "010_phase7_credit_tenant.sql": [
+  {
+   "canonical": "idx_t_customer_credit_tenant",
+   "legacy": "idx_customer_credit_tenant",
+   "table": "t_customer_credit"
+  },
+  {
+   "canonical": "idx_t_credit_operation_log_tenant",
+   "legacy": "idx_credit_operation_log_tenant",
+   "table": "t_credit_operation_log"
+  },
+  {
+   "canonical": "idx_t_collection_record_tenant",
+   "legacy": "idx_collection_record_tenant",
+   "table": "t_collection_record"
+  }
+ ],
+ "012_phase7_price_tenant.sql": [
+  {
+   "canonical": "idx_t_price_level_tenant",
+   "legacy": "idx_price_level_tenant",
+   "table": "t_price_level"
+  },
+  {
+   "canonical": "idx_t_sku_price_tenant",
+   "legacy": "idx_sku_price_tenant",
+   "table": "t_sku_price"
+  },
+  {
+   "canonical": "idx_t_customer_price_binding_tenant",
+   "legacy": "idx_customer_price_binding_tenant",
+   "table": "t_customer_price_binding"
+  },
+  {
+   "canonical": "idx_t_price_change_log_tenant",
+   "legacy": "idx_price_change_log_tenant",
+   "table": "t_price_change_log"
+  }
+ ]
+}

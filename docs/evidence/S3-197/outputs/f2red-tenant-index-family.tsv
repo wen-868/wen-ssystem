@@ -1,0 +1,11 @@
+文件	行号	表	语料索引名	规范索引名	定性
+010_phase7_credit_tenant.sql	21	t_customer_credit	idx_customer_credit_tenant	idx_t_customer_credit_tenant	重复（与规范索引同表同列）
+010_phase7_credit_tenant.sql	28	t_credit_operation_log	idx_credit_operation_log_tenant	idx_t_credit_operation_log_tenant	重复（与规范索引同表同列）
+010_phase7_credit_tenant.sql	35	t_collection_record	idx_collection_record_tenant	idx_t_collection_record_tenant	重复（与规范索引同表同列）
+012_phase7_price_tenant.sql	21	t_price_level	idx_price_level_tenant	idx_t_price_level_tenant	重复（与规范索引同表同列）
+012_phase7_price_tenant.sql	28	t_sku_price	idx_sku_price_tenant	idx_t_sku_price_tenant	重复（与规范索引同表同列）
+012_phase7_price_tenant.sql	35	t_customer_price_binding	idx_customer_price_binding_tenant	idx_t_customer_price_binding_tenant	重复（与规范索引同表同列）
+012_phase7_price_tenant.sql	42	t_price_change_log	idx_price_change_log_tenant	idx_t_price_change_log_tenant	重复（与规范索引同表同列）
+052_add_retail_announcement.sql	20	t_retail_announcement	idx_tenant	idx_t_retail_announcement_tenant	非重复（本库无规范索引）
+-- 汇总：命中语句 8 / 其中构成重复 7 / 非重复 1
+-- 构成重复的按文件：010_phase7_credit_tenant.sql(3) 012_phase7_price_tenant.sql(4)

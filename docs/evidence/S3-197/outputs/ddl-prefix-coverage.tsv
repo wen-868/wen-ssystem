@@ -1,0 +1,3 @@
+DDL 位置	命中语句	表名缺前缀(修复前)	修复后已补	修复后仍缺	样本
+CREATE INDEX … ON	5	3	3	0	093_库存增加租户ID.sql | inventory_balance → t_inventory_balance ; 093_库存增加租户ID.sql | inventory_batch → t_inventory_batch ; 093_库存增加租户ID.sql | inventory_ledger → t_inventory_ledger
+-- 汇总：表名缺前缀命中总条数 3 / 修复后被补上 3 / 修复后仍缺（含字符串字面量里的表名，产品结构性看不到）0

@@ -1,0 +1,4 @@
+文件	行号	表	语料索引名	规范索引名	定性
+052_add_retail_announcement.sql	20	t_retail_announcement	idx_tenant	idx_t_retail_announcement_tenant	非重复（本库无规范索引）
+-- 汇总：命中语句 1 / 其中构成重复 0 / 非重复 1
+-- 构成重复的按文件：

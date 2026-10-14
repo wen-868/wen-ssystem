@@ -1,0 +1,17 @@
+表	列	唯一性	索引名（同名集合）
+t_coupon_template	status	普通	idx_coupon_template_status , idx_template_status
+t_inventory_balance	tenant_id	普通	idx_t_inventory_balance_tenant , idx_tenant_ib
+t_inventory_batch	tenant_id	普通	idx_t_inventory_batch_tenant , idx_tenant_ibat
+t_inventory_ledger	tenant_id	普通	idx_t_inventory_ledger_tenant , idx_tenant_il
+t_member	customer_type,status	普通	idx_member_customer_type , idx_member_type_status
+t_product_review	review_no	UNIQUE	review_no , uk_review_no
+t_purchase_in_stock	order_no	普通	idx_purchase_in_stock_order , idx_purchase_in_stock_order_no
+t_receivable	customer_id	普通	idx_customer , idx_receivable_customer_id
+t_receivable	status	普通	idx_receivable_status , idx_status
+t_sys_role	tenant_id	普通	idx_t_sys_role_tenant , idx_tenant
+t_sys_user_role	tenant_id	普通	idx_t_sys_user_role_tenant , idx_tenant
+t_sys_user	tenant_id	普通	idx_t_sys_user_tenant , idx_tenant
+t_user_coupon	status	普通	idx_status , idx_user_coupon_status
+t_user_coupon	template_id	普通	idx_template , idx_user_coupon_template_id
+t_wholesale_order	order_no	UNIQUE	order_no , uk_order_no
+-- 汇总：索引总数 1296 / 重复组 15 / 重复组内索引数 30
