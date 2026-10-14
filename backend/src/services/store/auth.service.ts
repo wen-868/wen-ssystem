@@ -3,6 +3,10 @@ import { query, queryOne, queryOneWithTenant } from "../../shared/db";
 import { signToken, getUserAccessInfo } from "../../middleware/auth";
 import { verifyPassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
+// S3-203：移动端（store）与工作台（admin）必须从**同一处**解析同一角色的权限集合
+import { getUserPermissions } from "../../shared/user-permissions";
+// S3-203：唯一对外账号（admin）的核定口径与 auth.service.ts / 限流器同源
+import { constants } from "../../config/constants";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
@@ -64,12 +68,22 @@ export async function login(username: string, password: string) {
     throw new AppError("账号已禁用", 400);
   }
 
-  if (account.locked_until && new Date(account.locked_until) > new Date()) {
+  // S3-203：唯一对外账号（`admin`，同时承担演示入口）对「账号锁定」免疫 —— 与
+  // services/admin/auth.service.ts 的 S3-172 豁免同一口径（常量同源：config/constants.ts 的
+  // DEMO_USERNAME）。理由：该口令是公开值（登录页一键演示），锁它只毁演示、没有安全收益；
+  // 真实滥用防护在限流/审计层。
+  const isDemoAccount = account.username === constants.DEMO_USERNAME;
+
+  if (!isDemoAccount && account.locked_until && new Date(account.locked_until) > new Date()) {
     const remainingMinutes = Math.ceil((new Date(account.locked_until).getTime() - Date.now()) / 60000);
     throw new AppError(`账号已锁定，请${remainingMinutes}分钟后重试`, 400);
   }
 
   if (!(await verifyPassword(password, account.password_hash))) {
+    // S3-203：豁免账号不累加失败计数、不写 locked_until（其余分支一字不改）
+    if (isDemoAccount) {
+      throw new AppError("账号或密码错误", 400);
+    }
     const newFailCount = (account.login_fail_count || 0) + 1;
     let lockedUntil = null;
 
@@ -95,15 +109,21 @@ export async function login(username: string, password: string) {
     [account.id]
   );
 
+  const tenantId = account.tenant_id || 'default';
+  // S3-203（跨端口径一致）：角色行必须与被绑定行同租户 —— 与工作台
+  // `getUserPermissions()`（`r.tenant_id = ur.tenant_id`）保持同一判据；
+  // 缺这条过滤时跨租户绑定会让同一 role_code 命中多行，两端口径就此分叉。
   const roles = await query<RoleRow>(
     `SELECT r.role_code
      FROM t_sys_user_role ur
-     JOIN t_sys_role r ON r.id = ur.role_id
+     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
      WHERE ur.user_id = ? AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')`,
     [account.id]
   );
   const roleCodes = roles.map((r) => r.role_code);
-  const tenantId = account.tenant_id || 'default';
+  // S3-203：登录响应**必须带上**与工作台同源的权限集合（此前移动端登录响应里没有 permissions，
+  // 权限只能靠 getCurrentUser 里那份硬编码数组 ⇒ 同一角色两端不一致）。
+  const permissions = await getUserPermissions(account.id, tenantId);
   const authUser = {
     id: account.id,
     username: account.username,
@@ -120,6 +140,7 @@ export async function login(username: string, password: string) {
     roles: authUser.roles,
     storeId: account.store_id ?? 1,
     tenantId,
+    permissions,
     ...accessInfo
   };
   const token = signToken(authUser);
@@ -132,18 +153,28 @@ interface StoreAuthUserInput {
   username?: string | null;
   storeId?: number | null;
   roles?: string[];
+  /** 租户 id（S3-203：解析权限集合必须限定租户，与工作台同判据） */
+  tenantId?: string | null;
 }
 
-export function getCurrentUser(user: StoreAuthUserInput) {
+/**
+ * 移动端「当前用户」。
+ *
+ * S3-203 口径变更：`permissions` 原先是一份**硬编码数组**（`dashboard.view` / `order.view` …），
+ * 那是移动端自带的**第二套权限口径** —— 同一角色在工作台读 `t_sys_role.permissions`、
+ * 在移动端读这份常量，两端天然可能不一致，且角色配置改了移动端不会跟。
+ * 现在改成读**同一处** `getUserPermissions()`（shared/user-permissions.ts）。
+ * `menus` 仍是移动端自己的页面清单（不属于权限口径），维持不变。
+ */
+export async function getCurrentUser(user: StoreAuthUserInput) {
+  const tenantId = user.tenantId || "default";
+  const permissions = await getUserPermissions(user.id, tenantId);
   return {
     userId: user.id,
     realName: user.username ?? "商家用户",
     storeId: user.storeId ?? 1,
     role: user.roles?.[0] ?? "STAFF",
-    permissions: [
-      "dashboard.view", "order.view", "order.deliver", "order.complete",
-      "inventory.view", "customer.view", "receivable.view", "report.view"
-    ],
+    permissions,
     menus: ["home", "orders", "inventory", "customers", "receivables", "reports", "profile"]
   };
 }

@@ -1,0 +1,459 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-203/backend
+
+[2026-10-15 03:28:27.191 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-15 03:28:27.192 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 03:28:28.209 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-15 03:28:28.209 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 03:28:30.227 +0800] [31mERROR[39m (10936): [36m[push.fcm] 推送失败: FCM 网络错误[39m
+[2026-10-15 03:28:30.237 +0800] [33mWARN[39m (10936): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-15 03:28:30.237 +0800] [33mWARN[39m (10936): [36m[http-retry] https://api.jpush.cn/v3/push 第 1 次重试（1000ms 后）[39m
+[2026-10-15 03:28:31.240 +0800] [33mWARN[39m (10936): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-15 03:28:31.241 +0800] [33mWARN[39m (10936): [36m[http-retry] https://api.jpush.cn/v3/push 第 2 次重试（2000ms 后）[39m
+[2026-10-15 03:28:33.250 +0800] [31mERROR[39m (10936): [36m[push.jpush] 推送失败: 连接超时[39m
+[2026-10-15 03:28:33.259 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-15 03:28:33.260 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 03:28:34.270 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-15 03:28:34.271 +0800] [33mWARN[39m (10936): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 03:28:36.277 +0800] [31mERROR[39m (10936): [36m[push.fcm] 推送失败: network down[39m
+[2026-10-15 03:28:36.286 +0800] [33mWARN[39m (10936): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-15 03:28:36.286 +0800] [33mWARN[39m (10936): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 1 次重试（1000ms 后）[39m
+[2026-10-15 03:28:37.297 +0800] [33mWARN[39m (10936): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-15 03:28:37.297 +0800] [33mWARN[39m (10936): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 2 次重试（2000ms 后）[39m
+[2026-10-15 03:28:39.312 +0800] [31mERROR[39m (10936): [36m[push.hms] 获取 access_token 失败: token endpoint down[39m
+[2026-10-15 03:28:39.315 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-15 03:28:39.315 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 03:28:40.328 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-15 03:28:40.328 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 03:28:42.338 +0800] [31mERROR[39m (10936): [36m[push.hms] 推送失败: HTTP 500[39m
+[2026-10-15 03:28:42.340 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-15 03:28:42.340 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 03:28:43.342 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-15 03:28:43.342 +0800] [33mWARN[39m (10936): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 03:28:45.350 +0800] [31mERROR[39m (10936): [36m[push.hms] 推送失败: push endpoint down[39m
+[2026-10-15 03:29:01.410 +0800] [31mERROR[39m (3388): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "mobile"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"mobile\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "mobile"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 03:29:01.449 +0800] [31mERROR[39m (3388): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "name"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "mobile"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"name\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"mobile\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "name"
+              ],
+              "message": "Required"
+            },
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "mobile"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ]
+        },
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ],
+          "message": "Required"
+        },
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 03:29:01.467 +0800] [31mERROR[39m (3388): [36m[
+  {
+    "validation": "regex",
+    "code": "invalid_string",
+    "message": "手机号格式不正确",
+    "path": [
+      "mobile"
+    ]
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"validation\": \"regex\",\n    \"code\": \"invalid_string\",\n    \"message\": \"手机号格式不正确\",\n    \"path\": [\n      \"mobile\"\n    ]\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "validation": "regex",
+              "code": "invalid_string",
+              "message": "手机号格式不正确",
+              "path": [
+                "mobile"
+              ]
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "手机号格式不正确",
+          "stack":
+              
+          "validation": "regex",
+          "code": "invalid_string",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "validation": "regex",
+          "code": "invalid_string",
+          "message": "手机号格式不正确",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 03:29:01.503 +0800] [31mERROR[39m (3388): [36mDuplicate entry '13900000001' for key 't_member.uk_member_mobile'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry '13900000001' for key 't_member.uk_member_mobile'",
+      "stack":
+          Error: Duplicate entry '13900000001' for key 't_member.uk_member_mobile'
+              at driverError (D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:118:7
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-15 03:29:01.508 +0800] [31mERROR[39m (3388): [36mDuplicate entry 'x' for key 'uk_some_unknown_key'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry 'x' for key 'uk_some_unknown_key'",
+      "stack":
+          Error: Duplicate entry 'x' for key 'uk_some_unknown_key'
+              at driverError (D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:134:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-15 03:29:01.510 +0800] [31mERROR[39m (3388): [36mColumn 'mobile' cannot be null[39m
+    err: {
+      "type": "Error",
+      "message": "Column 'mobile' cannot be null",
+      "stack":
+          Error: Column 'mobile' cannot be null
+              at driverError (D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:144:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_BAD_NULL_ERROR",
+      "errno": 1048
+    }
+[2026-10-15 03:29:01.512 +0800] [31mERROR[39m (3388): [36mField 'rule_name' doesn't have a default value[39m
+    err: {
+      "type": "Error",
+      "message": "Field 'rule_name' doesn't have a default value",
+      "stack":
+          Error: Field 'rule_name' doesn't have a default value
+              at driverError (D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:153:7
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_NO_DEFAULT_FOR_FIELD",
+      "errno": 1364
+    }
+[2026-10-15 03:29:01.516 +0800] [31mERROR[39m (3388): [36mYou have an error in your SQL syntax[39m
+    err: {
+      "type": "Error",
+      "message": "You have an error in your SQL syntax",
+      "stack":
+          Error: You have an error in your SQL syntax
+              at driverError (D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:165:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_PARSE_ERROR",
+      "errno": 1064
+    }
+[2026-10-15 03:29:01.518 +0800] [31mERROR[39m (3388): [36m未知错误[39m
+    err: {
+      "type": "Error",
+      "message": "未知错误",
+      "stack":
+          Error: 未知错误
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/__tests__/routes/s3-181-write-500.test.ts:173:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+    }
+[2026-10-15 03:29:01.537 +0800] [31mERROR[39m (3388): [36mSKU不存在：99999999[39m
+    err: {
+      "type": "AppError",
+      "message": "SKU不存在：99999999",
+      "stack":
+          AppError: SKU不存在：99999999
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/services/store/sale-bill.service.ts:279:25
+              at processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/controllers/store/sale-bill.controller.ts:81:18
+      "statusCode": 400,
+      "name": "AppError"
+    }
+[2026-10-15 03:29:01.549 +0800] [31mERROR[39m (3388): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "array",
+    "received": "undefined",
+    "path": [
+      "items"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"array\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"items\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "array",
+              "received": "undefined",
+              "path": [
+                "items"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-203/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/controllers/store/sale-bill.controller.ts:79:6
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:149:13)
+              at D:/Users/ZXQL/wt-agents/S3-203/backend/src/middleware/rbac-auth.ts:15:7
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-203\node_modules\express\lib\router\route.js:119:3)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "items"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "items"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 03:29:01.544 +0800] [31mERROR[39m (12056): [36m[platform-rbac] 权限校验失败（fail-closed，已拒绝）：adminId=42 code=sysconfig:manage err=ER_NO_SUCH_TABLE[39m
+[2026-10-15 03:29:14.286 +0800] [31mERROR[39m (4064): [36m[rate-limit] Redis 连接错误:[39m
+    [35mextra[39m: [
+      "boom"
+    ]
+[2026-10-15 03:29:14.288 +0800] [31mERROR[39m (4064): [36m[rate-limit] RedisStore 初始化失败，降级 MemoryStore:[39m
+    [35mextra[39m: [
+      "mock RedisStore 初始化失败"
+    ]
+
+ Test Files  663 passed (663)
+      Tests  7972 passed (7972)
+   Start at  03:28:25
+   Duration  158.36s (transform 39.75s, setup 7.84s, import 556.01s, tests 113.54s, environment 179ms)
+

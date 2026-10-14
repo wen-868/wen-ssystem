@@ -57,7 +57,7 @@ const DB = {
 };
 // S3-175：管理员口令不再写死公开值 —— 与迁移口径一致（迁移读 SEED_ADMIN_PASSWORD，
 // 未被注入时用随机值）。本机取证装置由 s3-151-barcode-tenant-unique.ps1 注入 SEED_ADMIN_PASSWORD。
-const ADMIN_PASSWORD = process.env.S3_151_ADMIN_PASSWORD || process.env.DEMO_PASSWORD || "Demo@2026";
+const ADMIN_PASSWORD = process.env.S3_151_ADMIN_PASSWORD || process.env.DEMO_PASSWORD || "admin@2026";
 const TENANT_B = "t151b";
 const USER_B = "s151_admin_b";
 const BARCODE = "6901234567890";

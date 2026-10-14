@@ -53,7 +53,7 @@ $env:JWT_SECRET = "s3-151-local-harness-secret"
 $env:CSRF_SECRET = "s3-151-local-harness-csrf"
 # S3-175：迁移不再写死 admin 口令（读 SEED_ADMIN_PASSWORD，否则随机）。
 # 本机取证装置显式注入统一演示口令，保证装置内 admin 口令与 harness 的默认值一致。
-$env:SEED_ADMIN_PASSWORD = if ($env:DEMO_PASSWORD) { $env:DEMO_PASSWORD } else { "Demo@2026" }
+$env:SEED_ADMIN_PASSWORD = if ($env:DEMO_PASSWORD) { $env:DEMO_PASSWORD } else { "admin@2026" }
 $env:DB_HOST = "127.0.0.1"
 $env:DB_PORT = "3399"
 $env:DB_USER = "root"

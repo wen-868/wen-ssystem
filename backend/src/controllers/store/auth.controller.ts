@@ -8,7 +8,8 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 export const getMe = asyncHandler(async (req, res) => {
-  res.json(ok(authService.getCurrentUser(req.user!)));
+  // S3-203：getCurrentUser 改为从 t_sys_role.permissions 解析权限集合（与工作台同源），故改为 await
+  res.json(ok(await authService.getCurrentUser(req.user!)));
 });
 
 export const getStoreInfo = asyncHandler(async (req, res) => {

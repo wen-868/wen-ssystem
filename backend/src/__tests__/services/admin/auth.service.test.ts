@@ -341,7 +341,8 @@ describe("auth.service", () => {
       mocks.getUserAccessInfo.mockReturnValue({ defaultMode: "ADMIN" });
       mocks.signToken.mockReturnValue("demo-token");
 
-      const res = tokenResult(await login(DEMO_USERNAME, "Demo@2026"));
+      // S3-203：口令值统一从常量取（旧字面量已随唯一对外账号口径更换）
+      const res = tokenResult(await login(DEMO_USERNAME, constants.DEMO_PASSWORD));
 
       expect(res.token).toBe("demo-token");
       // 成功路径把锁定状态清零（演示账号被锁过也不影响下次登录）
@@ -411,7 +412,7 @@ describe("auth.service", () => {
     it("账号已存在且被禁用/锁定：不重复建号，幂等绑超管并自动恢复，返回完整令牌", async () => {
       mocks.queryOne
         .mockResolvedValueOnce({
-          id: 3, username: "demo", password_hash: "h", real_name: "演示账号",
+          id: 3, username: constants.DEMO_USERNAME, password_hash: "h", real_name: "演示账号",
           store_id: null, status: 0, tenant_id: "default",
           login_fail_count: 5, locked_until: new Date(Date.now() + 600000),
         })
@@ -430,8 +431,9 @@ describe("auth.service", () => {
       expect(res.token).toBe("demo-token");
       expect(res.demo).toBe(true);
       expect(res.user.id).toBe(3);
-      // S3-174-F1：演示账号必须落在演示租户 demo（不得留在真实业务租户 default）
-      expect(res.user.tenantId).toBe("demo");
+      // S3-203（业主 2026-10-15 口径）：唯一对外账号就是**真实租户 default 的超管 admin**
+      //（S3-174-F1 的「演示账号隔离到 demo 租户」已被业主口径作废，见处置卡 §四.4）
+      expect(res.user.tenantId).toBe("default");
       expect(res.user.roles).toEqual(["SUPER_ADMIN"]);
       expect(typeof res.csrfToken).toBe("string");
       // 自动恢复：被禁用 → 启用
@@ -451,43 +453,29 @@ describe("auth.service", () => {
       expect(createdAccount).toBe(false);
       expect(mocks.query).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)"),
-        [3, 7, "demo", 3, 7]
+        [3, 7, "default", 3, 7]
       );
-      // S3-174-F2：超管角色查询必须限定 demo 租户 —— 不限租户（LIMIT 1 命中 default 的角色行）
-      // 登录一次就把 default 的角色 id 绑进 demo，且会让随后重跑 197 的"按 role_code 重指向"
-      // 撞上 uk_sys_user_role (user_id, role_id) 唯一键
+      // S3-174-F2：超管角色查询必须限定租户（凭据/角色行不得跨租户串用）
+      // —— 租户取值随 S3-203 由 demo 改为 default（唯一对外账号的归属租户）
       expect(mocks.queryOne).toHaveBeenCalledWith(
         expect.stringContaining("role_code = 'SUPER_ADMIN' AND tenant_id = ?"),
-        ["demo"]
+        ["default"]
       );
     });
 
-    it("账号不存在：自动建号（随机哈希占位）+ 绑超管 + 返回令牌", async () => {
-      mocks.queryOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({ id: 7, role_code: "SUPER_ADMIN" });
-      mocks.query.mockImplementation((sql: string) => {
-        if (sql.includes("INSERT INTO t_sys_user (username")) {
-          return Promise.resolve({ insertId: 9 });
-        }
-        if (sql.includes("FROM t_sys_user_role ur")) {
-          return Promise.resolve([{ role_code: "SUPER_ADMIN", permissions: ["*"] }]);
-        }
-        return Promise.resolve([]);
-      });
-      mocks.hashPassword.mockResolvedValue("hashed-random");
-      mocks.getUserAccessInfo.mockReturnValue({});
-      mocks.signToken.mockReturnValue("demo-token-2");
+    it("S3-203：账号不存在 ⇒ fail-closed 报错，绝不自动建号（不再凭空造超管账号）", async () => {
+      mocks.queryOne.mockResolvedValueOnce(null);
+      mocks.query.mockResolvedValue([]);
 
-      const res = await demoLogin();
+      await expect(demoLogin()).rejects.toThrow("演示入口账号未初始化");
 
-      expect(res.token).toBe("demo-token-2");
-      expect(res.user.id).toBe(9);
-      expect(res.demo).toBe(true);
-      expect(mocks.hashPassword).toHaveBeenCalledTimes(1);
-      expect(mocks.query).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO t_sys_user (username, password_hash"),
-        ["demo", "hashed-random", "演示账号", "demo"]
+      // 反向自证：任何建号 / 绑角色语句都不得被下发
+      const wrote = mocks.query.mock.calls.map((c: unknown[]) => String(c[0]));
+      expect(wrote.some((sql) => sql.includes("INSERT INTO t_sys_user"))).toBe(false);
+      // 账号查询必须带租户限定（否则 LIMIT 1 可能命中别的租户的同名账号）
+      expect(mocks.queryOne).toHaveBeenCalledWith(
+        expect.stringContaining("WHERE username = ? AND tenant_id = ?"),
+        [constants.DEMO_USERNAME, "default"]
       );
     });
   });

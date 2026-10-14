@@ -345,7 +345,7 @@ test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11
   ensureCoverageManifest();
   await page.goto("/");
   await page.getByPlaceholder("账号").fill("admin");
-  await page.getByPlaceholder("密码").fill("Demo@2026");
+  await page.getByPlaceholder("密码").fill("admin@2026");
   await page.getByRole("button", { name: "立即登录" }).click();
   await expect(page).not.toHaveURL(/\/login/, { timeout: 20_000 });
 
@@ -471,7 +471,7 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
     ensureCoverageManifest();
     await page.goto("/");
     await page.getByPlaceholder("账号").fill("admin");
-    await page.getByPlaceholder("密码").fill("Demo@2026");
+    await page.getByPlaceholder("密码").fill("admin@2026");
     await page.getByRole("button", { name: "立即登录" }).click();
     await expect(page).not.toHaveURL(/\/login/, { timeout: 20_000 });
     await page.getByText("工作台", { exact: false }).first().waitFor({ timeout: 20_000 });

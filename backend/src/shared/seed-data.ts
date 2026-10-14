@@ -7,9 +7,9 @@
  * 解决问题：R53-03 真实 MySQL 数据库中除 admin 用户外无业务数据，Dashboard 全部显示零
  */
 import mysql from "mysql2/promise";
+import crypto from "node:crypto";
 import logger from "./logger";
 import { hashPasswordSync } from "./password";
-import { constants } from "../config/constants";
 
 const TENANT_ID = "default";
 
@@ -76,9 +76,13 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
     }
 
     // ============================================================
-    // 1.1 确保演示账号存在（幂等：已存在则跳过，不覆盖密码）
-    // 演示/测试账号：store_manager（店长）/ store_operator（店员），绑定总店，可体验全部业务数据
-    // S3-175：口令全系统统一为 constants.DEMO_PASSWORD（已生效口径 Demo@2026），不再各自写死。
+    // 1.1 确保门店角色账号存在（幂等：已存在则跳过，不覆盖密码）
+    // 门店角色账号：store_manager（店长）/ store_operator（店员），绑定总店，可体验全部业务数据
+    // S3-203（业主 2026-10-15 口径）：**唯一对外口令只属于 admin 一个账号**，
+    // 门店账号属"内部账号"，口令为**随机强口令**（只落哈希、明文不入仓、不出现在任何文档），
+    // 因此这里**不再**用 constants.DEMO_PASSWORD 建号 —— 否则新建库里这两个账号又会拿到公开口令
+    //（与迁移 docs/migrations/200_账号口径统一.sql 的轮换口径自相矛盾）。
+    // 需要以这两个角色登录时：用后台重置口令，或注入 STORE_*_PASSWORD 后按需设定。
     // ============================================================
     const demoAccounts = [
         { username: "store_manager", realName: "默认店长", mobile: "13800000001", storeId },
@@ -101,7 +105,15 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
         const [insertResult] = await conn.query(
             `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, store_id, status, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())`,
-            [TENANT_ID, acc.username, hashPasswordSync(constants.DEMO_PASSWORD), acc.realName, acc.mobile, acc.storeId]
+            // S3-203：随机强口令（无法通过"公开口令"登录；明文不落任何位置）
+            [
+                TENANT_ID,
+                acc.username,
+                hashPasswordSync(crypto.randomBytes(24).toString("base64url")),
+                acc.realName,
+                acc.mobile,
+                acc.storeId,
+            ]
         );
         const userId = (insertResult as { insertId?: number }).insertId;
         if (userId) {
@@ -111,7 +123,7 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
                  ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)`,
                 [userId, TENANT_ID, demoRoleCodes[acc.username]]
             );
-            logger.info(`[seed] 演示账号 ${acc.username} 创建成功（口令取自统一演示口径 DEMO_PASSWORD，不打印明文）`);
+            logger.info(`[seed] 门店角色账号 ${acc.username} 创建成功（S3-203：随机强口令，不公开、不打印）`);
         }
     }
 

@@ -13,8 +13,8 @@ test("工作台登录旅程（账号+密码 → 进入系统）", async ({ page 
 
   // 填写并提交
   await page.getByPlaceholder("账号").fill("admin");
-  // S3-175：演示/测试账号口令全系统统一为 Demo@2026（mock 库 admin 亦用同一口径）
-  await page.getByPlaceholder("密码").fill("Demo@2026");
+  // S3-203：唯一对外账号为 admin / admin@2026（S3-175 那套 demo 账号+旧口令口径已整体作废）
+  await page.getByPlaceholder("密码").fill("admin@2026");
   await page.getByRole("button", { name: "立即登录" }).click();
 
   // 登录成功：进入工作台（URL 离开登录页，导航或看板出现）
@@ -64,12 +64,12 @@ test("演示登录：点一次即自动填入账号+口令、自动提交正常�
   await page.getByRole("button", { name: "演示登录（一键进入）" }).click();
 
   // ① 用户零输入：两个框被自动填入演示凭据
-  await expect(account).toHaveValue("demo");
-  await expect(password).toHaveValue("Demo@2026");
+  await expect(account).toHaveValue("admin");
+  await expect(password).toHaveValue("admin@2026");
 
   // ② 自动提交的是正常登录，且带的是演示凭据（不是空提交、也不是免密通道）
-  expect(loginPostData).toContain('"username":"demo"');
-  expect(loginPostData).toContain("Demo@2026");
+  expect(loginPostData).toContain('"username":"admin"');
+  expect(loginPostData).toContain("admin@2026");
   expect(demoFallbackCalls).toBe(0);
 
   // ③ 直达工作台

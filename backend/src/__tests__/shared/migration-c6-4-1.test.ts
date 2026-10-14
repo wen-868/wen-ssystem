@@ -47,12 +47,15 @@ const FILE_191 = `191_${MIG_191}`;
  * （并行单若取更高号，以最高者为准）。
  * 200 = S3-204（跨线协作：t_product_price_log 补 source 列，区分 admin=后台改价 / ai=AI 底座改价；
  * 只加一列 + 一条跑后核对 SELECT，零 DML、零数据回填；幂等守卫走 information_schema + PREPARE/EXECUTE）。
+ * 201 = S3-203（账号口径统一：唯一对外账号 admin 的口令哈希、门店两账号口令轮换、
+ * demo 账号停用；只写 t_sys_user / t_platform_admin 两张系统表，零 DDL、零结构变更）。
+ * ⚠️ 编号订正：S3-203 原占 200，与已合的 S3-204 撞号 ⇒ 改号为 **201**（凌舟 2026-10-15 处置）。
  * 本快照随每批迁移**显式同步**（同 C6-4-1-F2 口径：新增迁移必须被人显式承认），
  * 不得改为"只断言不重复"或删除"最高编号"断言。
  * 编号沿革：192 = S3-144（租户建租户与归因落点补列）；193 = S3-147 预留（只加 t_shift.shift_type 列，
  * 尚未合入 main，故本分支上按文件实算的最高编号就是 194）。
  */
-const EXPECTED_MAX_MIGRATION = 200;
+const EXPECTED_MAX_MIGRATION = 201;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);

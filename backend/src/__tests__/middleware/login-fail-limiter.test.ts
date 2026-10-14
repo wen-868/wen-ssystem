@@ -242,15 +242,18 @@ describe("middleware/login-fail-limiter（S3-58-F1 R2 维度改造）", () => {
 
   it("① 合法用户换来源仍能登录：A 来源失败至锁定后，B 来源正确口令仍 200", async () => {
     const app = makeIpApp(createLoginFailLimiters().all);
+    // S3-203：`admin` 已是**豁免账号**（唯一对外账号，账号维度不计数）⇒ 本组必须改用非豁免账号，
+    // 否则测不到「单一来源被锁、其它来源不受连坐」这件事。
+    const NON_EXEMPT = "store_manager";
     for (let i = 0; i < LOGIN_FAIL_MAX; i++) {
-      expect((await failFrom(app, "203.0.113.7", "admin")).status).toBe(401);
+      expect((await failFrom(app, "203.0.113.7", NON_EXEMPT)).status).toBe(401);
     }
     // A 来源确实被锁（真的锁住，不是只提示）
-    const lockedA = await failFrom(app, "203.0.113.7", "admin");
+    const lockedA = await failFrom(app, "203.0.113.7", NON_EXEMPT);
     expect(lockedA.status).toBe(429);
     expect(lockedA.body.msg).toMatch(/锁定/);
     // B 来源用正确口令 —— 不该被 A 来源的失败连坐
-    const okB = await okFrom(app, "198.51.100.9", "admin");
+    const okB = await okFrom(app, "198.51.100.9", NON_EXEMPT);
     expect(okB.status).toBe(200);
     expect(okB.body.code).toBe("0");
   });
@@ -261,13 +264,13 @@ describe("middleware/login-fail-limiter（S3-58-F1 R2 维度改造）", () => {
     // 12 个来源 × 5 次 = 60 次（每个来源都恰好停在 5 次快锁阈值上）
     for (let i = 0; i < 12; i++) {
       for (let k = 0; k < 5; k++) {
-        const res = await failFrom(app, `10.0.${i}.1`, "admin");
+        const res = await failFrom(app, `10.0.${i}.1`, "store_manager");
         if (res.status === 401) allowed++;
       }
     }
     expect(allowed).toBe(ACCOUNT_BACKSTOP_MAX); // 60 次全部落到业务层（未被快锁误伤）
 
-    const blocked = await failFrom(app, "10.0.99.1", "admin");
+    const blocked = await failFrom(app, "10.0.99.1", "store_manager");
     expect(blocked.status).toBe(429);
     expect(blocked.body.code).toBe("429");
     expect(blocked.body.msg).toMatch(/账号/);
@@ -298,13 +301,15 @@ describe("middleware/login-fail-limiter（S3-58-F1 R2 维度改造）", () => {
 describe("middleware/login-fail-limiter（S3-172 演示账号账号维度豁免）", () => {
   it("豁免对象与登录服务**同源**：DEMO_EXEMPT_USERNAME === auth.service 的 DEMO_USERNAME", () => {
     expect(DEMO_EXEMPT_USERNAME).toBe(DEMO_USERNAME);
-    expect(DEMO_EXEMPT_USERNAME).toBe("demo");
+    // S3-203（业主 2026-10-15）：唯一对外账号由独立 `demo` 账号改为**真实租户 default 的超管 admin**，
+    // 豁免对象随常量同源漂移 ⇒ 这里钉的就是「豁免谁」这件事，不是「值必须叫 demo」。
+    expect(DEMO_EXEMPT_USERNAME).toBe("admin");
   });
 
   it("判定函数口径与归桶一致：trim + 小写后相等才算（非字符串/空串一律不豁免）", () => {
-    expect(isDemoExemptUsername("demo")).toBe(true);
-    expect(isDemoExemptUsername("  DEMO ")).toBe(true);
-    expect(isDemoExemptUsername("demo1")).toBe(false);
+    expect(isDemoExemptUsername("admin")).toBe(true);
+    expect(isDemoExemptUsername("  ADMIN ")).toBe(true);
+    expect(isDemoExemptUsername("admin1")).toBe(false);
     expect(isDemoExemptUsername("")).toBe(false);
     expect(isDemoExemptUsername("   ")).toBe(false);
     expect(isDemoExemptUsername(undefined)).toBe(false);
