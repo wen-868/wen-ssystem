@@ -155,6 +155,12 @@ CREATE TABLE IF NOT EXISTS t_retail_order_item (
   CONSTRAINT fk_retail_order_item_order FOREIGN KEY (order_id) REFERENCES retail_order(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='零售订单明细表';
 
+-- 审计留痕（S3-199 · 收口总清单第 66 项）：本表 order_id → t_retail_order.id 的外键带 ON DELETE CASCADE。
+--   当前零售订单**无物理删除路径**（全仓检索 DELETE FROM t_retail_order 命中 0 处；订单作废走软删：
+--   t_retail_order.order_status = 'CANCELLED' 配 cancel_reason / cancelled_at），故该级联今日不会触发。
+--   若将来引入零售订单物理删除：**必须先把本外键改为 ON DELETE RESTRICT（或整体改软删）**，
+--   否则删订单会静默删除订单明细，审计链断裂。
+
 -- 7. 配送配置表（delivery_config）
 CREATE TABLE IF NOT EXISTS t_delivery_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -198,6 +204,11 @@ CREATE TABLE IF NOT EXISTS t_delivery_record (
   INDEX idx_status (status),
   FOREIGN KEY (order_id) REFERENCES retail_order(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配送记录表';
+
+-- 审计留痕（S3-199 · 收口总清单第 66 项）：本表是**配送审计记录**，其 order_id → t_retail_order.id
+--   的外键带 ON DELETE CASCADE，风险同上表：当前无物理删除路径故不触发。
+--   若将来引入零售订单物理删除：**必须先把本外键改为 ON DELETE RESTRICT（或整体改软删）**，
+--   否则删订单会静默删除配送审计记录（`docs/tasks/cards/R101-S3-194-凌舟裁定与验收.md` §二.④ 已登记该风险）。
 
 -- 9. 即时零售操作日志表（retail_operation_log）
 CREATE TABLE IF NOT EXISTS t_retail_operation_log (

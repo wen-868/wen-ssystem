@@ -1,0 +1,12 @@
+=== 169 专项判据（`169_tenant_admin_uuid.sql 失败` 命中数；只取判据行）
+语料版本：改动前 = 无守卫 DROP（基线 + 注释）；改动后 = 守卫版（其后又修正 1 行注释措辞 ⇒ 最终语料 169 sha256 = E5139F0F89FBD27C）
+--- [A] 01-fresh-post-change ｜改动前语料 · 全新库第一遍
+命中 = 0
+--- [B] 02-idempotent-rerun ｜改动前语料 · 同库第二遍（恒红复现）
+{"level":50,"time":1791984499048,"pid":2584,"hostname":"XIONG","msg":"[migration] 169_tenant_admin_uuid.sql 失败: Can't DROP 't_tenant_admin_ibfk_1'; check that column/key exists"}
+--- [C] 10-rerun-final ｜最终语料 · 同库第二遍
+命中 = 0
+--- [D] 11-antitest169-red ｜反测（守卫换回无守卫 DROP）· 同库再跑
+{"level":50,"time":1791985551196,"pid":1896,"hostname":"XIONG","msg":"[migration] 169_tenant_admin_uuid.sql 失败: Can't DROP 't_tenant_admin_ibfk_1'; check that column/key exists"}
+--- [E] 12-antitest169-green ｜逐字节复原后 · 再跑
+命中 = 0
