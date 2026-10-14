@@ -24,7 +24,9 @@ import { createHash } from "node:crypto";
 const BASE = process.env.S3_160_BASE || "http://127.0.0.1:18160";
 const SECRET = process.env.S3_160_JWT_SECRET || "s3-160-evidence-secret";
 const USERNAME = process.env.S3_160_USERNAME || "store_manager";
-// S3-175：演示/测试账号口令全系统统一（S3_160_PASSWORD / DEMO_PASSWORD 均可覆盖）
+// S3-203：`store_manager` 已轮换为**不公开强口令**（旧公开口令作废）⇒ 打真库必须显式给口令：
+//   S3_160_PASSWORD=<store_manager 新口令> node backend/scripts/s3-160-remember-me.mjs
+// 缺省值 admin@2026 只对 **mock 库**成立（mock 的门店账号仍取统一常量，见 backend/src/__tests__/mocks/mock-db-state.ts）
 const PASSWORD = process.env.S3_160_PASSWORD || process.env.DEMO_PASSWORD || "admin@2026";
 const ONLY = (process.env.S3_160_ONLY || "").trim();
 

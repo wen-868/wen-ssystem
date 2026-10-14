@@ -1,0 +1,75 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-203/backend
+
+ ❯ src/__tests__/shared/s3-203-cross-end-permission-parity.test.ts (3 tests | 3 failed) 519ms
+     × ① 三条路径解析出的 permissions 逐条相同，且都等于 t_sys_role.permissions 30ms
+     × ② 反向自证：移动端返回里不得再出现历史硬编码那份清单 5ms
+     × ② 静态面：后端与移动端源码中都不得再出现那套硬编码权限码 479ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/shared/s3-203-cross-end-permission-parity.test.ts > S3-203 跨端权限口径一致（工作台 ⇄ 移动端同角色 = 同一权限集合） > ① 三条路径解析出的 permissions 逐条相同，且都等于 t_sys_role.permissions
+AssertionError: expected [ 'dashboard.view', 'order.view' ] to deeply equal [ 'goods:view', 'sale:create', …(2) ]
+
+- Expected
++ Received
+
+  [
+-   "goods:view",
+-   "sale:create",
+-   "inventory:view",
+-   "report:export",
++   "dashboard.view",
++   "order.view",
+  ]
+
+ ❯ src/__tests__/shared/s3-203-cross-end-permission-parity.test.ts:119:28
+    117|     expect(ws.user.permissions).toEqual(DB_PERMISSIONS);
+    118|     expect(mob.user.permissions).toEqual(DB_PERMISSIONS);
+    119|     expect(me.permissions).toEqual(DB_PERMISSIONS);
+       |                            ^
+    120|     // 逐条相同（不只是集合相等）
+    121|     expect(mob.user.permissions).toEqual(ws.user.permissions);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/shared/s3-203-cross-end-permission-parity.test.ts > S3-203 跨端权限口径一致（工作台 ⇄ 移动端同角色 = 同一权限集合） > ② 反向自证：移动端返回里不得再出现历史硬编码那份清单
+AssertionError: expected [ 'dashboard.view', 'order.view' ] to not include 'dashboard.view'
+ ❯ src/__tests__/shared/s3-203-cross-end-permission-parity.test.ts:130:34
+
+    128|     for (const legacy of LEGACY_HARDCODED) {
+    129|       expect(mob.user.permissions).not.toContain(legacy);
+    130|       expect(me.permissions).not.toContain(legacy);
+       |                                  ^
+    131|     }
+    132|   });
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  03:13:07
+   Duration  2.69s (transform 366ms, setup 82ms, import 566ms, tests 519ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/shared/s3-203-cross-end-permission-parity.test.ts > S3-203 跨端权限口径一致（工作台 ⇄ 移动端同角色 = 同一权限集合） > ② 静态面：后端与移动端源码中都不得再出现那套硬编码权限码
+AssertionError: expected [ …(2) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "D:\\Users\\ZXQL\\wt-agents\\S3-203\\backend\\src\\services\\store\\auth.service.ts: dashboard.view",
++   "D:\\Users\\ZXQL\\wt-agents\\S3-203\\backend\\src\\services\\store\\auth.service.ts: order.view",
++ ]
+
+ ❯ src/__tests__/shared/s3-203-cross-end-permission-parity.test.ts:149:23
+    147|       }
+    148|     }
+    149|     expect(offenders).toEqual([]);
+       |                       ^
+    150|     // 且移动端登录服务必须**引用**唯一出处（而不是自己拼一份）
+    151|     const storeService = readFileSync(join(repoRoot, "backend/src/serv…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+

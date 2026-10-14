@@ -1,0 +1,53 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-203/backend
+
+ ❯ src/__tests__/middleware/s3-203-cross-domain-isolation.test.ts (6 tests | 2 failed) 251ms
+     × ① 租户 JWT 打总台端点 ⇒ 401（issuer/audience 不同，平台侧一律不认） 137ms
+     × ① 伪造 type=platform_admin 的**租户签发** JWT 打总台端点 ⇒ 仍 401（不许只看 type） 16ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/middleware/s3-203-cross-domain-isolation.test.ts > S3-203 双向越权门禁：租户域 ⇄ 平台域互不通行 > ① 租户 JWT 打总台端点 ⇒ 401（issuer/audience 不同，平台侧一律不认）
+AssertionError: expected 403 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 403
+
+ ❯ src/__tests__/middleware/s3-203-cross-domain-isolation.test.ts:74:24
+     72|       .get("/api/platform/platform-only")
+     73|       .set("Authorization", `Bearer ${tenantToken}`);
+     74|     expect(res.status).toBe(401);
+       |                        ^
+     75|     expect(res.body.code).toBe("401");
+     76|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/middleware/s3-203-cross-domain-isolation.test.ts > S3-203 双向越权门禁：租户域 ⇄ 平台域互不通行 > ① 伪造 type=platform_admin 的**租户签发** JWT 打总台端点 ⇒ 仍 401（不许只看 type）
+AssertionError: expected 200 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 200
+
+ ❯ src/__tests__/middleware/s3-203-cross-domain-isolation.test.ts:92:24
+     90|       .get("/api/platform/platform-only")
+     91|       .set("Authorization", `Bearer ${forged}`);
+     92|     expect(res.status).toBe(401);
+       |                        ^
+     93|   });
+     94|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 4 passed (6)
+   Start at  03:12:44
+   Duration  2.54s (transform 287ms, setup 82ms, import 1.26s, tests 251ms, environment 0ms)
+
