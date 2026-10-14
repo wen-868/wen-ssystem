@@ -1,0 +1,5 @@
+backend/dist  files=799  bytes=4071753  sha256(799 个文件清单+内容)=14494f6a82206ae2d604166254f43be7db8bc5268a078e471415f1150691a2f2
+admin-web/dist  files=418  bytes=5174076  sha256(418 个文件清单+内容)=a4df56e682d5ad48bd593a62ea5e024d8120960630c7b6be0f8f4c477ee5a127
+saas-admin/dist  files=90  bytes=3334687  sha256(90 个文件清单+内容)=5e9c3a700f7c2e6e65cda8468fdf9dcbd20ca72e20eb5ac3ef5ecaee768b6a3a
+website/dist  files=8  bytes=277213  sha256(8 个文件清单+内容)=25b3acd1b04316ed0fcc3a890b1fa6a50b3e9cdce3cb57fda77e28992e9f507f
+app-mobile/dist  files=465  bytes=2926574  sha256(465 个文件清单+内容)=e697ce85d77630e011f6c18ac477971c1f4358a9564e9069c5e9fe188a3d3019

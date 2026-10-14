@@ -1,0 +1,40 @@
+### backend/src/routes/alert.routes.ts  命中行 = [14]
+  L14 改前 码点: U+002F U+002F U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+0020 U+00B7 U+FFFD U+FFFD U+FFFD U+0536 U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D
+  L14 改前 文本: "// ========== ·���Զ��������� =========="
+  L14 改后 文本: "// ========== 路由自动发现配置 =========="
+  sha256 改前 = e8674d271beddc199123dedd2151d583464c1d41c63be367c552e6e1d2786c6d
+  sha256 改后 = 4f2646f302da4a92770487b940071b457962226a34e1b892368869dfc1c5bf0d
+### backend/src/routes/customer-merge.routes.ts  命中行 = [11]
+  L11 改前 码点: U+002F U+002F U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+0020 U+00B7 U+FFFD U+FFFD U+FFFD U+0536 U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D
+  L11 改前 文本: "// ========== ·���Զ��������� =========="
+  L11 改后 文本: "// ========== 路由自动发现配置 =========="
+  sha256 改前 = facead1101c54f1b8c8db196c6f393f634cc06c1f954206e5a32f3dfc4cd321c
+  sha256 改后 = d18d20246399dbadf56c0c3d8155a038ab125012e685f12780ec0d65b3f1b48e
+### backend/src/routes/export.routes.ts  命中行 = [19]
+  L19 改前 码点: U+002F U+002F U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+0020 U+00B7 U+FFFD U+FFFD U+FFFD U+0536 U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D
+  L19 改前 文本: "// ========== ·���Զ��������� =========="
+  L19 改后 文本: "// ========== 路由自动发现配置 =========="
+  sha256 改前 = a555263f524bf8d791e136324e7c302835df3b1b61518d3dc2c3f4c48563b86d
+  sha256 改后 = f70e8c388ad4d800a8e29ad8f1c814a8412ba11fb0c9b92fcc8284c80e89f7df
+### backend/src/routes/sys-config.routes.ts  命中行 = [19]
+  L19 改前 码点: U+002F U+002F U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+0020 U+00B7 U+FFFD U+FFFD U+FFFD U+0536 U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D
+  L19 改前 文本: "// ========== ·���Զ��������� =========="
+  L19 改后 文本: "// ========== 路由自动发现配置 =========="
+  sha256 改前 = 7c0a90e38890f8accea6514e34de5655a40cb89bebbe90408c1c654e1fcfac5f
+  sha256 改后 = bfc46e634b1cd1fe0bfbf1d8dcef3d6da2c105213de0bc881eddee01aacc94fe
+### backend/src/routes/stock-check.routes.ts  命中行 = [19, 27]
+  L19 改前 码点: U+002F U+002F U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+0020 U+0053 U+0074 U+006F U+0072 U+0065 U+0020 U+FFFD U+0335 U+FFFD U+00B7 U+FFFD U+FFFD U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D
+  L19 改前 文本: "// ==================== Store �̵�·�� ===================="
+  L19 改后 文本: "// ==================== Store 盘点路由 ===================="
+  L27 改前 码点: U+002F U+002F U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+0020 U+00B7 U+FFFD U+FFFD U+FFFD U+0536 U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+FFFD U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D
+  L27 改前 文本: "// ========== ·���Զ��������� =========="
+  L27 改后 文本: "// ========== 路由自动发现配置 =========="
+  sha256 改前 = 6a7ec58f6052e6d1f08cf703421c72f761565f102f1e922f47ecab79c0dfc199
+  sha256 改后 = c93cb0013e40b8c6da47134fb6aedabe89562316892a175344237aec7f9d2289
+### backend/src/routes/miniapp-order-sync.routes.ts  命中行 = [9]
+  L9 改前 码点: U+002F U+002F U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+0020 U+8BA2 U+5355 U+540C U+6B65 U+65E5 U+5FD7 U+5217 U+8868 U+FF08 U+5206 U+FFFD U+003F U+7B5B U+9009 U+FF09 U+0020 U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D U+003D
+  L9 改前 文本: "// ========== 订单同步日志列表（分�?筛选） =========="
+  L9 改后 文本: "// ========== 订单同步日志列表（分页+筛选） =========="
+  sha256 改前 = dfe0e51cc22e0c9e9485ad89dabfcd9a1448d0ca36ad66683ef34f7e8680f357
+  sha256 改后 = b9248a5c0b35cff0521a5d5d17f68579b2a1323954e2a7a462043da9186e2193
+RESTORE_OK

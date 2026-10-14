@@ -6,7 +6,7 @@ import * as controller from "../controllers/admin/miniapp-order-sync.controller"
 
 export const orderSyncLogRouter = Router();
 
-// ========== 订单同步日志列表（分�?筛选） ==========
+// ========== 订单同步日志列表（分页+筛选） ==========
 orderSyncLogRouter.get("/", asyncHandler(controller.listSyncLogs));
 
 // ========== 重试同步 ==========

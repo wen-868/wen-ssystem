@@ -16,7 +16,7 @@ adminStockCheckRouter.post("/:id/cancel", ctrl.cancel);
 adminStockCheckRouter.post("/:id/handle-diff", ctrl.handleDiff);
 adminStockCheckRouter.post("/:id/items", ctrl.recordItems);
 
-// ==================== Store �̵�·�� ====================
+// ==================== Store 盘点路由 ====================
 export const storeStockCheckRouter = Router();
 
 storeStockCheckRouter.get("/my", ctrl.getMyList);
@@ -24,7 +24,7 @@ storeStockCheckRouter.get("/:id", ctrl.getDetail);
 storeStockCheckRouter.put("/:id/items/:itemId", ctrl.updateItem);
 storeStockCheckRouter.post("/:id/submit", ctrl.submit);
 
-// ========== ·���Զ��������� ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfigs: RouteConfig[] = [
   { prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, auth: "requireAuthWithTenant" },
   { prefix: "/api/store/stock-checks", router: storeStockCheckRouter, auth: "requireAuthWithTenant" },
