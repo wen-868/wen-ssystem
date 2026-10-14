@@ -3,7 +3,7 @@
   "_generatedFrom": "node backend/scripts/guard-rbac-wiring.mjs --json",
   "_counts": {
     "files": 156,
-    "endpoints": 671
+    "endpoints": 680
   },
   "gaps": {
     "admin-auth.routes.ts": [
@@ -942,8 +942,17 @@
       "PUT /api/platform/tenants-management/:tenantId/modules"
     ],
     "trace.routes.ts": [
+      "DELETE /api/admin/trace/configs/:id",
+      "POST /api/admin/trace/codes/:traceCode/status",
+      "POST /api/admin/trace/codes/generate",
+      "POST /api/admin/trace/configs",
+      "POST /api/admin/trace/configs/check",
+      "POST /api/admin/trace/recalls",
+      "POST /api/admin/trace/recalls/:recallNo/execute",
       "POST /api/admin/trace/verify",
-      "POST /api/miniapp/trace/c/verify"
+      "POST /api/miniapp/trace/c/verify",
+      "PUT /api/admin/trace/configs/:id",
+      "PUT /api/admin/trace/recalls/:recallNo/complete"
     ],
     "transfer.routes.ts": [
       "POST /api/admin/transfers/",
@@ -990,5 +999,5 @@
       "DELETE /api/admin/wb-notifications/:id"
     ]
   },
-  "_lastUpdate": "S3-198（2026-10-14，库存/追溯域批）：移除已接线的 34 条（data-transfer 2 / inventory-batch 7 / inventory-share 6 / trace 9 / transfer-order 7 / warehouse 3）；同时同步 S3-187（67beff76）改名造成的 3 条陈旧登记（旧路径→新路径，同一端点，非新增缺口）。"
+  "_lastUpdate": "S3-198（2026-10-14，库存/追溯域批 + 返工）：移除已接线的 25 条（data-transfer 2 / inventory-batch 7 / inventory-share 6 / transfer-order 7 / warehouse 3）；**trace.routes.ts 的 9 条按凌舟裁定退回**（生产 t_sys_role.permissions 实测门店角色不含 trace:*，属产品授权口径，待另立补授权单）；同步 S3-187（67beff76）改名的 3 条陈旧登记（同一端点改名，非新增缺口）。"
 }

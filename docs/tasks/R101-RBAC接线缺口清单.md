@@ -791,7 +791,12 @@
 | `POST /api/admin/trace/recalls` | 管理面 | 是 | trace:code |
 | `POST /api/admin/trace/recalls/:recallNo/execute` | 管理面 | 是 | trace:code |
 | `PUT /api/admin/trace/recalls/:recallNo/complete` | 管理面 | 是 | trace:code |
-| `POST /api/miniapp/trace/c/verify` | 管理面 | 是 | trace:code |
+| `POST /api/miniapp/trace/c/verify` | 公开端点（**消费者端免鉴权**，`routeConfigs` 里 `auth:"none"`） | 否 | 不适用（免鉴权） |
+
+> **订正（2026-10-14，S3-198 批次 + 凌舟裁定 §二.②）**：本行原判「管理面 / 是 / trace:code」**有误**——
+> `/api/miniapp/trace` 挂载为 `auth:"none"`（小程序消费者扫码校验，无登录态），挂 `requirePermission` 会因
+> 无 `req.user` 反成 **401**，把消费者扫码全部打断。已按规则表第 2 条「公开端点」订正；其安全性由
+> G3 `guard:route-auth` 的 `auth:"none"` 台账管（本文件 §六 规则表口径）。
 
 **transfer-order.routes.ts**（7 处）
 
@@ -1782,7 +1787,7 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 2. **持有核对**（接线前必做）：有页面调用点时，取 `admin-web/src/router/index.ts` 该页 `meta.roles`，
    要求 **页面角色 ⊆ 权限码持有人**（持有人用 `node backend/scripts/guard-rbac-wiring.mjs --holders <码>` 复算）。
 
-### 9.2 本批已接线 **34 条**（方法 / 路径 / 文件:行 / 权限码 / 是否新立码）
+### 9.2 本批已接线 **25 条**（**返工后口径**；首版 34 条中 trace 域 9 条已按凌舟裁定退回，见 §9.6）
 
 | # | 方法 路径 | 文件:行 | 权限码 | 是否新立码 |
 |--:|:--|:--|:--|:--|
@@ -1801,39 +1806,41 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 | 13 | `POST /api/admin/inventory-share/products/batch-remove` | `inventory-share.routes.ts:18` | `inventory:create` | 否（既有码） |
 | 14 | `PUT /api/admin/inventory-share/products/:id` | `inventory-share.routes.ts:19` | `inventory:adjust` | 否（既有码） |
 | 15 | `DELETE /api/admin/inventory-share/products/:id` | `inventory-share.routes.ts:20` | `inventory:adjust` | 否（既有码） |
-| 16 | `POST /api/admin/trace/configs` | `trace.routes.ts:18` | `trace:code` | 否（既有码） |
-| 17 | `PUT /api/admin/trace/configs/:id` | `trace.routes.ts:19` | `trace:code` | 否（既有码） |
-| 18 | `DELETE /api/admin/trace/configs/:id` | `trace.routes.ts:20` | `trace:code` | 否（既有码） |
-| 19 | `POST /api/admin/trace/configs/check` | `trace.routes.ts:21` | `trace:code` | 否（既有码） |
-| 20 | `POST /api/admin/trace/codes/generate` | `trace.routes.ts:24` | `trace:code` | 否（既有码） |
-| 21 | `POST /api/admin/trace/codes/:traceCode/status` | `trace.routes.ts:27` | `trace:code` | 否（既有码） |
-| 22 | `POST /api/admin/trace/recalls` | `trace.routes.ts:35` | `trace:code` | 否（既有码） |
-| 23 | `POST /api/admin/trace/recalls/:recallNo/execute` | `trace.routes.ts:38` | `trace:code` | 否（既有码） |
-| 24 | `PUT /api/admin/trace/recalls/:recallNo/complete` | `trace.routes.ts:39` | `trace:code` | 否（既有码） |
-| 25 | `PUT /api/admin/transfer-orders/:id` | `transfer-order.routes.ts:15` | `store:transfer` | 否（既有码） |
-| 26 | `DELETE /api/admin/transfer-orders/:id` | `transfer-order.routes.ts:16` | `store:transfer` | 否（既有码） |
-| 27 | `POST /api/admin/transfer-orders/:id/approve` | `transfer-order.routes.ts:17` | `inventory:approve` | 否（既有码） |
-| 28 | `POST /api/admin/transfer-orders/:id/reject` | `transfer-order.routes.ts:18` | `inventory:approve` | 否（既有码） |
-| 29 | `POST /api/admin/transfer-orders/:id/confirm-out` | `transfer-order.routes.ts:19` | `store:transfer` | 否（既有码） |
-| 30 | `POST /api/admin/transfer-orders/:id/confirm-in` | `transfer-order.routes.ts:20` | `store:transfer` | 否（既有码） |
-| 31 | `POST /api/admin/transfer-orders/` | `transfer-order.routes.ts:22` | `store:transfer` | 否（既有码） |
-| 32 | `POST /api/admin/warehouses/` | `warehouse.routes.ts:20` | `inventory:create` | 否（既有码） |
-| 33 | `PUT /api/admin/warehouses/:id` | `warehouse.routes.ts:21` | `inventory:adjust` | 否（既有码） |
-| 34 | `DELETE /api/admin/warehouses/:id` | `warehouse.routes.ts:22` | `inventory:adjust` | 否（既有码） |
+| 16 | `PUT /api/admin/transfer-orders/:id` | `transfer-order.routes.ts:15` | `store:transfer` | 否（既有码） |
+| 17 | `DELETE /api/admin/transfer-orders/:id` | `transfer-order.routes.ts:16` | `store:transfer` | 否（既有码） |
+| 18 | `POST /api/admin/transfer-orders/:id/approve` | `transfer-order.routes.ts:17` | `inventory:approve` | 否（既有码） |
+| 19 | `POST /api/admin/transfer-orders/:id/reject` | `transfer-order.routes.ts:18` | `inventory:approve` | 否（既有码） |
+| 20 | `POST /api/admin/transfer-orders/:id/confirm-out` | `transfer-order.routes.ts:19` | `store:transfer` | 否（既有码） |
+| 21 | `POST /api/admin/transfer-orders/:id/confirm-in` | `transfer-order.routes.ts:20` | `store:transfer` | 否（既有码） |
+| 22 | `POST /api/admin/transfer-orders/` | `transfer-order.routes.ts:22` | `store:transfer` | 否（既有码） |
+| 23 | `POST /api/admin/warehouses/` | `warehouse.routes.ts:20` | `inventory:create` | 否（既有码） |
+| 24 | `PUT /api/admin/warehouses/:id` | `warehouse.routes.ts:21` | `inventory:adjust` | 否（既有码） |
+| 25 | `DELETE /api/admin/warehouses/:id` | `warehouse.routes.ts:22` | `inventory:adjust` | 否（既有码） |
+
+> **退回说明（凌舟裁定 R101-S3-198 §二.①）**：首版第 16–24 行（`trace.routes.ts` 的 9 条 `trace:code` 接线）已**全部退回**——
+> 生产 `t_sys_role.permissions` 实测门店角色**不含 `trace:*`**（`t_sys_role_permission` 0 命中），
+> 「追溯是否授权门店端」属产品授权口径 ⇒ 先退不接，留台账待另立补授权单。该 9 条现列在 §9.3 的 **P 类**。
+
+> **待细化（凌舟裁定 §二.⑤，保留保留意见）**：第 1–2 行（data-transfer 的 CSV 导入）沿用台账 §三.12 建议码
+> `store:transfer`，**语义偏宽**（该码本义为「门店调拨」，不是「数据导入」）。持有核对成立（页面角色 ⊆ 持有人），
+> 故本批保留接线；后续若细分，建议新立 `data:import` 类细码（`goods:create` 不可用：商品导入页允许 STORE_MANAGER，
+> 而店长不持 `goods:create` ⇒ 会 403）。
 
 **页面角色 ⊆ 持有人**核对（持有人口径 = 仓库角色种子 079/128/ops-S3-122* × 生产 `matchPermission`）：
 
 | 页面（`admin-web/src/router/index.ts`） | 页面角色 | 涉及行 | 结论 |
 |:--|:--|:--|:--|
 | 库存批次 `:142` / 库存共享设置 `:141` | SUPER_ADMIN | 3–15 | ✅ `inventory:*` 与 `*` 均覆盖 |
-| 系统配置 `:241`（仓库管理 / CSV 导入） | SUPER_ADMIN | 1、10–15、32–34 | ✅ |
+| 系统配置 `:241`（仓库管理 / CSV 导入） | SUPER_ADMIN | 1、10–15、23–25 | ✅ |
 | 商品导入 `:169` | SUPER_ADMIN、STORE_MANAGER | 2 | ✅ STORE_MANAGER 持 `store:*` ⇒ 命中 `store:transfer` |
-| （无页面调用点：批次增改拆 / 追溯配置·追溯码·召回 / 调拨单 v2） | — | 5、16–31 | ✅ 无页面角色被 403 |
+| （无页面调用点：批次增改拆 / 调拨单 v2） | — | 5、16–22 | ✅ 无页面角色被 403 |
 
-> ⚠️ 持有人表是**仓库种子口径**，不是生产真值；生产侧最终核对仍由凌舟在服务器执行
-> `SELECT role_code, permissions FROM t_sys_role WHERE tenant_id='default' ORDER BY id;`（本单无 DB 权限）。
+> ✅ **生产持有核对已完成**（凌舟亲跑，见 `docs/tasks/cards/R101-S3-198-凌舟裁定与验收.md` §一）：
+> `STORE_MANAGER` 实值 = `["store:*","sale:*","customer:*","inventory:*","report:*","dashboard:*","finance:payment","goods:price","finance:daily-settle"]`
+> ⇒ 本批保留的 4 个码（`inventory:create|adjust|approve`、`store:transfer`）**门店店长确实持有**，接线不会回归；
+> 而 **`trace:*` 不在其中** ⇒ trace 域 9 条按裁定退回（见 §9.3 P 类 / §9.6）。
 
-### 9.3 本批**未接** 23 条（逐条原因；仍登记在机读台账里，属于「已盘点、待后续批次/待裁」）
+### 9.3 本批**未接** **32 条**（逐条原因；仍登记在机读台账里，属于「已盘点、待后续批次/待裁定/待补授权」）
 
 | # | 方法 路径 | 文件:行 | 原因 | 依据 |
 |--:|:--|:--|:--|:--|
@@ -1843,26 +1850,29 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 | 11 | `POST /api/admin/stock-warnings/config` | `stock-warning.routes.ts:9` | B | app-mobile 预警配置（`api/modules/stock-warning.ts:72`） |
 | 12 | `PUT /api/store/inventory/alerts/:skuId/threshold` | `store-inventory.routes.ts:13` | B | app-mobile 门店预警阈值（`api/modules/store.ts:485`） |
 | 13 | `POST /api/store/trace/verify` | `store-trace.routes.ts:8` | **A** | 收银台 `CashierView.vue:1273`（页面角色 `router/index.ts:259` = SUPER_ADMIN/STORE_MANAGER/STORE_OPERATOR）均不持 `trace:code` ⇒ 接线即 403 |
-| 14 | `POST /api/admin/trace/verify` | `trace.routes.ts:32` | B | app-mobile 溯源查询（`api/modules/trace.ts:154`） |
-| 15 | `POST /api/miniapp/trace/c/verify` | `trace.routes.ts:45` | **N（台账判定有误）** | 该挂载 `auth:"none"`（`trace.routes.ts:52`）＝**消费者端免鉴权**接口；§三.12 判「管理面/是」不成立，挂 `requirePermission` 会因无 `req.user` 反成 401 |
+| 14 | `POST /api/admin/trace/verify` | `trace.routes.ts:37` | B | app-mobile 溯源查询（`api/modules/trace.ts:154`） |
+| 15 | `POST /api/miniapp/trace/c/verify` | `trace.routes.ts:50` | **N（台账判定有误）** | 该挂载 `auth:"none"`（`trace.routes.ts:55`）＝**消费者端免鉴权**接口；§三.12 判「管理面/是」不成立，挂 `requirePermission` 会因无 `req.user` 反成 401 |
 | 16–22 | `POST /api/admin/transfers`（`/`、`/:id/submit`、`/:id/approve`、`/:id/reject`、`/:id/cancel`、`/:id/ship`）、`PUT /api/admin/transfers/:id` | `transfer.routes.ts:12,17,18,19,20,23,24` | B | app-mobile 调拨（`api/modules/transfer.ts:104–129`） |
 | 23 | `POST /api/store/transfers/:id/receive` | `transfer.routes.ts:29` | B | app-mobile 门店收货（`api/modules/transfer.ts:134`、`store.ts:680`） |
+| 24–32 | `trace.routes.ts` 的 9 条写端点（`POST /configs`、`PUT /configs/:id`、`DELETE /configs/:id`、`POST /configs/check`、`POST /codes/generate`、`POST /codes/:traceCode/status`、`POST /recalls`、`POST /recalls/:recallNo/execute`、`PUT /recalls/:recallNo/complete`） | `trace.routes.ts:23,24,25,26,29,32,40,43,44` | **P（待补授权）** | **凌舟裁定退回**：生产 `t_sys_role.permissions` 实测门店角色不含 `trace:*`（`t_sys_role_permission` 0 命中）⇒ 挂 `trace:code` 会给门店端制造 403；「追溯是否授权门店端」属产品授权口径，须另立单（含角色种子 + 生产存量订正迁移）后再接 |
 
-> 原因计数：**B 21 条 / A 1 条 / N 1 条**。A、N 两类需凌舟裁定：
-> 13 号要么改挂一条收银台角色确实持有的码（如需新立细码），要么先给收银台角色补授 `trace:code`；
-> 15 号建议把 §三.12 的判定改为「公开端点（免鉴权）」。
+> 原因计数：**B 21 条 / P 9 条 / A 1 条 / N 1 条 = 32 条**。
+> A、N 两类的处置（均为凌舟裁定 R101-S3-198 §二）：13 号**已确认接线即 403**，与 P 类同因（`trace:*` 无生产持有者），
+> 归入「待补授权」一并另立单；15 号**采纳**本单判定，§三.12 该行的判定已订正为「公开端点（免鉴权，`auth:"none"`）」。
+> B 类 21 条按裁定 §二.③ **本批不动**，归第 43 项后续批次，且每条必须先做凌舟这次用的**同一道生产持有核对**再接线。
 
 ### 9.4 守恒数字与门禁（原始输出见回执）
 
 | 指标 | 本批前（origin/main `fc6651a5`） | 本批后 | 说明 |
 |:--|--:|--:|:--|
 | 写端点总数（扫描口径） | 762 | 762 | `guard-rbac-wiring` |
-| 无权限检查的写端点 | 705 | 671 | 减少 34 = 本批接线数 |
-| 缺口分布文件数 | 162 | 156 | 6 个文件清零；`trace.routes.ts` 仍留 2 条（未接） |
-| 机读台账（`rbac-wiring-baseline.json`） | 705 条 / 161 文件 | 671 条 / 156 文件 | 同步移除本批 34 条 |
+| 无权限检查的写端点 | 705 | **680** | 减少 **25** = 本批接线数（返工口径） |
+| 缺口分布文件数 | 162 | 156 | 5 个文件清零；`trace.routes.ts` 仍留 11 条（9 条 P 类 + 2 条 B/N 类） |
+| 机读台账（`rbac-wiring-baseline.json`） | 705 条 / 161 文件 | 680 条 / 156 文件 | 同步移除 25 条；trace 域 9 条已回填 |
 | `--strict` 退出码 | EXIT=1（3 条未登记 + 3 条陈旧） | EXIT=0 | 见下「台账同步说明」 |
 
-**守恒**：`705（本批前实测缺口，含 3 条未登记）－ 34（本批接线） = 671（本批后缺口）`；台账条目同步 705 → 671。
+**守恒（返工后）**：`705（本批前实测缺口，含 3 条未登记）－ 25（本批实际接线） = 680（本批后缺口）`；台账条目同步 705 → 680。
+（首版口径为 705 − 34 = 671；凌舟裁定退回 trace 域 9 条后回填，故为 680。）
 清单 §一/§二 的 `709` 是 **S3-180 期快照**（此后仓库另有 4 条端点的接线/增删，与本批无关），本批以**本轮实测 705** 为守恒基准。
 
 **台账同步说明（本批附带，非本域）**：`--strict` 在本批**开工前**即为红——S3-187（`67beff76`）把三条小程序营销端点的
@@ -1872,9 +1882,23 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 
 ### 9.5 反测（门禁铁律：故意制造失败证明它会红）
 
-1. **缺口可见（报告模式）**：本域 6 文件在本批前报 34 处「无权限检查」，本批后报 0 处（读数见回执 §反测）。
+1. **缺口可见（报告模式）**：本域 6 文件在本批前报 34 处「无权限检查」，返工后为 **25 处已接 / 11 处未接**
+   （`trace.routes.ts` 保留 11 条未接：9 条 P 类 + 2 条 B/N 类）——读数随代码真实变化，非恒绿。
 2. **`--strict` 两侧**：本批后 EXIT=0；摘掉 `inventory-batch.routes.ts:20` 的 `requirePermission("inventory:create")`
    ⇒ EXIT=1 且点出该端点；复原 ⇒ EXIT=0（原始输出见回执）。
 3. **判据有分辨力（vitest 侧）**：`rbac-b2-s3-198-inventory-wiring.test.ts` 覆盖「READONLY ⇒ 403」与「holders ⇒ 200」两侧；
    摘掉任一 `requirePermission` ⇒ 对应 403 用例变红（原始输出见回执）。
+
+### 9.6 凌舟裁定与返工记录（2026-10-14）
+
+裁定文件：`docs/tasks/cards/R101-S3-198-凌舟裁定与验收.md`（有条件通过，需返工一处）。逐条落地：
+
+| 裁定 | 处置 | 证据 |
+|:--|:--|:--|
+| §二.① 取 (b)：**trace 域 9 条 `trace:code` 接线全部退回**，保留台账条目并标注「待补授权」，**不得**顺手改角色种子 | ✅ 已退回（`trace.routes.ts` 现 0 处 `requirePermission`，文件头留退回依据注释）；台账 9 条回填并标 P 类 | §9.2 退回说明 / §9.3 第 24–32 行 / 回执 §九 |
+| §二.② `POST /api/miniapp/trace/c/verify` 属消费者端免鉴权 ⇒ **采纳**，台账该条判定订正 | ✅ §三.12 该行已订正为「公开端点（免鉴权）」并加订正说明 | §三.12 第 794 行附近 |
+| §二.③ B 类 21 条**本批不动**，归第 43 项后续批次；每条须先做同一道生产持有核对 | ✅ 未动，台账保留 B 类标注与依据 | §9.3 |
+| §二.④ 台账同步 S3-187 改名 3 条键 ⇒ **认可** | ✅ 保留（条数相抵、未洗绿） | §9.4 台账同步说明 |
+| §二.⑤ `data-transfer` 用 `store:transfer` 语义偏宽 ⇒ 保留保留意见，记「待细化」 | ✅ 已记：本条标注「**待细化**（语义偏宽，建议后续改 `data:import` 类细码）」 | §9.2 第 1–2 行说明 / 回执 §七.1 |
+| §三 返工后判据：`--strict` EXIT=0 + 守恒自洽 + 逐条列码与持有证据 + 全量门禁 + 反测两侧齐 | ✅ 全部满足（返工后复跑：`--strict` EXIT=0、vitest 0 failed、tsc 0、三条 guard EXIT=0、build EXIT=0；反测 A/B 两侧齐） | 回执 §九「返工回执」 |
 

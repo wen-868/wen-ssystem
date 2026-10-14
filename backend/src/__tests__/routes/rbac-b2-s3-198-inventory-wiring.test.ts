@@ -5,13 +5,17 @@
  * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.12（域明细）＋ §九（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 671 条）
  *
- * 本文件要证明的五件事（对应派单卡 §二.4 / §三.2 / §四）：
- *  a) 本批已接 **34 行**的**注册行级**形状断言（踩坑[134]：注释里的 `requirePermission(` 不算调用）；
- *  b) 只读账号（READONLY = `["*:view"]`）调 34 行 ⇒ **403** 且**未到达业务层**；
+ * 本文件要证明的五件事（对应派单卡 §二.4 / §三.2 / §四；数字为**返工后**口径）：
+ *  a) 本批已接 **25 行**的**注册行级**形状断言（踩坑[134]：注释里的 `requirePermission(` 不算调用）；
+ *  b) 只读账号（READONLY = `["*:view"]`）调 25 行 ⇒ **403** 且**未到达业务层**；
  *  c) 持有该权限点的角色 ⇒ **200**（到达控制器，不锁死既有页面角色）；
  *  d) 反证：不持有该码的角色 ⇒ **403**（证明判据不是恒 true 的假门禁）；
- *  e) **范围控制**：本域**未接**的 23 行 ⇒ READONLY 仍 200，且注册行级不含 `requirePermission(`
- *     （证明本批「没多接」，同时把 B 类）与台账判定有误的端点显式钉住）。
+ *  e) **范围控制**：本域**未接**的 32 行 ⇒ READONLY 仍 200，且注册行级不含 `requirePermission(`
+ *     （证明本批「没多接」，同时把 B 类、A 类、N 类与「待补授权」的端点显式钉住）。
+ *
+ * 返工记录（凌舟裁定 R101-S3-198，2026-10-14）：`trace.routes.ts` 的 9 条 `trace:code` 接线**全部退回** ——
+ *   生产 `t_sys_role.permissions` 实测门店角色**不含 `trace:*`**（`t_sys_role_permission` 0 命中），
+ *   「追溯是否授权门店端」属产品授权口径 ⇒ 留台账、待另立补授权单。故 34 → 25，未接 23 → 32（新增 P 类 9 条）。
  *
  * 保真度说明：
  *  · 真：路由文件与其注册顺序、`requirePermission` 中间件本体、`matchPermission` 权限匹配器
@@ -168,9 +172,10 @@ interface Row {
 }
 
 /**
- * 本批已接名单（**34 行**，逐行判定见台账 §九）。
- * 口径：① 该端点无「app-mobile 无角色门禁页面」的写调用点；② 有页面调用点时，
- * 该页 `meta.roles`（admin-web/src/router/index.ts）⊆ 权限码持有人集合。
+ * 本批已接名单（**25 行**，逐行判定见台账 §九）。
+ * 口径（三重）：① 该端点无「app-mobile 无角色门禁页面」的写调用点；② 有页面调用点时，
+ * 该页 `meta.roles`（admin-web/src/router/index.ts）⊆ 权限码持有人集合；
+ * ③ **该权限码在生产的实际持有角色**已由凌舟只读核对（R101-S3-198 裁定 §一）——`trace:code` 因此被退回。
  */
 const ROWS: Row[] = [
   // ---- data-transfer.routes.ts（2）：系统配置 SystemConfigView.vue:241 [SUPER_ADMIN]
@@ -195,17 +200,7 @@ const ROWS: Row[] = [
   { file: "inventory-share.routes.ts", prefix: "/api/admin/inventory-share", router: inventoryShareRouter, method: "put", routePath: "/products/:id", path: "/products/1", perm: "inventory:adjust" },
   { file: "inventory-share.routes.ts", prefix: "/api/admin/inventory-share", router: inventoryShareRouter, method: "delete", routePath: "/products/:id", path: "/products/1", perm: "inventory:adjust" },
 
-  // ---- trace.routes.ts（9）：admin-web/src/api/trace.ts 的写函数**全仓零页面调用点** ----
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/configs", path: "/configs", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "put", routePath: "/configs/:id", path: "/configs/1", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "delete", routePath: "/configs/:id", path: "/configs/1", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/configs/check", path: "/configs/check", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/codes/generate", path: "/codes/generate", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/codes/:traceCode/status", path: "/codes/TRC-1/status", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/recalls", path: "/recalls", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/recalls/:recallNo/execute", path: "/recalls/RC-1/execute", perm: "trace:code" },
-  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "put", routePath: "/recalls/:recallNo/complete", path: "/recalls/RC-1/complete", perm: "trace:code" },
-
+  // ---- trace.routes.ts 的 9 条：按凌舟裁定**退回**（原计划的 trace:code 接线作废），见 UNWIRED 的 P 类 ----
   // ---- transfer-order.routes.ts（7）：**全仓零调用点**（无任何前端引用 /api/admin/transfer-orders） ----
   { file: "transfer-order.routes.ts", prefix: "/api/admin/transfer-orders", router: transferOrderRouter, method: "put", routePath: "/:id", path: "/1", perm: "store:transfer" },
   { file: "transfer-order.routes.ts", prefix: "/api/admin/transfer-orders", router: transferOrderRouter, method: "delete", routePath: "/:id", path: "/1", perm: "store:transfer" },
@@ -228,14 +223,19 @@ interface UnwiredRow {
   method: Method;
   routePath: string;
   path: string;
-  /** B = app-mobile 无角色门禁页面的写调用点（判据不可判定）；A = 与既有页面角色冲突；N = 台账判定有误（免鉴权端点） */
-  reason: "A" | "B" | "N";
+  /**
+   * B = app-mobile 无角色门禁页面的写调用点（判据不可判定）；
+   * A = 与既有页面角色冲突；
+   * N = 台账判定有误（免鉴权端点）；
+   * P = 待补授权（权限码在生产无门店角色持有，凌舟裁定退回，须另立补授权单）
+   */
+  reason: "A" | "B" | "N" | "P";
   note: string;
   /** true = 生产挂载无 auth/csrf（`auth:"none"`，如 /api/miniapp/trace） */
   rawMount?: boolean;
 }
 
-/** 本域**本批未接**的 23 行（逐条原因见台账 §九）。 */
+/** 本域**本批未接**的 32 行（逐条原因见台账 §九；其中 P 类 9 条为凌舟裁定退回的 trace 域）。 */
 const UNWIRED: UnwiredRow[] = [
   { file: "inventory-loss-gain.routes.ts", prefix: "/api/admin/inventory", router: inventoryLossGainRouter, method: "post", routePath: "/report-loss-gain", path: "/report-loss-gain", reason: "B", note: "app-mobile 报损报溢页（api/modules/inventory-loss-gain.ts:175/184）" },
   { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:97）" },
@@ -250,8 +250,18 @@ const UNWIRED: UnwiredRow[] = [
   { file: "stock-warning.routes.ts", prefix: "/api/admin/stock-warnings", router: stockWarningRouter, method: "post", routePath: "/config", path: "/config", reason: "B", note: "app-mobile 预警配置（api/modules/stock-warning.ts:72）" },
   { file: "store-inventory.routes.ts", prefix: "/api/store", router: storeInventoryRouter, method: "put", routePath: "/inventory/alerts/:skuId/threshold", path: "/inventory/alerts/1/threshold", reason: "B", note: "app-mobile 门店库存预警（api/modules/store.ts:485）" },
   { file: "store-trace.routes.ts", prefix: "/api/store", router: storeTraceRouter, method: "post", routePath: "/trace/verify", path: "/trace/verify", reason: "A", note: "收银台 CashierView.vue:1273（router/index.ts:259 角色含 STORE_MANAGER / STORE_OPERATOR）不持 trace:code ⇒ 接线即 403" },
+  // ---- P 类（9）：trace 域写端点 —— 凌舟裁定退回（生产 t_sys_role.permissions 实测门店角色不含 trace:*） ----
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/configs", path: "/configs", reason: "P", note: "待补授权：trace:* 未被任何门店角色持有（R101-S3-198 裁定 §一）" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "put", routePath: "/configs/:id", path: "/configs/1", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "delete", routePath: "/configs/:id", path: "/configs/1", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/configs/check", path: "/configs/check", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/codes/generate", path: "/codes/generate", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/codes/:traceCode/status", path: "/codes/TRC-1/status", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/recalls", path: "/recalls", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/recalls/:recallNo/execute", path: "/recalls/RC-1/execute", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
+  { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "put", routePath: "/recalls/:recallNo/complete", path: "/recalls/RC-1/complete", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
   { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/verify", path: "/verify", reason: "B", note: "app-mobile 溯源查询页（api/modules/trace.ts:154）" },
-  { file: "trace.routes.ts", prefix: "/api/miniapp/trace", router: miniappTraceRouter, method: "post", routePath: "/c/verify", path: "/c/verify", reason: "N", note: "消费者端扫码校验：routeConfigs auth:\"none\"（trace.routes.ts:52），台账 §三.12 判「管理面/是」有误；挂 requirePermission 会因无 req.user 反成 401", rawMount: true },
+  { file: "trace.routes.ts", prefix: "/api/miniapp/trace", router: miniappTraceRouter, method: "post", routePath: "/c/verify", path: "/c/verify", reason: "N", note: "消费者端扫码校验：routeConfigs 末行 auth:\"none\"，台账 §三.12 判「管理面/是」有误；挂 requirePermission 会因无 req.user 反成 401", rawMount: true },
   { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:104）" },
   { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "put", routePath: "/:id", path: "/1", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:99 详情/提交链路）" },
   { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/submit", path: "/1/submit", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:109）" },
@@ -262,7 +272,7 @@ const UNWIRED: UnwiredRow[] = [
   { file: "transfer.routes.ts", prefix: "/api/store/transfers", router: storeTransferRouter, method: "post", routePath: "/:id/receive", path: "/1/receive", reason: "B", note: "app-mobile 门店收货（api/modules/store.ts:680 / transfer.ts:134）" },
 ];
 
-/** 台账 §三.12 的本域写端点总数（12 文件） = 本批已接 34 + 未接 23 */
+/** 台账 §三.12 的本域写端点总数（12 文件） = 本批已接 25 + 未接 32 */
 const DOMAIN_TOTAL = 57;
 
 function label(row: { file: string; method: Method; routePath: string }) {
@@ -358,32 +368,30 @@ beforeEach(() => {
 });
 
 describe("S3-198 · 名单自证", () => {
-  it("34 已接 + 23 未接 = 57（= 台账 §三.12 本域写端点总数）", () => {
-    expect(ROWS).toHaveLength(34);
-    expect(UNWIRED).toHaveLength(23);
+  it("25 已接 + 32 未接 = 57（= 台账 §三.12 本域写端点总数；返工后退回 trace 域 9 条）", () => {
+    expect(ROWS).toHaveLength(25);
+    expect(UNWIRED).toHaveLength(32);
     expect(ROWS.length + UNWIRED.length).toBe(DOMAIN_TOTAL);
   });
 
-  it("已接 34 行的逐文件分布（与台账 §九 表一致）", () => {
+  it("已接 25 行的逐文件分布（与台账 §九 表一致）", () => {
     const perFile = new Map<string, number>();
     for (const row of ROWS) perFile.set(row.file, (perFile.get(row.file) ?? 0) + 1);
     expect([...perFile.entries()].sort()).toEqual([
       ["data-transfer.routes.ts", 2],
       ["inventory-batch.routes.ts", 7],
       ["inventory-share.routes.ts", 6],
-      ["trace.routes.ts", 9],
       ["transfer-order.routes.ts", 7],
       ["warehouse.routes.ts", 3],
     ]);
   });
 
-  it("已接 34 行只用到 5 个既有权限码（本批不新立权限点）", () => {
+  it("已接 25 行只用到 4 个既有权限码（本批不新立权限点；trace:code 已按裁定退回）", () => {
     expect([...new Set(ROWS.map((r) => r.perm))].sort()).toEqual([
       "inventory:adjust",
       "inventory:approve",
       "inventory:create",
       "store:transfer",
-      "trace:code",
     ]);
   });
 });
@@ -431,6 +439,17 @@ describe("S3-198 · 权限持有人集合复算（生产 matchPermission × 仓�
   it("判据有分辨力：仓管的 transfer:* 不覆盖 store:transfer（同一 matcher、不同域互不相通）", () => {
     expect(matchPermission(USERS[9011].perms, "transfer:create")).toBe(true);
     expect(matchPermission(USERS[9011].perms, "store:transfer")).toBe(false);
+  });
+
+  it("返工依据（P 类 9 条为何退回）：trace:code 的持有人里**没有门店角色**（店长 / 收银相关角色都不在集合内）", () => {
+    // 生产实测口径（R101-S3-198 裁定 §一）：STORE_MANAGER.permissions 不含 trace:*
+    expect(holdersOf("trace:code")).toEqual([9002, 9010, 9011]);
+    expect(holdersOf("trace:code")).not.toContain(9009); // 店长（生产实值）
+    expect(matchPermission(USERS[9009].perms, "trace:code")).toBe(false);
+    // 而本批实际保留的 4 个码，店长均持有（这是能接的前提）
+    for (const perm of ["inventory:create", "inventory:adjust", "inventory:approve", "store:transfer"]) {
+      expect(matchPermission(USERS[9009].perms, perm), `店长应持有 ${perm}`).toBe(true);
+    }
   });
 });
 
@@ -500,7 +519,7 @@ describe("S3-198 · d) 未登录 401（既有行为不变）", () => {
   });
 });
 
-describe("S3-198 · e) 范围控制：本域未接的 23 行不被本批拦住（READONLY 仍 200）", () => {
+describe("S3-198 · e) 范围控制：本域未接的 32 行不被本批拦住（READONLY 仍 200）", () => {
   it.each(UNWIRED)("$file $method $routePath（未接 $reason）：READONLY 仍 200", async (row) => {
     const res = await call(appFor(row), row.method, `${row.prefix}${row.path}`, READONLY, row.rawMount);
     expect(res.status, `${label(row)}（${row.note}）`).toBe(200);
@@ -508,11 +527,20 @@ describe("S3-198 · e) 范围控制：本域未接的 23 行不被本批拦住�
     expect(h.reached.length).toBeGreaterThan(0);
   });
 
-  it("未接 23 行的原因分布：B（app-mobile 无角色门禁调用点）21 / A（页面角色冲突）1 / N（台账判定有误）1", () => {
+  it("未接 32 行的原因分布：B（app-mobile 无角色门禁调用点）21 / P（待补授权，凌舟裁定退回）9 / A（页面角色冲突）1 / N（台账判定有误）1", () => {
     const byReason = (r: string) => UNWIRED.filter((x) => x.reason === r).length;
     expect(byReason("B")).toBe(21);
+    expect(byReason("P")).toBe(9);
     expect(byReason("A")).toBe(1);
     expect(byReason("N")).toBe(1);
+  });
+
+  it("P 类 9 条全部落在 trace.routes.ts，且该文件**不含任何** requirePermission(（退回已生效）", () => {
+    expect(UNWIRED.filter((x) => x.reason === "P").map((x) => x.file)).toEqual(
+      Array(9).fill("trace.routes.ts")
+    );
+    const src = readFileSync(path.join(ROUTES_DIR, "trace.routes.ts"), "utf8");
+    expect(src).not.toContain("requirePermission(");
   });
 
   it("N 类 1 行锚点：/api/miniapp/trace/c/verify 的挂载为 auth:\"none\"（消费者端，非管理面）", () => {
