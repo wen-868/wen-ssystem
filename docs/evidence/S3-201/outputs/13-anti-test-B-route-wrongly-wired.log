@@ -1,0 +1,67 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-198/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts (202 tests | 3 failed) 1534ms
+     × 'store-inventory.routes.ts' 'put' '/alerts/:skuId/threshold'（未接，原因 'B'）：注册行**不含** requirePermission( 14ms
+     × 整文件子串不足以判定（踩坑[134]）：store-inventory.routes.ts 文件级含 inventory:adjust，但阈值行没有 3ms
+     × 'store-inventory.routes.ts' 'put' '/alerts/:skuId/threshold'（未接 'B'）：READONLY 仍 200 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · 形状断言（注册行级判据，踩坑[134]） > 'store-inventory.routes.ts' 'put' '/alerts/:skuId/threshold'（未接，原因 'B'）：注册行**不含** requirePermission(
+AssertionError: expected 'storeInventoryRouter.put("/alerts/:sk…' not to contain 'requirePermission('
+
+Expected: "requirePermission("
+Received: "storeInventoryRouter.put("/alerts/:skuId/threshold", requirePermission("inventory:adjust"), inventoryController.updateAlertThreshold);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:418:31
+    416|     const lines = registrationLines(row.file, row.method, row.routePat…
+    417|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    418|     expect(lines[0].line).not.toContain("requirePermission(");
+       |                               ^
+    419|   });
+    420|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · 形状断言（注册行级判据，踩坑[134]） > 整文件子串不足以判定（踩坑[134]）：store-inventory.routes.ts 文件级含 inventory:adjust，但阈值行没有
+AssertionError: 阈值行不得被误判为已接线: expected 'storeInventoryRouter.put("/alerts/:sk…' not to contain 'requirePermission('
+
+Expected: "requirePermission("
+Received: "storeInventoryRouter.put("/alerts/:skuId/threshold", requirePermission("inventory:adjust"), inventoryController.updateAlertThreshold);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:427:47
+    425|     const lines = registrationLines("store-inventory.routes.ts", "put"…
+    426|     expect(lines).toHaveLength(1);
+    427|     expect(lines[0].line, "阈值行不得被误判为已接线").not.toContain("requirePermis…
+       |                                               ^
+    428|   });
+    429| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · e) 范围控制：本域未接的 32 行不被本批拦住（READONLY 仍 200） > 'store-inventory.routes.ts' 'put' '/alerts/:skuId/threshold'（未接 'B'）：READONLY 仍 200
+AssertionError: store-inventory.routes.ts PUT /alerts/:skuId/threshold（app-mobile 门店库存预警（api/modules/store.ts:485）；对外 URL 仍为 /api/store/inventory/alerts/:skuId/threshold）: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:535:54
+    533|   it.each(UNWIRED)("$file $method $routePath（未接 $reason）：READONLY 仍 20…
+    534|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    535|     expect(res.status, `${label(row)}（${row.note}）`).toBe(200);
+       |                                                      ^
+    536|     expect(res.body.success).toBe(true);
+    537|     expect(h.reached.length).toBeGreaterThan(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 199 passed (202)
+   Start at  00:36:27
+   Duration  5.44s (transform 776ms, setup 50ms, import 3.36s, tests 1.53s, environment 0ms)
+

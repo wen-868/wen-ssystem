@@ -9,6 +9,17 @@ export const adminTraceRouter = Router();
 
 // 追溯配置
 adminTraceRouter.get("/configs", traceConfigController.listConfigs);
+// ==========================================================================
+// S3-198 批B2-2（库存/追溯域）· 本文件写端点**本批不接线**（凌舟裁定，2026-10-14）
+//   依据：生产 `t_sys_role.permissions` 实测 —— STORE_MANAGER =
+//   ["store:*","sale:*","customer:*","inventory:*","report:*","dashboard:*",...]，**不含 trace:***；
+//   `t_sys_role_permission` 关联表对 trace 码 0 命中 ⇒ 挂 `trace:code` 会给门店端制造 403。
+//   「追溯是否授权门店端」属产品授权口径 ⇒ 先退不接，待另立「补授权」单（含角色种子 + 生产存量订正迁移）。
+//   ⚠️ 复核提示：本域写端点因此**仍全部登记在** backend/scripts/rbac-wiring-baseline.json 里，
+//      台账标注「待补授权（trace:* 未被任何门店角色持有）」。
+//   另：POST /api/miniapp/trace/c/verify 属**消费者端免鉴权**（下方 routeConfigs 的 auth:"none"），
+//      台账原判「管理面/是」已订正为「公开端点（免鉴权）」，不接。
+// ==========================================================================
 adminTraceRouter.post("/configs", traceConfigController.createConfig);
 adminTraceRouter.put("/configs/:id", traceConfigController.updateConfig);
 adminTraceRouter.delete("/configs/:id", traceConfigController.deleteConfig);

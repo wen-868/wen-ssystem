@@ -1,0 +1,95 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-198/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts (202 tests | 5 failed) 2126ms
+     × 'store-inventory.routes.ts' 'put' '/inventory/alerts/:skuId/threshold'（未接，原因 'B'）：注册行**不含** requirePermission( 15ms
+     × 'store-trace.routes.ts' 'post' '/trace/verify'（未接，原因 'A'）：注册行**不含** requirePermission( 3ms
+     × 整文件子串不足以判定（踩坑[134]）：store-inventory.routes.ts 文件级含 inventory:adjust，但阈值行没有 5ms
+     × 'store-inventory.routes.ts' 'put' '/inventory/alerts/:skuId/threshold'（未接 'B'）：READONLY 仍 200 13ms
+     × 'store-trace.routes.ts' 'post' '/trace/verify'（未接 'A'）：READONLY 仍 200 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · 形状断言（注册行级判据，踩坑[134]） > 'store-inventory.routes.ts' 'put' '/inventory/alerts/:skuId/threshold'（未接，原因 'B'）：注册行**不含** requirePermission(
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · 形状断言（注册行级判据，踩坑[134]） > 'store-trace.routes.ts' 'post' '/trace/verify'（未接，原因 'A'）：注册行**不含** requirePermission(
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:408:36
+    406|   it.each(UNWIRED)("$file $method $routePath（未接，原因 $reason）：注册行**不含** …
+    407|     const lines = registrationLines(row.file, row.method, row.routePat…
+    408|     expect(lines.map((l) => l.no)).toHaveLength(1);
+       |                                    ^
+    409|     expect(lines[0].line).not.toContain("requirePermission(");
+    410|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · 形状断言（注册行级判据，踩坑[134]） > 整文件子串不足以判定（踩坑[134]）：store-inventory.routes.ts 文件级含 inventory:adjust，但阈值行没有
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:416:19
+    414|     expect(src).toContain('requirePermission("inventory:adjust")');
+    415|     const lines = registrationLines("store-inventory.routes.ts", "put"…
+    416|     expect(lines).toHaveLength(1);
+       |                   ^
+    417|     expect(lines[0].line, "阈值行不得被误判为已接线").not.toContain("requirePermis…
+    418|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · e) 范围控制：本域未接的 32 行不被本批拦住（READONLY 仍 200） > 'store-inventory.routes.ts' 'put' '/inventory/alerts/:skuId/threshold'（未接 'B'）：READONLY 仍 200
+AssertionError: store-inventory.routes.ts PUT /inventory/alerts/:skuId/threshold（app-mobile 门店库存预警（api/modules/store.ts:485））: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:525:54
+    523|   it.each(UNWIRED)("$file $method $routePath（未接 $reason）：READONLY 仍 20…
+    524|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    525|     expect(res.status, `${label(row)}（${row.note}）`).toBe(200);
+       |                                                      ^
+    526|     expect(res.body.success).toBe(true);
+    527|     expect(h.reached.length).toBeGreaterThan(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts > S3-198 · e) 范围控制：本域未接的 32 行不被本批拦住（READONLY 仍 200） > 'store-trace.routes.ts' 'post' '/trace/verify'（未接 'A'）：READONLY 仍 200
+AssertionError: store-trace.routes.ts POST /trace/verify（收银台 CashierView.vue:1273（router/index.ts:259 角色含 STORE_MANAGER / STORE_OPERATOR）不持 trace:code ⇒ 接线即 403）: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:525:54
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 197 passed (202)
+   Start at  00:23:15
+   Duration  7.18s (transform 1.08s, setup 60ms, import 4.38s, tests 2.13s, environment 0ms)
+
+    523|   it.each(UNWIRED)("$file $method $routePath（未接 $reason）：READONLY 仍 20…
+    524|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    525|     expect(res.status, `${label(row)}（${row.note}）`).toBe(200);
+       |                                                      ^
+    526|     expect(res.body.success).toBe(true);
+    527|     expect(h.reached.length).toBeGreaterThan(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+

@@ -3,8 +3,8 @@
   "_generatedFrom": "node backend/scripts/guard-rbac-wiring.mjs --json",
   "_s3195_note": "S3-195（门店 9 文件从根前缀 /api/store 收窄为自有路径段）导致 3 条端点的**路径形态**变化：收窄后 prefix 即完整路径、router 内路径为 \"/\"，扫描器按 prefix+\"/\" 拼接 ⇒ 台账键由 `…/box-config` 变为 `…/box-config/`（`…/hold-orders` → `…/hold-orders/`、`…/shifts` → `…/shifts/`）。三处为**同一端点**的同一缺口，不是新增缺口；旧形态三条已同步替换（故 endpoints 计数不变）。",
   "_counts": {
-    "files": 161,
-    "endpoints": 705
+    "files": 156,
+    "endpoints": 680
   },
   "gaps": {
     "admin-auth.routes.ts": [
@@ -281,10 +281,6 @@
       "DELETE /api/admin/data-permissions/roles/:roleId/:dataPermissionId",
       "POST /api/admin/data-permissions/users/:userId/check"
     ],
-    "data-transfer.routes.ts": [
-      "POST /api/admin/data-transfer/import/customers",
-      "POST /api/admin/data-transfer/import/products"
-    ],
     "demo.routes.ts": [
       "POST /api/admin/demo/seed",
       "POST /api/admin/demo/reset"
@@ -353,25 +349,8 @@
       "POST /api/instant-retail/webhook/meituan",
       "POST /api/instant-retail/webhook/eleme"
     ],
-    "inventory-batch.routes.ts": [
-      "POST /api/admin/inventory-batch/batches",
-      "PUT /api/admin/inventory-batch/batches/:id",
-      "POST /api/admin/inventory-batch/batches/:id/split",
-      "POST /api/admin/inventory-batch/expiry-configs",
-      "PUT /api/admin/inventory-batch/expiry-configs/:id",
-      "DELETE /api/admin/inventory-batch/expiry-configs/:id",
-      "PUT /api/admin/inventory-batch/expiry-alerts/:id/handle"
-    ],
     "inventory-loss-gain.routes.ts": [
       "POST /api/admin/inventory/report-loss-gain"
-    ],
-    "inventory-share.routes.ts": [
-      "PUT /api/admin/inventory-share/settings",
-      "POST /api/admin/inventory-share/products",
-      "POST /api/admin/inventory-share/products/batch-add",
-      "POST /api/admin/inventory-share/products/batch-remove",
-      "PUT /api/admin/inventory-share/products/:id",
-      "DELETE /api/admin/inventory-share/products/:id"
     ],
     "marketing-asset.routes.ts": [
       "POST /api/marketing-asset/",
@@ -408,9 +387,9 @@
       "DELETE /api/admin/marketing/materials/categories/:id"
     ],
     "marketing-miniapp.routes.ts": [
-      "POST /api/miniapp/marketing/coupons/claim",
-      "POST /api/miniapp/marketing/flash-sales/grab",
-      "POST /api/miniapp/marketing/group-buys/teams/join",
+      "POST /api/miniapp/marketing/coupons/:templateId/claim",
+      "POST /api/miniapp/marketing/flash-sale/:id/buy",
+      "POST /api/miniapp/marketing/group-buy/:teamId/join",
       "POST /api/miniapp/marketing/calculate"
     ],
     "marketing-points-mall.routes.ts": [
@@ -964,26 +943,17 @@
       "PUT /api/platform/tenants-management/:tenantId/modules"
     ],
     "trace.routes.ts": [
-      "POST /api/admin/trace/configs",
-      "PUT /api/admin/trace/configs/:id",
       "DELETE /api/admin/trace/configs/:id",
-      "POST /api/admin/trace/configs/check",
-      "POST /api/admin/trace/codes/generate",
       "POST /api/admin/trace/codes/:traceCode/status",
-      "POST /api/admin/trace/verify",
+      "POST /api/admin/trace/codes/generate",
+      "POST /api/admin/trace/configs",
+      "POST /api/admin/trace/configs/check",
       "POST /api/admin/trace/recalls",
       "POST /api/admin/trace/recalls/:recallNo/execute",
-      "PUT /api/admin/trace/recalls/:recallNo/complete",
-      "POST /api/miniapp/trace/c/verify"
-    ],
-    "transfer-order.routes.ts": [
-      "PUT /api/admin/transfer-orders/:id",
-      "DELETE /api/admin/transfer-orders/:id",
-      "POST /api/admin/transfer-orders/:id/approve",
-      "POST /api/admin/transfer-orders/:id/reject",
-      "POST /api/admin/transfer-orders/:id/confirm-out",
-      "POST /api/admin/transfer-orders/:id/confirm-in",
-      "POST /api/admin/transfer-orders/"
+      "POST /api/admin/trace/verify",
+      "POST /api/miniapp/trace/c/verify",
+      "PUT /api/admin/trace/configs/:id",
+      "PUT /api/admin/trace/recalls/:recallNo/complete"
     ],
     "transfer.routes.ts": [
       "POST /api/admin/transfers/",
@@ -1009,11 +979,6 @@
       "DELETE /api/user-session/:id",
       "DELETE /api/user-session/user/:userId"
     ],
-    "warehouse.routes.ts": [
-      "POST /api/admin/warehouses/",
-      "PUT /api/admin/warehouses/:id",
-      "DELETE /api/admin/warehouses/:id"
-    ],
     "wechat.routes.ts": [
       "POST /api/miniapp/wechat/auth/login",
       "POST /api/miniapp/wechat/auth/decrypt-phone",
@@ -1034,5 +999,6 @@
       "POST /api/admin/wb-notifications/read-all",
       "DELETE /api/admin/wb-notifications/:id"
     ]
-  }
+  },
+  "_lastUpdate": "S3-198（2026-10-14，库存/追溯域批 + 返工）：移除已接线的 25 条（data-transfer 2 / inventory-batch 7 / inventory-share 6 / transfer-order 7 / warehouse 3）；**trace.routes.ts 的 9 条按凌舟裁定退回**（生产 t_sys_role.permissions 实测门店角色不含 trace:*，属产品授权口径，待另立补授权单）；同步 S3-187（67beff76）改名的 3 条陈旧登记（同一端点改名，非新增缺口）。"
 }
