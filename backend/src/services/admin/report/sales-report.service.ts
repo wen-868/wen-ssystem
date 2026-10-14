@@ -353,12 +353,16 @@ export async function getSalesRanking(
               COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount
        FROM t_sale_bill_item sbi
        JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
-       WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       WHERE sb.tenant_id = ?
+         AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sbi.sku_id, sbi.sku_name
        ORDER BY totalAmount DESC
        LIMIT ?`,
-      [start, end, lim],
+      // S3-206 修复：JOIN 里的 `sb.tenant_id = sbi.tenant_id` 会让 queryWithTenant 的自动注入**短路**
+      //（injectSelectTenant 只看 SQL 文本里是否出现 tenant_id），旧写法因此**没有任何租户过滤** ⇒ 跨租户聚合。
+      // 现在显式声明租户谓词，占位符顺序 = WHERE 的 tenantId → 时间窗口 → LIMIT。
+      [tenantId, start, end, lim],
       tenantId
     );
   } else if (dim === "customer") {
@@ -369,13 +373,16 @@ export async function getSalesRanking(
               COALESCE(SUM(sb.received_amount), 0) AS receivedAmount,
               MAX(sb.created_at) AS lastOrderTime
        FROM t_sale_bill sb
-       WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       WHERE sb.tenant_id = ?
+         AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND sb.customer_id IS NOT NULL
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sb.customer_id, sb.customer_name, sb.customer_mobile
        ORDER BY totalAmount DESC
        LIMIT ?`,
-      [start, end, lim],
+      // S3-206 修复：本维度原先**依赖自动注入**（SQL 里没有 tenant_id 字样）。改为显式租户谓词，
+      // 不再依赖"注入恰好无列名歧义"这一隐式前提（同端点 store 维度就是被这个前提坑成 500 的）。
+      [tenantId, start, end, lim],
       tenantId
     );
   } else if (dim === "store") {
@@ -386,13 +393,17 @@ export async function getSalesRanking(
               COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
        FROM t_sale_bill sb
        LEFT JOIN t_store s ON s.id = sb.store_id
-       WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       WHERE sb.tenant_id = ?
+         AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND sb.store_id IS NOT NULL
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sb.store_id, s.name
        ORDER BY totalAmount DESC
        LIMIT ?`,
-      [start, end, lim],
+      // S3-206 修复：旧写法**没有** tenant_id 字样 ⇒ 自动注入插的是**无限定列名** `tenant_id = ?`，
+      // 而 t_sale_bill 与 t_store 都有该列 ⇒ MySQL 报 ER_NON_UNIQ_ERROR 1052（实测 500）。
+      // 显式写 `sb.tenant_id = ?` 后注入短路，列名不再有歧义。
+      [tenantId, start, end, lim],
       tenantId
     );
   } else {
