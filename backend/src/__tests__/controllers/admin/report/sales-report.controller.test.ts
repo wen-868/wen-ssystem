@@ -4,6 +4,7 @@ vi.mock("../../../../services/admin/report/sales-report.service", () => ({
   getSalesDaily: vi.fn(),
   getSalesTrend: vi.fn(),
   getSalesRanking: vi.fn(),
+  getSalesSeries: vi.fn(),
   getBusinessOverview: vi.fn(),
 }));
 
@@ -22,6 +23,7 @@ import {
   getSalesDaily,
   getSalesTrend,
   getSalesRanking,
+  getSalesSeries,
   getBusinessOverview,
 } from "../../../../controllers/admin/report/sales-report.controller";
 
@@ -138,5 +140,44 @@ describe("report/sales-report.controller", () => {
     await getBusinessOverview(req as any, res as any, vi.fn());
     expect(salesReportService.getBusinessOverview).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("getSalesSeries - 应把 dimension/targetId/granularity 与日期区间透传给 service", async () => {
+    (salesReportService.getSalesSeries as any).mockResolvedValue([]);
+    const req = mockReq({
+      query: {
+        dimension: "sku",
+        targetId: "101",
+        granularity: "month",
+        dateStart: "2026-01-01",
+        dateEnd: "2026-12-31",
+      },
+    });
+    const res = mockRes();
+    await getSalesSeries(req as any, res as any, vi.fn());
+    expect(salesReportService.getSalesSeries).toHaveBeenCalledWith("t1", {
+      dimension: "sku",
+      targetId: 101,
+      granularity: "month",
+      dateStart: "2026-01-01",
+      dateEnd: "2026-12-31",
+    });
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("getSalesSeries - 兼容需求单命名 start/end，且缺省粒度回落 month", async () => {
+    (salesReportService.getSalesSeries as any).mockResolvedValue([]);
+    const req = mockReq({
+      query: { dimension: "product", targetId: "7", start: "2026-03-01", end: "2026-03-31" },
+    });
+    const res = mockRes();
+    await getSalesSeries(req as any, res as any, vi.fn());
+    expect(salesReportService.getSalesSeries).toHaveBeenCalledWith("t1", {
+      dimension: "product",
+      targetId: 7,
+      granularity: "month",
+      dateStart: "2026-03-01",
+      dateEnd: "2026-03-31",
+    });
   });
 });

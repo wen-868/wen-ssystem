@@ -232,7 +232,22 @@ export const disableProduct = asyncHandler(async (req, res) => {
 
 export const getProductPriceHistory = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
-  const result = await productService.getProductPriceHistory(Number(req.params.skuId), tenantId);
+  const query = z.object({
+    // 价格等级 = 日志 price_type；大小写不敏感，统一收敛为大写（契约取值 COST/RETAIL/WHOLESALE/MINIAPP/STORE）
+    priceLevel: z.string().trim().min(1).max(32).transform((v) => v.toUpperCase()).optional(),
+    // 日期区间：MS 既有命名 dateStart/dateEnd，同时兼容需求单里的 start/end
+    dateStart: z.string().optional(),
+    dateEnd: z.string().optional(),
+    start: z.string().optional(),
+    end: z.string().optional(),
+    limit: z.coerce.number().int().positive().max(500).optional()
+  }).parse(req.query);
+  const result = await productService.getProductPriceHistory(Number(req.params.skuId), tenantId, {
+    priceLevel: query.priceLevel,
+    dateStart: query.dateStart ?? query.start,
+    dateEnd: query.dateEnd ?? query.end,
+    limit: query.limit
+  });
   res.json(ok(result));
 });
 
@@ -244,7 +259,9 @@ export const updateProductPrice = asyncHandler(async (req, res) => {
     retailPrice: z.number().optional(),
     wholesalePrice: z.number().nullable().optional(),
     miniappPrice: z.number().nullable().optional(),
-    storePrice: z.number().nullable().optional()
+    storePrice: z.number().nullable().optional(),
+    // S3-204：改价来源标记（缺省 admin=后台改价）；AI 底座改价时传 ai，落进价格日志 source 列
+    source: z.enum(["admin", "ai"]).optional()
   }).parse(req.body);
   const result = await productService.updateProductPrice(skuId, body, tenantId, getOperatorId(req));
   res.json(ok(result));

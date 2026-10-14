@@ -125,6 +125,45 @@ describe("product.controller", () => {
     const res = mockRes();
     await getProductPriceHistory(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
+    // S3-204：无筛选参数时，三个可选参数均为 undefined（保持既有行为）
+    expect(productService.getProductPriceHistory).toHaveBeenCalledWith(1, "t1", {
+      priceLevel: undefined,
+      dateStart: undefined,
+      dateEnd: undefined,
+      limit: undefined
+    });
+  });
+
+  it("getProductPriceHistory - priceLevel 收敛为大写 + 支持 start/end 别名与 limit", async () => {
+    (productService.getProductPriceHistory as any).mockResolvedValue([]);
+    const req = mockReq({
+      params: { skuId: "1" },
+      query: { priceLevel: "retail", start: "2026-01-01", end: "2026-12-31", limit: "200" }
+    });
+    const res = mockRes();
+    await getProductPriceHistory(req as any, res as any, vi.fn());
+    expect(productService.getProductPriceHistory).toHaveBeenCalledWith(1, "t1", {
+      priceLevel: "RETAIL",
+      dateStart: "2026-01-01",
+      dateEnd: "2026-12-31",
+      limit: 200
+    });
+  });
+
+  it("getProductPriceHistory - dateStart/dateEnd 优先于 start/end 别名", async () => {
+    (productService.getProductPriceHistory as any).mockResolvedValue([]);
+    const req = mockReq({
+      params: { skuId: "2" },
+      query: { dateStart: "2026-02-01", dateEnd: "2026-02-28", start: "1999-01-01", end: "1999-12-31" }
+    });
+    const res = mockRes();
+    await getProductPriceHistory(req as any, res as any, vi.fn());
+    expect(productService.getProductPriceHistory).toHaveBeenCalledWith(2, "t1", {
+      priceLevel: undefined,
+      dateStart: "2026-02-01",
+      dateEnd: "2026-02-28",
+      limit: undefined
+    });
   });
 
   it("setMarketingTags - 应设置营销标签", async () => {
@@ -167,6 +206,26 @@ describe("product.controller", () => {
     const res = mockRes();
     await updateProductPrice(req as any, res as any, vi.fn());
     expect(productService.updateProductPrice).toHaveBeenCalledWith(1, expect.any(Object), "t1", 0);
+  });
+
+  it("updateProductPrice - body.source=ai 应透传到 service（S3-204 改价来源）", async () => {
+    (productService.updateProductPrice as any).mockResolvedValue({ skuId: 1 });
+    const req = mockReq({ params: { skuId: "1" }, body: { wholesalePrice: 1000, source: "ai" }, user: { id: 7 } });
+    const res = mockRes();
+    await updateProductPrice(req as any, res as any, vi.fn());
+    expect(productService.updateProductPrice).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ wholesalePrice: 1000, source: "ai" }),
+      "t1",
+      7
+    );
+  });
+
+  it("updateProductPrice - 非法 source 应被参数校验拦下（ZodError）", async () => {
+    const req = mockReq({ params: { skuId: "1" }, body: { retailPrice: 200, source: "robot" }, user: { id: 1 } });
+    const res = mockRes();
+    await expect(updateProductPrice(req as any, res as any, vi.fn())).rejects.toThrow();
+    expect(productService.updateProductPrice).not.toHaveBeenCalled();
   });
 
   it("importProducts - rows非数组时应返回400", async () => {

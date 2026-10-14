@@ -1,0 +1,15 @@
+{
+  "status": 400,
+  "body": {
+    "code": "400",
+    "msg": "参数校验失败",
+    "traceId": "fc2ff162-3c5c-466d-9bda-74604e6329f3",
+    "errors": [
+      {
+        "field": "limit",
+        "message": "Number must be greater than 0",
+        "code": "too_small"
+      }
+    ]
+  }
+}

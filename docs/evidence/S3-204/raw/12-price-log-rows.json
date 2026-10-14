@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "skuId": 1,
+    "priceType": "RETAIL",
+    "oldPrice": "2999.00",
+    "newPrice": "3010.00",
+    "source": "admin",
+    "operatorId": 1,
+    "actionType": "UPDATE",
+    "createdAt": "2026-10-14T18:49:12.000Z"
+  },
+  {
+    "id": 2,
+    "skuId": 1,
+    "priceType": "WHOLESALE",
+    "oldPrice": "2699.00",
+    "newPrice": "2706.00",
+    "source": "ai",
+    "operatorId": 1,
+    "actionType": "UPDATE",
+    "createdAt": "2026-10-14T18:49:12.000Z"
+  }
+]

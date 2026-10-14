@@ -16,6 +16,7 @@ export const reportRouter = Router();
 reportRouter.get("/sales-daily", salesReportController.getSalesDaily);
 reportRouter.get("/sales-ranking", salesReportController.getSalesRanking);
 reportRouter.get("/sales-trend", salesReportController.getSalesTrend);
+reportRouter.get("/sales-series", salesReportController.getSalesSeries);
 reportRouter.get("/sales-hourly-heatmap", salesReportController.getSalesHourlyHeatmap);
 reportRouter.get("/business-overview", salesReportController.getBusinessOverview);
 

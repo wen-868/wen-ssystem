@@ -620,7 +620,38 @@
 #### PUT /api/admin/products/:skuId/price
 - **描述**: 更新SKU价格（自动记录价格变更日志）
 - **认证**: 需要认证
-- **请求体**: costPrice, retailPrice, wholesalePrice, miniappPrice, storePrice（均可选）
+- **请求体**: costPrice, retailPrice, wholesalePrice, miniappPrice, storePrice（均可选）；source（可选，`admin`/`ai`，缺省 `admin`）
+- **S3-204 增补（跨线协作契约）**：`source` 标记改价来源 —— 后台改价不传（落 `admin`），AI 底座改价传 `"ai"`，
+  落 `t_product_price_log.source`（迁移 `200_价格日志来源列.sql`）。**两条改价路径共用本端点**：
+  AI 底座工具 `updateProductPrice`（ZXQL-AI `src/tools/definitions/update-product-price.tool.ts`）与工作台/移动端改价
+  都打到本端点 ⇒ 历史天然全覆盖；`source` 只用于把「AI 建议改价」与「人工改价」分开统计。
+- **响应**: `{ code:"0", msg:"成功", data:{ skuId } }`；价格未变化时**不写**日志（既有口径）
+
+#### GET /api/admin/products/:skuId/price-history
+- **描述**: SKU 价格变更历史（**价格时间序列读接口**，S3-204 需求 2.2 —— 供 AI 底座做价格走势分析）
+- **认证**: 需要认证（同 admin 前缀 `requireAuthWithTenant`）
+- **Query 参数**（全部可选，不传 = 最近 50 条倒序）:
+
+  | 参数 | 类型 | 说明 |
+  |:--|:--|:--|
+  | `priceLevel` | string | 价格等级 = 日志 `price_type`：`COST`/`RETAIL`/`WHOLESALE`/`MINIAPP`/`STORE`（大小写不敏感，后端统一转大写）；不传返回全部等级 |
+  | `dateStart` / `dateEnd` | `YYYY-MM-DD` | 变更日期区间（含端点，按 `DATE(created_at)` 比较）；两个别名 `start` / `end` 等价可用 |
+  | `limit` | number | 返回条数，缺省 50、上限 500（正整数） |
+
+- **响应**: `{ code:"0", msg:"成功", data:{ records:[ … ] }, traceId, apiCost }`，`records` 按 `id DESC`：
+
+  | 字段 | 说明 |
+  |:--|:--|
+  | `date` | **归一化时间** `YYYY-MM-DD HH:mm:ss`（= `created_at`） |
+  | `priceLevel` | **归一化价格等级**（= `price_type`） |
+  | `price` | **归一化新价** number（= `new_price`，清空价格时为 `null`） |
+  | `id` / `skuId` / `priceType` / `oldPrice` / `newPrice` / `actionType` / `operatorId` / `createdAt` | 既有字段，保持原样（老调用方零影响） |
+  | `operatorName` | 操作人姓名（LEFT JOIN `t_sys_user`，同租户；无匹配为 `null`） |
+  | `source` | `admin`（后台改价）/ `ai`（AI 底座改价）；迁移 200 之前的存量行为 `admin` |
+
+- **示例**: `GET /api/admin/products/101/price-history?priceLevel=RETAIL&dateStart=2026-01-01&dateEnd=2026-12-31&limit=200`
+  → `data.records = [{ id: 12, skuId: 101, date: "2026-10-15 10:20:30", priceLevel: "RETAIL", price: 129, oldPrice: "119.00", newPrice: "129.00", actionType: "UPDATE", operatorId: 3, operatorName: "默认店长", source: "admin", createdAt: "2026-10-15 10:20:30" }]`
+- **租户隔离**: `WHERE ppl.sku_id = ? AND ppl.tenant_id = ?`（走 `queryWithTenant`）；参数非法（如 `limit=0`）→ `code:"400"`
 
 ---
 
@@ -1588,6 +1619,32 @@
 - **描述**: 销售趋势
 - **认证**: 需要认证
 - **Query参数**: dateStart, dateEnd
+
+##### GET /api/admin/reports/sales-series（S3-204 新增 · 跨线协作契约）
+- **描述**: **按维度的单一目标销售时间序列**（支撑 AI 底座销售预测）。与 `sales-trend`（只有大盘整体趋势）的区别：可锁定一个商品/SKU/品类/客户，逐期返回 数量/金额/单数。
+- **认证**: 需要认证（admin 前缀 `requireAuthWithTenant`，由 `routeConfigs` 声明式注册）
+- **Query 参数**:
+
+  | 参数 | 必填 | 说明 |
+  |:--|:--|:--|
+  | `dimension` | 是 | `product`（商品 SPU）/ `sku` / `category`（分类）/ `customer`（客户）；其他值 → `code:"400"` |
+  | `targetId` | 是 | 目标 ID，按 dimension 解释：`product`→`t_product_spu.id`；`sku`→`t_product_sku.id`；`category`→`t_product_category.id`；`customer`→`t_member.id`。非正整数 → `code:"400"` |
+  | `granularity` | 否 | `day` / `week` / `month`，缺省 `month` |
+  | `dateStart` / `dateEnd` | 否 | 日期区间（含端点，`YYYY-MM-DD`）；别名 `start` / `end` 等价可用。两端都不传 ⇒ **近 12 期**（day=近 30 天 / week=近 12 周 / month=近 12 个月，与 `sales-trend` 同口径）；只传一端 ⇒ 另一端按粒度窗口兜底 |
+
+- **响应**: `{ code:"0", msg:"成功", data:[ { period, qty, amount, orderCount } ], traceId, apiCost }`
+
+  | 字段 | 口径（沿用既有销售明细口径） |
+  |:--|:--|
+  | `period` | 期间标签：`month`→`YYYY-MM`、`week`→`YYYY-WW`（`%Y-%u`）、`day`→`YYYY-MM-DD` |
+  | `qty` | `SUM(t_sale_bill_item.total_bottle_qty)`（瓶数，与 `sales-ranking` product 维度同源） |
+  | `amount` | `SUM(t_sale_bill_item.subtotal_amount)`（小计金额） |
+  | `orderCount` | `COUNT(DISTINCT t_sale_bill.bill_no)` |
+
+- **口径与边界**: 只统计 `t_sale_bill.business_status NOT IN ('DRAFT','VOIDED')` 的销售单（与 `sales-daily`/`sales-trend`/`sales-ranking` 一致）；`product`/`category` 维度经 `t_sale_bill_item.sku_id → t_product_sku → t_product_spu` 反查（SKU 档案被物理删除的历史明细不计入这两个维度，`sku`/`customer` 维度不受影响）；**无数据 ⇒ `data: []`（空数组，不报错）**。
+- **租户隔离**: 走 `queryWithTenant`，SQL 显式 `tenant_id`（明细与销售单双侧同租户 JOIN）。
+- **示例**: `GET /api/admin/reports/sales-series?dimension=sku&targetId=101&granularity=month&dateStart=2025-11-01&dateEnd=2026-10-31`
+  → `data = [{ period:"2026-08", qty:120, amount:96000, orderCount:34 }, …]`
 
 ##### GET /api/admin/reports/customer-contribution
 - **描述**: 客户贡献度分析

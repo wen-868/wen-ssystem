@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": [
+      {
+        "period": "2026-09",
+        "qty": 5,
+        "amount": 645,
+        "orderCount": 1
+      }
+    ],
+    "traceId": "9c998480-c9e4-4922-8cf9-e888188f3145"
+  }
+}

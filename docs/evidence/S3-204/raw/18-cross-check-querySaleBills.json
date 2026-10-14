@@ -1,0 +1,39 @@
+{
+  "querySaleBills端点读数": [
+    {
+      "period": "2026-08",
+      "amount": 645,
+      "orderCount": 2
+    },
+    {
+      "period": "2026-09",
+      "amount": 935,
+      "orderCount": 3
+    },
+    {
+      "period": "2026-10",
+      "amount": 516,
+      "orderCount": 1
+    }
+  ],
+  "salesSeries_customer维度读数": [
+    {
+      "period": "2026-08",
+      "qty": 5,
+      "amount": 645,
+      "orderCount": 2
+    },
+    {
+      "period": "2026-09",
+      "qty": 8,
+      "amount": 935,
+      "orderCount": 3
+    },
+    {
+      "period": "2026-10",
+      "qty": 4,
+      "amount": 516,
+      "orderCount": 1
+    }
+  ]
+}

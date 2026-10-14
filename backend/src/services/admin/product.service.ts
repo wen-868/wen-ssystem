@@ -216,9 +216,11 @@ interface PriceHistoryRow {
   skuId: number;
   priceType: string;
   oldPrice: number | string | null;
-  newPrice: number | string;
+  newPrice: number | string | null;
   actionType: string;
   operatorId: number;
+  operatorName: string | null;
+  source: string;
   createdAt: string | Date;
 }
 
@@ -674,18 +676,86 @@ export async function disableProduct(spuId: number, tenantId: string) {
   return { spuId, name: existing.name };
 }
 
-export async function getProductPriceHistory(skuId: number, tenantId: string) {
-  const records = await queryWithTenant<PriceHistoryRow>(
-    `SELECT id, sku_id AS skuId, price_type AS priceType, old_price AS oldPrice,
-            new_price AS newPrice, action_type AS actionType, operator_id AS operatorId, created_at AS createdAt
-     FROM t_product_price_log
-     WHERE sku_id = ? AND tenant_id = ?
-     ORDER BY id DESC
-     LIMIT 50`,
-    [skuId, tenantId],
+/** 价格历史查询的挡位（缺省保持既有行为：最近 50 条、倒序） */
+export interface ProductPriceHistoryQuery {
+  /** 价格等级 = 日志 price_type：COST/RETAIL/WHOLESALE/MINIAPP/STORE，缺省返回全部等级 */
+  priceLevel?: string;
+  /** 起始日期（含），YYYY-MM-DD */
+  dateStart?: string;
+  /** 截止日期（含），YYYY-MM-DD */
+  dateEnd?: string;
+  /** 返回条数上限，缺省 50、上限 500 */
+  limit?: number;
+}
+
+/**
+ * 价格变更历史（S3-204 需求 2.2：价格时间序列读接口）
+ *
+ * S3-204 增量（**唯一实现，不另起重复接口**）：
+ *   · 新增可选筛选 priceLevel / dateStart / dateEnd / limit（不传 = 既有行为，老调用方零影响）；
+ *   · 每条记录同时给出**归一化字段** date（YYYY-MM-DD HH:mm:ss）/ priceLevel（= price_type）/
+ *     price（= new_price），供 AI 底座按 `[{ date, priceLevel, price }]` 直接消费；
+ *   · 新增 operatorName（LEFT JOIN t_sys_user，同租户）与 source（admin=后台改价 / ai=AI 改价）。
+ * 租户隔离：走 queryWithTenant，SQL 显式带 tenant_id 条件。
+ */
+export async function getProductPriceHistory(
+  skuId: number,
+  tenantId: string,
+  options: ProductPriceHistoryQuery = {}
+) {
+  const conditions = ["ppl.sku_id = ?", "ppl.tenant_id = ?"];
+  const params: unknown[] = [skuId, tenantId];
+
+  if (options.priceLevel) {
+    conditions.push("ppl.price_type = ?");
+    params.push(options.priceLevel);
+  }
+  if (options.dateStart) {
+    conditions.push("DATE(ppl.created_at) >= ?");
+    params.push(options.dateStart);
+  }
+  if (options.dateEnd) {
+    conditions.push("DATE(ppl.created_at) <= ?");
+    params.push(options.dateEnd);
+  }
+
+  // 缺省 50（既有行为）；非有限值回落 50；其余收敛到 [1, 500]（控制器已按正整数校验，此处为兜底）
+  const limit =
+    options.limit === undefined || !Number.isFinite(options.limit)
+      ? 50
+      : Math.min(Math.max(Math.trunc(options.limit), 1), 500);
+  params.push(limit);
+
+  const rows = await queryWithTenant<PriceHistoryRow>(
+    `SELECT ppl.id, ppl.sku_id AS skuId, ppl.price_type AS priceType, ppl.old_price AS oldPrice,
+            ppl.new_price AS newPrice, ppl.action_type AS actionType, ppl.operator_id AS operatorId,
+            u.real_name AS operatorName, ppl.source AS source, ppl.created_at AS createdAt
+     FROM t_product_price_log ppl
+     LEFT JOIN t_sys_user u ON u.id = ppl.operator_id AND u.tenant_id = ppl.tenant_id
+     WHERE ${conditions.join(" AND ")}
+     ORDER BY ppl.id DESC
+     LIMIT ?`,
+    params,
     tenantId
   );
+
+  const records = rows.map((row) => ({
+    ...row,
+    // 归一化字段：契约出参 [{ date, priceLevel, price }]（见 docs/API接口文档.md）
+    date: toDateTimeString(row.createdAt),
+    priceLevel: row.priceType,
+    price: row.newPrice === null ? null : Number(row.newPrice)
+  }));
+
   return { records };
+}
+
+/** 价格历史时间字段归一化：DATETIME → 'YYYY-MM-DD HH:mm:ss'（本地时区口径，与 MySQL DATETIME 同源） */
+function toDateTimeString(value: string | Date): string {
+  const d = value instanceof Date ? value : new Date(String(value).replace(" ", "T"));
+  if (Number.isNaN(d.getTime())) return String(value);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 export async function updateProductPrice(skuId: number, body: {
@@ -694,6 +764,8 @@ export async function updateProductPrice(skuId: number, body: {
   wholesalePrice?: number | null;
   miniappPrice?: number | null;
   storePrice?: number | null;
+  /** 改价来源（S3-204）：admin=后台改价（工作台/移动端，默认）/ ai=AI 底座改价，写进 t_product_price_log.source */
+  source?: "admin" | "ai";
 }, tenantId: string, userId: number) {
   const result = await transaction(async (conn) => {
     const [oldRows] = await conn.query<RowDataPacket[]>("SELECT * FROM t_product_price WHERE sku_id = ? AND tenant_id = ?", [skuId, tenantId]);
@@ -726,9 +798,9 @@ export async function updateProductPrice(skuId: number, body: {
     );
     for (const [priceType, oldValue, newValue] of changes) {
       await conn.query(
-        `INSERT INTO t_product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type, tenant_id)
-         VALUES (?, ?, ?, ?, ?, 'UPDATE', ?)`,
-        [skuId, userId, priceType, oldValue ?? null, newValue ?? null, tenantId]
+        `INSERT INTO t_product_price_log (sku_id, operator_id, price_type, old_price, new_price, action_type, source, tenant_id)
+         VALUES (?, ?, ?, ?, ?, 'UPDATE', ?, ?)`,
+        [skuId, userId, priceType, oldValue ?? null, newValue ?? null, body.source ?? "admin", tenantId]
       );
     }
     return { skuId };
