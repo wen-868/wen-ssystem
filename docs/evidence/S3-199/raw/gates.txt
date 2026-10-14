@@ -1,0 +1,15 @@
+=== 门禁（工作树 D:\Users\ZXQL\wt-agents\S3-199，分支 fix/s3-199-constraints-integrity）===
+--- vitest（backend/，全量）---
+ Test Files  654 passed (654)
+      Tests  7718 passed (7718)
+   Duration  282.87s (transform 161.97s, setup 8.78s, import 774.68s, tests 186.14s, environment 212ms)
+EXIT=0
+--- tsc --noEmit --- EXIT=0 输出字节数 = 0
+--- guard (g3) EXIT=0 ---
+✅ G3 通过：无「绕过声明式鉴权/CSRF」的路由文件（auth:"none" 的公开端点已登记 18 个文件）
+--- guard (g2) EXIT=0 ---
+✅ G2 通过：租户状态域只有 ACTIVE / DISABLED 一套口径
+--- guard (g36) EXIT=0 ---
+✅ G36 通过：重复前缀 12 个（均已逐条登记理由，白名单 12 条）、未登记重复前缀 0 个、真重复端点 0 个
+--- npm --workspace backend run build EXIT=0 ---
+已处理 799 个 JS 文件，修复 1878 处导入路径（其中动态 import() 19 处）
