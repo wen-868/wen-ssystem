@@ -1,0 +1,45 @@
+{
+  "skuId": 1,
+  "A": {
+    "qty": "14",
+    "amount": "1806.00"
+  },
+  "B": {
+    "qty": "999",
+    "amount": "99999.00"
+  },
+  "A_plus_B": {
+    "qty": "1013",
+    "amount": "101805.00"
+  },
+  "customerA": {
+    "amount": "60260.00",
+    "cnt": 11
+  },
+  "customerA_plus_B": {
+    "amount": "260258.00",
+    "cnt": 13
+  },
+  "storeA": {
+    "amount": "60260.00",
+    "cnt": 11
+  },
+  "storeA_plus_B": {
+    "amount": "260258.00",
+    "cnt": 13
+  },
+  "allBillsA": {
+    "amount": "60260.00",
+    "cnt": 11
+  },
+  "allBillsA_plus_B": {
+    "amount": "260258.00",
+    "cnt": 13
+  },
+  "costA": {
+    "totalCost": "20986.00"
+  },
+  "costA_plus_B": {
+    "totalCost": "120886.00"
+  }
+}

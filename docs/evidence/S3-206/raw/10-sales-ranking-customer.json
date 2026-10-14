@@ -1,0 +1,50 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": [
+      {
+        "id": 2,
+        "name": "李四",
+        "mobile": "13900000002",
+        "orderCount": 2,
+        "totalAmount": 43164,
+        "receivedAmount": 14388,
+        "lastOrderTime": "2026-10-14T14:20:00.000Z",
+        "totalQty": 0
+      },
+      {
+        "id": 1,
+        "name": "张三",
+        "mobile": "13900000001",
+        "orderCount": 2,
+        "totalAmount": 14995,
+        "receivedAmount": 14995,
+        "lastOrderTime": "2026-10-14T09:30:00.000Z",
+        "totalQty": 0
+      },
+      {
+        "id": 1,
+        "name": "S3206夹具客户",
+        "mobile": "13900000006",
+        "orderCount": 6,
+        "totalAmount": 2096,
+        "receivedAmount": 0,
+        "lastOrderTime": "2026-10-04T16:00:00.000Z",
+        "totalQty": 0
+      },
+      {
+        "id": 3,
+        "name": "王五",
+        "mobile": "13900000003",
+        "orderCount": 1,
+        "totalAmount": 5,
+        "receivedAmount": 5,
+        "lastOrderTime": "2026-10-14T16:45:00.000Z",
+        "totalQty": 0
+      }
+    ],
+    "traceId": "450f0df8-9ed6-4d8a-82f6-39468af336f2"
+  }
+}

@@ -223,6 +223,28 @@ describe("admin report/sales-report.service - getSalesRanking", () => {
   it("无效 dimension 抛出 ZodError", async () => {
     await expect(getSalesRanking(tenantId, "invalid" as any)).rejects.toThrow();
   });
+
+  // S3-206：四个维度必须**显式**带租户谓词 + 租户实参。
+  // 背景：queryWithTenant 的自动注入在 SQL 文本出现 tenant_id 时**短路**，旧 product 维度
+  // 就是因 JOIN 里写了 sb.tenant_id = sbi.tenant_id 而**完全没有租户过滤**（跨租户聚合）；
+  // store 维度则因注入的是无限定列名 tenant_id 而报 ER_NON_UNIQ_ERROR 1052（500）。
+  // 本组用例锁住"显式租户谓词"，摘掉它即变红。
+  it.each([
+    ["product", "sb.tenant_id = ?"],
+    ["customer", "sb.tenant_id = ?"],
+    ["store", "sb.tenant_id = ?"],
+    ["staff", "sb.tenant_id = ?"],
+  ] as const)("dimension=%s 的 SQL 显式带租户谓词且首参为 tenantId", async (dim, predicate) => {
+    mocks.queryWithTenant.mockResolvedValue([]);
+    await getSalesRanking(tenantId, dim as "product" | "customer" | "store" | "staff", "2026-06-09", "2026-07-09", 10);
+
+    expect(mocks.queryWithTenant).toHaveBeenCalledTimes(1);
+    const [sql, params, passedTenantId] = mocks.queryWithTenant.mock.calls[0] as [string, unknown[], string];
+    expect(sql).toContain(predicate);
+    // JOIN 里出现 tenant_id 时自动注入会短路 ⇒ 必须靠显式谓词，实参顺序也要对得上
+    expect(params[0]).toBe(tenantId);
+    expect(passedTenantId).toBe(tenantId);
+  });
 });
 
 // ============ getBusinessOverview ============

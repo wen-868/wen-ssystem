@@ -1,0 +1,23 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "dateStart": "2026-08-01",
+      "dateEnd": "2026-10-31",
+      "income": 60260,
+      "cost": 120886,
+      "returns": 0,
+      "grossProfit": -60626,
+      "grossProfitRate": -100.61,
+      "salesGrowthRate": 0,
+      "profitGrowthRate": 0,
+      "prevDateStart": "2026-05-01",
+      "prevDateEnd": "2026-07-31",
+      "prevIncome": 0,
+      "prevGrossProfit": 0
+    },
+    "traceId": "76b933e8-86a4-4b30-a06a-851f026a4233"
+  }
+}

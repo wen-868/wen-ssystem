@@ -1,0 +1,16 @@
+[0] 库已重建：s3206_main @ 127.0.0.1:3408
+PASS  [1] 后端 /health 200（启动期迁移 + 种子已完成）
+[2] 该 SKU 价格行：cost=1499.00 retail=2999.00
+[2] 夹具写入：9 张销售单（A 租户 7 张含 2 张反例 / B 租户 1 张）
+PASS  [3a] admin 登录成功（code=0 且下发 token）
+[4] SQL 真值：A sku1 = 14 瓶 / 1806.00 元；B = 999 瓶 / 99999.00 元；合并 = 1013 瓶 / 101805.00 元
+PASS  [5a] sales-ranking?dimension=product 有该 SKU 行  :: {"id":1,"name":"S3206夹具SKU","totalQty":1013,"totalAmount":101805,"receivedAmount":0,"orderCount":0}
+FAIL  [5b] product 维度 totalQty = 仅 A 租户真值  :: 接口=1013 A真值=14（若含B则为 1013）
+FAIL  [5c] product 维度 totalAmount = 仅 A 租户真值  :: 接口=101805 A真值=1806.00（若含B则为 101805.00）
+FAIL  [5d] customer 维度首行金额 = 仅 A 租户真值  :: 接口=43164 A真值=60260.00（若含B则为 160259.00）
+FAIL  [5e] store 维度可用且金额 = 仅 A 租户真值  :: 接口异常 code=500 msg=服务器内部错误
+FAIL  [5f] staff 维度首行金额 = 仅 A 租户真值  :: 接口=58164 A真值=60260.00
+PASS  [5g] 对照组 sales-series 仅 A 租户（该接口已显式租户条件）  :: 接口=14 A真值=14
+OBSERVE-FAIL  [5h][范围外] /reports/profit 的成本口径 = 仅 A 租户（finance-report 同根因，本卡未修）  :: {"status":200,"A真值":"20986.00"}
+
+==== 装置结束：PASS 4 / FAIL 5 / 软失败 1 ====
