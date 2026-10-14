@@ -13,9 +13,11 @@
 node docs/evidence/S3-202/s3205-insert-pointer.mjs        "D:/Users/ZXQL/wt-agents/S3-202"          # 第24项（幂等：已插过的会跳过）
 node docs/evidence/S3-202/s3205-verify-literal-count.mjs  "D:/Users/ZXQL/wt-agents/S3-202"          # 第24项 字面量计数不变
 node docs/evidence/S3-202/s3205-memories-annotate.mjs     "D:/Users/ZXQL/wt-agents/S3-202"          # 第25项（幂等）
-node docs/evidence/S3-202/s3205-final-verify.mjs          "D:/Users/ZXQL/wt-agents/S3-202"          # 终验（只读，输出即本目录 10-final-verify.log）
+node docs/evidence/S3-202/s3205-final-verify.mjs          "D:/Users/ZXQL/wt-agents/S3-202" 5d8f46df  # 终验（只读；末参=基线 ref，缺省即 5d8f46df）
 git -c core.quotepath=false diff --numstat -- docs            # 全量改动面（应为 +30 / -0）
 ```
+
+> **末参 `5d8f46df` 是基线 ref（origin/main），不是 HEAD**：脚本以「基线 → 工作区」为对比对象，因此**提交之后仍可复跑**，读数与提交前一致（本目录 `10-final-verify.log` 即为提交后复跑的原始输出）。`git diff --numstat -- docs` 那条在提交后需改写为 `git diff --numstat 5d8f46df HEAD -- docs`。
 
 **第 25 项的"可复跑基线"**（把 apply 前的原始字节还原到临时目录再跑一遍，证明读数可复现）：
 
@@ -39,7 +41,7 @@ node docs/evidence/S3-202/s3205-memories-annotate.mjs "D:/Users/ZXQL/_s3205-evid
 | `02-literal-count.log` | 第 24 项字面量计数原始输出（PASS） |
 | `03-replay-baseline.log` | 第 25 项复跑基线字节数 |
 | `04-memories-apply-replay.log` / `04-memories-dryrun.log` / `05-memories-apply.log` | **同一份**第 25 项复跑输出（sha256 三者相同，均为 `F143A2A87B0FB6EF…`）。说明：最初 apply 的日志因 `Tee-Object` 后接 `Select-Object -First/-Last` 被管道提前截断，故用等价复跑输出覆盖，避免本目录留下半截日志；`04-memories-dryrun.log` 里最初那版含 1 处旧措辞（ci.yml 那句），亦已一并覆盖 |
-| `10-final-verify.log` | 终验原始输出（8 组判据） |
+| `10-final-verify.log` | 终验原始输出（8 组判据；**提交后**以 `baseRef=5d8f46df` 复跑，读数与提交前一致） |
 | `11-hunks-U0.patch` | 全部改动的 `-U0` 补丁（纯新增行，逐处可核对） |
 | `12-diff-full.patch` | 全部改动的完整补丁 |
 

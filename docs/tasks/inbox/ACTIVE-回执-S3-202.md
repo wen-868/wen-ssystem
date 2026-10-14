@@ -90,7 +90,7 @@
 
 ## 八、追加记录（提交 2 与归档）
 
-- 提交 2：`docs(tasks): S3-202 回执入账 + 派单卡归档说明`（哈希见 `git log -1`）
+- 提交 2：`docs(tasks): S3-202 回执入账（回传卡补提交哈希 + 归档说明）` —— 本地提交，未 push；**自指哈希不入文**（本文件即提交 2/3 的内容，写入自身哈希必然失效），请用 `git log --oneline -4` 复核：`ffc3394e`(提交1，实体改动) → 提交2（回执入账）→ 提交3（回执哈希口径修正 + 终验脚本改为按基线 ref 判定，`README.md` §一 已同步）
 - **派单卡归档说明（重要）**：`ACTIVE-S3-202.md` **不在本工作树内**（它只存在于你的主检出 `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\tasks\inbox\`，且为**未跟踪**文件），故我无法在本分支 `git mv`；已按兄弟单（S3-191/192/200 等）的既有做法，在**主检出**用 `Move-Item` 把
   `docs\tasks\inbox\ACTIVE-S3-202.md` → `docs\tasks\inbox\archive\ACTIVE-S3-202-20261015.md`（内容不变，仍为未跟踪文件）。
   同理，本回执也在你的主检出 inbox 内留了一份同样内容的未跟踪副本 `docs/tasks/inbox/ACTIVE-回执-S3-202.md`（便于你直接阅读），并与本分支内的版本同源。

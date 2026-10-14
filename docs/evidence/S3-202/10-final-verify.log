@@ -1,38 +1,72 @@
-########## ① git status --porcelain（应只有 docs/** 下的改动）
-M docs/memories/凌舟-记忆.md
- M docs/memories/墨-记忆.md
- M docs/memories/林夕-记忆.md
- M docs/memories/苏然-记忆.md
- M docs/memories/阿坚-记忆.md
- M docs/memories/阿澈-记忆.md
- M docs/migrations/002_phase1_seed.sql
- M docs/migrations/075_reset_admin_password_bcrypt.sql
- M docs/migrations/081_platform_admin_seed_and_fix.sql
- M docs/migrations/099_seed_data.sql
- M docs/migrations/127_fix_demo_accounts.sql
-?? docs/evidence/S3-202/
-未跟踪（新增）条目：["docs/evidence/S3-202/01-insert-pointer.log","docs/evidence/S3-202/02-literal-count.log","docs/evidence/S3-202/03-replay-baseline.log","docs/evidence/S3-202/04-memories-apply-replay.log","docs/evidence/S3-202/04-memories-dryrun.log","docs/evidence/S3-202/05-memories-apply.log","docs/evidence/S3-202/10-final-verify.log","docs/evidence/S3-202/s3205-final-verify.mjs","docs/evidence/S3-202/s3205-insert-pointer.mjs","docs/evidence/S3-202/s3205-memories-annotate.mjs","docs/evidence/S3-202/s3205-replay-baseline.mjs","docs/evidence/S3-202/s3205-verify-literal-count.mjs"]
+########## ① 改动面（baseRef=5d8f46df → 工作区；应只有 docs/** 下的改动）
+A	docs/evidence/S3-202/01-insert-pointer.log
+A	docs/evidence/S3-202/02-literal-count.log
+A	docs/evidence/S3-202/03-replay-baseline.log
+A	docs/evidence/S3-202/04-memories-apply-replay.log
+A	docs/evidence/S3-202/04-memories-dryrun.log
+A	docs/evidence/S3-202/05-memories-apply.log
+A	docs/evidence/S3-202/10-final-verify.log
+A	docs/evidence/S3-202/README.md
+A	docs/evidence/S3-202/s3205-final-verify.mjs
+A	docs/evidence/S3-202/s3205-insert-pointer.mjs
+A	docs/evidence/S3-202/s3205-memories-annotate.mjs
+A	docs/evidence/S3-202/s3205-replay-baseline.mjs
+A	docs/evidence/S3-202/s3205-verify-literal-count.mjs
+M	docs/memories/凌舟-记忆.md
+M	docs/memories/墨-记忆.md
+M	docs/memories/林夕-记忆.md
+M	docs/memories/苏然-记忆.md
+M	docs/memories/阿坚-记忆.md
+M	docs/memories/阿澈-记忆.md
+M	docs/migrations/002_phase1_seed.sql
+M	docs/migrations/075_reset_admin_password_bcrypt.sql
+M	docs/migrations/081_platform_admin_seed_and_fix.sql
+M	docs/migrations/099_seed_data.sql
+M	docs/migrations/127_fix_demo_accounts.sql
+A	docs/tasks/cards/R101-S3-202-阿坚-回传.md
+A	docs/tasks/inbox/ACTIVE-回执-S3-202.md
+未跟踪（本次证据目录等新增）条目 0 条：[]
 
-改动文件数=11；非 docs/ 前缀=0 ✔
-按扩展名：{".md":6,".sql":5}
+改动文件数=26；非 docs/ 前缀=0 ✔
+按扩展名：{".log":7,".md":9,".mjs":5,".sql":5}
 
-########## ② 反向自证：.ts/.js/.mjs/.cjs/.vue/.html/.css/.json 改动 = 0 ✔
+########## ② 反向自证：产品代码（.ts/.js/.mjs/.cjs/.vue/.html/.css/.json，排除 docs/evidence/** 下本单自带的 node 验证脚本）改动 = 0 ✔
+（附）docs/evidence/S3-202 内的验证脚本 .mjs 共 5 个，均为本单新增证据，非产品代码
 
 ########## ③ 逐文件：新增/删除行 + 行尾 + sha256（HEAD blobs vs 工作区）
-docs/memories/凌舟-记忆.md | +7 / -0 | 行尾=i/lf w/crlf | sha256 1bd5425b1d1e53c2 -> 7f5ead001dc6a408
-docs/memories/墨-记忆.md | +5 / -0 | 行尾=i/crlf w/crlf | sha256 9aa9531cc2901975 -> 3779da72e6790e55
-docs/memories/林夕-记忆.md | +3 / -0 | 行尾=i/crlf w/crlf | sha256 5aedfb2b732c244c -> fac321e8938e1348
-docs/memories/苏然-记忆.md | +4 / -0 | 行尾=i/lf w/crlf | sha256 1e2e20e14ffe89f4 -> cccd35c80597a207
-docs/memories/阿坚-记忆.md | +3 / -0 | 行尾=i/lf w/crlf | sha256 e8f6409890d999fa -> 61d3edd6953ca27b
-docs/memories/阿澈-记忆.md | +1 / -0 | 行尾=i/lf w/crlf | sha256 80664524e9af3e69 -> 552d073011589f0e
-docs/migrations/002_phase1_seed.sql | +1 / -0 | 行尾=i/lf w/crlf | sha256 22331b84ed9e90bf -> fd585d03a4c41ce1
-docs/migrations/075_reset_admin_password_bcrypt.sql | +2 / -0 | 行尾=i/lf w/crlf | sha256 bc4ceab25ebfde15 -> 83fac813a5be0ed3
-docs/migrations/081_platform_admin_seed_and_fix.sql | +1 / -0 | 行尾=i/lf w/crlf | sha256 331f4f28a0b25d6b -> 22005a86b26dc6a6
-docs/migrations/099_seed_data.sql | +1 / -0 | 行尾=i/lf w/crlf | sha256 13713ef98e778d91 -> 9fcd6eb430e0e35f
-docs/migrations/127_fix_demo_accounts.sql | +2 / -0 | 行尾=i/lf w/crlf | sha256 ee72a660fb96bda2 -> e7c7c3cb5414e779
+warning: in the working copy of 'docs/evidence/S3-202/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/evidence/S3-202/s3205-final-verify.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/tasks/inbox/ACTIVE-回执-S3-202.md', LF will be replaced by CRLF the next time Git touches it
+docs/evidence/S3-202/01-insert-pointer.log | [A] +8 / -0 | 行尾=i/lf w/crlf | sha256 (新增) -> 27627be5e06bc279
+docs/evidence/S3-202/02-literal-count.log | [A] +16 / -0 | 行尾=i/lf w/crlf | sha256 (新增) -> 5bb66033ed70ee12
+docs/evidence/S3-202/03-replay-baseline.log | [A] +6 / -0 | 行尾=i/lf w/crlf | sha256 (新增) -> 176bc384b4a7d2c4
+docs/evidence/S3-202/04-memories-apply-replay.log | [A] +30 / -0 | 行尾=i/lf w/crlf | sha256 (新增) -> f143a2a87b0fb6ef
+docs/evidence/S3-202/04-memories-dryrun.log | [A] +30 / -0 | 行尾=i/lf w/crlf | sha256 (新增) -> f143a2a87b0fb6ef
+docs/evidence/S3-202/05-memories-apply.log | [A] +30 / -0 | 行尾=i/lf w/crlf | sha256 (新增) -> f143a2a87b0fb6ef
+docs/evidence/S3-202/10-final-verify.log | [A] +36 / -0 | 行尾=i/lf w/crlf | sha256 (新增) -> 0e772dd76b16ae93
+docs/evidence/S3-202/README.md | [A] +164 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> a0673897827bbd64
+docs/evidence/S3-202/s3205-final-verify.mjs | [A] +161 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> 1c1b8a5fbe9ef330
+docs/evidence/S3-202/s3205-insert-pointer.mjs | [A] +115 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> f42472f4d048382e
+docs/evidence/S3-202/s3205-memories-annotate.mjs | [A] +161 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> 9b57fdc4a836601f
+docs/evidence/S3-202/s3205-replay-baseline.mjs | [A] +24 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> 541971496fbc6efd
+docs/evidence/S3-202/s3205-verify-literal-count.mjs | [A] +53 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> 04977d7160996023
+docs/memories/凌舟-记忆.md | [M] +7 / -0 | 行尾=i/lf w/crlf | sha256 1bd5425b1d1e53c2 -> 7f5ead001dc6a408
+docs/memories/墨-记忆.md | [M] +5 / -0 | 行尾=i/crlf w/crlf | sha256 9aa9531cc2901975 -> 3779da72e6790e55
+docs/memories/林夕-记忆.md | [M] +3 / -0 | 行尾=i/crlf w/crlf | sha256 5aedfb2b732c244c -> fac321e8938e1348
+docs/memories/苏然-记忆.md | [M] +4 / -0 | 行尾=i/lf w/crlf | sha256 1e2e20e14ffe89f4 -> cccd35c80597a207
+docs/memories/阿坚-记忆.md | [M] +3 / -0 | 行尾=i/lf w/crlf | sha256 e8f6409890d999fa -> 61d3edd6953ca27b
+docs/memories/阿澈-记忆.md | [M] +1 / -0 | 行尾=i/lf w/crlf | sha256 80664524e9af3e69 -> 552d073011589f0e
+docs/migrations/002_phase1_seed.sql | [M] +1 / -0 | 行尾=i/lf w/crlf | sha256 22331b84ed9e90bf -> fd585d03a4c41ce1
+docs/migrations/075_reset_admin_password_bcrypt.sql | [M] +2 / -0 | 行尾=i/lf w/crlf | sha256 bc4ceab25ebfde15 -> 83fac813a5be0ed3
+docs/migrations/081_platform_admin_seed_and_fix.sql | [M] +1 / -0 | 行尾=i/lf w/crlf | sha256 331f4f28a0b25d6b -> 22005a86b26dc6a6
+docs/migrations/099_seed_data.sql | [M] +1 / -0 | 行尾=i/lf w/crlf | sha256 13713ef98e778d91 -> 9fcd6eb430e0e35f
+docs/migrations/127_fix_demo_accounts.sql | [M] +2 / -0 | 行尾=i/lf w/crlf | sha256 ee72a660fb96bda2 -> e7c7c3cb5414e779
+docs/tasks/cards/R101-S3-202-阿坚-回传.md | [A] +131 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> 995cf2fe174ba72c
+docs/tasks/inbox/ACTIVE-回执-S3-202.md | [A] +97 / -0 | 行尾=i/lf w/lf | sha256 (新增) -> e594c203c20dca25
 
-########## ④ 新增行性质审计（要求：migrations 新增行全部以「+-- 」开头；memories 新增行全部是「+> ⚠️」或空行；删除行 = 0）
-新增行=30 删除行=0 ✔
+########## ④ 新增行性质审计（要求：migrations 新增行全部以「+-- 」开头；memories 新增行全部是「+> ⚠️」或空行；实体文件删除行 = 0）
+warning: in the working copy of 'docs/tasks/inbox/ACTIVE-回执-S3-202.md', LF will be replaced by CRLF the next time Git touches it
+实体文件（排除 docs/evidence/**）新增行=258 删除行=0 ✔（其中 migrations+memories = 30 行，其余为本单回传卡/回执）；docs/evidence/** 为纯新增（不计入此行数）
 migrations 文件数=5
 migrations 非注释新增行=0 ✔
 memories 新增行=23；非「> ⚠️」/非空行=0 ✔
