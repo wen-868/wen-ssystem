@@ -1,0 +1,25 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "todaySalesAmount": 0,
+      "todayOrderCount": 0,
+      "salesGrowthRate": -100,
+      "orderGrowthRate": -100,
+      "monthSalesAmount": 58680,
+      "monthOrderCount": 6,
+      "yearSalesAmount": 60260,
+      "yearOrderCount": 11,
+      "totalReceivable": 30872,
+      "totalPayable": 36571.32,
+      "inventoryValue": 182096,
+      "customerCount": 3,
+      "supplierCount": 2,
+      "monthPurchaseAmount": 341467.92,
+      "monthPurchaseCount": 3
+    },
+    "traceId": "8cd709b3-0e3d-410d-8613-050e30a4e6e3"
+  }
+}

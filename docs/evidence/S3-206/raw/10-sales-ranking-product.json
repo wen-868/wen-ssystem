@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": [
+      {
+        "id": 1,
+        "name": "S3206夹具SKU",
+        "totalQty": 14,
+        "totalAmount": 1806,
+        "receivedAmount": 0,
+        "orderCount": 0
+      },
+      {
+        "id": 11,
+        "name": "S3206夹具SKU",
+        "totalQty": 3,
+        "totalAmount": 290,
+        "receivedAmount": 0,
+        "orderCount": 0
+      }
+    ],
+    "traceId": "3ae5dcd9-4408-4b42-b628-f17eddd7c156"
+  }
+}

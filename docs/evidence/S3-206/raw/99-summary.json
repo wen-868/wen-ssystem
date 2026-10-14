@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2026-10-14T21:15:39.420Z",
+  "repo": "D:\\Users\\ZXQL\\wt-agents\\S3-206",
+  "db": "s3206_main",
+  "fixture": {
+    "A": "default",
+    "B": "s3206t2",
+    "skuId": 1,
+    "dateStart": "2026-08-01",
+    "dateEnd": "2026-10-31"
+  },
+  "truth": {
+    "A": {
+      "qty": "14",
+      "amount": "1806.00"
+    },
+    "B": {
+      "qty": "999",
+      "amount": "99999.00"
+    },
+    "A_plus_B": {
+      "qty": "1013",
+      "amount": "101805.00"
+    }
+  },
+  "failures": 0,
+  "results": [
+    {
+      "name": "[1] 后端 /health 200（启动期迁移 + 种子已完成）",
+      "ok": true,
+      "soft": false
+    },
+    {
+      "name": "[3a] admin 登录成功（code=0 且下发 token）",
+      "ok": true,
+      "soft": false
+    },
+    {
+      "name": "[5a] sales-ranking?dimension=product 有该 SKU 行",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "id": 1,
+        "name": "S3206夹具SKU",
+        "totalQty": 14,
+        "totalAmount": 1806,
+        "receivedAmount": 0,
+        "orderCount": 0
+      }
+    },
+    {
+      "name": "[5b] product 维度 totalQty = 仅 A 租户真值",
+      "ok": true,
+      "soft": false,
+      "detail": "接口=14 A真值=14（若含B则为 1013）"
+    },
+    {
+      "name": "[5c] product 维度 totalAmount = 仅 A 租户真值",
+      "ok": true,
+      "soft": false,
+      "detail": "接口=1806 A真值=1806.00（若含B则为 101805.00）"
+    },
+    {
+      "name": "[5d] customer 维度合计金额 = 仅 A 租户真值",
+      "ok": true,
+      "soft": false,
+      "detail": "接口=60260 A真值=60260.00（若含B则为 260258.00）"
+    },
+    {
+      "name": "[5e] store 维度可用且合计金额 = 仅 A 租户真值",
+      "ok": true,
+      "soft": false,
+      "detail": "接口=60260 A真值=60260.00（若含B则为 260258.00）"
+    },
+    {
+      "name": "[5f] staff 维度合计金额 = 仅 A 租户真值",
+      "ok": true,
+      "soft": false,
+      "detail": "接口=60260 A真值=60260.00（若含B则为 260258.00）"
+    },
+    {
+      "name": "[5g] 对照组 sales-series 仅 A 租户（该接口已显式租户条件）",
+      "ok": true,
+      "soft": false,
+      "detail": "接口=14 A真值=14"
+    },
+    {
+      "name": "[5h][范围外] /reports/profit 的成本口径 = 仅 A 租户（finance-report 同根因，本卡未修）",
+      "ok": false,
+      "soft": true,
+      "detail": {
+        "status": 200,
+        "接口cost": 120886,
+        "A真值": "20986.00",
+        "含B应为": "120886.00"
+      }
+    },
+    {
+      "name": "[5i][范围外] /marketing/coupons/user-coupons 可用（marketing-coupon 同根因，本卡未修）",
+      "ok": true,
+      "soft": true,
+      "detail": {
+        "status": 200,
+        "code": "0",
+        "msg": "成功"
+      }
+    },
+    {
+      "name": "[5j][范围外] /reports/business-overview 的库存金额 = 仅 A 租户（同文件 :497 同根因，本卡未修）",
+      "ok": false,
+      "soft": true,
+      "detail": {
+        "status": 200,
+        "接口inventoryValue": 182096,
+        "A真值": "172096.00",
+        "含B应为": "182096.00"
+      }
+    }
+  ]
+}
