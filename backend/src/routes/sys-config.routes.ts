@@ -16,7 +16,7 @@ sysConfigRouter.put("/batch", ctrl.batchUpdateConfigs);
 sysConfigRouter.post("/", ctrl.createConfig);
 sysConfigRouter.post("/test-mail", ctrl.testMail);
 sysConfigRouter.post("/manual-backup", ctrl.manualBackup);
-// ========== ·���Զ��������� ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/sys-config",
   router: sysConfigRouter,

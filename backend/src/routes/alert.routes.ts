@@ -11,7 +11,7 @@ alertRouter.put("/:id/handle", ctrl.handleAlert);
 alertRouter.get("/rules", ctrl.listAlertRules);
 alertRouter.put("/rules/:id", ctrl.updateAlertRule);
 alertRouter.post("/check", ctrl.runCheck);
-// ========== ·���Զ��������� ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/alerts",
   router: alertRouter,
