@@ -86,7 +86,7 @@ node scripts/guard-rbac-wiring.mjs --strict # 10) RBAC 接线
 | `backend/src/services/admin/report/sales-report.service.ts` | `7BD70862B765D739` |
 | `backend/dist/services/admin/report/sales-report.service.js`（装置实际运行产物） | `AC63F78340FE5A1F` |
 | `backend/src/config/database.ts`（只读参考，未改动） | `6FF19BE2760EF1D8` |
-| HEAD | `7d95f481`（3 笔提交：`58bc2a1e` 修复＋单测 → `7e043733` 证据包 → `7d95f481` 指纹订正） |
+| 分支提交 | `58bc2a1e`（修复＋单测）→ `7e043733`（证据包）→ 末尾 1 笔 `docs:` 哈希订正；tip 以 `git log --oneline 36a7a02f..HEAD` 为准 |
 
 ## 八、未覆盖范围（明确登记，等凌舟定范围/单号）
 
