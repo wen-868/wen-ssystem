@@ -1,0 +1,1576 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/miniapp/cart",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/cart/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/miniapp/cart/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/miniapp/cart",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/orders",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/orders/S196NO/pay",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/orders/S196NO/cancel",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可取消"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可取消"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/orders/S196NO/confirm-receive",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 500,
+      "code": "500",
+      "msg": "服务器内部错误"
+    },
+    "baseMerchantCsrf": {
+      "status": 500,
+      "code": "500",
+      "msg": "服务器内部错误"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/orders/S196NO/delete",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可删除（仅已取消/已完成）"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可删除（仅已取消/已完成）"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/stored-card/recharge",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/user/profile",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/user/addresses",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/user/addresses/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/miniapp/user/addresses/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/user/addresses/1/default",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/coupons/1/use",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/member/coupons/1/receive",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "每人限领1张"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/user/profile-update",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "没有需要更新的字段"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "没有需要更新的字段"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/user/change-password",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/cart",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/wholesale/cart/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/miniapp/wholesale/cart/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 404,
+      "code": "404",
+      "msg": "购物车商品不存在"
+    },
+    "baseMerchantCsrf": {
+      "status": 404,
+      "code": "404",
+      "msg": "购物车商品不存在"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/cart/delete",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/wholesale/cart/1/select",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/wholesale/cart/select-all",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders/S196NO/cancel",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可取消（仅待付款可取消）"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可取消（仅待付款可取消）"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders/S196NO/confirm-receive",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可确认收货"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "订单不存在或当前状态不可确认收货"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders/buy-now",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/cart/add",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/cart/items/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/miniapp/cart/items/1",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/cart/clear",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/cart/checkout/preview",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "购物车为空"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "购物车为空"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/cart/checkout/create",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 500,
+      "code": "500",
+      "msg": "服务器内部错误"
+    },
+    "baseMerchantCsrf": {
+      "status": 500,
+      "code": "500",
+      "msg": "服务器内部错误"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/marketing/coupons/1/claim",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "您已领取过该优惠券"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "您已领取过该优惠券"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/marketing/flash-sale/1/buy",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/marketing/group-buy/1/join",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 404,
+      "code": "404",
+      "msg": "拼团组不存在或已结束"
+    },
+    "baseMerchantCsrf": {
+      "status": 404,
+      "code": "404",
+      "msg": "拼团组不存在或已结束"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/marketing/calculate",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/aftersales",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/aftersales/S196NO/cancel",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "无法取消（非待审核状态或不属于您）"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "无法取消（非待审核状态或不属于您）"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/aftersales/S196NO/return-logistics",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/aftersales/S196NO/rate",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/notifications/1/read",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/notifications/read-all",
+    "kind": "miniapp",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wechat/auth/decrypt-phone",
+    "kind": "wechat",
+    "baseNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "baseCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "参数校验失败"
+    },
+    "baseMerchantCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    }
+  },
+  {
+    "method": "PUT",
+    "path": "/api/miniapp/wechat/auth/profile",
+    "kind": "wechat",
+    "baseNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "baseCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wechat/auth/bind",
+    "kind": "wechat",
+    "baseNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "baseCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "账号不存在或已禁用"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "账号不存在或已禁用"
+    },
+    "baseMerchantCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/miniapp/wechat/auth/unbind",
+    "kind": "wechat",
+    "baseNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "baseCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "未找到有效绑定关系"
+    },
+    "fixedNoCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    },
+    "fixedCsrf": {
+      "status": 400,
+      "code": "400",
+      "msg": "未找到有效绑定关系"
+    },
+    "baseMerchantCsrf": {
+      "status": 403,
+      "code": "403",
+      "msg": "CSRF token 无效或缺失"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/miniapp/marketing/coupons/my",
+    "kind": "read",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": null
+  },
+  {
+    "method": "GET",
+    "path": "/api/miniapp/marketing/points/my",
+    "kind": "read",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": null
+  },
+  {
+    "method": "GET",
+    "path": "/api/miniapp/notifications",
+    "kind": "read",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": null
+  },
+  {
+    "method": "GET",
+    "path": "/api/miniapp/orders",
+    "kind": "read",
+    "baseNoCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "baseCsrf": {
+      "status": 401,
+      "code": "401",
+      "msg": "登录已失效"
+    },
+    "fixedNoCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "fixedCsrf": {
+      "status": 200,
+      "code": "0",
+      "msg": "成功"
+    },
+    "baseMerchantCsrf": null
+  }
+]

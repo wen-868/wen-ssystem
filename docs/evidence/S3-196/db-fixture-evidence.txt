@@ -1,0 +1,13 @@
+
+表	id	tenant_id	openid	mobile
+t_member(消费者身份)	4	default	openid-s196	13900009999
+表	id	template_id	user_id	tenant_id	status
+t_user_coupon(券归属)	1	1	4	default	UNUSED
+表	id	recipient_id	recipient_type	is_read	read_at
+t_notification(通知已读)	1	4	CONSUMER	1	2026-10-14 06:06:41
+--------------
+SELECT 't_cart(购物车归属)' AS 表, id, user_id, tenant_id FROM t_cart WHERE tenant_id='default'
+--------------
+
+ERROR 1146 (42S02) at line 4: Table 's3196_e2e.t_cart' doesn't exist
+

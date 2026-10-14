@@ -1,0 +1,4 @@
+
+t	id	customer_id	sku_id	quantity	tenant_id
+t_cart_item(购物车归属)	1	4	1	1	default
+

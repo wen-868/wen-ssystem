@@ -60,7 +60,7 @@ Page({
     this.setData({ loading: true, errorText: "" });
     const anonymousId = wx.getStorageSync("anonymous_member_id") || "";
     const token = wx.getStorageSync("miniapp_token") || "";
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/orders`,
       method: "GET",
       header: {

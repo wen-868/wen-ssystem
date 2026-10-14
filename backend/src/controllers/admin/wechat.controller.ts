@@ -80,6 +80,13 @@ export function createWechatController(
 
   const bind = asyncHandler(async (req, res) => {
     const wxUser = (req as { wxUser?: Record<string, unknown> }).wxUser;
+    // S3-196（总清单第 52 项 · 凌舟裁定④）：租户来源为「令牌携带 → X-Tenant-Id → 不伪造」。
+    // 两者都缺时**显式失败且不落库** —— 不再让空租户一路走到 service（原写法会用空字符串当租户
+    // 去查账号，把"缺租户"误报成"账号不存在或已禁用"，判定还依赖数据偶然性）。
+    if (!req.tenantId) {
+      res.status(400).json(fail("缺少租户信息（微信令牌未携带租户且未提供 X-Tenant-Id）", "400"));
+      return;
+    }
     const body = z.object({
       username: z.string().min(1),
       password: z.string().min(1),

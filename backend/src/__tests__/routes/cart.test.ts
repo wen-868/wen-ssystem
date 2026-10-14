@@ -9,7 +9,10 @@ describe("routes/cart", () => {
   });
 
   it("应配置认证中间件", () => {
-    expect(routeConfig.auth).toBe("requireAuthWithTenant");
+    // S3-196（总清单第 52 项）：消费者端（/api/miniapp/**）改用 requireConsumerAuthWithTenant ——
+    // 接受微信令牌并按 openid 解析绑定的会员身份；商家端 JWT 仍原样透传，故对既有调用方零回归。
+    // 本断言随契约有意变更（唯一改动点），CSRF 仍由 auto-routes 成对附加，见 getAuthMiddlewares()。
+    expect(routeConfig.auth).toBe("requireConsumerAuthWithTenant");
   });
 
   it("router 应该是一个 Router 实例", () => {
