@@ -1,0 +1,16 @@
+文件 | 字面量 | HEAD 次数 | 工作区次数 | 判定
+docs/migrations/002_phase1_seed.sql | admin123 | 1 | 1 | 不变 ✔
+docs/migrations/002_phase1_seed.sql | 默认密码 | 1 | 1 | 不变 ✔
+docs/migrations/075_reset_admin_password_bcrypt.sql | admin123 | 2 | 2 | 不变 ✔
+docs/migrations/075_reset_admin_password_bcrypt.sql | 默认密码 | 1 | 1 | 不变 ✔
+docs/migrations/081_platform_admin_seed_and_fix.sql | admin123 | 2 | 2 | 不变 ✔
+docs/migrations/081_platform_admin_seed_and_fix.sql | 默认平台超级管理员 | 1 | 1 | 不变 ✔
+docs/migrations/099_seed_data.sql | 123456 -> bcrypt hash | 1 | 1 | 不变 ✔
+docs/migrations/099_seed_data.sql | 默认密码 | 1 | 1 | 不变 ✔
+docs/migrations/127_fix_demo_accounts.sql | admin123 | 2 | 2 | 不变 ✔
+
+=== 新增/删除行审计（应：全部新增行以「+-- 」开头；无删除行）===
+新增行=7 删除行=0
+非注释新增行数=0
+
+总判定：PASS

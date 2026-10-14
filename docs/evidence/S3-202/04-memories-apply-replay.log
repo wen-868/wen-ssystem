@@ -1,0 +1,30 @@
+=== DRY-RUN（逐文件）===
+凌舟-记忆.md | 行尾=CRLF | 插入=5 处 | 重放自证=一致 ✔ | before=568c3516ed002e4ea917aef41e052a83770066c92304fd3b5466746a44e297f9 | after=7f5ead001dc6a408b5de98475a6a0b260200d811302971b47142f094b55288cb
+墨-记忆.md | 行尾=CRLF | 插入=4 处 | 重放自证=一致 ✔ | before=9aa9531cc2901975447e366472efb79f59d77c34287d0adf3f3016612b899eed | after=3779da72e6790e55254e0fbc41af050a0fab0cbe26dd51dcc19264db933fd759
+林夕-记忆.md | 行尾=CRLF | 插入=3 处 | 重放自证=一致 ✔ | before=5aedfb2b732c244c05eaed4187e57c76ab9dad8f9cf10dc92565f0a415733d79 | after=fac321e8938e1348bd3ac98a804ba60273f189640865cff938089ab25a1d238d
+苏然-记忆.md | 行尾=CRLF | 插入=3 处 | 重放自证=一致 ✔ | before=bd17a27e4a36a936e840ce58151173fb121a764cae72ea520816064f3cd10df5 | after=cccd35c80597a2079b579dee561cac7e6e9167558437fe9ff0f2dfb0bd034ece
+阿坚-记忆.md | 行尾=CRLF | 插入=3 处 | 重放自证=一致 ✔ | before=3bf7e9d929d373a8d833f522d3bdf45f5f5a08e03e7b499ae83d9ecf8f2de53c | after=61d3edd6953ca27b42800e3772338862c183c499b4975127bbce99abc482599f
+阿澈-记忆.md | 行尾=CRLF | 插入=1 处 | 重放自证=一致 ✔ | before=a3d33efc7a3c043efdb26eeb09442553452a1fd2c02ef9f3a5acc9c509f409e0 | after=552d073011589f0e102875f2e06ce705fc713f243bf2caa1efd53f54490e4a0b
+
+=== 插入位点（1 基行号以插入后文件为准）===
+凌舟-记忆.md | 锚点行=346 | 插入于第 351 行之后 | | 门店终端 | Vue3 (store-terminal) |
+凌舟-记忆.md | 锚点行=378 | 插入于第 378 行之后 | ├── store-terminal/       # 门店终端（Vue3）
+凌舟-记忆.md | 锚点行=555 | 插入于第 555 行之后 | CI 流水线：安装依赖
+凌舟-记忆.md | 锚点行=730 | 插入于第 744 行之后 | | 生产环境API可用性 |
+凌舟-记忆.md | 锚点行=768 | 插入于第 768 行之后 | `npm install` 在 backend/admin-web/app-mobile/store-terminal 全部执行
+墨-记忆.md | 锚点行=53 | 插入于第 59 行之后 | | 门店终端 | Vue3 (store-terminal) |
+墨-记忆.md | 锚点行=1307 | 插入于第 1307 行之后 | ### store-terminal 前端
+墨-记忆.md | 锚点行=1362 | 插入于第 1362 行之后 | - [ ] `cd store-terminal && npx eslint src/` 验证 0 error
+墨-记忆.md | 锚点行=1390 | 插入于第 1390 行之后 | cd store-terminal && npx --no eslint src/
+林夕-记忆.md | 锚点行=49 | 插入于第 52 行之后 | | 门店终端 | Vue3（store-terminal，待建） |
+林夕-记忆.md | 锚点行=63 | 插入于第 63 行之后 | | store-terminal | Vue3 + Element Plus | 门店收银终端 | 待建 |
+林夕-记忆.md | 锚点行=677 | 插入于第 677 行之后 | | store-terminal | 1024px Tablet | Element Plus | 固定宽度，触屏优化 |
+苏然-记忆.md | 锚点行=38 | 插入于第 40 行之后 | | store-terminal | `npx eslint src/` | 0 error（warning 允许） |
+苏然-记忆.md | 锚点行=517 | 插入于第 517 行之后 | cd store-terminal && npx eslint src/
+苏然-记忆.md | 锚点行=678 | 插入于第 678 行之后 | ├── store-terminal/             # 门店终端前端
+阿坚-记忆.md | 锚点行=31 | 插入于第 33 行之后 | | 阿澈 | 商户端 merchant-mobile 前端
+阿坚-记忆.md | 锚点行=918 | 插入于第 925 行之后 | - **路径**：`backend/ai-base/`
+阿坚-记忆.md | 锚点行=718 | 插入于第 718 行之后 | - **SKIP_PATTERNS**：数组形式存储可跳过的错误模式
+阿澈-记忆.md | 锚点行=5 | 插入于第 7 行之后 | > 职责：商户端 merchant-mobile 前端
+
+总判定：PASS

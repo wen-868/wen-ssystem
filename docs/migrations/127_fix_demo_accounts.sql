@@ -1,9 +1,11 @@
+-- ⚠️ 历史示例口令，勿照抄；当前口径见 backend/src/config/constants.ts 的 DEMO_PASSWORD（S3-175 收敛为 Demo@2026）。
 -- 编号: 127, 描述: 修复演示账号（store_manager/store_operator 密码 admin123，bcrypt 兼容哈希）
 -- 说明: 002_phase1_seed.sql 中的旧哈希为 SHA256，与后端 bcrypt 校验不兼容，
 --       本脚本用 bcrypt(v2$) 哈希重建演示账号；幂等，可重复执行。
 
 USE liquor_inventory;
 
+-- ⚠️ 历史示例口令，勿照抄；当前口径见 backend/src/config/constants.ts 的 DEMO_PASSWORD（S3-175 收敛为 Demo@2026）。
 -- 1) 修复演示账号密码哈希（v2$ + bcrypt(admin123, cost=12)）
 INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, store_id, status, created_at, updated_at)
 VALUES

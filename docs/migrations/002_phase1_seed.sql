@@ -2,6 +2,7 @@
 
 -- 智享营销系统 第 1 阶段开发种子数据
 -- 默认账号：admin
+-- ⚠️ 历史示例口令，勿照抄；当前口径见 backend/src/config/constants.ts 的 DEMO_PASSWORD（S3-175 收敛为 Demo@2026）。
 -- 默认密码：admin123
 
 USE liquor_inventory;
