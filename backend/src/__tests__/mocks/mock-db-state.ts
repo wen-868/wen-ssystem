@@ -9,11 +9,11 @@ export const state = {
     { id: 1, username: "admin", password_hash: hashPasswordSync(constants.DEMO_PASSWORD), real_name: "系统管理员", store_id: null, status: 1, tenant_id: "default" },
     // 门店/商家端登录账号（qa-regression-test 门店端场景使用）
     { id: 2, username: "store_manager", password_hash: hashPasswordSync(constants.DEMO_PASSWORD), real_name: "门店经理", store_id: 1, status: 1, tenant_id: "default" },
-    // 演示账号：与生产同源（生产 t_sys_user.username='demo' 已用产品端点设为 Demo@2026，
-    // 2026-10-07 实测生产 POST /api/admin/auth/login demo/Demo@2026 => 200）。
-    // 登录页「演示登录（一键进入）」走的就是这条口令登录路径（C6-9），故 mock 必须同源，否则 e2e 失真。
-    // ⚠️ 后端唯一来源常量：backend/src/services/admin/auth.service.ts 的 DEMO_USERNAME === "demo"。
-    { id: 3, username: "demo", password_hash: hashPasswordSync("Demo@2026"), real_name: "演示账号", store_id: null, status: 1, tenant_id: "default" }
+    // 历史独立演示账号：S3-203 起**停用**（status=0）且口令为随机值 —— 与迁移
+    // docs/migrations/200_账号口径统一.sql 第 4 条同口径（demo 租户那条行在 mock 里以 default 形态存在，
+    // 因为 mock 只模拟单库形态）。唯一对外账号已改为 admin（id=1，见上），演示入口走它。
+    // ⚠️ 后端唯一来源常量：backend/src/config/constants.ts 的 DEMO_USERNAME === "admin"。
+    { id: 3, username: "demo", password_hash: hashPasswordSync("s3-203-demo-random-disabled"), real_name: "演示账号", store_id: null, status: 0, tenant_id: "default" }
   ],
   roles: [
     { id: 1, role_code: "SUPER_ADMIN", role_name: "超级管理员", status: 1 }

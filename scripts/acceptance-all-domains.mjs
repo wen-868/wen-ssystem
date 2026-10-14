@@ -12,7 +12,7 @@ const M_URL = "https://m.onepan.cn";
 const WWW_URL = "https://www.onepan.cn";
 
 // S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "admin@2026";
 
 const results = [];
 let passed = 0;

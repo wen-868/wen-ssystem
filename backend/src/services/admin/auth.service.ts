@@ -14,6 +14,8 @@ import { generateCsrfToken } from "../../middleware/csrf";
 import { env } from "../../config/env";
 import { constants } from "../../config/constants";
 import { signMfaToken } from "../../middleware/mfa-token";
+// S3-203：权限集合解析移入 shared（唯一出处），工作台与移动端共用同一处判据
+import { getUserPermissions } from "../../shared/user-permissions";
 
 // ==================== 类型定义 ====================
 
@@ -30,11 +32,6 @@ export interface SysUserLoginRow {
   locked_until: Date | string | null;
   mfa_secret?: string | null;
   mfa_enabled?: number;
-}
-
-/** 角色权限行 */
-interface RolePermissionRow {
-  permissions: unknown;
 }
 
 /** 角色编码行 */
@@ -68,77 +65,17 @@ const LOCK_DURATION_MINUTES = 15;
 export const DEMO_USERNAME = constants.DEMO_USERNAME;
 
 /**
- * 演示账号归属租户（唯一来源）。
+ * 唯一对外账号（= 演示入口账号）的归属租户（唯一来源）。
  *
- * S3-174-F1（P0 安全）：演示口令 Demo@2026 是**公开值**（写在前端打包产物与仓内 .env.example），
- * 而演示账号原先落在 `default` —— 也就是**真实业务租户**（生产 t_sale_bill 在 default 有 524 行）。
- * 任何人用公开口令登录即可持 default 租户的 SUPER_ADMIN 读真实经营数据。
- * 故演示账号必须独立落在演示租户 `demo` 下：归属由迁移
- * docs/migrations/197_演示租户隔离.sql 搬（账号行 + 该账号自己的角色绑定 + demo 菜单），
- * 本常量保证登录路径的**自愈口径**与迁移一致，否则演示账号一旦被删号重建，又会被放回真实租户。
+ * S3-174-F1 曾要求演示账号独立落在演示租户 `demo`（避免公开口令读到真实业务数据）；
+ * **S3-203（2026-10-15 业主口径）已作废该隔离**：业主明示
+ * 「不要做那么多的和演示相关账号，全部统一为一个，另外就是真实租户账号」+「演示 = 真实数据」，
+ * 唯一对外账号就是**真实租户 default 的超管 `admin`**，故本常量回到 `default`。
+ *
+ * ⚠️ 随之作废的还有"归属自愈"：既然账号本来就是 default 的超管，登录路径**不得**再改写
+ * `t_sys_user.tenant_id`（旧自愈会把超管搬到 demo 租户，属于破坏性写操作）。见 `demoLogin()`。
  */
-export const DEMO_TENANT = "demo";
-
-/**
- * 规范化角色 permissions 字段为字符串数组
- *
- * 兼容 mysql2 对 JSON 类型的多种返回形态（R54-15 引入 getUserPermissions 后的生产 500 修复）：
- * - mysql2 默认会自动解析 JSON 类型列为 JS 对象（数组/对象），此时 JSON.parse(数组) 会抛异常
- * - 不同 mysql2 版本 / 配置下，permissions 可能返回：
- *   1) JS 数组（mysql2 自动解析 JSON）—— 直接使用
- *   2) JSON 字符串（如 '["perm1"]'）—— JSON.parse 解析
- *   3) 空字符串 "" —— 返回 []
- *   4) null / undefined —— 返回 []
- *   5) 非法 JSON 字符串 —— 容错返回 []
- *
- * 关联任务：R54遗留 生产环境登录 API 500 错误修复
- */
-function normalizePermissions(raw: unknown): string[] {
-  if (Array.isArray(raw)) {
-    return raw.filter((p): p is string => typeof p === "string");
-  }
-  if (typeof raw === "string") {
-    if (raw === "") return [];
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        return parsed.filter((p): p is string => typeof p === "string");
-      }
-    } catch {
-      // 非法 JSON 字符串，容错返回空数组，避免登录 500
-      return [];
-    }
-  }
-  // null / undefined / 其他类型
-  return [];
-}
-
-/**
- * 根据用户ID获取其所有角色的权限列表（去重合并）
- * 角色 permissions 字段存储 JSON 数组格式的权限编码
- *
- * 注意：status 查询条件兼容 VARCHAR('ACTIVE') 和 TINYINT(1) 两种类型，
- *       因为 init_database.sql 中 status 是 VARCHAR DEFAULT 'ACTIVE'，
- *       但 079_权限矩阵.sql 的 seed 数据用 1（被转成字符串 "1"）。
- */
-async function getUserPermissions(userId: number, tenantId: string): Promise<string[]> {
-  const roles = await query<RolePermissionRow>(
-    `SELECT r.permissions
-     FROM t_sys_user_role ur
-     JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
-     WHERE ur.user_id = ? AND ur.tenant_id = ? AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')`,
-    [userId, tenantId]
-  );
-
-  const permSet = new Set<string>();
-  for (const role of roles) {
-    const perms = normalizePermissions(role.permissions);
-    for (const p of perms) {
-      permSet.add(p);
-    }
-  }
-  return Array.from(permSet);
-}
+export const DEMO_TENANT = "default";
 
 export async function login(username: string, password: string, rememberMe = false) {
   const account = await queryOne<SysUserLoginRow>(
@@ -366,55 +303,34 @@ export async function changePassword(userId: number, oldPassword: string, newPas
 }
 
 /**
- * 演示账号登录（免密）：确保 demo 账号存在并绑定超级管理员角色后签发 token。
- * 演示账号仅用于产品演示，不暴露真实密码。
+ * 演示入口登录（免密）：对**唯一对外账号**（`admin`，租户 default 的真实超管）签发 token。
+ *
+ * S3-203 口径变更（业主 2026-10-15）：演示入口不再是独立的 `demo` 账号，而是真实超管 `admin`
+ * ——「演示 = 真实数据」。因此：
+ *   · 保留：禁用自动恢复、锁定计数清零（对外演示必须随时可用）、幂等绑 SUPER_ADMIN、
+ *     角色/权限按 `DEMO_TENANT`（=default）解析；
+ *   · **移除**：账号不存在时自动建号（那条路径现在会凭空造出一个 default 租户的超管账号，
+ *     属越权建号 ⇒ 改为 fail-closed 报错，账号必须由迁移/后台创建）；
+ *   · **移除**：归属自愈（旧口径要把账号搬进 demo 租户；现在账号本就该在 default，
+ *     登录路径不得改写 tenant_id）。
+ * ⚠️ 本接口在生产环境由 `isDemoLoginEnabled()` 门控关闭（403），见 controllers/admin/auth.controller.ts。
  */
 export async function demoLogin() {
   let account = await queryOne<SysUserLoginRow>(
-    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
-    [DEMO_USERNAME]
+    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? AND tenant_id = ? LIMIT 1",
+    [DEMO_USERNAME, DEMO_TENANT]
   );
 
   if (!account) {
-    // 创建演示账号：随机密码哈希，仅用于占位，无法通过密码登录
-    const randomPassword = `demo-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    const hashed = await hashPassword(randomPassword);
-    const insert = (await query(
-      "INSERT INTO t_sys_user (username, password_hash, real_name, store_id, status, tenant_id, last_login_at) VALUES (?, ?, ?, NULL, 1, ?, NOW())",
-      [DEMO_USERNAME, hashed, "演示账号", DEMO_TENANT]
-    )) as unknown as ResultSetHeaderRow;
-    account = {
-      id: insert.insertId,
-      username: DEMO_USERNAME,
-      password_hash: hashed,
-      real_name: "演示账号",
-      store_id: null,
-      status: 1,
-      tenant_id: DEMO_TENANT,
-      login_fail_count: 0,
-      locked_until: null,
-    };
+    // S3-203：不再自动建号。唯一对外账号 `admin` 是**真实超管**，
+    // 免密演示路径凭空创建它 = 越权建号（且会给新号绑上 SUPER_ADMIN）。
+    throw new AppError("演示入口账号未初始化，请联系管理员", 500);
   }
 
   if (account.status !== 1) {
     // 演示账号被禁用时自动恢复
     await query("UPDATE t_sys_user SET status = 1, updated_at = NOW() WHERE id = ?", [account.id]);
     account.status = 1;
-  }
-
-  // S3-174-F1：归属自愈 —— 演示账号必须落在演示租户 DEMO_TENANT，否则令牌里的 tenantId 与实际归属
-  // 不一致（历史数据在 default；迁移 197 的写语句也可能被 MIG-4 写闸门跳过，见该迁移文件「五」）。
-  // 口径与迁移 197 第 2/3 条一致：改账号归属 + 把**该账号自己的**绑定行原地改租户（不做"先插后删"，
-  // 唯一键 uk_sys_user_role (user_id, role_id) 不含 tenant_id，原地 UPDATE 才不会撞键），
-  // 且**不删除**其它租户里的历史绑定（破坏性写入只归迁移 197 管，登录路径不做删除）。
-  if (account.tenant_id !== DEMO_TENANT) {
-    await query("UPDATE t_sys_user SET tenant_id = ?, updated_at = NOW() WHERE id = ?", [DEMO_TENANT, account.id]);
-    await query("UPDATE t_sys_user_role SET tenant_id = ? WHERE user_id = ? AND tenant_id <> ?", [
-      DEMO_TENANT,
-      account.id,
-      DEMO_TENANT,
-    ]);
-    account.tenant_id = DEMO_TENANT;
   }
 
   // 确保绑定 SUPER_ADMIN 角色（幂等：存在则跳过、缺失才补，不用 INSERT IGNORE 掩盖冲突）

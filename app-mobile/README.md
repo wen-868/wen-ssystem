@@ -109,7 +109,7 @@ npm run dev:app
 
 ## 后端对接要点
 
-- **登录**：`POST /api/store/auth/login`，mock 凭据 `admin/Demo@2026`（演示/测试账号统一口令；真实超管口令不在仓内），返回 `data.token` 与 `data.csrfToken`。
+- **登录**：`POST /api/store/auth/login`，mock 凭据 `admin/admin@2026`（演示/测试账号统一口令；真实超管口令不在仓内），返回 `data.token` 与 `data.csrfToken`。
 - **CSRF 防护**：GET 无需 token；POST/PUT/DELETE 必须带 `x-csrf-token` 头，否则返回 403「CSRF token 无效或缺失」。
 - **租户隔离**：请求自动携带租户头，多租户数据隔离。
 

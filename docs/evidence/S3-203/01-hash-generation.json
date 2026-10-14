@@ -1,0 +1,21 @@
+{
+  "note": "明文口令见同目录 S3-203-new-passwords.txt（不入仓）；本文件只落哈希与自证结果",
+  "alg": {
+    "bcrypt_cost": 12,
+    "prefix": "v2$"
+  },
+  "hashes": {
+    "HASH_ADMIN": "v2$$2b$12$v8wQ/Iwwz7md5Rqc9dkwKu4YVwTrbWWHR01xset3KFGkkY5RyU7Fm",
+    "HASH_STORE_MANAGER": "v2$$2b$12$DTeP0h4Cyx7rcEiN.xJTz.N0joBOwbGUYkAyVJX8QHXbC/L.BA8cm",
+    "HASH_STORE_OPERATOR": "v2$$2b$12$B7OJyHZo.RIyBf11xcybgufSj/cGRpxZGg3WZXdI7J2IkrA8SShlq",
+    "HASH_DEMO_RANDOM": "v2$$2b$12$uqawxSVS3p.52cEABMQHNePTmEymW5bS/18JjrUe0SBqkvcbWFNZ2"
+  },
+  "checks": {
+    "admin_hash_matches_admin_2026": true,
+    "admin_hash_rejects_old_demo_password": true,
+    "store_manager_hash_matches_new_password": true,
+    "store_manager_hash_rejects_old_demo_password": true,
+    "store_operator_hash_matches_new_password": true,
+    "store_operator_hash_rejects_old_demo_password": true
+  }
+}

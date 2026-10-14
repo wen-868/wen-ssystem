@@ -10,9 +10,9 @@ import { get, post, request } from '../request'
  * ⚠️ 禁止在页面/组件里再写字面量——凭据只能从这里出。
  */
 export const DEMO_ACCOUNT: string =
-  (import.meta.env?.VITE_DEMO_ACCOUNT as string | undefined) || 'demo'
+  (import.meta.env?.VITE_DEMO_ACCOUNT as string | undefined) || 'admin'
 export const DEMO_PASSWORD: string =
-  (import.meta.env?.VITE_DEMO_PASSWORD as string | undefined) || 'Demo@2026'
+  (import.meta.env?.VITE_DEMO_PASSWORD as string | undefined) || 'admin@2026'
 
 export interface LoginParams {
   username: string

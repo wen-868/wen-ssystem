@@ -1,7 +1,7 @@
 const base = process.env.API_BASE || "http://localhost:8080/api";
 
 // S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "admin@2026";
 
 async function request(path, options = {}) {
   const mergedHeaders = {

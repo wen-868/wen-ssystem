@@ -57,7 +57,7 @@ console.log("");
 
 // ─── 0. 真实登录（store_manager / 统一演示口令，mock §state.users） ───
 // S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "admin@2026";
 const login = await call("POST", "/api/admin/auth/login", {
   body: { username: "store_manager", password: DEMO_PASSWORD },
 });

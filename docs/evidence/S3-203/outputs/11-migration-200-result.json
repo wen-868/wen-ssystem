@@ -1,0 +1,106 @@
+{
+  "checks": {
+    "admin_new_password_matches": true,
+    "admin_old_public_password_rejected": true,
+    "store_manager_new_password_matches": true,
+    "store_manager_old_public_password_rejected": true,
+    "store_operator_new_password_matches": true,
+    "store_operator_old_public_password_rejected": true,
+    "db_admin_hash_is_target": true,
+    "db_store_manager_hash_is_target": true,
+    "db_store_operator_hash_is_target": true,
+    "db_demo_disabled": true,
+    "db_demo_hash_is_random_target": true,
+    "db_platform_admin_hash_is_target": true,
+    "store_manager_lock_counters_reset": true,
+    "second_pass_zero_change": true,
+    "second_pass_writes_zero_rows": true,
+    "first_pass_writes_all_lines": true
+  },
+  "pass1State": {
+    "users": [
+      {
+        "tenant_id": "default",
+        "username": "admin",
+        "status": 1,
+        "password_hash": "v2$$2b$12$v8wQ/Iwwz7md5Rqc9dkwKu4YVwTrbWWHR01xset3KFGkkY5RyU7Fm",
+        "login_fail_count": 0,
+        "locked_until": null
+      },
+      {
+        "tenant_id": "default",
+        "username": "store_manager",
+        "status": 1,
+        "password_hash": "v2$$2b$12$DTeP0h4Cyx7rcEiN.xJTz.N0joBOwbGUYkAyVJX8QHXbC/L.BA8cm",
+        "login_fail_count": 0,
+        "locked_until": null
+      },
+      {
+        "tenant_id": "default",
+        "username": "store_operator",
+        "status": 1,
+        "password_hash": "v2$$2b$12$B7OJyHZo.RIyBf11xcybgufSj/cGRpxZGg3WZXdI7J2IkrA8SShlq",
+        "login_fail_count": 0,
+        "locked_until": null
+      },
+      {
+        "tenant_id": "demo",
+        "username": "demo",
+        "status": 0,
+        "password_hash": "v2$$2b$12$uqawxSVS3p.52cEABMQHNePTmEymW5bS/18JjrUe0SBqkvcbWFNZ2",
+        "login_fail_count": 0,
+        "locked_until": null
+      }
+    ],
+    "platformAdmins": [
+      {
+        "username": "admin",
+        "status": 1,
+        "password_hash": "v2$$2b$12$v8wQ/Iwwz7md5Rqc9dkwKu4YVwTrbWWHR01xset3KFGkkY5RyU7Fm"
+      }
+    ]
+  },
+  "pass2State": {
+    "users": [
+      {
+        "tenant_id": "default",
+        "username": "admin",
+        "status": 1,
+        "password_hash": "v2$$2b$12$v8wQ/Iwwz7md5Rqc9dkwKu4YVwTrbWWHR01xset3KFGkkY5RyU7Fm",
+        "login_fail_count": 0,
+        "locked_until": null
+      },
+      {
+        "tenant_id": "default",
+        "username": "store_manager",
+        "status": 1,
+        "password_hash": "v2$$2b$12$DTeP0h4Cyx7rcEiN.xJTz.N0joBOwbGUYkAyVJX8QHXbC/L.BA8cm",
+        "login_fail_count": 0,
+        "locked_until": null
+      },
+      {
+        "tenant_id": "default",
+        "username": "store_operator",
+        "status": 1,
+        "password_hash": "v2$$2b$12$B7OJyHZo.RIyBf11xcybgufSj/cGRpxZGg3WZXdI7J2IkrA8SShlq",
+        "login_fail_count": 0,
+        "locked_until": null
+      },
+      {
+        "tenant_id": "demo",
+        "username": "demo",
+        "status": 0,
+        "password_hash": "v2$$2b$12$uqawxSVS3p.52cEABMQHNePTmEymW5bS/18JjrUe0SBqkvcbWFNZ2",
+        "login_fail_count": 0,
+        "locked_until": null
+      }
+    ],
+    "platformAdmins": [
+      {
+        "username": "admin",
+        "status": 1,
+        "password_hash": "v2$$2b$12$v8wQ/Iwwz7md5Rqc9dkwKu4YVwTrbWWHR01xset3KFGkkY5RyU7Fm"
+      }
+    ]
+  }
+}

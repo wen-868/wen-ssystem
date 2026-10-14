@@ -8,7 +8,7 @@ import { test, expect } from "@playwright/test";
 async function login(page: any) {
   await page.goto("/");
   await page.getByPlaceholder("账号").fill("admin");
-  await page.getByPlaceholder("密码").fill("Demo@2026");
+  await page.getByPlaceholder("密码").fill("admin@2026");
   await page.getByRole("button", { name: "立即登录" }).click();
   await expect(page).not.toHaveURL(/\/login/, { timeout: 20_000 });
 }

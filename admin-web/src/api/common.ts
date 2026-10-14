@@ -7,11 +7,11 @@ export async function adminLogin(username: string, password: string) {
 
 /**
  * 演示账号凭据（唯一出处，禁止在其它业务代码里再写演示账号字面量）。
- * 构建期可用 VITE_DEMO_ACCOUNT / VITE_DEMO_PASSWORD 覆盖；未配置时回退默认 demo / Demo@2026。
+ * 构建期可用 VITE_DEMO_ACCOUNT / VITE_DEMO_PASSWORD 覆盖；未配置时回退默认 admin / admin@2026。
  * 口令合规：≥8 位 + 字母 + 数字 + 特殊字符（满足 backend/src/shared/password.ts 的校验口径）。
  */
-export const DEMO_ACCOUNT: string = import.meta.env.VITE_DEMO_ACCOUNT || "demo";
-export const DEMO_PASSWORD: string = import.meta.env.VITE_DEMO_PASSWORD || "Demo@2026";
+export const DEMO_ACCOUNT: string = import.meta.env.VITE_DEMO_ACCOUNT || "admin";
+export const DEMO_PASSWORD: string = import.meta.env.VITE_DEMO_PASSWORD || "admin@2026";
 
 /** 初始化演示数据（幂等：业务表为空时自动填充） */
 export async function seedDemoData() {

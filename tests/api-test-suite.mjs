@@ -15,7 +15,7 @@ const API_PREFIX = "/api";
 const TIMEOUT_MS = 15000;
 
 // S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Demo@2026";
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "admin@2026";
 
 const COLORS = {
   reset: "\x1b[0m",

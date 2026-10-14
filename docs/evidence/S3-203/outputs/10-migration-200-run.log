@@ -1,0 +1,43 @@
+# 目标库：root@127.0.0.1:3408（本机副本库，非生产）
+# 副本已建：t_sys_user（DDL 取自 backend/src/shared/migration.ts）、t_platform_admin（DDL 取自 080）
+# 迁移前账号行已灌入（store_manager.login_fail_count=21 复刻生产被爆破态）
+# 迁移 200 以官方通道语义整文件下发（本文件语句数 5，切分口径见同名 vitest 用例）
+
+## 第一遍迁移
+- 返回结果段 2 个（有序对应文件内语句）
+  [1] 写语句 ⇒ affectedRows=1, info="Rows matched: 1  Changed: 1  Warnings: 0"
+  [1] 写语句 ⇒ affectedRows=1, info="Rows matched: 1  Changed: 1  Warnings: 0"
+  [1] 写语句 ⇒ affectedRows=2, info="Rows matched: 2  Changed: 2  Warnings: 0"
+  [1] 写语句 ⇒ affectedRows=1, info="Rows matched: 1  Changed: 1  Warnings: 0"
+
+## 第二遍迁移（幂等：UPDATE 应全为 affectedRows=0）
+- 返回结果段 2 个（有序对应文件内语句）
+  [1] 写语句 ⇒ affectedRows=0, info="Rows matched: 0  Changed: 0  Warnings: 0"
+  [1] 写语句 ⇒ affectedRows=0, info="Rows matched: 0  Changed: 0  Warnings: 0"
+  [1] 写语句 ⇒ affectedRows=0, info="Rows matched: 0  Changed: 0  Warnings: 0"
+  [1] 写语句 ⇒ affectedRows=0, info="Rows matched: 0  Changed: 0  Warnings: 0"
+
+# 第一遍写语句 affectedRows = [1,1,2,1]（期望 4 条且全 >0）
+# 第二遍写语句 affectedRows = [0,0,0,0]（期望 4 条且全为 0）
+
+## 口令语义复核（bcrypt，与 backend/src/shared/password.ts 同口径）
+{
+  "admin_new_password_matches": true,
+  "admin_old_public_password_rejected": true,
+  "store_manager_new_password_matches": true,
+  "store_manager_old_public_password_rejected": true,
+  "store_operator_new_password_matches": true,
+  "store_operator_old_public_password_rejected": true,
+  "db_admin_hash_is_target": true,
+  "db_store_manager_hash_is_target": true,
+  "db_store_operator_hash_is_target": true,
+  "db_demo_disabled": true,
+  "db_demo_hash_is_random_target": true,
+  "db_platform_admin_hash_is_target": true,
+  "store_manager_lock_counters_reset": true,
+  "second_pass_zero_change": true,
+  "second_pass_writes_zero_rows": true,
+  "first_pass_writes_all_lines": true
+}
+
+PASS：全部断言通过
