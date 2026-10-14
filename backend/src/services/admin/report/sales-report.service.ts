@@ -173,6 +173,111 @@ export async function getSalesTrend(
   }));
 }
 
+/** 单一目标销售序列行（按维度取一个商品/SKU/品类/客户） */
+interface SalesSeriesRow {
+  period: string;
+  qty: number | string;
+  amount: number | string;
+  orderCount: number | string;
+}
+
+/**
+ * 各粒度的期间显示格式 + 兜底窗口（口径与 getSalesTrend 的「近 12 期」一致）
+ * daysAgo 仅用于区间模式缺一端时把另一端兜底到同一个窗口宽度
+ */
+const SALES_SERIES_GRANULARITY: Record<
+  "month" | "week" | "day",
+  { dateFormat: string; intervalExpr: string; daysAgo: number }
+> = {
+  month: { dateFormat: "%Y-%m", intervalExpr: "12 MONTH", daysAgo: 365 },
+  week: { dateFormat: "%Y-%u", intervalExpr: "12 WEEK", daysAgo: 84 },
+  day: { dateFormat: "%Y-%m-%d", intervalExpr: "30 DAY", daysAgo: 30 }
+};
+
+/**
+ * 按维度取**单一目标**的销售时间序列（S3-204 需求 1，支撑 AI 销售预测）
+ *
+ * 与既有 `getSalesTrend`（只有整体趋势）的区别：本函数可按 product/spu、sku、category、customer
+ * 锁定一个目标，返回该目标逐期的 数量 / 金额 / 单数 —— 预测才做得下去。
+ *
+ * 维度与 targetId 的对应（契约见 docs/API接口文档.md「GET /api/admin/reports/sales-series」）：
+ *   product  → t_product_spu.id（走 t_sale_bill_item.sku_id → t_product_sku.spu_id 反查）
+ *   sku      → t_product_sku.id（t_sale_bill_item.sku_id）
+ *   category → t_product_category.id（sku → spu.category_id 反查）
+ *   customer → t_member.id（t_sale_bill.customer_id）
+ *
+ * 金额/数量口径**沿用既有销售明细口径**：qty = SUM(t_sale_bill_item.total_bottle_qty)、
+ * amount = SUM(t_sale_bill_item.subtotal_amount)（与 getSalesRanking 的 product 维度同源），
+ * 单数 = COUNT(DISTINCT t_sale_bill.bill_no)，且沿用既有「排除 DRAFT/VOIDED」口径。
+ *
+ * 日期口径：传了 start/end 任一端 ⇒ 区间模式（缺的一端按粒度窗口兜底）；
+ * 两端都不传 ⇒ 近 12 期（day=近 30 天 / week=近 12 周 / month=近 12 个月，与 getSalesTrend 一致）。
+ * 无数据 ⇒ 返回空数组（不报错）。
+ */
+export async function getSalesSeries(
+  tenantId: string,
+  options: {
+    dimension: "product" | "sku" | "category" | "customer";
+    targetId: number;
+    granularity?: "day" | "week" | "month";
+    dateStart?: string;
+    dateEnd?: string;
+  }
+) {
+  const dimension = z.enum(["product", "sku", "category", "customer"]).parse(options.dimension);
+  const granularity = z.enum(["day", "week", "month"]).parse(options.granularity ?? "month");
+  const targetId = z.number().int().positive().parse(options.targetId);
+  const { dateFormat, intervalExpr, daysAgo } = SALES_SERIES_GRANULARITY[granularity];
+
+  const ranged = options.dateStart !== undefined || options.dateEnd !== undefined;
+  const start = parseDateParam(options.dateStart, getDefaultDateStart(daysAgo));
+  const end = parseDateParam(options.dateEnd, getDefaultDateEnd());
+
+  const dimensionJoin: Record<typeof dimension, string> = {
+    product: "JOIN t_product_sku s ON s.id = sbi.sku_id AND s.tenant_id = sbi.tenant_id",
+    category:
+      "JOIN t_product_sku s ON s.id = sbi.sku_id AND s.tenant_id = sbi.tenant_id " +
+      "JOIN t_product_spu sp ON sp.id = s.spu_id AND sp.tenant_id = s.tenant_id",
+    sku: "",
+    customer: ""
+  };
+  const targetCondition: Record<typeof dimension, string> = {
+    product: "s.spu_id = ?",
+    category: "sp.category_id = ?",
+    sku: "sbi.sku_id = ?",
+    customer: "sb.customer_id = ?"
+  };
+
+  const windowCondition = ranged
+    ? "DATE(sb.created_at) BETWEEN ? AND ?"
+    : `sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ${intervalExpr})`;
+  const windowParams: unknown[] = ranged ? [start, end] : [];
+
+  const records = await queryWithTenant<SalesSeriesRow>(
+    `SELECT DATE_FORMAT(sb.created_at, ?) AS period,
+            COALESCE(SUM(sbi.total_bottle_qty), 0) AS qty,
+            COALESCE(SUM(sbi.subtotal_amount), 0) AS amount,
+            COUNT(DISTINCT sb.bill_no) AS orderCount
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     ${dimensionJoin[dimension]}
+     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND ${targetCondition[dimension]}
+       AND ${windowCondition}
+     GROUP BY period
+     ORDER BY period ASC`,
+    [dateFormat, targetId, ...windowParams],
+    tenantId
+  );
+
+  return records.map((r: SalesSeriesRow) => ({
+    period: r.period,
+    qty: Number(r.qty),
+    amount: Number(r.amount),
+    orderCount: Number(r.orderCount)
+  }));
+}
+
 /**
  * 时段热力图（近30天，按日 x 小时聚合销售金额）
  * 供销售分析页「时段热力图」Tab 使用，替代前端随机数
