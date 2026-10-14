@@ -1,0 +1,41 @@
+=== 结构快照（S3-194 的 snapshot.ps1；**每次跑完立即取**，避免读到后续运行状态）===
+第一/第二遍用库 s3199_f1（全新空库先建再跑迁移）｜语料＝本单最终提交（169 sha256 = E5139F0F89FBD27C）
+--- 13-fresh-newdb ---
+tables=312 columns=4154 indexes=1622 fks=15
+--- 14-rerun-newdb ---
+tables=312 columns=4154 indexes=1640 fks=15
+--- 12-antitest169-green ---
+tables=312 columns=4154 indexes=1640 fks=15
+
+=== [第一遍 13] vs [同库第二遍 14] 逐文件 sha256 ===
+tables.tsv               第一遍=3AD3E877043FEF53 第二遍=3AD3E877043FEF53 零差异
+columns.tsv              第一遍=C91457E6918FFF17 第二遍=C91457E6918FFF17 零差异
+fks.tsv                  第一遍=FAB40363861B19AD 第二遍=FAB40363861B19AD 零差异
+show-create-6tables.txt  第一遍=4111C6EE8DA6ED8E 第二遍=4111C6EE8DA6ED8E 零差异
+indexes.tsv              第一遍=745E9FB0F5B9A2D7 第二遍=5927162B1EA01B1A 差异（见下）
+
+=== 第二遍相对第一遍**新增**的索引行（18 行 / 13 个索引；来源 120c，非本单引入）===
+t_approval_approver	idx_t_approval_approver_tenant	1	1	tenant_id
+t_approval_instance	idx_t_approval_instance_tenant	1	1	tenant_id
+t_approval_log	idx_t_approval_log_tenant	1	1	tenant_id
+t_approval_notification	idx_t_approval_notification_tenant	1	1	tenant_id
+t_approval_rule	idx_t_approval_rule_tenant	1	1	tenant_id
+t_approval_task	idx_t_approval_task_tenant	1	1	tenant_id
+t_brand	idx_t_brand_tenant	1	1	tenant_id
+t_coupon_template	idx_coupon_template_type	1	1	type
+t_customer_type	idx_t_customer_type_tenant	1	1	tenant_id
+t_daily_settlement	idx_t_daily_settlement_tenant	1	1	tenant_id
+t_sale_bill	idx_sale_bill_customer_status	1	1	customer_id
+t_sale_bill	idx_sale_bill_customer_status	1	2	status
+t_sale_bill	idx_sale_bill_status	1	1	status
+t_sale_bill	idx_sale_bill_status_created	1	1	status
+t_sale_bill	idx_sale_bill_status_created	1	2	created_at
+t_sale_bill	idx_sale_bill_tenant_status	1	1	tenant_id
+t_sale_bill	idx_sale_bill_tenant_status	1	2	status
+t_stock_warning	idx_t_stock_warning_tenant	1	1	tenant_id
+
+=== 收敛读数 ===
+12-antitest169-green（第 4 遍，库 s3199_main）indexes.tsv sha256 = 5927162B1EA01B1A ＝ 14-rerun-newdb（第 2 遍）= 5927162B1EA01B1A ⇒ 第 3/4 遍不再增长（收敛）
+
+=== 装置使用注记（自我报备）===
+标签 09-fresh-final 的快照取证时机有误（在 10 号复跑之后才取），读数 1640 反映复跑后状态、**不是**第一遍状态；已用 13/14 这对**跑后立即取**的读数取代，本节即最终口径。

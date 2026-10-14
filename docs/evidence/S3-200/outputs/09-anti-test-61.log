@@ -1,0 +1,16 @@
+注入行字节数 = 65（历史损坏行实测 65）
+目标 backend/src/routes/alert.routes.ts:14  "// ========== 路由自动发现配置 ==========\r"
+原文件 sha256 = 4f2646f302da4a92770487b940071b457962226a34e1b892368869dfc1c5bf0d
+--- 反测①（注入 U+FFFD）guard 输出 ---
+[guard:utf8-encoding] 扫描目录 9 个 / 文件 2127 个
+✗ U+FFFD 残留 1 个文件 / 共 12 处：
+   - backend/src/routes/alert.routes.ts（12 处）
+       backend/src/routes/alert.routes.ts:14: // ========== ·<U+FFFD><U+FFFD><U+FFFD>Զ<U+FFFD><U+FFFD><U+FFFD><U+FFFD><U+FFFD><U+FFFD><U+FFFD><U+FFFD><U+FFFD> ==========
+[guard:utf8-encoding] FAIL（非法字节文件 0 / U+FFFD 12 处）
+guard EXIT=1（期望 1）
+--- 反测②（复原）guard 输出 ---
+[guard:utf8-encoding] 扫描目录 9 个 / 文件 2127 个
+[guard:utf8-encoding] PASS（0 个非法字节、0 处 U+FFFD 残留）
+guard EXIT=0（期望 0）
+复原后 sha256 = 4f2646f302da4a92770487b940071b457962226a34e1b892368869dfc1c5bf0d  与改前一致=true
+ANTI_TEST_61_OK（两侧齐）

@@ -1,0 +1,296 @@
+{
+ "dup": [
+  {
+   "tbl": "t_sys_config",
+   "name": "idx_sys_config_tenant"
+  },
+  {
+   "tbl": "t_sys_user",
+   "name": "idx_sys_user_tenant"
+  },
+  {
+   "tbl": "t_sys_role",
+   "name": "idx_sys_role_tenant"
+  },
+  {
+   "tbl": "t_sys_permission",
+   "name": "idx_sys_permission_tenant"
+  },
+  {
+   "tbl": "t_sys_user_role",
+   "name": "idx_sys_user_role_tenant"
+  },
+  {
+   "tbl": "t_sys_role_permission",
+   "name": "idx_sys_role_permission_tenant"
+  },
+  {
+   "tbl": "t_store",
+   "name": "idx_store_tenant"
+  },
+  {
+   "tbl": "t_product_category",
+   "name": "idx_product_category_tenant"
+  },
+  {
+   "tbl": "t_product_spu",
+   "name": "idx_product_spu_tenant"
+  },
+  {
+   "tbl": "t_product_sku",
+   "name": "idx_product_sku_tenant"
+  },
+  {
+   "tbl": "t_product_price",
+   "name": "idx_product_price_tenant"
+  },
+  {
+   "tbl": "t_sku_price",
+   "name": "idx_sku_price_tenant"
+  },
+  {
+   "tbl": "t_supplier",
+   "name": "idx_supplier_tenant"
+  },
+  {
+   "tbl": "t_supplier_contact",
+   "name": "idx_supplier_contact_tenant"
+  },
+  {
+   "tbl": "t_member",
+   "name": "idx_member_tenant"
+  },
+  {
+   "tbl": "t_customer_price_binding",
+   "name": "idx_customer_price_binding_tenant"
+  },
+  {
+   "tbl": "t_customer_credit",
+   "name": "idx_customer_credit_tenant"
+  },
+  {
+   "tbl": "t_inventory_balance",
+   "name": "idx_inventory_balance_tenant"
+  },
+  {
+   "tbl": "t_inventory_batch",
+   "name": "idx_inventory_batch_tenant"
+  },
+  {
+   "tbl": "t_inventory_ledger",
+   "name": "idx_inventory_ledger_tenant"
+  },
+  {
+   "tbl": "t_price_level",
+   "name": "idx_price_level_tenant"
+  },
+  {
+   "tbl": "t_price_change_log",
+   "name": "idx_price_change_log_tenant"
+  },
+  {
+   "tbl": "t_alert_rule",
+   "name": "idx_alert_rule_tenant"
+  },
+  {
+   "tbl": "t_alert_record",
+   "name": "idx_alert_record_tenant"
+  },
+  {
+   "tbl": "t_expiry_alert_config",
+   "name": "idx_expiry_alert_config_tenant"
+  },
+  {
+   "tbl": "t_expiry_alert_record",
+   "name": "idx_expiry_alert_record_tenant"
+  },
+  {
+   "tbl": "t_trace_config",
+   "name": "idx_trace_config_tenant"
+  },
+  {
+   "tbl": "t_trace_code",
+   "name": "idx_trace_code_tenant"
+  },
+  {
+   "tbl": "t_trace_event_log",
+   "name": "idx_trace_event_log_tenant"
+  },
+  {
+   "tbl": "t_trace_scan_log",
+   "name": "idx_trace_scan_log_tenant"
+  },
+  {
+   "tbl": "t_recall_record",
+   "name": "idx_recall_record_tenant"
+  },
+  {
+   "tbl": "t_store_control_config",
+   "name": "idx_store_control_config_tenant"
+  },
+  {
+   "tbl": "t_store_status_log",
+   "name": "idx_store_status_log_tenant"
+  },
+  {
+   "tbl": "t_sale_bill",
+   "name": "idx_sale_bill_tenant"
+  },
+  {
+   "tbl": "t_sale_bill_item",
+   "name": "idx_sale_bill_item_tenant"
+  },
+  {
+   "tbl": "t_sale_return",
+   "name": "idx_sale_return_tenant"
+  },
+  {
+   "tbl": "t_sale_return_item",
+   "name": "idx_sale_return_item_tenant"
+  },
+  {
+   "tbl": "t_sale_payment",
+   "name": "idx_sale_payment_tenant"
+  },
+  {
+   "tbl": "t_purchase_order",
+   "name": "idx_purchase_order_tenant"
+  },
+  {
+   "tbl": "t_purchase_order_item",
+   "name": "idx_purchase_order_item_tenant"
+  },
+  {
+   "tbl": "t_purchase_in_stock",
+   "name": "idx_purchase_in_stock_tenant"
+  },
+  {
+   "tbl": "t_purchase_in_stock_item",
+   "name": "idx_purchase_in_stock_item_tenant"
+  },
+  {
+   "tbl": "t_purchase_return",
+   "name": "idx_purchase_return_tenant"
+  },
+  {
+   "tbl": "t_purchase_return_item",
+   "name": "idx_purchase_return_item_tenant"
+  },
+  {
+   "tbl": "t_purchase_payment",
+   "name": "idx_purchase_payment_tenant"
+  },
+  {
+   "tbl": "t_supplier_statement",
+   "name": "idx_supplier_statement_tenant"
+  },
+  {
+   "tbl": "t_supplier_statement_item",
+   "name": "idx_supplier_statement_item_tenant"
+  },
+  {
+   "tbl": "t_customer_statement",
+   "name": "idx_customer_statement_tenant"
+  },
+  {
+   "tbl": "t_customer_payment",
+   "name": "idx_customer_payment_tenant"
+  },
+  {
+   "tbl": "t_receivable_account",
+   "name": "idx_receivable_account_tenant"
+  },
+  {
+   "tbl": "t_payment_order",
+   "name": "idx_payment_order_tenant"
+  },
+  {
+   "tbl": "t_refund_order",
+   "name": "idx_refund_order_tenant"
+  },
+  {
+   "tbl": "t_hold_order",
+   "name": "idx_hold_order_tenant"
+  },
+  {
+   "tbl": "t_miniapp_order",
+   "name": "idx_miniapp_order_tenant"
+  },
+  {
+   "tbl": "t_miniapp_order_item",
+   "name": "idx_miniapp_order_item_tenant"
+  },
+  {
+   "tbl": "t_collection_link",
+   "name": "idx_collection_link_tenant"
+  },
+  {
+   "tbl": "t_collection_view_log",
+   "name": "idx_collection_view_log_tenant"
+  },
+  {
+   "tbl": "t_collection_record",
+   "name": "idx_collection_record_tenant"
+  },
+  {
+   "tbl": "t_credit_operation_log",
+   "name": "idx_credit_operation_log_tenant"
+  },
+  {
+   "tbl": "t_notification",
+   "name": "idx_notification_tenant"
+  },
+  {
+   "tbl": "t_operation_log",
+   "name": "idx_operation_log_tenant"
+  },
+  {
+   "tbl": "t_product_price_log",
+   "name": "idx_product_price_log_tenant"
+  }
+ ],
+ "only": [
+  {
+   "tbl": "t_approval_rule",
+   "name": "idx_approval_rule_tenant",
+   "hasCanon": false,
+   "hasLegacy": true
+  },
+  {
+   "tbl": "t_approval_instance",
+   "name": "idx_approval_instance_tenant",
+   "hasCanon": false,
+   "hasLegacy": true
+  },
+  {
+   "tbl": "t_approval_task",
+   "name": "idx_approval_task_tenant",
+   "hasCanon": false,
+   "hasLegacy": true
+  },
+  {
+   "tbl": "t_approval_log",
+   "name": "idx_approval_log_tenant",
+   "hasCanon": false,
+   "hasLegacy": true
+  },
+  {
+   "tbl": "t_approval_approver",
+   "name": "idx_approval_approver_tenant",
+   "hasCanon": false,
+   "hasLegacy": true
+  },
+  {
+   "tbl": "t_approval_notification",
+   "name": "idx_approval_notification_tenant",
+   "hasCanon": false,
+   "hasLegacy": true
+  },
+  {
+   "tbl": "t_daily_settlement",
+   "name": "idx_daily_settlement_tenant",
+   "hasCanon": false,
+   "hasLegacy": true
+  }
+ ]
+}

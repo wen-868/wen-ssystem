@@ -1,0 +1,8 @@
+=== 第 66 项 反测（判据装置 check-constraints.mjs 是否有分辨力）===
+做法：rt-66.mjs 把 017 两条零售外键 ON DELETE CASCADE 改成 RESTRICT（逐字节冻结原文）⇒ 全新空库跑一遍 ⇒ 判据装置
+      ⇒ rt-66.mjs restore（sha256 断言）⇒ 再跑一遍 ⇒ 判据装置
+--- [红] 07-antitest66-red: 迁移日志 失败命中数 = 0 ；判据装置 exit=1
+FAIL · 66-① 指向 t_retail_order 的外键（表·约束·删除规则）                期望=[["t_delivery_record","t_delivery_record_ibfk_1","CASCADE"],["t_retail_order_item","fk_retail_order_item_order","CASCADE"]] 实际=[["t_delivery_record","t_delivery_record_ibfk_1","RESTRICT"],["t_retail_order_item","fk_retail_order_item_order","RESTRICT"]]
+-- 合计 7 项，FAIL 1 项
+--- [绿] 08-antitest66-green: 迁移日志 失败命中数 = 0 ；判据装置 exit=0；017 复原 sha256 = 817A49BDAE0C84CD（与冻结副本一致）
+-- 合计 7 项，FAIL 0 项

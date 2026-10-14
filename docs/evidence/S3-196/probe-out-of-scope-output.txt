@@ -1,0 +1,32 @@
+[
+  {
+    "label": "老端 home 页路径",
+    "endpoint": "POST /api/miniapp/cart/cart/add",
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot POST /api/miniapp/cart/cart/add</pre>\n</body>\n</html>\n"
+  },
+  {
+    "label": "老端 aftersale 页路径",
+    "endpoint": "GET /api/miniapp/aftersales/aftersales/mine",
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /api/miniapp/aftersales/aftersales/mine</pre>\n</body>\n</html>\n"
+  },
+  {
+    "label": "老端 cart 页取车路径",
+    "endpoint": "GET /api/miniapp/cart/cart",
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /api/miniapp/cart/cart</pre>\n</body>\n</html>\n"
+  },
+  {
+    "label": "后端真实路径（对照）",
+    "endpoint": "POST /api/miniapp/cart/add",
+    "status": 200,
+    "body": "{\"code\":\"0\",\"msg\":\"成功\",\"data\":{\"message\":\"已加入购物车\"},\"traceId\":\"81d2cb27-07a3-42d7-8cac-4ef7c21b0550\"}"
+  },
+  {
+    "label": "另一个会员标记他人通知已读",
+    "endpoint": "PUT /api/miniapp/notifications/1/read",
+    "status": 200,
+    "body": "{\"code\":\"0\",\"msg\":\"成功\",\"data\":{\"marked\":true},\"traceId\":\"8a1d7e2b-2c95-4e10-9df3-76eff06783c2\"}"
+  }
+]

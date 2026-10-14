@@ -63,7 +63,8 @@ Page({
     }
     this.setData({ loading: true, errorText: "" });
     const token = wx.getStorageSync("miniapp_token") || "";
-    wx.request({
+    // S3-196：消费者端调用点一律走统一封装 app.request()（自动带 Authorization + x-csrf-token）
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/profile`,
       method: "GET",
       header: {
@@ -132,6 +133,8 @@ Page({
     }
     wx.login({
       success: (loginRes) => {
+        // S3-196：登录本身是「令牌的来源」，此刻还没有 token/csrfToken 可带，保持裸 wx.request；
+        // 登录成功后由 app.request()（统一封装）统一携带。
         wx.request({
           url: `${app.globalData.apiBase}/miniapp/wechat/auth/login`,
           method: "POST",
@@ -329,7 +332,7 @@ Page({
     const token = wx.getStorageSync('miniapp_token') || '';
     const { traceCode } = this.data;
 
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/trace/c/query/${encodeURIComponent(traceCode)}`,
       method: 'GET',
       header: {
@@ -368,7 +371,7 @@ Page({
     const token = wx.getStorageSync('miniapp_token') || '';
     const { traceCode } = this.data;
 
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/trace/c/verify`,
       method: 'POST',
       header: {

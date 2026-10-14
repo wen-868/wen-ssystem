@@ -1,0 +1,5 @@
+[guard:route-auth] 扫描 189 个路由文件
+
+❌ G3 违规 2 条：
+   notification.routes.ts:29: auth:"none" 的**写**端点 /:id/read：同一行内联挂载了认证中间件，但**同一行没有 csrfMiddleware** ⇒ 该写端点无 CSRF 防护（R2 逐端点判据）；本文件 auth 声明：第1处 L33="requireAuthWithTenant"、第2处 L34="none"
+   notification.routes.ts:30: auth:"none" 的**写**端点 /read-all：同一行内联挂载了认证中间件，但**同一行没有 csrfMiddleware** ⇒ 该写端点无 CSRF 防护（R2 逐端点判据）；本文件 auth 声明：第1处 L33="requireAuthWithTenant"、第2处 L34="none"

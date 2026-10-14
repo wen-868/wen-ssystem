@@ -45,7 +45,7 @@ function injectTheme(page) {
   const token = wx.getStorageSync('token')
 
   if (baseUrl && token) {
-    wx.request({
+    app.request({
       url: `${baseUrl}/store/info`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${token}` },

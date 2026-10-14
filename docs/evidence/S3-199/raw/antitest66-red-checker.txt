@@ -1,0 +1,9 @@
+PASS · 64-① t_tenant_admin 外键条数（裁定口径：不建物理外键）                期望=0 实际=0
+PASS · 64-② t_tenant_admin.tenant_id 类型                     期望="varchar(36)" 实际="varchar(36)"
+PASS · 64-③ t_tenant_admin.user_id 类型                       期望="bigint unsigned" 实际="bigint unsigned"
+PASS · 64-④ 除既有两张租户表外，其它指向 t_tenant 的外键数                    期望=0 实际=0
+PASS · 64-⑤ t_tenant_admin 孤儿行计数                            期望=0 实际=0
+FAIL · 66-① 指向 t_retail_order 的外键（表·约束·删除规则）                期望=[["t_delivery_record","t_delivery_record_ibfk_1","CASCADE"],["t_retail_order_item","fk_retail_order_item_order","CASCADE"]] 实际=[["t_delivery_record","t_delivery_record_ibfk_1","RESTRICT"],["t_retail_order_item","fk_retail_order_item_order","RESTRICT"]]
+PASS · 66-② t_retail_order 软删三列在位                           期望=3 实际=3
+-- 读数留痕（不作判据）：t_tenant_admin 表注释 = "租户管理员表"
+-- 合计 7 项，FAIL 1 项

@@ -3,6 +3,7 @@ import { readdirSync } from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
 import { dirname, join } from "path";
 import { requireAuth, requireAuthWithTenant, requirePlatformAuth } from "../middleware/auth";
+import { requireConsumerAuthWithTenant } from "../middleware/consumer-auth";
 import { csrfMiddleware } from "../middleware/csrf";
 import logger from "./logger";
 import {
@@ -34,9 +35,16 @@ export interface RouteConfig {
    *  - "requireAuthWithTenant"（默认）：认证 + 租户隔离 + CSRF 防护
    *  - "requireAuth"：仅认证 + CSRF 防护
    *  - "requirePlatformAuth"：平台总后台认证 + CSRF 防护
+   *  - "requireConsumerAuthWithTenant"：消费者端（/api/miniapp/**）认证 + 租户隔离 + CSRF 防护 ——
+   *    接受商家端 JWT 或微信令牌（微信令牌按绑定会员解析消费者身份，S3-196 / 总清单第 52 项）
    *  - "none"：不添加中间件（路由内部自行处理）
    */
-  auth?: "requireAuthWithTenant" | "requireAuth" | "requirePlatformAuth" | "none";
+  auth?:
+    | "requireAuthWithTenant"
+    | "requireAuth"
+    | "requirePlatformAuth"
+    | "requireConsumerAuthWithTenant"
+    | "none";
 }
 
 /**
@@ -59,6 +67,8 @@ export function getAuthMiddlewares(auth?: RouteConfig["auth"]): RequestHandler[]
       return [...requireAuthWithTenant, csrfMiddleware];
     case "requirePlatformAuth":
       return [requirePlatformAuth, csrfMiddleware];
+    case "requireConsumerAuthWithTenant":
+      return [...requireConsumerAuthWithTenant, csrfMiddleware];
     case "none":
       return [];
     default:
@@ -99,6 +109,12 @@ export interface RouteHygieneReport {
   duplicateEndpoints: Array<{ endpoint: string; files: string[] }>;
   /** 用 router.use 挂了子路由的文件（子树的端点不参与检测，登记而不静默） */
   nestedRouterFiles: string[];
+  /**
+   * S3-195 ③：**根前缀**（形如 `/api/xxx`）被多文件共享 —— **只出声、不判红**。
+   * 以根前缀注册的文件会把整段 `/api/xxx/**` 前置套上认证 + CSRF（含兄弟文件的公开端点与不存在的子路径），
+   * 既有的「重复前缀 / 真重复端点」判据抓不到它，故单列告警（判据见 `./route-prefix-rules`）。
+   */
+  sharedRootPrefixes: Array<{ prefix: string; files: string[] }>;
 }
 
 /**
@@ -304,6 +320,21 @@ export async function setupRoutes(
     }
     logger.info(
       `[auto-routes]  · 以上 ${hygiene.duplicatePrefixes.length} 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。`
+    );
+  }
+
+  // ③.5 S3-195 ③：**根前缀被多文件共享** ⇒ 只出声、不判红
+  //   为什么只告警：以根前缀注册并不违反既有判据（路径段互不重叠就是"合法共享前缀"，如 `/api/admin`），
+  //   但它会让 `app.use(前缀, 认证+CSRF, router)` 覆盖**整段** `/api/xxx/**` —— 兄弟文件的
+  //   `auth:"none"` 公开端点会被拦成 401、不存在的子路径回 401 而不是 404（S3-187/S3-195 的病灶）。
+  //   真正的修法是"只声明自己拥有的路径段"（收窄前缀），故此处把"靠人记得核"改成"机器每次出声"。
+  if (hygiene.sharedRootPrefixes.length > 0) {
+    logger.warn(
+      `[auto-routes][根前缀共享告警] ${hygiene.sharedRootPrefixes.length} 个**根前缀**被多文件共用：` +
+        hygiene.sharedRootPrefixes.map((d) => `${d.prefix} (${d.files.length}次: ${d.files.join(", ")})`).join("；") +
+        `。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与` +
+        `不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、` +
+        `S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。`
     );
   }
 

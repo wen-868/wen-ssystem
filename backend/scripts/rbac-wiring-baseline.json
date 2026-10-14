@@ -1,6 +1,7 @@
 {
   "_README": "S3-180 批B2-1 · guard:rbac-wiring 的**已登记缺口台账**（逐条登记）。人读判定见 docs/tasks/R101-RBAC接线缺口清单.md；本文件是机读镜像，仅由人工审阅后落盘，脚本不提供自动写入开关（避免新缺口被'重新生成台账'静默洗绿）。登记 ≠ 合规。",
   "_generatedFrom": "node backend/scripts/guard-rbac-wiring.mjs --json",
+  "_s3195_note": "S3-195（门店 9 文件从根前缀 /api/store 收窄为自有路径段）导致 3 条端点的**路径形态**变化：收窄后 prefix 即完整路径、router 内路径为 \"/\"，扫描器按 prefix+\"/\" 拼接 ⇒ 台账键由 `…/box-config` 变为 `…/box-config/`（`…/hold-orders` → `…/hold-orders/`、`…/shifts` → `…/shifts/`）。三处为**同一端点**的同一缺口，不是新增缺口；旧形态三条已同步替换（故 endpoints 计数不变）。",
   "_counts": {
     "files": 156,
     "endpoints": 680
@@ -829,7 +830,7 @@
       "POST /api/store/hardware/configs/:category/test",
       "POST /api/store/hardware/cloud-speaker/announce",
       "POST /api/store/hardware/box/pay",
-      "PUT /api/store/hardware/box-config",
+      "PUT /api/store/hardware/box-config/",
       "POST /api/store/hardware/box-config/test",
       "POST /api/store/hardware/unionpay/test"
     ],
@@ -842,7 +843,7 @@
       "POST /api/store/orders/:orderNo/complete-delivery",
       "POST /api/store/orders/:orderNo/reject",
       "POST /api/store/orders/:orderNo/cancel",
-      "POST /api/store/hold-orders",
+      "POST /api/store/hold-orders/",
       "POST /api/store/hold-orders/:holdNo/restore",
       "DELETE /api/store/hold-orders/:holdNo"
     ],
@@ -854,7 +855,7 @@
     ],
     "store-shift.routes.ts": [
       "POST /api/store/shift/settle",
-      "POST /api/store/shifts",
+      "POST /api/store/shifts/",
       "POST /api/store/shifts/:shiftNo/check",
       "POST /api/store/shifts/:shiftNo/close"
     ],

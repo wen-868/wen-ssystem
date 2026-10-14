@@ -33,6 +33,8 @@ export interface RoutePrefixReport {
   unlistedDuplicatePrefixes: RoutePrefixDuplicate[];
   duplicateEndpoints: RoutePrefixDuplicateEndpoint[];
   nestedRouterFiles: string[];
+  /** S3-195 ③：**根前缀**（形如 `/api/xxx`）被多文件共享 —— **只出声、不判红** */
+  sharedRootPrefixes: RoutePrefixDuplicate[];
 }
 
 /** 逐条登记理由的重复前缀白名单（唯一一份，见实现文件） */
@@ -43,3 +45,9 @@ export declare function joinRoutePath(prefix: string, routePath?: string): strin
 
 /** 判定重复前缀 / 未登记前缀 / 真重复端点（纯函数） */
 export declare function classifyRoutePrefixes(entries: RoutePrefixEntry[]): RoutePrefixReport;
+
+/** 「根前缀」= 形如 `/api/xxx` 的直接子段（再深一层如 `/api/store/coupons` 不算）—— S3-195 ③ */
+export declare const ROOT_PREFIX_RE: RegExp;
+
+/** 从重复前缀里筛出根前缀（S3-195 ③ 的告警判据；只出声、不判红） */
+export declare function findSharedRootPrefixes(duplicatePrefixes: RoutePrefixDuplicate[]): RoutePrefixDuplicate[];

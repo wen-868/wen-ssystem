@@ -53,7 +53,7 @@ Page({
       const { page, pageSize, activeTab } = this.data
       const isRead = activeTab === 'unread' ? '0' : ''
 
-      wx.request({
+      app.request({
         url: `${app.globalData.apiBase}/miniapp/notifications`,
         method: 'GET',
         header: {
@@ -95,7 +95,7 @@ Page({
 
   loadUnreadCount() {
     const token = wx.getStorageSync('miniapp_token') || ''
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/notifications/unread-count`,
       method: 'GET',
       header: {
@@ -125,7 +125,7 @@ Page({
 
   markRead(item) {
     const token = wx.getStorageSync('miniapp_token') || ''
-    wx.request({
+    app.request({
       url: `${app.globalData.apiBase}/miniapp/notifications/${item.id}/read`,
       method: 'PUT',
       header: {

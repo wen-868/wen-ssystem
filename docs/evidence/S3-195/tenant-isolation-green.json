@@ -1,0 +1,93 @@
+{
+ "tenantA": "s3195-A",
+ "userA": 9501,
+ "results": [
+  {
+   "label": "跨租户领券 POST /coupons/9001/claim（B 的模板）",
+   "expect": 404,
+   "actual": 404,
+   "ok": true,
+   "body": {
+    "code": "404",
+    "msg": "优惠券不存在或已过期",
+    "traceId": "25aa4828-8f22-4425-a53c-0cbed70a38f3"
+   }
+  },
+  {
+   "label": "跨租户秒杀 POST /flash-sale/9101/buy（B 的活动）",
+   "expect": 404,
+   "actual": 404,
+   "ok": true,
+   "body": {
+    "code": "404",
+    "msg": "秒杀活动不存在或已结束",
+    "traceId": "6a001456-5133-4567-8259-7aa617090b34"
+   }
+  },
+  {
+   "label": "跨租户拼团 POST /group-buy/9201/join（B 的团）",
+   "expect": 404,
+   "actual": 404,
+   "ok": true,
+   "body": {
+    "code": "404",
+    "msg": "拼团组不存在或已结束",
+    "traceId": "804c9208-7fa9-4599-9731-b2ef7a61c452"
+   }
+  },
+  {
+   "label": "A 领自己的券 POST /coupons/9002/claim",
+   "expect": 200,
+   "actual": 200,
+   "ok": true,
+   "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+     "id": 4,
+     "templateId": 9002,
+     "userId": 9501,
+     "status": "UNUSED",
+     "claimedAt": "2026-10-14T06:23:24.000Z",
+     "expiresAt": "2026-11-13T06:23:22.000Z",
+     "templateName": "A 自己的探针券（阳性对照）",
+     "couponType": "AMOUNT",
+     "couponValue": "10.00",
+     "minAmount": "0.00",
+     "applicableScope": "ALL"
+    },
+    "traceId": "9df52387-ecee-4571-8d03-a42e1ee5bb2c"
+   }
+  }
+ ],
+ "after": {
+  "bTemplate": [
+   {
+    "id": 9001,
+    "issued_quantity": 0,
+    "used_quantity": 0
+   }
+  ],
+  "aUserCoupons": [
+   {
+    "id": 4,
+    "template_id": 9002,
+    "tenant_id": "s3195-A",
+    "user_id": 9501,
+    "status": "UNUSED"
+   }
+  ],
+  "bFlash": [
+   {
+    "id": 9101,
+    "sold_count": 0
+   }
+  ],
+  "bTeam": [
+   {
+    "id": 9201,
+    "current_size": 1
+   }
+  ]
+ }
+}

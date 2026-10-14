@@ -16,7 +16,7 @@ exportRouter.get("/purchase-orders", ctrl.exportPurchaseOrders);
 exportRouter.get("/payments", ctrl.exportPayments);
 exportRouter.get("/sales-orders", ctrl.exportSalesOrders);
 exportRouter.get("/audit-logs", ctrl.exportAuditLogs);
-// ========== ·���Զ��������� ==========
+// ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/export",
   router: exportRouter,

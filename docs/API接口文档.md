@@ -312,10 +312,25 @@
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | token | string | JWT令牌(7天有效) |
+| csrfToken | string | 消费者端写端点所需的 CSRF 令牌（= HMAC(微信用户 id)；写端点须回填到 `x-csrf-token` 请求头） |
 | userInfo.id | number | 用户ID |
 | userInfo.nickname | string | 昵称 |
 | userInfo.avatarUrl | string | 头像URL |
 | userInfo.phone | string | 手机号 |
+
+### 消费者端（`/api/miniapp/**`）身份与 CSRF 载体（S3-196）
+
+- **认证载体**：消费者端**同时接受**两种 `Authorization: Bearer <token>`：
+  ① 商家端 JWT（issuer=`zhixiang-system`，原行为不变）；
+  ② **微信令牌**（`POST /api/miniapp/wechat/auth/login` 下发）——服务端按 `openid` 解析**绑定的会员身份**
+  （`t_member.id`，即消费者口径的"用户 id"）注入登录态，`roles` 恒为空（不携带任何商家角色）。
+- **租户来源（顺序）**：令牌携带的 `tenantId` → 请求头 `X-Tenant-Id` → 按 openid 唯一命中会员取其租户。
+  **三者都不可解析（未绑定 / 跨租户歧义）⇒ `401` 显式失败，不落库、不默认租户**。
+- **写端点 CSRF**：`POST/PUT/DELETE` 必须回填 `x-csrf-token`（取自登录响应的 `csrfToken`），
+  缺失或不匹配 ⇒ `403 {"msg":"CSRF token 无效或缺失"}`；`GET/HEAD/OPTIONS` 不受影响。
+- **客户端要求**：所有消费者端调用点一律走统一 request 封装（老端 `miniapp/app.js request()`；
+  Taro 端 `miniapp/src/api/request.ts`），由封装统一携带 `Authorization` 与 `x-csrf-token`；
+  **身份不得由客户端字段声明**（`userId` 由服务端按登录态填充）。
 
 ### POST /api/miniapp/wechat/auth/decrypt-phone
 - **描述**: 解密微信手机号

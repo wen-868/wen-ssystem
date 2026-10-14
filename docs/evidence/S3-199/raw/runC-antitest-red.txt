@@ -1,0 +1,12 @@
+tag        = 11-antitest169-red
+repo       = D:\Users\ZXQL\wt-agents\S3-199
+db         = s3199_main @ 127.0.0.1:3408 （本装置**不**重建库）
+time       = 2026-10-14 21:45:45
+HEAD       = f378eef3f5ec1c31c2b0a0c99cef18d95ccca6fb
+dirty      = 1 项
+dist sha256 F77389A7F7C30FF9  backend/dist/server.js
+dist sha256 B5161C983607288B  backend/dist/shared/migration.js
+health200 = True （等待 1s）
+失败命中数 = 2
+L426: {"level":50,"time":1791985549420,"pid":1896,"hostname":"XIONG","msg":"[migration] 069_商品SPU增加品牌ID.sql 失败: Duplicate foreign key constraint name 'fk_product_spu_brand'"}
+L911: {"level":50,"time":1791985551196,"pid":1896,"hostname":"XIONG","msg":"[migration] 169_tenant_admin_uuid.sql 失败: Can't DROP 't_tenant_admin_ibfk_1'; check that column/key exists"}

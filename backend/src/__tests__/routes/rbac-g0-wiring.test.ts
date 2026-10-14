@@ -193,9 +193,9 @@ const MODULES: G0Module[] = [
   },
   {
     file: "store-inventory.routes.ts",
-    prefix: "/api/store",
+    prefix: "/api/store/inventory",
     router: storeInventoryRouter,
-    rows: [{ method: "post", path: "/inventory/adjust", perm: "inventory:adjust", allow: [SUPER_ADMIN_USER, 9004, 9005] }],
+    rows: [{ method: "post", path: "/adjust", perm: "inventory:adjust", allow: [SUPER_ADMIN_USER, 9004, 9005] }],
   },
   {
     file: "inventory-profit-loss.routes.ts",
@@ -221,9 +221,9 @@ const MODULES: G0Module[] = [
   },
   {
     file: "store-sale-bill.routes.ts",
-    prefix: "/api/store",
+    prefix: "/api/store/sale-bills",
     router: storeSaleBillRouter,
-    rows: [{ method: "post", path: "/sale-bills", perm: "sale:create", allow: [SUPER_ADMIN_USER, 9003, 9004] }],
+    rows: [{ method: "post", path: "/", perm: "sale:create", allow: [SUPER_ADMIN_USER, 9003, 9004] }],
   },
   {
     file: "sale-return.routes.ts",
@@ -266,9 +266,9 @@ const MODULES: G0Module[] = [
   },
   {
     file: "store-receivable.routes.ts",
-    prefix: "/api/store",
+    prefix: "/api/store/receivables",
     router: storeReceivableRouter,
-    rows: [{ method: "post", path: "/receivables/AR202601/payment", perm: "finance:payment", allow: [SUPER_ADMIN_USER, 9006] }],
+    rows: [{ method: "post", path: "/AR202601/payment", perm: "finance:payment", allow: [SUPER_ADMIN_USER, 9006] }],
   },
   {
     file: "payment.routes.ts",
@@ -334,7 +334,9 @@ const F4_ROWS = MODULES.filter((m) => F4_FILES.includes(m.file)).flatMap((m) =>
   }))
 );
 /** 期望顺序 = #1 日结、#2 提成结算、#3 支付核销、#4 收据核销、#5 应收收款 */
-const F4_EXPECTED_PATHS = ["/daily-settlements", "/settle", "/PAY202601/writeoff", "/RC202601/writeoff", "/receivables/AR202601/payment"];
+// S3-195：门店路由收窄后，「应收收款」的前缀由 /api/store 变为 /api/store/receivables，router 内路径随之变短
+// （对外 URL 逐字不变：/api/store/receivables/AR202601/payment）。
+const F4_EXPECTED_PATHS = ["/daily-settlements", "/settle", "/PAY202601/writeoff", "/RC202601/writeoff", "/AR202601/payment"];
 /** 角色 × 5 端点期望矩阵（口径 = 派单卡「验收标准⑤」，匹配语义 = F1 的 matchPermission） */
 const F4_ROLES: { name: string; uid: number; expectPass: boolean[] }[] = [
   { name: "STORE_OPERATOR（F4 订正后：只持有 finance:daily-settle）", uid: 9008, expectPass: [true, false, false, false, false] },
@@ -558,14 +560,15 @@ describe("S3-122-F2 G0 接线 · b) 有权角色照常通过（验收标准⑤ �
   );
 
   it("卡面点名：SALES_STAFF（[\"sale:create\",…]）调 POST /api/store/sale-bills ⇒ 到达业务层", async () => {
-    const res = await call(appFor("store-sale-bill.routes.ts", "/api/store", storeSaleBillRouter), "post", "/api/store/sale-bills", 9003);
+    // S3-195：收窄后前缀 = /api/store/sale-bills（对外 URL 不变）
+    const res = await call(appFor("store-sale-bill.routes.ts", "/api/store/sale-bills", storeSaleBillRouter), "post", "/api/store/sale-bills", 9003);
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
   });
 
   it("卡面点名：SUPER_ADMIN（[\"*\"]）调 G0 高风险写（库存调整）⇒ 到达业务层", async () => {
     const res = await call(
-      appFor("store-inventory.routes.ts", "/api/store", storeInventoryRouter),
+      appFor("store-inventory.routes.ts", "/api/store/inventory", storeInventoryRouter),
       "post",
       "/api/store/inventory/adjust",
       SUPER_ADMIN_USER
@@ -576,7 +579,7 @@ describe("S3-122-F2 G0 接线 · b) 有权角色照常通过（验收标准⑤ �
 
   it("域通配符（F1 产物）在 G0 上真实生效：STORE_MANAGER/WAREHOUSE_STAFF 的 inventory:* 通过 inventory:adjust", async () => {
     for (const uid of [9004, 9005]) {
-      const res = await call(appFor("store-inventory.routes.ts", "/api/store", storeInventoryRouter), "post", "/api/store/inventory/adjust", uid);
+      const res = await call(appFor("store-inventory.routes.ts", "/api/store/inventory", storeInventoryRouter), "post", "/api/store/inventory/adjust", uid);
       expect(res.status).toBe(200);
     }
   });
@@ -657,7 +660,7 @@ describe("S3-122-F2 G0 接线 · 范围控制：未纳入 G0 的端点不被拦�
     { label: "普通写 POST /api/admin/payments-new/", prefix: "/api/admin/payments-new", router: paymentNewRouter, method: "post", path: "/" },
     { label: "幂等 POST /api/admin/commission/calculate", prefix: "/api/admin/commission", router: commissionRouter, method: "post", path: "/calculate" },
     { label: "普通写 POST /api/admin/sale-returns/（创建退货单）", prefix: "/api/admin/sale-returns", router: saleReturnRouter, method: "post", path: "/" },
-    { label: "收款 POST /api/store/sale-bills/:billNo/payment（归 G2）", prefix: "/api/store", router: storeSaleBillRouter, method: "post", path: "/sale-bills/B1/payment" },
+    { label: "收款 POST /api/store/sale-bills/:billNo/payment（归 G2）", prefix: "/api/store/sale-bills", router: storeSaleBillRouter, method: "post", path: "/B1/payment" },
   ];
 
   it.each(NOT_IN_G0)("$label：READONLY 仍到达业务层（未被误拦）", async (row) => {

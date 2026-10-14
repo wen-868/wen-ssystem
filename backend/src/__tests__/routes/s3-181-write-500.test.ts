@@ -25,7 +25,7 @@ vi.mock("../../shared/feishu-report", () => ({ reportToLingZhou: mockReportToLin
 
 import { errorHandler } from "../../middleware/error-handler";
 import { routeConfig as adminCustomerRouteConfig } from "../../routes/admin-customer.routes";
-import { routeConfig as storeSaleBillRouteConfig } from "../../routes/store-sale-bill.routes";
+import { routeConfigs as storeSaleBillRouteConfigs } from "../../routes/store-sale-bill.routes";
 import type { Request, Response, NextFunction } from "express";
 
 const ADMIN_USER = { id: 1, username: "testadmin", realName: "测试管理员", roles: ["SUPER_ADMIN"], storeId: 1 };
@@ -45,7 +45,10 @@ function buildApp(routeConfig: { prefix: string; router: any }) {
 }
 
 const memberApp = buildApp(adminCustomerRouteConfig);
-const saleBillApp = buildApp(storeSaleBillRouteConfig);
+// S3-195：该文件已收窄为 routeConfigs（/api/store/sale-bills + /api/store/payment），本用例只用前者
+const saleBillApp = buildApp(
+  storeSaleBillRouteConfigs.find((c) => c.prefix === "/api/store/sale-bills")!
+);
 
 /** 构造 mysql2 驱动形状的错误（与生产栈同形状） */
 function driverError(message: string, code: string, errno: number) {
