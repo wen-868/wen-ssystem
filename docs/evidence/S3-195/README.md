@@ -29,3 +29,18 @@
 - `sql/`：跨租户真库夹具的建库/造数 SQL。
 
 > ⚠️ 全部探针数据都是**本机私有库里构造的探针数据**（库名带 `s3195_` 前缀），不是生产读数、不是产品数据。生产库零写操作。
+
+## 四、跨租户真库夹具（卡面 §二.4）
+
+- 库：MariaDB 11.4.5 `127.0.0.1:3406` 的 **`s3195_full`**（结构由**产品自己的迁移管线**建出：`harness/run-migrations.mjs`，日志 `migrations-run.log`）。
+- 夹具：`harness/sql/01-fixture.sql`（租户 A/B + B 的券模板 9001 / 秒杀 9101 / 拼团 9201 + A 自己的券模板 9002 作阳性对照）。
+- 探针：`harness/probe-tenant-isolation.mjs`（A 的 JWT + `x-csrf-token`，与生产 `requireAuth` / `csrfMiddleware` 同口径）。
+- 结果（`tenant-isolation-green.{log,json}`）：**跨租户三条写端点全部 404**（券/秒杀/拼团），且 **B 的券 `issued_quantity=0`、秒杀 `sold_count=0`、团 `current_size=1` 与执行前逐字相同**；阳性对照（A 领自己的券 9002）**200** 并真落库 1 行。
+- 反测 B（`antitest-b-摘掉租户过滤-红.log` + `antitest-b-red.json`）：把编译产物里服务层的 `AND tenant_id = ?` 摘掉 ⇒ 同一请求 **200「成功」**，且 A 名下出现 **`template_id=9001`（B 的模板）的券** ⇒ 用例变红；逐字节复原（`antitest-b-backup-marketing-coupon.service.js`，sha256 前后一致）⇒ 回到 404/绿。
+
+### 范围外发现（真库夹具暴露，本单未改业务代码，登记待另立单）
+
+1. **`claimCoupon()` 的 INSERT 未写 NOT NULL 列 `source`**（语料 `018_phase10_marketing.sql:54` 定义为 `VARCHAR(32) NOT NULL` 且无默认值）⇒ 真库上即便租户匹配也回 **400「缺少必填参数：source」**（error-handler 对 MySQL 1364 的映射）。
+2. **`claimCoupon()` 把 `valid_start/valid_end` 以 ISO-8601（带 `T`/`Z`）字符串写进 `DATETIME` 列** ⇒ 严格模式下 **1292 ER_TRUNCATED_WRONG_VALUE** ⇒ 同租户领券也回 500。
+
+> 两条都只影响「领券**写**路径」，与租户隔离无关（隔离判据在事务内的第一条 `SELECT … FOR UPDATE` 上，见 `antitest-b` 的两侧对照）。为了让隔离判据在写入路径上可观测，探针库对该表做了两处**夹具侧**放宽（见 `sql/01-fixture.sql` 注释⑥⑦），**产品代码与语料一行未改**。

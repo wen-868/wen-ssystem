@@ -1,0 +1,36 @@
+[S3-195] ① 执行前快照（B 的资源必须零变化）
+    {"bTemplate":[{"id":9001,"issued_quantity":0,"used_quantity":0}],"aUserCoupons":[],"bFlash":[{"id":9101,"sold_count":0}],"bTeam":[{"id":9201,"current_size":1}]}
+[S3-195] ② 跨租户写入探测（A 的凭证 + B 的资源 id）
+[S3-195] ❌ 跨租户领券 POST /coupons/9001/claim（B 的模板）：期望 404 ⇒ 实际 200 {"code":"0","msg":"成功","data":null,"traceId":"f634bfd6-e346-46a5-b0a0-da0c6119b010"}
+[S3-195] ✅ 跨租户秒杀 POST /flash-sale/9101/buy（B 的活动）：期望 404 ⇒ 实际 404 {"code":"404","msg":"秒杀活动不存在或已结束","traceId":"abd8fa96-2bd7-4810-9bb1-cc7a29053bc7"}
+[2026-10-14 06:23:07.331 +0800] [31mERROR[39m (20896): [36m秒杀活动不存在或已结束[39m
+    err: {
+      "type": "Error",
+      "message": "秒杀活动不存在或已结束",
+      "stack":
+          Error: 秒杀活动不存在或已结束
+              at file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/services/admin/marketing-flash-sale.service.js:202:33
+              at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at async transaction (file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/config/database.js:298:24)
+              at async Module.buyFlashSale (file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/services/admin/marketing-flash-sale.service.js:194:5)
+              at async file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/controllers/admin/marketing-flash-sale.controller.js:77:20
+      "statusCode": 404
+    }
+[S3-195] ✅ 跨租户拼团 POST /group-buy/9201/join（B 的团）：期望 404 ⇒ 实际 404 {"code":"404","msg":"拼团组不存在或已结束","traceId":"a40cb310-6a48-459f-b790-9f8936ae05cb"}
+[S3-195] ③ 阳性对照（A 领自己的券 9002 ⇒ 证明夹具/JWT/CSRF/落库链路可用）
+[2026-10-14 06:23:07.345 +0800] [31mERROR[39m (20896): [36m拼团组不存在或已结束[39m
+    err: {
+      "type": "Error",
+      "message": "拼团组不存在或已结束",
+      "stack":
+          Error: 拼团组不存在或已结束
+              at file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/services/admin/marketing-group-buy.service.js:253:33
+              at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at async transaction (file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/config/database.js:298:24)
+              at async Module.joinGroupBuyTeam (file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/services/admin/marketing-group-buy.service.js:244:5)
+              at async file:///D:/Users/ZXQL/wt-agents/S3-195/backend/dist/controllers/admin/marketing-group-buy.controller.js:95:20
+      "statusCode": 404
+    }
+[S3-195] ✅ A 领自己的券 POST /coupons/9002/claim：期望 200 ⇒ 实际 200 {"code":"0","msg":"成功","data":{"id":3,"templateId":9002,"userId":9501,"status":"UNUSED","claimedAt":"2026-10-14T06:23:07.000Z","expiresAt":"2026-11-13T06:23:04.
+[S3-195] ④ 执行后快照（B 的券/秒杀/团必须与①逐字相同；A 的券必须新增 1 行）
+    {"bTemplate":[{"id":9001,"issued_quantity":0,"used_quantity":0}],"aUserCoupons":[{"id":2,"template_id":9001,"tenant_id":"s3195-A","user_id":9501,"status":"UNUSED"},{"id":3,"template_id":9002,"tenant_id":"s3195-A","user_id":9501,"status":"UNUSED"}],"bFlash":[{"id":9101,"sold_count":0}],"bTeam":[{"id":9201,"current_size":1}]}

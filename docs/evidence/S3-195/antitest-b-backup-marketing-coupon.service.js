@@ -1,0 +1,321 @@
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db.js";
+export async function createCouponTemplate(body, tenantId) {
+    await queryWithTenant(`INSERT INTO t_coupon_template (name, type, value, min_amount, max_discount,
+        applicable_scope, applicable_ids, total_count, start_time, end_time, description, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+        body.name, body.type, body.value, body.minAmount, body.maxDiscount,
+        body.applicableScope, JSON.stringify(body.applicableIds), body.totalCount,
+        body.startTime, body.endTime, body.description, tenantId
+    ], tenantId);
+    const record = await queryOneWithTenant(`SELECT id, name, type, value, min_amount AS minAmount, max_discount AS maxDiscount,
+              applicable_scope AS applicableScope, applicable_ids AS applicableIds,
+              total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
+              start_time AS startTime, end_time AS endTime, status, description,
+              created_at AS createdAt, updated_at AS updatedAt
+       FROM t_coupon_template ORDER BY id DESC LIMIT 1`, [], tenantId);
+    return record;
+}
+export async function listCouponTemplates(page, pageSize, tenantId, status, type, keyword) {
+    const offset = (page - 1) * pageSize;
+    const conditions = [];
+    const params = [];
+    if (status) {
+        conditions.push("ct.status = ?");
+        params.push(status);
+    }
+    if (type) {
+        conditions.push("ct.type = ?");
+        params.push(type);
+    }
+    if (keyword) {
+        conditions.push("ct.name LIKE ?");
+        params.push(`%${keyword}%`);
+    }
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const records = await queryWithTenant(`SELECT ct.id, ct.name, ct.type, ct.value, ct.min_amount AS minAmount,
+              ct.max_discount AS maxDiscount, ct.applicable_scope AS applicableScope,
+              ct.applicable_ids AS applicableIds, ct.total_count AS totalCount,
+              ct.claimed_count AS claimedCount, ct.used_count AS usedCount,
+              ct.start_time AS startTime, ct.end_time AS endTime, ct.status,
+              ct.description, ct.created_at AS createdAt, ct.updated_at AS updatedAt
+       FROM t_coupon_template ct
+       ${where}
+       ORDER BY ct.created_at DESC
+       LIMIT ? OFFSET ?`, [...params, pageSize, offset], tenantId);
+    const totalRow = await queryOneWithTenant(`SELECT COUNT(*) AS total FROM t_coupon_template ct ${where}`, params, tenantId);
+    return {
+        total: Number(totalRow?.total ?? 0),
+        page,
+        pageSize,
+        records
+    };
+}
+export async function getCouponTemplate(id, tenantId) {
+    const record = await queryOneWithTenant(`SELECT id, name, type, value, min_amount AS minAmount, max_discount AS maxDiscount,
+            applicable_scope AS applicableScope, applicable_ids AS applicableIds,
+            total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
+            start_time AS startTime, end_time AS endTime, status, description,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM t_coupon_template WHERE id = ?`, [id], tenantId);
+    if (!record) {
+        throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+    }
+    return record;
+}
+export async function updateCouponTemplate(id, body, tenantId) {
+    const existing = await queryOneWithTenant("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
+    if (!existing) {
+        throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+    }
+    const updates = [];
+    const params = [];
+    if (body.name !== undefined) {
+        updates.push("name = ?");
+        params.push(body.name);
+    }
+    if (body.type !== undefined) {
+        updates.push("type = ?");
+        params.push(body.type);
+    }
+    if (body.value !== undefined) {
+        updates.push("value = ?");
+        params.push(body.value);
+    }
+    if (body.minAmount !== undefined) {
+        updates.push("min_amount = ?");
+        params.push(body.minAmount);
+    }
+    if (body.maxDiscount !== undefined) {
+        updates.push("max_discount = ?");
+        params.push(body.maxDiscount);
+    }
+    if (body.applicableScope !== undefined) {
+        updates.push("applicable_scope = ?");
+        params.push(body.applicableScope);
+    }
+    if (body.applicableIds !== undefined) {
+        updates.push("applicable_ids = ?");
+        params.push(JSON.stringify(body.applicableIds));
+    }
+    if (body.totalCount !== undefined) {
+        updates.push("total_count = ?");
+        params.push(body.totalCount);
+    }
+    if (body.startTime !== undefined) {
+        updates.push("start_time = ?");
+        params.push(body.startTime);
+    }
+    if (body.endTime !== undefined) {
+        updates.push("end_time = ?");
+        params.push(body.endTime);
+    }
+    if (body.description !== undefined) {
+        updates.push("description = ?");
+        params.push(body.description);
+    }
+    if (updates.length > 0) {
+        params.push(id);
+        await queryWithTenant(`UPDATE t_coupon_template SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
+    }
+    const record = await queryOneWithTenant(`SELECT id, name, type, value, min_amount AS minAmount, max_discount AS maxDiscount,
+            applicable_scope AS applicableScope, applicable_ids AS applicableIds,
+            total_count AS totalCount, claimed_count AS claimedCount, used_count AS usedCount,
+            start_time AS startTime, end_time AS endTime, status, description,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM t_coupon_template WHERE id = ?`, [id], tenantId);
+    return record;
+}
+export async function deleteCouponTemplate(id, tenantId) {
+    const existing = await queryOneWithTenant("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
+    if (!existing) {
+        throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+    }
+    if (existing.status !== "DRAFT") {
+        throw Object.assign(new Error("仅草稿状态的优惠券模板可删除"), { statusCode: 400 });
+    }
+    await queryWithTenant("DELETE FROM t_coupon_template WHERE id = ?", [id], tenantId);
+    return { id, deleted: true };
+}
+export async function activateCouponTemplate(id, tenantId) {
+    const existing = await queryOneWithTenant("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
+    if (!existing) {
+        throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+    }
+    if (!["DRAFT", "PAUSED"].includes(existing.status)) {
+        throw Object.assign(new Error("仅草稿或暂停状态的优惠券可激活"), { statusCode: 400 });
+    }
+    await queryWithTenant("UPDATE t_coupon_template SET status = 'ACTIVE' WHERE id = ?", [id], tenantId);
+    return { id, status: "ACTIVE" };
+}
+export async function pauseCouponTemplate(id, tenantId) {
+    const existing = await queryOneWithTenant("SELECT id, status FROM t_coupon_template WHERE id = ?", [id], tenantId);
+    if (!existing) {
+        throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+    }
+    if (existing.status !== "ACTIVE") {
+        throw Object.assign(new Error("仅激活状态的优惠券可暂停"), { statusCode: 400 });
+    }
+    await queryWithTenant("UPDATE t_coupon_template SET status = 'PAUSED' WHERE id = ?", [id], tenantId);
+    return { id, status: "PAUSED" };
+}
+export async function listUserCoupons(page, pageSize, tenantId, status, userId, templateId) {
+    const offset = (page - 1) * pageSize;
+    const conditions = ["ct.tenant_id = ?"];
+    const params = [tenantId];
+    if (status) {
+        conditions.push("uc.status = ?");
+        params.push(status);
+    }
+    if (userId) {
+        conditions.push("uc.user_id = ?");
+        params.push(userId);
+    }
+    if (templateId) {
+        conditions.push("uc.template_id = ?");
+        params.push(templateId);
+    }
+    const where = `WHERE ${conditions.join(" AND ")}`;
+    const records = await queryWithTenant(`SELECT uc.id, uc.template_id AS templateId, uc.user_id AS userId, uc.order_id AS orderId,
+            uc.status, uc.claimed_at AS claimedAt, uc.used_at AS usedAt,
+            uc.expires_at AS expiresAt, uc.created_at AS createdAt,
+            ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
+            ct.min_amount AS minAmount, ct.applicable_scope AS applicableScope
+     FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+     ${where}
+     ORDER BY uc.claimed_at DESC
+     LIMIT ? OFFSET ?`, [...params, pageSize, offset], tenantId);
+    const totalRow = await queryOneWithTenant(`SELECT COUNT(*) AS total FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+     ${where}`, params, tenantId);
+    return {
+        total: Number(totalRow?.total ?? 0),
+        page,
+        pageSize,
+        records
+    };
+}
+export async function getCouponStatistics(tenantId) {
+    const byType = await queryWithTenant(`SELECT type, COUNT(*) AS templateCount,
+            SUM(total_count) AS totalIssued, SUM(claimed_count) AS totalClaimed, SUM(used_count) AS totalUsed
+     FROM t_coupon_template GROUP BY type`, [], tenantId);
+    const overall = await queryOneWithTenant(`SELECT COUNT(*) AS totalTemplates, SUM(total_count) AS totalIssued,
+            SUM(claimed_count) AS totalClaimed, SUM(used_count) AS totalUsed
+     FROM t_coupon_template`, [], tenantId);
+    return {
+        overall: {
+            totalTemplates: Number(overall?.totalTemplates ?? 0),
+            totalIssued: Number(overall?.totalIssued ?? 0),
+            totalClaimed: Number(overall?.totalClaimed ?? 0),
+            totalUsed: Number(overall?.totalUsed ?? 0),
+            claimRate: Number(overall?.totalIssued) > 0
+                ? (Number(overall?.totalClaimed) / Number(overall?.totalIssued) * 100).toFixed(2) + "%"
+                : "0%",
+            useRate: Number(overall?.totalClaimed) > 0
+                ? (Number(overall?.totalUsed) / Number(overall?.totalClaimed) * 100).toFixed(2) + "%"
+                : "0%"
+        },
+        byType: byType.map((r) => ({
+            type: r.type,
+            templateCount: Number(r.templateCount),
+            totalIssued: Number(r.totalIssued),
+            totalClaimed: Number(r.totalClaimed),
+            totalUsed: Number(r.totalUsed),
+            claimRate: Number(r.totalIssued) > 0
+                ? (Number(r.totalClaimed) / Number(r.totalIssued) * 100).toFixed(2) + "%"
+                : "0%",
+            useRate: Number(r.totalClaimed) > 0
+                ? (Number(r.totalUsed) / Number(r.totalClaimed) * 100).toFixed(2) + "%"
+                : "0%"
+        }))
+    };
+}
+export async function listAvailableCoupons(tenantId) {
+    const now = new Date().toISOString();
+    const records = await queryWithTenant(`SELECT id, template_name AS name, coupon_type AS type, coupon_value AS value,
+            min_purchase AS minAmount, max_discount AS maxDiscount,
+            applicable_scope AS applicableScope, total_quantity AS totalCount,
+            issued_quantity AS claimedCount,
+            valid_start AS startTime, valid_end AS endTime, description
+     FROM t_coupon_template
+     WHERE status = 'ACTIVE' AND valid_start <= ? AND valid_end >= ?
+       AND (total_quantity = 0 OR issued_quantity < total_quantity)
+     ORDER BY created_at DESC`, [now, now], tenantId);
+    return { total: records.length, records };
+}
+export async function claimCoupon(templateId, userId, tenantId) {
+    const now = new Date().toISOString();
+    await transaction(async (conn) => {
+        const [templateRows] = await conn.execute(`SELECT id, template_name AS name, coupon_type AS type, coupon_value AS value,
+              min_purchase AS min_amount, max_discount, total_quantity AS total_count,
+              issued_quantity AS claimed_count, valid_end AS end_time, status
+       FROM t_coupon_template
+       WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND valid_start <= ? AND valid_end >= ?
+       FOR UPDATE`, [templateId, tenantId, now, now]);
+        const template = templateRows[0];
+        if (!template) {
+            throw Object.assign(new Error("优惠券不存在或已过期"), { statusCode: 404 });
+        }
+        if (Number(template.total_count) > 0 && Number(template.claimed_count) >= Number(template.total_count)) {
+            throw Object.assign(new Error("优惠券已被领完"), { statusCode: 400 });
+        }
+        const [existingRows] = await conn.execute(`SELECT uc.id FROM t_user_coupon uc
+       JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+       WHERE uc.template_id = ? AND uc.user_id = ? AND uc.status = 'UNUSED'`, [tenantId, templateId, userId]);
+        if (existingRows.length > 0) {
+            throw Object.assign(new Error("您已领取过该优惠券"), { statusCode: 400 });
+        }
+        const endTime = new Date(String(template.end_time));
+        const expiresAt = endTime.toISOString();
+        const couponNo = `C${Date.now()}${Math.floor(Math.random() * 100000)}`;
+        await conn.execute(`INSERT INTO t_user_coupon (
+         coupon_no, template_id, user_id, coupon_type, coupon_name, coupon_value,
+         min_purchase, applicable_scope, status, valid_start, valid_end, tenant_id
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'UNUSED', ?, ?, ?)`, [
+            couponNo, templateId, userId,
+            String(template.type ?? ""), String(template.name ?? ""),
+            Number(template.value ?? 0), Number(template.min_amount ?? 0),
+            "ALL", new Date().toISOString().slice(0, 10), expiresAt, tenantId,
+        ]);
+        await conn.execute(`UPDATE t_coupon_template SET issued_quantity = issued_quantity + 1 WHERE id = ? AND tenant_id = ?`, [templateId, tenantId]);
+    });
+    const record = await queryOneWithTenant(`SELECT uc.id, uc.template_id AS templateId, uc.user_id AS userId,
+            uc.status, uc.created_at AS claimedAt, uc.valid_end AS expiresAt,
+            ct.template_name AS templateName, ct.coupon_type AS couponType,
+            ct.coupon_value AS couponValue, ct.min_purchase AS minAmount,
+            ct.applicable_scope AS applicableScope
+     FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+     WHERE uc.template_id = ? AND uc.user_id = ?
+     ORDER BY uc.id DESC LIMIT 1`, [tenantId, templateId, userId], tenantId);
+    return record;
+}
+export async function listMyCoupons(userId, page, pageSize, tenantId, status) {
+    const offset = (page - 1) * pageSize;
+    const conditions = ["uc.user_id = ?", "uc.tenant_id = ?"];
+    const params = [userId, tenantId];
+    if (status) {
+        conditions.push("uc.status = ?");
+        params.push(status);
+    }
+    const where = conditions.join(" AND ");
+    const records = await queryWithTenant(`SELECT uc.id, uc.template_id AS templateId, uc.user_id AS userId,
+            uc.used_order_no AS orderId, uc.status, uc.created_at AS claimedAt,
+            uc.used_at AS usedAt, uc.valid_end AS expiresAt,
+            ct.template_name AS templateName, ct.coupon_type AS couponType,
+            ct.coupon_value AS couponValue, ct.min_purchase AS minAmount,
+            ct.max_discount AS maxDiscount,
+            ct.applicable_scope AS applicableScope, ct.description
+     FROM t_user_coupon uc
+     JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
+     WHERE ${where}
+     ORDER BY uc.created_at DESC
+     LIMIT ? OFFSET ?`, [tenantId, ...params, pageSize, offset], tenantId);
+    const totalRow = await queryOneWithTenant(`SELECT COUNT(*) AS total FROM t_user_coupon uc WHERE ${where}`, params, tenantId);
+    return {
+        total: Number(totalRow?.total ?? 0),
+        page,
+        pageSize,
+        records
+    };
+}
