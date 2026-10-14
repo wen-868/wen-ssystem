@@ -1,5 +1,5 @@
 /**
- * S3-203 门禁·迁移 `docs/migrations/200_账号口径统一.sql` 的可执行性与红线自检
+ * S3-203 门禁·迁移 `docs/migrations/201_账号口径统一.sql` 的可执行性与红线自检
  *
  * 防两件事：
  *   ① **踩坑[63] 复现**：迁移 runner 的 `splitSqlStatements()` 会剥掉语句块**开头的整行注释**，
@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { splitSqlStatements } from "../../shared/migration";
 
-const migrationPath = join(__dirname, "../../../../docs/migrations/200_账号口径统一.sql");
+const migrationPath = join(__dirname, "../../../../docs/migrations/201_账号口径统一.sql");
 const sql = readFileSync(migrationPath, "utf8");
 const statements = splitSqlStatements(sql);
 
