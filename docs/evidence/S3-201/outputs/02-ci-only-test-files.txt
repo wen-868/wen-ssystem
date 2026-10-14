@@ -1,0 +1,7 @@
+
+# CI 测试文件清单里分支没有的 5 个（证明 CI 跑的是 PR 合并树 refs/pull/316/merge）：
+src/__tests__/middleware/consumer-auth-s3-196.test.ts
+src/__tests__/routes/consumer-auth-marketing-s3-196.test.ts
+src/__tests__/routes/notification-csrf-s3-196.test.ts
+src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts
+src/__tests__/routes/wechat-bind-tenant-s3-196.test.ts

@@ -17,6 +17,11 @@
  *   生产 `t_sys_role.permissions` 实测门店角色**不含 `trace:*`**（`t_sys_role_permission` 0 命中），
  *   「追溯是否授权门店端」属产品授权口径 ⇒ 留台账、待另立补授权单。故 34 → 25，未接 23 → 32（新增 P 类 9 条）。
  *
+ * 口径同步（S3-201，2026-10-15）：main `089b8c3f`（S3-195）已把 `store-inventory.routes.ts` /
+ *   `store-trace.routes.ts` 原本的**根前缀** `/api/store` 收窄为各自拥有的路径段
+ *   （`/api/store/inventory`、`/api/store/trace`），注册行随之下移一段。本文件这两行的
+ *   `prefix`（挂载）+ `routePath`（注册行级形状判据）已按**合并后真值**拆分，**对外 URL 逐字不变**。
+ *
  * 保真度说明：
  *  · 真：路由文件与其注册顺序、`requirePermission` 中间件本体、`matchPermission` 权限匹配器
  *        （`services/admin/rbac.service.ts`）、CSRF 在挂载层先于路由匹配的顺序（踩坑[34]）。
@@ -248,8 +253,12 @@ const UNWIRED: UnwiredRow[] = [
   { file: "stock-check.routes.ts", prefix: "/api/store/stock-checks", router: storeStockCheckRouter, method: "put", routePath: "/:id/items/:itemId", path: "/1/items/1", reason: "B", note: "app-mobile 门店盘点页（api/modules/store.ts:645）" },
   { file: "stock-check.routes.ts", prefix: "/api/store/stock-checks", router: storeStockCheckRouter, method: "post", routePath: "/:id/submit", path: "/1/submit", reason: "B", note: "app-mobile 门店盘点页（api/modules/store.ts:650）" },
   { file: "stock-warning.routes.ts", prefix: "/api/admin/stock-warnings", router: stockWarningRouter, method: "post", routePath: "/config", path: "/config", reason: "B", note: "app-mobile 预警配置（api/modules/stock-warning.ts:72）" },
-  { file: "store-inventory.routes.ts", prefix: "/api/store", router: storeInventoryRouter, method: "put", routePath: "/inventory/alerts/:skuId/threshold", path: "/inventory/alerts/1/threshold", reason: "B", note: "app-mobile 门店库存预警（api/modules/store.ts:485）" },
-  { file: "store-trace.routes.ts", prefix: "/api/store", router: storeTraceRouter, method: "post", routePath: "/trace/verify", path: "/trace/verify", reason: "A", note: "收银台 CashierView.vue:1273（router/index.ts:259 角色含 STORE_MANAGER / STORE_OPERATOR）不持 trace:code ⇒ 接线即 403" },
+  // S3-201 口径同步：这两个文件原以**根前缀** `/api/store` 注册，已被 main `089b8c3f`（S3-195）收窄为
+  //   各自拥有的路径段 ⇒ 注册行随之下移一段，**对外 URL 逐字不变**：
+  //     /api/store/inventory + /alerts/:skuId/threshold ≡ 原 /api/store + /inventory/alerts/:skuId/threshold
+  //     /api/store/trace     + /verify                ≡ 原 /api/store + /trace/verify
+  { file: "store-inventory.routes.ts", prefix: "/api/store/inventory", router: storeInventoryRouter, method: "put", routePath: "/alerts/:skuId/threshold", path: "/alerts/1/threshold", reason: "B", note: "app-mobile 门店库存预警（api/modules/store.ts:485）；对外 URL 仍为 /api/store/inventory/alerts/:skuId/threshold" },
+  { file: "store-trace.routes.ts", prefix: "/api/store/trace", router: storeTraceRouter, method: "post", routePath: "/verify", path: "/verify", reason: "A", note: "收银台 CashierView.vue:1273（router/index.ts:259 角色含 STORE_MANAGER / STORE_OPERATOR）不持 trace:code ⇒ 接线即 403；对外 URL 仍为 /api/store/trace/verify" },
   // ---- P 类（9）：trace 域写端点 —— 凌舟裁定退回（生产 t_sys_role.permissions 实测门店角色不含 trace:*） ----
   { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "post", routePath: "/configs", path: "/configs", reason: "P", note: "待补授权：trace:* 未被任何门店角色持有（R101-S3-198 裁定 §一）" },
   { file: "trace.routes.ts", prefix: "/api/admin/trace", router: adminTraceRouter, method: "put", routePath: "/configs/:id", path: "/configs/1", reason: "P", note: "同「待补授权」：trace:code 无生产持有者" },
@@ -412,7 +421,8 @@ describe("S3-198 · 形状断言（注册行级判据，踩坑[134]）", () => {
   it("整文件子串不足以判定（踩坑[134]）：store-inventory.routes.ts 文件级含 inventory:adjust，但阈值行没有", () => {
     const src = readFileSync(path.join(ROUTES_DIR, "store-inventory.routes.ts"), "utf8");
     expect(src).toContain('requirePermission("inventory:adjust")');
-    const lines = registrationLines("store-inventory.routes.ts", "put", "/inventory/alerts/:skuId/threshold");
+    // 阈值行的**注册路径**已随 S3-195 收窄（前缀 /api/store/inventory + /alerts/:skuId/threshold）
+    const lines = registrationLines("store-inventory.routes.ts", "put", "/alerts/:skuId/threshold");
     expect(lines).toHaveLength(1);
     expect(lines[0].line, "阈值行不得被误判为已接线").not.toContain("requirePermission(");
   });

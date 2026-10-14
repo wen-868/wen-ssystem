@@ -1,0 +1,85 @@
+# CI 权威失败（run 38591983350 / job 115948934478，head 35595341）—— 摘录 5 条失败与汇总
+Backend unit tests	2026-10-14T15:47:53.7244749Z ^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Failed Tests 5 ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m
+Backend unit tests	2026-10-14T15:47:53.7244975Z 
+Backend unit tests	2026-10-14T15:47:53.7246777Z ^[[41m^[[1m FAIL ^[[22m^[[49m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts^[[2m > ^[[22mS3-198 · 形状断言（注册行级判据，踩坑[134]）^[[2m > ^[[22m'store-inventory.routes.ts' 'put' '/inventory/alerts/:skuId/threshold'（未接，原因 'B'）：注册行**不含** requirePermission(
+Backend unit tests	2026-10-14T15:47:53.7247930Z ^[[41m^[[1m FAIL ^[[22m^[[49m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts^[[2m > ^[[22mS3-198 · 形状断言（注册行级判据，踩坑[134]）^[[2m > ^[[22m'store-trace.routes.ts' 'post' '/trace/verify'（未接，原因 'A'）：注册行**不含** requirePermission(
+Backend unit tests	2026-10-14T15:47:53.7251351Z ^[[31m^[[1mAssertionError^[[22m: expected [] to have a length of 1 but got +0^[[39m
+Backend unit tests	2026-10-14T15:47:53.7251621Z 
+Backend unit tests	2026-10-14T15:47:53.7251745Z ^[[32m- Expected^[[39m
+Backend unit tests	2026-10-14T15:47:53.7251977Z ^[[31m+ Received^[[39m
+Backend unit tests	2026-10-14T15:47:53.7252249Z 
+Backend unit tests	2026-10-14T15:47:53.7252344Z ^[[32m- 1^[[39m
+Backend unit tests	2026-10-14T15:47:53.7252540Z ^[[31m+ 0^[[39m
+Backend unit tests	2026-10-14T15:47:53.7252661Z 
+Backend unit tests	2026-10-14T15:47:53.7253178Z ^[[36m ^[[2m❯^[[22m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:^[[2m408:36^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7348605Z     ^[[90m406|^[[39m   it.each(UNWIRED)("$file $method $routePath（未接，原因 $reason）：注册行**不含** …
+Backend unit tests	2026-10-14T15:47:53.7350264Z     ^[[90m407|^[[39m     const lines = registrationLines(row.file, row.method, row.routePat…
+Backend unit tests	2026-10-14T15:47:53.7351385Z     ^[[90m408|^[[39m     ^[[34mexpect^[[39m(lines^[[33m.^[[39m^[[34mmap^[[39m((l) ^[[33m=>^[[39m l^[[33m.^[[39mno))^[[33m.^[[39m^[[34mtoHaveLength^[[39m(^[[34m1^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7352345Z     ^[[90m   |^[[39m                                    ^[[31m^^[[39m
+Backend unit tests	2026-10-14T15:47:53.7353263Z     ^[[90m409|^[[39m     ^[[34mexpect^[[39m(lines[^[[34m0^[[39m]^[[33m.^[[39mline)^[[33m.^[[39mnot^[[33m.^[[39m^[[34mtoContain^[[39m(^[[32m"requirePermission("^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7354001Z     ^[[90m410|^[[39m   })^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7354321Z 
+Backend unit tests	2026-10-14T15:47:53.7354685Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7355019Z 
+Backend unit tests	2026-10-14T15:47:53.7356253Z ^[[41m^[[1m FAIL ^[[22m^[[49m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts^[[2m > ^[[22mS3-198 · 形状断言（注册行级判据，踩坑[134]）^[[2m > ^[[22m整文件子串不足以判定（踩坑[134]）：store-inventory.routes.ts 文件级含 inventory:adjust，但阈值行没有
+Backend unit tests	2026-10-14T15:47:53.7357451Z ^[[31m^[[1mAssertionError^[[22m: expected [] to have a length of 1 but got +0^[[39m
+Backend unit tests	2026-10-14T15:47:53.7357878Z 
+Backend unit tests	2026-10-14T15:47:53.7358124Z ^[[32m- Expected^[[39m
+Backend unit tests	2026-10-14T15:47:53.7358505Z ^[[31m+ Received^[[39m
+Backend unit tests	2026-10-14T15:47:53.7358760Z 
+Backend unit tests	2026-10-14T15:47:53.7358977Z ^[[32m- 1^[[39m
+Backend unit tests	2026-10-14T15:47:53.7359293Z ^[[31m+ 0^[[39m
+Backend unit tests	2026-10-14T15:47:53.7359506Z 
+Backend unit tests	2026-10-14T15:47:53.7360082Z ^[[36m ^[[2m❯^[[22m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:^[[2m416:19^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7361101Z     ^[[90m414|^[[39m     ^[[34mexpect^[[39m(src)^[[33m.^[[39m^[[34mtoContain^[[39m(^[[32m'requirePermission("inventory:adjust")'^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7362015Z     ^[[90m415|^[[39m     const lines = registrationLines("store-inventory.routes.ts", "put"…
+Backend unit tests	2026-10-14T15:47:53.7362994Z     ^[[90m416|^[[39m     ^[[34mexpect^[[39m(lines)^[[33m.^[[39m^[[34mtoHaveLength^[[39m(^[[34m1^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7363632Z     ^[[90m   |^[[39m                   ^[[31m^^[[39m
+Backend unit tests	2026-10-14T15:47:53.7364368Z     ^[[90m417|^[[39m     expect(lines[0].line, "阈值行不得被误判为已接线").not.toContain("requirePermis…
+Backend unit tests	2026-10-14T15:47:53.7364972Z     ^[[90m418|^[[39m   })^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7365238Z 
+Backend unit tests	2026-10-14T15:47:53.7365580Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7365877Z 
+Backend unit tests	2026-10-14T15:47:53.7366702Z ^[[41m^[[1m FAIL ^[[22m^[[49m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts^[[2m > ^[[22mS3-198 · e) 范围控制：本域未接的 32 行不被本批拦住（READONLY 仍 200）^[[2m > ^[[22m'store-inventory.routes.ts' 'put' '/inventory/alerts/:skuId/threshold'（未接 'B'）：READONLY 仍 200
+Backend unit tests	2026-10-14T15:47:53.7367850Z ^[[31m^[[1mAssertionError^[[22m: store-inventory.routes.ts PUT /inventory/alerts/:skuId/threshold（app-mobile 门店库存预警（api/modules/store.ts:485））: expected 404 to be 200 // Object.is equality^[[39m
+Backend unit tests	2026-10-14T15:47:53.7368607Z 
+Backend unit tests	2026-10-14T15:47:53.7368776Z ^[[32m- Expected^[[39m
+Backend unit tests	2026-10-14T15:47:53.7369034Z ^[[31m+ Received^[[39m
+Backend unit tests	2026-10-14T15:47:53.7369203Z 
+Backend unit tests	2026-10-14T15:47:53.7369361Z ^[[32m- 200^[[39m
+Backend unit tests	2026-10-14T15:47:53.7369783Z ^[[31m+ 404^[[39m
+Backend unit tests	2026-10-14T15:47:53.7369930Z 
+Backend unit tests	2026-10-14T15:47:53.7370048Z 
+Backend unit tests	2026-10-14T15:47:53.7370406Z ^[[36m ^[[2m❯^[[22m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:^[[2m525:54^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7370918Z     ^[[90m523|^[[39m   it.each(UNWIRED)("$file $method $routePath（未接 $reason）：READONLY 仍 20…
+Backend unit tests	2026-10-14T15:47:53.7371398Z     ^[[90m524|^[[39m     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+Backend unit tests	2026-10-14T15:47:53.7372423Z     ^[[90m525|^[[39m     ^[[34mexpect^[[39m(res^[[33m.^[[39mstatus^[[33m,^[[39m ^[[32m`^[[39m^[[36m${^[[39m^[[34mlabel^[[39m(row)^[[36m}^[[39m^[[32m（^[[39m^[[36m${^[[39mrow^[[33m.^[[39mnote^[[36m}^[[39m^[[32m）`^[[39m)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m200^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7373312Z     ^[[90m   |^[[39m                                                      ^[[31m^^[[39m
+Backend unit tests	2026-10-14T15:47:53.7374016Z     ^[[90m526|^[[39m     ^[[34mexpect^[[39m(res^[[33m.^[[39mbody^[[33m.^[[39msuccess)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[35mtrue^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7374764Z     ^[[90m527|^[[39m     ^[[34mexpect^[[39m(h^[[33m.^[[39mreached^[[33m.^[[39mlength)^[[33m.^[[39m^[[34mtoBeGreaterThan^[[39m(^[[34m0^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7375109Z 
+Backend unit tests	2026-10-14T15:47:53.7375517Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7375710Z 
+Backend unit tests	2026-10-14T15:47:53.7376669Z ^[[41m^[[1m FAIL ^[[22m^[[49m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts^[[2m > ^[[22mS3-198 · e) 范围控制：本域未接的 32 行不被本批拦住（READONLY 仍 200）^[[2m > ^[[22m'store-trace.routes.ts' 'post' '/trace/verify'（未接 'A'）：READONLY 仍 200
+Backend unit tests	2026-10-14T15:47:53.7378360Z ^[[31m^[[1mAssertionError^[[22m: store-trace.routes.ts POST /trace/verify（收银台 CashierView.vue:1273（router/index.ts:259 角色含 STORE_MANAGER / STORE_OPERATOR）不持 trace:code ⇒ 接线即 403）: expected 404 to be 200 // Object.is equality^[[39m
+Backend unit tests	2026-10-14T15:47:53.7379100Z 
+Backend unit tests	2026-10-14T15:47:53.7379220Z ^[[32m- Expected^[[39m
+Backend unit tests	2026-10-14T15:47:53.7379481Z ^[[31m+ Received^[[39m
+Backend unit tests	2026-10-14T15:47:53.7379604Z 
+Backend unit tests	2026-10-14T15:47:53.7379703Z ^[[32m- 200^[[39m
+Backend unit tests	2026-10-14T15:47:53.7379918Z ^[[31m+ 404^[[39m
+Backend unit tests	2026-10-14T15:47:53.7380028Z 
+Backend unit tests	2026-10-14T15:47:53.7380447Z ^[[36m ^[[2m❯^[[22m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts:^[[2m525:54^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7381103Z     ^[[90m523|^[[39m   it.each(UNWIRED)("$file $method $routePath（未接 $reason）：READONLY 仍 20…
+Backend unit tests	2026-10-14T15:47:53.7381705Z     ^[[90m524|^[[39m     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+Backend unit tests	2026-10-14T15:47:53.7382862Z     ^[[90m525|^[[39m     ^[[34mexpect^[[39m(res^[[33m.^[[39mstatus^[[33m,^[[39m ^[[32m`^[[39m^[[36m${^[[39m^[[34mlabel^[[39m(row)^[[36m}^[[39m^[[32m（^[[39m^[[36m${^[[39mrow^[[33m.^[[39mnote^[[36m}^[[39m^[[32m）`^[[39m)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m200^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7383391Z     ^[[90m   |^[[39m                                                      ^[[31m^^[[39m
+Backend unit tests	2026-10-14T15:47:53.7383800Z     ^[[90m526|^[[39m     ^[[34mexpect^[[39m(res^[[33m.^[[39mbody^[[33m.^[[39msuccess)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[35mtrue^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7384314Z     ^[[90m527|^[[39m     ^[[34mexpect^[[39m(h^[[33m.^[[39mreached^[[33m.^[[39mlength)^[[33m.^[[39m^[[34mtoBeGreaterThan^[[39m(^[[34m0^[[39m)^[[33m;^[[39m
+Backend unit tests	2026-10-14T15:47:53.7384563Z 
+Backend unit tests	2026-10-14T15:47:53.7384699Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯^[[22m^[[39m
+Backend unit tests	2026-10-14T15:47:53.7384817Z 
+Backend unit tests	2026-10-14T15:47:53.7423176Z ^[[2m Test Files ^[[22m ^[[1m^[[31m1 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m659 passed^[[39m^[[22m^[[90m (660)^[[39m
+Backend unit tests	2026-10-14T15:47:53.7471516Z ^[[2m      Tests ^[[22m ^[[1m^[[31m5 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m7952 passed^[[39m^[[22m^[[90m (7957)^[[39m
+Backend unit tests	2026-10-14T15:47:53.7472205Z ^[[2m   Start at ^[[22m 15:46:03
+Backend unit tests	2026-10-14T15:47:53.7483402Z ^[[2m   Duration ^[[22m 110.53s^[[2m (transform 12.63s, setup 2.33s, import 200.74s, tests 47.02s, environment 49ms)^[[22m
