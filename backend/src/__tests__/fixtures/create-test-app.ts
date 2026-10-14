@@ -4,13 +4,19 @@ import { ZodError } from "zod";
 
 export interface TestAppOptions {
   prefix?: string;
-  router: Router;
+  router?: Router;
+  /**
+   * 多条 `prefix + router` 挂载（S3-195：收窄后的路由文件导出 `routeConfigs` 数组，
+   * 单测直接照生产配置逐条挂载，避免测试侧各写一套前缀映射而与生产漂移）。
+   * 给了 mounts 就忽略 prefix/router。
+   */
+  mounts?: Array<{ prefix: string; router: Router }>;
   mockUser?: any;
   mockTenantId?: string;
 }
 
 export function createTestApp(options: TestAppOptions) {
-  const { prefix = "/api/test", router, mockUser, mockTenantId = "test-tenant" } = options;
+  const { prefix = "/api/test", router, mounts, mockUser, mockTenantId = "test-tenant" } = options;
 
   const app = express();
   app.use(express.json());
@@ -27,7 +33,11 @@ export function createTestApp(options: TestAppOptions) {
     next();
   });
 
-  app.use(prefix, router);
+  if (mounts && mounts.length > 0) {
+    for (const m of mounts) app.use(m.prefix, m.router);
+  } else if (router) {
+    app.use(prefix, router);
+  }
 
   // 错误响应字段与生产 errorHandler 对齐：生产统一信封是 { code, msg, traceId }
   // （见 shared/response.ts 的 fail()、middleware/error-handler.ts:50）。

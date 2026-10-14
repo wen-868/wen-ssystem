@@ -56,9 +56,11 @@ vi.mock("../../middleware/tenant", () => ({
 import * as productService from "../../services/store/product.service";
 import * as tagService from "../../services/admin/tag.service";
 import * as batchService from "../../services/admin/inventory-batch.service";
-import { storeRouter } from "../../routes/store.routes";
+import { routeConfigs as storeRouteConfigs } from "../../routes/store.routes";
 
-const app = createTestApp({ prefix: "/api/store", router: storeRouter });
+// S3-195：store.routes 已按「只声明自己拥有的路径段」收窄为多条 routeConfigs，
+// 单测直接照生产配置逐条挂载（对外 URL 与收窄前逐字相同）。
+const app = createTestApp({ mounts: storeRouteConfigs });
 
 describe("routes/store 集成测试", () => {
   beforeEach(() => vi.clearAllMocks());

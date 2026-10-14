@@ -1,0 +1,1 @@
+src/shared/auto-routes.ts(173,3): error TS2741: Property 'sharedRootPrefixes' is missing in type 'RoutePrefixReport' but required in type 'RouteHygieneReport'.
