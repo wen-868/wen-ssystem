@@ -1,0 +1,34 @@
+guard:tenant-injection（S3-207）
+  扫描根：D:\Users\ZXQL\wt-agents\S3-207
+  调用点：1747｜OK-AUTO-INJECT=1124 OK-TENANT-CONDITION=605 BLOCK-MISSING-TENANT-CONDITION=11 INDIRECT-NEEDS-REVIEW=1 WARN-AUTO-INJECT-JOIN=6
+  语料自检：25 例通过
+
+RED 阻塞项（有 tenant_id 字样但没有绑定到调用者租户的条件）：11 条
+  jobs/report-aggregation.job.ts:7 [SELECT] SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'
+  jobs/report-aggregation.job.ts:125 [SELECT] SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND DATE(created_at) = ? AND customer_id IS NOT NULL GROUP BY customer_id HAVING COUNT(bill_no) > 1) t
+  jobs/report-aggregation.job.ts:129 [SELECT] SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM t_sale_bill WHERE tenant_id = ? AND store_id = ? AND business_status = 'CREATED' AND customer_id IS NOT NULL GROUP BY customer_id HAVING DATEDIFF(NOW(), MAX(created_at)) > 90) t
+  services/admin/customer-tag.service.ts:108 [INSERT] INSERT IGNORE INTO t_customer_tag_relation (customer_id, tag_id, tenant_id) VALUES (?, ?, ?)
+  services/admin/customer.service.ts:348 [SELECT] SELECT (SELECT COUNT(*) FROM t_sale_payment WHERE customer_id = ? AND tenant_id = ?) + (SELECT COUNT(*) FROM t_customer_payment WHERE customer_id = ? AND tenant_id = ?) AS total
+  services/admin/employee.service.ts:150 [INSERT] INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)
+  services/admin/employee.service.ts:187 [INSERT] INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)
+  services/admin/product.service.ts:965 [INSERT] INSERT INTO t_product_sku_unit (sku_id, unit_name, ratio, barcode, retail_price, wholesale_price, store_price, miniapp_price, is_base, sort_no, tenant_id) SELECT ?
+  services/admin/report/finance-report.service.ts:210 [SELECT] SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('D
+  services/admin/report/finance-report.service.ts:264 [SELECT] SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('D
+  services/admin/report/sales-report.service.ts:508 [SELECT] SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount FROM t_inventory_balance ib JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+  ⇒ 改前会被短路跳过（泄露/歧义 500 的温床）；要么补真谓词，要么登记显式标记。
+
+RED 登记表里的标记已失效（SQL 变了或删了）：1 条
+  jobs/report-aggregation.job.ts contains="SELECT DISTINCT tenant_id FROM t_sale_bill"
+
+RED 未登记的非字面量调用点：1 条
+  services/admin/batch-price.service.ts:189 kind=literal
+
+WARN（不阻断）自动注入 + JOIN ⇒ 注入的是无限定列名，第二张表也有 tenant_id 时会 1052：6 条
+  services/admin/credit-collection.service.ts:184 SELECT COUNT(*) AS total FROM t_collection_record cr LEFT JOIN t_member m ON m.id = cr.customer_id ?
+  services/admin/inventory-share.service.ts:210 SELECT COUNT(*) AS total FROM t_inventory_share_product isp LEFT JOIN t_product_spu p ON p.id = isp.spu_id ?
+  services/admin/price-review.service.ts:84 SELECT COUNT(*) AS total FROM t_product_price p JOIN t_product_sku sku ON sku.id = p.sku_id JOIN t_product_spu spu ON sp
+  services/admin/report-collection.service.ts:78 SELECT COUNT(DISTINCT cvl.link_no) AS cnt FROM t_collection_view_log cvl JOIN t_collection_link cl ON cl.link_no = cvl.l
+  services/admin/report.service.ts:330 SELECT COUNT(*) AS total FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id LEFT JOIN t_product
+  services/supplier.service.ts:684 SELECT COUNT(DISTINCT poi.sku_id) AS total FROM t_purchase_order po JOIN t_purchase_order_item poi ON po.order_no = poi.
+
+RED 共 13 项待处理

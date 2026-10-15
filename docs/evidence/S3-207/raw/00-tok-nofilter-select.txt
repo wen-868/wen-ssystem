@@ -1,0 +1,14 @@
+backend/src/jobs/report-aggregation.job.ts:7 | queryWithTenant | join=false | pTen=false | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'
+
+backend/src/services/admin/batch-price.service.ts:189 | queryOneWithTenant | join=true | pTen=false | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COUNT(*) AS total FROM t_product_price pp JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id WHERE ${} /*插值*/ 
+
+backend/src/services/admin/report/finance-report.service.ts:210 | queryOneWithTenant | join=true | pTen=false | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('D
+
+backend/src/services/admin/report/finance-report.service.ts:264 | queryOneWithTenant | join=true | pTen=false | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('D
+
+backend/src/services/admin/report/sales-report.service.ts:497 | queryOneWithTenant | join=true | pTen=false | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount FROM t_inventory_balance ib JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id

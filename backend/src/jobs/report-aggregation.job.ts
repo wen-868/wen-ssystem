@@ -4,7 +4,15 @@ import { queryWithTenant, queryOneWithTenant } from "../shared/db";
 
 // 获取所有租户
 async function getTenants(): Promise<string[]> {
-  const rows = await queryWithTenant<any>("SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'", [], "");
+  // S3-207：本查询是**平台级**的（要枚举全部租户），第 3 实参传空串表示"没有调用者租户"。
+  // 它带 tenant_id 字样（SELECT 列）却没有租户过滤谓词 —— 收紧判据后若不显式声明，
+  // 会被注入 `tenant_id = ''` ⇒ 永远返回空集、汇总作业静默失效。
+  // 因此用显式标记声明"平台范围"（登记在 backend/scripts/guard-tenant-injection.mjs 的 MARKER_ALLOWLIST）。
+  const rows = await queryWithTenant<any>(
+    "SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED' /* tenant-scope:platform */",
+    [],
+    ""
+  );
   return rows.map((r: any) => r.tenant_id);
 }
 

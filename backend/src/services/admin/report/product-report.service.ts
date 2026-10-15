@@ -107,8 +107,10 @@ export async function getInventorySummary(
 ) {
   const g = z.enum(["product", "store"]).parse(groupBy);
 
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  // S3-207：JOIN 里全是"列对列"的 tenant_id 等值 ⇒ 旧判据（子串含 tenant_id 即跳过注入）让整句无租户过滤
+  // ⇒ 库存汇总跨租户；显式把租户谓词放在首位（3 张表都有 tenant_id 列，靠自动注入会 1052 歧义 500）
+  const conditions: string[] = ["ib.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (storeId) {
     conditions.push("ib.store_id = ?");
     params.push(storeId);
@@ -176,10 +178,12 @@ export async function getInventoryTurnover(
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSalesAmount
      FROM t_sale_bill_item sbi
      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE sb.tenant_id = ?
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND sb.created_at >= ?
      GROUP BY sbi.sku_id, sbi.sku_name`,
-    [dateStart.toISOString().slice(0, 10)],
+    // S3-207：JOIN 的 `sb.tenant_id = sbi.tenant_id` 是列对列等值 ⇒ 旧判据短路 ⇒ 库存周转率口径跨租户；显式补谓词
+    [tenantId, dateStart.toISOString().slice(0, 10)],
     tenantId
   );
 
@@ -223,8 +227,9 @@ export async function getInventoryAge(
   tenantId: string,
   storeId?: number
 ) {
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  // S3-207：同 getInventorySummary —— 库龄分析原先也无租户过滤，显式补谓词
+  const conditions: string[] = ["psi.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
   if (storeId) {
     conditions.push("psi.store_id = ?");
     params.push(storeId);

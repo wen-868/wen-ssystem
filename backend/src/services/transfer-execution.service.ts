@@ -301,9 +301,11 @@ export async function getInTransitOrders(storeId: number, tenantId: string) {
      FROM t_transfer_order to_
      LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
      LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
-     WHERE to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT')
+     WHERE to_.tenant_id = ? AND to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT')
      ORDER BY to_.created_at DESC`,
-    [storeId],
+    // S3-207：JOIN 里全是列对列等值 ⇒ 旧判据短路 ⇒ 无租户过滤；显式补谓词
+    //（t_transfer_order 与两张 t_store 别名都有 tenant_id 列，靠自动注入会 1052 歧义 500）
+    [tenantId, storeId],
     tenantId
   );
 
@@ -316,9 +318,10 @@ export async function getMyShipments(storeId: number, tenantId: string) {
      FROM t_transfer_order to_
      LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
      LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
-     WHERE to_.from_store_id = ? AND to_.status IN ('TRANSIT', 'RECEIVED')
+     WHERE to_.tenant_id = ? AND to_.from_store_id = ? AND to_.status IN ('TRANSIT', 'RECEIVED')
      ORDER BY to_.created_at DESC`,
-    [storeId],
+    // S3-207：同上
+    [tenantId, storeId],
     tenantId
   );
 

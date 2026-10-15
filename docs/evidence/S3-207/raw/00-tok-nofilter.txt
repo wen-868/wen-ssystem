@@ -1,0 +1,663 @@
+backend/src/jobs/report-aggregation.job.ts:7 | queryWithTenant | SELECT | filt=false | pTen=false | join=false | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'
+  WHERE: WHERE business_status = 'CREATED'
+
+backend/src/jobs/report-aggregation.job.ts:42 | queryOneWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_report_sales_daily (tenant_id, store_id, report_date, order_count, customer_count, new_customer_count, goods_amount, discount_amount, receivable_amount, received_amount, unreceived_amount, refund_count, refund_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE order_count = VALUES(order_count)
+  WHERE: 
+
+backend/src/jobs/report-aggregation.job.ts:75 | queryOneWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_report_collection_stats (tenant_id, store_id, report_date, total_links, paid_links, total_amount, paid_amount, wechat_links, alipay_links, other_channel_links, avg_pay_cycle_hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE total_links = VALUES(total_links)
+  WHERE: 
+
+backend/src/jobs/report-aggregation.job.ts:102 | queryOneWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_report_product_sales (tenant_id, store_id, report_date, sku_id, sku_name, category_name, sale_bottle_qty, sale_amount, order_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE sku_name = VALUES(sku_name)
+  WHERE: 
+
+backend/src/jobs/report-aggregation.job.ts:143 | queryOneWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_report_customer_stats (tenant_id, store_id, report_date, total_customers, new_customers, active_customers, repurchase_customers, lost_customers, avg_order_value, total_revenue, repurchase_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE total_customers = VALUES(total_customers)
+  WHERE: 
+
+backend/src/jobs/report-aggregation.job.ts:178 | queryOneWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_report_inventory_daily (tenant_id, store_id, report_date, total_sku_count, total_physical_qty, total_available_qty, total_locked_qty, total_value, low_stock_sku_count, zero_stock_sku_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE total_sku_count = VALUES(total_sku_count)
+  WHERE: 
+
+backend/src/services/admin/aftersale.service.ts:41 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_aftersale (aftersale_no, order_id, order_no, customer_id, store_id, aftersale_type, reason, reason_detail, images, items, refund_amount, exchange_sku_id, exchange_qty, status, deadline, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)
+  WHERE: 
+
+backend/src/services/admin/approval-flow.service.ts:94 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_approval_rule (rule_name, business_type, trigger_condition, approval_chain, sla_hours, escalation_level, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+  WHERE: 
+
+backend/src/services/admin/approval-flow.service.ts:101 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id) VALUES (?, ?, 'APPROVAL_RULE', 'CREATE', ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/bank-account.service.ts:77 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_bank_account (account_name, bank_name, account_no, account_type, balance, status, tenant_id) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)
+  WHERE: 
+
+backend/src/services/admin/batch-price.service.ts:189 | queryOneWithTenant | SELECT | filt=false | pTen=false | join=true | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COUNT(*) AS total FROM t_product_price pp JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id WHERE ${} /*插值*/ 
+  WHERE: WHERE ${} /*插值*/ 
+
+backend/src/services/admin/brand.service.ts:25 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_brand (name, logo, description, sort_no, tenant_id) VALUES (?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/category.service.ts:81 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_product_category (name, parent_id, sort_no, icon, code, allow_online_sale, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/commission.service.ts:107 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_sales_commission_rule (rule_name, rule_type, config, effective_start, effective_end, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/commission.service.ts:226 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_sales_commission_record (record_no, bill_no, staff_id, rule_id, commission_amount, base_amount, rate, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)
+  WHERE: 
+
+backend/src/services/admin/credit-adjust.service.ts:79 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id) VALUES (?, 'ADJUST_LIMIT', ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/credit-adjust.service.ts:119 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id) VALUES (?, 'MANUAL_ADJUST', 0, 0, 0, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/credit-collection.service.ts:210 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_collection_record (customer_id, receivable_no, overdue_days, overdue_amount, collection_level, collection_method, collection_content, contact_person, contact_result, promised_amount, promised_date, next_follow_up_date, operator_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/credit-collection.service.ts:342 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_collection_record (customer_id, overdue_days, overdue_amount, collection_level, collection_method, collection_content, contact_person, operator_id, tenant_id) VALUES (?, 0, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/credit-limit.service.ts:159 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_credit (customer_id, credit_limit, payment_term, late_fee_rate, max_late_fee_rate, warning_threshold, overdue_freeze_days, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)
+  WHERE: 
+
+backend/src/services/admin/credit-limit.service.ts:168 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id) VALUES (?, 'ADJUST_LIMIT', ?, 0, ?, ?, '初始化授信额度', ?)
+  WHERE: 
+
+backend/src/services/admin/credit-limit.service.ts:372 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id) VALUES (?, 'FREEZE', ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/credit-limit.service.ts:424 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id) VALUES (?, 'UNFREEZE', ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/credit-scoring.service.ts:320 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_credit (customer_id, credit_limit, payment_term, late_fee_rate, max_late_fee_rate, warning_threshold, overdue_freeze_days, status, tenant_id) VALUES (?, ?, 'NET_7', 0.0005, 0.3, 0.80, 15, 'ACTIVE', ?)
+  WHERE: 
+
+backend/src/services/admin/credit-scoring.service.ts:328 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_credit_operation_log (customer_id, operation_type, amount, balance_before, balance_after, operator_id, remark, tenant_id) VALUES (?, 'ADJUST_LIMIT', ?, 0, ?, ?, '系统自动授信', ?)
+  WHERE: 
+
+backend/src/services/admin/credit-scoring.service.ts:471 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_collection_record (customer_id, overdue_days, overdue_amount, collection_level, collection_method, collection_content, contact_person, operator_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/custom-report-v2.service.ts:395 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_custom_report_log (report_id, params, row_count, status, tenant_id) VALUES (?, ?, ?, 'SUCCESS', ?)
+  WHERE: 
+
+backend/src/services/admin/custom-report-v2.service.ts:422 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_custom_report_log (report_id, params, row_count, file_url, export_format, status, tenant_id) VALUES (?, ?, ?, ?, ?, 'SUCCESS', ?)
+  WHERE: 
+
+backend/src/services/admin/custom-report.service.ts:179 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_custom_report_template (tenant_id, name, type, config, description, status) VALUES (?, ?, ?, ?, ?, 'active')
+  WHERE: 
+
+backend/src/services/admin/custom-report.service.ts:343 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_custom_report_schedule (tenant_id, name, template_id, cron_expression, export_format, recipients, status) VALUES (?, ?, ?, ?, ?, ?, 'active')
+  WHERE: 
+
+backend/src/services/admin/customer-care.service.ts:70 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_care_rule (rule_name, trigger_type, template_content, reward_points, reward_coupon_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-care.service.ts:144 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_care_log (customer_id, rule_id, trigger_type, sent_content, sent_at, status, tenant_id) VALUES (?, ?, ?, ?, NOW(), 'SENT', ?)
+  WHERE: 
+
+backend/src/services/admin/customer-price.service.ts:88 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_price (customer_id, sku_id, custom_price, effective_start, effective_end, tenant_id) VALUES (?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-segment.service.ts:53 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_segment (segment_name, conditions, auto_refresh, tenant_id) VALUES (?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-segment.service.ts:116 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_segment_member (segment_id, customer_id, tenant_id) VALUES (?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-statement.service.ts:196 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-statement.service.ts:218 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-tag.service.ts:82 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_tag (tag_name, tag_type, tag_group, tenant_id) VALUES (?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-tag.service.ts:108 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT IGNORE INTO t_customer_tag_relation (customer_id, tag_id, tenant_id) VALUES (?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-tag.service.ts:134 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)
+  WHERE: 
+
+backend/src/services/admin/customer-tag.service.ts:167 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_profile (customer_id, total_order_count, avg_order_amount, last_order_at, total_points, member_level, lifecycle_stage, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE total_order_count=VALUES(total_order_count)
+  WHERE: 
+
+backend/src/services/admin/customer-type.service.ts:58 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_type (name, code, sort, status, tenant_id) VALUES (?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-visit.service.ts:453 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-visit.service.ts:512 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-visit.service.ts:571 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer-visit.service.ts:606 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/customer.service.ts:191 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_member (name, contact, mobile, customer_type, staff_id, address, settlement_type, remark, points, level_code, status, tenant_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)
+  WHERE: 
+
+backend/src/services/admin/daily-settlement.service.ts:104 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_daily_settlement (settle_date, total_sales, total_received, total_refund, cash_amount, wechat_amount, alipay_amount, transfer_amount, other_amount, operator_id, created_at, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)
+  WHERE: 
+
+backend/src/services/admin/employee.service.ts:150 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/employee.service.ts:187 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/employee.service.ts:263 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_store (store_code, name, address, lng, lat, contact, phone, delivery_radius, store_type, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/expense.service.ts:68 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_expense (expense_no, expense_type, category, amount, payee, payment_method, bank_account_id, invoice_no, expense_date, remark, operator_id, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,'PENDING', ?)
+  WHERE: 
+
+backend/src/services/admin/instant-retail.service.ts:783 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_shop_config ( shop_name, shop_logo, shop_description, contact_phone, business_hours, delivery_enabled, pickup_enabled, min_order_amount, delivery_fee, free_delivery_amount, delivery_radius, estimated_delivery_time, announcement, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/instant-retail.service.ts:831 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_category (category_name, category_icon, parent_id, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/instant-retail.service.ts:929 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_product ( product_id, category_id, retail_price, original_price, stock, is_recommended, is_hot, is_new, sort_order, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/instant-retail.service.ts:1126 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_banner ( banner_title, banner_image, link_type, link_value, sort_order, start_time, end_time, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/inventory-loss-gain.service.ts:35 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_inventory_loss_gain (lg_no, store_id, type, sku_id, qty, cost_price, amount, reason, operator_id, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)
+  WHERE: 
+
+backend/src/services/admin/inventory-loss-gain.service.ts:52 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_inventory_ledger ( ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty, operator_id, idempotency_key, remark, tenant_id ) VALUES (?, ?, ?, 'OFFLINE', ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/inventory-share.service.ts:112 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_inventory_share_setting ( share_enabled, auto_transfer, auto_transfer_threshold, share_scope, specified_store_ids, tenant_id ) VALUES (?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/inventory-share.service.ts:246 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_inventory_share_product ( spu_id, spu_name, sku_id, sku_name, barcode, share_qty, min_keep_qty, status, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-coupon.service.ts:137 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_coupon_template (name, type, value, min_amount, max_discount, applicable_scope, applicable_ids, total_count, start_time, end_time, description, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-full-reduction.service.ts:43 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_full_reduction (name, rules, applicable_scope, applicable_ids, start_time, end_time, priority, stackable, description, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-gift-rule.service.ts:96 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_gift_rule (rule_code, rule_name, rule_desc, threshold_type, threshold_amount, threshold_quantity, applicable_scope, applicable_ids, start_time, end_time, gift_stock_limit, remain_gift_stock, is_stock_synced, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-gift-rule.service.ts:161 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_gift_rule_level (rule_id, threshold_amount, gift_product_id, gift_sku_id, gift_quantity, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-limited-discount.service.ts:93 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_limited_discount (activity_code, activity_name, activity_desc, discount_type, discount_value, min_purchase, applicable_scope, applicable_ids, start_time, end_time, total_stock, available_stock, limit_per_user, per_order_limit, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-limited-discount.service.ts:167 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_limited_discount_product (discount_id, product_id, sku_id, original_price, discount_price, stock, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-material.service.ts:78 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_marketing_material (material_code, material_name, material_desc, material_type, file_url, file_size, file_format, image_width, image_height, category_id, tags, usage_scene, related_activity_id, related_activity_type, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-material.service.ts:158 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_material_category (name, parent_id, sort_order, tenant_id) VALUES (?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-new-coupon.service.ts:291 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-new-promotion.service.ts:272 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-points-mall.service.ts:91 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_points_product (product_code, product_name, product_image, product_desc, points_required, stock_total, stock_available, exchange_limit_per_user, exchange_limit_total, market_price, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-points-mall.service.ts:180 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_points_exchange_record (record_no, product_id, user_id, points_used, quantity, delivery_type, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-points.service.ts:110 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_points_rule (rule_name, earn_type, earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/marketing-points.service.ts:328 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_points_record (user_id, type, amount, balance, source_type, source_id, remark, tenant_id) VALUES (?, 'SPEND', ?, ?, 'REDEEM', ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:87 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_member (name, mobile, password_hash, register_source, tenant_id) VALUES (?, ?, ?, 'SELF_REGISTER', ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:93 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:97 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_level (customer_id, level_name, level_points, tenant_id) VALUES (?, 'VIP1', 0, ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:101 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:136 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_member (name, mobile, password_hash, referrer_id, level_code, tenant_id) VALUES (?, ?, ?, ?, 'VIP1', ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:142 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:144 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_level (customer_id, level_name, level_points, tenant_id) VALUES (?, 'VIP1', 0, ?)
+  WHERE: 
+
+backend/src/services/admin/member.service.ts:146 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)
+  WHERE: 
+
+backend/src/services/admin/miniapp-config.service.ts:154 | executeWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_miniapp_config (platform, app_id, app_secret, app_name, app_version, template_id, contact_name, contact_email, contact_phone, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?)
+  WHERE: 
+
+backend/src/services/admin/miniapp-package.service.ts:146 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_miniapp_publish_log (tenant_id, platform, template_id, action, version, result, remark, status, error_msg) VALUES (?, ?, ?, 'package', ?, 'success', ?, 'package_ready', '')
+  WHERE: 
+
+backend/src/services/admin/miniapp-publish.service.ts:112 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_miniapp_publish_log (tenant_id, platform, template_id, action, version, result, remark, status, error_msg) VALUES (?, ?, ?, 'publish', ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/payment-config.service.ts:117 | executeWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_payment_config (provider, app_id, mch_id, api_v3_key, api_key, private_key, serial_no, notify_url, alipay_public_key, box_config, enabled, tenant_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+  WHERE: 
+
+backend/src/services/admin/payment-config.service.ts:194 | executeWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_bank_account (bank_name, account_no, account_name, bank_branch, is_default, tenant_id) VALUES (?,?,?,?,?,?)
+  WHERE: 
+
+backend/src/services/admin/payment-new.service.ts:67 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_payment (payment_no, supplier_id, supplier_name, payment_type, amount, payment_method, bank_account_id, paid_date, remark, operator_id, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CONFIRMED', ?)
+  WHERE: 
+
+backend/src/services/admin/payment-new.service.ts:112 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_payment_writeoff (payment_id, payable_id, writeoff_amount, tenant_id) VALUES (?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/payment-new.service.ts:136 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_payable (supplier_id, supplier_name, source_type, source_no, payable_amount, paid_amount, balance, status, tenant_id) VALUES (?, ?, 'PURCHASE_ORDER', ?, ?, 0, ?, 'PENDING', ?)
+  WHERE: 
+
+backend/src/services/admin/platform-reconciliation.service.ts:76 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_platform_reconciliation (tenant_id, reconciliation_no, platform_no, platform_name, type, amount, status, recorded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/points.service.ts:76 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_points_rule (rule_name, earn_type, earn_rate, daily_limit, tenant_id) VALUES (?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/points.service.ts:102 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_points (customer_id, available_points, total_points, tenant_id) VALUES (?, 0, 0, ?)
+  WHERE: 
+
+backend/src/services/admin/points.service.ts:114 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_points_record (record_no, customer_id, type, points, balance_after, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/points.service.ts:147 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_level_config (level_name, min_points, max_points, discount_rate, benefits, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/points.service.ts:217 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_level (customer_id, level_name, level_points, upgraded_at, tenant_id) VALUES (?, ?, ?, NOW(), ?)
+  WHERE: 
+
+backend/src/services/admin/position.service.ts:62 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_sys_position (position_name, position_code, department_id, sort_order, status, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/price-level.service.ts:60 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_price_level (level_code, level_name, discount_rate, min_order_amount, description, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/price-management.service.ts:246 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_price_change_log (sku_id, price_level_id, old_price, new_price, change_reason, changed_by, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/price-management.service.ts:504 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_price_binding (customer_id, price_level_id, apply_reason, expire_at, status, tenant_id) VALUES (?, ?, ?, ?, 'PENDING', ?)
+  WHERE: 
+
+backend/src/services/admin/print.service.ts:391 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_print_template (tenant_id, store_id, bill_type, paper_type, template_name, content, is_default, version, status) VALUES (?, NULL, ?, ?, ?, ?, 1, 1, 1)
+  WHERE: 
+
+backend/src/services/admin/print.service.ts:489 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_print_template (tenant_id, store_id, bill_type, paper_type, template_name, content, is_default, version, status, updated_by) VALUES (?, NULL, ?, ?, ?, ?, 0, 1, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/product.service.ts:587 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_brand (name, sort_no, tenant_id) VALUES (?, 0, ?)
+  WHERE: 
+
+backend/src/services/admin/product.service.ts:965 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=**可疑：INSERT 既无 tenant_id 列也未短路（注入会补列，需人工确认）**
+  SQL: INSERT INTO t_product_sku_unit (sku_id, unit_name, ratio, barcode, retail_price, wholesale_price, store_price, miniapp_price, is_base, sort_no, tenant_id) SELECT ?
+  WHERE: 
+
+backend/src/services/admin/purchase-contract.service.ts:73 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_purchase_contract (contract_no, supplier_id, contract_name, contract_type, total_amount, sign_date, start_date, end_date, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/purchase-in-stock.service.ts:366 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/purchase-payment.service.ts:168 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/purchase-plan.service.ts:116 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_purchase_plan (plan_no, supplier_id, store_id, plan_status, goods_amount, tenant_id) VALUES (?, ?, ?, 'DRAFT', 0, ?)
+  WHERE: 
+
+backend/src/services/admin/purchase-plan.service.ts:134 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_purchase_plan_item (plan_no, sku_id, suggest_qty, current_stock, safety_stock, monthly_avg_sales, in_transit_qty, reason, tenant_id) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/purchase-plan.service.ts:198 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_purchase_order (order_no, supplier_id, store_id, order_status, goods_amount, tenant_id) VALUES (?, ?, ?, 'PENDING', 0, ?)
+  WHERE: 
+
+backend/src/services/admin/purchase-plan.service.ts:214 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_purchase_order_item (order_no, sku_id, order_qty, unit_price, amount, tenant_id) VALUES (?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/purchase-return.service.ts:274 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/quick-entry.service.ts:67 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_quick_entries (name, icon, route, group_name, enabled, visible_roles, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/quote-push.service.ts:672 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_customer_quote_push_log (quote_id, channel, content, target, status, tenant_id) VALUES (?, ?, ?, ?, 'SUCCESS', ?)
+  WHERE: 
+
+backend/src/services/admin/receipt.service.ts:69 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_receipt (receipt_no, customer_id, customer_name, receipt_type, amount, payment_method, bank_account_id, received_date, remark, operator_id, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CONFIRMED', ?)
+  WHERE: 
+
+backend/src/services/admin/receipt.service.ts:113 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_receipt_writeoff (receipt_id, receivable_id, writeoff_amount, tenant_id) VALUES (?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/receipt.service.ts:138 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_receivable (customer_id, customer_name, source_type, source_no, receivable_amount, received_amount, balance, status, tenant_id) VALUES (?, ?, 'SALE_BILL', ?, ?, 0, ?, 'PENDING', ?)
+  WHERE: 
+
+backend/src/services/admin/report/finance-report.service.ts:210 | queryOneWithTenant | SELECT | filt=false | pTen=false | join=true | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND DATE(sb.created_at) BETWEEN ? AND ?
+  WHERE: WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND DATE(sb.created_at) BETWEEN ? AND ?
+
+backend/src/services/admin/report/finance-report.service.ts:264 | queryOneWithTenant | SELECT | filt=false | pTen=false | join=true | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND DATE(sb.created_at) BETWEEN ? AND ?
+  WHERE: WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND DATE(sb.created_at) BETWEEN ? AND ?
+
+backend/src/services/admin/report/sales-report.service.ts:497 | queryOneWithTenant | SELECT | filt=false | pTen=false | join=true | verdict=**LEAK 候选：tenant_id 只出现在 JOIN/SELECT/SET 等处 ⇒ 注入短路且 WHERE 无真实租户过滤**
+  SQL: SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount FROM t_inventory_balance ib JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+  WHERE: 
+
+backend/src/services/admin/stock-warning.service.ts:86 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id) VALUES (?, ?, ?, ?, 1, ?)
+  WHERE: 
+
+backend/src/services/admin/stock-warning.service.ts:138 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id) VALUES (?, ?, ?, ?, 1, ?)
+  WHERE: 
+
+backend/src/services/admin/store-value-card.service.ts:53 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_store_value_card (card_no, customer_id, customer_name, balance, total_recharge, status, tenant_id) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?)
+  WHERE: 
+
+backend/src/services/admin/store-value-card.service.ts:59 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_store_value_transaction (trans_no, card_no, customer_id, type, amount, balance_after, pay_method, tenant_id) VALUES (?, ?, ?, 'RECHARGE', ?, ?, 'CASH', ?)
+  WHERE: 
+
+backend/src/services/admin/store-value-card.service.ts:94 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_store_value_transaction (trans_no, card_no, customer_id, type, amount, balance_after, pay_method, source_no, remark, operator_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/supplier-contact.service.ts:103 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/supplier-statement.service.ts:137 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_supplier_statement (statement_no, supplier_id, start_date, end_date, purchase_amount, paid_amount, return_amount, balance, statement_status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'GENERATED', ?)
+  WHERE: 
+
+backend/src/services/admin/supplier-statement.service.ts:155 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id) VALUES (?, 'PURCHASE', ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/supplier-statement.service.ts:171 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id) VALUES (?, 'PAYMENT', ?, ?, 'SUCCESS', ?)
+  WHERE: 
+
+backend/src/services/admin/supplier-statement.service.ts:187 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_supplier_statement_item (statement_no, item_type, item_no, amount, status, tenant_id) VALUES (?, 'RETURN', ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/sys-user.service.ts:269 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (operator_id, operator_name, module, action, target_id, target_type, remark, tenant_id) VALUES (?, ?, 'USER', 'RESET_PASSWORD', ?, 'user', ?, ?)
+  WHERE: 
+
+backend/src/services/admin/todo.service.ts:134 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_todos (title, type, source, priority, status, due_date, remark, tenant_id, created_at) VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?, NOW())
+  WHERE: 
+
+backend/src/services/admin/trace-config.service.ts:148 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_trace_config (config_no, config_level, target_id, target_name, trace_enabled, force_enabled, code_mode, code_prefix, auto_generate, shelf_life_days, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/trace-records.service.ts:314 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_trace_code (trace_code, sku_id, sku_name, batch_no, production_date, expiry_date, shelf_life_days, code_mode, category_id, current_status, current_location, store_id, warehouse_id, supplier_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PRODUCED', '生产入库', ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/trace-records.service.ts:325 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status, operator_type, operator_id, operator_name, location, remark, tenant_id) VALUES (?, 'GENERATE', NULL, 'PRODUCED', 'ADMIN', ?, ?, '生产入库', '系统生成追溯码', ?)
+  WHERE: 
+
+backend/src/services/admin/trace-records.service.ts:497 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status, operator_type, operator_id, operator_name, store_id, order_id, location, remark, ip, tenant_id) VALUES (?, 'STATUS_CHANGE', ?, ?, 'ADMIN', ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/trace-records.service.ts:651 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_trace_scan_log (trace_code, scan_type, user_id, ip, result, tenant_id) VALUES (?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/trace-records.service.ts:715 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_recall_record (recall_no, recall_type, target_value, target_name, reason, total_affected, status, notify_content, operator_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/trace-records.service.ts:872 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status, operator_type, operator_id, operator_name, remark, tenant_id) VALUES (?, 'RECALL', NULL, 'RECALLED', 'ADMIN', ?, ?, '执行召回', ?)
+  WHERE: 
+
+backend/src/services/admin/unit-group.service.ts:98 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_unit_group (name, tenant_id, status) VALUES (?, ?, 1)
+  WHERE: 
+
+backend/src/services/admin/unit-group.service.ts:153 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_unit_group_item (group_id, name, level, conversion_rate, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/unit.service.ts:25 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_unit (name, code, type, sort_no, tenant_id) VALUES (?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/visit-plan.service.ts:207 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/visit-plan.service.ts:252 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/visit-record.service.ts:286 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/admin/visit-record.service.ts:343 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/hardware/hardware-config.service.ts:83 | executeWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_hardware_config (tenant_id, category, config_json, enabled) VALUES (?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/instant-retail/product-sync.service.ts:51 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_platform_product_map (platform, store_id, local_sku_id, sync_status, tenant_id) VALUES (?, ?, ?, 'UNSYNCED', ?) ON DUPLICATE KEY UPDATE sync_status = 'UNSYNCED'
+  WHERE: 
+
+backend/src/services/instant-retail/retail-ops-ext.service.ts:406 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_product ( product_id, sku_id, category_id, retail_price, original_price, stock, sales_count, is_recommended, is_hot, is_new, sort_order, status, store_id, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, NULL, ?)
+  WHERE: 
+
+backend/src/services/instant-retail/retail-shop.service.ts:193 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_shop_config (store_id, shop_name, shop_logo, shop_description, contact_phone, business_hours, delivery_enabled, pickup_enabled, min_order_amount, delivery_fee, delivery_radius, estimated_delivery_time, announcement, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/instant-retail/retail-shop.service.ts:222 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_category (category_name, category_icon, parent_id, sort_order, status, store_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/instant-retail/retail-shop.service.ts:269 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_product (product_id, sku_id, category_id, retail_price, original_price, stock, sales_count, is_recommended, is_hot, is_new, sort_order, status, store_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/instant-retail/retail-shop.service.ts:362 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_retail_banner (banner_title, banner_image, link_type, link_value, sort_order, status, start_time, end_time, store_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/miniapp/wholesale.service.ts:621 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_wholesale_cart (member_id, sku_id, quantity, tenant_id) VALUES (?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/purchase.service.ts:212 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/store/member.service.ts:320 | executeWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_member (name, mobile, customer_type, address, card_no, contact, gender, birthday, province, city, district, tags, remark, points, level_code, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, 1, ?)
+  WHERE: 
+
+backend/src/services/store/order.service.ts:159 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id) VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'), ?)
+  WHERE: 
+
+backend/src/services/store/other.service.ts:80 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_hold_order (hold_no, store_id, customer_name, customer_mobile, amount, payload, remark, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, 'HELD', ?)
+  WHERE: 
+
+backend/src/services/store/sale-bill.service.ts:392 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/store/sale-bill.service.ts:568 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_collection_link (link_no, source_type, source_no, amount, paid_amount, status, share_channel, share_user_id, expire_at, token, tax_enabled, tax_rate, tax_amount, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, 0, 'PENDING', ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/supplier.service.ts:487 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/supplier.service.ts:529 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/supplier.service.ts:553 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  WHERE: 
+
+backend/src/services/sync/price-sync.service.ts:94 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_sync_cache (tenant_id, sync_type, entity_id, sync_data, sync_status) VALUES (?, 'price', ?, ?, 'synced') ON DUPLICATE KEY UPDATE sync_data = ?
+  WHERE: 
+
+backend/src/services/sync/product-sync.service.ts:78 | queryWithTenant | INSERT | filt=false | pTen=false | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_sync_cache (tenant_id, sync_type, entity_id, sync_data, sync_status) VALUES (?, 'product', ?, ?, 'synced') ON DUPLICATE KEY UPDATE sync_data = ?
+  WHERE: 
+
+backend/src/shared/price-guard.ts:135 | queryWithTenant | INSERT | filt=false | pTen=true | join=false | verdict=OK（INSERT 显式写 tenant_id 列 + 实参含租户值）
+  SQL: INSERT INTO t_operation_log (user_id, action, detail, target, category, tenant_id, created_at) VALUES (?, ?, ?, ?, 'UNAUTHORIZED_ACCESS', ?, NOW())
+  WHERE: 

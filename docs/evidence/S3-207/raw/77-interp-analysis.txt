@@ -1,0 +1,139 @@
+config/database.ts:183  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：false
+  判定：needs-manual（上方看不到租户谓词）
+  SQL：
+
+config/database.ts:188  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：false
+  判定：needs-manual（上方看不到租户谓词）
+  SQL：
+
+services/admin/batch-price.service.ts:189  join=2 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT COUNT(*) AS total FROM t_product_price pp JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id WHERE ?
+
+services/admin/batch-price.service.ts:206  join=2 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT sku.id AS skuId, sku.sku_name AS skuName, sku.sku_code AS skuCode, pp. ? AS price FROM t_product_price pp JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id WHERE ? ORDER BY sku.id DESC LIMIT ? OFFSET ?
+
+services/admin/cart.service.ts:139  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：false｜含 tenant_id 值谓词：false
+  判定：needs-manual（上方看不到租户谓词）
+  SQL：
+
+services/admin/cart.service.ts:186  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：
+
+services/admin/cart.service.ts:377  join=4 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：false｜含 tenant_id 值谓词：false
+  判定：needs-manual（上方看不到租户谓词）
+  SQL：SELECT c.sku_id AS skuId, c.quantity, s.sku_name AS skuName, p.name AS spuName, p.main_image AS image, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice, COALESCE(ib.available_qty, 0) AS availableQty FROM t_cart_item c JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = 
+
+services/admin/custom-report.service.ts:324  join=1 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT cs.id, cs.name, cs.template_id AS templateId, ct.name AS templateName, cs.cron_expression AS cronExpression, cs.export_format AS exportFormat, cs.recipients, cs.status, cs.last_run_at AS lastRunAt, cs.created_at AS createdAt, cs.updated_at AS updatedAt FROM t_custom_report_schedule cs LEFT JOIN t_custom_report_template ct ON ct.id = cs.template_id AND ct.tenant_id = cs.tenant_id ? ORDER BY 
+
+services/admin/marketing-points.service.ts:265  join=1 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT pr.id, pr.user_id AS userId, pr.type, pr.amount, pr.balance, pr.source_type AS sourceType, pr.source_id AS sourceId, pr.remark, pr.created_at AS createdAt, uc.name AS userName, uc.mobile AS phone FROM t_points_record pr LEFT JOIN t_member uc ON uc.id = pr.user_id AND uc.tenant_id = pr.tenant_id WHERE ? ORDER BY pr.created_at DESC LIMIT ? OFFSET ?
+
+services/admin/notification-center.service.ts:53  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT id, title, content, type, is_read AS isRead, recipient_id AS recipientId, tenant_id AS tenantId, created_at AS createdAt FROM t_notification ? ORDER BY created_at DESC LIMIT ? OFFSET ?
+
+services/admin/price-management.service.ts:437  join=1 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT cpb.id, cpb.customer_id AS customerId, cpb.price_level_id AS priceLevelId, pl.level_code AS levelCode, pl.level_name AS levelName, cpb.apply_reason AS applyReason, cpb.status, cpb.approved_by AS approvedBy, cpb.approved_at AS approvedAt, cpb.expire_at AS expireAt, cpb.created_at AS createdAt, cpb.updated_at AS updatedAt FROM t_customer_price_binding cpb JOIN t_price_level pl ON pl.id = cpb.
+
+services/admin/price-management.service.ts:631  join=1 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT pcl.id, pcl.sku_id AS skuId, pcl.price_level_id AS priceLevelId, pl.level_code AS levelCode, pl.level_name AS levelName, pcl.old_price AS oldPrice, pcl.new_price AS newPrice, pcl.change_reason AS changeReason, pcl.changed_by AS changedBy, pcl.created_at AS createdAt FROM t_price_change_log pcl JOIN t_price_level pl ON pl.id = pcl.price_level_id AND pl.tenant_id = pcl.tenant_id ? ORDER BY pc
+
+services/admin/print.service.ts:223  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：false
+  判定：needs-manual（上方看不到租户谓词）
+  SQL：SELECT id, tenant_id, store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id, created_at, updated_at FROM t_print_record ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?
+
+services/admin/print.service.ts:453  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT id, tenant_id AS tenantId, store_id AS storeId, bill_type AS billType, paper_type AS paperType, template_name AS templateName, content, is_default AS isDefault, version, status, updated_by AS updatedBy, created_at AS createdAt, updated_at AS updatedAt FROM t_print_template WHERE ? ORDER BY bill_type, id
+
+services/admin/product.service.ts:729  join=1 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT ppl.id, ppl.sku_id AS skuId, ppl.price_type AS priceType, ppl.old_price AS oldPrice, ppl.new_price AS newPrice, ppl.action_type AS actionType, ppl.operator_id AS operatorId, u.real_name AS operatorName, ppl.source AS source, ppl.created_at AS createdAt FROM t_product_price_log ppl LEFT JOIN t_sys_user u ON u.id = ppl.operator_id AND u.tenant_id = ppl.tenant_id WHERE ? ORDER BY ppl.id DESC L
+
+services/admin/quote-push.service.ts:303  join=2 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT sk.id AS skuId, sk.sku_name AS skuName, sk.sku_code AS skuCode, sk.barcode, s.unit, s.main_image AS imageUrl, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.cost_price AS costPrice FROM t_product_sku sk JOIN t_product_spu s ON s.id = sk.spu_id AND s.tenant_id = sk.tenant_id JOIN t_product_price pp ON pp.sku_id = sk.id AND pp.tenant_id = sk.tenant_id WHERE ? ORDER B
+
+services/admin/report/product-report.service.ts:122  join=2 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：false｜含 tenant_id 值谓词：false
+  判定：needs-manual（上方看不到租户谓词）
+  SQL：SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ps.sku_code AS skuCode, ps.barcode, pp.cost_price AS costPrice, SUM(ib.physical_qty) AS totalPhysicalQty, SUM(ib.locked_qty) AS totalLockedQty, SUM(ib.available_qty) AS totalAvailableQty, SUM(ib.physical_qty) * pp.cost_price AS totalAmount FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id L
+
+services/admin/report/product-report.service.ts:236  join=2 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT ps.id AS skuId, ps.sku_name AS skuName, psi.sku_id AS psiSkuId, psi.batch_no AS batchNo, psi.production_date AS productionDate, psi.expiry_date AS expiryDate, psi.total_bottle_qty AS qty, psi.created_at AS inStockDate, DATEDIFF(CURDATE(), psi.created_at) AS ageDays FROM t_purchase_in_stock_item psi JOIN t_purchase_in_stock pis ON pis.stock_no = psi.stock_no AND pis.tenant_id = psi.tenant_id
+
+services/admin/report-export.service.ts:186  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：
+
+services/admin/report.service.ts:586  join=2 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT il.sku_id AS skuId, ps.sku_name AS skuName, COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) AS outQty, COALESCE(AVG(ib.physical_qty), 0) AS avgStock, CASE WHEN COALESCE(AVG(ib.physical_qty), 0) > 0 THEN ROUND(COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) / AVG(ib.physical_qty), 2) ELSE 0 END AS turnoverRate, CASE WHEN COALE
+
+services/admin/stock-warning.service.ts:103  join=3 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT swc.id, swc.store_id AS storeId, st.name AS storeName, swc.sku_id AS skuId, ps.sku_name AS skuName, swc.min_qty AS minQty, swc.max_qty AS maxQty, swc.enabled, ib.physical_qty AS currentStock FROM t_stock_warning_config swc LEFT JOIN t_store st ON st.id = swc.store_id LEFT JOIN t_product_sku ps ON ps.id = swc.sku_id LEFT JOIN t_inventory_balance ib ON ib.sku_id = swc.sku_id AND ib.store_id =
+
+services/admin/subscription.service.ts:130  join=2 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType, s.start_date AS startDate, s.end_date AS endDate, s.duration_days AS durationDays, s.price, p.original_price AS originalAmount, s.payment_status AS paymentStatus, s.payment_method AS paymentMethod, s.paid_at AS paidAt, s.tra
+
+services/admin/todo.service.ts:72  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT id, title, type, source, priority, status, due_date AS dueDate, remark, tenant_id AS tenantId, created_at AS createdAt FROM t_todos ? ORDER BY CASE priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 3 END, created_at DESC LIMIT ? OFFSET ?
+
+services/instant-retail/retail-announcement.service.ts:158  join=1 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT a.id, a.store_id, a.title, a.content, a.is_top, a.start_time, a.end_time, a.status, a.created_at, s.name AS store_name FROM t_retail_announcement a LEFT JOIN t_store s ON s.id = a.store_id AND s.tenant_id = a.tenant_id ? ORDER BY a.is_top DESC, a.created_at DESC LIMIT ? OFFSET ?
+
+services/miniapp/checkout.service.ts:9  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：false｜含 tenant_id 值谓词：false
+  判定：needs-manual（上方看不到租户谓词）
+  SQL：
+
+services/store/inventory.service.ts:108  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：
+
+services/store/inventory.service.ts:115  join=1 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ib.stock_type AS stockType, ib.available_qty AS availableQty FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id ? AND ib.available_qty <= 5 ORDER BY ib.available_qty ASC LIMIT 20
+
+shared/field-sync.ts:343  join=0 interps=[]
+  变量：(无)｜上方 60 行含 tenant_id：true｜含 tenant_id 值谓词：true
+  判定：ok-runtime（上方构造里有 tenant_id 值谓词）
+  SQL：

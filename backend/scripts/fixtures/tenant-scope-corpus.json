@@ -1,0 +1,152 @@
+[
+  {
+    "id": "C01-plain-select-no-token",
+    "sql": "SELECT id, name FROM t_store WHERE status = ?",
+    "hasCallerTenantCondition": false,
+    "note": "无 tenant_id 字样：依赖自动注入（改前改后一致）"
+  },
+  {
+    "id": "C02-select-junction-column-compare",
+    "sql": "SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND DATE(sb.created_at) BETWEEN ? AND ?",
+    "hasCallerTenantCondition": false,
+    "note": "★核心反例（S3-207 病灶本体）：tenant_id 只出现在 JOIN 的列对列等值 ⇒ 改前短路跳过 ⇒ 跨租户聚合；改后必须判 false（注入生效/或调用点显式补谓词）"
+  },
+  {
+    "id": "C03-select-junction-with-qualified-predicate",
+    "sql": "SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND sb.tenant_id = ? AND DATE(sb.created_at) BETWEEN ? AND ?",
+    "hasCallerTenantCondition": true,
+    "note": "C02 的修复形态：显式限定谓词 ⇒ 判 true（跳过注入，不重复注入）"
+  },
+  {
+    "id": "C04-select-two-table-join-single-where-predicate",
+    "sql": "SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount FROM t_inventory_balance ib JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id WHERE ib.tenant_id = ?",
+    "hasCallerTenantCondition": true,
+    "note": "business-overview 库存金额的修复形态"
+  },
+  {
+    "id": "C05-select-interpolated-where-at-runtime",
+    "sql": "SELECT COUNT(*) AS total FROM t_product_price pp JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id WHERE pp.tenant_id = ? AND s.category_id = ?",
+    "hasCallerTenantCondition": true,
+    "note": "batch-price 运行期形态（conditions 首项 = pp.tenant_id = ?）：说明该端点非泄露"
+  },
+  {
+    "id": "C06-select-distinct-tenant-platform-job",
+    "sql": "SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'",
+    "hasCallerTenantCondition": false,
+    "note": "平台级枚举租户（report-aggregation.job.ts）：判 false ⇒ 需要显式标记 tenant-scope:platform"
+  },
+  {
+    "id": "C07-select-in-predicate",
+    "sql": "SELECT id FROM t_member WHERE tenant_id IN (?) AND status = 1",
+    "hasCallerTenantCondition": true,
+    "note": "IN 形态也算绑定谓词"
+  },
+  {
+    "id": "C08-select-literal-tenant",
+    "sql": "SELECT id FROM t_sys_user WHERE tenant_id = 'default' AND status = 1",
+    "hasCallerTenantCondition": true,
+    "note": "字面量形态也算（绑定的是写死的租户）"
+  },
+  {
+    "id": "C09-select-inequality-is-not-a-filter",
+    "sql": "SELECT id FROM t_sale_bill WHERE tenant_id != ? AND business_status = 'CREATED'",
+    "hasCallerTenantCondition": false,
+    "note": "不等式不是租户过滤 ⇒ 判 false（注入会补一个真谓词，属于收紧）"
+  },
+  {
+    "id": "C10-select-tenant-in-string-literal-only",
+    "sql": "SELECT id FROM t_store WHERE name = 'tenant_id = ?' AND status = 1",
+    "hasCallerTenantCondition": false,
+    "note": "谓词字样出现在字符串字面量里 ⇒ 不算（掩码后判 false）"
+  },
+  {
+    "id": "C11-select-predicate-only-in-subquery",
+    "sql": "SELECT a.id FROM t_store a WHERE a.id IN (SELECT store_id FROM t_sale_bill WHERE tenant_id = ?)",
+    "hasCallerTenantCondition": true,
+    "note": "值谓词出现在子查询里（同 WHERE 段，按 id 限定外层行）⇒ 判 true；覆盖强度弱于外层显式谓词，门禁按 WARN-TOKEN-ONLY-IN-SUBQUERY 单独打印供复核"
+  },
+  {
+    "id": "C12-select-predicate-in-join-on",
+    "sql": "SELECT uc.id FROM t_user_coupon uc JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?",
+    "hasCallerTenantCondition": true,
+    "note": "JOIN ON 里的绑定谓词算过滤（营销券端点属于此类）"
+  },
+  {
+    "id": "C13-select-column-list-only",
+    "sql": "SELECT tenant_id, name FROM t_store WHERE status = 1",
+    "hasCallerTenantCondition": false,
+    "note": "只在列清单里出现 ⇒ 判 false"
+  },
+  {
+    "id": "C14-update-set-only",
+    "sql": "UPDATE t_product SET tenant_id = ?, updated_at = NOW() WHERE id = ?",
+    "hasCallerTenantCondition": false,
+    "note": "写租户列 ≠ 过滤：WHERE 无值谓词 ⇒ 判 false"
+  },
+  {
+    "id": "C15-update-where-predicate",
+    "sql": "UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE tenant_id = ? AND id = ?",
+    "hasCallerTenantCondition": true,
+    "note": "WHERE 段值谓词 ⇒ 判 true"
+  },
+  {
+    "id": "C16-update-predicate-only-in-subquery",
+    "sql": "UPDATE t_product SET price = ? WHERE id IN (SELECT id FROM t_price_level WHERE tenant_id = ?)",
+    "hasCallerTenantCondition": true,
+    "note": "UPDATE：值谓词在**顶层 WHERE 段之后**（含其子查询）⇒ 判 true"
+  },
+  {
+    "id": "C17-delete-where-predicate",
+    "sql": "DELETE FROM t_cart_item WHERE tenant_id = ? AND id = ?",
+    "hasCallerTenantCondition": true,
+    "note": "DELETE 与 UPDATE 同判据"
+  },
+  {
+    "id": "C18-delete-no-token",
+    "sql": "DELETE FROM t_cart_item WHERE id = ?",
+    "hasCallerTenantCondition": false,
+    "note": "无 tenant_id 字样：依赖自动注入"
+  },
+  {
+    "id": "C19-insert-column-list-has-tenant",
+    "sql": "INSERT INTO t_store (tenant_id, store_name) VALUES (?, ?)",
+    "hasCallerTenantCondition": true,
+    "note": "列清单显式写 tenant_id ⇒ 判 true"
+  },
+  {
+    "id": "C20-insert-no-token",
+    "sql": "INSERT INTO t_store (store_name, status) VALUES (?, 1)",
+    "hasCallerTenantCondition": false,
+    "note": "无字样：注入补列（改前改后一致）"
+  },
+  {
+    "id": "C21-insert-token-only-in-on-duplicate",
+    "sql": "INSERT INTO t_product_stock (sku_id, qty) VALUES (?, ?) ON DUPLICATE KEY UPDATE tenant_id = VALUES(tenant_id)",
+    "hasCallerTenantCondition": false,
+    "note": "字样只在 ON DUPLICATE 里：列清单没有 tenant_id ⇒ 判 false（注入会补列；属行为变化，需逐处复核）"
+  },
+  {
+    "id": "C22-insert-set-tenant",
+    "sql": "INSERT INTO t_miniapp_config SET tenant_id = ?, config_json = ?",
+    "hasCallerTenantCondition": true,
+    "note": "INSERT … SET 形态：写的就是租户列 ⇒ 判 true"
+  },
+  {
+    "id": "C23-insert-select-with-predicate",
+    "sql": "INSERT INTO t_report_snapshot (store_id, amount) SELECT id, 0 FROM t_store WHERE tenant_id = ?",
+    "hasCallerTenantCondition": true,
+    "note": "INSERT…SELECT：看 SELECT 段"
+  },
+  {
+    "id": "C24-select-cte-token-only-in-cte",
+    "sql": "SELECT o.id FROM t_sale_bill o WHERE o.tenant_id = (SELECT tenant_id FROM t_sys_user WHERE id = ?)",
+    "hasCallerTenantCondition": false,
+    "note": "右侧是子查询：本判据**不**把子查询当值绑定（保守从严，宁可多注入一次也不漏判）⇒ 判 false；若确有此类写法需显式标记"
+  },
+  {
+    "id": "C25-select-where-clause-keyword-in-string",
+    "sql": "SELECT id FROM t_log WHERE remark = 'WHERE tenant_id = ?' AND status = 1",
+    "hasCallerTenantCondition": false,
+    "note": "整个 WHERE 字样都在字符串里 ⇒ 掩码后判 false"
+  }
+]

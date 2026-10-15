@@ -380,10 +380,12 @@ export async function listTasks(
             i.applicant_name AS applicantName, i.submitted_at AS submittedAt
      FROM t_approval_task t
      JOIN t_approval_instance i ON i.instance_no = t.instance_id AND i.tenant_id = t.tenant_id
-     WHERE t.approver_id = ? AND t.task_status = ?
+     WHERE t.tenant_id = ? AND t.approver_id = ? AND t.task_status = ?
      ORDER BY t.received_at DESC
      LIMIT ? OFFSET ?`,
-    [approverId, taskStatus, pageSize, offset],
+    // S3-207：JOIN 的 `i.tenant_id = t.tenant_id` 是列对列等值 ⇒ 旧判据短路 ⇒ 无租户过滤；显式补谓词
+    //（两张表都有 tenant_id 列，靠自动注入会 1052 歧义 500）
+    [tenantId, approverId, taskStatus, pageSize, offset],
     tenantId
   );
 

@@ -508,8 +508,11 @@ export async function getBusinessOverview(tenantId: string) {
   const inventoryValue = await queryOneWithTenant<AmountRow>(
     `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount
      FROM t_inventory_balance ib
-     JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id`,
-    [],
+     JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+     WHERE ib.tenant_id = ?`,
+    // S3-207 修复：整句原先**没有 WHERE**，而 JOIN 里的 `pp.tenant_id = ib.tenant_id` 是列对列等值 ⇒
+    // 旧判据短路跳过注入 ⇒ 库存金额跨租户（实测 182096 = A 172096 + B 10000）。
+    [tenantId],
     tenantId
   );
 

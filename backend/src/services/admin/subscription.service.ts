@@ -144,7 +144,11 @@ export async function listSubscriptions(
      LEFT JOIN t_subscription_plan p ON p.id = s.plan_id
      ${where}
      ORDER BY s.created_at DESC
-     LIMIT ? OFFSET ?`,
+     LIMIT ? OFFSET ? /* tenant-scope:platform */`,
+    // S3-207：平台侧订阅列表（GET /api/platform/subscriptions-management，auth=requirePlatformAuth）。
+    // 租户条件**是可选的查询筛选**（filters.tenantIdQuery），不是调用者租户；不带筛选时本就没租户谓词
+    // ⇒ 若不显式声明，收紧判据后会被注入调用者租户（且 t_subscription/t_tenant 都有 tenant_id 列 ⇒ 1052 歧义），
+    // 平台列表直接 500。显式标记声明"平台范围"。
     [...params, Number(filters.pageSize), (Number(filters.page) - 1) * Number(filters.pageSize)],
     tenantId
   );
@@ -179,7 +183,10 @@ export async function getSubscription(subscriptionId: number, tenantId: string) 
      FROM t_subscription s
      LEFT JOIN t_tenant t ON t.id = s.tenant_id
      LEFT JOIN t_subscription_plan p ON p.id = s.plan_id
-     WHERE s.id = ?`,
+     WHERE s.id = ? /* tenant-scope:platform */`,
+    // S3-207：本服务挂在 `/api/platform/subscriptions-management`（routeConfig.auth = requirePlatformAuth，
+    // 见 routes/subscription.routes.ts:22-32），按订阅 id 跨租户查平台侧订阅台账是**功能本身**；
+    // 显式标记声明"平台范围、故意不带租户过滤"（收紧判据后若不声明，会被注入调用者租户而查不到数据）。
     [subscriptionId],
     tenantId
   );
@@ -337,7 +344,7 @@ export async function changePlan(
 ) {
   const existing = await queryOneWithTenant<SubscriptionBriefRow>(
     `SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.status
-     FROM t_subscription s WHERE s.id = ?`,
+     FROM t_subscription s WHERE s.id = ? /* tenant-scope:platform */`,
     [subscriptionId],
     tenantId
   );
@@ -423,7 +430,7 @@ export async function cancelSubscription(
   tenantId: string
 ) {
   const existing = await queryOneWithTenant<SubscriptionCancelCheckRow>(
-    "SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ?",
+    "SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ? /* tenant-scope:platform */",
     [subscriptionId],
     tenantId
   );
@@ -468,7 +475,7 @@ export async function paySubscription(
   tenantId: string
 ) {
   const existing = await queryOneWithTenant<SubscriptionPayCheckRow>(
-    "SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ?",
+    "SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ? /* tenant-scope:platform */",
     [subscriptionId],
     tenantId
   );

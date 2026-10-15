@@ -71,7 +71,9 @@ export async function renewSubscription(
             p.duration_days, p.price AS plan_price
      FROM t_subscription s
      LEFT JOIN t_subscription_plan p ON p.id = ?
-     WHERE s.id = ?`,
+     WHERE s.id = ? /* tenant-scope:platform */`,
+    // S3-207：平台侧续费（routes/subscription.routes.ts:30 requirePlatformAuth）按订阅 id 跨租户操作；
+    // 显式标记声明"平台范围"，避免收紧判据后被注入调用者租户而查不到目标订阅。
     [body.planId || 0, subscriptionId],
     tenantId
   );
@@ -184,7 +186,9 @@ export async function listExpiring(days: number, tenantId: string) {
      LEFT JOIN t_tenant t ON t.id = s.tenant_id
      WHERE s.status = 'ACTIVE'
        AND s.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
-     ORDER BY s.end_date ASC`,
+     ORDER BY s.end_date ASC /* tenant-scope:platform */`,
+    // S3-207：平台侧"即将到期订阅"列表要**跨租户**枚举（SELECT t.company_name AS tenantName 即多租户列表）
+    // ⇒ 显式标记声明平台范围（原实现靠旧判据短路才"碰巧"不带租户过滤）。
     [days],
     tenantId
   );
@@ -203,7 +207,8 @@ export async function listExpired(tenantId: string) {
      LEFT JOIN t_tenant t ON t.id = s.tenant_id
      WHERE s.status = 'ACTIVE'
        AND s.end_date < CURDATE()
-     ORDER BY s.end_date ASC`,
+     ORDER BY s.end_date ASC /* tenant-scope:platform */`,
+    // S3-207：同 listExpiring —— 平台侧"已过期订阅"跨租户列表
     [],
     tenantId
   );

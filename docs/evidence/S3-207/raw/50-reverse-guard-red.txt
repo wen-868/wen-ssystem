@@ -1,0 +1,25 @@
+guard:tenant-injection（S3-207）
+  扫描根：D:\Users\ZXQL\wt-agents\S3-207
+  调用点：1747｜OK-AUTO-INJECT=1124 OK-TENANT-CONDITION=613 OK-MARKER=1 INDIRECT-NEEDS-REVIEW=1 WARN-AUTO-INJECT-JOIN=6 BLOCK-MISSING-TENANT-CONDITION=2
+  语料自检：25 例通过
+
+RED 阻塞项（有 tenant_id 字样但没有绑定到调用者租户的条件）：2 条
+  services/admin/report/finance-report.service.ts:210 [SELECT] SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE 1 = 1 AND sb.business_status 
+  services/admin/report/finance-report.service.ts:268 [SELECT] SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE 1 = 1 AND sb.business_status 
+  ⇒ 改前会被短路跳过（泄露/歧义 500 的温床）：要么补真谓词，要么登记显式标记。
+
+显式标记（已登记，每条打印理由）：1 条
+  jobs/report-aggregation.job.ts:11 marker=tenant-scope:platform ⇒ 平台级汇总作业：需要**枚举全部租户**（该调用第 3 实参传空串，即「没有调用者租户」）。它带 tenant_id 字样（SELECT 列）却没有租户过滤谓词 ⇒ 若不显式声明，收紧判据后会被注入 tenant_id = '' ⇒ 永远返回空集、作业静默失效。
+
+WARN（不阻断）自动注入 + JOIN ⇒ 注入无限定列名，第二张表也有 tenant_id 时会 1052：6 条
+  services/admin/credit-collection.service.ts:184 SELECT COUNT(*) AS total FROM t_collection_record cr LEFT JOIN t_member m ON m.id = cr.customer_id ?
+  services/admin/inventory-share.service.ts:210 SELECT COUNT(*) AS total FROM t_inventory_share_product isp LEFT JOIN t_product_spu p ON p.id = isp.spu_id ?
+  services/admin/price-review.service.ts:84 SELECT COUNT(*) AS total FROM t_product_price p JOIN t_product_sku sku ON sku.id = p.sku_id JOIN t_product_spu
+  services/admin/report-collection.service.ts:78 SELECT COUNT(DISTINCT cvl.link_no) AS cnt FROM t_collection_view_log cvl JOIN t_collection_link cl ON cl.link_
+  services/admin/report.service.ts:330 SELECT COUNT(*) AS total FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id LEFT JOIN
+  services/supplier.service.ts:684 SELECT COUNT(DISTINCT poi.sku_id) AS total FROM t_purchase_order po JOIN t_purchase_order_item poi ON po.order
+
+已登记的插值调用点：1 条
+  services/admin/batch-price.service.ts:189 verdict=ok-runtime
+
+RED 共 2 项待处理

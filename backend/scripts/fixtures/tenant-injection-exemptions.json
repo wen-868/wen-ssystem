@@ -1,0 +1,207 @@
+{
+  "_说明": "S3-207 门禁 guard-tenant-injection.mjs 的登记表（数据与规则分离）。三张表都必须逐条写理由；门禁每次运行都会检查'未登记'与'登记已失效'两侧。生成/更新：docs/evidence/S3-207/tools/gen-exemptions.mjs（只补缺、不覆盖人工理由）。",
+  "markers": [
+    {
+      "file": "jobs/report-aggregation.job.ts",
+      "contains": "SELECT DISTINCT tenant_id FROM t_sale_bill",
+      "marker": "tenant-scope:platform",
+      "reason": "平台级汇总作业：需要枚举全部租户（该调用第 3 实参传空串＝无调用者租户）。不显式声明则收紧判据后会被注入 tenant_id = '' ⇒ 永远返回空集、作业静默失效。"
+    },
+    {
+      "file": "services/admin/subscription.service.ts",
+      "contains": "FROM t_subscription s WHERE s.id = ? /* tenant-scope",
+      "marker": "tenant-scope:platform",
+      "reason": "平台侧订阅台账（/api/platform/subscriptions-management，auth=requirePlatformAuth）：按订阅 id 跨租户读/改是功能本身。"
+    },
+    {
+      "file": "services/admin/subscription.service.ts",
+      "contains": "FROM t_subscription WHERE id = ? /* tenant-scope",
+      "marker": "tenant-scope:platform",
+      "reason": "同上（cancelSubscription / paySubscription 的单行形态，无别名）。"
+    },
+    {
+      "file": "services/admin/subscription.service.ts",
+      "contains": "FROM t_subscription s",
+      "marker": "tenant-scope:platform",
+      "reason": "同上：覆盖 getSubscription（平台侧详情，按 id 跨租户）与 listSubscriptions（平台侧列表；租户条件是可选的查询筛选 filters.tenantIdQuery，不是调用者租户 —— 不带筛选时本就没有租户谓词）。"
+    },
+    {
+      "file": "services/admin/subscription-renewal.service.ts",
+      "contains": "WHERE s.id = ? /* tenant-scope",
+      "marker": "tenant-scope:platform",
+      "reason": "平台侧续费：按订阅 id 操作目标租户的订阅（POST /:subscriptionId/renew 亦要求 requirePlatformAuth）。"
+    },
+    {
+      "file": "services/admin/subscription-renewal.service.ts",
+      "contains": "ORDER BY s.end_date ASC /* tenant-scope",
+      "marker": "tenant-scope:platform",
+      "reason": "平台侧「即将到期 / 已过期订阅」列表要跨租户枚举（SELECT t.company_name AS tenantName 即多租户列表）。"
+    }
+  ],
+  "singleTable": [
+    {
+      "file": "services/admin/print.service.ts",
+      "contains": "FROM t_print_record WHERE id = ?",
+      "verdict": "ok-inject",
+      "reason": "按主键读打印记录（工作台侧、租户内）⇒ 注入补 `tenant_id = ?` 即正确。"
+    },
+    {
+      "file": "services/admin/customer-visit.service.ts",
+      "contains": "FROM t_customer_visit cv",
+      "verdict": "ok-inject",
+      "reason": "客户拜访明细（工作台侧、租户内）⇒ 注入补谓词即正确。"
+    },
+    {
+      "file": "services/admin/visit-record.service.ts",
+      "contains": "FROM t_customer_visit cv",
+      "verdict": "ok-inject",
+      "reason": "拜访记录明细（工作台侧、租户内）⇒ 注入补谓词即正确。"
+    }
+  ],
+  "indirect": [
+    {
+      "file": "services/admin/batch-price.service.ts",
+      "contains": "SELECT COUNT(*) AS total FROM t_product_price pp",
+      "verdict": "ok-runtime",
+      "reason": "`WHERE ${where}` 静态展不开，但 conditions 首项就是 `pp.tenant_id = ?` ⇒ 插值后含值谓词，运行期跳过注入。真库证据：raw/30-harness-fixed.txt [5f][5g][5h]。"
+    },
+    {
+      "file": "config/database.ts",
+      "arg": "sql",
+      "verdict": "ok-passthrough",
+      "reason": "库内透传：queryOneWithTenant / executeWithTenant 把调用方的 SQL 原样转交 queryWithTenant，无独立 SQL ⇒ 由同一判据在入口处理。"
+    },
+    {
+      "file": "services/admin/cart.service.ts",
+      "arg": "sql",
+      "verdict": "ok-passthrough",
+      "reason": "包装器：`conn ? conn.query : queryWithTenant(sql, ...)`；被包装 SQL 均无 tenant_id 字样（依赖注入）。⚠️ conn 分支（事务内）不经过注入器，靠调用方显式谓词 —— 既有架构口径，已记回执范围外发现。"
+    },
+    {
+      "file": "services/miniapp/checkout.service.ts",
+      "arg": "sql",
+      "verdict": "ok-passthrough",
+      "reason": "同 cart.service.ts 的 dbQuery 包装器。"
+    },
+    {
+      "file": "services/admin/report-export.service.ts",
+      "arg": "sql",
+      "verdict": "ok-factory",
+      "reason": "SQL 由 reportQueries[report_type] 工厂产出：10 种报表的 conditions 均以显式租户谓词开头（L20/35/49/65/84/101/115/128/151/157，带 JOIN 的一律限定别名）⇒ 非泄露（S3-206 标'值得单独复核'项已复核完毕）。"
+    },
+    {
+      "file": "services/store/inventory.service.ts",
+      "arg": "totalSql",
+      "verdict": "ok-explicit",
+      "reason": "totalSql 两分支均为显式谓词 `… FROM t_inventory_ledger WHERE tenant_id = ? [AND store_id = ?]`。"
+    },
+    {
+      "file": "shared/field-sync.ts",
+      "arg": "targetSql",
+      "verdict": "ok-explicit",
+      "reason": "targetSql 拼装时写死 `AND t.tenant_id = ?`（L335，与 queryParams 第 3 项 tenantId 对齐）。"
+    },
+    {
+      "file": "services/admin/batch-price.service.ts",
+      "contains": "SELECT sku.id AS skuId, sku.sku_name AS skuName, sku.sku_code AS skuCo",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/custom-report.service.ts",
+      "contains": "SELECT cs.id, cs.name, cs.template_id AS templateId, ct.name AS templa",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/marketing-points.service.ts",
+      "contains": "SELECT pr.id, pr.user_id AS userId, pr.type, pr.amount, pr.balance, pr",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/notification-center.service.ts",
+      "contains": "SELECT id, title, content, type, is_read AS isRead, recipient_id AS re",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/price-management.service.ts",
+      "contains": "SELECT cpb.id, cpb.customer_id AS customerId, cpb.price_level_id AS pr",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/price-management.service.ts",
+      "contains": "SELECT pcl.id, pcl.sku_id AS skuId, pcl.price_level_id AS priceLevelId",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/print.service.ts",
+      "contains": "SELECT id, tenant_id, store_id, bill_type, bill_no, printer_mac, print",
+      "verdict": "ok-inject",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行看不到 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/print.service.ts",
+      "contains": "SELECT id, tenant_id AS tenantId, store_id AS storeId, bill_type AS bi",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/product.service.ts",
+      "contains": "SELECT ppl.id, ppl.sku_id AS skuId, ppl.price_type AS priceType, ppl.o",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/quote-push.service.ts",
+      "contains": "SELECT sk.id AS skuId, sk.sku_name AS skuName, sk.sku_code AS skuCode,",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/report/product-report.service.ts",
+      "contains": "SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ps.sku_code AS skuC",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/report/product-report.service.ts",
+      "contains": "SELECT ps.id AS skuId, ps.sku_name AS skuName, psi.sku_id AS psiSkuId,",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/report.service.ts",
+      "contains": "SELECT il.sku_id AS skuId, ps.sku_name AS skuName, COALESCE(SUM(CASE W",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/stock-warning.service.ts",
+      "contains": "SELECT swc.id, swc.store_id AS storeId, st.name AS storeName, swc.sku_",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 3 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/admin/todo.service.ts",
+      "contains": "SELECT id, title, type, source, priority, status, due_date AS dueDate,",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/instant-retail/retail-announcement.service.ts",
+      "contains": "SELECT a.id, a.store_id, a.title, a.content, a.is_top, a.start_time, a",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。"
+    },
+    {
+      "file": "services/store/inventory.service.ts",
+      "contains": "SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ib.stock_type AS st",
+      "verdict": "ok-runtime",
+      "reason": "[自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。"
+    }
+  ]
+}

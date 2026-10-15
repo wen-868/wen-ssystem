@@ -6,6 +6,7 @@ import { env } from "./env";
 import { addTablePrefix } from "../shared/migration";
 import { mockConn, mockQuery, mockExecute } from "../__tests__/mocks/mock-db";
 import { recordQueryExecution } from "../middleware/slow-query-monitor";
+import { shouldSkipTenantInjection } from "../shared/tenant-scope";
 
 export const pool = mysql.createPool({
   host: env.DB_HOST,
@@ -212,8 +213,11 @@ function injectTenantCondition(sql: string, params: unknown[], tenantId: string)
  * 处理 SELECT 语句
  */
 function injectSelectTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
-  // 检查是否已经有 tenant_id 条件
-  if (sql.toLowerCase().includes('tenant_id')) {
+  // S3-207 根治：只在"**存在绑定到调用者租户的条件**"时才跳过注入。
+  // 旧实现是子串判断 `sql.includes('tenant_id')`——JOIN 里的列对列等值 `a.tenant_id = b.tenant_id`、
+  // SELECT 列、SET 子句都会让它误判"已经有租户条件"，从而整句跳过注入（S3-206 实测：A 令牌读到 A+B）。
+  // 判据、边界与反例见 `shared/tenant-scope.ts` 顶部说明；静态防线见 `scripts/guard-tenant-injection.mjs`。
+  if (shouldSkipTenantInjection(sql)) {
     return { modifiedSql: sql, modifiedParams: params };
   }
   
@@ -249,8 +253,8 @@ function injectSelectTenant(sql: string, params: unknown[], tenantId: string): {
  * 处理 INSERT 语句
  */
 function injectInsertTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
-  // 检查是否已经有 tenant_id 字段
-  if (sql.toLowerCase().includes('tenant_id')) {
+  // S3-207 根治：同 injectSelectTenant —— 只在"列清单/SET 里显式绑定了租户"时跳过（见 shared/tenant-scope.ts）
+  if (shouldSkipTenantInjection(sql)) {
     return { modifiedSql: sql, modifiedParams: params };
   }
   
@@ -269,8 +273,8 @@ function injectInsertTenant(sql: string, params: unknown[], tenantId: string): {
  * 处理 UPDATE 语句
  */
 function injectUpdateTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
-  // 检查是否已经有 tenant_id 条件
-  if (sql.toLowerCase().includes('tenant_id')) {
+  // S3-207 根治：同 injectSelectTenant —— `SET tenant_id = ?` 属"写租户列"，不算过滤，不再据此短路
+  if (shouldSkipTenantInjection(sql)) {
     return { modifiedSql: sql, modifiedParams: params };
   }
   

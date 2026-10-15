@@ -1,0 +1,170 @@
+services/admin/batch-price.service.ts:189
+    150: const conditions: string[] = ["pp.tenant_id = ?"];
+    154: conditions.push("s.category_id = ?");
+    155: params.push(filter.categoryId);
+    158: conditions.push("s.brand = ?");
+    159: params.push(filter.brand);
+    162: conditions.push("s.supplier_id = ?");
+    163: params.push(filter.supplierId);
+    166: conditions.push("pp.price_level_id = ?");
+    167: params.push(filter.priceLevelId);
+    170: conditions.push("(s.name LIKE ? OR sku.sku_name LIKE ? OR sku.barcode LIKE ?)");
+    172: params.push(like, like, like);
+    175: conditions.push(`pp.${adjustment.field} >= ?`);
+    176: params.push(filter.minPrice);
+    179: conditions.push(`pp.${adjustment.field} <= ?`);
+    180: params.push(filter.maxPrice);
+    183: conditions.push("sku.id IN (?)");
+    184: params.push(filter.skuIds);
+    187: const where = conditions.join(" AND ");
+  SQL: SELECT COUNT(*) AS total FROM t_product_price pp JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
+
+services/admin/batch-price.service.ts:206
+    162: conditions.push("s.supplier_id = ?");
+    163: params.push(filter.supplierId);
+    166: conditions.push("pp.price_level_id = ?");
+    167: params.push(filter.priceLevelId);
+    170: conditions.push("(s.name LIKE ? OR sku.sku_name LIKE ? OR sku.barcode LIKE ?)");
+    172: params.push(like, like, like);
+    175: conditions.push(`pp.${adjustment.field} >= ?`);
+    176: params.push(filter.minPrice);
+    179: conditions.push(`pp.${adjustment.field} <= ?`);
+    180: params.push(filter.maxPrice);
+    183: conditions.push("sku.id IN (?)");
+    184: params.push(filter.skuIds);
+    187: const where = conditions.join(" AND ");
+    192: JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
+    193: JOIN t_product_spu s ON s.id = sku.spu_id AND s.tenant_id = sku.tenant_id
+    194: WHERE ${where}`,
+  SQL: SELECT sku.id AS skuId, sku.sku_name AS skuName, sku.sku_code AS skuCode, pp. ? AS price FROM t_product_price pp JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id JOIN t_pr
+
+services/admin/custom-report.service.ts:324
+    280: const rows = await queryWithTenant<Record<string, unknown>>(sql, whereParams, tenantId);
+    311: const conditions: string[] = ["cs.tenant_id = ?"];
+    314: if (params.keyword) { conditions.push("cs.name LIKE ?"); sqlParams.push(`%${params.keyword}%`); }
+    315: if (params.status) { conditions.push("cs.status = ?"); sqlParams.push(params.status); }
+    317: const where = `WHERE ${conditions.join(" AND ")}`;
+    320: `SELECT COUNT(*) AS total FROM t_custom_report_schedule cs ${where}`, sqlParams, tenantId
+  SQL: SELECT cs.id, cs.name, cs.template_id AS templateId, ct.name AS templateName, cs.cron_expression AS cronExpression, cs.export_format AS exportFormat, cs.recipients, cs.status, cs.last_run_at AS lastRu
+
+services/admin/marketing-points.service.ts:265
+    222: WHERE ${where}
+    230: `SELECT COUNT(*) AS total FROM t_points_record WHERE ${where}`,
+    255: const conditions: string[] = ["tenant_id = ?"];
+    258: if (userId) { conditions.push("user_id = ?"); paramsList.push(userId); }
+    259: if (type) { conditions.push("type = ?"); paramsList.push(type); }
+    260: if (startDate) { conditions.push("created_at >= ?"); paramsList.push(startDate); }
+    261: if (endDate) { conditions.push("created_at <= ?"); paramsList.push(endDate); }
+    263: const where = conditions.join(" AND ");
+  SQL: SELECT pr.id, pr.user_id AS userId, pr.type, pr.amount, pr.balance, pr.source_type AS sourceType, pr.source_id AS sourceId, pr.remark, pr.created_at AS createdAt, uc.name AS userName, uc.mobile AS pho
+
+services/admin/price-management.service.ts:437
+    423: const conditions: string[] = ["cpb.tenant_id = ?"];
+    427: conditions.push("cpb.status = ?");
+    428: params.push(status);
+    431: conditions.push("cpb.customer_id = ?");
+    432: params.push(customerId);
+    435: const where = `WHERE ${conditions.join(" AND ")}`;
+  SQL: SELECT cpb.id, cpb.customer_id AS customerId, cpb.price_level_id AS priceLevelId, pl.level_code AS levelCode, pl.level_name AS levelName, cpb.apply_reason AS applyReason, cpb.status, cpb.approved_by A
+
+services/admin/price-management.service.ts:631
+    592: "SELECT id, status FROM t_customer_price_binding WHERE id = ? AND tenant_id = ?",
+    601: "UPDATE t_customer_price_binding SET status = 'EXPIRED', updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    617: const conditions: string[] = ["pcl.tenant_id = ?"];
+    621: conditions.push("pcl.sku_id = ?");
+    622: params.push(skuId);
+    625: conditions.push("pcl.price_level_id = ?");
+    626: params.push(priceLevelId);
+    629: const where = `WHERE ${conditions.join(" AND ")}`;
+  SQL: SELECT pcl.id, pcl.sku_id AS skuId, pcl.price_level_id AS priceLevelId, pl.level_code AS levelCode, pl.level_name AS levelName, pcl.old_price AS oldPrice, pcl.new_price AS newPrice, pcl.change_reason 
+
+services/admin/product.service.ts:729
+    699: * 租户隔离：走 queryWithTenant，SQL 显式带 tenant_id 条件。
+    706: const conditions = ["ppl.sku_id = ?", "ppl.tenant_id = ?"];
+    710: conditions.push("ppl.price_type = ?");
+    711: params.push(options.priceLevel);
+    714: conditions.push("DATE(ppl.created_at) >= ?");
+    715: params.push(options.dateStart);
+    718: conditions.push("DATE(ppl.created_at) <= ?");
+    719: params.push(options.dateEnd);
+    727: params.push(limit);
+  SQL: SELECT ppl.id, ppl.sku_id AS skuId, ppl.price_type AS priceType, ppl.old_price AS oldPrice, ppl.new_price AS newPrice, ppl.action_type AS actionType, ppl.operator_id AS operatorId, u.real_name AS oper
+
+services/admin/quote-push.service.ts:303
+    259: params.push(like, like, like);
+    262: conditions.push("sk.id IN (?)");
+    263: params.push(filter.skuIds);
+    266: const where = conditions.join(" AND ");
+    278: ON cpb.customer_id = m.id AND cpb.status = 'APPROVED' AND cpb.tenant_id = m.tenant_id
+    279: LEFT JOIN t_price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = m.tenant_id
+    280: WHERE m.id = ? AND m.tenant_id = ?`,
+    295: "SELECT level_name FROM t_price_level WHERE id = ? AND tenant_id = ?",
+  SQL: SELECT sk.id AS skuId, sk.sku_name AS skuName, sk.sku_code AS skuCode, sk.barcode, s.unit, s.main_image AS imageUrl, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.cost_price
+
+services/admin/report/product-report.service.ts:124
+    110: // S3-207：JOIN 里全是"列对列"的 tenant_id 等值 ⇒ 旧判据（子串含 tenant_id 即跳过注入）让整句无租户过滤
+    111: // ⇒ 库存汇总跨租户；显式把租户谓词放在首位（3 张表都有 tenant_id 列，靠自动注入会 1052 歧义 500）
+    112: const conditions: string[] = ["ib.tenant_id = ?"];
+    115: conditions.push("ib.store_id = ?");
+    116: params.push(storeId);
+    119: const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  SQL: SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ps.sku_code AS skuCode, ps.barcode, pp.cost_price AS costPrice, SUM(ib.physical_qty) AS totalPhysicalQty, SUM(ib.locked_qty) AS totalLockedQty, SUM(i
+
+services/admin/report/product-report.service.ts:239
+    231: const conditions: string[] = ["psi.tenant_id = ?"];
+    234: conditions.push("psi.store_id = ?");
+    235: params.push(storeId);
+    237: const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  SQL: SELECT ps.id AS skuId, ps.sku_name AS skuName, psi.sku_id AS psiSkuId, psi.batch_no AS batchNo, psi.production_date AS productionDate, psi.expiry_date AS expiryDate, psi.total_bottle_qty AS qty, psi.c
+
+services/admin/report.service.ts:586
+    553: FROM t_purchase_order ${where}
+    561: const conditions: string[] = ["po.tenant_id = ?", "po.order_status NOT IN ('VOIDED')"];
+    563: if (startDate) { conditions.push("po.created_at >= ?"); params.push(startDate); }
+    564: if (endDate) { conditions.push("po.created_at <= ?"); params.push(endDate); }
+    565: const where = `WHERE ${conditions.join(" AND ")}`;
+    572: ${where}
+    581: const conditions: string[] = ["il.tenant_id = ?"];
+    583: if (startDate) { conditions.push("il.created_at >= ?"); params.push(startDate); }
+    584: if (endDate) { conditions.push("il.created_at <= ?"); params.push(endDate); }
+    585: const where = `WHERE ${conditions.join(" AND ")}`;
+  SQL: SELECT il.sku_id AS skuId, ps.sku_name AS skuName, COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) AS outQty, COALESCE(AVG(ib.physical_qty), 0) AS avgStock, CASE WHEN 
+
+services/admin/stock-warning.service.ts:103
+    75: "SELECT id FROM t_stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+    81: `UPDATE t_stock_warning_config SET min_qty = ?, max_qty = ?, enabled = 1 WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
+    87: `INSERT INTO t_stock_warning_config (store_id, sku_id, min_qty, max_qty, enabled, tenant_id)
+    99: const conditions: string[] = ["swc.tenant_id = ?"];
+    101: if (storeId) { conditions.push("swc.store_id = ?"); params.push(storeId); }
+    102: const where = `WHERE ${conditions.join(" AND ")}`;
+  SQL: SELECT swc.id, swc.store_id AS storeId, st.name AS storeName, swc.sku_id AS skuId, ps.sku_name AS skuName, swc.min_qty AS minQty, swc.max_qty AS maxQty, swc.enabled, ib.physical_qty AS currentStock FR
+
+services/admin/subscription.service.ts:130
+    90: tenant_id: number;
+    98: tenant_id: number;
+    112: const conditions: string[] = [];
+    116: conditions.push("s.tenant_id = ?");
+    117: params.push(Number(filters.tenantIdQuery));
+    120: conditions.push("s.status = ?");
+    121: params.push(filters.status);
+    124: conditions.push("s.payment_status = ?");
+    125: params.push(filters.paymentStatus);
+    128: const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  SQL: SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType, s.start_date AS startDat
+
+services/instant-retail/retail-announcement.service.ts:158
+    141: const conditions = ["a.tenant_id = ?"];
+    144: conditions.push("a.store_id = ?");
+    148: conditions.push("a.title LIKE ?");
+    151: const where = `WHERE ${conditions.join(" AND ")}`;
+    154: `SELECT COUNT(*) AS cnt FROM t_retail_announcement a ${where}`,
+  SQL: SELECT a.id, a.store_id, a.title, a.content, a.is_top, a.start_time, a.end_time, a.status, a.created_at, s.name AS store_name FROM t_retail_announcement a LEFT JOIN t_store s ON s.id = a.store_id AND 
+
+services/store/inventory.service.ts:115
+    79: `SELECT physical_qty AS physicalQty FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = ? AND tenant_id = ? FOR UPDATE`,
+    84: `UPDATE t_inventory_balance SET physical_qty = physical_qty + ?, available_qty = available_qty + ?, updated_at = NOW() WHERE store_id = ? AND sku_id = ? AND stock_type = ? AND tenant_id = ?`,
+    89: `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty, operator_id, idempotency_key, remark, tenant_id) VALUES (?, ?, ?, ?, 'ADJUST', ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)`,
+    101: let sql = `SELECT il.ledger_no AS logNo, il.store_id AS storeId, il.sku_id AS skuId, ps.sku_name AS skuName, il.change_qty AS changeQty, il.before_qty AS beforeQty, il.after_qty AS afterQty, il.remark AS reason, il.operator_id AS operatorId, il.created_at AS createdAt FROM t_inventory_ledger il LEFT JOIN t_product_sku ps ON ps.id = il.sku_id AND ps.tenant_id = il.tenant_id WHERE il.tenant_id = ?`;
+    107: const totalSql = storeId ? "SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ? AND store_id = ?" : "SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ?";
+    113: const where = storeId ? "WHERE ib.tenant_id = ? AND ib.store_id = ?" : "WHERE ib.tenant_id = ?";
+  SQL: SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ib.stock_type AS stockType, ib.available_qty AS availableQty FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenan
