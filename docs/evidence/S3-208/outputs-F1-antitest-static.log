@@ -1,0 +1,7 @@
+[反测] 注入：摘掉 wechat.routes.ts 的 /auth/unbind 上的 rateLimit(...)（副本 C:\Users\XIONG\AppData\Local\Temp\s3-208-antitest-SQ1k7b）
+[判据] 目标文件 3 个；扫描路由注册 31 条；来源=工作树
+[判据] 命中「有鉴权 + 注册点未内联 rateLimit(...)」= 1 条
+  - backend/src/routes/wechat.routes.ts:38  POST /auth/unbind
+[反测] EXIT=1（期望 1）
+[反测] 命中数=1（期望 1）、命中=backend/src/routes/wechat.routes.ts:38  POST /auth/unbind
+[反测] 结论：PASS（判据能红，且只红被摘的那一条）

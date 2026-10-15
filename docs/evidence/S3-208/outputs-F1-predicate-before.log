@@ -1,0 +1,16 @@
+[判据] 目标文件 3 个；扫描路由注册 31 条；来源=git HEAD
+[判据] 命中「有鉴权 + 注册点未内联 rateLimit(...)」= 14 条
+  - backend/src/routes/wechat.routes.ts:26  POST /auth/decrypt-phone
+  - backend/src/routes/wechat.routes.ts:27  PUT /auth/profile
+  - backend/src/routes/wechat.routes.ts:28  GET /auth/profile
+  - backend/src/routes/wechat.routes.ts:29  POST /auth/bind
+  - backend/src/routes/wechat.routes.ts:30  POST /auth/unbind
+  - backend/src/routes/marketing-miniapp.routes.ts:61  POST /coupons/:templateId/claim
+  - backend/src/routes/marketing-miniapp.routes.ts:62  GET /coupons/my
+  - backend/src/routes/marketing-miniapp.routes.ts:73  GET /points/my
+  - backend/src/routes/marketing-miniapp.routes.ts:74  GET /points/my-records
+  - backend/src/routes/marketing-miniapp.routes.ts:78  POST /flash-sale/:id/buy
+  - backend/src/routes/marketing-miniapp.routes.ts:86  POST /group-buy/:teamId/join
+  - backend/src/routes/marketing-miniapp.routes.ts:90  POST /calculate
+  - backend/src/routes/commerce-fix.routes.ts:17  POST /bills
+  - backend/src/routes/commerce-fix.routes.ts:20  POST /bills/:id/verify
