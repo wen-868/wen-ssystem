@@ -1,0 +1,70 @@
+# S3-221 绿侧（红侧/换值反测后复原 --text-muted = #6d6d6d）
+# 命令：node scripts/contrast-check.cjs
+# EXIT=0
+# 对照：未改坏值前（01-baseline-after-extend.txt）同为 EXIT=0
+# tokens.css sha256（复原后）=C7036E3BC0DAEC714E6C95789C299E583EA8E8DD3A944C291D88414DF649D46F
+# tokens.css sha256（动手前）=C7036E3BC0DAEC714E6C95789C299E583EA8E8DD3A944C291D88414DF649D46F  ⇒ MATCH=True
+
+| 分组 | 前景 token | surface 背景 | 比值 | 阈值(文本4.5/非文本3.0) | 结论 |
+|---|---|---|---|---|---|
+| saas-admin token | --text-primary #000000 | 白底 #FFFFFF | 21.00:1 | 4.5 | PASS |
+| saas-admin token | --text-primary #000000 | #f7f7f7(--g0/--bg-page) | 19.60:1 | 4.5 | PASS |
+| saas-admin token | --text-primary #000000 | #f0f0f0(--bg-soft 最严边界) | 18.43:1 | 4.5 | PASS |
+| saas-admin token | --text-secondary #444444 | 白底 #FFFFFF | 9.74:1 | 4.5 | PASS |
+| saas-admin token | --text-secondary #444444 | #f7f7f7(--g0/--bg-page) | 9.09:1 | 4.5 | PASS |
+| saas-admin token | --text-secondary #444444 | #f0f0f0(--bg-soft 最严边界) | 8.55:1 | 4.5 | PASS |
+| saas-admin token | --text-muted (S3-47) #6D6D6D | 白底 #FFFFFF | 5.17:1 | 4.5 | PASS |
+| saas-admin token | --text-muted (S3-47) #6D6D6D | #f7f7f7(--g0/--bg-page) | 4.83:1 | 4.5 | PASS |
+| saas-admin token | --text-muted (S3-47) #6D6D6D | #f0f0f0(--bg-soft 最严边界) | 4.54:1 | 4.5 | PASS |
+| saas-admin token | --sidebar-text-primary #374151 | 侧边栏白底 #FFFFFF | 10.31:1 | 4.5 | PASS |
+| saas-admin token | --sidebar-text-secondary #6B7280 | 侧边栏白底 #FFFFFF | 4.83:1 | 4.5 | PASS |
+| saas-admin token | --sidebar-text-muted (S3-47) #6D6D6D | 侧边栏白底 #FFFFFF | 5.17:1 | 4.5 | PASS |
+| saas-admin token | --text-link #2563EB | 白底 #FFFFFF | 5.17:1 | 4.5 | PASS |
+| saas-admin token | --text-link #2563EB | #f7f7f7(--g0/--bg-page) | 4.82:1 | 4.5 | PASS |
+| saas-admin token | --text-link #2563EB | #f0f0f0(--bg-soft 最严边界) | 4.54:1 | 4.5 | PASS |
+| admin-web chart text (canvas 替代核查) | CHART_COLORS.textMuted #6D6D6D (S3-47/S3-53) | 图表白底 #FFFFFF | 5.17:1 | 4.5 | PASS |
+| admin-web chart text (canvas 替代核查) | CHART_COLORS.textSecondary #444444 | 图表白底 #FFFFFF | 9.74:1 | 4.5 | PASS |
+| saas-admin 非文本 UI (1.4.11) | --gray-300 (滚动条滑块·默认态) #888888 | 白底 #FFFFFF | 3.54:1 | 3 | PASS |
+| saas-admin 非文本 UI (1.4.11) | --gray-300 (滚动条滑块·默认态) #888888 | #f7f7f7(--g0/--bg-page) | 3.31:1 | 3 | PASS |
+| saas-admin 非文本 UI (1.4.11) | --gray-300 (滚动条滑块·默认态) #888888 | #f0f0f0(--bg-soft 最严边界) | 3.11:1 | 3 | PASS |
+| saas-admin 非文本 UI (1.4.11) | --gray-400 (滚动条滑块·hover 态) #6D6D6D | 白底 #FFFFFF | 5.17:1 | 3 | PASS |
+| saas-admin 非文本 UI (1.4.11) | --gray-400 (滚动条滑块·hover 态) #6D6D6D | #f7f7f7(--g0/--bg-page) | 4.83:1 | 3 | PASS |
+| saas-admin 非文本 UI (1.4.11) | --gray-400 (滚动条滑块·hover 态) #6D6D6D | #f0f0f0(--bg-soft 最严边界) | 4.54:1 | 3 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --text-placeholder (S3-54 占位提示文本(白底输入框内)≥4.5:1) #767676 | 白底 #FFFFFF | 4.54:1 | 4.5 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --input-border (S3-54 输入框边框(1.4.11 最严边界 #f0f0f0)≥3:1) #888888 | #f0f0f0(--bg-soft 最严边界) | 3.11:1 | 3 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --ctl-border (S3-54 控件边框 .btn/.ipt/.sel(1.4.11 最严边界)≥3:1) #888888 | #f0f0f0(--bg-soft 最严边界) | 3.11:1 | 3 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --g4 (S3-54①-a 通用弱化灰·文本用途(分诊表 A 类 24 处；背景填充 0 处)) #6E6E6E | 白底 #FFFFFF | 5.10:1 | 4.5 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --g4 (S3-54①-a 通用弱化灰·文本用途(分诊表 A 类 24 处；背景填充 0 处)) #6E6E6E | #f7f7f7(--g0/--bg-page) | 4.76:1 | 4.5 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --g4 (S3-54①-a 通用弱化灰·边框/指示器用途(分诊表 B 类 29 处)) #6E6E6E | 白底 #FFFFFF | 5.10:1 | 3 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --g4 (S3-54①-a 通用弱化灰·边框/指示器用途(分诊表 B 类 29 处)) #6E6E6E | #f7f7f7(--g0/--bg-page) | 4.76:1 | 3 | PASS |
+| saas-admin token (S3-54 裁定锁定) | --g4 (S3-54①-a 通用弱化灰·边框/指示器用途(分诊表 B 类 29 处)) #6E6E6E | #f0f0f0(--bg-soft 最严边界) | 4.47:1 | 3 | PASS |
+| admin-web token | --text-primary #000000 | 白底 #FFFFFF | 21.00:1 | 4.5 | PASS |
+| admin-web token | --text-primary #000000 | #f7f7f7(--g0/--bg-page) | 19.60:1 | 4.5 | PASS |
+| admin-web token | --text-primary #000000 | #f0f0f0(--bg-soft 最严边界) | 18.43:1 | 4.5 | PASS |
+| admin-web token | --text-secondary #444444 | 白底 #FFFFFF | 9.74:1 | 4.5 | PASS |
+| admin-web token | --text-secondary #444444 | #f7f7f7(--g0/--bg-page) | 9.09:1 | 4.5 | PASS |
+| admin-web token | --text-secondary #444444 | #f0f0f0(--bg-soft 最严边界) | 8.55:1 | 4.5 | PASS |
+| admin-web token | --text-muted (第 13 项反测所用 token·62 处引用) #6D6D6D | 白底 #FFFFFF | 5.17:1 | 4.5 | PASS |
+| admin-web token | --text-muted (第 13 项反测所用 token·62 处引用) #6D6D6D | #f7f7f7(--g0/--bg-page) | 4.83:1 | 4.5 | PASS |
+| admin-web token | --text-muted (第 13 项反测所用 token·62 处引用) #6D6D6D | #f0f0f0(--bg-soft 最严边界) | 4.54:1 | 4.5 | PASS |
+| admin-web token | --text-placeholder (白底输入框内(同 S3-54 口径)) #6D6D6D | 白底 #FFFFFF | 5.17:1 | 4.5 | PASS |
+| admin-web token | --sidebar-text-primary #222222 | #F7F8FA(--frost-sidebar 工作台侧栏真实底) | 14.97:1 | 4.5 | PASS |
+| admin-web token | --sidebar-text-secondary #555555 | #F7F8FA(--frost-sidebar 工作台侧栏真实底) | 7.02:1 | 4.5 | PASS |
+| admin-web token | --sidebar-text-muted #6D6D6D | #F7F8FA(--frost-sidebar 工作台侧栏真实底) | 4.87:1 | 4.5 | PASS |
+| admin-web token (登记·未纳入失败判定) | --text-link (admin-web 内 0 处引用(死 token)) #3F6FEF | 白底 #FFFFFF | 4.44:1 | 4.5 | FAIL·登记(未纳入失败判定) |
+| admin-web token (登记·未纳入失败判定) | --text-link (admin-web 内 0 处引用(死 token)) #3F6FEF | #f7f7f7(--g0/--bg-page) | 4.14:1 | 4.5 | FAIL·登记(未纳入失败判定) |
+| admin-web token (登记·未纳入失败判定) | --text-link (admin-web 内 0 处引用(死 token)) #3F6FEF | #f0f0f0(--bg-soft 最严边界) | 3.89:1 | 4.5 | FAIL·登记(未纳入失败判定) |
+| admin-web token (登记·未纳入失败判定) | --sidebar-text-active (MainLayout.vue:858/925 激活态导航文字) #3F6FEF | #F7F8FA(--frost-sidebar 工作台侧栏真实底) | 4.18:1 | 4.5 | FAIL·登记(未纳入失败判定) |
+
+✅ 对比度矩阵全部达标：共 44 个 token×surface 组合（文本 ≥ 4.5:1，非文本 UI ≥ 3:1）
+
+⚠️ 未根治登记（**不参与失败判定**，待凌舟裁定；详见 docs/tasks/cards/R101-S3-221-林夕-回传.md §六）：
+::warning file=admin-web/src/styles/tokens.css::[S3-221 登记·未根治] --text-link #3F6FEF × 白底 #FFFFFF = 4.44:1 < 4.5 (WCAG AA 文本)
+  - [admin-web/src/styles/tokens.css] --text-link #3F6FEF × 白底 #FFFFFF = 4.44:1 < 4.5 (WCAG AA 文本)
+::warning file=admin-web/src/styles/tokens.css::[S3-221 登记·未根治] --text-link #3F6FEF × #f7f7f7(--g0/--bg-page) = 4.14:1 < 4.5 (WCAG AA 文本)
+  - [admin-web/src/styles/tokens.css] --text-link #3F6FEF × #f7f7f7(--g0/--bg-page) = 4.14:1 < 4.5 (WCAG AA 文本)
+::warning file=admin-web/src/styles/tokens.css::[S3-221 登记·未根治] --text-link #3F6FEF × #f0f0f0(--bg-soft 最严边界) = 3.89:1 < 4.5 (WCAG AA 文本)
+  - [admin-web/src/styles/tokens.css] --text-link #3F6FEF × #f0f0f0(--bg-soft 最严边界) = 3.89:1 < 4.5 (WCAG AA 文本)
+::warning file=admin-web/src/styles/tokens.css::[S3-221 登记·未根治] --sidebar-text-active #3F6FEF × #F7F8FA(--frost-sidebar 工作台侧栏真实底) = 4.18:1 < 4.5 (WCAG AA 文本)
+  - [admin-web/src/styles/tokens.css] --sidebar-text-active #3F6FEF × #F7F8FA(--frost-sidebar 工作台侧栏真实底) = 4.18:1 < 4.5 (WCAG AA 文本)
+

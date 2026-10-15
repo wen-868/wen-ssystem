@@ -1,0 +1,39 @@
+# S3-221 · 脚本自证（判据 §三.3）
+
+## 1. 语法检查
+
+```
+$ node --check scripts/contrast-check.cjs
+CHECK_EXIT=0
+```
+
+## 2. 零新增依赖
+
+- 脚本内 `require` 仍只有两行（未新增）：
+
+```
+const fs = require('fs');
+const path = require('path');
+```
+
+- `git diff -U0 -- scripts/contrast-check.cjs` 的新增行里，匹配 `require(` / `^+import ` / `from '` 的行数 = **0**。
+
+## 3. 改动面（`git diff --stat` 与 `--name-only`）
+
+```
+$ git diff --stat
+ scripts/contrast-check.cjs | 139 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 137 insertions(+), 2 deletions(-)
+
+$ git diff --name-only
+scripts/contrast-check.cjs
+```
+
+## 4. 脚本哈希（改前 / 改后）
+
+| 版本 | sha256 |
+|:--|:--|
+| `HEAD:scripts/contrast-check.cjs`（基线 `295ab488`） | `A11377E4C45A838B44EF01B9D4C3E0E1B1749AC70B9CBD175BDEEC5EFC55B62F` |
+| 本单改后 `scripts/contrast-check.cjs` | `F7E13711DB369336E923FBE6292C12F665B37DFE04E6FDF5975D424818C640FD` |
+
+复跑：`Get-FileHash scripts/contrast-check.cjs -Algorithm SHA256`

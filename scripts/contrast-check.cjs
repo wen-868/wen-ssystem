@@ -24,6 +24,18 @@
  *   - --text-placeholder 占位提示文本 → 白底输入框内，WCAG AA 文本 ≥4.5:1
  *   - --input-border / --ctl-border 输入框/控件边框 → WCAG 1.4.11 非文本 ≥3:1
  *   三项动态读取 saas-admin/src/styles/tokens.css 真实取值，改回坏值必红（非写死期望值）。
+ *
+ * S3-221（收口总清单第 71 项）：admin-web **自身文本 token** 纳入矩阵
+ *   - 背景（第 13 项反测实测）：本矩阵原先只读 saas-admin/src/styles/tokens.css + admin-web 的
+ *     CHART_COLORS ⇒ 把 admin-web/src/styles/tokens.css 的 --text-muted（62 处引用）改成 #cccccc
+ *     （白底 1.61:1）后，本步骤与 a11y 取样两条路都不红（run 38788778207）——属门禁盲区。
+ *   - 做法：与 saas-admin 完全同法，**动态读取 admin-web/src/styles/tokens.css 真实取值**；
+ *     背景按「真实相邻面」建模：页面文本 = white / #f7f7f7(--g0) / #f0f0f0(--bg-soft 最严边界)；
+ *     侧栏文本 = #F7F8FA（MainLayout.vue:741 `.side { background: var(--frost-sidebar) }`，
+ *     工作台真实侧栏底，比 saas-admin 的白色侧栏更深 ⇒ 更严）；占位提示文本 = 白底输入框内（同 S3-54 口径）。
+ *   - ⚠️ 登记项（**未纳入失败判定**，见下方 ADMINWEB_REGISTERED_TOKENS）：--text-link /
+ *     --sidebar-text-active 实测 #3F6FEF < 4.5:1，本单只扩覆盖面、**不改 token 取值**（凌舟红线）
+ *     ⇒ 只登记 + 打 ::warning，待凌舟裁定后由后续单修值并移入 ADMINWEB_TEXT_TOKENS。
  */
 
 const fs = require('fs');
@@ -32,6 +44,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const TOKENS_CSS = path.join(ROOT, 'saas-admin', 'src', 'styles', 'tokens.css');
 const THEME_TS = path.join(ROOT, 'admin-web', 'src', 'styles', 'theme.ts');
+const ADMINWEB_TOKENS_CSS = path.join(ROOT, 'admin-web', 'src', 'styles', 'tokens.css');
 
 const TEXT_THRESHOLD = 4.5; // WCAG AA 普通文本
 const NON_TEXT_THRESHOLD = 3.0; // WCAG 1.4.11 非文本（UI 组件及其状态）
@@ -62,7 +75,10 @@ function fmt(n) { return n.toFixed(2); }
 // 把字符串安全地放入 RegExp：转义所有正则元字符（含反斜杠）
 // CodeQL js/incomplete-sanitization 要求不只是转义 `-`。
 function escapeForRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\// ── 解析（读取真实文件取值）─────────────────────────");
+  // S3-221 修（2026-10-16，凌舟）：此处替换串曾被前一次编辑吞掉，写成了一段注释文本
+  // ⇒ 任何含正则元字符的 token 名都会被判成"token 未找到"而假红。当前 token 名不含元字符，
+  // 故一直零影响；已恢复为标准的"整段匹配回填"写法。
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // ── 解析（读取真实文件取值）─────────────────────────
@@ -100,6 +116,12 @@ const SURFACES = {
   soft: '#f0f0f0',     // --bg-soft / --g1（最严边界）
   sidebarWhite: '#FFFFFF',
   chartWhite: '#FFFFFF',
+  // S3-221：admin-web 工作台侧栏真实底。MainLayout.vue:741 `.side { background: var(--frost-sidebar) }`
+  // = #F7F8FA（旧版 styles.css:71 用 --bg-sidebar #FAFAFA）；取两者更深的 #F7F8FA 作判定面，
+  // 通过它即同时通过 #FAFAFA / #FFFFFF（对深色文字，底越深越严）。
+  sidebarPage: '#F7F8FA',
+  // S3-221 裁定后新增：激活态导航文字的**真实相邻底** = --color-primary-soft(12%) 合成在 #F7F8FA 上 ⇒ #E4E9F9
+  sidebarActive: '#E4E9F9',
 };
 const SURFACE_LABEL = {
   white: '白底 #FFFFFF',
@@ -107,6 +129,8 @@ const SURFACE_LABEL = {
   soft: '#f0f0f0(--bg-soft 最严边界)',
   sidebarWhite: '侧边栏白底 #FFFFFF',
   chartWhite: '图表白底 #FFFFFF',
+  sidebarPage: '#F7F8FA(--frost-sidebar 工作台侧栏真实底)',
+  sidebarActive: '#E4E9F9(--color-primary-soft 12% 合成底·激活态导航文字真实相邻面)',
 };
 
 // ── 文本 token × surface 矩阵定义 ──────────────────
@@ -148,6 +172,34 @@ const S3_54_TOKENS = [
   { name: 'g4', surfaces: ['white', 'g0', 'soft'], threshold: NON_TEXT_THRESHOLD, kind: 'non-text', note: 'S3-54①-a 通用弱化灰·边框/指示器用途(分诊表 B 类 29 处)' },
 ];
 
+// ── admin-web 文本 token（S3-221 · 收口总清单第 71 项）──────────────
+// 与 saas-admin 同法：动态读取 admin-web/src/styles/tokens.css 真实取值，改回坏值必红（非写死期望值）。
+// 背景取「真实相邻面」（见文件头 S3-221 段）。
+// 覆盖清单依据派单卡 §二.1（--text-primary / --text-secondary / --text-muted / --sidebar-text-* /
+// --text-link / --text-placeholder，以文件里实际存在的为准）：
+//   · --text-link 与 --sidebar-text-active 实测不达标 ⇒ 移入下方 ADMINWEB_REGISTERED_TOKENS（只登记）。
+const ADMINWEB_TEXT_TOKENS = [
+  { name: 'text-primary', surfaces: ['white', 'g0', 'soft'] },
+  { name: 'text-secondary', surfaces: ['white', 'g0', 'soft'] },
+  { name: 'text-muted', surfaces: ['white', 'g0', 'soft'], note: '第 13 项反测所用 token·62 处引用' },
+  { name: 'text-placeholder', surfaces: ['white'], note: '白底输入框内(同 S3-54 口径)' },
+  { name: 'sidebar-text-primary', surfaces: ['sidebarPage'] },
+  { name: 'sidebar-text-secondary', surfaces: ['sidebarPage'] },
+  { name: 'sidebar-text-muted', surfaces: ['sidebarPage'] },
+  // S3-221 裁定（2026-10-16，凌舟）：这两个 token 原为「只登记不判定」——原因是**改值属设计裁定**。
+  // 裁定 = 两处都修值（#3F6FEF → #365FCE）并**纳入失败判定**，否则门禁留半盲区；
+  // 修后读数：text-link 白底 5.70 / #f7f7f7 5.32 / #f0f0f0 5.00；
+  //            sidebar-text-active 侧栏底 5.36 / 激活态合成底 4.70。
+  { name: 'text-link', surfaces: ['white', 'g0', 'soft'], note: 'S3-221 裁定修值后纳入判定' },
+  { name: 'sidebar-text-active', surfaces: ['sidebarPage', 'sidebarActive'], note: 'S3-221 裁定修值后纳入判定（激活态真实相邻面）' },
+];
+
+// ── admin-web 登记项（**未纳入失败判定**的扩展位；当前为空）──────────────────────
+// S3-221 裁定后清空：原先登记的两个 token（text-link / sidebar-text-active）已修值为 #365FCE 并移入
+// ADMINWEB_TEXT_TOKENS 受判。本数组保留为机制位置（将来若出现"业务/设计上确实不可改值"的 token，
+// 在此具名登记理由，并由门禁逐条打印）。
+const ADMINWEB_REGISTERED_TOKENS = [];
+
 const rows = [];
 const failures = [];
 
@@ -158,6 +210,16 @@ const tokenNames = [
   ...S3_54_TOKENS.map((t) => t.name),
 ];
 const { found: tok, missing: tokMissing } = parseTokensCss(TOKENS_CSS, tokenNames);
+
+// S3-221：admin-web 文本 token（独立文件、独立缺失清单；登记项单独一份，缺失不判红）
+const { found: awTok, missing: awTokMissing } = parseTokensCss(
+  ADMINWEB_TOKENS_CSS,
+  ADMINWEB_TEXT_TOKENS.map((t) => t.name)
+);
+const { found: awRegTok, missing: awRegMissing } = parseTokensCss(
+  ADMINWEB_TOKENS_CSS,
+  ADMINWEB_REGISTERED_TOKENS.map((t) => t.name)
+);
 
 for (const t of TEXT_TOKENS) {
   const fg = tok[t.name];
@@ -268,11 +330,77 @@ for (const t of S3_54_TOKENS) {
   }
 }
 
+// ── S3-221：admin-web 文本 token × surface（动态读取真实取值，纳入失败判定）──
+for (const t of ADMINWEB_TEXT_TOKENS) {
+  const fg = awTok[t.name];
+  if (!fg) continue; // 缺失由下方统一报错
+  for (const s of t.surfaces) {
+    const bg = SURFACES[s];
+    const r = ratio(fg, bg);
+    const ok = r >= TEXT_THRESHOLD;
+    rows.push({
+      group: 'admin-web token',
+      label: `--${t.name}${t.note ? ' (' + t.note + ')' : ''} ${fg}`,
+      surface: SURFACE_LABEL[s],
+      r,
+      threshold: TEXT_THRESHOLD,
+      ok,
+    });
+    if (!ok) {
+      failures.push({
+        file: 'admin-web/src/styles/tokens.css',
+        msg: `--${t.name} ${fg} × ${SURFACE_LABEL[s]} = ${fmt(r)}:1 < ${TEXT_THRESHOLD} (WCAG AA 文本)`,
+      });
+    }
+  }
+}
+
+// ── S3-221：admin-web 登记项（登记 + 打 warning，**不参与失败判定**、不改变 exit code）──
+const registeredMisses = [];
+for (const t of ADMINWEB_REGISTERED_TOKENS) {
+  const fg = awRegTok[t.name];
+  if (!fg) continue; // 缺失只登记，不判红
+  for (const s of t.surfaces) {
+    const bg = SURFACES[s];
+    const r = ratio(fg, bg);
+    const ok = r >= TEXT_THRESHOLD;
+    rows.push({
+      group: 'admin-web token (登记·未纳入失败判定)',
+      label: `--${t.name}${t.note ? ' (' + t.note + ')' : ''} ${fg}`,
+      surface: SURFACE_LABEL[s],
+      r,
+      threshold: TEXT_THRESHOLD,
+      ok,
+      pending: true,
+    });
+    if (!ok) {
+      registeredMisses.push({
+        file: 'admin-web/src/styles/tokens.css',
+        msg: `--${t.name} ${fg} × ${SURFACE_LABEL[s]} = ${fmt(r)}:1 < ${TEXT_THRESHOLD} (WCAG AA 文本)`,
+      });
+    }
+  }
+}
+
+// 登记段统一打印（两侧分支都打；用 ::warning 让"未根治的覆盖缺口"在 CI 上可见但不阻断）
+function printRegisteredSection() {
+  if (registeredMisses.length === 0 && awRegMissing.length === 0) return;
+  console.log('');
+  console.log('⚠️ 未根治登记（**不参与失败判定**，待凌舟裁定；详见 docs/tasks/cards/R101-S3-221-林夕-回传.md §六）：');
+  for (const f of registeredMisses) {
+    console.log(`::warning file=${f.file}::[S3-221 登记·未根治] ${f.msg}`);
+    console.log(`  - [${f.file}] ${f.msg}`);
+  }
+  for (const name of awRegMissing) {
+    console.log(`  - [admin-web/src/styles/tokens.css] 登记项 --${name} 在文件中未找到（可能已删除/改名，登记表需复核）`);
+  }
+}
+
 // ── 输出 ───────────────────────────────────────────
 console.log('| 分组 | 前景 token | surface 背景 | 比值 | 阈值(文本4.5/非文本3.0) | 结论 |');
 console.log('|---|---|---|---|---|---|');
 for (const x of rows) {
-  console.log(`| ${x.group} | ${x.label} | ${x.surface} | ${fmt(x.r)}:1 | ${x.threshold} | ${x.ok ? PASS : FAIL} |`);
+  console.log(`| ${x.group} | ${x.label} | ${x.surface} | ${fmt(x.r)}:1 | ${x.threshold} | ${x.ok ? PASS : FAIL}${x.pending ? '·登记(未纳入失败判定)' : ''} |`);
 }
 
 // 缺失 token 也计入失败
@@ -283,9 +411,20 @@ for (const name of tokMissing) {
   });
 }
 
+// S3-221：admin-web 被纳入失败判定的 token 若缺失 ⇒ 同 saas-admin 口径判红（防误删）
+for (const name of awTokMissing) {
+  failures.push({
+    file: 'admin-web/src/styles/tokens.css',
+    msg: `token --${name} 在文件中未找到（无法判定对比度，疑似被误删）`,
+  });
+}
+
+const enforcedRows = rows.filter((x) => !x.pending).length;
+
 console.log('');
 if (failures.length === 0) {
-  console.log(`✅ 对比度矩阵全部达标：共 ${rows.length} 个 token×surface 组合（文本 ≥ 4.5:1，非文本 UI ≥ 3:1）`);
+  console.log(`✅ 对比度矩阵全部达标：共 ${enforcedRows} 个 token×surface 组合（文本 ≥ 4.5:1，非文本 UI ≥ 3:1）`);
+  printRegisteredSection();
   process.exit(0);
 } else {
   console.log(`❌ 对比度矩阵存在 ${failures.length} 个不达标项（文本需 ≥ 4.5:1，非文本 UI 需 ≥ 3:1）：`);
@@ -293,5 +432,6 @@ if (failures.length === 0) {
     console.log(`::error file=${f.file}::${f.msg}`);
     console.log(`  - [${f.file}] ${f.msg}`);
   }
+  printRegisteredSection();
   process.exit(1);
 }
