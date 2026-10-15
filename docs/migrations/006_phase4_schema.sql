@@ -15,7 +15,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 价格等级表（比文档更完善：增加折扣率、最低订单金额门槛、说明、排序）
 DROP TABLE IF EXISTS t_price_level;
 CREATE TABLE IF NOT EXISTS t_price_level (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   level_code VARCHAR(32) NOT NULL UNIQUE COMMENT '等级编码如RETAIL/WHOLESALE_L1/WHOLESALE_L2/AGREEMENT',
   level_name VARCHAR(64) NOT NULL COMMENT '等级名称',
   discount_rate DECIMAL(5,4) DEFAULT 1.0000 COMMENT '折扣率，1.0000=无折扣',
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS t_price_level (
 -- 阶梯价格表（比文档更完善：增加成本价、建议零售价、生效时间范围）
 DROP TABLE IF EXISTS t_sku_price;
 CREATE TABLE IF NOT EXISTS t_sku_price (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   sku_id INT NOT NULL,
   price_level_id INT NOT NULL,
   min_qty INT DEFAULT 1 COMMENT '起订量',
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS t_sku_price (
 -- 客户价格等级绑定（比文档更完善：增加审批流程、到期时间）
 DROP TABLE IF EXISTS t_customer_price_binding;
 CREATE TABLE IF NOT EXISTS t_customer_price_binding (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   price_level_id INT NOT NULL,
   apply_reason VARCHAR(255) DEFAULT '' COMMENT '申请原因',
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS t_customer_price_binding (
 -- 价格变更历史（审计日志）
 DROP TABLE IF EXISTS t_price_change_log;
 CREATE TABLE IF NOT EXISTS t_price_change_log (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   sku_id INT NOT NULL,
   price_level_id INT NOT NULL,
   old_price DECIMAL(12,2),
@@ -94,7 +94,7 @@ INSERT IGNORE INTO price_level (level_code, level_name, discount_rate, min_order
 -- 客户授信额度表（比文档更完善：增加冻结原因、解冻流程、预警阈值、乐观锁）
 DROP TABLE IF EXISTS t_customer_credit;
 CREATE TABLE IF NOT EXISTS t_customer_credit (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL UNIQUE,
   credit_limit DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT '授信总额度',
   credit_used DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT '已用额度',
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS t_customer_credit (
 -- 授信操作日志（比文档新增：完整审计追踪）
 DROP TABLE IF EXISTS t_credit_operation_log;
 CREATE TABLE IF NOT EXISTS t_credit_operation_log (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   operation_type ENUM('ADJUST_LIMIT','OCCUPY','RELEASE','FREEZE','UNFREEZE','OVERDUE_DEDUCT','MANUAL_ADJUST') NOT NULL,
   amount DECIMAL(12,2) NOT NULL COMMENT '变动金额（正=增加，负=减少）',
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS t_credit_operation_log (
 -- 催收记录表（比文档更完善：增加催收结果、跟进提醒、承诺还款）
 DROP TABLE IF EXISTS t_collection_record;
 CREATE TABLE IF NOT EXISTS t_collection_record (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   receivable_no VARCHAR(64) DEFAULT NULL COMMENT '关联应收单号',
   overdue_days INT DEFAULT 0,
@@ -159,7 +159,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- 追溯配置表
 CREATE TABLE IF NOT EXISTS t_trace_config (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   config_no VARCHAR(32) NOT NULL UNIQUE,
   config_level ENUM('CATEGORY','SKU','GLOBAL') NOT NULL,
   target_id INT NOT NULL,
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS t_trace_config (
 
 -- 追溯码表
 CREATE TABLE IF NOT EXISTS t_trace_code (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   trace_code VARCHAR(32) NOT NULL UNIQUE,
   sku_id INT NOT NULL,
   sku_name VARCHAR(128) DEFAULT '',
@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS t_trace_code (
 
 -- 追溯事件日志
 CREATE TABLE IF NOT EXISTS t_trace_event_log (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   trace_code VARCHAR(32) NOT NULL,
   event_type VARCHAR(32) NOT NULL,
   from_status VARCHAR(32) DEFAULT NULL,
@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS t_trace_event_log (
 
 -- 扫码日志
 CREATE TABLE IF NOT EXISTS t_trace_scan_log (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   trace_code VARCHAR(32) NOT NULL,
   scan_type ENUM('CONSUMER','BUSINESS','PDA','ADMIN') NOT NULL,
   user_id INT DEFAULT NULL,
@@ -245,7 +245,7 @@ CREATE TABLE IF NOT EXISTS t_trace_scan_log (
 
 -- 召回记录表
 CREATE TABLE IF NOT EXISTS t_recall_record (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   recall_no VARCHAR(32) NOT NULL UNIQUE,
   recall_type ENUM('BATCH','CATEGORY','SKU','SUPPLIER','GLOBAL') NOT NULL,
   target_value VARCHAR(128) NOT NULL,

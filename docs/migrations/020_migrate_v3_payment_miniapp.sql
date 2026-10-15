@@ -178,11 +178,11 @@ CREATE TABLE IF NOT EXISTS t_miniapp_publish_log (
 -- ────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS t_price_change_log (
-  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  tenant_id   VARCHAR(36)  NOT NULL,
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  tenant_id   VARCHAR(64)  NOT NULL,
   product_id  INT          NOT NULL,
-  old_price   DECIMAL(12,2) NOT NULL,
-  new_price   DECIMAL(12,2) NOT NULL,
+  old_price   DECIMAL(10,2) NOT NULL,
+  new_price   DECIMAL(10,2) NOT NULL,
   changed_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_tenant_changed (tenant_id, changed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='价格变更日志（小程序实时同步）';

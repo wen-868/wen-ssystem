@@ -1,3 +1,0 @@
-命令: npx tsc -p tsconfig.json --noEmit
-输出行数: 0
-EXIT=0

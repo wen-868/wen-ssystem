@@ -1,9 +1,9 @@
 -- 编号: 068, 描述: 银行费用发票, 创建人: 阿坚, 日期: 2026-07-05
 CREATE TABLE IF NOT EXISTS t_bank_account (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  account_name VARCHAR(64) NOT NULL COMMENT '账户名称',
-  bank_name VARCHAR(64) NOT NULL COMMENT '银行名称',
-  account_no VARCHAR(64) NOT NULL COMMENT '账号',
+  account_name VARCHAR(100) NOT NULL COMMENT '账户名称',
+  bank_name VARCHAR(100) NOT NULL COMMENT '银行名称',
+  account_no VARCHAR(50) NOT NULL COMMENT '账号',
   account_type VARCHAR(20) DEFAULT 'GENERAL' COMMENT '类型: GENERAL/SAVING/CREDIT',
   balance DECIMAL(12,2) DEFAULT 0 COMMENT '当前余额',
   status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE/FROZEN/CLOSED',

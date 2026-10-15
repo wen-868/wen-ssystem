@@ -49,13 +49,13 @@ CREATE TABLE IF NOT EXISTS t_sys_config (
 -- 说明：系统登录账号，支持超级管理员、门店管理员、操作员等
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS t_sys_user (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  id INT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
-  username VARCHAR(50) NOT NULL COMMENT '登录账号',
+  username VARCHAR(64) NOT NULL COMMENT '登录账号',
   password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
-  real_name VARCHAR(50) NOT NULL COMMENT '真实姓名',
+  real_name VARCHAR(64) NOT NULL COMMENT '真实姓名',
   mobile VARCHAR(20) DEFAULT NULL COMMENT '手机号',
-  store_id INT UNSIGNED DEFAULT NULL COMMENT '所属门店ID，超级管理员可为空',
+  store_id INT DEFAULT NULL COMMENT '所属门店ID，超级管理员可为空',
   status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1正常，0禁用',
   last_login_at DATETIME DEFAULT NULL COMMENT '最后登录时间',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -72,14 +72,14 @@ CREATE TABLE IF NOT EXISTS t_sys_user (
 -- 说明：RBAC 角色管理，支持 JSON 格式的权限列表
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS t_sys_role (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
+  id INT NOT NULL AUTO_INCREMENT COMMENT '角色ID',
   tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
-  role_code VARCHAR(50) NOT NULL COMMENT '角色编码',
-  role_name VARCHAR(50) NOT NULL COMMENT '角色名称',
-  description VARCHAR(255) DEFAULT NULL COMMENT '角色描述',
+  role_code VARCHAR(64) NOT NULL COMMENT '角色编码',
+  role_name VARCHAR(64) NOT NULL COMMENT '角色名称',
+  description VARCHAR(200) DEFAULT NULL COMMENT '角色描述',
   data_scope VARCHAR(32) NOT NULL DEFAULT 'SELF' COMMENT '数据范围：ALL/DEPARTMENT/STORE/SELF',
   permissions JSON DEFAULT NULL COMMENT '权限列表（JSON格式）',
-  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态：ACTIVE/DISABLED',
+  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态：ACTIVE/DISABLED',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -309,10 +309,10 @@ CREATE TABLE IF NOT EXISTS t_store_control_config (
 -- 说明：用户与角色的多对多关联
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS t_sys_user_role (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
-  user_id INT UNSIGNED NOT NULL,
-  role_id INT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL,
+  role_id BIGINT UNSIGNED NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uk_sys_user_role (user_id, role_id),
