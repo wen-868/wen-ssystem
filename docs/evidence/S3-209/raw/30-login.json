@@ -1,0 +1,26 @@
+{
+  "admin": {
+    "status": 200,
+    "code": "0",
+    "hasToken": true,
+    "hasCsrf": true
+  },
+  "s3209_no_code": {
+    "status": 200,
+    "code": "0",
+    "hasToken": true,
+    "hasCsrf": true
+  },
+  "s3209_cancel_only": {
+    "status": 200,
+    "code": "0",
+    "hasToken": true,
+    "hasCsrf": true
+  },
+  "s3209_manager": {
+    "status": 200,
+    "code": "0",
+    "hasToken": true,
+    "hasCsrf": true
+  }
+}

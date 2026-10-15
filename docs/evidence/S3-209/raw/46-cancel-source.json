@@ -1,0 +1,50 @@
+{
+  "billA1": {
+    "bill_no": "XS3209A1",
+    "business_status": "VOIDED",
+    "collection_status": "CLOSED",
+    "void_reason": "客户不要了",
+    "void_source": "admin",
+    "received_amount": "0.00"
+  },
+  "logA1": {
+    "action": "CANCEL",
+    "after_data": {
+      "reason": "客户不要了",
+      "source": "admin",
+      "reversedItems": [
+        {
+          "skuId": 11,
+          "quantity": 10
+        }
+      ],
+      "reversedStock": true,
+      "businessStatus": "VOIDED",
+      "collectionStatus": "CLOSED"
+    }
+  },
+  "billA2": {
+    "bill_no": "XS3209A2",
+    "business_status": "VOIDED",
+    "collection_status": "CLOSED",
+    "void_reason": "AI 代取消",
+    "void_source": "ai",
+    "received_amount": "0.00"
+  },
+  "logA2": {
+    "action": "CANCEL",
+    "after_data": {
+      "reason": "AI 代取消",
+      "source": "ai",
+      "reversedItems": [
+        {
+          "skuId": 13,
+          "quantity": 4
+        }
+      ],
+      "reversedStock": true,
+      "businessStatus": "VOIDED",
+      "collectionStatus": "CLOSED"
+    }
+  }
+}

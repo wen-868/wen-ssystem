@@ -495,6 +495,208 @@ export async function paymentOnSaleBill(params: {
   });
 }
 
+/** 销售单取消行（事务查询用） */
+interface SaleBillCancelConnRow extends RowDataPacket {
+  bill_no: string;
+  store_id: number;
+  business_status: string;
+  collection_status: string;
+  receivable_amount: number;
+  received_amount: number;
+  unreceived_amount: number;
+  void_source: string | null;
+  void_reason: string | null;
+}
+
+/** 出库流水汇总行（取消回滚用） */
+interface SaleOutSumConnRow extends RowDataPacket {
+  sku_id: number;
+  out_qty: number;
+}
+
+/** 库存余额行（取消回滚用） */
+interface CancelBalanceConnRow extends RowDataPacket {
+  physical_qty: number;
+  available_qty: number;
+}
+
+/** 计数行（取消回滚用） */
+interface CancelCntConnRow extends RowDataPacket {
+  cnt: number;
+}
+
+/**
+ * S3-209：销售单取消（作废 + 库存回滚 + 应收/提成口径收口，**同一事务**）
+ *
+ * 哪里有问题：全仓销售单**没有取消入口**（`store-sale-bill.routes.ts` 里 `cancel|void|revoke` 0 命中；
+ *   全仓唯一 `revoke` 是撤销收款链接；`POST /api/admin/orders/:orderNo/cancel` 只覆盖 ORD 即时零售订单）
+ *   ⇒ AI 底座 `cancelSalesOrder`（能力矩阵 P04，P0）在 MS 侧无端点可调。
+ *
+ * 口径（与派单卡 §二 一致）：
+ *   · 仅 `UNPAID` / `PARTIAL`（= 卡面 `PARTIAL_PAID`，本库 `collection_status` 的既有取值）可取消；
+ *     `PAID` ⇒ 400「已结清需走冲销流程」（**冲销流程不在本单**）。
+ *   · 幂等：已 `VOIDED` ⇒ 返回既有结果，**绝不二次回滚库存**（状态判据 + 流水幂等键双保险）。
+ *   · 原子性：作废 + 库存回滚 + 操作日志同事务，任一步失败整体回滚。
+ *   · 租户隔离：本函数走 `transaction()`，**事务路径不经** `config/database.ts` 的租户注入器
+ *     （S3-207 §七.4 已报备）⇒ 逐句**显式** `tenant_id = ?` 谓词，不依赖隐式注入。
+ *
+ * 为什么库存回滚按 `SALE_OUT` 流水反向（而不是按明细数量）：
+ *   销售单的库存扣减发生在**收款出库**（`offlinePayment` / `paymentOnSaleBill` 写 `SALE_OUT` 流水），
+ *   未出库的单既没有扣减也没有可回滚的库存 ⇒ 必须按流水真值回滚，否则会给未出库的单凭空加库存。
+ *   回滚流水 `biz_type = 'SALE_CANCEL'`（正数），与既有 `RETURN_IN`（退货入库）同族、互不混淆。
+ *
+ * 为什么同时把 `collection_status` 置 `CLOSED`：
+ *   `checkOverdueBills`（同文件 L526）的判据是 `collection_status IN ('UNPAID','PARTIAL')` 且
+ *   **不带** `business_status` 过滤 ⇒ 只置 `VOIDED` 的话，已作废单仍会被逾期扫描翻成 `OVERDUE`。
+ *   `CLOSED` 是 `t_sale_bill.collection_status` 既有值域内的取值（init_database.sql:718）。
+ *
+ * 出参：`status` 是**接口语义层**的取消结果（`CANCELLED`，与 AI 底座契约 / 派单卡一致），
+ *   落库真值仍是 `business_status = 'VOIDED'`（本库既有值域 DRAFT/CREATED/COMPLETED/VOIDED/RETURNED，
+ *   全仓 6 处统计口径均以 `NOT IN ('DRAFT','VOIDED')` 为准，写 `CANCELLED` 会让作废单继续计入
+ *   应收/提成/销售统计）⇒ 两个字段同时返回，避免口径漂移。
+ */
+export async function cancelSaleBill(params: {
+  billNo: string;
+  reason?: string;
+  source: "admin" | "ai";
+  userId: number | null;
+  username: string;
+  tenantId: string;
+}) {
+  const { billNo, reason, source, userId, username, tenantId } = params;
+  return transaction(async (conn) => {
+    const [bills] = await conn.query<SaleBillCancelConnRow[]>(
+      `SELECT bill_no, store_id, business_status, collection_status,
+              receivable_amount, received_amount, unreceived_amount, void_source, void_reason
+       FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE`,
+      [billNo, tenantId]
+    );
+    const bill = bills[0];
+    // 租户隔离：别租户的单在这里就是"不存在"（不泄露存在性）
+    if (!bill) throw new AppError("销售单不存在", 404);
+
+    // 幂等：已作废 ⇒ 返回既有结果，不再回滚（回滚与否以已写入的 SALE_CANCEL 流水为准）
+    if (bill.business_status === "VOIDED") {
+      const [done] = await conn.query<CancelCntConnRow[]>(
+        `SELECT COUNT(*) AS cnt FROM t_inventory_ledger
+         WHERE biz_type = 'SALE_CANCEL' AND biz_no = ? AND tenant_id = ?`,
+        [billNo, tenantId]
+      );
+      return {
+        billNo,
+        status: "CANCELLED",
+        businessStatus: "VOIDED",
+        collectionStatus: bill.collection_status,
+        reversedStock: Number(done[0]?.cnt ?? 0) > 0,
+        reversedItems: [] as Array<{ skuId: number; quantity: number }>,
+        source: bill.void_source ?? source,
+        reason: bill.void_reason ?? reason ?? null,
+        idempotent: true,
+      };
+    }
+    // 已退货：退货入库已把库存加回过一次，再取消就是二次回滚
+    if (bill.business_status === "RETURNED") throw new AppError("该销售单已退货，不能取消", 400);
+    if (bill.collection_status === "PAID") throw new AppError("该销售单已结清，不能直接取消，需走冲销流程", 400);
+    if (bill.collection_status !== "UNPAID" && bill.collection_status !== "PARTIAL") {
+      throw new AppError(`该销售单当前收款状态（${bill.collection_status}）不支持取消，仅未收款或部分收款可取消`, 400);
+    }
+
+    // ① 库存回滚：按确实出过库的 SALE_OUT 流水反向（ISSUE：SALE_OUT 的 change_qty 为负 ⇒ 取反即回滚量）
+    const [outs] = await conn.query<SaleOutSumConnRow[]>(
+      `SELECT sku_id, SUM(change_qty) AS out_qty FROM t_inventory_ledger
+       WHERE biz_type = 'SALE_OUT' AND biz_no = ? AND tenant_id = ? AND stock_type = 'OFFLINE'
+       GROUP BY sku_id`,
+      [billNo, tenantId]
+    );
+    const reversedItems: Array<{ skuId: number; quantity: number }> = [];
+    for (const row of outs) {
+      const qty = -Number(row.out_qty ?? 0);
+      if (qty <= 0) continue;
+      const [balances] = await conn.query<CancelBalanceConnRow[]>(
+        `SELECT physical_qty, available_qty FROM t_inventory_balance
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ? FOR UPDATE`,
+        [bill.store_id, row.sku_id, tenantId]
+      );
+      const beforeQty = Number(balances[0]?.physical_qty ?? 0);
+      const afterQty = beforeQty + qty;
+      await conn.execute(
+        `UPDATE t_inventory_balance
+         SET physical_qty = physical_qty + ?, available_qty = available_qty + ?, updated_at = NOW()
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE' AND tenant_id = ?`,
+        [qty, qty, bill.store_id, row.sku_id, tenantId]
+      );
+      // 幂等键有唯一索引 uk_inventory_ledger_idempotency 兜底 ⇒ 同单同 SKU 只可能回滚一次
+      await conn.execute(
+        `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
+                change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
+                operator_id, idempotency_key, remark, tenant_id)
+         VALUES (?, ?, ?, 'OFFLINE', 'SALE_CANCEL', ?, ?, ?, ?, 0, 0, ?, ?, ?, ?)`,
+        [
+          makeBizNo("IL"),
+          bill.store_id,
+          row.sku_id,
+          billNo,
+          qty,
+          beforeQty,
+          afterQty,
+          userId ?? null,
+          `SALE_CANCEL:${billNo}:${row.sku_id}`,
+          `销售单取消回滚库存: ${billNo}`,
+          tenantId,
+        ]
+      );
+      reversedItems.push({ skuId: row.sku_id, quantity: qty });
+    }
+
+    // ② 作废 + 收款状态收口（应收/提成统计均按 business_status 过滤 ⇒ 置 VOIDED 即自动出表）
+    await conn.execute(
+      `UPDATE t_sale_bill
+       SET business_status = 'VOIDED', collection_status = 'CLOSED',
+           void_reason = ?, void_source = ?, updated_at = NOW()
+       WHERE bill_no = ? AND tenant_id = ?`,
+      [reason ?? null, source, billNo, tenantId]
+    );
+
+    // ③ 操作日志（来源 source = admin|ai 可追溯，AI 发起的取消必须可区分）
+    await conn.execute(
+      `INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, before_data, after_data, tenant_id)
+       VALUES (?, ?, 'SALE_BILL', 'CANCEL', ?, ?, ?, ?)`,
+      [
+        userId ?? null,
+        username ?? "系统用户",
+        billNo,
+        JSON.stringify({
+          businessStatus: bill.business_status,
+          collectionStatus: bill.collection_status,
+          receivedAmount: Number(bill.received_amount ?? 0),
+          unreceivedAmount: Number(bill.unreceived_amount ?? 0),
+        }),
+        JSON.stringify({
+          businessStatus: "VOIDED",
+          collectionStatus: "CLOSED",
+          source,
+          reason: reason ?? null,
+          reversedStock: reversedItems.length > 0,
+          reversedItems,
+        }),
+        tenantId,
+      ]
+    );
+
+    return {
+      billNo,
+      status: "CANCELLED",
+      businessStatus: "VOIDED",
+      collectionStatus: "CLOSED",
+      reversedStock: reversedItems.length > 0,
+      reversedItems,
+      source,
+      reason: reason ?? null,
+      idempotent: false,
+    };
+  });
+}
+
 export async function listOverdueBills(params: {
   page: number; pageSize: number; storeId: number | null; tenantId: string;
 }) {

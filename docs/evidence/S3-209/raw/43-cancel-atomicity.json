@@ -1,0 +1,20 @@
+{
+  "res": {
+    "status": 409,
+    "body": {
+      "code": "409",
+      "msg": "该记录已存在，请检查是否重复提交",
+      "traceId": "bbb5481d-125e-4156-8c56-229cbe78ee78"
+    }
+  },
+  "stockBeforeA4": 60,
+  "stockAfterA4": 60,
+  "billA4": {
+    "bill_no": "XS3209A4",
+    "business_status": "CREATED",
+    "collection_status": "UNPAID",
+    "void_reason": null,
+    "void_source": "admin",
+    "received_amount": "0.00"
+  }
+}

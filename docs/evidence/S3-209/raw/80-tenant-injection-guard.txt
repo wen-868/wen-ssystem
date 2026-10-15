@@ -1,0 +1,115 @@
+guard:tenant-injection（S3-207）
+  扫描根：D:\Users\ZXQL\wt-agents\S3-209
+  调用点：1744｜OK-AUTO-INJECT=557 INDIRECT-NEEDS-REVIEW=28 OK-TENANT-CONDITION=1098 REVIEW-SINGLE-TABLE-INJECT=8 BLOCK-MISSING-TENANT-CONDITION=17 WARN-AUTO-INJECT-JOIN=36
+  语料自检：25 例通过
+
+RED 阻塞项（有 tenant_id 字样但没有绑定到调用者租户的条件）：17 条
+  services/admin/approval-records.service.ts:372 [SELECT] SELECT t.id, t.instance_id AS instanceId, t.approval_level AS approvalLevel, t.approver_id AS approverId, t.approver_name AS approverName, t.task_status AS taskStatus, t.received_at AS receivedAt, t.processed_at AS processedAt, t.sla_deadline AS slaDeadline, t.escalated, t.approval_comment AS approvalComment, i.instance_no AS instanceNo, i.business_type AS businessType, i.business_no AS businessNo, i.business_title AS businessTitle, i.applicant_name AS applicantName, i.submitted_at AS submittedAt FROM t_approval_task t JOIN t_approval_instance i ON i.instance_no = t.instance_id AND i.tenant_id = t.tenant_id WHERE t.approver_id = ? AND t.task_status = ? ORDER BY t.received_at DESC LIMIT ? OFFSET ?
+  services/admin/cart.service.ts:239 [SELECT] SELECT c.id, c.sku_id AS skuId, c.quantity, s.sku_name AS skuName, p.name AS spuName, p.main_image AS image, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice, COALESCE(ib.available_qty, 0) AS availableQty FROM t_cart_item c JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id WHERE c.customer_id = ? ORDER BY c.added_at DESC
+  services/admin/cart.service.ts:276 [SELECT] SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'
+  services/admin/cart.service.ts:388 [SELECT] SELECT c.sku_id AS skuId, c.quantity, s.sku_name AS skuName, p.name AS spuName, p.main_image AS image, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice, COALESCE(ib.available_qty, 0) AS availableQty FROM t_cart_item c JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id WHERE c.customer_id = ?
+  services/admin/report/finance-report.service.ts:210 [SELECT] SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND DATE(sb.created_at) BETWEEN ? AND ?
+  services/admin/report/finance-report.service.ts:264 [SELECT] SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND DATE(sb.created_at) BETWEEN ? AND ?
+  services/admin/report/product-report.service.ts:173 [SELECT] SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName, SUM(sbi.total_bottle_qty) AS totalSoldQty, COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSalesAmount FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED') AND sb.created_at >= ? GROUP BY sbi.sku_id, sbi.sku_name
+  services/admin/report/sales-report.service.ts:508 [SELECT] SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount FROM t_inventory_balance ib JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+  services/admin/subscription-renewal.service.ts:69 [SELECT] SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.price, p.duration_days, p.price AS plan_price FROM t_subscription s LEFT JOIN t_subscription_plan p ON p.id = ? WHERE s.id = ?
+  services/admin/subscription-renewal.service.ts:175 [SELECT] SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, t.contact_mobile AS contactMobile, s.plan_name AS planName, s.end_date AS endDate, s.auto_renew AS autoRenew, s.expire_notify_sent AS expireNotifySent, DATEDIFF(s.end_date, CURDATE()) AS daysRemaining FROM t_subscription s LEFT JOIN t_tenant t ON t.id = s.tenant_id WHERE s.status = 'ACTIVE' AND s.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY) ORDER BY s.end_date ASC
+  services/admin/subscription-renewal.service.ts:196 [SELECT] SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, t.contact_mobile AS contactMobile, s.plan_name AS planName, s.end_date AS endDate, DATEDIFF(CURDATE(), s.end_date) AS overdueDays FROM t_subscription s LEFT JOIN t_tenant t ON t.id = s.tenant_id WHERE s.status = 'ACTIVE' AND s.end_date < CURDATE() ORDER BY s.end_date ASC
+  services/admin/subscription.service.ts:167 [SELECT] SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType, s.start_date AS startDate, s.end_date AS endDate, s.duration_days AS durationDays, s.price, p.original_price AS originalAmount, s.payment_status AS paymentStatus, s.payment_method AS paymentMethod, s.paid_at AS paidAt, s.transaction_no AS transactionNo, s.auto_renew AS autoRenew, s.renew_price AS renewPrice, s.status, s.cancel_reason AS cancelReason, s.cancelled_at AS cancelledAt, s.expire_notify_sent AS expireNotifySent, s.remark, s.created_at AS createdAt, s.updated_at AS updatedAt FROM t_subscription s LEFT JOIN t_tenant t ON t.id = s.tenant_id LEFT JOIN t_subscription_plan p ON p.id = s.plan_id WHERE s.id = ?
+  services/miniapp/cart.service.ts:33 [SELECT] SELECT c.id, c.sku_id AS skuId, c.quantity, s.sku_name AS skuName, p.name AS spuName, p.main_image AS image, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice, COALESCE(ib.available_qty, 0) AS availableQty FROM t_cart_item c JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id WHERE c.customer_id = ? ORDER BY c.added_at DESC
+  services/miniapp/cart.service.ts:70 [SELECT] SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'
+  services/store/member.service.ts:23 [SELECT] SELECT m.id, m.name, m.mobile, m.customer_type AS customerType, m.points, m.level_code AS levelCode, ml.level_name AS levelName, m.status, m.contact, m.address, m.remark, m.card_no, m.gender, m.birthday, m.province, m.city, m.district, m.tags, m.last_order_at AS lastOrderAt, m.created_at AS createdAt FROM t_member m LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id WHERE m.id = ?
+  services/transfer-execution.service.ts:299 [SELECT] SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name FROM t_transfer_order to_ LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id WHERE to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT') ORDER BY to_.created_at DESC
+  services/transfer-execution.service.ts:314 [SELECT] SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name FROM t_transfer_order to_ LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id WHERE to_.from_store_id = ? AND to_.status IN ('TRANSIT', 'RECEIVED') ORDER BY to_.created_at DESC
+  ⇒ 改前会被短路跳过（泄露/歧义 500 的温床）：要么补真谓词，要么登记显式标记。
+
+RED 未登记的非字面量/插值调用点：2 条
+  services/admin/cart.service.ts:373 kind=literal interps=1
+  services/admin/subscription.service.ts:130 kind=literal interps=1
+
+RED 未登记的单表"字样无谓词"调用点：4 条
+  jobs/report-aggregation.job.ts:7 SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'
+  services/admin/subscription.service.ts:338 SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.status FROM t_subscription 
+  services/admin/subscription.service.ts:425 SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ?
+  services/admin/subscription.service.ts:470 SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ?
+  ⇒ 注入会补一个正确谓词（单表不歧义），不是泄露；但必须逐条登记结论（防平台级查询被注入后静默查不到数据）。
+
+WARN（不阻断）自动注入 + JOIN ⇒ 注入无限定列名，第二张表也有 tenant_id 时会 1052：36 条
+  services/admin/commission.service.ts:263 SELECT cr.record_no AS recordNo, cr.bill_no AS billNo, cr.staff_id AS staffId, cr.commission_amount AS commiss
+  services/admin/credit-collection.service.ts:165 SELECT cr.id, cr.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile, cr.receivable_
+  services/admin/credit-collection.service.ts:184 SELECT COUNT(*) AS total FROM t_collection_record cr LEFT JOIN t_member m ON m.id = cr.customer_id ?
+  services/admin/credit-limit.service.ts:81 SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile, cc.credit_limi
+  services/admin/customer-care.service.ts:104 SELECT cl.id, cl.customer_id AS customerId, m.name AS customerName, cl.rule_id AS ruleId, cr.rule_name AS rule
+  services/admin/customer-lifecycle.service.ts:88 SELECT cp.customer_id AS customerId, m.name AS customerName, m.mobile, cp.lifecycle_stage AS stage, cp.last_or
+  services/admin/customer-price.service.ts:52 SELECT cp.id, cp.customer_id AS customerId, cp.sku_id AS skuId, cp.custom_price AS customPrice, cp.effective_s
+  services/admin/feedback.service.ts:70 SELECT f.*, u.real_name AS userName FROM t_system_feedback f LEFT JOIN t_sys_user u ON u.id = f.user_id WHERE 
+  services/admin/instant-retail.service.ts:883 SELECT rp.id, rp.product_id AS productId, rp.category_id AS categoryId, rp.retail_price AS retailPrice, rp.ori
+  services/admin/inventory-loss-gain.service.ts:75 SELECT lg.lg_no AS lgNo, lg.store_id AS storeId, st.name AS storeName, lg.type, lg.sku_id AS skuId, ps.sku_nam
+  services/admin/inventory-share.service.ts:196 SELECT isp.id, isp.spu_id AS spuId, isp.spu_name AS spuName, isp.sku_id AS skuId, isp.sku_name AS skuName, isp
+  services/admin/inventory-share.service.ts:210 SELECT COUNT(*) AS total FROM t_inventory_share_product isp LEFT JOIN t_product_spu p ON p.id = isp.spu_id ?
+  services/admin/marketing-calculation.service.ts:110 SELECT gbt.id, gbt.activity_id, gbt.status, gbt.target_size, gbt.current_size, gb.group_price, gb.sku_id, gb.s
+  services/admin/marketing-flash-sale.service.ts:273 SELECT fs.id, fs.name, fs.flash_price AS flashPrice, fs.original_price AS originalPrice, fs.total_stock AS tot
+  services/admin/marketing-points-mall.service.ts:154 SELECT per.*, pp.product_name, pp.product_image FROM t_points_exchange_record per LEFT JOIN t_points_product p
+  services/admin/price-review.service.ts:84 SELECT COUNT(*) AS total FROM t_product_price p JOIN t_product_sku sku ON sku.id = p.sku_id JOIN t_product_spu
+  services/admin/price-review.service.ts:93 SELECT sku.id AS skuId, spu.id AS spuId, spu.name AS productName, sku.sku_name AS skuName, spu.specs AS spec, 
+  services/admin/price-review.service.ts:159 SELECT sku.id AS skuId, spu.id AS spuId, spu.name AS productName, sku.sku_name AS skuName, spu.specs AS spec, 
+  services/admin/product-bundle.service.ts:101 SELECT b.id, b.bundle_no AS bundleNo, b.bundle_name AS bundleName, b.category_id AS categoryId, c.name AS cate
+  services/admin/purchase-contract.service.ts:43 SELECT pc.contract_no AS contractNo, pc.supplier_id AS supplierId, s.name AS supplierName, pc.contract_name AS
+  services/admin/purchase-plan.service.ts:161 SELECT pp.plan_no AS planNo, pp.supplier_id AS supplierId, s.name AS supplierName, pp.store_id AS storeId, st.
+  services/admin/report/finance-report.service.ts:171 SELECT cp.operator_id AS staffId, u.real_name AS staffName, COUNT(*) AS paymentCount, COALESCE(SUM(cp.amount),
+  services/admin/report/product-report.service.ts:139 SELECT ib.store_id AS storeId, s.name AS storeName, COUNT(DISTINCT ib.sku_id) AS skuCount, SUM(ib.physical_qty
+  services/admin/report/staff-report.service.ts:26 SELECT sb.operator_id AS id, u.real_name AS name, COUNT(DISTINCT sb.bill_no) AS orderCount, COALESCE(SUM(sb.re
+  services/admin/report-collection.service.ts:78 SELECT COUNT(DISTINCT cvl.link_no) AS cnt FROM t_collection_view_log cvl JOIN t_collection_link cl ON cl.link_
+  services/admin/report-collection.service.ts:161 SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo, cl.amount, m.name AS cust
+  services/admin/report-customer.service.ts:208 SELECT sb.customer_id AS customerId, m.name AS customerName, m.mobile, COUNT(DISTINCT sb.bill_no) AS orderCoun
+  services/admin/report.service.ts:314 SELECT ib.store_id AS storeId, s.name AS storeName, ib.sku_id AS skuId, ps.sku_name AS skuName, ps.barcode, ib
+  services/admin/report.service.ts:330 SELECT COUNT(*) AS total FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id LEFT JOIN
+  services/admin/report.service.ts:521 SELECT po.supplier_id AS supplierId, s.name AS supplierName, COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
+  services/admin/report.service.ts:566 SELECT po.supplier_id AS supplierId, s.name AS supplierName, COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
+  services/admin/supplier-statement.service.ts:216 SELECT ss.statement_no AS statementNo, ss.supplier_id AS supplierId, s.name AS supplierName, ss.start_date AS 
+  services/admin/tag.service.ts:159 SELECT t.id, t.name, t.group_id AS groupId, g.name AS groupName, g.code AS groupCode, g.is_multiple AS isMulti
+  services/instant-retail/retail-analytics.service.ts:210 SELECT roi.product_id AS productId, roi.product_name AS productName, SUM(roi.quantity) AS totalQty, SUM(roi.su
+  services/supplier.service.ts:684 SELECT COUNT(DISTINCT poi.sku_id) AS total FROM t_purchase_order po JOIN t_purchase_order_item poi ON po.order
+  services/supplier.service.ts:692 SELECT DISTINCT poi.sku_id, poi.sku_name, poi.barcode FROM t_purchase_order po JOIN t_purchase_order_item poi 
+
+已登记的插值调用点：28 条
+  config/database.ts:182 arg=sql verdict=ok-passthrough
+  config/database.ts:187 arg=sql verdict=ok-passthrough
+  services/admin/batch-price.service.ts:189 arg=(字面量) verdict=ok-runtime
+  services/admin/batch-price.service.ts:206 arg=(字面量) verdict=ok-runtime
+  services/admin/cart.service.ts:139 arg=sql verdict=ok-passthrough
+  services/admin/cart.service.ts:186 arg=sql verdict=ok-passthrough
+  services/admin/cart.service.ts:373 arg=(字面量) verdict=未登记
+  services/admin/custom-report.service.ts:324 arg=(字面量) verdict=ok-runtime
+  services/admin/marketing-points.service.ts:265 arg=(字面量) verdict=ok-runtime
+  services/admin/notification-center.service.ts:53 arg=(字面量) verdict=ok-runtime
+  services/admin/price-management.service.ts:437 arg=(字面量) verdict=ok-runtime
+  services/admin/price-management.service.ts:631 arg=(字面量) verdict=ok-runtime
+  services/admin/print.service.ts:223 arg=(字面量) verdict=ok-inject
+  services/admin/print.service.ts:453 arg=(字面量) verdict=ok-runtime
+  services/admin/product.service.ts:729 arg=(字面量) verdict=ok-runtime
+  services/admin/quote-push.service.ts:303 arg=(字面量) verdict=ok-runtime
+  services/admin/report/product-report.service.ts:122 arg=(字面量) verdict=ok-runtime
+  services/admin/report/product-report.service.ts:234 arg=(字面量) verdict=ok-runtime
+  services/admin/report-export.service.ts:186 arg=sql verdict=ok-factory
+  services/admin/report.service.ts:586 arg=(字面量) verdict=ok-runtime
+  services/admin/stock-warning.service.ts:103 arg=(字面量) verdict=ok-runtime
+  services/admin/subscription.service.ts:130 arg=(字面量) verdict=未登记
+  services/admin/todo.service.ts:72 arg=(字面量) verdict=ok-runtime
+  services/instant-retail/retail-announcement.service.ts:158 arg=(字面量) verdict=ok-runtime
+  services/miniapp/checkout.service.ts:9 arg=sql verdict=ok-passthrough
+  services/store/inventory.service.ts:108 arg=totalSql verdict=ok-explicit
+  services/store/inventory.service.ts:115 arg=(字面量) verdict=ok-runtime
+  shared/field-sync.ts:343 arg=targetSql verdict=ok-explicit
+
+已登记的单表"字样无谓词"调用点（非阻断，注入会补正确谓词）：8 条
+  jobs/report-aggregation.job.ts:7 verdict=未登记
+  services/admin/customer-visit.service.ts:301 verdict=ok-inject
+  services/admin/print.service.ts:259 verdict=ok-inject
+  services/admin/print.service.ts:289 verdict=ok-inject
+  services/admin/subscription.service.ts:338 verdict=未登记
+  services/admin/subscription.service.ts:425 verdict=未登记
+  services/admin/subscription.service.ts:470 verdict=未登记
+  services/admin/visit-record.service.ts:220 verdict=ok-inject
+
+RED 共 23 项待处理

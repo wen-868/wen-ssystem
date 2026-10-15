@@ -1,0 +1,19 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "billNo": "XS3209A5",
+      "status": "CANCELLED",
+      "businessStatus": "VOIDED",
+      "collectionStatus": "CLOSED",
+      "reversedStock": false,
+      "reversedItems": [],
+      "source": "admin",
+      "reason": "未出库单取消",
+      "idempotent": false
+    },
+    "traceId": "495ef7ce-8ab8-42f5-8d18-65277ab05579"
+  }
+}

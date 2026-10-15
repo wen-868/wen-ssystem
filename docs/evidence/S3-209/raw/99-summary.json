@@ -1,0 +1,343 @@
+{
+  "total": 25,
+  "failed": 0,
+  "results": [
+    {
+      "name": "[1] 后端 /health 200（启动期迁移 + 种子已完成）",
+      "ok": true,
+      "soft": false
+    },
+    {
+      "name": "[2b] 立码迁移 203 真跑成功（exit 0，两遍）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "first": 0,
+        "second": 0,
+        "tail": [
+          "执行迁移: D:\\Users\\ZXQL\\wt-agents\\S3-209\\docs\\migrations\\203_销售单取消权限点.sql",
+          "迁移执行成功"
+        ]
+      }
+    },
+    {
+      "name": "[2b] 立码后 `sale:cancel` 菜单行存在且幂等（两遍行数相同且 =1）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "afterFirst": 1,
+        "afterSecond": 1
+      }
+    },
+    {
+      "name": "[3a] 四个账号均登录成功并下发 token + csrfToken",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "admin": 200,
+        "s3209_no_code": 200,
+        "s3209_cancel_only": 200,
+        "s3209_manager": 200
+      }
+    },
+    {
+      "name": "[3①] 正常取消 UNPAID ⇒ 200 + status=CANCELLED + businessStatus=VOIDED",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "data": {
+          "billNo": "XS3209A1",
+          "status": "CANCELLED",
+          "businessStatus": "VOIDED",
+          "collectionStatus": "CLOSED",
+          "reversedStock": true,
+          "reversedItems": [
+            {
+              "skuId": 11,
+              "quantity": 10
+            }
+          ],
+          "source": "admin",
+          "reason": "客户不要了",
+          "idempotent": false
+        }
+      }
+    },
+    {
+      "name": "[3①] 库存回滚真值：90 → 100（+10，与 SALE_OUT 出库量一致）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "stockBeforeA1": 90,
+        "stockAfterA1": 100,
+        "reversedStock": true
+      }
+    },
+    {
+      "name": "[3①] 落库：business_status=VOIDED + collection_status=CLOSED + void_reason 留痕",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "bill_no": "XS3209A1",
+        "business_status": "VOIDED",
+        "collection_status": "CLOSED",
+        "void_reason": "客户不要了",
+        "void_source": "admin",
+        "received_amount": "0.00"
+      }
+    },
+    {
+      "name": "[3①] 回滚流水：新增 SALE_CANCEL +10 一条（SALE_OUT 仍为原值）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "cancel": {
+          "n": 1,
+          "qty": "10"
+        },
+        "out": {
+          "n": 1,
+          "qty": "-10"
+        }
+      }
+    },
+    {
+      "name": "[3②] 幂等：第二次取消返回既有结果（idempotent=true，状态仍 CANCELLED）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "first": {
+          "billNo": "XS3209A2",
+          "status": "CANCELLED",
+          "businessStatus": "VOIDED",
+          "collectionStatus": "CLOSED",
+          "reversedStock": true,
+          "reversedItems": [
+            {
+              "skuId": 13,
+              "quantity": 4
+            }
+          ],
+          "source": "ai",
+          "reason": "AI 代取消",
+          "idempotent": false
+        },
+        "second": {
+          "billNo": "XS3209A2",
+          "status": "CANCELLED",
+          "businessStatus": "VOIDED",
+          "collectionStatus": "CLOSED",
+          "reversedStock": true,
+          "reversedItems": [],
+          "source": "ai",
+          "reason": "AI 代取消",
+          "idempotent": true
+        }
+      }
+    },
+    {
+      "name": "[3②] 幂等：库存只回滚一次（20 → 24 → 24）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "stockBeforeA2": 20,
+        "stockMidA2": 24,
+        "stockAfterA2": 24
+      }
+    },
+    {
+      "name": "[3②] 幂等：SALE_CANCEL 流水仍只有 1 条（未二次回滚）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "n": 1,
+        "qty": "4"
+      }
+    },
+    {
+      "name": "[3③] PAID ⇒ 400 + 可读文案（含「冲销」）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 400,
+        "msg": "该销售单已结清，不能直接取消，需走冲销流程"
+      }
+    },
+    {
+      "name": "[3③] PAID 被拒后零改动（状态仍 CREATED/PAID，库存 50 不变）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "billA3": {
+          "bill_no": "XS3209A3",
+          "business_status": "CREATED",
+          "collection_status": "PAID",
+          "void_reason": null,
+          "void_source": "admin",
+          "received_amount": "100.00"
+        },
+        "stockBeforeA3": 50,
+        "stockAfterA3": 50
+      }
+    },
+    {
+      "name": "[3④] 中途失败 ⇒ 报错（4xx/5xx，非 200）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 409,
+        "msg": "该记录已存在，请检查是否重复提交"
+      }
+    },
+    {
+      "name": "[3④] 中途失败 ⇒ 整体回滚：单未作废 + 库存未动（60 → 60）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "billA4": {
+          "bill_no": "XS3209A4",
+          "business_status": "CREATED",
+          "collection_status": "UNPAID",
+          "void_reason": null,
+          "void_source": "admin",
+          "received_amount": "0.00"
+        },
+        "stockBeforeA4": 60,
+        "stockAfterA4": 60
+      }
+    },
+    {
+      "name": "[3④] 中途失败 ⇒ 未新增 SALE_CANCEL 流水（仍只有预置的 1 条冲突行）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "n": 1,
+        "qty": "6"
+      }
+    },
+    {
+      "name": "[3⑤] 无 sale:cancel 的角色 ⇒ 403 + 提示需要 sale:cancel + 未落任何改动",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 403,
+        "msg": "无权限执行此操作，需要权限: sale:cancel",
+        "bill": {
+          "bill_no": "XS3209A7",
+          "business_status": "CREATED",
+          "collection_status": "UNPAID",
+          "void_reason": null,
+          "void_source": "admin",
+          "received_amount": "0.00"
+        }
+      }
+    },
+    {
+      "name": "[3⑤] 持 sale:*（域通配）⇒ 200 且该单确实被取消（对照证明非「整单不可取消」）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "businessStatus": "VOIDED"
+      }
+    },
+    {
+      "name": "[3⑤] PARTIAL（部分收款）⇒ 200 可取消",
+      "ok": true,
+      "soft": false
+    },
+    {
+      "name": "[3⑤] 未登录 ⇒ 401（认证先于授权）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "[3⑥] A 租户令牌取消 B 租户的单 ⇒ 404（不泄露存在性）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 404,
+        "msg": "销售单不存在"
+      }
+    },
+    {
+      "name": "[3⑥] B 租户的单与库存零改动",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "billB": {
+          "bill_no": "XS3209B1",
+          "business_status": "CREATED",
+          "collection_status": "UNPAID",
+          "void_reason": null,
+          "void_source": "admin",
+          "received_amount": "0.00"
+        },
+        "stockBBefore": 70,
+        "stockBAfter": 70
+      }
+    },
+    {
+      "name": "[3⑦] source='ai' 落库（void_source=ai）+ 操作日志可见来源 ai",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "void_source": "ai",
+        "after_data": {
+          "reason": "AI 代取消",
+          "source": "ai",
+          "reversedItems": [
+            {
+              "skuId": 13,
+              "quantity": 4
+            }
+          ],
+          "reversedStock": true,
+          "businessStatus": "VOIDED",
+          "collectionStatus": "CLOSED"
+        }
+      }
+    },
+    {
+      "name": "[3⑦] 缺省 source=admin 落库（void_source=admin）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "void_source": "admin",
+        "after_data": {
+          "reason": "客户不要了",
+          "source": "admin",
+          "reversedItems": [
+            {
+              "skuId": 11,
+              "quantity": 10
+            }
+          ],
+          "reversedStock": true,
+          "businessStatus": "VOIDED",
+          "collectionStatus": "CLOSED"
+        }
+      }
+    },
+    {
+      "name": "[3附] 未出库的单 ⇒ 200 + reversedStock=false（不存在凭空回滚）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "billNo": "XS3209A5",
+        "status": "CANCELLED",
+        "businessStatus": "VOIDED",
+        "collectionStatus": "CLOSED",
+        "reversedStock": false,
+        "reversedItems": [],
+        "source": "admin",
+        "reason": "未出库单取消",
+        "idempotent": false
+      }
+    }
+  ]
+}

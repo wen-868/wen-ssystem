@@ -1,0 +1,9 @@
+第一次：
+已连接数据库 root@127.0.0.1:3408/s3209_main
+执行迁移: D:\Users\ZXQL\wt-agents\S3-209\docs\migrations\203_销售单取消权限点.sql
+迁移执行成功
+
+第二次：
+已连接数据库 root@127.0.0.1:3408/s3209_main
+执行迁移: D:\Users\ZXQL\wt-agents\S3-209\docs\migrations\203_销售单取消权限点.sql
+迁移执行成功

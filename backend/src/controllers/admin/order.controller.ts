@@ -2,6 +2,7 @@ import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as orderService from "../../services/admin/order.service";
+import * as saleBillService from "../../services/store/sale-bill.service";
 import logger from "../../shared/logger";
 
 // ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
@@ -30,6 +31,15 @@ function getOperator(req: any) {
 // ── Zod schemas ──
 const cancelOrderSchema = z.object({
   reason: z.string().max(500).default(""),
+});
+
+/**
+ * 销售单取消入参（S3-209）。
+ * `source` 只允许 admin / ai —— 与 S3-204 价格历史的来源列同口径（AI 发起必须可追溯）。
+ */
+const cancelSaleBillSchema = z.object({
+  reason: z.string().max(255).optional(),
+  source: z.enum(["admin", "ai"]).default("admin"),
 });
 
 const remarkOrderSchema = z.object({
@@ -117,6 +127,29 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   const reason = body.reason;
   const { id: operatorId, name: operatorName } = getOperator(req);
   const result = await orderService.cancelOrder(orderNo, reason, operatorId, operatorName, tenantId);
+  res.json(ok(result));
+});
+
+/**
+ * S3-209：销售单取消（`POST /api/admin/sale-bills/:billNo/cancel`）
+ *
+ * 与 ORD 即时零售订单的 `cancelOrder` 分开：这条挂 `sale:cancel` 权限点（新立码），
+ * 且只有 `UNPAID` / `PARTIAL` 的销售单可取消（已结清须走冲销流程）。
+ * 入参 `source` 缺省 `admin`，AI 底座发起时传 `ai`（与 S3-204 价格历史同口径），用于追溯取消来源。
+ */
+export const cancelSaleBill = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const billNo = req.params.billNo;
+  const body = cancelSaleBillSchema.parse(req.body ?? {});
+  const { id, name } = getOperator(req);
+  const result = await saleBillService.cancelSaleBill({
+    billNo,
+    reason: body.reason,
+    source: body.source,
+    userId: id,
+    username: name,
+    tenantId,
+  });
   res.json(ok(result));
 });
 
