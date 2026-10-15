@@ -2399,3 +2399,87 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
    另注：`api/misc.ts:20`（取消拜访）、`api/sale.ts:44`（`/store/customer-statements/generate`）、`api/sale.ts:49`（`/admin/customer-payments`）三处导出**后端无对应路由或前缀不符** ⇒ 属死路径（与前端调用点漂移同族，见本条前 4 项）。
 6. **移动端「对账单」确认按钮**（12.3 的 W 类）：`app-mobile/src/pages-sub/finance/statements/statements.vue` 还调用了 `disputeStatement`（页面内本地逻辑）与 `statementApi.create/update`（模块有导出、页面未用）；若凌舟决定"对该页收口"，需同时核对菜单码 `finance:statement` 的授予面。
 
+---
+
+## 十三、S3-223 · **财务域（9 文件 / 28 写端点）**接线明细与守恒（2026-10-16）
+
+> 派单卡：`docs/tasks/inbox/ACTIVE-S3-223.md`｜判定依据留档：`docs/evidence/S3-223/01-plan-and-judgements.md`｜原始输出：`docs/evidence/S3-223/**`
+> 基线：开工时 `origin/main` = `90119ef4`（当时读数 缺口 **573 → 554**、文件 **146 → 144**）；
+> ⚠️ 开工期间 S3-222 以 PR #347 合并（`f2beb109`，573 → 531），本单已 `git merge origin/main`，
+> **合并态真值 = 缺口 531 → 512（文件 136 → 134）**，机读台账 `_counts` 按合并态重算（512 / 134）。
+
+### 13.1 接线口径（照派单卡 §二 执行，**不统一成 `finance:*`**）
+
+1. **先查两道闸再动手**（批 3 教训）：`rbac-g0-wiring.test.ts`（含 `NOT_IN_G0` 范围控制行）＋ `rbac-g1/g2-wiring.test.ts` 的「待裁名单」⇒ 本域 **9 行命中锁定**，一律不接并逐条报备；
+2. **选码只按「该端点真实使用者已持有的最细现成码」**：不新立码、不改角色种子、不动迁移；
+3. **页面角色集不可枚举的行（B 类）不硬接**：app-mobile 页面若经「我的」页/首页快捷入口无条件可达、或注册码无 `t_sys_menu` 行，接线必把看得到按钮的角色打成 403（同批 1 `trace:*` 形态）；
+4. **公开端点**（1 条）按台账口径免鉴权并逐条登记理由。
+
+### 13.2 本批已接 **19 条**（端点 / 落地码 / 真实使用者）
+
+| # | 端点 | 落地码 | 真实使用者（页面/调用点） |
+|--:|:--|:--|:--|
+| 1 | `PUT /api/admin/bank-accounts/:id` | `finance:create` | `BankAccounts.vue:294`［SUPER_ADMIN］（同文件 G1 既有码） |
+| 2 | `PUT /api/admin/commission/rules/:id` | `sale:commission` | `CommissionRules.vue:208`［SUPER_ADMIN, STORE_MANAGER］ |
+| 3 | `DELETE /api/admin/commission/rules/:id` | `sale:commission` | `CommissionRules.vue:226` |
+| 4 | `PUT /api/admin/credits/collections/:id` | `customer:credit` | 零调用方（同文件 S3-126 既有码） |
+| 5 | `POST /api/admin/credits/collections/auto-generate` | `customer:credit` | 零调用方 |
+| 6 | `POST /api/admin/credits/collections/batch-remind` | `customer:credit` | 零调用方 |
+| 7 | `PUT /api/admin/credits/:customerId/limit` | `customer:credit` | `CreditView.vue:279`［SUPER_ADMIN, STORE_MANAGER］ |
+| 8 | `PUT /api/admin/credits/:customerId/term` | `customer:credit` | 零调用方 |
+| 9 | `PUT /api/admin/expenses/:expenseNo` | `finance:create` | 零有效调用方（`expenses.ts:94` 导出无引用） |
+| 10 | `POST /api/admin/expenses/:expenseNo/approve` | `finance:create` | `ExpensesView.vue:362/374`＋app-mobile `expenses.vue:178`、`expense-detail.vue:108` |
+| 11 | `POST /api/admin/expenses/:expenseNo/void` | `finance:create` | `ExpensesView.vue:384`＋app-mobile `expenses.vue:203`、`expense-detail.vue:131` |
+| 12 | `PUT /api/payment-config/configs/:provider` | `finance:create` | `PaymentConfigView.vue:491/510`［SUPER_ADMIN］ |
+| 13 | `POST /api/payment-config/configs/:provider/test` | `finance:create` | `PaymentConfigView.vue:548` |
+| 14 | `POST /api/payment-config/bank-accounts` | `finance:create` | 无有效调用方（前端路径漂移，见 13.7） |
+| 15 | `PUT /api/payment-config/bank-accounts/:id` | `finance:create` | 同上 |
+| 16 | `DELETE /api/payment-config/bank-accounts/:id` | `finance:create` | 同上 |
+| 17 | `POST /api/payment-config/bank-accounts/:id/default` | `finance:create` | 同上 |
+| 18 | `POST /api/admin/payments-new/:paymentNo/void` | `finance:payment` | `PaymentsNewView.vue:369`［SUPER_ADMIN］（同文件既有码） |
+| 19 | `POST /api/admin/receipts/:receiptNo/void` | `finance:receipt:create` | `ReceiptsView.vue:379`［SUPER_ADMIN］＋app-mobile 收款管理 `receipts.vue:121`（`079:213` 既有按钮码） |
+
+**文件分布**：bank-account 1 ／ commission 2 ／ credit 5 ／ expense 3 ／ payment-config 6 ／ payment-new 1 ／ receipt 1 = **19**
+（`reconciliation.routes.ts`、`payment.routes.ts` 本批 0 改动）。
+
+### 13.3 本批**未接** **5 条 · B 类**（页面角色集不可枚举 ⇒ 待移动端补权限门后收编）
+
+| # | 端点 | 真实写调用点 | 锁定锚点 |
+|--:|:--|:--|:--|
+| 1 | `POST /api/admin/bank-accounts/` | app-mobile 门店管理 `stores.vue:241`（`stores.ts:141`） | `rbac-g1-wiring.test.ts:273`、`rbac-g2-wiring.test.ts:232-254` |
+| 2 | `POST /api/admin/bank-accounts/:id/close` | app-mobile `stores.vue:263` | `rbac-g1:274`、`rbac-g2:244-254` |
+| 3 | `POST /api/admin/receipts/` | app-mobile 开单页 `create-sale.vue:2202`（`receipts.ts:54`） | `rbac-g1:275`、`rbac-g2:256-266` |
+| 4 | `POST /api/admin/reconciliation/customer/:customerId/confirm` | app-mobile 对账页 `reconciliation.vue:256` | `rbac-g1:276`、`rbac-g2:268-278` |
+| 5 | `POST /api/admin/reconciliation/supplier/:supplierId/confirm` | app-mobile `reconciliation.vue:258` | `rbac-g1:277`、`rbac-g2:280-290` |
+
+### 13.4 本批**未接** **3 条 · G0 范围控制锁定**（`NOT_IN_G0` 断言 READONLY 仍 200）
+
+| # | 端点 | 锁定锚点 | 说明 |
+|--:|:--|:--|:--|
+| 1 | `POST /api/admin/credits/collections` | `rbac-g0-wiring.test.ts:702` | 接线必改该断言；本批**未获授权**⇒ 登记待裁定（同 S3-125 的 C 类处置，`rbac-g2-wiring.test.ts:600-607` 交叉印证） |
+| 2 | `POST /api/admin/commission/calculate` | `rbac-g0-wiring.test.ts:705` | 同上 |
+| 3 | `POST /api/admin/payments-new/` | `rbac-g0-wiring.test.ts:704` | 同上；且 app-mobile 开单页有写调用点（`create-sale.vue:2218`）⇒ 亦属 B 类 |
+
+### 13.5 本批**未接** **1 条 · 公开端点**
+
+| # | 端点 | 理由 |
+|--:|:--|:--|
+| 1 | `POST /api/pay/wx/callback` | 微信支付回调：微信服务器直调，无登录态、无浏览器会话 ⇒ 免鉴权；挂 `csrfMiddleware` 会把正常回调打成 403（`payment.routes.ts:18-20` 既有注释） |
+
+### 13.6 守恒与门禁（原始输出见 `docs/evidence/S3-223/`）
+
+- `node backend/scripts/guard-rbac-wiring.mjs`（**合并 S3-222 后**）⇒ 扫描 189 文件 / 763 写端点；
+  **已接线 170 → 212**、消费者端保护形态 39、**无授权形态 531 → 512**（文件 136 → **134**）；
+  本批单独在基线 90119ef4 上的读数为 已接线 151 → 170、缺口 573 → 554（146 → 144）；
+- `--strict` ⇒ **EXIT=0**（台账核对：已登记 512 ／ 未登记 0 ／ 已登记但当前无缺口 0）；
+- 机读台账 `backend/scripts/rbac-wiring-baseline.json`：`_counts` 按合并态重算（512 / 134），
+  新增 `_s3223_merge_note` 说明两个口径；仅移除本域 19 条，未动他人条目；
+- 全量 `npx vitest run` ⇒ 0 failed（读数见回执 §四）；`npx tsc --noEmit` ⇒ EXIT=0；根 `npm run build` ⇒ EXIT=0。
+
+### 13.7 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. `admin-web/src/api/finance.ts:17` 打 `PATCH /admin/bank-accounts/:id/status`、`:21/:25` 打 `/:id/transactions`——后端无此路径（调用即 404）。
+2. `PaymentConfigView.vue:466/595/598/623/633` 打 `/admin/payment/bank-accounts**`（**后端无此前缀**，实体是 `/api/payment-config/bank-accounts`）⇒ 支付配置页"银行账户"区块当前不可用；前端 `PUT .../:id/default` 与后端 `POST` 方法亦不一致。
+3. 前端死代码：`api/customer.ts:126`（`/credits/:customerId/term`）、`:145-161`（催收四方法）、`app-mobile .../expenses.ts:94`（`PUT /expenses/:expenseNo`）均导出零引用。
+4. 文档编号撞号（仅登记）：`## 十二` 在本文件出现两次（S3-220 与 S3-222 各一次，均在本次合并前落盘）；本单顺延为 `## 十三`，未改动他人章节编号。
+

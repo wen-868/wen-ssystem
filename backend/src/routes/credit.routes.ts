@@ -23,11 +23,18 @@ creditRouter.get("/strategy/tiers", creditController.getCreditTiers);
 
 // 催收管理
 creditRouter.get("/collections", creditController.getCollectionList);
+// ⚠️ S3-223 **本行不接**：`POST /api/admin/credits/collections` 落在 `rbac-g0-wiring.test.ts:702`
+// 的「范围控制」名单（断言 READONLY 仍 200）⇒ G0 锁定项，接线必改该断言，本批未获授权（见回执 §三）。
 creditRouter.post("/collections", creditController.createCollection);
-creditRouter.put("/collections/:id", creditController.updateCollection);
+// S3-223（财务域接线 · B2 批 5）：催收余下 3 行 + 额度调整 2 行，统一挂**本文件 S3-126 既有码**
+// `customer:credit`（同文件 `POST /:customerId` 等 7 行已是此码；不照台账机器建议 `finance:create`——
+// 该码持有者不含店长，而额度调整页 `CreditView.vue:279` 的页面角色含店长 ⇒ 会 403 回归，见回执 §四）。
+// 催收 3 行全仓**无前端调用点**（`createCollection/updateCollection/batchRemindCollections/auto-generate`
+// 在 `admin-web/src/api/customer.ts:145-161` 有导出、零引用）⇒ 零回归。
+creditRouter.put("/collections/:id", requirePermission("customer:credit"), creditController.updateCollection);
 creditRouter.get("/collections/overdue", creditController.getOverdueCustomers);
-creditRouter.post("/collections/auto-generate", creditController.autoGenerateCollections);
-creditRouter.post("/collections/batch-remind", creditController.batchRemind);
+creditRouter.post("/collections/auto-generate", requirePermission("customer:credit"), creditController.autoGenerateCollections);
+creditRouter.post("/collections/batch-remind", requirePermission("customer:credit"), creditController.batchRemind);
 creditRouter.get("/collections/statistics", creditController.getCollectionStatistics);
 
 // 风险客户
@@ -47,8 +54,11 @@ creditRouter.post("/:customerId/unfreeze", requirePermission("customer:credit"),
 
 // 额度调整
 // ========================================================================
-creditRouter.put("/:customerId/limit", creditAdjustController.adjustLimit);
-creditRouter.put("/:customerId/term", creditAdjustController.adjustTerm);
+// 使用者：`views/customer/CreditView.vue:279`（额度调整弹窗 → `api/customer.ts:122`）；
+// 页面 `admin-web/src/router/index.ts:163` `credit` 门禁 [SUPER_ADMIN, STORE_MANAGER]。
+// 挂 `customer:credit`（持有者 超管/运营 + 店长 `customer:*`）⇒ 页面角色 ⊆ 持有人。
+creditRouter.put("/:customerId/limit", requirePermission("customer:credit"), creditAdjustController.adjustLimit);
+creditRouter.put("/:customerId/term", requirePermission("customer:credit"), creditAdjustController.adjustTerm);
 
 // ========================================================================
 // 信用评分与风控（赊销风控引擎）

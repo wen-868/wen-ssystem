@@ -1,0 +1,2 @@
+命令：npx tsc --noEmit（工作目录 backend/）
+EXIT=0（0 = 无类型错误；本文件除本行为 tsc 原始输出）

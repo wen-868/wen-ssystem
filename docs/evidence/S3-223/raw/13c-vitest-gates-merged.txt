@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-223/backend
+
+
+ Test Files  6 passed (6)
+      Tests  810 passed (810)
+   Start at  05:32:35
+   Duration  7.59s (transform 4.84s, setup 277ms, import 23.27s, tests 9.22s, environment 1ms)
+

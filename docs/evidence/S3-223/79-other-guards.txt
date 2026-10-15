@@ -1,0 +1,141 @@
+
+=== guard-route-auth.mjs ===
+[guard:route-auth] 扫描 189 个路由文件
+✅ G3 通过：无「绕过声明式鉴权/CSRF」的路由文件（auth:"none" 的公开端点已登记 18 个文件）
+EXIT=0
+=== guard-tenant-status.mjs ===
+[guard:tenant-status] 扫描 7 个域内文件 + 唯一映射函数；机械信号发现 7 个文件（清单内 4 / 清单外已登记豁免 3 / 漏登 0）
+   · [清单内·受 R1/R2 守] services/admin/tenant.service.ts ← 信号：调用 toTenantStatusValue ×2；INSERT INTO t_tenant + status
+   · [清单内·受 R1/R2 守] services/platform-tenant.service.ts ← 信号：调用 toTenantStatusValue ×1；INSERT INTO t_tenant + status
+   · [清单外·已登记豁免（⚠️ 登记≠合规）] services/platform/tenant-admin.service.ts ← 信号：INSERT INTO t_tenant + status
+       理由：写 t_tenant：`UPDATE t_tenant SET ${fields}`（L409，**动态字段**，可能含 status）。未纳入 DOMAIN_FILES 的原因：本文件含类型联合 `status?: "ACTIVE" | "DISABLED" | "EXPIRED"`（L35）与多处读/统计语句，纳入钝刀 R1 会误伤；另：动态字段写法使「是否写了 status」静态不可判，建议收编时同批把 SQL 改成显式列。
+   · [清单内·受 R1/R2 守] services/saas/tenant.service.ts ← 信号：调用 toTenantStatusValue ×2；INSERT INTO t_tenant + status
+   · [清单内·受 R1/R2 守] services/subscription-expiry.service.ts ← 信号：调用 toTenantStatusValue ×1；UPDATE t_tenant + status
+   · [清单外·已登记豁免（⚠️ 登记≠合规）] services/tenant-register.service.ts ← 信号：INSERT INTO t_tenant + status
+       理由：租户注册审核通过时 INSERT INTO t_tenant（L253，含 status 列）—— 真实「写租户状态」路径。未纳入 DOMAIN_FILES 的原因：本文件另有 2 处 `t_tenant_register_application.status='PENDING'`（L226/386，**另一张表**的合法值），纳入钝刀 R1 会误伤。报回：随 R1 口径细化一并收编（该文件写入 t_tenant 的取值本身未发现被禁字面量）。
+   · [清单外·已登记豁免（⚠️ 登记≠合规）] shared/migration.ts ← 信号：INSERT INTO t_tenant + status
+       理由：迁移/引导 SQL（建库默认租户：INSERT INTO t_tenant 含 status 列 + UPDATE t_tenant SET name）。它是**一次性引导**，不参与租户状态的运行时口径（没有 ACTIVE/DISABLED 映射逻辑），故不属本域；其状态字面量由迁移语料自身的一致性单测（migration-*.test.ts）守。
+   · 清单内但机械信号未命中（属人工判断补入，非自动发现）：controllers/admin/tenant.controller.ts, controllers/platform/tenant.controller.ts, controllers/saas/tenant.controller.ts
+   · [已登记放行的域内命中 3 处（登记≠合规）]
+       - services/subscription-expiry.service.ts:131: "EXPIRED"（已登记上下文：t_subscription）
+       - services/saas/tenant.service.ts:339: "SUSPENDED"（已登记上下文：AS suspendedTenants）
+       - services/saas/tenant.service.ts:340: "EXPIRED"（已登记上下文：AS expiredTenants）
+✅ G2 通过：租户状态域只有 ACTIVE / DISABLED 一套口径
+EXIT=0
+=== guard-tenant-injection.mjs ===
+guard:tenant-injection（S3-207）
+  扫描根：D:\Users\ZXQL\wt-agents\S3-223
+  调用点：1744｜OK-AUTO-INJECT=557 INDIRECT-NEEDS-REVIEW=26 OK-TENANT-CONDITION=1112 OK-MARKER=9 WARN-AUTO-INJECT-JOIN=36 REVIEW-SINGLE-TABLE-INJECT=4
+  语料自检：25 例通过
+
+显式标记（已登记，每条打印理由）：9 条
+  jobs/report-aggregation.job.ts:11 marker=tenant-scope:platform ⇒ 平台级汇总作业：需要枚举全部租户（该调用第 3 实参传空串＝无调用者租户）。不显式声明则收紧判据后会被注入 tenant_id = '' ⇒ 永远返回空集、作业静默失效。
+  services/admin/subscription-renewal.service.ts:69 marker=tenant-scope:platform ⇒ 平台侧续费：按订阅 id 操作目标租户的订阅（POST /:subscriptionId/renew 亦要求 requirePlatformAuth）。
+  services/admin/subscription-renewal.service.ts:177 marker=tenant-scope:platform ⇒ 平台侧「即将到期 / 已过期订阅」列表要跨租户枚举（SELECT t.company_name AS tenantName 即多租户列表）。
+  services/admin/subscription-renewal.service.ts:200 marker=tenant-scope:platform ⇒ 平台侧「即将到期 / 已过期订阅」列表要跨租户枚举（SELECT t.company_name AS tenantName 即多租户列表）。
+  services/admin/subscription.service.ts:130 marker=tenant-scope:platform ⇒ 同上：覆盖 getSubscription（平台侧详情，按 id 跨租户）与 listSubscriptions（平台侧列表；租户条件是可选的查询筛选 filters.tenantIdQuery，不是调用者租户 —— 不带筛选时本就没有租户谓词）。
+  services/admin/subscription.service.ts:171 marker=tenant-scope:platform ⇒ 同上：覆盖 getSubscription（平台侧详情，按 id 跨租户）与 listSubscriptions（平台侧列表；租户条件是可选的查询筛选 filters.tenantIdQuery，不是调用者租户 —— 不带筛选时本就没有租户谓词）。
+  services/admin/subscription.service.ts:345 marker=tenant-scope:platform ⇒ 平台侧订阅台账（/api/platform/subscriptions-management，auth=requirePlatformAuth）：按订阅 id 跨租户读/改是功能本身。
+  services/admin/subscription.service.ts:432 marker=tenant-scope:platform ⇒ 同上（cancelSubscription / paySubscription 的单行形态，无别名）。
+  services/admin/subscription.service.ts:477 marker=tenant-scope:platform ⇒ 同上（cancelSubscription / paySubscription 的单行形态，无别名）。
+
+WARN（不阻断）自动注入 + JOIN ⇒ 注入无限定列名，第二张表也有 tenant_id 时会 1052：36 条
+  services/admin/commission.service.ts:263 SELECT cr.record_no AS recordNo, cr.bill_no AS billNo, cr.staff_id AS staffId, cr.commission_amount AS commiss
+  services/admin/credit-collection.service.ts:165 SELECT cr.id, cr.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile, cr.receivable_
+  services/admin/credit-collection.service.ts:184 SELECT COUNT(*) AS total FROM t_collection_record cr LEFT JOIN t_member m ON m.id = cr.customer_id ?
+  services/admin/credit-limit.service.ts:81 SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile, cc.credit_limi
+  services/admin/customer-care.service.ts:104 SELECT cl.id, cl.customer_id AS customerId, m.name AS customerName, cl.rule_id AS ruleId, cr.rule_name AS rule
+  services/admin/customer-lifecycle.service.ts:88 SELECT cp.customer_id AS customerId, m.name AS customerName, m.mobile, cp.lifecycle_stage AS stage, cp.last_or
+  services/admin/customer-price.service.ts:52 SELECT cp.id, cp.customer_id AS customerId, cp.sku_id AS skuId, cp.custom_price AS customPrice, cp.effective_s
+  services/admin/feedback.service.ts:70 SELECT f.*, u.real_name AS userName FROM t_system_feedback f LEFT JOIN t_sys_user u ON u.id = f.user_id WHERE 
+  services/admin/instant-retail.service.ts:883 SELECT rp.id, rp.product_id AS productId, rp.category_id AS categoryId, rp.retail_price AS retailPrice, rp.ori
+  services/admin/inventory-loss-gain.service.ts:75 SELECT lg.lg_no AS lgNo, lg.store_id AS storeId, st.name AS storeName, lg.type, lg.sku_id AS skuId, ps.sku_nam
+  services/admin/inventory-share.service.ts:196 SELECT isp.id, isp.spu_id AS spuId, isp.spu_name AS spuName, isp.sku_id AS skuId, isp.sku_name AS skuName, isp
+  services/admin/inventory-share.service.ts:210 SELECT COUNT(*) AS total FROM t_inventory_share_product isp LEFT JOIN t_product_spu p ON p.id = isp.spu_id ?
+  services/admin/marketing-calculation.service.ts:110 SELECT gbt.id, gbt.activity_id, gbt.status, gbt.target_size, gbt.current_size, gb.group_price, gb.sku_id, gb.s
+  services/admin/marketing-flash-sale.service.ts:273 SELECT fs.id, fs.name, fs.flash_price AS flashPrice, fs.original_price AS originalPrice, fs.total_stock AS tot
+  services/admin/marketing-points-mall.service.ts:154 SELECT per.*, pp.product_name, pp.product_image FROM t_points_exchange_record per LEFT JOIN t_points_product p
+  services/admin/price-review.service.ts:84 SELECT COUNT(*) AS total FROM t_product_price p JOIN t_product_sku sku ON sku.id = p.sku_id JOIN t_product_spu
+  services/admin/price-review.service.ts:93 SELECT sku.id AS skuId, spu.id AS spuId, spu.name AS productName, sku.sku_name AS skuName, spu.specs AS spec, 
+  services/admin/price-review.service.ts:159 SELECT sku.id AS skuId, spu.id AS spuId, spu.name AS productName, sku.sku_name AS skuName, spu.specs AS spec, 
+  services/admin/product-bundle.service.ts:101 SELECT b.id, b.bundle_no AS bundleNo, b.bundle_name AS bundleName, b.category_id AS categoryId, c.name AS cate
+  services/admin/purchase-contract.service.ts:43 SELECT pc.contract_no AS contractNo, pc.supplier_id AS supplierId, s.name AS supplierName, pc.contract_name AS
+  services/admin/purchase-plan.service.ts:161 SELECT pp.plan_no AS planNo, pp.supplier_id AS supplierId, s.name AS supplierName, pp.store_id AS storeId, st.
+  services/admin/report/finance-report.service.ts:171 SELECT cp.operator_id AS staffId, u.real_name AS staffName, COUNT(*) AS paymentCount, COALESCE(SUM(cp.amount),
+  services/admin/report/product-report.service.ts:141 SELECT ib.store_id AS storeId, s.name AS storeName, COUNT(DISTINCT ib.sku_id) AS skuCount, SUM(ib.physical_qty
+  services/admin/report/staff-report.service.ts:26 SELECT sb.operator_id AS id, u.real_name AS name, COUNT(DISTINCT sb.bill_no) AS orderCount, COALESCE(SUM(sb.re
+  services/admin/report-collection.service.ts:78 SELECT COUNT(DISTINCT cvl.link_no) AS cnt FROM t_collection_view_log cvl JOIN t_collection_link cl ON cl.link_
+  services/admin/report-collection.service.ts:161 SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo, cl.amount, m.name AS cust
+  services/admin/report-customer.service.ts:208 SELECT sb.customer_id AS customerId, m.name AS customerName, m.mobile, COUNT(DISTINCT sb.bill_no) AS orderCoun
+  services/admin/report.service.ts:314 SELECT ib.store_id AS storeId, s.name AS storeName, ib.sku_id AS skuId, ps.sku_name AS skuName, ps.barcode, ib
+  services/admin/report.service.ts:330 SELECT COUNT(*) AS total FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id LEFT JOIN
+  services/admin/report.service.ts:521 SELECT po.supplier_id AS supplierId, s.name AS supplierName, COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
+  services/admin/report.service.ts:566 SELECT po.supplier_id AS supplierId, s.name AS supplierName, COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
+  services/admin/supplier-statement.service.ts:216 SELECT ss.statement_no AS statementNo, ss.supplier_id AS supplierId, s.name AS supplierName, ss.start_date AS 
+  services/admin/tag.service.ts:159 SELECT t.id, t.name, t.group_id AS groupId, g.name AS groupName, g.code AS groupCode, g.is_multiple AS isMulti
+  services/instant-retail/retail-analytics.service.ts:210 SELECT roi.product_id AS productId, roi.product_name AS productName, SUM(roi.quantity) AS totalQty, SUM(roi.su
+  services/supplier.service.ts:684 SELECT COUNT(DISTINCT poi.sku_id) AS total FROM t_purchase_order po JOIN t_purchase_order_item poi ON po.order
+  services/supplier.service.ts:692 SELECT DISTINCT poi.sku_id, poi.sku_name, poi.barcode FROM t_purchase_order po JOIN t_purchase_order_item poi 
+
+已登记的插值调用点：26 条
+  config/database.ts:183 arg=sql verdict=ok-passthrough
+  config/database.ts:188 arg=sql verdict=ok-passthrough
+  services/admin/batch-price.service.ts:189 arg=(字面量) verdict=ok-runtime
+  services/admin/batch-price.service.ts:206 arg=(字面量) verdict=ok-runtime
+  services/admin/cart.service.ts:139 arg=sql verdict=ok-passthrough
+  services/admin/cart.service.ts:186 arg=sql verdict=ok-passthrough
+  services/admin/custom-report.service.ts:324 arg=(字面量) verdict=ok-runtime
+  services/admin/marketing-points.service.ts:265 arg=(字面量) verdict=ok-runtime
+  services/admin/notification-center.service.ts:53 arg=(字面量) verdict=ok-runtime
+  services/admin/price-management.service.ts:437 arg=(字面量) verdict=ok-runtime
+  services/admin/price-management.service.ts:631 arg=(字面量) verdict=ok-runtime
+  services/admin/print.service.ts:223 arg=(字面量) verdict=ok-inject
+  services/admin/print.service.ts:453 arg=(字面量) verdict=ok-runtime
+  services/admin/product.service.ts:729 arg=(字面量) verdict=ok-runtime
+  services/admin/quote-push.service.ts:303 arg=(字面量) verdict=ok-runtime
+  services/admin/report/product-report.service.ts:124 arg=(字面量) verdict=ok-runtime
+  services/admin/report/product-report.service.ts:239 arg=(字面量) verdict=ok-runtime
+  services/admin/report-export.service.ts:186 arg=sql verdict=ok-factory
+  services/admin/report.service.ts:586 arg=(字面量) verdict=ok-runtime
+  services/admin/stock-warning.service.ts:103 arg=(字面量) verdict=ok-runtime
+  services/admin/todo.service.ts:72 arg=(字面量) verdict=ok-runtime
+  services/instant-retail/retail-announcement.service.ts:158 arg=(字面量) verdict=ok-runtime
+  services/miniapp/checkout.service.ts:9 arg=sql verdict=ok-passthrough
+  services/store/inventory.service.ts:108 arg=totalSql verdict=ok-explicit
+  services/store/inventory.service.ts:115 arg=(字面量) verdict=ok-runtime
+  shared/field-sync.ts:343 arg=targetSql verdict=ok-explicit
+
+已登记的单表"字样无谓词"调用点（非阻断，注入会补正确谓词）：4 条
+  services/admin/customer-visit.service.ts:301 verdict=ok-inject
+  services/admin/print.service.ts:259 verdict=ok-inject
+  services/admin/print.service.ts:289 verdict=ok-inject
+  services/admin/visit-record.service.ts:220 verdict=ok-inject
+
+GREEN 无阻塞项
+EXIT=0
+=== guard-evidence-secrets.mjs ===
+[guard:evidence-secrets] 扫描可执行脚本 164 个（root=D:\Users\ZXQL\wt-agents\S3-223）
+   · allowlist 豁免 scripts/mysql-smoke-test.mjs:174（S3-218：`${CREDENTIAL_MISSING_HINT}` 输出的是**提示文案常量**（第 56 行值为「未配置 SMOKE_ADMIN_USERNAME/SMOKE_ADMIN_PASSWORD，冒烟无法执行」）：常量名含 CREDENTIAL，值里不含任何凭据。属判据的命名误伤，非值泄露。）
+[guard:evidence-secrets] PASS（命中 0 处 / 豁免 1 处）
+EXIT=0
+=== guard-route-prefix.mjs ===
+[guard:route-prefix] 静态扫描 189 个路由文件 / 225 条 prefix 注册（判据与白名单来自 src/shared/route-prefix-rules.js）
+   · 放行 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。
+   · 放行 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。
+   · 放行 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。
+   · 放行 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。
+   · 放行 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。
+   · 放行 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。
+   · 放行 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。
+   · 放行 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。
+   · 放行 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。
+   · 放行 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。
+   · 放行 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。
+   · 放行 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。
+✅ G36 通过：重复前缀 12 个（均已逐条登记理由，白名单 13 条）、未登记重复前缀 0 个、真重复端点 0 个
+   · ⚠️ 根前缀共享告警（只出声、不判红）4 条：/api/admin (19次)、/api/platform (3次)、/api/miniapp (2次)、/api/monitor (2次) —— 根前缀的声明式认证会覆盖整段 /api/**（含兄弟文件的公开端点与不存在的子路径）；请核对是否已按「只声明自己拥有的路径段」收窄。
+EXIT=0
+=== guard-utf8-encoding.mjs ===
+[guard:utf8-encoding] 扫描目录 9 个 / 文件 2152 个
+[guard:utf8-encoding] PASS（0 个非法字节、0 处 U+FFFD 残留）
+EXIT=0
