@@ -12,6 +12,7 @@
 | `/root/s3223_ajian` | **S3-220**（第 43 项续 · B2 批 3：商品域 45 条写端点按"使用者已持码"接线） | `docs/tasks/inbox/ACTIVE-S3-220.md` |
 | `/root/s3226_frontend` | **S3-221**（第 71 项：把 admin-web 文本 token 纳入对比度矩阵 + 三段反证）**← 换会话接手**（原 `s3224` 三次自证身份后未开工，按"不猜"纪律停住；本行已改，`s3224` 不再有效） | `docs/tasks/inbox/ACTIVE-S3-221.md` |
 | `/root/s3225_ajian` | **S3-222**（第 43 项续 · B2 批 4：客户域 45 条写端点按"使用者已持码"接线） | `docs/tasks/inbox/ACTIVE-S3-222.md` |
+| `/root/s3227_ajian` | **S3-223**（第 43 项续 · B2 批 5：财务域 28 条写端点接线） | `docs/tasks/inbox/ACTIVE-S3-223.md` |
 
 ⚠️ **其余历史单号（S3-190 ~ S3-219）全部已交付/已合并**（S3-211/212/214/215/218/219 见 §二），卡已移入 `archive/`，**不要再动它们的工作树**。
 ⚠️ **S3-214-B2（PR #343）/ S3-219（PR #344）/ S3-218（PR #345）已于 2026-10-16 合并**；其中 S3-219 的 6 项待裁定已由 `docs/tasks/cards/R101-S3-214B2与S3-219-凌舟验收与裁定.md` 逐条答复。
@@ -26,6 +27,7 @@
 | **S3-220**（第 43 项续：商品域接线，B2 批 3） | 🔄 在办（`s3223`） | `docs/tasks/inbox/ACTIVE-S3-220.md` | `wt-agents/S3-220`｜`feat/s3-220-product-domain-wiring` |
 | **S3-221**（第 71 项：admin-web 文本 token 进矩阵） | 🔄 在办（`s3226`，接手 `s3224`） | `docs/tasks/inbox/ACTIVE-S3-221.md` | `wt-agents/S3-221`｜`chore/s3-221-adminweb-token-matrix` |
 | **S3-222**（第 43 项续：客户域接线，B2 批 4） | 🔄 在办（`s3225`） | `docs/tasks/inbox/ACTIVE-S3-222.md` | `wt-agents/S3-222`｜`feat/s3-222-customer-domain-wiring` |
+| **S3-223**（第 43 项续：财务域接线，B2 批 5） | 🔄 在办（`s3227`） | `docs/tasks/inbox/ACTIVE-S3-223.md` | `wt-agents/S3-223`｜`feat/s3-223-finance-domain-wiring` |
 
 > `S3-210F1`（台账生成器 CodeQL `js/incomplete-sanitization` 两处转义修复）已并入 **PR #327**，作为 #327 的第二笔提交 `f62e0f63`；**不要再动 `wt-agents/S3-210`**（除非凌舟另派）。
 
