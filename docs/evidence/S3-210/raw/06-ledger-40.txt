@@ -1,0 +1,67 @@
+# S3-210 台账：CI 报出的 40 项 → 当前处置（机械生成，可复跑）
+
+生成命令：node docs/evidence/S3-210/tools/audit-40-items.mjs
+CI 侧读数：run 38730257760（headSha 3358a9e0，合并树 3358a9e0 + main 2fe8f109）
+当前树读数：origin/main 9dea3e39｜门禁整体：调用点：1744｜OK-AUTO-INJECT=557 INDIRECT-NEEDS-REVIEW=26 OK-TENANT-CONDITION=1112 OK-MARKER=9 WARN-AUTO-INJECT-JOIN=36 REVIEW-SINGLE-TABLE-INJECT=4｜GREEN=true
+
+## 一、21 条阻塞（BLOCK-MISSING-TENANT-CONDITION）
+
+| # | 文件:CI 行 | 当前行 | 处置 | 证据/理由 |
+|:--:|:--|:--:|:--|:--|
+| 1 | services/admin/approval-records.service.ts:372 | 373 | 补显式租户值谓词 tenant_id = ? | WHERE t.tenant_id = ? AND t.approver_id = ? AND t.task_status = ? |
+| 2 | services/admin/cart.service.ts:239 | 240 | 补显式租户值谓词 tenant_id = ? | WHERE c.tenant_id = ? |
+| 3 | services/admin/cart.service.ts:276 | 281 | 补显式租户值谓词 tenant_id = ? | `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.tenant_id = ? AND s.id = ? AND p.status = 'ON_SALE'`, |
+| 4 | services/admin/cart.service.ts:388 | 378/394 | 补显式租户值谓词 tenant_id = ? | WHERE c.tenant_id = ? AND c.customer_id = ? AND c.sku_id IN (${placeholders})`, |
+| 5 | services/admin/customer-visit.service.ts:301 | 261/302/626 | 单表查询 ⇒ 登记（注入补的正是正确谓词） | 客户拜访明细（工作台侧、租户内）⇒ 注入补谓词即正确。 |
+| 6 | services/admin/print.service.ts:259 | 224/260/290 | 单表查询 ⇒ 登记（注入补的正是正确谓词） | 按主键读打印记录（工作台侧、租户内）⇒ 注入补 `tenant_id = ?` 即正确。 |
+| 7 | services/admin/print.service.ts:289 | 224/260/290 | 单表查询 ⇒ 登记（注入补的正是正确谓词） | 按主键读打印记录（工作台侧、租户内）⇒ 注入补 `tenant_id = ?` 即正确。 |
+| 8 | services/admin/report/product-report.service.ts:173 | 176 | 补显式租户值谓词 tenant_id = ? | WHERE sb.tenant_id = ? |
+| 9 | services/admin/subscription-renewal.service.ts:69 | 70 | 平台级 ⇒ 显式标记 tenant-scope:platform | 平台侧续费：按订阅 id 操作目标租户的订阅（POST /:subscriptionId/renew 亦要求 requirePlatformAuth）。 |
+| 10 | services/admin/subscription-renewal.service.ts:175 | 178/201 | 平台级 ⇒ 显式标记 tenant-scope:platform | 平台侧续费：按订阅 id 操作目标租户的订阅（POST /:subscriptionId/renew 亦要求 requirePlatformAuth）。 |
+| 11 | services/admin/subscription-renewal.service.ts:196 | 178/201 | 平台级 ⇒ 显式标记 tenant-scope:platform | 平台侧续费：按订阅 id 操作目标租户的订阅（POST /:subscriptionId/renew 亦要求 requirePlatformAuth）。 |
+| 12 | services/admin/subscription.service.ts:167 | 131/172 | 平台级 ⇒ 显式标记 tenant-scope:platform | 平台侧订阅台账（/api/platform/subscriptions-management，auth=requirePlatformAuth）：按订阅 id 跨租户读/改是功能本身。 |
+| 13 | services/admin/subscription.service.ts:338 | 346 | 平台级 ⇒ 显式标记 tenant-scope:platform | 平台侧订阅台账（/api/platform/subscriptions-management，auth=requirePlatformAuth）：按订阅 id 跨租户读/改是功能本身。 |
+| 14 | services/admin/subscription.service.ts:425 | 433 | 平台级 ⇒ 显式标记 tenant-scope:platform | 平台侧订阅台账（/api/platform/subscriptions-management，auth=requirePlatformAuth）：按订阅 id 跨租户读/改是功能本身。 |
+| 15 | services/admin/subscription.service.ts:470 | 478 | 平台级 ⇒ 显式标记 tenant-scope:platform | 平台侧订阅台账（/api/platform/subscriptions-management，auth=requirePlatformAuth）：按订阅 id 跨租户读/改是功能本身。 |
+| 16 | services/admin/visit-record.service.ts:220 | 182/221/361 | 单表查询 ⇒ 登记（注入补的正是正确谓词） | 拜访记录明细（工作台侧、租户内）⇒ 注入补谓词即正确。 |
+| 17 | services/miniapp/cart.service.ts:33 | 34 | 补显式租户值谓词 tenant_id = ? | WHERE c.tenant_id = ? |
+| 18 | services/miniapp/cart.service.ts:70 | 74 | 补显式租户值谓词 tenant_id = ? | `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.tenant_id = ? AND s.id = ? AND p.status = 'ON_SALE'`, |
+| 19 | services/store/member.service.ts:23 | 24 | 补显式租户值谓词 tenant_id = ? | WHERE m.tenant_id = ? AND m.id = ?`, |
+| 20 | services/transfer-execution.service.ts:299 | 300/317 | 补显式租户值谓词 tenant_id = ? | WHERE to_.tenant_id = ? AND to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT') |
+| 21 | services/transfer-execution.service.ts:314 | 300/317 | 补显式租户值谓词 tenant_id = ? | WHERE to_.tenant_id = ? AND to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT') |
+
+## 二、19 条未登记非字面量（INDIRECT-UNREGISTERED）
+
+| # | 文件:CI 行 | 形态 | 处置 | 理由 |
+|:--:|:--|:--|:--|:--|
+| 1 | services/admin/batch-price.service.ts:206 | literal interps=2 | 已登记（登记表 indirect） | `WHERE ${where}` 静态展不开，但 conditions 首项就是 `pp.tenant_id = ?` ⇒ 插值后含值谓词，运行期跳过注入。真库证据：raw/30-harness-fixed.txt [5f][5g][5h]。 |
+| 2 | services/admin/cart.service.ts:373 | literal interps=1 | 已消解：已补显式租户值谓词 tenant_id = ? | WHERE c.tenant_id = ? AND c.customer_id = ? AND c.sku_id IN (${placeholders})`, |
+| 3 | services/admin/custom-report.service.ts:324 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。 |
+| 4 | services/admin/marketing-points.service.ts:265 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。 |
+| 5 | services/admin/notification-center.service.ts:53 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。 |
+| 6 | services/admin/price-management.service.ts:437 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。 |
+| 7 | services/admin/price-management.service.ts:631 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。 |
+| 8 | services/admin/print.service.ts:223 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行看不到 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。 |
+| 9 | services/admin/print.service.ts:453 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行看不到 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。 |
+| 10 | services/admin/product.service.ts:729 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。 |
+| 11 | services/admin/quote-push.service.ts:303 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。 |
+| 12 | services/admin/report/product-report.service.ts:122 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。 |
+| 13 | services/admin/report/product-report.service.ts:234 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。 |
+| 14 | services/admin/report.service.ts:586 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 2 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。 |
+| 15 | services/admin/stock-warning.service.ts:103 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 3 处（多表 ⇒ 若插值不带谓词则注入会 1052）；见 raw/77-interp-analysis.txt。 |
+| 16 | services/admin/subscription.service.ts:130 | literal interps=1 | 已消解：已补平台显式标记 tenant-scope:platform | LIMIT ? OFFSET ? /* tenant-scope:platform */`, |
+| 17 | services/admin/todo.service.ts:72 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 0 处；见 raw/77-interp-analysis.txt。 |
+| 18 | services/instant-retail/retail-announcement.service.ts:158 | literal interps=1 | 已登记（登记表 indirect） | [自动] SQL 带 `${}` 插值：上方 60 行有 `tenant_id = ?` 形态谓词；JOIN 1 处；见 raw/77-interp-analysis.txt。 |
+| 19 | services/store/inventory.service.ts:115 | literal interps=1 | 已登记（登记表 indirect） | totalSql 两分支均为显式谓词 `… FROM t_inventory_ledger WHERE tenant_id = ? [AND store_id = ?]`。 |
+
+## 三、统计
+
+- 阻塞项 21 条 / 未登记项 19 条 / 合计 40 条
+- 补显式租户值谓词 tenant_id = ?：10 条
+- 单表查询 ⇒ 登记（注入补的正是正确谓词）：4 条
+- 平台级 ⇒ 显式标记 tenant-scope:platform：7 条
+- 已登记（登记表 indirect）：17 条
+- 已消解：已补显式租户值谓词 tenant_id = ?：1 条
+- 已消解：已补平台显式标记 tenant-scope:platform：1 条
+
+## 四、未识别/异常：无

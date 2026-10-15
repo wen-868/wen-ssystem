@@ -1,0 +1,17 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "totalCount": 0,
+      "affectedCount": 0,
+      "skippedCount": 0,
+      "totalOldAmount": 0,
+      "totalNewAmount": 0,
+      "totalChangeAmount": 0,
+      "items": []
+    },
+    "traceId": "0f46194f-6f5a-41d0-9db4-0b0ec157bbd6"
+  }
+}

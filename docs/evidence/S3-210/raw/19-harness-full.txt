@@ -1,0 +1,25 @@
+[0] 库已重建：s3207_main @ 127.0.0.1:3408
+PASS  [1] 后端 /health 200（启动期迁移 + 种子已完成）
+[2] 夹具写入：SKU A=1/A2=11/B=12；销售单 10 张（A 8 张含 2 反例 / B 2 张）
+PASS  [3a] admin 登录成功（code=0 且下发 token）  :: {"status":200,"code":"0","msg":"成功"}
+PASS  [3b] 登录响应下发 csrfToken（写方法需要）  :: {"hasCsrf":true}
+[4] SQL 真值：成本 A=20986.00 / A+B=120886.00；库存 A=172096.00 / A+B=182096.00
+PASS  [5a][回归] sales-ranking?dimension=product 有该 SKU 行  :: {"id":1,"name":"S3207夹具SKU","totalQty":14,"totalAmount":1806,"receivedAmount":0,"orderCount":0}
+PASS  [5b][回归] sales-ranking customer 维度合计 = 仅 A 租户  :: {"接口":60260,"code":"0","A真值":"60260.00","含B应为":"260258.00"}
+PASS  [5c][回归] sales-ranking store 维度可用且合计 = 仅 A 租户（S3-206 的 1052 修复未回退）  :: {"code":"0","msg":"成功","接口":60260,"A真值":"60260.00","含B应为":"260258.00"}
+PASS  [5c2][回归] sales-ranking staff 维度合计 = 仅 A 租户  :: {"接口":60260,"A真值":"60260.00","含B应为":"260258.00"}
+PASS  [5d][本单①] /reports/profit 成本 = 仅 A 租户真值  :: {"status":200,"接口cost":20986,"A真值":"20986.00","含B应为":"120886.00"}
+PASS  [5e][本单②] /reports/business-overview 库存金额 = 仅 A 租户真值  :: {"status":200,"接口":172096,"A真值":"172096.00","含B应为":"182096.00"}
+PASS  [5f][本单③] batch-price 预览：A 令牌查 A 的 SKU ⇒ 命中 A 的价格行（1 条）  :: {"status":200,"接口totalCount":1,"A真值":1}
+PASS  [5g][本单③] batch-price 预览：A 令牌查 B 的 SKU ⇒ 0 条（看不到 B 的数据）  :: {"status":200,"接口totalCount":0}
+PASS  [5h][本单③] batch-price 预览：A 令牌同时查 [A,A2,B] ⇒ 只命中 A 侧真值（skuNew 无价格行 ⇒ 1 条；若泄露含 B 会变 2）  :: {"status":200,"接口totalCount":1,"A真值":1}
+PASS  [5i][对照组] /marketing/coupons/user-coupons 可用（code=0）  :: {"status":200,"code":"0"}
+PASS  [6a] 反例 P1（列对列 tenant_id = tenant_id）：改前**不注入** ⇒ 读到 A+B；改后**注入生效** ⇒ 只读到 A  :: {"改前":8,"改后":6,"A真值":6,"A_B真值":8}
+PASS  [6b] 反例 P2（finance 口径 JOIN）：改前静默读到 A+B；改后注入 ⇒ 1052 歧义（响亮失败，不再静默泄露）  :: {"改前":120886,"改后":{"ok":false,"errno":1052,"code":"ER_NON_UNIQ_ERROR","msg":"Column 'tenant_id' in where clause is ambiguous"},"含B应为":"120886.00"}
+PASS  [6c] 对照 P3（tenant_id = ?）：两侧都**不重复注入**，读数一致且 = A 真值  :: {"改前":6,"改后":6,"A真值":6}
+PASS  [6d] 对照 P4（平台标记）：两侧都跳过注入 ⇒ 枚举到全部租户（改前/改后一致）  :: {"改前行数":2,"改后行数":2}
+PASS  [7a] 第二家族（库存汇总）：补显式谓词后 ⇒ 无 1052、且金额 = 仅 A 侧真值  :: {"读数":172096,"A真值":"172096.00","A_B真值":"182096.00","err":null}
+PASS  [7b] 第二家族（库存汇总）：同一句**摘掉**显式谓词 ⇒ 注入 ⇒ 1052 歧义（证明这批修复是承重的）  :: {"err":{"errno":1052,"code":"ER_NON_UNIQ_ERROR","msg":"Column 'tenant_id' in where clause is ambiguous"}}
+PASS  [7c] 第二家族（购物车明细）：补显式谓词后 ⇒ 无 1052（空表返回空数组）  :: {"rows":0,"err":null}
+
+==== 装置结束：PASS 20 / FAIL 0 / 软失败 0 ====

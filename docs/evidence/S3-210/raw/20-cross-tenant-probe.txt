@@ -1,0 +1,16 @@
+== S3-210 逐语句真库对照（A 令牌 vs 越界 B 键；V1=已交付 SQL / V2=摘掉租户谓词）==
+夹具自检：t_cart_item A=1 行 / B=2 行
+夹具 id：tenantA=default tenantB=s3207t2 storeB=2 storeA=1 memberB=4 memberA=1 skuA=1 skuB=13
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      cart.admin.getCartList                     V0=1  V1=0  V2=1  (占位符 2/参数 2)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      cart.admin.addToCart(skuLookup)            V0=1  V1=0  V2=1  (占位符 2/参数 2)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      cart.admin.checkoutPreview(withSkuIds)     V0=1  V1=0  V2=1  (占位符 4/参数 4)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      cart.admin.checkoutPreview(noSkuIds)       V0=1  V1=0  V2=1  (占位符 3/参数 3)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      cart.miniapp.getCartList                   V0=1  V1=0  V2=1  (占位符 2/参数 2)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      cart.miniapp.addToCart(skuLookup)          V0=1  V1=0  V2=1  (占位符 2/参数 2)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      store.member.getMemberDetail               V0=1  V1=0  V2=1  (占位符 2/参数 2)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      transfer.getInTransitOrders                V0=1  V1=0  V2=1  (占位符 2/参数 2)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      transfer.getMyShipments                    V0=1  V1=0  V2=1  (占位符 2/参数 2)
+  PASS（V0≥1 可达；V1=0 阻断；V2≥1 承重）      approval.listTasks                         V0=1  V1=0  V2=1  (占位符 5/参数 5)
+  PASS（A 键真值>0；摘掉谓词读数变大 ⇒ 谓词承重）      report.getInventoryTurnover(SUM totalSalesAmount) V0=null  V1=2096  V2=202094  (占位符 2/参数 2)
+
+==== 探针结束：PASS 11 / FAIL 0 ====

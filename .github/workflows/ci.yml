@@ -104,12 +104,18 @@ jobs:
       #   红线同 G2/G3：不用 `continue-on-error`、不吞退出码、单独一步（红在哪一道看得清）。
       #   反测证据：离线夹具双侧反测 `docs/evidence/S3-207/raw/71-guard-reverse-test.txt`（4/4 PASS）
       #   与源码侧反测 `raw/50-reverse-guard-red.txt` / `raw/52-restore-guard-green.txt`。
-      # ⚠️ S3-207 观察期（凌舟 2026-10-15 裁定）：该门禁首次在 CI 的合并树上跑出 40 项待处理
-      #    （21 条阻塞 + 19 条未登记非字面量）⇒ 直接阻断会堵死所有 PR。按既有先例先转观察期
-      #    （照常打印 RED 清单、不判红），同时另立单清那 40 项；清完必须改回阻断（不得长期观察）。
-      - name: Tenant injection guard (G37, 观察期·advisory)
+      # ✅ S3-210（2026-10-15）：观察期结束，恢复**阻断**。
+      #    S3-207 那一轮 CI 报的 40 项已全部落地处置，逐条台账（规则 / 文件:行 / 判定 / 处置 / 证据）
+      #    见 `docs/evidence/S3-210/raw/06-ledger-40.txt`（由 tools/audit-40-items.mjs 机械生成、可复跑）：
+      #      21 条阻塞 = 10 条补显式租户值谓词 + 7 条平台显式标记 + 4 条单表登记；
+      #      19 条未登记插值 = 17 条登记表登记 + 2 条随"补谓词 / 加标记"消解。
+      #    按 S3-207 卡面"清完必须改回阻断（不得长期观察）"，本步骤移除 `continue-on-error`。
+      #    证据：① **CI 侧**同一合并树（headSha `382d19ce`，run 38743695375）本步骤输出 `GREEN 无阻塞项`
+      #      （raw/04-ci-382d19ce-build-and-test.log）——该 commit 与 main `9dea3e39` 的后端源码一致；
+      #      ② 本分支跑同一条命令 `EXIT=0`（raw/01-guard-main-head.txt）；
+      #      ③ 两侧反测：离线夹具（raw/07）+ 源码侧"造违规 ⇒ EXIT=1、复原 ⇒ EXIT=0"（raw/08、raw/09）。
+      - name: Tenant injection guard (G37, blocking)
         if: always()
-        continue-on-error: true
         run: node backend/scripts/guard-tenant-injection.mjs
 
       - name: Backend coverage gate (baseline 2026-08-15)
