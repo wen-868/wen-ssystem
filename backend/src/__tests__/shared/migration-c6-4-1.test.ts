@@ -55,7 +55,10 @@ const FILE_191 = `191_${MIG_191}`;
  * 编号沿革：192 = S3-144（租户建租户与归因落点补列）；193 = S3-147 预留（只加 t_shift.shift_type 列，
  * 尚未合入 main，故本分支上按文件实算的最高编号就是 194）。
  */
-const EXPECTED_MAX_MIGRATION = 201;
+// S3-209（2026-10-15）追加说明：本单新增 `202_销售单取消来源列.sql`（DDL：t_sale_bill.void_source）
+// 与 `203_销售单取消权限点.sql`（立码：sale:cancel 菜单 BUTTON 行）⇒ 本分支上按文件实算的最高编号
+// 由 201 → 203。190/191 的"各只对应一个文件 + 最高编号唯一"判据本身未变，只同步编号期望值。
+const EXPECTED_MAX_MIGRATION = 203;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);

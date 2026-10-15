@@ -667,6 +667,37 @@
 - **认证**: 需要认证
 - **Query参数**: keyword, status, dateStart, dateEnd
 
+#### POST /api/admin/sale-bills/:billNo/cancel
+- **描述**: 取消（作废）销售单 —— 作废 + 库存回滚 + 收款状态收口，**同一事务**（S3-209，跨线 P1：AI 底座
+  `cancelSalesOrder` 的唯一阻塞项；AI 侧调用口径见 `docs/ai-base/智享AI助手-写入操作规范.md` §5.2）
+- **认证 / 授权**: 需要认证（`requireAuthWithTenant`：认证 + 显式租户隔离 + CSRF）＋ **权限点 `sale:cancel`**
+  （本单新立码，登记见 `docs/migrations/203_销售单取消权限点.sql`）。
+  持有者：`SUPER_ADMIN`（`*`）、`STORE_MANAGER`（`sale:*` 域通配）⇒ 店长可取消；
+  `SALES_STAFF` / `STORE_OPERATOR`（精确码，无 `sale:*`）⇒ **403**
+- **请求体**: `{ reason?: string(≤255), source?: "admin" | "ai" }`（`source` 缺省 `admin`；AI 底座发起必须传 `ai`，
+  与 `GET /api/admin/products/:id/price-history` 的 `source` 同口径）
+- **可取消条件**: 仅收款状态 `UNPAID` / `PARTIAL`（部分收款）可取消。
+  `PAID`（已结清）⇒ **400**「该销售单已结清，不能直接取消，需走冲销流程」（**冲销流程不在本单，另立单**）；
+  `business_status = RETURNED`（已退货）⇒ **400**（退货已把库存加回过，再取消会二次回滚）；
+  其余收款状态（如 `SHARED`）⇒ **400** 并在文案里回显真实取值
+- **幂等**: 同一单**重复取消** ⇒ 返回既有结果（`idempotent:true`），**绝不二次回滚库存**
+  （状态判据 + 库存流水幂等键 `SALE_CANCEL:<billNo>:<skuId>` 唯一索引双保险）
+- **响应**: `{ code:"0", data: { billNo, status:"CANCELLED", businessStatus:"VOIDED", collectionStatus:"CLOSED",
+  reversedStock: boolean, reversedItems:[{ skuId, quantity }], source, reason, idempotent: boolean } }`
+  - **`status` vs `businessStatus`**：`status` 是接口语义层的取消结果（契约取值 `CANCELLED`）；
+    `businessStatus` 是**落库真值** `VOIDED` —— `t_sale_bill.business_status` 的既有值域是
+    `DRAFT/CREATED/COMPLETED/VOIDED/RETURNED`，且全仓 6 处统计口径（应收/提成/销售排行/班次/门店管控/平台概览）
+    均以 `NOT IN ('DRAFT','VOIDED')` 过滤 ⇒ 写 `CANCELLED` 会让已取消的单继续计入统计。
+    两者同时返回，避免调用方口径漂移
+- **库存回滚口径**: 只回滚**确实出过库**的部分（按 `t_inventory_ledger` 的 `SALE_OUT` 负流水反向汇总，回滚流水
+  `biz_type='SALE_CANCEL'`）；未出库的单 ⇒ `reversedStock:false`、库存零改动
+- **错误**: 参数校验失败 ⇒ 400 + **字段级 `errors:[{field,message,code}]`**（与 AI 侧 R101-AI-27 透传口径一致）；
+  单不存在 / 不属于本租户 ⇒ **404**（不泄露存在性）；无权限 ⇒ **403**
+- **副作用**: 写 `t_operation_log`（`module='SALE_BILL'`、`action='CANCEL'`，`before_data`/`after_data` 含
+  `source` ⇒ 取消来源可追溯）；`collection_status` 一并置 `CLOSED`（否则逾期扫描会把这单翻成 `OVERDUE`）
+- **后端文件**: `backend/src/routes/admin-order.routes.ts`（`requirePermission(PERM_SALE_CANCEL)`）
+  ＋ `controllers/admin/order.controller.ts` ＋ `services/store/sale-bill.service.ts`
+
 ---
 
 ### 日结管理

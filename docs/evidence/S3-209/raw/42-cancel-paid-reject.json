@@ -1,0 +1,20 @@
+{
+  "res": {
+    "status": 400,
+    "body": {
+      "code": "400",
+      "msg": "该销售单已结清，不能直接取消，需走冲销流程",
+      "traceId": "5f09fa02-3c57-4c88-aae5-3213a39e5bb8"
+    }
+  },
+  "stockBeforeA3": 50,
+  "stockAfterA3": 50,
+  "billA3": {
+    "bill_no": "XS3209A3",
+    "business_status": "CREATED",
+    "collection_status": "PAID",
+    "void_reason": null,
+    "void_source": "admin",
+    "received_amount": "100.00"
+  }
+}

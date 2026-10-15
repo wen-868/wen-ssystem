@@ -1,0 +1,48 @@
+{
+  "first": {
+    "status": 200,
+    "body": {
+      "code": "0",
+      "msg": "成功",
+      "data": {
+        "billNo": "XS3209A2",
+        "status": "CANCELLED",
+        "businessStatus": "VOIDED",
+        "collectionStatus": "CLOSED",
+        "reversedStock": true,
+        "reversedItems": [
+          {
+            "skuId": 13,
+            "quantity": 4
+          }
+        ],
+        "source": "ai",
+        "reason": "AI 代取消",
+        "idempotent": false
+      },
+      "traceId": "64227bf3-5355-4101-ba72-0d74d7d0f12b"
+    }
+  },
+  "second": {
+    "status": 200,
+    "body": {
+      "code": "0",
+      "msg": "成功",
+      "data": {
+        "billNo": "XS3209A2",
+        "status": "CANCELLED",
+        "businessStatus": "VOIDED",
+        "collectionStatus": "CLOSED",
+        "reversedStock": true,
+        "reversedItems": [],
+        "source": "ai",
+        "reason": "AI 代取消",
+        "idempotent": true
+      },
+      "traceId": "2661ed16-eb64-4492-8445-ac8f12de3def"
+    }
+  },
+  "stockBeforeA2": 20,
+  "stockMidA2": 24,
+  "stockAfterA2": 24
+}

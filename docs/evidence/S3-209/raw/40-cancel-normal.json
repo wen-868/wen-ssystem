@@ -1,0 +1,36 @@
+{
+  "res": {
+    "status": 200,
+    "body": {
+      "code": "0",
+      "msg": "成功",
+      "data": {
+        "billNo": "XS3209A1",
+        "status": "CANCELLED",
+        "businessStatus": "VOIDED",
+        "collectionStatus": "CLOSED",
+        "reversedStock": true,
+        "reversedItems": [
+          {
+            "skuId": 11,
+            "quantity": 10
+          }
+        ],
+        "source": "admin",
+        "reason": "客户不要了",
+        "idempotent": false
+      },
+      "traceId": "44c3b260-a267-47da-857a-0b408f50eb5d"
+    }
+  },
+  "stockBeforeA1": 90,
+  "stockAfterA1": 100,
+  "billA1": {
+    "bill_no": "XS3209A1",
+    "business_status": "VOIDED",
+    "collection_status": "CLOSED",
+    "void_reason": "客户不要了",
+    "void_source": "admin",
+    "received_amount": "0.00"
+  }
+}

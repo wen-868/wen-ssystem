@@ -1,0 +1,20 @@
+{
+  "res": {
+    "status": 404,
+    "body": {
+      "code": "404",
+      "msg": "销售单不存在",
+      "traceId": "1db6a7ac-a083-4924-85a8-cc9046e730f3"
+    }
+  },
+  "stockBBefore": 70,
+  "stockBAfter": 70,
+  "billB": {
+    "bill_no": "XS3209B1",
+    "business_status": "CREATED",
+    "collection_status": "UNPAID",
+    "void_reason": null,
+    "void_source": "admin",
+    "received_amount": "0.00"
+  }
+}

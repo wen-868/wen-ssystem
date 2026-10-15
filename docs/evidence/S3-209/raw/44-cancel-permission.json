@@ -1,0 +1,50 @@
+{
+  "noCode": {
+    "status": 403,
+    "body": {
+      "code": "403",
+      "msg": "无权限执行此操作，需要权限: sale:cancel",
+      "traceId": "6e41b311-a130-4c22-9549-f9fca162dbe8"
+    }
+  },
+  "noCodeBillAfter": {
+    "bill_no": "XS3209A7",
+    "business_status": "CREATED",
+    "collection_status": "UNPAID",
+    "void_reason": null,
+    "void_source": "admin",
+    "received_amount": "0.00"
+  },
+  "withCode": {
+    "status": 200,
+    "body": {
+      "code": "0",
+      "msg": "成功",
+      "data": {
+        "billNo": "XS3209A7",
+        "status": "CANCELLED",
+        "businessStatus": "VOIDED",
+        "collectionStatus": "CLOSED",
+        "reversedStock": true,
+        "reversedItems": [
+          {
+            "skuId": 18,
+            "quantity": 2
+          }
+        ],
+        "source": "admin",
+        "reason": "有码取消",
+        "idempotent": false
+      },
+      "traceId": "fe322ff8-3857-4dcd-ad9a-7870dabc3962"
+    }
+  },
+  "withCodeBillAfter": {
+    "bill_no": "XS3209A7",
+    "business_status": "VOIDED",
+    "collection_status": "CLOSED",
+    "void_reason": "有码取消",
+    "void_source": "admin",
+    "received_amount": "0.00"
+  }
+}
