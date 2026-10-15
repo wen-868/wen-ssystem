@@ -53,7 +53,9 @@ jobs:
       - name: Start admin-web dev server
         run: |
           VITE_API_BASE=/api VITE_API_PROXY_TARGET=http://127.0.0.1:8080 npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
-          npx wait-on -t 90000 http://127.0.0.1:5173
+          # S3-50 RT：wait-on 目标改成无人监听的 5175（dev server 仍起在 5173）⇒ 证明该步骤自身会红
+          #   （红测分支，取证后关闭删除）
+          npx wait-on -t 90000 http://127.0.0.1:5175
 
       - name: Start saas-admin dev server
         run: |
