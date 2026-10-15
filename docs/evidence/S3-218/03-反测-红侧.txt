@@ -1,0 +1,12 @@
+[guard:evidence-secrets] 扫描可执行脚本 2 个（root=C:\Users\XIONG\AppData\Local\Temp\s3-218-neg-2059053450\red）
+✗ 命中 2 处（敏感键的值被写进日志/证据）：
+   - backend/scripts/demo-inject.mjs:18:1  标识符 DEMO_PASSWORD  规则 R1：敏感键的值经「模板插值」写进日志
+       18 | console.log(`DEMO_PASSWORD=${DEMO_PASSWORD}`);
+       改法：只留来源/结论（如 `x ? "已配置" : "未配置"`、`x.length`、`Boolean(x)`），
+             或写脱敏占位（含 `已脱敏`/`<masked>`/`****`），或在 ALLOWLIST 具名登记理由。
+   - backend/scripts/demo-inject.mjs:19:1  标识符 API_TOKEN  规则 R1：敏感键的值经「模板插值」写进日志
+       19 | say(`TOKEN=${process.env.API_TOKEN}`);
+       改法：只留来源/结论（如 `x ? "已配置" : "未配置"`、`x.length`、`Boolean(x)`），
+             或写脱敏占位（含 `已脱敏`/`<masked>`/`****`），或在 ALLOWLIST 具名登记理由。
+   ! warn：allowlist 登记项 scripts/mysql-smoke-test.mjs:174（S3-218）全程 0 命中 —— 选择器可能已失效，请复核（不判红）
+[guard:evidence-secrets] FAIL（命中 2 处）

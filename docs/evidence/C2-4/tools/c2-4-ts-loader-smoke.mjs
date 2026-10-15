@@ -12,7 +12,9 @@ process.env.JWT_SECRET = "c2-4-smoke-secret";
 try {
   const { env } = await import("../../../../backend/src/config/env.ts");
   const { PLATFORM_JWT_ISSUER } = await import("../../../../backend/src/middleware/auth.ts");
-  console.log(`SMOKE_OK import backend TS 成功：USE_MOCK_DB=${env.USE_MOCK_DB} JWT_SECRET=${env.JWT_SECRET} iss=${PLATFORM_JWT_ISSUER}`);
+  // S3-218 收口（口径同收口总清单第 69 项）：证据/日志不得承载敏感键的**值**。
+  // 本行用途只是证明"后端 TS 的 env 已被加载"，值本身与判据无关 ⇒ 只留结论，不回显值。
+  console.log(`SMOKE_OK import backend TS 成功：USE_MOCK_DB=${env.USE_MOCK_DB} JWT_SECRET=${env.JWT_SECRET ? "已配置" : "未配置"} iss=${PLATFORM_JWT_ISSUER}`);
   process.exit(0);
 } catch (err) {
   console.log(`SMOKE_FAIL ${err?.name}: ${err?.message}`);
