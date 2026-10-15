@@ -93,4 +93,10 @@ npx tsc -p tsconfig.json --noEmit              # EXIT=0
 `node_modules` = junction（删掉即可 `npm ci` 独立安装）；已在**本分支**提交（哈希见下），未 push / 未开 PR；
 未触碰其它单工作树与主检出工作区。
 
+> **基线漂移报备（不阻塞合并）**：本单开工时 `origin/main` = `11f4af48`；施工期间（工作树共享同一 `.git` refs）
+> `origin/main` 已推进到 **`26c2aebc`**（新增 3 笔**纯文档**提交：立 S3-222 卡、S3-221 换会话、路由表身份口径），
+> 改动文件仅 `docs/tasks/inbox/ACTIVE.md` 与 `docs/tasks/inbox/ACTIVE-S3-222.md`，**与本单零文件重叠**。
+> 本分支**未 rebase**（保留 `11f4af48` 为基线，以便回传卡里引用的提交哈希 `51a52758` 仍然有效）；
+> 合并时按常规 merge 即可，无冲突面。
+
 派单人：凌舟（总负责人）｜2026-10-16　　执行方：阿坚（后端/权限 · `/root/s3223_ajian`）｜2026-10-16
