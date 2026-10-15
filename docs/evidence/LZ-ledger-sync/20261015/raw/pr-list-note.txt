@@ -1,0 +1,1 @@
+见任务书 §2.1 表；pr-list-merged.json 为原始数据（含 mergeCommit）
