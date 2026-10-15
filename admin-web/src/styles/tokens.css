@@ -92,14 +92,19 @@
         2026-09-20 逐控件渲染值矩阵实测：.el-input__wrapper / .el-select__wrapper / .el-textarea__inner 三者的 computed 边框色均随 --el-border-color 变化（EP 同特异性后置规则覆盖了我们这两条），故本 token 当前在渲染上为被覆盖态；裁定仍将其同值化为 #888888 作分层防御。 */
   --text-placeholder: #6D6D6D;
   --text-inverse: #FFFFFF;
-  --text-link: #3F6FEF;
+  /* S3-221（第 71 项裁定）：原 #3F6FEF 在白底仅 4.44:1、#f7f7f7 4.14、#f0f0f0 3.89 ⇒ 不达 AA 4.5。
+     改 #365FCE（同文件既有 AA 变体）：白底 5.70 / #f7f7f7 5.32 / #f0f0f0 5.00。本 token 在 admin-web 内当前 0 处引用（死 token），改值零视觉影响。 */
+  --text-link: #365FCE;
 
   /* 侧边栏文字（R74 浅色侧栏：深色文字） */
   --sidebar-text-primary: #222222;
   --sidebar-text-secondary: #555555;
   /* S3-47：同 --text-muted。#6D6D6D 在 --bg-sidebar #FAFAFA 上为 4.96:1（原 #999999 仅 2.73:1） */
   --sidebar-text-muted: #6d6d6d;
-  --sidebar-text-active: #3F6FEF;
+  /* S3-221（第 71 项裁定）：原 #3F6FEF 在真实底 --frost-sidebar #F7F8FA 上 4.18、在激活态相邻面
+     --color-primary-soft(12%) 合成底 #E4E9F9 上仅 3.66 ⇒ 不达 AA。改 #365FCE：4.70（合成底）/ 5.36（侧栏底）。
+     影响面：MainLayout.vue:858/925 激活态导航文字（13px）比品牌蓝深一档——为达标所需的有意变更。 */
+  --sidebar-text-active: #365FCE;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Background — 灰+白搭配

@@ -1,0 +1,26 @@
+# S3-221 · 「顺带核对」：e2e.yml 里跑的就是本脚本（判据 §四.4）
+
+命令（只读）：
+
+```
+rg -n -B6 -A4 "contrast-check" .github/workflows/e2e.yml
+```
+
+原始输出（节选，行号为文件真实行号）：
+
+```
+106:      - name: saas-admin a11y gate (contrast matrix)
+107:        # 纯计算、不依赖浏览器：读取 tokens.css / theme.ts 真实取值，构建 token×surface 矩阵，
+108:        # 任一 token 不达标即 exit 1。这是 saas-admin 当前的 a11y 门禁（浏览器 axe 待进场脚本就绪）。
+109:        run: node scripts/contrast-check.cjs
+```
+
+## 结论
+
+1. **无需改 workflow**：required check `e2e` 的 job 内，第 106~109 行这一步跑的正是本脚本
+   `node scripts/contrast-check.cjs`；扩面后 admin-web 文本 token 自动进入这条既有门禁，
+   `.github/**` **零改动**（派单卡 §四.4 的核对结论：不需要改）。
+2. **一处仅属措辞的偏差（报备，不自行处理）**：该步骤名仍叫 `saas-admin a11y gate (contrast matrix)`，
+   现在它同时覆盖 admin-web 文本 token，名字已不完整。改名属 `.github/**`（本单红线），
+   是否改名请凌舟裁定（注意 AGENTS.md 分支保护条款：改 job/step 名不得影响 required check 名 `e2e`；
+   这里改的是 **step** 名而非 job 名，但按纪律仍由凌舟决定与执行）。

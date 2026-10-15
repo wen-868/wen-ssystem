@@ -1,0 +1,73 @@
+# S3-221 · 凌舟裁定执行（2026-10-16）：两个 token 修值 + 纳入失败判定 + escapeForRegExp 修复
+
+## 0. 裁定与执行摘要
+
+- 裁定 = 原选项 (b)：`--text-link` 与 `--sidebar-text-active` **都修值**，并**都纳入失败判定**；保留"真实侧栏底 `#F7F8FA`"的表面建模，并**新增**激活态真实相邻面 `#E4E9F9`（= `--color-primary-soft` 12% 合成底）。
+- 修值：两个 token 的 `#3F6FEF` → **`#365FCE`**（同文件既有 AA 变体，写**字面量**）。
+- 执行人：**凌舟**（本单执行方会话通道两次未能续跑；门禁脚本属凌舟职权范围，故由凌舟接手收口，执行方原始交付 `8dd3ddf1` 完整保留）。
+
+## 1. 修值后基线（命令：`node scripts/contrast-check.cjs`）
+
+```
+✅ 对比度矩阵全部达标：共 49 个 token×surface 组合（文本 ≥ 4.5:1，非文本 UI ≥ 3:1）      EXIT=0
+```
+
+新增/转正的四行（逐面实测）：
+
+```
+| admin-web token | --text-link #365FCE | 白底 #FFFFFF                      | 5.70:1 | 4.5 | PASS |
+| admin-web token | --text-link #365FCE | #f7f7f7(--g0/--bg-page)           | 5.32:1 | 4.5 | PASS |
+| admin-web token | --text-link #365FCE | #f0f0f0(--bg-soft 最严边界)        | 5.00:1 | 4.5 | PASS |
+| admin-web token | --sidebar-text-active #365FCE | #F7F8FA(--frost-sidebar 工作台侧栏真实底) | 5.36:1 | 4.5 | PASS |
+| admin-web token | --sidebar-text-active #365FCE | #E4E9F9(--color-primary-soft 12% 合成底) | 4.70:1 | 4.5 | PASS |
+```
+
+## 2. 反证 A：改坏 `--text-muted` ⇒ 必须红（**就是第 13 项那次"全绿"的场景**）
+
+```
+--text-muted: #6d6d6d → #cccccc
+| admin-web token | --text-muted #CCCCCC | 白底 #FFFFFF               | 1.61:1 | 4.5 | FAIL |
+| admin-web token | --text-muted #CCCCCC | #f7f7f7(--g0/--bg-page)    | 1.50:1 | 4.5 | FAIL |
+| admin-web token | --text-muted #CCCCCC | #f0f0f0(--bg-soft 最严边界) | 1.41:1 | 4.5 | FAIL |
+❌ 对比度矩阵存在 3 个不达标项…          EXIT=1
+```
+
+> 对照：第 13 项取证时（run 38788778207），同样的改法让**对比度矩阵与 a11y 取样都保持绿**。现在矩阵会红 ⇒ **第 71 项的盲区已闭环**。
+
+## 3. 反证 B：把 `--sidebar-text-active` 退回旧值 ⇒ 必须红（证明"新判定有分辨力"且"旧值真的不达标"）
+
+```
+--sidebar-text-active: #365FCE → #3F6FEF（旧值）
+| admin-web token | --sidebar-text-active #3F6FEF | #F7F8FA(--frost-sidebar …)            | 4.18:1 | 4.5 | FAIL |
+| admin-web token | --sidebar-text-active #3F6FEF | #E4E9F9(--color-primary-soft 12% 合成底) | 3.66:1 | 4.5 | FAIL |
+❌ 对比度矩阵存在 2 个不达标项…          EXIT=1
+```
+
+## 4. 复原与自证
+
+```
+node scripts/contrast-check.cjs    ⇒ EXIT=0（49 组合全 PASS）
+node --check scripts/contrast-check.cjs ⇒ EXIT=0
+git diff -- admin-web/src/styles/tokens.css ⇒ 仅两个 token 行 + 注释（其余逐字节未动）
+```
+
+## 5. 顺手修复（门禁脚本旧缺陷，**main 上已存在**）
+
+`scripts/contrast-check.cjs` 的 `escapeForRegExp()` 替换串曾被前一次编辑吞掉，写成了一段注释文本：
+
+```js
+// 改前（错误，替换串是注释文本）：
+return s.replace(/[.*+?^${}()|[\]\\]/g, "\\// ── 解析（读取真实文件取值）─────────────────────────");
+// 改后（正确：整段匹配回填）：
+return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+```
+
+影响面：现有 token 名不含正则元字符 ⇒ 一直**零影响**；但将来任何含 `.`/`-`/`(` 等的 token 名会被误判成"token 未找到"而假红。已在同批修复并 `node --check` 通过（`git show origin/main:scripts/contrast-check.cjs` 可复核该缺陷在 main 即存在，非本单引入）。
+
+## 6. 复跑命令
+
+```powershell
+cd D:\Users\ZXQL\wt-agents\S3-221
+node scripts/contrast-check.cjs            # 期望 EXIT=0，49 组合
+node --check scripts/contrast-check.cjs    # 期望 EXIT=0
+```

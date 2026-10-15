@@ -1,0 +1,18 @@
+# S3-221 · admin-web/src/styles/tokens.css 临时改动与复原校验（哈希链）
+
+- 文件：`admin-web/src/styles/tokens.css`
+- 动手前 sha256：`C7036E3BC0DAEC714E6C95789C299E583EA8E8DD3A944C291D88414DF649D46F`
+- 复原后 sha256：`C7036E3BC0DAEC714E6C95789C299E583EA8E8DD3A944C291D88414DF649D46F` ⇒ **MATCH = TRUE**
+- 复原后 `git diff --name-only -- admin-web/src/styles/tokens.css` ⇒ **0 个文件**
+  （即该文件与 HEAD 完全一致，字节级复原）
+
+## 临时改动（反测用，用完即复原；未提交、未入库）
+
+| 次序 | 改动 | 用途 | 证据文件 |
+|:--|:--|:--|:--|
+| 1 | `--text-muted: #6d6d6d` → `#cccccc` | 红侧反测（第 13 项同款坏值） | `02-red-muted-cccccc.txt` |
+| 2 | `--text-muted: #cccccc` → `#bbbbbb` | 换值再红（证明读真实取值） | `04-red-muted-bbbbbb.txt` |
+| 3 | `--text-muted: #bbbbbb` → `#6d6d6d` | 复原（字节级一致） | `03-green-restore.txt` |
+
+**结论**：本单**未改动** `admin-web/src/styles/tokens.css` 的任何取值（派单卡 §四.2 红线已遵守）；
+复跑命令：`Get-FileHash admin-web/src/styles/tokens.css -Algorithm SHA256`、`git diff -- admin-web/src/styles/tokens.css`。
