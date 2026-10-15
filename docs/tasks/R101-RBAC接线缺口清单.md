@@ -833,14 +833,26 @@
 
 ### 三.15 小程序 / 移动端域（6 文件 / 49 端点）
 
-**marketing-miniapp.routes.ts**（4 处）
+> ⚠️ **2026-10-15（S3-205 / 总清单第 68 项）起本域口径有变**：`POST/PUT/DELETE /api/miniapp/**` 这类
+> **消费者端**写端点，凡同一挂载调用里挂了 `requireConsumerAuthWithTenant` + `csrfMiddleware` 的，
+> **一律改为「消费者端保护形态」——不适用商家权限码、不计入缺口**（凌舟裁定，逐条清单与守恒见
+> 本文件 §十）。故下表 `miniapp.routes.ts` 中判「管理面 / 是」的行**已由 §十 更正**，本表保留原始盘点
+> 供对照（**不要**据本表把消费者端端点接上商家权限码：消费者 `roles` 恒空，接了必 403）。
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/miniapp/marketing/coupons/claim` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
-| `POST /api/miniapp/marketing/flash-sales/grab` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
-| `POST /api/miniapp/marketing/group-buys/teams/join` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
-| `POST /api/miniapp/marketing/calculate` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
+**marketing-miniapp.routes.ts**（4 处，**已更正**）
+
+| METHOD 路径（**按端点路径匹配，不按行号**） | 文件:行 | 判定 | 该不该要权限 | 依据 |
+|:--|:--|:--|:--|:--|
+| `POST /api/miniapp/marketing/coupons/:templateId/claim` | `marketing-miniapp.routes.ts:61` | **消费者端**（原判「管理面」有误） | **否** | 受 `requireConsumerAuthWithTenant` + `csrfMiddleware` + `bindSelfIdentity` 保护；商家权限码不适用 |
+| `POST /api/miniapp/marketing/flash-sale/:id/buy` | `marketing-miniapp.routes.ts:78` | **消费者端**（原判「管理面」有误） | **否** | 同上 |
+| `POST /api/miniapp/marketing/group-buy/:teamId/join` | `marketing-miniapp.routes.ts:86` | **消费者端**（原判「管理面」有误） | **否** | 同上 |
+| `POST /api/miniapp/marketing/calculate` | `marketing-miniapp.routes.ts:90` | **消费者端**（原判「管理面」有误） | **否** | 同上（试算不落库，但 S3-178 起同族写端点一律补认证 + CSRF） |
+
+> **路径更正说明（行号已漂移，改按路径匹配）**：本表原三条路径
+> `/coupons/claim`、`/flash-sales/grab`、`/group-buys/teams/join` 是**更名前**的形态——
+> S3-187（`67beff76`）按契约把它改成带参形态 `/coupons/:templateId/claim`、`/flash-sale/:id/buy`、
+> `/group-buy/:teamId/join`；卡面写的 `:55/72/80` 也已漂移，**真实注册行为 61/78/86/90**
+> （`rg -n 'requireConsumerAuthWithTenant' backend/src/routes/marketing-miniapp.routes.ts` 可复算）。
 
 **miniapp-config.routes.ts**（4 处）
 
@@ -1901,4 +1913,102 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 | §二.④ 台账同步 S3-187 改名 3 条键 ⇒ **认可** | ✅ 保留（条数相抵、未洗绿） | §9.4 台账同步说明 |
 | §二.⑤ `data-transfer` 用 `store:transfer` 语义偏宽 ⇒ 保留保留意见，记「待细化」 | ✅ 已记：本条标注「**待细化**（语义偏宽，建议后续改 `data:import` 类细码）」 | §9.2 第 1–2 行说明 / 回执 §七.1 |
 | §三 返工后判据：`--strict` EXIT=0 + 守恒自洽 + 逐条列码与持有证据 + 全量门禁 + 反测两侧齐 | ✅ 全部满足（返工后复跑：`--strict` EXIT=0、vitest 0 failed、tsc 0、三条 guard EXIT=0、build EXIT=0；反测 A/B 两侧齐） | 回执 §九「返工回执」 |
+
+---
+
+## 十、S3-205（总清单第 68 项）· **消费者端保护形态**收口与台账三分（2026-10-15）
+
+> 产出：阿坚（后端 · 本地子代理通道）｜2026-10-15｜汇报对象：凌舟（总负责人）
+> 依据：派单卡 `docs/tasks/inbox/ACTIVE-S3-205.md`（卡内 §三 已含凌舟 2026-10-15 裁定）
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-205`，分支 `chore/s3-205-script-hygiene`，基线 `origin/main` = `36a7a02f`
+> 机读镜像：`backend/scripts/rbac-wiring-baseline.json`（本单起分 `gaps` / `consumerEnd` 两栏）
+
+### 10.1 判定（凌舟裁定，逐条复核无误）
+
+`marketing-miniapp.routes.ts` 的 3 条写端点（外加同族的 `POST /calculate`）**判「登记豁免」，不补权限码**：
+
+1. **它们不是管理面**：受 `requireConsumerAuthWithTenant` + `csrfMiddleware` + `bindSelfIdentity` 保护，
+   身份一律取登录态（客户端自带 `userId` 与登录态不一致 ⇒ 403），被操作对象的**归属与存在性**由服务层
+   `tenant_id = ?` + 命中不到即 404 承担（`marketing-coupon.service.ts:459/466` 等）。
+2. **套商家权限码会打成 403**：消费者身份经 S3-196 的 `requireConsumerAuthWithTenant` 解析为**绑定的会员身份**，
+   `roles` **恒空** ⇒ 任何 `requirePermission(...)` 在消费者身份上都不会命中。同型教训已发生过两次：
+   S3-203 的 `trace:*`（生产 `t_sys_role.permissions` 无持有者 ⇒ 接线即 403）、S3-198 §9.3 第 15 号的
+   `POST /api/miniapp/trace/c/verify`（台账误判「管理面」，同样因无 `req.user` 会造成 401/403）。
+3. **是否要生产实测**：**不需要**——本案判据是「消费者身份 ⇒ `roles` 恒空 ⇒ 商家码必然不命中」，与
+   生产库里商家角色持有什么都无关（`--holders` 只对商家角色有意义）。故本单**未做**生产库读取。
+
+### 10.2 门禁判据变更（`backend/scripts/guard-rbac-wiring.mjs`）
+
+新增第三类形态，**写端点由二分改为三分**：
+
+| `authForm` | 含义 | 是否计入缺口 |
+|:--|:--|:--|
+| `inline` / `use-mount` | 挂了 `requirePermission(...)`（租户）或 `requirePlatformPermission(...)`（平台） | 否（已接线） |
+| **`consumer`** | 同一挂载调用里 **`requireConsumerAuthWithTenant` 与 `csrfMiddleware` 成对出现** | 否（**消费者端保护形态**，逐条登记在 `consumerEnd`） |
+| `none` | 无任何上述形态 | **是**（真缺口，登记在 `gaps`） |
+
+**两处刻意从严（不做「套上就自动绿」）**：
+
+1. **必须成对**：只挂消费者认证而**没有 CSRF** 的写端点**仍记 `gaps`**（认证≠授权；状态变更无 CSRF 是实缺口）。
+2. **必须逐条登记**：消费者端形态未登记在 `consumerEnd` ⇒ `--strict` **必红**（否则新写端点只要抄这两个
+   中间件就自动洗绿）。
+
+> 判据不认 `requireWxAuth` 等其它认证中间件；`routeConfig` 声明式仍一律按「只挂认证」处理（认证≠授权）。
+
+### 10.3 全量影响面（**39 条 / 4 文件**，逐条；行号按当前代码）
+
+| 文件 | 条数 | 端点（行号） |
+|:--|--:|:--|
+| `marketing-miniapp.routes.ts` | 4 | `POST /coupons/:templateId/claim`(61)、`POST /flash-sale/:id/buy`(78)、`POST /group-buy/:teamId/join`(86)、`POST /calculate`(90) |
+| `miniapp.routes.ts` | 29 | `POST /cart`(30)、`PUT /cart/:id`(31)、`DELETE /cart/:id`(32)、`DELETE /cart`(33)、`POST /orders`(36)、`POST /orders/:id/pay`(39)、`POST /orders/:id/cancel`(40)、`POST /orders/:id/confirm-receive`(41)、`PUT /orders/:id/delete`(44)、`POST /stored-card/recharge`(54)、`PUT /user/profile`(58)、`POST /user/addresses`(60)、`PUT /user/addresses/:id`(61)、`DELETE /user/addresses/:id`(62)、`POST /user/addresses/:id/default`(63)、`POST /coupons/:id/use`(68)、`POST /member/coupons/:id/receive`(76)、`PUT /user/profile-update`(79)、`POST /user/change-password`(80)、`POST /wholesale/cart`(87)、`PUT /wholesale/cart/:id`(88)、`DELETE /wholesale/cart/:id`(89)、`POST /wholesale/orders`(90)、`POST /wholesale/cart/delete`(94)、`PUT /wholesale/cart/:itemId/select`(95)、`PUT /wholesale/cart/select-all`(96)、`POST /wholesale/orders/:orderId/cancel`(97)、`POST /wholesale/orders/:orderId/confirm-receive`(98)、`POST /wholesale/orders/buy-now`(100)（前缀均为 `/api/miniapp`） |
+| `aftersale.routes.ts` | 4 | `POST /api/miniapp/aftersales`(26)、`POST /api/miniapp/aftersales/:aftersaleNo/cancel`(33)、`POST /api/miniapp/aftersales/:aftersaleNo/return-logistics`(35)、`POST /api/miniapp/aftersales/:aftersaleNo/rate`(40) |
+| `notification.routes.ts` | 2 | `PUT /api/miniapp/notifications/:id/read`(29)、`POST /api/miniapp/notifications/read-all`(30) |
+
+**逐条更正本清单中已被推翻的行**（保留原表供对照，判定以本节为准）：
+
+| 位置 | 更正内容 |
+|:--|:--|
+| §三.15 `marketing-miniapp.routes.ts` 表 | **已就地更正**（路径改带参形态、判定改「消费者端」、补 `文件:行`） |
+| §三.5 `aftersale.routes.ts` 第 **382–385** 行 | 4 条小程序售后写端点：判定「管理面/是」⇒ **消费者端/否**（原建议码 `sale:create`/`sale:void`/`sale:return` **作废**，接了必 403） |
+| §三.9 `notification.routes.ts` 第 **1186–1187** 行 | 2 条小程序通知写端点：判定「管理面/是」⇒ **消费者端/否** |
+| §三.15 `miniapp.routes.ts` 表 | 其中 **29 行**归入消费者端形态；原判「管理面/是」的行（购物车/订单/充值/券/批发车等）判定结论改为「否，不适用商家权限码」 |
+
+### 10.4 守恒（可复算：`node backend/scripts/guard-rbac-wiring.mjs`）
+
+| 指标 | 本单前（`36a7a02f`） | 本单后 | 说明 |
+|:--|--:|--:|:--|
+| 扫描写端点总数 | 762 | 762 | 不变 |
+| 已接线（权限码） | 82 | 82 | 不变 |
+| **消费者端保护形态** | 0（未识别） | **39** | 新增第三类 |
+| **无授权形态（缺口）** | **680** | **641** | −39，即识别出的消费者端形态 |
+| 台账 `gaps` | 680 条 / 156 文件 | 641 条 / 155 文件 | 移出 39 条 |
+| 台账 `consumerEnd` | — | **39 条 / 4 文件** | 新增逐条登记 |
+| `--strict` | EXIT=0 | **EXIT=0** | 见 10.5 |
+
+> **守恒式**：`680 = 641 + 39`（**一条不多、一条不少**）。**这不是「把基线数字改大」**：39 条是
+> **从「待接线欠账」改判为「不适用商家权限码」**，同一提交里同步移出 `gaps`、登记进 `consumerEnd`，
+> 且 `consumerEnd` 未登记即判红——缺口口径**净减 39**，剩余 641 条欠账一条未洗白。
+
+### 10.5 反测（门禁铁律：故意制造失败，证明它会红）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A 摘消费者认证 | `marketing-miniapp.routes.ts:61` 去掉 `requireConsumerAuthWithTenant`（CSRF 仍在） | **EXIT=1**，报 `未登记：marketing-miniapp.routes.ts:61 POST /api/miniapp/marketing/coupons/:templateId/claim`；复原 ⇒ EXIT=0 | `docs/evidence/S3-205/logs/06-item68-neg-A-no-consumer-auth.log` |
+| B 摘 CSRF（验「必须成对」） | 同一条去掉 `csrfMiddleware`（消费者认证仍在） | **EXIT=1**，该端点回落 `gaps` 且未登记；复原 ⇒ EXIT=0 | `…\06-item68-neg-B-no-csrf.log` |
+| C 台账漏登记（验「必须逐条登记」） | 从 `consumerEnd` 删掉 claim 一条 | **EXIT=1**，报 `未登记（消费者端形态）：…coupons/:templateId/claim`；复原 ⇒ EXIT=0 | `…\06-item68-neg-C-unregistered-consumer.log` |
+
+> **逐字节还原**：A/B 的源文件 SHA256 与 C 的台账 SHA256 在注入前后**一致**
+> （route `BB9F43AA…E590EB`、baseline `60CAD6A2…E11347`），`git diff` 确认路由文件无残留改动。
+> **分辨力（非恒绿）**：同一批输出里 `gaps` 仍如实报 641 条（含 §三.15 `wechat.routes.ts` 那 5 条用
+> `requireWxAuth` 的写端点），消费者端识别**没有**把其它缺口一起吞掉。
+
+### 10.6 未纳入本判据的同类（**报备，待裁定**）
+
+- `wechat.routes.ts` 的 5 条写端点（`/api/miniapp/wechat/auth/**`）用的是 `requireWxAuth`（S3-187 E 补了
+  `req.user` + `csrfMiddleware`），**不是** `requireConsumerAuthWithTenant`。本单按卡面判据**不认**该中间件，
+  故这 5 条**仍留在 `gaps`**。若凌舟认为「微信端认证 = 消费者端认证」，应另立单把该中间件并入判据
+  （本单不擅自扩大判据，避免「顺手放宽门禁」）。
+- `cart.routes.ts` 用 `routeConfig.auth = "requireConsumerAuthWithTenant"` **声明式**挂载：声明式**不携带**
+  端点级证据，本门禁一律按「只挂认证」处理 ⇒ 其写端点若仍在 `gaps` 里，属**既定边界**（见脚本头），
+  需另立单按端点级改判或改判据。
 

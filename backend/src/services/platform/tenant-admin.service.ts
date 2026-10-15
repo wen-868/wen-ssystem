@@ -5,6 +5,9 @@
  */
 
 import { query, queryOne, transaction } from "../../shared/db";
+// S3-205（总清单第 26 项）：口令哈希一律走 `shared/password.ts` 的唯一封装（`v2$` + cost 12），
+// 禁止裸 `bcrypt.hash`（两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false，S3-172）。
+import { hashPassword } from "../../shared/password";
 import { makeBizNo } from "../../shared/id";
 import type mysql from "mysql2/promise";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
@@ -297,7 +300,9 @@ async function initializeTenantDefaults(
   adminPhone: string
 ) {
   // 创建默认管理员账号
-  const adminPassword = await import("bcryptjs").then(m => m.hash("123456", 10));
+  // S3-205（总清单第 26 项）：原为裸 `await import("bcryptjs")…hash("123456", 10)`，统一到唯一封装。
+  // ⚠️ 这里的默认口令字面量 "123456" 属**另一类问题**（弱默认口令），不在本单范围，已随回执报备。
+  const adminPassword = await hashPassword("123456");
   const [adminResult] = await conn.query(
     `INSERT INTO t_sys_user
      (tenant_id, username, password, real_name, phone, role, status, is_default)

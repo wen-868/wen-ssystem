@@ -25,6 +25,15 @@
  *     与租户侧 `requirePermission(...)` 同判（两者都是"写端点挂了权限中间件"），数据源不同
  *     （平台= t_platform_role_permission 矩阵 + 平台超管口径；租户= t_sys_role.permissions）。
  *     不识别平台机制会让平台域接线后仍被报成"无权限检查"（台账失真），故两条都算。
+ *   · **消费者端保护形态（S3-205 / 收口总清单第 68 项，2026-10-15 凌舟裁定）**：
+ *     同一挂载调用里 **`requireConsumerAuthWithTenant(...)` 与 `csrfMiddleware` 成对出现** ⇒ 记为
+ *     「消费者端保护形态」，**不算缺口**。理由：消费者不是商家角色，商家 RBAC 的 `requirePermission`
+ *     对它**不适用**（消费者 roles 恒空；硬套商家权限码会把小程序写端点打成 403，同 S3-203 的 `trace:*`
+ *     教训），消费者端的访问控制 = 消费者身份（S3-196：微信令牌 → 绑定的会员身份）+ CSRF + 归属校验
+ *     （如 `bindSelfIdentity` 与 service 层 `tenant_id` / 归属过滤）。
+ *     ⚠️ 判据**刻意保持严格**：只挂消费者认证而**没有 CSRF** 的写端点**仍记缺口**（认证≠授权；状态变更
+ *     无 CSRF 是实缺口）；且该形态**必须逐条登记**在 `consumerEnd` 台账里，`--strict` 才放行——避免
+ *     「新加的端点只要套上这两个中间件就自动洗绿」。`requireWxAuth` 等**其它**认证中间件不在此列。
  *   · `routeConfig` 声明式（auth: requireAuthWithTenant / requirePlatformAuth / none）**不携带权限码**
  *     ⇒ 只挂认证的写端点一律记「无权限检查」。这是**有意的**：认证≠授权。
  *   · 注释行 / import 行不算（踩坑[134]：注释里的 `requirePermission(` 不是调用）。
@@ -38,9 +47,11 @@
  *
  * 用法：
  *   node backend/scripts/guard-rbac-wiring.mjs           报告模式（**恒 exit 0**），打印缺口清单 + 缺口总数
- *   node backend/scripts/guard-rbac-wiring.mjs --json     机读模式（`{file, method, path, hasPermission}[]`）
+ *   node backend/scripts/guard-rbac-wiring.mjs --json     机读模式（`{file, method, path, hasPermission, authForm}[]`；
+ *                                                       `authForm` ∈ `inline` / `use-mount` / `consumer` / `none`）
  *   node backend/scripts/guard-rbac-wiring.mjs --strict   严格模式：存在**未登记**缺口 ⇒ exit 1
- *                                                       （已登记缺口按 `rbac-wiring-baseline.json` 豁免，不报红）
+ *                                                       （已登记缺口按 `rbac-wiring-baseline.json` 的 `gaps` 豁免；
+ *                                                        消费者端保护形态须在 `consumerEnd` 里逐条登记，同样不报红）
  *   node backend/scripts/guard-rbac-wiring.mjs --holders <权限码>
  *                                                       打印「该权限码在租户 RBAC 里授给了哪些角色」
  *                                                       （仓库角色种子 × 真实 `matchPermission` 语义复算；
@@ -73,6 +84,19 @@ const PLATFORM_PERM_CALL_RE = /\brequirePlatformPermission\s*\(/;
 const ANY_PERM_CALL_RE = new RegExp(
   `(?:${PERM_CALL_RE.source})|(?:${PLATFORM_PERM_CALL_RE.source})`
 );
+/**
+ * 消费者端保护形态（S3-205 / 收口总清单第 68 项）：`requireConsumerAuthWithTenant` **与** `csrfMiddleware`
+ * 必须**成对**出现在同一挂载调用里。前者 = 消费者身份（S3-196 起接受微信令牌，注入绑定的会员身份，
+ * roles 恒空，故不适用商家 RBAC）；后者 = 状态变更端点的 CSRF 防护。
+ */
+/** ⚠️ 与 `requirePermission(...)` 不同：`requireConsumerAuthWithTenant` 是**数组**（`[requireConsumerAuth, tenantMiddleware]`），
+ *  在路由里以**裸引用**传入（`router.post("/x", requireConsumerAuthWithTenant, csrfMiddleware, …)`），**不带括号**。 */
+const CONSUMER_AUTH_CALL_RE = /\brequireConsumerAuthWithTenant\b/;
+const CSRF_CALL_RE = /\bcsrfMiddleware\b/;
+/** 一段调用文本是否构成「消费者端保护形态」（成对判据，写在一处供挂载与端点共用） */
+function isConsumerProtectedCall(text) {
+  return CONSUMER_AUTH_CALL_RE.test(text) && CSRF_CALL_RE.test(text);
+}
 const USE_CALL_RE = /\.\s*use\s*\(/g;
 /** 注释行 / import 行不是调用（踩坑[134]） */
 const NON_CALL_LINE_RE = /^\s*(?:\/\/|\*|\/\*|import\b)/;
@@ -89,15 +113,26 @@ const NON_CALL_LINE_RE = /^\s*(?:\/\/|\*|\/\*|import\b)/;
  * ⑤ 台账不得用于「让新增缺口变绿」：新加的裸写端点不在台账里 ⇒ `--strict` 必红；
  * ⑥ 本脚本**不提供**「跑一下就自动登记」的写入开关：台账只能由人审阅缺口清单后落盘，
  *    否则新缺口会被"重新生成台账"这一动作静默洗绿。
+ *
+ * 写端点三分（S3-205 起，键 = 文件，值 = `["METHOD 完整路径", ...]`，**按端点路径匹配，不按行号**）：
+ * ① `gaps`        = 无授权形态的**真缺口**（认证≠授权）⇒ 登记只表示「已盘点、待后续批次接线」；
+ * ② `consumerEnd` = **消费者端保护形态**（`requireConsumerAuthWithTenant` + `csrfMiddleware` 成对）
+ *                   ⇒ 按 2026-10-15 凌舟裁定**不适用商家权限码**，故**不计入缺口**，但必须逐条登记；
+ * ③ 挂了 `requirePermission` / `requirePlatformPermission` 的端点**不入台账**（已接线）。
  */
 const BASELINE_PATH = join(HERE, "rbac-wiring-baseline.json");
 const REGISTERED_GAPS = new Set();
+/** 已登记的消费者端保护形态（S3-205）：未登记 ⇒ `--strict` 判红（防"套上两个中间件就自动洗绿"） */
+const REGISTERED_CONSUMER = new Set();
 let baselineExists = false;
 if (existsSync(BASELINE_PATH)) {
   baselineExists = true;
   const raw = JSON.parse(readFileSync(BASELINE_PATH, "utf8"));
   for (const [file, list] of Object.entries(raw.gaps ?? {})) {
     for (const item of list) REGISTERED_GAPS.add(`${file}|${item}`);
+  }
+  for (const [file, list] of Object.entries(raw.consumerEnd ?? {})) {
+    for (const item of list) REGISTERED_CONSUMER.add(`${file}|${item}`);
   }
 }
 
@@ -252,6 +287,7 @@ function scanFile(file, src) {
       receiver: src.slice(0, um.index).match(/([A-Za-z_$][\w$]*)\s*$/)?.[1] ?? null,
       scope: firstStringLiteral(call),
       hasPerm: ANY_PERM_CALL_RE.test(call),
+      consumerProtected: isConsumerProtectedCall(call),
     });
   }
 
@@ -266,9 +302,25 @@ function scanFile(file, src) {
     const fullPath = `${prefix === "?" ? "?" : prefix}${routePath === "?" ? "" : routePath}`;
     const inlinePerm =
       ANY_PERM_CALL_RE.test(call) || ANY_PERM_CALL_RE.test(lines[lineNo - 1] || "");
-    const coveringMounts = mounts.filter(
+    const coveringPermMounts = mounts.filter(
       (x) => x.hasPerm && x.scope && x.line < lineNo && covers(x.scope, routePath)
     );
+    const inlineConsumer = isConsumerProtectedCall(call);
+    const coveringConsumerMounts = mounts.filter(
+      (x) => x.consumerProtected && x.scope && x.line < lineNo && covers(x.scope, routePath)
+    );
+    const hasPerm = inlinePerm || coveringPermMounts.length > 0;
+    // 消费者端保护形态只在**没有**商家/平台权限码时判定（有权限码就按已接线记，形态更明确）
+    const consumerProtected = !hasPerm && (inlineConsumer || coveringConsumerMounts.length > 0);
+    /** inline = 内联权限码 ／ use-mount = 被 `router.use(scope, …, requirePermission())` 覆盖 ／
+     *  consumer = 消费者端保护形态（认证 + CSRF，不适用商家权限码）／ none = 无授权形态（真缺口） */
+    const authForm = hasPerm
+      ? inlinePerm
+        ? "inline"
+        : "use-mount"
+      : consumerProtected
+        ? "consumer"
+        : "none";
     out.push({
       file,
       line: lineNo,
@@ -276,9 +328,9 @@ function scanFile(file, src) {
       prefix,
       routePath,
       path: fullPath,
-      hasPermission: inlinePerm || coveringMounts.length > 0,
-      how: inlinePerm ? "inline" : coveringMounts.length > 0 ? "use-mount" : "none",
-      mountLine: coveringMounts[0]?.line ?? null,
+      hasPermission: authForm !== "none",
+      authForm,
+      mountLine: (coveringPermMounts[0] ?? coveringConsumerMounts[0])?.line ?? null,
     });
   }
   return out;
@@ -317,7 +369,13 @@ for (const f of files) all.push(...scanFile(f, readFileSync(join(ROUTES_DIR, f),
 if (JSON_MODE) {
   console.log(
     JSON.stringify(
-      all.map((r) => ({ file: r.file, method: r.method, path: r.path, hasPermission: r.hasPermission })),
+      all.map((r) => ({
+        file: r.file,
+        method: r.method,
+        path: r.path,
+        hasPermission: r.hasPermission,
+        authForm: r.authForm,
+      })),
       null,
       2
     )
@@ -325,24 +383,37 @@ if (JSON_MODE) {
   process.exit(0);
 }
 
-const gaps = all.filter((r) => !r.hasPermission);
-const wired = all.filter((r) => r.hasPermission);
+const gaps = all.filter((r) => r.authForm === "none");
+const consumerEndpoints = all.filter((r) => r.authForm === "consumer");
+const wired = all.filter((r) => r.authForm === "inline" || r.authForm === "use-mount");
 const gapFiles = [...new Set(gaps.map((r) => r.file))].sort();
+const consumerFiles = [...new Set(consumerEndpoints.map((r) => r.file))].sort();
 const unknownPrefix = all.filter((r) => r.prefix === "?" || r.routePath === "?").map((r) => `${r.file}:${r.line}`);
 
 console.log(`[guard:rbac-wiring] 扫描 ${files.length} 个路由文件 · ${all.length} 个写端点`);
 console.log(
-  `[guard:rbac-wiring] 已接线 ${wired.length} 处 ／ **无权限检查 ${gaps.length} 处**（分布在 ${gapFiles.length} 个文件）`
+  `[guard:rbac-wiring] 已接线（权限码）${wired.length} 处 ／ 消费者端保护形态 ${consumerEndpoints.length} 处` +
+    ` ／ **无授权形态 ${gaps.length} 处**（分布在 ${gapFiles.length} 个文件）`
 );
 console.log(
   `[guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）`
 );
 
-console.log(`\n—— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无权限检查）——`);
+console.log(`\n—— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无授权形态）——`);
 for (const f of gapFiles) {
   const rows = gaps.filter((r) => r.file === f);
   console.log(`\n${f}  (${rows.length} 处)`);
-  for (const r of rows) console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 无权限检查`);
+  for (const r of rows) console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 无授权形态`);
+}
+
+console.log(
+  `\n—— 消费者端保护形态（第 68 项裁定：requireConsumerAuthWithTenant + csrfMiddleware，不适用商家权限码）——`
+);
+if (consumerEndpoints.length === 0) console.log("   （0 处）");
+for (const f of consumerFiles) {
+  const rows = consumerEndpoints.filter((r) => r.file === f);
+  console.log(`\n${f}  (${rows.length} 处)`);
+  for (const r of rows) console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 消费者端保护形态`);
 }
 
 if (unknownPrefix.length > 0) {
@@ -353,22 +424,37 @@ const unregistered = gaps.filter((r) => !REGISTERED_GAPS.has(`${r.file}|${r.meth
 const staleRegistrations = [...REGISTERED_GAPS].filter(
   (k) => !gaps.some((r) => `${r.file}|${r.method} ${r.path}` === k)
 );
+const unregisteredConsumer = consumerEndpoints.filter(
+  (r) => !REGISTERED_CONSUMER.has(`${r.file}|${r.method} ${r.path}`)
+);
+const staleConsumerRegistrations = [...REGISTERED_CONSUMER].filter(
+  (k) => !consumerEndpoints.some((r) => `${r.file}|${r.method} ${r.path}` === k)
+);
 console.log(
   `\n—— 台账核对（rbac-wiring-baseline.json ${baselineExists ? "存在" : "**缺失**（缺失 ⇒ 一切缺口都算未登记）"}）——\n` +
-    `已登记缺口 ${REGISTERED_GAPS.size} 条 ／ 未登记缺口 ${unregistered.length} 条 ／ ` +
-    `已登记但当前无缺口 ${staleRegistrations.length} 条（仅提示，不判红）`
+    `gaps：已登记 ${REGISTERED_GAPS.size} 条 ／ 未登记 ${unregistered.length} 条 ／ ` +
+    `已登记但当前无缺口 ${staleRegistrations.length} 条（仅提示，不判红）\n` +
+    `consumerEnd：已登记 ${REGISTERED_CONSUMER.size} 条 ／ 未登记 ${unregisteredConsumer.length} 条 ／ ` +
+    `已登记但当前非消费者端形态 ${staleConsumerRegistrations.length} 条（仅提示，不判红）`
 );
 for (const r of unregistered) console.log(`   ❌ 未登记：${r.file}:${r.line} ${r.method} ${r.path}`);
+for (const r of unregisteredConsumer)
+  console.log(`   ❌ 未登记（消费者端形态）：${r.file}:${r.line} ${r.method} ${r.path}`);
 
-if (STRICT && unregistered.length > 0) {
+if (STRICT && (unregistered.length > 0 || unregisteredConsumer.length > 0)) {
   console.error(
-    `\n❌ [--strict] 存在 ${unregistered.length} 处**未登记**的无权限写端点 ⇒ exit 1` +
-      `（若确为既有欠账，请在 REGISTERED_GAPS 逐条登记并在缺口清单文档写明判定）`
+    `\n❌ [--strict] 存在 ${unregistered.length} 处**未登记**的无授权写端点` +
+      ` ＋ ${unregisteredConsumer.length} 处**未登记**的消费者端保护形态 ⇒ exit 1` +
+      `（前者确为既有欠账者登记进 \`gaps\`；后者登记进 \`consumerEnd\`；` +
+      `两类都须在 docs/tasks/R101-RBAC接线缺口清单.md 写明判定）`
   );
   process.exit(1);
 }
 
 if (STRICT) {
-  console.log(`✅ [--strict] 无「未登记」缺口（已登记欠账 ${REGISTERED_GAPS.size} 条不计红）`);
+  console.log(
+    `✅ [--strict] 无「未登记」项（已登记欠账 ${REGISTERED_GAPS.size} 条、` +
+      `已登记消费者端保护形态 ${REGISTERED_CONSUMER.size} 条，均不计红）`
+  );
 }
 process.exit(0);

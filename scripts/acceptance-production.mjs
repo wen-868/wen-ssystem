@@ -1,8 +1,36 @@
-const ADMIN_URL = process.env.ADMIN_URL || "https://admin.onepan.cn";
-const API_BASE = process.env.API_BASE || "https://api.onepan.cn/api";
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-// S3-175：默认口令不再写死弱口令；生产口令由 env 注入（ADMIN_PASSWORD / DEMO_PASSWORD）
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.DEMO_PASSWORD || "admin@2026";
+#!/usr/bin/env node
+/**
+ * 生产部署验收（接口层）
+ *
+ * S3-205（收口总清单第 23 项）：**面向生产却内置默认凭据 / 默认地址** ⇒ 一律改为 env 注入。
+ * 必需项缺任何一项即打印缺项清单并 **exit 1**，不再回落到任何内置默认值。
+ * 必需项（env 名沿用本脚本既有约定）：
+ *   API_BASE（例 https://api.onepan.cn/api）／ ADMIN_URL（例 https://admin.onepan.cn）
+ *   ADMIN_USERNAME ／ ADMIN_PASSWORD（旧名 DEMO_PASSWORD 亦可，二者等价、ADMIN_PASSWORD 优先）
+ */
+const REQUIRED_ENV = [
+  ["API_BASE"],
+  ["ADMIN_URL"],
+  ["ADMIN_USERNAME"],
+  ["ADMIN_PASSWORD", "DEMO_PASSWORD"],
+];
+
+const missingEnv = REQUIRED_ENV
+  .filter((names) => !names.some((n) => (process.env[n] ?? "").trim() !== ""))
+  .map((names) => names.join(" | "));
+if (missingEnv.length > 0) {
+  console.error(
+    `[验收·生产] 缺少必需环境变量 ${missingEnv.length} 项：${missingEnv.join(" / ")} ⇒ 不回落内置默认值，退出`
+  );
+  process.exit(1);
+}
+
+const API_BASE = process.env.API_BASE;
+const ADMIN_URL = process.env.ADMIN_URL;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+// S3-205：旧名 DEMO_PASSWORD 仍受支持（本脚本 S3-175 起的既有约定）；两者都未设置时已在上面 exit 1。
+const ADMIN_PASSWORD =
+  (process.env.ADMIN_PASSWORD ?? "").trim() !== "" ? process.env.ADMIN_PASSWORD : process.env.DEMO_PASSWORD;
 
 async function mustFetch(url) {
   const res = await fetch(url);

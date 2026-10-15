@@ -8,7 +8,9 @@ import {
   provisionTenantRbac,
   type SqlRunner,
 } from "./platform/tenant-rbac-provision.service";
-import bcrypt from "bcryptjs";
+// S3-205（总清单第 26 项）：开通租户时首个管理员的口令哈希一律走 `shared/password.ts` 的唯一封装
+// （`v2$` + cost 12），禁止裸 `bcrypt.hash`（两种口径并存会让裸 bcrypt 校验对 `v2$` 哈希恒 false）。
+import { hashPassword } from "../shared/password";
 
 /**
  * S3-150：租户 status 的**对外唯一口径**（字符串）。
@@ -150,7 +152,7 @@ export async function createTenant(data: {
   const tenantId = randomUUID();
   const tenantCode = makeBizNo("T");
 
-  const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
+  const hashedPassword = await hashPassword(data.adminPassword);
 
   // S3-183（收口总清单第 18 项）：开通链路必须**原子地**产出「租户 + 首个管理员 + 角色/菜单 + 管理员绑定」，
   // 否则中途失败只留下一半，正是"能登录但功能中心空白"的坏租户（本单要修的现象）。

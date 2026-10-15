@@ -677,15 +677,19 @@ describe("runMigrations", () => {
     expect(shaQueryCalled).toBe(true);
     expect(updateCalled).toBe(true);
     // S3-175：SHA256 旧口令改为**逐账号随机**重置，不再统一写成同一个公开弱口令。
-    // 分辨口径：本步骤用 cost=10；`seed-data` 的演示口令走 `hashPasswordSync`（SALT_ROUNDS=12），
-    // 两者 cost 不同，故只取本次调用里 cost=10 的那一条。
+    // S3-205（总清单第 26 项）**口径统一后本注释已改**：本文件所有口令哈希都改走 `hashPasswordSync`
+    // （cost=12），**不能再靠 cost 分辨步骤** ⇒ 改用**参数形态**分辨：
+    //   本步骤传 `randomBytes(24).toString("hex")`（48 位小写 hex），
+    //   而 `seed-data` 传 `randomBytes(24).toString("base64url")`（32 位，含非 hex 字符）。
     const resetCalls = (mockHashSync.mock.calls.slice(callsBefore) as Array<[string, number]>).filter(
-      ([, rounds]) => rounds === 10
+      ([pw]) => typeof pw === "string" && /^[0-9a-f]{48}$/.test(pw)
     );
     expect(resetCalls).toHaveLength(1);
-    const [generatedPassword] = resetCalls[0];
+    const [generatedPassword, rounds] = resetCalls[0];
     expect(typeof generatedPassword).toBe("string");
     expect(generatedPassword.length).toBeGreaterThanOrEqual(32);
+    // S3-205：口径统一 —— 本步骤必须走唯一封装（`hashPasswordSync`，SALT_ROUNDS=12）
+    expect(rounds).toBe(12);
   });
 
   it("SHA256 密码修复过程中出错时应捕获异常（line 216）", async () => {

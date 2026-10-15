@@ -1,0 +1,1015 @@
+{
+  "_README": "S3-180 批B2-1 · guard:rbac-wiring 的**已登记缺口台账**（逐条登记）。人读判定见 docs/tasks/R101-RBAC接线缺口清单.md；本文件是机读镜像，仅由人工审阅后落盘，脚本不提供自动写入开关（避免新缺口被'重新生成台账'静默洗绿）。登记 ≠ 合规。",
+  "_generatedFrom": "node backend/scripts/guard-rbac-wiring.mjs --json",
+  "_s3195_note": "S3-195（门店 9 文件从根前缀 /api/store 收窄为自有路径段）导致 3 条端点的**路径形态**变化：收窄后 prefix 即完整路径、router 内路径为 \"/\"，扫描器按 prefix+\"/\" 拼接 ⇒ 台账键由 `…/box-config` 变为 `…/box-config/`（`…/hold-orders` → `…/hold-orders/`、`…/shifts` → `…/shifts/`）。三处为**同一端点**的同一缺口，不是新增缺口；旧形态三条已同步替换（故 endpoints 计数不变）。",
+  "_endpointClass": "S3-205（收口总清单第 68 项，2026-10-15 凌舟裁定）起，本台账按**写端点三分**记账：① `gaps` = 无授权形态的**真缺口**（认证≠授权），登记只表示「已盘点、待后续批次接线」；② `consumerEnd` = **消费者端保护形态**（同一挂载调用里 `requireConsumerAuthWithTenant` 与 `csrfMiddleware` **成对**出现）⇒ 按裁定**不适用商家权限码**（消费者 roles 恒空，硬套商家码会把小程序写端点打成 403，同 S3-203 的 `trace:*` 教训），故**不计入缺口**，但必须逐条登记，未登记 ⇒ `--strict` 必红；③ 挂了 `requirePermission` / `requirePlatformPermission` 的端点不入台账（已接线）。两类**按端点路径匹配、不按行号**（行号会漂移：如 S3-187 改路径参数形态、S3-195 改前缀收窄都让行号失真）。判据刻意从严：只挂消费者认证、**没有 CSRF** 的写端点仍记 `gaps`。",
+  "_counts": {
+    "files": 155,
+    "endpoints": 641,
+    "consumerEndFiles": 4,
+    "consumerEndEndpoints": 39
+  },
+  "consumerEnd": {
+    "aftersale.routes.ts": [
+      "POST /api/miniapp/aftersales",
+      "POST /api/miniapp/aftersales/:aftersaleNo/cancel",
+      "POST /api/miniapp/aftersales/:aftersaleNo/return-logistics",
+      "POST /api/miniapp/aftersales/:aftersaleNo/rate"
+    ],
+    "marketing-miniapp.routes.ts": [
+      "POST /api/miniapp/marketing/coupons/:templateId/claim",
+      "POST /api/miniapp/marketing/flash-sale/:id/buy",
+      "POST /api/miniapp/marketing/group-buy/:teamId/join",
+      "POST /api/miniapp/marketing/calculate"
+    ],
+    "miniapp.routes.ts": [
+      "POST /api/miniapp/cart",
+      "PUT /api/miniapp/cart/:id",
+      "DELETE /api/miniapp/cart/:id",
+      "DELETE /api/miniapp/cart",
+      "POST /api/miniapp/orders",
+      "POST /api/miniapp/orders/:id/pay",
+      "POST /api/miniapp/orders/:id/cancel",
+      "POST /api/miniapp/orders/:id/confirm-receive",
+      "PUT /api/miniapp/orders/:id/delete",
+      "POST /api/miniapp/stored-card/recharge",
+      "PUT /api/miniapp/user/profile",
+      "POST /api/miniapp/user/addresses",
+      "PUT /api/miniapp/user/addresses/:id",
+      "DELETE /api/miniapp/user/addresses/:id",
+      "POST /api/miniapp/user/addresses/:id/default",
+      "POST /api/miniapp/coupons/:id/use",
+      "POST /api/miniapp/member/coupons/:id/receive",
+      "PUT /api/miniapp/user/profile-update",
+      "POST /api/miniapp/user/change-password",
+      "POST /api/miniapp/wholesale/cart",
+      "PUT /api/miniapp/wholesale/cart/:id",
+      "DELETE /api/miniapp/wholesale/cart/:id",
+      "POST /api/miniapp/wholesale/orders",
+      "POST /api/miniapp/wholesale/cart/delete",
+      "PUT /api/miniapp/wholesale/cart/:itemId/select",
+      "PUT /api/miniapp/wholesale/cart/select-all",
+      "POST /api/miniapp/wholesale/orders/:orderId/cancel",
+      "POST /api/miniapp/wholesale/orders/:orderId/confirm-receive",
+      "POST /api/miniapp/wholesale/orders/buy-now"
+    ],
+    "notification.routes.ts": [
+      "PUT /api/miniapp/notifications/:id/read",
+      "POST /api/miniapp/notifications/read-all"
+    ]
+  },
+  "gaps": {
+    "admin-auth.routes.ts": [
+      "PUT /api/admin/auth/settings",
+      "POST /api/admin/auth/change-password",
+      "POST /api/admin/auth/mfa/setup",
+      "POST /api/admin/auth/mfa/confirm",
+      "POST /api/admin/auth/mfa/disable"
+    ],
+    "admin-customer.routes.ts": [
+      "POST /api/admin/members",
+      "PUT /api/admin/members/:id",
+      "PUT /api/admin/members/:id/disable",
+      "PUT /api/admin/members/:id/assign-staff",
+      "POST /api/admin/members/register",
+      "PUT /api/admin/members/:id/member-level"
+    ],
+    "admin-library.routes.ts": [
+      "POST /api/admin/library/lookup"
+    ],
+    "admin-marketing-calculation.routes.ts": [
+      "POST /api/admin/marketing/calculate"
+    ],
+    "admin-marketing-coupon.routes.ts": [
+      "POST /api/admin/marketing/coupons/templates",
+      "PUT /api/admin/marketing/coupons/templates/:id",
+      "DELETE /api/admin/marketing/coupons/templates/:id",
+      "POST /api/admin/marketing/coupons/templates/:id/activate",
+      "POST /api/admin/marketing/coupons/templates/:id/pause"
+    ],
+    "admin-marketing-flash-sale.routes.ts": [
+      "PUT /api/admin/marketing/flash-sales/:id",
+      "DELETE /api/admin/marketing/flash-sales/:id"
+    ],
+    "admin-marketing-full-reduction.routes.ts": [
+      "POST /api/admin/marketing/full-reductions",
+      "PUT /api/admin/marketing/full-reductions/:id",
+      "DELETE /api/admin/marketing/full-reductions/:id",
+      "POST /api/admin/marketing/full-reductions/:id/activate",
+      "POST /api/admin/marketing/full-reductions/:id/pause"
+    ],
+    "admin-marketing-group-buy.routes.ts": [
+      "POST /api/admin/marketing/group-buys",
+      "PUT /api/admin/marketing/group-buys/:id",
+      "DELETE /api/admin/marketing/group-buys/:id",
+      "POST /api/admin/marketing/group-buys/:id/activate",
+      "POST /api/admin/marketing/group-buys/teams",
+      "POST /api/admin/marketing/group-buys/teams/:teamId/join"
+    ],
+    "admin-marketing-points.routes.ts": [
+      "PUT /api/admin/marketing/points/rule",
+      "POST /api/admin/marketing/points/redeem"
+    ],
+    "admin-marketing-stack-rule.routes.ts": [
+      "POST /api/admin/marketing/stack-rules",
+      "PUT /api/admin/marketing/stack-rules/:id",
+      "DELETE /api/admin/marketing/stack-rules/:id"
+    ],
+    "admin-order.routes.ts": [
+      "POST /api/admin/orders/batch-status",
+      "POST /api/admin/orders/:orderNo/cancel",
+      "PUT /api/admin/orders/:orderNo/remark",
+      "PUT /api/admin/orders/:orderNo/status"
+    ],
+    "admin-platform-announcement.routes.ts": [
+      "PUT /api/platform/announcements/templates",
+      "POST /api/platform/announcements/",
+      "PUT /api/platform/announcements/:id",
+      "DELETE /api/platform/announcements/:id",
+      "POST /api/platform/announcements/:id/publish"
+    ],
+    "admin-platform-settlement.routes.ts": [
+      "POST /api/platform/settlements/",
+      "PUT /api/platform/settlements/:id"
+    ],
+    "admin-product.routes.ts": [
+      "POST /api/admin/products/upload-image",
+      "PUT /api/admin/products/:id/status",
+      "PUT /api/admin/products/:id",
+      "PUT /api/admin/products/:id/disable",
+      "PUT /api/admin/products/:skuId/price",
+      "PUT /api/admin/products/skus/:skuId/barcode",
+      "PUT /api/admin/products/skus/:skuId",
+      "POST /api/admin/products/skus/:skuId/units",
+      "PUT /api/admin/products/skus/:skuId/units/:unitId",
+      "DELETE /api/admin/products/skus/:skuId/units/:unitId",
+      "POST /api/admin/products/import",
+      "PUT /api/admin/products/:spuId/marketing-tags",
+      "PUT /api/admin/products/:id/warning-threshold"
+    ],
+    "admin-quote-push.routes.ts": [
+      "POST /api/admin/quote-push/preview",
+      "POST /api/admin/quote-push/",
+      "POST /api/admin/quote-push/:id/push",
+      "POST /api/admin/quote-push/:id/cancel"
+    ],
+    "admin-staff.routes.ts": [
+      "POST /api/admin/staff",
+      "PUT /api/admin/staff/:id",
+      "PUT /api/admin/staff/:id/status",
+      "PUT /api/admin/staff/:id/disable",
+      "POST /api/admin/staff/:id/restore"
+    ],
+    "admin-store.routes.ts": [
+      "POST /api/admin/system/stores",
+      "PUT /api/admin/system/stores/:id"
+    ],
+    "aftersale.routes.ts": [
+      "POST /api/admin/aftersales/:id/approve",
+      "POST /api/admin/aftersales/:id/reject",
+      "POST /api/admin/aftersales/:id/confirm-receipt",
+      "POST /api/admin/aftersales/:id/inspect",
+      "POST /api/admin/aftersales/:id/complete"
+    ],
+    "ai-billing.routes.ts": [
+      "PUT /api/platform/ai-billing/billing-strategy",
+      "PUT /api/platform/ai-billing/free-grant",
+      "PUT /api/platform/ai-billing/quota-packs",
+      "PUT /api/platform/ai-billing/points-rate"
+    ],
+    "alert.routes.ts": [
+      "PUT /api/admin/alerts/:id/handle",
+      "PUT /api/admin/alerts/rules/:id",
+      "POST /api/admin/alerts/check"
+    ],
+    "approval.routes.ts": [
+      "POST /api/admin/approval/rules",
+      "PUT /api/admin/approval/rules/:id",
+      "DELETE /api/admin/approval/rules/:id",
+      "POST /api/admin/approval/instances/submit",
+      "POST /api/admin/approval/tasks/:id/approve",
+      "POST /api/admin/approval/tasks/:id/reject",
+      "POST /api/admin/approval/notifications/:id/read"
+    ],
+    "archive.routes.ts": [
+      "POST /api/admin/archive/execute"
+    ],
+    "avatar.routes.ts": [
+      "POST /api/admin/auth/avatar"
+    ],
+    "bank-account.routes.ts": [
+      "POST /api/admin/bank-accounts/",
+      "PUT /api/admin/bank-accounts/:id",
+      "POST /api/admin/bank-accounts/:id/close"
+    ],
+    "billing-config.routes.ts": [
+      "PUT /api/platform/billing/arrears-policy",
+      "PUT /api/platform/billing/addon-price"
+    ],
+    "brand.routes.ts": [
+      "POST /api/admin/brands/",
+      "PUT /api/admin/brands/:id",
+      "DELETE /api/admin/brands/:id"
+    ],
+    "cart.routes.ts": [
+      "POST /api/miniapp/cart/add",
+      "PUT /api/miniapp/cart/items/:skuId",
+      "DELETE /api/miniapp/cart/items/:skuId",
+      "POST /api/miniapp/cart/clear",
+      "POST /api/miniapp/cart/checkout/preview",
+      "POST /api/miniapp/cart/checkout/create"
+    ],
+    "category.routes.ts": [
+      "POST /api/admin/products/categories/",
+      "PUT /api/admin/products/categories/:id",
+      "DELETE /api/admin/products/categories/:id",
+      "PUT /api/admin/products/categories/:id/sort"
+    ],
+    "commerce-fix.routes.ts": [
+      "DELETE /api/admin/consumer-addresses/:id",
+      "PUT /api/admin/bills/:id",
+      "DELETE /api/admin/bills/:id",
+      "POST /api/admin/bills/:id/void"
+    ],
+    "commission.routes.ts": [
+      "PUT /api/admin/commission/rules/:id",
+      "DELETE /api/admin/commission/rules/:id",
+      "POST /api/admin/commission/calculate"
+    ],
+    "community-marketing.routes.ts": [
+      "POST /api/marketing/group-buy/:id/join",
+      "POST /api/marketing/group-buy/:id/start",
+      "POST /api/marketing/group-buy/:id/end",
+      "POST /api/marketing/bargain/:id/start",
+      "POST /api/marketing/bargain/:id/help",
+      "POST /api/marketing/bargain/:id/end",
+      "POST /api/marketing/seckill/:id/buy",
+      "POST /api/marketing/seckill/:orderNo/pay",
+      "POST /api/marketing/seckill/:orderNo/cancel",
+      "POST /api/marketing/seckill/:id/end"
+    ],
+    "credit.routes.ts": [
+      "POST /api/admin/credits/collections",
+      "PUT /api/admin/credits/collections/:id",
+      "POST /api/admin/credits/collections/auto-generate",
+      "POST /api/admin/credits/collections/batch-remind",
+      "PUT /api/admin/credits/:customerId/limit",
+      "PUT /api/admin/credits/:customerId/term"
+    ],
+    "custom-report-v2.routes.ts": [
+      "POST /api/admin/reports/",
+      "PUT /api/admin/reports/:id(\\d+)",
+      "DELETE /api/admin/reports/:id(\\d+)",
+      "POST /api/admin/reports/:id(\\d+)/generate"
+    ],
+    "custom-report.routes.ts": [
+      "POST /api/custom-report/templates",
+      "PUT /api/custom-report/templates/:id",
+      "DELETE /api/custom-report/templates/:id",
+      "POST /api/custom-report/templates/:id/execute",
+      "POST /api/custom-report/schedules",
+      "PUT /api/custom-report/schedules/:id",
+      "DELETE /api/custom-report/schedules/:id",
+      "PUT /api/custom-report/schedules/:id/toggle",
+      "POST /api/custom-report/schedules/:id/run"
+    ],
+    "customer-care.routes.ts": [
+      "POST /api/admin/members/care/rules",
+      "PUT /api/admin/members/care/rules/:id",
+      "DELETE /api/admin/members/care/rules/:id",
+      "POST /api/admin/members/care/rules/:id/execute"
+    ],
+    "customer-merge.routes.ts": [
+      "POST /api/admin/customer-merge/merge"
+    ],
+    "customer-payment.routes.ts": [
+      "POST /api/store/customer-payments/",
+      "POST /api/store/customer-payments/:receiptNo/void"
+    ],
+    "customer-price.routes.ts": [
+      "POST /api/admin/customer-prices/",
+      "PUT /api/admin/customer-prices/:id",
+      "DELETE /api/admin/customer-prices/:id"
+    ],
+    "customer-segment.routes.ts": [
+      "POST /api/admin/members/segments/",
+      "PUT /api/admin/members/segments/:id",
+      "DELETE /api/admin/members/segments/:id",
+      "POST /api/admin/members/segments/:id/refresh"
+    ],
+    "customer-statement.routes.ts": [
+      "POST /api/store/customer-statements/",
+      "POST /api/store/customer-statements/:statementNo/confirm",
+      "POST /api/store/customer-statements/:statementNo/paid"
+    ],
+    "customer-tag.routes.ts": [
+      "POST /api/admin/members/tags/",
+      "PUT /api/admin/members/tags/:id",
+      "DELETE /api/admin/members/tags/:id",
+      "POST /api/admin/members/tags/:id/tags",
+      "DELETE /api/admin/members/tags/:id/tags/:tagId"
+    ],
+    "customer-type.routes.ts": [
+      "POST /api/admin/customer-types/",
+      "PUT /api/admin/customer-types/:id",
+      "DELETE /api/admin/customer-types/:id"
+    ],
+    "customer-visit.routes.ts": [
+      "POST /api/admin/customer-visits/",
+      "PUT /api/admin/customer-visits/:visitNo",
+      "POST /api/admin/customer-visits/:visitNo/checkin",
+      "POST /api/admin/customer-visits/:visitNo/checkout",
+      "POST /api/admin/customer-visits/:visitNo/cancel"
+    ],
+    "data-permission.routes.ts": [
+      "POST /api/admin/data-permissions/",
+      "PUT /api/admin/data-permissions/:id",
+      "DELETE /api/admin/data-permissions/:id",
+      "POST /api/admin/data-permissions/roles/:roleId",
+      "DELETE /api/admin/data-permissions/roles/:roleId/:dataPermissionId",
+      "POST /api/admin/data-permissions/users/:userId/check"
+    ],
+    "demo.routes.ts": [
+      "POST /api/admin/demo/seed",
+      "POST /api/admin/demo/reset"
+    ],
+    "department.routes.ts": [
+      "POST /api/department/",
+      "PUT /api/department/:id",
+      "DELETE /api/department/:id",
+      "PUT /api/department/:id/move"
+    ],
+    "error-log.routes.ts": [
+      "POST /api/admin/error-report"
+    ],
+    "expense.routes.ts": [
+      "PUT /api/admin/expenses/:expenseNo",
+      "POST /api/admin/expenses/:expenseNo/approve",
+      "POST /api/admin/expenses/:expenseNo/void"
+    ],
+    "feedback.routes.ts": [
+      "POST /api/admin/feedback",
+      "PUT /api/admin/feedback/:id"
+    ],
+    "hardware-callback.routes.ts": [
+      "POST /api/store/hardware/callbacks/cloud-speaker/:tenantId",
+      "POST /api/store/hardware/callbacks/box/:tenantId"
+    ],
+    "instant-retail-admin-ops.routes.ts": [
+      "POST /api/admin/instant-retail/orders/:orderNo/status",
+      "POST /api/admin/instant-retail/routing-rules",
+      "PUT /api/admin/instant-retail/routing-rules/:id",
+      "DELETE /api/admin/instant-retail/routing-rules/:id",
+      "POST /api/admin/instant-retail/exceptions/:id/handle",
+      "POST /api/admin/instant-retail/shelf",
+      "PUT /api/admin/instant-retail/shelf/:id",
+      "DELETE /api/admin/instant-retail/shelf/:id",
+      "POST /api/admin/instant-retail/deliveries/:deliveryId/assign",
+      "PUT /api/admin/instant-retail/deliveries/:deliveryId/status",
+      "POST /api/admin/instant-retail/reviews/:id/reply",
+      "POST /api/admin/instant-retail/reviews/sync"
+    ],
+    "instant-retail-admin-platform.routes.ts": [
+      "POST /api/admin/instant-retail/configs",
+      "POST /api/admin/instant-retail/configs/:platform/test",
+      "POST /api/admin/instant-retail/configs/:platform/sync-orders",
+      "POST /api/admin/instant-retail/configs/:platform/sync-products",
+      "DELETE /api/admin/instant-retail/configs/:platform",
+      "POST /api/admin/instant-retail/shop-config",
+      "POST /api/admin/instant-retail/categories",
+      "PUT /api/admin/instant-retail/categories/:id",
+      "DELETE /api/admin/instant-retail/categories/:id",
+      "POST /api/admin/instant-retail/products",
+      "PUT /api/admin/instant-retail/products/:id",
+      "DELETE /api/admin/instant-retail/products/:id",
+      "POST /api/admin/instant-retail/banners",
+      "PUT /api/admin/instant-retail/banners/:id",
+      "DELETE /api/admin/instant-retail/banners/:id"
+    ],
+    "instant-retail-store.routes.ts": [
+      "POST /api/store/instant-retail/orders/:platformOrderId/confirm",
+      "POST /api/store/instant-retail/orders/:platformOrderId/cancel",
+      "POST /api/store/instant-retail/orders/:platformOrderId/start-delivery",
+      "POST /api/store/instant-retail/orders/:platformOrderId/complete-delivery"
+    ],
+    "instant-retail-webhook.routes.ts": [
+      "POST /api/instant-retail/webhook/jd",
+      "POST /api/instant-retail/webhook/meituan",
+      "POST /api/instant-retail/webhook/eleme"
+    ],
+    "inventory-loss-gain.routes.ts": [
+      "POST /api/admin/inventory/report-loss-gain"
+    ],
+    "marketing-asset.routes.ts": [
+      "POST /api/marketing-asset/",
+      "PUT /api/marketing-asset/:id",
+      "DELETE /api/marketing-asset/:id"
+    ],
+    "marketing-gift-rule.routes.ts": [
+      "POST /api/admin/marketing/gift-rules/",
+      "PUT /api/admin/marketing/gift-rules/:id",
+      "DELETE /api/admin/marketing/gift-rules/:id",
+      "POST /api/admin/marketing/gift-rules/:id/activate",
+      "POST /api/admin/marketing/gift-rules/:id/pause",
+      "POST /api/admin/marketing/gift-rules/:id/levels",
+      "PUT /api/admin/marketing/gift-rules/:id/levels/:levelId",
+      "DELETE /api/admin/marketing/gift-rules/:id/levels/:levelId"
+    ],
+    "marketing-limited-discount.routes.ts": [
+      "POST /api/admin/marketing/limited-discounts/",
+      "PUT /api/admin/marketing/limited-discounts/:id",
+      "DELETE /api/admin/marketing/limited-discounts/:id",
+      "POST /api/admin/marketing/limited-discounts/:id/activate",
+      "POST /api/admin/marketing/limited-discounts/:id/pause",
+      "POST /api/admin/marketing/limited-discounts/:id/products",
+      "DELETE /api/admin/marketing/limited-discounts/:id/products/:productId"
+    ],
+    "marketing-material.routes.ts": [
+      "POST /api/admin/marketing/materials/",
+      "PUT /api/admin/marketing/materials/:id",
+      "DELETE /api/admin/marketing/materials/:id",
+      "POST /api/admin/marketing/materials/:id/publish",
+      "POST /api/admin/marketing/materials/:id/archive",
+      "POST /api/admin/marketing/materials/categories",
+      "PUT /api/admin/marketing/materials/categories/:id",
+      "DELETE /api/admin/marketing/materials/categories/:id"
+    ],
+    "marketing-points-mall.routes.ts": [
+      "POST /api/admin/marketing/points-mall/products",
+      "PUT /api/admin/marketing/points-mall/products/:id",
+      "DELETE /api/admin/marketing/points-mall/products/:id",
+      "POST /api/admin/marketing/points-mall/products/:id/toggle",
+      "POST /api/admin/marketing/points-mall/exchange",
+      "POST /api/admin/marketing/points-mall/exchange-records/:id/cancel",
+      "POST /api/admin/marketing/points-mall/exchange-records/:id/confirm"
+    ],
+    "member-register.routes.ts": [
+      "POST /api/store/members/sms-code",
+      "POST /api/store/members/register"
+    ],
+    "miniapp-config.routes.ts": [
+      "PUT /api/miniapp-config/configs/:platform",
+      "POST /api/miniapp-config/packages",
+      "POST /api/miniapp-config/upload-key",
+      "POST /api/miniapp-config/publish"
+    ],
+    "miniapp-order-sync.routes.ts": [
+      "POST /api/miniapp-order-sync/:orderNo/retry"
+    ],
+    "miniapp.routes.ts": [
+      "POST /api/miniapp/login",
+      "POST /api/miniapp/pay/notify"
+    ],
+    "monitor.routes.ts": [
+      "POST /api/admin/monitor/notify-expiring"
+    ],
+    "notification.routes.ts": [
+      "PUT /api/admin/notifications/:id/read",
+      "POST /api/admin/notifications/read-all",
+      "POST /api/admin/notifications/send",
+      "DELETE /api/admin/notifications/:id",
+      "POST /api/admin/notifications/batch-delete"
+    ],
+    "order-exception.routes.ts": [
+      "POST /api/admin/order-exceptions",
+      "PUT /api/admin/order-exceptions/:id(\\d+)/status",
+      "PUT /api/admin/order-exceptions/:id(\\d+)"
+    ],
+    "order-timeout.routes.ts": [
+      "POST /api/admin/order-timeout/configs",
+      "PUT /api/admin/order-timeout/configs/:id",
+      "DELETE /api/admin/order-timeout/configs/:id"
+    ],
+    "payment-config.routes.ts": [
+      "PUT /api/payment-config/configs/:provider",
+      "POST /api/payment-config/configs/:provider/test",
+      "POST /api/payment-config/bank-accounts",
+      "PUT /api/payment-config/bank-accounts/:id",
+      "DELETE /api/payment-config/bank-accounts/:id",
+      "POST /api/payment-config/bank-accounts/:id/default"
+    ],
+    "payment-new.routes.ts": [
+      "POST /api/admin/payments-new/",
+      "POST /api/admin/payments-new/:paymentNo/void"
+    ],
+    "payment.routes.ts": [
+      "POST /api/pay/wx/callback"
+    ],
+    "platform-agent.routes.ts": [
+      "POST /api/platform/agents/levels",
+      "PUT /api/platform/agents/levels/:id",
+      "POST /api/platform/agents/",
+      "PUT /api/platform/agents/:id",
+      "POST /api/platform/agents/:id/status"
+    ],
+    "platform-app-version.routes.ts": [
+      "POST /api/padmin/app-versions/draft",
+      "POST /api/padmin/app-versions",
+      "POST /api/padmin/app-versions/:id/pause",
+      "POST /api/padmin/app-versions/:id/resume",
+      "POST /api/padmin/app-versions/:id/archive",
+      "POST /api/padmin/app-versions/:id/rollback",
+      "DELETE /api/padmin/app-versions/:id"
+    ],
+    "platform-applications.routes.ts": [
+      "PUT /api/platform/applications/:id/approve",
+      "PUT /api/platform/applications/:id/reject"
+    ],
+    "platform-auth.routes.ts": [
+      "POST /api/platform/auth/login",
+      "POST /api/platform/auth/admin/create",
+      "POST /api/platform/auth/mfa/setup",
+      "POST /api/platform/auth/mfa/confirm",
+      "POST /api/platform/auth/mfa/disable",
+      "POST /api/platform/auth/mfa/verify"
+    ],
+    "platform-billing-arrears.routes.ts": [
+      "POST /api/platform/billing/arrears/urge"
+    ],
+    "platform-billing.routes.ts": [
+      "POST /api/platform/billing/generate",
+      "POST /api/platform/billing/statement/export",
+      "POST /api/platform/billing/invoice"
+    ],
+    "platform-config.routes.ts": [
+      "PUT /api/platform/config/",
+      "PUT /api/platform/config/sys-config",
+      "POST /api/platform/config/logo",
+      "PUT /api/platform/config/feature-switches/:code",
+      "PUT /api/platform/config/data-dict/:dictType"
+    ],
+    "platform-error-log.routes.ts": [
+      "POST /api/platform/error-report"
+    ],
+    "platform-export-task.routes.ts": [
+      "POST /api/platform/reports/export/",
+      "POST /api/platform/reports/export/:id/retry"
+    ],
+    "platform-library.routes.ts": [
+      "POST /api/platform/library/spus/import",
+      "POST /api/platform/library/spus",
+      "PUT /api/platform/library/spus/:id",
+      "PUT /api/platform/library/spus/:id/status",
+      "DELETE /api/platform/library/spus/:id",
+      "POST /api/platform/library/spus/:spuId/skus",
+      "PUT /api/platform/library/skus/:id",
+      "DELETE /api/platform/library/skus/:id",
+      "POST /api/platform/library/brands",
+      "PUT /api/platform/library/brands/:id",
+      "DELETE /api/platform/library/brands/:id",
+      "POST /api/platform/library/brands/:id/auth-letter",
+      "POST /api/platform/library/api-keys",
+      "PUT /api/platform/library/api-keys/:id",
+      "DELETE /api/platform/library/api-keys/:id"
+    ],
+    "platform-miniapp.routes.ts": [
+      "POST /api/platform-miniapp/subscriptions"
+    ],
+    "platform-monitor-ops.routes.ts": [
+      "PUT /api/platform/monitor/thresholds"
+    ],
+    "platform-monitor.routes.ts": [
+      "POST /api/platform/monitor/notify-expiring"
+    ],
+    "platform-notification.routes.ts": [
+      "POST /api/platform/notifications/read-all",
+      "POST /api/platform/notifications/:id/read"
+    ],
+    "platform-open.routes.ts": [
+      "POST /api/platform/open/api-keys",
+      "POST /api/platform/open/api-keys/:id/enable",
+      "POST /api/platform/open/api-keys/:id/rotate",
+      "POST /api/platform/open/api-keys/:id/rotate-complete",
+      "PUT /api/platform/open/api-keys/:id",
+      "DELETE /api/platform/open/api-keys/:id",
+      "POST /api/platform/open/webhooks",
+      "POST /api/platform/open/webhooks/:id/test",
+      "POST /api/platform/open/webhooks/:id/redeliver",
+      "POST /api/platform/open/webhooks/:id/resume"
+    ],
+    "platform-plans.routes.ts": [
+      "POST /api/platform/plans/",
+      "PUT /api/platform/plans/:planId",
+      "DELETE /api/platform/plans/:planId",
+      "PUT /api/platform/plans/:planId/features",
+      "PUT /api/platform/plans/:planId/policy",
+      "POST /api/platform/plans/:planId/copy"
+    ],
+    "platform-promo-code.routes.ts": [
+      "POST /api/platform/promo-codes/",
+      "POST /api/platform/promo-codes/:id/disable"
+    ],
+    "platform-reconciliation.routes.ts": [
+      "PUT /api/platform/reconciliation/:id/settle",
+      "POST /api/platform/reconciliation/",
+      "PUT /api/platform/reconciliation/:id"
+    ],
+    "platform-review.routes.ts": [
+      "POST /api/platform/reviews/:id/reply",
+      "PUT /api/platform/reviews/:id/approval",
+      "POST /api/platform/reviews/batch-approval"
+    ],
+    "platform-role.routes.ts": [
+      "POST /api/platform/roles/",
+      "PUT /api/platform/roles/:id/permissions",
+      "PUT /api/platform/roles/:id",
+      "DELETE /api/platform/roles/:id"
+    ],
+    "platform-subscription-applies.routes.ts": [
+      "PUT /api/platform/subscription-applies/:id/audit"
+    ],
+    "platform-templates.routes.ts": [
+      "POST /api/platform/templates/init",
+      "PUT /api/platform/templates/init/:id",
+      "POST /api/platform/templates/print/upload",
+      "POST /api/platform/templates/print/:id/public",
+      "POST /api/platform/templates/import-export"
+    ],
+    "platform-tenant.routes.ts": [
+      "POST /api/platform/tenants/",
+      "PUT /api/platform/tenants/:id",
+      "POST /api/platform/tenants/:id/toggle",
+      "POST /api/platform/tenants/:id/proxy-login",
+      "POST /api/platform/tenants/:id/quota-expand",
+      "POST /api/platform/tenants/:tenantId/users/:userId/reset-password"
+    ],
+    "platform-ticket.routes.ts": [
+      "POST /api/platform/support/tickets/:id/reply",
+      "POST /api/platform/support/tickets/:id/note",
+      "POST /api/platform/support/tickets/:id/transfer",
+      "POST /api/platform/support/tickets/:id/resolve",
+      "POST /api/platform/support/tickets/:id/close"
+    ],
+    "platform.routes.ts": [
+      "POST /api/platform/admins/invite",
+      "POST /api/platform/admins/:id/reset-password",
+      "PUT /api/platform/admins/:id/status",
+      "POST /api/platform/admins"
+    ],
+    "points-mall.routes.ts": [
+      "POST /api/points-mall/items",
+      "PUT /api/points-mall/items/:id",
+      "DELETE /api/points-mall/items/:id",
+      "PUT /api/points-mall/items/:id/status",
+      "PUT /api/points-mall/orders/:id/deliver",
+      "PUT /api/points-mall/orders/:id/cancel"
+    ],
+    "points.routes.ts": [
+      "POST /api/admin/members/rules",
+      "PUT /api/admin/members/rules/:id",
+      "POST /api/admin/members/:id/points/adjust",
+      "POST /api/admin/members/levels/config",
+      "PUT /api/admin/members/levels/config/:id",
+      "PUT /api/admin/members/levels/config/:id/status",
+      "DELETE /api/admin/members/levels/config/:id"
+    ],
+    "position.routes.ts": [
+      "POST /api/admin/positions/",
+      "PUT /api/admin/positions/:id",
+      "DELETE /api/admin/positions/:id"
+    ],
+    "price.routes.ts": [
+      "POST /api/admin/prices/best-price",
+      "POST /api/admin/prices/batch/preview"
+    ],
+    "print.routes.ts": [
+      "POST /api/admin/print/records",
+      "POST /api/admin/print/records/:id/reprint",
+      "POST /api/admin/print/templates",
+      "PUT /api/admin/print/templates/:id",
+      "DELETE /api/admin/print/templates/:id",
+      "POST /api/admin/print/templates/:id/reset",
+      "POST /api/admin/print/templates/:id/set-default"
+    ],
+    "product-bundle.routes.ts": [
+      "POST /api/admin/product-bundles",
+      "PUT /api/admin/product-bundles/:id",
+      "DELETE /api/admin/product-bundles/:id",
+      "POST /api/admin/product-bundles/:id/publish",
+      "POST /api/admin/product-bundles/:id/unpublish",
+      "POST /api/admin/combo-products",
+      "PUT /api/admin/combo-products/:id",
+      "DELETE /api/admin/combo-products/:id"
+    ],
+    "product-marketing-tag.routes.ts": [
+      "POST /api/admin/product-tags/",
+      "PUT /api/admin/product-tags/:id",
+      "DELETE /api/admin/product-tags/:id"
+    ],
+    "product-review.routes.ts": [
+      "POST /api/admin/product-reviews/",
+      "POST /api/admin/product-reviews/:id/approve",
+      "POST /api/admin/product-reviews/:id/reject",
+      "POST /api/admin/product-reviews/batch-approve",
+      "POST /api/admin/product-reviews/batch-reject"
+    ],
+    "purchase-contract.routes.ts": [
+      "POST /api/admin/purchase-contracts/",
+      "PUT /api/admin/purchase-contracts/:contractNo",
+      "DELETE /api/admin/purchase-contracts/:contractNo",
+      "POST /api/admin/purchase-contracts/:contractNo/upload"
+    ],
+    "purchase-in-stock.routes.ts": [
+      "POST /api/admin/purchase-in-stocks/",
+      "POST /api/admin/purchase-in-stocks/:stockNo/approve",
+      "POST /api/admin/purchase-in-stocks/:stockNo/void"
+    ],
+    "purchase-payment.routes.ts": [
+      "POST /api/admin/purchase-payments/",
+      "POST /api/admin/purchase-payments/:paymentNo/approve",
+      "POST /api/admin/purchase-payments/:paymentNo/void"
+    ],
+    "purchase-plan.routes.ts": [
+      "POST /api/admin/purchase-plans/",
+      "POST /api/admin/purchase-plans/:planNo/convert"
+    ],
+    "purchase-return.routes.ts": [
+      "POST /api/admin/purchase-returns/",
+      "POST /api/admin/purchase-returns/:returnNo/approve",
+      "POST /api/admin/purchase-returns/:returnNo/void"
+    ],
+    "purchase.routes.ts": [
+      "POST /api/admin/purchase-orders/",
+      "POST /api/admin/purchase-orders/:orderNo/approve",
+      "POST /api/admin/purchase-orders/:orderNo/cancel",
+      "PUT /api/admin/purchase-orders/:orderNo",
+      "DELETE /api/admin/purchase-orders/:orderNo"
+    ],
+    "push.routes.ts": [
+      "POST /api/admin/push/register",
+      "POST /api/admin/push/unregister",
+      "POST /api/admin/push/test"
+    ],
+    "rbac.routes.ts": [
+      "POST /api/admin/system/roles/",
+      "PUT /api/admin/system/roles/:id",
+      "DELETE /api/admin/system/roles/:id",
+      "PUT /api/admin/system/roles/:id/data-permissions",
+      "PUT /api/admin/system/roles/users/:userId/roles"
+    ],
+    "receipt.routes.ts": [
+      "POST /api/admin/receipts/",
+      "POST /api/admin/receipts/:receiptNo/void"
+    ],
+    "reconciliation.routes.ts": [
+      "POST /api/admin/reconciliation/customer/:customerId/confirm",
+      "POST /api/admin/reconciliation/supplier/:supplierId/confirm"
+    ],
+    "report-permissions.routes.ts": [
+      "PUT /api/admin/report-permissions/matrix",
+      "PUT /api/admin/report-permissions/data-scope",
+      "POST /api/admin/report-permissions/batch",
+      "PUT /api/admin/report-permissions/user/:userId"
+    ],
+    "report.routes.ts": [
+      "POST /api/admin/reports/export"
+    ],
+    "retail-announcement.routes.ts": [
+      "POST /api/retail-announcement/admin/retail-announcements",
+      "PUT /api/retail-announcement/admin/retail-announcements/:id",
+      "DELETE /api/retail-announcement/admin/retail-announcements/:id"
+    ],
+    "retail-announcements-admin.routes.ts": [
+      "POST /api/admin/retail-announcements/",
+      "PUT /api/admin/retail-announcements/:id",
+      "DELETE /api/admin/retail-announcements/:id"
+    ],
+    "retail-consumer-address.routes.ts": [
+      "POST /api/retail-consumer-address/miniapp/addresses",
+      "PUT /api/retail-consumer-address/miniapp/addresses/:id",
+      "DELETE /api/retail-consumer-address/miniapp/addresses/:id",
+      "PUT /api/retail-consumer-address/miniapp/addresses/:id/default"
+    ],
+    "saas-subscription.routes.ts": [
+      "POST /api/saas/subscriptions/",
+      "POST /api/saas/subscriptions/:id/renew",
+      "POST /api/saas/subscriptions/:id/upgrade",
+      "POST /api/saas/subscriptions/:id/cancel"
+    ],
+    "saas-tenant.routes.ts": [
+      "POST /api/saas/tenants/",
+      "PUT /api/saas/tenants/:id",
+      "POST /api/saas/tenants/:id/audit",
+      "POST /api/saas/tenants/:id/toggle-status"
+    ],
+    "sale-return.routes.ts": [
+      "POST /api/admin/sale-returns/",
+      "POST /api/admin/sale-returns/:returnNo/approve",
+      "POST /api/admin/sale-returns/:returnNo/reject"
+    ],
+    "seckill.routes.ts": [
+      "POST /api/seckill/",
+      "PUT /api/seckill/:id",
+      "DELETE /api/seckill/:id"
+    ],
+    "share.routes.ts": [
+      "POST /api/share/collections/:token/pay",
+      "POST /api/share/collections/:token/wx-notify"
+    ],
+    "sms-template.routes.ts": [
+      "POST /api/admin/sms-templates/",
+      "PUT /api/admin/sms-templates/:id",
+      "DELETE /api/admin/sms-templates/:id"
+    ],
+    "stock-check.routes.ts": [
+      "POST /api/admin/stock-checks/",
+      "PUT /api/admin/stock-checks/:id",
+      "POST /api/admin/stock-checks/:id/start",
+      "POST /api/admin/stock-checks/:id/complete",
+      "POST /api/admin/stock-checks/:id/cancel",
+      "POST /api/admin/stock-checks/:id/handle-diff",
+      "POST /api/admin/stock-checks/:id/items",
+      "PUT /api/store/stock-checks/:id/items/:itemId",
+      "POST /api/store/stock-checks/:id/submit"
+    ],
+    "stock-warning.routes.ts": [
+      "POST /api/admin/stock-warnings/config"
+    ],
+    "store-control.routes.ts": [
+      "PUT /api/admin/store-control/configs/:storeId",
+      "POST /api/admin/store-control/:storeId/open",
+      "POST /api/admin/store-control/:storeId/close",
+      "POST /api/admin/store-control/:storeId/suspend",
+      "POST /api/admin/store-control/:storeId/resume"
+    ],
+    "store-coupon.routes.ts": [
+      "POST /api/store/coupons/verify",
+      "POST /api/store/coupons/manual-verify"
+    ],
+    "store-hardware.routes.ts": [
+      "PUT /api/store/hardware/configs/:category",
+      "POST /api/store/hardware/configs/:category/test",
+      "POST /api/store/hardware/cloud-speaker/announce",
+      "POST /api/store/hardware/box/pay",
+      "PUT /api/store/hardware/box-config/",
+      "POST /api/store/hardware/box-config/test",
+      "POST /api/store/hardware/unionpay/test"
+    ],
+    "store-inventory.routes.ts": [
+      "PUT /api/store/inventory/alerts/:skuId/threshold"
+    ],
+    "store-order.routes.ts": [
+      "POST /api/store/orders/:orderNo/accept",
+      "POST /api/store/orders/:orderNo/start-delivery",
+      "POST /api/store/orders/:orderNo/complete-delivery",
+      "POST /api/store/orders/:orderNo/reject",
+      "POST /api/store/orders/:orderNo/cancel",
+      "POST /api/store/hold-orders/",
+      "POST /api/store/hold-orders/:holdNo/restore",
+      "DELETE /api/store/hold-orders/:holdNo"
+    ],
+    "store-sale-bill.routes.ts": [
+      "POST /api/store/sale-bills/:billNo/collection-link",
+      "POST /api/store/sale-bills/:billNo/offline-payment",
+      "POST /api/store/sale-bills/:billNo/payment",
+      "POST /api/store/sale-bills/:billNo/pay-by-code"
+    ],
+    "store-shift.routes.ts": [
+      "POST /api/store/shift/settle",
+      "POST /api/store/shifts/",
+      "POST /api/store/shifts/:shiftNo/check",
+      "POST /api/store/shifts/:shiftNo/close"
+    ],
+    "store-trace.routes.ts": [
+      "POST /api/store/trace/verify"
+    ],
+    "store-value-card.routes.ts": [
+      "POST /api/admin/store-value-cards/",
+      "POST /api/admin/store-value-cards/:cardNo/recharge",
+      "POST /api/admin/store-value-cards/:cardNo/freeze",
+      "POST /api/admin/store-value-cards/:cardNo/unfreeze"
+    ],
+    "store.routes.ts": [
+      "POST /api/store/members/manage",
+      "PUT /api/store/members/:id(\\d+)"
+    ],
+    "subscription.routes.ts": [
+      "POST /api/platform/subscriptions-management/plans",
+      "PUT /api/platform/subscriptions-management/plans/:planId",
+      "PUT /api/platform/subscriptions-management/plans/:planId/policy",
+      "POST /api/platform/subscriptions-management/",
+      "POST /api/platform/subscriptions-management/:subscriptionId/change-plan",
+      "POST /api/platform/subscriptions-management/:subscriptionId/cancel",
+      "POST /api/platform/subscriptions-management/:subscriptionId/pay",
+      "POST /api/platform/subscriptions-management/:subscriptionId/renew"
+    ],
+    "supplier-contact.routes.ts": [
+      "POST /api/admin/supplier-contacts/supplier/:supplierId",
+      "PUT /api/admin/supplier-contacts/:id",
+      "DELETE /api/admin/supplier-contacts/:id",
+      "POST /api/admin/supplier-contacts/:id/set-primary"
+    ],
+    "supplier-statement.routes.ts": [
+      "POST /api/admin/supplier-statements/generate",
+      "POST /api/admin/supplier-statements/:statementNo/confirm",
+      "POST /api/admin/supplier-statements/:statementNo/dispute"
+    ],
+    "supplier.routes.ts": [
+      "POST /api/admin/suppliers/",
+      "PUT /api/admin/suppliers/:id",
+      "POST /api/admin/suppliers/:id/contacts",
+      "DELETE /api/admin/suppliers/:id/contacts/:contactId"
+    ],
+    "sync.routes.ts": [
+      "POST /api/sync/price",
+      "POST /api/sync/product",
+      "POST /api/sync/offline-orders"
+    ],
+    "sys-config.routes.ts": [
+      "DELETE /api/admin/sys-config/backups/:name",
+      "PUT /api/admin/sys-config/tenant-info",
+      "PUT /api/admin/sys-config/batch",
+      "POST /api/admin/sys-config/",
+      "POST /api/admin/sys-config/test-mail",
+      "POST /api/admin/sys-config/manual-backup"
+    ],
+    "sys-user.routes.ts": [
+      "POST /api/admin/sys-users/",
+      "PUT /api/admin/sys-users/:id",
+      "POST /api/admin/sys-users/:id/reset-password",
+      "DELETE /api/admin/sys-users/:id"
+    ],
+    "system.routes.ts": [
+      "POST /api/system/migrate"
+    ],
+    "tag.routes.ts": [
+      "POST /api/admin/tags/groups",
+      "PUT /api/admin/tags/groups/:id",
+      "DELETE /api/admin/tags/groups/:id",
+      "POST /api/admin/tags",
+      "PUT /api/admin/tags/:id",
+      "DELETE /api/admin/tags/:id",
+      "PUT /api/admin/products/:spuId/tags"
+    ],
+    "tenant-register.routes.ts": [
+      "POST /api/tenant/register",
+      "POST /api/tenant/register/sms-code",
+      "POST /api/tenant/applications/:id/approve",
+      "POST /api/tenant/applications/:id/reject"
+    ],
+    "tenant.routes.ts": [
+      "POST /api/platform/tenants-management/",
+      "PUT /api/platform/tenants-management/:tenantId",
+      "PUT /api/platform/tenants-management/:tenantId/status",
+      "PUT /api/platform/tenants-management/:tenantId/modules"
+    ],
+    "trace.routes.ts": [
+      "DELETE /api/admin/trace/configs/:id",
+      "POST /api/admin/trace/codes/:traceCode/status",
+      "POST /api/admin/trace/codes/generate",
+      "POST /api/admin/trace/configs",
+      "POST /api/admin/trace/configs/check",
+      "POST /api/admin/trace/recalls",
+      "POST /api/admin/trace/recalls/:recallNo/execute",
+      "POST /api/admin/trace/verify",
+      "POST /api/miniapp/trace/c/verify",
+      "PUT /api/admin/trace/configs/:id",
+      "PUT /api/admin/trace/recalls/:recallNo/complete"
+    ],
+    "transfer.routes.ts": [
+      "POST /api/admin/transfers/",
+      "PUT /api/admin/transfers/:id",
+      "POST /api/admin/transfers/:id/submit",
+      "POST /api/admin/transfers/:id/approve",
+      "POST /api/admin/transfers/:id/reject",
+      "POST /api/admin/transfers/:id/cancel",
+      "POST /api/admin/transfers/:id/ship",
+      "POST /api/store/transfers/:id/receive"
+    ],
+    "unit-group.routes.ts": [
+      "POST /api/admin/unit-groups/",
+      "PUT /api/admin/unit-groups/:id",
+      "DELETE /api/admin/unit-groups/:id"
+    ],
+    "unit.routes.ts": [
+      "POST /api/admin/units/",
+      "PUT /api/admin/units/:id",
+      "DELETE /api/admin/units/:id"
+    ],
+    "user-session.routes.ts": [
+      "DELETE /api/user-session/:id",
+      "DELETE /api/user-session/user/:userId"
+    ],
+    "wechat.routes.ts": [
+      "POST /api/miniapp/wechat/auth/login",
+      "POST /api/miniapp/wechat/auth/decrypt-phone",
+      "PUT /api/miniapp/wechat/auth/profile",
+      "POST /api/miniapp/wechat/auth/bind",
+      "POST /api/miniapp/wechat/auth/unbind"
+    ],
+    "workbench.routes.ts": [
+      "POST /api/admin/todos",
+      "PUT /api/admin/todos/:id/complete",
+      "PUT /api/admin/todos/:id/dismiss",
+      "DELETE /api/admin/todos/:id",
+      "POST /api/admin/quick-entries",
+      "PUT /api/admin/quick-entries/sort",
+      "PUT /api/admin/quick-entries/:id",
+      "DELETE /api/admin/quick-entries/:id",
+      "PUT /api/admin/wb-notifications/:id/read",
+      "POST /api/admin/wb-notifications/read-all",
+      "DELETE /api/admin/wb-notifications/:id"
+    ]
+  },
+  "_lastUpdate": "S3-198（2026-10-14，库存/追溯域批 + 返工）：移除已接线的 25 条（data-transfer 2 / inventory-batch 7 / inventory-share 6 / transfer-order 7 / warehouse 3）；**trace.routes.ts 的 9 条按凌舟裁定退回**（生产 t_sys_role.permissions 实测门店角色不含 trace:*，属产品授权口径，待另立补授权单）；同步 S3-187（67beff76）改名的 3 条陈旧登记（同一端点改名，非新增缺口）。"
+}
