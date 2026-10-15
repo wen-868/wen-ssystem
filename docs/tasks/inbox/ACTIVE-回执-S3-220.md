@@ -15,7 +15,8 @@
 `goods:create|edit|delete`**（店长只持 `goods:price`），而这 15 条恰好**无有效页面调用点**。已接线：缺口
 **588 → 573**、`--strict` EXIT=0、全量 **8450 用例 0 失败**。其余 30 条按卡面口径**不接并逐条登记**。
 本单**未新立码、未改角色种子、未动迁移**；工作树 `wt-agents/S3-220`、分支 `feat/s3-220-product-domain-wiring`、
-提交 `COMMIT_PLACEHOLDER`（**未 push、未开 PR**）。
+**交付提交 `51a52758`**（该提交含全部代码/用例/台账/证据/回传卡；紧随其后另有一笔 docs-only 提交用于回填本回执的哈希，
+HEAD 以 `git log --oneline -1` 为准）—— **未 push、未开 PR**。
 
 ## 一、改了什么
 
