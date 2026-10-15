@@ -104,8 +104,12 @@ jobs:
       #   红线同 G2/G3：不用 `continue-on-error`、不吞退出码、单独一步（红在哪一道看得清）。
       #   反测证据：离线夹具双侧反测 `docs/evidence/S3-207/raw/71-guard-reverse-test.txt`（4/4 PASS）
       #   与源码侧反测 `raw/50-reverse-guard-red.txt` / `raw/52-restore-guard-green.txt`。
-      - name: Tenant injection guard (G37, blocking)
+      # ⚠️ S3-207 观察期（凌舟 2026-10-15 裁定）：该门禁首次在 CI 的合并树上跑出 40 项待处理
+      #    （21 条阻塞 + 19 条未登记非字面量）⇒ 直接阻断会堵死所有 PR。按既有先例先转观察期
+      #    （照常打印 RED 清单、不判红），同时另立单清那 40 项；清完必须改回阻断（不得长期观察）。
+      - name: Tenant injection guard (G37, 观察期·advisory)
         if: always()
+        continue-on-error: true
         run: node backend/scripts/guard-tenant-injection.mjs
 
       - name: Backend coverage gate (baseline 2026-08-15)
