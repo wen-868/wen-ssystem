@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RequestHandler } from "express";
+import rateLimit from "express-rate-limit";
 import * as couponController from "../controllers/admin/marketing-coupon.controller";
 import * as fullReductionController from "../controllers/admin/marketing-full-reduction.controller";
 import * as pointsController from "../controllers/admin/marketing-points.controller";
@@ -10,6 +11,7 @@ import type { RouteConfig } from "../shared/auto-routes";
 import { requireConsumerAuthWithTenant } from "../middleware/consumer-auth";
 import { csrfMiddleware } from "../middleware/csrf";
 import { fail } from "../shared/response";
+import { AUTHED_ROUTE_LIMIT } from "../config/rate-limit";
 
 export const miniappMarketingRouter = Router();
 
@@ -58,8 +60,14 @@ miniappMarketingRouter.get("/coupons/available", couponController.listAvailableC
 //   `tenant_id = ?` + 命中不到即 404 实现（marketing-coupon.service.ts:459/466、
 //   marketing-flash-sale.service.ts:351/358、marketing-group-buy.service.ts:414-423），
 //   控制器侧补「参数本身是否合法」（非整数/非正数 ⇒ 400，不让 NaN 落到 SQL）。
-miniappMarketingRouter.post("/coupons/:templateId/claim", requireConsumerAuthWithTenant, csrfMiddleware, bindSelfIdentity, couponController.claimCoupon);
-miniappMarketingRouter.get("/coupons/my", requireConsumerAuthWithTenant, bindSelfIdentity, couponController.listMyCoupons);
+// S3-208（总清单第 57 项）：本文件「需登录态」的端点被 CodeQL `js/missing-rate-limiting` 报 high
+// （PR #297 check-run 115404340298 注解 4 条＝当时的 coupon claim / points my / flash-sale buy /
+// group-buy join；同文件同族在 main 上另有 coupons/my、points/my-records、calculate 三条）。
+// 处置：以上 7 条全部在注册点**内联** `rateLimit(...)`（参数取自 `config/rate-limit.ts`；按 S3-112
+// 结论，包成 helper 会让 CodeQL 识别不到限流）。公开浏览面（GET /coupons/available、
+// /full-reductions/*、/flash-sales/active、/group-buys/*）无鉴权，不在该规则目标内，保持原样。
+miniappMarketingRouter.post("/coupons/:templateId/claim", rateLimit(AUTHED_ROUTE_LIMIT), requireConsumerAuthWithTenant, csrfMiddleware, bindSelfIdentity, couponController.claimCoupon);
+miniappMarketingRouter.get("/coupons/my", rateLimit(AUTHED_ROUTE_LIMIT), requireConsumerAuthWithTenant, bindSelfIdentity, couponController.listMyCoupons);
 
 // 小程序 - 满减
 miniappMarketingRouter.get("/full-reductions/active", fullReductionController.listFullReductions);
@@ -70,12 +78,12 @@ miniappMarketingRouter.get("/full-reductions/available", fullReductionController
 //   与管理员代查端点 /api/admin/marketing/points/user/:userId 共用同一 controller 函数，
 //   故函数内做显式分支：有 param ⇒ 用 param（管理员代查，租户隔离在服务层）；
 //   无 param ⇒ 用登录态身份。本路由属「我的」数据，故补 requireConsumerAuthWithTenant + bindSelfIdentity。
-miniappMarketingRouter.get("/points/my", requireConsumerAuthWithTenant, bindSelfIdentity, pointsController.getUserPoints);
-miniappMarketingRouter.get("/points/my-records", requireConsumerAuthWithTenant, bindSelfIdentity, pointsController.listMyPointsRecords);
+miniappMarketingRouter.get("/points/my", rateLimit(AUTHED_ROUTE_LIMIT), requireConsumerAuthWithTenant, bindSelfIdentity, pointsController.getUserPoints);
+miniappMarketingRouter.get("/points/my-records", rateLimit(AUTHED_ROUTE_LIMIT), requireConsumerAuthWithTenant, bindSelfIdentity, pointsController.listMyPointsRecords);
 
 // 小程序 - 秒杀
 miniappMarketingRouter.get("/flash-sales/active", flashSaleController.listActiveFlashSales);
-miniappMarketingRouter.post("/flash-sale/:id/buy", requireConsumerAuthWithTenant, csrfMiddleware, bindSelfIdentity, flashSaleController.buyFlashSale);
+miniappMarketingRouter.post("/flash-sale/:id/buy", rateLimit(AUTHED_ROUTE_LIMIT), requireConsumerAuthWithTenant, csrfMiddleware, bindSelfIdentity, flashSaleController.buyFlashSale);
 
 // 小程序 - 拼团
 miniappMarketingRouter.get("/group-buys/active", groupBuyController.listActiveGroupBuys);
@@ -83,11 +91,11 @@ miniappMarketingRouter.get("/group-buys/teams/:teamId", groupBuyController.getGr
 // 参数名用 :teamId（而不是契约占位符 :id）——被操作对象是「团」：服务函数
 // joinGroupBuyTeam(teamId,…) 按组 id 查 t_group_buy_team；契约 L2864 对同一资源也明写 :teamId，
 // 管理员侧同族端点为 /api/admin/marketing/group-buys/teams/:teamId/join（参数名逐字一致）。
-miniappMarketingRouter.post("/group-buy/:teamId/join", requireConsumerAuthWithTenant, csrfMiddleware, bindSelfIdentity, groupBuyController.joinGroupBuyTeam);
+miniappMarketingRouter.post("/group-buy/:teamId/join", rateLimit(AUTHED_ROUTE_LIMIT), requireConsumerAuthWithTenant, csrfMiddleware, bindSelfIdentity, groupBuyController.joinGroupBuyTeam);
 
 // 小程序 - 试算
 // 试算不落库、也无需身份，但按 S3-178 卡 §二.1「每个写端点前补认证」补认证 + CSRF（同类既有写法：cart.routes.ts 的幂等只读型 POST）
-miniappMarketingRouter.post("/calculate", requireConsumerAuthWithTenant, csrfMiddleware, calculationController.calculatePromotion);
+miniappMarketingRouter.post("/calculate", rateLimit(AUTHED_ROUTE_LIMIT), requireConsumerAuthWithTenant, csrfMiddleware, calculationController.calculatePromotion);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

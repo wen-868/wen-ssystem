@@ -1,0 +1,24 @@
+=== FINAL-TREE GATES (2026-10-15) ===
+--- tsc --noEmit ---
+TSC_EXIT=0
+--- guard-route-auth.mjs ---
+[guard:route-auth] 扫描 189 个路由文件
+✅ G3 通过：无「绕过声明式鉴权/CSRF」的路由文件（auth:"none" 的公开端点已登记 18 个文件）
+guard-route-auth.mjs EXIT=0
+--- guard-tenant-status.mjs ---
+       - services/saas/tenant.service.ts:340: "EXPIRED"（已登记上下文：AS expiredTenants）
+✅ G2 通过：租户状态域只有 ACTIVE / DISABLED 一套口径
+guard-tenant-status.mjs EXIT=0
+--- guard-route-prefix.mjs ---
+✅ G36 通过：重复前缀 12 个（均已逐条登记理由，白名单 13 条）、未登记重复前缀 0 个、真重复端点 0 个
+   · ⚠️ 根前缀共享告警（只出声、不判红）4 条：/api/admin (19次)、/api/platform (3次)、/api/miniapp (2次)、/api/monitor (2次) —— 根前缀的声明式认证会覆盖整段 /api/**（含兄弟文件的公开端点与不存在的子路径）；请核对是否已按「只声明自己拥有的路径段」收窄。
+guard-route-prefix.mjs EXIT=0
+--- guard-utf8-encoding.mjs ---
+[guard:utf8-encoding] 扫描目录 9 个 / 文件 2141 个
+[guard:utf8-encoding] PASS（0 个非法字节、0 处 U+FFFD 残留）
+guard-utf8-encoding.mjs EXIT=0
+--- guard-rbac-wiring --strict ---
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+已登记缺口 680 条 ／ 未登记缺口 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+✅ [--strict] 无「未登记」缺口（已登记欠账 680 条不计红）
+strict EXIT=0

@@ -1,0 +1,6 @@
+0C1C8F869F5A7112  backend\src\config\rate-limit.ts
+3D9C1ED2DC05F4AD  backend\src\routes\wechat.routes.ts
+B9BF5BD66D560C70  backend\src\routes\marketing-miniapp.routes.ts
+7A21CB656BFBAEC6  backend\src\routes\commerce-fix.routes.ts
+3D90B80A9C2FDA0A  backend\src\__tests__\routes\authed-route-rate-limit-s3-208.test.ts
+3F05F466BA4283EB  backend\src\__tests__\security\path-sanitizer-s3-208.test.ts
