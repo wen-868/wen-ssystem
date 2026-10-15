@@ -23,6 +23,8 @@ priceRouter.put("/prices/:id", requirePermission("goods:price"), requirePriceMan
 priceRouter.delete("/prices/:id", requirePermission("goods:price"), requirePriceManagementAccess(), priceManagementController.deleteSkuPrice);
 
 // 最优价查询
+// ⚠️ S3-220 **本行不接线**：`rbac-g0-wiring.test.ts:700` 已把本行列为「查询型 POST（待裁定）」并断言
+//    READONLY 仍 200（`rbac-g1-wiring.test.ts:286` 同款锁定）⇒ 属**既有待裁定项**，本批不动，随回执报备。
 priceRouter.post("/best-price", priceManagementController.getBestPrice);
 
 // 客户价格绑定 - 仅管理员/店长可操作
@@ -36,6 +38,9 @@ priceRouter.delete("/customer-bindings/:id", requirePermission("goods:price"), r
 priceRouter.get("/change-logs", requirePriceChangeLogAccess(), priceManagementController.listChangeLogs);
 
 // 批量价格调整 - 仅管理员/店长可操作
+// ⚠️ S3-220 **本行不接线**：本行已有 `requirePriceManagementAccess()`（角色白名单，非裸奔），而
+//    `rbac-g0-wiring.test.ts:725` 把「READONLY 调本行 ⇒ PRICE_MANAGEMENT_DENIED」列为**已知锁定**。
+//    接 `goods:price` 后拦在第一层的变成 RBAC（403 文案变），属改动既有锁定行为 ⇒ 本批不动，随回执报备。
 priceRouter.post("/batch/preview", requirePriceManagementAccess(), batchPriceController.previewBatchAdjustment);
 priceRouter.post("/batch/execute", requirePermission("goods:price"), requirePriceManagementAccess(), batchPriceController.executeBatchAdjustment);
 priceRouter.get("/batch/logs", requirePriceChangeLogAccess(), batchPriceController.listBatchLogs);

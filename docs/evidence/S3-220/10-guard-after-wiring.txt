@@ -1,0 +1,20 @@
+[guard:rbac-wiring] 扫描 189 个路由文件 · 763 个写端点
+[guard:rbac-wiring] 已接线（权限码）153 处 ／ 消费者端保护形态 39 处 ／ **无授权形态 571 处**（分布在 145 个文件）
+[guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）
+
+—— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无授权形态）——
+
+admin-auth.routes.ts  (5 处)
+   L21: PUT /api/admin/auth/settings ⇒ 无授权形态
+   L22: POST /api/admin/auth/change-password ⇒ 无授权形态
+   L24: POST /api/admin/auth/mfa/setup ⇒ 无授权形态
+   L25: POST /api/admin/auth/mfa/confirm ⇒ 无授权形态
+   L26: POST /api/admin/auth/mfa/disable ⇒ 无授权形态
+
+admin-customer.routes.ts  (6 处)
+   L12: POST /api/admin/members ⇒ 无授权形态
+   L16: PUT /api/admin/members/:id ⇒ 无授权形态
+   L17: PUT /api/admin/members/:id/disable ⇒ 无授权形态
+   L18: PUT /api/admin/members/:id/assign-staff ⇒ 无授权形态
+   L25: POST /api/admin/members/register ⇒ 无授权形态
+   L27: PUT /api/admin/members/:id/member-level ⇒ 无授权形态
