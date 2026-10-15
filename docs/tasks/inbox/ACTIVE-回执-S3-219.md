@@ -7,7 +7,7 @@
 
 汇报对象：总负责人（凌舟）　｜　汇报人：阿坚（后端 / 权限）　｜　日期：2026-10-16
 对应派单编号：**S3-219**（收口总清单第 67 项）　｜　工作树：`D:\Users\ZXQL\wt-agents\S3-219`
-分支：`feat/s3-219-platform-domain-wiring`　｜　分支提交：`c95a5280`（代码+证据）→ `b7b42ae0`（回传卡/回执）→ `983587a3`（补 eslint 读数）（基线 `993bde70` = 派单时 `origin/main`）
+分支：`feat/s3-219-platform-domain-wiring`　｜　分支提交：`c95a5280`（代码+证据）、`b7b42ae0`（回传卡/回执）及收尾文档一笔（基线 `993bde70` = 派单时 `origin/main`）
 
 ---
 
@@ -124,7 +124,7 @@ docs/evidence/S3-219/**（5 份 md + 9 份原始日志/清单）
 ## 七、环境复原
 
 - 工作树 `D:\Users\ZXQL\wt-agents\S3-219`，分支 `feat/s3-219-platform-domain-wiring`；
-  本轮本地提交 **3 笔**：`c95a5280`（代码+证据）／`b7b42ae0`（回传卡与回执）／`983587a3`（补 eslint 读数），基线 `993bde70`；
+  本轮本地提交 **3 笔**：`c95a5280`（代码+证据）、`b7b42ae0`（回传卡与回执）、收尾文档一笔，基线 `993bde70`；
 - **未 push、未开 PR**；未碰其它单的工作树；未改 `.github/**`、`deploy/**`、契约文档、收口总清单；
 - 反测窗口已复原：`platform-library.routes.ts` 前后哈希同为 `13E5E38A5A9EC7D2891D900B434DCAF7908E7539D6E1927C9CFA37387873073A`；
 - `src` / `dist` 哈希逐条列于 `docs/evidence/S3-219/08-改动面与哈希.md`（含 build 产物的 5 个 dist 指纹）；
