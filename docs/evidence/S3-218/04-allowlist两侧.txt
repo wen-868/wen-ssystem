@@ -1,0 +1,17 @@
+=== allowlist ① 把真实命中（backend/scripts/demo-inject.mjs:18）登记进 allowlist ⇒ 该条不再判红，且输出里出现 allowlist 打印 ===
+[guard:evidence-secrets] 扫描可执行脚本 2 个（root=C:\Users\XIONG\AppData\Local\Temp\s3-218-neg-2059053450\red）
+✗ 命中 1 处（敏感键的值被写进日志/证据）：
+   - backend/scripts/demo-inject.mjs:19:1  标识符 API_TOKEN  规则 R1：敏感键的值经「模板插值」写进日志
+       19 | say(`TOKEN=${process.env.API_TOKEN}`);
+       改法：只留来源/结论（如 `x ? "已配置" : "未配置"`、`x.length`、`Boolean(x)`），
+             或写脱敏占位（含 `已脱敏`/`<masked>`/`****`），或在 ALLOWLIST 具名登记理由。
+   · allowlist 豁免 backend/scripts/demo-inject.mjs:18（S3-218-NEG：反测A：把一处真实命中登记进 allowlist ⇒ 该条不再判红）
+   ! warn：allowlist 登记项 scripts/mysql-smoke-test.mjs:174（S3-218）全程 0 命中 —— 选择器可能已失效，请复核（不判红）
+[guard:evidence-secrets] FAIL（命中 1 处）
+EXIT=1
+=== allowlist ② 把"不存在的行"登记进去 ⇒ 只 warn，EXIT 仍为 0 ===
+[guard:evidence-secrets] 扫描可执行脚本 1 个（root=C:\Users\XIONG\AppData\Local\Temp\s3-218-neg-2059053450\clean）
+   ! warn：allowlist 登记项 backend/scripts/does-not-exist.mjs:9999（S3-218-NEG）全程 0 命中 —— 选择器可能已失效，请复核（不判红）
+   ! warn：allowlist 登记项 scripts/mysql-smoke-test.mjs:174（S3-218）全程 0 命中 —— 选择器可能已失效，请复核（不判红）
+[guard:evidence-secrets] PASS（命中 0 处 / 豁免 0 处）
+EXIT=0

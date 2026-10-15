@@ -1,0 +1,24 @@
+=== SHA256 · 本单改动文件（改后树）===
+AF5BAA686F8282C8F9F045388B9596D03D1E8B1A248AE7E5F3A9B30A5226F21B  backend\scripts\guard-evidence-secrets.mjs
+7E8B5AA84133D78F94410E201BAE2CDDAC52A58E54608609BD96A9A22DA84225  docs\evidence\C2-4\tools\c2-4-ts-loader-smoke.mjs
+A7FD346E50AAB999F4390884D1C09105C6D3BD7B1BC446F9BE6CFEC3C3302799  docs\evidence\S3-218\neg\demo-inject.mjs
+
+=== C2-4 脚本改动前（HEAD 版本）哈希，用于证明只动了日志行 ===
+176EAE246FA5781AF724A6EE9E68C5269013019BD38136E27FD2312DDAB9878B  （HEAD:c2-4-ts-loader-smoke.mjs）
+
+=== 差异（仅日志行 + 注释）===
+diff --git a/docs/evidence/C2-4/tools/c2-4-ts-loader-smoke.mjs b/docs/evidence/C2-4/tools/c2-4-ts-loader-smoke.mjs
+index e3e2c439..9b6c21e0 100644
+--- a/docs/evidence/C2-4/tools/c2-4-ts-loader-smoke.mjs
++++ b/docs/evidence/C2-4/tools/c2-4-ts-loader-smoke.mjs
+@@ -12,7 +12,9 @@ process.env.JWT_SECRET = "c2-4-smoke-secret";
+ try {
+   const { env } = await import("../../../../backend/src/config/env.ts");
+   const { PLATFORM_JWT_ISSUER } = await import("../../../../backend/src/middleware/auth.ts");
+-  console.log(`SMOKE_OK import backend TS 成功：USE_MOCK_DB=${env.USE_MOCK_DB} JWT_SECRET=${env.JWT_SECRET} iss=${PLATFORM_JWT_ISSUER}`);
++  // S3-218 收口（口径同收口总清单第 69 项）：证据/日志不得承载敏感键的**值**。
++  // 本行用途只是证明"后端 TS 的 env 已被加载"，值本身与判据无关 ⇒ 只留结论，不回显值。
++  console.log(`SMOKE_OK import backend TS 成功：USE_MOCK_DB=${env.USE_MOCK_DB} JWT_SECRET=${env.JWT_SECRET ? "已配置" : "未配置"} iss=${PLATFORM_JWT_ISSUER}`);
+   process.exit(0);
+ } catch (err) {
+   console.log(`SMOKE_FAIL ${err?.name}: ${err?.message}`);

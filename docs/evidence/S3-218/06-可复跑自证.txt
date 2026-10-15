@@ -1,0 +1,13 @@
+=== 1) 语法：node --check ===
+EXIT=0（node --check）
+
+=== 2) 零外部依赖自证：全部 import / require 行 ===
+48: import fs from "node:fs";
+49: import path from "node:path";
+
+=== 3) 无外部包 import 的断言（命中数应为 0）===
+非 node:fs / node:path 的 import 行数 = 0
+=== 4) 改动面（git status）===
+ M docs/evidence/C2-4/tools/c2-4-ts-loader-smoke.mjs
+?? backend/scripts/guard-evidence-secrets.mjs
+?? docs/evidence/S3-218/
