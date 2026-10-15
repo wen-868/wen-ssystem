@@ -2121,3 +2121,133 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 3. **`purchase:order` 等 4 个采购 MENU 码未参与本批**：移动端菜单可见性用 `purchase:order/inbound/supplier` 判定，本批落地码取的是**动作语义**（`purchase:*` 细码 / `inventory:*` / `finance:*` / `sale:*` / `report:*`）。若凌舟要「菜单码 = 端点码」对齐，属授权模型重构，另立单。
 4. **店长对付款审核端点的"宽授"**：生产店长持精确码 `finance:payment`，故店长在 API 面亦通过 `POST /purchase-payments/:paymentNo/approve`（测试 §b 已显式记录）。页面 `PurchasePayments.vue` 只给 SUPER_ADMIN，故不构成页面回归；若要收窄成「财务专属」，需新立码（不在本单范围）。
 
+---
+
+## 十二、S3-222 · **客户域（12 文件 / 45 写端点）**接线明细与守恒（2026-10-16）
+
+> 产出：阿坚（后端 · 本地子代理通道 `/root/s3225_ajian`）｜2026-10-16｜汇报对象：凌舟（总负责人）
+> 依据：派单卡 `docs/tasks/inbox/ACTIVE-S3-222.md`
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-222`，分支 `feat/s3-222-customer-domain-wiring`，基线 `origin/main` = `e124173b`
+> 机读镜像：`backend/scripts/rbac-wiring-baseline.json`（本单后 `gaps` **546 条 / 138 文件**；`consumerEnd` 39 条不变）
+> 逐条证据（命令 + 原始输出 + 行号 + 哈希）：`docs/evidence/S3-222/**`（判定与调用面见 `01-plan-and-callers.md`）；回执：`docs/tasks/inbox/ACTIVE-回执-S3-222.md`
+
+### 12.1 接线口径（照派单卡 §二执行）
+
+| 序 | 卡面口径 | 本单落地 |
+|:--|:--|:--|
+| ① | 先做**生产角色核对**（服务器只读通道导出 `t_sys_role.permissions`） | **本执行方无生产库访问权**（该通道由凌舟持有）⇒ 以卡面下发的批 2 生产实值 + 仓库种子为依据，逐角色标注来源，并在回执 §六 请凌舟复跑同一条 SQL（见 `01-plan-and-callers.md` §一/§四） |
+| ② | 优先挂「该端点**真实使用者已持有**的模块码」（零回归） | 45 条逐条查前端调用点 + 页面 `meta.roles`（桌面）/ 菜单码（移动端）后选码；42 条落地码全部是**既有码**（079 矩阵） |
+| ③ | 公开端点**照台账口径处理：免鉴权 ⇒ 不接线但逐条登记**并说明公开是业务意图 | 2 条（`member-register.routes.ts` 的 `POST /sms-code`、`POST /register`）**确认 `routeConfig.auth = "none"`** ⇒ 不接，登记为 P 类 |
+| ④ | 「自服务/本人数据」不得硬套管理面码（S3-203 `trace:*` 教训） | 本域**无**自服务端点（台账 §二 客户域自服务计数 = 0），未触发 |
+| ⑤ | 找不到"使用者已持有"的码、又不宜挂客户域码 ⇒ 本批不接线 + 登记 | 1 条（`POST /api/store/customer-statements/:statementNo/confirm`）⇒ W 类（待授权模型定案），见 12.3 |
+
+### 12.2 本批已接 **42 条**（端点 / 落地码 / 页面真实使用者）
+
+行号 = 本批改动**前**的注册行（`git diff` 可复核；改动后行号因 import 与注释上移）。
+
+| # | 端点（`file:行`） | 落地码 | 页面 / 入口真实使用者（依据） |
+|--:|:--|:--|:--|
+| 1 | `admin-customer.routes.ts:12` POST `/members` | `customer:create` | `CustomersView.vue:276`［SUPER_ADMIN, STORE_MANAGER］（客户管理 `router:160`）；移动端 `customersApi.create` 有定义**无页面调用方** |
+| 2 | `admin-customer.routes.ts:16` PUT `/members/:id` | `customer:edit` | `CustomerDetail.vue:485`［SUPER_ADMIN, STORE_MANAGER］（`router:161`） |
+| 3 | `admin-customer.routes.ts:17` PUT `/members/:id/disable` | `customer:edit` | `CustomerDetail.vue:457`、`CustomersView.vue:332` |
+| 4 | `admin-customer.routes.ts:18` PUT `/members/:id/assign-staff` | `customer:edit` | 无页面调用方（前端 `assignMember` 打 `/members/:id/assign`，路径漂移见 12.7） |
+| 5 | `admin-customer.routes.ts:25` POST `/members/register` | `customer:create` | `MemberSystem.vue:127`［SUPER_ADMIN］（会员体系 `router:152`）；**台账原判「公开端点」有误**（本文件 `auth: requireAuthWithTenant`）⇒ 按管理面接线（N 类订正） |
+| 6 | `admin-customer.routes.ts:27` PUT `/members/:id/member-level` | `customer:edit` | `LevelConfig.vue:302`［SUPER_ADMIN］＋ `CustomerDetail.vue:509` |
+| 7 | `customer-care.routes.ts:8` POST `/rules` | `customer:create` | `CustomerCareRules.vue:194`［SUPER_ADMIN］（客户关怀 `router:155`） |
+| 8 | `customer-care.routes.ts:9` PUT `/rules/:id` | `customer:edit` | `CustomerCareRules.vue:191` |
+| 9 | `customer-care.routes.ts:10` DELETE `/rules/:id` | `customer:edit` | `CustomerCareRules.vue:204` |
+| 10 | `customer-care.routes.ts:12` POST `/rules/:id/execute` | `customer:create` | `CustomerCareRules.vue:210` |
+| 11 | `customer-merge.routes.ts:10` POST `/merge` | `customer:create` | 无页面调用方（仅服务层单测） |
+| 12 | `customer-payment.routes.ts:10` POST `/` | `customer:payment` | 无页面调用方（前端 `createCustomerPayment` 打 `/admin/customer-payments`，死路径） |
+| 13 | `customer-payment.routes.ts:11` POST `/:receiptNo/void` | `customer:payment` | 同上 |
+| 14 | `customer-price.routes.ts:9` POST `/` | `customer:create` | `CustomerPrices.vue:291`［SUPER_ADMIN, STORE_MANAGER］（客户价格 `router:111`） |
+| 15 | `customer-price.routes.ts:10` PUT `/:id` | `customer:edit` | `CustomerPrices.vue`（编辑） |
+| 16 | `customer-price.routes.ts:11` DELETE `/:id` | `customer:edit` | `CustomerPrices.vue:308` |
+| 17 | `customer-segment.routes.ts:8` POST `/` | `customer:create` | `CustomerSegments.vue:200`［SUPER_ADMIN］（客户分群 `router:158`） |
+| 18 | `customer-segment.routes.ts:9` PUT `/:id` | `customer:edit` | `CustomerSegments.vue`（编辑） |
+| 19 | `customer-segment.routes.ts:10` DELETE `/:id` | `customer:edit` | `CustomerSegments.vue:210` |
+| 20 | `customer-segment.routes.ts:11` POST `/:id/refresh` | `customer:create` | `CustomerSegments.vue:216` |
+| 21 | `customer-statement.routes.ts:10` POST `/` | `customer:statement` | 无页面调用方（前端打 `/store/customer-statements/generate`，死路径） |
+| 22 | `customer-statement.routes.ts:12` POST `/:statementNo/paid` | `customer:statement` | 无页面调用方（与对账同族） |
+| 23 | `customer-tag.routes.ts:8` POST `/` | `customer:create` | `CustomerTags.vue:201`［SUPER_ADMIN］（客户标签 `router:153`） |
+| 24 | `customer-tag.routes.ts:9` PUT `/:id` | `customer:edit` | `CustomerTags.vue:198` |
+| 25 | `customer-tag.routes.ts:10` DELETE `/:id` | `customer:edit` | `CustomerTags.vue:211` |
+| 26 | `customer-tag.routes.ts:11` POST `/:id/tags` | `customer:create` | 无页面调用方（前端打 `/members/tags/add`，漂移） |
+| 27 | `customer-tag.routes.ts:12` DELETE `/:id/tags/:tagId` | `customer:edit` | 无页面调用方（`/members/tags/remove`，漂移） |
+| 28 | `customer-type.routes.ts:11` POST `/` | `customer:create` | `CustomerTypes.vue:211`［SUPER_ADMIN］（客户类型 `router:162`） |
+| 29 | `customer-type.routes.ts:12` PUT `/:id` | `customer:edit` | `CustomerTypes.vue`（编辑） |
+| 30 | `customer-type.routes.ts:13` DELETE `/:id` | `customer:edit` | `CustomerTypes.vue:249` |
+| 31 | `customer-visit.routes.ts:15` POST `/` | `customer:visit` | `CustomerVisits.vue:431`［SUPER_ADMIN, STORE_MANAGER］（拜访记录 `router:156`） |
+| 32 | `customer-visit.routes.ts:18` PUT `/:visitNo` | `customer:visit` | `CustomerVisits.vue:428` |
+| 33 | `customer-visit.routes.ts:21` POST `/:visitNo/checkin` | `customer:visit` | 无页面调用方（`api/misc.ts` 有导出、无引用） |
+| 34 | `customer-visit.routes.ts:24` POST `/:visitNo/checkout` | `customer:visit` | 同上 |
+| 35 | `customer-visit.routes.ts:27` POST `/:visitNo/cancel` | `customer:visit` | 同上 |
+| 36 | `tag.routes.ts:11` POST `/tags/groups` | `customer:create` | `TagGroups.vue:316`［SUPER_ADMIN, STORE_MANAGER］（标签分组 `router:171`） |
+| 37 | `tag.routes.ts:12` PUT `/tags/groups/:id` | `customer:edit` | `TagGroups.vue:311` |
+| 38 | `tag.routes.ts:13` DELETE `/tags/groups/:id` | `customer:edit` | `TagGroups.vue`（删除分组） |
+| 39 | `tag.routes.ts:18` POST `/tags` | `customer:create` | 无页面调用方（前端用的是 `/admin/product-tags`，属商品域另一文件） |
+| 40 | `tag.routes.ts:19` PUT `/tags/:id` | `customer:edit` | 同上 |
+| 41 | `tag.routes.ts:20` DELETE `/tags/:id` | `customer:edit` | 同上 |
+| 42 | `tag.routes.ts:25` PUT `/products/:spuId/tags` | `customer:edit` | `ProductTagRelation.vue:133` / `Products.vue:1358`［SUPER_ADMIN, STORE_MANAGER］（标签关联 `:172` / 商品管理 `:165`） |
+
+**逐码分布**：`customer:create` 12 ｜ `customer:edit` 22 ｜ `customer:visit` 5 ｜ `customer:statement` 2 ｜ `customer:payment` 2 = **42**。
+5 个码**全部是 079 既有码**（`customer:create` 079:210、`customer:edit` 079:211、`customer:statement` 079:147、`customer:visit` 079:148、`customer:payment` 079:149），**不新立权限点、不改角色种子、不动 `docs/migrations/**`**。
+
+### 12.3 本批**未接** **3 条**（仍登记在机读台账里）
+
+| 类 | 端点 | 原因 |
+|:--|:--|:--|
+| P | `member-register.routes.ts:8` POST `/api/store/members/sms-code`、`:9` POST `/api/store/members/register` | **真公开端点**：该文件 `routeConfig.auth = "none"`（免鉴权），调用方是移动端注册链路（`app-mobile/src/api/modules/member.ts:23/:27`、`auth.ts:115`）⇒ 业务意图就是未登录可用，挂商家权限码既无意义也会把注册流程打成 401/403 |
+| W | `customer-statement.routes.ts:11` POST `/api/store/customer-statements/:statementNo/confirm` | **待授权模型定案**：该端点是移动端「对账单」页的"确认"按钮（`app-mobile/.../statements.vue:97`），页面可见角色（生产 `t_sys_role_menu` 的菜单码 `finance:statement`）= {`FINANCE_STAFF`, `OPERATION_ADMIN`, `READONLY`, `STORE_ADMIN`}；其中 **`READONLY`（`["*:view"]`）与 `STORE_ADMIN`（099 旧词表 `customer:read`）不持任何客户域写码** ⇒ 接线即把"看得到该按钮的角色"打成 403（批 1 `trace:*` 同款形态）。三选一（补授权 / 收紧该页菜单 / 另立消费者或门店专用细码）属产品授权口径，不在本单 |
+
+> 口径提示：与**既有测试**互相印证 —— 本批新增用例的「范围控制」节把上述 3 行钉成"READONLY 亦能到达业务层"，
+> 证明本批**既没多接、也没把待定项偷接**（`22-neg-B-vitest-red.txt` 反测时该节保持绿）。
+
+### 12.4 守恒与门禁（原始输出见 `docs/evidence/S3-222/`）
+
+| 指标 | 本批前（`origin/main` `e124173b`） | 本批后 | 说明 |
+|:--|--:|--:|:--|
+| 扫描写端点总数 | 763 | 763 | 未增删端点（`10-guard-before.txt` / `11-guard-after.txt`） |
+| 已接线（权限码） | 136 | **178** | +42 = 本批接线数 |
+| 无授权形态（缺口） | **588** | **546** | −42；分布文件数 148 → 138（**10 个文件清零**） |
+| 消费者端保护形态 | 39 | 39 | 不变（本批不涉） |
+| 机读台账 `gaps` | 588 条 / 148 文件 | **546 条 / 138 文件** | 逐条移除 42、保留 3（工具：`docs/evidence/S3-222/tools/s3222-baseline-sync.mjs`，带前后计数与断言） |
+| `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 条、陈旧登记 0 条（`12-guard-strict-after.txt`） |
+| 本域对账 | 台账 45 = 实测缺口 45 | **45 = 42（已接）+ 2（P 公开）+ 1（W 待裁定）** | 一条不多、一条不少 |
+
+### 12.5 反测（门禁铁律：故意制造失败，证明它会红）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A 报告模式分辨力 | 摘掉 `customer-visit.routes.ts` 的 `requirePermission("customer:visit")` | 已接线 **178 → 177**、缺口 **546 → 547**、缺口文件 **138 → 139**，该端点回落「无授权形态」 | `20-neg-A-report.txt` |
+| B `--strict` 两侧 | 同上 | **EXIT=1** 且点出 `customer-visit.routes.ts:20 POST /api/admin/customer-visits/`（未登记 1 条）；复原 ⇒ **EXIT=0**（546 条登记、0 未登记） | `21-neg-A-strict.txt` / `23-neg-A-restored-strict.txt` |
+| C 用例分辨力（vitest 侧） | 同上 | `rbac-b2-s3-222-customer-wiring.test.ts`：**3 failed / 186 passed**（形状断言、READONLY⇒403、非持有人逐账号枚举）；复原 ⇒ 全绿 | `22-neg-B-vitest-red.txt` |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`25CFF62A…A00ECCA`），`git diff` 无残留 | `raw/30-hash-before-neg.txt`、回执 §五 |
+
+### 12.6 与台账 §三.2「建议权限码」的差异（**4 处**，逐条给理由）
+
+§三.2 的「建议权限码」是**机器规则化产出**（规则见 §六：POST⇒create、PUT/DELETE⇒edit，域内取 `customer:*`），
+**未经生产持有核对**。本批逐条核对调用面与持有面后，4 处不照机器建议落地：
+
+| 端点组 | §三.2 建议码 | 本批落地码 | 理由 |
+|:--|:--|:--|:--|
+| `POST /api/admin/members/register`（1） | 判定"公开端点（免鉴权）" | 判定"管理面"⇒ `customer:create` | **规则误伤**：§六 规则 2 按路径关键词 `register` 判公开，但该端点在同一文件的 `routeConfig.auth = requireAuthWithTenant` 之下（`admin-customer.routes.ts:31-35`）⇒ 实际需要登录；真实使用者是桌面「会员体系」页（`MemberSystem.vue`，仅 SUPER_ADMIN）。同批 1 的 15 号先例（台账判定有误 ⇒ 订正判定） |
+| `POST /api/store/customer-statements/`、`/:statementNo/paid`（2） | `customer:create` | **`customer:statement`** | 079:147 既有「客户对账」码语义精确（比"新增"更贴合对账生命周期）；持有人 ⊇ {超管、运营、店长、财务}（财务持精确码 `customer:statement`），两条端点**无调用方** ⇒ 零回归。用 `customer:create` 会把**财务**排除在对账动作之外 |
+| `POST /api/store/customer-payments/`、`/:receiptNo/void`（2） | `customer:create` | **`customer:payment`** | 079:149 既有「客户收款」码语义精确；持有人 = {超管、运营、店长（`customer:*`）}。两条端点**无调用方** ⇒ 零回归。（注：财务的 `finance:*` **不覆盖**客户域码，见 12.7-2） |
+| `POST /api/store/customer-statements/:statementNo/confirm`（1） | 判定"管理面/是" | **不接（W）** | 见 12.3：移动端页面可见角色 ⊉ 候选码持有人 ⇒ 硬接即 403 回归 |
+
+> 其余 38 条**照 §三.2 建议码落地**（`customer:create` / `customer:edit` / `customer:visit`），未做语义再细分。
+
+### 12.7 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. **会员注册按钮路径漂移**：`admin-web/src/api/customer.ts:255` 打 `POST /admin/customers/members/register`，而后端只有 `/api/admin/members/register`（无 `/api/admin/customers` 前缀）⇒ 该按钮当前应为 404。本批按**后端现状**接线，未改前端。
+2. **客户收款职责面**：`POST /api/store/customer-payments/**` 现挂 `customer:payment`，持有人不含 `FINANCE_STAFF`（财务持 `finance:*` 但 `matchPermission` 不跨域）。若产品认定"客户收款由财务办"，需为财务补该码或另立码（属授权模型决策）。
+3. **标签域语义与域归属**：`tag.routes.ts` 的 `/api/admin/tags/**` 是**商品标签组/标签**，被台账归入客户域；其页面 `products/tag-groups`(`:171`)/`products/tag-relation`(`:172`) 的 `meta.roles` 含 STORE_MANAGER，而生产店长**不持** `goods:create|edit`（只持 `goods:price`）⇒ 挂 `goods:*` 会 403 店长，故本批用 `customer:*`（唯一满足"页面角色 ⊆ 持有人"的既有码）。语义与域不匹配，建议另立单细化（例如新立 `goods:tag` 类码并配套补授权）。
+4. **客户标签增删路径漂移**：`api/customer.ts:289/:293` 打 `POST /admin/members/tags/add`、`/remove`，后端实为 `POST /members/tags/:id/tags`、`DELETE /members/tags/:id/tags/:tagId` ⇒ 前端"给客户打标签"当前应为 404。本批未改前端、未改契约。
+5. **14 条"无页面调用方"的已接端点**（本批按域内既有码接线，属 API 策略面，不阻断任何页面；若产品不打算提供其中某项能力，建议单独裁剪，不在本单范围）：
+   `PUT /members/:id/assign-staff`、`POST /customer-merge/merge`、`POST|POST /:receiptNo/void /store/customer-payments/`、
+   `POST /store/customer-statements/`、`POST /store/customer-statements/:statementNo/paid`、`POST|DELETE /members/tags/:id/tags*`、
+   `POST /customer-visits/:visitNo/{checkin,checkout,cancel}`、`POST|PUT|DELETE /admin/tags(/:id)`（3 条）。
+   另注：`api/misc.ts:20`（取消拜访）、`api/sale.ts:44`（`/store/customer-statements/generate`）、`api/sale.ts:49`（`/admin/customer-payments`）三处导出**后端无对应路由或前缀不符** ⇒ 属死路径（与前端调用点漂移同族，见本条前 4 项）。
+6. **移动端「对账单」确认按钮**（12.3 的 W 类）：`app-mobile/src/pages-sub/finance/statements/statements.vue` 还调用了 `disputeStatement`（页面内本地逻辑）与 `statementApi.create/update`（模块有导出、页面未用）；若凌舟决定"对该页收口"，需同时核对菜单码 `finance:statement` 的授予面。
+
