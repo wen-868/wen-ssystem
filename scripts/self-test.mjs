@@ -332,3 +332,6 @@ if (!enhancedShareDetail.taxEnabled || Number(enhancedShareDetail.taxRate) !== 0
 }
 
 console.log("SELF_TEST_PASS");
+
+// S3-50 RT：故意注入顶层抛出，证明 `Flow self test` 步骤自身会红（红测分支，取证后关闭删除）
+throw new Error("s3-50 RT: flow self test deliberate failure");
