@@ -299,3 +299,7 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export { app, buildRateLimitOptions };
+
+// S3-50 RT：故意注入 `var` 触发 backend lint 门禁（no-var error）——红测分支，取证后关闭删除
+var s350LintProbe = 1;
+export { s350LintProbe };
