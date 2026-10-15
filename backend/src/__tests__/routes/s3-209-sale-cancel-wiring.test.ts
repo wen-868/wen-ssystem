@@ -236,8 +236,13 @@ describe("S3-209 · 注册行形状断言（踩坑[134]：判据落在注册行�
     expect(lines[0].line).toContain("orderController.cancelSaleBill");
   });
 
+  // S3-224（2026-10-16）同步：本对照行原取 `POST /orders/:orderNo/cancel`，该行已由 S3-224 按
+  // 「使用者已持有码」接线（`sale:void`，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十四）⇒
+  // 从对照名单移出，改取**同文件、同前缀、S3-224 仍不接**的 `PUT /orders/:orderNo/status`
+  // （该行有 app-mobile 写调用点且使用者集合不可枚举，判 B 类，台账 §十四.5）⇒ 对照语义不变
+  // （「形状断言有分辨力」依然成立），且是**契约变化**而非放宽断言。
   it("同前缀的既有写端点未接线（对照：证明形状断言有分辨力）", async () => {
-    const unwired = registrationLines("admin-order.routes.ts", "post", "/orders/:orderNo/cancel");
+    const unwired = registrationLines("admin-order.routes.ts", "put", "/orders/:orderNo/status");
     expect(unwired).toHaveLength(1);
     expect(unwired[0].line).not.toContain("requirePermission");
   });
