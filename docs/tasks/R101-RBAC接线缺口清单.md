@@ -1238,79 +1238,79 @@
 
 **purchase-contract.routes.ts**（4 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/purchase-contracts/` | 管理面 | 是 | purchase:create |
-| `PUT /api/admin/purchase-contracts/:contractNo` | 管理面 | 是 | purchase:create |
-| `DELETE /api/admin/purchase-contracts/:contractNo` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/purchase-contracts/:contractNo/upload` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/purchase-contracts/` | 管理面 | 是 | purchase:create | ✅ 已接 `purchase:create`（生产仅 SUPER_ADMIN 持有） |
+| `PUT /api/admin/purchase-contracts/:contractNo` | 管理面 | 是 | purchase:create | ✅ 同上 |
+| `DELETE /api/admin/purchase-contracts/:contractNo` | 管理面 | 是 | purchase:create | ✅ 同上 |
+| `POST /api/admin/purchase-contracts/:contractNo/upload` | 管理面 | 是 | purchase:create | ✅ 同上 |
 
 **purchase-in-stock.routes.ts**（3 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/purchase-in-stocks/` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/purchase-in-stocks/:stockNo/approve` | 管理面 | 是 | purchase:approve |
-| `POST /api/admin/purchase-in-stocks/:stockNo/void` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/purchase-in-stocks/` | 管理面 | 是 | purchase:create | ⛔ **本批不接**（移动端创建端点，见 §十一.3 M 类） |
+| `POST /api/admin/purchase-in-stocks/:stockNo/approve` | 管理面 | 是 | purchase:approve | 🔁 **改挂 `inventory:inbound`**（入库审核的办件人是仓管，不持 purchase:*） |
+| `POST /api/admin/purchase-in-stocks/:stockNo/void` | 管理面 | 是 | purchase:create | 🔁 **改挂 `inventory:inbound`**（同一入库生命周期） |
 
 **purchase-payment.routes.ts**（3 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/purchase-payments/` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/purchase-payments/:paymentNo/approve` | 管理面 | 是 | purchase:approve |
-| `POST /api/admin/purchase-payments/:paymentNo/void` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/purchase-payments/` | 管理面 | 是 | purchase:create | ⛔ **本批不接**（移动端创建端点，见 §十一.3 M 类） |
+| `POST /api/admin/purchase-payments/:paymentNo/approve` | 管理面 | 是 | purchase:approve | 🔁 **改挂 `finance:payment`**（付款审核的办件人是财务，不持 purchase:*） |
+| `POST /api/admin/purchase-payments/:paymentNo/void` | 管理面 | 是 | purchase:create | 🔁 **改挂 `finance:payment`**（同一付款生命周期） |
 
 **purchase-plan.routes.ts**（2 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/purchase-plans/` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/purchase-plans/:planNo/convert` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/purchase-plans/` | 管理面 | 是 | purchase:create | ⏳ **本批不接 ⇒ 待授权模型定案**（页面真实使用者含 STORE_MANAGER，见 §十一.3 W 类） |
+| `POST /api/admin/purchase-plans/:planNo/convert` | 管理面 | 是 | purchase:create | ⏳ **本批不接 ⇒ 待授权模型定案**（同上） |
 
 **purchase-return.routes.ts**（3 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/purchase-returns/` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/purchase-returns/:returnNo/approve` | 管理面 | 是 | purchase:approve |
-| `POST /api/admin/purchase-returns/:returnNo/void` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/purchase-returns/` | 管理面 | 是 | purchase:create | ⛔ **本批不接**（移动端创建端点，见 §十一.3 M 类） |
+| `POST /api/admin/purchase-returns/:returnNo/approve` | 管理面 | 是 | purchase:approve | 🔁 **改挂 `sale:return`**（采购退货页 meta.roles 含 STORE_MANAGER，店长不持 purchase:*） |
+| `POST /api/admin/purchase-returns/:returnNo/void` | 管理面 | 是 | purchase:create | 🔁 **改挂 `sale:return`**（同一退货生命周期） |
 
 **purchase.routes.ts**（5 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/purchase-orders/` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/purchase-orders/:orderNo/approve` | 管理面 | 是 | purchase:approve |
-| `POST /api/admin/purchase-orders/:orderNo/cancel` | 管理面 | 是 | purchase:create |
-| `PUT /api/admin/purchase-orders/:orderNo` | 管理面 | 是 | purchase:create |
-| `DELETE /api/admin/purchase-orders/:orderNo` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/purchase-orders/` | 管理面 | 是 | purchase:create | ⛔ **本批不接**（移动端创建端点，见 §十一.3 M 类） |
+| `POST /api/admin/purchase-orders/:orderNo/approve` | 管理面 | 是 | purchase:approve | ✅ 已接 `purchase:approve` |
+| `POST /api/admin/purchase-orders/:orderNo/cancel` | 管理面 | 是 | purchase:create | ✅ 已接 `purchase:create`（作废类沿用既有码，不新立 purchase:void） |
+| `PUT /api/admin/purchase-orders/:orderNo` | 管理面 | 是 | purchase:create | ✅ 已接 `purchase:create` |
+| `DELETE /api/admin/purchase-orders/:orderNo` | 管理面 | 是 | purchase:create | ✅ 已接 `purchase:create` |
 
 **supplier-contact.routes.ts**（4 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/supplier-contacts/supplier/:supplierId` | 管理面 | 是 | purchase:create |
-| `PUT /api/admin/supplier-contacts/:id` | 管理面 | 是 | purchase:create |
-| `DELETE /api/admin/supplier-contacts/:id` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/supplier-contacts/:id/set-primary` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/supplier-contacts/supplier/:supplierId` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`**（供应商管理域码，与移动端菜单码同码） |
+| `PUT /api/admin/supplier-contacts/:id` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`** |
+| `DELETE /api/admin/supplier-contacts/:id` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`** |
+| `POST /api/admin/supplier-contacts/:id/set-primary` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`** |
 
 **supplier-statement.routes.ts**（3 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/supplier-statements/generate` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/supplier-statements/:statementNo/confirm` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/supplier-statements/:statementNo/dispute` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/supplier-statements/generate` | 管理面 | 是 | purchase:create | 🔁 **改挂 `report:finance`**（对账页 meta.roles 含 STORE_MANAGER；店长持 report:* 但不持 supplier:statement） |
+| `POST /api/admin/supplier-statements/:statementNo/confirm` | 管理面 | 是 | purchase:create | 🔁 **改挂 `report:finance`**（同上） |
+| `POST /api/admin/supplier-statements/:statementNo/dispute` | 管理面 | 是 | purchase:create | 🔁 **改挂 `report:finance`**（同上） |
 
 **supplier.routes.ts**（4 处）
 
-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
-|:--|:--|:--|:--|
-| `POST /api/admin/suppliers/` | 管理面 | 是 | purchase:create |
-| `PUT /api/admin/suppliers/:id` | 管理面 | 是 | purchase:create |
-| `POST /api/admin/suppliers/:id/contacts` | 管理面 | 是 | purchase:create |
-| `DELETE /api/admin/suppliers/:id/contacts/:contactId` | 管理面 | 是 | purchase:create |
+| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 | S3-214-B2 落地（2026-10-16） |
+|:--|:--|:--|:--|:--|
+| `POST /api/admin/suppliers/` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`**（与移动端供应商管理菜单码同码，零回归） |
+| `PUT /api/admin/suppliers/:id` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`** |
+| `POST /api/admin/suppliers/:id/contacts` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`** |
+| `DELETE /api/admin/suppliers/:id/contacts/:contactId` | 管理面 | 是 | purchase:create | 🔁 **改挂 `purchase:supplier`** |
 
 ### 三.7 门店 / 租户域（8 文件 / 31 端点）
 
@@ -2011,4 +2011,113 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 - `cart.routes.ts` 用 `routeConfig.auth = "requireConsumerAuthWithTenant"` **声明式**挂载：声明式**不携带**
   端点级证据，本门禁一律按「只挂认证」处理 ⇒ 其写端点若仍在 `gaps` 里，属**既定边界**（见脚本头），
   需另立单按端点级改判或改判据。
+
+---
+
+## 十一、S3-214-B2 · **采购域（9 文件 / 31 写端点）**接线明细与守恒（2026-10-16）
+
+> 产出：阿坚（后端 · 本地子代理通道）｜2026-10-16｜汇报对象：凌舟（总负责人）
+> 依据：派单卡 `docs/tasks/inbox/ACTIVE-S3-214-B2.md`（内含凌舟**生产只读实测**下发的阶段②接线口径）
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-214`，分支 `feat/s3-214-batch2-wiring`，基线 `origin/main` = `7beafd24`
+> 机读镜像：`backend/scripts/rbac-wiring-baseline.json`（本单后 `gaps` 616 条 / 151 文件；`consumerEnd` 39 条不变）
+> 阶段①清单（当时**零代码改动**）：`docs/evidence/S3-214/01-roles-to-verify.md`（4 组风险组合 + 逐条待核对）
+
+### 11.1 接线口径（照派单卡 §三 执行，**不统一成 `purchase:*`**）
+
+| 序 | 口径（卡面原文要点） | 本单落地 |
+|:--|:--|:--|
+| ① | 优先挂「该端点**真实使用者已持有**的模块码」（零回归） | 入库/入库审核 ⇒ `inventory:inbound`；付款/付款作废 ⇒ `finance:payment`；采购退货 ⇒ `sale:return`；供应商对账 ⇒ `report:finance`（二选一取它，理由见 11.6） |
+| ② | 只有「采购岗专属、且使用者本来就不是店长/仓管/财务」的端点才挂 `purchase:*` | 采购单审核/作废/改/删 + 采购合同 4 条 ⇒ `purchase:approve`/`purchase:create`；供应商主数据 ⇒ `purchase:supplier`。**`purchase:create`/`purchase:approve` 当前仅 SUPER_ADMIN 持有**（生产口径见派单卡 §三；仓库种子另含 OPERATION_ADMIN / PURCHASE_STAFF） |
+| ③ | 移动端「销售开单」采购页签 4 个创建端点 ⇒ 本批不接 | 见 11.3 **M 类** |
+| ④ | 找不到「使用者已持有」的码、又不宜挂 `purchase:*` ⇒ 不接 + 登记 | 见 11.3 **W 类**（采购计划 2 条） |
+
+### 11.2 本批已接 **25 条**（端点 / 落地码 / 页面真实使用者）
+
+行号 = 当前 `backend/src/routes/` 下的注册行（`git diff` 可复核）。
+
+| # | 端点（`file:行`） | 落地码 | 页面 / 入口真实使用者（依据） |
+|--:|:--|:--|:--|
+| 1 | `purchase.routes.ts:16` POST `/:orderNo/approve` | `purchase:approve` | 无页面调用方（仅 API 策略面；桌面「审核」按钮打的是不存在的 `/confirm`，见 11.7） |
+| 2 | `purchase.routes.ts:17` POST `/:orderNo/cancel` | `purchase:create` | `PurchaseOrders.vue:328`［SUPER_ADMIN］ |
+| 3 | `purchase.routes.ts:18` PUT `/:orderNo` | `purchase:create` | 无页面调用方 |
+| 4 | `purchase.routes.ts:19` DELETE `/:orderNo` | `purchase:create` | 无页面调用方 |
+| 5 | `purchase-in-stock.routes.ts:13` POST `/:stockNo/approve` | `inventory:inbound` | 入库审核 **办件人＝仓管**（`WAREHOUSE_STAFF` 持 `inventory:*`）；桌面页 `PurchaseInStocks.vue`［SUPER_ADMIN］ |
+| 6 | `purchase-in-stock.routes.ts:14` POST `/:stockNo/void` | `inventory:inbound` | 无页面调用方（与入库审核同一生命周期） |
+| 7 | `purchase-payment.routes.ts:13` POST `/:paymentNo/approve` | `finance:payment` | `PurchasePayments.vue:358`（审核按钮）；**办件人＝财务**（`FINANCE_STAFF` 持 `finance:*`） |
+| 8 | `purchase-payment.routes.ts:14` POST `/:paymentNo/void` | `finance:payment` | 无页面调用方（与付款审核同一生命周期） |
+| 9 | `purchase-return.routes.ts:13` POST `/:returnNo/approve` | `sale:return` | `PurchaseReturnsView.vue:138`［SUPER_ADMIN, **STORE_MANAGER**］ |
+| 10 | `purchase-return.routes.ts:14` POST `/:returnNo/void` | `sale:return` | 无页面调用方（同上页面，同域） |
+| 11 | `purchase-contract.routes.ts:11` POST `/` | `purchase:create` | `PurchaseContracts.vue:419`［SUPER_ADMIN］ |
+| 12 | `purchase-contract.routes.ts:12` PUT `/:contractNo` | `purchase:create` | `PurchaseContracts.vue:416`［SUPER_ADMIN］ |
+| 13 | `purchase-contract.routes.ts:13` DELETE `/:contractNo` | `purchase:create` | `PurchaseContracts.vue:443`［SUPER_ADMIN］ |
+| 14 | `purchase-contract.routes.ts:14` POST `/:contractNo/upload` | `purchase:create` | 无页面调用方 |
+| 15 | `supplier.routes.ts:12` POST `/` | `purchase:supplier` | `Suppliers.vue:705`［SUPER_ADMIN］；移动 `suppliers/detail.vue:535`（菜单码 `purchase:supplier`） |
+| 16 | `supplier.routes.ts:13` PUT `/:id` | `purchase:supplier` | `Suppliers.vue:702`；移动 `suppliers/detail.vue:552,584` |
+| 17 | `supplier.routes.ts:14` POST `/:id/contacts` | `purchase:supplier` | 无页面调用方 |
+| 18 | `supplier.routes.ts:15` DELETE `/:id/contacts/:contactId` | `purchase:supplier` | 无页面调用方 |
+| 19 | `supplier-contact.routes.ts:15` POST `/supplier/:supplierId` | `purchase:supplier` | 移动「供应商管理」（菜单码 `purchase:supplier`）；桌面调用点路径漂移见 11.7 |
+| 20 | `supplier-contact.routes.ts:17` PUT `/:id` | `purchase:supplier` | `Suppliers.vue:652`［SUPER_ADMIN］ |
+| 21 | `supplier-contact.routes.ts:19` DELETE `/:id` | `purchase:supplier` | `Suppliers.vue:671`［SUPER_ADMIN］ |
+| 22 | `supplier-contact.routes.ts:21` POST `/:id/set-primary` | `purchase:supplier` | `Suppliers.vue:684`［SUPER_ADMIN］ |
+| 23 | `supplier-statement.routes.ts:10` POST `/generate` | `report:finance` | `SupplierStatements.vue:230`［SUPER_ADMIN, **STORE_MANAGER**］；财务亦在用 |
+| 24 | `supplier-statement.routes.ts:13` POST `/:statementNo/confirm` | `report:finance` | `SupplierStatements.vue:259`［SUPER_ADMIN, **STORE_MANAGER**］ |
+| 25 | `supplier-statement.routes.ts:14` POST `/:statementNo/dispute` | `report:finance` | `SupplierStatements.vue:276`［SUPER_ADMIN, **STORE_MANAGER**］ |
+
+**逐码分布**：`purchase:create` 7 ｜ `purchase:approve` 1 ｜ `purchase:supplier` 8 ｜ `inventory:inbound` 2 ｜ `finance:payment` 2 ｜ `sale:return` 2 ｜ `report:finance` 3 = **25**。7 个码**全部是仓库既有码**（不新立权限点、不改角色种子、不动迁移）。
+
+### 11.3 本批**未接** **6 条**（仍登记在机读台账里）
+
+| 类 | 端点 | 原因 |
+|:--|:--|:--|
+| M | `POST /api/admin/purchase-orders/`（`purchase.routes.ts:14`） | **移动端「销售开单」采购页签无权限门**（`app-mobile/src/pages/sales/create-sale.vue:23` 无条件渲染；调用点 `:2159` doc=pur_order）。接线会把持 `sale:bill` 的门店角色由「可用」打成 403 ⇒ 本批不接，登记「待移动端补权限门后收编」 |
+| M | `POST /api/admin/purchase-in-stocks/`（`purchase-in-stock.routes.ts:12`） | 同上（调用点 `create-sale.vue:2112` doc=pur_inbound） |
+| M | `POST /api/admin/purchase-payments/`（`purchase-payment.routes.ts:12`） | 同上（调用点 `create-sale.vue:2211` doc=pur_payment） |
+| M | `POST /api/admin/purchase-returns/`（`purchase-return.routes.ts:12`） | 同上（调用点 `create-sale.vue:2270` `submitPurchaseReturn`） |
+| W | `POST /api/admin/purchase-plans/`（`purchase-plan.routes.ts:12`） | **待授权模型定案**：页面真实使用者含 `STORE_MANAGER`（`admin-web/src/router/index.ts:131`），而生产店长**不持**任何 `purchase:*`；仓内又找不到店长已持有的「采购计划」语义码 ⇒ 挂 `purchase:create` 即 403，属产品授权口径（扩角色权限/新立码），不在本单 |
+| W | `POST /api/admin/purchase-plans/:planNo/convert`（`purchase-plan.routes.ts:14`） | 同上（页面 `PurchasePlans.vue:336`） |
+
+> 口径提示：M 类 4 条与**既有测试**互相印证 —— `rbac-g0-wiring.test.ts`「范围控制」名单里那条
+> `POST /api/admin/purchase-orders`（创建采购单）仍断言「READONLY 到达业务层」，本批未动它（该名单里另一条
+> `PUT /api/admin/purchase-orders/:orderNo` 因本批接线已按同端点移出，见该文件内注释）。
+
+### 11.4 守恒与门禁（原始输出见 `docs/evidence/S3-214/`）
+
+| 指标 | 本批前（`origin/main` `7beafd24`） | 本批后 | 说明 |
+|:--|--:|--:|:--|
+| 扫描写端点总数 | 763 | 763 | 未增删端点（`10-guard-before.txt` / `11-guard-after.txt`） |
+| 已接线（权限码） | 83 | **108** | +25 = 本批接线数 |
+| 无授权形态（缺口） | **641** | **616** | −25；分布文件数 155 → 151（4 个文件清零） |
+| 消费者端保护形态 | 39 | 39 | 不变（本批不涉） |
+| 机读台账 `gaps` | 641 条 / 155 文件 | **616 条 / 151 文件** | 同步移除 25 条，保留 6 条 |
+| `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 条、陈旧登记 0 条（`12-guard-strict-after.txt`） |
+| 本域对账 | 台账 31 = 实测缺口 31 | **31 = 25（已接）+ 4（M 类）+ 2（W 类）** | 一条不多、一条不少 |
+
+### 11.5 反测（门禁铁律：故意制造失败，证明它会红）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A 报告模式分辨力 | 摘掉 `purchase-in-stock.routes.ts:13` 的 `requirePermission("inventory:inbound")` | 缺口 **616 → 617**，该端点回落「无授权形态」 | `20-neg-A-report.txt` |
+| B `--strict` 两侧 | 同上 | **EXIT=1** 且点出 `purchase-in-stock.routes.ts:13 POST /api/admin/purchase-in-stocks/:stockNo/approve`（未登记 1 条）；复原 ⇒ **EXIT=0** | `21-neg-A-strict.txt` / `23-neg-A-restored-strict.txt` |
+| C 用例分辨力（vitest 侧） | 同上 | `rbac-b2-s3-214-purchase-wiring.test.ts`：**5 failed / 148 passed**（形状断言、READONLY⇒403、非持有人逐账号枚举、范围枚举）；复原 ⇒ **153 passed** | `22-neg-B-vitest-red.txt` |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`0F32A0ED…BEDE922E`），`git diff` 无残留 | `23-neg-A-restored-strict.txt`、回执 §五 |
+
+### 11.6 与阶段①「建议权限码」的差异（**被推翻的 15 行**，逐条给理由）
+
+阶段① §四 的「拟用码」是**未经生产持有核对**的建议值；凌舟生产实测后，本表 15 行的建议码被推翻。
+下表保留原值供对照，**落地以 11.2 为准**：
+
+| 端点组 | 阶段① 建议码 | 本批落地码 | 推翻理由 |
+|:--|:--|:--|:--|
+| 入库审核 / 入库作废（2） | `purchase:approve` / `purchase:create` | `inventory:inbound` | 入库审核的办件人是**仓管**，`WAREHOUSE_STAFF` 持 `inventory:*` 但不持 `purchase:*`（`--holders purchase:approve` 不含仓管）⇒ 挂 purchase:* 会把仓管打成 403。选 `inventory:inbound`（而非其它 inventory 码）＝它是入库语义细码，且持有者 ⊇ {仓管、店长、采购员} |
+| 付款审核 / 付款作废（2） | `purchase:approve` / `purchase:create` | `finance:payment` | 付款审核的办件人是**财务**，`FINANCE_STAFF` 持 `finance:*` 但不持 `purchase:*` ⇒ 挂 purchase:* 会把财务打成 403。`finance:payment` 是仓库既有的「付款动作」码（`commission.routes.ts` 结算、`payment-new.routes.ts` 核销、`store-receivable.routes.ts` 收款均用它） |
+| 采购退货审核 / 作废（2） | `purchase:approve` / `purchase:create` | `sale:return` | 采购退货页 `meta.roles` 含 **STORE_MANAGER**，而店长不持任何 `purchase:*` ⇒ 挂 purchase:* 直接把店长这一页打成 403（批 1 `trace:*` 同款形态）。口径给的两个候选中选 `sale:return`（退货语义细码；店长经 `sale:*`、门店运营员经精确码命中） |
+| 供应商对账 generate/confirm/dispute（3） | `purchase:create` | `report:finance` | 对账页 `meta.roles` 含 **STORE_MANAGER**，而店长**不持** `supplier:statement`（口径给的另一个候选）⇒ 用 `supplier:statement` 会 403 店长（测试已把它钉死：`supplier:statement` 持有者里没有店长）。选口径给的第二候选 `report:*`，取其中财务语义细码 `report:finance`（`079:185`），持有者 = {超管、运营、店长、财务} ⊇ 页面角色 |
+| 供应商主数据 / 供应商联系人（8） | `purchase:create` | `purchase:supplier` | 该域在 `079` 有**专属码** `purchase:supplier`（L141「供应商管理」MENU），且与移动端菜单码**同码**（`app-mobile/src/config/function-menu.ts:61`）⇒ 用它可让「移动端看得到供应商管理的人」必然通过（零回归），也避免把"新建采购"按钮码当成"供应商管理"语义 |
+
+### 11.7 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. **桌面「采购订单」审核按钮打的是不存在的路由**（阶段① §八-1 复核仍成立）：`PurchaseOrders.vue:315` → `POST /admin/purchase-orders/:id/confirm`，而后端只有 `/:orderNo/approve`。同族路径/参数漂移另见 `api/purchase.ts:103/:153/:161/:36`、`api/misc.ts:68/73/78`（合同用 `:id`，后端是 `:contractNo`）。
+2. **供应商联系人创建路径不一致**：前端 `api/purchase.ts:185` 打 `POST /admin/supplier-contacts`（body 带 `supplierId`），后端只有 `/supplier/:supplierId`（与 `supplier.routes.ts:14` 的 `POST /suppliers/:id/contacts` 两条并存、均无实调用方）。本批按**后端现状**接线，未改契约。
+3. **`purchase:order` 等 4 个采购 MENU 码未参与本批**：移动端菜单可见性用 `purchase:order/inbound/supplier` 判定，本批落地码取的是**动作语义**（`purchase:*` 细码 / `inventory:*` / `finance:*` / `sale:*` / `report:*`）。若凌舟要「菜单码 = 端点码」对齐，属授权模型重构，另立单。
+4. **店长对付款审核端点的"宽授"**：生产店长持精确码 `finance:payment`，故店长在 API 面亦通过 `POST /purchase-payments/:paymentNo/approve`（测试 §b 已显式记录）。页面 `PurchasePayments.vue` 只给 SUPER_ADMIN，故不构成页面回归；若要收窄成「财务专属」，需新立码（不在本单范围）。
 

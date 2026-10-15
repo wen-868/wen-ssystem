@@ -2,16 +2,17 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import { asyncHandler } from "../middleware/async-handler";
+import { requirePermission } from "../middleware/rbac-auth";
 import * as controller from "../controllers/admin/supplier.controller";
 
 export const supplierRouter = Router();
 
 supplierRouter.get("/", asyncHandler(controller.listSuppliers));
 supplierRouter.get("/:id", asyncHandler(controller.getSupplierDetail));
-supplierRouter.post("/", asyncHandler(controller.createSupplier));
-supplierRouter.put("/:id", asyncHandler(controller.updateSupplier));
-supplierRouter.post("/:id/contacts", asyncHandler(controller.addSupplierContact));
-supplierRouter.delete("/:id/contacts/:contactId", asyncHandler(controller.deleteSupplierContact));
+supplierRouter.post("/", requirePermission("purchase:supplier"), asyncHandler(controller.createSupplier));
+supplierRouter.put("/:id", requirePermission("purchase:supplier"), asyncHandler(controller.updateSupplier));
+supplierRouter.post("/:id/contacts", requirePermission("purchase:supplier"), asyncHandler(controller.addSupplierContact));
+supplierRouter.delete("/:id/contacts/:contactId", requirePermission("purchase:supplier"), asyncHandler(controller.deleteSupplierContact));
 supplierRouter.get("/:id/purchase-orders", asyncHandler(controller.getSupplierPurchaseOrders));
 supplierRouter.get("/:id/payments", asyncHandler(controller.getSupplierPayments));
 supplierRouter.get("/:id/products", asyncHandler(controller.getSupplierProducts));
