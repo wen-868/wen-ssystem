@@ -2,6 +2,7 @@
 
 - 工作树 / 分支：`D:\Users\ZXQL\wt-agents\S3-221` ｜ `chore/s3-221-adminweb-token-matrix`
 - 基线：`295ab488`（= 本分支 HEAD；`origin/main` 另有 3 笔**纯文档**派单提交，无代码差异）
+- 本单提交 ref：`8dd3ddf1`（代码 + 本证据包 + 回传卡/回执，**本地未 push**）
 - 交付物：`scripts/contrast-check.cjs`（扩面，+137 / −2）
 - 回执：`docs/tasks/cards/R101-S3-221-林夕-回传.md`（十项）+ `docs/tasks/inbox/ACTIVE-回执-S3-221.md`
 
@@ -31,6 +32,8 @@ node --check scripts/contrast-check.cjs  # 语法
 | `10-adminweb-build.txt` | `npm --workspace admin-web run build` 读数 | §三.5 |
 | `11-测试与哈希汇总.txt` | 后端 vitest 全量 / admin-web 自测 / 脚本哈希 | §三.5 |
 | `12-e2e-workflow核对.txt` | 核对 `.github/workflows/e2e.yml` 第 106~109 行跑的就是本脚本 ⇒ 无需改 workflow | §四.4 |
+| `_hash-before.txt` | 动手前 `tokens.css` 的 sha256 原始读数（哈希链的输入端） | §三.4 |
+| `_head-contrast-check.cjs.txt` | 基线版脚本原件（`git show HEAD:scripts/contrast-check.cjs`，对照用；可随时重新生成） | §三.4 |
 
 ## 一页结论
 

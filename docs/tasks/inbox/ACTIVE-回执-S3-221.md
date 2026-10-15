@@ -5,6 +5,7 @@
 - **日期**：2026-10-16
 - **对应派单编号**：S3-221（第 71 项）
 - **工作树 / 分支**：`D:\Users\ZXQL\wt-agents\S3-221` ｜ `chore/s3-221-adminweb-token-matrix`（基线 `295ab488`）
+- **本单提交 ref**：`8dd3ddf1`（代码 + 证据包 + 本回执；**本地未 push、未开 PR**）
 - **完整十项回传**：`docs/tasks/cards/R101-S3-221-林夕-回传.md`
 - **证据索引**：`docs/evidence/S3-221/README.md`
 
