@@ -6,15 +6,15 @@
 
 -- ========== 采购付款单 ==========
 CREATE TABLE IF NOT EXISTS t_purchase_payment (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  payment_no VARCHAR(30) NOT NULL UNIQUE,
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  payment_no VARCHAR(64) NOT NULL UNIQUE,
   purchase_order_id BIGINT NOT NULL,
-  supplier_id BIGINT NOT NULL,
+  supplier_id BIGINT UNSIGNED NOT NULL,
   payment_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   payment_method VARCHAR(32) NOT NULL DEFAULT 'BANK_TRANSFER',
-  bank_account VARCHAR(100) DEFAULT NULL,
-  remark VARCHAR(500) DEFAULT NULL,
-  status ENUM('PENDING','APPROVED','PAID','CANCELLED') NOT NULL DEFAULT 'PENDING',
+  bank_account VARCHAR(64) DEFAULT NULL,
+  remark VARCHAR(255) DEFAULT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
   approved_by BIGINT DEFAULT NULL,
   approved_at DATETIME DEFAULT NULL,
   paid_at DATETIME DEFAULT NULL,
@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS t_purchase_payment (
 
 -- ========== 供应商对账单 ==========
 CREATE TABLE IF NOT EXISTS t_supplier_statement (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   statement_no VARCHAR(30) NOT NULL UNIQUE,
-  supplier_id BIGINT NOT NULL,
+  supplier_id BIGINT UNSIGNED NOT NULL,
   period_start DATE NOT NULL,
   period_end DATE NOT NULL,
   total_purchase_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS t_supplier_statement (
 
 -- ========== 供应商对账明细 ==========
 CREATE TABLE IF NOT EXISTS t_supplier_statement_item (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  statement_id BIGINT NOT NULL,
-  purchase_order_id BIGINT NOT NULL,
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  statement_id BIGINT UNSIGNED NOT NULL,
+  purchase_order_id BIGINT UNSIGNED NOT NULL,
   purchase_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   payment_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   return_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
@@ -64,13 +64,13 @@ CREATE TABLE IF NOT EXISTS t_supplier_statement_item (
 
 -- ========== RBAC 角色管理 ==========
 CREATE TABLE IF NOT EXISTS t_sys_role (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   role_name VARCHAR(50) NOT NULL UNIQUE,
   role_code VARCHAR(50) NOT NULL UNIQUE,
-  description VARCHAR(200) DEFAULT NULL,
-  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+  description VARCHAR(255) DEFAULT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   permissions JSON DEFAULT NULL,
-  data_scope ENUM('ALL','DEPARTMENT','STORE','SELF') NOT NULL DEFAULT 'SELF',
+  data_scope VARCHAR(32) NOT NULL DEFAULT 'SELF',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_role_code (role_code),
@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS t_sys_role (
 
 -- ========== 用户角色关联 ==========
 CREATE TABLE IF NOT EXISTS t_sys_user_role (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  role_id BIGINT NOT NULL,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  role_id INT UNSIGNED NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_user_role (user_id, role_id),
   INDEX idx_user_id (user_id),
@@ -92,8 +92,8 @@ CREATE TABLE IF NOT EXISTS t_sys_user_role (
 
 -- ========== 系统通知 ==========
 CREATE TABLE IF NOT EXISTS t_notification (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  recipient_id BIGINT NOT NULL,
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  recipient_id BIGINT UNSIGNED NOT NULL,
   recipient_type ENUM('ADMIN','MERCHANT','CONSUMER') NOT NULL DEFAULT 'ADMIN',
   title VARCHAR(200) NOT NULL,
   content TEXT DEFAULT NULL,

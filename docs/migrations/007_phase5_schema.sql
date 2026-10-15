@@ -15,7 +15,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS t_inventory_batch;
 CREATE TABLE IF NOT EXISTS t_inventory_batch (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   store_id INT NOT NULL COMMENT '门店ID',
   sku_id INT NOT NULL COMMENT 'SKU ID',
   batch_no VARCHAR(64) NOT NULL COMMENT '批次号',
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS t_inventory_batch (
 
 DROP TABLE IF EXISTS t_expiry_alert_config;
 CREATE TABLE IF NOT EXISTS t_expiry_alert_config (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   alert_level TINYINT NOT NULL COMMENT '预警级别(1/2/3)',
   level_name VARCHAR(20) NOT NULL COMMENT '级别名称(如"三级预警")',
   days_before_expiry INT NOT NULL COMMENT '提前天数',
@@ -58,7 +58,7 @@ INSERT IGNORE INTO expiry_alert_config (alert_level, level_name, days_before_exp
 
 DROP TABLE IF EXISTS t_expiry_alert_record;
 CREATE TABLE IF NOT EXISTS t_expiry_alert_record (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   batch_id INT NOT NULL COMMENT '批次ID',
   store_id INT NOT NULL COMMENT '门店ID',
   sku_id INT NOT NULL COMMENT 'SKU ID',
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS t_expiry_alert_record (
 
 DROP TABLE IF EXISTS t_store_control_config;
 CREATE TABLE IF NOT EXISTS t_store_control_config (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   store_id INT NOT NULL UNIQUE COMMENT '门店ID',
   auto_open_time VARCHAR(10) DEFAULT NULL COMMENT '自动开门时间（HH:mm）',
   auto_close_time VARCHAR(10) DEFAULT NULL COMMENT '自动关门时间（HH:mm）',
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS t_store_control_config (
 
 DROP TABLE IF EXISTS t_store_status_log;
 CREATE TABLE IF NOT EXISTS t_store_status_log (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   store_id INT NOT NULL COMMENT '门店ID',
   from_status VARCHAR(20) NOT NULL COMMENT '变更前状态',
   to_status VARCHAR(20) NOT NULL COMMENT '变更后状态',

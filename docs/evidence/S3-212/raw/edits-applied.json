@@ -1,0 +1,1137 @@
+{
+ "apply": true,
+ "badCount": 0,
+ "editCount": 113,
+ "edits": [
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 122,
+   "table": "t_store",
+   "column": "status",
+   "from": "TINYINT",
+   "to": "VARCHAR(20)",
+   "typeStart": 5209,
+   "typeEnd": 5216
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 92,
+   "table": "t_sys_user_role",
+   "column": "role_id",
+   "from": "BIGINT UNSIGNED",
+   "to": "INT UNSIGNED",
+   "typeStart": 3760,
+   "typeEnd": 3775
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 91,
+   "table": "t_sys_user_role",
+   "column": "user_id",
+   "from": "BIGINT UNSIGNED",
+   "to": "INT UNSIGNED",
+   "typeStart": 3723,
+   "typeEnd": 3738
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 90,
+   "table": "t_sys_user_role",
+   "column": "id",
+   "from": "BIGINT UNSIGNED",
+   "to": "INT UNSIGNED",
+   "typeStart": 3671,
+   "typeEnd": 3686
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 66,
+   "table": "t_sys_role",
+   "column": "status",
+   "from": "VARCHAR(16)",
+   "to": "VARCHAR(20)",
+   "typeStart": 2466,
+   "typeEnd": 2477
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 64,
+   "table": "t_sys_role",
+   "column": "role_name",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 2337,
+   "typeEnd": 2348
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 63,
+   "table": "t_sys_role",
+   "column": "role_code",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 2287,
+   "typeEnd": 2298
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 62,
+   "table": "t_sys_role",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 2230,
+   "typeEnd": 2233
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 50,
+   "table": "t_sys_user",
+   "column": "store_id",
+   "from": "BIGINT UNSIGNED",
+   "to": "INT UNSIGNED",
+   "typeStart": 1674,
+   "typeEnd": 1689
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 48,
+   "table": "t_sys_user",
+   "column": "real_name",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 1575,
+   "typeEnd": 1586
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 46,
+   "table": "t_sys_user",
+   "column": "username",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 1470,
+   "typeEnd": 1481
+  },
+  {
+   "file": "docs/migrations/001_phase1_schema.sql",
+   "line": 45,
+   "table": "t_sys_user",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 1414,
+   "typeEnd": 1417
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 315,
+   "table": "t_sys_user_role",
+   "column": "role_id",
+   "from": "BIGINT UNSIGNED",
+   "to": "INT UNSIGNED",
+   "typeStart": 15453,
+   "typeEnd": 15468
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 314,
+   "table": "t_sys_user_role",
+   "column": "user_id",
+   "from": "BIGINT UNSIGNED",
+   "to": "INT UNSIGNED",
+   "typeStart": 15416,
+   "typeEnd": 15431
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 312,
+   "table": "t_sys_user_role",
+   "column": "id",
+   "from": "BIGINT UNSIGNED",
+   "to": "INT UNSIGNED",
+   "typeStart": 15314,
+   "typeEnd": 15329
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 82,
+   "table": "t_sys_role",
+   "column": "status",
+   "from": "VARCHAR(16)",
+   "to": "VARCHAR(20)",
+   "typeStart": 3674,
+   "typeEnd": 3685
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 79,
+   "table": "t_sys_role",
+   "column": "description",
+   "from": "VARCHAR(200)",
+   "to": "VARCHAR(255)",
+   "typeStart": 3473,
+   "typeEnd": 3485
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 78,
+   "table": "t_sys_role",
+   "column": "role_name",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 3421,
+   "typeEnd": 3432
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 77,
+   "table": "t_sys_role",
+   "column": "role_code",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 3371,
+   "typeEnd": 3382
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 75,
+   "table": "t_sys_role",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 3264,
+   "typeEnd": 3267
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 58,
+   "table": "t_sys_user",
+   "column": "store_id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 2427,
+   "typeEnd": 2430
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 56,
+   "table": "t_sys_user",
+   "column": "real_name",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 2328,
+   "typeEnd": 2339
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 54,
+   "table": "t_sys_user",
+   "column": "username",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(50)",
+   "typeStart": 2223,
+   "typeEnd": 2234
+  },
+  {
+   "file": "docs/init_database.sql",
+   "line": 52,
+   "table": "t_sys_user",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 2117,
+   "typeEnd": 2120
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 96,
+   "table": "t_notification",
+   "column": "recipient_id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 4443,
+   "typeEnd": 4449
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 95,
+   "table": "t_notification",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 4392,
+   "typeEnd": 4398
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 84,
+   "table": "t_sys_user_role",
+   "column": "role_id",
+   "from": "BIGINT",
+   "to": "INT UNSIGNED",
+   "typeStart": 3869,
+   "typeEnd": 3875
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 83,
+   "table": "t_sys_user_role",
+   "column": "user_id",
+   "from": "BIGINT",
+   "to": "INT UNSIGNED",
+   "typeStart": 3841,
+   "typeEnd": 3847
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 82,
+   "table": "t_sys_user_role",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "INT UNSIGNED",
+   "typeStart": 3795,
+   "typeEnd": 3801
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 73,
+   "table": "t_sys_role",
+   "column": "data_scope",
+   "from": "ENUM('ALL','DEPARTMENT','STORE','SELF')",
+   "to": "VARCHAR(32)",
+   "typeStart": 3375,
+   "typeEnd": 3414
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 71,
+   "table": "t_sys_role",
+   "column": "status",
+   "from": "VARCHAR(16)",
+   "to": "VARCHAR(20)",
+   "typeStart": 3288,
+   "typeEnd": 3299
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 70,
+   "table": "t_sys_role",
+   "column": "description",
+   "from": "VARCHAR(200)",
+   "to": "VARCHAR(255)",
+   "typeStart": 3251,
+   "typeEnd": 3263
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 67,
+   "table": "t_sys_role",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 3120,
+   "typeEnd": 3123
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 55,
+   "table": "t_supplier_statement_item",
+   "column": "purchase_order_id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 2474,
+   "typeEnd": 2480
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 54,
+   "table": "t_supplier_statement_item",
+   "column": "statement_id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 2436,
+   "typeEnd": 2442
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 53,
+   "table": "t_supplier_statement_item",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 2385,
+   "typeEnd": 2391
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 33,
+   "table": "t_supplier_statement",
+   "column": "supplier_id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 1396,
+   "typeEnd": 1402
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 31,
+   "table": "t_supplier_statement",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 1301,
+   "typeEnd": 1307
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 17,
+   "table": "t_purchase_payment",
+   "column": "status",
+   "from": "ENUM('PENDING','APPROVED','PAID','CANCELLED')",
+   "to": "VARCHAR(32)",
+   "typeStart": 670,
+   "typeEnd": 715
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 16,
+   "table": "t_purchase_payment",
+   "column": "remark",
+   "from": "VARCHAR(500)",
+   "to": "VARCHAR(255)",
+   "typeStart": 633,
+   "typeEnd": 645
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 15,
+   "table": "t_purchase_payment",
+   "column": "bank_account",
+   "from": "VARCHAR(100)",
+   "to": "VARCHAR(64)",
+   "typeStart": 596,
+   "typeEnd": 608
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 12,
+   "table": "t_purchase_payment",
+   "column": "supplier_id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 444,
+   "typeEnd": 450
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 10,
+   "table": "t_purchase_payment",
+   "column": "payment_no",
+   "from": "VARCHAR(30)",
+   "to": "VARCHAR(64)",
+   "typeStart": 362,
+   "typeEnd": 373
+  },
+  {
+   "file": "docs/migrations/008_phase6_schema.sql",
+   "line": 9,
+   "table": "t_purchase_payment",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 313,
+   "typeEnd": 319
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 248,
+   "table": "t_recall_record",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 10606,
+   "typeEnd": 10609
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 236,
+   "table": "t_trace_scan_log",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 10132,
+   "typeEnd": 10135
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 215,
+   "table": "t_trace_event_log",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 9359,
+   "typeEnd": 9362
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 182,
+   "table": "t_trace_code",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 7950,
+   "typeEnd": 7953
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 162,
+   "table": "t_trace_config",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 7110,
+   "typeEnd": 7113
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 137,
+   "table": "t_collection_record",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 6001,
+   "typeEnd": 6004
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 120,
+   "table": "t_credit_operation_log",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 5197,
+   "typeEnd": 5200
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 97,
+   "table": "t_customer_credit",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 3903,
+   "typeEnd": 3906
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 70,
+   "table": "t_price_change_log",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 2836,
+   "typeEnd": 2839
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 53,
+   "table": "t_customer_price_binding",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 2107,
+   "typeEnd": 2110
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 33,
+   "table": "t_sku_price",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 1213,
+   "typeEnd": 1216
+  },
+  {
+   "file": "docs/migrations/006_phase4_schema.sql",
+   "line": 18,
+   "table": "t_price_level",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 474,
+   "typeEnd": 477
+  },
+  {
+   "file": "docs/migrations/020_migrate_v3_payment_miniapp.sql",
+   "line": 185,
+   "table": "t_price_change_log",
+   "column": "new_price",
+   "from": "DECIMAL(10,2)",
+   "to": "DECIMAL(12,2)",
+   "typeStart": 9968,
+   "typeEnd": 9981
+  },
+  {
+   "file": "docs/migrations/020_migrate_v3_payment_miniapp.sql",
+   "line": 184,
+   "table": "t_price_change_log",
+   "column": "old_price",
+   "from": "DECIMAL(10,2)",
+   "to": "DECIMAL(12,2)",
+   "typeStart": 9929,
+   "typeEnd": 9942
+  },
+  {
+   "file": "docs/migrations/020_migrate_v3_payment_miniapp.sql",
+   "line": 182,
+   "table": "t_price_change_log",
+   "column": "tenant_id",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(36)",
+   "typeStart": 9853,
+   "typeEnd": 9864
+  },
+  {
+   "file": "docs/migrations/020_migrate_v3_payment_miniapp.sql",
+   "line": 181,
+   "table": "t_price_change_log",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "INT UNSIGNED",
+   "typeStart": 9803,
+   "typeEnd": 9809
+  },
+  {
+   "file": "docs/migrations/007_phase5_schema.sql",
+   "line": 102,
+   "table": "t_store_status_log",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 4326,
+   "typeEnd": 4329
+  },
+  {
+   "file": "docs/migrations/007_phase5_schema.sql",
+   "line": 87,
+   "table": "t_store_control_config",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 3601,
+   "typeEnd": 3604
+  },
+  {
+   "file": "docs/migrations/007_phase5_schema.sql",
+   "line": 61,
+   "table": "t_expiry_alert_record",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 2455,
+   "typeEnd": 2458
+  },
+  {
+   "file": "docs/migrations/007_phase5_schema.sql",
+   "line": 40,
+   "table": "t_expiry_alert_config",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 1438,
+   "typeEnd": 1441
+  },
+  {
+   "file": "docs/migrations/007_phase5_schema.sql",
+   "line": 18,
+   "table": "t_inventory_batch",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 470,
+   "typeEnd": 473
+  },
+  {
+   "file": "backend/src/shared/migration.ts",
+   "line": 798,
+   "table": "t_store_control_config",
+   "column": "suspended_reason",
+   "from": "VARCHAR(255)",
+   "to": "VARCHAR(500)",
+   "typeStart": 33644,
+   "typeEnd": 33656
+  },
+  {
+   "file": "backend/src/shared/migration.ts",
+   "line": 797,
+   "table": "t_store_control_config",
+   "column": "max_order_amount",
+   "from": "DECIMAL(12,2)",
+   "to": "DECIMAL(10,2)",
+   "typeStart": 33573,
+   "typeEnd": 33586
+  },
+  {
+   "file": "backend/src/shared/migration.ts",
+   "line": 792,
+   "table": "t_store_control_config",
+   "column": "id",
+   "from": "INT",
+   "to": "INT UNSIGNED",
+   "typeStart": 33247,
+   "typeEnd": 33250
+  },
+  {
+   "file": "docs/migrations/029_add_tenant.sql",
+   "line": 19,
+   "table": "t_tenant",
+   "column": "status",
+   "from": "VARCHAR(16)",
+   "to": "TINYINT",
+   "typeStart": 914,
+   "typeEnd": 925
+  },
+  {
+   "file": "docs/migrations/120d_fix_server_3bugs.sql",
+   "line": 155,
+   "table": "t_error_logs",
+   "column": "tenant_id",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(36)",
+   "typeStart": 8860,
+   "typeEnd": 8871
+  },
+  {
+   "file": "docs/migrations/120d_fix_server_3bugs.sql",
+   "line": 154,
+   "table": "t_error_logs",
+   "column": "user_id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 8809,
+   "typeEnd": 8815
+  },
+  {
+   "file": "docs/migrations/120d_fix_server_3bugs.sql",
+   "line": 146,
+   "table": "t_error_logs",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 8370,
+   "typeEnd": 8376
+  },
+  {
+   "file": "docs/migrations/120d_fix_server_3bugs.sql",
+   "line": 91,
+   "table": "t_subscription",
+   "column": "tenant_id",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(36)",
+   "typeStart": 5316,
+   "typeEnd": 5327
+  },
+  {
+   "file": "docs/migrations/016_phase9_tenant_subscription.sql",
+   "line": 153,
+   "table": "t_tenant_admin",
+   "column": "user_id",
+   "from": "INT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 7228,
+   "typeEnd": 7231
+  },
+  {
+   "file": "docs/migrations/034_add_tenant_admin.sql",
+   "line": 5,
+   "table": "t_tenant_admin",
+   "column": "user_id",
+   "from": "INT",
+   "to": "BIGINT UNSIGNED",
+   "typeStart": 194,
+   "typeEnd": 197
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 197,
+   "table": "t_retail_banner",
+   "column": "tenant_id",
+   "from": "VARCHAR(32)",
+   "to": "VARCHAR(36)",
+   "typeStart": 10407,
+   "typeEnd": 10418
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 193,
+   "table": "t_retail_banner",
+   "column": "status",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(16)",
+   "typeStart": 10180,
+   "typeEnd": 10191
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 191,
+   "table": "t_retail_banner",
+   "column": "link_value",
+   "from": "VARCHAR(500)",
+   "to": "VARCHAR(255)",
+   "typeStart": 10074,
+   "typeEnd": 10086
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 190,
+   "table": "t_retail_banner",
+   "column": "link_type",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(32)",
+   "typeStart": 9990,
+   "typeEnd": 10001
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 189,
+   "table": "t_retail_banner",
+   "column": "banner_image",
+   "from": "VARCHAR(500)",
+   "to": "VARCHAR(255)",
+   "typeStart": 9933,
+   "typeEnd": 9945
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 188,
+   "table": "t_retail_banner",
+   "column": "banner_title",
+   "from": "VARCHAR(100)",
+   "to": "VARCHAR(128)",
+   "typeStart": 9869,
+   "typeEnd": 9881
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 187,
+   "table": "t_retail_banner",
+   "column": "id",
+   "from": "BIGINT",
+   "to": "INT",
+   "typeStart": 9816,
+   "typeEnd": 9822
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 155,
+   "table": "t_retail_order",
+   "column": "tenant_id",
+   "from": "VARCHAR(32)",
+   "to": "VARCHAR(36)",
+   "typeStart": 8269,
+   "typeEnd": 8280
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 152,
+   "table": "t_retail_order",
+   "column": "cancel_reason",
+   "from": "VARCHAR(500)",
+   "to": "VARCHAR(255)",
+   "typeStart": 8092,
+   "typeEnd": 8104
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 151,
+   "table": "t_retail_order",
+   "column": "order_status",
+   "from": "VARCHAR(30)",
+   "to": "VARCHAR(16)",
+   "typeStart": 8018,
+   "typeEnd": 8029
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 150,
+   "table": "t_retail_order",
+   "column": "transaction_no",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(128)",
+   "typeStart": 7958,
+   "typeEnd": 7969
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 148,
+   "table": "t_retail_order",
+   "column": "payment_method",
+   "from": "VARCHAR(30)",
+   "to": "VARCHAR(32)",
+   "typeStart": 7841,
+   "typeEnd": 7852
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 147,
+   "table": "t_retail_order",
+   "column": "payment_status",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(16)",
+   "typeStart": 7767,
+   "typeEnd": 7778
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 145,
+   "table": "t_retail_order",
+   "column": "receiver_longitude",
+   "from": "DECIMAL(10,7)",
+   "to": "DECIMAL(10,6)",
+   "typeStart": 7652,
+   "typeEnd": 7665
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 144,
+   "table": "t_retail_order",
+   "column": "receiver_latitude",
+   "from": "DECIMAL(10,7)",
+   "to": "DECIMAL(10,6)",
+   "typeStart": 7585,
+   "typeEnd": 7598
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 142,
+   "table": "t_retail_order",
+   "column": "receiver_name",
+   "from": "VARCHAR(50)",
+   "to": "VARCHAR(64)",
+   "typeStart": 7458,
+   "typeEnd": 7469
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 141,
+   "table": "t_retail_order",
+   "column": "delivery_address",
+   "from": "VARCHAR(500)",
+   "to": "VARCHAR(255)",
+   "typeStart": 7397,
+   "typeEnd": 7409
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 140,
+   "table": "t_retail_order",
+   "column": "delivery_type",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(16)",
+   "typeStart": 7302,
+   "typeEnd": 7313
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 119,
+   "table": "t_retail_product",
+   "column": "status",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(16)",
+   "typeStart": 6208,
+   "typeEnd": 6219
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 95,
+   "table": "t_retail_category",
+   "column": "status",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(16)",
+   "typeStart": 4996,
+   "typeEnd": 5007
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 92,
+   "table": "t_retail_category",
+   "column": "category_icon",
+   "from": "VARCHAR(500)",
+   "to": "VARCHAR(255)",
+   "typeStart": 4837,
+   "typeEnd": 4849
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 91,
+   "table": "t_retail_category",
+   "column": "category_name",
+   "from": "VARCHAR(100)",
+   "to": "VARCHAR(64)",
+   "typeStart": 4780,
+   "typeEnd": 4792
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 80,
+   "table": "t_retail_shop_config",
+   "column": "status",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(16)",
+   "typeStart": 4211,
+   "typeEnd": 4222
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 69,
+   "table": "t_retail_shop_config",
+   "column": "shop_logo",
+   "from": "VARCHAR(500)",
+   "to": "VARCHAR(255)",
+   "typeStart": 3508,
+   "typeEnd": 3520
+  },
+  {
+   "file": "docs/migrations/074_即时零售表.sql",
+   "line": 68,
+   "table": "t_retail_shop_config",
+   "column": "shop_name",
+   "from": "VARCHAR(100)",
+   "to": "VARCHAR(128)",
+   "typeStart": 3455,
+   "typeEnd": 3467
+  },
+  {
+   "file": "docs/migrations/017_phase10_instant_retail.sql",
+   "line": 86,
+   "table": "t_retail_product",
+   "column": "tenant_id",
+   "from": "VARCHAR(36)",
+   "to": "VARCHAR(32)",
+   "typeStart": 3970,
+   "typeEnd": 3981
+  },
+  {
+   "file": "docs/migrations/017_phase10_instant_retail.sql",
+   "line": 42,
+   "table": "t_retail_category",
+   "column": "tenant_id",
+   "from": "VARCHAR(36)",
+   "to": "VARCHAR(32)",
+   "typeStart": 1940,
+   "typeEnd": 1951
+  },
+  {
+   "file": "docs/migrations/017_phase10_instant_retail.sql",
+   "line": 26,
+   "table": "t_retail_shop_config",
+   "column": "tenant_id",
+   "from": "VARCHAR(36)",
+   "to": "VARCHAR(32)",
+   "typeStart": 1208,
+   "typeEnd": 1219
+  },
+  {
+   "file": "docs/migrations/068_银行费用发票.sql",
+   "line": 6,
+   "table": "t_bank_account",
+   "column": "account_no",
+   "from": "VARCHAR(50)",
+   "to": "VARCHAR(64)",
+   "typeStart": 253,
+   "typeEnd": 264
+  },
+  {
+   "file": "docs/migrations/068_银行费用发票.sql",
+   "line": 5,
+   "table": "t_bank_account",
+   "column": "bank_name",
+   "from": "VARCHAR(100)",
+   "to": "VARCHAR(64)",
+   "typeStart": 201,
+   "typeEnd": 213
+  },
+  {
+   "file": "docs/migrations/068_银行费用发票.sql",
+   "line": 4,
+   "table": "t_bank_account",
+   "column": "account_name",
+   "from": "VARCHAR(100)",
+   "to": "VARCHAR(64)",
+   "typeStart": 150,
+   "typeEnd": 162
+  },
+  {
+   "file": "docs/migrations/070_品牌表.sql",
+   "line": 11,
+   "table": "t_brand",
+   "column": "tenant_id",
+   "from": "VARCHAR(64)",
+   "to": "VARCHAR(36)",
+   "typeStart": 424,
+   "typeEnd": 435
+  },
+  {
+   "file": "docs/migrations/108_miniapp_member_wholesale.sql",
+   "line": 36,
+   "table": "t_points_record",
+   "column": "tenant_id",
+   "from": "VARCHAR(36)",
+   "to": "VARCHAR(64)",
+   "typeStart": 1772,
+   "typeEnd": 1783
+  },
+  {
+   "file": "docs/migrations/108_miniapp_member_wholesale.sql",
+   "line": 35,
+   "table": "t_points_record",
+   "column": "remark",
+   "from": "VARCHAR(256)",
+   "to": "VARCHAR(200)",
+   "typeStart": 1719,
+   "typeEnd": 1731
+  },
+  {
+   "file": "docs/migrations/108_miniapp_member_wholesale.sql",
+   "line": 30,
+   "table": "t_points_record",
+   "column": "type",
+   "from": "VARCHAR(16)",
+   "to": "VARCHAR(20)",
+   "typeStart": 1397,
+   "typeEnd": 1408
+  },
+  {
+   "file": "docs/migrations/108_miniapp_member_wholesale.sql",
+   "line": 28,
+   "table": "t_points_record",
+   "column": "id",
+   "from": "BIGINT UNSIGNED",
+   "to": "BIGINT",
+   "typeStart": 1279,
+   "typeEnd": 1294
+  },
+  {
+   "file": "docs/migrations/071_客户积分.sql",
+   "line": 23,
+   "table": "t_points_record",
+   "column": "source_type",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(32)",
+   "typeStart": 1009,
+   "typeEnd": 1020
+  },
+  {
+   "file": "docs/migrations/163_transfer_order_columns_fill.sql",
+   "line": 20,
+   "table": "t_points_record",
+   "column": "source_type",
+   "from": "VARCHAR(20)",
+   "to": "VARCHAR(32)",
+   "typeStart": 949,
+   "typeEnd": 960
+  }
+ ]
+}
