@@ -34,6 +34,19 @@
 - [x] ④ 12 处非字面量逐条复核（结论见 §五），全部登记进门禁 INDIRECT_ALLOWLIST
 - [ ] 门禁收口：vitest 全量（进行中）/ `tsc --noEmit` **0** ✅ / 五条 guard **EXIT=0** ✅ / backend build **EXIT=0** ✅（改后复跑）
 
+### 收尾（2026-10-15 晚）
+
+1. **门禁自查发现并修掉一个"假绿"**：切实参时没跳过模板字面量 ⇒ 多列 SELECT 的 SQL 被顶层逗号截断，`BLOCK` 被漏判为 0。
+   修好后新暴露 **21 条**同家族位置（见 README §三点五、`raw/73-blocking-21-full.txt`）。
+2. 按**真库 schema** 分类 21 条（`tools/analyze-blocking.mjs`）：**13 处 ≥2 张带 tenant_id 表 ⇒ 必须补显式谓词**（否则收紧后 1052/500）、
+   4 处单表（登记，注入补正确谓词）、8 处平台级（改 `tenant-scope:platform` 标记）。
+3. 登记表迁到数据文件 `backend/scripts/fixtures/tenant-injection-exemptions.json`（生成器 `tools/gen-exemptions.mjs`，含失效清理），
+   门禁由"未登记/登记失效"两侧看守。
+4. **最终门禁（冻结树）**：`vitest run` **664 文件 / 8035 用例 0 failed**（`raw/7E-vitest-final.txt`）、`tsc -p backend/tsconfig.json --noEmit` **0**
+   （`raw/80-tsc.txt`）、六道 guard **全 EXIT=0**（`raw/81-*.txt`）、`backend build` **EXIT=0**（`raw/83-build.txt`）、
+   真库装置 **20/20 PASS**（`raw/7D-harness-second-family.txt`）、门禁双侧反测 **4/4**（`raw/71-guard-reverse-test.txt`）。
+5. 提交：`05a6368f`（根因）→ `c81e8711`（证据+CI）→ `3358a9e0`（**他人并发提交**，见 README §十）→ `92879647`（连带面）。
+
 ## 时间线（续）
 
 ### 判据设计（改后行为）
