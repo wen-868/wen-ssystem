@@ -1,0 +1,51 @@
+== 工作树：D:\Users\ZXQL\wt-agents\S3-222 ==
+
+[0] 起点（防旧工作树污染）
+105abdb3 docs(S3-222): 回执与回传卡补产物 ref（106afbe2）
+## feat/s3-222-customer-domain-wiring...origin/main [ahead 2, behind 2]
+?? docs/evidence/S3-222/99-verify-run.txt
+
+[1] 门禁报告模式（期望：无授权形态 546 处 / 138 文件；已接线 178 处）
+[guard:rbac-wiring] 扫描 189 个路由文件 · 763 个写端点
+[guard:rbac-wiring] 已接线（权限码）178 处 ／ 消费者端保护形态 39 处 ／ **无授权形态 546 处**（分布在 138 个文件）
+
+[2] 门禁 --strict（期望 EXIT=0）
+gaps：已登记 546 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+consumerEnd：已登记 39 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+✅ [--strict] 无「未登记」项（已登记欠账 546 条、已登记消费者端保护形态 39 条，均不计红）
+--strict EXIT=0
+
+[3] 本域残留缺口应为 3 条（2 条公开端点 + 1 条 confirm 待授权）
+
+customer-statement.routes.ts  (1 处)
+   L19: POST /api/store/customer-statements/:statementNo/confirm ⇒ 无授权形态
+member-register.routes.ts  (2 处)
+product-marketing-tag.routes.ts  (3 处)
+
+[4] 权限码持有者复算（仓库种子口径；生产真值以凌舟只读核对为准）
+--- customer:create
+   SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER
+--- customer:edit
+   SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER
+--- customer:visit
+   SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER / SALES_STAFF
+--- customer:statement
+   SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER / FINANCE_STAFF
+--- customer:payment
+   SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER
+
+[5] 本批验收用例（期望 189 passed）
+
+ Test Files  1 passed (1)
+      Tests  189 passed (189)
+   Start at  04:48:16
+   Duration  13.98s (transform 1.36s, setup 96ms, import 6.17s, tests 6.52s, environment 1ms)
+
+
+[6] 类型检查（期望 0 行输出、EXIT=0）
+tsc EXIT=0
+
+[7] 反测 A/B/C（故意摘掉一条接线，证明门禁与用例会红）—— 见同目录 20*.txt / 21*.txt / 22*.txt / 23*.txt
+   摘掉 backend/src/routes/customer-visit.routes.ts 的 requirePermission("customer:visit") ⇒ 缺口 547 且 --strict EXIT=1（点出 customer-visit.routes.ts:20 POST /api/admin/customer-visits/）、
+   本批用例 3 failed / 186 passed；逐字节复原（SHA256 25CFF62A…A00ECCA）后 ⇒ 546 / EXIT=0 / 189 passed。
+
