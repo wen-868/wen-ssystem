@@ -47,7 +47,10 @@ export default defineConfig({
     // ─────────────────────────────────────────────────────────────
     proxy: {
       "/api": {
-        target: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8080",
+        // S3-50 RT：把 dev server 的 /api 代理指向无人监听的本地端口 ⇒ 密闭性取证应红
+        //   （红测分支，取证后关闭删除。**刻意不指向生产域名**：本步要证明的是"代理目标不是 mock 就会红"，
+        //    没有必要为了让门禁变红而制造真实生产流量）
+        target: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8099",
         changeOrigin: true,
         secure: process.env.VITE_API_PROXY_SECURE !== "false"
       }
