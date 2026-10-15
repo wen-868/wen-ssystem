@@ -11,6 +11,7 @@
 |:--|:--|:--|
 | `/root/s3220_ajian` | **S3-214-B2**（B2 批 2 · **阶段②**：采购域 31 条写端点按"使用者已持有码"接线） | `docs/tasks/inbox/ACTIVE-S3-214-B2.md` |
 | `/root/s3221_platform` | **S3-219**（第 67 项落地：平台侧 4 域目录扩 + 28 条平台写端点接线） | `docs/tasks/inbox/ACTIVE-S3-219.md` |
+| `/root/s3222_guard` | **S3-218**（第 70 项：证据/脚本「不得把敏感键的值写进日志」守卫） | `docs/tasks/inbox/ACTIVE-S3-218.md` |
 
 ⚠️ **其余历史单号（S3-190 ~ S3-215）全部已交付/已合并**（S3-211/212/214-①/215 见 §二），卡已移入 `archive/`，**不要再动它们的工作树**。
 ⚠️ 若表里**没有**你的名字 ⇒ 不要开工，直接在最终回答里写"未在 ACTIVE.md 路由表里找到我的 agent 名"，等凌舟派单。
@@ -22,6 +23,7 @@
 |:--|:--|:--|:--|
 | **S3-214-B2**（第 43 项·续：采购域权限接线，B2 批 2 阶段②） | 🔄 在办（`s3220`） | `docs/tasks/inbox/ACTIVE-S3-214-B2.md` | `wt-agents/S3-214`｜`feat/s3-214-batch2-wiring`（基线 = `origin/main`） |
 | **S3-219**（第 67 项：平台侧 4 域目录扩 + 28 条平台写端点接线） | 🔄 在办（`s3221`） | `docs/tasks/inbox/ACTIVE-S3-219.md` | `wt-agents/S3-219`｜`feat/s3-219-platform-domain-wiring`（基线 = `origin/main`） |
+| **S3-218**（第 70 项：证据脚本凭据守卫 + 反测） | 🔄 在办（`s3222`） | `docs/tasks/inbox/ACTIVE-S3-218.md` | `wt-agents/S3-218`｜`chore/s3-218-evidence-secret-guard`（基线 = `origin/main`） |
 
 > `S3-210F1`（台账生成器 CodeQL `js/incomplete-sanitization` 两处转义修复）已并入 **PR #327**，作为 #327 的第二笔提交 `f62e0f63`；**不要再动 `wt-agents/S3-210`**（除非凌舟另派）。
 
@@ -66,7 +68,7 @@ main 当前 `c0f9cf39`。本轮已合并（文档/工作流变更时 `deploy.yml
 > 编号以 `docs/tasks/R101-收口总清单.md` 为准（当前 **总数 69 / 已完成 62 / 待完成 7**）。
 
 1. ~~第 67 项：平台 RBAC 后继（4 域目录扩 + 28 条接线）~~ ⇒ **已派 S3-219（`s3221`）**。
-2. **第 69 项**：证据脚本凭据家族 —— S3-190 真问题已收口、S3-203/S3-174 两条误报已 dismissal（卡 `R101-S3-217-…`）；**守卫另派 S3-218**（未派）。
+2. ~~第 69 项：证据脚本凭据家族~~ ⇒ **已结项**（S3-190 真问题已收口 + 告警 #288 复扫 `fixed`；S3-203/S3-174 误报已 dismissal；卡 `R101-S3-217-…`）。**后继第 70 项（守卫）已派 S3-218（`s3222`）**。
 3. **第 13 项／第 9 项**：需凌舟本机（浏览器 + mock 后端）或阶段门未开，暂不派。
 4. **S3-209 报备的两个卡外观察项**：① `t_inventory_balance` 唯一键不含 `tenant_id`；② `GET /api/admin/sale-bills/:billNo` 在本仓不存在（AI 底座契约缺口）。
 
