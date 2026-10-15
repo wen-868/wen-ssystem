@@ -99,9 +99,23 @@ export class MiniappUploadService {
   /** 计算当前租户/平台的密钥文件与元信息路径 */
   static keyFilePaths(tenantId: string, platform: string): { keyPath: string; metaPath: string } {
     const base = `${safeSegment(tenantId)}-${safeSegment(platform)}`;
+    const keyFileName = `${base}.key`;
+    const metaFileName = `${base}.meta.json`;
+    // 读写路径归一到「密钥根目录」内：path.resolve() + startsWith(目录 + path.sep) 是 CodeQL
+    // 已建模的净化形态（依据见 docs/evidence/S3-211/README.md 二、1）。本函数是 8 条告警
+    // （uploadKey / getKeyStatus / readDecryptedKey 的落盘点）唯一的路径来源，故净化只写在这里。
+    const keyDir = path.resolve(getKeyDir());
+    const keyPath = path.resolve(path.join(keyDir, keyFileName));
+    if (!keyPath.startsWith(keyDir + path.sep)) {
+      throw new Error("密钥文件路径非法");
+    }
+    const metaPath = path.resolve(path.join(keyDir, metaFileName));
+    if (!metaPath.startsWith(keyDir + path.sep)) {
+      throw new Error("密钥文件路径非法");
+    }
     return {
-      keyPath: path.join(getKeyDir(), `${base}.key`),
-      metaPath: path.join(getKeyDir(), `${base}.meta.json`),
+      keyPath,
+      metaPath,
     };
   }
 

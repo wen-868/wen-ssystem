@@ -1,0 +1,28 @@
+[S3-211 判据] 仓库：D:\Users\ZXQL\wt-agents\S3-211
+[S3-211 判据] 形态：path.resolve(path.join(根目录, 段)) + !resolved.startsWith(根目录 + path.sep)；段必须是变量/属性（CodeQL AccessPath 实例）
+
+PASS backend/src/controllers/admin/avatar.controller.ts（告警 265）命中 1/1 对（无关归一调用 2 个已忽略）
+   - resolve@46 → target（段：变量/属性（CodeQL AccessPath 实例））；校验@47 
+   - （忽略）resolve@11 → candidates（段：非变量：StringLiteral）
+   - （忽略）resolve@12 → candidates（段：非变量：StringLiteral）
+
+PASS backend/src/controllers/admin/product-image.controller.ts（告警 266）命中 1/1 对（无关归一调用 2 个已忽略）
+   - resolve@44 → target（段：变量/属性（CodeQL AccessPath 实例））；校验@45 
+   - （忽略）resolve@10 → candidates（段：非变量：StringLiteral）
+   - （忽略）resolve@11 → candidates（段：非变量：StringLiteral）
+
+PASS backend/src/services/admin/miniapp-upload.service.ts（告警 267/268/269/270/271/272/273/274）命中 2/2 对（无关归一调用 3 个已忽略）
+   - resolve@108 → keyPath（段：变量/属性（CodeQL AccessPath 实例））；校验@109 
+   - resolve@112 → metaPath（段：变量/属性（CodeQL AccessPath 实例））；校验@113 
+   - （忽略）resolve@24 → candidates（段：非变量：StringLiteral）
+   - （忽略）resolve@25 → candidates（段：非变量：StringLiteral）
+   - （忽略）resolve@107 → keyDir（段：非变量：CallExpression）
+
+PASS backend/src/services/admin/miniapp-package.service.ts（告警 275/276）命中 1/1 对（无关归一调用 2 个已忽略）
+   - resolve@142 → zipPath（段：变量/属性（CodeQL AccessPath 实例））；校验@143 
+   - （忽略）resolve@50 → candidates（段：非变量：StringLiteral）
+   - （忽略）resolve@51 → candidates（段：非变量：StringLiteral）
+
+NOTE backend/src/shared/zip.ts（告警 275/276）：本文件校验对 0 个；净化点在唯一生产调用方 miniapp-package.service.ts
+
+[S3-211 判据] 结论：EXIT=0（四处落点全部命中）
