@@ -4,6 +4,13 @@
 > 工作树：`D:\Users\ZXQL\wt-agents\S3-224`｜分支 `feat/s3-224-sales-domain-wiring`
 > 开工基线：`origin/main`（真值见回执 §一）
 
+> ⚠️ **合并态说明**：本单开工时基线为 `96b7cee7` 派生（本域读数：缺口 87 / 机读台账 531 条）；
+> 开工期间 **S3-223（财务域 19 条，PR #349）合入** `origin/main`（531 → 512 / 134 文件）⇒
+> 本单已 `git merge origin/main`，本文与台账 §十四 的"前/后"数字一律按**合并态**（512 → 480 / 134 → 129 文件）。
+> 另：`origin/main` 上新增了生产只读底稿 `docs/evidence/_shared/prod-roles-20261016.txt`（凌舟入库），
+> 与本单用的 `docs/evidence/S3-220/00-prod-roles-raw.txt` 同源（12 角色 × 权限串），本单持有的 5 个码
+> 的持有人集合未因此变化（可对比 `05-prod-holders.txt`）。
+
 ## 一、开工第一步：把「台账 88 条」还原成「当前真实缺口」
 
 台账 `docs/tasks/R101-RBAC接线缺口清单.md` §三.5 的数字（17 文件 / 91 端点 / 88 管理面 + 3 公开）

@@ -1,0 +1,107 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-223/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts (154 tests | 5 failed) 640ms
+     × 'credit.routes.ts' 'put' '/:customerId/limit'：注册行自带 requirePermission("'customer:credit'")（且该行不是注释） 9ms
+     × 'credit.routes.ts' 'put' '/:customerId/limit' ⇒ 403 且未到达业务层 5ms
+     × 'credit.routes.ts' 'put' '/:customerId/limit'：明确不持有该码的角色 ⇒ 403（'customer:credit' 的锁死面逐条复算） 12ms
+     × 'credit.routes.ts' 'put' '/:customerId/limit'：uid=9009 ⇒ 到达业务层（200） 3ms
+     × 店长通过提成规则改/删（sale:*）与额度调整（customer:*）——页面含店长的三处逐条钉住 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts > S3-223 · 形状断言（行级判据；踩坑[134]） > 'credit.routes.ts' 'put' '/:customerId/limit'：注册行自带 requirePermission("'customer:credit'")（且该行不是注释）
+AssertionError: expected 'creditRouter.put("/:customerId/limit"…' to contain 'requirePermission("customer:credit")'
+
+Expected: "requirePermission("customer:credit")"
+Received: "creditRouter.put("/:customerId/limit", requirePermission("finance:create"), creditAdjustController.adjustLimit);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts:622:27
+    620|     const lines = registrationLines(row.file, row.method, row.routePat…
+
+    621|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    622|     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`…
+       |                           ^
+    623|   });
+    624|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts > S3-223 · a) 只读账号被拦（两类反证） > 'credit.routes.ts' 'put' '/:customerId/limit' ⇒ 403 且未到达业务层
+AssertionError: expected '无权限执行此操作，需要权限: finance:create' to be '无权限执行此操作，需要权限: customer:credit' // Object.is equality
+
+Expected: "无权限执行此操作，需要权限: customer:credit"
+Received: "无权限执行此操作，需要权限: finance:create"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts:701:26
+    699|     expect(res.status).toBe(403);
+    700|     expect(res.body.code).toBe("403");
+    701|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+       |                          ^
+    702|     expect(res.body.handler).toBeUndefined();
+    703|     expect(h.reached).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts > S3-223 · a) 只读账号被拦（两类反证） > 'credit.routes.ts' 'put' '/:customerId/limit'：明确不持有该码的角色 ⇒ 403（'customer:credit' 的锁死面逐条复算）
+AssertionError: credit.routes.ts put /:customerId/limit／uid=9006（finance_staff）: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts:713:103
+    711|       h.reached.length = 0;
+    712|       const res = await call(appFor(row.file, row.prefix, row.router, …
+    713|       expect(res.status, `${row.file} ${row.method} ${row.routePath}／u…
+       |                                                                                                       ^
+    714|       expect(h.reached, `uid=${uid} 不得到达业务层`).toEqual([]);
+    715|     }
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 149 passed (154)
+   Start at  05:34:00
+   Duration  3.42s (transform 527ms, setup 32ms, import 2.45s, tests 640ms, environment 0ms)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts > S3-223 · b) 有权角色照常通过（不锁死） > 'credit.routes.ts' 'put' '/:customerId/limit'：uid=9009 ⇒ 到达业务层（200）
+AssertionError: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts:724:24
+    722|   it.each(PAIRS)("$file $method $routePath：uid=$uid ⇒ 到达业务层（200）", asy…
+    723|     const res = await call(appFor(row.file, row.prefix, row.router, ro…
+    724|     expect(res.status).toBe(200);
+       |                        ^
+    725|     expect(res.body.success).toBe(true);
+    726|     expect(typeof res.body.handler).toBe("string");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts > S3-223 · b) 有权角色照常通过（不锁死） > 店长通过提成规则改/删（sale:*）与额度调整（customer:*）——页面含店长的三处逐条钉住
+AssertionError: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts:754:26
+    752|     expect(rule.status).toBe(200);
+    753|     const limit = await call(appFor("credit.routes.ts", "/api/admin/cr…
+    754|     expect(limit.status).toBe(200);
+       |                          ^
+    755|     const del = await call(appFor("commission.routes.ts", "/api/admin/…
+    756|     expect(del.status).toBe(200);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+

@@ -1,0 +1,61 @@
+# 生产只读底稿（R-PROD-READ）——商家角色 × 权限码 / 平台侧 / 菜单分布
+#
+# 导出人：凌舟（总负责人）｜日期：2026-10-16｜通道：`bash /tmp/s3136-q.sh <sql>`（服务器只读，口令不回显、不落盘）
+# 用途：**所有在办/已完成 B2 接线批次共用的角色底稿**（替代"每批各自核对"），并作为 A/B/P 类与授权模型的判定依据。
+
+## 一、商家侧角色 × 权限码（`t_sys_role`，`tenant_id='default'`，共 12 行）
+
+```
+CUSTOMER_SERVICE	客服	["customer:view", "aftersale:*", "miniapp:*", "notification:view"]
+FINANCE_STAFF	财务	["finance:*", "report:*", "customer:statement", "supplier:statement", "dashboard:view"]
+OPERATION_ADMIN	运营管理员	["*"]
+PURCHASE_STAFF	采购员	["purchase:*", "supplier:*", "inventory:inbound", "report:purchase"]
+READONLY	只读观察员	["*:view"]
+SALES_STAFF	销售员	["sale:create", "sale:view", "customer:view", "customer:visit", "dashboard:view"]
+SALESMAN	销售员	["product:read", "order:read", "order:write", "customer:read", "customer:write"]
+STORE_ADMIN	门店管理员	["product:read", "order:read", "order:write", "inventory:read", "inventory:write"]
+STORE_MANAGER	门店店长	["store:*", "sale:*", "customer:*", "inventory:*", "report:*", "dashboard:*", "finance:payment", "goods:price", "finance:daily-settle"]
+STORE_OPERATOR	门店操作员	["sale:create", "sale:view", "inventory:view", "dashboard:view", "sale:return", "finance:daily-settle"]
+SUPER_ADMIN	超级管理员	["*"]
+WAREHOUSE_STAFF	仓管员	["inventory:*", "trace:*", "transfer:*", "stock-check:*"]
+```
+
+### 🔴 本底稿推出的两条**事实更正**（推翻此前的推断）
+
+1. **`PURCHASE_STAFF`（采购员）在生产确实存在**，且持 `purchase:*` / `supplier:*` / `inventory:inbound` / `report:purchase`
+   ⇒ 此前"生产没有独立采购岗角色、`purchase:*` 实际只有超管可用"的说法**错误**（依据＝本文第一节原始输出）。
+   **影响**：S3-214-B2 的接线**没有回归**（`purchase:*` 端点对采购员本来可用）；但"授权模型提案"里 `purchase:*` 的受众必须按本表重写。
+2. **`SALESMAN` / `STORE_ADMIN` 持的是 `product:read` / `order:read|write` / `inventory:read|write`**（旧词表，与 `goods:*`/`sale:*`/`store:*` **不同族**）⇒ 这两个角色在**新码体系下等同"无写权限"**；任何"页面允许他们、但挂新码"的接线都会把他们打成 403 —— 这正是 A/B 类反复出现的根因形态。
+
+## 二、平台侧（`t_platform_admin` / `t_platform_role*`）
+
+```
+=== 平台管理员（不含任何密钥列） ===
+1	admin	平台超级管理员	PLATFORM_SUPER_ADMIN	1	NULL        # last_login_at 为 NULL
+
+=== 平台角色表行数 ===            0
+=== 平台角色权限表行数 ===        0
+```
+
+⇒ **平台侧角色/权限表为空、唯一平台管理员是 `PLATFORM_SUPER_ADMIN`** ⇒ 印证 S3-219 的"无 403 回归"结论（现有账号走超管通配）；同时说明 S3-219 新增的 `library/open/review` 三个域码**当前无人被显式授予**（要授予须先建平台角色行）。
+
+## 三、菜单分布（`t_sys_menu`，`tenant_id='default'`）
+
+```
+BUTTON	1
+CATALOG	11
+MENU	78
+```
+
+## 四、表结构要点（`information_schema`，供后续核对面用）
+
+- `t_platform_role`：`id` / **`code`**（不是 `role_code`）/ `name` / `type` / `enabled`；
+- `t_platform_role_permission`：`role_id` / `module_code` / `can_menu` / `can_page_btn` / `data_scope`；
+- `t_sys_menu`：`menu_code` / `menu_name` / `menu_type` / `tenant_id` / `visible` / `status`；
+- `t_sys_role_menu`：`tenant_id` / `role_id` / `menu_id`。
+
+## 五、复跑用的 SQL（随本文件入库，供他人复核）
+
+- `docs/evidence/_shared/prod-roles-query-20261016.sql`（角色 × 权限码 + 平台侧）
+- `docs/evidence/_shared/prod-platform-schema-20261016.sql`（平台表结构探测）
+- `docs/evidence/_shared/prod-platform-admins-20261016.sql`（平台管理员，**不含密钥列**）

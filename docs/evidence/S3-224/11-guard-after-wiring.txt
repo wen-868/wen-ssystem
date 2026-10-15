@@ -1,5 +1,5 @@
 [guard:rbac-wiring] 扫描 189 个路由文件 · 763 个写端点
-[guard:rbac-wiring] 已接线（权限码）225 处 ／ 消费者端保护形态 39 处 ／ **无授权形态 499 处**（分布在 131 个文件）
+[guard:rbac-wiring] 已接线（权限码）244 处 ／ 消费者端保护形态 39 处 ／ **无授权形态 480 处**（分布在 129 个文件）
 [guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）
 
 —— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无授权形态）——
@@ -121,10 +121,9 @@ archive.routes.ts  (1 处)
 avatar.routes.ts  (1 处)
    L20: POST /api/admin/auth/avatar ⇒ 无授权形态
 
-bank-account.routes.ts  (3 处)
-   L10: POST /api/admin/bank-accounts/ ⇒ 无授权形态
-   L11: PUT /api/admin/bank-accounts/:id ⇒ 无授权形态
-   L14: POST /api/admin/bank-accounts/:id/close ⇒ 无授权形态
+bank-account.routes.ts  (2 处)
+   L17: POST /api/admin/bank-accounts/ ⇒ 无授权形态
+   L21: POST /api/admin/bank-accounts/:id/close ⇒ 无授权形态
 
 billing-config.routes.ts  (2 处)
    L16: PUT /api/platform/billing/arrears-policy ⇒ 无授权形态
@@ -149,10 +148,8 @@ category.routes.ts  (4 处)
    L15: DELETE /api/admin/products/categories/:id ⇒ 无授权形态
    L16: PUT /api/admin/products/categories/:id/sort ⇒ 无授权形态
 
-commission.routes.ts  (3 处)
-   L12: PUT /api/admin/commission/rules/:id ⇒ 无授权形态
-   L13: DELETE /api/admin/commission/rules/:id ⇒ 无授权形态
-   L16: POST /api/admin/commission/calculate ⇒ 无授权形态
+commission.routes.ts  (1 处)
+   L22: POST /api/admin/commission/calculate ⇒ 无授权形态
 
 community-marketing.routes.ts  (10 处)
    L12: POST /api/marketing/group-buy/:id/join ⇒ 无授权形态
@@ -166,13 +163,8 @@ community-marketing.routes.ts  (10 处)
    L34: POST /api/marketing/seckill/:orderNo/cancel ⇒ 无授权形态
    L35: POST /api/marketing/seckill/:id/end ⇒ 无授权形态
 
-credit.routes.ts  (6 处)
-   L26: POST /api/admin/credits/collections ⇒ 无授权形态
-   L27: PUT /api/admin/credits/collections/:id ⇒ 无授权形态
-   L29: POST /api/admin/credits/collections/auto-generate ⇒ 无授权形态
-   L30: POST /api/admin/credits/collections/batch-remind ⇒ 无授权形态
-   L50: PUT /api/admin/credits/:customerId/limit ⇒ 无授权形态
-   L51: PUT /api/admin/credits/:customerId/term ⇒ 无授权形态
+credit.routes.ts  (1 处)
+   L28: POST /api/admin/credits/collections ⇒ 无授权形态
 
 custom-report-v2.routes.ts  (4 处)
    L11: POST /api/admin/reports/ ⇒ 无授权形态
@@ -214,11 +206,6 @@ department.routes.ts  (4 处)
 
 error-log.routes.ts  (1 处)
    L8: POST /api/admin/error-report ⇒ 无授权形态
-
-expense.routes.ts  (3 处)
-   L12: PUT /api/admin/expenses/:expenseNo ⇒ 无授权形态
-   L13: POST /api/admin/expenses/:expenseNo/approve ⇒ 无授权形态
-   L14: POST /api/admin/expenses/:expenseNo/void ⇒ 无授权形态
 
 feedback.routes.ts  (2 处)
    L10: POST /api/admin/feedback ⇒ 无授权形态
@@ -342,17 +329,8 @@ order-exception.routes.ts  (3 处)
    L12: PUT /api/admin/order-exceptions/:id(\d+)/status ⇒ 无授权形态
    L13: PUT /api/admin/order-exceptions/:id(\d+) ⇒ 无授权形态
 
-payment-config.routes.ts  (6 处)
-   L9: PUT /api/payment-config/configs/:provider ⇒ 无授权形态
-   L10: POST /api/payment-config/configs/:provider/test ⇒ 无授权形态
-   L13: POST /api/payment-config/bank-accounts ⇒ 无授权形态
-   L14: PUT /api/payment-config/bank-accounts/:id ⇒ 无授权形态
-   L15: DELETE /api/payment-config/bank-accounts/:id ⇒ 无授权形态
-   L16: POST /api/payment-config/bank-accounts/:id/default ⇒ 无授权形态
-
-payment-new.routes.ts  (2 处)
-   L8: POST /api/admin/payments-new/ ⇒ 无授权形态
-   L12: POST /api/admin/payments-new/:paymentNo/void ⇒ 无授权形态
+payment-new.routes.ts  (1 处)
+   L12: POST /api/admin/payments-new/ ⇒ 无授权形态
 
 payment.routes.ts  (1 处)
    L20: POST /api/pay/wx/callback ⇒ 无授权形态
@@ -548,13 +526,12 @@ rbac.routes.ts  (5 处)
    L14: PUT /api/admin/system/roles/:id/data-permissions ⇒ 无授权形态
    L17: PUT /api/admin/system/roles/users/:userId/roles ⇒ 无授权形态
 
-receipt.routes.ts  (2 处)
-   L8: POST /api/admin/receipts/ ⇒ 无授权形态
-   L12: POST /api/admin/receipts/:receiptNo/void ⇒ 无授权形态
+receipt.routes.ts  (1 处)
+   L11: POST /api/admin/receipts/ ⇒ 无授权形态
 
 reconciliation.routes.ts  (2 处)
-   L9: POST /api/admin/reconciliation/customer/:customerId/confirm ⇒ 无授权形态
-   L12: POST /api/admin/reconciliation/supplier/:supplierId/confirm ⇒ 无授权形态
+   L14: POST /api/admin/reconciliation/customer/:customerId/confirm ⇒ 无授权形态
+   L17: POST /api/admin/reconciliation/supplier/:supplierId/confirm ⇒ 无授权形态
 
 report-permissions.routes.ts  (4 处)
    L9: PUT /api/admin/report-permissions/matrix ⇒ 无授权形态
@@ -815,5 +792,5 @@ notification.routes.ts  (2 处)
    L30: POST /api/miniapp/notifications/read-all ⇒ 消费者端保护形态
 
 —— 台账核对（rbac-wiring-baseline.json 存在）——
-gaps：已登记 499 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+gaps：已登记 480 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
 consumerEnd：已登记 39 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）

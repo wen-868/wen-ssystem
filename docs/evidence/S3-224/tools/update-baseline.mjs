@@ -90,11 +90,14 @@ if (removed !== EXPECT_REMOVED) throw new Error(`预期移除 ${EXPECT_REMOVED} 
 if (before.endpoints - after.endpoints !== EXPECT_REMOVED) throw new Error("计数不守恒");
 
 json._counts = { ...json._counts, files: after.files, endpoints: after.endpoints };
-json._lastUpdate = "2026-10-16 S3-224 销售域接线：32 条已接线，从 gaps 移除（531 → 499）";
+json._lastUpdate = "2026-10-16 S3-224 销售域接线：32 条已接线，从 gaps 移除（合并态 512 → 480）";
 json._s3224_note =
-  "S3-224（收口总清单第 43 项续 · B2 批 6 销售域 87 条仍缺口）已给 32 条端点上 `requirePermission`" +
+  "S3-224（收口总清单第 43 项续 · B2 批 6 销售域）已给 32 条端点上 `requirePermission`" +
   "（全部既有码：sale:create|edit|void|return、finance:daily-settle，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十四）" +
-  "⇒ 这 32 条不再是无授权缺口，按流程从 gaps 逐条移除（files 136→131、endpoints 531→499）。" +
+  "⇒ 这 32 条不再是无授权缺口，按流程从 gaps 逐条移除。" +
+  "⚠️ 本单开工时（origin/main = 96b7cee7 派生）本域读数为缺口 87 条 / 机读台账 531 条；" +
+  "开工期间 S3-223（财务域 19 条，PR #349）合入 origin/main（531 → 512 / 134 文件）⇒ 本单已 `git merge origin/main`，" +
+  "**合并态真值 = 512 → 480**（files 134 → 129），机读台账 `_counts` 按合并态落盘。" +
   "移除的是**同一批端点**的登记，不是新缺口洗绿。其余 55 条**保留登记**，五类原因：" +
   "① B 类 40 条 —— 存在 app-mobile 写调用点且该页使用者集合不可枚举（首页快捷入口/tabBar/推送深链/孤岛页）；" +
   "② L 类 2 条 —— 命中 G0 `NOT_IN_G0` / G1 C 类 / G2 R 类既有锁定（sale-returns 创建、sale-bills payment）；" +

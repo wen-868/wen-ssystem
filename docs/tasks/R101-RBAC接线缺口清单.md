@@ -2406,13 +2406,16 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 > 执行方：阿坚（后端 / 权限）｜本地子代理 `/root/s3228_ajian`｜派单卡：`docs/tasks/inbox/ACTIVE-S3-224.md`
 > 判定留档（含"不可枚举"三类入口的定义与卡外观察）：`docs/evidence/S3-224/01-plan-and-judgements.md`
 > 原始输出：`docs/evidence/S3-224/**`（生产持有复算 `05-prod-holders.txt`、门禁前后 `11/12/20~24-*.txt`、回归 `30~33-*.txt`）
-> 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本单后 `gaps` **499 条 / 131 文件**；`consumerEnd` 39 条不变）
+> 机读台账：`backend/scripts/rbac-wiring-baseline.json`（**合并态** `gaps` **480 条 / 129 文件**；`consumerEnd` 39 条不变）
+> ⚠️ **基线说明（合并态真值）**：本单开工时 `origin/main` = `96b7cee7` 派生（本域读数：缺口 87 条 / 机读台账 531 条）；
+> 开工期间 **S3-223（财务域 19 条，PR #349）合入** main（531 → 512 / 134 文件）⇒ 本单已 `git merge origin/main`，
+> 表内"本批前/本批后"一律按**合并态**（512 → 480）落盘，与 §十三 的数字可直接相加。
 
 ### 14.1 起点订正：台账 §三.5 的「88 管理面」→ 机读真值 **87 条仍缺口**
 
-§三.5 是 S3-180 期快照，与开工当日实测有 5 处偏移（4 条小程序售后已按 S3-205 归 `consumerEnd`、
-另 4 个文件新增/已接线端点共 4 条）⇒ **对账起点必须用机读真值**：
-`node backend/scripts/guard-rbac-wiring.mjs --json` ⇒ 本域 17 文件 **写端点 100 / 仍缺口 87**。
+§三.5 是 S3-180 期快照，与开工当日实测有 5 处偏移（4 条小程序售后已按 S3-205 归 `consumerEnd`；
+`admin-order` / `store-sale-bill` / `sale-return` / `admin-marketing-flash-sale` 四个文件另新增或已接线共 4 条）
+⇒ 对账起点必须用机读真值：`node backend/scripts/guard-rbac-wiring.mjs --json` ⇒ 本域 17 文件 **写端点 100 / 仍缺口 87**。
 
 ### 14.2 接线口径（照派单卡 §二，**逐端点**判定，不整体套用 `sale:*`）
 
@@ -2428,9 +2431,7 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 
 ### 14.3 本批已接 **32 条**（端点 / 落地码 / 真实使用者依据）
 
-行号 = 本批改动**后**的注册行（`git diff` 可复核）。
-
-| # | 端点（`file` 行） | 落地码 | 真实使用者（页面 / 调用点） |
+| # | 端点（`file`） | 落地码 | 真实使用者（页面 / 调用点） |
 |--:|:--|:--|:--|
 | 1 | `admin-marketing-flash-sale.routes.ts` PUT `/marketing/flash-sales/:id` | `sale:edit` | `marketing/FlashSale.vue:387`［SUPER_ADMIN］（`router:228`） |
 | 2 | 同上 DELETE `/marketing/flash-sales/:id` | `sale:edit` | `FlashSale.vue:418`＋`MarketingView.vue:542`［SUPER_ADMIN］（`:220`） |
@@ -2452,11 +2453,11 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 | 18 | `store-order.routes.ts` POST `/store/orders/:orderNo/accept` | `sale:create` | `pos/OrderFulfillView.vue:150`［SUPER_ADMIN, STORE_MANAGER, **STORE_OPERATOR**］（`:262`） |
 | 19 | 同上 POST `/store/orders/:orderNo/complete-delivery` | `sale:create` | `OrderFulfillView.vue:176` |
 | 20 | 同上 POST `/store/orders/:orderNo/reject` | `sale:create` | `OrderFulfillView.vue:163` |
-| 21 | 同上 POST `/store/orders/:orderNo/cancel` | `sale:void` | 全仓无页面调用点（高风险动作不扩给收银员） |
+| 21 | 同上 POST `/store/orders/:orderNo/cancel` | `sale:void` | 全仓无页面调用点（取消/作废属高风险动作，不扩给收银员） |
 | 22 | 同上 POST `/store/hold-orders/:holdNo/restore` | `sale:create` | `pos/HoldOrderView.vue:83`＋`pos/CashierView.vue:1689`［含 **STORE_OPERATOR**］（`:265`/`:259`） |
 | 23 | 同上 DELETE `/store/hold-orders/:holdNo` | `sale:create` | `HoldOrderView.vue:96`＋`CashierView.vue:1709` |
 | 24 | `store-sale-bill.routes.ts` POST `/store/sale-bills/:billNo/pay-by-code` | `sale:create` | `pos/CashierView.vue:1628`［含 **STORE_OPERATOR**］（`:259`） |
-| 25 | `store-shift.routes.ts` POST `/store/shift/settle` | `finance:daily-settle` | 全仓无页面调用点（班结，与 `pos/daily-settle` 同族码） |
+| 25 | `store-shift.routes.ts` POST `/store/shift/settle` | `finance:daily-settle` | 全仓无页面调用点（班结；与 `pos/daily-settle` 同族同码） |
 | 26 | 同上 POST `/store/shifts/` | `finance:daily-settle` | `pos/ShiftView.vue:258`［SUPER_ADMIN, STORE_MANAGER, **STORE_OPERATOR**］（`:268`） |
 | 27 | 同上 POST `/store/shifts/:shiftNo/check` | `finance:daily-settle` | `pos/ShiftDetailView.vue:345`（`:269`） |
 | 28 | 同上 POST `/store/shifts/:shiftNo/close` | `finance:daily-settle` | `pos/ShiftView.vue:296` |
@@ -2465,23 +2466,23 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 | 31 | 同上 POST `…/start-delivery` | `sale:create` | 同上 |
 | 32 | 同上 POST `…/complete-delivery` | `sale:create` | 同上 |
 
-**逐码分布**：`sale:create` 9 ｜ `sale:edit` 8 ｜ `sale:void` 5 ｜ `sale:return` 3 ｜ `finance:daily-settle` 4（＋`sale:cancel` 0 新增）= **32**。
-**5 个码全部是仓库既有码**（`sale:*` 见 `079_权限矩阵.sql:205-207` 与 `203_销售单取消权限点.sql`；
-`finance:daily-settle`／`sale:return` 为既有码），**不新立权限点、不改角色种子、不动 `docs/migrations/**`**。
+**逐码分布**：`sale:create` 9 ｜ `sale:edit` 8 ｜ `sale:void` 5 ｜ `sale:return` 3 ｜ `finance:daily-settle` 4 = **32**。
+**5 个码全部是仓库既有码**（`sale:*` 见 `docs/migrations/079_权限矩阵.sql:205-207` 与 `docs/migrations/203_销售单取消权限点.sql`；
+`finance:daily-settle` / `sale:return` 为既有码）⇒ **不新立权限点、不改角色种子、不动 `docs/migrations/**`**。
 
 ### 14.4 生产持有事实（本批判据起点，**先测再判**）
 
-原始输出：`docs/evidence/S3-224/05-prod-holders.txt`（由 `docs/evidence/S3-220/00-prod-roles-raw.txt` 复算，租户 `default` 12 角色）。
+原始输出：`docs/evidence/S3-224/05-prod-holders.txt`（由生产只读底稿复算，租户 `default` 12 角色）。
 关键结论：**只有 `sale:create` / `sale:return` / `finance:daily-settle` 覆盖 `STORE_OPERATOR`（收银员）**；
 `sale:edit` / `sale:void` / `sale:cancel` / `report:finance` / `finance:payment` **均不含收银员** ⇒
-凡页面角色含收银员的端点，落地码只能取前者（这是本批 4 个码分布的**唯一依据**）。
+凡页面角色含收银员的端点，落地码只能取前者（这是本批 5 个码分布的**唯一依据**）。
 另：`t_sys_menu` 里**没有任何 `aftersale:*` 行**（`aftersale:*` 只是 CUSTOMER_SERVICE 的权限串通配）
 ⇒ 售后域无既有细码，`confirm-receipt` 取退货语义码 `sale:return`。
 
 ### 14.5 本批**未接** **40 条 · B 类**（存在 app-mobile 写调用点，且该页使用者集合**不可枚举**）
 
 判据（与 S3-198 §9.1、S3-220 §12.3、S3-223 §13.1③ 同口径，本单把"入口"这一层显式写清）：
-app-mobile 页面若**①经首页快捷入口/tabBar/推送深链无条件可达**，或**②全仓无任何导航入口（孤岛页）**，
+app-mobile 页面若**①经首页快捷入口 / tabBar / 推送深链无条件可达**，或**②全仓无任何导航入口（孤岛页）**，
 则其使用者集合不可用静态证据枚举 ⇒ 不接线、逐条登记。
 
 | # | 端点 | app-mobile 写调用点（证据） | 不可枚举的原因 |
@@ -2494,14 +2495,13 @@ app-mobile 页面若**①经首页快捷入口/tabBar/推送深链无条件可�
 | 11 | `store-order.routes.ts` POST `/store/orders/:orderNo/start-delivery` | `pages/orders/order-detail.vue:258` | 同第 1 条 |
 | 12 | `store-sale-bill.routes.ts` POST `/store/sale-bills/:billNo/collection-link` | `pages-sub/product/collection-link/collection-link.vue:119` | 孤岛页 |
 | 13 | `store-sale-bill.routes.ts` POST `/store/sale-bills/:billNo/offline-payment` | `pages-sub/order/sales/sale-detail.vue:172`（`salesApi.offlinePayment`） | 该页经 `pages/orders/orders.vue:678` 进入 ⇒ 首页快捷入口**无条件可达** |
-| 14–25 | `instant-retail-admin-ops.routes.ts` 全部 **12 条**（`orders/:orderNo/status`、`routing-rules` POST/PUT/DELETE、`exceptions/:id/handle`、`shelf` POST/PUT/DELETE、`deliveries/:deliveryId/{assign,status}`、`reviews/:id/reply`、`reviews/sync`） | `pages-sub/finance/instant-retail/orders.vue:224/244/274`、`config.vue:158/170/180/190/205`、`products.vue:201/215/237` | 三个**孤岛页**（`pages.json` 注册但全仓无 `navigateTo`/`function-menu`/`tabBar`/`push` 引用） |
+| 14–25 | `instant-retail-admin-ops.routes.ts` 全部 **12 条**（`orders/:orderNo/status`、`routing-rules` POST/PUT/DELETE、`exceptions/:id/handle`、`shelf` POST/PUT/DELETE、`deliveries/:deliveryId/{assign,status}`、`reviews/:id/reply`、`reviews/sync`） | `pages-sub/finance/instant-retail/orders.vue:224/244/274`、`config.vue:158/170/180/190/205`、`products.vue:201/215/237` | 三个**孤岛页**（`pages.json` 注册但全仓无 `navigateTo` / `function-menu` / `tabBar` / `push` 引用） |
 | 26–40 | `instant-retail-admin-platform.routes.ts` 全部 **15 条**（`configs` POST、`configs/:platform/{test,sync-orders,sync-products}`、`configs/:platform` DELETE、`shop-config`、`categories` POST/PUT/DELETE、`products` POST/PUT/DELETE、`banners` POST/PUT/DELETE） | 同上三个孤岛页 | 同上 |
 
-> **保守口径声明**：孤岛页（第 2、3–9、12、14–40 条）的实际"看得到按钮的角色"**可能为空**
->（无导航入口 ⇒ 无人能经 UI 到达）；本单**不**据此接线，理由：静态扫描只能证明"仓库内无引用"，
-> **不能**证明"线上无人直连该 URL"（H5 构建下页面 URL 可直达）⇒ 按"**无法证明不误伤则不动**"处理，
-> 零回归优先。若凌舟认定孤岛页使用者集合为空，这 36 条可**一键接线**（码位与本单同口径：
-> 管理面按 `sale:create|edit|void` 取用；门店端按 `sale:create|void`），本单已备好反测位。
+> **保守口径声明**：孤岛页（第 2、3–9、12、14–40 条）"看得到按钮的角色"**可能为空**（无导航入口 ⇒ 无人能经 UI 到达）；
+> 本单**不**据此接线，理由：静态扫描只能证明"仓库内无引用"，**不能**证明"线上无人直连该 URL"（H5 构建下页面 URL 可直达）
+> ⇒ 按"**无法证明不误伤则不动**"处理，零回归优先。若凌舟认定孤岛页使用者集合为空，这 36 条可**一键接线**
+>（码位与本单同口径：管理面按 `sale:create|edit|void` 取用；门店端按 `sale:create|void`），本单已备好反测位。
 
 ### 14.6 本批**未接** **2 条 · L 类**（命中既有锁定，本单无授权改断言）
 
@@ -2517,28 +2517,28 @@ app-mobile 页面若**①经首页快捷入口/tabBar/推送深链无条件可�
 | **Q** 查询型 POST | `admin-quote-push.routes.ts` POST `/api/admin/quote-push/preview` | 报价**预览**，不改数据 ⇒ 按派单卡 §二.3「查询型 POST 不按写端点接」（同批 3 §12.6 P 类同款判定） |
 | **P** 公开端点 | `instant-retail-webhook.routes.ts` POST `/api/instant-retail/webhook/{jd,meituan,eleme}` | 三平台服务器直调：该文件 `routeConfig.auth = "none"`（免鉴权），无登录态；挂权限码既无意义、也会把正常回调打成 401/403（同批 5 §13.5 同款） |
 | **C** 消费者端 | `cart.routes.ts` POST `/add`、PUT/DELETE `/items/:skuId`、POST `/clear`、POST `/checkout/preview`、POST `/checkout/create`（6 条） | 该文件 `routeConfig.auth = "requireConsumerAuthWithTenant"`（S3-196 消费者身份）⇒ 消费者 roles 恒空，**不适用商家权限码**（硬套即把小程序购物车打成 403，S3-203 `trace:*` 教训）。**登记理由见 14.10-1（门禁判据缺口）** |
-| **W-M** 待授权模型定案 | `position.routes.ts` POST `/`、PUT `/:id`、DELETE `/:id`（3 条） | 岗位管理属**组织/人事**语义，`t_sys_menu` 无「岗位」细码；页面 `system/PositionManage.vue`（`router:235` 角色 = SUPER_ADMIN）。硬挂 `sale:edit` 属跨域错配 ⇒ 按台账 §〇.3「不硬塞」原则登记待裁定（候选：另立 `system:position:*` 细码或归员工/账号域批次） |
+| **W-M** 待授权模型定案 | `position.routes.ts` POST `/`、PUT `/:id`、DELETE `/:id`（3 条） | 岗位管理属**组织/人事**语义，本仓 `t_sys_menu` 无「岗位」细码；页面 `system/PositionManage.vue`（`router:235` 角色 = SUPER_ADMIN）。硬挂 `sale:edit` 属跨域错配 ⇒ 按台账 §〇.3「不硬塞」原则登记待裁定。⚠️ `position.routes.ts` 在台账里被按**目录**归入销售域，但**不在** S3-225（员工/账号域 7 文件 / 31 端点，凌舟 2026-10-16 已派）的范围内 ⇒ 请凌舟裁定：并入 S3-225，或另立 `system:position:*` 细码 |
 
 ### 14.8 守恒与门禁（原始输出见 `docs/evidence/S3-224/`）
 
-| 指标 | 本批前 | 本批后 | 说明 |
+| 指标 | 本批前（**合并态**） | 本批后 | 说明 |
 |:--|--:|--:|:--|
 | 扫描写端点总数 | 763 | 763 | 未增删端点 |
-| 已接线（权限码） | 193 | **225** | +32 = 本批接线数（`11-guard-after-wiring.txt`） |
-| 无授权形态（缺口） | **531** | **499** | −32；分布文件数 136 → 131（**5 个文件清零**：`store-shift`、`instant-retail-store`、`order-timeout`、`commerce-fix`、`admin-marketing-flash-sale`） |
+| 已接线（权限码） | 212 | **244** | +32 = 本批接线数（`11-guard-after-wiring.txt`） |
+| 无授权形态（缺口） | **512** | **480** | −32；分布文件数 134 → **129**（**5 个文件清零**：`store-shift`、`instant-retail-store`、`order-timeout`、`commerce-fix`、`admin-marketing-flash-sale`） |
 | 消费者端保护形态 | 39 | 39 | 不变（本批不涉） |
-| 机读台账 `gaps` | 531 条 / 136 文件 | **499 条 / 131 文件** | 工具 `tools/update-baseline.mjs` 逐键移除 32 条（含前后计数与断言） |
+| 机读台账 `gaps` | 512 条 / 134 文件 | **480 条 / 129 文件** | 工具 `tools/update-baseline.mjs` 逐键移除 32 条（含前后计数与断言） |
 | `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 条、陈旧登记 0 条（`12-guard-strict-after.txt`） |
 | 本域对账 | 机读缺口 87 | **87 = 32（已接）+ 40（B）+ 2（L）+ 1（Q）+ 3（P）+ 6（C）+ 3（W-M）** | 一条不多、一条不少 |
-| 跨批计数快照 | `rbac-g0-wiring.test.ts` 164 | **196** | 只同步"总数 + 逐文件计数"，G0 名单行一字未动 |
-| 既有测试适配 | — | 2 处**契约变化**（非放宽） | ① `rbac-g0-wiring.test.ts` 计数 +`S3_224_WIRED_FILES`；② `s3-209-sale-cancel-wiring.test.ts` 的**对照行**由 `POST /orders/:orderNo/cancel`（本批已接线）改为 `PUT /orders/:orderNo/status`（本批仍 B 类） |
+| 跨批计数快照 | `rbac-g0-wiring.test.ts` 183 | **215** | 只同步"总数 + 逐文件计数"，G0 名单行一字未动 |
+| 既有测试适配 | — | 2 处**契约变化**（非放宽） | ① `rbac-g0-wiring.test.ts` 计数 +`S3_224_WIRED_FILES`（与 S3-223 块合并）；② `s3-209-sale-cancel-wiring.test.ts` 的**对照行**由 `POST /orders/:orderNo/cancel`（本批已接线）改为 `PUT /orders/:orderNo/status`（本批仍 B 类） |
 
 ### 14.9 反测（门禁铁律：故意制造失败，证明它会红）
 
 | 反测 | 注入 | 结果 | 原始输出 |
 |:--|:--|:--|:--|
-| A 报告模式分辨力 | 摘掉 `store-shift.routes.ts` 的 `requirePermission("finance:daily-settle")`（班结行） | 已接线 **225 → 224**、缺口 **499 → 500**、缺口文件 **131 → 132** | `20-neg-report.txt` |
-| B `--strict` 两侧 | 同上 | **EXIT=1** 且点出 `❌ 未登记：store-shift.routes.ts:18 POST /api/store/shift/settle`；复原 ⇒ **EXIT=0**（499 登记 / 0 未登记） | `21-neg-strict.txt` / `24-neg-restored-strict.txt` |
+| A 报告模式分辨力 | 摘掉 `store-shift.routes.ts` 的 `requirePermission("finance:daily-settle")`（班结行） | 已接线 **225 → 224**、缺口 **499 → 500**、缺口文件 **131 → 132**（合并前基线下的读数；合并后同一条注入的**相对**变化相同） | `20-neg-report.txt` |
+| B `--strict` 两侧 | 同上 | **EXIT=1** 且点出 `❌ 未登记：store-shift.routes.ts:18 POST /api/store/shift/settle`；复原 ⇒ **EXIT=0** | `21-neg-strict.txt` / `24-neg-restored-strict.txt` |
 | C 用例分辨力（vitest 侧） | 同上 | `rbac-b2-s3-224-sales-wiring.test.ts`：**3 failed / 160 passed**（形状断言、READONLY⇒403、非持有人逐账号枚举）；复原 ⇒ **163 passed** | `22-neg-vitest-red.txt` |
 | 逐字节还原 | 同一文件注入前后 | SHA256 一致（`8B2CD642…2311A9F`），`git diff` 无残留 | `raw/20-hash-before-neg.txt` / `raw/23-hash-after-neg.txt` |
 
@@ -2562,9 +2562,92 @@ app-mobile 页面若**①经首页快捷入口/tabBar/推送深链无条件可�
    是"用户集合不可枚举"的另一大来源（与批 4 的 M 类同源）。
 4. **`pages/orders/order-detail.vue`** 同时经菜单码页与**推送深链**（`native/push.ts:105`，无门）进入 ⇒
    其写调用点不可枚举（本批 2 条 B 类由此而来）。
-5. **`position.routes.ts` 的域归属**：台账按目录把它归入「销售域」，但其语义属**组织/人事**；
-   `员工/账号域`（7 文件 / 31 端点）批次应一并处理，建议合并到该批次或另立 `system:position` 细码。
+5. **`position.routes.ts` 的域归属**：台账按目录把它归入「销售域」，但其语义属**组织/人事**，且不在 S3-225 范围（见 14.7 W-M）。
 6. **`sale-return.routes.ts` 单 Router 双挂载**（`/api/admin/sale-returns` 与 `/api/store/sale-returns`）：
    本批只接了 `/:returnNo/approve|reject`（全仓无页面调用点），但**任何**在该文件新增的接线都会同时作用于两个前缀；
    若将来要接 `POST /`（创建退货单），必须同时核对两个前缀的使用者（G2 R 类已就此锁定）。
+
+---
+
+## 十三、S3-223 · **财务域（9 文件 / 28 写端点）**接线明细与守恒（2026-10-16）
+
+> 派单卡：`docs/tasks/inbox/ACTIVE-S3-223.md`｜判定依据留档：`docs/evidence/S3-223/01-plan-and-judgements.md`｜原始输出：`docs/evidence/S3-223/**`
+> 基线：开工时 `origin/main` = `90119ef4`（当时读数 缺口 **573 → 554**、文件 **146 → 144**）；
+> ⚠️ 开工期间 S3-222 以 PR #347 合并（`f2beb109`，573 → 531），本单已 `git merge origin/main`，
+> **合并态真值 = 缺口 531 → 512（文件 136 → 134）**，机读台账 `_counts` 按合并态重算（512 / 134）。
+
+### 13.1 接线口径（照派单卡 §二 执行，**不统一成 `finance:*`**）
+
+1. **先查两道闸再动手**（批 3 教训）：`rbac-g0-wiring.test.ts`（含 `NOT_IN_G0` 范围控制行）＋ `rbac-g1/g2-wiring.test.ts` 的「待裁名单」⇒ 本域 **9 行命中锁定**，一律不接并逐条报备；
+2. **选码只按「该端点真实使用者已持有的最细现成码」**：不新立码、不改角色种子、不动迁移；
+3. **页面角色集不可枚举的行（B 类）不硬接**：app-mobile 页面若经「我的」页/首页快捷入口无条件可达、或注册码无 `t_sys_menu` 行，接线必把看得到按钮的角色打成 403（同批 1 `trace:*` 形态）；
+4. **公开端点**（1 条）按台账口径免鉴权并逐条登记理由。
+
+### 13.2 本批已接 **19 条**（端点 / 落地码 / 真实使用者）
+
+| # | 端点 | 落地码 | 真实使用者（页面/调用点） |
+|--:|:--|:--|:--|
+| 1 | `PUT /api/admin/bank-accounts/:id` | `finance:create` | `BankAccounts.vue:294`［SUPER_ADMIN］（同文件 G1 既有码） |
+| 2 | `PUT /api/admin/commission/rules/:id` | `sale:commission` | `CommissionRules.vue:208`［SUPER_ADMIN, STORE_MANAGER］ |
+| 3 | `DELETE /api/admin/commission/rules/:id` | `sale:commission` | `CommissionRules.vue:226` |
+| 4 | `PUT /api/admin/credits/collections/:id` | `customer:credit` | 零调用方（同文件 S3-126 既有码） |
+| 5 | `POST /api/admin/credits/collections/auto-generate` | `customer:credit` | 零调用方 |
+| 6 | `POST /api/admin/credits/collections/batch-remind` | `customer:credit` | 零调用方 |
+| 7 | `PUT /api/admin/credits/:customerId/limit` | `customer:credit` | `CreditView.vue:279`［SUPER_ADMIN, STORE_MANAGER］ |
+| 8 | `PUT /api/admin/credits/:customerId/term` | `customer:credit` | 零调用方 |
+| 9 | `PUT /api/admin/expenses/:expenseNo` | `finance:create` | 零有效调用方（`expenses.ts:94` 导出无引用） |
+| 10 | `POST /api/admin/expenses/:expenseNo/approve` | `finance:create` | `ExpensesView.vue:362/374`＋app-mobile `expenses.vue:178`、`expense-detail.vue:108` |
+| 11 | `POST /api/admin/expenses/:expenseNo/void` | `finance:create` | `ExpensesView.vue:384`＋app-mobile `expenses.vue:203`、`expense-detail.vue:131` |
+| 12 | `PUT /api/payment-config/configs/:provider` | `finance:create` | `PaymentConfigView.vue:491/510`［SUPER_ADMIN］ |
+| 13 | `POST /api/payment-config/configs/:provider/test` | `finance:create` | `PaymentConfigView.vue:548` |
+| 14 | `POST /api/payment-config/bank-accounts` | `finance:create` | 无有效调用方（前端路径漂移，见 13.7） |
+| 15 | `PUT /api/payment-config/bank-accounts/:id` | `finance:create` | 同上 |
+| 16 | `DELETE /api/payment-config/bank-accounts/:id` | `finance:create` | 同上 |
+| 17 | `POST /api/payment-config/bank-accounts/:id/default` | `finance:create` | 同上 |
+| 18 | `POST /api/admin/payments-new/:paymentNo/void` | `finance:payment` | `PaymentsNewView.vue:369`［SUPER_ADMIN］（同文件既有码） |
+| 19 | `POST /api/admin/receipts/:receiptNo/void` | `finance:receipt:create` | `ReceiptsView.vue:379`［SUPER_ADMIN］＋app-mobile 收款管理 `receipts.vue:121`（`079:213` 既有按钮码） |
+
+**文件分布**：bank-account 1 ／ commission 2 ／ credit 5 ／ expense 3 ／ payment-config 6 ／ payment-new 1 ／ receipt 1 = **19**
+（`reconciliation.routes.ts`、`payment.routes.ts` 本批 0 改动）。
+
+### 13.3 本批**未接** **5 条 · B 类**（页面角色集不可枚举 ⇒ 待移动端补权限门后收编）
+
+| # | 端点 | 真实写调用点 | 锁定锚点 |
+|--:|:--|:--|:--|
+| 1 | `POST /api/admin/bank-accounts/` | app-mobile 门店管理 `stores.vue:241`（`stores.ts:141`） | `rbac-g1-wiring.test.ts:273`、`rbac-g2-wiring.test.ts:232-254` |
+| 2 | `POST /api/admin/bank-accounts/:id/close` | app-mobile `stores.vue:263` | `rbac-g1:274`、`rbac-g2:244-254` |
+| 3 | `POST /api/admin/receipts/` | app-mobile 开单页 `create-sale.vue:2202`（`receipts.ts:54`） | `rbac-g1:275`、`rbac-g2:256-266` |
+| 4 | `POST /api/admin/reconciliation/customer/:customerId/confirm` | app-mobile 对账页 `reconciliation.vue:256` | `rbac-g1:276`、`rbac-g2:268-278` |
+| 5 | `POST /api/admin/reconciliation/supplier/:supplierId/confirm` | app-mobile `reconciliation.vue:258` | `rbac-g1:277`、`rbac-g2:280-290` |
+
+### 13.4 本批**未接** **3 条 · G0 范围控制锁定**（`NOT_IN_G0` 断言 READONLY 仍 200）
+
+| # | 端点 | 锁定锚点 | 说明 |
+|--:|:--|:--|:--|
+| 1 | `POST /api/admin/credits/collections` | `rbac-g0-wiring.test.ts:702` | 接线必改该断言；本批**未获授权**⇒ 登记待裁定（同 S3-125 的 C 类处置，`rbac-g2-wiring.test.ts:600-607` 交叉印证） |
+| 2 | `POST /api/admin/commission/calculate` | `rbac-g0-wiring.test.ts:705` | 同上 |
+| 3 | `POST /api/admin/payments-new/` | `rbac-g0-wiring.test.ts:704` | 同上；且 app-mobile 开单页有写调用点（`create-sale.vue:2218`）⇒ 亦属 B 类 |
+
+### 13.5 本批**未接** **1 条 · 公开端点**
+
+| # | 端点 | 理由 |
+|--:|:--|:--|
+| 1 | `POST /api/pay/wx/callback` | 微信支付回调：微信服务器直调，无登录态、无浏览器会话 ⇒ 免鉴权；挂 `csrfMiddleware` 会把正常回调打成 403（`payment.routes.ts:18-20` 既有注释） |
+
+### 13.6 守恒与门禁（原始输出见 `docs/evidence/S3-223/`）
+
+- `node backend/scripts/guard-rbac-wiring.mjs`（**合并 S3-222 后**）⇒ 扫描 189 文件 / 763 写端点；
+  **已接线 170 → 212**、消费者端保护形态 39、**无授权形态 531 → 512**（文件 136 → **134**）；
+  本批单独在基线 90119ef4 上的读数为 已接线 151 → 170、缺口 573 → 554（146 → 144）；
+- `--strict` ⇒ **EXIT=0**（台账核对：已登记 512 ／ 未登记 0 ／ 已登记但当前无缺口 0）；
+- 机读台账 `backend/scripts/rbac-wiring-baseline.json`：`_counts` 按合并态重算（512 / 134），
+  新增 `_s3223_merge_note` 说明两个口径；仅移除本域 19 条，未动他人条目；
+- 全量 `npx vitest run` ⇒ 0 failed（读数见回执 §四）；`npx tsc --noEmit` ⇒ EXIT=0；根 `npm run build` ⇒ EXIT=0。
+
+### 13.7 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. `admin-web/src/api/finance.ts:17` 打 `PATCH /admin/bank-accounts/:id/status`、`:21/:25` 打 `/:id/transactions`——后端无此路径（调用即 404）。
+2. `PaymentConfigView.vue:466/595/598/623/633` 打 `/admin/payment/bank-accounts**`（**后端无此前缀**，实体是 `/api/payment-config/bank-accounts`）⇒ 支付配置页"银行账户"区块当前不可用；前端 `PUT .../:id/default` 与后端 `POST` 方法亦不一致。
+3. 前端死代码：`api/customer.ts:126`（`/credits/:customerId/term`）、`:145-161`（催收四方法）、`app-mobile .../expenses.ts:94`（`PUT /expenses/:expenseNo`）均导出零引用。
+4. 文档编号撞号（仅登记）：`## 十二` 在本文件出现两次（S3-220 与 S3-222 各一次，均在本次合并前落盘）；本单顺延为 `## 十三`，未改动他人章节编号。
 
