@@ -288,7 +288,7 @@ describe("C6-2-T1 · 权限点与目录（如实标注，不伪造一致性）",
   });
 
   it("PERMISSION_CATALOG 当前**没有** notification 域 —— 本单不并入、也不得自称已一致", () => {
-    // 卡内 ⑥ 的澄清（凌舟补充口径 §四.1）：目录 8 域 18 条里无 notification，
+    // 卡内 ⑥ 的澄清（凌舟补充口径 §四.1）：目录 8 域 18 条里无 notification（S3-219 扩为 11 域 21 条后仍无），
     // 因此本单只做"预登记 + 注释如实标注"，新增模块属另单，须凌舟裁定。
     expect(PERMISSION_CATALOG.filter((entry) => entry.moduleCode === "notification")).toEqual([]);
     expect(PERMISSION_CATALOG.filter((entry) => entry.permCode.startsWith("notification:"))).toEqual([]);

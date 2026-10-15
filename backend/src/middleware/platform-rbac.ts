@@ -66,21 +66,29 @@ export interface PlatformPermissionSpec {
  * 开放平台 10 条），按端点建码会让角色矩阵碎片化到无法配置；粒度取"功能域 × 读写"，
  * 与迁移 179 的矩阵结构（`module_code` + can_menu/can_page_btn）天然对齐。
  *
- * `catalogReady=false` 的 4 个域（library/open/review/miniapp）**当前不在**
- * `PERMISSION_CATALOG` 的 8 个 moduleCode 内 ⇒ 现在建了码也无法在矩阵里授予，
- * 需先扩目录（属**待凌舟裁定**项，已登记在 `docs/tasks/R101-平台RBAC接线台账.md`）。
+ * `catalogReady` **不手写**，一律派生自平台侧目录 `PERMISSION_CATALOG`（见下 CATALOG_MODULE_CODES）：
+ * 域不在目录内 ⇒ 现在建了码也无法在矩阵里授予（`updateRolePermissions()` 对目录外域直接 400）。
+ * S3-219（收口总清单第 67 项）已把 library / open / review 3 个域扩进平台侧目录 ⇒ 对应写码
+ * `catalogReady` 自动为 true；miniapp 域仍在目录外（其端点按豁免登记，本单未接线）。
+ * 为什么不继续手写布尔值：手写值与目录是两份真相，改了一处漏改另一处就会出现
+ * "码已接线但永远无法被授予"的静默失效（S3-219 之前 library/open/review 正是这个状态）。
  */
-const PLATFORM_WRITE_CODES: ReadonlyArray<{ code: string; moduleCode: string; catalogReady: boolean }> = [
-  { code: "tenant:manage", moduleCode: "tenant", catalogReady: true },
-  { code: "billing:manage", moduleCode: "billing", catalogReady: true },
-  { code: "sysconfig:manage", moduleCode: "sysconfig", catalogReady: true },
-  { code: "monitor:manage", moduleCode: "monitor", catalogReady: true },
-  { code: "marketing:manage", moduleCode: "marketing", catalogReady: true },
-  { code: "library:manage", moduleCode: "library", catalogReady: false },
-  { code: "open:manage", moduleCode: "open", catalogReady: false },
-  { code: "review:manage", moduleCode: "review", catalogReady: false },
-  { code: "miniapp:manage", moduleCode: "miniapp", catalogReady: false },
+const PLATFORM_WRITE_CODES: ReadonlyArray<{ code: string; moduleCode: string }> = [
+  { code: "tenant:manage", moduleCode: "tenant" },
+  { code: "billing:manage", moduleCode: "billing" },
+  { code: "sysconfig:manage", moduleCode: "sysconfig" },
+  { code: "monitor:manage", moduleCode: "monitor" },
+  { code: "marketing:manage", moduleCode: "marketing" },
+  { code: "library:manage", moduleCode: "library" },
+  { code: "open:manage", moduleCode: "open" },
+  { code: "review:manage", moduleCode: "review" },
+  { code: "miniapp:manage", moduleCode: "miniapp" },
 ];
+
+/** 平台侧目录里已登记的功能域集合（`catalogReady` 的唯一判据；与 platform-role.service 同源） */
+const CATALOG_MODULE_CODES: ReadonlySet<string> = new Set(
+  PERMISSION_CATALOG.map((entry) => entry.moduleCode)
+);
 
 /**
  * 平台端点级权限点总表（写码 + 既有目录里的 MENU 读码）。
@@ -103,7 +111,7 @@ export const PLATFORM_PERMISSIONS: ReadonlyMap<string, PlatformPermissionSpec> =
       permCode: item.code,
       moduleCode: item.moduleCode,
       level: "WRITE",
-      catalogReady: item.catalogReady,
+      catalogReady: CATALOG_MODULE_CODES.has(item.moduleCode),
     });
   }
   return map;

@@ -22,8 +22,8 @@ import { AppError } from "../../shared/app-error";
  * - 通知不存在或对当前管理员不可见 ⇒ 显式抛 404（**不静默成功**、不标记成功）。
  *
  * 权限点（交付物③⑥）：本常量按 T6 目录 `PERMISSION_CATALOG` 的 `ticket:*` 命名风格**预登记**，
- * 但该目录当前**没有 notification 域**（8 个 moduleCode = tenant/billing/sysconfig/monitor/ticket/
- * marketing/ai/common，共 18 条，见 backend/src/services/platform/platform-role.service.ts）
+ * 但该目录当前**没有 notification 域**（S3-219 起 11 个 moduleCode = tenant/billing/sysconfig/monitor/ticket/
+ * marketing/ai/common/library/open/review，共 21 条，见 backend/src/services/platform/platform-role.service.ts）
  * ⇒ **未登记**，待凌舟裁定后并入。端点级**只挂 requirePlatformAuth**，
  * 本文件**不实现**任何"永远放行却宣称已鉴权"的假校验（红线⑤）。
  */

@@ -120,6 +120,13 @@ export interface PlatformCatalogEntry {
  * + ticket 域 7 条 BUTTON + 4 条 DATA（scope:all / scope:gray-group / scope:follow-group /
  * scope:billing-all）= 共 18 条；取值与「迁移 179 原预置 INSERT」逐字一致（该 INSERT 已删除）。
  *
+ * S3-219 扩展（2026-10-16，收口总清单第 67 项）：平台侧写端点有 3 个域（library / open / review，
+ * 共 28 条写端点）不在上述 8 域内，按 S3-213 裁定 ②「改在平台侧目录里扩」新增 3 条 BUTTON
+ * （<域>:manage）= 共 21 条 / 11 域。本 3 条**不来自**迁移 179 的原预置 INSERT，是平台侧新增；
+ * 商家侧 `shared/user-permissions.ts` 的 PERMISSION_CATALOG 与 saas-admin 角色矩阵页契约均未动。
+ * 为什么必须落在本常量（而不是只改 middleware/platform-rbac.ts）：`updateRolePermissions()` 的
+ * 合法域集合由本常量派生（域不在目录内 ⇒ 400），只改前者会让新码永远无法在角色矩阵里被授予。
+ *
  * 为什么目录放代码常量、不放迁移：MIG-4 写闸门默认 block（`resolveWriteGate()` 只认环境变量
  * `MIGRATION_WRITE_GATE`，未设置/非法值一律 block），而 `runMigrations()` 由 server.ts 每次启动调用、
  * 全仓没有执行账本表 ⇒ 迁移里的预置 INSERT 不落库，放行 allow 又会让所有迁移的写语句随每次重启复利叠加。
@@ -143,6 +150,9 @@ export const PERMISSION_CATALOG: ReadonlyArray<PlatformCatalogEntry> = [
   { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:close", permName: "关闭工单", permLevel: "BUTTON" },
   { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:report", permName: "查看服务报表", permLevel: "BUTTON" },
   { moduleCode: "ticket", moduleName: "工单系统", permCode: "ticket:category:config", permName: "工单类型配置", permLevel: "BUTTON" },
+  { moduleCode: "library", moduleName: "商品库", permCode: "library:manage", permName: "商品库管理", permLevel: "BUTTON" },
+  { moduleCode: "open", moduleName: "开放平台", permCode: "open:manage", permName: "开放平台管理", permLevel: "BUTTON" },
+  { moduleCode: "review", moduleName: "平台评价与审核", permCode: "review:manage", permName: "平台评价与审核", permLevel: "BUTTON" },
   { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:all", permName: "全部租户", permLevel: "DATA" },
   { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:gray-group", permName: "灰度组租户", permLevel: "DATA" },
   { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:follow-group", permName: "指定跟进组", permLevel: "DATA" },
@@ -152,7 +162,7 @@ export const PERMISSION_CATALOG: ReadonlyArray<PlatformCatalogEntry> = [
 /** 权限点级别排序口径：MENU → BUTTON → DATA（同一域内，等价于原 SQL 的 FIELD(perm_level, …)） */
 const PERM_LEVEL_RANK: Record<PlatformPermLevel, number> = { MENU: 0, BUTTON: 1, DATA: 2 };
 
-/** 常量里的 moduleCode 去重并升序（8 个域；等价于原 SQL `ORDER BY module_code ASC`） */
+/** 常量里的 moduleCode 去重并升序（S3-219 起 11 个域；等价于原 SQL `ORDER BY module_code ASC`） */
 function catalogModuleCodes(): string[] {
   return [...new Set(PERMISSION_CATALOG.map((entry) => entry.moduleCode))].sort();
 }
