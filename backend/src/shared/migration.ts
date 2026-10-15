@@ -789,13 +789,13 @@ export async function runMigrations(): Promise<void> {
     // 5.5.1b 创建 t_store_control_config 表（门店管控需要）
     await safeExec(conn, `
       CREATE TABLE IF NOT EXISTS t_store_control_config (
-        id INT NOT NULL AUTO_INCREMENT COMMENT '配置ID',
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '配置ID',
         store_id INT NOT NULL COMMENT '门店ID',
         auto_open_time VARCHAR(10) DEFAULT NULL COMMENT '自动开门时间 HH:mm',
         auto_close_time VARCHAR(10) DEFAULT NULL COMMENT '自动关门时间 HH:mm',
         max_daily_orders INT DEFAULT NULL COMMENT '每日最大订单数',
-        max_order_amount DECIMAL(12,2) DEFAULT NULL COMMENT '单笔最大金额',
-        suspended_reason VARCHAR(255) DEFAULT NULL COMMENT '停用原因',
+        max_order_amount DECIMAL(10,2) DEFAULT NULL COMMENT '单笔最大金额',
+        suspended_reason VARCHAR(500) DEFAULT NULL COMMENT '停用原因',
         tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
