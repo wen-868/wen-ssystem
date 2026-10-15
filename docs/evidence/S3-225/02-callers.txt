@@ -1,0 +1,37 @@
+扫描目录：admin-web/src, app-mobile/src, miniapp/src, saas-admin/src｜文件数 590
+
+| # | 端点 | 页面调用点（.vue） | api / 其它调用点 | 判定 |
+|--:|:--|:--|:--|:--|
+| 1 | `PUT /api/admin/auth/settings` | — | — | **全仓无调用点** |
+| 2 | `POST /api/admin/auth/change-password` | — | app-mobile/src/api/modules/auth.ts:110<br>app-mobile/src/api/modules/profile.ts:30 | 仅 api 封装（页面未用） |
+| 3 | `POST /api/admin/auth/mfa/setup` | — | app-mobile/src/api/modules/auth.ts:130 | 仅 api 封装（页面未用） |
+| 4 | `POST /api/admin/auth/mfa/confirm` | — | app-mobile/src/api/modules/auth.ts:135 | 仅 api 封装（页面未用） |
+| 5 | `POST /api/admin/auth/mfa/disable` | — | app-mobile/src/api/modules/auth.ts:140 | 仅 api 封装（页面未用） |
+| 6 | `POST /api/admin/staff` | — | admin-web/src/api/system.ts:15<br>app-mobile/src/api/modules/employees.ts:42 | 仅 api 封装（页面未用） |
+| 7 | `PUT /api/admin/staff/:id` | — | admin-web/src/api/system.ts:29<br>admin-web/src/api/system.ts:34<br>app-mobile/src/api/modules/employees.ts:47<br>app-mobile/src/api/modules/employees.ts:54<br>app-mobile/src/api/modules/employees.ts:56 | 仅 api 封装（页面未用） |
+| 8 | `PUT /api/admin/staff/:id/status` | admin-web/src/views/product/Products.vue:1051<br>saas-admin/src/components/KeyValueList.vue:24<br>saas-admin/src/components/StatusTag.vue:13 | admin-web/src/api/common.ts:166<br>admin-web/src/api/finance.ts:17<br>admin-web/src/api/finance.ts:211<br>admin-web/src/api/instant-retail.ts:21<br>admin-web/src/api/instant-retail.ts:139<br>admin-web/src/api/instant-retail.ts:161<br>admin-web/src/api/pos.ts:17<br>admin-web/src/api/pos.ts:335<br>admin-web/src/api/system.ts:34<br>admin-web/src/api/system.ts:61<br>admin-web/src/api/trace.ts:33<br>app-mobile/src/api/modules/auth.ts:125<br>app-mobile/src/api/modules/exceptions.ts:123<br>app-mobile/src/api/modules/instant-retail.ts:202<br>app-mobile/src/api/modules/instant-retail.ts:207<br>app-mobile/src/api/modules/instant-retail.ts:212<br>app-mobile/src/api/modules/member-levels.ts:71<br>app-mobile/src/api/modules/orders.ts:98<br>app-mobile/src/api/modules/orders.ts:103<br>app-mobile/src/api/modules/orders.ts:108<br>app-mobile/src/api/modules/orders.ts:113<br>app-mobile/src/api/modules/store.ts:656<br>saas-admin/src/api/library.ts:202<br>saas-admin/src/api/library.ts:206<br>saas-admin/src/api/library.ts:214<br>saas-admin/src/api/library.ts:219<br>saas-admin/src/api.ts:450<br>saas-admin/src/api.ts:513<br>saas-admin/src/api.ts:850 | **有页面调用点** |
+| 9 | `PUT /api/admin/staff/:id/disable` | — | admin-web/src/api/common.ts:84<br>app-mobile/src/api/modules/auth.ts:140<br>app-mobile/src/api/modules/employees.ts:54<br>saas-admin/src/api.ts:948 | 仅 api 封装（页面未用） |
+| 10 | `POST /api/admin/staff/:id/restore` | — | admin-web/src/api/pos.ts:155<br>app-mobile/src/api/modules/employees.ts:56<br>app-mobile/src/api/modules/store.ts:596 | 仅 api 封装（页面未用） |
+| 11 | `POST /api/admin/data-permissions/` | — | — | **全仓无调用点** |
+| 12 | `PUT /api/admin/data-permissions/:id` | — | — | **全仓无调用点** |
+| 13 | `DELETE /api/admin/data-permissions/:id` | — | — | **全仓无调用点** |
+| 14 | `POST /api/admin/data-permissions/roles/:roleId` | — | — | **全仓无调用点** |
+| 15 | `DELETE /api/admin/data-permissions/roles/:roleId/:dataPermissionId` | — | — | **全仓无调用点** |
+| 16 | `POST /api/admin/data-permissions/users/:userId/check` | — | — | **全仓无调用点** |
+| 17 | `POST /api/department/` | — | admin-web/src/api/system.ts:334 | 仅 api 封装（页面未用） |
+| 18 | `PUT /api/department/:id` | — | admin-web/src/api/system.ts:335<br>admin-web/src/api/system.ts:336 | 仅 api 封装（页面未用） |
+| 19 | `DELETE /api/department/:id` | — | admin-web/src/api/system.ts:335<br>admin-web/src/api/system.ts:336 | 仅 api 封装（页面未用） |
+| 20 | `PUT /api/department/:id/move` | — | — | **全仓无调用点** |
+| 21 | `POST /api/admin/system/roles/` | — | admin-web/src/api/system.ts:182<br>app-mobile/src/api/modules/roles.ts:63 | 仅 api 封装（页面未用） |
+| 22 | `PUT /api/admin/system/roles/:id` | — | admin-web/src/api/system.ts:178<br>admin-web/src/api/system.ts:186<br>admin-web/src/api/system.ts:190<br>admin-web/src/api/system.ts:194<br>admin-web/src/api/system.ts:198<br>admin-web/src/api/system.ts:213<br>admin-web/src/api/system.ts:218<br>app-mobile/src/api/modules/roles.ts:56<br>app-mobile/src/api/modules/roles.ts:68<br>app-mobile/src/api/modules/roles.ts:73 | 仅 api 封装（页面未用） |
+| 23 | `DELETE /api/admin/system/roles/:id` | — | admin-web/src/api/system.ts:178<br>admin-web/src/api/system.ts:186<br>admin-web/src/api/system.ts:190<br>admin-web/src/api/system.ts:194<br>admin-web/src/api/system.ts:198<br>admin-web/src/api/system.ts:213<br>admin-web/src/api/system.ts:218<br>app-mobile/src/api/modules/roles.ts:56<br>app-mobile/src/api/modules/roles.ts:68<br>app-mobile/src/api/modules/roles.ts:73 | 仅 api 封装（页面未用） |
+| 24 | `PUT /api/admin/system/roles/:id/data-permissions` | — | admin-web/src/api/system.ts:213<br>admin-web/src/api/system.ts:218 | 仅 api 封装（页面未用） |
+| 25 | `PUT /api/admin/system/roles/users/:userId/roles` | app-mobile/src/pages/profile/profile.vue:58<br>app-mobile/src/pages-sub/admin/admin/admin.vue:121<br>app-mobile/src/pages-sub/admin/roles/roles.vue:102<br>app-mobile/src/pages-sub/admin/roles/roles.vue:106 | admin-web/src/api/system.ts:178<br>admin-web/src/api/system.ts:186<br>admin-web/src/api/system.ts:190<br>admin-web/src/api/system.ts:194<br>admin-web/src/api/system.ts:198<br>admin-web/src/api/system.ts:202<br>admin-web/src/api/system.ts:206<br>admin-web/src/api/system.ts:213<br>admin-web/src/api/system.ts:218<br>app-mobile/src/api/modules/roles.ts:56<br>app-mobile/src/api/modules/roles.ts:68<br>app-mobile/src/api/modules/roles.ts:73<br>app-mobile/src/api/modules/roles.ts:78<br>app-mobile/src/api/modules/roles.ts:86<br>app-mobile/src/config/function-menu.ts:119<br>saas-admin/src/api.ts:492<br>saas-admin/src/api.ts:497 | **有页面调用点** |
+| 26 | `POST /api/admin/sys-users/` | — | — | **全仓无调用点** |
+| 27 | `PUT /api/admin/sys-users/:id` | — | admin-web/src/api/system.ts:67<br>app-mobile/src/api/modules/profile.ts:26 | 仅 api 封装（页面未用） |
+| 28 | `POST /api/admin/sys-users/:id/reset-password` | saas-admin/src/views/tenant/TenantDetail.vue:555 | admin-web/src/api/system.ts:67<br>saas-admin/src/api/tenant.ts:92<br>saas-admin/src/api.ts:531 | **有页面调用点** |
+| 29 | `DELETE /api/admin/sys-users/:id` | — | admin-web/src/api/system.ts:67<br>app-mobile/src/api/modules/profile.ts:26 | 仅 api 封装（页面未用） |
+| 30 | `DELETE /api/user-session/:id` | — | — | **全仓无调用点** |
+| 31 | `DELETE /api/user-session/user/:userId` | — | — | **全仓无调用点** |
+
+合计端点：31

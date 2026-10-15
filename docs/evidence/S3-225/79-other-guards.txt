@@ -1,0 +1,51 @@
+# S3-225 · 其余 6 条门禁复核（与 S3-223 回执 §二 同一组）
+
+======================================================================
+### node backend/scripts/guard-route-auth.mjs  ⇒ EXIT=0
+[guard:route-auth] 扫描 189 个路由文件
+✅ G3 通过：无「绕过声明式鉴权/CSRF」的路由文件（auth:"none" 的公开端点已登记 18 个文件）
+
+======================================================================
+### node backend/scripts/guard-tenant-status.mjs  ⇒ EXIT=0
+   · [清单外·已登记豁免（⚠️ 登记≠合规）] shared/migration.ts ← 信号：INSERT INTO t_tenant + status
+       理由：迁移/引导 SQL（建库默认租户：INSERT INTO t_tenant 含 status 列 + UPDATE t_tenant SET name）。它是**一次性引导**，不参与租户状态的运行时口径（没有 ACTIVE/DISABLED 映射逻辑），故不属本域；其状态字面量由迁移语料自身的一致性单测（migration-*.test.ts）守。
+   · 清单内但机械信号未命中（属人工判断补入，非自动发现）：controllers/admin/tenant.controller.ts, controllers/platform/tenant.controller.ts, controllers/saas/tenant.controller.ts
+   · [已登记放行的域内命中 3 处（登记≠合规）]
+       - services/subscription-expiry.service.ts:131: "EXPIRED"（已登记上下文：t_subscription）
+       - services/saas/tenant.service.ts:339: "SUSPENDED"（已登记上下文：AS suspendedTenants）
+       - services/saas/tenant.service.ts:340: "EXPIRED"（已登记上下文：AS expiredTenants）
+✅ G2 通过：租户状态域只有 ACTIVE / DISABLED 一套口径
+
+======================================================================
+### node backend/scripts/guard-tenant-injection.mjs  ⇒ EXIT=0
+
+已登记的单表"字样无谓词"调用点（非阻断，注入会补正确谓词）：4 条
+  services/admin/customer-visit.service.ts:301 verdict=ok-inject
+  services/admin/print.service.ts:259 verdict=ok-inject
+  services/admin/print.service.ts:289 verdict=ok-inject
+  services/admin/visit-record.service.ts:220 verdict=ok-inject
+
+GREEN 无阻塞项
+
+======================================================================
+### node backend/scripts/guard-evidence-secrets.mjs  ⇒ EXIT=0
+[guard:evidence-secrets] 扫描可执行脚本 165 个（root=D:\Users\ZXQL\wt-agents\S3-225）
+   · allowlist 豁免 scripts/mysql-smoke-test.mjs:174（S3-218：`${CREDENTIAL_MISSING_HINT}` 输出的是**提示文案常量**（第 56 行值为「未配置 SMOKE_ADMIN_USERNAME/SMOKE_ADMIN_PASSWORD，冒烟无法执行」）：常量名含 CREDENTIAL，值里不含任何凭据。属判据的命名误伤，非值泄露。）
+[guard:evidence-secrets] PASS（命中 0 处 / 豁免 1 处）
+
+======================================================================
+### node backend/scripts/guard-route-prefix.mjs  ⇒ EXIT=0
+   · 放行 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。
+   · 放行 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。
+   · 放行 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。
+   · 放行 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。
+   · 放行 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。
+   · 放行 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。
+✅ G36 通过：重复前缀 12 个（均已逐条登记理由，白名单 13 条）、未登记重复前缀 0 个、真重复端点 0 个
+   · ⚠️ 根前缀共享告警（只出声、不判红）4 条：/api/admin (19次)、/api/platform (3次)、/api/miniapp (2次)、/api/monitor (2次) —— 根前缀的声明式认证会覆盖整段 /api/**（含兄弟文件的公开端点与不存在的子路径）；请核对是否已按「只声明自己拥有的路径段」收窄。
+
+======================================================================
+### node backend/scripts/guard-utf8-encoding.mjs  ⇒ EXIT=0
+[guard:utf8-encoding] 扫描目录 9 个 / 文件 2153 个
+[guard:utf8-encoding] PASS（0 个非法字节、0 处 U+FFFD 残留）
+

@@ -1,0 +1,4 @@
+# S3-225 · backend `npx tsc -p tsconfig.json --noEmit` 原始输出
+# 命令（cwd = backend）：npx tsc -p tsconfig.json --noEmit
+# EXIT=0（0 条诊断）
+

@@ -611,7 +611,9 @@ describe("S3-223 · 名单自证（28 = 19 已接 + 9 不接）", () => {
     const g0 = readFileSync(path.join(__dirname, "rbac-g0-wiring.test.ts"), "utf8");
     expect(g0).toContain("S3_223_WIRED_FILES");
     // 合并态总数：122（G0..S3-220）+ 42（S3-222）+ 19（本批）= 183
-    expect(g0).toContain("expect(total).toBe(183)");
+    // S3-225（2026-10-16）同步：批 7（员工/账号域 11 条）合入后 g0 快照的总数由 183 → 194
+    //（183 + 11）⇒ 本行断言同步为 194；S3_223_WIRED_FILES 块本身**一字未动**（契约变化，非放宽断言）。
+    expect(g0).toContain("expect(total).toBe(194)");
   });
 });
 
