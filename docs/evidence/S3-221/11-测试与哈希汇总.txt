@@ -1,0 +1,61 @@
+# S3-221 · 测试与哈希汇总（判据 §三.3 / §三.5）
+
+工作树：`D:\Users\ZXQL\wt-agents\S3-221`（分支 `chore/s3-221-adminweb-token-matrix`，基线 `295ab488`）
+
+## 1. 后端全量测试（= 派单卡「全量 npx vitest run」）
+
+```
+$ npm --workspace backend run test          # 该 workspace 的 test 脚本就是 `vitest run`
+
+ Test Files  671 passed (671)
+      Tests  8310 passed (8310)
+   Duration  384.76s (transform 133.84s, setup 11.13s, import 1313.60s, tests 299.71s, environment 307ms)
+VITEST_EXIT=0
+```
+
+> 说明：CI 里跑的是 `npm --workspace backend run test -- --coverage`（含覆盖率阈值）；
+> 本机按派单卡口径跑**不加 `--coverage`** 的全量用例（0 failed），覆盖率门禁不由本单改动影响
+> （本单零后端代码改动，`git diff --name-only` 只有 `scripts/contrast-check.cjs`）。
+
+## 2. admin-web 自测
+
+```
+$ npm --workspace admin-web run test        # node tests/role-guard.spec.mjs && node tests/landing.spec.mjs
+小结：30 passed / 0 failed
+infinite redirection 告警累计：0 条
+ADMINWEB_TEST_EXIT=0
+```
+
+## 3. admin-web 构建（判据 §三.5 兜底项）
+
+```
+$ npm --workspace admin-web run build       # vite build
+✓ built in 2m 12s
+BUILD_EXIT=0
+```
+
+（完整输出见 `10-adminweb-build.txt`；首次执行前需 `npm ci` —— 本工作树原本没有 `node_modules`。）
+
+## 4. 脚本自检
+
+```
+$ node --check scripts/contrast-check.cjs   → CHECK_EXIT=0
+$ node scripts/contrast-check.cjs           → EXIT=0（见 01-baseline-after-extend.txt）
+```
+
+## 5. 关键文件哈希
+
+| 文件 | sha256 | 备注 |
+|:--|:--|:--|
+| `scripts/contrast-check.cjs`（改后） | `F7E13711DB369336E923FBE6292C12F665B37DFE04E6FDF5975D424818C640FD` | 本单唯一代码改动 |
+| `scripts/contrast-check.cjs`（`HEAD` 基线） | `A11377E4C45A838B44EF01B9D4C3E0E1B1749AC70B9CBD175BDEEC5EFC55B62F` | 对照 |
+| `admin-web/src/styles/tokens.css` | `C7036E3BC0DAEC714E6C95789C299E583EA8E8DD3A944C291D88414DF649D46F` | 动手前 = 复原后（**未改值**） |
+
+## 6. 环境复原
+
+- `admin-web/src/styles/tokens.css`：临时改的 3 次（红侧/换值/复原）**已字节级复原**（`05-tokens.css-哈希链.txt`）。
+- `git status --porcelain` 只有本单交付物：` M scripts/contrast-check.cjs` + `?? docs/evidence/S3-221/`
+  （外加待回执的 `docs/tasks/cards/R101-S3-221-林夕-回传.md`、`docs/tasks/inbox/ACTIVE-回执-S3-221.md`）。
+- 本工作树新装了 `node_modules/`（`npm ci`）与 `admin-web/dist/`（构建产物）。两者均被 `.gitignore` 忽略
+  （`git check-ignore -v admin-web/dist` → `.gitignore:2:dist`），**不会进入提交/PR**；按既有惯例保留
+  （同 commit 的兄弟工作树 `wt-agents/S3-220` 同样留有 `node_modules`）。

@@ -24,6 +24,18 @@
  *   - --text-placeholder 占位提示文本 → 白底输入框内，WCAG AA 文本 ≥4.5:1
  *   - --input-border / --ctl-border 输入框/控件边框 → WCAG 1.4.11 非文本 ≥3:1
  *   三项动态读取 saas-admin/src/styles/tokens.css 真实取值，改回坏值必红（非写死期望值）。
+ *
+ * S3-221（收口总清单第 71 项）：admin-web **自身文本 token** 纳入矩阵
+ *   - 背景（第 13 项反测实测）：本矩阵原先只读 saas-admin/src/styles/tokens.css + admin-web 的
+ *     CHART_COLORS ⇒ 把 admin-web/src/styles/tokens.css 的 --text-muted（62 处引用）改成 #cccccc
+ *     （白底 1.61:1）后，本步骤与 a11y 取样两条路都不红（run 38788778207）——属门禁盲区。
+ *   - 做法：与 saas-admin 完全同法，**动态读取 admin-web/src/styles/tokens.css 真实取值**；
+ *     背景按「真实相邻面」建模：页面文本 = white / #f7f7f7(--g0) / #f0f0f0(--bg-soft 最严边界)；
+ *     侧栏文本 = #F7F8FA（MainLayout.vue:741 `.side { background: var(--frost-sidebar) }`，
+ *     工作台真实侧栏底，比 saas-admin 的白色侧栏更深 ⇒ 更严）；占位提示文本 = 白底输入框内（同 S3-54 口径）。
+ *   - ⚠️ 登记项（**未纳入失败判定**，见下方 ADMINWEB_REGISTERED_TOKENS）：--text-link /
+ *     --sidebar-text-active 实测 #3F6FEF < 4.5:1，本单只扩覆盖面、**不改 token 取值**（凌舟红线）
+ *     ⇒ 只登记 + 打 ::warning，待凌舟裁定后由后续单修值并移入 ADMINWEB_TEXT_TOKENS。
  */
 
 const fs = require('fs');
@@ -32,6 +44,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const TOKENS_CSS = path.join(ROOT, 'saas-admin', 'src', 'styles', 'tokens.css');
 const THEME_TS = path.join(ROOT, 'admin-web', 'src', 'styles', 'theme.ts');
+const ADMINWEB_TOKENS_CSS = path.join(ROOT, 'admin-web', 'src', 'styles', 'tokens.css');
 
 const TEXT_THRESHOLD = 4.5; // WCAG AA 普通文本
 const NON_TEXT_THRESHOLD = 3.0; // WCAG 1.4.11 非文本（UI 组件及其状态）
@@ -100,6 +113,10 @@ const SURFACES = {
   soft: '#f0f0f0',     // --bg-soft / --g1（最严边界）
   sidebarWhite: '#FFFFFF',
   chartWhite: '#FFFFFF',
+  // S3-221：admin-web 工作台侧栏真实底。MainLayout.vue:741 `.side { background: var(--frost-sidebar) }`
+  // = #F7F8FA（旧版 styles.css:71 用 --bg-sidebar #FAFAFA）；取两者更深的 #F7F8FA 作判定面，
+  // 通过它即同时通过 #FAFAFA / #FFFFFF（对深色文字，底越深越严）。
+  sidebarPage: '#F7F8FA',
 };
 const SURFACE_LABEL = {
   white: '白底 #FFFFFF',
@@ -107,6 +124,7 @@ const SURFACE_LABEL = {
   soft: '#f0f0f0(--bg-soft 最严边界)',
   sidebarWhite: '侧边栏白底 #FFFFFF',
   chartWhite: '图表白底 #FFFFFF',
+  sidebarPage: '#F7F8FA(--frost-sidebar 工作台侧栏真实底)',
 };
 
 // ── 文本 token × surface 矩阵定义 ──────────────────
@@ -148,6 +166,35 @@ const S3_54_TOKENS = [
   { name: 'g4', surfaces: ['white', 'g0', 'soft'], threshold: NON_TEXT_THRESHOLD, kind: 'non-text', note: 'S3-54①-a 通用弱化灰·边框/指示器用途(分诊表 B 类 29 处)' },
 ];
 
+// ── admin-web 文本 token（S3-221 · 收口总清单第 71 项）──────────────
+// 与 saas-admin 同法：动态读取 admin-web/src/styles/tokens.css 真实取值，改回坏值必红（非写死期望值）。
+// 背景取「真实相邻面」（见文件头 S3-221 段）。
+// 覆盖清单依据派单卡 §二.1（--text-primary / --text-secondary / --text-muted / --sidebar-text-* /
+// --text-link / --text-placeholder，以文件里实际存在的为准）：
+//   · --text-link 与 --sidebar-text-active 实测不达标 ⇒ 移入下方 ADMINWEB_REGISTERED_TOKENS（只登记）。
+const ADMINWEB_TEXT_TOKENS = [
+  { name: 'text-primary', surfaces: ['white', 'g0', 'soft'] },
+  { name: 'text-secondary', surfaces: ['white', 'g0', 'soft'] },
+  { name: 'text-muted', surfaces: ['white', 'g0', 'soft'], note: '第 13 项反测所用 token·62 处引用' },
+  { name: 'text-placeholder', surfaces: ['white'], note: '白底输入框内(同 S3-54 口径)' },
+  { name: 'sidebar-text-primary', surfaces: ['sidebarPage'] },
+  { name: 'sidebar-text-secondary', surfaces: ['sidebarPage'] },
+  { name: 'sidebar-text-muted', surfaces: ['sidebarPage'] },
+];
+
+// ── admin-web 登记项（**未纳入失败判定**，待凌舟裁定；单据见 S3-221 回执 §六）──────
+// 实测不达 WCAG AA 4.5:1（真实取值 #3F6FEF）：白底 4.44:1 · #f7f7f7 4.14:1 · #f0f0f0 3.89:1。
+// 其中 --sidebar-text-active 的真实相邻面是 --color-primary-soft(12%) 合成底 #E4E9F9 ⇒ 3.66:1，
+// 引用点 2 处（MainLayout.vue:858 / :925，激活态导航文字 13px）；--text-link 在 admin-web 内 0 处引用。
+// 为何不直接纳入失败集合：本单红线是「只扩门禁覆盖面、不得改 admin-web token 取值」，
+// 而纳入失败集合会让本门禁**常红** ⇒ main 的 required check（e2e，含本步骤）被永久堵死；
+// 改值属设计裁定，超出本单范围。故按「登记 + 待裁定」处理——
+// ⚠️ **未根治**：这 2 个 token 目前仍无失败判定兜底，影响面与候选修值见 docs/evidence/S3-221/。
+const ADMINWEB_REGISTERED_TOKENS = [
+  { name: 'text-link', surfaces: ['white', 'g0', 'soft'], note: 'admin-web 内 0 处引用(死 token)' },
+  { name: 'sidebar-text-active', surfaces: ['sidebarPage'], note: 'MainLayout.vue:858/925 激活态导航文字' },
+];
+
 const rows = [];
 const failures = [];
 
@@ -158,6 +205,16 @@ const tokenNames = [
   ...S3_54_TOKENS.map((t) => t.name),
 ];
 const { found: tok, missing: tokMissing } = parseTokensCss(TOKENS_CSS, tokenNames);
+
+// S3-221：admin-web 文本 token（独立文件、独立缺失清单；登记项单独一份，缺失不判红）
+const { found: awTok, missing: awTokMissing } = parseTokensCss(
+  ADMINWEB_TOKENS_CSS,
+  ADMINWEB_TEXT_TOKENS.map((t) => t.name)
+);
+const { found: awRegTok, missing: awRegMissing } = parseTokensCss(
+  ADMINWEB_TOKENS_CSS,
+  ADMINWEB_REGISTERED_TOKENS.map((t) => t.name)
+);
 
 for (const t of TEXT_TOKENS) {
   const fg = tok[t.name];
@@ -268,11 +325,77 @@ for (const t of S3_54_TOKENS) {
   }
 }
 
+// ── S3-221：admin-web 文本 token × surface（动态读取真实取值，纳入失败判定）──
+for (const t of ADMINWEB_TEXT_TOKENS) {
+  const fg = awTok[t.name];
+  if (!fg) continue; // 缺失由下方统一报错
+  for (const s of t.surfaces) {
+    const bg = SURFACES[s];
+    const r = ratio(fg, bg);
+    const ok = r >= TEXT_THRESHOLD;
+    rows.push({
+      group: 'admin-web token',
+      label: `--${t.name}${t.note ? ' (' + t.note + ')' : ''} ${fg}`,
+      surface: SURFACE_LABEL[s],
+      r,
+      threshold: TEXT_THRESHOLD,
+      ok,
+    });
+    if (!ok) {
+      failures.push({
+        file: 'admin-web/src/styles/tokens.css',
+        msg: `--${t.name} ${fg} × ${SURFACE_LABEL[s]} = ${fmt(r)}:1 < ${TEXT_THRESHOLD} (WCAG AA 文本)`,
+      });
+    }
+  }
+}
+
+// ── S3-221：admin-web 登记项（登记 + 打 warning，**不参与失败判定**、不改变 exit code）──
+const registeredMisses = [];
+for (const t of ADMINWEB_REGISTERED_TOKENS) {
+  const fg = awRegTok[t.name];
+  if (!fg) continue; // 缺失只登记，不判红
+  for (const s of t.surfaces) {
+    const bg = SURFACES[s];
+    const r = ratio(fg, bg);
+    const ok = r >= TEXT_THRESHOLD;
+    rows.push({
+      group: 'admin-web token (登记·未纳入失败判定)',
+      label: `--${t.name}${t.note ? ' (' + t.note + ')' : ''} ${fg}`,
+      surface: SURFACE_LABEL[s],
+      r,
+      threshold: TEXT_THRESHOLD,
+      ok,
+      pending: true,
+    });
+    if (!ok) {
+      registeredMisses.push({
+        file: 'admin-web/src/styles/tokens.css',
+        msg: `--${t.name} ${fg} × ${SURFACE_LABEL[s]} = ${fmt(r)}:1 < ${TEXT_THRESHOLD} (WCAG AA 文本)`,
+      });
+    }
+  }
+}
+
+// 登记段统一打印（两侧分支都打；用 ::warning 让"未根治的覆盖缺口"在 CI 上可见但不阻断）
+function printRegisteredSection() {
+  if (registeredMisses.length === 0 && awRegMissing.length === 0) return;
+  console.log('');
+  console.log('⚠️ 未根治登记（**不参与失败判定**，待凌舟裁定；详见 docs/tasks/cards/R101-S3-221-林夕-回传.md §六）：');
+  for (const f of registeredMisses) {
+    console.log(`::warning file=${f.file}::[S3-221 登记·未根治] ${f.msg}`);
+    console.log(`  - [${f.file}] ${f.msg}`);
+  }
+  for (const name of awRegMissing) {
+    console.log(`  - [admin-web/src/styles/tokens.css] 登记项 --${name} 在文件中未找到（可能已删除/改名，登记表需复核）`);
+  }
+}
+
 // ── 输出 ───────────────────────────────────────────
 console.log('| 分组 | 前景 token | surface 背景 | 比值 | 阈值(文本4.5/非文本3.0) | 结论 |');
 console.log('|---|---|---|---|---|---|');
 for (const x of rows) {
-  console.log(`| ${x.group} | ${x.label} | ${x.surface} | ${fmt(x.r)}:1 | ${x.threshold} | ${x.ok ? PASS : FAIL} |`);
+  console.log(`| ${x.group} | ${x.label} | ${x.surface} | ${fmt(x.r)}:1 | ${x.threshold} | ${x.ok ? PASS : FAIL}${x.pending ? '·登记(未纳入失败判定)' : ''} |`);
 }
 
 // 缺失 token 也计入失败
@@ -283,9 +406,20 @@ for (const name of tokMissing) {
   });
 }
 
+// S3-221：admin-web 被纳入失败判定的 token 若缺失 ⇒ 同 saas-admin 口径判红（防误删）
+for (const name of awTokMissing) {
+  failures.push({
+    file: 'admin-web/src/styles/tokens.css',
+    msg: `token --${name} 在文件中未找到（无法判定对比度，疑似被误删）`,
+  });
+}
+
+const enforcedRows = rows.filter((x) => !x.pending).length;
+
 console.log('');
 if (failures.length === 0) {
-  console.log(`✅ 对比度矩阵全部达标：共 ${rows.length} 个 token×surface 组合（文本 ≥ 4.5:1，非文本 UI ≥ 3:1）`);
+  console.log(`✅ 对比度矩阵全部达标：共 ${enforcedRows} 个 token×surface 组合（文本 ≥ 4.5:1，非文本 UI ≥ 3:1）`);
+  printRegisteredSection();
   process.exit(0);
 } else {
   console.log(`❌ 对比度矩阵存在 ${failures.length} 个不达标项（文本需 ≥ 4.5:1，非文本 UI 需 ≥ 3:1）：`);
@@ -293,5 +427,6 @@ if (failures.length === 0) {
     console.log(`::error file=${f.file}::${f.msg}`);
     console.log(`  - [${f.file}] ${f.msg}`);
   }
+  printRegisteredSection();
   process.exit(1);
 }

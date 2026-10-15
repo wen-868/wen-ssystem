@@ -1,0 +1,32 @@
+# ⚠️ 本文件只是「候选修值」的补丁**草案**，**未落地、未 apply**（派单卡 §四.2 红线：本单不得改 token 取值）。
+# 用途：若凌舟裁定"修值并转正"，这是最小改动版本（2 行 token 值 + 1 行矩阵分类）。
+#
+# 说明 1：必须写**字面色值** `#365FCE`，不能写 `var(--color-primary-text)`——
+#   本门禁的取值读取器（scripts/contrast-check.cjs :: parseTokensCss）只认 `#rrggbb` 字面量；
+#   写成 var() 会被判成"token 未找到（疑似被误删）"直接红。
+# 说明 2：`--color-primary-text: #365FCE` 是本文件既有 token（tokens.css:16，"AA 达标文本专用变体"）。
+
+--- a/admin-web/src/styles/tokens.css
++++ b/admin-web/src/styles/tokens.css
+@@
+-  --text-link: #3F6FEF;
++  /* S3-221（待裁定）：#3F6FEF 白底 4.44:1 / 最严面 3.89:1 不达 WCAG AA 文本 4.5:1；
++     改用本文件既有 AA 文本变体 --color-primary-text(#365FCE)：白底 5.70 / #F7F8FA 5.36 / #f0f0f0 5.00 */
++  --text-link: #365FCE;
+@@
+-  --sidebar-text-active: #3F6FEF;
++  /* S3-221（待裁定）：同 --text-link。真实相邻面 --color-primary-soft 合成底 #E1E8F9 上
++     #3F6FEF=3.62:1 → #365FCE=4.64:1 */
++  --sidebar-text-active: #365FCE;
+
+--- a/scripts/contrast-check.cjs
++++ b/scripts/contrast-check.cjs
+@@
+ const ADMINWEB_REGISTERED_TOKENS = [
+-  { name: 'text-link', surfaces: ['white', 'g0', 'soft'], note: 'admin-web 内 0 处引用(死 token)' },
+-  { name: 'sidebar-text-active', surfaces: ['sidebarPage'], note: 'MainLayout.vue:858/925 激活态导航文字' },
++  // 已修值并转正（S3-221 裁定）⇒ 本表清空
+ ];
+ # 同时把上面两项移入 ADMINWEB_TEXT_TOKENS：
+ #   { name: 'text-link', surfaces: ['white', 'g0', 'soft'] },
+ #   { name: 'sidebar-text-active', surfaces: ['sidebarPage'] },
