@@ -95,6 +95,19 @@ jobs:
         if: always()
         run: node backend/scripts/guard-tenant-status.mjs
 
+      # S3-207：租户注入静态门禁（第 63 项**根因**的静态防线，**阻断**步骤）。
+      #   防的是：`config/database.ts` 的注入器原先用子串判断（SQL 里出现 `tenant_id` 字样即跳过注入），
+      #   JOIN 的列对列等值 `a.tenant_id = b.tenant_id` 因此被误判成"已有租户条件" ⇒ 整句**没有租户过滤**
+      #   （S3-206 实测 A 令牌读到 A+B）。本门禁扫"有 tenant_id 字样但没有绑定到调用者租户的条件"的写法，
+      #   与运行时判据（`backend/src/shared/tenant-scope.ts`）同形、共读同一份语料
+      #   （`backend/scripts/fixtures/tenant-scope-corpus.json`，本脚本 `--self-test` 每跑必检）。
+      #   红线同 G2/G3：不用 `continue-on-error`、不吞退出码、单独一步（红在哪一道看得清）。
+      #   反测证据：离线夹具双侧反测 `docs/evidence/S3-207/raw/71-guard-reverse-test.txt`（4/4 PASS）
+      #   与源码侧反测 `raw/50-reverse-guard-red.txt` / `raw/52-restore-guard-green.txt`。
+      - name: Tenant injection guard (G37, blocking)
+        if: always()
+        run: node backend/scripts/guard-tenant-injection.mjs
+
       - name: Backend coverage gate (baseline 2026-08-15)
         run: npm --workspace backend run test -- --coverage
 

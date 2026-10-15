@@ -1,0 +1,18 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": [
+      {
+        "id": 1,
+        "name": "总店",
+        "orderCount": 11,
+        "totalAmount": 60260,
+        "receivedAmount": 29388,
+        "totalQty": 0
+      }
+    ],
+    "traceId": "6f8877ea-8e47-43a4-b8b1-07cd91d05f7c"
+  }
+}

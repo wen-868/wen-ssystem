@@ -1,0 +1,14 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "total": 0,
+      "page": 1,
+      "pageSize": 10,
+      "records": []
+    },
+    "traceId": "bbae41e5-6ee3-465b-9a65-4f6299f63a93"
+  }
+}

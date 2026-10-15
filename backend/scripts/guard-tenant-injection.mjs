@@ -179,8 +179,51 @@ const INDIRECT_ALLOWLIST = [
     contains: "SELECT COUNT(*) AS total FROM t_product_price pp",
     verdict: "ok-runtime",
     reason:
-      "`WHERE ${where}` 静态展不开，但 `previewBatchPriceAdjustment` 的 conditions **首项就是** `pp.tenant_id = ?`（params 首项 = tenantId）" +
-      "⇒ 插值后 SQL 含值谓词，运行期判据会跳过注入。真库证据：`docs/evidence/S3-207/raw/30-harness-baseline.txt`（A 令牌读数 = A 单租户真值，≠ A+B）。",
+      "`WHERE ${where}` 静态展不开，但 previewBatchPriceAdjustment 的 conditions **首项就是** `pp.tenant_id = ?`（params 首项 = tenantId）" +
+      "⇒ 插值后 SQL 含值谓词，运行期判据会跳过注入。真库证据：`raw/30-harness-fixed.txt` [5f][5g][5h]（A 令牌读数 = A 侧真值，B 的 SKU 命中 0 条）。",
+  },
+  {
+    file: "config/database.ts",
+    arg: "sql",
+    verdict: "ok-passthrough",
+    reason: "库内**透传**：queryOneWithTenant / executeWithTenant 把调用方的 SQL 原样转交给 queryWithTenant，本身没有独立 SQL ⇒ 由同一判据在入口处处理。",
+  },
+  {
+    file: "services/admin/cart.service.ts",
+    arg: "sql",
+    verdict: "ok-passthrough",
+    reason:
+      "包装器：`conn ? conn.query : queryWithTenant(sql, ...)`。走 queryWithTenant 分支时由本判据处理；被包装的 SQL 均无 tenant_id 字样（依赖注入）。" +
+      "⚠️ 走 `conn`（事务内）分支时**不经过注入器**，靠调用方显式谓词——属既有架构口径，已记入回执「范围外发现」。",
+  },
+  {
+    file: "services/miniapp/checkout.service.ts",
+    arg: "sql",
+    verdict: "ok-passthrough",
+    reason: "同 cart.service.ts 的 dbQuery 包装器（conn 分支 = 事务内显式谓词，否则走注入器）。",
+  },
+  {
+    file: "services/admin/report-export.service.ts",
+    arg: "sql",
+    verdict: "ok-factory",
+    reason:
+      "SQL 由 reportQueries[report_type] 工厂产出（10 种报表）。逐条核对：每个工厂的 conditions **均以显式租户谓词开头**——" +
+      "L20 `tenant_id = ?`、L35 `tenant_id = ?`、L49 `sbi.tenant_id = ?`、L65 `sb.tenant_id = ?`、L84 `ib.tenant_id = ?`、" +
+      "L101 `tenant_id = ?`、L115 `tenant_id = ?`、L128 `sb.tenant_id = ?`、L151 直写 `WHERE tenant_id = ?`、L157 `lg.tenant_id = ?`" +
+      "（带 JOIN 的一律限定别名）⇒ 运行期判据均能识别、不重复注入；未发现漏洞（S3-206 当时标为“值得单独复核”，本单复核完毕）。",
+  },
+  {
+    file: "services/store/inventory.service.ts",
+    arg: "totalSql",
+    verdict: "ok-explicit",
+    reason:
+      "totalSql 的两个分支都是显式谓词：`SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ? [AND store_id = ?]`（同函数 L101 的明细 SQL 亦然）⇒ 非泄露。",
+  },
+  {
+    file: "shared/field-sync.ts",
+    arg: "targetSql",
+    verdict: "ok-explicit",
+    reason: "targetSql 拼装时已写死 `AND t.tenant_id = ?`（L335，占位符与 queryParams 第 3 项 tenantId 对齐）⇒ 非泄露。",
   },
 ];
 
@@ -230,7 +273,10 @@ function readArg(text, openIdx, argIndex) {
 
 /** 第一实参 → SQL 文本；`${}` 记为 ` ? ` 并把 interps 计数（静态展不开） */
 function sqlOf(argText, fileText) {
-  const t = argText.trim();
+  // 实参可以写成「注释行 + 字符串」（如 miniapp-order-sync.service.ts:61）⇒ 先剥掉前导注释再判
+  const t = argText
+    .replace(/^\s*(?:\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)+/g, "")
+    .trim();
   if (!t) return { sql: "", kind: "empty", interps: 0 };
   if (t.startsWith("`") || t.startsWith('"') || t.startsWith("'")) return extractLiteral(t);
   const name = t.split(/[\s(.,[]/)[0];
@@ -240,7 +286,7 @@ function sqlOf(argText, fileText) {
     const got = extractLiteral(fileText.slice(m.index + m[0].length - 1));
     return { ...got, kind: "resolved-var:" + name };
   }
-  return { sql: "", kind: "indirect:" + name, interps: 0, raw: t.slice(0, 160) };
+  return { sql: "", kind: "indirect:" + name, interps: 0, raw: t.slice(0, 160), argText: name };
 }
 
 function extractLiteral(text) {
@@ -283,6 +329,9 @@ function scan(root) {
     while ((m = CALL_RE.exec(text))) {
       const openIdx = CALL_RE.lastIndex - 1;
       const line = text.slice(0, m.index).split("\n").length;
+      // 跳过「函数定义」而不是调用点（`export async function queryWithTenant(` 等）
+      const lineHead = text.slice(text.lastIndexOf("\n", m.index) + 1, m.index);
+      if (/function\s*$/.test(lineHead)) continue;
       const a0 = readArg(text, openIdx, 0);
       if (!a0) continue;
       const lit = sqlOf(a0.arg, text);
@@ -295,9 +344,13 @@ function scan(root) {
       const uncertain = lit.kind.startsWith("indirect") || (lit.interps || 0) > 0;
       const tokenInTop = hasToken && /tenant_id/i.test(maskSqlStrings(sql));
       let verdict;
-      if (!hasToken) verdict = hasJoin ? "WARN-AUTO-INJECT-JOIN" : "OK-AUTO-INJECT";
-      else if (marker) verdict = "OK-MARKER";
+      if (marker) verdict = "OK-MARKER";
+      // 完全看不见 SQL（实参是变量/表达式，同文件也解析不出模板）⇒ 必须登记，否则红
+      else if (lit.kind.startsWith("indirect")) verdict = "INDIRECT-NEEDS-REVIEW";
+      // 字面量里没有 tenant_id 字样 ⇒ 依赖自动注入；带 `${}` 插值的 COUNT/筛选类 SQL 归此类（不阻断，见文件头 §边界 2/4）
+      else if (!hasToken) verdict = hasJoin ? "WARN-AUTO-INJECT-JOIN" : "OK-AUTO-INJECT";
       else if (cond) verdict = tokenInTop ? "OK-TENANT-CONDITION" : "WARN-TOKEN-ONLY-IN-SUBQUERY";
+      // 有字样、无条件、还带 `${}` 插值（如 `WHERE ${where}`）：静态判不了 ⇒ 必须登记
       else if (uncertain) verdict = "INDIRECT-NEEDS-REVIEW";
       else verdict = "BLOCK-MISSING-TENANT-CONDITION";
       rows.push({
@@ -311,6 +364,7 @@ function scan(root) {
         marker,
         hasJoin,
         verdict,
+        argText: lit.argText || (lit.kind.startsWith("indirect") ? String(a0.arg).trim().slice(0, 40) : ""),
         sql: sql.slice(0, 300),
       });
     }
@@ -363,18 +417,24 @@ function main() {
   const subqueryOnly = by("WARN-TOKEN-ONLY-IN-SUBQUERY");
   const warns = by("WARN-AUTO-INJECT-JOIN");
 
+  // 登记表"失效"检查只在扫**项目自身根**时做：扫离线夹具树（反测）时登记项自然对不上，
+  // 那不是失效而是"夹具里没有这些站点"，报了就是假红（会把反测判据本身变成噪声）。
+  const scanningOwnRoot = root === resolve(DEFAULT_ROOT);
+
   const unregisteredMarkers = markers.filter(
     (r) => !MARKER_ALLOWLIST.some((a) => a.file === r.file && a.marker === r.marker && r.sql.includes(a.contains))
   );
-  const staleMarkers = MARKER_ALLOWLIST.filter(
-    (a) => !markers.some((r) => r.file === a.file && r.marker === a.marker && r.sql.includes(a.contains))
-  );
-  const unregisteredIndirect = indirect.filter(
-    (r) => !INDIRECT_ALLOWLIST.some((a) => a.file === r.file && r.sql.includes(a.contains))
-  );
-  const staleIndirect = INDIRECT_ALLOWLIST.filter(
-    (a) => !indirect.some((r) => r.file === a.file && r.sql.includes(a.contains))
-  );
+  const staleMarkers = scanningOwnRoot
+    ? MARKER_ALLOWLIST.filter(
+        (a) => !markers.some((r) => r.file === a.file && r.marker === a.marker && r.sql.includes(a.contains))
+      )
+    : [];
+  const indirectMatches = (r, a) =>
+    a.file === r.file && (a.contains ? r.sql.includes(a.contains) : (r.argText || "").startsWith(a.arg || "\u0000"));
+  const unregisteredIndirect = indirect.filter((r) => !INDIRECT_ALLOWLIST.some((a) => indirectMatches(r, a)));
+  const staleIndirect = scanningOwnRoot
+    ? INDIRECT_ALLOWLIST.filter((a) => !indirect.some((r) => indirectMatches(r, a)))
+    : [];
   const red =
     blocking.length + unregisteredMarkers.length + staleMarkers.length + unregisteredIndirect.length + staleIndirect.length;
 
@@ -418,7 +478,7 @@ function main() {
   }
   if (staleMarkers.length) {
     console.log(`\nRED 登记表里的标记已失效（SQL 改了或删了）：${staleMarkers.length} 条`);
-    for (const a of staleMarkers) console.log(`  ${a.file} contains="${a.contains}"`);
+    for (const a of staleMarkers) console.log(`  ${a.file} ${a.contains ? `contains="${a.contains}"` : `arg="${a.arg}"`}`);
   }
   if (unregisteredIndirect.length) {
     console.log(`\nRED 未登记的非字面量/插值调用点：${unregisteredIndirect.length} 条`);
@@ -426,7 +486,7 @@ function main() {
   }
   if (staleIndirect.length) {
     console.log(`\nRED 非字面量登记表失效：${staleIndirect.length} 条`);
-    for (const a of staleIndirect) console.log(`  ${a.file} contains="${a.contains}"`);
+    for (const a of staleIndirect) console.log(`  ${a.file} ${a.contains ? `contains="${a.contains}"` : `arg="${a.arg}"`}`);
   }
   if (markers.length) {
     console.log(`\n显式标记（已登记，每条打印理由）：${markers.length} 条`);
@@ -446,8 +506,8 @@ function main() {
   if (indirect.length) {
     console.log(`\n已登记的插值调用点：${indirect.length} 条`);
     for (const r of indirect) {
-      const a = INDIRECT_ALLOWLIST.find((x) => x.file === r.file && r.sql.includes(x.contains));
-      console.log(`  ${r.file}:${r.line} verdict=${a ? a.verdict : "未登记"}`);
+      const a = INDIRECT_ALLOWLIST.find((x) => indirectMatches(r, x));
+      console.log(`  ${r.file}:${r.line} arg=${r.argText || "(字面量)"} verdict=${a ? a.verdict : "未登记"}`);
     }
   }
 

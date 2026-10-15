@@ -1,0 +1,46 @@
+{
+  "costA": {
+    "totalCost": "20986.00"
+  },
+  "costAll": {
+    "totalCost": "120886.00"
+  },
+  "invA": {
+    "amount": "172096.00"
+  },
+  "invAll": {
+    "amount": "182096.00"
+  },
+  "previewTruthA": 1,
+  "previewTruthA2": 0,
+  "previewTruthAll": 1,
+  "truthCustomerA": {
+    "amount": "60260.00",
+    "cnt": 11
+  },
+  "truthCustomerAll": {
+    "amount": "260258.00",
+    "cnt": 13
+  },
+  "truthStoreA": {
+    "amount": "60260.00",
+    "cnt": 11
+  },
+  "truthStoreAll": {
+    "amount": "260258.00",
+    "cnt": 13
+  },
+  "truthStaffA": {
+    "amount": "60260.00",
+    "cnt": 11
+  },
+  "truthStaffAll": {
+    "amount": "260258.00",
+    "cnt": 13
+  },
+  "sku": {
+    "a": 1,
+    "a2": 11,
+    "b": 12
+  }
+}
