@@ -1,4 +1,4 @@
 store_manager: rows=1 id=3 tenant=default store_id=1 mobile=13800000001 status=1 verifyPassword(DEMO_PASSWORD)=true enabled=true
 store_operator: rows=1 id=4 tenant=default store_id=1 mobile=13800000002 status=1 verifyPassword(DEMO_PASSWORD)=true enabled=true
-DEMO_PASSWORD=Demo@2026
+DEMO_PASSWORD=<已脱敏（第 69 项 2026-10-16 就地脱敏：此行原为明文口令，值不参与任何判据；口令退役依据见 S3-203 / 迁移 201；改后判据未动，L1/L2/L4 与原始运行逐字节相同）>
 DEMO_LOGIN_CHECK=PASS

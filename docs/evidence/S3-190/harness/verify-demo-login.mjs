@@ -55,7 +55,12 @@ for (const username of accounts) {
   if (!ok || !enabled) allOk = false;
 }
 
-console.log(`DEMO_PASSWORD=${constants.DEMO_PASSWORD}`);
+// 第 69 项：证据/日志**不得承载口令明文**。本行的用途只是声明"校验用的是产品自己的
+// constants.DEMO_PASSWORD"，值本身与判据无关 ⇒ 只留来源，不回显值。
+// （判据仍由上面的 verifyPassword(DEMO_PASSWORD)=true/false 承担，未削弱。）
+console.log(
+  "DEMO_PASSWORD=<已脱敏：值不落证据；来源 backend/dist/config/constants.js 的 constants.DEMO_PASSWORD>"
+);
 console.log(allOk ? "DEMO_LOGIN_CHECK=PASS" : "DEMO_LOGIN_CHECK=FAIL");
 await conn.end();
 process.exit(allOk ? 0 : 1);
