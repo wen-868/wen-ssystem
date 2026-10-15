@@ -1,0 +1,101 @@
+{
+  "baselineRepo": "D:/Users/ZXQL/wt-agents/S3-206",
+  "fixedRepo": "D:\\Users\\ZXQL\\wt-agents\\S3-210",
+  "cases": {
+    "P1-column-to-column": {
+      "sql": "SELECT COUNT(*) AS c FROM t_sale_bill sb WHERE sb.tenant_id = sb.tenant_id AND sb.business_status = 'CREATED'",
+      "params": [],
+      "tenantId": "default",
+      "fixed": {
+        "ok": true,
+        "rows": [
+          {
+            "c": 6
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "rows": [
+          {
+            "c": 8
+          }
+        ]
+      }
+    },
+    "P2-finance-join": {
+      "sql": "SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost\n            FROM t_sale_bill_item sbi\n            JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id\n            JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id\n            WHERE sb.business_status NOT IN ('DRAFT','VOIDED')",
+      "params": [],
+      "tenantId": "default",
+      "fixed": {
+        "ok": false,
+        "errno": 1052,
+        "code": "ER_NON_UNIQ_ERROR",
+        "msg": "Column 'tenant_id' in where clause is ambiguous"
+      },
+      "baseline": {
+        "ok": true,
+        "rows": [
+          {
+            "totalCost": "120886.00"
+          }
+        ]
+      }
+    },
+    "P3-param-predicate": {
+      "sql": "SELECT COUNT(*) AS c FROM t_sale_bill WHERE tenant_id = ? AND business_status = 'CREATED'",
+      "params": [
+        "default"
+      ],
+      "tenantId": "default",
+      "fixed": {
+        "ok": true,
+        "rows": [
+          {
+            "c": 6
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "rows": [
+          {
+            "c": 6
+          }
+        ]
+      }
+    },
+    "P4-platform-marker": {
+      "sql": "SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED' /* tenant-scope:platform */",
+      "params": [],
+      "tenantId": "",
+      "fixed": {
+        "ok": true,
+        "rows": [
+          {
+            "tenant_id": "default"
+          },
+          {
+            "tenant_id": "s3207t2"
+          }
+        ]
+      },
+      "baseline": {
+        "ok": true,
+        "rows": [
+          {
+            "tenant_id": "default"
+          },
+          {
+            "tenant_id": "s3207t2"
+          }
+        ]
+      }
+    }
+  },
+  "sha": {
+    "fixedSrc": "6c77fa749790201e / tenant-scope.ts 0efe6aa4cdcc422c",
+    "fixedDist": "a7367bc1a59dee38",
+    "baselineDist": "1976395050a42370"
+  }
+}

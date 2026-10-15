@@ -1,0 +1,6 @@
+route-auth             EXIT=0  (raw/11-guard-route-auth.txt)
+tenant-status          EXIT=0  (raw/12-guard-tenant-status.txt)
+route-prefix           EXIT=0  (raw/13-guard-route-prefix.txt)
+utf8-encoding          EXIT=0  (raw/14-guard-utf8-encoding.txt)
+rbac-wiring-strict     EXIT=0  (raw/15-guard-rbac-wiring-strict.txt)
+tenant-injection       EXIT=0  (raw/16-guard-tenant-injection.txt)

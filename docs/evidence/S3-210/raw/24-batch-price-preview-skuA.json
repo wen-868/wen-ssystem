@@ -1,0 +1,27 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "totalCount": 1,
+      "affectedCount": 1,
+      "skippedCount": 0,
+      "totalOldAmount": 2999,
+      "totalNewAmount": 3298.9,
+      "totalChangeAmount": 299.9,
+      "items": [
+        {
+          "skuId": 1,
+          "skuName": "茅台飞天 53度 500ml",
+          "skuCode": "SKU_MT_53",
+          "oldPrice": 2999,
+          "newPrice": 3298.9,
+          "changeAmount": 299.9,
+          "changePercent": 10
+        }
+      ]
+    },
+    "traceId": "79992f9d-3345-46ab-a2dd-dca39bb6b8f8"
+  }
+}
