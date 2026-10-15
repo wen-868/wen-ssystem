@@ -113,6 +113,8 @@
 
 > **B0b+B0c（2026-10-12 阿坚 → 凌舟验收通过）：G3 判据精确到端点 + 14 个公开端点文件逐条登记 + G2/G3 接进 CI 阻断** —— **已合并 PR #284 → main `237a40e5`**。凌舟本机复跑：`guard-route-auth` / `guard-tenant-status` 均 **EXIT=0**；**反测 A**（只摘 `payment.routes.ts:17` 的 `csrfMiddleware`）⇒ **旧文件级判据 exit 0（盲区实测复现）/ 新逐端点评据 exit 1 并精确指出该行**；反测 B（摘 `retail-announcement.routes.ts` 的成对挂载）⇒ 红 3 条。CI 侧两步**各占一步、互不串联、`if: always()`、无 `continue-on-error`/`|| true`**，其 `build-and-test` 已真跑并绿。回传卡：`docs/tasks/cards/R101-B0b-B0c-阿坚-回传.md`。**范围外真缺口已另立 #286**（`instant-retail-store` 有认证无 CSRF / `marketing-miniapp` 身份取 `req.body.userId` 可冒充任意用户 / `wechat` 的 `requireWxAuth` 不设 `req.user` 致挂 CSRF 成假安全），由 **S3-178** 处置。
 
+> **S3-178（2026-10-13 阿坚 → 待凌舟验收）：修 #286 的三处路由鉴权缺口（自定义包装中间件那层）已交付**。产物＝工作区 `D:\Users\ZXQL\wt-agents\issue-286`（分支 `agent/issue-286`，基线 `faabc6df`，**未 commit / 未 push**，由凌舟本机提交）。交付：`marketing-miniapp.routes.ts` 的 4 个写端点 + 3 个「我的」读端点改为登录态身份（新增路由级 `bindSelfIdentity`：客户端自带 `userId`/`query.userId` 与登录态不一致 ⇒ 403，身份一律取 `req.user.id`），`instant-retail-store.routes.ts` 的 4 个写端点补 `csrfMiddleware`（`requireStoreAuth` 之后），`wechat.routes.ts` **只取证未动手**（`csrfMiddleware` L39-42 对 `!req.user` 放行 + `requireWxAuth` 不设 `req.user` ⇒ 直接挂是假安全；方案 A/B/C 与推荐见回传卡 §三）。证据：全量 vitest **643 文件 / 7616 用例 0 失败**、`tsc` EXIT=0、G3/G2 两条门禁 EXIT=0；反测两侧齐（两处改动整段回退 ⇒ **15 failed | 6 passed**，红点「服务层收到 userId=4242」；改后 **21 passed**）。**两条需凌舟裁定**：① 本单多出 2 个纯新增测试文件（超卡 §四.5 字面改动面，理由与可 revert 方案见回传卡 §六.1）；② 门禁 `NONE_ALLOWLIST` 关于这两个文件的台账已过时，本单按红线 1 未改（建议文本见回传卡 §七.1）。**另发现两条范围外真问题**：三个写端点路径参数缺失致 `req.params.*` 恒 NaN（route 与 `docs/API接口文档.md:2839/2852/2868` 契约不一致）；`/api/store` 前缀被 `commerce-fix.routes.ts:28` 的声明式认证+CSRF 整段前置覆盖（注册顺序由文件名排序决定 ⇒ 审计会失真，本单判据即受阻于此）。回传卡：`docs/tasks/cards/R101-S3-178-阿坚-回传.md`（issue-286 工作区）+ `docs/tasks/inbox/ACTIVE-回执.md`（已归档派单卡 `archive/ACTIVE-S3-178-20261013.md`）。
+
 ### 派单前核实（2026-09-12 凌舟执行）
 
 | 核实项 | 依据 | 结论 |
@@ -3718,3 +3720,88 @@
 **待补一条口径**：租户侧 4 端点的**带令牌**生产实测被登录限流挡住（`admin` 账号 15 分钟锁定）⇒ 该期间不得用无令牌 401 充当注册证据（**[155]**），租户侧以「部署产物命中 + 本机真令牌运行期整链」为准，令牌实测作为回补项。
 
 **凌舟欠账（本轮已清）**：API 文档（C6-4-1 八端点 + 迁移 190/191）、数据库变更清单（190/191 + 两项无 DDL 口径）、踩坑 **[157]** 与 **[156] 追加**、本摘要。
+
+---
+
+## S3-183-F1 交付记录（2026-10-13，阿坚 / 本地子代理通道）
+
+> 卡：`docs/tasks/inbox/ACTIVE-S3-183F1.md`（已归档 `docs/tasks/inbox/archive/ACTIVE-S3-183F1-20261013.md`）｜
+> 回执：`docs/tasks/inbox/ACTIVE-回执.md` ＋ `ACTIVE-回执-S3-183-F1.md`｜十项回传卡：`docs/tasks/cards/R101-S3-183-F1-阿坚-回传.md`｜
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-183`，分支 `fix/s3-183-f1-type-safe-and-tenant-id`，基线 `origin/main` = `8f5600f0`，**本地提交 `7a76afb9`，未 push、未开 PR**
+
+- **第 49 项（198 生产跑不完）已修**：⑤ 的两处**跨类型比较**按列真实类型改写——`(r.status='ACTIVE' OR r.status=1 OR r.status='1')` ⇒ `r.status IN ('ACTIVE','1')`；`(u.status=1 OR u.status='ACTIVE' OR u.status='1')` ⇒ `u.status = 1`。①②③④、⑤ 的兜底口径、任何列类型均未动。
+  **两侧证据**：本机**生产同构副本库**（`s3f1f_verify`，三张系统表 status 类型与生产实测一致）上，**改前原件复现生产现象**（`迁移失败: Truncated incorrect DECIMAL value: 'ACTIVE'`，与生产 1292 同码，措辞随 MySQL/MariaDB 而异）＋ 部分执行现场与生产同形；**改后连跑两遍**均 exit 0，且第二遍与第一遍**行数 + 内容 MD5 逐字节相同**（24/10/3 表行数 + 三个 MD5）⇒ 真 0 变更。**反测**：`u.status` 跨类型 ⇒ 1292 `'ACTIVE'`；`r.status` 跨类型（角色行 `DISABLED`）⇒ 1292 `'DISABLED'`；同数据改后写法两例全绿。
+- **第 48 项（两个建租户落点）已修**：`services/saas/tenant.service.ts` 与 `services/admin/tenant.service.ts` 的 `INSERT INTO t_tenant` 除卡里指出的 `id`（`randomUUID()`）外，**实测还有第二个 NOT NULL 无默认列 `name`**（只补 id 后真 HTTP 立刻报 400「缺少必填参数：name」），并补 `tenant_name`/`contact_name` 两个同义列（平台清单读的正是这两列）；saas 侧 `status` 字面量 `'ACTIVE'` ⇒ 数字 `1`；admin 侧操作日志 `tenant_id` 由 `insertId`（varchar 主键恒 0）改真 UUID。
+  **证据**：真后端 + 副本库 `s3f1f_http`，无令牌 401（门是活的）、带令牌改前 **400**「缺少必填参数：id」→ 改后 **200** 且查库两行俱在（`name/tenant_name/company_name/contact_name/contact_person` 全有值）；未注册路径对照 404 证明 400/200 是"到了 handler"。**代码级反测**：两个 service 退回改前（SHA256 记录、逐字节还原）⇒ `2 failed | 17 passed`（正是两例新护栏），还原后 `2 passed (19)`。
+- **门禁**：全量 `npx vitest run` **647 files / 7664 tests / 0 failed**；`tsc --noEmit` **0**；`guard-route-auth` / `guard-tenant-status` 均 **EXIT=0**；`npm run build` **0**；`EXPECTED_MAX_MIGRATION` 快照**保持 198**（未新增迁移）。
+- **两条待凌舟裁定**（详见回传卡 §六）：① 这两个落点建出的租户是 `0 用户/0 角色/0 菜单`（与 S3-183 的 P0 形态同源；本单未接线 `provisionTenantRbac`——第 48 项只要求生成 id、验收判据是 200 落库，且这两个端点不建管理员账号，故卡 §二.2 里的「首管绑本租户超管」结构性不可成立）；② `saas/tenant.service.ts` 的相邻缺陷（`getTenantStatistics` 与 tinyint 混比致口径失真、`Number(req.params.id)` 与 varchar UUID 主键不匹配致 `GET/PUT /api/saas/tenants/:id` 等对真实租户取不到行）是否另立一单。
+- **建议登记踩坑日志（本轮新增教训）**：验收夹具必须含**能让判据被求值**的行，且必须跑**真写语句**——严格模式下跨类型转换在 `SELECT` **只降级为警告**，只有 `INSERT/UPDATE` 才升级为错误；上一轮夹具"类型同构"却没红，正是因为它只跑 SELECT 看数、且夹具里没有 `status ≠ 1` 的非 default 用户 / 非数字状态的角色行让 OR 链被求值。
+
+---
+
+## S3-187 交付记录（2026-10-13，阿坚 / 本地子代理通道）
+
+> 卡：`docs/tasks/inbox/ACTIVE-S3-187.md`（已归档 `docs/tasks/inbox/archive/ACTIVE-S3-187-20261013.md`）｜
+> 回执：`docs/tasks/inbox/ACTIVE-回执-S3-187.md`（并覆盖 `ACTIVE-回执.md`）｜十项回传卡：`docs/tasks/cards/R101-S3-187-阿坚-回传.md`｜
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-187`，分支 `fix/s3-187-route-contract-and-csrf`，基线 `origin/main` = `09309817`，**本地提交 `e8574541`，未 push、未开 PR**；证据目录 `D:\Users\ZXQL\wt-agents\_s3187-evidence\`
+
+- **A（第 28 项）已修**：三条 miniapp 营销写端点按契约（`docs/API接口文档.md:2839/2852/2868`）改注册到**带参路径** `/coupons/:templateId/claim`、`/flash-sale/:id/buy`、`/group-buy/:teamId/join`（原三条皆无路径参数 ⇒ controller 读到 NaN ⇒ 业务层恒 404）；控制器补"参数本身合法"闸门（非法 ⇒ 400），被操作对象的**租户归属 + 存在性**由服务层 SQL（`AND tenant_id = ?`，命中不到 ⇒ 404）承担；管理员侧同函数端点不受影响。参数名用 `:teamId` 而非契约占位符 `:id`（被操作对象是"团"，服务函数与管理员侧同族端点均用 teamId，理由写在回传卡 §二.A）。
+  **证据（真后端 `USE_MOCK_DB=true`，`probe-after.txt`）**：三条带凭证+CSRF 均返回**业务 JSON 404**（"优惠券不存在或已过期"/"秒杀活动不存在或已结束"/"拼团组不存在或已结束" ⇒ 参数已达服务层）；非法参数 `abc` ⇒ 400；**老路径三条 ⇒ HTML `Cannot POST …` 404（已下线）**；无凭证 401、无 CSRF 403。
+- **B（第 29 项）已修**：`commerce-fix.routes.ts` 门店侧由**根前缀** `/api/store` 收窄为 `/api/store/coupons`（URL 不变），并在 `auto-routes.ts` 的 `DUPLICATE_PREFIX_ALLOWLIST` 登记共用理由（启动日志 `白名单 /api/store/coupons (2次)` + 真重复端点 0 项 + 已注册 203 个路由）。
+  **证据（修前 8098 / 修后 8097，同一批 4 例）**：修前 `POST /api/store/members/register` ⇒ **401**、`POST /api/store/hardware/callbacks/cloud-speaker/t1` ⇒ **401**、`/api/store/no-such-path` ⇒ 401（前缀级铁证）；修后前者 **400「缺少必填字段」**（已到 controller）、回调 **200 受理**、自有端点 `/api/store/coupons/verify-records` 仍 **401**。**影响面**：`/api/store` 命名空间 20 个文件、本单只消除 1 处，其余 9 个根前缀文件仍会覆盖整段（`no-such-path` 仍 401）⇒ 是否另立单统一治理待裁定（已报备）。
+- **C（第 30 项）已修**：`GET /points/my` 身份改取登录态（原读不存在的 `req.params.userId` 恒 NaN）；controller 改显式分支——有 `:userId` 用 param（管理员代查，非法 ⇒ 400）、无 param 用登录态（未登录 401）；路由补 `requireAuthWithTenant + bindSelfIdentity`。
+  **证据**：无凭证 401；带凭证 **200 `data.userId=1`**；`?userId=4242` ⇒ 403 禁止以客户端字段声明身份。
+- **D（第 31 项）定性=在用 ⇒ 路径对齐，载体缺口如实登记**：定性四条证据（Taro 构建源 `miniapp/src`；`scripts/check-miniapp-release.mjs:32-34` 仍断言旧端页面文件；`deploy/deploy-production.sh:267-272` 仍部署旧端源码；旧端最后变更 2026-06-20 vs 新端 2026-08-15）。处置：老端 `/coupons/mine` ⇒ `/coupons/my`（`:88-90`）、新端 `miniapp/src/api/coupon.ts` 同步带参路径；**登录态载体（微信令牌 vs 商家 JWT）未解决且未在客户端硬塞 JWT**，写在文件头注释待裁定。
+- **E（第 32 项）已修（方案 A）**：`requireWxAuth` 通过后补 `req.user`（最小 AuthUser 形状）+ `req.tenantId`（令牌内 `tenantId` → `X-Tenant-Id` → 不伪造）；4 个写端点挂 `csrfMiddleware`（认证在前）；登录响应下发 `csrfToken`（否则老端写端点会从"能调通"退化 403 —— 属功能性回退）；老端 `app.js` 自动带 `x-csrf-token`。
+  **证据**：微信令牌无 CSRF ⇒ **403**；带 `HMAC(33)` ⇒ **200**。**反测两侧**：注释掉 `req.user` 赋值 ⇒ 该文件 `3 failed | 4 passed`（红点=缺 CSRF 却 200，假安全现场复现），复原 ⇒ `7 passed`；注释掉 `param` 闸门 ⇒ `1 failed | 8 passed`，复原 ⇒ `9 passed`（原始输出在证据目录 `E-mutation-red.log` / `A-mutation-red.log`）。
+- **门禁/构建（冻结状态）**：全量 `npx vitest run` **649 files / 7681 tests / 0 failed**；`tsc --noEmit` **EXIT=0**；`guard-route-auth` / `guard-tenant-status` 均 **EXIT=0**；`npm run build` **EXIT=0**。测试改动：新增 3 个测试文件（19 例）+ 同步 S3-178 与 instant-retail 两个既有文件的 URL/注释；`guard-route-auth.mjs` 只改 3 条**台账文本**（判据未动）。
+- **待凌舟裁定（4 条，详见回传卡 §六/§七）**：① `/api/store` 其余 9 个根前缀文件是否另立单统一治理；② A 的"跨租户字面反例"是否需在真库补夹具（本机 mock 库无业务数据，只验到等价分支）；③ 老 miniapp 的登录态载体；④ 微信端 `bind` 的租户来源口径。
+- **另需知晓（非阻塞）**：`backend/scripts/rbac-wiring-baseline.json` 中三条 miniapp 端点路径已成**陈旧登记**（不在本单闸门清单内，未动；建议用 `node backend/scripts/guard-rbac-wiring.mjs --json` 重生成）。
+
+---
+
+## S3-186 交付记录（2026-10-13，阿坚 / 本地子代理通道）
+
+> 卡：`docs/tasks/inbox/ACTIVE-S3-186.md`（已归档 `docs/tasks/inbox/archive/ACTIVE-S3-186-20261013.md`）｜
+> 回执：`docs/tasks/inbox/ACTIVE-回执-S3-186.md`｜十项回传卡：`docs/tasks/cards/R101-S3-186-阿坚-回传.md`｜
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-186`，分支 `fix/s3-186-empty-db-migration`，基线 `origin/main` = `09309817`，**未 commit / 未 push / 未开 PR**（改动留在工作区待凌舟本机提交）；证据包 `docs/evidence/S3-186/`（README + harness 装置 + outputs），大文件（完整日志/结构快照）在工作区外 `D:\Users\ZXQL\wt-agents\_s3186-evidence\`
+
+- **结论（第 46 项）**：空库跑完比"补列语句全部落地"**少 24 列（12 张表）/ 59 个索引**；根因是**两条互相独立且都静默**的机制——① **MIG-4 写闸门默认 block 把 173 条 `CALL` 整条挡下**（实测 173 条一条不执行，只留 WARN）；② **092 末尾 `DROP PROCEDURE` 后两个辅助过程再未重建** ⇒ 即使显式 `MIGRATION_WRITE_GATE=allow`，092 之后的 **35 条** `CALL` 仍全部 `ER_SP_DOES_NOT_EXIST` 跳过。修复：173 条 `CALL` 逐条改写为**不依赖存储过程的幂等写法**（`information_schema` 守卫 + `PREPARE/EXECUTE`，与 081/196 同款；首关键字 `SET` ⇒ 结构语句，**默认闸门下可执行**）——不改闸门、不给 `CALL` 开白名单、不新增迁移文件（`EXPECTED_MAX_MIGRATION` 仍 198）。
+- **差多少（机器判据）**：runA（默认闸门·空库）vs runB（基线 = 173 条 CALL 全部落地）⇒ **差异合计 83**（缺列 24 / 缺索引 59）。缺列含 **6 张审批表 `tenant_id`**、`t_retail_cart.tenant_id`、`t_member.contact`、`t_sale_bill` 5 列、`t_sale_bill_item` 6 列、`t_product_sku.box_barcode`、`t_miniapp_order_sync_log` 4 列；**59 个缺索引里 49 条是同表同列的重复命名**（Step 2 已建 `idx_t_<表>_tenant`，功能不缺），**10 条真缺失**（9 条为缺列连带 + `t_delivery_record.idx_delivery_record_rider_id`）。拆分：写闸门贡献 6 列 + 55 索引；过程缺失贡献 18 列 + 4 索引。
+- **修复后判据（`harness/acceptance.ps1`，四条机器可判）**：① 全新空库一次跑完与基线**结构差异 = 0**（`outputs/diff-runB-vs-runC.txt`）② 写闸门跳过 CALL = **0** ③ `ER_SP_DOES_NOT_EXIST` = **0** ④ 存储过程残留 = **0** ⇒ `S3186_ACCEPTANCE=GREEN`（`outputs/acceptance-runE.txt`）；结构哈希 `runC = runC3 = runE`（三次独立复跑同结构）；`runA = runD`（退回后与修复前同结构 ⇒ 退回是真退回）。
+- **反测两侧齐**：退回 9 个文件 ⇒ **RED（差异 83 / 173 条被静默跳过）**；复原 ⇒ **GREEN**。另两条单测级反测：往 `137_sys_user_dept_position.sql` 加一行 `CALL` ⇒ 新增守门单测红并点名 `137:10`；去掉合成 CALL ⇒ 既有 S3-57 用例红（"判据失去对象"）。
+- **门禁/构建（冻结状态）**：全量 `npx vitest run` **647 files / 7664 tests / 0 failed**；`tsc -p tsconfig.json --noEmit` **EXIT=0**；`guard-route-auth` / `guard-tenant-status` 均 **EXIT=0**。测试改动：新增 `migration-no-call.test.ts`（2 例，防 `CALL` 复发）+ 改 `migration-delimiter.test.ts` 一处**将空转**的判据（注入同形状合成 CALL，+14/−3）。
+- **待凌舟处置（4 条，详见回传卡 §七/§八）**：① **生产实测未做**（红线：只在空库副本）——只读核对 SQL 已写入回传卡；若证实生产同源缺这 24 列，**补齐生产属另一条链**（写操作 + 备份），本单不顺手做；② `docs/数据库变更清单.md` 需更新（125 条目的"092 之后过程可用"前提不成立；120a 记"✅ 已执行"却恒 `ER_NO_SUCH_TABLE`），该文件红线禁止我改；③ **24 条无 `t_` 前缀的 `CALL` 语义按原样保留**（092=12 / 120a=8 / 137=2 / 138=2，恒失效）⇒ 属**另一个独立缺陷**，建议另立单；④ 记忆文件 `docs/memories/阿坚-记忆.md` 未改（与并行单同署名，避免并发覆盖），请统一落一笔。
+- **观察项（非本单，已登记证据包 README §七）**：语料"第二次跑才收敛"的 15 个索引（Step 2 的 `idx_t_<表>_tenant` 10 个 + `120c_performance_indexes.sql` 5 个）；`t_delivery_record.rider_id` 列序（基线事后重放落表尾 vs 修复后按文件序落 `#7`，后者与生产同构）。
+
+---
+
+## S3-193 交付记录（2026-10-14，阿坚 / 本地子代理通道）
+
+> 卡：`docs/tasks/inbox/ACTIVE-S3-193.md`（已归档 `docs/tasks/inbox/archive/ACTIVE-S3-193-20261014.md`）｜
+> 回执：`docs/tasks/inbox/ACTIVE-回执-S3-193.md`｜十项回传卡：`docs/tasks/cards/R101-S3-193-阿坚-回传.md`｜
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-193`，分支 `feat/s3-193-platform-rbac`，基线 `origin/main` = `25728007`，**未 commit / 未 push / 未开 PR**；证据 `docs/evidence/S3-193/`（8 组原始输出）+ 台账 `docs/tasks/R101-平台RBAC接线台账.md`
+
+- **结论（第 50 项）**：平台侧权限**机制已落地**（不是"补几处挂载"）：新增 `backend/src/middleware/platform-rbac.ts` 的 `requirePlatformPermission(code)`，数据源全部复用既有表（`t_platform_admin.role` + 迁移 179 的 `t_platform_role` / `t_platform_role_permission`），**零 DDL**；超管（`PLATFORM_SUPER_ADMIN` / `SUPER_ADMIN`）全通；读码判 `can_menu`、写码判 `can_page_btn`；缺码 **403**（非 401）+ 写 `t_platform_audit_log` 留痕；DB 异常 **fail-closed**。
+- **试点域（卡内建议域之一）已接线**：`platform-msg-config.routes.ts` 的 4 个写端点挂 `sysconfig:manage`（读端点按"只改有问题的地方"未接）；反测两侧齐（缺码 403 / 有码 200 / 超管 200 / 无令牌 401 / 缺 CSRF 403 CSRF / 未绑定 403 / DB 异常 403），**摘中间件 ⇒ 4 failed（403→200）**，复原 ⇒ 19 passed。
+- **105 条台账逐条登记**：`docs/tasks/R101-平台RBAC接线台账.md`，生成器 `backend/scripts/s3-193-platform-rbac-ledger.mjs`（`--check` 断言）；计数守恒 `29 文件 / 105 条（POST 67 / PUT 29 / DELETE 9）/ 已接线 4 + 待接线 63 + 需扩目录 28 + 豁免 10`；与 S3-185 取证、G4 基线**三方同口径**，并修正 S3-185 两处路径口径（`platform-app-version` 7 条全在 `/api/padmin`；`platform-role` 4 条全在 `/api/platform/roles`）。
+- **G4 门禁判据已扩**：`guard-rbac-wiring.mjs` 新增识别 `requirePlatformPermission(`（否则平台接线后被继续报"无权限检查"）；基线 709→705（试点 4 条移出）、已接线 53→57，全仓受影响仅 4 条。
+- **门禁/构建（冻结状态）**：全量 `npx vitest run` **654 files / 7713 tests / 0 failed**；`tsc --noEmit` **EXIT=0**；`eslint`（新/改 4 文件）**0 error 0 warning**；`guard-route-auth` / `guard-tenant-status` / `guard-route-prefix` 三 **EXIT=0**；`npm --workspace backend run build` **EXIT=0**；**根 `npm run build` EXIT=1 属存量**（`miniapp` / `platform-miniapp` 无 `build` 脚本，两树与基线逐字一致 ⇒ 与本单无因果，对应队列"第 62 项"）。`guard-rbac-wiring --strict` EXIT=1 亦属存量（3 条未登记缺口在 `marketing-miniapp.routes.ts:55/72/80`）。
+- **待凌舟裁定（3 项，详见回执 §一.5）**：① 未绑定管理员现取 **403（收紧）**，是否改"过渡期放行"；② 绑定结构＝复用 `t_platform_admin.role`（零 DDL、一管理员一角色）vs 独立绑定表 `t_platform_admin_role`（纯 DDL，需同步 `EXPECTED_MAX_MIGRATION` 198→199）；③ 目录外 4 域（library/open/review/miniapp，共 28 条）是否扩 `PERMISSION_CATALOG`（会改"18 条 / 8 域"既有契约与 8 条断言）。
+- **生产实测未做（如实报备）**：本机无 DB 连接串、无 `mysql` 客户端 ⇒ §一.1 生产事实引用既有只读探针（`t_platform_admin`=1、`t_platform_role`=0）；只读核对 SQL 已写入回执 §一.1，请在服务器侧复跑。**生产影响面 = 0**（唯一管理员 `admin` 为 `PLATFORM_SUPER_ADMIN` ⇒ 全通分支）。
+
+---
+
+## S3-200 交付记录（2026-10-14，阿坚 / 本地子代理通道）
+
+> 卡：`docs/tasks/inbox/archive/ACTIVE-S3-200-20261014.md`（原 `docs/tasks/inbox/ACTIVE-S3-200.md`，已归档）｜
+> 回执：`docs/tasks/inbox/ACTIVE-回执-S3-200.md`｜十项回传卡：`docs/tasks/cards/R101-S3-200-阿坚-回传.md`｜
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-200`，分支 `chore/s3-200-build-and-encoding`，基线 `origin/main` = `fc6651a5`，HEAD = `2b6bb160`（`e4d868f5` + `2b6bb160`）；**未 push / 未开 PR**；证据 `docs/evidence/S3-200/`（README + 3 复跑脚本 + 14 组原始输出）
+
+- **结论（第 62 项 · 根 build 口径）**：`npm --workspaces run build` → `npm --workspaces --if-present run build`，**只链"确实有 `build`"的 5 个工作区**。`miniapp` / `platform-miniapp` 是 Taro 小程序工程，规范构建是**端＋主题**命令（`build:weapp` / `build:weapp:all` / `build:h5`），`git log -p -- miniapp/package.json` 显示**从未有过 `build` 脚本**，且 `docs/部署链路对照表.md:42` 记"**不上服务器**"；CI 也从不跑根 build（只逐工作区 `backend`/`admin-web`/`saas-admin`）。取 (b) 而非"给两个工程补 build"：补 `build:weapp` 只代表"主题 a 的 weapp"、**不产 `template-dist`**（那是服务器生成租户代码包的前置），等于把任意口径写成标准。**判据**：改前 `EXIT=1`（`Missing script: "build"` ×2）→ 改后 `EXIT=0`（570 行、5 个工作区全 built、无一行 `npm error`）。
+- **结论（第 61 项 · 6 文件 65 处 U+FFFD）**：**全部可恢复、全部已还原（65/65，不可恢复 0 处）**。事故是**有损**替换（非法字节 ⇒ U+FFFD ⇒ 写回），损坏文本自身推不出原文 ⇒ **逐处取自 git 历史**：5 处 `// ========== 路由自动发现配置 ==========` 取 `ba7b2aa7`（与现存完好件 `backend/src/routes/payment.routes.ts:24` **逐字相同**）；`stock-check.routes.ts:19` 的 `Store 盘点路由` 取 `ba7b2aa7:21`（**同文件先例**：`82e8f347`/R47-05 已按同款口径修好 Admin 段标题，现存文本与历史一字不差）；`miniapp-order-sync.routes.ts:9` 取 `b33ffaaf:8`。事故来源：5 文件为 `b33ffaaf`（2026-07-13 R25-A5）、1 文件为 `ab826ef0`（2026-07-16 R40-07），**损坏行此后逐行未被再动过**（与事故当次 blob 逐行比对）。**语义 diff = 7 行注释 / 0 行代码**（+7/−7），行尾仍 `i/lf w/crlf`。全仓影响面 **6 文件 / 65 处，无遗漏、文档外 0 处**。
+- **新增守卫（防复发，未接 CI）**：`backend/scripts/guard-utf8-encoding.mjs`（纯 node、零依赖、可独立复跑）——① 严格 UTF-8 解码失败（非法字节）即红；② U+FFFD 残留即红，并打印 `文件:行`。**接线要改 `.github/**`，属本单红线，未动**。
+- **反测两侧齐**：第 62 项——临时回退成原脚本 ⇒ `EXIT=1`（两处 `Missing script: "build"`）；复原 ⇒ `EXIT=0`（**同一棵树只差一个词 ⇒ 1 变 0**）。第 61 项——把历史损坏行（**真 65 字节**）注入已还原的 `alert.routes.ts:14` ⇒ 守卫 `EXIT=1` 并点名该处；复原 ⇒ `EXIT=0` 且文件 sha256 回到 `4f2646f302da4a92…`。
+- **门禁/构建**：全量 `npx vitest run` **654 files / 7718 tests / 0 failed**（EXIT=0）；`tsc --noEmit` **EXIT=0**；`guard-route-auth` / `guard-tenant-status` / `guard-route-prefix` / `guard-utf8-encoding` 四 **EXIT=0**；**根 `npm run build` 自本单起为 EXIT=0**（S3-190/193/194 一直如实报的那条存量红**已消除**）。产物哈希：`admin-web`/`saas-admin`/`website`/`app-mobile` 前后**逐字节一致**；`backend/dist` 变 **84 字节**——`backend/tsconfig.json` 未设 `removeComments`（注释进产物，`dist/routes/alert.routes.js` 可见还原后的注释），字节账 `65→49`（−16×5）+ `67→63`（−4）+ `68→68`（0）= **−84**，与实测 `4071753→4071669` 吻合。
+- **待凌舟裁定（3 项，详见回执 §六）**：① `--if-present` 的"静默跳过"边界是否升级为包装脚本/显式清单（本单只改一个词，未能堵住"删了某工作区 `build` 仍绿"）；② 新守卫是否接进 CI（红线未动）；③ 是否把"65 处自 2026-07-13 躺了 3 个月"与 `82e8f347` 先例修法写进 `docs/踩坑日志.md`（本单未改该文件）。
+- **自我报备**：改 `package.json` 时**第一次误改到主检出**（`ZXQL-MS\wen-ssystem\package.json`），已即时反向 patch 还原并以 `git status --porcelain -- package.json` / `git diff -- package.json`（均为空）双证；**未改 `ACTIVE.md` 路由表**（11 个并行会话共用，归档它会打断同伴），按"只归档自己的卡"执行；`docs/memories/阿坚-记忆.md` 未改（同署名并发，避免互相覆盖，请统一落一笔）。
