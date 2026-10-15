@@ -212,9 +212,13 @@ export async function getProfit(
      FROM t_sale_bill_item sbi
      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
      JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE sb.tenant_id = ?
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(sb.created_at) BETWEEN ? AND ?`,
-    [start, end],
+    // S3-207 修复：JOIN 里的 `sb.tenant_id = sbi.tenant_id` / `pp.tenant_id = sbi.tenant_id` 是**列对列**等值，
+    // 旧判据（子串含 tenant_id 即跳过注入）因此让整句**没有任何租户过滤** ⇒ A 令牌读到 A+B 的成本（实测 120886 = A 20986 + B 99900）。
+    // 现在显式声明租户谓词，占位符顺序 = WHERE 的 tenantId → 时间窗口。
+    [tenantId, start, end],
     tenantId
   );
 
@@ -266,9 +270,11 @@ export async function getProfit(
      FROM t_sale_bill_item sbi
      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
      JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+     WHERE sb.tenant_id = ?
+       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
        AND DATE(sb.created_at) BETWEEN ? AND ?`,
-    [prevDateStart, prevDateEnd],
+    // S3-207 修复：同上（上一周期成本，同根因同修）
+    [tenantId, prevDateStart, prevDateEnd],
     tenantId
   );
 
