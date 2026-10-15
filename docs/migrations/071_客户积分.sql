@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS t_points_record (
   type VARCHAR(20) NOT NULL COMMENT '类型: EARN/REDEEM/EXPIRE/ADJUST',
   points INT NOT NULL COMMENT '积分变动数',
   balance_after INT NOT NULL COMMENT '变动后余额',
-  source_type VARCHAR(32) DEFAULT NULL COMMENT '来源类型',
+  source_type VARCHAR(20) DEFAULT NULL COMMENT '来源类型',
   source_no VARCHAR(32) DEFAULT NULL COMMENT '来源单号',
   remark VARCHAR(200) DEFAULT NULL COMMENT '备注',
   tenant_id VARCHAR(64) NOT NULL DEFAULT '',

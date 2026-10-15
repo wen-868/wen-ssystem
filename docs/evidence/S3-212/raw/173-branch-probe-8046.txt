@@ -1,5 +1,0 @@
-port=3416 version=8.0.46
-@s3212_ver_num=80046  @s3212_pos_instant_ok=1
-@ddl1 = ALTER TABLE `t_library_api_key` ADD COLUMN `tenant_id` VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID（隔离键）' AFTER `app_name`, ALGORITHM=INSTANT
-@ddl2 = ALTER TABLE `t_library_api_key` ADD COLUMN `qps` INT NOT NULL DEFAULT 10 COMMENT 'QPS 限流档位（次/秒，档位 10/30/50）' AFTER `daily_limit`, ALGORITHM=INSTANT
-@ddl3 = ALTER TABLE `t_library_api_key` ADD COLUMN `scopes` JSON DEFAULT NULL COMMENT '权限范围（JSON 数组，元素形如 domain+rw；空=最小权限）' AFTER `qps`, ALGORITHM=INSTANT
