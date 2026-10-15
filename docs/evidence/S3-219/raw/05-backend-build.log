@@ -1,0 +1,9 @@
+
+> zhixiang-backend@0.1.0 build
+> tsc -p tsconfig.json && node ../scripts/fix-esm-extensions.js dist
+
+(node:6420) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/Users/ZXQL/wt-agents/S3-219/scripts/fix-esm-extensions.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\Users\ZXQL\wt-agents\S3-219\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+已处理 804 个 JS 文件，修复 1907 处导入路径（其中动态 import() 19 处）

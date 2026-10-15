@@ -52,6 +52,16 @@ vi.mock("../../services/admin/platform-audit-log.service", () => ({
   insertPlatformAuditLog: hoisted.insertPlatformAuditLog,
 }));
 
+/**
+ * S3-219：本文件测的是开放平台**密钥业务逻辑**（明文只回显一次／并发兜底／调用统计），不是 RBAC
+ * ⇒ 把平台权限中间件替换为「放行桩」，用例继续以已授权身份打到 controller/service。
+ * 权限判定的两侧反测在 `routes/platform-rbac-domain-wiring.test.ts`（28 端点 × 无码 403 ／ 有码放行）
+ * 与 `middleware/platform-rbac.test.ts`（判定表）里做，本文件不重复；若两者都摘掉，接线会同时失去保护。
+ */
+vi.mock("../../middleware/platform-rbac", () => ({
+  requirePlatformPermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 import { platformOpenRouter, routeConfig } from "../../routes/platform-open.routes";
 import { requirePlatformAuth } from "../../middleware/auth";
 

@@ -1,14 +1,15 @@
 # R101 · 平台 RBAC 接线台账（平台写端点逐条登记）
 
-> 派单：**S3-193**（收口总清单第 50 项）｜生成器：`backend/scripts/s3-193-platform-rbac-ledger.mjs`（可复跑）
+> 派单：**S3-193**（收口总清单第 50 项）→ **S3-219** 更新（第 67 项：平台侧 3 域目录扩 + 28 条写端点接线）｜生成器：`backend/scripts/s3-193-platform-rbac-ledger.mjs`（可复跑）
 > 复核命令：`node backend/scripts/s3-193-platform-rbac-ledger.mjs --check`（计数守恒 + 逐条映射断言）
 
 **总数核对**：扫描 29 个 `platform*.routes.ts` ⇒ 写端点声明 **105** 条（期望 105）；
 按方法：POST 67 / PUT 29 / DELETE 9；
-其中**已接线 4 条**（S3-193 试点域）、待接线 63 条、需先扩目录 28 条、豁免 10 条。
+其中**已接线 32 条**（S3-193 试点域 4 条 ＋ S3-219 商品库/开放平台/评价 3 域 28 条）、待接线 63 条、需先扩目录 0 条、豁免 10 条。
 
 **口径**：写端点 = 源码 `.post/.put/.patch/.delete` **声明数**（与 S3-185 取证、CI 外的 G4 门禁 `guard:rbac-wiring` 基线 `rbac-wiring-baseline.json` 同为 105，三方同口径）。
 行号 = 该声明在文件中的行；`完整路径` 由「router 变量 ↔ routeConfig.prefix」精确配对得出（多 router 文件不再拼前缀，见 §四）。
+**S3-219 更新（2026-10-16，第 67 项）**：`library`/`open`/`review` 3 域由「需先扩目录」→「已接线」（共 28 条），总声明数与 §一/§二 计数守恒不变；接线形态 = 端点声明上的 `requirePlatformPermission("…")` **字面量**（与 S3-193 试点域同形，G4 门禁 `guard-rbac-wiring.mjs --json` 的 `authForm` 记为 `inline`）。
 
 ## 一、按域汇总
 
@@ -19,22 +20,22 @@
 | billing 套餐与计费（对账） | 3 | billing:manage | 待接线 |
 | billing 套餐与计费（欠费） | 1 | billing:manage | 待接线 |
 | billing 套餐与计费（订阅申请审核） | 1 | billing:manage | 待接线 |
-| library 商品库（目录外域） | 15 | library:manage | 待接线（需先扩目录） |
+| library 商品库 | 15 | library:manage | ✅ 已接线（S3-219） |
 | marketing 运营营销（代理商档案/层级） | 5 | marketing:manage | 待接线 |
 | marketing 运营营销（促销码） | 2 | marketing:manage | 待接线 |
 | miniapp 平台小程序（公开端点） | 1 | —（豁免） | 豁免 |
 | monitor 运维监控 / 日志 | 1 | monitor:manage | 待接线 |
 | monitor 运维监控 / 日志（前端自身错误上报） | 1 | —（豁免） | 豁免 |
 | monitor 运维监控 / 日志（阈值） | 1 | monitor:manage | 待接线 |
-| open 开放平台（目录外域） | 10 | open:manage | 待接线（需先扩目录） |
-| review 平台评价/审核（目录外域） | 3 | review:manage | 待接线（需先扩目录） |
+| open 开放平台 | 10 | open:manage | ✅ 已接线（S3-219） |
+| review 平台评价/审核 | 3 | review:manage | ✅ 已接线（S3-219） |
 | sysconfig 全局系统配置 | 5 | sysconfig:manage | 待接线 |
 | sysconfig 全局系统配置（App 版本发布） | 7 | sysconfig:manage | 待接线 |
 | sysconfig 全局系统配置（导出任务） | 2 | sysconfig:manage | 待接线 |
 | sysconfig 全局系统配置（平台管理员账号） | 4 | sysconfig:manage | 待接线 |
 | sysconfig 全局系统配置（平台角色与权限点） | 4 | sysconfig:manage | 待接线 |
 | sysconfig 全局系统配置（模板） | 5 | sysconfig:manage | 待接线 |
-| sysconfig 全局系统配置（短信/邮件配置） | 4 | sysconfig:manage | ✅ 已接线（试点） |
+| sysconfig 全局系统配置（短信/邮件配置） | 4 | sysconfig:manage | ✅ 已接线（S3-193 试点） |
 | tenant 租户管理 | 6 | tenant:manage | 待接线 |
 | tenant 租户管理（入驻申请审核） | 2 | tenant:manage | 待接线 |
 | ticket 工单系统 | 5 | ticket:reply / ticket:note / ticket:transfer / ticket:resolve / ticket:close | 待接线 |
@@ -76,40 +77,40 @@
 | 30 | POST | `/api/platform/error-report` | `platform-error-log.routes.ts:13` | monitor 运维监控 / 日志（前端自身错误上报） | —（豁免） | —（豁免） | 豁免（理由见下表） |
 | 31 | POST | `/api/platform/reports/export/` | `platform-export-task.routes.ts:28` | sysconfig 全局系统配置（导出任务） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 32 | POST | `/api/platform/reports/export/:id/retry` | `platform-export-task.routes.ts:37` | sysconfig 全局系统配置（导出任务） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
-| 33 | POST | `/api/platform/library/spus/import` | `platform-library.routes.ts:36` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 34 | POST | `/api/platform/library/spus` | `platform-library.routes.ts:42` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 35 | PUT | `/api/platform/library/spus/:id` | `platform-library.routes.ts:45` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 36 | PUT | `/api/platform/library/spus/:id/status` | `platform-library.routes.ts:48` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 37 | DELETE | `/api/platform/library/spus/:id` | `platform-library.routes.ts:54` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 38 | POST | `/api/platform/library/spus/:spuId/skus` | `platform-library.routes.ts:61` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 39 | PUT | `/api/platform/library/skus/:id` | `platform-library.routes.ts:64` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 40 | DELETE | `/api/platform/library/skus/:id` | `platform-library.routes.ts:67` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 41 | POST | `/api/platform/library/brands` | `platform-library.routes.ts:78` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 42 | PUT | `/api/platform/library/brands/:id` | `platform-library.routes.ts:81` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 43 | DELETE | `/api/platform/library/brands/:id` | `platform-library.routes.ts:84` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 44 | POST | `/api/platform/library/brands/:id/auth-letter` | `platform-library.routes.ts:88` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 45 | POST | `/api/platform/library/api-keys` | `platform-library.routes.ts:99` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 46 | PUT | `/api/platform/library/api-keys/:id` | `platform-library.routes.ts:102` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 47 | DELETE | `/api/platform/library/api-keys/:id` | `platform-library.routes.ts:105` | library 商品库（目录外域） | `library:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
+| 33 | POST | `/api/platform/library/spus/import` | `platform-library.routes.ts:47` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 34 | POST | `/api/platform/library/spus` | `platform-library.routes.ts:57` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 35 | PUT | `/api/platform/library/spus/:id` | `platform-library.routes.ts:60` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 36 | PUT | `/api/platform/library/spus/:id/status` | `platform-library.routes.ts:63` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 37 | DELETE | `/api/platform/library/spus/:id` | `platform-library.routes.ts:73` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 38 | POST | `/api/platform/library/spus/:spuId/skus` | `platform-library.routes.ts:80` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 39 | PUT | `/api/platform/library/skus/:id` | `platform-library.routes.ts:87` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 40 | DELETE | `/api/platform/library/skus/:id` | `platform-library.routes.ts:90` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 41 | POST | `/api/platform/library/brands` | `platform-library.routes.ts:101` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 42 | PUT | `/api/platform/library/brands/:id` | `platform-library.routes.ts:104` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 43 | DELETE | `/api/platform/library/brands/:id` | `platform-library.routes.ts:107` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 44 | POST | `/api/platform/library/brands/:id/auth-letter` | `platform-library.routes.ts:111` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 45 | POST | `/api/platform/library/api-keys` | `platform-library.routes.ts:123` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 46 | PUT | `/api/platform/library/api-keys/:id` | `platform-library.routes.ts:126` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 47 | DELETE | `/api/platform/library/api-keys/:id` | `platform-library.routes.ts:129` | library 商品库 | `library:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
 | 48 | POST | `/api/platform-miniapp/subscriptions` | `platform-miniapp.routes.ts:23` | miniapp 平台小程序（公开端点） | —（豁免） | —（豁免） | 豁免（理由见下表） |
 | 49 | PUT | `/api/platform/monitor/thresholds` | `platform-monitor-ops.routes.ts:38` | monitor 运维监控 / 日志（阈值） | `monitor:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 50 | POST | `/api/platform/monitor/notify-expiring` | `platform-monitor.routes.ts:34` | monitor 运维监控 / 日志 | `monitor:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
-| 51 | PUT | `/api/platform/msg-config` | `platform-msg-config.routes.ts:26` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | ✅ 已接线（S3-193 试点） |
-| 52 | POST | `/api/platform/sms-templates` | `platform-msg-config.routes.ts:32` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | ✅ 已接线（S3-193 试点） |
-| 53 | PUT | `/api/platform/sms-templates/:id` | `platform-msg-config.routes.ts:37` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | ✅ 已接线（S3-193 试点） |
-| 54 | DELETE | `/api/platform/sms-templates/:id` | `platform-msg-config.routes.ts:42` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | ✅ 已接线（S3-193 试点） |
+| 51 | PUT | `/api/platform/msg-config` | `platform-msg-config.routes.ts:26` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-193 试点） |
+| 52 | POST | `/api/platform/sms-templates` | `platform-msg-config.routes.ts:32` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-193 试点） |
+| 53 | PUT | `/api/platform/sms-templates/:id` | `platform-msg-config.routes.ts:37` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-193 试点） |
+| 54 | DELETE | `/api/platform/sms-templates/:id` | `platform-msg-config.routes.ts:42` | sysconfig 全局系统配置（短信/邮件配置） | `sysconfig:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-193 试点） |
 | 55 | POST | `/api/platform/notifications/read-all` | `platform-notification.routes.ts:25` | 自助（站内通知） | —（豁免） | —（豁免） | 豁免（理由见下表） |
 | 56 | POST | `/api/platform/notifications/:id/read` | `platform-notification.routes.ts:29` | 自助（站内通知） | —（豁免） | —（豁免） | 豁免（理由见下表） |
-| 57 | POST | `/api/platform/open/api-keys` | `platform-open.routes.ts:24` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 58 | POST | `/api/platform/open/api-keys/:id/enable` | `platform-open.routes.ts:26` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 59 | POST | `/api/platform/open/api-keys/:id/rotate` | `platform-open.routes.ts:28` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 60 | POST | `/api/platform/open/api-keys/:id/rotate-complete` | `platform-open.routes.ts:30` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 61 | PUT | `/api/platform/open/api-keys/:id` | `platform-open.routes.ts:34` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 62 | DELETE | `/api/platform/open/api-keys/:id` | `platform-open.routes.ts:36` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 63 | POST | `/api/platform/open/webhooks` | `platform-open.routes.ts:46` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 64 | POST | `/api/platform/open/webhooks/:id/test` | `platform-open.routes.ts:48` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 65 | POST | `/api/platform/open/webhooks/:id/redeliver` | `platform-open.routes.ts:50` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 66 | POST | `/api/platform/open/webhooks/:id/resume` | `platform-open.routes.ts:52` | open 开放平台（目录外域） | `open:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
+| 57 | POST | `/api/platform/open/api-keys` | `platform-open.routes.ts:31` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 58 | POST | `/api/platform/open/api-keys/:id/enable` | `platform-open.routes.ts:37` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 59 | POST | `/api/platform/open/api-keys/:id/rotate` | `platform-open.routes.ts:43` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 60 | POST | `/api/platform/open/api-keys/:id/rotate-complete` | `platform-open.routes.ts:49` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 61 | PUT | `/api/platform/open/api-keys/:id` | `platform-open.routes.ts:57` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 62 | DELETE | `/api/platform/open/api-keys/:id` | `platform-open.routes.ts:63` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 63 | POST | `/api/platform/open/webhooks` | `platform-open.routes.ts:77` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 64 | POST | `/api/platform/open/webhooks/:id/test` | `platform-open.routes.ts:83` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 65 | POST | `/api/platform/open/webhooks/:id/redeliver` | `platform-open.routes.ts:89` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 66 | POST | `/api/platform/open/webhooks/:id/resume` | `platform-open.routes.ts:95` | open 开放平台 | `open:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
 | 67 | POST | `/api/platform/plans/` | `platform-plans.routes.ts:17` | billing 套餐与计费 | `billing:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 68 | PUT | `/api/platform/plans/:planId` | `platform-plans.routes.ts:26` | billing 套餐与计费 | `billing:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 69 | DELETE | `/api/platform/plans/:planId` | `platform-plans.routes.ts:29` | billing 套餐与计费 | `billing:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
@@ -121,9 +122,9 @@
 | 75 | PUT | `/api/platform/reconciliation/:id/settle` | `platform-reconciliation.routes.ts:14` | billing 套餐与计费（对账） | `billing:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 76 | POST | `/api/platform/reconciliation/` | `platform-reconciliation.routes.ts:17` | billing 套餐与计费（对账） | `billing:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 77 | PUT | `/api/platform/reconciliation/:id` | `platform-reconciliation.routes.ts:18` | billing 套餐与计费（对账） | `billing:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
-| 78 | POST | `/api/platform/reviews/:id/reply` | `platform-review.routes.ts:10` | review 平台评价/审核（目录外域） | `review:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 79 | PUT | `/api/platform/reviews/:id/approval` | `platform-review.routes.ts:11` | review 平台评价/审核（目录外域） | `review:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
-| 80 | POST | `/api/platform/reviews/batch-approval` | `platform-review.routes.ts:12` | review 平台评价/审核（目录外域） | `review:manage`（本单新增） | ❌ 无（本单新增） | 待接线（需先扩权限点目录） |
+| 78 | POST | `/api/platform/reviews/:id/reply` | `platform-review.routes.ts:16` | review 平台评价/审核 | `review:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 79 | PUT | `/api/platform/reviews/:id/approval` | `platform-review.routes.ts:21` | review 平台评价/审核 | `review:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
+| 80 | POST | `/api/platform/reviews/batch-approval` | `platform-review.routes.ts:26` | review 平台评价/审核 | `review:manage`（S3-219 扩入平台侧目录） | ✅ 有（S3-219 扩入平台侧目录） | ✅ 已接线（S3-219） |
 | 81 | POST | `/api/platform/roles/` | `platform-role.routes.ts:28` | sysconfig 全局系统配置（平台角色与权限点） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 82 | PUT | `/api/platform/roles/:id/permissions` | `platform-role.routes.ts:30` | sysconfig 全局系统配置（平台角色与权限点） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
 | 83 | PUT | `/api/platform/roles/:id` | `platform-role.routes.ts:31` | sysconfig 全局系统配置（平台角色与权限点） | `sysconfig:manage`（本单新增） | ❌ 无（本单新增） | 待接线（已立项） |
@@ -176,9 +177,10 @@
 
 ## 五、权限点与目录的关系（本单设计，待凌舟批准的 3 项）
 
-1. **读码**：`<域>:view` 共 7 条，已在 `PERMISSION_CATALOG`（迁移 179 + 代码常量）内，可直接用于读端点；
-2. **写码**：`<域>:manage` 共 9 条（本单新增，一域一码，**不按 105 个端点 1:1 建码**，避免矩阵碎片化）；
-3. **目录外域**：`library` / `open` / `review` / `miniapp` 不在目录的 8 个 moduleCode 内 ⇒ 现在建了码矩阵也存不下，需先扩目录（属独立裁定项）。
+1. **读码**：`<域>:view` 共 7 条，已在平台侧 `PERMISSION_CATALOG`（迁移 179 建表 + 代码常量供数）内，可直接用于读端点；
+2. **写码**：`<域>:manage` 共 9 条（S3-193 新增，一域一码，**不按 105 个端点 1:1 建码**，避免矩阵碎片化）；
+3. **目录外域（S3-219 已处置 3 个）**：`library` / `open` / `review` 已按 S3-213 裁定 ② **扩入平台侧目录**（`backend/src/services/platform/platform-role.service.ts` 的 `PERMISSION_CATALOG` 新增 3 条 BUTTON 码 ⇒ 8 域 → 11 域、18 条 → 21 条），对应写码因此**可被角色矩阵授予**；`miniapp` 仍不在目录内（其唯一写端点是公开端点，按豁免登记，本单未接线）。
+4. **两处必须同时改（S3-219 教训）**：`middleware/platform-rbac.ts` 的 `PLATFORM_PERMISSIONS` 决定「码能不能被端点引用」，`platform-role.service.ts` 的 `PERMISSION_CATALOG` 决定「码能不能被授予」（`updateRolePermissions()` 对目录外 `module_code` 直接 400）。只改前者 ⇒ 端点永久 403（除超管），属静默失效。
 
 **卡内示例命名 `platform:tenant:manage` 未采纳的理由**：目录既有命名规范是 `<moduleCode>:<action>`（`tenant:view` / `ticket:reply`），
 再加一层 `platform:` 会让同一个域出现两种写法（目录里 `tenant:view`、端点里 `platform:tenant:manage`），与项目「同一概念只留一个出处」的原则相悖。

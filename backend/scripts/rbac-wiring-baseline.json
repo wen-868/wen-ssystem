@@ -5,8 +5,8 @@
   "_endpointClass": "S3-205（收口总清单第 68 项，2026-10-15 凌舟裁定）起，本台账按**写端点三分**记账：① `gaps` = 无授权形态的**真缺口**（认证≠授权），登记只表示「已盘点、待后续批次接线」；② `consumerEnd` = **消费者端保护形态**（同一挂载调用里 `requireConsumerAuthWithTenant` 与 `csrfMiddleware` **成对**出现）⇒ 按裁定**不适用商家权限码**（消费者 roles 恒空，硬套商家码会把小程序写端点打成 403，同 S3-203 的 `trace:*` 教训），故**不计入缺口**，但必须逐条登记，未登记 ⇒ `--strict` 必红；③ 挂了 `requirePermission` / `requirePlatformPermission` 的端点不入台账（已接线）。两类**按端点路径匹配、不按行号**（行号会漂移：如 S3-187 改路径参数形态、S3-195 改前缀收窄都让行号失真）。判据刻意从严：只挂消费者认证、**没有 CSRF** 的写端点仍记 `gaps`。",
   "_s3214_b2_note": "S3-214-B2（2026-10-16，采购域 31 条按「使用者已持有码」接线）后：本域 25 条已接线、**不入台账**（逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十一）；保留 6 条 —— ① 4 条移动端「销售开单」采购页签创建端点（POST /purchase-orders/、/purchase-in-stocks/、/purchase-payments/、/purchase-returns/）：该页签无权限门（app-mobile/src/pages/sales/create-sale.vue:23），接线会把持 sale:bill 的门店角色由可用打成 403 ⇒ 待移动端补权限门后收编；② 采购计划 2 条（POST /purchase-plans/、/:planNo/convert）：页面真实使用者含 STORE_MANAGER（admin-web/src/router/index.ts:131），生产店长不持任何 purchase:*，又无店长已持有的采购计划语义码 ⇒ 待授权模型定案。",
   "_counts": {
-    "files": 151,
-    "endpoints": 616,
+    "files": 148,
+    "endpoints": 588,
     "consumerEndFiles": 4,
     "consumerEndEndpoints": 39
   },
@@ -546,23 +546,6 @@
       "POST /api/platform/reports/export/",
       "POST /api/platform/reports/export/:id/retry"
     ],
-    "platform-library.routes.ts": [
-      "POST /api/platform/library/spus/import",
-      "POST /api/platform/library/spus",
-      "PUT /api/platform/library/spus/:id",
-      "PUT /api/platform/library/spus/:id/status",
-      "DELETE /api/platform/library/spus/:id",
-      "POST /api/platform/library/spus/:spuId/skus",
-      "PUT /api/platform/library/skus/:id",
-      "DELETE /api/platform/library/skus/:id",
-      "POST /api/platform/library/brands",
-      "PUT /api/platform/library/brands/:id",
-      "DELETE /api/platform/library/brands/:id",
-      "POST /api/platform/library/brands/:id/auth-letter",
-      "POST /api/platform/library/api-keys",
-      "PUT /api/platform/library/api-keys/:id",
-      "DELETE /api/platform/library/api-keys/:id"
-    ],
     "platform-miniapp.routes.ts": [
       "POST /api/platform-miniapp/subscriptions"
     ],
@@ -575,18 +558,6 @@
     "platform-notification.routes.ts": [
       "POST /api/platform/notifications/read-all",
       "POST /api/platform/notifications/:id/read"
-    ],
-    "platform-open.routes.ts": [
-      "POST /api/platform/open/api-keys",
-      "POST /api/platform/open/api-keys/:id/enable",
-      "POST /api/platform/open/api-keys/:id/rotate",
-      "POST /api/platform/open/api-keys/:id/rotate-complete",
-      "PUT /api/platform/open/api-keys/:id",
-      "DELETE /api/platform/open/api-keys/:id",
-      "POST /api/platform/open/webhooks",
-      "POST /api/platform/open/webhooks/:id/test",
-      "POST /api/platform/open/webhooks/:id/redeliver",
-      "POST /api/platform/open/webhooks/:id/resume"
     ],
     "platform-plans.routes.ts": [
       "POST /api/platform/plans/",
@@ -604,11 +575,6 @@
       "PUT /api/platform/reconciliation/:id/settle",
       "POST /api/platform/reconciliation/",
       "PUT /api/platform/reconciliation/:id"
-    ],
-    "platform-review.routes.ts": [
-      "POST /api/platform/reviews/:id/reply",
-      "PUT /api/platform/reviews/:id/approval",
-      "POST /api/platform/reviews/batch-approval"
     ],
     "platform-role.routes.ts": [
       "POST /api/platform/roles/",
@@ -979,5 +945,6 @@
       "DELETE /api/admin/wb-notifications/:id"
     ]
   },
-  "_lastUpdate": "S3-198（2026-10-14，库存/追溯域批 + 返工）：移除已接线的 25 条（data-transfer 2 / inventory-batch 7 / inventory-share 6 / transfer-order 7 / warehouse 3）；**trace.routes.ts 的 9 条按凌舟裁定退回**（生产 t_sys_role.permissions 实测门店角色不含 trace:*，属产品授权口径，待另立补授权单）；同步 S3-187（67beff76）改名的 3 条陈旧登记（同一端点改名，非新增缺口）。"
+  "_lastUpdate": "2026-10-16 S3-219 合入：library/open/review 3 域 28 条已接线，从 gaps 移除（与 S3-214-B2 的 25 条合并后 641→588）",
+  "_s3219_note": "S3-219（收口总清单第 67 项）已给 library/open/review 3 域共 28 条平台写端点接上 `requirePlatformPermission`（形态=inline，见 `node backend/scripts/guard-rbac-wiring.mjs --json` 的 authForm=inline）⇒ 这 28 条**不再是无授权缺口**，已按流程从 `gaps` 中逐条移除（files 155→152、endpoints 641→613）。移除的是**同一批端点**的登记，不是新缺口洗绿：接线前这 28 条确有缺口、接线后判据（端点调用文本内含权限中间件）成立。"
 }

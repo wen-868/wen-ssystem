@@ -12,8 +12,8 @@
  * - 整表替换在同一事务内先删后插。
  *
  * C6-2-T6-F2 变更（本文件随之更新的口径，对应 R101-派单-20260926-C6-2-T6-F2 交付物②③）：
- * - 权限点目录的单一真相源 = 服务里的代码常量 `PERMISSION_CATALOG`（18 条），
- *   目录端点**恒 18 条且不查库**（原「空目录 ⇒ modules: []」用例已不成立）；
+ * - 权限点目录的单一真相源 = 服务里的代码常量 `PERMISSION_CATALOG`（S3-219 起 21 条 / 11 域），
+ *   目录端点**恒 21 条且不查库**（原「空目录 ⇒ modules: []」用例已不成立）；
  * - moduleCode 合法集合 / dataScope 4 档同样由常量派生 ⇒ 全链路不再查 t_platform_permission_catalog。
  *
  * 注意：本沙箱 vitest 无法启动（spawn EPERM，踩坑[R101-C2-0]同例），用例只写好，执行由凌舟在本机跑。
@@ -57,13 +57,16 @@ function execCalls(): ExecCall[] {
   }));
 }
 
-/** 常量派生的 8 个功能域（moduleCode 升序，目录端点与矩阵端点共用同一顺序） */
+/** 常量派生的 11 个功能域（moduleCode 升序，目录端点与矩阵端点共用同一顺序） */
 const MODULE_CODES = [
   "ai",
   "billing",
   "common",
+  "library",
   "marketing",
   "monitor",
+  "open",
+  "review",
   "sysconfig",
   "tenant",
   "ticket",
@@ -112,11 +115,12 @@ describe("C6-2-T6 · GET /api/platform/admins/roles（角色列表 + domainCount
 describe("C6-2-T6-F2 · GET /api/platform/permissions/catalog（目录由代码常量提供）", () => {
   beforeEach(() => vi.resetAllMocks());
 
-  it("恒 18 条、零查库零事务（原「空目录 ⇒ modules: []」已不成立：目录不再来自表）", () => {
+  it("恒 21 条、零查库零事务（原「空目录 ⇒ modules: []」已不成立：目录不再来自表）", () => {
     const { modules } = listPermissionCatalog();
 
-    expect(modules.flatMap((m) => m.permissions)).toHaveLength(18);
-    expect(modules).toHaveLength(8);
+    // S3-219：新增 library / open / review 3 条 BUTTON 写码 ⇒ 18 → 21 条、8 → 11 域
+    expect(modules.flatMap((m) => m.permissions)).toHaveLength(21);
+    expect(modules).toHaveLength(11);
     expect(mocks.query).not.toHaveBeenCalled();
     expect(mocks.queryOne).not.toHaveBeenCalled();
     expect(mocks.transaction).not.toHaveBeenCalled();
@@ -138,6 +142,10 @@ describe("C6-2-T6-F2 · GET /api/platform/permissions/catalog（目录由代码�
     // 组名取自常量（monitor 的 moduleName 含空格与斜杠，逐字保留）
     expect(modules.find((m) => m.moduleCode === "monitor")?.moduleName).toBe("运维监控 / 日志");
     expect(modules.find((m) => m.moduleCode === "common")?.moduleName).toBe("数据范围档位");
+    // S3-219 新增 3 域（模块名逐字，供平台角色矩阵页渲染）
+    expect(modules.find((m) => m.moduleCode === "library")?.moduleName).toBe("商品库");
+    expect(modules.find((m) => m.moduleCode === "open")?.moduleName).toBe("开放平台");
+    expect(modules.find((m) => m.moduleCode === "review")?.moduleName).toBe("平台评价与审核");
   });
 
   it("ticket 域 = 1 条 MENU + 7 条 BUTTON（含 ticket:report；反测 a：删任一条 ⇒ 本断言必红）", () => {

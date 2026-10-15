@@ -3,6 +3,7 @@ import multer from "multer";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import * as controller from "../controllers/platform/library.controller";
 import {
   listCallLogs,
@@ -28,43 +29,65 @@ export const platformLibraryRouter = Router();
 // 所有商品库管理接口需要平台管理员认证
 platformLibraryRouter.use(requirePlatformAuth);
 
+// ─── S3-219（收口总清单第 67 项）：本文件 15 个**写**端点挂平台侧写权限码 `library:manage` ───
+// 形态与 S3-193 试点域（platform-msg-config.routes.ts）逐字对齐：权限中间件写在**端点声明**上，
+// 认证 + CSRF 仍由 routeConfig.auth = "requirePlatformAuth" 声明式统一挂载（auto-routes）。
+// 放行判据（middleware/platform-rbac.ts）：平台超管全通；其余角色需
+// `t_platform_role_permission` 的 library 域 can_page_btn = 1，否则 403。
+// 读端点（GET）本单不接（第 67 项范围是写端点，同 S3-193 口径）。
+// ⚠️ 权限码**逐端点字面量**书写，不抽常量：G4 门禁 `guard-rbac-wiring.mjs` 的判据是
+// "该端点调用文本内出现 `requirePlatformPermission(`"（S3-205 踩坑[171] 同族教训：
+// 抽常量会让门禁扫不到 ⇒ 端点被误判成"无授权形态"）。
+
 // ─── SPU 路由 ──────────────────────────────────────────────────
 // GET /api/platform/library/spus - SPU列表
 platformLibraryRouter.get("/spus", asyncHandler(controller.listSpus));
 
 // POST /api/platform/library/spus/import - 批量导入SPU（放在 /:id 之前，避免冲突）
-platformLibraryRouter.post("/spus/import", asyncHandler(controller.importSpus));
+platformLibraryRouter.post(
+  "/spus/import",
+  requirePlatformPermission("library:manage"),
+  asyncHandler(controller.importSpus)
+);
 
 // GET /api/platform/library/spus/:id - SPU详情
 platformLibraryRouter.get("/spus/:id", asyncHandler(controller.getSpu));
 
 // POST /api/platform/library/spus - 创建SPU
-platformLibraryRouter.post("/spus", asyncHandler(controller.createSpu));
+platformLibraryRouter.post("/spus", requirePlatformPermission("library:manage"), asyncHandler(controller.createSpu));
 
 // PUT /api/platform/library/spus/:id - 更新SPU
-platformLibraryRouter.put("/spus/:id", asyncHandler(controller.updateSpu));
+platformLibraryRouter.put("/spus/:id", requirePlatformPermission("library:manage"), asyncHandler(controller.updateSpu));
 
 // PUT /api/platform/library/spus/:id/status - 审核SPU
-platformLibraryRouter.put("/spus/:id/status", asyncHandler(controller.reviewSpu));
+platformLibraryRouter.put(
+  "/spus/:id/status",
+  requirePlatformPermission("library:manage"),
+  asyncHandler(controller.reviewSpu)
+);
 
 // GET /api/platform/library/spus/:id/review-logs - 审核流水（C6-2-T5，只读；路径段更具体，不与 /spus/:id 冲突）
 platformLibraryRouter.get("/spus/:id/review-logs", asyncHandler(controller.listSpuReviewLogs));
 
 // DELETE /api/platform/library/spus/:id - 删除SPU
-platformLibraryRouter.delete("/spus/:id", asyncHandler(controller.deleteSpu));
+platformLibraryRouter.delete("/spus/:id", requirePlatformPermission("library:manage"), asyncHandler(controller.deleteSpu));
 
 // ─── SKU 路由 ──────────────────────────────────────────────────
 // GET /api/platform/library/spus/:spuId/skus - SPU下SKU列表
 platformLibraryRouter.get("/spus/:spuId/skus", asyncHandler(controller.listSkusBySpu));
 
 // POST /api/platform/library/spus/:spuId/skus - 为SPU添加SKU
-platformLibraryRouter.post("/spus/:spuId/skus", asyncHandler(controller.addSku));
+platformLibraryRouter.post(
+  "/spus/:spuId/skus",
+  requirePlatformPermission("library:manage"),
+  asyncHandler(controller.addSku)
+);
 
 // PUT /api/platform/library/skus/:id - 更新SKU
-platformLibraryRouter.put("/skus/:id", asyncHandler(controller.updateSku));
+platformLibraryRouter.put("/skus/:id", requirePlatformPermission("library:manage"), asyncHandler(controller.updateSku));
 
 // DELETE /api/platform/library/skus/:id - 删除SKU
-platformLibraryRouter.delete("/skus/:id", asyncHandler(controller.deleteSku));
+platformLibraryRouter.delete("/skus/:id", requirePlatformPermission("library:manage"), asyncHandler(controller.deleteSku));
 
 // ─── 类目路由（只读聚合） ──────────────────────────────────────
 // GET /api/platform/library/categories - 类目只读聚合（S3-110 ①：跨租户聚合 + 挂载商品数）
@@ -75,18 +98,19 @@ platformLibraryRouter.get("/categories", asyncHandler(controller.listCategories)
 platformLibraryRouter.get("/brands", asyncHandler(controller.listBrands));
 
 // POST /api/platform/library/brands - 创建品牌
-platformLibraryRouter.post("/brands", asyncHandler(controller.createBrand));
+platformLibraryRouter.post("/brands", requirePlatformPermission("library:manage"), asyncHandler(controller.createBrand));
 
 // PUT /api/platform/library/brands/:id - 更新品牌
-platformLibraryRouter.put("/brands/:id", asyncHandler(controller.updateBrand));
+platformLibraryRouter.put("/brands/:id", requirePlatformPermission("library:manage"), asyncHandler(controller.updateBrand));
 
 // DELETE /api/platform/library/brands/:id - 删除品牌
-platformLibraryRouter.delete("/brands/:id", asyncHandler(controller.deleteBrand));
+platformLibraryRouter.delete("/brands/:id", requirePlatformPermission("library:manage"), asyncHandler(controller.deleteBrand));
 
 // POST /api/platform/library/brands/:id/auth-letter - 上传品牌授权书（C6-1A #27）
 // 注意：必须排在 /brands/:id 的其它方法之后无冲突（路径段更多、更具体）
 platformLibraryRouter.post(
   "/brands/:id/auth-letter",
+  requirePlatformPermission("library:manage"),
   authLetterUpload,
   controller.uploadBrandAuthLetter
 );
@@ -96,13 +120,17 @@ platformLibraryRouter.post(
 platformLibraryRouter.get("/api-keys", asyncHandler(controller.listApiKeys));
 
 // POST /api/platform/library/api-keys - 创建API Key
-platformLibraryRouter.post("/api-keys", asyncHandler(controller.createApiKey));
+platformLibraryRouter.post("/api-keys", requirePlatformPermission("library:manage"), asyncHandler(controller.createApiKey));
 
 // PUT /api/platform/library/api-keys/:id - 更新API Key
-platformLibraryRouter.put("/api-keys/:id", asyncHandler(controller.updateApiKey));
+platformLibraryRouter.put("/api-keys/:id", requirePlatformPermission("library:manage"), asyncHandler(controller.updateApiKey));
 
 // DELETE /api/platform/library/api-keys/:id - 吊销API Key
-platformLibraryRouter.delete("/api-keys/:id", asyncHandler(controller.deleteApiKey));
+platformLibraryRouter.delete(
+  "/api-keys/:id",
+  requirePlatformPermission("library:manage"),
+  asyncHandler(controller.deleteApiKey)
+);
 
 // GET /api/platform/library/api-keys/:id/stats - 调用统计
 platformLibraryRouter.get("/api-keys/:id/stats", asyncHandler(controller.getApiKeyStats));

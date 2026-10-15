@@ -37,6 +37,16 @@ vi.mock("../../shared/db", async (importOriginal) => {
   };
 });
 
+/**
+ * S3-219：本文件测的是商品库 SPU 状态机（APPROVED ↔ OFFLINE 等业务分支），不是 RBAC
+ * ⇒ 把平台权限中间件替换为「放行桩」，用例继续以已授权身份打到 controller/service。
+ * 权限判定的两侧反测在 `routes/platform-rbac-domain-wiring.test.ts`（28 端点 × 无码 403 ／ 有码放行）
+ * 与 `middleware/platform-rbac.test.ts`（判定表）里做，本文件不重复。
+ */
+vi.mock("../../middleware/platform-rbac", () => ({
+  requirePlatformPermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 import { env } from "../../config/env";
 import {
   PLATFORM_JWT_AUDIENCE,

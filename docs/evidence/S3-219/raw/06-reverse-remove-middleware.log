@@ -1,0 +1,33 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-219/backend
+
+ ❯ src/__tests__/routes/platform-rbac-domain-wiring.test.ts (67 tests | 1 failed) 498ms
+     × ① 无该码（library:manage 的 can_page_btn=0）⇒ 403 + 拒绝留痕 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/platform-rbac-domain-wiring.test.ts > S3-219 · POST /api/platform/library/spus > ① 无该码（library:manage 的 can_page_btn=0）⇒ 403 + 拒绝留痕
+AssertionError: expected 400 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 400
+
+ ❯ src/__tests__/routes/platform-rbac-domain-wiring.test.ts:305:26
+    303|     it(`① 无该码（${endpoint.suite.permCode} 的 can_page_btn=0）⇒ 403 + 拒绝留痕…
+    304|       const res = await call(endpoint);
+    305|       expect(res.status).toBe(403);
+       |                          ^
+    306|       // 分辨力：这条文案只有平台权限中间件会产出（CSRF 层文案是"CSRF token 无效或缺失"）
+    307|       expect(String(res.body.msg)).toContain(endpoint.suite.permCode);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 66 passed (67)
+   Start at  02:46:29
+   Duration  2.27s (transform 576ms, setup 57ms, import 1.20s, tests 498ms, environment 0ms)
+

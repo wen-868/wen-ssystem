@@ -46,7 +46,8 @@ const DOMAIN_MAP = {
   "platform-msg-config.routes.ts": {
     domain: "sysconfig 全局系统配置（短信/邮件配置）",
     code: "sysconfig:manage",
-    wired: true
+    wired: true,
+    wiredBy: "S3-193 试点"
   },
   "platform-templates.routes.ts": { domain: "sysconfig 全局系统配置（模板）", code: "sysconfig:manage" },
   "platform-app-version.routes.ts": { domain: "sysconfig 全局系统配置（App 版本发布）", code: "sysconfig:manage" },
@@ -78,20 +79,25 @@ const DOMAIN_MAP = {
       "/tickets/:id/close": "ticket:close"
     }
   },
+  // S3-219（收口总清单第 67 项）：3 个目录外域已在平台侧目录扩码 + 28 条写端点接线
+  // ⇒ 状态由「待接线（需先扩目录）」变「已接线（S3-219）」，needsCatalog 不再置位。
   "platform-library.routes.ts": {
-    domain: "library 商品库（目录外域）",
+    domain: "library 商品库",
     code: "library:manage",
-    needsCatalog: true
+    wired: true,
+    wiredBy: "S3-219"
   },
   "platform-open.routes.ts": {
-    domain: "open 开放平台（目录外域）",
+    domain: "open 开放平台",
     code: "open:manage",
-    needsCatalog: true
+    wired: true,
+    wiredBy: "S3-219"
   },
   "platform-review.routes.ts": {
-    domain: "review 平台评价/审核（目录外域）",
+    domain: "review 平台评价/审核",
     code: "review:manage",
-    needsCatalog: true
+    wired: true,
+    wiredBy: "S3-219"
   },
   "platform-miniapp.routes.ts": {
     domain: "miniapp 平台小程序（公开端点）",
@@ -175,6 +181,7 @@ function scan() {
         codeExists: Boolean(perEndpoint),
         reason: mapping?.reason ?? null,
         wired: Boolean(mapping?.wired),
+        wiredBy: mapping?.wiredBy ?? null,
         needsCatalog: Boolean(mapping?.needsCatalog)
       });
     }
@@ -183,13 +190,18 @@ function scan() {
 }
 
 function statusOf(row) {
-  if (row.wired) return "✅ 已接线（S3-193 试点）";
+  if (row.wired) return `✅ 已接线（${row.wiredBy ?? "已接线"}）`;
   if (row.code) return row.needsCatalog ? "待接线（需先扩权限点目录）" : "待接线（已立项）";
   return "豁免（理由见下表）";
 }
 
 function codeText(row) {
-  if (row.code) return `\`${row.code}\`` + (row.codeExists ? "（目录既有）" : "（本单新增）");
+  if (row.code) {
+    return (
+      `\`${row.code}\`` +
+      (row.codeExists ? "（目录既有）" : row.wired ? "（S3-219 扩入平台侧目录）" : "（本单新增）")
+    );
+  }
   return "—（豁免）";
 }
 
@@ -204,19 +216,29 @@ function buildMarkdown(rows, unknown) {
   const wired = rows.filter((r) => r.wired).length;
   const exempt = rows.filter((r) => !r.code).length;
   const needsCatalog = rows.filter((r) => r.needsCatalog).length;
+  /** 按「谁接的线」分档计数（S3-219 起两批接线，状态列必须能区分批次，不许都写成"试点"） */
+  const wiredByTag = (tag) => rows.filter((r) => r.wired && r.wiredBy === tag).length;
 
   const out = [];
   out.push("# R101 · 平台 RBAC 接线台账（平台写端点逐条登记）");
   out.push("");
-  out.push("> 派单：**S3-193**（收口总清单第 50 项）｜生成器：`backend/scripts/s3-193-platform-rbac-ledger.mjs`（可复跑）");
+  out.push("> 派单：**S3-193**（收口总清单第 50 项）→ **S3-219** 更新（第 67 项：平台侧 3 域目录扩 + 28 条写端点接线）｜生成器：`backend/scripts/s3-193-platform-rbac-ledger.mjs`（可复跑）");
   out.push("> 复核命令：`node backend/scripts/s3-193-platform-rbac-ledger.mjs --check`（计数守恒 + 逐条映射断言）");
   out.push("");
   out.push(`**总数核对**：扫描 ${EXPECTED_FILES} 个 \`platform*.routes.ts\` ⇒ 写端点声明 **${rows.length}** 条（期望 ${EXPECTED_TOTAL}）；`);
   out.push(`按方法：${Object.entries(byMethod).map(([k, v]) => `${k} ${v}`).join(" / ")}；`);
-  out.push(`其中**已接线 ${wired} 条**（S3-193 试点域）、待接线 ${rows.length - wired - exempt - needsCatalog} 条、需先扩目录 ${needsCatalog} 条、豁免 ${exempt} 条。`);
+  out.push(
+    `其中**已接线 ${wired} 条**（S3-193 试点域 ${wiredByTag("S3-193 试点")} 条 ＋ S3-219 商品库/开放平台/评价 3 域 ${wiredByTag("S3-219")} 条）、` +
+      `待接线 ${rows.length - wired - exempt - needsCatalog} 条、需先扩目录 ${needsCatalog} 条、豁免 ${exempt} 条。`
+  );
   out.push("");
   out.push("**口径**：写端点 = 源码 `.post/.put/.patch/.delete` **声明数**（与 S3-185 取证、CI 外的 G4 门禁 `guard:rbac-wiring` 基线 `rbac-wiring-baseline.json` 同为 105，三方同口径）。");
   out.push("行号 = 该声明在文件中的行；`完整路径` 由「router 变量 ↔ routeConfig.prefix」精确配对得出（多 router 文件不再拼前缀，见 §四）。");
+  out.push(
+    `**S3-219 更新（2026-10-16，第 67 项）**：\`library\`/\`open\`/\`review\` 3 域由「需先扩目录」→「已接线」（共 ${wiredByTag("S3-219")} 条），` +
+      `总声明数与 §一/§二 计数守恒不变；接线形态 = 端点声明上的 \`requirePlatformPermission("…")\` **字面量**（与 S3-193 试点域同形，` +
+      `G4 门禁 \`guard-rbac-wiring.mjs --json\` 的 \`authForm\` 记为 \`inline\`）。`
+  );
   out.push("");
 
   out.push("## 一、按域汇总");
@@ -226,7 +248,7 @@ function buildMarkdown(rows, unknown) {
   for (const [domain, list] of [...byDomain.entries()].sort()) {
     const codes = [...new Set(list.map((r) => r.code ?? "—（豁免）"))].join(" / ");
     const status = list.some((r) => r.wired)
-      ? "✅ 已接线（试点）"
+      ? `✅ 已接线（${list.find((r) => r.wired)?.wiredBy ?? "已接线"}）`
       : list.some((r) => r.needsCatalog)
         ? "待接线（需先扩目录）"
         : list.every((r) => !r.code)
@@ -241,7 +263,13 @@ function buildMarkdown(rows, unknown) {
   out.push("| # | 方法 | 完整路径 | 文件:行 | 归属域 | 拟定权限点 | 是否已有现成码 | 接入状态 |");
   out.push("|--:|:--|:--|:--|:--|:--|:--|:--|");
   rows.forEach((row, i) => {
-    const existing = row.code ? (row.codeExists ? "✅ 有（目录既有）" : "❌ 无（本单新增）") : "—（豁免）";
+    const existing = row.code
+      ? row.codeExists
+        ? "✅ 有（目录既有）"
+        : row.wired
+          ? "✅ 有（S3-219 扩入平台侧目录）"
+          : "❌ 无（本单新增）"
+      : "—（豁免）";
     out.push(
       `| ${i + 1} | ${row.method} | \`${row.path}\` | \`${row.file}:${row.line}\` | ${row.domain} | ${codeText(row)} | ${existing} | ${statusOf(row)} |`
     );
@@ -269,9 +297,10 @@ function buildMarkdown(rows, unknown) {
 
   out.push("## 五、权限点与目录的关系（本单设计，待凌舟批准的 3 项）");
   out.push("");
-  out.push("1. **读码**：`<域>:view` 共 7 条，已在 `PERMISSION_CATALOG`（迁移 179 + 代码常量）内，可直接用于读端点；");
-  out.push("2. **写码**：`<域>:manage` 共 9 条（本单新增，一域一码，**不按 105 个端点 1:1 建码**，避免矩阵碎片化）；");
-  out.push("3. **目录外域**：`library` / `open` / `review` / `miniapp` 不在目录的 8 个 moduleCode 内 ⇒ 现在建了码矩阵也存不下，需先扩目录（属独立裁定项）。");
+  out.push("1. **读码**：`<域>:view` 共 7 条，已在平台侧 `PERMISSION_CATALOG`（迁移 179 建表 + 代码常量供数）内，可直接用于读端点；");
+  out.push("2. **写码**：`<域>:manage` 共 9 条（S3-193 新增，一域一码，**不按 105 个端点 1:1 建码**，避免矩阵碎片化）；");
+  out.push("3. **目录外域（S3-219 已处置 3 个）**：`library` / `open` / `review` 已按 S3-213 裁定 ② **扩入平台侧目录**（`backend/src/services/platform/platform-role.service.ts` 的 `PERMISSION_CATALOG` 新增 3 条 BUTTON 码 ⇒ 8 域 → 11 域、18 条 → 21 条），对应写码因此**可被角色矩阵授予**；`miniapp` 仍不在目录内（其唯一写端点是公开端点，按豁免登记，本单未接线）。");
+  out.push("4. **两处必须同时改（S3-219 教训）**：`middleware/platform-rbac.ts` 的 `PLATFORM_PERMISSIONS` 决定「码能不能被端点引用」，`platform-role.service.ts` 的 `PERMISSION_CATALOG` 决定「码能不能被授予」（`updateRolePermissions()` 对目录外 `module_code` 直接 400）。只改前者 ⇒ 端点永久 403（除超管），属静默失效。");
   out.push("");
   out.push("**卡内示例命名 `platform:tenant:manage` 未采纳的理由**：目录既有命名规范是 `<moduleCode>:<action>`（`tenant:view` / `ticket:reply`），");
   out.push("再加一层 `platform:` 会让同一个域出现两种写法（目录里 `tenant:view`、端点里 `platform:tenant:manage`），与项目「同一概念只留一个出处」的原则相悖。");
