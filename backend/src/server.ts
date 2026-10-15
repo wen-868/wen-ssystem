@@ -299,3 +299,6 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export { app, buildRateLimitOptions };
+
+// S3-50 RT：故意注入类型错误（tsc 读、eslint 不读）以触发 `Build backend` 门禁——红测分支，取证后关闭删除
+export const s350TscProbe: number = "s3-50 RT";
