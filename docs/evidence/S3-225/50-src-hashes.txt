@@ -1,0 +1,14 @@
+# S3-225 · 产物哈希（SHA256，终态 = 合并 origin/main 后）
+
+FD8323E13F50D55B88E058DA93A342A01CD05756BE82C192E6EE21782D9B29E2  backend\src\routes\admin-staff.routes.ts
+113664CE30C3D8E33F5CB21195D0C3A3D890016A02C1C960D631F6A61909C8D2  backend\src\routes\sys-user.routes.ts
+251B8CDDA1DAE6353A7B168B1AAE7746C10328F1BEE98C06798A0B1B9D6444E0  backend\src\routes\rbac.routes.ts
+DAC3079965F5AFAED86017BDA09BCB8E52947D63F02B9FEC6CE30E7A384C8C71  backend\src\routes\data-permission.routes.ts
+ED1DE9D5F16997492D3C87BCEE1DD9B6DBA8AE3847BEAAEE959AE8F654440509  backend\src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts
+EE23E5B9AAED863B2C6086ADC5176B2718E598DC41EB2ACC9BFDB2AFDA22D132  backend\src\__tests__\routes\rbac-g0-wiring.test.ts
+6C4F7B4551C4C0B1BC5359FF8CF0AC637CF35860122EA1276ECD0DBCF612292B  backend\src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts
+65BF15C4BE5C243FEBA9549DA57EF311DDEA8F4A46FC0DC0423CCD819F61C5F8  backend\scripts\rbac-wiring-baseline.json
+0ACC1F5EB58CC22D3D0C5A607F8A1EE6C44A1418BF046D79CCF51104CC718B97  docs\tasks\R101-RBAC接线缺口清单.md
+
+# 说明 1：四个路由文件与用例文件在反测（摘线/改码）期间曾被临时改动，复原后与 raw/30-hash-before-neg.txt 逐字节一致（0 处不一致）；
+# 说明 2：合并 origin/main 后仅 rbac-b2-s3-225-staff-wiring.test.ts（总数断言 194 → 226）、rbac-g0-wiring.test.ts / rbac-b2-s3-223-finance-wiring.test.ts / rbac-wiring-baseline.json / 台账 四处按合并态重算，四个路由文件**未再改动**（哈希与合并前一致）。

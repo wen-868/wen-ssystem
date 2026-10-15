@@ -2654,3 +2654,131 @@ app-mobile 页面若**①经首页快捷入口 / tabBar / 推送深链无条件�
 3. 前端死代码：`api/customer.ts:126`（`/credits/:customerId/term`）、`:145-161`（催收四方法）、`app-mobile .../expenses.ts:94`（`PUT /expenses/:expenseNo`）均导出零引用。
 4. 文档编号撞号（仅登记）：`## 十二` 在本文件出现两次（S3-220 与 S3-222 各一次，均在本次合并前落盘）；本单顺延为 `## 十三`，未改动他人章节编号。
 
+## 十五、S3-225 · **员工 / 账号域（7 文件 / 31 写端点）**接线明细与守恒（2026-10-16）
+
+> 派单卡：`docs/tasks/inbox/ACTIVE-S3-225.md`｜判定依据留档：`docs/evidence/S3-225/01-plan-and-judgements.md`
+> 原始输出：`docs/evidence/S3-225/**`｜基线：开工时 `origin/main` = `2b4a0e16`（S3-225 派单提交）
+> ⚠️ **合并态口径（重要）**：开工期间 S3-224（销售域 32 条，PR #350）与记账提交 `ea29ee1f` 合入 `origin/main`（512 → **480 / 129**，
+> g0 快照 183 → 215）⇒ 本单已 `git merge origin/main`，**合并态真值 = 缺口 480 → 469（文件 129 → 129）**、g0 快照总数 **215 → 226**
+> （`S3_224_WIRED_FILES` 与 `S3_225_WIRED_FILES` 两块并存，未删任一批）。本节 §15.4/§15.5 同时给出**本批分支相对值**与**合并态真值**两个读数。
+> ⚠️ **章节号说明**：`## 十四` 已由在办的 S3-224（销售域·批 6，提交 `428103f1`）占用（其 §十四 落盘早于本节）；
+> 本节顺延为 `## 十五`，**未改动他人章节编号**（同 S3-223 §13.7 的处理方式）。
+
+### 15.1 接线口径（照派单卡 §二 执行，**不统一成 `system:*` 通配**）
+
+1. **先查两道闸再动手**：`rbac-g0-wiring.test.ts`（含 `NOT_IN_G0` 范围控制名单）＋ `guard-rbac-wiring --json` 的 `authForm`
+   ⇒ 本域 **31 行全部不在** `NOT_IN_G0`／G1／G2 三个既有锁定名单里（逐行 grep 证据 `docs/evidence/S3-225/03-locks-check.txt`）；
+2. **选码只按「该端点真实使用者已持有的最细现成码」**：本批只用 079 既有四条码
+   `system:user:create`（079:270）／`system:user:edit`（079:271）／`system:role:create`（079:272）／`system:role:edit`（079:273），
+   **不新立码、不改角色种子、不动迁移**；持有角色 = `SUPER_ADMIN` / `OPERATION_ADMIN`（`--holders` 复算 +
+   生产只读底稿 `docs/evidence/_shared/prod-roles-20261016.txt` 的 12 角色 × 权限码一致：生产无任何角色显式持 `system:*`）；
+3. **自服务端点不套管理面码**（S3-203 `trace:*` 教训）：7 条本人数据/本人会话类逐条登记；
+4. **查询型 POST 不按写端点接**：1 条；
+5. **页面角色集不可枚举的行（B 类）不硬接**：app-mobile「我的」页对员工管理页/角色管理页是**无条件硬编码入口**
+   （`profile.vue:50/54`，无 `v-if`、无 `isPageVisible`）⇒ 挂管理面码会把店长等角色由可用打成 403；
+6. **需新立码的不接**：部门域 4 条（079 无部门域码）。
+
+### 15.2 本批已接 **11 条**（端点 / 落地码 / 真实使用者）
+
+| # | 端点 | 落地码 | 真实使用者（页面/调用点） |
+|--:|:--|:--|:--|
+| 1 | `PUT /api/admin/staff/:id/status` | `system:user:edit` | `EmployeesView.vue:340`［`router/index.ts:232 employees`，SUPER_ADMIN］＋`OrganizationView.vue:385`［`:233 organization`，SUPER_ADMIN］；无 app-mobile 调用点 |
+| 2 | `POST /api/admin/sys-users/` | `system:user:create` | 全仓 0 调用点（零回归） |
+| 3 | `POST /api/admin/sys-users/:id/reset-password` | `system:user:edit` | `EmployeesView.vue:363`＋`OrganizationView.vue:405`（`api/system.ts:67`）［均 SUPER_ADMIN］ |
+| 4 | `DELETE /api/admin/sys-users/:id` | `system:user:edit` | 全仓 0 调用点（零回归） |
+| 5 | `PUT /api/admin/system/roles/:id/data-permissions` | `system:role:edit` | `SystemRoles.vue:596/608`［`:237 system/roles`，SUPER_ADMIN］ |
+| 6 | `PUT /api/admin/system/roles/users/:userId/roles` | `system:role:edit` | `SystemRoles.vue:650`（移动端 `roles.ts:86 setUserRoles` 为零引用导出） |
+| 7 | `POST /api/admin/data-permissions/` | `system:role:create` | 全仓 0 调用点（零回归） |
+| 8 | `PUT /api/admin/data-permissions/:id` | `system:role:edit` | 全仓 0 调用点（零回归） |
+| 9 | `DELETE /api/admin/data-permissions/:id` | `system:role:edit` | 全仓 0 调用点（零回归） |
+| 10 | `POST /api/admin/data-permissions/roles/:roleId` | `system:role:create` | 全仓 0 调用点（零回归） |
+| 11 | `DELETE /api/admin/data-permissions/roles/:roleId/:dataPermissionId` | `system:role:edit` | 全仓 0 调用点（零回归） |
+
+**文件分布**：admin-staff 1 ／ sys-user 3 ／ rbac 2 ／ data-permission 5 = **11**
+（`admin-auth.routes.ts`、`department.routes.ts`、`user-session.routes.ts` 三文件本批 0 改动）。
+
+### 15.3 本批**未接** **20 条**（逐条；分五类）
+
+**① B 类 7 条**（移动端写调用点所在页的角色集不可枚举 ⇒ 待移动端补权限门后收编）
+
+| # | 端点 | 移动端写调用点 | 入口依据 |
+|--:|:--|:--|:--|
+| 1 | `POST /api/admin/staff` | `employees.vue:132`（`employees.ts:42 addEmployee`） | `profile.vue:50` 无条件入口（员工管理） |
+| 2 | `PUT /api/admin/staff/:id` | `employees.vue:159`（`employees.ts:47`） | 同上 |
+| 3 | `PUT /api/admin/staff/:id/disable` | `employees.vue:179`（`employees.ts:54`） | 同上 |
+| 4 | `POST /api/admin/staff/:id/restore` | `employees.vue:187`（`employees.ts:56`） | 同上 |
+| 5 | `POST /api/admin/system/roles/` | `role-edit.vue:227`（`roles.ts:63 create`） | `profile.vue:54` 无条件入口（角色管理） |
+| 6 | `PUT /api/admin/system/roles/:id` | `role-edit.vue:225`（`roles.ts:68 update`） | 同上 |
+| 7 | `DELETE /api/admin/system/roles/:id` | `roles.vue:116`（`roles.ts:73 remove`） | 同上 |
+
+**② 自服务 7 条**（本人数据/本人会话 ⇒ 不套管理面码，逐条登记）
+
+| # | 端点 | 依据 |
+|--:|:--|:--|
+| 1 | `PUT /api/admin/auth/settings` | 台账 §三.1 判自服务；全仓 0 调用点 |
+| 2 | `POST /api/admin/auth/change-password` | 本人改密（`auth.ts:110`、`profile.ts:30`） |
+| 3 | `POST /api/admin/auth/mfa/setup` | 本人 MFA 绑定（`auth.ts:130`） |
+| 4 | `POST /api/admin/auth/mfa/confirm` | 本人 MFA 确认（`auth.ts:135`） |
+| 5 | `POST /api/admin/auth/mfa/disable` | 本人 MFA 关闭（`auth.ts:140`） |
+| 6 | `DELETE /api/user-session/:id` | 本人会话注销；全仓 0 调用点（前端会话页打 `/admin/sessions/:id`，非本路由） |
+| 7 | `DELETE /api/user-session/user/:userId` | 台账判自服务；全仓 0 调用点（⚠️ 语义偏管理面，见 15.6 待裁定） |
+
+**③ 自服务实际用途 1 条**（台账判「管理面」与真实用途不符 ⇒ 不接并报备）
+
+| # | 端点 | 依据 |
+|--:|:--|:--|
+| 1 | `PUT /api/admin/sys-users/:id` | 全仓唯一调用点 = app-mobile「我的 → 编辑资料」`edit.vue:180`（`profile.ts:26 updateProfile`，传**本人** id）⇒ 挂 `system:user:edit` 会把所有非 `*` 角色的「保存资料」打成 403 |
+
+**④ 查询型 POST 1 条**：`POST /api/admin/data-permissions/users/:userId/check`（只读判定，按派单卡 §二.4 不接）
+
+**⑤ 需新立权限点 4 条**：`POST /api/department/`、`PUT /api/department/:id`、`DELETE /api/department/:id`、
+`PUT /api/department/:id/move`（079 无部门域码；立码属产品决策，登记待办；页面 `router/index.ts:234 department-manage`[SUPER_ADMIN]）
+
+**守恒**：11（已接）+ 7 + 7 + 1 + 1 + 4（未接）= **31** ✓
+
+### 15.4 守恒与门禁（原始输出见 `docs/evidence/S3-225/`）
+
+- `node backend/scripts/guard-rbac-wiring.mjs` ⇒ 扫描 189 文件 / 763 写端点；
+  **已接线 212 → 223**、消费者端保护形态 39、**无授权形态 512 → 501**（文件 **134 → 134**，四个接线文件都未清零）；
+- `--strict` ⇒ **EXIT=0**（台账核对：已登记 501 ／ 未登记 0 ／ 已登记但当前无缺口 0）；
+- 机读台账 `backend/scripts/rbac-wiring-baseline.json`：`_counts` = **501 / 134**，新增 `_s3225_note`；仅移除本域 11 条，未动他人条目；
+- 全量 `npx vitest run` ⇒ 0 failed；`npx tsc --noEmit` ⇒ EXIT=0；backend `eslint` ⇒ EXIT=0；根 `npm run build` ⇒ EXIT=0（读数见回执 §二）。
+
+**合并 origin/main 后（终态，原始输出 `30-guard-after-merged.txt` / `31-guard-strict-merged.txt` / `40-vitest-full-merged.txt` 等）**：
+
+- `node backend/scripts/guard-rbac-wiring.mjs` ⇒ **已接线 223 → 255**（含 S3-224 的 32 条）、**无授权形态 480 → 469**（文件 **129 → 129**）；
+- `--strict` ⇒ **EXIT=0**（已登记 469 ／ 未登记 0 ／ 已登记但当前无缺口 0）；
+- 机读台账 `_counts` = **469 / 129**，新增 `_s3225_merge_note`（写明两单交叉改动的重算口径）；
+- 合并态回归：全量 `npx vitest run` 0 failed、`npx tsc --noEmit` EXIT=0、backend `eslint` EXIT=0、根 `npm run build` EXIT=0（读数见回执 §五）。
+
+### 15.5 反测（门禁铁律：故意制造失败，证明它会红）
+
+| 反测 | 手法 | 期望 | 实测 |
+|:--|:--|:--|:--|
+| A | 摘掉 `rbac.routes.ts:25` 的 `requirePermission("system:role:edit")` | `--strict` EXIT=1 且点出该端点；本批用例红 | **EXIT=1**（`❌ 未登记：rbac.routes.ts:25 PUT /api/admin/system/roles/:id/data-permissions`）；用例 **3 failed / 126 passed** |
+| B | 摘掉 `admin-staff.routes.ts:23` 的 `requirePermission("system:user:edit")` | 同上 | **EXIT=1**（`❌ 未登记：admin-staff.routes.ts:23 PUT /api/admin/staff/:id/status`）；用例 **3 failed** |
+| C | 判据反测：把该行改挂 `sale:create`（非目标码） | 零回归/非持有人判据必须红 | 用例 **3 failed**（含「8 个非持有角色全 403」）⇒ 判据非恒真 |
+| 复原 | 逐字节还原 + SHA256 比对（7 文件） | 0 处不一致 | **0 处不一致**；`--strict` 回 EXIT=0 |
+| A′（**合并态**复测） | 合并 `origin/main` 后重做反测 B 的手法 | 同上 | **EXIT=1**（`❌ 未登记：admin-staff.routes.ts:23`）；用例 **3 failed / 126 passed**；复原后哈希一致、`--strict` 回 EXIT=0（`32/33/34-*`） |
+
+### 15.6 与台账 §三.1「建议权限码」的差异（**1 处**）
+
+1. `POST /api/admin/sys-users/:id/reset-password`：机器建议 `system:user:create`，本批挂 **`system:user:edit`**。
+   理由：重置口令是「改已存在用户」而非「新增用户」（079:270「新增用户」/079:271「编辑用户」）；
+   两码持有角色集合完全相同（SUPER_ADMIN / OPERATION_ADMIN）⇒ **零回归论证不受影响**。列回执「待凌舟裁定项」。
+   （另有 1 项**口径待裁定**：`DELETE /api/user-session/user/:userId` 台账判「自服务」，但语义是「撤销**他人**全部会话」，
+   本批按台账口径不接；是否改判管理面挂 `system:user:edit` 由凌舟定。）
+
+### 15.7 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. **`PUT /api/admin/sys-users/:id` 是「管理面接口承担自服务用途」的形态**：唯一调用点传的是本人 id（`profile.ts:26`），
+   建议后续单立「本人资料」专用端点（或按 `req.user.id === :id` 自校验）后再补权限码——否则该端点永远无法挂管理面码。
+2. **app-mobile 后台页入口无角色门**：`profile.vue` 的「门店管理」区块把「企业信息 / 员工管理 / 角色管理」写成**硬编码 list-item**，
+   不经 `isPageVisible` ⇒ 任何登录用户都能进这三个页；这是本域 B 类 7 条的**共同根因**（同批 5/批 4 的门店管理与对账页形态）。
+3. **`roles.ts` / `employees.ts` 存在零引用导出**：`setUserRoles`（`roles.ts:86`）等移动端封装无页面调用，
+   与 `admin-web/src/api/system.ts:194/198`（`/admin/system/roles/:id/users`）一样属死代码——**前后端路径漂移**（后端无该子路径）。
+4. `admin-web/src/api/system.ts:40-61` 的 4 个函数（`/admin/system/employees**`）**后端无此前缀**（实体是 `/api/admin/staff`），
+   调用即 404；`common.ts:59`、`app-mobile sales-reports.vue:265` 打的是真实存在的 `GET /admin/staff`（只读，不影响本批）。
+5. 用户会话的可达路径分裂：前端（admin-web 会话页、app-mobile 退出）打的是 `/api/admin/sessions**` 与 `/admin/auth/logout`，
+   而 `user-session.routes.ts`（`/api/user-session**`）全仓 0 调用点 ⇒ 该文件可能是历史遗留，建议凌舟判定是否清理或纳入后续接线。
+

@@ -1,0 +1,115 @@
+# S3-225 · 三道既有锁定名单（G0 NOT_IN_G0 / G1 / G2 待裁）对本域 31 行的命中检查（只读）
+
+## 一、G0 的 NOT_IN_G0「范围控制」名单全文（rbac-g0-wiring.test.ts，逐行照抄）
+    const NOT_IN_G0: { label: string; prefix: string; router: Router; method: Method; path: string }[] = [
+      { label: "普通写 POST /api/admin/purchase-orders（创建采购单）", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", path: "/" },
+      // S3-214-B2（2026-10-16）订正：原「普通写 PUT /api/admin/purchase-orders/:orderNo」一行已由本批接线
+      // （既有码 purchase:create）⇒ 从本名单移出（该行的 403/200 断言见 rbac-b2-s3-214-purchase-wiring.test.ts）；
+      // 上一行「POST /api/admin/purchase-orders（创建采购单）」按派单卡口径**仍不接线**（移动端页签无权限门），
+      // 故保留在本名单里继续锁定「未被误拦」。
+      { label: "查询型 POST /api/admin/prices/best-price（待裁定）", prefix: "/api/admin/prices", router: priceRouter, method: "post", path: "/best-price" },
+      { label: "催收（归 G2）POST /api/admin/credits/collections", prefix: "/api/admin/credits", router: creditRouter, method: "post", path: "/collections" },
+      { label: "储值卡充值（非退款行）POST /api/admin/store-value-cards/:cardNo/recharge", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", path: "/VC1/recharge" },
+      { label: "普通写 POST /api/admin/payments-new/", prefix: "/api/admin/payments-new", router: paymentNewRouter, method: "post", path: "/" },
+      { label: "幂等 POST /api/admin/commission/calculate", prefix: "/api/admin/commission", router: commissionRouter, method: "post", path: "/calculate" },
+      { label: "普通写 POST /api/admin/sale-returns/（创建退货单）", prefix: "/api/admin/sale-returns", router: saleReturnRouter, method: "post", path: "/" },
+      { label: "收款 POST /api/store/sale-bills/:billNo/payment（归 G2）", prefix: "/api/store/sale-bills", router: storeSaleBillRouter, method: "post", path: "/B1/payment" },
+    ];
+
+## 二、G1 / G2 待裁名单（`rbac-g1-wiring.test.ts` / `rbac-g2-wiring.test.ts`）中的路由文件锚点
+  rbac-g1-wiring.test.ts:32: * S3-125（G2）追加（2026-09-27）：G2 把 expense.routes.ts POST / 判为可接并接线，再从 `UNWIRED` 移出 1 行
+  rbac-g1-wiring.test.ts:212: file: "bank-account.routes.ts",
+  rbac-g1-wiring.test.ts:222: file: "payment.routes.ts",
+  rbac-g1-wiring.test.ts:232: file: "store-value-card.routes.ts",
+  rbac-g1-wiring.test.ts:241: file: "admin-marketing-flash-sale.routes.ts",
+  rbac-g1-wiring.test.ts:249: // 全仓零调用点（admin-web/src/api/marketing.ts 无 /grab；miniapp 侧是另一条路由 marketing-miniapp.routes.ts，本单不触碰）
+  rbac-g1-wiring.test.ts:256: * G1 待裁名单（G1 时 21 行；S3-126/G1b 移出 A 类 8 行后 13 行；S3-125/G2 再移出 expense.routes.ts / 1 行，**本文件现为 12 行**）。
+  rbac-g1-wiring.test.ts:273: { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 门店管理页 stores.vue:241（bankAccountsApi.create）" },
+  rbac-g1-wiring.test.ts:274: { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/:id/close", path: "/1/close", reason: "B", note: "app-mobile 门店管理页 stores.vue:263（bankAccountsApi.close）" },
+  rbac-g1-wiring.test.ts:275: { file: "receipt.routes.ts", prefix: "/api/admin/receipts", router: receiptRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 开单页 create-sale.vue:2202（receiptApi.create）" },
+  rbac-g1-wiring.test.ts:276: { file: "reconciliation.routes.ts", prefix: "/api/admin/reconciliation", router: reconciliationRouter, routePath: "/customer/:customerId/confirm", path: "/customer/1/confirm", reason: "B", note: "app-mobile 财务对账页 reconciliation.vue:256" },
+  rbac-g1-wiring.test.ts:277: { file: "reconciliation.routes.ts", prefix: "/api/admin/reconciliation", router: reconciliationRouter, routePath: "/supplier/:supplierId/confirm", path: "/supplier/1/confirm", reason: "B", note: "app-mobile 财务对账页 reconciliation.vue:258" },
+  rbac-g1-wiring.test.ts:278: { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 会员详情页 member-detail.vue:536（无卡先开卡）" },
+  rbac-g1-wiring.test.ts:279: { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, routePath: "/:cardNo/freeze", path: "/VC1/freeze", reason: "B", note: "app-mobile 储值卡页 stored-cards.vue:142（storedCardApi.lock）" },
+  rbac-g1-wiring.test.ts:280: { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, routePath: "/:cardNo/unfreeze", path: "/VC1/unfreeze", reason: "B", note: "app-mobile 储值卡页 stored-cards.vue:144（storedCardApi.unlock）" },
+  rbac-g1-wiring.test.ts:283: { file: "payment-new.routes.ts", prefix: "/api/admin/payments-new", router: paymentNewRouter, routePath: "/", path: "/", reason: "C", note: "G0 范围控制断言要求 READONLY 仍 200；且 app-mobile create-sale.vue:2218 有写调用点" },
+  rbac-g1-wiring.test.ts:284: { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, routePath: "/:cardNo/recharge", path: "/VC1/recharge", reason: "C", note: "G0 范围控制断言要求 READONLY 仍 200；且 app-mobile stored-cards.vue:115 / member-detail.vue:534 有写调用点" },
+  rbac-g1-wiring.test.ts:285: { file: "sale-return.routes.ts", prefix: "/api/admin/sale-returns", router: saleReturnRouter, routePath: "/", path: "/", reason: "C", note: "G0 范围控制断言要求 READONLY 仍 200；且 app-mobile create-sale.vue:2241 有写调用点" },
+  rbac-g1-wiring.test.ts:286: { file: "price.routes.ts", prefix: "/api/admin/prices", router: priceRouter, routePath: "/best-price", path: "/best-price", reason: "C", note: "G0 已把 best-price 列为「查询型 POST（待裁定）」并断言 READONLY 仍 200" },
+  rbac-g1-wiring.test.ts:324: { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId", path: "/1", perm: "customer:credit" },
+  rbac-g1-wiring.test.ts:325: { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/occupy", path: "/1/occupy", perm: "customer:credit" },
+  rbac-g1-wiring.test.ts:326: { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/release", path: "/1/release", perm: "customer:credit" },
+  rbac-g1-wiring.test.ts:327: { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/freeze", path: "/1/freeze", perm: "customer:credit" },
+  rbac-g1-wiring.test.ts:328: { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/unfreeze", path: "/1/unfreeze", perm: "customer:credit" },
+  rbac-g1-wiring.test.ts:329: { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/evaluate", path: "/1/evaluate", perm: "customer:credit" },
+  rbac-g1-wiring.test.ts:330: { file: "credit.routes.ts", prefix: "/api/admin/credits", router: creditRouter, routePath: "/:customerId/auto-init", path: "/1/auto-init", perm: "customer:credit" },
+  rbac-g1-wiring.test.ts:332: { file: "commission.routes.ts", prefix: "/api/admin/commission", router: commissionRouter, routePath: "/rules", path: "/rules", perm: "sale:commission" },
+  rbac-g1-wiring.test.ts:444: // S3-125（G2）已把 expense.routes.ts POST / 接线并移出本名单（1 行）⇒ 28 + 1 = 29
+  rbac-g1-wiring.test.ts:453: ["admin-marketing-flash-sale.routes.ts", 4],
+  rbac-g1-wiring.test.ts:454: ["bank-account.routes.ts", 2],
+  rbac-g1-wiring.test.ts:455: ["payment.routes.ts", 1],
+  rbac-g1-wiring.test.ts:456: ["store-value-card.routes.ts", 1],
+  rbac-g1-wiring.test.ts:474: it("整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但 recharge/freeze/unfreeze 三行没有", () => {
+  rbac-g1-wiring.test.ts:475: const src = readFileSync(path.join(ROUTES_DIR, "store-value-card.routes.ts"), "utf8");
+  rbac-g1-wiring.test.ts:479: const lines = registrationLines("store-value-card.routes.ts", "post", routePath);
+  rbac-g1-wiring.test.ts:484: const consume = registrationLines("store-value-card.routes.ts", "post", "/:cardNo/consume");
+  rbac-g1-wiring.test.ts:546: const res = await call(appFor("bank-account.routes.ts", "/api/admin/bank-accounts", bankAccountRouter), "post", `/api/admin/bank-accounts${path}`, FINANCE_STAFF);
+  rbac-g1-wiring.test.ts:554: const res = await call(appFor("admin-marketing-flash-sale.routes.ts", "/api/admin/marketing", adminMarketingFlashSaleRouter), "post", `/api/admin/marketing${path}`, uid);
+  rbac-g1-wiring.test.ts:561: const res = await call(appFor("bank-account.routes.ts", "/api/admin/bank-accounts", bankAccountRouter), "post", "/api/admin/bank-accounts/1/freeze", STORE_MANAGER_PROD);
+  rbac-g1-wiring.test.ts:565: const consume = await call(appFor("store-value-card.routes.ts", "/api/admin/store-value-cards", storeValueCardRouter), "post", "/api/admin/store-value-cards/VC1/consume", STORE_MANAGER_PROD);
+  rbac-g1-wiring.test.ts:581: "payment-new.routes.ts /",
+  rbac-g1-wiring.test.ts:582: "price.routes.ts /best-price",
+  rbac-g1-wiring.test.ts:583: "sale-return.routes.ts /",
+  rbac-g1-wiring.test.ts:584: "store-value-card.routes.ts /:cardNo/recharge",
+  rbac-g1-wiring.test.ts:612: "commission.routes.ts /rules",
+  rbac-g1-wiring.test.ts:613: "credit.routes.ts /:customerId",
+  rbac-g1-wiring.test.ts:614: "credit.routes.ts /:customerId/occupy",
+  rbac-g1-wiring.test.ts:615: "credit.routes.ts /:customerId/release",
+  rbac-g1-wiring.test.ts:616: "credit.routes.ts /:customerId/freeze",
+  rbac-g1-wiring.test.ts:617: "credit.routes.ts /:customerId/unfreeze",
+  rbac-g1-wiring.test.ts:618: "credit.routes.ts /:customerId/evaluate",
+  rbac-g1-wiring.test.ts:619: "credit.routes.ts /:customerId/auto-init",
+  rbac-g1-wiring.test.ts:629: it("B 类 8 行（G2 已把 expense.routes.ts / 判为可接并接线，移出本名单）：均为 app-mobile 的写调用点", () => {
+  rbac-g2-wiring.test.ts:23: * 反测（门禁铁律）：摘掉 `expense.routes.ts` 的 `requirePermission("finance:create")`
+  rbac-g2-wiring.test.ts:28: *   见回传卡报备）；G1 文件仅把本单**已接线**的 `expense.routes.ts /` 一行移出 G1 待裁名单
+  rbac-g2-wiring.test.ts:205: file: "expense.routes.ts",
+  rbac-g2-wiring.test.ts:232: file: "bank-account.routes.ts",
+  rbac-g2-wiring.test.ts:244: file: "bank-account.routes.ts",
+  rbac-g2-wiring.test.ts:256: file: "receipt.routes.ts",
+  rbac-g2-wiring.test.ts:268: file: "reconciliation.routes.ts",
+  rbac-g2-wiring.test.ts:280: file: "reconciliation.routes.ts",
+  rbac-g2-wiring.test.ts:292: file: "store-value-card.routes.ts",
+  rbac-g2-wiring.test.ts:304: file: "store-value-card.routes.ts",
+  rbac-g2-wiring.test.ts:315: file: "store-value-card.routes.ts",
+  rbac-g2-wiring.test.ts:328: file: "payment-new.routes.ts",
+  rbac-g2-wiring.test.ts:339: file: "store-value-card.routes.ts",
+  rbac-g2-wiring.test.ts:351: file: "sale-return.routes.ts",
+  rbac-g2-wiring.test.ts:360: "（sale-return.routes.ts:19-21 的 routeConfigs）⇒ 接线会让 /store 挂载点一并要求 sale:create，" +
+  rbac-g2-wiring.test.ts:451: it("已接 1 行分布：expense.routes.ts × 1", () => {
+  rbac-g2-wiring.test.ts:454: expect([...perFile.entries()].sort()).toEqual([["expense.routes.ts", 1]]);
+  rbac-g2-wiring.test.ts:477: it("整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但本单三行没有", () => {
+  rbac-g2-wiring.test.ts:478: const src = readFileSync(path.join(ROUTES_DIR, "store-value-card.routes.ts"), "utf8");
+  rbac-g2-wiring.test.ts:482: const lines = registrationLines("store-value-card.routes.ts", "post", routePath);
+  rbac-g2-wiring.test.ts:535: const res = await call(appFor("expense.routes.ts", "/api/admin/expenses", expenseRouter), "post", "/api/admin/expenses/", FINANCE_STAFF);
+  rbac-g2-wiring.test.ts:542: const res = await call(appFor("expense.routes.ts", "/api/admin/expenses", expenseRouter), "post", "/api/admin/expenses/", uid);
+  rbac-g2-wiring.test.ts:560: (r.file === "bank-account.routes.ts" && r.routePath === "/") ||
+  rbac-g2-wiring.test.ts:561: (r.file === "bank-account.routes.ts" && r.routePath === "/:id/close") ||
+  rbac-g2-wiring.test.ts:562: (r.file === "receipt.routes.ts" && r.routePath === "/")
+  rbac-g2-wiring.test.ts:613: const lines = registrationLines("sale-return.routes.ts", "post", "/");
+  rbac-g2-wiring.test.ts:620: "payment-new.routes.ts /",
+  rbac-g2-wiring.test.ts:621: "sale-return.routes.ts /",
+  rbac-g2-wiring.test.ts:622: "store-value-card.routes.ts /:cardNo/recharge",
+
+## 三、本域 7 个路由文件 / 31 条路径在三道名单里的逐条 grep（SimpleMatch，只读）
+  api/admin/staff ⇒ 0 处
+  api/admin/sys-users ⇒ 0 处
+  api/admin/system/roles ⇒ 0 处
+  api/admin/data-permissions ⇒ 0 处
+  api/department ⇒ 0 处
+  api/user-session ⇒ 0 处
+  api/admin/auth ⇒ 0 处
+
+## 四、结论
+  · 本域 7 个路由文件与 31 条写端点路径在 G0/NOT_IN_G0、G1、G2 三道既有锁定名单里**命中 0 处**
+    （`rbac-g0-wiring.test.ts` 里出现的 admin-staff/sys-user/rbac/data-permission 文件名，只来自本批新增的 S3_225_WIRED_FILES 计数快照与注释行，不是锁定行）。
+  · ⇒ 本域 31 行可照派单卡 §二 直接判定（无「接线必改他人断言」的行）。

@@ -1,0 +1,26 @@
+# S3-225 · 落地码持有角色复算（仓库种子口径 × 生产只读底稿对照）
+
+============================================================
+[guard:rbac-wiring --holders] 权限码 `system:user:create` 的持有角色（仓库种子口径）：
+   SUPER_ADMIN / OPERATION_ADMIN
+   判定依据：matchPermission（services/admin/rbac.service.ts）× 角色种子（079 / 128 / ops/S3-122*）
+   ⚠️ 非生产真值（生产另有 STORE_ADMIN / SALESMAN 等未入仓库种子的角色）⇒ 见脚本头 ROLE_PERMISSIONS_SEED 注释
+============================================================
+[guard:rbac-wiring --holders] 权限码 `system:user:edit` 的持有角色（仓库种子口径）：
+   SUPER_ADMIN / OPERATION_ADMIN
+   判定依据：matchPermission（services/admin/rbac.service.ts）× 角色种子（079 / 128 / ops/S3-122*）
+   ⚠️ 非生产真值（生产另有 STORE_ADMIN / SALESMAN 等未入仓库种子的角色）⇒ 见脚本头 ROLE_PERMISSIONS_SEED 注释
+============================================================
+[guard:rbac-wiring --holders] 权限码 `system:role:create` 的持有角色（仓库种子口径）：
+   SUPER_ADMIN / OPERATION_ADMIN
+   判定依据：matchPermission（services/admin/rbac.service.ts）× 角色种子（079 / 128 / ops/S3-122*）
+   ⚠️ 非生产真值（生产另有 STORE_ADMIN / SALESMAN 等未入仓库种子的角色）⇒ 见脚本头 ROLE_PERMISSIONS_SEED 注释
+============================================================
+[guard:rbac-wiring --holders] 权限码 `system:role:edit` 的持有角色（仓库种子口径）：
+   SUPER_ADMIN / OPERATION_ADMIN
+   判定依据：matchPermission（services/admin/rbac.service.ts）× 角色种子（079 / 128 / ops/S3-122*）
+   ⚠️ 非生产真值（生产另有 STORE_ADMIN / SALESMAN 等未入仓库种子的角色）⇒ 见脚本头 ROLE_PERMISSIONS_SEED 注释
+
+=== 生产只读底稿中的相关事实（docs/evidence/_shared/prod-roles-20261016.txt 第一节，12 角色 × 权限码） ===
+  · 无任何商家角色显式持有 system:*（逐行核对 12 行 permissions 串）；可命中的只有 SUPER_ADMIN ["*"] 与 OPERATION_ADMIN ["*"]。
+  · ⇒ 四条落地码的生产持有者 = {SUPER_ADMIN, OPERATION_ADMIN}，与 --holders 的仓库种子口径一致。
