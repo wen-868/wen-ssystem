@@ -1,0 +1,47 @@
+[S3-211 反测] 备份完成（SHA256 已记录）：
+  6e95e20c7541a40a  backend/src/controllers/admin/avatar.controller.ts
+  ceb941fb3215b7d1  backend/src/controllers/admin/product-image.controller.ts
+  240a8577a87678bf  backend/src/services/admin/miniapp-upload.service.ts
+  db5c6cbfbe380319  backend/src/services/admin/miniapp-package.service.ts
+
+[S3-211 反测] M0 · 基线（修复后最终形态）（改动文件 0 个）
+  vitest EXIT=0；探针状态：头像=passed / 商品主图=passed / 密钥=passed / 代码包=passed
+
+[S3-211 反测] M1 · 只摘 startsWith 校验（改动文件 4 个）
+  RED  头像：tenantId 携带分隔符 :: AssertionError: 穿越落点：s3-211-evil-av-7-1792079718863.jpg: expected [ Array(1) ] to deeply equal [] at D:/Users/ZXQL/wt-agents/S3-211/backend/src/__tests__/securi
+  RED  商品主图：tenantId 携带分隔符 :: AssertionError: 穿越落点：s3-211-evil-img-1792079718888-19521.jpg: expected [ Array(1) ] to deeply equal [] at D:/Users/ZXQL/wt-agents/S3-211/backend/src/__tests__/s
+  vitest EXIT=1；探针状态：头像=failed / 商品主图=failed / 密钥=passed / 代码包=passed
+
+[S3-211 反测] M2 · 摘校验 + 摘前置净化（改动文件 4 个）
+  RED  头像：tenantId 携带分隔符 :: AssertionError: 穿越落点：s3-211-evil-av-7-1792079722402.jpg: expected [ Array(1) ] to deeply equal [] at D:/Users/ZXQL/wt-agents/S3-211/backend/src/__tests__/securi
+  RED  商品主图：tenantId 携带分隔符 :: AssertionError: 穿越落点：s3-211-evil-img-1792079722413-36263.jpg: expected [ Array(1) ] to deeply equal [] at D:/Users/ZXQL/wt-agents/S3-211/backend/src/__tests__/s
+  RED  密钥：分隔符段 :: AssertionError: 穿越落点：C:\Users\XIONG\AppData\Local\s3-211-escaped-x.key, C:\Users\XIONG\AppData\Local\s3-211-escaped-x.meta.json: expected [ …(2) ] to deeply equ
+  RED  代码包：tenantId 携带分隔符 :: AssertionError: 穿越落点：s3-211-evil-pkg-1792079722439.zip: expected [ 's3-211-evil-pkg-1792079722439.zip' ] to deeply equal [] at D:/Users/ZXQL/wt-agents/S3-211/ba
+  vitest EXIT=1；探针状态：头像=failed / 商品主图=failed / 密钥=failed / 代码包=failed
+  非探针组（①行为对照）失败 2 条（变体把"前置净化"摘掉了 ⇒ 属于预期，见矩阵脚注）：
+    - S3-211 ① 行为对照：净化改造前后逐字节一致 密钥：keyFilePaths（载荷矩阵）与改造前公式逐字节一致，且始终压在注入目录内
+    - S3-211 ① 行为对照：净化改造前后逐字节一致 密钥：穿越载荷的真实上传 ⇒ 只在注入目录内落盘 2 个 [\w-] 文件（前置净化未被改动）
+
+[S3-211 反测] M3 · 只摘前置净化（校验留着）（改动文件 2 个）
+  vitest EXIT=1；探针状态：头像=passed / 商品主图=passed / 密钥=passed / 代码包=passed
+  非探针组（①行为对照）失败 2 条（变体把"前置净化"摘掉了 ⇒ 属于预期，见矩阵脚注）：
+    - S3-211 ① 行为对照：净化改造前后逐字节一致 密钥：keyFilePaths（载荷矩阵）与改造前公式逐字节一致，且始终压在注入目录内
+    - S3-211 ① 行为对照：净化改造前后逐字节一致 密钥：穿越载荷的真实上传 ⇒ 只在注入目录内落盘 2 个 [\w-] 文件（前置净化未被改动）
+
+[S3-211 反测] 已按字节还原并清理探针产物。
+  OK   6e95e20c7541a40a == 6e95e20c7541a40a  backend/src/controllers/admin/avatar.controller.ts
+  OK   ceb941fb3215b7d1 == ceb941fb3215b7d1  backend/src/controllers/admin/product-image.controller.ts
+  OK   240a8577a87678bf == 240a8577a87678bf  backend/src/services/admin/miniapp-upload.service.ts
+  OK   db5c6cbfbe380319 == db5c6cbfbe380319  backend/src/services/admin/miniapp-package.service.ts
+
+[S3-211 反测] 矩阵（探针 = 承重性用例）：
+| 变体 | 说明 | 头像 | 商品主图 | 密钥 | 代码包 |
+|:--|:--|:--:|:--:|:--:|:--:|
+| M0 | 基线（修复后最终形态） | 绿 | 绿 | 绿 | 绿 |
+| M1 | 只摘 startsWith 校验 | **红** | **红** | 绿 | 绿 |
+| M2 | 摘校验 + 摘前置净化 | **红** | **红** | **红** | **红** |
+| M3 | 只摘前置净化（校验留着） | 绿 | 绿 | 绿 | 绿 |
+
+[S3-211 反测] 脚注：M3 会同时让「① 行为对照」组变红（前置净化被摘掉 ⇒ 落盘名与改造前不再一致），那是变体本身破坏了"行为不变"，**不是**校验失效；判据只看 ② 组探针。
+
+[S3-211 反测] 判据：M1 PASS（该红的红、该绿的绿）、M2 PASS（全红 = 校验与前置净化一起摘掉后确实穿越）

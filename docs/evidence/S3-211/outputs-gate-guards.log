@@ -1,0 +1,27 @@
+=== S3-211 门禁（guard 组） 2026-10-16T00:00:49 ===
+--- guard-route-auth EXIT=0
+[guard:route-auth] 扫描 189 个路由文件
+✅ G3 通过：无「绕过声明式鉴权/CSRF」的路由文件（auth:"none" 的公开端点已登记 18 个文件）
+--- guard-tenant-status EXIT=0
+       - services/subscription-expiry.service.ts:131: "EXPIRED"（已登记上下文：t_subscription）
+       - services/saas/tenant.service.ts:339: "SUSPENDED"（已登记上下文：AS suspendedTenants）
+       - services/saas/tenant.service.ts:340: "EXPIRED"（已登记上下文：AS expiredTenants）
+✅ G2 通过：租户状态域只有 ACTIVE / DISABLED 一套口径
+--- guard-tenant-injection EXIT=0
+  services/admin/print.service.ts:289 verdict=ok-inject
+  services/admin/visit-record.service.ts:220 verdict=ok-inject
+
+GREEN 无阻塞项
+--- guard-route-prefix EXIT=0
+   · 放行 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。
+   · 放行 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。
+✅ G36 通过：重复前缀 12 个（均已逐条登记理由，白名单 13 条）、未登记重复前缀 0 个、真重复端点 0 个
+   · ⚠️ 根前缀共享告警（只出声、不判红）4 条：/api/admin (19次)、/api/platform (3次)、/api/miniapp (2次)、/api/monitor (2次) —— 根前缀的声明式认证会覆盖整段 /api/**（含兄弟文件的公开端点与不存在的子路径）；请核对是否已按「只声明自己拥有的路径段」收窄。
+--- guard-utf8-encoding EXIT=0
+[guard:utf8-encoding] 扫描目录 9 个 / 文件 2147 个
+[guard:utf8-encoding] PASS（0 个非法字节、0 处 U+FFFD 残留）
+--- guard-rbac-wiring --strict EXIT=0
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+gaps：已登记 641 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+consumerEnd：已登记 39 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+✅ [--strict] 无「未登记」项（已登记欠账 641 条、已登记消费者端保护形态 39 条，均不计红）
