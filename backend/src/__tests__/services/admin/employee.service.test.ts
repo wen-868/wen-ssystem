@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
   makeBizNo: vi.fn(),
-  bcryptHash: vi.fn(),
+  hashPassword: vi.fn(),
   validatePassword: vi.fn(),
 }));
 
@@ -24,11 +24,10 @@ vi.mock("../../../shared/id", () => ({
   makeBizNo: mocks.makeBizNo,
 }));
 
-vi.mock("bcryptjs", () => ({
-  default: { hash: mocks.bcryptHash },
-}));
-
+// S3-205（总清单第 26 项）：被测代码改为调用 `shared/password.ts` 的唯一封装
+// ⇒ 测试同步改为 mock 该入口（原先是 mock `bcryptjs` 的 `hash`）。
 vi.mock("../../../shared/password", () => ({
+  hashPassword: mocks.hashPassword,
   validatePassword: mocks.validatePassword,
 }));
 
@@ -60,21 +59,21 @@ describe("employee.service", () => {
   describe("createStaff", () => {
     it("传入密码时使用传入密码 hash", async () => {
       mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
-      mocks.bcryptHash.mockResolvedValue("hash_pwd");
+      mocks.hashPassword.mockResolvedValue("hash_pwd");
       mocks.queryWithTenant.mockResolvedValue({ insertId: 8 });
       const res = await createStaff({ username: "u", realName: "r", password: "secret" }, "t1");
       expect(res.staffId).toBe(8);
-      expect(mocks.bcryptHash).toHaveBeenCalledWith("secret", 10);
+      expect(mocks.hashPassword).toHaveBeenCalledWith("secret");
       const [, params] = mocks.queryWithTenant.mock.calls[0];
       // 组织架构扩展后：mobile/store_id/department_id/position_id/status/password_hash
       expect(params).toEqual(["u", "r", null, null, null, null, 1, "hash_pwd"]);
     });
 
     it("未传密码时使用默认 123456", async () => {
-      mocks.bcryptHash.mockResolvedValue("hash_default");
+      mocks.hashPassword.mockResolvedValue("hash_default");
       mocks.queryWithTenant.mockResolvedValue({ insertId: 9 });
       await createStaff({ username: "u", realName: "r" }, "t1");
-      expect(mocks.bcryptHash).toHaveBeenCalledWith("123456", 10);
+      expect(mocks.hashPassword).toHaveBeenCalledWith("123456");
     });
   });
 

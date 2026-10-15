@@ -1,7 +1,8 @@
-import bcrypt from "bcryptjs";
 import { queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
-import { validatePassword } from "../../shared/password";
+// S3-205（总清单第 26 项）：口令哈希一律走 `shared/password.ts` 的唯一封装（`v2$` + cost 12），
+// 禁止裸 `bcrypt.hash` —— 两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false（S3-172）。
+import { hashPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import type { ResultSetHeader } from "mysql2/promise";
 
@@ -131,8 +132,8 @@ export async function createStaff(body: {
   }
 
   const passwordHash = body.password
-    ? await bcrypt.hash(body.password, 10)
-    : await bcrypt.hash("123456", 10);
+    ? await hashPassword(body.password)
+    : await hashPassword("123456");
   const result = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_sys_user (username, real_name, mobile, store_id, department_id, position_id, status, password_hash)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,

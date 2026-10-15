@@ -1,0 +1,1070 @@
+diff --git a/backend/scripts/guard-rbac-wiring.mjs b/backend/scripts/guard-rbac-wiring.mjs
+index ddb1ead6..7d073141 100644
+--- a/backend/scripts/guard-rbac-wiring.mjs
++++ b/backend/scripts/guard-rbac-wiring.mjs
+@@ -25,6 +25,15 @@
+  *     与租户侧 `requirePermission(...)` 同判（两者都是"写端点挂了权限中间件"），数据源不同
+  *     （平台= t_platform_role_permission 矩阵 + 平台超管口径；租户= t_sys_role.permissions）。
+  *     不识别平台机制会让平台域接线后仍被报成"无权限检查"（台账失真），故两条都算。
++ *   · **消费者端保护形态（S3-205 / 收口总清单第 68 项，2026-10-15 凌舟裁定）**：
++ *     同一挂载调用里 **`requireConsumerAuthWithTenant(...)` 与 `csrfMiddleware` 成对出现** ⇒ 记为
++ *     「消费者端保护形态」，**不算缺口**。理由：消费者不是商家角色，商家 RBAC 的 `requirePermission`
++ *     对它**不适用**（消费者 roles 恒空；硬套商家权限码会把小程序写端点打成 403，同 S3-203 的 `trace:*`
++ *     教训），消费者端的访问控制 = 消费者身份（S3-196：微信令牌 → 绑定的会员身份）+ CSRF + 归属校验
++ *     （如 `bindSelfIdentity` 与 service 层 `tenant_id` / 归属过滤）。
++ *     ⚠️ 判据**刻意保持严格**：只挂消费者认证而**没有 CSRF** 的写端点**仍记缺口**（认证≠授权；状态变更
++ *     无 CSRF 是实缺口）；且该形态**必须逐条登记**在 `consumerEnd` 台账里，`--strict` 才放行——避免
++ *     「新加的端点只要套上这两个中间件就自动洗绿」。`requireWxAuth` 等**其它**认证中间件不在此列。
+  *   · `routeConfig` 声明式（auth: requireAuthWithTenant / requirePlatformAuth / none）**不携带权限码**
+  *     ⇒ 只挂认证的写端点一律记「无权限检查」。这是**有意的**：认证≠授权。
+  *   · 注释行 / import 行不算（踩坑[134]：注释里的 `requirePermission(` 不是调用）。
+@@ -38,9 +47,11 @@
+  *
+  * 用法：
+  *   node backend/scripts/guard-rbac-wiring.mjs           报告模式（**恒 exit 0**），打印缺口清单 + 缺口总数
+- *   node backend/scripts/guard-rbac-wiring.mjs --json     机读模式（`{file, method, path, hasPermission}[]`）
++ *   node backend/scripts/guard-rbac-wiring.mjs --json     机读模式（`{file, method, path, hasPermission, authForm}[]`；
++ *                                                       `authForm` ∈ `inline` / `use-mount` / `consumer` / `none`）
+  *   node backend/scripts/guard-rbac-wiring.mjs --strict   严格模式：存在**未登记**缺口 ⇒ exit 1
+- *                                                       （已登记缺口按 `rbac-wiring-baseline.json` 豁免，不报红）
++ *                                                       （已登记缺口按 `rbac-wiring-baseline.json` 的 `gaps` 豁免；
++ *                                                        消费者端保护形态须在 `consumerEnd` 里逐条登记，同样不报红）
+  *   node backend/scripts/guard-rbac-wiring.mjs --holders <权限码>
+  *                                                       打印「该权限码在租户 RBAC 里授给了哪些角色」
+  *                                                       （仓库角色种子 × 真实 `matchPermission` 语义复算；
+@@ -73,6 +84,19 @@ const PLATFORM_PERM_CALL_RE = /\brequirePlatformPermission\s*\(/;
+ const ANY_PERM_CALL_RE = new RegExp(
+   `(?:${PERM_CALL_RE.source})|(?:${PLATFORM_PERM_CALL_RE.source})`
+ );
++/**
++ * 消费者端保护形态（S3-205 / 收口总清单第 68 项）：`requireConsumerAuthWithTenant` **与** `csrfMiddleware`
++ * 必须**成对**出现在同一挂载调用里。前者 = 消费者身份（S3-196 起接受微信令牌，注入绑定的会员身份，
++ * roles 恒空，故不适用商家 RBAC）；后者 = 状态变更端点的 CSRF 防护。
++ */
++/** ⚠️ 与 `requirePermission(...)` 不同：`requireConsumerAuthWithTenant` 是**数组**（`[requireConsumerAuth, tenantMiddleware]`），
++ *  在路由里以**裸引用**传入（`router.post("/x", requireConsumerAuthWithTenant, csrfMiddleware, …)`），**不带括号**。 */
++const CONSUMER_AUTH_CALL_RE = /\brequireConsumerAuthWithTenant\b/;
++const CSRF_CALL_RE = /\bcsrfMiddleware\b/;
++/** 一段调用文本是否构成「消费者端保护形态」（成对判据，写在一处供挂载与端点共用） */
++function isConsumerProtectedCall(text) {
++  return CONSUMER_AUTH_CALL_RE.test(text) && CSRF_CALL_RE.test(text);
++}
+ const USE_CALL_RE = /\.\s*use\s*\(/g;
+ /** 注释行 / import 行不是调用（踩坑[134]） */
+ const NON_CALL_LINE_RE = /^\s*(?:\/\/|\*|\/\*|import\b)/;
+@@ -89,9 +113,17 @@ const NON_CALL_LINE_RE = /^\s*(?:\/\/|\*|\/\*|import\b)/;
+  * ⑤ 台账不得用于「让新增缺口变绿」：新加的裸写端点不在台账里 ⇒ `--strict` 必红；
+  * ⑥ 本脚本**不提供**「跑一下就自动登记」的写入开关：台账只能由人审阅缺口清单后落盘，
+  *    否则新缺口会被"重新生成台账"这一动作静默洗绿。
++ *
++ * 写端点三分（S3-205 起，键 = 文件，值 = `["METHOD 完整路径", ...]`，**按端点路径匹配，不按行号**）：
++ * ① `gaps`        = 无授权形态的**真缺口**（认证≠授权）⇒ 登记只表示「已盘点、待后续批次接线」；
++ * ② `consumerEnd` = **消费者端保护形态**（`requireConsumerAuthWithTenant` + `csrfMiddleware` 成对）
++ *                   ⇒ 按 2026-10-15 凌舟裁定**不适用商家权限码**，故**不计入缺口**，但必须逐条登记；
++ * ③ 挂了 `requirePermission` / `requirePlatformPermission` 的端点**不入台账**（已接线）。
+  */
+ const BASELINE_PATH = join(HERE, "rbac-wiring-baseline.json");
+ const REGISTERED_GAPS = new Set();
++/** 已登记的消费者端保护形态（S3-205）：未登记 ⇒ `--strict` 判红（防"套上两个中间件就自动洗绿"） */
++const REGISTERED_CONSUMER = new Set();
+ let baselineExists = false;
+ if (existsSync(BASELINE_PATH)) {
+   baselineExists = true;
+@@ -99,6 +131,9 @@ if (existsSync(BASELINE_PATH)) {
+   for (const [file, list] of Object.entries(raw.gaps ?? {})) {
+     for (const item of list) REGISTERED_GAPS.add(`${file}|${item}`);
+   }
++  for (const [file, list] of Object.entries(raw.consumerEnd ?? {})) {
++    for (const item of list) REGISTERED_CONSUMER.add(`${file}|${item}`);
++  }
+ }
+ 
+ /**
+@@ -252,6 +287,7 @@ function scanFile(file, src) {
+       receiver: src.slice(0, um.index).match(/([A-Za-z_$][\w$]*)\s*$/)?.[1] ?? null,
+       scope: firstStringLiteral(call),
+       hasPerm: ANY_PERM_CALL_RE.test(call),
++      consumerProtected: isConsumerProtectedCall(call),
+     });
+   }
+ 
+@@ -266,9 +302,25 @@ function scanFile(file, src) {
+     const fullPath = `${prefix === "?" ? "?" : prefix}${routePath === "?" ? "" : routePath}`;
+     const inlinePerm =
+       ANY_PERM_CALL_RE.test(call) || ANY_PERM_CALL_RE.test(lines[lineNo - 1] || "");
+-    const coveringMounts = mounts.filter(
++    const coveringPermMounts = mounts.filter(
+       (x) => x.hasPerm && x.scope && x.line < lineNo && covers(x.scope, routePath)
+     );
++    const inlineConsumer = isConsumerProtectedCall(call);
++    const coveringConsumerMounts = mounts.filter(
++      (x) => x.consumerProtected && x.scope && x.line < lineNo && covers(x.scope, routePath)
++    );
++    const hasPerm = inlinePerm || coveringPermMounts.length > 0;
++    // 消费者端保护形态只在**没有**商家/平台权限码时判定（有权限码就按已接线记，形态更明确）
++    const consumerProtected = !hasPerm && (inlineConsumer || coveringConsumerMounts.length > 0);
++    /** inline = 内联权限码 ／ use-mount = 被 `router.use(scope, …, requirePermission())` 覆盖 ／
++     *  consumer = 消费者端保护形态（认证 + CSRF，不适用商家权限码）／ none = 无授权形态（真缺口） */
++    const authForm = hasPerm
++      ? inlinePerm
++        ? "inline"
++        : "use-mount"
++      : consumerProtected
++        ? "consumer"
++        : "none";
+     out.push({
+       file,
+       line: lineNo,
+@@ -276,9 +328,9 @@ function scanFile(file, src) {
+       prefix,
+       routePath,
+       path: fullPath,
+-      hasPermission: inlinePerm || coveringMounts.length > 0,
+-      how: inlinePerm ? "inline" : coveringMounts.length > 0 ? "use-mount" : "none",
+-      mountLine: coveringMounts[0]?.line ?? null,
++      hasPermission: authForm !== "none",
++      authForm,
++      mountLine: (coveringPermMounts[0] ?? coveringConsumerMounts[0])?.line ?? null,
+     });
+   }
+   return out;
+@@ -317,7 +369,13 @@ for (const f of files) all.push(...scanFile(f, readFileSync(join(ROUTES_DIR, f),
+ if (JSON_MODE) {
+   console.log(
+     JSON.stringify(
+-      all.map((r) => ({ file: r.file, method: r.method, path: r.path, hasPermission: r.hasPermission })),
++      all.map((r) => ({
++        file: r.file,
++        method: r.method,
++        path: r.path,
++        hasPermission: r.hasPermission,
++        authForm: r.authForm,
++      })),
+       null,
+       2
+     )
+@@ -325,24 +383,37 @@ if (JSON_MODE) {
+   process.exit(0);
+ }
+ 
+-const gaps = all.filter((r) => !r.hasPermission);
+-const wired = all.filter((r) => r.hasPermission);
++const gaps = all.filter((r) => r.authForm === "none");
++const consumerEndpoints = all.filter((r) => r.authForm === "consumer");
++const wired = all.filter((r) => r.authForm === "inline" || r.authForm === "use-mount");
+ const gapFiles = [...new Set(gaps.map((r) => r.file))].sort();
++const consumerFiles = [...new Set(consumerEndpoints.map((r) => r.file))].sort();
+ const unknownPrefix = all.filter((r) => r.prefix === "?" || r.routePath === "?").map((r) => `${r.file}:${r.line}`);
+ 
+ console.log(`[guard:rbac-wiring] 扫描 ${files.length} 个路由文件 · ${all.length} 个写端点`);
+ console.log(
+-  `[guard:rbac-wiring] 已接线 ${wired.length} 处 ／ **无权限检查 ${gaps.length} 处**（分布在 ${gapFiles.length} 个文件）`
++  `[guard:rbac-wiring] 已接线（权限码）${wired.length} 处 ／ 消费者端保护形态 ${consumerEndpoints.length} 处` +
++    ` ／ **无授权形态 ${gaps.length} 处**（分布在 ${gapFiles.length} 个文件）`
+ );
+ console.log(
+   `[guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）`
+ );
+ 
+-console.log(`\n—— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无权限检查）——`);
++console.log(`\n—— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无授权形态）——`);
+ for (const f of gapFiles) {
+   const rows = gaps.filter((r) => r.file === f);
+   console.log(`\n${f}  (${rows.length} 处)`);
+-  for (const r of rows) console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 无权限检查`);
++  for (const r of rows) console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 无授权形态`);
++}
++
++console.log(
++  `\n—— 消费者端保护形态（第 68 项裁定：requireConsumerAuthWithTenant + csrfMiddleware，不适用商家权限码）——`
++);
++if (consumerEndpoints.length === 0) console.log("   （0 处）");
++for (const f of consumerFiles) {
++  const rows = consumerEndpoints.filter((r) => r.file === f);
++  console.log(`\n${f}  (${rows.length} 处)`);
++  for (const r of rows) console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 消费者端保护形态`);
+ }
+ 
+ if (unknownPrefix.length > 0) {
+@@ -353,22 +424,37 @@ const unregistered = gaps.filter((r) => !REGISTERED_GAPS.has(`${r.file}|${r.meth
+ const staleRegistrations = [...REGISTERED_GAPS].filter(
+   (k) => !gaps.some((r) => `${r.file}|${r.method} ${r.path}` === k)
+ );
++const unregisteredConsumer = consumerEndpoints.filter(
++  (r) => !REGISTERED_CONSUMER.has(`${r.file}|${r.method} ${r.path}`)
++);
++const staleConsumerRegistrations = [...REGISTERED_CONSUMER].filter(
++  (k) => !consumerEndpoints.some((r) => `${r.file}|${r.method} ${r.path}` === k)
++);
+ console.log(
+   `\n—— 台账核对（rbac-wiring-baseline.json ${baselineExists ? "存在" : "**缺失**（缺失 ⇒ 一切缺口都算未登记）"}）——\n` +
+-    `已登记缺口 ${REGISTERED_GAPS.size} 条 ／ 未登记缺口 ${unregistered.length} 条 ／ ` +
+-    `已登记但当前无缺口 ${staleRegistrations.length} 条（仅提示，不判红）`
++    `gaps：已登记 ${REGISTERED_GAPS.size} 条 ／ 未登记 ${unregistered.length} 条 ／ ` +
++    `已登记但当前无缺口 ${staleRegistrations.length} 条（仅提示，不判红）\n` +
++    `consumerEnd：已登记 ${REGISTERED_CONSUMER.size} 条 ／ 未登记 ${unregisteredConsumer.length} 条 ／ ` +
++    `已登记但当前非消费者端形态 ${staleConsumerRegistrations.length} 条（仅提示，不判红）`
+ );
+ for (const r of unregistered) console.log(`   ❌ 未登记：${r.file}:${r.line} ${r.method} ${r.path}`);
++for (const r of unregisteredConsumer)
++  console.log(`   ❌ 未登记（消费者端形态）：${r.file}:${r.line} ${r.method} ${r.path}`);
+ 
+-if (STRICT && unregistered.length > 0) {
++if (STRICT && (unregistered.length > 0 || unregisteredConsumer.length > 0)) {
+   console.error(
+-    `\n❌ [--strict] 存在 ${unregistered.length} 处**未登记**的无权限写端点 ⇒ exit 1` +
+-      `（若确为既有欠账，请在 REGISTERED_GAPS 逐条登记并在缺口清单文档写明判定）`
++    `\n❌ [--strict] 存在 ${unregistered.length} 处**未登记**的无授权写端点` +
++      ` ＋ ${unregisteredConsumer.length} 处**未登记**的消费者端保护形态 ⇒ exit 1` +
++      `（前者确为既有欠账者登记进 \`gaps\`；后者登记进 \`consumerEnd\`；` +
++      `两类都须在 docs/tasks/R101-RBAC接线缺口清单.md 写明判定）`
+   );
+   process.exit(1);
+ }
+ 
+ if (STRICT) {
+-  console.log(`✅ [--strict] 无「未登记」缺口（已登记欠账 ${REGISTERED_GAPS.size} 条不计红）`);
++  console.log(
++    `✅ [--strict] 无「未登记」项（已登记欠账 ${REGISTERED_GAPS.size} 条、` +
++      `已登记消费者端保护形态 ${REGISTERED_CONSUMER.size} 条，均不计红）`
++  );
+ }
+ process.exit(0);
+diff --git a/backend/scripts/rbac-wiring-baseline.json b/backend/scripts/rbac-wiring-baseline.json
+index 002eb268..b35390d7 100644
+--- a/backend/scripts/rbac-wiring-baseline.json
++++ b/backend/scripts/rbac-wiring-baseline.json
+@@ -2,9 +2,61 @@
+   "_README": "S3-180 批B2-1 · guard:rbac-wiring 的**已登记缺口台账**（逐条登记）。人读判定见 docs/tasks/R101-RBAC接线缺口清单.md；本文件是机读镜像，仅由人工审阅后落盘，脚本不提供自动写入开关（避免新缺口被'重新生成台账'静默洗绿）。登记 ≠ 合规。",
+   "_generatedFrom": "node backend/scripts/guard-rbac-wiring.mjs --json",
+   "_s3195_note": "S3-195（门店 9 文件从根前缀 /api/store 收窄为自有路径段）导致 3 条端点的**路径形态**变化：收窄后 prefix 即完整路径、router 内路径为 \"/\"，扫描器按 prefix+\"/\" 拼接 ⇒ 台账键由 `…/box-config` 变为 `…/box-config/`（`…/hold-orders` → `…/hold-orders/`、`…/shifts` → `…/shifts/`）。三处为**同一端点**的同一缺口，不是新增缺口；旧形态三条已同步替换（故 endpoints 计数不变）。",
++  "_endpointClass": "S3-205（收口总清单第 68 项，2026-10-15 凌舟裁定）起，本台账按**写端点三分**记账：① `gaps` = 无授权形态的**真缺口**（认证≠授权），登记只表示「已盘点、待后续批次接线」；② `consumerEnd` = **消费者端保护形态**（同一挂载调用里 `requireConsumerAuthWithTenant` 与 `csrfMiddleware` **成对**出现）⇒ 按裁定**不适用商家权限码**（消费者 roles 恒空，硬套商家码会把小程序写端点打成 403，同 S3-203 的 `trace:*` 教训），故**不计入缺口**，但必须逐条登记，未登记 ⇒ `--strict` 必红；③ 挂了 `requirePermission` / `requirePlatformPermission` 的端点不入台账（已接线）。两类**按端点路径匹配、不按行号**（行号会漂移：如 S3-187 改路径参数形态、S3-195 改前缀收窄都让行号失真）。判据刻意从严：只挂消费者认证、**没有 CSRF** 的写端点仍记 `gaps`。",
+   "_counts": {
+-    "files": 156,
+-    "endpoints": 680
++    "files": 155,
++    "endpoints": 641,
++    "consumerEndFiles": 4,
++    "consumerEndEndpoints": 39
++  },
++  "consumerEnd": {
++    "aftersale.routes.ts": [
++      "POST /api/miniapp/aftersales",
++      "POST /api/miniapp/aftersales/:aftersaleNo/cancel",
++      "POST /api/miniapp/aftersales/:aftersaleNo/return-logistics",
++      "POST /api/miniapp/aftersales/:aftersaleNo/rate"
++    ],
++    "marketing-miniapp.routes.ts": [
++      "POST /api/miniapp/marketing/coupons/:templateId/claim",
++      "POST /api/miniapp/marketing/flash-sale/:id/buy",
++      "POST /api/miniapp/marketing/group-buy/:teamId/join",
++      "POST /api/miniapp/marketing/calculate"
++    ],
++    "miniapp.routes.ts": [
++      "POST /api/miniapp/cart",
++      "PUT /api/miniapp/cart/:id",
++      "DELETE /api/miniapp/cart/:id",
++      "DELETE /api/miniapp/cart",
++      "POST /api/miniapp/orders",
++      "POST /api/miniapp/orders/:id/pay",
++      "POST /api/miniapp/orders/:id/cancel",
++      "POST /api/miniapp/orders/:id/confirm-receive",
++      "PUT /api/miniapp/orders/:id/delete",
++      "POST /api/miniapp/stored-card/recharge",
++      "PUT /api/miniapp/user/profile",
++      "POST /api/miniapp/user/addresses",
++      "PUT /api/miniapp/user/addresses/:id",
++      "DELETE /api/miniapp/user/addresses/:id",
++      "POST /api/miniapp/user/addresses/:id/default",
++      "POST /api/miniapp/coupons/:id/use",
++      "POST /api/miniapp/member/coupons/:id/receive",
++      "PUT /api/miniapp/user/profile-update",
++      "POST /api/miniapp/user/change-password",
++      "POST /api/miniapp/wholesale/cart",
++      "PUT /api/miniapp/wholesale/cart/:id",
++      "DELETE /api/miniapp/wholesale/cart/:id",
++      "POST /api/miniapp/wholesale/orders",
++      "POST /api/miniapp/wholesale/cart/delete",
++      "PUT /api/miniapp/wholesale/cart/:itemId/select",
++      "PUT /api/miniapp/wholesale/cart/select-all",
++      "POST /api/miniapp/wholesale/orders/:orderId/cancel",
++      "POST /api/miniapp/wholesale/orders/:orderId/confirm-receive",
++      "POST /api/miniapp/wholesale/orders/buy-now"
++    ],
++    "notification.routes.ts": [
++      "PUT /api/miniapp/notifications/:id/read",
++      "POST /api/miniapp/notifications/read-all"
++    ]
+   },
+   "gaps": {
+     "admin-auth.routes.ts": [
+@@ -113,10 +165,6 @@
+       "PUT /api/admin/system/stores/:id"
+     ],
+     "aftersale.routes.ts": [
+-      "POST /api/miniapp/aftersales",
+-      "POST /api/miniapp/aftersales/:aftersaleNo/cancel",
+-      "POST /api/miniapp/aftersales/:aftersaleNo/return-logistics",
+-      "POST /api/miniapp/aftersales/:aftersaleNo/rate",
+       "POST /api/admin/aftersales/:id/approve",
+       "POST /api/admin/aftersales/:id/reject",
+       "POST /api/admin/aftersales/:id/confirm-receipt",
+@@ -386,12 +434,6 @@
+       "PUT /api/admin/marketing/materials/categories/:id",
+       "DELETE /api/admin/marketing/materials/categories/:id"
+     ],
+-    "marketing-miniapp.routes.ts": [
+-      "POST /api/miniapp/marketing/coupons/:templateId/claim",
+-      "POST /api/miniapp/marketing/flash-sale/:id/buy",
+-      "POST /api/miniapp/marketing/group-buy/:teamId/join",
+-      "POST /api/miniapp/marketing/calculate"
+-    ],
+     "marketing-points-mall.routes.ts": [
+       "POST /api/admin/marketing/points-mall/products",
+       "PUT /api/admin/marketing/points-mall/products/:id",
+@@ -416,36 +458,7 @@
+     ],
+     "miniapp.routes.ts": [
+       "POST /api/miniapp/login",
+-      "POST /api/miniapp/cart",
+-      "PUT /api/miniapp/cart/:id",
+-      "DELETE /api/miniapp/cart/:id",
+-      "DELETE /api/miniapp/cart",
+-      "POST /api/miniapp/orders",
+-      "POST /api/miniapp/orders/:id/pay",
+-      "POST /api/miniapp/orders/:id/cancel",
+-      "POST /api/miniapp/orders/:id/confirm-receive",
+-      "PUT /api/miniapp/orders/:id/delete",
+-      "POST /api/miniapp/pay/notify",
+-      "POST /api/miniapp/stored-card/recharge",
+-      "PUT /api/miniapp/user/profile",
+-      "POST /api/miniapp/user/addresses",
+-      "PUT /api/miniapp/user/addresses/:id",
+-      "DELETE /api/miniapp/user/addresses/:id",
+-      "POST /api/miniapp/user/addresses/:id/default",
+-      "POST /api/miniapp/coupons/:id/use",
+-      "POST /api/miniapp/member/coupons/:id/receive",
+-      "PUT /api/miniapp/user/profile-update",
+-      "POST /api/miniapp/user/change-password",
+-      "POST /api/miniapp/wholesale/cart",
+-      "PUT /api/miniapp/wholesale/cart/:id",
+-      "DELETE /api/miniapp/wholesale/cart/:id",
+-      "POST /api/miniapp/wholesale/orders",
+-      "POST /api/miniapp/wholesale/cart/delete",
+-      "PUT /api/miniapp/wholesale/cart/:itemId/select",
+-      "PUT /api/miniapp/wholesale/cart/select-all",
+-      "POST /api/miniapp/wholesale/orders/:orderId/cancel",
+-      "POST /api/miniapp/wholesale/orders/:orderId/confirm-receive",
+-      "POST /api/miniapp/wholesale/orders/buy-now"
++      "POST /api/miniapp/pay/notify"
+     ],
+     "monitor.routes.ts": [
+       "POST /api/admin/monitor/notify-expiring"
+@@ -455,9 +468,7 @@
+       "POST /api/admin/notifications/read-all",
+       "POST /api/admin/notifications/send",
+       "DELETE /api/admin/notifications/:id",
+-      "POST /api/admin/notifications/batch-delete",
+-      "PUT /api/miniapp/notifications/:id/read",
+-      "POST /api/miniapp/notifications/read-all"
++      "POST /api/admin/notifications/batch-delete"
+     ],
+     "order-exception.routes.ts": [
+       "POST /api/admin/order-exceptions",
+diff --git a/backend/src/__tests__/services/admin/employee.service.test.ts b/backend/src/__tests__/services/admin/employee.service.test.ts
+index 7c2746d1..85633a52 100644
+--- a/backend/src/__tests__/services/admin/employee.service.test.ts
++++ b/backend/src/__tests__/services/admin/employee.service.test.ts
+@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
+   queryWithTenant: vi.fn(),
+   queryOneWithTenant: vi.fn(),
+   makeBizNo: vi.fn(),
+-  bcryptHash: vi.fn(),
++  hashPassword: vi.fn(),
+   validatePassword: vi.fn(),
+ }));
+ 
+@@ -24,11 +24,10 @@ vi.mock("../../../shared/id", () => ({
+   makeBizNo: mocks.makeBizNo,
+ }));
+ 
+-vi.mock("bcryptjs", () => ({
+-  default: { hash: mocks.bcryptHash },
+-}));
+-
++// S3-205（总清单第 26 项）：被测代码改为调用 `shared/password.ts` 的唯一封装
++// ⇒ 测试同步改为 mock 该入口（原先是 mock `bcryptjs` 的 `hash`）。
+ vi.mock("../../../shared/password", () => ({
++  hashPassword: mocks.hashPassword,
+   validatePassword: mocks.validatePassword,
+ }));
+ 
+@@ -60,21 +59,21 @@ describe("employee.service", () => {
+   describe("createStaff", () => {
+     it("传入密码时使用传入密码 hash", async () => {
+       mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
+-      mocks.bcryptHash.mockResolvedValue("hash_pwd");
++      mocks.hashPassword.mockResolvedValue("hash_pwd");
+       mocks.queryWithTenant.mockResolvedValue({ insertId: 8 });
+       const res = await createStaff({ username: "u", realName: "r", password: "secret" }, "t1");
+       expect(res.staffId).toBe(8);
+-      expect(mocks.bcryptHash).toHaveBeenCalledWith("secret", 10);
++      expect(mocks.hashPassword).toHaveBeenCalledWith("secret");
+       const [, params] = mocks.queryWithTenant.mock.calls[0];
+       // 组织架构扩展后：mobile/store_id/department_id/position_id/status/password_hash
+       expect(params).toEqual(["u", "r", null, null, null, null, 1, "hash_pwd"]);
+     });
+ 
+     it("未传密码时使用默认 123456", async () => {
+-      mocks.bcryptHash.mockResolvedValue("hash_default");
++      mocks.hashPassword.mockResolvedValue("hash_default");
+       mocks.queryWithTenant.mockResolvedValue({ insertId: 9 });
+       await createStaff({ username: "u", realName: "r" }, "t1");
+-      expect(mocks.bcryptHash).toHaveBeenCalledWith("123456", 10);
++      expect(mocks.hashPassword).toHaveBeenCalledWith("123456");
+     });
+   });
+ 
+diff --git a/backend/src/__tests__/services/platform/admin-account-c6.service.test.ts b/backend/src/__tests__/services/platform/admin-account-c6.service.test.ts
+index e0c7d82d..6711ea65 100644
+--- a/backend/src/__tests__/services/platform/admin-account-c6.service.test.ts
++++ b/backend/src/__tests__/services/platform/admin-account-c6.service.test.ts
+@@ -1,5 +1,8 @@
+ import { describe, it, expect, vi, beforeEach } from "vitest";
+-import bcrypt from "bcryptjs";
++// S3-205（总清单第 26 项）：产品哈希改走 `shared/password.ts` 唯一封装（`v2$` + cost 12）后，
++// **裸 `bcrypt.compareSync` 认不出 `v2$` 前缀（恒 false）** ⇒ 断言必须改用项目唯一校验入口
++// （S3-172 同型事故：测试与被测对象用不同口径 ⇒ 假红/假绿）。
++import { verifyPasswordSync } from "../../../shared/password";
+ 
+ const mocks = vi.hoisted(() => ({
+   query: vi.fn(),
+@@ -55,7 +58,8 @@ describe("C6-1A · invitePlatformAdmin（#45 建号，裁定 R6：不发信 + 
+     expect(params[0]).toBe("ops01");
+     // 落库的是哈希，不是明文（明文绝不能进 DB）
+     expect(params[1]).not.toBe(res.initialPassword);
+-    expect(bcrypt.compareSync(res.initialPassword, String(params[1]))).toBe(true);
++    expect(String(params[1]).startsWith("v2$")).toBe(true);
++    expect(verifyPasswordSync(res.initialPassword, String(params[1]))).toBe(true);
+     expect(res).toMatchObject({ id: 9, username: "ops01", role: "ADMIN", passwordShownOnce: true });
+     expect(String(res.initialPassword)).toHaveLength(12);
+   });
+@@ -104,7 +108,8 @@ describe("C6-1A · resetPlatformAdminPassword（#51 管理员代重置，零 DDL
+     const params = mocks.query.mock.calls[0][1] as unknown[];
+     expect(sql).toContain("UPDATE t_platform_admin");
+     expect(sql).toContain("password_hash");
+-    expect(bcrypt.compareSync(res.initialPassword, String(params[0]))).toBe(true);
++    expect(String(params[0]).startsWith("v2$")).toBe(true);
++    expect(verifyPasswordSync(res.initialPassword, String(params[0]))).toBe(true);
+     expect(params[1]).toBe(3);
+     expect(res).toMatchObject({ id: 3, username: "ops03", passwordShownOnce: true });
+     expect((mocks.audit.mock.calls[0][0] as any).action).toBe("RESET_ADMIN_PASSWORD");
+diff --git a/backend/src/__tests__/shared/migration.test.ts b/backend/src/__tests__/shared/migration.test.ts
+index 15b7ba98..bc39d5ad 100644
+--- a/backend/src/__tests__/shared/migration.test.ts
++++ b/backend/src/__tests__/shared/migration.test.ts
+@@ -677,15 +677,19 @@ describe("runMigrations", () => {
+     expect(shaQueryCalled).toBe(true);
+     expect(updateCalled).toBe(true);
+     // S3-175：SHA256 旧口令改为**逐账号随机**重置，不再统一写成同一个公开弱口令。
+-    // 分辨口径：本步骤用 cost=10；`seed-data` 的演示口令走 `hashPasswordSync`（SALT_ROUNDS=12），
+-    // 两者 cost 不同，故只取本次调用里 cost=10 的那一条。
++    // S3-205（总清单第 26 项）**口径统一后本注释已改**：本文件所有口令哈希都改走 `hashPasswordSync`
++    // （cost=12），**不能再靠 cost 分辨步骤** ⇒ 改用**参数形态**分辨：
++    //   本步骤传 `randomBytes(24).toString("hex")`（48 位小写 hex），
++    //   而 `seed-data` 传 `randomBytes(24).toString("base64url")`（32 位，含非 hex 字符）。
+     const resetCalls = (mockHashSync.mock.calls.slice(callsBefore) as Array<[string, number]>).filter(
+-      ([, rounds]) => rounds === 10
++      ([pw]) => typeof pw === "string" && /^[0-9a-f]{48}$/.test(pw)
+     );
+     expect(resetCalls).toHaveLength(1);
+-    const [generatedPassword] = resetCalls[0];
++    const [generatedPassword, rounds] = resetCalls[0];
+     expect(typeof generatedPassword).toBe("string");
+     expect(generatedPassword.length).toBeGreaterThanOrEqual(32);
++    // S3-205：口径统一 —— 本步骤必须走唯一封装（`hashPasswordSync`，SALT_ROUNDS=12）
++    expect(rounds).toBe(12);
+   });
+ 
+   it("SHA256 密码修复过程中出错时应捕获异常（line 216）", async () => {
+diff --git a/backend/src/services/admin/employee.service.ts b/backend/src/services/admin/employee.service.ts
+index f4ce4dd5..1d751dab 100644
+--- a/backend/src/services/admin/employee.service.ts
++++ b/backend/src/services/admin/employee.service.ts
+@@ -1,7 +1,8 @@
+-import bcrypt from "bcryptjs";
+ import { queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+ import { makeBizNo } from "../../shared/id";
+-import { validatePassword } from "../../shared/password";
++// S3-205（总清单第 26 项）：口令哈希一律走 `shared/password.ts` 的唯一封装（`v2$` + cost 12），
++// 禁止裸 `bcrypt.hash` —— 两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false（S3-172）。
++import { hashPassword, validatePassword } from "../../shared/password";
+ import { AppError } from "../../shared/app-error";
+ import type { ResultSetHeader } from "mysql2/promise";
+ 
+@@ -131,8 +132,8 @@ export async function createStaff(body: {
+   }
+ 
+   const passwordHash = body.password
+-    ? await bcrypt.hash(body.password, 10)
+-    : await bcrypt.hash("123456", 10);
++    ? await hashPassword(body.password)
++    : await hashPassword("123456");
+   const result = await queryWithTenant<ResultSetHeader>(
+     `INSERT INTO t_sys_user (username, real_name, mobile, store_id, department_id, position_id, status, password_hash)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+diff --git a/backend/src/services/admin/sys-user.service.ts b/backend/src/services/admin/sys-user.service.ts
+index e9ad309f..6a99415a 100644
+--- a/backend/src/services/admin/sys-user.service.ts
++++ b/backend/src/services/admin/sys-user.service.ts
+@@ -1,6 +1,8 @@
+ import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+-import bcrypt from "bcryptjs";
+-import { validatePassword } from "../../shared/password";
++// S3-205（总清单第 26 项）：本文件口令哈希一律走 `shared/password.ts` 的**唯一封装**
++// （`v2$` 版本前缀 + SALT_ROUNDS=12）。裸 `bcrypt.hash(pw, 10)` 会产生**第二种口径**的哈希，
++// 任何按裸 bcrypt 校验的代码/测试对它恒为 false（S3-172 原型事故），故禁止直调。
++import { hashPassword, validatePassword } from "../../shared/password";
+ import { AppError } from "../../shared/app-error";
+ 
+ export interface UserListParams {
+@@ -152,7 +154,7 @@ export async function createUser(tenantId: string, input: CreateUserInput, opera
+     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
+   }
+ 
+-  const hashedPassword = await bcrypt.hash(input.password, 10);
++  const hashedPassword = await hashPassword(input.password);
+ 
+   await transaction(async (conn) => {
+     const [result] = await conn.execute(
+@@ -260,7 +262,7 @@ export async function resetPassword(tenantId: string, id: number, newPassword: s
+     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
+   }
+ 
+-  const hashedPassword = await bcrypt.hash(newPassword, 10);
++  const hashedPassword = await hashPassword(newPassword);
+   await queryWithTenant(
+     "UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+     [hashedPassword, id, tenantId], tenantId
+@@ -292,4 +294,4 @@ export async function deleteUser(tenantId: string, id: number, operatorId: numbe
+   });
+ 
+   return { deleted: true };
+-}
+\ No newline at end of file
++}
+diff --git a/backend/src/services/platform-tenant.service.ts b/backend/src/services/platform-tenant.service.ts
+index eb9148cf..a852c203 100644
+--- a/backend/src/services/platform-tenant.service.ts
++++ b/backend/src/services/platform-tenant.service.ts
+@@ -8,7 +8,9 @@ import {
+   provisionTenantRbac,
+   type SqlRunner,
+ } from "./platform/tenant-rbac-provision.service";
+-import bcrypt from "bcryptjs";
++// S3-205（总清单第 26 项）：开通租户时首个管理员的口令哈希一律走 `shared/password.ts` 的唯一封装
++// （`v2$` + cost 12），禁止裸 `bcrypt.hash`（两种口径并存会让裸 bcrypt 校验对 `v2$` 哈希恒 false）。
++import { hashPassword } from "../shared/password";
+ 
+ /**
+  * S3-150：租户 status 的**对外唯一口径**（字符串）。
+@@ -150,7 +152,7 @@ export async function createTenant(data: {
+   const tenantId = randomUUID();
+   const tenantCode = makeBizNo("T");
+ 
+-  const hashedPassword = await bcrypt.hash(data.adminPassword, 10);
++  const hashedPassword = await hashPassword(data.adminPassword);
+ 
+   // S3-183（收口总清单第 18 项）：开通链路必须**原子地**产出「租户 + 首个管理员 + 角色/菜单 + 管理员绑定」，
+   // 否则中途失败只留下一半，正是"能登录但功能中心空白"的坏租户（本单要修的现象）。
+diff --git a/backend/src/services/platform/admin-account.service.ts b/backend/src/services/platform/admin-account.service.ts
+index a014b2de..e353a685 100644
+--- a/backend/src/services/platform/admin-account.service.ts
++++ b/backend/src/services/platform/admin-account.service.ts
+@@ -5,7 +5,9 @@
+  */
+ 
+ import { query, queryOne } from "../../shared/db";
+-import bcrypt from "bcryptjs";
++// S3-205（总清单第 26 项）：平台管理员口令哈希一律走 `shared/password.ts` 的唯一封装（`v2$` + cost 12），
++// 禁止裸 `bcrypt.hash` —— 两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false（S3-172）。
++import { hashPassword } from "../../shared/password";
+ import type { ResultSetHeader } from "mysql2";
+ import { randomInt } from "node:crypto";
+ import { insertPlatformAuditLog } from "../admin/platform-audit-log.service";
+@@ -147,7 +149,7 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
+     throw Object.assign(new Error("用户名已存在"), { statusCode: 400 });
+   }
+ 
+-  const passwordHash = await bcrypt.hash(params.password, 10);
++  const passwordHash = await hashPassword(params.password);
+ 
+   const result = await query<InsertResult>(
+     `INSERT INTO t_platform_admin
+@@ -280,7 +282,7 @@ export async function resetPlatformAdminPassword(
+   }
+ 
+   const initialPassword = generateInitialPassword();
+-  const passwordHash = await bcrypt.hash(initialPassword, 10);
++  const passwordHash = await hashPassword(initialPassword);
+   await query(
+     "UPDATE t_platform_admin SET password_hash = ?, updated_at = NOW() WHERE id = ?",
+     [passwordHash, adminId]
+diff --git a/backend/src/services/platform/tenant-admin.service.ts b/backend/src/services/platform/tenant-admin.service.ts
+index fdd4eae4..e82f02ee 100644
+--- a/backend/src/services/platform/tenant-admin.service.ts
++++ b/backend/src/services/platform/tenant-admin.service.ts
+@@ -5,6 +5,9 @@
+  */
+ 
+ import { query, queryOne, transaction } from "../../shared/db";
++// S3-205（总清单第 26 项）：口令哈希一律走 `shared/password.ts` 的唯一封装（`v2$` + cost 12），
++// 禁止裸 `bcrypt.hash`（两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false，S3-172）。
++import { hashPassword } from "../../shared/password";
+ import { makeBizNo } from "../../shared/id";
+ import type mysql from "mysql2/promise";
+ import type { ResultSetHeader, RowDataPacket } from "mysql2";
+@@ -297,7 +300,9 @@ async function initializeTenantDefaults(
+   adminPhone: string
+ ) {
+   // 创建默认管理员账号
+-  const adminPassword = await import("bcryptjs").then(m => m.hash("123456", 10));
++  // S3-205（总清单第 26 项）：原为裸 `await import("bcryptjs")…hash("123456", 10)`，统一到唯一封装。
++  // ⚠️ 这里的默认口令字面量 "123456" 属**另一类问题**（弱默认口令），不在本单范围，已随回执报备。
++  const adminPassword = await hashPassword("123456");
+   const [adminResult] = await conn.query(
+     `INSERT INTO t_sys_user
+      (tenant_id, username, password, real_name, phone, role, status, is_default)
+diff --git a/backend/src/shared/migration.ts b/backend/src/shared/migration.ts
+index 31eb3daf..448828ab 100644
+--- a/backend/src/shared/migration.ts
++++ b/backend/src/shared/migration.ts
+@@ -11,6 +11,11 @@ import mysql from "mysql2/promise";
+ import { env } from "./env";
+ import logger from "./logger";
+ import { seedData } from "./seed-data";
++// S3-205（总清单第 26 项）：本文件写入口令哈希一律走 `./password` 的唯一封装
++// （`v2$` 版本前缀 + SALT_ROUNDS=12）。原先是裸 `bcrypt.hashSync(pw, 10)`（无前缀、cost 10），
++// 与 seed-data / 登录校验的 `verifyPassword` 口径不一致——两种口径并存时，任何按裸 bcrypt
++// 校验这些哈希的代码或测试都会恒 false（S3-172 原型事故），故统一。
++import { hashPasswordSync } from "./password";
+ 
+ /** 在多个候选路径中查找 SQL 文件 */
+ function findSqlFile(fileName: string) {
+@@ -728,7 +733,6 @@ export async function runMigrations(): Promise<void> {
+     // 第4步：修复 SHA256 密码为 bcrypt
+     // ============================================================
+     try {
+-      const bcrypt = await import("bcryptjs");
+       const [shaUsers] = await conn.query(
+         "SELECT id, password_hash FROM t_sys_user WHERE password_hash NOT LIKE '$2b$%' AND LENGTH(password_hash) = 64"
+       );
+@@ -738,7 +742,7 @@ export async function runMigrations(): Promise<void> {
+         // S3-175（P0 安全）：旧 SHA256 口令**禁止**静默重置为**公开的固定弱口令**（迁移原先即如此），
+         // 改为每个账号**各自随机**；明文口令不落日志，需人工设定。
+         for (const user of users) {
+-          const hash = bcrypt.hashSync(randomBytes(24).toString("hex"), 10);
++          const hash = hashPasswordSync(randomBytes(24).toString("hex"));
+           await conn.query("UPDATE t_sys_user SET password_hash = ? WHERE id = ?", [hash, user.id]);
+         }
+         logger.info(`[migration] 已将 ${users.length} 个账号口令重置为随机值，需人工设定（明文不入日志）`);
+@@ -1163,8 +1167,6 @@ export async function runMigrations(): Promise<void> {
+     // ============================================================
+     logger.info("[migration] 检查/创建默认管理员账号...");
+     try {
+-      const bcrypt = await import("bcryptjs");
+-
+       // S3-175（P0 安全）：默认管理员口令**不再写死公开值**。
+       // 口径：优先读 env `SEED_ADMIN_PASSWORD`；未配置则**逐账号随机**生成。
+       // 明文口令一律不写进日志、不写进代码默认值。
+@@ -1175,7 +1177,7 @@ export async function runMigrations(): Promise<void> {
+         "SELECT id FROM t_sys_user WHERE username = 'admin' AND tenant_id = 'default'"
+       ) as unknown as [Record<string, unknown>[]];
+       if ((adminRows as unknown as any[]).length === 0) {
+-        const adminHash = bcrypt.hashSync(seedAdminPassword || randomBytes(24).toString("hex"), 10);
++        const adminHash = hashPasswordSync(seedAdminPassword || randomBytes(24).toString("hex"));
+         await conn.query(`
+           INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
+           VALUES ('admin', ?, '系统管理员', 1, 'default', NOW(), NOW())
+@@ -1214,7 +1216,7 @@ export async function runMigrations(): Promise<void> {
+         "SELECT id FROM t_sys_user WHERE username = 'tenant_admin' AND tenant_id = 'default'"
+       ) as unknown as [Record<string, unknown>[]];
+       if ((tenantRows as unknown as any[]).length === 0) {
+-        const tenantHash = bcrypt.hashSync(seedAdminPassword || randomBytes(24).toString("hex"), 10);
++        const tenantHash = hashPasswordSync(seedAdminPassword || randomBytes(24).toString("hex"));
+         await conn.query(`
+           INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
+           VALUES ('tenant_admin', ?, '租户管理员', 1, 'default', NOW(), NOW())
+diff --git "a/docs/tasks/R101-RBAC\346\216\245\347\272\277\347\274\272\345\217\243\346\270\205\345\215\225.md" "b/docs/tasks/R101-RBAC\346\216\245\347\272\277\347\274\272\345\217\243\346\270\205\345\215\225.md"
+index 854d0470..48baf436 100644
+--- "a/docs/tasks/R101-RBAC\346\216\245\347\272\277\347\274\272\345\217\243\346\270\205\345\215\225.md"
++++ "b/docs/tasks/R101-RBAC\346\216\245\347\272\277\347\274\272\345\217\243\346\270\205\345\215\225.md"
+@@ -833,14 +833,26 @@
+ 
+ ### 三.15 小程序 / 移动端域（6 文件 / 49 端点）
+ 
+-**marketing-miniapp.routes.ts**（4 处）
+-
+-| METHOD 路径 | 判定 | 该不该要权限 | 建议权限码 |
+-|:--|:--|:--|:--|
+-| `POST /api/miniapp/marketing/coupons/claim` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
+-| `POST /api/miniapp/marketing/flash-sales/grab` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
+-| `POST /api/miniapp/marketing/group-buys/teams/join` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
+-| `POST /api/miniapp/marketing/calculate` | 管理面 | 是 | 无现成码 ⇒ 需先立权限点（另立单） |
++> ⚠️ **2026-10-15（S3-205 / 总清单第 68 项）起本域口径有变**：`POST/PUT/DELETE /api/miniapp/**` 这类
++> **消费者端**写端点，凡同一挂载调用里挂了 `requireConsumerAuthWithTenant` + `csrfMiddleware` 的，
++> **一律改为「消费者端保护形态」——不适用商家权限码、不计入缺口**（凌舟裁定，逐条清单与守恒见
++> 本文件 §十）。故下表 `miniapp.routes.ts` 中判「管理面 / 是」的行**已由 §十 更正**，本表保留原始盘点
++> 供对照（**不要**据本表把消费者端端点接上商家权限码：消费者 `roles` 恒空，接了必 403）。
++
++**marketing-miniapp.routes.ts**（4 处，**已更正**）
++
++| METHOD 路径（**按端点路径匹配，不按行号**） | 文件:行 | 判定 | 该不该要权限 | 依据 |
++|:--|:--|:--|:--|:--|
++| `POST /api/miniapp/marketing/coupons/:templateId/claim` | `marketing-miniapp.routes.ts:61` | **消费者端**（原判「管理面」有误） | **否** | 受 `requireConsumerAuthWithTenant` + `csrfMiddleware` + `bindSelfIdentity` 保护；商家权限码不适用 |
++| `POST /api/miniapp/marketing/flash-sale/:id/buy` | `marketing-miniapp.routes.ts:78` | **消费者端**（原判「管理面」有误） | **否** | 同上 |
++| `POST /api/miniapp/marketing/group-buy/:teamId/join` | `marketing-miniapp.routes.ts:86` | **消费者端**（原判「管理面」有误） | **否** | 同上 |
++| `POST /api/miniapp/marketing/calculate` | `marketing-miniapp.routes.ts:90` | **消费者端**（原判「管理面」有误） | **否** | 同上（试算不落库，但 S3-178 起同族写端点一律补认证 + CSRF） |
++
++> **路径更正说明（行号已漂移，改按路径匹配）**：本表原三条路径
++> `/coupons/claim`、`/flash-sales/grab`、`/group-buys/teams/join` 是**更名前**的形态——
++> S3-187（`67beff76`）按契约把它改成带参形态 `/coupons/:templateId/claim`、`/flash-sale/:id/buy`、
++> `/group-buy/:teamId/join`；卡面写的 `:55/72/80` 也已漂移，**真实注册行为 61/78/86/90**
++> （`rg -n 'requireConsumerAuthWithTenant' backend/src/routes/marketing-miniapp.routes.ts` 可复算）。
+ 
+ **miniapp-config.routes.ts**（4 处）
+ 
+@@ -1902,3 +1914,101 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
+ | §二.⑤ `data-transfer` 用 `store:transfer` 语义偏宽 ⇒ 保留保留意见，记「待细化」 | ✅ 已记：本条标注「**待细化**（语义偏宽，建议后续改 `data:import` 类细码）」 | §9.2 第 1–2 行说明 / 回执 §七.1 |
+ | §三 返工后判据：`--strict` EXIT=0 + 守恒自洽 + 逐条列码与持有证据 + 全量门禁 + 反测两侧齐 | ✅ 全部满足（返工后复跑：`--strict` EXIT=0、vitest 0 failed、tsc 0、三条 guard EXIT=0、build EXIT=0；反测 A/B 两侧齐） | 回执 §九「返工回执」 |
+ 
++---
++
++## 十、S3-205（总清单第 68 项）· **消费者端保护形态**收口与台账三分（2026-10-15）
++
++> 产出：阿坚（后端 · 本地子代理通道）｜2026-10-15｜汇报对象：凌舟（总负责人）
++> 依据：派单卡 `docs/tasks/inbox/ACTIVE-S3-205.md`（卡内 §三 已含凌舟 2026-10-15 裁定）
++> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-205`，分支 `chore/s3-205-script-hygiene`，基线 `origin/main` = `36a7a02f`
++> 机读镜像：`backend/scripts/rbac-wiring-baseline.json`（本单起分 `gaps` / `consumerEnd` 两栏）
++
++### 10.1 判定（凌舟裁定，逐条复核无误）
++
++`marketing-miniapp.routes.ts` 的 3 条写端点（外加同族的 `POST /calculate`）**判「登记豁免」，不补权限码**：
++
++1. **它们不是管理面**：受 `requireConsumerAuthWithTenant` + `csrfMiddleware` + `bindSelfIdentity` 保护，
++   身份一律取登录态（客户端自带 `userId` 与登录态不一致 ⇒ 403），被操作对象的**归属与存在性**由服务层
++   `tenant_id = ?` + 命中不到即 404 承担（`marketing-coupon.service.ts:459/466` 等）。
++2. **套商家权限码会打成 403**：消费者身份经 S3-196 的 `requireConsumerAuthWithTenant` 解析为**绑定的会员身份**，
++   `roles` **恒空** ⇒ 任何 `requirePermission(...)` 在消费者身份上都不会命中。同型教训已发生过两次：
++   S3-203 的 `trace:*`（生产 `t_sys_role.permissions` 无持有者 ⇒ 接线即 403）、S3-198 §9.3 第 15 号的
++   `POST /api/miniapp/trace/c/verify`（台账误判「管理面」，同样因无 `req.user` 会造成 401/403）。
++3. **是否要生产实测**：**不需要**——本案判据是「消费者身份 ⇒ `roles` 恒空 ⇒ 商家码必然不命中」，与
++   生产库里商家角色持有什么都无关（`--holders` 只对商家角色有意义）。故本单**未做**生产库读取。
++
++### 10.2 门禁判据变更（`backend/scripts/guard-rbac-wiring.mjs`）
++
++新增第三类形态，**写端点由二分改为三分**：
++
++| `authForm` | 含义 | 是否计入缺口 |
++|:--|:--|:--|
++| `inline` / `use-mount` | 挂了 `requirePermission(...)`（租户）或 `requirePlatformPermission(...)`（平台） | 否（已接线） |
++| **`consumer`** | 同一挂载调用里 **`requireConsumerAuthWithTenant` 与 `csrfMiddleware` 成对出现** | 否（**消费者端保护形态**，逐条登记在 `consumerEnd`） |
++| `none` | 无任何上述形态 | **是**（真缺口，登记在 `gaps`） |
++
++**两处刻意从严（不做「套上就自动绿」）**：
++
++1. **必须成对**：只挂消费者认证而**没有 CSRF** 的写端点**仍记 `gaps`**（认证≠授权；状态变更无 CSRF 是实缺口）。
++2. **必须逐条登记**：消费者端形态未登记在 `consumerEnd` ⇒ `--strict` **必红**（否则新写端点只要抄这两个
++   中间件就自动洗绿）。
++
++> 判据不认 `requireWxAuth` 等其它认证中间件；`routeConfig` 声明式仍一律按「只挂认证」处理（认证≠授权）。
++
++### 10.3 全量影响面（**39 条 / 4 文件**，逐条；行号按当前代码）
++
++| 文件 | 条数 | 端点（行号） |
++|:--|--:|:--|
++| `marketing-miniapp.routes.ts` | 4 | `POST /coupons/:templateId/claim`(61)、`POST /flash-sale/:id/buy`(78)、`POST /group-buy/:teamId/join`(86)、`POST /calculate`(90) |
++| `miniapp.routes.ts` | 29 | `POST /cart`(30)、`PUT /cart/:id`(31)、`DELETE /cart/:id`(32)、`DELETE /cart`(33)、`POST /orders`(36)、`POST /orders/:id/pay`(39)、`POST /orders/:id/cancel`(40)、`POST /orders/:id/confirm-receive`(41)、`PUT /orders/:id/delete`(44)、`POST /stored-card/recharge`(54)、`PUT /user/profile`(58)、`POST /user/addresses`(60)、`PUT /user/addresses/:id`(61)、`DELETE /user/addresses/:id`(62)、`POST /user/addresses/:id/default`(63)、`POST /coupons/:id/use`(68)、`POST /member/coupons/:id/receive`(76)、`PUT /user/profile-update`(79)、`POST /user/change-password`(80)、`POST /wholesale/cart`(87)、`PUT /wholesale/cart/:id`(88)、`DELETE /wholesale/cart/:id`(89)、`POST /wholesale/orders`(90)、`POST /wholesale/cart/delete`(94)、`PUT /wholesale/cart/:itemId/select`(95)、`PUT /wholesale/cart/select-all`(96)、`POST /wholesale/orders/:orderId/cancel`(97)、`POST /wholesale/orders/:orderId/confirm-receive`(98)、`POST /wholesale/orders/buy-now`(100)（前缀均为 `/api/miniapp`） |
++| `aftersale.routes.ts` | 4 | `POST /api/miniapp/aftersales`(26)、`POST /api/miniapp/aftersales/:aftersaleNo/cancel`(33)、`POST /api/miniapp/aftersales/:aftersaleNo/return-logistics`(35)、`POST /api/miniapp/aftersales/:aftersaleNo/rate`(40) |
++| `notification.routes.ts` | 2 | `PUT /api/miniapp/notifications/:id/read`(29)、`POST /api/miniapp/notifications/read-all`(30) |
++
++**逐条更正本清单中已被推翻的行**（保留原表供对照，判定以本节为准）：
++
++| 位置 | 更正内容 |
++|:--|:--|
++| §三.15 `marketing-miniapp.routes.ts` 表 | **已就地更正**（路径改带参形态、判定改「消费者端」、补 `文件:行`） |
++| §三.5 `aftersale.routes.ts` 第 **382–385** 行 | 4 条小程序售后写端点：判定「管理面/是」⇒ **消费者端/否**（原建议码 `sale:create`/`sale:void`/`sale:return` **作废**，接了必 403） |
++| §三.9 `notification.routes.ts` 第 **1186–1187** 行 | 2 条小程序通知写端点：判定「管理面/是」⇒ **消费者端/否** |
++| §三.15 `miniapp.routes.ts` 表 | 其中 **29 行**归入消费者端形态；原判「管理面/是」的行（购物车/订单/充值/券/批发车等）判定结论改为「否，不适用商家权限码」 |
++
++### 10.4 守恒（可复算：`node backend/scripts/guard-rbac-wiring.mjs`）
++
++| 指标 | 本单前（`36a7a02f`） | 本单后 | 说明 |
++|:--|--:|--:|:--|
++| 扫描写端点总数 | 762 | 762 | 不变 |
++| 已接线（权限码） | 82 | 82 | 不变 |
++| **消费者端保护形态** | 0（未识别） | **39** | 新增第三类 |
++| **无授权形态（缺口）** | **680** | **641** | −39，即识别出的消费者端形态 |
++| 台账 `gaps` | 680 条 / 156 文件 | 641 条 / 155 文件 | 移出 39 条 |
++| 台账 `consumerEnd` | — | **39 条 / 4 文件** | 新增逐条登记 |
++| `--strict` | EXIT=0 | **EXIT=0** | 见 10.5 |
++
++> **守恒式**：`680 = 641 + 39`（**一条不多、一条不少**）。**这不是「把基线数字改大」**：39 条是
++> **从「待接线欠账」改判为「不适用商家权限码」**，同一提交里同步移出 `gaps`、登记进 `consumerEnd`，
++> 且 `consumerEnd` 未登记即判红——缺口口径**净减 39**，剩余 641 条欠账一条未洗白。
++
++### 10.5 反测（门禁铁律：故意制造失败，证明它会红）
++
++| 反测 | 注入 | 结果 | 原始输出 |
++|:--|:--|:--|:--|
++| A 摘消费者认证 | `marketing-miniapp.routes.ts:61` 去掉 `requireConsumerAuthWithTenant`（CSRF 仍在） | **EXIT=1**，报 `未登记：marketing-miniapp.routes.ts:61 POST /api/miniapp/marketing/coupons/:templateId/claim`；复原 ⇒ EXIT=0 | `docs/evidence/S3-205/logs/06-item68-neg-A-no-consumer-auth.log` |
++| B 摘 CSRF（验「必须成对」） | 同一条去掉 `csrfMiddleware`（消费者认证仍在） | **EXIT=1**，该端点回落 `gaps` 且未登记；复原 ⇒ EXIT=0 | `…\06-item68-neg-B-no-csrf.log` |
++| C 台账漏登记（验「必须逐条登记」） | 从 `consumerEnd` 删掉 claim 一条 | **EXIT=1**，报 `未登记（消费者端形态）：…coupons/:templateId/claim`；复原 ⇒ EXIT=0 | `…\06-item68-neg-C-unregistered-consumer.log` |
++
++> **逐字节还原**：A/B 的源文件 SHA256 与 C 的台账 SHA256 在注入前后**一致**
++> （route `BB9F43AA…E590EB`、baseline `60CAD6A2…E11347`），`git diff` 确认路由文件无残留改动。
++> **分辨力（非恒绿）**：同一批输出里 `gaps` 仍如实报 641 条（含 §三.15 `wechat.routes.ts` 那 5 条用
++> `requireWxAuth` 的写端点），消费者端识别**没有**把其它缺口一起吞掉。
++
++### 10.6 未纳入本判据的同类（**报备，待裁定**）
++
++- `wechat.routes.ts` 的 5 条写端点（`/api/miniapp/wechat/auth/**`）用的是 `requireWxAuth`（S3-187 E 补了
++  `req.user` + `csrfMiddleware`），**不是** `requireConsumerAuthWithTenant`。本单按卡面判据**不认**该中间件，
++  故这 5 条**仍留在 `gaps`**。若凌舟认为「微信端认证 = 消费者端认证」，应另立单把该中间件并入判据
++  （本单不擅自扩大判据，避免「顺手放宽门禁」）。
++- `cart.routes.ts` 用 `routeConfig.auth = "requireConsumerAuthWithTenant"` **声明式**挂载：声明式**不携带**
++  端点级证据，本门禁一律按「只挂认证」处理 ⇒ 其写端点若仍在 `gaps` 里，属**既定边界**（见脚本头），
++  需另立单按端点级改判或改判据。
++
+diff --git a/scripts/acceptance-all-domains.mjs b/scripts/acceptance-all-domains.mjs
+index 8e00aaec..1be021bd 100644
+--- a/scripts/acceptance-all-domains.mjs
++++ b/scripts/acceptance-all-domains.mjs
+@@ -3,16 +3,53 @@
+  * 全域名自动化验收脚本
+  * 运行环境：服务器本地（可直接访问 127.0.0.1:8080）
+  * 覆盖：api / admin / m / www / saas 5 个域名
++ *
++ * S3-205（收口总清单第 23 项）：**面向生产却内置默认凭据 / 默认地址** ⇒ 一律改为 env 注入。
++ * 必需项缺任何一项即打印缺项清单并 **exit 1**，不再回落到任何内置默认值。
++ * 必需项（env 名沿用同族脚本 scripts/acceptance-production.mjs 的既有约定）：
++ *   API_BASE（例 https://api.onepan.cn/api）／ ADMIN_URL ／ SAAS_URL ／ M_URL ／ WWW_URL
++ *   ADMIN_USERNAME ／ ADMIN_PASSWORD（旧名 DEMO_PASSWORD 亦可，二者等价、ADMIN_PASSWORD 优先）
+  */
+ 
+-const API_BASE = "https://api.onepan.cn/api";
+-const ADMIN_URL = "https://admin.onepan.cn";
+-const SAAS_URL = "https://saas.onepan.cn";
+-const M_URL = "https://m.onepan.cn";
+-const WWW_URL = "https://www.onepan.cn";
++const REQUIRED_ENV = [
++  ["API_BASE"],
++  ["ADMIN_URL"],
++  ["SAAS_URL"],
++  ["M_URL"],
++  ["WWW_URL"],
++  ["ADMIN_USERNAME"],
++  ["ADMIN_PASSWORD", "DEMO_PASSWORD"],
++];
++
++const missingEnv = REQUIRED_ENV
++  .filter((names) => !names.some((n) => (process.env[n] ?? "").trim() !== ""))
++  .map((names) => names.join(" | "));
++if (missingEnv.length > 0) {
++  console.error(
++    `[验收·全域名] 缺少必需环境变量 ${missingEnv.length} 项：${missingEnv.join(" / ")} ⇒ 不回落内置默认值，退出`
++  );
++  process.exit(1);
++}
+ 
+-// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
+-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "admin@2026";
++const API_BASE = process.env.API_BASE;
++const ADMIN_URL = process.env.ADMIN_URL;
++const SAAS_URL = process.env.SAAS_URL;
++const M_URL = process.env.M_URL;
++const WWW_URL = process.env.WWW_URL;
++const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
++// S3-205：旧名 DEMO_PASSWORD 仍受支持（脚本既有约定）；两者都未设置时已在上面 exit 1。
++const ADMIN_PASSWORD =
++  (process.env.ADMIN_PASSWORD ?? "").trim() !== "" ? process.env.ADMIN_PASSWORD : process.env.DEMO_PASSWORD;
++
++/** /health 在 /api 前缀之外（与 acceptance-production.mjs 同一口径） */
++const HEALTH_URL = `${API_BASE.replace(/\/api$/, "")}/health`;
++
++/** HTTP→HTTPS 重定向检查用的同址 http:// 形态（由 env 地址推导，不写死域名） */
++function toHttp(url) {
++  const u = new URL(url);
++  u.protocol = "http:";
++  return u.toString();
++}
+ 
+ const results = [];
+ let passed = 0;
+@@ -64,28 +101,28 @@ async function apiCall(path, opts = {}) {
+ // ===================== 阶段 1：连通性检查 =====================
+ console.log("\n========== 阶段 1：域名连通性检查 ==========");
+ 
+-await test("api.onepan.cn /health", async () => {
+-  const text = await fetchText("https://api.onepan.cn/health");
++await test("api /health 可访问", async () => {
++  const text = await fetchText(HEALTH_URL);
+   if (!text.includes("ok") && !text.includes("OK")) throw new Error("健康检查未返回 ok");
+ });
+ 
+-await test("admin.onepan.cn 首页可访问", async () => {
++await test("admin 首页可访问", async () => {
+   const html = await fetchText(ADMIN_URL);
+   if (!html.includes("<html") && !html.includes("<!DOCTYPE")) throw new Error("返回非 HTML");
+   if (html.includes("localhost:8080")) throw new Error("HTML 包含 localhost");
+ });
+ 
+-await test("m.onepan.cn 首页可访问", async () => {
++await test("m 首页可访问", async () => {
+   const html = await fetchText(M_URL);
+   if (!html.includes("<html")) throw new Error("返回非 HTML");
+ });
+ 
+-await test("www.onepan.cn 首页可访问", async () => {
++await test("www 首页可访问", async () => {
+   const html = await fetchText(WWW_URL);
+   if (!html.includes("<html")) throw new Error("返回非 HTML");
+ });
+ 
+-await test("saas.onepan.cn 首页可访问", async () => {
++await test("saas 首页可访问", async () => {
+   const html = await fetchText(SAAS_URL);
+   if (!html.includes("<html")) throw new Error("返回非 HTML");
+ });
+@@ -94,35 +131,35 @@ await test("saas.onepan.cn 首页可访问", async () => {
+ console.log("\n========== 阶段 2：HTTP 重定向检查 ==========");
+ 
+ await test("api HTTP→HTTPS 重定向", async () => {
+-  const res = await fetch("http://api.onepan.cn/health", { redirect: "manual" });
++  const res = await fetch(toHttp(HEALTH_URL), { redirect: "manual" });
+   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
+     throw new Error(`未重定向，状态码 ${res.status}`);
+   }
+ });
+ 
+ await test("admin HTTP→HTTPS 重定向", async () => {
+-  const res = await fetch("http://admin.onepan.cn/", { redirect: "manual" });
++  const res = await fetch(toHttp(ADMIN_URL), { redirect: "manual" });
+   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
+     throw new Error(`未重定向，状态码 ${res.status}`);
+   }
+ });
+ 
+ await test("m HTTP→HTTPS 重定向", async () => {
+-  const res = await fetch("http://m.onepan.cn/", { redirect: "manual" });
++  const res = await fetch(toHttp(M_URL), { redirect: "manual" });
+   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
+     throw new Error(`未重定向，状态码 ${res.status}`);
+   }
+ });
+ 
+ await test("www HTTP→HTTPS 重定向", async () => {
+-  const res = await fetch("http://www.onepan.cn/", { redirect: "manual" });
++  const res = await fetch(toHttp(WWW_URL), { redirect: "manual" });
+   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
+     throw new Error(`未重定向，状态码 ${res.status}`);
+   }
+ });
+ 
+ await test("saas HTTP→HTTPS 重定向", async () => {
+-  const res = await fetch("http://saas.onepan.cn/", { redirect: "manual" });
++  const res = await fetch(toHttp(SAAS_URL), { redirect: "manual" });
+   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
+     throw new Error(`未重定向，状态码 ${res.status}`);
+   }
+@@ -134,7 +171,7 @@ console.log("\n========== 阶段 3：API 核心接口检查 ==========");
+ await test("admin 登录接口正常", async () => {
+   const body = await apiCall("/admin/auth/login", {
+     method: "POST",
+-    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
++    body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
+   });
+   if (!body.data?.token) throw new Error("未返回 token");
+ });
+@@ -142,7 +179,7 @@ await test("admin 登录接口正常", async () => {
+ await test("admin 商品列表接口正常", async () => {
+   const login = await apiCall("/admin/auth/login", {
+     method: "POST",
+-    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
++    body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
+   });
+   const auth = { Authorization: `Bearer ${login.data.token}` };
+   const body = await apiCall("/admin/products", { headers: auth });
+@@ -152,7 +189,7 @@ await test("admin 商品列表接口正常", async () => {
+ await test("平台登录接口正常", async () => {
+   const body = await apiCall("/platform/auth/login", {
+     method: "POST",
+-    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
++    body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
+   });
+   if (!body.data?.token) throw new Error("未返回 token");
+ });
+@@ -189,7 +226,7 @@ await test("admin 前端可访问 API", async () => {
+   const res = await fetch(`${API_BASE}/admin/products`, {
+     method: "OPTIONS",
+     headers: {
+-      "Origin": "https://admin.onepan.cn",
++      "Origin": new URL(ADMIN_URL).origin,
+       "Access-Control-Request-Method": "GET",
+       "Access-Control-Request-Headers": "authorization,content-type"
+     }
+@@ -201,7 +238,7 @@ await test("saas 前端可访问 API", async () => {
+   const res = await fetch(`${API_BASE}/platform/dashboard/overview`, {
+     method: "OPTIONS",
+     headers: {
+-      "Origin": "https://saas.onepan.cn",
++      "Origin": new URL(SAAS_URL).origin,
+       "Access-Control-Request-Method": "GET",
+       "Access-Control-Request-Headers": "authorization,content-type"
+     }
+diff --git a/scripts/acceptance-production.mjs b/scripts/acceptance-production.mjs
+index 508120fb..8da0cb33 100644
+--- a/scripts/acceptance-production.mjs
++++ b/scripts/acceptance-production.mjs
+@@ -1,8 +1,36 @@
+-const ADMIN_URL = process.env.ADMIN_URL || "https://admin.onepan.cn";
+-const API_BASE = process.env.API_BASE || "https://api.onepan.cn/api";
+-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
+-// S3-175：默认口令不再写死弱口令；生产口令由 env 注入（ADMIN_PASSWORD / DEMO_PASSWORD）
+-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.DEMO_PASSWORD || "admin@2026";
++#!/usr/bin/env node
++/**
++ * 生产部署验收（接口层）
++ *
++ * S3-205（收口总清单第 23 项）：**面向生产却内置默认凭据 / 默认地址** ⇒ 一律改为 env 注入。
++ * 必需项缺任何一项即打印缺项清单并 **exit 1**，不再回落到任何内置默认值。
++ * 必需项（env 名沿用本脚本既有约定）：
++ *   API_BASE（例 https://api.onepan.cn/api）／ ADMIN_URL（例 https://admin.onepan.cn）
++ *   ADMIN_USERNAME ／ ADMIN_PASSWORD（旧名 DEMO_PASSWORD 亦可，二者等价、ADMIN_PASSWORD 优先）
++ */
++const REQUIRED_ENV = [
++  ["API_BASE"],
++  ["ADMIN_URL"],
++  ["ADMIN_USERNAME"],
++  ["ADMIN_PASSWORD", "DEMO_PASSWORD"],
++];
++
++const missingEnv = REQUIRED_ENV
++  .filter((names) => !names.some((n) => (process.env[n] ?? "").trim() !== ""))
++  .map((names) => names.join(" | "));
++if (missingEnv.length > 0) {
++  console.error(
++    `[验收·生产] 缺少必需环境变量 ${missingEnv.length} 项：${missingEnv.join(" / ")} ⇒ 不回落内置默认值，退出`
++  );
++  process.exit(1);
++}
++
++const API_BASE = process.env.API_BASE;
++const ADMIN_URL = process.env.ADMIN_URL;
++const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
++// S3-205：旧名 DEMO_PASSWORD 仍受支持（本脚本 S3-175 起的既有约定）；两者都未设置时已在上面 exit 1。
++const ADMIN_PASSWORD =
++  (process.env.ADMIN_PASSWORD ?? "").trim() !== "" ? process.env.ADMIN_PASSWORD : process.env.DEMO_PASSWORD;
+ 
+ async function mustFetch(url) {
+   const res = await fetch(url);

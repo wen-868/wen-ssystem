@@ -11,6 +11,11 @@ import mysql from "mysql2/promise";
 import { env } from "./env";
 import logger from "./logger";
 import { seedData } from "./seed-data";
+// S3-205（总清单第 26 项）：本文件写入口令哈希一律走 `./password` 的唯一封装
+// （`v2$` 版本前缀 + SALT_ROUNDS=12）。原先是裸 `bcrypt.hashSync(pw, 10)`（无前缀、cost 10），
+// 与 seed-data / 登录校验的 `verifyPassword` 口径不一致——两种口径并存时，任何按裸 bcrypt
+// 校验这些哈希的代码或测试都会恒 false（S3-172 原型事故），故统一。
+import { hashPasswordSync } from "./password";
 
 /** 在多个候选路径中查找 SQL 文件 */
 function findSqlFile(fileName: string) {
@@ -728,7 +733,6 @@ export async function runMigrations(): Promise<void> {
     // 第4步：修复 SHA256 密码为 bcrypt
     // ============================================================
     try {
-      const bcrypt = await import("bcryptjs");
       const [shaUsers] = await conn.query(
         "SELECT id, password_hash FROM t_sys_user WHERE password_hash NOT LIKE '$2b$%' AND LENGTH(password_hash) = 64"
       );
@@ -738,7 +742,7 @@ export async function runMigrations(): Promise<void> {
         // S3-175（P0 安全）：旧 SHA256 口令**禁止**静默重置为**公开的固定弱口令**（迁移原先即如此），
         // 改为每个账号**各自随机**；明文口令不落日志，需人工设定。
         for (const user of users) {
-          const hash = bcrypt.hashSync(randomBytes(24).toString("hex"), 10);
+          const hash = hashPasswordSync(randomBytes(24).toString("hex"));
           await conn.query("UPDATE t_sys_user SET password_hash = ? WHERE id = ?", [hash, user.id]);
         }
         logger.info(`[migration] 已将 ${users.length} 个账号口令重置为随机值，需人工设定（明文不入日志）`);
@@ -1163,8 +1167,6 @@ export async function runMigrations(): Promise<void> {
     // ============================================================
     logger.info("[migration] 检查/创建默认管理员账号...");
     try {
-      const bcrypt = await import("bcryptjs");
-
       // S3-175（P0 安全）：默认管理员口令**不再写死公开值**。
       // 口径：优先读 env `SEED_ADMIN_PASSWORD`；未配置则**逐账号随机**生成。
       // 明文口令一律不写进日志、不写进代码默认值。
@@ -1175,7 +1177,7 @@ export async function runMigrations(): Promise<void> {
         "SELECT id FROM t_sys_user WHERE username = 'admin' AND tenant_id = 'default'"
       ) as unknown as [Record<string, unknown>[]];
       if ((adminRows as unknown as any[]).length === 0) {
-        const adminHash = bcrypt.hashSync(seedAdminPassword || randomBytes(24).toString("hex"), 10);
+        const adminHash = hashPasswordSync(seedAdminPassword || randomBytes(24).toString("hex"));
         await conn.query(`
           INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
           VALUES ('admin', ?, '系统管理员', 1, 'default', NOW(), NOW())
@@ -1214,7 +1216,7 @@ export async function runMigrations(): Promise<void> {
         "SELECT id FROM t_sys_user WHERE username = 'tenant_admin' AND tenant_id = 'default'"
       ) as unknown as [Record<string, unknown>[]];
       if ((tenantRows as unknown as any[]).length === 0) {
-        const tenantHash = bcrypt.hashSync(seedAdminPassword || randomBytes(24).toString("hex"), 10);
+        const tenantHash = hashPasswordSync(seedAdminPassword || randomBytes(24).toString("hex"));
         await conn.query(`
           INSERT INTO t_sys_user (username, password_hash, real_name, status, tenant_id, created_at, updated_at)
           VALUES ('tenant_admin', ?, '租户管理员', 1, 'default', NOW(), NOW())

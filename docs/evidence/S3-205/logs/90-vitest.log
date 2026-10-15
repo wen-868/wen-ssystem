@@ -1,0 +1,515 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-205/backend
+
+[2026-10-15 05:03:13.916 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-15 05:03:13.918 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 05:03:14.934 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-15 05:03:14.934 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 05:03:16.942 +0800] [31mERROR[39m (8564): [36m[push.fcm] 推送失败: FCM 网络错误[39m
+[2026-10-15 05:03:16.958 +0800] [33mWARN[39m (8564): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-15 05:03:16.958 +0800] [33mWARN[39m (8564): [36m[http-retry] https://api.jpush.cn/v3/push 第 1 次重试（1000ms 后）[39m
+[2026-10-15 05:03:17.958 +0800] [33mWARN[39m (8564): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-15 05:03:17.958 +0800] [33mWARN[39m (8564): [36m[http-retry] https://api.jpush.cn/v3/push 第 2 次重试（2000ms 后）[39m
+[2026-10-15 05:03:19.970 +0800] [31mERROR[39m (8564): [36m[push.jpush] 推送失败: 连接超时[39m
+[2026-10-15 05:03:19.982 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-15 05:03:19.983 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 05:03:20.993 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-15 05:03:20.993 +0800] [33mWARN[39m (8564): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 05:03:23.004 +0800] [31mERROR[39m (8564): [36m[push.fcm] 推送失败: network down[39m
+[2026-10-15 05:03:23.013 +0800] [33mWARN[39m (8564): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-15 05:03:23.014 +0800] [33mWARN[39m (8564): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 1 次重试（1000ms 后）[39m
+[2026-10-15 05:03:24.015 +0800] [33mWARN[39m (8564): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-15 05:03:24.015 +0800] [33mWARN[39m (8564): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 2 次重试（2000ms 后）[39m
+[2026-10-15 05:03:26.028 +0800] [31mERROR[39m (8564): [36m[push.hms] 获取 access_token 失败: token endpoint down[39m
+[2026-10-15 05:03:26.031 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-15 05:03:26.031 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 05:03:27.047 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-15 05:03:27.048 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 05:03:29.055 +0800] [31mERROR[39m (8564): [36m[push.hms] 推送失败: HTTP 500[39m
+[2026-10-15 05:03:29.058 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-15 05:03:29.058 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-15 05:03:30.089 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-15 05:03:30.089 +0800] [33mWARN[39m (8564): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-15 05:03:32.114 +0800] [31mERROR[39m (8564): [36m[push.hms] 推送失败: push endpoint down[39m
+[2026-10-15 05:05:24.383 +0800] [33mWARN[39m (17568): [36m[cors] 当前为开发态（NODE_ENV=test）且未配置 CORS_ORIGINS ⇒ 全放行（origin: true, credentials: true）， 仅供本地/CI 使用，**禁止用于生产**。[39m
+[2026-10-15 05:05:26.500 +0800] [31mERROR[39m (17668): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "mobile"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"mobile\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "mobile"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 05:05:26.837 +0800] [31mERROR[39m (17668): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "name"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "mobile"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"name\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"mobile\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "name"
+              ],
+              "message": "Required"
+            },
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "mobile"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ]
+        },
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ],
+          "message": "Required"
+        },
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 05:05:26.899 +0800] [31mERROR[39m (17668): [36m[
+  {
+    "validation": "regex",
+    "code": "invalid_string",
+    "message": "手机号格式不正确",
+    "path": [
+      "mobile"
+    ]
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"validation\": \"regex\",\n    \"code\": \"invalid_string\",\n    \"message\": \"手机号格式不正确\",\n    \"path\": [\n      \"mobile\"\n    ]\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "validation": "regex",
+              "code": "invalid_string",
+              "message": "手机号格式不正确",
+              "path": [
+                "mobile"
+              ]
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "手机号格式不正确",
+          "stack":
+              
+          "validation": "regex",
+          "code": "invalid_string",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "validation": "regex",
+          "code": "invalid_string",
+          "message": "手机号格式不正确",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 05:05:27.142 +0800] [31mERROR[39m (17668): [36mDuplicate entry '13900000001' for key 't_member.uk_member_mobile'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry '13900000001' for key 't_member.uk_member_mobile'",
+      "stack":
+          Error: Duplicate entry '13900000001' for key 't_member.uk_member_mobile'
+              at driverError (D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:118:7
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-15 05:05:27.145 +0800] [33mWARN[39m (17668): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
+[2026-10-15 05:05:27.152 +0800] [31mERROR[39m (17668): [36mDuplicate entry 'x' for key 'uk_some_unknown_key'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry 'x' for key 'uk_some_unknown_key'",
+      "stack":
+          Error: Duplicate entry 'x' for key 'uk_some_unknown_key'
+              at driverError (D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:134:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-15 05:05:27.153 +0800] [33mWARN[39m (17668): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
+[2026-10-15 05:05:27.157 +0800] [31mERROR[39m (17668): [36mColumn 'mobile' cannot be null[39m
+    err: {
+      "type": "Error",
+      "message": "Column 'mobile' cannot be null",
+      "stack":
+          Error: Column 'mobile' cannot be null
+              at driverError (D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:144:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_BAD_NULL_ERROR",
+      "errno": 1048
+    }
+[2026-10-15 05:05:27.158 +0800] [33mWARN[39m (17668): [36m[error-handler] 入参缺列（400）：POST /api/test — mobile[39m
+[2026-10-15 05:05:27.161 +0800] [31mERROR[39m (17668): [36mField 'rule_name' doesn't have a default value[39m
+    err: {
+      "type": "Error",
+      "message": "Field 'rule_name' doesn't have a default value",
+      "stack":
+          Error: Field 'rule_name' doesn't have a default value
+              at driverError (D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:153:7
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_NO_DEFAULT_FOR_FIELD",
+      "errno": 1364
+    }
+[2026-10-15 05:05:27.164 +0800] [33mWARN[39m (17668): [36m[error-handler] 入参缺列（400）：POST /api/test — rule_name[39m
+[2026-10-15 05:05:27.166 +0800] [31mERROR[39m (17668): [36mYou have an error in your SQL syntax[39m
+    err: {
+      "type": "Error",
+      "message": "You have an error in your SQL syntax",
+      "stack":
+          Error: You have an error in your SQL syntax
+              at driverError (D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:165:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_PARSE_ERROR",
+      "errno": 1064
+    }
+[2026-10-15 05:05:27.217 +0800] [31mERROR[39m (17668): [36m未知错误[39m
+    err: {
+      "type": "Error",
+      "message": "未知错误",
+      "stack":
+          Error: 未知错误
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/__tests__/routes/s3-181-write-500.test.ts:173:18
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+              at file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+    }
+[2026-10-15 05:05:27.290 +0800] [31mERROR[39m (17668): [36mSKU不存在：99999999[39m
+    err: {
+      "type": "AppError",
+      "message": "SKU不存在：99999999",
+      "stack":
+          AppError: SKU不存在：99999999
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/services/store/sale-bill.service.ts:279:25
+              at processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/controllers/store/sale-bill.controller.ts:81:18
+      "statusCode": 400,
+      "name": "AppError"
+    }
+[2026-10-15 05:05:27.345 +0800] [31mERROR[39m (17668): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "array",
+    "received": "undefined",
+    "path": [
+      "items"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"array\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"items\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "array",
+              "received": "undefined",
+              "path": [
+                "items"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/wt-agents/S3-205/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/controllers/store/sale-bill.controller.ts:79:6
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:149:13)
+              at D:/Users/ZXQL/wt-agents/S3-205/backend/src/middleware/rbac-auth.ts:15:7
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\wt-agents\S3-205\node_modules\express\lib\router\route.js:119:3)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "items"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "items"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-15 05:05:27.502 +0800] [33mWARN[39m (17668): [36m[sale-bill] 创建通知失败: connect ECONNREFUSED 127.0.0.1:3306[39m
+[2026-10-15 05:05:30.584 +0800] [32mINFO[39m (17568): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-10-15 05:05:30.976 +0800] [32mINFO[39m (17568): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-15 05:05:32.304 +0800] [32mINFO[39m (17568): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-15 05:05:36.859 +0800] [33mWARN[39m (11760): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/msg-config[39m
+[2026-10-15 05:05:36.987 +0800] [33mWARN[39m (11760): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=no_admin_role PUT /api/platform/msg-config[39m
+[2026-10-15 05:05:37.027 +0800] [33mWARN[39m (11760): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_missing PUT /api/platform/msg-config[39m
+[2026-10-15 05:05:37.041 +0800] [31mERROR[39m (11760): [36m[platform-rbac] 权限校验失败（fail-closed，已拒绝）：adminId=42 code=sysconfig:manage err=ER_NO_SUCH_TABLE[39m
+[2026-10-15 05:05:37.041 +0800] [33mWARN[39m (11760): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=check_error PUT /api/platform/msg-config[39m
+[2026-10-15 05:05:37.041 +0800] [33mWARN[39m (11760): [36m[platform-rbac] 拒绝留痕写入失败（不影响 403）：adminId=42 code=sysconfig:manage err=Cannot read properties of undefined (reading 'insertId')[39m
+[2026-10-15 05:05:37.165 +0800] [33mWARN[39m (11760): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny DELETE /api/platform/sms-templates/5[39m
+[2026-10-15 05:05:37.251 +0800] [33mWARN[39m (11760): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny POST /api/platform/sms-templates[39m
+[2026-10-15 05:05:41.563 +0800] [32mINFO[39m (17568): [36m[auto-routes] 重复前缀 12 个（均已登记放行，真重复端点 0 项）：/api/admin (19次), /api/admin/marketing (7次), /api/admin/inventory (3次), /api/platform (3次), /api/platform/billing (3次), /api/admin/instant-retail (2次), /api/admin/reports (2次), /api/miniapp (2次), /api/monitor (2次), /api/platform/monitor (2次), /api/store/coupons (2次), /api/store/members (2次)[39m
+[2026-10-15 05:05:41.563 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。[39m
+[2026-10-15 05:05:41.563 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。[39m
+[2026-10-15 05:05:41.563 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:41.563 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。[39m
+[2026-10-15 05:05:41.563 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。[39m
+[2026-10-15 05:05:41.563 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。[39m
+[2026-10-15 05:05:41.564 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:41.564 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。[39m
+[2026-10-15 05:05:41.564 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:41.564 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:41.564 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。[39m
+[2026-10-15 05:05:41.564 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 白名单 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。[39m
+[2026-10-15 05:05:41.564 +0800] [32mINFO[39m (17568): [36m[auto-routes]  · 以上 12 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。[39m
+[2026-10-15 05:05:41.564 +0800] [33mWARN[39m (17568): [36m[auto-routes][根前缀共享告警] 4 个**根前缀**被多文件共用：/api/admin (19次: admin-bill-history.routes.ts, admin-credit.routes.ts, admin-customer.routes.ts, admin-finance.routes.ts, admin-inventory.routes.ts, admin-order.routes.ts, admin-product.routes.ts, admin-report.routes.ts, admin-staff.routes.ts, admin-system.routes.ts, aftersale.routes.ts, avatar.routes.ts, commerce-fix.routes.ts, error-log.routes.ts, feedback.routes.ts, order-exception.routes.ts, product-bundle.routes.ts, tag.routes.ts, workbench.routes.ts)；/api/platform (3次: platform-error-log.routes.ts, platform-msg-config.routes.ts, platform.routes.ts)；/api/miniapp (2次: aftersale.routes.ts, miniapp.routes.ts)；/api/monitor (2次: monitor-slow-query.routes.ts, monitor-system.routes.ts)。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。[39m
+[2026-10-15 05:05:41.570 +0800] [32mINFO[39m (17568): [36m[auto-routes] 已自动注册 225 个路由[39m
+[2026-10-15 05:05:41.704 +0800] [32mINFO[39m (17568): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-15 05:05:41.710 +0800] [32mINFO[39m (17568): [36m[rate-limit] 限流器启用 RedisStore（REDIS_URL 已配置）[39m
+[2026-10-15 05:05:41.712 +0800] [31mERROR[39m (17568): [36m[rate-limit] Redis 连接错误:[39m
+    [35mextra[39m: [
+      "boom"
+    ]
+[2026-10-15 05:05:41.741 +0800] [31mERROR[39m (17568): [36m[rate-limit] RedisStore 初始化失败，降级 MemoryStore:[39m
+    [35mextra[39m: [
+      "mock RedisStore 初始化失败"
+    ]
+[2026-10-15 05:05:41.743 +0800] [32mINFO[39m (17568): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-15 05:05:55.187 +0800] [32mINFO[39m (17824): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-10-15 05:05:55.780 +0800] [32mINFO[39m (17824): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-15 05:05:57.256 +0800] [32mINFO[39m (17824): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-15 05:05:57.877 +0800] [32mINFO[39m (17824): [36m[auto-routes] 重复前缀 12 个（均已登记放行，真重复端点 0 项）：/api/admin (19次), /api/admin/marketing (7次), /api/admin/inventory (3次), /api/platform (3次), /api/platform/billing (3次), /api/admin/instant-retail (2次), /api/admin/reports (2次), /api/miniapp (2次), /api/monitor (2次), /api/platform/monitor (2次), /api/store/coupons (2次), /api/store/members (2次)[39m
+[2026-10-15 05:05:57.877 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。[39m
+[2026-10-15 05:05:57.877 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。[39m
+[2026-10-15 05:05:57.877 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:57.877 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。[39m
+[2026-10-15 05:05:57.877 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。[39m
+[2026-10-15 05:05:57.877 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。[39m
+[2026-10-15 05:05:57.878 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:57.878 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。[39m
+[2026-10-15 05:05:57.878 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:57.878 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。[39m
+[2026-10-15 05:05:57.878 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。[39m
+[2026-10-15 05:05:57.878 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 白名单 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。[39m
+[2026-10-15 05:05:57.878 +0800] [32mINFO[39m (17824): [36m[auto-routes]  · 以上 12 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。[39m
+[2026-10-15 05:05:57.878 +0800] [33mWARN[39m (17824): [36m[auto-routes][根前缀共享告警] 4 个**根前缀**被多文件共用：/api/admin (19次: admin-bill-history.routes.ts, admin-credit.routes.ts, admin-customer.routes.ts, admin-finance.routes.ts, admin-inventory.routes.ts, admin-order.routes.ts, admin-product.routes.ts, admin-report.routes.ts, admin-staff.routes.ts, admin-system.routes.ts, aftersale.routes.ts, avatar.routes.ts, commerce-fix.routes.ts, error-log.routes.ts, feedback.routes.ts, order-exception.routes.ts, product-bundle.routes.ts, tag.routes.ts, workbench.routes.ts)；/api/platform (3次: platform-error-log.routes.ts, platform-msg-config.routes.ts, platform.routes.ts)；/api/miniapp (2次: aftersale.routes.ts, miniapp.routes.ts)；/api/monitor (2次: monitor-slow-query.routes.ts, monitor-system.routes.ts)。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。[39m
+[2026-10-15 05:05:57.886 +0800] [32mINFO[39m (17824): [36m[auto-routes] 已自动注册 225 个路由[39m
+{"level":30,"time":1792012083255,"pid":12344,"hostname":"XIONG","msg":"production test"}
+
+ Test Files  663 passed (663)
+      Tests  7995 passed (7995)
+   Start at  05:03:09
+   Duration  453.06s (transform 193.50s, setup 11.70s, import 1478.61s, tests 380.58s, environment 371ms)
+
+VITEST_EXIT=0

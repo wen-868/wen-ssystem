@@ -3,16 +3,53 @@
  * 全域名自动化验收脚本
  * 运行环境：服务器本地（可直接访问 127.0.0.1:8080）
  * 覆盖：api / admin / m / www / saas 5 个域名
+ *
+ * S3-205（收口总清单第 23 项）：**面向生产却内置默认凭据 / 默认地址** ⇒ 一律改为 env 注入。
+ * 必需项缺任何一项即打印缺项清单并 **exit 1**，不再回落到任何内置默认值。
+ * 必需项（env 名沿用同族脚本 scripts/acceptance-production.mjs 的既有约定）：
+ *   API_BASE（例 https://api.onepan.cn/api）／ ADMIN_URL ／ SAAS_URL ／ M_URL ／ WWW_URL
+ *   ADMIN_USERNAME ／ ADMIN_PASSWORD（旧名 DEMO_PASSWORD 亦可，二者等价、ADMIN_PASSWORD 优先）
  */
 
-const API_BASE = "https://api.onepan.cn/api";
-const ADMIN_URL = "https://admin.onepan.cn";
-const SAAS_URL = "https://saas.onepan.cn";
-const M_URL = "https://m.onepan.cn";
-const WWW_URL = "https://www.onepan.cn";
+const REQUIRED_ENV = [
+  ["API_BASE"],
+  ["ADMIN_URL"],
+  ["SAAS_URL"],
+  ["M_URL"],
+  ["WWW_URL"],
+  ["ADMIN_USERNAME"],
+  ["ADMIN_PASSWORD", "DEMO_PASSWORD"],
+];
 
-// S3-175：演示/测试账号口令全系统统一（可用 DEMO_PASSWORD 覆盖）
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "admin@2026";
+const missingEnv = REQUIRED_ENV
+  .filter((names) => !names.some((n) => (process.env[n] ?? "").trim() !== ""))
+  .map((names) => names.join(" | "));
+if (missingEnv.length > 0) {
+  console.error(
+    `[验收·全域名] 缺少必需环境变量 ${missingEnv.length} 项：${missingEnv.join(" / ")} ⇒ 不回落内置默认值，退出`
+  );
+  process.exit(1);
+}
+
+const API_BASE = process.env.API_BASE;
+const ADMIN_URL = process.env.ADMIN_URL;
+const SAAS_URL = process.env.SAAS_URL;
+const M_URL = process.env.M_URL;
+const WWW_URL = process.env.WWW_URL;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+// S3-205：旧名 DEMO_PASSWORD 仍受支持（脚本既有约定）；两者都未设置时已在上面 exit 1。
+const ADMIN_PASSWORD =
+  (process.env.ADMIN_PASSWORD ?? "").trim() !== "" ? process.env.ADMIN_PASSWORD : process.env.DEMO_PASSWORD;
+
+/** /health 在 /api 前缀之外（与 acceptance-production.mjs 同一口径） */
+const HEALTH_URL = `${API_BASE.replace(/\/api$/, "")}/health`;
+
+/** HTTP→HTTPS 重定向检查用的同址 http:// 形态（由 env 地址推导，不写死域名） */
+function toHttp(url) {
+  const u = new URL(url);
+  u.protocol = "http:";
+  return u.toString();
+}
 
 const results = [];
 let passed = 0;
@@ -64,28 +101,28 @@ async function apiCall(path, opts = {}) {
 // ===================== 阶段 1：连通性检查 =====================
 console.log("\n========== 阶段 1：域名连通性检查 ==========");
 
-await test("api.onepan.cn /health", async () => {
-  const text = await fetchText("https://api.onepan.cn/health");
+await test("api /health 可访问", async () => {
+  const text = await fetchText(HEALTH_URL);
   if (!text.includes("ok") && !text.includes("OK")) throw new Error("健康检查未返回 ok");
 });
 
-await test("admin.onepan.cn 首页可访问", async () => {
+await test("admin 首页可访问", async () => {
   const html = await fetchText(ADMIN_URL);
   if (!html.includes("<html") && !html.includes("<!DOCTYPE")) throw new Error("返回非 HTML");
   if (html.includes("localhost:8080")) throw new Error("HTML 包含 localhost");
 });
 
-await test("m.onepan.cn 首页可访问", async () => {
+await test("m 首页可访问", async () => {
   const html = await fetchText(M_URL);
   if (!html.includes("<html")) throw new Error("返回非 HTML");
 });
 
-await test("www.onepan.cn 首页可访问", async () => {
+await test("www 首页可访问", async () => {
   const html = await fetchText(WWW_URL);
   if (!html.includes("<html")) throw new Error("返回非 HTML");
 });
 
-await test("saas.onepan.cn 首页可访问", async () => {
+await test("saas 首页可访问", async () => {
   const html = await fetchText(SAAS_URL);
   if (!html.includes("<html")) throw new Error("返回非 HTML");
 });
@@ -94,35 +131,35 @@ await test("saas.onepan.cn 首页可访问", async () => {
 console.log("\n========== 阶段 2：HTTP 重定向检查 ==========");
 
 await test("api HTTP→HTTPS 重定向", async () => {
-  const res = await fetch("http://api.onepan.cn/health", { redirect: "manual" });
+  const res = await fetch(toHttp(HEALTH_URL), { redirect: "manual" });
   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
     throw new Error(`未重定向，状态码 ${res.status}`);
   }
 });
 
 await test("admin HTTP→HTTPS 重定向", async () => {
-  const res = await fetch("http://admin.onepan.cn/", { redirect: "manual" });
+  const res = await fetch(toHttp(ADMIN_URL), { redirect: "manual" });
   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
     throw new Error(`未重定向，状态码 ${res.status}`);
   }
 });
 
 await test("m HTTP→HTTPS 重定向", async () => {
-  const res = await fetch("http://m.onepan.cn/", { redirect: "manual" });
+  const res = await fetch(toHttp(M_URL), { redirect: "manual" });
   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
     throw new Error(`未重定向，状态码 ${res.status}`);
   }
 });
 
 await test("www HTTP→HTTPS 重定向", async () => {
-  const res = await fetch("http://www.onepan.cn/", { redirect: "manual" });
+  const res = await fetch(toHttp(WWW_URL), { redirect: "manual" });
   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
     throw new Error(`未重定向，状态码 ${res.status}`);
   }
 });
 
 await test("saas HTTP→HTTPS 重定向", async () => {
-  const res = await fetch("http://saas.onepan.cn/", { redirect: "manual" });
+  const res = await fetch(toHttp(SAAS_URL), { redirect: "manual" });
   if (res.status !== 301 && res.status !== 308 && res.status !== 307) {
     throw new Error(`未重定向，状态码 ${res.status}`);
   }
@@ -134,7 +171,7 @@ console.log("\n========== 阶段 3：API 核心接口检查 ==========");
 await test("admin 登录接口正常", async () => {
   const body = await apiCall("/admin/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
+    body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
   });
   if (!body.data?.token) throw new Error("未返回 token");
 });
@@ -142,7 +179,7 @@ await test("admin 登录接口正常", async () => {
 await test("admin 商品列表接口正常", async () => {
   const login = await apiCall("/admin/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
+    body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
   });
   const auth = { Authorization: `Bearer ${login.data.token}` };
   const body = await apiCall("/admin/products", { headers: auth });
@@ -152,7 +189,7 @@ await test("admin 商品列表接口正常", async () => {
 await test("平台登录接口正常", async () => {
   const body = await apiCall("/platform/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username: "admin", password: DEMO_PASSWORD })
+    body: JSON.stringify({ username: ADMIN_USERNAME, password: ADMIN_PASSWORD })
   });
   if (!body.data?.token) throw new Error("未返回 token");
 });
@@ -189,7 +226,7 @@ await test("admin 前端可访问 API", async () => {
   const res = await fetch(`${API_BASE}/admin/products`, {
     method: "OPTIONS",
     headers: {
-      "Origin": "https://admin.onepan.cn",
+      "Origin": new URL(ADMIN_URL).origin,
       "Access-Control-Request-Method": "GET",
       "Access-Control-Request-Headers": "authorization,content-type"
     }
@@ -201,7 +238,7 @@ await test("saas 前端可访问 API", async () => {
   const res = await fetch(`${API_BASE}/platform/dashboard/overview`, {
     method: "OPTIONS",
     headers: {
-      "Origin": "https://saas.onepan.cn",
+      "Origin": new URL(SAAS_URL).origin,
       "Access-Control-Request-Method": "GET",
       "Access-Control-Request-Headers": "authorization,content-type"
     }

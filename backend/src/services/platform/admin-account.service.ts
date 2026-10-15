@@ -5,7 +5,9 @@
  */
 
 import { query, queryOne } from "../../shared/db";
-import bcrypt from "bcryptjs";
+// S3-205（总清单第 26 项）：平台管理员口令哈希一律走 `shared/password.ts` 的唯一封装（`v2$` + cost 12），
+// 禁止裸 `bcrypt.hash` —— 两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false（S3-172）。
+import { hashPassword } from "../../shared/password";
 import type { ResultSetHeader } from "mysql2";
 import { randomInt } from "node:crypto";
 import { insertPlatformAuditLog } from "../admin/platform-audit-log.service";
@@ -147,7 +149,7 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
     throw Object.assign(new Error("用户名已存在"), { statusCode: 400 });
   }
 
-  const passwordHash = await bcrypt.hash(params.password, 10);
+  const passwordHash = await hashPassword(params.password);
 
   const result = await query<InsertResult>(
     `INSERT INTO t_platform_admin
@@ -280,7 +282,7 @@ export async function resetPlatformAdminPassword(
   }
 
   const initialPassword = generateInitialPassword();
-  const passwordHash = await bcrypt.hash(initialPassword, 10);
+  const passwordHash = await hashPassword(initialPassword);
   await query(
     "UPDATE t_platform_admin SET password_hash = ?, updated_at = NOW() WHERE id = ?",
     [passwordHash, adminId]

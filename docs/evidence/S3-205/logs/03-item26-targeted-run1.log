@@ -1,0 +1,102 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-205/backend
+
+ ❯ src/__tests__/services/admin/employee.service.test.ts (20 tests | 2 failed) 72ms
+       × 传入密码时使用传入密码 hash 13ms
+       × 未传密码时使用默认 123456 3ms
+ ❯ src/__tests__/services/platform/admin-account-c6.service.test.ts (10 tests | 2 failed) 3473ms
+     × 复用既有建号逻辑：口令服务端生成、只存 bcrypt 哈希、只回传一次 1241ms
+     × UPDATE password_hash 为新口令哈希，返回一次性初始口令并留痕 1053ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/services/admin/employee.service.test.ts > employee.service > createStaff > 传入密码时使用传入密码 hash
+Error: [vitest] No "hashPassword" export is defined on the "../../../shared/password" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("../../../shared/password"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ Module.createStaff src/services/admin/employee.service.ts:135:13
+    133|
+    134|   const passwordHash = body.password
+    135|     ? await hashPassword(body.password)
+       |             ^
+    136|     : await hashPassword("123456");
+    137|   const result = await queryWithTenant<ResultSetHeader>(
+ ❯ src/__tests__/services/admin/employee.service.test.ts:65:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/__tests__/services/admin/employee.service.test.ts > employee.service > createStaff > 未传密码时使用默认 123456
+Error: [vitest] No "hashPassword" export is defined on the "../../../shared/password" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("../../../shared/password"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ Module.createStaff src/services/admin/employee.service.ts:136:13
+    134|   const passwordHash = body.password
+    135|     ? await hashPassword(body.password)
+    136|     : await hashPassword("123456");
+       |             ^
+    137|   const result = await queryWithTenant<ResultSetHeader>(
+    138|     `INSERT INTO t_sys_user (username, real_name, mobile, store_id, de…
+ ❯ src/__tests__/services/admin/employee.service.test.ts:76:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/__tests__/services/platform/admin-account-c6.service.test.ts > C6-1A · invitePlatformAdmin（#45 建号，裁定 R6：不发信 + 初始口令一次性展示） > 复用既有建号逻辑：口令服务端生成、只存 bcrypt 哈希、只回传一次
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/__tests__/services/platform/admin-account-c6.service.test.ts:58:72
+     56|     // 落库的是哈希，不是明文（明文绝不能进 DB）
+     57|     expect(params[1]).not.toBe(res.initialPassword);
+     58|     expect(bcrypt.compareSync(res.initialPassword, String(params[1])))…
+       |                                                                        ^
+     59|     expect(res).toMatchObject({ id: 9, username: "ops01", role: "ADMIN…
+     60|     expect(String(res.initialPassword)).toHaveLength(12);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/__tests__/services/platform/admin-account-c6.service.test.ts > C6-1A · resetPlatformAdminPassword（#51 管理员代重置，零 DDL） > UPDATE password_hash 为新口令哈希，返回一次性初始口令并留痕
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/__tests__/services/platform/admin-account-c6.service.test.ts:107:72
+    105|     expect(sql).toContain("UPDATE t_platform_admin");
+    106|     expect(sql).toContain("password_hash");
+    107|     expect(bcrypt.compareSync(res.initialPassword, String(params[0])))…
+       |                                                                        ^
+    108|     expect(params[1]).toBe(3);
+    109|     expect(res).toMatchObject({ id: 3, username: "ops03", passwordShow…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  4 failed | 42 passed (46)
+   Start at  05:00:43
+   Duration  5.46s (transform 1.63s, setup 253ms, import 1.90s, tests 3.61s, environment 1ms)
+

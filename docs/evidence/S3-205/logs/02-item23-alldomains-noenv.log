@@ -1,0 +1,2 @@
+[验收·全域名] 缺少必需环境变量 7 项：API_BASE / ADMIN_URL / SAAS_URL / M_URL / WWW_URL / ADMIN_USERNAME / ADMIN_PASSWORD | DEMO_PASSWORD ⇒ 不回落内置默认值，退出
+EXIT=1

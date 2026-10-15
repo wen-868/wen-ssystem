@@ -1,6 +1,8 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
-import bcrypt from "bcryptjs";
-import { validatePassword } from "../../shared/password";
+// S3-205（总清单第 26 项）：本文件口令哈希一律走 `shared/password.ts` 的**唯一封装**
+// （`v2$` 版本前缀 + SALT_ROUNDS=12）。裸 `bcrypt.hash(pw, 10)` 会产生**第二种口径**的哈希，
+// 任何按裸 bcrypt 校验的代码/测试对它恒为 false（S3-172 原型事故），故禁止直调。
+import { hashPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 
 export interface UserListParams {
@@ -152,7 +154,7 @@ export async function createUser(tenantId: string, input: CreateUserInput, opera
     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
   }
 
-  const hashedPassword = await bcrypt.hash(input.password, 10);
+  const hashedPassword = await hashPassword(input.password);
 
   await transaction(async (conn) => {
     const [result] = await conn.execute(
@@ -260,7 +262,7 @@ export async function resetPassword(tenantId: string, id: number, newPassword: s
     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
   }
 
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const hashedPassword = await hashPassword(newPassword);
   await queryWithTenant(
     "UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?",
     [hashedPassword, id, tenantId], tenantId

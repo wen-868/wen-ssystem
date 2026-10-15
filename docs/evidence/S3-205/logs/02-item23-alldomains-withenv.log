@@ -1,0 +1,54 @@
+
+========== 阶段 1：域名连通性检查 ==========
+  [FAIL] api /health 可访问 — fetch failed
+  [FAIL] admin 首页可访问 — fetch failed
+  [FAIL] m 首页可访问 — fetch failed
+  [FAIL] www 首页可访问 — fetch failed
+  [FAIL] saas 首页可访问 — fetch failed
+
+========== 阶段 2：HTTP 重定向检查 ==========
+  [FAIL] api HTTP→HTTPS 重定向 — fetch failed
+  [FAIL] admin HTTP→HTTPS 重定向 — fetch failed
+  [FAIL] m HTTP→HTTPS 重定向 — fetch failed
+  [FAIL] www HTTP→HTTPS 重定向 — fetch failed
+  [FAIL] saas HTTP→HTTPS 重定向 — fetch failed
+
+========== 阶段 3：API 核心接口检查 ==========
+  [FAIL] admin 登录接口正常 — fetch failed
+  [FAIL] admin 商品列表接口正常 — fetch failed
+  [FAIL] 平台登录接口正常 — fetch failed
+  [FAIL] CSRF token 接口正常 — fetch failed
+
+========== 阶段 4：静态资源检查 ==========
+  [FAIL] admin HTML 不含 localhost API 地址 — fetch failed
+  [FAIL] saas HTML 不含 localhost API 地址 — fetch failed
+  [FAIL] m HTML 不含 localhost API 地址 — fetch failed
+
+========== 阶段 5：CORS 预检检查 ==========
+  [FAIL] admin 前端可访问 API — fetch failed
+  [FAIL] saas 前端可访问 API — fetch failed
+
+========== 验收结果汇总 ==========
+通过: 0 / 总计: 19
+
+失败的测试项:
+  - api /health 可访问: fetch failed
+  - admin 首页可访问: fetch failed
+  - m 首页可访问: fetch failed
+  - www 首页可访问: fetch failed
+  - saas 首页可访问: fetch failed
+  - api HTTP→HTTPS 重定向: fetch failed
+  - admin HTTP→HTTPS 重定向: fetch failed
+  - m HTTP→HTTPS 重定向: fetch failed
+  - www HTTP→HTTPS 重定向: fetch failed
+  - saas HTTP→HTTPS 重定向: fetch failed
+  - admin 登录接口正常: fetch failed
+  - admin 商品列表接口正常: fetch failed
+  - 平台登录接口正常: fetch failed
+  - CSRF token 接口正常: fetch failed
+  - admin HTML 不含 localhost API 地址: fetch failed
+  - saas HTML 不含 localhost API 地址: fetch failed
+  - m HTML 不含 localhost API 地址: fetch failed
+  - admin 前端可访问 API: fetch failed
+  - saas 前端可访问 API: fetch failed
+EXIT=1
