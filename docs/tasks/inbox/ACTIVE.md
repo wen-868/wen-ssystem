@@ -1,4 +1,4 @@
-# 任务信箱 · 当前活动单（2026-10-15 22:50 更新）
+# 任务信箱 · 当前活动单（2026-10-16 更新）
 
 > 本文件是**路由**，不是任务本身。
 > ⚠️ **你不是凌舟。** 不得写任何「凌舟裁定 / 验收结论」；只动自己的工作树与本分支；不得 push、不得开 PR。
@@ -9,13 +9,9 @@
 
 | 你的 agent 名 | 你的单号 | 你的卡片 |
 |:--|:--|:--|
-| `/root/s3215_ajian` | **S3-211**（路径净化**根治**：换成 CodeQL 已建模形态） | `docs/tasks/inbox/ACTIVE-S3-211.md` |
-| `/root/s3216_ajian` | **S3-212**（第 65 项：迁移语料类型/形状漂移收口） | `docs/tasks/inbox/ACTIVE-S3-212.md` |
-| `/root/s3217_ajian` | **S3-214**（B2 批 2 · 阶段①：出"待核对角色清单"） | `docs/tasks/inbox/ACTIVE-S3-214.md` |
-| `/root/s3218_ajian` | **S3-211**（路径净化根治）**← 换人接手，`s3215` 空转 50 分钟零产出** | `docs/tasks/inbox/ACTIVE-S3-211.md` |
-| `/root/s3219_ajian` | **S3-215**（重做第 65 项：**先复现根因再动手**，必须覆盖 CI 等价启动路径） | `docs/tasks/inbox/ACTIVE-S3-215.md` |
+| `/root/s3220_ajian` | **S3-214-B2**（B2 批 2 · **阶段②**：采购域 31 条写端点按"使用者已持有码"接线） | `docs/tasks/inbox/ACTIVE-S3-214-B2.md` |
 
-⚠️ 本轮**其余历史单号（S3-190 ~ S3-210）全部已交付/已合并**，卡已移入 `archive/`，**不要再动它们的工作树**。
+⚠️ **其余历史单号（S3-190 ~ S3-215）全部已交付/已合并**（S3-211/212/214-①/215 见 §二），卡已移入 `archive/`，**不要再动它们的工作树**。
 ⚠️ 若表里**没有**你的名字 ⇒ 不要开工，直接在最终回答里写"未在 ACTIVE.md 路由表里找到我的 agent 名"，等凌舟派单。
 ⚠️ **一个单只允许一个会话写一个工作树**；写证据时请在日志里记录 `src` 与 `dist` 的哈希。
 
@@ -23,9 +19,7 @@
 
 | 单号 | 状态 | 卡片 | 工作树 / 分支 |
 |:--|:--|:--|:--|
-| **S3-211**（第 57 项·乙方案：把 12 处 `js/path-injection` 净化改成 CodeQL 已建模的 `path.resolve + startsWith` 形态） | 🔄 在办（`s3215`） | `docs/tasks/inbox/ACTIVE-S3-211.md` | `wt-agents/S3-211`｜`fix/s3-211-path-sanitize-rootfix` |
-| **LZ-ledger-sync**（收口总清单同步：S3-195~S3-210 结项落表 + 重新计数） | 🔄 在办（本地子代理） | 任务书在 `D:\Users\ZXQL\agents-tasks\LZ-ledger-sync-20261015.md`（仓外） | `wt-agents/LZ-ledger-sync`｜`docs/s3-ledger-sync-20261015` |
-| **S3-212**（第 65 项：迁移语料类型/形状漂移收口 —— 92 组同列异型 + `173` 的 INSTANT 加列 + `tenant_id` 宽度漂移） | 🔄 在办（`s3216`） | `docs/tasks/inbox/ACTIVE-S3-212.md` | `wt-agents/S3-212`｜`fix/s3-212-migration-type-drift` |
+| **S3-214-B2**（第 43 项·续：采购域权限接线，B2 批 2 阶段②） | 🔄 在办（`s3220`） | `docs/tasks/inbox/ACTIVE-S3-214-B2.md` | `wt-agents/S3-214`｜`feat/s3-214-batch2-wiring`（基线 = `origin/main`） |
 
 > `S3-210F1`（台账生成器 CodeQL `js/incomplete-sanitization` 两处转义修复）已并入 **PR #327**，作为 #327 的第二笔提交 `f62e0f63`；**不要再动 `wt-agents/S3-210`**（除非凌舟另派）。
 
@@ -59,15 +53,19 @@ main 当前 `c0f9cf39`。本轮已合并（文档/工作流变更时 `deploy.yml
 | S3-208 | 第 57 项：CodeQL 23 条逐条定性（11 条限流接线 ＋ 12 条 path-injection 判误报 + dismissal） | #326 |
 | S3-209 | 跨线 P1：销售单取消端点（AI 底座唯一阻塞项） | #324 |
 | S3-210 | `guard-tenant-injection` 观察期结束 → **恢复阻断** ＋ 40 项逐条台账 | #327 |
+| S3-211 | 第 57 项根治：12 条 `js/path-injection` 净化改 `path.resolve + startsWith`（CodeQL 已建模形态） | #331 |
+| S3-212 | 第 65 项：迁移语料类型/形状收敛（同列异型 92→0 · MySQL8 空库失败 2→0）—— **曾被误 revert，2026-10-16 由 #333 恢复** | #329 → #330 → #333 |
+| S3-214（阶段①） | 第 43 项续：采购域「待核对角色清单」31 条 + 4 组风险（**零代码改动**，产出在 `docs/evidence/S3-214/**`） | 未入库（随阶段②一并交） |
+| S3-215 | 第 65 项根因：`migration-check` 随机红来自 `[自动备份]` 首 tick 噪声（断言精度） | 并入 #332 |
+| S3-216 | CI 断言收窄：`migration-check` 只认 `[migration].*失败` | #332 |
 
 ## 三、下一批候选（**卡尚未写、尚未派**；不要自行认领）
 
-> 编号以 `docs/tasks/R101-收口总清单.md` 为准；该表正在由 LZ-ledger-sync 同步（S3-195~S3-210 的结项尚未落表）。
+> 编号以 `docs/tasks/R101-收口总清单.md` 为准（当前 **总数 69 / 已完成 62 / 待完成 7**）。
 
-1. **第 43 项（续）**：B2 第二阶段剩余缺口（批 1 后仍余 680 端点 / 17 域）——继续分批接线。
-2. **第 67 项**：平台 RBAC 后继（独立绑定表 ＋ 目录外 4 域 28 条）。
-3. ~~第 65 项：迁移语料类型/形状漂移收口~~ ⇒ **已派 S3-212（`s3216`）**。
-4. **S3-209 报备的两个卡外观察项**：① `t_inventory_balance` 唯一键不含 `tenant_id`（多租户无法各自持同一 SKU 库存行）；② `GET /api/admin/sale-bills/:billNo` 在本仓不存在（AI 底座契约缺口）。
-5. **第 13 项／第 9 项**：需凌舟本机（浏览器 + mock 后端）或阶段门未开，暂不派。
+1. **第 67 项**：平台 RBAC 后继 —— 裁定已出（`docs/tasks/cards/R101-S3-213-第67项平台RBAC后继-凌舟裁定.md`）：不建独立绑定表；**目录外 4 域（library/open/review/miniapp，28 条）改在平台侧目录扩**，待出落地单。
+2. **第 69 项**：证据脚本凭据家族（S3-190 真问题已收口；S3-203/S3-174 两条误报待 dismissal 留痕）。
+3. **第 13 项／第 9 项**：需凌舟本机（浏览器 + mock 后端）或阶段门未开，暂不派。
+4. **S3-209 报备的两个卡外观察项**：① `t_inventory_balance` 唯一键不含 `tenant_id`；② `GET /api/admin/sale-bills/:billNo` 在本仓不存在（AI 底座契约缺口）。
 
 ⚠️ 多单**并行**时，各自只动自己卡内 §二 列出的范围，**不要**碰对方的文件或工作树。
