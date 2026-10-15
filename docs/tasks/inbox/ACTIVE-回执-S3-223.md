@@ -61,6 +61,19 @@
 1. **催收 3 行**挂 `customer:credit`（同文件同域一致性、持有者含店长），**未照**台账机器建议 `finance:create`（会把店长的额度调整打成 403）；
 2. **开工期间 `origin/main` 前进**（S3-222 PR #347 → `f2beb109`）：本单已 `git merge origin/main`，冲突 3 处按"两侧并存"处理，`_counts` 按**合并态真值**重算（512 / 134），主读数以合并态为准（另留本批基线读数 573 → 554）。
 
+## 五、最终态补充（两次合并 + 复验）
+
+- **分支已与 `origin/main` 齐平**：开工基线 `90119ef4` → 期间 main 前进两次
+  （`f2beb109` = S3-222 #347；`96b7cee7` = S3-221 #348 结项 + 派 S3-224），本单**两次合并**（`f18bb1bb`、`8f06d9bf`），
+  当前 HEAD **`8f06d9bf`**，`git status -sb` = `ahead 5`（**不落后**）。
+- **两次合并引入的变更与后端无关**（逐文件核对 `git diff --name-only`：`f2beb109..96b7cee7` 仅
+  `admin-web/src/styles/tokens.css`、`scripts/contrast-check.cjs`、`docs/**`；`90119ef4..f2beb109` 含 S3-222 的 11 个客户域路由文件——**与本域文件零重叠**）
+  ⇒ 本文档 §二 的后端读数（guard 212 / 512 / 134、vitest 674 文件 / 8793 用例、tsc / lint / build）**逐字节有效**。
+- **第二次合并后复验**：`guard --strict` **EXIT=0**（`12-guard-strict-after-final.txt`）；
+  门禁套件（G0/G1/G2 + 三个 B2 批用例）**810 passed（6 文件）**（`raw/13d-vitest-gates-final.txt`）。
+- **提交清单**：`b75318f0`（代码+证据+台账）→ `f18bb1bb`（合并 ①）→ `ea5e5274`（回执/回传卡+合并后证据）
+  → `0484ebf3`（用例同步合并态总数 141→183）→ `8f06d9bf`（合并 ②）。**全程未 push、未开 PR。**
+
 ---
 
 派单人：**凌舟（总负责人）**｜2026-10-16
