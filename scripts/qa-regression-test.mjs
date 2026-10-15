@@ -246,3 +246,6 @@ const merchantReceivables = await request("/store/receivables", { headers: store
 if (!Array.isArray(merchantReceivables.records)) throw new Error("商家端应收列表应返回 records 数组");
 
 console.log("QA_REGRESSION_PASS");
+
+// S3-50 RT：故意注入顶层抛出，证明 `QA regression test` 步骤自身会红（红测分支，取证后关闭删除）
+throw new Error("s3-50 RT: qa regression deliberate failure");
