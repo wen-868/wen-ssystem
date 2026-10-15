@@ -35,9 +35,12 @@ adminProductRouter.post("/products/upload-image", upload.single("image"), upload
 adminProductRouter.get("/products/:spuId(\\d+)", productController.getProductDetail);
 // S3-142：手工建品补挂权限点（既有码 goods:create，079 权限矩阵 :201），未登录仍是 401、无权限 403
 adminProductRouter.post("/products", requirePermission(PERM_GOODS_CREATE), productController.createProduct);
-adminProductRouter.put("/products/:id/status", productController.updateProductStatus);
+// S3-220（商品域接线 · B2 批 3）：以下 3 行按派单卡 §二 接线，挂**既有**码 `goods:edit`
+// （`docs/migrations/079_权限矩阵.sql:202`）。逐条「真实使用者 ⊇ 码持有者」核对与
+// 「其余 42 行为何不接」见 `docs/tasks/cards/R101-S3-220-阿坚-回传.md` 与缺口清单 §十二。
+adminProductRouter.put("/products/:id/status", requirePermission("goods:edit"), productController.updateProductStatus);
 adminProductRouter.put("/products/:id", productController.updateProduct);
-adminProductRouter.put("/products/:id/disable", productController.disableProduct);
+adminProductRouter.put("/products/:id/disable", requirePermission("goods:edit"), productController.disableProduct);
 adminProductRouter.get("/products/:skuId/price-history", productController.getProductPriceHistory);
 adminProductRouter.put("/products/:skuId/price", productController.updateProductPrice);
 adminProductRouter.put("/products/skus/:skuId/barcode", productController.updateSkuBarcode);
@@ -47,7 +50,7 @@ adminProductRouter.put("/products/skus/:skuId/units/:unitId", productController.
 adminProductRouter.delete("/products/skus/:skuId/units/:unitId", productController.deleteSkuUnit);
 adminProductRouter.post("/products/import", productController.importProducts);
 adminProductRouter.put("/products/:spuId/marketing-tags", productController.setMarketingTags);
-adminProductRouter.put("/products/:id/warning-threshold", stockWarningController.updateWarningThreshold);
+adminProductRouter.put("/products/:id/warning-threshold", requirePermission("goods:edit"), stockWarningController.updateWarningThreshold);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

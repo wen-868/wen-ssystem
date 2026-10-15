@@ -1,0 +1,50 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-220/backend
+
+ ❯ src/__tests__/routes/rbac-g0-wiring.test.ts (148 tests | 2 failed) 1721ms
+     × '查询型 POST /api/admin/prices/best-price…'：READONLY 仍到达业务层（未被误拦） 25ms
+     × 既有 price-guard 门禁保持原样（未被本单改写）：READONLY 调 POST /api/admin/prices/batch/preview 仍是 PRICE_MANAGEMENT_DENIED 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-g0-wiring.test.ts > S3-122-F2 G0 接线 · 范围控制：未纳入 G0 的端点不被拦（证明没扩大改动） > '查询型 POST /api/admin/prices/best-price…'：READONLY 仍到达业务层（未被误拦）
+AssertionError: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ src/__tests__/routes/rbac-g0-wiring.test.ts:711:24
+    709|   it.each(NOT_IN_G0)("$label：READONLY 仍到达业务层（未被误拦）", async (row) => {
+    710|     const res = await call(appFor(row.label, row.prefix, row.router), …
+    711|     expect(res.status).toBe(200);
+       |                        ^
+    712|     expect(res.body.success).toBe(true);
+    713|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/routes/rbac-g0-wiring.test.ts > S3-122-F2 G0 接线 · 已知锁定（回传卡『需补角色权限』项，必须显式锁定而非掩盖） > 既有 price-guard 门禁保持原样（未被本单改写）：READONLY 调 POST /api/admin/prices/batch/preview 仍是 PRICE_MANAGEMENT_DENIED
+AssertionError: expected '403' to be 'PRICE_MANAGEMENT_DENIED' // Object.is equality
+
+Expected: "PRICE_MANAGEMENT_DENIED"
+Received: "403"
+
+ ❯ src/__tests__/routes/rbac-g0-wiring.test.ts:729:27
+    727|     expect(res.status).toBe(403);
+    728|     // 与本单权限点的 403 文案不同 ⇒ 可据此区分「被谁拦的」
+    729|     expect(res.body.code).toBe("PRICE_MANAGEMENT_DENIED");
+       |                           ^
+    730|     expect(res.body.message).toBe("仅管理员和门店店长可执行价格管理操作");
+    731|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  2 failed | 292 passed (294)
+   Start at  04:13:11
+   Duration  10.26s (transform 2.27s, setup 154ms, import 12.68s, tests 4.27s, environment 1ms)
+

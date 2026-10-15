@@ -1,0 +1,179 @@
+--- Q1 t_sys_role 全集（id | tenant | role_code | role_name | status | permissions） ---
+6961	default	SUPER_ADMIN	超级管理员	1	["*"]
+6962	default	OPERATION_ADMIN	运营管理员	1	["*"]
+6963	default	STORE_MANAGER	门店店长	1	["store:*", "sale:*", "customer:*", "inventory:*", "report:*", "dashboard:*", "finance:payment", "goods:price", "finance:daily-settle"]
+6964	default	STORE_OPERATOR	门店操作员	1	["sale:create", "sale:view", "inventory:view", "dashboard:view", "sale:return", "finance:daily-settle"]
+6965	default	SALES_STAFF	销售员	1	["sale:create", "sale:view", "customer:view", "customer:visit", "dashboard:view"]
+6966	default	PURCHASE_STAFF	采购员	1	["purchase:*", "supplier:*", "inventory:inbound", "report:purchase"]
+6967	default	WAREHOUSE_STAFF	仓管员	1	["inventory:*", "trace:*", "transfer:*", "stock-check:*"]
+6968	default	FINANCE_STAFF	财务	1	["finance:*", "report:*", "customer:statement", "supplier:statement", "dashboard:view"]
+6969	default	CUSTOMER_SERVICE	客服	1	["customer:view", "aftersale:*", "miniapp:*", "notification:view"]
+6970	default	READONLY	只读观察员	1	["*:view"]
+6977	default	STORE_ADMIN	门店管理员	1	["product:read", "order:read", "order:write", "inventory:read", "inventory:write"]
+6978	default	SALESMAN	销售员	1	["product:read", "order:read", "order:write", "customer:read", "customer:write"]
+8155	demo	SUPER_ADMIN	超级管理员	1	["*"]
+8156	demo	OPERATION_ADMIN	运营管理员	1	["*"]
+8157	demo	STORE_MANAGER	门店店长	1	["store:*", "sale:*", "customer:*", "inventory:*", "report:*", "dashboard:*", "finance:payment", "goods:price", "finance:daily-settle"]
+8158	demo	STORE_OPERATOR	门店操作员	1	["sale:create", "sale:view", "inventory:view", "dashboard:view", "sale:return", "finance:daily-settle"]
+8159	demo	SALES_STAFF	销售员	1	["sale:create", "sale:view", "customer:view", "customer:visit", "dashboard:view"]
+8160	demo	PURCHASE_STAFF	采购员	1	["purchase:*", "supplier:*", "inventory:inbound", "report:purchase"]
+8161	demo	WAREHOUSE_STAFF	仓管员	1	["inventory:*", "trace:*", "transfer:*", "stock-check:*"]
+8162	demo	FINANCE_STAFF	财务	1	["finance:*", "report:*", "customer:statement", "supplier:statement", "dashboard:view"]
+8163	demo	CUSTOMER_SERVICE	客服	1	["customer:view", "aftersale:*", "miniapp:*", "notification:view"]
+8164	demo	READONLY	只读观察员	1	["*:view"]
+8165	demo	STORE_ADMIN	门店管理员	1	["product:read", "order:read", "order:write", "inventory:read", "inventory:write"]
+8166	demo	SALESMAN	销售员	1	["product:read", "order:read", "order:write", "customer:read", "customer:write"]
+8170	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	SUPER_ADMIN	超级管理员	1	["*"]
+8171	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	OPERATION_ADMIN	运营管理员	1	["*"]
+8172	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	STORE_MANAGER	门店店长	1	["store:*", "sale:*", "customer:*", "inventory:*", "report:*", "dashboard:*", "finance:payment", "goods:price", "finance:daily-settle"]
+8173	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	STORE_OPERATOR	门店操作员	1	["sale:create", "sale:view", "inventory:view", "dashboard:view", "sale:return", "finance:daily-settle"]
+8174	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	SALES_STAFF	销售员	1	["sale:create", "sale:view", "customer:view", "customer:visit", "dashboard:view"]
+8175	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	PURCHASE_STAFF	采购员	1	["purchase:*", "supplier:*", "inventory:inbound", "report:purchase"]
+8176	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	WAREHOUSE_STAFF	仓管员	1	["inventory:*", "trace:*", "transfer:*", "stock-check:*"]
+8177	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	FINANCE_STAFF	财务	1	["finance:*", "report:*", "customer:statement", "supplier:statement", "dashboard:view"]
+8178	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	CUSTOMER_SERVICE	客服	1	["customer:view", "aftersale:*", "miniapp:*", "notification:view"]
+8179	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	READONLY	只读观察员	1	["*:view"]
+8180	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	STORE_ADMIN	门店管理员	1	["product:read", "order:read", "order:write", "inventory:read", "inventory:write"]
+8181	f0cbfe78-9f74-4966-9d1e-95aff8402d1c	SALESMAN	销售员	1	["product:read", "order:read", "order:write", "customer:read", "customer:write"]
+--- Q2 t_sys_menu 商品/采购相关码（menu_code | menu_name | menu_type） ---
+goods	商品管理	CATALOG
+goods	商品管理	CATALOG
+goods	商品管理	CATALOG
+goods:batch	库存批次	MENU
+goods:batch	库存批次	MENU
+goods:batch	库存批次	MENU
+goods:category	商品分类	MENU
+goods:category	商品分类	MENU
+goods:category	商品分类	MENU
+goods:inventory	库存查询	MENU
+goods:inventory	库存查询	MENU
+goods:inventory	库存查询	MENU
+goods:ledger	库存流水	MENU
+goods:ledger	库存流水	MENU
+goods:ledger	库存流水	MENU
+goods:list	商品列表	MENU
+goods:list	商品列表	MENU
+goods:list	商品列表	MENU
+goods:loss-gain	报损报益	MENU
+goods:loss-gain	报损报益	MENU
+goods:loss-gain	报损报益	MENU
+goods:price	阶梯价格	MENU
+goods:price	阶梯价格	MENU
+goods:price	阶梯价格	MENU
+goods:price-level	价格等级	MENU
+goods:price-level	价格等级	MENU
+goods:price-level	价格等级	MENU
+goods:stock-check	盘点调拨	MENU
+goods:stock-check	盘点调拨	MENU
+goods:stock-check	盘点调拨	MENU
+goods:stock-warning	库存预警	MENU
+goods:stock-warning	库存预警	MENU
+goods:stock-warning	库存预警	MENU
+goods:trace	溯源查询	MENU
+goods:trace	溯源查询	MENU
+goods:trace	溯源查询	MENU
+purchase	采购管理	CATALOG
+purchase	采购管理	CATALOG
+purchase	采购管理	CATALOG
+purchase:inbound	采购入库	MENU
+purchase:inbound	采购入库	MENU
+purchase:inbound	采购入库	MENU
+purchase:order	采购订单	MENU
+purchase:order	采购订单	MENU
+purchase:order	采购订单	MENU
+purchase:payment	采购付款	MENU
+purchase:payment	采购付款	MENU
+purchase:payment	采购付款	MENU
+purchase:return	采购退货	MENU
+purchase:return	采购退货	MENU
+purchase:return	采购退货	MENU
+purchase:supplier	供应商管理	MENU
+purchase:supplier	供应商管理	MENU
+purchase:supplier	供应商管理	MENU
+--- Q3 角色-菜单绑定里与 goods/price 相关的行（role_code | menu_code） ---
+OPERATION_ADMIN	goods
+OPERATION_ADMIN	goods:batch
+OPERATION_ADMIN	goods:category
+OPERATION_ADMIN	goods:inventory
+OPERATION_ADMIN	goods:ledger
+OPERATION_ADMIN	goods:list
+OPERATION_ADMIN	goods:loss-gain
+OPERATION_ADMIN	goods:price
+OPERATION_ADMIN	goods:price-level
+OPERATION_ADMIN	goods:stock-check
+OPERATION_ADMIN	goods:stock-warning
+OPERATION_ADMIN	goods:trace
+PURCHASE_STAFF	goods
+PURCHASE_STAFF	goods:batch
+PURCHASE_STAFF	goods:category
+PURCHASE_STAFF	goods:inventory
+PURCHASE_STAFF	goods:ledger
+PURCHASE_STAFF	goods:list
+PURCHASE_STAFF	goods:loss-gain
+PURCHASE_STAFF	goods:price
+PURCHASE_STAFF	goods:price-level
+PURCHASE_STAFF	goods:stock-check
+PURCHASE_STAFF	goods:stock-warning
+PURCHASE_STAFF	goods:trace
+READONLY	goods
+READONLY	goods:batch
+READONLY	goods:category
+READONLY	goods:inventory
+READONLY	goods:ledger
+READONLY	goods:list
+READONLY	goods:loss-gain
+READONLY	goods:price
+READONLY	goods:price-level
+READONLY	goods:stock-check
+READONLY	goods:stock-warning
+READONLY	goods:trace
+STORE_ADMIN	goods
+STORE_ADMIN	goods:batch
+STORE_ADMIN	goods:category
+STORE_ADMIN	goods:inventory
+STORE_ADMIN	goods:ledger
+STORE_ADMIN	goods:list
+STORE_ADMIN	goods:loss-gain
+STORE_ADMIN	goods:price
+STORE_ADMIN	goods:price-level
+STORE_ADMIN	goods:stock-check
+STORE_ADMIN	goods:stock-warning
+STORE_ADMIN	goods:trace
+STORE_MANAGER	goods
+STORE_MANAGER	goods:batch
+STORE_MANAGER	goods:category
+STORE_MANAGER	goods:inventory
+STORE_MANAGER	goods:ledger
+STORE_MANAGER	goods:list
+STORE_MANAGER	goods:loss-gain
+STORE_MANAGER	goods:price
+STORE_MANAGER	goods:price-level
+STORE_MANAGER	goods:stock-check
+STORE_MANAGER	goods:stock-warning
+STORE_MANAGER	goods:trace
+STORE_OPERATOR	goods
+STORE_OPERATOR	goods:batch
+STORE_OPERATOR	goods:category
+STORE_OPERATOR	goods:inventory
+STORE_OPERATOR	goods:ledger
+STORE_OPERATOR	goods:list
+STORE_OPERATOR	goods:loss-gain
+STORE_OPERATOR	goods:price
+STORE_OPERATOR	goods:price-level
+STORE_OPERATOR	goods:stock-check
+STORE_OPERATOR	goods:stock-warning
+STORE_OPERATOR	goods:trace
+WAREHOUSE_STAFF	goods
+WAREHOUSE_STAFF	goods:batch
+WAREHOUSE_STAFF	goods:category
+WAREHOUSE_STAFF	goods:inventory
+WAREHOUSE_STAFF	goods:ledger
+WAREHOUSE_STAFF	goods:list
+WAREHOUSE_STAFF	goods:loss-gain
+WAREHOUSE_STAFF	goods:price
+WAREHOUSE_STAFF	goods:price-level
+WAREHOUSE_STAFF	goods:stock-check
+WAREHOUSE_STAFF	goods:stock-warning
+WAREHOUSE_STAFF	goods:trace
+=== END (read-only) ===
+bash: line 28: $'\r': command not found

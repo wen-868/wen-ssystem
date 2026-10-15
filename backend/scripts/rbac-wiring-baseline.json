@@ -5,8 +5,8 @@
   "_endpointClass": "S3-205（收口总清单第 68 项，2026-10-15 凌舟裁定）起，本台账按**写端点三分**记账：① `gaps` = 无授权形态的**真缺口**（认证≠授权），登记只表示「已盘点、待后续批次接线」；② `consumerEnd` = **消费者端保护形态**（同一挂载调用里 `requireConsumerAuthWithTenant` 与 `csrfMiddleware` **成对**出现）⇒ 按裁定**不适用商家权限码**（消费者 roles 恒空，硬套商家码会把小程序写端点打成 403，同 S3-203 的 `trace:*` 教训），故**不计入缺口**，但必须逐条登记，未登记 ⇒ `--strict` 必红；③ 挂了 `requirePermission` / `requirePlatformPermission` 的端点不入台账（已接线）。两类**按端点路径匹配、不按行号**（行号会漂移：如 S3-187 改路径参数形态、S3-195 改前缀收窄都让行号失真）。判据刻意从严：只挂消费者认证、**没有 CSRF** 的写端点仍记 `gaps`。",
   "_s3214_b2_note": "S3-214-B2（2026-10-16，采购域 31 条按「使用者已持有码」接线）后：本域 25 条已接线、**不入台账**（逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十一）；保留 6 条 —— ① 4 条移动端「销售开单」采购页签创建端点（POST /purchase-orders/、/purchase-in-stocks/、/purchase-payments/、/purchase-returns/）：该页签无权限门（app-mobile/src/pages/sales/create-sale.vue:23），接线会把持 sale:bill 的门店角色由可用打成 403 ⇒ 待移动端补权限门后收编；② 采购计划 2 条（POST /purchase-plans/、/:planNo/convert）：页面真实使用者含 STORE_MANAGER（admin-web/src/router/index.ts:131），生产店长不持任何 purchase:*，又无店长已持有的采购计划语义码 ⇒ 待授权模型定案。",
   "_counts": {
-    "files": 148,
-    "endpoints": 588,
+    "files": 146,
+    "endpoints": 573,
     "consumerEndFiles": 4,
     "consumerEndEndpoints": 39
   },
@@ -135,9 +135,7 @@
     ],
     "admin-product.routes.ts": [
       "POST /api/admin/products/upload-image",
-      "PUT /api/admin/products/:id/status",
       "PUT /api/admin/products/:id",
-      "PUT /api/admin/products/:id/disable",
       "PUT /api/admin/products/:skuId/price",
       "PUT /api/admin/products/skus/:skuId/barcode",
       "PUT /api/admin/products/skus/:skuId",
@@ -145,8 +143,7 @@
       "PUT /api/admin/products/skus/:skuId/units/:unitId",
       "DELETE /api/admin/products/skus/:skuId/units/:unitId",
       "POST /api/admin/products/import",
-      "PUT /api/admin/products/:spuId/marketing-tags",
-      "PUT /api/admin/products/:id/warning-threshold"
+      "PUT /api/admin/products/:spuId/marketing-tags"
     ],
     "admin-quote-push.routes.ts": [
       "POST /api/admin/quote-push/preview",
@@ -648,23 +645,12 @@
       "POST /api/admin/print/templates/:id/reset",
       "POST /api/admin/print/templates/:id/set-default"
     ],
-    "product-bundle.routes.ts": [
-      "POST /api/admin/product-bundles",
-      "PUT /api/admin/product-bundles/:id",
-      "DELETE /api/admin/product-bundles/:id",
-      "POST /api/admin/product-bundles/:id/publish",
-      "POST /api/admin/product-bundles/:id/unpublish",
-      "POST /api/admin/combo-products",
-      "PUT /api/admin/combo-products/:id",
-      "DELETE /api/admin/combo-products/:id"
-    ],
     "product-marketing-tag.routes.ts": [
       "POST /api/admin/product-tags/",
       "PUT /api/admin/product-tags/:id",
       "DELETE /api/admin/product-tags/:id"
     ],
     "product-review.routes.ts": [
-      "POST /api/admin/product-reviews/",
       "POST /api/admin/product-reviews/:id/approve",
       "POST /api/admin/product-reviews/:id/reject",
       "POST /api/admin/product-reviews/batch-approve",
@@ -915,11 +901,6 @@
       "PUT /api/admin/unit-groups/:id",
       "DELETE /api/admin/unit-groups/:id"
     ],
-    "unit.routes.ts": [
-      "POST /api/admin/units/",
-      "PUT /api/admin/units/:id",
-      "DELETE /api/admin/units/:id"
-    ],
     "user-session.routes.ts": [
       "DELETE /api/user-session/:id",
       "DELETE /api/user-session/user/:userId"
@@ -945,6 +926,7 @@
       "DELETE /api/admin/wb-notifications/:id"
     ]
   },
-  "_lastUpdate": "2026-10-16 S3-219 合入：library/open/review 3 域 28 条已接线，从 gaps 移除（与 S3-214-B2 的 25 条合并后 641→588）",
-  "_s3219_note": "S3-219（收口总清单第 67 项）已给 library/open/review 3 域共 28 条平台写端点接上 `requirePlatformPermission`（形态=inline，见 `node backend/scripts/guard-rbac-wiring.mjs --json` 的 authForm=inline）⇒ 这 28 条**不再是无授权缺口**，已按流程从 `gaps` 中逐条移除（files 155→152、endpoints 641→613）。移除的是**同一批端点**的登记，不是新缺口洗绿：接线前这 28 条确有缺口、接线后判据（端点调用文本内含权限中间件）成立。"
+  "_lastUpdate": "2026-10-16 S3-220 商品域接线：15 条已接线，从 gaps 移除（588 → 573）",
+  "_s3219_note": "S3-219（收口总清单第 67 项）已给 library/open/review 3 域共 28 条平台写端点接上 `requirePlatformPermission`（形态=inline，见 `node backend/scripts/guard-rbac-wiring.mjs --json` 的 authForm=inline）⇒ 这 28 条**不再是无授权缺口**，已按流程从 `gaps` 中逐条移除（files 155→152、endpoints 641→613）。移除的是**同一批端点**的登记，不是新缺口洗绿：接线前这 28 条确有缺口、接线后判据（端点调用文本内含权限中间件）成立。",
+  "_s3220_note": "S3-220（收口总清单第 43 项续 · B2 批 3 商品域 45 写端点）已给 15 条端点上 `requirePermission`（既有码 goods:create|edit|delete，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十二）⇒ 这 15 条不再是无授权缺口，按流程从 gaps 逐条移除（files 148→146、endpoints 588→573）。移除的是**同一批端点**的登记，不是新缺口洗绿。其余 30 条**保留登记**，三类原因：① B 类 13 条 —— 移动页面调用点存在但角色集合无法与任何一个既有码对齐（`app-mobile` 商品 tab 无权限门 + `admin-web` 商品类页面 meta.roles 含 STORE_MANAGER，而生产店长不持任何 goods:* 写码）；② A 类 15 条 —— 有页面调用点且页面角色含 STORE_MANAGER；③ P 类 2 条 —— 价格端点 `POST /prices/best-price`与 `POST /prices/batch/preview` 属既有「查询型 POST（待裁定）」/「已知锁定」项，本批不动。逐条清单见 §十二.3/§十二.4/§十二.6。"
 }
