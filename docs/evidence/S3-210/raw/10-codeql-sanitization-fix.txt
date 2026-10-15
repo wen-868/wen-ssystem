@@ -1,0 +1,104 @@
+【S3-210F1 · CodeQL js/incomplete-sanitization 两处不完整转义修复记录】
+
+日期：2026-10-15
+工作树：D:\Users\ZXQL\wt-agents\S3-210（分支 fix/s3-210-tenant-injection-residuals，基线 HEAD 18034e50）
+改动文件：docs/evidence/S3-210/tools/audit-40-items.mjs（仅第 215、223 行）
+
+一、问题（CodeQL 默认设置 github-advanced-security 在 PR #327 上新增 2 条 high 告警，check-run 注解原文）
+
+| 级别 | 规则标题 | 位置 | 注解正文 |
+|:--|:--|:--|:--|
+| failure | Incomplete string escaping or encoding | docs/evidence/S3-210/tools/audit-40-items.mjs:215 | This does not escape backslash characters in the input. |
+| failure | Incomplete string escaping or encoding | docs/evidence/S3-210/tools/audit-40-items.mjs:223 | This does not escape backslash characters in the input. |
+
+根因：这两行给 Markdown 表格单元格做转义时只处理了竖线、没有先处理反斜杠（String(r.evidence).replace(/\|/g, "\\|")）。
+
+二、改动内容（命令 + 原始输出）
+命令：git diff -- docs/evidence/S3-210/tools/audit-40-items.mjs
+
+diff --git a/docs/evidence/S3-210/tools/audit-40-items.mjs b/docs/evidence/S3-210/tools/audit-40-items.mjs
+index f5199b6f..992254e1 100644
+--- a/docs/evidence/S3-210/tools/audit-40-items.mjs
++++ b/docs/evidence/S3-210/tools/audit-40-items.mjs
+@@ -212,7 +212,7 @@ out.push("");
+ out.push("| # | 文件:CI 行 | 当前行 | 处置 | 证据/理由 |");
+ out.push("|:--:|:--|:--:|:--|:--|");
+ ledger.filter((r) => r.rule.startsWith("BLOCK")).forEach((r, i) => {
+-  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.curLine ?? "—"} | ${r.verdict} | ${String(r.evidence).replace(/\|/g, "\\|").slice(0, 200)} |`);
++  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.curLine ?? "—"} | ${r.verdict} | ${String(r.evidence).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").slice(0, 200)} |`);
+ });
+ out.push("");
+ out.push("## 二、19 条未登记非字面量（INDIRECT-UNREGISTERED）");
+@@ -220,7 +220,7 @@ out.push("");
+ out.push("| # | 文件:CI 行 | 形态 | 处置 | 理由 |");
+ out.push("|:--:|:--|:--|:--|:--|");
+ ledger.filter((r) => r.rule.startsWith("INDIRECT")).forEach((r, i) => {
+-  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.kind} interps=${r.interps} | ${r.verdict} | ${String(r.evidence).replace(/\|/g, "\\|").slice(0, 200)} |`);
++  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.kind} interps=${r.interps} | ${r.verdict} | ${String(r.evidence).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").slice(0, 200)} |`);
+ });
+ out.push("");
+ out.push(`## 三、统计`);
+
+结论：diff 只有这 2 行，其余内容一字未动；两处转义链写法一致，均为「先反斜杠、后竖线」。
+
+三、改动后两行原文（Self-check）
+命令：Select-String -Path docs\evidence\S3-210\tools\audit-40-items.mjs -Pattern 'replace\(/\\\\/g'
+原始输出（命中 2 处）：
+215:   out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.curLine ?? "—"} | ${r.verdict} | ${String(r.evidence).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").slice(0, 200)} |`);
+223:   out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.kind} interps=${r.interps} | ${r.verdict} | ${String(r.evidence).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").slice(0, 200)} |`);
+
+四、复跑与逐字节对照（命令 + 原始输出）
+
+1）改前另存现有产物
+命令：Copy-Item docs\evidence\S3-210\raw\06-ledger-40.txt $env:TEMP\s3210-before.txt
+命令：Get-FileHash $env:TEMP\s3210-before.txt -Algorithm SHA256
+原始输出：SHA256 282E5AEECB341822D3AC27204F788F637ACE76828B7329CF0C2C93EFC7759013
+
+2）改前复跑（证明现有产物可由当前输入机械复现，排除"改前改后差异来自输入漂移"）
+命令：node docs/evidence/S3-210/tools/audit-40-items.mjs
+原始输出（尾 6 行）：
+- 已消解：已补平台显式标记 tenant-scope:platform：1 条
+
+## 四、未识别/异常：无
+
+
+[写出] D:\Users\ZXQL\wt-agents\S3-210\docs\evidence\S3-210\raw\06-ledger-40.txt
+原始输出：改前复跑退出码: 0
+
+3）改后复跑
+命令：node docs/evidence/S3-210/tools/audit-40-items.mjs
+原始输出（尾 6 行）：
+- 已登记（登记表 indirect）：17 条
+- 已消解：已补显式租户值谓词 tenant_id = ?：1 条
+- 已消解：已补平台显式标记 tenant-scope:platform：1 条
+
+## 四、未识别/异常：无
+
+
+[写出] D:\Users\ZXQL\wt-agents\S3-210\docs\evidence\S3-210\raw\06-ledger-40.txt
+原始输出：改后复跑退出码: 0
+
+4）逐字节对照（fc.exe /b）
+命令：fc.exe /b "$env:TEMP\s3210-before.txt" "docs\evidence\S3-210\raw\06-ledger-40.txt"
+原始输出：
+Comparing files C:\USERS\XIONG\APPDATA\LOCAL\TEMP\s3210-before.txt and DOCS\EVIDENCE\S3-210\RAW\06-LEDGER-40.TXT
+FC: no differences encountered
+原始输出：fc 退出码: 0
+
+5）行级对照（Compare-Object）
+命令：Compare-Object (Get-Content $env:TEMP\s3210-before.txt) (Get-Content docs\evidence\S3-210\raw\06-ledger-40.txt)
+原始输出：行级对照：无差异
+
+6）字节数与哈希对照
+改前 s3210-before.txt 字节数：10345
+改后 06-ledger-40.txt 字节数：10345
+改前 SHA256：282E5AEECB341822D3AC27204F788F637ACE76828B7329CF0C2C93EFC7759013
+改后 SHA256：282E5AEECB341822D3AC27204F788F637ACE76828B7329CF0C2C93EFC7759013
+
+五、结论
+
+逐字节一致。
+
+说明（为什么改后必然一致、且差异不会来自判据变化）：本次改动只在 Markdown 表格单元格转义链最前面增加一步「反斜杠 → 双反斜杠」；本次台账的全部证据/理由字段均不含反斜杠字符（改前 06-ledger-40.txt 全文反斜杠计数 = 0，登记表 backend/scripts/fixtures/tenant-injection-exemptions.json 反斜杠计数 = 0），因此新增加的一步在该输入上是恒等变换，输出既无新增转义、也无任何判据/统计口径变化。fc.exe /b 退出码 0（无字节差异）、Compare-Object 无行差异、两次 SHA256 相同，三项互相印证。
+
+（原始台账全文见 docs/evidence/S3-210/raw/06-ledger-40.txt；本次未改动该文件，其哈希与改前一致。）

@@ -212,7 +212,7 @@ out.push("");
 out.push("| # | 文件:CI 行 | 当前行 | 处置 | 证据/理由 |");
 out.push("|:--:|:--|:--:|:--|:--|");
 ledger.filter((r) => r.rule.startsWith("BLOCK")).forEach((r, i) => {
-  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.curLine ?? "—"} | ${r.verdict} | ${String(r.evidence).replace(/\|/g, "\\|").slice(0, 200)} |`);
+  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.curLine ?? "—"} | ${r.verdict} | ${String(r.evidence).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").slice(0, 200)} |`);
 });
 out.push("");
 out.push("## 二、19 条未登记非字面量（INDIRECT-UNREGISTERED）");
@@ -220,7 +220,7 @@ out.push("");
 out.push("| # | 文件:CI 行 | 形态 | 处置 | 理由 |");
 out.push("|:--:|:--|:--|:--|:--|");
 ledger.filter((r) => r.rule.startsWith("INDIRECT")).forEach((r, i) => {
-  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.kind} interps=${r.interps} | ${r.verdict} | ${String(r.evidence).replace(/\|/g, "\\|").slice(0, 200)} |`);
+  out.push(`| ${i + 1} | ${r.file}:${r.ciLine} | ${r.kind} interps=${r.interps} | ${r.verdict} | ${String(r.evidence).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").slice(0, 200)} |`);
 });
 out.push("");
 out.push(`## 三、统计`);
