@@ -75,7 +75,10 @@ function fmt(n) { return n.toFixed(2); }
 // 把字符串安全地放入 RegExp：转义所有正则元字符（含反斜杠）
 // CodeQL js/incomplete-sanitization 要求不只是转义 `-`。
 function escapeForRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\// ── 解析（读取真实文件取值）─────────────────────────");
+  // S3-221 修（2026-10-16，凌舟）：此处替换串曾被前一次编辑吞掉，写成了一段注释文本
+  // ⇒ 任何含正则元字符的 token 名都会被判成"token 未找到"而假红。当前 token 名不含元字符，
+  // 故一直零影响；已恢复为标准的"整段匹配回填"写法。
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // ── 解析（读取真实文件取值）─────────────────────────
@@ -117,6 +120,8 @@ const SURFACES = {
   // = #F7F8FA（旧版 styles.css:71 用 --bg-sidebar #FAFAFA）；取两者更深的 #F7F8FA 作判定面，
   // 通过它即同时通过 #FAFAFA / #FFFFFF（对深色文字，底越深越严）。
   sidebarPage: '#F7F8FA',
+  // S3-221 裁定后新增：激活态导航文字的**真实相邻底** = --color-primary-soft(12%) 合成在 #F7F8FA 上 ⇒ #E4E9F9
+  sidebarActive: '#E4E9F9',
 };
 const SURFACE_LABEL = {
   white: '白底 #FFFFFF',
@@ -125,6 +130,7 @@ const SURFACE_LABEL = {
   sidebarWhite: '侧边栏白底 #FFFFFF',
   chartWhite: '图表白底 #FFFFFF',
   sidebarPage: '#F7F8FA(--frost-sidebar 工作台侧栏真实底)',
+  sidebarActive: '#E4E9F9(--color-primary-soft 12% 合成底·激活态导航文字真实相邻面)',
 };
 
 // ── 文本 token × surface 矩阵定义 ──────────────────
@@ -180,20 +186,19 @@ const ADMINWEB_TEXT_TOKENS = [
   { name: 'sidebar-text-primary', surfaces: ['sidebarPage'] },
   { name: 'sidebar-text-secondary', surfaces: ['sidebarPage'] },
   { name: 'sidebar-text-muted', surfaces: ['sidebarPage'] },
+  // S3-221 裁定（2026-10-16，凌舟）：这两个 token 原为「只登记不判定」——原因是**改值属设计裁定**。
+  // 裁定 = 两处都修值（#3F6FEF → #365FCE）并**纳入失败判定**，否则门禁留半盲区；
+  // 修后读数：text-link 白底 5.70 / #f7f7f7 5.32 / #f0f0f0 5.00；
+  //            sidebar-text-active 侧栏底 5.36 / 激活态合成底 4.70。
+  { name: 'text-link', surfaces: ['white', 'g0', 'soft'], note: 'S3-221 裁定修值后纳入判定' },
+  { name: 'sidebar-text-active', surfaces: ['sidebarPage', 'sidebarActive'], note: 'S3-221 裁定修值后纳入判定（激活态真实相邻面）' },
 ];
 
-// ── admin-web 登记项（**未纳入失败判定**，待凌舟裁定；单据见 S3-221 回执 §六）──────
-// 实测不达 WCAG AA 4.5:1（真实取值 #3F6FEF）：白底 4.44:1 · #f7f7f7 4.14:1 · #f0f0f0 3.89:1。
-// 其中 --sidebar-text-active 的真实相邻面是 --color-primary-soft(12%) 合成底 #E4E9F9 ⇒ 3.66:1，
-// 引用点 2 处（MainLayout.vue:858 / :925，激活态导航文字 13px）；--text-link 在 admin-web 内 0 处引用。
-// 为何不直接纳入失败集合：本单红线是「只扩门禁覆盖面、不得改 admin-web token 取值」，
-// 而纳入失败集合会让本门禁**常红** ⇒ main 的 required check（e2e，含本步骤）被永久堵死；
-// 改值属设计裁定，超出本单范围。故按「登记 + 待裁定」处理——
-// ⚠️ **未根治**：这 2 个 token 目前仍无失败判定兜底，影响面与候选修值见 docs/evidence/S3-221/。
-const ADMINWEB_REGISTERED_TOKENS = [
-  { name: 'text-link', surfaces: ['white', 'g0', 'soft'], note: 'admin-web 内 0 处引用(死 token)' },
-  { name: 'sidebar-text-active', surfaces: ['sidebarPage'], note: 'MainLayout.vue:858/925 激活态导航文字' },
-];
+// ── admin-web 登记项（**未纳入失败判定**的扩展位；当前为空）──────────────────────
+// S3-221 裁定后清空：原先登记的两个 token（text-link / sidebar-text-active）已修值为 #365FCE 并移入
+// ADMINWEB_TEXT_TOKENS 受判。本数组保留为机制位置（将来若出现"业务/设计上确实不可改值"的 token，
+// 在此具名登记理由，并由门禁逐条打印）。
+const ADMINWEB_REGISTERED_TOKENS = [];
 
 const rows = [];
 const failures = [];
