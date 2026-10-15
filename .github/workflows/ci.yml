@@ -230,7 +230,8 @@ jobs:
         run: USE_MOCK_DB=true NODE_ENV=development JWT_SECRET=ci-test-secret npm --workspace backend run start > /tmp/zhixiang-backend.log 2>&1 &
 
       - name: Wait for backend
-        run: npx wait-on -t 90000 http://127.0.0.1:8080/health || (echo "=== backend log ==="; cat /tmp/zhixiang-backend.log; exit 1)
+        # S3-50 RT：把 wait-on 目标指向无人监听的端口（8099），证明该步骤自身会红（红测分支，取证后关闭删除）
+        run: npx wait-on -t 90000 http://127.0.0.1:8099/health || (echo "=== backend log ==="; cat /tmp/zhixiang-backend.log; exit 1)
 
       - name: Flow self test
         run: npm run test:flow
