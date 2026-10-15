@@ -2,12 +2,12 @@
 
 【汇报 S3-219】平台侧 `library` / `open` / `review` 3 域目录已扩（平台侧目录 18 条/8 域 → 21 条/11 域），
 28 条平台写端点全部接线（library 15 / open 10 / review 3）；两侧反测齐（无码 403 ／ 有码放行 ／ 摘掉中间件必红）；
-门禁四绿（`guard:rbac-wiring --strict` 0、台账 `--check` 0、`tsc --noEmit` 0、`build` 0）＋ 全量 `vitest` 670 文件 / 8158 用例 0 失败。
+门禁五绿（`guard:rbac-wiring --strict` 0、台账 `--check` 0、`tsc --noEmit` 0、`build` 0、改动文件 `eslint` 0）＋ 全量 `vitest` 670 文件 / 8158 用例 0 失败。
 未 push、未开 PR、未碰其它单工作树。
 
 汇报对象：总负责人（凌舟）　｜　汇报人：阿坚（后端 / 权限）　｜　日期：2026-10-16
 对应派单编号：**S3-219**（收口总清单第 67 项）　｜　工作树：`D:\Users\ZXQL\wt-agents\S3-219`
-分支：`feat/s3-219-platform-domain-wiring`　｜　分支提交：`c95a5280`（基线 `993bde70` = 派单时 `origin/main`）
+分支：`feat/s3-219-platform-domain-wiring`　｜　分支提交：`c95a5280`（代码+证据）→ `b7b42ae0`（回传卡/回执）→ `983587a3`（补 eslint 读数）（基线 `993bde70` = 派单时 `origin/main`）
 
 ---
 
@@ -68,6 +68,7 @@ docs/evidence/S3-219/**（5 份 md + 9 份原始日志/清单）
 | 8 | **反测**：临时删 `POST /spus` 上的权限中间件 → 重跑 #7 | `raw/06-reverse-remove-middleware.log` | **1 failed / EXIT=1**，红点落在被摘端点；复原后哈希与复跑均回到绿（`13E5E38A…`） |
 | 9 | `grep -n 'auth:\s*"none"'` 三个路由文件 | 同 §五.2 | **0 命中**（未用 `auth:"none"` + 自造校验） |
 | 10 | 28 条逐条清单（文件:行 + 端点 + 权限点） | `raw/03-28-endpoints.txt`（取自台账 §二 第 33~47 / 57~66 / 78~80 行） | **28 行** |
+| 11 | `cd backend; npx eslint <本轮 14 个改动文件>` | `03-接线清单与门禁.md` §六 | **EXIT=0、0 报错**（装 `@typescript-eslint/*` 用 `--no-save`，未改 package.json / lock） |
 
 ## 四、验收自评（对照派单卡 §五 六条判据，逐条）
 
@@ -123,7 +124,7 @@ docs/evidence/S3-219/**（5 份 md + 9 份原始日志/清单）
 ## 七、环境复原
 
 - 工作树 `D:\Users\ZXQL\wt-agents\S3-219`，分支 `feat/s3-219-platform-domain-wiring`；
-  本轮本地提交 **`c95a5280`**（基线 `993bde70`）+ 本回传一笔；
+  本轮本地提交 **3 笔**：`c95a5280`（代码+证据）／`b7b42ae0`（回传卡与回执）／`983587a3`（补 eslint 读数），基线 `993bde70`；
 - **未 push、未开 PR**；未碰其它单的工作树；未改 `.github/**`、`deploy/**`、契约文档、收口总清单；
 - 反测窗口已复原：`platform-library.routes.ts` 前后哈希同为 `13E5E38A5A9EC7D2891D900B434DCAF7908E7539D6E1927C9CFA37387873073A`；
 - `src` / `dist` 哈希逐条列于 `docs/evidence/S3-219/08-改动面与哈希.md`（含 build 产物的 5 个 dist 指纹）；
@@ -131,7 +132,7 @@ docs/evidence/S3-219/**（5 份 md + 9 份原始日志/清单）
 
 ## 八、一行摘要
 
-**S3-219 已交付：平台侧目录扩 3 域（18 条/8 域 → 21 条/11 域）＋ library/open/review 28 条写端点接线；无码 403 ／ 有码放行 ／ 摘中间件必红的反测齐；四门禁全绿 + 全量 8158 用例 0 失败；未 push、未开 PR。**
+**S3-219 已交付：平台侧目录扩 3 域（18 条/8 域 → 21 条/11 域）＋ library/open/review 28 条写端点接线；无码 403 ／ 有码放行 ／ 摘中间件必红的反测齐；五门禁全绿（guard ／ 台账 ／ tsc ／ build ／ eslint）+ 全量 8158 用例 0 失败；未 push、未开 PR。**
 
 ## 九、待裁定项（交总负责人）
 
