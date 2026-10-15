@@ -38,7 +38,7 @@ const canon = (type) => {
   if (/^\s*\(\s*\)/.test(rest)) rest = "";
   rest = rest.replace(/\s*unsigned\s*$/i, " UNSIGNED");
   if (!/unsigned/i.test(rest) && /integer|int|bigint|smallint|tinyint|mediumint/i.test(m[1]) === false) rest = rest.replace(/\s*unsigned\s*/i, "");
-  return (m[1] + rest).replace(/\s+/g, " ").trim().toUpperCase().replace(/ UNSIGNED$/, " UNSIGNED");
+  return (m[1] + rest).replace(/\s+/g, " ").trim().toUpperCase();
 };
 
 // 字符串列宽 / 整数位宽，用于"最窄"回退

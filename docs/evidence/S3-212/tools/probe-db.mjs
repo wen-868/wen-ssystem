@@ -39,7 +39,9 @@ for (const f of files) {
   const pwd = env.DB_PASSWORD ?? env.MYSQL_PASSWORD ?? "";
   const db = env.DB_NAME ?? env.MYSQL_DATABASE ?? "";
   console.log(`\n=== ${f}`);
-  console.log(`host=${host} port=${port} user=${user} db=${db} 口令长度=${pwd.length}`);
+  // 只回显"是否已配置"，不回显口令本身（也不回显长度）——证据日志不得承载口令信息
+  const hasPwd = pwd.length > 0;
+  console.log(`host=${host} port=${port} user=${user} db=${db} 口令=${hasPwd ? "已配置" : "未配置"}`);
   if (!host || !user) {
     console.log("结果：配置不完整，跳过连接");
     continue;
