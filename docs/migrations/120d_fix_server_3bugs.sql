@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `t_subscription_plan` (
 CREATE TABLE IF NOT EXISTS `t_subscription` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `subscription_no` VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号',
-  `tenant_id` VARCHAR(64) NOT NULL COMMENT '租户ID',
+  `tenant_id` VARCHAR(36) NOT NULL COMMENT '租户ID',
   `plan_id` INT NOT NULL COMMENT '套餐ID',
   `plan_name` VARCHAR(64) NOT NULL COMMENT '套餐名称（冗余）',
   `plan_type` VARCHAR(32) NOT NULL COMMENT '套餐类型',
@@ -143,7 +143,7 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 如果 t_error_logs 表不存在，创建它
 CREATE TABLE IF NOT EXISTS `t_error_logs` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `error_type` VARCHAR(64) NOT NULL COMMENT '错误类型',
   `severity` VARCHAR(16) NOT NULL DEFAULT 'ERROR' COMMENT '严重级别：FATAL/ERROR/WARN/INFO',
   `message` TEXT NOT NULL COMMENT '错误消息',
@@ -151,8 +151,8 @@ CREATE TABLE IF NOT EXISTS `t_error_logs` (
   `request_url` VARCHAR(500) DEFAULT NULL COMMENT '请求URL',
   `request_method` VARCHAR(10) DEFAULT NULL COMMENT '请求方法',
   `status_code` INT DEFAULT NULL COMMENT 'HTTP状态码',
-  `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',
-  `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '租户ID',
+  `user_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '用户ID',
+  `tenant_id` VARCHAR(36) DEFAULT NULL COMMENT '租户ID',
   `source` VARCHAR(16) DEFAULT 'backend' COMMENT '来源：backend/frontend',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   INDEX `idx_error_type` (`error_type`),
