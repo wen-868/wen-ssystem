@@ -516,6 +516,29 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const S3_214_WIRED_TOTAL = [...S3_214_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
+  // S3-222 追加说明：S3-222（批B2-4 客户域接线）在 11 个路由文件新增 42 处接线
+  // （admin-customer 6 / customer-care 4 / customer-merge 1 / customer-payment 2 / customer-price 3 /
+  //  customer-segment 4 / customer-statement 2 / customer-tag 5 / customer-type 3 / customer-visit 5 /
+  //  tag.routes 7；全部挂**既有**权限码：customer:create|edit|visit|statement|payment）后总数由 107 → 149。
+  // 本域另有 3 行**本批不接**（member-register 2 条真公开端点 + customer-statement confirm 1 条待授权模型定案），
+  // 故 12 个文件里 member-register.routes.ts 计数为 0。同样只同步"总数 + 逐文件计数"的期望值
+  // （新增 S3_222_WIRED_FILES）；G0 名单行与其逐行 403/200 断言**一字未动**（本批的逐行 403/200 断言在
+  // rbac-b2-s3-222-customer-wiring.test.ts）。
+  const S3_222_WIRED_FILES = new Map<string, number>([
+    ["admin-customer.routes.ts", 6],
+    ["customer-care.routes.ts", 4],
+    ["customer-merge.routes.ts", 1],
+    ["customer-payment.routes.ts", 2],
+    ["customer-price.routes.ts", 3],
+    ["customer-segment.routes.ts", 4],
+    ["customer-statement.routes.ts", 2],
+    ["customer-tag.routes.ts", 5],
+    ["customer-type.routes.ts", 3],
+    ["customer-visit.routes.ts", 5],
+    ["tag.routes.ts", 7],
+  ]);
+  const S3_222_WIRED_TOTAL = [...S3_222_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
   // S3-220 追加说明：S3-220（批B2-3 商品域 45 条里的 15 条）在 4 个路由文件新增 15 处接线
   // （admin-product 3 / product-bundle 8 / product-review 1 / unit 3；全部挂**既有**权限码：
   //  goods:create|edit|delete）后总数由 107 → 122。
@@ -531,7 +554,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const S3_220_WIRED_TOTAL = [...S3_220_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15", () => {
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -541,15 +564,15 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL);
-    expect(total).toBe(122);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL);
+    expect(total).toBe(164);
 
     const expected = new Map<string, number>();
     for (const m of MODULES) expected.set(m.file, (expected.get(m.file) ?? 0) + m.rows.length);
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of G2_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
-    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES])
+for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES])
       expected.set(f, (expected.get(f) ?? 0) + n);
     expect([...perFile.entries()].sort()).toEqual([...expected.entries()].sort());
   });
