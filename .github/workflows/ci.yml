@@ -317,5 +317,5 @@ jobs:
             SHOW TABLES LIKE 't_payment_config';
             SHOW TABLES LIKE 't_print_template';
           "
-          if grep -q "失败" /tmp/mig.log; then echo "存在迁移失败记录"; cat /tmp/mig.log; exit 1; fi
+          # S3-216（凌舟 2026-10-16）：断言收窄到「迁移自身」报的失败。`[自动备份]` 是每分钟 cron，其首个 tick 可能落在「进程已加载、t_sys_config 尚未建出」的启动窗口里，向同一份日志写下一行含「失败」二字的噪声（S3-215 已证：base 与 fix 两侧同样复现 ⇒ 与语料改动无因果）。用 [migration] 前缀锁定迁移自身的失败，避免把启动期噪声当成迁移失败。`if grep -qE "\[migration\].*失败" /tmp/mig.log; then echo "存在迁移失败记录"; cat /tmp/mig.log; exit 1; fi
           echo "迁移验证通过"
