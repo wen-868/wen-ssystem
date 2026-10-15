@@ -1,0 +1,70 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-220/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts (140 tests | 3 failed) 2700ms
+     × 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：注册行自带 requirePermission("'goods:delete'") 16ms
+     × 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：READONLY（["*:view"]）⇒ 403，且未到达业务层 15ms
+     × 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：非持有人逐账号枚举 ⇒ 403 13ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts > S3-220 · 形状断言（注册行级判据，踩坑[134]） > 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：注册行自带 requirePermission("'goods:delete'")
+AssertionError: expected 'productBundleRouter.delete("/combo-pr…' to contain 'requirePermission("goods:delete")'
+
+Expected: "requirePermission("goods:delete")"
+Received: "productBundleRouter.delete("/combo-products/:id", comboProductController.deleteComboProduct);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts:442:27
+    440|     const lines = registrationLines(row.file, row.method, row.routePat…
+    441|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    442|     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`…
+       |                           ^
+    443|   });
+    444|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts > S3-220 · 两侧（未登录 401 / 无码 403 / 有码 200） > 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：READONLY（["*:view"]）⇒ 403，且未到达业务层
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts:461:24
+    459|   it.each(ROWS)("$file $method $routePath：READONLY（[\"*:view\"]）⇒ 403，…
+    460|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    461|     expect(res.status).toBe(403);
+       |                        ^
+    462|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+    463|     expect(h.reached).toHaveLength(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts > S3-220 · 两侧（未登录 401 / 无码 403 / 有码 200） > 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：非持有人逐账号枚举 ⇒ 403
+AssertionError: readonly 应被 403（缺 goods:delete）: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts:479:70
+    477|       h.reached.length = 0;
+    478|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    479|       expect(res.status, `${USERS[uid].name} 应被 403（缺 ${row.perm}）`).t…
+       |                                                                      ^
+    480|       expect(h.reached).toHaveLength(0);
+    481|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 137 passed (140)
+   Start at  04:17:04
+   Duration  9.93s (transform 1.12s, setup 79ms, import 5.91s, tests 2.70s, environment 0ms)
+

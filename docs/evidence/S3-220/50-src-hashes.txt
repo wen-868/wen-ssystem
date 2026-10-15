@@ -1,0 +1,12 @@
+60C025E02CF0D3ECA0909FDB0696F41E9615C127A23D6F2F9FA8156DAFBCC101  backend/src/routes/admin-product.routes.ts
+9F1030C8DE3888C0FF6671A0F1646AF539E2B92DA0BD01858A629F43385F81B8  backend/src/routes/price.routes.ts
+E795DBD9F7837EE259938EF5F4E600CCEAE4C9EBEBB2C80FC9237F84471C4F33  backend/src/routes/product-bundle.routes.ts
+EDEAA984268C70E91C523FBCA9191BCA5BD234E64AB0AB58982B9480B38EDD7F  backend/src/routes/product-review.routes.ts
+9A101BF69C308C1E00BB8D2370D7B04458399EAE5600ABB23107AF67F5D5703A  backend/src/routes/unit.routes.ts
+6CD8F4A5D24EF8BF7B76991DA1B189488AD10A093EA383937E00463AF39F6D5A  backend/src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts
+1D1E80BAE7B98A2534F85FA7689C46DE75194108EF0F37DBD7C478976493A81E  backend/src/__tests__/routes/rbac-g0-wiring.test.ts
+23C9DD28BEFA7D1FE8ADA3A4292CE7041F6EA8452A03CDC78D98818E84D8CFFF  backend/scripts/rbac-wiring-baseline.json
+backend/dist/routes/unit.routes.js:4
+backend/dist/routes/product-review.routes.js:2
+backend/dist/routes/admin-product.routes.js:5
+backend/dist/routes/product-bundle.routes.js:9

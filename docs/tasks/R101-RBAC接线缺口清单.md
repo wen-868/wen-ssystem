@@ -2080,6 +2080,154 @@ node backend/scripts/guard-rbac-wiring.mjs --holders report:finance
 > `POST /api/admin/purchase-orders`（创建采购单）仍断言「READONLY 到达业务层」，本批未动它（该名单里另一条
 > `PUT /api/admin/purchase-orders/:orderNo` 因本批接线已按同端点移出，见该文件内注释）。
 
+---
+
+## 十二、S3-220 · **商品域（10 文件 / 45 写端点）**接线明细与守恒（2026-10-16）
+
+> 产出：阿坚（后端 · 本地子代理 `/root/s3223_ajian`）｜2026-10-16｜汇报对象：凌舟（总负责人）
+> 依据：派单卡 `docs/tasks/inbox/ACTIVE-S3-220.md`
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-220`，分支 `feat/s3-220-product-domain-wiring`，基线 `origin/main` = `11f4af48`
+> 机读镜像：`backend/scripts/rbac-wiring-baseline.json`（本单后 `gaps` **573 条 / 146 文件**；`consumerEnd` 39 条不变）
+> 生产角色核对原始输出：`docs/evidence/S3-220/00-prod-roles-raw.txt`（服务器只读通道导出）
+> ＋ 持有关系复算 `docs/evidence/S3-220/03-prod-holders.txt`（`tools/prod-holders.mjs`）
+
+### 12.0 生产持有事实（本批判据起点，**先测再判**）
+
+生产 `t_sys_role.permissions`（`tenant_id='default'`，12 个角色，只读导出）按 `matchPermission` 复算：
+
+| 码 | 生产持有角色 | 备注 |
+|:--|:--|:--|
+| `goods:create` / `goods:edit` / `goods:delete` | **SUPER_ADMIN / OPERATION_ADMIN**（都靠角色串 `"*"`） | **无任何生产角色显式持有**（种子口径同此） |
+| `goods:price` | SUPER_ADMIN / OPERATION_ADMIN / **STORE_MANAGER** | 与 `price.routes.ts` 既有 14 条接线同码 |
+| `goods:list`（只读参照） | SUPER_ADMIN / OPERATION_ADMIN | — |
+
+⇒ 判据只剩两种成立方式：**① 页面角色只含超管/运营**；**② 用 `goods:price` 且页面角色只含超管/运营/店长**。
+凡真实使用者含 `STORE_MANAGER` 的端点，挂 `goods:create|edit|delete` **必然 403 店长**（批 1 `trace:*` 同款坑）。
+
+### 12.1 接线口径（照派单卡 §二执行）
+
+| 序 | 卡面口径 | 本单落地 |
+|:--|:--|:--|
+| ① | 优先挂「该端点**真实使用者已持有**的模块码」（零回归） | 本域**不存在**这样的码：45 条的页面角色集合里，凡含店长的端点，店长只持 `goods:price`；其余语义码（`store:*`/`inventory:*`/`marketing:*`）与商品主数据语义不符 ⇒ 无一可用 |
+| ② | 只有「商品岗专属、且使用者本来就不是门店/仓管/财务」的端点才挂 `goods:*` | 落地 **15 条**，全部满足「**无页面调用点**」或「调用点非有效注册行」⇒ 使用者集合 ⊆ {超管, 运营} |
+| ③ | 找不到已持有码又不宜挂域码 ⇒ 不接 + 登记 | **30 条**不接（B 13 / A 15 / P 2），逐条见 12.3–12.6 |
+| ④ | 价格类端点逐条对上「谁能改价」 | 见 12.6：两条价格端点均为**既有待裁定/已知锁定**项，本批不动 |
+
+### 12.2 本批已接 **15 条**（端点 / 落地码 / 真实使用者）
+
+行号 = 当前 `backend/src/routes/` 下的注册行（`git diff` 可复核）。
+
+| # | 端点（`file:行`） | 落地码 | 真实使用者（依据） |
+|--:|:--|:--|:--|
+| 1 | `admin-product.routes.ts:41` PUT `/products/:id/status` | `goods:edit` | 无有效调用点：桌面 `Products.vue:1051` 打的是 `PATCH /admin/products/:id/status`，后端**无 PATCH 路由**（`rg '\.patch\(' backend/src/routes/*.routes.ts` → 0）⇒ 见 12.8-1 |
+| 2 | `admin-product.routes.ts:43` PUT `/products/:id/disable` | `goods:edit` | 全仓无页面调用方 |
+| 3 | `admin-product.routes.ts:53` PUT `/products/:id/warning-threshold` | `goods:edit` | 全仓无页面调用方 |
+| 4 | `product-bundle.routes.ts:18` POST `/product-bundles` | `goods:create` | 全仓无页面调用方（`api/product.ts:162` 仅封装，无页面使用） |
+| 5 | `product-bundle.routes.ts:19` PUT `/product-bundles/:id` | `goods:edit` | 同上 |
+| 6 | `product-bundle.routes.ts:20` DELETE `/product-bundles/:id` | `goods:delete` | 同上 |
+| 7 | `product-bundle.routes.ts:21` POST `/product-bundles/:id/publish` | `goods:edit` | 同上 |
+| 8 | `product-bundle.routes.ts:22` POST `/product-bundles/:id/unpublish` | `goods:edit` | 同上 |
+| 9 | `product-bundle.routes.ts:27` POST `/combo-products` | `goods:create` | 同上（「套装与组合品」页 `ProductCombo.vue` 只调 `GET /admin/products`、`GET /products/categories`） |
+| 10 | `product-bundle.routes.ts:28` PUT `/combo-products/:id` | `goods:edit` | 同上 |
+| 11 | `product-bundle.routes.ts:29` DELETE `/combo-products/:id` | `goods:delete` | 同上 |
+| 12 | `product-review.routes.ts:14` POST `/product-reviews/` | `goods:create` | 无页面调用方（审核页只调 approve / reject / batch-*） |
+| 13 | `unit.routes.ts:14` POST `/units/` | `goods:create` | 无页面调用方（单位管理页 `Units.vue` 的增删改打的是 `/admin/unit-groups`） |
+| 14 | `unit.routes.ts:15` PUT `/units/:id` | `goods:edit` | 同上 |
+| 15 | `unit.routes.ts:16` DELETE `/units/:id` | `goods:delete` | 同上 |
+
+**逐码分布**：`goods:create` 4 ｜ `goods:edit` 8 ｜ `goods:delete` 3 = **15**。3 个码**全部是仓库既有码**
+（`docs/migrations/079_权限矩阵.sql:201-203`），不新立权限点、不改角色种子、不动迁移。
+
+### 12.3 本批**未接** **13 条 · B 类**（移动端写调用点落在**无权限门**的页 ⇒ 使用者集合不可枚举）
+
+| # | 端点 | 移动端调用点（证据） |
+|--:|:--|:--|
+| 1 | POST `/api/admin/library/lookup` | 扫码 `app-mobile/src/native/scan.ts:746`（商品 tab / 销售开单 / 库存多入口） |
+| 2 | POST `/api/admin/products/upload-image` | `pages/products/product-detail.vue:1268`、`pages-sub/product/product/product-edit.vue:424` |
+| 3 | PUT `/api/admin/products/:id` | `pages/products/product-detail.vue:1009`（＋桌面 `Products.vue:1001/1134/1144`） |
+| 4 | PUT `/api/admin/products/:skuId/price` | `product-detail.vue:1031`、`pages-sub/product/batch-price/batch-price.vue:834`（＋桌面 `Products.vue:1185/1411`） |
+| 5 | PUT `/api/admin/products/skus/:skuId` | 桌面 `Products.vue:1174`；移动 `api/modules/products.ts:55` |
+| 6 | POST `/api/admin/products/skus/:skuId/units` | 桌面 `Products.vue:1269`；移动 `product-detail.vue:1080` |
+| 7 | PUT `/api/admin/products/skus/:skuId/units/:unitId` | 桌面 `Products.vue:1215-1253`；移动 `product-detail.vue:1049/1072` |
+| 8 | DELETE `/api/admin/products/skus/:skuId/units/:unitId` | 桌面 `Products.vue:1282`；移动 `product-detail.vue:1054` |
+| 9 | PUT `/api/admin/products/:spuId/marketing-tags` | 移动 `product-detail.vue:1092` |
+| 10 | POST `/api/admin/products/categories/` | 移动 `pages-sub/product/categories/category-edit.vue:176` |
+| 11 | PUT `/api/admin/products/categories/:id` | 移动 `category-edit.vue:174` |
+| 12 | DELETE `/api/admin/products/categories/:id` | 移动 `categories.vue:196` |
+| 13 | PUT `/api/admin/products/categories/:id/sort` | 移动 `categories.vue:179` |
+
+**为什么判 B**：`app-mobile` 的**商品 tab 是固定 tabBar 项、无任何角色门**（`src/pages.json` tabBar `list` ＋
+`components/custom-tab-bar.vue:24`），商品详情/编辑页内亦无权限判定（`rg 'isPageVisible|roles'` 在
+`pages/products/product-detail.vue` 0 命中）；而第 10–13 条的「商品分类」页虽有菜单码 `goods:category`
+（`config/function-menu.ts:46`），但该菜单在生产按 `t_sys_role_menu` **授给了 7 个角色**
+（OPERATION_ADMIN / PURCHASE_STAFF / READONLY / STORE_ADMIN / STORE_MANAGER / STORE_OPERATOR / WAREHOUSE_STAFF），
+其中 6 个**不持** `goods:*` ⇒ 用 `goods:create|edit|delete` 接线会把它们在手机端由可用打成 403。
+口径与批 1 §9.1 的 **B 类**「存在 app-mobile 写调用点 ⇒ 不可判定 ⇒ 本批不接」逐字一致。
+
+### 12.4 本批**未接** **15 条 · A 类**（有页面调用点，且页面 `meta.roles` 含 `STORE_MANAGER`）
+
+生产店长**不持任何 goods 写码** ⇒ 接线即 403 现有页面使用者（依据 `admin-web/src/router/index.ts` 的 `meta.roles`）：
+
+| # | 端点 | 页面（`router/index.ts` 行） |
+|--:|:--|:--|
+| 1 | PUT `/api/admin/products/skus/:skuId/barcode` | 商品管理 `:165`［SUPER_ADMIN, **STORE_MANAGER**］（调用点 `Products.vue:1156`） |
+| 2 | POST `/api/admin/products/import` | 商品导入 `:169`［SUPER_ADMIN, **STORE_MANAGER**］（**无调用点**；该页真实打的是 `/admin/data-transfer/import/products`，已由 S3-198 接 `store:transfer`）⇒ 口径待裁定，见 12.7-2 |
+| 3–5 | POST/PUT/DELETE `/api/admin/brands/:id` | 品牌管理 `:167`［SUPER_ADMIN, **STORE_MANAGER**］（`Brands.vue:121/124/135`） |
+| 6–8 | POST/PUT/DELETE `/api/admin/product-tags/:id` | 商品标签 `:170` ＋ 营销标签 `:221`［均含 **STORE_MANAGER**］（`ProductTags.vue:142/145/156`、`MarketingTags.vue:307/312/328`） |
+| 9–12 | POST `/product-reviews/:id/approve`、`/:id/reject`、`/batch-approve`、`/batch-reject` | 商品审核 `:173`［SUPER_ADMIN, **STORE_MANAGER**］（`ProductReview.vue:561/564/613`） |
+| 13–15 | POST/PUT/DELETE `/api/admin/unit-groups/:id` | 单位管理 `:168`［SUPER_ADMIN, **STORE_MANAGER**］（`Units.vue:209/212/223/235`） |
+
+> 这 15 条**不是"没有码"**，而是「**该页角色 ⊄ 该码持有者**」：属授权模型口径（要不要给店长 `goods:edit` 等），
+> 按派单卡 §二.4 归「**待授权模型定案**」，由凌舟另立"授权模型提案"单，本单不扩角色权限、不新立码。
+
+### 12.5 守恒与门禁（原始输出见 `docs/evidence/S3-220/`）
+
+| 指标 | 本批前（`origin/main` `11f4af48`） | 本批后 | 说明 |
+|:--|--:|--:|:--|
+| 扫描写端点总数 | 763 | 763 | 未增删端点（`10-guard-after-wiring.txt`） |
+| 已接线（权限码） | 136 | **151** | +15 = 本批接线数 |
+| 无授权形态（缺口） | **588** | **573** | −15；分布文件数 148 → 146（2 个文件清零：`product-bundle`、`unit`） |
+| 消费者端保护形态 | 39 | 39 | 不变（本批不涉） |
+| 机读台账 `gaps` | 588 条 / 148 文件 | **573 条 / 146 文件** | `tools/update-baseline.mjs` 逐键移除 15 条 |
+| `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 条、陈旧登记 0 条（`35-neg-restored-strict.txt`） |
+| 本域对账 | 台账 45 = 实测缺口 45 | **45 = 15（已接）+ 13（B）+ 15（A）+ 2（P）** | 一条不多、一条不少 |
+| 跨批计数快照 | `rbac-g0-wiring.test.ts` 107 | **122** | 只同步"总数 + 逐文件计数"，G0 名单行一字未动 |
+
+### 12.6 本批**未接** **2 条 · P 类**（**既有已锁定/待裁定**项，本单不得自行改口径）
+
+| # | 端点 | 既有锁定（证据） | 本单处置 |
+|--:|:--|:--|:--|
+| 1 | POST `/api/admin/prices/best-price` | `rbac-g0-wiring.test.ts:700` 列为「**查询型 POST（待裁定）**」并断言 READONLY 仍 200；`rbac-g1-wiring.test.ts:286` 同款锁定 | **不接**（全仓亦无页面调用点：`api/sale.ts:111 calcBestPrice` 无页面使用） |
+| 2 | POST `/api/admin/prices/batch/preview` | `rbac-g0-wiring.test.ts:725` 把「READONLY 调本行 ⇒ `PRICE_MANAGEMENT_DENIED`」列为**已知锁定**；本行**已有** `requirePriceManagementAccess()`（角色白名单，非裸奔） | **不接**：接 `goods:price` 后拦在第一层的变成 RBAC（403 文案变），属改动既有锁定行为 |
+
+> ⚠️ 首版曾把这两行一起接上（缺口一度到 571），跑 `rbac-g0-wiring.test.ts` 时**被既有锁定断言拦下**
+> （2 failed：`best-price` 的 READONLY 200、`batch/preview` 的 `PRICE_MANAGEMENT_DENIED`），
+> 故按"**碰既有锁定 ⇒ 先退回、登记待裁定**"的纪律撤回（撤回后 573）。原始失败输出：`21-vitest-g0-and-s3220.txt`（首版）。
+
+### 12.7 反测（门禁铁律：故意制造失败，证明它会红）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A 报告模式分辨力 | 摘掉 `product-bundle.routes.ts:29` 的 `requirePermission("goods:delete")` | 缺口 **573 → 574**（已接线 151 → 150） | `31-neg-report.txt` |
+| B `--strict` 两侧 | 同上 | **EXIT=1** 且点出 `product-bundle.routes.ts:29 DELETE /api/admin/combo-products/:id`（未登记 1 条）；复原 ⇒ **EXIT=0** | `32-neg-strict.txt` / `35-neg-restored-strict.txt` |
+| C 用例分辨力（vitest 侧） | 同上 | `rbac-b2-s3-220-product-wiring.test.ts`：**3 failed / 137 passed**（形状断言、READONLY⇒403、非持有人逐账号枚举）；复原 ⇒ **140 passed** | `33-neg-vitest.txt` |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`E795DBD9…C4F33`） | `30-neg-before-hash.txt` / `34-neg-after-hash.txt` |
+
+### 12.8 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. **桌面「商品管理」的上下架按钮打的是不存在的路由**：`Products.vue:1051` 与 `api/common.ts:166` 用
+   `PATCH /admin/products/:id/status`，而后端只注册了 **PUT**（`admin-product.routes.ts:41`）；
+   `rg '\.patch\(' backend/src/routes/*.routes.ts` **0 命中** ⇒ 该按钮今天即 **404**（与批 2 §11.7-1 同族形态）。
+2. **商品导入页与 `/admin/products/import` 不是同一条路**：页面真实打 `/admin/data-transfer/import/products`（S3-198 已接 `store:transfer`），
+   而 `POST /api/admin/products/import` **全仓无调用方**——两条并存，是否合并成一条属契约治理，另立单。
+3. **`goods:create` 在 S3-142 的口径已与生产不符**：`admin-product-s3-142-perm.test.ts:78` 把店长的权限串写成
+   `["store:*","goods:create","goods:edit"]`（依据 079 种子），而**生产店长不持这两个码** ⇒ 该测试的"零回归"结论在生产下不成立
+   （本单新测试用生产真值，`STORE_MANAGER` 对 `goods:create|edit|delete` 断言 false）。是否补订正由凌舟定。
+4. **移动端商品链路整体无权限门**：商品 tab（`pages.json` tabBar）→ 商品列表 → 商品详情/编辑/新建均可写；
+   本批 13 条 B 类都卡在这里。要收编它们，须先补移动端权限门（前端改动，另立单）。
+5. **`requirePriceManagementAccess()` 的角色白名单只含 SUPER_ADMIN/STORE_MANAGER**：`OPERATION_ADMIN` 持 `*`
+   但在 `/prices/batch/*`、`/prices/anomalies` 上仍 403（既有行为，非本批引入）——若运营岗要用批量调价，需同步该白名单。
+
 ### 11.4 守恒与门禁（原始输出见 `docs/evidence/S3-214/`）
 
 | 指标 | 本批前（`origin/main` `7beafd24`） | 本批后 | 说明 |
