@@ -1,0 +1,62 @@
+services/admin/approval-records.service.ts:372 [SELECT] join=true
+  SELECT t.id, t.instance_id AS instanceId, t.approval_level AS approvalLevel, t.approver_id AS approverId, t.approver_name AS approverName, t.task_status AS taskStatus, t.received_at AS receivedAt, t.processed_at AS processedAt, t.sla_deadline AS slaDeadline, t.escalated, t.approval_comment AS approv
+
+services/admin/cart.service.ts:239 [SELECT] join=true
+  SELECT c.id, c.sku_id AS skuId, c.quantity, s.sku_name AS skuName, p.name AS spuName, p.main_image AS image, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice, COALESCE(ib.available_qty, 0) AS availableQty FROM t_cart_item c JOIN t_product_sku s O
+
+services/admin/cart.service.ts:276 [SELECT] join=true
+  SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'
+
+services/admin/cart.service.ts:388 [SELECT] join=true
+  SELECT c.sku_id AS skuId, c.quantity, s.sku_name AS skuName, p.name AS spuName, p.main_image AS image, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice, COALESCE(ib.available_qty, 0) AS availableQty FROM t_cart_item c JOIN t_product_sku s ON s.id
+
+services/admin/customer-visit.service.ts:301 [SELECT] join=false
+  SELECT cv.id, cv.visit_no AS visitNo, cv.customer_id AS customerId, cv.customer_name AS customerName, cv.customer_mobile AS customerMobile, cv.store_id AS storeId, cv.visitor_id AS visitorId, cv.visitor_name AS visitorName, cv.visit_type AS visitType, cv.visit_purpose AS visitPurpose, cv.visit_date 
+
+services/admin/print.service.ts:259 [SELECT] join=false
+  SELECT id, tenant_id, store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id, created_at, updated_at FROM t_print_record WHERE id = ?
+
+services/admin/print.service.ts:289 [SELECT] join=false
+  SELECT id, tenant_id, store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id, created_at, updated_at FROM t_print_record WHERE id = ?
+
+services/admin/report/product-report.service.ts:173 [SELECT] join=true
+  SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName, SUM(sbi.total_bottle_qty) AS totalSoldQty, COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSalesAmount FROM t_sale_bill_item sbi JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id WHERE sb.business_status NOT IN ('DRAFT
+
+services/admin/subscription-renewal.service.ts:69 [SELECT] join=true
+  SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.price, p.duration_days, p.price AS plan_price FROM t_subscription s LEFT JOIN t_subscription_plan p ON p.id = ? WHERE s.id = ?
+
+services/admin/subscription-renewal.service.ts:175 [SELECT] join=true
+  SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, t.contact_mobile AS contactMobile, s.plan_name AS planName, s.end_date AS endDate, s.auto_renew AS autoRenew, s.expire_notify_sent AS expireNotifySent, DATEDIFF(s.end_date, CURDATE()) AS daysRema
+
+services/admin/subscription-renewal.service.ts:196 [SELECT] join=true
+  SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, t.contact_mobile AS contactMobile, s.plan_name AS planName, s.end_date AS endDate, DATEDIFF(CURDATE(), s.end_date) AS overdueDays FROM t_subscription s LEFT JOIN t_tenant t ON t.id = s.tenant_id 
+
+services/admin/subscription.service.ts:167 [SELECT] join=true
+  SELECT s.id, s.subscription_no AS subscriptionNo, s.tenant_id AS tenantId, t.company_name AS tenantName, s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType, s.start_date AS startDate, s.end_date AS endDate, s.duration_days AS durationDays, s.price, p.original_price AS originalAmou
+
+services/admin/subscription.service.ts:338 [SELECT] join=false
+  SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.status FROM t_subscription s WHERE s.id = ?
+
+services/admin/subscription.service.ts:425 [SELECT] join=false
+  SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ?
+
+services/admin/subscription.service.ts:470 [SELECT] join=false
+  SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ?
+
+services/admin/visit-record.service.ts:220 [SELECT] join=false
+  SELECT cv.id, cv.visit_no AS visitNo, cv.customer_id AS customerId, cv.customer_name AS customerName, cv.customer_mobile AS customerMobile, cv.store_id AS storeId, cv.visitor_id AS visitorId, cv.visitor_name AS visitorName, cv.visit_type AS visitType, cv.visit_purpose AS visitPurpose, cv.visit_date 
+
+services/miniapp/cart.service.ts:33 [SELECT] join=true
+  SELECT c.id, c.sku_id AS skuId, c.quantity, s.sku_name AS skuName, p.name AS spuName, p.main_image AS image, pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice, COALESCE(ib.available_qty, 0) AS availableQty FROM t_cart_item c JOIN t_product_sku s O
+
+services/miniapp/cart.service.ts:70 [SELECT] join=true
+  SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'
+
+services/store/member.service.ts:23 [SELECT] join=true
+  SELECT m.id, m.name, m.mobile, m.customer_type AS customerType, m.points, m.level_code AS levelCode, ml.level_name AS levelName, m.status, m.contact, m.address, m.remark, m.card_no, m.gender, m.birthday, m.province, m.city, m.district, m.tags, m.last_order_at AS lastOrderAt, m.created_at AS createdA
+
+services/transfer-execution.service.ts:299 [SELECT] join=true
+  SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name FROM t_transfer_order to_ LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id WHERE to_.to_store_id = ? AND to_.status IN
+
+services/transfer-execution.service.ts:314 [SELECT] join=true
+  SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name FROM t_transfer_order to_ LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id WHERE to_.from_store_id = ? AND to_.status 

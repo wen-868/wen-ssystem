@@ -251,8 +251,24 @@ function readArg(text, openIdx, argIndex) {
   let i = openIdx + 1;
   let argStart = -1;
   let cur = 0;
+  let quote = null; // ⚠️ 必须跳过字符串/模板字面量：模板 SQL 里的**顶层逗号**（多列 SELECT 列表）
+  // 若被当成实参分隔符，会把 SQL 截断成 `SELECT a`，导致漏判（实测 batch-price.service.ts:206 曾被截断成
+  // `SELECT sku.id AS skuId` ⇒ 判定成"无 tenant_id 字样"）。同理括号/方括号也要在字面量内忽略。
   for (; i < text.length; i++) {
     const ch = text[i];
+    if (quote) {
+      if (ch === "\\") {
+        i++;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === "`") {
+      if (argStart === -1 && depth === 1) argStart = i;
+      quote = ch;
+      continue;
+    }
     if (argStart === -1 && depth === 1 && !/\s/.test(ch)) argStart = i;
     if (ch === "(" || ch === "[" || ch === "{") depth++;
     else if (ch === ")" || ch === "]" || ch === "}") {
@@ -318,7 +334,8 @@ function extractLiteral(text) {
   return { sql: out.replace(/\s+/g, " ").trim(), kind: "literal", interps };
 }
 
-function scan(root) {
+/** 扫描仓库（导出以便单测/复核脚本直接按文件核对某条调用点的判定） */
+export function scan(root) {
   const src = join(root, "backend", "src");
   const rows = [];
   for (const file of walk(src)) {
