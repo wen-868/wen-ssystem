@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": [
+      {
+        "id": 1,
+        "name": "S3207夹具SKU",
+        "totalQty": 14,
+        "totalAmount": 1806,
+        "receivedAmount": 0,
+        "orderCount": 0
+      },
+      {
+        "id": 11,
+        "name": "S3207夹具SKU",
+        "totalQty": 3,
+        "totalAmount": 290,
+        "receivedAmount": 0,
+        "orderCount": 0
+      }
+    ],
+    "traceId": "3e1ba78d-46d1-4213-b9d4-d1e589d4b68c"
+  }
+}

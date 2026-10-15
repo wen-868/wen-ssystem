@@ -1,0 +1,232 @@
+{
+  "generatedAt": "2026-10-15T14:14:23.765Z",
+  "repo": "D:\\Users\\ZXQL\\wt-agents\\S3-210",
+  "baselineRepo": "D:/Users/ZXQL/wt-agents/S3-206",
+  "db": "s3207_main",
+  "fixture": {
+    "A": "default",
+    "B": "s3207t2",
+    "skuA": 1,
+    "skuA2": 11,
+    "skuB": 12,
+    "dateStart": "2026-08-01",
+    "dateEnd": "2026-10-31"
+  },
+  "truth": {
+    "costA": "20986.00",
+    "costAll": "120886.00",
+    "invA": "172096.00",
+    "invAll": "182096.00",
+    "createdA": 6,
+    "createdAll": 8
+  },
+  "failures": 0,
+  "results": [
+    {
+      "name": "[1] 后端 /health 200（启动期迁移 + 种子已完成）",
+      "ok": true,
+      "soft": false
+    },
+    {
+      "name": "[3a] admin 登录成功（code=0 且下发 token）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "code": "0",
+        "msg": "成功"
+      }
+    },
+    {
+      "name": "[3b] 登录响应下发 csrfToken（写方法需要）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "hasCsrf": true
+      }
+    },
+    {
+      "name": "[5a][回归] sales-ranking?dimension=product 有该 SKU 行",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "id": 1,
+        "name": "S3207夹具SKU",
+        "totalQty": 14,
+        "totalAmount": 1806,
+        "receivedAmount": 0,
+        "orderCount": 0
+      }
+    },
+    {
+      "name": "[5b][回归] sales-ranking customer 维度合计 = 仅 A 租户",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "接口": 60260,
+        "code": "0",
+        "A真值": "60260.00",
+        "含B应为": "260258.00"
+      }
+    },
+    {
+      "name": "[5c][回归] sales-ranking store 维度可用且合计 = 仅 A 租户（S3-206 的 1052 修复未回退）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "code": "0",
+        "msg": "成功",
+        "接口": 60260,
+        "A真值": "60260.00",
+        "含B应为": "260258.00"
+      }
+    },
+    {
+      "name": "[5c2][回归] sales-ranking staff 维度合计 = 仅 A 租户",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "接口": 60260,
+        "A真值": "60260.00",
+        "含B应为": "260258.00"
+      }
+    },
+    {
+      "name": "[5d][本单①] /reports/profit 成本 = 仅 A 租户真值",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "接口cost": 20986,
+        "A真值": "20986.00",
+        "含B应为": "120886.00"
+      }
+    },
+    {
+      "name": "[5e][本单②] /reports/business-overview 库存金额 = 仅 A 租户真值",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "接口": 172096,
+        "A真值": "172096.00",
+        "含B应为": "182096.00"
+      }
+    },
+    {
+      "name": "[5f][本单③] batch-price 预览：A 令牌查 A 的 SKU ⇒ 命中 A 的价格行（1 条）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "接口totalCount": 1,
+        "A真值": 1
+      }
+    },
+    {
+      "name": "[5g][本单③] batch-price 预览：A 令牌查 B 的 SKU ⇒ 0 条（看不到 B 的数据）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "接口totalCount": 0
+      }
+    },
+    {
+      "name": "[5h][本单③] batch-price 预览：A 令牌同时查 [A,A2,B] ⇒ 只命中 A 侧真值（skuNew 无价格行 ⇒ 1 条；若泄露含 B 会变 2）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "接口totalCount": 1,
+        "A真值": 1
+      }
+    },
+    {
+      "name": "[5i][对照组] /marketing/coupons/user-coupons 可用（code=0）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "status": 200,
+        "code": "0"
+      }
+    },
+    {
+      "name": "[6a] 反例 P1（列对列 tenant_id = tenant_id）：改前**不注入** ⇒ 读到 A+B；改后**注入生效** ⇒ 只读到 A",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "改前": 8,
+        "改后": 6,
+        "A真值": 6,
+        "A_B真值": 8
+      }
+    },
+    {
+      "name": "[6b] 反例 P2（finance 口径 JOIN）：改前静默读到 A+B；改后注入 ⇒ 1052 歧义（响亮失败，不再静默泄露）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "改前": 120886,
+        "改后": {
+          "ok": false,
+          "errno": 1052,
+          "code": "ER_NON_UNIQ_ERROR",
+          "msg": "Column 'tenant_id' in where clause is ambiguous"
+        },
+        "含B应为": "120886.00"
+      }
+    },
+    {
+      "name": "[6c] 对照 P3（tenant_id = ?）：两侧都**不重复注入**，读数一致且 = A 真值",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "改前": 6,
+        "改后": 6,
+        "A真值": 6
+      }
+    },
+    {
+      "name": "[6d] 对照 P4（平台标记）：两侧都跳过注入 ⇒ 枚举到全部租户（改前/改后一致）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "改前行数": 2,
+        "改后行数": 2
+      }
+    },
+    {
+      "name": "[7a] 第二家族（库存汇总）：补显式谓词后 ⇒ 无 1052、且金额 = 仅 A 侧真值",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "读数": 172096,
+        "A真值": "172096.00",
+        "A_B真值": "182096.00",
+        "err": null
+      }
+    },
+    {
+      "name": "[7b] 第二家族（库存汇总）：同一句**摘掉**显式谓词 ⇒ 注入 ⇒ 1052 歧义（证明这批修复是承重的）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "err": {
+          "errno": 1052,
+          "code": "ER_NON_UNIQ_ERROR",
+          "msg": "Column 'tenant_id' in where clause is ambiguous"
+        }
+      }
+    },
+    {
+      "name": "[7c] 第二家族（购物车明细）：补显式谓词后 ⇒ 无 1052（空表返回空数组）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "rows": 0,
+        "err": null
+      }
+    }
+  ]
+}

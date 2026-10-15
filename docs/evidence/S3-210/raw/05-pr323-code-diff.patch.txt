@@ -1,0 +1,737 @@
+diff --git a/backend/src/__tests__/shared/tenant-scope.test.ts b/backend/src/__tests__/shared/tenant-scope.test.ts
+new file mode 100644
+index 00000000..423e2a9c
+--- /dev/null
++++ b/backend/src/__tests__/shared/tenant-scope.test.ts
+@@ -0,0 +1,135 @@
++/**
++ * S3-207 常驻用例：租户注入判据（收口总清单第 63 项根因）
++ *
++ * 锁住什么（不是一次性探针）：
++ *   1. **病灶反例**：`JOIN … AND a.tenant_id = b.tenant_id`（列对列等值）**不算**"绑定到调用者租户的条件" ⇒
++ *      旧判据（子串含 `tenant_id` 即跳过注入）会误判"已有租户条件"而整句跳过注入 ⇒ 跨租户聚合。
++ *      本用例同时断言"旧判据会跳过、新判据不跳过"，把根因钉死。
++ *   2. `tenant_id = ?`（值谓词）**算** ⇒ 不重复注入。
++ *   3. 语句感知边界：`UPDATE … SET tenant_id = ?` 只是"写租户列"、不算过滤；
++ *      `UPDATE/DELETE` 的谓词必须在**顶层 WHERE 之后**；`INSERT` 看列清单 / SET / SELECT 段。
++ *   4. 语料一致性：`backend/scripts/fixtures/tenant-scope-corpus.json` 由本用例与
++ *      `backend/scripts/guard-tenant-injection.mjs --self-test` **两侧共读** ⇒ 改判据必须同步改语料，
++ *      否则两侧各红一次（防止"运行时判据"与"静态门禁"口径漂移）。
++ */
++import { describe, expect, it } from "vitest";
++import { readFileSync } from "node:fs";
++import { join } from "node:path";
++import {
++  TENANT_SCOPE_PLATFORM_MARKER,
++  TENANT_SCOPE_SELF_MARKER,
++  explainTenantInjection,
++  hasCallerTenantCondition,
++  hasTenantToken,
++  shouldSkipTenantInjection,
++  statementOf,
++  tenantScopeMarkerOf,
++} from "../../shared/tenant-scope";
++
++const CORPUS_PATH = join(__dirname, "..", "..", "..", "scripts", "fixtures", "tenant-scope-corpus.json");
++
++/** 病灶本体：finance-report 的销售成本 SQL（S3-206 扫描认定为真泄露的那一句） */
++const FINANCE_JOIN_SQL = `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
++  FROM t_sale_bill_item sbi
++  JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
++  JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
++  WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
++    AND DATE(sb.created_at) BETWEEN ? AND ?`;
++
++/** 同一句的修复形态（S3-207 给调用点补的显式谓词） */
++const FINANCE_JOIN_SQL_FIXED = FINANCE_JOIN_SQL.replace(
++  "WHERE sb.business_status",
++  "WHERE sb.tenant_id = ?\n    AND sb.business_status"
++);
++
++describe("tenant-scope 判据：病灶反例（JOIN 列对列等值）", () => {
++  it("旧判据（子串含 tenant_id）确实会短路 —— 根因现场", () => {
++    expect(hasTenantToken(FINANCE_JOIN_SQL)).toBe(true);
++    // 旧实现就是这一句：`if (sql.toLowerCase().includes('tenant_id')) return sql;`
++    expect(FINANCE_JOIN_SQL.toLowerCase().includes("tenant_id")).toBe(true);
++  });
++
++  it("新判据不再把列对列等值当成租户条件 ⇒ 不跳过注入（改后注入生效）", () => {
++    expect(hasCallerTenantCondition(FINANCE_JOIN_SQL)).toBe(false);
++    expect(shouldSkipTenantInjection(FINANCE_JOIN_SQL)).toBe(false);
++    expect(explainTenantInjection(FINANCE_JOIN_SQL)).toBe("inject:tenant-token-without-condition");
++  });
++
++  it("调用点补上显式值谓词后 ⇒ 判为已有租户条件（不重复注入）", () => {
++    expect(hasCallerTenantCondition(FINANCE_JOIN_SQL_FIXED)).toBe(true);
++    expect(shouldSkipTenantInjection(FINANCE_JOIN_SQL_FIXED)).toBe(true);
++    expect(explainTenantInjection(FINANCE_JOIN_SQL_FIXED)).toBe("skip:caller-tenant-condition");
++  });
++
++  it("显式标记可声明范围（self / platform），且优先于形状判定", () => {
++    const platformSql = `SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED' /* ${TENANT_SCOPE_PLATFORM_MARKER} */`;
++    expect(tenantScopeMarkerOf(platformSql)).toBe("platform");
++    expect(shouldSkipTenantInjection(platformSql)).toBe(true);
++    expect(hasCallerTenantCondition(platformSql)).toBe(false); // 形状上确实没有租户条件，靠标记放行
++    const selfSql = `SELECT a.id FROM t_store a /* ${TENANT_SCOPE_SELF_MARKER} */`;
++    expect(tenantScopeMarkerOf(selfSql)).toBe("self");
++    expect(shouldSkipTenantInjection(selfSql)).toBe(true);
++  });
++});
++
++describe("tenant-scope 判据：语句感知边界", () => {
++  it("语句类型识别", () => {
++    expect(statementOf("  select 1")).toBe("SELECT");
++    expect(statementOf("\nUPDATE t SET x = 1")).toBe("UPDATE");
++    expect(statementOf("insert into t (a) values (?)")).toBe("INSERT");
++    expect(statementOf("DELETE FROM t WHERE id = ?")).toBe("DELETE");
++  });
++
++  it("UPDATE：SET tenant_id = ? 是写租户列，不算过滤", () => {
++    const sql = "UPDATE t_product SET tenant_id = ?, updated_at = NOW() WHERE id = ?";
++    expect(hasCallerTenantCondition(sql)).toBe(false);
++  });
++
++  it("UPDATE：谓词只有在顶层 WHERE 之后才算（子查询里的不算外层过滤）", () => {
++    const setSubquery = "UPDATE t_product SET price = (SELECT price FROM t_product_price WHERE tenant_id = ?) WHERE id = ?";
++    expect(hasCallerTenantCondition(setSubquery)).toBe(false);
++    const whereSubquery = "UPDATE t_product SET price = ? WHERE id IN (SELECT id FROM t_price_level WHERE tenant_id = ?)";
++    expect(hasCallerTenantCondition(whereSubquery)).toBe(true);
++    const whereDirect = "UPDATE t_product SET price = ? WHERE tenant_id = ? AND id = ?";
++    expect(hasCallerTenantCondition(whereDirect)).toBe(true);
++  });
++
++  it("DELETE：同 UPDATE 判据", () => {
++    expect(hasCallerTenantCondition("DELETE FROM t_cart_item WHERE tenant_id = ? AND id = ?")).toBe(true);
++    expect(hasCallerTenantCondition("DELETE FROM t_cart_item WHERE id = ?")).toBe(false);
++  });
++
++  it("INSERT：列清单 / SET / INSERT…SELECT 三种显式形态", () => {
++    expect(hasCallerTenantCondition("INSERT INTO t_store (tenant_id, store_name) VALUES (?, ?)")).toBe(true);
++    expect(hasCallerTenantCondition("INSERT IGNORE INTO t_customer_tag_relation (customer_id, tag_id, tenant_id) VALUES (?, ?, ?)")).toBe(true);
++    expect(hasCallerTenantCondition("INSERT INTO t_miniapp_config SET tenant_id = ?, config_json = ?")).toBe(true);
++    expect(hasCallerTenantCondition("INSERT INTO t_report_snapshot (store_id) SELECT id FROM t_store WHERE tenant_id = ?")).toBe(true);
++    expect(hasCallerTenantCondition("INSERT INTO t_store (store_name) VALUES (?)")).toBe(false);
++  });
++
++  it("值谓词才认：不等式、列对列、字符串字面量里的字样都不认", () => {
++    expect(hasCallerTenantCondition("SELECT id FROM t_sale_bill WHERE tenant_id != ?")).toBe(false);
++    expect(hasCallerTenantCondition("SELECT id FROM t_store WHERE name = 'tenant_id = ?'")).toBe(false);
++    expect(hasCallerTenantCondition("SELECT tenant_id, name FROM t_store WHERE status = 1")).toBe(false);
++    expect(hasCallerTenantCondition("SELECT id FROM t_member WHERE tenant_id IN (?)")).toBe(true);
++    expect(hasCallerTenantCondition("SELECT id FROM t_sys_user WHERE tenant_id = 'default'")).toBe(true);
++  });
++});
++
++describe("tenant-scope 判据：语料一致性（与静态门禁共读同一份语料）", () => {
++  const cases: Array<{ id: string; sql: string; hasCallerTenantCondition: boolean }> = JSON.parse(
++    readFileSync(CORPUS_PATH, "utf8")
++  );
++
++  it("语料非空且覆盖关键反例", () => {
++    expect(cases.length).toBeGreaterThanOrEqual(20);
++    const ids = cases.map((c) => c.id);
++    expect(ids).toContain("C02-select-junction-column-compare");
++    expect(ids).toContain("C03-select-junction-with-qualified-predicate");
++  });
++
++  it.each(cases.map((c) => [c.id, c] as const))("语料 %s", (_id, c) => {
++    expect(hasCallerTenantCondition(c.sql)).toBe(c.hasCallerTenantCondition);
++    expect(shouldSkipTenantInjection(c.sql)).toBe(c.hasCallerTenantCondition);
++  });
++});
+diff --git a/backend/src/config/database.ts b/backend/src/config/database.ts
+index 4d32e729..30d29aae 100644
+--- a/backend/src/config/database.ts
++++ b/backend/src/config/database.ts
+@@ -6,6 +6,7 @@ import { env } from "./env";
+ import { addTablePrefix } from "../shared/migration";
+ import { mockConn, mockQuery, mockExecute } from "../__tests__/mocks/mock-db";
+ import { recordQueryExecution } from "../middleware/slow-query-monitor";
++import { shouldSkipTenantInjection } from "../shared/tenant-scope";
+ 
+ export const pool = mysql.createPool({
+   host: env.DB_HOST,
+@@ -212,8 +213,11 @@ function injectTenantCondition(sql: string, params: unknown[], tenantId: string)
+  * 处理 SELECT 语句
+  */
+ function injectSelectTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+-  // 检查是否已经有 tenant_id 条件
+-  if (sql.toLowerCase().includes('tenant_id')) {
++  // S3-207 根治：只在"**存在绑定到调用者租户的条件**"时才跳过注入。
++  // 旧实现是子串判断 `sql.includes('tenant_id')`——JOIN 里的列对列等值 `a.tenant_id = b.tenant_id`、
++  // SELECT 列、SET 子句都会让它误判"已经有租户条件"，从而整句跳过注入（S3-206 实测：A 令牌读到 A+B）。
++  // 判据、边界与反例见 `shared/tenant-scope.ts` 顶部说明；静态防线见 `scripts/guard-tenant-injection.mjs`。
++  if (shouldSkipTenantInjection(sql)) {
+     return { modifiedSql: sql, modifiedParams: params };
+   }
+   
+@@ -249,8 +253,8 @@ function injectSelectTenant(sql: string, params: unknown[], tenantId: string): {
+  * 处理 INSERT 语句
+  */
+ function injectInsertTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+-  // 检查是否已经有 tenant_id 字段
+-  if (sql.toLowerCase().includes('tenant_id')) {
++  // S3-207 根治：同 injectSelectTenant —— 只在"列清单/SET 里显式绑定了租户"时跳过（见 shared/tenant-scope.ts）
++  if (shouldSkipTenantInjection(sql)) {
+     return { modifiedSql: sql, modifiedParams: params };
+   }
+   
+@@ -269,8 +273,8 @@ function injectInsertTenant(sql: string, params: unknown[], tenantId: string): {
+  * 处理 UPDATE 语句
+  */
+ function injectUpdateTenant(sql: string, params: unknown[], tenantId: string): { modifiedSql: string; modifiedParams: unknown[] } {
+-  // 检查是否已经有 tenant_id 条件
+-  if (sql.toLowerCase().includes('tenant_id')) {
++  // S3-207 根治：同 injectSelectTenant —— `SET tenant_id = ?` 属"写租户列"，不算过滤，不再据此短路
++  if (shouldSkipTenantInjection(sql)) {
+     return { modifiedSql: sql, modifiedParams: params };
+   }
+   
+diff --git a/backend/src/jobs/report-aggregation.job.ts b/backend/src/jobs/report-aggregation.job.ts
+index b5b643d5..cc88c739 100644
+--- a/backend/src/jobs/report-aggregation.job.ts
++++ b/backend/src/jobs/report-aggregation.job.ts
+@@ -4,7 +4,15 @@ import { queryWithTenant, queryOneWithTenant } from "../shared/db";
+ 
+ // 获取所有租户
+ async function getTenants(): Promise<string[]> {
+-  const rows = await queryWithTenant<any>("SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED'", [], "");
++  // S3-207：本查询是**平台级**的（要枚举全部租户），第 3 实参传空串表示"没有调用者租户"。
++  // 它带 tenant_id 字样（SELECT 列）却没有租户过滤谓词 —— 收紧判据后若不显式声明，
++  // 会被注入 `tenant_id = ''` ⇒ 永远返回空集、汇总作业静默失效。
++  // 因此用显式标记声明"平台范围"（登记在 backend/scripts/guard-tenant-injection.mjs 的 MARKER_ALLOWLIST）。
++  const rows = await queryWithTenant<any>(
++    "SELECT DISTINCT tenant_id FROM t_sale_bill WHERE business_status = 'CREATED' /* tenant-scope:platform */",
++    [],
++    ""
++  );
+   return rows.map((r: any) => r.tenant_id);
+ }
+ 
+@@ -213,4 +221,4 @@ async function runDailyAggregation() {
+ // 每天凌晨 2:00 执行
+ cron.schedule("0 2 * * *", runDailyAggregation);
+ 
+-export { runDailyAggregation };
+\ No newline at end of file
++export { runDailyAggregation };
+diff --git a/backend/src/services/admin/approval-records.service.ts b/backend/src/services/admin/approval-records.service.ts
+index 98afda3c..49f2ea92 100644
+--- a/backend/src/services/admin/approval-records.service.ts
++++ b/backend/src/services/admin/approval-records.service.ts
+@@ -380,10 +380,12 @@ export async function listTasks(
+             i.applicant_name AS applicantName, i.submitted_at AS submittedAt
+      FROM t_approval_task t
+      JOIN t_approval_instance i ON i.instance_no = t.instance_id AND i.tenant_id = t.tenant_id
+-     WHERE t.approver_id = ? AND t.task_status = ?
++     WHERE t.tenant_id = ? AND t.approver_id = ? AND t.task_status = ?
+      ORDER BY t.received_at DESC
+      LIMIT ? OFFSET ?`,
+-    [approverId, taskStatus, pageSize, offset],
++    // S3-207：JOIN 的 `i.tenant_id = t.tenant_id` 是列对列等值 ⇒ 旧判据短路 ⇒ 无租户过滤；显式补谓词
++    //（两张表都有 tenant_id 列，靠自动注入会 1052 歧义 500）
++    [tenantId, approverId, taskStatus, pageSize, offset],
+     tenantId
+   );
+ 
+diff --git a/backend/src/services/admin/cart.service.ts b/backend/src/services/admin/cart.service.ts
+index 212f2e1c..530888d6 100644
+--- a/backend/src/services/admin/cart.service.ts
++++ b/backend/src/services/admin/cart.service.ts
+@@ -246,9 +246,12 @@ export async function getCartList(tenantId: string, customerId: number, customer
+      JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+      JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+      LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+-     WHERE c.customer_id = ?
++     WHERE c.tenant_id = ?
++       AND c.customer_id = ?
+      ORDER BY c.added_at DESC`,
+-    [customerId],
++    // S3-207：JOIN 里全是"列对列"的 tenant_id 等值 ⇒ 旧判据（子串含 tenant_id 即跳过注入）让整句**没有租户过滤**。
++    // 现在显式声明租户谓词（5 张表都有 tenant_id 列，靠自动注入会 1052 歧义 500）。
++    [tenantId, customerId],
+     tenantId
+   );
+   const items: CartListDisplayItem[] = rows.map((row) => {
+@@ -274,8 +277,9 @@ export async function getCartList(tenantId: string, customerId: number, customer
+ 
+ export async function addToCart(tenantId: string, customerId: number, skuId: number, quantity: number) {
+   const sku = await queryOneWithTenant<CartSkuRow>(
+-    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
+-    [skuId],
++    // S3-207：同 getCartList —— 原句只有列对列等值（旧判据短路 ⇒ 无租户过滤），显式补谓词
++    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.tenant_id = ? AND s.id = ? AND p.status = 'ON_SALE'`,
++    [tenantId, skuId],
+     tenantId
+   );
+   if (!sku) {
+@@ -380,8 +384,9 @@ export async function checkoutPreview(params: {
+        JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+        JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+        LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+-       WHERE c.customer_id = ? AND c.sku_id IN (${placeholders})`,
+-      [storeId, customerId, ...skuIds],
++       WHERE c.tenant_id = ? AND c.customer_id = ? AND c.sku_id IN (${placeholders})`,
++      // S3-207：补显式租户谓词（占位符顺序 = JOIN 里的 storeId → WHERE 的 tenantId → customerId → skuIds）
++      [storeId, tenantId, customerId, ...skuIds],
+       tenantId
+     );
+   } else {
+@@ -395,8 +400,9 @@ export async function checkoutPreview(params: {
+        JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+        JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+        LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+-       WHERE c.customer_id = ?`,
+-      [storeId, customerId],
++       WHERE c.tenant_id = ? AND c.customer_id = ?`,
++      // S3-207：补显式租户谓词（占位符顺序 = JOIN 里的 storeId → WHERE 的 tenantId → customerId）
++      [storeId, tenantId, customerId],
+       tenantId
+     );
+   }
+diff --git a/backend/src/services/admin/report/finance-report.service.ts b/backend/src/services/admin/report/finance-report.service.ts
+index fd11fda3..46d60466 100644
+--- a/backend/src/services/admin/report/finance-report.service.ts
++++ b/backend/src/services/admin/report/finance-report.service.ts
+@@ -212,9 +212,13 @@ export async function getProfit(
+      FROM t_sale_bill_item sbi
+      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+      JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
+-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
++     WHERE sb.tenant_id = ?
++       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+        AND DATE(sb.created_at) BETWEEN ? AND ?`,
+-    [start, end],
++    // S3-207 修复：JOIN 里的 `sb.tenant_id = sbi.tenant_id` / `pp.tenant_id = sbi.tenant_id` 是**列对列**等值，
++    // 旧判据（子串含 tenant_id 即跳过注入）因此让整句**没有任何租户过滤** ⇒ A 令牌读到 A+B 的成本（实测 120886 = A 20986 + B 99900）。
++    // 现在显式声明租户谓词，占位符顺序 = WHERE 的 tenantId → 时间窗口。
++    [tenantId, start, end],
+     tenantId
+   );
+ 
+@@ -266,9 +270,11 @@ export async function getProfit(
+      FROM t_sale_bill_item sbi
+      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+      JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
+-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
++     WHERE sb.tenant_id = ?
++       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+        AND DATE(sb.created_at) BETWEEN ? AND ?`,
+-    [prevDateStart, prevDateEnd],
++    // S3-207 修复：同上（上一周期成本，同根因同修）
++    [tenantId, prevDateStart, prevDateEnd],
+     tenantId
+   );
+ 
+diff --git a/backend/src/services/admin/report/product-report.service.ts b/backend/src/services/admin/report/product-report.service.ts
+index cd11bf53..20a9b8c4 100644
+--- a/backend/src/services/admin/report/product-report.service.ts
++++ b/backend/src/services/admin/report/product-report.service.ts
+@@ -107,8 +107,10 @@ export async function getInventorySummary(
+ ) {
+   const g = z.enum(["product", "store"]).parse(groupBy);
+ 
+-  const conditions: string[] = [];
+-  const params: unknown[] = [];
++  // S3-207：JOIN 里全是"列对列"的 tenant_id 等值 ⇒ 旧判据（子串含 tenant_id 即跳过注入）让整句无租户过滤
++  // ⇒ 库存汇总跨租户；显式把租户谓词放在首位（3 张表都有 tenant_id 列，靠自动注入会 1052 歧义 500）
++  const conditions: string[] = ["ib.tenant_id = ?"];
++  const params: unknown[] = [tenantId];
+   if (storeId) {
+     conditions.push("ib.store_id = ?");
+     params.push(storeId);
+@@ -176,10 +178,12 @@ export async function getInventoryTurnover(
+             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSalesAmount
+      FROM t_sale_bill_item sbi
+      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+-     WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
++     WHERE sb.tenant_id = ?
++       AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+        AND sb.created_at >= ?
+      GROUP BY sbi.sku_id, sbi.sku_name`,
+-    [dateStart.toISOString().slice(0, 10)],
++    // S3-207：JOIN 的 `sb.tenant_id = sbi.tenant_id` 是列对列等值 ⇒ 旧判据短路 ⇒ 库存周转率口径跨租户；显式补谓词
++    [tenantId, dateStart.toISOString().slice(0, 10)],
+     tenantId
+   );
+ 
+@@ -223,8 +227,9 @@ export async function getInventoryAge(
+   tenantId: string,
+   storeId?: number
+ ) {
+-  const conditions: string[] = [];
+-  const params: unknown[] = [];
++  // S3-207：同 getInventorySummary —— 库龄分析原先也无租户过滤，显式补谓词
++  const conditions: string[] = ["psi.tenant_id = ?"];
++  const params: unknown[] = [tenantId];
+   if (storeId) {
+     conditions.push("psi.store_id = ?");
+     params.push(storeId);
+diff --git a/backend/src/services/admin/report/sales-report.service.ts b/backend/src/services/admin/report/sales-report.service.ts
+index 53591510..6b1edeca 100644
+--- a/backend/src/services/admin/report/sales-report.service.ts
++++ b/backend/src/services/admin/report/sales-report.service.ts
+@@ -508,8 +508,11 @@ export async function getBusinessOverview(tenantId: string) {
+   const inventoryValue = await queryOneWithTenant<AmountRow>(
+     `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount
+      FROM t_inventory_balance ib
+-     JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id`,
+-    [],
++     JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
++     WHERE ib.tenant_id = ?`,
++    // S3-207 修复：整句原先**没有 WHERE**，而 JOIN 里的 `pp.tenant_id = ib.tenant_id` 是列对列等值 ⇒
++    // 旧判据短路跳过注入 ⇒ 库存金额跨租户（实测 182096 = A 172096 + B 10000）。
++    [tenantId],
+     tenantId
+   );
+ 
+diff --git a/backend/src/services/admin/subscription-renewal.service.ts b/backend/src/services/admin/subscription-renewal.service.ts
+index 72d81c4d..df35df84 100644
+--- a/backend/src/services/admin/subscription-renewal.service.ts
++++ b/backend/src/services/admin/subscription-renewal.service.ts
+@@ -71,7 +71,9 @@ export async function renewSubscription(
+             p.duration_days, p.price AS plan_price
+      FROM t_subscription s
+      LEFT JOIN t_subscription_plan p ON p.id = ?
+-     WHERE s.id = ?`,
++     WHERE s.id = ? /* tenant-scope:platform */`,
++    // S3-207：平台侧续费（routes/subscription.routes.ts:30 requirePlatformAuth）按订阅 id 跨租户操作；
++    // 显式标记声明"平台范围"，避免收紧判据后被注入调用者租户而查不到目标订阅。
+     [body.planId || 0, subscriptionId],
+     tenantId
+   );
+@@ -184,7 +186,9 @@ export async function listExpiring(days: number, tenantId: string) {
+      LEFT JOIN t_tenant t ON t.id = s.tenant_id
+      WHERE s.status = 'ACTIVE'
+        AND s.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+-     ORDER BY s.end_date ASC`,
++     ORDER BY s.end_date ASC /* tenant-scope:platform */`,
++    // S3-207：平台侧"即将到期订阅"列表要**跨租户**枚举（SELECT t.company_name AS tenantName 即多租户列表）
++    // ⇒ 显式标记声明平台范围（原实现靠旧判据短路才"碰巧"不带租户过滤）。
+     [days],
+     tenantId
+   );
+@@ -203,7 +207,8 @@ export async function listExpired(tenantId: string) {
+      LEFT JOIN t_tenant t ON t.id = s.tenant_id
+      WHERE s.status = 'ACTIVE'
+        AND s.end_date < CURDATE()
+-     ORDER BY s.end_date ASC`,
++     ORDER BY s.end_date ASC /* tenant-scope:platform */`,
++    // S3-207：同 listExpiring —— 平台侧"已过期订阅"跨租户列表
+     [],
+     tenantId
+   );
+diff --git a/backend/src/services/admin/subscription.service.ts b/backend/src/services/admin/subscription.service.ts
+index edca8ce6..d1bf80d0 100644
+--- a/backend/src/services/admin/subscription.service.ts
++++ b/backend/src/services/admin/subscription.service.ts
+@@ -144,7 +144,11 @@ export async function listSubscriptions(
+      LEFT JOIN t_subscription_plan p ON p.id = s.plan_id
+      ${where}
+      ORDER BY s.created_at DESC
+-     LIMIT ? OFFSET ?`,
++     LIMIT ? OFFSET ? /* tenant-scope:platform */`,
++    // S3-207：平台侧订阅列表（GET /api/platform/subscriptions-management，auth=requirePlatformAuth）。
++    // 租户条件**是可选的查询筛选**（filters.tenantIdQuery），不是调用者租户；不带筛选时本就没租户谓词
++    // ⇒ 若不显式声明，收紧判据后会被注入调用者租户（且 t_subscription/t_tenant 都有 tenant_id 列 ⇒ 1052 歧义），
++    // 平台列表直接 500。显式标记声明"平台范围"。
+     [...params, Number(filters.pageSize), (Number(filters.page) - 1) * Number(filters.pageSize)],
+     tenantId
+   );
+@@ -179,7 +183,10 @@ export async function getSubscription(subscriptionId: number, tenantId: string)
+      FROM t_subscription s
+      LEFT JOIN t_tenant t ON t.id = s.tenant_id
+      LEFT JOIN t_subscription_plan p ON p.id = s.plan_id
+-     WHERE s.id = ?`,
++     WHERE s.id = ? /* tenant-scope:platform */`,
++    // S3-207：本服务挂在 `/api/platform/subscriptions-management`（routeConfig.auth = requirePlatformAuth，
++    // 见 routes/subscription.routes.ts:22-32），按订阅 id 跨租户查平台侧订阅台账是**功能本身**；
++    // 显式标记声明"平台范围、故意不带租户过滤"（收紧判据后若不声明，会被注入调用者租户而查不到数据）。
+     [subscriptionId],
+     tenantId
+   );
+@@ -337,7 +344,7 @@ export async function changePlan(
+ ) {
+   const existing = await queryOneWithTenant<SubscriptionBriefRow>(
+     `SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.status
+-     FROM t_subscription s WHERE s.id = ?`,
++     FROM t_subscription s WHERE s.id = ? /* tenant-scope:platform */`,
+     [subscriptionId],
+     tenantId
+   );
+@@ -423,7 +430,7 @@ export async function cancelSubscription(
+   tenantId: string
+ ) {
+   const existing = await queryOneWithTenant<SubscriptionCancelCheckRow>(
+-    "SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ?",
++    "SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ? /* tenant-scope:platform */",
+     [subscriptionId],
+     tenantId
+   );
+@@ -468,7 +475,7 @@ export async function paySubscription(
+   tenantId: string
+ ) {
+   const existing = await queryOneWithTenant<SubscriptionPayCheckRow>(
+-    "SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ?",
++    "SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ? /* tenant-scope:platform */",
+     [subscriptionId],
+     tenantId
+   );
+diff --git a/backend/src/services/miniapp/cart.service.ts b/backend/src/services/miniapp/cart.service.ts
+index bed08859..9d8127eb 100644
+--- a/backend/src/services/miniapp/cart.service.ts
++++ b/backend/src/services/miniapp/cart.service.ts
+@@ -40,9 +40,11 @@ export async function getCartList(tenantId: string, customerId: number, customer
+      JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+      JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+      LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
+-     WHERE c.customer_id = ?
++     WHERE c.tenant_id = ?
++       AND c.customer_id = ?
+      ORDER BY c.added_at DESC`,
+-    [customerId],
++    // S3-207：JOIN 里全是"列对列"的 tenant_id 等值 ⇒ 旧判据短路跳过注入 ⇒ 整句无租户过滤；显式补谓词（同 admin/cart.service.ts）
++    [tenantId, customerId],
+     tenantId
+   );
+   const items = rows.map((row: CartListRow) => {
+@@ -68,8 +70,9 @@ export async function getCartList(tenantId: string, customerId: number, customer
+ 
+ export async function addToCart(tenantId: string, customerId: number, skuId: number, quantity: number) {
+   const sku = await queryOneWithTenant<CartSkuRow>(
+-    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
+-    [skuId],
++    // S3-207：同 getCartList —— 原句只有列对列等值（旧判据短路 ⇒ 无租户过滤），显式补谓词
++    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.tenant_id = ? AND s.id = ? AND p.status = 'ON_SALE'`,
++    [tenantId, skuId],
+     tenantId
+   );
+   if (!sku) {
+diff --git a/backend/src/services/store/member.service.ts b/backend/src/services/store/member.service.ts
+index 49367c67..5dbe0897 100644
+--- a/backend/src/services/store/member.service.ts
++++ b/backend/src/services/store/member.service.ts
+@@ -28,8 +28,9 @@ export async function getMemberDetail(tenantId: string, id: number) {
+             m.last_order_at AS lastOrderAt, m.created_at AS createdAt
+      FROM t_member m
+      LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id
+-     WHERE m.id = ?`,
+-    [id],
++     WHERE m.tenant_id = ? AND m.id = ?`,
++    // S3-207：JOIN 的 `ml.tenant_id = m.tenant_id` 是列对列等值 ⇒ 旧判据短路 ⇒ 会员详情无租户过滤；显式补谓词
++    [tenantId, id],
+     tenantId
+   );
+   if (!row) {
+diff --git a/backend/src/services/transfer-execution.service.ts b/backend/src/services/transfer-execution.service.ts
+index 3e081215..fd55ee73 100644
+--- a/backend/src/services/transfer-execution.service.ts
++++ b/backend/src/services/transfer-execution.service.ts
+@@ -301,9 +301,11 @@ export async function getInTransitOrders(storeId: number, tenantId: string) {
+      FROM t_transfer_order to_
+      LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
+      LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
+-     WHERE to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT')
++     WHERE to_.tenant_id = ? AND to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT')
+      ORDER BY to_.created_at DESC`,
+-    [storeId],
++    // S3-207：JOIN 里全是列对列等值 ⇒ 旧判据短路 ⇒ 无租户过滤；显式补谓词
++    //（t_transfer_order 与两张 t_store 别名都有 tenant_id 列，靠自动注入会 1052 歧义 500）
++    [tenantId, storeId],
+     tenantId
+   );
+ 
+@@ -316,9 +318,10 @@ export async function getMyShipments(storeId: number, tenantId: string) {
+      FROM t_transfer_order to_
+      LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
+      LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
+-     WHERE to_.from_store_id = ? AND to_.status IN ('TRANSIT', 'RECEIVED')
++     WHERE to_.tenant_id = ? AND to_.from_store_id = ? AND to_.status IN ('TRANSIT', 'RECEIVED')
+      ORDER BY to_.created_at DESC`,
+-    [storeId],
++    // S3-207：同上
++    [tenantId, storeId],
+     tenantId
+   );
+ 
+diff --git a/backend/src/shared/tenant-scope.ts b/backend/src/shared/tenant-scope.ts
+new file mode 100644
+index 00000000..1b7fee5a
+--- /dev/null
++++ b/backend/src/shared/tenant-scope.ts
+@@ -0,0 +1,175 @@
++/**
++ * 租户注入判据（S3-207 · 收口总清单第 63 项根因根治）
++ *
++ * 背景（根因，S3-206 实测）：`config/database.ts` 的 `queryWithTenant` 系列原先用**子串判断**决定是否跳过注入——
++ *   `if (sql.toLowerCase().includes('tenant_id')) return sql;`
++ * ⇒ 只要 SQL 文本任何位置出现 `tenant_id`（JOIN 的列对列等值 `a.tenant_id = b.tenant_id`、SELECT 列、
++ *   INSERT 列清单、UPDATE 的 SET 子句……）就整体**跳过注入**；若该 SQL 本身没有真正的租户过滤谓词，
++ *   就会退化成**跨租户读取/聚合**（S3-206 实测：A 令牌读到 A+B 的合并值）。
++ *
++ * 本模块把"是否已经有**绑定到调用者租户的条件**"变成一个**可判定、可解释、可测**的判据：
++ *
++ * | 语句 | 判据（在**完整 SQL**上判定，含子查询与插值后的文本） |
++ * |:--|:--|
++ * | SELECT | 出现**值谓词** `tenant_id = ? / = '字面量' / = 数字 / IN (值)`；**列对列等值不算** |
++ * | UPDATE / DELETE | 同上，且必须出现在**顶层 WHERE 之后**（`SET tenant_id = ?` 是"写租户列"，不是过滤） |
++ * | INSERT | 列清单里显式写了 `tenant_id`（含 `INSERT IGNORE`）；或 `SET tenant_id = 值`；或 INSERT…SELECT 的 SELECT 段有值谓词 |
++ * | 任意 | 带**显式标记**（写在 SQL 注释里）：`tenant-scope:self`（我已自己写租户条件）/ `tenant-scope:platform`（平台级，故意不带租户过滤） |
++ *
++ * 边界（必须说清，别把它当成"证明"）：
++ * 1. 判据证明的是**形状**（存在绑定到 tenant_id 列的等值/IN 谓词），**不是取值**——注入器无法从 SQL 文本证明
++ *    那个 `?` 绑的就是调用者租户。相比旧判据（连形状都不看）这是**严格收紧**：跳过注入的集合 ⊂ 旧集合。
++ * 2. 判据比旧判据严 ⇒ 会出现"改前跳过、改后注入"的位置。这类位置若 SQL 是多表 JOIN，注入的是**无限定列名**
++ *    `tenant_id = ?`，MySQL 会报 `ER_NON_UNIQ_ERROR 1052`（响亮失败）而不是静默泄露 ⇒ 由
++ *    `backend/scripts/guard-tenant-injection.mjs` 在静态侧提前拦截，调用点应显式补限定谓词。
++ * 3. 值谓词出现在**子查询**里也算"已绑定"（如 `... WHERE customer_id = ? AND tenant_id = ?` 的标量子查询、
++ *    派生表 `FROM (SELECT ... WHERE tenant_id = ?) t`）。这一类的覆盖强度不如外层直接限定，门禁会把它单独
++ *    打出来供人工复核。
++ * 4. `tenant_id = (SELECT …)` 这种"右侧是子查询"的写法**不**算（保守从严：宁可多注入一次也不漏判）。
++ */
++
++/** 显式标记：我已自己写了租户条件（SQL 里以注释形式出现） */
++export const TENANT_SCOPE_SELF_MARKER = "tenant-scope:self";
++/** 显式标记：平台级/全局范围，故意不带租户过滤（SQL 里以注释形式出现） */
++export const TENANT_SCOPE_PLATFORM_MARKER = "tenant-scope:platform";
++
++/**
++ * 绑定到调用者租户的**值谓词**：
++ *   · 右侧是值（`?` 占位符 / 字符串字面量 / 数字）⇒ 算；
++ *   · 右侧是列（`a.tenant_id = b.tenant_id`）或子查询 ⇒ **不算**（这正是 S3-206 的病灶写法）；
++ *   · 不等式（`<> != < >`）不算（不等式不是过滤，注入补一个等值谓词属于收紧）。
++ */
++const VALUE_PREDICATE_RE =
++  /(?:[a-z_][a-z0-9_]*\s*\.\s*)?tenant_id\s*(?:=\s*(?:\?|'[^']*'|"[^"]*"|\d+(?:\.\d+)?)|(?:not\s+)?in\s*\(\s*(?:\?|'|"|\d))/i;
++
++/** 语句类型（取首个关键字） */
++export function statementOf(sql: string): string {
++  return (/^\s*([a-z]+)/i.exec(sql)?.[1] || "").toUpperCase();
++}
++
++/** 是否出现 `tenant_id` 字样（= 旧判据会不会短路） */
++export function hasTenantToken(sql: string): boolean {
++  return /tenant_id/i.test(sql);
++}
++
++/**
++ * 把字符串字面量内容掏空（保留成对引号，便于匹配 `= ''` 形态），并把反引号标识符的引号去掉、内容保留
++ * （`` `tenant_id` = ? `` ⇒ `tenant_id = ?`）。长度保持不变，便于按下标切片。
++ */
++export function maskSqlStrings(sql: string): string {
++  let out = "";
++  let quote: string | null = null;
++  for (let i = 0; i < sql.length; i++) {
++    const ch = sql[i];
++    if (quote) {
++      if (ch === "\\") {
++        i++;
++        continue;
++      }
++      if (ch === quote) {
++        if (quote === "`") out += " ";
++        else if (quote === "'") out += "''";
++        else out += '""';
++        quote = null;
++      }
++      continue;
++    }
++    if (ch === "'" || ch === '"' || ch === "`") {
++      quote = ch;
++      continue;
++    }
++    out += ch;
++  }
++  return out;
++}
++
++/** 顶层（括号深度 0、非字符串）里 `where` 的下标；找不到返回 -1 */
++export function topLevelWhereIndex(masked: string): number {
++  let depth = 0;
++  for (let i = 0; i < masked.length; i++) {
++    const ch = masked[i];
++    if (ch === "(") depth++;
++    else if (ch === ")") depth = Math.max(0, depth - 1);
++    else if (depth === 0 && (ch === "w" || ch === "W")) {
++      const m = /^where\b/i.exec(masked.slice(i));
++      if (m) return i;
++    }
++  }
++  return -1;
++}
++
++/** 顶层（括号深度 0）里某个关键字的下标；找不到返回 -1 */
++function topLevelKeywordIndex(masked: string, kw: string): number {
++  let depth = 0;
++  const re = new RegExp("^" + kw + "\\b", "i");
++  for (let i = 0; i < masked.length; i++) {
++    const ch = masked[i];
++    if (ch === "(") depth++;
++    else if (ch === ")") depth = Math.max(0, depth - 1);
++    else if (depth === 0) {
++      const m = re.exec(masked.slice(i));
++      if (m) return i;
++    }
++  }
++  return -1;
++}
++
++/**
++ * 判定这句 SQL 是否**已经带了绑定到调用者租户的条件**（true ⇒ 运行时可以跳过注入）。
++ * @param sql 运行时完整 SQL（插值已完成）
++ */
++export function hasCallerTenantCondition(sql: string): boolean {
++  const stmt = statementOf(sql);
++  const masked = maskSqlStrings(sql);
++
++  if (stmt === "SELECT") return VALUE_PREDICATE_RE.test(masked);
++
++  if (stmt === "UPDATE" || stmt === "DELETE") {
++    const whereIdx = topLevelWhereIndex(masked);
++    if (whereIdx < 0) return false;
++    return VALUE_PREDICATE_RE.test(masked.slice(whereIdx));
++  }
++
++  if (stmt === "INSERT") {
++    // ① 列清单里显式写了 tenant_id（含 INSERT IGNORE / LOW_PRIORITY INTO）
++    const m = /insert\s+(?:ignore\s+|low_priority\s+)?into\s+[`"[\]]?[a-z0-9_.]+[`"[\]]?\s*\(([^)]*)\)/i.exec(
++      sql
++    );
++    if (m && /\btenant_id\b/i.test(m[1])) return true;
++    // ② INSERT … SET tenant_id = 值
++    const setIdx = topLevelKeywordIndex(masked, "set");
++    if (setIdx >= 0) return VALUE_PREDICATE_RE.test(masked.slice(setIdx));
++    // ③ INSERT … SELECT：看 SELECT 段
++    const selIdx = topLevelKeywordIndex(masked, "select");
++    if (selIdx >= 0) return VALUE_PREDICATE_RE.test(masked.slice(selIdx));
++    return false;
++  }
++
++  // 未知语句类型：不跳过（交给调用方/门禁处理）
++  return false;
++}
++
++/** SQL 里的显式标记（self / platform / null） */
++export function tenantScopeMarkerOf(sql: string): "self" | "platform" | null {
++  if (sql.includes(TENANT_SCOPE_SELF_MARKER)) return "self";
++  if (sql.includes(TENANT_SCOPE_PLATFORM_MARKER)) return "platform";
++  return null;
++}
++
++/**
++ * 运行时唯一入口：是否**跳过**租户条件注入。
++ * 显式标记优先（作者声明）；否则由 `hasCallerTenantCondition` 判定。
++ */
++export function shouldSkipTenantInjection(sql: string): boolean {
++  return tenantScopeMarkerOf(sql) !== null || hasCallerTenantCondition(sql);
++}
++
++/**
++ * 诊断说明（门禁/回执/日志复用，便于"为什么跳过/为什么注入"可追溯）。
++ */
++export function explainTenantInjection(sql: string): string {
++  const marker = tenantScopeMarkerOf(sql);
++  if (marker) return `skip:marker=${marker}`;
++  if (hasCallerTenantCondition(sql)) return "skip:caller-tenant-condition";
++  return "inject:" + (hasTenantToken(sql) ? "tenant-token-without-condition" : "no-tenant-token");
++}

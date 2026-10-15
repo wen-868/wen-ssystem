@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "body": {
+    "code": "0",
+    "msg": "成功",
+    "data": [
+      {
+        "id": 1,
+        "name": "系统管理员",
+        "orderCount": 5,
+        "totalAmount": 58164,
+        "receivedAmount": 29388,
+        "totalQty": 0
+      },
+      {
+        "id": 3,
+        "name": "默认店长",
+        "orderCount": 6,
+        "totalAmount": 2096,
+        "receivedAmount": 0,
+        "totalQty": 0
+      }
+    ],
+    "traceId": "29725726-3e63-406a-9d1d-c376b2b08b26"
+  }
+}
