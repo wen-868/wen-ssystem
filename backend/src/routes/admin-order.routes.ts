@@ -14,10 +14,16 @@ adminOrderRouter.use(priceResponseFilter());
 adminOrderRouter.get("/orders", orderController.listOrders);
 adminOrderRouter.get("/orders/export-csv", orderController.exportOrdersCsv);
 adminOrderRouter.get("/orders/stats", orderController.getOrderStatusStats);
-adminOrderRouter.post("/orders/batch-status", orderController.batchUpdateOrderStatus);
+// S3-224（第 43 项 B2 批 6 · 销售域接线）：本文件 3 条按「使用者已持有的最细现成码」接线——
+// `sale:edit`（批量改状态 / 改备注）与 `sale:void`（订单取消）。生产持有（12 角色复算，见
+// docs/evidence/S3-224/05-prod-holders.txt）：sale:edit / sale:void = SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER；
+// 三条**全仓无页面调用点**（app-mobile orders.ts 仅有封装、无页面使用），故接线不误伤任何现有页面。
+// ⚠️ 同文件 `PUT /orders/:orderNo/status` 本批**不接**（app-mobile 有写调用点且使用者集合不可枚举，B 类）。
+// 2026-10-16
+adminOrderRouter.post("/orders/batch-status", requirePermission("sale:edit"), orderController.batchUpdateOrderStatus);
 adminOrderRouter.get("/orders/:orderNo", orderController.getOrderDetail);
-adminOrderRouter.post("/orders/:orderNo/cancel", orderController.cancelOrder);
-adminOrderRouter.put("/orders/:orderNo/remark", orderController.remarkOrder);
+adminOrderRouter.post("/orders/:orderNo/cancel", requirePermission("sale:void"), orderController.cancelOrder);
+adminOrderRouter.put("/orders/:orderNo/remark", requirePermission("sale:edit"), orderController.remarkOrder);
 adminOrderRouter.put("/orders/:orderNo/status", orderController.updateOrderStatus);
 adminOrderRouter.get("/orders/:orderNo/logs", orderController.getOrderOperationLogs);
 

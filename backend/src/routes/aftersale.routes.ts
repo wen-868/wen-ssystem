@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireConsumerAuthWithTenant } from "../middleware/consumer-auth";
 import { csrfMiddleware } from "../middleware/csrf";
+import { requirePermission } from "../middleware/rbac-auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as ctrl from "../controllers/admin/aftersale.controller";
 import {
@@ -52,7 +53,15 @@ adminAftersaleRouter.post("/aftersales/:id/reject", asyncHandler(async (req, res
   await ctrl.adminRejectAftersale(req, res, _next);
 }));
 
-adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", ctrl.adminConfirmReceipt);
+// S3-224（第 43 项 B2 批 6 · 销售域接线）：售后「确认收货」挂 `sale:return`。
+// 使用者 = admin-web `marketing/AftersaleView.vue:307`（页面 `router/index.ts:230` 角色 = SUPER_ADMIN）；
+// ⚠️ 本仓 `t_sys_menu` **没有任何 `aftersale:*` 行**（`aftersale:*` 只是 CUSTOMER_SERVICE 的权限串通配，
+// 见 `docs/migrations/079:92`、`128:36`）⇒ 售后域无"既有细码"可挂，取退货语义的细码 `sale:return`
+//（生产持有 = SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER / STORE_OPERATOR ⊇ {SUPER_ADMIN}，零回归）。
+// ⚠️ 同文件 approve / reject / inspect / complete 4 条本批**不接**：app-mobile
+// `pages-sub/order/order-aftersale/aftersale.vue:144/178`（孤岛页，全仓无导航入口）有写调用点
+// ⇒ 使用者集合不可枚举（B 类）。2026-10-16
+adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", requirePermission("sale:return"), ctrl.adminConfirmReceipt);
 
 adminAftersaleRouter.post("/aftersales/:id/inspect", asyncHandler(async (req, res, _next) => {
   req.body = inspectAftersaleSchema.parse(req.body);

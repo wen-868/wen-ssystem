@@ -554,6 +554,30 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const S3_220_WIRED_TOTAL = [...S3_220_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
+  // S3-224 追加说明：S3-224（第 43 项续 · B2 批 6 销售域 87 条仍缺口里的 32 条）在 11 个路由文件
+  // 新增 32 处接线（全部挂**既有**权限码：sale:create / sale:edit / sale:void / sale:return /
+  // finance:daily-settle）后总数由 183 → 215（与已合并的 S3-223 快照叠加：183 + 32 = 215）。
+  //  本域另有 55 条**本批不接**（40 条 B 类「app-mobile 使用者集合不可枚举」＋2 条 G0/G1/G2 锁定＋
+  //  1 条查询型 POST＋3 条真公开回调＋6 条消费者端形态＋3 条待授权模型定案），
+  //  故 instant-retail-admin-ops / instant-retail-admin-platform / instant-retail-webhook /
+  //  order-exception / position / cart 六个文件**不在本表**。
+  //  同样只同步"总数 + 逐文件计数"的期望值（新增 S3_224_WIRED_FILES）；G0 名单行与其逐行 403/200
+  //  断言**一字未动**（本批的逐行 403/200 断言在 rbac-b2-s3-224-sales-wiring.test.ts）。
+  const S3_224_WIRED_FILES = new Map<string, number>([
+    ["admin-marketing-flash-sale.routes.ts", 2],
+    ["admin-order.routes.ts", 3],
+    ["admin-quote-push.routes.ts", 2],
+    ["aftersale.routes.ts", 1],
+    ["commerce-fix.routes.ts", 4],
+    ["instant-retail-store.routes.ts", 4],
+    ["order-timeout.routes.ts", 3],
+    ["sale-return.routes.ts", 2],
+    ["store-order.routes.ts", 6],
+    ["store-sale-bill.routes.ts", 1],
+    ["store-shift.routes.ts", 4],
+  ]);
+  const S3_224_WIRED_TOTAL = [...S3_224_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
   // S3-223 追加说明：S3-223（财务域 9 文件 / 28 写端点 · B2 批 5）在 7 个路由文件新增 19 处接线
   // （bank-account 1 / commission 2 / credit 5 / expense 3 / payment-config 6 / payment-new 1 / receipt 1；
   //  全部挂**既有**权限码：finance:create、finance:payment、finance:receipt:create、sale:commission、customer:credit）
@@ -576,7 +600,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   // S3-225 追加说明：S3-225（员工/账号域 7 文件 / 31 写端点 · B2 批 7）在 4 个路由文件新增 11 处接线
   // （admin-staff 1 / sys-user 3 / rbac 2 / data-permission 5；全部挂**既有**权限码：
   //  system:user:create、system:user:edit、system:role:create、system:role:edit，均见 079_权限矩阵.sql:270-273）
-  // 后总数由 183 → 194（与已合并的 S3-222/S3-223 快照叠加：122 + 42 + 19 = 183）。
+  // 后总数由 215 → 226（与已合并的 S3-222/S3-223/S3-224 快照叠加：122 + 42 + 19 + 32 = 215）。
   // 本域另有 20 行**本批不接**（B 类 7 + 自服务 7 + 自服务实际用途 1 + 查询型 POST 1 + 需新立码 4），
   // 故 admin-auth.routes.ts / department.routes.ts / user-session.routes.ts 三个文件计数为 0
   // （其余四个接线文件仍有剩余缺口行，计数见下）。
@@ -590,7 +614,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const S3_225_WIRED_TOTAL = [...S3_225_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-225 新增 11", () => {
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -600,15 +624,15 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_225_WIRED_TOTAL);
-    expect(total).toBe(194);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL);
+    expect(total).toBe(226);
 
     const expected = new Map<string, number>();
     for (const m of MODULES) expected.set(m.file, (expected.get(m.file) ?? 0) + m.rows.length);
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of G2_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
-    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_225_WIRED_FILES])
+    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_224_WIRED_FILES, ...S3_225_WIRED_FILES])
       expected.set(f, (expected.get(f) ?? 0) + n);
     expect([...perFile.entries()].sort()).toEqual([...expected.entries()].sort());
   });

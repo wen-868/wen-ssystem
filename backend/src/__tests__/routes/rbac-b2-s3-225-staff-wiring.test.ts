@@ -627,7 +627,9 @@ describe("S3-225 · 名单自证（31 = 11 已接 + 20 不接）", () => {
     const g0 = readFileSync(path.join(__dirname, "rbac-g0-wiring.test.ts"), "utf8");
     expect(g0).toContain("S3_225_WIRED_FILES");
     // 合并态总数：122（G0..S3-220）+ 42（S3-222）+ 19（S3-223）+ 11（本批）= 194
-    expect(g0).toContain("expect(total).toBe(194)");
+    // S3-225 合并期同步：`git merge origin/main` 后 S3-224（销售域 32 条，PR #350）的快照已并入，
+    // 合并态总数 = 194 + 32 = 226 ⇒ 本行按合并态断言 226；S3_225_WIRED_FILES 块本身**一字未动**（契约变化，非放宽断言）。
+    expect(g0).toContain("expect(total).toBe(226)");
   });
 });
 

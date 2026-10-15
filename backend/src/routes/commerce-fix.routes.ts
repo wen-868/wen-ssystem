@@ -14,17 +14,23 @@ adminCommerceFixRouter.get("/fund-transactions", asyncHandler(ctrl.listFundTrans
 adminCommerceFixRouter.get("/fund-statistics", asyncHandler(ctrl.getFundStatistics));
 adminCommerceFixRouter.get("/commission/stats", asyncHandler(ctrl.getCommissionStats));
 adminCommerceFixRouter.get("/consumer-addresses", asyncHandler(ctrl.listConsumerAddresses));
-adminCommerceFixRouter.delete("/consumer-addresses/:id", asyncHandler(ctrl.deleteConsumerAddress));
+// S3-224（第 43 项 B2 批 6 · 销售域接线）：本文件余下 4 条按域内既有码接线 ——
+// 改/删票据 + 删消费者收货地址 ⇒ `sale:edit`；票据作废 ⇒ `sale:void`（作废语义，不扩给收银员）。
+// 使用者：`finance/BillManagement.vue:304/281`（页面 `router/index.ts:205` 角色 = SUPER_ADMIN）、
+// `system/ConsumerAddress.vue`（`:254` = SUPER_ADMIN）；`DELETE /bills/:id` 与
+// `DELETE /consumer-addresses/:id` 全仓无页面调用点。生产持有 `sale:edit` / `sale:void`
+// = SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER ⊇ 页面角色 ⇒ 零回归。2026-10-16
+adminCommerceFixRouter.delete("/consumer-addresses/:id", requirePermission("sale:edit"), asyncHandler(ctrl.deleteConsumerAddress));
 adminCommerceFixRouter.get("/bills", asyncHandler(ctrl.listBills));
 // S3-208（总清单第 57 项）：本文件被 CodeQL `js/missing-rate-limiting` 报 high 的注册点共 3 处——
 // PR #297 check-run 115404340298 注解第 30 行（＝门店端 `GET /verify-records`，见下）＋ main 上同文件
 // 同族存量 `POST /bills`、`POST /bills/:id/verify`。`rateLimit(...)` 必须内联在注册点
 // （S3-112 结论，参数取自 `config/rate-limit.ts`）。
 adminCommerceFixRouter.post("/bills", rateLimit(AUTHED_ROUTE_LIMIT), requirePermission("sale:create"), asyncHandler(ctrl.createBill));
-adminCommerceFixRouter.put("/bills/:id", asyncHandler(ctrl.updateBill));
-adminCommerceFixRouter.delete("/bills/:id", asyncHandler(ctrl.deleteBill));
+adminCommerceFixRouter.put("/bills/:id", requirePermission("sale:edit"), asyncHandler(ctrl.updateBill));
+adminCommerceFixRouter.delete("/bills/:id", requirePermission("sale:edit"), asyncHandler(ctrl.deleteBill));
 adminCommerceFixRouter.post("/bills/:id/verify", rateLimit(AUTHED_ROUTE_LIMIT), requirePermission("sale:create"), asyncHandler(ctrl.verifyBill));
-adminCommerceFixRouter.post("/bills/:id/void", asyncHandler(ctrl.voidBill));
+adminCommerceFixRouter.post("/bills/:id/void", requirePermission("sale:void"), asyncHandler(ctrl.voidBill));
 
 // 优惠券核销记录（门店端）
 // S3-187 B：本文件只拥有 /api/store/coupons 这一条路径段，故**显式声明**该子前缀，

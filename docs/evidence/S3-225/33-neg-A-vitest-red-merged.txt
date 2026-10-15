@@ -1,0 +1,70 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-225/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts (129 tests | 3 failed) 487ms
+     × 'admin-staff.routes.ts' 'put' '/staff/:id/status'：注册行自带 requirePermission("'system:user:edit'")（且该行不是注释） 9ms
+     × 'admin-staff.routes.ts' 'put' '/staff/:id/status' ⇒ 403 且未到达业务层 41ms
+     × 'admin-staff.routes.ts' 'put' '/staff/:id/status' ⇒ 8 个非持有角色全 403 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts > S3-225 · 形状断言（行级判据；踩坑[134]） > 'admin-staff.routes.ts' 'put' '/staff/:id/status'：注册行自带 requirePermission("'system:user:edit'")（且该行不是注释）
+AssertionError: expected 'adminStaffRouter.put("/staff/:id/stat…' to contain 'requirePermission("system:user:edit")'
+
+Expected: "requirePermission("system:user:edit")"
+Received: "adminStaffRouter.put("/staff/:id/status", employeeController.setStaffStatus);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts:640:27
+    638|     const lines = registrationLines(row.file, row.method, row.routePat…
+    639|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    640|     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`…
+       |                           ^
+    641|   });
+    642|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts > S3-225 · a) 只读账号被拦（11 行逐行） > 'admin-staff.routes.ts' 'put' '/staff/:id/status' ⇒ 403 且未到达业务层
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts:742:24
+    740|   it.each(WIRED)("$file $method $routePath ⇒ 403 且未到达业务层", async (row)…
+    741|     const res = await call(appFor(row.file, row.prefix, row.router), r…
+    742|     expect(res.status).toBe(403);
+       |                        ^
+    743|     expect(res.body.code).toBe("403");
+    744|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts > S3-225 · c) 非持有人一律 403（判据不是恒 true 的假门禁） > 'admin-staff.routes.ts' 'put' '/staff/:id/status' ⇒ 8 个非持有角色全 403
+AssertionError: uid=9001（readonly）不应通过 admin-staff.routes.ts /staff/:id/status: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts:773:93
+    771|     for (const uid of NON_HOLDERS) {
+    772|       const res = await call(appFor(row.file, row.prefix, row.router),…
+    773|       expect(res.status, `uid=${uid}（${USERS[uid].name}）不应通过 ${row.fil…
+       |                                                                                             ^
+    774|       expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+    775|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 126 passed (129)
+   Start at  07:30:48
+   Duration  3.17s (transform 470ms, setup 33ms, import 2.36s, tests 487ms, environment 0ms)
+

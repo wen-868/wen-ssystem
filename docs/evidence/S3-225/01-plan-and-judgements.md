@@ -85,9 +85,18 @@
 
 ## 五、回归与其余门禁（原始输出）
 
-- 全量 `npx vitest run`（backend）⇒ `13-vitest-full.txt`；
+**本批分支读数（基线 `2b4a0e16`，缺口 512 / 134）**：
+
+- 全量 `npx vitest run`（backend）⇒ `13-vitest-full.txt`（675 文件 / 8922 用例 / 0 failed）；
 - `npx tsc --noEmit` ⇒ `15-tsc.txt`；backend `npm run lint` ⇒ `17-lint.txt`；根 `npm run build` ⇒ `16-build.txt`；
-- 其余 6 条门禁（route-auth / tenant-status / tenant-injection / evidence-secrets / route-prefix / utf8）⇒ `79-other-guards.txt`。
+- 其余 6 条门禁（route-auth / tenant-status / tenant-injection / evidence-secrets / route-prefix / utf8）⇒ `79-other-guards.txt`（全 EXIT=0）。
+
+**合并 `origin/main`（= `ea29ee1f`，含 S3-224 PR #350）后的终态读数**：
+
+- 门禁：`30-guard-after-merged.txt`（已接线 255 / 缺口 **469** / 文件 **129**）、`31-guard-strict-merged.txt`（EXIT=0）；
+- 本批 + 既有门禁用例套件：`21-vitest-s3225-gates.txt`（分支态 9 文件 / 455 passed）、`22-vitest-gates-merged.txt`（合并态 12 文件 / 797 passed，含 S3-224 与本批用例）；
+- 合并态反测：`32-neg-A-strict-merged.txt`（EXIT=1 点出 `admin-staff.routes.ts:23`）、`33-neg-A-vitest-red-merged.txt`（3 failed）、`raw/32-hash-before-neg-merged.txt` 与 `raw/34-hash-after-neg-merged.txt`（0 处不一致）；
+- 全量回归 / tsc / lint / build：`40-vitest-full-merged.txt`、`41-tsc-merged.txt`、`43-lint-merged.txt`、`42-build-merged.txt`。
 
 ## 六、卡外观察
 

@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-225/backend
+
+[2026-10-16 07:30:26.853 +0800] [32mINFO[39m (5856): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+
+ Test Files  12 passed (12)
+      Tests  797 passed (797)
+   Start at  07:30:23
+   Duration  7.20s (transform 4.76s, setup 200ms, import 30.01s, tests 7.27s, environment 2ms)
+

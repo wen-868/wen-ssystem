@@ -1,0 +1,71 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-224/backend
+
+[2026-10-16 06:17:45.862 +0800] [32mINFO[39m (4592): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts (163 tests | 3 failed) 2886ms
+     × 'store-shift.routes.ts' 'post' '/settle'：注册行自带 requirePermission("'finance:daily-settle'") 14ms
+     × 'store-shift.routes.ts' 'post' '/settle'：READONLY ⇒ 403 且 msg 指向该权限码 14ms
+     × 'store-shift.routes.ts' 'post' '/settle'：全部非持有人（逐账号枚举）⇒ 403 10ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts > S3-224 · 形状断言（注册行级判据，踩坑[134]） > 'store-shift.routes.ts' 'post' '/settle'：注册行自带 requirePermission("'finance:daily-settle'")
+AssertionError: expected 'storeShiftRouter.post("/settle", shif…' to contain 'requirePermission("finance:daily-sett…'
+
+Expected: "requirePermission("finance:daily-settle")"
+Received: "storeShiftRouter.post("/settle", shiftController.settleShift);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts:479:27
+    477|     const lines = registrationLines(row.file, row.method, row.routePat…
+    478|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    479|     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`…
+       |                           ^
+    480|   });
+    481|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts > S3-224 · 两侧判据 a) 缺码 ⇒ 403 且未到达业务层 > 'store-shift.routes.ts' 'post' '/settle'：READONLY ⇒ 403 且 msg 指向该权限码
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts:574:24
+    572|   it.each(ROWS)("$file $method $routePath：READONLY ⇒ 403 且 msg 指向该权限码"…
+    573|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    574|     expect(res.status).toBe(403);
+       |                        ^
+    575|     expect(res.body.code).toBe("403");
+    576|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts > S3-224 · 两侧判据 a) 缺码 ⇒ 403 且未到达业务层 > 'store-shift.routes.ts' 'post' '/settle'：全部非持有人（逐账号枚举）⇒ 403
+AssertionError: readonly 不应通过 store-shift.routes.ts POST /settle: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts:585:67
+    583|       h.reached.length = 0;
+    584|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    585|       expect(res.status, `${USERS[uid].name} 不应通过 ${label(row)}`).toBe…
+       |                                                                   ^
+    586|       expect(h.reached, `${USERS[uid].name} 不得到达 ${label(row)} 的业务层`).…
+    587|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 160 passed (163)
+   Start at  06:17:40
+   Duration  8.06s (transform 1.13s, setup 55ms, import 4.55s, tests 2.89s, environment 0ms)
+
