@@ -4,6 +4,7 @@
 > **对应派单编号**：**S3-222**（卡 `docs/tasks/inbox/ACTIVE-S3-222.md`；路由表 `docs/tasks/inbox/ACTIVE.md` §〇 第 4 行）
 > **工作树**：`D:\Users\ZXQL\wt-agents\S3-222`｜**分支**：`feat/s3-222-customer-domain-wiring`（本单唯一动过的工作树）
 > **基线**：`origin/main` = `e124173b`（开工 `git fetch` 真值；分支由 `11f4af48` 快进至该提交，无自有提交）
+> **产物 ref（R8.2）**：分支 `feat/s3-222-customer-domain-wiring` ｜ 提交 **`106afbe2`**（局部提交，**未 push、未开 PR**；`git ls-remote origin feat/s3-222-customer-domain-wiring` 取不到属预期）
 
 ---
 
