@@ -2537,10 +2537,13 @@ app-mobile 页面若**①经首页快捷入口 / tabBar / 推送深链无条件�
 
 | 反测 | 注入 | 结果 | 原始输出 |
 |:--|:--|:--|:--|
-| A 报告模式分辨力 | 摘掉 `store-shift.routes.ts` 的 `requirePermission("finance:daily-settle")`（班结行） | 已接线 **225 → 224**、缺口 **499 → 500**、缺口文件 **131 → 132**（合并前基线下的读数；合并后同一条注入的**相对**变化相同） | `20-neg-report.txt` |
-| B `--strict` 两侧 | 同上 | **EXIT=1** 且点出 `❌ 未登记：store-shift.routes.ts:18 POST /api/store/shift/settle`；复原 ⇒ **EXIT=0** | `21-neg-strict.txt` / `24-neg-restored-strict.txt` |
-| C 用例分辨力（vitest 侧） | 同上 | `rbac-b2-s3-224-sales-wiring.test.ts`：**3 failed / 160 passed**（形状断言、READONLY⇒403、非持有人逐账号枚举）；复原 ⇒ **163 passed** | `22-neg-vitest-red.txt` |
-| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`8B2CD642…2311A9F`），`git diff` 无残留 | `raw/20-hash-before-neg.txt` / `raw/23-hash-after-neg.txt` |
+| A 报告模式分辨力 | 摘掉 `store-shift.routes.ts` 的 `requirePermission("finance:daily-settle")`（班结行） | **合并态**：已接线 **244 → 243**、缺口 **480 → 481**、缺口文件 **129 → 130** | `25-neg-report-merged.txt`（合并前同条注入：`20-neg-report.txt`，225→224 / 499→500 / 131→132） |
+| B `--strict` 两侧 | 同上 | **EXIT=1** 且点出 `❌ 未登记：store-shift.routes.ts:18 POST /api/store/shift/settle`；复原 ⇒ **EXIT=0** | `26-neg-strict-merged.txt` / `29-neg-restored-strict-merged.txt`（合并前：`21-` / `24-`） |
+| C 用例分辨力（vitest 侧） | 同上 | `rbac-b2-s3-224-sales-wiring.test.ts`：**3 failed / 160 passed**（形状断言、READONLY⇒403、非持有人逐账号枚举）；复原 ⇒ **163 passed** | `27-neg-vitest-red-merged.txt`（合并前：`22-neg-vitest-red.txt`） |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`8B2CD642…2311A9F`），`git diff` 无残留 | `raw/25-hash-before-neg-merged.txt` / `raw/28-hash-after-neg-merged.txt`（合并前：`raw/20-` / `raw/23-`） |
+
+> 反测在**合并前**与**合并后**各跑一遍（同一注入点、同一条端点），两侧读数都在 `docs/evidence/S3-224/`；
+> 合并后的 "A 报告模式" 数字（244→243 / 480→481 / 129→130）是可直接与 §十四.8 表格相加的**最终读数**。
 
 ### 14.10 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
 

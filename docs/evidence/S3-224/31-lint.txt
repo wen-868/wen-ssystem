@@ -41,6 +41,9 @@ D:\Users\ZXQL\wt-agents\S3-224\backend\src\__tests__\routes\marketing-miniapp-s3
 D:\Users\ZXQL\wt-agents\S3-224\backend\src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts
   162:7  warning  'SUPER_ADMIN' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
+D:\Users\ZXQL\wt-agents\S3-224\backend\src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts
+  171:7  warning  'OPERATION_ADMIN_USER' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
 D:\Users\ZXQL\wt-agents\S3-224\backend\src\__tests__\routes\rbac-b2-s3-224-sales-wiring.test.ts
   130:10  warning  'orderExceptionRouter' is defined but never used  @typescript-eslint/no-unused-vars
   523:11  warning  'src' is assigned a value but never used          @typescript-eslint/no-unused-vars
@@ -373,6 +376,6 @@ D:\Users\ZXQL\wt-agents\S3-224\backend\src\shared\seed-data.ts
 D:\Users\ZXQL\wt-agents\S3-224\backend\src\shared\store-control-scheduler.ts
   46:23  warning  Async arrow function has a complexity of 19. Maximum allowed is 15  complexity
 
-✖ 168 problems (0 errors, 168 warnings)
+✖ 169 problems (0 errors, 169 warnings)
   0 errors and 1 warning potentially fixable with the `--fix` option.
 

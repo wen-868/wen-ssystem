@@ -1,66 +1,66 @@
 
  RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-224/backend
 
-[2026-10-16 06:26:47.106 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
-[2026-10-16 06:26:47.111 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
-[2026-10-16 06:26:48.122 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
-[2026-10-16 06:26:48.122 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
-[2026-10-16 06:26:50.149 +0800] [31mERROR[39m (4508): [36m[push.fcm] 推送失败: FCM 网络错误[39m
-[2026-10-16 06:26:50.164 +0800] [33mWARN[39m (4508): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
-[2026-10-16 06:26:50.164 +0800] [33mWARN[39m (4508): [36m[http-retry] https://api.jpush.cn/v3/push 第 1 次重试（1000ms 后）[39m
-[2026-10-16 06:26:51.178 +0800] [33mWARN[39m (4508): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
-[2026-10-16 06:26:51.178 +0800] [33mWARN[39m (4508): [36m[http-retry] https://api.jpush.cn/v3/push 第 2 次重试（2000ms 后）[39m
-[2026-10-16 06:26:53.186 +0800] [31mERROR[39m (4508): [36m[push.jpush] 推送失败: 连接超时[39m
-[2026-10-16 06:26:53.205 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
-[2026-10-16 06:26:53.205 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
-[2026-10-16 06:26:54.206 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
-[2026-10-16 06:26:54.206 +0800] [33mWARN[39m (4508): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
-[2026-10-16 06:26:56.221 +0800] [31mERROR[39m (4508): [36m[push.fcm] 推送失败: network down[39m
-[2026-10-16 06:26:56.232 +0800] [33mWARN[39m (4508): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
-[2026-10-16 06:26:56.232 +0800] [33mWARN[39m (4508): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 1 次重试（1000ms 后）[39m
-[2026-10-16 06:26:57.241 +0800] [33mWARN[39m (4508): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
-[2026-10-16 06:26:57.241 +0800] [33mWARN[39m (4508): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 2 次重试（2000ms 后）[39m
-[2026-10-16 06:26:59.248 +0800] [31mERROR[39m (4508): [36m[push.hms] 获取 access_token 失败: token endpoint down[39m
-[2026-10-16 06:26:59.272 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
-[2026-10-16 06:26:59.272 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
-[2026-10-16 06:27:00.275 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
-[2026-10-16 06:27:00.276 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
-[2026-10-16 06:27:02.290 +0800] [31mERROR[39m (4508): [36m[push.hms] 推送失败: HTTP 500[39m
-[2026-10-16 06:27:02.301 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
-[2026-10-16 06:27:02.302 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
-[2026-10-16 06:27:03.309 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
-[2026-10-16 06:27:03.309 +0800] [33mWARN[39m (4508): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
-[2026-10-16 06:27:05.322 +0800] [31mERROR[39m (4508): [36m[push.hms] 推送失败: push endpoint down[39m
-[2026-10-16 06:27:14.674 +0800] [32mINFO[39m (17008): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
-[2026-10-16 06:27:15.089 +0800] [32mINFO[39m (17008): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
-[2026-10-16 06:27:20.302 +0800] [32mINFO[39m (4844): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
-[2026-10-16 06:27:26.554 +0800] [32mINFO[39m (17008): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes] 重复前缀 12 个（均已登记放行，真重复端点 0 项）：/api/admin (19次), /api/admin/marketing (7次), /api/admin/inventory (3次), /api/platform (3次), /api/platform/billing (3次), /api/admin/instant-retail (2次), /api/admin/reports (2次), /api/miniapp (2次), /api/monitor (2次), /api/platform/monitor (2次), /api/store/coupons (2次), /api/store/members (2次)[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 白名单 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。[39m
-[2026-10-16 06:27:30.225 +0800] [32mINFO[39m (17008): [36m[auto-routes]  · 以上 12 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。[39m
-[2026-10-16 06:27:30.226 +0800] [33mWARN[39m (17008): [36m[auto-routes][根前缀共享告警] 4 个**根前缀**被多文件共用：/api/admin (19次: admin-bill-history.routes.ts, admin-credit.routes.ts, admin-customer.routes.ts, admin-finance.routes.ts, admin-inventory.routes.ts, admin-order.routes.ts, admin-product.routes.ts, admin-report.routes.ts, admin-staff.routes.ts, admin-system.routes.ts, aftersale.routes.ts, avatar.routes.ts, commerce-fix.routes.ts, error-log.routes.ts, feedback.routes.ts, order-exception.routes.ts, product-bundle.routes.ts, tag.routes.ts, workbench.routes.ts)；/api/platform (3次: platform-error-log.routes.ts, platform-msg-config.routes.ts, platform.routes.ts)；/api/miniapp (2次: aftersale.routes.ts, miniapp.routes.ts)；/api/monitor (2次: monitor-slow-query.routes.ts, monitor-system.routes.ts)。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。[39m
-[2026-10-16 06:27:30.234 +0800] [32mINFO[39m (17008): [36m[auto-routes] 已自动注册 225 个路由[39m
-[2026-10-16 06:28:04.232 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/msg-config[39m
-[2026-10-16 06:28:04.282 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=no_admin_role PUT /api/platform/msg-config[39m
-[2026-10-16 06:28:04.324 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_missing PUT /api/platform/msg-config[39m
-[2026-10-16 06:28:04.385 +0800] [31mERROR[39m (19236): [36m[platform-rbac] 权限校验失败（fail-closed，已拒绝）：adminId=42 code=sysconfig:manage err=ER_NO_SUCH_TABLE[39m
-[2026-10-16 06:28:04.385 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=check_error PUT /api/platform/msg-config[39m
-[2026-10-16 06:28:04.385 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝留痕写入失败（不影响 403）：adminId=42 code=sysconfig:manage err=Cannot read properties of undefined (reading 'insertId')[39m
-[2026-10-16 06:28:04.440 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny DELETE /api/platform/sms-templates/5[39m
-[2026-10-16 06:28:04.481 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny POST /api/platform/sms-templates[39m
-[2026-10-16 06:28:04.515 +0800] [33mWARN[39m (19236): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/sms-templates/5[39m
-[2026-10-16 06:28:17.437 +0800] [31mERROR[39m (18876): [36m[
+[2026-10-16 06:47:03.200 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-16 06:47:03.201 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-16 06:47:04.233 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: FCM 网络错误），将重试[39m
+[2026-10-16 06:47:04.233 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-16 06:47:06.250 +0800] [31mERROR[39m (2632): [36m[push.fcm] 推送失败: FCM 网络错误[39m
+[2026-10-16 06:47:06.260 +0800] [33mWARN[39m (2632): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-16 06:47:06.260 +0800] [33mWARN[39m (2632): [36m[http-retry] https://api.jpush.cn/v3/push 第 1 次重试（1000ms 后）[39m
+[2026-10-16 06:47:07.263 +0800] [33mWARN[39m (2632): [36m[http-retry] https://api.jpush.cn/v3/push 请求失败（Error: 连接超时），将重试[39m
+[2026-10-16 06:47:07.263 +0800] [33mWARN[39m (2632): [36m[http-retry] https://api.jpush.cn/v3/push 第 2 次重试（2000ms 后）[39m
+[2026-10-16 06:47:09.285 +0800] [31mERROR[39m (2632): [36m[push.jpush] 推送失败: 连接超时[39m
+[2026-10-16 06:47:09.310 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-16 06:47:09.310 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-16 06:47:10.365 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 请求失败（Error: network down），将重试[39m
+[2026-10-16 06:47:10.365 +0800] [33mWARN[39m (2632): [36m[http-retry] https://fcm.googleapis.com/v1/projects/p/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-16 06:47:12.379 +0800] [31mERROR[39m (2632): [36m[push.fcm] 推送失败: network down[39m
+[2026-10-16 06:47:12.422 +0800] [33mWARN[39m (2632): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-16 06:47:12.422 +0800] [33mWARN[39m (2632): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 1 次重试（1000ms 后）[39m
+[2026-10-16 06:47:12.662 +0800] [32mINFO[39m (15736): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-16 06:47:13.429 +0800] [33mWARN[39m (2632): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 请求失败（Error: token endpoint down），将重试[39m
+[2026-10-16 06:47:13.429 +0800] [33mWARN[39m (2632): [36m[http-retry] https://oauth-api.cloud.huawei.com/openapi/v1/appid/token 第 2 次重试（2000ms 后）[39m
+[2026-10-16 06:47:15.443 +0800] [31mERROR[39m (2632): [36m[push.hms] 获取 access_token 失败: token endpoint down[39m
+[2026-10-16 06:47:15.448 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-16 06:47:15.448 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-16 06:47:16.452 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 返回 500，将重试[39m
+[2026-10-16 06:47:16.452 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-16 06:47:18.471 +0800] [31mERROR[39m (2632): [36m[push.hms] 推送失败: HTTP 500[39m
+[2026-10-16 06:47:18.474 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-16 06:47:18.474 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 1 次重试（1000ms 后）[39m
+[2026-10-16 06:47:19.487 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 请求失败（Error: push endpoint down），将重试[39m
+[2026-10-16 06:47:19.487 +0800] [33mWARN[39m (2632): [36m[http-retry] https://push-api.cloud.huawei.com/v2/appid/messages:send 第 2 次重试（2000ms 后）[39m
+[2026-10-16 06:47:21.522 +0800] [31mERROR[39m (2632): [36m[push.hms] 推送失败: push endpoint down[39m
+[2026-10-16 06:47:37.356 +0800] [32mINFO[39m (5544): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-10-16 06:47:49.083 +0800] [32mINFO[39m (5544): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-16 06:48:26.256 +0800] [32mINFO[39m (5544): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-16 06:48:35.828 +0800] [32mINFO[39m (5544): [36m[auto-routes] 重复前缀 12 个（均已登记放行，真重复端点 0 项）：/api/admin (19次), /api/admin/marketing (7次), /api/admin/inventory (3次), /api/platform (3次), /api/platform/billing (3次), /api/admin/instant-retail (2次), /api/admin/reports (2次), /api/miniapp (2次), /api/monitor (2次), /api/platform/monitor (2次), /api/store/coupons (2次), /api/store/members (2次)[39m
+[2026-10-16 06:48:35.828 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。[39m
+[2026-10-16 06:48:35.829 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。[39m
+[2026-10-16 06:48:35.829 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。[39m
+[2026-10-16 06:48:35.829 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。[39m
+[2026-10-16 06:48:35.829 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。[39m
+[2026-10-16 06:48:35.829 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。[39m
+[2026-10-16 06:48:35.830 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。[39m
+[2026-10-16 06:48:35.830 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。[39m
+[2026-10-16 06:48:35.830 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。[39m
+[2026-10-16 06:48:35.830 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。[39m
+[2026-10-16 06:48:35.830 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。[39m
+[2026-10-16 06:48:35.830 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 白名单 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。[39m
+[2026-10-16 06:48:35.830 +0800] [32mINFO[39m (5544): [36m[auto-routes]  · 以上 12 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。[39m
+[2026-10-16 06:48:35.830 +0800] [33mWARN[39m (5544): [36m[auto-routes][根前缀共享告警] 4 个**根前缀**被多文件共用：/api/admin (19次: admin-bill-history.routes.ts, admin-credit.routes.ts, admin-customer.routes.ts, admin-finance.routes.ts, admin-inventory.routes.ts, admin-order.routes.ts, admin-product.routes.ts, admin-report.routes.ts, admin-staff.routes.ts, admin-system.routes.ts, aftersale.routes.ts, avatar.routes.ts, commerce-fix.routes.ts, error-log.routes.ts, feedback.routes.ts, order-exception.routes.ts, product-bundle.routes.ts, tag.routes.ts, workbench.routes.ts)；/api/platform (3次: platform-error-log.routes.ts, platform-msg-config.routes.ts, platform.routes.ts)；/api/miniapp (2次: aftersale.routes.ts, miniapp.routes.ts)；/api/monitor (2次: monitor-slow-query.routes.ts, monitor-system.routes.ts)。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。[39m
+[2026-10-16 06:48:35.837 +0800] [32mINFO[39m (5544): [36m[auto-routes] 已自动注册 225 个路由[39m
+[2026-10-16 06:49:26.400 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/msg-config[39m
+[2026-10-16 06:49:26.534 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=no_admin_role PUT /api/platform/msg-config[39m
+[2026-10-16 06:49:26.570 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_missing PUT /api/platform/msg-config[39m
+[2026-10-16 06:49:26.603 +0800] [31mERROR[39m (16748): [36m[platform-rbac] 权限校验失败（fail-closed，已拒绝）：adminId=42 code=sysconfig:manage err=ER_NO_SUCH_TABLE[39m
+[2026-10-16 06:49:26.603 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=check_error PUT /api/platform/msg-config[39m
+[2026-10-16 06:49:26.603 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝留痕写入失败（不影响 403）：adminId=42 code=sysconfig:manage err=Cannot read properties of undefined (reading 'insertId')[39m
+[2026-10-16 06:49:26.684 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny DELETE /api/platform/sms-templates/5[39m
+[2026-10-16 06:49:26.741 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny POST /api/platform/sms-templates[39m
+[2026-10-16 06:49:26.759 +0800] [33mWARN[39m (16748): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/sms-templates/5[39m
+[2026-10-16 06:49:31.551 +0800] [31mERROR[39m (9628): [36m[
   {
     "code": "invalid_type",
     "expected": "string",
@@ -123,7 +123,7 @@
       ],
       "name": "ZodError"
     }
-[2026-10-16 06:28:17.565 +0800] [31mERROR[39m (18876): [36m[
+[2026-10-16 06:49:31.664 +0800] [31mERROR[39m (9628): [36m[
   {
     "code": "invalid_type",
     "expected": "string",
@@ -225,7 +225,7 @@
       ],
       "name": "ZodError"
     }
-[2026-10-16 06:28:17.610 +0800] [31mERROR[39m (18876): [36m[
+[2026-10-16 06:49:31.690 +0800] [31mERROR[39m (9628): [36m[
   {
     "validation": "regex",
     "code": "invalid_string",
@@ -284,7 +284,7 @@
       ],
       "name": "ZodError"
     }
-[2026-10-16 06:28:17.677 +0800] [31mERROR[39m (18876): [36mDuplicate entry '13900000001' for key 't_member.uk_member_mobile'[39m
+[2026-10-16 06:49:31.746 +0800] [31mERROR[39m (9628): [36mDuplicate entry '13900000001' for key 't_member.uk_member_mobile'[39m
     err: {
       "type": "Error",
       "message": "Duplicate entry '13900000001' for key 't_member.uk_member_mobile'",
@@ -303,8 +303,8 @@
       "code": "ER_DUP_ENTRY",
       "errno": 1062
     }
-[2026-10-16 06:28:17.679 +0800] [33mWARN[39m (18876): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
-[2026-10-16 06:28:17.682 +0800] [31mERROR[39m (18876): [36mDuplicate entry 'x' for key 'uk_some_unknown_key'[39m
+[2026-10-16 06:49:31.760 +0800] [33mWARN[39m (9628): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
+[2026-10-16 06:49:31.766 +0800] [31mERROR[39m (9628): [36mDuplicate entry 'x' for key 'uk_some_unknown_key'[39m
     err: {
       "type": "Error",
       "message": "Duplicate entry 'x' for key 'uk_some_unknown_key'",
@@ -323,8 +323,8 @@
       "code": "ER_DUP_ENTRY",
       "errno": 1062
     }
-[2026-10-16 06:28:17.683 +0800] [33mWARN[39m (18876): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
-[2026-10-16 06:28:17.685 +0800] [31mERROR[39m (18876): [36mColumn 'mobile' cannot be null[39m
+[2026-10-16 06:49:31.767 +0800] [33mWARN[39m (9628): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
+[2026-10-16 06:49:31.769 +0800] [31mERROR[39m (9628): [36mColumn 'mobile' cannot be null[39m
     err: {
       "type": "Error",
       "message": "Column 'mobile' cannot be null",
@@ -343,8 +343,8 @@
       "code": "ER_BAD_NULL_ERROR",
       "errno": 1048
     }
-[2026-10-16 06:28:17.686 +0800] [33mWARN[39m (18876): [36m[error-handler] 入参缺列（400）：POST /api/test — mobile[39m
-[2026-10-16 06:28:17.688 +0800] [31mERROR[39m (18876): [36mField 'rule_name' doesn't have a default value[39m
+[2026-10-16 06:49:31.770 +0800] [33mWARN[39m (9628): [36m[error-handler] 入参缺列（400）：POST /api/test — mobile[39m
+[2026-10-16 06:49:31.782 +0800] [31mERROR[39m (9628): [36mField 'rule_name' doesn't have a default value[39m
     err: {
       "type": "Error",
       "message": "Field 'rule_name' doesn't have a default value",
@@ -363,8 +363,8 @@
       "code": "ER_NO_DEFAULT_FOR_FIELD",
       "errno": 1364
     }
-[2026-10-16 06:28:17.689 +0800] [33mWARN[39m (18876): [36m[error-handler] 入参缺列（400）：POST /api/test — rule_name[39m
-[2026-10-16 06:28:17.698 +0800] [31mERROR[39m (18876): [36mYou have an error in your SQL syntax[39m
+[2026-10-16 06:49:31.783 +0800] [33mWARN[39m (9628): [36m[error-handler] 入参缺列（400）：POST /api/test — rule_name[39m
+[2026-10-16 06:49:31.785 +0800] [31mERROR[39m (9628): [36mYou have an error in your SQL syntax[39m
     err: {
       "type": "Error",
       "message": "You have an error in your SQL syntax",
@@ -383,7 +383,7 @@
       "code": "ER_PARSE_ERROR",
       "errno": 1064
     }
-[2026-10-16 06:28:17.701 +0800] [31mERROR[39m (18876): [36m未知错误[39m
+[2026-10-16 06:49:31.795 +0800] [31mERROR[39m (9628): [36m未知错误[39m
     err: {
       "type": "Error",
       "message": "未知错误",
@@ -400,7 +400,7 @@
               at runWithTimeout (file:///D:/Users/ZXQL/wt-agents/S3-224/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
               at file:///D:/Users/ZXQL/wt-agents/S3-224/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
     }
-[2026-10-16 06:28:17.748 +0800] [31mERROR[39m (18876): [36mSKU不存在：99999999[39m
+[2026-10-16 06:49:31.835 +0800] [31mERROR[39m (9628): [36mSKU不存在：99999999[39m
     err: {
       "type": "AppError",
       "message": "SKU不存在：99999999",
@@ -412,7 +412,7 @@
       "statusCode": 400,
       "name": "AppError"
     }
-[2026-10-16 06:28:17.782 +0800] [31mERROR[39m (18876): [36m[
+[2026-10-16 06:49:31.872 +0800] [31mERROR[39m (9628): [36m[
   {
     "code": "invalid_type",
     "expected": "array",
@@ -475,42 +475,42 @@
       ],
       "name": "ZodError"
     }
-[2026-10-16 06:28:17.840 +0800] [33mWARN[39m (18876): [36m[sale-bill] 创建通知失败: connect ECONNREFUSED 127.0.0.1:3306[39m
-[2026-10-16 06:28:30.988 +0800] [33mWARN[39m (16228): [36m[cors] 当前为开发态（NODE_ENV=test）且未配置 CORS_ORIGINS ⇒ 全放行（origin: true, credentials: true）， 仅供本地/CI 使用，**禁止用于生产**。[39m
-[2026-10-16 06:28:34.446 +0800] [32mINFO[39m (16228): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
-[2026-10-16 06:28:34.819 +0800] [32mINFO[39m (16228): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
-{"level":30,"time":1792103315809,"pid":2700,"hostname":"XIONG","msg":"production test"}
-[2026-10-16 06:28:36.172 +0800] [32mINFO[39m (16228): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes] 重复前缀 12 个（均已登记放行，真重复端点 0 项）：/api/admin (19次), /api/admin/marketing (7次), /api/admin/inventory (3次), /api/platform (3次), /api/platform/billing (3次), /api/admin/instant-retail (2次), /api/admin/reports (2次), /api/miniapp (2次), /api/monitor (2次), /api/platform/monitor (2次), /api/store/coupons (2次), /api/store/members (2次)[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 白名单 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。[39m
-[2026-10-16 06:28:36.756 +0800] [32mINFO[39m (16228): [36m[auto-routes]  · 以上 12 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。[39m
-[2026-10-16 06:28:36.756 +0800] [33mWARN[39m (16228): [36m[auto-routes][根前缀共享告警] 4 个**根前缀**被多文件共用：/api/admin (19次: admin-bill-history.routes.ts, admin-credit.routes.ts, admin-customer.routes.ts, admin-finance.routes.ts, admin-inventory.routes.ts, admin-order.routes.ts, admin-product.routes.ts, admin-report.routes.ts, admin-staff.routes.ts, admin-system.routes.ts, aftersale.routes.ts, avatar.routes.ts, commerce-fix.routes.ts, error-log.routes.ts, feedback.routes.ts, order-exception.routes.ts, product-bundle.routes.ts, tag.routes.ts, workbench.routes.ts)；/api/platform (3次: platform-error-log.routes.ts, platform-msg-config.routes.ts, platform.routes.ts)；/api/miniapp (2次: aftersale.routes.ts, miniapp.routes.ts)；/api/monitor (2次: monitor-slow-query.routes.ts, monitor-system.routes.ts)。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。[39m
-[2026-10-16 06:28:36.763 +0800] [32mINFO[39m (16228): [36m[auto-routes] 已自动注册 225 个路由[39m
-[2026-10-16 06:28:36.875 +0800] [32mINFO[39m (16228): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
-[2026-10-16 06:28:36.880 +0800] [32mINFO[39m (16228): [36m[rate-limit] 限流器启用 RedisStore（REDIS_URL 已配置）[39m
-[2026-10-16 06:28:36.894 +0800] [31mERROR[39m (16228): [36m[rate-limit] Redis 连接错误:[39m
+[2026-10-16 06:49:31.934 +0800] [33mWARN[39m (9628): [36m[sale-bill] 创建通知失败: connect ECONNREFUSED 127.0.0.1:3306[39m
+[2026-10-16 06:49:55.313 +0800] [33mWARN[39m (9980): [36m[cors] 当前为开发态（NODE_ENV=test）且未配置 CORS_ORIGINS ⇒ 全放行（origin: true, credentials: true）， 仅供本地/CI 使用，**禁止用于生产**。[39m
+[2026-10-16 06:49:58.951 +0800] [32mINFO[39m (9980): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-10-16 06:49:59.515 +0800] [32mINFO[39m (9980): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-10-16 06:50:00.962 +0800] [32mINFO[39m (9980): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes] 重复前缀 12 个（均已登记放行，真重复端点 0 项）：/api/admin (19次), /api/admin/marketing (7次), /api/admin/inventory (3次), /api/platform (3次), /api/platform/billing (3次), /api/admin/instant-retail (2次), /api/admin/reports (2次), /api/miniapp (2次), /api/monitor (2次), /api/platform/monitor (2次), /api/store/coupons (2次), /api/store/members (2次)[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 白名单 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。[39m
+[2026-10-16 06:50:01.567 +0800] [32mINFO[39m (9980): [36m[auto-routes]  · 以上 12 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。[39m
+[2026-10-16 06:50:01.567 +0800] [33mWARN[39m (9980): [36m[auto-routes][根前缀共享告警] 4 个**根前缀**被多文件共用：/api/admin (19次: admin-bill-history.routes.ts, admin-credit.routes.ts, admin-customer.routes.ts, admin-finance.routes.ts, admin-inventory.routes.ts, admin-order.routes.ts, admin-product.routes.ts, admin-report.routes.ts, admin-staff.routes.ts, admin-system.routes.ts, aftersale.routes.ts, avatar.routes.ts, commerce-fix.routes.ts, error-log.routes.ts, feedback.routes.ts, order-exception.routes.ts, product-bundle.routes.ts, tag.routes.ts, workbench.routes.ts)；/api/platform (3次: platform-error-log.routes.ts, platform-msg-config.routes.ts, platform.routes.ts)；/api/miniapp (2次: aftersale.routes.ts, miniapp.routes.ts)；/api/monitor (2次: monitor-slow-query.routes.ts, monitor-system.routes.ts)。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。[39m
+[2026-10-16 06:50:01.574 +0800] [32mINFO[39m (9980): [36m[auto-routes] 已自动注册 225 个路由[39m
+[2026-10-16 06:50:01.681 +0800] [32mINFO[39m (9980): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-16 06:50:01.685 +0800] [32mINFO[39m (9980): [36m[rate-limit] 限流器启用 RedisStore（REDIS_URL 已配置）[39m
+[2026-10-16 06:50:01.687 +0800] [31mERROR[39m (9980): [36m[rate-limit] Redis 连接错误:[39m
     [35mextra[39m: [
       "boom"
     ]
-[2026-10-16 06:28:36.897 +0800] [31mERROR[39m (16228): [36m[rate-limit] RedisStore 初始化失败，降级 MemoryStore:[39m
+[2026-10-16 06:50:01.689 +0800] [31mERROR[39m (9980): [36m[rate-limit] RedisStore 初始化失败，降级 MemoryStore:[39m
     [35mextra[39m: [
       "mock RedisStore 初始化失败"
     ]
-[2026-10-16 06:28:36.900 +0800] [32mINFO[39m (16228): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+[2026-10-16 06:50:01.714 +0800] [32mINFO[39m (9980): [36m[rate-limit] 未配置 REDIS_URL，限流器使用 MemoryStore（单进程内存）[39m
+{"level":30,"time":1792104613422,"pid":12708,"hostname":"XIONG","msg":"production test"}
 
- Test Files  674 passed (674)
-      Tests  8802 passed (8802)
-   Start at  06:26:42
-   Duration  324.34s (transform 99.28s, setup 10.52s, import 1132.80s, tests 263.16s, environment 266ms)
+ Test Files  675 passed (675)
+      Tests  8956 passed (8956)
+   Start at  06:46:59
+   Duration  451.53s (transform 237.91s, setup 11.89s, import 1482.49s, tests 512.96s, environment 356ms)
 
