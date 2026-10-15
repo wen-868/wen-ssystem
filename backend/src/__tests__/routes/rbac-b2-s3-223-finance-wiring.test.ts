@@ -610,7 +610,8 @@ describe("S3-223 · 名单自证（28 = 19 已接 + 9 不接）", () => {
   it("本批新增接线数与 rbac-g0-wiring.test.ts 的 S3_223_WIRED_FILES 快照一致（19）", () => {
     const g0 = readFileSync(path.join(__dirname, "rbac-g0-wiring.test.ts"), "utf8");
     expect(g0).toContain("S3_223_WIRED_FILES");
-    expect(g0).toContain("expect(total).toBe(141)");
+    // 合并态总数：122（G0..S3-220）+ 42（S3-222）+ 19（本批）= 183
+    expect(g0).toContain("expect(total).toBe(183)");
   });
 });
 
