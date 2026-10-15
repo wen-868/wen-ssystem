@@ -1,0 +1,112 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-214/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts (153 tests | 5 failed) 7911ms
+     × 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：注册行自带 requirePermission("'inventory:inbound'") 22ms
+     × 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：READONLY ⇒ 403 且 msg 指向该权限码 105ms
+     × 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：全部非持有人（逐账号枚举）⇒ 403 15ms
+     × SALES_STAFF 对全部 25 行 ⇒ 403（本批没有把权限门放宽成摆设） 72ms
+     × STORE_OPERATOR（持 sale:return）只通过退货 2 行，对其余 23 行 403 107ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts > S3-214-B2 · 形状断言（注册行级判据，踩坑[134]） > 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：注册行自带 requirePermission("'inventory:inbound'")
+AssertionError: expected 'purchaseInStockRouter.post("/:stockNo…' to contain 'requirePermission("inventory:inbound")'
+
+Expected: "requirePermission("inventory:inbound")"
+Received: "purchaseInStockRouter.post("/:stockNo/approve", ctrl.approve);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts:394:27
+    392|     const lines = registrationLines(row.file, row.method, row.routePat…
+    393|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    394|     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`…
+       |                           ^
+    395|   });
+    396|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts > S3-214-B2 · 两侧判据 a) 缺码 ⇒ 403 且未到达业务层 > 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：READONLY ⇒ 403 且 msg 指向该权限码
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts:462:24
+    460|   it.each(ROWS)("$file $method $routePath：READONLY ⇒ 403 且 msg 指向该权限码"…
+    461|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    462|     expect(res.status).toBe(403);
+       |                        ^
+    463|     expect(res.body.code).toBe("403");
+    464|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts > S3-214-B2 · 两侧判据 a) 缺码 ⇒ 403 且未到达业务层 > 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：全部非持有人（逐账号枚举）⇒ 403
+AssertionError: readonly 不应通过 purchase-in-stock.routes.ts POST /:stockNo/approve: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts:473:67
+    471|       h.reached.length = 0;
+    472|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    473|       expect(res.status, `${USERS[uid].name} 不应通过 ${label(row)}`).toBe…
+       |                                                                   ^
+    474|       expect(h.reached, `${USERS[uid].name} 不得到达 ${label(row)} 的业务层`).…
+    475|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts > S3-214-B2 · 两侧判据 c) 收银/销售类角色（页面外）仍被拦住 —— 不是「谁都能过」 > SALES_STAFF 对全部 25 行 ⇒ 403（本批没有把权限门放宽成摆设）
+AssertionError: 销售员不应通过 purchase-in-stock.routes.ts POST /:stockNo/approve: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts:564:51
+    562|     for (const row of ROWS) {
+    563|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    564|       expect(res.status, `销售员不应通过 ${label(row)}`).toBe(403);
+       |                                                   ^
+    565|     }
+    566|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts > S3-214-B2 · 两侧判据 c) 收银/销售类角色（页面外）仍被拦住 —— 不是「谁都能过」 > STORE_OPERATOR（持 sale:return）只通过退货 2 行，对其余 23 行 403
+AssertionError: purchase-in-stock.routes.ts POST /:stockNo/approve 的期望结论与 holdersOf 复算不一致: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts:576:66
+    574|     for (const row of ROWS) {
+    575|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    576|       expect(res.status, `${label(row)} 的期望结论与 holdersOf 复算不一致`).toBe(
+       |                                                                  ^
+    577|         holdersOf(row.perm).includes(9013) ? 200 : 403
+    578|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 148 passed (153)
+   Start at  02:24:44
+   Duration  24.22s (transform 5.27s, setup 149ms, import 14.19s, tests 7.91s, environment 1ms)
+
+
+[vitest] EXIT=1

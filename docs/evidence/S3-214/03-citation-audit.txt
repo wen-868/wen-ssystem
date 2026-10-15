@@ -1,0 +1,105 @@
+.\wt-agents\S3-214\admin-web\src\api\misc.ts:68 => const { data } = await api.post("/admin/purchase-contracts", payload);
+.\wt-agents\S3-214\admin-web\src\api\misc.ts:73 => const { data } = await api.put(`/admin/purchase-contracts/${id}`, payload);
+.\wt-agents\S3-214\admin-web\src\api\misc.ts:78 => const { data } = await api.delete(`/admin/purchase-contracts/${id}`);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:10 => const { data } = await api.post("/admin/suppliers", payload);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:103 => const { data } = await api.post(`/admin/purchase-payments/${id}/pay`);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:126 => const { data } = await api.post("/admin/supplier-statements/generate", payload);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:130 => const { data } = await api.post(`/admin/supplier-statements/${id}/confirm`);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:134 => const { data } = await api.post(`/admin/supplier-statements/${id}/dispute`, payload || {});
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:185 => const { data } = await api.post("/admin/supplier-contacts", payload);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:198 => const { data } = await api.put(`/admin/supplier-contacts/${id}`, payload);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:202 => const { data } = await api.delete(`/admin/supplier-contacts/${id}`);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:206 => const { data } = await api.post(`/admin/supplier-contacts/${id}/set-primary`);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:41 => const { data } = await api.post(`/admin/purchase-orders/${id}/confirm`);
+.\wt-agents\S3-214\admin-web\src\api\purchase.ts:91 => const { data } = await api.post("/admin/purchase-payments", payload);
+.\wt-agents\S3-214\admin-web\src\router\index.ts:126 => { path: "purchase-orders", name: "purchase-orders", component: () => import("../views/purchase/PurchaseOrders.…
+.\wt-agents\S3-214\admin-web\src\router\index.ts:128 => { path: "purchase-returns", name: "purchase-returns", component: () => import("../views/purchase/PurchaseRetur…
+.\wt-agents\S3-214\admin-web\src\router\index.ts:129 => { path: "purchase-contracts", name: "purchase-contracts", component: () => import("../views/purchase/PurchaseC…
+.\wt-agents\S3-214\admin-web\src\router\index.ts:130 => { path: "purchase/supplier-statements", name: "supplier-statements", component: () => import("../views/purchas…
+.\wt-agents\S3-214\admin-web\src\router\index.ts:131 => { path: "purchase/plans", name: "purchase-plans", component: () => import("../views/purchase/PurchasePlans.vue…
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseContracts.vue:416 => await updatePurchaseContract(form.id, form);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseContracts.vue:419 => await createPurchaseContract(form);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseContracts.vue:443 => await deletePurchaseContract(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseInStocks.vue:339 => await purchaseInStock(form);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseOrders.vue:315 => await confirmPurchaseOrder(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseOrders.vue:328 => await cancelPurchaseOrder(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseOrders.vue:351 => await createPurchaseOrder(form);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchasePayments.vue:358 => await approvePurchasePayment(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchasePayments.vue:400 => await createPurchasePayment(form);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchasePlans.vue:261 => await createPurchasePlan({
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchasePlans.vue:299 => await createPurchasePlan({
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchasePlans.vue:336 => const result = await convertPurchasePlanToOrder(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\PurchaseReturnsView.vue:138 => await approvePurchaseReturn(row.returnNo);
+.\wt-agents\S3-214\admin-web\src\views\purchase\Suppliers.vue:652 => await updateSupplierContact(contactForm.id, payload);
+.\wt-agents\S3-214\admin-web\src\views\purchase\Suppliers.vue:655 => await createSupplierContact(payload);
+.\wt-agents\S3-214\admin-web\src\views\purchase\Suppliers.vue:671 => await deleteSupplierContact(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\Suppliers.vue:684 => await setPrimarySupplierContact(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\Suppliers.vue:702 => await updateSupplier(form.supplierId, payload);
+.\wt-agents\S3-214\admin-web\src\views\purchase\Suppliers.vue:705 => await createSupplier(payload);
+.\wt-agents\S3-214\admin-web\src\views\purchase\SupplierStatements.vue:230 => await generateSupplierStatement({
+.\wt-agents\S3-214\admin-web\src\views\purchase\SupplierStatements.vue:259 => await confirmSupplierStatement(row.id);
+.\wt-agents\S3-214\admin-web\src\views\purchase\SupplierStatements.vue:276 => await disputeSupplierStatement(disputeId.value!, { reason: disputeReason.value });
+.\wt-agents\S3-214\app-mobile\src\api\modules\purchase.ts:142 => return put(`/admin/purchase-orders/${id}`, data)
+.\wt-agents\S3-214\app-mobile\src\config\function-menu.ts:38 => { code: 'sale:bill', label: '销售开单', path: '/pages/sales/create-sale', icon: '/static/icons/fn-open.svg', hot: …
+.\wt-agents\S3-214\app-mobile\src\config\function-menu.ts:59 => { code: 'purchase:order', label: '采购订单', path: '/pages-sub/finance/purchase/orders', icon: '/static/icons/fn-p…
+.\wt-agents\S3-214\app-mobile\src\config\function-menu.ts:60 => { code: 'purchase:inbound', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', icon: '/static/icons/…
+.\wt-agents\S3-214\app-mobile\src\config\function-menu.ts:61 => { code: 'purchase:supplier', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', icon: '/static/ic…
+.\wt-agents\S3-214\app-mobile\src\pages-sub\finance\purchase\in-stock.vue:12 => uni.redirectTo({ url: '/pages/sales/create-sale?doc=pur_inbound' })
+.\wt-agents\S3-214\app-mobile\src\pages-sub\product\suppliers\detail.vue:535 => await supplierApi.create({
+.\wt-agents\S3-214\app-mobile\src\pages-sub\product\suppliers\detail.vue:552 => await supplierApi.update(supplierId.value, {
+.\wt-agents\S3-214\app-mobile\src\pages-sub\product\suppliers\detail.vue:584 => await supplierApi.update(supplierId.value, { status: next } as any)
+.\wt-agents\S3-214\app-mobile\src\pages\sales\create-sale.vue:2112 => await purchaseApi.createInStock(payload)
+.\wt-agents\S3-214\app-mobile\src\pages\sales\create-sale.vue:2159 => await purchaseApi.createOrder({
+.\wt-agents\S3-214\app-mobile\src\pages\sales\create-sale.vue:2211 => async function submitPayment() {
+.\wt-agents\S3-214\app-mobile\src\pages\sales\create-sale.vue:2270 => await purchaseReturnApi.create({
+.\wt-agents\S3-214\app-mobile\src\pages\sales\create-sale.vue:23 => <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'purchase' }" @tap="switchDocMain('purchase')">…
+.\wt-agents\S3-214\backend\src\routes\purchase-contract.routes.ts:10 => purchaseContractRouter.post("/", purchaseContractController.createPurchaseContract);
+.\wt-agents\S3-214\backend\src\routes\purchase-contract.routes.ts:11 => purchaseContractRouter.put("/:contractNo", purchaseContractController.updatePurchaseContract);
+.\wt-agents\S3-214\backend\src\routes\purchase-contract.routes.ts:12 => purchaseContractRouter.delete("/:contractNo", purchaseContractController.deletePurchaseContract);
+.\wt-agents\S3-214\backend\src\routes\purchase-contract.routes.ts:13 => purchaseContractRouter.post("/:contractNo/upload", storageGuard(), purchaseContractController.uploadContractFi…
+.\wt-agents\S3-214\backend\src\routes\purchase-in-stock.routes.ts:10 => purchaseInStockRouter.post("/:stockNo/approve", ctrl.approve);
+.\wt-agents\S3-214\backend\src\routes\purchase-in-stock.routes.ts:11 => purchaseInStockRouter.post("/:stockNo/void", ctrl.voidStock);
+.\wt-agents\S3-214\backend\src\routes\purchase-in-stock.routes.ts:9 => purchaseInStockRouter.post("/", ctrl.create);
+.\wt-agents\S3-214\backend\src\routes\purchase-payment.routes.ts:10 => purchasePaymentRouter.post("/:paymentNo/approve", ctrl.approve);
+.\wt-agents\S3-214\backend\src\routes\purchase-payment.routes.ts:11 => purchasePaymentRouter.post("/:paymentNo/void", ctrl.voidPayment);
+.\wt-agents\S3-214\backend\src\routes\purchase-payment.routes.ts:9 => purchasePaymentRouter.post("/", ctrl.create);
+.\wt-agents\S3-214\backend\src\routes\purchase-plan.routes.ts:11 => purchasePlanRouter.post("/:planNo/convert", purchasePlanController.convertPurchasePlan);
+.\wt-agents\S3-214\backend\src\routes\purchase-plan.routes.ts:9 => purchasePlanRouter.post("/", purchasePlanController.createPurchasePlan);
+.\wt-agents\S3-214\backend\src\routes\purchase-return.routes.ts:10 => purchaseReturnRouter.post("/:returnNo/approve", ctrl.approve);
+.\wt-agents\S3-214\backend\src\routes\purchase-return.routes.ts:11 => purchaseReturnRouter.post("/:returnNo/void", ctrl.voidReturn);
+.\wt-agents\S3-214\backend\src\routes\purchase-return.routes.ts:9 => purchaseReturnRouter.post("/", ctrl.create);
+.\wt-agents\S3-214\backend\src\routes\purchase.routes.ts:12 => purchaseRouter.post("/", asyncHandler(controller.createPurchaseOrder));
+.\wt-agents\S3-214\backend\src\routes\purchase.routes.ts:13 => purchaseRouter.post("/:orderNo/submit", requirePermission("purchase:create"), asyncHandler(controller.submitPu…
+.\wt-agents\S3-214\backend\src\routes\purchase.routes.ts:14 => purchaseRouter.post("/:orderNo/approve", asyncHandler(controller.approvePurchaseOrder));
+.\wt-agents\S3-214\backend\src\routes\purchase.routes.ts:15 => purchaseRouter.post("/:orderNo/cancel", asyncHandler(controller.cancelPurchaseOrder));
+.\wt-agents\S3-214\backend\src\routes\purchase.routes.ts:16 => purchaseRouter.put("/:orderNo", asyncHandler(controller.updatePurchaseOrder));
+.\wt-agents\S3-214\backend\src\routes\purchase.routes.ts:17 => purchaseRouter.delete("/:orderNo", asyncHandler(controller.deletePurchaseOrder));
+.\wt-agents\S3-214\backend\src\routes\supplier-contact.routes.ts:14 => supplierContactRouter.post("/supplier/:supplierId", asyncHandler(controller.createContact));
+.\wt-agents\S3-214\backend\src\routes\supplier-contact.routes.ts:16 => supplierContactRouter.put("/:id", asyncHandler(controller.updateContact));
+.\wt-agents\S3-214\backend\src\routes\supplier-contact.routes.ts:18 => supplierContactRouter.delete("/:id", asyncHandler(controller.deleteContact));
+.\wt-agents\S3-214\backend\src\routes\supplier-contact.routes.ts:20 => supplierContactRouter.post("/:id/set-primary", asyncHandler(controller.setPrimaryContact));
+.\wt-agents\S3-214\backend\src\routes\supplier-statement.routes.ts:11 => supplierStatementRouter.post("/:statementNo/confirm", supplierStatementController.confirmSupplierStatement);
+.\wt-agents\S3-214\backend\src\routes\supplier-statement.routes.ts:12 => supplierStatementRouter.post("/:statementNo/dispute", supplierStatementController.disputeSupplierStatement);
+.\wt-agents\S3-214\backend\src\routes\supplier-statement.routes.ts:8 => supplierStatementRouter.post("/generate", supplierStatementController.generateSupplierStatement);
+.\wt-agents\S3-214\backend\src\routes\supplier.routes.ts:11 => supplierRouter.post("/", asyncHandler(controller.createSupplier));
+.\wt-agents\S3-214\backend\src\routes\supplier.routes.ts:12 => supplierRouter.put("/:id", asyncHandler(controller.updateSupplier));
+.\wt-agents\S3-214\backend\src\routes\supplier.routes.ts:13 => supplierRouter.post("/:id/contacts", asyncHandler(controller.addSupplierContact));
+.\wt-agents\S3-214\backend\src\routes\supplier.routes.ts:14 => supplierRouter.delete("/:id/contacts/:contactId", asyncHandler(controller.deleteSupplierContact));
+AMBIGUOUS  api/purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  api/purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  api/purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  purchase.ts  =>  admin-web\src\api\purchase.ts  |  app-mobile\src\api\modules\purchase.ts
+AMBIGUOUS  Suppliers.vue  =>  admin-web\src\views\purchase\Suppliers.vue  |  app-mobile\src\pages-sub\product\suppliers\suppliers.vue
+AMBIGUOUS  Suppliers.vue  =>  admin-web\src\views\purchase\Suppliers.vue  |  app-mobile\src\pages-sub\product\suppliers\suppliers.vue
+AMBIGUOUS  Suppliers.vue  =>  admin-web\src\views\purchase\Suppliers.vue  |  app-mobile\src\pages-sub\product\suppliers\suppliers.vue
+AMBIGUOUS  Suppliers.vue  =>  admin-web\src\views\purchase\Suppliers.vue  |  app-mobile\src\pages-sub\product\suppliers\suppliers.vue
+AMBIGUOUS  Suppliers.vue  =>  admin-web\src\views\purchase\Suppliers.vue  |  app-mobile\src\pages-sub\product\suppliers\suppliers.vue
+AMBIGUOUS  Suppliers.vue  =>  admin-web\src\views\purchase\Suppliers.vue  |  app-mobile\src\pages-sub\product\suppliers\suppliers.vue

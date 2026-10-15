@@ -497,7 +497,26 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   const S3_209_WIRED_FILES = new Map<string, number>([["admin-order.routes.ts", 1]]);
   const S3_209_WIRED_TOTAL = [...S3_209_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1", () => {
+  // S3-214-B2 追加说明：S3-214-B2（批B2-2 采购域 阶段②）在 8 个路由文件新增 25 处接线
+  // （purchase-contract 4 / purchase-in-stock 2 / purchase-payment 2 / purchase-return 2 / purchase 4 /
+  //  supplier-contact 4 / supplier-statement 3 / supplier 4；全部挂**既有**权限码：
+  //  purchase:create|approve|supplier、inventory:inbound、finance:payment、sale:return、report:finance）
+  // 后总数由 82 → 107。同样只同步"总数 + 逐文件计数"的期望值（新增 S3_214_WIRED_FILES）；
+  // G0 名单行与其逐行 403/200 断言**一字未动**（本批的逐行 403/200 断言在
+  // rbac-b2-s3-214-purchase-wiring.test.ts）。
+  const S3_214_WIRED_FILES = new Map<string, number>([
+    ["purchase-contract.routes.ts", 4],
+    ["purchase-in-stock.routes.ts", 2],
+    ["purchase-payment.routes.ts", 2],
+    ["purchase-return.routes.ts", 2],
+    ["purchase.routes.ts", 4],
+    ["supplier-contact.routes.ts", 4],
+    ["supplier-statement.routes.ts", 3],
+    ["supplier.routes.ts", 4],
+  ]);
+  const S3_214_WIRED_TOTAL = [...S3_214_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -507,15 +526,15 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL);
-    expect(total).toBe(82);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL);
+    expect(total).toBe(107);
 
     const expected = new Map<string, number>();
     for (const m of MODULES) expected.set(m.file, (expected.get(m.file) ?? 0) + m.rows.length);
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of G2_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
-    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES])
+    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES])
       expected.set(f, (expected.get(f) ?? 0) + n);
     expect([...perFile.entries()].sort()).toEqual([...expected.entries()].sort());
   });
@@ -660,7 +679,10 @@ describe("S3-122-F4 日结权限点拆分 · 角色 × 5 端点复算（验收�
 describe("S3-122-F2 G0 接线 · 范围控制：未纳入 G0 的端点不被拦（证明没扩大改动）", () => {
   const NOT_IN_G0: { label: string; prefix: string; router: Router; method: Method; path: string }[] = [
     { label: "普通写 POST /api/admin/purchase-orders（创建采购单）", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", path: "/" },
-    { label: "普通写 PUT /api/admin/purchase-orders/:orderNo", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "put", path: "/PO1" },
+    // S3-214-B2（2026-10-16）订正：原「普通写 PUT /api/admin/purchase-orders/:orderNo」一行已由本批接线
+    // （既有码 purchase:create）⇒ 从本名单移出（该行的 403/200 断言见 rbac-b2-s3-214-purchase-wiring.test.ts）；
+    // 上一行「POST /api/admin/purchase-orders（创建采购单）」按派单卡口径**仍不接线**（移动端页签无权限门），
+    // 故保留在本名单里继续锁定「未被误拦」。
     { label: "查询型 POST /api/admin/prices/best-price（待裁定）", prefix: "/api/admin/prices", router: priceRouter, method: "post", path: "/best-price" },
     { label: "催收（归 G2）POST /api/admin/credits/collections", prefix: "/api/admin/credits", router: creditRouter, method: "post", path: "/collections" },
     { label: "储值卡充值（非退款行）POST /api/admin/store-value-cards/:cardNo/recharge", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", path: "/VC1/recharge" },

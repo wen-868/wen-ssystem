@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import { asyncHandler } from "../middleware/async-handler";
+import { requirePermission } from "../middleware/rbac-auth";
 import * as controller from "../controllers/admin/supplier-contact.controller";
 
 export const supplierContactRouter = Router();
@@ -11,13 +12,13 @@ supplierContactRouter.get("/supplier/:supplierId", asyncHandler(controller.listC
 // 获取联系人详情
 supplierContactRouter.get("/:id", asyncHandler(controller.getContact));
 // 新增供应商联系人
-supplierContactRouter.post("/supplier/:supplierId", asyncHandler(controller.createContact));
+supplierContactRouter.post("/supplier/:supplierId", requirePermission("purchase:supplier"), asyncHandler(controller.createContact));
 // 修改供应商联系人
-supplierContactRouter.put("/:id", asyncHandler(controller.updateContact));
+supplierContactRouter.put("/:id", requirePermission("purchase:supplier"), asyncHandler(controller.updateContact));
 // 删除供应商联系人
-supplierContactRouter.delete("/:id", asyncHandler(controller.deleteContact));
+supplierContactRouter.delete("/:id", requirePermission("purchase:supplier"), asyncHandler(controller.deleteContact));
 // 设置主联系人
-supplierContactRouter.post("/:id/set-primary", asyncHandler(controller.setPrimaryContact));
+supplierContactRouter.post("/:id/set-primary", requirePermission("purchase:supplier"), asyncHandler(controller.setPrimaryContact));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
