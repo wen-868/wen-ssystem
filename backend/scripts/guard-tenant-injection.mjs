@@ -155,77 +155,17 @@ export function markerOf(sql) {
 // ─────────────────────────── 登记表（改这里必须写理由） ───────────────────────────
 
 /**
- * 显式标记登记：每个使用标记的调用点必须在此登记。
- * 用 file + `contains`（SQL 里一段稳定片段）定位，**不用行号**（行号会漂移 ⇒ 例外静默失效，见 guard-tenant-status R4 的教训）。
+ * 三张登记表都在数据文件 `backend/scripts/fixtures/tenant-injection-exemptions.json` 里
+ * （数据与规则分离；生成/补缺工具：docs/evidence/S3-207/tools/gen-exemptions.mjs）。
+ *   · markers     —— 使用显式标记（tenant-scope:self/platform）的调用点，必须逐条写理由
+ *   · indirect    —— 非字面量 / 带 `${}` 插值、静态判不了的调用点，必须逐条写结论
+ *   · singleTable —— 单表"有 tenant_id 字样但没有值谓词"的调用点（注入会补正确谓词，需逐条确认语义）
  */
-const MARKER_ALLOWLIST = [
-  {
-    file: "jobs/report-aggregation.job.ts",
-    contains: "SELECT DISTINCT tenant_id FROM t_sale_bill",
-    marker: MARKER_PLATFORM,
-    reason:
-      "平台级汇总作业：需要**枚举全部租户**（该调用第 3 实参传空串，即「没有调用者租户」）。" +
-      "它带 tenant_id 字样（SELECT 列）却没有租户过滤谓词 ⇒ 若不显式声明，收紧判据后会被注入 tenant_id = '' ⇒ 永远返回空集、作业静默失效。",
-  },
-];
-
-/**
- * 非字面量/插值调用点登记：静态展不开 `${}`，必须在真库上跑过再登记结论。
- * verdict：ok-runtime（运行期确有谓词）/ ok-marker / unknown（转独立单）
- */
-const INDIRECT_ALLOWLIST = [
-  {
-    file: "services/admin/batch-price.service.ts",
-    contains: "SELECT COUNT(*) AS total FROM t_product_price pp",
-    verdict: "ok-runtime",
-    reason:
-      "`WHERE ${where}` 静态展不开，但 previewBatchPriceAdjustment 的 conditions **首项就是** `pp.tenant_id = ?`（params 首项 = tenantId）" +
-      "⇒ 插值后 SQL 含值谓词，运行期判据会跳过注入。真库证据：`raw/30-harness-fixed.txt` [5f][5g][5h]（A 令牌读数 = A 侧真值，B 的 SKU 命中 0 条）。",
-  },
-  {
-    file: "config/database.ts",
-    arg: "sql",
-    verdict: "ok-passthrough",
-    reason: "库内**透传**：queryOneWithTenant / executeWithTenant 把调用方的 SQL 原样转交给 queryWithTenant，本身没有独立 SQL ⇒ 由同一判据在入口处处理。",
-  },
-  {
-    file: "services/admin/cart.service.ts",
-    arg: "sql",
-    verdict: "ok-passthrough",
-    reason:
-      "包装器：`conn ? conn.query : queryWithTenant(sql, ...)`。走 queryWithTenant 分支时由本判据处理；被包装的 SQL 均无 tenant_id 字样（依赖注入）。" +
-      "⚠️ 走 `conn`（事务内）分支时**不经过注入器**，靠调用方显式谓词——属既有架构口径，已记入回执「范围外发现」。",
-  },
-  {
-    file: "services/miniapp/checkout.service.ts",
-    arg: "sql",
-    verdict: "ok-passthrough",
-    reason: "同 cart.service.ts 的 dbQuery 包装器（conn 分支 = 事务内显式谓词，否则走注入器）。",
-  },
-  {
-    file: "services/admin/report-export.service.ts",
-    arg: "sql",
-    verdict: "ok-factory",
-    reason:
-      "SQL 由 reportQueries[report_type] 工厂产出（10 种报表）。逐条核对：每个工厂的 conditions **均以显式租户谓词开头**——" +
-      "L20 `tenant_id = ?`、L35 `tenant_id = ?`、L49 `sbi.tenant_id = ?`、L65 `sb.tenant_id = ?`、L84 `ib.tenant_id = ?`、" +
-      "L101 `tenant_id = ?`、L115 `tenant_id = ?`、L128 `sb.tenant_id = ?`、L151 直写 `WHERE tenant_id = ?`、L157 `lg.tenant_id = ?`" +
-      "（带 JOIN 的一律限定别名）⇒ 运行期判据均能识别、不重复注入；未发现漏洞（S3-206 当时标为“值得单独复核”，本单复核完毕）。",
-  },
-  {
-    file: "services/store/inventory.service.ts",
-    arg: "totalSql",
-    verdict: "ok-explicit",
-    reason:
-      "totalSql 的两个分支都是显式谓词：`SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ? [AND store_id = ?]`（同函数 L101 的明细 SQL 亦然）⇒ 非泄露。",
-  },
-  {
-    file: "shared/field-sync.ts",
-    arg: "targetSql",
-    verdict: "ok-explicit",
-    reason: "targetSql 拼装时已写死 `AND t.tenant_id = ?`（L335，占位符与 queryParams 第 3 项 tenantId 对齐）⇒ 非泄露。",
-  },
-];
+const EXEMPTIONS_FILE = join(HERE, "fixtures", "tenant-injection-exemptions.json");
+const REGISTRY = JSON.parse(readFileSync(EXEMPTIONS_FILE, "utf8"));
+const MARKER_ALLOWLIST = REGISTRY.markers || [];
+const INDIRECT_ALLOWLIST = REGISTRY.indirect || [];
+const SINGLE_TABLE_ALLOWLIST = REGISTRY.singleTable || [];
 
 // ─────────────────────────── 源码扫描 ───────────────────────────
 
@@ -369,7 +309,9 @@ export function scan(root) {
       else if (cond) verdict = tokenInTop ? "OK-TENANT-CONDITION" : "WARN-TOKEN-ONLY-IN-SUBQUERY";
       // 有字样、无条件、还带 `${}` 插值（如 `WHERE ${where}`）：静态判不了 ⇒ 必须登记
       else if (uncertain) verdict = "INDIRECT-NEEDS-REVIEW";
-      else verdict = "BLOCK-MISSING-TENANT-CONDITION";
+      // 有字样、无条件：JOIN ⇒ 注入的是无限定列名，多表都有该列时 **1052 歧义**（阻断，必须补谓词或用显式标记）；
+      // 单表 ⇒ 注入的列名不歧义、补的正是正确谓词（不阻断，但必须逐条登记结论：也是"以前靠旧判据短路"的位置）
+      else verdict = hasJoin ? "BLOCK-MISSING-TENANT-CONDITION" : "REVIEW-SINGLE-TABLE-INJECT";
       rows.push({
         file: rel,
         line,
@@ -382,7 +324,9 @@ export function scan(root) {
         hasJoin,
         verdict,
         argText: lit.argText || (lit.kind.startsWith("indirect") ? String(a0.arg).trim().slice(0, 40) : ""),
-        sql: sql.slice(0, 300),
+        // 存**完整** SQL（截断会让下游核对失真：多列 SELECT 列表会把 FROM/JOIN 切掉，
+        // 导致"SQL 里有哪些表"判断错误；打印时再截断即可）
+        sql,
       });
     }
   }
@@ -429,6 +373,7 @@ function main() {
   const rows = scan(root);
   const by = (v) => rows.filter((r) => r.verdict === v);
   const blocking = by("BLOCK-MISSING-TENANT-CONDITION");
+  const singleTable = by("REVIEW-SINGLE-TABLE-INJECT");
   const indirect = by("INDIRECT-NEEDS-REVIEW");
   const markers = by("OK-MARKER");
   const subqueryOnly = by("WARN-TOKEN-ONLY-IN-SUBQUERY");
@@ -452,8 +397,19 @@ function main() {
   const staleIndirect = scanningOwnRoot
     ? INDIRECT_ALLOWLIST.filter((a) => !indirect.some((r) => indirectMatches(r, a)))
     : [];
+  const singleTableMatches = (r, a) => a.file === r.file && r.sql.includes(a.contains);
+  const unregisteredSingleTable = singleTable.filter((r) => !SINGLE_TABLE_ALLOWLIST.some((a) => singleTableMatches(r, a)));
+  const staleSingleTable = scanningOwnRoot
+    ? SINGLE_TABLE_ALLOWLIST.filter((a) => !singleTable.some((r) => singleTableMatches(r, a)))
+    : [];
   const red =
-    blocking.length + unregisteredMarkers.length + staleMarkers.length + unregisteredIndirect.length + staleIndirect.length;
+    blocking.length +
+    unregisteredMarkers.length +
+    staleMarkers.length +
+    unregisteredIndirect.length +
+    staleIndirect.length +
+    unregisteredSingleTable.length +
+    staleSingleTable.length;
 
   if (args.includes("--json")) {
     console.log(
@@ -465,12 +421,15 @@ function main() {
           blocking,
           indirect,
           markers,
+          singleTable,
           subqueryOnly,
           warns,
           unregisteredMarkers,
           staleMarkers,
           unregisteredIndirect,
           staleIndirect,
+          unregisteredSingleTable,
+          staleSingleTable,
         },
         null,
         1
@@ -505,6 +464,15 @@ function main() {
     console.log(`\nRED 非字面量登记表失效：${staleIndirect.length} 条`);
     for (const a of staleIndirect) console.log(`  ${a.file} ${a.contains ? `contains="${a.contains}"` : `arg="${a.arg}"`}`);
   }
+  if (unregisteredSingleTable.length) {
+    console.log(`\nRED 未登记的单表"字样无谓词"调用点：${unregisteredSingleTable.length} 条`);
+    for (const r of unregisteredSingleTable) console.log(`  ${r.file}:${r.line} ${r.sql.slice(0, 110)}`);
+    console.log("  ⇒ 注入会补一个正确谓词（单表不歧义），不是泄露；但必须逐条登记结论（防平台级查询被注入后静默查不到数据）。");
+  }
+  if (staleSingleTable.length) {
+    console.log(`\nRED 单表登记表失效：${staleSingleTable.length} 条`);
+    for (const a of staleSingleTable) console.log(`  ${a.file} contains="${a.contains}"`);
+  }
   if (markers.length) {
     console.log(`\n显式标记（已登记，每条打印理由）：${markers.length} 条`);
     for (const r of markers) {
@@ -525,6 +493,13 @@ function main() {
     for (const r of indirect) {
       const a = INDIRECT_ALLOWLIST.find((x) => indirectMatches(r, x));
       console.log(`  ${r.file}:${r.line} arg=${r.argText || "(字面量)"} verdict=${a ? a.verdict : "未登记"}`);
+    }
+  }
+  if (singleTable.length) {
+    console.log(`\n已登记的单表"字样无谓词"调用点（非阻断，注入会补正确谓词）：${singleTable.length} 条`);
+    for (const r of singleTable) {
+      const a = SINGLE_TABLE_ALLOWLIST.find((x) => singleTableMatches(r, x));
+      console.log(`  ${r.file}:${r.line} verdict=${a ? a.verdict : "未登记"}`);
     }
   }
 

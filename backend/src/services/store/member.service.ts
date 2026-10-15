@@ -28,8 +28,9 @@ export async function getMemberDetail(tenantId: string, id: number) {
             m.last_order_at AS lastOrderAt, m.created_at AS createdAt
      FROM t_member m
      LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id
-     WHERE m.id = ?`,
-    [id],
+     WHERE m.tenant_id = ? AND m.id = ?`,
+    // S3-207：JOIN 的 `ml.tenant_id = m.tenant_id` 是列对列等值 ⇒ 旧判据短路 ⇒ 会员详情无租户过滤；显式补谓词
+    [tenantId, id],
     tenantId
   );
   if (!row) {

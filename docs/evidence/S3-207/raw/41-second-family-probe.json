@@ -1,0 +1,57 @@
+{
+  "P5": {
+    "ok": true,
+    "rows": [
+      {
+        "skuId": 2,
+        "totalAmount": "71920.00"
+      },
+      {
+        "skuId": 3,
+        "totalAmount": "1200.00"
+      },
+      {
+        "skuId": 4,
+        "totalAmount": "720.00"
+      },
+      {
+        "skuId": 5,
+        "totalAmount": "3480.00"
+      },
+      {
+        "skuId": 6,
+        "totalAmount": "2400.00"
+      },
+      {
+        "skuId": 7,
+        "totalAmount": "17970.00"
+      },
+      {
+        "skuId": 8,
+        "totalAmount": "21576.00"
+      },
+      {
+        "skuId": 9,
+        "totalAmount": "19900.00"
+      },
+      {
+        "skuId": 10,
+        "totalAmount": "17940.00"
+      },
+      {
+        "skuId": 1,
+        "totalAmount": "14990.00"
+      }
+    ]
+  },
+  "P6": {
+    "ok": false,
+    "errno": 1052,
+    "code": "ER_NON_UNIQ_ERROR",
+    "msg": "Column 'tenant_id' in where clause is ambiguous"
+  },
+  "P7": {
+    "ok": true,
+    "rows": []
+  }
+}

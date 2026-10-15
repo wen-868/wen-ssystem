@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-15T11:41:36.909Z",
+  "generatedAt": "2026-10-15T11:55:05.821Z",
   "repo": "D:\\Users\\ZXQL\\wt-agents\\S3-207",
   "baselineRepo": "D:/Users/ZXQL/wt-agents/S3-206",
   "db": "s3207_main",
@@ -194,6 +194,38 @@
       "detail": {
         "改前行数": 2,
         "改后行数": 2
+      }
+    },
+    {
+      "name": "[7a] 第二家族（库存汇总）：补显式谓词后 ⇒ 无 1052、且金额 = 仅 A 侧真值",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "读数": 172096,
+        "A真值": "172096.00",
+        "A_B真值": "182096.00",
+        "err": null
+      }
+    },
+    {
+      "name": "[7b] 第二家族（库存汇总）：同一句**摘掉**显式谓词 ⇒ 注入 ⇒ 1052 歧义（证明这批修复是承重的）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "err": {
+          "errno": 1052,
+          "code": "ER_NON_UNIQ_ERROR",
+          "msg": "Column 'tenant_id' in where clause is ambiguous"
+        }
+      }
+    },
+    {
+      "name": "[7c] 第二家族（购物车明细）：补显式谓词后 ⇒ 无 1052（空表返回空数组）",
+      "ok": true,
+      "soft": false,
+      "detail": {
+        "rows": 0,
+        "err": null
       }
     }
   ]

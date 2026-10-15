@@ -487,6 +487,54 @@ check(
 );
 saveRaw("40-injector-probe.json", probe);
 
+// ─────────────────────────── [7] 第二家族真库核对（根因收紧后新暴露的 13 处） ───────────────────────────
+// 说明：收紧判据后，凡"SQL 里有 tenant_id 字样、但只有列对列等值、WHERE 无值谓词、且是多表 JOIN"的调用点，
+// 都会从"静默跳过注入（无租户过滤）"变成"注入 ⇒ 多表列名歧义 1052"。本单按机器枚举逐条补显式谓词（见回执 §四）。
+// 这里用真库核对其中最典型的两条：库存汇总（有数据）与购物车明细（空表，验"不再 1052"）。
+const P5_FIXED = `SELECT ib.sku_id AS skuId, SUM(ib.physical_qty * pp.cost_price) AS totalAmount
+  FROM t_inventory_balance ib
+  LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+  LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+  WHERE ib.tenant_id = ?
+  GROUP BY ib.sku_id`;
+const P6_PREFIX = `SELECT ib.sku_id AS skuId, SUM(ib.physical_qty * pp.cost_price) AS totalAmount
+  FROM t_inventory_balance ib
+  LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
+  LEFT JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id
+  GROUP BY ib.sku_id`;
+const P7_CART_FIXED = `SELECT c.sku_id AS skuId, c.quantity, s.sku_name AS skuName
+  FROM t_cart_item c
+  JOIN t_product_sku s ON s.id = c.sku_id AND s.tenant_id = c.tenant_id
+  JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+  WHERE c.tenant_id = ? AND c.customer_id = ?`;
+
+const p5 = fixedQuery ? await runCase(fixedQuery, P5_FIXED, [A_TENANT], A_TENANT) : null;
+const p6 = fixedQuery ? await runCase(fixedQuery, P6_PREFIX, [], A_TENANT) : null;
+const p7 = fixedQuery ? await runCase(fixedQuery, P7_CART_FIXED, [A_TENANT, 1], A_TENANT) : null;
+probe.cases["P5-inventory-summary-fixed"] = { sql: P5_FIXED, params: [A_TENANT], fixed: p5 };
+probe.cases["P6-inventory-summary-prefix"] = { sql: P6_PREFIX, params: [], fixed: p6 };
+probe.cases["P7-cart-list-fixed"] = { sql: P7_CART_FIXED, params: [A_TENANT, 1], fixed: p7 };
+const sumAmountRows = (r) => (r?.ok ? (r.rows ?? []).reduce((s, x) => s + Number(x.totalAmount ?? 0), 0) : null);
+check(
+  "[7a] 第二家族（库存汇总）：补显式谓词后 ⇒ 无 1052、且金额 = 仅 A 侧真值",
+  baseQuery && fixedQuery ? p5?.ok === true && Number(sumAmountRows(p5)) === Number(invA.amount) : true,
+  { 读数: sumAmountRows(p5), A真值: invA.amount, A_B真值: invAll.amount, err: p5?.ok ? null : p5 },
+  !baseQuery || !fixedQuery
+);
+check(
+  "[7b] 第二家族（库存汇总）：同一句**摘掉**显式谓词 ⇒ 注入 ⇒ 1052 歧义（证明这批修复是承重的）",
+  baseQuery && fixedQuery ? p6?.ok === false && p6?.errno === 1052 : true,
+  { err: p6?.ok ? "未报错（意外）" : { errno: p6?.errno, code: p6?.code, msg: p6?.msg } },
+  !baseQuery || !fixedQuery
+);
+check(
+  "[7c] 第二家族（购物车明细）：补显式谓词后 ⇒ 无 1052（空表返回空数组）",
+  baseQuery && fixedQuery ? p7?.ok === true && Array.isArray(p7.rows) : true,
+  { rows: p7?.ok ? p7.rows.length : null, err: p7?.ok ? null : p7 },
+  !baseQuery || !fixedQuery
+);
+saveRaw("41-second-family-probe.json", { P5: p5, P6: p6, P7: p7 });
+
 const summary = {
   generatedAt: new Date().toISOString(),
   repo: REPO,

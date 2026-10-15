@@ -246,9 +246,12 @@ export async function getCartList(tenantId: string, customerId: number, customer
      JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
      JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
      LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = 1 AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
-     WHERE c.customer_id = ?
+     WHERE c.tenant_id = ?
+       AND c.customer_id = ?
      ORDER BY c.added_at DESC`,
-    [customerId],
+    // S3-207：JOIN 里全是"列对列"的 tenant_id 等值 ⇒ 旧判据（子串含 tenant_id 即跳过注入）让整句**没有租户过滤**。
+    // 现在显式声明租户谓词（5 张表都有 tenant_id 列，靠自动注入会 1052 歧义 500）。
+    [tenantId, customerId],
     tenantId
   );
   const items: CartListDisplayItem[] = rows.map((row) => {
@@ -274,8 +277,9 @@ export async function getCartList(tenantId: string, customerId: number, customer
 
 export async function addToCart(tenantId: string, customerId: number, skuId: number, quantity: number) {
   const sku = await queryOneWithTenant<CartSkuRow>(
-    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
-    [skuId],
+    // S3-207：同 getCartList —— 原句只有列对列等值（旧判据短路 ⇒ 无租户过滤），显式补谓词
+    `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.tenant_id = ? AND s.id = ? AND p.status = 'ON_SALE'`,
+    [tenantId, skuId],
     tenantId
   );
   if (!sku) {
@@ -380,8 +384,9 @@ export async function checkoutPreview(params: {
        JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
        JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
        LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
-       WHERE c.customer_id = ? AND c.sku_id IN (${placeholders})`,
-      [storeId, customerId, ...skuIds],
+       WHERE c.tenant_id = ? AND c.customer_id = ? AND c.sku_id IN (${placeholders})`,
+      // S3-207：补显式租户谓词（占位符顺序 = JOIN 里的 storeId → WHERE 的 tenantId → customerId → skuIds）
+      [storeId, tenantId, customerId, ...skuIds],
       tenantId
     );
   } else {
@@ -395,8 +400,9 @@ export async function checkoutPreview(params: {
        JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
        JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
        LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.store_id = ? AND ib.stock_type = 'ONLINE' AND ib.tenant_id = c.tenant_id
-       WHERE c.customer_id = ?`,
-      [storeId, customerId],
+       WHERE c.tenant_id = ? AND c.customer_id = ?`,
+      // S3-207：补显式租户谓词（占位符顺序 = JOIN 里的 storeId → WHERE 的 tenantId → customerId）
+      [storeId, tenantId, customerId],
       tenantId
     );
   }
