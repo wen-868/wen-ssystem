@@ -35,16 +35,21 @@
 | 单号 | 状态 | 卡片 | 工作树 / 分支 |
 |:--|:--|:--|:--|
 | **S3-230**（派生：前端权限门单，解锁 B 类） | 🟡 **验收通过 · 待合并**（`s3234` 已交付；PR **#356** 开、e2e/migration-check/CodeQL 绿、`build-and-test` 跑中）—— ⛔ **受"部署红"阻断，暂不合并**（见下方 ⛔ 行） | `docs/tasks/inbox/ACTIVE-S3-230.md` | `wt-agents/S3-230`｜`feat/s3-230-mobile-permission-gates`（**已在 origin**，尖端 `16450997`） |
-| **S3-231**（收尾批四小项） | 🔄 在办（`s3237`，接手 `s3235`） | `docs/tasks/inbox/ACTIVE-S3-231.md` | `wt-agents/S3-231`｜`chore/s3-231-followups` |
+| **S3-231**（收尾批四小项） | ✅ **凌舟验收通过 · 已合并**（`s3237` 交付；凌舟 rebase→亲跑→推分支→**PR #358** squash 合并。验收读数：`guard-rbac-wiring --strict` EXIT=0（**371**/0/0）、RBAC **14 文件 / 1904 用例**全绿、`tsc` 0、反测摘门即红并逐字节复原。裁定四项见 `docs/tasks/cards/R101-S3-231-凌舟验收与裁定.md`） | `docs/tasks/inbox/ACTIVE-S3-231.md` → 已归档 `archive/ACTIVE-S3-231-20261016.md` | `wt-agents/S3-231`｜`chore/s3-231-followups`（已推 origin） |
 > ⚠️ **F3 基线**：入口门文件只在 S3-230 分支上（已合并为 `3b94f432`）⇒ S3-231 开工请先 `git fetch origin` 并把 F3 的基线取到 **`origin/main`（含 #356）**，不要再基于旧基线。
-| **S3-232**（立码第一批：D6） | 🔄 在办（`s3236`） | `docs/tasks/inbox/ACTIVE-S3-232.md` | `wt-agents/S3-232`｜`feat/s3-232-new-codes-batch1` |
+| **S3-232**（立码第一批：D6） | ✅ **已合并**（**PR #357** → main `4cf332fc`；迁移 204 已由凌舟在生产补跑并复核：店长权限串 11 项 + 14 码 × 3 租户 = 42 行、重复 0） | `docs/tasks/inbox/ACTIVE-S3-232.md` | `wt-agents/S3-232`｜`feat/s3-232-new-codes-batch1` |
 | **S3-233**（B 类收编第一批） | 🔄 在办（`s3238`） | `docs/tasks/inbox/ACTIVE-S3-233.md` | `wt-agents/S3-233`｜`feat/s3-233-bclass-wiring-batch1` |
 | **S3-234**（迁移流水线收口：第 73/74 项） | 🔄 在办（`s3239`） | `docs/tasks/inbox/ACTIVE-S3-234.md` | `wt-agents/S3-234`｜`chore/s3-234-migration-pipeline` |
 
 > ⛔ **2026-10-16 09:57 凌舟 · 部署红阻断（P0，未解）**：`deploy.yml` 自 10-15 23:14Z 起**连续 5 次 failure**（最近 run `38836621249`，对应 #355）。根因**不在本仓**：跨仓 `wen-868/ZXQL-AI` 的迁移 `migrations/022_ai_notice.sql`（origin main `2f250b76`，2026-10-15 22:51Z 推入）建了 `KEY idx_ai_notice_receiver (tenant_id, receiver)`，而 `receiver VARCHAR(1000)`（utf8mb4）⇒ 索引键 `(36+1000)×4 = 4144 字节 > 3072`，MySQL 报 **ERROR 1071 Specified key was too long**，AI 底座迁移失败并**阻断 AI 底座部署**（主后端/前端仍部署成功、冒烟只读档 30 项通过）。
-> ⇒ 按《工作区入口 AGENTS.md》★部署串行规则 6「等 Auto Deploy 绿了再合下一个」，**在部署转绿前不得再合并任何会触发部署的 PR**（#356 因此挂起）；文档类提交不受影响（`deploy.yml` 的 `paths-ignore` 已含 `docs/**`、`**.md`）。
+> ✅ **2026-10-16 11:0x 凌舟更新（阻断范围收窄，已放行 MS 侧）**：`better-sqlite3` / `pnpm install` / `pnpm build` 三项**已由 AI 线解除**（部署日志实测：`pnpm install` → `pnpm build` 均通过，迁移段跑到 022 才失败）⇒ 旧注解「node-gyp 编不了」**不再成立**。**当前唯一失败项 = 022 索引超长**（`ERROR 1071`：`(36+1000)×4 = 4144 > 3072`），属跨仓 AI 段落。按派单规范 **§9.3**（失败项仅来自跨仓 AI 段落 + MS 侧全绿 ⇒ MS 可继续合并），**MS 侧 PR 恢复合并**；**一旦出现 MS 侧失败项立即停**。修法三选一见《当前批次.md》§附：AI 线 R101-AI-36~40 收口。
 > ⇒ 定性、影响面、修法与"待定点"见 `docs/tasks/cards/R101-部署红-022_ai_notice迁移根因-凌舟-20261016.md`。
 > ⚠️ 已收口（本表移除在办行的依据）：**S3-223 #349 / S3-224 #350 / S3-225 #351 / S3-226 #352 / S3-227 #353 / S3-229 #355 均已合并**（见 §二）。
+> 🟡 **2026-10-16 10:5x 执行方报备（`/root/s3237_ajian`，S3-231）**：收尾批四小项**已交付**（**未 push/未开 PR**，按红线只落本地分支）——
+>   F1 会员等级 4 条改挂 `customer:level`（缺口 378→374，店长零回归，反测双侧红）；F2 平台侧 2 条只登记不接线（平台台账 §六 + 缺口清单 §18.4）；
+>   F3 入口门改失败关闭（26 gated 逐条登记 + 改码反测；`vue-tsc` 0 新增、`uni build -p h5` EXIT=0）；F4 7 条查询型 POST 逐条裁定（4 可登记 / 3 留 gaps）。
+>   终态：`guard-rbac-wiring --strict` **EXIT=0**（gaps 371 / 未登记 0）、全量 vitest **679 文件 / 9529 用例 / 0 failed**、`tsc` 0、backend/app-mobile 双端 build EXIT=0。
+>   ⚠️ **请凌舟处置**：① 本行状态已就地改为"已交付·待验收"，**未删除任何他人的在办行**（S3-232/`s3236` 行原样未动）；② `inbox/ACTIVE.md` 原件**未删**（按"路由文件只追加"纪律，只加本注 + 改自己那一行），归档件 `archive/ACTIVE-S3-231-20261016.md` 已留；③ 待裁定 4 项见回传卡 §九。
 > ⚠️ **授权模型已定**：`docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`（**不变量 I1**：凡**在用**角色能看到的页面，必须持有该端点所用码）。
 > ⚠️ **生产事实优先用共用底稿**：`docs/evidence/_shared/`（角色×权限码 / 角色×菜单 / 角色×账号使用）—— **不要再各自跑生产**。
 
