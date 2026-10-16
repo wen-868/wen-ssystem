@@ -643,6 +643,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
         endpoints: number;
         consumerEndFiles: number;
         consumerEndEndpoints: number;
+        readOnlyPostEndpoints: number;
         wiredEndpoints: number;
         scannedEndpoints: number;
         wiredPermOccurrences: number;
@@ -656,9 +657,13 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
     //        ± 被 `router.use(scope, requirePermission())` 一次覆盖多个写端点的差额（当前为 0）。
     //    逐文件对照见 docs/evidence/S3-227/10-metric-diff.txt（255 − 226 = 29 = 32 − 3 + 0）。
     expect(total).toBe(ledger._counts.wiredPermOccurrences);
-    // ③ 台账自洽：各类写端点之和 == 扫描总数（缺口 + 消费者端保护形态 + 已接线）⇒ 台账不能被单侧改动。
+    // ③ 台账自洽：各类写端点之和 == 扫描总数（缺口 + 消费者端保护形态 + 查询型 POST 登记 + 已接线）
+    //    ⇒ 台账不能被单侧改动（S3-227 C 起含 `readOnlyPostEndpoints`）。
     expect(
-      ledger._counts.endpoints + ledger._counts.consumerEndEndpoints + ledger._counts.wiredEndpoints
+      ledger._counts.endpoints +
+        ledger._counts.consumerEndEndpoints +
+        ledger._counts.readOnlyPostEndpoints +
+        ledger._counts.wiredEndpoints
     ).toBe(ledger._counts.scannedEndpoints);
 
     const expected = new Map<string, number>();

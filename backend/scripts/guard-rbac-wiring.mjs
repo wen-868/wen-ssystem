@@ -45,6 +45,14 @@
  *          声明式形态**不享受** `consumerEnd`，端点保守落回 `gaps`（宁可多记，不可漏记）。
  *   · `routeConfig` 声明式（auth: requireAuthWithTenant / requirePlatformAuth / none）**不携带权限码**
  *     ⇒ 只挂认证的写端点一律记「无权限检查」。这是**有意的**：认证≠授权。
+ *   · **查询型 POST（S3-227 C，2026-10-16）**：`preview` / `best-price` / `check` 这类**不改数据**的 POST
+ *     被 method 当成写端点、计入缺口与「需接线」，会污染台账（批 3 / 批 6 / 批 7 各自手工对账）。本脚本
+ *     因此提供**显式登记表** `READ_ONLY_POSTS`（路径 + 理由 + 归属单）：命中者**不计入 `gaps`**、但**逐条打印**。
+ *     ⚠️ 判据本身没有任何"自动判断改不改数据"的能力（静态扫描不可能判断业务语义）⇒ 本表是**人工裁定清单**，
+ *     三道闸门防止它变成"登记即洗绿"：① 每条必须给 `reason` + `ruling`（归属单 + 裁定依据）+ `batch`；
+ *     ② 每条路径必须能在**人读台账** `docs/tasks/R101-RBAC接线缺口清单.md` 里找到**同一行含「查询型」**的判定
+ *     （把登记锚在人工裁定上，脚本里单方面写一行**不生效**）；③ 缺任一 ⇒ 该条**不作为可登记项**（端点回落到
+ *     `gaps`，`--strict` 随即因"未登记"判红）——即"拒绝登记"是自动后果，不靠人自觉。
  *   · 注释行 / import 行不算（踩坑[134]：注释里的 `requirePermission(` 不是调用）。
  *
  * 已知边界（写在明处，不藏着）：
@@ -159,11 +167,12 @@ const DECLARATIVE_CONSUMER_AUTHS = (() => {
  * ⑥ 本脚本**不提供**「跑一下就自动登记」的写入开关：台账只能由人审阅缺口清单后落盘，
  *    否则新缺口会被"重新生成台账"这一动作静默洗绿。
  *
- * 写端点三分（S3-205 起，键 = 文件，值 = `["METHOD 完整路径", ...]`，**按端点路径匹配，不按行号**）：
+ * 写端点四分（S3-227 C 起，键 = 文件，值 = `["METHOD 完整路径", ...]`，**按端点路径匹配，不按行号**）：
  * ① `gaps`        = 无授权形态的**真缺口**（认证≠授权）⇒ 登记只表示「已盘点、待后续批次接线」；
  * ② `consumerEnd` = **消费者端保护形态**（`requireConsumerAuthWithTenant` + `csrfMiddleware` 成对）
  *                   ⇒ 按 2026-10-15 凌舟裁定**不适用商家权限码**，故**不计入缺口**，但必须逐条登记；
  * ③ 挂了 `requirePermission` / `requirePlatformPermission` 的端点**不入台账**（已接线）。
+ * ④ 已裁定的**查询型 POST** ⇒ 登记在**本脚本**的 `READ_ONLY_POSTS`（不写进 baseline），同样不计入缺口、逐条打印。
  */
 const BASELINE_PATH = join(HERE, "rbac-wiring-baseline.json");
 const REGISTERED_GAPS = new Set();
@@ -180,6 +189,83 @@ if (existsSync(BASELINE_PATH)) {
     for (const item of list) REGISTERED_CONSUMER.add(`${file}|${item}`);
   }
 }
+
+/**
+ * ── S3-227 C：查询型 POST（不改数据）的显式登记表 ──────────────────────────────
+ *
+ * 只登记**已裁定**的查询型端点（判据与三道闸门见文件头「查询型 POST」一节）。**新增一条 = 改裁定面**，
+ * 必须同时：① 在人读台账 `docs/tasks/R101-RBAC接线缺口清单.md` 写出含「查询型」的判定行（同一行含该路径）；
+ * ② 在本表逐条写明 reason / ruling / batch。缺任一 ⇒ 该条被拒（端点回落 gaps，`--strict` 判红）。
+ */
+const LEDGER_PATH = resolve(HERE, "..", "..", "docs", "tasks", "R101-RBAC接线缺口清单.md");
+const READ_ONLY_POSTS = [
+  {
+    path: "/api/admin/prices/best-price",
+    method: "POST",
+    batch: "S3-220",
+    reason:
+      "价格试算（只读查询）：输入取价条件、返回试算结果，不落库；全仓无页面调用点（api/sale.ts:111 calcBestPrice 未被使用）",
+    ruling:
+      "docs/tasks/R101-RBAC接线缺口清单.md §十二.6 P 类 #1（`rbac-g0-wiring.test.ts` 已锁为「查询型 POST（待裁定）」）；本单处置=不接",
+  },
+  {
+    path: "/api/admin/quote-push/preview",
+    method: "POST",
+    batch: "S3-224",
+    reason: "报价推送**预览**：只计算推送内容与命中名单，不改数据",
+    ruling:
+      "§十四.6 Q 类（S3-224 派单卡 §二.3「查询型 POST 不按写端点接」；同批 3 §十二.6 P 类同款判定）",
+  },
+  {
+    path: "/api/admin/data-permissions/users/:userId/check",
+    method: "POST",
+    batch: "S3-225",
+    reason: "数据权限**判定**（只读）：返回该用户在某数据权限下的命中判定，不写库",
+    ruling: "§十五 ④（S3-225 派单卡 §二.4「只读判定，不按写端点接」）",
+  },
+];
+
+/** 人读台账按行缓存（缺失 ⇒ 一切登记项都无法核对 ⇒ 一律拒收，宁可留缺口） */
+const LEDGER_LINES = (() => {
+  try {
+    return readFileSync(LEDGER_PATH, "utf8").split(/\r?\n/);
+  } catch {
+    return null;
+  }
+})();
+
+/**
+ * 逐条校验登记项 → `{ index, problems }`。
+ * `index` 只收**完全通过**的条目（键 = `METHOD path`）；`problems` 逐条说明为什么拒收。
+ */
+function buildReadOnlyIndex(entries) {
+  const index = new Map();
+  const problems = [];
+  const seen = new Set();
+  for (const e of entries) {
+    const method = (e.method ?? "POST").toUpperCase();
+    const id = `${method} ${e.path ?? "?"}`;
+    const bad = [];
+    if (typeof e.path !== "string" || !e.path.startsWith("/")) bad.push("path 缺失或非法（须为 / 开头的完整路径）");
+    if (!e.reason) bad.push("缺少 reason（不写理由 ⇒ 拒绝登记）");
+    if (!e.ruling) bad.push("缺少 ruling（无裁定依据 ⇒ 拒绝登记）");
+    if (!e.batch) bad.push("缺少 batch（无归属单 ⇒ 拒绝登记）");
+    if (seen.has(id)) bad.push("重复登记");
+    seen.add(id);
+    if (typeof e.path === "string" && e.path.startsWith("/")) {
+      if (!LEDGER_LINES) {
+        bad.push(`人读台账不可读（${LEDGER_PATH} 缺失）⇒ 无法核对裁定，拒收`);
+      } else if (!LEDGER_LINES.some((l) => l.includes(e.path) && l.includes("查询型"))) {
+        bad.push("人读台账里找不到「同一行同时含该路径 + 『查询型』」的判定 ⇒ 拒收（登记必须先有人工裁定）");
+      }
+    }
+    if (bad.length > 0) problems.push({ id, detail: bad.join("；") });
+    else index.set(id, e);
+  }
+  return { index, problems };
+}
+
+const READ_ONLY = buildReadOnlyIndex(READ_ONLY_POSTS);
 
 /**
  * 租户角色 → 权限串（仓库种子口径，作为 `matchPermission` 的输入）。
@@ -533,6 +619,22 @@ for (const f of files) {
   all.push(...scanFile(f, src, declaredAuth));
 }
 
+/**
+ * S3-227 C：把**已登记**的查询型 POST 改为 `read-only` 分类（不计入 `gaps`）。
+ * 只对"当前判据判为 `none`（无授权形态）"的 POST 生效：一旦某条已被挂了权限码或被判为消费者端形态，
+ * 本登记**不覆盖**既有分类（下面按"已覆盖/未命中"逐条提示，避免登记项变成隐形免检牌）。
+ */
+for (const r of all) {
+  if (r.authForm !== "none" || r.method !== "POST") continue;
+  const hit = READ_ONLY.index.get(`${r.method} ${r.path}`);
+  if (!hit) continue;
+  r.authForm = "read-only";
+  r.readOnly = hit;
+  // `hasPermission` 的语义 = "该写端点是否挂了授权/保护形态"；查询型 POST 不属写端点语义 ⇒ 记 false
+  // （⚠️ 判定缺口**只看** `authForm === "none"`，不要把 hasPermission=false 读成缺口）
+  r.hasPermission = false;
+}
+
 if (JSON_MODE) {
   console.log(
     JSON.stringify(
@@ -553,14 +655,17 @@ if (JSON_MODE) {
 
 const gaps = all.filter((r) => r.authForm === "none");
 const consumerEndpoints = all.filter((r) => r.authForm === "consumer");
+const readOnlyPosts = all.filter((r) => r.authForm === "read-only");
 const wired = all.filter((r) => r.authForm === "inline" || r.authForm === "use-mount");
 const gapFiles = [...new Set(gaps.map((r) => r.file))].sort();
 const consumerFiles = [...new Set(consumerEndpoints.map((r) => r.file))].sort();
+const readOnlyFiles = [...new Set(readOnlyPosts.map((r) => r.file))].sort();
 const unknownPrefix = all.filter((r) => r.prefix === "?" || r.routePath === "?").map((r) => `${r.file}:${r.line}`);
 
 console.log(`[guard:rbac-wiring] 扫描 ${files.length} 个路由文件 · ${all.length} 个写端点`);
 console.log(
   `[guard:rbac-wiring] 已接线（权限码）${wired.length} 处 ／ 消费者端保护形态 ${consumerEndpoints.length} 处` +
+    ` ／ 查询型 POST（已登记）${readOnlyPosts.length} 处` +
     ` ／ **无授权形态 ${gaps.length} 处**（分布在 ${gapFiles.length} 个文件）`
 );
 const declarativeValueSummary = [...declarativeAuthValueCounts]
@@ -597,6 +702,33 @@ for (const f of consumerFiles) {
   console.log(`\n${f}  (${rows.length} 处)`);
   for (const r of rows)
     console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 消费者端保护形态（${r.consumerVia ?? "?"}）`);
+}
+
+console.log(
+  `\n—— 查询型 POST（S3-227 C：READ_ONLY_POSTS 显式登记；不计入 gaps，逐条给出理由与裁定依据）——`
+);
+if (READ_ONLY.index.size === 0) console.log("   （0 条登记）");
+for (const f of readOnlyFiles) {
+  const rows = readOnlyPosts.filter((r) => r.file === f);
+  console.log(`\n${f}  (${rows.length} 处)`);
+  for (const r of rows) {
+    console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 查询型 POST（不改数据，非写端点缺口）`);
+    console.log(`        归属单：${r.readOnly.batch}｜理由：${r.readOnly.reason}`);
+    console.log(`        裁定：${r.readOnly.ruling}`);
+  }
+}
+const readOnlyMatched = new Set(readOnlyPosts.map((r) => `${r.method} ${r.path}`));
+for (const [key] of READ_ONLY.index) {
+  if (readOnlyMatched.has(key)) continue;
+  const other = all.find((r) => `${r.method} ${r.path}` === key);
+  console.log(
+    other
+      ? `   ⚠️ 登记未生效：${key}（当前分类 = ${other.authForm} ⇒ 已被权限码/消费者端等更明确的形态覆盖，登记项不参与分类）`
+      : `   ⚠️ 登记未命中：${key}（本次扫描没有该 METHOD+路径 ⇒ 路径形态可能已变或端点已删除，请核对）`
+  );
+}
+for (const p of READ_ONLY.problems) {
+  console.log(`   ❌ 登记被拒：${p.id} ⇒ ${p.detail}（该条**不生效**，端点照旧按无授权形态记缺口）`);
 }
 
 if (unknownPrefix.length > 0) {
