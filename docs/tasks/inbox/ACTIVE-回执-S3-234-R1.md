@@ -19,9 +19,9 @@
 | 部署脚本：迁移段查表定性 + 失败汇总段把新失败并入 `FAILURES` | `deploy/auto-deploy.sh` | 改 | `7c662711` |
 | 门禁 v2（五判据：正/反/合规唯一归属/行序/登记册存在性） | `backend/scripts/guard-migration-manifest.mjs` | 改 | `7c662711` |
 | 证据装置：迁移段+汇总段**同进程**运行器 v2 / 门禁反测 v2（七例）/ **新增**阻断两侧反测 | `docs/evidence/S3-234/harness/run-deploy-migration-section.sh`、`run-guard-redtest.ps1`、`run-deploy-section-blocking-redtest.sh` | 改 / 改 / **新增** | `7c662711` |
-| 三分类花名册装置（逐条 204 行 + 守恒断言） | `docs/evidence/S3-234/harness/dump-three-channel-roster.mjs` | **新增** | 第三笔（本回执所在提交） |
-| 证据索引与原始输出 | `docs/evidence/S3-234/README.md`、`raw/70~75、78~80*` | 改 / 新增 | `cf89d809` + 第三笔 |
-| 回传卡 §十一 + 本回执 | `docs/tasks/cards/R101-S3-234-阿坚-回传.md`、`docs/tasks/inbox/ACTIVE-回执-S3-234-R1.md` | 改 / 新增 | 第三笔 |
+| 三分类花名册装置（逐条 204 行 + 守恒断言） | `docs/evidence/S3-234/harness/dump-three-channel-roster.mjs` | **新增** | `29f813cf` |
+| 证据索引与原始输出 | `docs/evidence/S3-234/README.md`、`raw/70~75、78~80*` | 改 / 新增 | `cf89d809` + `29f813cf` |
+| 回传卡 §十一 + 本回执 | `docs/tasks/cards/R101-S3-234-阿坚-回传.md`、`docs/tasks/inbox/ACTIVE-回执-S3-234-R1.md` | 改 / 新增 | `29f813cf`（提交哈希回填见其后的补记提交） |
 
 **制品 SHA256（当前工作副本读数）**：
 
