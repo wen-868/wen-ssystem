@@ -13,17 +13,24 @@
 | 基线（其父链含） | `63ee9775`（派单卡指定基线）＋ `d0062d00`（merge origin/main） |
 | 工作树 | `D:\Users\ZXQL\wt-agents\S3-229`（`git status --porcelain` = 空） |
 
-**三种取得方式（任选其一，内容等价）**：
+**取得方式（任选其一，内容等价）** —— 清单与 SHA256 见 `06-bundle-verify.txt`：
 
-1. **远端分支**（未执行，待授权 —— 派单卡红线「不得 push」）：
-   `git fetch origin feat/s3-229-store-and-marketing-wiring && git rev-parse FETCH_HEAD`
-2. **自包含 bundle**（已生成、已端到端验证；含完整历史，约 95 MB）：
-   `D:\Users\ZXQL\agents-logs\S3-229-ref-ebbc15e3.bundle`
-3. **瘦 bundle**（已生成；**前提** = 验收方已有 `63ee9775`，即 main 上的基线提交，体积 ~KB 级）：
-   `D:\Users\ZXQL\agents-logs\S3-229-ref-ebbc15e3-thin.bundle`
+| 方式 | 位置 / 命令 | 大小 | 状态 |
+|:--|:--|--:|:--|
+| ① 远端分支 | `git fetch origin feat/s3-229-store-and-marketing-wiring` | — | ⚠️ **未执行**（派单卡红线「不得 push」；一句话授权我立即推） |
+| ② 自包含 bundle（尖端 `c847c383`，含 S3-231 证据） | `D:\Users\ZXQL\agents-logs\S3-229-ref-c847c383.bundle` | 94,600,002 B | ✅ 已端到端验证 |
+| ③ 自包含 bundle（代码 ref `ebbc15e3`） | `D:\Users\ZXQL\agents-logs\S3-229-ref-ebbc15e3.bundle` | 94,676,330 B | ✅ 已端到端验证（`05-ref-verify.txt`） |
+| ④ 瘦 bundle（前提＝已有基线 `63ee9775`） | `D:\Users\ZXQL\agents-logs\S3-229-ref-c847c383-thin.bundle` | 450,469 B | ✅ 已端到端验证 |
 
-> 说明：bundle 是由**代码 ref `ebbc15e3`** 生成的；`ebbc15e3` 之后的提交只追加本单的**文档/证据**（S3-231 paperwork），
-> **代码文件一个字节都没变**（可用下表的 blob 哈希复核 —— blob 哈希是内容寻址的，任何时刻都指向同一份内容）。
+取用示例（②或④）：
+```bash
+git init /tmp/s3229 && cd /tmp/s3229
+git fetch "D:/Users/ZXQL/agents-logs/S3-229-ref-c847c383.bundle" "refs/heads/feat/s3-229-store-and-marketing-wiring:refs/heads/verify"
+git checkout verify && git rev-parse HEAD     # 期望 c847c38318d4328d6e97a471ec78ab4cd069d4af
+```
+
+> 说明：`ebbc15e3` 是**代码 ref**（其后只有 S3-231 的文档/证据提交）；两个 ref 的
+> **代码文件 blob 完全相同**（下表哈希在两者上一致 —— blob 是内容寻址的，任何时刻都指向同一份内容）。
 
 ## 二、逐文件 blob 哈希（验收方与自己的副本逐字比对即可确认"同一份代码"）
 
