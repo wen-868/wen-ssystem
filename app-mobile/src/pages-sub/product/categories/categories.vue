@@ -40,10 +40,11 @@
             <text class="node-sort" v-if="node.sortNo != null">序{{ node.sortNo }}</text>
           </view>
           <view class="node-actions">
-            <text class="action-text edit" @tap.stop="goEdit(node.id)">编辑</text>
-            <text class="action-text sort" @tap.stop="goSort(node)">排序</text>
-            <text class="action-text add-sub" v-if="node.level < 2" @tap.stop="goAddSub(node.id)">添加子级</text>
-            <text class="action-text delete" @tap.stop="onDelete(node)">删除</text>
+            <!-- S3-230 入口权限门：编辑/排序 → PUT categories/:id(+/sort)（goods:edit）；添加子级 → POST categories/（goods:create）；删除 → DELETE categories/:id（goods:delete） -->
+            <text class="action-text edit" v-if="canEntry('goods-category-edit')" @tap.stop="goEdit(node.id)">编辑</text>
+            <text class="action-text sort" v-if="canEntry('goods-category-edit')" @tap.stop="goSort(node)">排序</text>
+            <text class="action-text add-sub" v-if="node.level < 2 && canEntry('goods-category-create')" @tap.stop="goAddSub(node.id)">添加子级</text>
+            <text class="action-text delete" v-if="canEntry('goods-category-delete')" @tap.stop="onDelete(node)">删除</text>
           </view>
         </view>
       </view>
@@ -56,7 +57,8 @@
       <text class="empty-text">暂无分类数据</text>
     </view>
 
-    <view class="fab-btn" @tap="goAddRoot">
+    <!-- S3-230 入口权限门：新增分类 → POST /api/admin/products/categories/（goods:create） -->
+    <view class="fab-btn" v-if="canEntry('goods-category-create')" @tap="goAddRoot">
       <text class="fab-icon">+</text>
     </view>
   </view>
@@ -67,6 +69,10 @@ function goBack(){ uni.navigateBack() }
 
 import { ref, computed, onMounted } from 'vue'
 import { categoriesApi, type CategoryInfo } from '@/api/modules/categories'
+// S3-230 入口权限门：分类页只门**写动作**（读能力保留 —— 该页菜单在生产授予 7 个角色，其中 6 个不持 goods:*）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 
 interface TreeNode extends CategoryInfo {
   level: number

@@ -102,7 +102,8 @@
           </view>
         </scroll-view>
         <view class="detail-bottom">
-          <button class="btn btn--primary btn--block" @tap="onConfirm">确认对账</button>
+          <!-- S3-230 入口权限门：确认对账 → POST /api/admin/reconciliation/{customer,supplier}/:id/confirm（report:finance） -->
+          <button class="btn btn--primary btn--block" v-if="canEntry('fin-recon-confirm')" @tap="onConfirm">确认对账</button>
         </view>
       </view>
     </view>
@@ -113,6 +114,10 @@
 function goBack(){ uni.navigateBack() }
 
 import { ref, computed } from 'vue'
+// S3-230 入口权限门：「确认对账」按钮按码显隐（注册表 fin-recon-confirm）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 import {
   reconciliationApi,
   type CustomerReconciliationItem,

@@ -73,11 +73,14 @@ import { onShow } from '@dcloudio/uni-app'
 import {
   hotActions,
   dataTools,
+  filterGroupsByPermissionGate,
   filterGroupsByCodes,
+  filterItemsByPermissionGate,
   filterItemsByCodes,
   type FunctionItem,
 } from '@/config/function-menu'
 import { useMenuStore } from '@/stores/menu'
+import { usePermissionGate } from '@/composables/usePermissionGate'
 import {
   AI_BG_SOFT,
   AI_TAB_ACTIVE,
@@ -95,9 +98,20 @@ import {
  */
 const menuStore = useMenuStore()
 const allowedVisibility = computed(() => menuStore.visibility)
-const roleHotActions = computed(() => filterItemsByCodes(hotActions, allowedVisibility.value))
-const roleDataTools = computed(() => filterItemsByCodes(dataTools, allowedVisibility.value))
-const filteredGroups = computed(() => filterGroupsByCodes(allowedVisibility.value))
+/**
+ * 入口权限门（S3-230）：菜单 code 之外的第二道闸（该页写端点用的码，我持有吗）。
+ * 口径与 functions.vue 一致（同一份注册表 config/permission-gates.ts）。
+ */
+const { permissions: userPermissions } = usePermissionGate()
+const roleHotActions = computed(() =>
+  filterItemsByPermissionGate(filterItemsByCodes(hotActions, allowedVisibility.value), userPermissions.value)
+)
+const roleDataTools = computed(() =>
+  filterItemsByPermissionGate(filterItemsByCodes(dataTools, allowedVisibility.value), userPermissions.value)
+)
+const filteredGroups = computed(() =>
+  filterGroupsByPermissionGate(filterGroupsByCodes(allowedVisibility.value), userPermissions.value)
+)
 
 /** 图标配色：按序循环蓝/绿/橙/红软底（沿用原稿观感） */
 const PALETTE = [

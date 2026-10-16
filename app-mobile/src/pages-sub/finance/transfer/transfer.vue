@@ -86,7 +86,8 @@
           <button class="action-btn stock-btn" @tap="handleShip(item)">确认发货</button>
         </view>
         <view class="card-actions" v-else-if="item.status === 'TRANSIT'">
-          <button class="action-btn stock-btn" @tap="handleReceive(item)">确认收货</button>
+          <!-- S3-230 入口权限门：确认收货 → POST /api/store/transfers/:id/receive（码 store:transfer） -->
+          <button class="action-btn stock-btn" v-if="canEntry('fx-transfer-receive')" @tap="handleReceive(item)">确认收货</button>
         </view>
       </view>
       <view class="list-footer" v-if="list.length < total">
@@ -109,6 +110,10 @@ function goBack(){ uni.navigateBack() }
 
 import { ref, reactive, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+// S3-230 入口权限门：「确认收货」按钮按码显隐（注册表 fx-transfer-receive）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 import {
   transferApi,
   TRANSFER_STATUS_LABEL,

@@ -66,7 +66,8 @@
         </view>
       </view>
       <view class="hq-row">
-        <view class="hq-item" @tap="navigateTo('/pages/sales/create-sale')">
+        <!-- S3-230 入口权限门：写调用面 POST /api/store/hold-orders 等，码 sale:create -->
+        <view class="hq-item" v-if="canEntry('sale-create-hold')" @tap="navigateTo('/pages/sales/create-sale')">
           <view class="hq-ico">
             <image class="hq-ico-img" src="/static/icons/fn-open.svg" mode="aspectFit" />
           </view>
@@ -78,7 +79,8 @@
           </view>
           <text class="hq-label">单据管理</text>
         </view>
-        <view class="hq-item" @tap="navigateTo('/pages-sub/finance/purchase/in-stock')">
+        <!-- S3-230 入口权限门：进货入库写调用面 POST /api/admin/purchase-in-stocks，码 inventory:inbound -->
+        <view class="hq-item" v-if="canEntry('home-in-stock')" @tap="navigateTo('/pages-sub/finance/purchase/in-stock')">
           <view class="hq-ico">
             <image class="hq-ico-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
           </view>
@@ -223,6 +225,10 @@ import { inventoryApi } from '@/api/modules/inventory'
 import { productsApi } from '@/api/modules/products'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 import { COLOR_PRIMARY, COLOR_WHITE, COLOR_WARNING, COLOR_ERROR, COLOR_BLACK_03 } from '@/constants/colors'
+// S3-230 入口权限门：快捷入口按"该端点将使用的码"显隐（注册表见 config/permission-gates.ts）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 
 interface DashboardData {
   todaySales: number
