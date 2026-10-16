@@ -6,6 +6,18 @@ export async function adminLogin(username: string, password: string) {
 }
 
 /**
+ * 当前登录用户（S3-240）
+ *
+ * 返回体含 `permissions`（与 `t_sys_role.permissions` 同源，`backend/src/services/admin/auth.service.ts:252`）。
+ * 用途：登录态本地缓存里没有权限串时补拉一次，供工作台**按钮级权限门**按码显隐
+ * （`stores/app.ts#ensurePermissions`）。
+ */
+export async function fetchCurrentUser() {
+  const { data } = await api.get("/admin/auth/me");
+  return data.data;
+}
+
+/**
  * 演示账号凭据（唯一出处，禁止在其它业务代码里再写演示账号字面量）。
  * 构建期可用 VITE_DEMO_ACCOUNT / VITE_DEMO_PASSWORD 覆盖；未配置时回退默认 admin / admin@2026。
  * 口令合规：≥8 位 + 字母 + 数字 + 特殊字符（满足 backend/src/shared/password.ts 的校验口径）。

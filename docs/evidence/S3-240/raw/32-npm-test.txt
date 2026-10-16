@@ -1,0 +1,69 @@
+
+> admin-web@0.1.0 test
+> node tests/role-guard.spec.mjs && node tests/landing.spec.mjs && node tests/permission-gates.spec.mjs
+
+守卫判定行 → 322:   if (allowedRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
+
+PASS  用例一 命中 meta.roles ⇒ 放行  ← 落点=/quick-entries 拒绝提示=0
+PASS  用例二 有角色但不命中 ⇒ 拒绝并跳既有落点  ← 落点=/dashboard 拒绝提示=1
+PASS  用例三 空角色 ⇒ 拒绝（fail-closed）  ← 落点=/login 拒绝提示=1 导航中止=false
+
+小结：3 passed / 0 failed
+守卫判定/落地块 →
+  322:   if (allowedRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
+  327:     const landing = resolveLandingPath(userRoles, auth.user?.defaultHomepage, routes);
+
+PASS  真值表 [SUPER_ADMIN] homepage=空 ⇒ /dashboard  ← 无配置 → /dashboard 可访问；落点=/dashboard
+PASS  真值表 [SUPER_ADMIN] homepage=/quick-entries ⇒ /quick-entries  ← 配置存在且可访问；落点=/quick-entries
+PASS  真值表 [SUPER_ADMIN] homepage=/dashboard ⇒ /dashboard  ← 配置存在且可访问；落点=/dashboard
+PASS  真值表 [SUPER_ADMIN] homepage=/no-such-page ⇒ /dashboard  ← 配置的路径不存在 → 跳过；落点=/dashboard
+PASS  真值表 [STORE_MANAGER] homepage=空 ⇒ /dashboard  ← 既有落点不变；落点=/dashboard
+PASS  真值表 [STORE_MANAGER] homepage=/quick-entries ⇒ /dashboard  ← 配置存在但角色不可访问 → 跳过；落点=/dashboard
+PASS  真值表 [STORE_MANAGER] homepage=/pos/dashboard ⇒ /pos/dashboard  ← 配置存在且可访问；落点=/pos/dashboard
+PASS  真值表 [STORE_OPERATOR] homepage=空 ⇒ /pos/dashboard  ← 不可访问 /dashboard → POS 映射；落点=/pos/dashboard
+PASS  真值表 [STORE_OPERATOR] homepage=/pos/cashier ⇒ /pos/cashier  ← 配置存在且可访问；落点=/pos/cashier
+PASS  真值表 [STORE_OPERATOR] homepage=/dashboard ⇒ /pos/dashboard  ← 配置存在但不可访问 → 跳过；落点=/pos/dashboard
+PASS  真值表 [READONLY] homepage=空 ⇒ /login  ← 无可用页 → /login；落点=/login
+PASS  真值表 [READONLY] homepage=/dashboard ⇒ /login  ← 配置存在但不可访问、无 POS 映射；落点=/login
+PASS  真值表 [FINANCE_ADMIN] homepage=/products/review-tasks ⇒ /products/review-tasks  ← 配置存在且可访问；落点=/products/review-tasks
+PASS  真值表 [FINANCE_ADMIN] homepage=空 ⇒ /login  ← 无可用页 → /login；落点=/login
+PASS  真值表 [空角色] homepage=空 ⇒ /login  ← 空角色 → /login（fail-closed）；落点=/login
+PASS  真值表 [空角色] homepage=/dashboard ⇒ /login  ← 空角色、配置不可访问 → /login；落点=/login
+PASS  真值表 [STORE_MANAGER] homepage=/ ⇒ /dashboard  ← 纯重定向路由 / 不作为落地（否则再跳一次 /dashboard）；落点=/dashboard
+PASS  真值表 [READONLY] homepage=/ ⇒ /login  ← 纯重定向路由 + 无可用页 → /login；落点=/login
+PASS  环消除 [空角色] 被拒目标=/dashboard ⇒ /login  ← 空角色的旧行为=循环 30 次后中止；落点=/login 拒绝提示=1 infinite 告警=0
+PASS  环消除 [空角色] 被拒目标=/quick-entries ⇒ /login  ← 空角色被拒；落点=/login 拒绝提示=1 infinite 告警=0
+PASS  环消除 [READONLY] 被拒目标=/dashboard ⇒ /login  ← READONLY 无 /dashboard 权限；落点=/login 拒绝提示=1 infinite 告警=0
+PASS  环消除 [STORE_OPERATOR] 被拒目标=/dashboard ⇒ /pos/dashboard  ← POS 角色改落 /pos/dashboard；落点=/pos/dashboard 拒绝提示=1 infinite 告警=0
+PASS  环消除 [STORE_OPERATOR] 被拒目标=/quick-entries ⇒ /pos/dashboard  ← POS 角色改落 /pos/dashboard；落点=/pos/dashboard 拒绝提示=1 infinite 告警=0
+PASS  环消除 [STORE_MANAGER] 被拒目标=/quick-entries ⇒ /dashboard  ← 既有拒绝落点不变；落点=/dashboard 拒绝提示=1 infinite 告警=0
+PASS  环消除 [SUPER_ADMIN] 被拒目标=/quick-entries ⇒ /quick-entries  ← 命中即放行；落点=/quick-entries 拒绝提示=0 infinite 告警=0
+PASS  默认首页（default_homepage）优先于既有兜底  ← 落点=/pos/sale-bills
+PASS  守卫链路：配置的 default_homepage 生效（STORE_OPERATOR ⇒ /pos/sale-bills）  ← 落点=/pos/sale-bills 拒绝提示=1 infinite 告警=0
+PASS  守卫链路：配置的 default_homepage 不可访问 ⇒ 回落 /pos/dashboard  ← 落点=/pos/dashboard 拒绝提示=1 infinite 告警=0
+PASS  登录落地链 [STORE_OPERATOR] ⇒ /pos/dashboard（1 跳、0 提示）  ← 落点=/pos/dashboard 提示=0 infinite 告警=0
+PASS  登录落地链 [READONLY] ⇒ 停在 /login（清会话、不循环）  ← 落点=/login 提示=1 infinite 告警=0 已清会话=true
+
+小结：30 passed / 0 failed
+infinite redirection 告警累计：0 条
+[permission-gates] 判据用例 18 条：全通过
+[permission-gates] 注册表：gated 13 个 / registered 2 个；源码引用 17 处（页面 8 个）
+[permission-gates] DOM 反测（共 17 行：门 × 页面）：
+  · goods-brand-delete       views/product/Brands.vue           码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-tag-delete         views/product/ProductTags.vue      码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-unit-group-delete  views/product/Units.vue            码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-category-delete    views/product/ProductCategories.vue 码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-sku-unit-delete    views/product/Products.vue         码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-create             views/system/EmployeesView.vue     码=system:user:create店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-create             views/system/OrganizationView.vue  码=system:user:create店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-edit               views/system/EmployeesView.vue     码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-edit               views/system/OrganizationView.vue  码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-reset-password     views/system/EmployeesView.vue     码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-reset-password     views/system/OrganizationView.vue  码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-toggle-status      views/system/EmployeesView.vue     码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-toggle-status      views/system/OrganizationView.vue  码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-create              views/system/SystemRoles.vue       码=system:role:create店主(["*"])=1 店长串=0 null=0 []=0
+  · role-edit                views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-delete              views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-assign-users        views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+[permission-gates] 全部断言通过（两侧反测：持码必渲染 / 不持码必不渲染）

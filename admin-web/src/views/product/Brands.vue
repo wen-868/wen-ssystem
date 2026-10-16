@@ -36,7 +36,7 @@
         <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openDialog(row)">编辑</el-button>
-            <el-popconfirm title="确定删除？" @confirm="deleteItem(row.id)">
+            <el-popconfirm v-if="canGate('goods-brand-delete')" title="确定删除？" @confirm="deleteItem(row.id)">
               <template #reference><el-button size="small" link type="danger">删除</el-button></template>
             </el-popconfirm>
           </template>
@@ -81,6 +81,10 @@ import { ElMessage, type FormRules } from "element-plus";
 import { formatDate } from "../../utils/format";
 import { api } from "../../api";
 import FormFooter from "../../components/FormFooter.vue";
+import { usePermissionGate } from "../../composables/usePermissionGate";
+
+// S3-240：删除按钮按码显隐（`goods:delete`，见 config/permission-gates.ts 注册表）
+const { canGate } = usePermissionGate();
 
 const brands = ref<any[]>([]);
 const loading = ref(false); const total = ref(0); const page = ref(1); const pageSize = ref(20);

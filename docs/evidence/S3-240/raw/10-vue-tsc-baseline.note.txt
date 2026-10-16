@@ -1,0 +1,4 @@
+命令：cd admin-web && npx vue-tsc --noEmit
+退出码：0
+为何零输出：改动前 admin-web 全量类型检查 0 error（基线即"0 新增"的参照点；改动后同样 0 error ⇒ 新增 0 条）。
+采集时间：2026-10-17（本单开工时，工作树 D:\Users\ZXQL\wt-agents\S3-240 @ 7ea26e8d）

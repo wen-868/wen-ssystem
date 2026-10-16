@@ -1,0 +1,7 @@
+守卫判定行 → 322:   if (allowedRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
+
+PASS  用例一 命中 meta.roles ⇒ 放行  ← 落点=/quick-entries 拒绝提示=0
+PASS  用例二 有角色但不命中 ⇒ 拒绝并跳既有落点  ← 落点=/dashboard 拒绝提示=1
+PASS  用例三 空角色 ⇒ 拒绝（fail-closed）  ← 落点=/login 拒绝提示=1 导航中止=false
+
+小结：3 passed / 0 failed

@@ -175,10 +175,12 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { ChatDotRound, Goods, OfficeBuilding, Van } from "@element-plus/icons-vue";
 import { DEMO_ACCOUNT, DEMO_PASSWORD, adminLogin, seedDemoData } from "../api";
 import { useAuthStore } from "../stores/auth";
+import { useAppStore } from "../stores/app";
 import { resolveLandingPath } from "../router/landing";
 
 const router = useRouter();
 const auth = useAuthStore();
+const app = useAppStore();
 const loginFormRef = ref<FormInstance>();
 const loading = ref(false);
 /** S3-173 ①：忘记密码指引弹窗 */
@@ -214,6 +216,8 @@ async function handleLogin() {
       const csrfToken = res.csrfToken || res.data?.csrfToken;
       const userInfo = res.data?.user || res.user || { realName: loginForm.username };
       auth.setAuth(token, userInfo, csrfToken);
+      // S3-240：登录响应带 `permissions`（t_sys_role.permissions 合并串）⇒ 写入按钮级权限门的判据源
+      app.setPermissions((userInfo as any)?.permissions ?? res?.permissions ?? res?.data?.permissions);
       ElMessage.success("登录成功");
       // S3-132：登录落地按「角色可用页」解析（default_homepage → /dashboard → POS → /login），
       // 不再硬编码 /dashboard，避免非 SUPER_ADMIN/STORE_MANAGER 角色登录即陷入重定向环
@@ -252,6 +256,8 @@ async function handleDemoLogin() {
       const csrfToken = res.csrfToken || res.data?.csrfToken;
       const userInfo: any = { ...(res.data?.user || res.user || {}), demo: true };
       auth.setAuth(token, userInfo, csrfToken);
+      // S3-240：演示登录同样写入权限串（否则按钮级权限门会失败关闭、把按钮全藏掉）
+      app.setPermissions(userInfo?.permissions ?? res?.permissions ?? res?.data?.permissions);
       ElMessage.success("登录成功");
       // 幂等初始化演示数据（失败不阻塞进入）
       seedDemoData().catch(() => {});
