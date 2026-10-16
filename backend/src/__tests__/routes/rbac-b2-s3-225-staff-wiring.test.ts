@@ -697,7 +697,7 @@ describe("S3-225 · 页面/入口来源同源（防「测试里写一个不存�
     }
   });
 
-  it("B 类判定依据同源：app-mobile「我的」页对员工/角色管理页是**无条件硬编码入口**（无角色门）", () => {
+  it("B 类判定依据同源：app-mobile「我的」页曾对员工/角色管理页是**无条件硬编码入口** ⇒ 已由 S3-230 补门（本断言随契约反转）", () => {
     const profile = readFileSync(
       path.join(BACKEND_DIR, "..", "app-mobile", "src", "pages", "profile", "profile.vue"),
       "utf8"
@@ -705,8 +705,12 @@ describe("S3-225 · 页面/入口来源同源（防「测试里写一个不存�
     for (const target of ["/pages-sub/admin/admin/employees", "/pages-sub/admin/roles/roles"]) {
       const line = profile.split(/\r?\n/).find((l) => l.includes(target));
       expect(line, `profile.vue 应有到 ${target} 的入口`).toBeTruthy();
-      expect(line, `入口行 ${target} 不得带角色门（v-if / isPageVisible）`).not.toContain("v-if");
-      expect(line, `入口行 ${target} 不得带角色门（v-if / isPageVisible）`).not.toContain("isPageVisible");
+      // S3-230（2026-10-16，授权模型 D4 / 不变量 I1'）：B 类根因（入口无条件可达 ⇒ 使用者集合不可枚举）
+      // 已由**前端权限门**修复 ⇒ 本断言由「**不得带门**」（记录缺陷状态）**反转为**「**必须带门**」（验证修复）。
+      // 属**契约变更**（判据从"记录缺陷"改为"验证修复"），**不是放宽**：漏门/摘门即红（S3-230 的反测已实测）。
+      // 原断言见 git 历史（本文件由 PR #351 引入，PR #356 更新）。
+      expect(line, `入口行 ${target} 必须带权限门（v-if canEntry / isPageVisible）`).toMatch(/v-if|isPageVisible/);
+      expect(line, `入口行 ${target} 的权限门必须走统一入口门 canEntry()`).toContain("canEntry");
     }
     // 写调用点同源（移动端 api 模块）
     const employeesApi = readFileSync(
