@@ -61,7 +61,10 @@ const FILE_191 = `191_${MIG_191}`;
 // S3-232（2026-10-16）追加说明：本单新增 `204_系统设置域权限点立码.sql`（立码：D1 给 STORE_MANAGER
 // 增补 goods:create/goods:edit + 系统设置域 14 个新码登记进 t_sys_menu，纯数据写、零 DDL）
 // ⇒ 最高编号由 203 → 204。判据本身仍未变（190/191 各一号 + 最高编号唯一），只同步编号期望值。
-const EXPECTED_MAX_MIGRATION = 204;
+// S3-235（2026-10-16）追加说明：本单新增 `205_角色权限种子.sql`（第 72 项：把生产底稿 §一 的 12 个商家角色
+// × 权限码落成幂等、非破坏的种子；纯数据写、零 DDL。生成方式：gen-role-seed.mjs 从底稿程序化生成）
+// ⇒ 最高编号由 204 → 205。判据本身仍未变（190/191 各一号 + 最高编号唯一），只同步编号期望值。
+const EXPECTED_MAX_MIGRATION = 205;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);
