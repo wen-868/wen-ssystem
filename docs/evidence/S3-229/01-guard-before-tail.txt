@@ -1,0 +1,6 @@
+        归属单：S3-220｜理由：价格试算（只读查询）：输入取价条件、返回试算结果，不落库；全仓无页面调用点（api/sale.ts:111 calcBestPrice 未被使用）
+        裁定：docs/tasks/R101-RBAC接线缺口清单.md §十二.6 P 类 #1（`rbac-g0-wiring.test.ts` 已锁为「查询型 POST（待裁定）」）；本单处置=不接
+
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+gaps：已登记 395 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）

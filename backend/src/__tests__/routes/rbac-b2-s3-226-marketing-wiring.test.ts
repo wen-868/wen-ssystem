@@ -11,7 +11,8 @@
  *  b) 只读账号（READONLY = `["*:view"]`）调这 65 行 ⇒ **403**，且**未到达业务层**；
  *  c) 该码的**持有账号**调对应行 ⇒ **200**（零回归：把「页面/按钮真实使用者持有该码」逐条钉进测试）；
  *  d) 反证：**不持有**该码的账号一律 **403**（证明判据不是恒 true 的假门禁）；
- *  e) **范围控制**：本域本批**未接**的 24 行（Q 类 1 + B 类 17 + W 类 6）⇒ 注册行级不含
+ *  e) **范围控制**：本域本批**未接**的 24 行（Q 类 1 + B 类 9 + W 类 14；其中 W 10 =
+ *     `community-marketing` 已由 **S3-229** 按授权模型 D2 接线）⇒ 注册行级不含
  *     `requirePermission(`，且 READONLY 仍能到达业务层（证明本批「没多接」，也没把待定项偷接）；
  *  f) 未登录 ⇒ 401（既有行为不变）。
  *
@@ -303,9 +304,10 @@ const UNWIRED: UnwiredRow[] = [
   { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "post", routePath: "/full-reductions/:id/pause", path: "/full-reductions/1/pause", reason: "B", note: "app-mobile `activities.vue:146 activityApi.pause` ⇒ 同上" },
   { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "delete", routePath: "/full-reductions/:id", path: "/full-reductions/1", reason: "B", note: "app-mobile `activities.vue:164 activityApi.delete` ⇒ 同上" },
   { file: "admin-marketing-points.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingPointsRouter, method: "post", routePath: "/points/redeem", path: "/points/redeem", reason: "B", note: "app-mobile `pages-sub/marketing/points/points-exchange.vue:88 pointsApi.exchange`；该页 `pages.json:461` 注册后**全仓无导航入口**（孤岛页）⇒ 使用者集合不可枚举" },
-  { file: "community-marketing.routes.ts", prefix: "/api/marketing/group-buy", router: groupBuyRouter, method: "post", routePath: "/:id/join", path: "/1/join", reason: "W", note: "app-mobile `group-buy-detail.vue:221 joinGroupBuy`；页面菜单码 `marketing:group-buy` 的可见角色含 `READONLY`（`*:view`）与 `STORE_ADMIN`（旧词表）——二者均**不持** `marketing:*` ⇒ 接线即 403（W 类·待授权模型定案，同 S3-222 §12.6）" },
-  { file: "community-marketing.routes.ts", prefix: "/api/marketing/bargain", router: bargainRouter, method: "post", routePath: "/:id/help", path: "/1/help", reason: "W", note: "app-mobile `bargain-detail.vue:311/326 helpBargain` ⇒ 同上（菜单码 `marketing:bargain`）" },
-  { file: "community-marketing.routes.ts", prefix: "/api/marketing/seckill", router: communitySeckillRouter, method: "post", routePath: "/:orderNo/pay", path: "/SO1/pay", reason: "W", note: "app-mobile `seckill-detail.vue:281 paySeckillOrder` ⇒ 同上（菜单码 `marketing:seckill`）" },
+  // ⚠️ S3-226 当时登记的 `community-marketing.routes.ts` 10 条 W 类代表行**已由 S3-229（批 9）按授权模型提案 D2 接线**
+  //    （挂 `marketing:create`；生产底稿显示该前缀菜单只授予 OPERATION_ADMIN(0 账号)/READONLY(观察员)/STORE_ADMIN(0 账号)
+  //    ⇒ 无在用写角色回归）。故本文件不再把这 10 条列为"未接"，其接线验收在
+  //    `rbac-b2-s3-229-store-and-marketing-wiring.test.ts`。此处保留 points 的会员等级 4 条（仍待裁定）。
   { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/levels/config", path: "/levels/config", reason: "W", note: "app-mobile `member-levels/level-config.vue:164 memberLevelApi.create`；页面注册码 `customer:level`（`function-menu.ts:69`）在生产对 **STORE_MANAGER / SALES_STAFF / CUSTOMER_SERVICE** 均可见（可见性对照表 :113-122），三类工作角色都不持 `marketing:*` ⇒ 接线即 403（W 类）" },
   { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "put", routePath: "/levels/config/:id/status", path: "/levels/config/1/status", reason: "W", note: "app-mobile `member-levels.vue:117 memberLevelApi.toggleStatus` ⇒ 同上" },
   { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/:id/points/adjust", path: "/1/points/adjust", reason: "B", note: "app-mobile `member/member-detail.vue:540` 直接 post；该页经首页快捷入口「会员管理」（`pages/home/home.vue:87`，**无条件**）→ 会员列表 → 详情 ⇒ 使用者集合不可枚举" },
@@ -325,8 +327,11 @@ const DOMAIN_TOTAL = 89;
  *  · W 14 = 「页面可见角色 ⊄ 码持有人」——`community-marketing` 全部 10 条（菜单可见角色含 `READONLY` / 旧词表 `STORE_ADMIN`）
  *          ＋`points` 的会员等级 4 条（菜单码 `customer:level` 对店长/销售/客服可见）。
  * ⚠️ 口径分界：页面**经无门入口可达或菜单码零映射** ⇒ B；页面**可见角色可枚举但 ⊄ 持有人** ⇒ W（待授权模型定案）。
+ * ⚠️ **S3-229（批 9）变更**：`community-marketing` 的 10 条 W 类已按授权模型提案 **D2** 接线（挂 `marketing:create`）⇒
+ *    本文件当前**仍未接**的 = 24 − 10 = **14 条**（Q 1 + B 9 + W 4），W 4 = `points` 会员等级 4 条（D2 前提不覆盖该页，
+ *    页面码 `customer:level` 对**在用**角色 STORE_MANAGER 可见而不持 `marketing:create` ⇒ 违反不变量 I1，待裁定）。
  */
-const UNWIRED_CLASS_TOTAL = { Q: 1, B: 9, W: 14 };
+const UNWIRED_CLASS_TOTAL = { Q: 1, B: 9, W: 4 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -456,8 +461,8 @@ describe("S3-226 · 名单自证", () => {
       ["retail-announcements-admin.routes.ts", 3],
       ["seckill.routes.ts", 3],
     ]);
-    // 本域 18 个文件里，本批 0 接线的 3 个（B/W 类）
-    for (const f of ["admin-marketing-calculation.routes.ts", "community-marketing.routes.ts", "store-coupon.routes.ts"]) {
+    // 本域 18 个文件里，本批 0 接线的（B/W 类）—— `community-marketing.routes.ts` 已由 S3-229 接线，故从该名单移除
+    for (const f of ["admin-marketing-calculation.routes.ts", "store-coupon.routes.ts"]) {
       expect(perFile.has(f), `${f} 本批应为 0 接线`).toBe(false);
     }
   });
@@ -466,7 +471,7 @@ describe("S3-226 · 名单自证", () => {
     expect([...new Set(ROWS.map((r) => r.perm))].sort()).toEqual(["marketing:create", "marketing:points"]);
   });
 
-  it("对账：台账 §三.4 本域 89 写端点 = 本批 65 + 未接 24（Q1 + B9 + W14）", () => {
+  it("对账：台账 §三.4 本域 89 写端点 = 本批 65 + 本批未接 24（Q1 + B9 + W14；其中 W 10 已由 S3-229 接线）", () => {
     const owned =
       2 + // coupon：create / pause 未接
       3 + // full-reduction：delete / activate / pause 未接
@@ -477,8 +482,10 @@ describe("S3-226 · 名单自证", () => {
       2; // store-coupon 全部
     expect(DOMAIN_TOTAL - ROWS.length).toBe(24);
     expect(owned).toBe(24);
-    // 三类原因的逐条计数（台账 §十五.4~§十五.6）
-    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 9, W: 14 });
+    // ① 本批当时的分类（台账 §十五.4~§十五.6）—— 历史事实，不变；
+    expect({ Q: 1, B: 9, W: 14 }).toEqual({ Q: 1, B: 9, W: 14 });
+    // ② 当前**仍未接**的分类：S3-229 已把 community-marketing 的 10 条 W 类接线 ⇒ W 14 → 4
+    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 9, W: 4 });
   });
 });
 
@@ -521,6 +528,14 @@ describe("S3-226 · 形状断言（注册行级判据，踩坑[134]）", () => {
       expect(lines, `points.routes.ts ${method} ${routePath}`).toHaveLength(1);
       expect(lines[0].line.includes("requirePermission("), `points.routes.ts ${method} ${routePath}`).toBe(wired);
     }
+  });
+
+  it("状态变更登记（S3-229 接线后）：community-marketing 的 10 条写端点已挂 `marketing:create`", () => {
+    const src = readFileSync(path.join(ROUTES_DIR, "community-marketing.routes.ts"), "utf8");
+    const n = (src.match(/requirePermission\("marketing:create"\)/g) ?? []).length;
+    expect(n, "S3-229 已接线 10 条 ⇒ 本文件不再把该文件列为未接").toBe(10);
+    // 三个 router 变量仍被引用（防 import 悬空；它们的接线级验收在 rbac-b2-s3-229-*.test.ts）
+    expect([groupBuyRouter, bargainRouter, communitySeckillRouter].every((r) => typeof r === "function")).toBe(true);
   });
 
   it("查询型 POST（Q 类）未接线，且证据落在 service 层：calculatePromotion 只读不写", () => {

@@ -19,6 +19,11 @@ pointsRouter.get("/levels/config", pointsController.listLevelConfigs);
 // 而该页注册码 `customer:level`（`function-menu.ts:69`）在生产按菜单前缀对 **STORE_MANAGER / SALES_STAFF / CUSTOMER_SERVICE**
 // 均可见（`docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md:113-122`），这三类工作角色都**不持** `marketing:*`
 // ⇒ 接线即 403 回归（A 类·待授权模型定案，见台账 §十五.6）。
+// S3-229（批 9）：按授权模型提案 **D2** 复核后**维持不接** —— D2 的前提是「营销菜单可见角色只含
+// OPERATION_ADMIN(0 账号)/READONLY/STORE_ADMIN(0 账号)」，而本页注册码是 `customer:level`（不在该前提内）：
+// 生产在用角色 **STORE_MANAGER**（1 账号）对该页可见（`docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md` 表 B
+// `customer:level` 列 = 1/1/✓；生产持码 `customer:*`），且**不持** `marketing:create` ⇒ 挂 `marketing:create`
+// 会把在用店长打成 403（违反不变量 I1）。故 4 条按 **W 类**登记，待凌舟裁定码位（`customer:level` / 补授权 / 前端门）。
 // ⚠️ `POST /:id/points/adjust`（会员积分调整）本批**不接**：app-mobile `member-detail.vue:540` 有写调用点，
 // 而该页经首页快捷入口「会员管理」`pages/home/home.vue:87` **无条件可达** ⇒ 使用者集合不可枚举（B 类）。
 pointsRouter.post("/levels/config", pointsController.createLevelConfig);

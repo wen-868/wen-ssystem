@@ -10,7 +10,7 @@
   "_s3225_note": "S3-225（2026-10-16，员工/账号域 7 文件 / 31 写端点按「使用者已持有码」接线）后：**11 条已接线**、已从本台账移除（逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十五）：admin-staff 1（PUT /staff/:id/status ⇒ system:user:edit）、sys-user 3（POST / ⇒ system:user:create；POST /:id/reset-password、DELETE /:id ⇒ system:user:edit）、rbac 2（PUT /:id/data-permissions、PUT /users/:userId/roles ⇒ system:role:edit）、data-permission 5（POST /、POST /roles/:roleId ⇒ system:role:create；PUT /:id、DELETE /:id、DELETE /roles/:roleId/:dataPermissionId ⇒ system:role:edit），全部为 079_权限矩阵.sql 既有码（:270-273），不新立码、不改角色种子、不动迁移。本域**保留 20 条**（缺口 512 → 501；文件 134 → 134，四个接线文件都**未清零**）：① **B 类 7 条**（POST /api/admin/staff、PUT /api/admin/staff/:id、PUT /api/admin/staff/:id/disable、POST /api/admin/staff/:id/restore、POST /api/admin/system/roles/、PUT /api/admin/system/roles/:id、DELETE /api/admin/system/roles/:id）——app-mobile「我的」页 pages/profile/profile.vue:50/54 对员工管理页与角色管理页是**无条件硬编码入口**（无角色门），对应写调用点（employees.vue:132/159/179/187、roles.vue:116、role-edit.vue:225/227）使用者集合不可枚举 ⇒ 挂 system:user:* / system:role:* 会把店长等角色打成 403，待移动端补权限门后收编；② **自服务 7 条**（a-admin-auth 5：PUT /api/admin/auth/settings、POST /api/admin/auth/change-password、POST /api/admin/auth/mfa/{setup,confirm,disable}；b-user-session 2：DELETE /api/user-session/:id、DELETE /api/user-session/user/:userId）——本人数据/本人会话类，按 S3-203 教训**不套管理面码**，逐条登记；③ **自服务实际用途 1 条**（PUT /api/admin/sys-users/:id）——台账判「管理面」，但全仓唯一调用点是 app-mobile「我的→编辑资料」edit.vue:180（传本人 id）⇒ 挂 system:user:edit 会把所有非 `*` 角色的「保存资料」打成 403 ⇒ 不接并报备待裁定；④ **查询型 POST 1 条**（POST /api/admin/data-permissions/users/:userId/check）——只读判定，按派单卡 §二.4 不按写端点接；⑤ **需新立权限点 4 条**（POST /api/department/、PUT /api/department/:id、DELETE /api/department/:id、PUT /api/department/:id/move）——079 无部门域码（只到 system:user/system:role 两族）⇒ 立码属产品决策，登记待办。",
   "_s3225_merge_note": "S3-225 的**合并态口径**（重要）：本单基于 origin/main = 2b4a0e16 开工（当时真值缺口 **512 / 134**，S3-223 合并态），本批接线 11 条 ⇒ 分支内读数 **501 / 134**（见 _s3225_note）。开工期间 S3-224（销售域 32 条，PR #350）与记账提交 ea29ee1f 已合入 origin/main（512 → **480 / 129**，g0 快照 183 → **215**）⇒ 本单已 git merge origin/main，**合并态真值 = 缺口 480 → 469（文件 129 → 129）**、rbac-g0-wiring.test.ts 快照总数 215 → **226**、rbac-b2-s3-223-finance-wiring.test.ts 里那行硬编码的全局总数断言由 215 → **226**（该行是跨批快照，223/224/225 三批先后各同步一次，均为「契约变化，非放宽断言」）。三处冲突均按**两侧并集**解决：gaps 保留双方共同移除后的剩余（469 条）、S3_224_WIRED_FILES 与 S3_225_WIRED_FILES 两个快照块**并存**（未删任一批的块）。_s3225_note 里 512 → 501 的读数为**本批分支相对值**，两者不矛盾。",
   "_s3227_note": "S3-227（门禁与判据改进批）对 `_counts` 的增补与口径说明：① `wiredEndpoints` = 门禁口径「已接线（权限码）N 处」（authForm ∈ inline/use-mount 的**写端点**数，报告模式首行同名读数）；② `scannedEndpoints` = 扫描到的写端点总数；③ `wiredPermOccurrences` = **用例口径**（`backend/src/__tests__/routes/rbac-g0-wiring.test.ts` 和式左端的实测值：`routes/*.routes.ts` 里 `requirePermission(` 的出现次数）。两口径**不是同一个数**（当前 255 vs 226，差 29）：门禁口径不数非写端点上的出现次数（admin-library 3 条 GET 路由 −3），且把平台侧 `requirePlatformPermission` 端点算作已接线（4 个 platform 文件 +32）。逐文件对照见 docs/evidence/S3-227/10-metric-diff.txt；两个数各自的自洽关系由该用例的两条断言守住（`requirePermission(` 实测 == `wiredPermOccurrences`；`endpoints + consumerEndEndpoints + wiredEndpoints == scannedEndpoints`）。本单改判据不改业务代码：`gaps` 条目数在 B/C 两条改动后同步重算（逐条见 _s3227_b_note / _s3227_c_note）。",
-  "_lastUpdate": "2026-10-16 S3-227 与 main 合并：按门禁实时读数重算机读台账（含 consumerEnd/read-only POST 归类）",
+  "_lastUpdate": "2026-10-16 S3-229 门店/租户域+营销 W 类接线：17 条已接线，从 gaps 移除（395 → 378）",
   "_s3227_b_note": "S3-227 B（消费者端**声明式**认证识别）：门禁扩判据 —— `routeConfig.auth = \"requireConsumerAuthWithTenant\"` 的 router，其写端点同样归 `consumerEnd`（判据依据：`shared/auto-routes.ts:getAuthMiddlewares()` 把该 auth 值翻译成 `[...requireConsumerAuthWithTenant, csrfMiddleware]`，与 S3-205 的成对形态同源；脚本**现场解析**该函数，解析不到则声明式一律落回 gaps）。命中面**只按声明的 router 变量**，不按文件名白名单——同一文件里别的 router（如 notification.routes.ts 的 admin router）不受影响。**实测命中 1 个文件 / 6 条端点**：`cart.routes.ts`（miniappCartRouter）PUT/POST/DELETE 6 条 ⇒ 由 gaps 移入本 `consumerEnd`（逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十四.6 / §十四.10-1）。读数：gaps 469 → **463**（文件 129 → **128**，cart.routes.ts 缺口清零）；consumerEnd 39 → **45**（文件 4 → **5**）；已接线 255、扫描 763、用例口径 226 均不变。**这是判据补全，不是缺口洗绿**：6 条端点的认证形态自 S3-196 起就在（`cart.routes.ts` 声明式 auth），此前只是门禁扫不到（S3-224 卡 §三.3 已另立单）。两侧反测见 docs/evidence/S3-227/32-B-countertest-*.txt / 33-B-countertest-*.txt。",
   "_s3219_note": "S3-219（收口总清单第 67 项）已给 library/open/review 3 域共 28 条平台写端点接上 `requirePlatformPermission`（形态=inline，见 `node backend/scripts/guard-rbac-wiring.mjs --json` 的 authForm=inline）⇒ 这 28 条**不再是无授权缺口**，已按流程从 `gaps` 中逐条移除（files 155→152、endpoints 641→613）。移除的是**同一批端点**的登记，不是新缺口洗绿：接线前这 28 条确有缺口、接线后判据（端点调用文本内含权限中间件）成立。",
   "_s3220_note": "S3-220（收口总清单第 43 项续 · B2 批 3 商品域 45 写端点）已给 15 条端点上 `requirePermission`（既有码 goods:create|edit|delete，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十二）⇒ 这 15 条不再是无授权缺口，按流程从 gaps 逐条移除（files 148→146、endpoints 588→573）。移除的是**同一批端点**的登记，不是新缺口洗绿。其余 30 条**保留登记**，三类原因：① B 类 13 条 —— 移动页面调用点存在但角色集合无法与任何一个既有码对齐（`app-mobile` 商品 tab 无权限门 + `admin-web` 商品类页面 meta.roles 含 STORE_MANAGER，而生产店长不持任何 goods:* 写码）；② A 类 15 条 —— 有页面调用点且页面角色含 STORE_MANAGER；③ P 类 2 条 —— 价格端点 `POST /prices/best-price`与 `POST /prices/batch/preview` 属既有「查询型 POST（待裁定）」/「已知锁定」项，本批不动。逐条清单见 §十二.3/§十二.4/§十二.6。",
@@ -137,18 +137,6 @@
     "commission.routes.ts": [
       "POST /api/admin/commission/calculate"
     ],
-    "community-marketing.routes.ts": [
-      "POST /api/marketing/bargain/:id/end",
-      "POST /api/marketing/bargain/:id/help",
-      "POST /api/marketing/bargain/:id/start",
-      "POST /api/marketing/group-buy/:id/end",
-      "POST /api/marketing/group-buy/:id/join",
-      "POST /api/marketing/group-buy/:id/start",
-      "POST /api/marketing/seckill/:id/buy",
-      "POST /api/marketing/seckill/:id/end",
-      "POST /api/marketing/seckill/:orderNo/cancel",
-      "POST /api/marketing/seckill/:orderNo/pay"
-    ],
     "credit.routes.ts": [
       "POST /api/admin/credits/collections"
     ],
@@ -171,10 +159,6 @@
     ],
     "customer-statement.routes.ts": [
       "POST /api/store/customer-statements/:statementNo/confirm"
-    ],
-    "demo.routes.ts": [
-      "POST /api/admin/demo/reset",
-      "POST /api/admin/demo/seed"
     ],
     "department.routes.ts": [
       "DELETE /api/department/:id",
@@ -508,13 +492,6 @@
     "stock-warning.routes.ts": [
       "POST /api/admin/stock-warnings/config"
     ],
-    "store-control.routes.ts": [
-      "POST /api/admin/store-control/:storeId/close",
-      "POST /api/admin/store-control/:storeId/open",
-      "POST /api/admin/store-control/:storeId/resume",
-      "POST /api/admin/store-control/:storeId/suspend",
-      "PUT /api/admin/store-control/configs/:storeId"
-    ],
     "store-coupon.routes.ts": [
       "POST /api/store/coupons/manual-verify",
       "POST /api/store/coupons/verify"
@@ -705,15 +682,16 @@
     ]
   },
   "_counts": {
-    "files": 116,
-    "endpoints": 395,
+    "files": 113,
+    "endpoints": 378,
     "consumerEndFiles": 5,
     "consumerEndEndpoints": 45,
     "readOnlyPostFiles": 3,
     "readOnlyPostEndpoints": 3,
-    "wiredEndpoints": 320,
+    "wiredEndpoints": 337,
     "scannedEndpoints": 763,
-    "wiredPermOccurrences": 291
+    "wiredPermOccurrences": 308
   },
-  "_s3227_merge": "2026-10-16 merge with main (#350~#352 之后)：gaps 按 authForm=none 重算（395/116），consumerEnd=45，read-only POST=3，wired=320，wiredPermOccurrences=291。"
+  "_s3227_merge": "2026-10-16 merge with main (#350~#352 之后)：gaps 按 authForm=none 重算（395/116），consumerEnd=45，read-only POST=3，wired=320，wiredPermOccurrences=291。",
+  "_s3229_note": "S3-229（收口总清单第 43 项续 · B2 批 9）已给 17 条端点上 `requirePermission`（全部既有码：store:create ×7 / store:edit ×2 / marketing:create ×10，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十七）⇒ 这 17 条不再是无授权缺口，按流程从 gaps 逐条移除；移除的是**同一批端点**的登记，不是新缺口洗绿。本单范围内**保留登记**的行（逐条理由见 §十七）：① G1 门店/租户域 31 条缺口 = 已接 7（demo 2 + store-control 5）+ B 类 8（储值卡 4 + 门店会员 2 + 门店建档 2，都落在 app-mobile「我的」页无条件入口可达的页面上）+ 平台侧 2（`/api/tenant/applications/*` 走 requirePlatformAuth，商家码无效 ⇒ 归平台侧单）+ 公开端点 2 + 平台域 12（另立单）；② G2 营销域 W 类 14 条 = 已接 10（community-marketing，菜单仅授予 0 账号角色与只读观察员）+ 不接 4（points 会员等级：页面码 customer:level 对**在用**角色 STORE_MANAGER 可见而不持 marketing:create ⇒ 违反 I1，待裁定）。⚠️ 域外无关项（他人批次）一条未动。"
 }
