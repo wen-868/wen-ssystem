@@ -14,6 +14,12 @@ export const productReviewRouter = Router();
 productReviewRouter.post("/", requirePermission("goods:create"), asyncHandler(controller.createProductReview));
 productReviewRouter.get("/", asyncHandler(controller.listProductReviews));
 productReviewRouter.get("/:id", asyncHandler(controller.getProductReview));
+// ⚠️ S3-237（接线批 10）核查结论：以下 4 行**本批不接**，原因是**无现成审核类码**——
+//   `docs/migrations/079_权限矩阵.sql:199-223` 的按钮码全表（goods:create/edit/delete、sale:*、purchase:*、
+//   customer:*、finance:*、marketing:create、store:*、system:user|role:*）里**没有**任何审核码；
+//   `system-permission-codes.ts` / 迁移 204 的 14 个新码也不含审核语义 ⇒ 按派单卡 §一 组 2「无 ⇒ 只登记并
+//   入下一批立码（**不得自行造码**）」处置；页面 `ProductReview.vue`（`router/index.ts:173`）的
+//   `meta.roles` 含 STORE_MANAGER ⇒ 后续立码单必须同时解决"码归属店长"（否则挂码即 403）。
 productReviewRouter.post("/:id/approve", asyncHandler(controller.approveProductReview));
 productReviewRouter.post("/:id/reject", asyncHandler(controller.rejectProductReview));
 productReviewRouter.post("/batch-approve", asyncHandler(controller.batchApproveProductReviews));

@@ -700,16 +700,19 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const S3_233_WIRED_TOTAL = [...S3_233_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  // S3-237（接线批 10 · 组 1「系统设置/基础域」）追加说明：
-  //   **10 处**新增接线，全部挂 S3-232 已立的新码（不新立码、不改角色种子、不动迁移）：
-  //     alert 3 = system:alert:handle|rule-edit|check、archive 1 = system:archive:execute、
-  //     notification 1 = system:notification:send、push 1 = system:push:test、
-  //     sms-template 3 = system:sms-template:create|edit|delete、system 1 = system:migration:run
-  //     （码由 `backend/src/shared/system-permission-codes.ts` + 迁移 204 落地）。
-  //   本组另有 **4 条不接**（手机端通知写端点：消息页无权限门 + 在用角色不持码 ⇒ I1' 三条都不成立），
-  //   故 notification.routes.ts 仍留在表内（计 1，而非其缺口的 5）。
+  // S3-237（接线批 10：系统设置/基础域 10 条 + 商品 A 类 7 条）追加说明：
+  //   **17 处**新增接线，全部挂**既有/已立**码（不新立码、不改角色种子、不动迁移）：
+  //     组 1 系统设置/基础域 10（alert 3 = system:alert:handle|rule-edit|check、archive 1 = system:archive:execute、
+  //       notification 1 = system:notification:send、push 1 = system:push:test、sms-template 3 = system:sms-template:*、
+  //       system 1 = system:migration:run；码由 S3-232 的目录 `system-permission-codes.ts` + 迁移 204 落地）
+  //     ＋组 2 商品 A 类 7（admin-product 1 = products/skus/:skuId/barcode、brand 2、product-marketing-tag 2、
+  //       unit-group 2；全部挂 079 既有码 goods:create|edit，店长经 D1/204 持有 ⇒ 零回归）。
+  //   本批另有 **12 条不接**（4 条手机端通知写端点「消息页无权限门」＋3 条 DELETE「D1 不含 goods:delete，按 D4 前端补门」
+  //     ＋4 条审核端点「079/204 均无审核类码」＋1 条 products/import「无真实调用点」），
+  //   故 notification.routes.ts 仍留在表内（计 1，而非其缺口的 5）、brand / product-marketing-tag / unit-group 各计 2（不是 3），
+  //   admin-product.routes.ts 走累加（S3-220 的 3 + S3-233 的 8 + 本批 1，同文件另有 S3-142 等既有接线）。
   //   逐条判定与证据见 `docs/tasks/R101-RBAC接线缺口清单.md` §二十；逐行 403/200 断言在
-  //   `rbac-b2-s3-237-system-wiring.test.ts`；组 2（商品 A 类 7 条）在同批后续提交里补全本块。
+  //   `rbac-b2-s3-237-system-wiring.test.ts` / `rbac-b2-s3-237-goods-wiring.test.ts`。
   const S3_237_WIRED_FILES = new Map<string, number>([
     ["alert.routes.ts", 3],
     ["archive.routes.ts", 1],
@@ -717,10 +720,14 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
     ["push.routes.ts", 1],
     ["sms-template.routes.ts", 3],
     ["system.routes.ts", 1],
+    ["admin-product.routes.ts", 1],
+    ["brand.routes.ts", 2],
+    ["product-marketing-tag.routes.ts", 2],
+    ["unit-group.routes.ts", 2],
   ]);
   const S3_237_WIRED_TOTAL = [...S3_237_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 10", () => {
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;

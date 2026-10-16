@@ -61,7 +61,11 @@ adminProductRouter.put("/products/:id", requirePermission("goods:edit"), product
 adminProductRouter.put("/products/:id/disable", requirePermission("goods:edit"), productController.disableProduct);
 adminProductRouter.get("/products/:skuId/price-history", productController.getProductPriceHistory);
 adminProductRouter.put("/products/:skuId/price", requirePermission("goods:price"), productController.updateProductPrice);
-adminProductRouter.put("/products/skus/:skuId/barcode", productController.updateSkuBarcode);
+// S3-237（接线批 10 · 组 2「商品 A 类」）：条码维护挂**既有**码 `goods:edit`（079:201）。
+// 前端唯一调用点 = `admin-web/src/views/Products.vue:1156`，页面 `router/index.ts:165`
+// （`meta.roles` = [SUPER_ADMIN, **STORE_MANAGER**]）⇒ 店长经 **D1**（迁移 204 补 `goods:create|edit`）持有
+// ⇒ 无 403 回归（移动端无本端点调用点，`app-mobile` 只有 `libraryLookup` 扫码查询）。
+adminProductRouter.put("/products/skus/:skuId/barcode", requirePermission("goods:edit"), productController.updateSkuBarcode);
 adminProductRouter.put("/products/skus/:skuId", requirePermission("goods:edit"), productController.updateSku);
 adminProductRouter.post("/products/skus/:skuId/units", requirePermission("goods:create"), productController.addSkuUnit);
 adminProductRouter.put("/products/skus/:skuId/units/:unitId", requirePermission("goods:edit"), productController.updateSkuUnit);
