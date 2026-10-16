@@ -1,0 +1,18 @@
+== [injected] 源文件：D:/Users/ZXQL/wt-agents/S3-234/deploy/auto-deploy.sh（总 292 行）
+== [injected] 抽取：迁移段 86 行（首行 # ===== S3-234 迁移段开始（勿删这两个标记行：取证/反测用 `sed -n` 按标记抽取本段**真实源码**执行）=====）
+== [injected] 抽取：失败汇总段 23 行（首行 # ===== S3-234 失败汇总段开始（勿删这两个标记行：反测装置按标记抽取本段，证明「新失败 ⇒ 退出码 1」）=====）
+== [injected] bash -n 语法检查（两段串成的一个脚本）：
+   OK（退出码 0）
+== [injected] 执行（cwd=D:/Users/ZXQL/wt-agents/S3-234，DEPLOY_STRICT=1 ⇒ 有失败项时以非零退出码结束）
+  ❌ [迁移] 999_反测_新失败文件不存在.sql 执行失败：清单指向的文件不存在（../docs/migrations/999_反测_新失败文件不存在.sql）
+  迁移段小结：成功 184 个 / **新失败** 1 个 / 已知非幂等（登记在案）0 个（清单：D:/Users/ZXQL/wt-agents/S3-234/deploy/migrations-manifest.txt）
+  ⚠️  以下迁移**新失败**（不在登记册）⇒ 本次部署判红（明细见上方「❌ [迁移]」行）：
+     ❌ [迁移] 999_反测_新失败文件不存在.sql 执行失败：清单指向的文件不存在
+
+❌ 部署结束，但存在失败项（共 1 项）：
+   ❌ [迁移] 999_反测_新失败文件不存在.sql 执行失败：清单指向的文件不存在
+   → 主后端/前端已部署；以上失败项需按原因排查后再放行（不静默成功）。
+   → 单独重跑：迁移 node scripts/run-migration.mjs docs/migrations/<文件>（cwd=backend）；AI 底座 bash deploy/ai-base-deploy.sh；冒烟只读档 npm run test:mysql:readonly
+   → 自动化调用：以退出码 1 结束（非零 = 存在失败项）。
+== [injected] **组合退出码（迁移段 + 失败汇总段）= 1**（0 = 无新失败；1 = 存在新失败 ⇒ 部署判红）
+== [injected] 判读口径：迁移段小结行里「新失败 0」+ 组合退出码 0 ⇒ 该清单在本夹具上跑通、且未判红。

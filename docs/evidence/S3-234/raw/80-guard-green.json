@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "root": "D:\\Users\\ZXQL\\wt-agents\\S3-234",
+  "manifest": "deploy/migrations-manifest.txt",
+  "registry": "deploy/migrations-nonidempotent-registry.txt",
+  "counts": {
+    "migrationsInDir": 204,
+    "active": 184,
+    "exempt": 8,
+    "registry": 12
+  },
+  "problems": {
+    "manifestMissing": false,
+    "registryMissing": false,
+    "missingFromManifest": [],
+    "missingFiles": [],
+    "exemptWithoutReason": [],
+    "badExemptLines": [],
+    "duplicates": [],
+    "orderMismatch": null,
+    "badActiveLines": [],
+    "badRegistryLines": [],
+    "registryMissingFiles": []
+  }
+}

@@ -1,0 +1,119 @@
+== 期望读数（由清单/登记册算出）：目录 .sql=204｜A 活动段=184｜C 豁免段=8｜B 登记册=12
+== 仓库根：D:\Users\ZXQL\wt-agents\S3-234
+== guard 源文件 SHA256 = 46471CCEA4E6370D
+== 清单 SHA256         = F4B3DFBD16FAFA6C
+== 登记册 SHA256       = 8DD7E87FDB7D7F16
+---- [80-guard-green] exit=0 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 12 个（合计 204）
+[guard:migration-manifest] PASS（每个 .sql 恰好在 A 活动段 / C 豁免段 / B 登记册之一；活动段行序与运行时跑序一致）
+[PASS] 绿侧：三通道登记完整时 EXIT：实际=0｜期望=0
+[PASS] 绿侧：输出含 PASS：需含「PASS」
+[PASS] 绿侧：--json EXIT：实际=0｜期望=0
+[PASS] 绿侧：--json ok 字段：实际=True｜期望=True
+[PASS] 绿侧：--json 迁移目录文件数：实际=204｜期望=204
+[PASS] 绿侧：--json A 活动段行数：实际=184｜期望=184
+[PASS] 绿侧：--json C 豁免段行数：实际=8｜期望=8
+[PASS] 绿侧：--json B 登记册行数：实际=12｜期望=12
+[PASS] 绿侧：三分类之和 == 目录 .sql 数：实际=204｜期望=204
+[PASS] 豁免段里"破坏性语句"类条数 == 含行首破坏性语句的文件数：实际=7｜期望=7
+[PASS] 豁免段里"人工判定"类文件 == 075（口令类种子）：实际=075_reset_admin_password_bcrypt.sql｜期望=075_reset_admin_password_bcrypt.sql
+---- [80-guard-red-new-migration-unregistered] exit=1 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：205 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 12 个（合计 204）
+✗ 未登记（既不在活动段、也不在豁免段、也不在登记册）共 1 个：
+   - 999_反测临时迁移_未登记.sql（⇒ 部署不会跑它；请登记到 deploy/migrations-manifest.txt 活动段，或写「# EXEMPT: 999_反测临时迁移_未登记.sql —— 理由：…」，或（已知非幂等）写进 deploy/migrations-nonidempotent-registry.txt 并给失败形态/理由/owner）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 185 行：清单=(缺)｜运行时跑序=999_反测临时迁移_未登记.sql
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
+[PASS] 反测①：未登记新迁移 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测①：点名到该文件：需含「999_反测临时迁移_未登记.sql」
+---- [80b-guard-after-remove-fake] exit=0 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 12 个（合计 204）
+[guard:migration-manifest] PASS（每个 .sql 恰好在 A 活动段 / C 豁免段 / B 登记册之一；活动段行序与运行时跑序一致）
+[PASS] 反测①：删掉临时文件后 ⇒ EXIT（复原）：实际=0｜期望=0
+---- [80c-guard-scratch-baseline-green] exit=0（scratch 基线：应绿）----
+[PASS] scratch 基线（真件副本）⇒ EXIT：实际=0｜期望=0
+---- [80d-guard-red-manifest-points-to-missing-file] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 185 个 / C 豁免段 8 个 / B 登记册 12 个（合计 205）
+✗ 清单活动段指向的文件不存在 共 1 个：
+   - deploy/migrations-manifest.txt:232 → 999_不存在的迁移.sql（docs/migrations/ 下没有这个文件）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 185 行：清单=999_不存在的迁移.sql｜运行时跑序=(缺)
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
+[PASS] 反测②：清单里有不存在的文件 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测②：点名到该文件：需含「999_不存在的迁移.sql」
+== 反测③：从清单活动段删掉真实迁移行「204_系统设置域权限点立码.sql」
+---- [80e-guard-red-manifest-missing-real-file] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 183 个 / C 豁免段 8 个 / B 登记册 12 个（合计 203）
+✗ 未登记（既不在活动段、也不在豁免段、也不在登记册）共 1 个：
+   - 204_系统设置域权限点立码.sql（⇒ 部署不会跑它；请登记到 deploy/migrations-manifest.txt 活动段，或写「# EXEMPT: 204_系统设置域权限点立码.sql —— 理由：…」，或（已知非幂等）写进 deploy/migrations-nonidempotent-registry.txt 并给失败形态/理由/owner）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 184 行：清单=(缺)｜运行时跑序=204_系统设置域权限点立码.sql
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
+[PASS] 反测③：活动段少登记真实文件（三条通道都没有 ⇒ 未登记）：实际=1｜期望=1
+[PASS] 反测③：点名到被删行的文件：需含「204_系统设置域权限点立码.sql」
+== 反测④：从登记册删掉真实登记行「002_phase1_seed.sql」
+---- [80f-guard-red-registry-missing-real-file] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 11 个（合计 203）
+✗ 未登记（既不在活动段、也不在豁免段、也不在登记册）共 1 个：
+   - 002_phase1_seed.sql（⇒ 部署不会跑它；请登记到 deploy/migrations-manifest.txt 活动段，或写「# EXEMPT: 002_phase1_seed.sql —— 理由：…」，或（已知非幂等）写进 deploy/migrations-nonidempotent-registry.txt 并给失败形态/理由/owner）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 1 行：清单=009_phase7_approval_schema.sql｜运行时跑序=002_phase1_seed.sql
+   - 第 2 行：清单=010_phase7_credit_tenant.sql｜运行时跑序=009_phase7_approval_schema.sql
+   - 第 3 行：清单=011_phase7_member_fields.sql｜运行时跑序=010_phase7_credit_tenant.sql
+   - 第 4 行：清单=012_phase7_price_tenant.sql｜运行时跑序=011_phase7_member_fields.sql
+   - 第 5 行：清单=013_phase7_sale_bill_credit.sql｜运行时跑序=012_phase7_price_tenant.sql
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
+[PASS] 反测④：登记册少一条真实文件 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测④：点名到该文件：需含「002_phase1_seed.sql」
+[PASS] 反测④：报"未登记"（三条通道都没有）：需含「未登记」
+== 反测⑤：把登记册首行改成两列（缺 owner 单号）
+---- [80g-guard-red-registry-bad-line] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 11 个（合计 203）
+✗ 未登记（既不在活动段、也不在豁免段、也不在登记册）共 1 个：
+   - 002_phase1_seed.sql（⇒ 部署不会跑它；请登记到 deploy/migrations-manifest.txt 活动段，或写「# EXEMPT: 002_phase1_seed.sql —— 理由：…」，或（已知非幂等）写进 deploy/migrations-nonidempotent-registry.txt 并给失败形态/理由/owner）
+✗ 登记册行格式不合法 共 1 处：
+   - deploy/migrations-nonidempotent-registry.txt:23 → 002_phase1_seed.sql | 只有两列（登记册行必须是 4 列且列列非空：文件 | 失败形态 | 理由 | owner 单号（当前 2 列））
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 1 行：清单=009_phase7_approval_schema.sql｜运行时跑序=002_phase1_seed.sql
+   - 第 2 行：清单=010_phase7_credit_tenant.sql｜运行时跑序=009_phase7_approval_schema.sql
+   - 第 3 行：清单=011_phase7_member_fields.sql｜运行时跑序=010_phase7_credit_tenant.sql
+   - 第 4 行：清单=012_phase7_price_tenant.sql｜运行时跑序=011_phase7_member_fields.sql
+   - 第 5 行：清单=013_phase7_sale_bill_credit.sql｜运行时跑序=012_phase7_price_tenant.sql
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
+[PASS] 反测⑤：登记册行格式不合法 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测⑤：报"登记册行格式不合法"：需含「登记册行格式不合法」
+[PASS] 反测⑤：点名到该行：需含「002_phase1_seed.sql」
+== 反测⑥：把已在登记册的「008_phase6_schema.sql」再写进清单活动段
+---- [80h-guard-red-registry-cross-duplicate] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 185 个 / C 豁免段 8 个 / B 登记册 12 个（合计 205）
+✗ 同一文件重复登记 共 1 处：
+   - 008_phase6_schema.sql：活动段 第 232 行 与 登记册 第 24 行
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 185 行：清单=008_phase6_schema.sql｜运行时跑序=(缺)
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
+[PASS] 反测⑥：同一文件跨通道重复登记 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测⑥：报"重复登记"：需含「重复登记」
+[PASS] 反测⑥：点名到该文件：需含「008_phase6_schema.sql」
+---- [80i-guard-red-registry-points-to-missing-file] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 13 个（合计 205）
+✗ 登记册指向的文件不存在 共 1 个：
+   - deploy/migrations-nonidempotent-registry.txt:35 → 999_不存在的登记项.sql（docs/migrations/ 下没有这个文件）
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
+[PASS] 反测⑦：登记册指向不存在的文件 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测⑦：点名到该文件：需含「999_不存在的登记项.sql」
+---- [80j-guard-restored-scratch] exit=0 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 12 个（合计 204）
+[guard:migration-manifest] PASS（每个 .sql 恰好在 A 活动段 / C 豁免段 / B 登记册之一；活动段行序与运行时跑序一致）
+[PASS] 复原后（scratch）：EXIT：实际=0｜期望=0
+[PASS] 复原后：scratch 清单 SHA256 == 工作树清单 SHA256：实际=F4B3DFBD16FAFA6CDBE38171D123CB49796246E60C993A0930E35D3E05C54CA3｜期望=F4B3DFBD16FAFA6CDBE38171D123CB49796246E60C993A0930E35D3E05C54CA3
+[PASS] 复原后：scratch 登记册 SHA256 == 工作树登记册 SHA256：实际=8DD7E87FDB7D7F168CA3DF8C239AC6605C6392069448028043DB9B2E830529BC｜期望=8DD7E87FDB7D7F168CA3DF8C239AC6605C6392069448028043DB9B2E830529BC
+== 工作树清单终态 SHA256 = F4B3DFBD16FAFA6C
+== 工作树登记册终态 SHA256 = 8DD7E87FDB7D7F16
+[PASS] 终态：工作树清单 SHA256 未被反测污染：实际=F4B3DFBD16FAFA6CDBE38171D123CB49796246E60C993A0930E35D3E05C54CA3｜期望=F4B3DFBD16FAFA6CDBE38171D123CB49796246E60C993A0930E35D3E05C54CA3
+[PASS] 终态：工作树登记册 SHA256 未被反测污染：实际=8DD7E87FDB7D7F168CA3DF8C239AC6605C6392069448028043DB9B2E830529BC｜期望=8DD7E87FDB7D7F168CA3DF8C239AC6605C6392069448028043DB9B2E830529BC
+---- [80k-guard-final-green] exit=0 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 12 个（合计 204）
+[guard:migration-manifest] PASS（每个 .sql 恰好在 A 活动段 / C 豁免段 / B 登记册之一；活动段行序与运行时跑序一致）
+[PASS] 终态：工作树三通道 EXIT：实际=0｜期望=0
+
+== 反测装置结论：PASS（绿侧 2 例 + 反测 7 例，红绿两侧均达预期；工作树真件 SHA256 未被污染）

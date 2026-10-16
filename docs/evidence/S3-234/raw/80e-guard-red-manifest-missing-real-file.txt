@@ -1,0 +1,8 @@
+$ node backend/scripts/guard-migration-manifest.mjs --root C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch
+(exit=1)
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 183 个 / C 豁免段 8 个 / B 登记册 12 个（合计 203）
+✗ 未登记（既不在活动段、也不在豁免段、也不在登记册）共 1 个：
+   - 204_系统设置域权限点立码.sql（⇒ 部署不会跑它；请登记到 deploy/migrations-manifest.txt 活动段，或写「# EXEMPT: 204_系统设置域权限点立码.sql —— 理由：…」，或（已知非幂等）写进 deploy/migrations-nonidempotent-registry.txt 并给失败形态/理由/owner）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 184 行：清单=(缺)｜运行时跑序=204_系统设置域权限点立码.sql
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）
