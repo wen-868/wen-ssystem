@@ -58,6 +58,7 @@
 | `12-frontend-entry-hits.json` | 机读命中表（生成器据此写 `frontendEntry` 字段，避免手抄） |
 | `20-gen-migrations-manifest.txt` | 生成器重跑：A 187 / C 8 / B 12 = 207 |
 | `21-guard-migration-manifest.txt` | 门禁 PASS（含判据⑥最大编号 = 断言常量 207） |
+| `22-收尾复核-两门禁.txt` | **收尾轮（提交前一刻）复跑**：`guard-migration-manifest` PASS **EXIT=0**（A 187 / C 8 / B 12 = 207）+ `EXPECTED_MAX_MIGRATION=207` + `guard-rbac-wiring --strict` **EXIT=0**（gaps 314 / consumerEnd 45，与开工同值）+ 提交前 `git log -1` / `git status --short` 原文 |
 | `30-db-create.txt` | 夹具库建成 + 版本读数（`11.4.5-MariaDB`，**非 MySQL 8.0.28**） |
 | `31-fixture-before-207.txt` | 夹具前置读数（CATALOG 8 行 / 本批码 0 行 / 角色 2 行） |
 | `32-207-pass1.txt` | **第一遍**：`38 码全租户命中 76 行；default 38`；重复 0；零角色授权 0 |
@@ -116,7 +117,7 @@ node scripts/run-migration.mjs docs/migrations/207_四域权限点立码.sql   #
 - 夹具数据库实例已 **停药**（`mariadbd` 进程数 = 0）并**删除数据目录** `docs/evidence/S3-236/harness/mariadb-data/`（约 200MB，未入库）；
   需再跑时按 §五 重建：`mariadb-install-db.exe --datadir=<工作树内目录>` → `mariadbd --defaults-file=<datadir>/my.ini --port=3407 --skip-grant-tables --skip-ssl`。
 - `.gitignore` **未改**（本单未追加任何忽略项）；`.env`（夹具连接串，**空口令**）命中既有 `.gitignore:6`，未入库；
-  `node_modules/`、`backend/dist/`、`.npm-cache/` 均为工作区本地产物，未入库（提交前请只挑本单产物）。
+  `node_modules/`（收尾轮仍为不完整状态：11 个包）、`backend/dist/` 均为工作区本地产物，未入库；`.npm-cache/`（225MB 本地缓存）已于收尾轮删除；提交只含本单产物（47 个路径，逐路径 `git add`，**非** `git add -A`）。
 - 未对生产做任何读写；未连生产。
 
 ---
