@@ -1,0 +1,22 @@
+# S3-231 · 读数① --strict 三连复跑（同一份代码，仓库根目录）
+# 代码 ref = d0062d0083f2d577e27ee17f75f6b3e68dcbab65（工作区干净：git status --porcelain 为空）
+# 命令：node backend/scripts/guard-rbac-wiring.mjs --strict  （stdout+stderr 一并捕获）
+# ⚠️ --strict 会打印**全量缺口清单**（本仓 ~39 KB）⇒ 关键行只有下面 4 行；全量原文按 run 存 raw/，并给 SHA256 证明三连逐字节一致。
+
+## run 1 ：EXIT=0 ｜ full-sha256=4FC6A6C4E60C98FA3FD82E44DF535474E651978D837A8D97F1D502B7462DEE4B ｜ full-bytes=39300
+   —— 台账核对（rbac-wiring-baseline.json 存在）——
+   gaps：已登记 378 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+   consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+   ✅ [--strict] 无「未登记」项（已登记欠账 378 条、已登记消费者端保护形态 45 条，均不计红）
+
+## run 2 ：EXIT=0 ｜ full-sha256=4FC6A6C4E60C98FA3FD82E44DF535474E651978D837A8D97F1D502B7462DEE4B ｜ full-bytes=39300
+   —— 台账核对（rbac-wiring-baseline.json 存在）——
+   gaps：已登记 378 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+   consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+   ✅ [--strict] 无「未登记」项（已登记欠账 378 条、已登记消费者端保护形态 45 条，均不计红）
+
+## run 3 ：EXIT=0 ｜ full-sha256=4FC6A6C4E60C98FA3FD82E44DF535474E651978D837A8D97F1D502B7462DEE4B ｜ full-bytes=39300
+   —— 台账核对（rbac-wiring-baseline.json 存在）——
+   gaps：已登记 378 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+   consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+   ✅ [--strict] 无「未登记」项（已登记欠账 378 条、已登记消费者端保护形态 45 条，均不计红）

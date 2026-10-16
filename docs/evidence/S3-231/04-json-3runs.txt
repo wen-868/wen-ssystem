@@ -1,0 +1,8 @@
+# S3-231 · 读数③ 机读模式三连复跑（命令：node backend/scripts/guard-rbac-wiring.mjs --json）
+# 代码 ref = d0062d0083f2d577e27ee17f75f6b3e68dcbab65
+
+## run 1 ：EXIT=0 ｜ full-sha256=B2EA7E3A7CA5F9B208274308ED2F0FC81540E69E997662CE79EC64EA6026FABB ｜ rows=763 {"false|none":378,"true|inline":337,"false|read-only":3,"true|consumer":45}
+
+## run 2 ：EXIT=0 ｜ full-sha256=B2EA7E3A7CA5F9B208274308ED2F0FC81540E69E997662CE79EC64EA6026FABB ｜ rows=763 {"false|none":378,"true|inline":337,"false|read-only":3,"true|consumer":45}
+
+## run 3 ：EXIT=0 ｜ full-sha256=B2EA7E3A7CA5F9B208274308ED2F0FC81540E69E997662CE79EC64EA6026FABB ｜ rows=763 {"false|none":378,"true|inline":337,"false|read-only":3,"true|consumer":45}

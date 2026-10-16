@@ -1,0 +1,29 @@
+S3-231 · `_counts` 逐字段独立复算（台账自述 vs 门禁/源码实测）
+
+字段                    台账 _counts    实测重建        判定
+------------------------------------------------------------
+files                 113           113         PASS
+endpoints             378           378         PASS
+consumerEndFiles      5             5           PASS
+consumerEndEndpoints  45            45          PASS
+readOnlyPostFiles     3             3           PASS
+readOnlyPostEndpoints 3             3           PASS
+wiredEndpoints        337           337         PASS
+scannedEndpoints      763           763         PASS
+wiredPermOccurrences  308           308         PASS
+
+—— 交叉核对 ——
+PASS  台账 gaps 条目数 == 台账 _counts.endpoints  （378 vs 378）
+PASS  台账 consumerEnd 条目数 == 台账 _counts.consumerEndEndpoints  （45 vs 45）
+PASS  守恒式 endpoints + consumerEnd + readOnlyPost + wired == scanned  （378+45+3+337 = 763 vs 763）
+PASS  门禁四桶之和 == scannedEndpoints  （763）
+
+—— 两个口径的差额分解（`wiredEndpoints` 337 vs `wiredPermOccurrences` 308）——
+用例口径实测 requirePermission( 出现次数                 = 308
+  ＋ 门禁把「平台侧 requirePlatformPermission 端点」算作已接线 = +32
+  − 挂在非写端点（GET 行）上的出现次数（admin-library.routes.ts）  = -3
+  = 门禁口径 wiredEndpoints                                   = 337
+（另：requirePlatformPermission( 出现次数 = 34，与端点数 32 不必相等 —— 一处 router.use 可覆盖多端点）
+PASS  差额分解收敛到 _counts.wiredEndpoints
+
+结论：✅ 全部字段与守恒式一致，未见错位
