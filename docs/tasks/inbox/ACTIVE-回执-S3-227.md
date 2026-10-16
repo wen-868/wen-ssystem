@@ -52,5 +52,6 @@
 
 **基线**：开工时 `git merge --ff-only origin/main` 到 **`37924f54`**（派单提交）；
 交付时 `git ls-remote origin refs/heads/main` = **`37924f54`**（main **未前进** ⇒ 本分支无合并冲突面，
-`git rev-parse HEAD` = `ab5311f2`）。最终 HEAD 复核：本门禁 `--strict` **EXIT=0**、g0 用例 **148 passed**
+分支含 A/B/C + 台账/回传文档提交：`03f2efea`(A) → `158f399c`(B) → `8906f50a`(C) → `ab5311f2`(台账+回传卡+回执)，
+本回执的补充提交为分支 tip）。最终复核：本门禁 `--strict` **EXIT=0**、g0 用例 **148 passed**
 （`docs/evidence/S3-227/57-final-head-strict.txt`）。
