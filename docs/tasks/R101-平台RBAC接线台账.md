@@ -185,3 +185,34 @@
 **卡内示例命名 `platform:tenant:manage` 未采纳的理由**：目录既有命名规范是 `<moduleCode>:<action>`（`tenant:view` / `ticket:reply`），
 再加一层 `platform:` 会让同一个域出现两种写法（目录里 `tenant:view`、端点里 `platform:tenant:manage`），与项目「同一概念只留一个出处」的原则相悖。
 
+
+---
+
+## 六、补登 · S3-231 F2：商家侧文件里的 **2 条平台侧写端点**（2026-10-16，**只登记、未接线**）
+
+> 来源：`docs/tasks/inbox/ACTIVE-S3-231.md` §F2（依据 `R101-S3-229-凌舟验收与裁定.md` §二.2「接受移交」）｜登记人：阿坚（后端/权限）
+> ⚠️ **生成器扫不到本 2 条**：`s3-193-platform-rbac-ledger.mjs` 的范围 = `backend/src/routes/platform*.routes.ts`（29 文件），
+> 而本 2 条落在**商家侧文件名** `tenant-register.routes.ts` 里（该文件 `routeConfig.auth = "none"`，审核分支在文件内显式挂 `requirePlatformAuth + csrfMiddleware`）
+> ⇒ 机械扫描（含 G4 门禁基线 `rbac-wiring-baseline.json`）把它记成**商家侧缺口**，但按认证机制它**归平台侧** ⇒ 需本人工补登。
+
+| # | 方法 | 完整路径 | 文件:行 | 归属域 | 拟定权限点 | 是否已有现成码 | 接入状态 |
+|--:|:--|:--|:--|:--|:--|:--|:--|
+| 105+1 | POST | `/api/tenant/applications/:id/approve` | `tenant-register.routes.ts:34` | tenant 租户管理（入驻申请审核） | `tenant:manage` | ⚠️ 码存在但**目录缺**（见下） | **待接线（S3-231 只登记，未接线）** |
+| 105+2 | POST | `/api/tenant/applications/:id/reject` | `tenant-register.routes.ts:37` | tenant 租户管理（入驻申请审核） | `tenant:manage` | ⚠️ 同上 | **待接线（S3-231 只登记，未接线）** |
+
+**为什么只登记、不在 S3-231 硬接线**（逐条）：
+1. **跨体系**：该 2 条挂**平台**认证（`requirePlatformAuth`，平台 JWT 带 `platformRole`，不带商家 `roles`）⇒ 商家码（`store:create` 等）对它**无效**——`middleware/rbac-auth.ts` 的 `checkUserPermission` 读 `t_sys_role`，挂上去会把唯一平台管理员打成 403（S3-229 §17.7 已记同款判定）；
+2. **派单卡 §F2 明示**：若实现落在商家侧 `auto-routes` 之外，**本项只做登记**，不要在本单硬接线；
+3. **接线形态已明确**：`requirePlatformPermission("tenant:manage")`（与既有平台侧域码同名，S3-193 起 9 个 `<域>:manage` 之一）。
+
+**风险登记（本单不动，供平台侧单处置）**：`tenant:manage` 在 `middleware/platform-rbac.ts:77` 的 `PLATFORM_PERMISSIONS` **已有**
+（⇒ 码**可被端点引用**），但 `services/platform/platform-role.service.ts` 的 `PERMISSION_CATALOG` 里**只有** `tenant:view`（`:139`）、
+**没有** `tenant:manage` ⇒ 按本台账 §五.4 的 S3-219 教训，接线后**要把该码授予平台角色会 400**（`updateRolePermissions()` 对目录外 `module_code` 直接拒）
+⇒ 平台侧单必须**同时**改两处（`PLATFORM_PERMISSIONS` 与 `PERMISSION_CATALOG`），否则"接线了但授不了权"= 除超管全员 403 的静默失效。
+
+**双前缀同业务（建议一并收编）**：`/api/platform/applications/:id/{approve,reject}`（`platform-applications.routes.ts:23/26`，本台账 §二 #13/#14，状态=待接线）
+与本 2 条是**同一业务两个前缀**（原派单卡外观察 S3-229 §17.8-4 已提）。
+
+**调用方证据**：`saas-admin/src/api/tenant-application.ts:49`（approve）/`:53`（reject）—— 平台控制台（`saas-admin`）。
+
+**对账**：本台账主表仍为 **105 条**（生成器口径，未变）；补登 **2 条**为**扫描面外**项，合计 **107**。
