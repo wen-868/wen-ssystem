@@ -14,6 +14,8 @@
 | `/root/s3230_ajian` | **S3-225**（第 43 项续 · B2 批 7：员工/账号域 31 条写端点接线）**← 换会话接手**（原 `s3229` 会话两轮均因"未收到消息正文"空转，未动任何文件；本行已改，`s3229` 不再有效） | `docs/tasks/inbox/ACTIVE-S3-225.md` |
 | `/root/s3233_ajian` | **S3-229**（批 9：门店/租户域接线 + 营销 W 类 14 条收编；按授权模型 D2/I1 口径） | `docs/tasks/inbox/ACTIVE-S3-229.md` |
 | `/root/s3234_frontend` | **S3-230**（前端权限门单：解锁 B 类 66 条端点收编） | `docs/tasks/inbox/ACTIVE-S3-230.md` |
+| `/root/s3235_ajian` | **S3-231**（收尾批：customer:level 4 条 / 平台侧 2 条登记 / 入口门失败关闭 / 7 条查询型 POST 裁定登记） | `docs/tasks/inbox/ACTIVE-S3-231.md` |
+| `/root/s3236_ajian` | **S3-232**（立码第一批：商品写码 D1 + 系统设置/基础域所需码；按提案 §三 五处落地面） | `docs/tasks/inbox/ACTIVE-S3-232.md` |
 
 ⚠️ **其余历史单号（S3-190 ~ S3-219）全部已交付/已合并**（S3-211/212/214/215/218/219 见 §二），卡已移入 `archive/`，**不要再动它们的工作树**。
 ⚠️ **2026-10-16 已合并**：S3-214-B2（#343）／S3-219（#344）／S3-218（#345）／**S3-220 商品域（#346，缺口 588→573）**／**S3-222 客户域（#347，→531）**／**S3-221 admin-web token 矩阵（#348，第 71 项结项）**。S3-219 与 S3-220 的待裁定项已分别由 `docs/tasks/cards/R101-S3-214B2与S3-219-凌舟验收与裁定.md`、`docs/tasks/cards/R101-S3-220-凌舟验收与裁定.md` 逐条答复。
@@ -33,6 +35,8 @@
 | **S3-225**（第 43 项续：员工/账号域接线，B2 批 7） | 🔄 在办（`s3230`，接手 `s3229`） | `docs/tasks/inbox/ACTIVE-S3-225.md` | `wt-agents/S3-225`｜`feat/s3-225-staff-domain-wiring` |
 | **S3-229**（第 43 项续：门店/租户域 + 营销 W 类） | 🔄 在办（`s3233`） | `docs/tasks/inbox/ACTIVE-S3-229.md` | `wt-agents/S3-229`｜`feat/s3-229-store-and-marketing-wiring` |
 | **S3-230**（派生：前端权限门单，解锁 B 类） | 🔄 在办（`s3234`） | `docs/tasks/inbox/ACTIVE-S3-230.md` | `wt-agents/S3-230`｜`feat/s3-230-mobile-permission-gates` |
+| **S3-231**（收尾批四小项） | 🔄 在办（`s3235`） | `docs/tasks/inbox/ACTIVE-S3-231.md` | `wt-agents/S3-231`｜`chore/s3-231-followups` |
+| **S3-232**（立码第一批：D6） | 🔄 在办（`s3236`） | `docs/tasks/inbox/ACTIVE-S3-232.md` | `wt-agents/S3-232`｜`feat/s3-232-new-codes-batch1` |
 > ⚠️ **授权模型已定**：`docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`（**不变量 I1**：凡**在用**角色能看到的页面，必须持有该端点所用码）。
 > ⚠️ **生产事实优先用共用底稿**：`docs/evidence/_shared/`（角色×权限码 / 角色×菜单 / 角色×账号使用）—— **不要再各自跑生产**。
 
