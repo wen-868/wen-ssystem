@@ -619,7 +619,11 @@ describe("S3-223 · 名单自证（28 = 19 已接 + 9 不接）", () => {
     expect(g0).toContain("S3_224_WIRED_FILES");
     expect(g0).toContain("S3_225_WIRED_FILES");
     expect(g0).toContain("S3_226_WIRED_FILES");
-    expect(g0).toContain("expect(total).toBe(291)");  });
+    // S3-227（A 项）：g0 用例已**废除裸数字断言**（多批并行时必冲突），改为"和式 + 台账一致性"
+    // ⇒ 本行同步为：断言 g0 里**存在台账一致性断言**（`ledger._counts.wiredPermOccurrences`），
+    //   不再断言任何裸数字字符串。属**契约变更**（判据换成更严的第二真值源），非放宽。
+    expect(g0).toContain("ledger._counts.wiredPermOccurrences");
+  });
 });
 
 describe("S3-223 · 形状断言（行级判据；踩坑[134]）", () => {
