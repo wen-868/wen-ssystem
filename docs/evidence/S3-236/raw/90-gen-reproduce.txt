@@ -1,0 +1,12 @@
+已生成 7 个文件（四域 38 码）：
+  · backend/src/shared/batch2-entry.ts
+  · backend/src/shared/report-permission-codes.ts
+  · backend/src/shared/hardware-permission-codes.ts
+  · backend/src/shared/miniapp-permission-codes.ts
+  · backend/src/shared/dashboard-permission-codes.ts
+  · backend/src/shared/batch2-permission-codes.ts
+  · docs/migrations/207_四域权限点立码.sql
+  report: 11 码
+  hardware: 14 码
+  miniapp: 5 码
+  dashboard: 8 码

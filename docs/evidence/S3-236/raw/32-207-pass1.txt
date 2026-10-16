@@ -1,0 +1,317 @@
+WARNING: option --ssl-verify-server-cert is disabled, because of an insecure passwordless login.
+--------------
+INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, path, component, icon, sort_no, visible, status, tenant_id)
+SELECT p.id, c.code, c.name, 'BUTTON', NULL, NULL, NULL, c.sort_no, 1, 1, p.tenant_id
+FROM t_sys_menu p
+JOIN (
+  SELECT 'report:custom:create' AS code, '新建自定义报表' AS name, 1 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:custom:edit' AS code, '编辑自定义报表' AS name, 2 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:custom:delete' AS code, '删除自定义报表' AS name, 3 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:custom:generate' AS code, '生成自定义报表' AS name, 4 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:create' AS code, '新建报表定时任务' AS name, 5 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:edit' AS code, '编辑报表定时任务' AS name, 6 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:delete' AS code, '删除报表定时任务' AS name, 7 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:toggle' AS code, '启停报表定时任务' AS name, 8 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:run' AS code, '手动执行报表定时任务' AS name, 9 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:permission:edit' AS code, '维护报表权限' AS name, 10 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:export' AS code, '导出报表' AS name, 11 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'system:print-record:create' AS code, '保存打印记录' AS name, 12 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-record:reprint' AS code, '重打小票' AS name, 13 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:create' AS code, '新建打印模板' AS name, 14 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:edit' AS code, '编辑打印模板' AS name, 15 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:delete' AS code, '删除打印模板' AS name, 16 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:reset' AS code, '重置打印模板' AS name, 17 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:set-default' AS code, '设为默认打印模板' AS name, 18 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'store:hardware:config-edit' AS code, '编辑硬件配置' AS name, 19 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:config-test' AS code, '测试硬件配置' AS name, 20 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:announce' AS code, '云喇叭播报' AS name, 21 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:box-pay' AS code, '收银盒支付' AS name, 22 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:box-config-edit' AS code, '编辑收银盒配置' AS name, 23 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:box-config-test' AS code, '测试收银盒配置' AS name, 24 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:unionpay-test' AS code, '测试云闪付' AS name, 25 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'miniapp:config:edit' AS code, '编辑小程序配置' AS name, 26 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:package:upload-key' AS code, '上传小程序密钥' AS name, 27 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:package:build' AS code, '构建小程序包' AS name, 28 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:package:publish' AS code, '发布小程序' AS name, 29 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:order-sync:retry' AS code, '小程序订单同步重试' AS name, 30 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:create' AS code, '新建待办' AS name, 31 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:complete' AS code, '完成待办' AS name, 32 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:dismiss' AS code, '忽略待办' AS name, 33 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:delete' AS code, '删除待办' AS name, 34 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:create' AS code, '新建快捷入口' AS name, 35 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:sort' AS code, '调整快捷入口排序' AS name, 36 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:edit' AS code, '编辑快捷入口' AS name, 37 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:delete' AS code, '删除快捷入口' AS name, 38 AS sort_no, 'system' AS parent_code
+
+) c
+WHERE p.menu_code = c.parent_code
+  AND p.menu_type = 'CATALOG'
+  AND p.parent_id IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM t_sys_menu d WHERE d.tenant_id = p.tenant_id AND d.menu_code = c.code
+  )
+--------------
+
+Query OK, 76 rows affected
+Records: 76  Duplicates: 0  Warnings: 0
+
+--------------
+SELECT CONCAT('207 立码核对：38 码全租户命中 ', (SELECT COUNT(*) FROM t_sys_menu WHERE menu_code IN ('report:custom:create', 'report:custom:edit', 'report:custom:delete', 'report:custom:generate', 'report:schedule:create', 'report:schedule:edit', 'report:schedule:delete', 'report:schedule:toggle', 'report:schedule:run', 'report:permission:edit', 'report:export', 'system:print-record:create', 'system:print-record:reprint', 'system:print-template:create', 'system:print-template:edit', 'system:print-template:delete', 'system:print-template:reset', 'system:print-template:set-default', 'store:hardware:config-edit', 'store:hardware:config-test', 'store:hardware:announce', 'store:hardware:box-pay', 'store:hardware:box-config-edit', 'store:hardware:box-config-test', 'store:hardware:unionpay-test', 'miniapp:config:edit', 'miniapp:package:upload-key', 'miniapp:package:build', 'miniapp:package:publish', 'miniapp:order-sync:retry', 'dashboard:todo:create', 'dashboard:todo:complete', 'dashboard:todo:dismiss', 'dashboard:todo:delete', 'dashboard:quick-entry:create', 'dashboard:quick-entry:sort', 'dashboard:quick-entry:edit', 'dashboard:quick-entry:delete')),
+  ' 行；default 租户命中 ', (SELECT COUNT(*) FROM t_sys_menu WHERE tenant_id = 'default' AND menu_code IN ('report:custom:create', 'report:custom:edit', 'report:custom:delete', 'report:custom:generate', 'report:schedule:create', 'report:schedule:edit', 'report:schedule:delete', 'report:schedule:toggle', 'report:schedule:run', 'report:permission:edit', 'report:export', 'system:print-record:create', 'system:print-record:reprint', 'system:print-template:create', 'system:print-template:edit', 'system:print-template:delete', 'system:print-template:reset', 'system:print-template:set-default', 'store:hardware:config-edit', 'store:hardware:config-test', 'store:hardware:announce', 'store:hardware:box-pay', 'store:hardware:box-config-edit', 'store:hardware:box-config-test', 'store:hardware:unionpay-test', 'miniapp:config:edit', 'miniapp:package:upload-key', 'miniapp:package:build', 'miniapp:package:publish', 'miniapp:order-sync:retry', 'dashboard:todo:create', 'dashboard:todo:complete', 'dashboard:todo:dismiss', 'dashboard:todo:delete', 'dashboard:quick-entry:create', 'dashboard:quick-entry:sort', 'dashboard:quick-entry:edit', 'dashboard:quick-entry:delete')),
+  ' 行；本批父行缺失的码数 ', (SELECT COUNT(*) FROM (
+     SELECT c.code,
+            (SELECT COUNT(*) FROM t_sys_menu p
+              WHERE p.menu_code = c.parent_code AND p.menu_type = 'CATALOG' AND p.parent_id IS NULL) AS parents,
+            (SELECT COUNT(*) FROM t_sys_menu n WHERE n.menu_code = c.code) AS inserted
+     FROM (
+       SELECT 'report:custom:create' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:custom:edit' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:custom:delete' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:custom:generate' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:schedule:create' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:schedule:edit' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:schedule:delete' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:schedule:toggle' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:schedule:run' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:permission:edit' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'report:export' AS code, 'report' AS parent_code
+       UNION ALL SELECT 'system:print-record:create' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'system:print-record:reprint' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'system:print-template:create' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'system:print-template:edit' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'system:print-template:delete' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'system:print-template:reset' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'system:print-template:set-default' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'store:hardware:config-edit' AS code, 'store' AS parent_code
+       UNION ALL SELECT 'store:hardware:config-test' AS code, 'store' AS parent_code
+       UNION ALL SELECT 'store:hardware:announce' AS code, 'store' AS parent_code
+       UNION ALL SELECT 'store:hardware:box-pay' AS code, 'store' AS parent_code
+       UNION ALL SELECT 'store:hardware:box-config-edit' AS code, 'store' AS parent_code
+       UNION ALL SELECT 'store:hardware:box-config-test' AS code, 'store' AS parent_code
+       UNION ALL SELECT 'store:hardware:unionpay-test' AS code, 'store' AS parent_code
+       UNION ALL SELECT 'miniapp:config:edit' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'miniapp:package:upload-key' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'miniapp:package:build' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'miniapp:package:publish' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'miniapp:order-sync:retry' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:todo:create' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:todo:complete' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:todo:dismiss' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:todo:delete' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:quick-entry:create' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:quick-entry:sort' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:quick-entry:edit' AS code, 'system' AS parent_code
+       UNION ALL SELECT 'dashboard:quick-entry:delete' AS code, 'system' AS parent_code
+     ) c
+   ) x WHERE x.parents > 0 AND x.inserted = 0),
+  '（父行要求取 079 既有 CATALOG 码：report / system / store）') AS result
+--------------
+
+result
+207 立码核对：38 码全租户命中 76 行；default 租户命中 38 行；本批父行缺失的码数 0（父行要求取 079 既有 CATALOG 码：report / system / store）
+1 row in set
+
+--------------
+SELECT CONCAT('207 幂等自证：本批码重复行数（应为 0）= ',
+  (SELECT COUNT(*) FROM (
+     SELECT menu_code, tenant_id FROM t_sys_menu WHERE menu_code IN ('report:custom:create', 'report:custom:edit', 'report:custom:delete', 'report:custom:generate', 'report:schedule:create', 'report:schedule:edit', 'report:schedule:delete', 'report:schedule:toggle', 'report:schedule:run', 'report:permission:edit', 'report:export', 'system:print-record:create', 'system:print-record:reprint', 'system:print-template:create', 'system:print-template:edit', 'system:print-template:delete', 'system:print-template:reset', 'system:print-template:set-default', 'store:hardware:config-edit', 'store:hardware:config-test', 'store:hardware:announce', 'store:hardware:box-pay', 'store:hardware:box-config-edit', 'store:hardware:box-config-test', 'store:hardware:unionpay-test', 'miniapp:config:edit', 'miniapp:package:upload-key', 'miniapp:package:build', 'miniapp:package:publish', 'miniapp:order-sync:retry', 'dashboard:todo:create', 'dashboard:todo:complete', 'dashboard:todo:dismiss', 'dashboard:todo:delete', 'dashboard:quick-entry:create', 'dashboard:quick-entry:sort', 'dashboard:quick-entry:edit', 'dashboard:quick-entry:delete')
+     GROUP BY menu_code, tenant_id HAVING COUNT(*) > 1
+   ) dup)) AS result
+--------------
+
+result
+207 幂等自证：本批码重复行数（应为 0）= 0
+1 row in set
+
+--------------
+SELECT CONCAT('207 零角色授权自证：持本批任一新码的角色行数（应为 0）= ',
+  (SELECT COUNT(*) FROM (
+     SELECT r.id FROM t_sys_role r
+      WHERE r.permissions IS NOT NULL
+        AND JSON_VALID(r.permissions) = 1
+        AND EXISTS (
+          SELECT 1 FROM (
+            SELECT 'report:custom:create' AS code
+            UNION ALL
+            SELECT 'report:custom:edit' AS code
+            UNION ALL
+            SELECT 'report:custom:delete' AS code
+            UNION ALL
+            SELECT 'report:custom:generate' AS code
+            UNION ALL
+            SELECT 'report:schedule:create' AS code
+            UNION ALL
+            SELECT 'report:schedule:edit' AS code
+            UNION ALL
+            SELECT 'report:schedule:delete' AS code
+            UNION ALL
+            SELECT 'report:schedule:toggle' AS code
+            UNION ALL
+            SELECT 'report:schedule:run' AS code
+            UNION ALL
+            SELECT 'report:permission:edit' AS code
+            UNION ALL
+            SELECT 'report:export' AS code
+            UNION ALL
+            SELECT 'system:print-record:create' AS code
+            UNION ALL
+            SELECT 'system:print-record:reprint' AS code
+            UNION ALL
+            SELECT 'system:print-template:create' AS code
+            UNION ALL
+            SELECT 'system:print-template:edit' AS code
+            UNION ALL
+            SELECT 'system:print-template:delete' AS code
+            UNION ALL
+            SELECT 'system:print-template:reset' AS code
+            UNION ALL
+            SELECT 'system:print-template:set-default' AS code
+            UNION ALL
+            SELECT 'store:hardware:config-edit' AS code
+            UNION ALL
+            SELECT 'store:hardware:config-test' AS code
+            UNION ALL
+            SELECT 'store:hardware:announce' AS code
+            UNION ALL
+            SELECT 'store:hardware:box-pay' AS code
+            UNION ALL
+            SELECT 'store:hardware:box-config-edit' AS code
+            UNION ALL
+            SELECT 'store:hardware:box-config-test' AS code
+            UNION ALL
+            SELECT 'store:hardware:unionpay-test' AS code
+            UNION ALL
+            SELECT 'miniapp:config:edit' AS code
+            UNION ALL
+            SELECT 'miniapp:package:upload-key' AS code
+            UNION ALL
+            SELECT 'miniapp:package:build' AS code
+            UNION ALL
+            SELECT 'miniapp:package:publish' AS code
+            UNION ALL
+            SELECT 'miniapp:order-sync:retry' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:create' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:complete' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:dismiss' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:delete' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:create' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:sort' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:edit' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:delete' AS code
+          ) c
+           WHERE JSON_CONTAINS(r.permissions, JSON_QUOTE(c.code)) = 1
+        )
+   ) holder), '（另附机读读数：0 即零角色授权）') AS result
+--------------
+
+result
+207 零角色授权自证：持本批任一新码的角色行数（应为 0）= 0（另附机读读数：0 即零角色授权）
+1 row in set
+
+--------------
+SELECT (SELECT COUNT(*) FROM (
+     SELECT r.id FROM t_sys_role r
+      WHERE r.permissions IS NOT NULL
+        AND JSON_VALID(r.permissions) = 1
+        AND EXISTS (
+          SELECT 1 FROM (
+            SELECT 'report:custom:create' AS code
+            UNION ALL
+            SELECT 'report:custom:edit' AS code
+            UNION ALL
+            SELECT 'report:custom:delete' AS code
+            UNION ALL
+            SELECT 'report:custom:generate' AS code
+            UNION ALL
+            SELECT 'report:schedule:create' AS code
+            UNION ALL
+            SELECT 'report:schedule:edit' AS code
+            UNION ALL
+            SELECT 'report:schedule:delete' AS code
+            UNION ALL
+            SELECT 'report:schedule:toggle' AS code
+            UNION ALL
+            SELECT 'report:schedule:run' AS code
+            UNION ALL
+            SELECT 'report:permission:edit' AS code
+            UNION ALL
+            SELECT 'report:export' AS code
+            UNION ALL
+            SELECT 'system:print-record:create' AS code
+            UNION ALL
+            SELECT 'system:print-record:reprint' AS code
+            UNION ALL
+            SELECT 'system:print-template:create' AS code
+            UNION ALL
+            SELECT 'system:print-template:edit' AS code
+            UNION ALL
+            SELECT 'system:print-template:delete' AS code
+            UNION ALL
+            SELECT 'system:print-template:reset' AS code
+            UNION ALL
+            SELECT 'system:print-template:set-default' AS code
+            UNION ALL
+            SELECT 'store:hardware:config-edit' AS code
+            UNION ALL
+            SELECT 'store:hardware:config-test' AS code
+            UNION ALL
+            SELECT 'store:hardware:announce' AS code
+            UNION ALL
+            SELECT 'store:hardware:box-pay' AS code
+            UNION ALL
+            SELECT 'store:hardware:box-config-edit' AS code
+            UNION ALL
+            SELECT 'store:hardware:box-config-test' AS code
+            UNION ALL
+            SELECT 'store:hardware:unionpay-test' AS code
+            UNION ALL
+            SELECT 'miniapp:config:edit' AS code
+            UNION ALL
+            SELECT 'miniapp:package:upload-key' AS code
+            UNION ALL
+            SELECT 'miniapp:package:build' AS code
+            UNION ALL
+            SELECT 'miniapp:package:publish' AS code
+            UNION ALL
+            SELECT 'miniapp:order-sync:retry' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:create' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:complete' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:dismiss' AS code
+            UNION ALL
+            SELECT 'dashboard:todo:delete' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:create' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:sort' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:edit' AS code
+            UNION ALL
+            SELECT 'dashboard:quick-entry:delete' AS code
+          ) c
+           WHERE JSON_CONTAINS(r.permissions, JSON_QUOTE(c.code)) = 1
+        )
+   ) holder) AS roles_holding_new_codes,
+  (SELECT COUNT(*) FROM t_sys_menu WHERE menu_code IN ('report:custom:create', 'report:custom:edit', 'report:custom:delete', 'report:custom:generate', 'report:schedule:create', 'report:schedule:edit', 'report:schedule:delete', 'report:schedule:toggle', 'report:schedule:run', 'report:permission:edit', 'report:export', 'system:print-record:create', 'system:print-record:reprint', 'system:print-template:create', 'system:print-template:edit', 'system:print-template:delete', 'system:print-template:reset', 'system:print-template:set-default', 'store:hardware:config-edit', 'store:hardware:config-test', 'store:hardware:announce', 'store:hardware:box-pay', 'store:hardware:box-config-edit', 'store:hardware:box-config-test', 'store:hardware:unionpay-test', 'miniapp:config:edit', 'miniapp:package:upload-key', 'miniapp:package:build', 'miniapp:package:publish', 'miniapp:order-sync:retry', 'dashboard:todo:create', 'dashboard:todo:complete', 'dashboard:todo:dismiss', 'dashboard:todo:delete', 'dashboard:quick-entry:create', 'dashboard:quick-entry:sort', 'dashboard:quick-entry:edit', 'dashboard:quick-entry:delete')) AS total_38codes,
+  (SELECT COUNT(*) FROM t_sys_menu WHERE tenant_id = 'default' AND menu_code IN ('report:custom:create', 'report:custom:edit', 'report:custom:delete', 'report:custom:generate', 'report:schedule:create', 'report:schedule:edit', 'report:schedule:delete', 'report:schedule:toggle', 'report:schedule:run', 'report:permission:edit', 'report:export', 'system:print-record:create', 'system:print-record:reprint', 'system:print-template:create', 'system:print-template:edit', 'system:print-template:delete', 'system:print-template:reset', 'system:print-template:set-default', 'store:hardware:config-edit', 'store:hardware:config-test', 'store:hardware:announce', 'store:hardware:box-pay', 'store:hardware:box-config-edit', 'store:hardware:box-config-test', 'store:hardware:unionpay-test', 'miniapp:config:edit', 'miniapp:package:upload-key', 'miniapp:package:build', 'miniapp:package:publish', 'miniapp:order-sync:retry', 'dashboard:todo:create', 'dashboard:todo:complete', 'dashboard:todo:dismiss', 'dashboard:todo:delete', 'dashboard:quick-entry:create', 'dashboard:quick-entry:sort', 'dashboard:quick-entry:edit', 'dashboard:quick-entry:delete')) AS default_tenant_rows,
+  (SELECT COUNT(*) FROM (
+     SELECT menu_code, tenant_id FROM t_sys_menu WHERE menu_code IN ('report:custom:create', 'report:custom:edit', 'report:custom:delete', 'report:custom:generate', 'report:schedule:create', 'report:schedule:edit', 'report:schedule:delete', 'report:schedule:toggle', 'report:schedule:run', 'report:permission:edit', 'report:export', 'system:print-record:create', 'system:print-record:reprint', 'system:print-template:create', 'system:print-template:edit', 'system:print-template:delete', 'system:print-template:reset', 'system:print-template:set-default', 'store:hardware:config-edit', 'store:hardware:config-test', 'store:hardware:announce', 'store:hardware:box-pay', 'store:hardware:box-config-edit', 'store:hardware:box-config-test', 'store:hardware:unionpay-test', 'miniapp:config:edit', 'miniapp:package:upload-key', 'miniapp:package:build', 'miniapp:package:publish', 'miniapp:order-sync:retry', 'dashboard:todo:create', 'dashboard:todo:complete', 'dashboard:todo:dismiss', 'dashboard:todo:delete', 'dashboard:quick-entry:create', 'dashboard:quick-entry:sort', 'dashboard:quick-entry:edit', 'dashboard:quick-entry:delete')
+     GROUP BY menu_code, tenant_id HAVING COUNT(*) > 1
+   ) dup) AS duplicate_pairs
+--------------
+
+roles_holding_new_codes	total_38codes	default_tenant_rows	duplicate_pairs
+0	76	38	0
+1 row in set
+
+Bye

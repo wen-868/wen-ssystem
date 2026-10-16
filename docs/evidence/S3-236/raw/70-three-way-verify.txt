@@ -1,0 +1,25 @@
+S3-236 判据 1 三方一致 · 复跑装置（目录 ↔ 迁移 207 ↔ 路由注册行）
+迁移：docs/migrations/207_四域权限点立码.sql
+
+PASS  01. ① 条数：目录 38 / 逐域 11+14+5+8 / 端点 45
+        38 码 / 45 端点 / 域 11+14+5+8
+PASS  02. ② 命名规范：三段式（或两段式且动作在白名单）+ 模块白名单 + 无 manage + 无通配符 + 小写
+        38 码全部合规（本批唯一两段式码：report:export）
+PASS  03. ③ 目录 ↔ 迁移双向一致（码名集合 + 中文名逐字）
+        双向各 38 条一致（提取 38 条）
+PASS  04. ④ sort_no 连续 1..38 且顺序 = 目录顺序
+        1..38 连续且与目录顺序一一对应
+PASS  05. ⑤ 提取器分辨力自证：注入假码 ⇒ 提取结果多出该码
+        注入 'report:bogus:code' ⇒ 提取 39 条且含该码
+PASS  06. ⑥ 父行白名单：目录 menuParent 与迁移 parent_code 逐条一致且都是 079 的 CATALOG 码
+        父行集合 {report, store, system} ⊂ 079 CATALOG 11 码
+PASS  07. ⑦ 端点在路由文件里存在（前缀 + 注册行两段拼接核对）
+        45 个端点全部命中「前缀 + 注册行」两段
+PASS  08. ⑧ 零授权：迁移里**没有任何写 t_sys_role 的语句**（只读 SELECT 自证不算）
+        唯一写语句 = INSERT INTO t_sys_menu；0 条写 t_sys_role 的语句（末尾 SELECT 只是只读自证）
+PASS  09. ⑨ 幂等守卫：NOT EXISTS(menu_code, tenant_id) + 父行 CATALOG/顶层判定
+        四处守卫齐备
+PASS  10. ⑩ 迁移编号 = 207 且文件名与目录常量一致
+        207_四域权限点立码.sql（编号 207）
+
+合计 10 条判据：10 PASS / 0 FAIL

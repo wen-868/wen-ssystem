@@ -1,0 +1,18 @@
+# 判据 5 · `tsc --noEmit` 的原始输出说明（S3-236）
+
+命令（工作树根 → backend）：
+
+```bash
+cd backend
+node ../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit
+```
+
+**结果：EXIT=0，stdout/stderr = 0 字节**（`tsc --noEmit` 全绿时**不打印任何内容**，故本文件本身即是"输出为空"的说明）。
+
+> ⚠️ 为什么本文件不是命令原始输出：命令的全绿输出**就是空**，空文件无法作为"跑过"的证据，故在此留下
+> 命令 + 读数的**文字说明**，并与同仓既有同口径证据互证：
+> `docs/evidence/S3-232/raw/41-tsc-noemit.txt`（S3-232 的同一判据，文件内同样只有说明，结论同为 EXIT=0 / 0 字节）。
+
+> ⚠️ 复跑前提：本工作树的 `node_modules/` 在本单多次 `npm install` 后**已不完整**（详见回传卡「未完成与阻塞」5），
+> 复跑前请先 `npm ci --legacy-peer-deps`。本单取得该读数时依赖尚完整（后端 `build` = tsc + `fix-esm-extensions.js`
+> 亦在同一次依赖窗口内 EXIT=0：`raw/82-build-all.txt` 里后端 `build` 的报错是**后续**依赖被 install 破坏后才出现的）。
