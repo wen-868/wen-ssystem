@@ -127,6 +127,16 @@ jobs:
         #   allowlist 两侧（登记即豁免、登记错行只 warn）/ 全仓 159 个脚本 0 命中（含历史快照目录）。
         run: node backend/scripts/guard-evidence-secrets.mjs
 
+      - name: RBAC wiring guard (第 43 项, blocking)
+        # 判据：`backend/src/routes` 下的写端点必须**要么已接线**（requirePermission/requirePlatformPermission 等）
+        #   **要么**在 `backend/scripts/rbac-wiring-baseline.json` 里**逐条登记**（缺口台账）；
+        #   消费者端保护形态须登记在 `consumerEnd`；已裁定的查询型 POST 登记在脚本的 `READ_ONLY_POSTS`。
+        # 为什么接 CI：B2 批次期间"接线了但没登记 / 登记了但源码回退"这类漂移只能靠这条门禁在**合并前**拦住
+        #   （`--strict` 只认「未登记」与「陈旧登记」，0/0 才 EXIT=0）。
+        # 来源：`docs/tasks/cards/R101-S3-227-阿坚-回传.md` 待裁定④（凌舟裁定＝接为阻断步骤，2026-10-16）。
+        # 反测：见 `docs/evidence/S3-224/`~`docs/evidence/S3-227/`（多批"摘中间件 ⇒ EXIT=1 并点名端点 ⇒ 复原 EXIT=0"）。
+        run: node backend/scripts/guard-rbac-wiring.mjs --strict
+
       - name: Backend coverage gate (baseline 2026-08-15)
         run: npm --workspace backend run test -- --coverage
 
