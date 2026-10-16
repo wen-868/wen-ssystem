@@ -9,6 +9,9 @@ mkdir -p "${LOG_DIR}"
 AI_FAILURES=()
 # S3-118：冒烟测试失败项汇总（只读档，末尾与 AI 底座同机制统一上报）
 SMOKE_FAILURES=()
+# S3-234（收口总清单第 74 项）：迁移失败项汇总（末尾统一点名上报；**当前不阻断部署**，
+#   是否升为阻断见 `docs/tasks/cards/R101-S3-234-阿坚-回传.md` 待裁定项①）
+MIGRATION_FAILURES=()
 
 echo "==> 拉取最新代码"
 git fetch origin main
@@ -26,14 +29,64 @@ echo "==> 构建后端"
 rm -rf backend/dist
 npm --workspace backend run build
 
-echo "==> 执行数据库迁移（新增表结构，容错不阻断部署）"
+echo "==> 执行数据库迁移（清单驱动：deploy/migrations-manifest.txt，容错不阻断部署）"
+# ===== S3-234 迁移段开始（勿删这两个标记行：取证/反测用 `sed -n` 按标记抽取本段**真实源码**执行）=====
+# ── S3-234（收口总清单第 74 项，2026-10-16）────────────────────────────────────
+# 病灶：本段原先是**硬编码 3 条**文件名（126 / 127 / 196）⇒ 之后新增的每一个迁移都
+#   **不会随部署执行**，只能靠人工补跑。实证：main 合入 204_系统设置域权限点立码.sql 后部署，
+#   日志里只跑了那 3 个文件，生产只读复核「店长权限串仍 9 项、14 个新菜单码 0 行」⇒ 改了不生效。
+# 处置：改为遍历 `deploy/migrations-manifest.txt`（唯一真相源；每个迁移文件必须在活动行或
+#   具名豁免段，由 `backend/scripts/guard-migration-manifest.mjs` 守着）。逐个文件独立进程执行：
+#   ⓐ 一个文件失败不影响后续文件（原 `|| echo` 容错语义保留）；
+#   ⓑ 失败**必须点名**（统一标记 `❌ [迁移] <文件> 执行失败：<原因>` + 末尾汇总），
+#      不再让"没跑成"读起来像"跑成了"（踩坑 [74]）。
+#   ⚠️ 是否把迁移失败**升为阻断部署**由凌舟裁定；本段当前维持"容错不阻断"，只做可定位
+#      （升级方式：把 MIGRATION_FAILURES 并入末尾 FAILURES 一行即可，见该处注释）。
+# ─────────────────────────────────────────────────────────────────────────────
 cd "${PROJECT_DIR}/backend"
-node ../scripts/run-migration.mjs ../docs/migrations/126_bills.sql || echo "迁移 126 执行失败，请手动执行（票据功能将显示空列表）"
-node ../scripts/run-migration.mjs ../docs/migrations/127_order_routing_exception.sql || echo "迁移 127 执行失败，请手动执行（订单路由/异常功能将显示空列表）"
-# S3-58-F1-F1：平台管理员 MFA 两列（mfa_secret / mfa_enabled）——不接入流水线等于改了不生效；
-#   迁移未跑时后端有缺列防御（platform-auth.service.ts），登录按 mfa_enabled=0 处理，不会 500。
-node ../scripts/run-migration.mjs ../docs/migrations/196_平台管理员MFA.sql || echo "迁移 196 执行失败，请手动执行（平台端 MFA 列缺失，登录按未启用处理）"
+MIGRATION_MANIFEST="${PROJECT_DIR}/deploy/migrations-manifest.txt"
+MIGRATION_OK=0
+MIGRATION_FAILED=0
+MIGRATION_LOG_DIR="$(mktemp -d)"
+if [ ! -f "${MIGRATION_MANIFEST}" ]; then
+  echo "  ⚠️  找不到迁移清单 ${MIGRATION_MANIFEST} ⇒ 本次未执行任何迁移（这不是「没有待跑迁移」，是清单读不到）"
+  MIGRATION_FAILURES+=("❌ [迁移] 清单缺失：${MIGRATION_MANIFEST}（本段未执行任何迁移）")
+else
+  while IFS= read -r _raw_line || [ -n "${_raw_line}" ]; do
+    # 去 CR（防清单被 CRLF 检出）→ 去首尾空白 → 跳过空行与注释行（`#` 开头，含豁免段）
+    _line="$(printf '%s' "${_raw_line}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+    case "${_line}" in
+      '' | '#'*) continue ;;
+    esac
+    _migration_path="../docs/migrations/${_line}"
+    _migration_log="${MIGRATION_LOG_DIR}/${_line}.log"
+    if [ ! -f "${_migration_path}" ]; then
+      echo "  ❌ [迁移] ${_line} 执行失败：清单指向的文件不存在（${_migration_path}）"
+      MIGRATION_FAILED=$((MIGRATION_FAILED + 1))
+      MIGRATION_FAILURES+=("❌ [迁移] ${_line} 执行失败：清单指向的文件不存在")
+      continue
+    fi
+    if node ../scripts/run-migration.mjs "${_migration_path}" > "${_migration_log}" 2>&1; then
+      MIGRATION_OK=$((MIGRATION_OK + 1))
+    else
+      _reason="$(grep -m1 -F '迁移失败' "${_migration_log}" 2>/dev/null | sed -e 's/^[^:]*: *//' | tr -d '\r' || true)"
+      [ -n "${_reason}" ] || _reason="$(tail -n 1 "${_migration_log}" 2>/dev/null | tr -d '\r')"
+      echo "  ❌ [迁移] ${_line} 执行失败：${_reason:-原因见日志}"
+      echo "     日志尾部："
+      tail -n 3 "${_migration_log}" 2>/dev/null | sed -e 's/^/       /' || true
+      MIGRATION_FAILED=$((MIGRATION_FAILED + 1))
+      MIGRATION_FAILURES+=("❌ [迁移] ${_line} 执行失败：${_reason:-原因见日志}")
+    fi
+  done < "${MIGRATION_MANIFEST}"
+fi
+rm -rf "${MIGRATION_LOG_DIR}"
 cd "${PROJECT_DIR}"
+echo "  迁移段小结：成功 ${MIGRATION_OK} 个 / 失败 ${MIGRATION_FAILED} 个（清单：${MIGRATION_MANIFEST}）"
+if [ "${MIGRATION_FAILED}" -gt 0 ]; then
+  echo "  ⚠️  以下迁移未随本次部署落地（需人工处理；明细见上方「❌ [迁移]」行）："
+  for _mig in "${MIGRATION_FAILURES[@]}"; do echo "     ${_mig}"; done
+fi
+# ===== S3-234 迁移段结束 =====
 
 echo "==> 构建前端（相对路径 /api；AI 底座走 /ai-api nginx 代理 → 服务器 3016）"
 VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace admin-web run build
@@ -187,6 +240,9 @@ fi
 FAILURES=()
 if [ ${#AI_FAILURES[@]} -gt 0 ]; then FAILURES+=("${AI_FAILURES[@]}"); fi
 if [ ${#SMOKE_FAILURES[@]} -gt 0 ]; then FAILURES+=("${SMOKE_FAILURES[@]}"); fi
+# S3-234：迁移失败**当前不进 FAILURES**（即不阻断部署）——"是否升为阻断"由凌舟裁定（见本单回传卡
+#   「待裁定项①」）。要升级为阻断：把下面这行注释掉的分支打开即可（一处、一行）。
+# if [ ${#MIGRATION_FAILURES[@]} -gt 0 ]; then FAILURES+=("${MIGRATION_FAILURES[@]}"); fi
 if [ ${#FAILURES[@]} -gt 0 ]; then
   echo "" >&2
   echo "❌ 部署结束，但存在失败项（共 ${#FAILURES[@]} 项）：" >&2
