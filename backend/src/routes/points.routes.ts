@@ -14,22 +14,19 @@ pointsRouter.put("/rules/:id", requirePermission("marketing:create"), pointsCont
 pointsRouter.post("/:id/points/adjust", pointsController.adjustCustomerPoints);
 pointsRouter.get("/:id/points/records", pointsController.getCustomerPointsRecords);
 pointsRouter.get("/levels/config", pointsController.listLevelConfigs);
-// ⚠️ 会员等级配置 4 条（增/改/启停/删）本批**不接**：app-mobile 会员等级页有真实写调用点
-//（`member-levels/member-levels.vue:117/137`、`member-levels/level-config.vue:119/161/164`），
-// 而该页注册码 `customer:level`（`function-menu.ts:69`）在生产按菜单前缀对 **STORE_MANAGER / SALES_STAFF / CUSTOMER_SERVICE**
-// 均可见（`docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md:113-122`），这三类工作角色都**不持** `marketing:*`
-// ⇒ 接线即 403 回归（A 类·待授权模型定案，见台账 §十五.6）。
-// S3-229（批 9）：按授权模型提案 **D2** 复核后**维持不接** —— D2 的前提是「营销菜单可见角色只含
-// OPERATION_ADMIN(0 账号)/READONLY/STORE_ADMIN(0 账号)」，而本页注册码是 `customer:level`（不在该前提内）：
-// 生产在用角色 **STORE_MANAGER**（1 账号）对该页可见（`docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md` 表 B
-// `customer:level` 列 = 1/1/✓；生产持码 `customer:*`），且**不持** `marketing:create` ⇒ 挂 `marketing:create`
-// 会把在用店长打成 403（违反不变量 I1）。故 4 条按 **W 类**登记，待凌舟裁定码位（`customer:level` / 补授权 / 前端门）。
 // ⚠️ `POST /:id/points/adjust`（会员积分调整）本批**不接**：app-mobile `member-detail.vue:540` 有写调用点，
 // 而该页经首页快捷入口「会员管理」`pages/home/home.vue:87` **无条件可达** ⇒ 使用者集合不可枚举（B 类）。
-pointsRouter.post("/levels/config", pointsController.createLevelConfig);
-pointsRouter.put("/levels/config/:id", pointsController.updateLevelConfig);
-pointsRouter.put("/levels/config/:id/status", pointsController.updateLevelConfigStatus);
-pointsRouter.delete("/levels/config/:id", pointsController.deleteLevelConfig);
+// S3-231（收尾批 · F1）：会员等级配置 4 条（增/改/启停/删）**改挂 `customer:level`**（页面**自身的注册码**，
+// `app-mobile/src/config/function-menu.ts:84`）= 凌舟裁定 1（`R101-S3-229-凌舟验收与裁定.md` §二.1）。
+// 满足不变量 I1'①（该码正是页面注册码）：店长经 `customer:*` 域通配命中（`matchPermission` 分支②：
+// `customer:level` 的域 = `customer` ⇒ `customer:*` 命中）；原来取保守侧的 `marketing:create` 于本页无据（跨域）。
+// 生产持 `customer:level` 的在用角色 = `STORE_MANAGER`（1 账号，持 `customer:*`）⇒ 零回归；
+// `SALES_STAFF` / `CUSTOMER_SERVICE` 持精确码 `customer:view` ⇒ 域通配不命中 ⇒ 该两角色被降级（只读）；
+// 影响面与"因缺码被关闭/降级的入口"逐条登记见 `docs/evidence/S3-231/F1/`。
+pointsRouter.post("/levels/config", requirePermission("customer:level"), pointsController.createLevelConfig);
+pointsRouter.put("/levels/config/:id", requirePermission("customer:level"), pointsController.updateLevelConfig);
+pointsRouter.put("/levels/config/:id/status", requirePermission("customer:level"), pointsController.updateLevelConfigStatus);
+pointsRouter.delete("/levels/config/:id", requirePermission("customer:level"), pointsController.deleteLevelConfig);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/members",

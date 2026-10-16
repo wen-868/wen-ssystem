@@ -105,7 +105,9 @@ import {
 import { adminStoreRouter } from "../../routes/admin-store.routes";
 import { storeValueCardRouter } from "../../routes/store-value-card.routes";
 import { storeMemberRouter } from "../../routes/store.routes";
-import { pointsRouter } from "../../routes/points.routes";
+// 注：`points.routes.ts` 的 4 条会员等级配置端点原属本批 G2·W 类（未接）；
+// 2026-10-16 由 S3-231 F1 改挂 `customer:level` 接线后已移出本名单 ⇒ 此处不再导入其 router，
+// 该 4 条的接线断言由 `rbac-b2-s3-231-f1-member-levels-wiring.test.ts` 承接。
 
 /**
  * 测试账号：权限串 = **生产只读实值**（`docs/evidence/_shared/prod-roles-20261016.txt`，租户 `default` 共 12 角色全集）。
@@ -201,17 +203,22 @@ interface UnwiredRow {
 }
 
 /**
- * 本域**未接**名单（28 行 = G1 的 24 + G2 的 4）。
+ * 本域**未接**名单（24 行 = G1 的 24 + G2 的 0）。
  *
  * 分类（派单卡 §三.1/§三.2 的桶定义，逐条理由见台账 §十七）：
  *  · B 8 = 「使用者集合不可枚举」——储值卡 4（`member-detail.vue:531/534/536` 无门页写调用点）
  *          ＋门店会员 2（`member-detail.vue:621/626`）＋门店建档 2（`admin-web StoresView.vue:338/408` 之外的
  *          app-mobile `store-edit.vue:218/220`，经**我的页无条件入口** `profile.vue` 可达）；
- *  · W 4 = 会员等级配置（`points.routes.ts`，页面码 `customer:level` 对**在用**角色 STORE_MANAGER 可见而不持
- *          `marketing:create` ⇒ 违反不变量 I1；D2 的前提不覆盖本页，待裁定）；
  *  · PUB 2 = 租户自助注册 2 条（`routeConfig.auth = "none"`，公开端点，挂商家码无意义）；
  *  · PLATFORM 14 = 平台侧审核 2 条（`requirePlatformAuth`，商家码无效 ⇒ 归平台侧单）
  *          ＋平台域 12 条（订阅管理 8 + 租户管理 4，卡片明示「平台侧归 S3-219 体系，不在本单」）。
+ *
+ * ── 状态变更登记（2026-10-16 · S3-231 F1）────────────────────────────
+ *  · **W 4 已结项**：会员等级配置 4 条（`points.routes.ts`）由 **S3-231 F1** 按凌舟裁定 1
+ *    （`docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1）**改挂 `customer:level` 接线**，
+ *    故本名单由 28 → **24**（W 桶清零；本条为**状态变更登记**，S3-229 的历史判定不改写）。
+ *    已接线断言与零回归证据见 `backend/src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts`
+ *    与 `docs/evidence/S3-231/F1/`。
  */
 const UNWIRED: UnwiredRow[] = [
   // ---- G1 · B 类（8）----
@@ -224,12 +231,7 @@ const UNWIRED: UnwiredRow[] = [
   { file: "store.routes.ts", prefix: "/api/store/members", router: storeMemberRouter, method: "post", routePath: "/manage", path: "/manage", reason: "B", note: "member-detail.vue:621（新增会员）；member-list.vue:6 新增按钮 → 无门页", runnable: true },
   { file: "store.routes.ts", prefix: "/api/store/members", router: storeMemberRouter, method: "put", routePath: "/:id(\\\\d+)", path: "/9", reason: "B", note: "member-detail.vue:626（保存客户），同上", runnable: true },
 
-  // ---- G2 · W 类（4）----
-  { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/levels/config", path: "/levels/config", reason: "W", note: "level-config.vue:164（新增等级）；页面码 customer:level 对在用 STORE_MANAGER 可见但不持 marketing:create", runnable: true },
-  { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "put", routePath: "/levels/config/:id", path: "/levels/config/1", reason: "W", note: "level-config.vue:161（保存等级），同上", runnable: true },
-  { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "put", routePath: "/levels/config/:id/status", path: "/levels/config/1/status", reason: "W", note: "member-levels.vue:117（启停等级），同上", runnable: true },
-  { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "delete", routePath: "/levels/config/:id", path: "/levels/config/1", reason: "W", note: "api/modules/member-levels.ts:66（删除等级），同上", runnable: true },
-
+  // ---- G2 · W 类（4）已由 S3-231 F1 接线（改挂 customer:level）⇒ 本名单清零，见文件头「状态变更登记」----
   // ---- G1 · 公开端点（2）----
   { file: "tenant-register.routes.ts", prefix: "/api/tenant", router: null as unknown as Router, method: "post", routePath: "/register", path: "/register", reason: "PUB", note: "租户自助注册（routeConfig.auth = none，免鉴权；调用方 app 注册链路）" },
   { file: "tenant-register.routes.ts", prefix: "/api/tenant", router: null as unknown as Router, method: "post", routePath: "/register/sms-code", path: "/register/sms-code", reason: "PUB", note: "注册验证码（同上）" },
@@ -253,10 +255,17 @@ const UNWIRED: UnwiredRow[] = [
   { file: "tenant.routes.ts", prefix: "/api/platform/tenants-management", router: null as unknown as Router, method: "put", routePath: "/:tenantId/modules", path: "/1/modules", reason: "PLATFORM", note: "平台域：模块开关" },
 ];
 
-/** 对账（派单卡 §三.1/§三.2）：G1 31 条缺口 + G2 14 条缺口 = 17 已接 + 28 未接 */
+/**
+ * 对账（派单卡 §三.1/§三.2）：G1 31 条缺口 + G2 14 条缺口 = 17 已接 + 28 未接。
+ * ⚠️ 2026-10-16 S3-231 F1 后：G2 的 W 4 条已接线 ⇒ 本名单 28 → **24**（G2 未接 4 → **0**）。
+ *    原式 `G1_TOTAL + G2_TOTAL` 不再等价于「已接 + 未接」，改按**接线前原缺口**分别对账（见下方用例）。
+ */
 const G1_TOTAL = 31;
 const G2_TOTAL = 14;
-const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 8, W: 4, PUB: 2, PLATFORM: 14 };
+/** 接线**前**的原缺口构成（S3-229 口径，F1 结项后仍用于历史对账） */
+const G1_UNWIRED_TOTAL = 24;
+/** F1 后**当前**未接名单构成（W 桶清零） */
+const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 8, W: 0, PUB: 2, PLATFORM: 14 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -365,10 +374,12 @@ describe("S3-229 · 名单自证", () => {
     expect(g2Wired).toBe(10);
     expect(g1Wired + g2Wired).toBe(ROWS.length);
 
-    const g1Unwired = UNWIRED.filter((r) => r.file !== "points.routes.ts");
-    const g2Unwired = UNWIRED.filter((r) => r.file === "points.routes.ts");
-    expect(g1Wired + g1Unwired.length).toBe(G1_TOTAL);
-    expect(g2Wired + g2Unwired.length).toBe(G2_TOTAL);
+    // ⚠️ S3-231 F1 后：G2 的 W 4 条已接线 ⇒ 不能再按「当前未接名单」反推 G2_TOTAL；
+    //    改按 **接线前原缺口** 对账：G1 31 = 7 已接 + 24 未接；G2 14 = 10 已接 + 4（F1 结项）。
+    expect(g1Wired + G1_UNWIRED_TOTAL).toBe(G1_TOTAL);
+    expect(g2Wired + 4).toBe(G2_TOTAL);
+    expect(UNWIRED.filter((r) => r.file === "points.routes.ts")).toHaveLength(0);
+    expect(UNWIRED).toHaveLength(G1_UNWIRED_TOTAL);
 
     // 逐类计数（台账 §十七）
     const byReason = (rows: UnwiredRow[], reason: Reason) => rows.filter((r) => r.reason === reason).length;
@@ -378,9 +389,9 @@ describe("S3-229 · 名单自证", () => {
       PUB: byReason(UNWIRED, "PUB"),
       PLATFORM: byReason(UNWIRED, "PLATFORM"),
     }).toEqual(UNWIRED_CLASS_TOTAL);
-    expect(byReason(g1Unwired, "PLATFORM")).toBe(14);
-    expect(byReason(g1Unwired, "B")).toBe(8);
-    expect(byReason(g1Unwired, "PUB")).toBe(2);
+    expect(byReason(UNWIRED, "PLATFORM")).toBe(14);
+    expect(byReason(UNWIRED, "B")).toBe(8);
+    expect(byReason(UNWIRED, "PUB")).toBe(2);
   });
 });
 
@@ -540,12 +551,15 @@ describe("S3-229 · 范围控制：本批未接行 READONLY 仍到达业务层�
     }
   );
 
-  it("四类未接原因齐备（B / W / PUB / PLATFORM 各至少 1 条，避免只取样一类）", () => {
-    expect([...new Set(UNWIRED.map((r) => r.reason))].sort()).toEqual(["B", "PLATFORM", "PUB", "W"]);
+  it("现余三类未接原因齐备（B / PUB / PLATFORM 各至少 1 条；W 桶已由 S3-231 F1 清零）", () => {
+    // ⚠️ 状态变更登记（S3-231 F1）：W 4 已接线 ⇒ 期望集合去 W；改「齐备」为「现余三类」，
+    //    并把「W 已清零」写成显式断言（避免将来有人以为 W 桶凭空消失）。
+    expect([...new Set(UNWIRED.map((r) => r.reason))].sort()).toEqual(["B", "PLATFORM", "PUB"]);
+    expect(UNWIRED.filter((r) => r.reason === "W")).toHaveLength(0);
   });
 
-  it("12 行可实跑的未接行都被 READONLY 触达（B 8 + W 4）", () => {
-    expect(UNWIRED.filter((r) => r.runnable)).toHaveLength(12);
+  it("8 行可实跑的未接行都被 READONLY 触达（B 8；原 W 4 已由 S3-231 F1 接线移出本名单）", () => {
+    expect(UNWIRED.filter((r) => r.runnable)).toHaveLength(8);
   });
 });
 

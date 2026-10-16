@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-231/backend
+
+[2026-10-16 10:18:55.791 +0800] [32mINFO[39m (17980): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+
+ Test Files  1 passed (1)
+      Tests  114 passed (114)
+   Start at  10:18:52
+   Duration  3.79s (transform 556ms, setup 41ms, import 2.60s, tests 815ms, environment 0ms)
+
