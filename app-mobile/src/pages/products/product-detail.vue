@@ -329,7 +329,17 @@
         </view>
         <view class="pp-acts">
           <view class="pp-btn pp-btn--ghost" v-if="editable" @tap="cancelEdit">取消</view>
-          <view class="pp-btn" :class="{ 'pp-btn--dis': editable && !dirty }" @tap="onMainAction">{{ editable ? '保存' : '修改' }}</view>
+          <!--
+            S3-230 入口权限门：「保存」一次会打商品主数据 / 价格 / 单位 / 标签四族端点
+            （`PUT /admin/products/:id`、`PUT /products/:skuId/price`、单位增删改、`marketing-tags`），
+            故门 = 四码全持（注册表 goods-detail-edit）。
+          -->
+          <view
+            class="pp-btn"
+            v-if="canEntry('goods-detail-edit')"
+            :class="{ 'pp-btn--dis': editable && !dirty }"
+            @tap="onMainAction"
+          >{{ editable ? '保存' : '修改' }}</view>
         </view>
       </view>
     </view>
@@ -422,6 +432,10 @@ import { computed, reactive, ref } from 'vue'
 // 白屏（onLoad 回调先注册故请求仍发出，nginx 可见 200，极具迷惑性）。
 // H5 运行时（uni-app.es.js）虽有导出，但跨端统一只用 onHide（覆盖切后台+离开两场景）。
 import { onLoad, onHide } from '@dcloudio/uni-app'
+// S3-230 入口权限门：底栏「修改/保存」按码显隐（注册表 goods-detail-edit）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 import {
   createProduct,
   getProductDetail,

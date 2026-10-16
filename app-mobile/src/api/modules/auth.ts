@@ -57,6 +57,12 @@ export interface ProfileResult {
   storeName?: string
   name?: string
   tenantId?: string
+  /**
+   * 权限码集合（S3-203 起后端 `/admin/auth/me` 与登录接口**同源下发** `t_sys_role.permissions`）
+   * 用途：手机端入口权限门判定（S3-230）——判定实现见 `config/permission-gates.ts`。
+   * 缺省（老版本本地缓存）表示"未取到"，入口门按"放行"处理，不把整端入口藏空。
+   */
+  permissions?: string[]
   /** CSRF 防护令牌（getMe 接口同步返回，供前端刷新页面后恢复） */
   csrfToken?: string
 }

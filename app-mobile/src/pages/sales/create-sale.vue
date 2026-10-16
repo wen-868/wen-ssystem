@@ -20,7 +20,16 @@
     <view class="doc-nav">
       <view class="doc-nav-main">
         <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'sale' }" @tap="switchDocMain('sale')">销售</view>
-        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'purchase' }" @tap="switchDocMain('purchase')">采购</view>
+        <!--
+          S3-230 入口权限门：采购主段承载 4 个采购写端点（下单/入库/退货/付款），
+          只有在该账号**至少持有一个采购子段的门码**时才显示（子段本身再各自按码过滤）。
+        -->
+        <view
+          v-if="canAnyEntry(['purchase-sub-order', 'purchase-sub-inbound', 'purchase-sub-return', 'purchase-sub-payment'])"
+          class="doc-seg"
+          :class="{ 'doc-seg--active': docMain === 'purchase' }"
+          @tap="switchDocMain('purchase')"
+        >采购</view>
       </view>
       <view class="doc-nav-sub">
         <view
@@ -562,7 +571,7 @@
     <!-- 底部提交（原稿 action-bar 悬浮按钮组：保存 secondary / 转单 primary 带箭头 / 分享 tertiary；输入聚焦时隐藏） -->
     <view class="bottom-bar" :class="{ 'bottom-bar--hidden': keyboardHideBar }">
       <button
-        v-for="(act, i) in docConfig.actions"
+        v-for="(act, i) in visibleActions"
         :key="act.label"
         :class="['submit-btn', act.label === '分享' ? 'share-btn' : (act.variant === 'ghost' ? 'draft-btn' : ''), { 'submit-btn--disabled': submitting }]"
         :disabled="submitting"
@@ -777,6 +786,11 @@ import { supplierApi, type Supplier } from '@/api/modules/suppliers'
 import { storesApi } from '@/api/modules/stores'
 import { saleReturnApi, purchaseReturnApi } from '@/api/modules/returns'
 import { PRODUCT_THUMB_COLORS } from '@/constants/colors'
+// S3-230 入口权限门：单据类型分段导航 / 底部动作按"该端点将使用的码"显隐
+// （注册表见 config/permission-gates.ts；写调用面见各 gate 的 endpoints）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { can, canEntry, canAnyEntry } = usePermissionGate()
 
 // ===================================================================
 // 单据框架：四种单据各自独立字段 / 底部动作 / 提交接口
@@ -794,10 +808,25 @@ const todayStr = (): string => {
 
 // ---------- 单据类型分段导航（原稿：销售/采购 + 子段） ----------
 const docMain = ref<'sale' | 'purchase'>('sale')
+/**
+ * 子段 → 入口权限门 id（S3-230，注册表 config/permission-gates.ts）
+ * 未登记的子段（如「销售单」）今天没有 B 类写调用面，不门。
+ */
+const DOC_SUB_GATE: Record<string, string> = {
+  收款单: 'sale-receipt-sub',
+  采购订单: 'purchase-sub-order',
+  采购入库: 'purchase-sub-inbound',
+  采购退货: 'purchase-sub-return',
+  付款单: 'purchase-sub-payment'
+}
 const docSubs = computed(() =>
-  docMain.value === 'sale'
+  (docMain.value === 'sale'
     ? ['订单', '销售单', '退货', '收款单']
     : ['采购订单', '采购入库', '采购退货', '付款单']
+  ).filter((s) => {
+    const gate = DOC_SUB_GATE[s]
+    return !gate || canEntry(gate)
+  })
 )
 const docSub = ref('订单')
 function switchDocMain(v: 'sale' | 'purchase') {
@@ -805,6 +834,15 @@ function switchDocMain(v: 'sale' | 'purchase') {
   docSub.value = v === 'sale' ? '订单' : '采购订单'
   resetDoc()
 }
+/**
+ * 门后兜底：直链/参数把 docSub 设为"该账号看不到的子段"时（如 `?docKey=pur_order`），
+ * 回落到当前可见的第一个子段，避免停在一个没有权限的子单据上。
+ */
+watch(docSubs, (subs) => {
+  if (subs.length > 0 && !subs.includes(docSub.value)) {
+    docSub.value = subs[0]
+  }
+})
 // 子段切换：对齐 HTML 各单据独立状态（切换即重置当前单据数据）
 function selectDocSub(s: string) {
   if (docSub.value === s) return
@@ -852,6 +890,8 @@ interface DocAction {
   loadingText?: string
   /** 转单类主按钮：转单内部自动保存（先创建当前单据再切换），草稿态不再置灰 */
   needsSaved?: boolean
+  /** 入口权限门 id（S3-230）：该动作会打的写端点所用码不满足时，按钮**不渲染** */
+  gate?: string
 }
 const docConfig = computed<{
   showCustomer: boolean
@@ -914,8 +954,9 @@ const docConfig = computed<{
         showBatch: false, showReason: false, showVerify: true, showOrderStatus: false,
         showShipSummary: false,
         actions: [
+          // 收款单「确认收款」→ POST /api/admin/receipts/（码 sale:create，见注册表 sale-receipt-sub）
           { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...' },
+          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...', gate: 'sale-receipt-sub' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -929,7 +970,7 @@ const docConfig = computed<{
         showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '转入库单', variant: 'primary', handler: () => convertDoc('pur_inbound'), loadingText: '转入库单中...', needsSaved: true },
+          { label: '转入库单', variant: 'primary', handler: () => convertDoc('pur_inbound'), loadingText: '转入库单中...', needsSaved: true, gate: 'purchase-sub-order' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -942,8 +983,10 @@ const docConfig = computed<{
         showBatch: true, showReason: false, showVerify: false, showOrderStatus: false,
         showShipSummary: false,
         actions: [
-          { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '转付款单', variant: 'primary', handler: () => convertDoc('pur_payment'), loadingText: '转付款单中...', needsSaved: true },
+          // 保存＝暂存/挂单 → POST /api/store/hold-orders/（码 sale:create，见注册表 sale-create-hold）
+          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold' },
+          // 转付款单＝提交本张入库单 → POST /api/admin/purchase-in-stocks/（码 inventory:inbound）
+          { label: '转付款单', variant: 'primary', handler: () => convertDoc('pur_payment'), loadingText: '转付款单中...', needsSaved: true, gate: 'purchase-sub-inbound' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -956,7 +999,8 @@ const docConfig = computed<{
         showBatch: false, showReason: true, showVerify: false, showOrderStatus: false,
         showShipSummary: false,
         actions: [
-          { label: '保存', variant: 'ghost', handler: submitPurchaseReturn },
+          // 保存＝提交采购退货 → POST /api/admin/purchase-returns/（码 sale:return）
+          { label: '保存', variant: 'ghost', handler: submitPurchaseReturn, gate: 'purchase-sub-return' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -970,7 +1014,8 @@ const docConfig = computed<{
         showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '确认付款', variant: 'primary', handler: submitPayment, loadingText: '付款中...' },
+          // 确认付款 → POST /api/admin/purchase-payments/（码 finance:payment）
+          { label: '确认付款', variant: 'primary', handler: submitPayment, loadingText: '付款中...', gate: 'purchase-sub-payment' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -983,13 +1028,23 @@ const docConfig = computed<{
         showBatch: false, showReason: false, showVerify: false, showOrderStatus: true,
         showShipSummary: false,
         actions: [
-          { label: '保存', variant: 'ghost', handler: handleDraft },
+          // 保存＝暂存/挂单 → POST /api/store/hold-orders/（码 sale:create，见注册表 sale-create-hold）
+          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold' },
           { label: '转销售单', variant: 'primary', handler: submitOrder, loadingText: '转销售单中...', needsSaved: true },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
   }
 })
+
+/**
+ * 底部动作：按入口权限门过滤（S3-230）
+ * 动作自身带 `gate`（注册表入口 id）时，码不满足 ⇒ 按钮不渲染 —— 保证"看得到的按钮，
+ * 打出去的写端点必然是这个账号有权过的码"（授权模型不变量 I1）。
+ */
+const visibleActions = computed(() =>
+  docConfig.value.actions.filter((act) => !act.gate || canEntry(act.gate))
+)
 
 // ---------- 公共：商品明细状态（订单 / 进货 共用） ----------
 const saleItems = reactive<SaleItem[]>([])
@@ -2004,6 +2059,12 @@ onShareAppMessage(() => ({
 
 /** 保存（暂存草稿）：订单/进货走真实暂存接口，收款单仅前端标记 */
 async function handleDraft() {
+  // S3-230 入口权限门（兜底）：订单/进货的「保存」实际写 POST /api/store/hold-orders/（码 sale:create）。
+  // 按钮已按门隐藏，这里再挡一层，覆盖直链/异常态（按钮被隐藏时不可达，但函数仍可被其它路径调用）。
+  if ((docKey.value === 'sale_order' || docKey.value === 'pur_inbound') && !can('sale:create')) {
+    uni.showToast({ title: '无权限暂存单据', icon: 'none' })
+    return
+  }
   if ((docKey.value === 'sale_order' || docKey.value === 'pur_inbound') && saleItems.length === 0) {
     uni.showToast({ title: '请先添加商品', icon: 'none' })
     return

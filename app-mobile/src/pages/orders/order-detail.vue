@@ -143,8 +143,12 @@
 
   <!-- 底部操作栏 -->
   <view class="bottom-actions" v-if="order && showActions">
+    <!--
+      S3-230 入口权限门：本页三个状态流转按钮打的是同一个 PUT /api/admin/orders/:orderNo/status
+      （`api/modules/orders.ts:96-109`），码 sale:create（与门店端 accept/complete-delivery 同族）
+    -->
     <button
-      v-if="order.status === 'pending'"
+      v-if="order.status === 'pending' && canEntry('sale-order-detail-deliver')"
       class="action-btn action-btn--primary"
       :disabled="actionLoading"
       @tap="handleConfirm"
@@ -152,7 +156,7 @@
       {{ actionLoading ? '处理中...' : '确认订单' }}
     </button>
     <button
-      v-if="order.status === 'processing'"
+      v-if="order.status === 'processing' && canEntry('sale-order-detail-deliver')"
       class="action-btn action-btn--primary"
       :disabled="actionLoading"
       @tap="handleDeliver"
@@ -160,15 +164,16 @@
       {{ actionLoading ? '处理中...' : '开始配送' }}
     </button>
     <button
-      v-if="order.status === 'delivering'"
+      v-if="order.status === 'delivering' && canEntry('sale-order-detail-deliver')"
       class="action-btn action-btn--success"
       :disabled="actionLoading"
       @tap="handleComplete"
     >
       {{ actionLoading ? '处理中...' : '完成配送' }}
     </button>
+    <!-- S3-230 入口权限门：取消订单 → POST /api/admin/orders/:orderNo/cancel（已接线 `sale:void`） -->
     <button
-      v-if="order.status === 'pending' || order.status === 'processing'"
+      v-if="(order.status === 'pending' || order.status === 'processing') && canEntry('sale-order-detail-cancel')"
       class="action-btn action-btn--danger"
       :disabled="actionLoading"
       @tap="handleCancel"
@@ -186,6 +191,10 @@ function goBack() {
 }
 import { ref, computed, onMounted } from 'vue'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
+// S3-230 入口权限门：状态流转/取消按钮按"该端点使用的码"显隐（注册表 config/permission-gates.ts）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 
 const order = ref<OrderInfo | null>(null)
 const loading = ref(true)

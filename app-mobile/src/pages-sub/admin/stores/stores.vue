@@ -57,13 +57,14 @@
         <view class="pd-gtitle pd-gtitle--sub">
           <view class="gt-bar"></view>
           <text>收款银行卡</text>
-          <view class="gt-act" v-if="coEdit && !showBankAdd" @tap="showBankAdd = true"><text>+ 添加</text></view>
+          <!-- S3-230 入口权限门：银行账户新增/关闭 → POST /api/admin/bank-accounts/(:id/close)（finance:create） -->
+          <view class="gt-act" v-if="coEdit && !showBankAdd && canEntry('fin-bank-accounts')" @tap="showBankAdd = true"><text>+ 添加</text></view>
         </view>
         <view v-if="companyBanks.length">
           <view class="bank-row" v-for="(b, i) in companyBanks" :key="b.id ?? i">
             <view class="bank-line">
               <text class="bank-name">{{ b.bankName || '未命名账户' }}</text>
-              <text class="bank-del" v-if="coEdit" @tap="removeBank(b)">删除</text>
+              <text class="bank-del" v-if="coEdit && canEntry('fin-bank-accounts')" @tap="removeBank(b)">删除</text>
             </view>
             <text class="bank-no">{{ b.accountNo || '—' }}</text>
             <text class="bank-owner" v-if="b.accountName">{{ b.accountName }}</text>
@@ -83,7 +84,7 @@
           </view>
           <view class="bank-add-btns">
             <view class="ab-btn ab-btn--ghost" @tap="cancelBankAdd"><text>取消</text></view>
-            <view class="ab-btn ab-btn--primary" @tap="confirmBankAdd"><text>确认添加</text></view>
+            <view class="ab-btn ab-btn--primary" v-if="canEntry('fin-bank-accounts')" @tap="confirmBankAdd"><text>确认添加</text></view>
           </view>
         </view>
       </view>
@@ -171,6 +172,10 @@
 import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { storesApi, bankAccountsApi, type StoreInfo, type CompanyBankAccount } from '@/api/modules/stores'
+// S3-230 入口权限门：银行账户写按钮按码显隐（注册表 fin-bank-accounts）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 import { sysConfigApi, type TenantInfo } from '@/api/modules/sys-config'
 
 function goBack() { uni.navigateBack() }

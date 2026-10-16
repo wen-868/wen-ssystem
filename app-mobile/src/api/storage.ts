@@ -49,6 +49,12 @@ export interface UserInfo {
   storeId?: number
   storeName?: string
   tenantId?: string
+  /**
+   * 权限码集合（S3-230 起随用户态落密文存储）
+   * 说明：入口权限门（手机端）按码判定可见性；后端 `/admin/auth/me` 与登录接口都会下发，
+   * 这里持久化是为了"杀进程重进/仅用 token 恢复会话"时判定不丢。
+   */
+  permissions?: string[]
   csrfToken?: string
 }
 

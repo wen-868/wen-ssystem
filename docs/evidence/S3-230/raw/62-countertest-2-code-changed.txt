@@ -1,0 +1,95 @@
+== S3-230 入口权限门自检 ==
+注册表：37 个入口（gated 26 / registered 11）
+生产角色底稿：12 个角色；在用角色：SUPER_ADMIN, STORE_MANAGER, STORE_OPERATOR, READONLY
+
+-- A. 台账 ↔ 注册表 --
+   销售域          端点  41 = gated  5 + registered 36
+   采购域          端点   5 = gated  5 + registered  0
+   库存/追溯域       端点  21 = gated 20 + registered  1
+   商品域          端点  14 = gated 13 + registered  1
+   员工/账号域       端点   7 = gated  7 + registered  0
+   营销域          端点   9 = gated  5 + registered  4
+   财务域          端点   5 = gated  5 + registered  0
+   客户域          端点   1 = gated  0 + registered  1
+   合计         103 行（端点 × 入口）= gated 60 + registered 43
+   去重端点数    101（另有 2 行是"同一端点的第二个入口"）
+  OK   台账 103 行与注册表 37 个入口一一对得上；gated 行均有码、registered 行均无码
+
+-- B. 注册表 ↔ 源码引用 --
+  OK   门 sale-order-detail-deliver ⇢ app-mobile/src/pages/orders/order-detail.vue
+  OK   门 sale-order-detail-cancel ⇢ app-mobile/src/pages/orders/order-detail.vue
+  OK   门 sale-create-hold ⇢ app-mobile/src/pages/home/home.vue , app-mobile/src/pages/sales/create-sale.vue
+  OK   门 sale-bill-offline-pay ⇢ app-mobile/src/pages-sub/order/sales/sale-detail.vue
+  OK   门 sale-receipt-sub ⇢ app-mobile/src/pages/sales/create-sale.vue
+  OK   门 purchase-sub-order ⇢ app-mobile/src/pages/sales/create-sale.vue
+  OK   门 purchase-sub-inbound ⇢ app-mobile/src/pages/sales/create-sale.vue
+  OK   门 purchase-sub-return ⇢ app-mobile/src/pages/sales/create-sale.vue
+  OK   门 purchase-sub-payment ⇢ app-mobile/src/pages/sales/create-sale.vue
+  OK   门 home-in-stock ⇢ app-mobile/src/pages/home/home.vue
+  OK   门 fx-stock-check ⇢ app-mobile/src/config/function-menu.ts
+  OK   门 fx-stock-warning ⇢ app-mobile/src/config/function-menu.ts , app-mobile/src/pages/profile/profile.vue
+  OK   门 fx-loss-gain ⇢ app-mobile/src/config/function-menu.ts
+  OK   门 fx-transfer ⇢ app-mobile/src/config/function-menu.ts
+  OK   门 fx-transfer-receive ⇢ app-mobile/src/pages-sub/finance/transfer/transfer.vue
+  OK   门 goods-detail-edit ⇢ app-mobile/src/pages/products/product-detail.vue
+  OK   门 goods-batch-price-submit ⇢ app-mobile/src/pages/products/products.vue , app-mobile/src/pages-sub/product/batch-price/batch-price.vue
+  OK   门 goods-category-create ⇢ app-mobile/src/pages-sub/product/categories/categories.vue
+  OK   门 goods-category-edit ⇢ app-mobile/src/pages-sub/product/categories/categories.vue
+  OK   门 goods-category-delete ⇢ app-mobile/src/pages-sub/product/categories/categories.vue
+  OK   门 staff-entry ⇢ app-mobile/src/pages/profile/profile.vue
+  OK   门 role-entry ⇢ app-mobile/src/pages/profile/profile.vue
+  OK   门 mkt-coupons ⇢ app-mobile/src/config/function-menu.ts
+  OK   门 mkt-activities ⇢ app-mobile/src/config/function-menu.ts
+  OK   门 fin-bank-accounts ⇢ app-mobile/src/pages-sub/admin/stores/stores.vue
+  OK   门 fin-recon-confirm ⇢ app-mobile/src/config/function-menu.ts , app-mobile/src/pages/profile/profile.vue , app-mobile/src/pages-sub/finance/reconciliation/reconciliation.vue
+
+-- C. 在用角色 × 入口 可见性（门生效后）--
+   入口 id                          SUPER_ADMIN     STORE_MANAGER   STORE_OPERATOR  READONLY       
+   sale-order-detail-deliver      可见              可见              可见              -                ← 码 sale:create
+   sale-order-detail-cancel       可见              可见              -               -                ← 码 sale:void
+   sale-create-hold               可见              可见              可见              -                ← 码 sale:create
+   sale-bill-offline-pay          可见              可见              可见              -                ← 码 sale:create
+   sale-receipt-sub               可见              可见              可见              -                ← 码 sale:create
+   purchase-sub-order             可见              -               -               -                ← 码 purchase:create
+   purchase-sub-inbound           可见              可见              -               -                ← 码 inventory:inbound
+   purchase-sub-return            可见              可见              可见              -                ← 码 sale:return
+   purchase-sub-payment           可见              可见              -               -                ← 码 finance:payment
+   home-in-stock                  可见              可见              -               -                ← 码 inventory:inbound
+   fx-stock-check                 可见              可见              -               -                ← 码 inventory:create + inventory:adjust
+   fx-stock-warning               可见              可见              -               -                ← 码 inventory:adjust
+   fx-loss-gain                   可见              可见              -               -                ← 码 inventory:adjust
+   fx-transfer                    可见              可见              -               -                ← 码 store:transfer
+   fx-transfer-receive            可见              可见              -               -                ← 码 store:transfer
+   goods-detail-edit              可见              -               -               -                ← 码 goods:edit + goods:price + goods:create + goods:delete
+   goods-batch-price-submit       可见              可见              -               -                ← 码 goods:price
+   goods-category-create          可见              -               -               -                ← 码 goods:create
+   goods-category-edit            可见              -               -               -                ← 码 goods:edit
+   goods-category-delete          可见              -               -               -                ← 码 goods:delete
+  FAIL 门 staff-entry 的在用可见角色与期望不一致：实算 [SUPER_ADMIN, READONLY] ≠ 期望 [SUPER_ADMIN]
+   staff-entry                    可见              -               -               可见               ← 码 system:user:view
+   role-entry                     可见              -               -               -                ← 码 system:role:create + system:role:edit
+   mkt-coupons                    可见              -               -               -                ← 码 marketing:create
+   mkt-activities                 可见              -               -               -                ← 码 marketing:create
+   fin-bank-accounts              可见              -               -               -                ← 码 finance:create
+   fin-recon-confirm              可见              可见              -               -                ← 码 report:finance
+
+-- D1. 反测：门码换成不存在的码 ⇒ 非通配在用角色必须全部不可见 --
+   17 / 17 个"对非通配角色可见"的门，改码后非通配角色全部不可见
+  OK   D1 通过：非通配角色的可见性**确实由门码决定**（换码即不可见）
+
+-- D2. 反测：门码换成更宽的现存码（sale:create）⇒ 可见集合必须变化 --
+   26 / 26 个门在换码后可见集合发生变化
+  OK   D2 通过：改码会让受众集合发生变化 ⇒ 门码一旦被改错，矩阵断言会红
+
+-- D3. 反测复原：换回注册表里的真码 ⇒ 可见集合回到基线 --
+   26 / 26 个门复原后与基线一致
+  OK   D3 通过：复原 ⇒ 可见（与 C 节基线一致）
+
+-- E. 未取到权限码 / 空码集 口径 --
+  OK   permissions = null（未取到）⇒ 放行（维持改造前可见性）
+  OK   permissions = []（取到但无码）⇒ 不显示（失败关闭）
+  OK   模块通配 `store:*` 命中 `store:transfer`（与后端 matchPermission 规则②一致）
+  OK   动作通配 `*:view` 不命中写码（观察员看不到写入口）
+
+== 结论 ==
+FAILED：1 条断言未通过

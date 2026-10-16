@@ -1,0 +1,13 @@
+35:  permCodes?: string[]
+65:      { code: 'goods:stock-warning', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', icon: '/static/icons/fn-alert.svg', inProfile: true, permCodes: ['inventory:adjust'] },
+66:      { code: 'goods:stock-check', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', icon: '/static/icons/fn-check.svg', hot: true, permCodes: ['inventory:create', 'inventory:adjust'] },
+67:      { code: 'goods:loss-gain', label: '报损报益', path: '/pages-sub/finance/loss-gain/loss-gain-report', icon: '/static/icons/fn-loss-gain.svg', permCodes: ['inventory:adjust'] },
+74:      { code: 'purchase:order', label: '采购订单', path: '/pages-sub/finance/purchase/orders', icon: '/static/icons/fn-purchase-order.svg', permCodes: ['purchase:create'] },
+75:      { code: 'purchase:inbound', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', icon: '/static/icons/fn-stockin.svg', hot: true, permCodes: ['inventory:inbound'] },
+94:      { code: 'marketing:coupon', label: '优惠券', path: '/pages-sub/marketing/marketing/coupons', icon: '/static/icons/fn-coupon.svg', permCodes: ['marketing:create'] },
+95:      { code: 'marketing:activities', label: '营销活动', path: '/pages-sub/marketing/marketing/activities', icon: '/static/icons/fn-activity.svg', permCodes: ['marketing:create'] },
+108:      { code: 'finance:reconciliation', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', icon: '/static/icons/fn-settle.svg', hot: true, inProfile: true, permCodes: ['report:finance'] },
+111:      { code: 'finance:transfer', label: '门店调拨', path: '/pages-sub/finance/transfer/transfer', icon: '/static/icons/fn-transfer.svg', permCodes: ['store:transfer'] },
+133:      { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-staff.svg', inProfile: true, permCodes: ['system:user:create', 'system:user:edit'] },
+134:      { code: 'store:roles', label: '角色管理', path: '/pages-sub/admin/roles/roles', icon: '/static/icons/fn-role.svg', permCodes: ['system:role:create', 'system:role:edit'] },
+300:  return items.filter((it) => hasPermissionCodes(perms, it.permCodes))

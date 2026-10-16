@@ -7,6 +7,9 @@
 //  - icon 复用 /static/icons/fn-*.svg；缺专属图标时用 fn-more 兜底，后续替换。
 // ============================================================================
 
+// 入口权限门（S3-230）：码判定与注册表在 permission-gates.ts（零依赖，纯函数）
+import { hasPermissionCodes } from './permission-gates'
+
 export interface FunctionItem {
   /** 系统菜单 code（对应 t_sys_menu.menu_code，用于角色过滤扩展） */
   code: string
@@ -18,6 +21,18 @@ export interface FunctionItem {
   tool?: boolean
   /** 已放入「我的」页：功能中心隐藏展示（仅调整显示位置，不删数据源） */
   inProfile?: boolean
+  /**
+   * 入口权限门（S3-230）：该页**写端点**所用权限码，**全部持有**才显示。
+   *
+   * 为什么在"菜单 code 可见性"之外再加一道码门：菜单授予（`t_sys_role_menu`）与权限码
+   * （`t_sys_role.permissions`）是两套口径；生产实测存在"菜单授予 7 个角色、其中 6 个不持
+   * 该页写码"的页面（台账 §12.3 商品分类）⇒ 只按菜单显隐时，这些角色进得去、点下去 403
+   * （违反授权模型不变量 I1）。
+   *
+   * 取值：`config/permission-gates.ts` 的 `ENTRY_GATES`（唯一真相源，别在这里手写新码）。
+   * 空/缺省 = 本页无 B 类写端点，不加码门。
+   */
+  permCodes?: string[]
 }
 
 export interface FunctionGroup {
@@ -47,17 +62,17 @@ export const functionMenu: FunctionGroup[] = [
       { code: 'goods:price', label: '价格管理', path: '/pages-sub/product/price/price-manage', icon: '/static/icons/fn-price.svg' },
       { code: 'goods:batch', label: '批次管理', path: '/pages-sub/product/batches/batch-list', icon: '/static/icons/fn-batch.svg' },
       { code: 'goods:inventory', label: '库存管理', path: '/pages-sub/product/inventory/inventory', icon: '/static/icons/fn-stockin.svg', hot: true },
-      { code: 'goods:stock-warning', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', icon: '/static/icons/fn-alert.svg', inProfile: true },
-      { code: 'goods:stock-check', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', icon: '/static/icons/fn-check.svg', hot: true },
-      { code: 'goods:loss-gain', label: '报损报益', path: '/pages-sub/finance/loss-gain/loss-gain-report', icon: '/static/icons/fn-loss-gain.svg' },
+      { code: 'goods:stock-warning', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', icon: '/static/icons/fn-alert.svg', inProfile: true, permCodes: ['inventory:adjust'] },
+      { code: 'goods:stock-check', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', icon: '/static/icons/fn-check.svg', hot: true, permCodes: ['inventory:create', 'inventory:adjust'] },
+      { code: 'goods:loss-gain', label: '报损报益', path: '/pages-sub/finance/loss-gain/loss-gain-report', icon: '/static/icons/fn-loss-gain.svg', permCodes: ['inventory:adjust'] },
     ],
   },
   {
     id: 'purchase',
     title: '采购供应商',
     items: [
-      { code: 'purchase:order', label: '采购订单', path: '/pages-sub/finance/purchase/orders', icon: '/static/icons/fn-purchase-order.svg' },
-      { code: 'purchase:inbound', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', icon: '/static/icons/fn-stockin.svg', hot: true },
+      { code: 'purchase:order', label: '采购订单', path: '/pages-sub/finance/purchase/orders', icon: '/static/icons/fn-purchase-order.svg', permCodes: ['purchase:create'] },
+      { code: 'purchase:inbound', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', icon: '/static/icons/fn-stockin.svg', hot: true, permCodes: ['inventory:inbound'] },
       { code: 'purchase:supplier', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', icon: '/static/icons/fn-supplier.svg' },
     ],
   },
@@ -76,8 +91,8 @@ export const functionMenu: FunctionGroup[] = [
     id: 'marketing',
     title: '营销活动',
     items: [
-      { code: 'marketing:coupon', label: '优惠券', path: '/pages-sub/marketing/marketing/coupons', icon: '/static/icons/fn-coupon.svg' },
-      { code: 'marketing:activities', label: '营销活动', path: '/pages-sub/marketing/marketing/activities', icon: '/static/icons/fn-activity.svg' },
+      { code: 'marketing:coupon', label: '优惠券', path: '/pages-sub/marketing/marketing/coupons', icon: '/static/icons/fn-coupon.svg', permCodes: ['marketing:create'] },
+      { code: 'marketing:activities', label: '营销活动', path: '/pages-sub/marketing/marketing/activities', icon: '/static/icons/fn-activity.svg', permCodes: ['marketing:create'] },
       { code: 'marketing:seckill', label: '秒杀活动', path: '/pages-sub/marketing/marketing/seckill-list', icon: '/static/icons/fn-flash.svg' },
       { code: 'marketing:group-buy', label: '拼团活动', path: '/pages-sub/marketing/marketing/group-buy-list', icon: '/static/icons/fn-group-buy.svg' },
       { code: 'marketing:bargain', label: '砍价活动', path: '/pages-sub/marketing/marketing/bargain-list', icon: '/static/icons/fn-bargain.svg' },
@@ -90,10 +105,10 @@ export const functionMenu: FunctionGroup[] = [
     items: [
       { code: 'finance:receipt', label: '收款管理', path: '/pages-sub/finance/receipts/receipts', icon: '/static/icons/fn-settle.svg' },
       { code: 'finance:receivable', label: '应收账款', path: '/pages-sub/finance/receivable/receivable', icon: '/static/icons/fn-receivable.svg' },
-      { code: 'finance:reconciliation', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', icon: '/static/icons/fn-settle.svg', hot: true, inProfile: true },
+      { code: 'finance:reconciliation', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', icon: '/static/icons/fn-settle.svg', hot: true, inProfile: true, permCodes: ['report:finance'] },
       { code: 'finance:expenses', label: '费用支出', path: '/pages-sub/finance/finance/expenses', icon: '/static/icons/fn-expense.svg' },
       { code: 'finance:statement', label: '对账单', path: '/pages-sub/finance/statements/statements', icon: '/static/icons/fn-statement.svg' },
-      { code: 'finance:transfer', label: '门店调拨', path: '/pages-sub/finance/transfer/transfer', icon: '/static/icons/fn-transfer.svg' },
+      { code: 'finance:transfer', label: '门店调拨', path: '/pages-sub/finance/transfer/transfer', icon: '/static/icons/fn-transfer.svg', permCodes: ['store:transfer'] },
     ],
   },
   {
@@ -115,8 +130,8 @@ export const functionMenu: FunctionGroup[] = [
     admin: true,
     items: [
       { code: 'store:list', label: '门店管理', path: '/pages-sub/admin/stores/stores', icon: '/static/icons/fn-store.svg', hot: true, inProfile: true },
-      { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-staff.svg', inProfile: true },
-      { code: 'store:roles', label: '角色管理', path: '/pages-sub/admin/roles/roles', icon: '/static/icons/fn-role.svg' },
+      { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-staff.svg', inProfile: true, permCodes: ['system:user:create', 'system:user:edit'] },
+      { code: 'store:roles', label: '角色管理', path: '/pages-sub/admin/roles/roles', icon: '/static/icons/fn-role.svg', permCodes: ['system:role:create', 'system:role:edit'] },
     ],
   },
   {
@@ -267,6 +282,32 @@ export function filterItemsByCodes(
 ): FunctionItem[] {
   if (!visibility) return items
   return items.filter((it) => isPageVisible(it.code, visibility))
+}
+
+/**
+ * 入口权限门过滤（S3-230，**与菜单 code 可见性是两道独立闸**）：
+ *  · 菜单 code 可见性（`filterItemsByCodes`）回答"这个角色被授予了该页吗"；
+ *  · 本函数回答"该页写端点所用权限码，这个账号持有吗"（授权模型不变量 I1）。
+ * 两道都过才显示 —— 只过菜单闸时，角色进得去、点写按钮 403（B 类根因）。
+ *
+ * `perms` = null/undefined ⇒ 尚未取到权限码 ⇒ 放行（口径见 config/permission-gates.ts 文件头）；
+ * `perms` = 空数组 ⇒ 确实无码 ⇒ 带码门的条目全部隐藏（失败关闭）。
+ */
+export function filterItemsByPermissionGate(
+  items: FunctionItem[],
+  perms: readonly string[] | null | undefined
+): FunctionItem[] {
+  return items.filter((it) => hasPermissionCodes(perms, it.permCodes))
+}
+
+/** 分组版：按入口权限门过滤每个分组的条目（空分组去掉）；语义同 filterItemsByPermissionGate */
+export function filterGroupsByPermissionGate(
+  groups: FunctionGroup[],
+  perms: readonly string[] | null | undefined
+): FunctionGroup[] {
+  return groups
+    .map((g) => ({ ...g, items: filterItemsByPermissionGate(g.items, perms) }))
+    .filter((g) => g.items.length > 0)
 }
 
 /** 搜索：按 label / sub 过滤所有分组项 */

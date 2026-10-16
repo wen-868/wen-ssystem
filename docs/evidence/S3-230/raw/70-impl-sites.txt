@@ -1,0 +1,60 @@
+### sale-order-detail-deliver
+  app-mobile/src\config\permission-gates.ts:124:    id: 'sale-order-detail-deliver',
+  app-mobile/src\pages\orders\order-detail.vue:151:      v-if="order.status === 'pending' && canEntry('sale-order-detail-deliver')"
+  app-mobile/src\pages\orders\order-detail.vue:159:      v-if="order.status === 'processing' && canEntry('sale-order-detail-deliver')"
+  app-mobile/src\pages\orders\order-detail.vue:167:      v-if="order.status === 'delivering' && canEntry('sale-order-detail-deliver')"
+### sale-order-detail-cancel
+  app-mobile/src\config\permission-gates.ts:138:    id: 'sale-order-detail-cancel',
+  app-mobile/src\pages\orders\order-detail.vue:176:      v-if="(order.status === 'pending' || order.status === 'processing') && canEntry('sale-order-detail-cancel')"
+### sale-create-hold
+  app-mobile/src\config\permission-gates.ts:149:    id: 'sale-create-hold',
+  app-mobile/src\pages\sales\create-sale.vue:987:          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold' },
+  app-mobile/src\pages\sales\create-sale.vue:1032:          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold' },
+  app-mobile/src\pages\home\home.vue:70:        <view class="hq-item" v-if="canEntry('sale-create-hold')" @tap="navigateTo('/pages/sales/create-sale')">
+### sale-bill-offline-pay
+  app-mobile/src\config\permission-gates.ts:159:    id: 'sale-bill-offline-pay',
+  app-mobile/src\pages-sub\order\sales\sale-detail.vue:53:    <view class="bottom-bar" v-if="bill && needCollect && canEntry('sale-bill-offline-pay')">
+### sale-receipt-sub
+  app-mobile/src\config\permission-gates.ts:170:    id: 'sale-receipt-sub',
+  app-mobile/src\pages\sales\create-sale.vue:816:  收款单: 'sale-receipt-sub',
+  app-mobile/src\pages\sales\create-sale.vue:959:          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...', gate: 'sale-receipt-sub' },
+### purchase-sub-order
+  app-mobile/src\config\permission-gates.ts:183:    id: 'purchase-sub-order',
+  app-mobile/src\pages\sales\create-sale.vue:28:          v-if="canAnyEntry(['purchase-sub-order', 'purchase-sub-inbound', 'purchase-sub-return', 'purchase-sub-payment'])"
+  app-mobile/src\pages\sales\create-sale.vue:817:  采购订单: 'purchase-sub-order',
+  app-mobile/src\pages\sales\create-sale.vue:973:          { label: '转入库单', variant: 'primary', handler: () => convertDoc('pur_inbound'), loadingText: '转入库单中...', needsSaved: true, gate: 'purchase-sub-order' },
+### purchase-sub-inbound
+  app-mobile/src\config\permission-gates.ts:194:    id: 'purchase-sub-inbound',
+  app-mobile/src\pages\sales\create-sale.vue:28:          v-if="canAnyEntry(['purchase-sub-order', 'purchase-sub-inbound', 'purchase-sub-return', 'purchase-sub-payment'])"
+  app-mobile/src\pages\sales\create-sale.vue:818:  采购入库: 'purchase-sub-inbound',
+  app-mobile/src\pages\sales\create-sale.vue:989:          { label: '转付款单', variant: 'primary', handler: () => convertDoc('pur_payment'), loadingText: '转付款单中...', needsSaved: true, gate: 'purchase-sub-inbound' },
+### purchase-sub-return
+  app-mobile/src\config\permission-gates.ts:205:    id: 'purchase-sub-return',
+  app-mobile/src\pages\sales\create-sale.vue:28:          v-if="canAnyEntry(['purchase-sub-order', 'purchase-sub-inbound', 'purchase-sub-return', 'purchase-sub-payment'])"
+  app-mobile/src\pages\sales\create-sale.vue:819:  采购退货: 'purchase-sub-return',
+  app-mobile/src\pages\sales\create-sale.vue:1003:          { label: '保存', variant: 'ghost', handler: submitPurchaseReturn, gate: 'purchase-sub-return' },
+### purchase-sub-payment
+  app-mobile/src\config\permission-gates.ts:215:    id: 'purchase-sub-payment',
+  app-mobile/src\pages\sales\create-sale.vue:28:          v-if="canAnyEntry(['purchase-sub-order', 'purchase-sub-inbound', 'purchase-sub-return', 'purchase-sub-payment'])"
+  app-mobile/src\pages\sales\create-sale.vue:820:  付款单: 'purchase-sub-payment'
+  app-mobile/src\pages\sales\create-sale.vue:1018:          { label: '确认付款', variant: 'primary', handler: submitPayment, loadingText: '付款中...', gate: 'purchase-sub-payment' },
+### home-in-stock
+  app-mobile/src\config\permission-gates.ts:225:    id: 'home-in-stock',
+  app-mobile/src\pages\home\home.vue:83:        <view class="hq-item" v-if="canEntry('home-in-stock')" @tap="navigateTo('/pages-sub/finance/purchase/in-stock')">
+### fx-stock-check
+  app-mobile/src\config\permission-gates.ts:238:    id: 'fx-stock-check',
+### fx-stock-warning
+  app-mobile/src\config\permission-gates.ts:259:    id: 'fx-stock-warning',
+  app-mobile/src\pages\profile\profile.vue:197:      { icon: '/static/icons/prf-todo.svg', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE, gate: 'fx-stock-warning' },
+### fx-loss-gain
+  app-mobile/src\config\permission-gates.ts:273:    id: 'fx-loss-gain',
+### fx-transfer
+  app-mobile/src\config\permission-gates.ts:284:    id: 'fx-transfer',
+### fx-transfer-receive
+  app-mobile/src\config\permission-gates.ts:302:    id: 'fx-transfer-receive',
+  app-mobile/src\pages-sub\finance\transfer\transfer.vue:90:          <button class="action-btn stock-btn" v-if="canEntry('fx-transfer-receive')" @tap="handleReceive(item)">确认收货</button>
+### goods-detail-edit
+  app-mobile/src\config\permission-gates.ts:326:    id: 'goods-detail-edit',
+  app-mobile/src\pages\products\product-detail.vue:339:            v-if="canEntry('goods-detail-edit')"
+### goods-batch-price-submit
+  app-mobile/src\config\permission-gates.ts:346:    id: 'goods-batch-price-submit',

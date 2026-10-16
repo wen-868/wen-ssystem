@@ -133,6 +133,10 @@
 import { ref, onMounted } from 'vue'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
+// S3-230 入口权限门：批量改价入口按码显隐（注册表 goods-batch-price-submit）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 
 const keyword = ref('')
 const activeCategory = ref(0)
@@ -324,6 +328,12 @@ async function onScan() {
 function onAction(type: 'suggest' | 'batch' | 'anomaly') {
   if (type === 'batch') {
     // R94-01：批量调价已接入真实页面
+    // S3-230 入口权限门：批量改价页「确认调价」打 PUT /admin/products/:skuId/price（码 goods:price）
+    // ⇒ 入口层挡一次、页面内按钮再挡一次，避免落到"看得到但点不了"的页
+    if (!canEntry('goods-batch-price-submit')) {
+      uni.showToast({ title: '无权限执行批量改价', icon: 'none' })
+      return
+    }
     uni.navigateTo({ url: '/pages-sub/product/batch-price/batch-price' })
     return
   }
