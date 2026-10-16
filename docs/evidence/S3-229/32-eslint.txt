@@ -1,0 +1,381 @@
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\controllers\admin\sys-user.controller.test.ts
+  34:13  warning  'sysUserService' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\controllers\platform\platform-auth.controller.test.ts
+  41:13  warning  'platformAuthService' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\controllers\platform\platform-manage.controller.test.ts
+  10:9  warning  'mockReq' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\mocks\mock-db-supplier.ts
+   33:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   47:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+   89:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  205:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  214:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  291:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  308:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  403:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  419:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  435:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  494:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  501:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  518:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  589:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  598:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  691:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  698:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  704:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  712:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  958:3  warning  Arrow function has a complexity of 20. Maximum allowed is 15              complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\mocks\mock-db-system.ts
+  18:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  29:7  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  88:3  warning  Arrow function has a complexity of 38. Maximum allowed is 15              complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\routes\marketing-miniapp-s3-187.test.ts
+  108:17  warning  'method' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts
+  162:7  warning  'SUPER_ADMIN' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts
+  171:7  warning  'OPERATION_ADMIN_USER' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\routes\rbac-b2-s3-224-sales-wiring.test.ts
+  130:10  warning  'orderExceptionRouter' is defined but never used  @typescript-eslint/no-unused-vars
+  523:11  warning  'src' is assigned a value but never used          @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\services\admin\push.service.test.ts
+  44:16  warning  Method 'get' has a complexity of 24. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\services\miniapp\wholesale-advanced.test.ts
+  33:61  warning  'sql' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars
+  33:74  warning  'params' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\shared\feishu-report.test.ts
+  10:10  warning  Method 'get' has a complexity of 24. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\shared\field-sync.test.ts
+  78:19  warning  '_key' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\shared\price-guard.test.ts
+  203:19  warning  '_field' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\__tests__\shared\seed-data.test.ts
+  11:23  warning  Async arrow function has a complexity of 19. Maximum allowed is 15  complexity
+  18:13  warning  'table' is assigned a value but never used                          @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\config\alipay-f2f.ts
+   60:10  warning  'verifySign' is defined but never used                                        @typescript-eslint/no-unused-vars
+  109:8   warning  Async function 'payByAuthCode' has a complexity of 17. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\config\database.ts
+   29:10  warning  'splitSqlStatements' is defined but never used                                  @typescript-eslint/no-unused-vars
+   42:10  warning  'findSqlFile' is defined but never used                                         @typescript-eslint/no-unused-vars
+   74:16  warning  'tableExists' is defined but never used                                         @typescript-eslint/no-unused-vars
+  134:8   warning  Async function 'queryWithTenant' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\config\wechat-pay-v2.ts
+  150:8  warning  Async function 'payByAuthCode' has a complexity of 18. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\controllers\miniapp\miniapp.controller.ts
+  225:9  warning  'body' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\middleware\error-handler.ts
+  10:50  warning  Arrow function has a complexity of 30. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\routes\notification.routes.ts
+  2:10  warning  'requireAuthWithTenant' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\approval-records.service.ts
+  263:11  warning  'triggerCondition' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\auth.service.ts
+  319:7   warning  'account' is never reassigned. Use 'const' instead  prefer-const
+  396:11  warning  'ResultSetHeaderRow' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\batch-price.service.ts
+  324:25  warning  'changeAmount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\cart.service.ts
+  475:35  warning  Async arrow function has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\combo-product.service.ts
+  188:36  warning  Async arrow function has a complexity of 16. Maximum allowed is 15  complexity
+  267:36  warning  Async arrow function has a complexity of 27. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\credit-scoring.service.ts
+  170:8  warning  Async function 'evaluateCreditScore' has a complexity of 28. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\custom-report-v2.service.ts
+  308:8  warning  Async function 'generateReport' has a complexity of 17. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\customer-visit.service.ts
+  351:21  warning  Async arrow function has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\dashboard.service.ts
+  264:50  warning  Async arrow function has a complexity of 32. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\data-transfer.service.ts
+  185:8  warning  Async function 'importCustomersCsv' has a complexity of 19. Maximum allowed is 15  complexity
+  368:8  warning  Async function 'importProductsCsv' has a complexity of 38. Maximum allowed is 15   complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\department.service.ts
+  32:41  warning  'tenantId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\employee.service.ts
+  294:8  warning  Async function 'updateStore' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\instant-retail.service.ts
+  235:11  warning  'SyncProductsBody' is defined but never used                                   @typescript-eslint/no-unused-vars
+  400:8   warning  Async function 'upsertConfig' has a complexity of 17. Maximum allowed is 15    complexity
+  743:8   warning  Async function 'saveShopConfig' has a complexity of 18. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\inventory-share.service.ts
+  92:8  warning  Async function 'updateShareSetting' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\library-lookup.service.ts
+  66:24  warning  Async method 'lookupByBarcode' has a complexity of 20. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\marketing-calculation.service.ts
+  63:8  warning  Async function 'calculatePromotion' has a complexity of 25. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\marketing-dashboard.service.ts
+   61:8   warning  Async function 'getMarketingOverview' has a complexity of 19. Maximum allowed is 15  complexity
+  149:47  warning  'startDate' is assigned a value but never used                                       @typescript-eslint/no-unused-vars
+  149:58  warning  'endDate' is assigned a value but never used                                         @typescript-eslint/no-unused-vars
+  227:9   warning  'where' is assigned a value but never used                                           @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\marketing-new-promotion.service.ts
+  284:8  warning  Async function 'calculateDiscount' has a complexity of 22. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\marketing-points.service.ts
+  68:8  warning  Async function 'updatePointsRule' has a complexity of 20. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\menu-permission.service.ts
+  203:3  warning  'tenantId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\mfa.service.ts
+  80:15  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\miniapp-config.service.ts
+  120:26  warning  Static async method 'saveConfig' has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\miniapp-package-builder.ts
+  82:8  warning  Function 'buildPackageStaging' has a complexity of 18. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\miniapp-publish.service.ts
+  138:23  warning  Static async method 'publish' has a complexity of 31. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\monitor.service.ts
+  1:27  warning  'pool' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\payment-config.service.ts
+   68:33  warning  Static async method 'saveChannelConfig' has a complexity of 20. Maximum allowed is 15  complexity
+  135:30  warning  Static async method 'testConnection' has a complexity of 23. Maximum allowed is 15     complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\price-management.service.ts
+  321:5  warning  'levelCode' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  322:5  warning  'levelName' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  323:5  warning  'discountRate' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\price-review.service.ts
+  35:9  warning  'cost' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\print.service.ts
+  113:8  warning  Async function 'createPrintRecord' has a complexity of 17. Maximum allowed is 15            complexity
+  372:8  warning  Async function 'ensureDefaultPrintTemplates' has a complexity of 17. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\product-bundle.service.ts
+  251:36  warning  Async arrow function has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\product.service.ts
+   233:11  warning  'InsertOkPacket' is defined but never used                                    @typescript-eslint/no-unused-vars
+   462:38  warning  Async arrow function has a complexity of 27. Maximum allowed is 15            complexity
+   538:8   warning  Async function 'updateProduct' has a complexity of 42. Maximum allowed is 15  complexity
+  1077:25  warning  Async arrow function has a complexity of 26. Maximum allowed is 15            complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\profit-loss-stats.service.ts
+  39:8  warning  Async function 'getProfitLossStats' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\purchase-in-stock.service.ts
+  94:11  warning  'CountCntRow' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\purchase-order.service.ts
+  67:11  warning  'InsertOkPacket' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\quote-push.service.ts
+  235:8  warning  Async function 'previewQuote' has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\receivable.service.ts
+  126:9  warning  'now' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\report-collection.service.ts
+  119:8  warning  Async function 'getCollectionTimeout' has a complexity of 22. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\report-customer.service.ts
+   66:8   warning  Async function 'getRepurchaseAnalysis' has a complexity of 19. Maximum allowed is 15  complexity
+  169:26  warning  Arrow function has a complexity of 25. Maximum allowed is 15                          complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\report\sales-report.service.ts
+  437:8  warning  Async function 'getBusinessOverview' has a complexity of 20. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\subscription.service.ts
+  229:3  warning  'tenantId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\tag.service.ts
+  172:71  warning  'tenantId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\transfer-order.service.ts
+  48:11  warning  'InsertResultRow' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\admin\visit-plan.service.ts
+  107:21  warning  Async arrow function has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\hardware\payment-box.service.ts
+  156:8   warning  Async function 'handleBoxCallback' has a complexity of 23. Maximum allowed is 15  complexity
+  164:11  warning  'enabled' is assigned a value but never used                                      @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\hardware\unionpay.service.ts
+  50:8  warning  Async function 'payByAuthCode' has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\adapters\eleme-adapter.ts
+  106:28  warning  Method 'mapToUnifiedOrder' has a complexity of 16. Maximum allowed is 15    complexity
+  158:30  warning  Method 'mapToUnifiedProduct' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\adapters\index.ts
+  51:8  warning  Function 'parseUnifiedOrder' has a complexity of 82. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\adapters\jd-adapter.ts
+  106:28  warning  Method 'mapToUnifiedOrder' has a complexity of 16. Maximum allowed is 15    complexity
+  157:30  warning  Method 'mapToUnifiedProduct' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\adapters\meituan-adapter.ts
+  107:28  warning  Method 'mapToUnifiedOrder' has a complexity of 16. Maximum allowed is 15    complexity
+  159:30  warning  Method 'mapToUnifiedProduct' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\platform-integration.service.ts
+  191:8  warning  Async function 'upsertConfig' has a complexity of 17. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\retail-ops-ext.service.ts
+   90:11  warning  'CountCntRow' is defined but never used                                     @typescript-eslint/no-unused-vars
+  271:1   warning  Function 'mapOrderBoardItem' has a complexity of 26. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\retail-shop.service.ts
+  137:1  warning  Function 'normalizeBannerInput' has a complexity of 18. Maximum allowed is 15  complexity
+  166:8  warning  Async function 'saveShopConfig' has a complexity of 35. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\instant-retail\review.service.ts
+  56:47  warning  'platform' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  56:65  warning  'storeId' is defined but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  56:82  warning  'tenantId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  61:21  warning  'storeId' is assigned a value but never used                                @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\marketing\community-marketing.service.ts
+  23:11  warning  'GroupBuyTeamRow' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\miniapp.service.ts
+  223:35  warning  Async arrow function has a complexity of 16. Maximum allowed is 15        complexity
+  402:70  warning  'reason' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\miniapp\checkout.service.ts
+  211:35  warning  Async arrow function has a complexity of 19. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\miniapp\member.service.ts
+  183:8  warning  Async function 'getMemberProfile' has a complexity of 29. Maximum allowed is 15  complexity
+  199:9  warning  'level' is assigned a value but never used                                       @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\miniapp\wholesale.service.ts
+  713:28  warning  Async arrow function has a complexity of 18. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\platform\app-version.service.ts
+  49:8  warning  Async function 'getLatestVersion' has a complexity of 30. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\platform\library.service.ts
+  418:36  warning  Async arrow function has a complexity of 25. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\platform\platform-agent-level.service.ts
+  168:8  warning  Async function 'createAgentLevel' has a complexity of 22. Maximum allowed is 15  complexity
+  234:8  warning  Async function 'updateAgentLevel' has a complexity of 27. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\platform\platform-config.service.ts
+  44:11  warning  'AffectedResult' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\platform\platform-referral-ledger.service.ts
+  340:8  warning  Async function 'writeReferralLedgerEntry' has a complexity of 18. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\platform\tenant-admin.service.ts
+  112:11  warning  'AffectedResult' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\platform\tenant-quota.service.ts
+  74:8  warning  Async function 'getTenantQuota' has a complexity of 17. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\sms.service.ts
+  226:84  warning  'tenantId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\store\auth.service.ts
+  47:8  warning  Async function 'login' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\store\coupon-verify.service.ts
+  105:9  warning  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\store\member.service.ts
+  22:8  warning  Async function 'getMemberDetail' has a complexity of 21. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\store\receivable.service.ts
+   76:48  warning  'remark' is assigned a value but never used                                  @typescript-eslint/no-unused-vars
+  100:8   warning  Async function 'getDashboard' has a complexity of 16. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\store\sale-bill.service.ts
+    1:60  warning  'pool' is defined but never used                                    @typescript-eslint/no-unused-vars
+  255:22  warning  Async arrow function has a complexity of 46. Maximum allowed is 15  complexity
+  384:75  warning  'remark' is assigned a value but never used                         @typescript-eslint/no-unused-vars
+  411:83  warning  'username' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  412:22  warning  Async arrow function has a complexity of 16. Maximum allowed is 15  complexity
+  470:42  warning  'remark' is assigned a value but never used                         @typescript-eslint/no-unused-vars
+  567:22  warning  Async arrow function has a complexity of 23. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\store\shift.service.ts
+  184:90  warning  'actualAmount' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\supplier.service.ts
+  426:23  warning  Async arrow function has a complexity of 18. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\sync\delta-sync.service.ts
+  249:1   warning  Function 'buildProductDeltaData' has a complexity of 25. Maximum allowed is 15  complexity
+  696:46  warning  Async arrow function has a complexity of 18. Maximum allowed is 15              complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\tenant-register.service.ts
+  131:8  warning  Async function 'applyTenantRegister' has a complexity of 40. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\services\transfer-execution.service.ts
+  198:21  warning  Async arrow function has a complexity of 17. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\shared\auto-routes.ts
+  202:8  warning  Async function 'setupRoutes' has a complexity of 21. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\shared\field-sync.ts
+  319:13  warning  'params' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\shared\migration.ts
+  460:8  warning  Async function 'runMigrations' has a complexity of 54. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\shared\pagination.ts
+  116:3  warning  'keyword' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\shared\product-sync.ts
+   58:8  warning  Async function 'syncProductFullChain' has a complexity of 49. Maximum allowed is 15  complexity
+  462:9  warning  'startTime' is assigned a value but never used                                       @typescript-eslint/no-unused-vars
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\shared\seed-data.ts
+  47:8  warning  Async function 'seedData' has a complexity of 67. Maximum allowed is 15  complexity
+
+D:\Users\ZXQL\wt-agents\S3-229\backend\src\shared\store-control-scheduler.ts
+  46:23  warning  Async arrow function has a complexity of 19. Maximum allowed is 15  complexity
+
+✖ 169 problems (0 errors, 169 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

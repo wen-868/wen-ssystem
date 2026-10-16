@@ -1,0 +1,108 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-229/backend
+
+[2026-10-16 09:27:32.104 +0800] [32mINFO[39m (18012): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+ ❯ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts (122 tests | 5 failed) 687ms
+     × 'community-marketing.routes.ts' 'post' '/:orderNo/pay'：注册行自带 requirePermission("'marketing:create'") 9ms
+     × 同文件混合态自证：community-marketing.routes.ts 的 10 条写端点已接、7 条读端点未接 3ms
+     × 'community-marketing.routes.ts' 'post' '/:orderNo/pay'：READONLY ⇒ 403 且 msg 指向该权限码 5ms
+     × 'community-marketing.routes.ts' 'post' '/:orderNo/pay'：全部非持有人（逐账号枚举）⇒ 403 3ms
+     × 在用可见角色逐个试跑：持码 ⇒ 200；只读观察员（READONLY）⇒ 403 属既有期望（写动作） 24ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts > S3-229 · 形状断言（注册行级判据，踩坑[134]） > 'community-marketing.routes.ts' 'post' '/:orderNo/pay'：注册行自带 requirePermission("'marketing:create'")
+AssertionError: community-marketing.routes.ts:46 应带 requirePermission("marketing:create"): expected 'seckillRouter.post("/:orderNo/pay", a…' to contain 'requirePermission("marketing:create")'
+
+Expected: "requirePermission("marketing:create")"
+Received: "seckillRouter.post("/:orderNo/pay", asyncHandler(controller.paySeckillOrder));"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts:394:81
+    392|     expect(lines.length, `${label(row)} 至少应有 1 条注册行`).toBeGreaterThan(…
+    393|     for (const l of lines) {
+    394|       expect(l.line, `${row.file}:${l.no} 应带 requirePermission("${row.…
+       |                                                                                 ^
+    395|     }
+    396|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts > S3-229 · 形状断言（注册行级判据，踩坑[134]） > 同文件混合态自证：community-marketing.routes.ts 的 10 条写端点已接、7 条读端点未接
+AssertionError: expected 'seckillRouter.post("/:orderNo/pay", a…' to contain 'requirePermission("marketing:create")'
+
+Expected: "requirePermission("marketing:create")"
+Received: "seckillRouter.post("/:orderNo/pay", asyncHandler(controller.paySeckillOrder));"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts:424:29
+    422|       const lines = registrationLines("community-marketing.routes.ts",…
+    423|       expect(lines).toHaveLength(1);
+    424|       expect(lines[0].line).toContain('requirePermission("marketing:cr…
+       |                             ^
+    425|       void router;
+    426|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts > S3-229 · 两侧判据 a) 缺码 / 非持有人 ⇒ 403 且未到达业务层 > 'community-marketing.routes.ts' 'post' '/:orderNo/pay'：READONLY ⇒ 403 且 msg 指向该权限码
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts:462:24
+    460|   it.each(ROWS)("$file $method $routePath：READONLY ⇒ 403 且 msg 指向该权限码"…
+    461|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    462|     expect(res.status).toBe(403);
+       |                        ^
+    463|     expect(res.body.code).toBe("403");
+    464|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts > S3-229 · 两侧判据 a) 缺码 / 非持有人 ⇒ 403 且未到达业务层 > 'community-marketing.routes.ts' 'post' '/:orderNo/pay'：全部非持有人（逐账号枚举）⇒ 403
+AssertionError: readonly 不应通过 community-marketing.routes.ts POST /:orderNo/pay: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts:473:67
+    471|       h.reached.length = 0;
+    472|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    473|       expect(res.status, `${USERS[uid].name} 不应通过 ${label(row)}`).toBe…
+       |                                                                   ^
+    474|       expect(h.reached, `${USERS[uid].name} 不得到达 ${label(row)} 的业务层`).…
+    475|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts > S3-229 · 零回归 · 在用使用者对齐（不变量 I1：只约束**在用**角色） > 在用可见角色逐个试跑：持码 ⇒ 200；只读观察员（READONLY）⇒ 403 属既有期望（写动作）
+AssertionError: community-marketing.routes.ts POST /:orderNo/pay 对观察员应为 403（期望行为）: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts:510:64
+    508|           // READONLY = 只读观察员（`*:view`）：写 403 是**改造前既有**行为（该角色本来就没有写码）…
+    509|           expect(USERS[uid].name, `${label(row)} 的非持码在用可见角色只允许是观察员`).t…
+    510|           expect(res.status, `${label(row)} 对观察员应为 403（期望行为）`).toBe(40…
+       |                                                                ^
+    511|         }
+    512|       }
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 117 passed (122)
+   Start at  09:27:29
+   Duration  3.25s (transform 500ms, setup 32ms, import 2.25s, tests 687ms, environment 0ms)
+

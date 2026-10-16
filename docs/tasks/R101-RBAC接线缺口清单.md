@@ -3022,3 +3022,93 @@ C 两条：登记真写端点被拒 / 缺 ruling 被拒），全部逐字节复�
 3. `guard-rbac-wiring` 仍是**报告器（未接 CI）**；分类变更（B/C）不改"是否阻断"的口径，
    接 CI 的前置条件（缺口清零或逐条登记完毕）未变。
 4. `_counts` 与实时扫描的一致性**只提示不判红**（本轮新增读数），是否升级为 `--strict` 判红未获授权 ⇒ 待裁。
+
+---
+
+## 十七、S3-229 · **门店/租户域（8 文件 / 31 写端点缺口）＋ 营销域 W 类（2 文件 / 14 条）**接线明细与守恒（2026-10-16）
+
+> 派单卡：`docs/tasks/inbox/ACTIVE-S3-229.md`｜执行：阿坚（后端 / 权限）｜分支 `feat/s3-229-store-and-marketing-wiring`｜基线 `63ee9775`
+> 判定留档：`docs/evidence/S3-229/01-plan-and-judgements.md`｜原始输出：`docs/evidence/S3-229/**`（门禁起点 = `raw/02-guard-json-before.json` ＋ `01-guard-before-tail.txt` / `03-guard-strict-before.txt`；终点 = `raw/10-guard-json-after.json` / `12-guard-strict-after.txt`；调用面 `02-callers.txt`、封装未用 `03-unused-wrappers.txt`、反测 `25~29`、回归 `30~34`）
+> 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 `gaps` **378 条 / 113 文件**；`consumerEnd` 45 条不变）
+
+### 17.1 起点（机器真值，与 §二 台账口径逐字吻合）
+
+| 域 | 文件 | 写端点 | 已接线 | 缺口 |
+|:--|--:|--:|--:|--:|
+| G1 门店/租户域 | 8 | 33 | 2（储值卡 consume/refund） | **31** = 17 管理面 + 2 公开 + 12 平台域 |
+| G2 营销域·W 类 | 2 | 17 | 3 | **14** |
+
+### 17.2 本批已接 **17 条**（端点 / 落地码 / 真实使用者）
+
+| # | 文件:行 | 端点 | 落地码 | 使用者依据 |
+|--:|:--|:--|:--|:--|
+| 1 | `demo.routes.ts:9` | POST `/api/admin/demo/seed` | `store:create` | `LoginView.vue:257` 演示登录（账号 `admin` = SUPER_ADMIN） |
+| 2 | `demo.routes.ts:10` | POST `/api/admin/demo/reset` | `store:create` | 六端全仓无有效调用点 |
+| 3 | `store-control.routes.ts:22` | PUT `/configs/:storeId` | `store:edit` | 封装 `api/inventory.ts:130` 零 `.vue` 引用 |
+| 4–7 | `store-control.routes.ts:23-26` | POST `/:storeId/{open,close,suspend,resume}` | `store:create` ×4 | 同上（`:134/138/142/146`） |
+| 8–17 | `community-marketing.routes.ts:26-48` | 拼团 join/start/end、砍价 start/help/end、秒杀 buy/pay/cancel/end | `marketing:create` ×10 | 菜单 `marketing:group-buy|bargain|seckill` 只授予 `OPERATION_ADMIN`(0 账号)/`READONLY`(观察员)/`STORE_ADMIN`(0 账号) ⇒ 无在用写角色 |
+
+**逐码分布**：`store:create` 7 ｜ `store:edit` 2 ｜ `marketing:create` 10 = **17**。
+三个码**都是仓库既有码**（`079_权限矩阵.sql` 目录 + `middleware/rbac-auth.ts`）⇒ **不新立权限点、不改角色种子、不动迁移**。
+
+### 17.3 本批**未接** —— G1 24 条（逐条理由）
+
+| 类 | 条数 | 端点 | 理由 |
+|:--|--:|:--|:--|
+| **B**（使用者集合不可枚举） | 8 | `admin-store` POST/PUT `/stores`；`store-value-card` POST `/`、`/recharge`、`/freeze`、`/unfreeze`；`store.routes` POST `/api/store/members/manage`、PUT `/api/store/members/:id` | 写调用点全在 app-mobile「会员管理」链路（`member-detail.vue:534/536/621/627`）与「门店建档」（`store-edit.vue:218/220`），二者入口**无条件**（`home.vue:87` 快捷入口；`profile.vue` 我的页硬编码「门店管理」）⇒ 页面对任意登录角色可达而当前无权限门（D4：先补门再收编） |
+| **平台侧** | 2 | `tenant-register` POST `/api/tenant/applications/:id/{approve,reject}` | 该文件对 `/applications` 段统一挂 `requirePlatformAuth`（:25），调用方 = 平台控制台 `saas-admin/src/api/tenant-application.ts:50/54`；台账建议码 `store:create` **无效**（平台 JWT 不带商家 roles）⇒ 归平台侧单（建议 `requirePlatformPermission("tenant:manage")`） |
+| **公开端点** | 2 | `tenant-register` POST `/register`、`/register/sms-code` | `routeConfig.auth = "none"` 免鉴权（既判，挂商家码无意义） |
+| **平台域** | 12 | `subscription.routes.ts` 8 条 + `tenant.routes.ts` 4 条（`/api/platform/*-management/*`） | 卡片明示「平台侧归 S3-219 体系，不在本单」；走 `requirePlatformAuth` + 平台权限点机制 |
+
+对账：**31 = 7（已接）+ 8（B）+ 2（平台侧）+ 2（公开）+ 12（平台域）** —— 一条不多、一条不少。
+
+### 17.4 本批**未接** —— G2 4 条 · W 类（逐条；**D2 前提不成立**）
+
+| 端点 | 页面 / 注册码 | 在用可见角色 | 为什么不接 |
+|:--|:--|:--|:--|
+| `points.routes.ts:24` POST `/levels/config` | `level-config.vue:164` / `customer:level` | **`STORE_MANAGER`（1 账号）** | 店长可见该页但**不持** `marketing:create` ⇒ 接线即 403（违反不变量 I1） |
+| `points.routes.ts:25` PUT `/levels/config/:id` | `level-config.vue:161` | 同上 | 同上 |
+| `points.routes.ts:26` PUT `/levels/config/:id/status` | `member-levels.vue:117` | 同上 | 同上 |
+| `points.routes.ts:27` DELETE `/levels/config/:id` | `member-levels.ts:66` | 同上 | 同上 |
+
+⚠️ **与派单卡 §一 G2 的差异（待凌舟裁定）**：卡面「W 类 14 条按 D2 接线」的前提是「可见角色 = OPERATION_ADMIN/READONLY/STORE_ADMIN」；
+这 4 条页面码为 **`customer:level`**，可见角色含**在用**的 `STORE_MANAGER`（依据见 §4.2）⇒ 本单按 W 类**登记不接**。
+三选一（改挂 `customer:level` / 给店长补 `marketing:create` / 前端补门）属授权口径，不在本单。
+对账：**14 = 10（已接）+ 4（W 不接）**。
+
+### 17.5 守恒与门禁（原始输出见 `docs/evidence/S3-229/`）
+
+| 指标 | 本批前 | 本批后 | 说明 |
+|:--|--:|--:|:--|
+| 扫描写端点总数 | 763 | 763 | 未增删端点 |
+| 已接线（权限码） | 320 | **337** | +17 = 本批接线数（`10-guard-json-after.json`） |
+| 无授权形态（缺口） | **395**（116 文件） | **378**（113 文件） | −17；3 个文件清零（demo / store-control / community-marketing） |
+| 消费者端保护形态 | 45 | 45 | 不变 |
+| 查询型 POST 登记 | 3 | 3 | 不变 |
+| 机读台账 `gaps` | 395 条 / 116 文件 | **378 条 / 113 文件** | `tools/update-baseline.mjs` 逐键移除 17 条（含前后计数与守恒断言）；`wiredPermOccurrences` 291 → 308 |
+| `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 条、陈旧登记 0 条（`12-guard-strict-after.txt`） |
+| 跨批计数快照 | `rbac-g0-wiring.test.ts` 291 | **308** | 只新增 `S3_229_WIRED_FILES` 常量块并把 `S3_229_WIRED_TOTAL` 纳入和式；G0 名单行一字未动 |
+
+### 17.6 反测（门禁铁律；顺序照 `docs/tasks/派单规范.md` §九.1）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A 报告模式分辨力 | 摘掉 `community-marketing.routes.ts:46` 的 `requirePermission("marketing:create")`（**行在文件中段**） | 已接线 **337 → 336**、缺口 **378 → 379**（113 → 114 文件） | `25-neg-report.txt` |
+| B `--strict` 两侧 | 同上（**台账已先更新**，故该行属"未登记"） | **EXIT=1** 且点名 `❌ 未登记：community-marketing.routes.ts:46 POST /api/marketing/seckill/:orderNo/pay`；复原 ⇒ **EXIT=0** | `26-neg-strict.txt` / `29-neg-restored-strict.txt` |
+| C 用例分辨力（vitest） | 同上 | `rbac-b2-s3-229-store-and-marketing-wiring.test.ts`：**5 failed / 117 passed**；复原 ⇒ **122 passed** | `27-neg-vitest-red.txt` |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`D8AE118A…4F72B`） | `raw/24-hash-before-neg.txt` / `raw/28-hash-restored.txt` |
+| 回归四道 | `npx vitest run` / `npx tsc --noEmit` / `npx eslint src --ext .ts` / 根 `npm run build` | 全绿（vitest 0 failed · tsc EXIT=0 · eslint 0 error · build EXIT=0） | `30/31/32/33-*.txt` |
+
+### 17.7 与 §三.7「建议权限码」的差异（**1 处，逐条理由**）
+
+| 端点 | §三.7 建议码 | 本批落地 | 理由 |
+|:--|:--|:--|:--|
+| `tenant-register` POST `/api/tenant/applications/:id/{approve,reject}` | `store:create` | **不接（平台侧）** | 该端点由 `requirePlatformAuth` 认证、调用方是平台控制台；平台 JWT 不带商家 `roles`，挂商家码会把唯一平台管理员打成 403（`middleware/rbac-auth.ts` 的 `checkUserPermission` 走 `t_sys_role`）⇒ 码位只能取平台侧机制 |
+
+### 17.8 卡外观察（**只登记不动手**）
+
+1. **我的页「门店管理」为硬编码无条件入口**（`app-mobile/src/pages/profile/profile.vue`：企业信息 / 员工管理 / 角色管理三项无码过滤，同 S3-125 记录的 `profile.vue:42`）⇒ 门店建档、员工、角色三页对**任意登录角色**可达，是 §17.3 B 类 8 条的根因；属 D4 前端权限门单（S3-230）覆盖范围。
+2. **S3-226 用例随状态变更同步**：`rbac-b2-s3-226-marketing-wiring.test.ts` 原把 community-marketing 10 条件为「未接（W）」；本批按 D2 接线后必须同步（`UNWIRED_CLASS_TOTAL` W 14 → 4，并从"本批 0 接线文件"名单移除该文件）⇒ 已同步并加「状态变更登记」用例；其 65 条已接行与 G0 名单断言**未动**。
+3. **S3-119 限流门禁判据可被注释误触发**：`backend/src/__tests__/shared/route-test-rate-limit.test.ts` 的 `MOUNTS_AUTH` 正则跑在**未剥注释**的源码上 —— 测试文件里写一句含 `router.use(… requirePlatformAuth …)` 的**注释**即被判为"自建 app + 挂真实鉴权"（本单新增文件实测命中一次，已改写注释措辞规避）。建议后续改为剥注释匹配（本单只登记）。
+4. **`/api/tenant/applications/*` 与 `/api/platform/applications/*` 同业务双前缀**（`platform-applications.routes.ts` PUT approve/reject 与本域 POST 版）⇒ 平台侧单建议一并收编。
+5. **`customer:level` 菜单授予未经生产复扫**：共用底稿只覆盖营销前缀菜单；本单 §17.4 的判定依据是仓库内生产导出（S3-143 落地后「表 B」，8 角色 × 44 页逐格一致）⇒ 建议按 R-PROD-READ 补扫 `SELECT r.role_code, m.menu_code FROM t_sys_role_menu rm JOIN t_sys_role r ON r.id=rm.role_id JOIN t_sys_menu m ON m.id=rm.menu_id WHERE m.menu_code='customer:level';`（S3-226 §15.9-6 已提同一请求）。

@@ -1,0 +1,596 @@
+
+> zhixiang-marketing-system@0.1.0 build
+> npm --workspaces --if-present run build
+
+
+> zhixiang-backend@0.1.0 build
+> tsc -p tsconfig.json && node ../scripts/fix-esm-extensions.js dist
+
+(node:3064) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/Users/ZXQL/wt-agents/S3-229/scripts/fix-esm-extensions.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\D:\Users\ZXQL\wt-agents\S3-229\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+已处理 804 个 JS 文件，修复 1957 处导入路径（其中动态 import() 19 处）
+
+> admin-web@0.1.0 build
+> vite build
+
+vite v6.4.3 building for production...
+transforming...
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (3362:0): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (5780:22): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 3145 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                      0.81 kB │ gzip:   0.51 kB
+dist/assets/logo-B4Mu2nWS.png                       13.25 kB
+dist/assets/CustomerPrices-Cy_AfyyJ.css              0.03 kB │ gzip:   0.05 kB
+dist/assets/CommissionRules-Ce8drTst.css             0.03 kB │ gzip:   0.05 kB
+dist/assets/el-checkbox-group-D_6SYB2i.css           0.05 kB │ gzip:   0.07 kB
+dist/assets/ReportsProducts-C0sofpHb.css             0.06 kB │ gzip:   0.08 kB
+dist/assets/ReportsEmployees-B_wfyvXF.css            0.06 kB │ gzip:   0.08 kB
+dist/assets/ReportsStores-DtMLaUHk.css               0.06 kB │ gzip:   0.08 kB
+dist/assets/CustomersView-CxCyBUGK.css               0.08 kB │ gzip:   0.08 kB
+dist/assets/el-radio-group-BIUTcNqp.css              0.08 kB │ gzip:   0.09 kB
+dist/assets/FinanceCollection-CIVpvklr.css           0.08 kB │ gzip:   0.10 kB
+dist/assets/ProductReviewWorkflow-i4ZLqcP8.css       0.10 kB │ gzip:   0.12 kB
+dist/assets/ReviewDelegation-Dqiimw2V.css            0.10 kB │ gzip:   0.12 kB
+dist/assets/InventoryAlerts-Dx_HvCav.css             0.10 kB │ gzip:   0.11 kB
+dist/assets/SystemMonitorManage-DsxeJEFW.css         0.10 kB │ gzip:   0.11 kB
+dist/assets/ReconciliationView-DLjHfAOr.css          0.11 kB │ gzip:   0.11 kB
+dist/assets/PurchasePlans-LSCklN3q.css               0.11 kB │ gzip:   0.11 kB
+dist/assets/CollectionView-Bk6UZasl.css              0.12 kB │ gzip:   0.12 kB
+dist/assets/HoldOrderView-D0_qeYpr.css               0.13 kB │ gzip:   0.12 kB
+dist/assets/MyApprovals-BzMZZFep.css                 0.13 kB │ gzip:   0.12 kB
+dist/assets/Orders-CFZiHrtq.css                      0.14 kB │ gzip:   0.13 kB
+dist/assets/StoreControlView-BzqTzc7N.css            0.14 kB │ gzip:   0.13 kB
+dist/assets/MemberSystem-BOXKau1T.css                0.15 kB │ gzip:   0.10 kB
+dist/assets/InventoryPriceQuote-DnuyHTmZ.css         0.16 kB │ gzip:   0.14 kB
+dist/assets/PointsRules-DFMmmQu_.css                 0.17 kB │ gzip:   0.14 kB
+dist/assets/LevelConfig-BqDdSIvu.css                 0.17 kB │ gzip:   0.14 kB
+dist/assets/StoreValueCards-BcsLPQXI.css             0.17 kB │ gzip:   0.14 kB
+dist/assets/el-popconfirm-BmypG9Rq.css               0.18 kB │ gzip:   0.13 kB
+dist/assets/FormFooter-uBmymN00.css                  0.18 kB │ gzip:   0.14 kB
+dist/assets/CustomerCareRules-DAhzd9Q5.css           0.18 kB │ gzip:   0.15 kB
+dist/assets/Brands-_TCvLqM6.css                      0.18 kB │ gzip:   0.15 kB
+dist/assets/ProductTags-DbV4ll73.css                 0.18 kB │ gzip:   0.15 kB
+dist/assets/MemberView-BDgkVC36.css                  0.19 kB │ gzip:   0.14 kB
+dist/assets/CustomerProfile-B0i_BW2E.css             0.19 kB │ gzip:   0.15 kB
+dist/assets/SaleBillsView-C4cfmi91.css               0.19 kB │ gzip:   0.15 kB
+dist/assets/FinanceProfit-Cwg6_63V.css               0.19 kB │ gzip:   0.15 kB
+dist/assets/PositionManage-PnEF-hJR.css              0.19 kB │ gzip:   0.15 kB
+dist/assets/OrderFulfillView-Cahi5S-c.css            0.19 kB │ gzip:   0.15 kB
+dist/assets/TableSkeleton-DPcayw2B.css               0.20 kB │ gzip:   0.16 kB
+dist/assets/RetailAnnouncement-wGfW3_GL.css          0.20 kB │ gzip:   0.14 kB
+dist/assets/DetailDrawer-C-PJv_mO.css                0.24 kB │ gzip:   0.17 kB
+dist/assets/ProductTagRelation-aG5v_RV5.css          0.24 kB │ gzip:   0.17 kB
+dist/assets/ApprovalRules-BYIV2Z3k.css               0.25 kB │ gzip:   0.18 kB
+dist/assets/ReportPermission-DRzUfl6p.css            0.26 kB │ gzip:   0.18 kB
+dist/assets/PurchaseReturnsView-BTuPMMmx.css         0.27 kB │ gzip:   0.18 kB
+dist/assets/EmployeesView-CmShoXqm.css               0.27 kB │ gzip:   0.16 kB
+dist/assets/ConsumerAddress-CNDT6Yrj.css             0.27 kB │ gzip:   0.16 kB
+dist/assets/CustomerAnalysis-9DBZW12E.css            0.29 kB │ gzip:   0.17 kB
+dist/assets/ShiftView-BDo-HXUz.css                   0.29 kB │ gzip:   0.18 kB
+dist/assets/OrderTimeoutView-B2EYk3iz.css            0.29 kB │ gzip:   0.17 kB
+dist/assets/PricesView-VIKNNmBM.css                  0.29 kB │ gzip:   0.20 kB
+dist/assets/CustomerSegments-SQSPiGGz.css            0.29 kB │ gzip:   0.20 kB
+dist/assets/OrderProductMapView-C1Nj9yrF.css         0.30 kB │ gzip:   0.18 kB
+dist/assets/PurchasePayments-KPN_CN-9.css            0.32 kB │ gzip:   0.18 kB
+dist/assets/InstantRetailPayment-NluFBjdc.css        0.32 kB │ gzip:   0.18 kB
+dist/assets/InventoryBatch-CCCBUNcr.css              0.33 kB │ gzip:   0.20 kB
+dist/assets/BillManagement-DTX5z8ow.css              0.33 kB │ gzip:   0.21 kB
+dist/assets/InstantRetailDelivery-CeEH8wmt.css       0.34 kB │ gzip:   0.19 kB
+dist/assets/StoresView-B-nIGVf0.css                  0.34 kB │ gzip:   0.19 kB
+dist/assets/ReceiptsView-DNYduwLj.css                0.34 kB │ gzip:   0.21 kB
+dist/assets/PaymentsNewView-BZ_d9A0G.css             0.34 kB │ gzip:   0.21 kB
+dist/assets/AftersaleView-7VrqdD7s.css               0.35 kB │ gzip:   0.20 kB
+dist/assets/InventoryBatchPrice-DLGiaPRy.css         0.35 kB │ gzip:   0.19 kB
+dist/assets/SaleReturnView-B1xFruDW.css              0.35 kB │ gzip:   0.20 kB
+dist/assets/FeedbackView-eJaw723-.css                0.35 kB │ gzip:   0.19 kB
+dist/assets/AuditLogView-X40PPnmR.css                0.35 kB │ gzip:   0.18 kB
+dist/assets/ErrorLogView-Ddtf96ip.css                0.35 kB │ gzip:   0.18 kB
+dist/assets/System-D-jGf3Wu.css                      0.35 kB │ gzip:   0.18 kB
+dist/assets/CustomerTypes-C0Oc5v-w.css               0.37 kB │ gzip:   0.21 kB
+dist/assets/OrderExceptionView-rchbjBW-.css          0.37 kB │ gzip:   0.23 kB
+dist/assets/PurchaseContracts-EyQEiCGg.css           0.37 kB │ gzip:   0.21 kB
+dist/assets/TagGroups-dnt16tom.css                   0.37 kB │ gzip:   0.23 kB
+dist/assets/InventoryCheck-Z4871gzr.css              0.39 kB │ gzip:   0.20 kB
+dist/assets/ApprovalManage-CLXipBmE.css              0.40 kB │ gzip:   0.25 kB
+dist/assets/CouponManage-BpLpEmbf.css                0.40 kB │ gzip:   0.22 kB
+dist/assets/PaymentsView-mt-dXXJt.css                0.42 kB │ gzip:   0.21 kB
+dist/assets/CreditView-B8A66K7u.css                  0.42 kB │ gzip:   0.21 kB
+dist/assets/CustomerTags-BUCH-JaA.css                0.43 kB │ gzip:   0.23 kB
+dist/assets/PurchaseOrders-C4aK3bWJ.css              0.43 kB │ gzip:   0.22 kB
+dist/assets/PurchaseInStocks-2EQQJc4h.css            0.43 kB │ gzip:   0.22 kB
+dist/assets/SalesAnalysis-ryyg0utq.css               0.44 kB │ gzip:   0.21 kB
+dist/assets/Inventory-JJZGPjlV.css                   0.45 kB │ gzip:   0.16 kB
+dist/assets/CustomerLifecycle-C0ZO8YDv.css           0.46 kB │ gzip:   0.25 kB
+dist/assets/DataTable-CIC9lk_5.css                   0.48 kB │ gzip:   0.25 kB
+dist/assets/CustomerStatements-CY2JVioF.css          0.52 kB │ gzip:   0.23 kB
+dist/assets/OrderCenterView-BX1fyKXk.css             0.58 kB │ gzip:   0.28 kB
+dist/assets/MarketingView-CDKR2-JT.css               0.61 kB │ gzip:   0.28 kB
+dist/assets/ApprovalDetail-E0Ed-9Kq.css              0.61 kB │ gzip:   0.32 kB
+dist/assets/FullReduction-DxXZwA-a.css               0.61 kB │ gzip:   0.28 kB
+dist/assets/PageCard-BMaHECUf.css                    0.62 kB │ gzip:   0.32 kB
+dist/assets/OrderAftersaleView-DpPnYNoU.css          0.63 kB │ gzip:   0.31 kB
+dist/assets/el-tree-select-BevIVULC.css              0.63 kB │ gzip:   0.27 kB
+dist/assets/SystemRoles-BQdF_IXE.css                 0.63 kB │ gzip:   0.30 kB
+dist/assets/OperationLogView-5V3emxlA.css            0.64 kB │ gzip:   0.35 kB
+dist/assets/ProductCombo-BSO8I7cU.css                0.65 kB │ gzip:   0.31 kB
+dist/assets/ExpensesView-BdFp-aMB.css                0.67 kB │ gzip:   0.33 kB
+dist/assets/CustomerDetail-CRjbJ-EN.css              0.67 kB │ gzip:   0.32 kB
+dist/assets/CommissionRecords-Ce3EoMKG.css           0.68 kB │ gzip:   0.33 kB
+dist/assets/PrintTemplatesView-BfgX9Bwv.css          0.68 kB │ gzip:   0.33 kB
+dist/assets/InventoryAlertConfig-rol34Wgx.css        0.69 kB │ gzip:   0.29 kB
+dist/assets/InventoryReports-wRGiW_SO.css            0.69 kB │ gzip:   0.29 kB
+dist/assets/BankAccounts-H-KIb-rp.css                0.72 kB │ gzip:   0.29 kB
+dist/assets/StatBar-C-k2nhKQ.css                     0.72 kB │ gzip:   0.34 kB
+dist/assets/ProductImport-B592vmTu.css               0.72 kB │ gzip:   0.32 kB
+dist/assets/FlashSale-BJqfX3-k.css                   0.73 kB │ gzip:   0.33 kB
+dist/assets/CollectionLinks-DxjRQoTb.css             0.74 kB │ gzip:   0.32 kB
+dist/assets/SupplierStatements-DcyniaMD.css          0.75 kB │ gzip:   0.30 kB
+dist/assets/InventoryCost-9vTH7gJZ.css               0.75 kB │ gzip:   0.30 kB
+dist/assets/OrganizationView-XPDpJ8sf.css            0.77 kB │ gzip:   0.32 kB
+dist/assets/MarketingLimitedDiscount-CEeZegE_.css    0.79 kB │ gzip:   0.34 kB
+dist/assets/CustomerVisits-Dp-291L3.css              0.80 kB │ gzip:   0.35 kB
+dist/assets/OnlinePaymentAnalysis-DWzu5KQn.css       0.81 kB │ gzip:   0.35 kB
+dist/assets/el-statistic-D5_dVssE.css                0.85 kB │ gzip:   0.25 kB
+dist/assets/PaymentConfigView-BqN856R1.css           0.88 kB │ gzip:   0.38 kB
+dist/assets/DepartmentManage-Nq6WVfWJ.css            0.89 kB │ gzip:   0.34 kB
+dist/assets/PurchaseReports-DdjPCivC.css             0.91 kB │ gzip:   0.36 kB
+dist/assets/ProductCategories-DYBGrGEd.css           0.92 kB │ gzip:   0.34 kB
+dist/assets/el-card-BAyktVMS.css                     0.92 kB │ gzip:   0.32 kB
+dist/assets/OrderSyncView--NwTP9I6.css               0.94 kB │ gzip:   0.36 kB
+dist/assets/TodoList-D4Yp1a5w.css                    0.97 kB │ gzip:   0.44 kB
+dist/assets/StoreDashboardView-DLtG2A4V.css          0.99 kB │ gzip:   0.40 kB
+dist/assets/DailySettleView-B22Uono-.css             1.05 kB │ gzip:   0.45 kB
+dist/assets/CouponVerifyView-DDtz-uOF.css            1.06 kB │ gzip:   0.41 kB
+dist/assets/SalesReports-BgnbRaWz.css                1.15 kB │ gzip:   0.42 kB
+dist/assets/CollectionAnalysis-Bp2Vj9oV.css          1.15 kB │ gzip:   0.38 kB
+dist/assets/el-empty-S7fQQ3B8.css                    1.16 kB │ gzip:   0.46 kB
+dist/assets/InventoryShareConfig-UKVq97Vy.css        1.16 kB │ gzip:   0.37 kB
+dist/assets/FinanceDashboard-gIzSx2c1.css            1.17 kB │ gzip:   0.38 kB
+dist/assets/InstantRetailSync-CamHraQA.css           1.17 kB │ gzip:   0.41 kB
+dist/assets/InventoryTransfer-BDdYl8gZ.css           1.17 kB │ gzip:   0.43 kB
+dist/assets/ReceivablesPayables-DEywckf6.css         1.18 kB │ gzip:   0.41 kB
+dist/assets/FinanceReport-0gL5Ub20.css               1.19 kB │ gzip:   0.43 kB
+dist/assets/Suppliers-DvB1asoi.css                   1.22 kB │ gzip:   0.39 kB
+dist/assets/SalesOrderCreate-B8ht4hdc.css            1.31 kB │ gzip:   0.42 kB
+dist/assets/MarketingGiftRule-B1BKTKQG.css           1.40 kB │ gzip:   0.51 kB
+dist/assets/QuickEntryConfig-DVakMp9n.css            1.45 kB │ gzip:   0.52 kB
+dist/assets/el-skeleton-BjvgS5Bk.css                 1.57 kB │ gzip:   0.53 kB
+dist/assets/InventoryTransferCreate-bE_3UYIU.css     1.60 kB │ gzip:   0.52 kB
+dist/assets/MarketingDashboard-qygc5Z7V.css          1.61 kB │ gzip:   0.52 kB
+dist/assets/Units--Rut1f4E.css                       1.75 kB │ gzip:   0.56 kB
+dist/assets/InstantRetailOrders-ZAEzBIE0.css         1.79 kB │ gzip:   0.57 kB
+dist/assets/RegisterView-CyyGmD8f.css                1.89 kB │ gzip:   0.65 kB
+dist/assets/MonitorView-ViVu7oMg.css                 1.97 kB │ gzip:   0.62 kB
+dist/assets/InventoryTransferDetail-Sm9BQpYf.css     2.06 kB │ gzip:   0.64 kB
+dist/assets/el-collapse-item-BvmEG8Qn.css            2.09 kB │ gzip:   0.58 kB
+dist/assets/Reports-BJ1_I6pI.css                     2.20 kB │ gzip:   0.69 kB
+dist/assets/InstantRetailShelf-Cfzgy-38.css          2.27 kB │ gzip:   0.73 kB
+dist/assets/TransferReport-vAKoTQJ1.css              2.44 kB │ gzip:   0.74 kB
+dist/assets/InstantRetailPlatform-DW8K8oT9.css       2.45 kB │ gzip:   0.72 kB
+dist/assets/el-progress-B7X4OvaL.css                 2.54 kB │ gzip:   0.74 kB
+dist/assets/SaleBillDetail-7ibqY5rV.css              2.54 kB │ gzip:   0.77 kB
+dist/assets/InstantRetailReport-Ch2S4tSH.css         2.66 kB │ gzip:   0.81 kB
+dist/assets/OrderBoardView-BAMZtvvN.css              2.71 kB │ gzip:   0.80 kB
+dist/assets/el-image-BG2Se6n6.css                    2.74 kB │ gzip:   0.79 kB
+dist/assets/MarketingMaterial-z9H5FeKy.css           2.75 kB │ gzip:   0.82 kB
+dist/assets/MarketingPointsMall-ZHc2t4uF.css         2.88 kB │ gzip:   0.87 kB
+dist/assets/InstantRetailDashboard-CePKWpBW.css      2.90 kB │ gzip:   0.78 kB
+dist/assets/ProductReview-CSIh9YQi.css               3.06 kB │ gzip:   0.76 kB
+dist/assets/ShiftDetailView-CGNis-gQ.css             3.06 kB │ gzip:   0.80 kB
+dist/assets/el-radio-button-BDEDkXh7.css             3.18 kB │ gzip:   0.77 kB
+dist/assets/InstantRetailConfig-CCZjMtxD.css         3.37 kB │ gzip:   0.86 kB
+dist/assets/el-descriptions-BpDzfuC8.css             3.42 kB │ gzip:   0.61 kB
+dist/assets/CustomReport-BTukL7ni.css                3.73 kB │ gzip:   0.91 kB
+dist/assets/MiniappConfigView-DiRjQOwj.css           3.86 kB │ gzip:   1.07 kB
+dist/assets/Products-DA-pWLb_.css                    3.95 kB │ gzip:   0.99 kB
+dist/assets/el-drawer-BmQQuU66.css                   4.08 kB │ gzip:   1.06 kB
+dist/assets/el-radio-B4O75OaI.css                    4.32 kB │ gzip:   0.93 kB
+dist/assets/el-timeline-item-C3hWMI-V.css            4.39 kB │ gzip:   0.85 kB
+dist/assets/OrderRoutingView-VPINOjBm.css            4.51 kB │ gzip:   1.10 kB
+dist/assets/el-step-DtA3_m5y.css                     4.65 kB │ gzip:   1.15 kB
+dist/assets/el-message-box-amIz9eLF.css              4.76 kB │ gzip:   1.15 kB
+dist/assets/InstantRetailOrderBoard-BCRBbvcs.css     5.51 kB │ gzip:   1.38 kB
+dist/assets/MarketingTags-CiV_8gHY.css               5.75 kB │ gzip:   0.84 kB
+dist/assets/el-tree-DBmn-Lwa.css                     5.92 kB │ gzip:   1.34 kB
+dist/assets/ProductReviewTasks-BGW93U9t.css          6.01 kB │ gzip:   1.46 kB
+dist/assets/el-pagination-CDeFZDGO.css               7.03 kB │ gzip:   1.19 kB
+dist/assets/Dashboard-CU7vh27v.css                   7.07 kB │ gzip:   1.52 kB
+dist/assets/el-color-picker-DRNdOQmm.css             7.38 kB │ gzip:   1.57 kB
+dist/assets/AiSidePanel-7_MfN3V1.css                 7.45 kB │ gzip:   1.85 kB
+dist/assets/PrintTemplateDesigner-DOQXI8AK.css       7.72 kB │ gzip:   1.82 kB
+dist/assets/InstantRetailPickup-zlLXrbWx.css         7.72 kB │ gzip:   1.84 kB
+dist/assets/el-cascader-Y4U47xEI.css                10.69 kB │ gzip:   1.95 kB
+dist/assets/el-upload-Bit6Pm_l.css                  12.00 kB │ gzip:   2.10 kB
+dist/assets/MessageCenter-B9N33eZQ.css              12.88 kB │ gzip:   2.32 kB
+dist/assets/el-time-picker-C6DQcOmX.css             14.76 kB │ gzip:   2.68 kB
+dist/assets/el-tab-pane-LzsQQ_QK.css                15.78 kB │ gzip:   2.34 kB
+dist/assets/SystemConfigView-R7H0eens.css           16.41 kB │ gzip:   2.98 kB
+dist/assets/el-table-column-Dp73S2HR.css            19.54 kB │ gzip:   2.91 kB
+dist/assets/CashierView-Danvx5_I.css                20.28 kB │ gzip:   3.42 kB
+dist/assets/el-date-picker-BsrAVvYx.css             28.88 kB │ gzip:   4.20 kB
+dist/assets/el-col-BWEC13sA.css                     36.49 kB │ gzip:   3.51 kB
+dist/assets/index-BJXVK3w-.css                     154.31 kB │ gzip:  24.02 kB
+dist/assets/el-tooltip-l0sNRNKZ.js                   0.00 kB │ gzip:   0.02 kB
+dist/assets/echarts-oFJ7S4EV.js                      0.17 kB │ gzip:   0.13 kB
+dist/assets/theme-DtfJrAXR.js                        0.21 kB │ gzip:   0.19 kB
+dist/assets/position-Dm3u-Xlu.js                     0.25 kB │ gzip:   0.16 kB
+dist/assets/use-wheel-CweW5EvU.js                    0.37 kB │ gzip:   0.29 kB
+dist/assets/TableSkeleton-BlawVSyP.js                0.43 kB │ gzip:   0.32 kB
+dist/assets/download-As6CqmDN.js                     0.47 kB │ gzip:   0.33 kB
+dist/assets/StatBar-CHx5WhUW.js                      0.57 kB │ gzip:   0.36 kB
+dist/assets/format-BUX43_-O.js                       0.62 kB │ gzip:   0.37 kB
+dist/assets/index-DgY5G3Qw.js                        0.75 kB │ gzip:   0.47 kB
+dist/assets/ReviewDelegation-DSPAqkB7.js             0.91 kB │ gzip:   0.63 kB
+dist/assets/PageCard-D0c70X4A.js                     0.91 kB │ gzip:   0.52 kB
+dist/assets/ProductReviewWorkflow-BTpnjyYt.js        0.93 kB │ gzip:   0.61 kB
+dist/assets/aftersale-CAVKI4F8.js                    0.96 kB │ gzip:   0.29 kB
+dist/assets/el-message-box-Ce-P3L3r.js               1.03 kB │ gzip:   0.55 kB
+dist/assets/index-BVAeGpE3.js                        1.09 kB │ gzip:   0.55 kB
+dist/assets/FormFooter-CGlaEpOA.js                   1.12 kB │ gzip:   0.59 kB
+dist/assets/index-DjFoTWNg.js                        1.55 kB │ gzip:   0.77 kB
+dist/assets/index-D79AkF2E.js                        1.64 kB │ gzip:   0.57 kB
+dist/assets/DataTable-CUAc7Rzl.js                    1.75 kB │ gzip:   0.93 kB
+dist/assets/SystemMonitorManage-ZTdw3KTN.js          1.77 kB │ gzip:   0.82 kB
+dist/assets/index-DabxLaP7.js                        1.81 kB │ gzip:   0.95 kB
+dist/assets/sampleVars-CNmiLhRz.js                   1.86 kB │ gzip:   1.02 kB
+dist/assets/DetailDrawer-DkH7MIbB.js                 1.89 kB │ gzip:   0.96 kB
+dist/assets/misc-BhsEj328.js                         2.07 kB │ gzip:   0.50 kB
+dist/assets/index-bS4T_3wq.js                        2.11 kB │ gzip:   0.94 kB
+dist/assets/index-DkBpEmxc.js                        2.12 kB │ gzip:   0.92 kB
+dist/assets/ApprovalManage-C5s55KxS.js               2.14 kB │ gzip:   1.18 kB
+dist/assets/sale-B3fTFFxb.js                         2.28 kB │ gzip:   0.49 kB
+dist/assets/product-DqS4LKxV.js                      2.62 kB │ gzip:   0.54 kB
+dist/assets/InventoryAlerts-DtlbYqeJ.js              2.71 kB │ gzip:   1.40 kB
+dist/assets/ReportPermission-CVWmJtZj.js             2.71 kB │ gzip:   1.51 kB
+dist/assets/index-CZzcX7DJ.js                        2.74 kB │ gzip:   1.23 kB
+dist/assets/ConsumerAddress-B72E4XGJ.js              2.93 kB │ gzip:   1.57 kB
+dist/assets/StoreControlView-CIN4uOsO.js             3.06 kB │ gzip:   1.42 kB
+dist/assets/HoldOrderView-BnPS6wnL.js                3.20 kB │ gzip:   1.63 kB
+dist/assets/el-table-column-BOgSCLaO.js              3.31 kB │ gzip:   1.61 kB
+dist/assets/MemberView-B3B4rOmu.js                   3.38 kB │ gzip:   1.57 kB
+dist/assets/ProductImport-DHbEJOf7.js                3.53 kB │ gzip:   1.94 kB
+dist/assets/customParseFormat-CzMjrrlg.js            3.85 kB │ gzip:   1.93 kB
+dist/assets/purchase-Bnu0y1BC.js                     3.85 kB │ gzip:   0.67 kB
+dist/assets/report-CsXIBUfI.js                       3.92 kB │ gzip:   0.76 kB
+dist/assets/index-CmrUlN_q.js                        3.93 kB │ gzip:   1.77 kB
+dist/assets/ReportsEmployees-DZM5FxG9.js             3.99 kB │ gzip:   2.07 kB
+dist/assets/inventory-BenJLRJD.js                    4.04 kB │ gzip:   0.72 kB
+dist/assets/RegisterView-D3-l9PoJ.js                 4.10 kB │ gzip:   1.92 kB
+dist/assets/SaleBillsView-CehKSlTc.js                4.23 kB │ gzip:   1.97 kB
+dist/assets/index-DP7MhNAl.js                        4.24 kB │ gzip:   1.73 kB
+dist/assets/index-BP0O7MLt.js                        4.33 kB │ gzip:   1.95 kB
+dist/assets/index-C5vSh89F.js                        4.38 kB │ gzip:   1.81 kB
+dist/assets/index-BqNz2YEb.js                        4.48 kB │ gzip:   1.62 kB
+dist/assets/index-Bi7HKKVn.js                        4.51 kB │ gzip:   1.82 kB
+dist/assets/finance-CXcLaqmd.js                      4.63 kB │ gzip:   0.82 kB
+dist/assets/ReportsStores-ZCX7jI37.js                4.68 kB │ gzip:   2.28 kB
+dist/assets/CollectionView-CON0hVk1.js               4.73 kB │ gzip:   1.94 kB
+dist/assets/StoreDashboardView-BIfhGT9M.js           4.76 kB │ gzip:   2.14 kB
+dist/assets/enums-BHCMAkJ2.js                        4.80 kB │ gzip:   2.43 kB
+dist/assets/ProductTagRelation-N-mHcHCN.js           4.92 kB │ gzip:   2.31 kB
+dist/assets/index-CBHsxtjT.js                        4.93 kB │ gzip:   2.28 kB
+dist/assets/ReportsProducts-lM1RfYJW.js              4.98 kB │ gzip:   2.36 kB
+dist/assets/el-radio-BXpfOQYD.js                     5.30 kB │ gzip:   2.21 kB
+dist/assets/PurchaseReturnsView-DaYlj9Nl.js          5.35 kB │ gzip:   2.21 kB
+dist/assets/HistoryBills-DUoA3YUu.js                 5.42 kB │ gzip:   2.35 kB
+dist/assets/MemberSystem-CAvrS1hn.js                 5.53 kB │ gzip:   2.23 kB
+dist/assets/CustomerLifecycle-Dhr-39tD.js            5.58 kB │ gzip:   2.62 kB
+dist/assets/Brands-CzV3vX0-.js                       5.60 kB │ gzip:   2.44 kB
+dist/assets/OrderFulfillView-DeNKFcqX.js             5.60 kB │ gzip:   2.22 kB
+dist/assets/pos-DfpPqEtd.js                          5.61 kB │ gzip:   1.13 kB
+dist/assets/SalesReports-DcnqkpU5.js                 5.63 kB │ gzip:   2.15 kB
+dist/assets/DailySettleView-D7RQhPF3.js              5.81 kB │ gzip:   2.32 kB
+dist/assets/ApprovalDetail-DPXxfhB-.js               5.99 kB │ gzip:   2.51 kB
+dist/assets/instant-retail-DhsvbQa1.js               6.09 kB │ gzip:   1.16 kB
+dist/assets/MyApprovals-Ec6Md1I4.js                  6.18 kB │ gzip:   2.51 kB
+dist/assets/index-DLsVfMk8.js                        6.24 kB │ gzip:   2.60 kB
+dist/assets/marketing-CWbsbSST.js                    6.26 kB │ gzip:   1.08 kB
+dist/assets/index-DPaIfOh5.js                        6.29 kB │ gzip:   2.62 kB
+dist/assets/MessageCenter-CKg8sqkL.js                6.47 kB │ gzip:   2.81 kB
+dist/assets/Units-Cta4cdGi.js                        6.64 kB │ gzip:   2.83 kB
+dist/assets/CommissionRecords-hWP2KoFH.js            6.70 kB │ gzip:   2.80 kB
+dist/assets/CustomerTypes-DljZkFQm.js                6.79 kB │ gzip:   2.75 kB
+dist/assets/ProductTags-fug1Tu4Q.js                  6.86 kB │ gzip:   2.76 kB
+dist/assets/OrderBoardView-BxvXVzcv.js               6.95 kB │ gzip:   2.76 kB
+dist/assets/InstantRetailPayment-CQcHpLeo.js         7.00 kB │ gzip:   2.51 kB
+dist/assets/OperationLogView-DIf_ike1.js             7.10 kB │ gzip:   2.82 kB
+dist/assets/Inventory-BNW2UsC-.js                    7.16 kB │ gzip:   2.76 kB
+dist/assets/CouponVerifyView-DKkc2Jbs.js             7.21 kB │ gzip:   2.72 kB
+dist/assets/FinanceProfit-DlGSIOWT.js                7.22 kB │ gzip:   2.86 kB
+dist/assets/InventoryCost-CJQf6r_j.js                7.24 kB │ gzip:   2.86 kB
+dist/assets/DepartmentManage-C2k7UxKD.js             7.29 kB │ gzip:   2.86 kB
+dist/assets/MonitorView-CohF7Zp8.js                  7.35 kB │ gzip:   3.01 kB
+dist/assets/FinanceDashboard-CdnHdGPi.js             7.39 kB │ gzip:   2.76 kB
+dist/assets/InstantRetailDelivery-BbtBOm3a.js        7.45 kB │ gzip:   2.92 kB
+dist/assets/RetailAnnouncement-DWn5IwUo.js           7.48 kB │ gzip:   3.06 kB
+dist/assets/ShiftView-Bp69a4OJ.js                    7.50 kB │ gzip:   3.01 kB
+dist/assets/ReceivablesPayables-DzDjHsdt.js          7.52 kB │ gzip:   2.43 kB
+dist/assets/FinanceCollection-C4eIGhqd.js            7.64 kB │ gzip:   2.89 kB
+dist/assets/PaymentsView-BT3szkzB.js                 7.75 kB │ gzip:   2.57 kB
+dist/assets/CustomerStatements-BLVvJolD.js           7.78 kB │ gzip:   2.62 kB
+dist/assets/CustomerProfile-DbaO3d6d.js              7.88 kB │ gzip:   3.05 kB
+dist/assets/customer-BBW-kW15.js                     7.89 kB │ gzip:   1.28 kB
+dist/assets/PositionManage-1lpQmKc9.js               8.03 kB │ gzip:   3.05 kB
+dist/assets/PrintTemplatesView-DELF8qfX.js           8.11 kB │ gzip:   3.13 kB
+dist/assets/CollectionLinks-DL4o21OU.js              8.22 kB │ gzip:   3.33 kB
+dist/assets/Reports-CYWcoUzC.js                      8.22 kB │ gzip:   3.18 kB
+dist/assets/CustomerSegments-suY5Gtr7.js             8.50 kB │ gzip:   3.08 kB
+dist/assets/CustomerCareRules-C-aMgOqT.js            8.52 kB │ gzip:   3.11 kB
+dist/assets/CommissionRules-BzaGoTib.js              8.53 kB │ gzip:   3.21 kB
+dist/assets/SaleReturnView-DEcbZ90U.js               8.71 kB │ gzip:   3.18 kB
+dist/assets/ErrorLogView-Cz1-RhEx.js                 8.77 kB │ gzip:   2.92 kB
+dist/assets/LevelConfig-6RDbYQna.js                  8.98 kB │ gzip:   3.06 kB
+dist/assets/ShiftDetailView-B_fQHdti.js              8.99 kB │ gzip:   3.29 kB
+dist/assets/PointsRules-C-iE4TYx.js                  9.01 kB │ gzip:   3.24 kB
+dist/assets/OnlinePaymentAnalysis-D_0tTPWF.js        9.11 kB │ gzip:   3.47 kB
+dist/assets/InstantRetailSync-C2sBc_z3.js            9.13 kB │ gzip:   3.34 kB
+dist/assets/CustomerTags-BWIB6ZKT.js                 9.17 kB │ gzip:   3.30 kB
+dist/assets/FeedbackView-D7467wzz.js                 9.19 kB │ gzip:   3.39 kB
+dist/assets/BillManagement-Cz-qtHJy.js               9.40 kB │ gzip:   3.33 kB
+dist/assets/InventoryBatchPrice-CmlIUxli.js          9.44 kB │ gzip:   3.33 kB
+dist/assets/BankAccounts-DqZKZr3Q.js                 9.48 kB │ gzip:   3.31 kB
+dist/assets/Orders-CXv1tggz.js                       9.53 kB │ gzip:   3.05 kB
+dist/assets/SaleBillDetail-DeEU3wUG.js               9.56 kB │ gzip:   3.62 kB
+dist/assets/InventoryAlertConfig-CPESgQAz.js         9.81 kB │ gzip:   3.20 kB
+dist/assets/ApprovalRules-Cp9PLisC.js                9.90 kB │ gzip:   3.77 kB
+dist/assets/ProductCategories-FVMFXYy2.js            9.96 kB │ gzip:   3.67 kB
+dist/assets/CustomersView-BRJPk5w8.js                9.99 kB │ gzip:   3.88 kB
+dist/assets/QuickEntryConfig-CEF0dfrn.js            10.04 kB │ gzip:   3.29 kB
+dist/assets/TodoList-O1K_3VUd.js                    10.10 kB │ gzip:   3.72 kB
+dist/assets/TagGroups-DR4ytZkw.js                   10.19 kB │ gzip:   3.41 kB
+dist/assets/AuditLogView-VxAqwp3V.js                10.24 kB │ gzip:   3.37 kB
+dist/assets/InventoryPriceQuote-CNte4GNl.js         10.24 kB │ gzip:   3.44 kB
+dist/assets/EmployeesView-CUoBScMF.js               10.28 kB │ gzip:   3.78 kB
+dist/assets/CreditView-Cjc8NQX4.js                  10.31 kB │ gzip:   3.44 kB
+dist/assets/SupplierStatements-Ch1wCUc2.js          10.40 kB │ gzip:   3.57 kB
+dist/assets/InventoryReports-CVZ2ZSPB.js            10.41 kB │ gzip:   3.27 kB
+dist/assets/FinanceReport-DnZBz5eg.js               10.57 kB │ gzip:   3.69 kB
+dist/assets/PurchaseReports-DEb692w1.js             10.64 kB │ gzip:   3.95 kB
+dist/assets/InstantRetailPlatform-B0SJqds_.js       11.15 kB │ gzip:   4.09 kB
+dist/assets/index-Cg9yzVh2.js                       11.37 kB │ gzip:   4.35 kB
+dist/assets/InstantRetailDashboard-olM5MSQX.js      11.40 kB │ gzip:   4.12 kB
+dist/assets/CustomerPrices-DRIiJwtl.js              11.59 kB │ gzip:   3.74 kB
+dist/assets/FullReduction-BschwfCD.js               11.61 kB │ gzip:   4.16 kB
+dist/assets/index-B4j6y4dM.js                       11.63 kB │ gzip:   4.01 kB
+dist/assets/TransferReport-DNgo6paz.js              11.66 kB │ gzip:   3.88 kB
+dist/assets/AftersaleView-D8jN3pJw.js               11.68 kB │ gzip:   3.62 kB
+dist/assets/PurchasePayments-DmpVCU5O.js            11.70 kB │ gzip:   3.73 kB
+dist/assets/index-DQxIFDIT.js                       11.88 kB │ gzip:   4.97 kB
+dist/assets/InventoryTransferCreate-CY20cVUh.js     11.90 kB │ gzip:   4.46 kB
+dist/assets/InventoryCheck-CkcttFcl.js              11.99 kB │ gzip:   3.95 kB
+dist/assets/PurchaseInStocks-CHGsD-qi.js            12.10 kB │ gzip:   3.90 kB
+dist/assets/InventoryTransferDetail-CefvKLsw.js     12.12 kB │ gzip:   4.28 kB
+dist/assets/StoreValueCards-CeUkCdSA.js             12.17 kB │ gzip:   3.69 kB
+dist/assets/CouponManage-_KWdCyZK.js                12.21 kB │ gzip:   4.13 kB
+dist/assets/ExpensesView-B5h3ne3I.js                12.29 kB │ gzip:   4.36 kB
+dist/assets/MarketingTags-CYPE4z7A.js               12.33 kB │ gzip:   4.42 kB
+dist/assets/FlashSale-CSWOEODK.js                   12.49 kB │ gzip:   4.27 kB
+dist/assets/OrderTimeoutView-CqPnzR9b.js            12.63 kB │ gzip:   3.89 kB
+dist/assets/MarketingGiftRule-DbYisBrZ.js           12.65 kB │ gzip:   4.59 kB
+dist/assets/PurchasePlans-HXPtIPNV.js               12.67 kB │ gzip:   3.95 kB
+dist/assets/PaymentsNewView-BLEZ6a2G.js             12.84 kB │ gzip:   4.19 kB
+dist/assets/PurchaseOrders-BBLfJT_z.js              12.87 kB │ gzip:   4.03 kB
+dist/assets/ReceiptsView-Cby5vHw_.js                12.89 kB │ gzip:   4.19 kB
+dist/assets/OrderSyncView-oFWs7q1m.js               12.98 kB │ gzip:   4.84 kB
+dist/assets/ReconciliationView-DPLi3iWb.js          13.15 kB │ gzip:   3.95 kB
+dist/assets/InventoryBatch-BeS2w1Nz.js              13.33 kB │ gzip:   4.11 kB
+dist/assets/System-BmpFv_T3.js                      13.39 kB │ gzip:   3.83 kB
+dist/assets/index-DiAJ2tqt.js                       13.78 kB │ gzip:   4.97 kB
+dist/assets/StoresView-BCqFIZeR.js                  13.96 kB │ gzip:   3.92 kB
+dist/assets/index-B6IH5qgS.js                       14.42 kB │ gzip:   5.35 kB
+dist/assets/PaymentConfigView-BbN3IlLC.js           14.53 kB │ gzip:   4.27 kB
+dist/assets/InstantRetailOrderBoard-C164AGw8.js     14.58 kB │ gzip:   5.07 kB
+dist/assets/SystemRoles-ac_KRebe.js                 14.67 kB │ gzip:   5.01 kB
+dist/assets/MarketingDashboard-CG9anNii.js          14.83 kB │ gzip:   4.76 kB
+dist/assets/PricesView-p-M_9MeV.js                  14.87 kB │ gzip:   4.23 kB
+dist/assets/InventoryShareConfig-DpUPhd4U.js        15.49 kB │ gzip:   5.18 kB
+dist/assets/ProductReview-CUW1Smqo.js               15.52 kB │ gzip:   5.19 kB
+dist/assets/OrderRoutingView-LPb-RrwT.js            15.70 kB │ gzip:   5.03 kB
+dist/assets/OrderAftersaleView-QKH-Izf0.js          15.75 kB │ gzip:   5.41 kB
+dist/assets/MarketingPointsMall-YMs7SEy9.js         15.78 kB │ gzip:   5.41 kB
+dist/assets/index-CBAUAUrN.js                       15.86 kB │ gzip:   5.64 kB
+dist/assets/CustomerAnalysis-DDTqcSet.js            15.87 kB │ gzip:   5.10 kB
+dist/assets/MarketingLimitedDiscount-DX8S1nKP.js    15.89 kB │ gzip:   5.32 kB
+dist/assets/OrganizationView-CbY_MJ-8.js            16.33 kB │ gzip:   4.67 kB
+dist/assets/InstantRetailOrders-CmthUcgm.js         16.45 kB │ gzip:   5.04 kB
+dist/assets/InstantRetailReport-CvQUfJko.js         16.50 kB │ gzip:   5.22 kB
+dist/assets/OrderProductMapView-CD7D3nGs.js         16.51 kB │ gzip:   5.21 kB
+dist/assets/CollectionAnalysis-CxnMM27-.js          16.53 kB │ gzip:   5.24 kB
+dist/assets/CustomerVisits-DDTWHjCm.js              16.90 kB │ gzip:   4.78 kB
+dist/assets/MarketingView-D1OMx8yq.js               17.03 kB │ gzip:   5.41 kB
+dist/assets/PurchaseContracts-G420pf8H.js           17.08 kB │ gzip:   5.09 kB
+dist/assets/CustomerDetail-Dtl1HccQ.js              17.18 kB │ gzip:   4.98 kB
+dist/assets/SalesOrderCreate-CvUWGK2I.js            17.20 kB │ gzip:   5.33 kB
+dist/assets/OrderCenterView-Gd2fxMDX.js             17.33 kB │ gzip:   5.91 kB
+dist/assets/InstantRetailPickup-BmXO7WMB.js         17.37 kB │ gzip:   5.68 kB
+dist/assets/Dashboard-B8fq4Mhw.js                   17.41 kB │ gzip:   6.50 kB
+dist/assets/OrderExceptionView-DMpFAqEx.js          17.57 kB │ gzip:   5.68 kB
+dist/assets/SalesAnalysis-BfA31X_j.js               17.92 kB │ gzip:   5.57 kB
+dist/assets/InventoryTransfer-CkTEeqAg.js           18.09 kB │ gzip:   5.74 kB
+dist/assets/AiSidePanel--atHkvgB.js                 18.89 kB │ gzip:   7.55 kB
+dist/assets/el-color-picker-CsuEplhA.js             19.11 kB │ gzip:   6.55 kB
+dist/assets/MiniappConfigView-DwfHy807.js           19.27 kB │ gzip:   6.91 kB
+dist/assets/ProductReviewTasks-BsmId01N.js          19.43 kB │ gzip:   6.21 kB
+dist/assets/MarketingMaterial-BWhaV0c0.js           19.54 kB │ gzip:   6.47 kB
+dist/assets/InstantRetailConfig-DXjtFpet.js         19.71 kB │ gzip:   6.11 kB
+dist/assets/SystemConfigView-DfRJJhH3.js            20.65 kB │ gzip:   5.85 kB
+dist/assets/InstantRetailShelf-3Kh24rIR.js          21.98 kB │ gzip:   6.26 kB
+dist/assets/Suppliers-CydedD2x.js                   22.53 kB │ gzip:   6.04 kB
+dist/assets/panel-time-pick-Cv5Kz6p0.js             23.16 kB │ gzip:   8.39 kB
+dist/assets/CustomReport-qyuCPlU6.js                28.27 kB │ gzip:   8.48 kB
+dist/assets/index-C0DQTa1z.js                       28.78 kB │ gzip:   9.59 kB
+dist/assets/ProductCombo-Dr8S4X_P.js                38.86 kB │ gzip:   9.66 kB
+dist/assets/PrintTemplateDesigner-BYuZvgqu.js       42.43 kB │ gzip:  13.23 kB
+dist/assets/index-B-MnX7Ug.js                       42.90 kB │ gzip:  15.64 kB
+dist/assets/axios-DhXgJQ-f.js                       46.09 kB │ gzip:  17.77 kB
+dist/assets/CashierView-BAY5NE_-.js                 47.29 kB │ gzip:  15.19 kB
+dist/assets/index-Cw1kQ16I.js                       64.80 kB │ gzip:  17.61 kB
+dist/assets/index-C151ICGT.js                       65.25 kB │ gzip:  21.64 kB
+dist/assets/index-B15iQsZo.js                       77.04 kB │ gzip:  26.94 kB
+dist/assets/vue-vendor-B4Gs5s1G.js                 103.93 kB │ gzip:  40.53 kB
+dist/assets/zrender-B48IGdZ_.js                    224.09 kB │ gzip:  77.26 kB
+dist/assets/Products-55x8d0nU.js                   422.16 kB │ gzip: 131.37 kB
+dist/assets/index-DN2LoSBK.js                      576.66 kB │ gzip: 176.52 kB
+dist/assets/echarts-DmQU4scP.js                    915.23 kB │ gzip: 305.84 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 43.73s
+
+> saas-admin@0.1.0 build
+> vite build
+
+vite v6.4.3 building for production...
+transforming...
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (3362:0): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js (5780:22): A comment
+
+"/* #__PURE__ */"
+
+in "../../../ZXQL-MS/wen-ssystem/node_modules/@vueuse/core/dist/index.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2399 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                   0.82 kB │ gzip:   0.51 kB
+dist/assets/TenantUsage-DpDbcjGg.css              0.09 kB │ gzip:   0.08 kB
+dist/assets/TenantForm-DLUpd8Cl.css               0.09 kB │ gzip:   0.11 kB
+dist/assets/AiCognitionView-85CwNNNP.css          0.11 kB │ gzip:   0.12 kB
+dist/assets/MessageConfig-DIZ7_vSG.css            0.23 kB │ gzip:   0.14 kB
+dist/assets/AiUsageStats-CfCT78zn.css             0.27 kB │ gzip:   0.19 kB
+dist/assets/ApplicationList-BRTU1oxD.css          0.32 kB │ gzip:   0.18 kB
+dist/assets/PlatformRegister-BY0yxZW6.css         0.44 kB │ gzip:   0.23 kB
+dist/assets/MonitorView-DevcPdFa.css              0.45 kB │ gzip:   0.23 kB
+dist/assets/SubscriptionApplies-DCFoIlqZ.css      0.66 kB │ gzip:   0.29 kB
+dist/assets/Packages-C0DCjHzI.css                 0.78 kB │ gzip:   0.37 kB
+dist/assets/ApplicationDetail-OdLiTpH2.css        0.81 kB │ gzip:   0.33 kB
+dist/assets/Settings-CMnT1dag.css                 1.00 kB │ gzip:   0.42 kB
+dist/assets/LibraryImport-DGXaC0uL.css            1.17 kB │ gzip:   0.49 kB
+dist/assets/ChannelPromotion-D9vV6-iR.css         1.18 kB │ gzip:   0.44 kB
+dist/assets/TenantList-BDlUQGjo.css               1.85 kB │ gzip:   0.64 kB
+dist/assets/Dashboard-C3q8mHv6.css                1.87 kB │ gzip:   0.64 kB
+dist/assets/TenantDetail-C65AHdGh.css             2.14 kB │ gzip:   0.69 kB
+dist/assets/AiBillingConfig-BwZ_wFzt.css          2.31 kB │ gzip:   0.73 kB
+dist/assets/AppVersions-C7TyNm2B.css              2.34 kB │ gzip:   0.77 kB
+dist/assets/Announcements-C6EWs2wm.css            2.60 kB │ gzip:   0.83 kB
+dist/assets/LibraryBrands-DHJTzGxK.css            2.68 kB │ gzip:   0.80 kB
+dist/assets/LibraryReviews-B4-30AIl.css           2.86 kB │ gzip:   0.85 kB
+dist/assets/TemplateCenter-CkKYCJi3.css           2.95 kB │ gzip:   0.85 kB
+dist/assets/TicketSystem-Cp8OTGzU.css             2.96 kB │ gzip:   0.86 kB
+dist/assets/LibrarySpus-CyVrYDAJ.css              2.97 kB │ gzip:   0.87 kB
+dist/assets/AdminPermissions-GUrKDiO3.css         3.34 kB │ gzip:   0.99 kB
+dist/assets/MobilePreview-vZWJc6uF.css            3.52 kB │ gzip:   0.99 kB
+dist/assets/PlatformAiConfig-vMfpfw1Q.css         3.78 kB │ gzip:   1.09 kB
+dist/assets/PlatformLogin-BU7sFetq.css            4.20 kB │ gzip:   1.08 kB
+dist/assets/PackageForm-AhZz4EbQ.css              4.57 kB │ gzip:   1.16 kB
+dist/assets/PlatformLayout-WhoAE9Pt.css           5.57 kB │ gzip:   1.25 kB
+dist/assets/AgentManagement-BEnYoL7m.css          6.02 kB │ gzip:   1.28 kB
+dist/assets/index-X-55Rmq6.css                  389.01 kB │ gzip:  54.34 kB
+dist/assets/tenant-application-Duj2OeRX.js        0.38 kB │ gzip:   0.20 kB
+dist/assets/download-blob-CTPt5BA_.js             0.68 kB │ gzip:   0.41 kB
+dist/assets/quota-DttjMcUS.js                     0.74 kB │ gzip:   0.49 kB
+dist/assets/tenant-BPd2iWbW.js                    0.99 kB │ gzip:   0.35 kB
+dist/assets/open-platform-9pB6IPCA.js             1.24 kB │ gzip:   0.36 kB
+dist/assets/library-PFHOBUP9.js                   1.42 kB │ gzip:   0.42 kB
+dist/assets/plan-features-CGeZbqKd.js             2.33 kB │ gzip:   1.27 kB
+dist/assets/ai-config-AqWJnQrN.js                 2.73 kB │ gzip:   1.16 kB
+dist/assets/ApplicationList-GvsWPgN2.js           2.87 kB │ gzip:   1.48 kB
+dist/assets/PlatformRegister-CdUy9zgC.js          3.00 kB │ gzip:   1.51 kB
+dist/assets/TenantForm-BMQaDPyg.js                3.39 kB │ gzip:   1.31 kB
+dist/assets/PlatformLayout-BSVBjjFH.js            4.63 kB │ gzip:   2.22 kB
+dist/assets/AuditLogs-BfAD3ZJ5.js                 4.95 kB │ gzip:   2.08 kB
+dist/assets/ErrorLogs-Dbnqsefb.js                 5.60 kB │ gzip:   2.25 kB
+dist/assets/SubscriptionApplies-3fx4DtYp.js       5.61 kB │ gzip:   2.34 kB
+dist/assets/PlatformLogin-BVl3_R7W.js             6.03 kB │ gzip:   2.67 kB
+dist/assets/PlatformReviews-4nVlSbE6.js           7.38 kB │ gzip:   2.94 kB
+dist/assets/ApplicationDetail-C-pK-cDD.js         7.75 kB │ gzip:   2.69 kB
+dist/assets/api-DYHvgfcu.js                       7.87 kB │ gzip:   2.05 kB
+dist/assets/SubscriptionDetail-B3yjii__.js        8.28 kB │ gzip:   2.98 kB
+dist/assets/MessageConfig-BsNIb9xP.js             8.42 kB │ gzip:   2.82 kB
+dist/assets/TenantUsage-C537tddr.js               8.46 kB │ gzip:   3.60 kB
+dist/assets/AiCognitionView-CLB5tNao.js           8.69 kB │ gzip:   3.31 kB
+dist/assets/TenantAiConfig-CyOcUfqx.js            9.14 kB │ gzip:   3.65 kB
+dist/assets/Packages-A052TAGv.js                  9.56 kB │ gzip:   4.15 kB
+dist/assets/MobilePreview-c0ouSRPi.js            10.05 kB │ gzip:   3.60 kB
+dist/assets/LibraryImport-KhWu-5kU.js            10.39 kB │ gzip:   4.61 kB
+dist/assets/Subscriptions-D2lVMOz4.js            11.86 kB │ gzip:   3.81 kB
+dist/assets/LibraryReviews-ZvqtskyA.js           12.20 kB │ gzip:   5.21 kB
+dist/assets/TicketSystem-VpI2Ns5f.js             12.55 kB │ gzip:   4.63 kB
+dist/assets/PlatformAiConfig-CQ9yT_Tc.js         12.95 kB │ gzip:   4.97 kB
+dist/assets/LibraryBrands-rmWNTjS0.js            13.01 kB │ gzip:   4.84 kB
+dist/assets/TenantList-C2g5e-0g.js               13.77 kB │ gzip:   5.27 kB
+dist/assets/WebhookList-DlfmGzH_.js              13.86 kB │ gzip:   5.04 kB
+dist/assets/AiUsageStats-CcRgHaZq.js             14.17 kB │ gzip:   5.49 kB
+dist/assets/PackageForm-CjaExk93.js              15.66 kB │ gzip:   5.70 kB
+dist/assets/ChannelPromotion-C-CqwJs7.js         16.09 kB │ gzip:   5.79 kB
+dist/assets/AppVersions-CkBpE46-.js              16.20 kB │ gzip:   6.54 kB
+dist/assets/AdminPermissions-CmZUmk_D.js         16.94 kB │ gzip:   6.32 kB
+dist/assets/Announcements-B2eCXSYm.js            18.75 kB │ gzip:   6.74 kB
+dist/assets/ApiKeyList-BzzUTB-W.js               19.29 kB │ gzip:   7.02 kB
+dist/assets/Dashboard-CB4vz2RJ.js                19.75 kB │ gzip:   7.57 kB
+dist/assets/Settings-r_a7c7FL.js                 20.61 kB │ gzip:   7.81 kB
+dist/assets/TenantDetail-CWS4n6_W.js             20.75 kB │ gzip:   7.81 kB
+dist/assets/index-DW8neXg-.js                    21.77 kB │ gzip:   8.40 kB
+dist/assets/TemplateCenter-BW080NEs.js           24.38 kB │ gzip:   7.77 kB
+dist/assets/AiBillingConfig-ANR4_wt6.js          31.25 kB │ gzip:  10.12 kB
+dist/assets/AgentManagement-rP2-781r.js          33.19 kB │ gzip:  10.94 kB
+dist/assets/MonitorView-BXPP6Rj-.js              35.87 kB │ gzip:  12.24 kB
+dist/assets/LibrarySpus-t_FfZBjF.js              39.01 kB │ gzip:  12.66 kB
+dist/assets/Reconciliation-BaYmnLEk.js           40.26 kB │ gzip:  12.79 kB
+dist/assets/vendor-Bw-2VfX-.js                  143.33 kB │ gzip:  55.06 kB
+dist/assets/element-CeNPSj_O.js                 940.37 kB │ gzip: 303.28 kB
+dist/assets/echarts-BB8VCqSB.js               1,128.93 kB │ gzip: 379.03 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 21.32s
+
+> onepan-website@1.0.0 build
+> vue-tsc -b && vite build
+
+vite v6.4.3 building for production...
+transforming...
+✓ 31 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  0.71 kB │ gzip:  0.51 kB
+dist/assets/index-Bf6Scp6Y.css   6.89 kB │ gzip:  1.98 kB
+dist/assets/index-C3JQfHHG.js   89.04 kB │ gzip: 35.63 kB
+✓ built in 917ms
+
+> zhixiang-app-mobile@1.0.0 build
+> npm run build:h5
+
+
+> zhixiang-app-mobile@1.0.0 build:h5
+> uni build -p h5
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+​
+/static/icons/hd-scan.svg referenced in /static/icons/hd-scan.svg didn't resolve at build time, it will remain unchanged to be resolved at runtime​
+
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
