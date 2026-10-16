@@ -22,6 +22,13 @@ const getFlag = (name, fallback) => {
 const repo = path.resolve(getFlag("--repo", process.cwd()));
 const ROUTES_DIR = path.join(repo, "backend", "src", "routes");
 
+/**
+ * 把任意字符串安全嵌入正则字面量（CodeQL `js/incomplete-sanitization` 的根治写法）：
+ *   **先转义反斜杠**，再转义其余元字符 —— 只转 `$`（旧写法 `name.replace(/\$/g, "\\$")`）会漏掉 `\` 本身，
+ *   含反斜杠的标识符会让插入点后的正则片段变形（同 S3-210 台账生成器的同类缺陷）。
+ */
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /** 与 CodeQL 判据①对齐：注册链上的鉴权中间件（与 S3-208 装置同一份命名族） */
 const AUTH_MIDDLEWARE =
   /\b(requireWxAuth|requireConsumerAuthWithTenant|requireAuth|requireAuthWithTenant|requirePlatformAuth|requirePlatformPermission|requirePermission|requireRoles|requireStoreAuth|csrfMiddleware)\b/;
@@ -164,7 +171,7 @@ for (const file of files) {
     const upload =
       UPLOAD_MIDDLEWARE_CALL.test(r.statement) ||
       [...uploadIdents].some((n) => new RegExp(`\\b${n}\\b`).test(r.statement));
-    const referenced = [...modules.keys()].filter((name) => new RegExp(`\\b${name.replace(/\$/g, "\\$")}\\b`).test(r.statement));
+    const referenced = [...modules.keys()].filter((name) => new RegExp(`\\b${escapeRegExp(name)}\\b`).test(r.statement));
     const fsModules = referenced.filter((name) => moduleTouchesFs(modules.get(name)));
     hits.push({
       file: path.relative(repo, file).replace(/\\/g, "/"),
