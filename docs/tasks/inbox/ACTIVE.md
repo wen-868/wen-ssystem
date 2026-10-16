@@ -15,6 +15,7 @@
 | `/root/s3233_ajian` | **S3-229**（批 9：门店/租户域接线 + 营销 W 类 14 条收编；按授权模型 D2/I1 口径） | `docs/tasks/inbox/ACTIVE-S3-229.md` |
 | `/root/s3234_frontend` | **S3-230**（前端权限门单：解锁 B 类 66 条端点收编） | `docs/tasks/inbox/ACTIVE-S3-230.md` |
 | `/root/s3237_ajian` | **S3-231**（收尾批：customer:level 4 条 / 平台侧 2 条登记 / 入口门失败关闭 / 7 条查询型 POST 裁定登记）**← 换会话接手**（原 `s3235` 本轮用于 S3-229 复核与跨仓 P0 定位，未产出 F1~F4） | `docs/tasks/inbox/ACTIVE-S3-231.md` |
+| `/root/s3238_ajian` | **S3-233**（B 类收编第一批：把 `ENTRY_GATES` 里 gated 的门对应端点正式接线 + 跨层一致性断言） | `docs/tasks/inbox/ACTIVE-S3-233.md` |
 | `/root/s3236_ajian` | **S3-232**（立码第一批：商品写码 D1 + 系统设置/基础域所需码；按提案 §三 五处落地面） | `docs/tasks/inbox/ACTIVE-S3-232.md` |
 
 > ⚠️ **2026-10-16 09:57 凌舟**：上表中 `s3227`(S3-223 #349) / `s3228`(S3-224 #350) / `s3230`(S3-225 #351) / `s3233`(S3-229 #355) / `s3234`(S3-230，PR #356 待合并) **各单已交付或已合并**，对应会话已结束 —— **不要再认领或接手这几行**；当前真正在办只有 `s3235`(S3-231)、`s3236`(S3-232) 两行（见 §一）。
@@ -36,6 +37,7 @@
 | **S3-231**（收尾批四小项） | 🔄 在办（`s3237`，接手 `s3235`） | `docs/tasks/inbox/ACTIVE-S3-231.md` | `wt-agents/S3-231`｜`chore/s3-231-followups` |
 > ⚠️ **F3 基线**：入口门文件只在 S3-230 分支上（已合并为 `3b94f432`）⇒ S3-231 开工请先 `git fetch origin` 并把 F3 的基线取到 **`origin/main`（含 #356）**，不要再基于旧基线。
 | **S3-232**（立码第一批：D6） | 🔄 在办（`s3236`） | `docs/tasks/inbox/ACTIVE-S3-232.md` | `wt-agents/S3-232`｜`feat/s3-232-new-codes-batch1` |
+| **S3-233**（B 类收编第一批） | 🔄 在办（`s3238`） | `docs/tasks/inbox/ACTIVE-S3-233.md` | `wt-agents/S3-233`｜`feat/s3-233-bclass-wiring-batch1` |
 
 > ⛔ **2026-10-16 09:57 凌舟 · 部署红阻断（P0，未解）**：`deploy.yml` 自 10-15 23:14Z 起**连续 5 次 failure**（最近 run `38836621249`，对应 #355）。根因**不在本仓**：跨仓 `wen-868/ZXQL-AI` 的迁移 `migrations/022_ai_notice.sql`（origin main `2f250b76`，2026-10-15 22:51Z 推入）建了 `KEY idx_ai_notice_receiver (tenant_id, receiver)`，而 `receiver VARCHAR(1000)`（utf8mb4）⇒ 索引键 `(36+1000)×4 = 4144 字节 > 3072`，MySQL 报 **ERROR 1071 Specified key was too long**，AI 底座迁移失败并**阻断 AI 底座部署**（主后端/前端仍部署成功、冒烟只读档 30 项通过）。
 > ⇒ 按《工作区入口 AGENTS.md》★部署串行规则 6「等 Auto Deploy 绿了再合下一个」，**在部署转绿前不得再合并任何会触发部署的 PR**（#356 因此挂起）；文档类提交不受影响（`deploy.yml` 的 `paths-ignore` 已含 `docs/**`、`**.md`）。
