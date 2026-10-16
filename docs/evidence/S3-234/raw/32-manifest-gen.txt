@@ -1,0 +1,8 @@
+已写入 deploy/migrations-manifest.txt：活动 197 个 / 豁免 7 个
+  豁免 · 001_phase1_schema.sql（破坏性语句 25 处）
+  豁免 · 003_phase2_schema.sql（破坏性语句 14 处）
+  豁免 · 004_phase3_schema.sql（破坏性语句 2 处）
+  豁免 · 005_phase3_sys_config.sql（破坏性语句 1 处）
+  豁免 · 006_phase4_schema.sql（破坏性语句 7 处）
+  豁免 · 007_phase5_schema.sql（破坏性语句 5 处）
+  豁免 · 085_报价推送.sql（破坏性语句 3 处）

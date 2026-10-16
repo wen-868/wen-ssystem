@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "root": "D:\\Users\\ZXQL\\wt-agents\\S3-234",
+  "manifest": "deploy/migrations-manifest.txt",
+  "counts": {
+    "migrationsInDir": 204,
+    "active": 197,
+    "exempt": 7
+  },
+  "problems": {
+    "manifestMissing": false,
+    "missingFromManifest": [],
+    "missingFiles": [],
+    "exemptWithoutReason": [],
+    "badExemptLines": [],
+    "duplicates": [],
+    "orderMismatch": null,
+    "badActiveLines": []
+  }
+}

@@ -1,0 +1,20 @@
+== 目标文件：docs/migrations/069_商品SPU增加品牌ID.sql
+== 目标文件 SHA256(前16) = AFFC6446C7B065EE
+---- pass1（exit=0）----
+已连接数据库 root@127.0.0.1:3409/liquor_inventory
+执行迁移: ../docs/migrations/069_商品SPU增加品牌ID.sql
+迁移完成
+迁移执行成功
+---- pass2（exit=0）----
+已连接数据库 root@127.0.0.1:3409/liquor_inventory
+执行迁移: ../docs/migrations/069_商品SPU增加品牌ID.sql
+迁移完成
+迁移执行成功
+== 两遍读数（结构面 三读数 + 回填行数）
+  结构 [{"col_brand_id":1,"fk":1,"idx":1}]
+  数据 [{"rows_total":10,"filled":"0"}]（夹具 t_product_spu 无 tenant_id ⇒ 不按租户分组）
+  pass1 后：[{"tenant_id":"default","rows_total":1,"filled":"1"},{"tenant_id":"other","rows_total":2,"filled":"1"}]｜结构 [{"col_brand_id":1,"fk":1,"idx":1}]
+  pass2 后：[{"tenant_id":"default","rows_total":1,"filled":"1"},{"tenant_id":"other","rows_total":2,"filled":"1"}]｜结构 [{"col_brand_id":1,"fk":1,"idx":1}]
+  pass1 后：[{"rows_total":3,"filled":"0"}]｜结构 [{"col_brand_id":1,"fk":1,"idx":1}]
+  pass2 后：[{"rows_total":3,"filled":"0"}]｜结构 [{"col_brand_id":1,"fk":1,"idx":1}]
+== 结论：两遍均 EXIT=0（零错误码）＝ R1 判据达成

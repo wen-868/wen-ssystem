@@ -1,0 +1,3591 @@
+{
+  "pass": "1",
+  "manifest": "deploy/migrations-manifest.txt",
+  "database": "liquor_inventory@127.0.0.1:3409",
+  "files": 197,
+  "ok": 146,
+  "skip": 43,
+  "fail": 8,
+  "withSideEffect": [
+    "020_migrate_v3_payment_miniapp.sql",
+    "075_reset_admin_password_bcrypt.sql",
+    "081_platform_admin_seed_and_fix.sql",
+    "082_商品标签.sql",
+    "105_product_marketing_tag.sql",
+    "106_data_permission.sql",
+    "118_library_brand.sql",
+    "119_library_seed_data.sql",
+    "120d_fix_server_3bugs.sql",
+    "121_ai_base_tables.sql",
+    "127_fix_demo_accounts.sql",
+    "128_fix_roles_binding.sql",
+    "130_miniapp_template_r96.sql",
+    "133_product_sku_unit.sql",
+    "136_sms_template.sql",
+    "137_tenant_register_sms_template.sql",
+    "141_app_version.sql",
+    "155_hot_search.sql",
+    "197_演示租户隔离.sql",
+    "201_账号口径统一.sql",
+    "204_系统设置域权限点立码.sql"
+  ],
+  "affectedTotal": 390,
+  "failed": [
+    "002_phase1_seed.sql :: ER_NO_DEFAULT_FOR_FIELD errno=1364 Field 'tenant_id' doesn't have a default value",
+    "008_phase6_schema.sql :: ER_NO_SUCH_TABLE errno=1146 Table 'liquor_inventory.sys_role' doesn't exist",
+    "016_phase9_tenant_subscription.sql :: ER_TRUNCATED_WRONG_VALUE_FOR_FIELD errno=1366 Incorrect integer value: 'ACTIVE' for column 'status' at row 1",
+    "078_性能索引.sql :: ER_DUP_KEYNAME errno=1061 Duplicate key name 'idx_product_spu_brand'",
+    "092_租户ID.sql :: ER_PARSE_ERROR errno=1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05\r\n-- æ' at line 1",
+    "099_seed_data.sql :: ER_NO_SUCH_TABLE errno=1146 Table 'liquor_inventory.sys_user' doesn't exist",
+    "120c_performance_indexes.sql :: ER_DUP_KEYNAME errno=1061 Duplicate key name 'idx_product_spu_status_category'",
+    "170_platform_announcement_status_enum.sql :: ER_PARSE_ERROR errno=1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';\r\n\r\nUPDATE t_platform_announcement SET status = 'DRAFT' WHERE status = '0';\r\nUP' at line 6"
+  ],
+  "records": [
+    {
+      "file": "002_phase1_seed.sql",
+      "outcome": "fail",
+      "reason": "ER_NO_DEFAULT_FOR_FIELD errno=1364 Field 'tenant_id' doesn't have a default value",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 453
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "outcome": "fail",
+      "reason": "ER_NO_SUCH_TABLE errno=1146 Table 'liquor_inventory.sys_role' doesn't exist",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 503
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "outcome": "skip",
+      "reason": "ER_TABLE_EXISTS_ERROR errno=1050 Table 't_approval_rule' already exists",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 440
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'tenant_id'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 431
+    },
+    {
+      "file": "011_phase7_member_fields.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'address'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 451
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'tenant_id'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 432
+    },
+    {
+      "file": "013_phase7_sale_bill_credit.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'sale_type'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 501
+    },
+    {
+      "file": "014_phase7_sku_fields.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'alcohol_degree'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 447
+    },
+    {
+      "file": "015_phase8_customer_visit.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 444
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "outcome": "fail",
+      "reason": "ER_TRUNCATED_WRONG_VALUE_FOR_FIELD errno=1366 Incorrect integer value: 'ACTIVE' for column 'status' at row 1",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 458
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 9,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 465
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 10,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 449
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'description'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 398
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 15,
+      "changedSum": 0,
+      "writeStatements": 9,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 520
+    },
+    {
+      "file": "029_add_tenant.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 422
+    },
+    {
+      "file": "030_add_subscription_plan.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 450
+    },
+    {
+      "file": "031_add_subscription.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 437
+    },
+    {
+      "file": "032_add_tenant_module_access.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 636
+    },
+    {
+      "file": "033_add_subscription_operation_log.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 471
+    },
+    {
+      "file": "034_add_tenant_admin.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 581
+    },
+    {
+      "file": "035_add_coupon_template.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 445
+    },
+    {
+      "file": "036_add_user_coupon.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 507
+    },
+    {
+      "file": "037_add_promotion_activity.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 469
+    },
+    {
+      "file": "038_add_full_reduction_rule.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 414
+    },
+    {
+      "file": "039_add_seckill_product.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 432
+    },
+    {
+      "file": "040_add_group_buy_activity.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 442
+    },
+    {
+      "file": "041_add_group_buy_record.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 461
+    },
+    {
+      "file": "042_add_group_buy_participant.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 487
+    },
+    {
+      "file": "043_add_promotion_stack_rule.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 488
+    },
+    {
+      "file": "044_add_marketing_operation_log.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 401
+    },
+    {
+      "file": "045_add_delivery_config.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 412
+    },
+    {
+      "file": "046_add_delivery_record.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 501
+    },
+    {
+      "file": "047_add_retail_operation_log.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 564
+    },
+    {
+      "file": "048_add_customer_visit.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 411
+    },
+    {
+      "file": "049_add_order_sync_log.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 406
+    },
+    {
+      "file": "050_add_platform_reconciliation.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 410
+    },
+    {
+      "file": "051_add_platform_review.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 466
+    },
+    {
+      "file": "052_add_retail_announcement.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'tenant_id'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 479
+    },
+    {
+      "file": "053_add_retail_cart.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 447
+    },
+    {
+      "file": "054_add_retail_consumer_address.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 387
+    },
+    {
+      "file": "055_add_points_mall_item.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 528
+    },
+    {
+      "file": "056_add_points_mall_order.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 675
+    },
+    {
+      "file": "057_add_marketing_asset.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 446
+    },
+    {
+      "file": "058_add_sys_department.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 784
+    },
+    {
+      "file": "059_add_user_session.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 877
+    },
+    {
+      "file": "060_add_custom_report_template.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 523
+    },
+    {
+      "file": "061_add_custom_report_schedule.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 634
+    },
+    {
+      "file": "062_add_report_permission_matrix.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 759
+    },
+    {
+      "file": "063_add_verification_code.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 768
+    },
+    {
+      "file": "064_add_push_config.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 686
+    },
+    {
+      "file": "065_add_push_template.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 625
+    },
+    {
+      "file": "066_add_push_log.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 542
+    },
+    {
+      "file": "067_add_unit_group.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 537
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 840
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 18,
+      "selectStatements": 4,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 744
+    },
+    {
+      "file": "070_品牌表.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 769
+    },
+    {
+      "file": "071_客户积分.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 5,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1090
+    },
+    {
+      "file": "072_客户价格.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 830
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 7,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 929
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 10,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 875
+    },
+    {
+      "file": "075_reset_admin_password_bcrypt.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 3,
+      "changedSum": 3,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 833
+    },
+    {
+      "file": "076_营销P1.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 8,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 830
+    },
+    {
+      "file": "077_营销标签.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'marketing_tags'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 775
+    },
+    {
+      "file": "078_性能索引.sql",
+      "outcome": "fail",
+      "reason": "ER_DUP_KEYNAME errno=1061 Duplicate key name 'idx_product_spu_brand'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 978
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "outcome": "skip",
+      "reason": "ER_TABLE_EXISTS_ERROR errno=1050 Table 't_sys_menu' already exists",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 821
+    },
+    {
+      "file": "080_平台管理员.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1053
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 1,
+      "changedSum": 0,
+      "writeStatements": 11,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 976
+    },
+    {
+      "file": "082_商品标签.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 26,
+      "changedSum": 0,
+      "writeStatements": 8,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 854
+    },
+    {
+      "file": "083_采购合同.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 809
+    },
+    {
+      "file": "084_采购计划.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 637
+    },
+    {
+      "file": "086_收款支付.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 6,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 745
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 5,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 785
+    },
+    {
+      "file": "088_销售佣金.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 820
+    },
+    {
+      "file": "089_库存盘点表.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 751
+    },
+    {
+      "file": "090_库存预警配置.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 744
+    },
+    {
+      "file": "091_储值卡.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 647
+    },
+    {
+      "file": "092_租户ID.sql",
+      "outcome": "fail",
+      "reason": "ER_PARSE_ERROR errno=1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05\r\n-- æ' at line 1",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 729
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'tenant_id'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 809
+    },
+    {
+      "file": "094_调拨订单表.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 824
+    },
+    {
+      "file": "095_单位表.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 674
+    },
+    {
+      "file": "096_用户设置.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'default_homepage'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 761
+    },
+    {
+      "file": "099_seed_data.sql",
+      "outcome": "fail",
+      "reason": "ER_NO_SUCH_TABLE errno=1146 Table 'liquor_inventory.sys_user' doesn't exist",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 910
+    },
+    {
+      "file": "100_login_failure_lock.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'login_fail_count'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 786
+    },
+    {
+      "file": "101_tobacco_category_online_sale.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'allow_online_sale'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 998
+    },
+    {
+      "file": "102_tenant_register.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'review_status'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 772
+    },
+    {
+      "file": "103_member_register.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'password_hash'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1115
+    },
+    {
+      "file": "104_platform_announcement.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 755
+    },
+    {
+      "file": "105_product_marketing_tag.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 5,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 715
+    },
+    {
+      "file": "106_data_permission.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 4,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 893
+    },
+    {
+      "file": "107_sys_position.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 758
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'avatar'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 700
+    },
+    {
+      "file": "109_p2_custom_report.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 758
+    },
+    {
+      "file": "110_p2_product_review.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 715
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 877
+    },
+    {
+      "file": "112_order_timeout.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 811
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 8,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 706
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'status'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 844
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 4,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 877
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 4,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 921
+    },
+    {
+      "file": "118_library_brand.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 10,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 661
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 244,
+      "changedSum": 0,
+      "writeStatements": 5,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 992
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 14,
+      "selectStatements": 7,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1034
+    },
+    {
+      "file": "120a_合规凭证字段.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 32,
+      "selectStatements": 8,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 863
+    },
+    {
+      "file": "120b_商品SPU扩展字段.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'brand'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 789
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "outcome": "fail",
+      "reason": "ER_DUP_KEYNAME errno=1061 Duplicate key name 'idx_product_spu_status_category'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 750
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 11,
+      "changedSum": 0,
+      "writeStatements": 20,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 720
+    },
+    {
+      "file": "120e_transfer_stock_log.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 831
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 1,
+      "changedSum": 0,
+      "writeStatements": 7,
+      "selectStatements": 4,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 858
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 659
+    },
+    {
+      "file": "123_member_contact.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 5,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 880
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 27,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 903
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 40,
+      "selectStatements": 11,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 921
+    },
+    {
+      "file": "126_bills.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 771
+    },
+    {
+      "file": "126_retail_tenant_collation_fix.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 7,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1492
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 6,
+      "changedSum": 0,
+      "writeStatements": 4,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 1135
+    },
+    {
+      "file": "127_order_routing_exception.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 923
+    },
+    {
+      "file": "128_fix_roles_binding.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 7,
+      "changedSum": 0,
+      "writeStatements": 15,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 1151
+    },
+    {
+      "file": "129_sale_bill_item_compliance.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 26,
+      "selectStatements": 7,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 955
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 6,
+      "changedSum": 3,
+      "writeStatements": 4,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 1010
+    },
+    {
+      "file": "131_platform_subscription_apply.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 864
+    },
+    {
+      "file": "132_product_box_barcode.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 6,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 918
+    },
+    {
+      "file": "133_product_sku_unit.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 20,
+      "changedSum": 0,
+      "writeStatements": 5,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 1471
+    },
+    {
+      "file": "134_sale_bill_role_fields.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 22,
+      "selectStatements": 6,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 932
+    },
+    {
+      "file": "135_print_templates.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1028
+    },
+    {
+      "file": "136_sms_template.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 1,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 947
+    },
+    {
+      "file": "137_sys_user_dept_position.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 8,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 938
+    },
+    {
+      "file": "137_tenant_register_sms_template.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 2,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 876
+    },
+    {
+      "file": "138_approval_business_link.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 8,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 855
+    },
+    {
+      "file": "139_pos_hardware_payment.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'api_key'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 878
+    },
+    {
+      "file": "140_hardware_config.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1004
+    },
+    {
+      "file": "141_app_version.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 3,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 1209
+    },
+    {
+      "file": "142_fix_payment_schema.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'app_id'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 894
+    },
+    {
+      "file": "143_payment_config_columns.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1124
+    },
+    {
+      "file": "144_app_version_arch_urls.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'update_url_x64'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1206
+    },
+    {
+      "file": "145_sys_user_avatar.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'avatar'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 989
+    },
+    {
+      "file": "146_price_review.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 583
+    },
+    {
+      "file": "147_level_config_status.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'status'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 512
+    },
+    {
+      "file": "148_shift_stock_check.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 605
+    },
+    {
+      "file": "149_seckill_order.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'seckill_stock'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 579
+    },
+    {
+      "file": "150_mfa.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'mfa_secret'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 560
+    },
+    {
+      "file": "151_points_columns_fill.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'member_id'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 506
+    },
+    {
+      "file": "152_business_columns_fill.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'log_no'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 594
+    },
+    {
+      "file": "153_select_columns_fill.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'price'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 569
+    },
+    {
+      "file": "154_ai_external_model.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 625
+    },
+    {
+      "file": "154_wholesale_cart_selected.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'selected'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 719
+    },
+    {
+      "file": "155_hot_search.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 1,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 810
+    },
+    {
+      "file": "156_miniapp_order_deleted.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'deleted_at'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 746
+    },
+    {
+      "file": "157_ai_review_task.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 764
+    },
+    {
+      "file": "158_ai_ltm.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 4,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 742
+    },
+    {
+      "file": "159_ai_learning.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 737
+    },
+    {
+      "file": "160_ai_evolution.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 705
+    },
+    {
+      "file": "161_price_review_price_type.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'price_type'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 632
+    },
+    {
+      "file": "162_tenant_add_tax_no.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'tax_no'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 767
+    },
+    {
+      "file": "163_transfer_order_columns_fill.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'status'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 701
+    },
+    {
+      "file": "164_relax_legacy_not_null.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 10,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 1600
+    },
+    {
+      "file": "165_transfer_execution_columns.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'transferred_qty'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 661
+    },
+    {
+      "file": "166_transfer_order_actual_date.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'actual_date'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 694
+    },
+    {
+      "file": "167_member_profile_columns.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'card_no'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 586
+    },
+    {
+      "file": "168_stock_check_report_perm_columns.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'completed_at'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 725
+    },
+    {
+      "file": "169_tenant_admin_uuid.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 7,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 974
+    },
+    {
+      "file": "170_platform_announcement_status_enum.sql",
+      "outcome": "fail",
+      "reason": "ER_PARSE_ERROR errno=1064 You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';\r\n\r\nUPDATE t_platform_announcement SET status = 'DRAFT' WHERE status = '0';\r\nUP' at line 6",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 618
+    },
+    {
+      "file": "171_platform_templates.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 5,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 541
+    },
+    {
+      "file": "172_sale_bill_item_tenant_backfill.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 531
+    },
+    {
+      "file": "173_open_platform_api_key_columns.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'tenant_id'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 500
+    },
+    {
+      "file": "174_open_platform_webhook.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 546
+    },
+    {
+      "file": "175_open_platform_api_call_daily.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 571
+    },
+    {
+      "file": "176_平台增值扣费流水.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 810
+    },
+    {
+      "file": "177_ai_audit_log_cost_deduct_source.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'cost'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 516
+    },
+    {
+      "file": "178_library_brand_auth_app_version_status.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'auth_letter_url'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 492
+    },
+    {
+      "file": "179_平台角色与权限点目录.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 4,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 572
+    },
+    {
+      "file": "180_平台工单系统.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 5,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 532
+    },
+    {
+      "file": "181_平台通知.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 504
+    },
+    {
+      "file": "182_平台报表导出任务.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 501
+    },
+    {
+      "file": "183_商品库审核流水.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 453
+    },
+    {
+      "file": "184_平台功能开关.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 491
+    },
+    {
+      "file": "185_平台数据字典.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 3,
+      "selectStatements": 4,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 512
+    },
+    {
+      "file": "186_平台代理商档案.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 427
+    },
+    {
+      "file": "187_平台代理商层级.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 431
+    },
+    {
+      "file": "188_平台渠道推广码.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 435
+    },
+    {
+      "file": "189_租户归因明细.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 454
+    },
+    {
+      "file": "190_商品库调取流水.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 403
+    },
+    {
+      "file": "191_租户商品库调取映射.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 4,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 477
+    },
+    {
+      "file": "192_租户建租户与归因落点补列.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'tenant_code'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 504
+    },
+    {
+      "file": "193_t_shift_shift_type.sql",
+      "outcome": "skip",
+      "reason": "ER_DUP_FIELDNAME errno=1060 Duplicate column name 'shift_type'",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 0,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 453
+    },
+    {
+      "file": "194_条码唯一键改租户内唯一.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 6,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 465
+    },
+    {
+      "file": "195_老带新台账.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 4,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 458
+    },
+    {
+      "file": "196_平台管理员MFA.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 12,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 428
+    },
+    {
+      "file": "197_演示租户隔离.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 16,
+      "changedSum": 0,
+      "writeStatements": 8,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 487
+    },
+    {
+      "file": "198_租户角色菜单补全.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 6,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 474
+    },
+    {
+      "file": "199_租户状态值域收敛.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 3,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 564
+    },
+    {
+      "file": "200_价格日志来源列.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 6,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 472
+    },
+    {
+      "file": "201_账号口径统一.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 4,
+      "changedSum": 4,
+      "writeStatements": 4,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 717
+    },
+    {
+      "file": "20260720_print_record.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 418
+    },
+    {
+      "file": "20260720_push_token.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 1,
+      "selectStatements": 0,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 452
+    },
+    {
+      "file": "202_销售单取消来源列.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 6,
+      "selectStatements": 2,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 414
+    },
+    {
+      "file": "203_销售单取消权限点.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 0,
+      "changedSum": 0,
+      "writeStatements": 2,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": false,
+      "ms": 406
+    },
+    {
+      "file": "204_系统设置域权限点立码.sql",
+      "outcome": "ok",
+      "reason": "",
+      "affectedSum": 4,
+      "changedSum": 4,
+      "writeStatements": 4,
+      "selectStatements": 1,
+      "delta": {
+        "tables": 0,
+        "bareTables": 0,
+        "columns": 0,
+        "indexes": 0,
+        "fks": 0
+      },
+      "sideEffect": true,
+      "ms": 436
+    }
+  ]
+}

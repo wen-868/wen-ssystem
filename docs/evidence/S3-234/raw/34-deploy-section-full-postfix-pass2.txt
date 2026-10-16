@@ -1,0 +1,76 @@
+== 源文件：D:\Users\ZXQL\wt-agents\S3-234/deploy/auto-deploy.sh（总 258 行）
+== 按标记抽取到的迁移段：57 行
+== 抽取段首行：# ===== S3-234 迁移段开始（勿删这两个标记行：取证/反测用 `sed -n` 按标记抽取本段**真实源码**执行）=====
+== 抽取段末行：# ===== S3-234 迁移段结束 =====
+== bash -n 语法检查：
+   OK（退出码 0）
+== 执行抽取段（cwd=D:\Users\ZXQL\wt-agents\S3-234）
+  ❌ [迁移] 002_phase1_seed.sql 执行失败：Field 'tenant_id' doesn't have a default value
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/002_phase1_seed.sql
+       迁移失败: Field 'tenant_id' doesn't have a default value
+  ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/008_phase6_schema.sql
+       迁移失败: Table 'liquor_inventory.sys_role' doesn't exist
+  ❌ [迁移] 016_phase9_tenant_subscription.sql 执行失败：Duplicate entry 'BASIC_MONTHLY' for key 't_subscription_plan.plan_code'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/016_phase9_tenant_subscription.sql
+       迁移失败: Duplicate entry 'BASIC_MONTHLY' for key 't_subscription_plan.plan_code'
+  ❌ [迁移] 020_migrate_v3_payment_miniapp.sql 执行失败：Duplicate entry 'DEFAULT-wechat-enabled' for key 't_payment_config.uk_tenant_provider_key'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/020_migrate_v3_payment_miniapp.sql
+       迁移失败: Duplicate entry 'DEFAULT-wechat-enabled' for key 't_payment_config.uk_tenant_provider_key'
+  ❌ [迁移] 078_性能索引.sql 执行失败：Duplicate key name 'idx_product_spu_brand'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/078_性能索引.sql
+       迁移失败: Duplicate key name 'idx_product_spu_brand'
+  ❌ [迁移] 092_租户ID.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05
+     日志尾部：
+       执行迁移: ../docs/migrations/092_租户ID.sql
+       迁移失败: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05
+       -- æ' at line 1
+  ❌ [迁移] 099_seed_data.sql 执行失败：Table 'liquor_inventory.sys_user' doesn't exist
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/099_seed_data.sql
+       迁移失败: Table 'liquor_inventory.sys_user' doesn't exist
+  ❌ [迁移] 105_product_marketing_tag.sql 执行失败：Duplicate entry 'NEW-' for key 't_product_marketing_tag.uk_code_tenant'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/105_product_marketing_tag.sql
+       迁移失败: Duplicate entry 'NEW-' for key 't_product_marketing_tag.uk_code_tenant'
+  ❌ [迁移] 106_data_permission.sql 执行失败：Duplicate entry 'DATA_ALL-' for key 't_data_permission.uk_code_tenant'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/106_data_permission.sql
+       迁移失败: Duplicate entry 'DATA_ALL-' for key 't_data_permission.uk_code_tenant'
+  ❌ [迁移] 120c_performance_indexes.sql 执行失败：Duplicate key name 'idx_product_spu_status_category'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/120c_performance_indexes.sql
+       迁移失败: Duplicate key name 'idx_product_spu_status_category'
+  ❌ [迁移] 170_platform_announcement_status_enum.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';
+     日志尾部：
+       
+       UPDATE t_platform_announcement SET status = 'DRAFT' WHERE status = '0';
+       UP' at line 6
+  迁移段小结：成功 186 个 / 失败 11 个（清单：D:\Users\ZXQL\wt-agents\S3-234/deploy/migrations-manifest.txt）
+  ⚠️  以下迁移未随本次部署落地（需人工处理；明细见上方「❌ [迁移]」行）：
+     ❌ [迁移] 002_phase1_seed.sql 执行失败：Field 'tenant_id' doesn't have a default value
+     ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+     ❌ [迁移] 016_phase9_tenant_subscription.sql 执行失败：Duplicate entry 'BASIC_MONTHLY' for key 't_subscription_plan.plan_code'
+     ❌ [迁移] 020_migrate_v3_payment_miniapp.sql 执行失败：Duplicate entry 'DEFAULT-wechat-enabled' for key 't_payment_config.uk_tenant_provider_key'
+     ❌ [迁移] 078_性能索引.sql 执行失败：Duplicate key name 'idx_product_spu_brand'
+     ❌ [迁移] 092_租户ID.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05
+     ❌ [迁移] 099_seed_data.sql 执行失败：Table 'liquor_inventory.sys_user' doesn't exist
+     ❌ [迁移] 105_product_marketing_tag.sql 执行失败：Duplicate entry 'NEW-' for key 't_product_marketing_tag.uk_code_tenant'
+     ❌ [迁移] 106_data_permission.sql 执行失败：Duplicate entry 'DATA_ALL-' for key 't_data_permission.uk_code_tenant'
+     ❌ [迁移] 120c_performance_indexes.sql 执行失败：Duplicate key name 'idx_product_spu_status_category'
+     ❌ [迁移] 170_platform_announcement_status_enum.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';
+== 抽取段执行退出码：0（迁移段本身容错不阻断 ⇒ 预期 0；失败项以「❌ [迁移]」点名）
