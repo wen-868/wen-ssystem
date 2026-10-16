@@ -1,0 +1,70 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-226/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts (305 tests | 3 failed) 2118ms
+     × 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：注册行自带 requirePermission("'marketing:points'") 11ms
+     × 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：READONLY ⇒ 403 且 msg 指向该权限码 5ms
+     × 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：全部非持有人（逐账号枚举）⇒ 403 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts > S3-226 · 形状断言（注册行级判据，踩坑[134]） > 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：注册行自带 requirePermission("'marketing:points'")
+AssertionError: expected 'pointsMallRouter.put("/orders/:id/del…' to contain 'requirePermission("marketing:points")'
+
+Expected: "requirePermission("marketing:points")"
+Received: "pointsMallRouter.put("/orders/:id/deliver", asyncHandler(controller.deliverPointsMallOrder));"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts:475:27
+
+    473|     const lines = registrationLines(row.file, row.method, row.routePat…
+    474|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    475|     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`…
+       |                           ^
+    476|   });
+    477|
+ Test Files  1 failed (1)
+      Tests  3 failed | 302 passed (305)
+   Start at  07:46:58
+   Duration  4.90s (transform 577ms, setup 32ms, import 2.46s, tests 2.12s, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts > S3-226 · 两侧判据 a) 缺码 ⇒ 403 且未到达业务层 > 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：READONLY ⇒ 403 且 msg 指向该权限码
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts:562:24
+    560|   it.each(ROWS)("$file $method $routePath：READONLY ⇒ 403 且 msg 指向该权限码"…
+    561|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    562|     expect(res.status).toBe(403);
+       |                        ^
+    563|     expect(res.body.code).toBe("403");
+    564|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts > S3-226 · 两侧判据 a) 缺码 ⇒ 403 且未到达业务层 > 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：全部非持有人（逐账号枚举）⇒ 403
+AssertionError: readonly 不应通过 points-mall.routes.ts PUT /orders/:id/deliver: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts:573:67
+    571|       h.reached.length = 0;
+    572|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    573|       expect(res.status, `${USERS[uid].name} 不应通过 ${label(row)}`).toBe…
+       |                                                                   ^
+    574|       expect(h.reached, `${USERS[uid].name} 不得到达 ${label(row)} 的业务层`).…
+    575|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+

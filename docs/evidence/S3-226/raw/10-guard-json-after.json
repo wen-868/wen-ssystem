@@ -1,0 +1,5343 @@
+[
+  {
+    "file": "admin-auth.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/auth/settings",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/auth/change-password",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/auth/mfa/setup",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/auth/mfa/confirm",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/auth/mfa/disable",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-customer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-customer.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-customer.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/:id/disable",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-customer.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/:id/assign-staff",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-customer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/register",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-customer.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/:id/member-level",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-finance.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/daily-settlements",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-library.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/library/lookup",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-library.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/library/copies",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-calculation.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/calculate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-marketing-coupon.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/coupons/templates",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-marketing-coupon.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/coupons/templates/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-coupon.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/coupons/templates/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-coupon.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/coupons/templates/:id/activate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-coupon.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/coupons/templates/:id/pause",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-marketing-flash-sale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/flash-sales",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-flash-sale.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/flash-sales/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-flash-sale.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/flash-sales/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-flash-sale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/flash-sales/:id/activate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-flash-sale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/flash-sales/:id/pause",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-flash-sale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/flash-sales/:id/grab",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-full-reduction.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/full-reductions",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-full-reduction.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/full-reductions/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-full-reduction.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/full-reductions/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-marketing-full-reduction.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/full-reductions/:id/activate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-marketing-full-reduction.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/full-reductions/:id/pause",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-marketing-group-buy.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/group-buys",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-group-buy.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/group-buys/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-group-buy.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/group-buys/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-group-buy.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/group-buys/:id/activate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-group-buy.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/group-buys/teams",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-group-buy.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/group-buys/teams/:teamId/join",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-points.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/points/rule",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-points.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/points/redeem",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-marketing-stack-rule.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/stack-rules",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-stack-rule.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/stack-rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-marketing-stack-rule.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/stack-rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/orders/batch-status",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/orders/:orderNo/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-order.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/orders/:orderNo/remark",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-order.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/orders/:orderNo/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sale-bills/:billNo/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-platform-announcement.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/announcements/templates",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-platform-announcement.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/announcements/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-platform-announcement.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/announcements/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-platform-announcement.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/announcements/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-platform-announcement.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/announcements/:id/publish",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-platform-settlement.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/settlements/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-platform-settlement.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/settlements/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/products/upload-image",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/products",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/:id/status",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/:id/disable",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/:skuId/price",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/skus/:skuId/barcode",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/skus/:skuId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/products/skus/:skuId/units",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/skus/:skuId/units/:unitId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/products/skus/:skuId/units/:unitId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/products/import",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/:spuId/marketing-tags",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-product.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/:id/warning-threshold",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-quote-push.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/quote-push/preview",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-quote-push.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/quote-push/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-quote-push.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/quote-push/:id/push",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-quote-push.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/quote-push/:id/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-report.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/collection-links/:linkNo/revoke",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-report.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sale-bills/batch-collection-link",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "admin-staff.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/staff",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-staff.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/staff/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-staff.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/staff/:id/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-staff.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/staff/:id/disable",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-staff.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/staff/:id/restore",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-store.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/system/stores",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "admin-store.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/system/stores/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/aftersales",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/aftersales/:aftersaleNo/cancel",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/aftersales/:aftersaleNo/return-logistics",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/aftersales/:aftersaleNo/rate",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/aftersales/:id/approve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/aftersales/:id/reject",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/aftersales/:id/confirm-receipt",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/aftersales/:id/inspect",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "aftersale.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/aftersales/:id/complete",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "ai-billing.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/ai-billing/billing-strategy",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "ai-billing.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/ai-billing/free-grant",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "ai-billing.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/ai-billing/quota-packs",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "ai-billing.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/ai-billing/points-rate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "alert.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/alerts/:id/handle",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "alert.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/alerts/rules/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "alert.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/alerts/check",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "approval.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/approval/rules",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "approval.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/approval/rules/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "approval.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/approval/rules/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "approval.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/approval/instances/submit",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "approval.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/approval/tasks/:id/approve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "approval.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/approval/tasks/:id/reject",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "approval.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/approval/notifications/:id/read",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "archive.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/archive/execute",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "avatar.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/auth/avatar",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "bank-account.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/bank-accounts/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "bank-account.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/bank-accounts/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "bank-account.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/bank-accounts/:id/freeze",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "bank-account.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/bank-accounts/:id/unfreeze",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "bank-account.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/bank-accounts/:id/close",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "billing-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/billing/arrears-policy",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "billing-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/billing/addon-price",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "brand.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/brands/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "brand.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/brands/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "brand.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/brands/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "cart.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/cart/add",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "cart.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/cart/items/:skuId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "cart.routes.ts",
+    "method": "DELETE",
+    "path": "/api/miniapp/cart/items/:skuId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "cart.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/cart/clear",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "cart.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/cart/checkout/preview",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "cart.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/cart/checkout/create",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "category.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/products/categories/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "category.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/categories/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "category.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/products/categories/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "category.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/categories/:id/sort",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "commerce-fix.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/consumer-addresses/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commerce-fix.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/bills",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commerce-fix.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/bills/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commerce-fix.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/bills/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commerce-fix.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/bills/:id/verify",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commerce-fix.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/bills/:id/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commission.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/commission/rules",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commission.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/commission/rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commission.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/commission/rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "commission.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/commission/calculate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "commission.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/commission/settle",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/group-buy/:id/join",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/group-buy/:id/start",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/group-buy/:id/end",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/bargain/:id/start",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/bargain/:id/help",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/bargain/:id/end",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/seckill/:id/buy",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/seckill/:orderNo/pay",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/seckill/:orderNo/cancel",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "community-marketing.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing/seckill/:id/end",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/collections",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/credits/collections/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/collections/auto-generate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/collections/batch-remind",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/:customerId",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/:customerId/occupy",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/:customerId/release",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/:customerId/freeze",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/:customerId/unfreeze",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/credits/:customerId/limit",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/credits/:customerId/term",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/:customerId/evaluate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "credit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/credits/:customerId/auto-init",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "custom-report-v2.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/reports/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report-v2.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/reports/:id(\\d+)",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report-v2.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/reports/:id(\\d+)",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report-v2.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/reports/:id(\\d+)/generate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "POST",
+    "path": "/api/custom-report/templates",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "PUT",
+    "path": "/api/custom-report/templates/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "DELETE",
+    "path": "/api/custom-report/templates/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "POST",
+    "path": "/api/custom-report/templates/:id/execute",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "POST",
+    "path": "/api/custom-report/schedules",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "PUT",
+    "path": "/api/custom-report/schedules/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "DELETE",
+    "path": "/api/custom-report/schedules/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "PUT",
+    "path": "/api/custom-report/schedules/:id/toggle",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "custom-report.routes.ts",
+    "method": "POST",
+    "path": "/api/custom-report/schedules/:id/run",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "customer-care.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/care/rules",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-care.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/care/rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-care.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/members/care/rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-care.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/care/rules/:id/execute",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-merge.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/customer-merge/merge",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-payment.routes.ts",
+    "method": "POST",
+    "path": "/api/store/customer-payments/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-payment.routes.ts",
+    "method": "POST",
+    "path": "/api/store/customer-payments/:receiptNo/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/customer-prices/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-price.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/customer-prices/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-price.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/customer-prices/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-segment.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/segments/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-segment.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/segments/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-segment.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/members/segments/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-segment.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/segments/:id/refresh",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-statement.routes.ts",
+    "method": "POST",
+    "path": "/api/store/customer-statements/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-statement.routes.ts",
+    "method": "POST",
+    "path": "/api/store/customer-statements/:statementNo/confirm",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "customer-statement.routes.ts",
+    "method": "POST",
+    "path": "/api/store/customer-statements/:statementNo/paid",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-tag.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/tags/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-tag.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/tags/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-tag.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/members/tags/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-tag.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/tags/:id/tags",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-tag.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/members/tags/:id/tags/:tagId",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-type.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/customer-types/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-type.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/customer-types/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-type.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/customer-types/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-visit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/customer-visits/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-visit.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/customer-visits/:visitNo",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-visit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/customer-visits/:visitNo/checkin",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-visit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/customer-visits/:visitNo/checkout",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "customer-visit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/customer-visits/:visitNo/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "data-permission.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/data-permissions/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "data-permission.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/data-permissions/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "data-permission.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/data-permissions/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "data-permission.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/data-permissions/roles/:roleId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "data-permission.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/data-permissions/roles/:roleId/:dataPermissionId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "data-permission.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/data-permissions/users/:userId/check",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "data-transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/data-transfer/import/customers",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "data-transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/data-transfer/import/products",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "demo.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/demo/seed",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "demo.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/demo/reset",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "department.routes.ts",
+    "method": "POST",
+    "path": "/api/department/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "department.routes.ts",
+    "method": "PUT",
+    "path": "/api/department/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "department.routes.ts",
+    "method": "DELETE",
+    "path": "/api/department/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "department.routes.ts",
+    "method": "PUT",
+    "path": "/api/department/:id/move",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "error-log.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/error-report",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "expense.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/expenses/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "expense.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/expenses/:expenseNo",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "expense.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/expenses/:expenseNo/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "expense.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/expenses/:expenseNo/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "feedback.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/feedback",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "feedback.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/feedback/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "hardware-callback.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hardware/callbacks/cloud-speaker/:tenantId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "hardware-callback.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hardware/callbacks/box/:tenantId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/orders/:orderNo/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/routing-rules",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/instant-retail/routing-rules/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/instant-retail/routing-rules/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/exceptions/:id/handle",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/shelf",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/instant-retail/shelf/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/instant-retail/shelf/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/deliveries/:deliveryId/assign",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/instant-retail/deliveries/:deliveryId/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/reviews/:id/reply",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-ops.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/reviews/sync",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/configs",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/configs/:platform/test",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/configs/:platform/sync-orders",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/configs/:platform/sync-products",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/instant-retail/configs/:platform",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/shop-config",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/categories",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/instant-retail/categories/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/instant-retail/categories/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/products",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/instant-retail/products/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/instant-retail/products/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/instant-retail/banners",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/instant-retail/banners/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-admin-platform.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/instant-retail/banners/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-store.routes.ts",
+    "method": "POST",
+    "path": "/api/store/instant-retail/orders/:platformOrderId/confirm",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "instant-retail-store.routes.ts",
+    "method": "POST",
+    "path": "/api/store/instant-retail/orders/:platformOrderId/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "instant-retail-store.routes.ts",
+    "method": "POST",
+    "path": "/api/store/instant-retail/orders/:platformOrderId/start-delivery",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "instant-retail-store.routes.ts",
+    "method": "POST",
+    "path": "/api/store/instant-retail/orders/:platformOrderId/complete-delivery",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "instant-retail-webhook.routes.ts",
+    "method": "POST",
+    "path": "/api/instant-retail/webhook/jd",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-webhook.routes.ts",
+    "method": "POST",
+    "path": "/api/instant-retail/webhook/meituan",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "instant-retail-webhook.routes.ts",
+    "method": "POST",
+    "path": "/api/instant-retail/webhook/eleme",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "inventory-batch.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory-batch/batches",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-batch.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/inventory-batch/batches/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-batch.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory-batch/batches/:id/split",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-batch.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory-batch/expiry-configs",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-batch.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/inventory-batch/expiry-configs/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-batch.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/inventory-batch/expiry-configs/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-batch.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/inventory-batch/expiry-alerts/:id/handle",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-loss-gain.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory/report-loss-gain",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "inventory-profit-loss.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory/loss-orders",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-profit-loss.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory/loss-orders/:id/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-profit-loss.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory/loss-orders/:id/reject",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-profit-loss.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory/profit-orders",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-profit-loss.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory/profit-orders/:id/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-profit-loss.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory/profit-orders/:id/reject",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-share.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/inventory-share/settings",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-share.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory-share/products",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-share.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory-share/products/batch-add",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-share.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/inventory-share/products/batch-remove",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-share.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/inventory-share/products/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "inventory-share.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/inventory-share/products/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-asset.routes.ts",
+    "method": "POST",
+    "path": "/api/marketing-asset/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-asset.routes.ts",
+    "method": "PUT",
+    "path": "/api/marketing-asset/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-asset.routes.ts",
+    "method": "DELETE",
+    "path": "/api/marketing-asset/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/gift-rules/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/gift-rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/gift-rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/gift-rules/:id/activate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/gift-rules/:id/pause",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/gift-rules/:id/levels",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/gift-rules/:id/levels/:levelId",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-gift-rule.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/gift-rules/:id/levels/:levelId",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-limited-discount.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/limited-discounts/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-limited-discount.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/limited-discounts/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-limited-discount.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/limited-discounts/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-limited-discount.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/limited-discounts/:id/activate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-limited-discount.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/limited-discounts/:id/pause",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-limited-discount.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/limited-discounts/:id/products",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-limited-discount.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/limited-discounts/:id/products/:productId",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/materials/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/materials/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/materials/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/materials/:id/publish",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/materials/:id/archive",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/materials/categories",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/materials/categories/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-material.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/materials/categories/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/marketing/coupons/:templateId/claim",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "marketing-miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/marketing/flash-sale/:id/buy",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "marketing-miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/marketing/group-buy/:teamId/join",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "marketing-miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/marketing/calculate",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "marketing-points-mall.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/points-mall/products",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-points-mall.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/marketing/points-mall/products/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-points-mall.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/marketing/points-mall/products/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-points-mall.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/points-mall/products/:id/toggle",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-points-mall.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/points-mall/exchange",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-points-mall.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/points-mall/exchange-records/:id/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "marketing-points-mall.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/marketing/points-mall/exchange-records/:id/confirm",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "member-register.routes.ts",
+    "method": "POST",
+    "path": "/api/store/members/sms-code",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "member-register.routes.ts",
+    "method": "POST",
+    "path": "/api/store/members/register",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp-config/configs/:platform",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp-config.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp-config/packages",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp-config.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp-config/upload-key",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp-config.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp-config/publish",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp-order-sync.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp-order-sync/:orderNo/retry",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/login",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/cart",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/cart/:id",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "DELETE",
+    "path": "/api/miniapp/cart/:id",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "DELETE",
+    "path": "/api/miniapp/cart",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/orders",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/orders/:id/pay",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/orders/:id/cancel",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/orders/:id/confirm-receive",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/orders/:id/delete",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/pay/notify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/stored-card/recharge",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/user/profile",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/user/addresses",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/user/addresses/:id",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "DELETE",
+    "path": "/api/miniapp/user/addresses/:id",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/user/addresses/:id/default",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/coupons/:id/use",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/member/coupons/:id/receive",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/user/profile-update",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/user/change-password",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/cart",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/wholesale/cart/:id",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "DELETE",
+    "path": "/api/miniapp/wholesale/cart/:id",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/cart/delete",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/wholesale/cart/:itemId/select",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/wholesale/cart/select-all",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders/:orderId/cancel",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders/:orderId/confirm-receive",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wholesale/orders/buy-now",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "monitor.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/monitor/notify-expiring",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "notification.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/notifications/:id/read",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "notification.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/notifications/read-all",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "notification.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/notifications/send",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "notification.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/notifications/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "notification.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/notifications/batch-delete",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "notification.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/notifications/:id/read",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "notification.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/notifications/read-all",
+    "hasPermission": true,
+    "authForm": "consumer"
+  },
+  {
+    "file": "order-exception.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/order-exceptions",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "order-exception.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/order-exceptions/:id(\\d+)/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "order-exception.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/order-exceptions/:id(\\d+)",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "order-timeout.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/order-timeout/configs",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "order-timeout.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/order-timeout/configs/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "order-timeout.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/order-timeout/configs/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/payment-config/configs/:provider",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-config.routes.ts",
+    "method": "POST",
+    "path": "/api/payment-config/configs/:provider/test",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-config.routes.ts",
+    "method": "POST",
+    "path": "/api/payment-config/bank-accounts",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/payment-config/bank-accounts/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-config.routes.ts",
+    "method": "DELETE",
+    "path": "/api/payment-config/bank-accounts/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-config.routes.ts",
+    "method": "POST",
+    "path": "/api/payment-config/bank-accounts/:id/default",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-new.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/payments-new/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "payment-new.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/payments-new/:paymentNo/writeoff",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment-new.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/payments-new/:paymentNo/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment.routes.ts",
+    "method": "POST",
+    "path": "/api/pay/orders",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "payment.routes.ts",
+    "method": "POST",
+    "path": "/api/pay/wx/callback",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "payment.routes.ts",
+    "method": "POST",
+    "path": "/api/pay/refunds",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-agent.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/agents/levels",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-agent.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/agents/levels/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-agent.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/agents/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-agent.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/agents/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-agent.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/agents/:id/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-app-version.routes.ts",
+    "method": "POST",
+    "path": "/api/padmin/app-versions/draft",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-app-version.routes.ts",
+    "method": "POST",
+    "path": "/api/padmin/app-versions",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-app-version.routes.ts",
+    "method": "POST",
+    "path": "/api/padmin/app-versions/:id/pause",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-app-version.routes.ts",
+    "method": "POST",
+    "path": "/api/padmin/app-versions/:id/resume",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-app-version.routes.ts",
+    "method": "POST",
+    "path": "/api/padmin/app-versions/:id/archive",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-app-version.routes.ts",
+    "method": "POST",
+    "path": "/api/padmin/app-versions/:id/rollback",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-app-version.routes.ts",
+    "method": "DELETE",
+    "path": "/api/padmin/app-versions/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-applications.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/applications/:id/approve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-applications.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/applications/:id/reject",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/auth/login",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/auth/admin/create",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/auth/mfa/setup",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/auth/mfa/confirm",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/auth/mfa/disable",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-auth.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/auth/mfa/verify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-billing-arrears.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/billing/arrears/urge",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-billing.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/billing/generate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-billing.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/billing/statement/export",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-billing.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/billing/invoice",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/config/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/config/sys-config",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-config.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/config/logo",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/config/feature-switches/:code",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/config/data-dict/:dictType",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-error-log.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/error-report",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-export-task.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/reports/export/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-export-task.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/reports/export/:id/retry",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/library/spus/import",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/library/spus",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/library/spus/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/library/spus/:id/status",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/library/spus/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/library/spus/:spuId/skus",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/library/skus/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/library/skus/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/library/brands",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/library/brands/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/library/brands/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/library/brands/:id/auth-letter",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/library/api-keys",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/library/api-keys/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-library.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/library/api-keys/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-miniapp.routes.ts",
+    "method": "POST",
+    "path": "/api/platform-miniapp/subscriptions",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-monitor-ops.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/monitor/thresholds",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-monitor.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/monitor/notify-expiring",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-msg-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/msg-config",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-msg-config.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/sms-templates",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-msg-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/sms-templates/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-msg-config.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/sms-templates/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-notification.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/notifications/read-all",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-notification.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/notifications/:id/read",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/api-keys",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/api-keys/:id/enable",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/api-keys/:id/rotate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/api-keys/:id/rotate-complete",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/open/api-keys/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/open/api-keys/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/webhooks",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/webhooks/:id/test",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/webhooks/:id/redeliver",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-open.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/open/webhooks/:id/resume",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-plans.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/plans/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-plans.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/plans/:planId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-plans.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/plans/:planId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-plans.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/plans/:planId/features",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-plans.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/plans/:planId/policy",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-plans.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/plans/:planId/copy",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-promo-code.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/promo-codes/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-promo-code.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/promo-codes/:id/disable",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-reconciliation.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/reconciliation/:id/settle",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-reconciliation.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/reconciliation/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-reconciliation.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/reconciliation/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-review.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/reviews/:id/reply",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-review.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/reviews/:id/approval",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-review.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/reviews/batch-approval",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "platform-role.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/roles/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-role.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/roles/:id/permissions",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-role.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/roles/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-role.routes.ts",
+    "method": "DELETE",
+    "path": "/api/platform/roles/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-subscription-applies.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/subscription-applies/:id/audit",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-templates.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/templates/init",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-templates.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/templates/init/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-templates.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/templates/print/upload",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-templates.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/templates/print/:id/public",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-templates.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/templates/import-export",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/tenants/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-tenant.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/tenants/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/tenants/:id/toggle",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/tenants/:id/proxy-login",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/tenants/:id/quota-expand",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/tenants/:tenantId/users/:userId/reset-password",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-ticket.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/support/tickets/:id/reply",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-ticket.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/support/tickets/:id/note",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-ticket.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/support/tickets/:id/transfer",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-ticket.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/support/tickets/:id/resolve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform-ticket.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/support/tickets/:id/close",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/admins/invite",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/admins/:id/reset-password",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/admins/:id/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "platform.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/admins",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "points-mall.routes.ts",
+    "method": "POST",
+    "path": "/api/points-mall/items",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points-mall.routes.ts",
+    "method": "PUT",
+    "path": "/api/points-mall/items/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points-mall.routes.ts",
+    "method": "DELETE",
+    "path": "/api/points-mall/items/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points-mall.routes.ts",
+    "method": "PUT",
+    "path": "/api/points-mall/items/:id/status",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points-mall.routes.ts",
+    "method": "PUT",
+    "path": "/api/points-mall/orders/:id/deliver",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points-mall.routes.ts",
+    "method": "PUT",
+    "path": "/api/points-mall/orders/:id/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/rules",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/rules/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "points.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/:id/points/adjust",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "points.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/members/levels/config",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "points.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/levels/config/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "points.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/members/levels/config/:id/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "points.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/members/levels/config/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "position.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/positions/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "position.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/positions/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "position.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/positions/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/prices/levels",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/prices/levels/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/prices/levels/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/prices/skus/:skuId/prices",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/prices/prices/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/prices/prices/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/prices/best-price",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/prices/customer-bindings",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/prices/customer-bindings/:id/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/prices/customer-bindings/:id/reject",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/prices/customer-bindings/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/prices/batch/preview",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/prices/batch/execute",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "price.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/prices/review",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "print.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/print/records",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "print.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/print/records/:id/reprint",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "print.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/print/templates",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "print.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/print/templates/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "print.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/print/templates/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "print.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/print/templates/:id/reset",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "print.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/print/templates/:id/set-default",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-bundles",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/product-bundles/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/product-bundles/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-bundles/:id/publish",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-bundles/:id/unpublish",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/combo-products",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/combo-products/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-bundle.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/combo-products/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-marketing-tag.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-tags/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "product-marketing-tag.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/product-tags/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "product-marketing-tag.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/product-tags/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "product-review.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-reviews/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "product-review.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-reviews/:id/approve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "product-review.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-reviews/:id/reject",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "product-review.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-reviews/batch-approve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "product-review.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/product-reviews/batch-reject",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "purchase-contract.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-contracts/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-contract.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/purchase-contracts/:contractNo",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-contract.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/purchase-contracts/:contractNo",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-contract.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-contracts/:contractNo/upload",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-in-stock.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-in-stocks/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "purchase-in-stock.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-in-stocks/:stockNo/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-in-stock.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-in-stocks/:stockNo/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-payment.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-payments/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "purchase-payment.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-payments/:paymentNo/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-payment.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-payments/:paymentNo/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-plan.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-plans/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "purchase-plan.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-plans/:planNo/convert",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "purchase-return.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-returns/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "purchase-return.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-returns/:returnNo/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase-return.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-returns/:returnNo/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-orders/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "purchase.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-orders/:orderNo/submit",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-orders/:orderNo/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-orders/:orderNo/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/purchase-orders/:orderNo",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/purchase-orders/:orderNo",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "purchase.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/purchase-orders/:orderNo/in-stock",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "push.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/push/register",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "push.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/push/unregister",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "push.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/push/test",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "rbac.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/system/roles/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "rbac.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/system/roles/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "rbac.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/system/roles/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "rbac.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/system/roles/:id/data-permissions",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "rbac.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/system/roles/users/:userId/roles",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "receipt.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/receipts/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "receipt.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/receipts/:receiptNo/writeoff",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "receipt.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/receipts/:receiptNo/void",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "reconciliation.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/reconciliation/customer/:customerId/confirm",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "reconciliation.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/reconciliation/supplier/:supplierId/confirm",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "report-permissions.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/report-permissions/matrix",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "report-permissions.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/report-permissions/data-scope",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "report-permissions.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/report-permissions/batch",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "report-permissions.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/report-permissions/user/:userId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "report.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/reports/export",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "retail-announcement.routes.ts",
+    "method": "POST",
+    "path": "/api/retail-announcement/admin/retail-announcements",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "retail-announcement.routes.ts",
+    "method": "PUT",
+    "path": "/api/retail-announcement/admin/retail-announcements/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "retail-announcement.routes.ts",
+    "method": "DELETE",
+    "path": "/api/retail-announcement/admin/retail-announcements/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "retail-announcements-admin.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/retail-announcements/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "retail-announcements-admin.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/retail-announcements/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "retail-announcements-admin.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/retail-announcements/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "retail-consumer-address.routes.ts",
+    "method": "POST",
+    "path": "/api/retail-consumer-address/miniapp/addresses",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "retail-consumer-address.routes.ts",
+    "method": "PUT",
+    "path": "/api/retail-consumer-address/miniapp/addresses/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "retail-consumer-address.routes.ts",
+    "method": "DELETE",
+    "path": "/api/retail-consumer-address/miniapp/addresses/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "retail-consumer-address.routes.ts",
+    "method": "PUT",
+    "path": "/api/retail-consumer-address/miniapp/addresses/:id/default",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/saas/subscriptions/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/saas/subscriptions/:id/renew",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/saas/subscriptions/:id/upgrade",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/saas/subscriptions/:id/cancel",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/saas/tenants/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-tenant.routes.ts",
+    "method": "PUT",
+    "path": "/api/saas/tenants/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/saas/tenants/:id/audit",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "saas-tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/saas/tenants/:id/toggle-status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sale-return.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sale-returns/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sale-return.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sale-returns/:returnNo/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "sale-return.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sale-returns/:returnNo/reject",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "sale-return.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sale-returns/:returnNo/refund",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "seckill.routes.ts",
+    "method": "POST",
+    "path": "/api/seckill/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "seckill.routes.ts",
+    "method": "PUT",
+    "path": "/api/seckill/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "seckill.routes.ts",
+    "method": "DELETE",
+    "path": "/api/seckill/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "share.routes.ts",
+    "method": "POST",
+    "path": "/api/share/collections/:token/pay",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "share.routes.ts",
+    "method": "POST",
+    "path": "/api/share/collections/:token/wx-notify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sms-template.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sms-templates/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sms-template.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/sms-templates/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sms-template.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/sms-templates/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/stock-checks/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/stock-checks/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/stock-checks/:id/start",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/stock-checks/:id/complete",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/stock-checks/:id/cancel",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/stock-checks/:id/handle-diff",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/stock-checks/:id/items",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "PUT",
+    "path": "/api/store/stock-checks/:id/items/:itemId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-check.routes.ts",
+    "method": "POST",
+    "path": "/api/store/stock-checks/:id/submit",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "stock-warning.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/stock-warnings/config",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-control.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/store-control/configs/:storeId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-control.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-control/:storeId/open",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-control.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-control/:storeId/close",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-control.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-control/:storeId/suspend",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-control.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-control/:storeId/resume",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-coupon.routes.ts",
+    "method": "POST",
+    "path": "/api/store/coupons/verify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-coupon.routes.ts",
+    "method": "POST",
+    "path": "/api/store/coupons/manual-verify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-hardware.routes.ts",
+    "method": "PUT",
+    "path": "/api/store/hardware/configs/:category",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-hardware.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hardware/configs/:category/test",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-hardware.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hardware/cloud-speaker/announce",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-hardware.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hardware/box/pay",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-hardware.routes.ts",
+    "method": "PUT",
+    "path": "/api/store/hardware/box-config/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-hardware.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hardware/box-config/test",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-hardware.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hardware/unionpay/test",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-inventory.routes.ts",
+    "method": "POST",
+    "path": "/api/store/inventory/adjust",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-inventory.routes.ts",
+    "method": "PUT",
+    "path": "/api/store/inventory/alerts/:skuId/threshold",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "POST",
+    "path": "/api/store/orders/:orderNo/accept",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "POST",
+    "path": "/api/store/orders/:orderNo/start-delivery",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "POST",
+    "path": "/api/store/orders/:orderNo/complete-delivery",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "POST",
+    "path": "/api/store/orders/:orderNo/reject",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "POST",
+    "path": "/api/store/orders/:orderNo/cancel",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hold-orders/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "POST",
+    "path": "/api/store/hold-orders/:holdNo/restore",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-order.routes.ts",
+    "method": "DELETE",
+    "path": "/api/store/hold-orders/:holdNo",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-receivable.routes.ts",
+    "method": "POST",
+    "path": "/api/store/receivables/:receivableNo/payment",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-sale-bill.routes.ts",
+    "method": "POST",
+    "path": "/api/store/sale-bills/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-sale-bill.routes.ts",
+    "method": "POST",
+    "path": "/api/store/sale-bills/:billNo/collection-link",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-sale-bill.routes.ts",
+    "method": "POST",
+    "path": "/api/store/sale-bills/:billNo/offline-payment",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-sale-bill.routes.ts",
+    "method": "POST",
+    "path": "/api/store/sale-bills/:billNo/payment",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-sale-bill.routes.ts",
+    "method": "POST",
+    "path": "/api/store/sale-bills/:billNo/pay-by-code",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-shift.routes.ts",
+    "method": "POST",
+    "path": "/api/store/shift/settle",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-shift.routes.ts",
+    "method": "POST",
+    "path": "/api/store/shifts/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-shift.routes.ts",
+    "method": "POST",
+    "path": "/api/store/shifts/:shiftNo/check",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-shift.routes.ts",
+    "method": "POST",
+    "path": "/api/store/shifts/:shiftNo/close",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-trace.routes.ts",
+    "method": "POST",
+    "path": "/api/store/trace/verify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-value-card.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-value-cards/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-value-card.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-value-cards/:cardNo/recharge",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-value-card.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-value-cards/:cardNo/consume",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-value-card.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-value-cards/:cardNo/refund",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "store-value-card.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-value-cards/:cardNo/freeze",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store-value-card.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/store-value-cards/:cardNo/unfreeze",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store.routes.ts",
+    "method": "POST",
+    "path": "/api/store/members/manage",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "store.routes.ts",
+    "method": "PUT",
+    "path": "/api/store/members/:id(\\d+)",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/subscriptions-management/plans",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/subscriptions-management/plans/:planId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/subscriptions-management/plans/:planId/policy",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/subscriptions-management/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/subscriptions-management/:subscriptionId/change-plan",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/subscriptions-management/:subscriptionId/cancel",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/subscriptions-management/:subscriptionId/pay",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "subscription.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/subscriptions-management/:subscriptionId/renew",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "supplier-contact.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/supplier-contacts/supplier/:supplierId",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier-contact.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/supplier-contacts/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier-contact.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/supplier-contacts/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier-contact.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/supplier-contacts/:id/set-primary",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier-statement.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/supplier-statements/generate",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier-statement.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/supplier-statements/:statementNo/confirm",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier-statement.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/supplier-statements/:statementNo/dispute",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/suppliers/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/suppliers/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/suppliers/:id/contacts",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "supplier.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/suppliers/:id/contacts/:contactId",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "sync.routes.ts",
+    "method": "POST",
+    "path": "/api/sync/price",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sync.routes.ts",
+    "method": "POST",
+    "path": "/api/sync/product",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sync.routes.ts",
+    "method": "POST",
+    "path": "/api/sync/offline-orders",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-config.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/sys-config/backups/:name",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/sys-config/tenant-info",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-config.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/sys-config/batch",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-config.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sys-config/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-config.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sys-config/test-mail",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-config.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sys-config/manual-backup",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-user.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sys-users/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-user.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/sys-users/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-user.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/sys-users/:id/reset-password",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "sys-user.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/sys-users/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "system.routes.ts",
+    "method": "POST",
+    "path": "/api/system/migrate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tag.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/tags/groups",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "tag.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/tags/groups/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "tag.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/tags/groups/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "tag.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/tags",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "tag.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/tags/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "tag.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/tags/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "tag.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/products/:spuId/tags",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "tenant-register.routes.ts",
+    "method": "POST",
+    "path": "/api/tenant/register",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tenant-register.routes.ts",
+    "method": "POST",
+    "path": "/api/tenant/register/sms-code",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tenant-register.routes.ts",
+    "method": "POST",
+    "path": "/api/tenant/applications/:id/approve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tenant-register.routes.ts",
+    "method": "POST",
+    "path": "/api/tenant/applications/:id/reject",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tenant.routes.ts",
+    "method": "POST",
+    "path": "/api/platform/tenants-management/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tenant.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/tenants-management/:tenantId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tenant.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/tenants-management/:tenantId/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "tenant.routes.ts",
+    "method": "PUT",
+    "path": "/api/platform/tenants-management/:tenantId/modules",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/trace/configs",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/trace/configs/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/trace/configs/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/trace/configs/check",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/trace/codes/generate",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/trace/codes/:traceCode/status",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/trace/verify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/trace/recalls",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/trace/recalls/:recallNo/execute",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/trace/recalls/:recallNo/complete",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "trace.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/trace/c/verify",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer-order.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/transfer-orders/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "transfer-order.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/transfer-orders/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "transfer-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfer-orders/:id/approve",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "transfer-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfer-orders/:id/reject",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "transfer-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfer-orders/:id/confirm-out",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "transfer-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfer-orders/:id/confirm-in",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "transfer-order.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfer-orders/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfers/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/transfers/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfers/:id/submit",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfers/:id/approve",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfers/:id/reject",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfers/:id/cancel",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/transfers/:id/ship",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "transfer.routes.ts",
+    "method": "POST",
+    "path": "/api/store/transfers/:id/receive",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "unit-group.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/unit-groups/",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "unit-group.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/unit-groups/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "unit-group.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/unit-groups/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "unit.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/units/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "unit.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/units/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "unit.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/units/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "user-session.routes.ts",
+    "method": "DELETE",
+    "path": "/api/user-session/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "user-session.routes.ts",
+    "method": "DELETE",
+    "path": "/api/user-session/user/:userId",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "warehouse.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/warehouses/",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "warehouse.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/warehouses/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "warehouse.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/warehouses/:id",
+    "hasPermission": true,
+    "authForm": "inline"
+  },
+  {
+    "file": "wechat.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wechat/auth/login",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "wechat.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wechat/auth/decrypt-phone",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "wechat.routes.ts",
+    "method": "PUT",
+    "path": "/api/miniapp/wechat/auth/profile",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "wechat.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wechat/auth/bind",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "wechat.routes.ts",
+    "method": "POST",
+    "path": "/api/miniapp/wechat/auth/unbind",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/todos",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/todos/:id/complete",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/todos/:id/dismiss",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/todos/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/quick-entries",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/quick-entries/sort",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/quick-entries/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/quick-entries/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "PUT",
+    "path": "/api/admin/wb-notifications/:id/read",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "POST",
+    "path": "/api/admin/wb-notifications/read-all",
+    "hasPermission": false,
+    "authForm": "none"
+  },
+  {
+    "file": "workbench.routes.ts",
+    "method": "DELETE",
+    "path": "/api/admin/wb-notifications/:id",
+    "hasPermission": false,
+    "authForm": "none"
+  }
+]
