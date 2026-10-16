@@ -20,6 +20,15 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => user.value?.roles?.includes('SUPER_ADMIN') ?? false)
   const storeId = computed(() => user.value?.storeId ?? null)
   const storeName = computed(() => user.value?.realName ?? '')
+  /**
+   * 当前用户权限码（S3-230：入口权限门判定输入）
+   *
+   * 来源与后端 `requirePermission(码)` **同源**：`t_sys_role.permissions`（去重合并）。
+   * 登录接口（`/api/store/auth/login`）与 `/api/admin/auth/me` 都下发 `permissions`；
+   * 老版本本地缓存可能没有该字段 ⇒ 保持 undefined（入口门按"未取到 ⇒ 放行"处理，见
+   * `config/permission-gates.ts` 文件头）。
+   */
+  const permissions = computed<string[] | null | undefined>(() => user.value?.permissions ?? undefined)
 
   /**
    * 登录
@@ -48,6 +57,9 @@ export const useUserStore = defineStore('user', () => {
       roles: result.user.roles,
       storeId: result.user.storeId,
       tenantId: result.user.tenantId,
+      // S3-230：登录响应即带码（后端 store/auth.service.ts 已按 S3-203 口径下发），
+      // 必须存下来，否则"入口门"在本次会话内无法判定。
+      permissions: result.user.permissions,
       csrfToken: result.csrfToken
     }
     setUser(user.value)
@@ -128,6 +140,8 @@ export const useUserStore = defineStore('user', () => {
     isAdmin,
     storeId,
     storeName,
+    // S3-230：入口权限门判定输入（见 config/permission-gates.ts）
+    permissions,
     login,
     applyLoginResult,
     fetchProfile,

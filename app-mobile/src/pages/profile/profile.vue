@@ -47,7 +47,8 @@
           </view>
           <text class="li-arrow">›</text>
         </view>
-        <view class="list-item" @tap="navigateTo('/pages-sub/admin/admin/employees')">
+        <!-- S3-230 入口权限门：员工管理写调用面（POST/PUT /api/admin/staff*），码 system:user:create|edit -->
+        <view class="list-item" v-if="canEntry('staff-entry')" @tap="navigateTo('/pages-sub/admin/admin/employees')">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-staff.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">员工管理</text>
@@ -55,7 +56,8 @@
           </view>
           <text class="li-arrow">›</text>
         </view>
-        <view class="list-item" @tap="navigateTo('/pages-sub/admin/roles/roles')">
+        <!-- S3-230 入口权限门：角色管理写调用面（/api/admin/system/roles*），码 system:role:create|edit -->
+        <view class="list-item" v-if="canEntry('role-entry')" @tap="navigateTo('/pages-sub/admin/roles/roles')">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-staff.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">角色管理</text>
@@ -137,6 +139,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
+// S3-230 入口权限门：员工/角色管理入口、库存预警/对账快捷入口按码显隐
+import { usePermissionGate } from '@/composables/usePermissionGate'
 import { storesApi } from '@/api/modules/stores'
 import { sysConfigApi, type TenantInfo } from '@/api/modules/sys-config'
 import manifest from '@/manifest.json'
@@ -154,6 +158,7 @@ import {
 } from '@/constants/colors'
 
 const userStore = useUserStore()
+const { canEntry } = usePermissionGate()
 
 const userName = computed(() => userStore.user?.realName || userStore.user?.name || '未登录')
 const storeName = computed(() => userStore.user?.storeName || '')
@@ -174,12 +179,28 @@ const roleText = computed(() => {
   return roles && roles.length > 0 ? map[roles[0]] || roles[0] : ''
 })
 
-const shortcuts = [
-  { icon: '/static/icons/prf-work.svg', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/prf-todo.svg', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/prf-recon.svg', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/prf-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-]
+/** 「我的」页快捷入口：`gate` = 入口权限门 id（S3-230，注册表 config/permission-gates.ts） */
+interface ProfileShortcut {
+  icon: string
+  label: string
+  path: string
+  bg: string
+  color: string
+  gate?: string
+}
+
+const shortcuts = computed<ProfileShortcut[]>(() =>
+  (
+    [
+      { icon: '/static/icons/prf-work.svg', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+      // 库存预警页写调用面：POST /api/admin/stock-warnings/config ⇒ 码 inventory:adjust
+      { icon: '/static/icons/prf-todo.svg', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE, gate: 'fx-stock-warning' },
+      // 对账页写调用面：POST /api/admin/reconciliation/{customer,supplier}/:id/confirm ⇒ 码 report:finance
+      { icon: '/static/icons/prf-recon.svg', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE, gate: 'fin-recon-confirm' },
+      { icon: '/static/icons/prf-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+    ] as ProfileShortcut[]
+  ).filter((item) => !item.gate || canEntry(item.gate))
+)
 
 /** 真实数据：门店营业时间 / 租户联系方式 / 应用版本 */
 const businessHours = ref('')

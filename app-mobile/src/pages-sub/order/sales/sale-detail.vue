@@ -49,7 +49,8 @@
       </view>
     </view>
 
-    <view class="bottom-bar" v-if="bill && needCollect">
+    <!-- S3-230 入口权限门：线下收款 → POST /api/store/sale-bills/:billNo/offline-payment（码 sale:create） -->
+    <view class="bottom-bar" v-if="bill && needCollect && canEntry('sale-bill-offline-pay')">
       <button class="btn btn--primary" @tap="onCollect">确认收款</button>
     </view>
 
@@ -72,6 +73,10 @@ function goBack() { uni.navigateBack() }
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { salesApi, type SaleBillInfo } from '@/api/modules/sales'
+// S3-230 入口权限门：线下收款按钮按码显隐（注册表 config/permission-gates.ts）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 
 const bill = ref<SaleBillInfo | null>(null)
 const billNo = ref('')

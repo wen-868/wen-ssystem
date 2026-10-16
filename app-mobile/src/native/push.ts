@@ -32,6 +32,8 @@
 
 import { post } from '@/api/request'
 import { getUser, getTenant } from '@/api/storage'
+// S3-230 入口权限门：深链目标页的写码判定（注册表 config/permission-gates.ts）
+import { codesOfEntry, hasPermissionCodes } from '@/config/permission-gates'
 
 // ====================== 类型定义 ======================
 
@@ -106,6 +108,26 @@ const PUSH_ROUTE_MAP: Record<PushMessageType, string> = {
     inventory: '/pages-sub/product/inventory/inventory',
     marketing: '/pages-sub/marketing/marketing/coupons',
     system: '/pages/notifications/notifications',
+}
+
+/**
+ * 深链目标页 → 入口权限门 id（S3-230）
+ *
+ * 推送深链是"无条件可达"的一类入口：映射表里的页面对**任何登录角色**都可直达
+ * （营销推送 → 优惠券页即台账 §15.5 里 B 类 9 条的第一条根因）。
+ * 只列出"目标页承载无权限门写端点"的行；未列出的路径维持原行为。
+ */
+const PUSH_ROUTE_GATE: Record<string, string> = {
+    '/pages-sub/marketing/marketing/coupons': 'mkt-coupons'
+}
+
+/** 深链权限门：目标页的写码不满足 ⇒ 不跳转（避免用户落到一个点下去 403 的页面） */
+function pushTargetAllowed(url: string): boolean {
+    const path = url.split('?')[0]
+    const gateId = PUSH_ROUTE_GATE[path]
+    if (!gateId) return true
+    // 读本地用户态（推送回调在组件生命周期之外，避免依赖 Pinia 的活动实例）
+    return hasPermissionCodes(getUser()?.permissions, codesOfEntry(gateId))
 }
 
 /** App 版本号（与 manifest.json versionName 对齐） */
@@ -441,7 +463,10 @@ async function doRegisterJPush(alias: string, deviceId: string): Promise<string>
     onJPushClick((result) => {
         // 自动路由跳转
         const url = result.url || resolveRoute(result.type)
-        if (url) {
+        if (url && !pushTargetAllowed(url)) {
+            // S3-230 入口权限门：目标页写码不满足 ⇒ 不跳转（避免落到"看得到但点不了、点了 403"的页）
+            uni.showToast({ title: '无权限查看该功能', icon: 'none' })
+        } else if (url) {
             try {
                 uni.navigateTo({ url })
             } catch (e) {
@@ -481,7 +506,10 @@ async function doRegisterHMSPush(deviceId: string): Promise<string> {
     })
     onHMSPushClick((result) => {
         const url = result.url || resolveRoute(result.type)
-        if (url) {
+        if (url && !pushTargetAllowed(url)) {
+            // S3-230 入口权限门：同 JPush 分支（目标页写码不满足 ⇒ 不跳转）
+            uni.showToast({ title: '无权限查看该功能', icon: 'none' })
+        } else if (url) {
             try {
                 uni.navigateTo({ url })
             } catch (e) {

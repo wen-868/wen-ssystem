@@ -85,11 +85,14 @@ import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   hotActions,
   dataTools,
+  filterGroupsByPermissionGate,
   filterGroupsByCodes,
+  filterItemsByPermissionGate,
   filterItemsByCodes,
   type FunctionItem,
 } from '@/config/function-menu'
 import { useMenuStore } from '@/stores/menu'
+import { usePermissionGate } from '@/composables/usePermissionGate'
 import { AI_BG_SOFT, AI_TAB_ACTIVE, AI_WARNING, AI_WARNING_SOFT } from '@/constants/colors'
 
 const keyword = ref('')
@@ -99,9 +102,18 @@ const keyword = ref('')
  */
 const menuStore = useMenuStore()
 const allowedVisibility = computed(() => menuStore.visibility)
-/** 按角色过滤后的高频 / 数据工具 */
-const roleHotActions = computed(() => filterItemsByCodes(hotActions, allowedVisibility.value))
-const roleDataTools = computed(() => filterItemsByCodes(dataTools, allowedVisibility.value))
+/**
+ * 入口权限门（S3-230）：菜单 code 之外的第二道闸（该页写端点用的码，我持有吗）。
+ * 两道都过才显示 —— 只过菜单闸时，角色进得去、点写按钮 403（B 类根因）。
+ */
+const { permissions: userPermissions } = usePermissionGate()
+/** 按角色（菜单 code）+ 权限门过滤后的高频 / 数据工具 */
+const roleHotActions = computed(() =>
+  filterItemsByPermissionGate(filterItemsByCodes(hotActions, allowedVisibility.value), userPermissions.value)
+)
+const roleDataTools = computed(() =>
+  filterItemsByPermissionGate(filterItemsByCodes(dataTools, allowedVisibility.value), userPermissions.value)
+)
 
 const navigate = (path: string) => {
   if (path) {
@@ -128,7 +140,10 @@ const filteredDataTools = computed(() => {
 
 const filteredGroups = computed(() => {
   // 排除 tool 项：「数据 · 工具」区块已单独展示（R96-07 去重复排列），避免同一功能两处出现
-  const base = filterGroupsByCodes(allowedVisibility.value, false)
+  const base = filterGroupsByPermissionGate(
+    filterGroupsByCodes(allowedVisibility.value, false),
+    userPermissions.value
+  )
     .map((g) => ({ ...g, items: g.items.filter((it) => !it.tool) }))
     .filter((g) => g.items.length > 0)
   const k = keyword.value.trim().toLowerCase()

@@ -258,6 +258,7 @@
       </view>
       <view
         class="ab-btn ab-btn--primary"
+        v-if="canEntry('goods-batch-price-submit')"
         :class="{ 'ab-btn--dis': !canConfirm }"
         @tap="canConfirm ? openConfirm() : confirmBlocked()"
       >
@@ -349,6 +350,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import pageHeader from '@/components/page-header/page-header.vue'
+// S3-230 入口权限门：「确认调价」按钮按码显隐（PUT /admin/products/:skuId/price，注册表 goods-batch-price-submit）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 import {
   productsApi,
   updateSkuPrice,

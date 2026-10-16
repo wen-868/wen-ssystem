@@ -64,7 +64,12 @@
         </view>
       </view>
 
-      <button class="submit-btn" @tap="onSubmit">{{ isEdit ? '保存修改' : '创建分类' }}</button>
+      <!-- S3-230 入口权限门：保存修改 → PUT categories/:id（goods:edit）；创建分类 → POST categories/（goods:create） -->
+      <button
+        class="submit-btn"
+        v-if="canEntry(isEdit ? 'goods-category-edit' : 'goods-category-create')"
+        @tap="onSubmit"
+      >{{ isEdit ? '保存修改' : '创建分类' }}</button>
     </form>
 
     <view class="safe-bottom"></view>
@@ -79,6 +84,10 @@ import { onLoad } from '@dcloudio/uni-app'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { categoriesApi, type CategoryInfo } from '@/api/modules/categories'
 import { COLOR_PRIMARY } from '@/constants/colors'
+// S3-230 入口权限门：保存/创建按钮按码显隐（注册表 goods-category-edit / goods-category-create）
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 
 const formRef = ref<any>(null)
 const isEdit = ref(false)
