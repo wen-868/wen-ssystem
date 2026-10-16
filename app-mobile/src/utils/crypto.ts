@@ -804,15 +804,26 @@ function getKey(): DerivedKey {
     return cachedKey
 }
 
-// #ifdef H5
+// ---------------------------------------------------------------------------
+// 平台分流存储：三个导出**各自只声明一次**
+//
+// 背景（为什么这样写）：条件编译注释 `// #ifdef` / `// #ifndef` 只有 uni 编译器认，
+// TypeScript **两套分支都看得见**。改造前本文件在 #ifdef H5 与 #ifndef H5 两个块里
+// 各声明了一次同名导出 ⇒ vue-tsc 报 TS2323「Cannot redeclare exported variable」+
+// TS2393「Duplicate function implementation」共 **12 处**，基线恒红 ⇒ 类型门禁对
+// app-mobile 形同虚设（新增类型错误看不出来）。
+//
+// 修法：把平台分支写进**函数体内**（与 `api/request.ts:10-18` 的双 return 形态同款；
+// tsconfig 未开 `allowUnreachableCode: false`，故分支后的语句不会被判错），
+// 既让 tsc 只看到一个声明，又保留 uni 编译器的条件编译裁剪。
+//
+// ⚠️ 两个分支内的局部变量**不得重名**（tsc 看的是同一个函数作用域，会同时看到两边）。
+// ---------------------------------------------------------------------------
+
 /**
- * H5 端：base64 轻混淆存取（直用原生 localStorage，绕开 uni storage 包装层）。
+ * H5 端 localStorage 句柄
  *
- * 说明：此前 H5 复用「设备指纹派生密钥 + AES-GCM」方案，实测跨刷新解密不稳定
- * （指纹派生链路任一环节波动 → 密钥变化 → token 解密失败 → 请求裸奔 401 →
- * 被前端误判"登录已过期"反复踢回登录页）。H5 下 localStorage 与 JS 同源，
- * 对称加密的密钥本就无法对同源脚本保密，混淆的主要价值是避免明文 key 名直读。
- * App/小程序端（deviceId 稳定）继续走下方 AES-GCM 实现。
+ * App/小程序端 `window` 不存在 ⇒ 走 catch 返回 null（调用方按 null 处理，与改造前一致）。
  */
 function h5ls(): Storage | null {
     try {
@@ -822,8 +833,25 @@ function h5ls(): Storage | null {
     }
 }
 
+/**
+ * 加密后存储为 enc_${key}
+ * - value 先 JSON.stringify（如果是对象）再加密
+ * - H5：base64 轻混淆（直用原生 localStorage，绕开 uni storage 包装层）
+ * - App/小程序：设备指纹派生密钥 + AES-GCM，{ iv, ciphertext, tag } 以 JSON 串存入
+ *
+ * H5 为何不复用 AES-GCM：此前 H5 复用「设备指纹派生密钥 + AES-GCM」方案，实测跨刷新
+ * 解密不稳定（指纹派生链路任一环节波动 → 密钥变化 → token 解密失败 → 请求裸奔 401 →
+ * 被前端误判"登录已过期"反复踢回登录页）。H5 下 localStorage 与 JS 同源，对称加密的
+ * 密钥本就无法对同源脚本保密，混淆的主要价值是避免明文 key 名直读。
+ * App/小程序端（deviceId 稳定）继续走下方 AES-GCM 实现。
+ *
+ * @param key   存储键名（不带 enc_ 前缀）
+ * @param value 任意可序列化值
+ */
 export function setSecureStorage(key: string, value: unknown): void {
     const jsonStr = JSON.stringify(value)
+
+    // #ifdef H5
     // 用原生 btoa/atob：uni.arrayBufferToBase64/base64ToArrayBuffer 对带 padding 的
     // 长 base64 解码会损坏尾部字节，导致真 token 校验失败被后端 401 拒绝
     const bytes = new TextEncoder().encode(jsonStr)
@@ -832,17 +860,34 @@ export function setSecureStorage(key: string, value: unknown): void {
     const ls = h5ls()
     if (!ls) return
     ls.setItem(`enc_${key}`, `b64:${btoa(bin)}`)
+    return
+    // #endif
+
+    // #ifndef H5
+    const encKey = getKey()
+    const encrypted = encrypt(jsonStr, encKey)
+    uni.setStorageSync(`enc_${key}`, JSON.stringify(encrypted))
+    // #endif
 }
 
+/**
+ * 读取 enc_${key} 并解密，返回原 value
+ * - H5：解 b64: 前缀的 base64 混淆；旧 AES-GCM 数据视为失效并清除
+ * - App/小程序：用设备指纹派生密钥做 AES-GCM 解密
+ *
+ * @param key 存储键名（不带 enc_ 前缀）
+ * @returns 解密后的字符串（JSON 字符串，调用方按需 JSON.parse）；不存在或解密失败返回 ''
+ */
 export function getSecureStorage(key: string): string {
+    // #ifdef H5
     const ls = h5ls()
     if (!ls) return ''
-    const raw = ls.getItem(`enc_${key}`)
-    if (!raw || typeof raw !== 'string') return ''
+    const h5Raw = ls.getItem(`enc_${key}`)
+    if (!h5Raw || typeof h5Raw !== 'string') return ''
     // 新格式：b64: 前缀的 base64 混淆
-    if (raw.startsWith('b64:')) {
+    if (h5Raw.startsWith('b64:')) {
         try {
-            const bin = atob(raw.slice(4))
+            const bin = atob(h5Raw.slice(4))
             const bytes = new Uint8Array(bin.length)
             for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
             return new TextDecoder().decode(bytes)
@@ -853,39 +898,9 @@ export function getSecureStorage(key: string): string {
     // 旧 AES-GCM 数据（历史版本写入）：跨刷新不可靠，视为失效数据清空
     try { ls.removeItem(`enc_${key}`) } catch { /* 忽略 */ }
     return ''
-}
+    // #endif
 
-export function removeSecureStorage(key: string): void {
-    const ls = h5ls()
-    if (ls) ls.removeItem(`enc_${key}`)
-}
-// #endif
-
-// #ifndef H5
-/**
- * 加密后存储为 enc_${key}
- * - value 先 JSON.stringify（如果是对象）再加密
- * - 加密结果 { iv, ciphertext, tag } 以 JSON 字符串形式存入 uni.setStorageSync
- *
- * @param key   存储键名（不带 enc_ 前缀）
- * @param value 任意可序列化值
- */
-export function setSecureStorage(key: string, value: unknown): void {
-    const jsonStr = JSON.stringify(value)
-    const encKey = getKey()
-    const encrypted = encrypt(jsonStr, encKey)
-    uni.setStorageSync(`enc_${key}`, JSON.stringify(encrypted))
-}
-
-/**
- * 读取 enc_${key} 并解密，返回原 value
- * - 内部使用 uni.getStorageSync 同步读取
- * - 解密失败（tag 校验失败或数据不存在）返回空字符串
- *
- * @param key 存储键名（不带 enc_ 前缀）
- * @returns 解密后的字符串（JSON 字符串，调用方按需 JSON.parse）；不存在或解密失败返回 ''
- */
-export function getSecureStorage(key: string): string {
+    // #ifndef H5
     const raw = uni.getStorageSync(`enc_${key}`)
     if (!raw || typeof raw !== 'string') return ''
     try {
@@ -897,6 +912,7 @@ export function getSecureStorage(key: string): string {
         // 解密失败（数据被篡改、密钥不匹配、JSON 解析失败等）
         return ''
     }
+    // #endif
 }
 
 /**
@@ -905,6 +921,13 @@ export function getSecureStorage(key: string): string {
  * @param key 存储键名（不带 enc_ 前缀）
  */
 export function removeSecureStorage(key: string): void {
+    // #ifdef H5
+    const ls = h5ls()
+    if (ls) ls.removeItem(`enc_${key}`)
+    return
+    // #endif
+
+    // #ifndef H5
     uni.removeStorageSync(`enc_${key}`)
+    // #endif
 }
-// #endif

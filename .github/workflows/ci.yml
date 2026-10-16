@@ -235,6 +235,37 @@ jobs:
         working-directory: saas-admin
         run: npx --no-install vue-tsc -b
 
+      # S3-245：app-mobile **类型门禁**接进 CI（阻断）。
+      #   背景：`app-mobile` 的 `build:h5` = `uni build -p h5`（esbuild 只转译、**不做类型检查**），
+      #   故 `src/utils/crypto.ts` 因**条件编译双声明**产生的 12 处 TS2323/TS2393
+      #   （`// #ifdef H5` 与 `// #ifndef H5` 两套同名导出，tsc 两边都看得见）
+      #   此前从未被 CI 守过 —— 基线恒红 ⇒ 任何人新增类型错误都**看不出来**。
+      #   S3-245 根治后基线 = **0 条**，本步骤据此守住"0 新增"。
+      #   形态说明（照抄 admin-web / saas-admin 类型门禁的同款实测教训）：
+      #     1) `working-directory: app-mobile` —— 仓库根**没有 tsconfig.json**，在根跑 vue-tsc
+      #        只会打印 tsc 帮助并 exit 1（并非"0 错误"）；必须把 cwd 落到子工程目录。
+      #     2) `npx --no-install` —— 禁止联网兜底安装，缺依赖**直接失败**，不会静默跳过。
+      #     3) `set -o pipefail` + `PIPESTATUS[0]` —— 不让 `tee` 的退出码掩盖 vue-tsc 的失败。
+      #   口径 = **0 新增（逐条比对，不是比总数）**：基线清单为空（0 条，见回传卡判据 1）⇒
+      #     `comm -13` 输出的**每一行**都是新增错误，逐条打印后由 vue-tsc 的退出码判红。
+      #   反测（S3-245）：把 crypto.ts 还原成改造前的"双声明"形态 ⇒ 本步骤 exit 2、逐条列出
+      #     12 处并点名 `crypto.ts`；复原后逐字节一致（SHA256）⇒ exit 0（见回传卡判据 2）。
+      - name: App mobile type gate (vue-tsc --noEmit)
+        working-directory: app-mobile
+        run: |
+          set -o pipefail
+          npx --no-install vue-tsc --noEmit 2>&1 | tee vue-tsc-out.txt
+          status=${PIPESTATUS[0]}
+          : > /tmp/vue-tsc-baseline.txt
+          comm -13 <(sort /tmp/vue-tsc-baseline.txt) <(sort vue-tsc-out.txt) > /tmp/vue-tsc-new.txt
+          if [ -s /tmp/vue-tsc-new.txt ]; then
+            echo "❌ 新增类型错误（逐条列出）："
+            cat /tmp/vue-tsc-new.txt
+          else
+            echo "✅ 无新增类型错误（基线 0 条 / 本次 0 条）"
+          fi
+          exit $status
+
       # C6-5：saas-admin **最小测试能力**接进 CI（阻断，**零 `continue-on-error`**）。
       #   DoD 第 4 条：该端不能长期零测试。此前 saas-admin 连 `test` 脚本都没有、workflow 也无调用
       #   ⇒ 前端纯逻辑改动没有任何回归网。
