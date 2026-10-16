@@ -32,8 +32,17 @@ SET @sql = IF(@col_exists = 0,
   'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- 插入角色权限数据（如果 t_sys_role 为空或缺少 permissions 值）
--- 使用 ON DUPLICATE KEY UPDATE 确保幂等
+-- 插入角色权限数据（**只补缺失的角色行**）
+-- 使用 ON DUPLICATE KEY UPDATE 确保幂等 —— ⚠️ 2026-10-16 事故修复（凌舟）：
+--   原写法 `ON DUPLICATE KEY UPDATE permissions = VALUES(permissions), data_scope = …, status = …`
+--   会在**每次执行时把已存在的角色权限串覆盖成本文件自带的旧口径**。
+--   实测事故：S3-234 首次"全清单部署"（185 个迁移）跑过本文件后，生产两个**在用角色**丢码 ——
+--     STORE_MANAGER 9(底稿)+2(D1) → 8：丢 `finance:payment` / `goods:price` / `finance:daily-settle`；
+--     STORE_OPERATOR 6 → 3：丢 `dashboard:view` / `sale:return` / `finance:daily-settle`。
+--   影响：店长收款/改价/日结、操作员退货/日结/看板 会 403。
+--   ⇒ 本文件的语义应是"**补建缺失的角色行**"，不是"重置已有角色"。
+--      故改为**空更新**（`id = id`）：行存在时一个字节都不改，行缺失时仍按下面 VALUES 建行（新库行为不变）。
+--      已丢的码由 `206_角色权限回补.sql`（只增不减、幂等）负责回补，并在部署清单里排在**本文件之后**。
 INSERT INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id)
 VALUES
   (1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '["*"]', 1, 'default'),
@@ -45,9 +54,7 @@ VALUES
   (7, 'STORE_OPERATOR', '门店操作员', '门店日常操作', 'STORE', '["sale:create","sale:view","inventory:view"]', 1, 'default'),
   (8, 'VIEWER', '只读角色', '仅查看权限，无操作权限', 'SELF', '["dashboard:view","report:view"]', 1, 'default')
 ON DUPLICATE KEY UPDATE
-  permissions = VALUES(permissions),
-  data_scope = VALUES(data_scope),
-  status = VALUES(status);
+  id = id;  -- 空更新（不改任何既有值）：防"每次部署重置角色权限"
 
 -- 确保 t_sys_user_role 表有数据（admin 用户绑定 SUPER_ADMIN 角色）
 INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id)
