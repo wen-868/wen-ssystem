@@ -1,0 +1,69 @@
+--------------
+UPDATE t_sys_role
+SET permissions = JSON_ARRAY_APPEND(permissions, '$', 'goods:create')
+WHERE role_code = 'STORE_MANAGER'
+  AND permissions IS NOT NULL
+  AND JSON_VALID(permissions) = 1
+  AND JSON_CONTAINS(permissions, JSON_QUOTE('goods:create')) = 0
+--------------
+
+--------------
+UPDATE t_sys_role
+SET permissions = JSON_ARRAY_APPEND(permissions, '$', 'goods:edit')
+WHERE role_code = 'STORE_MANAGER'
+  AND permissions IS NOT NULL
+  AND JSON_VALID(permissions) = 1
+  AND JSON_CONTAINS(permissions, JSON_QUOTE('goods:edit')) = 0
+--------------
+
+--------------
+INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, path, component, icon, sort_no, visible, status, tenant_id)
+SELECT p.id, c.code, c.name, 'BUTTON', NULL, NULL, NULL, c.sort_no, 1, 1, p.tenant_id
+FROM t_sys_menu p
+JOIN (
+  SELECT 'system:alert:handle' AS code, '处理预警' AS name, 1 AS sort_no
+  UNION ALL SELECT 'system:alert:rule-edit', '维护预警规则', 2
+  UNION ALL SELECT 'system:alert:check', '手动预警检查', 3
+  UNION ALL SELECT 'system:archive:execute', '执行数据归档', 4
+  UNION ALL SELECT 'system:notification:read', '通知标记已读', 5
+  UNION ALL SELECT 'system:notification:read-all', '通知全部已读', 6
+  UNION ALL SELECT 'system:notification:send', '发送通知', 7
+  UNION ALL SELECT 'system:notification:delete', '删除通知', 8
+  UNION ALL SELECT 'system:notification:batch-delete', '批量删除通知', 9
+  UNION ALL SELECT 'system:push:test', '发送测试推送', 10
+  UNION ALL SELECT 'system:sms-template:create', '新增短信模板', 11
+  UNION ALL SELECT 'system:sms-template:edit', '编辑短信模板', 12
+  UNION ALL SELECT 'system:sms-template:delete', '删除短信模板', 13
+  UNION ALL SELECT 'system:migration:run', '执行数据库迁移', 14
+) c
+WHERE p.menu_code = 'system'
+  AND p.menu_type = 'CATALOG'
+  AND p.parent_id IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM t_sys_menu d WHERE d.tenant_id = p.tenant_id AND d.menu_code = c.code
+  )
+--------------
+
+--------------
+SELECT CONCAT('204 立码核对：14 码全租户命中 ', (SELECT COUNT(*) FROM t_sys_menu WHERE menu_code IN (
+    'system:alert:handle', 'system:alert:rule-edit', 'system:alert:check', 'system:archive:execute',
+    'system:notification:read', 'system:notification:read-all', 'system:notification:send',
+    'system:notification:delete', 'system:notification:batch-delete', 'system:push:test',
+    'system:sms-template:create', 'system:sms-template:edit', 'system:sms-template:delete',
+    'system:migration:run')),
+  ' 行；default 租户命中 ', (SELECT COUNT(*) FROM t_sys_menu WHERE tenant_id = 'default' AND menu_code IN (
+    'system:alert:handle', 'system:alert:rule-edit', 'system:alert:check', 'system:archive:execute',
+    'system:notification:read', 'system:notification:read-all', 'system:notification:send',
+    'system:notification:delete', 'system:notification:batch-delete', 'system:push:test',
+    'system:sms-template:create', 'system:sms-template:edit', 'system:sms-template:delete',
+    'system:migration:run')),
+  ' 行；同时持 goods:create 与 goods:edit 的 STORE_MANAGER 行数 ',
+  (SELECT COUNT(*) FROM t_sys_role WHERE role_code = 'STORE_MANAGER' AND JSON_VALID(permissions) = 1
+     AND JSON_CONTAINS(permissions, JSON_QUOTE('goods:create')) = 1
+     AND JSON_CONTAINS(permissions, JSON_QUOTE('goods:edit')) = 1),
+  ' 行；STORE_MANAGER 总行数 ', (SELECT COUNT(*) FROM t_sys_role WHERE role_code = 'STORE_MANAGER'),
+  ' 行') AS result
+--------------
+
+result
+204 立码核对：14 码全租户命中 28 行；default 租户命中 14 行；同时持 goods:create 与 goods:edit 的 STORE_MANAGER 行数 1 行；STORE_MANAGER 总行数 1 行

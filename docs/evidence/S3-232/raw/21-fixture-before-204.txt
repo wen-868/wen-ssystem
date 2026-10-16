@@ -1,0 +1,2 @@
+result
+夹具状态：STORE_MANAGER 行数 1（其中持 goods:create 的 0 行）；system CATALOG 行数 2；system 域既有菜单码行数 2

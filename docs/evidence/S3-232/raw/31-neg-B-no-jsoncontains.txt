@@ -1,0 +1,26 @@
+文件: docs/evidence/S3-232/harness/neg-B-204-no-jsoncontains.sql
+库: liquor_inventory @ 127.0.0.1:3399
+[
+  {
+    "statement": 1,
+    "kind": "write",
+    "affectedRows": 1,
+    "changedRows": 1,
+    "info": "Rows matched: 1  Changed: 1  Warnings: 0"
+  },
+  {
+    "statement": 2,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 3,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 4,

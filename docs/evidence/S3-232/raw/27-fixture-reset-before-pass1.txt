@@ -1,0 +1,10 @@
+--------------
+DELETE FROM t_sys_menu WHERE menu_code IN ('system:alert:handle','system:alert:rule-edit','system:alert:check','system:archive:execute','system:notification:read','system:notification:read-all','system:notification:send','system:notification:delete','system:notification:batch-delete','system:push:test','system:sms-template:create','system:sms-template:edit','system:sms-template:delete','system:migration:run')
+--------------
+
+--------------
+SELECT COUNT(*) AS remaining_14codes FROM t_sys_menu WHERE menu_code LIKE 'system:%'
+--------------
+
+remaining_14codes
+0

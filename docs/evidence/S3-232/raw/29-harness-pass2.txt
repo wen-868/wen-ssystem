@@ -1,0 +1,30 @@
+文件: docs/migrations/204_系统设置域权限点立码.sql
+库: liquor_inventory @ 127.0.0.1:3399
+[
+  {
+    "statement": 1,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 2,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 3,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 4,
+    "kind": "select",
+    "rows": 1,
+    "firstRow": {
+      "result": "204 立码核对：14 码全租户命中 28 行；default 租户命中 14 行；同时持 goods:create 与 goods:edit 的 STORE_MANAGER 行数 1 行；STORE_MANAGER 总行数 1 行"

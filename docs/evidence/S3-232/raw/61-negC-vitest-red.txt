@@ -1,0 +1,83 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-232/backend
+
+ ❯ src/__tests__/shared/system-permission-codes.test.ts (29 tests | 3 failed) 52ms
+     × 迁移里提取到的 (码, 中文名) 集合 = 目录的 (码, 中文名) 集合（双向：不多不少） 10ms
+     × sort_no 连续 1..14 且与目录顺序一一对应（迁移插入顺序 = 目录书写顺序） 3ms
+     × 分辨力自证：往迁移文本尾部注入一个假码 ⇒ 提取结果必须多出该码（③ 不是恒真空断言） 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/shared/system-permission-codes.test.ts > S3-232 立码目录 ↔ 迁移 204 双向一致 > 迁移里提取到的 (码, 中文名) 集合 = 目录的 (码, 中文名) 集合（双向：不多不少）
+AssertionError: expected [ { …(3) }, { …(3) }, { …(3) }, …(10) ] to have a length of 14 but got 13
+
+- Expected
++ Received
+
+- 14
++ 13
+
+ ❯ src/__tests__/shared/system-permission-codes.test.ts:141:23
+    139|   it("迁移里提取到的 (码, 中文名) 集合 = 目录的 (码, 中文名) 集合（双向：不多不少）", () => {
+    140|     const extracted = extractMigrationCodes(MIGRATION_SQL);
+    141|     expect(extracted).toHaveLength(14);
+       |                       ^
+    142|     const fromMigration = new Set(extracted.map((r) => `${r.code}=${r.…
+    143|     const fromCatalog = new Set(SYSTEM_PERMISSION_CATALOG.map((e) => `…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/__tests__/shared/system-permission-codes.test.ts > S3-232 立码目录 ↔ 迁移 204 双向一致 > sort_no 连续 1..14 且与目录顺序一一对应（迁移插入顺序 = 目录书写顺序）
+AssertionError: expected [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, …(3) ] to deeply equal [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, …(4) ]
+
+- Expected
++ Received
+
+@@ -6,11 +6,10 @@
+    5,
+    6,
+    7,
+    8,
+    9,
+-   10,
+    11,
+    12,
+    13,
+    14,
+  ]
+
+ ❯ src/__tests__/shared/system-permission-codes.test.ts:151:44
+    149|   it("sort_no 连续 1..14 且与目录顺序一一对应（迁移插入顺序 = 目录书写顺序）", () => {
+    150|     const extracted = extractMigrationCodes(MIGRATION_SQL);
+    151|     expect(extracted.map((r) => r.sortNo)).toEqual([...Array(14)].map(…
+       |                                            ^
+    152|     expect(extracted.map((r) => r.code)).toEqual([...SYSTEM_PERMISSION…
+    153|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/__tests__/shared/system-permission-codes.test.ts > S3-232 立码目录 ↔ 迁移 204 双向一致 > 分辨力自证：往迁移文本尾部注入一个假码 ⇒ 提取结果必须多出该码（③ 不是恒真空断言）
+AssertionError: expected [ { …(3) }, { …(3) }, { …(3) }, …(11) ] to have a length of 15 but got 14
+
+- Expected
++ Received
+
+- 15
++ 14
+
+ ❯ src/__tests__/shared/system-permission-codes.test.ts:158:23
+    156|     const injected = `${MIGRATION_SQL}\n  UNION ALL SELECT 'system:bog…
+    157|     const extracted = extractMigrationCodes(injected);
+    158|     expect(extracted).toHaveLength(15);
+       |                       ^
+    159|     expect(extracted.map((r) => r.code)).toContain("system:bogus:code"…
+    160|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 26 passed (29)
+   Start at  10:13:35
+   Duration  3.05s (transform 488ms, setup 43ms, import 2.55s, tests 52ms, environment 0ms)
+

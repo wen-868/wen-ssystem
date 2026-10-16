@@ -58,7 +58,10 @@ const FILE_191 = `191_${MIG_191}`;
 // S3-209（2026-10-15）追加说明：本单新增 `202_销售单取消来源列.sql`（DDL：t_sale_bill.void_source）
 // 与 `203_销售单取消权限点.sql`（立码：sale:cancel 菜单 BUTTON 行）⇒ 本分支上按文件实算的最高编号
 // 由 201 → 203。190/191 的"各只对应一个文件 + 最高编号唯一"判据本身未变，只同步编号期望值。
-const EXPECTED_MAX_MIGRATION = 203;
+// S3-232（2026-10-16）追加说明：本单新增 `204_系统设置域权限点立码.sql`（立码：D1 给 STORE_MANAGER
+// 增补 goods:create/goods:edit + 系统设置域 14 个新码登记进 t_sys_menu，纯数据写、零 DDL）
+// ⇒ 最高编号由 203 → 204。判据本身仍未变（190/191 各一号 + 最高编号唯一），只同步编号期望值。
+const EXPECTED_MAX_MIGRATION = 204;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);
