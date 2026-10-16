@@ -1,0 +1,42 @@
+# S3-231 · 可复核 ref 端到端验证（从 git bundle 取出的独立副本）
+# bundle = D:\Users\ZXQL\agents-logs\S3-229-ref-ebbc15e3.bundle
+# bundle-sha256 = 47F723F1DAC93B77920968458ADE54086E386E568D9C874AED621B2A1F14724C
+# 临时副本 = C:\Users\XIONG\AppData\Local\Temp\s3229-verify-e576c11a（git init + git fetch <bundle> + checkout verify）
+# 取到的 HEAD = ebbc15e30269149152aecd0dbee65792cd2f3676
+
+## 1) 关键代码文件 blob 哈希（副本 vs S3-229 工作树，逐文件比对）
+   一致  1812ad572482ae2d178b7876e6931a9b8d3911b3  backend/src/routes/demo.routes.ts
+   一致  7a8eb4f14bcaaf6f94cb2b5c7228ae3e40d66f2d  backend/src/routes/store-control.routes.ts
+   一致  ad15cd96faf6eac70e9251b2dae3c42bb5db73b8  backend/src/routes/community-marketing.routes.ts
+   一致  97c395dd289d07d82d2b3fb3cec1d1d2843f91ef  backend/src/routes/points.routes.ts
+   一致  f575cbd3e03f65e12dceff8f252b00dbafed759f  backend/scripts/rbac-wiring-baseline.json
+   一致  62f4da8191cf0137ca4bd1b0856a6047eab19b03  backend/src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts
+   一致  dc20ae68ffa10195fd8309079f9723d1e257616a  backend/src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts
+   一致  5d8477c66a7bc706f89fbe558c79c44adee5c1e4  backend/src/__tests__/routes/rbac-g0-wiring.test.ts
+   ⇒ 一致 8 ／ 不一致 0
+
+## 2) 在副本上复跑门禁（副本无 node_modules ⇒ 该脚本只依赖 node 内置模块）
+   --strict EXIT=0 ｜ sha256=4FC6A6C4E60C98FA3FD82E44DF535474E651978D837A8D97F1D502B7462DEE4B
+     —— 台账核对（rbac-wiring-baseline.json 存在）——
+     gaps：已登记 378 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+     consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+     ✅ [--strict] 无「未登记」项（已登记欠账 378 条、已登记消费者端保护形态 45 条，均不计红）
+     [guard:rbac-wiring] 已接线（权限码）337 处 ／ 消费者端保护形态 45 处 ／ 查询型 POST（已登记）3 处 ／ **无授权形态 378 处**（分布在 113 个文件）
+
+## 3) 在副本上复跑 _counts 派生脚本
+   derive-counts EXIT=0
+     files                 113           113         PASS
+     endpoints             378           378         PASS
+     consumerEndFiles      5             5           PASS
+     consumerEndEndpoints  45            45          PASS
+     readOnlyPostFiles     3             3           PASS
+     readOnlyPostEndpoints 3             3           PASS
+     wiredEndpoints        337           337         PASS
+     scannedEndpoints      763           763         PASS
+     wiredPermOccurrences  308           308         PASS
+     PASS  台账 gaps 条目数 == 台账 _counts.endpoints  （378 vs 378）
+     PASS  台账 consumerEnd 条目数 == 台账 _counts.consumerEndEndpoints  （45 vs 45）
+     PASS  守恒式 endpoints + consumerEnd + readOnlyPost + wired == scanned  （378+45+3+337 = 763 vs 763）
+     PASS  门禁四桶之和 == scannedEndpoints  （763）
+     PASS  差额分解收敛到 _counts.wiredEndpoints
+     结论：✅ 全部字段与守恒式一致，未见错位
