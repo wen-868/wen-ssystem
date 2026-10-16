@@ -1,5 +1,5 @@
 == 目标文件：docs/migrations/069_商品SPU增加品牌ID.sql
-== 目标文件 SHA256(前16) = AFFC6446C7B065EE
+== 目标文件 SHA256(前16) = 509F15C8D7B93F1D
 ---- pass1（exit=0）----
 已连接数据库 root@127.0.0.1:3409/liquor_inventory
 执行迁移: ../docs/migrations/069_商品SPU增加品牌ID.sql

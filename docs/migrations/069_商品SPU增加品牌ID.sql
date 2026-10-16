@@ -37,7 +37,7 @@ DEALLOCATE PREPARE s3234_stmt069;
 --    ⚠️ 本句在 S3-234 之前是**无守卫**的：`JOIN t_brand b ON ... AND b.tenant_id = p.tenant_id`。
 --    它在部署通道（`scripts/run-migration.mjs` 整文件下发、**无** `addTablePrefix`）里会直接抛
 --    `Unknown column 'p.tenant_id' in 'on clause'` ⇒ **整文件在该句中止**，第 3/4 句的外键与索引
---    守卫根本跑不到（本机真库实测，见 `docs/evidence/S3-234/raw/31-deploy-069-*.txt`）。
+--    守卫根本跑不到（本机真库实测，见 `docs/evidence/S3-234/raw/41-deploy-069-pass1.txt`）。
 --    守卫语义：**只有** `t_product_spu.tenant_id` 与 `t_brand.tenant_id` 同时存在才做"租户内同名品牌"回填；
 --    否则整句跳过并回显原因。**不做**"去掉租户条件"的降级 JOIN —— 那会把别的租户的同名品牌串到本租户商品上
 --    （多租户越界），宁可跳过也不能越界。

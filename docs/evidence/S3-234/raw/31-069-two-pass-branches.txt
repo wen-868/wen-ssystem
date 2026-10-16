@@ -1,6 +1,3 @@
-===== 用例 C｜夹具库（已应用态）读数 =====
-  结构 [{"col_brand_id":1,"fk":0,"idx":0}]
-  数据 [{"rows_total":1,"filled":"0"}]（夹具 t_product_spu 无 tenant_id ⇒ 不按租户分组）
 
 ===== 用例 s3241_069_a｜t_product_spu 有 tenant_id =====
   跑前：{"rows_total":3}（brand_id 列尚不存在，等第 1 句守卫补）
