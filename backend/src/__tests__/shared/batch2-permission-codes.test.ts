@@ -25,6 +25,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import {
+  BATCH2_ALLOWED_TWO_SEGMENT_ACTIONS,
   BATCH2_DOMAIN_COUNTS,
   BATCH2_FORBIDDEN_PERMISSION_ACTIONS,
   BATCH2_PERMISSION_CATALOG,
@@ -44,9 +45,59 @@ function readUtf8(abs: string): string {
   return readFileSync(abs, "utf-8").replace(/\r\n/g, "\n");
 }
 
-/** 迁移里 `endpoints` 的占位：断言要求 `:id(\d+)`（Express 4 正则段），检索装置按 `:id` 用 */
-function toExpressEndpoint(endpoint: string): string {
-  return endpoint.replace(/#id#/g, ":id(\\d+)").replace(/#tail#/g, "");
+/**
+ * 目录 `endpoints` 即**真实路径字面量**（F1 返工：不再有 `#参数#` 形态的检索装置占位符）。
+ * 断言只做一件归一：把实现里的**更窄写法** `:id(\\d+)` 归一成 `:id`（Express 4 正则约束段，
+ * 语义上是 `:id` 的子集）——否则"端点写了数字约束"会被误判成"端点不存在"。
+ */
+function normalizeParamConstraints(src: string): string {
+  return src.replace(/:([A-Za-z_][A-Za-z0-9_]*)\(\\\\d\+\)/g, ":$1");
+}
+
+/** 正则元字符转义（把路径字面量安全嵌进 RegExp） */
+function escapeRe(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * 解析路由文件里的**挂载段**（`{ prefix: "…", router: <变量> }`）：
+ * 单对象（`export const routeConfig = { … }`）与**多段数组**（`routeConfigs = [ {…}, {…} ]`）都认。
+ * F1 返工前只读**第一个** `prefix:`，于是 `store-hardware.routes.ts` 的 5 段挂载被误判（判红第 3~9 条）。
+ */
+function parseMounts(src: string): Array<{ prefix: string; router: string }> {
+  const mounts: Array<{ prefix: string; router: string }> = [];
+  const re = /\{\s*prefix:\s*"([^"]+)"\s*,\s*router:\s*([A-Za-z_$][A-Za-z0-9_$]*)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src)) !== null) mounts.push({ prefix: m[1], router: m[2] });
+  return mounts;
+}
+
+/**
+ * 端点存在性核对（**两段式**）：先按挂载段前缀定位，再核对该段 router 变量上的**段内相对注册行**。
+ * 找不到任何挂载段时退回"完整路径字面量"核对（少数文件直接注册完整路径）。
+ */
+function endpointRegistered(src: string, endpoint: string): { ok: boolean; detail: string } {
+  const [method, fullPath] = endpoint.split(" ");
+  const verb = method.toLowerCase();
+  const normalized = normalizeParamConstraints(src);
+  const mounts = parseMounts(src);
+  const mountList = mounts.map((m) => m.prefix).join(" / ") || "（文件内无挂载段）";
+  const tried: string[] = [];
+  for (const { prefix, router } of mounts) {
+    const isSelf = fullPath === prefix || fullPath === `${prefix}/`;
+    if (!isSelf && !fullPath.startsWith(`${prefix}/`)) continue;
+    const relative = fullPath.slice(prefix.length) || "/";
+    const candidate = `${router}.${verb}("${relative}")`;
+    tried.push(candidate);
+    const re = new RegExp(`${escapeRe(router)}\\.${verb}\\(\\s*["'\`]${escapeRe(relative)}["'\`]`);
+    if (re.test(normalized)) return { ok: true, detail: `挂载段 ${prefix} + ${candidate}` };
+  }
+  const fullRe = new RegExp(
+    `\\.${verb}\\(\\s*["'\`][^"'\`]*${escapeRe(fullPath)}["'\`]|prefix:\\s*["'\`]${escapeRe(fullPath)}["'\`]`,
+  );
+  if (fullRe.test(normalized)) return { ok: true, detail: `完整路径字面量 ${fullPath}` };
+  const detail = tried.length > 0 ? tried.join(" / ") : `完整路径字面量 ${fullPath}`;
+  return { ok: false, detail: `${detail}；文件内挂载段 = ${mountList}` };
 }
 
 /**
@@ -109,8 +160,13 @@ describe("S3-236 立码目录：条数与命名规范", () => {
 
   it("码唯一、中文名唯一、模块全部取 079 既有模块码；三段式，或两段式且动作在 079 既有动作白名单内", () => {
     const codes = BATCH2_PERMISSION_CODES;
-    expect(new Set(codes).size).toBe(codes.length);
-    expect(new Set(BATCH2_PERMISSION_CATALOG.map((e) => e.name)).size).toBe(codes.length);
+    // 唯一性判据要**点名**重复项（F1 返工：原写成 `new Set(...).size === length`，红了只说数字、不说是谁）
+    const dupCodes = [...new Set(codes.filter((c, i) => codes.indexOf(c) !== i))];
+    expect(dupCodes, `权限码重复：${dupCodes.join(", ")}`).toHaveLength(0);
+    const names = BATCH2_PERMISSION_CATALOG.map((e) => e.name);
+    const dupNames = [...new Set(names.filter((n, i) => names.indexOf(n) !== i))];
+    expect(dupNames, `中文名重复：${dupNames.join(", ")}`).toHaveLength(0);
+    expect(names).toHaveLength(codes.length);
     for (const entry of BATCH2_PERMISSION_CATALOG) {
       expect(BATCH2_PERMISSION_MODULES).toContain(entry.module);
       expect(entry.code.startsWith(`${entry.module}:`)).toBe(true);
@@ -208,19 +264,24 @@ describe("S3-236 立码目录 ↔ 迁移 207 双向一致", () => {
   });
 
   it("红线：迁移里**没有任何**写 t_sys_role / t_sys_role_permission 的可执行语句（本批零授权）", () => {
-    // ⚠️ 必须**先剥注释**再查：文件底部注释会解释"为什么不补 t_sys_role_permission"，
-    //    按整篇文本查会把注释里的表名当成写动作（首版即栽在这条）
-    const executable = MIGRATION_SQL.split("\n")
-      .map((line) => line.replace(/(^|\s)--.*$/, ""))
-      .join("\n");
-    expect(executable).not.toMatch(/JSON_ARRAY_APPEND/);
-    expect(executable).not.toMatch(/t_sys_role/i);
-    const writing = executable
-      .split(";")
-      .map((s) => s.trim())
-      .filter((s) => /^(INSERT|UPDATE|DELETE|REPLACE)/i.test(s));
-    expect(writing).toHaveLength(1);
-    expect(writing[0]).toContain("INSERT INTO t_sys_menu");
+    // 口径（F1 返工，判红第 2 条）：**只看写语句**。
+    //   迁移底部的只读对账 `SELECT r.id FROM t_sys_role r`（查父行/角色 id，第 110/196 行）是**只读**语句，
+    //   首版 `expect(executable).not.toMatch(/t_sys_role/i)` 一律封杀 ⇒ 把只读对账误判成"发角色码"。
+    const writes = executableStatements(MIGRATION_SQL).filter((s) => /^(INSERT|UPDATE|DELETE|REPLACE)/i.test(s));
+
+    // 红线本体（先查，红了直接点名语句）：写语句里不得出现对角色表（t_sys_role / t_sys_role_permission）的写动作
+    const roleWrites = writes.filter((s) =>
+      /\b(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+t_sys_role(?:_permission)?\b/i.test(s),
+    );
+    expect(roleWrites, `发现写角色表的可执行语句：${roleWrites.join(" | ")}`).toHaveLength(0);
+    // 零授权 ⇒ 也不得出现任何 JSON_ARRAY_APPEND 写权限数组的语句
+    expect(writes.filter((s) => /JSON_ARRAY_APPEND/i.test(s))).toHaveLength(0);
+    // 本批仍然只允许一条写语句（t_sys_menu 插菜单）
+    expect(writes).toHaveLength(1);
+    expect(writes[0]).toContain("INSERT INTO t_sys_menu");
+
+    // 反向锚点：只读对账语句**必须仍在**（防"把判据改宽到再也看不见 t_sys_role"）
+    expect(MIGRATION_SQL).toMatch(/SELECT[^;]*FROM t_sys_role/i);
   });
 });
 
@@ -237,26 +298,8 @@ describe("S3-236 目录声明的端点确实存在（防码对着不存在的端
     const routePath = resolve(ROUTES_DIR, routeFile);
     expect(existsSync(routePath), `缺少路由文件 ${routeFile}`).toBe(true);
     const src = readUtf8(routePath);
-    const full = toExpressEndpoint(ep);
-    const [method, fullPath] = full.split(" ");
-    const prefixMatch = /prefix:\s*"([^"]+)"/.exec(src);
-    if (prefixMatch) {
-      const prefix = prefixMatch[1];
-      if (fullPath.startsWith(prefix)) {
-        const relativePath = fullPath.slice(prefix.length) || "/";
-        const escaped = relativePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const registrationRe = new RegExp(`\\.${method.toLowerCase()}\\(\\s*"${escaped}"`);
-        expect(
-          registrationRe.test(src),
-          `${routeFile} 里找不到 ${method}("${relativePath}") 注册行（前缀 ${prefix}）`,
-        ).toBe(true);
-        return;
-      }
-    }
-    // 多 routeConfig 文件（store-hardware 的 5 个挂载段）：注册行是相对路径，改为按**完整路径字面量**核对
-    const escapedFull = fullPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const literalRe = new RegExp(`\\.${method.toLowerCase()}\\(\\s*"[^"]*${escapedFull}"|prefix:\\s*"${escapedFull}"`);
-    expect(literalRe.test(src), `${routeFile} 里找不到完整路径 ${fullPath} 的注册/挂载行`).toBe(true);
+    const { ok, detail } = endpointRegistered(src, ep);
+    expect(ok, `${routeFile} 里找不到 ${ep} 的注册行（核对形态：${detail}）`).toBe(true);
   });
 
   it("路由文件与本批 38 码同一套（没有把别的域的文件写进目录）", () => {

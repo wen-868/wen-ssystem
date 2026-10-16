@@ -1,0 +1,33 @@
+
+ RUN  v4.1.10 C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/backend
+
+ ❯ src/__tests__/shared/batch2-permission-codes.test.ts (60 tests | 1 failed | 58 skipped) 31ms
+     × 红线：迁移里**没有任何**写 t_sys_role / t_sys_role_permission 的可执行语句（本批零授权） 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/shared/batch2-permission-codes.test.ts > S3-236 立码目录 ↔ 迁移 207 双向一致 > 红线：迁移里**没有任何**写 t_sys_role / t_sys_role_permission 的可执行语句（本批零授权）
+AssertionError: 发现写角色表的可执行语句：UPDATE t_sys_role SET permissions = '[]' WHERE id = 1: expected [ Array(1) ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/__tests__/shared/batch2-permission-codes.test.ts:232:70
+    232|
+    233|   it("sort_no 连续 1..38 且与目录顺序一一对应（迁移插入顺序 = 目录书写顺序）", () => {
+    234|     const extracted = extractMigrationCodes(MIGRATION_SQL);
+       |        ^
+    235|     expect(extracted.map((r) => r.sortNo)).toEqual([...Array(38)].map(…
+    236|     expect(extracted.map((r) => r.code)).toEqual([...BATCH2_PERMISSION…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed | 58 skipped (60)
+   Start at  03:23:25
+   Duration  581ms (transform 225ms, setup 73ms, import 194ms, tests 31ms, environment 0ms)
+

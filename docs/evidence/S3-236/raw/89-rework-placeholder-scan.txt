@@ -1,0 +1,12 @@
+S3-236-F1 返工 · 占位符形态全扫（backend/src/shared/）
+
+命令（工作树根）：
+  rg -n '#[A-Za-z_]+#' backend/src/shared/
+结果：
+  （无任何输出）
+  rg EXIT=1（ripgrep 语义：1 = 未有命中）
+
+即：`#id#` / `#tail#` 一类"检索装置占位符"在 backend/src/shared/ 中 **0 命中**。
+补充（范围更宽，backend/src/ 全量）：
+  rg -n '#[A-Za-z_]+#' backend/src/
+  （无任何输出）EXIT=1

@@ -24,9 +24,9 @@
 | # | 域 | 码 | 端点 | 前端入口判定 |
 |--:|:--|:--|:--|:--|
 | 1 | 报表域 | `report:custom:create` | `POST /api/admin/reports/`<br>`POST /api/custom-report/templates` | ✅ 有调用点：admin-web/src/api/report.ts:240 |
-| 2 | 报表域 | `report:custom:edit` | `PUT /api/admin/reports/#id#`<br>`PUT /api/custom-report/templates/:id` | ✅ 有调用点：admin-web/src/api/report.ts:241 |
-| 3 | 报表域 | `report:custom:delete` | `DELETE /api/admin/reports/#id#`<br>`DELETE /api/custom-report/templates/:id` | ✅ 有调用点：admin-web/src/api/report.ts:242 |
-| 4 | 报表域 | `report:custom:generate` | `POST /api/admin/reports/#id#/generate`<br>`POST /api/custom-report/templates/:id/execute` | ✅ 有调用点：admin-web/src/api/report.ts:243 |
+| 2 | 报表域 | `report:custom:edit` | `PUT /api/admin/reports/:id`<br>`PUT /api/custom-report/templates/:id` | ✅ 有调用点：admin-web/src/api/report.ts:241 |
+| 3 | 报表域 | `report:custom:delete` | `DELETE /api/admin/reports/:id`<br>`DELETE /api/custom-report/templates/:id` | ✅ 有调用点：admin-web/src/api/report.ts:242 |
+| 4 | 报表域 | `report:custom:generate` | `POST /api/admin/reports/:id/generate`<br>`POST /api/custom-report/templates/:id/execute` | ✅ 有调用点：admin-web/src/api/report.ts:243 |
 | 5 | 报表域 | `report:schedule:create` | `POST /api/custom-report/schedules` | ✅ 有调用点：admin-web/src/api/report.ts:245 |
 | 6 | 报表域 | `report:schedule:edit` | `PUT /api/custom-report/schedules/:id` | ✅ 有调用点：admin-web/src/api/report.ts:246 |
 | 7 | 报表域 | `report:schedule:delete` | `DELETE /api/custom-report/schedules/:id` | ✅ 有调用点：admin-web/src/api/report.ts:247 |
@@ -43,7 +43,7 @@
 | 18 | 硬件 / 打印域 | `system:print-template:set-default` | `POST /api/admin/print/templates/:id/set-default` | ✅ 有调用点：admin-web/src/modules/print/api.ts:79 |
 | 19 | 硬件 / 打印域 | `store:hardware:config-edit` | `PUT /api/store/hardware/configs/:category` | ✅ 有调用点：admin-web/src/api/hardware.ts:15 |
 | 20 | 硬件 / 打印域 | `store:hardware:config-test` | `POST /api/store/hardware/configs/:category/test` | ✅ 有调用点：admin-web/src/api/hardware.ts:21 |
-| 21 | 硬件 / 打印域 | `store:hardware:announce` | `POST /api/store/hardware/cloud-speaker/announce#tail#` | ✅ 有调用点：admin-web/src/api/hardware.ts:43 |
+| 21 | 硬件 / 打印域 | `store:hardware:announce` | `POST /api/store/hardware/cloud-speaker/announce` | ✅ 有调用点：admin-web/src/api/hardware.ts:43 |
 | 22 | 硬件 / 打印域 | `store:hardware:box-pay` | `POST /api/store/hardware/box/pay` | ✅ 有调用点：admin-web/src/api/hardware.ts:49 |
 | 23 | 硬件 / 打印域 | `store:hardware:box-config-edit` | `PUT /api/store/hardware/box-config` | ✅ 有调用点：admin-web/src/api/hardware.ts:32 |
 | 24 | 硬件 / 打印域 | `store:hardware:box-config-test` | `POST /api/store/hardware/box-config/test` | ✅ 有调用点：admin-web/src/api/hardware.ts:37 |

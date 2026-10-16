@@ -130,3 +130,53 @@ node scripts/run-migration.mjs docs/migrations/207_四域权限点立码.sql   #
    ⇒ 小程序 5 码的父行挂到 `system` CATALOG，**不新建目录行**（新建目录 = 改菜单结构，越出"只立码"）。
 3. **真库环境不一致**：本沙箱无 MySQL 8.0.28，用 MariaDB 11.4.5 替代（见 §二）⇒ 判据 2 未按卡面环境复现。
 4. **vitest / 根 build 受沙箱与依赖安装限制未达成**（`spawn EPERM` + `npm install` 不完整），已用同判据装置替代并如实登记。
+   ⇒ **F1 返工已解决 vitest 一项**（本沙箱等价装置，见 §八）。
+
+---
+
+## 八、F1 返工（2026-10-17 第二轮 · 凌舟亲跑判红后返工）
+
+> 判红依据：凌舟把 `dsh/S3-236` rebase 到当前 main 后亲跑出货用例 = `batch2-permission-codes.test.ts (60 tests | 9 failed)`。
+> 本轮逐条定性 + 修 + 反测，原始输出全部落 `raw/83`～`raw/97`。
+
+### 8.1 真数据缺陷（1 处 → 3 条红）
+
+- `backend/src/shared/report-permission-codes.ts` 的 `endpoints` 把路径参数写成 `#id#`（第 42/55/68 行）⇒ 改 `:id`；
+  同类形态 `hardware-permission-codes.ts:136` 的 `announce#tail#` ⇒ 改成真实字面量 `/announce`；
+  **根因 = 生成器** `harness/gen-batch2-codes.mjs` 把"检索装置占位符"写进了 `endpoints`（同一文件另一半却用 `:id`，两套占位符并存）⇒ 生成器同步修 + 加"端点不得含 `#…#`"生成期守卫。
+- 全扫：`rg -n '#[A-Za-z_]+#' backend/src/shared/` **0 命中**（`raw/89`）。
+
+### 8.2 用例判据形态缺陷（3 类，逐条修 + 反测）
+
+| # | 缺陷 | 修法 | 反测（注入 ⇒ 红并点名 / 复原 ⇒ 绿） |
+|--:|:--|:--|:--|
+| 1 | 红线判据过宽：`expect(executable).not.toMatch(/t_sys_role/i)` 把迁移 110/196 行的**只读** `SELECT r.id FROM t_sys_role r` 误判为违规 | 只查**写语句**（`INSERT/UPDATE/DELETE/REPLACE` 且目标角色表），并加"只读对账必须仍在"的反向锚点 | 注入 `UPDATE t_sys_role SET permissions='[]' WHERE id=1` ⇒ **红并点名** `发现写角色表的可执行语句：UPDATE t_sys_role …`；复原 ⇒ 绿 | `raw/90`、`raw/90b`、`raw/91` |
+| 2 | 端点存在性不认"多挂载段"：只读**第一个** `prefix:`，`store-hardware.routes.ts` 的 5 段挂载被误判 | 解析**多段 routeConfig 数组**，按"段前缀 + 段内相对注册行"两段核对；`:id(\\d+)` 归一为 `:id`；失败详情附**文件内挂载段清单** | 删掉 `cloud-speaker` 挂载段 ⇒ **红**，报 `找不到 POST /api/store/hardware/cloud-speaker/announce…；文件内挂载段 = configs / box / box-config / unionpay`（缺段显而易见）；复原 ⇒ 绿 | `raw/92`、`raw/92b`、`raw/93` |
+| 3 | 命名/唯一性（第 1 条 FAIL）**定性 = 判据错**：`ReferenceError: BATCH2_ALLOWED_TWO_SEGMENT_ACTIONS is not defined`（测试文件漏 import，不是数据错） | 补 import；唯一性判据改成**点名重复项**（原 `new Set(...).size===length` 红了只说数字） | 注入重复中文名（`导出报表` → `维护报表权限`）⇒ **红并点名** `中文名重复：维护报表权限`；复原 ⇒ 绿 | `raw/83`（原始 ReferenceError）、`raw/94`、`raw/94b`、`raw/95` |
+
+### 8.3 四条复跑（本沙箱等价装置，见 `raw/97-rework-vitest-workaround.md`）
+
+| 门禁 | 结果 | 证据 |
+|:--|:--|:--|
+| `vitest run` 两个用例文件 | ✅ **Test Files 2 passed (2) / Tests 75 passed (75)** | `raw/85` |
+| `node backend/scripts/guard-rbac-wiring.mjs --strict` | ✅ **EXIT=0** | `raw/86` |
+| `node backend/scripts/guard-migration-manifest.mjs` | ✅ **EXIT=0**（A 187 / C 8 / B 12 = 207） | `raw/87` |
+| `npx tsc -p tsconfig.json --noEmit` | ✅ **EXIT=0**（0 字节输出） | `raw/88` |
+| `rg -n '#[A-Za-z_]+#' backend/src/shared/` | ✅ **0 命中（EXIT=1）** | `raw/89` |
+
+### 8.4 新增 raw 文件
+
+| 文件 | 证明什么 |
+|:--|:--|
+| `83-rework-baseline-vitest.txt` | 返工前出货用例原始输出：**9 failed / 51 passed (60)**（与凌舟亲跑一致），9 条失败逐条列出 |
+| `84-rework-after-fix-vitest.txt` | 第一批修完后 `batch2-permission-codes.test.ts` **60 passed (60)** |
+| `85-rework-two-files-vitest.txt` | 两个用例文件 **2 passed / 75 passed**（最终门禁读数） |
+| `86` / `87` / `88` | 两个门禁 EXIT=0 / tsc EXIT=0 |
+| `89-rework-placeholder-scan.txt` | 占位符全扫 0 命中 |
+| `90` / `90b` / `91` | 反测 1：注入写角色表 ⇒ 红并点名；复原 ⇒ 绿；SHA256 复原证明 |
+| `92` / `92b` / `93` | 反测 2：删挂载段 ⇒ 红并点名；复原 ⇒ 绿；SHA256 复原证明 |
+| `94` / `94b` / `95` | 反测 3：注入重复中文名 ⇒ 红并点名；复原 ⇒ 绿；SHA256 复原证明 |
+| `96-rework-stock-vitest-EPERM.txt` | 出厂 `npx vitest run` 在本沙箱起不来的原始报错（`esbuild … spawn EPERM`） |
+| `97-rework-vitest-workaround.md` | 等价装置逐项差异 + 逐字复跑命令（装置全在 gitignored `node_modules.bak/dsh/`，不入库） |
+| `98` / `99` | F1 轮新增证据的口令门禁 / 编码门禁：均 **EXIT=0**（命中 0 处 / 0 非法字节） |
+

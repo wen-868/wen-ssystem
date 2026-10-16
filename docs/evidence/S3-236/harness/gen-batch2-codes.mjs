@@ -69,7 +69,7 @@ const DOMAINS = [
         name: "编辑自定义报表",
         action: "edit",
         routeFile: "custom-report-v2.routes.ts",
-        endpoints: ["PUT /api/admin/reports/#id#", "PUT /api/custom-report/templates/:id"],
+        endpoints: ["PUT /api/admin/reports/:id", "PUT /api/custom-report/templates/:id"],
         routeFiles: ["custom-report-v2.routes.ts", "custom-report.routes.ts"],
         frontendEntry: "暂无前端入口，仅后端授权位",
       },
@@ -78,7 +78,7 @@ const DOMAINS = [
         name: "删除自定义报表",
         action: "delete",
         routeFile: "custom-report-v2.routes.ts",
-        endpoints: ["DELETE /api/admin/reports/#id#", "DELETE /api/custom-report/templates/:id"],
+        endpoints: ["DELETE /api/admin/reports/:id", "DELETE /api/custom-report/templates/:id"],
         routeFiles: ["custom-report-v2.routes.ts", "custom-report.routes.ts"],
         frontendEntry: "暂无前端入口，仅后端授权位",
       },
@@ -87,7 +87,7 @@ const DOMAINS = [
         name: "生成自定义报表",
         action: "generate",
         routeFile: "custom-report-v2.routes.ts",
-        endpoints: ["POST /api/admin/reports/#id#/generate", "POST /api/custom-report/templates/:id/execute"],
+        endpoints: ["POST /api/admin/reports/:id/generate", "POST /api/custom-report/templates/:id/execute"],
         routeFiles: ["custom-report-v2.routes.ts", "custom-report.routes.ts"],
         frontendEntry: "暂无前端入口，仅后端授权位（清单 §2.1：execute 与 generate 同一语义 ⇒ 同名动作）",
       },
@@ -258,7 +258,7 @@ const DOMAINS = [
         action: "announce",
         module: "store",
         routeFile: "store-hardware.routes.ts",
-        endpoints: ["POST /api/store/hardware/cloud-speaker/announce#tail#"],
+        endpoints: ["POST /api/store/hardware/cloud-speaker/announce"],
         menuParent: "store",
         frontendEntry: "暂无前端入口，仅后端授权位",
       },
@@ -503,15 +503,19 @@ function renderDomainFile(domain) {
   lines.push(`export const ${prefix}_PERMISSION_CATALOG: ReadonlyArray<Batch2PermissionEntry> = [`);
   for (const entry of domain.entries) {
     const flat = FLAT.find((f) => f.code === entry.code);
+    // 端点即真实路径字面量：生成前先卡住占位符（F1 返工：首版把检索装置的 `#id#`/`#tail#` 写进了 endpoints，
+    //   与同文件另一半的 `:id` 两套占位符并存，出厂用例因此判红）
+    for (const ep of entry.endpoints) {
+      if (ep.includes("#")) {
+        throw new Error(`端点不得含占位符（#…#）：${entry.code} → ${ep}`);
+      }
+    }
     const endpointsLiteral = quoted(entry.endpoints);
-    const callPatternsLiteral = quoted(
-      entry.endpoints.map((e) => e.replace(/#id#/g, ":id").replace(/#tail#/g, "")),
-    );
+    const callPatternsLiteral = quoted(entry.endpoints);
     const requestPatternsLiteral = quoted(
       entry.endpoints.map((e) => {
         const [method, p] = e.split(" ");
-        const relativePath = p.replace(/^\/api/, "").replace(/#id#/g, ":id").replace(/#tail#/g, "");
-        return `${method} ${relativePath}`;
+        return `${method} ${p.replace(/^\/api/, "")}`;
       }),
     );
     lines.push("  defineBatch2Entry({");

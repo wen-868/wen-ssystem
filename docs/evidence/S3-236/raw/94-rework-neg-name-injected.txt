@@ -1,0 +1,33 @@
+
+ RUN  v4.1.10 C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/backend
+
+ ❯ src/__tests__/shared/batch2-permission-codes.test.ts (60 tests | 1 failed | 59 skipped) 21ms
+     × 码唯一、中文名唯一、模块全部取 079 既有模块码；三段式，或两段式且动作在 079 既有动作白名单内 19ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/shared/batch2-permission-codes.test.ts > S3-236 立码目录：条数与命名规范 > 码唯一、中文名唯一、模块全部取 079 既有模块码；三段式，或两段式且动作在 079 既有动作白名单内
+AssertionError: 中文名重复：维护报表权限: expected [ '维护报表权限' ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/__tests__/shared/batch2-permission-codes.test.ts:143:58
+    142|
+    143| describe("S3-236 立码目录：条数与命名规范", () => {
+    144|   it("38 码、逐域 11 / 14 / 5 / 8（条数 = 派单卡 §一，不是范围断言）", () => {
+       |                  ^
+    145|     expect(BATCH2_PERMISSION_COUNT).toBe(38);
+    146|     expect(BATCH2_PERMISSION_CATALOG.length).toBe(38);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 59 skipped (60)
+   Start at  03:23:58
+   Duration  647ms (transform 259ms, setup 71ms, import 237ms, tests 21ms, environment 0ms)
+

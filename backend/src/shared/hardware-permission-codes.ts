@@ -133,7 +133,7 @@ export const HARDWARE_PERMISSION_CATALOG: ReadonlyArray<Batch2PermissionEntry> =
     name: "云喇叭播报",
     action: "announce",
     routeFile: "store-hardware.routes.ts",
-    endpoints: ["POST /api/store/hardware/cloud-speaker/announce#tail#"],
+    endpoints: ["POST /api/store/hardware/cloud-speaker/announce"],
     callPatterns: ["POST /api/store/hardware/cloud-speaker/announce"],
     requestPatterns: ["POST /store/hardware/cloud-speaker/announce"],
     menuParent: "store",
