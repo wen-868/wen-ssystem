@@ -3112,3 +3112,111 @@ C 两条：登记真写端点被拒 / 缺 ruling 被拒），全部逐字节复�
 3. **S3-119 限流门禁判据可被注释误触发**：`backend/src/__tests__/shared/route-test-rate-limit.test.ts` 的 `MOUNTS_AUTH` 正则跑在**未剥注释**的源码上 —— 测试文件里写一句含 `router.use(… requirePlatformAuth …)` 的**注释**即被判为"自建 app + 挂真实鉴权"（本单新增文件实测命中一次，已改写注释措辞规避）。建议后续改为剥注释匹配（本单只登记）。
 4. **`/api/tenant/applications/*` 与 `/api/platform/applications/*` 同业务双前缀**（`platform-applications.routes.ts` PUT approve/reject 与本域 POST 版）⇒ 平台侧单建议一并收编。
 5. **`customer:level` 菜单授予未经生产复扫**：共用底稿只覆盖营销前缀菜单；本单 §17.4 的判定依据是仓库内生产导出（S3-143 落地后「表 B」，8 角色 × 44 页逐格一致）⇒ 建议按 R-PROD-READ 补扫 `SELECT r.role_code, m.menu_code FROM t_sys_role_menu rm JOIN t_sys_role r ON r.id=rm.role_id JOIN t_sys_menu m ON m.id=rm.menu_id WHERE m.menu_code='customer:level';`（S3-226 §15.9-6 已提同一请求）。
+
+---
+
+## 十八、S3-231 · **收尾批**（F1 会员等级 4 条改挂 `customer:level` · F4 查询型 POST 逐条裁定）（2026-10-16）
+
+> 派单卡：`docs/tasks/inbox/ACTIVE-S3-231.md`｜执行：阿坚（后端 / 权限）｜分支 `chore/s3-231-followups`
+> 基线：`origin/main` = `be781a10`（开工日 `git fetch` 后真值；含 S3-230 #356 合并 `3b94f432`）
+> 判定留档：`docs/evidence/S3-231/F1/`、`docs/evidence/S3-231/F4/`｜机读台账：`backend/scripts/rbac-wiring-baseline.json`
+
+### 18.1 F1 · 已接 **4 条**（`points.routes.ts`，改挂页面注册码 `customer:level`）
+
+| # | 文件:行 | 端点 | 落地码 | 依据 |
+|--:|:--|:--|:--|:--|
+| 1 | `points.routes.ts:26` | POST `/api/admin/members/levels/config` | `customer:level` | 凌舟裁定 1（`R101-S3-229-凌舟验收与裁定.md` §二.1）；页面注册码 `app-mobile/src/config/function-menu.ts:84` |
+| 2 | `points.routes.ts:27` | PUT `/api/admin/members/levels/config/:id` | `customer:level` | 同上（`level-config.vue:161` 保存等级） |
+| 3 | `points.routes.ts:28` | PUT `/api/admin/members/levels/config/:id/status` | `customer:level` | 同上（`member-levels.vue:117` 启停等级） |
+| 4 | `points.routes.ts:29` | DELETE `/api/admin/members/levels/config/:id` | `customer:level` | 同上（`api/modules/member-levels.ts:66` 删除等级） |
+
+**命中机制**：`customer:level` 的域 = `customer` ⇒ 店长 `STORE_MANAGER`（生产在用、1 账号）持 `customer:*`，
+经 `matchPermission` 的**域通配分支**命中 ⇒ 满足不变量 **I1'①**（该码正是页面自身注册码）。**不动角色种子/迁移**（码为既有注册码）。
+
+**影响面（逐条登记，见 `docs/evidence/S3-231/F1/20-impact.md`）**：
+
+| 角色 | 生产账号数 | 持码 | 接线后行为 | 判定 |
+|:--|--:|:--|:--|:--|
+| `SUPER_ADMIN` | 2 | `*` | 200 | 在用写角色，无回归 |
+| `STORE_MANAGER` | 1 | `customer:*`（域通配命中 `customer:level`） | **200** | **在用写角色，零回归（I1'①）** |
+| `OPERATION_ADMIN` | 0 | `*` | 200 | 未用角色 |
+| `SALES_STAFF` | **0** | `customer:view`（**精确码，非通配**） | **403（降级为只读）** | 未用角色 ⇒ 无在用账号受损 |
+| `CUSTOMER_SERVICE` | **0** | `customer:view` | **403（降级为只读）** | 未用角色 ⇒ 无在用账号受损 |
+| `READONLY` | 1 | `*:view`（写动作不覆盖） | 403 | **只读观察员，写 403 属改造前既有期望**（非本单回归） |
+| `STORE_OPERATOR` | 1 | 无 `customer:*` | 403 | 该角色对会员等级页本就无入口（不在其菜单授予内） |
+
+⇒ **无任何"在用写角色"被锁死**；被降级的两类角色（`SALES_STAFF`/`CUSTOMER_SERVICE`）**各 0 账号**。
+
+**未接（同文件 B 类 1 条，保留登记）**：`POST /api/admin/members/:id/points/adjust` —— app-mobile `member-detail.vue:540` 有写调用点，
+经首页快捷入口「会员管理」`pages/home/home.vue:87` **无条件可达** ⇒ 使用者集合不可枚举（B 类，不在 F1 范围）。
+
+### 18.2 反测（门禁铁律；顺序照 `docs/tasks/派单规范.md` §九.1「先更新基线再注入」）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A 报告模式分辨力 | 摘掉 `points.routes.ts:27`（**文件中段行**）的 `requirePermission("customer:level")` | **`--strict` EXIT=1** 且点名 `❌ 未登记：points.routes.ts:27 PUT /api/admin/members/levels/config/:id`（未登记 1 条） | `F1/26-neg-strict.txt` |
+| B 用例分辨力（vitest） | 同上 | `rbac-b2-s3-231-f1-member-levels-wiring.test.ts`：**5 failed / 29 passed**；复原 ⇒ **34 passed** | `F1/27-neg-vitest-red.txt` |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`330DBF00…5FB007C`） | `F1/24-hash-before-neg.txt` / `F1/28-hash-restored.txt` |
+
+### 18.3 F4 · 查询型 POST **逐条裁定**（7 条，派单卡 §F4）
+
+判据（派单卡 §F4）：逐条给「端点 + 该 service 是否写库 + 结论」三列；**可登记**的写进 `guard-rbac-wiring.mjs` 的 `READ_ONLY_POSTS`，
+**不可登记**（有写或有副作用）的**不动**、留在 `gaps` 并登记「按真写端点处理」。
+
+| # | 端点 | 文件（handler → service） | 该 service 是否写库 | 结论 |
+|--:|:--|:--|:--|:--|
+| 1 | POST `/api/admin/marketing/calculate` | `admin-marketing-calculation.routes.ts` → `marketing-calculation.service.ts:calculatePromotion` | **否**：全函数仅 `queryOneWithTenant`/`queryWithTenant` 的 SELECT | **可登记（查询型 POST）** |
+| 2 | POST `/api/admin/alerts/check` | `alert.routes.ts` → `alert.service.ts:runAllAlertChecks` | **是**：5 个 `check*Alerts` 各含 `INSERT INTO t_alert_record`（仅"新增预警"才写，无新增时 0 条） | **不可登记**（有写） ⇒ 留在 `gaps`，按真写端点处理 |
+| 3 | POST `/api/admin/trace/configs/check` | `trace.routes.ts` → `trace-config.service.ts:checkSkuTrace` | **否**：SKU → 分类 → 全局三级 `SELECT t_trace_config` | **可登记（查询型 POST）** |
+| 4 | POST `/api/platform/billing/statement/export` | `platform-billing.routes.ts` → `platform-billing.service.ts:listDailyReconciliationsForExport` | **否**：`SELECT ... FROM t_platform_reconciliation` 后 `sendCsv` | **可登记（查询型 POST）** |
+| 5 | POST `/api/platform/reports/export/` | `platform-export-task.routes.ts` → `platform-export-task.service.ts:createExportTask` | **是**：**创建**导出任务（PENDING） | **不可登记**（有写） ⇒ 留在 `gaps`，按真写端点处理 |
+| 6 | POST `/api/admin/reports/export` | `report.routes.ts` → `report-export.service.ts:exportReport` | **否**：只 `queryWithTenant` 取数 + 内存 `generateCsv`/`generateExcel`（`rows.length > 10000` 分支只返回提示文案，**不落库**） | **可登记（查询型 POST）** |
+| 7 | POST `/api/admin/commission/calculate` | `commission.routes.ts` → `commission.service.ts:calculateCommissions` | **是**：`INSERT INTO t_sales_commission_record`（幂等：先查已存在则跳过） | **不可登记**（有写；且 `rbac-g0-wiring.test.ts:865` 的 NOT_IN_G0 范围控制名单已锁 READONLY 仍 200） ⇒ 留在 `gaps`，按真写端点处理 |
+
+**对账**：**7 = 4（可登记：营销试算 / 追溯配置判定 / 平台对账单导出 / 报表导出）+ 3（不可登记：预警检查 / 平台导出任务创建 / 提成计算）** —— 一条不多、一条不少。
+
+⚠️ **与 §附.5-1 清单的 1 处口径差异（已在本行同时含该终点路径 + 「查询型」，供门禁闸门②核对）**：
+`POST /api/platform/reports/export/` 的字面**末段是 `export`**（易被读成"导出=查询型"），但它在
+`platform-export-task.routes.ts` 里是**任务中心**的"**创建任务**"端点（服务层 `createExportTask` 落库 PENDING）
+⇒ 判为**写**、不登记；其**只读孪生**是列表 `GET /api/platform/reports/export`（GET，不在扫描面内）。
+
+**可登记 3 条（已写入 `READ_ONLY_POSTS`，见下）**：`POST /api/admin/marketing/calculate`（查询型试算，不落库）、
+`POST /api/admin/trace/configs/check`（查询型配置判定，不落库）、`POST /api/platform/billing/statement/export`（查询型对账单导出，不落库）。
+
+### 18.4 F2 · 平台侧 **2 条移交**（`POST /api/tenant/applications/:id/{approve,reject}`）—— **本单只做登记，不硬接线**
+
+派单卡 §F2：该 2 条**归平台侧**（调用方是**平台控制台**，认证走 `requirePlatformAuth`）⇒ 若实现落在商家侧 `auto-routes` 之外，本项**只做登记**（不要在本单硬接线，跨体系）。
+
+**现状核实（可复跑）**：
+- 文件 = `backend/src/routes/tenant-register.routes.ts`（**商家侧文件**，`routeConfig.auth = "none"`，故审核分支在该文件内**显式挂载** `requirePlatformAuth + csrfMiddleware`，见 `:25`）；
+- 端点在商家侧 `auto-routes` 扫描面**内**（G4 门禁 `guard-rbac-wiring --json` 记为 `authForm=none` 的缺口）——挂**商家码**无效（平台 JWT 不带商家 `roles`，`middleware/rbac-auth.ts` 的 `checkUserPermission` 走 `t_sys_role`）⇒ **本单不硬接线**；
+- 调用方 = **平台控制台** `saas-admin/src/api/tenant-application.ts:49/53`（`request.post('/tenant/applications/${id}/approve|reject')`）；
+- 建议码 = **`requirePlatformPermission("tenant:manage")`**（与既有平台侧域码同名；平台侧机制见 `middleware/platform-rbac.ts`）。
+
+**登记落点**：`docs/tasks/R101-平台RBAC接线台账.md` §六（本次新增；该台账的生成器范围 = `platform*.routes.ts`，**扫不到**本文件 ⇒ 需人工补登）。
+**双前缀同业务（一并收编，属原批次卡外观察 §17.8-4）**：`/api/platform/applications/:id/{approve,reject}`（`platform-applications.routes.ts:23/26`，已在该台账 #13/#14，状态=待接线）与本 2 条是**同一业务的两个前缀**。
+
+**风险登记（本单不动）**：`tenant:manage` 在 `middleware/platform-rbac.ts:77` 的 `PLATFORM_PERMISSIONS` **已有**（= 码可被端点引用），但
+`services/platform/platform-role.service.ts` 的 `PERMISSION_CATALOG` 里**只有** `tenant:view`（`:139`）、**没有** `tenant:manage` ⇒ 按该台账 §五.4 的 S3-219 教训，
+接线后若要把该码**授予**某个平台角色会 400（目录外 `module_code` 直接拒）⇒ 平台侧单必须**同时**补目录（两处必须同时改）。
+
+### 18.5 守恒与门禁
+
+| 指标 | 本批前 | F1 后 | F4 后 | 说明 |
+|:--|--:|--:|--:|:--|
+| 扫描写端点总数 | 763 | 763 | 763 | 未增删端点 |
+| 已接线（门禁口径） | 337 | 341 | **341** | F1 +4 |
+| 无授权形态（`gaps`） | 378（113 文件） | 374 | **371** | F1 −4；F4 −3（转查询型登记，非接线） |
+| 消费者端保护形态 | 45 | 45 | 45 | 不变 |
+| 查询型 POST 登记 | 3 | 3 | **6** | F4 +3 |
+| `requirePermission(` 出现次数（用例口径） | 308 | 312 | 312 | F1 +4（F4 不产生码） |
+| `--strict` | EXIT=0 | EXIT=0 | **EXIT=0** | 未登记 0 / 陈旧 0 |
+
+守恒：`371 + 45 + 6 + 341 = 763` ✓（`_counts` 自洽断言在 `rbac-g0-wiring.test.ts`）。
+
+### 18.6 状态变更登记（跨单）
+
+1. **S3-229 §17.4 的「W 类 4 条不接」已由本单 F1 结项**（改挂 `customer:level`）⇒ `rbac-b2-s3-229-*.test.ts` 的
+   `UNWIRED` 由 28 → **24**、`UNWIRED_CLASS_TOTAL` 的 W 4 → **0**、`runnable` 12 → **8**；该文件 G1 一侧断言**未动**。
+2. **G0 用例的 `points.routes.ts` 逐文件读数 2 → 6**（S3-226 的 2 + 本单 F1 的 4）：**不改 S3-226 的声明块**，
+   改为把两块的逐文件贡献**累加**（`rbac-g0-wiring.test.ts` 的折叠循环由 `set(f,n)` 改 `+=`）⇒ 同文件可被多批声明、互不覆盖。

@@ -223,6 +223,30 @@ const READ_ONLY_POSTS = [
     reason: "数据权限**判定**（只读）：返回该用户在某数据权限下的命中判定，不写库",
     ruling: "§十五 ④（S3-225 派单卡 §二.4「只读判定，不按写端点接」）",
   },
+  {
+    path: "/api/admin/marketing/calculate",
+    method: "POST",
+    batch: "S3-231",
+    reason:
+      "营销优惠**试算**（只读查询）：`services/admin/marketing-calculation.service.ts` 的 `calculatePromotion` 全函数仅 `queryOneWithTenant`/`queryWithTenant` 的 SELECT，不落库",
+    ruling: "§十八.3（S3-231 F4 逐条裁定；S3-226 营销域接线时已按 Q 类判「查询型 POST 不按写端点接」）",
+  },
+  {
+    path: "/api/admin/trace/configs/check",
+    method: "POST",
+    batch: "S3-231",
+    reason:
+      "追溯配置**判定**（只读查询）：`services/admin/trace-config.service.ts` 的 `checkSkuTrace` 只按 SKU → 分类 → 全局三级 `SELECT` 出「是否需要追溯」，不写库",
+    ruling: "§十八.3（S3-231 F4 逐条裁定；S3-198 追溯域判定遗留的 7 条疑似查询型之一）",
+  },
+  {
+    path: "/api/platform/billing/statement/export",
+    method: "POST",
+    batch: "S3-231",
+    reason:
+      "平台对账单**导出**（只读查询）：`services/platform/platform-billing.service.ts` 的 `listDailyReconciliationsForExport` 只 `SELECT ... FROM t_platform_reconciliation` 后 `sendCsv`，不写库",
+    ruling: "§十八.3（S3-231 F4 逐条裁定；与 `POST /statement/invoice`、`POST /generate` 不同，后两条有 `INSERT`）",
+  },
 ];
 
 /** 人读台账按行缓存（缺失 ⇒ 一切登记项都无法核对 ⇒ 一律拒收，宁可留缺口） */

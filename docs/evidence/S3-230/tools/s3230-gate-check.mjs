@@ -275,12 +275,20 @@ console.log(`   ${d3} / ${gates.GATED_ENTRY_IDS.length} 个门复原后与基线
 if (d3 !== gates.GATED_ENTRY_IDS.length) bad('反测 D3 覆盖不全')
 else ok('D3 通过：复原 ⇒ 可见（与 C 节基线一致）')
 
-// 「未取到权限码」口径：null ⇒ 放行；空数组 ⇒ 拒绝（与 stores/menu.ts 的 null/空集口径一致）
-console.log('\n-- E. 未取到权限码 / 空码集 口径 --')
-if (!hasPermissionCodes(null, ['sale:create'])) bad('null（未取到）应放行')
-else ok('permissions = null（未取到）⇒ 放行（维持改造前可见性）')
+// 「未取到权限码」口径（**S3-231 F3 改判**）：null ⇒ 拒绝（失败关闭）；空数组 ⇒ 拒绝
+// ⚠️ 状态变更登记（S3-231 F3，2026-10-16，凌舟裁定 5，R101-S3-230-凌舟验收与裁定.md §二.5）：
+//    本段原断言「null ⇒ 放行（维持改造前可见性）」。裁定改为**失败关闭**（取不到码 ⇒ 不显示入口）
+//    ⇒ 本断言随实现同步改判（这不改注册表里的门与码，只改"未取到"这一态的口径）。
+//    分叉说明：`stores/menu.ts` 的 null 语义（首屏加载中放全量）**有意不动**，见 app-mobile/src/config/permission-gates.ts 文件头。
+console.log('\n-- E. 未取到权限码 / 空码集 口径（S3-231 F3：入口门失败关闭）--')
+if (hasPermissionCodes(null, ['sale:create'])) bad('null（未取到）应拒绝（失败关闭）')
+else ok('permissions = null（未取到）⇒ 不显示入口（失败关闭，S3-231 F3）')
+if (hasPermissionCodes(undefined, ['sale:create'])) bad('undefined（未取到）应拒绝（失败关闭）')
+else ok('permissions = undefined（未取到）⇒ 不显示入口（失败关闭，S3-231 F3）')
 if (hasPermissionCodes([], ['sale:create'])) bad('空数组（确实无码）应拒绝')
 else ok('permissions = []（取到但无码）⇒ 不显示（失败关闭）')
+if (!hasPermissionCodes(null, [])) bad('码数组为空（registered 入口）应放行 —— 与"没取到权限码"是两回事')
+else ok('码数组为空（registered 入口 ⇒ 不设门）⇒ 放行（不受失败关闭影响）')
 if (matchPermissionCode(['store:*'], 'store:transfer') !== true) bad('模块通配 store:* 应命中 store:transfer')
 else ok('模块通配 `store:*` 命中 `store:transfer`（与后端 matchPermission 规则②一致）')
 if (matchPermissionCode(['*:view'], 'inventory:adjust') !== false) bad('动作通配 *:view 不应命中写码')

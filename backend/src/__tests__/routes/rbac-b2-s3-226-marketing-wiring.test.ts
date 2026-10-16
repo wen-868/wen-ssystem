@@ -308,8 +308,9 @@ const UNWIRED: UnwiredRow[] = [
   //    （挂 `marketing:create`；生产底稿显示该前缀菜单只授予 OPERATION_ADMIN(0 账号)/READONLY(观察员)/STORE_ADMIN(0 账号)
   //    ⇒ 无在用写角色回归）。故本文件不再把这 10 条列为"未接"，其接线验收在
   //    `rbac-b2-s3-229-store-and-marketing-wiring.test.ts`。此处保留 points 的会员等级 4 条（仍待裁定）。
-  { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/levels/config", path: "/levels/config", reason: "W", note: "app-mobile `member-levels/level-config.vue:164 memberLevelApi.create`；页面注册码 `customer:level`（`function-menu.ts:69`）在生产对 **STORE_MANAGER / SALES_STAFF / CUSTOMER_SERVICE** 均可见（可见性对照表 :113-122），三类工作角色都不持 `marketing:*` ⇒ 接线即 403（W 类）" },
-  { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "put", routePath: "/levels/config/:id/status", path: "/levels/config/1/status", reason: "W", note: "app-mobile `member-levels.vue:117 memberLevelApi.toggleStatus` ⇒ 同上" },
+  // ⚠️ **状态变更登记（2026-10-16 · S3-231 F1）**：`points.routes.ts` 会员等级配置 **4 条**原列此处为 W（待裁定），
+  //    已由 **S3-231 F1** 按凌舟裁定 1（`docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1）**改挂 `customer:level` 接线**
+  //    ⇒ 从本名单移除（W 4 → **0**）。接线验收见 `rbac-b2-s3-231-f1-member-levels-wiring.test.ts` + `docs/evidence/S3-231/F1/`。
   { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/:id/points/adjust", path: "/1/points/adjust", reason: "B", note: "app-mobile `member/member-detail.vue:540` 直接 post；该页经首页快捷入口「会员管理」（`pages/home/home.vue:87`，**无条件**）→ 会员列表 → 详情 ⇒ 使用者集合不可枚举" },
   { file: "store-coupon.routes.ts", prefix: "/api/store/coupons", router: storeCouponRouter, method: "post", routePath: "/verify", path: "/verify", reason: "B", note: "app-mobile `coupon-verify.vue:160 verifyCoupon`（经优惠券页 `coupons.vue:132` 进入，而该页有**无条件推送深链**）⇒ 不可枚举；桌面页 `pos/CouponVerifyView.vue:243`（角色含收银员）本身满足 `sale:create` 口径，码位方案已备好（见台账 §十五.6）" },
   { file: "store-coupon.routes.ts", prefix: "/api/store/coupons", router: storeCouponRouter, method: "post", routePath: "/manual-verify", path: "/manual-verify", reason: "B", note: "app-mobile `coupon-verify.vue:163 manualVerifyCoupon` ⇒ 同上" },
@@ -328,10 +329,11 @@ const DOMAIN_TOTAL = 89;
  *          ＋`points` 的会员等级 4 条（菜单码 `customer:level` 对店长/销售/客服可见）。
  * ⚠️ 口径分界：页面**经无门入口可达或菜单码零映射** ⇒ B；页面**可见角色可枚举但 ⊄ 持有人** ⇒ W（待授权模型定案）。
  * ⚠️ **S3-229（批 9）变更**：`community-marketing` 的 10 条 W 类已按授权模型提案 **D2** 接线（挂 `marketing:create`）⇒
- *    本文件当前**仍未接**的 = 24 − 10 = **14 条**（Q 1 + B 9 + W 4），W 4 = `points` 会员等级 4 条（D2 前提不覆盖该页，
- *    页面码 `customer:level` 对**在用**角色 STORE_MANAGER 可见而不持 `marketing:create` ⇒ 违反不变量 I1，待裁定）。
+ *    本文件当时**仍未接**的 = 24 − 10 = **14 条**（Q 1 + B 9 + W 4）。
+ * ⚠️ **S3-231（F1）变更（2026-10-16）**：`points` 会员等级 **4 条**已按凌舟裁定 1 改挂 `customer:level` 接线
+ *    （`R101-S3-229-凌舟验收与裁定.md` §二.1）⇒ 当前**仍未接** = 14 − 4 = **10 条（Q 1 + B 9 + W 0）**。
  */
-const UNWIRED_CLASS_TOTAL = { Q: 1, B: 9, W: 4 };
+const UNWIRED_CLASS_TOTAL = { Q: 1, B: 9, W: 0 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -485,7 +487,8 @@ describe("S3-226 · 名单自证", () => {
     // ① 本批当时的分类（台账 §十五.4~§十五.6）—— 历史事实，不变；
     expect({ Q: 1, B: 9, W: 14 }).toEqual({ Q: 1, B: 9, W: 14 });
     // ② 当前**仍未接**的分类：S3-229 已把 community-marketing 的 10 条 W 类接线 ⇒ W 14 → 4
-    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 9, W: 4 });
+    //    ③ S3-231 F1 已把 points 会员等级 4 条接线 ⇒ W 4 → 0（状态变更登记）
+    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 9, W: 0 });
   });
 });
 
@@ -514,14 +517,15 @@ describe("S3-226 · 形状断言（注册行级判据，踩坑[134]）", () => {
     expect(update[0].line).toContain('requirePermission("marketing:create")');
   });
 
-  it("同文件混合态自证：points.routes.ts 的 rules 行已接、levels/config 与 points/adjust 行未接", () => {
+  it("同文件混合态自证：points.routes.ts 的 rules + levels/config 5 行已接、points/adjust 行未接（S3-231 F1 状态变更）", () => {
     for (const [method, routePath, wired] of [
       ["post", "/rules", true],
       ["put", "/rules/:id", true],
-      ["post", "/levels/config", false],
-      ["put", "/levels/config/:id", false],
-      ["put", "/levels/config/:id/status", false],
-      ["delete", "/levels/config/:id", false],
+      // ⚠️ S3-231 F1：会员等级 4 条已改挂 `customer:level` 接线 ⇒ 期望由 false 改 true（状态变更登记）
+      ["post", "/levels/config", true],
+      ["put", "/levels/config/:id", true],
+      ["put", "/levels/config/:id/status", true],
+      ["delete", "/levels/config/:id", true],
       ["post", "/:id/points/adjust", false],
     ] as Array<[Method, string, boolean]>) {
       const lines = registrationLines("points.routes.ts", method, routePath);
@@ -645,8 +649,12 @@ describe("S3-226 · 范围控制：本批未接行 READONLY 仍到达业务层�
     expect(h.reached.length, `${label(row)} 应到达业务层`).toBeGreaterThan(0);
   });
 
-  it("三类未接原因齐备（Q / B / W 各至少 1 条，避免只取样一类）", () => {
-    expect([...new Set(UNWIRED.map((r) => r.reason))].sort()).toEqual(["B", "Q", "W"]);
+  it("现余两类未接原因齐备（Q / B 各至少 1 条；W 已由 S3-229 + S3-231 F1 清零）", () => {
+    // ⚠️ 状态变更登记（S3-231 F1，2026-10-16）：points 会员等级 4 条接线后 W 桶清零 ⇒ 期望集合去 W，
+    //    并把「W 已清零」写成显式断言（避免将来被读成"W 桶凭空消失"）。
+    expect([...new Set(UNWIRED.map((r) => r.reason))].sort()).toEqual(["B", "Q"]);
+    expect(UNWIRED.filter((r) => r.reason === "W")).toHaveLength(0);
+    expect(UNWIRED).toHaveLength(10);
   });
 });
 

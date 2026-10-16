@@ -1,0 +1,110 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-231/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts (34 tests | 5 failed) 276ms
+     × 'put' '/levels/config/:id'：注册行自带 requirePermission("undefined") 9ms
+     × 'put' '/levels/config/:id'：READONLY ⇒ 403 且 msg 指向该权限码 9ms
+     × 'put' '/levels/config/:id'：全部非持有人（逐账号枚举）⇒ 403 4ms
+     × 'put' '/levels/config/:id'：未登录 ⇒ 401 6ms
+     × 在用只读观察员 READONLY（1 账号）写得 403 属**改造前既有**期望（该角色本无写码） 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts > S3-231 F1 · 形状断言（注册行级判据，踩坑[134]） > 'put' '/levels/config/:id'：注册行自带 requirePermission("undefined")
+AssertionError: points.routes.ts:27 应带 requirePermission("customer:level"): expected 'pointsRouter.put("/levels/config/:id"…' to contain 'requirePermission("customer:level")'
+
+Expected: "requirePermission("customer:level")"
+Received: "pointsRouter.put("/levels/config/:id", pointsController.updateLevelConfig);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts:217:82
+    215|     expect(lines.length, `${label(row)} 至少应有 1 条注册行`).toBeGreaterThan(…
+    216|     for (const l of lines) {
+    217|       expect(l.line, `points.routes.ts:${l.no} 应带 requirePermission("$…
+       |                                                                                  ^
+    218|     }
+    219|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts > S3-231 F1 · b) 缺码 / 非持有人 ⇒ 403 且未到达业务层 > 'put' '/levels/config/:id'：READONLY ⇒ 403 且 msg 指向该权限码
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts:256:24
+    254|     h.reached.length = 0;
+    255|     const res = await call(row.method, `${PREFIX}${row.path}`, READONL…
+    256|     expect(res.status).toBe(403);
+       |                        ^
+    257|     expect(res.body.code).toBe("403");
+    258|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${PERM}`);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts > S3-231 F1 · b) 缺码 / 非持有人 ⇒ 403 且未到达业务层 > 'put' '/levels/config/:id'：全部非持有人（逐账号枚举）⇒ 403
+AssertionError: readonly 不应通过 points.routes.ts PUT /levels/config/:id: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts:267:67
+    265|       h.reached.length = 0;
+    266|       const res = await call(row.method, `${PREFIX}${row.path}`, uid);
+    267|       expect(res.status, `${USERS[uid].name} 不应通过 ${label(row)}`).toBe…
+       |                                                                   ^
+    268|       expect(h.reached, `${USERS[uid].name} 不得到达 ${label(row)} 的业务层`).…
+    269|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts > S3-231 F1 · 未登录 ⇒ 401（既有行为不变） > 'put' '/levels/config/:id'：未登录 ⇒ 401
+AssertionError: expected 200 to be 401 // Object.is equality
+
+- Expected
++ Received
+
+- 401
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts:295:24
+    293|   it.each(ROWS)("$method $routePath：未登录 ⇒ 401", async (row) => {
+    294|     const res = await request(APP)[row.method](`${PREFIX}${row.path}`)…
+    295|     expect(res.status).toBe(401);
+       |                        ^
+    296|     expect(h.reached).toEqual([]);
+    297|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts > S3-231 F1 · e) 影响面（被降级角色 / 被打 403 的角色，逐条可复算） > 在用只读观察员 READONLY（1 账号）写得 403 属**改造前既有**期望（该角色本无写码）
+AssertionError: points.routes.ts PUT /levels/config/:id 对观察员应为 403（期望行为，非本单回归）: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts:325:66
+    323|     for (const row of ROWS) {
+    324|       const res = await call(row.method, `${PREFIX}${row.path}`, READO…
+    325|       expect(res.status, `${label(row)} 对观察员应为 403（期望行为，非本单回归）`).toBe(…
+       |                                                                  ^
+    326|     }
+    327|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 29 passed (34)
+   Start at  10:19:12
+   Duration  2.99s (transform 446ms, setup 35ms, import 2.37s, tests 276ms, environment 0ms)
+

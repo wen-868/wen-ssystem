@@ -1,0 +1,26 @@
+# S3-231 F3 · 入口门失败关闭 · 验收（真实实现 + 反测）
+
+-- A. 未取到权限码 ⇒ 不显示（失败关闭）--
+  OK   `null`（未取到）⇒ **不显示**（失败关闭）
+  OK   `undefined`（未取到）⇒ **不显示**（失败关闭）
+  OK   权限码为空数组 ⇒ 不显示（回归保护；空数组与通配 * 不同）
+  OK   码数组为空的 `registered` 入口 ⇒ 放行（不受失败关闭影响）
+
+-- B-1. null 下,gated 入口全部不可见（逐条）--
+  OK   26 / 26 个 gated 入口在 null 下**全部不可见**
+  OK   11 / 11 个 registered 入口**不受影响**（不设门）
+
+-- B-2. 反测：码改成不存在的码 ⇒ 该入口不可见 且 进入关闭清单 --
+  OK   注入前：持码角色（sale:create）**可见** `sale-order-detail-deliver`（码 sale:create）
+  OK   注入不存在的码后：持码角色**也不可见**（`sale-order-detail-deliver`）⇒ 判据有分辨力
+  OK   非通配角色在不存在码下同样不可见
+  OK   `*`（超管）对任何码恒可见（与后端 `matchPermission` 的 `*` 分支一致，非漏检）
+  OK   被注入的入口 `sale-order-detail-deliver` **出现在**关闭清单里（不静默）
+
+-- C. F3 只改「未取到」这一态，不动任何门的码 --
+  OK   gated 门数仍为 **26**（与 S3-230 注册表一致）
+  OK   registered 仍为 **11**
+  OK   全部 26 个 gated 入口都有非空码
+
+== 结论 ==
+PASSED：失败关闭（null/undefined/空集）+ 清单非空 + 改码反测 + 不静默 + 与 S3-230 门数一致
