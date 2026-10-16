@@ -145,6 +145,7 @@ node scripts/run-migration.mjs docs/migrations/207_四域权限点立码.sql   #
   同类形态 `hardware-permission-codes.ts:136` 的 `announce#tail#` ⇒ 改成真实字面量 `/announce`；
   **根因 = 生成器** `harness/gen-batch2-codes.mjs` 把"检索装置占位符"写进了 `endpoints`（同一文件另一半却用 `:id`，两套占位符并存）⇒ 生成器同步修 + 加"端点不得含 `#…#`"生成期守卫。
 - 全扫：`rg -n '#[A-Za-z_]+#' backend/src/shared/` **0 命中**（`raw/89`）。
+- **根因已复现证明**：重跑生成器后 `git status`/`git diff` **零差异**（`raw/100`）⇒ `#id#` 是**生成器产物错**，已在生成器侧根治（含生成期守卫）。
 
 ### 8.2 用例判据形态缺陷（3 类，逐条修 + 反测）
 
@@ -179,4 +180,5 @@ node scripts/run-migration.mjs docs/migrations/207_四域权限点立码.sql   #
 | `96-rework-stock-vitest-EPERM.txt` | 出厂 `npx vitest run` 在本沙箱起不来的原始报错（`esbuild … spawn EPERM`） |
 | `97-rework-vitest-workaround.md` | 等价装置逐项差异 + 逐字复跑命令（装置全在 gitignored `node_modules.bak/dsh/`，不入库） |
 | `98` / `99` | F1 轮新增证据的口令门禁 / 编码门禁：均 **EXIT=0**（命中 0 处 / 0 非法字节） |
+| `100-rework-generator-reproduce.txt` | **生成器根因复现**：重跑 `gen-batch2-codes.mjs` 后 `git status`/`git diff` **零差异** ⇒ 生成器与已提交产物一致，且已加"端点不得含 `#…#`"守卫 ⇒ `#id#` 不会再被生成（定性 = **生成器产物错**，非手抄错） |
 
