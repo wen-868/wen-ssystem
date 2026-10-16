@@ -19,10 +19,11 @@
 ## 二、五处落地面（缺一即不算完成）
 
 1. **机器可读目录**：扩 `backend/src/shared/system-permission-codes.ts` 或按域新建 per-域常量（先例 `goods-permission-codes.ts`）；
-2. **迁移**：新增 `docs/migrations/206_四域权限点立码.sql`（幂等，**连跑两遍零错误**；只写码与菜单/授权位，不改 079 历史语料）；
+2. **迁移**：新增 `docs/migrations/207_四域权限点立码.sql`（幂等，**连跑两遍零错误**；只写码与菜单/授权位，不改 079 历史语料）
+   —— ⚠️ **编号已顺延为 207**（205=角色权限种子 / 206=角色权限回补，均已占用）；
 3. **角色种子**：本批**默认不发任何角色码**；若某码按 §2.x 备注必须发给某在用角色，**只登记 + 在回传卡请凌舟裁**（不得自行发码）；
 4. **前端入口登记**：按 §三 的形态写"码 ↔ 前端入口"登记表（本仓前端不引商家码，故是**登记表**不是代码改动）；
-5. **断言与门禁**：`rbac-g0-wiring.test.ts` 的 `EXPECTED_MAX_MIGRATION` 203→204 之类常量同步到 **206**；`guard-rbac-wiring --strict` EXIT=0；新增码的"目录 ↔ 迁移 ↔ 断言"三方一致断言（照 S3-232 形态）。
+5. **断言与门禁**：`backend/src/__tests__/shared/migration-c6-4-1.test.ts` 的 `EXPECTED_MAX_MIGRATION` 同步到 **207**（漏改即红——门禁判据⑥会抓）；`guard-rbac-wiring --strict` EXIT=0；**并用生成器重跑 `deploy/migrations-manifest.txt`**（`node docs/evidence/S3-234/harness/gen-migrations-manifest.mjs`）把 207 纳入，`node backend/scripts/guard-migration-manifest.mjs` **EXIT=0**（已在 CI 阻断）；新增码的"目录 ↔ 迁移 ↔ 断言"三方一致断言（照 S3-232 形态）。
 
 ## 三、凌舟已裁的前置项（**不要再报"待裁定"**，按此执行）
 
