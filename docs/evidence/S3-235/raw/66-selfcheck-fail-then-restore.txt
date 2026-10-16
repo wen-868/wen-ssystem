@@ -1,0 +1,47 @@
+﻿=== T6 R3 自检（人在用角色被清空 ⇒ FAIL；跑 205 后 ⇒ PASS）===
+--- 清空后 ---
+文件: docs/evidence/S3-235/tools/role-seed-selfcheck.sql
+库: liq235_probe @ 127.0.0.1:3421
+[
+  {
+    "statement": 1,
+    "kind": "select",
+    "rows": 1,
+    "result": {
+      "tenant_id": "default",
+      "role_code": "STORE_MANAGER",
+      "role_name": "门店店长",
+      "status": "ACTIVE",
+      "in_use": 1,
+      "bound_users": 1
+    }
+  },
+  {
+    "statement": 2,
+    "kind": "select",
+    "rows": 1,
+    "result": "FAIL: 在用角色（有账号绑定）里 permissions 为空 = 1 行（在用角色 8 个 / 全部角色 32 个；全部角色里为空 = 1 行） ⇒ 处置：先跑 node scripts/run-migration.mjs docs/migrations/205_角色权限种子.sql；若仍失败，按 MIGRATION_WRITE_GATE=allow 重启后再跑，仍未好则停止切换并回报凌舟"
+  }
+]
+写语句 0 条；命中行（affectedRows>0 或 changedRows>0）的语句 = 0 条
+判定：本遍零变更（幂等成立：既没有插入、也没有改动任何行）
+--- 跑 205 复原后 ---
+文件: docs/evidence/S3-235/tools/role-seed-selfcheck.sql
+库: liq235_probe @ 127.0.0.1:3421
+[
+  {
+    "statement": 1,
+    "kind": "select",
+    "rows": 0,
+    "result": null
+  },
+  {
+    "statement": 2,
+    "kind": "select",
+    "rows": 1,
+    "result": "PASS: 在用角色（有账号绑定）里 permissions 为空 = 0 行（在用角色 8 个 / 全部角色 32 个；全部角色里为空 = 0 行）"
+  }
+]
+写语句 0 条；命中行（affectedRows>0 或 changedRows>0）的语句 = 0 条
+判定：本遍零变更（幂等成立：既没有插入、也没有改动任何行）
+断言(先 FAIL 后 PASS): PASS

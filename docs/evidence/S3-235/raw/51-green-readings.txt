@@ -1,0 +1,32 @@
+=== liq235_green（gate=allow 启动链跑完）角色的 permissions 读数 ===
++-----------+-------------------+-----------------+-------------------------------------------------------------------------------------------------------------+
+| tenant_id | role_code         | role_name       | permissions                                                                                                 |
++-----------+-------------------+-----------------+-------------------------------------------------------------------------------------------------------------+
+| default   | ADMIN             | 管理员          | ["store:*", "sale:*", "customer:*", "inventory:*", "report:*", "dashboard:*"]                               |
+| default   | CUSTOMER_SERVICE  | 客服            | ["customer:view", "aftersale:*", "miniapp:*", "notification:view"]                                          |
+| default   | FINANCE           | 财务            | ["finance:*", "report:finance", "payment:*"]                                                                |
+| default   | FINANCE_STAFF     | 财务            | ["finance:*", "report:*", "customer:statement", "supplier:statement", "dashboard:view"]                     |
+| default   | INVENTORY_MANAGER | 库存管理员      | ["inventory:*", "report:inventory"]                                                                         |
+| default   | OPERATION_ADMIN   | 运营管理员      | ["*"]                                                                                                       |
+| default   | PURCHASE_STAFF    | 采购员          | ["purchase:*", "supplier:*", "inventory:inbound", "report:purchase"]                                        |
+| default   | PURCHASER         | 采购员          | ["purchase:create", "purchase:view", "supplier:view", "inventory:in"]                                       |
+| default   | READONLY          | 只读观察员      | ["*:view"]                                                                                                  |
+| default   | SALES_STAFF       | 销售员          | ["sale:create", "sale:view", "customer:view", "customer:visit", "dashboard:view"]                           |
+| default   | SALESMAN          | 销售员          | ["product:read", "order:read", "order:write", "customer:read", "customer:write"]                            |
+| default   | STORE_ADMIN       | 门店管理员      | ["product:read", "order:read", "order:write", "inventory:read", "inventory:write"]                          |
+| default   | STORE_MANAGER     | 门店店长        | ["store:*", "sale:*", "customer:*", "inventory:*", "report:*", "dashboard:*", "goods:create", "goods:edit"] |
+| default   | STORE_OPERATOR    | 门店操作员      | ["sale:create", "sale:view", "inventory:view"]                                                              |
+| default   | SUPER_ADMIN       | 超级管理员      | ["*"]                                                                                                       |
+| default   | VIEWER            | 只读角色        | ["dashboard:view", "report:view"]                                                                           |
+| default   | WAREHOUSE_STAFF   | 仓管员          | ["inventory:*", "trace:*", "transfer:*", "stock-check:*"]                                                   |
++-----------+-------------------+-----------------+-------------------------------------------------------------------------------------------------------------+
++-------------------+
+| fixed_12_nonempty |
++-------------------+
+|                12 |
++-------------------+
++-----------------+
+| total_role_rows |
++-----------------+
+|              32 |
++-----------------+

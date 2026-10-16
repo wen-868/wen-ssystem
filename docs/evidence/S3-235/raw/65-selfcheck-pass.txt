@@ -1,0 +1,20 @@
+﻿=== T5 R3 自检（有权限 ⇒ PASS） ===
+文件: docs/evidence/S3-235/tools/role-seed-selfcheck.sql
+库: liq235_probe @ 127.0.0.1:3421
+[
+  {
+    "statement": 1,
+    "kind": "select",
+    "rows": 0,
+    "result": null
+  },
+  {
+    "statement": 2,
+    "kind": "select",
+    "rows": 1,
+    "result": "PASS: 在用角色（有账号绑定）里 permissions 为空 = 0 行（在用角色 8 个 / 全部角色 32 个；全部角色里为空 = 0 行）"
+  }
+]
+写语句 0 条；命中行（affectedRows>0 或 changedRows>0）的语句 = 0 条
+判定：本遍零变更（幂等成立：既没有插入、也没有改动任何行）
+断言(PASS): PASS

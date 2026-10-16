@@ -1,0 +1,13 @@
+role_code	底稿码数	库中码数	完全一致	差集（库中多出）	差集（库里少）	角色行是否存在
+CUSTOMER_SERVICE	4	4	是	-	-	有
+FINANCE_STAFF	5	5	是	-	-	有
+OPERATION_ADMIN	1	1	是	-	-	有
+PURCHASE_STAFF	4	4	是	-	-	有
+READONLY	1	1	是	-	-	有
+SALESMAN	5	5	是	-	-	有
+SALES_STAFF	5	5	是	-	-	有
+STORE_ADMIN	5	5	是	-	-	有
+STORE_MANAGER	9	8	否	goods:create goods:edit	finance:payment goods:price finance:daily-settle	有
+STORE_OPERATOR	6	3	否	-	dashboard:view sale:return finance:daily-settle	有
+SUPER_ADMIN	1	1	是	-	-	有
+WAREHOUSE_STAFF	4	4	是	-	-	有

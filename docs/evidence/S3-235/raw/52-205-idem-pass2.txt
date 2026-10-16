@@ -1,0 +1,180 @@
+文件: docs/migrations/205_角色权限种子.sql
+库: liq235_green @ 127.0.0.1:3421
+[
+  {
+    "statement": 1,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 2,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 3,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 4,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 5,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 6,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 7,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 8,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 9,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 10,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 11,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 12,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 13,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 14,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 15,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 16,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 17,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 18,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 19,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 20,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 21,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 22,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 23,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Records: 0  Duplicates: 0  Warnings: 0"
+  },
+  {
+    "statement": 24,
+    "kind": "write",
+    "affectedRows": 0,
+    "changedRows": 0,
+    "info": "Rows matched: 0  Changed: 0  Warnings: 0"
+  },
+  {
+    "statement": 25,
+    "kind": "select",
+    "rows": 1,
+    "result": "205 核对：底稿 12 角色 permissions 非空 = 12 / 12；缺失或空权限的角色 = 无"
+  }
+]
+写语句 24 条；命中行（affectedRows>0 或 changedRows>0）的语句 = 0 条
+判定：本遍零变更（幂等成立：既没有插入、也没有改动任何行）

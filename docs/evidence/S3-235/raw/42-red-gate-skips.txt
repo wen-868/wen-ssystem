@@ -1,0 +1,6 @@
+=== 40-boot-red-gate-block.log 汇总（gate=block，红线基线；205 已修注释前缀后重跑） ===
+写闸门跳过语句总数 = 170
+205 相关跳过 = 24 条（INSERT 12 + UPDATE 12）
+ER_* 跳过总数（应为 0 且 205 不得出现 ER_PARSE_ERROR） = 247
+205 的 ER_ 行 = 0
+迁移完成标记 = 1 行

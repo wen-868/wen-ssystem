@@ -1,0 +1,5 @@
+
+> zhixiang-backend@0.1.0 build
+> tsc -p tsconfig.json && node ../scripts/fix-esm-extensions.js dist
+
+已处理 805 个 JS 文件，修复 1957 处导入路径（其中动态 import() 19 处）
