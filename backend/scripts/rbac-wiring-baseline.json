@@ -12,8 +12,12 @@
     "files": 129,
     "endpoints": 469,
     "consumerEndFiles": 4,
-    "consumerEndEndpoints": 39
+    "consumerEndEndpoints": 39,
+    "wiredEndpoints": 255,
+    "scannedEndpoints": 763,
+    "wiredPermOccurrences": 226
   },
+  "_s3227_note": "S3-227（门禁与判据改进批）对 `_counts` 的增补与口径说明：① `wiredEndpoints` = 门禁口径「已接线（权限码）N 处」（authForm ∈ inline/use-mount 的**写端点**数，报告模式首行同名读数）；② `scannedEndpoints` = 扫描到的写端点总数；③ `wiredPermOccurrences` = **用例口径**（`backend/src/__tests__/routes/rbac-g0-wiring.test.ts` 和式左端的实测值：`routes/*.routes.ts` 里 `requirePermission(` 的出现次数）。两口径**不是同一个数**（当前 255 vs 226，差 29）：门禁口径不数非写端点上的出现次数（admin-library 3 条 GET 路由 −3），且把平台侧 `requirePlatformPermission` 端点算作已接线（4 个 platform 文件 +32）。逐文件对照见 docs/evidence/S3-227/10-metric-diff.txt；两个数各自的自洽关系由该用例的两条断言守住（`requirePermission(` 实测 == `wiredPermOccurrences`；`endpoints + consumerEndEndpoints + wiredEndpoints == scannedEndpoints`）。本单改判据不改业务代码：`gaps` 条目数在 B/C 两条改动后同步重算（逐条见 _s3227_b_note / _s3227_c_note）。",
   "consumerEnd": {
     "aftersale.routes.ts": [
       "POST /api/miniapp/aftersales",

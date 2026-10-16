@@ -1,0 +1,16 @@
+[口径对照] 用例口径（requirePermission( 出现次数）= 226
+[口径对照] 门禁口径（authForm ∈ inline/use-mount 的写端点数）= 255
+[口径对照] 差值 = 29（逐文件差异见下，仅列不等的文件）
+
+file                                            occ  wired  delta
+admin-library.routes.ts                           4      1     -3
+platform-library.routes.ts                        0     15     15
+platform-msg-config.routes.ts                     0      4      4
+platform-open.routes.ts                           0     10     10
+platform-review.routes.ts                         0      3      3
+
+[平台机制] 平台侧 requirePlatformPermission 端点（门禁算已接线、用例口径不计）：
+   platform-library.routes.ts: requirePlatformPermission 出现 16 次
+   platform-msg-config.routes.ts: requirePlatformPermission 出现 5 次
+   platform-open.routes.ts: requirePlatformPermission 出现 10 次
+   platform-review.routes.ts: requirePlatformPermission 出现 3 次
