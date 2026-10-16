@@ -28,7 +28,7 @@
 | 门级对账（27→26 门 / 60 行 / 58 唯一端点） | 60 = **60 已接 + 0 跳过** | `docs/evidence/S3-233/raw/61-s3240-gate-recon.txt` |
 | `guard-rbac-wiring --strict` 终值 | **EXIT=0**（gaps 321 / 未登记 0 / 陈旧 0） | `raw/33-strict-after.txt`、`raw/64-s3240-final-check.txt` |
 | 跨层一致性用例 | **120 passed** | `raw/62`、`raw/64` |
-| 全量用例（backend） | **679 文件 / 9830 用例 / 0 failed** | `raw/51-s3240-full-vitest.txt` |
+| 全量用例（backend） | **679 文件 / 9830 用例 / 0 failed**（交付树 HEAD 再复跑一致） | `raw/51`、`raw/66-s3240-head-full-vitest.txt` |
 | `tsc --noEmit` / `npm run build` | 0 / **EXIT=0** | `raw/52-s3240-build.txt`、`raw/64` |
 | 判据 §二.6（20 码 × 生产持有者） | 无持有者 **0** | `raw/60-s3240-prod-holders.txt` |
 | 反测 A/B/C（s3238 轮）＋**反测 D（收尾轮独立复测）** | 摘中间件 ⇒ `--strict` **EXIT=1** 且点名、parity **1~2 failed**；复原 **EXIT=0** 且 SHA256 一致 | `raw/40/41/42`、`raw/43/44/45`、`raw/53~58-s3240-*` |

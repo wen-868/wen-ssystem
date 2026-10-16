@@ -63,6 +63,9 @@ cd backend && npm run build
 | `61-s3240-gate-recon.txt` | 门级对账三表（粘贴源） |
 | `62-s3240-parity-after-title-fix.txt` | 修正"25→27"标题后 parity 120 passed |
 | `63-s3240-main-vs-branch-baseline.txt` | **本分支基底 vs `origin/main` 台账差异与 rebase 投影** |
+| `64-s3240-final-check.txt` | 收尾轮终态复核：parity 120 passed / `--strict` EXIT=0 / `tsc` 0 / evidence-secrets PASS |
+| `65-s3240-ledger-selfcheck-rerun.txt` | 断言口径改"和式 + 自洽"后的复跑（含 394+321+45+3 == 763 复算） |
+| `66-s3240-head-full-vitest.txt` | **交付树（HEAD）全量回归：679 文件 / 9830 用例 / 0 failed** |
 
 ## 五、tools/ 索引
 
