@@ -3232,18 +3232,22 @@ C 两条：登记真写端点被拒 / 缺 ruling 被拒），全部逐字节复�
 
 ### 19.1 起点与终点（机器真值；两个读数源交叉一致）
 
-| 读数 | 起点（本分支基底 `be781a10`） | 终点 | 增量 |
-|:--|:--|:--|:--|
-| 无授权形态写端点（缺口） | **378**（113 文件） | **321**（**94** 文件） | **−57**；**19** 个文件清零 |
-| 已接线（权限码） | 337 | **394** | **+57** |
-| 机读台账 `gaps` | 378 条 / 113 文件 | **321 条 / 94 文件** | `tools/update-baseline.mjs` 逐键移除 57 条（含前后计数与守恒断言） |
-| `wiredPermOccurrences` | 308 | **365** | **+57** |
-| `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 ／ 陈旧登记 0（`raw/33/42/45/58-*-strict*.txt`） |
-| 跨批计数快照 | `rbac-g0-wiring.test.ts` 337 | **394** | 只新增本单常量块并纳入和式；G0 既有名单行未动 |
+| 读数 | ① 本分支基底 `be781a10` | ② 本单在旧基底上的读数 | ③ **rebase 到 main 后的交付树实测**（当前） | 增量说明 |
+|:--|:--|:--|:--|:--|
+| 无授权形态写端点（缺口） | **378**（113 文件） | 321（94 文件） | **314**（**93** 文件） | 本单 −57；rebase 后 = main 371 − 57 |
+| 已接线（权限码） | 337 | 394 | **398** | **+57**（main 341 ＋ 本单 57） |
+| 机读台账 `gaps` | 378 条 / 113 文件 | 321 条 / 94 文件 | **314 条 / 93 文件** | `tools/update-baseline.mjs` 逐键移除 57 条（含前后计数与守恒断言） |
+| `wiredPermOccurrences` | 308 | 365 | **369** | **+57**（main 312 ＋ 57） |
+| 消费者端形态 ／ 查询型 POST（已登记） | 45 ／ 3 | 45 ／ 3 | **45 ／ 6** | 查询型 **+3 来自 main**（S3-231 F4） |
+| `--strict` 退出码 | EXIT=0 | EXIT=0 | **EXIT=0** | 未登记 0 ／ 陈旧登记 0（`raw/33/42/45/58-*-strict*.txt`、**`raw/78-s3240-f1-guard-strict.txt`**） |
+| 跨批计数快照 | `rbac-g0-wiring.test.ts` 337 | 394 | **398** | g0 两侧常量块**并存**（S3-231 新增 4 ＋ S3-233 新增 57） |
+| 全量回归（backend） | — | 679 文件 / 9830 用例 | **681 文件 / 9882 用例 / 0 failed** | `raw/51`、**`raw/79-s3240-f1-full-vitest.txt`**（F1 返工后交付树） |
 
-> ⚠️ **与路由表「371→321」的差异（须凌舟知悉）**：路由表写的 371 是**含 #358（S3-231）之后的 main**读数；本分支基底 `be781a10` 早于 #358 ⇒ 本分支读数起点是 **378**。
-> 实测（`raw/63-s3240-main-vs-branch-baseline.txt`）：`origin/main` = `ca4b4151`（gaps **371**），本分支 HEAD = `be781a10`（落后 7 个提交）；**本单移除的 57 条与 main 侧移除的 7 条零重叠**
-> ⇒ **rebase 到 main 后的投影 = 371 − 57 = 314 条 / 91 文件**（不是 321/94）。已在此登记，供凌舟 rebase 后核对。
+> ⚠️ **基线差异 + rebase 实测（凌舟 2026-10-16 完成 rebase；数字逐条守恒）**：
+> ① 路由表写的「371→321」里的 **371 是"含 #358（S3-231）的 main"读数**；本分支基底 `be781a10` 早于 #358 ⇒ 本单自身在旧基底上的读数是 **378 → 321**（② 列）。
+> ② rebase 后的交付树实测（③ 列）＝ **缺口 314 条 / 93 文件、已接线 398**。**条数守恒**：`371 − 57 = 314`；`341 + 57 = 398`；`312 + 57 = 369`（permOccurrences）。
+> **文件数守恒**：`113 − 20 = 93`（本单接线清零 **19** 个文件 ∪ main 侧另清零 **1** 个文件 `admin-marketing-calculation.routes.ts`）。
+> ③ 本单移除的 57 条与 main 侧移除的 7 条**零重叠**（`raw/63-s3240-main-vs-branch-baseline.txt`）⇒ 合并必须取**并集**；只取一侧会**静默丢掉另一侧的移除**。
 
 ### 19.2 门级对账（`M = K + 跳过`，逐门不遗漏）
 
@@ -3375,10 +3379,10 @@ C 两条：登记真写端点被拒 / 缺 ruling 被拒），全部逐字节复�
 
 | 项目 | 命令 | 结果 | 证据 |
 |:--|:--|:--|:--|
-| 门禁（缺口台账） | `node scripts/guard-rbac-wiring.mjs --strict`（backend） | **EXIT=0**；已登记 321 ／ 未登记 0 ／ 陈旧 0 | `raw/33-strict-after.txt`、`raw/58-…-restored-guard-strict.txt` |
+| 门禁（缺口台账） | `node scripts/guard-rbac-wiring.mjs --strict`（backend） | **EXIT=0**；已登记 **314** ／ 未登记 0 ／ 陈旧 0（旧基底上为 321，见 §19.1） | `raw/33-strict-after.txt`、`raw/58-…-restored-guard-strict.txt`、`raw/78-s3240-f1-guard-strict.txt` |
 | 跨层一致性断言 | `npx vitest run src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts` | **120 passed** | `raw/43/57/62-*` |
 | 本域两侧用例 | `npx vitest run src/__tests__/routes/rbac-b2-s3-198/214/220/223/224/225/226-*.test.ts`（随本批同步） | 全绿 | `raw/50-*`（全量内含） |
-| 全量回归 | `npx vitest run`（backend） | **679 文件 / 9830 用例 / 0 failed** | `raw/51-s3240-full-vitest.txt` |
+| 全量回归 | `npx vitest run`（backend） | **681 文件 / 9882 用例 / 0 failed**（旧基底上为 679 / 9830） | `raw/51-s3240-full-vitest.txt`、`raw/79-s3240-f1-full-vitest.txt` |
 | 类型 | `npx tsc -p tsconfig.json --noEmit` | **0 错误**（EXIT=0） | 见回传卡 |
 | 构建 | `npm run build`（backend） | **EXIT=0**（804 个 JS、1963 处导入修复） | `raw/52-s3240-build.txt` |
 
