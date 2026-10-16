@@ -2,3 +2,4 @@
 退出码：0
 为何零输出：0 error / 0 warning（第一次跑出 2 个 warning：no-console 与未使用的 computed 导入，已在提交前清掉，本文件是清理后的复跑结果）。
 范围说明：仓库既有口径为 `lint:check = eslint src/`（admin-web/package.json），tests/ 不在 lint 范围内（既有两条用例同样如此）。
+说明：同名 `12-eslint-after.txt` 为 **0 字节**文件（清理后的最终代码状态下用显式捕获重跑所得，EXIT=0）。

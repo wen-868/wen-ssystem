@@ -21,8 +21,8 @@
 | 覆盖表（码 × 页面 × 按钮 × 判定点行号） | 17 行 + 2 项登记，未登记引用 0 | `docs/evidence/S3-240/raw/30-覆盖表.txt`（`node docs/evidence/S3-240/tools/gate-coverage.mjs`） |
 | 两侧反测（去码⇒不渲染 / 恢复⇒渲染） | 店主 `["*"]`=1、店长串=0、`null`=0、`[]`=0（逐门 × 逐页 17 行） | `raw/31-spec-permission-gates.txt` |
 | 反测"该红就红"＋逐字节复原 | 摘门 ⇒ EXIT=1 点名 `goods-brand-delete`；换回 `includes()` ⇒ EXIT=1 点名店主假回归；复原 SHA256 逐字节一致；复跑 EXIT=0 | `raw/50-countertest.txt`（`pwsh -File docs/evidence/S3-240/tools/countertest.ps1`） |
-| `vue-tsc --noEmit` 0 新增 | 改动前/后均 EXIT=0、零输出 | `raw/10-…-baseline.txt`、`raw/11-…-after.txt`（各配 `.note.txt`） |
-| `eslint src/` 0 error | EXIT=0（0 error / 0 warning） | `raw/12-eslint-after.txt`（配 `.note.txt`） |
+| `vue-tsc --noEmit` 0 新增 | 改动前/后均 EXIT=0、零输出 | `raw/10-vue-tsc-baseline.note.txt`（零输出故无同名 .txt）、`raw/11-vue-tsc-after.txt`（0 字节）+ `.note.txt` |
+| `eslint src/` 0 error | EXIT=0（0 error / 0 warning） | `raw/12-eslint-after.txt`（0 字节，配 `.note.txt`） |
 | `vite build` | EXIT=0（2m46s） | `raw/60-build.txt` |
 | 不回归 | `npm test` = 3+30+装置 全绿；`guard-rbac-wiring --strict` EXIT=0 | `raw/32-npm-test.txt`、`raw/40-guard-rbac-wiring-strict.txt` |
 
@@ -39,4 +39,8 @@
 
 ## 五、分支与工作树
 
-`feat/s3-240-adminweb-d4-gates` ｜ `D:\Users\ZXQL\wt-agents\S3-240`（基线 `7ea26e8d`）｜未 push
+`feat/s3-240-adminweb-d4-gates` ｜ `D:\Users\ZXQL\wt-agents\S3-240`（基线 `7ea26e8d`；交付提交 `35fbc2ae`）｜未 push
+
+> **未动 `docs/tasks/inbox/ACTIVE.md`**：它在本批（2026-10-17 四端并行）是**四端共用的路由表**，
+> 按 `AGENTS.md` §「并行凌舟会话与路由文件纪律」只允许追加/最小 patch、禁止整文件重写 ⇒ 本单不碰它，
+> 回传走本文件 + `docs/tasks/cards/R101-S3-240-墨回传.md`（派单卡 §五 口径）。

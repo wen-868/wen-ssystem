@@ -1,9 +1,0 @@
-
-D:\Users\ZXQL\wt-agents\S3-240\admin-web\src\composables\usePermissionGate.ts
-  38:7  warning  Unexpected console statement  no-console
-
-D:\Users\ZXQL\wt-agents\S3-240\admin-web\src\stores\app.ts
-  2:10  warning  'computed' is defined but never used  @typescript-eslint/no-unused-vars
-
-✖ 2 problems (0 errors, 2 warnings)
-
