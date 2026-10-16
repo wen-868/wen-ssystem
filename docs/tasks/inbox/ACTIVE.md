@@ -15,8 +15,8 @@
 | `/root/s3233_ajian` | **S3-229**（批 9：门店/租户域接线 + 营销 W 类 14 条收编；按授权模型 D2/I1 口径） | `docs/tasks/inbox/ACTIVE-S3-229.md` |
 | `/root/s3234_frontend` | **S3-230**（前端权限门单：解锁 B 类 66 条端点收编） | `docs/tasks/inbox/ACTIVE-S3-230.md` |
 | `/root/s3237_ajian` | **S3-231**（收尾批：customer:level 4 条 / 平台侧 2 条登记 / 入口门失败关闭 / 7 条查询型 POST 裁定登记）**← 换会话接手**（原 `s3235` 本轮用于 S3-229 复核与跨仓 P0 定位，未产出 F1~F4） | `docs/tasks/inbox/ACTIVE-S3-231.md` |
-| `/root/s3240_ajian` | **S3-233（接手 `s3238`）** 收尾：s3238 已接线完成（gaps 371→321、证据齐）但**未提交/未收尾**且留 1 处用例断言缺陷 ⇒ 见派单消息 | `docs/tasks/inbox/ACTIVE-S3-233.md` |
-| `/root/s3241_ajian` | **S3-234（接手 `s3239`）** 收尾：s3239 已改 `auto-deploy.sh` + `069` + 守卫脚本但**manifest 未建、无回传、未提交** ⇒ 见派单消息 | `docs/tasks/inbox/ACTIVE-S3-234.md` |
+| `/root/s3240_ajian` | **S3-233 返工单（F1）**：PR #359 的 CodeQL 新 high（`admin-product.routes.ts:34` 上传路由缺限流）⇒ **读 `docs/tasks/inbox/ACTIVE-S3-233-F1.md`**（交付已完成，这是追加返工） | `docs/tasks/inbox/ACTIVE-S3-233-F1.md` |
+| `/root/s3241_ajian` | **S3-234 返工单（R1）**：部署通道**三分类**（幂等进 manifest / 恒红进 registry / 口令类与删表类进豁免）+ **新失败阻断部署** ⇒ **读 `docs/tasks/inbox/ACTIVE-S3-234-R1.md`**（含凌舟四条裁定） | `docs/tasks/inbox/ACTIVE-S3-234-R1.md` |
 | `/root/s3242_ajian` | **S3-235**（收口总清单第 72 项：权限种子落库 —— `205` 幂等非破坏迁移 + 空库演练 + 灾备自检） | `docs/tasks/inbox/ACTIVE-S3-235.md` |
 | `/root/s3236_ajian` | **S3-232**（立码第一批：商品写码 D1 + 系统设置/基础域所需码；按提案 §三 五处落地面） | `docs/tasks/inbox/ACTIVE-S3-232.md` |
 
