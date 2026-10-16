@@ -1,0 +1,47 @@
+[判据] 扫描 189 个路由文件 · 1490 条路由注册
+[判据] 「已鉴权（语句级或前缀级）+ 注册点未内联 rateLimit(...)」= 1415 条（第 57 项宽类）
+[判据]   A 精确同族：注册语句上**就有上传中间件** = 4 条（与本次 CodeQL 命中同一形态）
+[判据]   B 近似上界：注册语句引用的 controller **模块级**含 node:fs = 33 条（模块级判定是上界，可能含误报）
+
+—— A 精确同族明细（注册语句上有上传中间件）——
+  - backend/src/routes/avatar.routes.ts:20  POST /auth/avatar  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）
+  - backend/src/routes/miniapp-config.routes.ts:30  POST /upload-key  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）
+  - backend/src/routes/platform-config.routes.ts:50  POST /logo  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）
+  - backend/src/routes/platform-library.routes.ts:108  POST /brands/:id/auth-letter  ⇒ 鉴权=语句级
+
+—— B 近似上界明细（模块级 fs）——
+  - backend/src/routes/platform-library.routes.ts:41  GET /spus  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:44  POST /spus/import  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:51  GET /spus/:id  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:54  POST /spus  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:57  PUT /spus/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:60  PUT /spus/:id/status  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:67  GET /spus/:id/review-logs  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:70  DELETE /spus/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:74  GET /spus/:spuId/skus  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:77  POST /spus/:spuId/skus  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:84  PUT /skus/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:87  DELETE /skus/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:91  GET /categories  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:95  GET /brands  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:98  POST /brands  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:101  PUT /brands/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:104  DELETE /brands/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:117  GET /api-keys  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:120  POST /api-keys  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:123  PUT /api-keys/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:126  DELETE /api-keys/:id  ⇒ 鉴权=语句级；controller 模块含 fs：controller
+  - backend/src/routes/platform-library.routes.ts:133  GET /api-keys/:id/stats  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）；controller 模块含 fs：controller
+  - backend/src/routes/sys-config.routes.ts:8  GET /backups  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:9  GET /backups/:name/download  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:10  DELETE /backups/:name  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:11  GET /tenant-info  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:12  PUT /tenant-info  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:13  GET /  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:14  GET /:group  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:15  PUT /batch  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:16  POST /  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:17  POST /test-mail  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+  - backend/src/routes/sys-config.routes.ts:18  POST /manual-backup  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）；controller 模块含 fs：ctrl
+
+—— 本单范围内的文件（admin-product.routes.ts）在同族判据下是否已清零：是 ✅ ——

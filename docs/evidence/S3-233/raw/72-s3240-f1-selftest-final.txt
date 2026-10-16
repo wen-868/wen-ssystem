@@ -1,0 +1,34 @@
+=== S3-233-F1 自证（2026-10-16 21:41:59，注释措辞修正后）===
+
+--- ① rbac 路由用例（15 文件，含 upload-image 所在两文件）---
+Test Files  15 passed (15)
+Tests  2227 passed (2227)
+Duration  26.21s (transform 13.45s, setup 1.06s, import 91.48s, tests 54.03s, environment 7ms)
+
+--- ② S3-208 运行期限流（含本单新增第 12 条）---
+Test Files  1 passed (1)
+Tests  17 passed (17)
+Duration  14.61s (transform 1.28s, setup 56ms, import 4.69s, tests 9.27s, environment 0ms)
+
+--- ③ rate-limit-options ---
+Test Files  1 passed (1)
+Tests  8 passed (8)
+Duration  17.13s (transform 9.44s, setup 53ms, import 16.42s, tests 111ms, environment 0ms)
+
+--- ④ 同类行判据（全仓）---
+
+--- ⑤ tsc --noEmit ---
+（无输出 EXIT=0）
+
+--- ④ 同类行判据（全仓，用 --repo 正确调用：node docs/evidence/S3-233/tools/s3240-f1-fs-route-scan.mjs）---
+[判据] 扫描 189 个路由文件 · 1490 条路由注册
+[判据] 「已鉴权（语句级或前缀级）+ 注册点未内联 rateLimit(...)」= 1415 条（第 57 项宽类）
+[判据]   A 精确同族：注册语句上**就有上传中间件** = 4 条（与本次 CodeQL 命中同一形态）
+[判据]   B 近似上界：注册语句引用的 controller **模块级**含 node:fs = 33 条（模块级判定是上界，可能含误报）
+
+—— A 精确同族明细（注册语句上有上传中间件）——
+  - backend/src/routes/avatar.routes.ts:20  POST /auth/avatar  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）
+  - backend/src/routes/miniapp-config.routes.ts:30  POST /upload-key  ⇒ 鉴权=前缀级（auth: requireAuthWithTenant）
+  - backend/src/routes/platform-config.routes.ts:50  POST /logo  ⇒ 鉴权=前缀级（auth: requirePlatformAuth）
+  - backend/src/routes/platform-library.routes.ts:108  POST /brands/:id/auth-letter  ⇒ 鉴权=语句级
+scan EXIT=1（1 = 存量命中，均为本单不得触碰的其它文件）

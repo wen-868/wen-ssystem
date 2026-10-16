@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-233/backend
+
+ ❯ src/__tests__/routes/authed-route-rate-limit-s3-208.test.ts (17 tests | 1 failed) 7650ms
+     × 'admin-product.routes.ts:34 POST /prod…'：打满阈值后第 N+1 次 429 510ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/authed-route-rate-limit-s3-208.test.ts > S3-208 · 已鉴权路由的运行期限流（CodeQL js/missing-rate-limiting 接线证据） > 'admin-product.routes.ts:34 POST /prod…'：打满阈值后第 N+1 次 429
+AssertionError: expected undefined to be '60' // Object.is equality
+
+- Expected:
+"60"
+
++ Received:
+undefined
+
+ ❯ src/__tests__/routes/authed-route-rate-limit-s3-208.test.ts:103:46
+    101|     expect(responses.slice(0, LIMIT).filter((r) => r.status === 429)).…
+    102|     // ② 首次响应带 RateLimit 头 ⇒ 请求确实过了 express-rate-limit（而不是"没挂上也没人发现"）
+    103|     expect(first.headers["ratelimit-limit"]).toBe(String(LIMIT));
+       |                                              ^
+    104|     // ③ 第 N+1 次被限流
+    105|     expect(responses[LIMIT].status).toBe(429);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 16 passed (17)
+   Start at  21:44:11
+   Duration  13.93s (transform 1.77s, setup 62ms, import 5.63s, tests 7.65s, environment 0ms)

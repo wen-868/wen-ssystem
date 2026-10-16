@@ -1,7 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 import type { RouteConfig } from "../shared/auto-routes";
 
+import { AUTHED_ROUTE_LIMIT } from "../config/rate-limit";
 import { requirePermission } from "../middleware/rbac-auth";
 import { PERM_GOODS_CREATE } from "../shared/goods-permission-codes";
 
@@ -31,7 +33,16 @@ const upload = multer({
 // 注意：/products/categories 必须在 /products/:spuId 之前注册，否则 "categories" 会被当作 spuId 参数
 adminProductRouter.get("/products/categories", categoryController.listCategories);
 adminProductRouter.get("/products", productController.listProducts);
-adminProductRouter.post("/products/upload-image", requirePermission("goods:create"), upload.single("image"), uploadProductImage);
+// S3-233-F1（返工，2026-10-16）：CodeQL `js/missing-rate-limiting` 新 high ——
+//   本行经 S3-233 挂上 goods:create 权限门后，成为"已鉴权 + 处理链上有文件系统访问"的注册点
+//   （`controllers/admin/product-image.controller.ts:21/49` 的 `fs.mkdirSync` / `fs.writeFileSync`）
+//   ⇒ 必须在**注册点内联**限流调用（第 57 项形状；`config/rate-limit.ts` 头注释：包进 helper 后
+//   CodeQL 识别不到，这是可见性硬要求）。
+//   ⚠️ 顺序：限流 → 鉴权 → multer → 控制器 —— 与仓内**既有 14 处**同族接线一致
+//   （wechat 5 / marketing-miniapp 7 / commerce-fix 3，全部把限流放在鉴权之前）。
+//   ⚠️ 本注释**故意不写**鉴权中间件的字面调用形态（标识符 + 紧跟左括号）：`rbac-g0-wiring.test.ts`
+//   的跨批计数用例按**原文**统计该形态、**不剥注释**，写进注释会让该文件计数 +1 并假红（本次实测踩中）。
+adminProductRouter.post("/products/upload-image", rateLimit(AUTHED_ROUTE_LIMIT), requirePermission("goods:create"), upload.single("image"), uploadProductImage);
 adminProductRouter.get("/products/:spuId(\\d+)", productController.getProductDetail);
 // S3-142：手工建品补挂权限点（既有码 goods:create，079 权限矩阵 :201），未登录仍是 401、无权限 403
 adminProductRouter.post("/products", requirePermission(PERM_GOODS_CREATE), productController.createProduct);

@@ -1,0 +1,23 @@
+=== S3-233-F1 自证（2026-10-16 21:38:20）===
+
+--- ① S3-208 运行期限流（含本单新增第 12 条）---
+Test Files  1 passed (1)
+Tests  17 passed (17)
+Duration  34.59s (transform 2.37s, setup 83ms, import 24.66s, tests 7.29s, environment 1ms)
+
+--- ② rate-limit-options ---
+Test Files  1 passed (1)
+Tests  8 passed (8)
+Duration  41.50s (transform 13.27s, setup 62ms, import 40.67s, tests 108ms, environment 0ms)
+
+--- ③ rbac 路由用例（含 upload-image 所在两文件）---
+❯ src/__tests__/routes/rbac-g0-wiring.test.ts (147 tests | 1 failed) 6977ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  src/__tests__/routes/rbac-g0-wiring.test.ts > S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③） > backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57
+Test Files  1 failed | 14 passed (15)
+Tests  1 failed | 2226 passed (2227)
+Duration  32.24s (transform 20.55s, setup 1.18s, import 114.96s, tests 65.53s, environment 5ms)
+
+--- ④ tsc --noEmit ---
+（无输出）
+EXIT=0

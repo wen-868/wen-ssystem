@@ -16,6 +16,9 @@
  * 路由 / commerce-fix 1 条路由；同一行 2 条注解按 1 条路由计），加上同文件同族在 main 上另有
  * 5 条（marketing 3 条 + commerce-fix 1 条 + wechat 的 `/auth/login` 除外 —— 登录路由
  * 按业主口径**不限流**，见回执 §五）。共 11 条路由，全部逐条打满阈值验证。
+ * S3-233-F1（2026-10-16 返工）追加第 12 条：`admin-product.routes.ts` 的 `POST /products/upload-image`
+ *   —— 该行由 S3-233 挂上 `requirePermission("goods:create")` 后成为 CodeQL 新 high（已鉴权 + 控制器
+ *   `fs.writeFileSync` 写盘），补内联限流后纳入本登记表（判据与顺序同上：限流在鉴权之前）。
  */
 import express from "express";
 import type { Router } from "express";
@@ -25,6 +28,7 @@ import { AUTHED_ROUTE_LIMIT } from "../../config/rate-limit";
 import { wechatRouter } from "../../routes/wechat.routes";
 import { miniappMarketingRouter } from "../../routes/marketing-miniapp.routes";
 import { adminCommerceFixRouter, storeCommerceFixRouter } from "../../routes/commerce-fix.routes";
+import { adminProductRouter } from "../../routes/admin-product.routes";
 
 const LIMIT = AUTHED_ROUTE_LIMIT.limit as number;
 
@@ -57,6 +61,9 @@ const cases: Case[] = [
   { name: "commerce-fix.routes.ts:30 GET /verify-records（门店端，auth 由 routeConfigs 前缀级前置）", mount: "/api/store/coupons", router: storeCommerceFixRouter, method: "get", path: "/verify-records" },
   { name: "commerce-fix.routes.ts POST /bills", mount: "/api/admin", router: adminCommerceFixRouter, method: "post", path: "/bills" },
   { name: "commerce-fix.routes.ts POST /bills/:id/verify", mount: "/api/admin", router: adminCommerceFixRouter, method: "post", path: "/bills/1/verify" },
+  // S3-233-F1（2026-10-16 返工）：本行是 S3-233 批新增的"已鉴权 + 文件系统写入"注册点，
+  //   CodeQL 在 PR #359 上报的新 high 即此条 ⇒ 补内联限流后在此留运行期证据。
+  { name: "admin-product.routes.ts:34 POST /products/upload-image（S3-233-F1）", mount: "/api/admin", router: adminProductRouter, method: "post", path: "/products/upload-image" },
 ];
 
 function buildApp(c: Case): express.Express {
