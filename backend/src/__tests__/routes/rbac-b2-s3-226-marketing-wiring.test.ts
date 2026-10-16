@@ -280,6 +280,16 @@ const ROWS: Row[] = [
   { file: "seckill.routes.ts", prefix: "/api/seckill", router: seckillRouter, method: "post", routePath: "/", path: "/", perm: "marketing:create", pageRoles: [], page: "api/marketing.ts:294 打 /admin/marketing/seckill（后端前缀 /api/seckill）" },
   { file: "seckill.routes.ts", prefix: "/api/seckill", router: seckillRouter, method: "put", routePath: "/:id", path: "/1", perm: "marketing:create", pageRoles: [], page: "api/marketing.ts:295 同上（路径错配）" },
   { file: "seckill.routes.ts", prefix: "/api/seckill", router: seckillRouter, method: "delete", routePath: "/:id", path: "/1", perm: "marketing:create", pageRoles: [], page: "api/marketing.ts:296 同上（路径错配）" },
+
+  // ===== S3-233（B 类收编第一批 · 营销域 5 条）=================================================
+  // 依据门（唯一真相源）= app-mobile/src/config/permission-gates.ts：`mkt-coupons`（优惠券入口 + 推送深链）
+  //   与 `mkt-activities`（营销活动入口），门码均为 `marketing:create`。
+  // B 类前提（页面经推送深链 / 菜单码零映射的前缀回退无条件可达 ⇒ 使用者集合不可枚举）已由 S3-230 的入口权限门修复。
+  { file: "admin-marketing-coupon.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingCouponRouter, method: "post", routePath: "/coupons/templates", path: "/coupons/templates", perm: "marketing:create", pageRoles: ["SUPER_ADMIN"], page: "app-mobile create-coupon.vue:279 + 桌面 CouponManage.vue（优惠券管理 router:227 [SUPER_ADMIN]）；门 = mkt-coupons" },
+  { file: "admin-marketing-coupon.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingCouponRouter, method: "post", routePath: "/coupons/templates/:id/pause", path: "/coupons/templates/1/pause", perm: "marketing:create", pageRoles: ["SUPER_ADMIN"], page: "app-mobile coupons.vue:147 + 桌面 CouponManage.vue:349（同页）；门 = mkt-coupons" },
+  { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "post", routePath: "/full-reductions/:id/activate", path: "/full-reductions/1/activate", perm: "marketing:create", pageRoles: ["SUPER_ADMIN"], page: "app-mobile activities.vue:128（门 mkt-activities）+ 桌面 MarketingView.vue（营销活动 router:220 [SUPER_ADMIN]）" },
+  { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "post", routePath: "/full-reductions/:id/pause", path: "/full-reductions/1/pause", perm: "marketing:create", pageRoles: ["SUPER_ADMIN"], page: "app-mobile activities.vue:146（门 mkt-activities）" },
+  { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "delete", routePath: "/full-reductions/:id", path: "/full-reductions/1", perm: "marketing:create", pageRoles: ["SUPER_ADMIN"], page: "app-mobile activities.vue:164（门 mkt-activities）+ 桌面 MarketingView.vue:542" },
 ];
 
 interface UnwiredRow {
@@ -298,11 +308,7 @@ interface UnwiredRow {
 /** 本域本批**未接**的代表行（三类原因各取样；逐条全量见台账 §十五.4~§十五.6）。 */
 const UNWIRED: UnwiredRow[] = [
   { file: "admin-marketing-calculation.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingCalculationRouter, method: "post", routePath: "/calculate", path: "/calculate", reason: "Q", note: "活动**试算**：`services/admin/marketing-calculation.service.ts` 的 `calculatePromotion` 只读不写（仅 SELECT，`rg -in 'insert into|update |delete from'` 零命中）⇒ 按派单卡 §二.3「查询型 POST 不按写端点接」（同批 6 `POST /admin/quote-push/preview`）" },
-  { file: "admin-marketing-coupon.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingCouponRouter, method: "post", routePath: "/coupons/templates", path: "/coupons/templates", reason: "B", note: "app-mobile `create-coupon.vue:279 couponsApi.create`；该页经**推送深链**无条件可达（`native/push.ts:107 marketing → /pages-sub/marketing/marketing/coupons`）⇒ 使用者集合不可枚举" },
-  { file: "admin-marketing-coupon.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingCouponRouter, method: "post", routePath: "/coupons/templates/:id/pause", path: "/coupons/templates/1/pause", reason: "B", note: "app-mobile `coupons.vue:147 couponsApi.pause`，同一推送深链可达页 ⇒ 不可枚举" },
-  { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "post", routePath: "/full-reductions/:id/activate", path: "/full-reductions/1/activate", reason: "B", note: "app-mobile `activities.vue:128 activityApi.start`；该页菜单码 `marketing:activities` 在生产**不在菜单库**（`R101-S3-136-F1-阿澈-可见性对照表.md:143`），可见角色含 `READONLY`（`*:view`）⇒ 不可枚举" },
-  { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "post", routePath: "/full-reductions/:id/pause", path: "/full-reductions/1/pause", reason: "B", note: "app-mobile `activities.vue:146 activityApi.pause` ⇒ 同上" },
-  { file: "admin-marketing-full-reduction.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingFullReductionRouter, method: "delete", routePath: "/full-reductions/:id", path: "/full-reductions/1", reason: "B", note: "app-mobile `activities.vue:164 activityApi.delete` ⇒ 同上" },
+  // （S3-233：原 5 行 B 类（coupon create/pause、full-reduction delete/activate/pause）已收编接线，见上方 ROWS 的 S3-233 块）
   { file: "admin-marketing-points.routes.ts", prefix: "/api/admin/marketing", router: adminMarketingPointsRouter, method: "post", routePath: "/points/redeem", path: "/points/redeem", reason: "B", note: "app-mobile `pages-sub/marketing/points/points-exchange.vue:88 pointsApi.exchange`；该页 `pages.json:461` 注册后**全仓无导航入口**（孤岛页）⇒ 使用者集合不可枚举" },
   // ⚠️ S3-226 当时登记的 `community-marketing.routes.ts` 10 条 W 类代表行**已由 S3-229（批 9）按授权模型提案 D2 接线**
   //    （挂 `marketing:create`；生产底稿显示该前缀菜单只授予 OPERATION_ADMIN(0 账号)/READONLY(观察员)/STORE_ADMIN(0 账号)
@@ -333,7 +339,11 @@ const DOMAIN_TOTAL = 89;
  * ⚠️ **S3-231（F1）变更（2026-10-16）**：`points` 会员等级 **4 条**已按凌舟裁定 1 改挂 `customer:level` 接线
  *    （`R101-S3-229-凌舟验收与裁定.md` §二.1）⇒ 当前**仍未接** = 14 − 4 = **10 条（Q 1 + B 9 + W 0）**。
  */
-const UNWIRED_CLASS_TOTAL = { Q: 1, B: 9, W: 0 };
+// 合并口径（rebase 后取两侧并集，S3-233 ⨯ main(#358) 零重叠）：
+//   · S3-229 接线 community-marketing 的 10 条 W 类 ⇒ W 14 → 4
+//   · S3-231 F1 接线 points 会员等级 4 条（W 类）⇒ W 4 → 0
+//   · S3-233 收编 5 条 B 类（coupon 2 + full-reduction 3）⇒ B 9 → 4
+const UNWIRED_CLASS_TOTAL = { Q: 1, B: 4, W: 0 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -442,13 +452,13 @@ beforeEach(() => {
 });
 
 describe("S3-226 · 名单自证", () => {
-  it("65 已接行（逐文件分布与台账 §十五.2 表一致）", () => {
-    expect(ROWS).toHaveLength(65);
+  it("70 已接行（S3-226 的 65 行 + S3-233 收编 5 行；逐文件分布与台账 §十五.2/§十八 一致）", () => {
+    expect(ROWS).toHaveLength(70);
     const perFile = new Map<string, number>();
     for (const row of ROWS) perFile.set(row.file, (perFile.get(row.file) ?? 0) + 1);
     expect([...perFile.entries()].sort()).toEqual([
-      ["admin-marketing-coupon.routes.ts", 3],
-      ["admin-marketing-full-reduction.routes.ts", 2],
+      ["admin-marketing-coupon.routes.ts", 5],
+      ["admin-marketing-full-reduction.routes.ts", 5],
       ["admin-marketing-group-buy.routes.ts", 6],
       ["admin-marketing-points.routes.ts", 1],
       ["admin-marketing-stack-rule.routes.ts", 3],
@@ -469,26 +479,28 @@ describe("S3-226 · 名单自证", () => {
     }
   });
 
-  it("已接 65 行只用 2 个**既有**权限码（本批不新立权限点、不改角色种子、不动迁移）", () => {
+  it("已接 70 行只用 2 个**既有**权限码（两批均不新立权限点、不改角色种子、不动迁移）", () => {
     expect([...new Set(ROWS.map((r) => r.perm))].sort()).toEqual(["marketing:create", "marketing:points"]);
   });
 
-  it("对账：台账 §三.4 本域 89 写端点 = 本批 65 + 本批未接 24（Q1 + B9 + W14；其中 W 10 已由 S3-229 接线）", () => {
+  it("对账：台账 §三.4 本域 89 写端点 = 已接 70（S3-226 的 65 + S3-233 收编 5） + 未接 19（Q1 + B9 + W14 − S3-229 的 W10 − S3-233 收编的 B5）", () => {
     const owned =
-      2 + // coupon：create / pause 未接
-      3 + // full-reduction：delete / activate / pause 未接
+      0 + // coupon：create / pause 已由 S3-233 收编（原 2）
+      0 + // full-reduction：delete / activate / pause 已由 S3-233 收编（原 3）
       1 + // marketing-points：redeem 未接
       1 + // calculation：calculate（Q）
       10 + // community-marketing 全部
       5 + // points.routes：levels 4 + adjust 1
       2; // store-coupon 全部
-    expect(DOMAIN_TOTAL - ROWS.length).toBe(24);
-    expect(owned).toBe(24);
+    expect(DOMAIN_TOTAL - ROWS.length).toBe(19);
+    expect(owned).toBe(19);
     // ① 本批当时的分类（台账 §十五.4~§十五.6）—— 历史事实，不变；
     expect({ Q: 1, B: 9, W: 14 }).toEqual({ Q: 1, B: 9, W: 14 });
-    // ② 当前**仍未接**的分类：S3-229 已把 community-marketing 的 10 条 W 类接线 ⇒ W 14 → 4
-    //    ③ S3-231 F1 已把 points 会员等级 4 条接线 ⇒ W 4 → 0（状态变更登记）
-    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 9, W: 0 });
+    // ② 当前**仍未接**的分类（两侧并集）：
+    //    · S3-229 把 community-marketing 的 10 条 W 类接线（W 14 → 4）
+    //    · S3-231 F1 把 points 会员等级 4 条接线（W 4 → 0）
+    //    · S3-233 把 5 条 B 类收编（B 9 → 4：points/adjust 1 + marketing-points/redeem 1 + store-coupon 2）
+    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 4, W: 0 });
   });
 });
 
@@ -505,13 +517,13 @@ describe("S3-226 · 形状断言（注册行级判据，踩坑[134]）", () => {
     expect(lines[0].line).not.toContain("requirePermission(");
   });
 
-  it("同文件混合态自证：admin-marketing-coupon.routes.ts 的 create/pause 行未接、update 行已接（逐端点判定）", () => {
+  it("同文件混合态自证：admin-marketing-coupon.routes.ts 的 create/pause/update 三行**均已接**（S3-233 收编后同码）", () => {
     const create = registrationLines("admin-marketing-coupon.routes.ts", "post", "/coupons/templates");
     expect(create).toHaveLength(1);
-    expect(create[0].line, "新建券模板属 B 类，不得被误接").not.toContain("requirePermission(");
+    expect(create[0].line, "新建券模板行必须行级自带该码").toContain('requirePermission("marketing:create")');
     const pause = registrationLines("admin-marketing-coupon.routes.ts", "post", "/coupons/templates/:id/pause");
     expect(pause).toHaveLength(1);
-    expect(pause[0].line).not.toContain("requirePermission(");
+    expect(pause[0].line, "暂停券模板行必须行级自带该码").toContain('requirePermission("marketing:create")');
     const update = registrationLines("admin-marketing-coupon.routes.ts", "put", "/coupons/templates/:id");
     expect(update).toHaveLength(1);
     expect(update[0].line).toContain('requirePermission("marketing:create")');

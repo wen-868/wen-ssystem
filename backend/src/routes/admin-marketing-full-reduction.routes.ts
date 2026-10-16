@@ -16,9 +16,12 @@ adminMarketingFullReductionRouter.post("/full-reductions", requirePermission("ma
 adminMarketingFullReductionRouter.get("/full-reductions", fullReductionController.listFullReductions);
 adminMarketingFullReductionRouter.get("/full-reductions/:id", fullReductionController.getFullReduction);
 adminMarketingFullReductionRouter.put("/full-reductions/:id", requirePermission("marketing:create"), fullReductionController.updateFullReduction);
-adminMarketingFullReductionRouter.delete("/full-reductions/:id", fullReductionController.deleteFullReduction);
-adminMarketingFullReductionRouter.post("/full-reductions/:id/activate", fullReductionController.activateFullReduction);
-adminMarketingFullReductionRouter.post("/full-reductions/:id/pause", fullReductionController.pauseFullReduction);
+// S3-233（B 类收编第一批 · 营销域）：删 / 启停满减活动挂 `marketing:create`（与 :15/:18 同码同文件）。
+// 依据门 = permission-gates.ts 的 `mkt-activities`（功能中心「营销活动」入口）；B 类前提（该页经推送深链/
+// 首页快捷入口无条件可达）已由 S3-230 的入口权限门修复。
+adminMarketingFullReductionRouter.delete("/full-reductions/:id", requirePermission("marketing:create"), fullReductionController.deleteFullReduction);
+adminMarketingFullReductionRouter.post("/full-reductions/:id/activate", requirePermission("marketing:create"), fullReductionController.activateFullReduction);
+adminMarketingFullReductionRouter.post("/full-reductions/:id/pause", requirePermission("marketing:create"), fullReductionController.pauseFullReduction);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

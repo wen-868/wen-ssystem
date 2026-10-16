@@ -397,9 +397,74 @@ const WIRED: WiredRow[] = [
     users: [SUPER_ADMIN_USER, FINANCE_STAFF],
     why: "收款单页 router/index.ts:197 [SUPER_ADMIN] → views/finance/ReceiptsView.vue:379 + app-mobile 收款管理页 receipts.vue:121（function-menu.ts:91 菜单码 finance:receipt，持有者=finance:* 角色）",
   },
+
+  // ===== S3-233（B 类收编第一批 · 财务域 5 条）=================================================
+  // 依据门（唯一真相源）= app-mobile/src/config/permission-gates.ts：`fin-bank-accounts`（finance:create）/
+  //   `sale-receipt-sub`（sale:create）/ `fin-recon-confirm`（report:finance）。
+  // B 类前提（app-mobile 门店管理页 / 开单页收款单子段 / 对账页经「我的」页无条件入口可达 ⇒ 使用者集合不可枚举）
+  // 已由 S3-230 的入口权限门修复（D4/I1'）⇒ 本批收编；三个码都是既有码（不新立、不改种子、不动迁移）。
+  {
+    file: "bank-account.routes.ts",
+    prefix: "/api/admin/bank-accounts",
+    router: bankAccountRouter,
+    method: "post",
+    routePath: "/",
+    path: "/",
+    perm: "finance:create",
+    users: [SUPER_ADMIN_USER, FINANCE_STAFF],
+    why: "app-mobile 门店管理页 stores.vue:241（bankAccountsApi.create）；入口门 = fin-bank-accounts（同文件 :17-20 三行同码先例）",
+  },
+  {
+    file: "bank-account.routes.ts",
+    prefix: "/api/admin/bank-accounts",
+    router: bankAccountRouter,
+    method: "post",
+    routePath: "/:id/close",
+    path: "/1/close",
+    perm: "finance:create",
+    users: [SUPER_ADMIN_USER, FINANCE_STAFF],
+    why: "app-mobile 门店管理页 stores.vue:263（bankAccountsApi.close）；入口门 = fin-bank-accounts",
+  },
+  {
+    file: "receipt.routes.ts",
+    prefix: "/api/admin/receipts",
+    router: receiptRouter,
+    method: "post",
+    routePath: "/",
+    path: "/",
+    perm: "sale:create",
+    users: [SUPER_ADMIN_USER, 9003, 9008, STORE_MANAGER_PROD],
+    why: "app-mobile 开单页 create-sale.vue:2202（receiptApi.create）；收款族按「覆盖收银员」取 sale:create（门 = sale-receipt-sub，码由注册表给定），使用者 = 销售员/操作员/店长",
+  },
+  {
+    file: "reconciliation.routes.ts",
+    prefix: "/api/admin/reconciliation",
+    router: reconciliationRouter,
+    method: "post",
+    routePath: "/customer/:customerId/confirm",
+    path: "/customer/1/confirm",
+    perm: "report:finance",
+    users: [SUPER_ADMIN_USER, FINANCE_STAFF, STORE_MANAGER_PROD],
+    why: "app-mobile 对账页 reconciliation.vue:256；门 = fin-recon-confirm；同语义先例 = S3-214-B2 对账单 confirm（report:finance，店长持 report:*）",
+  },
+  {
+    file: "reconciliation.routes.ts",
+    prefix: "/api/admin/reconciliation",
+    router: reconciliationRouter,
+    method: "post",
+    routePath: "/supplier/:supplierId/confirm",
+    path: "/supplier/1/confirm",
+    perm: "report:finance",
+    users: [SUPER_ADMIN_USER, FINANCE_STAFF, STORE_MANAGER_PROD],
+    why: "app-mobile 对账页 reconciliation.vue:258；门 = fin-recon-confirm（同上）",
+  },
 ];
 
-/** 本批**未接** 9 行（逐条给类别与锁定锚点；注册行必须**不含**权限中间件） */
+/**
+ * 未接 4 行（逐条给类别与锁定锚点；注册行必须**不含**权限中间件）。
+ * ⚠️ S3-233（B 类收编第一批）：原 9 行里 **5 行 B 类**已随 S3-230 的入口权限门落地而收编（移入 WIRED），
+ *    其余口径不变（G0 锁定 3 + 公开端点 1）。
+ */
 interface UnwiredRow {
   file: string;
   prefix: string;
@@ -412,56 +477,7 @@ interface UnwiredRow {
 }
 
 const UNWIRED: UnwiredRow[] = [
-  {
-    file: "bank-account.routes.ts",
-    prefix: "/api/admin/bank-accounts",
-    router: bankAccountRouter,
-    method: "post",
-    routePath: "/",
-    path: "/",
-    kind: "B",
-    reason: "app-mobile 门店管理页 stores.vue:241（bankAccountsApi.create）；锁于 rbac-g1-wiring.test.ts:273 / rbac-g2-wiring.test.ts:232",
-  },
-  {
-    file: "bank-account.routes.ts",
-    prefix: "/api/admin/bank-accounts",
-    router: bankAccountRouter,
-    method: "post",
-    routePath: "/:id/close",
-    path: "/1/close",
-    kind: "B",
-    reason: "app-mobile 门店管理页 stores.vue:263（bankAccountsApi.close）；锁于 rbac-g1-wiring.test.ts:274 / rbac-g2-wiring.test.ts:244",
-  },
-  {
-    file: "receipt.routes.ts",
-    prefix: "/api/admin/receipts",
-    router: receiptRouter,
-    method: "post",
-    routePath: "/",
-    path: "/",
-    kind: "B",
-    reason: "app-mobile 开单页 create-sale.vue:2202（receiptApi.create）；锁于 rbac-g1-wiring.test.ts:275 / rbac-g2-wiring.test.ts:256",
-  },
-  {
-    file: "reconciliation.routes.ts",
-    prefix: "/api/admin/reconciliation",
-    router: reconciliationRouter,
-    method: "post",
-    routePath: "/customer/:customerId/confirm",
-    path: "/customer/1/confirm",
-    kind: "B",
-    reason: "app-mobile 对账页 reconciliation.vue:256（菜单码 finance:reconciliation 无 t_sys_menu 行）；锁于 rbac-g1-wiring.test.ts:276 / rbac-g2-wiring.test.ts:268",
-  },
-  {
-    file: "reconciliation.routes.ts",
-    prefix: "/api/admin/reconciliation",
-    router: reconciliationRouter,
-    method: "post",
-    routePath: "/supplier/:supplierId/confirm",
-    path: "/supplier/1/confirm",
-    kind: "B",
-    reason: "app-mobile 对账页 reconciliation.vue:258；锁于 rbac-g1-wiring.test.ts:277 / rbac-g2-wiring.test.ts:280",
-  },
+  // （S3-233：原 B 类 5 行已收编接线，见上方 WIRED 的 S3-233 块与缺口清单 §十八）
   {
     file: "payment-new.routes.ts",
     prefix: "/api/admin/payments-new",
@@ -580,29 +596,30 @@ beforeEach(() => {
   for (const [id, u] of Object.entries(USERS)) h.perms.set(Number(id), u.perms);
 });
 
-describe("S3-223 · 名单自证（28 = 19 已接 + 9 不接）", () => {
-  it("19 行已接 + 9 行不接 = 本域 28 写端点（与台账 §三.10 的 9 文件 / 28 端点守恒）", () => {
-    expect(WIRED).toHaveLength(19);
-    expect(UNWIRED).toHaveLength(9);
-    expect(19 + 9).toBe(28);
+describe("S3-223 · 名单自证（28 = 24 已接 + 4 不接）", () => {
+  it("24 行已接（19 + S3-233 收编 5）+ 4 行不接 = 本域 28 写端点（与台账 §三.10 的 9 文件 / 28 端点守恒）", () => {
+    expect(WIRED).toHaveLength(24);
+    expect(UNWIRED).toHaveLength(4);
+    expect(24 + 4).toBe(28);
   });
 
-  it("已接 19 行分布：bank-account 1 / commission 2 / credit 5 / expense 3 / payment-config 6 / payment-new 1 / receipt 1", () => {
+  it("已接 24 行分布：bank-account 3 / commission 2 / credit 5 / expense 3 / payment-config 6 / payment-new 1 / receipt 2 / reconciliation 2", () => {
     const perFile = new Map<string, number>();
     for (const r of WIRED) perFile.set(r.file, (perFile.get(r.file) ?? 0) + 1);
     expect([...perFile.entries()].sort()).toEqual([
-      ["bank-account.routes.ts", 1],
+      ["bank-account.routes.ts", 3],
       ["commission.routes.ts", 2],
       ["credit.routes.ts", 5],
       ["expense.routes.ts", 3],
       ["payment-config.routes.ts", 6],
       ["payment-new.routes.ts", 1],
-      ["receipt.routes.ts", 1],
+      ["receipt.routes.ts", 2],
+      ["reconciliation.routes.ts", 2],
     ]);
   });
 
-  it("不接 9 行分布：B 类（页面角色集不可枚举）5 / G0 锁定 3 / 公开 1", () => {
-    expect(UNWIRED.filter((r) => r.kind === "B")).toHaveLength(5);
+  it("不接 4 行分布：G0 锁定 3 / 公开 1（原 B 类 5 行已由 S3-233 收编）", () => {
+    expect(UNWIRED.filter((r) => r.kind === "B")).toHaveLength(0);
     expect(UNWIRED.filter((r) => r.kind === "G0")).toHaveLength(3);
     expect(UNWIRED.filter((r) => r.kind === "PUBLIC")).toHaveLength(1);
   });
