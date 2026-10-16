@@ -1,0 +1,521 @@
+扫描目录：admin-web/src, app-mobile/src, miniapp/src, saas-admin/src, website/src, platform-miniapp/src
+文件数：610（.vue 381 ／ api 模块 107）
+判据：URL 片段命中 且 同一行出现对应 HTTP 方法调用（`.post(`/`.put(`/`.delete(`/`.del(`）；注释行不计。
+
+## 1. POST /api/admin/marketing/calculate  ←  admin-marketing-calculation.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:256
+   封装函数：calculatePromotion
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 2. POST /api/admin/marketing/coupons/templates  ←  admin-marketing-coupon.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:77 ; app-mobile/src/api/modules/coupons.ts:227
+   封装函数：createCouponTemplate / create
+   ⚠️ 通用名（不参与页面回溯）：create
+   页面调用点：admin-web/src/views/marketing/CouponManage.vue:320 (createCouponTemplate) ; admin-web/src/views/marketing/MarketingView.vue:464 (createCouponTemplate)
+   判定：**有页面调用点**
+
+## 3. PUT /api/admin/marketing/coupons/templates/:id  ←  admin-marketing-coupon.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:81 ; app-mobile/src/api/modules/coupons.ts:263
+   封装函数：updateCouponTemplate / update
+   ⚠️ 通用名（不参与页面回溯）：update
+   页面调用点：admin-web/src/views/marketing/CouponManage.vue:317 (updateCouponTemplate)
+   判定：**有页面调用点**
+
+## 4. DELETE /api/admin/marketing/coupons/templates/:id  ←  admin-marketing-coupon.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 5. POST /api/admin/marketing/coupons/templates/:id/activate  ←  admin-marketing-coupon.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:89 ; app-mobile/src/api/modules/coupons.ts:274
+   封装函数：activateCouponTemplate / activate
+   页面调用点：admin-web/src/views/marketing/CouponManage.vue:347 (activateCouponTemplate) ; admin-web/src/views/marketing/MarketingView.vue:511 (activateCouponTemplate)
+   判定：**有页面调用点**
+
+## 6. POST /api/admin/marketing/coupons/templates/:id/pause  ←  admin-marketing-coupon.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:93 ; app-mobile/src/api/modules/coupons.ts:279
+   封装函数：pauseCouponTemplate / pause
+   ⚠️ 通用名（不参与页面回溯）：pause
+   页面调用点：admin-web/src/views/marketing/CouponManage.vue:349 (pauseCouponTemplate) ; admin-web/src/views/marketing/MarketingView.vue:526 (pauseCouponTemplate)
+   判定：**有页面调用点**
+
+## 7. POST /api/admin/marketing/full-reductions  ←  admin-marketing-full-reduction.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:116 ; app-mobile/src/api/modules/marketing-activities.ts:73
+   封装函数：createFullReduction / create
+   ⚠️ 通用名（不参与页面回溯）：create
+   页面调用点：admin-web/src/views/marketing/FullReduction.vue:347 (createFullReduction) ; admin-web/src/views/marketing/MarketingView.vue:475 (createFullReduction)
+   判定：**有页面调用点**
+
+## 8. PUT /api/admin/marketing/full-reductions/:id  ←  admin-marketing-full-reduction.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:120 ; app-mobile/src/api/modules/marketing-activities.ts:78
+   封装函数：updateFullReduction / update
+   ⚠️ 通用名（不参与页面回溯）：update
+   页面调用点：admin-web/src/views/marketing/FullReduction.vue:344 (updateFullReduction)
+   判定：**有页面调用点**
+
+## 9. DELETE /api/admin/marketing/full-reductions/:id  ←  admin-marketing-full-reduction.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 10. POST /api/admin/marketing/full-reductions/:id/activate  ←  admin-marketing-full-reduction.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:128 ; app-mobile/src/api/modules/marketing-activities.ts:88
+   封装函数：activateFullReduction / start
+   ⚠️ 通用名（不参与页面回溯）：start
+   页面调用点：admin-web/src/views/marketing/FullReduction.vue:364 (activateFullReduction) ; admin-web/src/views/marketing/MarketingView.vue:512 (activateFullReduction)
+   判定：**有页面调用点**
+
+## 11. POST /api/admin/marketing/full-reductions/:id/pause  ←  admin-marketing-full-reduction.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:132 ; app-mobile/src/api/modules/marketing-activities.ts:92
+   封装函数：pauseFullReduction / pause
+   ⚠️ 通用名（不参与页面回溯）：pause
+   页面调用点：admin-web/src/views/marketing/FullReduction.vue:366 (pauseFullReduction) ; admin-web/src/views/marketing/MarketingView.vue:527 (pauseFullReduction)
+   判定：**有页面调用点**
+
+## 12. POST /api/admin/marketing/group-buys  ←  admin-marketing-group-buy.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:182
+   封装函数：createGroupBuy
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 13. PUT /api/admin/marketing/group-buys/:id  ←  admin-marketing-group-buy.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:186
+   封装函数：updateGroupBuy
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 14. DELETE /api/admin/marketing/group-buys/:id  ←  admin-marketing-group-buy.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 15. POST /api/admin/marketing/group-buys/:id/activate  ←  admin-marketing-group-buy.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:194
+   封装函数：activateGroupBuy
+   页面调用点：admin-web/src/views/marketing/MarketingView.vue:514 (activateGroupBuy)
+   判定：**有页面调用点**
+
+## 16. POST /api/admin/marketing/group-buys/teams  ←  admin-marketing-group-buy.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 17. POST /api/admin/marketing/group-buys/teams/:teamId/join  ←  admin-marketing-group-buy.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 18. PUT /api/admin/marketing/points/rule  ←  admin-marketing-points.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 19. POST /api/admin/marketing/points/redeem  ←  admin-marketing-points.routes.ts
+   api 封装：app-mobile/src/api/modules/points.ts:68
+   封装函数：exchange
+   ⚠️ 通用名（不参与页面回溯）：exchange
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 20. POST /api/admin/marketing/stack-rules  ←  admin-marketing-stack-rule.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:244
+   封装函数：createStackRule
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 21. PUT /api/admin/marketing/stack-rules/:id  ←  admin-marketing-stack-rule.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:248
+   封装函数：updateStackRule
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 22. DELETE /api/admin/marketing/stack-rules/:id  ←  admin-marketing-stack-rule.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 23. POST /api/marketing/group-buy/:id/join  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:195
+   封装函数：joinGroupBuy
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/group-buy-detail.vue:221 (joinGroupBuy)
+   判定：**有页面调用点**
+
+## 24. POST /api/marketing/group-buy/:id/start  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:190
+   封装函数：startGroupBuy
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/group-buy-detail.vue:196 (startGroupBuy) ; app-mobile/src/pages-sub/marketing/marketing/group-buy-detail.vue:204 (startGroupBuy)
+   判定：**有页面调用点**
+
+## 25. POST /api/marketing/group-buy/:id/end  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:250
+   封装函数：endGroupBuy
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/community-activities.vue:273 (endGroupBuy)
+   判定：**有页面调用点**
+
+## 26. POST /api/marketing/bargain/:id/start  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:211
+   封装函数：startBargain
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/bargain-detail.vue:292 (startBargain) ; app-mobile/src/pages-sub/marketing/marketing/bargain-detail.vue:300 (startBargain)
+   判定：**有页面调用点**
+
+## 27. POST /api/marketing/bargain/:id/help  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:216
+   封装函数：helpBargain
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/bargain-detail.vue:311 (helpBargain) ; app-mobile/src/pages-sub/marketing/marketing/bargain-detail.vue:326 (helpBargain)
+   判定：**有页面调用点**
+
+## 28. POST /api/marketing/bargain/:id/end  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:255
+   封装函数：endBargain
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/community-activities.vue:275 (endBargain)
+   判定：**有页面调用点**
+
+## 29. POST /api/marketing/seckill/:id/buy  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:232
+   封装函数：buySeckill
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/seckill-detail.vue:272 (buySeckill)
+   判定：**有页面调用点**
+
+## 30. POST /api/marketing/seckill/:orderNo/pay  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:238
+   封装函数：paySeckillOrder
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/seckill-detail.vue:281 (paySeckillOrder)
+   判定：**有页面调用点**
+
+## 31. POST /api/marketing/seckill/:orderNo/cancel  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:244
+   封装函数：cancelSeckillOrder
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/seckill-detail.vue:284 (cancelSeckillOrder)
+   判定：**有页面调用点**
+
+## 32. POST /api/marketing/seckill/:id/end  ←  community-marketing.routes.ts
+   api 封装：app-mobile/src/api/modules/community-marketing.ts:260
+   封装函数：endSeckill
+   页面调用点：app-mobile/src/pages-sub/marketing/marketing/community-activities.vue:277 (endSeckill)
+   判定：**有页面调用点**
+
+## 33. POST /api/marketing-asset/  ←  marketing-asset.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:317
+   封装函数：createMarketingAsset
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 34. PUT /api/marketing-asset/:id  ←  marketing-asset.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:318
+   封装函数：updateMarketingAsset
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 35. DELETE /api/marketing-asset/:id  ←  marketing-asset.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 36. POST /api/admin/marketing/gift-rules/  ←  marketing-gift-rule.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:9
+   封装函数：createGiftRule
+   页面调用点：admin-web/src/views/marketing/MarketingGiftRule.vue:436 (createGiftRule)
+   判定：**有页面调用点**
+
+## 37. PUT /api/admin/marketing/gift-rules/:id  ←  marketing-gift-rule.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:13
+   封装函数：updateGiftRule
+   页面调用点：admin-web/src/views/marketing/MarketingGiftRule.vue:277 (updateGiftRule) ; admin-web/src/views/marketing/MarketingGiftRule.vue:433 (updateGiftRule)
+   判定：**有页面调用点**
+
+## 38. DELETE /api/admin/marketing/gift-rules/:id  ←  marketing-gift-rule.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 39. POST /api/admin/marketing/gift-rules/:id/activate  ←  marketing-gift-rule.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 40. POST /api/admin/marketing/gift-rules/:id/pause  ←  marketing-gift-rule.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 41. POST /api/admin/marketing/gift-rules/:id/levels  ←  marketing-gift-rule.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 42. PUT /api/admin/marketing/gift-rules/:id/levels/:levelId  ←  marketing-gift-rule.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 43. DELETE /api/admin/marketing/gift-rules/:id/levels/:levelId  ←  marketing-gift-rule.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 44. POST /api/admin/marketing/limited-discounts/  ←  marketing-limited-discount.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:213
+   封装函数：createLimitedDiscount
+   页面调用点：admin-web/src/views/marketing/MarketingLimitedDiscount.vue:485 (createLimitedDiscount)
+   判定：**有页面调用点**
+
+## 45. PUT /api/admin/marketing/limited-discounts/:id  ←  marketing-limited-discount.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:217
+   封装函数：updateLimitedDiscount
+   页面调用点：admin-web/src/views/marketing/MarketingLimitedDiscount.vue:482 (updateLimitedDiscount)
+   判定：**有页面调用点**
+
+## 46. DELETE /api/admin/marketing/limited-discounts/:id  ←  marketing-limited-discount.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 47. POST /api/admin/marketing/limited-discounts/:id/activate  ←  marketing-limited-discount.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:225
+   封装函数：activateLimitedDiscount
+   页面调用点：admin-web/src/views/marketing/MarketingLimitedDiscount.vue:327 (activateLimitedDiscount)
+   判定：**有页面调用点**
+
+## 48. POST /api/admin/marketing/limited-discounts/:id/pause  ←  marketing-limited-discount.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:229
+   封装函数：pauseLimitedDiscount
+   页面调用点：admin-web/src/views/marketing/MarketingLimitedDiscount.vue:329 (pauseLimitedDiscount)
+   判定：**有页面调用点**
+
+## 49. POST /api/admin/marketing/limited-discounts/:id/products  ←  marketing-limited-discount.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:233
+   封装函数：addLimitedDiscountProducts
+   页面调用点：admin-web/src/views/marketing/MarketingLimitedDiscount.vue:488 (addLimitedDiscountProducts)
+   判定：**有页面调用点**
+
+## 50. DELETE /api/admin/marketing/limited-discounts/:id/products/:productId  ←  marketing-limited-discount.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 51. POST /api/admin/marketing/materials/  ←  marketing-material.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:338
+   封装函数：createMarketingMaterial
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 52. PUT /api/admin/marketing/materials/:id  ←  marketing-material.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:343
+   封装函数：updateMarketingMaterial
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 53. DELETE /api/admin/marketing/materials/:id  ←  marketing-material.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 54. POST /api/admin/marketing/materials/:id/publish  ←  marketing-material.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:353
+   封装函数：publishMarketingMaterial
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 55. POST /api/admin/marketing/materials/:id/archive  ←  marketing-material.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:358
+   封装函数：archiveMarketingMaterial
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 56. POST /api/admin/marketing/materials/categories  ←  marketing-material.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:368
+   封装函数：createMarketingMaterialCategory
+   页面调用点：admin-web/src/views/marketing/MarketingMaterial.vue:456 (createMarketingMaterialCategory) ; admin-web/src/views/marketing/MarketingMaterial.vue:472 (createMarketingMaterialCategory)
+   判定：**有页面调用点**
+
+## 57. PUT /api/admin/marketing/materials/categories/:id  ←  marketing-material.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:373
+   封装函数：updateMarketingMaterialCategory
+   页面调用点：admin-web/src/views/marketing/MarketingMaterial.vue:488 (updateMarketingMaterialCategory)
+   判定：**有页面调用点**
+
+## 58. DELETE /api/admin/marketing/materials/categories/:id  ←  marketing-material.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 59. POST /api/admin/marketing/points-mall/products  ←  marketing-points-mall.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:27
+   封装函数：createPointsProduct
+   页面调用点：admin-web/src/views/marketing/MarketingPointsMall.vue:454 (createPointsProduct)
+   判定：**有页面调用点**
+
+## 60. PUT /api/admin/marketing/points-mall/products/:id  ←  marketing-points-mall.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:31
+   封装函数：updatePointsProduct
+   页面调用点：admin-web/src/views/marketing/MarketingPointsMall.vue:451 (updatePointsProduct)
+   判定：**有页面调用点**
+
+## 61. DELETE /api/admin/marketing/points-mall/products/:id  ←  marketing-points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 62. POST /api/admin/marketing/points-mall/products/:id/toggle  ←  marketing-points-mall.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:39
+   封装函数：togglePointsProduct
+   页面调用点：admin-web/src/views/marketing/MarketingPointsMall.vue:342 (togglePointsProduct)
+   判定：**有页面调用点**
+
+## 63. POST /api/admin/marketing/points-mall/exchange  ←  marketing-points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 64. POST /api/admin/marketing/points-mall/exchange-records/:id/cancel  ←  marketing-points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 65. POST /api/admin/marketing/points-mall/exchange-records/:id/confirm  ←  marketing-points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 66. POST /api/points-mall/items  ←  points-mall.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:308
+   封装函数：createPointsMallItem
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 67. PUT /api/points-mall/items/:id  ←  points-mall.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:309
+   封装函数：updatePointsMallItem
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 68. DELETE /api/points-mall/items/:id  ←  points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 69. PUT /api/points-mall/items/:id/status  ←  points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 70. PUT /api/points-mall/orders/:id/deliver  ←  points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 71. PUT /api/points-mall/orders/:id/cancel  ←  points-mall.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 72. POST /api/admin/members/rules  ←  points.routes.ts
+   api 封装：admin-web/src/api/customer.ts:175
+   封装函数：createPointsRule
+   页面调用点：admin-web/src/views/customer/PointsRules.vue:215 (createPointsRule)
+   判定：**有页面调用点**
+
+## 73. PUT /api/admin/members/rules/:id  ←  points.routes.ts
+   api 封装：admin-web/src/api/customer.ts:179
+   封装函数：updatePointsRule
+   页面调用点：admin-web/src/views/customer/PointsRules.vue:212 (updatePointsRule)
+   判定：**有页面调用点**
+
+## 74. POST /api/admin/members/:id/points/adjust  ←  points.routes.ts
+   api 封装：admin-web/src/api/customer.ts:191
+   封装函数：adjustCustomerPoints
+   页面调用点：app-mobile/src/pages-sub/marketing/member/member-detail.vue:540 ; admin-web/src/views/customer/PointsRules.vue:294 (adjustCustomerPoints)
+   判定：**有页面调用点**
+
+## 75. POST /api/admin/members/levels/config  ←  points.routes.ts
+   api 封装：admin-web/src/api/customer.ts:199 ; app-mobile/src/api/modules/member-levels.ts:54
+   封装函数：createLevelConfig / create
+   ⚠️ 通用名（不参与页面回溯）：create
+   页面调用点：admin-web/src/views/customer/LevelConfig.vue:201 (createLevelConfig)
+   判定：**有页面调用点**
+
+## 76. PUT /api/admin/members/levels/config/:id  ←  points.routes.ts
+   api 封装：admin-web/src/api/customer.ts:203 ; app-mobile/src/api/modules/member-levels.ts:60
+   封装函数：updateLevelConfig / update
+   ⚠️ 通用名（不参与页面回溯）：update
+   页面调用点：admin-web/src/views/customer/LevelConfig.vue:198 (updateLevelConfig)
+   判定：**有页面调用点**
+
+## 77. PUT /api/admin/members/levels/config/:id/status  ←  points.routes.ts
+   api 封装：app-mobile/src/api/modules/member-levels.ts:71
+   封装函数：toggleStatus
+   ⚠️ 通用名（不参与页面回溯）：toggleStatus
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 78. DELETE /api/admin/members/levels/config/:id  ←  points.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 79. POST /api/retail-announcement/admin/retail-announcements  ←  retail-announcement.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 80. PUT /api/retail-announcement/admin/retail-announcements/:id  ←  retail-announcement.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 81. DELETE /api/retail-announcement/admin/retail-announcements/:id  ←  retail-announcement.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 82. POST /api/admin/retail-announcements/  ←  retail-announcements-admin.routes.ts
+   api 封装：admin-web/src/api/instant-retail.ts:266
+   封装函数：createRetailAnnouncement
+   页面调用点：admin-web/src/views/instant-retail/RetailAnnouncement.vue:203 (createRetailAnnouncement)
+   判定：**有页面调用点**
+
+## 83. PUT /api/admin/retail-announcements/:id  ←  retail-announcements-admin.routes.ts
+   api 封装：admin-web/src/api/instant-retail.ts:270
+   封装函数：updateRetailAnnouncement
+   页面调用点：admin-web/src/views/instant-retail/RetailAnnouncement.vue:200 (updateRetailAnnouncement) ; admin-web/src/views/instant-retail/RetailAnnouncement.vue:224 (updateRetailAnnouncement)
+   判定：**有页面调用点**
+
+## 84. DELETE /api/admin/retail-announcements/:id  ←  retail-announcements-admin.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 85. POST /api/seckill/  ←  seckill.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:294
+   封装函数：createSeckillProduct
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 86. PUT /api/seckill/:id  ←  seckill.routes.ts
+   api 封装：admin-web/src/api/marketing.ts:295
+   封装函数：updateSeckillProduct
+   页面调用点：**无**
+   判定：仅 api 封装（页面未用）
+
+## 87. DELETE /api/seckill/:id  ←  seckill.routes.ts
+   api 封装：（无）
+   页面调用点：**无**
+   判定：**全仓无调用点**
+
+## 88. POST /api/store/coupons/verify  ←  store-coupon.routes.ts
+   api 封装：admin-web/src/api/pos.ts:319 ; app-mobile/src/api/modules/store.ts:840
+   封装函数：verifyStoreCoupon / verifyCoupon
+   页面调用点：admin-web/src/views/pos/CouponVerifyView.vue:243 (verifyStoreCoupon) ; app-mobile/src/pages-sub/marketing/marketing/coupon-verify.vue:160 (verifyCoupon)
+   判定：**有页面调用点**
+
+## 89. POST /api/store/coupons/manual-verify  ←  store-coupon.routes.ts
+   api 封装：admin-web/src/api/pos.ts:324 ; app-mobile/src/api/modules/store.ts:846
+   封装函数：manualVerifyStoreCoupon / manualVerifyCoupon
+   页面调用点：admin-web/src/views/pos/CouponVerifyView.vue:218 (manualVerifyStoreCoupon) ; app-mobile/src/pages-sub/marketing/marketing/coupon-verify.vue:163 (manualVerifyCoupon)
+   判定：**有页面调用点**
+
+合计端点：89
+判定汇总：有页面调用点 40 ／ 仅 api 封装 17 ／ 全仓无调用点 32
+
+⚠️ 局限：片段取自前端源码文本；同一行跨路径拼接（URL 与方法分行）会漏，故关键行另由 rg 复核。

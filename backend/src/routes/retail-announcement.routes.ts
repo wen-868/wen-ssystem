@@ -17,6 +17,7 @@ import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requireAuthWithTenant } from "../middleware/auth";
 import { csrfMiddleware } from "../middleware/csrf";
+import { requirePermission } from "../middleware/rbac-auth";
 import * as retailAnnouncementController from "../controllers/admin/retail-announcement.controller";
 
 export const retailAnnouncementRouter = Router();
@@ -35,9 +36,14 @@ retailAnnouncementRouter.use("/admin", requireAuthWithTenant);
 retailAnnouncementRouter.use("/admin", csrfMiddleware);
 
 retailAnnouncementRouter.get("/admin/retail-announcements", retailAnnouncementController.listAnnouncements);
-retailAnnouncementRouter.post("/admin/retail-announcements", retailAnnouncementController.createAnnouncement);
-retailAnnouncementRouter.put("/admin/retail-announcements/:id", retailAnnouncementController.updateAnnouncement);
-retailAnnouncementRouter.delete("/admin/retail-announcements/:id", retailAnnouncementController.deleteAnnouncement);
+// S3-226（第 43 项 B2 批 8 · 营销域接线）：公告增/改/删 3 条挂 `marketing:create`（台账 §三.4 域内建议码）。
+// 顺序：认证（`router.use("/admin", …)`）→ CSRF（同处）→ 权限（本行内联）⇒ 符合「认证 → CSRF → 权限」铁律。
+// 依据：admin-web 侧 **无有效调用点**（`api/instant-retail.ts:262-274` 打的是 `/admin/retail-announcements`，
+// 命中 `retail-announcements-admin.routes.ts`，不是本文件的 `/api/retail-announcement/admin/...`）；
+// 使用者集合 ⊆ {SUPER_ADMIN, OPERATION_ADMIN} ⇒ 零回归。
+retailAnnouncementRouter.post("/admin/retail-announcements", requirePermission("marketing:create"), retailAnnouncementController.createAnnouncement);
+retailAnnouncementRouter.put("/admin/retail-announcements/:id", requirePermission("marketing:create"), retailAnnouncementController.updateAnnouncement);
+retailAnnouncementRouter.delete("/admin/retail-announcements/:id", requirePermission("marketing:create"), retailAnnouncementController.deleteAnnouncement);
 
 // ========== 路由自动发现配置 ==========
 // auth:"none" — admin 子路径已在 router.use("/admin", ...) 内部手动挂载中间件

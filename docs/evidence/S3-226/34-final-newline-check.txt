@@ -1,0 +1,4 @@
+warning: in the working copy of 'backend/scripts/rbac-wiring-baseline.json', LF will be replaced by CRLF the next time Git touches it
+fatal: path '"docs/tasks/R101-RBAC\346\216\245\347\272\277\347\274\272\345\217\243\346\270\205\345\215\225.md"' does not exist in 'HEAD'
+NEW  "docs/tasks/R101-RBAC\346\216\245\347\272\277\347\274\272\345\217\243\346\270\205\345\215\225.md"（HEAD 无此文件，跳过）
+✅ 末行换行状态与 HEAD 全部一致

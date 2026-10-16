@@ -2782,3 +2782,146 @@ app-mobile 页面若**①经首页快捷入口 / tabBar / 推送深链无条件�
 5. 用户会话的可达路径分裂：前端（admin-web 会话页、app-mobile 退出）打的是 `/api/admin/sessions**` 与 `/admin/auth/logout`，
    而 `user-session.routes.ts`（`/api/user-session**`）全仓 0 调用点 ⇒ 该文件可能是历史遗留，建议凌舟判定是否清理或纳入后续接线。
 
+---
+
+## 十六、S3-226 · **营销域（18 文件 / 89 写端点）**接线明细与守恒（2026-10-16）
+
+> 派单卡：`docs/tasks/inbox/ACTIVE-S3-226.md`｜判定留档：`docs/evidence/S3-226/01-plan-and-judgements.md`
+> 原始输出：`docs/evidence/S3-226/**`（调用面 `02-callers.txt`、门禁前后 `11/12`、反测 `25~29`、回归 `30~33`）
+> 基线：开工时 `origin/main` = `ea29ee1f`（`git fetch` 因网络被重置失败，本地 `origin/main` 即该提交 ⇒ 见回执 §六.1）
+> 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 `gaps` **415 条 / 118 文件**；`consumerEnd` 39 条不变）
+
+### 15.1 起点与分桶（照派单卡 §一/§二，**先分桶再决定接不接**）
+
+机读真值：本域 18 文件 / 写端点 **89 / 仍缺口 89**（与 §三.4 逐条一致，零偏移）。
+派单卡 §一 的「语义不单一」警告**成立**：本域混装管理面、门店核销（`store-coupon`）与消费者行为（`community-marketing` 的 join/help/buy/pay）。
+
+| 桶 | 条数 | 判据 | 处置 |
+|:--|--:|:--|:--|
+| ① 仅 admin-web 页面调用（`meta.roles` ⊆ {SUPER_ADMIN, OPERATION_ADMIN}） | 33 | `admin-web/src/router/index.ts` 角色 + `.vue` 调用点 | **接** |
+| ② 全仓无有效调用点（含前端路径/方法错配 ⇒ 今天即 404） | 32 | `02-callers.txt` + `rg` 复核 | **接** |
+| ③ app-mobile 写调用点且页面无门可达 / 孤岛页 / 菜单码不在生产菜单库 | 9 | `native/push.ts:107`、`home.vue:69-92`、`pages.json`、可见性对照表 | **不接（B）** |
+| ④ app-mobile 写调用点且页面可见角色可枚举但 ⊄ 码持有人 | 14 | 生产菜单可见性 + 12 角色权限复算 | **不接（W）** |
+| ⑤ 查询型 POST（service 只读不写） | 1 | `marketing-calculation.service.ts` 仅 SELECT | **不接（Q）** |
+| **合计** | **89** | | **接 65 / 不接 24** |
+
+### 15.2 本批已接 **65 条**（端点 / 落地码 / 真实使用者）
+
+逐行清单（含 `pageRoles` 与 `page:文件:行` 依据）在
+`backend/src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts` 的 `ROWS`（65 行，机器复算）。
+
+| # | 文件 | 已接条数 | 落地码 | 真实使用者依据（抽样，全量见测试 ROWS） |
+|--:|:--|--:|:--|:--|
+| 1 | `admin-marketing-coupon.routes.ts` | 3 | `marketing:create` | `CouponManage.vue:317/347/363`＋`MarketingView.vue:511/540`［SUPER_ADMIN］（router:227/:220） |
+| 2 | `admin-marketing-full-reduction.routes.ts` | 2 | `marketing:create` | `FullReduction.vue:344/347`＋`MarketingView.vue:475`［SUPER_ADMIN］（router:229） |
+| 3 | `admin-marketing-group-buy.routes.ts` | 6 | `marketing:create` | `MarketingView.vue:514/543`（activate/delete）；create/update/teams 全仓无调用点 |
+| 4 | `admin-marketing-points.routes.ts` | 1 | `marketing:points` | `/points/rule` 全仓无调用点 |
+| 5 | `admin-marketing-stack-rule.routes.ts` | 3 | `marketing:create` | 前端打 `/admin/marketing/promotions/stack-rules*`（后端无此前缀）⇒ 无有效调用点 |
+| 6 | `marketing-asset.routes.ts` | 3 | `marketing:create` | 前端打 `/admin/marketing-assets*`（后端前缀 `/api/marketing-asset`）⇒ 无有效调用点 |
+| 7 | `marketing-gift-rule.routes.ts` | 8 | `marketing:create` | `MarketingGiftRule.vue:277/289/433/436`（router:223）；另 5 条无调用点 |
+| 8 | `marketing-limited-discount.routes.ts` | 7 | `marketing:create` | `MarketingLimitedDiscount.vue:327/329/351/482/485/488`（router:222） |
+| 9 | `marketing-material.routes.ts` | 8 | `marketing:create` | `MarketingMaterial.vue:456/472/488/507/615/632`（router:226） |
+| 10 | `marketing-points-mall.routes.ts` | 7 | `marketing:points` | `MarketingPointsMall.vue:342/352/451/454`（router:224）；兑换 3 条无调用点 |
+| 11 | `points-mall.routes.ts` | 6 | `marketing:points` | 前端打 `/admin/points-mall/*`（后端前缀 `/api/points-mall`，方法亦错配）⇒ 无有效调用点 |
+| 12 | `points.routes.ts` | 2 | `marketing:create` | `customer/PointsRules.vue:212/215`（router:149） |
+| 13 | `retail-announcement.routes.ts` | 3 | `marketing:create` | 本前缀无有效调用点（admin-web 打的是 `/admin/retail-announcements`） |
+| 14 | `retail-announcements-admin.routes.ts` | 3 | `marketing:create` | `instant-retail/RetailAnnouncement.vue:200/203/224/234`（router:189） |
+| 15 | `seckill.routes.ts` | 3 | `marketing:create` | 前端打 `/admin/marketing/seckill*`（后端前缀 `/api/seckill`）⇒ 无有效调用点 |
+
+**逐码分布**：`marketing:create` **55** ｜ `marketing:points` **10** = **65**。
+两个码**都是仓库既有码**（`docs/migrations/079_权限矩阵.sql:215` BUTTON / `:165` MENU）⇒ **不新立权限点、不改角色种子、不动迁移**。
+
+### 15.3 生产持有事实（本批判据起点，**先测再判**）
+
+按生产只读底稿 `docs/evidence/_shared/prod-roles-20261016.txt`（租户 `default` 12 角色）与生产同一份 `matchPermission` 复算：
+**`marketing:create` 与 `marketing:points` 的持有人都只有 `SUPER_ADMIN` / `OPERATION_ADMIN`（靠角色串 `"*"`）**，
+12 角色中**没有任何角色显式持有 `marketing:*`**。
+⇒ 判据只剩一种成立方式：**页面角色只含超管/运营**（或全仓无调用点）。凡页面可见角色含 `READONLY` / `STORE_ADMIN` /
+店长 / 销售 / 客服的行，一律不接（批 1 `trace:*`、批 4 §12.4、S3-222 §12.6 同款形态）。
+
+### 15.4 本批**未接** **1 条 · Q 类**（查询型 POST）
+
+| 端点 | 理由 |
+|:--|:--|
+| `admin-marketing-calculation.routes.ts` POST `/api/admin/marketing/calculate` | `services/admin/marketing-calculation.service.ts` 的 `calculatePromotion` **只读不写**（仅 `queryOneWithTenant`/`queryWithTenant` 的 SELECT；`rg -in 'insert into\|delete from\|update \w+ set'` 零命中）⇒ 派单卡 §二.3「查询型 POST 不按写端点接」（同批 6 `POST /admin/quote-push/preview`） |
+
+### 15.5 本批**未接** **9 条 · B 类**（app-mobile 写调用点落在**无权限门**的页 ⇒ 使用者集合不可枚举）
+
+| # | 端点 | app-mobile 写调用点（证据） | 不可枚举的原因 |
+|--:|:--|:--|:--|
+| 1 | `admin-marketing-coupon.routes.ts` POST `/coupons/templates` | `create-coupon.vue:279` | 优惠券页有**无条件推送深链**（`native/push.ts:107` `marketing → …/coupons`） |
+| 2 | 同上 POST `/coupons/templates/:id/pause` | `coupons.vue:147` | 同上 |
+| 3–5 | `admin-marketing-full-reduction.routes.ts` POST `/:id/{activate,pause}`、DELETE `/:id` | `activities.vue:128/146/164` | 页面菜单码 `marketing:activities` 生产**不在菜单库**，仅靠前缀回退可见（可见性对照表 :143） |
+| 6 | `admin-marketing-points.routes.ts` POST `/points/redeem` | `points-exchange.vue:88` | **孤岛页**（`pages.json:461` 注册、全仓无导航入口） |
+| 7 | `points.routes.ts` POST `/:id/points/adjust` | `member-detail.vue:540` | 经首页快捷入口「会员管理」`home.vue:87`（**无条件**）→ 会员列表 → 详情 |
+| 8–9 | `store-coupon.routes.ts` POST `/verify`、`/manual-verify` | `coupon-verify.vue:160/163` | 经优惠券页 `coupons.vue:132` 进入，而该页有**无条件推送深链** |
+| — | **合计 9 条** = `admin-marketing-coupon` 2 ＋ `admin-marketing-full-reduction` 3 ＋ `admin-marketing-points` 1 ＋ `points.routes` 1（`points/adjust`） ＋ `store-coupon` 2 | 上表逐条 | — |
+
+> **保守口径声明**：孤岛页 / 无门页「看得到按钮的角色」**可能为空**（H5 构建下页面 URL 仍可直达，静态扫描只能证明"仓库内无引用"）
+> ⇒ 按「**无法证明不误伤则不动**」处理，零回归优先。若凌舟认定某页使用者集合为空，这些行可一键接线（码位方案见 §15.9-6）。
+
+### 15.6 本批**未接** **14 条 · W 类**（待授权模型定案：页面可见角色 ⊄ 码持有人）
+
+| # | 端点 | 页面（调用点） | 可见角色（生产菜单映射） | 为什么不接 |
+|--:|:--|:--|:--|:--|
+| 1 | `community-marketing.routes.ts` POST `/api/marketing/group-buy/:id/join` | `group-buy-detail.vue:221` | 菜单码 `marketing:group-buy` | 可见角色含 `READONLY`（`["*:view"]`）与 `STORE_ADMIN`（099 旧词表）——**均不持** `marketing:*` ⇒ 接线即 403 |
+| 2 | 同上 POST `/api/marketing/bargain/:id/help` | `bargain-detail.vue:311/326` | 菜单码 `marketing:bargain` | 同上 |
+| 3 | 同上 POST `/api/marketing/seckill/:orderNo/pay` | `seckill-detail.vue:281` | 菜单码 `marketing:seckill` | 同上 |
+| 4 | `points.routes.ts` POST `/levels/config` | `level-config.vue:164` | 页面注册码 `customer:level`（`function-menu.ts:69`） | 可见角色含 **STORE_MANAGER / SALES_STAFF / CUSTOMER_SERVICE**（可见性对照表 :113-122），三类工作角色都不持 `marketing:*` ⇒ 接线即 403 |
+| 5 | 同上 PUT `/levels/config/:id` | `level-config.vue:161` | 同上 | 同上 |
+| 6 | 同上 PUT `/levels/config/:id/status` | `member-levels.vue:117` | 同上 | 同上 |
+
+> 上表为**代表行**；W 类全量 **14 条** = `community-marketing.routes.ts` **全部 10 条**
+> （group-buy join/start/end、bargain start/help/end、seckill buy/pay/cancel/end）＋`points.routes.ts` 会员等级 **4 条**
+> （create / update / status / delete）。全量 24 条不接项的逐条登记见 `docs/evidence/S3-226/01-plan-and-judgements.md` §四。
+> ⚠️ 口径分界：**经无门入口可达或菜单码零映射 ⇒ B（§15.5）；可见角色可枚举但 ⊄ 持有人 ⇒ W（本节）**。
+> 三选一（补授权 / 收紧菜单授予面 / 另立细码）属**产品授权口径**，不在本单。
+
+### 15.7 守恒与门禁（原始输出见 `docs/evidence/S3-226/`）
+
+| 指标 | 本批前 | 本批后 | 说明 |
+|:--|--:|--:|:--|
+| 扫描写端点总数 | 763 | 763 | 未增删端点 |
+| 已接线（权限码） | 244 | **309** | +65 = 本批接线数（`11-guard-after-wiring.txt`） |
+| 无授权形态（缺口） | **480** | **415** | −65；分布文件数 129 → **118**（**11 个文件清零**） |
+| 消费者端保护形态 | 39 | 39 | 不变（本批不涉） |
+| 机读台账 `gaps` | 480 条 / 129 文件 | **415 条 / 118 文件** | `tools/update-baseline.mjs` 逐键移除 65 条（含前后计数与守恒断言） |
+| `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 条、陈旧登记 0 条（`12-guard-strict-after.txt`） |
+| 本域对账 | 机读缺口 89 | **89 = 65（已接）+ 9（B）+ 14（W）+ 1（Q）** | 一条不多、一条不少 |
+| 跨批计数快照 | `rbac-g0-wiring.test.ts` 215 | **280** | 只同步"总数 + 逐文件计数"，G0 名单行一字未动 |
+
+### 15.8 反测（门禁铁律：故意制造失败，证明它会红）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A 报告模式分辨力 | 摘掉 `points-mall.routes.ts:22` 的 `requirePermission("marketing:points")`（**行在文件中段，非首行**） | 已接线 **309 → 308**、缺口 **415 → 416**、缺口文件 **118 → 119** | `25-neg-report.txt` |
+| B `--strict` 两侧 | 同上（**台账已先更新**，故该行属"未登记"） | **EXIT=1** 且点出 `❌ 未登记：points-mall.routes.ts:22 PUT /api/points-mall/orders/:id/deliver`；复原 ⇒ **EXIT=0** | `26-neg-strict.txt` / `29-neg-restored-strict.txt` |
+| C 用例分辨力（vitest 侧） | 同上 | `rbac-b2-s3-226-marketing-wiring.test.ts`：**3 failed / 302 passed**（形状断言、READONLY⇒403、非持有人逐账号枚举）；复原 ⇒ **305 passed** | `27-neg-vitest-red.txt` |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`F851C15F…9882F`），`git diff` 无残留 | `raw/25-hash-before-neg.txt` / `raw/28-hash-restored.txt` |
+| 回归四道 | `npx vitest run` / `npx tsc --noEmit` / `npx eslint src --ext .ts` / 根 `npm run build` | **676 文件 / 9261 用例全绿** · tsc EXIT=0 · eslint 0 error · build EXIT=0 | `30/31/32/33-*.txt` |
+
+> ⚠️ 反测 A/B 的**顺序很关键**：台账尚未移除本批 65 条时，摘掉接线只产生"**已登记**缺口"（`--strict` 仍 EXIT=0，仅计数提示），
+> 属**假绿**；只有先跑 `update-baseline.mjs` 再注入，`--strict` 才会红。本单据此把 B 反测放在台账更新之后重做（两次读数都在证据目录）。
+>
+> 📄 证据目录口径说明：`raw/03-guard-json-mid.json` 是**中间读数**（当时按 66 条接线采的，含
+> `POST /api/admin/marketing/calculate`——该行随后按 Q 类判定**撤回接线**）⇒ 最终读数以
+> `raw/10-guard-json-after.json`（309 / 415 / 118）为准，`01/11/12` 文本读数亦为最终值。
+
+### 15.9 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. **前端路径/方法错配 6 组**（本域 32 条"无有效调用点"的主因）：`stack-rules`（前端 `/admin/marketing/promotions/stack-rules*`）、
+   `seckill`（`/admin/marketing/seckill*`）、`marketing-asset`（`/admin/marketing-assets*`）、
+   `points-mall`（`/admin/points-mall/*`，且 `deliver` 前端 POST / 后端 PUT）、`calculate`（`/admin/marketing/promotions/calculate`）
+   ⇒ 这些按钮**今天即 404**（同批 2 §13.7-1、批 5 §11.7-1 形态）。
+2. **`points.routes.ts` 缺 `DELETE /api/admin/members/rules/:id`**：前端 `PointsRules.vue:230 deletePointsRule` 调用即 404。
+3. **同域两套码**：`admin-marketing-flash-sale.routes.ts`（G1/批 6 接的 `sale:create`/`sale:edit`）与本批 `marketing:*` 并存；
+   两者对超管/运营等价，`marketing:*` 更严（不含店长/收银员/销售）⇒ 是否统一**待裁定**。
+4. **公告两套路由**：`retail-announcement.routes.ts`（`/api/retail-announcement/admin/...`，3 条无有效调用点）与
+   `retail-announcements-admin.routes.ts`（`/api/admin/retail-announcements`，前端实际使用）服务同一业务。
+5. **`community-marketing.routes.ts` 语义混装**（派单卡 §一 先验警告成立）：拼团/砍价/秒杀的 join/help/buy/pay/cancel 是**消费者行为**，
+   却挂在**商家认证** `requireAuthWithTenant` 下（非 `requireConsumerAuthWithTenant` ⇒ 静态门禁看不见消费者端形态）。收编前须先定"主体是谁"。
+6. **`t_sys_role_menu` 的角色×菜单矩阵缺证据**：底稿只给菜单**分布计数**（CATALOG 11 / MENU 78 / BUTTON 1）。
+   本单 W/B 判定依据的是仓库内既有生产导出（`R101-总进度与推进计划.md:1610`、`R101-S3-136-F1-阿澈-可见性对照表.md`，均为**菜单 64 行时期**）；
+   而菜单已 64 → **89** 行 ⇒ `marketing:*` 前缀"当时零持有"的结论**可能已变化**。
+   请以生产只读复核 `SELECT r.role_code, m.menu_code FROM t_sys_role_menu rm JOIN t_sys_role r ON r.id=rm.role_id JOIN t_sys_menu m ON m.id=rm.menu_id ORDER BY 2,1;`；
+   若这些菜单仍未授予任何工作角色，则本批 23 条 B/W 类可**批量接线**（码位方案见测试 `UNWIRED.note`）。
