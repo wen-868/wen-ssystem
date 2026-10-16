@@ -1,0 +1,169 @@
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @vue/babel-plugin-resolve-type@3.0.0
+npm warn Found: @babel/core@7.29.7
+npm warn node_modules/@babel/core
+npm warn   peerOptional @babel/core@"^7.0.0-0" from @vue/babel-plugin-jsx@1.5.0
+npm warn   miniapp/node_modules/@vue/babel-plugin-jsx
+npm warn     dev @vue/babel-plugin-jsx@"1.5.0" from miniapp@0.1.0
+npm warn     miniapp
+npm warn   147 more (@vue/babel-plugin-resolve-type, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @babel/core@"^8.0.0" from @vue/babel-plugin-resolve-type@3.0.0
+npm warn node_modules/@vue/babel-plugin-resolve-type
+npm warn   @vue/babel-plugin-resolve-type@"3.0.0" from @vue/babel-plugin-jsx@3.0.0
+npm warn   node_modules/@vue/babel-plugin-jsx
+npm warn
+npm warn Conflicting peer dependency: @babel/core@8.0.7
+npm warn node_modules/@babel/core
+npm warn   peer @babel/core@"^8.0.0" from @vue/babel-plugin-resolve-type@3.0.0
+npm warn   node_modules/@vue/babel-plugin-resolve-type
+npm warn     @vue/babel-plugin-resolve-type@"3.0.0" from @vue/babel-plugin-jsx@3.0.0
+npm warn     node_modules/@vue/babel-plugin-jsx
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @babel/helper-plugin-utils@8.0.1
+npm warn Found: @babel/core@7.29.7
+npm warn node_modules/@babel/core
+npm warn   peerOptional @babel/core@"^7.0.0-0" from @vue/babel-plugin-jsx@1.5.0
+npm warn   miniapp/node_modules/@vue/babel-plugin-jsx
+npm warn     dev @vue/babel-plugin-jsx@"1.5.0" from miniapp@0.1.0
+npm warn     miniapp
+npm warn   147 more (@vue/babel-plugin-resolve-type, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @babel/core@"^8.0.0" from @babel/helper-plugin-utils@8.0.1
+npm warn node_modules/@vue/babel-plugin-jsx/node_modules/@babel/helper-plugin-utils
+npm warn   @babel/helper-plugin-utils@"^8.0.1" from @vue/babel-plugin-jsx@3.0.0
+npm warn   node_modules/@vue/babel-plugin-jsx
+npm warn   1 more (@babel/plugin-syntax-jsx)
+npm warn
+npm warn Conflicting peer dependency: @babel/core@8.0.7
+npm warn node_modules/@babel/core
+npm warn   peer @babel/core@"^8.0.0" from @babel/helper-plugin-utils@8.0.1
+npm warn   node_modules/@vue/babel-plugin-jsx/node_modules/@babel/helper-plugin-utils
+npm warn     @babel/helper-plugin-utils@"^8.0.1" from @vue/babel-plugin-jsx@3.0.0
+npm warn     node_modules/@vue/babel-plugin-jsx
+npm warn     1 more (@babel/plugin-syntax-jsx)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @babel/plugin-syntax-jsx@8.0.1
+npm warn Found: @babel/core@7.29.7
+npm warn node_modules/@babel/core
+npm warn   peerOptional @babel/core@"^7.0.0-0" from @vue/babel-plugin-jsx@1.5.0
+npm warn   miniapp/node_modules/@vue/babel-plugin-jsx
+npm warn     dev @vue/babel-plugin-jsx@"1.5.0" from miniapp@0.1.0
+npm warn     miniapp
+npm warn   147 more (@vue/babel-plugin-resolve-type, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @babel/core@"^8.0.0" from @babel/plugin-syntax-jsx@8.0.1
+npm warn node_modules/@vue/babel-plugin-jsx/node_modules/@babel/plugin-syntax-jsx
+npm warn   @babel/plugin-syntax-jsx@"^8.0.1" from @vue/babel-plugin-jsx@3.0.0
+npm warn   node_modules/@vue/babel-plugin-jsx
+npm warn
+npm warn Conflicting peer dependency: @babel/core@8.0.7
+npm warn node_modules/@babel/core
+npm warn   peer @babel/core@"^8.0.0" from @babel/plugin-syntax-jsx@8.0.1
+npm warn   node_modules/@vue/babel-plugin-jsx/node_modules/@babel/plugin-syntax-jsx
+npm warn     @babel/plugin-syntax-jsx@"^8.0.1" from @vue/babel-plugin-jsx@3.0.0
+npm warn     node_modules/@vue/babel-plugin-jsx
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @babel/helper-plugin-utils@8.0.1
+npm warn Found: @babel/core@7.29.7
+npm warn node_modules/@babel/core
+npm warn   peerOptional @babel/core@"^7.0.0-0" from @vue/babel-plugin-jsx@1.5.0
+npm warn   miniapp/node_modules/@vue/babel-plugin-jsx
+npm warn     dev @vue/babel-plugin-jsx@"1.5.0" from miniapp@0.1.0
+npm warn     miniapp
+npm warn   147 more (@vue/babel-plugin-resolve-type, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @babel/core@"^8.0.0" from @babel/helper-plugin-utils@8.0.1
+npm warn node_modules/@vue/babel-plugin-resolve-type/node_modules/@babel/helper-plugin-utils
+npm warn   @babel/helper-plugin-utils@"^8.0.1" from @vue/babel-plugin-resolve-type@3.0.0
+npm warn   node_modules/@vue/babel-plugin-resolve-type
+npm warn
+npm warn Conflicting peer dependency: @babel/core@8.0.7
+npm warn node_modules/@babel/core
+npm warn   peer @babel/core@"^8.0.0" from @babel/helper-plugin-utils@8.0.1
+npm warn   node_modules/@vue/babel-plugin-resolve-type/node_modules/@babel/helper-plugin-utils
+npm warn     @babel/helper-plugin-utils@"^8.0.1" from @vue/babel-plugin-resolve-type@3.0.0
+npm warn     node_modules/@vue/babel-plugin-resolve-type
+npm warn deprecated read-package-tree@5.2.1: The functionality that this package provided is now in @npmcli/arborist
+npm warn deprecated readdir-scoped-modules@1.1.0: This functionality has been moved to @npmcli/fs
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated debuglog@1.0.1: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated phin@2.9.3: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated lodash.template@3.6.2: This package is deprecated. Use https://socket.dev/npm/package/eta instead.
+npm warn deprecated babel-preset-es2015@6.24.1: 🙌  Thanks for using Babel: we recommend using babel-preset-env now: please read https://babeljs.io/env to update!
+npm warn deprecated @babel/plugin-proposal-unicode-property-regex@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-unicode-property-regex instead.
+npm warn deprecated @babel/plugin-proposal-private-methods@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-methods instead.
+npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
+npm warn deprecated @babel/plugin-proposal-optional-catch-binding@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-catch-binding instead.
+npm warn deprecated @babel/plugin-proposal-json-strings@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-json-strings instead.
+npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+npm warn deprecated @babel/plugin-proposal-dynamic-import@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-dynamic-import instead.
+npm warn deprecated @babel/plugin-proposal-export-namespace-from@7.18.9: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-export-namespace-from instead.
+npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm warn deprecated @humanwhocodes/config-array@0.11.14: Use @eslint/config-array instead
+npm warn deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+npm warn deprecated read-package-json@2.1.2: This package is no longer supported. Please use @npmcli/package-json instead.
+npm warn deprecated source-map-resolve@0.6.0: See https://github.com/lydell/source-map-resolve#deprecated
+npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated phin@3.7.1: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated @babel/plugin-proposal-logical-assignment-operators@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-logical-assignment-operators instead.
+npm warn deprecated @babel/plugin-proposal-class-static-block@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-static-block instead.
+npm warn deprecated consolidate@0.15.1: Please upgrade to consolidate v1.0.0+ as it has been modernized with several long-awaited fixes implemented. Maintenance is supported by Forward Email at https://forwardemail.net ; follow/watch https://github.com/ladjs/consolidate for updates and release changelog
+npm warn deprecated @babel/plugin-proposal-private-property-in-object@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-property-in-object instead.
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated acorn-import-assertions@1.9.0: package has been renamed to acorn-import-attributes
+npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated @babel/plugin-proposal-object-rest-spread@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-object-rest-spread instead.
+npm warn deprecated intersection-observer@0.7.0: The Intersection Observer polyfill is no longer needed and can safely be removed. Intersection Observer has been Baseline since 2019.
+npm warn deprecated har-validator@5.1.5: this library is no longer supported
+npm warn deprecated whatwg-encoding@2.0.0: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+npm warn deprecated glob@7.1.2: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated @babel/plugin-proposal-async-generator-functions@7.20.7: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-async-generator-functions instead.
+npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm warn deprecated querystring@0.2.1: The querystring API is considered Legacy. new code should use the URLSearchParams API instead.
+npm warn deprecated metro-react-native-babel-preset@0.72.4: Use @react-native/babel-preset instead
+npm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead
+npm warn deprecated gulp-util@3.0.8: gulp-util is deprecated - replace it, following the guidelines at https://medium.com/gulpjs/gulp-util-ca3b1f9f9ac5
+npm warn deprecated uuid@3.4.0: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@3.4.0: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated @swc/register@0.1.10: Use @swc-node/register instead
+npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated request@2.88.2: request has been deprecated, see https://github.com/request/request/issues/3142
+npm warn deprecated webpack-chain@6.5.1: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+npm warn deprecated uuid@8.3.2: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated uuid@9.0.1: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+npm warn deprecated glob@10.2.6: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated eslint@8.41.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+npm warn deprecated core-js@2.6.12: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
+npm warn deprecated core-js@2.6.12: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
+npm warn allow-scripts 20 packages have install scripts not yet covered by allowScripts:
+npm warn allow-scripts   @alicloud/openapi-core@1.0.8 (postinstall: npm run select-version)
+npm warn allow-scripts   esbuild@0.20.2 (postinstall: node install.js)
+npm warn allow-scripts   @parcel/watcher@2.6.0 (install: node scripts/build-from-source.js)
+npm warn allow-scripts   @swc/core@1.3.96 (postinstall: node postinstall.js)
+npm warn allow-scripts   esbuild@0.19.12 (postinstall: node install.js)
+npm warn allow-scripts   esbuild@0.19.12 (postinstall: node install.js)
+npm warn allow-scripts   esbuild@0.19.12 (postinstall: node install.js)
+npm warn allow-scripts   esbuild@0.19.12 (postinstall: node install.js)
+npm warn allow-scripts   core-js@2.6.12 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+npm warn allow-scripts   core-js@2.6.12 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+npm warn allow-scripts   core-js@3.50.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+npm warn allow-scripts   core-js-pure@3.49.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+npm warn allow-scripts   esbuild@0.25.12 (postinstall: node install.js)
+npm warn allow-scripts   esbuild@0.14.54 (postinstall: node install.js)
+npm warn allow-scripts   @swc/core@1.4.14 (postinstall: node postinstall.js)
+npm warn allow-scripts   less@4.5.1 (postinstall: node scripts/postinstall.js)
+npm warn allow-scripts   protobufjs@6.11.6 (postinstall: node scripts/postinstall)
+npm warn allow-scripts   swiper@6.8.0 (postinstall: node -e "try{require('./postinstall')}catch(e){}")
+npm warn allow-scripts   esbuild@0.28.2 (postinstall: node install.js)
+npm warn allow-scripts   vue-demi@0.14.10 (postinstall: node -e "try{require('./scripts/postinstall.js')}catch(e){}")
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
