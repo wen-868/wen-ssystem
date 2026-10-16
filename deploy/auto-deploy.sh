@@ -9,8 +9,10 @@ mkdir -p "${LOG_DIR}"
 AI_FAILURES=()
 # S3-118：冒烟测试失败项汇总（只读档，末尾与 AI 底座同机制统一上报）
 SMOKE_FAILURES=()
-# S3-234（收口总清单第 74 项）：迁移失败项汇总（末尾统一点名上报；**当前不阻断部署**，
-#   是否升为阻断见 `docs/tasks/cards/R101-S3-234-阿坚-回传.md` 待裁定项①）
+# S3-234（收口总清单第 74 项 / R1 返工裁定 §二.4）：**迁移「新失败」阻断部署** ——
+#   不在 `deploy/migrations-nonidempotent-registry.txt`（B 类已知非幂等登记册）里的失败 = 新失败 ⇒
+#   进末尾 FAILURES 汇总并判红（与 AI 底座/冒烟**同机制**，不静默）；登记在案的失败只打印
+#   「⏭️ 已知非幂等（登记在案）」、不计入本数组。
 MIGRATION_FAILURES=()
 
 echo "==> 拉取最新代码"
@@ -29,29 +31,49 @@ echo "==> 构建后端"
 rm -rf backend/dist
 npm --workspace backend run build
 
-echo "==> 执行数据库迁移（清单驱动：deploy/migrations-manifest.txt，容错不阻断部署）"
+echo "==> 执行数据库迁移（清单驱动：deploy/migrations-manifest.txt 活动段 = 实测幂等；新失败阻断部署）"
 # ===== S3-234 迁移段开始（勿删这两个标记行：取证/反测用 `sed -n` 按标记抽取本段**真实源码**执行）=====
-# ── S3-234（收口总清单第 74 项，2026-10-16）────────────────────────────────────
-# 病灶：本段原先是**硬编码 3 条**文件名（126 / 127 / 196）⇒ 之后新增的每一个迁移都
-#   **不会随部署执行**，只能靠人工补跑。实证：main 合入 204_系统设置域权限点立码.sql 后部署，
+# ── S3-234（收口总清单第 74 项；R1 返工 = 三分类 + 新失败阻断，2026-10-16）──────────────────────
+# 病灶（保留原文，防回退）：本段原先是**硬编码 3 条**文件名（126 / 127 / 196）⇒ 之后新增的每一个迁移
+#   都**不会随部署执行**，只能靠人工补跑。实证：main 合入 204_系统设置域权限点立码.sql 后部署，
 #   日志里只跑了那 3 个文件，生产只读复核「店长权限串仍 9 项、14 个新菜单码 0 行」⇒ 改了不生效。
-# 处置：改为遍历 `deploy/migrations-manifest.txt`（唯一真相源；每个迁移文件必须在活动行或
-#   具名豁免段，由 `backend/scripts/guard-migration-manifest.mjs` 守着）。逐个文件独立进程执行：
-#   ⓐ 一个文件失败不影响后续文件（原 `|| echo` 容错语义保留）；
-#   ⓑ 失败**必须点名**（统一标记 `❌ [迁移] <文件> 执行失败：<原因>` + 末尾汇总），
-#      不再让"没跑成"读起来像"跑成了"（踩坑 [74]）。
-#   ⚠️ 是否把迁移失败**升为阻断部署**由凌舟裁定；本段当前维持"容错不阻断"，只做可定位
-#      （升级方式：把 MIGRATION_FAILURES 并入末尾 FAILURES 一行即可，见该处注释）。
+# 处置（**三通道**，文件级归属由 `backend/scripts/guard-migration-manifest.mjs` 守着）：
+#   A 实测幂等   → `deploy/migrations-manifest.txt` **活动段**，本段逐个跑（行序即部署跑序）；
+#   B 已知非幂等 → `deploy/migrations-nonidempotent-registry.txt`（部署通道**不跑**）；本段**用它给失败定性**：
+#                  在册 ⇒ 打印「⏭️ 已知非幂等（登记在案）：<文件> —— <原因>」，**不计新失败、不判红**；
+#                  不在册 ⇒ 计为**新失败**：打印「❌ [迁移] <文件> 执行失败：<原因>」+ 日志尾部三行，
+#                  并在部署末端失败项汇总里**判红**（与 AI 底座/冒烟同机制；自动化调用 ⇒ 退出码 1）；
+#   C 只初始化   → `deploy/migrations-manifest.txt` **豁免段**（具名 + 理由；本段按 `#` 行跳过）。
+# 代价（写在明处，不静默）：B 类 12 条会**长期**以「登记在案」的形态出现在日志里 —— 它们不再刷屏为 ❌，
+#   但也**没有**被洗绿：每条都带失败形态 + 理由 + owner 单号（当前均「待派」），改幂等后由生成器移出登记册。
+# 逐文件独立进程执行：一个文件失败不影响后续文件（原 `|| echo` 容错语义保留）。
 # ─────────────────────────────────────────────────────────────────────────────
 cd "${PROJECT_DIR}/backend"
 MIGRATION_MANIFEST="${PROJECT_DIR}/deploy/migrations-manifest.txt"
+MIGRATION_REGISTRY="${PROJECT_DIR}/deploy/migrations-nonidempotent-registry.txt"
 MIGRATION_OK=0
 MIGRATION_FAILED=0
+MIGRATION_KNOWN=0
 MIGRATION_LOG_DIR="$(mktemp -d)"
+# B 类查表：登记册行格式 `<文件> | <失败形态> | <理由> | <owner 单号>`；取第 1 列比对裸文件名。
+# 用 awk 而非关联数组（不依赖 bash 4+）。在册 ⇒ 返回 0；不在册/无登记册 ⇒ 返回 1（= 新失败）。
+_migration_in_registry() {
+  [ -f "${MIGRATION_REGISTRY}" ] || return 1
+  awk -F'|' -v f="$1" '{ gsub(/^[ \t]+|[ \t]+$/, "", $1); if ($1 == f) { found = 1 } } END { exit found ? 0 : 1 }' "${MIGRATION_REGISTRY}"
+}
+# 取登记册第 2 列（失败形态），只用于把「已知」这一行打得可读
+_migration_registry_form() {
+  awk -F'|' -v f="$1" '{ gsub(/^[ \t]+|[ \t]+$/, "", $1); if ($1 == f) { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit } }' "${MIGRATION_REGISTRY}" 2>/dev/null || true
+}
 if [ ! -f "${MIGRATION_MANIFEST}" ]; then
   echo "  ⚠️  找不到迁移清单 ${MIGRATION_MANIFEST} ⇒ 本次未执行任何迁移（这不是「没有待跑迁移」，是清单读不到）"
   MIGRATION_FAILURES+=("❌ [迁移] 清单缺失：${MIGRATION_MANIFEST}（本段未执行任何迁移）")
 else
+  if [ ! -f "${MIGRATION_REGISTRY}" ]; then
+    # 没有登记册 ⇒ 无法区分「已知非幂等」与「新失败」⇒ 按新失败判红（fail-closed，不猜）
+    echo "  ⚠️  找不到非幂等登记册 ${MIGRATION_REGISTRY} ⇒ 无法区分「已知」与「新失败」，本次一律按新失败判红"
+    MIGRATION_FAILURES+=("❌ [迁移] 非幂等登记册缺失：${MIGRATION_REGISTRY}（无法区分已知/新失败 ⇒ 按新失败判红）")
+  fi
   while IFS= read -r _raw_line || [ -n "${_raw_line}" ]; do
     # 去 CR（防清单被 CRLF 检出）→ 去首尾空白 → 跳过空行与注释行（`#` 开头，含豁免段）
     _line="$(printf '%s' "${_raw_line}" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
@@ -71,19 +93,28 @@ else
     else
       _reason="$(grep -m1 -F '迁移失败' "${_migration_log}" 2>/dev/null | sed -e 's/^[^:]*: *//' | tr -d '\r' || true)"
       [ -n "${_reason}" ] || _reason="$(tail -n 1 "${_migration_log}" 2>/dev/null | tr -d '\r')"
-      echo "  ❌ [迁移] ${_line} 执行失败：${_reason:-原因见日志}"
-      echo "     日志尾部："
-      tail -n 3 "${_migration_log}" 2>/dev/null | sed -e 's/^/       /' || true
-      MIGRATION_FAILED=$((MIGRATION_FAILED + 1))
-      MIGRATION_FAILURES+=("❌ [迁移] ${_line} 执行失败：${_reason:-原因见日志}")
+      if _migration_in_registry "${_line}"; then
+        # B 类：已知非幂等，**不判红**，但必须打印（长期可见的成本写在段首注释里）
+        MIGRATION_KNOWN=$((MIGRATION_KNOWN + 1))
+        echo "  ⏭️  已知非幂等（登记在案）：${_line} —— ${_reason:-原因见日志}"
+        echo "     失败形态：$(_migration_registry_form "${_line}")"
+        echo "     登记：deploy/migrations-nonidempotent-registry.txt（不算新失败、不判红）"
+      else
+        # 不在册 ⇒ 新失败 ⇒ 点名 + 进末尾 FAILURES（阻断）
+        echo "  ❌ [迁移] ${_line} 执行失败：${_reason:-原因见日志}"
+        echo "     日志尾部："
+        tail -n 3 "${_migration_log}" 2>/dev/null | sed -e 's/^/       /' || true
+        MIGRATION_FAILED=$((MIGRATION_FAILED + 1))
+        MIGRATION_FAILURES+=("❌ [迁移] ${_line} 执行失败：${_reason:-原因见日志}")
+      fi
     fi
   done < "${MIGRATION_MANIFEST}"
 fi
 rm -rf "${MIGRATION_LOG_DIR}"
 cd "${PROJECT_DIR}"
-echo "  迁移段小结：成功 ${MIGRATION_OK} 个 / 失败 ${MIGRATION_FAILED} 个（清单：${MIGRATION_MANIFEST}）"
+echo "  迁移段小结：成功 ${MIGRATION_OK} 个 / **新失败** ${MIGRATION_FAILED} 个 / 已知非幂等（登记在案）${MIGRATION_KNOWN} 个（清单：${MIGRATION_MANIFEST}）"
 if [ "${MIGRATION_FAILED}" -gt 0 ]; then
-  echo "  ⚠️  以下迁移未随本次部署落地（需人工处理；明细见上方「❌ [迁移]」行）："
+  echo "  ⚠️  以下迁移**新失败**（不在登记册）⇒ 本次部署判红（明细见上方「❌ [迁移]」行）："
   for _mig in "${MIGRATION_FAILURES[@]}"; do echo "     ${_mig}"; done
 fi
 # ===== S3-234 迁移段结束 =====
@@ -236,19 +267,21 @@ else
   echo "工作区干净 ✅"
 fi
 
-# ---- 失败汇总（S3-40 / S3-118）：不阻断部署，但绝不"静默成功" ----
+# ===== S3-234 失败汇总段开始（勿删这两个标记行：反测装置按标记抽取本段，证明「新失败 ⇒ 退出码 1」）=====
+# ---- 失败汇总（S3-40 / S3-118 / S3-234）：绝不"静默成功" ----
 FAILURES=()
 if [ ${#AI_FAILURES[@]} -gt 0 ]; then FAILURES+=("${AI_FAILURES[@]}"); fi
 if [ ${#SMOKE_FAILURES[@]} -gt 0 ]; then FAILURES+=("${SMOKE_FAILURES[@]}"); fi
-# S3-234：迁移失败**当前不进 FAILURES**（即不阻断部署）——"是否升为阻断"由凌舟裁定（见本单回传卡
-#   「待裁定项①」）。要升级为阻断：把下面这行注释掉的分支打开即可（一处、一行）。
-# if [ ${#MIGRATION_FAILURES[@]} -gt 0 ]; then FAILURES+=("${MIGRATION_FAILURES[@]}"); fi
+# S3-234 R1 返工（凌舟裁定 §二.4）：**迁移新失败阻断部署** —— 与 AI 底座/冒烟同机制进 FAILURES：
+#   · 登记在案（registry，B 类）的失败**不进这里**：迁移段已逐条打印「⏭️ 已知非幂等（登记在案）」；
+#   · 不在册的失败 = 新失败 ⇒ 进这里 ⇒ 自动化调用（非交互 / DEPLOY_STRICT=1）以退出码 1 结束。
+if [ ${#MIGRATION_FAILURES[@]} -gt 0 ]; then FAILURES+=("${MIGRATION_FAILURES[@]}"); fi
 if [ ${#FAILURES[@]} -gt 0 ]; then
   echo "" >&2
   echo "❌ 部署结束，但存在失败项（共 ${#FAILURES[@]} 项）：" >&2
   for _it in "${FAILURES[@]}"; do echo "   ${_it}" >&2; done
   echo "   → 主后端/前端已部署；以上失败项需按原因排查后再放行（不静默成功）。" >&2
-  echo "   → 单独重跑：AI 底座 bash deploy/ai-base-deploy.sh；冒烟只读档 npm run test:mysql:readonly" >&2
+  echo "   → 单独重跑：迁移 node scripts/run-migration.mjs docs/migrations/<文件>（cwd=backend）；AI 底座 bash deploy/ai-base-deploy.sh；冒烟只读档 npm run test:mysql:readonly" >&2
   # 非交互（cron/CI 等自动化）或显式 DEPLOY_STRICT=1 时，以非零退出码结束，供上层流水线判定
   if [ "${DEPLOY_STRICT:-0}" = "1" ] || [ ! -t 0 ]; then
     echo "   → 自动化调用：以退出码 1 结束（非零 = 存在失败项）。" >&2
@@ -256,3 +289,4 @@ if [ ${#FAILURES[@]} -gt 0 ]; then
   fi
   echo "   → 交互式调用：本次以退出码 0 结束（仅告警，不阻断）。" >&2
 fi
+# ===== S3-234 失败汇总段结束 =====

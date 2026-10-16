@@ -1,28 +1,33 @@
-# deploy/migrations-manifest.txt —— 「部署必须执行的迁移」唯一真相源
+# deploy/migrations-manifest.txt —— 「部署通道必须执行的迁移」唯一真相源
 # 归属：S3-234（收口总清单第 74 项：部署迁移段硬编码 3 条 ⇒ 新迁移永不随部署执行）
-# 生成：docs/evidence/S3-234/harness/gen-migrations-manifest.mjs（**禁止手抄**，204 行手写必错行错序）
+# 生成：docs/evidence/S3-234/harness/gen-migrations-manifest.mjs（v2 三分类，**禁止手抄**，204 行手写必错行错序）
 #
 # 为什么有这份清单（根因）：
 #   `deploy/auto-deploy.sh` 的迁移段原先**硬编码 3 条**文件名（126 / 127 / 196）⇒ 之后新增的每一个
 #   迁移都不会随部署执行，只能靠人工补跑。实证（2026-10-16）：main 合入 `204_系统设置域权限点立码.sql`
 #   后部署，日志里只跑了那 3 个文件；生产只读复核「店长权限串仍 9 项、14 个新菜单码 0 行」⇒ 改了不生效。
-#   本清单把「部署要跑哪些迁移」变成**可审、可守**的一条出口。
 #
-# 格式（由 `backend/scripts/guard-migration-manifest.mjs` 强制，四条判据见该脚本头部注释）：
-#   · 活动行 = `docs/migrations/` 下的**裸文件名**；**行序即部署跑序**，必须等于运行时迁移段跑序。
-#   · 豁免行 = 以 `#` 开头、以 EXEMPT 为第一个词的行（必须「具名 + 非空理由」）。
+# ★ R1 返工口径（2026-10-16，凌舟裁定）：部署通道**只跑实测幂等的 A 类**。三分类（合计 = `docs/migrations/*.sql` 总数）：
+#   A 实测幂等（本清单**活动段**，184 个）—— 真库连跑两遍 EXIT=0 且第二遍无数据变更，部署会跑它；
+#   B 已知非幂等（`deploy/migrations-nonidempotent-registry.txt`，12 个）—— **不进本清单**，部署通道不跑；
+#       若部署段跑到的文件失败且登记在 registry ⇒ 打印「⏭️ 已知非幂等（登记在案）」、**不判红**；
+#       **不在 registry 的失败 ⇒ 新失败 ⇒ 计入部署末端失败项汇总并判红**（与 AI 底座/冒烟同机制）。
+#   C 只初始化（本清单**豁免段**，8 个）—— 具名 + 理由，部署通道不跑。
+#   ⚠️ 代价（写在明处）：B 类 12 条**长期**以「登记在案」的形态存在，不再每天在日志里刷 ❌；
+#      它们的修复由 registry 的 `owner 单号` 列跟踪（当前均「待派」）——**登记 ≠ 已修**。
+#
+# 格式（由 `backend/scripts/guard-migration-manifest.mjs` 强制，判据见该脚本头部注释）：
+#   · 活动行 = `docs/migrations/` 下的**裸文件名**；**行序即部署跑序**，必须等于运行时迁移段跑序（扣掉 B/C 两类）；
+#   · 豁免行 = 以 `#` 开头、以 EXEMPT 为第一个词的行（必须「具名 + 非空理由」）；
 #   · 其余 `#` 行是普通注释；空行忽略。
-#
-# 当前状态（2026-10-16，S3-234 交付时）：`docs/migrations/` 下 204 个 .sql ⇒ 活动段 197 个 / 豁免段 7 个。
 #
 # 维护方式（新增迁移时）：
 #   ① 跑一次生成器（或手工把文件名追加到活动段**末尾**）；
 #   ② 跑 `node backend/scripts/guard-migration-manifest.mjs`，必须 EXIT=0；
-#   ③ 若不该随部署跑，必须有具名豁免 + 理由，并在回传里报备凌舟（豁免 = 有意留缺口，不是"忘了"）。
+#   ③ 若不该随部署跑，必须有具名豁免 + 理由（C 类）**或**进 registry + 失败形态 + 理由 + owner（B 类），
+#      并在回传里报备凌舟（豁免/登记 = 有意留缺口，不是「忘了」）。
 #
-# ⚠️ 以下为活动段：部署段按**行序**逐个文件执行 `node scripts/run-migration.mjs <file>`。
-002_phase1_seed.sql
-008_phase6_schema.sql
+# ⚠️ 以下为活动段（**A 类实测幂等**）：部署段按**行序**逐个文件执行 `node scripts/run-migration.mjs <file>`。
 009_phase7_approval_schema.sql
 010_phase7_credit_tenant.sql
 011_phase7_member_fields.sql
@@ -30,11 +35,9 @@
 013_phase7_sale_bill_credit.sql
 014_phase7_sku_fields.sql
 015_phase8_customer_visit.sql
-016_phase9_tenant_subscription.sql
 017_phase10_instant_retail.sql
 018_phase10_marketing.sql
 019_migrate_v2.sql
-020_migrate_v3_payment_miniapp.sql
 029_add_tenant.sql
 030_add_subscription_plan.sql
 031_add_subscription.sql
@@ -81,10 +84,8 @@
 072_客户价格.sql
 073_客户标签画像.sql
 074_即时零售表.sql
-075_reset_admin_password_bcrypt.sql
 076_营销P1.sql
 077_营销标签.sql
-078_性能索引.sql
 079_权限矩阵.sql
 080_平台管理员.sql
 081_platform_admin_seed_and_fix.sql
@@ -97,19 +98,15 @@
 089_库存盘点表.sql
 090_库存预警配置.sql
 091_储值卡.sql
-092_租户ID.sql
 093_库存增加租户ID.sql
 094_调拨订单表.sql
 095_单位表.sql
 096_用户设置.sql
-099_seed_data.sql
 100_login_failure_lock.sql
 101_tobacco_category_online_sale.sql
 102_tenant_register.sql
 103_member_register.sql
 104_platform_announcement.sql
-105_product_marketing_tag.sql
-106_data_permission.sql
 107_sys_position.sql
 108_miniapp_member_wholesale.sql
 109_p2_custom_report.sql
@@ -125,7 +122,6 @@
 120_stock_warning.sql
 120a_合规凭证字段.sql
 120b_商品SPU扩展字段.sql
-120c_performance_indexes.sql
 120d_fix_server_3bugs.sql
 120e_transfer_stock_log.sql
 121_ai_base_tables.sql
@@ -181,7 +177,6 @@
 167_member_profile_columns.sql
 168_stock_check_report_perm_columns.sql
 169_tenant_admin_uuid.sql
-170_platform_announcement_status_enum.sql
 171_platform_templates.sql
 172_sale_bill_item_tenant_backfill.sql
 173_open_platform_api_key_columns.sql
@@ -212,21 +207,25 @@
 198_租户角色菜单补全.sql
 199_租户状态值域收敛.sql
 200_价格日志来源列.sql
-201_账号口径统一.sql
 20260720_print_record.sql
 20260720_push_token.sql
 202_销售单取消来源列.sql
 203_销售单取消权限点.sql
 204_系统设置域权限点立码.sql
 
-# ⚠️ 以下为豁免段（**有意不随部署执行**，每条必须具名 + 写明理由）。
-#   唯一机械判据：文件内出现行首的破坏性语句（DROP TABLE / TRUNCATE / DELETE FROM / DROP DATABASE）
-#   ⇒ 部署通道在生产库上执行它就是**真删数据**。豁免不等于"这文件不重要"：
-#   它是**结构性重建/初始化脚本**，语义由"空库建库 + 启动期迁移通道"负责，不是"随每次部署重放"。
-# EXEMPT: 001_phase1_schema.sql —— 理由：含行首无守卫的破坏性语句（第 16 行 `DROP TABLE IF EXISTS t_operation_log;`；第 17 行 `DROP TABLE IF EXISTS t_hold_order;`；第 18 行 `DROP TABLE IF EXISTS t_refund_order;` 等 25 处）⇒ 部署通道执行会清空生产表，属结构性重建脚本，由空库建库/启动期通道负责
-# EXEMPT: 003_phase2_schema.sql —— 理由：含行首无守卫的破坏性语句（第 14 行 `DROP TABLE IF EXISTS t_supplier;`；第 15 行 `DROP TABLE IF EXISTS t_supplier_contact;`；第 64 行 `DROP TABLE IF EXISTS t_purchase_order;` 等 14 处）⇒ 部署通道执行会清空生产表，属结构性重建脚本，由空库建库/启动期通道负责
-# EXEMPT: 004_phase3_schema.sql —— 理由：含行首无守卫的破坏性语句（第 14 行 `DROP TABLE IF EXISTS t_alert_rule;`；第 15 行 `DROP TABLE IF EXISTS t_alert_record;`）⇒ 部署通道执行会清空生产表，属结构性重建脚本，由空库建库/启动期通道负责
-# EXEMPT: 005_phase3_sys_config.sql —— 理由：含行首无守卫的破坏性语句（第 10 行 `DROP TABLE IF EXISTS t_sys_config;`）⇒ 部署通道执行会清空生产表，属结构性重建脚本，由空库建库/启动期通道负责
-# EXEMPT: 006_phase4_schema.sql —— 理由：含行首无守卫的破坏性语句（第 16 行 `DROP TABLE IF EXISTS t_price_level;`；第 31 行 `DROP TABLE IF EXISTS t_sku_price;`；第 51 行 `DROP TABLE IF EXISTS t_customer_price_bi` 等 7 处）⇒ 部署通道执行会清空生产表，属结构性重建脚本，由空库建库/启动期通道负责
-# EXEMPT: 007_phase5_schema.sql —— 理由：含行首无守卫的破坏性语句（第 16 行 `DROP TABLE IF EXISTS t_inventory_batch;`；第 38 行 `DROP TABLE IF EXISTS t_expiry_alert_conf`；第 59 行 `DROP TABLE IF EXISTS t_expiry_alert_reco` 等 5 处）⇒ 部署通道执行会清空生产表，属结构性重建脚本，由空库建库/启动期通道负责
-# EXEMPT: 085_报价推送.sql —— 理由：含行首无守卫的破坏性语句（第 8 行 `DROP TABLE IF EXISTS t_customer_quote_it`；第 9 行 `DROP TABLE IF EXISTS t_customer_quote_pu`；第 10 行 `DROP TABLE IF EXISTS t_customer_quote;`）⇒ 部署通道执行会清空生产表，属结构性重建脚本，由空库建库/启动期通道负责
+# ⚠️ 以下为豁免段（**C 类 · 有意不随部署执行**，每条必须具名 + 写明理由）。
+#   语义（R1 卡面 §二.1）：**仅「新库初始化」通道执行**（启动期迁移通道 `backend/src/shared/migration.ts`
+#   第 8 步遍历 `docs/migrations/`；空库建库/灾备走该通道）；**部署通道不执行**（防每次部署删表重建）。
+#   机械判据：文件内出现行首的破坏性语句（DROP TABLE / TRUNCATE / DELETE FROM / DROP DATABASE）⇒
+#   部署通道在**生产库**上执行它就是**真删数据**（本机夹具实测：跑完一遍 `t_product_spu` 的 FK/索引读数
+#   从 1/1 掉到 0/0，见 `docs/evidence/S3-234/raw/30-deploy-section-pass1.txt`）；
+#   另有 1 条为人工判定（口令类种子，见下）。
+#   豁免 ≠ 「这文件不重要」：它是**结构性重建/初始化脚本**，语义由「空库建库 + 启动期迁移通道」负责。
+# EXEMPT: 001_phase1_schema.sql —— 理由：含行首无守卫的破坏性语句（第 16 行 `DROP TABLE IF EXISTS t_operation_log;`；第 17 行 `DROP TABLE IF EXISTS t_hold_order;`；第 18 行 `DROP TABLE IF EXISTS t_refund_order;` 等 25 处）
+# EXEMPT: 003_phase2_schema.sql —— 理由：含行首无守卫的破坏性语句（第 14 行 `DROP TABLE IF EXISTS t_supplier;`；第 15 行 `DROP TABLE IF EXISTS t_supplier_contact;`；第 64 行 `DROP TABLE IF EXISTS t_purchase_order;` 等 14 处）
+# EXEMPT: 004_phase3_schema.sql —— 理由：含行首无守卫的破坏性语句（第 14 行 `DROP TABLE IF EXISTS t_alert_rule;`；第 15 行 `DROP TABLE IF EXISTS t_alert_record;`）
+# EXEMPT: 005_phase3_sys_config.sql —— 理由：含行首无守卫的破坏性语句（第 10 行 `DROP TABLE IF EXISTS t_sys_config;`）
+# EXEMPT: 006_phase4_schema.sql —— 理由：含行首无守卫的破坏性语句（第 16 行 `DROP TABLE IF EXISTS t_price_level;`；第 31 行 `DROP TABLE IF EXISTS t_sku_price;`；第 51 行 `DROP TABLE IF EXISTS t_customer_price_bi` 等 7 处）
+# EXEMPT: 007_phase5_schema.sql —— 理由：含行首无守卫的破坏性语句（第 16 行 `DROP TABLE IF EXISTS t_inventory_batch;`；第 38 行 `DROP TABLE IF EXISTS t_expiry_alert_conf`；第 59 行 `DROP TABLE IF EXISTS t_expiry_alert_reco` 等 5 处）
+# EXEMPT: 075_reset_admin_password_bcrypt.sql —— 理由：人工判定（非破坏性语句）：口令类种子：bcrypt 随机盐 ⇒ 每遍重写管理员口令哈希（部署通道里等于每次部署偷偷改口令），修法需先补守卫（待派）
+# EXEMPT: 085_报价推送.sql —— 理由：含行首无守卫的破坏性语句（第 8 行 `DROP TABLE IF EXISTS t_customer_quote_it`；第 9 行 `DROP TABLE IF EXISTS t_customer_quote_pu`；第 10 行 `DROP TABLE IF EXISTS t_customer_quote;`）
