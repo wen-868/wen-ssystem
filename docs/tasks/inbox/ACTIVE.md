@@ -12,7 +12,6 @@
 | `/root/s3227_ajian` | **S3-223**（第 43 项续 · B2 批 5：财务域 28 条写端点接线） | `docs/tasks/inbox/ACTIVE-S3-223.md` |
 | `/root/s3228_ajian` | **S3-224**（第 43 项续 · B2 批 6：销售域 88 条写端点接线，分组交付） | `docs/tasks/inbox/ACTIVE-S3-224.md` |
 | `/root/s3230_ajian` | **S3-225**（第 43 项续 · B2 批 7：员工/账号域 31 条写端点接线）**← 换会话接手**（原 `s3229` 会话两轮均因"未收到消息正文"空转，未动任何文件；本行已改，`s3229` 不再有效） | `docs/tasks/inbox/ACTIVE-S3-225.md` |
-| `/root/s3231_ajian` | **S3-226**（第 43 项续 · B2 批 8：营销域 89 条写端点接线） | `docs/tasks/inbox/ACTIVE-S3-226.md` |
 | `/root/s3232_gate` | **S3-227**（第 43 项派生 · 门禁改进批：跨批计数改和式 + 消费者端声明式识别 + 查询型 POST 登记） | `docs/tasks/inbox/ACTIVE-S3-227.md` |
 
 ⚠️ **其余历史单号（S3-190 ~ S3-219）全部已交付/已合并**（S3-211/212/214/215/218/219 见 §二），卡已移入 `archive/`，**不要再动它们的工作树**。
@@ -31,7 +30,6 @@
 | **S3-223**（第 43 项续：财务域接线，B2 批 5） | 🔄 在办（`s3227`） | `docs/tasks/inbox/ACTIVE-S3-223.md` | `wt-agents/S3-223`｜`feat/s3-223-finance-domain-wiring` |
 | **S3-224**（第 43 项续：销售域接线，B2 批 6） | 🔄 在办（`s3228`） | `docs/tasks/inbox/ACTIVE-S3-224.md` | `wt-agents/S3-224`｜`feat/s3-224-sales-domain-wiring` |
 | **S3-225**（第 43 项续：员工/账号域接线，B2 批 7） | 🔄 在办（`s3230`，接手 `s3229`） | `docs/tasks/inbox/ACTIVE-S3-225.md` | `wt-agents/S3-225`｜`feat/s3-225-staff-domain-wiring` |
-| **S3-226**（第 43 项续：营销域接线，B2 批 8） | 🔄 在办（`s3231`） | `docs/tasks/inbox/ACTIVE-S3-226.md` | `wt-agents/S3-226`｜`feat/s3-226-marketing-domain-wiring` |
 | **S3-227**（派生：门禁与判据改进批） | 🔄 在办（`s3232`） | `docs/tasks/inbox/ACTIVE-S3-227.md` | `wt-agents/S3-227`｜`chore/s3-227-gate-semantics-and-counts` |
 
 > `S3-210F1`（台账生成器 CodeQL `js/incomplete-sanitization` 两处转义修复）已并入 **PR #327**，作为 #327 的第二笔提交 `f62e0f63`；**不要再动 `wt-agents/S3-210`**（除非凌舟另派）。

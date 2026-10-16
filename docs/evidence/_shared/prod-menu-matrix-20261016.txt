@@ -1,0 +1,45 @@
+# 生产只读底稿（二）：角色 × 菜单码矩阵（营销域切片 + 全局对账）
+#
+# 导出人：凌舟（总负责人）｜2026-10-16｜通道：`bash /tmp/s3136-q.sh <sql>`（只读；口令不回显、不落盘）
+# 目的：解 S3-226 报的**阻塞**——"页面可见角色"此前只有 64 行菜单时期的导出，且缺"角色×菜单码"矩阵。
+
+## 一、营销域菜单 → 授予角色（**权威口径：生产实际授予**）
+
+```
+marketing                  OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:activities       OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:bargain          OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:community        OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:coupon           OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:flash-sale       OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:full-reduction   OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:group-buy        OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:points           OPERATION_ADMIN,READONLY,STORE_ADMIN
+marketing:seckill          OPERATION_ADMIN,READONLY,STORE_ADMIN
+```
+
+## 二、持营销写码（或通配）的角色
+
+```
+OPERATION_ADMIN   ["*"]
+SUPER_ADMIN       ["*"]
+```
+
+⇒ **只有超管与运营管理员能过 `marketing:*`**；而能"看到"营销菜单的角色里另有 **`READONLY`（只读观察员）与 `STORE_ADMIN`（旧词表角色）**。
+
+**推论（关键）**：
+- `READONLY` 被授予营销菜单属**设计使然**（观察员本就应该只能看）⇒ 其写操作 403 是**期望行为**；
+- `STORE_ADMIN` 是**旧词表角色**（权限串是 `product:read`/`order:read|write`/`inventory:*`，与新码体系 `goods:*`/`sale:*`/`store:*` 不同族），但它**在生产确实被授予了营销菜单** ⇒ 属"页面可见、但不持写码"的**真实角色**。
+⇒ 因此营销域 W 类（14 条）**维持不接**，交由"授权模型提案"决定：给 `STORE_ADMIN` 补营销写码，还是收回其营销菜单（并确认该角色是否仍有人使用）。
+
+## 三、全局对账
+
+```
+菜单总数 90（BUTTON 1 / CATALOG 11 / MENU 78）；其中**已被授予至少一个角色** 89
+未授予任何角色的菜单：`sale:cancel`（BUTTON；即 S3-209 引入的销售单取消权限点，目录行在、但没有任何角色被显式授予）
+```
+
+## 四、复跑 SQL（随库入库）
+
+- `docs/evidence/_shared/prod-role-menu-matrix-20261016.sql`（全量角色 × 菜单 + 菜单 × 授予角色数）
+- `docs/evidence/_shared/prod-marketing-menu-roles-20261016.sql`（营销域切片 + 持码角色 + 未授予菜单 + 对账）
