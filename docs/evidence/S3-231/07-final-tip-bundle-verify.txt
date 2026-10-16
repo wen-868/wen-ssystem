@@ -1,0 +1,14 @@
+# S3-231 · 分支**最终尖端**瘦 bundle 端到端验证
+
+- bundle：`D:\Users\ZXQL\agents-logs\S3-229-ref-5069f653-thin.bundle`（456,306 B）
+- SHA256：`D211E4244131E63C1FFB0ADB497E5110449BCDC68772FA16963ABA209002A4A5`｜广告 ref：`refs/heads/feat/s3-229-store-and-marketing-wiring`
+- 前提：已有基线 `63ee9775`（本副本用工作树 `refs/remotes/origin/main` 提供，其历史包含该提交）
+- 副本：`C:\Users\XIONG\AppData\Local\Temp\s3229-fin2-e830a0`（git init + fetch + checkout verify）⇒ HEAD = `5069f653253c04f1deef6b3aac58cb46fa89c9df`
+- 关键文件（8 个）blob 比对：**一致 8 ／ 不一致 0**（与代码 ref `ebbc15e3` 同一批哈希）
+- 副本 `--strict`：**EXIT=0**，全量输出 SHA256 = `4FC6A6C4E60C98FA3FD82E44DF535474E651978D837A8D97F1D502B7462DEE4B`（与工作树读数①逐字节同哈希）
+  - gaps：已登记 378 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+  - consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+  - ✅ [--strict] 无「未登记」项（已登记欠账 378 条、已登记消费者端保护形态 45 条，均不计红）
+  - [guard:rbac-wiring] 已接线（权限码）337 处 ／ 消费者端保护形态 45 处 ／ 查询型 POST（已登记）3 处 ／ **无授权形态 378 处**（分布在 113 个文件）
+- 副本 `derive-counts.mjs`：**EXIT=0**（结论：✅ 全部字段与守恒式一致，未见错位）
+- 本文件位于 bundle 之后的一个提交（只追加本验证记录，不含代码改动）⇒ 不影响 bundle 内容
