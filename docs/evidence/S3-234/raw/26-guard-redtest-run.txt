@@ -1,0 +1,58 @@
+== 期望读数（由清单算出）：目录 .sql=204｜活动段=197｜豁免段=7
+== 仓库根：D:\Users\ZXQL\wt-agents\S3-234
+== guard 源文件 SHA256 = 118F44F3D1B02008
+== 清单 SHA256        = 805B7A4B8C520846
+---- [20-guard-green] exit=0 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：204 个 .sql｜清单活动段 197 个 / 豁免段 7 个
+[guard:migration-manifest] PASS（每个 .sql 都在活动段或具名豁免段；活动段行序与运行时跑序一致）
+[PASS] 绿侧：清单完整时 EXIT：实际=0｜期望=0
+[PASS] 绿侧：输出含 PASS：需含「PASS」
+[PASS] 绿侧：--json EXIT：实际=0｜期望=0
+[PASS] 绿侧：--json ok 字段：实际=True｜期望=True
+[PASS] 绿侧：--json 迁移目录文件数：实际=204｜期望=204
+[PASS] 绿侧：--json 活动段行数：实际=197｜期望=197
+[PASS] 绿侧：--json 豁免段行数：实际=7｜期望=7
+[PASS] 豁免段条数 == 含行首破坏性语句的迁移文件数：实际=7｜期望=7
+---- [21-guard-red-new-migration-unregistered] exit=1 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：205 个 .sql｜清单活动段 197 个 / 豁免段 7 个
+✗ 未登记（既不在活动段也不在豁免段）共 1 个：
+   - 999_反测临时迁移_未登记.sql（⇒ 部署不会跑它；请在 deploy/migrations-manifest.txt 登记，或写「# EXEMPT: 999_反测临时迁移_未登记.sql —— 理由：…」）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()））：
+   - 第 198 行：清单=(缺)｜运行时跑序=999_反测临时迁移_未登记.sql
+[guard:migration-manifest] FAIL（清单不是「部署出口」的完整真相源）
+[PASS] 反测①：未登记新迁移 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测①：点名到该文件：需含「999_反测临时迁移_未登记.sql」
+---- [21b-guard-after-remove-fake] exit=0 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：204 个 .sql｜清单活动段 197 个 / 豁免段 7 个
+[guard:migration-manifest] PASS（每个 .sql 都在活动段或具名豁免段；活动段行序与运行时跑序一致）
+[PASS] 反测①：删掉临时文件后 ⇒ EXIT（复原）：实际=0｜期望=0
+---- [22-guard-red-manifest-points-to-missing-file] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3241-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜清单活动段 198 个 / 豁免段 7 个
+✗ 清单活动段指向的文件不存在 共 1 个：
+   - deploy/migrations-manifest.txt:233 → 999_不存在的迁移.sql（docs/migrations/ 下没有这个文件）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()））：
+   - 第 198 行：清单=999_不存在的迁移.sql｜运行时跑序=(缺)
+[guard:migration-manifest] FAIL（清单不是「部署出口」的完整真相源）
+[PASS] 反测②：清单里有不存在的文件 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测②：点名到该文件：需含「999_不存在的迁移.sql」
+== 反测③：从清单里删掉真实迁移行「204_系统设置域权限点立码.sql」（该行即清单活动段最后一行）
+---- [23-guard-red-manifest-missing-real-file] exit=1 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3241-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜清单活动段 196 个 / 豁免段 7 个
+✗ 未登记（既不在活动段也不在豁免段）共 1 个：
+   - 204_系统设置域权限点立码.sql（⇒ 部署不会跑它；请在 deploy/migrations-manifest.txt 登记，或写「# EXEMPT: 204_系统设置域权限点立码.sql —— 理由：…」）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()））：
+   - 第 197 行：清单=(缺)｜运行时跑序=204_系统设置域权限点立码.sql
+[guard:migration-manifest] FAIL（清单不是「部署出口」的完整真相源）
+[PASS] 反测③：真实文件未登记 ⇒ EXIT：实际=1｜期望=1
+[PASS] 反测③：点名到被删行的文件：需含「204_系统设置域权限点立码.sql」
+---- [24-guard-restored-scratch] exit=0 ----
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3241-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜清单活动段 197 个 / 豁免段 7 个
+[guard:migration-manifest] PASS（每个 .sql 都在活动段或具名豁免段；活动段行序与运行时跑序一致）
+[PASS] 复原后（scratch）：EXIT：实际=0｜期望=0
+== 工作树清单终态 SHA256 = 805B7A4B8C520846
+---- [25-guard-final-green] exit=0 ----
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：204 个 .sql｜清单活动段 197 个 / 豁免段 7 个
+[guard:migration-manifest] PASS（每个 .sql 都在活动段或具名豁免段；活动段行序与运行时跑序一致）
+[PASS] 终态：工作树清单 EXIT：实际=0｜期望=0
+
+== 反测装置结论：PASS（绿侧 1 例 + 反测 3 例，红绿两侧均达预期）

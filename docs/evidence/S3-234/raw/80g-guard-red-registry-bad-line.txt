@@ -1,0 +1,14 @@
+$ node backend/scripts/guard-migration-manifest.mjs --root C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch
+(exit=1)
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 11 个（合计 203）
+✗ 未登记（既不在活动段、也不在豁免段、也不在登记册）共 1 个：
+   - 002_phase1_seed.sql（⇒ 部署不会跑它；请登记到 deploy/migrations-manifest.txt 活动段，或写「# EXEMPT: 002_phase1_seed.sql —— 理由：…」，或（已知非幂等）写进 deploy/migrations-nonidempotent-registry.txt 并给失败形态/理由/owner）
+✗ 登记册行格式不合法 共 1 处：
+   - deploy/migrations-nonidempotent-registry.txt:23 → 002_phase1_seed.sql | 只有两列（登记册行必须是 4 列且列列非空：文件 | 失败形态 | 理由 | owner 单号（当前 2 列））
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 1 行：清单=009_phase7_approval_schema.sql｜运行时跑序=002_phase1_seed.sql
+   - 第 2 行：清单=010_phase7_credit_tenant.sql｜运行时跑序=009_phase7_approval_schema.sql
+   - 第 3 行：清单=011_phase7_member_fields.sql｜运行时跑序=010_phase7_credit_tenant.sql
+   - 第 4 行：清单=012_phase7_price_tenant.sql｜运行时跑序=011_phase7_member_fields.sql
+   - 第 5 行：清单=013_phase7_sale_bill_credit.sql｜运行时跑序=012_phase7_price_tenant.sql
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）

@@ -1,0 +1,4 @@
+$ node backend/scripts/guard-migration-manifest.mjs 
+(exit=0)
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：204 个 .sql｜清单活动段 197 个 / 豁免段 7 个
+[guard:migration-manifest] PASS（每个 .sql 都在活动段或具名豁免段；活动段行序与运行时跑序一致）

@@ -1,0 +1,4 @@
+$ node backend/scripts/guard-migration-manifest.mjs --root C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch
+(exit=0)
+[guard:migration-manifest] 根目录 C:\Users\XIONG\AppData\Local\Temp\s3243-guard-scratch｜迁移目录 docs/migrations：204 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 12 个（合计 204）
+[guard:migration-manifest] PASS（每个 .sql 恰好在 A 活动段 / C 豁免段 / B 登记册之一；活动段行序与运行时跑序一致）

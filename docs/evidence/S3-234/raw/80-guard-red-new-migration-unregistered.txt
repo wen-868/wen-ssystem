@@ -1,0 +1,8 @@
+$ node backend/scripts/guard-migration-manifest.mjs 
+(exit=1)
+[guard:migration-manifest] 根目录 D:\Users\ZXQL\wt-agents\S3-234｜迁移目录 docs/migrations：205 个 .sql｜A 活动段 184 个 / C 豁免段 8 个 / B 登记册 12 个（合计 204）
+✗ 未登记（既不在活动段、也不在豁免段、也不在登记册）共 1 个：
+   - 999_反测临时迁移_未登记.sql（⇒ 部署不会跑它；请登记到 deploy/migrations-manifest.txt 活动段，或写「# EXEMPT: 999_反测临时迁移_未登记.sql —— 理由：…」，或（已知非幂等）写进 deploy/migrations-nonidempotent-registry.txt 并给失败形态/理由/owner）
+✗ 活动段行序与运行时跑序不一致（活动段行序必须等于运行时迁移段跑序（migration.ts 第 8 步 readdirSync().filter().sort()，扣掉豁免段与登记册））：
+   - 第 185 行：清单=(缺)｜运行时跑序=999_反测临时迁移_未登记.sql
+[guard:migration-manifest] FAIL（三条通道没把「部署出口」说全）

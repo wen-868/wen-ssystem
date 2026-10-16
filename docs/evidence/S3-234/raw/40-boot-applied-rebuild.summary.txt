@@ -1,0 +1,4 @@
+== 启动 pid=12308｜cwd=D:\Users\ZXQL\wt-agents\S3-234｜写闸门=block｜日志=D:\Users\ZXQL\wt-agents\S3-234\docs\evidence\S3-234\raw\40-boot-applied-rebuild.txt
+== 「所有迁移完成」=True｜进程退出=True｜保留运行=False
+== [migration] 失败行数：0
+== 写闸门/跳过行数：247（明细见日志）

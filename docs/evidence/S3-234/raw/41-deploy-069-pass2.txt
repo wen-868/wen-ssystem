@@ -1,0 +1,6 @@
+$ node ../scripts/run-migration.mjs ../docs/migrations/069_商品SPU增加品牌ID.sql   # pass2
+(exit=0)
+已连接数据库 root@127.0.0.1:3409/liquor_inventory
+执行迁移: ../docs/migrations/069_商品SPU增加品牌ID.sql
+迁移完成
+迁移执行成功

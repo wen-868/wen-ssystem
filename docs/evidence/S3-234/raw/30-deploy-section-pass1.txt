@@ -1,0 +1,154 @@
+== 源文件：D:\Users\ZXQL\wt-agents\S3-234/deploy/auto-deploy.sh（总 258 行）
+== 按标记抽取到的迁移段：57 行
+== 抽取段首行：# ===== S3-234 迁移段开始（勿删这两个标记行：取证/反测用 `sed -n` 按标记抽取本段**真实源码**执行）=====
+== 抽取段末行：# ===== S3-234 迁移段结束 =====
+== bash -n 语法检查：
+   OK（退出码 0）
+== 执行抽取段（cwd=D:\Users\ZXQL\wt-agents\S3-234）
+  ❌ [迁移] 005_phase3_sys_config.sql 执行失败：Key column 'tenant_id' doesn't exist in table
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/005_phase3_sys_config.sql
+       迁移失败: Key column 'tenant_id' doesn't exist in table
+  ❌ [迁移] 006_phase4_schema.sql 执行失败：Table 'liquor_inventory.price_level' doesn't exist
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/006_phase4_schema.sql
+       迁移失败: Table 'liquor_inventory.price_level' doesn't exist
+  ❌ [迁移] 007_phase5_schema.sql 执行失败：Table 'liquor_inventory.expiry_alert_config' doesn't exist
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/007_phase5_schema.sql
+       迁移失败: Table 'liquor_inventory.expiry_alert_config' doesn't exist
+  ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/008_phase6_schema.sql
+       迁移失败: Table 'liquor_inventory.sys_role' doesn't exist
+  ❌ [迁移] 016_phase9_tenant_subscription.sql 执行失败：Incorrect integer value: 'ACTIVE' for column 'status' at row 1
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/016_phase9_tenant_subscription.sql
+       迁移失败: Incorrect integer value: 'ACTIVE' for column 'status' at row 1
+  ❌ [迁移] 069_商品SPU增加品牌ID.sql 执行失败：Unknown column 'p.tenant_id' in 'on clause'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/069_商品SPU增加品牌ID.sql
+       迁移失败: Unknown column 'p.tenant_id' in 'on clause'
+  ❌ [迁移] 075_reset_admin_password_bcrypt.sql 执行失败：Unknown column 'login_fail_count' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/075_reset_admin_password_bcrypt.sql
+       迁移失败: Unknown column 'login_fail_count' in 'field list'
+  ❌ [迁移] 085_报价推送.sql 执行失败：Key column 'tenant_id' doesn't exist in table
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/085_报价推送.sql
+       迁移失败: Key column 'tenant_id' doesn't exist in table
+  ❌ [迁移] 092_租户ID.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05
+     日志尾部：
+       执行迁移: ../docs/migrations/092_租户ID.sql
+       迁移失败: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05
+       -- æ' at line 1
+  ❌ [迁移] 093_库存增加租户ID.sql 执行失败：Table 'liquor_inventory.inventory_balance' doesn't exist
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/093_库存增加租户ID.sql
+       迁移失败: Table 'liquor_inventory.inventory_balance' doesn't exist
+  ❌ [迁移] 099_seed_data.sql 执行失败：Table 'liquor_inventory.sys_user' doesn't exist
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/099_seed_data.sql
+       迁移失败: Table 'liquor_inventory.sys_user' doesn't exist
+  ❌ [迁移] 101_tobacco_category_online_sale.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/101_tobacco_category_online_sale.sql
+       迁移失败: Unknown column 'tenant_id' in 'field list'
+  ❌ [迁移] 108_miniapp_member_wholesale.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/108_miniapp_member_wholesale.sql
+       迁移失败: Unknown column 'tenant_id' in 'field list'
+  ❌ [迁移] 120c_performance_indexes.sql 执行失败：Duplicate key name 'idx_product_spu_category_status'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/120c_performance_indexes.sql
+       迁移失败: Duplicate key name 'idx_product_spu_category_status'
+  ❌ [迁移] 120d_fix_server_3bugs.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/120d_fix_server_3bugs.sql
+       迁移失败: Unknown column 'tenant_id' in 'field list'
+  ❌ [迁移] 127_fix_demo_accounts.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/127_fix_demo_accounts.sql
+       迁移失败: Unknown column 'tenant_id' in 'field list'
+  ❌ [迁移] 128_fix_roles_binding.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/128_fix_roles_binding.sql
+       迁移失败: Unknown column 'tenant_id' in 'field list'
+  ❌ [迁移] 133_product_sku_unit.sql 执行失败：Unknown column 's.tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/133_product_sku_unit.sql
+       迁移失败: Unknown column 's.tenant_id' in 'field list'
+  ❌ [迁移] 170_platform_announcement_status_enum.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';
+     日志尾部：
+       
+       UPDATE t_platform_announcement SET status = 'DRAFT' WHERE status = '0';
+       UP' at line 6
+  ❌ [迁移] 172_sale_bill_item_tenant_backfill.sql 执行失败：Unknown column 'tenant_id' in 'where clause'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/172_sale_bill_item_tenant_backfill.sql
+       迁移失败: Unknown column 'tenant_id' in 'where clause'
+  ❌ [迁移] 194_条码唯一键改租户内唯一.sql 执行失败：Unknown column 't.tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/194_条码唯一键改租户内唯一.sql
+       迁移失败: Unknown column 't.tenant_id' in 'field list'
+  ❌ [迁移] 197_演示租户隔离.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/197_演示租户隔离.sql
+       迁移失败: Unknown column 'tenant_id' in 'field list'
+  ❌ [迁移] 198_租户角色菜单补全.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/198_租户角色菜单补全.sql
+       迁移失败: Unknown column 'tenant_id' in 'field list'
+  ❌ [迁移] 201_账号口径统一.sql 执行失败：Unknown column 'tenant_id' in 'where clause'
+     日志尾部：
+       已连接数据库 root@127.0.0.1:3409/liquor_inventory
+       执行迁移: ../docs/migrations/201_账号口径统一.sql
+       迁移失败: Unknown column 'tenant_id' in 'where clause'
+  迁移段小结：成功 180 个 / 失败 24 个（清单：D:\Users\ZXQL\wt-agents\S3-234/deploy/migrations-manifest.txt）
+  ⚠️  以下迁移未随本次部署落地（需人工处理；明细见上方「❌ [迁移]」行）：
+     ❌ [迁移] 005_phase3_sys_config.sql 执行失败：Key column 'tenant_id' doesn't exist in table
+     ❌ [迁移] 006_phase4_schema.sql 执行失败：Table 'liquor_inventory.price_level' doesn't exist
+     ❌ [迁移] 007_phase5_schema.sql 执行失败：Table 'liquor_inventory.expiry_alert_config' doesn't exist
+     ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+     ❌ [迁移] 016_phase9_tenant_subscription.sql 执行失败：Incorrect integer value: 'ACTIVE' for column 'status' at row 1
+     ❌ [迁移] 069_商品SPU增加品牌ID.sql 执行失败：Unknown column 'p.tenant_id' in 'on clause'
+     ❌ [迁移] 075_reset_admin_password_bcrypt.sql 执行失败：Unknown column 'login_fail_count' in 'field list'
+     ❌ [迁移] 085_报价推送.sql 执行失败：Key column 'tenant_id' doesn't exist in table
+     ❌ [迁移] 092_租户ID.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '﻿-- 编号: 092, 描述: 租户ID, 创建人: 阿坚, 日期: 2026-07-05
+     ❌ [迁移] 093_库存增加租户ID.sql 执行失败：Table 'liquor_inventory.inventory_balance' doesn't exist
+     ❌ [迁移] 099_seed_data.sql 执行失败：Table 'liquor_inventory.sys_user' doesn't exist
+     ❌ [迁移] 101_tobacco_category_online_sale.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     ❌ [迁移] 108_miniapp_member_wholesale.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     ❌ [迁移] 120c_performance_indexes.sql 执行失败：Duplicate key name 'idx_product_spu_category_status'
+     ❌ [迁移] 120d_fix_server_3bugs.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     ❌ [迁移] 127_fix_demo_accounts.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     ❌ [迁移] 128_fix_roles_binding.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     ❌ [迁移] 133_product_sku_unit.sql 执行失败：Unknown column 's.tenant_id' in 'field list'
+     ❌ [迁移] 170_platform_announcement_status_enum.sql 执行失败：You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ';
+     ❌ [迁移] 172_sale_bill_item_tenant_backfill.sql 执行失败：Unknown column 'tenant_id' in 'where clause'
+     ❌ [迁移] 194_条码唯一键改租户内唯一.sql 执行失败：Unknown column 't.tenant_id' in 'field list'
+     ❌ [迁移] 197_演示租户隔离.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     ❌ [迁移] 198_租户角色菜单补全.sql 执行失败：Unknown column 'tenant_id' in 'field list'
+     ❌ [迁移] 201_账号口径统一.sql 执行失败：Unknown column 'tenant_id' in 'where clause'
+== 抽取段执行退出码：0（迁移段本身容错不阻断 ⇒ 预期 0；失败项以「❌ [迁移]」点名）

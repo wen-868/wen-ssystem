@@ -1,0 +1,34 @@
+# deploy/migrations-nonidempotent-registry.txt —— B 类「已知非幂等」登记册（部署通道**不跑**）
+# 归属：S3-234 **R1 返工**（凌舟裁定：部署通道三分类 + 新失败阻断）
+# 生成：docs/evidence/S3-234/harness/gen-migrations-manifest.mjs（**禁止手抄**）
+#
+# 这是什么（两个用途，一个文件）：
+#   ① **分类依据**：`deploy/auto-deploy.sh` 迁移段先跑 `deploy/migrations-manifest.txt` 活动段（A 类）；
+#      某个文件失败时**用它查表**：在册 ⇒ 打印「⏭️ 已知非幂等（登记在案）」且**不判红**；
+#      不在册 ⇒ 计为**新失败**，进部署末端失败项汇总并**判红**（与 AI 底座/冒烟同机制）。
+#   ② **技术债台账**：每行必须带 `owner 单号`——「登记在案」不等于「已修」，没有 owner 的行就是欠账。
+#
+# 格式（`|` 分隔 4 列，由 `backend/scripts/guard-migration-manifest.mjs` 强制）：
+#   <文件> | <失败形态> | <理由> | <owner 单号>
+#   字段内不得再出现 `|`；空行与 `#` 行忽略。
+#
+# 判据与由来（**实测**，不是猜的）：真库连跑两遍的原始输出见 `docs/evidence/S3-234/raw/`——
+#   11 条「第二遍必红」：`33-deploy-section-full-postfix.txt`、`34-…-pass2.txt`（两遍失败清单逐条一致）；
+#   1 条「重复跑仍真实写行」（`201`，changedRows=4）：`50-sideeffects-pass1.*`、`51-sideeffects-pass2.*`。
+#   ⚠️ 本册**没有**「跑失败就自动豁免」这种机制：B 类每一条都写明失败形态与理由，改幂等后由生成器移出本册。
+#
+# 当前状态（2026-10-16，R1 返工交付时）：12 条，全部 owner=待派（修复单未派；其中 201 标「需改幂等」）。
+#
+# 文件 | 失败形态 | 理由 | owner 单号
+002_phase1_seed.sql | ERR_NO_DEFAULT_FOR_FIELD：Field 'tenant_id' doesn't have a default value | 老 seed 依赖列默认值 ⇒ 第二遍必红（两遍失败清单逐条一致） | 待派（S3-234 发现并登记 2026-10-16）
+008_phase6_schema.sql | ER_NO_SUCH_TABLE：Table 'liquor_inventory.sys_role' doesn't exist | 引用无前缀表名；addTablePrefix 只在启动期通道生效，部署通道没有（源级特征，与环境无关） | 待派（S3-234 发现并登记 2026-10-16）
+016_phase9_tenant_subscription.sql | ER_DUP_ENTRY：Duplicate entry（第二遍） | 非幂等 INSERT：无 ON DUPLICATE KEY / 无存在性守卫 | 待派（S3-234 发现并登记 2026-10-16）
+020_migrate_v3_payment_miniapp.sql | ER_DUP_ENTRY：Duplicate entry（第二遍） | 非幂等 INSERT：无 ON DUPLICATE KEY / 无存在性守卫 | 待派（S3-234 发现并登记 2026-10-16）
+078_性能索引.sql | ER_DUP_KEYNAME：Duplicate key name（第二遍） | 非幂等 CREATE INDEX：无 information_schema 存在性守卫 | 待派（S3-234 发现并登记 2026-10-16）
+092_租户ID.sql | ER_PARSE_ERROR（第二遍） | 源级缺陷：文件带 UTF-8 BOM ⇒ 解析错（与环境无关） | 待派（S3-234 发现并登记 2026-10-16）
+099_seed_data.sql | ER_NO_SUCH_TABLE：Table 'liquor_inventory.sys_user' doesn't exist | 引用无前缀表名；部署通道没有 addTablePrefix（源级特征，与环境无关） | 待派（S3-234 发现并登记 2026-10-16）
+105_product_marketing_tag.sql | ER_DUP_ENTRY：Duplicate entry（第二遍） | 非幂等 INSERT：无 ON DUPLICATE KEY / 无存在性守卫 | 待派（S3-234 发现并登记 2026-10-16）
+106_data_permission.sql | ER_DUP_ENTRY：Duplicate entry（第二遍） | 非幂等 INSERT：无 ON DUPLICATE KEY / 无存在性守卫 | 待派（S3-234 发现并登记 2026-10-16）
+120c_performance_indexes.sql | ER_DUP_KEYNAME：Duplicate key name（第二遍） | 非幂等 CREATE INDEX：无 information_schema 存在性守卫 | 待派（S3-234 发现并登记 2026-10-16）
+170_platform_announcement_status_enum.sql | ER_PARSE_ERROR（第二遍） | 源级缺陷：语句里「注释 + 分号」写法导致语法错 | 待派（S3-234 发现并登记 2026-10-16）
+201_账号口径统一.sql | NON_IDEMPOTENT_WRITE：第二遍 changedRows=4（不报错，但每遍真实改行） | 与该文件头注释「第二遍命中 0 行、affectedRows=0」矛盾（两遍均 4，可复现）⇒ 需改幂等（待派） | 待派（需改幂等；S3-234 发现并登记 2026-10-16）

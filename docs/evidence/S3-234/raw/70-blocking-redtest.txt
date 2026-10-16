@@ -1,0 +1,106 @@
+== 真件 SHA256（开工前）：清单 f4b3dfbd16fafa6cdbe38171d123cb49796246e60c993a0930e35d3e05c54ca3｜登记册 8dd7e87fdb7d7f168ca3df8c239ac6605c6392069448028043db9b2e830529bc
+== 夹具：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest（backend/.env + scripts/run-migration.mjs + 069/008 两个真迁移）
+== 源文件 D:\Users\ZXQL\wt-agents\S3-234/deploy/auto-deploy.sh（292 行）⇒ 迁移段 86 行 + 失败汇总段 23 行
+== bash -n（两段串成的一个脚本）：OK
+
+---- [A-新失败必红] 夹具清单：
+     # 反测夹具清单（S3-234 装置专用，**不进仓**）
+     069_商品SPU增加品牌ID.sql
+     008_phase6_schema.sql
+---- [A-新失败必红] 夹具登记册：
+     # 反测夹具登记册（不含 008 ⇒ 008 属"新失败"）
+     075_reset_admin_password_bcrypt.sql | 口令类种子 | 夹具占位 | 夹具
+     201_账号口径统一.sql | NON_IDEMPOTENT_WRITE | 夹具占位 | 夹具
+---- [A-新失败必红] 执行输出 ----
+     ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+        日志尾部：
+          已连接数据库 root@127.0.0.1:3409/liquor_inventory
+          执行迁移: ../docs/migrations/008_phase6_schema.sql
+          迁移失败: Table 'liquor_inventory.sys_role' doesn't exist
+     迁移段小结：成功 1 个 / **新失败** 1 个 / 已知非幂等（登记在案）0 个（清单：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-manifest.txt）
+     ⚠️  以下迁移**新失败**（不在登记册）⇒ 本次部署判红（明细见上方「❌ [迁移]」行）：
+        ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+   
+   ❌ 部署结束，但存在失败项（共 1 项）：
+      ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+      → 主后端/前端已部署；以上失败项需按原因排查后再放行（不静默成功）。
+      → 单独重跑：迁移 node scripts/run-migration.mjs docs/migrations/<文件>（cwd=backend）；AI 底座 bash deploy/ai-base-deploy.sh；冒烟只读档 npm run test:mysql:readonly
+      → 自动化调用：以退出码 1 结束（非零 = 存在失败项）。
+---- [A-新失败必红] 组合退出码=1（期望 1）
+   ✅ [A] 组合退出码 = 1（新失败 ⇒ 判红）
+   ✅ [A] 逐条点名到文件：❌ [迁移] 008_phase6_schema.sql 执行失败
+   ✅ [A] 段小结「新失败 1 个」
+   ✅ [A] 汇总段判红（❌ 部署结束，但存在失败项）
+   ✅ [A] 未误判为「已知非幂等」
+
+---- [B-登记在案不判红] 夹具清单：
+     # 反测夹具清单（S3-234 装置专用，**不进仓**）
+     069_商品SPU增加品牌ID.sql
+     008_phase6_schema.sql
+---- [B-登记在案不判红] 夹具登记册：
+     # 反测夹具登记册（008 在册 ⇒ 属"已知非幂等"）
+     008_phase6_schema.sql | ER_NO_SUCH_TABLE：Table 'sys_role' doesn't exist | 引用无前缀表名 | 夹具
+---- [B-登记在案不判红] 执行输出 ----
+     ⏭️  已知非幂等（登记在案）：008_phase6_schema.sql —— Table 'liquor_inventory.sys_role' doesn't exist
+        失败形态：ER_NO_SUCH_TABLE：Table 'sys_role' doesn't exist
+        登记：deploy/migrations-nonidempotent-registry.txt（不算新失败、不判红）
+     迁移段小结：成功 1 个 / **新失败** 0 个 / 已知非幂等（登记在案）1 个（清单：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-manifest.txt）
+---- [B-登记在案不判红] 组合退出码=0（期望 0）
+   ✅ [B] 组合退出码 = 0（已知失败 ⇒ 放行但打印）
+   ✅ [B] 打印「⏭️ 已知非幂等（登记在案）：008_phase6_schema.sql」
+   ✅ [B] 段小结「新失败** 0 个」
+   ✅ [B] 段小结「已知非幂等（登记在案）1 个」
+   ✅ [B] 汇总段未判红（无「❌ 部署结束，但存在失败项」）
+
+---- [C-清单缺失必红] 夹具清单：
+     (清单不存在)
+---- [C-清单缺失必红] 夹具登记册：
+     # 反测夹具登记册（008 在册 ⇒ 属"已知非幂等"）
+     008_phase6_schema.sql | ER_NO_SUCH_TABLE：Table 'sys_role' doesn't exist | 引用无前缀表名 | 夹具
+---- [C-清单缺失必红] 执行输出 ----
+     ⚠️  找不到迁移清单 D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-manifest.txt ⇒ 本次未执行任何迁移（这不是「没有待跑迁移」，是清单读不到）
+     迁移段小结：成功 0 个 / **新失败** 0 个 / 已知非幂等（登记在案）0 个（清单：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-manifest.txt）
+   
+   ❌ 部署结束，但存在失败项（共 1 项）：
+      ❌ [迁移] 清单缺失：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-manifest.txt（本段未执行任何迁移）
+      → 主后端/前端已部署；以上失败项需按原因排查后再放行（不静默成功）。
+      → 单独重跑：迁移 node scripts/run-migration.mjs docs/migrations/<文件>（cwd=backend）；AI 底座 bash deploy/ai-base-deploy.sh；冒烟只读档 npm run test:mysql:readonly
+      → 自动化调用：以退出码 1 结束（非零 = 存在失败项）。
+---- [C-清单缺失必红] 组合退出码=1（期望 1）
+   ✅ [C] 组合退出码 = 1
+   ✅ [C] 点名「清单缺失」
+
+---- [D-登记册缺失必红] 夹具清单：
+     # 反测夹具清单（S3-234 装置专用，**不进仓**）
+     069_商品SPU增加品牌ID.sql
+     008_phase6_schema.sql
+---- [D-登记册缺失必红] 夹具登记册：
+     (登记册不存在)
+---- [D-登记册缺失必红] 执行输出 ----
+     ⚠️  找不到非幂等登记册 D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-nonidempotent-registry.txt ⇒ 无法区分「已知」与「新失败」，本次一律按新失败判红
+     ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+        日志尾部：
+          已连接数据库 root@127.0.0.1:3409/liquor_inventory
+          执行迁移: ../docs/migrations/008_phase6_schema.sql
+          迁移失败: Table 'liquor_inventory.sys_role' doesn't exist
+     迁移段小结：成功 1 个 / **新失败** 1 个 / 已知非幂等（登记在案）0 个（清单：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-manifest.txt）
+     ⚠️  以下迁移**新失败**（不在登记册）⇒ 本次部署判红（明细见上方「❌ [迁移]」行）：
+        ❌ [迁移] 非幂等登记册缺失：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-nonidempotent-registry.txt（无法区分已知/新失败 ⇒ 按新失败判红）
+        ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+   
+   ❌ 部署结束，但存在失败项（共 2 项）：
+      ❌ [迁移] 非幂等登记册缺失：D:\Users\ZXQL\wt-agents\S3-234/.tmp-s3243-blocking-redtest/deploy/migrations-nonidempotent-registry.txt（无法区分已知/新失败 ⇒ 按新失败判红）
+      ❌ [迁移] 008_phase6_schema.sql 执行失败：Table 'liquor_inventory.sys_role' doesn't exist
+      → 主后端/前端已部署；以上失败项需按原因排查后再放行（不静默成功）。
+      → 单独重跑：迁移 node scripts/run-migration.mjs docs/migrations/<文件>（cwd=backend）；AI 底座 bash deploy/ai-base-deploy.sh；冒烟只读档 npm run test:mysql:readonly
+      → 自动化调用：以退出码 1 结束（非零 = 存在失败项）。
+---- [D-登记册缺失必红] 组合退出码=1（期望 1）
+   ✅ [D] 组合退出码 = 1
+   ✅ [D] 点名「非幂等登记册缺失」
+   ✅ [D] 段小结「新失败** 1 个」（008 无从判为已知）
+
+---- [E-真件未污染] 真件 SHA256（完工后）：清单 f4b3dfbd16fafa6cdbe38171d123cb49796246e60c993a0930e35d3e05c54ca3｜登记册 8dd7e87fdb7d7f168ca3df8c239ac6605c6392069448028043db9b2e830529bc
+   ✅ [E] 真清单 SHA256 与开工前一致
+   ✅ [E] 真登记册 SHA256 与开工前一致
+
+== 反测结论：**全部断言通过**（A 新失败必红 / B 已知不判红 / C 清单缺失必红 / D 登记册缺失必红 / E 真件未污染）
