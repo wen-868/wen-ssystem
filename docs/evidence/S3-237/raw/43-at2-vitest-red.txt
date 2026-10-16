@@ -1,0 +1,28 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-237/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-237-goods-wiring.test.ts (60 tests | 3 failed) 345ms
+     × 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：注册行自带 requirePermission("'goods:edit'") 6ms
+     × 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：READONLY ⇒ 403 且 msg 指向该权限码 40ms
+     × 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：全部非持有人（逐账号枚举）⇒ 403 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-237-goods-wiring.test.ts > S3-237 组 2 · a) 形状断言（注册行级判据，踩坑[134]） > 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：注册行自带 requirePermission("'goods:edit'")
+AssertionError: admin-product.routes.ts:68 应带 requirePermission("goods:edit"): expected 'adminProductRouter.put("/products/sku…' to contain 'requirePermission("goods:edit")'
+
+Expected: "requirePermission("goods:edit")"
+Received: "adminProductRouter.put("/products/skus/:skuId/barcode", productController.updateSkuBarcode);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-237-goods-wiring.test.ts:259:81
+
+    257|     expect(lines.length, `${label(row)} 至少应有 1 条注册行`).toBeGreaterThan(…
+    258|     for (const l of lines) {
+    259|       expect(l.line, `${row.file}:${l.no} 应带 requirePermission("${row.…
+       |                                                                                 ^
+    260|     }
+    261|   });
+ Test Files  1 failed (1)
+      Tests  3 failed | 57 passed (60)
+   Start at  22:39:27
+   Duration  2.98s (transform 498ms, setup 35ms, import 2.31s, tests 345ms, environment 0ms)

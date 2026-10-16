@@ -1,0 +1,27 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-237/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-237-system-wiring.test.ts (70 tests | 4 failed) 386ms
+     × 'archive.routes.ts' 'post' '/execute'：注册行自带 requirePermission('PERM_SYSTEM_ARCHIVE_EXECUTE') 9ms
+     × 'archive.routes.ts' 'post' '/execute'：READONLY ⇒ 403 且 msg 指向该权限码 6ms
+     × 'archive.routes.ts' 'post' '/execute'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 3ms
+     × 'archive.routes.ts' 'post' '/execute'：无登录态 ⇒ 401 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-237-system-wiring.test.ts > S3-237 组 1 · a) 形状断言（注册行级判据，踩坑[134]） > 'archive.routes.ts' 'post' '/execute'：注册行自带 requirePermission('PERM_SYSTEM_ARCHIVE_EXECUTE')
+AssertionError: archive.routes.ts:13 应带 requirePermission(PERM_SYSTEM_ARCHIVE_EXECUTE): expected 'archiveRouter.post("/execute", archiv…' to contain 'requirePermission(PERM_SYSTEM_ARCHIVE…'
+
+Expected: "requirePermission(PERM_SYSTEM_ARCHIVE_EXECUTE)"
+Received: "archiveRouter.post("/execute", archiveController.executeArchive);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-237-system-wiring.test.ts:261:84
+
+    259|     expect(lines.length, `${label(row)} 至少应有 1 条注册行`).toBeGreaterThan(…
+    260|     for (const l of lines) {
+    261|       expect(l.line, `${row.file}:${l.no} 应带 requirePermission(${row.c…
+       |                                                                                    ^
+    262|     }
+    263|   });
+ Test Files  1 failed (1)
+      Tests  4 failed | 66 passed (70)

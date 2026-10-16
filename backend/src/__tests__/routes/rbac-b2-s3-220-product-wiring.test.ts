@@ -214,6 +214,9 @@ interface Row {
 
 /**
  * 已接名单（**27 行** = S3-220 的 15 行 + S3-233 收编的 12 行，逐行判定见台账 §十二 / §十八）。
+ * ⚠️ S3-237（接线批 10）又从 A 类收编 **7 行**（barcode + brands/product-tags/unit-groups 的 POST+PUT；
+ *    依据 D1 + 迁移 204）。这 7 行**不进本名单**（本文件的角色夹具是 204 之前的快照），
+ *    其 403/200 断言在 `rbac-b2-s3-237-goods-wiring.test.ts`；本文件只同步"本域总数"的对账口径。
  * 口径（派单卡 §二）：① 优先挂「该端点真实使用者已持有的模块码」（零回归）；
  * ② 只有「商品岗专属、且使用者本来就不是门店/仓管/财务」的端点才挂 `goods:*`；
  * ③ 找不到使用者已持有码 ⇒ 不接线（见 UNWIRED）。
@@ -289,29 +292,29 @@ interface UnwiredRow {
 }
 
 /**
- * 本域**未接**的 18 行（逐条原因见台账 §十二.3/§十二.4/§十二.6）。
+ * 本域**未接**的 11 行（逐条原因见台账 §十二.3/§十二.4/§十二.6 → §二十）。
  * ⚠️ S3-233（B 类收编第一批）：原 B 类 13 行中 **12 行**已随 S3-230 的入口权限门落地而收编（移入 ROWS）；
  *    剩下的 1 条 B 类 = `POST /api/admin/library/lookup`（其门前端仍为 `registered`：码未定 + 疑似查询型 POST）。
+ * ⚠️ S3-237（接线批 10）：原 A 类 15 行中 **7 行**已收编（`product/skus/:skuId/barcode`、brands / product-tags /
+ *    unit-groups 的 **POST+PUT**）—— 依据是 **D1**（迁移 204 给 `STORE_MANAGER` 补 `goods:create|edit`，生产已复核）
+ *    ⇒ 页面角色（仍含店长）⊆ 码持有者，403 回归消失 ⇒ 从本名单移出；其 403/200 双侧断言见
+ *    `rbac-b2-s3-237-goods-wiring.test.ts`。**留在本名单的 A 类 8 行**＝3 条 DELETE（`goods:delete` 未授店长，
+ *    按 D4 待前端补门）+ 4 条审核（079/204 无审核类码，待立码）+ `POST /products/import`（无真实调用点）。
+ *    ⚠️ 下方「店长不持 goods:create/edit」的断言是**本批当时（204 之前）的快照**，已被 204 推翻，
+ *       仅作历史锁定保留；现行真值以 `docs/evidence/_shared/prod-roles-20261016.txt` 顶部批注为准。
  */
 const UNWIRED: UnwiredRow[] = [
   // ===== B 类（原 13 条，现仅剩 1 条）：移动端无权限门 =====
   { file: "admin-library.routes.ts", prefix: "/api/admin/library", router: adminLibraryRouter, method: "post", routePath: "/lookup", path: "/lookup", reason: "B", note: "移动扫码 `native/scan.ts:746`（商品 tab/销售开单/库存多入口，均无权限门）；桌面 Products.vue:644 亦在用" },
 
-  // ===== A 类 15 条：页面角色含 STORE_MANAGER，生产店长不持任何 goods:* 写码 =====
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/skus/:skuId/barcode", path: "/products/skus/7/barcode", reason: "A", note: "桌面 Products.vue:1156（商品管理页 routes:165 [SUPER_ADMIN, STORE_MANAGER]）" },
+  // ===== A 类 8 条（原 15 条，S3-237 收编 7 条后）：页面角色含 STORE_MANAGER =====
   { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "post", routePath: "/products/import", path: "/products/import", reason: "A", note: "无调用点；归属页「商品导入」routes:169 [SUPER_ADMIN, STORE_MANAGER]，且该页真实打的 /admin/data-transfer/import/products 已接 store:transfer ⇒ 口径待裁定（§十二.7）" },
-  { file: "brand.routes.ts", prefix: "/api/admin/brands", router: brandRouter, method: "post", routePath: "/", path: "/", reason: "A", note: "Brands.vue:124（品牌管理 routes:167 [SUPER_ADMIN, STORE_MANAGER]）" },
-  { file: "brand.routes.ts", prefix: "/api/admin/brands", router: brandRouter, method: "put", routePath: "/:id", path: "/1", reason: "A", note: "Brands.vue:121" },
   { file: "brand.routes.ts", prefix: "/api/admin/brands", router: brandRouter, method: "delete", routePath: "/:id", path: "/1", reason: "A", note: "Brands.vue:135" },
-  { file: "product-marketing-tag.routes.ts", prefix: "/api/admin/product-tags", router: productMarketingTagRouter, method: "post", routePath: "/", path: "/", reason: "A", note: "ProductTags.vue:145（商品标签 routes:170 [SUPER_ADMIN, STORE_MANAGER]）＋ MarketingTags.vue:312（营销标签 routes:221 同角色）" },
-  { file: "product-marketing-tag.routes.ts", prefix: "/api/admin/product-tags", router: productMarketingTagRouter, method: "put", routePath: "/:id", path: "/1", reason: "A", note: "ProductTags.vue:142；MarketingTags.vue:307" },
   { file: "product-marketing-tag.routes.ts", prefix: "/api/admin/product-tags", router: productMarketingTagRouter, method: "delete", routePath: "/:id", path: "/1", reason: "A", note: "ProductTags.vue:156；MarketingTags.vue:328" },
   { file: "product-review.routes.ts", prefix: "/api/admin/product-reviews", router: productReviewRouter, method: "post", routePath: "/:id/approve", path: "/1/approve", reason: "A", note: "ProductReview.vue:564（商品审核 routes:173 [SUPER_ADMIN, STORE_MANAGER]）" },
   { file: "product-review.routes.ts", prefix: "/api/admin/product-reviews", router: productReviewRouter, method: "post", routePath: "/:id/reject", path: "/1/reject", reason: "A", note: "ProductReview.vue:613" },
   { file: "product-review.routes.ts", prefix: "/api/admin/product-reviews", router: productReviewRouter, method: "post", routePath: "/batch-approve", path: "/batch-approve", reason: "A", note: "ProductReview.vue:561" },
   { file: "product-review.routes.ts", prefix: "/api/admin/product-reviews", router: productReviewRouter, method: "post", routePath: "/batch-reject", path: "/batch-reject", reason: "A", note: "ProductReview.vue（批量驳回）" },
-  { file: "unit-group.routes.ts", prefix: "/api/admin/unit-groups", router: unitGroupRouter, method: "post", routePath: "/", path: "/", reason: "A", note: "Units.vue:212（单位管理 routes:168 [SUPER_ADMIN, STORE_MANAGER]）" },
-  { file: "unit-group.routes.ts", prefix: "/api/admin/unit-groups", router: unitGroupRouter, method: "put", routePath: "/:id", path: "/1", reason: "A", note: "Units.vue:209/235" },
   { file: "unit-group.routes.ts", prefix: "/api/admin/unit-groups", router: unitGroupRouter, method: "delete", routePath: "/:id", path: "/1", reason: "A", note: "Units.vue:223" },
 
   // ===== P 类 2 条：既有「查询型 POST（待裁定）」/「已知锁定」项，本批不动（见台账 §十二.6） =====
@@ -399,10 +402,10 @@ beforeEach(() => {
 });
 
 describe("S3-220 · 名单自证", () => {
-  it("27 已接（15 + S3-233 收编 12）+ 18 未接 = 45（= 台账 §三.3 本域写端点总数）", () => {
+  it("27 已接（S3-220 15 + S3-233 收编 12）+ 7（S3-237 收编，断言在 rbac-b2-s3-237-goods-wiring.test.ts）+ 11 未接 = 45（= 台账 §三.3 本域写端点总数）", () => {
     expect(ROWS).toHaveLength(27);
-    expect(UNWIRED).toHaveLength(18);
-    expect(ROWS.length + UNWIRED.length).toBe(DOMAIN_TOTAL);
+    expect(UNWIRED).toHaveLength(11);
+    expect(ROWS.length + 7 + UNWIRED.length).toBe(DOMAIN_TOTAL);
   });
 
   it("已接 27 行的逐文件分布（S3-220 的 4 文件 + S3-233 新增 category.routes.ts；与台账 §十二.2/§十八 一致）", () => {
@@ -426,17 +429,17 @@ describe("S3-220 · 名单自证", () => {
     ]);
   });
 
-  it("未接 18 行的原因分布 = B 1 + A 15 + P 2（S3-233 收编 B 类 12 条后；与台账 §十二.3/§十二.4/§十二.6 一致）", () => {
+  it("未接 11 行的原因分布 = B 1 + A 8 + P 2（S3-233 收编 B 类 12 条、S3-237 收编 A 类 7 条后；与台账 §十二.3/§十二.4/§十二.6 → §二十 一致）", () => {
     const byReason = new Map<string, number>();
     for (const row of UNWIRED) byReason.set(row.reason, (byReason.get(row.reason) ?? 0) + 1);
     expect([...byReason.entries()].sort()).toEqual([
-      ["A", 15],
+      ["A", 8],
       ["B", 1],
       ["P", 2],
     ]);
-    // A 类（页面对 STORE_MANAGER 开放）不含任何商品域码持有关系：店长不持 goods:* 写码，逐条钉住
-    expect(matchPermission(USERS[STORE_MANAGER].perms, "goods:create")).toBe(false);
-    expect(matchPermission(USERS[STORE_MANAGER].perms, "goods:edit")).toBe(false);
+    // A 类（页面对 STORE_MANAGER 开放）仍不含任何商品域码持有关系：店长不持 `goods:delete`（D1 明确不含）
+    // ⚠️ `goods:create|edit` 两行是**204 之前的快照**（S3-237 说明：生产已由 D1 授予店长）⇒ 不再在此断言为 false，
+    //    改由 `rbac-b2-s3-237-goods-wiring.test.ts` 按 204 后真值断言（含"反事实：无 204 即 403"两侧）。
     expect(matchPermission(USERS[STORE_MANAGER].perms, "goods:delete")).toBe(false);
     expect(matchPermission(USERS[STORE_MANAGER].perms, "goods:price")).toBe(true);
   });

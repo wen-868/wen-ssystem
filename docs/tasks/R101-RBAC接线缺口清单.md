@@ -3419,3 +3419,104 @@ C 两条：登记真写端点被拒 / 缺 ruling 被拒），全部逐字节复�
 3. **`island-instant-retail-admin` 的 `platform/*` 15 条路径漂移**：后端真实前缀无 `/platform` 段，而前端 `api/modules/instant-retail.ts` 调的也是**无 `/platform`** 形态 ⇒ 注册表（S3-230，源自页面代码）与后端/前端双双不一致。漂移方向是"注册表多写了 `/platform`"，但**以哪层为准需凌舟定**（本单只登记）。
 4. **`POST /api/admin/purchase-plans/`、`.../:planNo/convert` 2 条仍为 W 类**（授权模型未定案，S3-214 起即如此）⇒ 采购计划页在门存在的前提下仍无码可挂，建议并入下一批"待裁定"清理。
 5. **机读台账的"空 key 不留"语义**：本次收尾实测，缺口清零后 `update-baseline.mjs` 会删除该文件 key，导致**下游断言若直接 `expect(gaps[file]).not.toContain(...)` 会以"参数类型错"而非"仍登记"变红**（§19.8-1）。建议后续批次统一写 `?? []`（已在本单落地，未改动他人批次断言）。
+
+---
+
+## 二十、S3-237 · **接线批 10**（系统设置/基础域 **10 条** ＋ 商品 A 类 **7 条**）（2026-10-16）
+
+> 执行方：`/root/s3244_ajian`（阿坚 · 后端/权限）｜派单卡：`docs/tasks/inbox/ACTIVE-S3-237.md`｜回传：`docs/tasks/cards/R101-S3-237-阿坚-回传.md`
+> 分支：`feat/s3-237-system-goods-wiring`（**未 push / 未开 PR**）｜基线：`origin/main` = `efc8d1be`
+> 提交：组 1 = `3b60825b`｜组 2 = `212da88f`（分组提交，逐笔可复跑）｜证据：`docs/evidence/S3-237/`
+
+### 20.0 口径（先读，否则会误读下面的数字）
+
+1. **码来源**：组 1 = S3-232 已立的新码（`backend/src/shared/system-permission-codes.ts` ↔ 迁移 `204_系统设置域权限点立码.sql`，目录与迁移同源）；
+   组 2 = `docs/migrations/079_权限矩阵.sql:200-201` 的**既有**码。**本批不新立权限码、不改角色种子、不动迁移、不改前端**。
+2. **接线形态**：路由注册行**内联** `requirePermission(...)`（门禁 `PERM_CALL_RE` 判据；注释行不算 —— 踩坑[134]）。
+3. **零回归判据**：不变量 **I1'**（①持码 ②前端按码只读 ③页面不开放；三条都不成立 ⇒ **不接并登记**）+ 派单卡 §二.4（码的"生产在用持有者"取自共用底稿 `docs/evidence/_shared/prod-roles-20261016.txt`，**叠加其顶部凌舟的 204 过期批注**：`STORE_MANAGER` 已由 D1 持有 `goods:create|edit`）。
+4. **卡面差异已实名报备**（见 20.6）—— 组 1、组 2 的卡面条数均与实测不符，本批按**实测**交付，不造不存在的端点。
+
+### 20.1 已接 **10 条**（组 1 · 系统设置/基础域；行号 = 当前注册行）
+
+| # | 端点（`file:行`） | 落地码 | 真实使用者（零回归依据） |
+|--:|:--|:--|:--|
+| 1 | `alert.routes.ts:20` PUT `/api/admin/alerts/:id/handle` | `system:alert:handle` | 全仓**无**页面调用点（`api/alert.ts` 仅封装）⇒ 使用者 ⊆ {超管, 运营} |
+| 2 | `alert.routes.ts:22` PUT `/api/admin/alerts/rules/:id` | `system:alert:rule-edit` | 同上 |
+| 3 | `alert.routes.ts:23` POST `/api/admin/alerts/check` | `system:alert:check` | 同上（S3-231 F4 已定性：**有写**，INSERT `t_alert_record` ⇒ 属真写端点） |
+| 4 | `archive.routes.ts:13` POST `/api/admin/archive/execute` | `system:archive:execute` | 全仓无调用点（运维触发） |
+| 5 | `notification.routes.ts:22` POST `/api/admin/notifications/send` | `system:notification:send` | 唯一调用点 `InventoryPriceQuote.vue:256`；该页 `router/index.ts:144` 的 `meta.roles` = **["SUPER_ADMIN"]** ⇒ 使用者 ⊆ 码持有者 |
+| 6 | `push.routes.ts:42` POST `/api/admin/push/test` | `system:push:test` | 无页面调用点；**与控制器角色白名单逐条对齐**（见 20.5-③） |
+| 7 | `sms-template.routes.ts:24` POST `/api/admin/sms-templates/` | `system:sms-template:create` | 商家侧无调用点（`saas-admin` 走平台侧权限点，属另一条线） |
+| 8 | `sms-template.routes.ts:25` PUT `/api/admin/sms-templates/:id` | `system:sms-template:edit` | 同上 |
+| 9 | `sms-template.routes.ts:26` DELETE `/api/admin/sms-templates/:id` | `system:sms-template:delete` | 同上 |
+| 10 | `system.routes.ts:15` POST `/api/system/migrate` | `system:migration:run` | 无调用点（运维入口） |
+
+**授权面**：14 个新码（本批接了 10 个）在当前生产**只由 `*` 通配角色持有**（`SUPER_ADMIN` 2 账号 / `OPERATION_ADMIN` 0 账号）；
+`system` 一级目录只授予 `OPERATION_ADMIN`（0 账号）/`READONLY`（观察员，写 403 属既有期望）/`STORE_ADMIN`（0 账号，旧词表）
+⇒ 无在用写角色被本批打成 403。**其中 4 个码本批不接**，理由见 20.3-①。
+
+### 20.2 已接 **7 条**（组 2 · 商品 A 类；全部挂既有码 `goods:create` / `goods:edit`）
+
+| # | 端点（`file:行`） | 落地码 | 页面 / 真实使用者（`admin-web/src/router/index.ts`） |
+|--:|:--|:--|:--|
+| 1 | `admin-product.routes.ts:68` PUT `/api/admin/products/skus/:skuId/barcode` | `goods:edit` | 商品管理页 `:165` **["SUPER_ADMIN","STORE_MANAGER"]**（调用点 `Products.vue:1156`；移动端无本端点调用点） |
+| 2 | `brand.routes.ts:15` POST `/api/admin/brands/` | `goods:create` | 品牌管理 `:167`（含 STORE_MANAGER；`Brands.vue:124`） |
+| 3 | `brand.routes.ts:16` PUT `/api/admin/brands/:id` | `goods:edit` | 同上（`Brands.vue:121`） |
+| 4 | `product-marketing-tag.routes.ts:17` POST `/api/admin/product-tags/` | `goods:create` | 商品标签 `:170` ＋ 营销标签 `:221`（均含 STORE_MANAGER；`ProductTags.vue:145`／`MarketingTags.vue:312`） |
+| 5 | `product-marketing-tag.routes.ts:20` PUT `/api/admin/product-tags/:id` | `goods:edit` | 同上（`ProductTags.vue:142`／`MarketingTags.vue:307`） |
+| 6 | `unit-group.routes.ts:15` POST `/api/admin/unit-groups/` | `goods:create` | 单位管理 `:168`（含 STORE_MANAGER；`Units.vue:212`） |
+| 7 | `unit-group.routes.ts:16` PUT `/api/admin/unit-groups/:id` | `goods:edit` | 同上（`Units.vue:209/235`） |
+
+**零回归论证（可复算）**：3 个码的持有人 = `SUPER_ADMIN`(2 账号) / `OPERATION_ADMIN`(0) / **`STORE_MANAGER`(1 账号，经 D1/204 精确持有 `goods:create|edit`)**；
+页面可见角色 ⊆ 该集合（4 个页面 `meta.roles` 均 = [SUPER_ADMIN, STORE_MANAGER]）。
+**反事实**：若没有 204（D1），店长的旧权限串不命中这两个码 ⇒ 本批 7 行全都会 403 —— 该反事实在
+`rbac-b2-s3-237-goods-wiring.test.ts` 里被写成断言，**把"零回归依赖 204 已落地"钉死**。
+
+### 20.3 本批**不接** **12 条**（保留在机读台账 `gaps` 内，逐条给理由）
+
+| 类 | 条数 | 端点 | 不接理由（证据） |
+|:--|--:|:--|:--|
+| ① 手机端通知写端点 | **4** | `notification.routes.ts` 的 `PUT /:id/read`、`POST /read-all`、`DELETE /:id`、`POST /batch-delete` | 唯一调用点是**手机端消息页**（`pages/notifications/notifications.vue:332/384/413/438/467`、`notification-detail.vue:120/139/156`），该页**无任何权限门**（`app-mobile/src/config/permission-gates.ts` 全表 0 处引用 `/api/admin/notifications`；`pages/home/home.vue:16` 铃铛入口无条件渲染）⇒ 在用角色**店长(1 账号)/操作员(1 账号)** 能打开并调用，而它们**不持** `system:notification:*` 任何一条（`store:*`/`sale:*` 等域通配不跨 `system` 域）⇒ I1' 的 ①②③ **三条都不成立** |
+| ② DELETE（商品 A 类） | **3** | `brand.routes.ts` / `product-marketing-tag.routes.ts` / `unit-group.routes.ts` 的 `DELETE /:id` | **D1 明确不含 `goods:delete`**（删除属高风险，留给超管/运营）⇒ 挂码即把页面使用者店长打成 403（`Brands.vue:135`／`ProductTags.vue:156`／`Units.vue:223`）⇒ 按 **D4 = 前端补门**（按钮按码显隐）处置，**另立前端小单** |
+| ③ 审核端点（商品 A 类） | **4** | `product-reviews/:id/approve`、`/:id/reject`、`/batch-approve`、`/batch-reject` | **无现成审核类码**：`079_权限矩阵.sql:199-223` 按钮码全表与迁移 204 的 14 个新码均无审核语义 ⇒ 按卡面"无 ⇒ 只登记并入下一批立码（**不得自行造码**）"；另注：页面 `ProductReview.vue`（`:173`）`meta.roles` 含 STORE_MANAGER，立码时须同时定"码归店长与否"，否则挂码即 403 |
+| ④ 商品导入 | **1** | `admin-product.routes.ts` 的 `POST /api/admin/products/import` | `12.4-2` 口径：该页（`ProductImport.vue:95`）真实打的是 `/admin/data-transfer/import/products`（已由 S3-198 接 `store:transfer`）；`api/product.ts:49` 的 `importProducts` 封装**无任何页面调用点**（本批已写成用例断言）⇒ 保持登记 |
+
+### 20.4 守恒与门禁读数
+
+| 指标 | 本批前（`efc8d1be`） | 组 1 后（`3b60825b`） | 本批后（`212da88f`） | 说明 |
+|:--|--:|--:|--:|:--|
+| 扫描写端点总数 | 763 | 763 | 763 | 未增删端点（`raw/31`、`raw/41`、`raw/50`） |
+| 已接线（权限码） | 398 | 408 | **415** | +10 / +7 |
+| 无授权形态（缺口） | **314** | 304 | **297** | −17；分布文件 93 → 89（alert / archive / sms-template / system 四个文件清零） |
+| 消费者端保护形态 | 45 | 45 | 45 | 不变 |
+| 查询型 POST（已登记） | 6 | 6 | 6 | 不变 |
+| 机读台账 `gaps` | 314 / 93 文件 | 304 / 89 | **297 / 89** | `_counts` 与源码逐文件计数一致 |
+| `--strict` 退出码 | EXIT=0 | EXIT=0 | **EXIT=0** | 未登记 0 / 陈旧 0 |
+| 本域对账 | 组 1：表 A 14 = **10 接 + 4 不接**；组 2：台账 15 = **7 接 + 3 DELETE + 4 审核 + 1 import** | — | 一条不多、一条不少 |  |
+| 用例口径（`requirePermission(` 出现次数） | 369 | 379 | **386** | `rbac-g0-wiring.test.ts` 只新增本批常量块（和式 + 台账一致性，S3-227 §9.2） |
+
+### 20.5 反测（门禁铁律：故意制造失败证明它会红；顺序照 `docs/tasks/派单规范.md` §9.1「先更新基线再注入」）
+
+| # | 反测 | 注入 | 结果（原始输出） |
+|--:|:--|:--|:--|
+| ① | 门禁分辨力（组 1） | 摘掉 `archive.routes.ts` 的 `requirePermission(PERM_SYSTEM_ARCHIVE_EXECUTE)` | 报告：已接线 415 → **414**、缺口 297 → **298**；`--strict` **EXIT=1** 且点名 `archive.routes.ts:13 POST /api/admin/archive/execute`（`raw/31`、`raw/32`） |
+| ② | 用例分辨力（组 1） | 同上 | `rbac-b2-s3-237-system-wiring.test.ts`：**4 failed / 66 passed**（形状 + READONLY 403 + 非持有人枚举 + 未登录 401）（`raw/33`） |
+| ③ | 门禁分辨力（组 2） | 摘掉 `admin-product.routes.ts:68` 的 `requirePermission("goods:edit")` | 报告：缺口 297 → **298**；`--strict` **EXIT=1** 且点名 `admin-product.routes.ts:68 PUT /api/admin/products/skus/:skuId/barcode`（`raw/41`、`raw/42`） |
+| ④ | 用例分辨力（组 2） | 同上 | `rbac-b2-s3-237-goods-wiring.test.ts`：**3 failed / 57 passed**（`raw/43`） |
+| ⑤ | 逐字节复原 | 两次注入后 `git restore`（逐文件） | SHA256 注入前=复原后：`archive.routes.ts` `94CA5F6F…3E4E9218`、`admin-product.routes.ts` `15893CD8…37497CDB`；复跑 `--strict` **EXIT=0**、未登记 0 / 陈旧 0（`raw/30/34/35/40/44/45`） |
+
+**push/test 与控制器白名单的逐条对齐**（卡面点名要求）：控制器 `controllers/admin/push.controller.ts:118` 的白名单 = `SUPER_ADMIN`/`OPERATION_ADMIN`/`BOSS`；
+`system:push:test` 的持有人 = {SUPER_ADMIN, OPERATION_ADMIN} **⊆ 白名单** ⇒ 不存在"码放行、控制器仍 403"的空转；
+白名单多出的 `BOSS` 在生产 `t_sys_role` 12 个角色里**不存在** ⇒ 无在用账号被新门拦下。三条均写成用例断言（`rbac-b2-s3-237-system-wiring.test.ts` 的 f 组）。
+
+### 20.6 与卡面 / 台账的差异（**待凌舟裁定或订正**）
+
+1. **组 2 卡面条数自相矛盾**：卡面写"15 条 = 8（本批接）+ 3（DELETE 不接）+ 4（审核不接）+ 1（import 不接）"，8+3+4+1 = **16 ≠ 15**；
+   按机读台账与 §12.4 逐条清点，**可接的只有 7 条**（barcode 1 + brands POST/PUT 2 + tags POST/PUT 2 + unit-groups POST/PUT 2）。
+   本批按**实测 7 条**交付：**不擅自造第 8 条端点**，请凌舟订正卡面数字（属派单规范 R7「三栏只能一个取值」的同类问题）。
+2. **组 1 卡面"14 条机械接线" ⇒ 实测 10 条**：4 条手机端通知写端点因"页面无权限门 + 在用角色不持码"不满足 I1'（详见 20.3-①）。
+   这与《待立码清单》§三"接线前先由 S3-230 补门"的顺序要求一致 —— **S3-230 的 60 条 endpoint 行未覆盖这 4 条**（其分域表无"系统/通知域"），故门确实不存在。
+   请凌舟裁定：**(a)** 另立前端门单（消息页按码显隐/降级）后由后续接线批收编；**(b)** 或改判这 4 条的码族（现有 `notification:view` 由 CUSTOMER_SERVICE 持有，但店长/操作员同样不持）。
+3. **S3-220 用例的快照已成历史**：`rbac-b2-s3-220-product-wiring.test.ts` 的角色夹具是 **204 之前**的生产快照，其中"店长不持 `goods:create|edit`"
+   两处断言已被 D1/204 推翻（本批只做了**交接口径**的最小改动：7 行移出 `UNWIRED` + 计数同步 + 加注说明，未改其历史判据）。请凌舟确认是否把该文件的夹具升到 204 后真值。
+4. **路由表缺行（流程问题，非本单产出）**：`docs/tasks/inbox/ACTIVE.md` §〇 路由表**没有** `/root/s3244_ajian` 行（派单消息里有名字与单号 ⇒ 按 AGENTS.md「消息优先于路由表」直接开工）。请凌舟补行，避免后续"按表认领"的人找不到归属。
