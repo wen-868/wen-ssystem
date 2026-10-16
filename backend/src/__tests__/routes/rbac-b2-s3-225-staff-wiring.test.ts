@@ -303,8 +303,95 @@ const WIRED: WiredRow[] = [
     users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
     why: "全仓 0 个前端调用点 ⇒ 零回归",
   },
+
+  // ===== S3-233（B 类收编第一批 · 员工/账号域 7 条）=============================================
+  // 依据门（唯一真相源）= app-mobile/src/config/permission-gates.ts：`staff-entry`（system:user:create|edit）
+  //   与 `role-entry`（system:role:create|edit）。B 类前提（「我的」页对员工/角色管理页是**无条件硬编码入口**）
+  //   已由 S3-230 的入口权限门修复（见本文件 :700 已反转为"必须带门"的断言）⇒ 本批按注册表门码收编。
+  // 逐条码选取：新建 ⇒ create；改 / 停用 / 恢复 / 删除 ⇒ edit（与既有 :status 行及 S3-225 sys-user 先例同口径）。
+  // 持有人 = SUPER_ADMIN / OPERATION_ADMIN（本文件 :657 已复算）⇒ 零回归：店长等角色**看不到该入口**。
+  {
+    file: "admin-staff.routes.ts",
+    prefix: "/api/admin",
+    router: adminStaffRouter,
+    method: "post",
+    routePath: "/staff",
+    path: "/staff",
+    perm: "system:user:create",
+    users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
+    why: "app-mobile 员工管理页 employees.vue:132（employees.ts:42 addEmployee）；入口门 = staff-entry（profile.vue:50）",
+  },
+  {
+    file: "admin-staff.routes.ts",
+    prefix: "/api/admin",
+    router: adminStaffRouter,
+    method: "put",
+    routePath: "/staff/:id",
+    path: "/staff/1",
+    perm: "system:user:edit",
+    users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
+    why: "employees.vue:159 updateEmployee；同文件 :status 行同码先例",
+  },
+  {
+    file: "admin-staff.routes.ts",
+    prefix: "/api/admin",
+    router: adminStaffRouter,
+    method: "put",
+    routePath: "/staff/:id/disable",
+    path: "/staff/1/disable",
+    perm: "system:user:edit",
+    users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
+    why: "employees.vue:179 toggleStatus('inactive')（与 :status 同族）",
+  },
+  {
+    file: "admin-staff.routes.ts",
+    prefix: "/api/admin",
+    router: adminStaffRouter,
+    method: "post",
+    routePath: "/staff/:id/restore",
+    path: "/staff/1/restore",
+    perm: "system:user:edit",
+    users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
+    why: "employees.vue:187 toggleStatus('active')（恢复＝改启用状态，取 edit 而非 create）",
+  },
+  {
+    file: "rbac.routes.ts",
+    prefix: "/api/admin/system/roles",
+    router: rbacRouter,
+    method: "post",
+    routePath: "/",
+    path: "/",
+    perm: "system:role:create",
+    users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
+    why: "app-mobile 角色管理页 role-edit.vue:227（roles.ts:63 create）；入口门 = role-entry（profile.vue:54）",
+  },
+  {
+    file: "rbac.routes.ts",
+    prefix: "/api/admin/system/roles",
+    router: rbacRouter,
+    method: "put",
+    routePath: "/:id",
+    path: "/1",
+    perm: "system:role:edit",
+    users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
+    why: "role-edit.vue:225 update；同文件 :id/data-permissions 同码先例",
+  },
+  {
+    file: "rbac.routes.ts",
+    prefix: "/api/admin/system/roles",
+    router: rbacRouter,
+    method: "delete",
+    routePath: "/:id",
+    path: "/1",
+    perm: "system:role:edit",
+    users: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER],
+    why: "roles.vue:116 remove（删除取 edit，逐条与 S3-225 的 DELETE sys-user/:id 先例同口径）",
+  },
 ];
 
+/**
+ * ⚠️ S3-233（B 类收编第一批）：原「B类」7 行已收编接线 ⇒ 本类型已无实例，保留在联合类型里仅为兼容历史卡口径。
+ */
 type UnwiredKind = "B类" | "自服务" | "自服务实际用途" | "查询型POST" | "需新立码";
 
 interface UnwiredRow {
@@ -319,76 +406,7 @@ interface UnwiredRow {
 }
 
 const UNWIRED: UnwiredRow[] = [
-  {
-    file: "admin-staff.routes.ts",
-    prefix: "/api/admin",
-    router: adminStaffRouter,
-    method: "post",
-    routePath: "/staff",
-    path: "/staff",
-    kind: "B类",
-    reason: "app-mobile 员工管理页 employees.vue:132（employees.ts:42 addEmployee）经「我的」页 profile.vue:50 无条件入口可达 ⇒ 使用者集合不可枚举",
-  },
-  {
-    file: "admin-staff.routes.ts",
-    prefix: "/api/admin",
-    router: adminStaffRouter,
-    method: "put",
-    routePath: "/staff/:id",
-    path: "/staff/1",
-    kind: "B类",
-    reason: "同上（employees.vue:159 updateEmployee）",
-  },
-  {
-    file: "admin-staff.routes.ts",
-    prefix: "/api/admin",
-    router: adminStaffRouter,
-    method: "put",
-    routePath: "/staff/:id/disable",
-    path: "/staff/1/disable",
-    kind: "B类",
-    reason: "同上（employees.vue:179 toggleStatus('inactive')）",
-  },
-  {
-    file: "admin-staff.routes.ts",
-    prefix: "/api/admin",
-    router: adminStaffRouter,
-    method: "post",
-    routePath: "/staff/:id/restore",
-    path: "/staff/1/restore",
-    kind: "B类",
-    reason: "同上（employees.vue:187 toggleStatus('active')）",
-  },
-  {
-    file: "rbac.routes.ts",
-    prefix: "/api/admin/system/roles",
-    router: rbacRouter,
-    method: "post",
-    routePath: "/",
-    path: "/",
-    kind: "B类",
-    reason: "app-mobile 角色管理页 role-edit.vue:227（roles.ts:63 create）经「我的」页 profile.vue:54 无条件入口可达 ⇒ 使用者集合不可枚举",
-  },
-  {
-    file: "rbac.routes.ts",
-    prefix: "/api/admin/system/roles",
-    router: rbacRouter,
-    method: "put",
-    routePath: "/:id",
-    path: "/1",
-    kind: "B类",
-    reason: "同上（role-edit.vue:225 update）",
-  },
-  {
-    file: "rbac.routes.ts",
-    prefix: "/api/admin/system/roles",
-    router: rbacRouter,
-    method: "delete",
-    routePath: "/:id",
-    path: "/1",
-    kind: "B类",
-    reason: "同上（roles.vue:116 remove）",
-  },
+  // （S3-233：原 B 类 7 行已收编接线，见上方 WIRED 的 S3-233 块与缺口清单 §十八）
   {
     file: "sys-user.routes.ts",
     prefix: "/api/admin/sys-users",
@@ -593,29 +611,28 @@ beforeEach(() => {
   for (const [id, u] of Object.entries(USERS)) h.perms.set(Number(id), u.perms);
 });
 
-describe("S3-225 · 名单自证（31 = 11 已接 + 20 不接）", () => {
-  it("11 行已接 + 20 行不接 = 本域 31 写端点（与台账 §三.1 的 7 文件 / 31 端点守恒）", () => {
-    expect(WIRED).toHaveLength(11);
-    expect(UNWIRED).toHaveLength(20);
-    expect(11 + 20).toBe(31);
+describe("S3-225 · 名单自证（31 = 18 已接 + 13 不接）", () => {
+  it("18 行已接（11 + S3-233 收编 7）+ 13 行不接 = 本域 31 写端点（与台账 §三.1 的 7 文件 / 31 端点守恒）", () => {
+    expect(WIRED).toHaveLength(18);
+    expect(UNWIRED).toHaveLength(13);
+    expect(18 + 13).toBe(31);
   });
 
-  it("已接 11 行分布：admin-staff 1 / sys-user 3 / rbac 2 / data-permission 5", () => {
+  it("已接 18 行分布：admin-staff 5 / sys-user 3 / rbac 5 / data-permission 5", () => {
     const perFile = new Map<string, number>();
     for (const r of WIRED) perFile.set(r.file, (perFile.get(r.file) ?? 0) + 1);
     expect([...perFile.entries()].sort()).toEqual([
-      ["admin-staff.routes.ts", 1],
+      ["admin-staff.routes.ts", 5],
       ["data-permission.routes.ts", 5],
-      ["rbac.routes.ts", 2],
+      ["rbac.routes.ts", 5],
       ["sys-user.routes.ts", 3],
     ]);
   });
 
-  it("不接 20 行分布：B 类 7 / 自服务 7 / 自服务实际用途 1 / 查询型 POST 1 / 需新立码 4", () => {
+  it("不接 13 行分布：自服务 7 / 自服务实际用途 1 / 查询型 POST 1 / 需新立码 4（原 B 类 7 行已由 S3-233 收编）", () => {
     const perKind = new Map<string, number>();
     for (const r of UNWIRED) perKind.set(r.kind, (perKind.get(r.kind) ?? 0) + 1);
     expect([...perKind.entries()].sort()).toEqual([
-      ["B类", 7],
       ["查询型POST", 1],
       ["自服务", 7],
       ["自服务实际用途", 1],
