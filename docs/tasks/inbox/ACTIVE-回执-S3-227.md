@@ -49,3 +49,8 @@
 
 另：本单**未 push、未开 PR、未 `git add -A`**；未动 `.github/**`、`deploy/**`、`docs/migrations/**`、收口总清单、其它单工作树；
 反测临时改动的 4 个文件已逐字节复原（SHA256 见回传卡 §九），临时目录 `_s3227_tmp/` 已删除。
+
+**基线**：开工时 `git merge --ff-only origin/main` 到 **`37924f54`**（派单提交）；
+交付时 `git ls-remote origin refs/heads/main` = **`37924f54`**（main **未前进** ⇒ 本分支无合并冲突面，
+`git rev-parse HEAD` = `ab5311f2`）。最终 HEAD 复核：本门禁 `--strict` **EXIT=0**、g0 用例 **148 passed**
+（`docs/evidence/S3-227/57-final-head-strict.txt`）。
