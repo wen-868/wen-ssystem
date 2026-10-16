@@ -15,8 +15,9 @@
 | `/root/s3233_ajian` | **S3-229**（批 9：门店/租户域接线 + 营销 W 类 14 条收编；按授权模型 D2/I1 口径） | `docs/tasks/inbox/ACTIVE-S3-229.md` |
 | `/root/s3234_frontend` | **S3-230**（前端权限门单：解锁 B 类 66 条端点收编） | `docs/tasks/inbox/ACTIVE-S3-230.md` |
 | `/root/s3237_ajian` | **S3-231**（收尾批：customer:level 4 条 / 平台侧 2 条登记 / 入口门失败关闭 / 7 条查询型 POST 裁定登记）**← 换会话接手**（原 `s3235` 本轮用于 S3-229 复核与跨仓 P0 定位，未产出 F1~F4） | `docs/tasks/inbox/ACTIVE-S3-231.md` |
-| `/root/s3238_ajian` | **S3-233**（B 类收编第一批：把 `ENTRY_GATES` 里 gated 的门对应端点正式接线 + 跨层一致性断言） | `docs/tasks/inbox/ACTIVE-S3-233.md` |
-| `/root/s3239_ajian` | **S3-234**（迁移流水线收口：069 幂等 + manifest 驱动部署迁移 + CI 守卫；第 73/74 项） | `docs/tasks/inbox/ACTIVE-S3-234.md` |
+| `/root/s3240_ajian` | **S3-233（接手 `s3238`）** 收尾：s3238 已接线完成（gaps 371→321、证据齐）但**未提交/未收尾**且留 1 处用例断言缺陷 ⇒ 见派单消息 | `docs/tasks/inbox/ACTIVE-S3-233.md` |
+| `/root/s3241_ajian` | **S3-234（接手 `s3239`）** 收尾：s3239 已改 `auto-deploy.sh` + `069` + 守卫脚本但**manifest 未建、无回传、未提交** ⇒ 见派单消息 | `docs/tasks/inbox/ACTIVE-S3-234.md` |
+| `/root/s3242_ajian` | **S3-235**（收口总清单第 72 项：权限种子落库 —— `205` 幂等非破坏迁移 + 空库演练 + 灾备自检） | `docs/tasks/inbox/ACTIVE-S3-235.md` |
 | `/root/s3236_ajian` | **S3-232**（立码第一批：商品写码 D1 + 系统设置/基础域所需码；按提案 §三 五处落地面） | `docs/tasks/inbox/ACTIVE-S3-232.md` |
 
 > ⚠️ **2026-10-16 09:57 凌舟**：上表中 `s3227`(S3-223 #349) / `s3228`(S3-224 #350) / `s3230`(S3-225 #351) / `s3233`(S3-229 #355) / `s3234`(S3-230，PR #356 待合并) **各单已交付或已合并**，对应会话已结束 —— **不要再认领或接手这几行**；当前真正在办只有 `s3235`(S3-231)、`s3236`(S3-232) 两行（见 §一）。
