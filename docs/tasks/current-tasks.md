@@ -3805,3 +3805,21 @@
 - **门禁/构建**：全量 `npx vitest run` **654 files / 7718 tests / 0 failed**（EXIT=0）；`tsc --noEmit` **EXIT=0**；`guard-route-auth` / `guard-tenant-status` / `guard-route-prefix` / `guard-utf8-encoding` 四 **EXIT=0**；**根 `npm run build` 自本单起为 EXIT=0**（S3-190/193/194 一直如实报的那条存量红**已消除**）。产物哈希：`admin-web`/`saas-admin`/`website`/`app-mobile` 前后**逐字节一致**；`backend/dist` 变 **84 字节**——`backend/tsconfig.json` 未设 `removeComments`（注释进产物，`dist/routes/alert.routes.js` 可见还原后的注释），字节账 `65→49`（−16×5）+ `67→63`（−4）+ `68→68`（0）= **−84**，与实测 `4071753→4071669` 吻合。
 - **待凌舟裁定（3 项，详见回执 §六）**：① `--if-present` 的"静默跳过"边界是否升级为包装脚本/显式清单（本单只改一个词，未能堵住"删了某工作区 `build` 仍绿"）；② 新守卫是否接进 CI（红线未动）；③ 是否把"65 处自 2026-07-13 躺了 3 个月"与 `82e8f347` 先例修法写进 `docs/踩坑日志.md`（本单未改该文件）。
 - **自我报备**：改 `package.json` 时**第一次误改到主检出**（`ZXQL-MS\wen-ssystem\package.json`），已即时反向 patch 还原并以 `git status --porcelain -- package.json` / `git diff -- package.json`（均为空）双证；**未改 `ACTIVE.md` 路由表**（11 个并行会话共用，归档它会打断同伴），按"只归档自己的卡"执行；`docs/memories/阿坚-记忆.md` 未改（同署名并发，避免互相覆盖，请统一落一笔）。
+
+---
+
+## S3-231 交付记录（2026-10-16，阿坚 / 本地子代理通道 · `/root/s3237_ajian`）
+
+> 卡：`docs/tasks/inbox/archive/ACTIVE-S3-231-20261016.md`（原 `docs/tasks/inbox/ACTIVE-S3-231.md`，已归档）｜
+> 回执：`docs/tasks/inbox/ACTIVE-回执-S3-231.md`｜十项回传卡：`docs/tasks/cards/R101-S3-231-阿坚-回传.md`｜
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\S3-231`，分支 `chore/s3-231-followups`，基线 `origin/main` = `b5250d69`，HEAD = `20805ff3`（`e8d32578` F1 → `b8aaffe1` F2+F4 → `20805ff3` F3）；**未 push / 未开 PR**；证据 `docs/evidence/S3-231/**`（27 文件）
+
+- **结论（F1 · 会员等级配置 4 条）**：`points.routes.ts` 的增/改/启停/删 4 条**改挂页面自身注册码 `customer:level`**（凌舟裁定 1）；店长 `STORE_MANAGER`（生产在用 1 账号）持 `customer:*` 经域通配命中 ⇒ **零回归**；`SALES_STAFF`/`CUSTOMER_SERVICE`（各 0 账号）持精确码 `customer:view` ⇒ 该页降级只读。机读台账 `gaps` **378 → 374**、`wiredEndpoints` 337 → **341**。
+- **结论（F2 · 平台侧 2 条）**：`POST /api/tenant/applications/:id/{approve,reject}` **只登记不硬接线**（其认证是 `requirePlatformAuth`，商家码无效 ⇒ 跨体系）；落 `R101-平台RBAC接线台账.md` §六（105+2，注明生成器只扫 `platform*.routes.ts` ⇒ 人工补登）+ `R101-RBAC接线缺口清单.md` §18.4；并登记风险：`tenant:manage` 在 `PLATFORM_PERMISSIONS` 已有、`PERMISSION_CATALOG` 缺 ⇒ 接线须两处同改。
+- **结论（F3 · 入口门失败关闭）**：`hasPermissionCodes` 的 null/undefined 分支由"放行"改"不显示"（凌舟裁定 5），只动入口门这一层（`permission-gates.ts` + `usePermissionGate.ts` 注释 + 其调用方 `function-menu.ts`/`push.ts` 经同函数生效）；**未动** `stores/menu.ts` 与后端。逐条登记「因缺码被关闭的入口」**26 个 gated**（另 11 个 registered 不设门、不受影响）+ 影响面（该态为全局临时态、非角色相关）。证据脚本 `f3-impact.mjs`（带"清单不得静默变空"哨兵）+ `f3-verify.mjs`（失败关闭 + 改码反测 + 不静默 + 门数 26 不变）。
+- **结论（F4 · 7 条查询型 POST）**：逐条「端点 + service 是否写库 + 结论」= **4 可登记 + 3 留 gaps**。可登记 3 条入 `READ_ONLY_POSTS`（`marketing/calculate` 试算、`trace/configs/check` 判定、`platform/billing/statement/export` 对账单导出；`admin/reports/export` 复核为只读亦登记）；不可登记 3 条有写（`alerts/check` INSERT `t_alert_record`、`platform/reports/export/` 创建任务、`commission/calculate` INSERT `t_sales_commission_record`，且已被 G0 的 NOT_IN_G0 锁定）。机读台账 `gaps` **374 → 371**、`readOnlyPostEndpoints` 3 → **6**。
+- **门禁/构建**：`guard-rbac-wiring --strict` **EXIT=0**（未登记 0 / 陈旧 0；`_counts` 自洽 `371+45+6+341=763`）；全量 `npx vitest run`（backend）**679 文件 / 9529 用例 / 0 failed**；`tsc --noEmit` **0**；`npm run build`（backend）**EXIT=0**；app-mobile `vue-tsc` **0 新增**（12 条为 `src/utils/crypto.ts` 既有）、`uni build -p h5` **EXIT=0**。
+- **反测两侧齐（逐项逐字节复原）**：F1 摘 `points.routes.ts:27`（**文件中段行**）⇒ `--strict` **EXIT=1** 且点名 + 用例 **5 failed**，复原 SHA256 一致（`330DBF00…5FB007C`）；F4 删台账里 `trace/configs/check` 两行的「查询型」字样 ⇒ **登记被拒** + `未登记 1 条` + **EXIT=1**，复原台账 SHA256 一致（`675A3627…0E191`）。
+- **跨批状态同步（3 处既有用例，只同步"总数 + 逐文件计数"）**：`rbac-b2-s3-229`（W 4 → 0、未接 28 → 24、runnable 12 → 8）、`rbac-b2-s3-226`（W 4 → 0、混合态自证 4 行 false → true）、`rbac-g0-wiring`（新增 `S3_231_WIRED_FILES` 块 + 折叠循环 `set` → `+=`，**不改** S3-226 的声明值）；G0 名单行与其逐行 403/200 断言**一字未动**。
+- **待凌舟裁定（4 项，详见回传卡 §九）**：① F2 的平台侧单归属与 `PERMISSION_CATALOG` 补目录；② F3 引出的两套 null 语义（入口门失败关闭 vs `stores/menu.ts` 放全量）是否统一另立单；③ S3-226 用例的 W 4 只显式 2 行（该用例自身口径不自洽）是否补登；④ F4 未裁定的其余候选（台账 `附.5-1`）。
+- **自我报备**：① F3 与 `stores/menu.ts` 的 null 语义**有意分叉**（按卡不动 menu.ts）⇒ 成技术债，已写入回传卡 §六.2；② 证据目录内 `raw/30-full-vitest-after.txt` 是**首轮失败**记录（S3-226 未同步时 5 failed），终轮以 `raw/31-…` 为准，已在回传卡 §六.1 说明；③ 路由表只改**自己那一行** + 追加一条报备注（未删任何他人行；`inbox/ACTIVE.md` 原件未删，按"路由文件只追加"纪律）。
