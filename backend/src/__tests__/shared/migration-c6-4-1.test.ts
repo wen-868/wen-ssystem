@@ -64,7 +64,9 @@ const FILE_191 = `191_${MIG_191}`;
 // S3-235（2026-10-16）追加说明：本单新增 `205_角色权限种子.sql`（第 72 项：把生产底稿 §一 的 12 个商家角色
 // × 权限码落成幂等、非破坏的种子；纯数据写、零 DDL。生成方式：gen-role-seed.mjs 从底稿程序化生成）
 // ⇒ 最高编号由 204 → 205。判据本身仍未变（190/191 各一号 + 最高编号唯一），只同步编号期望值。
-const EXPECTED_MAX_MIGRATION = 205;
+// ⚠️ 每次新增迁移都必须同步本常量（漏了就红）—— 2026-10-16 事故修复补 206（`206_角色权限回补.sql`）
+//   ；并由 `backend/scripts/guard-migration-manifest.mjs` 的"最大编号一致性"判据兜住（防再漏）。
+const EXPECTED_MAX_MIGRATION = 206;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);

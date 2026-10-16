@@ -137,6 +137,18 @@ jobs:
         # 反测：见 `docs/evidence/S3-224/`~`docs/evidence/S3-227/`（多批"摘中间件 ⇒ EXIT=1 并点名端点 ⇒ 复原 EXIT=0"）。
         run: node backend/scripts/guard-rbac-wiring.mjs --strict
 
+      - name: Migration manifest guard (第 74 项, blocking)
+        # 判据（六条）：① `docs/migrations/*.sql` 每个文件必须恰好在
+        #   `deploy/migrations-manifest.txt` 活动段（A 实测幂等，部署会跑）/ 具名豁免段（C 只初始化）/
+        #   `deploy/migrations-nonidempotent-registry.txt`（B 已知非幂等，部署不跑但登记在案）**之一**；
+        #   ② 活动段指向的文件必须存在；③ 豁免行必须带非空理由；④ 活动段行序 = 运行时跑序；
+        #   ⑤ 登记册四列格式合法；⑥ **最大迁移编号 = `migration-c6-4-1.test.ts` 的 `EXPECTED_MAX_MIGRATION`**。
+        # 为什么接 CI（2026-10-16）：新增 `206_角色权限回补.sql` 时漏改该常量 ⇒ main 的 build-and-test
+        #   连红 3 次（`38922663917` / `38925126923` / `38927967575`），而当时**没有任何门禁**发现这一漏改
+        #   ⇒ 判据⑥ 把这半年才暴露一次的"漏同步"变成合并前必红。
+        # 反测：`docs/evidence/S3-234/`（红绿两侧 × 7 例）+ 本次判据⑥ 反测（常量改 205 ⇒ EXIT=1 并点名；复原 ⇒ 0）。
+        run: node backend/scripts/guard-migration-manifest.mjs
+
       - name: Backend coverage gate (baseline 2026-08-15)
         run: npm --workspace backend run test -- --coverage
 

@@ -83,6 +83,7 @@ const problems = {
   badExemptLines: [],
   duplicates: [],
   orderMismatch: null,
+  maxMigrationMismatch: null,
   badActiveLines: [],
   badRegistryLines: [],
   registryMissingFiles: [],
@@ -233,6 +234,29 @@ if (orderDiff.length > 0) {
   };
 }
 
+// ── 判据⑥（2026-10-16 事故后新增）：**最大迁移编号 ↔ 断言常量** 必须一致 ──
+//   事故：新增 `206_角色权限回补.sql` 时漏改 `EXPECTED_MAX_MIGRATION`（205）
+//   ⇒ `migration-c6-4-1.test.ts` 在 main 上红了 3 次（build-and-test failure），而**没有任何门禁**发现。
+//   本判据把它变成门禁：常量落后/超前、或断言文件/常量缺失 ⇒ 红。
+//   ⚠️ 必须放在 `if (orderDiff.length > 0)` **之外**（首版误嵌进去 ⇒ 无行序偏差时整条判据被跳过，反测当场证伪）。
+// 只认本项目迁移编号约定 `NNN_`（1~3 位数字前缀）——目录里还有 `20260720_*.sql` 这类**日期前缀**文件，
+// 用 `^(\d+)` 会把它们算成"最大编号 20260720"（首版即被反测抓出这个假读数）。
+const maxNumber = allMigrationFiles
+  .map((f) => Number((f.match(/^(\d{1,3})_/) ?? [])[1] ?? NaN))
+  .filter((n) => Number.isFinite(n))
+  .reduce((a, b) => Math.max(a, b), 0);
+const assertFile = path.join(root, "backend", "src", "__tests__", "shared", "migration-c6-4-1.test.ts");
+let declaredMax = null;
+if (fs.existsSync(assertFile)) {
+  const m = fs.readFileSync(assertFile, "utf8").match(/EXPECTED_MAX_MIGRATION\s*=\s*(\d+)/);
+  if (m) declaredMax = Number(m[1]);
+}
+if (declaredMax === null) {
+  problems.maxMigrationMismatch = { declared: null, actual: maxNumber, reason: "断言文件或常量缺失" };
+} else if (declaredMax !== maxNumber) {
+  problems.maxMigrationMismatch = { declared: declaredMax, actual: maxNumber, reason: "常量与迁移最大编号不一致" };
+}
+
 const hasProblem =
   problems.manifestMissing ||
   problems.registryMissing ||
@@ -244,7 +268,8 @@ const hasProblem =
   problems.duplicates.length > 0 ||
   problems.badActiveLines.length > 0 ||
   problems.badRegistryLines.length > 0 ||
-  problems.orderMismatch !== null;
+  problems.orderMismatch !== null ||
+  problems.maxMigrationMismatch !== null;
 
 const result = {
   ok: !hasProblem,
@@ -275,6 +300,15 @@ if (asJson) {
   if (problems.registryMissing) {
     console.log(
       `✗ 找不到非幂等登记册：${registryAbs}（部署段无法把「已知非幂等」与「新失败」区分开 ⇒ 判红）`,
+    );
+  }
+  if (problems.maxMigrationMismatch) {
+    const m = problems.maxMigrationMismatch;
+    console.log(
+      `✗ 最大迁移编号与断言常量不一致：断言 EXPECTED_MAX_MIGRATION=${m.declared ?? "(缺)"} ，` +
+        `实际最大编号=${m.actual}（${m.reason}）` +
+        `\n   ⇒ 处置：把 backend/src/__tests__/shared/migration-c6-4-1.test.ts 的 EXPECTED_MAX_MIGRATION 改成 ${m.actual}` +
+        `（新增迁移时**必须同步**；2026-10-16 漏改导致 main 红了 3 次）`,
     );
   }
   if (problems.missingFromManifest.length) {
