@@ -1,0 +1,7 @@
+guard-route-auth.mjs EXIT=0
+guard-tenant-status.mjs EXIT=0
+guard-tenant-injection.mjs EXIT=0
+guard-evidence-secrets.mjs EXIT=0
+guard-route-prefix.mjs EXIT=0
+guard-utf8-encoding.mjs EXIT=0
+guard-rbac-wiring.mjs --strict EXIT=0

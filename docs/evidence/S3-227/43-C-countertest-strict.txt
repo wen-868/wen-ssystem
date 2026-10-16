@@ -1,0 +1,802 @@
+[guard:rbac-wiring] 扫描 189 个路由文件 · 763 个写端点
+[guard:rbac-wiring] 已接线（权限码）255 处 ／ 消费者端保护形态 45 处 ／ 查询型 POST（已登记）3 处 ／ **无授权形态 460 处**（分布在 127 个文件）
+[guard:rbac-wiring] 声明式 auth 声明：requireAuthWithTenant×114 / requirePlatformAuth×32 / none×14 / requireAuth×4 / requireConsumerAuthWithTenant×1；现场解析 auto-routes.getAuthMiddlewares ⇒ 「消费者端成对形态」的 auth 值 1 个：requireConsumerAuthWithTenant
+[guard:rbac-wiring] 其中按声明式归入消费者端的文件 1 个：cart.routes.ts: miniappCartRouter ← auth:"requireConsumerAuthWithTenant"
+[guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）
+
+—— 缺口清单（按文件分组，逐条 METHOD /prefix/path ⇒ 无授权形态）——
+
+admin-auth.routes.ts  (5 处)
+   L21: PUT /api/admin/auth/settings ⇒ 无授权形态
+   L22: POST /api/admin/auth/change-password ⇒ 无授权形态
+   L24: POST /api/admin/auth/mfa/setup ⇒ 无授权形态
+   L25: POST /api/admin/auth/mfa/confirm ⇒ 无授权形态
+   L26: POST /api/admin/auth/mfa/disable ⇒ 无授权形态
+
+admin-library.routes.ts  (1 处)
+   L23: POST /api/admin/library/lookup ⇒ 无授权形态
+
+admin-marketing-calculation.routes.ts  (1 处)
+   L9: POST /api/admin/marketing/calculate ⇒ 无授权形态
+
+admin-marketing-coupon.routes.ts  (5 处)
+   L11: POST /api/admin/marketing/coupons/templates ⇒ 无授权形态
+   L14: PUT /api/admin/marketing/coupons/templates/:id ⇒ 无授权形态
+   L15: DELETE /api/admin/marketing/coupons/templates/:id ⇒ 无授权形态
+   L16: POST /api/admin/marketing/coupons/templates/:id/activate ⇒ 无授权形态
+   L17: POST /api/admin/marketing/coupons/templates/:id/pause ⇒ 无授权形态
+
+admin-marketing-full-reduction.routes.ts  (5 处)
+   L9: POST /api/admin/marketing/full-reductions ⇒ 无授权形态
+   L12: PUT /api/admin/marketing/full-reductions/:id ⇒ 无授权形态
+   L13: DELETE /api/admin/marketing/full-reductions/:id ⇒ 无授权形态
+   L14: POST /api/admin/marketing/full-reductions/:id/activate ⇒ 无授权形态
+   L15: POST /api/admin/marketing/full-reductions/:id/pause ⇒ 无授权形态
+
+admin-marketing-group-buy.routes.ts  (6 处)
+   L9: POST /api/admin/marketing/group-buys ⇒ 无授权形态
+   L12: PUT /api/admin/marketing/group-buys/:id ⇒ 无授权形态
+   L13: DELETE /api/admin/marketing/group-buys/:id ⇒ 无授权形态
+   L14: POST /api/admin/marketing/group-buys/:id/activate ⇒ 无授权形态
+   L17: POST /api/admin/marketing/group-buys/teams ⇒ 无授权形态
+   L19: POST /api/admin/marketing/group-buys/teams/:teamId/join ⇒ 无授权形态
+
+admin-marketing-points.routes.ts  (2 处)
+   L10: PUT /api/admin/marketing/points/rule ⇒ 无授权形态
+   L15: POST /api/admin/marketing/points/redeem ⇒ 无授权形态
+
+admin-marketing-stack-rule.routes.ts  (3 处)
+   L9: POST /api/admin/marketing/stack-rules ⇒ 无授权形态
+   L11: PUT /api/admin/marketing/stack-rules/:id ⇒ 无授权形态
+   L12: DELETE /api/admin/marketing/stack-rules/:id ⇒ 无授权形态
+
+admin-order.routes.ts  (1 处)
+   L27: PUT /api/admin/orders/:orderNo/status ⇒ 无授权形态
+
+admin-platform-announcement.routes.ts  (5 处)
+   L13: PUT /api/platform/announcements/templates ⇒ 无授权形态
+   L15: POST /api/platform/announcements/ ⇒ 无授权形态
+   L16: PUT /api/platform/announcements/:id ⇒ 无授权形态
+   L17: DELETE /api/platform/announcements/:id ⇒ 无授权形态
+   L18: POST /api/platform/announcements/:id/publish ⇒ 无授权形态
+
+admin-platform-settlement.routes.ts  (2 处)
+   L11: POST /api/platform/settlements/ ⇒ 无授权形态
+   L12: PUT /api/platform/settlements/:id ⇒ 无授权形态
+
+admin-product.routes.ts  (10 处)
+   L34: POST /api/admin/products/upload-image ⇒ 无授权形态
+   L42: PUT /api/admin/products/:id ⇒ 无授权形态
+   L45: PUT /api/admin/products/:skuId/price ⇒ 无授权形态
+   L46: PUT /api/admin/products/skus/:skuId/barcode ⇒ 无授权形态
+   L47: PUT /api/admin/products/skus/:skuId ⇒ 无授权形态
+   L48: POST /api/admin/products/skus/:skuId/units ⇒ 无授权形态
+   L49: PUT /api/admin/products/skus/:skuId/units/:unitId ⇒ 无授权形态
+   L50: DELETE /api/admin/products/skus/:skuId/units/:unitId ⇒ 无授权形态
+   L51: POST /api/admin/products/import ⇒ 无授权形态
+   L52: PUT /api/admin/products/:spuId/marketing-tags ⇒ 无授权形态
+
+admin-quote-push.routes.ts  (1 处)
+   L10: POST /api/admin/quote-push/ ⇒ 无授权形态
+
+admin-staff.routes.ts  (4 处)
+   L21: POST /api/admin/staff ⇒ 无授权形态
+   L22: PUT /api/admin/staff/:id ⇒ 无授权形态
+   L24: PUT /api/admin/staff/:id/disable ⇒ 无授权形态
+   L25: POST /api/admin/staff/:id/restore ⇒ 无授权形态
+
+admin-store.routes.ts  (2 处)
+   L10: POST /api/admin/system/stores ⇒ 无授权形态
+   L12: PUT /api/admin/system/stores/:id ⇒ 无授权形态
+
+aftersale.routes.ts  (4 处)
+   L49: POST /api/admin/aftersales/:id/approve ⇒ 无授权形态
+   L51: POST /api/admin/aftersales/:id/reject ⇒ 无授权形态
+   L66: POST /api/admin/aftersales/:id/inspect ⇒ 无授权形态
+   L71: POST /api/admin/aftersales/:id/complete ⇒ 无授权形态
+
+ai-billing.routes.ts  (4 处)
+   L16: PUT /api/platform/ai-billing/billing-strategy ⇒ 无授权形态
+   L22: PUT /api/platform/ai-billing/free-grant ⇒ 无授权形态
+   L28: PUT /api/platform/ai-billing/quota-packs ⇒ 无授权形态
+   L34: PUT /api/platform/ai-billing/points-rate ⇒ 无授权形态
+
+alert.routes.ts  (3 处)
+   L10: PUT /api/admin/alerts/:id/handle ⇒ 无授权形态
+   L12: PUT /api/admin/alerts/rules/:id ⇒ 无授权形态
+   L13: POST /api/admin/alerts/check ⇒ 无授权形态
+
+approval.routes.ts  (7 处)
+   L10: POST /api/admin/approval/rules ⇒ 无授权形态
+   L11: PUT /api/admin/approval/rules/:id ⇒ 无授权形态
+   L12: DELETE /api/admin/approval/rules/:id ⇒ 无授权形态
+   L16: POST /api/admin/approval/instances/submit ⇒ 无授权形态
+   L21: POST /api/admin/approval/tasks/:id/approve ⇒ 无授权形态
+   L22: POST /api/admin/approval/tasks/:id/reject ⇒ 无授权形态
+   L26: POST /api/admin/approval/notifications/:id/read ⇒ 无授权形态
+
+archive.routes.ts  (1 处)
+   L8: POST /api/admin/archive/execute ⇒ 无授权形态
+
+avatar.routes.ts  (1 处)
+   L20: POST /api/admin/auth/avatar ⇒ 无授权形态
+
+bank-account.routes.ts  (2 处)
+   L17: POST /api/admin/bank-accounts/ ⇒ 无授权形态
+   L21: POST /api/admin/bank-accounts/:id/close ⇒ 无授权形态
+
+billing-config.routes.ts  (2 处)
+   L16: PUT /api/platform/billing/arrears-policy ⇒ 无授权形态
+   L22: PUT /api/platform/billing/addon-price ⇒ 无授权形态
+
+brand.routes.ts  (3 处)
+   L10: POST /api/admin/brands/ ⇒ 无授权形态
+   L11: PUT /api/admin/brands/:id ⇒ 无授权形态
+   L12: DELETE /api/admin/brands/:id ⇒ 无授权形态
+
+category.routes.ts  (4 处)
+   L13: POST /api/admin/products/categories/ ⇒ 无授权形态
+   L14: PUT /api/admin/products/categories/:id ⇒ 无授权形态
+   L15: DELETE /api/admin/products/categories/:id ⇒ 无授权形态
+   L16: PUT /api/admin/products/categories/:id/sort ⇒ 无授权形态
+
+commission.routes.ts  (1 处)
+   L22: POST /api/admin/commission/calculate ⇒ 无授权形态
+
+community-marketing.routes.ts  (10 处)
+   L12: POST /api/marketing/group-buy/:id/join ⇒ 无授权形态
+   L13: POST /api/marketing/group-buy/:id/start ⇒ 无授权形态
+   L14: POST /api/marketing/group-buy/:id/end ⇒ 无授权形态
+   L22: POST /api/marketing/bargain/:id/start ⇒ 无授权形态
+   L23: POST /api/marketing/bargain/:id/help ⇒ 无授权形态
+   L24: POST /api/marketing/bargain/:id/end ⇒ 无授权形态
+   L32: POST /api/marketing/seckill/:id/buy ⇒ 无授权形态
+   L33: POST /api/marketing/seckill/:orderNo/pay ⇒ 无授权形态
+   L34: POST /api/marketing/seckill/:orderNo/cancel ⇒ 无授权形态
+   L35: POST /api/marketing/seckill/:id/end ⇒ 无授权形态
+
+credit.routes.ts  (1 处)
+   L28: POST /api/admin/credits/collections ⇒ 无授权形态
+
+custom-report-v2.routes.ts  (4 处)
+   L11: POST /api/admin/reports/ ⇒ 无授权形态
+   L15: PUT /api/admin/reports/:id(\d+) ⇒ 无授权形态
+   L16: DELETE /api/admin/reports/:id(\d+) ⇒ 无授权形态
+   L19: POST /api/admin/reports/:id(\d+)/generate ⇒ 无授权形态
+
+custom-report.routes.ts  (9 处)
+   L11: POST /api/custom-report/templates ⇒ 无授权形态
+   L12: PUT /api/custom-report/templates/:id ⇒ 无授权形态
+   L13: DELETE /api/custom-report/templates/:id ⇒ 无授权形态
+   L14: POST /api/custom-report/templates/:id/execute ⇒ 无授权形态
+   L18: POST /api/custom-report/schedules ⇒ 无授权形态
+   L19: PUT /api/custom-report/schedules/:id ⇒ 无授权形态
+   L20: DELETE /api/custom-report/schedules/:id ⇒ 无授权形态
+   L21: PUT /api/custom-report/schedules/:id/toggle ⇒ 无授权形态
+   L22: POST /api/custom-report/schedules/:id/run ⇒ 无授权形态
+
+customer-statement.routes.ts  (1 处)
+   L19: POST /api/store/customer-statements/:statementNo/confirm ⇒ 无授权形态
+
+demo.routes.ts  (2 处)
+   L9: POST /api/admin/demo/seed ⇒ 无授权形态
+   L10: POST /api/admin/demo/reset ⇒ 无授权形态
+
+department.routes.ts  (4 处)
+   L11: POST /api/department/ ⇒ 无授权形态
+   L12: PUT /api/department/:id ⇒ 无授权形态
+   L13: DELETE /api/department/:id ⇒ 无授权形态
+   L14: PUT /api/department/:id/move ⇒ 无授权形态
+
+error-log.routes.ts  (1 处)
+   L8: POST /api/admin/error-report ⇒ 无授权形态
+
+feedback.routes.ts  (2 处)
+   L10: POST /api/admin/feedback ⇒ 无授权形态
+   L16: PUT /api/admin/feedback/:id ⇒ 无授权形态
+
+hardware-callback.routes.ts  (2 处)
+   L11: POST /api/store/hardware/callbacks/cloud-speaker/:tenantId ⇒ 无授权形态
+   L12: POST /api/store/hardware/callbacks/box/:tenantId ⇒ 无授权形态
+
+instant-retail-admin-ops.routes.ts  (12 处)
+   L19: POST /api/admin/instant-retail/orders/:orderNo/status ⇒ 无授权形态
+   L41: POST /api/admin/instant-retail/routing-rules ⇒ 无授权形态
+   L42: PUT /api/admin/instant-retail/routing-rules/:id ⇒ 无授权形态
+   L43: DELETE /api/admin/instant-retail/routing-rules/:id ⇒ 无授权形态
+   L49: POST /api/admin/instant-retail/exceptions/:id/handle ⇒ 无授权形态
+   L54: POST /api/admin/instant-retail/shelf ⇒ 无授权形态
+   L55: PUT /api/admin/instant-retail/shelf/:id ⇒ 无授权形态
+   L56: DELETE /api/admin/instant-retail/shelf/:id ⇒ 无授权形态
+   L60: POST /api/admin/instant-retail/deliveries/:deliveryId/assign ⇒ 无授权形态
+   L61: PUT /api/admin/instant-retail/deliveries/:deliveryId/status ⇒ 无授权形态
+   L67: POST /api/admin/instant-retail/reviews/:id/reply ⇒ 无授权形态
+   L68: POST /api/admin/instant-retail/reviews/sync ⇒ 无授权形态
+
+instant-retail-admin-platform.routes.ts  (15 处)
+   L16: POST /api/admin/instant-retail/configs ⇒ 无授权形态
+   L17: POST /api/admin/instant-retail/configs/:platform/test ⇒ 无授权形态
+   L18: POST /api/admin/instant-retail/configs/:platform/sync-orders ⇒ 无授权形态
+   L19: POST /api/admin/instant-retail/configs/:platform/sync-products ⇒ 无授权形态
+   L20: DELETE /api/admin/instant-retail/configs/:platform ⇒ 无授权形态
+   L24: POST /api/admin/instant-retail/shop-config ⇒ 无授权形态
+   L28: POST /api/admin/instant-retail/categories ⇒ 无授权形态
+   L29: PUT /api/admin/instant-retail/categories/:id ⇒ 无授权形态
+   L30: DELETE /api/admin/instant-retail/categories/:id ⇒ 无授权形态
+   L34: POST /api/admin/instant-retail/products ⇒ 无授权形态
+   L35: PUT /api/admin/instant-retail/products/:id ⇒ 无授权形态
+   L36: DELETE /api/admin/instant-retail/products/:id ⇒ 无授权形态
+   L47: POST /api/admin/instant-retail/banners ⇒ 无授权形态
+   L48: PUT /api/admin/instant-retail/banners/:id ⇒ 无授权形态
+   L49: DELETE /api/admin/instant-retail/banners/:id ⇒ 无授权形态
+
+instant-retail-webhook.routes.ts  (3 处)
+   L11: POST /api/instant-retail/webhook/jd ⇒ 无授权形态
+   L12: POST /api/instant-retail/webhook/meituan ⇒ 无授权形态
+   L13: POST /api/instant-retail/webhook/eleme ⇒ 无授权形态
+
+inventory-loss-gain.routes.ts  (1 处)
+   L8: POST /api/admin/inventory/report-loss-gain ⇒ 无授权形态
+
+marketing-asset.routes.ts  (3 处)
+   L10: POST /api/marketing-asset/ ⇒ 无授权形态
+   L11: PUT /api/marketing-asset/:id ⇒ 无授权形态
+   L12: DELETE /api/marketing-asset/:id ⇒ 无授权形态
+
+marketing-gift-rule.routes.ts  (8 处)
+   L9: POST /api/admin/marketing/gift-rules/ ⇒ 无授权形态
+   L12: PUT /api/admin/marketing/gift-rules/:id ⇒ 无授权形态
+   L13: DELETE /api/admin/marketing/gift-rules/:id ⇒ 无授权形态
+   L14: POST /api/admin/marketing/gift-rules/:id/activate ⇒ 无授权形态
+   L15: POST /api/admin/marketing/gift-rules/:id/pause ⇒ 无授权形态
+   L16: POST /api/admin/marketing/gift-rules/:id/levels ⇒ 无授权形态
+   L17: PUT /api/admin/marketing/gift-rules/:id/levels/:levelId ⇒ 无授权形态
+   L18: DELETE /api/admin/marketing/gift-rules/:id/levels/:levelId ⇒ 无授权形态
+
+marketing-limited-discount.routes.ts  (7 处)
+   L9: POST /api/admin/marketing/limited-discounts/ ⇒ 无授权形态
+   L12: PUT /api/admin/marketing/limited-discounts/:id ⇒ 无授权形态
+   L13: DELETE /api/admin/marketing/limited-discounts/:id ⇒ 无授权形态
+   L14: POST /api/admin/marketing/limited-discounts/:id/activate ⇒ 无授权形态
+   L15: POST /api/admin/marketing/limited-discounts/:id/pause ⇒ 无授权形态
+   L17: POST /api/admin/marketing/limited-discounts/:id/products ⇒ 无授权形态
+   L18: DELETE /api/admin/marketing/limited-discounts/:id/products/:productId ⇒ 无授权形态
+
+marketing-material.routes.ts  (8 处)
+   L9: POST /api/admin/marketing/materials/ ⇒ 无授权形态
+   L12: PUT /api/admin/marketing/materials/:id ⇒ 无授权形态
+   L13: DELETE /api/admin/marketing/materials/:id ⇒ 无授权形态
+   L14: POST /api/admin/marketing/materials/:id/publish ⇒ 无授权形态
+   L15: POST /api/admin/marketing/materials/:id/archive ⇒ 无授权形态
+   L17: POST /api/admin/marketing/materials/categories ⇒ 无授权形态
+   L18: PUT /api/admin/marketing/materials/categories/:id ⇒ 无授权形态
+   L19: DELETE /api/admin/marketing/materials/categories/:id ⇒ 无授权形态
+
+marketing-points-mall.routes.ts  (7 处)
+   L9: POST /api/admin/marketing/points-mall/products ⇒ 无授权形态
+   L12: PUT /api/admin/marketing/points-mall/products/:id ⇒ 无授权形态
+   L13: DELETE /api/admin/marketing/points-mall/products/:id ⇒ 无授权形态
+   L14: POST /api/admin/marketing/points-mall/products/:id/toggle ⇒ 无授权形态
+   L17: POST /api/admin/marketing/points-mall/exchange ⇒ 无授权形态
+   L18: POST /api/admin/marketing/points-mall/exchange-records/:id/cancel ⇒ 无授权形态
+   L19: POST /api/admin/marketing/points-mall/exchange-records/:id/confirm ⇒ 无授权形态
+
+member-register.routes.ts  (2 处)
+   L8: POST /api/store/members/sms-code ⇒ 无授权形态
+   L9: POST /api/store/members/register ⇒ 无授权形态
+
+miniapp-config.routes.ts  (4 处)
+   L24: PUT /api/miniapp-config/configs/:platform ⇒ 无授权形态
+   L27: POST /api/miniapp-config/packages ⇒ 无授权形态
+   L30: POST /api/miniapp-config/upload-key ⇒ 无授权形态
+   L32: POST /api/miniapp-config/publish ⇒ 无授权形态
+
+miniapp-order-sync.routes.ts  (1 处)
+   L13: POST /api/miniapp-order-sync/:orderNo/retry ⇒ 无授权形态
+
+miniapp.routes.ts  (2 处)
+   L19: POST /api/miniapp/login ⇒ 无授权形态
+   L48: POST /api/miniapp/pay/notify ⇒ 无授权形态
+
+monitor.routes.ts  (1 处)
+   L11: POST /api/admin/monitor/notify-expiring ⇒ 无授权形态
+
+notification.routes.ts  (5 处)
+   L14: PUT /api/admin/notifications/:id/read ⇒ 无授权形态
+   L15: POST /api/admin/notifications/read-all ⇒ 无授权形态
+   L16: POST /api/admin/notifications/send ⇒ 无授权形态
+   L18: DELETE /api/admin/notifications/:id ⇒ 无授权形态
+   L19: POST /api/admin/notifications/batch-delete ⇒ 无授权形态
+
+order-exception.routes.ts  (3 处)
+   L11: POST /api/admin/order-exceptions ⇒ 无授权形态
+   L12: PUT /api/admin/order-exceptions/:id(\d+)/status ⇒ 无授权形态
+   L13: PUT /api/admin/order-exceptions/:id(\d+) ⇒ 无授权形态
+
+payment-new.routes.ts  (1 处)
+   L12: POST /api/admin/payments-new/ ⇒ 无授权形态
+
+payment.routes.ts  (1 处)
+   L20: POST /api/pay/wx/callback ⇒ 无授权形态
+
+platform-agent.routes.ts  (5 处)
+   L37: POST /api/platform/agents/levels ⇒ 无授权形态
+   L38: PUT /api/platform/agents/levels/:id ⇒ 无授权形态
+   L42: POST /api/platform/agents/ ⇒ 无授权形态
+   L44: PUT /api/platform/agents/:id ⇒ 无授权形态
+   L45: POST /api/platform/agents/:id/status ⇒ 无授权形态
+
+platform-app-version.routes.ts  (7 处)
+   L13: POST /api/padmin/app-versions/draft ⇒ 无授权形态
+   L14: POST /api/padmin/app-versions ⇒ 无授权形态
+   L16: POST /api/padmin/app-versions/:id/pause ⇒ 无授权形态
+   L17: POST /api/padmin/app-versions/:id/resume ⇒ 无授权形态
+   L18: POST /api/padmin/app-versions/:id/archive ⇒ 无授权形态
+   L20: POST /api/padmin/app-versions/:id/rollback ⇒ 无授权形态
+   L21: DELETE /api/padmin/app-versions/:id ⇒ 无授权形态
+
+platform-applications.routes.ts  (2 处)
+   L23: PUT /api/platform/applications/:id/approve ⇒ 无授权形态
+   L26: PUT /api/platform/applications/:id/reject ⇒ 无授权形态
+
+platform-auth.routes.ts  (6 处)
+   L37: POST /api/platform/auth/login ⇒ 无授权形态
+   L46: POST /api/platform/auth/admin/create ⇒ 无授权形态
+   L76: POST /api/platform/auth/mfa/setup ⇒ 无授权形态
+   L77: POST /api/platform/auth/mfa/confirm ⇒ 无授权形态
+   L78: POST /api/platform/auth/mfa/disable ⇒ 无授权形态
+   L80: POST /api/platform/auth/mfa/verify ⇒ 无授权形态
+
+platform-billing-arrears.routes.ts  (1 处)
+   L19: POST /api/platform/billing/arrears/urge ⇒ 无授权形态
+
+platform-billing.routes.ts  (3 处)
+   L30: POST /api/platform/billing/generate ⇒ 无授权形态
+   L31: POST /api/platform/billing/statement/export ⇒ 无授权形态
+   L32: POST /api/platform/billing/invoice ⇒ 无授权形态
+
+platform-config.routes.ts  (5 处)
+   L43: PUT /api/platform/config/ ⇒ 无授权形态
+   L49: PUT /api/platform/config/sys-config ⇒ 无授权形态
+   L53: POST /api/platform/config/logo ⇒ 无授权形态
+   L58: PUT /api/platform/config/feature-switches/:code ⇒ 无授权形态
+   L64: PUT /api/platform/config/data-dict/:dictType ⇒ 无授权形态
+
+platform-error-log.routes.ts  (1 处)
+   L13: POST /api/platform/error-report ⇒ 无授权形态
+
+platform-export-task.routes.ts  (2 处)
+   L28: POST /api/platform/reports/export/ ⇒ 无授权形态
+   L37: POST /api/platform/reports/export/:id/retry ⇒ 无授权形态
+
+platform-miniapp.routes.ts  (1 处)
+   L23: POST /api/platform-miniapp/subscriptions ⇒ 无授权形态
+
+platform-monitor-ops.routes.ts  (1 处)
+   L38: PUT /api/platform/monitor/thresholds ⇒ 无授权形态
+
+platform-monitor.routes.ts  (1 处)
+   L34: POST /api/platform/monitor/notify-expiring ⇒ 无授权形态
+
+platform-notification.routes.ts  (2 处)
+   L25: POST /api/platform/notifications/read-all ⇒ 无授权形态
+   L29: POST /api/platform/notifications/:id/read ⇒ 无授权形态
+
+platform-plans.routes.ts  (6 处)
+   L17: POST /api/platform/plans/ ⇒ 无授权形态
+   L26: PUT /api/platform/plans/:planId ⇒ 无授权形态
+   L29: DELETE /api/platform/plans/:planId ⇒ 无授权形态
+   L32: PUT /api/platform/plans/:planId/features ⇒ 无授权形态
+   L38: PUT /api/platform/plans/:planId/policy ⇒ 无授权形态
+   L41: POST /api/platform/plans/:planId/copy ⇒ 无授权形态
+
+platform-promo-code.routes.ts  (2 处)
+   L29: POST /api/platform/promo-codes/ ⇒ 无授权形态
+   L30: POST /api/platform/promo-codes/:id/disable ⇒ 无授权形态
+
+platform-reconciliation.routes.ts  (3 处)
+   L14: PUT /api/platform/reconciliation/:id/settle ⇒ 无授权形态
+   L17: POST /api/platform/reconciliation/ ⇒ 无授权形态
+   L18: PUT /api/platform/reconciliation/:id ⇒ 无授权形态
+
+platform-role.routes.ts  (4 处)
+   L28: POST /api/platform/roles/ ⇒ 无授权形态
+   L30: PUT /api/platform/roles/:id/permissions ⇒ 无授权形态
+   L31: PUT /api/platform/roles/:id ⇒ 无授权形态
+   L32: DELETE /api/platform/roles/:id ⇒ 无授权形态
+
+platform-subscription-applies.routes.ts  (1 处)
+   L15: PUT /api/platform/subscription-applies/:id/audit ⇒ 无授权形态
+
+platform-templates.routes.ts  (5 处)
+   L21: POST /api/platform/templates/init ⇒ 无授权形态
+   L25: PUT /api/platform/templates/init/:id ⇒ 无授权形态
+   L31: POST /api/platform/templates/print/upload ⇒ 无授权形态
+   L33: POST /api/platform/templates/print/:id/public ⇒ 无授权形态
+   L39: POST /api/platform/templates/import-export ⇒ 无授权形态
+
+platform-tenant.routes.ts  (6 处)
+   L39: POST /api/platform/tenants/ ⇒ 无授权形态
+   L42: PUT /api/platform/tenants/:id ⇒ 无授权形态
+   L45: POST /api/platform/tenants/:id/toggle ⇒ 无授权形态
+   L48: POST /api/platform/tenants/:id/proxy-login ⇒ 无授权形态
+   L49: POST /api/platform/tenants/:id/quota-expand ⇒ 无授权形态
+   L55: POST /api/platform/tenants/:tenantId/users/:userId/reset-password ⇒ 无授权形态
+
+platform-ticket.routes.ts  (5 处)
+   L40: POST /api/platform/support/tickets/:id/reply ⇒ 无授权形态
+   L42: POST /api/platform/support/tickets/:id/note ⇒ 无授权形态
+   L44: POST /api/platform/support/tickets/:id/transfer ⇒ 无授权形态
+   L46: POST /api/platform/support/tickets/:id/resolve ⇒ 无授权形态
+   L48: POST /api/platform/support/tickets/:id/close ⇒ 无授权形态
+
+platform.routes.ts  (4 处)
+   L28: POST /api/platform/admins/invite ⇒ 无授权形态
+   L29: POST /api/platform/admins/:id/reset-password ⇒ 无授权形态
+   L30: PUT /api/platform/admins/:id/status ⇒ 无授权形态
+   L32: POST /api/platform/admins ⇒ 无授权形态
+
+points-mall.routes.ts  (6 处)
+   L11: POST /api/points-mall/items ⇒ 无授权形态
+   L12: PUT /api/points-mall/items/:id ⇒ 无授权形态
+   L13: DELETE /api/points-mall/items/:id ⇒ 无授权形态
+   L14: PUT /api/points-mall/items/:id/status ⇒ 无授权形态
+   L17: PUT /api/points-mall/orders/:id/deliver ⇒ 无授权形态
+   L18: PUT /api/points-mall/orders/:id/cancel ⇒ 无授权形态
+
+points.routes.ts  (7 处)
+   L8: POST /api/admin/members/rules ⇒ 无授权形态
+   L9: PUT /api/admin/members/rules/:id ⇒ 无授权形态
+   L10: POST /api/admin/members/:id/points/adjust ⇒ 无授权形态
+   L13: POST /api/admin/members/levels/config ⇒ 无授权形态
+   L14: PUT /api/admin/members/levels/config/:id ⇒ 无授权形态
+   L15: PUT /api/admin/members/levels/config/:id/status ⇒ 无授权形态
+   L16: DELETE /api/admin/members/levels/config/:id ⇒ 无授权形态
+
+position.routes.ts  (3 处)
+   L10: POST /api/admin/positions/ ⇒ 无授权形态
+   L11: PUT /api/admin/positions/:id ⇒ 无授权形态
+   L12: DELETE /api/admin/positions/:id ⇒ 无授权形态
+
+price.routes.ts  (1 处)
+   L44: POST /api/admin/prices/batch/preview ⇒ 无授权形态
+
+print.routes.ts  (7 处)
+   L26: POST /api/admin/print/records ⇒ 无授权形态
+   L35: POST /api/admin/print/records/:id/reprint ⇒ 无授权形态
+   L49: POST /api/admin/print/templates ⇒ 无授权形态
+   L52: PUT /api/admin/print/templates/:id ⇒ 无授权形态
+   L55: DELETE /api/admin/print/templates/:id ⇒ 无授权形态
+   L58: POST /api/admin/print/templates/:id/reset ⇒ 无授权形态
+   L61: POST /api/admin/print/templates/:id/set-default ⇒ 无授权形态
+
+product-marketing-tag.routes.ts  (3 处)
+   L12: POST /api/admin/product-tags/ ⇒ 无授权形态
+   L15: PUT /api/admin/product-tags/:id ⇒ 无授权形态
+   L18: DELETE /api/admin/product-tags/:id ⇒ 无授权形态
+
+product-review.routes.ts  (4 处)
+   L17: POST /api/admin/product-reviews/:id/approve ⇒ 无授权形态
+   L18: POST /api/admin/product-reviews/:id/reject ⇒ 无授权形态
+   L19: POST /api/admin/product-reviews/batch-approve ⇒ 无授权形态
+   L20: POST /api/admin/product-reviews/batch-reject ⇒ 无授权形态
+
+purchase-in-stock.routes.ts  (1 处)
+   L12: POST /api/admin/purchase-in-stocks/ ⇒ 无授权形态
+
+purchase-payment.routes.ts  (1 处)
+   L12: POST /api/admin/purchase-payments/ ⇒ 无授权形态
+
+purchase-plan.routes.ts  (2 处)
+   L12: POST /api/admin/purchase-plans/ ⇒ 无授权形态
+   L14: POST /api/admin/purchase-plans/:planNo/convert ⇒ 无授权形态
+
+purchase-return.routes.ts  (1 处)
+   L12: POST /api/admin/purchase-returns/ ⇒ 无授权形态
+
+purchase.routes.ts  (1 处)
+   L14: POST /api/admin/purchase-orders/ ⇒ 无授权形态
+
+push.routes.ts  (3 处)
+   L26: POST /api/admin/push/register ⇒ 无授权形态
+   L29: POST /api/admin/push/unregister ⇒ 无授权形态
+   L35: POST /api/admin/push/test ⇒ 无授权形态
+
+rbac.routes.ts  (3 处)
+   L21: POST /api/admin/system/roles/ ⇒ 无授权形态
+   L23: PUT /api/admin/system/roles/:id ⇒ 无授权形态
+   L24: DELETE /api/admin/system/roles/:id ⇒ 无授权形态
+
+receipt.routes.ts  (1 处)
+   L11: POST /api/admin/receipts/ ⇒ 无授权形态
+
+reconciliation.routes.ts  (2 处)
+   L14: POST /api/admin/reconciliation/customer/:customerId/confirm ⇒ 无授权形态
+   L17: POST /api/admin/reconciliation/supplier/:supplierId/confirm ⇒ 无授权形态
+
+report-permissions.routes.ts  (4 处)
+   L9: PUT /api/admin/report-permissions/matrix ⇒ 无授权形态
+   L11: PUT /api/admin/report-permissions/data-scope ⇒ 无授权形态
+   L15: POST /api/admin/report-permissions/batch ⇒ 无授权形态
+   L17: PUT /api/admin/report-permissions/user/:userId ⇒ 无授权形态
+
+report.routes.ts  (1 处)
+   L58: POST /api/admin/reports/export ⇒ 无授权形态
+
+retail-announcement.routes.ts  (3 处)
+   L38: POST /api/retail-announcement/admin/retail-announcements ⇒ 无授权形态
+   L39: PUT /api/retail-announcement/admin/retail-announcements/:id ⇒ 无授权形态
+   L40: DELETE /api/retail-announcement/admin/retail-announcements/:id ⇒ 无授权形态
+
+retail-announcements-admin.routes.ts  (3 处)
+   L9: POST /api/admin/retail-announcements/ ⇒ 无授权形态
+   L10: PUT /api/admin/retail-announcements/:id ⇒ 无授权形态
+   L11: DELETE /api/admin/retail-announcements/:id ⇒ 无授权形态
+
+retail-consumer-address.routes.ts  (4 处)
+   L9: POST /api/retail-consumer-address/miniapp/addresses ⇒ 无授权形态
+   L10: PUT /api/retail-consumer-address/miniapp/addresses/:id ⇒ 无授权形态
+   L11: DELETE /api/retail-consumer-address/miniapp/addresses/:id ⇒ 无授权形态
+   L12: PUT /api/retail-consumer-address/miniapp/addresses/:id/default ⇒ 无授权形态
+
+saas-subscription.routes.ts  (4 处)
+   L14: POST /api/saas/subscriptions/ ⇒ 无授权形态
+   L16: POST /api/saas/subscriptions/:id/renew ⇒ 无授权形态
+   L18: POST /api/saas/subscriptions/:id/upgrade ⇒ 无授权形态
+   L20: POST /api/saas/subscriptions/:id/cancel ⇒ 无授权形态
+
+saas-tenant.routes.ts  (4 处)
+   L14: POST /api/saas/tenants/ ⇒ 无授权形态
+   L16: PUT /api/saas/tenants/:id ⇒ 无授权形态
+   L18: POST /api/saas/tenants/:id/audit ⇒ 无授权形态
+   L20: POST /api/saas/tenants/:id/toggle-status ⇒ 无授权形态
+
+sale-return.routes.ts  (1 处)
+   L12: POST /api/admin/sale-returns/ ⇒ 无授权形态
+
+seckill.routes.ts  (3 处)
+   L10: POST /api/seckill/ ⇒ 无授权形态
+   L11: PUT /api/seckill/:id ⇒ 无授权形态
+   L12: DELETE /api/seckill/:id ⇒ 无授权形态
+
+share.routes.ts  (2 处)
+   L10: POST /api/share/collections/:token/pay ⇒ 无授权形态
+   L11: POST /api/share/collections/:token/wx-notify ⇒ 无授权形态
+
+sms-template.routes.ts  (3 处)
+   L15: POST /api/admin/sms-templates/ ⇒ 无授权形态
+   L16: PUT /api/admin/sms-templates/:id ⇒ 无授权形态
+   L17: DELETE /api/admin/sms-templates/:id ⇒ 无授权形态
+
+stock-check.routes.ts  (9 处)
+   L8: POST /api/admin/stock-checks/ ⇒ 无授权形态
+   L12: PUT /api/admin/stock-checks/:id ⇒ 无授权形态
+   L13: POST /api/admin/stock-checks/:id/start ⇒ 无授权形态
+   L14: POST /api/admin/stock-checks/:id/complete ⇒ 无授权形态
+   L15: POST /api/admin/stock-checks/:id/cancel ⇒ 无授权形态
+   L16: POST /api/admin/stock-checks/:id/handle-diff ⇒ 无授权形态
+   L17: POST /api/admin/stock-checks/:id/items ⇒ 无授权形态
+   L24: PUT /api/store/stock-checks/:id/items/:itemId ⇒ 无授权形态
+   L25: POST /api/store/stock-checks/:id/submit ⇒ 无授权形态
+
+stock-warning.routes.ts  (1 处)
+   L9: POST /api/admin/stock-warnings/config ⇒ 无授权形态
+
+store-control.routes.ts  (5 处)
+   L12: PUT /api/admin/store-control/configs/:storeId ⇒ 无授权形态
+   L13: POST /api/admin/store-control/:storeId/open ⇒ 无授权形态
+   L14: POST /api/admin/store-control/:storeId/close ⇒ 无授权形态
+   L15: POST /api/admin/store-control/:storeId/suspend ⇒ 无授权形态
+   L16: POST /api/admin/store-control/:storeId/resume ⇒ 无授权形态
+
+store-coupon.routes.ts  (2 处)
+   L13: POST /api/store/coupons/verify ⇒ 无授权形态
+   L14: POST /api/store/coupons/manual-verify ⇒ 无授权形态
+
+store-hardware.routes.ts  (7 处)
+   L12: PUT /api/store/hardware/configs/:category ⇒ 无授权形态
+   L13: POST /api/store/hardware/configs/:category/test ⇒ 无授权形态
+   L14: POST /api/store/hardware/cloud-speaker/announce ⇒ 无授权形态
+   L15: POST /api/store/hardware/box/pay ⇒ 无授权形态
+   L17: PUT /api/store/hardware/box-config/ ⇒ 无授权形态
+   L18: POST /api/store/hardware/box-config/test ⇒ 无授权形态
+   L19: POST /api/store/hardware/unionpay/test ⇒ 无授权形态
+
+store-inventory.routes.ts  (1 处)
+   L13: PUT /api/store/inventory/alerts/:skuId/threshold ⇒ 无授权形态
+
+store-order.routes.ts  (2 处)
+   L24: POST /api/store/orders/:orderNo/start-delivery ⇒ 无授权形态
+   L30: POST /api/store/hold-orders/ ⇒ 无授权形态
+
+store-sale-bill.routes.ts  (3 处)
+   L15: POST /api/store/sale-bills/:billNo/collection-link ⇒ 无授权形态
+   L16: POST /api/store/sale-bills/:billNo/offline-payment ⇒ 无授权形态
+   L17: POST /api/store/sale-bills/:billNo/payment ⇒ 无授权形态
+
+store-trace.routes.ts  (1 处)
+   L8: POST /api/store/trace/verify ⇒ 无授权形态
+
+store-value-card.routes.ts  (4 处)
+   L9: POST /api/admin/store-value-cards/ ⇒ 无授权形态
+   L11: POST /api/admin/store-value-cards/:cardNo/recharge ⇒ 无授权形态
+   L14: POST /api/admin/store-value-cards/:cardNo/freeze ⇒ 无授权形态
+   L15: POST /api/admin/store-value-cards/:cardNo/unfreeze ⇒ 无授权形态
+
+store.routes.ts  (2 处)
+   L44: POST /api/store/members/manage ⇒ 无授权形态
+   L45: PUT /api/store/members/:id(\d+) ⇒ 无授权形态
+
+subscription.routes.ts  (8 处)
+   L13: POST /api/platform/subscriptions-management/plans ⇒ 无授权形态
+   L14: PUT /api/platform/subscriptions-management/plans/:planId ⇒ 无授权形态
+   L19: PUT /api/platform/subscriptions-management/plans/:planId/policy ⇒ 无授权形态
+   L24: POST /api/platform/subscriptions-management/ ⇒ 无授权形态
+   L25: POST /api/platform/subscriptions-management/:subscriptionId/change-plan ⇒ 无授权形态
+   L26: POST /api/platform/subscriptions-management/:subscriptionId/cancel ⇒ 无授权形态
+   L27: POST /api/platform/subscriptions-management/:subscriptionId/pay ⇒ 无授权形态
+   L30: POST /api/platform/subscriptions-management/:subscriptionId/renew ⇒ 无授权形态
+
+sync.routes.ts  (3 处)
+   L11: POST /api/sync/price ⇒ 无授权形态
+   L16: POST /api/sync/product ⇒ 无授权形态
+   L28: POST /api/sync/offline-orders ⇒ 无授权形态
+
+sys-config.routes.ts  (6 处)
+   L10: DELETE /api/admin/sys-config/backups/:name ⇒ 无授权形态
+   L12: PUT /api/admin/sys-config/tenant-info ⇒ 无授权形态
+   L15: PUT /api/admin/sys-config/batch ⇒ 无授权形态
+   L16: POST /api/admin/sys-config/ ⇒ 无授权形态
+   L17: POST /api/admin/sys-config/test-mail ⇒ 无授权形态
+   L18: POST /api/admin/sys-config/manual-backup ⇒ 无授权形态
+
+sys-user.routes.ts  (1 处)
+   L24: PUT /api/admin/sys-users/:id ⇒ 无授权形态
+
+system.routes.ts  (1 处)
+   L11: POST /api/system/migrate ⇒ 无授权形态
+
+tenant-register.routes.ts  (4 处)
+   L14: POST /api/tenant/register ⇒ 无授权形态
+   L17: POST /api/tenant/register/sms-code ⇒ 无授权形态
+   L34: POST /api/tenant/applications/:id/approve ⇒ 无授权形态
+   L37: POST /api/tenant/applications/:id/reject ⇒ 无授权形态
+
+tenant.routes.ts  (4 处)
+   L9: POST /api/platform/tenants-management/ ⇒ 无授权形态
+   L10: PUT /api/platform/tenants-management/:tenantId ⇒ 无授权形态
+   L11: PUT /api/platform/tenants-management/:tenantId/status ⇒ 无授权形态
+   L13: PUT /api/platform/tenants-management/:tenantId/modules ⇒ 无授权形态
+
+trace.routes.ts  (11 处)
+   L23: POST /api/admin/trace/configs ⇒ 无授权形态
+   L24: PUT /api/admin/trace/configs/:id ⇒ 无授权形态
+   L25: DELETE /api/admin/trace/configs/:id ⇒ 无授权形态
+   L26: POST /api/admin/trace/configs/check ⇒ 无授权形态
+   L29: POST /api/admin/trace/codes/generate ⇒ 无授权形态
+   L32: POST /api/admin/trace/codes/:traceCode/status ⇒ 无授权形态
+   L37: POST /api/admin/trace/verify ⇒ 无授权形态
+   L40: POST /api/admin/trace/recalls ⇒ 无授权形态
+   L43: POST /api/admin/trace/recalls/:recallNo/execute ⇒ 无授权形态
+   L44: PUT /api/admin/trace/recalls/:recallNo/complete ⇒ 无授权形态
+   L50: POST /api/miniapp/trace/c/verify ⇒ 无授权形态
+
+transfer.routes.ts  (8 处)
+   L12: POST /api/admin/transfers/ ⇒ 无授权形态
+   L17: PUT /api/admin/transfers/:id ⇒ 无授权形态
+   L18: POST /api/admin/transfers/:id/submit ⇒ 无授权形态
+   L19: POST /api/admin/transfers/:id/approve ⇒ 无授权形态
+   L20: POST /api/admin/transfers/:id/reject ⇒ 无授权形态
+   L23: POST /api/admin/transfers/:id/cancel ⇒ 无授权形态
+   L24: POST /api/admin/transfers/:id/ship ⇒ 无授权形态
+   L29: POST /api/store/transfers/:id/receive ⇒ 无授权形态
+
+unit-group.routes.ts  (3 处)
+   L10: POST /api/admin/unit-groups/ ⇒ 无授权形态
+   L11: PUT /api/admin/unit-groups/:id ⇒ 无授权形态
+   L12: DELETE /api/admin/unit-groups/:id ⇒ 无授权形态
+
+user-session.routes.ts  (2 处)
+   L10: DELETE /api/user-session/:id ⇒ 无授权形态
+   L11: DELETE /api/user-session/user/:userId ⇒ 无授权形态
+
+wechat.routes.ts  (5 处)
+   L24: POST /api/miniapp/wechat/auth/login ⇒ 无授权形态
+   L34: POST /api/miniapp/wechat/auth/decrypt-phone ⇒ 无授权形态
+   L35: PUT /api/miniapp/wechat/auth/profile ⇒ 无授权形态
+   L37: POST /api/miniapp/wechat/auth/bind ⇒ 无授权形态
+   L38: POST /api/miniapp/wechat/auth/unbind ⇒ 无授权形态
+
+workbench.routes.ts  (11 处)
+   L13: POST /api/admin/todos ⇒ 无授权形态
+   L14: PUT /api/admin/todos/:id/complete ⇒ 无授权形态
+   L15: PUT /api/admin/todos/:id/dismiss ⇒ 无授权形态
+   L16: DELETE /api/admin/todos/:id ⇒ 无授权形态
+   L20: POST /api/admin/quick-entries ⇒ 无授权形态
+   L21: PUT /api/admin/quick-entries/sort ⇒ 无授权形态
+   L22: PUT /api/admin/quick-entries/:id ⇒ 无授权形态
+   L23: DELETE /api/admin/quick-entries/:id ⇒ 无授权形态
+   L29: PUT /api/admin/wb-notifications/:id/read ⇒ 无授权形态
+   L30: POST /api/admin/wb-notifications/read-all ⇒ 无授权形态
+   L31: DELETE /api/admin/wb-notifications/:id ⇒ 无授权形态
+
+—— 消费者端保护形态（第 68 项裁定：requireConsumerAuthWithTenant + csrfMiddleware，不适用商家权限码）——
+
+aftersale.routes.ts  (4 处)
+   L27: POST /api/miniapp/aftersales ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L34: POST /api/miniapp/aftersales/:aftersaleNo/cancel ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L36: POST /api/miniapp/aftersales/:aftersaleNo/return-logistics ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L41: POST /api/miniapp/aftersales/:aftersaleNo/rate ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+
+cart.routes.ts  (6 处)
+   L14: POST /api/miniapp/cart/add ⇒ 消费者端保护形态（声明式：routeConfig.auth="requireConsumerAuthWithTenant"（auto-routes.getAuthMiddlewares 成对））
+   L15: PUT /api/miniapp/cart/items/:skuId ⇒ 消费者端保护形态（声明式：routeConfig.auth="requireConsumerAuthWithTenant"（auto-routes.getAuthMiddlewares 成对））
+   L16: DELETE /api/miniapp/cart/items/:skuId ⇒ 消费者端保护形态（声明式：routeConfig.auth="requireConsumerAuthWithTenant"（auto-routes.getAuthMiddlewares 成对））
+   L17: POST /api/miniapp/cart/clear ⇒ 消费者端保护形态（声明式：routeConfig.auth="requireConsumerAuthWithTenant"（auto-routes.getAuthMiddlewares 成对））
+   L21: POST /api/miniapp/cart/checkout/preview ⇒ 消费者端保护形态（声明式：routeConfig.auth="requireConsumerAuthWithTenant"（auto-routes.getAuthMiddlewares 成对））
+   L22: POST /api/miniapp/cart/checkout/create ⇒ 消费者端保护形态（声明式：routeConfig.auth="requireConsumerAuthWithTenant"（auto-routes.getAuthMiddlewares 成对））
+
+marketing-miniapp.routes.ts  (4 处)
+   L69: POST /api/miniapp/marketing/coupons/:templateId/claim ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L86: POST /api/miniapp/marketing/flash-sale/:id/buy ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L94: POST /api/miniapp/marketing/group-buy/:teamId/join ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L98: POST /api/miniapp/marketing/calculate ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+
+miniapp.routes.ts  (29 处)
+   L30: POST /api/miniapp/cart ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L31: PUT /api/miniapp/cart/:id ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L32: DELETE /api/miniapp/cart/:id ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L33: DELETE /api/miniapp/cart ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L36: POST /api/miniapp/orders ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L39: POST /api/miniapp/orders/:id/pay ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L40: POST /api/miniapp/orders/:id/cancel ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L41: POST /api/miniapp/orders/:id/confirm-receive ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L44: PUT /api/miniapp/orders/:id/delete ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L54: POST /api/miniapp/stored-card/recharge ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L58: PUT /api/miniapp/user/profile ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L60: POST /api/miniapp/user/addresses ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L61: PUT /api/miniapp/user/addresses/:id ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L62: DELETE /api/miniapp/user/addresses/:id ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L63: POST /api/miniapp/user/addresses/:id/default ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L68: POST /api/miniapp/coupons/:id/use ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L76: POST /api/miniapp/member/coupons/:id/receive ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L79: PUT /api/miniapp/user/profile-update ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L80: POST /api/miniapp/user/change-password ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L87: POST /api/miniapp/wholesale/cart ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L88: PUT /api/miniapp/wholesale/cart/:id ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L89: DELETE /api/miniapp/wholesale/cart/:id ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L90: POST /api/miniapp/wholesale/orders ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L94: POST /api/miniapp/wholesale/cart/delete ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L95: PUT /api/miniapp/wholesale/cart/:itemId/select ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L96: PUT /api/miniapp/wholesale/cart/select-all ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L97: POST /api/miniapp/wholesale/orders/:orderId/cancel ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L98: POST /api/miniapp/wholesale/orders/:orderId/confirm-receive ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L100: POST /api/miniapp/wholesale/orders/buy-now ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+
+notification.routes.ts  (2 处)
+   L29: PUT /api/miniapp/notifications/:id/read ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+   L30: POST /api/miniapp/notifications/read-all ⇒ 消费者端保护形态（内联：requireConsumerAuthWithTenant + csrfMiddleware）
+
+—— 查询型 POST（S3-227 C：READ_ONLY_POSTS 显式登记；不计入 gaps，逐条给出理由与裁定依据）——
+
+admin-quote-push.routes.ts  (1 处)
+   L9: POST /api/admin/quote-push/preview ⇒ 查询型 POST（不改数据，非写端点缺口）
+        归属单：S3-224｜理由：报价推送**预览**：只计算推送内容与命中名单，不改数据
+        裁定：§十四.6 Q 类（S3-224 派单卡 §二.3「查询型 POST 不按写端点接」；同批 3 §十二.6 P 类同款判定）
+
+data-permission.routes.ts  (1 处)
+   L29: POST /api/admin/data-permissions/users/:userId/check ⇒ 查询型 POST（不改数据，非写端点缺口）
+        归属单：S3-225｜理由：数据权限**判定**（只读）：返回该用户在某数据权限下的命中判定，不写库
+        裁定：§十五 ④（S3-225 派单卡 §二.4「只读判定，不按写端点接」）
+
+price.routes.ts  (1 处)
+   L28: POST /api/admin/prices/best-price ⇒ 查询型 POST（不改数据，非写端点缺口）
+        归属单：S3-220｜理由：价格试算（只读查询）：输入取价条件、返回试算结果，不落库；全仓无页面调用点（api/sale.ts:111 calcBestPrice 未被使用）
+        裁定：docs/tasks/R101-RBAC接线缺口清单.md §十二.6 P 类 #1（`rbac-g0-wiring.test.ts` 已锁为「查询型 POST（待裁定）」）；本单处置=不接
+   ❌ 登记被拒：POST /api/admin/staff ⇒ 人读台账里找不到「同一行同时含该路径 + 『查询型』」的判定 ⇒ 拒收（登记必须先有人工裁定）（该条**不生效**，端点照旧按无授权形态记缺口）
+   ❌ 登记被拒：POST /api/admin/prices/batch/preview ⇒ 缺少 ruling（无裁定依据 ⇒ 拒绝登记）；人读台账里找不到「同一行同时含该路径 + 『查询型』」的判定 ⇒ 拒收（登记必须先有人工裁定）（该条**不生效**，端点照旧按无授权形态记缺口）
+
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+gaps：已登记 460 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+✅ [--strict] 无「未登记」项（已登记欠账 460 条、已登记消费者端保护形态 45 条，均不计红）

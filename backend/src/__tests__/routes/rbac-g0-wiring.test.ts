@@ -419,6 +419,11 @@ function appFor(key: string, prefix: string, router: Router, rawMount?: boolean)
 }
 
 const ROUTES_DIR = fileURLToPath(new URL("../../routes", import.meta.url));
+/**
+ * S3-227 A：机读台账（`guard-rbac-wiring` 的已登记缺口台账）。
+ * 本用例的「跨批接线数」不再用裸数字断言，而是拿台账的 `_counts` 作**第二真值源**核对（见下方用例）。
+ */
+const BASELINE_PATH = fileURLToPath(new URL("../../../scripts/rbac-wiring-baseline.json", import.meta.url));
 
 beforeEach(() => {
   h.reached.length = 0;
@@ -651,7 +656,41 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       total += n;
     }
     expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL + S3_226_WIRED_TOTAL);
-    expect(total).toBe(291);
+
+    // S3-227 A（本单）：删除原 `expect(total).toBe(226)` 裸数字断言。
+    //   为什么删：那是一个跨批共享的**单点数字**，每批都要改同一行（批 3⇒149、批 5⇒183、批 6⇒215、批 7⇒226 …），
+    //   两批并行时合并只能"取一侧" ⇒ 另一批的接线数被**静默抹掉**且仍显示绿（S3-225 亲历：被迫改 215→226）。
+    //   现在只保留两类判据：① 上面的**和式**（声明侧的唯一总数来源，每批只加自己那一项）；
+    //   ② 下面的**台账一致性**（机读台账 `_counts` 作第二真值源）。
+    //   "漏声明"仍由本用例下方的逐文件 map 断言（`perFile` × `expected`）+ `guard-rbac-wiring --strict` 共同兜住。
+    const ledger = JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as {
+      _counts: {
+        files: number;
+        endpoints: number;
+        consumerEndFiles: number;
+        consumerEndEndpoints: number;
+        readOnlyPostEndpoints: number;
+        wiredEndpoints: number;
+        scannedEndpoints: number;
+        wiredPermOccurrences: number;
+      };
+    };
+    // ② 台账一致性（本用例口径）：源码里 `requirePermission(` 的出现次数必须等于台账 `_counts.wiredPermOccurrences`。
+    //    ⚠️ 口径提示：本用例数的是"出现次数"，与台账 `_counts.wiredEndpoints`（门禁口径：authForm ∈ inline/use-mount
+    //    的**写端点**数）**不是同一个数**，差值有确定来源：门禁口径 − 本用例口径
+    //      = 平台侧 `requirePlatformPermission` 端点（本用例不数，+32）
+    //        − 挂在**非写端点**（如 GET 路由）上的 `requirePermission(` 出现次数（−3，admin-library.routes.ts）
+    //        ± 被 `router.use(scope, requirePermission())` 一次覆盖多个写端点的差额（当前为 0）。
+    //    逐文件对照见 docs/evidence/S3-227/10-metric-diff.txt（255 − 226 = 29 = 32 − 3 + 0）。
+    expect(total).toBe(ledger._counts.wiredPermOccurrences);
+    // ③ 台账自洽：各类写端点之和 == 扫描总数（缺口 + 消费者端保护形态 + 查询型 POST 登记 + 已接线）
+    //    ⇒ 台账不能被单侧改动（S3-227 C 起含 `readOnlyPostEndpoints`）。
+    expect(
+      ledger._counts.endpoints +
+        ledger._counts.consumerEndEndpoints +
+        ledger._counts.readOnlyPostEndpoints +
+        ledger._counts.wiredEndpoints
+    ).toBe(ledger._counts.scannedEndpoints);
 
     const expected = new Map<string, number>();
     for (const m of MODULES) expected.set(m.file, (expected.get(m.file) ?? 0) + m.rows.length);

@@ -2925,3 +2925,100 @@ app-mobile 页面若**①经首页快捷入口 / tabBar / 推送深链无条件�
    而菜单已 64 → **89** 行 ⇒ `marketing:*` 前缀"当时零持有"的结论**可能已变化**。
    请以生产只读复核 `SELECT r.role_code, m.menu_code FROM t_sys_role_menu rm JOIN t_sys_role r ON r.id=rm.role_id JOIN t_sys_menu m ON m.id=rm.menu_id ORDER BY 2,1;`；
    若这些菜单仍未授予任何工作角色，则本批 23 条 B/W 类可**批量接线**（码位方案见测试 `UNWIRED.note`）。
+
+## 附·S3-227 · **门禁与判据改进批**（判据/用例变更，**零业务代码改动**）（2026-10-16）
+
+> 依据：`docs/tasks/inbox/ACTIVE-S3-227.md`（派单卡）；执行：阿坚｜分支 `chore/s3-227-gate-semantics-and-counts`。
+> ⚠️ 章节号用 **「附」** 不用正文章节号：正文 §十六 留给 **S3-226（营销域接线）** 顺延使用，避免两单抢号。
+
+### 附.1 A —— 跨批接线数**删除裸数字断言**
+
+`backend/src/__tests__/routes/rbac-g0-wiring.test.ts` 原有一条 `expect(total).toBe(226)`（裸数字），
+它是跨批共享的**单点数字**：批 3⇒149、批 5⇒183、批 6⇒215、批 7⇒226 …… 每批都要改同一行，
+两批并行时合并只能"取一侧" ⇒ 另一批的接线数被**静默抹掉且仍显示绿**（S3-225 亲历：被迫改 215→226）。
+
+**处置**：删除该裸数字断言，保留**和式**（声明侧唯一总数来源），新增两条**台账一致性**断言：
+① `requirePermission(` 实测出现次数 == 机读台账 `_counts.wiredPermOccurrences`（第二真值源）；
+② `_counts` 自洽：缺口 + 消费者端 + 查询型 POST 登记 + 已接线 == 扫描总数。
+「漏声明」仍由逐文件 map 断言 + `guard-rbac-wiring --strict` 共同兜住。
+
+> 口径提示（两个"已接线数"不是同一个数）：门禁口径 `wiredEndpoints` = 255（authForm ∈ inline/use-mount 的**写端点**），
+> 用例口径 `wiredPermOccurrences` = 226（`requirePermission(` 出现次数）；差 29 = 平台 `requirePlatformPermission` 端点 +32
+> − 非写端点（GET 路由）上的出现次数 −3 + 被 `router.use` 一次覆盖多端点的差额 0。逐文件对照见
+> `docs/evidence/S3-227/10-metric-diff.txt`。
+
+### 附.2 B —— 消费者端**声明式**认证识别（`cart.routes.ts` 6 条 ⇒ `consumerEnd`）
+
+**问题**：门禁只认**命令式**挂载形态（`requireConsumerAuthWithTenant` + `csrfMiddleware` 同行/同挂载），
+扫不到 `routeConfig.auth` 的**声明式**消费者端认证 ⇒ `cart.routes.ts` 6 条写端点一直被记成「无授权形态」
+（S3-224 卡 §三.3 另立本单的根因）。
+
+**处置**：门禁现场解析 `backend/src/shared/auto-routes.ts` 的 `getAuthMiddlewares()`，得出「会被**成对**挂上
+消费者认证 + `csrfMiddleware`」的 auth 取值；只按**声明的 router 变量**归类（`router` 与 `auth` 必须同对象），
+**不按文件名白名单** —— 同文件里其它 router（如 `notification.routes.ts` 的 admin router）不受影响；
+解析不到 ⇒ 集合为空 ⇒ 声明式一律**保守落回 `gaps`**。
+
+**判定（6 条，与 S3-224 §14.6 / §14.10-1 的判定一致，本次只是把门禁补上）**：
+
+| 端点 | 文件 | 形态 | 依据 |
+|:--|:--|:--|:--|
+| `POST /api/miniapp/cart/add` | `cart.routes.ts:14` | consumerEnd | `routeConfig.auth="requireConsumerAuthWithTenant"`；消费者 roles 恒空 ⇒ 不适用商家权限码（硬套即把小程序购物车打成 403，S3-203 `trace:*` 教训） |
+| `PUT /api/miniapp/cart/items/:skuId` | `cart.routes.ts:15` | consumerEnd | 同上 |
+| `DELETE /api/miniapp/cart/items/:skuId` | `cart.routes.ts:16` | consumerEnd | 同上 |
+| `POST /api/miniapp/cart/clear` | `cart.routes.ts:17` | consumerEnd | 同上 |
+| `POST /api/miniapp/cart/checkout/preview` | `cart.routes.ts:21` | consumerEnd | 同上（同时是查询型 POST，按 S3-224 判定归 consumerEnd，**不重复**登记进 C 表） |
+| `POST /api/miniapp/cart/checkout/create` | `cart.routes.ts:22` | consumerEnd | 同上 |
+
+### 附.3 C —— 查询型 POST **显式登记**（`READ_ONLY_POSTS`，3 条 ⇒ 不计缺口）
+
+**问题**：`preview` / `best-price` / `check` 这类**不改数据**的 POST 被 method 判据当成写端点，
+计入 `gaps` 与「需接线」，污染台账（批 3 / 批 6 / 批 7 各自手工对账过）。
+
+**处置**：门禁新增具名登记表 `READ_ONLY_POSTS`（路径 + 理由 + 归属单 + 裁定依据）；命中者不计入 `gaps`，
+但报告里**逐条打印**归属单 / 理由 / 裁定依据。**三道闸门防"登记即洗绿"**：
+① 缺 `reason`/`ruling`/`batch` ⇒ 拒收；② 路径必须在**人读台账**（本文件）里找到「同一行含该路径 + 『查询型』」的判定 ⇒ 否则拒收；
+③ 拒不生效 ⇒ 端点回落 `gaps`（新缺口随即 `--strict` 判红）；被拒/未生效/未命中均逐条提示。
+
+| 端点 | 归属单 | 理由 | 裁定依据（本清单） |
+|:--|:--|:--|:--|
+| `POST /api/admin/prices/best-price` | S3-220 | 价格试算：入参取价条件、返回试算结果，不落库；全仓无页面调用点（`api/sale.ts:111 calcBestPrice` 未被使用） | §十二.6 P 类 #1 |
+| `POST /api/admin/quote-push/preview` | S3-224 | 报价推送**预览**：只算推送内容与命中名单，不改数据 | §十四.6 Q 类 |
+| `POST /api/admin/data-permissions/users/:userId/check` | S3-225 | 数据权限**判定**（只读）：返回命中判定，不写库 | §十五 ④ |
+
+**明确不登记（维持 `gaps`）**：`POST /api/admin/prices/batch/preview` —— 本清单 §十二.6 P 类 #2 判定它属
+「已知锁定（`requirePriceManagementAccess()` 角色白名单）」，**不是**"查询型"语义 ⇒ 不纳入本表。
+
+**与 A 表不重叠**：`POST /api/miniapp/cart/checkout/preview` 虽是 preview，但按 S3-224 判定归 `consumerEnd`（附.2），
+消费者端形态优先于只读分类（门禁对"已被更明确形态覆盖"的登记项逐条提示，不静默生效）。
+
+### 附.4 守恒与门禁（原始输出见 `docs/evidence/S3-227/`）
+
+| 读数 | 改前 | A 后 | B 后 | C 后（最终） |
+|:--|--:|--:|--:|--:|
+| 缺口 `gaps` / 文件 | 469 / 129 | 469 / 129 | 463 / 128 | **460 / 127** |
+| 消费者端保护形态 / 文件 | 39 / 4 | 39 / 4 | 45 / 5 | 45 / 5 |
+| 查询型 POST（已登记） | 0 | 0 | 0 | **3 / 3** |
+| 已接线（门禁口径） | 255 | 255 | 255 | 255 |
+| 扫描写端点总数 | 763 | 763 | 763 | 763 |
+| `requirePermission(` 出现次数（用例口径） | 226 | 226 | 226 | 226 |
+
+守恒：460 + 45 + 3 + 255 = **763** ✓（`_counts` 自洽断言在 `rbac-g0-wiring.test.ts`）。
+门禁：`guard-rbac-wiring --strict` **EXIT=0**（未登记 0 / 陈旧 0）、其余 6 条既有门禁 EXIT=0、
+`npx vitest run` **676 文件 / 9085 用例 / 0 failed**、`tsc --noEmit` **0**、`lint` **0 error**。
+两侧反测齐（A 两条：改错常量 / 只改台账；B 四条：摘认证 / 换非消费者认证 / 搬到别文件 / 摘 csrf 成对；
+C 两条：登记真写端点被拒 / 缺 ruling 被拒），全部逐字节复原。
+
+### 附.5 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. **其余"疑似查询型"POST 未登记**（本单只登记**已裁定**的 3 条，未裁定的不擅自扩表）：
+   `POST /api/admin/marketing/calculate`（`admin-marketing-calculation.routes.ts`）、
+   `POST /api/admin/alerts/check`、`POST /api/admin/trace/configs/check`、
+   `POST /api/platform/billing/statement/export`、`POST /api/platform/reports/export/`、
+   `POST /api/admin/reports/export`、`POST /api/admin/commission/calculate`（S3-223 §13.4 判"G0 范围控制锁定"）。
+   ⇒ 若确认属只读/导出语义，可另立单逐条登记（本表已就位，登记成本 = 一条 reason/ruling + 台账一行）。
+2. **跨批声明的"共享行"仍有 3 处**（和式一行 + 逐文件 map 的 spread 一行 + 期望 map 的循环一行）：
+   本单只删了裸数字；若要做到"每批只动自己的常量块"，需把 15 个批次块改成自注册式（改动面较大，
+   且当前 3 批并行在改同一文件）⇒ 建议另立单，本单不擅自动。
+3. `guard-rbac-wiring` 仍是**报告器（未接 CI）**；分类变更（B/C）不改"是否阻断"的口径，
+   接 CI 的前置条件（缺口清零或逐条登记完毕）未变。
+4. `_counts` 与实时扫描的一致性**只提示不判红**（本轮新增读数），是否升级为 `--strict` 判红未获授权 ⇒ 待裁。

@@ -1,0 +1,28 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-227/backend
+
+ ❯ src/__tests__/routes/rbac-g0-wiring.test.ts (148 tests | 1 failed) 700ms
+     × backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 139ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-g0-wiring.test.ts > S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③） > backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11
+AssertionError: expected 226 to be 227 // Object.is equality
+
+- Expected
++ Received
+
+- 227
++ 226
+
+ ❯ src/__tests__/routes/rbac-g0-wiring.test.ts:632:19
+
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 147 passed (148)
+   Start at  08:03:44
+   Duration  3.49s (transform 608ms, setup 32ms, import 2.46s, tests 700ms, environment 0ms)
+
