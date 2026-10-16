@@ -7,6 +7,17 @@
 
 ### 〇.0 端与人员分配（**2026-10-17 二次修订：四端并行 + 加 2 人；派单一律以本节为准**）
 
+#### 〇.0.1 本批（2026-10-17 四端开闸）agent 名 → 单号 路由
+
+| 你的 agent 名 | 端 | 单号 | 卡片 |
+|:--|:--|:--|:--|
+| `/root/s3245_apsha` | 移动端（阿潵） | **S3-245**（`crypto.ts` 根治 + `vue-tsc` 进 CI） | `docs/tasks/inbox/ACTIVE-S3-245.md` |
+| `/root/s3246_mo` | 工作台（墨） | **S3-240**（D4 前端补门，admin-web 按码显隐） | `docs/tasks/inbox/ACTIVE-S3-240.md` |
+| `/root/s3247_ajian` | 总台（阿坚） | **S3-241**（调拨码族校正 `store:transfer`→`transfer:*`） | `docs/tasks/inbox/ACTIVE-S3-241.md` |
+| `/root/s3248_azhou` | AI 底座（阿洲，回传阿澈） | **AI-TOOLS-REG**（`tool-bootstrap.ts` 注册表接线 + 防复发门禁） | `docs/tasks/inbox/ACTIVE-AI-TOOLS-REG.md`（另有 DSH 卡 `dispatch/dsh/outbox/AI-TOOLS-REG.md`） |
+
+> 批次总表与队列：`docs/tasks/R101-四端派单批次表-20261017.md`（端内串行，跨端并行）。
+
 > 唯一真相源：`docs/团队角色与端分工.md`（本表是其副本；三处副本必须同改：成员记忆 §一 / 本文件 / `dispatch/dsh/ends.json`）
 > 四端 **同时可做**（业主 2026-10-17 口径）⇒ 编制 = **7 名执行 + 1 名总负责**（原 5 名执行，本轮 **新增阿潵、阿洲**）。
 
