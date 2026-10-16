@@ -661,12 +661,15 @@ describe("S3-226 · 范围控制：本批未接行 READONLY 仍到达业务层�
     expect(h.reached.length, `${label(row)} 应到达业务层`).toBeGreaterThan(0);
   });
 
-  it("现余两类未接原因齐备（Q / B 各至少 1 条；W 已由 S3-229 + S3-231 F1 清零）", () => {
+  it("现余两类未接原因齐备（Q / B 各至少 1 条；W 已由 S3-229 + S3-231 F1 清零；B 已由 S3-233 收编 5 条）", () => {
     // ⚠️ 状态变更登记（S3-231 F1，2026-10-16）：points 会员等级 4 条接线后 W 桶清零 ⇒ 期望集合去 W，
     //    并把「W 已清零」写成显式断言（避免将来被读成"W 桶凭空消失"）。
+    // ⚠️ 状态变更登记（S3-233，2026-10-16）：5 条 B 类收编接线（coupon 2 + full-reduction 3）⇒
+    //    UNWIRED 由 10 → **5**（= Q 1 + B 4：points/adjust、marketing-points/redeem、store-coupon 2）；
+    //    与上方 `UNWIRED_CLASS_TOTAL = { Q: 1, B: 4, W: 0 }` 互为交叉判据（两处必须同时变）。
     expect([...new Set(UNWIRED.map((r) => r.reason))].sort()).toEqual(["B", "Q"]);
     expect(UNWIRED.filter((r) => r.reason === "W")).toHaveLength(0);
-    expect(UNWIRED).toHaveLength(10);
+    expect(UNWIRED).toHaveLength(5);
   });
 });
 
