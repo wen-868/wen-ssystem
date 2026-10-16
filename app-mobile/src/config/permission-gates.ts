@@ -23,11 +23,13 @@
 //   本文件 `matchPermissionCode()` 逐条等价；如后端判据变化，本文件必须同步（同 S3-203 的
 //   "同一身份域内两端口径必须同源"精神）。
 //
-// 「未取到权限码」的处置（**与 stores/menu.ts 的 null/空集口径一致**）
+// 「未取到权限码」的处置（**S3-231 F3 起 = 失败关闭**）
 //   · `permissions` 为 null/undefined ⇒ 尚未取到（登录响应与 `/admin/auth/me` 均会下发
-//     `permissions`；老版本本地缓存可能确实没有）⇒ **放行**，维持改造前的可见性，
-//     不因"没取到"把整端入口藏空；
-//   · `permissions` 为**空数组** ⇒ 确实取到了、且该用户没有任何码 ⇒ **不显示**（失败关闭）。
+//     `permissions`；老版本本地缓存可能确实没有）⇒ **不显示**（失败关闭，S3-231 F3 按凌舟裁定 5 改）；
+//   · `permissions` 为**空数组** ⇒ 确实取到了、且该用户没有任何码 ⇒ **不显示**（失败关闭，原本即如此）。
+//   ⚠️ 与 `stores/menu.ts` 的 null 语义**有意分叉**：menu.ts 的 null = 首屏加载中、放全量（产品既有语义，
+//      本单不动）；入口门是"能不能进这个写页面"，未取到就不该给一个必 403 的入口 ⇒ 失败关闭。
+//      两者的差异与影响面逐条登记在 `docs/evidence/S3-231/F3/`。
 //
 // 代码层级：本文件**零依赖**（纯函数 + 常量），可被 Node 直接加载（证据脚本用），
 // 也可被 Pinia store / 页面 / 组件引入，避免"文档口径与实现口径"两套。
@@ -76,8 +78,23 @@ export function hasPermissionCodes(
   codes: readonly string[] | undefined | null
 ): boolean {
   if (!codes || codes.length === 0) return true
-  // 未取到权限码 ⇒ 放行（维持改造前可见性；口径见文件头）
-  if (perms === null || perms === undefined) return true
+  /**
+   * 未取到权限码（`null` / `undefined`）⇒ **不显示**（失败关闭）。见文件头。
+   *
+   * S3-231 F3（2026-10-16，凌舟裁定 5，`R101-S3-230-凌舟验收与裁定.md` §二.5）：
+   *   改造前口径为"未取到 ⇒ 放行（维持改造前可见性）"。裁定改为**失败关闭**，理由：
+   *   失败放行会把"无码角色"放进一个**必 403** 的界面（违反不变量 I1'/I1），
+   *   而手机端**没有**前端登录拦截可兜底 —— 一旦 `/admin/auth/me` 未回或老版本本地缓存缺字段，
+   *   用户就会看到一排点了必 403 的按钮（比"看不到"体验更差，且把越权可能性留给下一次改判）。
+   *
+   * ⚠️ 影响面（本改动只落在**入口门这一层**，不动 `stores/menu.ts` 的既有 null 语义）：
+   *   ① `usePermissionGate.canEntry/canAnyEntry`（页面入口显隐）—— 本项的主目标；
+   *   ② `config/function-menu.ts` 的功能中心入口过滤（同样按码显隐，属入口门）；
+   *   ③ `native/push.ts` 的推送深链落地判定（同属入口门，避免"点通知进必 403 页"）。
+   *   `usePermissionGate.can()` 对**零散动作**仍在 `codes===null` 时放行（那是"该动作不设门"，
+   *   与"没取到权限码"是两回事），见该文件注释。
+   */
+  if (perms === null || perms === undefined) return false
   return codes.every((code) => matchPermissionCode(perms, code))
 }
 
