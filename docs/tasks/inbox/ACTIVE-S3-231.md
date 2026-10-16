@@ -19,6 +19,9 @@
 
 ### F3 · 入口门"失败关闭"（fail-closed）
 `app-mobile/**` 的入口门：**取不到权限码 ⇒ 不显示入口**（现在与 `stores/menu.ts` 的 null 语义一致＝放行）。
+> ⚠️ **基线修正（2026-10-16 09:57 凌舟，见文末「卡变更记录」）**：本项要改的**门本身**（`app-mobile/src/config/permission-gates.ts`、`app-mobile/src/composables/usePermissionGate.ts`）由 **S3-230（PR #356，已验收通过、尚在等合并）** 新增，**不在你当前工作树的基线（`1a067843`）里**。
+> ⇒ **F3 必须基于 `origin/feat/s3-230-mobile-permission-gates`（尖端 `16450997`）开展**：`git fetch origin` 后二选一 —— ① `git checkout -b chore/s3-231-followups origin/feat/s3-230-mobile-permission-gates`（从该分支起头）；② 把该分支 `git merge` 进你当前分支。
+> ⇒ **禁止**另写一套入口门实现；若 #356 最终未合并，F3 的提交随之并入该分支，**不单独入库**。F1/F2/F4 与本项无关，不受影响。
 - 只改入口门这一层（`permission-gates.ts` / `usePermissionGate.ts` 及其调用点），**不动** `stores/menu.ts` 与后端；
 - **必须**逐条登记"因缺码被关闭的入口"（入口 + 缺哪个码 + 归属单），并在回执给**影响面**（哪些角色失去哪些入口）；
 - 反测：把某入口的码改成"不存在的码" ⇒ 该入口**必须不可见**（且该情况**必须**出现在"因缺码关闭"清单里，不得静默）。
@@ -38,3 +41,11 @@
 ## 交付
 
 证据 `docs/evidence/S3-231/**`（四小项各自子目录）+ 回传卡 `docs/tasks/cards/R101-S3-231-阿坚-回传.md`（十项）+ `docs/tasks/inbox/ACTIVE-回执-S3-231.md`。
+
+---
+
+## 卡变更记录
+
+| 时间 | 变更 | 原因 | 变更人 |
+|:--|:--|:--|:--|
+| 2026-10-16 09:57 | F3 增补「基线修正」块：明确 F3 基线 = `origin/feat/s3-230-mobile-permission-gates`（`16450997`），并要求先 `git fetch`；补充"禁止另写一套门实现""若 #356 未合并则不单独入库" | 本卡写于 09:50，当时 S3-230（PR #356）尚未合并；派单时未核"F3 依赖的门文件在哪条分支"，属**派单前提缺陷**（R7 自检漏项：交付物 F3 与 `判据` 未校验基线可达性）。执行方若已按旧基线动手，请按本块改基线后重做 F3，并在回执「风险与自我报备」里记录返工面 | 凌舟 |
