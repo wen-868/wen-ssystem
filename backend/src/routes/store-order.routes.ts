@@ -16,18 +16,19 @@ storeOrderRouter.get("/:orderNo", orderController.getOrderDetail);
 // 生产持有里**只有 `sale:create` 覆盖 STORE_OPERATOR**（`sale:edit`/`sale:void` 均不覆盖）⇒ 三条取 `sale:create`。
 // 订单取消：`sale:void`（作废语义，高风险动作不扩给收银员；本行全仓无页面调用点）。详见
 // docs/evidence/S3-224/01-plan-and-judgements.md 与 05-prod-holders.txt。
-// ⚠️ 本文件 `POST /:orderNo/start-delivery` 与 `POST /hold-orders/`（创建挂单）本批**不接**：
-// 前者有 app-mobile `pages/orders/order-detail.vue:258` 写调用点、后者有 `pages/sales/create-sale.vue:2013`
-//（该页经首页快捷入口 `home.vue:69` 无条件可达）⇒ 使用者集合不可枚举（B 类）。
 // 2026-10-16
 storeOrderRouter.post("/:orderNo/accept", requirePermission("sale:create"), orderController.acceptOrder);
-storeOrderRouter.post("/:orderNo/start-delivery", orderController.startDelivery);
+// S3-233（B 类收编第一批 · 销售域）：`start-delivery` 与同文件 accept / complete-delivery / reject 同族（履约），
+// 统一 `sale:create`；依据门 = permission-gates.ts 的 `sale-order-detail-deliver`（该门承载本行）。
+storeOrderRouter.post("/:orderNo/start-delivery", requirePermission("sale:create"), orderController.startDelivery);
 storeOrderRouter.post("/:orderNo/complete-delivery", requirePermission("sale:create"), orderController.completeDelivery);
 storeOrderRouter.post("/:orderNo/reject", requirePermission("sale:create"), orderController.rejectOrder);
 storeOrderRouter.post("/:orderNo/cancel", requirePermission("sale:void"), orderController.cancelOrder);
 
 // 挂单
-storeHoldOrderRouter.post("/", otherController.createHoldOrder);
+// S3-233：创建挂单挂 `sale:create`；依据门 = permission-gates.ts 的 `sale-create-hold`
+//（开单页「挂单」按钮：`pages/sales/create-sale.vue:2013`），与同族 restore / delete 同码（:34-35）。
+storeHoldOrderRouter.post("/", requirePermission("sale:create"), otherController.createHoldOrder);
 storeHoldOrderRouter.get("/", otherController.listHoldOrders);
 // 挂单恢复 / 删除挂单：使用者 = `pos/HoldOrderView.vue:83/96` 与 `pos/CashierView.vue:1689/1709`
 //（同页角色含 **STORE_OPERATOR**，`router/index.ts:265/259`）⇒ 同取 `sale:create`。

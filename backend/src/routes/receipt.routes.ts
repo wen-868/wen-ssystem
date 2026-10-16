@@ -5,10 +5,12 @@ import { requirePermission } from "../middleware/rbac-auth";
 import * as receiptController from "../controllers/admin/receipt.controller";
 
 export const receiptRouter = Router();
-// ⚠️ S3-223 **本行不接**：`POST /api/admin/receipts/` 有 app-mobile 开单页写调用点
-//（`pages/sales/create-sale.vue:2202` → `api/modules/receipts.ts:54`），页面角色含无 finance 码的角色
-// ⇒ 已被 `rbac-g1-wiring.test.ts:275` / `rbac-g2-wiring.test.ts:256-266` 锁为「B 类待裁」（见回执 §三）。
-receiptRouter.post("/", receiptController.createReceipt);
+// S3-233（B 类收编第一批 · 销售域）：创建收款单挂 `sale:create`。
+// 依据门 = permission-gates.ts 的 `sale-receipt-sub`（开单页「收款单」子段的「确认收款」动作，
+// `pages/sales/create-sale.vue:2202` → `api/modules/receipts.ts:54`）。收款动作按批 6 规则③取"覆盖收银员的码"：
+// 生产在用持有 `sale:create` = 店长(`sale:*`)/操作员/销售员/超管/运营；财务（`finance:*`）不含收银员，故不取 finance 码。
+// （B 类待裁前提——入口无条件可达——已由 S3-230 的入口权限门修复，本行据此收编。）
+receiptRouter.post("/", requirePermission("sale:create"), receiptController.createReceipt);
 receiptRouter.get("/", receiptController.listReceipts);
 receiptRouter.get("/:receiptNo", receiptController.getReceiptDetail);
 receiptRouter.post("/:receiptNo/writeoff", requirePermission("finance:payment"), receiptController.writeoffReceipt);

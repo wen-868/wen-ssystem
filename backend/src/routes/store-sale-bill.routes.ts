@@ -13,7 +13,10 @@ storeSaleBillRouter.get("/overdue", saleBillController.listOverdueBills);
 storeSaleBillRouter.get("/overdue/check", saleBillController.checkOverdueBills);
 storeSaleBillRouter.get("/:billNo", saleBillController.getSaleBillDetail);
 storeSaleBillRouter.post("/:billNo/collection-link", saleBillController.createCollectionLink);
-storeSaleBillRouter.post("/:billNo/offline-payment", saleBillController.offlinePayment);
+// S3-233（B 类收编第一批 · 销售域）：线下收款挂 `sale:create`（收款族按"页面角色含收银员 ⇒ 用覆盖收银员的码"）。
+// 依据门 = permission-gates.ts 的 `sale-bill-offline-pay`（销售单详情页「线下收款」按钮，:163）。
+// 同族先例：`POST /:billNo/pay-by-code`（:24，付款码收款）与 `POST /`（创建销售单）均为 `sale:create`。
+storeSaleBillRouter.post("/:billNo/offline-payment", requirePermission("sale:create"), saleBillController.offlinePayment);
 storeSaleBillRouter.post("/:billNo/payment", saleBillController.paymentOnSaleBill);
 // S3-224（第 43 项 B2 批 6 · 销售域接线）：付款码收款挂 `sale:create`。
 // 使用者 = admin-web `pos/CashierView.vue:1628`（页面 `router/index.ts:259` 角色含 **STORE_OPERATOR**）

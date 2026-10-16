@@ -18,13 +18,17 @@ adminOrderRouter.get("/orders/stats", orderController.getOrderStatusStats);
 // `sale:edit`（批量改状态 / 改备注）与 `sale:void`（订单取消）。生产持有（12 角色复算，见
 // docs/evidence/S3-224/05-prod-holders.txt）：sale:edit / sale:void = SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER；
 // 三条**全仓无页面调用点**（app-mobile orders.ts 仅有封装、无页面使用），故接线不误伤任何现有页面。
-// ⚠️ 同文件 `PUT /orders/:orderNo/status` 本批**不接**（app-mobile 有写调用点且使用者集合不可枚举，B 类）。
 // 2026-10-16
 adminOrderRouter.post("/orders/batch-status", requirePermission("sale:edit"), orderController.batchUpdateOrderStatus);
 adminOrderRouter.get("/orders/:orderNo", orderController.getOrderDetail);
 adminOrderRouter.post("/orders/:orderNo/cancel", requirePermission("sale:void"), orderController.cancelOrder);
 adminOrderRouter.put("/orders/:orderNo/remark", requirePermission("sale:edit"), orderController.remarkOrder);
-adminOrderRouter.put("/orders/:orderNo/status", orderController.updateOrderStatus);
+// S3-233（B 类收编第一批 · 销售域）：履约族（接单/发货/完成/状态流转）统一挂 `sale:create`。
+// 依据门（唯一真相源）= app-mobile/src/config/permission-gates.ts 的 `sale-order-detail-deliver`，入口已按该码显隐。
+// 依据：同族 accept / complete-delivery / reject 早已挂 `sale:create`（本文件 :23 与 store-order.routes.ts:23-26），
+// 且手机端 confirm/startDelivery/completeDelivery 三个封装打的就是本行（api/modules/orders.ts:96-109）。
+// 使用者 = 收银员/店长/销售员级 `sale:create` 持有人；非持有人（如 READONLY）原本可点 ⇒ 由前端门拦在入口。
+adminOrderRouter.put("/orders/:orderNo/status", requirePermission("sale:create"), orderController.updateOrderStatus);
 adminOrderRouter.get("/orders/:orderNo/logs", orderController.getOrderOperationLogs);
 
 // ============ 销售单管理 ============
