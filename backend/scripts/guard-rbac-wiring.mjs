@@ -34,6 +34,15 @@
  *     ⚠️ 判据**刻意保持严格**：只挂消费者认证而**没有 CSRF** 的写端点**仍记缺口**（认证≠授权；状态变更
  *     无 CSRF 是实缺口）；且该形态**必须逐条登记**在 `consumerEnd` 台账里，`--strict` 才放行——避免
  *     「新加的端点只要套上这两个中间件就自动洗绿」。`requireWxAuth` 等**其它**认证中间件不在此列。
+ *   · **消费者端声明式认证（S3-227 B，2026-10-16）**：`routeConfig.auth = "requireConsumerAuthWithTenant"`
+ *     （声明式）与上面那条**同源**——`shared/auto-routes.ts` 的 `getAuthMiddlewares()` 把该 auth 值
+ *     翻译成 `[...requireConsumerAuthWithTenant, csrfMiddleware]`，即**同样成对**，故同样归 `consumerEnd`
+ *     （不适用商家权限码），且同样必须逐条登记。判据的**结构化**要求（S3-227 §二.4）：
+ *       ① 只按**声明的 router 变量**归类，不按文件名白名单 —— 同一文件里另一个 router（如
+ *          `notification.routes.ts` 的 admin router）的端点**不受影响**，仍按原判据记缺口；
+ *       ② 「成对性」不是本脚本的先验假设：脚本**现场解析** `auto-routes.ts` 的 `getAuthMiddlewares`
+ *          取得「哪些 auth 值成对含消费者认证 + csrfMiddleware」；解析不到 ⇒ 该集合为空 ⇒
+ *          声明式形态**不享受** `consumerEnd`，端点保守落回 `gaps`（宁可多记，不可漏记）。
  *   · `routeConfig` 声明式（auth: requireAuthWithTenant / requirePlatformAuth / none）**不携带权限码**
  *     ⇒ 只挂认证的写端点一律记「无权限检查」。这是**有意的**：认证≠授权。
  *   · 注释行 / import 行不算（踩坑[134]：注释里的 `requirePermission(` 不是调用）。
@@ -48,7 +57,8 @@
  * 用法：
  *   node backend/scripts/guard-rbac-wiring.mjs           报告模式（**恒 exit 0**），打印缺口清单 + 缺口总数
  *   node backend/scripts/guard-rbac-wiring.mjs --json     机读模式（`{file, method, path, hasPermission, authForm}[]`；
- *                                                       `authForm` ∈ `inline` / `use-mount` / `consumer` / `none`）
+ *                                                       `authForm` ∈ `inline` / `use-mount` / `consumer` /
+ *                                                       `read-only` / `none`；`consumerVia` 仅在 `consumer` 时有值）
  *   node backend/scripts/guard-rbac-wiring.mjs --strict   严格模式：存在**未登记**缺口 ⇒ exit 1
  *                                                       （已登记缺口按 `rbac-wiring-baseline.json` 的 `gaps` 豁免；
  *                                                        消费者端保护形态须在 `consumerEnd` 里逐条登记，同样不报红）
@@ -100,6 +110,41 @@ function isConsumerProtectedCall(text) {
 const USE_CALL_RE = /\.\s*use\s*\(/g;
 /** 注释行 / import 行不是调用（踩坑[134]） */
 const NON_CALL_LINE_RE = /^\s*(?:\/\/|\*|\/\*|import\b)/;
+
+/**
+ * ── S3-227 B：消费者端**声明式**认证的识别（routeConfig.auth） ─────────────────────────
+ *
+ * 现场解析来源：`backend/src/shared/auto-routes.ts` 的 `getAuthMiddlewares()`（启动期真正生效的那张表）。
+ * 只在**能解析出「含消费者认证 + csrfMiddleware 的 auth 值」**时才启用声明式归类；解析不到 ⇒ 空集 ⇒
+ * 声明式端点保守落回 `gaps`（宁可多记，不可漏记 —— 与 S3-205 的从严口径一致）。
+ */
+const AUTO_ROUTES_PATH = resolve(HERE, "..", "src", "shared", "auto-routes.ts");
+
+function declarativeConsumerAuthForms(autoRoutesSrc) {
+  const fnIdx = autoRoutesSrc.search(/export\s+function\s+getAuthMiddlewares\s*\(/);
+  if (fnIdx < 0) return new Set();
+  const braceIdx = autoRoutesSrc.indexOf("{", fnIdx);
+  const body = braceIdx < 0 ? null : balancedRegion(autoRoutesSrc, braceIdx);
+  if (!body) return new Set();
+  const out = new Set();
+  for (const m of body.matchAll(/case\s+["']([^"']+)["']\s*:\s*return\s*([^;]+);/g)) {
+    const value = m[1];
+    const expr = m[2];
+    // 成对判据：同一 return 表达式里同时出现消费者认证**与** csrfMiddleware（中间件名，不是"有 auth 就算"）
+    if (CONSUMER_AUTH_CALL_RE.test(expr) && CSRF_CALL_RE.test(expr)) out.add(value);
+  }
+  return out;
+}
+
+/** 会被成对挂上「消费者端认证 + csrfMiddleware」的 `routeConfig.auth` 取值（空集 = 解析失败，按从严处理） */
+const DECLARATIVE_CONSUMER_AUTHS = (() => {
+  if (!existsSync(AUTO_ROUTES_PATH)) return new Set();
+  try {
+    return declarativeConsumerAuthForms(readFileSync(AUTO_ROUTES_PATH, "utf8"));
+  } catch {
+    return new Set();
+  }
+})();
 
 /**
  * 已登记缺口台账（**逐条登记**）＝ 同目录 `rbac-wiring-baseline.json`（机读镜像；
@@ -238,6 +283,96 @@ function firstStringLiteral(text) {
   return null;
 }
 
+/**
+ * 从配对符号处取出整段文本（`(` / `[` / `{` 任一，括号配平、跳过字符串字面量，上限 cap 防跑飞）。
+ * S3-227 B/C 用：读 `routeConfig` / `routeConfigs` 声明块与 `getAuthMiddlewares` 函数体。
+ */
+function balancedRegion(src, openIdx, cap = 20000) {
+  const open = src[openIdx];
+  const close = open === "(" ? ")" : open === "[" ? "]" : open === "{" ? "}" : null;
+  if (close === null) return null;
+  let depth = 0;
+  const end = Math.min(src.length, openIdx + cap);
+  for (let i = openIdx; i < end; i++) {
+    const ch = src[i];
+    if (ch === '"' || ch === "'" || ch === "`") {
+      i++;
+      while (i < end) {
+        if (src[i] === "\\") {
+          i += 2;
+          continue;
+        }
+        if (src[i] === ch) break;
+        i++;
+      }
+    } else if (ch === open) {
+      depth++;
+    } else if (ch === close) {
+      depth--;
+      if (depth === 0) return src.slice(openIdx, i + 1);
+    }
+  }
+  return null;
+}
+
+/**
+ * 取一段声明文本里的**顶层对象片段**（`{...}`）：单对象直接返回自身；数组则逐个取元素。
+ * S3-227 B 用：`routeConfig` 是单对象、`routeConfigs` 是对象数组，两种写法都要能取到「同一个对象里的
+ * `router:'X'` 与 `auth:'Y'`」——**属性必须同对象**，否则会把"隔壁 router 的 auth"错配（那正是洗绿的来源）。
+ */
+function topLevelObjects(block) {
+  if (block[0] === "{") return [block];
+  const out = [];
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < block.length; i++) {
+    const ch = block[i];
+    if (ch === '"' || ch === "'" || ch === "`") {
+      const sub = balancedRegion(block, i, block.length - i);
+      i += sub ? sub.length - 1 : 0;
+      continue;
+    }
+    if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start >= 0) {
+        out.push(block.slice(start, i + 1));
+        start = -1;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * 本文件 `routeConfig` / `routeConfigs` 声明的「**路由变量 → auth 值**」（S3-227 B）。
+ * `router` 支持 `router: xxx` 与属性简写 `router`（简写时路由变量名就是 `router`，与调用点写法一致）。
+ * 保守边界：`routeConfig` 若指向变量（`export const routeConfig = someVar;`）⇒ 取不到对象 ⇒ 不入表
+ * （该文件按原判据记缺口，不享受声明式归类）。
+ */
+function declarativeAuthByRouter(src) {
+  const map = new Map();
+  for (const m of src.matchAll(/\brouteConfigs?\s*[:=]/g)) {
+    const afterIdx = m.index + m[0].length;
+    const tail = src.slice(afterIdx, afterIdx + 60);
+    const rel = tail.search(/[[{]/);
+    const stop = tail.search(/[;)]/);
+    if (rel < 0 || (stop >= 0 && stop < rel)) continue;
+    const block = balancedRegion(src, afterIdx + rel);
+    if (!block) continue;
+    for (const obj of topLevelObjects(block)) {
+      const routerVar =
+        obj.match(/\brouter\s*:\s*([A-Za-z_$][\w$]*)/)?.[1] ??
+        (/[{,]\s*router\s*[,}]/.test(obj) ? "router" : null);
+      const auth = obj.match(/\bauth\s*:\s*["']([^"']*)["']/)?.[1] ?? null;
+      if (routerVar && auth) map.set(routerVar, auth);
+    }
+  }
+  return map;
+}
+
 /** Express `router.use(scope, mw)` 的 scope 语义：scope 是否为 path 的前缀 */
 function covers(scope, path) {
   return path === scope || path.startsWith(`${scope}/`);
@@ -270,8 +405,8 @@ function prefixByRouter(src, receiverVars = []) {
   return map;
 }
 
-/** 扫描单个文件 → 写端点记录 */
-function scanFile(file, src) {
+/** 扫描单个文件 → 写端点记录（`declaredAuth` = 本文件 routeConfig(s) 声明的「router 变量 → auth 值」，S3-227 B） */
+function scanFile(file, src, declaredAuth = new Map()) {
   const lines = src.split(/\r?\n/);
   const receiverVars = [...new Set([...src.matchAll(WRITE_CALL_RE)].map((m) => m[1]))];
   const prefixMap = prefixByRouter(src, receiverVars);
@@ -310,8 +445,20 @@ function scanFile(file, src) {
       (x) => x.consumerProtected && x.scope && x.line < lineNo && covers(x.scope, routePath)
     );
     const hasPerm = inlinePerm || coveringPermMounts.length > 0;
+    // S3-227 B：声明式消费者端（只对**声明了该 auth 值的那个 router 变量**生效，不按文件白名单）
+    const declarativeAuth = declaredAuth.get(m[1]) ?? null;
+    const declarativeConsumer =
+      declarativeAuth !== null && DECLARATIVE_CONSUMER_AUTHS.has(declarativeAuth);
     // 消费者端保护形态只在**没有**商家/平台权限码时判定（有权限码就按已接线记，形态更明确）
-    const consumerProtected = !hasPerm && (inlineConsumer || coveringConsumerMounts.length > 0);
+    const consumerProtected =
+      !hasPerm && (inlineConsumer || coveringConsumerMounts.length > 0 || declarativeConsumer);
+    const consumerVia = !consumerProtected
+      ? null
+      : inlineConsumer
+        ? "内联：requireConsumerAuthWithTenant + csrfMiddleware"
+        : coveringConsumerMounts.length > 0
+          ? "挂载：router.use(scope, …) 覆盖"
+          : `声明式：routeConfig.auth="${declarativeAuth}"（auto-routes.getAuthMiddlewares 成对）`;
     /** inline = 内联权限码 ／ use-mount = 被 `router.use(scope, …, requirePermission())` 覆盖 ／
      *  consumer = 消费者端保护形态（认证 + CSRF，不适用商家权限码）／ none = 无授权形态（真缺口） */
     const authForm = hasPerm
@@ -330,6 +477,7 @@ function scanFile(file, src) {
       path: fullPath,
       hasPermission: authForm !== "none",
       authForm,
+      consumerVia,
       mountLine: (coveringPermMounts[0] ?? coveringConsumerMounts[0])?.line ?? null,
     });
   }
@@ -364,7 +512,26 @@ if (holdersIdx > -1) {
 
 const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts")).sort();
 const all = [];
-for (const f of files) all.push(...scanFile(f, readFileSync(join(ROUTES_DIR, f), "utf8")));
+/**
+ * S3-227 B：声明式 auth 的**命中清单**（判据类改动的第一个读数是"命中多少条"——踩坑[171]：
+ * 只跑 `--strict` 会因为"这些端点刚好已在旧台账里登记"而看起来绿）。
+ */
+const declarativeAuthHits = [];
+const declarativeAuthValueCounts = new Map();
+for (const f of files) {
+  const src = readFileSync(join(ROUTES_DIR, f), "utf8");
+  const declaredAuth = declarativeAuthByRouter(src);
+  for (const [, a] of declaredAuth) {
+    declarativeAuthValueCounts.set(a, (declarativeAuthValueCounts.get(a) ?? 0) + 1);
+  }
+  const consumerDecls = [...declaredAuth].filter(([, a]) => DECLARATIVE_CONSUMER_AUTHS.has(a));
+  if (consumerDecls.length > 0) {
+    declarativeAuthHits.push(
+      `${f}: ${consumerDecls.map(([v, a]) => `${v} ← auth:"${a}"`).join(" / ")}`
+    );
+  }
+  all.push(...scanFile(f, src, declaredAuth));
+}
 
 if (JSON_MODE) {
   console.log(
@@ -375,6 +542,7 @@ if (JSON_MODE) {
         path: r.path,
         hasPermission: r.hasPermission,
         authForm: r.authForm,
+        consumerVia: r.consumerVia,
       })),
       null,
       2
@@ -395,6 +563,20 @@ console.log(
   `[guard:rbac-wiring] 已接线（权限码）${wired.length} 处 ／ 消费者端保护形态 ${consumerEndpoints.length} 处` +
     ` ／ **无授权形态 ${gaps.length} 处**（分布在 ${gapFiles.length} 个文件）`
 );
+const declarativeValueSummary = [...declarativeAuthValueCounts]
+  .sort((a, b) => b[1] - a[1])
+  .map(([v, n]) => `${v}×${n}`)
+  .join(" / ");
+console.log(
+  `[guard:rbac-wiring] 声明式 auth 声明：${declarativeValueSummary || "（无）"}` +
+    `；现场解析 auto-routes.getAuthMiddlewares ⇒ 「消费者端成对形态」的 auth 值 ` +
+    `${DECLARATIVE_CONSUMER_AUTHS.size} 个：${[...DECLARATIVE_CONSUMER_AUTHS].join(", ") || "（0 个 ⇒ 解析失败，声明式一律落回缺口）"}`
+);
+if (declarativeAuthHits.length > 0) {
+  console.log(
+    `[guard:rbac-wiring] 其中按声明式归入消费者端的文件 ${declarativeAuthHits.length} 个：${declarativeAuthHits.join("；")}`
+  );
+}
 console.log(
   `[guard:rbac-wiring] 本门禁当前是【报告器】，未接 CI（接 CI 前置＝缺口清零或逐条登记，见脚本头）`
 );
@@ -413,7 +595,8 @@ if (consumerEndpoints.length === 0) console.log("   （0 处）");
 for (const f of consumerFiles) {
   const rows = consumerEndpoints.filter((r) => r.file === f);
   console.log(`\n${f}  (${rows.length} 处)`);
-  for (const r of rows) console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 消费者端保护形态`);
+  for (const r of rows)
+    console.log(`   L${r.line}: ${r.method} ${r.path} ⇒ 消费者端保护形态（${r.consumerVia ?? "?"}）`);
 }
 
 if (unknownPrefix.length > 0) {

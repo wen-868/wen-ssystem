@@ -1,0 +1,8 @@
+改前 rows=763  改后 rows=763
+changed=6  removed=0  added=0
+  POST /api/miniapp/cart/add cart.routes.ts : none -> consumer
+  PUT /api/miniapp/cart/items/:skuId cart.routes.ts : none -> consumer
+  DELETE /api/miniapp/cart/items/:skuId cart.routes.ts : none -> consumer
+  POST /api/miniapp/cart/clear cart.routes.ts : none -> consumer
+  POST /api/miniapp/cart/checkout/preview cart.routes.ts : none -> consumer
+  POST /api/miniapp/cart/checkout/create cart.routes.ts : none -> consumer
