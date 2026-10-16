@@ -700,7 +700,27 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const S3_233_WIRED_TOTAL = [...S3_233_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57", () => {
+  // S3-237（接线批 10 · 组 1「系统设置/基础域」）追加说明：
+  //   **10 处**新增接线，全部挂 S3-232 已立的新码（不新立码、不改角色种子、不动迁移）：
+  //     alert 3 = system:alert:handle|rule-edit|check、archive 1 = system:archive:execute、
+  //     notification 1 = system:notification:send、push 1 = system:push:test、
+  //     sms-template 3 = system:sms-template:create|edit|delete、system 1 = system:migration:run
+  //     （码由 `backend/src/shared/system-permission-codes.ts` + 迁移 204 落地）。
+  //   本组另有 **4 条不接**（手机端通知写端点：消息页无权限门 + 在用角色不持码 ⇒ I1' 三条都不成立），
+  //   故 notification.routes.ts 仍留在表内（计 1，而非其缺口的 5）。
+  //   逐条判定与证据见 `docs/tasks/R101-RBAC接线缺口清单.md` §二十；逐行 403/200 断言在
+  //   `rbac-b2-s3-237-system-wiring.test.ts`；组 2（商品 A 类 7 条）在同批后续提交里补全本块。
+  const S3_237_WIRED_FILES = new Map<string, number>([
+    ["alert.routes.ts", 3],
+    ["archive.routes.ts", 1],
+    ["notification.routes.ts", 1],
+    ["push.routes.ts", 1],
+    ["sms-template.routes.ts", 3],
+    ["system.routes.ts", 1],
+  ]);
+  const S3_237_WIRED_TOTAL = [...S3_237_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 10", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -710,7 +730,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL + S3_226_WIRED_TOTAL + S3_229_WIRED_TOTAL + S3_231_WIRED_TOTAL + S3_233_WIRED_TOTAL);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL + S3_226_WIRED_TOTAL + S3_229_WIRED_TOTAL + S3_231_WIRED_TOTAL + S3_233_WIRED_TOTAL + S3_237_WIRED_TOTAL);
 
     // S3-227 A（本单）：删除原 `expect(total).toBe(226)` 裸数字断言。
     //   为什么删：那是一个跨批共享的**单点数字**，每批都要改同一行（批 3⇒149、批 5⇒183、批 6⇒215、批 7⇒226 …），
@@ -752,7 +772,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of G2_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
-    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_224_WIRED_FILES, ...S3_225_WIRED_FILES, ...S3_226_WIRED_FILES, ...S3_229_WIRED_FILES, ...S3_231_WIRED_FILES, ...S3_233_WIRED_FILES])
+    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_224_WIRED_FILES, ...S3_225_WIRED_FILES, ...S3_226_WIRED_FILES, ...S3_229_WIRED_FILES, ...S3_231_WIRED_FILES, ...S3_233_WIRED_FILES, ...S3_237_WIRED_FILES])
       // ⚠️ S3-231 F1：同文件可被**两个批次**声明（points.routes.ts = S3-226 的 2 + S3-231 的 4）
       //    ⇒ 必须**累加**；用 `set(f, n)` 会让后一个块**覆盖**前一个块的声明（抹掉他人接线数）。
       //    S3-233（本批）同规则：`admin-product.routes.ts` 等若与既有块同文件，也走累加。
