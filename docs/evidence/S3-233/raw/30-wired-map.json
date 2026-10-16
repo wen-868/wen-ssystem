@@ -1,0 +1,104 @@
+{
+  "count": 57,
+  "byFile": {
+    "admin-marketing-coupon.routes.ts": [
+      "POST /api/admin/marketing/coupons/templates",
+      "POST /api/admin/marketing/coupons/templates/:id/pause"
+    ],
+    "admin-marketing-full-reduction.routes.ts": [
+      "POST /api/admin/marketing/full-reductions/:id/activate",
+      "POST /api/admin/marketing/full-reductions/:id/pause",
+      "DELETE /api/admin/marketing/full-reductions/:id"
+    ],
+    "admin-order.routes.ts": [
+      "PUT /api/admin/orders/:orderNo/status"
+    ],
+    "admin-product.routes.ts": [
+      "PUT /api/admin/products/:id",
+      "PUT /api/admin/products/:skuId/price",
+      "PUT /api/admin/products/skus/:skuId",
+      "POST /api/admin/products/skus/:skuId/units",
+      "PUT /api/admin/products/skus/:skuId/units/:unitId",
+      "DELETE /api/admin/products/skus/:skuId/units/:unitId",
+      "PUT /api/admin/products/:spuId/marketing-tags",
+      "POST /api/admin/products/upload-image"
+    ],
+    "admin-staff.routes.ts": [
+      "POST /api/admin/staff",
+      "PUT /api/admin/staff/:id",
+      "PUT /api/admin/staff/:id/disable",
+      "POST /api/admin/staff/:id/restore"
+    ],
+    "bank-account.routes.ts": [
+      "POST /api/admin/bank-accounts/",
+      "POST /api/admin/bank-accounts/:id/close"
+    ],
+    "category.routes.ts": [
+      "POST /api/admin/products/categories/",
+      "PUT /api/admin/products/categories/:id",
+      "PUT /api/admin/products/categories/:id/sort",
+      "DELETE /api/admin/products/categories/:id"
+    ],
+    "inventory-loss-gain.routes.ts": [
+      "POST /api/admin/inventory/report-loss-gain"
+    ],
+    "purchase-in-stock.routes.ts": [
+      "POST /api/admin/purchase-in-stocks/"
+    ],
+    "purchase-payment.routes.ts": [
+      "POST /api/admin/purchase-payments/"
+    ],
+    "purchase-return.routes.ts": [
+      "POST /api/admin/purchase-returns/"
+    ],
+    "purchase.routes.ts": [
+      "POST /api/admin/purchase-orders/"
+    ],
+    "rbac.routes.ts": [
+      "POST /api/admin/system/roles/",
+      "PUT /api/admin/system/roles/:id",
+      "DELETE /api/admin/system/roles/:id"
+    ],
+    "receipt.routes.ts": [
+      "POST /api/admin/receipts/"
+    ],
+    "reconciliation.routes.ts": [
+      "POST /api/admin/reconciliation/customer/:customerId/confirm",
+      "POST /api/admin/reconciliation/supplier/:supplierId/confirm"
+    ],
+    "stock-check.routes.ts": [
+      "POST /api/admin/stock-checks/",
+      "PUT /api/admin/stock-checks/:id",
+      "POST /api/admin/stock-checks/:id/start",
+      "POST /api/admin/stock-checks/:id/complete",
+      "POST /api/admin/stock-checks/:id/cancel",
+      "POST /api/admin/stock-checks/:id/handle-diff",
+      "POST /api/admin/stock-checks/:id/items",
+      "PUT /api/store/stock-checks/:id/items/:itemId",
+      "POST /api/store/stock-checks/:id/submit"
+    ],
+    "stock-warning.routes.ts": [
+      "POST /api/admin/stock-warnings/config"
+    ],
+    "store-inventory.routes.ts": [
+      "PUT /api/store/inventory/alerts/:skuId/threshold"
+    ],
+    "store-order.routes.ts": [
+      "POST /api/store/orders/:orderNo/start-delivery",
+      "POST /api/store/hold-orders/"
+    ],
+    "store-sale-bill.routes.ts": [
+      "POST /api/store/sale-bills/:billNo/offline-payment"
+    ],
+    "transfer.routes.ts": [
+      "POST /api/admin/transfers/",
+      "PUT /api/admin/transfers/:id",
+      "POST /api/admin/transfers/:id/submit",
+      "POST /api/admin/transfers/:id/approve",
+      "POST /api/admin/transfers/:id/reject",
+      "POST /api/admin/transfers/:id/cancel",
+      "POST /api/admin/transfers/:id/ship",
+      "POST /api/store/transfers/:id/receive"
+    ]
+  }
+}

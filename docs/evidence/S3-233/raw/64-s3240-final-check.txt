@@ -1,0 +1,20 @@
+=== 2026-10-16 20:55:23 收尾轮（s3240）最终状态复核 ===
+
+--- parity 用例 ---
+Test Files  1 passed (1)
+Tests  120 passed (120)
+Duration  8.86s (transform 2.49s, setup 69ms, import 7.23s, tests 904ms, environment 1ms)
+
+--- guard --strict ---
+gaps：已登记 321 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+✅ [--strict] 无「未登记」项（已登记欠账 321 条、已登记消费者端保护形态 45 条，均不计红）
+EXIT=0
+
+--- tsc --noEmit ---
+（无输出）
+EXIT=0
+
+--- evidence-secrets ---
+[guard:evidence-secrets] PASS（命中 0 处 / 豁免 1 处）
+EXIT=0

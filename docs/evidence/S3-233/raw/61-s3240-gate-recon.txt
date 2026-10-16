@@ -1,0 +1,122 @@
+## 表 A · 门级对账（`M = K + 跳过`）
+
+| # | 门 id | 域 | 门 codes | 端点行数 | 已接 | 跳过 |
+|:--:|:--|:--|:--|:--:|:--:|:--:|
+| 1 | `sale-order-detail-deliver` | 销售域 | `sale:create` | 2 | 2 | 0 |
+| 2 | `sale-order-detail-cancel` | 销售域 | `sale:void` | 1 | 0 | 1 |
+| 3 | `sale-create-hold` | 销售域 | `sale:create` | 1 | 1 | 0 |
+| 4 | `sale-bill-offline-pay` | 销售域 | `sale:create` | 1 | 1 | 0 |
+| 5 | `sale-receipt-sub` | 销售域 | `sale:create` | 1 | 1 | 0 |
+| 6 | `purchase-sub-order` | 采购域 | `purchase:create` | 1 | 1 | 0 |
+| 7 | `purchase-sub-inbound` | 采购域 | `inventory:inbound` | 1 | 1 | 0 |
+| 8 | `purchase-sub-return` | 采购域 | `sale:return` | 1 | 1 | 0 |
+| 9 | `purchase-sub-payment` | 采购域 | `finance:payment` | 1 | 1 | 0 |
+| 10 | `home-in-stock` | 采购域 | `inventory:inbound` | 1 | 1 | 0 |
+| 11 | `fx-stock-check` | 库存/追溯域 | `inventory:create` `inventory:adjust` | 9 | 9 | 0 |
+| 12 | `fx-stock-warning` | 库存/追溯域 | `inventory:adjust` | 2 | 2 | 0 |
+| 13 | `fx-loss-gain` | 库存/追溯域 | `inventory:adjust` | 1 | 1 | 0 |
+| 14 | `fx-transfer` | 库存/追溯域 | `store:transfer` | 7 | 7 | 0 |
+| 15 | `fx-transfer-receive` | 库存/追溯域 | `store:transfer` | 1 | 1 | 0 |
+| 16 | `goods-detail-edit` | 商品域 | `goods:edit` `goods:price` `goods:create` `goods:delete` | 8 | 8 | 0 |
+| 17 | `goods-batch-price-submit` | 商品域 | `goods:price` | 1 | 1 | 0 |
+| 18 | `goods-category-create` | 商品域 | `goods:create` | 1 | 1 | 0 |
+| 19 | `goods-category-edit` | 商品域 | `goods:edit` | 2 | 2 | 0 |
+| 20 | `goods-category-delete` | 商品域 | `goods:delete` | 1 | 1 | 0 |
+| 21 | `staff-entry` | 员工/账号域 | `system:user:create` `system:user:edit` | 4 | 4 | 0 |
+| 22 | `role-entry` | 员工/账号域 | `system:role:create` `system:role:edit` | 3 | 3 | 0 |
+| 23 | `mkt-coupons` | 营销域 | `marketing:create` | 2 | 2 | 0 |
+| 24 | `mkt-activities` | 营销域 | `marketing:create` | 3 | 3 | 0 |
+| 25 | `fin-bank-accounts` | 财务域 | `finance:create` | 2 | 2 | 0 |
+| 26 | `fin-recon-confirm` | 财务域 | `report:finance` | 2 | 2 | 0 |
+| — | **合计 26 道门** | — | — | **60** | **59** | **1** |
+
+- gated 端点行 60 ⇒ **唯一端点 57**（差 3 = 被两道门共同引用的端点）
+- 唯一端点**逐条上网核对**：全部**不在**机读台账 gaps 里 ✅
+- 跳过明细：sale-order-detail-cancel: POST /api/admin/orders/:orderNo/cancel
+
+## 表 B · 本批已接端点 × 落地码 × 生产在用持有者
+
+| 端点 | 文件 | 落地码 | 生产在用持有者（底稿 §一） |
+|:--|:--|:--|:--|
+| `PUT /api/admin/orders/:orderNo/status` | admin-order.routes.ts | `sale:create` | OPERATION_ADMIN / SALES_STAFF / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| `POST /api/admin/orders/:orderNo/cancel` | **不在移除名单** | `sale:void` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/store/orders/:orderNo/start-delivery` | store-order.routes.ts | `sale:create` | OPERATION_ADMIN / SALES_STAFF / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| `POST /api/store/hold-orders/` | store-order.routes.ts | `sale:create` | OPERATION_ADMIN / SALES_STAFF / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| `POST /api/store/sale-bills/:billNo/offline-payment` | store-sale-bill.routes.ts | `sale:create` | OPERATION_ADMIN / SALES_STAFF / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| `POST /api/admin/receipts/` | receipt.routes.ts | `sale:create` | OPERATION_ADMIN / SALES_STAFF / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| `POST /api/admin/purchase-orders/` | purchase.routes.ts | `purchase:create` | OPERATION_ADMIN / PURCHASE_STAFF / SUPER_ADMIN |
+| `POST /api/admin/purchase-in-stocks/` | purchase-in-stock.routes.ts | `inventory:inbound` | OPERATION_ADMIN / PURCHASE_STAFF / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/purchase-returns/` | purchase-return.routes.ts | `sale:return` | OPERATION_ADMIN / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| `POST /api/admin/purchase-payments/` | purchase-payment.routes.ts | `finance:payment` | FINANCE_STAFF / OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/admin/stock-checks/` | stock-check.routes.ts | `inventory:create` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `PUT /api/admin/stock-checks/:id` | stock-check.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/stock-checks/:id/start` | stock-check.routes.ts | `inventory:create` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/stock-checks/:id/complete` | stock-check.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/stock-checks/:id/cancel` | stock-check.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/stock-checks/:id/handle-diff` | stock-check.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/stock-checks/:id/items` | stock-check.routes.ts | `inventory:create` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `PUT /api/store/stock-checks/:id/items/:itemId` | stock-check.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/store/stock-checks/:id/submit` | stock-check.routes.ts | `inventory:create` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/stock-warnings/config` | stock-warning.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `PUT /api/store/inventory/alerts/:skuId/threshold` | store-inventory.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/inventory/report-loss-gain` | inventory-loss-gain.routes.ts | `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| `POST /api/admin/transfers/` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `PUT /api/admin/transfers/:id` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/admin/transfers/:id/submit` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/admin/transfers/:id/approve` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/admin/transfers/:id/reject` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/admin/transfers/:id/cancel` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/admin/transfers/:id/ship` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/store/transfers/:id/receive` | transfer.routes.ts | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `PUT /api/admin/products/:id` | admin-product.routes.ts | `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/products/:skuId/price` | admin-product.routes.ts | `goods:price` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `PUT /api/admin/products/skus/:skuId` | admin-product.routes.ts | `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/products/skus/:skuId/units` | admin-product.routes.ts | `goods:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/products/skus/:skuId/units/:unitId` | admin-product.routes.ts | `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `DELETE /api/admin/products/skus/:skuId/units/:unitId` | admin-product.routes.ts | `goods:delete` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/products/:spuId/marketing-tags` | admin-product.routes.ts | `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/products/upload-image` | admin-product.routes.ts | `goods:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/products/categories/` | category.routes.ts | `goods:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/products/categories/:id` | category.routes.ts | `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/products/categories/:id/sort` | category.routes.ts | `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `DELETE /api/admin/products/categories/:id` | category.routes.ts | `goods:delete` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/staff` | admin-staff.routes.ts | `system:user:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/staff/:id` | admin-staff.routes.ts | `system:user:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/staff/:id/disable` | admin-staff.routes.ts | `system:user:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/staff/:id/restore` | admin-staff.routes.ts | `system:user:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/system/roles/` | rbac.routes.ts | `system:role:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `PUT /api/admin/system/roles/:id` | rbac.routes.ts | `system:role:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `DELETE /api/admin/system/roles/:id` | rbac.routes.ts | `system:role:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/marketing/coupons/templates` | admin-marketing-coupon.routes.ts | `marketing:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/marketing/coupons/templates/:id/pause` | admin-marketing-coupon.routes.ts | `marketing:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/marketing/full-reductions/:id/activate` | admin-marketing-full-reduction.routes.ts | `marketing:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/marketing/full-reductions/:id/pause` | admin-marketing-full-reduction.routes.ts | `marketing:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `DELETE /api/admin/marketing/full-reductions/:id` | admin-marketing-full-reduction.routes.ts | `marketing:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/bank-accounts/` | bank-account.routes.ts | `finance:create` | FINANCE_STAFF / OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/bank-accounts/:id/close` | bank-account.routes.ts | `finance:create` | FINANCE_STAFF / OPERATION_ADMIN / SUPER_ADMIN |
+| `POST /api/admin/reconciliation/customer/:customerId/confirm` | reconciliation.routes.ts | `report:finance` | FINANCE_STAFF / OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| `POST /api/admin/reconciliation/supplier/:supplierId/confirm` | reconciliation.routes.ts | `report:finance` | FINANCE_STAFF / OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+
+- 本表 58 条；移除名单 57 条 ⇒ 差 1 条 = `POST /api/admin/orders/:orderNo/cancel`（S3-209 既有接线，本单只加断言，故本就不在 gaps 里）
+- **无在用持有者的码：0**（§二.6 零回归论证成立，无需跳过）
+
+## 表 C · `status==='registered'`：一律不接（登记核对，分类口径取自 parity 用例 `REGISTERED_ROWS`）
+
+| # | 门 id | 域 | 端点行数 | 后端已注册且仍无门 | 跨层漂移（只登记） |
+|:--:|:--|:--|:--:|:--:|:--:|
+| 1 | `fx-trace-verify` | 库存/追溯域 | 1 | 1 | 0 |
+| 2 | `goods-scan-lookup` | 商品域 | 1 | 1 | 0 |
+| 3 | `mkt-coupon-verify` | 营销域 | 2 | 2 | 0 |
+| 4 | `mkt-points-adjust` | 营销域 | 1 | 1 | 0 |
+| 5 | `mkt-points-exchange` | 营销域 | 1 | 1 | 0 |
+| 6 | `cust-statement-confirm` | 客户域 | 1 | 1 | 0 |
+| 7 | `island-quote-push` | 销售域 | 1 | 1 | 0 |
+| 8 | `island-aftersale` | 销售域 | 4 | 4 | 0 |
+| 9 | `island-order-exception` | 销售域 | 3 | 3 | 0 |
+| 10 | `island-collection-link` | 销售域 | 1 | 1 | 0 |
+| 11 | `island-instant-retail-admin` | 销售域 | 27 | 11 | 16 |
+| — | **合计 11 道门** | — | **43** | **27** | **16** |
+
+- registered 端点行 43 = 仍在台账 gaps 27 条 ＋ 后端登记形态与注册表不一致 16 条（派单卡 §五：只登记、不接）
+- 双向核对：登记表 43 条／门引用 43 条 ⇒ 未被任何门引用 0
+- 未被登记的后端已注册行 0（无）

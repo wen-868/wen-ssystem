@@ -3220,3 +3220,198 @@ C 两条：登记真写端点被拒 / 缺 ruling 被拒），全部逐字节复�
    `UNWIRED` 由 28 → **24**、`UNWIRED_CLASS_TOTAL` 的 W 4 → **0**、`runnable` 12 → **8**；该文件 G1 一侧断言**未动**。
 2. **G0 用例的 `points.routes.ts` 逐文件读数 2 → 6**（S3-226 的 2 + 本单 F1 的 4）：**不改 S3-226 的声明块**，
    改为把两块的逐文件贡献**累加**（`rbac-g0-wiring.test.ts` 的折叠循环由 `set(f,n)` 改 `+=`）⇒ 同文件可被多批声明、互不覆盖。
+
+## 十九、S3-233 · **B 类收编第一批（把 S3-230 的入口门变成真接线）：26 道 gated 门 / 60 端点行 / 58 条唯一端点**（2026-10-16）
+
+> 派单卡：`docs/tasks/inbox/ACTIVE-S3-233.md`｜执行方：**阿坚（后端 / 权限）**
+> 工作树 `wt-agents/S3-233`｜分支 `feat/s3-233-bclass-wiring-batch1`｜分支基底 `be781a10`（含 #356 的 `3b94f432`）
+> 依据：`docs/tasks/cards/R101-S3-230-凌舟验收与裁定.md`（**D4/I1'**：门补好后即可收编）
+> 门与码的**唯一真相源**：`app-mobile/src/config/permission-gates.ts` 的 `ENTRY_GATES`（本单**只读**，一个字节未改；码不自行改、门不改）
+> 交付分工：接线与证据由 **s3238** 完成（**未提交**）；**收尾由 s3240 接手**——修 3 处用例/断言缺陷（§19.8）＋ 本节台账 ＋ 本地提交 ＋ 回传
+> 本节所有表格**可复跑**：`node docs/evidence/S3-233/tools/s3240-gate-recon.mjs`（只读四个真相源，输出即本节表 A/B/C）
+
+### 19.1 起点与终点（机器真值；两个读数源交叉一致）
+
+| 读数 | 起点（本分支基底 `be781a10`） | 终点 | 增量 |
+|:--|:--|:--|:--|
+| 无授权形态写端点（缺口） | **378**（113 文件） | **321**（**94** 文件） | **−57**；**19** 个文件清零 |
+| 已接线（权限码） | 337 | **394** | **+57** |
+| 机读台账 `gaps` | 378 条 / 113 文件 | **321 条 / 94 文件** | `tools/update-baseline.mjs` 逐键移除 57 条（含前后计数与守恒断言） |
+| `wiredPermOccurrences` | 308 | **365** | **+57** |
+| `--strict` 退出码 | EXIT=0 | **EXIT=0** | 未登记 0 ／ 陈旧登记 0（`raw/33/42/45/58-*-strict*.txt`） |
+| 跨批计数快照 | `rbac-g0-wiring.test.ts` 337 | **394** | 只新增本单常量块并纳入和式；G0 既有名单行未动 |
+
+> ⚠️ **与路由表「371→321」的差异（须凌舟知悉）**：路由表写的 371 是**含 #358（S3-231）之后的 main**读数；本分支基底 `be781a10` 早于 #358 ⇒ 本分支读数起点是 **378**。
+> 实测（`raw/63-s3240-main-vs-branch-baseline.txt`）：`origin/main` = `ca4b4151`（gaps **371**），本分支 HEAD = `be781a10`（落后 7 个提交）；**本单移除的 57 条与 main 侧移除的 7 条零重叠**
+> ⇒ **rebase 到 main 后的投影 = 371 − 57 = 314 条 / 91 文件**（不是 321/94）。已在此登记，供凌舟 rebase 后核对。
+
+### 19.2 门级对账（`M = K + 跳过`，逐门不遗漏）
+
+| # | 门 id | 域 | 门 codes（注册表原值） | 端点行数 | 已接 | 跳过 |
+|:--:|:--|:--|:--|:--:|:--:|:--:|
+| 1 | `sale-order-detail-deliver` | 销售域 | `sale:create` | 2 | 2 | 0 |
+| 2 | `sale-order-detail-cancel` | 销售域 | `sale:void` | 1 | **1（前批已接）** | 0 |
+| 3 | `sale-create-hold` | 销售域 | `sale:create` | 1 | 1 | 0 |
+| 4 | `sale-bill-offline-pay` | 销售域 | `sale:create` | 1 | 1 | 0 |
+| 5 | `sale-receipt-sub` | 销售域 | `sale:create` | 1 | 1 | 0 |
+| 6 | `purchase-sub-order` | 采购域 | `purchase:create` | 1 | 1 | 0 |
+| 7 | `purchase-sub-inbound` | 采购域 | `inventory:inbound` | 1 | 1 | 0 |
+| 8 | `purchase-sub-return` | 采购域 | `sale:return` | 1 | 1 | 0 |
+| 9 | `purchase-sub-payment` | 采购域 | `finance:payment` | 1 | 1 | 0 |
+| 10 | `home-in-stock` | 采购域 | `inventory:inbound` | 1 | 1 | 0 |
+| 11 | `fx-stock-check` | 库存/追溯域 | `inventory:create` `inventory:adjust` | 9 | 9 | 0 |
+| 12 | `fx-stock-warning` | 库存/追溯域 | `inventory:adjust` | 2 | 2 | 0 |
+| 13 | `fx-loss-gain` | 库存/追溯域 | `inventory:adjust` | 1 | 1 | 0 |
+| 14 | `fx-transfer` | 库存/追溯域 | `store:transfer` | 7 | 7 | 0 |
+| 15 | `fx-transfer-receive` | 库存/追溯域 | `store:transfer` | 1 | 1 | 0 |
+| 16 | `goods-detail-edit` | 商品域 | `goods:edit` `goods:price` `goods:create` `goods:delete` | 8 | 8 | 0 |
+| 17 | `goods-batch-price-submit` | 商品域 | `goods:price` | 1 | 1 | 0 |
+| 18 | `goods-category-create` | 商品域 | `goods:create` | 1 | 1 | 0 |
+| 19 | `goods-category-edit` | 商品域 | `goods:edit` | 2 | 2 | 0 |
+| 20 | `goods-category-delete` | 商品域 | `goods:delete` | 1 | 1 | 0 |
+| 21 | `staff-entry` | 员工/账号域 | `system:user:create` `system:user:edit` | 4 | 4 | 0 |
+| 22 | `role-entry` | 员工/账号域 | `system:role:create` `system:role:edit` | 3 | 3 | 0 |
+| 23 | `mkt-coupons` | 营销域 | `marketing:create` | 2 | 2 | 0 |
+| 24 | `mkt-activities` | 营销域 | `marketing:create` | 3 | 3 | 0 |
+| 25 | `fin-bank-accounts` | 财务域 | `finance:create` | 2 | 2 | 0 |
+| 26 | `fin-recon-confirm` | 财务域 | `report:finance` | 2 | 2 | 0 |
+| — | **合计 26 道门** | — | — | **60** | **60** | **0** |
+
+- **跳过 0 条**：`M = K + 跳过` 在**端点行**口径上成立（60 = 60 + 0）。
+- 60 端点行 ⇒ **58 条唯一端点**：`POST /api/admin/purchase-in-stocks/`（`purchase-sub-inbound` + `home-in-stock`）与 `PUT /api/admin/products/:skuId/price`（`goods-detail-edit` + `goods-batch-price-submit`）**各被两道门引用** ⇒ 去重后 58。
+- 58 条中 **57 条为本单接线**（即 `gaps` 里被移除的 57 条）；第 58 条 `POST /api/admin/orders/:orderNo/cancel` 早在 **S3-209** 已挂 `sale:void`（**本单未改该行，只加断言**，见 `s3-209-sale-cancel-wiring.test.ts`）⇒ 它本就不在 gaps 里，故"跳过"栏为 0 而非 1。
+- 26 道 gated 门的 `codes` **全部非空**；11 道 `registered` 门的 `codes` **恒为空**（注册表自身契约，用例已断言）。
+
+### 19.3 本批已接 **58 条唯一端点**（端点 ／ 落地码 ／ 生产在用持有者）
+
+> 「生产在用持有者」按**共用底稿** `docs/evidence/_shared/prod-roles-20261016.txt` §一 复算（12 个商家角色 × 权限码，通配语义同 `matchPermission`）：
+> 复跑命令 `node docs/evidence/S3-233/tools/s3240-prod-holders.mjs`，原始输出 `raw/60-s3240-prod-holders.txt`。
+
+| # | 端点 | 文件 | 落地码 | 生产在用持有者 |
+|:--:|:--|:--|:--|:--|
+| 1 | `PUT /api/admin/orders/:orderNo/status` | `admin-order.routes.ts` | `sale:create` | OPERATION_ADMIN / SALES_STAFF / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| 2 | `POST /api/admin/orders/:orderNo/cancel` ⚠️前批(S3-209) | `admin-order.routes.ts` | `sale:void` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| 3 | `POST /api/store/orders/:orderNo/start-delivery` | `store-order.routes.ts` | `sale:create` | 同 #1 |
+| 4 | `POST /api/store/hold-orders/` | `store-order.routes.ts` | `sale:create` | 同 #1 |
+| 5 | `POST /api/store/sale-bills/:billNo/offline-payment` | `store-sale-bill.routes.ts` | `sale:create` | 同 #1 |
+| 6 | `POST /api/admin/receipts/` | `receipt.routes.ts` | `sale:create` | 同 #1 |
+| 7 | `POST /api/admin/purchase-orders/` | `purchase.routes.ts` | `purchase:create` | OPERATION_ADMIN / PURCHASE_STAFF / SUPER_ADMIN |
+| 8 | `POST /api/admin/purchase-in-stocks/` | `purchase-in-stock.routes.ts` | `inventory:inbound` | OPERATION_ADMIN / PURCHASE_STAFF / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| 9 | `POST /api/admin/purchase-returns/` | `purchase-return.routes.ts` | `sale:return` | OPERATION_ADMIN / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN |
+| 10 | `POST /api/admin/purchase-payments/` | `purchase-payment.routes.ts` | `finance:payment` | FINANCE_STAFF / OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| 11 | `POST /api/admin/stock-checks/` | `stock-check.routes.ts` | `inventory:create` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF |
+| 12 | `PUT /api/admin/stock-checks/:id` | `stock-check.routes.ts` | `inventory:adjust` | 同 #11 |
+| 13 | `POST /api/admin/stock-checks/:id/start` | `stock-check.routes.ts` | `inventory:create` | 同 #11 |
+| 14 | `POST /api/admin/stock-checks/:id/complete` | `stock-check.routes.ts` | `inventory:adjust` | 同 #11 |
+| 15 | `POST /api/admin/stock-checks/:id/cancel` | `stock-check.routes.ts` | `inventory:adjust` | 同 #11 |
+| 16 | `POST /api/admin/stock-checks/:id/handle-diff` | `stock-check.routes.ts` | `inventory:adjust` | 同 #11 |
+| 17 | `POST /api/admin/stock-checks/:id/items` | `stock-check.routes.ts` | `inventory:create` | 同 #11 |
+| 18 | `PUT /api/store/stock-checks/:id/items/:itemId` | `stock-check.routes.ts` | `inventory:adjust` | 同 #11 |
+| 19 | `POST /api/store/stock-checks/:id/submit` | `stock-check.routes.ts` | `inventory:create` | 同 #11 |
+| 20 | `POST /api/admin/stock-warnings/config` | `stock-warning.routes.ts` | `inventory:adjust` | 同 #11 |
+| 21 | `PUT /api/store/inventory/alerts/:skuId/threshold` | `store-inventory.routes.ts` | `inventory:adjust` | 同 #11 |
+| 22 | `POST /api/admin/inventory/report-loss-gain` | `inventory-loss-gain.routes.ts` | `inventory:adjust` | 同 #11 |
+| 23 | `POST /api/admin/transfers/` | `transfer.routes.ts` | `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| 24 | `PUT /api/admin/transfers/:id` | `transfer.routes.ts` | `store:transfer` | 同 #23 |
+| 25 | `POST /api/admin/transfers/:id/submit` | `transfer.routes.ts` | `store:transfer` | 同 #23 |
+| 26 | `POST /api/admin/transfers/:id/approve` | `transfer.routes.ts` | `store:transfer` | 同 #23 |
+| 27 | `POST /api/admin/transfers/:id/reject` | `transfer.routes.ts` | `store:transfer` | 同 #23 |
+| 28 | `POST /api/admin/transfers/:id/cancel` | `transfer.routes.ts` | `store:transfer` | 同 #23 |
+| 29 | `POST /api/admin/transfers/:id/ship` | `transfer.routes.ts` | `store:transfer` | 同 #23 |
+| 30 | `POST /api/store/transfers/:id/receive` | `transfer.routes.ts` | `store:transfer` | 同 #23 |
+| 31 | `PUT /api/admin/products/:id` | `admin-product.routes.ts` | `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN |
+| 32 | `PUT /api/admin/products/:skuId/price` | `admin-product.routes.ts` | `goods:price` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| 33 | `PUT /api/admin/products/skus/:skuId` | `admin-product.routes.ts` | `goods:edit` | 同 #31 |
+| 34 | `POST /api/admin/products/skus/:skuId/units` | `admin-product.routes.ts` | `goods:create` | 同 #31（`goods:create`） |
+| 35 | `PUT /api/admin/products/skus/:skuId/units/:unitId` | `admin-product.routes.ts` | `goods:edit` | 同 #31 |
+| 36 | `DELETE /api/admin/products/skus/:skuId/units/:unitId` | `admin-product.routes.ts` | `goods:delete` | OPERATION_ADMIN / SUPER_ADMIN |
+| 37 | `PUT /api/admin/products/:spuId/marketing-tags` | `admin-product.routes.ts` | `goods:edit` | 同 #31 |
+| 38 | `POST /api/admin/products/upload-image` | `admin-product.routes.ts` | `goods:create` | 同 #34 |
+| 39 | `POST /api/admin/products/categories/` | `category.routes.ts` | `goods:create` | 同 #34 |
+| 40 | `PUT /api/admin/products/categories/:id` | `category.routes.ts` | `goods:edit` | 同 #31 |
+| 41 | `PUT /api/admin/products/categories/:id/sort` | `category.routes.ts` | `goods:edit` | 同 #31 |
+| 42 | `DELETE /api/admin/products/categories/:id` | `category.routes.ts` | `goods:delete` | 同 #36 |
+| 43 | `POST /api/admin/staff` | `admin-staff.routes.ts` | `system:user:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| 44 | `PUT /api/admin/staff/:id` | `admin-staff.routes.ts` | `system:user:edit` | 同 #43 |
+| 45 | `PUT /api/admin/staff/:id/disable` | `admin-staff.routes.ts` | `system:user:edit` | 同 #43 |
+| 46 | `POST /api/admin/staff/:id/restore` | `admin-staff.routes.ts` | `system:user:edit` | 同 #43 |
+| 47 | `POST /api/admin/system/roles/` | `rbac.routes.ts` | `system:role:create` | 同 #43 |
+| 48 | `PUT /api/admin/system/roles/:id` | `rbac.routes.ts` | `system:role:edit` | 同 #43 |
+| 49 | `DELETE /api/admin/system/roles/:id` | `rbac.routes.ts` | `system:role:edit` | 同 #43 |
+| 50 | `POST /api/admin/marketing/coupons/templates` | `admin-marketing-coupon.routes.ts` | `marketing:create` | OPERATION_ADMIN / SUPER_ADMIN |
+| 51 | `POST /api/admin/marketing/coupons/templates/:id/pause` | `admin-marketing-coupon.routes.ts` | `marketing:create` | 同 #50 |
+| 52 | `POST /api/admin/marketing/full-reductions/:id/activate` | `admin-marketing-full-reduction.routes.ts` | `marketing:create` | 同 #50 |
+| 53 | `POST /api/admin/marketing/full-reductions/:id/pause` | `admin-marketing-full-reduction.routes.ts` | `marketing:create` | 同 #50 |
+| 54 | `DELETE /api/admin/marketing/full-reductions/:id` | `admin-marketing-full-reduction.routes.ts` | `marketing:create` | 同 #50 |
+| 55 | `POST /api/admin/bank-accounts/` | `bank-account.routes.ts` | `finance:create` | FINANCE_STAFF / OPERATION_ADMIN / SUPER_ADMIN |
+| 56 | `POST /api/admin/bank-accounts/:id/close` | `bank-account.routes.ts` | `finance:create` | 同 #55 |
+| 57 | `POST /api/admin/reconciliation/customer/:customerId/confirm` | `reconciliation.routes.ts` | `report:finance` | FINANCE_STAFF / OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN |
+| 58 | `POST /api/admin/reconciliation/supplier/:supplierId/confirm` | `reconciliation.routes.ts` | `report:finance` | 同 #57 |
+
+**判据 §二.6（零回归论证）结论**：本批落地 **20 个码**，**无在用持有者的码 = 0** ⇒ 无一条需要"因无人能用而跳过"。
+（其中 8 个码 `goods:edit` `goods:create` `goods:delete` `system:user:create` `system:user:edit` `system:role:create` `system:role:edit` `marketing:create` **仅由全通配角色** OPERATION_ADMIN / SUPER_ADMIN 持有——见 §19.9-1。）
+
+### 19.4 本批**未接**：gated 门 **0 条**；`registered` 11 道门 / 43 端点行**一律不接**
+
+| # | 门 id | 域 | 端点行数 | 后端已注册且仍无门（仍在台账 gaps） | 跨层漂移（只登记、不接） |
+|:--:|:--|:--|:--:|:--:|:--:|
+| 1 | `fx-trace-verify` | 库存/追溯域 | 1 | 1 | 0 |
+| 2 | `goods-scan-lookup` | 商品域 | 1 | 1 | 0 |
+| 3 | `mkt-coupon-verify` | 营销域 | 2 | 2 | 0 |
+| 4 | `mkt-points-adjust` | 营销域 | 1 | 1 | 0 |
+| 5 | `mkt-points-exchange` | 营销域 | 1 | 1 | 0 |
+| 6 | `cust-statement-confirm` | 客户域 | 1 | 1 | 0 |
+| 7 | `island-quote-push` | 销售域 | 1 | 1 | 0 |
+| 8 | `island-aftersale` | 销售域 | 4 | 4 | 0 |
+| 9 | `island-order-exception` | 销售域 | 3 | 3 | 0 |
+| 10 | `island-collection-link` | 销售域 | 1 | 1 | 0 |
+| 11 | `island-instant-retail-admin` | 销售域 | 27 | 11 | **16** |
+| — | **合计 11 道门** | — | **43** | **27** | **16** |
+
+- 分类口径**取自用例 `REGISTERED_ROWS`**（`sameAsRegistry` / `gapEndpoint`），非本台账自拟；双向核对：登记表 43 条 = 门引用 43 条，**未被登记的后端行 0 条**（`raw/61-s3240-gate-recon.txt`）。
+- **16 条跨层漂移**逐条点名与依据见 parity 用例 `describe c)` 与 `raw/20-gate-scope-after-wiring.txt`：`instant-retail` 的 `platform/*` 15 条（后端真实前缀无 `/platform` 段，前端 `api/modules/instant-retail.ts` 亦调无 `/platform` 形态）＋ `POST .../deliveries/:deliveryId/status` 1 条（后端注册的是 **PUT**）⇒ 派单卡 §五：**只登记、不接**（这是跨层契约漂移，须先定"以哪层为准"）。
+
+### 19.5 守恒与门禁（原始输出见 `docs/evidence/S3-233/`）
+
+| 项目 | 命令 | 结果 | 证据 |
+|:--|:--|:--|:--|
+| 门禁（缺口台账） | `node scripts/guard-rbac-wiring.mjs --strict`（backend） | **EXIT=0**；已登记 321 ／ 未登记 0 ／ 陈旧 0 | `raw/33-strict-after.txt`、`raw/58-…-restored-guard-strict.txt` |
+| 跨层一致性断言 | `npx vitest run src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts` | **120 passed** | `raw/43/57/62-*` |
+| 本域两侧用例 | `npx vitest run src/__tests__/routes/rbac-b2-s3-198/214/220/223/224/225/226-*.test.ts`（随本批同步） | 全绿 | `raw/50-*`（全量内含） |
+| 全量回归 | `npx vitest run`（backend） | **679 文件 / 9830 用例 / 0 failed** | `raw/51-s3240-full-vitest.txt` |
+| 类型 | `npx tsc -p tsconfig.json --noEmit` | **0 错误**（EXIT=0） | 见回传卡 |
+| 构建 | `npm run build`（backend） | **EXIT=0**（804 个 JS、1963 处导入修复） | `raw/52-s3240-build.txt` |
+
+### 19.6 反测（门禁铁律：**先证明它会红**）
+
+| 反测 | 注入 | 结果 | 原始输出 |
+|:--|:--|:--|:--|
+| A `--strict` 分辨力 | 摘 `category.routes.ts:24` 的 `requirePermission("goods:edit")`（**行在文件中段**） | 未登记 **1** 条 ⇒ **EXIT=1** 并点名该行；复原 ⇒ **EXIT=0** | `raw/40/42-*` |
+| B 跨层一致性断言分辨力 | 同上 | parity 用例 **1 failed / 119 passed**，点名 `PUT /api/admin/products/categories/:id/sort` | `raw/41-neg-parity.txt` |
+| C 运行时两侧分辨力 | 摘 `store-sale-bill.routes.ts` 的 `requirePermission("sale:create")` | parity **1 failed** ＋ 销售域同批用例 **4 failed / 171 passed**（含 403↔200 反转）；复原 ⇒ 全绿 | `raw/43/44/45-*` |
+| D **收尾轮 s3240 独立复测**（换一条此前未用过的行） | 摘 `purchase.routes.ts:16` 的 `requirePermission("purchase:create")` | parity **2 failed / 118 passed**（a) 形状断言 ＋ e) READONLY⇒403 双红，点名 `POST /api/admin/purchase-orders/`）；`--strict` **EXIT=1** 点名 `purchase.routes.ts:16` | `raw/54/55-s3240-*` |
+| 逐字节还原 | 同一文件注入前后 | SHA256 一致（`70ABCF0B…5BBA`）；复原后 parity **120 passed**、`--strict` **EXIT=0** | `raw/53/56/57/58-s3240-*` |
+
+### 19.7 用例（本单新增/同步，均随接线同步，非放宽断言）
+
+| 文件 | 性质 | 说明 |
+|:--|:--|:--|
+| `rbac-b2-s3-233-gate-wiring-parity.test.ts`（新增，120 用例） | **跨层一致性断言**（本单新增判据） | a) 门→后端：26 道 gated 门的 60 端点行逐条已接且**所用码 ∈ 门 codes**；b) 后端→门：58 条唯一端点**每条都有门**（防塞入无关端点）；c) registered：43 行**不接线**且仍在台账（防"悄悄接了但没门"）；d) 台账一致：58 条不在 gaps；e) 运行时两侧（7 域抽样：无码 403 ／ 持码 200 ／ 无登录 401） |
+| `rbac-b2-s3-198/214/220/223/224/225/226-*.test.ts`、`rbac-g0/g1/g2-wiring.test.ts`、`s3-209-sale-cancel-wiring.test.ts` | 随状态变更同步 | 逐条为"未接 → 已接"的**契约反转**（如 S3-214 的 M 类 4 条移出未接名单、W 类 2 条保留），并同步跨批计数快照；**未新增/删除任何判据口径** |
+
+### 19.8 收尾轮（s3240）修的 3 处用例/断言缺陷（**均为用例侧，零业务代码改动**）
+
+| # | 位置 | 缺陷（为什么它是缺陷） | 修法 |
+|:--|:--|:--|:--|
+| 1 | `rbac-b2-s3-214-purchase-wiring.test.ts:636` | `expect(baseline.gaps[file]).not.toContain(ep)`：文件缺口清零后机读台账**不再保留空 key** ⇒ 实参为 `undefined`，vitest 直接抛"参数组合非法"（`50-full-vitest.txt`：1 failed），**判据失去分辨力**（红的理由不是"仍登记"） | 改 `baseline.gaps[file] ?? []`（与同用例 641-643 行"已清零 ⇒ undefined"同一语义） |
+| 2 | `s3-209-sale-cancel-wiring.test.ts:246` | 对照行取 `PUT /auth/settings` 但 `registrationLines` 要的是**文件内**注册模式（`/settings`，`/api/admin/auth` 段来自挂载点）⇒ 匹配 **0 行**，用例以"长度 0"而非"真未接线"通过；且 `method` 形参联合类型只有 `"get" \| "post"`，传 `"put"` 属类型错误 | 路径改 `/settings`；形参联合补 `"put"`；对照行改取 `admin-auth.routes.ts`（`/api/admin` 同前缀、仍不接、台账仍登记为缺口） |
+| 3 | `rbac-b2-s3-233-…-parity.test.ts`（registered 台账一致性用例） | 用例**标题**写"25 条"，而其实体筛选口径是 `sameAsRegistry` ⇒ 应为 **27 条**（43 − 16 漂移）——标题与断言自相矛盾 | 标题条数改为**由数据推导**（`REGISTERED_ROWS.filter(...).length`），此后不会再漂 |
+| 4 | `rbac-b2-s3-233-…-parity.test.ts`（d 组"台账读数"用例） | 原断言为**跨批共享的裸数字** `gaps = 321` / `files = 94`：rebase 到含 #358 的 main（371/113）后必然变红，且与派单规范 **§9.2**（禁止跨批裸数字，只允许"和式 + 台账一致性"）冲突 | 改为"和式 + 自洽"两条：① 数组与 `_counts` 一致；② `已接线 + 缺口 + 消费者端形态 + 查询型 POST == 扫描总数`。本单读数改由 `--strict` 原始输出固定（`raw/33` / `raw/64`）；**断言更严而非放宽**（自洽式查整份台账收支平衡） |
+
+### 19.9 卡外观察（**只登记不动手**，供凌舟决定是否另立单）
+
+1. **本批 8 个码仅由全通配角色持有**（`goods:edit` `goods:create` `goods:delete` `system:user:create` `system:user:edit` `system:role:create` `system:role:edit` `marketing:create`）：持有者只有 OPERATION_ADMIN / SUPER_ADMIN ⇒ **STORE_MANAGER（生产最常用商家角色）能看到这些页面却在这些写端点上 403**（其权限串只有 `goods:price`）。这正是授权模型 **I1'** 的"三选一"待决面（持码／前端只读／菜单治理），**与 S3-220 商品域、S3-226 营销域同族**；本单按"门＝真相源、码照抄"执行，交凌舟统一裁定。
+2. **`store:transfer` 与 `WAREHOUSE_STAFF` 的 `transfer:*` 不是同一个码**：仓管员持 `transfer:*`，而本批落地码是 `store:transfer`（门注册表原值）⇒ 仓管员在 8 条调拨端点上会 403，能过的是 STORE_MANAGER（`store:*`）。**若业务上仓管员应能调拨**，需凌舟裁定是改门码还是给角色补码（本单不得改码、不得改角色）。
+3. **`island-instant-retail-admin` 的 `platform/*` 15 条路径漂移**：后端真实前缀无 `/platform` 段，而前端 `api/modules/instant-retail.ts` 调的也是**无 `/platform`** 形态 ⇒ 注册表（S3-230，源自页面代码）与后端/前端双双不一致。漂移方向是"注册表多写了 `/platform`"，但**以哪层为准需凌舟定**（本单只登记）。
+4. **`POST /api/admin/purchase-plans/`、`.../:planNo/convert` 2 条仍为 W 类**（授权模型未定案，S3-214 起即如此）⇒ 采购计划页在门存在的前提下仍无码可挂，建议并入下一批"待裁定"清理。
+5. **机读台账的"空 key 不留"语义**：本次收尾实测，缺口清零后 `update-baseline.mjs` 会删除该文件 key，导致**下游断言若直接 `expect(gaps[file]).not.toContain(...)` 会以"参数类型错"而非"仍登记"变红**（§19.8-1）。建议后续批次统一写 `?? []`（已在本单落地，未改动他人批次断言）。

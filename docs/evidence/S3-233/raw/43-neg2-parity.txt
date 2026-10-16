@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-233/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts (120 tests | 1 failed) 2109ms
+     × 'POST /api/store/sale-bills/:billNo/of…'（门 'sale-bill-offline-pay'）：所用码 ∈ 门 codes，且注册行自带该码 39ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts > S3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes > 'POST /api/store/sale-bills/:billNo/of…'（门 'sale-bill-offline-pay'）：所用码 ∈ 门 codes，且注册行自带该码
+AssertionError: POST /api/store/sale-bills/:billNo/offline-payment 的注册行必须自带 requirePermission("sale:create"): expected 'storeSaleBillRouter.post("/:billNo/of…' to contain 'requirePermission("sale:create")'
+
+Expected: "requirePermission("sale:create")"
+Received: "storeSaleBillRouter.post("/:billNo/offline-payment", requirePermission("sale:edit"), saleBillController.offlinePayment);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts:436:79
+    434|     const lines = registrationLines(row!.file, row!.method, row!.route…
+    435|     expect(lines.map((l) => l.no), `${row!.file} ${row!.method} ${row!…
+    436|     expect(lines[0].line, `${ep} 的注册行必须自带 requirePermission("${row!.pe…
+       |                                                                               ^
+    437|       `requirePermission("${row!.perm}")`
+    438|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 119 passed (120)
+   Start at  10:52:31
+   Duration  13.55s (transform 3.65s, setup 90ms, import 9.83s, tests 2.11s, environment 1ms)
+

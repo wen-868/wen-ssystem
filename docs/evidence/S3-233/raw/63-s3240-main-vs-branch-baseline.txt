@@ -1,0 +1,17 @@
+main gaps 371 | branch HEAD(base) gaps 378 | branch worktree gaps 321
+本单移除 57
+与 main 的差集里(即 main 已不再登记)的重叠条数 0
+main 侧相对本分支基底额外移除 7
+
+merge-base (本分支基底) = be781a10 ／ origin/main = ca4b4151 ／ 本分支 HEAD = be781a10 ⇒ 落后 main 7 个提交
+main gaps = 371 ／ 本分支基底 = 378 ／ 本分支成品 = 321；本单移除 57 条，与 main 侧移除 0 重叠
+投影：把本单 57 条从 main(371) 里移除 ⇒ 314 条
+main 上已消失但本单成品里仍登记的条数(必须为 0): 7
+  stale: admin-marketing-calculation.routes.ts|POST /api/admin/marketing/calculate
+  stale: platform-billing.routes.ts|POST /api/platform/billing/statement/export
+  stale: points.routes.ts|DELETE /api/admin/members/levels/config/:id
+  stale: points.routes.ts|POST /api/admin/members/levels/config
+  stale: points.routes.ts|PUT /api/admin/members/levels/config/:id
+  stale: points.routes.ts|PUT /api/admin/members/levels/config/:id/status
+  stale: trace.routes.ts|POST /api/admin/trace/configs/check
+受影响的文件数 21 ⇒ 合并后文件数约为 91
