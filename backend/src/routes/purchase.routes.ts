@@ -9,9 +9,11 @@ export const purchaseRouter = Router();
 
 purchaseRouter.get("/", asyncHandler(controller.listPurchaseOrders));
 purchaseRouter.get("/:orderNo", asyncHandler(controller.getPurchaseOrderDetail));
-// ⚠️ S3-214-B2 **本行不接线**：移动端「销售开单」采购页签无权限门（app-mobile/src/pages/sales/create-sale.vue:23），
-//    接线会把持有 sale:bill 的门店角色由「可用」打成 403 ⇒ 登记「待移动端补权限门后收编」（见缺口清单 §十一）。
-purchaseRouter.post("/", asyncHandler(controller.createPurchaseOrder));
+// S3-233（B 类收编第一批 · 采购域）：创建采购单挂 `purchase:create`。
+// 依据门 = app-mobile/src/config/permission-gates.ts 的 `purchase-sub-order`（开单页「采购 → 采购订单」子段，
+// 入口已按该码显隐）；同文件 submit/cancel/PUT/DELETE/in-stock 早已挂同码（:15/:17-20）。
+// S3-214-B2 的「待移动端补权限门后收编」前提（create-sale.vue 页签无门）已由 S3-230 修复，故本行据此收编。
+purchaseRouter.post("/", requirePermission("purchase:create"), asyncHandler(controller.createPurchaseOrder));
 purchaseRouter.post("/:orderNo/submit", requirePermission("purchase:create"), asyncHandler(controller.submitPurchaseOrder));
 purchaseRouter.post("/:orderNo/approve", requirePermission("purchase:approve"), asyncHandler(controller.approvePurchaseOrder));
 purchaseRouter.post("/:orderNo/cancel", requirePermission("purchase:create"), asyncHandler(controller.cancelPurchaseOrder));

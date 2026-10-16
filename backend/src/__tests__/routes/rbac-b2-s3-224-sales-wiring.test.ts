@@ -229,7 +229,8 @@ interface Row {
 }
 
 /**
- * 本批已接名单（**32 行**，逐行判定见 `docs/evidence/S3-224/01-plan-and-judgements.md`）。
+ * 已接名单（**36 行** = S3-224 的 32 行 + S3-233 收编的 4 行，逐行判定见
+ * `docs/evidence/S3-224/01-plan-and-judgements.md` 与 `docs/tasks/R101-RBAC接线缺口清单.md` §十八）。
  * 口径（派单卡 §二）：① 优先挂「该端点**真实使用者已持有**的模块码」（零回归）；
  * ② 使用者集合不可枚举 / 命中既有锁定 / 查询型 POST / 公开 / 待裁定 ⇒ 不接线（见 UNWIRED）；
  * ③ 本批**不新立权限码、不改角色种子、不动迁移**。
@@ -266,7 +267,7 @@ const ROWS: Row[] = [
   { file: "sale-return.routes.ts", prefix: "/api/admin/sale-returns", router: saleReturnRouter, method: "post", routePath: "/:returnNo/approve", path: "/SR1/approve", perm: "sale:return", pageRoles: [], page: "无页面调用点（app-mobile store.ts:829/834 仅封装、无页面使用）" },
   { file: "sale-return.routes.ts", prefix: "/api/admin/sale-returns", router: saleReturnRouter, method: "post", routePath: "/:returnNo/reject", path: "/SR1/reject", perm: "sale:return", pageRoles: [], page: "同上一行" },
 
-  // ---- store-order.routes.ts（6 / 8；`POST /:orderNo/start-delivery` 与 `POST /hold-orders/` 见 UNWIRED 的 B 类）----
+  // ---- store-order.routes.ts（8 / 8；S3-233 收编 `POST /:orderNo/start-delivery` 与 `POST /hold-orders/`）----
   { file: "store-order.routes.ts", prefix: "/api/store/orders", router: storeOrderRouter, method: "post", routePath: "/:orderNo/accept", path: "/O1/accept", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "pos/OrderFulfillView.vue:150（接单履约 pos/order-fulfill，router:262）" },
   { file: "store-order.routes.ts", prefix: "/api/store/orders", router: storeOrderRouter, method: "post", routePath: "/:orderNo/complete-delivery", path: "/O1/complete-delivery", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "pos/OrderFulfillView.vue:176" },
   { file: "store-order.routes.ts", prefix: "/api/store/orders", router: storeOrderRouter, method: "post", routePath: "/:orderNo/reject", path: "/O1/reject", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "pos/OrderFulfillView.vue:163" },
@@ -288,6 +289,16 @@ const ROWS: Row[] = [
   { file: "instant-retail-store.routes.ts", prefix: "/api/store/instant-retail", router: instantRetailStoreRouter, method: "post", routePath: "/orders/:platformOrderId/cancel", path: "/orders/PLAT1/cancel", perm: "sale:void", pageRoles: [], page: "全仓无页面调用点", rawMount: true },
   { file: "instant-retail-store.routes.ts", prefix: "/api/store/instant-retail", router: instantRetailStoreRouter, method: "post", routePath: "/orders/:platformOrderId/start-delivery", path: "/orders/PLAT1/start-delivery", perm: "sale:create", pageRoles: [], page: "全仓无页面调用点", rawMount: true },
   { file: "instant-retail-store.routes.ts", prefix: "/api/store/instant-retail", router: instantRetailStoreRouter, method: "post", routePath: "/orders/:platformOrderId/complete-delivery", path: "/orders/PLAT1/complete-delivery", perm: "sale:create", pageRoles: [], page: "全仓无页面调用点", rawMount: true },
+
+  // ===== S3-233（B 类收编第一批 · 销售域 4 条）=================================================
+  // 依据门（唯一真相源）= app-mobile/src/config/permission-gates.ts：`sale-order-detail-deliver`、
+  //   `sale-create-hold`、`sale-bill-offline-pay`，门码均为 `sale:create`（履约/挂单/收款同族，与本表 :270-275/:278 先例同码）。
+  // B 类前提（订单详情页 / 开单页 / 销售单详情页经首页快捷入口或推送深链无条件可达 ⇒ 使用者集合不可枚举）
+  // 已由 S3-230 的入口权限门修复（D4/I1'）⇒ 本批收编；不新立码、不改角色种子、不动迁移。
+  { file: "admin-order.routes.ts", prefix: "/api/admin", router: adminOrderRouter, method: "put", routePath: "/orders/:orderNo/status", path: "/orders/O1/status", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "app-mobile pages/orders/order-detail.vue:258 状态流转（门 sale-order-detail-deliver）；同族码先例见本表 :270-273" },
+  { file: "store-order.routes.ts", prefix: "/api/store/orders", router: storeOrderRouter, method: "post", routePath: "/:orderNo/start-delivery", path: "/O1/start-delivery", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "app-mobile pages/orders/order-detail.vue:258（门 sale-order-detail-deliver）；与同文件 accept/complete-delivery 同族（:270-272）" },
+  { file: "store-order.routes.ts", prefix: "/api/store/hold-orders", router: storeHoldOrderRouter, method: "post", routePath: "/", path: "/", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "app-mobile pages/sales/create-sale.vue:2013（挂单，门 sale-create-hold）+ admin-web views/sale/SalesOrderCreate.vue:531（同一接口的注释）" },
+  { file: "store-sale-bill.routes.ts", prefix: "/api/store/sale-bills", router: storeSaleBillRouter, method: "post", routePath: "/:billNo/offline-payment", path: "/B1/offline-payment", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "pages-sub/order/sales/sale-detail.vue:177（线下收款，门 sale-bill-offline-pay）；同族先例 = 本表 :278 的 pay-by-code" },
 ];
 
 interface UnwiredRow {
@@ -305,8 +316,7 @@ interface UnwiredRow {
 
 /** 本域本批**未接**的代表行（六类原因各取样；逐条全量见台账 §十四.5~§十四.7）。 */
 const UNWIRED: UnwiredRow[] = [
-  { file: "admin-order.routes.ts", prefix: "/api/admin", router: adminOrderRouter, method: "put", routePath: "/orders/:orderNo/status", path: "/orders/O1/status", reason: "B", note: "app-mobile `pages/orders/order-detail.vue:258` 写调用点；该页经 `pages/orders/orders.vue`（首页快捷入口 `home.vue:75` 无条件可达）与推送深链 `native/push.ts:105` 双向可达 ⇒ 使用者集合不可枚举" },
-  { file: "store-order.routes.ts", prefix: "/api/store/hold-orders", router: storeHoldOrderRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile `pages/sales/create-sale.vue:2013`（storeApi.createHoldOrder）；该页经首页快捷入口 `home.vue:69` 无条件可达" },
+  // （S3-233：原两行 B 类（status / hold-orders）已收编接线，见上方 ROWS 的 S3-233 块与缺口清单 §十八）
   { file: "store-sale-bill.routes.ts", prefix: "/api/store/sale-bills", router: storeSaleBillRouter, method: "post", routePath: "/:billNo/payment", path: "/B1/payment", reason: "L", note: "`rbac-g0-wiring.test.ts:730` 的 `NOT_IN_G0` 断言 READONLY 仍 200（注释标「归 G2」）" },
   { file: "sale-return.routes.ts", prefix: "/api/admin/sale-returns", router: saleReturnRouter, method: "post", routePath: "/", path: "/", reason: "L", note: "G0 `NOT_IN_G0`（:729）＋ G1 C 类（:285）＋ G2 R 类（:350-362，同一 Router 双挂载）" },
   { file: "admin-quote-push.routes.ts", prefix: "/api/admin/quote-push", router: adminQuotePushRouter, method: "post", routePath: "/preview", path: "/preview", reason: "Q", note: "报价预览，**不改数据** ⇒ 按派单卡 §二.3「查询型 POST 不按写端点接」" },
@@ -426,21 +436,21 @@ beforeEach(() => {
 });
 
 describe("S3-224 · 名单自证", () => {
-  it("32 已接行（逐文件分布与台账 §十四.2 表一致）", () => {
-    expect(ROWS).toHaveLength(32);
+  it("36 已接行（S3-224 的 32 行 + S3-233 收编 4 行；逐文件分布与台账 §十四.2/§十八 一致）", () => {
+    expect(ROWS).toHaveLength(36);
     const perFile = new Map<string, number>();
     for (const row of ROWS) perFile.set(row.file, (perFile.get(row.file) ?? 0) + 1);
     expect([...perFile.entries()].sort()).toEqual([
       ["admin-marketing-flash-sale.routes.ts", 2],
-      ["admin-order.routes.ts", 3],
+      ["admin-order.routes.ts", 4],
       ["admin-quote-push.routes.ts", 2],
       ["aftersale.routes.ts", 1],
       ["commerce-fix.routes.ts", 4],
       ["instant-retail-store.routes.ts", 4],
       ["order-timeout.routes.ts", 3],
       ["sale-return.routes.ts", 2],
-      ["store-order.routes.ts", 6],
-      ["store-sale-bill.routes.ts", 1],
+      ["store-order.routes.ts", 8],
+      ["store-sale-bill.routes.ts", 2],
       ["store-shift.routes.ts", 4],
     ]);
     // 本域 17 个文件里，本批 0 接线的 6 个（B/Q/P/C/W 类）
@@ -466,9 +476,9 @@ describe("S3-224 · 名单自证", () => {
     ]);
   });
 
-  it("对账：台账 §三.5 本域 100 写端点 = 已接线 13（非本批） + 本批 32 + 未接 55", () => {
-    expect(ROWS.length).toBe(32);
-    expect(DOMAIN_TOTAL - 13 - ROWS.length).toBe(55);
+  it("对账：台账 §三.5 本域 100 写端点 = 已接线 13（非本批） + 已接 36（S3-224 的 32 + S3-233 收编 4） + 未接 51", () => {
+    expect(ROWS.length).toBe(36);
+    expect(DOMAIN_TOTAL - 13 - ROWS.length).toBe(51);
   });
 });
 
@@ -485,18 +495,19 @@ describe("S3-224 · 形状断言（注册行级判据，踩坑[134]）", () => {
     expect(lines[0].line).not.toContain("requirePermission(");
   });
 
-  it("整文件子串不足以判定（踩坑[134]）：admin-order.routes.ts 文件级已含 requirePermission，未接的 status 行没有", () => {
+  it("整文件子串不足以判定（踩坑[134]）：status 行必须**行级**自带 sale:create（S3-233 收编后契约反转）", () => {
     const src = readFileSync(path.join(ROUTES_DIR, "admin-order.routes.ts"), "utf8");
     expect(src).toContain('requirePermission("sale:edit")');
     const lines = registrationLines("admin-order.routes.ts", "put", "/orders/:orderNo/status");
     expect(lines).toHaveLength(1);
-    expect(lines[0].line, "同一 Router 的未接行不得被误判为已接线").not.toContain("requirePermission(");
+    // S3-233：该行由「未接」转为「已接」（依据门 sale-order-detail-deliver）；判据仍是"落到注册行本身"。
+    expect(lines[0].line, "status 行必须行级自带该码").toContain('requirePermission("sale:create")');
   });
 
-  it("同文件混合态自证：store-order.routes.ts 的 start-delivery 行未接、accept 行已接（B 类逐端点判定）", () => {
+  it("同文件混合态自证：store-order.routes.ts 的 start-delivery 行与 accept 行**均已接**（S3-233 收编后同码）", () => {
     const started = registrationLines("store-order.routes.ts", "post", "/:orderNo/start-delivery");
     expect(started).toHaveLength(1);
-    expect(started[0].line).not.toContain("requirePermission(");
+    expect(started[0].line, "start-delivery 行必须行级自带该码").toContain('requirePermission("sale:create")');
     const accepted = registrationLines("store-order.routes.ts", "post", "/:orderNo/accept");
     expect(accepted).toHaveLength(1);
     expect(accepted[0].line).toContain('requirePermission("sale:create")');

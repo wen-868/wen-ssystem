@@ -1,0 +1,50 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-233/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts (120 tests | 2 failed) 1024ms
+     × 'POST /api/admin/purchase-orders/'（门 'purchase-sub-order'）：所用码 ∈ 门 codes，且注册行自带该码 47ms
+     × 'POST /api/admin/purchase-orders/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 27ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts > S3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes > 'POST /api/admin/purchase-orders/'（门 'purchase-sub-order'）：所用码 ∈ 门 codes，且注册行自带该码
+AssertionError: POST /api/admin/purchase-orders/ 的注册行必须自带 requirePermission("purchase:create"): expected 'purchaseRouter.post("/", asyncHandler…' to contain 'requirePermission("purchase:create")'
+
+Expected: "requirePermission("purchase:create")"
+Received: "purchaseRouter.post("/", asyncHandler(controller.createPurchaseOrder));"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts:436:79
+    434|     const lines = registrationLines(row!.file, row!.method, row!.route…
+    435|     expect(lines.map((l) => l.no), `${row!.file} ${row!.method} ${row!…
+    436|     expect(lines[0].line, `${ep} 的注册行必须自带 requirePermission("${row!.pe…
+       |                                                                               ^
+    437|       `requirePermission("${row!.perm}")`
+    438|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts > S3-233 · e) 运行时两侧（逐域抽样 7 条：非持有人 403 / 持有人 200 / 无登录 401） > 'POST /api/admin/purchase-orders/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts:545:24
+    543|     h.reached.length = 0;
+    544|     const res = await call(appFor(row), row.method, `${row.prefix}${ro…
+    545|     expect(res.status).toBe(403);
+       |                        ^
+    546|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+    547|     expect(h.reached, "未到达业务层").toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 118 passed (120)
+   Start at  20:47:12
+   Duration  10.20s (transform 2.68s, setup 81ms, import 8.11s, tests 1.02s, environment 0ms)
+

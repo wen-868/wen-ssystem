@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-233/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts (120 tests | 1 failed) 2083ms
+     × 'PUT /api/admin/products/categories/:i…'（门 'goods-category-edit'）：所用码 ∈ 门 codes，且注册行自带该码 73ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts > S3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes > 'PUT /api/admin/products/categories/:i…'（门 'goods-category-edit'）：所用码 ∈ 门 codes，且注册行自带该码
+AssertionError: PUT /api/admin/products/categories/:id/sort 的注册行必须自带 requirePermission("goods:edit"): expected 'categoryRouter.put("/:id/sort", async…' to contain 'requirePermission("goods:edit")'
+
+Expected: "requirePermission("goods:edit")"
+Received: "categoryRouter.put("/:id/sort", asyncHandler(sortCategory));"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts:436:79
+    434|     const lines = registrationLines(row!.file, row!.method, row!.route…
+    435|     expect(lines.map((l) => l.no), `${row!.file} ${row!.method} ${row!…
+    436|     expect(lines[0].line, `${ep} 的注册行必须自带 requirePermission("${row!.pe…
+       |                                                                               ^
+    437|       `requirePermission("${row!.perm}")`
+    438|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 119 passed (120)
+   Start at  10:51:23
+   Duration  16.23s (transform 5.45s, setup 89ms, import 12.41s, tests 2.08s, environment 0ms)
+

@@ -1,0 +1,8 @@
+=== 收尾轮（s3240）断言口径调整后复跑（2026-10-16 20:57:58）===
+Test Files  1 passed (1)
+Tests  120 passed (120)
+Duration  8.02s (transform 2.11s, setup 75ms, import 6.53s, tests 735ms, environment 0ms)
+
+--- 台账自洽复算（§9.2 第二条：已接线+缺口+消费者端+查询型POST == 扫描总数）---
+wired 394 + gaps 321 + consumerEnd 45 + readOnlyPost 3 = 763 ／ scanned 763
+tsc: 无输出 EXIT=0

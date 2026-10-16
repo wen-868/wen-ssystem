@@ -29,20 +29,8 @@
     "admin-library.routes.ts": [
       "POST /api/admin/library/lookup"
     ],
-    "admin-marketing-coupon.routes.ts": [
-      "POST /api/admin/marketing/coupons/templates",
-      "POST /api/admin/marketing/coupons/templates/:id/pause"
-    ],
-    "admin-marketing-full-reduction.routes.ts": [
-      "DELETE /api/admin/marketing/full-reductions/:id",
-      "POST /api/admin/marketing/full-reductions/:id/activate",
-      "POST /api/admin/marketing/full-reductions/:id/pause"
-    ],
     "admin-marketing-points.routes.ts": [
       "POST /api/admin/marketing/points/redeem"
-    ],
-    "admin-order.routes.ts": [
-      "PUT /api/admin/orders/:orderNo/status"
     ],
     "admin-platform-announcement.routes.ts": [
       "DELETE /api/platform/announcements/:id",
@@ -56,25 +44,11 @@
       "PUT /api/platform/settlements/:id"
     ],
     "admin-product.routes.ts": [
-      "DELETE /api/admin/products/skus/:skuId/units/:unitId",
       "POST /api/admin/products/import",
-      "POST /api/admin/products/skus/:skuId/units",
-      "POST /api/admin/products/upload-image",
-      "PUT /api/admin/products/:id",
-      "PUT /api/admin/products/:skuId/price",
-      "PUT /api/admin/products/:spuId/marketing-tags",
-      "PUT /api/admin/products/skus/:skuId",
-      "PUT /api/admin/products/skus/:skuId/barcode",
-      "PUT /api/admin/products/skus/:skuId/units/:unitId"
+      "PUT /api/admin/products/skus/:skuId/barcode"
     ],
     "admin-quote-push.routes.ts": [
       "POST /api/admin/quote-push/"
-    ],
-    "admin-staff.routes.ts": [
-      "POST /api/admin/staff",
-      "POST /api/admin/staff/:id/restore",
-      "PUT /api/admin/staff/:id",
-      "PUT /api/admin/staff/:id/disable"
     ],
     "admin-store.routes.ts": [
       "POST /api/admin/system/stores",
@@ -112,10 +86,6 @@
     "avatar.routes.ts": [
       "POST /api/admin/auth/avatar"
     ],
-    "bank-account.routes.ts": [
-      "POST /api/admin/bank-accounts/",
-      "POST /api/admin/bank-accounts/:id/close"
-    ],
     "billing-config.routes.ts": [
       "PUT /api/platform/billing/addon-price",
       "PUT /api/platform/billing/arrears-policy"
@@ -124,12 +94,6 @@
       "DELETE /api/admin/brands/:id",
       "POST /api/admin/brands/",
       "PUT /api/admin/brands/:id"
-    ],
-    "category.routes.ts": [
-      "DELETE /api/admin/products/categories/:id",
-      "POST /api/admin/products/categories/",
-      "PUT /api/admin/products/categories/:id",
-      "PUT /api/admin/products/categories/:id/sort"
     ],
     "commission.routes.ts": [
       "POST /api/admin/commission/calculate"
@@ -209,9 +173,6 @@
       "POST /api/instant-retail/webhook/eleme",
       "POST /api/instant-retail/webhook/jd",
       "POST /api/instant-retail/webhook/meituan"
-    ],
-    "inventory-loss-gain.routes.ts": [
-      "POST /api/admin/inventory/report-loss-gain"
     ],
     "member-register.routes.ts": [
       "POST /api/store/members/register",
@@ -398,38 +359,14 @@
       "POST /api/admin/product-reviews/batch-approve",
       "POST /api/admin/product-reviews/batch-reject"
     ],
-    "purchase-in-stock.routes.ts": [
-      "POST /api/admin/purchase-in-stocks/"
-    ],
-    "purchase-payment.routes.ts": [
-      "POST /api/admin/purchase-payments/"
-    ],
     "purchase-plan.routes.ts": [
       "POST /api/admin/purchase-plans/",
       "POST /api/admin/purchase-plans/:planNo/convert"
-    ],
-    "purchase-return.routes.ts": [
-      "POST /api/admin/purchase-returns/"
-    ],
-    "purchase.routes.ts": [
-      "POST /api/admin/purchase-orders/"
     ],
     "push.routes.ts": [
       "POST /api/admin/push/register",
       "POST /api/admin/push/test",
       "POST /api/admin/push/unregister"
-    ],
-    "rbac.routes.ts": [
-      "DELETE /api/admin/system/roles/:id",
-      "POST /api/admin/system/roles/",
-      "PUT /api/admin/system/roles/:id"
-    ],
-    "receipt.routes.ts": [
-      "POST /api/admin/receipts/"
-    ],
-    "reconciliation.routes.ts": [
-      "POST /api/admin/reconciliation/customer/:customerId/confirm",
-      "POST /api/admin/reconciliation/supplier/:supplierId/confirm"
     ],
     "report-permissions.routes.ts": [
       "POST /api/admin/report-permissions/batch",
@@ -470,20 +407,6 @@
       "POST /api/admin/sms-templates/",
       "PUT /api/admin/sms-templates/:id"
     ],
-    "stock-check.routes.ts": [
-      "POST /api/admin/stock-checks/",
-      "POST /api/admin/stock-checks/:id/cancel",
-      "POST /api/admin/stock-checks/:id/complete",
-      "POST /api/admin/stock-checks/:id/handle-diff",
-      "POST /api/admin/stock-checks/:id/items",
-      "POST /api/admin/stock-checks/:id/start",
-      "POST /api/store/stock-checks/:id/submit",
-      "PUT /api/admin/stock-checks/:id",
-      "PUT /api/store/stock-checks/:id/items/:itemId"
-    ],
-    "stock-warning.routes.ts": [
-      "POST /api/admin/stock-warnings/config"
-    ],
     "store-coupon.routes.ts": [
       "POST /api/store/coupons/manual-verify",
       "POST /api/store/coupons/verify"
@@ -497,16 +420,8 @@
       "PUT /api/store/hardware/box-config/",
       "PUT /api/store/hardware/configs/:category"
     ],
-    "store-inventory.routes.ts": [
-      "PUT /api/store/inventory/alerts/:skuId/threshold"
-    ],
-    "store-order.routes.ts": [
-      "POST /api/store/hold-orders/",
-      "POST /api/store/orders/:orderNo/start-delivery"
-    ],
     "store-sale-bill.routes.ts": [
       "POST /api/store/sale-bills/:billNo/collection-link",
-      "POST /api/store/sale-bills/:billNo/offline-payment",
       "POST /api/store/sale-bills/:billNo/payment"
     ],
     "store-trace.routes.ts": [
@@ -574,16 +489,6 @@
       "POST /api/miniapp/trace/c/verify",
       "PUT /api/admin/trace/configs/:id",
       "PUT /api/admin/trace/recalls/:recallNo/complete"
-    ],
-    "transfer.routes.ts": [
-      "POST /api/admin/transfers/",
-      "POST /api/admin/transfers/:id/approve",
-      "POST /api/admin/transfers/:id/cancel",
-      "POST /api/admin/transfers/:id/reject",
-      "POST /api/admin/transfers/:id/ship",
-      "POST /api/admin/transfers/:id/submit",
-      "POST /api/store/transfers/:id/receive",
-      "PUT /api/admin/transfers/:id"
     ],
     "unit-group.routes.ts": [
       "DELETE /api/admin/unit-groups/:id",
@@ -673,15 +578,15 @@
     ]
   },
   "_counts": {
-    "files": 112,
-    "endpoints": 371,
+    "files": 93,
+    "endpoints": 314,
     "consumerEndFiles": 5,
     "consumerEndEndpoints": 45,
     "readOnlyPostFiles": 4,
     "readOnlyPostEndpoints": 6,
-    "wiredEndpoints": 341,
+    "wiredEndpoints": 398,
     "scannedEndpoints": 763,
-    "wiredPermOccurrences": 312
+    "wiredPermOccurrences": 369
   },
   "_s3227_merge": "2026-10-16 merge with main (#350~#352 之后)：gaps 按 authForm=none 重算（395/116），consumerEnd=45，read-only POST=3，wired=320，wiredPermOccurrences=291。",
   "_s3229_note": "S3-229（收口总清单第 43 项续 · B2 批 9）已给 17 条端点上 `requirePermission`（全部既有码：store:create ×7 / store:edit ×2 / marketing:create ×10，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十七）⇒ 这 17 条不再是无授权缺口，按流程从 gaps 逐条移除；移除的是**同一批端点**的登记，不是新缺口洗绿。本单范围内**保留登记**的行（逐条理由见 §十七）：① G1 门店/租户域 31 条缺口 = 已接 7（demo 2 + store-control 5）+ B 类 8（储值卡 4 + 门店会员 2 + 门店建档 2，都落在 app-mobile「我的」页无条件入口可达的页面上）+ 平台侧 2（`/api/tenant/applications/*` 走 requirePlatformAuth，商家码无效 ⇒ 归平台侧单）+ 公开端点 2 + 平台域 12（另立单）；② G2 营销域 W 类 14 条 = 已接 10（community-marketing，菜单仅授予 0 账号角色与只读观察员）+ 不接 4（points 会员等级：页面码 customer:level 对**在用**角色 STORE_MANAGER 可见而不持 marketing:create ⇒ 违反 I1，待裁定）。⚠️ 域外无关项（他人批次）一条未动。",

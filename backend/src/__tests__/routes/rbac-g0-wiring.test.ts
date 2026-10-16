@@ -666,7 +666,41 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   const S3_231_WIRED_FILES = new Map<string, number>([["points.routes.ts", 4]]);
   const S3_231_WIRED_TOTAL = [...S3_231_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4", () => {
+  // S3-233（B 类收编第一批：把 S3-230 的入口权限门对应端点正式接线）追加说明：
+  //   **57 处**新增接线（跨 7 个域、21 个路由文件；全部挂**既有**权限码，不新立码、不改角色种子、不动迁移）：
+  //     销售域 5（admin-order 1 / store-order 2 / store-sale-bill 1 / receipt 1）＋采购域 4
+  //     ＋库存追溯域 20（stock-check 9 / transfer 8 / stock-warning 1 / store-inventory 1 / inventory-loss-gain 1）
+  //     ＋商品域 12（admin-product 8 / category 4）＋员工账号域 7（admin-staff 4 / rbac 3）
+  //     ＋营销域 5（admin-marketing-coupon 2 / admin-marketing-full-reduction 3）＋财务域 4（bank-account 2 / reconciliation 2）。
+  //   逐条判定与依据门见 `docs/tasks/R101-RBAC接线缺口清单.md` §十八；本批的逐行 403/200 断言在
+  //   `rbac-b2-s3-233-gate-wiring-parity.test.ts`（跨层一致性）与各域批次用例里（收编行随原用例走既有两侧断言）。
+  //   ⚠️ 跨批计数纪律（S3-227 §9.2）：只新增本批自己的常量块，不重排他人行；总数只写和式。
+  const S3_233_WIRED_FILES = new Map<string, number>([
+    ["admin-order.routes.ts", 1],
+    ["store-order.routes.ts", 2],
+    ["store-sale-bill.routes.ts", 1],
+    ["receipt.routes.ts", 1],
+    ["purchase.routes.ts", 1],
+    ["purchase-in-stock.routes.ts", 1],
+    ["purchase-return.routes.ts", 1],
+    ["purchase-payment.routes.ts", 1],
+    ["stock-check.routes.ts", 9],
+    ["stock-warning.routes.ts", 1],
+    ["store-inventory.routes.ts", 1],
+    ["inventory-loss-gain.routes.ts", 1],
+    ["transfer.routes.ts", 8],
+    ["admin-product.routes.ts", 8],
+    ["category.routes.ts", 4],
+    ["admin-staff.routes.ts", 4],
+    ["rbac.routes.ts", 3],
+    ["admin-marketing-coupon.routes.ts", 2],
+    ["admin-marketing-full-reduction.routes.ts", 3],
+    ["bank-account.routes.ts", 2],
+    ["reconciliation.routes.ts", 2],
+  ]);
+  const S3_233_WIRED_TOTAL = [...S3_233_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -676,7 +710,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL + S3_226_WIRED_TOTAL + S3_229_WIRED_TOTAL + S3_231_WIRED_TOTAL);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL + S3_226_WIRED_TOTAL + S3_229_WIRED_TOTAL + S3_231_WIRED_TOTAL + S3_233_WIRED_TOTAL);
 
     // S3-227 A（本单）：删除原 `expect(total).toBe(226)` 裸数字断言。
     //   为什么删：那是一个跨批共享的**单点数字**，每批都要改同一行（批 3⇒149、批 5⇒183、批 6⇒215、批 7⇒226 …），
@@ -718,9 +752,10 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of G2_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
-    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_224_WIRED_FILES, ...S3_225_WIRED_FILES, ...S3_226_WIRED_FILES, ...S3_229_WIRED_FILES, ...S3_231_WIRED_FILES])
+    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_224_WIRED_FILES, ...S3_225_WIRED_FILES, ...S3_226_WIRED_FILES, ...S3_229_WIRED_FILES, ...S3_231_WIRED_FILES, ...S3_233_WIRED_FILES])
       // ⚠️ S3-231 F1：同文件可被**两个批次**声明（points.routes.ts = S3-226 的 2 + S3-231 的 4）
       //    ⇒ 必须**累加**；用 `set(f, n)` 会让后一个块**覆盖**前一个块的声明（抹掉他人接线数）。
+      //    S3-233（本批）同规则：`admin-product.routes.ts` 等若与既有块同文件，也走累加。
       expected.set(f, (expected.get(f) ?? 0) + n);
     expect([...perFile.entries()].sort()).toEqual([...expected.entries()].sort());
   });
@@ -864,11 +899,12 @@ describe("S3-122-F4 日结权限点拆分 · 角色 × 5 端点复算（验收�
 
 describe("S3-122-F2 G0 接线 · 范围控制：未纳入 G0 的端点不被拦（证明没扩大改动）", () => {
   const NOT_IN_G0: { label: string; prefix: string; router: Router; method: Method; path: string }[] = [
-    { label: "普通写 POST /api/admin/purchase-orders（创建采购单）", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", path: "/" },
     // S3-214-B2（2026-10-16）订正：原「普通写 PUT /api/admin/purchase-orders/:orderNo」一行已由本批接线
-    // （既有码 purchase:create）⇒ 从本名单移出（该行的 403/200 断言见 rbac-b2-s3-214-purchase-wiring.test.ts）；
-    // 上一行「POST /api/admin/purchase-orders（创建采购单）」按派单卡口径**仍不接线**（移动端页签无权限门），
-    // 故保留在本名单里继续锁定「未被误拦」。
+    // （既有码 purchase:create）⇒ 从本名单移出（该行的 403/200 断言见 rbac-b2-s3-214-purchase-wiring.test.ts）。
+    // S3-233（2026-10-16）再订正：原「普通写 POST /api/admin/purchase-orders（创建采购单）」一行**已接线**
+    // （既有码 purchase:create）—— S3-214-B2 保留它的前提是"移动端采购页签无权限门"，该前提已由 S3-230
+    // 的入口权限门（`purchase-sub-order`）修复 ⇒ 从本名单移出；该行的 403/200 断言见
+    // rbac-b2-s3-233-gate-wiring-parity.test.ts（与 rbac-b2-s3-214-purchase-wiring.test.ts 的收编行）。
     { label: "查询型 POST /api/admin/prices/best-price（待裁定）", prefix: "/api/admin/prices", router: priceRouter, method: "post", path: "/best-price" },
     { label: "催收（归 G2）POST /api/admin/credits/collections", prefix: "/api/admin/credits", router: creditRouter, method: "post", path: "/collections" },
     { label: "储值卡充值（非退款行）POST /api/admin/store-value-cards/:cardNo/recharge", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", path: "/VC1/recharge" },

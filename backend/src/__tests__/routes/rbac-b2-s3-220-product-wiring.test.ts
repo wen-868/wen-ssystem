@@ -213,7 +213,7 @@ interface Row {
 }
 
 /**
- * 本批已接名单（**17 行**，逐行判定见台账 §十二）。
+ * 已接名单（**27 行** = S3-220 的 15 行 + S3-233 收编的 12 行，逐行判定见台账 §十二 / §十八）。
  * 口径（派单卡 §二）：① 优先挂「该端点真实使用者已持有的模块码」（零回归）；
  * ② 只有「商品岗专属、且使用者本来就不是门店/仓管/财务」的端点才挂 `goods:*`；
  * ③ 找不到使用者已持有码 ⇒ 不接线（见 UNWIRED）。
@@ -249,6 +249,27 @@ const ROWS: Row[] = [
   { file: "unit.routes.ts", prefix: "/api/admin/units", router: unitRouter, method: "post", routePath: "/", path: "/", perm: "goods:create", page: "无页面调用方" },
   { file: "unit.routes.ts", prefix: "/api/admin/units", router: unitRouter, method: "put", routePath: "/:id", path: "/1", perm: "goods:edit", page: "无页面调用方" },
   { file: "unit.routes.ts", prefix: "/api/admin/units", router: unitRouter, method: "delete", routePath: "/:id", path: "/1", perm: "goods:delete", page: "无页面调用方" },
+
+  // ===== S3-233（B 类收编第一批 · 商品域 12 条）=================================================
+  // 依据门（唯一真相源）= app-mobile/src/config/permission-gates.ts：
+  //   `goods-detail-edit`（商品详情页底栏「修改/保存」，门码 = goods:create|edit|delete|price 四码全持）
+  //   `goods-batch-price-submit`（批量改价页「提交」，门码 = goods:price）
+  //   `goods-category-create` / `goods-category-edit` / `goods-category-delete`（分类页写按钮）
+  // B 类前提（移动端商品 tab / 商品详情 / 分类页无权限门 ⇒ 使用者集合不可枚举）已由 S3-230 的入口权限门修复（D4/I1'）。
+  // 逐条码选取沿用同文件先例：新增记录（建品/单位）⇒ goods:create；主数据/状态改动 ⇒ goods:edit；删除 ⇒ goods:delete；
+  // 改价 ⇒ goods:price（= 本文件 :status/:disable 与本文件 unit.routes 三行的同一套口径）。
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "post", routePath: "/products/upload-image", path: "/products/upload-image", perm: "goods:create", page: "移动 `pages/products/product-detail.vue:1268`、`pages-sub/product/product/product-edit.vue:424`（门 goods-detail-edit）" },
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/:id", path: "/products/7", perm: "goods:edit", page: "桌面 Products.vue:1001/1134/1144 + 移动 product-detail.vue:1009（门 goods-detail-edit）" },
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/:skuId/price", path: "/products/7/price", perm: "goods:price", page: "桌面 Products.vue:1185/1411 + 移动 product-detail.vue:1031、batch-price.vue:834（门 goods-detail-edit / goods-batch-price-submit）" },
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/skus/:skuId", path: "/products/skus/7", perm: "goods:edit", page: "桌面 Products.vue:1174 + 移动 `api/modules/products.ts:55`（门 goods-detail-edit）" },
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "post", routePath: "/products/skus/:skuId/units", path: "/products/skus/7/units", perm: "goods:create", page: "桌面 Products.vue:1269 + 移动 product-detail.vue:1080（addSkuUnit，门 goods-detail-edit）" },
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/skus/:skuId/units/:unitId", path: "/products/skus/7/units/9", perm: "goods:edit", page: "桌面 Products.vue:1215-1253 + 移动 product-detail.vue:1049/1072（门 goods-detail-edit）" },
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "delete", routePath: "/products/skus/:skuId/units/:unitId", path: "/products/skus/7/units/9", perm: "goods:delete", page: "桌面 Products.vue:1282 + 移动 product-detail.vue:1054（门 goods-detail-edit）" },
+  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/:spuId/marketing-tags", path: "/products/7/marketing-tags", perm: "goods:edit", page: "移动 product-detail.vue:1092（setMarketingTags，门 goods-detail-edit）" },
+  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "post", routePath: "/", path: "/", perm: "goods:create", page: "移动 categories.vue「新增分类」（门 goods-category-create）" },
+  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id", path: "/7", perm: "goods:edit", page: "移动 category-edit.vue:174（门 goods-category-edit）" },
+  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "delete", routePath: "/:id", path: "/7", perm: "goods:delete", page: "移动 categories.vue:196（门 goods-category-delete）" },
+  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id/sort", path: "/7/sort", perm: "goods:edit", page: "移动 categories.vue:179（拖拽排序，门 goods-category-edit）" },
 ];
 
 interface UnwiredRow {
@@ -267,22 +288,14 @@ interface UnwiredRow {
   note: string;
 }
 
-/** 本域**本批未接**的 30 行（逐条原因见台账 §十二.3/§十二.4/§十二.6）。 */
+/**
+ * 本域**未接**的 18 行（逐条原因见台账 §十二.3/§十二.4/§十二.6）。
+ * ⚠️ S3-233（B 类收编第一批）：原 B 类 13 行中 **12 行**已随 S3-230 的入口权限门落地而收编（移入 ROWS）；
+ *    剩下的 1 条 B 类 = `POST /api/admin/library/lookup`（其门前端仍为 `registered`：码未定 + 疑似查询型 POST）。
+ */
 const UNWIRED: UnwiredRow[] = [
-  // ===== B 类 13 条：移动端无权限门 =====
+  // ===== B 类（原 13 条，现仅剩 1 条）：移动端无权限门 =====
   { file: "admin-library.routes.ts", prefix: "/api/admin/library", router: adminLibraryRouter, method: "post", routePath: "/lookup", path: "/lookup", reason: "B", note: "移动扫码 `native/scan.ts:746`（商品 tab/销售开单/库存多入口，均无权限门）；桌面 Products.vue:644 亦在用" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "post", routePath: "/products/upload-image", path: "/products/upload-image", reason: "B", note: "移动 `pages/products/product-detail.vue:1268`、`pages-sub/product/product/product-edit.vue:424`" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/:id", path: "/products/7", reason: "B", note: "桌面 Products.vue:1001/1134/1144；移动 product-detail.vue:1009（无门）" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/:skuId/price", path: "/products/7/price", reason: "B", note: "桌面 Products.vue:1185/1411；移动 product-detail.vue:1031、batch-price.vue:834（无门）。码 goods:price 的持有者已含店长，**仅**因无门页角色不可枚举而暂不接 ⇒ 见 §十二.7 待裁定" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/skus/:skuId", path: "/products/skus/7", reason: "B", note: "桌面 Products.vue:1174；移动 `api/modules/products.ts:55`（除权/预警阈值）" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "post", routePath: "/products/skus/:skuId/units", path: "/products/skus/7/units", reason: "B", note: "桌面 Products.vue:1269；移动 product-detail.vue:1080（addSkuUnit）" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/skus/:skuId/units/:unitId", path: "/products/skus/7/units/9", reason: "B", note: "桌面 Products.vue:1215-1253；移动 product-detail.vue:1049/1072" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "delete", routePath: "/products/skus/:skuId/units/:unitId", path: "/products/skus/7/units/9", reason: "B", note: "桌面 Products.vue:1282；移动 product-detail.vue:1054" },
-  { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/:spuId/marketing-tags", path: "/products/7/marketing-tags", reason: "B", note: "移动 product-detail.vue:1092（setMarketingTags）" },
-  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "移动 `pages-sub/product/categories/categories.vue`／`category-edit.vue`（菜单码 goods:category，生产 7 个角色可见，其中 6 个不持 goods:create）" },
-  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id", path: "/7", reason: "B", note: "同上一行（移动 category-edit.vue:174）" },
-  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "delete", routePath: "/:id", path: "/7", reason: "B", note: "移动 categories.vue:196" },
-  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id/sort", path: "/7/sort", reason: "B", note: "移动 categories.vue:179（拖拽排序）" },
 
   // ===== A 类 15 条：页面角色含 STORE_MANAGER，生产店长不持任何 goods:* 写码 =====
   { file: "admin-product.routes.ts", prefix: "/api/admin", router: adminProductRouter, method: "put", routePath: "/products/skus/:skuId/barcode", path: "/products/skus/7/barcode", reason: "A", note: "桌面 Products.vue:1156（商品管理页 routes:165 [SUPER_ADMIN, STORE_MANAGER]）" },
@@ -386,37 +399,39 @@ beforeEach(() => {
 });
 
 describe("S3-220 · 名单自证", () => {
-  it("15 已接 + 30 未接 = 45（= 台账 §三.3 本域写端点总数）", () => {
-    expect(ROWS).toHaveLength(15);
-    expect(UNWIRED).toHaveLength(30);
+  it("27 已接（15 + S3-233 收编 12）+ 18 未接 = 45（= 台账 §三.3 本域写端点总数）", () => {
+    expect(ROWS).toHaveLength(27);
+    expect(UNWIRED).toHaveLength(18);
     expect(ROWS.length + UNWIRED.length).toBe(DOMAIN_TOTAL);
   });
 
-  it("已接 15 行的逐文件分布（与台账 §十二.2 表一致）", () => {
+  it("已接 27 行的逐文件分布（S3-220 的 4 文件 + S3-233 新增 category.routes.ts；与台账 §十二.2/§十八 一致）", () => {
     const perFile = new Map<string, number>();
     for (const row of ROWS) perFile.set(row.file, (perFile.get(row.file) ?? 0) + 1);
     expect([...perFile.entries()].sort()).toEqual([
-      ["admin-product.routes.ts", 3],
+      ["admin-product.routes.ts", 11],
+      ["category.routes.ts", 4],
       ["product-bundle.routes.ts", 8],
       ["product-review.routes.ts", 1],
       ["unit.routes.ts", 3],
     ]);
   });
 
-  it("已接 15 行只用 3 个**既有**权限码（本批不新立权限点、不改角色种子、不动迁移）", () => {
+  it("已接 27 行只用 4 个**既有**权限码（两批均不新立权限点、不改角色种子、不动迁移）", () => {
     expect([...new Set(ROWS.map((r) => r.perm))].sort()).toEqual([
       "goods:create",
       "goods:delete",
       "goods:edit",
+      "goods:price",
     ]);
   });
 
-  it("未接 30 行的原因分布 = B 13 + A 15 + P 2（与台账 §十二.3/§十二.4/§十二.6 一致）", () => {
+  it("未接 18 行的原因分布 = B 1 + A 15 + P 2（S3-233 收编 B 类 12 条后；与台账 §十二.3/§十二.4/§十二.6 一致）", () => {
     const byReason = new Map<string, number>();
     for (const row of UNWIRED) byReason.set(row.reason, (byReason.get(row.reason) ?? 0) + 1);
     expect([...byReason.entries()].sort()).toEqual([
       ["A", 15],
-      ["B", 13],
+      ["B", 1],
       ["P", 2],
     ]);
     // A 类（页面对 STORE_MANAGER 开放）不含任何商品域码持有关系：店长不持 goods:* 写码，逐条钉住

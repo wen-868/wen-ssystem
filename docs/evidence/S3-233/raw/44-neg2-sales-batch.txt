@@ -1,0 +1,88 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-233/backend
+
+[2026-10-16 10:52:41.942 +0800] [32mINFO[39m (17812): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts (175 tests | 4 failed) 5785ms
+     × 'store-sale-bill.routes.ts' 'post' '/:billNo/offline-payment'：注册行自带 requirePermission("'sale:create'") 12ms
+     × 'store-sale-bill.routes.ts' 'post' '/:billNo/offline-payment'：READONLY ⇒ 403 且 msg 指向该权限码 17ms
+     × 'store-sale-bill.routes.ts' 'post' '/:billNo/offline-payment'：全部持有人（逐账号枚举）⇒ 200 46ms
+     × 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200） 548ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts > S3-224 · 形状断言（注册行级判据，踩坑[134]） > 'store-sale-bill.routes.ts' 'post' '/:billNo/offline-payment'：注册行自带 requirePermission("'sale:create'")
+AssertionError: expected 'storeSaleBillRouter.post("/:billNo/of…' to contain 'requirePermission("sale:create")'
+
+Expected: "requirePermission("sale:create")"
+Received: "storeSaleBillRouter.post("/:billNo/offline-payment", requirePermission("sale:edit"), saleBillController.offlinePayment);"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts:489:27
+    487|     const lines = registrationLines(row.file, row.method, row.routePat…
+    488|     expect(lines.map((l) => l.no)).toHaveLength(1);
+    489|     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`…
+       |                           ^
+    490|   });
+    491|
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 171 passed (175)
+   Start at  10:52:32
+   Duration  15.75s (transform 2.31s, setup 137ms, import 8.23s, tests 5.78s, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts > S3-224 · 两侧判据 a) 缺码 ⇒ 403 且未到达业务层 > 'store-sale-bill.routes.ts' 'post' '/:billNo/offline-payment'：READONLY ⇒ 403 且 msg 指向该权限码
+AssertionError: expected '无权限执行此操作，需要权限: sale:edit' to be '无权限执行此操作，需要权限: sale:create' // Object.is equality
+
+Expected: "无权限执行此操作，需要权限: sale:create"
+Received: "无权限执行此操作，需要权限: sale:edit"
+
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts:587:26
+    585|     expect(res.status).toBe(403);
+    586|     expect(res.body.code).toBe("403");
+    587|     expect(res.body.msg).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+       |                          ^
+    588|     expect(res.body.handler).toBeUndefined();
+    589|     expect(h.reached).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts > S3-224 · 两侧判据 b) 有码 ⇒ 通过（不锁死既有页面角色） > 'store-sale-bill.routes.ts' 'post' '/:billNo/offline-payment'：全部持有人（逐账号枚举）⇒ 200
+AssertionError: sales_staff 应通过 store-sale-bill.routes.ts POST /:billNo/offline-payment: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts:607:66
+    605|       h.reached.length = 0;
+    606|       const res = await call(appFor(row), row.method, `${row.prefix}${…
+    607|       expect(res.status, `${USERS[uid].name} 应通过 ${label(row)}`).toBe(…
+       |                                                                  ^
+    608|       expect(res.body.success).toBe(true);
+    609|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts > S3-224 · 两侧判据 b) 有码 ⇒ 通过（不锁死既有页面角色） > 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200）
+AssertionError: 页面角色 STORE_OPERATOR（store_operator_prod）被 store-sale-bill.routes.ts POST /:billNo/offline-payment 打成 403 ⇒ 回归: expected 403 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 403
+
+ ❯ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts:621:91
+    619|         h.reached.length = 0;
+    620|         const res = await call(appFor(row), row.method, `${row.prefix}…
+    621|         expect(res.status, `页面角色 ${role}（${USERS[uid].name}）被 ${label(…
+       |                                                                                           ^
+    622|       }
+    623|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+

@@ -1,0 +1,523 @@
+
+===== [sale-order-detail-deliver] 销售域 · 门码=["sale:create"]
+
+-- PUT /api/admin/orders/:orderNo/status
+   file=admin-order.routes.ts wired=false 探针=/api/admin/orders/status
+   （全仓无调用点字面量命中）
+
+-- POST /api/store/orders/:orderNo/start-delivery
+   file=store-order.routes.ts wired=false 探针=/api/store/orders/start-delivery
+   （全仓无调用点字面量命中）
+
+===== [sale-order-detail-cancel] 销售域 · 门码=["sale:void"]
+
+-- POST /api/admin/orders/:orderNo/cancel
+   file=admin-order.routes.ts wired=true 探针=/api/admin/orders/cancel
+   （全仓无调用点字面量命中）
+
+===== [sale-create-hold] 销售域 · 门码=["sale:create"]
+
+-- POST /api/store/hold-orders/
+   file=store-order.routes.ts wired=false 探针=/api/store/hold-orders
+   backend/src\__tests__\shared\auto-routes.test.ts:102:  "/api/store/inventory", "/api/store/orders", "/api/store/hold-orders",
+   admin-web/src\views\sale\SalesOrderCreate.vue:531:    // 真实挂单接口：POST /api/store/hold-orders（与移动端暂存共用）
+   backend/src\__tests__\routes\store-prefix-narrowing-s3-195.test.ts:44:  "DELETE /api/store/hold-orders/:holdNo",
+   backend/src\__tests__\routes\store-prefix-narrowing-s3-195.test.ts:55:  "GET /api/store/hold-orders",
+   backend/src\__tests__\routes\store-prefix-narrowing-s3-195.test.ts:96:  "POST /api/store/hold-orders",
+   backend/src\__tests__\routes\store-prefix-narrowing-s3-195.test.ts:97:  "POST /api/store/hold-orders/:holdNo/restore",
+   backend/src\__tests__\routes\store-order.test.ts:6:    expect(routeConfigs.map((c) => c.prefix)).toEqual(["/api/store/orders", "/api/store/hold-orders"]);
+   backend/src\__tests__\routes\rbac-b2-s3-224-sales-wiring.test.ts:274:  { file: "store-order.routes.ts", prefix: "/api/store/hold-orders", router: storeHoldOrderRouter, method: "post", routePath: "/:holdNo/restore", path: "/H1/restore", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "pos/HoldOrderView.vue:83 + pos/CashierView.vue:1689（挂单管理 router:265 / 快速收银 :259）" },
+   backend/src\__tests__\routes\rbac-b2-s3-224-sales-wiring.test.ts:275:  { file: "store-order.routes.ts", prefix: "/api/store/hold-orders", router: storeHoldOrderRouter, method: "delete", routePath: "/:holdNo", path: "/H1", perm: "sale:create", pageRoles: ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR"], page: "pos/HoldOrderView.vue:96 + pos/CashierView.vue:1709" },
+   backend/src\__tests__\routes\rbac-b2-s3-224-sales-wiring.test.ts:309:  { file: "store-order.routes.ts", prefix: "/api/store/hold-orders", router: storeHoldOrderRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile `pages/sales/create-sale.vue:2013`（storeApi.createHoldOrder）；该页经首页快捷入口 `home.vue:69` 无条件可达" },
+   app-mobile/src\config\permission-gates.ts:153:    endpoints: ['POST /api/store/hold-orders/'],
+   app-mobile/src\pages\sales\create-sale.vue:986:          // 保存＝暂存/挂单 → POST /api/store/hold-orders/（码 sale:create，见注册表 sale-create-hold）
+   … 另 5 条
+
+===== [sale-bill-offline-pay] 销售域 · 门码=["sale:create"]
+
+-- POST /api/store/sale-bills/:billNo/offline-payment
+   file=store-sale-bill.routes.ts wired=false 探针=/api/store/sale-bills/offline-payment
+   （全仓无调用点字面量命中）
+
+===== [sale-receipt-sub] 销售域 · 门码=["sale:create"]
+
+-- POST /api/admin/receipts/
+   file=receipt.routes.ts wired=false 探针=/api/admin/receipts
+   backend/src\__tests__\shared\auto-routes.test.ts:62:  "/api/admin/quote-push", "/api/admin/receipts", "/api/admin/receivables",
+   backend/src\__tests__\routes\receipt.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/receipts");
+   backend/src\__tests__\routes\rbac-g2-wiring.test.ts:257:    prefix: "/api/admin/receipts",
+   backend/src\__tests__\routes\rbac-g1-wiring.test.ts:275:  { file: "receipt.routes.ts", prefix: "/api/admin/receipts", router: receiptRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 开单页 create-sale.vue:2202（receiptApi.create）" },
+   backend/src\__tests__\routes\rbac-g0-wiring.test.ts:263:    prefix: "/api/admin/receipts",
+   backend/src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts:391:    prefix: "/api/admin/receipts",
+   backend/src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts:437:    prefix: "/api/admin/receipts",
+   backend/src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts:746:    const receipt = await call(appFor("receipt.routes.ts", "/api/admin/receipts", receiptRouter), "post", "/api/admin/receipts/RC1/void", FINANCE_STAFF);
+   app-mobile/src\config\permission-gates.ts:174:    endpoints: ['POST /api/admin/receipts/'],
+   app-mobile/src\config\permission-gates.ts:178:    note: '收据作废行（`POST /api/admin/receipts/:receiptNo/void`，批 5 已接 `finance:receipt:create`）不在本入口的写调用面上'
+   app-mobile/src\pages\sales\create-sale.vue:957:          // 收款单「确认收款」→ POST /api/admin/receipts/（码 sale:create，见注册表 sale-receipt-sub）
+   backend/src\routes\receipt.routes.ts:8:// ⚠️ S3-223 **本行不接**：`POST /api/admin/receipts/` 有 app-mobile 开单页写调用点
+   … 另 1 条
+
+===== [purchase-sub-order] 采购域 · 门码=["purchase:create"]
+
+-- POST /api/admin/purchase-orders/
+   file=purchase.routes.ts wired=false 探针=/api/admin/purchase-orders
+   backend/src\__tests__\shared\auto-routes.test.ts:60:  "/api/admin/purchase-in-stocks", "/api/admin/purchase-orders", "/api/admin/purchase-payments",
+   backend/src\__tests__\routes\rbac-g0-wiring.test.ts:236:    prefix: "/api/admin/purchase-orders",
+   backend/src\__tests__\routes\rbac-g0-wiring.test.ts:856:    { label: "普通写 POST /api/admin/purchase-orders（创建采购单）", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", path: "/" },
+   backend/src\__tests__\routes\rbac-g0-wiring.test.ts:857:    // S3-214-B2（2026-10-16）订正：原「普通写 PUT /api/admin/purchase-orders/:orderNo」一行已由本批接线
+   backend/src\__tests__\routes\rbac-g0-wiring.test.ts:859:    // 上一行「POST /api/admin/purchase-orders（创建采购单）」按派单卡口径**仍不接线**（移动端页签无权限门），
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:201:  { file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", routePath: "/:orderNo/approve", path: "/PO1/approve", perm: "purchase:approve", page: "无页面调用方（API 策略面）" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:202:  { file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", routePath: "/:orderNo/cancel", path: "/PO1/cancel", perm: "purchase:create", page: "PurchaseOrders.vue:328 [SUPER_ADMIN]" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:203:  { file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "put", routePath: "/:orderNo", path: "/PO1", perm: "purchase:create", page: "无页面调用方" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:204:  { file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "delete", routePath: "/:orderNo", path: "/PO1", perm: "purchase:create", page: "无页面调用方" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:257:  { file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2159（doc=pur_order）；页签无权限门 app-mobile/src/pages/sales/create-sale.vue:23" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:609:      ["purchase.routes.ts", "POST /api/admin/purchase-orders/"],
+   backend/src\__tests__\routes\purchase.test.ts:38:  prefix: "/api/admin/purchase-orders",
+   … 另 37 条
+
+===== [purchase-sub-inbound] 采购域 · 门码=["inventory:inbound"]
+
+-- POST /api/admin/purchase-in-stocks/
+   file=purchase-in-stock.routes.ts wired=false 探针=/api/admin/purchase-in-stocks
+   backend/src\__tests__\shared\auto-routes.test.ts:60:  "/api/admin/purchase-in-stocks", "/api/admin/purchase-orders", "/api/admin/purchase-payments",
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:207:  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/:stockNo/approve", path: "/IS1/approve", perm: "inventory:inbound", page: "入库审核（仓管业务）＋桌面页 PurchaseInStocks.vue [SUPER_ADMIN]" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:208:  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/:stockNo/void", path: "/IS1/void", perm: "inventory:inbound", page: "无页面调用方（与入库审核同族）" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:258:  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2112（doc=pur_inbound）；同上页签无门" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:610:      ["purchase-in-stock.routes.ts", "POST /api/admin/purchase-in-stocks/"],
+   backend/src\__tests__\routes\purchase-in-stock.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/purchase-in-stocks");
+   app-mobile/src\config\permission-gates.ts:198:    endpoints: ['POST /api/admin/purchase-in-stocks/'],
+   app-mobile/src\config\permission-gates.ts:229:    endpoints: ['POST /api/admin/purchase-in-stocks/'],
+   app-mobile/src\pages\home\home.vue:82:        <!-- S3-230 入口权限门：进货入库写调用面 POST /api/admin/purchase-in-stocks，码 inventory:inbound -->
+   app-mobile/src\pages\sales\create-sale.vue:988:          // 转付款单＝提交本张入库单 → POST /api/admin/purchase-in-stocks/（码 inventory:inbound）
+   backend/src\routes\purchase-in-stock.routes.ts:17:  prefix: "/api/admin/purchase-in-stocks",
+
+===== [purchase-sub-return] 采购域 · 门码=["sale:return"]
+
+-- POST /api/admin/purchase-returns/
+   file=purchase-return.routes.ts wired=false 探针=/api/admin/purchase-returns
+   backend/src\__tests__\shared\auto-routes.test.ts:61:  "/api/admin/purchase-plans", "/api/admin/purchase-returns", "/api/admin/push",
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:215:  { file: "purchase-return.routes.ts", prefix: "/api/admin/purchase-returns", router: purchaseReturnRouter, method: "post", routePath: "/:returnNo/approve", path: "/PR1/approve", perm: "sale:return", page: "PurchaseReturnsView.vue:138 [SUPER_ADMIN, STORE_MANAGER]" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:216:  { file: "purchase-return.routes.ts", prefix: "/api/admin/purchase-returns", router: purchaseReturnRouter, method: "post", routePath: "/:returnNo/void", path: "/PR1/void", perm: "sale:return", page: "无页面调用方（与退货审核同族）" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:260:  { file: "purchase-return.routes.ts", prefix: "/api/admin/purchase-returns", router: purchaseReturnRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2270（submitPurchaseReturn）；同上页签无门" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:612:      ["purchase-return.routes.ts", "POST /api/admin/purchase-returns/"],
+   backend/src\__tests__\routes\purchase-return.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/purchase-returns");
+   app-mobile/src\pages\sales\create-sale.vue:1002:          // 保存＝提交采购退货 → POST /api/admin/purchase-returns/（码 sale:return）
+   app-mobile/src\config\permission-gates.ts:209:    endpoints: ['POST /api/admin/purchase-returns/'],
+   backend/src\routes\purchase-return.routes.ts:17:  prefix: "/api/admin/purchase-returns",
+
+===== [purchase-sub-payment] 采购域 · 门码=["finance:payment"]
+
+-- POST /api/admin/purchase-payments/
+   file=purchase-payment.routes.ts wired=false 探针=/api/admin/purchase-payments
+   backend/src\__tests__\shared\auto-routes.test.ts:60:  "/api/admin/purchase-in-stocks", "/api/admin/purchase-orders", "/api/admin/purchase-payments",
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:211:  { file: "purchase-payment.routes.ts", prefix: "/api/admin/purchase-payments", router: purchasePaymentRouter, method: "post", routePath: "/:paymentNo/approve", path: "/PAY1/approve", perm: "finance:payment", page: "PurchasePayments.vue:358（审核按钮）＋财务为业务审核人" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:212:  { file: "purchase-payment.routes.ts", prefix: "/api/admin/purchase-payments", router: purchasePaymentRouter, method: "post", routePath: "/:paymentNo/void", path: "/PAY1/void", perm: "finance:payment", page: "无页面调用方（与付款审核同族）" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:259:  { file: "purchase-payment.routes.ts", prefix: "/api/admin/purchase-payments", router: purchasePaymentRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2211（doc=pur_payment）；同上页签无门" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:611:      ["purchase-payment.routes.ts", "POST /api/admin/purchase-payments/"],
+   backend/src\__tests__\routes\purchase-payment.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/purchase-payments");
+   backend/src\routes\purchase-payment.routes.ts:17:  prefix: "/api/admin/purchase-payments",
+   app-mobile/src\config\permission-gates.ts:219:    endpoints: ['POST /api/admin/purchase-payments/'],
+   app-mobile/src\pages\sales\create-sale.vue:1017:          // 确认付款 → POST /api/admin/purchase-payments/（码 finance:payment）
+
+===== [home-in-stock] 采购域 · 门码=["inventory:inbound"]
+
+-- POST /api/admin/purchase-in-stocks/
+   file=purchase-in-stock.routes.ts wired=false 探针=/api/admin/purchase-in-stocks
+   backend/src\__tests__\shared\auto-routes.test.ts:60:  "/api/admin/purchase-in-stocks", "/api/admin/purchase-orders", "/api/admin/purchase-payments",
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:207:  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/:stockNo/approve", path: "/IS1/approve", perm: "inventory:inbound", page: "入库审核（仓管业务）＋桌面页 PurchaseInStocks.vue [SUPER_ADMIN]" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:208:  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/:stockNo/void", path: "/IS1/void", perm: "inventory:inbound", page: "无页面调用方（与入库审核同族）" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:258:  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2112（doc=pur_inbound）；同上页签无门" },
+   backend/src\__tests__\routes\rbac-b2-s3-214-purchase-wiring.test.ts:610:      ["purchase-in-stock.routes.ts", "POST /api/admin/purchase-in-stocks/"],
+   backend/src\__tests__\routes\purchase-in-stock.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/purchase-in-stocks");
+   backend/src\routes\purchase-in-stock.routes.ts:17:  prefix: "/api/admin/purchase-in-stocks",
+   app-mobile/src\config\permission-gates.ts:198:    endpoints: ['POST /api/admin/purchase-in-stocks/'],
+   app-mobile/src\config\permission-gates.ts:229:    endpoints: ['POST /api/admin/purchase-in-stocks/'],
+   app-mobile/src\pages\sales\create-sale.vue:988:          // 转付款单＝提交本张入库单 → POST /api/admin/purchase-in-stocks/（码 inventory:inbound）
+   app-mobile/src\pages\home\home.vue:82:        <!-- S3-230 入口权限门：进货入库写调用面 POST /api/admin/purchase-in-stocks，码 inventory:inbound -->
+
+===== [fx-stock-check] 库存/追溯域 · 门码=["inventory:create","inventory:adjust"]
+
+-- POST /api/admin/stock-checks/
+   file=stock-check.routes.ts wired=false 探针=/api/admin/stock-checks
+   backend/src\__tests__\shared\auto-routes.test.ts:65:  "/api/admin/sms-templates", "/api/admin/stock-checks", "/api/admin/stock-warnings",
+   backend/src\__tests__\routes\stock-check.test.ts:13:    expect(adminConfig.prefix).toBe("/api/admin/stock-checks");
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:246:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:97）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:247:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "put", routePath: "/:id", path: "/1", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:102）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:248:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/start", path: "/1/start", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:107）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:249:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/complete", path: "/1/complete", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:112）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:250:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/cancel", path: "/1/cancel", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:117）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:251:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/handle-diff", path: "/1/handle-diff", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:122）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:252:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/items", path: "/1/items", reason: "B", note: "app-mobile 盘点页（api/modules/store.ts:645 同族写调用点）" },
+   app-mobile/src\config\permission-gates.ts:243:      'POST /api/admin/stock-checks/',
+   app-mobile/src\config\permission-gates.ts:244:      'PUT /api/admin/stock-checks/:id',
+   app-mobile/src\config\permission-gates.ts:245:      'POST /api/admin/stock-checks/:id/start',
+   … 另 5 条
+
+-- PUT /api/admin/stock-checks/:id
+   file=stock-check.routes.ts wired=false 探针=/api/admin/stock-checks
+   backend/src\__tests__\shared\auto-routes.test.ts:65:  "/api/admin/sms-templates", "/api/admin/stock-checks", "/api/admin/stock-warnings",
+   backend/src\__tests__\routes\stock-check.test.ts:13:    expect(adminConfig.prefix).toBe("/api/admin/stock-checks");
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:246:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:97）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:247:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "put", routePath: "/:id", path: "/1", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:102）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:248:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/start", path: "/1/start", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:107）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:249:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/complete", path: "/1/complete", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:112）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:250:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/cancel", path: "/1/cancel", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:117）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:251:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/handle-diff", path: "/1/handle-diff", reason: "B", note: "app-mobile 盘点页（api/modules/stock-check.ts:122）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:252:  { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/:id/items", path: "/1/items", reason: "B", note: "app-mobile 盘点页（api/modules/store.ts:645 同族写调用点）" },
+   backend/src\routes\stock-check.routes.ts:29:  { prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, auth: "requireAuthWithTenant" },
+   app-mobile/src\config\permission-gates.ts:243:      'POST /api/admin/stock-checks/',
+   app-mobile/src\config\permission-gates.ts:244:      'PUT /api/admin/stock-checks/:id',
+   … 另 5 条
+
+-- POST /api/admin/stock-checks/:id/start
+   file=stock-check.routes.ts wired=false 探针=/api/admin/stock-checks/start
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/stock-checks/:id/complete
+   file=stock-check.routes.ts wired=false 探针=/api/admin/stock-checks/complete
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/stock-checks/:id/cancel
+   file=stock-check.routes.ts wired=false 探针=/api/admin/stock-checks/cancel
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/stock-checks/:id/handle-diff
+   file=stock-check.routes.ts wired=false 探针=/api/admin/stock-checks/handle-diff
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/stock-checks/:id/items
+   file=stock-check.routes.ts wired=false 探针=/api/admin/stock-checks/items
+   （全仓无调用点字面量命中）
+
+-- PUT /api/store/stock-checks/:id/items/:itemId
+   file=stock-check.routes.ts wired=false 探针=/api/store/stock-checks/items
+   （全仓无调用点字面量命中）
+
+-- POST /api/store/stock-checks/:id/submit
+   file=stock-check.routes.ts wired=false 探针=/api/store/stock-checks/submit
+   （全仓无调用点字面量命中）
+
+===== [fx-stock-warning] 库存/追溯域 · 门码=["inventory:adjust"]
+
+-- POST /api/admin/stock-warnings/config
+   file=stock-warning.routes.ts wired=false 探针=/api/admin/stock-warnings/config
+   app-mobile/src\config\permission-gates.ts:264:      'POST /api/admin/stock-warnings/config',
+   app-mobile/src\pages\profile\profile.vue:196:      // 库存预警页写调用面：POST /api/admin/stock-warnings/config ⇒ 码 inventory:adjust
+
+-- PUT /api/store/inventory/alerts/:skuId/threshold
+   file=store-inventory.routes.ts wired=false 探针=/api/store/inventory/alerts/threshold
+   （全仓无调用点字面量命中）
+
+===== [fx-loss-gain] 库存/追溯域 · 门码=["inventory:adjust"]
+
+-- POST /api/admin/inventory/report-loss-gain
+   file=inventory-loss-gain.routes.ts wired=false 探针=/api/admin/inventory/report-loss-gain
+   app-mobile/src\config\permission-gates.ts:277:    endpoints: ['POST /api/admin/inventory/report-loss-gain'],
+
+===== [fx-transfer] 库存/追溯域 · 门码=["store:transfer"]
+
+-- POST /api/admin/transfers/
+   file=transfer.routes.ts wired=false 探针=/api/admin/transfers
+   backend/src\__tests__\shared\auto-routes.test.ts:70:  "/api/admin/transfer-orders", "/api/admin/transfers", "/api/admin/unit-groups",
+   backend/src\__tests__\routes\transfer.test.ts:13:    expect(adminConfig.prefix).toBe("/api/admin/transfers");
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:274:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:104）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:275:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "put", routePath: "/:id", path: "/1", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:99 详情/提交链路）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:276:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/submit", path: "/1/submit", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:109）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:277:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/approve", path: "/1/approve", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:114）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:278:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/reject", path: "/1/reject", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:119）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:279:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/cancel", path: "/1/cancel", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:124）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:280:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/ship", path: "/1/ship", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:129）" },
+   app-mobile/src\config\permission-gates.ts:289:      'POST /api/admin/transfers/',
+   app-mobile/src\config\permission-gates.ts:290:      'PUT /api/admin/transfers/:id',
+   app-mobile/src\config\permission-gates.ts:291:      'POST /api/admin/transfers/:id/submit',
+   … 另 6 条
+
+-- PUT /api/admin/transfers/:id
+   file=transfer.routes.ts wired=false 探针=/api/admin/transfers
+   backend/src\__tests__\shared\auto-routes.test.ts:70:  "/api/admin/transfer-orders", "/api/admin/transfers", "/api/admin/unit-groups",
+   backend/src\__tests__\routes\transfer.test.ts:13:    expect(adminConfig.prefix).toBe("/api/admin/transfers");
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:274:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:104）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:275:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "put", routePath: "/:id", path: "/1", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:99 详情/提交链路）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:276:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/submit", path: "/1/submit", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:109）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:277:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/approve", path: "/1/approve", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:114）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:278:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/reject", path: "/1/reject", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:119）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:279:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/cancel", path: "/1/cancel", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:124）" },
+   backend/src\__tests__\routes\rbac-b2-s3-198-inventory-wiring.test.ts:280:  { file: "transfer.routes.ts", prefix: "/api/admin/transfers", router: adminTransferRouter, method: "post", routePath: "/:id/ship", path: "/1/ship", reason: "B", note: "app-mobile 调拨页（api/modules/transfer.ts:129）" },
+   app-mobile/src\config\permission-gates.ts:289:      'POST /api/admin/transfers/',
+   app-mobile/src\config\permission-gates.ts:290:      'PUT /api/admin/transfers/:id',
+   app-mobile/src\config\permission-gates.ts:291:      'POST /api/admin/transfers/:id/submit',
+   … 另 6 条
+
+-- POST /api/admin/transfers/:id/submit
+   file=transfer.routes.ts wired=false 探针=/api/admin/transfers/submit
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/transfers/:id/approve
+   file=transfer.routes.ts wired=false 探针=/api/admin/transfers/approve
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/transfers/:id/reject
+   file=transfer.routes.ts wired=false 探针=/api/admin/transfers/reject
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/transfers/:id/cancel
+   file=transfer.routes.ts wired=false 探针=/api/admin/transfers/cancel
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/transfers/:id/ship
+   file=transfer.routes.ts wired=false 探针=/api/admin/transfers/ship
+   （全仓无调用点字面量命中）
+
+===== [fx-transfer-receive] 库存/追溯域 · 门码=["store:transfer"]
+
+-- POST /api/store/transfers/:id/receive
+   file=transfer.routes.ts wired=false 探针=/api/store/transfers/receive
+   （全仓无调用点字面量命中）
+
+===== [goods-detail-edit] 商品域 · 门码=["goods:edit","goods:price","goods:create","goods:delete"]
+
+-- PUT /api/admin/products/:id
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products
+   backend/src\__tests__\shared\auto-routes.test.ts:59:  "/api/admin/product-tags", "/api/admin/products/categories", "/api/admin/purchase-contracts",
+   backend/src\shared\migration.ts:851:      // 商品三表（/api/admin/products 依赖）
+   backend/src\shared\goods-permission-codes.ts:4: * 为什么沿用既有码、不新造码：手工建品（POST /api/admin/products）的权限点
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:282:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "移动 `pages-sub/product/categories/categories.vue`／`category-edit.vue`（菜单码 goods:category，生产 7 个角色可见，其中 6 个不持 goods:create）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:283:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id", path: "/7", reason: "B", note: "同上一行（移动 category-edit.vue:174）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:284:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "delete", routePath: "/:id", path: "/7", reason: "B", note: "移动 categories.vue:196" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:285:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id/sort", path: "/7/sort", reason: "B", note: "移动 categories.vue:179（拖拽排序）" },
+   backend/src\__tests__\routes\print.routes.test.ts:45:            "/api/admin/products",
+   backend/src\__tests__\routes\category.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/products/categories");
+   app-mobile/src\pages-sub\product\categories\categories.vue:60:    <!-- S3-230 入口权限门：新增分类 → POST /api/admin/products/categories/（goods:create） -->
+   backend/src\__tests__\routes\admin-product-s3-142-perm.test.ts:2: * S3-142 · 手工建品（POST /api/admin/products）权限接线验收测试
+   backend/src\__tests__\routes\admin-product-s3-142-perm.test.ts:117:  const req = request(buildApp()).post("/api/admin/products");
+   … 另 30 条
+
+-- PUT /api/admin/products/:skuId/price
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/price
+   （全仓无调用点字面量命中）
+
+-- PUT /api/admin/products/skus/:skuId
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/skus
+   app-mobile/src\config\permission-gates.ts:333:      'PUT /api/admin/products/skus/:skuId',
+   app-mobile/src\config\permission-gates.ts:334:      'POST /api/admin/products/skus/:skuId/units',
+   app-mobile/src\config\permission-gates.ts:335:      'PUT /api/admin/products/skus/:skuId/units/:unitId',
+   app-mobile/src\config\permission-gates.ts:336:      'DELETE /api/admin/products/skus/:skuId/units/:unitId',
+
+-- POST /api/admin/products/skus/:skuId/units
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/skus/units
+   （全仓无调用点字面量命中）
+
+-- PUT /api/admin/products/skus/:skuId/units/:unitId
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/skus/units
+   （全仓无调用点字面量命中）
+
+-- DELETE /api/admin/products/skus/:skuId/units/:unitId
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/skus/units
+   （全仓无调用点字面量命中）
+
+-- PUT /api/admin/products/:spuId/marketing-tags
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/marketing-tags
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/products/upload-image
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/upload-image
+   app-mobile/src\config\permission-gates.ts:338:      'POST /api/admin/products/upload-image'
+
+===== [goods-batch-price-submit] 商品域 · 门码=["goods:price"]
+
+-- PUT /api/admin/products/:skuId/price
+   file=admin-product.routes.ts wired=false 探针=/api/admin/products/price
+   （全仓无调用点字面量命中）
+
+===== [goods-category-create] 商品域 · 门码=["goods:create"]
+
+-- POST /api/admin/products/categories/
+   file=category.routes.ts wired=false 探针=/api/admin/products/categories
+   backend/src\__tests__\shared\auto-routes.test.ts:59:  "/api/admin/product-tags", "/api/admin/products/categories", "/api/admin/purchase-contracts",
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:282:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "移动 `pages-sub/product/categories/categories.vue`／`category-edit.vue`（菜单码 goods:category，生产 7 个角色可见，其中 6 个不持 goods:create）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:283:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id", path: "/7", reason: "B", note: "同上一行（移动 category-edit.vue:174）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:284:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "delete", routePath: "/:id", path: "/7", reason: "B", note: "移动 categories.vue:196" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:285:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id/sort", path: "/7/sort", reason: "B", note: "移动 categories.vue:179（拖拽排序）" },
+   app-mobile/src\pages-sub\product\categories\categories.vue:60:    <!-- S3-230 入口权限门：新增分类 → POST /api/admin/products/categories/（goods:create） -->
+   app-mobile/src\config\permission-gates.ts:360:    endpoints: ['POST /api/admin/products/categories/'],
+   app-mobile/src\config\permission-gates.ts:372:      'PUT /api/admin/products/categories/:id',
+   app-mobile/src\config\permission-gates.ts:373:      'PUT /api/admin/products/categories/:id/sort'
+   app-mobile/src\config\permission-gates.ts:384:    endpoints: ['DELETE /api/admin/products/categories/:id'],
+   backend/src\__tests__\routes\category.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/products/categories");
+   app-mobile/src\api\modules\products.ts:343:    // 后端分类路由 prefix 为 /api/admin/products/categories
+   … 另 2 条
+
+===== [goods-category-edit] 商品域 · 门码=["goods:edit"]
+
+-- PUT /api/admin/products/categories/:id
+   file=category.routes.ts wired=false 探针=/api/admin/products/categories
+   backend/src\__tests__\shared\auto-routes.test.ts:59:  "/api/admin/product-tags", "/api/admin/products/categories", "/api/admin/purchase-contracts",
+   app-mobile/src\pages-sub\product\categories\categories.vue:60:    <!-- S3-230 入口权限门：新增分类 → POST /api/admin/products/categories/（goods:create） -->
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:282:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "移动 `pages-sub/product/categories/categories.vue`／`category-edit.vue`（菜单码 goods:category，生产 7 个角色可见，其中 6 个不持 goods:create）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:283:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id", path: "/7", reason: "B", note: "同上一行（移动 category-edit.vue:174）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:284:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "delete", routePath: "/:id", path: "/7", reason: "B", note: "移动 categories.vue:196" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:285:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id/sort", path: "/7/sort", reason: "B", note: "移动 categories.vue:179（拖拽排序）" },
+   backend/src\__tests__\routes\category.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/products/categories");
+   app-mobile/src\config\permission-gates.ts:360:    endpoints: ['POST /api/admin/products/categories/'],
+   app-mobile/src\config\permission-gates.ts:372:      'PUT /api/admin/products/categories/:id',
+   app-mobile/src\config\permission-gates.ts:373:      'PUT /api/admin/products/categories/:id/sort'
+   app-mobile/src\config\permission-gates.ts:384:    endpoints: ['DELETE /api/admin/products/categories/:id'],
+   app-mobile/src\api\modules\products.ts:343:    // 后端分类路由 prefix 为 /api/admin/products/categories
+   … 另 2 条
+
+-- PUT /api/admin/products/categories/:id/sort
+   file=category.routes.ts wired=false 探针=/api/admin/products/categories/sort
+   （全仓无调用点字面量命中）
+
+===== [goods-category-delete] 商品域 · 门码=["goods:delete"]
+
+-- DELETE /api/admin/products/categories/:id
+   file=category.routes.ts wired=false 探针=/api/admin/products/categories
+   backend/src\__tests__\shared\auto-routes.test.ts:59:  "/api/admin/product-tags", "/api/admin/products/categories", "/api/admin/purchase-contracts",
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:282:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "移动 `pages-sub/product/categories/categories.vue`／`category-edit.vue`（菜单码 goods:category，生产 7 个角色可见，其中 6 个不持 goods:create）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:283:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id", path: "/7", reason: "B", note: "同上一行（移动 category-edit.vue:174）" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:284:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "delete", routePath: "/:id", path: "/7", reason: "B", note: "移动 categories.vue:196" },
+   backend/src\__tests__\routes\rbac-b2-s3-220-product-wiring.test.ts:285:  { file: "category.routes.ts", prefix: "/api/admin/products/categories", router: categoryRouter, method: "put", routePath: "/:id/sort", path: "/7/sort", reason: "B", note: "移动 categories.vue:179（拖拽排序）" },
+   backend/src\__tests__\routes\category.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/products/categories");
+   app-mobile/src\pages-sub\product\categories\categories.vue:60:    <!-- S3-230 入口权限门：新增分类 → POST /api/admin/products/categories/（goods:create） -->
+   app-mobile/src\config\permission-gates.ts:360:    endpoints: ['POST /api/admin/products/categories/'],
+   app-mobile/src\config\permission-gates.ts:372:      'PUT /api/admin/products/categories/:id',
+   app-mobile/src\config\permission-gates.ts:373:      'PUT /api/admin/products/categories/:id/sort'
+   app-mobile/src\config\permission-gates.ts:384:    endpoints: ['DELETE /api/admin/products/categories/:id'],
+   app-mobile/src\api\modules\products.ts:343:    // 后端分类路由 prefix 为 /api/admin/products/categories
+   … 另 2 条
+
+===== [staff-entry] 员工/账号域 · 门码=["system:user:create","system:user:edit"]
+
+-- POST /api/admin/staff
+   file=admin-staff.routes.ts wired=false 探针=/api/admin/staff
+   app-mobile/src\config\permission-gates.ts:408:      'POST /api/admin/staff',
+   app-mobile/src\config\permission-gates.ts:409:      'PUT /api/admin/staff/:id',
+   app-mobile/src\config\permission-gates.ts:410:      'PUT /api/admin/staff/:id/disable',
+   app-mobile/src\config\permission-gates.ts:411:      'POST /api/admin/staff/:id/restore'
+   app-mobile/src\pages\profile\profile.vue:50:        <!-- S3-230 入口权限门：员工管理写调用面（POST/PUT /api/admin/staff*），码 system:user:create|edit -->
+
+-- PUT /api/admin/staff/:id
+   file=admin-staff.routes.ts wired=false 探针=/api/admin/staff
+   app-mobile/src\config\permission-gates.ts:408:      'POST /api/admin/staff',
+   app-mobile/src\config\permission-gates.ts:409:      'PUT /api/admin/staff/:id',
+   app-mobile/src\config\permission-gates.ts:410:      'PUT /api/admin/staff/:id/disable',
+   app-mobile/src\config\permission-gates.ts:411:      'POST /api/admin/staff/:id/restore'
+   app-mobile/src\pages\profile\profile.vue:50:        <!-- S3-230 入口权限门：员工管理写调用面（POST/PUT /api/admin/staff*），码 system:user:create|edit -->
+
+-- PUT /api/admin/staff/:id/disable
+   file=admin-staff.routes.ts wired=false 探针=/api/admin/staff/disable
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/staff/:id/restore
+   file=admin-staff.routes.ts wired=false 探针=/api/admin/staff/restore
+   （全仓无调用点字面量命中）
+
+===== [role-entry] 员工/账号域 · 门码=["system:role:create","system:role:edit"]
+
+-- POST /api/admin/system/roles/
+   file=rbac.routes.ts wired=false 探针=/api/admin/system/roles
+   backend/src\__tests__\shared\auto-routes.test.ts:69:  "/api/admin/system/roles", "/api/admin/tenant-usage", "/api/admin/trace",
+   backend/src\__tests__\routes\rbac.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/system/roles");
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:231:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:242:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:364:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:374:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:384:    prefix: "/api/admin/system/roles",
+   app-mobile/src\config\permission-gates.ts:424:      'POST /api/admin/system/roles/',
+   app-mobile/src\config\permission-gates.ts:425:      'PUT /api/admin/system/roles/:id',
+   app-mobile/src\config\permission-gates.ts:426:      'DELETE /api/admin/system/roles/:id'
+   app-mobile/src\pages\profile\profile.vue:59:        <!-- S3-230 入口权限门：角色管理写调用面（/api/admin/system/roles*），码 system:role:create|edit -->
+   backend/src\routes\data-permission.routes.ts:8://   前端数据权限功能走的是 `rbac.routes.ts` 的 `PUT /api/admin/system/roles/:id/data-permissions`，不经过本文件）；
+   … 另 1 条
+
+-- PUT /api/admin/system/roles/:id
+   file=rbac.routes.ts wired=false 探针=/api/admin/system/roles
+   backend/src\__tests__\shared\auto-routes.test.ts:69:  "/api/admin/system/roles", "/api/admin/tenant-usage", "/api/admin/trace",
+   backend/src\__tests__\routes\rbac.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/system/roles");
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:231:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:242:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:364:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:374:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:384:    prefix: "/api/admin/system/roles",
+   app-mobile/src\config\permission-gates.ts:424:      'POST /api/admin/system/roles/',
+   app-mobile/src\config\permission-gates.ts:425:      'PUT /api/admin/system/roles/:id',
+   app-mobile/src\config\permission-gates.ts:426:      'DELETE /api/admin/system/roles/:id'
+   app-mobile/src\pages\profile\profile.vue:59:        <!-- S3-230 入口权限门：角色管理写调用面（/api/admin/system/roles*），码 system:role:create|edit -->
+   backend/src\routes\rbac.routes.ts:31:  prefix: "/api/admin/system/roles",
+   … 另 1 条
+
+-- DELETE /api/admin/system/roles/:id
+   file=rbac.routes.ts wired=false 探针=/api/admin/system/roles
+   backend/src\__tests__\shared\auto-routes.test.ts:69:  "/api/admin/system/roles", "/api/admin/tenant-usage", "/api/admin/trace",
+   backend/src\__tests__\routes\rbac.test.ts:7:    expect(routeConfig.prefix).toBe("/api/admin/system/roles");
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:231:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:242:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:364:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:374:    prefix: "/api/admin/system/roles",
+   backend/src\__tests__\routes\rbac-b2-s3-225-staff-wiring.test.ts:384:    prefix: "/api/admin/system/roles",
+   app-mobile/src\config\permission-gates.ts:424:      'POST /api/admin/system/roles/',
+   app-mobile/src\config\permission-gates.ts:425:      'PUT /api/admin/system/roles/:id',
+   app-mobile/src\config\permission-gates.ts:426:      'DELETE /api/admin/system/roles/:id'
+   app-mobile/src\pages\profile\profile.vue:59:        <!-- S3-230 入口权限门：角色管理写调用面（/api/admin/system/roles*），码 system:role:create|edit -->
+   backend/src\routes\rbac.routes.ts:31:  prefix: "/api/admin/system/roles",
+   … 另 1 条
+
+===== [mkt-coupons] 营销域 · 门码=["marketing:create"]
+
+-- POST /api/admin/marketing/coupons/templates
+   file=admin-marketing-coupon.routes.ts wired=false 探针=/api/admin/marketing/coupons/templates
+   app-mobile/src\config\permission-gates.ts:441:      'POST /api/admin/marketing/coupons/templates',
+   app-mobile/src\config\permission-gates.ts:442:      'POST /api/admin/marketing/coupons/templates/:id/pause'
+
+-- POST /api/admin/marketing/coupons/templates/:id/pause
+   file=admin-marketing-coupon.routes.ts wired=false 探针=/api/admin/marketing/coupons/templates/pause
+   （全仓无调用点字面量命中）
+
+===== [mkt-activities] 营销域 · 门码=["marketing:create"]
+
+-- POST /api/admin/marketing/full-reductions/:id/activate
+   file=admin-marketing-full-reduction.routes.ts wired=false 探针=/api/admin/marketing/full-reductions/activate
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/marketing/full-reductions/:id/pause
+   file=admin-marketing-full-reduction.routes.ts wired=false 探针=/api/admin/marketing/full-reductions/pause
+   （全仓无调用点字面量命中）
+
+-- DELETE /api/admin/marketing/full-reductions/:id
+   file=admin-marketing-full-reduction.routes.ts wired=false 探针=/api/admin/marketing/full-reductions
+   app-mobile/src\config\permission-gates.ts:455:      'POST /api/admin/marketing/full-reductions/:id/activate',
+   app-mobile/src\config\permission-gates.ts:456:      'POST /api/admin/marketing/full-reductions/:id/pause',
+   app-mobile/src\config\permission-gates.ts:457:      'DELETE /api/admin/marketing/full-reductions/:id'
+
+===== [fin-bank-accounts] 财务域 · 门码=["finance:create"]
+
+-- POST /api/admin/bank-accounts/
+   file=bank-account.routes.ts wired=false 探针=/api/admin/bank-accounts
+   backend/src\__tests__\shared\auto-routes.test.ts:46:  "/api/admin/auth", "/api/admin/bank-accounts", "/api/admin/brands", "/api/admin/commission",
+   backend/src\__tests__\routes\rbac-g2-wiring.test.ts:233:    prefix: "/api/admin/bank-accounts",
+   backend/src\__tests__\routes\rbac-g2-wiring.test.ts:245:    prefix: "/api/admin/bank-accounts",
+   backend/src\__tests__\routes\rbac-g1-wiring.test.ts:213:    prefix: "/api/admin/bank-accounts",
+   backend/src\__tests__\routes\rbac-g1-wiring.test.ts:273:  { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/", path: "/", reason: "B", note: "app-mobile 门店管理页 stores.vue:241（bankAccountsApi.create）" },
+   backend/src\__tests__\routes\rbac-g1-wiring.test.ts:274:  { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/:id/close", path: "/1/close", reason: "B", note: "app-mobile 门店管理页 stores.vue:263（bankAccountsApi.close）" },
+   backend/src\__tests__\routes\rbac-g1-wiring.test.ts:546:      const res = await call(appFor("bank-account.routes.ts", "/api/admin/bank-accounts", bankAccountRouter), "post", `/api/admin/bank-accounts${path}`, FINANCE_STAFF);
+   backend/src\__tests__\routes\rbac-g1-wiring.test.ts:561:    const res = await call(appFor("bank-account.routes.ts", "/api/admin/bank-accounts", bankAccountRouter), "post", "/api/admin/bank-accounts/1/freeze", STORE_MANAGER_PROD);
+   backend/src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts:193:    prefix: "/api/admin/bank-accounts",
+   backend/src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts:417:    prefix: "/api/admin/bank-accounts",
+   backend/src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts:427:    prefix: "/api/admin/bank-accounts",
+   backend/src\__tests__\routes\rbac-b2-s3-223-finance-wiring.test.ts:742:    const bank = await call(appFor("bank-account.routes.ts", "/api/admin/bank-accounts", bankAccountRouter), "put", "/api/admin/bank-accounts/1", FINANCE_STAFF);
+   … 另 5 条
+
+-- POST /api/admin/bank-accounts/:id/close
+   file=bank-account.routes.ts wired=false 探针=/api/admin/bank-accounts/close
+   （全仓无调用点字面量命中）
+
+===== [fin-recon-confirm] 财务域 · 门码=["report:finance"]
+
+-- POST /api/admin/reconciliation/customer/:customerId/confirm
+   file=reconciliation.routes.ts wired=false 探针=/api/admin/reconciliation/customer/confirm
+   （全仓无调用点字面量命中）
+
+-- POST /api/admin/reconciliation/supplier/:supplierId/confirm
+   file=reconciliation.routes.ts wired=false 探针=/api/admin/reconciliation/supplier/confirm
+   （全仓无调用点字面量命中）

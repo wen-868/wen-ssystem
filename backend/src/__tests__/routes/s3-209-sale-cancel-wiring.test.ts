@@ -148,7 +148,7 @@ function callCancel(uid?: number) {
 }
 
 /** 取某文件里"注册某方法 + 某路径模式"的**注册行**（跳过注释行）——踩坑[134]：判据必须落到注册行 */
-function registrationLines(file: string, method: "get" | "post", routePath: string): { line: string; no: number }[] {
+function registrationLines(file: string, method: "get" | "post" | "put", routePath: string): { line: string; no: number }[] {
   const src = readFileSync(path.join(ROUTES_DIR, file), "utf8");
   const escaped = routePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const re = new RegExp(`\\.${method}\\(\\s*"${escaped}"`);
@@ -236,13 +236,17 @@ describe("S3-209 · 注册行形状断言（踩坑[134]：判据落在注册行�
     expect(lines[0].line).toContain("orderController.cancelSaleBill");
   });
 
-  // S3-224（2026-10-16）同步：本对照行原取 `POST /orders/:orderNo/cancel`，该行已由 S3-224 按
-  // 「使用者已持有码」接线（`sale:void`，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十四）⇒
-  // 从对照名单移出，改取**同文件、同前缀、S3-224 仍不接**的 `PUT /orders/:orderNo/status`
-  // （该行有 app-mobile 写调用点且使用者集合不可枚举，判 B 类，台账 §十四.5）⇒ 对照语义不变
-  // （「形状断言有分辨力」依然成立），且是**契约变化**而非放宽断言。
-  it("同前缀的既有写端点未接线（对照：证明形状断言有分辨力）", async () => {
-    const unwired = registrationLines("admin-order.routes.ts", "put", "/orders/:orderNo/status");
+  // S3-224（2026-10-16）同步：本对照行原取 `POST /orders/:orderNo/cancel`，该行已由 S3-224 接线。
+  // S3-233（2026-10-16）再同步：改取的 `PUT /orders/:orderNo/status` 也已由本批收编接线
+  // （B 类前提＝移动端无权限门，已由 S3-230 修复）⇒ **admin-order.routes.ts 现已无未接写端点**
+  // （机读台账里该文件已清零）。故对照行改取**同前缀（`/api/admin`）、仍不接**的
+  // `PUT /api/admin/auth/settings`（admin-auth.routes.ts，自服务类，台账仍登记为缺口）——对照语义不变
+  // （「形状断言有分辨力」依然成立），属**契约变化**而非放宽断言。
+  // ⚠️ S3-233 收尾（2026-10-16）：`registrationLines` 的 `routePath` 要的是**文件内**注册模式
+  //   （该文件注册行为 `adminAuthRouter.put("/settings", …)`，`/api/admin/auth` 段来自挂载点），
+  //   原值 `/auth/settings` 是台账号 ⇒ 匹配 0 行，判据会以「0 长度」而非「真未接线」通过。
+  it("同前缀（/api/admin）的既有写端点未接线（对照：证明形状断言有分辨力）", async () => {
+    const unwired = registrationLines("admin-auth.routes.ts", "put", "/settings");
     expect(unwired).toHaveLength(1);
     expect(unwired[0].line).not.toContain("requirePermission");
   });

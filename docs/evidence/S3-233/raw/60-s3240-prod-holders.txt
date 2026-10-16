@@ -1,0 +1,27 @@
+# 底稿：docs/evidence/_shared/prod-roles-20261016.txt
+# 解析到商家角色 12 个：CUSTOMER_SERVICE, FINANCE_STAFF, OPERATION_ADMIN, PURCHASE_STAFF, READONLY, SALES_STAFF, SALESMAN, STORE_ADMIN, STORE_MANAGER, STORE_OPERATOR, SUPER_ADMIN, WAREHOUSE_STAFF
+
+| 权限码 | 生产在用持有者（商家角色） | 条数 |
+|:--|:--|:--:|
+| `sale:create` | OPERATION_ADMIN / SALES_STAFF / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN | 5 |
+| `sale:void` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN | 3 |
+| `inventory:inbound` | OPERATION_ADMIN / PURCHASE_STAFF / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF | 5 |
+| `purchase:create` | OPERATION_ADMIN / PURCHASE_STAFF / SUPER_ADMIN | 3 |
+| `sale:return` | OPERATION_ADMIN / STORE_MANAGER / STORE_OPERATOR / SUPER_ADMIN | 4 |
+| `finance:payment` | FINANCE_STAFF / OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN | 4 |
+| `inventory:create` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF | 4 |
+| `inventory:adjust` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN / WAREHOUSE_STAFF | 4 |
+| `store:transfer` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN | 3 |
+| `goods:edit` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `goods:price` | OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN | 3 |
+| `goods:create` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `goods:delete` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `system:user:create` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `system:user:edit` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `system:role:create` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `system:role:edit` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `marketing:create` | OPERATION_ADMIN / SUPER_ADMIN | 2 |
+| `finance:create` | FINANCE_STAFF / OPERATION_ADMIN / SUPER_ADMIN | 3 |
+| `report:finance` | FINANCE_STAFF / OPERATION_ADMIN / STORE_MANAGER / SUPER_ADMIN | 4 |
+
+结论：本批 20 个码中，**无在用持有者的码 = 0**

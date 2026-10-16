@@ -190,7 +190,7 @@ interface Row {
 }
 
 /**
- * 本批已接名单（**25 行**，逐行判定见台账 §十一）。
+ * 已接名单（**29 行** = S3-214-B2 的 25 行 + S3-233 收编的 4 行，逐行判定见台账 §十一 / §十八）。
  * 口径（三重，派单卡 §三）：① 优先挂「该端点真实使用者已持有的模块码」（零回归）；
  * ② 只有「采购岗专属、且使用者本来就不是店长/仓管/财务」的端点才挂 `purchase:*`（该码当前仅 SUPER_ADMIN 持有）；
  * ③ 找不到使用者已持有码 ⇒ 不接线（见 UNWIRED）。
@@ -238,6 +238,17 @@ const ROWS: Row[] = [
   { file: "supplier-statement.routes.ts", prefix: "/api/admin/supplier-statements", router: supplierStatementRouter, method: "post", routePath: "/generate", path: "/generate", perm: "report:finance", page: "SupplierStatements.vue:230 [SUPER_ADMIN, STORE_MANAGER]；财务亦在用" },
   { file: "supplier-statement.routes.ts", prefix: "/api/admin/supplier-statements", router: supplierStatementRouter, method: "post", routePath: "/:statementNo/confirm", path: "/SS1/confirm", perm: "report:finance", page: "SupplierStatements.vue:259 [SUPER_ADMIN, STORE_MANAGER]" },
   { file: "supplier-statement.routes.ts", prefix: "/api/admin/supplier-statements", router: supplierStatementRouter, method: "post", routePath: "/:statementNo/dispute", path: "/SS1/dispute", perm: "report:finance", page: "SupplierStatements.vue:276 [SUPER_ADMIN, STORE_MANAGER]" },
+
+  // ===== S3-233（B 类收编第一批 · 采购域 4 条）=================================================
+  // 4 条「移动端「销售开单」采购页签」的创建端点：S3-214-B2 因"页签无权限门 ⇒ 使用者集合不可枚举（M 类）"未接，
+  // 该前提已由 S3-230 的入口权限门（`purchase-sub-order` / `purchase-sub-inbound` / `purchase-sub-return` /
+  // `purchase-sub-payment` / `home-in-stock`）修复 ⇒ 本批按注册表门码逐条收编；四个码都是既有码（不新立）。
+  // 零回归：`purchase:create` = 超管/运营 + 采购员；`inventory:inbound` = 超管/运营 + 店长(inventory:*) + 仓管 + 采购员；
+  // `sale:return` = 超管/运营 + 店长(sale:*，生产实值含 sale:return) + 操作员；`finance:payment` = 超管/运营 + 财务 + 店长。
+  { file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", routePath: "/", path: "/", perm: "purchase:create", page: "app-mobile 开单页「采购→采购订单」子段（门 purchase-sub-order）" },
+  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/", path: "/", perm: "inventory:inbound", page: "app-mobile 开单页「采购→采购入库」子段 + 首页「扫码入库」（门 purchase-sub-inbound / home-in-stock）" },
+  { file: "purchase-return.routes.ts", prefix: "/api/admin/purchase-returns", router: purchaseReturnRouter, method: "post", routePath: "/", path: "/", perm: "sale:return", page: "app-mobile 开单页「采购→采购退货」子段（门 purchase-sub-return）" },
+  { file: "purchase-payment.routes.ts", prefix: "/api/admin/purchase-payments", router: purchasePaymentRouter, method: "post", routePath: "/", path: "/", perm: "finance:payment", page: "app-mobile 开单页「采购→付款单」子段（门 purchase-sub-payment）" },
 ];
 
 interface UnwiredRow {
@@ -247,22 +258,22 @@ interface UnwiredRow {
   method: Method;
   routePath: string;
   path: string;
-  /** M = 移动端「销售开单」采购页签无权限门（接线即把门店角色打成 403）；W = 待授权模型定案 */
+  /**
+   * W = 待授权模型定案（采购计划两条）。
+   * ⚠️ 原 M 类（移动端「销售开单」采购页签无权限门）4 条已由 S3-233 收编接线 ⇒ 本类型已无实例，
+   *    保留在联合类型里仅为兼容历史卡口径（新增行不得再使用 M）。
+   */
   reason: "M" | "W";
   note: string;
 }
 
-/** 本域**本批未接**的 6 行（逐条原因见台账 §十一）。 */
+/** 本域**未接**的 2 行（S3-233 收编 4 条 M 类后，仅剩采购计划 2 条 W 类；逐条原因见台账 §十一）。 */
 const UNWIRED: UnwiredRow[] = [
-  { file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2159（doc=pur_order）；页签无权限门 app-mobile/src/pages/sales/create-sale.vue:23" },
-  { file: "purchase-in-stock.routes.ts", prefix: "/api/admin/purchase-in-stocks", router: purchaseInStockRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2112（doc=pur_inbound）；同上页签无门" },
-  { file: "purchase-payment.routes.ts", prefix: "/api/admin/purchase-payments", router: purchasePaymentRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2211（doc=pur_payment）；同上页签无门" },
-  { file: "purchase-return.routes.ts", prefix: "/api/admin/purchase-returns", router: purchaseReturnRouter, method: "post", routePath: "/", path: "/", reason: "M", note: "移动 create-sale.vue:2270（submitPurchaseReturn）；同上页签无门" },
   { file: "purchase-plan.routes.ts", prefix: "/api/admin/purchase-plans", router: purchasePlanRouter, method: "post", routePath: "/", path: "/", reason: "W", note: "页面 meta.roles 含 STORE_MANAGER（router/index.ts:131），生产店长不持任何 purchase:*，且无店长已持有的采购计划语义码" },
   { file: "purchase-plan.routes.ts", prefix: "/api/admin/purchase-plans", router: purchasePlanRouter, method: "post", routePath: "/:planNo/convert", path: "/PL1/convert", reason: "W", note: "同上一行（采购计划页 PurchasePlans.vue:336）" },
 ];
 
-/** 台账 §三.16 的本域写端点总数（9 文件） = 本批已接 25 + 未接 6 */
+/** 台账 §三.16 的本域写端点总数（9 文件） = S3-214-B2 已接 25 + S3-233 收编 4 + 未接 2 */
 const DOMAIN_TOTAL = 31;
 
 function label(row: { file: string; method: Method; routePath: string }) {
@@ -351,21 +362,21 @@ beforeEach(() => {
 });
 
 describe("S3-214-B2 · 名单自证", () => {
-  it("25 已接 + 6 未接 = 31（= 台账 §三.16 本域写端点总数）", () => {
-    expect(ROWS).toHaveLength(25);
-    expect(UNWIRED).toHaveLength(6);
+  it("29 已接（25 + S3-233 收编 4）+ 2 未接 = 31（= 台账 §三.16 本域写端点总数）", () => {
+    expect(ROWS).toHaveLength(29);
+    expect(UNWIRED).toHaveLength(2);
     expect(ROWS.length + UNWIRED.length).toBe(DOMAIN_TOTAL);
   });
 
-  it("已接 25 行的逐文件分布（与台账 §十一 表一致）", () => {
+  it("已接 29 行的逐文件分布（S3-214-B2 的 8 文件 + S3-233 新增 4 行落在 `purchase.routes.ts` 等 4 个文件；与台账 §十一/§十八 一致）", () => {
     const perFile = new Map<string, number>();
     for (const row of ROWS) perFile.set(row.file, (perFile.get(row.file) ?? 0) + 1);
     expect([...perFile.entries()].sort()).toEqual([
       ["purchase-contract.routes.ts", 4],
-      ["purchase-in-stock.routes.ts", 2],
-      ["purchase-payment.routes.ts", 2],
-      ["purchase-return.routes.ts", 2],
-      ["purchase.routes.ts", 4],
+      ["purchase-in-stock.routes.ts", 3],
+      ["purchase-payment.routes.ts", 3],
+      ["purchase-return.routes.ts", 3],
+      ["purchase.routes.ts", 5],
       ["supplier-contact.routes.ts", 4],
       ["supplier-statement.routes.ts", 3],
       ["supplier.routes.ts", 4],
@@ -400,12 +411,13 @@ describe("S3-214-B2 · 形状断言（注册行级判据，踩坑[134]）", () =
     expect(lines[0].line).not.toContain("requirePermission(");
   });
 
-  it("整文件子串不足以判定（踩坑[134]）：purchase-in-stock.routes.ts 文件级已含 requirePermission，但被排除的创建行没有", () => {
+  it("整文件子串不足以判定（踩坑[134]）：purchase-in-stock.routes.ts 的创建行必须**行级**自带 inventory:inbound（S3-233 收编后契约反转）", () => {
     const src = readFileSync(path.join(ROUTES_DIR, "purchase-in-stock.routes.ts"), "utf8");
     expect(src).toContain('requirePermission("inventory:inbound")');
     const lines = registrationLines("purchase-in-stock.routes.ts", "post", "/");
     expect(lines).toHaveLength(1);
-    expect(lines[0].line, "移动端页签用的创建行不得被误判为已接线").not.toContain("requirePermission(");
+    // S3-233：页签权限门落地后，该创建行由「不接」转为「已接」；判据仍是"落到注册行本身"。
+    expect(lines[0].line, "创建行必须行级自带该码").toContain('requirePermission("inventory:inbound")');
   });
 });
 
@@ -486,16 +498,21 @@ describe("S3-214-B2 · 两侧判据 b) 有码 ⇒ 通过（不锁死既有页面
     }
   });
 
-  it("店长（生产实值）通过 9 行 —— 其中 5 行是「页面 meta.roles 含 STORE_MANAGER」的真实使用行（零回归正面证据）", async () => {
-    // 店长（生产实值：store:*/sale:*/inventory:*/report:*/finance:payment…）在本批 25 行上命中 9 行：
-    // 入库 2（inventory:*）+ 付款 2（精确 finance:payment）+ 采购退货 2（sale:*）+ 供应商对账 3（report:*）。
+  it("店长（生产实值）通过 12 行 —— 其中 5 行是「页面 meta.roles 含 STORE_MANAGER」的真实使用行（零回归正面证据）", async () => {
+    // 店长（生产实值：store:*/sale:*/inventory:*/report:*/finance:payment…）在本批 29 行上命中 12 行：
+    // 入库 3（inventory:*，含 S3-233 收编的创建行）+ 付款 3（精确 finance:payment，含创建行）
+    // + 采购退货 3（sale:*，含创建行）+ 供应商对账 3（report:*）。
     // 前两类是「持有 ⊋ 页面」的宽授（页面不可达，不构成回归）；后两类是页面真实使用行，**必须**过。
+    // S3-233 的三条创建行是"移动端采购页签"真实使用者（入口权限门已按同码显隐）⇒ 必须继续通过（不回归）。
     const storeManagerRows = ROWS.filter((row) => holdersOf(row.perm).includes(STORE_MANAGER));
     const expected = [
+      "purchase-in-stock.routes.ts POST /",
       "purchase-in-stock.routes.ts POST /:stockNo/approve",
       "purchase-in-stock.routes.ts POST /:stockNo/void",
+      "purchase-payment.routes.ts POST /",
       "purchase-payment.routes.ts POST /:paymentNo/approve",
       "purchase-payment.routes.ts POST /:paymentNo/void",
+      "purchase-return.routes.ts POST /",
       "purchase-return.routes.ts POST /:returnNo/approve",
       "purchase-return.routes.ts POST /:returnNo/void",
       "supplier-statement.routes.ts POST /:statementNo/confirm",
@@ -503,11 +520,11 @@ describe("S3-214-B2 · 两侧判据 b) 有码 ⇒ 通过（不锁死既有页面
       "supplier-statement.routes.ts POST /generate",
     ].sort();
     expect(storeManagerRows.map((r) => `${r.file} ${r.method.toUpperCase()} ${r.routePath}`).sort()).toEqual(expected);
-    // 页面真实使用行（`PurchaseReturnsView.vue:138` / `SupplierStatements.vue:230/259/276`，meta.roles 含 STORE_MANAGER）⊆ 上述 9 行
+    // 页面真实使用行（`PurchaseReturnsView.vue:138` / `SupplierStatements.vue:230/259/276`，meta.roles 含 STORE_MANAGER）⊆ 上述 12 行
     const pageRows = storeManagerRows
       .filter((r) => r.file === "purchase-return.routes.ts" || r.file === "supplier-statement.routes.ts")
       .map((r) => `${r.file} ${r.method.toUpperCase()} ${r.routePath}`);
-    expect(pageRows).toHaveLength(5);
+    expect(pageRows).toHaveLength(6);
     for (const row of storeManagerRows) {
       h.reached.length = 0;
       const res = await call(appFor(row), row.method, `${row.prefix}${row.path}`, STORE_MANAGER);
@@ -515,9 +532,10 @@ describe("S3-214-B2 · 两侧判据 b) 有码 ⇒ 通过（不锁死既有页面
     }
   });
 
-  it("财务通过「付款审核 / 付款作废 / 对账 3 行」共 5 行 —— 职责归属正面证据", async () => {
+  it("财务通过「付款创建 / 付款审核 / 付款作废 / 对账 3 行」共 6 行 —— 职责归属正面证据", async () => {
     const rows = ROWS.filter((row) => holdersOf(row.perm).includes(FINANCE_STAFF));
     expect(rows.map((r) => `${r.file} ${r.method.toUpperCase()} ${r.routePath}`).sort()).toEqual([
+      "purchase-payment.routes.ts POST /",
       "purchase-payment.routes.ts POST /:paymentNo/approve",
       "purchase-payment.routes.ts POST /:paymentNo/void",
       "supplier-statement.routes.ts POST /:statementNo/confirm",
@@ -531,17 +549,18 @@ describe("S3-214-B2 · 两侧判据 b) 有码 ⇒ 通过（不锁死既有页面
     }
   });
 
-  it("仓管通过入库审核 2 行、采购员通过 18 行、超管/运营员通过全部 25 行", async () => {
+  it("仓管通过入库 3 行、采购员通过 19 行、超管/运营员通过全部 29 行", async () => {
     const whRows = ROWS.filter((row) => holdersOf(row.perm).includes(WAREHOUSE_STAFF));
-    expect(whRows).toHaveLength(2);
+    expect(whRows).toHaveLength(3);
     for (const row of whRows) {
       const res = await call(appFor(row), row.method, `${row.prefix}${row.path}`, WAREHOUSE_STAFF);
       expect(res.status, `仓管应通过 ${label(row)}`).toBe(200);
     }
 
     const psRows = ROWS.filter((row) => holdersOf(row.perm).includes(PURCHASE_STAFF));
-    // 采购员（purchase:* / supplier:* / 精确 inventory:inbound）= 1（审核）+ 7（purchase:create）+ 8（purchase:supplier）+ 2（inventory:inbound）
-    expect(psRows).toHaveLength(18);
+    // 采购员（purchase:* / supplier:* / 精确 inventory:inbound）= 1（purchase:approve）
+    //   + 8（purchase:create，含 S3-233 的采购订单创建行）+ 8（purchase:supplier）+ 3（inventory:inbound，含 S3-233 入库创建行）= 20
+    expect(psRows).toHaveLength(20);
     for (const row of psRows) {
       const res = await call(appFor(row), row.method, `${row.prefix}${row.path}`, PURCHASE_STAFF);
       expect(res.status, `采购员应通过 ${label(row)}`).toBe(200);
@@ -557,7 +576,7 @@ describe("S3-214-B2 · 两侧判据 b) 有码 ⇒ 通过（不锁死既有页面
 });
 
 describe("S3-214-B2 · 两侧判据 c) 收银/销售类角色（页面外）仍被拦住 —— 不是「谁都能过」", () => {
-  it("SALES_STAFF 对全部 25 行 ⇒ 403（本批没有把权限门放宽成摆设）", async () => {
+  it("SALES_STAFF 对全部 29 行 ⇒ 403（没有把权限门放宽成摆设）", async () => {
     expect(matchPermission(USERS[SALES_STAFF].perms, "sale:create")).toBe(true);
     for (const row of ROWS) {
       const res = await call(appFor(row), row.method, `${row.prefix}${row.path}`, SALES_STAFF);
@@ -565,12 +584,16 @@ describe("S3-214-B2 · 两侧判据 c) 收银/销售类角色（页面外）仍�
     }
   });
 
-  it("STORE_OPERATOR（持 sale:return）只通过退货 2 行，对其余 23 行 403", async () => {
+  it("STORE_OPERATOR（持 sale:return）只通过退货 3 行（含 S3-233 的退货创建行），对其余 26 行 403", async () => {
     const passing = ROWS.filter((row) => holdersOf(row.perm).includes(9013));
-    expect(passing.map((r) => `${r.file} ${r.routePath}`)).toEqual([
-      "purchase-return.routes.ts /:returnNo/approve",
-      "purchase-return.routes.ts /:returnNo/void",
-    ]);
+    // 两侧排序比较（不受 ROWS 声明顺序影响）
+    expect(passing.map((r) => `${r.file} ${r.routePath}`).sort()).toEqual(
+      [
+        "purchase-return.routes.ts /",
+        "purchase-return.routes.ts /:returnNo/approve",
+        "purchase-return.routes.ts /:returnNo/void",
+      ].sort()
+    );
     for (const row of ROWS) {
       const res = await call(appFor(row), row.method, `${row.prefix}${row.path}`, 9013);
       expect(res.status, `${label(row)} 的期望结论与 holdersOf 复算不一致`).toBe(
@@ -580,14 +603,11 @@ describe("S3-214-B2 · 两侧判据 c) 收银/销售类角色（页面外）仍�
   });
 });
 
-describe("S3-214-B2 · 范围控制 d) 本域未接的 6 行不被本批拦住（且不得偷接）", () => {
-  it("未接 6 行的原因分布：M（移动端页签无权限门）4 条 / W（待授权模型定案）2 条", () => {
+describe("S3-214-B2 · 范围控制 d) 本域未接的 2 行不被拦住（且不得偷接）", () => {
+  it("未接 2 行的原因分布：W（待授权模型定案）2 条（原 M 类 4 条已由 S3-233 收编接线）", () => {
     const byReason = new Map<string, number>();
     for (const row of UNWIRED) byReason.set(row.reason, (byReason.get(row.reason) ?? 0) + 1);
-    expect([...byReason.entries()].sort()).toEqual([
-      ["M", 4],
-      ["W", 2],
-    ]);
+    expect([...byReason.entries()].sort()).toEqual([["W", 2]]);
   });
 
   it.each(UNWIRED)("$file $method $routePath：READONLY ⇒ 200（未被本批拦住，保持原状态）", async (row) => {
@@ -604,15 +624,22 @@ describe("S3-214-B2 · 范围控制 d) 本域未接的 6 行不被本批拦住�
       "POST /api/admin/purchase-plans/",
       "POST /api/admin/purchase-plans/:planNo/convert",
     ]);
-    // 4 条移动端创建行同样保留在缺口台账里（key = 文件，值含该端点）
+    // S3-233（2026-10-16）契约反转：4 条移动端创建行原保留在缺口台账里（B/M 类），
+    //   其前提「移动端采购页签无权限门」已由 S3-230 的入口权限门修复 ⇒ 本批收编接线，
+    //   故这 4 条**不再**出现在台账 gaps 里（已接线端点不入台账）；采购计划 2 条仍保留（W 类待裁定）。
     for (const [file, endpoint] of [
       ["purchase.routes.ts", "POST /api/admin/purchase-orders/"],
       ["purchase-in-stock.routes.ts", "POST /api/admin/purchase-in-stocks/"],
       ["purchase-payment.routes.ts", "POST /api/admin/purchase-payments/"],
       ["purchase-return.routes.ts", "POST /api/admin/purchase-returns/"],
     ]) {
-      expect(baseline.gaps[file], `${file} 应保留该缺口`).toContain(endpoint);
+      // S3-233 收尾（2026-10-16）：文件缺口清零后机读台账**不再保留空 key**（与下方 641-643 行同一语义），
+      //   故先取 `?? []`（"无该 key" 等价于"该文件已无缺口"）；否则 `expect(undefined).not.toContain()`
+      //   会因参数组合非法直接抛 AssertionError，使"已接线 ⇒ 不再登记为缺口"这条判据**失去分辨力**。
+      expect(baseline.gaps[file] ?? [], `${file} 的该端点已接线 ⇒ 不应再登记为缺口`).not.toContain(endpoint);
     }
+    // 采购计划的 2 条仍在台账（未被静默洗绿）
+    expect(baseline.gaps["purchase-plan.routes.ts"]).toHaveLength(2);
     // 已接线的 3 个文件不再出现在缺口台账里（已接线端点不入台账）
     for (const file of ["supplier.routes.ts", "supplier-contact.routes.ts", "supplier-statement.routes.ts", "purchase-contract.routes.ts"]) {
       expect(baseline.gaps[file], `${file} 已清零，不应留在缺口台账`).toBeUndefined();

@@ -1,0 +1,177 @@
+
+[gated] sale-order-detail-deliver · 销售域 · 门码=["sale:create"]
+   PUT /api/admin/orders/:orderNo/status ⇒ ✅ 已挂权限（inline）码=["sale:create"]  [admin-order.routes.ts]
+   POST /api/store/orders/:orderNo/start-delivery ⇒ ✅ 已挂权限（inline）码=["sale:create"]  [store-order.routes.ts]
+
+[gated] sale-order-detail-cancel · 销售域 · 门码=["sale:void"]
+   POST /api/admin/orders/:orderNo/cancel ⇒ ✅ 已挂权限（inline）码=["sale:void"]  [admin-order.routes.ts]
+
+[gated] sale-create-hold · 销售域 · 门码=["sale:create"]
+   POST /api/store/hold-orders/ ⇒ ✅ 已挂权限（inline）码=[]  [store-order.routes.ts]
+
+[gated] sale-bill-offline-pay · 销售域 · 门码=["sale:create"]
+   POST /api/store/sale-bills/:billNo/offline-payment ⇒ ✅ 已挂权限（inline）码=["sale:create"]  [store-sale-bill.routes.ts]
+
+[gated] sale-receipt-sub · 销售域 · 门码=["sale:create"]
+   POST /api/admin/receipts/ ⇒ ✅ 已挂权限（inline）码=[]  [receipt.routes.ts]
+
+[gated] purchase-sub-order · 采购域 · 门码=["purchase:create"]
+   POST /api/admin/purchase-orders/ ⇒ ✅ 已挂权限（inline）码=[]  [purchase.routes.ts]
+
+[gated] purchase-sub-inbound · 采购域 · 门码=["inventory:inbound"]
+   POST /api/admin/purchase-in-stocks/ ⇒ ✅ 已挂权限（inline）码=[]  [purchase-in-stock.routes.ts]
+
+[gated] purchase-sub-return · 采购域 · 门码=["sale:return"]
+   POST /api/admin/purchase-returns/ ⇒ ✅ 已挂权限（inline）码=[]  [purchase-return.routes.ts]
+
+[gated] purchase-sub-payment · 采购域 · 门码=["finance:payment"]
+   POST /api/admin/purchase-payments/ ⇒ ✅ 已挂权限（inline）码=[]  [purchase-payment.routes.ts]
+
+[gated] home-in-stock · 采购域 · 门码=["inventory:inbound"]
+   POST /api/admin/purchase-in-stocks/ ⇒ ✅ 已挂权限（inline）码=[]  [purchase-in-stock.routes.ts]
+
+[gated] fx-stock-check · 库存/追溯域 · 门码=["inventory:create","inventory:adjust"]
+   POST /api/admin/stock-checks/ ⇒ ✅ 已挂权限（inline）码=[]  [stock-check.routes.ts]
+   PUT /api/admin/stock-checks/:id ⇒ ✅ 已挂权限（inline）码=[]  [stock-check.routes.ts]
+   POST /api/admin/stock-checks/:id/start ⇒ ✅ 已挂权限（inline）码=["inventory:create"]  [stock-check.routes.ts]
+   POST /api/admin/stock-checks/:id/complete ⇒ ✅ 已挂权限（inline）码=["inventory:adjust"]  [stock-check.routes.ts]
+   POST /api/admin/stock-checks/:id/cancel ⇒ ✅ 已挂权限（inline）码=["inventory:adjust"]  [stock-check.routes.ts]
+   POST /api/admin/stock-checks/:id/handle-diff ⇒ ✅ 已挂权限（inline）码=["inventory:adjust"]  [stock-check.routes.ts]
+   POST /api/admin/stock-checks/:id/items ⇒ ✅ 已挂权限（inline）码=["inventory:create"]  [stock-check.routes.ts]
+   PUT /api/store/stock-checks/:id/items/:itemId ⇒ ✅ 已挂权限（inline）码=["inventory:adjust"]  [stock-check.routes.ts]
+   POST /api/store/stock-checks/:id/submit ⇒ ✅ 已挂权限（inline）码=["inventory:create"]  [stock-check.routes.ts]
+
+[gated] fx-stock-warning · 库存/追溯域 · 门码=["inventory:adjust"]
+   POST /api/admin/stock-warnings/config ⇒ ✅ 已挂权限（inline）码=["inventory:adjust"]  [stock-warning.routes.ts]
+   PUT /api/store/inventory/alerts/:skuId/threshold ⇒ ✅ 已挂权限（inline）码=["inventory:adjust"]  [store-inventory.routes.ts]
+
+[gated] fx-loss-gain · 库存/追溯域 · 门码=["inventory:adjust"]
+   POST /api/admin/inventory/report-loss-gain ⇒ ✅ 已挂权限（inline）码=["inventory:adjust"]  [inventory-loss-gain.routes.ts]
+
+[gated] fx-transfer · 库存/追溯域 · 门码=["store:transfer"]
+   POST /api/admin/transfers/ ⇒ ✅ 已挂权限（inline）码=[]  [transfer.routes.ts]
+   PUT /api/admin/transfers/:id ⇒ ✅ 已挂权限（inline）码=[]  [transfer.routes.ts]
+   POST /api/admin/transfers/:id/submit ⇒ ✅ 已挂权限（inline）码=["store:transfer"]  [transfer.routes.ts]
+   POST /api/admin/transfers/:id/approve ⇒ ✅ 已挂权限（inline）码=["store:transfer"]  [transfer.routes.ts]
+   POST /api/admin/transfers/:id/reject ⇒ ✅ 已挂权限（inline）码=["store:transfer"]  [transfer.routes.ts]
+   POST /api/admin/transfers/:id/cancel ⇒ ✅ 已挂权限（inline）码=["store:transfer"]  [transfer.routes.ts]
+   POST /api/admin/transfers/:id/ship ⇒ ✅ 已挂权限（inline）码=["store:transfer"]  [transfer.routes.ts]
+
+[gated] fx-transfer-receive · 库存/追溯域 · 门码=["store:transfer"]
+   POST /api/store/transfers/:id/receive ⇒ ✅ 已挂权限（inline）码=["store:transfer"]  [transfer.routes.ts]
+
+[registered] fx-trace-verify · 库存/追溯域 · 门码=[]
+   POST /api/admin/trace/verify ⇒ ⚠️ 未挂权限（none）  [trace.routes.ts]
+
+[gated] goods-detail-edit · 商品域 · 门码=["goods:edit","goods:price","goods:create","goods:delete"]
+   PUT /api/admin/products/:id ⇒ ✅ 已挂权限（inline）码=["goods:edit","goods:price"]  [admin-product.routes.ts]
+   PUT /api/admin/products/:skuId/price ⇒ ✅ 已挂权限（inline）码=["goods:price"]  [admin-product.routes.ts]
+   PUT /api/admin/products/skus/:skuId ⇒ ✅ 已挂权限（inline）码=["goods:edit"]  [admin-product.routes.ts]
+   POST /api/admin/products/skus/:skuId/units ⇒ ✅ 已挂权限（inline）码=["goods:create"]  [admin-product.routes.ts]
+   PUT /api/admin/products/skus/:skuId/units/:unitId ⇒ ✅ 已挂权限（inline）码=["goods:edit"]  [admin-product.routes.ts]
+   DELETE /api/admin/products/skus/:skuId/units/:unitId ⇒ ✅ 已挂权限（inline）码=["goods:delete"]  [admin-product.routes.ts]
+   PUT /api/admin/products/:spuId/marketing-tags ⇒ ✅ 已挂权限（inline）码=["goods:edit"]  [admin-product.routes.ts]
+   POST /api/admin/products/upload-image ⇒ ✅ 已挂权限（inline）码=["goods:create"]  [admin-product.routes.ts]
+
+[gated] goods-batch-price-submit · 商品域 · 门码=["goods:price"]
+   PUT /api/admin/products/:skuId/price ⇒ ✅ 已挂权限（inline）码=["goods:price"]  [admin-product.routes.ts]
+
+[gated] goods-category-create · 商品域 · 门码=["goods:create"]
+   POST /api/admin/products/categories/ ⇒ ✅ 已挂权限（inline）码=[]  [category.routes.ts]
+
+[gated] goods-category-edit · 商品域 · 门码=["goods:edit"]
+   PUT /api/admin/products/categories/:id ⇒ ✅ 已挂权限（inline）码=[]  [category.routes.ts]
+   PUT /api/admin/products/categories/:id/sort ⇒ ✅ 已挂权限（inline）码=["goods:edit"]  [category.routes.ts]
+
+[gated] goods-category-delete · 商品域 · 门码=["goods:delete"]
+   DELETE /api/admin/products/categories/:id ⇒ ✅ 已挂权限（inline）码=[]  [category.routes.ts]
+
+[registered] goods-scan-lookup · 商品域 · 门码=[]
+   POST /api/admin/library/lookup ⇒ ⚠️ 未挂权限（none）  [admin-library.routes.ts]
+
+[gated] staff-entry · 员工/账号域 · 门码=["system:user:create","system:user:edit"]
+   POST /api/admin/staff ⇒ ✅ 已挂权限（inline）码=["system:user:create","system:user:edit"]  [admin-staff.routes.ts]
+   PUT /api/admin/staff/:id ⇒ ✅ 已挂权限（inline）码=["system:user:edit"]  [admin-staff.routes.ts]
+   PUT /api/admin/staff/:id/disable ⇒ ✅ 已挂权限（inline）码=["system:user:edit"]  [admin-staff.routes.ts]
+   POST /api/admin/staff/:id/restore ⇒ ✅ 已挂权限（inline）码=["system:user:edit"]  [admin-staff.routes.ts]
+
+[gated] role-entry · 员工/账号域 · 门码=["system:role:create","system:role:edit"]
+   POST /api/admin/system/roles/ ⇒ ✅ 已挂权限（inline）码=[]  [rbac.routes.ts]
+   PUT /api/admin/system/roles/:id ⇒ ✅ 已挂权限（inline）码=["system:role:edit"]  [rbac.routes.ts]
+   DELETE /api/admin/system/roles/:id ⇒ ✅ 已挂权限（inline）码=[]  [rbac.routes.ts]
+
+[gated] mkt-coupons · 营销域 · 门码=["marketing:create"]
+   POST /api/admin/marketing/coupons/templates ⇒ ✅ 已挂权限（inline）码=["marketing:create"]  [admin-marketing-coupon.routes.ts]
+   POST /api/admin/marketing/coupons/templates/:id/pause ⇒ ✅ 已挂权限（inline）码=["marketing:create"]  [admin-marketing-coupon.routes.ts]
+
+[gated] mkt-activities · 营销域 · 门码=["marketing:create"]
+   POST /api/admin/marketing/full-reductions/:id/activate ⇒ ✅ 已挂权限（inline）码=["marketing:create"]  [admin-marketing-full-reduction.routes.ts]
+   POST /api/admin/marketing/full-reductions/:id/pause ⇒ ✅ 已挂权限（inline）码=["marketing:create"]  [admin-marketing-full-reduction.routes.ts]
+   DELETE /api/admin/marketing/full-reductions/:id ⇒ ✅ 已挂权限（inline）码=["marketing:create"]  [admin-marketing-full-reduction.routes.ts]
+
+[registered] mkt-coupon-verify · 营销域 · 门码=[]
+   POST /api/store/coupons/verify ⇒ ⚠️ 未挂权限（none）  [store-coupon.routes.ts]
+   POST /api/store/coupons/manual-verify ⇒ ⚠️ 未挂权限（none）  [store-coupon.routes.ts]
+
+[registered] mkt-points-adjust · 营销域 · 门码=[]
+   POST /api/admin/members/:id/points/adjust ⇒ ⚠️ 未挂权限（none）  [points.routes.ts]
+
+[registered] mkt-points-exchange · 营销域 · 门码=[]
+   POST /api/admin/marketing/points/redeem ⇒ ⚠️ 未挂权限（none）  [admin-marketing-points.routes.ts]
+
+[gated] fin-bank-accounts · 财务域 · 门码=["finance:create"]
+   POST /api/admin/bank-accounts/ ⇒ ✅ 已挂权限（inline）码=[]  [bank-account.routes.ts]
+   POST /api/admin/bank-accounts/:id/close ⇒ ✅ 已挂权限（inline）码=["finance:create"]  [bank-account.routes.ts]
+
+[gated] fin-recon-confirm · 财务域 · 门码=["report:finance"]
+   POST /api/admin/reconciliation/customer/:customerId/confirm ⇒ ✅ 已挂权限（inline）码=["report:finance"]  [reconciliation.routes.ts]
+   POST /api/admin/reconciliation/supplier/:supplierId/confirm ⇒ ✅ 已挂权限（inline）码=["report:finance"]  [reconciliation.routes.ts]
+
+[registered] cust-statement-confirm · 客户域 · 门码=[]
+   POST /api/store/customer-statements/:statementNo/confirm ⇒ ⚠️ 未挂权限（none）  [customer-statement.routes.ts]
+
+[registered] island-quote-push · 销售域 · 门码=[]
+   POST /api/admin/quote-push/ ⇒ ⚠️ 未挂权限（none）  [admin-quote-push.routes.ts]
+
+[registered] island-aftersale · 销售域 · 门码=[]
+   POST /api/admin/aftersales/:id/approve ⇒ ⚠️ 未挂权限（none）  [aftersale.routes.ts]
+   POST /api/admin/aftersales/:id/reject ⇒ ⚠️ 未挂权限（none）  [aftersale.routes.ts]
+   POST /api/admin/aftersales/:id/inspect ⇒ ⚠️ 未挂权限（none）  [aftersale.routes.ts]
+   POST /api/admin/aftersales/:id/complete ⇒ ⚠️ 未挂权限（none）  [aftersale.routes.ts]
+
+[registered] island-order-exception · 销售域 · 门码=[]
+   POST /api/admin/order-exceptions ⇒ ⚠️ 未挂权限（none）  [order-exception.routes.ts]
+   PUT /api/admin/order-exceptions/:id ⇒ ❌ 后端未扫到该写端点
+   PUT /api/admin/order-exceptions/:id/status ⇒ ❌ 后端未扫到该写端点
+
+[registered] island-collection-link · 销售域 · 门码=[]
+   POST /api/store/sale-bills/:billNo/collection-link ⇒ ⚠️ 未挂权限（none）  [store-sale-bill.routes.ts]
+
+[registered] island-instant-retail-admin · 销售域 · 门码=[]
+   POST /api/admin/instant-retail/orders/:orderNo/status ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   POST /api/admin/instant-retail/routing-rules ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   PUT /api/admin/instant-retail/routing-rules/:id ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   DELETE /api/admin/instant-retail/routing-rules/:id ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   POST /api/admin/instant-retail/exceptions/:id/handle ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   POST /api/admin/instant-retail/shelf ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   PUT /api/admin/instant-retail/shelf/:id ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   DELETE /api/admin/instant-retail/shelf/:id ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   POST /api/admin/instant-retail/deliveries/:deliveryId/assign ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   POST /api/admin/instant-retail/deliveries/:deliveryId/status ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/reviews/:id/reply ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   POST /api/admin/instant-retail/reviews/sync ⇒ ⚠️ 未挂权限（none）  [instant-retail-admin-ops.routes.ts]
+   POST /api/admin/instant-retail/platform/configs ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/platform/configs/:platform/test ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/platform/configs/:platform/sync-orders ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/platform/configs/:platform/sync-products ⇒ ❌ 后端未扫到该写端点
+   DELETE /api/admin/instant-retail/platform/configs/:platform ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/platform/shop-config ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/platform/categories ⇒ ❌ 后端未扫到该写端点
+   PUT /api/admin/instant-retail/platform/categories/:id ⇒ ❌ 后端未扫到该写端点
+   DELETE /api/admin/instant-retail/platform/categories/:id ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/platform/products ⇒ ❌ 后端未扫到该写端点
+   PUT /api/admin/instant-retail/platform/products/:id ⇒ ❌ 后端未扫到该写端点
+   DELETE /api/admin/instant-retail/platform/products/:id ⇒ ❌ 后端未扫到该写端点
+   POST /api/admin/instant-retail/platform/banners ⇒ ❌ 后端未扫到该写端点
+   PUT /api/admin/instant-retail/platform/banners/:id ⇒ ❌ 后端未扫到该写端点
+   DELETE /api/admin/instant-retail/platform/banners/:id ⇒ ❌ 后端未扫到该写端点

@@ -228,66 +228,7 @@ interface G2UnwiredRow {
 
 const UNWIRED: G2UnwiredRow[] = [
   // ---- B：页面可达角色集（写入角色）不 ⊆ finance:create 持有人集合 ----
-  {
-    file: "bank-account.routes.ts",
-    prefix: "/api/admin/bank-accounts",
-    router: bankAccountRouter,
-    routePath: "/",
-    path: "/",
-    reason: "B",
-    note:
-      "app-mobile 门店管理页 stores.vue:241（bankAccountsApi.create → stores.ts:141）；" +
-      "页面菜单 store:list（function-menu.ts:117 / t_sys_menu 079:169）持有人 = 店长/操作员/仓管，" +
-      "且 我的页 profile.vue:42 为**无条件**入口 ⇒ 写入角色 ⊄ finance:create（店长/操作员/仓管被锁死）",
-  },
-  {
-    file: "bank-account.routes.ts",
-    prefix: "/api/admin/bank-accounts",
-    router: bankAccountRouter,
-    routePath: "/:id/close",
-    path: "/1/close",
-    reason: "B",
-    note:
-      "app-mobile 门店管理页 stores.vue:263（bankAccountsApi.close → stores.ts:146 注销银行卡）；" +
-      "页面菜单 store:list（function-menu.ts:117 / t_sys_menu 079:169）持有人 = 店长/操作员/仓管，" +
-      "且 我的页 profile.vue:42 为**无条件**入口 ⇒ 写入角色 ⊄ finance:create（店长/操作员/仓管被锁死）",
-  },
-  {
-    file: "receipt.routes.ts",
-    prefix: "/api/admin/receipts",
-    router: receiptRouter,
-    routePath: "/",
-    path: "/",
-    reason: "B",
-    note:
-      "app-mobile 开单页 create-sale.vue:2202（receiptApi.create → receipts.ts:54）；" +
-      "页面菜单 sale:bill（function-menu.ts:38 / 079:129）持有人 = 店长/操作员/销售/客服，" +
-      "且 首页快捷入口 home.vue:69 为**无条件**入口 ⇒ 写入角色 ⊄ finance:create",
-  },
-  {
-    file: "reconciliation.routes.ts",
-    prefix: "/api/admin/reconciliation",
-    router: reconciliationRouter,
-    routePath: "/customer/:customerId/confirm",
-    path: "/customer/1/confirm",
-    reason: "B",
-    note:
-      "app-mobile 对账页 reconciliation.vue:256（reconciliationApi.confirmCustomer → reconciliation.ts:69）；" +
-      "该页**零菜单映射**（注册码 finance:reconciliation 无对应 t_sys_menu 行），" +
-      "但 我的页 profile.vue:180 快捷入口为**无条件**（数组 profile.vue:177-181 无角色过滤）⇒ 全角色可达",
-  },
-  {
-    file: "reconciliation.routes.ts",
-    prefix: "/api/admin/reconciliation",
-    router: reconciliationRouter,
-    routePath: "/supplier/:supplierId/confirm",
-    path: "/supplier/1/confirm",
-    reason: "B",
-    note:
-      "app-mobile 对账页 reconciliation.vue:258（reconciliationApi.confirmSupplier → reconciliation.ts:98 供应商对账确认）；" +
-      "该页**零菜单映射**（注册码 finance:reconciliation 无对应 t_sys_menu 行），" +
-      "但 我的页 profile.vue:180 快捷入口为**无条件**（数组 profile.vue:177-181 无角色过滤）⇒ 全角色可达",
-  },
+  // （S3-233：原 5 行 B 类（bank-accounts 2 / receipts 1 / reconciliation 2）已收编接线，见下方 `S3233_WIRED`）
   {
     file: "store-value-card.routes.ts",
     prefix: "/api/admin/store-value-cards",
@@ -369,6 +310,37 @@ const ALLOWED_PAIRS = WIRED_CASES.flatMap((row) => row.allow.map((uid) => ({ ...
 const G2_WIRED_TOTAL = WIRED_CASES.length;
 const G2_UNWIRED_TOTAL = UNWIRED.length;
 
+/**
+ * S3-233（B 类收编第一批）从本文件「待裁名单」移出并接线的 **5 行**（原判 B 类）。
+ * 依据：S3-230 的入口权限门（`R101-S3-230-凌舟验收与裁定.md` §二.1 / D4 / 不变量 I1'）落地后，B 类根因消失；
+ *   码一律取门注册表（唯一真相源）：`fin-bank-accounts` → finance:create（2）、`sale-receipt-sub` → sale:create（1）、
+ *   `fin-recon-confirm` → report:finance（2）。
+ * 本数组承载：① 形状判据（注册行行级自带该码）；② 两侧判据（非持有人 403 / 持有人 200 / 未登录 401）。
+ */
+interface S3233Row {
+  file: string;
+  prefix: string;
+  router: Router;
+  routePath: string;
+  path: string;
+  perm: string;
+  /** 应放行的 uid（= 该码持有人，按 USERS 逐账号复算） */
+  allow: number[];
+}
+
+const S3233_WIRED: S3233Row[] = [
+  { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/", path: "/", perm: "finance:create", allow: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER, FINANCE_STAFF] },
+  { file: "bank-account.routes.ts", prefix: "/api/admin/bank-accounts", router: bankAccountRouter, routePath: "/:id/close", path: "/1/close", perm: "finance:create", allow: [SUPER_ADMIN_USER, OPERATION_ADMIN_USER, FINANCE_STAFF] },
+  // sale:create 持有人（本文件 `holdersOf` 口径，:476 已逐账号钉住）= 9002 / 9003 / 9004 / 9008 / 9009 / 9010
+  { file: "receipt.routes.ts", prefix: "/api/admin/receipts", router: receiptRouter, routePath: "/", path: "/", perm: "sale:create", allow: [SUPER_ADMIN_USER, SALES_STAFF, 9004, STORE_OPERATOR, STORE_MANAGER_PROD, OPERATION_ADMIN_USER] },
+  // report:finance 持有人（`report:*` 域通配）= 9002 / 9004 / 9006 / 9009 / 9010
+  { file: "reconciliation.routes.ts", prefix: "/api/admin/reconciliation", router: reconciliationRouter, routePath: "/customer/:customerId/confirm", path: "/customer/1/confirm", perm: "report:finance", allow: [SUPER_ADMIN_USER, 9004, FINANCE_STAFF, STORE_MANAGER_PROD, OPERATION_ADMIN_USER] },
+  { file: "reconciliation.routes.ts", prefix: "/api/admin/reconciliation", router: reconciliationRouter, routePath: "/supplier/:supplierId/confirm", path: "/supplier/1/confirm", perm: "report:finance", allow: [SUPER_ADMIN_USER, 9004, FINANCE_STAFF, STORE_MANAGER_PROD, OPERATION_ADMIN_USER] },
+];
+
+const S3233_CASES = S3233_WIRED.map((r) => ({ ...r, label: `${r.file} POST ${r.prefix}${r.path}` }));
+const S3233_WIRED_TOTAL = S3233_CASES.length;
+
 /** 与生产挂载链等价（auth → tenant → csrf）的测试 App：req.user 由请求头注入 */
 function buildApp(prefix: string, router: Router) {
   const app = express();
@@ -442,10 +414,11 @@ beforeEach(() => {
 });
 
 describe("S3-125（G2）· 名单自证（验收标准①）", () => {
-  it("12 行 = 可接 1 行 + 待裁 11 行", () => {
+  it("12 行 = G2 可接 1 行 + S3-233 收编 5 行（B 类）+ 待裁 6 行", () => {
     expect(G2_WIRED_TOTAL).toBe(1);
-    expect(G2_UNWIRED_TOTAL).toBe(11);
-    expect(G2_WIRED_TOTAL + G2_UNWIRED_TOTAL).toBe(12);
+    expect(S3233_WIRED_TOTAL).toBe(5);
+    expect(G2_UNWIRED_TOTAL).toBe(6);
+    expect(G2_WIRED_TOTAL + S3233_WIRED_TOTAL + G2_UNWIRED_TOTAL).toBe(12);
   });
 
   it("已接 1 行分布：expense.routes.ts × 1", () => {
@@ -454,8 +427,8 @@ describe("S3-125（G2）· 名单自证（验收标准①）", () => {
     expect([...perFile.entries()].sort()).toEqual([["expense.routes.ts", 1]]);
   });
 
-  it("待裁原因分布：B 8 / C 2 / R 1（B 类原 9 行中 1 行=expense 已接；R 行同时属 C 类 G0 冲突）", () => {
-    expect(UNWIRED.filter((r) => r.reason === "B")).toHaveLength(8);
+  it("待裁原因分布：B 3 / C 2 / R 1（B 类原 9 行：1 行=expense 已由 G2 接、5 行已由 S3-233 收编；R 行同时属 C 类 G0 冲突）", () => {
+    expect(UNWIRED.filter((r) => r.reason === "B")).toHaveLength(3);
     expect(UNWIRED.filter((r) => r.reason === "C")).toHaveLength(2);
     expect(UNWIRED.filter((r) => r.reason === "R")).toHaveLength(1);
   });
@@ -546,7 +519,51 @@ describe("S3-125（G2）· b) 有权角色照常通过（不锁死）", () => {
   });
 });
 
-describe("S3-125（G2）· c) 未接的 11 行仍然不被拦（验收标准⑤，证明没偷偷接）", () => {
+describe("S3-233 · B 类 5 行收编接线（本文件待裁名单移出后的两侧判据）", () => {
+  it.each(S3233_CASES)("$label：注册行自带 requirePermission(\"$perm\")", (row) => {
+    const src = readFileSync(path.join(ROUTES_DIR, row.file), "utf8");
+    const escaped = row.routePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(`\\.post\\(\\s*"${escaped}"`);
+    const lines = src
+      .split(/\r?\n/)
+      .map((l, i) => ({ line: l.trim(), no: i + 1 }))
+      .filter(({ line }) => !line.startsWith("//") && re.test(line));
+    expect(lines.map((l) => l.no)).toHaveLength(1);
+    expect(lines[0].line).toContain(`requirePermission("${row.perm}")`);
+  });
+
+  it.each(S3233_CASES)("$label：行内 allow 名单与 holdersOf($perm) 逐账号一致（防手写漏持有人）", (row) => {
+    expect([...row.allow].sort((a, b) => a - b)).toEqual(holdersOf(row.perm));
+  });
+
+  it.each(S3233_CASES)("$label：持有人 ⇒ 到达业务层（零回归）", async (row) => {
+    for (const uid of row.allow) {
+      h.reached.length = 0;
+      const res = await call(appFor(row.file, row.prefix, row.router), "post", `${row.prefix}${row.path}`, uid);
+      expect(res.status, `${row.file} ${row.routePath}／uid=${uid}`).toBe(200);
+      expect(typeof res.body.handler, `${row.file} ${row.routePath}／uid=${uid} 应到达业务层`).toBe("string");
+    }
+  });
+
+  it.each(S3233_CASES)("$label：非持有人 ⇒ 403 且未到达业务层", async (row) => {
+    const holders = new Set(row.allow);
+    const deniers = Object.keys(USERS).map(Number).filter((uid) => !holders.has(uid));
+    expect(deniers.length, `${row.perm} 应存在非持有人`).toBeGreaterThan(0);
+    for (const uid of deniers) {
+      h.reached.length = 0;
+      const res = await call(appFor(row.file, row.prefix, row.router), "post", `${row.prefix}${row.path}`, uid);
+      expect(res.status, `${row.file} ${row.routePath}／uid=${uid}（${USERS[uid].name}）`).toBe(403);
+      expect(h.reached).toEqual([]);
+    }
+  });
+
+  it.each(S3233_CASES)("$label：无登录态 ⇒ 401", async (row) => {
+    const res = await call(appFor(row.file, row.prefix, row.router), "post", `${row.prefix}${row.path}`);
+    expect(res.status).toBe(401);
+  });
+});
+
+describe("S3-125（G2）· c) 未接的 6 行仍然不被拦（验收标准⑤，证明没偷偷接）", () => {
   it.each(UNWIRED)("$file POST $routePath（待裁 $reason）：READONLY 仍然 200", async (row) => {
     const res = await call(appFor(row.file, row.prefix, row.router), "post", `${row.prefix}${row.path}`, READONLY_USER);
     expect(res.status, `${row.file} ${row.routePath}（${row.note}）`).toBe(200);
@@ -554,8 +571,8 @@ describe("S3-125（G2）· c) 未接的 11 行仍然不被拦（验收标准⑤�
     expect(h.reached.length).toBeGreaterThan(0);
   });
 
-  it("验收标准⑤ 点名的三行（#1 bank-accounts / #2 close / #4 receipts）逐条取原始读数", async () => {
-    const named = UNWIRED.filter(
+  it("S3-233 收编后（契约反转）：原验收标准⑤ 点名的三行（#1 bank-accounts / #2 close / #4 receipts）READONLY ⇒ 403", async () => {
+    const named = S3233_WIRED.filter(
       (r) =>
         (r.file === "bank-account.routes.ts" && r.routePath === "/") ||
         (r.file === "bank-account.routes.ts" && r.routePath === "/:id/close") ||
@@ -563,9 +580,12 @@ describe("S3-125（G2）· c) 未接的 11 行仍然不被拦（验收标准⑤�
     );
     expect(named).toHaveLength(3);
     for (const row of named) {
+      h.reached.length = 0;
       const res = await call(appFor(row.file, row.prefix, row.router), "post", `${row.prefix}${row.path}`, READONLY_USER);
-      expect(res.status, `${row.file} ${row.routePath}`).toBe(200);
-      expect(typeof res.body.handler, `${row.file} ${row.routePath} 到达业务层`).toBe("string");
+      // S3-233：这三行已按门注册表接线（finance:create / sale:create），只读观察员不再能到达业务层
+      expect(res.status, `${row.file} ${row.routePath}`).toBe(403);
+      expect(res.body.msg, `${row.file} ${row.routePath}`).toBe(`无权限执行此操作，需要权限: ${row.perm}`);
+      expect(h.reached, `${row.file} ${row.routePath} 不得到达业务层`).toEqual([]);
     }
   });
 });
@@ -581,9 +601,9 @@ describe("S3-125（G2）· d) 未登录 401（既有行为不变）", () => {
 });
 
 describe("S3-125（G2）· 待裁原因可复核（B / C / R 三类证据锚点）", () => {
-  it("B 类 8 行：note 均给出 app-mobile 调用点 + 页面→菜单映射（或零映射可达链）", () => {
+  it("B 类 3 行（S3-233 收编 5 行后）：note 均给出 app-mobile 调用点 + 页面→菜单映射（或零映射可达链）", () => {
     const b = UNWIRED.filter((r) => r.reason === "B");
-    expect(b).toHaveLength(8);
+    expect(b).toHaveLength(3);
     for (const row of b) {
       // 每行必须写明调用点（.vue:行）与可达性依据（菜单码或"无条件入口"）
       expect(row.note, `${row.file} ${row.routePath}`).toMatch(/\.vue:\d+/);
