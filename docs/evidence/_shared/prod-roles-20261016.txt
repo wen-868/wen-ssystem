@@ -5,6 +5,12 @@
 
 ## 一、商家侧角色 × 权限码（`t_sys_role`，`tenant_id='default'`，共 12 行）
 
+> ⚠️ **本节的 `STORE_MANAGER` 行已过期两处**（2026-10-16 11:0x 凌舟批注，勿据旧值判定）：
+> ① **`goods:create` / `goods:edit` 已由 D1 授予**全部租户的 `STORE_MANAGER`（迁移
+>   `docs/migrations/204_系统设置域权限点立码.sql` 前两条 UPDATE；**生产已补跑并只读复核：店长权限串 9 → 11 项**）；
+> ② 本节是**导出时刻**的快照（早于 204 落地），后续批次判"码的持有者"必须叠加本批注，
+>   否则会把 `goods:create|edit` 误判成"仅全通配角色持有"（S3-233 收尾时实际发生过一次，已在本批修正）。
+
 ```
 CUSTOMER_SERVICE	客服	["customer:view", "aftersale:*", "miniapp:*", "notification:view"]
 FINANCE_STAFF	财务	["finance:*", "report:*", "customer:statement", "supplier:statement", "dashboard:view"]
