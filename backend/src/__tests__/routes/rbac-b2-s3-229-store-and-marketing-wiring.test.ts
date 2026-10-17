@@ -236,9 +236,12 @@ const UNWIRED: UnwiredRow[] = [
   { file: "tenant-register.routes.ts", prefix: "/api/tenant", router: null as unknown as Router, method: "post", routePath: "/register", path: "/register", reason: "PUB", note: "租户自助注册（routeConfig.auth = none，免鉴权；调用方 app 注册链路）" },
   { file: "tenant-register.routes.ts", prefix: "/api/tenant", router: null as unknown as Router, method: "post", routePath: "/register/sms-code", path: "/register/sms-code", reason: "PUB", note: "注册验证码（同上）" },
 
-  // ---- G1 · 平台侧（2）----
-  { file: "tenant-register.routes.ts", prefix: "/api/tenant", router: null as unknown as Router, method: "post", routePath: "/applications/:id/approve", path: "/applications/1/approve", reason: "PLATFORM", note: "该文件对 /applications 段统一挂载 requirePlatformAuth + csrfMiddleware（见该文件 :25）⇒ 平台侧端点；调用方 saas-admin `api/tenant-application.ts:50`；建议码 store:create 无效（平台 JWT 不带商家 roles）⇒ 归平台侧单" },
-  { file: "tenant-register.routes.ts", prefix: "/api/tenant", router: null as unknown as Router, method: "post", routePath: "/applications/:id/reject", path: "/applications/1/reject", reason: "PLATFORM", note: "同上（saas-admin `api/tenant-application.ts:54`）" },
+  // ---- G1 · 平台侧（2）——⚠️ **S3-238 已接线，从本未接名单移出** ----
+  // S3-238（平台侧接线第一批 R3）把这两条挂上了平台侧写码 `requirePlatformPermission("tenant:manage")`
+  // （同业务的另一前缀 `/api/platform/applications/:id/{approve,reject}` 也同批接上 ⇒ 双前缀收编）。
+  // 判据由此改为「已接线」：行级形状断言迁至 `rbac-b2-s3-238-platform-wiring.test.ts` 用例 a)，
+  // 本名单相应减 2（24 → 22），PLATFORM 类 14 → 12（计数守恒见 `UNWIRED_CLASS_TOTAL`）。
+  // 注：平台侧码用 `requirePlatformPermission`（**不含**子串 `requirePermission(`）⇒ 与商家侧形态可区分。
 
   // ---- G1 · 平台域（12）----
   { file: "subscription.routes.ts", prefix: "/api/platform/subscriptions-management", router: null as unknown as Router, method: "post", routePath: "/plans", path: "/plans", reason: "PLATFORM", note: "平台域：套餐创建（requirePlatformAuth，权限点走平台机制，卡片明示不在本单）" },
@@ -263,9 +266,9 @@ const UNWIRED: UnwiredRow[] = [
 const G1_TOTAL = 31;
 const G2_TOTAL = 14;
 /** 接线**前**的原缺口构成（S3-229 口径，F1 结项后仍用于历史对账） */
-const G1_UNWIRED_TOTAL = 24;
-/** F1 后**当前**未接名单构成（W 桶清零） */
-const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 8, W: 0, PUB: 2, PLATFORM: 14 };
+const G1_UNWIRED_TOTAL = 22; // S3-238：tenant-register 审核 2 条已接线 ⇒ 24 → 22
+/** F1 后**当前**未接名单构成（W 桶清零；S3-238 后 PLATFORM 14 → 12） */
+const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 8, W: 0, PUB: 2, PLATFORM: 12 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -376,7 +379,10 @@ describe("S3-229 · 名单自证", () => {
 
     // ⚠️ S3-231 F1 后：G2 的 W 4 条已接线 ⇒ 不能再按「当前未接名单」反推 G2_TOTAL；
     //    改按 **接线前原缺口** 对账：G1 31 = 7 已接 + 24 未接；G2 14 = 10 已接 + 4（F1 结项）。
-    expect(g1Wired + G1_UNWIRED_TOTAL).toBe(G1_TOTAL);
+    // ⚠️ S3-238 后：G1 的「平台侧 2 条」已接**平台侧**码（不在本文件的商家侧 ROWS 里）⇒
+    //    守恒式补一项：`7（商家侧已接）+ 22（未接）+ 2（平台侧已接，S3-238）= 31`（G1_UNWIRED_TOTAL 已 24→22）。
+    const G1_PLATFORM_WIRED_BY_S3_238 = 2;
+    expect(g1Wired + G1_UNWIRED_TOTAL + G1_PLATFORM_WIRED_BY_S3_238).toBe(G1_TOTAL);
     expect(g2Wired + 4).toBe(G2_TOTAL);
     expect(UNWIRED.filter((r) => r.file === "points.routes.ts")).toHaveLength(0);
     expect(UNWIRED).toHaveLength(G1_UNWIRED_TOTAL);
@@ -389,7 +395,7 @@ describe("S3-229 · 名单自证", () => {
       PUB: byReason(UNWIRED, "PUB"),
       PLATFORM: byReason(UNWIRED, "PLATFORM"),
     }).toEqual(UNWIRED_CLASS_TOTAL);
-    expect(byReason(UNWIRED, "PLATFORM")).toBe(14);
+    expect(byReason(UNWIRED, "PLATFORM")).toBe(12); // S3-238：2 条已接线 ⇒ 14 → 12
     expect(byReason(UNWIRED, "B")).toBe(8);
     expect(byReason(UNWIRED, "PUB")).toBe(2);
   });
