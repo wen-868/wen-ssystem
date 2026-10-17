@@ -1,0 +1,42 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-238/backend
+
+[2026-10-18 00:47:39.266 +0800] [32mINFO[39m (12332): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+ ✓ src/__tests__/routes/rbac-g0-wiring.test.ts (147 tests) 6154ms
+     ✓ backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17  2833ms
+ ✓ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts (165 tests) 7641ms
+     ✓ 'purchase.routes.ts' 'post' '/:orderNo/approve'：READONLY ⇒ 403 且 msg 指向该权限码  680ms
+     ✓ 仓管通过入库 3 行、采购员通过 19 行、超管/运营员通过全部 29 行  952ms
+     ✓ SALES_STAFF 对全部 29 行 ⇒ 403（没有把权限门放宽成摆设）  449ms
+     ✓ STORE_OPERATOR（持 sale:return）只通过退货 3 行（含 S3-233 的退货创建行），对其余 26 行 403  355ms
+ ✓ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts (262 tests) 7503ms
+     ✓ 'data-transfer.routes.ts' 'post' '/import/customers' ⇒ 403 且 msg 指向该权限码  422ms
+     ✓ 店长（生产实值，持 store:*/inventory:*）通过全部 45 条 inventory:*/store:transfer 行（页面角色不 403；S3-233 收编后 25 → 45）  572ms
+ ✓ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts (175 tests) 7122ms
+     ✓ 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200）  628ms
+ ✓ src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts (162 tests) 6368ms
+ ✓ src/__tests__/routes/rbac-b2-s3-222-customer-wiring.test.ts (189 tests) 8389ms
+     ✓ 'admin-customer.routes.ts' 'post' '/members'：READONLY ⇒ 403 且 msg 指向该权限码  548ms
+     ✓ 零回归（机器复算）：每一行的**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200）  409ms
+     ✓ 生产店长（`customer:*`）通过本批**全部** 42 行（客户域写码全被 `customer:*` 覆盖）  492ms
+ ✓ src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts (306 tests) 13957ms
+     ✓ 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200）  408ms
+[2026-10-18 00:47:55.476 +0800] [32mINFO[39m (19356): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+ ✓ src/__tests__/routes/rbac-b2-s3-237-system-wiring.test.ts (70 tests) 2017ms
+ ✓ src/__tests__/routes/rbac-b2-s3-237-goods-wiring.test.ts (60 tests) 2765ms
+     ✓ 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：READONLY ⇒ 403 且 msg 指向该权限码  300ms
+     ✓ 前端导入页真实打的是 data-transfer 路径（`store:transfer` 已接，S3-198）；`importProducts` 封装无任何页面调用点  651ms
+ ✓ src/__tests__/routes/rbac-g1-wiring.test.ts (131 tests) 2673ms
+ ✓ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts (183 tests) 4456ms
+ ✓ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts (114 tests) 4473ms
+ ✓ src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts (164 tests) 4363ms
+ ✓ src/__tests__/routes/rbac-g2-wiring.test.ts (58 tests) 1003ms
+ ✓ src/__tests__/routes/rbac.test.ts (3 tests) 10ms
+ ✓ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts (34 tests) 837ms
+ ✓ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts (120 tests) 1355ms
+
+ Test Files  17 passed (17)
+      Tests  2343 passed (2343)
+   Start at  00:47:27
+   Duration  42.05s (transform 23.77s, setup 702ms, import 144.98s, tests 81.09s, environment 6ms)
+
