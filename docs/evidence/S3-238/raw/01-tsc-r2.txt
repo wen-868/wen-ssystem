@@ -1,5 +1,4 @@
 # 命令：node <wt>\backend\node_modules\typescript\bin\tsc -p <wt>\backend\tsconfig.json --noEmit
-# 工作目录：D:\Users\ZXQL\wt-agents\S3-238\backend
 # EXIT=
 0
 <<<BEGIN>>>
