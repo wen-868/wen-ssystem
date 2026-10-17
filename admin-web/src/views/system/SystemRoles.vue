@@ -2,7 +2,7 @@
   <div class="page">
     <PageCard title="角色权限">
       <template #extra>
-        <el-button type="primary" @click="openCreate">新增角色</el-button>
+        <el-button v-if="canGate('role-create')" type="primary" @click="openCreate">新增角色</el-button>
         <el-button @click="loadData">刷新</el-button>
       </template>
 
@@ -24,9 +24,9 @@
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button size="small" link type="primary" @click="openAssignUsers(row)">分配用户</el-button>
-            <el-popconfirm title="确定删除该角色？" @confirm="handleDelete(row.id)">
+            <el-button v-if="canGate('role-edit')" size="small" link type="primary" @click="openEdit(row)">编辑</el-button>
+            <el-button v-if="canGate('role-assign-users')" size="small" link type="primary" @click="openAssignUsers(row)">分配用户</el-button>
+            <el-popconfirm v-if="canGate('role-delete')" title="确定删除该角色？" @confirm="handleDelete(row.id)">
               <template #reference>
                 <el-button size="small" link type="danger">删除</el-button>
               </template>
@@ -221,6 +221,10 @@ import {
   fetchRoleDataPermissions,
   setRoleDataPermissions
 } from "../../api";
+import { usePermissionGate } from "../../composables/usePermissionGate";
+
+// S3-240：角色新增/编辑/删除/分配用户按钮按码显隐（`system:role:create|edit`，见 config/permission-gates.ts）
+const { canGate } = usePermissionGate();
 
 const menuModules = [
   {

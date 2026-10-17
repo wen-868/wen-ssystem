@@ -51,7 +51,7 @@
               <span class="detail-title">分类详情</span>
               <div class="detail-actions">
                 <el-button size="small" type="primary" @click="handleEdit">编辑</el-button>
-                <el-button size="small" type="danger" @click="handleDelete">删除</el-button>
+          <el-button v-if="canGate('goods-category-delete')" size="small" type="danger" @click="handleDelete">删除</el-button>
               </div>
             </div>
             <el-form :model="detailForm" label-width="100px" disabled>
@@ -150,6 +150,10 @@ import { api } from "../../api";
 import { formatDate } from "../../utils/format";
 import PageCard from "../../components/PageCard.vue";
 import FormFooter from "../../components/FormFooter.vue";
+import { usePermissionGate } from "../../composables/usePermissionGate";
+
+// S3-240：分类删除按钮按码显隐（`goods:delete`，见 config/permission-gates.ts 注册表）
+const { canGate } = usePermissionGate();
 
 const treeRef = ref<any>();
 const treeData = ref<any[]>([]);

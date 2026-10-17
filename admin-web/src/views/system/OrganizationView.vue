@@ -11,7 +11,7 @@
         <el-button @click="openDepartmentDialog">部门管理</el-button>
         <el-button @click="openPositionDialog">岗位管理</el-button>
         <el-button @click="router.push('/system/roles')">角色权限</el-button>
-        <el-button type="primary" :icon="Plus" @click="openStaffDialog()">新增员工</el-button>
+          <el-button v-if="canGate('staff-create')" type="primary" :icon="Plus" @click="openStaffDialog()">新增员工</el-button>
       </div>
     </div>
 
@@ -49,9 +49,9 @@
         </el-table-column>
         <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="openStaffDialog(row)">编辑</el-button>
-            <el-button size="small" link type="warning" @click="openResetPassword(row)">重置密码</el-button>
-            <el-button size="small" link :type="row.status === 1 ? 'danger' : 'success'" @click="handleToggleStatus(row)">
+            <el-button v-if="canGate('staff-edit')" size="small" link type="primary" @click="openStaffDialog(row)">编辑</el-button>
+            <el-button v-if="canGate('staff-reset-password')" size="small" link type="warning" @click="openResetPassword(row)">重置密码</el-button>
+            <el-button v-if="canGate('staff-toggle-status')" size="small" link :type="row.status === 1 ? 'danger' : 'success'" @click="handleToggleStatus(row)">
               {{ row.status === 1 ? "停用" : "启用" }}
             </el-button>
           </template>
@@ -218,6 +218,10 @@ import {
 } from "../../api/system";
 import { fetchPositions, createPosition, updatePosition, deletePosition } from "../../api/pos";
 import { fetchStaff, fetchStores } from "../../api";
+import { usePermissionGate } from "../../composables/usePermissionGate";
+
+// S3-240：员工新增/编辑/重置密码/启停按钮按码显隐（`system:user:create|edit`，见 config/permission-gates.ts）
+const { canGate } = usePermissionGate();
 
 const router = useRouter();
 const loading = ref(false);

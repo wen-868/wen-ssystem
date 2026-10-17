@@ -1,0 +1,31 @@
+=== ① 注入前 SHA256 ===
+49C6742201A1BB89B96E93ACB98B1D2C9D43411D45376CA08B697CDE0945F850  Brands.vue
+5E0CBE934AB611CADFD09192CCD9F768AEE50B0D8B1E7E870A26828FFD9EDBBC  app.ts
+=== ① 备份到仓库外临时目录 ===
+备份目录：C:\Users\XIONG\AppData\Local\Temp\s3240-countertest-bak
+=== ② 反测 1：摘掉 Brands.vue 的 v-if="canGate('goods-brand-delete')" ===
+EXIT=1
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: 门 goods-brand-delete 声明的作用页 views/product/Brands.vue 里没有引用（漏接线）
+    at file:///D:/Users/ZXQL/wt-agents/S3-240/admin-web/tests/permission-gates.spec.mjs:173:12 {
+=== ③ 反测 2：判据换回 includes()（丢掉 * / dom:* / *:action 通配）===
+EXIT=1
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: 持码（店主 ["*"]）时 goods-brand-delete@views/product/Brands.vue 的按钮必须渲染（实际 buttons=0）
+
+=== ④ 复原后 SHA256（须与注入前逐字节一致）===
+49C6742201A1BB89B96E93ACB98B1D2C9D43411D45376CA08B697CDE0945F850  Brands.vue  identical=True
+5E0CBE934AB611CADFD09192CCD9F768AEE50B0D8B1E7E870A26828FFD9EDBBC  app.ts  identical=True
+=== ⑤ 复原后复跑装置（须 EXIT=0）===
+  · role-edit                views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-delete              views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-assign-users        views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+[permission-gates] 全部断言通过（两侧反测：持码必渲染 / 不持码必不渲染）
+EXIT=0
+反测完成：两次注入均验红并点名，复原逐字节一致，复原后验绿

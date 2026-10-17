@@ -1,0 +1,21 @@
+[permission-gates] 判据用例 18 条：全通过
+[permission-gates] 注册表：gated 13 个 / registered 2 个；源码引用 17 处（页面 8 个）
+[permission-gates] DOM 反测（共 17 行：门 × 页面）：
+  · goods-brand-delete       views/product/Brands.vue           码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-tag-delete         views/product/ProductTags.vue      码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-unit-group-delete  views/product/Units.vue            码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-category-delete    views/product/ProductCategories.vue 码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · goods-sku-unit-delete    views/product/Products.vue         码=goods:delete      店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-create             views/system/EmployeesView.vue     码=system:user:create店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-create             views/system/OrganizationView.vue  码=system:user:create店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-edit               views/system/EmployeesView.vue     码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-edit               views/system/OrganizationView.vue  码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-reset-password     views/system/EmployeesView.vue     码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-reset-password     views/system/OrganizationView.vue  码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-toggle-status      views/system/EmployeesView.vue     码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · staff-toggle-status      views/system/OrganizationView.vue  码=system:user:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-create              views/system/SystemRoles.vue       码=system:role:create店主(["*"])=1 店长串=0 null=0 []=0
+  · role-edit                views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-delete              views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+  · role-assign-users        views/system/SystemRoles.vue       码=system:role:edit  店主(["*"])=1 店长串=0 null=0 []=0
+[permission-gates] 全部断言通过（两侧反测：持码必渲染 / 不持码必不渲染）
