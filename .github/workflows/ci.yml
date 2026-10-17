@@ -266,6 +266,29 @@ jobs:
           fi
           exit $status
 
+      # QODER-1（批次 0）：app-mobile 其余**三道门**接进 CI（阻断，零 `continue-on-error`）。
+      #   背景：此前 5 个 workflow 中 `app-mobile` 出现 0 次、package.json 无 lint/test
+      #   ⇒ 移动端任何回归全凭人肉。三道门 = lint / test / check:contract，
+      #   口径统一为 **0 新增 / 不劣化**（存量冻结在 `app-mobile/scripts/gates-baseline.json`，只准降不准升；
+      #   lint error 级按凌舟裁定①登记 mustReachZero/dueBatch，下一批清零卡起判 error===0）。
+      #   类型门**不在下列步骤里重复**：#363 已合并 ⇒ 上方 S3-245 步骤即唯一类型门（卡 1 原"npm run type-check"
+      #   步骤已撤，避免同一子工程两套类型门；本地脚本 `npm run type-check` 保留，基线已随 #363 清零，语义与其一致）。
+      #   形态说明：eslint / vitest 复用仓库根已提升依赖（同下方 C6-5 saas-admin 步骤先例），
+      #   **零新增依赖、lockfile 零改动**；`working-directory: app-mobile` —— 仓库根没有 eslintrc/vitest 配置。
+      #   反测（QODER-1 回传卡判据 2）：注入 1 个 lint error / 1 条不存在的契约路径 / 删 1 条测试 ⇒
+      #   对应步骤 EXIT≠0 且点名；复原逐字节一致（SHA256）。类型反测见 S3-245 回传卡。
+      - name: App mobile lint gate (eslint src, error 0 新增)
+        working-directory: app-mobile
+        run: npm run lint
+
+      - name: App mobile unit tests (vitest run)
+        working-directory: app-mobile
+        run: npm test
+
+      - name: App mobile contract gate (check:contract)
+        working-directory: app-mobile
+        run: npm run check:contract
+
       # C6-5：saas-admin **最小测试能力**接进 CI（阻断，**零 `continue-on-error`**）。
       #   DoD 第 4 条：该端不能长期零测试。此前 saas-admin 连 `test` 脚本都没有、workflow 也无调用
       #   ⇒ 前端纯逻辑改动没有任何回归网。

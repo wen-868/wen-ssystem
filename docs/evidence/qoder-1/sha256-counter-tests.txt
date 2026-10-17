@@ -1,0 +1,12 @@
+C1-lint BEFORE 524890d99b4f9e9827a9064a9af9ddbdb87808a5c20dc0ca91eb4dca09cf8f9a *src/api/storage.ts
+C1-lint AFTER  524890d99b4f9e9827a9064a9af9ddbdb87808a5c20dc0ca91eb4dca09cf8f9a *src/api/storage.ts
+C1-lint RESTORE=BYTE-IDENTICAL
+C2-type BEFORE 55684a6218ba9074e951822a7335b41d6261d941dbb6ba0cd71d5504d8f1a3e8 *src/config/env.ts
+C2-type AFTER  55684a6218ba9074e951822a7335b41d6261d941dbb6ba0cd71d5504d8f1a3e8 *src/config/env.ts
+C2-type RESTORE=BYTE-IDENTICAL
+C3-contract BEFORE 1192b8d78f5519fba661a3202cb985de6a538c614914a68383edc40e0f97589c *src/api/modules/auth.ts
+C3-contract AFTER  1192b8d78f5519fba661a3202cb985de6a538c614914a68383edc40e0f97589c *src/api/modules/auth.ts
+C3-contract RESTORE=BYTE-IDENTICAL
+C4-test BEFORE 6c355396026ad1433bce1ae66ea619fdea61b907735eab1f1a537d6dcfe60dc1 *tests/permission-codes.spec.ts
+C4-test AFTER  6c355396026ad1433bce1ae66ea619fdea61b907735eab1f1a537d6dcfe60dc1 *tests/permission-codes.spec.ts
+C4-test RESTORE=BYTE-IDENTICAL

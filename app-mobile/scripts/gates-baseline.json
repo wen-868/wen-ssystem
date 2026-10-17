@@ -1,0 +1,53 @@
+{
+  "_comment": "QODER-1 批次0 冻结基线（2026-10-18 实测）。type-check/lint/check:contract 三道门按「0 新增 / 不劣化」判定；只准降不准升，调低需人工改本文件并留痕。",
+  "typeCheck": {
+    "tool": "vue-tsc --noEmit（S3-245 同形态，scripts/type-check-gate.mjs 包装基线比较）",
+    "errors": {
+      "src/utils/crypto.ts::TS2323": 6,
+      "src/utils/crypto.ts::TS2393": 6
+    },
+    "note": "12 条全部是 crypto.ts 双份 #ifdef 导出；S3-245（PR #363）合并后应把 errors 清空"
+  },
+  "lint": {
+    "command": "eslint src --ext .ts,.vue（scripts/lint-gate.mjs 包装）",
+    "errorsByFileRule": {
+      "src/api/storage.ts::no-extra-semi": 1,
+      "src/pages-sub/marketing/member/member-detail.vue::no-extra-semi": 1,
+      "src/pages-sub/product/batch-price/batch-price.vue::no-extra-semi": 1,
+      "src/pages-sub/settings/settings.vue::no-unreachable": 1,
+      "src/pages/ai-chat/ai-chat.vue::no-empty": 2,
+      "src/pages/ai-chat/ai-chat.vue::no-extra-semi": 4,
+      "src/pages/ai-chat/ai-chat.vue::no-unreachable": 1,
+      "src/pages/products/product-detail.vue::no-extra-semi": 2,
+      "src/pages/products/product-detail.vue::no-unreachable": 2,
+      "src/pages/sales/create-sale.vue::vue/no-unused-vars": 1,
+      "src/pages/sales/create-sale.vue::no-irregular-whitespace": 1,
+      "src/pages/sales/create-sale.vue::no-unreachable": 2,
+      "src/pages/sales/create-sale.vue::no-empty": 1
+    },
+    "warningsByRule": {
+      "no-console": 232,
+      "@typescript-eslint/no-unused-vars": 105,
+      "vue/html-indent": 12299,
+      "vue/html-closing-bracket-spacing": 196,
+      "vue/html-closing-bracket-newline": 1,
+      "vue/multiline-html-element-content-newline": 47
+    },
+    "note": "error 存量位于页面文件（本单红线不可改页面），按 文件::规则 冻结；warning 按规则冻结"
+  },
+  "checkContract": {
+    "callOccurrencesNonComment": 292,
+    "callSiteOccurrences": 283,
+    "uniqueCallPaths": 204,
+    "backendRegistered": 1498,
+    "missingAfterExemptions": 0,
+    "exempted": 1,
+    "exemptionsFile": "scripts/contract-exemptions.json",
+    "note": "A.2 三口径读数由 check-contract.mjs 每次运行现场打印"
+  },
+  "tests": {
+    "testFiles": 3,
+    "testCount": 15,
+    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）"
+  }
+}
