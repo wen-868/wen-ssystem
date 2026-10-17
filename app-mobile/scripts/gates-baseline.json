@@ -46,8 +46,8 @@
     "note": "A.2 三口径读数由 check-contract.mjs 每次运行现场打印"
   },
   "tests": {
-    "testFiles": 3,
-    "testCount": 15,
-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）"
+    "testFiles": 4,
+    "testCount": 27,
+    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27"
   }
 }

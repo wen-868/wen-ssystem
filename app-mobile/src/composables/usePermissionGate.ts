@@ -10,6 +10,8 @@
  *  · `permissions` 为 null/undefined ⇒ 尚未取到权限码 ⇒ **入口不显示**（失败关闭，凌舟裁定 5）；
  *  · `permissions` 为空数组          ⇒ 确实无任何码 ⇒ **不显示**（失败关闭，原本即如此）；
  *  · 码数组为空（注册表里 `status=registered` 的入口）⇒ **放行**，由后端收编单/立码单决定后续。
+ *  · `status=pending-code` 的入口（码未立）⇒ **恒隐藏**（B3-1：按"未开通"处理，失败关闭，
+ *    与 registered 的放行相反；即便用户持通配码也不显示），立码 + 后端接线后由注册表转 gated。
  *  ⚠️ 与 `stores/menu.ts` 的分叉是**有意的**：menu.ts 的 null = "首屏加载中、放全量"（底部导航的既有产品语义，
  *     本单不动）；入口门问的是"能不能进这个**写**页面"，未取到就给一个必 403 的入口是更差的结果。
  *  · `can()` 仍保留 `codes===null ⇒ 放行`（那是"该动作**不设门**"，与"没取到权限码"是两回事）。
@@ -20,7 +22,7 @@
  */
 import { computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { codesOfEntry, hasPermissionCodes } from '@/config/permission-gates'
+import { codesOfEntry, hasPermissionCodes, isPendingCodeEntry } from '@/config/permission-gates'
 
 export function usePermissionGate() {
   const userStore = useUserStore()
@@ -38,8 +40,9 @@ export function usePermissionGate() {
     return hasPermissionCodes(permissions.value, list)
   }
 
-  /** 按注册表入口 id 判定（推荐：入口与码的对应关系只写在注册表里） */
+  /** 按注册表入口 id 判定（推荐：入口与码的对应关系只写在注册表里）；pending-code ⇒ 恒 false */
   function canEntry(entryId: string): boolean {
+    if (isPendingCodeEntry(entryId)) return false
     return can(codesOfEntry(entryId))
   }
 

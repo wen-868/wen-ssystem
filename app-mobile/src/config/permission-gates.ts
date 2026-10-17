@@ -101,9 +101,12 @@ export function hasPermissionCodes(
 /**
  * 入口权限门（声明式）。
  *
- * · `status = 'gated'`     ：入口已按 `codes` 显隐（本单落地）；
- * · `status = 'registered'`：**只登记、不门**（码未定 / 孤岛页 / 疑似查询型 POST …），
- *                            `codes` 恒为空数组，`note` 必须写出"为什么不门"。
+ * · `status = 'gated'`        ：入口已按 `codes` 显隐（本单落地）；
+ * · `status = 'registered'`   ：**只登记、不门**（码未定 / 孤岛页 / 疑似查询型 POST …），
+ *                              `codes` 恒为空数组，`note` 必须写出"为什么不门"。
+ * · `status = 'pending-code'` ：**码未立 ⇒ 入口恒隐藏**（B3-1，凌舟口径"页面按未开通处理"）。
+ *                              与 `registered` 的"放行"相反，这是**失败关闭**：`codes` 必须保持空数组
+ *                              （**不许硬挂不存在的码**），待立码裁定 + 后端接线后转 `gated` 补码。
  *
  * ⚠️ 注册表是"入口 → 码"的**唯一真相源**：runtime 的显隐、证据表、断言都从这里读。
  *    新增入口时**先加一行**，再在页面里用 `canEntry('<id>')` 引用，别在页面里手写码。
@@ -123,7 +126,7 @@ export interface EntryGate {
   codes: string[]
   /** 码依据（批次已落地码 / 批次规则推定），供复核 */
   basis: string
-  status: 'gated' | 'registered'
+  status: 'gated' | 'registered' | 'pending-code'
   /** 备注：待裁定项、口径提醒等 */
   note?: string
 }
@@ -499,9 +502,9 @@ export const ENTRY_GATES: EntryGate[] = [
     page: 'pages-sub/marketing/member/member-detail.vue',
     endpoints: ['POST /api/admin/members/:id/points/adjust'],
     codes: [],
-    basis: '码未定',
-    status: 'registered',
-    note: '三个候选互相冲突（`marketing:points`（超管/运营）／`customer:*`（店长）／`marketing:create`），取决于"谁该调积分"⇒ 待裁定，本单只登记'
+    basis: '码未立（三个候选互相冲突，待裁定）',
+    status: 'pending-code',
+    note: 'B3-1：候选码 `marketing:points`（超管/运营）／`customer:*`（店长）／`marketing:create` 互相冲突，取决于"谁该调积分"⇒ 不许硬挂不存在的码，登记 pending-code；页面入口按**未开通**处理（`canEntry` 恒 false，失败关闭）。立码裁定 + 后端接线（`requirePermission` 挂上）后转 gated 补码'
   },
   {
     id: 'mkt-points-exchange',
@@ -579,10 +582,10 @@ export const ENTRY_GATES: EntryGate[] = [
       'POST /api/admin/aftersales/:id/inspect',
       'POST /api/admin/aftersales/:id/complete'
     ],
-    codes: [],
-    basis: '孤岛页',
-    status: 'registered',
-    note: '不造入口；售后族已落地码为 `sale:return`（同域 confirm-receipt）'
+    codes: ['sale:return'],
+    basis: '售后族已落地同族码：同文件同前缀的 confirm-receipt 挂 `sale:return`（`backend/src/routes/aftersale.routes.ts:64`）；不新造码',
+    status: 'gated',
+    note: 'B3-1：门先行登记 —— 页面挂 `canEntry` 后不持码者即时隐藏；本入口仍是孤岛页（全仓无导航入口），门只约束"页面被直达时"的动作按钮显隐。后端 approve/reject/inspect/complete 4 条**未接**（`aftersale.routes.ts`:49/51/66/71 注册行无 `requirePermission`），由 S3-250 收编单承接 ⇒ 一致性用例把它们列入**具名待接白名单**；后端接线后白名单自动失效、用例自动转绿（判定顺序：先看后端接线，命中即过，不再查白名单）'
   },
   {
     id: 'island-order-exception',
@@ -672,3 +675,13 @@ export const GATED_ENTRY_IDS: string[] = ENTRY_GATES.filter((g) => g.status === 
 export const REGISTERED_ENTRY_IDS: string[] = ENTRY_GATES.filter((g) => g.status === 'registered').map(
   (g) => g.id
 )
+
+/** 码未立、入口恒隐藏的入口 id 集合（证据/断言用） */
+export const PENDING_CODE_ENTRY_IDS: string[] = ENTRY_GATES.filter((g) => g.status === 'pending-code').map(
+  (g) => g.id
+)
+
+/** 该入口是否为 pending-code（恒隐藏）；未知 id ⇒ false（沿用"不抛错、不误隐藏"口径） */
+export function isPendingCodeEntry(id: string): boolean {
+  return ENTRY_GATE_BY_ID[id]?.status === 'pending-code'
+}

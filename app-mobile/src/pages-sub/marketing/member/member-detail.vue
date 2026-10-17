@@ -251,7 +251,7 @@
       </block>
       <block v-else>
         <view class="ab-btn ab-ghost" @tap="openDlg('recharge')"><text>充值</text></view>
-        <view class="ab-btn ab-warn" @tap="openDlg('points')"><text>调整积分</text></view>
+        <view class="ab-btn ab-warn" v-if="canEntry('mkt-points-adjust')" @tap="openDlg('points')"><text>调整积分</text></view>
         <view class="ab-btn ab-primary" @tap="startEdit"><text>修改</text></view>
       </block>
     </view>
@@ -291,6 +291,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { get, put, post } from '@/api/request'
 import { memberLevelApi, type MemberLevel } from '@/api/modules/member-levels'
 import DocPage, { type DocRow } from '@/components/DocPage.vue'
+import { usePermissionGate } from '@/composables/usePermissionGate'
 
 interface MemberDetail {
   id: number
@@ -329,6 +330,9 @@ interface MemberOrder {
   businessStatus: string
   createdAt: string
 }
+
+// B3-1：「调整积分」入口门（pending-code ⇒ 恒隐藏，按未开通处理）
+const { canEntry } = usePermissionGate()
 
 const member = ref<MemberDetail | null>(null)
 const orders = ref<MemberOrder[]>([])
