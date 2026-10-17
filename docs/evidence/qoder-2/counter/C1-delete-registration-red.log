@@ -1,0 +1,99 @@
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-2/app-mobile[39m
+
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 343[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 334[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 435[2mms[22m[39m
+ [31m❯[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m10 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 367[2mms[22m[39m
+     [32m✓[39m gated ⇒ codes 非空；registered / pending-code ⇒ codes 恒空（不许硬挂不存在的码）[32m 17[2mms[22m[39m
+[31m     [31m×[31m 本卡登记：售后门 = gated + sale:return（4 条端点逐条在册）[39m[32m 27[2mms[22m[39m
+     [32m✓[39m 本卡登记：积分调整门 = pending-code + codes 空 + 未开通口径在册[32m 3[2mms[22m[39m
+     [32m✓[39m gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名[32m 74[2mms[22m[39m
+[31m     [31m×[31m 待接白名单条目必须仍归属某个 gated 入口（删登记 ⇒ 红并点名；本卡反测挂钩）[39m[32m 34[2mms[22m[39m
+     [32m✓[39m pending-code 端点：后端必须尚未接线（已接 ⇒ 红并点名，提示注册表转 gated 补码）[32m 2[2mms[22m[39m
+[31m     [31m×[31m 售后门（gated sale:return）：持码/通配=显示；不持/空数组/未取到=隐藏[39m[32m 71[2mms[22m[39m
+     [32m✓[39m 积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）[32m 17[2mms[22m[39m
+     [32m✓[39m 售后页：PENDING 动作按钮块已挂本门，且不再存在未门控的同一 v-if[32m 76[2mms[22m[39m
+     [32m✓[39m 会员详情页：调整积分按钮已挂本门（pending-code ⇒ 恒隐藏，按未开通处理）[32m 2[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m22 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 07:28:31
+[2m   Duration [22m 3.70s[2m (transform 1.68s, setup 0ms, import 3.62s, tests 1.16s, environment 2ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 3 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 注册表自洽（status/codes 不变量 + 本卡 5 条登记逐条）[2m > [22m本卡登记：售后门 = gated + sale:return（4 条端点逐条在册）
+[31m[1mAssertionError[22m: expected undefined to be defined[39m
+[36m [2m❯[22m tests/entry-gate-consistency.spec.ts:[2m164:15[22m[39m
+    [90m162|[39m   [34mit[39m([32m'本卡登记：售后门 = gated + sale:return（4 条端点逐条在册）'[39m[33m,[39m () [33m=>[39m {
+    [90m163|[39m     [35mconst[39m g [33m=[39m [33mENTRY_GATES[39m[33m.[39m[34mfind[39m((x) [33m=>[39m x[33m.[39mid [33m===[39m [32m'island-aftersale'[39m)
+    [90m164|[39m     [34mexpect[39m(g)[33m.[39m[34mtoBeDefined[39m()
+    [90m   |[39m               [31m^[39m
+    [90m165|[39m     [34mexpect[39m(g[33m![39m[33m.[39mstatus)[33m.[39m[34mtoBe[39m([32m'gated'[39m)
+    [90m166|[39m     [34mexpect[39m(g[33m![39m[33m.[39mcodes)[33m.[39m[34mtoEqual[39m([[32m'sale:return'[39m])
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 入口门 ↔ 后端接线一致性[2m > [22m待接白名单条目必须仍归属某个 gated 入口（删登记 ⇒ 红并点名；本卡反测挂钩）
+[31m[1mAssertionError[22m: 白名单条目失去对应的 gated 登记（门被删/降级？另：后端接线后请顺带清理本表条目）：
+POST /api/admin/aftersales/:id/approve
+POST /api/admin/aftersales/:id/reject
+POST /api/admin/aftersales/:id/inspect
+POST /api/admin/aftersales/:id/complete: expected [ …(4) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "POST /api/admin/aftersales/:id/approve",[39m
+[31m+   "POST /api/admin/aftersales/:id/reject",[39m
+[31m+   "POST /api/admin/aftersales/:id/inspect",[39m
+[31m+   "POST /api/admin/aftersales/:id/complete",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/entry-gate-consistency.spec.ts:[2m220:7[22m[39m
+    [90m218|[39m       orphans[33m,[39m
+    [90m219|[39m       `白名单条目失去对应的 gated 登记（门被删/降级？另：后端接线后请顺带清理本表条目）：\n${orphans.join('…
+    [90m220|[39m     )[33m.[39m[34mtoEqual[39m([])
+    [90m   |[39m       [31m^[39m
+    [90m221|[39m   })
+    [90m222|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 三态装置（持码=显示 / 不持码=0 / 未取到=0；pending-code 恒 0）[2m > [22m售后门（gated sale:return）：持码/通配=显示；不持/空数组/未取到=隐藏
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/entry-gate-consistency.spec.ts:[2m247:55[22m[39m
+    [90m245|[39m     [34mexpect[39m([34mgate[39m([[32m'sale:return'[39m][33m,[39m [32m'island-aftersale'[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m246|[39m     [34mexpect[39m([34mgate[39m([[32m'*'[39m][33m,[39m [32m'island-aftersale'[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m247|[39m     [34mexpect[39m([34mgate[39m([[32m'sale:create'[39m][33m,[39m [32m'island-aftersale'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m   |[39m                                                       [31m^[39m
+    [90m248|[39m     [34mexpect[39m([34mgate[39m([][33m,[39m [32m'island-aftersale'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m249|[39m     [34mexpect[39m([34mgate[39m([35mnull[39m[33m,[39m [32m'island-aftersale'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-2\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-2\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+EXIT=1

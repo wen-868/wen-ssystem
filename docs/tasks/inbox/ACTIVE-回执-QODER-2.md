@@ -1,0 +1,18 @@
+# ACTIVE-回执-QODER-2 · 已交付 · 待验收
+
+- 单号：**QODER-2**（B3-1 · 移动端入口门，解锁后端收编）｜执行方：**QODER**（工作树 QODER-2）｜2026-10-18
+- 状态：**已交付，未 push、未开 PR**（按红线只落本地分支）。
+- 工作树 / 分支：`D:\Users\ZXQL\wt-agents\QODER-2`｜`feat/qoder-2-appmobile-entry-gates`
+  ⚠️ 基线偏离：起基 **QODER-1 尖端 `10b1e879`**（栈式）而非任务书的 `origin/main`——为复用卡 1 门禁 harness（卡 1 回传 §八 建议口径）；理由与重放选项见回传卡 §〇/§七.1。
+- 实现提交：`bc5d1beb5099cfb98838f2d018baef4b39a09d54`（6 文件，354+/18-）；回传卡与回执为第二笔提交。
+- 读数摘要（原始输出全在 `docs/evidence/qoder-2/`）：
+  - **5 条登记**：售后 approve/reject/inspect/complete ⇒ `island-aftersale` **gated + `sale:return`**（同族已落地码，未新造）；积分调整 ⇒ `mkt-points-adjust` **pending-code**（codes 保持空，页面按"未开通"恒隐藏）。注：两条系 S3-230 既有 `registered` 孤岛行的**升级**，非字面新行（对照表见回传卡 §二.1）；
+  - 四道门 EXIT=0：type-check（12=基线，0 新增）/ lint（20/12880=基线，页面挂门零新增告警）/ test（**4 文件 27 用例**，基线已同步 3/15→4/27）/ check:contract（292/283/204/1498，读数未动）；`build:h5` EXIT=0；
+  - 反测：**C1 删登记**（整块移除 `island-aftersale` ⇒ `npm test` EXIT=1、白名单孤儿逐条点名 4 端点 ⇒ 复原 SHA256 逐字节一致 ⇒ 再绿）；**C2 补充**（摘掉 `canEntry` pending-code 短路 ⇒ 恒隐藏用例红并点名 ⇒ 复原字节级一致 ⇒ 再绿）；
+  - **自动转绿机检**：合成后端索引模拟 4 条端点挂 `sale:return` ⇒ 一致性零违规（白名单无需改动）；模拟挂错码 ⇒ 4 条逐一违规点名。不碰 backend 文件；
+  - 后端三守卫（route-auth / evidence-secrets / rbac-wiring --strict）仍 EXIT=0；`git diff origin/main HEAD -- backend/` **0 行**（卡 1+卡 2 累计零后端改动）；
+  - S3-250 输入：「5 条码 ↔ 门 id」对照表 + 各端点后端现场行号（回传卡 §三）。
+- 待凌舟裁定/知悉：① 基线偏离取舍（合并顺序建议：先合卡 1、或卡 2 rebase 到 main）；② 三态判据落地为"逻辑装置 + 模板静态断言"而非 mount 渲染断言（回传卡 §七.2）；③ 页面挂门新增 2 处合法门 id 字面引用（回传卡 §七.4）。
+- 本回执只追加状态，未改动 `inbox/ACTIVE.md` 原件、未动任何他人工作树/卡片。
+
+—— QODER（移动端执行方，工作树 QODER-2）｜2026-10-18
