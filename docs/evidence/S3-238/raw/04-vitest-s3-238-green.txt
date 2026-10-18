@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-238/backend
+
+ ✓ src/__tests__/routes/rbac-b2-s3-238-platform-wiring.test.ts (7 tests) 974ms
+       ✓ ① 无平台令牌 ⇒ 401（不是 403：认证未过）  888ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  01:19:56
+   Duration  14.94s (transform 531ms, setup 75ms, import 11.31s, tests 974ms, environment 0ms)
+

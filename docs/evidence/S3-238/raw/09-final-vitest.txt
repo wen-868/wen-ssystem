@@ -1,0 +1,80 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-238/backend
+
+[2026-10-18 02:09:13.749 +0800] [32mINFO[39m (1628): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+ ✓ src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts (162 tests) 10721ms
+     ✓ 'admin-product.routes.ts' 'put' '/products/:id/status'：非持有人逐账号枚举 ⇒ 403  327ms
+     ✓ 'admin-product.routes.ts' 'delete' '/products/skus/:skuId/units/:unitId'：非持有人逐账号枚举 ⇒ 403  323ms
+     ✓ 'category.routes.ts' 'put' '/:id/sort'：非持有人逐账号枚举 ⇒ 403  334ms
+ ✓ src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts (165 tests) 12815ms
+     ✓ 仓管通过入库 3 行、采购员通过 19 行、超管/运营员通过全部 29 行  1920ms
+     ✓ SALES_STAFF 对全部 29 行 ⇒ 403（没有把权限门放宽成摆设）  752ms
+     ✓ STORE_OPERATOR（持 sale:return）只通过退货 3 行（含 S3-233 的退货创建行），对其余 26 行 403  607ms
+ ✓ src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts (262 tests) 13320ms
+     ✓ 店长（生产实值，持 store:*/inventory:*）通过全部 45 条 inventory:*/store:transfer 行（页面角色不 403；S3-233 收编后 25 → 45）  1177ms
+     ✓ 仓管（WAREHOUSE_STAFF）通过 inventory:* 与 trace:code 行，但**不**通过 store:transfer 行  366ms
+ ✓ src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts (175 tests) 12781ms
+     ✓ 'admin-marketing-flash-sale.routes.ts' 'put' '/flash-sales/:id'：READONLY ⇒ 403 且 msg 指向该权限码  412ms
+     ✓ 'store-shift.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403  343ms
+     ✓ 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200）  992ms
+ ✓ src/__tests__/routes/rbac-b2-s3-222-customer-wiring.test.ts (189 tests) 14521ms
+     ✓ 'admin-customer.routes.ts' 'put' '/members/:id'：全部非持有人（逐账号枚举）⇒ 403  357ms
+     ✓ 零回归（机器复算）：每一行的**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200）  865ms
+     ✓ 生产店长（`customer:*`）通过本批**全部** 42 行（客户域写码全被 `customer:*` 覆盖）  997ms
+ ✓ src/__tests__/routes/rbac-g0-wiring.test.ts (147 tests) 13681ms
+     ✓ backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17  6374ms
+     ✓ 每条 G0 名单行都能在对应路由文件中找到 `requirePermission("<permCode>")`（且不带通配）  824ms
+     ✓ 'price.routes.ts POST /api/admin/price…'：READONLY（*:view）⇒ 403 且未到达业务层  550ms
+     ✓ 'FINANCE_STAFF（finance:* 域通配）'：逐端点判定与预期矩阵一致（#1 日结 + #2–#5 收款类）  390ms
+[2026-10-18 02:09:40.136 +0800] [32mINFO[39m (11772): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+ ✓ src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts (306 tests) 27094ms
+     ✓ 'admin-marketing-full-reduction.routes…' 'put' '/full-reductions/:id'：全部非持有人（逐账号枚举）⇒ 403  312ms
+     ✓ 'admin-marketing-stack-rule.routes.ts' 'put' '/stack-rules/:id'：全部非持有人（逐账号枚举）⇒ 403  316ms
+     ✓ 'marketing-asset.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403  338ms
+     ✓ 'marketing-limited-discount.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403  309ms
+     ✓ 'marketing-limited-discount.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403  348ms
+     ✓ 'marketing-limited-discount.routes.ts' 'post' '/:id/activate'：全部非持有人（逐账号枚举）⇒ 403  357ms
+     ✓ 'marketing-limited-discount.routes.ts' 'delete' '/:id/products/:productId'：全部非持有人（逐账号枚举）⇒ 403  312ms
+     ✓ 'marketing-material.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403  351ms
+     ✓ 'marketing-material.routes.ts' 'put' '/categories/:id'：全部非持有人（逐账号枚举）⇒ 403  327ms
+     ✓ 'marketing-material.routes.ts' 'delete' '/categories/:id'：全部非持有人（逐账号枚举）⇒ 403  430ms
+     ✓ 'marketing-points-mall.routes.ts' 'put' '/products/:id'：全部非持有人（逐账号枚举）⇒ 403  327ms
+     ✓ 'points.routes.ts' 'put' '/rules/:id'：全部非持有人（逐账号枚举）⇒ 403  346ms
+     ✓ 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200）  632ms
+ ✓ src/__tests__/routes/rbac-b2-s3-237-goods-wiring.test.ts (60 tests) 4587ms
+     ✓ 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：READONLY ⇒ 403 且 msg 指向该权限码  340ms
+     ✓ 前端导入页真实打的是 data-transfer 路径（`store:transfer` 已接，S3-198）；`importProducts` 封装无任何页面调用点  1010ms
+ ✓ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts (112 tests) 8973ms
+     ✓ 'store-control.routes.ts' 'post' '/:storeId/open'：全部非持有人（逐账号枚举）⇒ 403  327ms
+     ✓ 'store-control.routes.ts' 'post' '/:storeId/suspend'：全部非持有人（逐账号枚举）⇒ 403  336ms
+     ✓ 'store-control.routes.ts' 'post' '/:storeId/resume'：全部非持有人（逐账号枚举）⇒ 403  394ms
+     ✓ 'community-marketing.routes.ts' 'post' '/:id/join'：全部非持有人（逐账号枚举）⇒ 403  302ms
+     ✓ 'community-marketing.routes.ts' 'post' '/:id/start'：全部非持有人（逐账号枚举）⇒ 403  335ms
+     ✓ 'community-marketing.routes.ts' 'post' '/:orderNo/cancel'：全部非持有人（逐账号枚举）⇒ 403  425ms
+     ✓ 'community-marketing.routes.ts' 'post' '/:id/end'：全部非持有人（逐账号枚举）⇒ 403  469ms
+ ✓ src/__tests__/routes/rbac-b2-s3-237-system-wiring.test.ts (70 tests) 4686ms
+     ✓ 'alert.routes.ts' 'put' '/:id/handle'：READONLY ⇒ 403 且 msg 指向该权限码  336ms
+     ✓ 'push.routes.ts' 'post' '/test'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层  416ms
+     ✓ 'sms-template.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层  304ms
+ ✓ src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts (164 tests) 9299ms
+     ✓ 'admin-staff.routes.ts' 'put' '/staff/:id/status' ⇒ 403 且未到达业务层  389ms
+     ✓ 'sys-user.routes.ts' 'post' '/' ⇒ 8 个非持有角色全 403  308ms
+     ✓ 'sys-user.routes.ts' 'post' '/:id/reset-password' ⇒ 8 个非持有角色全 403  302ms
+ ✓ src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts (183 tests) 9564ms
+     ✓ 'bank-account.routes.ts' 'put' '/:id' ⇒ 403 且未到达业务层  441ms
+     ✓ 'expense.routes.ts' 'post' '/:expenseNo/approve'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算）  517ms
+ ✓ src/__tests__/routes/rbac-g1-wiring.test.ts (131 tests) 5995ms
+     ✓ 整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但 recharge/freeze/unfreeze 三行没有  308ms
+ ✓ src/__tests__/routes/rbac-b2-s3-238-platform-wiring.test.ts (7 tests) 923ms
+       ✓ ① 无平台令牌 ⇒ 401（不是 403：认证未过）  460ms
+ ✓ src/__tests__/routes/rbac.test.ts (3 tests) 14ms
+ ✓ src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts (34 tests) 1662ms
+ ✓ src/__tests__/routes/rbac-g2-wiring.test.ts (58 tests) 2055ms
+ ✓ src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts (120 tests) 3232ms
+     ✓ 16 条跨层漂移逐条点名（注册表路径/方法与后端注册形态不一致 ⇒ 本单只登记、不接）  396ms
+
+ Test Files  18 passed (18)
+      Tests  2348 passed (2348)
+   Start at  02:08:51
+   Duration  70.96s (transform 48.79s, setup 3.22s, import 262.47s, tests 155.92s, environment 14ms)
+

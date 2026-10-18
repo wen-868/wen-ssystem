@@ -1,0 +1,43 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-238/backend
+
+ ❯ src/__tests__/routes/rbac-b2-s3-238-platform-wiring.test.ts (7 tests | 1 failed) 336ms
+     × a) 双前缀两侧 4 条审核端点**都**自带 requirePlatformPermission("tenant:manage") 28ms
+     ✓ b) tenant:manage 在「中间件常量」与「目录常量」两处同名同义（S3-231 F2 裁定 1） 5ms
+     ✓ c) 挂载顺序：tenant-register.routes.ts 的认证 router.use 早于两条审核端点 10ms
+       ✓ ① 无平台令牌 ⇒ 401（不是 403：认证未过） 235ms
+       ✓ ② 平台令牌但角色无矩阵授权 ⇒ 403（fail-closed，不是 500） 24ms
+       ✓ ③ 平台超管 ⇒ 到达业务层（证明装置不是恒红） 15ms
+       ✓ ④ 非超管但矩阵已授权（can_page_btn=1）⇒ 到达业务层 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/routes/rbac-b2-s3-238-platform-wiring.test.ts > S3-238 · 平台侧接线第一批（双前缀收编） > a) 双前缀两侧 4 条审核端点**都**自带 requirePlatformPermission("tenant:manage")
+AssertionError: PUT /api/platform/applications/:id/approve 缺少 requirePlatformPermission("tenant:manage"): expected '.put(\r\n  "/:id/approve",\r\n  \r\n …' to contain 'requirePlatformPermission("tenant:man…'
+
+- Expected
++ Received
+
+- requirePlatformPermission("tenant:manage")
++ .put(
++   "/:id/approve",
++   
++   asyncHandler(handleApproveApplication)
++ );
+
+ ❯ src/__tests__/routes/rbac-b2-s3-238-platform-wiring.test.ts:160:81
+    158|       const block = endpointBlock(t.file, t.method, t.p);
+    159|       expect(block, `${t.label} 未找到注册行（源码形态可能变了）`).not.toBe("");
+    160|       expect(block, `${t.label} 缺少 requirePlatformPermission("tenant:m…
+       |                                                                                 ^
+    161|         'requirePlatformPermission("tenant:manage")'
+    162|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  01:31:32
+   Duration  2.23s (transform 323ms, setup 90ms, import 864ms, tests 336ms, environment 0ms)
+

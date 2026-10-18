@@ -1,0 +1,5 @@
+# 命令：node <wt>\backend\node_modules\typescript\bin\tsc -p <wt>\backend\tsconfig.json --noEmit
+# EXIT=
+0
+<<<BEGIN>>>
+<<<END>>>

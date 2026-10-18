@@ -153,6 +153,12 @@ export const PERMISSION_CATALOG: ReadonlyArray<PlatformCatalogEntry> = [
   { moduleCode: "library", moduleName: "商品库", permCode: "library:manage", permName: "商品库管理", permLevel: "BUTTON" },
   { moduleCode: "open", moduleName: "开放平台", permCode: "open:manage", permName: "开放平台管理", permLevel: "BUTTON" },
   { moduleCode: "review", moduleName: "平台评价与审核", permCode: "review:manage", permName: "平台评价与审核", permLevel: "BUTTON" },
+  // S3-238（平台侧接线第一批）：补齐 `tenant:manage`，消除 S3-231 F2 登记的两处错位。
+  // 该码在 middleware/platform-rbac.ts 的 PLATFORM_WRITE_CODES（:77）**已存在** ⇒ 端点能引用，
+  // 但本目录此前只有 `tenant:view` ⇒ 按 updateRolePermissions() 的口径（目录外 module_code 直接 400）
+  // 该码**无法被授予任何平台角色** ⇒ 接线后非超管永久 403（生产唯一管理员走超管通配 ⇒ 静默失效）。
+  // 本行即「两处同改」的第二处（与 platform-rbac.ts:77 同名同义，逐字可 grep 核对）。
+  { moduleCode: "tenant", moduleName: "租户管理", permCode: "tenant:manage", permName: "租户管理（写）", permLevel: "BUTTON" },
   { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:all", permName: "全部租户", permLevel: "DATA" },
   { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:gray-group", permName: "灰度组租户", permLevel: "DATA" },
   { moduleCode: "common", moduleName: "数据范围档位", permCode: "scope:follow-group", permName: "指定跟进组", permLevel: "DATA" },

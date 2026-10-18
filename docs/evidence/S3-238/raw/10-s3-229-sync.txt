@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/S3-238/backend
+
+[2026-10-18 01:55:59.200 +0800] [32mINFO[39m (9856): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+ ✓ src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts (112 tests) 6062ms
+
+ Test Files  1 passed (1)
+      Tests  112 passed (112)
+   Start at  01:55:46
+   Duration  18.78s (transform 3.17s, setup 158ms, import 10.80s, tests 6.06s, environment 1ms)
+
