@@ -1,5 +1,5 @@
 -- ============================================
--- 迁移编号：207
+-- 迁移编号：208
 -- 单号：S3-238（平台侧权限接线 · 第一批）
 -- 描述：平台侧权限点**立码**（`tenant:manage`）——幂等、非破坏；**不授权、不插角色行**
 -- 创建人：阿坚（后端 / 总台端）｜日期：2026-10-17
@@ -44,7 +44,7 @@ VALUES
   ('tenant', '租户管理', 'tenant:manage', '租户管理（写）', 'BUTTON');
 
 -- 五、只读核对（便于 run-migration.mjs 的 result 字段留痕，且不依赖上一步是否落库）
-SELECT CONCAT('207 核对：catalog 行数=', (SELECT COUNT(*) FROM t_platform_permission_catalog),
+SELECT CONCAT('208 核对：catalog 行数=', (SELECT COUNT(*) FROM t_platform_permission_catalog),
               ' ／ tenant:manage 是否存在=',
               (SELECT COUNT(*) FROM t_platform_permission_catalog WHERE perm_code = 'tenant:manage'),
               ' ／ 平台角色行数=', (SELECT COUNT(*) FROM t_platform_role),
