@@ -16,74 +16,17 @@
  */
 
 import { execute, query, transaction } from '@/native/sqlite'
+import type {
+    ProductDeltaData,
+    InventoryDeltaData,
+    MemberDeltaData,
+    DeltaAction,
+    SaleDraftItem,
+} from './sync'
 
-// ====================== 类型定义（对齐后端 delta-sync.service.ts） ======================
+// ====================== 类型定义（数据结构对齐 api/sync.ts，即后端 delta-sync.service.ts） ======================
 
-/**
- * 商品增量数据 — 对齐后端 ProductDeltaData
- */
-export interface ProductDeltaData {
-    skuId: number
-    spuId: number
-    skuCode: string
-    barcode: string | null
-    skuName: string
-    volume: string | null
-    packaging: string | null
-    baseUnit: string
-    boxUnit: string
-    boxRatio: number
-    temperature: string
-    traceEnabled: number
-    status: number
-    spuName: string
-    categoryId: number
-    categoryName: string | null
-    brandName: string | null
-    mainImage: string | null
-    retailPrice: number
-    wholesalePrice: number | null
-    costPrice: number
-    miniappPrice: number | null
-    storePrice: number | null
-    availableQty: number
-    warningThreshold: number
-    updatedAt: string
-}
-
-/**
- * 库存增量数据 — 对齐后端 InventoryDeltaData
- */
-export interface InventoryDeltaData {
-    storeId: number
-    skuId: number
-    skuName: string | null
-    stockType: string
-    physicalQty: number
-    lockedQty: number
-    availableQty: number
-    updatedAt: string
-}
-
-/**
- * 客户增量数据 — 对齐后端 MemberDeltaData
- */
-export interface MemberDeltaData {
-    memberId: number
-    name: string | null
-    mobile: string
-    customerType: string
-    settlementType: string
-    points: number
-    levelCode: string | null
-    status: number
-    updatedAt: string
-}
-
-/**
- * 变更动作类型 — 对齐后端 SyncDeltaResponse.changes[].action
- */
-export type DeltaAction = 'UPSERT' | 'DELETE' | 'STATUS_CHANGE'
+export type { ProductDeltaData, InventoryDeltaData, MemberDeltaData, DeltaAction, SaleDraftItem }
 
 /**
  * 通用增量变更条目
@@ -99,20 +42,6 @@ export interface DeltaChange<T> {
 
 /** 销售单草稿状态 */
 export type DraftStatus = 'DRAFT' | 'PENDING_SYNC' | 'SYNCED' | 'SYNC_FAILED'
-
-/**
- * 销售单草稿明细（与后端 OfflineOrderItem 对齐）
- */
-export interface SaleDraftItem {
-    skuId: number
-    skuName: string
-    boxQty: number
-    bottleQty: number
-    totalBottleQty: number
-    unitPrice: number
-    priceType: string
-    subtotalAmount: number
-}
 
 /**
  * 销售单草稿创建参数

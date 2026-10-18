@@ -1,6 +1,15 @@
 /**
  * SSL 证书锁定（SSL Pinning）— R51-05 安全加固
  *
+ * ⚠️ 接线状态（S3-247，2026-10-18 定性）：**当前未接线**。
+ *  - installSslPinning / validateCertificate 全仓零调用点（唯一历史提及是 config/env.ts 注释，已改）；
+ *  - PINNED_CERTS 叶子证书指纹已于 2026-09-15 过期——此刻接线会让 APP-PLUS 全部请求被判指纹不匹配拒连；
+ *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+ *    plus.networkEvent.addEventListener('certificateValidate') 为接口预留，当前运行时不可用，
+ *    接线即"静默放行"，无法满足本卡反测判据（指纹不匹配 ⇒ 请求失败）。
+ *  ⇒ 未采到"新指纹 + 原生层证书回调可用"两个前置前，禁止接线。指纹维护口径与前置清单见
+ *    docs/tasks/cards/R101-QODER-5-回传.md（S3-247）。
+ *
  * 核心功能：
  *  1. PINNED_CERTS                — 内置生产证书 SHA256 指纹配置（api.onepan.cn / m.onepan.cn）
  *  2. validateCertificate(host, cert) — 校验证书指纹是否匹配锁定列表

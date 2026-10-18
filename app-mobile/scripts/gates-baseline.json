@@ -26,14 +26,14 @@
       "src/pages/sales/create-sale.vue::no-empty": 1
     },
     "warningsByRule": {
-      "no-console": 232,
-      "@typescript-eslint/no-unused-vars": 105,
+      "no-console": 225,
+      "@typescript-eslint/no-unused-vars": 104,
       "vue/html-indent": 12299,
       "vue/html-closing-bracket-spacing": 196,
       "vue/html-closing-bracket-newline": 1,
       "vue/multiline-html-element-content-newline": 47
     },
-    "note": "error 存量位于页面文件（本单红线不可改页面），按 文件::规则 冻结；warning 按规则冻结"
+    "note": "error 存量位于页面文件（本单红线不可改页面），按 文件::规则 冻结；warning 按规则冻结。QODER-5（S3-247 离线链下线）删除 utils/sync-manager.ts 后现场调低：no-console 232→225、no-unused-vars 105→104（合计 −8），按「只准降不准升」留痕。"
   },
   "checkContract": {
     "callOccurrencesNonComment": 292,
@@ -46,8 +46,8 @@
     "note": "A.2 三口径读数由 check-contract.mjs 每次运行现场打印"
   },
   "tests": {
-    "testFiles": 4,
-    "testCount": 27,
-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27"
+    "testFiles": 5,
+    "testCount": 53,
+    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕。"
   }
 }

@@ -16,20 +16,95 @@
  *  - request.ts BASE_URL 在 H5 下含 /api，在 APP-PLUS 下为完整域名，路径以 /sync 开头
  *  - 后端响应统一 { code, msg, data, traceId, apiCost }，request.ts 已 resolve(res.data.data)
  *  - 所有类型对齐后端 delta-sync.service.ts 中的导出接口
+ *  - S3-247 离线链下线：Delta 数据类型原由本地 SQLite 业务层文件定义，现内联到本文件自持有；
+ *    本文件成为零生产消费方的契约客户端，未来重接离线同步时直接复用
  *
  * @author 阿澈
  */
 
 import { get, post } from './request'
-import type {
-    ProductDeltaData,
-    InventoryDeltaData,
-    MemberDeltaData,
-    SaleDraftItem,
-    DeltaAction,
-} from './local-db'
 
 // ====================== 类型定义（对齐后端 delta-sync.service.ts） ======================
+
+/**
+ * 变更动作类型 — 对齐后端 SyncDeltaResponse.changes[].action
+ */
+export type DeltaAction = 'UPSERT' | 'DELETE' | 'STATUS_CHANGE'
+
+/**
+ * 商品增量数据 — 对齐后端 ProductDeltaData
+ */
+export interface ProductDeltaData {
+    skuId: number
+    spuId: number
+    skuCode: string
+    barcode: string | null
+    skuName: string
+    volume: string | null
+    packaging: string | null
+    baseUnit: string
+    boxUnit: string
+    boxRatio: number
+    temperature: string
+    traceEnabled: number
+    status: number
+    spuName: string
+    categoryId: number
+    categoryName: string | null
+    brandName: string | null
+    mainImage: string | null
+    retailPrice: number
+    wholesalePrice: number | null
+    costPrice: number
+    miniappPrice: number | null
+    storePrice: number | null
+    availableQty: number
+    warningThreshold: number
+    updatedAt: string
+}
+
+/**
+ * 库存增量数据 — 对齐后端 InventoryDeltaData
+ */
+export interface InventoryDeltaData {
+    storeId: number
+    skuId: number
+    skuName: string | null
+    stockType: string
+    physicalQty: number
+    lockedQty: number
+    availableQty: number
+    updatedAt: string
+}
+
+/**
+ * 客户增量数据 — 对齐后端 MemberDeltaData
+ */
+export interface MemberDeltaData {
+    memberId: number
+    name: string | null
+    mobile: string
+    customerType: string
+    settlementType: string
+    points: number
+    levelCode: string | null
+    status: number
+    updatedAt: string
+}
+
+/**
+ * 销售单草稿明细（与后端 OfflineOrderItem 对齐）
+ */
+export interface SaleDraftItem {
+    skuId: number
+    skuName: string
+    boxQty: number
+    bottleQty: number
+    totalBottleQty: number
+    unitPrice: number
+    priceType: string
+    subtotalAmount: number
+}
 
 /**
  * 通用增量同步响应（对齐后端 SyncDeltaResponse）
