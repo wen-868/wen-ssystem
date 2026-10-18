@@ -1,0 +1,12 @@
+src/utils/crypto.ts(825,17): error TS2323: Cannot redeclare exported variable 'setSecureStorage'.
+src/utils/crypto.ts(825,17): error TS2393: Duplicate function implementation.
+src/utils/crypto.ts(837,17): error TS2323: Cannot redeclare exported variable 'getSecureStorage'.
+src/utils/crypto.ts(837,17): error TS2393: Duplicate function implementation.
+src/utils/crypto.ts(858,17): error TS2323: Cannot redeclare exported variable 'removeSecureStorage'.
+src/utils/crypto.ts(858,17): error TS2393: Duplicate function implementation.
+src/utils/crypto.ts(873,17): error TS2323: Cannot redeclare exported variable 'setSecureStorage'.
+src/utils/crypto.ts(873,17): error TS2393: Duplicate function implementation.
+src/utils/crypto.ts(888,17): error TS2323: Cannot redeclare exported variable 'getSecureStorage'.
+src/utils/crypto.ts(888,17): error TS2393: Duplicate function implementation.
+src/utils/crypto.ts(907,17): error TS2323: Cannot redeclare exported variable 'removeSecureStorage'.
+src/utils/crypto.ts(907,17): error TS2393: Duplicate function implementation.

@@ -1,0 +1,11 @@
+本文件为 `10-vuetsc-after-fix.txt` 的说明（该证据文件为零字节，按角色卡铁律 5 必须配说明）。
+
+命令：
+  cd /d D:\Users\ZXQL\wt-agents\S3-245\app-mobile
+  npx vue-tsc --noEmit > docs\evidence\S3-245\raw\10-vuetsc-after-fix.txt 2>&1
+
+退出码：0
+为何零输出：`vue-tsc --noEmit` 在**零错误**时不打印任何诊断行，故重定向文件为 0 字节。
+零字节 = 判据 1 达成（改造前的 12 处 TS2323/TS2393 全部消失），不是"没跑"。
+同一次运行的退出码由 shell 捕获为 `VUE_TSC_EXITCODE=0`。
+对照（改造前，基线 f6e651d4 上实跑）：12 行错误、EXIT=2，见 `00-vuetsc-baseline-before.txt`。
