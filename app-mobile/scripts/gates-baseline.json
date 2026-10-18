@@ -45,6 +45,14 @@
     "exemptionsFile": "scripts/contract-exemptions.json",
     "note": "A.2 三口径读数由 check-contract.mjs 每次运行现场打印"
   },
+  "contractDrift": {
+    "command": "node scripts/check-contract-drift.mjs（S3-242 跨层漂移定性机，只跑本单 16+1 清单）",
+    "debt": 16,
+    "d1": 16,
+    "d2": 0,
+    "d4": 1,
+    "note": "debt = D1+D2（注册表 15× /platform 前缀误写 + 1× deliveries status 方法漂移）。employees(+1) 定性 D4（wrapper 零调用方）不计债；若将来出现调用方而后端仍 0 注册 ⇒ 脚本自动升格 D2 ⇒ debt 16→21 超基线转红。只准降：修复卡（按 R101-QODER-6-回传.md §五 拆单）把注册表 16 行对齐后端后，现场把 debt/d1 调低并留痕。QODER-6 登记基线 = 现场实测（2026-10-18），未修任何业务代码。"
+  },
   "tests": {
     "testFiles": 5,
     "testCount": 53,

@@ -1,0 +1,2 @@
+cmd: rg -n "system/employees" backend/src
+exit=1（1=0 命中）⇒ 后端确无 /admin/system/employees* 端点
