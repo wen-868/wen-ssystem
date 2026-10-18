@@ -6,10 +6,13 @@
       "src/utils/crypto.ts::TS2323": 6,
       "src/utils/crypto.ts::TS2393": 6
     },
-    "note": "12 条全部是 crypto.ts 双份 #ifdef 导出；S3-245（PR #363）合并后应把 errors 清空"
+    "note": "凌舟裁定②（2026-10-18 验收回传）：这 12 条是 crypto.ts 双份 #ifdef 导出的**过渡态读数，不得当既成事实写进台账**。合并顺序=PR #363（S3-245）先合 → 本分支 rebase → errors 清空、门判据改 error===0；#363 未合前本块仅作「0 新增」判定依据。"
   },
   "lint": {
     "command": "eslint src --ext .ts,.vue（scripts/lint-gate.mjs 包装）",
+    "errorBaseline": 20,
+    "mustReachZero": true,
+    "dueBatch": "清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。",
     "errorsByFileRule": {
       "src/api/storage.ts::no-extra-semi": 1,
       "src/pages-sub/marketing/member/member-detail.vue::no-extra-semi": 1,

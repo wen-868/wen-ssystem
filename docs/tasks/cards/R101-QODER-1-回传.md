@@ -119,5 +119,9 @@ YAML 校验（`ci-yaml-validate.log`）：js-yaml load OK；`build-and-test` 36 
 ## 十、变更记录
 
 - 2026-10-18：首次回传（无更早版本，无口径覆盖）。
+- 2026-10-18（裁定落地 v2）：凌舟验收通过两卡并下四条裁定，本分支按 ①② 收口径（追加提交，见 git log 尖端）：
+  - **裁定①（lint error 不许长期冻结）**：`gates-baseline.json.lint` 新增 `errorBaseline: 20`、`mustReachZero: true`、`dueBatch`（下一批清零卡，凌舟出卡；该批起门判据改 `error===0`，warning 仍冻结）；20 条 error 的**文件::规则清单**即基线内 `errorsByFileRule` 13 对（storage/member-detail/batch-price/settings/ai-chat×3 规则/product-detail×2/create-sale×4 规则）；`lint-gate.mjs` 绿时打印到期提醒（行为判据不变）。证据：`docs/evidence/qoder-1/口径收敛/lint-gate-after-ruling1.log`。
+  - **裁定②（type 基线 12 条是过渡读数、不入台账）**：基线 `typeCheck.note` 已改写为"过渡态读数 + 合并顺序 = PR #363 先合 → 本分支 rebase → errors 清空、判据改 error===0"。本分支**暂未** rebase（#363 尚未进 `origin/main`：实测 main 尖端仍 `1ba1efd0`、crypto.ts 条件编译 3 处仍在）。
+  - 裁定③④（卡 2 侧）落地见 `R101-QODER-2-回传.md` §十。
 
 —— QODER（移动端执行方）｜2026-10-18

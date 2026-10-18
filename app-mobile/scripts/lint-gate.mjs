@@ -123,6 +123,9 @@ if (worseWarnings.length > 0) {
 }
 if (!red) {
   console.log('✓ 无新增 error、warning 未劣化 ⇒ EXIT=0')
+  if (baseline.lint?.mustReachZero && errTotal > 0) {
+    console.log(`⚠ error 级不许长期冻结（当前 ${errTotal} 条）：${String(baseline.lint.dueBatch ?? '到期批见 gates-baseline.json').replace(/^凌舟裁定①（2026-10-18）：/, '')}`)
+  }
   if (errTotal + warnTotal < Object.values(ERR_BASE).reduce((a, b) => a + b, 0) + Object.values(WARN_BASE).reduce((a, b) => a + b, 0)) {
     console.log('ℹ 存量低于基线 ⇒ 请把 gates-baseline.json 调低（只准降不准升）。')
   }
