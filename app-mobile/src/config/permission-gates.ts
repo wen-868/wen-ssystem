@@ -23,17 +23,29 @@
 //   本文件 `matchPermissionCode()` 逐条等价；如后端判据变化，本文件必须同步（同 S3-203 的
 //   "同一身份域内两端口径必须同源"精神）。
 //
-// 「未取到权限码」的处置（**S3-231 F3 起 = 失败关闭**）
-//   · `permissions` 为 null/undefined ⇒ 尚未取到（登录响应与 `/admin/auth/me` 均会下发
-//     `permissions`；老版本本地缓存可能确实没有）⇒ **不显示**（失败关闭，S3-231 F3 按凌舟裁定 5 改）；
-//   · `permissions` 为**空数组** ⇒ 确实取到了、且该用户没有任何码 ⇒ **不显示**（失败关闭，原本即如此）。
-//   ⚠️ 与 `stores/menu.ts` 的 null 语义**有意分叉**：menu.ts 的 null = 首屏加载中、放全量（产品既有语义，
-//      本单不动）；入口门是"能不能进这个写页面"，未取到就不该给一个必 403 的入口 ⇒ 失败关闭。
-//      两者的差异与影响面逐条登记在 `docs/evidence/S3-231/F3/`。
+// 「未取到权限码」的处置（**S3-239 起 = 三态单一定义源**）
+//   旧局面（S3-231 F3 ~ S3-239 之前）：本门 null ⇒ 失败关闭，而 `stores/menu.ts` null ⇒ 放全量，
+//   同端两套语义「有意分叉」。**S3-239 已收成一套**：三态（①加载中 / ②确实无码 / ③未取到）由
+//   `config/permission-view-state.ts` 单一定义源裁决，本门的 `isEntryVisible()` 与 menu store 都调它：
+//   · ①③ 态 ⇒ 最小可见集口径：codes 为空数组的入口（registered / 未登记）照常可见（整端不空白）；
+//     带码的 gated 入口**不显示**（它们全是写入口，未取到码放出去必 403），③ 态另有可关闭提示；
+//   · ② 态（成功返回、码数组为空）⇒ 失败关闭（现状保持）；
+//   · ready（持有非空码数组）⇒ 按 `hasPermissionCodes` 真实判定；
+//   · pending-code ⇒ 任何态恒隐藏（B3-1，先于三态判定短路）。
+//   `hasPermissionCodes` 自身的 null 分支保留失败关闭，作为**直接调用方的兜底**；
+//   但经 `isEntryVisible` / `usePermissionGate` 走时，null 处置已先被三态源分流，不再落到该分支。
+//   影响面登记：`docs/evidence/S3-231/F3/`（旧分叉）与 `docs/evidence/qoder-4/`（本单统一）。
 //
-// 代码层级：本文件**零依赖**（纯函数 + 常量），可被 Node 直接加载（证据脚本用），
-// 也可被 Pinia store / 页面 / 组件引入，避免"文档口径与实现口径"两套。
+// 代码层级：本文件**零依赖**（纯函数 + 常量，仅另引同目录的 permission-view-state.ts），
+// 可被 Node 直接加载（证据脚本用），也可被 Pinia store / 页面 / 组件引入，
+// 避免"文档口径与实现口径"两套。
 // ============================================================================
+
+import {
+  MINIMUM_VISIBLE_ENTRY_IDS,
+  resolvePermissionViewState,
+  type PermissionRequestState,
+} from './permission-view-state'
 
 /**
  * 权限码匹配 —— 后端 `matchPermission()` 的逐条镜像（`backend/src/services/admin/rbac.service.ts:295`）。
@@ -87,12 +99,10 @@ export function hasPermissionCodes(
    *   而手机端**没有**前端登录拦截可兜底 —— 一旦 `/admin/auth/me` 未回或老版本本地缓存缺字段，
    *   用户就会看到一排点了必 403 的按钮（比"看不到"体验更差，且把越权可能性留给下一次改判）。
    *
-   * ⚠️ 影响面（本改动只落在**入口门这一层**，不动 `stores/menu.ts` 的既有 null 语义）：
-   *   ① `usePermissionGate.canEntry/canAnyEntry`（页面入口显隐）—— 本项的主目标；
-   *   ② `config/function-menu.ts` 的功能中心入口过滤（同样按码显隐，属入口门）；
-   *   ③ `native/push.ts` 的推送深链落地判定（同属入口门，避免"点通知进必 403 页"）。
-   *   `usePermissionGate.can()` 对**零散动作**仍在 `codes===null` 时放行（那是"该动作不设门"，
-   *   与"没取到权限码"是两回事），见该文件注释。
+   * ⚠️ S3-239 起：经 `isEntryVisible` / `usePermissionGate` 走的调用，"未取到"先被三态源分流，
+   *   **不再落到本分支**；此处保留仅为直接调用方（如 `function-menu.ts` 的过滤函数传裸 perms）的兜底。
+   *   这类调用在 ①③ 态的表现 = 需码项隐藏（与 ② 同结果、不同语义），最小可见集由菜单侧与入口侧
+   *   的三态接线保证「整端不空白」；曾与 `stores/menu.ts` 「有意分叉」的两套 null 语义已统一废止。
    */
   if (perms === null || perms === undefined) return false
   return codes.every((code) => matchPermissionCode(perms, code))
@@ -684,4 +694,42 @@ export const PENDING_CODE_ENTRY_IDS: string[] = ENTRY_GATES.filter((g) => g.stat
 /** 该入口是否为 pending-code（恒隐藏）；未知 id ⇒ false（沿用"不抛错、不误隐藏"口径） */
 export function isPendingCodeEntry(id: string): boolean {
   return ENTRY_GATE_BY_ID[id]?.status === 'pending-code'
+}
+
+/** 入口门三态查询输入（由 `usePermissionGate` 从 user store 现算后传入；口径定义见 permission-view-state.ts） */
+export interface EntryVisibilityQuery {
+  hasSession: boolean
+  requestState: PermissionRequestState
+  permissions: readonly string[] | null | undefined
+}
+
+/**
+ * 入口显隐求值（**S3-239 起，运行时唯一入口判定路径**；`usePermissionGate.canEntry` 只做参数装配）：
+ *  1. pending-code ⇒ 恒 false（B3-1 短路，先于三态，凌舟裁定 5 保持）；
+ *  2. codes 空数组（registered / 未知 id）⇒ 恒 true —— 「无码入口」在三态下天然可见，
+ *     这就是「①③ 不隐藏整端」的保底（首页快捷入口 / tabBar 多属此类）；
+ *  3. 带码入口 ⇒ 上送三态单一定义源，按 policy 分流：
+ *     · showGranted ⇒ hasPermissionCodes（真实码判定，通配镜像后端）；
+ *     · showAllMinimal ⇒ 仅 MINIMUM_VISIBLE_ENTRY_IDS 放行（当前空集 ⇒ gated 隐藏，
+ *       依据：全部 gated 入口都是写入口，未取到码显示出去必 403；往该常量加 id 须凌舟裁定）；
+ *     · hideNeedsCode ⇒ false（② 态失败关闭）；
+ *     · showAll ⇒ true —— 改造前旧语义，**生产路径不可达**，仅为反测注入点
+ *       （把三态源分支打回它 ⇒ 用例①/③ 必红）。
+ */
+export function isEntryVisible(entryId: string, query: EntryVisibilityQuery): boolean {
+  if (isPendingCodeEntry(entryId)) return false
+  const codes = codesOfEntry(entryId)
+  if (codes.length === 0) return true
+  const view = resolvePermissionViewState(query)
+  switch (view.policy) {
+    case 'showGranted':
+      return hasPermissionCodes(query.permissions, codes)
+    case 'showAllMinimal':
+      return MINIMUM_VISIBLE_ENTRY_IDS.includes(entryId)
+    case 'showAll':
+      return true
+    case 'hideNeedsCode':
+    default:
+      return false
+  }
 }

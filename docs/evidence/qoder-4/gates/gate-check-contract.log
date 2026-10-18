@@ -1,0 +1,13 @@
+
+> zhixiang-app-mobile@1.0.0 check:contract
+> node scripts/check-contract.mjs
+
+—— 契约对账（QODER-1 门 4，口径见文件头注释）——
+A.2 口径① 引号内 '/admin/...' 出现次数（本脚本非注释行口径）: 292
+A.2 口径② 其中位于调用/ url: 行内的出现次数:              283
+A.2 口径③ 去重后的调用路径数:                              204
+后端注册端点（routes/*.routes.ts 抽得，含全动词）:          1498
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+EXIT=0
