@@ -23,6 +23,10 @@
   **2026-10-18 验收后已 rebase 到卡 1 口径收敛尖端 `ce52ca66`**（裁定①②落地 commit），rebase 重写哈希：
   实现提交现为 **`5958cdc2f25a7551a338a7d5ffc0e78f5f16f7c8`**（6 文件，354+/18-；原 `bc5d1beb` 已被替换，内容零差异）；
   合并态复跑读数见 `docs/evidence/qoder-2/口径收敛/post-rebase-*.log`（四门 EXIT=0，tests 基线 4/27 两卡合并后一致）。
+- **v3（2026-10-18）二次 rebase**：卡 1 按凌舟前置要求 rebase 到 `3fa138e7`（#363 进 main）并归零 typeCheck 基线后，本分支再栈至卡 1 新尖端 `cbca2c37`；
+  三笔哈希重写：`5958cdc2`→**`859b1184f8b2fa9d8afb6460608da37458575f3c`**（实现）、`d72a2efb`→`49b8f1c5ef9ae43d85802da3440b88ec69882bc1`（回传）、`280f146b`→`4c45017cec5f0a475c64f7e79db09464c6b80831`（口径收敛）；
+  合并态复跑（`docs/evidence/qoder-2/合并态复跑-v3/`）：四门 EXIT=0（**type 读数已是 0 条/基线 0 条**，裁定②收口生效）、`build:h5` EXIT=0（在 #363 新 crypto.ts 上重建）、三守卫 EXIT=0、backend diff 0 行；
+  两门关键文件 SHA256 与 v2 反测复原值逐字节一致（`c12fd72d…`/`4fc160d6…`），证明 rebase 未改内容。
 - 后端零改动：`git diff origin/main HEAD -- backend/` **0 行**（卡 1 + 卡 2 累计均为零）；本卡未 push、未开 PR。
 
 ## 一、一句话
@@ -32,7 +36,7 @@
 两个页面挂上 `canEntry`，新增 12 条一致性/三态用例（含**具名待接白名单**与"后端接线后自动转绿"的机检），
 S3-250 后端收编单因此拿到可枚举的「端点 ↔ 门 ↔ 码」清单——**卡上"解锁"的实质：后端接线不再会造出"前端无门可对齐"的孤儿端点**。
 
-## 二、交付物（逐条，均在 `5958cdc2`（rebase 后哈希，原 `bc5d1beb`））
+## 二、交付物（逐条，均在 `859b1184`（v3 rebase 后哈希；原 `5958cdc2`/`bc5d1beb`，内容零差异））
 
 | # | 交付 | 路径 |
 |:--|:--|:--|
@@ -100,6 +104,7 @@ node backend/scripts/guard-rbac-wiring.mjs --strict            # EXIT=0
 - `counter/C2-pending-code-shortcut-removed-red.log` / `C2-post-restore-green.log`（**摘掉 `canEntry` 的 pending-code 短路 ⇒ 恒隐藏用例必红并点名**那条真实反测的完整原始输出，红行含用例名「积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）」，EXIT=1）；
 - `counter/sha256-counter-tests.txt`（两条反测复原均 BYTE-IDENTICAL）。
 合并态（rebase 到 `ce52ca66` 之后）复跑：`口径收敛/post-rebase-gates.log`、`口径收敛/post-rebase-type-check.log`（四门 EXIT=0，27 用例）。
+**v3（二次 rebase 到 `cbca2c37` 之后）复跑**：`合并态复跑-v3/gate-*.log`、`build-h5.log`、`guard-*.log`、`ci-yaml-validate.log`、`README.note.txt`（类型门读数已 0=0；四门+构建+守卫全绿）。
 
 ## 六、未完成与阻塞
 
@@ -123,14 +128,14 @@ node backend/scripts/guard-rbac-wiring.mjs --strict            # EXIT=0
 
 ## 八、哈希登记
 
-- 实现提交：`5958cdc2f25a7551a338a7d5ffc0e78f5f16f7c8`（单笔；**rebase 到卡 1 口径收敛尖端 `ce52ca66` 后哈希由 `bc5d1beb` 重写，文件内容零差异**；未 push）
+- 实现提交：`859b1184f8b2fa9d8afb6460608da37458575f3c`（单笔；哈希两度重写 `bc5d1beb`→`5958cdc2`→现值，**文件内容零差异**；v3 栈于卡 1 基线归零尖端 `cbca2c37`；未 push）
 - 反测复原 SHA256（前=后）：`permission-gates.ts` `c12fd72dddf5…`、`usePermissionGate.ts` `4fc160d65891…`（全文见 `docs/evidence/qoder-2/counter/sha256-counter-tests.txt`）
 - 构建物：`build:h5` 产物未入库（沿用移动端 H5 手动部署口径，不在本卡判据）。
 
 ## 九、关联与署名
 
 - 派单卡：`docs/tasks/inbox/QODER-2-B31-入口门解锁后端收编.md`（原件未动）
-- 上游：卡 1 回传 `docs/tasks/cards/R101-QODER-1-回传.md`（本分支栈于其口径收敛尖端 `ce52ca66`）
+- 上游：卡 1 回传 `docs/tasks/cards/R101-QODER-1-回传.md`（本分支栈于其 v3 尖端 `cbca2c37`，v2 时为 `ce52ca66`）
 - 下游：S3-250 后端收编单（§三 对照表即其输入）
 
 ## 十、变更记录
@@ -141,5 +146,6 @@ node backend/scripts/guard-rbac-wiring.mjs --strict            # EXIT=0
   - **裁定④**：§七.2 增「残留风险」明写（未覆盖真实渲染流程；浏览器级三态并入 H5 手动验收清单）；C2 反测原始输出已进 §五 证据索引。
   - 裁定①②（卡 1 侧）落地见 `R101-QODER-1-回传.md` §十 v2。
   - S3-250 前置确认：凌舟裁定积分调整**先出立码裁定卡**（`marketing:points` vs `customer:*` 冲突未决前不接线），S3-250 首批只收 4 条售后端点 ⇒ `mkt-points-adjust` 维持 pending-code，本卡登记面无需再动。
+- 2026-10-18（v3 · 跟随卡 1 二次 rebase + 合并态复跑）：凌舟前置「QODER-1 先 rebase 到 `3fa138e7` 并把 typeCheck 基线归 0」完成后，本分支再栈至卡 1 新尖端 `cbca2c37`；三笔哈希重写（见 §〇）；合并态复跑四门 EXIT=0（type 已是 0 条/基线 0 条 ⇒ 裁定②全链收口）、`build:h5` 在 #363 新 crypto.ts 上 EXIT=0、三守卫 0、backend diff 0 行、ci.yml js-yaml 校验（App mobile 4 步、类型门唯一）；两门文件 SHA256 与 v2 复原值一致。状态：**验收通过 · 栈已对齐 · 等凌舟合并（先卡 1 后卡 2）；合并后他侧 `npm test` 复跑为裁定③最后一环**。
 
 —— QODER（移动端执行方，工作树 QODER-2）｜2026-10-18
