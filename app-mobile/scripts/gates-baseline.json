@@ -2,11 +2,8 @@
   "_comment": "QODER-1 批次0 冻结基线（2026-10-18 实测）。type-check/lint/check:contract 三道门按「0 新增 / 不劣化」判定；只准降不准升，调低需人工改本文件并留痕。",
   "typeCheck": {
     "tool": "vue-tsc --noEmit（S3-245 同形态，scripts/type-check-gate.mjs 包装基线比较）",
-    "errors": {
-      "src/utils/crypto.ts::TS2323": 6,
-      "src/utils/crypto.ts::TS2393": 6
-    },
-    "note": "凌舟裁定②（2026-10-18 验收回传）：这 12 条是 crypto.ts 双份 #ifdef 导出的**过渡态读数，不得当既成事实写进台账**。合并顺序=PR #363（S3-245）先合 → 本分支 rebase → errors 清空、门判据改 error===0；#363 未合前本块仅作「0 新增」判定依据。"
+    "errors": {},
+    "note": "凌舟裁定②（2026-10-18 验收回传）已落地：PR #363（S3-245）已进 main（3fa138e7）→ 本分支已 rebase 到其上 → 原 12 条 crypto.ts TS2323/TS2393 随根治归零，errors 清空 ⇒ 门判据即 error===0。CI 类型门唯一形态 = 上方 S3-245 步骤；本脚本为本地同语义包装。"
   },
   "lint": {
     "command": "eslint src --ext .ts,.vue（scripts/lint-gate.mjs 包装）",

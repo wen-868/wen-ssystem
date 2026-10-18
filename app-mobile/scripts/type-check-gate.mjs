@@ -5,12 +5,11 @@
  * 与 S3-245（PR #363）的关系：**不是第二套类型门**。
  *   · 类型检查本体仍是 S3-245 的那一条命令形态：`npx --no-install vue-tsc --noEmit`
  *     （working-directory: app-mobile），本脚本只是它的**基线比较包装**；
- *   · #363 未合并期间，origin/main 的 `src/utils/crypto.ts` 还带着 12 条
- *     `TS2323/TS2393`（双份 #ifdef 导出）⇒ 直接要求 EXIT=0 等于要求本单改页面代码，
- *     违反红线；按任务书 §二.5「存量冻结基线，CI 判不劣化」实现为**新增即红**；
- *   · #363 合并后基线自然应降为 0：错误消失只会打印提醒（不红），任何**新**错误
- *     （新文件 / 新错误码 / 同码超出基线条数）⇒ EXIT=1 并逐条点名。
- * 基线存 `gates-baseline.json` 的 `typeCheck.errors`（`文件::TS码 -> 条数`）。
+ *   · 凌舟裁定② 已落地：#363 已进 main（3fa138e7）、本分支已 rebase 其上、
+ *     原 12 条 crypto.ts TS2323/TS2393 随根治归零 ⇒ `gates-baseline.json` 的 typeCheck.errors = {}，
+ *     门判据即 **error===0**（空基线下本脚本逐条点名任何新错误）；
+ *   · CI 侧唯一类型门 = ci.yml 里的 S3-245 步骤；本地 `npm run type-check` 走本脚本，语义一致。
+ * 基线存 `gates-baseline.json` 的 `typeCheck.errors`（`文件::TS码 -> 条数`，现为空）。
  *
  * 用法：node scripts/type-check-gate.mjs
  * 反测：注入 1 个类型错误 ⇒ EXIT=1 且点名该文件行；复原 ⇒ EXIT=0（SHA256 一致）。
