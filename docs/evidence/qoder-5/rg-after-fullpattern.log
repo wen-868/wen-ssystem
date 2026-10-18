@@ -1,0 +1,5 @@
+app-mobile/src\utils\pin-ssl.ts:5: *  - installSslPinning / validateCertificate 全仓零调用点（唯一历史提及是 config/env.ts 注释，已改）；
+app-mobile/src\utils\pin-ssl.ts:7: *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+app-mobile/src\utils\pin-ssl.ts:195: * import { installSslPinning } from '@/utils/pin-ssl'
+app-mobile/src\utils\pin-ssl.ts:197: * installSslPinning()
+app-mobile/src\utils\pin-ssl.ts:200:export function installSslPinning(): boolean {

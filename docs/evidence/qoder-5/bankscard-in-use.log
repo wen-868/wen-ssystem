@@ -1,0 +1,4 @@
+app-mobile/src\components\DocPage.vue:97:/* 复用全局 Token；结构对齐 BanksCard 的 .qa-mask/.qa-popup，但作为覆盖式子页（#docPage） */
+app-mobile/src\pages-sub\product\suppliers\detail.vue:137:        <BanksCard
+app-mobile/src\pages-sub\product\suppliers\detail.vue:255:import BanksCard, { type BankAccount } from '@/components/BanksCard.vue'
+app-mobile/src\pages-sub\product\suppliers\detail.vue:372: * 故此处以 BanksCard 只读展示主卡，不伪造多卡、不开放增删。

@@ -1,0 +1,11 @@
+
+> zhixiang-app-mobile@1.0.0 guard:logout
+> node scripts/s3-163-logout-uniqueness-guard.cjs
+
+[guard] root=D:\Users\ZXQL\wt-agents\QODER-5\app-mobile\src
+[guard] 扫描文件 193 个；识别会话清理实现 2 处
+  OK  api/request.ts:87  fn=request  [removeStorageSync('merchant_token')]  被动例外：401 失效清理（保留 saved_* 以满足 S3-161 场景 C）
+  OK  stores/user.ts:102  fn=logout  [removeToken()]  主动退出：同时清了凭据并复位「记住我」
+  OK  R1  export function logout 命中 0 处（要求 0）
+  OK  R3  主动退出实现 1 处（要求恰好 1）
+[guard] 判定: GREEN（出口唯一性成立）

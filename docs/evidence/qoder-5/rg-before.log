@@ -1,0 +1,13 @@
+app-mobile/src\api\sync.ts:30:} from './local-db'
+app-mobile/src\utils\sync-manager.ts:43:} from '@/api/local-db'
+app-mobile/src\utils\sync-manager.ts:508: * import { onAppLaunch } from '@/utils/sync-manager'
+app-mobile/src\utils\sync-manager.ts:520:        console.error('[sync-manager] 初始化本地数据库失败:', err)
+app-mobile/src\utils\sync-manager.ts:531:        console.error('[sync-manager] 启动同步失败:', err)
+app-mobile/src\utils\sync-manager.ts:553:        console.error('[sync-manager] 网络恢复同步失败:', err)
+app-mobile/src\utils\sync-manager.ts:586:            console.error('[sync-manager] 后台定时同步失败:', err)
+app-mobile/src\utils\sync-manager.ts:595:                    console.error('[sync-manager] 前台恢复同步失败:', err)
+app-mobile/src\utils\sync-manager.ts:599:            console.error('[sync-manager] 注册 onAppShow 失败:', err)
+app-mobile/src\utils\pin-ssl.ts:186: * import { installSslPinning } from '@/utils/pin-ssl'
+app-mobile/src\utils\pin-ssl.ts:188: * installSslPinning()
+app-mobile/src\utils\pin-ssl.ts:191:export function installSslPinning(): boolean {
+app-mobile/src\native\scan.ts:23:import { LocalProductDb, type ProductDeltaData } from '@/api/local-db'
