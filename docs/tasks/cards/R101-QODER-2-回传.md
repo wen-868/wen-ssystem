@@ -18,9 +18,11 @@
 ## 〇、ref（R8.2：验证目标必须可核对）
 
 - 工作树 `D:\Users\ZXQL\wt-agents\QODER-2`｜分支 `feat/qoder-2-appmobile-entry-gates`
-- **基线偏离（主动交代，见 §七.1）**：任务书写基线 `origin/main`；实际起基在 **QODER-1 分支尖端 `10b1e879`**（栈式），
+- **基线偏离（主动交代，见 §七.1）→ 已按裁定③收敛**：任务书写基线 `origin/main`；起基时为 QODER-1 尖端 `10b1e879`（栈式），
   原因=卡 2 判据（vue-tsc 0 新增 / 一致性用例 / test-gate）依赖卡 1 的门禁 harness，这正是卡 1 回传 §八 的建议口径。
-  ⇒ 本分支 `git diff origin/main HEAD` 含卡 1 全部产物；**本卡增量 = 单笔提交 `bc5d1beb5099cfb98838f2d018baef4b39a09d54` 的 6 个文件**（354+/18-）。
+  **2026-10-18 验收后已 rebase 到卡 1 口径收敛尖端 `ce52ca66`**（裁定①②落地 commit），rebase 重写哈希：
+  实现提交现为 **`5958cdc2f25a7551a338a7d5ffc0e78f5f16f7c8`**（6 文件，354+/18-；原 `bc5d1beb` 已被替换，内容零差异）；
+  合并态复跑读数见 `docs/evidence/qoder-2/口径收敛/post-rebase-*.log`（四门 EXIT=0，tests 基线 4/27 两卡合并后一致）。
 - 后端零改动：`git diff origin/main HEAD -- backend/` **0 行**（卡 1 + 卡 2 累计均为零）；本卡未 push、未开 PR。
 
 ## 一、一句话
@@ -30,7 +32,7 @@
 两个页面挂上 `canEntry`，新增 12 条一致性/三态用例（含**具名待接白名单**与"后端接线后自动转绿"的机检），
 S3-250 后端收编单因此拿到可枚举的「端点 ↔ 门 ↔ 码」清单——**卡上"解锁"的实质：后端接线不再会造出"前端无门可对齐"的孤儿端点**。
 
-## 二、交付物（逐条，均在 `bc5d1beb`）
+## 二、交付物（逐条，均在 `5958cdc2`（rebase 后哈希，原 `bc5d1beb`））
 
 | # | 交付 | 路径 |
 |:--|:--|:--|
@@ -93,6 +95,11 @@ node backend/scripts/guard-route-auth.mjs                      # EXIT=0
 node backend/scripts/guard-evidence-secrets.mjs                # EXIT=0
 node backend/scripts/guard-rbac-wiring.mjs --strict            # EXIT=0
 ```
+反测原始输出（裁定④要求入证据索引）：
+- `counter/C1-delete-registration-red.log` / `C1-post-restore-green.log`（删登记红→点名→复原绿）；
+- `counter/C2-pending-code-shortcut-removed-red.log` / `C2-post-restore-green.log`（**摘掉 `canEntry` 的 pending-code 短路 ⇒ 恒隐藏用例必红并点名**那条真实反测的完整原始输出，红行含用例名「积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）」，EXIT=1）；
+- `counter/sha256-counter-tests.txt`（两条反测复原均 BYTE-IDENTICAL）。
+合并态（rebase 到 `ce52ca66` 之后）复跑：`口径收敛/post-rebase-gates.log`、`口径收敛/post-rebase-type-check.log`（四门 EXIT=0，27 用例）。
 
 ## 六、未完成与阻塞
 
@@ -107,6 +114,7 @@ node backend/scripts/guard-rbac-wiring.mjs --strict            # EXIT=0
    本卡 6 文件增量彼此独立、可整体重放（vitest/test-gate 依赖卡 1，重放后判据 3 的一致性用例无法在本工作树自证，需另配最小跑批）。
    合并顺序建议：**先合卡 1 再合卡 2**，或合卡 1 后把本分支 rebase 到 main（无冲突面：两卡改动文件交集仅 `gates-baseline.json` 的 `tests` 字段，本卡已在其上递增）。
 2. **三态判据的落地口径**：node 测试环境无 uni 页面挂载装置，"页面级三态"落成为：① `canEntry` 逻辑装置断言（mock 用户 store，六形态）+ ② 页面模板静态断言（门控表达式逐字匹配、未门控形态不得残留、脚本挂载点唯一）。**不是** mount 渲染级断言；真实浏览器三态请并入 H5 手动验收单（`build:h5` 产物已可部署验证）。
+   **⚠️ 残留风险（裁定④要求明写）：本卡判据未覆盖真实渲染流程** —— v-if 经 uni 编译到 H5 运行时的实际显隐、Pinia store 真实时序（登录态恢复瞬间 `permissions` 的实际值形态）、以及真机 WebView 下的渲染，均**不在**自动化断言面上；浏览器级三态已列入 H5 手动验收清单（凌舟登记 P2）。
 3. **行为变化点**：`island-aftersale` 转 gated 后，直达售后页（孤岛页，全仓无导航入口）且**不持 `sale:return`** 的账号，「同意/拒绝」按钮由"人人可见"变为隐藏——这是本卡的预期效果，也是"门先行"的全部用户可见面；充值/修改按钮未动。
 4. **字面出现次数口径**：`usePermissionGate.ts` 头注释警告"注释里勿写带引号真实门 id"（S3-230 证据脚本按字面计数核对注册表↔源码引用）。本卡新增真实引用：两页面各 1 处（模板 v-if，属预期引用）；spec 文件内若干处（断言本体，位于 `tests/**`，非 src 扫描面）。若证据脚本的引用计数口径需要微调（src 内 +1/+1 属合法新增），请在验收时知悉。
 5. **inspect/complete 无页面按钮**：两条端点登记在门内、后端也未接；页面当前只有同意/拒绝。若 S3-250 接线后需要移动端补"验货/完成"动作，属新的页面工作单，本卡未擅自加按钮。
@@ -115,18 +123,23 @@ node backend/scripts/guard-rbac-wiring.mjs --strict            # EXIT=0
 
 ## 八、哈希登记
 
-- 实现提交：`bc5d1beb5099cfb98838f2d018baef4b39a09d54`（单笔，未 push）
+- 实现提交：`5958cdc2f25a7551a338a7d5ffc0e78f5f16f7c8`（单笔；**rebase 到卡 1 口径收敛尖端 `ce52ca66` 后哈希由 `bc5d1beb` 重写，文件内容零差异**；未 push）
 - 反测复原 SHA256（前=后）：`permission-gates.ts` `c12fd72dddf5…`、`usePermissionGate.ts` `4fc160d65891…`（全文见 `docs/evidence/qoder-2/counter/sha256-counter-tests.txt`）
 - 构建物：`build:h5` 产物未入库（沿用移动端 H5 手动部署口径，不在本卡判据）。
 
 ## 九、关联与署名
 
 - 派单卡：`docs/tasks/inbox/QODER-2-B31-入口门解锁后端收编.md`（原件未动）
-- 上游：卡 1 回传 `docs/tasks/cards/R101-QODER-1-回传.md`（本分支栈于其尖端）
+- 上游：卡 1 回传 `docs/tasks/cards/R101-QODER-1-回传.md`（本分支栈于其口径收敛尖端 `ce52ca66`）
 - 下游：S3-250 后端收编单（§三 对照表即其输入）
 
 ## 十、变更记录
 
 - 2026-10-18：首次回传（无更早版本，无口径覆盖）。
+- 2026-10-18（裁定落地 v2）：凌舟三条亲验通过、四条裁定，本分支按 ③④ 收口：
+  - **裁定③**：已 rebase 到卡 1 口径收敛尖端 `ce52ca66`（先卡 1 后卡 2）；tests 基线合并态一致（4 文件/27 用例，卡 1 未声明 tests 改动、本卡字段独占，无叠加冲突）；**合并态复跑**四门 EXIT=0（`口径收敛/post-rebase-*.log`），不以"两分支各自绿"代替。哈希重写见 §〇/§八。
+  - **裁定④**：§七.2 增「残留风险」明写（未覆盖真实渲染流程；浏览器级三态并入 H5 手动验收清单）；C2 反测原始输出已进 §五 证据索引。
+  - 裁定①②（卡 1 侧）落地见 `R101-QODER-1-回传.md` §十 v2。
+  - S3-250 前置确认：凌舟裁定积分调整**先出立码裁定卡**（`marketing:points` vs `customer:*` 冲突未决前不接线），S3-250 首批只收 4 条售后端点 ⇒ `mkt-points-adjust` 维持 pending-code，本卡登记面无需再动。
 
 —— QODER（移动端执行方，工作树 QODER-2）｜2026-10-18
