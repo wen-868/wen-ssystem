@@ -1,0 +1,18 @@
+commit dd158023c54c8ac37eb1b5c6049ab75b1d0161ff
+Author: 墨 <mo@zhixiang-system.com>
+Date:   Mon Oct 19 02:38:10 2026 +0800
+
+    QODER-7（S3-242 收口）：16 条漂移按注册表层修至 D1=0/debt=0（基线同步降 0）、employees 5 wrapper 下线留 D3 指引、离线链三文件 −2384 行整删（链外零 import）、漂移机进 ci.yml 阻断 + 反测与三组 rg 零命中证据
+
+ .github/workflows/ci.yml                           |    9 +
+ admin-web/src/api/system.ts                        |   28 +-
+ app-mobile/scripts/check-contract-drift.mjs        |    6 +-
+ app-mobile/scripts/gates-baseline.json             |    8 +-
+ app-mobile/src/api/local-db.ts                     |  949 -----------------
+ app-mobile/src/api/sync.ts                         |  321 ------
+ app-mobile/src/config/permission-gates.ts          |   34 +-
+ app-mobile/src/native/sqlite.ts                    | 1114 --------------------
+ .../qoder-7/backend-zero-diff-mergebase.log        |    4 +
+ docs/evidence/qoder-7/build-h5.log                 |   15 +
+ docs/evidence/qoder-7/ci-yml.diff                  |   20 +
+ docs/evidence/qoder-7/drift-after-fix.json         |  206 ++++
