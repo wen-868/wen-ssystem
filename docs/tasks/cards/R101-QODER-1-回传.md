@@ -17,10 +17,13 @@
 
 ## 〇、ref（R8.2：验证目标必须可核对）
 
-- 工作树 `D:\Users\ZXQL\wt-agents\QODER-1`｜分支 `chore/qoder-1-appmobile-gates`｜基线 `origin/main` = `1ba1efd0`
-- 实现提交 **`b25a6f8c8316230037bbe9893c6b31cfe7d698da`**（**未 push、未开 PR**，按红线只落本地分支）
-- 本卡与回执为第二笔提交（哈希见 git log 尖端）
-- 后端零改动：`git diff 1ba1efd0 HEAD -- backend/` **为空**（`--stat` 实测零行）
+- 工作树 `D:\Users\ZXQL\wt-agents\QODER-1`｜分支 `chore/qoder-1-appmobile-gates`
+- **v3（2026-10-18 复核）：本分支已按凌舟前置要求 rebase 到 `3fa138e7`**（= PR #363 进 main 的那笔；当时 main 尖端 `478a9f1c`，其祖先含 3fa138e7）⇒ 三笔原提交哈希全部重写，旧→新对照：
+  `b25a6f8c…`→**`145eed0a90fb61adac260ef3504834885fa77111`**（实现）、`10b1e879`→`76388ebf3dc5d3eba4f3f9fc6595d9dfbecb29e0`（回传）、`ce52ca66`→`0f91c557fa78b9fe1f6d27d05f403863072ba663`（口径收敛）；
+  基线归零 + 复验为第四笔（§九）。rebase 中仅 `ci.yml` 一处冲突：卡 1 的 CI 类型门步骤**已撤**，
+  全仓 app-mobile 唯一类型门 = S3-245（#363）那条内联步骤；本地 `npm run type-check`（脚本包装）保留、语义一致。
+- 实现提交 **`145eed0a90fb61adac260ef3504834885fa77111`**（**未 push、未开 PR**，按红线只落本地分支）
+- 后端零改动：`git diff origin/main HEAD -- backend/` **为空**（v3 实测 0 行；v1 时口径为 `git diff 1ba1efd0 HEAD -- backend/` 为空）
 
 ## 一、一句话
 
@@ -36,13 +39,15 @@
 | 2 | 门 2 lint（`eslint src --ext .ts,.vue` + error/warning 双冻结 + **假绿兜底**：覆盖文件数≠src 文件数即红） | `app-mobile/.eslintrc.cjs`、`app-mobile/scripts/lint-gate.mjs`（脚本 `lint`） |
 | 3 | 门 3 test（vitest 3 文件 15 用例 + **用例数冻结**防"删测试仍绿"） | `app-mobile/vitest.config.ts`（内含 uni 条件编译 shim，按 H5 分支加载真实代码）、`app-mobile/scripts/test-gate.mjs`（脚本 `test`）、`app-mobile/tests/{permission-codes,storage-crypto,api-base-env}.spec.ts` |
 | 4 | 门 4 契约对账（移动端 `/admin` 调用路径 ↔ 后端注册差集，差集非空 EXIT=1 逐条点名；具名豁免每条带理由，豁免失效即红） | `app-mobile/scripts/check-contract.mjs`（脚本 `check:contract`）、`app-mobile/scripts/contract-exemptions.json` |
-| 5 | 存量冻结基线（type-check 12 条、lint 20 error + 6 规则 warning、用例 3/15、契约三口径读数） | `app-mobile/scripts/gates-baseline.json` |
+| 5 | 存量冻结基线（v1：type-check 12 条、lint 20 error + 6 规则 warning、用例 3/15、契约三口径读数；**v3：typeCheck 已随 #363 归零 = `{}`**） | `app-mobile/scripts/gates-baseline.json` |
 | 6 | CI 阻断接线（4 个新步骤，零新增依赖、lockfile 零改动） | `.github/workflows/ci.yml`（`Saas admin type gate` 之后） |
 | 7 | 证据（全部命令原始输出 + SHA256） | `docs/evidence/qoder-1/**` |
 
 §二.1 复用 S3-245 的说明：命令**本体**一致（`vue-tsc --noEmit`，cwd=app-mobile）；#363 未合并期间 main 的
 `crypto.ts` 还带 12 条 TS2323/TS2393（双份 `#ifdef` 导出），裸跑恒红=假门禁，故基线比对从"空清单 comm"
 改为读 `gates-baseline.json`。**这不是第二套类型门**：#363 合并后把基线 `typeCheck.errors` 清空即收敛为 0 新增裸语义。
+**v3 已执行该收敛**：#363 进 main（`3fa138e7`）⇒ rebase ⇒ `typeCheck.errors = {}` ⇒ 门判据即 `error===0`；
+CI 侧类型门去重为 S3-245 单一条（卡 1 原 `npm run type-check` CI 步骤撤销，避免同一子工程两套类型门）。
 
 ## 三、证据（可复跑；原始输出已入库 `docs/evidence/qoder-1/`）
 
@@ -65,6 +70,12 @@ node backend/scripts/guard-rbac-wiring.mjs --strict
 
 YAML 校验（`ci-yaml-validate.log`）：js-yaml load OK；`build-and-test` 36 步；4 个 App mobile 步骤就位；
 `app-mobile` 在 ci.yml 出现 9 次（此前 0）。
+
+**v3 rebase 后复验**（基线归零语义，全部原始输出入 `docs/evidence/qoder-1/口径收敛-v3/`）：
+- `ci-yaml-validate.log`：js-yaml 解析 OK；app-mobile 4 个阻断步骤齐全、零 `continue-on-error`，类型门仅 S3-245 一条；
+- 四门复跑 `gate-*.log` 全 EXIT=0：type-check **0 条 / 基线 0 条**（空基线⇒裸 error===0）、lint 20=20/12880=12880 且打印裁定①到期提醒、test 3/15、契约差集 1=豁免 1；
+- 类型反测重做（新语义）`counter-type-injected-red.log`：`env.ts` 注入 1 处 TS2322 ⇒ EXIT=1 点名 `src/config/env.ts(18,14)`；复原 SHA256 `55684a62…` 逐字节一致 ⇒ `counter-type-post-restore-green.log` EXIT=0；
+- 后端三守卫 `guard-*.log` 全 EXIT=0；`git diff origin/main HEAD -- backend/` 0 行。
 
 ## 四、验收自评（逐条对照任务书 §三）
 
@@ -107,13 +118,16 @@ YAML 校验（`ci-yaml-validate.log`）：js-yaml load OK；`build-and-test` 36 
 ## 八、给卡 2（QODER-2）的接口提示
 
 卡 2 要在 `ENTRY_GATES` 加 5 条登记 + 一致性用例 ⇒ 会**新增用例数**：test-gate 会提示"高于基线请调高"，属预期动作（把 `gates-baseline.json` 的 `tests` 同步上调即可，规则=实测即基线）。
-另：**卡 2 的基线是 `origin/main`，不含本卡 harness**——若凌舟希望卡 2 复用本卡的 vitest 装置（一致性用例、test-gate），建议卡 2 改从本分支尖端 `b25a6f8c` 起基，或先合本卡再派卡 2；两者取舍在凌舟，我未擅动 QODER-2 工作树。
+另：**卡 2 的基线是 `origin/main`，不含本卡 harness**——若凌舟希望卡 2 复用本卡的 vitest 装置（一致性用例、test-gate），建议卡 2 改从本分支尖端 `b25a6f8c`（v3 rebase 后为 `d33b5367`）起基，或先合本卡再派卡 2；两者取舍在凌舟，我未擅动 QODER-2 工作树。
+（v3 实况：卡 2 已采纳栈式方案，正跟随 rebase 到本分支新尖端。）
 
 ## 九、哈希登记
 
-- 实现提交：`b25a6f8c8316230037bbe9893c6b31cfe7d698da`
+- 实现提交：`145eed0a90fb61adac260ef3504834885fa77111`（rebase 前为 `b25a6f8c…`，内容对照见 §〇）
+- 分支四笔（rebase 后）：`145eed0a` 实现 → `76388ebf` 回传 v1/v2 → `0f91c557` 口径收敛（裁定①②）→ `d33b5367` 基线归零 + 复验证据（v3）；本卡/回执更新随 v3 之后追加（git log 尖端）。
 - 反测四文件 SHA256（前=后）：见 `docs/evidence/qoder-1/sha256-counter-tests.txt`
   - `src/api/storage.ts` `524890d9…`、`src/config/env.ts` `55684a62…`、`src/api/modules/auth.ts` `1192b8d7…`、`tests/permission-codes.spec.ts` `6c355396…`
+  - v3 类型反测重跑：`env.ts` 前=后 `55684a62…`（同值，见 `口径收敛-v3/counter-type-injected-red.log`）
 - 本卡无 dist 产物（门禁不产出构建物；`build:h5` 归卡 2 判据）。
 
 ## 十、变更记录
@@ -123,5 +137,11 @@ YAML 校验（`ci-yaml-validate.log`）：js-yaml load OK；`build-and-test` 36 
   - **裁定①（lint error 不许长期冻结）**：`gates-baseline.json.lint` 新增 `errorBaseline: 20`、`mustReachZero: true`、`dueBatch`（下一批清零卡，凌舟出卡；该批起门判据改 `error===0`，warning 仍冻结）；20 条 error 的**文件::规则清单**即基线内 `errorsByFileRule` 13 对（storage/member-detail/batch-price/settings/ai-chat×3 规则/product-detail×2/create-sale×4 规则）；`lint-gate.mjs` 绿时打印到期提醒（行为判据不变）。证据：`docs/evidence/qoder-1/口径收敛/lint-gate-after-ruling1.log`。
   - **裁定②（type 基线 12 条是过渡读数、不入台账）**：基线 `typeCheck.note` 已改写为"过渡态读数 + 合并顺序 = PR #363 先合 → 本分支 rebase → errors 清空、判据改 error===0"。本分支**暂未** rebase（#363 尚未进 `origin/main`：实测 main 尖端仍 `1ba1efd0`、crypto.ts 条件编译 3 处仍在）。
   - 裁定③④（卡 2 侧）落地见 `R101-QODER-2-回传.md` §十。
+- 2026-10-18（v3 · rebase + 基线归零，凌舟前置条件执行完毕）：
+  - 前置要求原文「QODER-1 请先 rebase 到 `3fa138e7` 并把 typeCheck 基线归 0，我才能合两卡」⇒ 已执行：`git rebase --onto 3fa138e7 1ba1efd0`，三笔提交哈希重写（旧→新见 §〇），仅 `ci.yml` 一处冲突。
+  - **ci.yml 冲突解法 = 类型门去重**：#363 带来 S3-245 的内联类型门（comm 空基线逐条比对），卡 1 原 `npm run type-check` CI 步骤与其同子工程同语义 ⇒ 撤销卡 1 那条，保留 lint/test/contract 三步；全仓 app-mobile 类型门**唯一**（js-yaml 校验日志为证）。本地 `npm run type-check` 脚本保留（基线归零后与 CI 步骤语义一致）。
+  - **裁定②收口**：`gates-baseline.json.typeCheck.errors` 由 12 条清空为 `{}`，`type-check-gate.mjs` 头注释同步改为「rebase 已发生、判据即 error===0」；门复跑读数 `vue-tsc EXIT=0，当前 0 条，基线 0 条`。
+  - 复验（`口径收敛-v3/`）：四门 EXIT=0；类型反测在新语义下重做（注入→红且点名→复原 `55684a62…` 逐字节一致→绿）；后端三守卫 EXIT=0；`git diff origin/main HEAD -- backend/` 0 行；未 push、未开 PR。
+  - **卡 2 侧待办**：`feat/qoder-2-appmobile-entry-gates` 将跟随之 rebase 到本分支新尖端，合并态复跑 `npm test`（4 文件 27 用例）后另行回传。
 
 —— QODER（移动端执行方）｜2026-10-18
