@@ -1,0 +1,33 @@
+
+ RUN  v4.1.10 C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/backend
+
+ ❯ src/__tests__/shared/batch2-permission-codes.test.ts (60 tests | 1 failed | 59 skipped) 17ms
+     × 'store:hardware:announce' → 'POST /api/store/hardware/cloud-speake…' 在 'store-hardware.routes.ts' 里能找到 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/shared/batch2-permission-codes.test.ts > S3-236 目录声明的端点确实存在（防码对着不存在的端点） > 'store:hardware:announce' → 'POST /api/store/hardware/cloud-speake…' 在 'store-hardware.routes.ts' 里能找到
+AssertionError: store-hardware.routes.ts 里找不到 POST /api/store/hardware/cloud-speaker/announce 的注册行（核对形态：完整路径字面量 /api/store/hardware/cloud-speaker/announce；文件内挂载段 = /api/store/hardware/configs / /api/store/hardware/box / /api/store/hardware/box-config / /api/store/hardware/unionpay）: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/__tests__/shared/batch2-permission-codes.test.ts:252:68
+
+    251|     expect(CATALOG_CODES_079.length).toBeGreaterThanOrEqual(11);
+    252|     for (const row of extracted) {
+    253|       expect(CATALOG_CODES_079, `父行 ${row.parent} 不是 079 的 CATALOG 码`)…
+       |                                 ^
+    254|     }
+    255|   });
+ Test Files  1 failed (1)
+      Tests  1 failed | 59 skipped (60)
+   Start at  03:23:40
+   Duration  554ms (transform 215ms, setup 69ms, import 187ms, tests 17ms, environment 0ms)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+

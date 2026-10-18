@@ -1,0 +1,3 @@
+已连接数据库 root@127.0.0.1:3407/liquor_inventory
+执行迁移: docs/migrations/207_四域权限点立码.sql
+迁移执行成功

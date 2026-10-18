@@ -1,0 +1,150 @@
+
+> zhixiang-marketing-system@0.1.0 build
+> npm --workspaces --if-present run build
+
+
+> zhixiang-backend@0.1.0 build
+> tsc -p tsconfig.json && node ../scripts/fix-esm-extensions.js dist
+
+error TS6053: File 'C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/node_modules/typescript/lib/lib.es2022.full.d.ts' not found.
+  The file is in the program because:
+    Default library for target 'es2022'
+npm error Lifecycle script `build` failed with error:
+npm error code 2
+npm error path C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\backend
+npm error workspace zhixiang-backend@0.1.0
+npm error location C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\backend
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c tsc -p tsconfig.json && node ../scripts/fix-esm-extensions.js dist
+
+
+> admin-web@0.1.0 build
+> vite build
+
+node:internal/modules/cjs/loader:1520
+  throw err;
+  ^
+
+Error: Cannot find module 'C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\node_modules\vite\bin\vite.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.18.0
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\admin-web
+npm error workspace admin-web@0.1.0
+npm error location C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\admin-web
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vite build
+
+
+> saas-admin@0.1.0 build
+> vite build
+
+node:internal/modules/cjs/loader:1520
+  throw err;
+  ^
+
+Error: Cannot find module 'C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\node_modules\vite\bin\vite.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.18.0
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\saas-admin
+npm error workspace saas-admin@0.1.0
+npm error location C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\saas-admin
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vite build
+
+
+> onepan-website@1.0.0 build
+> vue-tsc -b && vite build
+
+node:internal/modules/cjs/loader:1520
+  throw err;
+  ^
+
+Error: Cannot find module 'C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\node_modules\vue-tsc\bin\vue-tsc.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.18.0
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\website
+npm error workspace onepan-website@1.0.0
+npm error location C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\website
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vue-tsc -b && vite build
+
+
+> zhixiang-app-mobile@1.0.0 build
+> npm run build:h5
+
+
+> zhixiang-app-mobile@1.0.0 build:h5
+> uni build -p h5
+
+node:internal/modules/cjs/loader:1520
+  throw err;
+  ^
+
+Error: Cannot find module 'C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\node_modules\@dcloudio\vite-plugin-uni\bin\uni.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.18.0
+npm error Lifecycle script `build:h5` failed with error:
+npm error code 1
+npm error path C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c uni build -p h5
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c npm run build:h5
+

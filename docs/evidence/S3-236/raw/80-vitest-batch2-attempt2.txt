@@ -1,0 +1,21 @@
+failed to load config from C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\backend\vitest.config.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:441:11)
+    at Object.spawn (node:child_process:796:9)
+    at ensureServiceIsRunning (C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\node_modules\esbuild\lib\main.js:1978:29)
+    at build (C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236\node_modules\esbuild\lib\main.js:1876:26)
+    at bundleConfigFile (file:///C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49448:24)
+    at async bundleAndLoadConfigFile (file:///C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49432:19)
+    at async loadConfigFromFile (file:///C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49396:44)
+    at async resolveConfig (file:///C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:48891:24)
+    at async _createServer (file:///C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:38478:66)
+    at async createViteServer (file:///C:/Users/XIONG/Documents/Codex/dsh-worktrees/dsh-S3-236/node_modules/vitest/dist/chunks/cli-api.BK8pd4xc.js:8835:17) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}
+
+
+

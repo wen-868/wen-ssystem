@@ -1,0 +1,43 @@
+目录码数：38
+检索文件数：607（admin-web/src / app-mobile/src / saas-admin/src / miniapp/src / platform-miniapp/src）
+
+report:custom:create | POST /api/custom-report/templates → admin-web/src/api/report.ts:240
+report:custom:edit | PUT /api/custom-report/templates/:id → admin-web/src/api/report.ts:241
+report:custom:delete | DELETE /api/custom-report/templates/:id → admin-web/src/api/report.ts:242
+report:custom:generate | POST /api/custom-report/templates/:id/execute → admin-web/src/api/report.ts:243
+report:schedule:create | POST /api/custom-report/schedules → admin-web/src/api/report.ts:245
+report:schedule:edit | PUT /api/custom-report/schedules/:id → admin-web/src/api/report.ts:246
+report:schedule:delete | DELETE /api/custom-report/schedules/:id → admin-web/src/api/report.ts:247
+report:schedule:toggle | PUT /api/custom-report/schedules/:id/toggle → admin-web/src/api/report.ts:248
+report:schedule:run | POST /api/custom-report/schedules/:id/run → admin-web/src/api/report.ts:249
+report:permission:edit | POST /api/admin/report-permissions/batch → app-mobile/src/api/modules/report-permission.ts:196 ; PUT /api/admin/report-permissions/data-scope → app-mobile/src/api/modules/report-permission.ts:220 ; PUT /api/admin/report-permissions/matrix → admin-web/src/api/report.ts:231 ; PUT /api/admin/report-permissions/matrix → app-mobile/src/api/modules/report-permission.ts:179 ; PUT /api/admin/report-permissions/user/:userId → app-mobile/src/api/modules/report-permission.ts:290
+report:export | POST /api/admin/reports/export → app-mobile/src/api/modules/reports.ts:346
+system:print-record:create | POST /api/admin/print/records → admin-web/src/modules/print/api.ts:85 ; POST /api/admin/print/records → app-mobile/src/api/modules/print.ts:102
+system:print-record:reprint | POST /api/admin/print/records/:id/reprint → app-mobile/src/api/modules/print.ts:155
+system:print-template:create | POST /api/admin/print/templates → admin-web/src/modules/print/api.ts:47
+system:print-template:edit | PUT /api/admin/print/templates/:id → admin-web/src/modules/print/api.ts:61
+system:print-template:delete | DELETE /api/admin/print/templates/:id → admin-web/src/modules/print/api.ts:67
+system:print-template:reset | POST /api/admin/print/templates/:id/reset → admin-web/src/modules/print/api.ts:73
+system:print-template:set-default | POST /api/admin/print/templates/:id/set-default → admin-web/src/modules/print/api.ts:79
+store:hardware:config-edit | PUT /api/store/hardware/configs/:category → admin-web/src/api/hardware.ts:15
+store:hardware:config-test | POST /api/store/hardware/configs/:category/test → admin-web/src/api/hardware.ts:21
+store:hardware:announce | POST /api/store/hardware/cloud-speaker/announce#tail# → admin-web/src/api/hardware.ts:43
+store:hardware:box-pay | POST /api/store/hardware/box/pay → admin-web/src/api/hardware.ts:49
+store:hardware:box-config-edit | PUT /api/store/hardware/box-config → admin-web/src/api/hardware.ts:32
+store:hardware:box-config-test | POST /api/store/hardware/box-config/test → admin-web/src/api/hardware.ts:37
+store:hardware:unionpay-test | POST /api/store/hardware/unionpay/test → admin-web/src/api/hardware.ts:55
+miniapp:config:edit | PUT /api/miniapp-config/configs/:platform → admin-web/src/api/instant-retail.ts:237
+miniapp:package:upload-key | POST /api/miniapp-config/upload-key → admin-web/src/api/instant-retail.ts:253
+miniapp:package:build | POST /api/miniapp-config/packages → admin-web/src/api/instant-retail.ts:240
+miniapp:package:publish | POST /api/miniapp-config/publish → admin-web/src/api/instant-retail.ts:244
+miniapp:order-sync:retry | POST /api/miniapp-order-sync/:orderNo/retry → admin-web/src/api/instant-retail.ts:37
+dashboard:todo:create | POST /api/admin/todos → admin-web/src/views/dashboard/TodoList.vue:324
+dashboard:todo:complete | PUT /api/admin/todos/:id/complete → admin-web/src/views/dashboard/TodoList.vue:260
+dashboard:todo:dismiss | PUT /api/admin/todos/:id/dismiss → admin-web/src/views/dashboard/TodoList.vue:269
+dashboard:todo:delete | DELETE /api/admin/todos/:id → admin-web/src/views/dashboard/TodoList.vue:278
+dashboard:quick-entry:create | POST /api/admin/quick-entries → admin-web/src/views/dashboard/QuickEntryConfig.vue:274
+dashboard:quick-entry:sort | PUT /api/admin/quick-entries/sort → admin-web/src/views/dashboard/QuickEntryConfig.vue:308
+dashboard:quick-entry:edit | PUT /api/admin/quick-entries/:id → admin-web/src/views/dashboard/QuickEntryConfig.vue:265
+dashboard:quick-entry:delete | DELETE /api/admin/quick-entries/:id → admin-web/src/views/dashboard/QuickEntryConfig.vue:296
+
+汇总：有前端调用点的码 38 / 38；无前端入口（仅后端授权位）0 码

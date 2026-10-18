@@ -1,0 +1,2 @@
+[guard:migration-manifest] 根目录 C:\Users\XIONG\Documents\Codex\dsh-worktrees\dsh-S3-236｜迁移目录 docs/migrations：207 个 .sql｜A 活动段 187 个 / C 豁免段 8 个 / B 登记册 12 个（合计 207）
+[guard:migration-manifest] PASS（每个 .sql 恰好在 A 活动段 / C 豁免段 / B 登记册之一；活动段行序与运行时跑序一致）

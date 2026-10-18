@@ -1,0 +1,25 @@
+S3-236-F1 返工 · 生成器根因复现证明（重跑后零差异）
+
+命令（工作树根，逐字）：
+  node docs/evidence/S3-236/harness/gen-batch2-codes.mjs
+输出：
+  已生成 7 个文件（四域 38 码）：
+    · backend/src/shared/batch2-entry.ts
+    · backend/src/shared/report-permission-codes.ts
+    · backend/src/shared/hardware-permission-codes.ts
+    · backend/src/shared/miniapp-permission-codes.ts
+    · backend/src/shared/dashboard-permission-codes.ts
+    · backend/src/shared/batch2-permission-codes.ts
+    · docs/migrations/207_四域权限点立码.sql
+    report: 11 码 / hardware: 14 码 / miniapp: 5 码 / dashboard: 8 码
+  GEN_EXIT=0
+
+紧接着：
+  git status --short   ⇒ 0 行（无任何改动）
+  git diff --stat      ⇒ 空
+
+结论（可复算）：
+  1) 修好后的生成器重跑**逐字节复现**已提交的四域目录 + 迁移 207（零 diff）⇒ 生成器与产物一致；
+  2) 生成器已加"端点不得含 #…#"守卫（gen-batch2-codes.mjs renderDomainFile 内）⇒ `#id#` / `#tail#`
+     这类占位符**不会**再被生成进 `endpoints`（下次复现当场抛错，而不是静默产出）；
+  3) 因此本单的 `#id#` 是**生成器产物错**（不是手抄错）——根因已在生成器侧根治。

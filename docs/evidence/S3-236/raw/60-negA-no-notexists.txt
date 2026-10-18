@@ -1,0 +1,52 @@
+WARNING: option --ssl-verify-server-cert is disabled, because of an insecure passwordless login.
+--------------
+INSERT INTO t_sys_menu (parent_id, menu_code, menu_name, menu_type, path, component, icon, sort_no, visible, status, tenant_id)
+SELECT p.id, c.code, c.name, 'BUTTON', NULL, NULL, NULL, c.sort_no, 1, 1, p.tenant_id
+FROM t_sys_menu p
+JOIN (
+  SELECT 'report:custom:create' AS code, '新建自定义报表' AS name, 1 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:custom:edit' AS code, '编辑自定义报表' AS name, 2 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:custom:delete' AS code, '删除自定义报表' AS name, 3 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:custom:generate' AS code, '生成自定义报表' AS name, 4 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:create' AS code, '新建报表定时任务' AS name, 5 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:edit' AS code, '编辑报表定时任务' AS name, 6 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:delete' AS code, '删除报表定时任务' AS name, 7 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:toggle' AS code, '启停报表定时任务' AS name, 8 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:schedule:run' AS code, '手动执行报表定时任务' AS name, 9 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:permission:edit' AS code, '维护报表权限' AS name, 10 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'report:export' AS code, '导出报表' AS name, 11 AS sort_no, 'report' AS parent_code
+  UNION ALL SELECT 'system:print-record:create' AS code, '保存打印记录' AS name, 12 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-record:reprint' AS code, '重打小票' AS name, 13 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:create' AS code, '新建打印模板' AS name, 14 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:edit' AS code, '编辑打印模板' AS name, 15 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:delete' AS code, '删除打印模板' AS name, 16 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:reset' AS code, '重置打印模板' AS name, 17 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'system:print-template:set-default' AS code, '设为默认打印模板' AS name, 18 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'store:hardware:config-edit' AS code, '编辑硬件配置' AS name, 19 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:config-test' AS code, '测试硬件配置' AS name, 20 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:announce' AS code, '云喇叭播报' AS name, 21 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:box-pay' AS code, '收银盒支付' AS name, 22 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:box-config-edit' AS code, '编辑收银盒配置' AS name, 23 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:box-config-test' AS code, '测试收银盒配置' AS name, 24 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'store:hardware:unionpay-test' AS code, '测试云闪付' AS name, 25 AS sort_no, 'store' AS parent_code
+  UNION ALL SELECT 'miniapp:config:edit' AS code, '编辑小程序配置' AS name, 26 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:package:upload-key' AS code, '上传小程序密钥' AS name, 27 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:package:build' AS code, '构建小程序包' AS name, 28 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:package:publish' AS code, '发布小程序' AS name, 29 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'miniapp:order-sync:retry' AS code, '小程序订单同步重试' AS name, 30 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:create' AS code, '新建待办' AS name, 31 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:complete' AS code, '完成待办' AS name, 32 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:dismiss' AS code, '忽略待办' AS name, 33 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:todo:delete' AS code, '删除待办' AS name, 34 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:create' AS code, '新建快捷入口' AS name, 35 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:sort' AS code, '调整快捷入口排序' AS name, 36 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:edit' AS code, '编辑快捷入口' AS name, 37 AS sort_no, 'system' AS parent_code
+  UNION ALL SELECT 'dashboard:quick-entry:delete' AS code, '删除快捷入口' AS name, 38 AS sort_no, 'system' AS parent_code
+
+) c
+WHERE p.menu_code = c.parent_code
+  AND p.menu_type = 'CATALOG'
+  AND p.parent_id IS NULL
+--------------
+
+ERROR 1062 (23000) at line 1: Duplicate entry 'report:export-default' for key 'uk_sys_menu_code_tenant'

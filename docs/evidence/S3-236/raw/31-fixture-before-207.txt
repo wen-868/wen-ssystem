@@ -1,0 +1,3 @@
+WARNING: option --ssl-verify-server-cert is disabled, because of an insecure passwordless login.
+result
+夹具状态：CATALOG 父行 8 行（default 4 / demo 4）；本批 38 码既有行 0 行（应为 0）；角色 2 行
