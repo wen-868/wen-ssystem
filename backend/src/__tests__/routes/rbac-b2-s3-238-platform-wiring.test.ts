@@ -187,7 +187,12 @@ describe("S3-238 · 平台侧接线第一批（双前缀收编）", () => {
     async function buildApp() {
       const { requirePlatformAuth } = await import("../../middleware/auth");
       const { requirePlatformPermission } = await import("../../middleware/platform-rbac");
+      // S3-119：测试内自建 app 且挂 requirePlatformAuth ⇒ 必须内联 `.use(rateLimit(...))`
+      //   （CodeQL `js/missing-rate-limiting` 只认"注册点上的直接调用"，包进 helper 就识别不到）
+      const { default: rateLimit } = await import("express-rate-limit");
+      const { AUTHED_ROUTE_LIMIT } = await import("../../config/rate-limit");
       const app = express();
+      app.use(rateLimit(AUTHED_ROUTE_LIMIT));
       app.use(express.json());
       app.put(
         "/api/platform/applications/:id/approve",
