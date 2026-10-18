@@ -3,6 +3,7 @@
  * QODER-6（S3-242）· 跨层漂移定性机 —— 只跑本单 16+1 清单，不做全量对账。
  * 清单 A：permission-gates.ts 注册表 island-instant-retail-admin 的 27 条 endpoints（12 运营 + 15 平台）。
  * 清单 B：admin-web/src/api/system.ts 的 5 个 /admin/system/employees* wrapper（+1）。
+ *   —— S3-242 收口（QODER-7）后 wrapper 已下线：sites=0 ⇒ 仍报 D4 作"已删除"说明（任务书 §二.1 口径）。
  * 判定：OK / D1 真漂移 / D2 端点不存在 / D3 等价 / D4 误报（匹配口径未覆盖真实调用关系）。
  * debt = D1 + D2，对照 gates-baseline.json 的 contractDrift.debt（只准降；超或缺段 ⇒ 红）。
  * 抽取逻辑与 check-contract.mjs 同一套但**逐字复制**：该脚本 import 即执行 main() 并 process.exit，不可复用 import。
@@ -148,7 +149,10 @@ function main() {
   const staffEq = backend.filter((r) => r.path.startsWith('/api/admin/staff')).slice(0, 3).map((r) => `${r.method} ${r.path}@${r.file}:${r.line}`)
   let empCls = 'D3'
   let empNote = '后端存在注册'
-  if (empBackendMiss.length > 0 && empCallers === 0) {
+  if (empSites.length === 0) {
+    empCls = 'D4'
+    empNote = 'employees wrapper 已随 S3-242 收口（QODER-7）下线，system.ts 中无 /admin/system/employees 字面量 ⇒ D4 定性对象已消亡，本行保留作说明；员工能力请用 /api/admin/staff*（D3 映射）'
+  } else if (empBackendMiss.length > 0 && empCallers === 0) {
     empCls = 'D4'
     empNote = `后端 ${empBackendMiss.length} 路径 0 注册属实，但 ${EMP_WRAPPERS.length} 个 wrapper 在 admin-web/src（除 api/system.ts）调用点 = 0 ⇒「前端在调」前提不成立 = 清单口径误报（只按字符串存在性判在调、无 caller 闭包）。D3 等价映射备用：${staffEq.join(' | ')}`
   } else if (empBackendMiss.length > 0) {

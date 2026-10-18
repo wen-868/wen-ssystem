@@ -1,0 +1,17 @@
+—— S3-242 跨层漂移定性机（只跑本单 16+1 清单）——
+注册表抽取 27 行：OK 26 / D1 1 / D2 0
+[D1] app-mobile/src/config/permission-gates.ts:644  POST /api/admin/instant-retail/platform/configs
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:16（正确：POST /api/admin/instant-retail/configs） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+employees（+1）：定义 0 行，后端 0 注册 0，caller 0 ⇒ D4
+      employees wrapper 已随 S3-242 收口（QODER-7）下线，system.ts 中无 /admin/system/employees 字面量 ⇒ D4 定性对象已消亡，本行保留作说明；员工能力请用 /api/admin/staff*（D3 映射）
+debt（D1+D2）= 1，基线 contractDrift.debt = 0
+✗ debt=1 超基线（只准降）或未立基线 ⇒ EXIT=1
+—— S3-242 跨层漂移定性机（只跑本单 16+1 清单）——
+注册表抽取 27 行：OK 26 / D1 1 / D2 0
+[D1] app-mobile/src/config/permission-gates.ts:644  POST /api/admin/instant-retail/platform/configs
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:16（正确：POST /api/admin/instant-retail/configs） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+employees（+1）：定义 0 行，后端 0 注册 0，caller 0 ⇒ D4
+      employees wrapper 已随 S3-242 收口（QODER-7）下线，system.ts 中无 /admin/system/employees 字面量 ⇒ D4 定性对象已消亡，本行保留作说明；员工能力请用 /api/admin/staff*（D3 映射）
+debt（D1+D2）= 1，基线 contractDrift.debt = 0
+✗ debt=1 超基线（只准降）或未立基线 ⇒ EXIT=1
+RED=1

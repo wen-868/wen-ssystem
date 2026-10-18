@@ -1,0 +1,2 @@
+cmd: rg -n "local-db|api/sync|sqlite" app-mobile（任务书判据③**原式**，MSYS2_ARG_CONV_EXCL=* 态）
+exit=0；命中仅剩 2 行 = app-mobile/docs/移动端全面审查清单与修复方案-2026-10-18.md:65/:162（**带日期审计档案的历史叙述**，非代码引用；不改写档案故保留。代码口径 0 命中见 rg3-offline-chain-0hit.log；口径裁定项已报备回传卡 §五③）

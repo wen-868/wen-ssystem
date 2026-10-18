@@ -46,12 +46,12 @@
     "note": "A.2 三口径读数由 check-contract.mjs 每次运行现场打印"
   },
   "contractDrift": {
-    "command": "node scripts/check-contract-drift.mjs（S3-242 跨层漂移定性机，只跑本单 16+1 清单）",
-    "debt": 16,
-    "d1": 16,
+    "command": "node scripts/check-contract-drift.mjs（S3-242 跨层漂移定性机，只跑本单 16+1 清单；QODER-7 起进 CI 阻断）",
+    "debt": 0,
+    "d1": 0,
     "d2": 0,
     "d4": 1,
-    "note": "debt = D1+D2（注册表 15× /platform 前缀误写 + 1× deliveries status 方法漂移）。employees(+1) 定性 D4（wrapper 零调用方）不计债；若将来出现调用方而后端仍 0 注册 ⇒ 脚本自动升格 D2 ⇒ debt 16→21 超基线转红。只准降：修复卡（按 R101-QODER-6-回传.md §五 拆单）把注册表 16 行对齐后端后，现场把 debt/d1 调低并留痕。QODER-6 登记基线 = 现场实测（2026-10-18），未修任何业务代码。"
+    "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
   },
   "tests": {
     "testFiles": 5,

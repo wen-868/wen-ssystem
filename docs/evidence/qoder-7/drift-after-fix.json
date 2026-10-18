@@ -1,0 +1,206 @@
+{
+  "total": 27,
+  "OK": 27,
+  "D1": 0,
+  "D2": 0,
+  "employees": {
+    "cls": "D4",
+    "sites": 0,
+    "miss": 0,
+    "callers": 0
+  },
+  "debt": 0,
+  "baselineDebt": 0,
+  "rows": [
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:632",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/orders/:orderNo/status",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:19"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:633",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/routing-rules",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:41"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:634",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/routing-rules/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:42"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:635",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/routing-rules/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:43"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:636",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/exceptions/:id/handle",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:49"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:637",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/shelf",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:54"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:638",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/shelf/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:55"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:639",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/shelf/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:56"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:640",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/deliveries/:deliveryId/assign",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:60"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:641",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/deliveries/:deliveryId/status",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:61"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:642",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/reviews/:id/reply",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:67"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:643",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/reviews/sync",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:68"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:644",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/configs",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:16"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:645",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/configs/:platform/test",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:17"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:646",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/configs/:platform/sync-orders",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:18"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:647",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/configs/:platform/sync-products",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:19"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:648",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/configs/:platform",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:20"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:649",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/shop-config",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:24"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:650",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/categories",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:28"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:651",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/categories/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:29"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:652",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/categories/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:30"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:653",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/products",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:34"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:654",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/products/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:35"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:655",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/products/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:36"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:656",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/banners",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:47"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:657",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/banners/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:48"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:658",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/banners/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:49"
+    }
+  ],
+  "empSites": []
+}

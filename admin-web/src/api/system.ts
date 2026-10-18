@@ -37,30 +37,10 @@ export async function toggleStaffStatus(id: number, status: number) {
 
 
 // ==================== Employee Management APIs (system) ====================
-export async function fetchEmployees(params?: { keyword?: string; storeId?: number; roleId?: number; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/system/employees", { params: { page: 1, pageSize: 20, ...params } });
-  return data.data;
-}
-
-export async function fetchEmployeeDetail(id: number) {
-  const { data } = await api.get(`/admin/system/employees/${id}`);
-  return data.data;
-}
-
-export async function createEmployee(payload: { username: string; realName: string; mobile: string; staffNo?: string; department?: string; role?: string; storeId?: number }) {
-  const { data } = await api.post("/admin/system/employees", payload);
-  return data.data;
-}
-
-export async function updateEmployee(id: number, payload: { username?: string; realName?: string; mobile?: string; staffNo?: string; department?: string; role?: string; storeId?: number }) {
-  const { data } = await api.put(`/admin/system/employees/${id}`, payload);
-  return data.data;
-}
-
-export async function toggleEmployeeStatus(id: number, status: number) {
-  const { data } = await api.patch(`/admin/system/employees/${id}/status`, { status });
-  return data.data;
-}
+// S3-242 收口（QODER-7）：原 5 个 employees wrapper（后端路径零注册 + 全仓零调用方，D4）已下线。
+// 如需员工能力请用 `GET/POST /api/admin/staff`、`PUT /api/admin/staff/:id`、
+// `PUT /api/admin/staff/:id/status`（D3 映射，即本文件上方 staff 族 wrapper；
+// 注意 GET 单员工详情后端无等价端点）。
 
 export async function resetEmployeePassword(id: number, payload: { newPassword: string }) {
   // 后端 sys-user 路由：POST /api/admin/sys-users/:id/reset-password

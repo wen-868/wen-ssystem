@@ -1,0 +1,2 @@
+cmd: rg -n "local-db|api/sync|sqlite" app-mobile/src app-mobile/package.json
+exit=1（1=0 命中）⇒ 离线链代码侧零残留；package.json 从未有 sqlite 依赖（uni 原生 plus.sqlite API 非 npm 依赖，见回传卡 §五 口径偏差②）
