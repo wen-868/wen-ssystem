@@ -1,0 +1,9 @@
+$ date -Iseconds
+2026-10-20T01:06:14+08:00
+--- 叶子（任务书原式复跑）:
+Y/uy8CcEO5D3HHhBa8iBqWJu3uEQwuA1bwRCpuVfcHs=
+EXIT=0
+--- 中间证书（链内第2张，awk 取块复跑）:
+s/tdAOmUzd8syaTuqfgGvFcn6DzA5Cmb+Vby1ST+U3Y=
+EXIT=0
+--- 对照：与 pin-spki.sh 同域读数字节一致（见 run-api.onepan.cn.log）

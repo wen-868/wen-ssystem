@@ -1,0 +1,19 @@
+$ date -Iseconds  (采集时刻)
+2026-10-20T01:04:22+08:00
+$ bash app-mobile/scripts/pin-spki.sh api.onepan.cn
+TARGET  : api.onepan.cn:443 (SNI=api.onepan.cn) — 只读采集，不写文件
+CHAIN   : 对端给出 4 张证书
+[LEAF #1] subject=CN=api.onepan.cn
+    notAfter : Nov 11 22:28:29 2026 GMT
+    剩余     : 23 天
+    WARN     : 剩余 <= 30 天，命中口径文档 §三「到期前 30 天」提醒口径，请与证书轮换同 PR 处理。
+    SPKI pin : sha256/Y/uy8CcEO5D3HHhBa8iBqWJu3uEQwuA1bwRCpuVfcHs=
+
+[MIDDLE #2] subject=C=US, O=Let's Encrypt, CN=YE2
+    notAfter : Sep  2 23:59:59 2028 GMT
+    剩余     : 684 天
+    SPKI pin : sha256/s/tdAOmUzd8syaTuqfgGvFcn6DzA5Cmb+Vby1ST+U3Y=
+
+RESULT  : 已打印 2 条（叶子 + 中间）。仅供人工核对/粘贴到 app-mobile/src/utils/pin-ssl.ts 的 'api.onepan.cn' 条目。
+          本卡口径【未接线】：接线须先满足维护口径 §五 双前置，本脚本未执行任何写入或接线。
+EXIT=0

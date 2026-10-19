@@ -1,0 +1,8 @@
+$ date -Iseconds
+2026-10-20T01:06:19+08:00
+$ bash app-mobile/scripts/pin-spki.sh --help
+用法: bash app-mobile/scripts/pin-spki.sh [域名|-h|--help]
+  域名   可选，缺省 api.onepan.cn（直接传裸域名，不带端口与协议）。
+  只读：仅打印对端证书链的叶子/中间 SPKI-SHA256 与 notAfter，不写任何文件。
+  退出码：0 成功；1 缺 openssl；2 连接/握手失败或未取得链；3 链不足 2 张；4 本机解析失败。
+EXIT=0

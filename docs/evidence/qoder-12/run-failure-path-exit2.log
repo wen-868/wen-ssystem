@@ -1,0 +1,6 @@
+$ date -Iseconds
+2026-10-20T01:05:01+08:00
+$ bash app-mobile/scripts/pin-spki.sh qoder-12-no-such-host.invalid   # 反测：DNS 不可解析域，验证失败路径非零退出
+TARGET  : qoder-12-no-such-host.invalid:443 (SNI=qoder-12-no-such-host.invalid) — 只读采集，不写文件
+ERROR[exit 2]: 无法连接 qoder-12-no-such-host.invalid:443 或 TLS 握手失败/对端未给出证书链（无网络、DNS 解析失败、端口封锁、主机不可达、握手中断均属本类）。本脚本未写入任何文件。
+EXIT=2
