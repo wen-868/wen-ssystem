@@ -46,9 +46,9 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/rate", requireConsumerAuth
 adminAftersaleRouter.get("/aftersales", ctrl.adminListAftersales);
 adminAftersaleRouter.get("/aftersales/statistics", ctrl.adminGetStatistics);
 adminAftersaleRouter.get("/aftersales/:id", ctrl.adminGetAftersaleDetail);
-adminAftersaleRouter.post("/aftersales/:id/approve", ctrl.adminApproveAftersale);
+adminAftersaleRouter.post("/aftersales/:id/approve", requirePermission("sale:return"), ctrl.adminApproveAftersale);
 
-adminAftersaleRouter.post("/aftersales/:id/reject", asyncHandler(async (req, res, _next) => {
+adminAftersaleRouter.post("/aftersales/:id/reject", requirePermission("sale:return"), asyncHandler(async (req, res, _next) => {
   req.body = rejectAftersaleSchema.parse(req.body);
   await ctrl.adminRejectAftersale(req, res, _next);
 }));
@@ -58,17 +58,20 @@ adminAftersaleRouter.post("/aftersales/:id/reject", asyncHandler(async (req, res
 // ⚠️ 本仓 `t_sys_menu` **没有任何 `aftersale:*` 行**（`aftersale:*` 只是 CUSTOMER_SERVICE 的权限串通配，
 // 见 `docs/migrations/079:92`、`128:36`）⇒ 售后域无"既有细码"可挂，取退货语义的细码 `sale:return`
 //（生产持有 = SUPER_ADMIN / OPERATION_ADMIN / STORE_MANAGER / STORE_OPERATOR ⊇ {SUPER_ADMIN}，零回归）。
-// ⚠️ 同文件 approve / reject / inspect / complete 4 条本批**不接**：app-mobile
+// ⚠️ 同文件 approve / reject / inspect / complete 4 条 S3-224 当时**不接**：app-mobile
 // `pages-sub/order/order-aftersale/aftersale.vue:144/178`（孤岛页，全仓无导航入口）有写调用点
 // ⇒ 使用者集合不可枚举（B 类）。2026-10-16
+// QODER-9（B3-1 收口，2026-10-19，`docs/tasks/inbox/QODER-9-B31收口.md`）：门注册表 `island-aftersale` 已提为
+// `gated`（`app-mobile/src/config/permission-gates.ts:585-599`，codes = `sale:return`）⇒ parity 契约
+// 「gated ⇒ 后端已接线」；凌舟裁定**改补后端、不再拆栈** ⇒ 4 条挂同族既有码 `sale:return`（零新码）。
 adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", requirePermission("sale:return"), ctrl.adminConfirmReceipt);
 
-adminAftersaleRouter.post("/aftersales/:id/inspect", asyncHandler(async (req, res, _next) => {
+adminAftersaleRouter.post("/aftersales/:id/inspect", requirePermission("sale:return"), asyncHandler(async (req, res, _next) => {
   req.body = inspectAftersaleSchema.parse(req.body);
   await ctrl.adminInspectAftersale(req, res, _next);
 }));
 
-adminAftersaleRouter.post("/aftersales/:id/complete", asyncHandler(async (req, res, _next) => {
+adminAftersaleRouter.post("/aftersales/:id/complete", requirePermission("sale:return"), asyncHandler(async (req, res, _next) => {
   req.body = completeAftersaleSchema.parse(req.body);
   await ctrl.adminCompleteAftersale(req, res, _next);
 }));
