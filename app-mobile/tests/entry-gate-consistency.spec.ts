@@ -3,10 +3,10 @@
  *
  * 判据（卡 2 §三）：
  *   1) 每个 `gated` 入口的每条端点，后端注册行必须挂 `requirePermission(码)` 且 **码 ∈ 门的 codes**；
- *   2) 本卡 4 条售后端点后端**未接**（S3-250 收编单承接）⇒ 命中**具名待接白名单**即放行；
- *      白名单只校验「仍归属某个 gated 入口」，**不校验后端是否已接** ⇒ 后端接线后
- *      wired 分支优先命中、用例**自动转绿**（无需再改本文件）；反之若删掉注册表里的门，
- *      白名单条目成为孤儿 ⇒ 红并点名（本卡反测挂钩）。
+ *   2) 本卡 4 条售后端点已由 **QODER-9 接线** `sale:return`（`aftersale.routes.ts`:49/51/69/74）⇒
+ *      wired 分支优先命中、直接通过；**具名待接白名单**保留为回落安全网（后端接线若回退，
+ *      白名单仍放行、不判红），白名单只校验「仍归属某个 gated 入口」，**不校验后端是否已接**；
+ *      反之若删掉注册表里的门，白名单条目成为孤儿 ⇒ 红并点名（本卡反测挂钩）。
  *   3) `pending-code` ⇒ codes 必须恒为空数组（不许硬挂不存在的码）且后端**尚未**接线
  *      （若后端已接 ⇒ 红并点名，提示注册表转 gated 补码）。
  *   4) 三态装置：持码=显示 / 不持码=隐藏 / 未取到码=隐藏；pending-code 一律隐藏。
@@ -29,16 +29,17 @@ const BACKEND_ROUTES = join(REPO_ROOT, 'backend', 'src', 'routes')
 
 const VERBS = ['get', 'post', 'put', 'patch', 'delete']
 
-/** 本卡具名待接白名单（条目 → 理由）。后端接线后本表**无需改动**即自动转绿（见文件头判据 2） */
+/** 具名待接白名单（条目 → 理由）。QODER-9 接线后 wired 分支优先命中、本表不再被查到；
+ *  保留作回落安全网（后端接线若回退仍放行）+ orphan 检测/合成转绿机检/反例自检三用例的锚点。 */
 const PENDING_WIRING: Record<string, string> = {
   'POST /api/admin/aftersales/:id/approve':
-    'B3-1：门已登记（sale:return），后端 aftersale.routes.ts:49 注册行无 requirePermission ⇒ 接线属 S3-250 收编单',
+    '已由 QODER-9 接线 `sale:return`（aftersale.routes.ts:49）⇒ 走后端已接分支；本条保留为回落安全网',
   'POST /api/admin/aftersales/:id/reject':
-    'B3-1：同上（aftersale.routes.ts:51），接线属 S3-250 收编单',
+    '同上（aftersale.routes.ts:51）⇒ 走后端已接分支；本条保留为回落安全网',
   'POST /api/admin/aftersales/:id/inspect':
-    'B3-1：同上（aftersale.routes.ts:66），接线属 S3-250 收编单',
+    '同上（aftersale.routes.ts:69）⇒ 走后端已接分支；本条保留为回落安全网',
   'POST /api/admin/aftersales/:id/complete':
-    'B3-1：同上（aftersale.routes.ts:71），接线属 S3-250 收编单'
+    '同上（aftersale.routes.ts:74）⇒ 走后端已接分支；本条保留为回落安全网'
 }
 
 // ── 三态装置的权限桩（vi.mock 会被提升到文件头，闭包到调用时才读变量）────────
@@ -195,7 +196,8 @@ describe('B3-1 注册表自洽（status/codes 不变量 + 本卡 5 条登记逐�
       'POST /api/admin/aftersales/:id/inspect',
       'POST /api/admin/aftersales/:id/complete'
     ])
-    expect(g!.note).toContain('S3-250')
+    expect(g!.note).toContain('已接')
+    expect(g!.note).toContain('gated')
   })
 
   it('本卡登记：积分调整门 = pending-code + codes 空 + 未开通口径在册', () => {

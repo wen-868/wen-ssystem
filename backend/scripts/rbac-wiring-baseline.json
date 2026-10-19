@@ -211,10 +211,6 @@
       "POST /api/padmin/app-versions/:id/rollback",
       "POST /api/padmin/app-versions/draft"
     ],
-    "platform-applications.routes.ts": [
-      "PUT /api/platform/applications/:id/approve",
-      "PUT /api/platform/applications/:id/reject"
-    ],
     "platform-auth.routes.ts": [
       "POST /api/platform/auth/admin/create",
       "POST /api/platform/auth/login",
@@ -439,8 +435,6 @@
       "PUT /api/admin/sys-users/:id"
     ],
     "tenant-register.routes.ts": [
-      "POST /api/tenant/applications/:id/approve",
-      "POST /api/tenant/applications/:id/reject",
       "POST /api/tenant/register",
       "POST /api/tenant/register/sms-code"
     ],
@@ -548,16 +542,17 @@
     ]
   },
   "_counts": {
-    "files": 88,
-    "endpoints": 293,
+    "files": 87,
+    "endpoints": 289,
     "consumerEndFiles": 5,
     "consumerEndEndpoints": 45,
     "readOnlyPostFiles": 4,
     "readOnlyPostEndpoints": 6,
-    "wiredEndpoints": 419,
+    "wiredEndpoints": 423,
     "scannedEndpoints": 763,
     "wiredPermOccurrences": 390
   },
+  "_qoder10_note": "QODER-10（2026-10-20，卡③「4 条基线陈旧具名清理」）：guard --strict 报「已登记但当前无缺口 4 条」，逐条判定=**已接线可删**（现况 authForm=inline，`requirePlatformPermission(\"tenant:manage\")`，S3-238 双前缀同批接线，行级形状断言在 rbac-b2-s3-238-platform-wiring.test.ts 锁定，与本台账互不依赖）：① platform-applications.routes.ts `PUT /api/platform/applications/:id/approve`（:35-37）→ 删；② 同文件 `PUT /api/platform/applications/:id/reject`（:44）→ 删（该文件缺口清零，键整体移除）；③ tenant-register.routes.ts `POST /api/tenant/applications/:id/approve`（:43-45）→ 删；④ 同文件 `POST /api/tenant/applications/:id/reject`（:52）→ 删。**保留**同文件 `POST /api/tenant/register` 与 `/register/sms-code`（现况 authForm=none，routeConfig.auth=\"none\" 真公开，仍是登记缺口）。`_counts` 联动：endpoints 293→289、files 88→87、wiredEndpoints 419→423（4 条从缺口列搬入已接列）；和式 289+45+6+423=763=scannedEndpoints 守恒；`wiredPermOccurrences` 390 **不动**（g0 用例只数 `requirePermission(` 出现次数，这 4 条用的是 `requirePlatformPermission(`，不在该口径内）。逐条现场读数见 docs/evidence/qoder-10/raw/01~02。",
   "_s3227_merge": "2026-10-16 merge with main (#350~#352 之后)：gaps 按 authForm=none 重算（395/116），consumerEnd=45，read-only POST=3，wired=320，wiredPermOccurrences=291。",
   "_s3229_note": "S3-229（收口总清单第 43 项续 · B2 批 9）已给 17 条端点上 `requirePermission`（全部既有码：store:create ×7 / store:edit ×2 / marketing:create ×10，逐条见 docs/tasks/R101-RBAC接线缺口清单.md §十七）⇒ 这 17 条不再是无授权缺口，按流程从 gaps 逐条移除；移除的是**同一批端点**的登记，不是新缺口洗绿。本单范围内**保留登记**的行（逐条理由见 §十七）：① G1 门店/租户域 31 条缺口 = 已接 7（demo 2 + store-control 5）+ B 类 8（储值卡 4 + 门店会员 2 + 门店建档 2，都落在 app-mobile「我的」页无条件入口可达的页面上）+ 平台侧 2（`/api/tenant/applications/*` 走 requirePlatformAuth，商家码无效 ⇒ 归平台侧单）+ 公开端点 2 + 平台域 12（另立单）；② G2 营销域 W 类 14 条 = 已接 10（community-marketing，菜单仅授予 0 账号角色与只读观察员）+ 不接 4（points 会员等级：页面码 customer:level 对**在用**角色 STORE_MANAGER 可见而不持 marketing:create ⇒ 违反 I1，待裁定）。⚠️ 域外无关项（他人批次）一条未动。",
   "_s3231_note": "S3-231（收尾批）两条通道，逐条留痕：**① F1 已接线 4 条**：`points.routes.ts` 会员等级配置（增/改/启停/删）挂 `requirePermission(\"customer:level\")`（凌舟裁定 1，`R101-S3-229-凌舟验收与裁定.md` §二.1；依据 = 该页**自身的注册码** `customer:level`，`app-mobile/src/config/function-menu.ts:84`）⇒ `wiredEndpoints` / `wiredPermOccurrences` 各 +4。命中机制：`STORE_MANAGER`（生产在用、1 账号）持 `customer:*` ⇒ `matchPermission` 域通配命中（零回归）；`SALES_STAFF` / `CUSTOMER_SERVICE`（各 0 账号）持精确码 `customer:view` ⇒ 不命中（该两角色在该页被降级为只读，影响面见 docs/evidence/S3-231/F1）。**② F4 查询型 POST 登记 3 条**（**不是接线**，只 +`readOnlyPostEndpoints`）：`POST /api/admin/marketing/calculate`（试算，全 SELECT）/ `POST /api/admin/trace/configs/check`（配置判定，全 SELECT）/`POST /api/platform/billing/statement/export`（对账单导出，SELECT + sendCsv）⇒ 已在 `guard-rbac-wiring.mjs` 的 `READ_ONLY_POSTS` 逐条登记（batch=S3-231、含 reason/ruling）+ `docs/tasks/R101-RBAC接线缺口清单.md` §十八.3 同时含路径与「查询型」判定行（门禁闸门②）。**③ F4 不可登记 3 条**（有写 ⇒ 留在 gaps 按真写端点处理）：`POST /api/admin/alerts/check`（INSERT t_alert_record）、`POST /api/platform/reports/export/`（createExportTask 落 PENDING）、`POST /api/admin/commission/calculate`（INSERT t_sales_commission_record；且已被 `rbac-g0-wiring.test.ts` NOT_IN_G0 锁定）。本单**保留登记**的行：`POST /api/admin/members/:id/points/adjust`（同文件 B 类，不在 F1 范围）。⚠️ 域外无关项（含 F2/F3 涉及项）一条未动。",

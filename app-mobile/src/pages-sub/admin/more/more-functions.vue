@@ -11,6 +11,7 @@
     >
       <text class="mf-banner-text">{{ menuStore.bannerText }}</text>
       <text class="mf-banner-retry" :style="{ color: AI_WARNING }" v-if="menuStore.showRetry" @tap="retryMenus">重试</text>
+      <text class="mf-banner-close" @tap="menuStore.dismissBanner()">×</text>
     </view>
 
     <!-- 高频功能 -->
@@ -219,6 +220,15 @@ onShow(() => {
   flex-shrink: 0;
   font-size: 24rpx;
   font-weight: 600;
+}
+
+/* × 关闭：dismissBanner() 只置会话内存态 noticeDismissed，不写持久存储（下次 ③ 态重现） */
+.mf-banner-close {
+  flex-shrink: 0;
+  padding: 0 4rpx;
+  font-size: 32rpx;
+  line-height: 1;
+  color: $uni-text-color-grey;
 }
 
 .mf-section-title {

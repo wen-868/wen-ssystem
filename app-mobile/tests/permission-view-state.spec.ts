@@ -274,6 +274,48 @@ describe('menu store（三态接线的渲染结果）', () => {
     expect(cacheStore[`merchant_menu_codes_cache_${mockUserState.user!.id}`]).toContain('sale:record')
     expect(store.bannerText).toBe('')
   })
+
+  // 判据①装置：③态 ⇒ 横幅出现 ⇒ 点 × ⇒ 消失 ⇒ 再次③态 ⇒ 重现（console.log 落原始四步输出）
+  it('装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现', async () => {
+    apiBehaviour = async () => {
+      throw new Error('network down')
+    }
+    const { useMenuStore } = await menuModule
+    const store = useMenuStore()
+    await store.ensureLoaded()
+    console.log(`[步1] ③态 ⇒ bannerText=${JSON.stringify(store.bannerText)} showRetry=${store.showRetry} status=${store.status}`)
+    expect(store.bannerText).toBe(PERMISSION_UNAVAILABLE_NOTICE)
+
+    const keysBefore = Object.keys(cacheStore).sort()
+    store.dismissBanner()
+    const keysAfter = Object.keys(cacheStore).sort()
+    console.log(`[步2] 点 × ⇒ bannerText=${JSON.stringify(store.bannerText)} 存储键 before=${JSON.stringify(keysBefore)} after=${JSON.stringify(keysAfter)}`)
+    expect(store.bannerText).toBe('')
+    // 「仅本次会话记住」＝关闭态只活在 noticeDismissed 内存 ref，绝不落持久存储
+    expect(keysAfter).toEqual(keysBefore)
+    expect(keysAfter.some((k) => k.includes('dismiss'))).toBe(false)
+    // 关闭只隐文案：渲染集合与状态不动（重试按钮仍由 showRetry 提供）
+    expect(store.status).toBe('firstfail')
+
+    await store.refresh()
+    console.log(`[步3] 再次③态 ⇒ bannerText=${JSON.stringify(store.bannerText)} status=${store.status}`)
+    expect(store.bannerText).toBe(PERMISSION_UNAVAILABLE_NOTICE)
+
+    store.dismissBanner()
+    console.log(`[步4] 再点 × ⇒ bannerText=${JSON.stringify(store.bannerText)}`)
+    expect(store.bannerText).toBe('')
+  })
+})
+
+// ── 四点五、横幅 × 按钮挂载点（两页静态断言，防"store 有能力、页面没接"回潮）──
+describe('dismissBanner 接到 ×（页面挂载点）', () => {
+  for (const rel of ['pages/functions/functions.vue', 'pages-sub/admin/more/more-functions.vue']) {
+    it(`${rel}：横幅内 × 必须直调 menuStore.dismissBanner()`, () => {
+      const src = readFileSync(join(SRC, rel), 'utf8')
+      expect(src).toContain('@tap="menuStore.dismissBanner()"')
+      expect(src).toMatch(/class="(func|mf)-banner-close"/)
+    })
+  }
 })
 
 // ── 五、两端同源（静态断言：谁都不许再自判 null）────────────────────────────
