@@ -77,7 +77,7 @@
 
 - 执行记录：`app-mobile/docs/H5手动验收执行记录-2026-10-20.md`。
 - 证据目录：`docs/evidence/qoder-11/`——`mock-backend.mjs`、`mock-backend.log`、`dev-h5.log`、`device-probe.txt`、`git-diff-src-selfcheck.log`、`git-diff-src-final.log`；截图 11 张：`scene-1-loading/ready`、`scene-2-functions-empty/more-functions-empty/home-ok`、`scene-3a-banner-minimal/me500-reload`、`scene-3-retry-banner-gone`、`scene-3b-stale-banner`、`scene-3-ready-control`、`scene-4-home/functions-ready/more-functions/report-page/timeout-abort-stale`；note 4 份。
-- 提交（分支 `docs/qoder-11-h5-manual-run`，本地）：证据笔、执行记录笔、回传笔、补哈希笔——哈希按序：见 `git log --oneline docs/qoder-11-h5-manual-run`（本卡随回传笔提交，补哈希笔随后落地并回填 §三.4 终态读数）。
+- 提交（分支 `docs/qoder-11-h5-manual-run` @ 基线 `2baf13af`，本地未 push，逐文件分步）：证据笔 `d7df2e85` → 执行记录笔 `35d6cb71` → 回传笔（本卡+回执）`cf415b21` → 补哈希笔（回执补 `cf415b21`、终态自证 `git-diff-src-final.log` 0 行读数、`port-shutdown-check.log` 关服复核）= 分支尖端。
 
 ## 十、一行摘要
 

@@ -11,7 +11,8 @@
 
 ## 提交哈希（分支 `docs/qoder-11-h5-manual-run` @ 基线 2baf13af，本地未 push）
 
-- 证据笔 `d7df2e85` ｜ 执行记录笔 `35d6cb71` ｜ 回传笔（本回执+十项卡）见分支尖端 ｜ 补哈希笔（终态 diff 自证）随后。
+- 证据笔 `d7df2e85` ｜ 执行记录笔 `35d6cb71` ｜ 回传笔（本回执+十项卡）`cf415b21` ｜ 补哈希笔（终态 diff 自证，含本段）= 其后一笔。
+- 终态判据复跑（全部文档提交后）：`git diff 2baf13af..HEAD -- app-mobile/src | wc -l` → **0**（`docs/evidence/qoder-11/git-diff-src-final.log`，final-check 2026-10-20 01:39:32；全集概览 27 files +623 insertions，均为 docs）。
 
 ## 证据（判据 4 复跑口令）
 
@@ -26,7 +27,7 @@
 
 ## 后台进程关闭记录
 
-- dev server（`npm run dev:h5`，:5173）与 mock 装置（:8080）于回卡落地后关闭，时间见补哈希笔/本回执尾部补记；TaskStop 如报 exit code null 属已知现象，已尽力终止并复核端口。
+- dev server（`npm run dev:h5`，:5173）与 mock 装置（:8080）于回卡落地后关闭：TaskStop 后 mock 即时停（01:39:57 复核 8080 无响应）；vite 子进程 PID 17384 残留监听，`taskkill /T /F` 补杀，**01:40:26 复核 5173 已无响应（curl 000、LISTENING 消失）**——原始输出 `port-shutdown-check.log`（TaskStop 对 mock 笔报 exit 255/no running instance，属简报预告的已知现象，已按复核端口为准确认关闭）。
 
 ## 已知展示态披露
 

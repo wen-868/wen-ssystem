@@ -1,0 +1,12 @@
+== 端口复核（预期 5173/8080 均无监听） ==
+5173: 200
+8080: 000
+  TCP    [::1]:5173             [::]:0                 LISTENING       17384
+  TCP    [::1]:5173             [::1]:36340            ESTABLISHED     17384
+  TCP    [::1]:32446            [::1]:5173             TIME_WAIT       0
+  TCP    [::1]:36340            [::1]:5173             ESTABLISHED     17148
+shutdown-verified 2026-10-20 01:39:57
+== 补杀复核（dev server 子进程 PID 17384 于 TaskStop 后仍在监听，手动 taskkill） ==
+ERROR: The process "17384" not found.
+5173: 000
+shutdown-final 2026-10-20 01:40:26
