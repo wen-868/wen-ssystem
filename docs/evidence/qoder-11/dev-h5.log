@@ -17,3 +17,11 @@ Compiling...
 
   [36mready in 92460ms.[39m
 
+[2m01:24:54[22m [31m[1m[vite][22m[39m [31msocket hang up[39m
+npm error Lifecycle script `dev:h5` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-11\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-11\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c uni
