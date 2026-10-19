@@ -1,0 +1,12 @@
+$ git rev-parse HEAD (branch tips, 本卡两枚提交后)
+481da38fd5035bfb818d50a72f6688728cb99e06
+$ git rev-parse --short 844515d5^{commit} (基线)
+844515d5
+$ git merge-base origin/main HEAD
+be7a94927105af15ae537acdb8506a184b1acddc
+$ git log --oneline 844515d5..HEAD
+481da38f chore: QODER-12 新增 app-mobile/scripts/pin-spki.sh 只读SPKI指纹采集脚本（叶子+中间双打印+到期剩余天数，不写文件，失败路径非零退出）
+0a6dc7f6 docs: QODER-12 新增 app-mobile/docs/pin-ssl指纹维护口径.md（角色/SPKI采集/双指纹成对/30天提醒/同PR轮换/失效与回滚，逐条标注A/B/C取证等级）
+$ git branch --show-current
+docs/qoder-12-pinssl-runbook
+工作树= D:\Users\ZXQL\wt-agents\QODER-12；node_modules 为 junction（本卡未用 node/门禁，纯 bash+openssl）
