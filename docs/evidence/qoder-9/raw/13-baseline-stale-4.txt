@@ -1,0 +1,5 @@
+stale count: 4
+platform-applications.routes.ts|PUT /api/platform/applications/:id/approve
+platform-applications.routes.ts|PUT /api/platform/applications/:id/reject
+tenant-register.routes.ts|POST /api/tenant/applications/:id/approve
+tenant-register.routes.ts|POST /api/tenant/applications/:id/reject

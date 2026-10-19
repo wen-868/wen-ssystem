@@ -1,0 +1,10 @@
+6bfd3907626c77a3b6bf4a081780fc317225b688c987ed7ae0f609dd8ee76fd1 *backend/src/routes/aftersale.routes.ts
+49:adminAftersaleRouter.post("/aftersales/:id/approve", ctrl.adminApproveAftersale);
+61:// ⚠️ 同文件 approve / reject / inspect / complete 4 条 S3-224 当时**不接**：app-mobile
+RED_RUN_EXIT=1
+525a5f9e7228a04af69239ced8ea7ffe34a637c1766f25bb0b2a6a9b41afbbe7 *backend/src/routes/aftersale.routes.ts
+GREEN_RUN_EXIT=0
+1c1
+< 6bfd3907626c77a3b6bf4a081780fc317225b688c987ed7ae0f609dd8ee76fd1
+---
+> 525a5f9e7228a04af69239ced8ea7ffe34a637c1766f25bb0b2a6a9b41afbbe7

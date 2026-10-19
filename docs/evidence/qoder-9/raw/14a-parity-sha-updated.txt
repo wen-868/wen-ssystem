@@ -1,0 +1,2 @@
+补记（2026-10-19）：raw/14-post-edit-sha256.txt 里 parity 的 20d49f97… 是【表重建前】的旧值（REGISTERED_ROWS 按现场注册表 9/38 重建后文件又变了一次）。
+表重建后的终值以 anti/pre-sha256.txt 为准：rbac-b2-s3-233-gate-wiring-parity.test.ts = 3d2a8a5dacebdd3bf89a25286e7236e22717d327c91d9bc016c1adb3becd36d3。

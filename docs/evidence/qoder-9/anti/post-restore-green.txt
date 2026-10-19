@@ -1,0 +1,21 @@
+# 反测·第 4 步续（2026-10-19）：复原后复跑 parity ⇒ 全过
+# 口径披露：任务书写的是「parity 120 例全过」，实际用例数 = 135（= 2 规模读 + a) 1+64 + b) 2 + c) 1+38+1+1 + d) 2 + e) 23；基线 #367 上就已不是 120，纯基线实测 124 例（7 failed | 117 passed），本单接线后 +11 ⇒ 135）。
+# 命令：npx vitest run src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-9/backend[39m
+
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts [2m([22m[2m135 tests[22m[2m)[22m[33m 14070[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/purchase-orders/'（门 'purchase-sub-order'）：所用码 ∈ 门 codes，且注册行自带该码 [33m 428[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/store/orders/:orderNo/start…'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 [33m 696[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/system/roles/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 [33m 641[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/store/orders/:orderNo/start…'：全部持有人（逐账号枚举）⇒ 200 且到达业务层 [33m 816[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/purchase-orders/'：全部持有人（逐账号枚举）⇒ 200 且到达业务层 [33m 575[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/stock-checks/:id/hand…'：全部持有人（逐账号枚举）⇒ 200 且到达业务层 [33m 392[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/products/categories/'：全部持有人（逐账号枚举）⇒ 200 且到达业务层 [33m 349[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m135 passed[39m[22m[90m (135)[39m
+[2m   Start at [22m 23:58:13
+[2m   Duration [22m 85.65s[2m (transform 37.87s, setup 341ms, import 63.83s, tests 14.07s, environment 0ms)[22m
+
+VITEST_EXIT=0
