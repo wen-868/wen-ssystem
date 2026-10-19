@@ -1,0 +1,5 @@
+$ export MSYS2_ARG_CONV_EXCL="*" && rg -n "S3-250|未接" app-mobile/src/config/permission-gates.ts
+RG_EXIT=1
+
+$ rg -n "S3-250" app-mobile/src app-mobile/tests app-mobile/scripts（顺带全仓复核）
+RG_EXIT2=1

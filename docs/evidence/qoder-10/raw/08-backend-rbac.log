@@ -1,0 +1,709 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-10/backend[39m
+
+ [32m✓[39m src/__tests__/routes/miniapp-config.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 1059[2mms[22m[39m
+       [33m[2m✓[22m[39m 应保存配置 [33m 557[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-export-task.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 1839[2mms[22m[39m
+     [33m[2m✓[22m[39m 无令牌访问 6 条端点 ⇒ 全部 401（不落到业务层） [33m 509[2mms[22m[39m
+[2026-10-20 01:13:35.383 +0800] [32mINFO[39m (21668): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts [2m([22m[2m165 tests[22m[2m)[22m[33m 7017[2mms[22m[39m
+     [33m[2m✓[22m[39m 仓管通过入库 3 行、采购员通过 19 行、超管/运营员通过全部 29 行 [33m 1037[2mms[22m[39m
+     [33m[2m✓[22m[39m SALES_STAFF 对全部 29 行 ⇒ 403（没有把权限门放宽成摆设） [33m 343[2mms[22m[39m
+     [33m[2m✓[22m[39m STORE_OPERATOR（持 sale:return）只通过退货 3 行（含 S3-233 的退货创建行），对其余 26 行 403 [33m 398[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts [2m([22m[2m262 tests[22m[2m)[22m[33m 7253[2mms[22m[39m
+     [33m[2m✓[22m[39m 店长（生产实值，持 store:*/inventory:*）通过全部 45 条 inventory:*/store:transfer 行（页面角色不 403；S3-233 收编后 25 → 45） [33m 575[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts [2m([22m[2m175 tests[22m[2m)[22m[33m 7095[2mms[22m[39m
+     [33m[2m✓[22m[39m 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200） [33m 598[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-222-customer-wiring.test.ts [2m([22m[2m189 tests[22m[2m)[22m[33m 7854[2mms[22m[39m
+     [33m[2m✓[22m[39m 零回归（机器复算）：每一行的**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200） [33m 382[2mms[22m[39m
+     [33m[2m✓[22m[39m 生产店长（`customer:*`）通过本批**全部** 42 行（客户域写码全被 `customer:*` 覆盖） [33m 569[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts [2m([22m[2m162 tests[22m[2m)[22m[33m 5955[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts [2m([22m[2m306 tests[22m[2m)[22m[33m 12402[2mms[22m[39m
+[2026-10-20 01:13:51.279 +0800] [32mINFO[39m (10184): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts [2m([22m[2m112 tests[22m[2m)[22m[33m 2476[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts [2m([22m[2m183 tests[22m[2m)[22m[33m 2616[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts [2m([22m[2m164 tests[22m[2m)[22m[33m 2759[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-g1-wiring.test.ts [2m([22m[2m131 tests[22m[2m)[22m[33m 1504[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-g0-wiring.test.ts [2m([22m[2m147 tests[22m[2m)[22m[33m 4708[2mms[22m[39m
+     [33m[2m✓[22m[39m backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17 + QODER-9 新增 4 [33m 2337[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-237-system-wiring.test.ts [2m([22m[2m70 tests[22m[2m)[22m[33m 1326[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-g2-wiring.test.ts [2m([22m[2m58 tests[22m[2m)[22m[33m 679[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-237-goods-wiring.test.ts [2m([22m[2m60 tests[22m[2m)[22m[33m 1172[2mms[22m[39m
+     [33m[2m✓[22m[39m 前端导入页真实打的是 data-transfer 路径（`store:transfer` 已接，S3-198）；`importProducts` 封装无任何页面调用点 [33m 322[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts [2m([22m[2m34 tests[22m[2m)[22m[33m 629[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-238-platform-wiring.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 816[2mms[22m[39m
+       [33m[2m✓[22m[39m ① 无平台令牌 ⇒ 401（不是 403：认证未过） [33m 624[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-auth.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 1176[2mms[22m[39m
+       [33m[2m✓[22m[39m 验证码错误超过 20 次时返回 429，文案要求重新获取验证码 [33m 306[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-open-api-keys.test.ts [2m([22m[2m42 tests[22m[2m)[22m[33m 3256[2mms[22m[39m
+     [33m[2m✓[22m[39m 201 + 返回明文 AppSecret；库里存的是 bcrypt 哈希（不是明文） [33m 692[2mms[22m[39m
+     [33m[2m✓[22m[39m POST :id/rotate 200：返回新 AppKey/AppSecret，旧密钥转入 prev_* 且 rotate_expire_at 置位 [33m 312[2mms[22m[39m
+     [33m[2m✓[22m[39m 并发兜底：UPDATE affectedRows=0 ⇒ 409 [33m 314[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts [2m([22m[2m135 tests[22m[2m)[22m[33m 2904[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-c6-1a.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 3136[2mms[22m[39m
+     [33m[2m✓[22m[39m POST /api/platform/admins/invite 返回一次性初始口令（服务端生成 12 位） [33m 1078[2mms[22m[39m
+     [33m[2m✓[22m[39m POST /api/platform/admins/:id/reset-password 重置并一次性返回新口令 [33m 1311[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-rbac-domain-wiring.test.ts [2m([22m[2m67 tests[22m[2m)[22m[33m 1598[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/sync.test.ts [2m([22m[2m40 tests[22m[2m)[22m[33m 881[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-monitor-ops.test.ts [2m([22m[2m49 tests[22m[2m)[22m[33m 1160[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-billing.test.ts [2m([22m[2m41 tests[22m[2m)[22m[33m 920[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/authed-route-rate-limit-s3-208.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 11581[2mms[22m[39m
+     [33m[2m✓[22m[39m 'wechat.routes.ts:26 POST /auth/decryp…'：打满阈值后第 N+1 次 429 [33m 1089[2mms[22m[39m
+     [33m[2m✓[22m[39m 'wechat.routes.ts:27 PUT /auth/profile'：打满阈值后第 N+1 次 429 [33m 690[2mms[22m[39m
+     [33m[2m✓[22m[39m 'wechat.routes.ts:28 GET /auth/profile'：打满阈值后第 N+1 次 429 [33m 654[2mms[22m[39m
+     [33m[2m✓[22m[39m 'wechat.routes.ts:29 POST /auth/bind'：打满阈值后第 N+1 次 429 [33m 735[2mms[22m[39m
+     [33m[2m✓[22m[39m 'wechat.routes.ts:30 POST /auth/unbind'：打满阈值后第 N+1 次 429 [33m 698[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-miniapp.routes.ts POST /cou…'：打满阈值后第 N+1 次 429 [33m 694[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-miniapp.routes.ts GET /coup…'：打满阈值后第 N+1 次 429 [33m 698[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-miniapp.routes.ts GET /poin…'：打满阈值后第 N+1 次 429 [33m 695[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-miniapp.routes.ts GET /poin…'：打满阈值后第 N+1 次 429 [33m 967[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-miniapp.routes.ts POST /fla…'：打满阈值后第 N+1 次 429 [33m 724[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-miniapp.routes.ts POST /gro…'：打满阈值后第 N+1 次 429 [33m 746[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-miniapp.routes.ts POST /cal…'：打满阈值后第 N+1 次 429 [33m 832[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts:30 GET /verify…'：打满阈值后第 N+1 次 429 [33m 697[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts POST /bills'：打满阈值后第 N+1 次 429 [33m 573[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts POST /bills/:i…'：打满阈值后第 N+1 次 429 [33m 555[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts:34 POST /prod…'：打满阈值后第 N+1 次 429 [33m 520[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-templates.test.ts [2m([22m[2m44 tests[22m[2m)[22m[33m 745[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/supplier.test.ts [2m([22m[2m44 tests[22m[2m)[22m[33m 900[2mms[22m[39m
+[2026-10-20 01:14:18.991 +0800] [32mINFO[39m (10068): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+ [32m✓[39m src/__tests__/routes/platform-ticket.test.ts [2m([22m[2m28 tests[22m[2m)[22m[33m 867[2mms[22m[39m
+[2026-10-20 01:14:19.745 +0800] [31mERROR[39m (19928): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "mobile"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"mobile\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "mobile"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/rbac-auth.ts:15:7
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-20 01:14:19.842 +0800] [31mERROR[39m (19928): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "name"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "mobile"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"name\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"mobile\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "name"
+              ],
+              "message": "Required"
+            },
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "mobile"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/rbac-auth.ts:15:7
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ]
+        },
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ],
+          "message": "Required"
+        },
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "mobile"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-20 01:14:19.860 +0800] [31mERROR[39m (19928): [36m[
+  {
+    "validation": "regex",
+    "code": "invalid_string",
+    "message": "手机号格式不正确",
+    "path": [
+      "mobile"
+    ]
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"validation\": \"regex\",\n    \"code\": \"invalid_string\",\n    \"message\": \"手机号格式不正确\",\n    \"path\": [\n      \"mobile\"\n    ]\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "validation": "regex",
+              "code": "invalid_string",
+              "message": "手机号格式不正确",
+              "path": [
+                "mobile"
+              ]
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/controllers/admin/customer.controller.ts:43:37
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/rbac-auth.ts:15:7
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "手机号格式不正确",
+          "stack":
+              
+          "validation": "regex",
+          "code": "invalid_string",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "validation": "regex",
+          "code": "invalid_string",
+          "message": "手机号格式不正确",
+          "path": [
+            "mobile"
+          ]
+        }
+      ],
+      "name": "ZodError"
+    }
+[2026-10-20 01:14:19.900 +0800] [31mERROR[39m (19928): [36mDuplicate entry '13900000001' for key 't_member.uk_member_mobile'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry '13900000001' for key 't_member.uk_member_mobile'",
+      "stack":
+          Error: Duplicate entry '13900000001' for key 't_member.uk_member_mobile'
+              at driverError (D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:118:7
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-20 01:14:19.902 +0800] [33mWARN[39m (19928): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
+[2026-10-20 01:14:19.905 +0800] [31mERROR[39m (19928): [36mDuplicate entry 'x' for key 'uk_some_unknown_key'[39m
+    err: {
+      "type": "Error",
+      "message": "Duplicate entry 'x' for key 'uk_some_unknown_key'",
+      "stack":
+          Error: Duplicate entry 'x' for key 'uk_some_unknown_key'
+              at driverError (D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:134:18
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_DUP_ENTRY",
+      "errno": 1062
+    }
+[2026-10-20 01:14:19.906 +0800] [33mWARN[39m (19928): [36m[error-handler] 唯一键撞车（409）：POST /api/test[39m
+[2026-10-20 01:14:19.908 +0800] [31mERROR[39m (19928): [36mColumn 'mobile' cannot be null[39m
+    err: {
+      "type": "Error",
+      "message": "Column 'mobile' cannot be null",
+      "stack":
+          Error: Column 'mobile' cannot be null
+              at driverError (D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:144:18
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_BAD_NULL_ERROR",
+      "errno": 1048
+    }
+[2026-10-20 01:14:19.909 +0800] [33mWARN[39m (19928): [36m[error-handler] 入参缺列（400）：POST /api/test — mobile[39m
+[2026-10-20 01:14:19.910 +0800] [31mERROR[39m (19928): [36mField 'rule_name' doesn't have a default value[39m
+    err: {
+      "type": "Error",
+      "message": "Field 'rule_name' doesn't have a default value",
+      "stack":
+          Error: Field 'rule_name' doesn't have a default value
+              at driverError (D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:153:7
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_NO_DEFAULT_FOR_FIELD",
+      "errno": 1364
+    }
+[2026-10-20 01:14:19.910 +0800] [33mWARN[39m (19928): [36m[error-handler] 入参缺列（400）：POST /api/test — rule_name[39m
+[2026-10-20 01:14:19.912 +0800] [31mERROR[39m (19928): [36mYou have an error in your SQL syntax[39m
+    err: {
+      "type": "Error",
+      "message": "You have an error in your SQL syntax",
+      "stack":
+          Error: You have an error in your SQL syntax
+              at driverError (D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:55:24)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:165:18
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+      "code": "ER_PARSE_ERROR",
+      "errno": 1064
+    }
+[2026-10-20 01:14:19.913 +0800] [31mERROR[39m (19928): [36m未知错误[39m
+    err: {
+      "type": "Error",
+      "message": "未知错误",
+      "stack":
+          Error: 未知错误
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/__tests__/routes/s3-181-write-500.test.ts:173:18
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+              at new Promise (<anonymous>)
+              at runWithCancel (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+              at new Promise (<anonymous>)
+              at runWithTimeout (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+              at file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@vitest/runner/dist/chunk-artifact.js:2955:64
+    }
+[2026-10-20 01:14:19.948 +0800] [31mERROR[39m (19928): [36mSKU不存在：99999999[39m
+    err: {
+      "type": "AppError",
+      "message": "SKU不存在：99999999",
+      "stack":
+          AppError: SKU不存在：99999999
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/services/store/sale-bill.service.ts:279:25
+              at processTicksAndRejections (node:internal/process/task_queues:104:5)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/controllers/store/sale-bill.controller.ts:81:18
+      "statusCode": 400,
+      "name": "AppError"
+    }
+[2026-10-20 01:14:19.965 +0800] [31mERROR[39m (19928): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "array",
+    "received": "undefined",
+    "path": [
+      "items"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"array\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"items\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "array",
+              "received": "undefined",
+              "path": [
+                "items"
+              ],
+              "message": "Required"
+            }
+          ]
+              at Object.get error [as error] (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/controllers/store/sale-bill.controller.ts:79:6
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/async-handler.ts:7:21
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at D:/Users/ZXQL/wt-agents/QODER-10/backend/src/middleware/rbac-auth.ts:15:7
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "items"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "items"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+ [32m✓[39m src/__tests__/routes/inventory-batch.test.ts [2m([22m[2m50 tests[22m[2m)[22m[33m 904[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/s3-181-write-500.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 349[2mms[22m[39m
+[2026-10-20 01:14:20.002 +0800] [33mWARN[39m (19928): [36m[sale-bill] 创建通知失败: connect ECONNREFUSED 127.0.0.1:3306[39m
+ [32m✓[39m src/__tests__/routes/library-copy-c6-4-1.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 756[2mms[22m[39m
+[2026-10-20 01:14:23.597 +0800] [32mINFO[39m (10068): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+ [32m✓[39m src/__tests__/routes/platform-agent.test.ts [2m([22m[2m30 tests[22m[2m)[22m[33m 658[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-billing-arrears.test.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 603[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/purchase.test.ts [2m([22m[2m35 tests[22m[2m)[22m[33m 718[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/custom-report.test.ts [2m([22m[2m33 tests[22m[2m)[22m[33m 770[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-miniapp-s3-178.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 650[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-open-webhooks.test.ts [2m([22m[2m31 tests[22m[2m)[22m[33m 711[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/ai-platform.test.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 806[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/points-mall.test.ts [2m([22m[2m18 tests[22m[2m)[22m[33m 334[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/retail-announcement.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 415[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/payment-config.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 342[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-config-c6-3-1.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 406[2mms[22m[39m
+[2026-10-20 01:14:34.212 +0800] [32mINFO[39m (10068): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+ [32m✓[39m src/__tests__/routes/platform-promo-code.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 338[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/sale-return.test.ts [2m([22m[2m28 tests[22m[2m)[22m[33m 511[2mms[22m[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes] 重复前缀 12 个（均已登记放行，真重复端点 0 项）：/api/admin (19次), /api/admin/marketing (7次), /api/admin/inventory (3次), /api/platform (3次), /api/platform/billing (3次), /api/admin/instant-retail (2次), /api/admin/reports (2次), /api/miniapp (2次), /api/monitor (2次), /api/platform/monitor (2次), /api/store/coupons (2次), /api/store/members (2次)[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/admin (19次) ← 工作台根前缀，按业务模块拆文件（销售/采购/库存/客户/报表/员工/系统…）各自挂 /api/admin 根下，路径段互不重叠。合并成单文件会得到一个上万行的巨型路由文件，与「一模块一路由文件」的既有拆分相悖；真重复端点检测为 0，故放行。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/admin/marketing (7次) ← 营销中心按玩法分文件（券/秒杀/满减/拼团/积分/阶梯规则/计算），共用 /api/admin/marketing 子前缀；每个玩法是个独立小模块，路径段互不重叠。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/admin/inventory (3次) ← 库存域按单据类型分文件（成本/报损报溢/盘盈亏），共用 /api/admin/inventory 子前缀；路径段互不重叠。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/platform (3次) ← 平台端根前缀，由 platform.routes.ts（总览/管理员）、platform-msg-config.routes.ts（消息配置）、platform-error-log.routes.ts（错误日志）三个既有文件共用；路径段互不重叠。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/platform/billing (3次) ← 计费域按能力分文件（欠费策略/账单对账），共用 /api/platform/billing 子前缀；路径段互不重叠（C4-1 回传卡已报备过该计数+1）。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/admin/instant-retail (2次) ← 即时零售后台：ops 文件承载订单/货架/配送/评价/对账/报表，platform 文件承载三方平台配置/店铺配置/商品/分类/轮播；共用子前缀但路径段互不重叠（同前缀的两处 /shelf 真重复已于 S3-179 删除死代码）。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/admin/reports (2次) ← 报表域：report.routes.ts（标准报表）与 custom-report-v2.routes.ts（自定义报表 v2）共用子前缀；路径段互不重叠。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/miniapp (2次) ← 小程序端根前缀：miniapp.routes.ts（主链路）与 aftersale.routes.ts（售后的 miniapp 分支）共用；路径段互不重叠（aftersale 用 routeConfigs 注册 miniapp/auth-none + admin 两条配置，见 guard:route-auth 的登记）。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/monitor (2次) ← 监控域：monitor-system.routes.ts（系统指标）与 monitor-slow-query.routes.ts（慢查询）共用子前缀；路径段互不重叠。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/platform/monitor (2次) ← 平台监控域：platform-monitor.routes.ts（主）与 platform-monitor-ops.routes.ts（运维补充）共用子前缀；路径段互不重叠。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/store/coupons (2次) ← 门店优惠券子前缀：store-coupon.routes.ts（门店侧券列表/详情/核销：/、/:id、/verify、/manual-verify）与commerce-fix.routes.ts（核销**记录**查询 /verify-records）共用。S3-187 前 commerce-fix 以根前缀「/api/store」注册，把整个 /api/store/**（含它不拥有的路径与不存在的子路径）都套上认证+CSRF，实测把/api/store/members/register、/api/store/hardware/callbacks/* 两个 auth:none 端点拦成 401；现按「只声明自己拥有的路径段」收窄到本前缀。两条配置路径段互不重叠，真重复端点 0 项（启动日志逐条打印）。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 白名单 /api/store/members (2次) ← 门店会员段：store.routes.ts（会员列表/管理/详情/积分/明细/订单，全部需登录）与member-register.routes.ts（POST /sms-code、POST /register 两条**公开**注册端点，auth:"none"）共用。S3-195 把 store.routes 从根前缀 `/api/store` 收窄到本条后，两者路径段仍互不重叠（store.routes 拥有 `/`、`/manage`、`/:id(\d+)`…；member-register 拥有 `/register`、`/sms-code`），真重复端点 0 项。**挂载顺序是契约的一部分**：auto-routes 按文件名排序注册，`member-register.routes.ts`排在 `store.routes.ts` 之前 ⇒ 两条公开端点先被前者接走，不会被后者的认证+CSRF 波及（由 src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts 的整机挂载用例锁死）。[39m
+[2026-10-20 01:14:36.458 +0800] [32mINFO[39m (10068): [36m[auto-routes]  · 以上 12 条放行的机器证据：同一 method + 同一完整路径的重复注册为 0 项。[39m
+[2026-10-20 01:14:36.458 +0800] [33mWARN[39m (10068): [36m[auto-routes][根前缀共享告警] 4 个**根前缀**被多文件共用：/api/admin (19次: admin-bill-history.routes.ts, admin-credit.routes.ts, admin-customer.routes.ts, admin-finance.routes.ts, admin-inventory.routes.ts, admin-order.routes.ts, admin-product.routes.ts, admin-report.routes.ts, admin-staff.routes.ts, admin-system.routes.ts, aftersale.routes.ts, avatar.routes.ts, commerce-fix.routes.ts, error-log.routes.ts, feedback.routes.ts, order-exception.routes.ts, product-bundle.routes.ts, tag.routes.ts, workbench.routes.ts)；/api/platform (3次: platform-error-log.routes.ts, platform-msg-config.routes.ts, platform.routes.ts)；/api/miniapp (2次: aftersale.routes.ts, miniapp.routes.ts)；/api/monitor (2次: monitor-slow-query.routes.ts, monitor-system.routes.ts)。根前缀的 routeConfig.auth 会按**前缀级**前置套认证 + CSRF（覆盖整段 /api/**，含兄弟文件的公开端点与不存在的子路径）⇒ 请核对各文件是否已按「只声明自己拥有的路径段」收窄（S3-187 commerce-fix、S3-195 门店 9 文件的做法）；本条**只告警不阻断**（详见 src/shared/route-prefix-rules.js）。[39m
+[2026-10-20 01:14:36.464 +0800] [32mINFO[39m (10068): [36m[auto-routes] 已自动注册 225 个路由[39m
+[90mstdout[2m | src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts[2m > [22m[2mS3-195 门店路由根前缀收窄[2m > [22m[2m整机挂载后的行为（与生产同款 auto-routes 挂载）[2m > [22m[2m兄弟文件的公开注册端点不被前缀级认证波及：无令牌 POST /api/store/members/register ≠ 401/403
+[22m[39m[S3-195] POST /api/store/members/register 无令牌 ⇒ [33m400[39m
+
+[90mstdout[2m | src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts[2m > [22m[2mS3-195 门店路由根前缀收窄[2m > [22m[2m整机挂载后的行为（与生产同款 auto-routes 挂载）[2m > [22m[2m兄弟文件的公开回调端点不被前缀级认证波及：无令牌 POST /api/store/hardware/callbacks/cloud-speaker/:tenantId ≠ 401/403
+[22m[39m[S3-195] POST /api/store/hardware/callbacks/cloud-speaker/t-195 无令牌 ⇒ [33m200[39m
+
+ [32m✓[39m src/__tests__/routes/store-prefix-narrowing-s3-195.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 58340[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-miniapp-s3-187.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 274[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-role.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 290[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-library-review-log.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 244[2mms[22m[39m
+[2026-10-20 01:14:38.872 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/msg-config[39m
+[2026-10-20 01:14:38.896 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=no_admin_role PUT /api/platform/msg-config[39m
+[2026-10-20 01:14:38.906 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_missing PUT /api/platform/msg-config[39m
+[2026-10-20 01:14:38.918 +0800] [31mERROR[39m (18360): [36m[platform-rbac] 权限校验失败（fail-closed，已拒绝）：adminId=42 code=sysconfig:manage err=ER_NO_SUCH_TABLE[39m
+[2026-10-20 01:14:38.918 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=check_error PUT /api/platform/msg-config[39m
+[2026-10-20 01:14:38.918 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝留痕写入失败（不影响 403）：adminId=42 code=sysconfig:manage err=Cannot read properties of undefined (reading 'insertId')[39m
+[2026-10-20 01:14:38.946 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny DELETE /api/platform/sms-templates/5[39m
+[2026-10-20 01:14:38.955 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny POST /api/platform/sms-templates[39m
+[2026-10-20 01:14:38.962 +0800] [33mWARN[39m (18360): [36m[platform-rbac] 拒绝 adminId=42 code=sysconfig:manage reason=matrix_deny PUT /api/platform/sms-templates/5[39m
+ [32m✓[39m src/__tests__/routes/platform-rbac-pilot.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 231[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/consumer-auth-marketing-s3-196.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 198[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-asset.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 191[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-announcement-templates.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 266[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-tenant.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 303[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 178[2mms[22m[39m
+[90mstdout[2m | src/__tests__/routes/issue-261-batch-a.test.ts[2m > [22m[2mS3-29④ 创建订阅：amount / endDate 生效与非法拒绝[2m > [22m[2m传 amount=1500 + endDate=2027-03-01 ⇒ 200，落库值即为所传（原始响应见 assertions）
+[22m[39m[RAW][S3-29④ create] -> {"code":"0","msg":"成功","data":{"subscription_no":"SUB20261006001"},"traceId":"3fb07dd0-525a-4a0d-8181-275a5210f405"}
+
+[90mstdout[2m | src/__tests__/routes/issue-261-batch-a.test.ts[2m > [22m[2mS3-29④ 创建订阅：amount / endDate 生效与非法拒绝[2m > [22m[2mamount=-5 ⇒ 400 + 中文文案（改前：静默丢弃并 200）
+[22m[39m[RAW][S3-29④ amount=-5] -> [33m400[39m {"success":false,"msg":"金额必须为不小于 0 的数字","code":"400","traceId":"test-trace"}
+
+[90mstdout[2m | src/__tests__/routes/issue-261-batch-a.test.ts[2m > [22m[2mS3-29④ 创建订阅：amount / endDate 生效与非法拒绝[2m > [22m[2mendDate 早于 startDate ⇒ 400 + 中文文案
+[22m[39m[RAW][S3-29④ endDate<=start] -> [33m400[39m {"code":"400","message":"结束日期必须晚于开始日期"}
+
+[90mstdout[2m | src/__tests__/routes/issue-261-batch-a.test.ts[2m > [22m[2mS3-34 module_access 写入收口（运行期）[2m > [22m[2m中文条目文案 ⇒ t_tenant_module_access.module_code 落英文码（ASCII 硬断言）
+[22m[39m[RAW][S3-34 module rows] -> [[2,"purchase","采购管理","2026-11-05 00:00:00"],[2,"sales","销售管理","2026-11-05 00:00:00"]]
+
+[90mstdout[2m | src/__tests__/routes/issue-261-batch-a.test.ts[2m > [22m[2mS3-26 订阅详情返回 originalAmount 与 logs[].detail[2m > [22m[2mGET /:id ⇒ data.originalAmount、data.logs[0].detail 均可见
+[22m[39m[RAW][S3-26 detail] -> {"id":1,"subscriptionNo":"SUB001","price":1500,"originalAmount":299,"status":"ACTIVE","logs":[{"id":1,"operationType":"CREATE","amount":1500,"operatorName":"admin","detail":"创建订阅: SUB001","remark":"创建订阅: SUB001","createdAt":"2026-10-06 10:00:00"}]}
+
+[90mstdout[2m | src/__tests__/routes/issue-261-batch-a.test.ts[2m > [22m[2mS3-22 平台系统配置三键：loginBanner / copyrightInfo / icpNumber[2m > [22m[2mPUT → GET 写入读回一致（ICP 备案号可用）
+[22m[39m[RAW][S3-22 PUT stored json] -> {"version":1,"loginBanner":"让批零生意，全链路智能运转","copyrightInfo":"© 2026 智享全链","icpNumber":"京ICP备12345678号"}
+
+[90mstdout[2m | src/__tests__/routes/issue-261-batch-a.test.ts[2m > [22m[2mS3-22 平台系统配置三键：loginBanner / copyrightInfo / icpNumber[2m > [22m[2mPUT → GET 写入读回一致（ICP 备案号可用）
+[22m[39m[RAW][S3-22 GET body] -> {"platformName":"","servicePhone":"","serviceEmail":"","loginBanner":"让批零生意，全链路智能运转","copyrightInfo":"© 2026 智享全链","icpNumber":"京ICP备12345678号","trialDays":7,"defaultPlanId":null,"taxRate":0,"maxUploadSizeMb":10,"openRegister":true,"registerNeedAudit":true,"registerRequireMobile":true,"registerRequireLicense":false,"registerAgreementUrl":"","maintenanceMode":false,"maintenanceTitle":"","maintenanceMessage":"","maintenanceWhitelist":"","announcements":[],"switches":null,"channels":null,"version":1,"_unconfigured":["platformName","servicePhone","serviceEmail","trialDays","defaultPlanId","taxRate","maxUploadSizeMb","openRegister","registerNeedAudit","registerRequireMobile","registerRequireLicense","registerAgreementUrl","maintenanceMode","maintenanceTitle","maintenanceMessage","maintenanceWhitelist","announcements","switches","channels"]}
+
+ [32m✓[39m src/__tests__/routes/issue-261-batch-a.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 247[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/instant-retail-store-s3-178.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 215[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/wechat-csrf-s3-187.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 287[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/retail-consumer-address.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 178[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-referral-ledger.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 207[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-notification.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 270[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-s3-110.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 597[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-review.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 712[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/wechat-bind-tenant-s3-196.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 298[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-c1-2-tenant.test.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 595[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/s3-209-sale-cancel-wiring.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 357[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-reconciliation.test.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 364[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-monitor-r97.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 282[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/purchase-plan.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 301[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-r97.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 247[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/seckill.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 245[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-channel-report.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 294[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/miniapp-order-sync.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 168[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-product-s3-142-perm.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 209[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/user-session.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 280[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-c1-2-plan.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 375[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-s3-172-tenant-user-reset.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 253[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/commerce-fix-store-prefix-s3-187.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 336[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/notification-csrf-s3-196.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 295[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/monitor-system.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 275[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/monitor-slow-query.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 290[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-tenant-quota.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 124[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform-monitor.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 84[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-dashboard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-limited-discount.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-control.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-price.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/credit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-system.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/data-permission.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/sys-user.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/receivable.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/notification.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/aftersale.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/instant-retail-admin-ops.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-sale-bill.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/print.routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/sys-config.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/miniapp.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/tenant.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/tenant-register.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-marketing-calculation.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/retail-announcements-admin.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/commission.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/dashboard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/operation-log.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/export.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-order.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/payment-new.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-credit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/trace.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-care.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/transfer.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-staff.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/receipt.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/member-register.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/saas-subscription.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-tag.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/retail-cart.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/unit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/price.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/subscription.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/reconciliation.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-miniapp.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/alert.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/inventory-loss-gain.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/system.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-visit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/transfer-order.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/stock-check.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-statement.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/error-log.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/share.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/category.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-marketing-group-buy.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/archive.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/monitor.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/instant-retail-admin-platform.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-shift.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/saas-tenant.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/feedback.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/purchase-contract.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-store.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-receivable.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/instant-retail-store.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/approval.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-inventory.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-material.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/purchase-return.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-marketing-points.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/department.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/supplier-statement.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/points.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/platform.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/workbench.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-payment.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/brand.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-report.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-segment.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/payment.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/purchase-in-stock.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/instant-retail-webhook.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/purchase-payment.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-marketing-coupon.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-dashboard.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/wechat.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/wechat.routes.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-product.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/unit-group.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/report-permissions.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/customer-merge.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-marketing-stack-rule.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/inventory-cost.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-customer.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/audit.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-points-mall.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-inventory.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/tag.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-marketing-full-reduction.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/store-value-card.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/order-timeout.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/cart.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-order.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/stock-warning.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-finance.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/expense.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/report.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/marketing-gift-rule.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/inventory-share.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/admin-marketing-flash-sale.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m192 passed[39m[22m[90m (192)[39m
+[2m      Tests [22m [1m[32m3916 passed[39m[22m[90m (3916)[39m
+[2m   Start at [22m 01:13:14
+[2m   Duration [22m 216.64s[2m (transform 77.72s, setup 4.40s, import 1045.13s, tests 177.51s, environment 72ms)[22m
+
+RBAC_EXIT=0

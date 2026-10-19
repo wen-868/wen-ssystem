@@ -1,0 +1,11 @@
+$ git show --stat 00a6b76e
+00a6b76e59fedca0f2b5adcd2b3799cb805e53b9 QODER-10（移动端收尾三件）：① dismissBanner 接到 ×（functions/more-functions 两页横幅各挂 .*-banner-close 直调 dismissBanner，样式随挂；装置四步用例 + 两页挂载点静态断言 +3 用例 ⇒ test 门基线 53→56）② island-aftersale note 过期改写（4 条已接 sale:return @aftersale.routes.ts:49/51/69/74 ⇒ 本门 gated；spec 判据2文件头、PENDING_WIRING 理由串、note 断言三处联动，S3-250|未接 全仓 0 命中）③ 台账 4 条基线陈旧具名清理（platform-applications 整键删 + tenant-register approve/reject 删、register/sms-code 保留；_counts 293→289/files 88→87/wired 419→423，和式 763 守恒，wiredPermOccurrences 390 不动）
+
+ app-mobile/scripts/gates-baseline.json             |  4 +--
+ app-mobile/src/config/permission-gates.ts          |  2 +-
+ .../src/pages-sub/admin/more/more-functions.vue    | 10 ++++++
+ app-mobile/src/pages/functions/functions.vue       | 10 ++++++
+ app-mobile/tests/entry-gate-consistency.spec.ts    | 22 ++++++------
+ app-mobile/tests/permission-view-state.spec.ts     | 42 ++++++++++++++++++++++
+ backend/scripts/rbac-wiring-baseline.json          | 13 +++----
+ 7 files changed, 81 insertions(+), 22 deletions(-)

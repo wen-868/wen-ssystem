@@ -1,0 +1,13 @@
+$ git diff --stat 844515d5..HEAD -- backend/（判据④"backend/ 零改动"实际读数=单一台账 JSON，见卡§五矛盾披露）
+ backend/scripts/rbac-wiring-baseline.json | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
+
+$ git diff --stat 844515d5..HEAD（全量）
+ app-mobile/scripts/gates-baseline.json             |  4 +--
+ app-mobile/src/config/permission-gates.ts          |  2 +-
+ .../src/pages-sub/admin/more/more-functions.vue    | 10 ++++++
+ app-mobile/src/pages/functions/functions.vue       | 10 ++++++
+ app-mobile/tests/entry-gate-consistency.spec.ts    | 22 ++++++------
+ app-mobile/tests/permission-view-state.spec.ts     | 42 ++++++++++++++++++++++
+ backend/scripts/rbac-wiring-baseline.json          | 13 +++----
+ 7 files changed, 81 insertions(+), 22 deletions(-)

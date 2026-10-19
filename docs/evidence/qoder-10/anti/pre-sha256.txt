@@ -1,0 +1,2 @@
+2a594038f4a457dab4e9e436287f85d19794e72aa53b0e6a08ca9c7b4f8e511c *app-mobile/src/pages/functions/functions.vue
+344f066499b10447ff3bb08a99d4b3e3dddd740da85ae5383d695973677d5f12 *app-mobile/src/pages-sub/admin/more/more-functions.vue
