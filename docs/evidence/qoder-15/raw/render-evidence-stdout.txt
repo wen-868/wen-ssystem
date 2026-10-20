@@ -1,0 +1,8 @@
+SANITY fmtAmount(null)= — | fmtAmount(0)= 0.00 | fmtAmount("12.34")= 12.34
+[Vue warn]: Unhandled error during execution of render function 
+  at <Anonymous>
+[Vue warn]: Unhandled error during execution of render function 
+  at <Anonymous>
+BASELINE_RENDER_THREW => TypeError: _ctx.item.costPrice.toFixed is not a function
+FIXED_RENDER_OK html length= 1842
+EXIT=0

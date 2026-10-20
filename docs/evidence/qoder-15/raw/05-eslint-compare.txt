@@ -1,0 +1,35 @@
+=== PRE ===
+files=190 error=20 warning=12880
+ERROR-BY-RULE {
+ "no-extra-semi": 9,
+ "no-unreachable": 6,
+ "no-empty": 3,
+ "vue/no-unused-vars": 1,
+ "no-irregular-whitespace": 1
+}
+WARNING-BY-RULE {
+ "no-console": 232,
+ "@typescript-eslint/no-unused-vars": 105,
+ "vue/html-indent": 12299,
+ "vue/html-closing-bracket-spacing": 196,
+ "vue/html-closing-bracket-newline": 1,
+ "vue/multiline-html-element-content-newline": 47
+}
+=== POST ===
+files=191 error=20 warning=12880
+ERROR-BY-RULE {
+ "no-extra-semi": 9,
+ "no-unreachable": 6,
+ "no-empty": 3,
+ "vue/no-unused-vars": 1,
+ "no-irregular-whitespace": 1
+}
+WARNING-BY-RULE {
+ "no-console": 232,
+ "@typescript-eslint/no-unused-vars": 105,
+ "vue/html-indent": 12299,
+ "vue/html-closing-bracket-spacing": 196,
+ "vue/html-closing-bracket-newline": 1,
+ "vue/multiline-html-element-content-newline": 47
+}
+RESULT: files 190->191(新增 format.ts 自身 0 问题), error 20->20, warning 12880->12880, per-rule regressions: 0 (由脚本逐规则 diff ERROR-BY-RULE/WARNING-BY-RULE 两 map 得出)

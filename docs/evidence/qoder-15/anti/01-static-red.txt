@@ -1,0 +1,78 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-15/app-mobile
+
+ ❯ tests/price-anomaly-static.spec.ts (7 tests | 3 failed) 485ms
+     × fmtAmount( 在页面中出现且仅出现 4 次（四处金额显示） 70ms
+     × 页面不再对原始 API 值 costPrice 直接调用 .toFixed() 18ms
+     ✓ 页面不再对原始 API 值 retailPrice 直接调用 .toFixed() 38ms
+     ✓ 页面不再对原始 API 值 storePrice 直接调用 .toFixed() 53ms
+     ✓ 页面不再对原始 API 值 miniappPrice 直接调用 .toFixed() 49ms
+     ✓ 页面引入了公共工具 @/utils/format 的 fmtAmount 96ms
+     × 全页不存在任何对 item.*Price 的裸 .toFixed() 调用 75ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue 金额显示静态门 > fmtAmount( 在页面中出现且仅出现 4 次（四处金额显示）
+AssertionError: expected 3 to be 4 // Object.is equality
+
+- Expected
++ Received
+
+- 4
++ 3
+
+ ❯ tests/price-anomaly-static.spec.ts:26:19
+     24|   it('fmtAmount( 在页面中出现且仅出现 4 次（四处金额显示）', () => {
+     25|     const count = (readPage().match(/fmtAmount\(/g) ?? []).length
+     26|     expect(count).toBe(4)
+       |                   ^
+     27|   })
+     28|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue 金额显示静态门 > 页面不再对原始 API 值 costPrice 直接调用 .toFixed()
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/price-anomaly-static.spec.ts:32:29
+     30|     const text = readPage()
+     31|     const bare = new RegExp(`item\\.${field}\\.toFixed\\s*\\(`)
+     32|     expect(bare.test(text)).toBe(false)
+       |                             ^
+     33|     expect(text).toContain(`fmtAmount(item.${field})`)
+     34|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue 金额显示静态门 > 全页不存在任何对 item.*Price 的裸 .toFixed() 调用
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/price-anomaly-static.spec.ts:42:61
+     40|   it('全页不存在任何对 item.*Price 的裸 .toFixed() 调用', () => {
+     41|     const text = readPage()
+     42|     expect(/item\.[A-Za-z]*Price\.toFixed\s*\(/.test(text)).toBe(false)
+       |                                                             ^
+     43|   })
+     44| })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 4 passed (7)
+   Start at  23:54:32
+   Duration  15.21s (transform 1.48s, setup 0ms, import 1.77s, tests 485ms, environment 2ms)
+
+RED_EXIT=1
