@@ -1,0 +1,20 @@
+QODER-15F1 · 标红判定修复前后对比（Vue SSR 真实管线读数）
+
+溯源：price-anomaly.vue sha256=a615a954a9170a6d7cc7bf0872a0d3c5cc6ce3086cfa720fdfd8b47833f5cf7c
+溯源：utils/format.ts sha256=4edb4fb43693434efe57ead3632a9a15ee61739941c1cf291a53a92e50aa7a05
+溯源：esbuild 转译后动态 import 的导出 = fmtAmount, isBelowCost, toNum
+溯源：模板片段取自真实页面 <view class="price-row"> 整块，长度 931 字节；
+      「修复前」= 同一块内 isBelowCost(item.retailPrice, item.costPrice) → item.retailPrice < item.costPrice（本卡反测的同一处注入）。
+
+行 / costPrice / retailPrice / 旧裸 `<` 是否标红 / 新 isBelowCost 是否标红 / 新单元格 class / 显示 / 数值真相
+行1 字符串低价（卡点名缺陷） | cost=12.00 retail=9.00 | 旧标红=no | 新标红=YES | class="price-danger price-value" | 显示=¥9.00 | 9 < 12 ?
+行2 字符串高价（反向） | cost=9.00 retail=12.00 | 旧标红=YES | 新标红=no | class="price-value" | 显示=¥12.00 | 12 < 9 ?
+行3 字典序陷阱 1000 vs 999 | cost=999.00 retail=1000.00 | 旧标红=YES | 新标红=no | class="price-value" | 显示=¥1000.00 | 1000 < 999 ?
+行4 零售价为 null | cost=12.34 retail=null | 旧标红=YES | 新标红=no | class="price-value" | 显示=¥— | null < 12.34 ?
+行5 number 真低价 0 < 8.5 | cost=8.5 retail=0 | 旧标红=YES | 新标红=YES | class="price-danger price-value" | 显示=¥0.00 | 0 < 8.5 ?
+行6 千分位串 1,234.56 < 2,000.00 | cost=2,000.00 retail=1,234.56 | 旧标红=YES | 新标红=YES | class="price-danger price-value" | 显示=¥1234.56 | 1234.56 < 2000 ?
+
+结论读数：
+  旧写法标红行数 = 5 / 6
+  新写法标红行数 = 3 / 6
+  差异行：行1（旧漏标红 → 新标红，数值 9<12 成立）、行2/行3/行4（旧误标红 → 新不标红）。

@@ -1,0 +1,79 @@
+QODER-15F1 收尾自检（协议 §7）｜采集时刻本卡 docs 四件套尚未提交，故 git status 会列出 docs/evidence/qoder-15f1/、docs/tasks/cards/R101-QODER-15F1-回传.md、docs/tasks/inbox/ACTIVE-回执-QODER-15F1.md 三项 —— 它们正是紧随其后的 docs 笔内容；提交后的终态空读数见 raw/13-terminal-verify.txt。
+
+$ git status --porcelain
+?? docs/evidence/qoder-15f1/
+?? "docs/tasks/cards/R101-QODER-15F1-\345\233\236\344\274\240.md"
+?? "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-15F1.md"
+
+$ git rev-parse --abbrev-ref HEAD ；$ git rev-parse --short HEAD
+fix/qoder-15f1-price-compare-restack
+477acdca
+
+$ git log --oneline origin/main..HEAD
+477acdca fix: 价格异常页低价标红判定经 toNum 归一化杜绝字符串字典序误判
+241f1f15 docs: QODER-15 收尾自检证据
+86fc7fce docs: QODER-15 价格异常页数值入口止血回传卡/回执/证据
+81ef5c07 fix: 价格异常页金额显示接入 fmtAmount 数值归一化工具止血白屏
+
+—— 本轮改动面（起点 HEAD 241f1f15..工作树，应只有卡点名文件）——
+$ git diff --name-only 241f1f15..477acdca
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+app-mobile/src/utils/format.ts
+app-mobile/tests/format.spec.ts
+app-mobile/tests/price-anomaly-static.spec.ts
+
+$ git diff --name-status 241f1f15..477acdca
+M	app-mobile/scripts/gates-baseline.json
+M	app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+M	app-mobile/src/utils/format.ts
+M	app-mobile/tests/format.spec.ts
+M	app-mobile/tests/price-anomaly-static.spec.ts
+
+—— 相对代码基线 dfeedbc0..HEAD（含上一轮 QODER-15 三笔，供核对总面）——
+$ git diff --name-only dfeedbc0..HEAD
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/modules/price.ts
+app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+app-mobile/src/utils/format.ts
+app-mobile/tests/format.spec.ts
+app-mobile/tests/price-anomaly-static.spec.ts
+docs/evidence/qoder-15/README.md
+docs/evidence/qoder-15/anti/00-pre-sha256.txt
+docs/evidence/qoder-15/anti/01-static-red.txt
+docs/evidence/qoder-15/anti/02-restore-sha256.txt
+docs/evidence/qoder-15/anti/03-static-green.txt
+docs/evidence/qoder-15/browser/render-demo-a11y-snapshot.txt
+docs/evidence/qoder-15/browser/render-demo-dom-readback.txt
+docs/evidence/qoder-15/browser/render-demo-fixed.html
+docs/evidence/qoder-15/raw/01-typecheck-pre.txt
+docs/evidence/qoder-15/raw/02-typecheck-post.txt
+docs/evidence/qoder-15/raw/03-eslint-pre.txt
+docs/evidence/qoder-15/raw/04-eslint-post.txt
+docs/evidence/qoder-15/raw/05-eslint-compare.txt
+docs/evidence/qoder-15/raw/06-test-baseline.txt
+docs/evidence/qoder-15/raw/07-test-post.txt
+docs/evidence/qoder-15/raw/08-build-h5.txt
+docs/evidence/qoder-15/raw/09-eslint-full-json.note.txt
+docs/evidence/qoder-15/raw/10-test-final-green.txt
+docs/evidence/qoder-15/raw/11-final-selfcheck.txt
+docs/evidence/qoder-15/raw/render-evidence-stdout.txt
+"docs/tasks/cards/R101-QODER-15-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-15.md"
+
+$ git diff --stat dfeedbc0..HEAD -- backend/  （本卡要求：0 改动）
+backend/ diff 行数 = 0
+
+$ git diff --name-only dfeedbc0..HEAD -- app-mobile/src
+app-mobile/src/api/modules/price.ts
+app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+app-mobile/src/utils/format.ts
+
+—— gates-baseline.json 改动段核对（只准 tests）——
+$ git diff 241f1f15..477acdca -- app-mobile/scripts/gates-baseline.json | 只列出 +/- 的键路径
++ note
++ testCount
++ testFiles
+- note
+- testCount
+- testFiles

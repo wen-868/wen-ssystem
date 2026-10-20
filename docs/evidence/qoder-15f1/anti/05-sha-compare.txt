@@ -1,0 +1,9 @@
+$ sha256sum 注入前:
+a615a954a9170a6d7cc7bf0872a0d3c5cc6ce3086cfa720fdfd8b47833f5cf7c *src/pages-sub/product/price-anomaly/price-anomaly.vue
+$ sha256sum 复原后:
+a615a954a9170a6d7cc7bf0872a0d3c5cc6ce3086cfa720fdfd8b47833f5cf7c *src/pages-sub/product/price-anomaly/price-anomaly.vue
+SHA256_MATCH=YES（逐字节一致）
+$ git diff --stat（复原后应为空）
+ app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+GIT_DIFF_EXIT=0
