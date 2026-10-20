@@ -593,7 +593,7 @@ export const ENTRY_GATES: EntryGate[] = [
       'POST /api/admin/aftersales/:id/complete'
     ],
     codes: ['sale:return'],
-    basis: '售后族已落地同族码：同文件同前缀的 confirm-receipt 挂 `sale:return`（`backend/src/routes/aftersale.routes.ts:64`）；不新造码',
+    basis: '售后族已落地同族码：同文件同前缀的 confirm-receipt 挂 `sale:return`（`backend/src/routes/aftersale.routes.ts:67`）；不新造码',
     status: 'gated',
     note: 'B3-1：门先行登记 —— 页面挂 `canEntry` 后不持码者即时隐藏；本入口仍是孤岛页（全仓无导航入口），门只约束"页面被直达时"的动作按钮显隐。后端 approve/reject/inspect/complete 4 条**已接** `sale:return`（`aftersale.routes.ts`:49/51/69/74，QODER-9 于 2026-10-19 接线）⇒ 本门为 **gated**；一致性用例走「后端已接且码 ∈ codes」分支直接通过（tests/entry-gate-consistency.spec.ts 的具名待接白名单退化为回落安全网）'
   },

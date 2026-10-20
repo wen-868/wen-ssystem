@@ -65,20 +65,20 @@ export interface PinningResult {
 // ====================== 证书指纹配置 ======================
 
 /**
- * 锁定证书列表（生产环境实际 SHA256 指纹，2026-08-11 采集）
+ * 锁定证书列表（生产环境实际 SHA256 指纹，2026-10-21 采集）
  *
  * 格式：sha256/<Base64(SubjectPublicKeyInfo 的 SHA256)>=
  *
- * 每个域名保留 2 个指纹：叶子证书 + 中间证书（TrustAsia DV TLS RSA CA 2024，用于轮换兜底）
+ * 每个域名保留 2 个指纹：叶子证书 + 中间证书（Let's Encrypt YE2/YE1，用于轮换兜底；按域名成对录入，禁止跨域抄用）
  */
 const PINNED_CERTS: Record<string, string[]> = {
     'api.onepan.cn': [
-        'sha256/SS6pnMVjm+Pm2R2cPKFxCIn4G6mgE7D4rnUtHdW0NC4=', // 叶子证书（2026-09-15 到期）
-        'sha256/X4AGLwdqSLcL//rYNWWFtfT1CnCt94N7jSHB6cabFBU=' // 中间证书 TrustAsia DV TLS RSA CA 2024
+        'sha256/Y/uy8CcEO5D3HHhBa8iBqWJu3uEQwuA1bwRCpuVfcHs=', // 叶子证书 CN=api.onepan.cn（Let's Encrypt，2026-11-11 到期）
+        'sha256/s/tdAOmUzd8syaTuqfgGvFcn6DzA5Cmb+Vby1ST+U3Y=' // 中间证书 Let's Encrypt YE2（2028-09-02 到期）
     ],
     'm.onepan.cn': [
-        'sha256/JKxBAU4tJIzGZXm3bavQMEwJPILBOnmx/X9D5i9uJO4=', // 叶子证书（2026-09-15 到期）
-        'sha256/X4AGLwdqSLcL//rYNWWFtfT1CnCt94N7jSHB6cabFBU=' // 中间证书 TrustAsia DV TLS RSA CA 2024
+        'sha256/rH0oqsRgfu1hGtbs10FXorbhao99FC99nqVBGmWA1M4=', // 叶子证书 CN=admin.onepan.cn·SAN 含 m.onepan.cn（Let's Encrypt，2026-12-22 到期）
+        'sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=' // 中间证书 Let's Encrypt YE1（2028-09-02 到期）
     ]
 }
 

@@ -70,6 +70,12 @@
  *   node backend/scripts/guard-rbac-wiring.mjs --strict   严格模式：存在**未登记**缺口 ⇒ exit 1
  *                                                       （已登记缺口按 `rbac-wiring-baseline.json` 的 `gaps` 豁免；
  *                                                        消费者端保护形态须在 `consumerEnd` 里逐条登记，同样不报红）
+ *   node backend/scripts/guard-rbac-wiring.mjs --no-stale 陈旧台账守卫开关（QODER-13）：**仅当传入时**，
+ *                                                       台账中「已登记但当前已无缺口 / 已非消费者端形态」的
+ *                                                       陈旧登记（`gaps` + `consumerEnd` 两类合计）> 0 ⇒ exit 1
+ *                                                       并逐条点名；**不传 ⇒ 行为与加开关前逐字节一致**
+ *                                                       （陈旧仍只打印「仅提示，不判红」）。CI 暂不启用本开关
+ *                                                       （等全仓陈旧清零那批再接）。
  *   node backend/scripts/guard-rbac-wiring.mjs --holders <权限码>
  *                                                       打印「该权限码在租户 RBAC 里授给了哪些角色」
  *                                                       （仓库角色种子 × 真实 `matchPermission` 语义复算；
@@ -602,6 +608,8 @@ if (!existsSync(ROUTES_DIR)) {
 const args = process.argv.slice(2);
 const JSON_MODE = args.includes("--json");
 const STRICT = args.includes("--strict");
+/** QODER-13：可选开关——仅当传入时「已登记但当前无缺口 / 非消费者端形态」的陈旧登记 > 0 ⇒ exit 1 并逐条点名；不传 ⇒ 现行为不变（陈旧只提示不判红） */
+const NO_STALE = args.includes("--no-stale");
 const holdersIdx = args.indexOf("--holders");
 
 if (holdersIdx > -1) {
@@ -786,6 +794,19 @@ if (STRICT && (unregistered.length > 0 || unregisteredConsumer.length > 0)) {
       ` ＋ ${unregisteredConsumer.length} 处**未登记**的消费者端保护形态 ⇒ exit 1` +
       `（前者确为既有欠账者登记进 \`gaps\`；后者登记进 \`consumerEnd\`；` +
       `两类都须在 docs/tasks/R101-RBAC接线缺口清单.md 写明判定）`
+  );
+  process.exit(1);
+}
+
+/** QODER-13：--no-stale —— 陈旧登记判红（不传 ⇒ 不进入本分支，行为与加开关前一致） */
+if (NO_STALE && staleRegistrations.length + staleConsumerRegistrations.length > 0) {
+  for (const k of staleRegistrations)
+    console.error(`❌ [--no-stale] 陈旧台账登记（gaps：已登记但当前无缺口）：${k}`);
+  for (const k of staleConsumerRegistrations)
+    console.error(`❌ [--no-stale] 陈旧台账登记（consumerEnd：已登记但当前非消费者端形态）：${k}`);
+  console.error(
+    `\n❌ [--no-stale] 存在 ${staleRegistrations.length} 条 gaps 陈旧登记 ＋ ` +
+      `${staleConsumerRegistrations.length} 条 consumerEnd 陈旧登记 ⇒ exit 1（清理 rbac-wiring-baseline.json 后复跑）`
   );
   process.exit(1);
 }
