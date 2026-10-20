@@ -60,7 +60,7 @@
             </view>
             <view class="price-cell">
               <text class="price-label">零售价</text>
-              <text class="price-value" :class="{ 'price-danger': item.retailPrice < item.costPrice }">
+              <text class="price-value" :class="{ 'price-danger': isBelowCost(item.retailPrice, item.costPrice) }">
                 ¥{{ fmtAmount(item.retailPrice) }}
               </text>
             </view>
@@ -99,6 +99,8 @@ function goBack(){ uni.navigateBack() }
 import { ref, onMounted } from 'vue'
 import { priceApi } from '@/api/modules/price'
 import { fmtAmount } from '@/utils/format'
+// 低价标红判定必须走同一归一化口径（QODER-15F1）：原始 API 值直接 `<` 会按字符串字典序误判
+import { isBelowCost } from '@/utils/format'
 
 const typeTabs = [
   { label: '全部', value: '' },

@@ -5,9 +5,11 @@
  * 模板若直接对原始 API 值调用 `.toFixed()`，字符串/null 会抛 TypeError 导致页面白屏。
  * 本工具是所有金额显示的唯一安全入口：先归一化为 number，再格式化；
  * 无法识别的值统一返回占位符 `—`，有效 0 输出 `0.00`（0 是合法价格，不得当无效吞掉）。
+ * 除显示外，**金额之间的比较判定**（`isBelowCost`，QODER-15F1 低价标红）同样必须经本文件的 `toNum`
+ * 归一化——原始下发值直接写 `<` 会按字符串字典序误判。
  *
  * 与 `utils/price.ts` 的分工：price.ts 负责**价格可见性/权限判断**（客户类型 → 可见字段），
- * 本文件只负责**原始数值的归一化与显示格式化**，两者互不依赖、互不越界。
+ * 本文件只负责**原始数值的归一化、显示格式化与数值间比较判定**，两者互不依赖、互不越界。
  */
 
 /** 金额入参：兼容后端 DECIMAL 下发的全部形态（number / 数字字符串 / null / undefined） */
@@ -48,4 +50,30 @@ export function toNum(value: NumericInput): number | null {
 export function fmtAmount(value: NumericInput): string {
   const n = toNum(value)
   return n === null ? '—' : n.toFixed(2)
+}
+
+/**
+ * 「低于成本」判定：零售价是否严格低于成本价（QODER-15F1 · 价格异常页标红）。
+ *
+ * 为什么模板里不能写 `item.retailPrice < item.costPrice`：
+ * 两侧是后端 DECIMAL 下发值（`api/modules/price.ts` 的 `listAnomalies` 出参声明为
+ * `number | string | null`），一旦以**字符串**下发，JS 的 `<` 走字典序而非数值序：
+ * - `'9.00' < '12.00'` 得 **false**（逐字符比首字 `'9' > '1'`），而数值上 9 < 12 应为 **true** ⇒ 漏标红；
+ * - `'1000' < '999'` 得 **true**（`'1' < '9'`），而数值上 1000 > 999 ⇒ 误标红。
+ * null/undefined 参与 `<` 走隐式转换（`null < 1` 为 true），NaN 参与则恒 false，语义都不可控。
+ *
+ * 口径（与 `toNum` 一致，两步都不做隐式转换）：
+ * 1. 两侧先经 `toNum` 归一化——`null` / `undefined` / 空串 / 纯空白 / `'abc'` / `NaN` / `±Infinity` /
+ *    boolean / 对象 / 数组等**任一无效值 ⇒ 直接返回 false**（宁漏标不误标红）；
+ * 2. 有效值按**数值**严格小于比较，相等（含 `0` 与 `-0`）不算低于成本；
+ * 3. 千分位串 `'1,234.56'`、前后空白串 `' 12.34 '` 均为有效输入。
+ *
+ * 返回值是布尔，专供模板 `:class` 使用；显示仍走 `fmtAmount`，两者共用同一 `toNum` 归一化口径，
+ * 不会出现「显示 9.00 / 12.00 但不标红」这类读数与判定打架的情况。
+ */
+export function isBelowCost(retail: NumericInput, cost: NumericInput): boolean {
+  const r = toNum(retail)
+  const c = toNum(cost)
+  if (r === null || c === null) return false
+  return r < c
 }

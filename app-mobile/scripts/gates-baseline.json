@@ -54,8 +54,8 @@
     "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
   },
   "tests": {
-    "testFiles": 5,
-    "testCount": 56,
-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。"
+    "testFiles": 7,
+    "testCount": 158,
+    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。QODER-15 新增 format.spec.ts（37）+ price-anomaly-static.spec.ts（7）⇒ 实测 7/100（卡目标 7/100 命中，本轮基线未随动作出、留待本卡收口）。QODER-15F1（2026-10-21 实测即基线）isBelowCost 低价判定归一化：format.spec +41（字符串字典序 8 / number 语义 8 / 无效值 22 / 反例对照与同口径 3）、price-anomaly-static +17（标红静态门 4 / 表达式行为门 13）⇒ 5/56 → 7/158；文件数 7 与 QODER-15 实测一致（本卡未新增 spec 文件），用例数高于卡内目标 100 系实测如实登记，未删任何用例对齐目标。"
   }
 }

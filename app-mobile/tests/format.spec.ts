@@ -1,10 +1,10 @@
 /**
  * QODER-15 · utils/format.ts 单元测试（表驱动）
+ * QODER-15F1 · 追加 isBelowCost 低价判定用例（字符串字典序误判复现 + 无效值口径）
  *
- * 运行方式（本工作树基线无门禁设施，harness 借入自 9fd90257，见回传卡 §五）：
+ * 运行方式（基线 dfeedbc0 起 app-mobile 常驻门禁，直接走包装器，不要再手拼 vitest）：
  *   cd <工作树>/app-mobile
- *   git show 9fd90257:app-mobile/vitest.config.ts > vitest.config.ts
- *   node ../node_modules/vitest/vitest.mjs run
+ *   npm run test
  *
  * 覆盖任务书点名的 7 类输入：12.34 / '12.34' / 0 / null / undefined / '' / NaN，
  * 另加边界：'-0'、'abc'、1e-7、' 12.34 '、千分位串、±Infinity、boolean、数组、负价。
@@ -12,7 +12,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { toNum, fmtAmount } from '@/utils/format'
+import { toNum, fmtAmount, isBelowCost } from '@/utils/format'
 
 describe('toNum — 归一化为有限 number | null', () => {
   it.each([
@@ -121,3 +121,87 @@ describe('白屏回归实证 — 旧写法崩溃 / 新写法安全', () => {
     }
   })
 })
+
+/* ------------------------------------------------------------------ *
+ * QODER-15F1 · isBelowCost —— 低价标红判定归一化
+ * ------------------------------------------------------------------ */
+
+describe('isBelowCost — 字符串价格必须按数值比（QODER-15F1 卡点名缺陷复现）', () => {
+  it.each([
+    // ★ 卡点名的那一条：JS 字符串比较 '9.00' < '12.00' 为 false（首字符 '9' > '1'），数值上 9 < 12 应为 true
+    ['字符串低价 "9.00" vs "12.00"（字典序会漏判）', '9.00', '12.00', true],
+    ['字符串高价反向 "12.00" vs "9.00"', '12.00', '9.00', false],
+    ['字典序另一向 "1000.00" vs "999.00"（字典序会误标红）', '1000.00', '999.00', false],
+    ['同值字符串 "9.00" vs "9"（相等不算低于成本）', '9.00', '9', false],
+    ['前后空白串 " 9.00 " vs " 12.00 "', ' 9.00 ', ' 12.00 ', true],
+    ['千分位串 "1,234.56" vs "2,000.00"', '1,234.56', '2,000.00', true],
+    ['千分位串反向 "2,000.00" vs "1,234.56"', '2,000.00', '1,234.56', false],
+    ['字符串 vs number 混合 "9.00" vs 12', '9.00', 12, true],
+  ] as const)('%s', (_label, retail, cost, expected) => {
+    expect(isBelowCost(retail, cost)).toBe(expected)
+  })
+})
+
+describe('isBelowCost — number 侧数值语义与边界', () => {
+  it.each([
+    ['9 < 12 为 true', 9, 12, true],
+    ['12 < 9 为 false', 12, 9, false],
+    ['12 < 12 相等为 false', 12, 12, false],
+    ['0 < 1 为 true（有效 0 不当无效吞掉）', 0, 1, true],
+    ['0 < 0 相等为 false', 0, 0, false],
+    ['-0 与 0 视为相等，为 false', -0, 0, false],
+    ['负价 -1 < 0 为 true', -1, 0, true],
+    ['极小差值 11.999 < 12 为 true', 11.999, 12, true],
+  ] as const)('%s', (_label, retail, cost, expected) => {
+    expect(isBelowCost(retail, cost)).toBe(expected)
+  })
+})
+
+describe('isBelowCost — 任一侧无效值一律 false（不得依赖隐式转换）', () => {
+  const invalid: Array<[string, unknown]> = [
+    ['null', null],
+    ['undefined', undefined],
+    ['空字符串', ''],
+    ['纯空白字符串', '   '],
+    ['NaN', NaN],
+    ['非数字字符串 "abc"', 'abc'],
+    ['+Infinity', Infinity],
+    ['-Infinity', -Infinity],
+    ['boolean true（Number(true)===1 会造出假判定）', true],
+    ['空对象 {}', {}],
+    ['数组 [9]', [9]],
+  ]
+
+  it.each(invalid)('retail = %s ⇒ false（cost 给有效值 12）', (_label, retail) => {
+    expect(isBelowCost(retail as never, 12)).toBe(false)
+  })
+
+  it.each(invalid)('cost = %s ⇒ false（retail 给有效值 9）', (_label, cost) => {
+    expect(isBelowCost(9, cost as never)).toBe(false)
+  })
+
+  it('两侧都无效 ⇒ false', () => {
+    expect(isBelowCost(null, undefined)).toBe(false)
+    expect(isBelowCost('', NaN)).toBe(false)
+  })
+
+  it('无效值不参与比较的反例对照：裸 `<` 会因隐式转换造出错判', () => {
+    // 记录 JS 原生行为（模板里直接写 `<` 的真实结果），说明为什么必须走 isBelowCost：
+    // null < 12 → true（null 被隐式转成 0，凭空标红）；'9.00' < '12.00' → false（字典序漏判）
+    const rawLt = (a: any, b: any) => a < b
+    expect(rawLt(null, 12)).toBe(true)
+    expect(rawLt('9.00', '12.00')).toBe(false)
+    expect(isBelowCost(null, 12)).toBe(false)
+    expect(isBelowCost('9.00', '12.00')).toBe(true)
+  })
+
+  it('判定口径与显示口径同源：fmtAmount 能出数值的组合，isBelowCost 必按该数值比较', () => {
+    // 页面同时用 fmtAmount 显示与 isBelowCost 标红，两者共用 toNum，不允许"显示 9.00/12.00 却不标红"
+    expect(fmtAmount('9.00')).toBe('9.00')
+    expect(fmtAmount('12.00')).toBe('12.00')
+    expect(isBelowCost('9.00', '12.00')).toBe(true)
+    expect(toNum('9.00')).toBe(9)
+    expect(toNum('12.00')).toBe(12)
+  })
+})
+
