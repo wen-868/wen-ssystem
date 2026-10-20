@@ -51,7 +51,7 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
   /* 安全区统一变量：H5/浏览器用 env；App webview 中 env 恒为 0，
      导致页头顶进系统信号栏，App 端改用 uni 内置 --status-bar-height */
-  --safe-top: var(--safe-top);
+  --safe-top: env(safe-area-inset-top);
 }
 
 /* #ifdef APP-PLUS */
