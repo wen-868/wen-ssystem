@@ -1,0 +1,266 @@
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-17/app-mobile
+
+ ✓ tests/api-base-env.spec.ts (3 tests) 717ms
+     ✓ 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用  695ms
+ ❯ tests/safe-top-var.spec.ts (4 tests | 2 failed) 1024ms
+     × ① 不得出现自引用 `--safe-top: var(--safe-top)` 453ms
+     × ② 默认分支必须含 `--safe-top: env(safe-area-inset-top)` 140ms
+     ✓ ③ `#ifdef APP-PLUS` 覆盖为 `var(--status-bar-height)` 仍在 92ms
+     ✓ ④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover` 2ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 43ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 2868ms
+     ✓ 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示  852ms
+     ✓ 无登录态 ⇒ 不播种不取数（visibility 保持 null，功能页本身不可达）  337ms
+ ✓ tests/storage-crypto.spec.ts (4 tests) 3889ms
+     ✓ 派生密钥为 32 字节且同输入可复现  2089ms
+     ✓ tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）  1547ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 3163ms
+     ✓ gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名  638ms
+     ✓ 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单  562ms
+     ✓ 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行）  1079ms
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 58 passed (60)
+   Start at  02:22:22
+   Duration  43.18s (transform 50.03s, setup 0ms, import 76.76s, tests 11.70s, environment 158ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/safe-top-var.spec.ts > QODER-17 App.vue --safe-top 根定义 > ① 不得出现自引用 `--safe-top: var(--safe-top)`
+AssertionError: expected '<script setup lang="ts">\r\nimport { …' not to match /--safe-top:\s*var\(\s*--safe-top\s*\)/
+
+- Expected:
+/--safe-top:\s*var\(\s*--safe-top\s*\)/
+
++ Received:
+"<script setup lang=\"ts\">
+import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
+import { checkAppUpdate } from '@/utils/update'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+
+onLaunch(() => {
+  // 启动检查更新（有新版本及时提示）
+  checkAppUpdate()
+  // #ifdef APP-PLUS
+  // App 端不支持 tabBar 的 custom:true（仅微信小程序支持），原生 tabBar 会与自绘
+  // custom-tab-bar 叠成双栏；启动即隐藏原生栏（页面组件挂载后还会兜底隐藏一次）
+  try { uni.hideTabBar({ animation: false }) } catch { /* tabBar 未就绪时忽略 */ }
+  // #endif
+  // 检查登录状态
+  const token = uni.getStorageSync('merchant_token')
+  if (!token) {
+    // 未登录，跳转登录页
+    uni.reLaunch({ url: '/pages/login/login' })
+    return
+  }
+  // S3-161：本地已有 token ⇒ 恢复用户态（拉 /me 重建 user/initialized）。
+  // 缺口补齐：stores/user.ts 的 init() 此前定义了但全仓无人调用，
+  // 导致「有 token 却停在登录页/首页拿不到用户信息」。
+  // 真 401（token 确实失效）时 request.ts 会清 token 并 reLaunch 登录页，
+  // 此处不重复处理、也不改 request.ts 的 401 逻辑（派单红线）。
+  userStore.init().catch((err: any) => {
+    console.error('[app] 恢复登录态失败:', err?.message || err)
+  })
+})
+
+onShow(() => {
+})
+
+onHide(() => {
+})
+</script>
+
+<style lang=\"scss\">
+/* 全局样式 */
+/* R96-01: 此处原为 @import '@/uni.scss'; 已删除。
+   原因：@dcloudio/vite-plugin-uni 会把 src/uni.scss 全文作为 additionalData
+   前置注入到每一个 scss 文件（见 vite-plugin-uni/dist/config/css.js 的 resolveAdditionalData），
+   uni.scss 的变量与样式类本就全局可用，该 @import 纯属冗余；
+   且它会导致 uni.scss 的 30 个 CSS 类在每个组件里被重复输出一遍，
+   同时触发 Dart Sass 的 @import 弃用警告（Dart Sass 3.0.0 将移除该规则）。 */
+
+page {
+  background-color: $zx-bg-f5;
+  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Microsoft YaHei\", sans-serif;
+  /* 安全区统一变量：H5/浏览器用 env；App webview 中 env 恒为 0，
+     导致页头顶进系统信号栏，App 端改用 uni 内置 --status-bar-height */
+  --safe-top: var(--safe-top);
+}
+
+/* #ifdef APP-PLUS */
+page {
+  --safe-top: var(--status-bar-height);
+}
+/* #endif */
+
+/* 根治：uni-app H5 大量容器用 width:100% + 水平 padding 但未设 box-sizing，
+   默认 content-box 导致 宽度+padding 超出视口、右边距/右缘被裁。全局补 border-box，
+   让所有 padding 计入 width（绝大多数页都预期 border-box 语义）。 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 根治：uni-app H5 把 <form> 编译成 <uni-form>（未知自定义元素），
+   浏览器默认 display:inline，导致其内部块级子元素突破容器、左右 padding/边距失效、
+   内容满宽贴边并与上方元素重叠。补 display:block 恢复原生 <form> 的盒模型语义。 */
+uni-form {
+  display: block;
+}
+
+/* 全局隐藏 H5 滚动条（原稿 reset：::-webkit-scrollbar display:none） */
+::-webkit-scrollbar,
+uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* 全局根治：长值文本允许换行+收缩，避免右侧溢出裁剪（uni-app <text> 为行内 uni-text，
+   需 min-width:0 + word-break 才能在 flex row 内收缩，否则长值贴右溢出） */
+.info-value,
+.filter-value,
+.picker-text,
+.mf-li-desc,
+.li-desc,
+.info-value text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* 隐藏 H5 端原生 tabBar（custom:true 时仍渲染占位，避免与自定义悬浮胶囊形成双栏） */
+uni-tabbar {
+  display: none !important;
+}
+
+/* 线框图标（iconfont 字符全面替换后统一尺寸：跟随所在类名字号） */
+image.ic {
+  width: 1em;
+  height: 1em;
+}
+
+/* 无障碍：用户开启「减少动态效果」时全局降级动画与过渡（spec06/12） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+"
+
+ ❯ tests/safe-top-var.spec.ts:40:21
+     38|
+     39|   it('① 不得出现自引用 `--safe-top: var(--safe-top)`', () => {
+     40|     expect(src).not.toMatch(/--safe-top:\s*var\(\s*--safe-top\s*\)/)
+       |                     ^
+     41|   })
+     42|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/safe-top-var.spec.ts > QODER-17 App.vue --safe-top 根定义 > ② 默认分支必须含 `--safe-top: env(safe-area-inset-top)`
+AssertionError: expected '<script setup lang="ts">\r\nimport { …' to match /--safe-top:\s*env\(\s*safe-area-inset…/
+
+- Expected:
+/--safe-top:\s*env\(\s*safe-area-inset-top\s*\)/
+
++ Received:
+"<script setup lang=\"ts\">
+import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
+import { checkAppUpdate } from '@/utils/update'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
+
+onLaunch(() => {
+  // 启动检查更新（有新版本及时提示）
+  checkAppUpdate()
+  // #ifdef APP-PLUS
+  // App 端不支持 tabBar 的 custom:true（仅微信小程序支持），原生 tabBar 会与自绘
+  // custom-tab-bar 叠成双栏；启动即隐藏原生栏（页面组件挂载后还会兜底隐藏一次）
+  try { uni.hideTabBar({ animation: false }) } catch { /* tabBar 未就绪时忽略 */ }
+  // #endif
+  // 检查登录状态
+  const token = uni.getStorageSync('merchant_token')
+  if (!token) {
+    // 未登录，跳转登录页
+    uni.reLaunch({ url: '/pages/login/login' })
+    return
+  }
+  // S3-161：本地已有 token ⇒ 恢复用户态（拉 /me 重建 user/initialized）。
+  // 缺口补齐：stores/user.ts 的 init() 此前定义了但全仓无人调用，
+  // 导致「有 token 却停在登录页/首页拿不到用户信息」。
+  // 真 401（token 确实失效）时 request.ts 会清 token 并 reLaunch 登录页，
+  // 此处不重复处理、也不改 request.ts 的 401 逻辑（派单红线）。
+  userStore.init().catch((err: any) => {
+    console.error('[app] 恢复登录态失败:', err?.message || err)
+  })
+})
+
+onShow(() => {
+})
+
+onHide(() => {
+})
+</script>
+
+<style lang=\"scss\">
+/* 全局样式 */
+/* R96-01: 此处原为 @import '@/uni.scss'; 已删除。
+   原因：@dcloudio/vite-plugin-uni 会把 src/uni.scss 全文作为 additionalData
+   前置注入到每一个 scss 文件（见 vite-plugin-uni/dist/config/css.js 的 resolveAdditionalData），
+   uni.scss 的变量与样式类本就全局可用，该 @import 纯属冗余；
+   且它会导致 uni.scss 的 30 个 CSS 类在每个组件里被重复输出一遍，
+   同时触发 Dart Sass 的 @import 弃用警告（Dart Sass 3.0.0 将移除该规则）。 */
+
+page {
+  background-color: $zx-bg-f5;
+  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Microsoft YaHei\", sans-serif;
+  /* 安全区统一变量：H5/浏览器用 env；App webview 中 env 恒为 0，
+     导致页头顶进系统信号栏，App 端改用 uni 内置 --status-bar-height */
+  --safe-top: var(--safe-top);
+}
+
+"
+
+ ❯ tests/safe-top-var.spec.ts:44:27
+     42|
+     43|   it('② 默认分支必须含 `--safe-top: env(safe-area-inset-top)`', () => {
+     44|     expect(defaultBranch).toMatch(/--safe-top:\s*env\(\s*safe-area-ins…
+       |                           ^
+     45|   })
+     46|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-17\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-17\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+TEST_EXIT=1

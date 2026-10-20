@@ -1,0 +1,81 @@
+# 反测执行记录（两条反测在同一串行批次，逐步骤原子命令；node 参数须用 Windows 正斜杠路径）
+# 脚本原件（工作树外 scratch，不入库）：_scratch/qoder-17f1/anti1-viewport-fit.sh、anti2-selfref.sh、scratch-strip-viewport-fit.mjs、scratch-inject-selfref.mjs
+=== [1] 注入前 sha256sum（并 cp 备份到工作树外 scratch）===
+dd221de30183607c022cb7bc3bdfffa531f95ba380701ec18db941c6f931f4ae *index.html
+# cp index.html -> _scratch/qoder-17f1/index.html.bak 完成
+
+=== [2] 字节精确注入（scratch .mjs，latin1，命中数 !=1 即 exit 9）===
+OK 已注入：删除唯一一处 ", viewport-fit=cover"（命中 1 处，字节精确）
+inject EXIT=0
+$ grep -n viewport index.html   （注入后现态：viewport-fit 已消失）
+5:    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+=== [3] 常驻 npm run test（预期 EXIT=1，点名断言④）===
+TEST_EXIT=1
+     × ④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover` 187ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步4] 再点 × ⇒ bannerText=""
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 59 passed (60)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/safe-top-var.spec.ts > QODER-17F1 index.html viewport（安全区根链另一半） > ④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover`
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+
+=== [4] cp 复原 + sha256 逐字节比对（禁 sed -i，禁 Edit 删功能行）===
+dd221de30183607c022cb7bc3bdfffa531f95ba380701ec18db941c6f931f4ae *index.html
+SHA256-MATCH-OK 复原后与注入前逐字节一致（dd221de30183607c022cb7bc3bdfffa531f95ba380701ec18db941c6f931f4ae）
+$ git -C <工作树> status --porcelain -- app-mobile/index.html   （复原后应为空）
+GITSTATUS_EXIT=0
+
+=== [5] 复原后复跑 npm run test（预期 EXIT=0 全绿 6/60）===
+TEST_EXIT=1
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 59 passed (60)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ANTI1_RC=0
+
+=== [1] 注入前 sha256sum（并 cp 备份到工作树外 scratch）===
+7b8d33bd68232782339f9194984d2ebb2fd4cac892ecdff5403434c54a11b013 *src/App.vue
+# cp src/App.vue -> _scratch/qoder-17f1/App.vue.bak 完成
+
+=== [2] 字节精确注入（scratch .mjs，latin1，命中数 !=1 即 exit 9）===
+OK 已注入：--safe-top: env(safe-area-inset-top); ⇒ --safe-top: var(--safe-top);（命中 1 处，字节精确）
+inject EXIT=0
+$ grep -n -- "--safe-top:" src/App.vue   （注入后 :54 回到自引用）
+54:  --safe-top: var(--safe-top);
+59:  --safe-top: var(--status-bar-height);
+
+=== [3] 常驻 npm run test（预期 EXIT=1，点名断言①，②同因红）===
+TEST_EXIT=1
+     × ① 不得出现自引用 `--safe-top: var(--safe-top)` 453ms
+     × ② 默认分支必须含 `--safe-top: env(safe-area-inset-top)` 140ms
+     ✓ ④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover` 2ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步4] 再点 × ⇒ bannerText=""
+     ✓ 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示  852ms
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 58 passed (60)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/safe-top-var.spec.ts > QODER-17 App.vue --safe-top 根定义 > ① 不得出现自引用 `--safe-top: var(--safe-top)`
+     39|   it('① 不得出现自引用 `--safe-top: var(--safe-top)`', () => {
+ FAIL  tests/safe-top-var.spec.ts > QODER-17 App.vue --safe-top 根定义 > ② 默认分支必须含 `--safe-top: env(safe-area-inset-top)`
+     43|   it('② 默认分支必须含 `--safe-top: env(safe-area-inset-top)`', () => {
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+
+=== [4] cp 复原 + sha256 逐字节比对（禁 sed -i）===
+7b8d33bd68232782339f9194984d2ebb2fd4cac892ecdff5403434c54a11b013 *src/App.vue
+SHA256-MATCH-OK 复原后与注入前逐字节一致（7b8d33bd68232782339f9194984d2ebb2fd4cac892ecdff5403434c54a11b013）
+$ git -C <工作树> status --porcelain -- app-mobile/src   （复原后应为空 = src 零改动）
+GITSTATUS_EXIT=0
+
+=== [5] 复原后复跑 npm run test（预期 EXIT=0 全绿 6/60）===
+TEST_EXIT=0
+ Test Files  6 passed (6)
+      Tests  60 passed (60)
+—— test 门（用例数冻结）：当前 6 文件 / 60 用例，基线 6 / 60 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+ANTI2_RC=0

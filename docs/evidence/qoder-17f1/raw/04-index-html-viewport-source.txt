@@ -1,0 +1,28 @@
+$ nl -ba app-mobile/index.html   （全文 15 行，改后现态）
+     1	<!DOCTYPE html>
+     2	<html lang="zh-CN">
+     3	  <head>
+     4	    <meta charset="UTF-8" />
+     5	    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+     6	    <meta name="apple-mobile-web-app-capable" content="yes" />
+     7	    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+     8	    <title>智享全链</title>
+     9	    <link rel="icon" href="/static/logo.png" />
+    10	  </head>
+    11	  <body>
+    12	    <div id="app"></div>
+    13	    <script type="module" src="/src/main.js"></script>
+    14	  </body>
+    15	</html>
+
+$ grep -n viewport app-mobile/index.html
+5:    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+EXIT=0
+
+$ grep -c viewport-fit=cover app-mobile/index.html
+1
+
+$ sha256sum app-mobile/index.html
+dd221de30183607c022cb7bc3bdfffa531f95ba380701ec18db941c6f931f4ae *app-mobile/index.html
+
+说明：本单只改第 5 行 content（追加 , viewport-fit=cover），其余 charset / 两个 apple-mobile-web-app meta / title / link icon / #app / /src/main.js 全部原样（git diff --stat = 该文件 1 行增 1 行删）

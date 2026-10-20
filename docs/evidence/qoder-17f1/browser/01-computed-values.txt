@@ -1,0 +1,34 @@
+$ mcp__browser-use__navigate_page  http://127.0.0.1:5181/#/   （dist/build/h5 产物，本地静态服务）
+$ mcp__browser-use__evaluate_script  （waitForStableDom=true）
+
+函数：读 viewport meta（数量+content）与 uni-page-body / documentElement / 首个子节点 / .login-page 的 --safe-top computed 值
+      + .login-page padding-top + CSS.supports(env) + 视口信息
+
+返回（原样，未加工）：
+{
+  "docEl__safeTop": "",
+  "dpr": 1.75,
+  "envSupportCheck": true,
+  "firstChildTag": "UNI-VIEW",
+  "firstChild__safeTop": "0px",
+  "innerHeight": 559,
+  "innerWidth": 532,
+  "loginFound": true,
+  "loginPage__safeTop": "0px",
+  "loginPage_paddingTop": "0px",
+  "pageBodyTag": "UNI-PAGE-BODY",
+  "pageBody__safeTop": "0px",
+  "pageBody__safeTop_type": "string",
+  "readyState": "complete",
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) QoderCN/0.4.8 Chrome/150.0.7871.114 Electron/43.1.1 Safari/537.36",
+  "url": "http://127.0.0.1:5181/#/",
+  "viewportMetaContent": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover",
+  "viewportMetaCount": 1
+}
+
+读数解释：
+1) uni-page-body 上 --safe-top computed = **0px，可解析、非空串**（任务书/协议 §R8.1 的判据形态达成）；
+   桌面 Chromium 的 env(safe-area-inset-top) 恒为 0px，属正常，不以"0"判失败。
+2) viewportMetaContent 里 **viewport-fit=cover 已在运行时 DOM**（与 raw/06 产物字符串一致），且 viewport meta 只有 1 份。
+3) docEl 为空是作用域问题：page 选择器编译为 uni-page-body，变量不在 :root（与上一轮 browser/01 同态，本单未改）。
+4) 使用点 .login-page（login.vue:326 padding-top: var(--safe-top)）实测 0px ⇒ 继承与解析链正常。
