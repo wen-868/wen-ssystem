@@ -34,8 +34,9 @@
 | `08-check-contract-post.txt` | 改后 | EXIT=0，三口径读数与改前一致 |
 | `09-lint-per-rule-diff.txt` | eslint `-f json` 逐规则展开 vs 冻结基线 | 覆盖文件 **188**（本轮未新增 src 文件，故未 190→191）、warning 劣化规则 **0**、error 新增对 **0** |
 | `10-build-h5.txt` | 仓库根 `npm --workspace app-mobile run build:h5` | **EXIT=0**（DONE Build complete） |
-| `11-final-selfcheck.txt` | 协议 §7 收尾自检 | 见文件 |
+| `11-final-selfcheck.txt` | 协议 §7 收尾自检（采集于 docs 笔提交前，自指说明已写在文件头） | 本轮改动面 = 卡点名 5 文件；`backend/` 0 改动；gates-baseline 只有 tests 段三个键 |
 | `12-rg-proof.txt` | rg 取证（已 `export MSYS2_ARG_CONV_EXCL='*'`） | 缺陷写法 0 命中；同类判定缺陷面 = 1 处已修 / 0 处仍受影响；范围外裸 `.toFixed` 38 文件 106 处 |
+| `13-terminal-verify.txt` | 已提交态（`bd59a405`）上四门复跑 + 终态 git 读数 | type-check/lint/test/check:contract 全 EXIT=0（0=0、20/12872、7 文件 158 用例、差集全豁免）；该文件自身为当时唯一未提交项，随收尾 docs 笔提交后 `git status --porcelain` 为空 |
 
 ## 3 anti/ —— 反测四段（协议 §4：改前 SHA → cp 备份 → 字节注入 → 红 → cp 复原 → SHA 一致 → 绿）
 

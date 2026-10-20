@@ -81,6 +81,8 @@
 | 反测 | 注入 `item.retailPrice < item.costPrice` ⇒ `TEST_RED_EXIT=1`，8 条红（卡点名那条 `expected false to be true`）；`cp` 复原 SHA256 `a615a954…cf7c` 与注入前**逐字节一致**；复跑 `TEST_GREEN_EXIT=0` / `LINT_GREEN_EXIT=0` | | `anti/00…07`（含 `05b-restore-proof.txt` 的 `cmp -s` 一致） |
 | 浏览器 | 修复前标红 5/6 行 → 修复后 3/6 行；差异行 4 条，computed 色 `rgb(196,80,80)`↔`rgb(64,64,64)` 与 `src/uni.scss:19/:61` token 对应 | | `browser/render-dom-readback-before-after.txt`、`render-ssr-readback.txt`、`price-danger-before-after.html`、`render-a11y-snapshot.txt`、`browser-session-note.txt` |
 
+**终态复跑**：在已提交态（docs 笔 `bd59a405`）上把常驻四门再跑一遍，全 `EXIT=0`（type-check 0=0、lint error 20/warning 12872、test 7 文件/158 用例、contract 差集全豁免），逐条 git 读数（改动面、`backend/` 0、分支与提交链）见 `raw/13-terminal-verify.txt`；收尾笔提交后 `git status --porcelain` 为空。
+
 **反测红点名（`anti/02-test-red.txt` 摘录）**
 
 ```
