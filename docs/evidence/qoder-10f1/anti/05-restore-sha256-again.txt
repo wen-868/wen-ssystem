@@ -1,0 +1,1 @@
+ea8a45c855ab966576ba3c9c3af56509f5e892841c8b0070b5d5904ef2959861 *app-mobile/src/pages/functions/functions.vue

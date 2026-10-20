@@ -1,0 +1,16 @@
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 20（基线 20）、warning 12873（基线 12872）
+✗ warning 劣化（规则计数超冻结基线）：
+  vue/html-indent: 当前 12300 条 > 基线 12299 条
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-10F1\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-10F1\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/lint-gate.mjs
+RED_EXIT=1

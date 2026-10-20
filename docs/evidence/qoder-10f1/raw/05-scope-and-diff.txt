@@ -1,0 +1,44 @@
+=== git log 9fd90257..HEAD ===
+ef5c705d 2026-10-20 22:59:27 +0800 fix: × 关闭按钮行缩进对齐 vue/html-indent 期望值，warning 基线回落 12299
+
+=== 本单全部改动（相对基线 9fd90257，实现提交 ef5c705d）===
+ app-mobile/src/pages-sub/admin/more/more-functions.vue | 2 +-
+ app-mobile/src/pages/functions/functions.vue           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+=== 逐行 diff（仅缩进）===
+diff --git a/app-mobile/src/pages-sub/admin/more/more-functions.vue b/app-mobile/src/pages-sub/admin/more/more-functions.vue
+index 55614303..93390f0f 100644
+--- a/app-mobile/src/pages-sub/admin/more/more-functions.vue
++++ b/app-mobile/src/pages-sub/admin/more/more-functions.vue
+@@ -11,7 +11,7 @@
+     >
+       <text class="mf-banner-text">{{ menuStore.bannerText }}</text>
+       <text class="mf-banner-retry" :style="{ color: AI_WARNING }" v-if="menuStore.showRetry" @tap="retryMenus">重试</text>
+-      <text class="mf-banner-close" @tap="menuStore.dismissBanner()">×</text>
++            <text class="mf-banner-close" @tap="menuStore.dismissBanner()">×</text>
+     </view>
+ 
+     <!-- 高频功能 -->
+diff --git a/app-mobile/src/pages/functions/functions.vue b/app-mobile/src/pages/functions/functions.vue
+index db30b64a..44827589 100644
+--- a/app-mobile/src/pages/functions/functions.vue
++++ b/app-mobile/src/pages/functions/functions.vue
+@@ -18,7 +18,7 @@
+     >
+       <text class="func-banner-text">{{ menuStore.bannerText }}</text>
+       <text class="func-banner-retry" :style="{ color: AI_WARNING }" v-if="menuStore.showRetry" @tap="retryMenus">重试</text>
+-      <text class="func-banner-close" @tap="menuStore.dismissBanner()">×</text>
++            <text class="func-banner-close" @tap="menuStore.dismissBanner()">×</text>
+     </view>
+ 
+     <!-- 高频宫格（真实搜索过滤） -->
+
+=== 空白无关比对（--ignore-all-space 为空 ⇒ 纯空白改动）===
+0
+
+=== gates-baseline.json 是否被改动（须 0）===
+0
+=== backend/ 面（须 0）===
+0
+EXIT=0
