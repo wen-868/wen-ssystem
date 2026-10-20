@@ -1,0 +1,4 @@
+### 判据1：两份配置文件 JSON.parse 通过 ###
+PASS  JSON.parse OK  app-mobile/src/manifest.json  topKeys=name,appid,description,versionName,versionCode,transformPx,vueVersion,app-plus,h5,mp-weixin,locale
+PASS  JSON.parse OK  app-mobile/src/pages.json  topKeys=easycom,pages,subPackages,globalStyle,tabBar
+EXIT=0

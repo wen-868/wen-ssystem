@@ -1,0 +1,6 @@
+CMD: cp 复原 + sha256sum 比对改前（修正提取逻辑：hash 行 grep 而非 head -1）
+DATE: 2026-10-21 02:10:47
+f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe *D:/Users/ZXQL/wt-agents/QODER-16/app-mobile/src/manifest.json
+pre=f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe
+now=f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe
+SHA_MATCH=YES 逐字节一致

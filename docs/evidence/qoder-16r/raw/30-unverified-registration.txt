@@ -1,0 +1,24 @@
+QODER-16R 未验项登记（协议 §6：未验就是未验）
+日期：2026-10-21｜登记人：Qoder（移动端执行方，子代理）｜对应派单编号：QODER-16R
+
+1. iOS 真机隐私弹窗（App Store 审核口径）——未验
+   原因：本环境无 iOS 设备与 HBuilderX 云打包/签名链路，无法安装产物真机验证弹窗文案。
+   已证部分：build:app EXIT=0 且产物 dist/build/app/manifest.json 的
+   plus.distribute.apple.privacyDescription 六键原文在场（raw/09）——这只是配置进产物，
+   不等于真机弹窗行为。
+   复现命令：HBuilderX 导入 dist/build/app 或云打包 → iOS 真机触发相机/录音/相册/定位/
+   蓝牙/语音识别各一次，核对弹窗文案与 privacyDescription 一致。
+
+2. 微信开发者工具（小程序产物运行）——未验
+   原因：本机无微信开发者工具 CLI 授权链路，不在本卡动作清单内。
+   已证部分：build:mp-weixin EXIT=0，产物 app.json 含 permission["scope.record"].desc
+   与 requiredPrivateInfos: []（raw/06、raw/07）。
+   复现命令：微信开发者工具导入 app-mobile/dist/build/mp-weixin → AI 助手页按住说话，
+   观察授权弹窗 desc 原文。
+
+3. 小程序后台「隐私协议/用户隐私保护指引」声明——未验
+   原因：需要小程序后台（mp.weixin.qq.com）人工登录操作，超出执行方权限与卡内动作清单。
+   风险提示：requiredPrivateInfos 为空与录音 scope.record 均需与后台隐私声明口径一致，
+   上线前由负责人在后台核对。
+   复现命令：登录小程序后台 → 设置 → 服务内容声明 → 用户隐私保护指引，比对
+   「录音（scope.record）」说明与 src/manifest.json 中 desc 是否一致。

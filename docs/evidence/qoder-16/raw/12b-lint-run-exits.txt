@@ -1,0 +1,5 @@
+eslint src --ext .ts,.vue : baseline EXIT=1 (既有 20 error) / after EXIT=1，两次同 harness 逐规则计数见 12/13
+baseline run:
+EXIT=1
+after run:
+EXIT=1

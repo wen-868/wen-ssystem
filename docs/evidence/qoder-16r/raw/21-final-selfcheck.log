@@ -1,0 +1,75 @@
+CMD: 收尾自检（协议 §7）
+DATE: 2026-10-21 02:30:36
+== git status --porcelain（应为空，写 docs 前工作树仅剩本轮改动）
+ M app-mobile/scripts/gates-baseline.json
+?? docs/evidence/qoder-16r/
+== git log --oneline origin/main..HEAD
+f4260a90 docs: QODER-16 证据探针 B 作废说明与指向 raw/22
+67546800 docs: QODER-16 回传卡、回执与证据（iOS 隐私六键 + 小程序录音授权取证）
+6b6fb197 fix: QODER-16 补 iOS 六键隐私描述与小程序录音授权并新增 JSON 权限断言用例
+== HEAD 与 origin/main
+f4260a90ab1174eded5a3670fa44d0e0ceef246f
+21b465e5c2a9defd0e3f65809a4b2ba4bc6c0e18
+== git diff --name-only dfeedbc0..HEAD（已提交面 = QODER-16 交付+docs；本轮未提交改动见 status）
+app-mobile/src/manifest.json
+app-mobile/tests/mobile-permissions.spec.ts
+docs/evidence/qoder-16/README.md
+docs/evidence/qoder-16/anti/loop1-drop-ios-key/00-pre-sha256.txt
+docs/evidence/qoder-16/anti/loop1-drop-ios-key/00b-before-green.txt
+docs/evidence/qoder-16/anti/loop1-drop-ios-key/01-target-red.txt
+docs/evidence/qoder-16/anti/loop1-drop-ios-key/02-restore-sha256.txt
+docs/evidence/qoder-16/anti/loop1-drop-ios-key/03-restore-green.txt
+docs/evidence/qoder-16/anti/loop1-drop-ios-key/04-walkthrough.txt
+docs/evidence/qoder-16/anti/loop1-drop-ios-key/manifest.json.orig
+docs/evidence/qoder-16/anti/loop2-unused-private-info/00-pre-sha256.txt
+docs/evidence/qoder-16/anti/loop2-unused-private-info/01-target-red.txt
+docs/evidence/qoder-16/anti/loop2-unused-private-info/02-restore-sha256.txt
+docs/evidence/qoder-16/anti/loop2-unused-private-info/03-restore-green.txt
+docs/evidence/qoder-16/anti/loop2-unused-private-info/04-walkthrough.txt
+docs/evidence/qoder-16/anti/loop2-unused-private-info/manifest.json.orig
+docs/evidence/qoder-16/raw/00-final-gate-sweep.txt
+docs/evidence/qoder-16/raw/05-json-parse-check.txt
+docs/evidence/qoder-16/raw/10-typecheck-baseline.txt
+docs/evidence/qoder-16/raw/11-typecheck-after.txt
+docs/evidence/qoder-16/raw/12-lint-baseline-summary.txt
+docs/evidence/qoder-16/raw/12b-lint-run-exits.txt
+docs/evidence/qoder-16/raw/13-lint-after-summary.txt
+docs/evidence/qoder-16/raw/14-vitest-after.txt
+docs/evidence/qoder-16/raw/15-build-mpweixin-baseline.txt
+docs/evidence/qoder-16/raw/16-build-mpweixin-after.txt
+docs/evidence/qoder-16/raw/17-build-h5-after.txt
+docs/evidence/qoder-16/raw/18-build-app-after.txt
+docs/evidence/qoder-16/raw/20-manifest-provenance-root-vs-src.txt
+docs/evidence/qoder-16/raw/21-route-probe-pagesjson-vs-manifest.txt
+docs/evidence/qoder-16/raw/21b-probe-b-invalid.note.txt
+docs/evidence/qoder-16/raw/22-route-probe-manifest-only.txt
+docs/evidence/qoder-16/raw/23-mp-product-appjson-after.txt
+docs/evidence/qoder-16/raw/24-app-product-privacyDescription-excerpt.txt
+docs/evidence/qoder-16/raw/25-field-diff-proof-only-added.txt
+docs/evidence/qoder-16/raw/30-privacy-api-grep-evidence.txt
+docs/evidence/qoder-16/raw/40-git-diff-manifest.txt
+"docs/tasks/cards/R101-QODER-16-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-16.md"
+== git diff --name-only（工作区未提交 = 本轮 gates-baseline.json + 新证据）
+app-mobile/scripts/gates-baseline.json
+== git diff dfeedbc0..HEAD -- backend/（应为空）
+0
+== git diff dfeedbc0..HEAD -- app-mobile/src（只应含 manifest.json）
+app-mobile/src/manifest.json
+== 本轮工作区 diff（gates-baseline.json 全文）
+diff --git a/app-mobile/scripts/gates-baseline.json b/app-mobile/scripts/gates-baseline.json
+index 84619e7c..59717087 100644
+--- a/app-mobile/scripts/gates-baseline.json
++++ b/app-mobile/scripts/gates-baseline.json
+@@ -54,8 +54,8 @@
+     "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
+   },
+   "tests": {
+-    "testFiles": 5,
+-    "testCount": 56,
+-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。"
++    "testFiles": 6,
++    "testCount": 64,
++    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。QODER-16R（2026-10-21，Qoder（移动端执行方））：重栈到常驻门禁，tests/mobile-permissions.spec.ts（8 用例，QODER-16 权限断言用例原样保留）接入常驻 vitest，npm run test 实测 6 文件/64 用例 ⇒ 5/56 → 6/64（卡 §二.3 目标 6/64 = 实测，留痕）。"
+   }
+ }

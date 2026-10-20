@@ -1,0 +1,7 @@
+CMD: node _scratch/qoder-16r/drop-ios-key.mjs src/manifest.json  (字节精确注入删 NSBluetoothAlwaysUsageDescription 整行)
+DATE: 2026-10-21 02:09:17
+已删除整行（含行尾符）:                     "NSBluetoothAlwaysUsageDescription" : "ç...
+改前字节 5777 → 改后字节 5552（差 225）
+INJECT_EXIT=0
+0
+grep 0 hits (键已消失)

@@ -1,0 +1,21 @@
+=== 反测1 · 删除 iOS 描述键 NSBluetoothAlwaysUsageDescription（字段缺失）⇒ 门必红并点名 ⇒ cp 复原 ⇒ SHA256 逐字节一致 ⇒ 复跑绿 ===
+门命令(在 app-mobile 目录): node ../node_modules/vitest/vitest.mjs run
+[0] 注入前 sha256=f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe
+[0b] 注入前门 EXIT=EXIT=0 ;       Tests  8 passed (8)
+INJECT[drop-ios-key] applied, hits=1
+[1] 注入完成 rc=0 ; 注入后 sha256=a5bc4aabc92cf5c686039aee71b525999e4326e9576e67dd718bf5f311056bf5
+[1] 注入后门 EXIT=EXIT=1 期望非0
+    AssertionError: 缺少 NSBluetoothAlwaysUsageDescription: expected undefined to be type of 'string'
+     Test Files  1 failed (1)
+          Tests  2 failed | 6 passed (8)
+[2] 复原后 sha256=f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe ; 与[0]逐字节一致? YES
+[3] 复原后门 EXIT=EXIT=0
+     Test Files  1 passed (1)
+          Tests  8 passed (8)
+[4] git status --short:
+ M app-mobile/src/manifest.json
+?? app-mobile/.eslintrc.cjs
+?? app-mobile/tests/
+?? app-mobile/vitest.config.ts
+?? docs/evidence/qoder-16/
+=== END ===

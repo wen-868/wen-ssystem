@@ -1,0 +1,34 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-16/app-mobile[39m
+
+ [31m❯[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 29[2mms[22m[39m
+     [32m✓[39m 两份配置文件必须是合法 JSON 且关键父节点存在[32m 8[2mms[22m[39m
+     [32m✓[39m iOS 六个隐私描述键齐备且描述非空、不是「用于XX功能」式空话[32m 3[2mms[22m[39m
+     [32m✓[39m 每条隐私描述与其真实功能对得上（代码里能找到对应能力）[32m 1[2mms[22m[39m
+     [32m✓[39m 小程序录音授权 scope.record.desc 必须存在且非空[32m 1[2mms[22m[39m
+[31m     [31m×[31m requiredPrivateInfos 每一项都必须是合法值且在代码实际使用清单里[39m[32m 10[2mms[22m[39m
+     [32m✓[39m 录音接口不属于 requiredPrivateInfos 合法表（防误登记 startRecord）[32m 1[2mms[22m[39m
+     [32m✓[39m 页面配置文件保持原结构：mp-weixin 授权不放 pages.json（已取证为死配置）[32m 1[2mms[22m[39m
+     [32m✓[39m 红线自证：appid / 支付 / 推送 / SDK / 插件等字段保持基线取值不动[32m 2[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/mobile-permissions.spec.ts[2m > [22mQODER-16 · 隐私权限配置门[2m > [22mrequiredPrivateInfos 每一项都必须是合法值且在代码实际使用清单里
+[31m[1mAssertionError[22m: requiredPrivateInfos 登记了代码中未使用的隐私接口：getLocation（app-mobile/src grep 0 命中，禁止整表照抄）: expected [] to include 'getLocation'[39m
+[36m [2m❯[22m tests/mobile-permissions.spec.ts:[2m131:9[22m[39m
+    [90m129|[39m         [33mPRIVACY_APIS_USED_IN_CODE[39m[33m,[39m
+    [90m130|[39m         `requiredPrivateInfos 登记了代码中未使用的隐私接口：${api}（app-mobile/src gre…
+    [90m131|[39m       )[33m.[39m[34mtoContain[39m(api)
+    [90m   |[39m         [31m^[39m
+    [90m132|[39m     }
+    [90m133|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m7 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 00:20:21
+[2m   Duration [22m 763ms[2m (transform 73ms, setup 0ms, import 109ms, tests 29ms, environment 0ms)[22m
+
+EXIT=1

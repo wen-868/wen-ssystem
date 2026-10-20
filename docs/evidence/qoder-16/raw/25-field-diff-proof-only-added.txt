@@ -1,0 +1,15 @@
+########## manifest.json ##########
+=== 逐字段 diff 自证（基线 321b4f6b:app-mobile/src/manifest.json vs 工作树 app-mobile/src/manifest.json）===
+基线已存在且值被改动的路径 (changed) = 0
+基线存在但改后消失的路径 (removed) = 0
+改后新增的路径 (added) = 3
+  ADDED   /app-plus/distribute/ios/privacyDescription
+  ADDED   /mp-weixin/permission
+  ADDED   /mp-weixin/requiredPrivateInfos
+结论: 只增不改 成立
+########## pages.json ##########
+=== 逐字段 diff 自证（基线 321b4f6b:app-mobile/src/pages.json vs 工作树 app-mobile/src/pages.json）===
+基线已存在且值被改动的路径 (changed) = 0
+基线存在但改后消失的路径 (removed) = 0
+改后新增的路径 (added) = 0
+结论: 只增不改 成立

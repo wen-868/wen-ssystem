@@ -1,0 +1,4 @@
+CMD: export MSYS2_ARG_CONV_EXCL='*' && grep -n 'mp-weixin' src/pages.json ; git diff dfeedbc0..HEAD --stat -- app-mobile/src/pages.json
+DATE: 2026-10-21 02:15:37
+grep EXIT=1 (1=无命中)
+pages.json diff 行数: 0
