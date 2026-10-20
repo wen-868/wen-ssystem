@@ -1,0 +1,38 @@
+# 命令：cd app-mobile && npm run test（复原后复跑）
+# 工作目录：D:/Users/ZXQL/wt-agents/QODER-14/app-mobile（除注明外）
+# 采集时间：2026-10-21T02:14:01+08:00
+# 分支：fix/qoder-14f1-auth-cleanup-restack  HEAD：a5294668（本笔为证据采集时点，终态哈希见 raw/12）
+# ------------------------------------------------------------------
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-14/app-mobile
+
+ ✓ tests/api-base-env.spec.ts (3 tests) 179ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 19ms
+ ✓ tests/request-retry-safety.spec.ts (14 tests) 587ms
+     ✓ ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾  316ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 209ms
+ ✓ tests/storage-crypto.spec.ts (4 tests) 715ms
+     ✓ 派生密钥为 32 字节且同输入可复现  364ms
+     ✓ tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）  310ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 538ms
+
+ Test Files  6 passed (6)
+      Tests  70 passed (70)
+   Start at  02:10:54
+   Duration  7.63s (transform 5.33s, setup 0ms, import 9.58s, tests 2.25s, environment 3ms)
+
+—— test 门（用例数冻结）：当前 6 文件 / 70 用例，基线 6 / 70 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+RESTORED_VITEST_EXIT=0

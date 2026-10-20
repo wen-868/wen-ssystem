@@ -1,0 +1,8 @@
+# 命令：sha256sum app-mobile/src/api/request.ts（注入前）
+# 工作目录：D:/Users/ZXQL/wt-agents/QODER-14/app-mobile（除注明外）
+# 采集时间：2026-10-21T02:13:56+08:00
+# 分支：fix/qoder-14f1-auth-cleanup-restack  HEAD：a5294668（本笔为证据采集时点，终态哈希见 raw/12）
+# ------------------------------------------------------------------
+# 反测 a · 摘掉 GET 判定（恢复无条件重放）— 注入前 sha256
+2026-10-21T02:10:17+08:00
+6585f7c5ea3f006537777c4d0a23130551c8415de84a644d91ccda49cd388376 *D:/Users/ZXQL/wt-agents/QODER-14/app-mobile/src/api/request.ts
