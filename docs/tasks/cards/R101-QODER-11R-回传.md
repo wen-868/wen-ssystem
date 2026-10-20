@@ -10,7 +10,7 @@
 - 本分支由负责人按卡 §二.1「只保留 docs/证据」用 `git rebase --onto dfeedbc0 2baf13af` 只重放 5 笔纯 docs 提交；开工即核验 `git diff dfeedbc0..HEAD -- app-mobile/src` = **0 行**（见 §六、证据 `git-diff-selfcheck.log`）。
 - 常驻门禁已入库（`app-mobile/scripts/*`、`vitest.config.ts`、`.eslintrc.cjs` 为真文件），本卡**不改代码**，四门各跑一遍留证（§④）。
 - node_modules 经 junction 指向主仓（console 里 `/@fs/D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/...` 可证），**全程未 npm install**。
-- 本轮新落提交：证据笔、执行记录+回传笔、收尾自证补哈希笔（哈希见 §⑨）。
+- 本轮新落提交（`type: docs 中文描述`，逐文件 add，本地未 push）：证据笔 `ae5e0243`、执行记录+回传笔 `4746ab31`、收尾自证补哈希笔（本笔，含 `docs/evidence/qoder-11r/end-check.log` 与 §7 协议全量输出）= **分支尖端**；ref = 分支 `docs/qoder-11r-h5-rebase-rerun` + 最新提交哈希（见 ACTIVE 回执与本笔哈希，终态 `git status` 空）。
 
 ## ②、修法 × 读数总表（场景 3 四步）
 

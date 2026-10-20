@@ -25,7 +25,7 @@ status: 完成（场景 3 复跑闭环；场景 5/6 未验；不改代码）
 summary: 基线 dfeedbc0 真跑 H5 场景 3 四步——③横幅出现⇒点×消失(集合不变/非阻塞)⇒本次会话隐藏⇒再次③态重现，dismissBanner() 生效；× 可关闭子项由上轮不通过闭环为达成；1/2/4 通过保留；5/6 真机未验；四门 EXIT 全 0；app-mobile/src diff=0；证据 docs/evidence/qoder-11r 与 qoder-11 并存。
 worktree: D:\Users\ZXQL\wt-agents\QODER-11
 branch: docs/qoder-11r-h5-rebase-rerun
-commits: 见收尾自检（证据笔 + 执行记录/回传笔 + 收尾补哈希笔，type: docs 中文描述，本地未 push）
+commits: 证据笔 ae5e0243 + 执行记录/回传笔 4746ab31 + 收尾自证补哈希笔(分支尖端，含 end-check.log)；均 type: docs 中文描述、逐文件 add、本地未 push（ref=分支 docs/qoder-11r-h5-rebase-rerun + 最新哈希见 §3 与 end-check.log）
 gates: type-check=0 / lint=0 / test=0(5 files/56 passed) / check:contract=0（原始输出 docs/evidence/qoder-11r/gates-run.log）
 redlines: 未push/未PR/未add-A(逐文件)/非凌舟不写裁定/只动本工作树/不改代码(src&backend diff=0)/未npm install/未动任务书与ACTIVE.md/仅关自记录PID未杀他人进程/场景5-6一律未验
 evidence: docs/evidence/qoder-11r/**（scene-3 四步截图 + scene-3-rerun.note.txt + console-messages.txt + snapshot-login-page.txt + dev-h5.log + mock-backend.mjs/.log/.stdout.note + port-shutdown-check.log + gates-run.log + git-diff-selfcheck.log + end-check.log）
