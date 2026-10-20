@@ -840,7 +840,7 @@ async function doAdjust() {
       okCnt++
       // 本地同步新价，试算与清单即时反映
       Object.keys(payload).forEach((k) => {
-        ;(p as any)[k] = payload[k]
+        (p as any)[k] = payload[k]
       })
     } catch (err) {
       failCnt++

@@ -178,14 +178,13 @@ const mfaBusy = ref(false)
 
 const version = '1.0.0'
 const versionNote = ref('已是最新版本')
-const apiBase = (() => {
-  // #ifdef H5
-  return API_BASE_H5
-  // #endif
-  // #ifndef H5
-  return API_BASE_NATIVE
-  // #endif
-})()
+// apiBase 按端取值：先取原生基址做默认值，H5 端由条件编译整行覆盖为 H5 基址。
+// 原形态是 IIFE 内两个并列 return，非本端那段 return 在源码形态下不可达 ⇒ no-unreachable；
+// 改为「默认值 + 按端覆盖」后两段都不再互相遮蔽，编译期每端读到的值与改动前完全一致。
+let apiBase = API_BASE_NATIVE
+// #ifdef H5
+apiBase = API_BASE_H5
+// #endif
 
 function switchTab(val: string) {
   activeTab.value = val

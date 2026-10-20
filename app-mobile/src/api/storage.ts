@@ -205,7 +205,7 @@ function installUniInterceptor(): void {
 
 // 模块加载时自动执行：1. 迁移旧明文 → 2. 安装拦截器
 // 顺序很重要：必须先迁移（用原始 API 读明文），再安装拦截器（之后所有 uni API 调用都走加密存储）
-; (() => {
+(() => {
   try {
     migrateFromPlainStorage()
   } catch (e) {

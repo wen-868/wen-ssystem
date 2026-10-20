@@ -491,7 +491,7 @@ function pickVal(k: 'customerType' | 'gender', v: string) {
     uni.showToast({ title: '当前为只读状态，请点「修改」', icon: 'none' })
     return
   }
-  ;(editForm.value as any)[k] = v
+  (editForm.value as any)[k] = v
 }
 const editStatusCls = computed(() => (editMode.value ? 'hd-status--draft' : 'hd-status--saved'))
 // 进入编辑/加载填充表单不算改动；watcher 在异步 flush 中触发，故在 nextTick 复位
