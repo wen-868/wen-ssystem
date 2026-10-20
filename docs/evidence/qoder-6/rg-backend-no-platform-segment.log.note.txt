@@ -1,0 +1,2 @@
+cmd: rg -n ""/platform/" backend/src/routes（已设 MSYS2_ARG_CONV_EXCL=*，防 Git Bash 对 / 开头参数做路径转换）
+exit=1（1=0 命中）⇒ 后端 instant-retail 路由零注册 /platform 段，注册表 15 条 platform/* 调用必 404

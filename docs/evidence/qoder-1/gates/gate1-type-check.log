@@ -1,0 +1,4 @@
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=2，当前错误 12 条，基线 12 条
+✓ 无新增类型错误 ⇒ EXIT=0
+EXIT=0

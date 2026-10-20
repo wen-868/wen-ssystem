@@ -1,0 +1,38 @@
+—— S3-242 跨层漂移定性机（只跑本单 16+1 清单）——
+注册表抽取 27 行：OK 11 / D1 16 / D2 0
+[D1] app-mobile/src/config/permission-gates.ts:641  POST /api/admin/instant-retail/deliveries/:deliveryId/status
+      → 后端实际 backend/src/routes/instant-retail-admin-ops.routes.ts:61（正确：PUT /api/admin/instant-retail/deliveries/:deliveryId/status） ⇒ 方法漂移（注册表 POST，后端实为 PUT）
+[D1] app-mobile/src/config/permission-gates.ts:644  POST /api/admin/instant-retail/platform/configs
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:16（正确：POST /api/admin/instant-retail/configs） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:645  POST /api/admin/instant-retail/platform/configs/:platform/test
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:17（正确：POST /api/admin/instant-retail/configs/:platform/test） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:646  POST /api/admin/instant-retail/platform/configs/:platform/sync-orders
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:18（正确：POST /api/admin/instant-retail/configs/:platform/sync-orders） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:647  POST /api/admin/instant-retail/platform/configs/:platform/sync-products
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:19（正确：POST /api/admin/instant-retail/configs/:platform/sync-products） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:648  DELETE /api/admin/instant-retail/platform/configs/:platform
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:20（正确：DELETE /api/admin/instant-retail/configs/:platform） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:649  POST /api/admin/instant-retail/platform/shop-config
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:24（正确：POST /api/admin/instant-retail/shop-config） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:650  POST /api/admin/instant-retail/platform/categories
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:28（正确：POST /api/admin/instant-retail/categories） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:651  PUT /api/admin/instant-retail/platform/categories/:id
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:29（正确：PUT /api/admin/instant-retail/categories/:id） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:652  DELETE /api/admin/instant-retail/platform/categories/:id
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:30（正确：DELETE /api/admin/instant-retail/categories/:id） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:653  POST /api/admin/instant-retail/platform/products
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:34（正确：POST /api/admin/instant-retail/products） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:654  PUT /api/admin/instant-retail/platform/products/:id
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:35（正确：PUT /api/admin/instant-retail/products/:id） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:655  DELETE /api/admin/instant-retail/platform/products/:id
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:36（正确：DELETE /api/admin/instant-retail/products/:id） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:656  POST /api/admin/instant-retail/platform/banners
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:47（正确：POST /api/admin/instant-retail/banners） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:657  PUT /api/admin/instant-retail/platform/banners/:id
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:48（正确：PUT /api/admin/instant-retail/banners/:id） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+[D1] app-mobile/src/config/permission-gates.ts:658  DELETE /api/admin/instant-retail/platform/banners/:id
+      → 后端实际 backend/src/routes/instant-retail-admin-platform.routes.ts:49（正确：DELETE /api/admin/instant-retail/banners/:id） ⇒ 前缀误写（注册表多写 /platform 段，后端无该段）
+employees（+1）：定义 5 行，后端 0 注册 5，caller 0 ⇒ D4
+      后端 5 路径 0 注册属实，但 5 个 wrapper 在 admin-web/src（除 api/system.ts）调用点 = 0 ⇒「前端在调」前提不成立 = 清单口径误报（只按字符串存在性判在调、无 caller 闭包）。D3 等价映射备用：GET /api/admin/staff@backend/src/routes/admin-staff.routes.ts:20 | POST /api/admin/staff@backend/src/routes/admin-staff.routes.ts:21 | PUT /api/admin/staff/:id@backend/src/routes/admin-staff.routes.ts:22
+debt（D1+D2）= 16，基线 contractDrift.debt = 15
+✗ debt=16 超基线（只准降）或未立基线 ⇒ EXIT=1

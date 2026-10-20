@@ -1,0 +1,259 @@
+{
+  "total": 27,
+  "OK": 11,
+  "D1": 16,
+  "D2": 0,
+  "employees": {
+    "cls": "D4",
+    "sites": 5,
+    "miss": 5,
+    "callers": 0
+  },
+  "debt": 16,
+  "baselineDebt": 16,
+  "rows": [
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:632",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/orders/:orderNo/status",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:19"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:633",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/routing-rules",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:41"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:634",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/routing-rules/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:42"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:635",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/routing-rules/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:43"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:636",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/exceptions/:id/handle",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:49"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:637",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/shelf",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:54"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:638",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/shelf/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:55"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:639",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/shelf/:id",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:56"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:640",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/deliveries/:deliveryId/assign",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:60"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:641",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/deliveries/:deliveryId/status",
+      "cls": "D1",
+      "kind": "方法漂移（注册表 POST，后端实为 PUT）",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:61",
+      "fix": "PUT /api/admin/instant-retail/deliveries/:deliveryId/status"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:642",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/reviews/:id/reply",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:67"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:643",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/reviews/sync",
+      "cls": "OK",
+      "hit": "backend/src/routes/instant-retail-admin-ops.routes.ts:68"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:644",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/configs",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:16",
+      "fix": "POST /api/admin/instant-retail/configs"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:645",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/configs/:platform/test",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:17",
+      "fix": "POST /api/admin/instant-retail/configs/:platform/test"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:646",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/configs/:platform/sync-orders",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:18",
+      "fix": "POST /api/admin/instant-retail/configs/:platform/sync-orders"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:647",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/configs/:platform/sync-products",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:19",
+      "fix": "POST /api/admin/instant-retail/configs/:platform/sync-products"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:648",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/platform/configs/:platform",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:20",
+      "fix": "DELETE /api/admin/instant-retail/configs/:platform"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:649",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/shop-config",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:24",
+      "fix": "POST /api/admin/instant-retail/shop-config"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:650",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/categories",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:28",
+      "fix": "POST /api/admin/instant-retail/categories"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:651",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/platform/categories/:id",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:29",
+      "fix": "PUT /api/admin/instant-retail/categories/:id"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:652",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/platform/categories/:id",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:30",
+      "fix": "DELETE /api/admin/instant-retail/categories/:id"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:653",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/products",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:34",
+      "fix": "POST /api/admin/instant-retail/products"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:654",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/platform/products/:id",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:35",
+      "fix": "PUT /api/admin/instant-retail/products/:id"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:655",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/platform/products/:id",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:36",
+      "fix": "DELETE /api/admin/instant-retail/products/:id"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:656",
+      "method": "POST",
+      "path": "/api/admin/instant-retail/platform/banners",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:47",
+      "fix": "POST /api/admin/instant-retail/banners"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:657",
+      "method": "PUT",
+      "path": "/api/admin/instant-retail/platform/banners/:id",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:48",
+      "fix": "PUT /api/admin/instant-retail/banners/:id"
+    },
+    {
+      "at": "app-mobile/src/config/permission-gates.ts:658",
+      "method": "DELETE",
+      "path": "/api/admin/instant-retail/platform/banners/:id",
+      "cls": "D1",
+      "kind": "前缀误写（注册表多写 /platform 段，后端无该段）",
+      "hit": "backend/src/routes/instant-retail-admin-platform.routes.ts:49",
+      "fix": "DELETE /api/admin/instant-retail/banners/:id"
+    }
+  ],
+  "empSites": [
+    {
+      "at": "admin-web/src/api/system.ts:41",
+      "path": "/api/admin/system/employees"
+    },
+    {
+      "at": "admin-web/src/api/system.ts:46",
+      "path": "/api/admin/system/employees/*"
+    },
+    {
+      "at": "admin-web/src/api/system.ts:51",
+      "path": "/api/admin/system/employees"
+    },
+    {
+      "at": "admin-web/src/api/system.ts:56",
+      "path": "/api/admin/system/employees/*"
+    },
+    {
+      "at": "admin-web/src/api/system.ts:61",
+      "path": "/api/admin/system/employees/*/status"
+    }
+  ]
+}

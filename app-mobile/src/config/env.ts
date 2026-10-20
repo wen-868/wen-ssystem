@@ -5,7 +5,8 @@
  * - App / 小程序端：使用生产 API 域名，由构建环境变量 VITE_API_BASE 注入；未配置时回退占位地址。
  *
  * ⚠️ 请勿在本文件硬编码真实生产域名。真实值通过 CI / .env（VITE_API_BASE）在构建时注入。
- * 域名变更时，同步更新 src/utils/pin-ssl.ts 的证书固定指纹（PINNED_CERTS）。
+ * 注：src/utils/pin-ssl.ts 的证书固定（PINNED_CERTS）**当前未接线**（全仓零调用点，且指纹已过期），
+ *     域名变更时**无需**同步更新其指纹；维护口径与接线前置见 docs/tasks/cards/R101-QODER-5-回传.md（S3-247）。
  */
 
 export const API_BASE_H5: string =

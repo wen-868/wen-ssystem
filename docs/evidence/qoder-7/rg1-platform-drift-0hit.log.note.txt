@@ -1,0 +1,2 @@
+cmd: rg -n "/platform/" app-mobile/src（MSYS2_ARG_CONV_EXCL=*）
+exit=1（1=0 命中）⇒ 修后注册表/代码再无 /platform 误写段

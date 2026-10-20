@@ -10,7 +10,13 @@
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin",
     "build": "npm run build:h5",
-    "guard:logout": "node scripts/s3-163-logout-uniqueness-guard.cjs"
+    "guard:logout": "node scripts/s3-163-logout-uniqueness-guard.cjs",
+    "type-check": "node scripts/type-check-gate.mjs",
+    "type-check:raw": "vue-tsc --noEmit",
+    "lint": "node scripts/lint-gate.mjs",
+    "test": "node scripts/test-gate.mjs",
+    "check:contract": "node scripts/check-contract.mjs",
+    "check:gates": "npm run type-check && npm run lint && npm run test && npm run check:contract"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-5020320260806002",

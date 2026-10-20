@@ -1,0 +1,1 @@
+反测：gates-baseline.json contractDrift.debt 暂调 16→15 ⇒ EXIT=1 点名超基线；复原 SHA256 前后一致 c1fe10e9ea7841d7e7e4ceecada9a642ffac36e40328885827902d0159e56caa

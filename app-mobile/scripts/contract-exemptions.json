@@ -1,0 +1,8 @@
+[
+  {
+    "path": "/admin/quote-push/*/resend",
+    "reason": "后端无此注册：admin-quote-push.routes.ts:19-20 只声明 POST /:id/push 与 /:id/cancel，且其文件注释（:14-15）已点名 app-mobile 孤岛页 price-push.vue 打不存在的 /resend。本单红线不得改页面 ⇒ 具名豁免；待页面修复单（移动端批次 3）或后端补端点收编单闭环后，本条目会变 stale 并强制删除。",
+    "owner": "QODER（移动端）",
+    "ruling": "app-mobile/docs/移动端全面审查清单与修复方案-2026-10-18.md 修复批次登记（页面调用点不可在本单修复）"
+  }
+]

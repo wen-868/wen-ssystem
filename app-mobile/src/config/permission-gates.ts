@@ -23,17 +23,29 @@
 //   本文件 `matchPermissionCode()` 逐条等价；如后端判据变化，本文件必须同步（同 S3-203 的
 //   "同一身份域内两端口径必须同源"精神）。
 //
-// 「未取到权限码」的处置（**S3-231 F3 起 = 失败关闭**）
-//   · `permissions` 为 null/undefined ⇒ 尚未取到（登录响应与 `/admin/auth/me` 均会下发
-//     `permissions`；老版本本地缓存可能确实没有）⇒ **不显示**（失败关闭，S3-231 F3 按凌舟裁定 5 改）；
-//   · `permissions` 为**空数组** ⇒ 确实取到了、且该用户没有任何码 ⇒ **不显示**（失败关闭，原本即如此）。
-//   ⚠️ 与 `stores/menu.ts` 的 null 语义**有意分叉**：menu.ts 的 null = 首屏加载中、放全量（产品既有语义，
-//      本单不动）；入口门是"能不能进这个写页面"，未取到就不该给一个必 403 的入口 ⇒ 失败关闭。
-//      两者的差异与影响面逐条登记在 `docs/evidence/S3-231/F3/`。
+// 「未取到权限码」的处置（**S3-239 起 = 三态单一定义源**）
+//   旧局面（S3-231 F3 ~ S3-239 之前）：本门 null ⇒ 失败关闭，而 `stores/menu.ts` null ⇒ 放全量，
+//   同端两套语义「有意分叉」。**S3-239 已收成一套**：三态（①加载中 / ②确实无码 / ③未取到）由
+//   `config/permission-view-state.ts` 单一定义源裁决，本门的 `isEntryVisible()` 与 menu store 都调它：
+//   · ①③ 态 ⇒ 最小可见集口径：codes 为空数组的入口（registered / 未登记）照常可见（整端不空白）；
+//     带码的 gated 入口**不显示**（它们全是写入口，未取到码放出去必 403），③ 态另有可关闭提示；
+//   · ② 态（成功返回、码数组为空）⇒ 失败关闭（现状保持）；
+//   · ready（持有非空码数组）⇒ 按 `hasPermissionCodes` 真实判定；
+//   · pending-code ⇒ 任何态恒隐藏（B3-1，先于三态判定短路）。
+//   `hasPermissionCodes` 自身的 null 分支保留失败关闭，作为**直接调用方的兜底**；
+//   但经 `isEntryVisible` / `usePermissionGate` 走时，null 处置已先被三态源分流，不再落到该分支。
+//   影响面登记：`docs/evidence/S3-231/F3/`（旧分叉）与 `docs/evidence/qoder-4/`（本单统一）。
 //
-// 代码层级：本文件**零依赖**（纯函数 + 常量），可被 Node 直接加载（证据脚本用），
-// 也可被 Pinia store / 页面 / 组件引入，避免"文档口径与实现口径"两套。
+// 代码层级：本文件**零依赖**（纯函数 + 常量，仅另引同目录的 permission-view-state.ts），
+// 可被 Node 直接加载（证据脚本用），也可被 Pinia store / 页面 / 组件引入，
+// 避免"文档口径与实现口径"两套。
 // ============================================================================
+
+import {
+  MINIMUM_VISIBLE_ENTRY_IDS,
+  resolvePermissionViewState,
+  type PermissionRequestState,
+} from './permission-view-state'
 
 /**
  * 权限码匹配 —— 后端 `matchPermission()` 的逐条镜像（`backend/src/services/admin/rbac.service.ts:295`）。
@@ -87,12 +99,10 @@ export function hasPermissionCodes(
    *   而手机端**没有**前端登录拦截可兜底 —— 一旦 `/admin/auth/me` 未回或老版本本地缓存缺字段，
    *   用户就会看到一排点了必 403 的按钮（比"看不到"体验更差，且把越权可能性留给下一次改判）。
    *
-   * ⚠️ 影响面（本改动只落在**入口门这一层**，不动 `stores/menu.ts` 的既有 null 语义）：
-   *   ① `usePermissionGate.canEntry/canAnyEntry`（页面入口显隐）—— 本项的主目标；
-   *   ② `config/function-menu.ts` 的功能中心入口过滤（同样按码显隐，属入口门）；
-   *   ③ `native/push.ts` 的推送深链落地判定（同属入口门，避免"点通知进必 403 页"）。
-   *   `usePermissionGate.can()` 对**零散动作**仍在 `codes===null` 时放行（那是"该动作不设门"，
-   *   与"没取到权限码"是两回事），见该文件注释。
+   * ⚠️ S3-239 起：经 `isEntryVisible` / `usePermissionGate` 走的调用，"未取到"先被三态源分流，
+   *   **不再落到本分支**；此处保留仅为直接调用方（如 `function-menu.ts` 的过滤函数传裸 perms）的兜底。
+   *   这类调用在 ①③ 态的表现 = 需码项隐藏（与 ② 同结果、不同语义），最小可见集由菜单侧与入口侧
+   *   的三态接线保证「整端不空白」；曾与 `stores/menu.ts` 「有意分叉」的两套 null 语义已统一废止。
    */
   if (perms === null || perms === undefined) return false
   return codes.every((code) => matchPermissionCode(perms, code))
@@ -101,9 +111,12 @@ export function hasPermissionCodes(
 /**
  * 入口权限门（声明式）。
  *
- * · `status = 'gated'`     ：入口已按 `codes` 显隐（本单落地）；
- * · `status = 'registered'`：**只登记、不门**（码未定 / 孤岛页 / 疑似查询型 POST …），
- *                            `codes` 恒为空数组，`note` 必须写出"为什么不门"。
+ * · `status = 'gated'`        ：入口已按 `codes` 显隐（本单落地）；
+ * · `status = 'registered'`   ：**只登记、不门**（码未定 / 孤岛页 / 疑似查询型 POST …），
+ *                              `codes` 恒为空数组，`note` 必须写出"为什么不门"。
+ * · `status = 'pending-code'` ：**码未立 ⇒ 入口恒隐藏**（B3-1，凌舟口径"页面按未开通处理"）。
+ *                              与 `registered` 的"放行"相反，这是**失败关闭**：`codes` 必须保持空数组
+ *                              （**不许硬挂不存在的码**），待立码裁定 + 后端接线后转 `gated` 补码。
  *
  * ⚠️ 注册表是"入口 → 码"的**唯一真相源**：runtime 的显隐、证据表、断言都从这里读。
  *    新增入口时**先加一行**，再在页面里用 `canEntry('<id>')` 引用，别在页面里手写码。
@@ -123,7 +136,7 @@ export interface EntryGate {
   codes: string[]
   /** 码依据（批次已落地码 / 批次规则推定），供复核 */
   basis: string
-  status: 'gated' | 'registered'
+  status: 'gated' | 'registered' | 'pending-code'
   /** 备注：待裁定项、口径提醒等 */
   note?: string
 }
@@ -499,9 +512,9 @@ export const ENTRY_GATES: EntryGate[] = [
     page: 'pages-sub/marketing/member/member-detail.vue',
     endpoints: ['POST /api/admin/members/:id/points/adjust'],
     codes: [],
-    basis: '码未定',
-    status: 'registered',
-    note: '三个候选互相冲突（`marketing:points`（超管/运营）／`customer:*`（店长）／`marketing:create`），取决于"谁该调积分"⇒ 待裁定，本单只登记'
+    basis: '码未立（三个候选互相冲突，待裁定）',
+    status: 'pending-code',
+    note: 'B3-1：候选码 `marketing:points`（超管/运营）／`customer:*`（店长）／`marketing:create` 互相冲突，取决于"谁该调积分"⇒ 不许硬挂不存在的码，登记 pending-code；页面入口按**未开通**处理（`canEntry` 恒 false，失败关闭）。立码裁定 + 后端接线（`requirePermission` 挂上）后转 gated 补码'
   },
   {
     id: 'mkt-points-exchange',
@@ -579,10 +592,10 @@ export const ENTRY_GATES: EntryGate[] = [
       'POST /api/admin/aftersales/:id/inspect',
       'POST /api/admin/aftersales/:id/complete'
     ],
-    codes: [],
-    basis: '孤岛页',
-    status: 'registered',
-    note: '不造入口；售后族已落地码为 `sale:return`（同域 confirm-receipt）'
+    codes: ['sale:return'],
+    basis: '售后族已落地同族码：同文件同前缀的 confirm-receipt 挂 `sale:return`（`backend/src/routes/aftersale.routes.ts:64`）；不新造码',
+    status: 'gated',
+    note: 'B3-1：门先行登记 —— 页面挂 `canEntry` 后不持码者即时隐藏；本入口仍是孤岛页（全仓无导航入口），门只约束"页面被直达时"的动作按钮显隐。后端 approve/reject/inspect/complete 4 条**未接**（`aftersale.routes.ts`:49/51/66/71 注册行无 `requirePermission`），由 S3-250 收编单承接 ⇒ 一致性用例把它们列入**具名待接白名单**；后端接线后白名单自动失效、用例自动转绿（判定顺序：先看后端接线，命中即过，不再查白名单）'
   },
   {
     id: 'island-order-exception',
@@ -625,29 +638,29 @@ export const ENTRY_GATES: EntryGate[] = [
       'PUT /api/admin/instant-retail/shelf/:id',
       'DELETE /api/admin/instant-retail/shelf/:id',
       'POST /api/admin/instant-retail/deliveries/:deliveryId/assign',
-      'POST /api/admin/instant-retail/deliveries/:deliveryId/status',
+      'PUT /api/admin/instant-retail/deliveries/:deliveryId/status',
       'POST /api/admin/instant-retail/reviews/:id/reply',
       'POST /api/admin/instant-retail/reviews/sync',
-      'POST /api/admin/instant-retail/platform/configs',
-      'POST /api/admin/instant-retail/platform/configs/:platform/test',
-      'POST /api/admin/instant-retail/platform/configs/:platform/sync-orders',
-      'POST /api/admin/instant-retail/platform/configs/:platform/sync-products',
-      'DELETE /api/admin/instant-retail/platform/configs/:platform',
-      'POST /api/admin/instant-retail/platform/shop-config',
-      'POST /api/admin/instant-retail/platform/categories',
-      'PUT /api/admin/instant-retail/platform/categories/:id',
-      'DELETE /api/admin/instant-retail/platform/categories/:id',
-      'POST /api/admin/instant-retail/platform/products',
-      'PUT /api/admin/instant-retail/platform/products/:id',
-      'DELETE /api/admin/instant-retail/platform/products/:id',
-      'POST /api/admin/instant-retail/platform/banners',
-      'PUT /api/admin/instant-retail/platform/banners/:id',
-      'DELETE /api/admin/instant-retail/platform/banners/:id'
+      'POST /api/admin/instant-retail/configs',
+      'POST /api/admin/instant-retail/configs/:platform/test',
+      'POST /api/admin/instant-retail/configs/:platform/sync-orders',
+      'POST /api/admin/instant-retail/configs/:platform/sync-products',
+      'DELETE /api/admin/instant-retail/configs/:platform',
+      'POST /api/admin/instant-retail/shop-config',
+      'POST /api/admin/instant-retail/categories',
+      'PUT /api/admin/instant-retail/categories/:id',
+      'DELETE /api/admin/instant-retail/categories/:id',
+      'POST /api/admin/instant-retail/products',
+      'PUT /api/admin/instant-retail/products/:id',
+      'DELETE /api/admin/instant-retail/products/:id',
+      'POST /api/admin/instant-retail/banners',
+      'PUT /api/admin/instant-retail/banners/:id',
+      'DELETE /api/admin/instant-retail/banners/:id'
     ],
     codes: [],
     basis: '孤岛页',
     status: 'registered',
-    note: '27 条（12 运营 + 15 平台）；不造入口。⚠️ 平台配置 15 条另有"路由前缀待核"问题（台账 §14.5 已登记）'
+    note: '27 条（12 运营 + 15 平台）；不造入口。S3-242 收口（QODER-7）：16 条漂移已按注册表层修正——15 条去多写的 /platform 段、deliveries status 改 PUT，以后端 instant-retail-admin-{platform,ops}.routes.ts 为准（漂移机 check-contract-drift.mjs 复跑 D1=0）'
   }
 ]
 
@@ -672,3 +685,51 @@ export const GATED_ENTRY_IDS: string[] = ENTRY_GATES.filter((g) => g.status === 
 export const REGISTERED_ENTRY_IDS: string[] = ENTRY_GATES.filter((g) => g.status === 'registered').map(
   (g) => g.id
 )
+
+/** 码未立、入口恒隐藏的入口 id 集合（证据/断言用） */
+export const PENDING_CODE_ENTRY_IDS: string[] = ENTRY_GATES.filter((g) => g.status === 'pending-code').map(
+  (g) => g.id
+)
+
+/** 该入口是否为 pending-code（恒隐藏）；未知 id ⇒ false（沿用"不抛错、不误隐藏"口径） */
+export function isPendingCodeEntry(id: string): boolean {
+  return ENTRY_GATE_BY_ID[id]?.status === 'pending-code'
+}
+
+/** 入口门三态查询输入（由 `usePermissionGate` 从 user store 现算后传入；口径定义见 permission-view-state.ts） */
+export interface EntryVisibilityQuery {
+  hasSession: boolean
+  requestState: PermissionRequestState
+  permissions: readonly string[] | null | undefined
+}
+
+/**
+ * 入口显隐求值（**S3-239 起，运行时唯一入口判定路径**；`usePermissionGate.canEntry` 只做参数装配）：
+ *  1. pending-code ⇒ 恒 false（B3-1 短路，先于三态，凌舟裁定 5 保持）；
+ *  2. codes 空数组（registered / 未知 id）⇒ 恒 true —— 「无码入口」在三态下天然可见，
+ *     这就是「①③ 不隐藏整端」的保底（首页快捷入口 / tabBar 多属此类）；
+ *  3. 带码入口 ⇒ 上送三态单一定义源，按 policy 分流：
+ *     · showGranted ⇒ hasPermissionCodes（真实码判定，通配镜像后端）；
+ *     · showAllMinimal ⇒ 仅 MINIMUM_VISIBLE_ENTRY_IDS 放行（当前空集 ⇒ gated 隐藏，
+ *       依据：全部 gated 入口都是写入口，未取到码显示出去必 403；往该常量加 id 须凌舟裁定）；
+ *     · hideNeedsCode ⇒ false（② 态失败关闭）；
+ *     · showAll ⇒ true —— 改造前旧语义，**生产路径不可达**，仅为反测注入点
+ *       （把三态源分支打回它 ⇒ 用例①/③ 必红）。
+ */
+export function isEntryVisible(entryId: string, query: EntryVisibilityQuery): boolean {
+  if (isPendingCodeEntry(entryId)) return false
+  const codes = codesOfEntry(entryId)
+  if (codes.length === 0) return true
+  const view = resolvePermissionViewState(query)
+  switch (view.policy) {
+    case 'showGranted':
+      return hasPermissionCodes(query.permissions, codes)
+    case 'showAllMinimal':
+      return MINIMUM_VISIBLE_ENTRY_IDS.includes(entryId)
+    case 'showAll':
+      return true
+    case 'hideNeedsCode':
+    default:
+      return false
+  }
+}

@@ -1,0 +1,20 @@
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=2，当前错误 1 条，基线 0 条
+✗ 新增类型错误 1 条（基线之外，逐条点名）：
+  src/config/env.ts(18,14): error TS2322: Type 'string' is not assignable to type 'number'.
+⇒ 修掉新增错误，或（仅当确属误报口径问题）回报凌舟调整基线 —— 本脚本无 --update 逃生口。
+npm error Lifecycle script `type-check` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-1\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-1\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/type-check-gate.mjs
+SHA256 逐字节一致 ✅
+注入文件: src/config/env.ts
+sha_before=55684a6218ba9074e951822a7335b41d6261d941dbb6ba0cd71d5504d8f1a3e8
+sha_after=55684a6218ba9074e951822a7335b41d6261d941dbb6ba0cd71d5504d8f1a3e8

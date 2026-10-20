@@ -1,0 +1,6 @@
+js-yaml 解析成功 ✅
+jobs: build-and-test, migration-check
+  [build-and-test] App mobile type gate (vue-tsc --noEmit) | cwd=app-mobile | continue-on-error=false
+  [build-and-test] App mobile lint gate (eslint src, error 0 新增) | cwd=app-mobile | continue-on-error=false
+  [build-and-test] App mobile unit tests (vitest run) | cwd=app-mobile | continue-on-error=false
+  [build-and-test] App mobile contract gate (check:contract) | cwd=app-mobile | continue-on-error=false

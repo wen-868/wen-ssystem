@@ -1,0 +1,61 @@
+{
+  "_comment": "QODER-1 批次0 冻结基线（2026-10-18 实测）。type-check/lint/check:contract 三道门按「0 新增 / 不劣化」判定；只准降不准升，调低需人工改本文件并留痕。",
+  "typeCheck": {
+    "tool": "vue-tsc --noEmit（S3-245 同形态，scripts/type-check-gate.mjs 包装基线比较）",
+    "errors": {},
+    "note": "凌舟裁定②（2026-10-18 验收回传）已落地：PR #363（S3-245）已进 main（3fa138e7）→ 本分支已 rebase 到其上 → 原 12 条 crypto.ts TS2323/TS2393 随根治归零，errors 清空 ⇒ 门判据即 error===0。CI 类型门唯一形态 = 上方 S3-245 步骤；本脚本为本地同语义包装。"
+  },
+  "lint": {
+    "command": "eslint src --ext .ts,.vue（scripts/lint-gate.mjs 包装）",
+    "errorBaseline": 20,
+    "mustReachZero": true,
+    "dueBatch": "清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。",
+    "errorsByFileRule": {
+      "src/api/storage.ts::no-extra-semi": 1,
+      "src/pages-sub/marketing/member/member-detail.vue::no-extra-semi": 1,
+      "src/pages-sub/product/batch-price/batch-price.vue::no-extra-semi": 1,
+      "src/pages-sub/settings/settings.vue::no-unreachable": 1,
+      "src/pages/ai-chat/ai-chat.vue::no-empty": 2,
+      "src/pages/ai-chat/ai-chat.vue::no-extra-semi": 4,
+      "src/pages/ai-chat/ai-chat.vue::no-unreachable": 1,
+      "src/pages/products/product-detail.vue::no-extra-semi": 2,
+      "src/pages/products/product-detail.vue::no-unreachable": 2,
+      "src/pages/sales/create-sale.vue::vue/no-unused-vars": 1,
+      "src/pages/sales/create-sale.vue::no-irregular-whitespace": 1,
+      "src/pages/sales/create-sale.vue::no-unreachable": 2,
+      "src/pages/sales/create-sale.vue::no-empty": 1
+    },
+    "warningsByRule": {
+      "no-console": 225,
+      "@typescript-eslint/no-unused-vars": 104,
+      "vue/html-indent": 12299,
+      "vue/html-closing-bracket-spacing": 196,
+      "vue/html-closing-bracket-newline": 1,
+      "vue/multiline-html-element-content-newline": 47
+    },
+    "note": "error 存量位于页面文件（本单红线不可改页面），按 文件::规则 冻结；warning 按规则冻结。QODER-5（S3-247 离线链下线）删除 utils/sync-manager.ts 后现场调低：no-console 232→225、no-unused-vars 105→104（合计 −8），按「只准降不准升」留痕。"
+  },
+  "checkContract": {
+    "callOccurrencesNonComment": 292,
+    "callSiteOccurrences": 283,
+    "uniqueCallPaths": 204,
+    "backendRegistered": 1498,
+    "missingAfterExemptions": 0,
+    "exempted": 1,
+    "exemptionsFile": "scripts/contract-exemptions.json",
+    "note": "A.2 三口径读数由 check-contract.mjs 每次运行现场打印"
+  },
+  "contractDrift": {
+    "command": "node scripts/check-contract-drift.mjs（S3-242 跨层漂移定性机，只跑本单 16+1 清单；QODER-7 起进 CI 阻断）",
+    "debt": 0,
+    "d1": 0,
+    "d2": 0,
+    "d4": 1,
+    "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
+  },
+  "tests": {
+    "testFiles": 5,
+    "testCount": 53,
+    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕。"
+  }
+}

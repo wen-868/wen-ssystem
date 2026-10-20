@@ -67,7 +67,7 @@
             <text class="info-value">{{ formatDate(item.createdAt) }}</text>
           </view>
         </view>
-        <view class="card-actions" v-if="item.status === 'PENDING'">
+        <view class="card-actions" v-if="item.status === 'PENDING' && canEntry('island-aftersale')">
           <button class="action-btn approve-btn" :disabled="acting" @tap="handleApprove(item)">同意</button>
           <button class="action-btn reject-btn" :disabled="acting" @tap="handleReject(item)">拒绝</button>
         </view>
@@ -90,6 +90,9 @@ function goBack(){ uni.navigateBack() }
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { aftersaleApi, type AftersaleRecord } from '@/api/modules/aftersale'
+import { usePermissionGate } from '@/composables/usePermissionGate'
+
+const { canEntry } = usePermissionGate()
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })

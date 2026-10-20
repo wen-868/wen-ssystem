@@ -1,0 +1,18 @@
+═══ QODER-4 · S3-239 三态原始输出 ═══
+注册表规模：gated=27 registered=9 pending-code=1
+
+── 一、resolvePermissionViewState 逐态返回（原始 JSON）──
+① 加载中（有登录态，请求在途）
+  => {"viewState":"loading","policy":"showAll","showNotice":false,"noticeText":""}
+② 确实无码（成功返回空数组）
+  => {"viewState":"empty","policy":"hideNeedsCode","showNotice":false,"noticeText":""}
+③ 未取到（请求失败/超时）
+  => {"viewState":"unavailable","policy":"showAll","showNotice":true,"noticeText":"权限信息未取到，已按最小可见集显示，请下拉刷新重试"}
+③b 未取到（成功但缺字段/老缓存）
+  => {"viewState":"unavailable","policy":"showAll","showNotice":true,"noticeText":"权限信息未取到，已按最小可见集显示，请下拉刷新重试"}
+ready（持有非空码数组）
+  => {"viewState":"ready","policy":"showGranted","showNotice":false,"noticeText":""}
+无登录态（失败关闭）
+  => {"viewState":"empty","policy":"hideNeedsCode","showNotice":false,"noticeText":""}
+✗ 注入点 showAll 出现在生产返回值集合中（不该发生）
+TOOL_EXIT=1

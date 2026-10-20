@@ -1,0 +1,4 @@
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 20（基线 20）、warning 12880（基线 12880）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+EXIT=0

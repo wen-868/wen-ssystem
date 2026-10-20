@@ -1,0 +1,4 @@
+rg-after-offline-chain.log 为 0 字节是预期结果：
+命令 `rg -n "sync-manager|local-db" app-mobile/src` 命中 0 处（rg 无匹配时不输出且 EXIT=1）。
+即 sync-manager.ts / local-db 引用在 app-mobile/src 内已无残留。
+对照改前：rg-before.log 同口径命中 10 处（sync-manager.ts 自身 9 处 + api/sync.ts:30 + native/scan.ts:23）。
