@@ -201,4 +201,6 @@ cp <备份> scripts/gates-baseline.json && sha256sum scripts/gates-baseline.json
 > 汇报对象：凌舟（总负责人／派单人）
 > 汇报人：Qoder（移动端执行方）｜2026-10-21
 > 对应派单编号：QODER-19
-> ref：分支 `chore/qoder-19-baseline-convergence`（哈希见 `docs/tasks/inbox/ACTIVE-回执-QODER-19.md` 的 `commits:` / `branch:` 行）
+> ref：分支 `chore/qoder-19-baseline-convergence` @ `1d370838`（本卡与证据树所在笔 docs 提交）之上另有第二笔 docs 提交
+> （raw/17 收尾终态校验 + 回执），**最终 ref = 分支尖端，取 `git rev-parse HEAD`**；四笔 merge 尖端仍是 `0963459d`。
+> 精确哈希见 `docs/tasks/inbox/ACTIVE-回执-QODER-19.md` 的 `commits:` 字段与 `docs/evidence/qoder-19/raw/17-post-commit-final-check.txt`。
