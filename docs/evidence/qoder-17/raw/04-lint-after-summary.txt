@@ -1,0 +1,52 @@
+cmd: 同上，修后; 全量 json: D:/Users/ZXQL/wt-agents/_scratch/qoder-17/lint-after.json
+{
+ "files": 190,
+ "error": 20,
+ "warning": 12880,
+ "byRule": {
+  "no-console": {
+   "e": 0,
+   "w": 232
+  },
+  "@typescript-eslint/no-unused-vars": {
+   "e": 0,
+   "w": 105
+  },
+  "no-extra-semi": {
+   "e": 9,
+   "w": 0
+  },
+  "vue/html-indent": {
+   "e": 0,
+   "w": 12299
+  },
+  "vue/html-closing-bracket-spacing": {
+   "e": 0,
+   "w": 196
+  },
+  "vue/html-closing-bracket-newline": {
+   "e": 0,
+   "w": 1
+  },
+  "vue/multiline-html-element-content-newline": {
+   "e": 0,
+   "w": 47
+  },
+  "no-unreachable": {
+   "e": 6,
+   "w": 0
+  },
+  "no-empty": {
+   "e": 3,
+   "w": 0
+  },
+  "vue/no-unused-vars": {
+   "e": 1,
+   "w": 0
+  },
+  "no-irregular-whitespace": {
+   "e": 1,
+   "w": 0
+  }
+ }
+}
