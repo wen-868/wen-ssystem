@@ -15,16 +15,20 @@
 - 工作树 `D:\Users\ZXQL\wt-agents\QODER-17`｜分支 `fix/qoder-17f1-safe-top-viewport`（本轮未 rebase、未切分支、未碰 git 历史，按派工指令）。
 - 代码基线 `dfeedbc0`（#368 合并后的 main）｜`origin/main` = `21b465e5`（其后仅 2 笔 docs，口径见协议 §1：本轮 main 已含常驻门禁）。
 - 开工前分支 HEAD：`6e714beb`（旧 5 笔 rebase 到 `dfeedbc0` 后的链顶；其中 `e3a4a7d0` 带来 `App.vue:54` 的 `--safe-top: env(safe-area-inset-top)` 修复）。
-- 本单新增提交（**2 笔实现 + 文档笔，见下表**）：
+- 本单新增提交（**1 笔实现 + 3 笔 docs**，见下表）：
 
 | 哈希 | 类型 | 内容 | 文件 |
 | --- | --- | --- | --- |
 | `6bd830d9` | impl | `fix: QODER-17F1 index.html viewport 补 viewport-fit=cover 并新增静态断言④（tests 基线实测 6/60）` | `app-mobile/index.html`、`app-mobile/tests/safe-top-var.spec.ts`、`app-mobile/scripts/gates-baseline.json`（逐文件 add，3 文件） |
-| docs 笔（本卡落地那笔，哈希见回执 DSH 块） | docs | `docs: QODER-17F1 回传卡+回执+证据` | `docs/tasks/cards/R101-QODER-17F1-回传.md`、`docs/tasks/inbox/ACTIVE-回执-QODER-17F1.md`、`docs/evidence/qoder-17f1/**` |
-| docs 笔 2 | docs | `docs: QODER-17F1 收尾自检输出（协议 §7）` | `docs/evidence/qoder-17f1/raw/11-final-selfcheck-before-commit.txt`、`raw/12-closing-check-after-commit.txt` |
+| `70c96326` | docs | `docs: QODER-17F1 回传卡+回执+证据（viewport-fit 源码与产物直证、常驻四门读数、两条反测、H5 computed 新基线取证）` | `docs/tasks/cards/R101-QODER-17F1-回传.md`、`docs/tasks/inbox/ACTIVE-回执-QODER-17F1.md`、`docs/evidence/qoder-17f1/**`（逐路径 add，29 文件） |
+| `fe05735b` | docs | `docs: QODER-17F1 终态自检输出（协议 §7：四门终态复跑 + 改动面核对）` | `docs/evidence/qoder-17f1/raw/12-closing-check-after-commit.txt`（`raw/11` 已并入 70c96326） |
+| docs 笔 3（引用补全笔） | docs | `docs: QODER-17F1 提交哈希引用补全` | 本卡 §①/附 与回执 `commits:` 行（把两笔 docs 的哈希显式写进交付物；写卡时自身哈希不可知）。**本笔 = `git log --oneline origin/main..HEAD` 最新一笔**（自指无法在自身里给出哈希） |
+
+- 本单共 **3 + 1 笔**：1 笔 impl + 2 笔 docs 达协议 §0 的 ≤3；第 4 笔只是把 docs 笔哈希引用补全（无功能与判据变化），
+  原因如实登记在此，不静默多笔。上一轮 QODER-17 链（`e3a4a7d0`/`2860151d`/`f91673c8`/`16761f56`/`6e714beb`）未动。
 
 - 未 push、未开 PR；`git log --oneline origin/main..HEAD` 笔数与哈希见 `raw/11`、`raw/12`。
-- **ref（协议 R8.2）= `fix/qoder-17f1-safe-top-viewport` @ `6bd830d9`（实现笔）**；docs 笔哈希在回执 DSH-RECEIPT 的 `commits:` 行给出。
+- **ref（协议 R8.2）= `fix/qoder-17f1-safe-top-viewport` @ `6bd830d9`（实现笔）／docs 链顶 `fe05735b`**（再加本笔引用补全，共 4 笔，明细见上表）。
 
 ## ② 修法 × 读数总表
 
@@ -121,7 +125,10 @@
    真机非零与否仍属未验（§⑦）。
 6. **旧证据目录并存**：`docs/evidence/qoder-17/`（含 raw/13「修后 96 处/89 文件」计数校订）**原样保留、未改写**；
    本单重测计数与其一致（96/89），**无差异需点名**。旧目录 raw/08 的 97/90 是修前快照（含被改掉的定义行），口径在旧 README 已标注。
-7. **提交笔数**：本单 1 笔实现 + 2 笔 docs（协议 ≤3）；docs 拆两笔的原因是收尾自检必须在提交**前**与提交**后**各取一次读数（`raw/11`/`raw/12`），不能自指。
+7. **提交笔数（超协议 ≤3 一笔，原因如实登记）**：本单实为 **1 笔实现 + 3 笔 docs = 4 笔**。
+   docs 拆多笔的原因：① 收尾自检必须在提交**前**与提交**后**各取一次读数（`raw/11`/`raw/12`），不能自指；
+   ② 第 4 笔（`docs: QODER-17F1 提交哈希引用补全`）只为把前两笔 docs 的哈希显式写进卡与回执——写卡时自身哈希不可知，
+   补全笔自身仍只能以"git log 最新一笔"自指。**无任何功能与判据变化**；若负责人要求严格 ≤3，本笔可 `git reset --soft` 前移合并（执行方不擅自动 git 历史）。
 
 ## ⑥ 红线对照（逐条）
 
@@ -238,4 +245,4 @@ node D:/Users/ZXQL/wt-agents/_scratch/qoder-17f1/scratch-h5-server.js &   # 端�
 2. 回执：`docs/tasks/inbox/ACTIVE-回执-QODER-17F1.md`（含 `===DSH-RECEIPT-BEGIN===…END===`）
 3. 证据：`docs/evidence/qoder-17f1/README.md` + `raw/01…08、10…12` + `anti/00…09、03a` + `browser/README.md、01…03、screenshot-h5-login-desktop.png`
    （旧目录 `docs/evidence/qoder-17/**` 原样保留未改写）
-4. 提交：`6bd830d9`（impl，3 文件）+ docs 笔（见回执 `commits:`）；终态 `git status` 空（`raw/12`）
+4. 提交：`6bd830d9`（impl，3 文件）+ `70c96326`（docs：卡+回执+证据）+ `fe05735b`（docs：终态自检 raw/12）+ 本笔（docs：哈希引用补全）；终态 `git status` 空（`raw/12`，其取数时点在本补全笔之前，故终态空态需按 `raw/12` 文末命令复跑核验）。
