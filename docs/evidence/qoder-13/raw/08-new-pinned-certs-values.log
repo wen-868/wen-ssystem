@@ -1,0 +1,39 @@
+# 采集时间(本机): 2026-10-21 02:10:16 +0800
+# 判据①：PINNED_CERTS 现场态（应与 01/02 采集输出逐字一致）
+// ====================== 证书指纹配置 ======================
+
+/**
+ * 锁定证书列表（生产环境实际 SHA256 指纹，2026-10-21 采集）
+ *
+ * 格式：sha256/<Base64(SubjectPublicKeyInfo 的 SHA256)>=
+ *
+ * 每个域名保留 2 个指纹：叶子证书 + 中间证书（Let's Encrypt YE2/YE1，用于轮换兜底；按域名成对录入，禁止跨域抄用）
+ */
+const PINNED_CERTS: Record<string, string[]> = {
+    'api.onepan.cn': [
+        'sha256/Y/uy8CcEO5D3HHhBa8iBqWJu3uEQwuA1bwRCpuVfcHs=', // 叶子证书 CN=api.onepan.cn（Let's Encrypt，2026-11-11 到期）
+        'sha256/s/tdAOmUzd8syaTuqfgGvFcn6DzA5Cmb+Vby1ST+U3Y=' // 中间证书 Let's Encrypt YE2（2028-09-02 到期）
+    ],
+    'm.onepan.cn': [
+        'sha256/rH0oqsRgfu1hGtbs10FXorbhao99FC99nqVBGmWA1M4=', // 叶子证书 CN=admin.onepan.cn·SAN 含 m.onepan.cn（Let's Encrypt，2026-12-22 到期）
+        'sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=' // 中间证书 Let's Encrypt YE1（2028-09-02 到期）
+    ]
+}
+
+/** 应急开关存储键（加密存储，复用 crypto.ts） */
+
+# 逐条对照表（来源=01-api.onepan.cn.log / 02-m.onepan.cn.log）
+api.onepan.cn 叶子   sha256/Y/uy8CcEO5D3HHhBa8iBqWJu3uEQwuA1bwRCpuVfcHs= notAfter=Nov 11 22:28:29 2026 GMT (剩22天, WARN≤30d命中)
+api.onepan.cn 中间   sha256/s/tdAOmUzd8syaTuqfgGvFcn6DzA5Cmb+Vby1ST+U3Y= (Let's Encrypt YE2) notAfter=Sep 2 23:59:59 2028 GMT
+m.onepan.cn   叶子   sha256/rH0oqsRgfu1hGtbs10FXorbhao99FC99nqVBGmWA1M4= (CN=admin.onepan.cn, SAN含m) notAfter=Dec 22 17:07:28 2026 GMT (剩62天)
+m.onepan.cn   中间   sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4= (Let's Encrypt YE1) notAfter=Sep 2 23:59:59 2028 GMT
+
+# 机器校验：4 条新值均能在两域采集输出中找到逐字原文
+docs/evidence/qoder-13/raw/01-pin-spki-api.onepan.cn.log:1
+docs/evidence/qoder-13/raw/02-pin-spki-m.onepan.cn.log:0
+docs/evidence/qoder-13/raw/01-pin-spki-api.onepan.cn.log:1
+docs/evidence/qoder-13/raw/02-pin-spki-m.onepan.cn.log:0
+docs/evidence/qoder-13/raw/01-pin-spki-api.onepan.cn.log:0
+docs/evidence/qoder-13/raw/02-pin-spki-m.onepan.cn.log:1
+docs/evidence/qoder-13/raw/01-pin-spki-api.onepan.cn.log:0
+docs/evidence/qoder-13/raw/02-pin-spki-m.onepan.cn.log:1
