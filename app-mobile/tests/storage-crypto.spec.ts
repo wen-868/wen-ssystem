@@ -39,6 +39,16 @@ function collectInstallCallSites(dir: string, out: string[] = []): string[] {
   return out
 }
 
+/**
+ * 求值时机说明（QODER-13F1 首版踩坑后更正）：静态事实与调用点清单一律在**模块加载期（import 阶段）**
+ * 一次性求值，用例体内只做常数比较。原因：扫全 `src`（189 个 .ts/.vue、约 2.2 MB）本机实测
+ * 1.1~1.8 s，叠加同一用例内的 GCM 篡改/错误密钥运算后偶发越过 vitest 默认 5000 ms 用例超时
+ * （⇒ 门 3 红「Test timed out in 5000ms」）。移到 import 阶段后断言语义、"注入旧文案即红"与
+ * 用例数 5/56 均不变，只消除超时抖动。
+ */
+const PIN_SSL_TEXT = readFileSync(PIN_SSL, 'utf8')
+const INSTALL_CALL_SITES = collectInstallCallSites(SRC_DIR)
+
 describe('存储加解密往返（AES-256-GCM）', () => {
   const key = deriveKey('unit-test-fingerprint')
 
@@ -70,10 +80,10 @@ describe('存储加解密往返（AES-256-GCM）', () => {
     const wrongKey = deriveKey('another-fingerprint')
     expect(() => decrypt(enc, wrongKey)).toThrow()
 
-    // —— QODER-13F1 静态断言（同属「被篡改/失效内容绝不静默放行」契约，不新增 it）——
-    const pinSsl = readFileSync(PIN_SSL, 'utf8')
-    expect(pinSsl.includes('2026-09-15')).toBe(false)
-    expect(pinSsl.toLowerCase().includes('trustasia')).toBe(false)
-    expect(collectInstallCallSites(SRC_DIR)).toEqual([])
+    // —— QODER-13F1 静态断言（同属「被篡改/失效内容绝不静默放行」契约，不新增 it；
+    //    求值已在上方模块加载期完成，此处仅常数比较）——
+    expect(PIN_SSL_TEXT.includes('2026-09-15')).toBe(false)
+    expect(PIN_SSL_TEXT.toLowerCase().includes('trustasia')).toBe(false)
+    expect(INSTALL_CALL_SITES).toEqual([])
   })
 })

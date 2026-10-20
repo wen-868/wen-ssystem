@@ -24,15 +24,19 @@
 | `installSslPinning(` 调用点 | 仍为 0 | **0**（rg 3 处命中 = 定义 `:200` + 注释 `:7`/`:197`，逐处定性；另用同语义机检扫全 src 得 `[]`） | `raw/03` |
 | `npm run type-check` | EXIT=0 | **EXIT=0**（vue-tsc 0 条 = 基线 0 条） | `raw/21`、`raw/31` |
 | `npm run lint` | EXIT=0、不劣化 | **EXIT=0**，error 20（基线 20）/ warning 12872（基线 12872），与改动前逐位相同 ⇒ **未调基线** | `raw/22`、`raw/00` |
-| `npm run test` | EXIT=0、**5/56 不升不降** | **5 文件 / 56 用例，EXIT=0**（改动前后同读数） | `raw/23`、`raw/00`、`raw/31` |
+| `npm run test` | EXIT=0、**5/56 不升不降** | **5 文件 / 56 用例，EXIT=0**（改动前后同读数；求值时机更正后连跑 3 次均 5/56 EXIT=0） | `raw/23`、`raw/00`、`raw/31`、`raw/33` |
 | `npm run check:contract` | EXIT=0 | **EXIT=0**（差集 1 条 / 具名豁免 1 条，同基线） | `raw/24` |
-| 反测恢复旧文案 ⇒ 静态断言红；复原 SHA256 一致后复绿 | 能红、能自复原 | **达成**：三条断言红点各自钉到 `spec:75` / `:76` / `:77`；四份红档"注入前 SHA = `cp` 复原后 SHA"= `cb27d321…408889`；复原态复跑 5/56 EXIT=0 | `anti/*` |
+| 反测恢复旧文案 ⇒ 静态断言红；复原 SHA256 一致后复绿 | 能红、能自复原 | **达成两轮**：第一轮三条断言红点钉到 `spec:75` / `:76` / `:77`，第二轮（求值时机更正后）同三条钉到 `spec:85` / `:86` / `:87`；每轮"注入前 SHA = `cp` 复原后 SHA"= `cb27d321…408889`，复原态复跑 5/56 EXIT=0 | `anti/*`、`anti2/*` |
 
-反测四轮（均走树外 `.mjs`、latin1 字节精确、命中 ≠1 即 `exit 9`、`cp` 复原、未用 `sed -i`）：
+反测第一轮（均走树外 `.mjs`、latin1 字节精确、命中 ≠1 即 `exit 9`、`cp` 复原、未用 `sed -i`）：
 `date`（卡点名的 :6 旧文案原样注回 ⇒ 断言① 红）、`trustasia` 首轮（注入串同时含两个 token ⇒ 红点错位到断言①，日志按"证据不覆盖历史"留档）、
 `trustasia2` 更正轮（只注入 `TrustAsia` ⇒ 断言② `spec:76` 红 ⇒ 复原 ⇒ SHA 一致 ⇒ 复跑绿）、`callsite`（注入真实调用点 ⇒ 断言③ `spec:77` 红 ⇒ 复原 ⇒ SHA 一致）。
 
-提交：`597230c4`（卡基线，未 rebase、未切分支）→ `d9151ae5` 实现笔（只含 `pin-ssl.ts` 与 `storage-crypto.spec.ts`，逐文件 add）→ 本 docs 笔（回传卡 + 回执 + 证据树），共 2 笔。
+反测第二轮（`anti2/`，把求值移到 import 阶段之后重跑，证明更正没有把防回潮能力改弱）：`date` ⇒ 断言① `spec:85` 红、`trustasia` ⇒ 断言② `spec:86` 红、`callsite` ⇒ 断言③ `spec:87` 红；三轮各自 `cp` 复原后 SHA 与注入前一致、复原态复跑 5/56 EXIT=0。本轮首跑因把参数写成 `--case=date`（脚本要的是两个 argv）而 EXIT=9 拒写，注入未发生 ⇒ 那次"期望红"自然 EXIT=0，该空跑现场留档为 `anti2/injector-guard-attempt.note.txt`，未充作有效红档。
+
+**门 3 中途一次红（不掩盖）**：收尾做全量四门复跑时 `npm run test` 报 `Tests 1 failed | 55 passed (56)` + `Error: Test timed out in 5000ms`（`raw/32`），红点正是承载静态断言的宿主用例——首版把"读 `pin-ssl.ts` + 扫全 `src` 调用点"的 IO 写在 `it` 体内（实测扫描 189 文件 / 2.2 MB，冷 1121 ms / 热 1829 ms），与同用例的 GCM 运算叠加后在负载下越 vitest 默认 5000 ms。属执行方自引入的实现缺陷，处置 = 第三笔把**求值时机**移到模块加载期（断言三条、宿主用例、用例数 5/56、`pin-ssl.ts` 内容全部不变），随后四门全 EXIT=0 且 `npm run test` 连跑 3 次无抖动（`raw/33`）。
+
+提交：`597230c4`（卡基线，未 rebase、未切分支）→ `d9151ae5` 实现笔（只含 `pin-ssl.ts` 与 `storage-crypto.spec.ts`，逐文件 add）→ `50750e39` docs 笔（回传卡 + 本回执 + 证据树）→ 第三笔 `fix:`（`storage-crypto.spec.ts` 求值时机更正 + `raw/32`/`raw/33` + `anti2/` + 本回执与证据 README 同步更正），共 3 笔。**笔数超卡内"1~2 笔"，偏差已报备**（回传卡 §一.3、§五.5、§八.6）。
 
 ## 未验清单
 
@@ -52,9 +56,9 @@ status: done-self-assessed
 summary: pin-ssl.ts 文件头 :6/:28 两处"2026-09-15 过期/到期"假话改真（在册指纹=2026-10-21 现网 Let's Encrypt 值，api 叶子 2026-11-11、m 叶子 2026-12-22、中间 YE2/YE1 2028-09-02，仍未接线并纠正"未接线原因不再是过期"）；指纹常量与 installSslPinning 调用点(0)一字未动；卡 §三「静态断言可红」与「test 5/56 不升不降」内部矛盾已报备，并按不新增 spec/不新增 it、把三条静态断言追加进 storage-crypto.spec.ts 既有 it「tag 校验失败即抛…」的方式化解
 worktree: D:\Users\ZXQL\wt-agents\QODER-13
 branch: fix/qoder-13f1-pin-comment-refresh
-commits: 基线 597230c4（未 rebase/未切分支/未改历史）→ 实现笔 d9151ae5（fix: 只含 app-mobile/src/utils/pin-ssl.ts 两行注释 +2/-2 与 app-mobile/tests/storage-crypto.spec.ts 静态断言；逐文件 add）→ docs 笔（docs: 回传卡 + 本回执 + 证据树）；共 2 笔，见 git log --oneline 597230c4..HEAD
-gates: type-check EXIT=0（vue-tsc 0 条=基线 0 条）／lint EXIT=0（error 20=基线 20·warning 12872=基线 12872·无劣化·未调基线）／test EXIT=0（5 文件/56 用例·不升不降·gates-baseline.json 一字未动）／check:contract EXIT=0（差集 1·具名豁免 1）；判据 rg -in '2026-09-15|trustasia' pin-ssl.ts = 0 命中（RG_EXIT=1）、installSslPinning( 调用点 = 0；反测三红点分别钉到 spec:75/:76/:77，四份红档注入前=cp 复原后 SHA=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889，复原态复跑 5/56 EXIT=0
-redlines: 未 push／未开 PR／未 git add -A（逐文件 add）／未 rebase·未改历史·未切分支／未 npm install·未改 package.json 与 lockfile／未动 gates-baseline.json（tests 不抬）／未接线（installSslPinning 调用点 0）／未改任务书原件与 docs/tasks/inbox/ACTIVE.md／上一轮 docs/evidence/qoder-13/** 与其回传卡与回执一字未改（git diff 0 行）／backend 零改动／只动本工作树（注入脚本与备份在 _scratch/qoder-13f1）／全文只写执行方自评与卡片目标读数，不写归属验收方的判词
-evidence: docs/evidence/qoder-13f1/**（README；raw：00 改动前四门基线、01/02 文件头前后 30 行与 SHA、03 两条 rg 判据原文与逐处定性、05 头 30 行 unified diff、06 改动面 diff、07 卡内矛盾现场核对、08 全仓剩余命中面+rg 取反 glob 假 0 命中陷阱、21-24 改动后四门、30 收尾自检、31 实现笔后四门终态复跑；anti：date/trustasia/trustasia2/callsite 四份红档 + 复原绿档 + 两份 .note.txt 说明；无零字节文件，raw/04 编号空缺已在 README 说明）
+commits: 基线 597230c4（未 rebase/未切分支/未改历史）→ 实现笔 d9151ae5（fix: 只含 app-mobile/src/utils/pin-ssl.ts 两行注释 +2/-2 与 app-mobile/tests/storage-crypto.spec.ts 静态断言；逐文件 add）→ docs 笔 50750e39（docs: 回传卡 + 本回执 + 证据树）→ 第三笔 fix:（storage-crypto.spec.ts 静态求值移到 import 阶段 + raw/32/raw/33 + anti2/ 三张红档 + 本回执与证据 README 同步更正）；共 3 笔（超卡内 1~2 笔，起因是收尾复跑发现自引入的门 3 超时缺陷，已报备），哈希复现取 `git log --oneline 597230c4..HEAD`
+gates: type-check EXIT=0（vue-tsc 0 条=基线 0 条）／lint EXIT=0（error 20=基线 20·warning 12872=基线 12872·无劣化·未调基线）／test EXIT=0（5 文件/56 用例·不升不降·gates-baseline.json 一字未动·终态连跑 3 次无抖动见 raw/33）／check:contract EXIT=0（差集 1·具名豁免 1）；判据 rg -in '2026-09-15|trustasia' pin-ssl.ts = 0 命中（RG_EXIT=1）、installSslPinning( 调用点 = 0；反测两轮共六张红档：第一轮红点 spec:75/:76/:77（anti/）、第二轮（求值时机更正后）红点 spec:85/:86/:87（anti2/），每轮注入前=cp 复原后 SHA=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889，复原态复跑 5/56 EXIT=0；门 3 中途一次超时红未掩盖（raw/32），处置与终态见 raw/33 与回传卡 §八.6
+redlines: 未 push／未开 PR／未 git add -A（逐文件 add）／未 rebase·未改历史·未切分支（第三笔为本地新提交，前两笔哈希不变）／未 npm install·未改 package.json 与 lockfile／未动 gates-baseline.json（tests 不抬）／未接线（installSslPinning 调用点 0）／未改任务书原件与 docs/tasks/inbox/ACTIVE.md／上一轮 docs/evidence/qoder-13/** 与其回传卡与回执一字未改（git diff 0 行）／backend 零改动／只动本工作树（注入脚本与备份在 _scratch/qoder-13f1）／全文只写执行方自评与卡片目标读数，不写归属验收方的判词
+evidence: docs/evidence/qoder-13f1/**（README；raw：00 改动前四门基线、01/02 文件头前后 30 行与 SHA、03 两条 rg 判据原文与逐处定性、05 头 30 行 unified diff、06 改动面 diff、07 卡内矛盾现场核对、08 全仓剩余命中面+rg 取反 glob 假 0 命中陷阱、21-24 改动后四门、30 收尾自检、31 实现笔后四门终态复跑、32 门 3 超时红档与扫描耗时归因、33 求值时机更正后四门终态+连跑 3 次；anti：date/trustasia/trustasia2/callsite 四份红档 + 复原绿档 + 两份 .note.txt；anti2：求值时机更正后 date/trustasia/callsite 三张红档 + 注入器 EXIT=9 空跑现场 .note.txt；无零字节文件，raw/04 编号空缺已在 README 说明）
 return_card: docs/tasks/cards/R101-QODER-13F1-回传.md
 ===DSH-RECEIPT-END===

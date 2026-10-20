@@ -1,0 +1,44 @@
+### QODER-13F1 · 修正后（静态求值移到 import 阶段）常驻四门终态复跑
+# 采集时刻：2026-10-21T05:39:15+08:00（本机）
+# 代码态：app-mobile/src/utils/pin-ssl.ts 未再变动（SHA=cb27d321…408889，与实现笔 d9151ae5 逐字节一致）
+#        app-mobile/tests/storage-crypto.spec.ts 求值时机更正（SHA=f438071551432c9dac5998d9a5eccc037559cb9873182870a5f18856a25277f1）
+# 更正内容：只把 readFileSync(pin-ssl) 与 collectInstallCallSites(src) 的求值从 it 体内移到模块加载期（import 阶段），
+#           断言三条、宿主用例、口径全部不变；不新增 spec、不新增 it、不新增 describe ⇒ 用例数仍 5 文件 / 56 用例。
+# 判据复核：rg -in '2026-09-15|trustasia' app-mobile/src/utils/pin-ssl.ts（已先 export MSYS2_ARG_CONV_EXCL='*'）
+RG_EXIT=1  RG_HITS=0  HIT_CONTENT=[]
+# 更正说明：本行首次落盘写作 RG_EXIT=0——那是 echo 里 `$?` 取到上一条 `export` 的退出码（0）而非 rg 的退出码，
+#          属我写日志的取值错误；rg 无命中的真实退出码是 1（命中数仍为 0，判据结论不变）。已独立复采一次更正。
+$ sha256sum src/utils/pin-ssl.ts tests/storage-crypto.spec.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *app-mobile/src/utils/pin-ssl.ts
+f438071551432c9dac5998d9a5eccc037559cb9873182870a5f18856a25277f1 *app-mobile/tests/storage-crypto.spec.ts
+
+##### npm run type-check   # 期望 EXIT=0
+EXIT=0
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+
+##### npm run lint   # 期望 EXIT=0
+EXIT=0
+当前 error 20（基线 20）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+
+##### npm run test   # 期望 EXIT=0
+EXIT=0
+ Test Files  5 passed (5)
+      Tests  56 passed (56)
+
+##### npm run check:contract   # 期望 EXIT=0
+EXIT=0
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+
+##### 稳定性复跑：npm run test 连跑 3 次（超时抖动验证）
+RUN1 EXIT=0        Tests  56 passed (56)
+RUN2 EXIT=0        Tests  56 passed (56)
+RUN3 EXIT=0        Tests  56 passed (56)
+
+$ git status --porcelain
+ M app-mobile/tests/storage-crypto.spec.ts
+?? docs/evidence/qoder-13f1/anti2/
+?? docs/evidence/qoder-13f1/raw/32-timeout-before-fix.log
+?? docs/evidence/qoder-13f1/raw/33-post-fix-gates.log

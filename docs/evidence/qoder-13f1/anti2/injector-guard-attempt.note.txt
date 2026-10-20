@@ -1,0 +1,41 @@
+### QODER-13F1 反测（第二轮，spec 求值时机更正后）· case=date
+# 宿主用例：tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）
+# 注入面：app-mobile/src/utils/pin-ssl.ts（唯一被改文件；spec 与其余文件全程未动）
+
+$ date -Iseconds
+2026-10-21T05:24:01+08:00
+$ sha256sum app-mobile/src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *app-mobile/src/utils/pin-ssl.ts
+SHA_BEFORE=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+
+$ cp pin-ssl.ts -> D:/Users/ZXQL/wt-agents/_scratch/qoder-13f1/pin-ssl.ts.date.r2bak（注入前备份，复原只用 cp，禁止 sed -i）
+
+$ node D:/Users/ZXQL/wt-agents/_scratch/qoder-13f1/inject-13f1.mjs --case=date
+✗ 未知 --case（可选 date|trustasia|callsite）⇒ 拒写，EXIT=9
+INJECT_EXIT=9
+
+# 注入现场定性（三条断言各自只应命中其一）
+$ grep -c '2026-09-15' / grep -ci trustasia / grep -n 'installSslPinning()'
+date_hits=0
+ta_hits=0
+callsite=2:export function installSslPinning(): boolean {
+
+$ npm run test   # 期望 EXIT=1，红点点名宿主用例与对应断言行
+RED_EXIT=0
+--- vitest 失败摘要（节选）---
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+
+$ cp D:/Users/ZXQL/wt-agents/_scratch/qoder-13f1/pin-ssl.ts.date.r2bak -> pin-ssl.ts（原子自复原）
+RESTORE_EXIT=0
+$ sha256sum app-mobile/src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *app-mobile/src/utils/pin-ssl.ts
+SHA_AFTER=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_EQUAL=yes（注入前后逐字节一致）
+$ git status --porcelain
+ M app-mobile/tests/storage-crypto.spec.ts
+?? docs/evidence/qoder-13f1/anti2/
+
+$ npm run test   # 复原态复跑，期望 EXIT=0 且 5 文件 / 56 用例
+GREEN_EXIT=0
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+### 本轮结束 date=2026-10-21T05:26:23+08:00
