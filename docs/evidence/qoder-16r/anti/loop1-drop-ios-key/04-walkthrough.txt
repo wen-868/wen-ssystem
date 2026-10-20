@@ -1,0 +1,26 @@
+QODER-16R 反测 loop1 · 删一个 iOS 隐私键（协议 §4 原子自复原）
+
+汇报人：Qoder（移动端执行方）｜日期：2026-10-21｜对应派单编号：QODER-16R
+
+目标：证明常驻 `npm run test` 门对「iOS 隐私描述键缺失」会红并点名，且复原是逐字节自复原。
+
+步骤（注入/复原与 vitest 运行严格串行，全程在 git 工作树内完成的写入只有 src/manifest.json，注入脚本在工作树外）：
+1. `00-pre-sha256.txt`：改前 `sha256sum src/manifest.json` = f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe。
+2. `cp src/manifest.json → _scratch/qoder-16r/manifest.json.orig` 备份（工作树外）。
+3. `01a-inject.txt`：`node _scratch/qoder-16r/drop-ios-key.mjs` 删除包含
+   `"NSBluetoothAlwaysUsageDescription"` 的整行（latin1 字节精确，含行尾 CRLF，
+   命中数≠1 即 exit 9 拒绝注入）；5777 → 5552 字节（差 225）；grep 复核键 0 命中。
+   未用 sed -i、未用 Edit 删功能行。
+4. `01-target-red.txt`：`npm run test` ⇒ EXIT=1 红，点名两处：
+   - AssertionError: 缺少 NSBluetoothAlwaysUsageDescription: expected undefined to be type of 'string'
+     （用例「iOS 六个隐私描述键齐备且描述非空」）
+   - TypeError: .toMatch() expects to receive a string, but got undefined
+     （用例「每条隐私描述与其真实功能对得上」，tests/mobile-permissions.spec.ts:111）
+   汇总行：Test Files 1 failed | 5 passed (6)。
+5. `02-restore-sha256.txt`：`cp` 复原 ⇒ `sha256sum` 与改前逐字节一致
+   （SHA_MATCH=YES，f551ca55…604e5fe）。
+6. `03-restore-green.txt`：复跑 `npm run test` ⇒ 6 文件 / 64 用例全过，EXIT=0 绿。
+
+判据结论（执行方自评，非验收结论）：门能红、红得点名、复原逐字节一致、复跑绿 ⇒ 反测通过。
+注：02 首版比对脚本因 hash 提取逻辑写错（head -1 取到命令行）打印 SHA_MATCH=NO 并 exit 8，
+实际两行 sha256sum 输出本就相同；已修正提取逻辑重写该文件，文件内附双值可核。
