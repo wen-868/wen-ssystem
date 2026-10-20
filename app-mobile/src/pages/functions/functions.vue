@@ -18,7 +18,7 @@
     >
       <text class="func-banner-text">{{ menuStore.bannerText }}</text>
       <text class="func-banner-retry" :style="{ color: AI_WARNING }" v-if="menuStore.showRetry" @tap="retryMenus">重试</text>
-      <text class="func-banner-close" @tap="menuStore.dismissBanner()">×</text>
+            <text class="func-banner-close" @tap="menuStore.dismissBanner()">×</text>
     </view>
 
     <!-- 高频宫格（真实搜索过滤） -->
