@@ -3,8 +3,8 @@
 > 派单人：凌舟｜端：移动端 → Qoder｜日期：2026-10-21
 > 工作树：`D:\Users\ZXQL\wt-agents\QODER-18`
 > 分支：`fix/qoder-18-upload-dead-code`
-> 基线：QODER-14F1 验收后的尖端（卡面由凌舟后续补 SHA）
-> 状态：**等待 QODER-14F1 完成**，与 14F1 同改 `request.ts`，禁止并行抢文件。
+> 基线：`e6801de0`（QODER-14F1 验收通过尖端）
+> 状态：**已解锁**。从 `e6801de0` 建 `fix/qoder-18-upload-dead-code`，与其它页面任务可并行。
 > 红线：不得 push、不得开 PR、不得 `git add -A`。
 
 ## 一、已核实
