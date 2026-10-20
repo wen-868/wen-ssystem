@@ -1,10 +1,13 @@
 /**
- * QODER-14 · 401 重试安全性 + 清态补 CSRF
+ * QODER-14 / QODER-14F1 · 401 重试安全性 + 清态补 CSRF 与 merchant_tenant
  *
  * 目标：`src/api/request.ts` 的 401 分支。
  *  - 静默重试（防误杀）**只允许幂等的 GET**；POST/PUT/DELETE 首次 401 直接清态 + 提示 + 跳登录。
  *  - method 缺省按 GET 处理，统一大写比较。
- *  - 401 清态必须包含 `merchant_csrf_token`。
+ *  - 401 清态必须包含 `merchant_csrf_token`（QODER-14）与 `merchant_tenant`（QODER-14F1）。
+ *    ★ QODER-14F1 的依据：`merchant_tenant`（租户对象，SENSITIVE_KEYS.TENANT）与
+ *    `merchant_tenant_id`（租户 ID 字符串，SENSITIVE_KEYS.TENANT_ID）是两个不同的敏感键，
+ *    `setTenant()` 会同时写这两个键 ⇒ 只清 tenant_id 会留下旧租户对象。
  *
  * 本文件**真实驱动** request.ts：用 `vi.stubGlobal('uni', …)` 造 uni 运行时 mock，
  * 动态 `import('../src/api/request')` 后调用导出的 `request()`，让真实代码走到
@@ -15,7 +18,9 @@
  *
  * 反测面（门必须能红）：
  *  ① 把 GET 判定摘掉恢复「无条件重放」⇒ 用例「POST / PUT / DELETE 不重放」三条必红；
- *  ② 删掉 `uni.removeStorageSync('merchant_csrf_token')` ⇒ 用例「401 清态含 CSRF 键」必红。
+ *  ② 删掉 `uni.removeStorageSync('merchant_csrf_token')` ⇒ 用例④（被删键集合）与⑫（镜像键不残留）必红；
+ *  ③ ★ QODER-14F1 删掉 `uni.removeStorageSync('merchant_tenant')` ⇒ 用例④ 集合少了该键、
+ *     用例⑫ 的 `enc_merchant_tenant` 仍残留 ⇒ 两条同时红。
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
@@ -159,13 +164,15 @@ describe('QODER-14 · 401 静默重试只允许 GET + 清 CSRF', () => {
     expect(stub.calls[0].method).toBe('DELETE')
   })
 
-  it('④ 401 清态必须包含 merchant_csrf_token（连带 token / user / tenant_id）', async () => {
+  it('④ 401 清态必须包含 merchant_csrf_token 与 merchant_tenant（连带 token / user / tenant_id）', async () => {
     const mod = await importRequest()
     await expect(mod.request({ url: '/admin/order/create', method: 'POST' })).rejects.toThrow()
 
-    // 被删键集合精确等于四项登录态：缺 CSRF ⇒ 本用例红
+    // 被删键集合精确等于五项登录态（storage.ts SENSITIVE_KEYS 全集）：
+    // 缺 CSRF ⇒ QODER-14 那笔红；缺 merchant_tenant ⇒ QODER-14F1 本笔红。
+    // merchant_tenant ≠ merchant_tenant_id（两个不同敏感键），故两者必须同时出现。
     expect([...new Set(stub.removedKeys)].sort()).toEqual(
-      ['merchant_csrf_token', 'merchant_tenant_id', 'merchant_token', 'merchant_user'].sort()
+      ['merchant_csrf_token', 'merchant_tenant', 'merchant_tenant_id', 'merchant_token', 'merchant_user'].sort()
     )
     // 写请求确实带上了 CSRF（证明该键是活跃登录态，不是摆设）
     expect(stub.calls[0].header?.['x-csrf-token']).toBe('csrf-token-001')
@@ -225,7 +232,7 @@ describe('QODER-14 · 401 静默重试只允许 GET + 清 CSRF', () => {
     }
   })
 
-  it('⑩ 源码静态兜底：重试条件里带 GET 判定且清理 CSRF（不可代替上面的行为用例）', async () => {
+  it('⑩ 源码静态兜底：重试条件里带 GET 判定且清理 CSRF 与 merchant_tenant（不可代替上面的行为用例）', async () => {
     const { readFileSync } = await import('node:fs')
     const { fileURLToPath } = await import('node:url')
     const src = readFileSync(
@@ -235,20 +242,24 @@ describe('QODER-14 · 401 静默重试只允许 GET + 清 CSRF', () => {
     expect(src).toMatch(/toUpperCase\(\)/)
     expect(src).toMatch(/retryMethod === 'GET'/)
     expect(src).toContain("uni.removeStorageSync('merchant_csrf_token')")
+    // ★ QODER-14F1：merchant_tenant 这一行是本卡的靶点，源码层兜底与④/⑫的行为断言双保险
+    expect(src).toContain("uni.removeStorageSync('merchant_tenant')")
   })
 })
 
 /**
- * ⑪~⑬ CSRF「镜像键」语义实测（回传卡 §三 的那条判断在这里被测，不是只靠读代码）
+ * ⑪~⑬ CSRF / merchant_tenant「镜像键」语义实测（回传卡 §三 的那条判断在这里被测，不是只靠读代码）
  *
  * 事实链（storage.ts + utils/crypto.ts）：
- *  - storage.ts 的 SENSITIVE_KEYS 含 CSRF_TOKEN: 'merchant_csrf_token'；
+ *  - storage.ts 的 SENSITIVE_KEYS 含 CSRF_TOKEN: 'merchant_csrf_token' 与 TENANT: 'merchant_tenant'
+ *    （★ QODER-14F1：TENANT 与 TENANT_ID 是两个不同键，setTenant() 会同时写这两个键）；
  *  - crypto.ts 把敏感 Key 写成 `enc_${key}` 镜像键（H5 走 window.localStorage，App/小程序走 uni）；
  *  - storage.ts 模块加载时安装 uni.getStorageSync / uni.removeStorageSync 拦截器，
  *    对敏感 Key 的 remove 会「removeSecureStorage(key) + 原始 removeStorageSync(key)」两条一起做。
- * ⇒ request.ts 里那一行 `uni.removeStorageSync('merchant_csrf_token')`
- *    在真实运行期（拦截器已由 App.vue → stores/user → api/storage 装载）会**同时**清掉明文键
- *    和 enc_ 镜像键，因此**不需要**第二条删除。以下用例实测这一结论。
+ * ⇒ request.ts 里 `uni.removeStorageSync('merchant_csrf_token')` 与
+ *    `uni.removeStorageSync('merchant_tenant')` 这两行，在真实运行期（拦截器已由 App.vue →
+ *    stores/user → api/storage 装载）会**同时**清掉明文键和 enc_ 镜像键，因此**不需要**各补第二条删除。
+ *    以下用例实测这一结论。
  */
 describe('QODER-14 · 401 清态对 enc_ 镜像键的实际效果（storage.ts 拦截器在环）', () => {
   interface Chain {
@@ -336,12 +347,39 @@ describe('QODER-14 · 401 清态对 enc_ 镜像键的实际效果（storage.ts �
     expect(storage.getCsrfToken()).toBe('') // 再读已为空
   })
 
-  it('⑫ 真实 401 路径跑完后，enc_merchant_csrf_token 与 enc_merchant_token 均不残留', async () => {
+  /**
+   * 五个敏感键 = storage.ts SENSITIVE_KEYS 全集（:75-80）
+   * TOKEN / USER / TENANT / TENANT_ID / CSRF_TOKEN —— 其中 TENANT 与 TENANT_ID 是两个不同键，
+   * 本卡（QODER-14F1）补的就是 TENANT: 'merchant_tenant'。
+   */
+  const SENSITIVE_KEYS_UNDER_TEST = [
+    'merchant_token',
+    'merchant_user',
+    'merchant_tenant',
+    'merchant_tenant_id',
+    'merchant_csrf_token'
+  ]
+
+  it('⑫ 真实 401 路径跑完后，token/user/tenant/tenant_id/csrf 五个敏感键的明文与 enc_ 镜像均不残留', async () => {
     const { storage, request } = await loadChain()
+    // 五个敏感键全部落真实登录态：setTenant() 同时写 merchant_tenant 与 merchant_tenant_id
     storage.setToken('jwt-live')
-    storage.setCsrfToken('csrf-live')
+    storage.setUser({ id: 1, username: 'u-live', realName: '店长', roles: ['merchant'] })
     storage.setTenant({ id: 'tenant-001', name: '门店', code: 'T1' })
+    storage.setCsrfToken('csrf-live')
+    // 再各塞一份「历史明文残留」（拦截器不拦 setStorageSync ⇒ 直落 uni 存储层），
+    // 用来实测拦截器里那条 _originalRemoveStorageSync(key) 确实把明文形态也带走了
+    for (const k of SENSITIVE_KEYS_UNDER_TEST) chain.uni.setStorageSync(k, 'plain-residue')
+
+    // 注入后前提自检：五个加密镜像键与五个明文键必须**真的都在**，否则「不残留」是空断言
     expect(storage.getToken()).toBe('jwt-live')
+    expect(storage.getUser()?.id).toBe(1)
+    expect(storage.getTenant()?.code).toBe('T1')
+    expect(storage.getCsrfToken()).toBe('csrf-live')
+    for (const k of SENSITIVE_KEYS_UNDER_TEST) {
+      expect(chain.ls.has(`enc_${k}`), `前提不成立：enc_${k} 未落盘`).toBe(true)
+      expect(chain.uniStore.has(k), `前提不成立：明文键 ${k} 未落盘`).toBe(true)
+    }
 
     // POST 首请求 401 ⇒ 走「不重试 + 清态」分支（真实驱动 request.ts）
     await expect(request.request({ url: '/admin/order/create', method: 'POST' })).rejects.toThrow(
@@ -349,12 +387,15 @@ describe('QODER-14 · 401 清态对 enc_ 镜像键的实际效果（storage.ts �
     )
 
     expect(chain.calls.length).toBe(1)
-    // CSRF 与 token 走同一套语义 ⇒ 明文键与加密镜像键都清干净
-    expect(storage.getCsrfToken()).toBe('')
+    // 五个敏感键走同一套拦截器语义 ⇒ 明文键与加密镜像键都清干净
     expect(storage.getToken()).toBe('')
-    expect(chain.ls.has('enc_merchant_csrf_token')).toBe(false)
-    expect(chain.ls.has('enc_merchant_token')).toBe(false)
-    expect(chain.uniStore.has('merchant_csrf_token')).toBe(false)
+    expect(storage.getUser()).toBeNull()
+    expect(storage.getTenant()).toBeNull()
+    expect(storage.getCsrfToken()).toBe('')
+    for (const k of SENSITIVE_KEYS_UNDER_TEST) {
+      expect(chain.ls.has(`enc_${k}`), `401 清态后 ${k} 的加密镜像键 enc_${k} 仍残留`).toBe(false)
+      expect(chain.uniStore.has(k), `401 清态后 ${k} 的明文键仍残留`).toBe(false)
+    }
   })
 
   it('⑬ 未装拦截器的裸 uni（等价于存储层退化态）下，镜像键只能由 storage.ts 的 removeCsrfToken 清', async () => {

@@ -112,6 +112,14 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
           }
           uni.removeStorageSync('merchant_token')
           uni.removeStorageSync('merchant_user')
+          // ★ QODER-14F1：merchant_tenant 与 merchant_tenant_id 是 storage.ts SENSITIVE_KEYS 里
+          // 两个**不同**的敏感键（TENANT / TENANT_ID，见 storage.ts:75-80）：setTenant() 会同时写
+          // 这两个键（storage.ts:319-322），此前 401 只清 tenant_id ⇒ 重新登录前旧租户对象
+          // （enc_merchant_tenant）仍可被读出，属登录态残留。本键同样在 SENSITIVE_KEYS 内，
+          // uni.removeStorageSync 拦截器（storage.ts:196-203）会把这一条调用连带转成
+          // removeSecureStorage（删加密镜像键 enc_merchant_tenant）+ 原始 removeStorageSync
+          // （删历史明文残留），与其余四行完全同一套语义，因此一条即够，不补第二条删除。
+          uni.removeStorageSync('merchant_tenant')
           uni.removeStorageSync('merchant_tenant_id')
           // ★ QODER-14：CSRF 令牌也是登录态的一部分，此前漏清会在重新登录前留下
           // 可用的旧写操作凭据。'merchant_csrf_token' 在 storage.ts 的 SENSITIVE_KEYS 里，
