@@ -1,0 +1,25 @@
+### 命令: npm --workspace app-mobile run build:app
+### 工作目录: D:/Users/ZXQL/wt-agents/QODER-19 （仓库根）
+### 时间戳: 2026-10-21 04:34:58 +0800
+### 分支: chore/qoder-19-baseline-convergence
+### HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+### 判据: EXIT=0（卡 §三 build:app）；若因环境真失败则如实登记原文，不判绿
+----------------------------------------
+
+> zhixiang-app-mobile@1.0.0 build:app
+> uni build -p app
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+​[33m 
+(!) D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/native/scan.ts is dynamically imported by D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages/home/home.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages/products/products.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts but also statically imported by D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages-sub/product/product/product-edit.vue?vue&type=script&setup=true&lang.ts, dynamic import will not move module into another chunk.
+[39m​
+DONE  Build complete.
+Run method: open HBuilderX, import [36mdist\build\app[39m run.
+----------------------------------------
+EXIT=0

@@ -1,0 +1,7 @@
+### 轮次: ② price-anomaly.vue 的 isBelowCost(...) 改回裸 item.retailPrice < item.costPrice（15F1 目标）
+### 目标文件: app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:52:15 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+7cd186fdfa8a88ef0b35b1433a1e38571158efba7d2bc9c7aaa24a5afb8ac036 */d/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue

@@ -1,0 +1,35 @@
+### 轮次: ② price-anomaly.vue 的 isBelowCost(...) 改回裸 item.retailPrice < item.costPrice（15F1 目标）
+### 目标文件: app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:55:03 +0800（本文件为汇总，逐步原始输出见 00-04）
+----------------------------------------
+七步走查:
+  1) 注入前 sha256   -> 00-pre-sha256.txt     7cd186fdfa8a88ef0b35b1433a1e38571158efba7d2bc9c7aaa24a5afb8ac036
+  2) cp 备份         -> _scratch/qoder-19/q19-backup-anti-a2-price-compare-price-anomaly.vue
+  3) 树外 .mjs 注入  -> 01-inject.txt         (latin1 字节精确，命中数=1 才写，字节 8539→8527)
+  4) 跑门取红        -> 02-test-red.txt       EXIT=1
+  5) cp 复原         -> 备份原地覆盖
+  6) 复原 sha256     -> 03-restore-sha256.txt 7cd186fdfa8a88ef0b35b1433a1e38571158efba7d2bc9c7aaa24a5afb8ac036  与注入前逐字节一致=YES
+  7) 复跑取绿        -> 04-test-green.txt     EXIT=0（10 文件 / 184 用例）
+
+注入命令原文:
+  INJECTED D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+    命中数=1（唯一，写入已执行）
+
+红点名（15F1 静态门 + 字符串低价复现条，逐条）:
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue 低价标红静态门（QODER-15F1） > :class 标红判定调用 isBelowCost，且全页恰好出现 1 次
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue 低价标红静态门（QODER-15F1） > 页面不再直接比较原始 API 值 item.retailPrice < item.costPrice
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue 低价标红静态门（QODER-15F1） > 全页不存在任何 item.*Price < item.*Price 形态的裸价格比较
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标） > 绑定表达式确实走归一化工具（而非裸 `<`）
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标） > 字符串低价 retail "9.00" / cost "12.00" ⇒ 必须标红（卡点名复现）
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标） > 字符串高价 retail "12.00" / cost "9.00" ⇒ 不标红
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标） > 字典序反向 retail "1000.00" / cost "999.00" ⇒ 不得误标红
+   FAIL  tests/price-anomaly-static.spec.ts > price-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标） > retail null / cost "12.00" ⇒ 无效值不标红
+
+汇总行:
+  RED    Test Files  1 failed | 9 passed (10)
+  RED         Tests  8 failed | 176 passed (184)
+  RED   ✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+  GREEN  Test Files  10 passed (10)
+  GREEN       Tests  184 passed (184)
+  GREEN ✓ vitest 全过且用例数不劣化 ⇒ EXIT=0

@@ -1,0 +1,29 @@
+### 命令: git log --merges 21b465e5..HEAD / git show --format / git diff <merge>^1..<merge> --stat
+### 工作目录: D:/Users/ZXQL/wt-agents/QODER-19
+### 时间戳: 2026-10-21 04:38:59 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+### 说明: 四笔 merge commit 由负责人（主代理）完成，固定合并序 14F1→15F1→16R→17F1；本单只做复跑与取证。
+========================================
+=== [1] merge commit 一览（含 parents）===
+0963459d | parents=bcf4f4e0 47c737e8 | merge: QODER-17F1 safe-top 根链补 viewport-fit=cover（进基线收敛）
+bcf4f4e0 | parents=25663f73 54ba998a | merge: QODER-16R 隐私权限 manifest 落点（进基线收敛）
+25663f73 | parents=0ddcc3d2 316f2051 | merge: QODER-15F1 低价比较经 toNum 归一化（进基线收敛）
+0ddcc3d2 | parents=21b465e5 e6801de0 | merge: QODER-14F1 401 清态补 merchant_tenant（进基线收敛）
+
+=== [2] 被并入的四分支尖端确认（卡 §一 表格逐项核对）===
+--- QODER-14F1: merge=0ddcc3d2 被并尖端=e6801de0 ---
+  尖端提交: e6801de0 docs: QODER-14F1 收尾自检证据（四门终态现场复跑 + build:h5 作废登记与修正复跑）
+  该尖端是否为 merge 的第二父（是=固定序正确）: YES
+  merge 第一父（=前一笔，链式）: 21b465e5c2a9defd0e3f65809a4b2ba4bc6c0e18
+--- QODER-15F1: merge=25663f73 被并尖端=316f2051 ---
+  尖端提交: 316f2051 docs: QODER-15F1 终态四门复跑与收尾自检证据
+  该尖端是否为 merge 的第二父（是=固定序正确）: YES
+  merge 第一父（=前一笔，链式）: 0ddcc3d2a1eabdd27ed5e88874cbb9b241ee8f2a
+--- QODER-16R: merge=bcf4f4e0 被并尖端=54ba998a ---
+  尖端提交: 54ba998a docs: QODER-16R 回传卡、回执与常驻门禁重栈证据（四门/三构建/产物回读/反测）
+  该尖端是否为 merge 的第二父（是=固定序正确）: YES
+  merge 第一父（=前一笔，链式）: 25663f73f0db08d3b465fa2f241f88430330e942
+--- QODER-17F1: merge=0963459d 被并尖端=47c737e8 ---
+  尖端提交: 47c737e8 docs: QODER-17F1 提交哈希引用补全（卡 §①/§⑤-7 与回执 commits 行，无功能与判据变化）
+  该尖端是否为 merge 的第二父（是=固定序正确）: YES
+  merge 第一父（=前一笔，链式）: bcf4f4e07ec76f7a6ab83497b74484617044fe74

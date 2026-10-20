@@ -1,0 +1,19 @@
+### 轮次: ① 摘 request.ts 的 uni.removeStorageSync('merchant_tenant')（14F1 目标）
+### 目标文件: app-mobile/src/api/request.ts
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:45:53 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+INJECTED D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/api/request.ts
+  mode=replace 命中字面量 "uni.removeStorageSync('merchant_tenant')" → ""
+  命中数=1（唯一，写入已执行）
+  字节数 10155 → 10115（差 -40）
+  CRLF 计数 0 → 0（行尾未被归一）
+注入后 grep:
+113:          uni.removeStorageSync('merchant_token')
+114:          uni.removeStorageSync('merchant_user')
+119:          // uni.removeStorageSync 拦截器（storage.ts:196-203）会把这一条调用连带转成
+120:          // removeSecureStorage（删加密镜像键 enc_merchant_tenant）+ 原始 removeStorageSync
+123:          uni.removeStorageSync('merchant_tenant_id')
+127:          // enc_merchant_csrf_token）+ 原始 removeStorageSync（删历史明文残留），
+129:          uni.removeStorageSync('merchant_csrf_token')

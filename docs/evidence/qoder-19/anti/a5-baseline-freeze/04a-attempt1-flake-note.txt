@@ -1,0 +1,21 @@
+### 本轮 attempt1 复跑转绿失败 —— 与本单注入无关的既存不稳定用例，如实登记，不改写其原始输出
+### 文件: 04-test-green-attempt1-unrelated-flake.txt（由 q19-anti-round.sh 第 7 步生成，仅改名，内容零改动）
+### 时间戳: 2026-10-21 05:03:47 +0800
+----------------------------------------
+红在哪一条（唯一 1 条）:
+        Tests  1 failed | 183 passed (184)
+   FAIL  tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）
+  AssertionError: expected [Function] to throw an error
+
+为什么判定与本单注入无关（四条可核对依据）:
+  1) 本轮注入的目标文件只有 app-mobile/scripts/gates-baseline.json，且复原后 sha256 与注入前逐字节一致
+     （PRE=ac183c567c76368360240200caa03e48ee4ad5c37b7a81e2bbf26de4331e729e / POST=ac183c567c76368360240200caa03e48ee4ad5c37b7a81e2bbf26de4331e729e）。
+  2) 失败用例在 tests/storage-crypto.spec.ts，本轮从未触碰；git status 对该文件为空（工作树无 M）。
+  3) 该用例每次运行都调用 encrypt() 产生**随机 IV**（src/utils/crypto.ts 第 16 行：IV 每次随机 12 字节，
+     tag 16 字节 base64），再用 tag.slice(0,-4)+'AAAA' 造篡改串 ⇒ 断言结果依赖本次随机 tag 的取值，
+     是随机性用例；基线 JSON 文件不参与该用例的任何输入。
+  4) 同一份代码在本单 raw/03 及第①②③④轮的绿跑中共 5 次全过 184/184，本次第 6 次单条偶发失败
+     ⇒  intermittent，非本次改动引入的确定性失败。
+
+处置: 未调基线、未改用例、未改 crypto；仅原样复跑（见 05-test-green-attempt2.txt）。
+登记口径: 该用例的稳定性属**未根治项**，写入回传卡 §七 未完成与阻塞 / §八 自我报备，交负责人裁定是否另立卡。

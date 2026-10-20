@@ -1,0 +1,7 @@
+### 轮次: ① 摘 request.ts 的 uni.removeStorageSync('merchant_tenant')（14F1 目标）
+### 目标文件: app-mobile/src/api/request.ts
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:45:49 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+d7f2cf731581374bbabdaf8b73eaf814444e77c82c1598fe3fcb46660d3e3723 */d/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/api/request.ts

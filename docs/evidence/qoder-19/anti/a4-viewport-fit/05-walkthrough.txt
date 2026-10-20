@@ -1,0 +1,29 @@
+### 轮次: ④ index.html 删 viewport-fit=cover（17F1 断言④ 目标）
+### 目标文件: app-mobile/index.html
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:59:11 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+七步走查（本轮全部产物均在本目录）:
+  1) 注入前 sha256      -> 00-pre-sha256.txt     5d13f82cf757915ca71a2bd0a2950804e7af1ca6cc0434a9563531671036b1a2
+  2) cp 备份            -> /d/Users/ZXQL/wt-agents/_scratch/qoder-19/q19-backup-anti-a4-viewport-fit-index.html
+  3) 树外 .mjs 注入     -> 01-inject.txt         (latin1 字节精确；命中数=1 才写)
+  4) 跑门取红           -> 02-test-red.txt       EXIT=1
+  5) cp 复原            -> 用备份原地覆盖
+  6) 复原 sha256 比对    -> 03-restore-sha256.txt 5d13f82cf757915ca71a2bd0a2950804e7af1ca6cc0434a9563531671036b1a2  一致=YES
+  7) 复跑取绿           -> 04-test-green.txt     EXIT=0
+
+注入命令原文:
+  node _scratch/qoder-19/q19-anti-inject.mjs --file=D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/index.html --mode=replace --old=, viewport-fit=cover --new=
+
+红点名（vitest 逐条失败用例）:
+   FAIL  tests/safe-top-var.spec.ts > QODER-17F1 index.html viewport（安全区根链另一半） > ④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover`
+  ✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+
+汇总行:
+  RED    Test Files  1 failed | 9 passed (10)
+  RED         Tests  1 failed | 183 passed (184)
+  RED   ✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+  GREEN  Test Files  10 passed (10)
+  GREEN       Tests  184 passed (184)
+  GREEN ✓ vitest 全过且用例数不劣化 ⇒ EXIT=0

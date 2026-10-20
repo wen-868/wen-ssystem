@@ -1,0 +1,77 @@
+### 命令: 协议 §7 收尾自检七项（逐条原文输出）
+### 工作目录: D:/Users/ZXQL/wt-agents/QODER-19
+### 时间戳: 2026-10-21 05:16:47 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+### 时点: 本文件在 docs 提交之前采集，故 git status 仅列本单自己的新 docs（待 add）；提交后的终态空校验见 17-post-commit-final-check.txt
+========================================
+--- [1] git status --porcelain（预期：仅本单新增 docs，未 track）---
+?? docs/evidence/qoder-19/
+
+--- [2] git log --oneline origin/main..HEAD（本分支相对 main 的笔数与哈希）---
+0963459d merge: QODER-17F1 safe-top 根链补 viewport-fit=cover（进基线收敛）
+bcf4f4e0 merge: QODER-16R 隐私权限 manifest 落点（进基线收敛）
+25663f73 merge: QODER-15F1 低价比较经 toNum 归一化（进基线收敛）
+0ddcc3d2 merge: QODER-14F1 401 清态补 merchant_tenant（进基线收敛）
+316f2051 docs: QODER-15F1 终态四门复跑与收尾自检证据
+47c737e8 docs: QODER-17F1 提交哈希引用补全（卡 §①/§⑤-7 与回执 commits 行，无功能与判据变化）
+bd59a405 docs: QODER-15F1 低价标红判定归一化回传卡/回执/证据（四门读数+反测+浏览器修复前后对比）
+fe05735b docs: QODER-17F1 终态自检输出（协议 §7：四门终态复跑 + 改动面核对）
+70c96326 docs: QODER-17F1 回传卡+回执+证据（viewport-fit 源码与产物直证、常驻四门读数、两条反测、H5 computed 新基线取证）
+477acdca fix: 价格异常页低价标红判定经 toNum 归一化杜绝字符串字典序误判
+e6801de0 docs: QODER-14F1 收尾自检证据（四门终态现场复跑 + build:h5 作废登记与修正复跑）
+54ba998a docs: QODER-16R 回传卡、回执与常驻门禁重栈证据（四门/三构建/产物回读/反测）
+9b12c4ba test: QODER-16R 门禁基线 tests 5/56→6/64（常驻 vitest 实测即基线，QODER-16 权限 8 用例接入留痕）
+da6db146 docs: QODER-14F1 回传卡、ACTIVE 回执与 401 清态补删 merchant_tenant 的判据证据
+8c09cfbd fix: 401 清态补删 merchant_tenant 并将五敏感键无残留做成断言（QODER-14F1）
+6bd830d9 fix: QODER-17F1 index.html viewport 补 viewport-fit=cover 并新增静态断言④（tests 基线实测 6/60）
+6e714beb docs: QODER-17 回传卡 §〇 补全提交链与复核笔说明
+16761f56 docs: QODER-17 负责人独立复核与使用点计数校订（修后 96 处/89 文件）
+f91673c8 docs: QODER-17 收尾自检输出补落证据(协议 §6)
+2860151d docs: QODER-17 回传卡+回执+反测与 H5 computed 取证证据
+e3a4a7d0 fix: QODER-17 App.vue --safe-top 自引用改为 env(safe-area-inset-top) 并新增静态断言用例
+f4260a90 docs: QODER-16 证据探针 B 作废说明与指向 raw/22
+67546800 docs: QODER-16 回传卡、回执与证据（iOS 隐私六键 + 小程序录音授权取证）
+6b6fb197 fix: QODER-16 补 iOS 六键隐私描述与小程序录音授权并新增 JSON 权限断言用例
+241f1f15 docs: QODER-15 收尾自检证据
+86fc7fce docs: QODER-15 价格异常页数值入口止血回传卡/回执/证据
+81ef5c07 fix: 价格异常页金额显示接入 fmtAmount 数值归一化工具止血白屏
+a5294668 docs: QODER-14 收尾自检与改动面自证证据（协议 §6 逐条输出）
+e29b801e docs: QODER-14 回传卡与 401 重试安全性证据（判据读数 + 两条反测）
+5dbf1453 fix: 401 静默重试仅允许 GET 且清态补删 CSRF 令牌（QODER-14）
+
+--- [3] git rev-list --count origin/main..HEAD ---
+30
+
+--- [4] git diff --name-only 21b465e5..HEAD 的文件数（改动面规模）---
+230
+
+--- [5] git diff 21b465e5..HEAD -- backend/ 字节数（判据 0）---
+bytes=0
+
+--- [6] git diff 21b465e5..HEAD -- app-mobile/src 文件清单（六项，全部可归因四卡）---
+app-mobile/src/App.vue
+app-mobile/src/api/modules/price.ts
+app-mobile/src/api/request.ts
+app-mobile/src/manifest.json
+app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+app-mobile/src/utils/format.ts
+
+--- [7] 四门 + 三构建 EXIT 汇总（原始输出见 raw/01-07、终态复跑见 raw/15）---
+  type-check      EXIT=0   (raw/01)  error 0/0
+  lint            EXIT=0   (raw/02)  error 20/20  warning 12872/12872
+  test            EXIT=0   (raw/03)  10 文件 / 184 用例
+  check:contract  EXIT=0   (raw/04)  292/283/204/1498 差集1全豁免
+  build:h5        EXIT=0   (raw/05)
+  build:mp-weixin EXIT=0   (raw/06)
+  build:app       EXIT=0   (raw/07)
+  check:gates 终态串行 EXIT=0 (raw/15)
+
+--- [8] gates-baseline.json 未被本单改动核对（本单只读该文件，未写）---
+本单 docs 提交内容不含 app-mobile/scripts/gates-baseline.json；该文件终态 10/184 由负责人在 merge 0963459d 定；
+0963459d merge: QODER-17F1 safe-top 根链补 viewport-fit=cover（进基线收敛）
+bcf4f4e0 merge: QODER-16R 隐私权限 manifest 落点（进基线收敛）
+25663f73 merge: QODER-15F1 低价比较经 toNum 归一化（进基线收敛）
+477acdca fix: 价格异常页低价标红判定经 toNum 归一化杜绝字符串字典序误判
+9b12c4ba test: QODER-16R 门禁基线 tests 5/56→6/64（常驻 vitest 实测即基线，QODER-16 权限 8 用例接入留痕）
+8c09cfbd fix: 401 清态补删 merchant_tenant 并将五敏感键无残留做成断言（QODER-14F1）
+6bd830d9 fix: QODER-17F1 index.html viewport 补 viewport-fit=cover 并新增静态断言④（tests 基线实测 6/60）

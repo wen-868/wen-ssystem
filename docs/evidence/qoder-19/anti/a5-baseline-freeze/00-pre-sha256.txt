@@ -1,0 +1,7 @@
+### 轮次: ⑤ 基线门自身：gates-baseline.json 的 testCount 由 184 抬到 200（证明用例数冻结门真会咬人）
+### 目标文件: app-mobile/scripts/gates-baseline.json
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:59:48 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+ac183c567c76368360240200caa03e48ee4ad5c37b7a81e2bbf26de4331e729e */d/Users/ZXQL/wt-agents/QODER-19/app-mobile/scripts/gates-baseline.json

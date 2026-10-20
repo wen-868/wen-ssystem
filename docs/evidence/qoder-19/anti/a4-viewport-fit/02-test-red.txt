@@ -1,0 +1,77 @@
+### 轮次: ④ index.html 删 viewport-fit=cover（17F1 断言④ 目标）
+### 目标文件: app-mobile/index.html
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:57:51 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-19/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 872[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 852[2mms[22m[39m
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 231[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 434[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 2223[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 1150[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键 [33m 538[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 980[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1714[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 813[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文） [33m 780[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 164[2mms[22m[39m
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 177[2mms[22m[39m
+ [31m❯[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 133[2mms[22m[39m
+     [32m✓[39m ① 不得出现自引用 `--safe-top: var(--safe-top)`[32m 17[2mms[22m[39m
+     [32m✓[39m ② 默认分支必须含 `--safe-top: env(safe-area-inset-top)`[32m 1[2mms[22m[39m
+     [32m✓[39m ③ `#ifdef APP-PLUS` 覆盖为 `var(--status-bar-height)` 仍在[32m 5[2mms[22m[39m
+[31m     [31m×[31m ④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover`[39m[32m 99[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 893[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m9 passed[39m[22m[90m (10)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m183 passed[39m[22m[90m (184)[39m
+[2m   Start at [22m 04:58:20
+[2m   Duration [22m 16.28s[2m (transform 14.81s, setup 0ms, import 25.60s, tests 7.82s, environment 9ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/safe-top-var.spec.ts[2m > [22mQODER-17F1 index.html viewport（安全区根链另一半）[2m > [22m④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover`
+[31m[1mAssertionError[22m: expected '<meta name="viewport" content="width=…' to match /viewport-fit=cover/[39m
+
+[32m- Expected:[39m
+/viewport-fit=cover/
+
+[31m+ Received:[39m
+"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\" />"
+
+[36m [2m❯[22m tests/safe-top-var.spec.ts:[2m60:21[22m[39m
+    [90m 58|[39m     [35mconst[39m content [33m=[39m viewportMetas[[34m0[39m]
+    [90m 59|[39m     [34mexpect[39m(content)[33m.[39m[34mtoMatch[39m([36m/width=device-width/[39m)
+    [90m 60|[39m     [34mexpect[39m(content)[33m.[39m[34mtoMatch[39m([36m/viewport-fit=cover/[39m)
+    [90m   |[39m                     [31m^[39m
+    [90m 61|[39m   })
+    [90m 62|[39m })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-19\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-19\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+EXIT=1
