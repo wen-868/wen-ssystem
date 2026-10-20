@@ -9,7 +9,8 @@
 - 工作树 `D:\Users\ZXQL\wt-agents\QODER-17`｜分支 `fix/qoder-17-safe-top`｜基线 `321b4f6b`（= 本地 `origin/main`）。
 - 提交：
   - `e1288787`（impl）= `fix: QODER-17 App.vue --safe-top 自引用改为 env(safe-area-inset-top) 并新增静态断言用例`（2 文件：`app-mobile/src/App.vue`、`app-mobile/tests/safe-top-var.spec.ts`）。
-  - docs 笔 = 本卡 + 回执 + `docs/evidence/qoder-17/**`（`git log` 最新一笔；**写卡时本笔哈希不可知**，如实标注）。
+  - docs 笔 = 本卡 + 回执 + `docs/evidence/qoder-17/**`：`ead75d1c`（回传卡+回执+证据）、`35f58026`（协议 §6 收尾自检输出 `raw/12`）。
+  - 负责人复核笔 `bc58c9b3`：新增 `raw/13-owner-independent-recheck.txt` 并校订使用点计数（修后 96 处/89 文件）、README 的 `raw/08` 行改标注为"修前快照"并补 `raw/13` 行（`raw/12` 收尾自检未进 README 表，属已知小遗漏，内容仍在）。**本分支共 4 笔**（超出协议 ≤3 的部分即此复核笔，原因：子代理把修前快照 97/90 当成使用点数，须留痕更正）。
 - 未 push、未开 PR（`git status -sb` 无 upstream 推进）。
 
 ## 一 修法 × 读数总表
