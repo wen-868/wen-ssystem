@@ -1,0 +1,26 @@
+【判据 1】pin-ssl.ts 不得再出现 2026-09-15 / TrustAsia（不分大小写）
+
+$ export MSYS2_ARG_CONV_EXCL='*'   # 必设：否则 Git Bash 把 / 开头模式当路径转换，造成假 0 命中
+$ rg -in '2026-09-15|trustasia' app-mobile/src/utils/pin-ssl.ts
+RG_EXIT=1 （1=零命中 ⇒ 判据通过；0=仍有命中 ⇒ 判据失败）
+
+—— 改动前对照（同一条命令，2 命中，行号 6/28）——
+6: *  - PINNED_CERTS 叶子证书指纹已于 2026-09-15 过期——此刻接线会让 APP-PLUS 全部请求被判指纹不匹配拒连；
+28: *  - 已配置生产证书实际指纹（2026-09-15 到期），证书轮换时同步更新叶子证书指纹
+
+【判据 2】installSslPinning( 调用点仍为 0（定义行与注释提及不算）
+
+$ rg -n 'installSslPinning\(' app-mobile/src
+app-mobile/src\utils\pin-ssl.ts:7: *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+app-mobile/src\utils\pin-ssl.ts:197: * installSslPinning()
+app-mobile/src\utils\pin-ssl.ts:200:export function installSslPinning(): boolean {
+RG_EXIT=0
+
+逐处定性（共 3 处命中，全部不是调用点）：
+  pin-ssl.ts:7   — 文件头注释提及（trim 后以 * 开头）⇒ 不计
+  pin-ssl.ts:197 — @example 文档块内的示例行（trim 后以 * 开头）⇒ 不计
+  pin-ssl.ts:200 — export function installSslPinning 定义本体 ⇒ 不计
+⇒ 调用点 = 0（全仓 src 无任何 import 后调用；config/env.ts:8 仅注释提及模块名，不含 installSslPinning(）
+
+【判据 2 机检等价】tests/storage-crypto.spec.ts 的 collectInstallCallSites(SRC_DIR) 同语义扫描 ⇒ 期望 []
+调用点清单 = [] count = 0

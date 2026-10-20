@@ -1,0 +1,34 @@
+$ sed -n '1,30p' app-mobile/src/utils/pin-ssl.ts   # 改动后文件头 30 行
+/**
+ * SSL 证书锁定（SSL Pinning）— R51-05 安全加固
+ *
+ * ⚠️ 接线状态（S3-247，2026-10-18 定性）：**当前未接线**。
+ *  - installSslPinning / validateCertificate 全仓零调用点（唯一历史提及是 config/env.ts 注释，已改）；
+ *  - PINNED_CERTS 在册指纹已更新为 2026-10-21 现网 Let's Encrypt 值（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，均在有效期内）；本模块仍未接线，且仍未接线的原因已不是"在册指纹已过期"，而是下文"原生层证书回调可用"这一前置尚未满足；
+ *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+ *    plus.networkEvent.addEventListener('certificateValidate') 为接口预留，当前运行时不可用，
+ *    接线即"静默放行"，无法满足本卡反测判据（指纹不匹配 ⇒ 请求失败）。
+ *  ⇒ 未采到"新指纹 + 原生层证书回调可用"两个前置前，禁止接线。指纹维护口径与前置清单见
+ *    docs/tasks/cards/R101-QODER-5-回传.md（S3-247）。
+ *
+ * 核心功能：
+ *  1. PINNED_CERTS                — 内置生产证书 SHA256 指纹配置（api.onepan.cn / m.onepan.cn）
+ *  2. validateCertificate(host, cert) — 校验证书指纹是否匹配锁定列表
+ *  3. getPinnedCerts(host)        — 获取指定域名的锁定证书列表
+ *  4. isPinningEnabled()          — 是否启用 Pinning（支持远程配置应急关闭）
+ *  5. setPinningEnabled(enabled)  — 远程下发开关（应急时关闭）
+ *
+ * 设计说明：
+ *  - 防止中间人攻击（MITM）：即使攻击者拥有可信 CA 签发的证书，也无法冒充服务端
+ *  - 应急开关：服务端可下发 { pinning: false } 关闭 Pinning（用于证书轮换应急）
+ *  - 开关状态加密存储在 enc_ssl_pinning_enabled（复用 crypto.ts 安全存储）
+ *  - 条件编译：APP-PLUS 在 request 拦截器中校验证书；H5/小程序跳过（浏览器自带校验）
+ *  - 使用 IIFE 包裹条件编译，避免 vue-tsc 误报重复声明（踩坑日志 [15]）
+ *
+ * 注意：
+ *  - 已配置生产证书实际指纹（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，中间证书 Let's Encrypt YE2/YE1 2028-09-02 到期）；叶子证书轮换（命中到期前 30 天提醒窗口即应启动）时必须同步更新在册叶子证书指纹
+ *  - 中间证书指纹用于轮换兜底（新叶子证书仍由同一中间证书签发）
+ *  - 应急开关关闭后，App 仍受 HTTPS 标准校验保护（仅失去 Pinning 额外防护）
+
+$ sha256sum app-mobile/src/utils/pin-ssl.ts   # 改动后
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *app-mobile/src/utils/pin-ssl.ts

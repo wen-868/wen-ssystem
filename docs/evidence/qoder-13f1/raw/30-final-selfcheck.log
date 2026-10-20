@@ -1,0 +1,31 @@
+### QODER-13F1 收尾自检（协议 §7，实现笔 d9151ae5 落定后现场读数）###
+
+$ git rev-parse --abbrev-ref HEAD
+fix/qoder-13f1-pin-comment-refresh
+
+$ git status --porcelain   # 除本卡 docs/evidence 未提交笔外应为空
+?? docs/evidence/qoder-13f1/
+
+$ git log --oneline origin/main..HEAD
+d9151ae5 fix: pin-ssl 文件头两处过期文案改真（在册指纹为2026-10-21现网Let's Encrypt值、api/m叶子实际到期日2026-11-11/2026-12-22）+ 静态断言挂进既有用例防回潮
+597230c4 docs: QODER-13 收尾自检证据（改动面核对与零残留证明）
+a8a3b7b9 docs: QODER-13 回传卡与回执及指纹采集/反测/四门证据落盘
+1b61811b fix: pin-ssl四条在册指纹更新为2026-10-21现网Let's Encrypt值（不接线）+island-aftersale basis行号64→67+guard-rbac-wiring新增--no-stale可选开关
+
+$ git diff --name-only 597230c4..HEAD   # 改动面必须=卡点名两文件
+app-mobile/src/utils/pin-ssl.ts
+app-mobile/tests/storage-crypto.spec.ts
+
+$ git diff --name-only 597230c4..HEAD -- backend/   # 期望 0 行
+(以上为空 ⇒ backend 零改动)
+
+$ git diff --stat 597230c4..HEAD -- app-mobile/src/utils/pin-ssl.ts app-mobile/tests/storage-crypto.spec.ts
+ app-mobile/src/utils/pin-ssl.ts         |  4 ++--
+ app-mobile/tests/storage-crypto.spec.ts | 38 +++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 2 deletions(-)
+
+$ git diff --name-only 597230c4..HEAD -- app-mobile/scripts app-mobile/package.json   # 期望 0 行（基线/依赖一字未动）
+(以上为空 ⇒ gates-baseline.json 与依赖未动)
+
+$ git diff --name-only 597230c4..HEAD -- docs/evidence/qoder-13   # 期望 0 行（上一轮证据零改动）
+(以上为空 ⇒ 上一轮 QODER-13 证据/回传/回执一字未改)
