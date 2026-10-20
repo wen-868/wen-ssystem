@@ -1,0 +1,24 @@
+### QODER-13F2 · storage-crypto.spec.ts 还原为纯 AES/GCM 的逐字节证明
+# date=2026-10-21T06:38:30+08:00
+
+$ git diff 597230c4 -- app-mobile/tests/storage-crypto.spec.ts | wc -l   # 期望 0：与 13F1 之前的基线逐字节相同
+0
+
+$ rg -in "pin-ssl|installSslPinning|PIN_SSL|2026-09-15|trustasia" app-mobile/tests/storage-crypto.spec.ts   # 期望 0 命中
+RG_EXIT=1
+
+### SHA256 双形态对照（autocrlf：git show 取 LF blob，sha256sum 读 CRLF 工作树，两者不可混比）
+$ sha256sum app-mobile/tests/storage-crypto.spec.ts   # 工作树 CRLF
+453b5443758ed7b45ad7c242c517f7b6a1826e39496d7eb9839e01e6555ca462 *app-mobile/tests/storage-crypto.spec.ts
+$ git show 597230c4:<path> | sha256sum   # 基线 LF blob
+52f2d74c922c49e1b33a9a5bcfd5f523c3ff5d8b02db566b28c19774588545c4 *-
+$ git show 61514b02:<path> | sha256sum   # 13F1 终态 LF blob（含混入断言，应不同）
+c87e8b88066e9dde6b7f1838e940a386218275d538aefb616fe843c651c0d246 *-
+
+### 形态归一核验（把基线 blob 渲染成 CRLF 后与工作树比对）
+基线 blob(CRLF 归一) a= 1887 B  工作树 b= 1887 B  ⇒ 逐字节相同，还原成立
+
+### 还原带来的行数差（撤回面）
+$ git diff --stat 61514b02 -- app-mobile/tests/storage-crypto.spec.ts
+ app-mobile/tests/storage-crypto.spec.ts | 48 ---------------------------------
+ 1 file changed, 48 deletions(-)

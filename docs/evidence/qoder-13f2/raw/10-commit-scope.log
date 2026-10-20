@@ -1,0 +1,49 @@
+### QODER-13F2 · raw/10 提交态改动面核对（卡 §三 最后一条：只允许改 pin-ssl 注释/env 注释/测试/baseline）
+# date=2026-10-21T07:31:01+08:00｜实现笔=f4772512
+
+$ git diff --stat 61514b02..HEAD
+ app-mobile/scripts/gates-baseline.json  |  6 +--
+ app-mobile/src/config/env.ts            |  7 ++-
+ app-mobile/tests/pin-ssl-static.spec.ts | 85 +++++++++++++++++++++++++++++++++
+ app-mobile/tests/storage-crypto.spec.ts | 48 -------------------
+ 4 files changed, 93 insertions(+), 53 deletions(-)
+
+$ git show --name-only --format= f4772512   # 实现笔逐文件清单（4 个，全部落在允许面内）
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/config/env.ts
+app-mobile/tests/pin-ssl-static.spec.ts
+app-mobile/tests/storage-crypto.spec.ts
+
+##### 允许面外文件必须 0 改动
+$ git diff 61514b02..HEAD -- app-mobile/src/utils/pin-ssl.ts | wc -l   # 本卡不动 pin-ssl.ts（13F1 已改完，本卡只加守卫）
+0
+$ git diff 61514b02..HEAD -- backend | wc -l
+0
+$ git diff 61514b02..HEAD -- app-mobile/package.json package.json app-mobile/src/utils/crypto.ts | wc -l
+0
+
+##### gates-baseline.json：只允许 tests 段动
+-    "testFiles": 5,
+-    "testCount": 56,
++    "testFiles": 6,
++    "testCount": 57,
+
+$ node -e 校验四段基线除 tests 外逐字段不变
+_comment = UNCHANGED
+typeCheck = UNCHANGED
+lint = UNCHANGED
+checkContract = UNCHANGED
+contractDrift = UNCHANGED
+tests = 5/56 -> 6/57
+NODE_EXIT=0
+
+##### 上一单（13F1）交付物一字未改
+$ git diff 61514b02..HEAD -- docs/evidence/qoder-13f1 docs/tasks/cards/R101-QODER-13F1-回传.md docs/tasks/inbox/ACTIVE-回执-QODER-13F1.md | wc -l
+0
+$ git diff 61514b02..HEAD -- docs/tasks/inbox | wc -l   # 任务书原件 + ACTIVE.md 只读
+0
+
+##### 新 spec 的行尾形态（Write 落 LF ⇒ git autocrlf 存 LF blob；工作树重新检出会转 CRLF，断言不依赖行尾）
+5440af9f7a246469f115c47b12e3270a3f514ba5b91b565f7d22b155bb83ff04 *-
+5440af9f7a246469f115c47b12e3270a3f514ba5b91b565f7d22b155bb83ff04 *app-mobile/tests/pin-ssl-static.spec.ts
+app-mobile/tests/pin-ssl-static.spec.ts: JavaScript source, Unicode text, UTF-8 text

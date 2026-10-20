@@ -1,0 +1,44 @@
+### QODER-13F2 · anti/90 反测第一轮【作废】现场与根因（可复现取证，非事后转述）
+# date=2026-10-21T07:34:33+08:00
+# 事件：首轮 bash anti-round.sh 对四个 case 全部走到 exit 7 ⇒ 本轮作废、cp 复原、不产红档；
+#       驱动当时报 Error: Cannot find module 'D:\d\Users\ZXQL\wt-agents\_scratch\qoder-13f2\inject-13f2.mjs'。
+# 作废轮是否改过工作树？没有 —— 注入器根本没被加载，一个字节也没落（末段 SHA 复核 = 反测前锚点）。
+
+===== 根因复现 A：与首跑驱动逐字一致的写法（export MSYS2_ARG_CONV_EXCL='*' + POSIX 风格 /d/... 脚本路径）=====
+$ export MSYS2_ARG_CONV_EXCL='*'   # 驱动为保护 rg 的 / 开头与 | 模式而全局设置，副作用=关掉 node 脚本路径的自动转换
+$ node /d/Users/ZXQL/wt-agents/_scratch/qoder-13f2/inject-13f2.mjs --case date
+node:internal/modules/cjs/loader:1520
+  throw err;
+  ^
+
+Error: Cannot find module 'D:\d\Users\ZXQL\wt-agents\_scratch\qoder-13f2\inject-13f2.mjs'
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.18.0
+NODE_EXIT=1
+
+===== 根因复现 B：同一 env 下改用 Windows 盘符路径 ⇒ 正常加载（本轮四张红档用的写法）=====
+$ node D:/Users/ZXQL/wt-agents/_scratch/qoder-13f2/inject-13f2.mjs   # 故意不给 --case ⇒ 注入器自身 EXIT=9 拒写
+✗ 缺少 --case <值>（两个 argv）⇒ 拒写
+NODE_EXIT=9
+
+===== 对照复现 C：不设 MSYS2_ARG_CONV_EXCL 时 /d/... 会被 MSYS 自动转换成 D:/... ⇒ 不报错
+（首版补证曾漏设该 env，测得『两种写法都正常』⇒ 无法复现，属采集条件不齐，已作废重写；此处补记以免后来人误判）
+✗ 缺少 --case <值>（两个 argv）⇒ 拒写
+NODE_EXIT=9
+
+===== 作废轮 + 上述复现均未污染工作树（注入面 SHA 必须仍是反测前锚点）=====
+$ sha256sum src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *src/utils/pin-ssl.ts
+# 期望 cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+$ rg -c '2026-09-15' src/utils/pin-ssl.ts   # 期望无命中（EXIT=1）⇒ 复现 A 的 --case date 未落字节
+RG_EXIT=1
+$ git status --porcelain src/utils/pin-ssl.ts   # 期望空（相对 HEAD=f4772512 无改动）
+(上方留空 = 无改动)
+
+##### 结论与教训
+1) 判据：驱动内 export MSYS2_ARG_CONV_EXCL='*' 会同时关掉【node 参数里的 POSIX 路径】自动转换 ⇒ 凡在该 env 下调 node 脚本，路径一律写 Windows 盘符风格 D:/...；
+2) 守卫有效：INJECT_EXIT≠0 ⇒ exit 7 作废本轮、先 cp 复原、且不给红档 —— 没有把「根本没注入」的读数当反测结论；
+3) 更正后四轮全部闭环，见 anti/anti-{date,trustasia,dates,callsite}-red.log。

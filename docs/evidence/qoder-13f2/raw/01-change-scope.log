@@ -1,0 +1,211 @@
+### QODER-13F2 · 改动面核对（工作树态，尚未提交）
+# date=2026-10-21T06:37:52+08:00｜分支=fix/qoder-13f2-pin-static-spec-and-env｜基线=61514b02（QODER-13F1 尖端）
+
+$ git status --porcelain
+ M app-mobile/scripts/gates-baseline.json
+ M app-mobile/src/config/env.ts
+ M app-mobile/tests/storage-crypto.spec.ts
+?? app-mobile/tests/pin-ssl-static.spec.ts
+?? docs/evidence/qoder-13f2/
+
+$ git diff --stat 61514b02（含未跟踪）
+ app-mobile/scripts/gates-baseline.json  |  6 ++---
+ app-mobile/src/config/env.ts            |  7 +++--
+ app-mobile/tests/storage-crypto.spec.ts | 48 ---------------------------------
+ 3 files changed, 8 insertions(+), 53 deletions(-)
+
+$ git diff 61514b02 -- app-mobile/src/config/env.ts
+diff --git a/app-mobile/src/config/env.ts b/app-mobile/src/config/env.ts
+index 13fca017..3b172ee4 100644
+--- a/app-mobile/src/config/env.ts
++++ b/app-mobile/src/config/env.ts
+@@ -5,8 +5,11 @@
+  * - App / 小程序端：使用生产 API 域名，由构建环境变量 VITE_API_BASE 注入；未配置时回退占位地址。
+  *
+  * ⚠️ 请勿在本文件硬编码真实生产域名。真实值通过 CI / .env（VITE_API_BASE）在构建时注入。
+- * 注：src/utils/pin-ssl.ts 的证书固定（PINNED_CERTS）**当前未接线**（全仓零调用点，且指纹已过期），
+- *     域名变更时**无需**同步更新其指纹；维护口径与接线前置见 docs/tasks/cards/R101-QODER-5-回传.md（S3-247）。
++ * 注：src/utils/pin-ssl.ts 的证书固定（PINNED_CERTS）**当前未接线**（全仓零调用点）；在册指纹为 2026-10-21 采集的
++ *     现网 Let's Encrypt 值（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，均在有效期内），
++ *     未接线的原因是"原生层证书回调可用"这一前置尚未满足，**不是**指纹已过期。
++ *     PINNED_CERTS 按域名登记，故换 API 域名或叶子证书轮换时都**必须**同步更新在册叶子指纹；
++ *     维护口径与接线前置见 docs/tasks/cards/R101-QODER-5-回传.md（S3-247）。
+  */
+ 
+ export const API_BASE_H5: string =
+
+$ git diff 61514b02 -- app-mobile/scripts/gates-baseline.json
+diff --git a/app-mobile/scripts/gates-baseline.json b/app-mobile/scripts/gates-baseline.json
+index 84619e7c..28d58a28 100644
+--- a/app-mobile/scripts/gates-baseline.json
++++ b/app-mobile/scripts/gates-baseline.json
+@@ -54,8 +54,8 @@
+     "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
+   },
+   "tests": {
+-    "testFiles": 5,
+-    "testCount": 56,
+-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。"
++    "testFiles": 6,
++    "testCount": 57,
++    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。QODER-13F1（2026-10-21）当时把 pin-ssl 三条静态断言追加进 storage-crypto.spec.ts 的既有 it ⇒ 用例数仍 5/56，凌舟裁定不认可该落法（测试名与守护对象错配，红了看不出守的是谁）。QODER-13F2（2026-10-21 实测即基线）：① 撤回上述混入断言与 src 扫描代码，storage-crypto.spec.ts 逐字节还原为 597230c4 的纯 AES/GCM 4 用例态（用例数不变）；② 新增独立 spec tests/pin-ssl-static.spec.ts（1 个 describe / 1 个 it；体内 5 条 expect 覆盖卡 §二.3 的四个断言点：文件头无 2026-09-15、无 TrustAsia、保留 api.onepan.cn 叶子 2026-11-11 与 m.onepan.cn 叶子 2026-12-22 两条到期日、installSslPinning 调用点清单为空）⇒ 5/56 → 6/57；typeCheck / lint / checkContract / contractDrift 四段一律未动。"
+   }
+ }
+
+$ git diff 61514b02 -- app-mobile/tests/storage-crypto.spec.ts（撤回 13F1 混入断言与扫描）
+diff --git a/app-mobile/tests/storage-crypto.spec.ts b/app-mobile/tests/storage-crypto.spec.ts
+index fe6b6487..32a76815 100644
+--- a/app-mobile/tests/storage-crypto.spec.ts
++++ b/app-mobile/tests/storage-crypto.spec.ts
+@@ -3,52 +3,10 @@
+  * ⚠️ 该文件带 uni 条件编译双份导出（S3-245 修复前现状），本仓测试依赖
+  *    `vitest.config.ts` 的 `uni-ifdef-shim` 插件按 **H5 分支**真实代码加载。
+  * 反测面：改动 encrypt/decrypt/deriveKey 任一导致密文不还原或 tag 校验失效 ⇒ 本用例必红并点名。
+- * QODER-13F1 追加静态断言（挂在下方「tag 校验失败即抛」用例的断言列表里，不新增 describe/it、用例数不变）：
+- * `src/utils/pin-ssl.ts` 文件头不得残留已失效旧事实，且 `installSslPinning(` 在 src 下不得出现调用点。
+  */
+ import { describe, it, expect } from 'vitest'
+-import { readFileSync, readdirSync } from 'node:fs'
+-import { dirname, join, resolve } from 'node:path'
+-import { fileURLToPath } from 'node:url'
+ import { deriveKey, encrypt, decrypt } from '../src/utils/crypto'
+ 
+-const SRC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../src')
+-const PIN_SSL = join(SRC_DIR, 'utils', 'pin-ssl.ts')
+-
+-/**
+- * 收集 src 下 `installSslPinning(` 的**调用点**（定义行 `export function installSslPinning` 与
+- * 注释/文档块提及一律不计），返回 `文件:行号` 清单。与 `rg -n 'installSslPinning\(' app-mobile/src`
+- * 的人工判据同语义：调用点必须恒为 0（本卡未接线）。
+- */
+-function collectInstallCallSites(dir: string, out: string[] = []): string[] {
+-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+-    const p = join(dir, entry.name)
+-    if (entry.isDirectory()) {
+-      collectInstallCallSites(p, out)
+-      continue
+-    }
+-    if (!/\.(ts|vue)$/.test(entry.name)) continue
+-    readFileSync(p, 'utf8').split(/\r?\n/).forEach((line, i) => {
+-      if (!line.includes('installSslPinning(')) return
+-      const t = line.trim()
+-      if (t.startsWith('//') || t.startsWith('/*') || t.startsWith('*')) return
+-      if (t.startsWith('export function installSslPinning')) return
+-      out.push(`${p}:${i + 1}`)
+-    })
+-  }
+-  return out
+-}
+-
+-/**
+- * 求值时机说明（QODER-13F1 首版踩坑后更正）：静态事实与调用点清单一律在**模块加载期（import 阶段）**
+- * 一次性求值，用例体内只做常数比较。原因：扫全 `src`（189 个 .ts/.vue、约 2.2 MB）本机实测
+- * 1.1~1.8 s，叠加同一用例内的 GCM 篡改/错误密钥运算后偶发越过 vitest 默认 5000 ms 用例超时
+- * （⇒ 门 3 红「Test timed out in 5000ms」）。移到 import 阶段后断言语义、"注入旧文案即红"与
+- * 用例数 5/56 均不变，只消除超时抖动。
+- */
+-const PIN_SSL_TEXT = readFileSync(PIN_SSL, 'utf8')
+-const INSTALL_CALL_SITES = collectInstallCallSites(SRC_DIR)
+-
+ describe('存储加解密往返（AES-256-GCM）', () => {
+   const key = deriveKey('unit-test-fingerprint')
+ 
+@@ -79,11 +37,5 @@ describe('存储加解密往返（AES-256-GCM）', () => {
+     expect(() => decrypt(bad, key)).toThrow()
+     const wrongKey = deriveKey('another-fingerprint')
+     expect(() => decrypt(enc, wrongKey)).toThrow()
+-
+-    // —— QODER-13F1 静态断言（同属「被篡改/失效内容绝不静默放行」契约，不新增 it；
+-    //    求值已在上方模块加载期完成，此处仅常数比较）——
+-    expect(PIN_SSL_TEXT.includes('2026-09-15')).toBe(false)
+-    expect(PIN_SSL_TEXT.toLowerCase().includes('trustasia')).toBe(false)
+-    expect(INSTALL_CALL_SITES).toEqual([])
+   })
+ })
+
+### 新文件 app-mobile/tests/pin-ssl-static.spec.ts（未跟踪，全文）
+/**
+ * QODER-13F2 · `src/utils/pin-ssl.ts` 在册事实静态守卫（独立 spec）
+ *
+ * 为什么独立成文件：QODER-13F1 曾把这几条断言塞进 `storage-crypto.spec.ts` 的
+ * 「tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）」用例里，凌舟裁定**不认可**——
+ * 测试名与守护对象不一致，红了看不出守的是谁。本文件只守 pin-ssl 一件事，`storage-crypto.spec.ts`
+ * 已还原为纯 AES/GCM 往返用例。
+ *
+ * 守的四条（任一破即红，且红点只落在这一个 `it`）：
+ *  1. 文件头**不得残留**已失效旧事实 `2026-09-15`。该日期属 TrustAsia 时代的叶子到期口径；自 `1b61811b`
+ *     起在册指纹已换成 2026-10-21 采集的现网 Let's Encrypt 值，再写"已于 2026-09-15 过期"就是假话。
+ *  2. 文件头**不得残留**旧签发机构名 `TrustAsia`（大小写不敏感）。
+ *  3. 文件头**必须保留**现网两条叶子的实际到期日（api.onepan.cn 2026-11-11、m.onepan.cn 2026-12-22）。
+ *     只删假话而不写真值，后续维护者同样无从判断在册指纹是否仍在有效期内——这属于卡 §二.3 的"正向"半边。
+ *  4. `installSslPinning(` 在 `src` 下的调用点必须恒为 0（本模块**仍未接线**；接线是另一张卡的动作面）。
+ *
+ * 求值时机：静态事实与调用点清单一律在**模块加载期（import 阶段）**求值，用例体内只做常数比较。
+ * 扫全 `src`（189 个 .ts/.vue、约 2.2 MB）本机实测 1.1~1.8 s，写进 `it` 体内会吃掉 vitest 默认
+ * 5000 ms 用例超时的大半预算，在并发负载下随机假红（QODER-13F1 踩坑实录：
+ * `docs/evidence/qoder-13f1/raw/32-timeout-before-fix.log`）。
+ *
+ * 反测（须能红）：把旧文案原样注回文件头 / 只注 `TrustAsia` / 抹掉叶子到期日 / 在任意 src 文件加一处
+ * `installSslPinning()` 调用 ⇒ 本 `it` 红并点名对应断言行；`cp` 复原后同形态 SHA256 与注入前逐字节一致 ⇒ 复跑转绿。
+ */
+import { describe, it, expect } from 'vitest'
+import { readFileSync, readdirSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const SRC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../src')
+const PIN_SSL = join(SRC_DIR, 'utils', 'pin-ssl.ts')
+
+/**
+ * 取文件的**起始块注释**内容（首个块注释结束符之前的部分）。
+ * 断言只作用于文件头：叶子到期日在 `PINNED_CERTS` 常量旁注释里也各出现一次，
+ * 若按全文比对，常量旁注释会替文件头"顶包"——文件头被改坏也可能读到绿。
+ */
+function headBlock(text: string): string {
+  const end = text.indexOf('*/')
+  return end === -1 ? text : text.slice(0, end)
+}
+
+/**
+ * 收集 `src` 下 `installSslPinning(` 的**调用点**（返回 `文件:行号` 清单）。
+ * 与人工判据 `rg -n 'installSslPinning\(' app-mobile/src` 同语义：定义行
+ * （`export function installSslPinning`）与注释行（以双斜线、块注释起始符或星号开头）一律不计。
+ */
+function collectInstallCallSites(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      collectInstallCallSites(p, out)
+      continue
+    }
+    if (!/\.(ts|vue)$/.test(entry.name)) continue
+    readFileSync(p, 'utf8').split(/\r?\n/).forEach((line, i) => {
+      if (!line.includes('installSslPinning(')) return
+      const t = line.trim()
+      if (t.startsWith('//') || t.startsWith('/*') || t.startsWith('*')) return
+      if (t.startsWith('export function installSslPinning')) return
+      out.push(`${p}:${i + 1}`)
+    })
+  }
+  return out
+}
+
+const PIN_SSL_HEAD = headBlock(readFileSync(PIN_SSL, 'utf8'))
+const INSTALL_CALL_SITES = collectInstallCallSites(SRC_DIR)
+
+describe('pin-ssl 在册事实静态守卫（QODER-13F2）', () => {
+  it('文件头无失效旧文案、保留现网叶子到期日，且 installSslPinning 调用点恒为 0', () => {
+    // ① 旧日期表述不得回潮
+    expect(PIN_SSL_HEAD.includes('2026-09-15'), 'pin-ssl.ts 文件头又出现已失效的 2026-09-15 过期表述').toBe(false)
+    // ② 旧签发机构名不得回潮
+    expect(PIN_SSL_HEAD.toLowerCase().includes('trustasia'), 'pin-ssl.ts 文件头又出现 TrustAsia 旧签发链表述').toBe(false)
+    // ③ 现网叶子到期日必须在册（api / m 两条）
+    expect(PIN_SSL_HEAD.includes('2026-11-11'), 'pin-ssl.ts 文件头缺少 api.onepan.cn 叶子到期日 2026-11-11').toBe(true)
+    expect(PIN_SSL_HEAD.includes('2026-12-22'), 'pin-ssl.ts 文件头缺少 m.onepan.cn 叶子到期日 2026-12-22').toBe(true)
+    // ④ 未接线：调用点必须为空
+    expect(
+      INSTALL_CALL_SITES,
+      `installSslPinning 出现调用点（本模块仍未接线）：${INSTALL_CALL_SITES.join(', ')}`
+    ).toEqual([])
+  })
+})
