@@ -14,7 +14,7 @@
               @clear="loadStaff"
               @keyup.enter="loadStaff"
             />
-            <el-button type="primary" @click="dialogVisible = true">新增员工</el-button>
+            <el-button v-if="canGate('staff-create')" type="primary" @click="dialogVisible = true">新增员工</el-button>
             <el-button @click="loadStaff">刷新</el-button>
           </div>
         </div>
@@ -42,9 +42,9 @@
         </el-table-column>
         <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button size="small" link type="warning" @click="openResetPassword(row)">重置密码</el-button>
-            <el-button size="small" link :type="row.status === 1 || row.status === 'ACTIVE' ? 'danger' : 'success'" @click="toggleStatus(row)">
+            <el-button v-if="canGate('staff-edit')" size="small" link type="primary" @click="openEdit(row)">编辑</el-button>
+            <el-button v-if="canGate('staff-reset-password')" size="small" link type="warning" @click="openResetPassword(row)">重置密码</el-button>
+            <el-button v-if="canGate('staff-toggle-status')" size="small" link :type="row.status === 1 || row.status === 'ACTIVE' ? 'danger' : 'success'" @click="toggleStatus(row)">
               {{ row.status === 1 || row.status === 'ACTIVE' ? '禁用' : '启用' }}
             </el-button>
           </template>
@@ -142,6 +142,10 @@ import { fmtRole } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { createStaff, fetchStaff, fetchStores, toggleStaffStatus, updateStaff, resetEmployeePassword } from "../../api";
 import FormFooter from "../../components/FormFooter.vue";
+import { usePermissionGate } from "../../composables/usePermissionGate";
+
+// S3-240：员工新增/编辑/重置密码/启停按钮按码显隐（`system:user:create|edit`，见 config/permission-gates.ts）
+const { canGate } = usePermissionGate();
 
 const loading = ref(false);
 const submitLoading = ref(false);

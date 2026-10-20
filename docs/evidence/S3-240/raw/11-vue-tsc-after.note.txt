@@ -1,0 +1,5 @@
+命令：cd admin-web && npx vue-tsc --noEmit
+退出码：0
+为何零输出：改动后 0 error，与改动前基线（raw/10-vue-tsc-baseline.txt）逐条一致 ⇒ 新增 0 条。
+说明：同名 `11-vue-tsc-after.txt` 为 **0 字节**文件（最终代码状态下用显式捕获重跑所得，EXIT=0）。
+注意：基线文件名为 `10-vue-tsc-baseline.note.txt`（见该文件对"未落盘"的说明）。

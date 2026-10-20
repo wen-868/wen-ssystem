@@ -75,6 +75,7 @@ import MainLayout from "../layouts/MainLayout.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFound from "../views/NotFound.vue";
 import { useAuthStore } from "../stores/auth";
+import { useAppStore } from "../stores/app";
 import { LOGIN_PATH, normalizePath, resolveLandingPath } from "./landing";
 
 const routes = [
@@ -284,7 +285,7 @@ const router = createRouter({
   routes
 });
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore();
   const token = auth.token;
   const expired = auth.isTokenExpired();
@@ -305,6 +306,12 @@ router.beforeEach((to, _from, next) => {
   if (to.path === "/login" && token) {
     next("/dashboard");
     return;
+  }
+
+  // S3-240：权限串随登录响应下发并持久化；升级前的老本地缓存没有该字段时补拉一次
+  // `/admin/auth/me`（并发去重、失败关闭），供按钮级权限门按码显隐。
+  if (token) {
+    await useAppStore().ensurePermissions();
   }
 
   // 角色权限检查：用户角色数组与路由允许角色数组任一命中即可（与后端 roles: string[] 对齐）

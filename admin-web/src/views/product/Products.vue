@@ -536,7 +536,7 @@
               <el-table-column v-if="detailEditing" label="操作" width="105" fixed="right">
                 <template #default="{ row }">
                   <el-button v-if="row.isBase" size="small" link type="primary" @click="addSkuUnit(row)">+ 添加单位</el-button>
-                  <el-button v-else size="small" link type="danger" @click="deleteSkuUnit(row)">删除</el-button>
+                  <el-button v-else-if="canGate('goods-sku-unit-delete')" size="small" link type="danger" @click="deleteSkuUnit(row)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -648,6 +648,10 @@ import { openPrintWindow, printBill } from "../../modules/print/printClient";
 import { fmtMoney } from "../../modules/print/renderer";
 import TableSkeleton from "../../components/TableSkeleton.vue";
 import StatBar from "../../components/StatBar.vue";
+import { usePermissionGate } from "../../composables/usePermissionGate";
+
+// S3-240：SKU 单位删除按钮按码显隐（`goods:delete`，见 config/permission-gates.ts 注册表）
+const { canGate } = usePermissionGate();
 
 // ---------- State ----------
 const loading = ref(false);
