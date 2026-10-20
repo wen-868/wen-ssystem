@@ -1,0 +1,37 @@
+# 负责人独立复核（非子代理自述）2026-10-20
+
+## 1. 修后使用点计数
+cmd: grep -rn "var(--safe-top)" app-mobile/src | wc -l
+96
+cmd: grep -rl "var(--safe-top)" app-mobile/src | wc -l
+89
+
+说明：raw/08 的 97 处/90 文件是修前快照，其首条 App.vue:54 是本单改动的定义行（自引用），不属使用点；修后为 96 处/89 文件。
+
+## 2. App.vue 现状（:52-61）
+  /* 安全区统一变量：H5/浏览器用 env；App webview 中 env 恒为 0，
+     导致页头顶进系统信号栏，App 端改用 uni 内置 --status-bar-height */
+  --safe-top: env(safe-area-inset-top);
+}
+
+/* #ifdef APP-PLUS */
+page {
+  --safe-top: var(--status-bar-height);
+}
+/* #endif */
+
+## 3. SHA256（与 anti/00、anti/02 对照）
+7b8d33bd68232782339f9194984d2ebb2fd4cac892ecdff5403434c54a11b013 *app-mobile/src/App.vue
+
+## 4. 负责人亲自复跑静态断言门（临时借入 9fd90257 harness，跑完即删、未提交）
+cmd: git show 9fd90257:app-mobile/vitest.config.ts > app-mobile/vitest.config.ts && (cd app-mobile && node ../node_modules/vitest/vitest.mjs run)
+结果：Test Files 1 passed (1) / Tests 3 passed (3) / VITEST_EXIT=0
+
+## 5. 提交面与状态
+35f58026 docs: QODER-17 收尾自检输出补落证据(协议 §6)
+ead75d1c docs: QODER-17 回传卡+回执+反测与 H5 computed 取证证据
+e1288787 fix: QODER-17 App.vue --safe-top 自引用改为 env(safe-area-inset-top) 并新增静态断言用例
+changed files:
+26
+backend 面：
+0

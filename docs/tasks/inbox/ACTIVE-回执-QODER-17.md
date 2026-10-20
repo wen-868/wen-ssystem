@@ -5,7 +5,7 @@
 
 ## 人读摘要
 
-- **改了什么**：`app-mobile/src/App.vue:54` 默认分支自引用 `--safe-top: var(--safe-top);` ⇒ `--safe-top: env(safe-area-inset-top);`（env 单值，理由：自定义属性上 constant+env 双行无兜底语义，见回传卡 §三）；`:59` `#ifdef APP-PLUS` 的 `var(--status-bar-height)` 覆盖原样保留；97 处 / 90 文件的 `var(--safe-top)` 使用点零改动；新增静态断言用例 `app-mobile/tests/safe-top-var.spec.ts`（3 条真断言，跑在未修复基线即红）。
+- **改了什么**：`app-mobile/src/App.vue:54` 默认分支自引用 `--safe-top: var(--safe-top);` ⇒ `--safe-top: env(safe-area-inset-top);`（env 单值，理由：自定义属性上 constant+env 双行无兜底语义，见回传卡 §三）；`:59` `#ifdef APP-PLUS` 的 `var(--status-bar-height)` 覆盖原样保留；使用点零改动（修后实测 **96 处 / 89 文件**；raw/08 的 97/90 是含该定义行的修前快照，见回传卡 §三 校订与 `raw/13`）；新增静态断言用例 `app-mobile/tests/safe-top-var.spec.ts`（3 条真断言，跑在未修复基线即红）。
 - **判据自评**：type-check 改前/改后均 EXIT=0（0=0）；lint 同一 harness 两遍全仓 190/20/12880 逐规则不劣化；test 基线既有用例 0 ⇒ 本单新增 1 文件/3 用例全过 EXIT=0；`build:h5` EXIT=0；H5 computed 取证（browser-use + 本地静态服务）`uni-page-body` 上 `--safe-top`=**0px 可解析非空**（桌面 env=0 属正常），活体反证自引用⇒空串失效；`.login-page` padding-top 使用点 0px 佐证。
 - **反测**：注回自引用 ⇒ vitest EXIT=1 断言①点名红 ⇒ `cp` 复原 ⇒ SHA256 与注入前逐字节一致（7b8d33bd…）⇒ 复跑 3 passed EXIT=0。门能红。
 - **未验/提请**（回传卡 §七）：① `index.html` 缺 `viewport-fit=cover`——env() 真机恒 0 的根因，证据齐（raw/09、raw/10），**本单未擅改**，提请后续单；② App 真机无设备未验；③ 浏览器截图无可见表面未产出（computed 读数不受影响）。
@@ -15,7 +15,7 @@
 ===DSH-RECEIPT-BEGIN===
 id: QODER-17
 status: DONE
-summary: App.vue:54 自引用 --safe-top 改 env(safe-area-inset-top)（APP-PLUS 覆盖保留、97 处使用点零改动）；自评 type 0=0、lint 190/20/12880 不劣化、新增 3 用例全绿、build:h5 EXIT=0、H5 computed=0px 可解析；反测红→SHA 复原→绿；偏差披露：viewport-fit=cover 缺失未改提请后续单、真机与截图未验、computed 作用域为 uni-page-body 非 :root
+summary: App.vue:54 自引用 --safe-top 改 env(safe-area-inset-top)（APP-PLUS 覆盖保留、使用点零改动=修后实测 96 处/89 文件，修前快照 97/90 含定义行已在卡 §三 校订）；自评 type 0=0、lint 190/20/12880 不劣化、新增 3 用例全绿（负责人已亲自复跑 3 passed）、build:h5 EXIT=0、H5 computed=0px 可解析；反测红→SHA 复原→绿；偏差披露：viewport-fit=cover 缺失未改提请后续单、真机与截图未验、computed 作用域为 uni-page-body 非 :root
 worktree: D:\Users\ZXQL\wt-agents\QODER-17
 branch: fix/qoder-17-safe-top
 commits: e1288787(impl)；docs 笔=本卡+回执+证据（git log 最新一笔，写卡时不可知）

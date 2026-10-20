@@ -14,7 +14,8 @@
 | 05-test-baseline-red.txt | 新增 spec 跑在未修复基线 | EXIT=1，断言①②红并点名 |
 | 06-test-after-fix-green.txt | 修复后 | 3/3 绿 EXIT=0 |
 | 07-build-h5.txt | npm --workspace app-mobile run build:h5 | EXIT=0 |
-| 08-safetop-usage-grep.txt | 使用点统计 | `var(--safe-top)` 命中 **97 处 / 90 文件**，本单零改动 |
+| 08-safetop-usage-grep.txt | 使用点统计（**修前快照**） | `var(--safe-top)` 命中 **97 处 / 90 文件**，其中首条 `App.vue:54` 是本单改动的定义行 |
+| 13-owner-independent-recheck.txt | 负责人独立复核（修后计数 + 亲跑静态断言门 + 提交面） | 修后 **96 处 / 89 文件** 使用点零改动；vue-tsc/App.vue SHA `7b8d33bd…` 与 anti 一致；复跑 **3 passed / EXIT=0** |
 | 09-index-html-viewport.txt | index.html meta 取证 | **无 `viewport-fit=cover`** ⇒ 登记 §七，未擅改 |
 | 10-dist-css-snippet.txt | H5 产物 CSS 摘录 | `uni-page-body{…--safe-top: env(safe-area-inset-top)}`，唯一定义；APP-PLUS 覆盖被条件编译剔除（符合预期） |
 | 11-server-source.txt | 取证用静态服务器脚本 | 300s 自动退出，已退出 |

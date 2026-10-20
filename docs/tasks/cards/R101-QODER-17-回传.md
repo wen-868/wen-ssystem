@@ -42,6 +42,7 @@
   - 后：`  --safe-top: env(safe-area-inset-top);`
 - **靶点分支确认（派单要求先读 :30-75）**：`:49-55` 的 `page{}` 规则**不在任何条件编译块内**（`/* #ifdef/#ifndef */` 均无覆盖到它），即默认分支，H5/小程序共用；`:57-61` 才是 `/* #ifdef APP-PLUS */` 覆盖块（内含 `:59` `var(--status-bar-height)`，原样保留）。全 `app-mobile/src` 仅 App.vue 有 `--safe-top:` 定义（grep 两处即 :54/:59）。
 - **使用点统计（任务书 §三第 3 条点名回传）**：`grep -rn "var(--safe-top)" app-mobile/src` 命中 **97 处，分布于 90 个文件**（清单 raw/08）；本单**零改动**任何使用点。
+  - ⚠️ **交付前校订（负责人复核发现，2026-10-20）**：`raw/08` 是**修前快照**，其中第 1 条 `App.vue:54` 是本单改动的那行**定义**（自引用 `var(--safe-top)`），不属"使用点"。修后同命令实测 = **96 处 / 89 文件**，这才是"本单零改动的使用点"真实数（原始输出 `raw/13-postfix-usage-grep.txt`）。修前全量 97/90 一并保留，两数并列不得混用。
 - **env() 单值不叠 `constant()` 的理由**：仓内既有 `constant(safe-area-inset-top)`+`env()` 双行风格（uni.scss:269-270 `.safe-top` 类）只适用于**普通属性**（后者按解析顺序覆盖前者）。放到**自定义属性**定义上不可靠：两条同名声明后者恒赢，`constant()` 行形同虚设；且自定义属性在 computed-value 期才解析函数，不支持时按 IACVT 失效，双行模式在变量定义场景不提供任何老 iOS 兜底。故 `env(safe-area-inset-top)` 单值即是正确形态，也与原注释「H5/浏览器用 env」的作者意图一致。
 - **未动项**：布局数值、页面结构、导航组件、`index.html` viewport 均未改（viewport-fit 问题见 §七）。
 
@@ -102,4 +103,4 @@
 
 ## 十 一行摘要
 
-`App.vue:54` 自引用 `--safe-top: var(--safe-top)` 改为 `env(safe-area-inset-top)`（APP-PLUS 覆盖保留、97 处使用点零改动）；静态断言门修前红修后绿 + 反测红/SHA 复原/绿三段齐；type 0=0、lint 逐规则不劣化、build:h5 绿、H5 computed 实测 `0px` 可解析（桌面 0 属正常）；viewport-fit=cover 缺失与真机、截图三项如实标未验/提请后续单。
+`App.vue:54` 自引用 `--safe-top: var(--safe-top)` 改为 `env(safe-area-inset-top)`（APP-PLUS 覆盖保留、修后使用点 96 处/89 文件零改动）；静态断言门修前红修后绿 + 反测红/SHA 复原/绿三段齐；type 0=0、lint 逐规则不劣化、build:h5 绿、H5 computed 实测 `0px` 可解析（桌面 0 属正常）；viewport-fit=cover 缺失与真机、截图三项如实标未验/提请后续单。
