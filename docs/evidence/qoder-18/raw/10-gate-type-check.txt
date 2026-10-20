@@ -1,0 +1,9 @@
+# CMD: npm run type-check  (cwd=app-mobile)  date=2026-10-21 04:26:32
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+TYPE_CHECK_EXIT=0

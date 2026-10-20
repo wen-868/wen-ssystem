@@ -1,0 +1,299 @@
+############ QODER-18 反测 STEP 4：注入态跑门（必须红）############
+# CMD: npm run test  (cwd=app-mobile)  date=2026-10-21 04:34:32
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-18/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 434[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 419[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [31m❯[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 802[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 425[2mms[22m[39m
+     [32m✓[39m ② POST 首请求 401 且本地可读 token ⇒ 0 次重试（写操作禁止重放）[32m 14[2mms[22m[39m
+     [32m✓[39m ③ PUT 首请求 401 ⇒ 0 次重放[32m 32[2mms[22m[39m
+     [32m✓[39m ③ DELETE 首请求 401 ⇒ 0 次重放[32m 6[2mms[22m[39m
+     [32m✓[39m ④ 401 清态必须包含 merchant_csrf_token 与 merchant_tenant（连带 token / user / tenant_id）[32m 15[2mms[22m[39m
+     [32m✓[39m ⑤ method 缺省 ⇒ 按 GET 处理，仍允许静默重试一次[32m 8[2mms[22m[39m
+     [32m✓[39m ⑥ 小写 method "get" ⇒ 统一大写比较后仍按 GET 重试[32m 5[2mms[22m[39m
+     [32m✓[39m ⑦ GET 401 但本地读不到 token ⇒ 不重试，直接清态并跳登录[32m 23[2mms[22m[39m
+     [32m✓[39m ⑧ 401 重试只重试一次（GET 二次仍 401 ⇒ 不再无限重放）[32m 13[2mms[22m[39m
+     [32m✓[39m ⑨ 403 / 404 / 500 处理不受本次改动影响[32m 28[2mms[22m[39m
+     [32m✓[39m ⑩ 源码静态兜底：重试条件里带 GET 判定且清理 CSRF 与 merchant_tenant（不可代替上面的行为用例）[32m 8[2mms[22m[39m
+     [32m✓[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键[32m 150[2mms[22m[39m
+     [32m✓[39m ⑫ 真实 401 路径跑完后，token/user/tenant/tenant_id/csrf 五个敏感键的明文与 enc_ 镜像均不残留[32m 11[2mms[22m[39m
+     [32m✓[39m ⑬ 未装拦截器的裸 uni（等价于存储层退化态）下，镜像键只能由 storage.ts 的 removeCsrfToken 清[32m 14[2mms[22m[39m
+[31m     [31m×[31m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload[39m[32m 41[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 237[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 587[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 305[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 313[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m70 passed[39m[22m[90m (71)[39m
+[2m   Start at [22m 04:34:44
+[2m   Duration [22m 5.09s[2m (transform 6.38s, setup 0ms, import 8.29s, tests 2.41s, environment 11ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-18 · request.ts 死导出 upload() 已移除且不可回流[2m > [22m⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload
+[31m[1mAssertionError[22m: request.ts 又出现 export function upload: expected '/**\r\n * uni-app 网络请求适配层\r\n * 封装 un…' not to match /export\s+(?:async\s+)?function\s+uplo…/[39m
+
+[32m- Expected:[39m
+/export\s+(?:async\s+)?function\s+upload\b/
+
+[31m+ Received:[39m
+"/**
+ * uni-app 网络请求适配层
+ * 封装 uni.request，提供统一拦截、Token注入、错误处理
+ */
+
+import { API_BASE_H5, API_BASE_NATIVE } from '../config/env'
+
+// uni-app 条件编译：H5 使用 Vite 环境变量（默认 /api 代理），其他平台（App）使用生产 API 域名
+// 使用 IIFE 包裹避免 vue-tsc 误报重复声明（uni-app 编译器会按平台去除无用分支）
+const BASE_URL: string = (() => {
+  // #ifdef H5
+  return API_BASE_H5
+  // #endif
+  // #ifndef H5
+  // APP 端必须带 /api 路径前缀（nginx 仅反代 /api/* 到后端），否则所有请求 404 导致无法登录
+  return API_BASE_NATIVE
+  // #endif
+})()
+
+interface RequestOptions {
+  url: string
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  data?: any
+  header?: Record<string, string>
+  timeout?: number
+  responseType?: 'text' | 'json' | 'arraybuffer' | 'blob'
+  /** 静默失败：出错不弹 toast、不跳转，仅 reject（用于非关键/兜底请求） */
+  silent?: boolean
+  /** 内部标记：401 防误杀重试，只重试一次 */
+  _retried401?: boolean
+}
+
+interface RequestResponse<T = any> {
+  code: string
+  msg: string
+  data: T
+  traceId: string
+}
+
+/**
+ * 并发 401 去重锁
+ *
+ * token 失效时，首屏往往有多个请求同时返回 401。若每个都独立执行
+ * 清存储 + toast + reLaunch，会造成重复弹窗与多次重定位（页面闪烁、登录页入栈多次）。
+ * 这里只让首个 401 执行跳转动作，其余仅 reject。
+ */
+let unauthorizedHandling = false
+
+function getToken(): string {
+  return uni.getStorageSync('merchant_token') || ''
+}
+
+function getTenantId(): string {
+  return uni.getStorageSync('merchant_tenant_id') || ''
+}
+
+function getCsrfToken(): string {
+  // 走 storage.ts 拦截器：'merchant_csrf_token' 已加入 SENSITIVE_KEYS，自动解密返回
+  return uni.getStorageSync('merchant_csrf_token') || ''
+}
+
+export async function request<T = any>(options: RequestOptions): Promise<T> {
+  const { url, method = 'GET', data, header = {}, timeout = 30000, responseType, silent = false } = options
+
+  const token = getToken()
+  const tenantId = getTenantId()
+  const csrfToken = getCsrfToken()
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...header
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  if (tenantId) {
+    headers['X-Tenant-Id'] = tenantId
+  }
+  // CSRF 防护：写操作需注入 x-csrf-token header（后端登录接口下发，存于加密 storage）
+  if (csrfToken) {
+    headers['x-csrf-token'] = csrfToken
+  }
+
+  return new Promise((resolve, reject) => {
+    uni.request({
+      url: `${BASE_URL}${url}`,
+      method,
+      data,
+      header: headers,
+      timeout,
+      responseType,
+      success: (res: any) => {
+        const { statusCode, data: resData } = res
+
+        // 401: 未认证，清除登录态并跳转登录页
+        if (statusCode === 401) {
+          // 防误杀：本地仍能读到 token 时先静默重试一次。
+          // 页面刷新后的最初几百毫秒内，存储读取链路偶发返回空（时序问题），
+          // 导致本应带 token 的请求裸奔 401；重试时读取已恢复，可直接成功。
+          // ★ QODER-14：静默重试只对幂等的 GET 开放。POST/PUT/DELETE 的首请求可能已经在
+          // 后端落库（网络抖动后才收到 401），原样重放 ⇒ 重复开单 / 重复扣减等不可逆副作用，
+          // 因此非 GET 首次 401 一律走下面的清态 + 提示 + 跳登录，由用户重新发起。
+          // method 缺省按 GET 处理（uni.request 默认即 GET），并统一大写比较避免 'get' 漏判。
+          const retryToken = getToken()
+          const retryMethod = String(options.method || 'GET').toUpperCase()
+          if (retryToken && retryMethod === 'GET' && !(options as any)._retried401) {
+            request({ ...options, _retried401: true } as RequestOptions)
+              .then(resolve)
+              .catch(reject)
+            return
+          }
+          uni.removeStorageSync('merchant_token')
+          uni.removeStorageSync('merchant_user')
+          // ★ QODER-14F1：merchant_tenant 与 merchant_tenant_id 是 storage.ts SENSITIVE_KEYS 里
+          // 两个**不同**的敏感键（TENANT / TENANT_ID，见 storage.ts:75-80）：setTenant() 会同时写
+          // 这两个键（storage.ts:319-322），此前 401 只清 tenant_id ⇒ 重新登录前旧租户对象
+          // （enc_merchant_tenant）仍可被读出，属登录态残留。本键同样在 SENSITIVE_KEYS 内，
+          // uni.removeStorageSync 拦截器（storage.ts:196-203）会把这一条调用连带转成
+          // removeSecureStorage（删加密镜像键 enc_merchant_tenant）+ 原始 removeStorageSync
+          // （删历史明文残留），与其余四行完全同一套语义，因此一条即够，不补第二条删除。
+          uni.removeStorageSync('merchant_tenant')
+          uni.removeStorageSync('merchant_tenant_id')
+          // ★ QODER-14：CSRF 令牌也是登录态的一部分，此前漏清会在重新登录前留下
+          // 可用的旧写操作凭据。'merchant_csrf_token' 在 storage.ts 的 SENSITIVE_KEYS 里，
+          // 拦截器会把这一条调用同时转成 removeSecureStorage（删加密镜像键
+          // enc_merchant_csrf_token）+ 原始 removeStorageSync（删历史明文残留），
+          // 与上面 token / user / tenant_id 三行走完全同一套语义，无需再补第二条删除。
+          uni.removeStorageSync('merchant_csrf_token')
+          if (!silent && !unauthorizedHandling) {
+            // 并发去重：仅首个 401 弹提示并跳转，避免重复 reLaunch 与重复弹窗
+            unauthorizedHandling = true
+            uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
+            uni.reLaunch({ url: '/pages/login/login' })
+            // 跳转完成后释放锁，保证下次真正过期时仍能正常触发
+            setTimeout(() => { unauthorizedHandling = false }, 1500)
+          }
+          reject(new Error('登录已过期，请重新登录'))
+          return
+        }
+
+        // 403: 权限不足
+        if (statusCode === 403) {
+          const msg = resData?.msg || '权限不足，无法访问'
+          if (!silent) uni.showToast({ title: msg, icon: 'none' })
+          reject(new Error(msg))
+          return
+        }
+
+        // 404: 资源不存在
+        if (statusCode === 404) {
+          const msg = resData?.msg || '资源不存在'
+          if (!silent) uni.showToast({ title: msg, icon: 'none' })
+          reject(new Error(msg))
+          return
+        }
+
+        // 500: 服务器内部错误
+        if (statusCode === 500) {
+          const msg = resData?.msg || '服务器繁忙，请稍后重试'
+          if (!silent) uni.showToast({ title: msg, icon: 'none' })
+          reject(new Error(msg))
+          return
+        }
+
+        // 2xx: 成功
+        if (statusCode >= 200 && statusCode < 300) {
+          if (resData && typeof resData === 'object' && 'data' in resData) {
+            resolve(resData.data as T)
+          } else {
+            resolve(resData as T)
+          }
+        } else {
+          // 400 及其他错误
+          const msg = resData?.msg || `请求失败 (${statusCode})`
+          if (!silent) uni.showToast({ title: msg, icon: 'none' })
+          reject(new Error(msg))
+        }
+      },
+      fail: (err: any) => {
+        // 超时错误
+        if (err.errMsg?.includes('timeout')) {
+          if (!silent) uni.showToast({ title: '网络请求超时，请重试', icon: 'none' })
+          reject(new Error('网络请求超时，请重试'))
+        } else {
+          // 网络错误
+          if (!silent) uni.showToast({ title: '网络连接失败，请检查网络', icon: 'none' })
+          reject(new Error('网络连接失败，请检查网络'))
+        }
+      }
+    })
+  })
+}
+
+export function get<T = any>(url: string, params?: Record<string, any>, options?: { responseType?: 'text' | 'json' | 'arraybuffer' | 'blob' }): Promise<T> {
+  // 过滤空值参数：uni.request 会把 undefined/null/'' 序列化成 `key=` 空串，
+  // 后端 Zod 枚举校验（如盘点列表 status）收到 '' 会直接 400 参数校验失败。
+  // 缺参数与空字符串在后端语义一致（均为\"不筛选\"），故统一丢弃更安全。
+  const cleanParams = params
+    ? Object.fromEntries(
+        Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')
+      )
+    : params
+  return request<T>({ url, method: 'GET', data: cleanParams, ...options })
+}
+
+export function post<T = any>(url: string, data?: any): Promise<T> {
+  return request<T>({ url, method: 'POST', data })
+}
+
+export function put<T = any>(url: string, data?: any): Promise<T> {
+  return request<T>({ url, method: 'PUT', data })
+}
+
+export function del<T = any>(url: string): Promise<T> {
+  return request<T>({ url, method: 'DELETE' })
+}
+
+// QODER-18 ANTI-TEST INJECTION (temporary, must be reverted by cp restore)
+export function upload<T = any>(url: string, filePath: string, name = \"file\", formData?: Record<string, any>): Promise<T> {
+  return Promise.resolve() as any
+}
+"
+
+[36m [2m❯[22m tests/request-retry-safety.spec.ts:[2m454:69[22m[39m
+    [90m452|[39m
+    [90m453|[39m     [90m// —— 断言 ①：源码里不存在 upload 的任何导出形态 ——[39m
+    [90m454|[39m     expect(requestSrc, 'request.ts 又出现 export function upload').not.to…
+    [90m   |[39m                                                                     [31m^[39m
+    [90m455|[39m       [36m/export\s+(?:async\s+)?function\s+upload\b/[39m
+    [90m456|[39m     )
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-18\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-18\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+ANTI_RED_TEST_EXIT=1

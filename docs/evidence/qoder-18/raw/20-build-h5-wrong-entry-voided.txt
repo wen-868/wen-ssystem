@@ -1,0 +1,7 @@
+# CMD (WRONG ENTRY, recorded for pitfall only): npm --workspace app-mobile run build:h5  (cwd=app-mobile)  date=2026-10-21 04:29:52
+# 说明：本条不是构建失败，是 npm --workspace 必须在仓库根执行的入口位置错误复现（协议/卡内已点名）。
+# 真正的 build:h5 读数见 21-build-h5.txt（仓库根执行）。
+npm error No workspaces found:
+npm error   --workspace=app-mobile
+npm error A complete log of this run can be found in: C:\Users\XIONG\AppData\Local\npm-cache\_logs\2026-10-20T20_29_57_701Z-debug-0.log
+EXIT=1

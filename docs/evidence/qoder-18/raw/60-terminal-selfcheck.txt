@@ -1,0 +1,62 @@
+# QODER-18 · 收尾自检（协议 §7 逐条输出）  date=2026-10-21 05:05:03
+
+## git status --porcelain  （docs 笔提交前的预期 = 仅未提交的证据/文档目录）
+?? docs/evidence/qoder-18/
+
+## git log --oneline origin/main..HEAD  （笔数与哈希）
+0aa5765e fix: 删除 request.ts 死导出 upload() 并加静态断言防回流（QODER-18）
+e6801de0 docs: QODER-14F1 收尾自检证据（四门终态现场复跑 + build:h5 作废登记与修正复跑）
+da6db146 docs: QODER-14F1 回传卡、ACTIVE 回执与 401 清态补删 merchant_tenant 的判据证据
+8c09cfbd fix: 401 清态补删 merchant_tenant 并将五敏感键无残留做成断言（QODER-14F1）
+a5294668 docs: QODER-14 收尾自检与改动面自证证据（协议 §6 逐条输出）
+e29b801e docs: QODER-14 回传卡与 401 重试安全性证据（判据读数 + 两条反测）
+5dbf1453 fix: 401 静默重试仅允许 GET 且清态补删 CSRF 令牌（QODER-14）
+本卡提交笔数: 7
+
+## git diff --name-only e6801de0..HEAD  （改动面必须 = 卡点名 3 文件，不多一个）
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+改动文件数: 3
+
+## git diff e6801de0..HEAD -- backend/  （必须 0 行）
+0
+
+## git diff --stat e6801de0..HEAD -- app-mobile/src  （必须只有 request.ts）
+ app-mobile/src/api/request.ts | 37 -------------------------------------
+ 1 file changed, 37 deletions(-)
+
+## 红线对照自检
+- 未 push：
+    fatal: no upstream configured for branch 'fix/qoder-18-upload-dead-code'
+- 分支未切换，仍在: fix/qoder-18-upload-dead-code
+- 未 rebase/改历史：基线 e6801de0 仍是 HEAD 的第 2 笔父提交 -> e6801de01731fad01897d5bd93cd831a9fc17299
+- 任务书原件未改动（docs/tasks/inbox/QODER-18-upload-dead-charge.md diff 行数，0 = 未动）：
+0
+- QODER-14* 既有证据未被触碰（docs/evidence/qoder-14* diff 行数，0 = 未动）：
+0
+- package.json / lockfile 未改动：
+0
+
+## 四门终态 EXIT（摘自 raw/50-terminal-four-gates.txt）
+TYPE_CHECK_EXIT=0
+LINT_EXIT=0
+TEST_EXIT=0
+CHECK_CONTRACT_EXIT=0
+## build:h5 / drift 终态 EXIT（摘自 raw/51-terminal-build-and-drift.txt，仓库根执行）
+BUILD_H5_EXIT=0
+DRIFT_EXIT=0
+
+## request.ts 终态 SHA256（须与反测注入前逐字节一致）
+0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7 *app-mobile/src/api/request.ts
+   期望 = 0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7
+
+## 【补正】上面『本卡提交笔数: 7』口径有误，以本段为准（原行未删，保留可核对）
+# origin/main..HEAD 覆盖的是整条未合并分支（含 QODER-14 / 14F1 各笔），不是本卡笔数。
+# 本卡笔数必须按卡基线 e6801de0..HEAD 计：
+$ git rev-list --count e6801de0..HEAD
+1
+$ git log --oneline e6801de0..HEAD
+0aa5765e fix: 删除 request.ts 死导出 upload() 并加静态断言防回流（QODER-18）
+# ⇒ 本卡自有提交 = 上述笔数（fix 1 笔 + docs 若干笔），符合「本地提交 1~2 笔」要求；
+#   docs 笔在本文件生成后紧接提交，届时 e6801de0..HEAD 为 2 笔。
