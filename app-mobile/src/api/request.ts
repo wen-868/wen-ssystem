@@ -98,8 +98,13 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
           // 防误杀：本地仍能读到 token 时先静默重试一次。
           // 页面刷新后的最初几百毫秒内，存储读取链路偶发返回空（时序问题），
           // 导致本应带 token 的请求裸奔 401；重试时读取已恢复，可直接成功。
+          // ★ QODER-14：静默重试只对幂等的 GET 开放。POST/PUT/DELETE 的首请求可能已经在
+          // 后端落库（网络抖动后才收到 401），原样重放 ⇒ 重复开单 / 重复扣减等不可逆副作用，
+          // 因此非 GET 首次 401 一律走下面的清态 + 提示 + 跳登录，由用户重新发起。
+          // method 缺省按 GET 处理（uni.request 默认即 GET），并统一大写比较避免 'get' 漏判。
           const retryToken = getToken()
-          if (retryToken && !(options as any)._retried401) {
+          const retryMethod = String(options.method || 'GET').toUpperCase()
+          if (retryToken && retryMethod === 'GET' && !(options as any)._retried401) {
             request({ ...options, _retried401: true } as RequestOptions)
               .then(resolve)
               .catch(reject)
@@ -108,6 +113,12 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
           uni.removeStorageSync('merchant_token')
           uni.removeStorageSync('merchant_user')
           uni.removeStorageSync('merchant_tenant_id')
+          // ★ QODER-14：CSRF 令牌也是登录态的一部分，此前漏清会在重新登录前留下
+          // 可用的旧写操作凭据。'merchant_csrf_token' 在 storage.ts 的 SENSITIVE_KEYS 里，
+          // 拦截器会把这一条调用同时转成 removeSecureStorage（删加密镜像键
+          // enc_merchant_csrf_token）+ 原始 removeStorageSync（删历史明文残留），
+          // 与上面 token / user / tenant_id 三行走完全同一套语义，无需再补第二条删除。
+          uni.removeStorageSync('merchant_csrf_token')
           if (!silent && !unauthorizedHandling) {
             // 并发去重：仅首个 401 弹提示并跳转，避免重复 reLaunch 与重复弹窗
             unauthorizedHandling = true
