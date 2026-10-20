@@ -1,0 +1,24 @@
+QODER-14 · 判据证据 06 —— 修后 lint 全仓逐规则计数
+命令：cd D:/Users/ZXQL/wt-agents/QODER-14/app-mobile && node ../node_modules/eslint/bin/eslint.js src --ext .ts,.vue -f json -o <scratch>/post-eslint.json
+摘要命令：node <scratch>/eslint-summary.mjs <scratch>/post-eslint.json <scratch>/post-eslint-summary.txt
+全量 json：D:/Users/ZXQL/wt-agents/_qoder14-scratch/post-eslint.json（工作树外 scratch，不入库）
+ESLINT_EXIT=1 是基线既有 20 条 error 造成（同一 harness 同一集合），非本单引入
+
+files=190
+error=20
+warning=12880
+--- per-rule ---
+warning|vue/html-indent = 12299
+warning|no-console = 232
+warning|vue/html-closing-bracket-spacing = 196
+warning|@typescript-eslint/no-unused-vars = 105
+warning|vue/multiline-html-element-content-newline = 47
+error|no-extra-semi = 9
+error|no-unreachable = 6
+error|no-empty = 3
+error|no-irregular-whitespace = 1
+error|vue/no-unused-vars = 1
+warning|vue/html-closing-bracket-newline = 1
+
+--- eslint stdout ---
+ESLINT_EXIT=0

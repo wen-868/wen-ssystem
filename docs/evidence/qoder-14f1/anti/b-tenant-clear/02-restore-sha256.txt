@@ -1,0 +1,10 @@
+# 命令：cp 备份复原 && sha256sum 比对
+# 工作目录：D:/Users/ZXQL/wt-agents/QODER-14/app-mobile（除注明外）
+# 采集时间：2026-10-21T02:14:07+08:00
+# 分支：fix/qoder-14f1-auth-cleanup-restack  HEAD：a5294668（本笔为证据采集时点，终态哈希见 raw/12）
+# ------------------------------------------------------------------
+# 反测 b · cp 备份复原后 sha256 比对
+PRE  =6585f7c5ea3f006537777c4d0a23130551c8415de84a644d91ccda49cd388376
+POST =6585f7c5ea3f006537777c4d0a23130551c8415de84a644d91ccda49cd388376
+BYTE_IDENTICAL=yes
+6585f7c5ea3f006537777c4d0a23130551c8415de84a644d91ccda49cd388376 *D:/Users/ZXQL/wt-agents/QODER-14/app-mobile/src/api/request.ts

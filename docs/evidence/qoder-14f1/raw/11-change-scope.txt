@@ -1,0 +1,92 @@
+# 命令见每节 $ 行；工作目录：D:/Users/ZXQL/wt-agents/QODER-14   时间：2026-10-21T02:18:35+08:00
+# 分支：fix/qoder-14f1-auth-cleanup-restack  实现笔：8c09cfbd8e817132678a1fc4e63c8a4a13e2a0f8
+# 卡基线：dfeedbc0（#368 合并后的 main）；本卡开工时的分支尖端：a5294668（= 旧 3 笔 rebase 后的新哈希）
+# ------------------------------------------------------------------
+## 0) ★ 本卡自身改动面：a5294668..8c09cfbd（应 = 卡点名 3 文件，不多一个）
+$ git diff --name-only a5294668..8c09cfbd
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+$ git diff --stat a5294668..8c09cfbd
+ app-mobile/scripts/gates-baseline.json        |  6 +-
+ app-mobile/src/api/request.ts                 |  8 +++
+ app-mobile/tests/request-retry-safety.spec.ts | 79 ++++++++++++++++++++-------
+ 3 files changed, 71 insertions(+), 22 deletions(-)
+
+## 1) 分支 vs 卡基线全量改动面：dfeedbc0..8c09cfbd
+（含本分支上已存在的旧 QODER-14 三笔 rebase 产物：实现 5dbf1453 + docs e29b801e/a5294668，
+  卡 §二.1 要求「从 7137ab06 建新分支后 rebase 到 dfeedbc0，保留原 14 用例」，故 docs/evidence/qoder-14/** 与旧回传卡/回执在改动面里属既有笔，非本卡新增）
+$ git diff --name-only dfeedbc0..8c09cfbd
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+docs/evidence/qoder-14/README.md
+docs/evidence/qoder-14/anti/a-get-gate/00-pre-sha256.txt
+docs/evidence/qoder-14/anti/a-get-gate/01-anti-a-vitest-red.txt
+docs/evidence/qoder-14/anti/a-get-gate/02-restore-sha256.txt
+docs/evidence/qoder-14/anti/a-get-gate/03-anti-a-vitest-green.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/00-pre-sha256.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/01-anti-b-vitest-red.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/02-restore-sha256.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/03-anti-b-vitest-green.txt
+docs/evidence/qoder-14/raw/01-baseline-type-check.txt
+docs/evidence/qoder-14/raw/02-baseline-lint-counts.txt
+docs/evidence/qoder-14/raw/03-baseline-test.txt
+docs/evidence/qoder-14/raw/04-baseline-build-h5.txt
+docs/evidence/qoder-14/raw/05-post-type-check.txt
+docs/evidence/qoder-14/raw/06-post-lint-counts.txt
+docs/evidence/qoder-14/raw/07-post-test.txt
+docs/evidence/qoder-14/raw/08-post-build-h5.txt
+docs/evidence/qoder-14/raw/09-lint-before-after-diff.txt
+docs/evidence/qoder-14/raw/10-change-scope.txt
+docs/evidence/qoder-14/raw/11-closeout-checklist.txt
+"docs/tasks/cards/R101-QODER-14-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-14.md"
+
+## 2) 卡 §三 最后一行：git diff d1a6adcf..HEAD -- backend/ = 0
+$ git diff d1a6adcf..8c09cfbd -- backend/ | wc -c
+0
+（0 字节 ⇒ 判据成立）
+$ git diff --name-only d1a6adcf..8c09cfbd -- backend/
+$ git diff d1a6adcf..HEAD -- backend/ | wc -c   # 按卡内原式（HEAD 为实现笔时点）
+0
+
+## 3) app-mobile/src 改动面（本卡仅 request.ts 一个文件）
+$ git diff --name-only a5294668..8c09cfbd -- app-mobile/src
+app-mobile/src/api/request.ts
+$ git diff --stat a5294668..8c09cfbd -- app-mobile/src
+ app-mobile/src/api/request.ts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+## 4) 门禁本体零改动核验
+$ git diff --name-only a5294668..8c09cfbd -- app-mobile/scripts
+app-mobile/scripts/gates-baseline.json
+$ git diff a5294668..8c09cfbd -- app-mobile/scripts/lint-gate.mjs app-mobile/scripts/test-gate.mjs app-mobile/scripts/type-check-gate.mjs app-mobile/scripts/check-contract.mjs app-mobile/scripts/check-contract-drift.mjs app-mobile/vitest.config.ts app-mobile/.eslintrc.cjs app-mobile/package.json package-lock.json | wc -c
+0
+（0 字节 ⇒ 四个包装器/配置/package.json/lockfile 全未动，本卡只动 gates-baseline.json 的 tests 段）
+
+## 5) gates-baseline.json 本卡全部 diff（可见仅 tests 段两数 + note）
+$ git diff a5294668..8c09cfbd -- app-mobile/scripts/gates-baseline.json
+diff --git a/app-mobile/scripts/gates-baseline.json b/app-mobile/scripts/gates-baseline.json
+index 84619e7c..3884eae7 100644
+--- a/app-mobile/scripts/gates-baseline.json
++++ b/app-mobile/scripts/gates-baseline.json
+@@ -54,8 +54,8 @@
+     "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
+   },
+   "tests": {
+-    "testFiles": 5,
+-    "testCount": 56,
+-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。"
++    "testFiles": 6,
++    "testCount": 70,
++    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。QODER-14F1（2026-10-21 重栈轮，实测即基线）：新增本单 request-retry-safety.spec.ts（14 用例：401 GET-only 重试 11 条 + enc_ 镜像键语义 3 条）⇒ 5/56 → 6/70；本卡只在该 spec 内扩断言（④ 被删键集合 4→5、⑫ 五敏感键明文+enc_ 镜像无残留、⑩ 源码兜底 +1 行 toContain），未新增 it ⇒ 用例数仍为 70，与卡内目标 6/70 一致。"
+   }
+ }
+
+## 6) 分支态：origin/main..HEAD 笔数与哈希
+$ git log --oneline origin/main..HEAD
+8c09cfbd fix: 401 清态补删 merchant_tenant 并将五敏感键无残留做成断言（QODER-14F1）
+a5294668 docs: QODER-14 收尾自检与改动面自证证据（协议 §6 逐条输出）
+e29b801e docs: QODER-14 回传卡与 401 重试安全性证据（判据读数 + 两条反测）
+5dbf1453 fix: 401 静默重试仅允许 GET 且清态补删 CSRF 令牌（QODER-14）

@@ -1,0 +1,64 @@
+QODER-14 · 判据证据 11 —— 协议 §6 收尾自检（自评；本文件与 10 号由第 3 笔 docs 提交携带）
+取数状态：第 2 笔 docs 提交（060b5a7e）已落，工作树只剩本组 10/11 两件证据待提交。
+因果说明：任何提交都无法自包含「自己被提交之后」的读数，
+  故 6.1 的「git status --short 为空」在第 3 笔提交后由执行方复跑，读数写在回执/回传卡文本与派单回报里（可复跑命令见本文件）。
+
+=== 6.1a git status --short（此刻）===
+?? docs/evidence/qoder-14/raw/10-change-scope.txt
+?? docs/evidence/qoder-14/raw/11-closeout-checklist.txt
+=== 6.1b git ls-files --others --exclude-standard（此刻，应只剩 10/11）===
+docs/evidence/qoder-14/raw/10-change-scope.txt
+docs/evidence/qoder-14/raw/11-closeout-checklist.txt
+
+=== 6.2 提交面（见 10-change-scope.txt：仅 request.ts + 新 spec + 卡片/回执/证据）===
+22
+  ↑ 截至第 2 笔 docs 提交的文件数（+10/11 两件即本单全部交付物）
+
+=== 6.3 未 push 自证 ===
+060b5a7e docs: QODER-14 回传卡与 401 重试安全性证据（判据读数 + 两条反测）
+e32782c7 fix: 401 静默重试仅允许 GET 且清态补删 CSRF 令牌（QODER-14）
+--- git status -sb（无 upstream 推进；ahead 数 = 本地笔数）---
+## fix/qoder-14-auth-retry-safety
+?? docs/evidence/qoder-14/raw/10-change-scope.txt
+?? docs/evidence/qoder-14/raw/11-closeout-checklist.txt
+--- 远端同名分支是否存在（应无；未 push）---
+
+=== 6.4 借入 harness 与 scratch 已删 / 产物不入库 ===
+ls: cannot access 'app-mobile/vitest.config.ts': No such file or directory
+ls: cannot access 'app-mobile/.eslintrc.cjs': No such file or directory
+--- git ls-files 里是否残留借入件（应为空）---
+--- build 产物是否被 gitignore 覆盖 ---
+app-mobile/.gitignore:2:dist/	app-mobile/dist/build/h5/index.html
+--- 借入件的 scratch 备份（可按协议 §2.1 命令原地复现）---
+-rw-r--r-- 1 XIONG 197121 2273 Oct 21 00:03 /d/Users/ZXQL/wt-agents/_qoder14-scratch/borrowed-.eslintrc.cjs
+-rw-r--r-- 1 XIONG 197121 2467 Oct 21 00:03 /d/Users/ZXQL/wt-agents/_qoder14-scratch/borrowed-vitest.config.ts
+
+=== 6.5 门与反测的三段结构（红→复原→绿）指针 ===
+docs/evidence/qoder-14/anti/a-get-gate:
+00-pre-sha256.txt
+01-anti-a-vitest-red.txt
+02-restore-sha256.txt
+03-anti-a-vitest-green.txt
+
+docs/evidence/qoder-14/anti/b-csrf-clear:
+00-pre-sha256.txt
+01-anti-b-vitest-red.txt
+02-restore-sha256.txt
+03-anti-b-vitest-green.txt
+--- 四条 SHA 读数（00 注入前 / 02 复原后，a、b 两两必须相同）---
+4db802da4c1dc73038863567ad2438d39a641b9a371d079aae98f279f9ce029f *src/api/request.ts
+4db802da4c1dc73038863567ad2438d39a641b9a371d079aae98f279f9ce029f *src/api/request.ts
+SHA_MATCH=YES
+4db802da4c1dc73038863567ad2438d39a641b9a371d079aae98f279f9ce029f *src/api/request.ts
+4db802da4c1dc73038863567ad2438d39a641b9a371d079aae98f279f9ce029f *src/api/request.ts
+SHA_MATCH=YES
+--- 复跑装置命令（借入 harness 后执行；判据读数应可再现）---
+  git show 9fd90257:app-mobile/vitest.config.ts > app-mobile/vitest.config.ts
+  git show 9fd90257:app-mobile/.eslintrc.cjs > app-mobile/.eslintrc.cjs
+  cd app-mobile
+  node ../node_modules/vitest/vitest.mjs run      # 期望 14 passed / EXIT=0
+  node ../node_modules/vue-tsc/bin/vue-tsc.js --noEmit   # 期望 0 错 / EXIT=0
+  node ../node_modules/eslint/bin/eslint.js src --ext .ts,.vue -f json -o x.json  # 期望 files=190/error=20/warning=12880
+  cd .. && npm --workspace app-mobile run build:h5   # 期望 EXIT=0
+
+=== 复跑读数（第 3 笔提交前最后一次实跑，见 07-post-test.txt / 05-post-type-check.txt / 06 / 08）===

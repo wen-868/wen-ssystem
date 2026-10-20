@@ -1,0 +1,44 @@
+QODER-14 · 判据证据 10 —— 改动面自证（自评）
+命令（工作树根执行）：
+  git diff --name-only 321b4f6b..HEAD
+  git diff --name-only 321b4f6b..HEAD -- backend/ | wc -l
+  git diff --stat 321b4f6b..HEAD -- app-mobile/src/api/request.ts
+
+=== git diff --name-only 321b4f6b..HEAD（截至第 2 笔 docs 提交 060b5a7e；本文件与 11 号由第 3 笔 docs 提交携带）===
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+docs/evidence/qoder-14/README.md
+docs/evidence/qoder-14/anti/a-get-gate/00-pre-sha256.txt
+docs/evidence/qoder-14/anti/a-get-gate/01-anti-a-vitest-red.txt
+docs/evidence/qoder-14/anti/a-get-gate/02-restore-sha256.txt
+docs/evidence/qoder-14/anti/a-get-gate/03-anti-a-vitest-green.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/00-pre-sha256.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/01-anti-b-vitest-red.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/02-restore-sha256.txt
+docs/evidence/qoder-14/anti/b-csrf-clear/03-anti-b-vitest-green.txt
+docs/evidence/qoder-14/raw/01-baseline-type-check.txt
+docs/evidence/qoder-14/raw/02-baseline-lint-counts.txt
+docs/evidence/qoder-14/raw/03-baseline-test.txt
+docs/evidence/qoder-14/raw/04-baseline-build-h5.txt
+docs/evidence/qoder-14/raw/05-post-type-check.txt
+docs/evidence/qoder-14/raw/06-post-lint-counts.txt
+docs/evidence/qoder-14/raw/07-post-test.txt
+docs/evidence/qoder-14/raw/08-post-build-h5.txt
+docs/evidence/qoder-14/raw/09-lint-before-after-diff.txt
+"docs/tasks/cards/R101-QODER-14-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-14.md"
+
+=== backend/ 改动文件数（要求 0）===
+0
+=== 改动面里 backend 路径命中数（grep -c，要求 0）===
+0
+
+=== src 面唯一改动文件的 diff 规模 ===
+ app-mobile/src/api/request.ts | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+=== 业务页面 / 配置面自检（pages.json、manifest.json、package.json、.env、appid/支付/推送/插件）===
+(空 ⇒ 未触碰业务页面、依赖清单与 appid/支付/推送/插件配置)
+
+=== request.ts 修后 SHA256（须与反测注入前/复原后一致）===
+4db802da4c1dc73038863567ad2438d39a641b9a371d079aae98f279f9ce029f *app-mobile/src/api/request.ts
