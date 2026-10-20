@@ -146,10 +146,11 @@ const priceApi = {
       skuName: string
       spec: string
       barcode: string
-      costPrice: number
-      retailPrice: number
-      storePrice: number
-      miniappPrice: number
+      // 后端 DECIMAL 可能以字符串或 null 下发，模板显示前必须经 utils/format.ts 的 fmtAmount 归一化（QODER-15）
+      costPrice: number | string | null
+      retailPrice: number | string | null
+      storePrice: number | string | null
+      miniappPrice: number | string | null
       wholesalePrice: number
       anomalyType: string
       anomalyTypeLabel: string

@@ -1,0 +1,9 @@
+$ sha256sum 复原备份（scratch/price-anomaly.vue.bak）vs 工作树文件
+a615a954a9170a6d7cc7bf0872a0d3c5cc6ce3086cfa720fdfd8b47833f5cf7c *D:/Users/ZXQL/wt-agents/_scratch/qoder-15f1/price-anomaly.vue.bak
+a615a954a9170a6d7cc7bf0872a0d3c5cc6ce3086cfa720fdfd8b47833f5cf7c *src/pages-sub/product/price-anomaly/price-anomaly.vue
+$ cmp -s（逐字节比较，无输出=完全一致）
+CMP: 逐字节一致 EXIT=0
+
+说明：05-sha-compare.txt 里 'git diff --stat' 比的是 HEAD（本卡改动前），非空属预期——
+     它显示的是本卡的正常改动（:class 换调用 + 新增 import 共 3 insert/1 delete），不是注入残留。
+     复原是否逐字节一致的唯一判据是上面的 SHA256 与 cmp（两者均与注入前 a615a954… 一致）。

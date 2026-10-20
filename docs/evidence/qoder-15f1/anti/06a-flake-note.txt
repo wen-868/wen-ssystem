@@ -1,0 +1,13 @@
+复原后 test 门复跑共三次，前两次红点与本卡改动无关，如实登记：
+
+- 06a-test-green-attempt1-unrelated-flake.txt：TEST_GREEN_EXIT=1
+  FAIL tests/api-base-env.spec.ts > 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用   Error: Test timed out in 5000ms
+  FAIL tests/api-base-env.spec.ts > 环境变量缺失 ⇒ H5 兜底必须是相对 /api        Error: Test timed out in 5000ms
+- 06b-test-green-attempt2-unrelated-flake.txt：TEST_GREEN_EXIT=1（同一条 api-base-env 用例 5000ms 超时）
+- 06c-test-green-final.txt：TEST_GREEN_EXIT=0，Test Files 7 passed (7) / Tests 158 passed (158)
+  其中 tests/api-base-env.spec.ts (3 tests) 478ms ⇒ 用例本身是通的。
+
+判读：api-base-env.spec.ts 的 `loadEnvModule()` 走 `vi.resetModules()` + 动态 import('../src/config/env')，
+首轮冷转换在机器被反测序列（vitest + eslint 连跑）压满时越过 vitest 默认 5000ms 阈值；
+本卡未触碰 src/config/env.ts 与该 spec，最终干净复现（无并发负载）为 478ms 通过。
+遗留观察项（范围外，登记不扩面）：该 spec 对冷转换超时不设余量，高负载下会假红 ⇒ 建议后续单卡处理（testTimeout 或预热 import），本卡不动他人门禁。

@@ -1,0 +1,2 @@
+63:              <text class="price-value" :class="{ 'price-danger': item.retailPrice < item.costPrice }">
+251:.price-danger { color: $uni-color-error; }

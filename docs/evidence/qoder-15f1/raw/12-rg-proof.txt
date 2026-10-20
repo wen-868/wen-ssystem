@@ -1,0 +1,117 @@
+# QODER-15F1 rg 取证（已 export MSYS2_ARG_CONV_EXCL='*'，避免 Git Bash MSYS 路径转换造成假 0 命中）
+
+$ rg -n "item\.retailPrice \< item\.costPrice" app-mobile/src
+app-mobile/src\utils\format.ts:58: * 为什么模板里不能写 `item.retailPrice < item.costPrice`：
+EXIT=0（1=零命中，即缺陷写法已不在 src）
+
+$ rg -n "isBelowCost" app-mobile/src app-mobile/tests
+  app-mobile/src\utils\format.ts:8: * 除显示外，**金额之间的比较判定**（`isBelowCost`，QODER-15F1 低价标红）同样必须经本文件的 `toNum`
+  app-mobile/src\utils\format.ts:74:export function isBelowCost(retail: NumericInput, cost: NumericInput): boolean {
+  app-mobile/tests\format.spec.ts:3: * QODER-15F1 · 追加 isBelowCost 低价判定用例（字符串字典序误判复现 + 无效值口径）
+  app-mobile/tests\format.spec.ts:15:import { toNum, fmtAmount, isBelowCost } from '@/utils/format'
+  app-mobile/tests\format.spec.ts:126: * QODER-15F1 · isBelowCost —— 低价标红判定归一化
+  app-mobile/tests\format.spec.ts:129:describe('isBelowCost — 字符串价格必须按数值比（QODER-15F1 卡点名缺陷复现）', () => {
+  app-mobile/tests\format.spec.ts:141:    expect(isBelowCost(retail, cost)).toBe(expected)
+  app-mobile/tests\format.spec.ts:145:describe('isBelowCost — number 侧数值语义与边界', () => {
+  app-mobile/tests\format.spec.ts:156:    expect(isBelowCost(retail, cost)).toBe(expected)
+  app-mobile/tests\format.spec.ts:160:describe('isBelowCost — 任一侧无效值一律 false（不得依赖隐式转换）', () => {
+  app-mobile/tests\format.spec.ts:176:    expect(isBelowCost(retail as never, 12)).toBe(false)
+  app-mobile/tests\format.spec.ts:180:    expect(isBelowCost(9, cost as never)).toBe(false)
+  app-mobile/tests\format.spec.ts:184:    expect(isBelowCost(null, undefined)).toBe(false)
+  app-mobile/tests\format.spec.ts:185:    expect(isBelowCost('', NaN)).toBe(false)
+  app-mobile/tests\format.spec.ts:189:    // 记录 JS 原生行为（模板里直接写 `<` 的真实结果），说明为什么必须走 isBelowCost：
+  app-mobile/tests\format.spec.ts:194:    expect(isBelowCost(null, 12)).toBe(false)
+  app-mobile/tests\format.spec.ts:195:    expect(isBelowCost('9.00', '12.00')).toBe(true)
+  app-mobile/tests\format.spec.ts:198:  it('判定口径与显示口径同源：fmtAmount 能出数值的组合，isBelowCost 必按该数值比较', () => {
+  app-mobile/tests\format.spec.ts:199:    // 页面同时用 fmtAmount 显示与 isBelowCost 标红，两者共用 toNum，不允许"显示 9.00/12.00 却不标红"
+  app-mobile/tests\format.spec.ts:202:    expect(isBelowCost('9.00', '12.00')).toBe(true)
+  app-mobile/tests\price-anomaly-static.spec.ts:13:import { isBelowCost } from '@/utils/format'
+  app-mobile/tests\price-anomaly-static.spec.ts:51: *   静态门：:class 必须调用 isBelowCost，不得再出现原始 `<` 直接比较
+  app-mobile/tests\price-anomaly-static.spec.ts:57:  const CALL = 'isBelowCost(item.retailPrice, item.costPrice)'
+  app-mobile/tests\price-anomaly-static.spec.ts:60:  it(':class 标红判定调用 isBelowCost，且全页恰好出现 1 次', () => {
+  app-mobile/tests\price-anomaly-static.spec.ts:61:    const count = (readPage().match(/isBelowCost\(/g) ?? []).length
+  app-mobile/tests\price-anomaly-static.spec.ts:75:  it('页面从 @/utils/format 引入 isBelowCost（判定与显示同源）', () => {
+  app-mobile/tests\price-anomaly-static.spec.ts:77:    expect(text).toContain("import { isBelowCost } from '@/utils/format'")
+  app-mobile/tests\price-anomaly-static.spec.ts:94:  /** 以模板表达式 + 真实 isBelowCost 复现页面标红结果（作用域 = item + 页面 import 的工具） */
+  app-mobile/tests\price-anomaly-static.spec.ts:97:    const fn = new Function('item', 'isBelowCost', 'return (' + priceDangerExpr() + ')')
+  app-mobile/tests\price-anomaly-static.spec.ts:98:    return Boolean(fn(item, isBelowCost))
+  app-mobile/tests\price-anomaly-static.spec.ts:102:    expect(priceDangerExpr()).toBe('isBelowCost(item.retailPrice, item.costPrice)')
+  app-mobile/src\pages-sub\product\price-anomaly\price-anomaly.vue:63:              <text class="price-value" :class="{ 'price-danger': isBelowCost(item.retailPrice, item.costPrice) }">
+  app-mobile/src\pages-sub\product\price-anomaly\price-anomaly.vue:103:import { isBelowCost } from '@/utils/format'
+
+$ rg -n "price-danger" app-mobile/src
+  app-mobile/src\pages-sub\product\price-anomaly\price-anomaly.vue:63:              <text class="price-value" :class="{ 'price-danger': isBelowCost(item.retailPrice, item.costPrice) }">
+  app-mobile/src\pages-sub\product\price-anomaly\price-anomaly.vue:251:.price-danger { color: $uni-color-error; }
+
+—— 范围外存量登记（本卡不扩面，只报数）——
+其它文件中裸 .toFixed( 的文件数 = 39
+其它文件中裸 .toFixed( 的总出现次数 = 109
+明细（文件:次数）:
+  app-mobile/src\api\modules\expenses.ts:1
+  app-mobile/src\api\modules\finance.ts:1
+  app-mobile/src\api\modules\orders.ts:1
+  app-mobile/src\native\print.ts:1
+  app-mobile/src\pages-sub\finance\finance\expense-detail.vue:1
+  app-mobile/src\pages-sub\finance\finance\expenses.vue:1
+  app-mobile/src\pages-sub\finance\finance\finance-dashboard.vue:2
+  app-mobile/src\pages-sub\finance\instant-retail\orders.vue:2
+  app-mobile/src\pages-sub\finance\instant-retail\products.vue:1
+  app-mobile/src\pages-sub\finance\loss-gain\gain-list.vue:1
+  app-mobile/src\pages-sub\finance\loss-gain\loss-gain-detail.vue:3
+  app-mobile/src\pages-sub\finance\loss-gain\loss-gain-report.vue:4
+  app-mobile/src\pages-sub\finance\loss-gain\loss-list.vue:1
+  app-mobile/src\pages-sub\finance\receivable\receivable.vue:1
+  app-mobile/src\pages-sub\finance\reconciliation\reconciliation.vue:1
+  app-mobile/src\pages-sub\finance\reports\customer-reports.vue:2
+  app-mobile/src\pages-sub\finance\reports\inventory-reports.vue:1
+  app-mobile/src\pages-sub\finance\reports\reports.vue:5
+  app-mobile/src\pages-sub\finance\reports\sales-reports.vue:3
+  app-mobile/src\pages-sub\finance\transfer\transfer.vue:1
+  app-mobile/src\pages-sub\marketing\stored-cards\consume-records.vue:1
+  app-mobile/src\pages-sub\marketing\stored-cards\recharge-records.vue:1
+  app-mobile/src\pages-sub\marketing\stored-cards\stored-cards.vue:1
+  app-mobile/src\pages-sub\order\order-aftersale\aftersale.vue:1
+  app-mobile/src\pages-sub\order\sales\sale-detail.vue:2
+  app-mobile/src\pages-sub\product\batch-price\batch-price.vue:6
+  app-mobile/src\pages-sub\product\customers\customer-detail.vue:2
+  app-mobile/src\pages-sub\product\customers\customers.vue:1
+  app-mobile/src\pages-sub\product\inventory\inventory.vue:1
+  app-mobile/src\pages-sub\product\price-review\price-review.vue:2
+  app-mobile/src\pages-sub\product\price\batch-logs.vue:2
+  app-mobile/src\pages-sub\product\price\price-manage.vue:1
+  app-mobile/src\pages-sub\product\suppliers\detail.vue:1
+  app-mobile/src\pages\home\home.vue:8
+  app-mobile/src\pages\orders\order-detail.vue:6
+  app-mobile/src\pages\products\product-detail.vue:18
+  app-mobile/src\pages\products\products.vue:2
+  app-mobile/src\pages\sales\create-sale.vue:6
+  app-mobile/src\utils\format.ts:3
+price.ts 中可空金额字段（number | string | null）声明数 = 4
+
+—— 口径更正与影响面数字（技术债铁律：必须给已修 N 处 / 仍受影响 M 处）——
+上面的 toFixed 明细 39 文件 / 109 处包含 src/utils/format.ts 自身 3 处（注释 2 处 + fmtAmount 函数体内合规 1 处）；
+业务侧（页面与 api 模块）仍受影响 = 38 文件 / 106 处；price-anomaly.vue 已 0 命中（QODER-15 收口生效）。
+
+$ rg -n '(costPrice|retailPrice|...)[A-Za-z]*\s*[<>]=?\s*...Price' app-mobile/src  （两个价格字段之间裸比较）
+app-mobile/src\utils\format.ts:58: * 为什么模板里不能写 `item.retailPrice < item.costPrice`：
+⇒ 全 src 只命中 utils/format.ts:58 的说明注释一处；**同类判定缺陷现场 = 1 处（price-anomaly.vue:63，本卡已修），仍受影响 = 0 处**。
+
+$ rg -l '@/utils/format' app-mobile/src
+app-mobile/src\pages-sub\product\price-anomaly\price-anomaly.vue
+⇒ 归一化工具目前仅 1 个页面接入（price-anomaly）；其余页面金额显示/判定仍未接（范围外，本卡不扩面）。
+
+$ rg -n '(Price|Amount)\??\s*:\s*number\s*\|\s*(null|string)' app-mobile/src/api
+app-mobile/src/api\modules\customers.ts:11:  totalAmount: number | string
+app-mobile/src/api\modules\price.ts:150:      costPrice: number | string | null
+app-mobile/src/api\modules\price.ts:151:      retailPrice: number | string | null
+app-mobile/src/api\modules\price.ts:152:      storePrice: number | string | null
+app-mobile/src/api\modules\price.ts:153:      miniappPrice: number | string | null
+app-mobile/src/api\modules\products.ts:36:  miniappPrice?: number | null
+app-mobile/src/api\modules\products.ts:37:  storePrice?: number | null
+app-mobile/src/api\modules\products.ts:63:  retailPrice?: number | null
+app-mobile/src/api\modules\products.ts:64:  wholesalePrice?: number | null
+app-mobile/src/api\modules\products.ts:65:  storePrice?: number | null
+app-mobile/src/api\modules\products.ts:66:  miniappPrice?: number | null
+app-mobile/src/api\modules\products.ts:179:  costPrice?: number | null
+app-mobile/src/api\modules\transfer.ts:43:  total_amount: number | string
+⇒ 可空/字符串金额字段声明共 12 处 / 4 文件：price.ts 4（本卡所在页，显示+判定均已归一化）、products.ts 7、customers.ts 1、transfer.ts 1 ⇒ 后 9 处属范围外。

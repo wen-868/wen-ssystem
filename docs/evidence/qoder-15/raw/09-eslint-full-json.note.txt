@@ -1,0 +1,5 @@
+eslint 全量 -f json 报告过大，未入库，落在工作树外 scratch 目录：
+  pre  = D:\Users\ZXQL\wt-agents\QODER-15-scratch\eslint-pre.json
+  post = D:\Users\ZXQL\wt-agents\QODER-15-scratch\eslint-post.json
+逐规则计数摘要见 03/04/05 与本目录 eslint-pre-summary / eslint-post-summary（内容同 05 对比）。
+复现： cd app-mobile && node ../node_modules/eslint/bin/eslint.js src --ext .ts,.vue -f json -o <scratch>/x.json
