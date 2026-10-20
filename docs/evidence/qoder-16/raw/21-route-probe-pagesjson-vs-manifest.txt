@@ -1,0 +1,26 @@
+PRE pages  sha=1b89034584786c1d56391846f9043ace5286bb03aa67a84753ab7eb29c4a7658
+PRE manifest sha=629c732f42c032609612fb694143e24376b4b96e915da100f6675ca4602107fe
+
+###### PROBE A: 只往 src/pages.json 顶层加 mp-weixin 探针 ######
+probe[pages] injected -> D:/Users/ZXQL/wt-agents/QODER-16/app-mobile/src/pages.json
+build EXIT=0
+RESULT A: 探针【未】出现在 dist app.json => pages.json 的 mp-weixin 不被读取
+dist app.json permission reading:
+  permission=undefined requiredPrivateInfos=undefined topkeys=pages,subPackages,window,tabBar,usingComponents
+restored pages sha=1b89034584786c1d56391846f9043ace5286bb03aa67a84753ab7eb29c4a7658 identical_to_PRE? YES
+
+###### PROBE B: 只往 src/manifest.json 的 mp-weixin 节点加探针 ######
+build EXIT=0
+RESULT B: 探针未出现在 dist app.json => manifest 路由也不生效
+dist app.json permission reading:
+  permission=undefined requiredPrivateInfos=undefined topkeys=pages,subPackages,window,tabBar,usingComponents
+restored manifest sha=629c732f42c032609612fb694143e24376b4b96e915da100f6675ca4602107fe identical_to_PRE? YES
+
+###### FINAL ######
+final pages   sha=1b89034584786c1d56391846f9043ace5286bb03aa67a84753ab7eb29c4a7658 -> OK
+final manifest sha=629c732f42c032609612fb694143e24376b4b96e915da100f6675ca4602107fe -> OK
+git status --short:
+git status --short:
+?? app-mobile/.eslintrc.cjs
+?? app-mobile/vitest.config.ts
+=== END ===

@@ -1,0 +1,15 @@
+files=190
+error=20
+warning=12880
+--- per-rule counts (all rules with hits) ---
+vue/html-indent=12299
+no-console=232
+vue/html-closing-bracket-spacing=196
+@typescript-eslint/no-unused-vars=105
+vue/multiline-html-element-content-newline=47
+no-extra-semi=9
+no-unreachable=6
+no-empty=3
+vue/html-closing-bracket-newline=1
+vue/no-unused-vars=1
+no-irregular-whitespace=1

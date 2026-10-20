@@ -1,0 +1,20 @@
+=== 反测2 · 把代码里没用到的隐私接口 getLocation 塞进 requiredPrivateInfos ⇒「只登记实际使用」断言必红 ⇒ cp 复原 ⇒ SHA256 逐字节一致 ⇒ 复跑绿 ===
+[0] 注入前 sha256=f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe
+INJECT[add-unused-rpi] applied, hits=1
+[1] 注入完成 rc=0 ; 注入后 sha256=b2dd45eac0cf285a91b3d2b8fba23efd77b914d6902f5982b2367cfd02a6a393
+[1] 注入后门 EXIT=EXIT=1 期望非0
+    AssertionError: requiredPrivateInfos 登记了代码中未使用的隐私接口：getLocation（app-mobile/src grep 0 命中，禁止整表照抄）: expected [] to include 'getLocation'
+        130|         `requiredPrivateInfos 登记了代码中未使用的隐私接口：${api}（app-mobile/src gre…
+     Test Files  1 failed (1)
+          Tests  1 failed | 7 passed (8)
+[2] 复原后 sha256=f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe ; 与[0]逐字节一致? YES
+[3] 复原后门 EXIT=EXIT=0
+     Test Files  1 passed (1)
+          Tests  8 passed (8)
+[4] git status --short:
+ M app-mobile/src/manifest.json
+?? app-mobile/.eslintrc.cjs
+?? app-mobile/tests/
+?? app-mobile/vitest.config.ts
+?? docs/evidence/qoder-16/
+=== END ===

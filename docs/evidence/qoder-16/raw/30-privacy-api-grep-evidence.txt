@@ -1,0 +1,43 @@
+# 隐私接口全量 grep 取证（app-mobile/src，2026-10-20）
+# 命令: for a in <8个 requiredPrivateInfos 合法接口>; do grep -rn "uni.$a|wx.$a|plus.geolocation.$a" src --include=*.ts --include=*.vue --include=*.js; done
+=== A. requiredPrivateInfos 合法表 8 项命中数（全部 0）===
+getLocation hits=0
+getFuzzyLocation hits=0
+onLocationChange hits=0
+startLocationUpdate hits=0
+startLocationUpdateBackground hits=0
+chooseLocation hits=0
+choosePoi hits=0
+chooseAddress hits=0
+
+=== B. 录音能力（scope.record 必要性证据）===
+870:let recorderManager: ReturnType<typeof uni.getRecorderManager> | null = null
+991:/** 非 H5 端：uni.getRecorderManager 录音（输出临时文件路径） */
+994:  recorderManager = recorderManager || uni.getRecorderManager()
+1007:  recorderManager.start({ duration: 60000, format: 'mp3' })
+
+=== C. 相机/相册（NSCamera/NSPhotoLibrary 证据）===
+app-mobile/src/native/scan.ts:457:        uni.scanCode({
+app-mobile/src/pages/ai-chat/ai-chat.vue:415:  uni.chooseImage({
+app-mobile/src/pages/products/product-detail.vue:1152:  uni.scanCode({
+app-mobile/src/pages/products/product-detail.vue:1159:  uni.scanCode({
+app-mobile/src/pages/products/product-detail.vue:1171:  // 以下为 H5 扫码面板逻辑：仅在 H5 编译，App/小程序走上方原生 uni.scanCode 后已 return。
+app-mobile/src/pages/products/product-detail.vue:1274:  uni.chooseImage({
+app-mobile/src/pages/profile/edit.vue:150:  uni.chooseImage({
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:242:  uni.chooseImage({
+app-mobile/src/pages-sub/product/product/product-edit.vue:415:  uni.chooseImage({
+
+=== D. 语音识别（NSSpeechRecognition 证据）===
+874:/** H5 端语音识别实例（Web SpeechRecognition） */
+929:  // 语音转文字：Web SpeechRecognition（Chrome/Edge 支持中文）
+930:  const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+1011:    ;(plus as any).speech.startRecognize(
+1038: *   - H5：data 为 base64 DataURL（audio/webm），语音识别由 Web SpeechRecognition 实时完成
+
+=== E. 蓝牙打印（NSBluetoothAlways 证据）===
+2: * 蓝牙热敏打印原生插件封装（R51-02）
+7: *     - search()                 搜索蓝牙打印机（返回设备列表）
+21: *  5. 错误处理（对齐任务"修复方向 #4"）：蓝牙未开启 / 设备未找到 / 连接失败 / 打印超时 / 缺纸
+25: *  - 非 APP-PLUS 环境下蓝牙打印功能不可用，会 reject PrintError(device_not_supported)
+39: * 蓝牙打印机设备信息（对齐任务接口定义 PrinterDevice）
+42:    /** 蓝牙 MAC 地址（XX:XX:XX:XX:XX:XX 格式） */

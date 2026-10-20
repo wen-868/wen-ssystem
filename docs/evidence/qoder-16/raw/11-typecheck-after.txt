@@ -1,0 +1,5 @@
+# vue-tsc 类型门读数（本单改动后终态）
+# 命令: cd app-mobile && node ../node_modules/vue-tsc/bin/vue-tsc.js --noEmit
+# 说明: vue-tsc 在无错误时不输出任何诊断行，故本文件只有 EXIT 行属正常形态（非日志被截断）；
+#       0 错误 ⇔ 下方 EXIT=0。借入 harness 见 README §四。
+EXIT=0

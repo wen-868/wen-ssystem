@@ -1,0 +1,18 @@
+=== 终态四门复跑（改动后、删除借入 harness 前）===
+type-check:
+  EXIT=0
+test:
+ ✓ tests/mobile-permissions.spec.ts (8 tests) 34ms
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+  EXIT(pipeline)=0
+  vitest EXIT=0
+lint:
+  EXIT=1
+files=190
+error=20
+warning=12880
+build:h5:
+  EXIT=0
+build:mp-weixin:
+  EXIT=0
