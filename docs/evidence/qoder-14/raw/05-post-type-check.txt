@@ -1,0 +1,5 @@
+QODER-14 · 判据证据 05 —— 修后 type-check
+命令：cd D:/Users/ZXQL/wt-agents/QODER-14/app-mobile && node ../node_modules/vue-tsc/bin/vue-tsc.js --noEmit
+结论：error TS 计数 0，与基线 0 持平（tsconfig include 仅 src/**，新增 tests/ 不在类型面内）
+
+TSC_EXIT=0

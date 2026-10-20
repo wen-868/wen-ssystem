@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-14/app-mobile
+
+ ✓ tests/request-retry-safety.spec.ts (14 tests) 288ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  23:50:00
+   Duration  1.28s (transform 320ms, setup 0ms, import 172ms, tests 288ms, environment 0ms)
+
+VITEST_GREEN_EXIT=0

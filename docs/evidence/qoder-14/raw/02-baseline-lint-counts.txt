@@ -1,0 +1,23 @@
+QODER-14 · 判据证据 02 —— 基线 lint 全仓逐规则计数
+命令：cd D:/Users/ZXQL/wt-agents/QODER-14/app-mobile && node ../node_modules/eslint/bin/eslint.js src --ext .ts,.vue -f json -o <scratch>/baseline-eslint.json
+摘要命令：node <scratch>/eslint-summary.mjs <scratch>/baseline-eslint.json <scratch>/baseline-eslint-summary.txt
+全量 json 落盘位置：D:/Users/ZXQL/wt-agents/_qoder14-scratch/baseline-eslint.json（工作树外 scratch，不入库）
+
+files=190
+error=20
+warning=12880
+--- per-rule ---
+warning|vue/html-indent = 12299
+warning|no-console = 232
+warning|vue/html-closing-bracket-spacing = 196
+warning|@typescript-eslint/no-unused-vars = 105
+warning|vue/multiline-html-element-content-newline = 47
+error|no-extra-semi = 9
+error|no-unreachable = 6
+error|no-empty = 3
+error|no-irregular-whitespace = 1
+error|vue/no-unused-vars = 1
+warning|vue/html-closing-bracket-newline = 1
+
+--- eslint stdout（-f json 时应为空）---
+ESLINT_EXIT=1

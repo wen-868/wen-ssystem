@@ -1,0 +1,4 @@
+QODER-14 · 判据证据 09 —— lint 改前/改后逐规则 diff（要求不劣化）
+命令：diff <scratch>/baseline-eslint-summary.txt <scratch>/post-eslint-summary.txt
+
+diff 无输出 ⇒ files/error/warning 及逐规则计数逐项完全一致（不劣化，且未减少任何存量）
