@@ -3,7 +3,7 @@
 > 派单人：凌舟｜端：移动端 → Qoder｜日期：2026-10-21
 > 工作树：`D:\Users\ZXQL\wt-agents\QODER-15`
 > 新分支：`fix/qoder-15f1-price-compare-restack`
-> 基线：`d1a6adcf`
+> 基线：`dfeedbc0`（#368 合并后的 main）
 > 红线：不得 push、不得开 PR、不得 `git add -A`；逐文件 add。
 
 ## 一、验收时发现的新缺陷
@@ -18,7 +18,7 @@
 
 ## 二、动作
 
-1. 从 `24d109ab` 建新分支后 rebase 到 `d1a6adcf`。
+1. 从 `24d109ab` 建新分支后 rebase 到 `dfeedbc0`。
 2. 新增价格比较函数（可放 `utils/format.ts`，如 `isBelowCost(retail, cost)`），内部必须经 `toNum`，任一无效值返回 false。
 3. 页面 `:class` 改为调用该函数，不得直接比较原始 API 值。
 4. 增加用例：字符串 `'9.00' < '12.00'` 必须为 true；数字同值；null/undefined/空串/NaN 为 false；避免依赖 JS 隐式转换。

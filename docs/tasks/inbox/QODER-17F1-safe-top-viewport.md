@@ -3,7 +3,7 @@
 > 派单人：凌舟｜端：移动端 → Qoder｜日期：2026-10-21
 > 工作树：`D:\Users\ZXQL\wt-agents\QODER-17`
 > 新分支：`fix/qoder-17f1-safe-top-viewport`
-> 基线：`d1a6adcf`
+> 基线：`dfeedbc0`（#368 合并后的 main）
 > 红线：不得 push、不得开 PR、不得 `git add -A`。
 
 ## 一、裁定
@@ -12,7 +12,7 @@
 
 ## 二、动作
 
-1. 从 `3f301248` 建新分支并 rebase 到 `d1a6adcf`，保留 3 个 safe-top 用例。
+1. 从 `3f301248` 建新分支并 rebase 到 `dfeedbc0`，保留 3 个 safe-top 用例。
 2. `index.html` viewport 补 `viewport-fit=cover`，不得改其它 meta。
 3. 增加断言：viewport 同时含 `width=device-width` 与 `viewport-fit=cover`。
 4. 更新 gates baseline：新增 1 个 spec 文件，tests `5/56 → 6/59`。

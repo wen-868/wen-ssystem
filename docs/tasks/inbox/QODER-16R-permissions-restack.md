@@ -3,7 +3,7 @@
 > 派单人：凌舟｜端：移动端 → Qoder｜日期：2026-10-21
 > 工作树：`D:\Users\ZXQL\wt-agents\QODER-16`
 > 新分支：`fix/qoder-16r-permissions-restack`
-> 基线：`d1a6adcf`
+> 基线：`dfeedbc0`（#368 合并后的 main）
 > 红线：不得 push、不得开 PR、不得 `git add -A`。
 
 ## 一、裁定
@@ -19,7 +19,7 @@ QODER-16 的源码落点纠正**认可**：
 
 ## 二、动作
 
-1. 从 `d7dafec5` 建新分支并 rebase 到 `d1a6adcf`。
+1. 从 `d7dafec5` 建新分支并 rebase 到 `dfeedbc0`。
 2. 保留原 8 个权限断言用例，接入常驻 vitest。
 3. 更新 gates baseline：新增 1 个 spec 文件，tests `5/56 → 6/64`。
 4. 不修改 appid、支付、推送、插件；不向 `pages.json` 补死配置。

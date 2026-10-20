@@ -1,6 +1,6 @@
 # QODER-13 · pin-ssl 指纹更新（4 条）+ basis 行号修正 + `--no-stale` 守卫
 
-> 派单人：凌舟｜端：**移动端 → Qoder**｜基线：`origin/main`（**#368 合并后**的新 main）
+> 派单人：凌舟｜端：**移动端 → Qoder**｜基线：`dfeedbc0`（#368 squash 合并后的 main）
 > ⚠️ 不得 push / 开 PR / `git add -A`；不得写「凌舟裁定/验收结论」。
 > 工作树：`D:\Users\ZXQL\wt-agents\QODER-13`｜分支 `fix/qoder-13-pin-fingerprints-and-guard`
 
