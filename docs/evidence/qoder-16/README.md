@@ -24,8 +24,9 @@ scratch 目录（见 §四）。
 | `17-build-h5-after.txt` | `build:h5` EXIT=0 | build:h5 EXIT=0 |
 | `18-build-app-after.txt` | `build:app` EXIT=0（App 端打包链取证，见 24） | 补充取证 |
 | `20-manifest-provenance-root-vs-src.txt` | **根 manifest.json 是否仍被构建使用**的移走-重建对照实验 | 任务书 §二.3 |
-| `21-route-probe-pagesjson-vs-manifest.txt` | 探针 A：pages.json 顶层 `mp-weixin` ⇒ 产物无 permission | 靶点复核 |
-| `22-route-probe-manifest-only.txt` | 探针 B：manifest.json 的 `mp-weixin` ⇒ 产物出现该 desc 原文 | 靶点复核 |
+| `21-route-probe-pagesjson-vs-manifest.txt` | 探针 A：pages.json 顶层 `mp-weixin` ⇒ 产物无 permission（**有效**）。同文件 PROBE B 段「探针未出现」**作废**，无注入确认行/回读且与 22 互斥 | 靶点复核（仅 A 段） |
+| `21b-probe-b-invalid.note.txt` | 勘误说明：21 的 PROBE B 段作废理由 + 独立佐证；原文逐字节未改 | 靶点复核（指向 22） |
+| `22-route-probe-manifest-only.txt` | 探针 B：manifest.json 的 `mp-weixin` ⇒ 产物出现该 desc 原文（`inject rc=0` + 注入后 JSON 回读 + 复原 SHA 一致） | 靶点复核 |
 | `23-mp-product-appjson-after.txt` | 改后产物 `app.json` 的 permission / requiredPrivateInfos 实读 | §二.2 生效证明 |
 | `24-app-product-privacyDescription-excerpt.txt` | App 端产物 `manifest.json` 里六键原文（`ios`→`apple` 归一） | §二.1 生效证明 |
 | `25-field-diff-proof-only-added.txt` | 逐字段自证：changed=0 / removed=0 / added=3（pages.json 全 0） | 红线「只增不改」 |

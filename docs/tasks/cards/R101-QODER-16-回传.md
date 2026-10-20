@@ -14,8 +14,9 @@
 | 分支 | `fix/qoder-16-mobile-permissions` |
 | 基线 | `321b4f6b`（= 本地 `origin/main`） |
 | 实现笔 | `3a69aa3c` `fix: QODER-16 补 iOS 六键隐私描述与小程序录音授权并新增 JSON 权限断言用例`（2 文件：`app-mobile/src/manifest.json` +16/−2、`app-mobile/tests/mobile-permissions.spec.ts` 新增 165 行） |
-| docs 笔 | `git log` 最新一笔（本卡 + 回执 + `docs/evidence/qoder-16/`；写卡时不可知，按协议 §4.1 如实留空） |
-| 提交笔数 | 2（≤3 上限）｜未 push、未开 PR |
+| docs 笔 | `ca07d9de` `docs: QODER-16 回传卡、回执与证据（iOS 隐私六键 + 小程序录音授权取证）`（本卡 + 回执 + `docs/evidence/qoder-16/`；写卡当时哈希不可知，交付后回填） |
+| 证据勘误笔 | 本卡 §五① 勘误对应的最新一笔（`docs: QODER-16 证据探针 B 作废说明与指向 raw/22`；写本行时该笔哈希不可知，如实标注） |
+| 提交笔数 | 3（≤3 上限，含证据勘误笔）｜未 push、未开 PR |
 
 ## 一 修法 × 读数总表
 
@@ -119,8 +120,9 @@
 **① 靶点偏差（最实质的一条）：`scope.record` 与 `requiredPrivateInfos` 的生效落点是 `src/manifest.json`，不是任务书 §二.2 写的 `src/pages.json`。**
 - 任务书原文：「`src/pages.json` 的 `mp-weixin.permission` 补 `scope.record` 中文说明；`requiredPrivateInfos` 只登记代码实际使用的隐私 API」。
 - 仓库事实：`src/pages.json` 基线顶层键只有 `easycom,pages,subPackages,globalStyle,tabBar`，**不存在 `mp-weixin` 节点**；且框架源码 `@dcloudio/uni-cli-shared/dist/json/mp/pages.js:129-133` 只透传 `preloadRule|workers|plugins|entryPagePath` ⇒ 往 pages.json 写 `mp-weixin` **不会进产物 app.json**。
-- 两条构建产物取证（`raw/21`、`raw/22`）：探针 A 写 pages.json 顶层 `mp-weixin` ⇒ `build:mp-weixin` EXIT=0 但 `app.json` 中 `permission=undefined`（探针字符串 0 命中）；探针 B 写 `src/manifest.json` 的 `mp-weixin` 节点 ⇒ `app.json` 出现 `permission={"scope.record":{"desc":"QODER16_MANIFEST_PROBE"}}` 与 `requiredPrivateInfos=[]`。生效机制：同文件 `mergeMiniProgramAppJson`（:33-45）把 manifest 的 `mp-weixin` 逐键并入 app.json，仅排除 `projectKeys`（`appid/setting/…`，`json/mp/project.js:7-25`）与 `NON_APP_JSON_KEYS`（`usingComponents/optimization/…`），`permission`、`requiredPrivateInfos` 均不在排除表内。
+- 构建产物取证（探针 A 见 `raw/21`，探针 B 见 `raw/22`）：探针 A 写 pages.json 顶层 `mp-weixin` ⇒ `build:mp-weixin` EXIT=0 但 `app.json` 中 `permission=undefined`（探针字符串 0 命中）；探针 B 写 `src/manifest.json` 的 `mp-weixin` 节点 ⇒ `app.json` 出现 `permission={"scope.record":{"desc":"QODER16_MANIFEST_PROBE"}}` 与 `requiredPrivateInfos=[]`。生效机制：同文件 `mergeMiniProgramAppJson`（:33-45）把 manifest 的 `mp-weixin` 逐键并入 app.json，仅排除 `projectKeys`（`appid/setting/…`，`json/mp/project.js:7-25`）与 `NON_APP_JSON_KEYS`（`usingComponents/optimization/…`），`permission`、`requiredPrivateInfos` 均不在排除表内。
 - 我的处置：**按生效落点实现**（写进 `src/manifest.json`），`pages.json` 零改动；并把该结论锁进用例 7，防止后续有人在 pages.json 补一份不生效的副本。若凌舟按任务书字面要求 pages.json 也必须承载该配置，请退回，我照办——但那是一份**已被证明不进产物**的配置。
+- **证据勘误（验收复核时发现，2026-10-20 补记）**：`raw/21` 里的 **PROBE B 段作废**——该段没有注入确认行/回读校验，"探针未出现 ⇒ manifest 路由也不生效"推不出（极可能是静默未注入），且与 `raw/22` 的 `RESULT B: 探针出现`直接互斥。manifest 侧一律以 `raw/22`（有 `inject rc=0` + 注入后 JSON 回读 + 复原 SHA 一致）为准；`raw/21` 的 **PROBE A 段有效**（pages.json 不进产物）。原文逐字节未改，详见 `docs/evidence/qoder-16/raw/21b-probe-b-invalid.note.txt`。**本条不改变 §五① 的靶点结论**（PROBE A + `raw/22` + 产物 `raw/23` + 框架源码四处独立支撑）。
 - 复现：`node D:/Users/ZXQL/scratch/qoder16/probe-splice.mjs pages app-mobile/src/pages.json` 后 `npm --workspace app-mobile run build:mp-weixin`，再看 `app-mobile/dist/build/mp-weixin/app.json`（脚本自带 cp 复原与 SHA 校验）。
 
 **② 基线无门禁设施（协议 §2 全套事实）**：`321b4f6b` 的 app-mobile 无 `tests/`、无 `vitest.config.ts`、无 `.eslintrc.cjs`、无 `scripts/gates-baseline.json`，`package.json` 只有 `dev:*/build:*/guard:logout`（**没有 `test`/`lint`/`type-check` 脚本**）。故四条判据全部走等价装置，且**未新增 npm 脚本、未改任何 package.json**：
@@ -140,13 +142,13 @@
 
 | 红线 | 遵守情况 |
 |---|---|
-| 不得 push、不得开 PR | 遵守。`git log --oneline origin/main..HEAD` 有 2 笔，未推送、未建 PR |
+| 不得 push、不得开 PR | 遵守。`git log --oneline origin/main..HEAD` 共 3 笔（实现 / docs / 证据勘误），未推送、未建 PR |
 | 不得 `git add -A` | 遵守。逐文件 add：`app-mobile/src/manifest.json`、`app-mobile/tests/mobile-permissions.spec.ts`，docs 笔逐件 add 卡片/回执/证据 |
 | 只动分配的工作树与分支 | 遵守。主仓工作树与其它 `wt-agents/*` 全程只读；任务书原件未改 |
 | 不得 `npm install/uninstall`、不得改任何 `package.json` 依赖 | 遵守。零 npm 命令、`package.json` 与 lockfile 零改动（`git diff --name-only` 不含它们） |
 | 不动 appid / 支付 / 推送 / 插件配置 | 遵守。逐字段自证 changed=0 / removed=0，仅 3 处新增（`raw/25`）；并加用例 8 把 `appid`、`mp-weixin.appid`、`sdkConfigs`、`plugins`、`modules` 的基线取值与「不得新增 payment/unipush」锁成机器判据 |
 | 借入 harness 不得提交、交付前删除 | 遵守。`app-mobile/vitest.config.ts`、`app-mobile/.eslintrc.cjs` 在所有读数落盘后已删除，未进任何提交；`git status --short` 终态为空 |
-| 提交消息 `type: 中文描述`、本地 ≤3 笔 | 遵守（2 笔） |
+| 提交消息 `type: 中文描述`、本地 ≤3 笔 | 遵守（3 笔：实现 / docs / 证据勘误，第三笔仅动 docs，见 §〇） |
 | 探针/反测不得污染交付态 | 遵守。全部注入均在同一命令内 `cp` 复原并 SHA 校验；scratch 辅助件全部在工作树外 `D:\Users\ZXQL\scratch\qoder16\`，未入库 |
 
 ## 七 未完成与阻塞（诚实列，不以「通过」代替「未验」）
