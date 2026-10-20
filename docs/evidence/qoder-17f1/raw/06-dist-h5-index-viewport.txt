@@ -1,0 +1,15 @@
+# 判据：配置进产物的直证 —— build:h5 产物 index.html 里的 viewport 字符串
+$ grep -n viewport app-mobile/dist/build/h5/index.html
+7:    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+EXIT=0
+
+$ grep -c viewport-fit=cover app-mobile/dist/build/h5/index.html
+1
+
+# 产物 index.html 全部 meta（第 6-9 行）—— 除 viewport 外与源码模板一致，未被构建链改写
+6:    <meta charset="UTF-8" />
+7:    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+8:    <meta name="apple-mobile-web-app-capable" content="yes" />
+9:    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+# 结论：dist/build/h5/index.html:7 = content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" ⇒ viewport-fit 确实进入产物（对照上一轮 raw/09 的"产物亦无 viewport-fit"读数）。

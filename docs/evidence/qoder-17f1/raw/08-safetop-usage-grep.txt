@@ -1,0 +1,16 @@
+$ export MSYS2_ARG_CONV_EXCL="*"   # 协议 §3：含 /xxx/ 起头模式必须设，防 MSYS 路径转换造成假 0 命中
+$ grep -rn "var(--safe-top)" app-mobile/src | wc -l
+96
+$ grep -rl "var(--safe-top)" app-mobile/src | wc -l
+89
+
+# 结论：使用点 96 处 / 89 文件，与 docs/evidence/qoder-17/raw/13-owner-independent-recheck.txt（负责人复核修后读数 96/89）逐项一致 ⇒ 本单对 96 处使用点零改动（本单未触碰 app-mobile/src/**）。
+# 口径提示：上一轮 raw/08 的 97 处/90 文件是修前快照（含 App.vue:54 自引用定义行），已在旧目录 README 标注，不改写。
+
+$ grep -rn -- "--safe-top:" app-mobile/src   # 全 src 仅两处定义（默认分支 + APP-PLUS 覆盖）
+app-mobile/src/App.vue:54:  --safe-top: env(safe-area-inset-top);
+app-mobile/src/App.vue:59:  --safe-top: var(--status-bar-height);
+
+$ git diff --stat 6e714beb..HEAD -- app-mobile/src   （实现笔落地后应为空 = src 零改动）
+(当前未提交，故此处列工作树改动面)
+EXIT=0

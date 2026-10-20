@@ -1,0 +1,13 @@
+// 取证用最小静态服务器（任务书点名 H5 computed 取证；不落盘源码树，跑完即退，300s 自杀超时）
+// 复现：cd <工作树>/app-mobile/dist/build/h5 && node -e "<本文件正文压缩成单行 -e 脚本，见 browser/screenshot-blocked.note.txt 复现命令>"
+const http = require('http'), fs = require('fs'), path = require('path');
+const root = 'D:/Users/ZXQL/wt-agents/QODER-17/app-mobile/dist/build/h5';
+const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.ttf': 'font/ttf', '.woff': 'font/woff' };
+http.createServer((req, res) => {
+  let p = decodeURIComponent(req.url.split('?')[0]);
+  let f = path.join(root, p);
+  if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) f = path.join(root, 'index.html'); // SPA fallback
+  res.writeHead(200, { 'Content-Type': mime[path.extname(f)] || 'application/octet-stream' });
+  fs.createReadStream(f).pipe(res);
+}).listen(5179, () => console.log('SERVING http://127.0.0.1:5179'));
+setTimeout(() => process.exit(0), 300000);

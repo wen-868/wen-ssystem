@@ -1,0 +1,2 @@
+cmd: cd app-mobile && node ../node_modules/vue-tsc/bin/vue-tsc.js --noEmit   # 基线 321b4f6b（改前）
+EXIT=0

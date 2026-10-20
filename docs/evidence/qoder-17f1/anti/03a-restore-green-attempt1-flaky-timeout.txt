@@ -1,0 +1,68 @@
+# 【保留的原始失败记录，不删除】反测 1 步骤 [5]（cp 复原后复跑 npm run test）第一次尝试：
+# 撞到一个与本单无关的既有用例超时 flake —— tests/api-base-env.spec.ts:33「设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用」报 Error: Test timed out in 5000ms
+# 该次 vitest Duration 66.26s / import 116.10s（反测 1 + 反测 2 同一串行批次连跑 4 次 vitest，机器高负载）；safe-top 四条断言在该次里全绿，红点不在本单目标对象上。
+# 干净复跑（串行、无并发）见 03-restore-green.txt ⇒ TEST_EXIT=0、6 文件/60 用例全过。
+
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-17/app-mobile
+
+ ✓ tests/safe-top-var.spec.ts (4 tests) 193ms
+ ❯ tests/api-base-env.spec.ts (3 tests | 1 failed) 8075ms
+     × 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 5171ms
+     ✓ 环境变量缺失 ⇒ H5 兜底必须是相对 /api（走代理，不得静默指到某域名）  2881ms
+     ✓ 基址解析为空 ⇒ 判据即失败（抛错点名，不允许空基址继续跑） 8ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 448ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 3221ms
+     ✓ 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示  322ms
+     ✓ 入口判定短路顺序：pending-code 先于三态、无码先于三态（isEntryVisible 源码形态）  317ms
+ ✓ tests/storage-crypto.spec.ts (4 tests) 6079ms
+     ✓ 派生密钥为 32 字节且同输入可复现  3144ms
+     ✓ 明文往返一致（含中文与 JSON 结构）  561ms
+     ✓ tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）  1939ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 2625ms
+     ✓ gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名  781ms
+     ✓ 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单  649ms
+     ✓ 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行）  687ms
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 59 passed (60)
+   Start at  02:19:02
+   Duration  66.26s (transform 78.01s, setup 0ms, import 116.10s, tests 20.64s, environment 9ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/api-base-env.spec.ts > API 基址解析（VITE_API_BASE） > 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/api-base-env.spec.ts:33:3
+     31|
+     32| describe('API 基址解析（VITE_API_BASE）', () => {
+     33|   it('设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用', async () => {
+       |   ^
+     34|     vi.stubEnv('VITE_API_BASE', 'http://127.0.0.1:8080/api')
+     35|     const m = await loadEnvModule()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-17\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-17\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+TEST_EXIT=1

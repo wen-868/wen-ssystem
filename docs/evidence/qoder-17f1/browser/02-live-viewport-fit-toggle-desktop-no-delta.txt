@@ -1,0 +1,33 @@
+$ mcp__browser-use__evaluate_script  （运行时 viewport-fit 注入/移除对照，不触文件、不改产物）
+
+函数：读 uni-page-body 的 --safe-top computed ⇒ 把 meta content 里的 ", viewport-fit=cover" 摘掉再读 ⇒ 复原再读
+
+返回（原样）：
+{
+  "before": {
+    "envTopRaw": "0px",
+    "loginPaddingTop": "0px",
+    "meta": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover",
+    "safeTop": "0px"
+  },
+  "withoutCover": {
+    "loginPaddingTop": "0px",
+    "meta": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no",
+    "safeTop": "0px"
+  },
+  "restored": {
+    "loginPaddingTop": "0px",
+    "meta": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover",
+    "safeTop": "0px"
+  },
+  "desktop_identical": true,
+  "note": "桌面 Chromium 上 viewport-fit 不改变 env(safe-area-inset-top) 的解析值（该键值只在 iOS 全屏 webview 里决定 env 是否非零）；此处只用于说明桌面无法鉴别，真机影响未验"
+}
+
+读数解释（任务书 §三 + 协议 §6「未验就是未验」）：
+1) 三态 computed **全为 0px、无差异**（desktop_identical=true）。这是**桌面环境的固有局限**，
+   不能读作"viewport-fit 无用"：viewport-fit=cover 的语义是"把内容铺到刘海/圆角区，从而让
+   env(safe-area-inset-*) 在非全屏约束的 iOS webview 里拿到非零值"，桌面根本没有 safe-area inset。
+2) 因此本单**不以桌面 computed 判 viewport-fit 生效**：桌面判据只到
+   ① 变量定义可解析非空（01）② viewport-fit 确实进了产物与运行时 DOM（raw/06、01）③ 断言④能红（anti/）。
+3) iOS 真机 env 是否变非零 ⇒ **未验（无设备）**，复现见 browser/README.md 与回传卡 §九。

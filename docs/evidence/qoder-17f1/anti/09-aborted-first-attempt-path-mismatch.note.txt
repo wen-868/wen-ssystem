@@ -1,0 +1,5 @@
+# 首轮尝试的失败记录（如实登记，非结果伪造）
+# 现象：anti1 脚本 [2] 步 node 调用报 Cannot find module D:\d\Users\...\scratch-strip-viewport-fit.mjs ⇒ inject EXIT=1
+# 脚本内置保护生效（注入失败 ⇒ 立刻 cp 复原并 exit 7），index.html 未被改动，事后 sha256 与 dd221de3 一致、git status 空。
+# 根因：Git Bash 的 /d/... MSYS 路径 node 不识别（node 要 Windows 形态路径）。
+# 处置：脚本内 WT/S 一律改为 D:/Users/... 正斜杠 Windows 形态后重跑（即 08-run-console.txt）。

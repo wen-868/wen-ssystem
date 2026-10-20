@@ -1,0 +1,30 @@
+# lint 逐规则计数（判据入口仍是 npm run lint；本文件仅为逐规则取证快照）
+$ node ../node_modules/eslint/bin/eslint.js src --ext .ts,.vue -f json  → 落盘外 scratch _scratch/qoder-17f1/lint-before.json（5125929 字节，不入库）
+# 本单未改动 app-mobile/src/**，故快照即改前=改后同态；npm run lint 改前/改后两次读数见 raw/01、raw/02（均 error 20 / warning 12872，EXIT=0）
+
+files=187  error=20  warning=12872
+
+warningsByRule（逐条与 gates-baseline.json lint.warningsByRule 对照）:
+  vue/html-indent=12299  基线 12299  不劣化
+  no-console=225  基线 225  不劣化
+  vue/html-closing-bracket-spacing=196  基线 196  不劣化
+  @typescript-eslint/no-unused-vars=104  基线 104  不劣化
+  vue/multiline-html-element-content-newline=47  基线 47  不劣化
+  vue/html-closing-bracket-newline=1  基线 1  不劣化
+
+errorsByFileRule（13 对，与基线 13 对同集合）:
+  src/api/storage.ts::no-extra-semi=1
+  src/pages-sub/marketing/member/member-detail.vue::no-extra-semi=1
+  src/pages-sub/product/batch-price/batch-price.vue::no-extra-semi=1
+  src/pages-sub/settings/settings.vue::no-unreachable=1
+  src/pages/ai-chat/ai-chat.vue::no-empty=2
+  src/pages/ai-chat/ai-chat.vue::no-extra-semi=4
+  src/pages/ai-chat/ai-chat.vue::no-unreachable=1
+  src/pages/products/product-detail.vue::no-extra-semi=2
+  src/pages/products/product-detail.vue::no-unreachable=2
+  src/pages/sales/create-sale.vue::no-empty=1
+  src/pages/sales/create-sale.vue::no-irregular-whitespace=1
+  src/pages/sales/create-sale.vue::no-unreachable=2
+  src/pages/sales/create-sale.vue::vue/no-unused-vars=1
+
+PER-RULE-NOT-DEGRADED: OK（与冻结基线逐项相等）

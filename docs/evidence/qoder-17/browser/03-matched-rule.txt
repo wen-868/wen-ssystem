@@ -1,0 +1,16 @@
+$ mcp__browser-use__evaluate_script —— 运行时匹配规则 + DOM 片段佐证
+
+{
+  "url": "http://127.0.0.1:5179/#/",
+  "matchedRule": {
+    "href": "http://127.0.0.1:5179/assets/index-DpZdr1mN.css",
+    "selector": "uni-page-body",
+    "decl": "env(safe-area-inset-top)"
+  },
+  "htmlSnippet": "<uni-page-body data-v-3ccac9dd=\"\" style=\"\"><uni-view ... class=\"login-page\"> ... "
+}
+
+对应构建产物静态片段（app-mobile/dist/build/h5/assets/index-DpZdr1mN.css，不入库）：
+  uni-page-body{...;--safe-top: env(safe-area-inset-top)}
+说明：uni-app H5 把样式选择器 page 编译为 uni-page-body；APP-PLUS 覆盖块被条件编译剔除，
+      故 H5 产物只剩默认分支的 env() 定义——与静态断言②③一致。
