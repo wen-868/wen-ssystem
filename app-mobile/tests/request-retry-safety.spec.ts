@@ -1,5 +1,5 @@
 /**
- * QODER-14 / QODER-14F1 · 401 重试安全性 + 清态补 CSRF 与 merchant_tenant
+ * QODER-14 / QODER-14F1 / QODER-18 · 401 重试安全性 + 清态补 CSRF 与 merchant_tenant + upload() 死导出断言
  *
  * 目标：`src/api/request.ts` 的 401 分支。
  *  - 静默重试（防误杀）**只允许幂等的 GET**；POST/PUT/DELETE 首次 401 直接清态 + 提示 + 跳登录。
@@ -21,6 +21,8 @@
  *  ② 删掉 `uni.removeStorageSync('merchant_csrf_token')` ⇒ 用例④（被删键集合）与⑫（镜像键不残留）必红；
  *  ③ ★ QODER-14F1 删掉 `uni.removeStorageSync('merchant_tenant')` ⇒ 用例④ 集合少了该键、
  *     用例⑫ 的 `enc_merchant_tenant` 仍残留 ⇒ 两条同时红。
+ *  ④ ★ QODER-18 把死导出 `export function upload(...)` 桩注回 `src/api/request.ts`
+ *     ⇒ 本文件末尾 QODER-18 describe 的静态断言①（源码正则 + 运行期导出面）必红。
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
@@ -409,4 +411,93 @@ describe('QODER-14 · 401 清态对 enc_ 镜像键的实际效果（storage.ts �
     expect(chain.ls.has('enc_merchant_csrf_token')).toBe(false)
     expect(storage.getCsrfToken()).toBe('')
   })
+})
+
+/**
+ * QODER-18 · `request.ts` 死导出 `upload()` 处置（静态断言）
+ *
+ * 背景：`upload()` 全仓 0 引用（真实上传走 products.ts `uploadImage()` 与 profile.ts
+ * `uploadAvatar()` 两处独立封装，直接调 `uni.uploadFile`），属死代码 ⇒ 本卡删除。
+ * 本用例把「删掉了、且不许再被引回来」做成门禁断言，防止后续又导出一个同名死函数：
+ *  ① `src/api/request.ts` 源码内不再出现 `upload` 的导出形态（`export function upload`
+ *     与 `export { … upload … }` 两种写法都拦）；运行期模块导出面同样不得含 `upload`；
+ *  ② 全仓（`app-mobile/src` + `app-mobile/tests`）不存在**从 `api/request` 导入 `upload`**
+ *     的 import 语句。匹配采用「锚定式」：具名绑定列表 `{…}` 必须紧邻 `from '…/api/request'`，
+ *     且 `[^}]*` 不跨右花括号 ⇒ 既不会把 `uploadImage` / `uploadFile` / `uploadAvatar` 这些
+ *     **真实上传封装**误判成命中，也不会像跨语句的 `[\s\S]*?` 那样把两条无关 import 粘成一条。
+ *     逗号切分后要求绑定名**逐字等于** `upload`（`x as upload` 形态也算命中）。
+ *
+ * 反测面：把 `export function upload(...) { … }` 桩注回 request.ts ⇒ 本用例 ① 的红线
+ * （源码正则）与导出面断言同时红；只注 `export { upload }` 形态则 ① 的第二条正则红。
+ */
+describe('QODER-18 · request.ts 死导出 upload() 已移除且不可回流', () => {
+  // 显式 30s 用例超时：本用例要做「全仓 .ts/.vue 递归 + 逐文件读取 + 一次真实模块动态 import」，
+  // 实测热态 ~2.3s、磁盘冷态（紧随 build:h5 产出大量 dist 文件之后）可冲到 >5s，
+  // 会被 vitest 默认 5000ms 判成 `Test timed out in 5000ms` 的**假红**。
+  // 这里放宽的是**超时**，不是断言强度（三条断言一字未减）⇒ 门依旧能红（见反测证据 anti/06），
+  // 但不会因机器负载把绿态洗成红态。
+  it(
+    '⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload',
+    async () => {
+    const { readFileSync, readdirSync } = await import('node:fs')
+    const { fileURLToPath } = await import('node:url')
+    const { join, relative } = await import('node:path')
+
+    /** 递归收集 .ts/.vue 文件（跳过 node_modules/dist/unpackage，与 check-contract.mjs 同口径） */
+    function collectSourceFiles(dir: string, out: string[] = []): string[] {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (e.name === 'node_modules' || e.name === 'dist' || e.name === 'unpackage') continue
+        const p = join(dir, e.name)
+        if (e.isDirectory()) collectSourceFiles(p, out)
+        else if (/\.(ts|vue)$/.test(e.name)) out.push(p)
+      }
+      return out
+    }
+
+    const mobileRoot = fileURLToPath(new URL('..', import.meta.url))
+    const requestTsPath = join(mobileRoot, 'src', 'api', 'request.ts')
+    const requestSrc = readFileSync(requestTsPath, 'utf8')
+
+    // —— 断言 ①：源码里不存在 upload 的任何导出形态 ——
+    expect(requestSrc, 'request.ts 又出现 export function upload').not.toMatch(
+      /export\s+(?:async\s+)?function\s+upload\b/
+    )
+    expect(requestSrc, 'request.ts 又出现 export { … upload … }').not.toMatch(
+      /export\s*\{[^}]*\bupload\b[^}]*\}/
+    )
+
+    // 导出面兜底：静态源码之外再看真实模块命名空间，注回的桩函数一定在这里露头
+    const mod = await importRequest()
+    expect(
+      Object.keys(mod).filter((k) => k === 'upload'),
+      'request.ts 运行期导出面仍含 upload'
+    ).toEqual([])
+
+    // —— 断言 ②：全仓不得有「从 api/request 导入 upload」的 import ——
+    const files = [
+      ...collectSourceFiles(join(mobileRoot, 'src')),
+      ...collectSourceFiles(join(mobileRoot, 'tests'))
+    ]
+    // 锚定式匹配：具名绑定列表 `{…}` 必须紧邻 `from '…/api/request'`，
+    // 且 [^}]* 不跨右花括号 ⇒ 绝不会把两条无关 import 粘成一条而误报。
+    const namedImportRe =
+      /\bimport\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"][^'"]*\/api\/request(?:\/index)?['"]/g
+    const offenders: string[] = []
+    for (const f of files) {
+      const text = readFileSync(f, 'utf8')
+      namedImportRe.lastIndex = 0
+      let m: RegExpExecArray | null
+      while ((m = namedImportRe.exec(text)) !== null) {
+        // 逗号切分后逐项比对「绑定名是否为裸 upload」，故 uploadImage/uploadFile/uploadAvatar 不算命中
+        const binds = m[1]
+          .split(',')
+          .map((s) => s.trim().split(/\s+as\s+/)[0])
+          .filter(Boolean)
+        if (binds.includes('upload')) offenders.push(relative(mobileRoot, f).replace(/\\/g, '/'))
+      }
+    }
+    expect(offenders, `存在从 api/request 导入 upload 的文件：${offenders.join(', ')}`).toEqual([])
+    },
+    30_000
+  )
 })
