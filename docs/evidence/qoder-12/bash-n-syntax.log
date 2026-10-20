@@ -1,0 +1,6 @@
+$ date -Iseconds
+2026-10-20T01:04:11+08:00
+$ bash -n app-mobile/scripts/pin-spki.sh
+EXIT=0
+$ openssl version
+OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)

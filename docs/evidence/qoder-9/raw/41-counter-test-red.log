@@ -1,0 +1,164 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-9/backend[39m
+
+ [31m❯[39m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts [2m([22m[2m135 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 4543[2mms[22m[39m
+     [32m✓[39m 门注册表规模：27 道 gated（64 端点行）+ 9 道 registered（38 端点行）[32m 7[2mms[22m[39m
+     [32m✓[39m gated 门的 codes 非空；registered 门的 codes 恒为空（注册表自身的契约）[32m 7[2mms[22m[39m
+     [32m✓[39m 64 条门端点行逐条可对到本文件的已接表（无遗漏）[32m 1[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/orders/:orderNo/status'（门 'sale-order-detail-deliver'）：所用码 ∈ 门 codes，且注册行自带该码[32m 5[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/orders/:orderNo/start…'（门 'sale-order-detail-deliver'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/orders/:orderNo/cancel'（门 'sale-order-detail-cancel'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/hold-orders/'（门 'sale-create-hold'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/sale-bills/:billNo/of…'（门 'sale-bill-offline-pay'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/receipts/'（门 'sale-receipt-sub'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-orders/'（门 'purchase-sub-order'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-in-stocks/'（门 'purchase-sub-inbound'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-returns/'（门 'purchase-sub-return'）：所用码 ∈ 门 codes，且注册行自带该码[32m 2[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-payments/'（门 'purchase-sub-payment'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-in-stocks/'（门 'home-in-stock'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/stock-checks/:id'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/start'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/comp…'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/canc…'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/hand…'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/items'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 4[2mms[22m[39m
+     [32m✓[39m 'PUT /api/store/stock-checks/:id/items…'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/stock-checks/:id/subm…'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码[32m 31[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-warnings/config'（门 'fx-stock-warning'）：所用码 ∈ 门 codes，且注册行自带该码[32m 89[2mms[22m[39m
+     [32m✓[39m 'PUT /api/store/inventory/alerts/:skuI…'（门 'fx-stock-warning'）：所用码 ∈ 门 codes，且注册行自带该码[32m 13[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/inventory/report-loss…'（门 'fx-loss-gain'）：所用码 ∈ 门 codes，且注册行自带该码[32m 17[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/transfers/'（门 'fx-transfer'）：所用码 ∈ 门 codes，且注册行自带该码[32m 24[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/transfers/:id'（门 'fx-transfer'）：所用码 ∈ 门 codes，且注册行自带该码[32m 32[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/transfers/:id/submit'（门 'fx-transfer'）：所用码 ∈ 门 codes，且注册行自带该码[32m 35[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/transfers/:id/approve'（门 'fx-transfer'）：所用码 ∈ 门 codes，且注册行自带该码[32m 41[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/transfers/:id/reject'（门 'fx-transfer'）：所用码 ∈ 门 codes，且注册行自带该码[32m 45[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/transfers/:id/cancel'（门 'fx-transfer'）：所用码 ∈ 门 codes，且注册行自带该码[32m 20[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/transfers/:id/ship'（门 'fx-transfer'）：所用码 ∈ 门 codes，且注册行自带该码[32m 15[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/transfers/:id/receive'（门 'fx-transfer-receive'）：所用码 ∈ 门 codes，且注册行自带该码[32m 42[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/:id'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 42[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/:skuId/price'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 29[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/skus/:skuId'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 19[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/products/skus/:skuId/…'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 41[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/skus/:skuId/u…'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 24[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/products/skus/:skuI…'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 60[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/:spuId/market…'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 67[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/products/upload-image'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 52[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/:skuId/price'（门 'goods-batch-price-submit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 15[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/products/categories/'（门 'goods-category-create'）：所用码 ∈ 门 codes，且注册行自带该码[32m 38[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/categories/:id'（门 'goods-category-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 46[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/products/categories/:i…'（门 'goods-category-edit'）：所用码 ∈ 门 codes，且注册行自带该码[32m 34[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/products/categories…'（门 'goods-category-delete'）：所用码 ∈ 门 codes，且注册行自带该码[32m 27[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/staff'（门 'staff-entry'）：所用码 ∈ 门 codes，且注册行自带该码[32m 40[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/staff/:id'（门 'staff-entry'）：所用码 ∈ 门 codes，且注册行自带该码[32m 51[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/staff/:id/disable'（门 'staff-entry'）：所用码 ∈ 门 codes，且注册行自带该码[32m 38[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/staff/:id/restore'（门 'staff-entry'）：所用码 ∈ 门 codes，且注册行自带该码[32m 95[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/system/roles/'（门 'role-entry'）：所用码 ∈ 门 codes，且注册行自带该码[32m 31[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/system/roles/:id'（门 'role-entry'）：所用码 ∈ 门 codes，且注册行自带该码[32m 71[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/system/roles/:id'（门 'role-entry'）：所用码 ∈ 门 codes，且注册行自带该码[32m 31[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/coupons/tem…'（门 'mkt-coupons'）：所用码 ∈ 门 codes，且注册行自带该码[32m 53[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/coupons/tem…'（门 'mkt-coupons'）：所用码 ∈ 门 codes，且注册行自带该码[32m 60[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/full-reduct…'（门 'mkt-activities'）：所用码 ∈ 门 codes，且注册行自带该码[32m 19[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/full-reduct…'（门 'mkt-activities'）：所用码 ∈ 门 codes，且注册行自带该码[32m 31[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/marketing/full-redu…'（门 'mkt-activities'）：所用码 ∈ 门 codes，且注册行自带该码[32m 33[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/bank-accounts/'（门 'fin-bank-accounts'）：所用码 ∈ 门 codes，且注册行自带该码[32m 48[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/bank-accounts/:id/clo…'（门 'fin-bank-accounts'）：所用码 ∈ 门 codes，且注册行自带该码[32m 31[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/reconciliation/custom…'（门 'fin-recon-confirm'）：所用码 ∈ 门 codes，且注册行自带该码[32m 63[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/reconciliation/suppli…'（门 'fin-recon-confirm'）：所用码 ∈ 门 codes，且注册行自带该码[32m 41[2mms[22m[39m
+[31m     [31m×[31m 'POST /api/admin/aftersales/:id/approve'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码[39m[32m 99[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/aftersales/:id/reject'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码[32m 7[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/aftersales/:id/inspect'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码[32m 7[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/aftersales/:id/comple…'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码[32m 2[2mms[22m[39m
+     [32m✓[39m 62 条唯一端点全部有门（无‘与本单无关的端点’混进表里）[32m 0[2mms[22m[39m
+     [32m✓[39m 去重后 62 条；其中 1 条（订单取消）为 S3-209 既有接线，本单只加断言[32m 6[2mms[22m[39m
+     [32m✓[39m 门注册表 38 行与本文件登记表逐条对齐（跨层漂移已由 QODER-7 按注册表层修掉 ⇒ 漂移 0 行）[32m 1[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/trace/verify'：注册行**不含** requirePermission（只登记不门）[32m 68[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/library/lookup'：注册行**不含** requirePermission（只登记不门）[32m 32[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/coupons/verify'：注册行**不含** requirePermission（只登记不门）[32m 8[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/coupons/manual-verify'：注册行**不含** requirePermission（只登记不门）[32m 54[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/points/rede…'：注册行**不含** requirePermission（只登记不门）[32m 70[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/customer-statements/:…'：注册行**不含** requirePermission（只登记不门）[32m 3[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/quote-push/'：注册行**不含** requirePermission（只登记不门）[32m 46[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/order-exceptions'：注册行**不含** requirePermission（只登记不门）[32m 26[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/order-exceptions/:id'：注册行**不含** requirePermission（只登记不门）[32m 31[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/order-exceptions/:id/s…'：注册行**不含** requirePermission（只登记不门）[32m 75[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/sale-bills/:billNo/co…'：注册行**不含** requirePermission（只登记不门）[32m 102[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/orders…'：注册行**不含** requirePermission（只登记不门）[32m 66[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/routin…'：注册行**不含** requirePermission（只登记不门）[32m 15[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/instant-retail/routing…'：注册行**不含** requirePermission（只登记不门）[32m 60[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/instant-retail/rout…'：注册行**不含** requirePermission（只登记不门）[32m 56[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/except…'：注册行**不含** requirePermission（只登记不门）[32m 36[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/shelf'：注册行**不含** requirePermission（只登记不门）[32m 58[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/instant-retail/shelf/:…'：注册行**不含** requirePermission（只登记不门）[32m 36[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/instant-retail/shel…'：注册行**不含** requirePermission（只登记不门）[32m 53[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/delive…'：注册行**不含** requirePermission（只登记不门）[32m 17[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/review…'：注册行**不含** requirePermission（只登记不门）[32m 32[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/review…'：注册行**不含** requirePermission（只登记不门）[32m 41[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/instant-retail/deliver…'：注册行**不含** requirePermission（只登记不门）[32m 18[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/configs'：注册行**不含** requirePermission（只登记不门）[32m 35[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/config…'：注册行**不含** requirePermission（只登记不门）[32m 7[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/config…'：注册行**不含** requirePermission（只登记不门）[32m 49[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/config…'：注册行**不含** requirePermission（只登记不门）[32m 50[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/instant-retail/conf…'：注册行**不含** requirePermission（只登记不门）[32m 30[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/shop-c…'：注册行**不含** requirePermission（只登记不门）[32m 20[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/catego…'：注册行**不含** requirePermission（只登记不门）[32m 41[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/instant-retail/categor…'：注册行**不含** requirePermission（只登记不门）[32m 34[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/instant-retail/cate…'：注册行**不含** requirePermission（只登记不门）[32m 21[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/produc…'：注册行**不含** requirePermission（只登记不门）[32m 26[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/instant-retail/product…'：注册行**不含** requirePermission（只登记不门）[32m 11[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/instant-retail/prod…'：注册行**不含** requirePermission（只登记不门）[32m 18[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/instant-retail/banners'：注册行**不含** requirePermission（只登记不门）[32m 39[2mms[22m[39m
+     [32m✓[39m 'PUT /api/admin/instant-retail/banners…'：注册行**不含** requirePermission（只登记不门）[32m 16[2mms[22m[39m
+     [32m✓[39m 'DELETE /api/admin/instant-retail/bann…'：注册行**不含** requirePermission（只登记不门）[32m 18[2mms[22m[39m
+     [32m✓[39m registered 的 38 条（后端已注册的）**仍在机读台账 gaps 里**（第二真值源）[32m 8[2mms[22m[39m
+     [32m✓[39m 跨层漂移逐条点名（漂移行必须由本单**只登记、不接**；QODER-7 修复注册表后当前 0 行，用例保留防漂移复发）[32m 48[2mms[22m[39m
+     [32m✓[39m 62 条已接端点全部**不在**机读台账 gaps 里[32m 17[2mms[22m[39m
+     [32m✓[39m 台账读数自洽（只写和式 + 台账一致性；跨批裸数字按派单规范 §9.2 不写）[32m 3[2mms[22m[39m
+     [32m✓[39m 抽样覆盖 7 个不同域 / 7 个不同权限码[32m 6[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/store/orders/:orderNo/start…'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 [33m 319[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-orders/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层[32m 39[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/hand…'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层[32m 57[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/products/categories/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层[32m 88[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/system/roles/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层[32m 51[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/coupons/tem…'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层[32m 13[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/bank-accounts/:id/clo…'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层[32m 29[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/orders/:orderNo/start…'：全部持有人（逐账号枚举）⇒ 200 且到达业务层[32m 80[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-orders/'：全部持有人（逐账号枚举）⇒ 200 且到达业务层[32m 84[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/hand…'：全部持有人（逐账号枚举）⇒ 200 且到达业务层[32m 53[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/products/categories/'：全部持有人（逐账号枚举）⇒ 200 且到达业务层[32m 42[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/system/roles/'：全部持有人（逐账号枚举）⇒ 200 且到达业务层[32m 39[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/coupons/tem…'：全部持有人（逐账号枚举）⇒ 200 且到达业务层[32m 22[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/bank-accounts/:id/clo…'：全部持有人（逐账号枚举）⇒ 200 且到达业务层[32m 93[2mms[22m[39m
+     [32m✓[39m 'POST /api/store/orders/:orderNo/start…'：无登录态 ⇒ 401[32m 12[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/purchase-orders/'：无登录态 ⇒ 401[32m 10[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/stock-checks/:id/hand…'：无登录态 ⇒ 401[32m 16[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/products/categories/'：无登录态 ⇒ 401[32m 11[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/system/roles/'：无登录态 ⇒ 401[32m 10[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/marketing/coupons/tem…'：无登录态 ⇒ 401[32m 12[2mms[22m[39m
+     [32m✓[39m 'POST /api/admin/bank-accounts/:id/clo…'：无登录态 ⇒ 401[32m 40[2mms[22m[39m
+     [32m✓[39m 反证（判据不是恒 true）：超管（`*`）与 READONLY 的结论不同 ⇒ 拦的是权限码本身[32m 25[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes[2m > [22m'POST /api/admin/aftersales/:id/approve'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码
+[31m[1mAssertionError[22m: POST /api/admin/aftersales/:id/approve 的注册行必须自带 requirePermission("sale:return"): expected 'adminAftersaleRouter.post("/aftersale…' to contain 'requirePermission("sale:return")'[39m
+
+Expected: [32m"requirePermission("sale:return")"[39m
+Received: [31m"adminAftersaleRouter.post("/aftersales/:id/approve", ctrl.adminApproveAftersale);"[39m
+
+[36m [2m❯[22m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts:[2m456:79[22m[39m
+    [90m454|[39m     const lines = registrationLines(row!.file, row!.method, row!.route…
+    [90m455|[39m     expect(lines.map((l) => l.no), `${row!.file} ${row!.method} ${row!…
+    [90m456|[39m     expect(lines[0].line, `${ep} 的注册行必须自带 requirePermission("${row!.pe…
+    [90m   |[39m                                                                               [31m^[39m
+    [90m457|[39m       [32m`requirePermission("[39m[36m${[39mrow[33m![39m[33m.[39mperm[36m}[39m[32m")`[39m
+    [90m458|[39m     )[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m134 passed[39m[22m[90m (135)[39m
+[2m   Start at [22m 23:43:25
+[2m   Duration [22m 23.34s[2m (transform 8.67s, setup 112ms, import 16.93s, tests 4.54s, environment 0ms)[22m
+

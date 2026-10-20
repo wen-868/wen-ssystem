@@ -10,17 +10,26 @@
  * 本文件要证明的五件事：
  *  a) **门 → 后端**（正向）：凡 `status === 'gated'` 的 entry，其**每一个** `endpoints` 都在后端接线，
  *     且**所用码 ∈ 该 entry 的 `codes`**（码一律取注册表，不由本批自拟）；
- *  b) **后端 → 门**（反向）：本文件列出的 58 条已接端点，每一条都至少被一道 gated 门引用
+ *  b) **后端 → 门**（反向）：本文件列出的 62 条已接端点，每一条都至少被一道 gated 门引用
  *     （防止"表里塞进与本单无关的端点"充数）；
  *  c) **registered ⇒ 仍是无门缺口**：`status === 'registered'` 的 entry，其端点在台账里**仍登记为缺口**、
  *     注册行**不含** `requirePermission(`（防"悄悄接了但没门"）；路径与后端注册形态不一致的逐条点名登记；
- *  d) **台账一致**：a) 里的 58 条端点**不在**机读台账 `gaps` 里（= 已接线不再是缺口）；
+ *  d) **台账一致**：a) 里的 62 条端点**不在**机读台账 `gaps` 里（= 已接线不再是缺口）；
  *  e) **运行时两侧**（逐域抽样 7 条）：非持有人 ⇒ 403 且 msg 指向该码、持有人 ⇒ 200 到达业务层、无登录态 ⇒ 401。
  *
  * ⚠️ 反测（门禁铁律）：给任一条 gated 端点**摘掉** `requirePermission(...)` ⇒ 用例 a) 必红并点名该端点
  *   （原始输出见 `docs/evidence/S3-233/raw/4x-*.txt`）；给 registered 条目偷接码 ⇒ 用例 c) 必红。
  *   注：本文件**不 exec 子进程**（本环境 vitest 起子进程会 EPERM，见 `platform-export-task.service.test.ts:22` 的记载），
  *   故后端形态由**本文件自己的行级扫描**判定（判据与 `guard-rbac-wiring.mjs` 同形：注释行不算调用）。
+ *
+ * QODER-9（B3-1 收口，2026-10-19，`docs/tasks/inbox/QODER-9-B31收口.md`）：门注册表 `island-aftersale` 已提为
+ *   `gated`（codes = `sale:return`）且后端 aftersale approve/reject/inspect/complete 4 条已接线 ⇒ 本文件规模读数由
+ *   S3-233 原态「26 门 60 行 / 11 门 43 行 / 已接 58」变为「27 门 64 行 / 9 门 38 行 / 已接 62」。
+ *   ⚠️ registered 侧还吸收了 #367 链上既有的两处注册表现场变化（非本单引入，逐条见
+ *   `docs/evidence/qoder-9/**`）：QODER-7 已把 16 条"跨层漂移"按注册表层修成后端真实路径/方法 ⇒ 漂移清零、
+ *   16 行转普通登记；`POST /api/admin/members/:id/points/adjust` 一行已不在注册表 ⇒ 随真相源移出登记表。
+ *   ⚠️ 这是**契约反转**（gated ⇒ 已接 的判据不变、由"4 条未接"变"4 条已接"），不是放宽：a) 仍用**真实注册行的
+ *   `requirePermission("sale:return")`** 做形状断言（摘码即红），不是硬编码白名单。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
@@ -106,6 +115,7 @@ import { adminMarketingCouponRouter } from "../../routes/admin-marketing-coupon.
 import { adminMarketingFullReductionRouter } from "../../routes/admin-marketing-full-reduction.routes";
 import { bankAccountRouter } from "../../routes/bank-account.routes";
 import { reconciliationRouter } from "../../routes/reconciliation.routes";
+import { adminAftersaleRouter } from "../../routes/aftersale.routes";
 
 const ROUTES_DIR = fileURLToPath(new URL("../../routes", import.meta.url));
 const APP_MOBILE_GATES = fileURLToPath(
@@ -167,10 +177,11 @@ interface WiredRow {
 }
 
 /**
- * 本单已接端点（**58 条唯一端点**；门注册表里 gated 门共 60 端点行，其中
+ * 本单已接端点（**62 条唯一端点**；门注册表里 gated 门共 64 端点行，其中
  * `POST /api/admin/purchase-in-stocks/`（purchase-sub-inbound + home-in-stock）与
- * `PUT /api/admin/products/:skuId/price`（goods-detail-edit + goods-batch-price-submit）各被两道门引用 ⇒ 去重后 58）。
- * 其中 57 条为本单接线（`POST /api/admin/orders/:orderNo/cancel` 早已由 S3-209 挂 `sale:void`，本单只加断言）。
+ * `PUT /api/admin/products/:skuId/price`（goods-detail-edit + goods-batch-price-submit）各被两道门引用 ⇒ 去重后 62）。
+ * 其中 57 条为 S3-233 接线（`POST /api/admin/orders/:orderNo/cancel` 早已由 S3-209 挂 `sale:void`，本单只加断言）；
+ * 4 条售后（approve/reject/inspect/complete，挂 `sale:return`）由 QODER-9（B3-1 收口）补接。
  */
 const WIRED_ROWS: WiredRow[] = [
   // ── 销售域 ────────────────────────────────────────────────────────────────
@@ -180,6 +191,11 @@ const WIRED_ROWS: WiredRow[] = [
   { endpoint: "POST /api/store/hold-orders/", file: "store-order.routes.ts", prefix: "/api/store/hold-orders", router: storeHoldOrderRouter, method: "post", routePath: "/", path: "/", perm: "sale:create" },
   { endpoint: "POST /api/store/sale-bills/:billNo/offline-payment", file: "store-sale-bill.routes.ts", prefix: "/api/store/sale-bills", router: storeSaleBillRouter, method: "post", routePath: "/:billNo/offline-payment", path: "/B1/offline-payment", perm: "sale:create" },
   { endpoint: "POST /api/admin/receipts/", file: "receipt.routes.ts", prefix: "/api/admin/receipts", router: receiptRouter, method: "post", routePath: "/", path: "/", perm: "sale:create" },
+  // QODER-9（B3-1 收口）：`island-aftersale`（gated，codes=[`sale:return`]）4 条 ⇒ 与同文件 confirm-receipt（S3-224）同码接线
+  { endpoint: "POST /api/admin/aftersales/:id/approve", file: "aftersale.routes.ts", prefix: "/api/admin", router: adminAftersaleRouter, method: "post", routePath: "/aftersales/:id/approve", path: "/aftersales/1/approve", perm: "sale:return" },
+  { endpoint: "POST /api/admin/aftersales/:id/reject", file: "aftersale.routes.ts", prefix: "/api/admin", router: adminAftersaleRouter, method: "post", routePath: "/aftersales/:id/reject", path: "/aftersales/1/reject", perm: "sale:return" },
+  { endpoint: "POST /api/admin/aftersales/:id/inspect", file: "aftersale.routes.ts", prefix: "/api/admin", router: adminAftersaleRouter, method: "post", routePath: "/aftersales/:id/inspect", path: "/aftersales/1/inspect", perm: "sale:return" },
+  { endpoint: "POST /api/admin/aftersales/:id/complete", file: "aftersale.routes.ts", prefix: "/api/admin", router: adminAftersaleRouter, method: "post", routePath: "/aftersales/:id/complete", path: "/aftersales/1/complete", perm: "sale:return" },
 
   // ── 采购域 ────────────────────────────────────────────────────────────────
   { endpoint: "POST /api/admin/purchase-orders/", file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", routePath: "/", path: "/", perm: "purchase:create" },
@@ -261,23 +277,24 @@ interface RegisteredRow {
 }
 
 /**
- * `status === 'registered'` 的 13 道门共 **43 端点行**（门注册表 §八 孤岛页 + 码未定项）。
+ * `status === 'registered'` 的门共 **38 端点行**（门注册表 §八 孤岛页 + 码未定项；
+ * S3-233 原态 43 行：QODER-9 移入已接表 4 行〔island-aftersale〕、随现场注册表移除 1 行
+ * 〔`POST /api/admin/members/:id/points/adjust` 已不在注册表〕）。
  * 这些**一律不接**；本文件只做两件事：① 断言其注册行**不含** `requirePermission(`；
- * ② 断言其仍在机读台账 `gaps` 里（防"悄悄接了但没门"）。跨层漂移的逐条点名。
+ * ② 断言其仍在机读台账 `gaps` 里（防"悄悄接了但没门"）。跨层漂移的逐条点名（QODER-7 修复后为 0 行，用例保留防回归）。
  */
 const REGISTERED_ROWS: RegisteredRow[] = [
   { endpoint: "POST /api/admin/trace/verify", file: "trace.routes.ts", method: "post", routePath: "/verify", sameAsRegistry: true },
   { endpoint: "POST /api/admin/library/lookup", file: "admin-library.routes.ts", method: "post", routePath: "/lookup", sameAsRegistry: true },
   { endpoint: "POST /api/store/coupons/verify", file: "store-coupon.routes.ts", method: "post", routePath: "/verify", sameAsRegistry: true },
   { endpoint: "POST /api/store/coupons/manual-verify", file: "store-coupon.routes.ts", method: "post", routePath: "/manual-verify", sameAsRegistry: true },
-  { endpoint: "POST /api/admin/members/:id/points/adjust", file: "points.routes.ts", method: "post", routePath: "/:id/points/adjust", sameAsRegistry: true },
+  // QODER-9 同步现场注册表：`POST /api/admin/members/:id/points/adjust` 一行**已不在门注册表**（#367 尖端 registered 门实测 9 道 38 行）
+  //   ⇒ 本表随真相源移除；该端点仍在台账 gaps（`points.routes.ts`）由各接线批用例与守卫看管，不属 parity 范围。
   { endpoint: "POST /api/admin/marketing/points/redeem", file: "admin-marketing-points.routes.ts", method: "post", routePath: "/points/redeem", sameAsRegistry: true },
   { endpoint: "POST /api/store/customer-statements/:statementNo/confirm", file: "customer-statement.routes.ts", method: "post", routePath: "/:statementNo/confirm", sameAsRegistry: true },
   { endpoint: "POST /api/admin/quote-push/", file: "admin-quote-push.routes.ts", method: "post", routePath: "/", sameAsRegistry: true },
-  { endpoint: "POST /api/admin/aftersales/:id/approve", file: "aftersale.routes.ts", method: "post", routePath: "/aftersales/:id/approve", sameAsRegistry: true },
-  { endpoint: "POST /api/admin/aftersales/:id/reject", file: "aftersale.routes.ts", method: "post", routePath: "/aftersales/:id/reject", sameAsRegistry: true },
-  { endpoint: "POST /api/admin/aftersales/:id/inspect", file: "aftersale.routes.ts", method: "post", routePath: "/aftersales/:id/inspect", sameAsRegistry: true },
-  { endpoint: "POST /api/admin/aftersales/:id/complete", file: "aftersale.routes.ts", method: "post", routePath: "/aftersales/:id/complete", sameAsRegistry: true },
+  // QODER-9（B3-1 收口）：原这 4 行 `POST /api/admin/aftersales/:id/{approve,reject,inspect,complete}` 属 registered；
+  // 门注册表 `island-aftersale` 已提 gated 且后端已挂 `requirePermission("sale:return")` ⇒ 4 行移入 `WIRED_ROWS`（已接表）。
   { endpoint: "POST /api/admin/order-exceptions", file: "order-exception.routes.ts", method: "post", routePath: "/order-exceptions", sameAsRegistry: true },
   // 后端注册为 `PUT /order-exceptions/:id(\d+)`（带数字约束）⇒ 与注册表写法 `/:id` 形态不同，但是**同一行**（路径参数约束差异，非漂移）
   // ⚠️ file 里的字面量是**双反斜杠**（`:id(\\\\d+)` ⇒ 运行期 `:id(\\d+)`），故 routePath 必须写四反斜杠才能逐字匹配；
@@ -296,23 +313,26 @@ const REGISTERED_ROWS: RegisteredRow[] = [
   { endpoint: "POST /api/admin/instant-retail/deliveries/:deliveryId/assign", file: "instant-retail-admin-ops.routes.ts", method: "post", routePath: "/deliveries/:deliveryId/assign", sameAsRegistry: true },
   { endpoint: "POST /api/admin/instant-retail/reviews/:id/reply", file: "instant-retail-admin-ops.routes.ts", method: "post", routePath: "/reviews/:id/reply", sameAsRegistry: true },
   { endpoint: "POST /api/admin/instant-retail/reviews/sync", file: "instant-retail-admin-ops.routes.ts", method: "post", routePath: "/reviews/sync", sameAsRegistry: true },
-  // ---- 以下 16 条：**跨层漂移**（门注册表写的路径/方法在后端没有对应注册行）⇒ 只登记 ----
-  { endpoint: "POST /api/admin/instant-retail/deliveries/:deliveryId/status", file: "instant-retail-admin-ops.routes.ts", method: "post", routePath: "/deliveries/:deliveryId/status", sameAsRegistry: false, drift: "后端注册的是 **PUT** `/:deliveryId/status`（`instant-retail-admin-ops.routes.ts:61`），注册表写 POST ⇒ 方法漂移" },
-  { endpoint: "POST /api/admin/instant-retail/platform/configs", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs", sameAsRegistry: false, drift: "后端前缀 `/api/admin/instant-retail` + `/configs`（该文件 routeConfig:52）⇒ 实际 URL 无 `/platform` 段；前端 `api/modules/instant-retail.ts:115/132` 也调 `/admin/instant-retail/configs` ⇒ 注册表的 `/platform/...` 是**路径漂移**" },
-  { endpoint: "POST /api/admin/instant-retail/platform/configs/:platform/test", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs/:platform/test", sameAsRegistry: false, drift: "同上（后端无 /platform 段；前端 :137 同）" },
-  { endpoint: "POST /api/admin/instant-retail/platform/configs/:platform/sync-orders", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs/:platform/sync-orders", sameAsRegistry: false, drift: "同上（前端 :142）" },
-  { endpoint: "POST /api/admin/instant-retail/platform/configs/:platform/sync-products", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs/:platform/sync-products", sameAsRegistry: false, drift: "同上（前端 :147）" },
-  { endpoint: "DELETE /api/admin/instant-retail/platform/configs/:platform", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/configs/:platform", sameAsRegistry: false, drift: "同上（前端 :152）" },
-  { endpoint: "POST /api/admin/instant-retail/platform/shop-config", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/shop-config", sameAsRegistry: false, drift: "同上（无 /platform 段）" },
-  { endpoint: "POST /api/admin/instant-retail/platform/categories", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/categories", sameAsRegistry: false, drift: "同上" },
-  { endpoint: "PUT /api/admin/instant-retail/platform/categories/:id", file: "instant-retail-admin-platform.routes.ts", method: "put", routePath: "/categories/:id", sameAsRegistry: false, drift: "同上" },
-  { endpoint: "DELETE /api/admin/instant-retail/platform/categories/:id", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/categories/:id", sameAsRegistry: false, drift: "同上" },
-  { endpoint: "POST /api/admin/instant-retail/platform/products", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/products", sameAsRegistry: false, drift: "同上（前端 :179 调 /admin/instant-retail/products）" },
-  { endpoint: "PUT /api/admin/instant-retail/platform/products/:id", file: "instant-retail-admin-platform.routes.ts", method: "put", routePath: "/products/:id", sameAsRegistry: false, drift: "同上（前端 :184）" },
-  { endpoint: "DELETE /api/admin/instant-retail/platform/products/:id", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/products/:id", sameAsRegistry: false, drift: "同上（前端 :189）" },
-  { endpoint: "POST /api/admin/instant-retail/platform/banners", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/banners", sameAsRegistry: false, drift: "同上" },
-  { endpoint: "PUT /api/admin/instant-retail/platform/banners/:id", file: "instant-retail-admin-platform.routes.ts", method: "put", routePath: "/banners/:id", sameAsRegistry: false, drift: "同上" },
-  { endpoint: "DELETE /api/admin/instant-retail/platform/banners/:id", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/banners/:id", sameAsRegistry: false, drift: "同上" },
+  // ---- 以下 16 条：原 S3-233 记为**跨层漂移**（注册表写 `/platform` 段 + deliveries status 写 POST）；
+  //      QODER-7 已按注册表层修复（注册表改成后端真实路径/方法，contractDrift debt=0）⇒ 自 QODER-9 起
+  //      这 16 行与后端注册行**逐字一致**（`instant-retail-admin-platform.routes.ts:16-49`、
+  //      `instant-retail-admin-ops.routes.ts:61`），转普通 sameAsRegistry 登记；漂移用例保留作防回归（现覆盖 0 行）。 ----
+  { endpoint: "PUT /api/admin/instant-retail/deliveries/:deliveryId/status", file: "instant-retail-admin-ops.routes.ts", method: "put", routePath: "/deliveries/:deliveryId/status", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/configs", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/configs/:platform/test", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs/:platform/test", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/configs/:platform/sync-orders", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs/:platform/sync-orders", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/configs/:platform/sync-products", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/configs/:platform/sync-products", sameAsRegistry: true },
+  { endpoint: "DELETE /api/admin/instant-retail/configs/:platform", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/configs/:platform", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/shop-config", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/shop-config", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/categories", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/categories", sameAsRegistry: true },
+  { endpoint: "PUT /api/admin/instant-retail/categories/:id", file: "instant-retail-admin-platform.routes.ts", method: "put", routePath: "/categories/:id", sameAsRegistry: true },
+  { endpoint: "DELETE /api/admin/instant-retail/categories/:id", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/categories/:id", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/products", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/products", sameAsRegistry: true },
+  { endpoint: "PUT /api/admin/instant-retail/products/:id", file: "instant-retail-admin-platform.routes.ts", method: "put", routePath: "/products/:id", sameAsRegistry: true },
+  { endpoint: "DELETE /api/admin/instant-retail/products/:id", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/products/:id", sameAsRegistry: true },
+  { endpoint: "POST /api/admin/instant-retail/banners", file: "instant-retail-admin-platform.routes.ts", method: "post", routePath: "/banners", sameAsRegistry: true },
+  { endpoint: "PUT /api/admin/instant-retail/banners/:id", file: "instant-retail-admin-platform.routes.ts", method: "put", routePath: "/banners/:id", sameAsRegistry: true },
+  { endpoint: "DELETE /api/admin/instant-retail/banners/:id", file: "instant-retail-admin-platform.routes.ts", method: "delete", routePath: "/banners/:id", sameAsRegistry: true },
 ];
 
 /** 取某文件里「注册某方法＋某路径模式」的**行**（跳过注释行）——踩坑[134]：判据必须落到注册行 */
@@ -404,11 +424,11 @@ function call(app: express.Express, method: Method, url: string, uid?: number) {
 }
 
 describe("S3-233 · 门注册表读取（唯一真相源自证）", () => {
-  it("门注册表规模：26 道 gated（60 端点行）+ 11 道 registered（43 端点行）", () => {
-    expect(gatedGates).toHaveLength(26);
-    expect(gatedGates.reduce((n, g) => n + g.endpoints.length, 0)).toBe(60);
-    expect(registeredGates).toHaveLength(11);
-    expect(registeredGates.reduce((n, g) => n + g.endpoints.length, 0)).toBe(43);
+  it("门注册表规模：27 道 gated（64 端点行）+ 9 道 registered（38 端点行）", () => {
+    expect(gatedGates).toHaveLength(27);
+    expect(gatedGates.reduce((n, g) => n + g.endpoints.length, 0)).toBe(64);
+    expect(registeredGates).toHaveLength(9);
+    expect(registeredGates.reduce((n, g) => n + g.endpoints.length, 0)).toBe(38);
   });
 
   it("gated 门的 codes 非空；registered 门的 codes 恒为空（注册表自身的契约）", () => {
@@ -420,7 +440,7 @@ describe("S3-233 · 门注册表读取（唯一真相源自证）", () => {
 describe("S3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes", () => {
   const cases = gatedGates.flatMap((g) => g.endpoints.map((ep) => ({ gate: g, ep })));
 
-  it("60 条门端点行逐条可对到本文件的已接表（无遗漏）", () => {
+  it("64 条门端点行逐条可对到本文件的已接表（无遗漏）", () => {
     const missing = cases.filter(({ ep }) => !wiredByEndpoint.has(ep));
     expect(missing.map(({ gate, ep }) => `${gate.id} | ${ep}`)).toEqual([]);
   });
@@ -442,23 +462,23 @@ describe("S3-233 · a) 门 → 后端：gated 门的每条端点都已接线，�
 describe("S3-233 · b) 后端 → 门：已接表的每条端点都至少被一道 gated 门引用", () => {
   const gatedEndpointSet = new Set(gatedGates.flatMap((g) => g.endpoints));
 
-  it("58 条唯一端点全部有门（无‘与本单无关的端点’混进表里）", () => {
+  it("62 条唯一端点全部有门（无‘与本单无关的端点’混进表里）", () => {
     const extra = WIRED_ROWS.filter((r) => !gatedEndpointSet.has(r.endpoint)).map((r) => r.endpoint);
     expect(extra).toEqual([]);
   });
 
-  it("去重后 58 条；其中 1 条（订单取消）为 S3-209 既有接线，本单只加断言", () => {
-    expect(new Set(WIRED_ROWS.map((r) => r.endpoint)).size).toBe(58);
+  it("去重后 62 条；其中 1 条（订单取消）为 S3-209 既有接线，本单只加断言", () => {
+    expect(new Set(WIRED_ROWS.map((r) => r.endpoint)).size).toBe(62);
     expect(WIRED_ROWS.filter((r) => r.endpoint === "POST /api/admin/orders/:orderNo/cancel")).toHaveLength(1);
   });
 });
 
 describe("S3-233 · c) registered ⇒ 仍是无门缺口（防‘悄悄接了但没门’）", () => {
-  it("门注册表 43 行与本文件登记表逐条对齐（含 16 条跨层漂移的登记）", () => {
+  it("门注册表 38 行与本文件登记表逐条对齐（跨层漂移已由 QODER-7 按注册表层修掉 ⇒ 漂移 0 行）", () => {
     const registry = registeredGates.flatMap((g) => g.endpoints).sort();
     const table = REGISTERED_ROWS.map((r) => r.endpoint).sort();
     expect(table).toEqual(registry);
-    expect(REGISTERED_ROWS.filter((r) => !r.sameAsRegistry)).toHaveLength(16);
+    expect(REGISTERED_ROWS.filter((r) => !r.sameAsRegistry)).toHaveLength(0);
   });
 
   it.each(REGISTERED_ROWS.filter((r) => r.sameAsRegistry))(
@@ -470,8 +490,8 @@ describe("S3-233 · c) registered ⇒ 仍是无门缺口（防‘悄悄接了但
     }
   );
 
-  // S3-233 收尾（2026-10-16）：条数**由数据推导**（= REGISTERED_ROWS 里 sameAsRegistry 的条数 27），
-  //   原先写死的 "25 条" 与本用例自身的筛选口径（43 − 16 漂移 = 27）不一致 ⇒ 标题与断言对不上。
+  // S3-233 收尾（2026-10-16）：条数**由数据推导**（= REGISTERED_ROWS 里 sameAsRegistry 的条数），
+  //   原先写死的 "25 条" 与本用例自身的筛选口径（QODER-9 现场：38 − 0 漂移 = 38）不一致 ⇒ 标题与断言必须同源。
   it(`registered 的 ${REGISTERED_ROWS.filter((r) => r.sameAsRegistry).length} 条（后端已注册的）**仍在机读台账 gaps 里**（第二真值源）`, () => {
     const baseline = JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as { gaps: Record<string, string[]> };
     const gapSet = new Set(Object.entries(baseline.gaps).flatMap(([f, list]) => list.map((p) => `${f}|${p}`)));
@@ -481,7 +501,7 @@ describe("S3-233 · c) registered ⇒ 仍是无门缺口（防‘悄悄接了但
     expect(missing).toEqual([]);
   });
 
-  it("16 条跨层漂移逐条点名（注册表路径/方法与后端注册形态不一致 ⇒ 本单只登记、不接）", () => {
+  it("跨层漂移逐条点名（漂移行必须由本单**只登记、不接**；QODER-7 修复注册表后当前 0 行，用例保留防漂移复发）", () => {
     const drift = REGISTERED_ROWS.filter((r) => !r.sameAsRegistry);
     for (const r of drift) {
       expect(r.drift, `${r.endpoint} 的漂移说明不得为空`).toBeTruthy();
@@ -493,7 +513,7 @@ describe("S3-233 · c) registered ⇒ 仍是无门缺口（防‘悄悄接了但
 });
 
 describe("S3-233 · d) 台账一致：已接端点不再登记为缺口", () => {
-  it("58 条已接端点全部**不在**机读台账 gaps 里", () => {
+  it("62 条已接端点全部**不在**机读台账 gaps 里", () => {
     const baseline = JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as { gaps: Record<string, string[]> };
     const gapSet = new Set(Object.entries(baseline.gaps).flatMap(([f, list]) => list.map((p) => `${f}|${p}`)));
     const stillGap = WIRED_ROWS.map((r) => `${r.file}|${r.endpoint}`).filter((k) => gapSet.has(k));

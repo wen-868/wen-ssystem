@@ -1,0 +1,7 @@
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · 门注册表读取（唯一真相源自证）[2m > [22m门注册表规模：26 道 gated（60 端点行）+ 11 道 registered（43 端点行）
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes[2m > [22m60 条门端点行逐条可对到本文件的已接表（无遗漏）
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes[2m > [22m'POST /api/admin/aftersales/:id/approve'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes[2m > [22m'POST /api/admin/aftersales/:id/reject'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes[2m > [22m'POST /api/admin/aftersales/:id/inspect'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes[2m > [22m'POST /api/admin/aftersales/:id/comple…'（门 'island-aftersale'）：所用码 ∈ 门 codes，且注册行自带该码
+[41m[1m FAIL [22m[49m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts[2m > [22mS3-233 · c) registered ⇒ 仍是无门缺口（防‘悄悄接了但没门’）[2m > [22m门注册表 43 行与本文件登记表逐条对齐（含 16 条跨层漂移的登记）

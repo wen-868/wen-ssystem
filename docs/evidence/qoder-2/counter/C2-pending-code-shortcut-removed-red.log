@@ -1,0 +1,46 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-2/app-mobile[39m
+
+ [31m❯[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 190[2mms[22m[39m
+     [32m✓[39m gated ⇒ codes 非空；registered / pending-code ⇒ codes 恒空（不许硬挂不存在的码）[32m 5[2mms[22m[39m
+     [32m✓[39m 本卡登记：售后门 = gated + sale:return（4 条端点逐条在册）[32m 2[2mms[22m[39m
+     [32m✓[39m 本卡登记：积分调整门 = pending-code + codes 空 + 未开通口径在册[32m 1[2mms[22m[39m
+     [32m✓[39m gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名[32m 48[2mms[22m[39m
+     [32m✓[39m 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单[32m 52[2mms[22m[39m
+     [32m✓[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行）[32m 49[2mms[22m[39m
+     [32m✓[39m 待接白名单条目必须仍归属某个 gated 入口（删登记 ⇒ 红并点名；本卡反测挂钩）[32m 2[2mms[22m[39m
+     [32m✓[39m pending-code 端点：后端必须尚未接线（已接 ⇒ 红并点名，提示注册表转 gated 补码）[32m 3[2mms[22m[39m
+     [32m✓[39m 售后门（gated sale:return）：持码/通配=显示；不持/空数组/未取到=隐藏[32m 3[2mms[22m[39m
+[31m     [31m×[31m 积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）[39m[32m 18[2mms[22m[39m
+     [32m✓[39m 售后页：PENDING 动作按钮块已挂本门，且不再存在未门控的同一 v-if[32m 2[2mms[22m[39m
+     [32m✓[39m 会员详情页：调整积分按钮已挂本门（pending-code ⇒ 恒隐藏，按未开通处理）[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 三态装置（持码=显示 / 不持码=0 / 未取到=0；pending-code 恒 0）[2m > [22m积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/entry-gate-consistency.spec.ts:[2m286:46[22m[39m
+    [90m284|[39m
+    [90m285|[39m   [34mit[39m([32m'积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）'[39m[33m,[39m () [33m=>[39m {
+    [90m286|[39m     [34mexpect[39m([34mgate[39m([[32m'*'[39m][33m,[39m [32m'mkt-points-adjust'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m   |[39m                                              [31m^[39m
+    [90m287|[39m     [34mexpect[39m([34mgate[39m([[32m'sale:return'[39m][33m,[39m [32m'mkt-points-adjust'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m288|[39m     [34mexpect[39m([34mgate[39m([][33m,[39m [32m'mkt-points-adjust'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 07:31:12
+[2m   Duration [22m 1.80s[2m (transform 234ms, setup 0ms, import 869ms, tests 190ms, environment 0ms)[22m
+
+EXIT=1
+4fc160d65891cf38494b8325767786d5f51b9baf8311208261d8f0fcff479f73 *src/composables/usePermissionGate.ts

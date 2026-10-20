@@ -1,0 +1,35 @@
+═══ QODER-4 · S3-239 三态原始输出 ═══
+注册表规模：gated=27 registered=9 pending-code=1
+
+── 一、resolvePermissionViewState 逐态返回（原始 JSON）──
+① 加载中（有登录态，请求在途）
+  => {"viewState":"loading","policy":"showAllMinimal","showNotice":false,"noticeText":""}
+② 确实无码（成功返回空数组）
+  => {"viewState":"empty","policy":"hideNeedsCode","showNotice":false,"noticeText":""}
+③ 未取到（请求失败/超时）
+  => {"viewState":"unavailable","policy":"showAllMinimal","showNotice":true,"noticeText":"权限信息未取到，已按最小可见集显示，请下拉刷新重试"}
+③b 未取到（成功但缺字段/老缓存）
+  => {"viewState":"unavailable","policy":"showAllMinimal","showNotice":true,"noticeText":"权限信息未取到，已按最小可见集显示，请下拉刷新重试"}
+ready（持有非空码数组）
+  => {"viewState":"ready","policy":"showGranted","showNotice":false,"noticeText":""}
+无登录态（失败关闭）
+  => {"viewState":"empty","policy":"hideNeedsCode","showNotice":false,"noticeText":""}
+
+生产 policy 取值集合 = [hideNeedsCode, showAllMinimal, showGranted]（'showAll' 不在其中 = 反测注入点仅反测可达）
+
+── 二、菜单端 · 最小可见集在兼容态口径下的渲染 ──
+MINIMUM_VISIBLE_MENU_CODES(6) = ["report:dashboard","report:sales","report:inventory","report:purchase","report:customer","report:finance-report"]
+渲染可见页(6) = ["report:customer","report:dashboard","report:finance-report","report:inventory","report:purchase","report:sales"]
+对照：全量(null 放全量旧语义)=38 页 / 空集(失败关闭)=0 组
+需码写页抽样：sale:bill 可见=false，goods:stock-check 可见=false
+
+── 三、入口端 · isEntryVisible 三态显隐 ──
+①: gated=false registered=true pending-code=false 未知id=true
+②: gated=false registered=true pending-code=false 未知id=true
+③: gated=false registered=true pending-code=false 未知id=true
+ready 持码: gated=true registered=true pending-code=false 未知id=true
+ready 不持码: gated=false registered=true pending-code=false 未知id=true
+入口最小可见集 MINIMUM_VISIBLE_ENTRY_IDS = []（空集：gated 全是写入口，①③ 不放）
+③ 提示文案 = "权限信息未取到，已按最小可见集显示，请下拉刷新重试"（showNotice=true）
+
+✔ 原始输出完成（EXIT=0）

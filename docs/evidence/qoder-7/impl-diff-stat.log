@@ -1,0 +1,9 @@
+ .github/workflows/ci.yml                    |    9 +
+ admin-web/src/api/system.ts                 |   28 +-
+ app-mobile/scripts/check-contract-drift.mjs |    6 +-
+ app-mobile/scripts/gates-baseline.json      |    8 +-
+ app-mobile/src/api/local-db.ts              |  949 -----------------------
+ app-mobile/src/api/sync.ts                  |  321 --------
+ app-mobile/src/config/permission-gates.ts   |   34 +-
+ app-mobile/src/native/sqlite.ts             | 1114 ---------------------------
+ 8 files changed, 39 insertions(+), 2430 deletions(-)

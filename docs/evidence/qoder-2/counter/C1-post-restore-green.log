@@ -1,0 +1,20 @@
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-2/app-mobile[39m
+
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 223[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 467[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 187[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m25 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 07:29:05
+[2m   Duration [22m 3.84s[2m (transform 1.89s, setup 0ms, import 3.86s, tests 893ms, environment 1ms)[22m
+
+—— test 门（用例数冻结）：当前 4 文件 / 25 用例，基线 4 / 25 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+EXIT=0

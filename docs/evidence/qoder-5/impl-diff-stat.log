@@ -1,0 +1,14 @@
+commit 7c56fe3aa25587f8b834cde66c886ab661baa768
+Author: 墨 <mo@zhixiang-system.com>
+Date:   Sun Oct 18 19:36:51 2026 +0800
+
+    QODER-5（S3-247）：三兄弟落地 —— pin-ssl 定标未接线+维护口径、离线链下线（删 sync-manager、scan 纯网络、api/sync 类型自持有）、gates-baseline 现场调平（warning −8 / tests 53）
+
+ app-mobile/scripts/gates-baseline.json |  12 +-
+ app-mobile/src/api/local-db.ts         |  89 +----
+ app-mobile/src/api/sync.ts             |  89 ++++-
+ app-mobile/src/config/env.ts           |   3 +-
+ app-mobile/src/native/scan.ts          |  63 +---
+ app-mobile/src/utils/pin-ssl.ts        |   9 +
+ app-mobile/src/utils/sync-manager.ts   | 653 ---------------------------------
+ 7 files changed, 112 insertions(+), 806 deletions(-)

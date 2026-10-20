@@ -1,0 +1,3 @@
+files=187 error=20 warning=12872
+vue/html-indent = 12299
+所有规则 warning ≤ 基线

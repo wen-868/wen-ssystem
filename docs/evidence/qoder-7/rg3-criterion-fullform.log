@@ -1,0 +1,2 @@
+app-mobile\docs\移动端全面审查清单与修复方案-2026-10-18.md:65:| MO-12 | 离线/安全整层孤岛：`sync-manager`、`security`、`pin-ssl` **0 引用**；`local-db` 仅被 `native/scan.ts` 与 sync-manager 读，`create-sale.vue` 无草稿分支 ⇒ 本地库永远为空、scan 本地读必 miss | grep 计数（A）；链路判断（B） |
+app-mobile\docs\移动端全面审查清单与修复方案-2026-10-18.md:162:- **B3-6**（MO-10/12/13）死代码二选一：`security.ts`、`pin-ssl.ts`、离线链（`sync-manager`+`local-db`+`sync.ts`）按在册 S3-247 的"二选一禁半接线"裁定收口——**删除或完整接线**，不允许继续挂着；`upload()` 若接线必须复用统一拦截（含 statusCode/401/CSRF），否则删除。注意：接线前置条件是 B2 完成后换新证书指纹，否则上线即挂。

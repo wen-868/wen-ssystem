@@ -1,0 +1,35 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-4/app-mobile[39m
+
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m① 加载中：有登录态 + 请求在途 + 无数组 ⇒ loading / showAllMinimal / 不提示[32m 8[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m② 确实无码：请求成功 + 空数组 ⇒ empty / hideNeedsCode（失败关闭）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m③ 未取到：请求失败 ⇒ unavailable / showAllMinimal + 提示出现[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m③ 变体：请求成功却缺字段（老版本缓存缺 permissions）⇒ 同 ③，不当 ②[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22mready：请求成功 + 非空数组 ⇒ showGranted（数组说了算，与 requestState 无关）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m无登录态 ⇒ 失败关闭（empty），不渲染需码项也不提示[32m 4[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m生产路径永不返回 showAll（该值仅为反测注入点存在）[32m 6[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mMINIMUM_VISIBLE_* 常量口径[2m > [22m菜单最小可见集非空且远小于全量；只落报表只读域[32m 2[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mMINIMUM_VISIBLE_* 常量口径[2m > [22m兼容态下最小集只放报表域 6 页；开单页（sale 域写页）不可见 ⇒ 不是放全量[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mMINIMUM_VISIBLE_* 常量口径[2m > [22m入口门最小可见集当前为空集（gated 写入口不得混入）[32m 9[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m① 加载中：gated 隐藏、无码入口可见、pending-code 恒隐藏[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m③ 未取到：与 ① 同显隐、但状态可观测（三态源给提示）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m② 确实无码：gated / pending-code 全隐藏，无码入口仍可见（整端不空白）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22mready：持码显示 / 不持码隐藏 / 通配码显示；pending-code 任何码都隐藏[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m未知 id ⇒ 无码口径：三态下恒可见（不抛错、不误隐藏）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示[32m 54[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例②：成功返回空集 ⇒ 需码菜单全部不显示（失败关闭），无提示[32m 16[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例③：请求失败且无缓存 ⇒ 最小可见集 + 提示出现；可关闭且关闭后集合不变[32m 17[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例③-缓存优先：请求失败但有上次成功缓存 ⇒ 按缓存渲染 + stale 明示（① 不判失败关闭）[32m 5[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m无登录态 ⇒ 不播种不取数（visibility 保持 null，功能页本身不可达）[32m 2[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m成功取数后写缓存（③ 的缓存优先来源）且提示复位[32m 6[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mstores/menu.ts 必须经单一定义源判定[32m 2[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mconfig/permission-gates.ts 必须经单一定义源判定[32m 4[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mcomposables/usePermissionGate.ts 必须经单一定义源判定[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mmenu.ts 不再存在「首次失败空集」旧兜底常量[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22m入口判定短路顺序：pending-code 先于三态、无码先于三态（isEntryVisible 源码形态）[32m 1[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m26 passed[39m[22m[90m (26)[39m
+[2m   Start at [22m 17:40:06
+[2m   Duration [22m 2.62s[2m (transform 529ms, setup 0ms, import 809ms, tests 158ms, environment 4ms)[22m
+

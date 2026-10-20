@@ -1,0 +1,24 @@
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-7/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 296[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1917[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 807[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文） [33m 734[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 141[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 1149[2mms[22m[39m
+     [33m[2m✓[22m[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行） [33m 513[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m53 passed[39m[22m[90m (53)[39m
+[2m   Start at [22m 02:22:37
+[2m   Duration [22m 15.91s[2m (transform 6.42s, setup 0ms, import 17.54s, tests 3.52s, environment 5ms)[22m
+
+—— test 门（用例数冻结）：当前 5 文件 / 53 用例，基线 5 / 53 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+exit=0

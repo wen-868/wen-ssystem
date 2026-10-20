@@ -1,0 +1,7 @@
+# 反测·第 4 步（2026-10-19）：cp 备份回原位 ⇒ sha256sum 与第 1 步逐字节一致
+# 第 1 步登记值：6bfd3907626c77a3b6bf4a081780fc317225b688c987ed7ae0f609dd8ee76fd1 *backend/src/routes/aftersale.routes.ts
+6bfd3907626c77a3b6bf4a081780fc317225b688c987ed7ae0f609dd8ee76fd1 *backend/src/routes/aftersale.routes.ts
+6bfd3907626c77a3b6bf4a081780fc317225b688c987ed7ae0f609dd8ee76fd1 *docs/evidence/qoder-9/anti/aftersale.routes.ts.bak
+结论：复原后 SHA 与第 1 步逐字节一致（同码校验通过）✅
+附加证明：cmp 与摘码前工作树备份 /tmp 副本 逐字节一致 ✅
+49:adminAftersaleRouter.post("/aftersales/:id/approve", requirePermission("sale:return"), ctrl.adminApproveAftersale);

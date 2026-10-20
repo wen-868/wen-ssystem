@@ -1,0 +1,2 @@
+cmd: rg -n "/platform/" app-mobile/src（MSYS2_ARG_CONV_EXCL=* 态）| rg -v permission-gates.ts
+exit=1（1=除注册表外 0 命中）⇒ /platform/ 仅存在于 permission-gates.ts 的 15 条注册表行（rg -c 实测 15），调用/页面代码从不发该路径 ⇒ 漂移仅在注册表

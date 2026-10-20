@@ -1,0 +1,2 @@
+cmd: rg -n "admin/system/employees|fetchEmployees|…|toggleEmployeeStatus" admin-web/src
+exit=1（1=0 命中）⇒ 5 个 wrapper 的路径字面量与函数名在 admin-web 全零残留（墓碑注释已刻意避开这些 token）

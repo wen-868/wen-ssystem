@@ -1,0 +1,2 @@
+2a594038f4a457dab4e9e436287f85d19794e72aa53b0e6a08ca9c7b4f8e511c *app-mobile/src/pages/functions/functions.vue
+与注入前 pre-sha256.txt 比对一致: true

@@ -1,0 +1,634 @@
+# 终态复跑（2026-10-19，替换 raw/20 的旧 2-failed 记录——那次跑在 parity 表重建之前）
+# 命令：npx vitest run src/__tests__/routes/rbac
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-9/backend[39m
+
+[2026-10-20 00:03:06.455 +0800] [32mINFO[39m (13860): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+ [32m✓[39m src/__tests__/routes/rbac-g0-wiring.test.ts [2m([22m[2m147 tests[22m[2m)[22m[33m 25771[2mms[22m[39m
+     [33m[2m✓[22m[39m backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17 + QODER-9 新增 4 [33m 3487[2mms[22m[39m
+     [33m[2m✓[22m[39m 每条 G0 名单行都能在对应路由文件中找到 `requirePermission("<permCode>")`（且不带通配） [33m 447[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts POST /api/admin/price…'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 508[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts PUT /api/admin/prices…'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 1099[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts POST /api/admin/price…'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 573[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts PUT /api/admin/prices…'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 310[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts POST /api/admin/price…'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 569[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-profit-loss.routes.ts POST …'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 387[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts POST /api/admin/pu…'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 513[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts POST /api/admin/price…'：9002（'price.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 440[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts PUT /api/admin/prices…'：9002（'price.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 402[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-profit-loss.routes.ts POST …'：9004（'inventory-profit-loss.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 565[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-profit-loss.routes.ts POST …'：9002（'inventory-profit-loss.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 303[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-profit-loss.routes.ts POST …'：9004（'inventory-profit-loss.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 788[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-profit-loss.routes.ts POST …'：9002（'inventory-profit-loss.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 343[2mms[22m[39m
+     [33m[2m✓[22m[39m 'receipt.routes.ts POST /api/admin/rec…'：9002（'receipt.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 410[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-receivable.routes.ts POST /api/…'：9002（'store-receivable.routes.ts' 的许可角色）⇒ 到达业务层（非 403） [33m 317[2mms[22m[39m
+     [33m[2m✓[22m[39m 域通配符（F1 产物）在 G0 上真实生效：STORE_MANAGER/WAREHOUSE_STAFF 的 inventory:* 通过 inventory:adjust [33m 391[2mms[22m[39m
+     [33m[2m✓[22m[39m 同一 Router 的第二挂载点同样受门禁保护（/api/store/sale-returns/:returnNo/refund） [33m 712[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts POST /api/admi…'：无登录态 ⇒ 401 [33m 415[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sale-return.routes.ts POST /api/admin…'：无登录态 ⇒ 401 [33m 439[2mms[22m[39m
+     [33m[2m✓[22m[39m 'receipt.routes.ts POST /api/admin/rec…'：无登录态 ⇒ 401 [33m 386[2mms[22m[39m
+     [33m[2m✓[22m[39m 'STORE_OPERATOR（F4 订正后：只持有 finance:dai…'：逐端点判定与预期矩阵一致（#1 日结 + #2–#5 收款类） [33m 534[2mms[22m[39m
+     [33m[2m✓[22m[39m 'FINANCE_STAFF（finance:* 域通配）'：逐端点判定与预期矩阵一致（#1 日结 + #2–#5 收款类） [33m 642[2mms[22m[39m
+     [33m[2m✓[22m[39m 卡面点名：STORE_OPERATOR ⇒ #1 日结到达业务层，#2–#5 四个收款类端点全部 403 [33m 306[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-220-product-wiring.test.ts [2m([22m[2m162 tests[22m[2m)[22m[33m 46087[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-review.routes.ts' 'post' '/:id/reject'（未接，原因 'A'）：注册行**不含** requirePermission( [33m 433[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id/status'：未登录 ⇒ 401 [33m 909[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles'：未登录 ⇒ 401 [33m 478[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles/:id/publish'：未登录 ⇒ 401 [33m 446[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/combo-products'：未登录 ⇒ 401 [33m 1357[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：未登录 ⇒ 401 [33m 608[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id'：未登录 ⇒ 401 [33m 598[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'put' '/:id/sort'：未登录 ⇒ 401 [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id/status'：READONLY（["*:view"]）⇒ 403，且未到达业务层 [33m 410[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles/:id/unpublish'：READONLY（["*:view"]）⇒ 403，且未到达业务层 [33m 306[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'post' '/products/upload-image'：READONLY（["*:view"]）⇒ 403，且未到达业务层 [33m 350[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'delete' '/:id'：READONLY（["*:view"]）⇒ 403，且未到达业务层 [33m 564[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'put' '/:id/sort'：READONLY（["*:view"]）⇒ 403，且未到达业务层 [33m 394[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id/status'：非持有人逐账号枚举 ⇒ 403 [33m 912[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id/disable'：非持有人逐账号枚举 ⇒ 403 [33m 1418[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id/warning-threshold'：非持有人逐账号枚举 ⇒ 403 [33m 808[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles'：非持有人逐账号枚举 ⇒ 403 [33m 1121[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'put' '/product-bundles/:id'：非持有人逐账号枚举 ⇒ 403 [33m 796[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'delete' '/product-bundles/:id'：非持有人逐账号枚举 ⇒ 403 [33m 1585[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles/:id/publish'：非持有人逐账号枚举 ⇒ 403 [33m 1051[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles/:id/unpublish'：非持有人逐账号枚举 ⇒ 403 [33m 1096[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/combo-products'：非持有人逐账号枚举 ⇒ 403 [33m 1029[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'put' '/combo-products/:id'：非持有人逐账号枚举 ⇒ 403 [33m 595[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'delete' '/combo-products/:id'：非持有人逐账号枚举 ⇒ 403 [33m 475[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-review.routes.ts' 'post' '/'：非持有人逐账号枚举 ⇒ 403 [33m 505[2mms[22m[39m
+     [33m[2m✓[22m[39m 'unit.routes.ts' 'post' '/'：非持有人逐账号枚举 ⇒ 403 [33m 1606[2mms[22m[39m
+     [33m[2m✓[22m[39m 'unit.routes.ts' 'put' '/:id'：非持有人逐账号枚举 ⇒ 403 [33m 660[2mms[22m[39m
+     [33m[2m✓[22m[39m 'unit.routes.ts' 'delete' '/:id'：非持有人逐账号枚举 ⇒ 403 [33m 884[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'post' '/products/upload-image'：非持有人逐账号枚举 ⇒ 403 [33m 789[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id'：非持有人逐账号枚举 ⇒ 403 [33m 751[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:skuId/price'：非持有人逐账号枚举 ⇒ 403 [33m 440[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/skus/:skuId'：非持有人逐账号枚举 ⇒ 403 [33m 1447[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'post' '/products/skus/:skuId/units'：非持有人逐账号枚举 ⇒ 403 [33m 1277[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/skus/:skuId/units/:unitId'：非持有人逐账号枚举 ⇒ 403 [33m 463[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'delete' '/products/skus/:skuId/units/:unitId'：非持有人逐账号枚举 ⇒ 403 [33m 452[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:spuId/marketing-tags'：非持有人逐账号枚举 ⇒ 403 [33m 2761[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'post' '/'：非持有人逐账号枚举 ⇒ 403 [33m 1187[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'put' '/:id'：非持有人逐账号枚举 ⇒ 403 [33m 516[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'delete' '/:id'：非持有人逐账号枚举 ⇒ 403 [33m 1283[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'put' '/:id/sort'：非持有人逐账号枚举 ⇒ 403 [33m 588[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/:id/status'：持有人 ⇒ 到达业务层（零回归） [33m 731[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles'：持有人 ⇒ 到达业务层（零回归） [33m 439[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'put' '/product-bundles/:id'：持有人 ⇒ 到达业务层（零回归） [33m 322[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'delete' '/product-bundles/:id'：持有人 ⇒ 到达业务层（零回归） [33m 541[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-bundle.routes.ts' 'post' '/product-bundles/:id/unpublish'：持有人 ⇒ 到达业务层（零回归） [33m 532[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-review.routes.ts' 'post' '/'：持有人 ⇒ 到达业务层（零回归） [33m 444[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'delete' '/products/skus/:skuId/units/:unitId'：持有人 ⇒ 到达业务层（零回归） [33m 385[2mms[22m[39m
+     [33m[2m✓[22m[39m 'category.routes.ts' 'put' '/:id/sort'：持有人 ⇒ 到达业务层（零回归） [33m 345[2mms[22m[39m
+     [33m[2m✓[22m[39m 'brand.routes.ts' 'delete' '/:id'：READONLY 的既有行为不变（未接线，缺口保留待后续批次） [33m 375[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts' 'post' '/batch/preview'：READONLY 的既有行为不变（未接线，缺口保留待后续批次） [33m 340[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-198-inventory-wiring.test.ts [2m([22m[2m262 tests[22m[2m)[22m[33m 47329[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-share.routes.ts' 'put' '/products/:id'：注册行自带 requirePermission("'inventory:adjust'") [33m 322[2mms[22m[39m
+     [33m[2m✓[22m[39m 整文件子串不足以判定（踩坑[134]）：阈值行必须**行级**自带 inventory:adjust（S3-233 收编后契约反转） [33m 349[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-transfer.routes.ts' 'post' '/import/customers' ⇒ 403 且 msg 指向该权限码 [33m 1317[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'post' '/batches' ⇒ 403 且 msg 指向该权限码 [33m 339[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'post' '/batches/:id/split' ⇒ 403 且 msg 指向该权限码 [33m 491[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'post' '/expiry-configs' ⇒ 403 且 msg 指向该权限码 [33m 404[2mms[22m[39m
+     [33m[2m✓[22m[39m 'warehouse.routes.ts' 'delete' '/:id' ⇒ 403 且 msg 指向该权限码 [33m 345[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-loss-gain.routes.ts' 'post' '/report-loss-gain' ⇒ 403 且 msg 指向该权限码 [33m 388[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/' ⇒ 403 且 msg 指向该权限码 [33m 367[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-transfer.routes.ts' 'post' '/import/customers'：holders ⇒ 200（到达控制器） [33m 502[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'post' '/batches'：holders ⇒ 200（到达控制器） [33m 1013[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'put' '/batches/:id'：holders ⇒ 200（到达控制器） [33m 370[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'post' '/expiry-configs'：holders ⇒ 200（到达控制器） [33m 652[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'put' '/expiry-configs/:id'：holders ⇒ 200（到达控制器） [33m 958[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'delete' '/expiry-configs/:id'：holders ⇒ 200（到达控制器） [33m 616[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-share.routes.ts' 'put' '/settings'：holders ⇒ 200（到达控制器） [33m 610[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-share.routes.ts' 'post' '/products'：holders ⇒ 200（到达控制器） [33m 436[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-share.routes.ts' 'post' '/products/batch-add'：holders ⇒ 200（到达控制器） [33m 411[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-share.routes.ts' 'post' '/products/batch-remove'：holders ⇒ 200（到达控制器） [33m 973[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-share.routes.ts' 'put' '/products/:id'：holders ⇒ 200（到达控制器） [33m 473[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer-order.routes.ts' 'put' '/:id'：holders ⇒ 200（到达控制器） [33m 331[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer-order.routes.ts' 'delete' '/:id'：holders ⇒ 200（到达控制器） [33m 763[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer-order.routes.ts' 'post' '/:id/reject'：holders ⇒ 200（到达控制器） [33m 624[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer-order.routes.ts' 'post' '/:id/confirm-in'：holders ⇒ 200（到达控制器） [33m 932[2mms[22m[39m
+     [33m[2m✓[22m[39m 'warehouse.routes.ts' 'post' '/'：holders ⇒ 200（到达控制器） [33m 1031[2mms[22m[39m
+     [33m[2m✓[22m[39m 'warehouse.routes.ts' 'put' '/:id'：holders ⇒ 200（到达控制器） [33m 630[2mms[22m[39m
+     [33m[2m✓[22m[39m 'warehouse.routes.ts' 'delete' '/:id'：holders ⇒ 200（到达控制器） [33m 331[2mms[22m[39m
+     [33m[2m✓[22m[39m 'stock-check.routes.ts' 'post' '/:id/items'：holders ⇒ 200（到达控制器） [33m 780[2mms[22m[39m
+     [33m[2m✓[22m[39m 'stock-check.routes.ts' 'post' '/:id/submit'：holders ⇒ 200（到达控制器） [33m 421[2mms[22m[39m
+     [33m[2m✓[22m[39m 'stock-warning.routes.ts' 'post' '/config'：holders ⇒ 200（到达控制器） [33m 399[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-inventory.routes.ts' 'put' '/alerts/:skuId/threshold'：holders ⇒ 200（到达控制器） [33m 672[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/:id/submit'：holders ⇒ 200（到达控制器） [33m 327[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/:id/ship'：holders ⇒ 200（到达控制器） [33m 455[2mms[22m[39m
+     [33m[2m✓[22m[39m 店长（生产实值，持 store:*/inventory:*）通过全部 45 条 inventory:*/store:transfer 行（页面角色不 403；S3-233 收编后 25 → 45） [33m 2718[2mms[22m[39m
+     [33m[2m✓[22m[39m 仓管（WAREHOUSE_STAFF）通过 inventory:* 与 trace:code 行，但**不**通过 store:transfer 行 [33m 509[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-transfer.routes.ts' 'post' '/import/products'：所有非管理员非持有人 ⇒ 403 [33m 465[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'put' '/batches/:id'：所有非管理员非持有人 ⇒ 403 [33m 308[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'put' '/expiry-configs/:id'：所有非管理员非持有人 ⇒ 403 [33m 302[2mms[22m[39m
+     [33m[2m✓[22m[39m 'inventory-batch.routes.ts' 'delete' '/expiry-configs/:id'：所有非管理员非持有人 ⇒ 403 [33m 550[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer-order.routes.ts' 'delete' '/:id'：所有非管理员非持有人 ⇒ 403 [33m 375[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer-order.routes.ts' 'post' '/:id/confirm-out'：所有非管理员非持有人 ⇒ 403 [33m 411[2mms[22m[39m
+     [33m[2m✓[22m[39m 'stock-check.routes.ts' 'post' '/:id/start'：所有非管理员非持有人 ⇒ 403 [33m 342[2mms[22m[39m
+     [33m[2m✓[22m[39m 'stock-check.routes.ts' 'post' '/:id/complete'：所有非管理员非持有人 ⇒ 403 [33m 426[2mms[22m[39m
+     [33m[2m✓[22m[39m 'stock-check.routes.ts' 'post' '/:id/submit'：所有非管理员非持有人 ⇒ 403 [33m 432[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/'：所有非管理员非持有人 ⇒ 403 [33m 475[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/:id/approve'：所有非管理员非持有人 ⇒ 403 [33m 379[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/:id/reject'：所有非管理员非持有人 ⇒ 403 [33m 667[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/:id/cancel'：所有非管理员非持有人 ⇒ 403 [33m 337[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/:id/ship'：所有非管理员非持有人 ⇒ 403 [33m 745[2mms[22m[39m
+     [33m[2m✓[22m[39m 'transfer.routes.ts' 'post' '/:id/receive'：所有非管理员非持有人 ⇒ 403 [33m 408[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-transfer.routes.ts' 'post' '/import/products'：无登录态 ⇒ 401 [33m 348[2mms[22m[39m
+     [33m[2m✓[22m[39m 'stock-check.routes.ts' 'post' '/:id/cancel'：无登录态 ⇒ 401 [33m 414[2mms[22m[39m
+     [33m[2m✓[22m[39m 'trace.routes.ts' 'delete' '/configs/:id'（未接 'P'）：READONLY 仍 200 [32m 300[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-214-purchase-wiring.test.ts [2m([22m[2m165 tests[22m[2m)[22m[33m 52354[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'post' '/:orderNo/approve'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 1240[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'post' '/:orderNo/cancel'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 378[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 581[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-in-stock.routes.ts' 'post' '/:stockNo/void'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 406[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-return.routes.ts' 'post' '/:returnNo/approve'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 364[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'delete' '/:contractNo'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 364[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'post' '/:contractNo/upload'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 518[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier.routes.ts' 'post' '/'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 443[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'post' '/:orderNo/approve'：全部非持有人（逐账号枚举）⇒ 403 [33m 840[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'post' '/:orderNo/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 456[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'put' '/:orderNo'：全部非持有人（逐账号枚举）⇒ 403 [33m 1400[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'delete' '/:orderNo'：全部非持有人（逐账号枚举）⇒ 403 [33m 635[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：全部非持有人（逐账号枚举）⇒ 403 [33m 367[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-in-stock.routes.ts' 'post' '/:stockNo/void'：全部非持有人（逐账号枚举）⇒ 403 [33m 460[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-payment.routes.ts' 'post' '/:paymentNo/approve'：全部非持有人（逐账号枚举）⇒ 403 [33m 535[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-return.routes.ts' 'post' '/:returnNo/approve'：全部非持有人（逐账号枚举）⇒ 403 [33m 806[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-return.routes.ts' 'post' '/:returnNo/void'：全部非持有人（逐账号枚举）⇒ 403 [33m 484[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 576[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'put' '/:contractNo'：全部非持有人（逐账号枚举）⇒ 403 [33m 691[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'delete' '/:contractNo'：全部非持有人（逐账号枚举）⇒ 403 [33m 1035[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'post' '/:contractNo/upload'：全部非持有人（逐账号枚举）⇒ 403 [33m 1389[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 626[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 601[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier.routes.ts' 'post' '/:id/contacts'：全部非持有人（逐账号枚举）⇒ 403 [33m 633[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier.routes.ts' 'delete' '/:id/contacts/:contactId'：全部非持有人（逐账号枚举）⇒ 403 [33m 907[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-contact.routes.ts' 'post' '/supplier/:supplierId'：全部非持有人（逐账号枚举）⇒ 403 [33m 524[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-contact.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1615[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-contact.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 555[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-contact.routes.ts' 'post' '/:id/set-primary'：全部非持有人（逐账号枚举）⇒ 403 [33m 803[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-statement.routes.ts' 'post' '/generate'：全部非持有人（逐账号枚举）⇒ 403 [33m 680[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-statement.routes.ts' 'post' '/:statementNo/dispute'：全部非持有人（逐账号枚举）⇒ 403 [33m 412[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 1250[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-return.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 1144[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'post' '/:orderNo/approve'：全部持有人（逐账号枚举）⇒ 200 [33m 536[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'post' '/:orderNo/cancel'：全部持有人（逐账号枚举）⇒ 200 [33m 529[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase.routes.ts' 'put' '/:orderNo'：全部持有人（逐账号枚举）⇒ 200 [33m 408[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-in-stock.routes.ts' 'post' '/:stockNo/approve'：全部持有人（逐账号枚举）⇒ 200 [33m 450[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-return.routes.ts' 'post' '/:returnNo/approve'：全部持有人（逐账号枚举）⇒ 200 [33m 468[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 359[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-contract.routes.ts' 'post' '/:contractNo/upload'：全部持有人（逐账号枚举）⇒ 200 [33m 337[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-contact.routes.ts' 'post' '/supplier/:supplierId'：全部持有人（逐账号枚举）⇒ 200 [33m 338[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-contact.routes.ts' 'put' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 645[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-contact.routes.ts' 'delete' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 363[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-statement.routes.ts' 'post' '/generate'：全部持有人（逐账号枚举）⇒ 200 [33m 929[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-statement.routes.ts' 'post' '/:statementNo/confirm'：全部持有人（逐账号枚举）⇒ 200 [33m 470[2mms[22m[39m
+     [33m[2m✓[22m[39m 'supplier-statement.routes.ts' 'post' '/:statementNo/dispute'：全部持有人（逐账号枚举）⇒ 200 [33m 325[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-in-stock.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 768[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-return.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 501[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-payment.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 407[2mms[22m[39m
+     [33m[2m✓[22m[39m 店长（生产实值）通过 12 行 —— 其中 5 行是「页面 meta.roles 含 STORE_MANAGER」的真实使用行（零回归正面证据） [33m 1158[2mms[22m[39m
+     [33m[2m✓[22m[39m 仓管通过入库 3 行、采购员通过 19 行、超管/运营员通过全部 29 行 [33m 8166[2mms[22m[39m
+     [33m[2m✓[22m[39m SALES_STAFF 对全部 29 行 ⇒ 403（没有把权限门放宽成摆设） [33m 1622[2mms[22m[39m
+     [33m[2m✓[22m[39m STORE_OPERATOR（持 sale:return）只通过退货 3 行（含 S3-233 的退货创建行），对其余 26 行 403 [33m 2227[2mms[22m[39m
+     [33m[2m✓[22m[39m 'purchase-payment.routes.ts' 'post' '/:paymentNo/void'：无登录态 ⇒ 401 [33m 352[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-224-sales-wiring.test.ts [2m([22m[2m175 tests[22m[2m)[22m[33m 49481[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'delete' '/:holdNo'：注册行自带 requirePermission("'sale:create'") [33m 589[2mms[22m[39m
+     [33m[2m✓[22m[39m 'instant-retail-webhook.routes.ts' 'post' '/webhook/jd'（未接，原因 'P'）：注册行**不含** requirePermission( [33m 485[2mms[22m[39m
+     [33m[2m✓[22m[39m 整文件子串不足以判定（踩坑[134]）：status 行必须**行级**自带 sale:create（S3-233 收编后契约反转） [33m 386[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts' 'put' '/flash-sales/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 990[2mms[22m[39m
+     [33m[2m✓[22m[39m 'aftersale.routes.ts' 'post' '/aftersales/:id/confirm-receipt'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 472[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts' 'put' '/bills/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 484[2mms[22m[39m
+     [33m[2m✓[22m[39m 'order-timeout.routes.ts' 'put' '/configs/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 445[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sale-return.routes.ts' 'post' '/:returnNo/reject'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 488[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/accept'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 584[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/complete-delivery'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 462[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts' 'put' '/flash-sales/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 635[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts' 'delete' '/flash-sales/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 923[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-order.routes.ts' 'post' '/orders/batch-status'：全部非持有人（逐账号枚举）⇒ 403 [33m 1373[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-order.routes.ts' 'put' '/orders/:orderNo/remark'：全部非持有人（逐账号枚举）⇒ 403 [33m 784[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-quote-push.routes.ts' 'post' '/:id/push'：全部非持有人（逐账号枚举）⇒ 403 [33m 395[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-quote-push.routes.ts' 'post' '/:id/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 554[2mms[22m[39m
+     [33m[2m✓[22m[39m 'aftersale.routes.ts' 'post' '/aftersales/:id/confirm-receipt'：全部非持有人（逐账号枚举）⇒ 403 [33m 975[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts' 'delete' '/consumer-addresses/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 984[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts' 'put' '/bills/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 710[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts' 'delete' '/bills/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 885[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts' 'post' '/bills/:id/void'：全部非持有人（逐账号枚举）⇒ 403 [33m 754[2mms[22m[39m
+     [33m[2m✓[22m[39m 'order-timeout.routes.ts' 'post' '/configs'：全部非持有人（逐账号枚举）⇒ 403 [33m 1167[2mms[22m[39m
+     [33m[2m✓[22m[39m 'order-timeout.routes.ts' 'put' '/configs/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 389[2mms[22m[39m
+     [33m[2m✓[22m[39m 'order-timeout.routes.ts' 'delete' '/configs/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 457[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sale-return.routes.ts' 'post' '/:returnNo/approve'：全部非持有人（逐账号枚举）⇒ 403 [33m 721[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sale-return.routes.ts' 'post' '/:returnNo/reject'：全部非持有人（逐账号枚举）⇒ 403 [33m 2082[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/accept'：全部非持有人（逐账号枚举）⇒ 403 [33m 405[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/complete-delivery'：全部非持有人（逐账号枚举）⇒ 403 [33m 320[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/reject'：全部非持有人（逐账号枚举）⇒ 403 [33m 432[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 588[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'delete' '/:holdNo'：全部非持有人（逐账号枚举）⇒ 403 [33m 395[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-shift.routes.ts' 'post' '/settle'：全部非持有人（逐账号枚举）⇒ 403 [33m 519[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-shift.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 396[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-shift.routes.ts' 'post' '/:shiftNo/check'：全部非持有人（逐账号枚举）⇒ 403 [33m 561[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-shift.routes.ts' 'post' '/:shiftNo/close'：全部非持有人（逐账号枚举）⇒ 403 [33m 310[2mms[22m[39m
+     [33m[2m✓[22m[39m 'instant-retail-store.routes.ts' 'post' '/orders/:platformOrderId/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 613[2mms[22m[39m
+     [33m[2m✓[22m[39m 'instant-retail-store.routes.ts' 'post' '/orders/:platformOrderId/start-delive…'：全部非持有人（逐账号枚举）⇒ 403 [33m 370[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-order.routes.ts' 'put' '/orders/:orderNo/status'：全部非持有人（逐账号枚举）⇒ 403 [33m 483[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/start-delivery'：全部非持有人（逐账号枚举）⇒ 403 [33m 427[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-sale-bill.routes.ts' 'post' '/:billNo/offline-payment'：全部非持有人（逐账号枚举）⇒ 403 [33m 493[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts' 'delete' '/flash-sales/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 470[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-order.routes.ts' 'post' '/orders/batch-status'：全部持有人（逐账号枚举）⇒ 200 [33m 468[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-quote-push.routes.ts' 'post' '/:id/cancel'：全部持有人（逐账号枚举）⇒ 200 [33m 587[2mms[22m[39m
+     [33m[2m✓[22m[39m 'aftersale.routes.ts' 'post' '/aftersales/:id/confirm-receipt'：全部持有人（逐账号枚举）⇒ 200 [33m 574[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commerce-fix.routes.ts' 'post' '/bills/:id/void'：全部持有人（逐账号枚举）⇒ 200 [33m 564[2mms[22m[39m
+     [33m[2m✓[22m[39m 'order-timeout.routes.ts' 'post' '/configs'：全部持有人（逐账号枚举）⇒ 200 [33m 909[2mms[22m[39m
+     [33m[2m✓[22m[39m 'order-timeout.routes.ts' 'delete' '/configs/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 1103[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sale-return.routes.ts' 'post' '/:returnNo/reject'：全部持有人（逐账号枚举）⇒ 200 [33m 325[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-order.routes.ts' 'post' '/:orderNo/reject'：全部持有人（逐账号枚举）⇒ 200 [33m 446[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-sale-bill.routes.ts' 'post' '/:billNo/pay-by-code'：全部持有人（逐账号枚举）⇒ 200 [33m 998[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-shift.routes.ts' 'post' '/settle'：全部持有人（逐账号枚举）⇒ 200 [33m 484[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-shift.routes.ts' 'post' '/:shiftNo/check'：全部持有人（逐账号枚举）⇒ 200 [33m 391[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-shift.routes.ts' 'post' '/:shiftNo/close'：全部持有人（逐账号枚举）⇒ 200 [33m 707[2mms[22m[39m
+     [33m[2m✓[22m[39m 'instant-retail-store.routes.ts' 'post' '/orders/:platformOrderId/confirm'：全部持有人（逐账号枚举）⇒ 200 [33m 506[2mms[22m[39m
+     [33m[2m✓[22m[39m 'instant-retail-store.routes.ts' 'post' '/orders/:platformOrderId/start-delive…'：全部持有人（逐账号枚举）⇒ 200 [33m 476[2mms[22m[39m
+     [33m[2m✓[22m[39m 'instant-retail-store.routes.ts' 'post' '/orders/:platformOrderId/complete-del…'：全部持有人（逐账号枚举）⇒ 200 [33m 508[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-order.routes.ts' 'put' '/orders/:orderNo/status'：全部持有人（逐账号枚举）⇒ 200 [33m 594[2mms[22m[39m
+     [33m[2m✓[22m[39m 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200） [33m 3950[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-sale-bill.routes.ts' 'post' '/:billNo/payment'（未接，原因 'L'）：READONLY ⇒ 200 且到达业务层 [33m 553[2mms[22m[39m
+     [33m[2m✓[22m[39m 'instant-retail-webhook.routes.ts' 'post' '/webhook/jd'（未接，原因 'P'）：READONLY ⇒ 200 且到达业务层 [33m 611[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-222-customer-wiring.test.ts [2m([22m[2m189 tests[22m[2m)[22m[33m 59863[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-statement.routes.ts' 'post' '/:statementNo/paid'：注册行自带 requirePermission("'customer:statement'") [33m 387[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'delete' '/:id/tags/:tagId'：注册行自带 requirePermission("'customer:edit'") [33m 354[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-type.routes.ts' 'put' '/:id'：注册行自带 requirePermission("'customer:edit'") [33m 373[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'post' '/members'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 2138[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 499[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id/assign-staff'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 376[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'post' '/rules'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 485[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-segment.routes.ts' 'post' '/'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 1095[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-segment.routes.ts' 'put' '/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 370[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'put' '/:visitNo'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 322[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'post' '/members'：全部非持有人（逐账号枚举）⇒ 403 [33m 1689[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 754[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id/disable'：全部非持有人（逐账号枚举）⇒ 403 [33m 1118[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id/assign-staff'：全部非持有人（逐账号枚举）⇒ 403 [33m 1256[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'post' '/members/register'：全部非持有人（逐账号枚举）⇒ 403 [33m 467[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id/member-level'：全部非持有人（逐账号枚举）⇒ 403 [33m 310[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'post' '/rules'：全部非持有人（逐账号枚举）⇒ 403 [33m 683[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'put' '/rules/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1435[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'delete' '/rules/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1327[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'post' '/rules/:id/execute'：全部非持有人（逐账号枚举）⇒ 403 [33m 612[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-merge.routes.ts' 'post' '/merge'：全部非持有人（逐账号枚举）⇒ 403 [33m 709[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-payment.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 351[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-payment.routes.ts' 'post' '/:receiptNo/void'：全部非持有人（逐账号枚举）⇒ 403 [33m 939[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-price.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 925[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-price.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1154[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-price.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 723[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-segment.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 812[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-segment.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 366[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-segment.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 553[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-segment.routes.ts' 'post' '/:id/refresh'：全部非持有人（逐账号枚举）⇒ 403 [33m 791[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-statement.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 403[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-statement.routes.ts' 'post' '/:statementNo/paid'：全部非持有人（逐账号枚举）⇒ 403 [33m 998[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 622[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 631[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'post' '/:id/tags'：全部非持有人（逐账号枚举）⇒ 403 [33m 507[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'delete' '/:id/tags/:tagId'：全部非持有人（逐账号枚举）⇒ 403 [33m 783[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-type.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 617[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-type.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 590[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-type.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1008[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'post' '/:visitNo/checkin'：全部非持有人（逐账号枚举）⇒ 403 [33m 444[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'post' '/:visitNo/checkout'：全部非持有人（逐账号枚举）⇒ 403 [33m 392[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'post' '/:visitNo/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 503[2mms[22m[39m
+     [33m[2m✓[22m[39m 'tag.routes.ts' 'post' '/tags/groups'：全部非持有人（逐账号枚举）⇒ 403 [33m 695[2mms[22m[39m
+     [33m[2m✓[22m[39m 'tag.routes.ts' 'delete' '/tags/groups/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 326[2mms[22m[39m
+     [33m[2m✓[22m[39m 'tag.routes.ts' 'put' '/tags/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 795[2mms[22m[39m
+     [33m[2m✓[22m[39m 'tag.routes.ts' 'delete' '/tags/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 412[2mms[22m[39m
+     [33m[2m✓[22m[39m 'tag.routes.ts' 'put' '/products/:spuId/tags'：全部非持有人（逐账号枚举）⇒ 403 [33m 1037[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id/disable'：全部持有人（逐账号枚举）⇒ 200 [33m 711[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'post' '/members/register'：全部持有人（逐账号枚举）⇒ 200 [33m 773[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-customer.routes.ts' 'put' '/members/:id/member-level'：全部持有人（逐账号枚举）⇒ 200 [33m 453[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'post' '/rules'：全部持有人（逐账号枚举）⇒ 200 [33m 309[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'put' '/rules/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 343[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-care.routes.ts' 'post' '/rules/:id/execute'：全部持有人（逐账号枚举）⇒ 200 [33m 360[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-price.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 361[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-segment.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 359[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 311[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'delete' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 422[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'post' '/:id/tags'：全部持有人（逐账号枚举）⇒ 200 [33m 495[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-tag.routes.ts' 'delete' '/:id/tags/:tagId'：全部持有人（逐账号枚举）⇒ 200 [33m 325[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-type.routes.ts' 'delete' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 308[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 322[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'put' '/:visitNo'：全部持有人（逐账号枚举）⇒ 200 [33m 512[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'post' '/:visitNo/checkout'：全部持有人（逐账号枚举）⇒ 200 [33m 567[2mms[22m[39m
+     [33m[2m✓[22m[39m 'customer-visit.routes.ts' 'post' '/:visitNo/cancel'：全部持有人（逐账号枚举）⇒ 200 [33m 374[2mms[22m[39m
+     [33m[2m✓[22m[39m 'tag.routes.ts' 'post' '/tags/groups'：全部持有人（逐账号枚举）⇒ 200 [33m 335[2mms[22m[39m
+     [33m[2m✓[22m[39m 'tag.routes.ts' 'post' '/tags'：全部持有人（逐账号枚举）⇒ 200 [33m 311[2mms[22m[39m
+     [33m[2m✓[22m[39m 零回归（机器复算）：每一行的**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200） [33m 2732[2mms[22m[39m
+     [33m[2m✓[22m[39m 生产店长（`customer:*`）通过本批**全部** 42 行（客户域写码全被 `customer:*` 覆盖） [33m 3729[2mms[22m[39m
+     [33m[2m✓[22m[39m 'member-register.routes.ts' 'post' '/register'（'P'）：无权限门 ⇒ READONLY 亦到达业务层 [33m 341[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-226-marketing-wiring.test.ts [2m([22m[2m306 tests[22m[2m)[22m[33m 93709[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-stack-rule.routes.ts' 'put' '/stack-rules/:id'：注册行自带 requirePermission("'marketing:create'") [33m 322[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-stack-rule.routes.ts' 'delete' '/stack-rules/:id'：注册行自带 requirePermission("'marketing:create'") [33m 727[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'post' '/:id/archive'：注册行自带 requirePermission("'marketing:create'") [33m 562[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'post' '/products'：注册行自带 requirePermission("'marketing:points'") [33m 467[2mms[22m[39m
+     [33m[2m✓[22m[39m 'seckill.routes.ts' 'delete' '/:id'：注册行自带 requirePermission("'marketing:create'") [33m 314[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'post' '/coupons/templates'：注册行自带 requirePermission("'marketing:create'") [33m 398[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'post' '/coupons/templates/:id/pause'：注册行自带 requirePermission("'marketing:create'") [33m 442[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'put' '/coupons/templates/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 1508[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'post' '/coupons/templates/:id/activate'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 372[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-group-buy.routes.ts' 'post' '/group-buys/teams'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 395[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-stack-rule.routes.ts' 'post' '/stack-rules'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-asset.routes.ts' 'put' '/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 366[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'post' '/'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 557[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'put' '/categories/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 569[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 321[2mms[22m[39m
+     [33m[2m✓[22m[39m 'seckill.routes.ts' 'delete' '/:id'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 346[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'put' '/coupons/templates/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 859[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'delete' '/coupons/templates/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 624[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'post' '/coupons/templates/:id/activate'：全部非持有人（逐账号枚举）⇒ 403 [33m 1613[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-full-reduction.routes…' 'post' '/full-reductions'：全部非持有人（逐账号枚举）⇒ 403 [33m 1503[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-full-reduction.routes…' 'put' '/full-reductions/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 491[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-group-buy.routes.ts' 'post' '/group-buys'：全部非持有人（逐账号枚举）⇒ 403 [33m 1204[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-group-buy.routes.ts' 'put' '/group-buys/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 633[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-group-buy.routes.ts' 'delete' '/group-buys/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 838[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-group-buy.routes.ts' 'post' '/group-buys/:id/activate'：全部非持有人（逐账号枚举）⇒ 403 [33m 714[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-group-buy.routes.ts' 'post' '/group-buys/teams'：全部非持有人（逐账号枚举）⇒ 403 [33m 682[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-group-buy.routes.ts' 'post' '/group-buys/teams/:teamId/join'：全部非持有人（逐账号枚举）⇒ 403 [33m 3414[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-points.routes.ts' 'put' '/points/rule'：全部非持有人（逐账号枚举）⇒ 403 [33m 537[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-stack-rule.routes.ts' 'post' '/stack-rules'：全部非持有人（逐账号枚举）⇒ 403 [33m 736[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-stack-rule.routes.ts' 'put' '/stack-rules/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1472[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-stack-rule.routes.ts' 'delete' '/stack-rules/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 976[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-asset.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 911[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-asset.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1130[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-asset.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 598[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 1148[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 945[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 616[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'post' '/:id/activate'：全部非持有人（逐账号枚举）⇒ 403 [33m 392[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'post' '/:id/pause'：全部非持有人（逐账号枚举）⇒ 403 [33m 672[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'post' '/:id/levels'：全部非持有人（逐账号枚举）⇒ 403 [33m 1372[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'put' '/:id/levels/:levelId'：全部非持有人（逐账号枚举）⇒ 403 [33m 989[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'delete' '/:id/levels/:levelId'：全部非持有人（逐账号枚举）⇒ 403 [33m 389[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 979[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1461[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1145[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'post' '/:id/activate'：全部非持有人（逐账号枚举）⇒ 403 [33m 648[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'post' '/:id/pause'：全部非持有人（逐账号枚举）⇒ 403 [33m 839[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'post' '/:id/products'：全部非持有人（逐账号枚举）⇒ 403 [33m 1014[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'delete' '/:id/products/:productId'：全部非持有人（逐账号枚举）⇒ 403 [33m 458[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 1062[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 599[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 850[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'post' '/:id/publish'：全部非持有人（逐账号枚举）⇒ 403 [33m 674[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'post' '/:id/archive'：全部非持有人（逐账号枚举）⇒ 403 [33m 470[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'post' '/categories'：全部非持有人（逐账号枚举）⇒ 403 [33m 638[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'put' '/categories/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1022[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'delete' '/categories/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 875[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'post' '/products'：全部非持有人（逐账号枚举）⇒ 403 [33m 568[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'put' '/products/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 686[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'delete' '/products/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 535[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'post' '/products/:id/toggle'：全部非持有人（逐账号枚举）⇒ 403 [33m 1227[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'post' '/exchange'：全部非持有人（逐账号枚举）⇒ 403 [33m 1000[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'post' '/exchange-records/:id/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 888[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'post' '/exchange-records/:id/confirm'：全部非持有人（逐账号枚举）⇒ 403 [33m 785[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'post' '/items'：全部非持有人（逐账号枚举）⇒ 403 [33m 1335[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'put' '/items/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1232[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'delete' '/items/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 873[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'put' '/items/:id/status'：全部非持有人（逐账号枚举）⇒ 403 [33m 388[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'put' '/orders/:id/deliver'：全部非持有人（逐账号枚举）⇒ 403 [33m 985[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'put' '/orders/:id/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 625[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points.routes.ts' 'post' '/rules'：全部非持有人（逐账号枚举）⇒ 403 [33m 559[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points.routes.ts' 'put' '/rules/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 572[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcement.routes.ts' 'post' '/admin/retail-announcements'：全部非持有人（逐账号枚举）⇒ 403 [33m 1103[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcement.routes.ts' 'put' '/admin/retail-announcements/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 776[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcement.routes.ts' 'delete' '/admin/retail-announcements/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 732[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcements-admin.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 1184[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcements-admin.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 627[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcements-admin.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 555[2mms[22m[39m
+     [33m[2m✓[22m[39m 'seckill.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 1790[2mms[22m[39m
+     [33m[2m✓[22m[39m 'seckill.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 999[2mms[22m[39m
+     [33m[2m✓[22m[39m 'seckill.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 742[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'post' '/coupons/templates'：全部非持有人（逐账号枚举）⇒ 403 [33m 591[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'post' '/coupons/templates/:id/pause'：全部非持有人（逐账号枚举）⇒ 403 [33m 816[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-full-reduction.routes…' 'post' '/full-reductions/:id/activate'：全部非持有人（逐账号枚举）⇒ 403 [33m 539[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-full-reduction.routes…' 'post' '/full-reductions/:id/pause'：全部非持有人（逐账号枚举）⇒ 403 [33m 1121[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-full-reduction.routes…' 'delete' '/full-reductions/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 408[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'delete' '/coupons/templates/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 613[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'put' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 363[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-gift-rule.routes.ts' 'delete' '/:id/levels/:levelId'：全部持有人（逐账号枚举）⇒ 200 [33m 352[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'delete' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 349[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-limited-discount.routes.ts' 'post' '/:id/products'：全部持有人（逐账号枚举）⇒ 200 [33m 353[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 355[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'post' '/:id/publish'：全部持有人（逐账号枚举）⇒ 200 [33m 477[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-material.routes.ts' 'put' '/categories/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 479[2mms[22m[39m
+     [33m[2m✓[22m[39m 'marketing-points-mall.routes.ts' 'put' '/products/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 477[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'post' '/items'：全部持有人（逐账号枚举）⇒ 200 [33m 800[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'delete' '/items/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 974[2mms[22m[39m
+     [33m[2m✓[22m[39m 'points-mall.routes.ts' 'put' '/orders/:id/cancel'：全部持有人（逐账号枚举）⇒ 200 [33m 484[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcement.routes.ts' 'post' '/admin/retail-announcements'：全部持有人（逐账号枚举）⇒ 200 [33m 479[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcement.routes.ts' 'delete' '/admin/retail-announcements/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 573[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcements-admin.routes.ts' 'post' '/'：全部持有人（逐账号枚举）⇒ 200 [33m 519[2mms[22m[39m
+     [33m[2m✓[22m[39m 'retail-announcements-admin.routes.ts' 'put' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 381[2mms[22m[39m
+     [33m[2m✓[22m[39m 'seckill.routes.ts' 'put' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 351[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-coupon.routes.ts' 'post' '/coupons/templates/:id/pause'：全部持有人（逐账号枚举）⇒ 200 [33m 351[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-full-reduction.routes…' 'post' '/full-reductions/:id/pause'：全部持有人（逐账号枚举）⇒ 200 [33m 477[2mms[22m[39m
+     [33m[2m✓[22m[39m 零回归（机器复算）：凡有页面调用点的行，**页面角色 ⊆ 码持有人**（页面角色用真实账号逐个试跑 ⇒ 200） [33m 2735[2mms[22m[39m
+[2026-10-20 00:04:54.089 +0800] [32mINFO[39m (1364): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-237-goods-wiring.test.ts [2m([22m[2m60 tests[22m[2m)[22m[33m 12938[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 708[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-product.routes.ts' 'put' '/products/skus/:skuId/barcode'：全部非持有人（逐账号枚举）⇒ 403 [33m 1264[2mms[22m[39m
+     [33m[2m✓[22m[39m 'brand.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 568[2mms[22m[39m
+     [33m[2m✓[22m[39m 'brand.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 1094[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-marketing-tag.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 578[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-marketing-tag.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 887[2mms[22m[39m
+     [33m[2m✓[22m[39m 'unit-group.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 [33m 474[2mms[22m[39m
+     [33m[2m✓[22m[39m 'unit-group.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 636[2mms[22m[39m
+     [33m[2m✓[22m[39m 'brand.routes.ts' 'put' '/:id'：全部持有人 ⇒ 200 [33m 471[2mms[22m[39m
+     [33m[2m✓[22m[39m 'unit-group.routes.ts' 'post' '/'：**在用**店长（STORE_MANAGER，1 账号）⇒ 200 [33m 344[2mms[22m[39m
+     [33m[2m✓[22m[39m 'product-marketing-tag.routes.ts' DELETE '/:id'：READONLY 仍到达业务层（未接线态显式锁定） [33m 533[2mms[22m[39m
+     [33m[2m✓[22m[39m 品牌 / 单位 / 商品标签 / 营销标签 四页 `meta.roles` 均含 STORE_MANAGER（店长经 D1 持码 ⇒ 无回归） [33m 840[2mms[22m[39m
+     [33m[2m✓[22m[39m 前端导入页真实打的是 data-transfer 路径（`store:transfer` 已接，S3-198）；`importProducts` 封装无任何页面调用点 [33m 2170[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts [2m([22m[2m135 tests[22m[2m)[22m[33m 13494[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/stock-checks/:id/items'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码 [33m 358[2mms[22m[39m
+     [33m[2m✓[22m[39m 'PUT /api/store/stock-checks/:id/items…'（门 'fx-stock-check'）：所用码 ∈ 门 codes，且注册行自带该码 [33m 354[2mms[22m[39m
+     [33m[2m✓[22m[39m 'PUT /api/admin/products/:spuId/market…'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码 [33m 305[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/products/upload-image'（门 'goods-detail-edit'）：所用码 ∈ 门 codes，且注册行自带该码 [33m 753[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/trace/verify'：注册行**不含** requirePermission（只登记不门） [33m 379[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/store/orders/:orderNo/start…'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 [33m 403[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/purchase-orders/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 [33m 1279[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/stock-checks/:id/hand…'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 [33m 367[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/system/roles/'：READONLY（*:view）⇒ 403 且 msg 指向该码、未到达业务层 [33m 375[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/store/orders/:orderNo/start…'：全部持有人（逐账号枚举）⇒ 200 且到达业务层 [33m 1561[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/purchase-orders/'：全部持有人（逐账号枚举）⇒ 200 且到达业务层 [33m 656[2mms[22m[39m
+     [33m[2m✓[22m[39m 'POST /api/admin/products/categories/'：全部持有人（逐账号枚举）⇒ 200 且到达业务层 [33m 310[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-g1-wiring.test.ts [2m([22m[2m131 tests[22m[2m)[22m[33m 19375[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts …'：注册行自带 requirePermission("'sale:create'")（且该行不是注释） [33m 392[2mms[22m[39m
+     [33m[2m✓[22m[39m 整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但 recharge/freeze/unfreeze 三行没有 [33m 483[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts POST /api/admi…' ⇒ 403 且未到达业务层 [33m 2953[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts POST /api/admi…' ⇒ 403 且未到达业务层 [33m 879[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts …' ⇒ 403 且未到达业务层 [33m 576[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts …' ⇒ 403 且未到达业务层 [33m 456[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts POST /api/admi…'：9002 ⇒ 到达业务层（200） [33m 477[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment.routes.ts POST /api/pay/orders'：9002 ⇒ 到达业务层（200） [33m 346[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-value-card.routes.ts POST /api/…'：9010 ⇒ 到达业务层（200） [33m 315[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts …'：9009 ⇒ 到达业务层（200） [33m 382[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts …'：9003 ⇒ 到达业务层（200） [33m 402[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-marketing-flash-sale.routes.ts …'：9009 ⇒ 到达业务层（200） [33m 676[2mms[22m[39m
+     [33m[2m✓[22m[39m 精确码真实生效：STORE_OPERATOR（F4 后）的 sale:create 通过 flash-sale 四行；STORE_MANAGER 的 sale:* 同样通过 [33m 839[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sale-return.routes.ts' POST '/'（待裁 'C'）：READONLY 仍然 200 [33m 421[2mms[22m[39m
+     [33m[2m✓[22m[39m G0 已断言 READONLY 仍 200 的四行（本单 C 类待裁）逐条复核 [33m 795[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment.routes.ts POST /api/pay/orders'：无登录态 ⇒ 401 [33m 361[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts POST /api/admin/cred…' ⇒ 403 且 msg 含新权限点 [33m 352[2mms[22m[39m
+     [33m[2m✓[22m[39m 超管（*）同样通过 8 行（既有行为不变） [33m 378[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts POST /api/admin/cred…'：STORE_OPERATOR / FINANCE_STAFF / SALES_STAFF ⇒ 403 [33m 370[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts POST /api/admin/cred…'：STORE_OPERATOR / FINANCE_STAFF / SALES_STAFF ⇒ 403 [33m 485[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts POST /api/admin/cred…'：STORE_OPERATOR / FINANCE_STAFF / SALES_STAFF ⇒ 403 [33m 339[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commission.routes.ts POST /api/admin/…'：STORE_OPERATOR / FINANCE_STAFF / SALES_STAFF ⇒ 403 [33m 453[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-238-platform-wiring.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 2157[2mms[22m[39m
+       [33m[2m✓[22m[39m ① 无平台令牌 ⇒ 401（不是 403：认证未过） [33m 1480[2mms[22m[39m
+       [33m[2m✓[22m[39m ③ 平台超管 ⇒ 到达业务层（证明装置不是恒红） [33m 480[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-225-staff-wiring.test.ts [2m([22m[2m164 tests[22m[2m)[22m[33m 31036[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'post' '/users/:userId/check'（不接 · '查询型POST'）：注册行**不含** requirePermission( [33m 383[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'post' '/staff'：页面/按钮真实使用者 ⊆ 权限持有人集合（零回归判据） [33m 411[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'put' '/staff/:id/status' ⇒ 403 且未到达业务层 [33m 614[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'put' '/:id/data-permissions' ⇒ 403 且未到达业务层 [33m 477[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'put' '/staff/:id/disable' ⇒ 403 且未到达业务层 [33m 388[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'post' '/staff/:id/restore' ⇒ 403 且未到达业务层 [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'put' '/:id' ⇒ 403 且未到达业务层 [33m 375[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sys-user.routes.ts' 'post' '/' ⇒ 超管/运营管理员 200（到达业务层） [33m 345[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'delete' '/:id' ⇒ 超管/运营管理员 200（到达业务层） [33m 531[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'post' '/roles/:roleId' ⇒ 超管/运营管理员 200（到达业务层） [33m 748[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'delete' '/roles/:roleId/:dataPermissionId' ⇒ 超管/运营管理员 200（到达业务层） [33m 387[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'put' '/staff/:id/disable' ⇒ 超管/运营管理员 200（到达业务层） [33m 380[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'put' '/:id' ⇒ 超管/运营管理员 200（到达业务层） [33m 503[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'delete' '/:id' ⇒ 超管/运营管理员 200（到达业务层） [33m 480[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'put' '/staff/:id/status' ⇒ 8 个非持有角色全 403 [33m 518[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sys-user.routes.ts' 'post' '/' ⇒ 8 个非持有角色全 403 [33m 988[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sys-user.routes.ts' 'post' '/:id/reset-password' ⇒ 8 个非持有角色全 403 [33m 807[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sys-user.routes.ts' 'delete' '/:id' ⇒ 8 个非持有角色全 403 [33m 1579[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'put' '/:id/data-permissions' ⇒ 8 个非持有角色全 403 [33m 870[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'put' '/users/:userId/roles' ⇒ 8 个非持有角色全 403 [33m 686[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'put' '/:id' ⇒ 8 个非持有角色全 403 [33m 1260[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'delete' '/:id' ⇒ 8 个非持有角色全 403 [33m 755[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'post' '/roles/:roleId' ⇒ 8 个非持有角色全 403 [33m 643[2mms[22m[39m
+     [33m[2m✓[22m[39m 'data-permission.routes.ts' 'delete' '/roles/:roleId/:dataPermissionId' ⇒ 8 个非持有角色全 403 [33m 464[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'post' '/staff' ⇒ 8 个非持有角色全 403 [33m 1592[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'put' '/staff/:id' ⇒ 8 个非持有角色全 403 [33m 674[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'put' '/staff/:id/disable' ⇒ 8 个非持有角色全 403 [33m 1042[2mms[22m[39m
+     [33m[2m✓[22m[39m 'admin-staff.routes.ts' 'post' '/staff/:id/restore' ⇒ 8 个非持有角色全 403 [33m 1102[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'post' '/' ⇒ 8 个非持有角色全 403 [33m 1204[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'put' '/:id' ⇒ 8 个非持有角色全 403 [33m 633[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'delete' '/:id' ⇒ 8 个非持有角色全 403 [33m 367[2mms[22m[39m
+     [33m[2m✓[22m[39m 'department.routes.ts' 'put' '/:id/move'（'需新立码'）⇒ READONLY 仍到达业务层 [33m 475[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'put' '/users/:userId/roles' ⇒ 无登录态 401 [33m 465[2mms[22m[39m
+     [33m[2m✓[22m[39m 'rbac.routes.ts' 'delete' '/:id' ⇒ 无登录态 401 [33m 459[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-229-store-and-marketing-wiring.test.ts [2m([22m[2m112 tests[22m[2m)[22m[33m 31924[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store.routes.ts' 'post' '/manage'（未接，原因 'B'）：注册行**不含** requirePermission( [33m 566[2mms[22m[39m
+     [33m[2m✓[22m[39m 'subscription.routes.ts' 'put' '/plans/:planId'（未接，原因 'PLATFORM'）：注册行**不含** requirePermission( [33m 339[2mms[22m[39m
+     [33m[2m✓[22m[39m 'subscription.routes.ts' 'put' '/plans/:planId/policy'（未接，原因 'PLATFORM'）：注册行**不含** requirePermission( [33m 313[2mms[22m[39m
+     [33m[2m✓[22m[39m 'subscription.routes.ts' 'post' '/:subscriptionId/change-plan'（未接，原因 'PLATFORM'）：注册行**不含** requirePermission( [33m 492[2mms[22m[39m
+     [33m[2m✓[22m[39m 'subscription.routes.ts' 'post' '/:subscriptionId/renew'（未接，原因 'PLATFORM'）：注册行**不含** requirePermission( [33m 398[2mms[22m[39m
+     [33m[2m✓[22m[39m 'demo.routes.ts' 'post' '/seed'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 1454[2mms[22m[39m
+     [33m[2m✓[22m[39m 'demo.routes.ts' 'post' '/reset'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 391[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'post' '/:storeId/close'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 485[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/start'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 672[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/help'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 432[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/end'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 1068[2mms[22m[39m
+     [33m[2m✓[22m[39m 'demo.routes.ts' 'post' '/seed'：全部非持有人（逐账号枚举）⇒ 403 [33m 810[2mms[22m[39m
+     [33m[2m✓[22m[39m 'demo.routes.ts' 'post' '/reset'：全部非持有人（逐账号枚举）⇒ 403 [33m 965[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'put' '/configs/:storeId'：全部非持有人（逐账号枚举）⇒ 403 [33m 949[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'post' '/:storeId/open'：全部非持有人（逐账号枚举）⇒ 403 [33m 1261[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'post' '/:storeId/close'：全部非持有人（逐账号枚举）⇒ 403 [33m 747[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'post' '/:storeId/suspend'：全部非持有人（逐账号枚举）⇒ 403 [33m 989[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'post' '/:storeId/resume'：全部非持有人（逐账号枚举）⇒ 403 [33m 335[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/join'：全部非持有人（逐账号枚举）⇒ 403 [33m 730[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/start'：全部非持有人（逐账号枚举）⇒ 403 [33m 1202[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/end'：全部非持有人（逐账号枚举）⇒ 403 [33m 572[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/start'：全部非持有人（逐账号枚举）⇒ 403 [33m 925[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/help'：全部非持有人（逐账号枚举）⇒ 403 [33m 1491[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/end'：全部非持有人（逐账号枚举）⇒ 403 [33m 885[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/buy'：全部非持有人（逐账号枚举）⇒ 403 [33m 941[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:orderNo/pay'：全部非持有人（逐账号枚举）⇒ 403 [33m 1295[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:orderNo/cancel'：全部非持有人（逐账号枚举）⇒ 403 [33m 1003[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/end'：全部非持有人（逐账号枚举）⇒ 403 [33m 754[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'post' '/:storeId/open'：全部持有人（逐账号枚举）⇒ 200 [33m 824[2mms[22m[39m
+     [33m[2m✓[22m[39m 'store-control.routes.ts' 'post' '/:storeId/close'：全部持有人（逐账号枚举）⇒ 200 [33m 346[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/start'：全部持有人（逐账号枚举）⇒ 200 [33m 481[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/help'：全部持有人（逐账号枚举）⇒ 200 [33m 311[2mms[22m[39m
+     [33m[2m✓[22m[39m 'community-marketing.routes.ts' 'post' '/:id/end'：全部持有人（逐账号枚举）⇒ 200 [33m 436[2mms[22m[39m
+     [33m[2m✓[22m[39m 在用可见角色逐个试跑：持码 ⇒ 200；只读观察员（READONLY）⇒ 403 属既有期望（写动作） [33m 1272[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-223-finance-wiring.test.ts [2m([22m[2m183 tests[22m[2m)[22m[33m 34377[2mms[22m[39m
+     [33m[2m✓[22m[39m 'reconciliation.routes.ts' 'post' '/customer/:customerId/confirm'：注册行自带 requirePermission("'report:finance'")（且该行不是注释） [33m 363[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-new.routes.ts' 'post' '/'（不接 · 'G0'）：注册行**不含** requirePermission( [33m 481[2mms[22m[39m
+     [33m[2m✓[22m[39m 页面角色表与源码同源（防「测试里写一个不存在的页面角色」）：admin-web meta.roles 逐条复核 [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts' 'put' '/:id' ⇒ 403 且未到达业务层 [33m 1652[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commission.routes.ts' 'delete' '/rules/:id' ⇒ 403 且未到达业务层 [33m 911[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts' 'put' '/collections/:id' ⇒ 403 且未到达业务层 [33m 563[2mms[22m[39m
+     [33m[2m✓[22m[39m 'expense.routes.ts' 'put' '/:expenseNo' ⇒ 403 且未到达业务层 [33m 395[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'post' '/configs/:provider/test' ⇒ 403 且未到达业务层 [33m 1160[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'put' '/bank-accounts/:id' ⇒ 403 且未到达业务层 [33m 375[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts' 'post' '/:id/close' ⇒ 403 且未到达业务层 [33m 446[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts' 'put' '/:id'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 368[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commission.routes.ts' 'delete' '/rules/:id'：明确不持有该码的角色 ⇒ 403（'sale:commission' 的锁死面逐条复算） [33m 1077[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts' 'put' '/collections/:id'：明确不持有该码的角色 ⇒ 403（'customer:credit' 的锁死面逐条复算） [33m 651[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts' 'post' '/collections/auto-generate'：明确不持有该码的角色 ⇒ 403（'customer:credit' 的锁死面逐条复算） [33m 425[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts' 'put' '/:customerId/limit'：明确不持有该码的角色 ⇒ 403（'customer:credit' 的锁死面逐条复算） [33m 1328[2mms[22m[39m
+     [33m[2m✓[22m[39m 'credit.routes.ts' 'put' '/:customerId/term'：明确不持有该码的角色 ⇒ 403（'customer:credit' 的锁死面逐条复算） [33m 784[2mms[22m[39m
+     [33m[2m✓[22m[39m 'expense.routes.ts' 'put' '/:expenseNo'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 508[2mms[22m[39m
+     [33m[2m✓[22m[39m 'expense.routes.ts' 'post' '/:expenseNo/approve'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 748[2mms[22m[39m
+     [33m[2m✓[22m[39m 'expense.routes.ts' 'post' '/:expenseNo/void'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 981[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'put' '/configs/:provider'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 410[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'post' '/configs/:provider/test'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 934[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'post' '/bank-accounts'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 459[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'put' '/bank-accounts/:id'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 510[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'delete' '/bank-accounts/:id'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 1171[2mms[22m[39m
+     [33m[2m✓[22m[39m 'receipt.routes.ts' 'post' '/:receiptNo/void'：明确不持有该码的角色 ⇒ 403（'finance:receipt:create' 的锁死面逐条复算） [33m 817[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts' 'post' '/'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 886[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts' 'post' '/:id/close'：明确不持有该码的角色 ⇒ 403（'finance:create' 的锁死面逐条复算） [33m 876[2mms[22m[39m
+     [33m[2m✓[22m[39m 'receipt.routes.ts' 'post' '/'：明确不持有该码的角色 ⇒ 403（'sale:create' 的锁死面逐条复算） [33m 325[2mms[22m[39m
+     [33m[2m✓[22m[39m 'reconciliation.routes.ts' 'post' '/customer/:customerId/confirm'：明确不持有该码的角色 ⇒ 403（'report:finance' 的锁死面逐条复算） [33m 455[2mms[22m[39m
+     [33m[2m✓[22m[39m 'commission.routes.ts' 'put' '/rules/:id'：uid=9002 ⇒ 到达业务层（200） [33m 467[2mms[22m[39m
+     [33m[2m✓[22m[39m 'expense.routes.ts' 'put' '/:expenseNo'：uid=9006 ⇒ 到达业务层（200） [33m 488[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'put' '/bank-accounts/:id'：uid=9002 ⇒ 到达业务层（200） [33m 317[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-config.routes.ts' 'delete' '/bank-accounts/:id'：uid=9002 ⇒ 到达业务层（200） [33m 319[2mms[22m[39m
+     [33m[2m✓[22m[39m 'payment-new.routes.ts' 'post' '/:paymentNo/void'：uid=9009 ⇒ 到达业务层（200） [33m 407[2mms[22m[39m
+     [33m[2m✓[22m[39m 'receipt.routes.ts' 'post' '/'：无登录态 ⇒ 401 [33m 361[2mms[22m[39m
+     [33m[2m✓[22m[39m 'reconciliation.routes.ts' 'post' '/customer/:customerId/confirm'：无登录态 ⇒ 401 [33m 768[2mms[22m[39m
+     [33m[2m✓[22m[39m 'reconciliation.routes.ts' 'post' '/supplier/:supplierId/confirm'：无登录态 ⇒ 401 [33m 498[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-237-system-wiring.test.ts [2m([22m[2m70 tests[22m[2m)[22m[33m 16207[2mms[22m[39m
+     [33m[2m✓[22m[39m 'alert.routes.ts' 'put' '/:id/handle'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 1399[2mms[22m[39m
+     [33m[2m✓[22m[39m 'archive.routes.ts' 'post' '/execute'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 325[2mms[22m[39m
+     [33m[2m✓[22m[39m 'notification.routes.ts' 'post' '/send'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 536[2mms[22m[39m
+     [33m[2m✓[22m[39m 'alert.routes.ts' 'put' '/:id/handle'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 2049[2mms[22m[39m
+     [33m[2m✓[22m[39m 'alert.routes.ts' 'put' '/rules/:id'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 420[2mms[22m[39m
+     [33m[2m✓[22m[39m 'alert.routes.ts' 'post' '/check'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 357[2mms[22m[39m
+     [33m[2m✓[22m[39m 'archive.routes.ts' 'post' '/execute'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 610[2mms[22m[39m
+     [33m[2m✓[22m[39m 'notification.routes.ts' 'post' '/send'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 1114[2mms[22m[39m
+     [33m[2m✓[22m[39m 'push.routes.ts' 'post' '/test'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 459[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sms-template.routes.ts' 'post' '/'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 1018[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sms-template.routes.ts' 'put' '/:id'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 1203[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sms-template.routes.ts' 'delete' '/:id'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 458[2mms[22m[39m
+     [33m[2m✓[22m[39m 'system.routes.ts' 'post' '/migrate'：全部非持有人（逐账号枚举）⇒ 403 且不得到达业务层 [33m 449[2mms[22m[39m
+     [33m[2m✓[22m[39m 'sms-template.routes.ts' 'put' '/:id'：全部持有人（逐账号枚举）⇒ 200 [33m 481[2mms[22m[39m
+     [33m[2m✓[22m[39m 'alert.routes.ts' 'put' '/rules/:id'：无登录态 ⇒ 401 [33m 318[2mms[22m[39m
+     [33m[2m✓[22m[39m 'put' '/:id/read'：注册行**不含** requirePermission(（没多接、没偷接） [33m 315[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-g2-wiring.test.ts [2m([22m[2m58 tests[22m[2m)[22m[33m 8977[2mms[22m[39m
+     [33m[2m✓[22m[39m 'expense.routes.ts POST /api/admin/exp…' ⇒ 403 且未到达业务层 [33m 957[2mms[22m[39m
+     [33m[2m✓[22m[39m 域通配（F1 产物）真实生效：FINANCE_STAFF 的 finance:* 通过已接行 [33m 362[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts POST /api/admi…'：持有人 ⇒ 到达业务层（零回归） [33m 1033[2mms[22m[39m
+     [33m[2m✓[22m[39m 'reconciliation.routes.ts POST /api/ad…'：持有人 ⇒ 到达业务层（零回归） [33m 459[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts POST /api/admi…'：非持有人 ⇒ 403 且未到达业务层 [33m 425[2mms[22m[39m
+     [33m[2m✓[22m[39m 'bank-account.routes.ts POST /api/admi…'：非持有人 ⇒ 403 且未到达业务层 [33m 420[2mms[22m[39m
+     [33m[2m✓[22m[39m 'receipt.routes.ts POST /api/admin/rec…'：非持有人 ⇒ 403 且未到达业务层 [33m 470[2mms[22m[39m
+     [33m[2m✓[22m[39m 'reconciliation.routes.ts POST /api/ad…'：非持有人 ⇒ 403 且未到达业务层 [33m 518[2mms[22m[39m
+     [33m[2m✓[22m[39m S3-233 收编后（契约反转）：原验收标准⑤ 点名的三行（#1 bank-accounts / #2 close / #4 receipts）READONLY ⇒ 403 [33m 692[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts [2m([22m[2m34 tests[22m[2m)[22m[33m 6560[2mms[22m[39m
+     [33m[2m✓[22m[39m `customer:level` 是在用角色 STORE_MANAGER 的**页面注册码**，非跨域码（`marketing:create` 于本页无据） [33m 381[2mms[22m[39m
+     [33m[2m✓[22m[39m 'post' '/levels/config'：READONLY ⇒ 403 且 msg 指向该权限码 [33m 684[2mms[22m[39m
+     [33m[2m✓[22m[39m 'post' '/levels/config'：全部非持有人（逐账号枚举）⇒ 403 [33m 397[2mms[22m[39m
+     [33m[2m✓[22m[39m 'put' '/levels/config/:id'：全部非持有人（逐账号枚举）⇒ 403 [33m 661[2mms[22m[39m
+     [33m[2m✓[22m[39m 'put' '/levels/config/:id/status'：全部非持有人（逐账号枚举）⇒ 403 [33m 413[2mms[22m[39m
+     [33m[2m✓[22m[39m 'put' '/levels/config/:id/status'：全部持有人（逐账号枚举）⇒ 200 [33m 387[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m18 passed[39m[22m[90m (18)[39m
+[2m      Tests [22m [1m[32m2363 passed[39m[22m[90m (2363)[39m
+[2m   Start at [22m 00:01:53
+[2m   Duration [22m 254.02s[2m (transform 170.14s, setup 13.28s, import 861.93s, tests 551.65s, environment 24ms)[22m
+
+VITEST_EXIT=0

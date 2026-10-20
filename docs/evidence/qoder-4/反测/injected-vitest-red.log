@@ -1,0 +1,209 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-4/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts[2m > [22mAPI 基址解析（VITE_API_BASE）[2m > [22m设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用[32m 170[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts[2m > [22mAPI 基址解析（VITE_API_BASE）[2m > [22m环境变量缺失 ⇒ H5 兜底必须是相对 /api（走代理，不得静默指到某域名）[32m 2[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts[2m > [22mAPI 基址解析（VITE_API_BASE）[2m > [22m基址解析为空 ⇒ 判据即失败（抛错点名，不允许空基址继续跑）[32m 3[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mmatchPermissionCode（四步判定顺序，与后端一致）[2m > [22m① 全局通配 `*` 命中一切码[32m 5[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mmatchPermissionCode（四步判定顺序，与后端一致）[2m > [22m② 模块通配 `<dom>:*` 只覆盖本域[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mmatchPermissionCode（四步判定顺序，与后端一致）[2m > [22m③ 动作通配 `*:<action>` 只覆盖本动作[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mmatchPermissionCode（四步判定顺序，与后端一致）[2m > [22m④ 精确码命中；其余不通过[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mmatchPermissionCode（四步判定顺序，与后端一致）[2m > [22m未取到权限码 / 空码串 ⇒ 不通过（失败关闭语义）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mhasPermissionCodes（入口门"全部持有"口径）[2m > [22m码数组为空 ⇒ 不门（注册表 registered 入口放行）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mhasPermissionCodes（入口门"全部持有"口径）[2m > [22m多码必须全持有才通过[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts[2m > [22mhasPermissionCodes（入口门"全部持有"口径）[2m > [22m未取到权限码（null/undefined）⇒ 失败关闭（S3-231 F3 口径）[32m 1[2mms[22m[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m① 加载中：有登录态 + 请求在途 + 无数组 ⇒ loading / showAllMinimal / 不提示[32m 20[2mms[22m[39m
+[31m   → expected 'showAll' to be 'showAllMinimal' // Object.is equality[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m② 确实无码：请求成功 + 空数组 ⇒ empty / hideNeedsCode（失败关闭）[32m 1[2mms[22m[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m③ 未取到：请求失败 ⇒ unavailable / showAllMinimal + 提示出现[32m 5[2mms[22m[39m
+[31m   → expected 'showAll' to be 'showAllMinimal' // Object.is equality[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m③ 变体：请求成功却缺字段（老版本缓存缺 permissions）⇒ 同 ③，不当 ②[32m 2[2mms[22m[39m
+[31m   → expected 'showAll' to be 'showAllMinimal' // Object.is equality[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22mready：请求成功 + 非空数组 ⇒ showGranted（数组说了算，与 requestState 无关）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m无登录态 ⇒ 失败关闭（empty），不渲染需码项也不提示[32m 0[2mms[22m[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m生产路径永不返回 showAll（该值仅为反测注入点存在）[32m 3[2mms[22m[39m
+[31m   → expected 'showAll' not to be 'showAll' // Object.is equality[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mMINIMUM_VISIBLE_* 常量口径[2m > [22m菜单最小可见集非空且远小于全量；只落报表只读域[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mMINIMUM_VISIBLE_* 常量口径[2m > [22m兼容态下最小集只放报表域 6 页；开单页（sale 域写页）不可见 ⇒ 不是放全量[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mMINIMUM_VISIBLE_* 常量口径[2m > [22m入口门最小可见集当前为空集（gated 写入口不得混入）[32m 6[2mms[22m[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m① 加载中：gated 隐藏、无码入口可见、pending-code 恒隐藏[32m 4[2mms[22m[39m
+[31m   → expected true to be false // Object.is equality[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m③ 未取到：与 ① 同显隐、但状态可观测（三态源给提示）[32m 4[2mms[22m[39m
+[31m   → expected true to be false // Object.is equality[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m② 确实无码：gated / pending-code 全隐藏，无码入口仍可见（整端不空白）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22mready：持码显示 / 不持码隐藏 / 通配码显示；pending-code 任何码都隐藏[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m未知 id ⇒ 无码口径：三态下恒可见（不抛错、不误隐藏）[32m 40[2mms[22m[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示[32m 124[2mms[22m[39m
+[31m   → expected null not to be null[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例②：成功返回空集 ⇒ 需码菜单全部不显示（失败关闭），无提示[32m 3[2mms[22m[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例③：请求失败且无缓存 ⇒ 最小可见集 + 提示出现；可关闭且关闭后集合不变[32m 2[2mms[22m[39m
+[31m   → expected null not to be null[39m
+ [31m×[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例③-缓存优先：请求失败但有上次成功缓存 ⇒ 按缓存渲染 + stale 明示（① 不判失败关闭）[32m 3[2mms[22m[39m
+[31m   → Cannot read properties of null (reading 'codes')[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m无登录态 ⇒ 不播种不取数（visibility 保持 null，功能页本身不可达）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m成功取数后写缓存（③ 的缓存优先来源）且提示复位[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mstores/menu.ts 必须经单一定义源判定[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mconfig/permission-gates.ts 必须经单一定义源判定[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mcomposables/usePermissionGate.ts 必须经单一定义源判定[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22mmenu.ts 不再存在「首次失败空集」旧兜底常量[32m 1[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts[2m > [22m两端同源接线（防回潮）[2m > [22m入口判定短路顺序：pending-code 先于三态、无码先于三态（isEntryVisible 源码形态）[32m 1[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m派生密钥为 32 字节且同输入可复现[33m 382[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m明文往返一致（含中文与 JSON 结构）[32m 32[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m同一条明文两次加密得到不同密文（IV 随机）[32m 10[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22mtag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）[32m 294[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 注册表自洽（status/codes 不变量 + 本卡 5 条登记逐条）[2m > [22mgated ⇒ codes 非空；registered / pending-code ⇒ codes 恒空（不许硬挂不存在的码）[32m 8[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 注册表自洽（status/codes 不变量 + 本卡 5 条登记逐条）[2m > [22m本卡登记：售后门 = gated + sale:return（4 条端点逐条在册）[32m 3[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 注册表自洽（status/codes 不变量 + 本卡 5 条登记逐条）[2m > [22m本卡登记：积分调整门 = pending-code + codes 空 + 未开通口径在册[32m 2[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 入口门 ↔ 后端接线一致性[2m > [22mgated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名[32m 128[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 入口门 ↔ 后端接线一致性[2m > [22m自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单[32m 247[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 入口门 ↔ 后端接线一致性[2m > [22m反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行）[32m 286[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 入口门 ↔ 后端接线一致性[2m > [22m待接白名单条目必须仍归属某个 gated 入口（删登记 ⇒ 红并点名；本卡反测挂钩）[32m 16[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 入口门 ↔ 后端接线一致性[2m > [22mpending-code 端点：后端必须尚未接线（已接 ⇒ 红并点名，提示注册表转 gated 补码）[32m 9[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 三态装置（持码=显示 / 不持码=0 / 未取到=0；pending-code 恒 0）[2m > [22m售后门（gated sale:return）：持码/通配=显示；不持/空数组/未取到=隐藏[32m 87[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 三态装置（持码=显示 / 不持码=0 / 未取到=0；pending-code 恒 0）[2m > [22m积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）[32m 3[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 页面挂载点（门只从注册表取码，页面按 canEntry 引用门 id）[2m > [22m售后页：PENDING 动作按钮块已挂本门，且不再存在未门控的同一 v-if[32m 4[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts[2m > [22mB3-1 页面挂载点（门只从注册表取码，页面按 canEntry 引用门 id）[2m > [22m会员详情页：调整积分按钮已挂本门（pending-code ⇒ 恒隐藏，按未开通处理）[32m 5[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 9 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m① 加载中：有登录态 + 请求在途 + 无数组 ⇒ loading / showAllMinimal / 不提示
+[31m[1mAssertionError[22m: expected 'showAll' to be 'showAllMinimal' // Object.is equality[39m
+
+Expected: [32m"showAll[7mMinimal[27m"[39m
+Received: [31m"showAll"[39m
+
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m52:22[22m[39m
+    [90m 50|[39m     const r = resolvePermissionViewState({ hasSession: true, requestSt…
+    [90m 51|[39m     [34mexpect[39m(r[33m.[39mviewState)[33m.[39m[34mtoBe[39m([32m'loading'[39m)
+    [90m 52|[39m     [34mexpect[39m(r[33m.[39mpolicy)[33m.[39m[34mtoBe[39m([32m'showAllMinimal'[39m)
+    [90m   |[39m                      [31m^[39m
+    [90m 53|[39m     [34mexpect[39m(r[33m.[39mshowNotice)[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m 54|[39m     [34mexpect[39m(r[33m.[39mnoticeText)[33m.[39m[34mtoBe[39m([32m''[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m③ 未取到：请求失败 ⇒ unavailable / showAllMinimal + 提示出现
+[31m[1mAssertionError[22m: expected 'showAll' to be 'showAllMinimal' // Object.is equality[39m
+
+Expected: [32m"showAll[7mMinimal[27m"[39m
+Received: [31m"showAll"[39m
+
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m67:22[22m[39m
+    [90m 65|[39m     const r = resolvePermissionViewState({ hasSession: true, requestSt…
+    [90m 66|[39m     [34mexpect[39m(r[33m.[39mviewState)[33m.[39m[34mtoBe[39m([32m'unavailable'[39m)
+    [90m 67|[39m     [34mexpect[39m(r[33m.[39mpolicy)[33m.[39m[34mtoBe[39m([32m'showAllMinimal'[39m)
+    [90m   |[39m                      [31m^[39m
+    [90m 68|[39m     [34mexpect[39m(r[33m.[39mshowNotice)[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m 69|[39m     [34mexpect[39m(r[33m.[39mnoticeText)[33m.[39m[34mtoBe[39m([33mPERMISSION_UNAVAILABLE_NOTICE[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m③ 变体：请求成功却缺字段（老版本缓存缺 permissions）⇒ 同 ③，不当 ②
+[31m[1mAssertionError[22m: expected 'showAll' to be 'showAllMinimal' // Object.is equality[39m
+
+Expected: [32m"showAll[7mMinimal[27m"[39m
+Received: [31m"showAll"[39m
+
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m75:22[22m[39m
+    [90m 73|[39m     const r = resolvePermissionViewState({ hasSession: true, requestSt…
+    [90m 74|[39m     [34mexpect[39m(r[33m.[39mviewState)[33m.[39m[34mtoBe[39m([32m'unavailable'[39m)
+    [90m 75|[39m     [34mexpect[39m(r[33m.[39mpolicy)[33m.[39m[34mtoBe[39m([32m'showAllMinimal'[39m)
+    [90m   |[39m                      [31m^[39m
+    [90m 76|[39m     [34mexpect[39m(r[33m.[39mshowNotice)[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m 77|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mresolvePermissionViewState（三态单一定义源契约）[2m > [22m生产路径永不返回 showAll（该值仅为反测注入点存在）
+[31m[1mAssertionError[22m: expected 'showAll' not to be 'showAll' // Object.is equality[39m
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m104:60[22m[39m
+    [90m102|[39m     }
+    [90m103|[39m     [35mfor[39m ([35mconst[39m input [35mof[39m combos) {
+    [90m104|[39m       expect(resolvePermissionViewState(input).policy).not.toBe('showA…
+    [90m   |[39m                                                            [31m^[39m
+    [90m105|[39m     }
+    [90m106|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m① 加载中：gated 隐藏、无码入口可见、pending-code 恒隐藏
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m139:40[22m[39m
+    [90m137|[39m   [34mit[39m([32m'① 加载中：gated 隐藏、无码入口可见、pending-code 恒隐藏'[39m[33m,[39m () [33m=>[39m {
+    [90m138|[39m     const q = { hasSession: true, requestState: 'pending' as const, pe…
+    [90m139|[39m     [34mexpect[39m([34misEntryVisible[39m(gatedId[33m,[39m q))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m   |[39m                                        [31m^[39m
+    [90m140|[39m     [34mexpect[39m([34misEntryVisible[39m(registeredId[33m,[39m q))[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m141|[39m     [34mexpect[39m([34misEntryVisible[39m(pendingId[33m,[39m q))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22misEntryVisible（入口门 ↔ 三态源）[2m > [22m③ 未取到：与 ① 同显隐、但状态可观测（三态源给提示）
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m146:40[22m[39m
+    [90m144|[39m   [34mit[39m([32m'③ 未取到：与 ① 同显隐、但状态可观测（三态源给提示）'[39m[33m,[39m () [33m=>[39m {
+    [90m145|[39m     const q = { hasSession: true, requestState: 'failed' as const, per…
+    [90m146|[39m     [34mexpect[39m([34misEntryVisible[39m(gatedId[33m,[39m q))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m   |[39m                                        [31m^[39m
+    [90m147|[39m     [34mexpect[39m([34misEntryVisible[39m(registeredId[33m,[39m q))[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m148|[39m     [34mexpect[39m([34mresolvePermissionViewState[39m(q)[33m.[39mshowNotice)[33m.[39m[34mtoBe[39m([35mtrue[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示
+[31m[1mAssertionError[22m: expected null not to be null[39m
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m206:34[22m[39m
+    [90m204|[39m     [35mconst[39m store [33m=[39m [34museMenuStore[39m()
+    [90m205|[39m     [35mvoid[39m store[33m.[39m[34mensureLoaded[39m()
+    [90m206|[39m     expect(store.visibility).not.toBeNull() // null = 放全量（改造前旧语义，注入 sh…
+    [90m   |[39m                                  [31m^[39m
+    [90m207|[39m     const visible = filterGroupsByCodes(store.visibility!, true).flatM…
+    [90m208|[39m     expect(visible.sort()).toEqual([...MINIMUM_VISIBLE_MENU_CODES].sor…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例③：请求失败且无缓存 ⇒ 最小可见集 + 提示出现；可关闭且关闭后集合不变
+[31m[1mAssertionError[22m: expected null not to be null[39m
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m232:34[22m[39m
+    [90m230|[39m     [35mconst[39m store [33m=[39m [34museMenuStore[39m()
+    [90m231|[39m     [35mawait[39m store[33m.[39m[34mensureLoaded[39m()
+    [90m232|[39m     expect(store.visibility).not.toBeNull() // 注入 showAll ⇒ null（放全量）⇒…
+    [90m   |[39m                                  [31m^[39m
+    [90m233|[39m     const visible = filterGroupsByCodes(store.visibility!, true).flatM…
+    [90m234|[39m     expect(visible.sort()).toEqual([...MINIMUM_VISIBLE_MENU_CODES].sor…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mmenu store（三态接线的渲染结果）[2m > [22m用例③-缓存优先：请求失败但有上次成功缓存 ⇒ 按缓存渲染 + stale 明示（① 不判失败关闭）
+[31m[1mTypeError[22m: Cannot read properties of null (reading 'codes')[39m
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m250:30[22m[39m
+    [90m248|[39m     cacheStore[`merchant_menu_codes_cache_${mockUserState.user!.id}`] …
+    [90m249|[39m     [35mawait[39m store[33m.[39m[34mensureLoaded[39m()
+    [90m250|[39m     [34mexpect[39m(store[33m.[39mvisibility[33m![39m[33m.[39mcodes[33m.[39m[34mhas[39m([32m'sale:bill'[39m))[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m   |[39m                              [31m^[39m
+    [90m251|[39m     expect(store.visibility!.codes.has('report:dashboard')).toBe(false…
+    [90m252|[39m     [34mexpect[39m(store[33m.[39mbannerText)[33m.[39m[34mtoBe[39m([32m'权限信息加载失败，显示的是上次结果'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[31m9 failed[39m[22m[2m | [22m[1m[32m44 passed[39m[22m[90m (53)[39m
+[2m   Start at [22m 17:40:48
+[2m   Duration [22m 9.75s[2m (transform 3.63s, setup 0ms, import 10.47s, tests 2.00s, environment 2ms)[22m
+
+INJECTED_EXIT=1

@@ -1,0 +1,1 @@
+本文件 diff-app-mobile-src.raw 为 0 字节属预期：git diff 844515d5..HEAD -- app-mobile/src 无差异即零改动红线达成；末行记录 git diff 退出码。取证时刻见 pin-ssl-zero-diff.log。

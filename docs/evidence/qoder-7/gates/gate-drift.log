@@ -1,0 +1,7 @@
+—— S3-242 跨层漂移定性机（只跑本单 16+1 清单）——
+注册表抽取 27 行：OK 27 / D1 0 / D2 0
+employees（+1）：定义 0 行，后端 0 注册 0，caller 0 ⇒ D4
+      employees wrapper 已随 S3-242 收口（QODER-7）下线，system.ts 中无 /admin/system/employees 字面量 ⇒ D4 定性对象已消亡，本行保留作说明；员工能力请用 /api/admin/staff*（D3 映射）
+debt（D1+D2）= 0，基线 contractDrift.debt = 0
+✓ 通过 ⇒ EXIT=0
+exit=0

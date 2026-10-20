@@ -1,0 +1,493 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-10/app-mobile[39m
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [31m❯[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 147[2mms[22m[39m
+     [32m✓[39m ① 加载中：有登录态 + 请求在途 + 无数组 ⇒ loading / showAllMinimal / 不提示[32m 7[2mms[22m[39m
+     [32m✓[39m ② 确实无码：请求成功 + 空数组 ⇒ empty / hideNeedsCode（失败关闭）[32m 1[2mms[22m[39m
+     [32m✓[39m ③ 未取到：请求失败 ⇒ unavailable / showAllMinimal + 提示出现[32m 1[2mms[22m[39m
+     [32m✓[39m ③ 变体：请求成功却缺字段（老版本缓存缺 permissions）⇒ 同 ③，不当 ②[32m 1[2mms[22m[39m
+     [32m✓[39m ready：请求成功 + 非空数组 ⇒ showGranted（数组说了算，与 requestState 无关）[32m 1[2mms[22m[39m
+     [32m✓[39m 无登录态 ⇒ 失败关闭（empty），不渲染需码项也不提示[32m 1[2mms[22m[39m
+     [32m✓[39m 生产路径永不返回 showAll（该值仅为反测注入点存在）[32m 5[2mms[22m[39m
+     [32m✓[39m 菜单最小可见集非空且远小于全量；只落报表只读域[32m 1[2mms[22m[39m
+     [32m✓[39m 兼容态下最小集只放报表域 6 页；开单页（sale 域写页）不可见 ⇒ 不是放全量[32m 2[2mms[22m[39m
+     [32m✓[39m 入口门最小可见集当前为空集（gated 写入口不得混入）[32m 8[2mms[22m[39m
+     [32m✓[39m ① 加载中：gated 隐藏、无码入口可见、pending-code 恒隐藏[32m 1[2mms[22m[39m
+     [32m✓[39m ③ 未取到：与 ① 同显隐、但状态可观测（三态源给提示）[32m 1[2mms[22m[39m
+     [32m✓[39m ② 确实无码：gated / pending-code 全隐藏，无码入口仍可见（整端不空白）[32m 1[2mms[22m[39m
+     [32m✓[39m ready：持码显示 / 不持码隐藏 / 通配码显示；pending-code 任何码都隐藏[32m 1[2mms[22m[39m
+     [32m✓[39m 未知 id ⇒ 无码口径：三态下恒可见（不抛错、不误隐藏）[32m 0[2mms[22m[39m
+     [32m✓[39m 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示[32m 19[2mms[22m[39m
+     [32m✓[39m 用例②：成功返回空集 ⇒ 需码菜单全部不显示（失败关闭），无提示[32m 2[2mms[22m[39m
+     [32m✓[39m 用例③：请求失败且无缓存 ⇒ 最小可见集 + 提示出现；可关闭且关闭后集合不变[32m 5[2mms[22m[39m
+     [32m✓[39m 用例③-缓存优先：请求失败但有上次成功缓存 ⇒ 按缓存渲染 + stale 明示（① 不判失败关闭）[32m 2[2mms[22m[39m
+     [32m✓[39m 无登录态 ⇒ 不播种不取数（visibility 保持 null，功能页本身不可达）[32m 1[2mms[22m[39m
+     [32m✓[39m 成功取数后写缓存（③ 的缓存优先来源）且提示复位[32m 1[2mms[22m[39m
+     [32m✓[39m 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现[32m 6[2mms[22m[39m
+[31m     [31m×[31m pages/functions/functions.vue：横幅内 × 必须直调 menuStore.dismissBanner()[39m[32m 55[2mms[22m[39m
+     [32m✓[39m pages-sub/admin/more/more-functions.vue：横幅内 × 必须直调 menuStore.dismissBanner()[32m 1[2mms[22m[39m
+     [32m✓[39m stores/menu.ts 必须经单一定义源判定[32m 1[2mms[22m[39m
+     [32m✓[39m config/permission-gates.ts 必须经单一定义源判定[32m 5[2mms[22m[39m
+     [32m✓[39m composables/usePermissionGate.ts 必须经单一定义源判定[32m 9[2mms[22m[39m
+     [32m✓[39m menu.ts 不再存在「首次失败空集」旧兜底常量[32m 1[2mms[22m[39m
+     [32m✓[39m 入口判定短路顺序：pending-code 先于三态、无码先于三态（isEntryVisible 源码形态）[32m 3[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/permission-view-state.spec.ts[2m > [22mdismissBanner 接到 ×（页面挂载点）[2m > [22mpages/functions/functions.vue：横幅内 × 必须直调 menuStore.dismissBanner()
+[31m[1mAssertionError[22m: expected '<template>\r\n  <view class="func-pag…' to contain '@tap="menuStore.dismissBanner()"'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- @tap="menuStore.dismissBanner()"[39m
+[31m+ <template>[39m
+[31m+   <view class="func-page">[39m
+[31m+     <!-- 顶部标题栏（与子页面统一：page-header 组件，主 tab 页无返回键） -->[39m
+[31m+     <page-header title="功能" :show-back="false" />[39m
+[31m+     <!-- 搜索栏（UI1.2 打磨：头部区块删除，safe-area 移至顶部） -->[39m
+[31m+     <view class="func-search">[39m
+[31m+       <view class="search-bar">[39m
+[31m+         <image class="search-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />[39m
+[31m+         <input class="search-input" v-model="keyword" placeholder="搜索功能、订单、客户" placeholder-class="search-placeholder" @confirm="doSearch" />[39m
+[31m+       </view>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <!-- 权限信息加载失败明示（S3-136-F1：不再静默回退全量） -->[39m
+[31m+     <view[39m
+[31m+       class="func-banner"[39m
+[31m+       :style="{ background: AI_WARNING_SOFT, borderColor: AI_WARNING }"[39m
+[31m+       v-if="menuStore.bannerText"[39m
+[31m+     >[39m
+[31m+       <text class="func-banner-text">{{ menuStore.bannerText }}</text>[39m
+[31m+       <text class="func-banner-retry" :style="{ color: AI_WARNING }" v-if="menuStore.showRetry" @tap="retryMenus">重试</text>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <!-- 高频宫格（真实搜索过滤） -->[39m
+[31m+     <view class="func-grid" v-if="filteredHotActions.length > 0">[39m
+[31m+       <view class="func-grid-item" v-for="item in filteredHotActions" :key="item.label" @tap="goto(item.path)">[39m
+[31m+         <view class="fg-ico" :style="{ background: itemBg(item) }">[39m
+[31m+           <image v-if="item.icon.startsWith('/static')" class="fg-ico-img" :src="item.icon" mode="aspectFit" />[39m
+[31m+           <text v-else class="fg-ico-text">{{ item.icon }}</text>[39m
+[31m+         </view>[39m
+[31m+         <text class="fg-label">{{ item.label }}</text>[39m
+[31m+       </view>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <!-- 搜索无结果空态 -->[39m
+[31m+     <view class="func-empty" v-if="keyword && !hasResults">[39m
+[31m+       <text class="func-empty-text">未找到「{{ keyword }}」相关功能</text>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <!-- 数据工具 -->[39m
+[31m+     <view class="func-section" v-if="filteredDataTools.length > 0">[39m
+[31m+       <text class="func-section-title">数据 · 工具</text>[39m
+[31m+       <view class="func-list">[39m
+[31m+         <view class="list-item" v-for="(item, idx) in filteredDataTools" :key="item.code" @tap="goto(item.path)">[39m
+[31m+           <view class="li-ico" :style="{ background: itemBg(item, idx), color: itemColor(item, idx) }">[39m
+[31m+             <image class="li-ico-img" :src="item.icon" mode="aspectFit" />[39m
+[31m+           </view>[39m
+[31m+           <view class="li-body">[39m
+[31m+             <text class="li-title">{{ item.label }}</text>[39m
+[31m+             <text class="li-desc">{{ item.sub }}</text>[39m
+[31m+           </view>[39m
+[31m+           <text class="li-arrow">›</text>[39m
+[31m+         </view>[39m
+[31m+       </view>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <!-- 全部功能（数据驱动，自动排列系统全部功能） -->[39m
+[31m+     <view class="func-section" v-if="filteredGroups.length > 0">[39m
+[31m+       <text class="func-section-title">全部功能</text>[39m
+[31m+       <view class="func-group" v-for="g in filteredGroups" :key="g.id">[39m
+[31m+         <text class="func-group-title">{{ g.title }}</text>[39m
+[31m+         <view class="func-list">[39m
+[31m+           <view class="list-item" v-for="item in g.items" :key="item.code" @tap="goto(item.path)">[39m
+[31m+             <view class="li-ico" :style="{ background: itemBg(item), color: itemColor(item) }">[39m
+[31m+               <image class="li-ico-img" :src="item.icon" mode="aspectFit" />[39m
+[31m+             </view>[39m
+[31m+             <view class="li-body">[39m
+[31m+               <text class="li-title">{{ item.label }}</text>[39m
+[31m+               <text class="li-desc" v-if="item.sub">{{ item.sub }}</text>[39m
+[31m+             </view>[39m
+[31m+             <text class="li-arrow">›</text>[39m
+[31m+           </view>[39m
+[31m+         </view>[39m
+[31m+       </view>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <view class="safe-bottom"></view>[39m
+[31m+     <custom-tab-bar :current="'functions'" />[39m
+[31m+   </view>[39m
+[31m+ </template>[39m
+[31m+ [39m
+[31m+ <script setup lang="ts">[39m
+[31m+ import { computed, ref } from 'vue'[39m
+[31m+ import { onShow } from '@dcloudio/uni-app'[39m
+[31m+ import CustomTabBar from '@/components/custom-tab-bar.vue'[39m
+[31m+ import {[39m
+[31m+   hotActions,[39m
+[31m+   dataTools,[39m
+[31m+   filterGroupsByPermissionGate,[39m
+[31m+   filterGroupsByCodes,[39m
+[31m+   filterItemsByPermissionGate,[39m
+[31m+   filterItemsByCodes,[39m
+[31m+   type FunctionItem,[39m
+[31m+ } from '@/config/function-menu'[39m
+[31m+ import { useMenuStore } from '@/stores/menu'[39m
+[31m+ import { usePermissionGate } from '@/composables/usePermissionGate'[39m
+[31m+ import { AI_BG_SOFT, AI_TAB_ACTIVE, AI_WARNING, AI_WARNING_SOFT } from '@/constants/colors'[39m
+[31m+ [39m
+[31m+ const keyword = ref('')[39m
+[31m+ /**[39m
+[31m+  * 角色可见性：共用 stores/menu.ts（functions.vue 与 more-functions.vue 同一份，不再各拉一次）；[39m
+[31m+  * 判定口径见 config/function-menu.ts 的 isPageVisible（兼容态：code 精确命中 + 前缀回落）[39m
+[31m+  */[39m
+[31m+ const menuStore = useMenuStore()[39m
+[31m+ const allowedVisibility = computed(() => menuStore.visibility)[39m
+[31m+ /**[39m
+[31m+  * 入口权限门（S3-230）：菜单 code 之外的第二道闸（该页写端点用的码，我持有吗）。[39m
+[31m+  * 两道都过才显示 —— 只过菜单闸时，角色进得去、点写按钮 403（B 类根因）。[39m
+[31m+  */[39m
+[31m+ const { permissions: userPermissions } = usePermissionGate()[39m
+[31m+ /** 按角色（菜单 code）+ 权限门过滤后的高频 / 数据工具 */[39m
+[31m+ const roleHotActions = computed(() =>[39m
+[31m+   filterItemsByPermissionGate(filterItemsByCodes(hotActions, allowedVisibility.value), userPermissions.value)[39m
+[31m+ )[39m
+[31m+ const roleDataTools = computed(() =>[39m
+[31m+   filterItemsByPermissionGate(filterItemsByCodes(dataTools, allowedVisibility.value), userPermissions.value)[39m
+[31m+ )[39m
+[31m+ [39m
+[31m+ const navigate = (path: string) => {[39m
+[31m+   if (path) {[39m
+[31m+     uni.navigateTo({ url: path })[39m
+[31m+   }[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ const goto = (path: string) => navigate(path)[39m
+[31m+ [39m
+[31m+ /** 真实搜索：按关键词过滤宫格与工具列表，无匹配显示空态 */[39m
+[31m+ const filteredHotActions = computed(() => {[39m
+[31m+   const k = keyword.value.trim().toLowerCase()[39m
+[31m+   if (!k) return roleHotActions.value[39m
+[31m+   return roleHotActions.value.filter((a) => a.label.toLowerCase().includes(k))[39m
+[31m+ })[39m
+[31m+ [39m
+[31m+ const filteredDataTools = computed(() => {[39m
+[31m+   const k = keyword.value.trim().toLowerCase()[39m
+[31m+   if (!k) return roleDataTools.value[39m
+[31m+   return roleDataTools.value.filter([39m
+[31m+     (a) => a.label.toLowerCase().includes(k) || a.sub!.toLowerCase().includes(k)[39m
+[31m+   )[39m
+[31m+ })[39m
+[31m+ [39m
+[31m+ const filteredGroups = computed(() => {[39m
+[31m+   // 排除 tool 项：「数据 · 工具」区块已单独展示（R96-07 去重复排列），避免同一功能两处出现[39m
+[31m+   const base = filterGroupsByPermissionGate([39m
+[31m+     filterGroupsByCodes(allowedVisibility.value, false),[39m
+[31m+     userPermissions.value[39m
+[31m+   )[39m
+[31m+     .map((g) => ({ ...g, items: g.items.filter((it) => !it.tool) }))[39m
+[31m+     .filter((g) => g.items.length > 0)[39m
+[31m+   const k = keyword.value.trim().toLowerCase()[39m
+[31m+   if (!k) return base[39m
+[31m+   return base[39m
+[31m+     .map((g) => ({[39m
+[31m+       ...g,[39m
+[31m+       items: g.items.filter([39m
+[31m+         (it) => it.label.toLowerCase().includes(k) || (it.sub || '').toLowerCase().includes(k)[39m
+[31m+       ),[39m
+[31m+     }))[39m
+[31m+     .filter((g) => g.items.length > 0)[39m
+[31m+ })[39m
+[31m+ [39m
+[31m+ const hasResults = computed([39m
+[31m+   () =>[39m
+[31m+     filteredHotActions.value.length > 0 ||[39m
+[31m+     filteredDataTools.value.length > 0 ||[39m
+[31m+     filteredGroups.value.length > 0[39m
+[31m+ )[39m
+[31m+ [39m
+[31m+ /** 宫格/列表图标配色（沿用原稿：蓝底浅蓝） */[39m
+[31m+ function itemBg(_item: FunctionItem, _idx?: number) {[39m
+[31m+   return AI_BG_SOFT[39m
+[31m+ }[39m
+[31m+ function itemColor(_item: FunctionItem, _idx?: number) {[39m
+[31m+   return AI_TAB_ACTIVE[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ function doSearch() {[39m
+[31m+   // 确认搜索：结果由 computed 实时渲染，无需额外处理[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 权限信息加载失败时的重试 */[39m
+[31m+ function retryMenus() {[39m
+[31m+   menuStore.refresh()[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ onShow(() => {[39m
+[31m+   // 共用 store：会话内只拉一次；失败回退由 store 负责（缓存集 / 失败关闭 + 明示）[39m
+[31m+   menuStore.ensureLoaded()[39m
+[31m+ })[39m
+[31m+ </script>[39m
+[31m+ [39m
+[31m+ <style lang="scss" scoped>[39m
+[31m+ /* R96-01: 已删除冗余的 @import '@/uni.scss' —— uni-app 会自动把 uni.scss 全文注入每个 scss 文件 */[39m
+[31m+ [39m
+[31m+ .func-page {[39m
+[31m+   min-height: 100vh;[39m
+[31m+   background: $uni-bg-color-page;[39m
+[31m+   padding-bottom: calc(136rpx + env(safe-area-inset-bottom));[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /* 搜索栏（顶部承接状态栏 safe-area） */[39m
+[31m+ .func-search {[39m
+[31m+   padding: 24rpx 28rpx 20rpx;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .search-bar {[39m
+[31m+   display: flex;[39m
+[31m+   align-items: center;[39m
+[31m+   height: 80rpx;[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+   border: 1rpx solid $zx-black-60;[39m
+[31m+   border-radius: $uni-border-radius-pill;[39m
+[31m+   padding: 0 28rpx;[39m
+[31m+   gap: 16rpx;[39m
+[31m+   box-shadow: 0 2rpx 8rpx $zx-black-30;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .search-icon {[39m
+[31m+   width: 32rpx;[39m
+[31m+   height: 32rpx;[39m
+[31m+   flex-shrink: 0;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .search-input {[39m
+[31m+   flex: 1;[39m
+[31m+   font-size: 26rpx;[39m
+[31m+   color: $uni-text-color;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .search-placeholder {[39m
+[31m+   color: $uni-gray-400;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /* 权限信息加载失败明示条（S3-136-F1：失败不再静默回退全量） */[39m
+[31m+ .func-banner {[39m
+[31m+   display: flex;[39m
+[31m+   align-items: center;[39m
+[31m+   gap: 16rpx;[39m
+[31m+   margin: 0 $uni-spacing-base 8rpx;[39m
+[31m+   padding: 16rpx 24rpx;[39m
+[31m+   border: 1rpx solid $zx-black-30;[39m
+[31m+   border-radius: $uni-border-radius-base;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-banner-text {[39m
+[31m+   flex: 1;[39m
+[31m+   font-size: 24rpx;[39m
+[31m+   line-height: 1.4;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-banner-retry {[39m
+[31m+   flex-shrink: 0;[39m
+[31m+   font-size: 24rpx;[39m
+[31m+   font-weight: 600;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /* × 关闭：dismissBanner() 只置会话内存态 noticeDismissed，不写持久存储（下次 ③ 态重现） */[39m
+[31m+   flex-shrink: 0;[39m
+[31m+   padding: 0 4rpx;[39m
+[31m+   font-size: 32rpx;[39m
+[31m+   line-height: 1;[39m
+[31m+   color: $uni-text-color-grey;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /* 高频宫格 */[39m
+[31m+ .func-grid {[39m
+[31m+   margin: $uni-spacing-base $uni-spacing-base 0;[39m
+[31m+   display: grid;[39m
+[31m+   grid-template-columns: repeat(4, 1fr);[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+   border-radius: $uni-border-radius-lg;[39m
+[31m+   padding: 40rpx $uni-spacing-md;[39m
+[31m+   box-shadow: $uni-shadow-card;[39m
+[31m+   border: 1rpx solid $zx-black-30;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-grid-item {[39m
+[31m+   display: flex;[39m
+[31m+   flex-direction: column;[39m
+[31m+   align-items: center;[39m
+[31m+   gap: $uni-spacing-md;[39m
+[31m+   padding: $uni-spacing-base 0;[39m
+[31m+   transition: transform 0.15s;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-grid-item:active {[39m
+[31m+   transform: scale(0.94);[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .fg-ico {[39m
+[31m+   width: 88rpx;[39m
+[31m+   height: 88rpx;[39m
+[31m+   border-radius: $uni-border-radius-sm;[39m
+[31m+   display: flex;[39m
+[31m+   align-items: center;[39m
+[31m+   justify-content: center;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .fg-ico-img {[39m
+[31m+   width: 40rpx;[39m
+[31m+   height: 40rpx;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+   .fg-label {[39m
+[31m+     font-size: 24rpx;[39m
+[31m+     color: $uni-text-color;[39m
+[31m+     font-weight: 500;[39m
+[31m+     line-height: 1.2;[39m
+[31m+     text-align: center;[39m
+[31m+   }[39m
+[31m+ [39m
+[31m+ /* 搜索无结果空态 */[39m
+[31m+ .func-empty {[39m
+[31m+   margin: 40rpx $uni-spacing-base 0;[39m
+[31m+   padding: 80rpx $uni-spacing-base;[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+   border-radius: $uni-border-radius-base;[39m
+[31m+   box-shadow: $uni-shadow-card;[39m
+[31m+   border: 1rpx solid $zx-black-30;[39m
+[31m+   text-align: center;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-empty-text {[39m
+[31m+   font-size: 26rpx;[39m
+[31m+   color: $uni-gray-500;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /* 数据工具 */[39m
+[31m+ .func-section {[39m
+[31m+   margin: 36rpx $uni-spacing-base $uni-spacing-base;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-section-title {[39m
+[31m+   display: block;[39m
+[31m+   font-size: 22rpx;[39m
+[31m+   font-weight: 600;[39m
+[31m+   color: $uni-gray-500;[39m
+[31m+   padding: 0 $uni-spacing-xs $uni-spacing-md;[39m
+[31m+   letter-spacing: 1rpx;[39m
+[31m+   text-transform: uppercase;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-group {[39m
+[31m+   margin-top: $uni-spacing-xs;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-group-title {[39m
+[31m+   display: block;[39m
+[31m+   font-size: 24rpx;[39m
+[31m+   font-weight: 600;[39m
+[31m+   color: $uni-gray-600;[39m
+[31m+   padding: $uni-spacing-sm $uni-spacing-xs $uni-spacing-xs;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .func-list {[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+   border-radius: $uni-border-radius-lg;[39m
+[31m+   overflow: hidden;[39m
+[31m+   box-shadow: $uni-shadow-card;[39m
+[31m+   border: 1rpx solid $zx-black-30;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .list-item {[39m
+[31m+   display: flex;[39m
+[31m+   align-items: center;[39m
+[31m+   padding: $uni-spacing-lg 36rpx;[39m
+[31m+   gap: $uni-spacing-base;[39m
+[31m+   border-bottom: 1rpx solid $zx-black-30;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .list-item:last-child {[39m
+[31m+   border-bottom: none;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .list-item:active {[39m
+[31m+   background: $uni-bg-color-grey;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .li-ico {[39m
+[31m+   width: 76rpx;[39m
+[31m+   height: 76rpx;[39m
+[31m+   border-radius: $uni-border-radius-sm;[39m
+[31m+   display: flex;[39m
+[31m+   align-items: center;[39m
+[31m+   justify-content: center;[39m
+[31m+   flex-shrink: 0;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .li-ico-img {[39m
+[31m+   width: 36rpx;[39m
+[31m+   height: 36rpx;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .li-body {[39m
+[31m+   flex: 1;[39m
+[31m+   min-width: 0;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .li-title {[39m
+[31m+   display: block;[39m
+[31m+   font-size: 24rpx;[39m
+[31m+   font-weight: 500;[39m
+[31m+   color: $uni-text-color;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .li-desc {[39m
+[31m+   display: block;[39m
+[31m+   font-size: 22rpx;[39m
+[31m+   color: $uni-gray-500;[39m
+[31m+   margin-top: 6rpx;[39m
+[31m+   overflow: hidden;[39m
+[31m+   text-overflow: ellipsis;[39m
+[31m+   white-space: nowrap;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .li-arrow {[39m
+[31m+   font-size: 32rpx;[39m
+[31m+   color: $uni-gray-300;[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ .safe-bottom {[39m
+[31m+   height: 40rpx;[39m
+[31m+ }[39m
+[31m+ </style>[39m
+[31m+[39m
+
+[36m [2m❯[22m tests/permission-view-state.spec.ts:[2m315:19[22m[39m
+    [90m313|[39m     [34mit[39m([32m`[39m[36m${[39mrel[36m}[39m[32m：横幅内 × 必须直调 menuStore.dismissBanner()`[39m[33m,[39m () [33m=>[39m {
+    [90m314|[39m       [35mconst[39m src [33m=[39m [34mreadFileSync[39m([34mjoin[39m([33mSRC[39m[33m,[39m rel)[33m,[39m [32m'utf8'[39m)
+    [90m315|[39m       [34mexpect[39m(src)[33m.[39m[34mtoContain[39m([32m'@tap="menuStore.dismissBanner()"'[39m)
+    [90m   |[39m                   [31m^[39m
+    [90m316|[39m       [34mexpect[39m(src)[33m.[39m[34mtoMatch[39m([36m/class="(func|mf)-banner-close"/[39m)
+    [90m317|[39m     })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m28 passed[39m[22m[90m (29)[39m
+[2m   Start at [22m 01:18:57
+[2m   Duration [22m 1.96s[2m (transform 392ms, setup 0ms, import 733ms, tests 147ms, environment 0ms)[22m
+
+RED_EXIT=1

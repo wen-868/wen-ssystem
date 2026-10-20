@@ -1,0 +1,8 @@
+js-yaml load OK; build-and-test steps = 36
+app-mobile steps:
+ - App mobile type gate (vue-tsc --noEmit, 0 新增)
+ - App mobile lint gate (eslint src, error 0 新增)
+ - App mobile unit tests (vitest run)
+ - App mobile contract gate (check:contract)
+app-mobile 在 ci.yml 出现次数 = 9
+EXIT=0

@@ -1,0 +1,9 @@
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 20（基线 20）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+⚠ error 级不许长期冻结（当前 20 条）：清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。
+LINT_EXIT=0

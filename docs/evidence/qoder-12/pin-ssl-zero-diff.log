@@ -1,0 +1,10 @@
+$ date -Iseconds
+2026-10-20T01:08:08+08:00
+$ git diff 844515d5..HEAD -- app-mobile/src          # 原样输出另存 diff-app-mobile-src.raw（0 字节=无差异）
+$ git diff 844515d5..HEAD -- app-mobile/src | wc -l
+0
+$ git diff --stat 844515d5..HEAD -- app-mobile/src    # 空=无文件变更
+EXIT(stat)=0
+$ git diff --stat 844515d5..HEAD -- app-mobile/src/utils/pin-ssl.ts
+EXIT(pin-ssl)=0
+判据：pin-ssl.ts 与 app-mobile/src 全集 diff = 0 行（本卡不接线、零改动）

@@ -1,0 +1,6 @@
+D:\Users\ZXQL\wt-agents\QODER-10F1\app-mobile\src\pages-sub\admin\more\more-functions.vue
+  21:1  warning  Expected indentation of 16 spaces but found 8 spaces   vue/html-indent
+D:\Users\ZXQL\wt-agents\QODER-10F1\app-mobile\src\pages\functions\functions.vue
+  14:1  warning  Expected indentation of 8 spaces but found 4 spaces    vue/html-indent
+  21:1  warning  Expected indentation of 12 spaces but found 14 spaces  vue/html-indent
+ESLINT_EXIT=0

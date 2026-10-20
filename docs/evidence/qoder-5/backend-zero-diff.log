@@ -1,0 +1,3 @@
+merge-base=3fa138e7492ce232cad9472b5879cfe29e05ba12
+
+diff --stat 输出 0 行 ⇒ backend/ 在 merge-base(3fa138e7)..HEAD 与当前工作树下零改动；工作树 backend/ git status 亦为空。

@@ -1,0 +1,19 @@
+本目录内 `00-prechange-red.log`（已被重命名为 `00-prechange-red-contaminated.note.txt` 的原文件为同一次运行）说明：
+
+第一次基线红取证与「routes 接线编辑」时间重叠（vitest 启动后 import 阶段约 196s，测试阶段读到的是
+**部分已接线**的 `aftersale.routes.ts`），故读数 9 failed（124 例）= 基线真红 7 条 + 混态假红 2 条，
+不能作为基线态证据 ⇒ 作废保留（文件名带 contaminated 标记），不删除、不伪造。
+
+**基线纯态红证据以 `00-prechange-red-pure.log` 为准**：在不改动任何在案文件的独立只读副本
+（`git worktree add --detach D:\Users\ZXQL\wt-agents\QODER-9-baseline b32122a1`，#367 分支尖端原态，
+交付验证后已 `git worktree remove` 清理）运行同一命令，结果 `7 failed | 117 passed (124)`，
+失败名单逐条见 `00-prechange-red-failures.txt`：
+  1. 门注册表规模 26/60/11/43（实际 27/64/10/39）
+  2. a) 60 条门端点行逐条可对到已接表（无遗漏）
+  3-6. a) island-aftersale 的 approve / reject / inspect / complete 4 条逐条红
+  7. c) 门注册表 43 行与登记表逐条对齐（实际 39）
+= 与派单卡「#367 红在 parity：B3-1 把 island-aftersale 提成 gated，而 parity 要求 gated⇒后端已接线，
+那 4 条后端没接」逐字对上。
+
+另：基线副本同时用于 `12-guard-report-baseline.log`（改动前守卫现场读数：gaps 293／wired 419）
+与 `13-baseline-stale-4.txt`（机读台账 297 vs 现场 293 的 4 条**基线既有**陈旧登记定位，均非本单引入）。

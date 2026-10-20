@@ -1,0 +1,6 @@
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 22（基线 20）、warning 12880（基线 12880）
+✗ 新增 error 2 条（基线之外，逐条点名）：
+  src/api/storage.ts:453:1 no-extra-semi Unnecessary semicolon.
+  src/api/storage.ts:453:2 no-extra-semi Unnecessary semicolon.
+EXIT=1
