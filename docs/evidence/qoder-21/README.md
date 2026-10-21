@@ -14,7 +14,8 @@ anti/  反测（门必须能红）三段式日志：注入 → 红并点名 → 
 
 | 文件 | 内容 | 关键读数 / EXIT |
 | --- | --- | --- |
-| `raw/00-sha-worktree-after-before-restore.txt` | 改后工作树 7 个源文件的 SHA256（**工作树 CRLF 形态**，非 `git show` 的 LF blob 形态），以及临时还原改前→复原后的 `SHA_MATCH` 逐字节校验 | 7/7 `SHA_MATCH`，`RESTORE_FAIL=0` |
+| `raw/00-sha-worktree-after-before-restore.txt` | 改后工作树 7 个源文件的 SHA256（**工作树 CRLF 形态**，非 `git show` 的 LF blob 形态） | 7 行 SHA 清单。**注意**：本文件只含 SHA 列表，不含还原环节的 `SHA_MATCH` 逐字节比对行（首轮采集时该段被 SHA 列表覆盖，未留档）；还原正确性由两条独立证据闭合——`anti/1`、`anti/2` 各自的 `SHA_IDENTICAL=YES`（复原后同形态比对），以及验收方复跑 `sha256sum -c` 得到的 `7/7 OK`（见 `raw/10`） |
+| `raw/10-independent-verify-by-acceptance.txt` | **验收方（主代理）独立复跑**：`sha256sum -c raw/00` + 门/规则改动面机检 + 四门 + `check:gates` | `SHA_CHECK_EXIT=0`（7 文件全 `OK`）；`ESLINT_CONFIG_DIFF_FILES=0`（`.eslintrc.cjs` 与 `scripts/lint-gate.mjs` 一字未动）；`RG_DISABLE_EXIT=1`（7 个改动文件内 `eslint-disable` 零命中）；`TYPECHECK_EXIT=0`（0=0）、`LINT_EXIT=0`（error 0/基线 0，warning 12872/基线 12872，⚠ 提示已消失）、`TEST_EXIT=0`（5 文件 / 56 用例）、`CONTRACT_EXIT=0`、`CHECK_GATES_EXIT=0`；采集时 `git status --porcelain` 仅本文件 |
 | `raw/01-lint-before-fix-eslint-unix.txt` | **改前**基线 lint 读数复现：`eslint src --ext .ts,.vue -f unix` 的 20 条 error 逐条 `文件:行:列 规则` 清单（采集时 7 个文件临时还原为 `21b465e5` 内容） | `ERROR_LINES=20`（13 个 文件::规则 对），同次运行 eslint 汇总 `12892 problems` = 20 error + 12872 warning |
 | `raw/02-git-status-after-restore.txt` | 临时还原→复原之后 `git status --short`，证明还原没有留下副作用 | 仅本卡 8 个改动文件 + 证据目录 |
 | `raw/03-lint-gate-after.txt` | 门 2 `npm run lint`（`scripts/lint-gate.mjs` 判据本体） | `当前 error 0（基线 0）、warning 12872（基线 12872）`，**LINT_EXIT=0** |
