@@ -1,0 +1,57 @@
+# QODER-25 文档笔收口实测 2026-10-22T00:11:28+08:00
+$ git rev-parse HEAD
+350b31328879100ac2c517a2e10a56fd9b5ba547
+$ git log --oneline -3
+350b3132 docs: QODER-25 回传卡 + 回执 + 证据树（负责人补做文档，含自有四门/三构建/反测/H5 复验读数）
+5b90a744 fix: QODER-25 AI Chat 三端条件编译与自绘 tabBar 收口
+bc1087ee docs: QODER-22 补哈希笔——回填 e9afb0a6/24811fa8 真实哈希 + 出厂四门复跑 raw/48（GATES_EXIT=0、11/186、error 0）
+$ git status --porcelain   # 空=clean
+?? docs/evidence/qoder-25/raw/75-owner-docs-commit-close.log
+STATUS_LINES=1
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+0
+$ git diff --name-only bc1087ee..HEAD
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/App.vue
+app-mobile/src/api/modules/ai.ts
+app-mobile/src/components/custom-tab-bar.vue
+app-mobile/src/pages/ai-chat/ai-chat.vue
+app-mobile/tests/ai-cross-platform.spec.ts
+docs/evidence/qoder-25/README.md
+docs/evidence/qoder-25/anti/60-owner-anti-1-fs-in-app.log
+docs/evidence/qoder-25/anti/60-owner-anti-2-ac-in-nonh5.log
+docs/evidence/qoder-25/anti/60-owner-anti-3-drop-tabbar.log
+docs/evidence/qoder-25/anti/round-01-fs-in-app.log
+docs/evidence/qoder-25/anti/round-02-fs-in-app.log
+docs/evidence/qoder-25/anti/round-03-ac-in-nonh5.log
+docs/evidence/qoder-25/anti/round-04-drop-tabbar.log
+docs/evidence/qoder-25/anti/round-05-drop-register-cancel.log
+docs/evidence/qoder-25/mock-ai-backend.log
+docs/evidence/qoder-25/mock-ai-backend.mjs
+docs/evidence/qoder-25/mock-ai-backend.stdout.log
+docs/evidence/qoder-25/raw/10-build-h5.log
+docs/evidence/qoder-25/raw/11-build-mp-weixin.log
+docs/evidence/qoder-25/raw/12-build-app.log
+docs/evidence/qoder-25/raw/20-dev-h5.log
+docs/evidence/qoder-25/raw/30-gates-tip.log
+docs/evidence/qoder-25/raw/31-mock-backend-cont.log
+docs/evidence/qoder-25/raw/31-mock-backend-cont.stdout.log
+docs/evidence/qoder-25/raw/32-dev-h5-cont.log
+docs/evidence/qoder-25/raw/33-h5-setup-cont.log
+docs/evidence/qoder-25/raw/34-h5-browser-readings.log
+docs/evidence/qoder-25/raw/35-h5-teardown.log
+docs/evidence/qoder-25/raw/40-builds-tip.log
+docs/evidence/qoder-25/raw/41-build-artifacts-verify.log
+docs/evidence/qoder-25/raw/50-scope-redlines.log
+docs/evidence/qoder-25/raw/60-owner-gates-and-builds.log
+docs/evidence/qoder-25/raw/61-owner-artifacts.log
+docs/evidence/qoder-25/raw/71-owner-mock-backend.log
+docs/evidence/qoder-25/raw/73-owner-h5-readings.log
+docs/evidence/qoder-25/raw/74-owner-teardown.log
+"docs/tasks/cards/R101-QODER-25-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-25.md"
+$ git show --stat --format=%h 350b3132 | tail -1
+ 33 files changed, 2534 insertions(+)
+$ ls app-mobile/.env   # 取证配置应在树外
+ls: cannot access 'app-mobile/.env': No such file or directory
+ENV_LS_EXIT=2

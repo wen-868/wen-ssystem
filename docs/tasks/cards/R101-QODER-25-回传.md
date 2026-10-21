@@ -254,7 +254,7 @@ curl -s -X POST http://localhost:8299/__mock -d '{"chat":{"intervalMs":300,"even
 `docs/evidence/qoder-25/README.md`（清单 + 归属 + 偏差登记）。核心读数文件：
 
 - 执行方：`raw/30-gates-tip.log`、`raw/40-builds-tip.log`、`raw/41-build-artifacts-verify.log`、`raw/50-scope-redlines.log`、`raw/34-h5-browser-readings.log`、`raw/35-h5-teardown.log`、`anti/round-01…05`、`mock-ai-backend.mjs`
-- 负责人：`raw/60-owner-gates-and-builds.log`、`raw/61-owner-artifacts.log`、`raw/71-owner-mock-backend.log`、`raw/73-owner-h5-readings.log`、`raw/74-owner-teardown.log`、`anti/60-owner-anti-{1,2,3}`
+- 负责人：`raw/60-owner-gates-and-builds.log`、`raw/61-owner-artifacts.log`、`raw/71-owner-mock-backend.log`、`raw/73-owner-h5-readings.log`、`raw/74-owner-teardown.log`、`raw/75-owner-docs-commit-close.log`、`anti/60-owner-anti-{1,2,3}`
 
 ## 十一、负责人复验补笔（2026-10-22T00:08+08:00，追加不改写）
 
@@ -266,4 +266,10 @@ curl -s -X POST http://localhost:8299/__mock -d '{"chat":{"intervalMs":300,"even
 2. **两方反测 SHA 交叉验证**：负责人 owner-1/2/3 的 `a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725` 与执行方 round-02/03/04 记录值逐字相同 ⇒ 复原目标即原始态，不是两方各自的另一个基线。
 3. **装置收尾复核**（`raw/74` 追加更正段）：按 PID 精确终止后 `netstat` 无 5299/8299 监听，`curl` 两端均 `HTTP=000 / RC=7`；取证 `.env` 已移树外，`git status --porcelain` 只列 `?? docs/evidence/qoder-25/`。
 
-收口后终态（本笔提交后实测）：`git rev-parse HEAD` 与 `git status --porcelain` 读数见 `docs/evidence/qoder-25/README.md` §6 与本次提交信息；`git diff bc1087ee..HEAD -- backend/` 保持 0 字节。
+收口后终态（本笔提交后实测，原始输出 `docs/evidence/qoder-25/raw/75-owner-docs-commit-close.log`）：
+
+- 文档笔 `350b31328879100ac2c517a2e10a56fd9b5ba547`（33 files changed，2534 insertions，0 deletions ⇒ 全为新增，无一行删除 ⇒ 未改写任何既有件）
+- 谱系 `350b3132` → `5b90a744`（实现笔）→ `bc1087ee`（任务书基线）
+- `git status --porcelain` 空；`git diff bc1087ee..HEAD -- backend/ | wc -c` = `0`
+- `git diff --name-only bc1087ee..HEAD` 的代码面仍只有 6 个文件（`gates-baseline.json` / `App.vue` / `ai.ts` / `custom-tab-bar.vue` / `ai-chat.vue` / `ai-cross-platform.spec.ts`）⇒ 文档笔不含 `src`、`tests`、`scripts` 改动，故 §三 的四门与三构建读数对本次收口依然有效（依据是该机检而非默认）
+- `app-mobile/.env` 不在树内（`ENV_LS_EXIT=2`）⇒ 取证配置未入库

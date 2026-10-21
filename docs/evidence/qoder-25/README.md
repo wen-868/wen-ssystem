@@ -4,12 +4,12 @@
 > 工作树：`D:\Users\ZXQL\wt-agents\QODER-25`｜分支：`fix/qoder-25-ai-cross-platform`｜基线：`bc1087ee`｜实现笔：`5b90a744`
 > 维护方：Qoder（移动端）。**本树只登记读数，不含验收方判词；判定权在凌舟。**
 
-## 0. 清单（30 份原始件 + 本 README + 2 份文档）
+## 0. 清单（31 份读数件：执行方 22 + 负责人 9；另加 3 份文档笔）
 
 | 归属 | 件数 | 说明 |
 |---|---|---|
 | 执行方子代理会话 | 22 | `raw/10·11·12·20·30·31·31.stdout·32·33·34·35·40·41·50`（14）+ `anti/round-01…05`（5）+ 根级 `mock-ai-backend.mjs` / `.log` / `.stdout.log`（3） |
-| 负责人（本代理）本人 | 8 | `raw/60·61·71·73·74`（5）+ `anti/60-owner-anti-{1,2,3}`（3） |
+| 负责人（本代理）本人 | 9 | `raw/60·61·71·73·74·75`（6）+ `anti/60-owner-anti-{1,2,3}`（3） |
 | 文档笔新增 | 3 | 本 `README.md`、`docs/tasks/cards/R101-QODER-25-回传.md`、`docs/tasks/inbox/ACTIVE-回执-QODER-25.md` |
 
 **分工与署名口径**：实现笔 `5b90a744`（作者字段 `墨 <mo@zhixiang-system.com>`，仓库内两方共用同一 git 身份 ⇒ 只能按会话如实标注）与其全部 `raw/1x·2x·3x·4x·5x`、`anti/round-0x` 日志由**执行方**产出；执行方会话在证据齐备后中断，**未产出任何文档**，三份文档与 `raw/6x·7x`、`anti/60-owner-*` 由**负责人**补做/实测。原始日志一律未改写字节；需要更正的（`raw/74`、`raw/41`）以**追加更正段**形式落在同文件末尾，原文保留。
@@ -48,7 +48,8 @@ docs/evidence/qoder-25/
     ├── 61-owner-artifacts.log         负责人 逐端产物机检（每条带 RG_EXIT/LS_EXIT 原值）
     ├── 71-owner-mock-backend.log      负责人 mock 服务端读数（CLIENT CLOSE / DONE 实证）
     ├── 73-owner-h5-readings.log       负责人 H5 独立实开读数（§0·①–⑨）
-    └── 74-owner-teardown.log          负责人 收尾（含追加更正段）
+    ├── 74-owner-teardown.log          负责人 收尾（含追加更正段）
+    └── 75-owner-docs-commit-close.log 负责人 文档笔入库后的终态实测（§6.1）
 ```
 
 ## 1. `raw/` —— 任务书 §三 硬验收（门 · 构建 · 产物）
@@ -123,11 +124,10 @@ PRECHECK_DIFF_BYTES=0  ⇒ 注入（hits≠1 即 exit 2 拒写）⇒ INJECT_HIT_
 
 ## 5. 本笔（文档笔）纳入的文件
 
-逐文件 `git add`，无 `git add -A`：
+逐文件 `git add`（33 条路径逐一列出，无 `git add -A`）：
 
-- `docs/evidence/qoder-25/`（30 份原始件 + 本 README）
-- `docs/tasks/cards/R101-QODER-25-回传.md`
-- `docs/tasks/inbox/ACTIVE-回执-QODER-25.md`
+- **文档笔 `350b3132`**：`docs/evidence/qoder-25/` 31 份读数件中的 30 份 + 本 README + `docs/tasks/cards/R101-QODER-25-回传.md` + `docs/tasks/inbox/ACTIVE-回执-QODER-25.md` = 33 files changed, 2534 insertions(+)、0 deletions
+- **收口笔（本件）**：`raw/75-owner-docs-commit-close.log` + 本 README 的 §0/§6.1 追加
 
 不入库件：`app-mobile/.env`（gitignored，取证配置，构建前已移树外）、`app-mobile/dist/`（构建产物）、树外夹具 `/d/Users/ZXQL/wt-agents/_qoder25_ownverify/`。
 
@@ -135,4 +135,16 @@ PRECHECK_DIFF_BYTES=0  ⇒ 注入（hits≠1 即 exit 2 拒写）⇒ INJECT_HIT_
 
 本 README 与两份文档由负责人撰写；负责人亲测的读数已在 §1（四门/三构建/产物/后端差值）、§2（三轮反测含 SHA 与残留机检）、§3（H5 两侧互证）逐条与执行方同名读数并列，两方一致项才写入。
 
-文档笔入库后的终态实测（`git rev-parse HEAD`、`git status --porcelain`、`git diff bc1087ee..HEAD -- backend/`）在下一笔（本 README 的收口追加件）中登记，避免自指哈希。
+### 6.1 文档笔入库后的终态实测（原始输出 `raw/75-owner-docs-commit-close.log`，2026-10-22T00:11:28+08:00）
+
+| 项 | 值 |
+|---|---|
+| 文档笔提交 | `350b31328879100ac2c517a2e10a56fd9b5ba547`（33 files changed, 2534 insertions, 0 deletions ⇒ 全为新增） |
+| 谱系 | `350b3132` → `5b90a744`（实现笔）→ `bc1087ee`（任务书基线） |
+| `git status --porcelain` | 空（该次取数时唯一未跟踪项正是本次正在写入的 `raw/75` 自身，故 `STATUS_LINES=1`；写它之前为 0 行） |
+| `git diff bc1087ee..HEAD -- backend/ \| wc -c` | `0` |
+| `git diff --name-only bc1087ee..HEAD` | 6 个代码面文件（`gates-baseline.json`、`App.vue`、`ai.ts`、`custom-tab-bar.vue`、`ai-chat.vue`、`ai-cross-platform.spec.ts`）+ 33 个 docs 件 ⇒ 代码面自实现笔起零变化 |
+| `app-mobile/.env` | 不在树内（`ls` → `No such file or directory`，`ENV_LS_EXIT=2`）⇒ 取证配置未入库、未影响产物 |
+
+文档笔不含任何 `src/`、`tests/`、`scripts/` 改动 ⇒ §1 的四门与三构建读数（在实现尖端 `5b90a744` 上取得）对本次收口仍然有效，无需重跑；此判断的依据是上表「代码面零变化」这一机检，而非默认。
+
