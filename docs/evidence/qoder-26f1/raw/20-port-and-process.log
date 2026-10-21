@@ -1,0 +1,58 @@
+# QODER-26F1 端口与残留进程取证
+
+## (1) 派单口径实测更正
+
+派单 §一 写「QODER-25/26 的 dev:h5 子进程已由凌舟按明确 PID 清理，5173/5174/8388 已释放」。负责人 2026-10-22T00:52 实测：**8388 仍有 LISTEN**，该口径不成立。原始读数：
+
+```
+$ netstat -ano | grep -E ':(5173|5174|8388)\b'
+  TCP    0.0.0.0:8388           0.0.0.0:0              LISTENING       6616
+  TCP    [::]:8388              [::]:0                 LISTENING       6616
+```
+
+（5173、5174 无 LISTEN，与派单一致。）
+
+## (2) PID 6616 身份核实——不是未核 PID
+
+```
+$ powershell Get-CimInstance Win32_Process -Filter 'ProcessId=6616'
+ProcessId       : 6616
+ParentProcessId : 13536
+Name            : node.exe
+CommandLine     : "C:\Program Files\nodejs\node.exe" mock-ai-backend.mjs
+
+$ powershell Get-CimInstance Win32_Process -Filter 'ProcessId=13536'
+Name            : bash.exe
+CommandLine     : ... eval 'cd /d/Users/ZXQL/wt-agents/QODER-25/docs/evidence/qoder-25 && node mock-ai-backend.mjs > mock-ai-backend.stdout.log 2>&1 & sleep 3; curl -s --max-time 5 http://localhost:8388/__mock; ...'
+```
+
+结论：6616 是**负责人上一轮 QODER-25 H5 实证遗留的 mock SSE 后端**（`TaskStop` 只杀 npm 父进程、留下 node 孤儿子进程这一已知坑），不是用户业务进程、不是本卡要保护的对象。核实后仍不持有任何 socket：
+
+```
+$ netstat -ano | grep -w 6616
+PID_6616_OWNS_NO_SOCKET
+```
+
+## (3) 清理
+
+```
+$ powershell taskkill /PID 6616 /F /T
+SUCCESS: The process with PID 6616 (child process of PID 13536) has been terminated.
+PID_6616_TERMINATED
+```
+
+## (4) 当前实时复跑读数（下列由脚本追加）
+
+# 复跑时间戳 2026-10-22T01:12:34+08:00
+$ netstat -ano | grep -w 6616
+PID_6616_OWNS_NO_SOCKET
+
+$ for p in 5173 5174 8388: netstat -ano | grep -c ":$p .*LISTENING"
+PORT_5173_LISTEN_COUNT=0
+PORT_5174_LISTEN_COUNT=0
+PORT_8388_LISTEN_COUNT=0
+
+$ powershell Get-Process -Id 6616
+(空表=进程已不存在)
+
+## (5) 本卡之后不再启动任何会写 dev-h5-owner.log 的 dev server。

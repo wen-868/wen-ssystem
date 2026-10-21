@@ -1,0 +1,79 @@
+# 负责人口径更正（端口量具）——针对本卡 raw/20 (4) 段与 raw/40 的"端口归零"读数
+# 谁跑的：负责人 Qoder 亲跑｜新增文件，本卡既有证据零改写｜2026-10-22T04:53:50+08:00
+
+## 一、为什么要另立这一笔
+
+本卡 `raw/20-port-and-process.log` 第 (4) 段与 `raw/40-closeout.log` 用
+
+```
+$ for p in 5173 5174 8388: netstat -ano | grep -c ":$p .*LISTENING"
+PORT_5173_LISTEN_COUNT=0
+PORT_5174_LISTEN_COUNT=0
+PORT_8388_LISTEN_COUNT=0
+```
+
+以及 `Get-NetTCPConnection -State Listen -LocalPort <pt>` 作为"端口已空"的正面证据。
+负责人在 QODER-25F1 复验中**实测证伪了这两个设备的正面推理能力**：同一时刻
+
+```
+DEV5499_HTTP=200          # curl 明确拿到 200 ⇒ 有监听
+MOCK8488_HTTP=200
+PORT=5499 LISTEN_COUNT=0  # 而 netstat/Get-NetTCPConnection 均报 0
+```
+
+原始留档见 `QODER-25F1/docs/evidence/qoder-25f1/raw/65-owner-teardown-and-device-fix.log` §一。
+本机 vite/uni dev server 只绑 IPv6 环回 `[::1]`，`netstat` 的 LISTENING 表里不出现这些端口行；
+`Get-NetTCPConnection -State Listen` 亦间歇漏报（同一命令早先能报出 8488、稍后报 0）。
+
+⇒ **口径更正**：本卡上述 `LISTEN_COUNT=0` 读数仍然真实，但它只能证明"该设备视野内没有行"，
+不能单独证明"无监听"。凡以它作"端口归零"结论的地方，一律降级为"该设备下的读数"。
+本卡 (1) 段能抓到 `0.0.0.0:8388` + `[::]:8388` 两行、据实推翻派单"8388 已释放"的口径，那次是有效的——
+因为那个 mock 进程绑全接口、netstat 看得见；两个事实不矛盾，差别在绑定形态，不在设备可靠性叙述的"永远失效"。
+
+## 二、改用主设备后的复验（curl 可达性；`http_code=000` + `curl_rc=7` = 连接被拒 = 无监听）
+
+```
+$ curl -s -o /dev/null -m 3 -w '%{http_code}' http://localhost:<pt>/     # 2026-10-22T04:53:50+08:00
+PORT_8388_HTTP=000_CURL_RC=7
+PORT_5173_HTTP=000_CURL_RC=7
+PORT_5174_HTTP=000_CURL_RC=7
+
+$ powershell Get-Process -Id 6616
+PID_6616_ABSENT
+
+$ powershell Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where CommandLine -match 'wt-agents'
+WT_AGENTS_NODE_COUNT=0        # 本批次工作树无遗留 node 进程
+
+$ netstat -ano | grep -E ':(8388|5173|5174)\b'
+NETSTAT_NO_ROWS               # 与 curl 结论一致（此读数本身不具证伪力，见 §一）
+```
+
+三端口在**主设备**下全部连接被拒，PID 6616 确认不存在，工作树相关 node 进程 0 个。
+⇒ 本卡"端口与残留进程已清理"的**结论不变**，变的只是支撑它的设备：由 netstat 计数换成 curl 可达性。
+
+## 三、红线自证（本笔为新增，未触碰既有证据内容与业务代码）
+
+```
+$ git status --porcelain          # 本文件写入后、提交前
+?? docs/evidence/qoder-26f1/raw/50-owner-port-device-correction.log
+PORCELAIN_LINES=1                 # 唯一一行就是本文件自身；提交后归零
+
+$ git -c core.quotepath=false diff --name-status --diff-filter=M 7577b1ab..HEAD
+M_COUNT=0                         # 既有文件 0 个被修改 ⇒ 本卡证据树只增不改
+
+$ git -c core.quotepath=false diff a513ff9b..HEAD --name-only | grep -vc '^docs/'
+F1_NON_DOCS_FILES=0               # F1 三笔（d8e2ae49 / 7577b1ab / 本笔）改动面全在 docs/ 前缀
+$ git -c core.quotepath=false diff --name-status a513ff9b..HEAD | wc -l
+F1_ALL_CHANGED=8                  # 与上一行的 docs-only 一致：8 个全部为新增证据文件
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+BACKEND_DIFF_BYTES=0
+```
+
+口径提醒（负责人自纠）：`bc1087ee..HEAD` 的非 docs 面是 **8 个文件**，但那是 QODER-26 本体的实现面
+（`products.ts` / `batch-price.vue` / `price-review.vue` / `home.vue` / `products.vue` / `create-sale.vue`
+/ `gates-baseline.json` / `product-sku-dimension.spec.ts`），不属于 F1。判"本卡有没有改业务代码"必须用
+F1 自己的基线 `a513ff9b..HEAD`，读数 `0`。
+
+`docs/evidence/qoder-26f1/README.md` 的 raw/ 索引表**未追加行**——那是改动既有文件，与本卡
+"不得改既有证据内容"红线冲突。本文件的被更正对象在 §一 内自述，引用关系不依赖 README。

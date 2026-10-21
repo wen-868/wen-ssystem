@@ -1,0 +1,30 @@
+# QODER-26 负责人亲跑四门与三构建 2026-10-21T23:17–23:24+08:00（尖端 3f70b749；父 3228ffc5）
+$ cd D:/Users/ZXQL/wt-agents/QODER-26
+$ for p in h5 mp-weixin app: do npm --workspace app-mobile run build:$p; echo BUILD_EXIT_$p=$?; done   # 修正代理日志的 BUILD_= 变量踩空（收尾卡 §九.6）
+$ npm --workspace app-mobile run check:gates
+# 原始输出逐字如下：
+### OWN-VERIFY 26 builds 2026-10-21T23:17:07+08:00 HEAD=3f70b749
+BUILD_EXIT_h5=0
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
+BUILD_EXIT_mp-weixin=0
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import [36mdist\build\mp-weixin[39m run.
+BUILD_EXIT_app=0
+DONE  Build complete.
+Run method: open HBuilderX, import [36mdist\build\app[39m run.
+### gates 复跑（同一尖端）
+GATES_EXIT=0
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+当前 error 0（基线 0）、warning 12872（基线 12872）
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m241 passed[39m[22m[90m (241)[39m
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+### tree
+app-mobile/dist/build/app
+app-mobile/dist/build/h5
+app-mobile/dist/build/mp-weixin
+?? docs/evidence/qoder-26/h5/mock-backend-qoder26.log
+?? docs/evidence/qoder-26/h5/mock-start-owner.log
+BACKEND_DIFF_BYTES=0

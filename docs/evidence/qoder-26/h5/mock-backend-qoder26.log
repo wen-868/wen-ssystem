@@ -1,0 +1,25 @@
+[2026-10-21T15:21:37.265Z] MOCK26 START port=8461 fixtureSpu=7 fixtureSkus=41,42(+1 缺主键脏行) state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":0},"fallback":{"mode":"200empty"}}
+[2026-10-21T15:21:37.282Z] LISTENING 8461
+[2026-10-21T15:21:45.828Z] POST /api/store/auth/login -> 200 login
+[2026-10-21T15:26:19.267Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty body=
+[2026-10-21T15:27:15.265Z] POST /api/store/auth/login -> 200 login
+[2026-10-21T15:27:17.442Z] GET /api/store/dashboard -> FALLBACK 200 empty body=
+[2026-10-21T15:27:17.456Z] GET /api/admin/dashboard/todos -> FALLBACK 200 empty body=
+[2026-10-21T15:27:17.479Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 200 empty body=
+[2026-10-21T15:27:17.482Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 200 empty body=
+[2026-10-21T15:27:17.484Z] GET /api/admin/notifications/unread-count -> FALLBACK 200 empty body=
+[2026-10-21T15:27:17.488Z] GET /api/admin/reports/business-overview -> FALLBACK 200 empty body=
+[2026-10-21T15:27:17.706Z] GET /api/admin/inventory-alerts -> FALLBACK 200 empty body=
+[2026-10-21T15:27:31.078Z] GET /api/admin/products/categories -> FALLBACK 200 empty body=
+[2026-10-21T15:27:31.083Z] GET /api/admin/products?page=1&pageSize=20 -> 200 records=3 matched=3 skuIds=[41,42,]
+[2026-10-21T15:28:04.158Z] GET /api/admin/sale-bills?page=1&pageSize=20 -> FALLBACK 200 empty body=
+[2026-10-21T15:28:04.163Z] GET /api/admin/system/stores?page=1&pageSize=100 -> FALLBACK 200 empty body=
+[2026-10-21T15:28:04.169Z] GET /api/admin/system/stores?page=1&pageSize=100 -> FALLBACK 200 empty body=
+[2026-10-21T15:28:14.018Z] GET /api/admin/products/categories -> FALLBACK 200 empty body=
+[2026-10-21T15:28:14.022Z] GET /api/admin/products?page=1&pageSize=20 -> 200 records=3 matched=3 skuIds=[41,42,]
+[2026-10-21T15:29:06.483Z] GET_DETAIL path=/api/admin/products/7 spuId=7 skus=[41,42]
+[2026-10-21T15:29:10.994Z] GET_DETAIL path=/api/admin/products/7 spuId=7 skus=[41,42]
+[2026-10-21T15:29:30.998Z] GET /api/admin/products?page=1&pageSize=100 -> 200 records=3 matched=3 skuIds=[41,42,]
+[2026-10-21T15:29:31.000Z] GET /api/admin/products/categories -> FALLBACK 200 empty body=
+[2026-10-21T15:29:47.829Z] PUT_PRICE path=/api/admin/products/41/price segment=41 body={"wholesalePrice":94.5} total_hits=1
+[2026-10-21T15:29:47.846Z] PUT_PRICE path=/api/admin/products/42/price segment=42 body={"wholesalePrice":546} total_hits=2

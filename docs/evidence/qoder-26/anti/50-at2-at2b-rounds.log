@@ -1,0 +1,34 @@
+=== AT2 round ===
+SHA_BEFORE_worktree_crlf=ff2e2272540b955c7280308399cdb3b8689774a55ffecbf5c8a160c5fe874f7f
+INJECT_EXIT=0
+INJECT_CASE=AT2 FILE=app-mobile/src/pages-sub/product/batch-price/batch-price.vue EOL=CRLF NEEDLE_HITS=1
+INJECT_READBACK replace_hits=1 needle_gone=true bytes_before=51377 bytes_after=51318
+INJECT_OK
+VITEST_EXIT=1
+[31m     [31m×[31m E8 批量改价调用点恰好 1 处且必经 skuIdOfProduct 取号（反测 AT2 靶）[39m[32m 24[2mms[22m[39m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m54 passed[39m[22m[90m (55)[39m
+SHA_AFTER_worktree_crlf=ff2e2272540b955c7280308399cdb3b8689774a55ffecbf5c8a160c5fe874f7f
+BYTE_IDENTICAL=true
+GIT_DIFF_BYTES=0
+RESTORED_VITEST_EXIT=0
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m55 passed[39m[22m[90m (55)[39m
+=== AT2b round ===
+SHA_BEFORE_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+INJECT_EXIT=0
+INJECT_CASE=AT2b FILE=app-mobile/src/api/modules/products.ts EOL=CRLF NEEDLE_HITS=1
+INJECT_READBACK replace_hits=1 needle_gone=true bytes_before=24634 bytes_after=24618
+INJECT_OK
+VITEST_EXIT=1
+[31m     [31m×[31m skuIdOfProduct：id 与 skuId 同值时返回真实 skuId[39m[32m 14[2mms[22m[39m
+[31m     [31m×[31m skuIdOfProduct：id 被换成 spuId（维度混用）⇒ 抛错点名"不同值"[39m[32m 8[2mms[22m[39m
+[31m     [31m×[31m updateSkuPrice 对同 SPU 的两个 SKU 打两条不同路径（不会写同一行）[39m[32m 114[2mms[22m[39m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m52 passed[39m[22m[90m (55)[39m
+SHA_AFTER_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+BYTE_IDENTICAL=true
+GIT_DIFF_BYTES=0
+RESTORED_VITEST_EXIT=0
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m55 passed[39m[22m[90m (55)[39m

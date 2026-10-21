@@ -1,0 +1,90 @@
+# QODER-26 负责人亲跑 H5 运行态读数（判据 §三.3 / §三.4） 2026-10-21T23:24+08:00
+# 采集人：Qoder（移动端负责人）｜本人为唯一读数的操作者，非转录子代理日志
+# 装置：本树既有夹具 docs/evidence/qoder-26/h5/mock-backend-qoder26.mjs（README §3.2 的复验方式，逐字照做）
+# 浏览器：browser-use MCP（evaluate_script + list_console_messages；**未用 take_screenshot**，协议 §五 历史超时）
+# 并发纪律：本段采集期间 QODER-26 树内**无**门/构建/vitest 在跑（四门与三构建已于 23:17–23:24 串行跑完，见 raw/80-owner-gates-and-builds.log）
+
+## 0) 起服命令与形态
+
+$ MOCK_PORT=8461 node docs/evidence/qoder-26/h5/mock-backend-qoder26.mjs    # 读数：h5/mock-backend-qoder26.log；stdout：h5/mock-start-owner.log
+$ VITE_PROXY_TARGET=http://localhost:8461 npm --workspace app-mobile run dev:h5    # 读数：h5/dev-h5-owner.log
+$ curl -s -X POST http://localhost:8461/api/store/auth/login -d '{"username":"owner","password":"x"}' -H 'Content-Type: application/json'
+{"code":200,"msg":"ok","data":{"token":"mock.jwt.token.qoder26","csrfToken":"mock-csrf","user":{"id":1001,"username":"qoder26","realName":"取证门店","roles":["STORE_ADMIN"],"storeId":1,"tenantId":"tenant-qoder26-mock","permissions":["sale:create",…
+# （5173 被占，vite 自选 5174 ⇒ 浏览器实际地址 http://localhost:5174/）
+
+## A) 判据 §三.3-①：列表两行（同 SPU 两 SKU 不得合并）
+
+# 登录方式：向 uni-input 的原生 value setter 写值 + 派发 input/change，再对 uni-button.login-btn 派发 pointerdown/mousedown/pointerup/mouseup/click 全序列
+#   （首次尝试仅点内部 SPAN 未生效 ⇒ token 仍 absent；改用完整事件序列后 body 末尾出现「登录成功」、路由跳 #/pages/home/home）
+# 前端侧读数原文（location.hash=#/pages/products/products）：
+"textHead": 商品 / 搜索商品名/条码/品牌 / 全部 / 建议核价 / 市场价格变动 / 批量调价 / 按分类调整 / 价格异常 / 待处理 / 取 取证可乐 500ml 瓶装 批 ¥90.00 零 ¥100.00 库 10 / 取 取证可乐 500ml*6 整箱 批 ¥520.00 零 ¥560.00 库 8 / 首页 商品 AI 功能 我的
+{"colaMentions":2,"badrowPresent":false}
+# ⇒ 两卡独立存在；两行价格与库存逐行独立（100/10 与 560/8），未按 SPU 合并成一行；
+# ⇒ 脏行 `SPU007-BADROW`（skuId=null）不出现在列表（badrowPresent=false，`/BADROW|缺主键行/` 未命中）。
+# mock 侧读数原文（h5/mock-backend-qoder26.log:14）：
+[2026-10-21T15:27:31.083Z] GET /api/admin/products?page=1&pageSize=20 -> 200 records=3 matched=3 skuIds=[41,42,]
+# ⇒ 后端返回 3 条（含缺主键脏行），前端映射后只剩 2 行 ⇒ 维度收口在运行态成立。
+# console（list_console_messages 全量，3 条）：
+msgid=1 [debug] [vite] connecting...
+msgid=2 [debug] [vite] connected.
+msgid=3 [warn] [vue-router]: importing from 'vue-router/dist/vue-router.esm-bundler.js' is deprecated.
+# ⇒ 无 duplicate/unique :key 告警，无 error 级读数。
+
+## B) 判据 §三.3-②：两行可独立加购（键必须是 SKU id，不得合并）
+
+# 路径：#/pages/sales/create-sale → 点「添加商品」开待选面板（.pp-item 两行）
+# 前端侧读数原文（DOM 属性直接携带身份，比文案更硬）：
+{"addsCount":2,"ids":[{"pid":"41","delta":"1","rowText":"取取证可乐500ml|瓶装|·|库存10瓶¥90.00零售¥100.00"},{"pid":"42","delta":"1","rowText":"取取证可乐500ml*6|整箱|·|库存8箱¥520.00零售¥560.00"}]}
+# ⇒ 两行的 data-pid 分别是 41 与 42（SKU 行主键），且批发/零售逐行独立（90/100 与 520/560）。
+# 操作：对 data-pid=41 的 .pp-add 点 1 次；对 data-pid=42 的 .pp-add 点 2 次
+# 读数原文：
+"rows":[{"qty":"−1+","text":"取取证可乐500ml|瓶装|·|库存10瓶¥90.00零售¥100.00−1+"},{"qty":"−2+","text":"取取证可乐500ml*6|整箱|·|库存8箱¥520.00零售¥560.00−2+"}]
+"summary":["0 种","已选 2 种 · 3 件"]
+# ⇒ 两个 SKU 各自计数（1 与 2）互不合并 ⇒ 汇总「已选 2 种 · 3 件」；若仍按 SPU 合并，只会出现「1 种」。
+# ⇒ 加购为本地态：本轮 mock 日志无新增 /api 请求（A 与 C 之间只有 GET_DETAIL 两行，见 C）。
+# 「0 种」是单据明细行数（尚未把待选转成明细），不是待选数 ⇒ 两个读数分属不同层，不互斥。
+
+## C) 判据 §三.3-③：详情仍打开同一个 SPU
+
+# 操作：回 #/pages/products/products，依次点第 1、第 2 张 .product-card（每次 history.back 后重点）
+# 前端侧读数原文：
+[{"card":1,"hash":"#/pages/products/product-detail?id=7"},{"card":2,"hash":"#/pages/products/product-detail?id=7"}]
+# ⇒ 两张卡进入的是同一个详情 URL，路径参数是 spuId=7（不是 41/42）。
+# mock 侧读数原文（h5/mock-backend-qoder26.log:20-21）：
+[2026-10-21T15:29:06.483Z] GET_DETAIL path=/api/admin/products/7 spuId=7 skus=[41,42]
+[2026-10-21T15:29:10.994Z] GET_DETAIL path=/api/admin/products/7 spuId=7 skus=[41,42]
+# ⇒ 两次均为 spuId=7；**全日志无 404、无 /products/41 或 /products/42 的 GET**（夹具对 41/42 会返回 404，一旦出现即判红）。
+
+## D) ★ 判据 §三.4：批量改价请求路径逐条为真实 skuId（不看 UI 提示）
+
+# 操作：#/pages-sub/product/batch-price/batch-price（已选 2/2，规则=批发价 +5%）→ 点「确认调价（2 件）」→ 应用内确认面板 .m-btn--primary「确认调价」
+# mock 侧读数原文（h5/mock-backend-qoder26.log:24-25）：
+[2026-10-21T15:29:47.829Z] PUT_PRICE path=/api/admin/products/41/price segment=41 body={"wholesalePrice":94.5} total_hits=1
+[2026-10-21T15:29:47.846Z] PUT_PRICE path=/api/admin/products/42/price segment=42 body={"wholesalePrice":546} total_hits=2
+# h5/price-hits.json 机读段（本卡判据 4 的读数源，pathSegment 数组）：
+[{"pathSegment":41,"path":"/api/admin/products/41/price"},{"pathSegment":42,"path":"/api/admin/products/42/price"}]（原文为完整两元素数组，含 at/method/body，未截断，见 h5/price-hits.json）
+# ⇒ 路径段恰为 [41,42] 两个真实 skuId，**未出现 segment=7** ⇒ 不是"写错对象"。
+# ⇒ 两条请求时间戳相差 17ms，逐条独立（同 SPU 两 SKU 打到两条不同路径）。
+# 前端侧（仅作旁证，不作为判据 4 的达标依据）：
+"tail": … 商品清单 已选 2/2 … 批发价 94.50 → … 批发价 546.00 → … 调价完成 ✓ 2 件商品价格已更新 共 2 处价格变动 批发价 +5%
+# console 全程仍只有 3 条（vite ×2 + vue-router 弃用 warn），**无 [SKU维度守卫] 抛错** ⇒ 正常路径不触发守卫。
+
+## E) 判据 §二.4 守卫"抛错 + 0 请求"——运行态本轮不可构造（如实登记，不写成通过）
+
+- 事实：脏行 `skuId=null` 在**映射层**就被丢弃（A 段前端 2 行 vs 后端 3 条），因此它根本进不了批量调价清单 ⇒ UI 上没有可点到的"无效主键行"。
+- ⇒ 本轮**没有**取得"页面触发守卫 + mock 无对应 PUT"的两侧读数；该形态只有单元层证据：`tests/product-sku-dimension.spec.ts:366`（`updateSkuPrice(0,…)` ⇒ `rejects.toThrow(/SKU维度守卫/)` 且 `put` 调用 0 次）与 `:358`（`id` 被换成 `spuId` ⇒ 抛错点名"不同值"）。
+- 结论口径：E 记 **运行态未验（不可构造，非失败）**，不得与 A–D 混写为"运行态全通过"。
+
+## 原始 JSON 未加工段（browser-use evaluate_script 返回值逐字转录，供交叉核对）
+
+- A 段：`{"hash":"#/pages/products/products","colaMentions":2,"badrowPresent":false,"nearbyLines":["取证可乐","取证可乐"]}`
+- B 段（加购前）：`{"addsCount":2,"ids":[{"pid":"41","delta":"1","rowText":"取取证可乐500ml|瓶装|·|库存10瓶¥90.00零售¥100.00"},{"pid":"42","delta":"1","rowText":"取取证可乐500ml*6|整箱|·|库存8箱¥520.00零售¥560.00"}]}`
+- B 段（加购后）：`{"rows":[{"qty":"−1+" …},{"qty":"−2+" …}],"summary":["0 种","已选 2 种 · 3 件"]}`
+- C 段：`[{"card":1,"hash":"#/pages/products/product-detail?id=7", …},{"card":2,"hash":"#/pages/products/product-detail?id=7", …}]`
+- D 段：`{"tail":"… 调价完成 ✓ 2 件商品价格已更新 共 2 处价格变动 批发价 +5% …"}`
+
+## 本轮附带发现（不属 QODER-26 文件面，只登记不动手）
+
+1. 登录页与所有页面底部常驻一条「发现新版本 / **新版本 vundefined**」提示：mock 的 `/api/app/version/app_mobile` 走 FALLBACK 返回空体（log:13/15），页面把缺失的 `versionName` 直接拼进文案 ⇒ **`vundefined` 是真实 UI 缺陷**（非本卡改动面；与 QODER-24 的 `promptBlocked`/semver 闸相邻，建议并单处理）。
+2. `#/pages/products/products` 首屏会打 `/api/admin/products/categories`（FALLBACK 空体），属基线在册形态。
+3. browser-use 的 `click(uid=…)` 对 uni-app H5 的 `uni-button`/`uni-view` 报 `TypeError: this.scrollIntoView is not a function` ⇒ 本项目 H5 取证须用 `evaluate_script` 派发完整事件序列，`click`/`fill` 工具不可依赖（`fill` 只写 DOM 值、不触发 v-model，登录会静默失败）。

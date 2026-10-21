@@ -1,0 +1,30 @@
+# QODER-26F1 恢复动作与验证 2026-10-22T01:10:33+08:00
+# 首次执行于 00:54，本文件为同一命令序列的可复跑再取证（幂等：产物字节完全一致）
+
+$ git show HEAD:docs/evidence/qoder-26/h5/dev-h5-owner.log > /d/Users/ZXQL/wt-agents/_qoder26f1_bak/dev-h5-owner.log.head-23lines
+SHOW_EXIT=0
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder26f1_bak/dev-h5-owner.log.head-23lines docs/evidence/qoder-26/h5/dev-h5-owner.log
+CP_EXIT=0
+
+# 未使用 reset --hard / checkout -- / 编辑器改写
+
+$ git hash-object docs/evidence/qoder-26/h5/dev-h5-owner.log
+6b6cabfedb388a85874eda36639b8528975b3f08
+$ git rev-parse HEAD:docs/evidence/qoder-26/h5/dev-h5-owner.log
+6b6cabfedb388a85874eda36639b8528975b3f08
+
+HASH_EQUAL=yes
+
+$ wc -l < docs/evidence/qoder-26/h5/dev-h5-owner.log
+lines_after=23
+
+$ git diff --stat HEAD
+warning: in the working copy of 'docs/evidence/qoder-26/h5/dev-h5-owner.log', LF will be replaced by CRLF the next time Git touches it
+GIT_DIFF_EXIT=0
+diff_bytes=0
+
+$ git status --porcelain
+?? docs/evidence/qoder-26f1/
+porcelain_lines=1
+# 说明：本文件写于 git status 之后，故 git status 的原始输出不含本新目录；新目录以 ?? 形式出现在 raw/30-closeout.log 的提交前自检里。

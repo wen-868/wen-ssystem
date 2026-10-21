@@ -1802,7 +1802,10 @@ async function saveQuickAdd() {
       stock: parseInt(quickAddForm.stock) || 0,
       status: 'ON',
     })
-    const newId = Number(created?.id ?? created?.data?.id ?? 0)
+    // 后端 createProduct 返回 { id: spuId, spuId, skuId: firstSkuId, spuCode }
+    // （backend/src/services/admin/product.service.ts:513）⇒ 待选数量按 **SKU 主键** 定位，
+    // 不能取 created.id（那是 SPU）；原实现还兜底 `p.name === name`（拿名称当身份）——QODER-26 红线禁止。
+    const newSkuId = Number(created?.skuId ?? created?.data?.skuId ?? 0)
     // 刷新列表并重置筛选，保证新商品一定可见
     selectedCategoryId.value = 0
     productSearchKeyword.value = ''
@@ -1811,11 +1814,11 @@ async function saveQuickAdd() {
     hideNoStock.value = false
     productList.value = []
     await loadProducts()
-    // 自动选中 1 件：优先用返回 id，否则按名称匹配
-    const targetId = newId || (productList.value.find(p => p.name === name)?.id ?? 0)
-    if (targetId) pendingPicks[targetId] = 1
+    // 自动选中 1 件：只按 skuId 在本次刷新出的列表里定位那一行
+    const target = newSkuId > 0 ? productList.value.find((x) => Number(x.skuId) === newSkuId) : undefined
+    if (target) pendingPicks[target.id] = 1
     quickAddShow.value = false
-    uni.showToast({ title: '已新增并选中：' + name, icon: 'none' })
+    uni.showToast({ title: target ? '已新增并选中：' + name : '商品已创建，请在列表中手动选择该规格', icon: 'none' })
   } catch (err: any) {
     uni.showToast({ title: err?.message || '新增商品失败', icon: 'none' })
   } finally {

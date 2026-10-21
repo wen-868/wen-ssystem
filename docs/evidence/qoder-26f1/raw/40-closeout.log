@@ -1,0 +1,41 @@
+# QODER-26F1 提交后终态自检 2026-10-22T01:19:44+08:00
+
+$ git log --oneline -3
+d8e2ae49 docs: QODER-26F1 回传卡 + 回执 + 证据树（git show+cp 恢复 dev-h5 日志、hash 对账、端口与遗留 PID 清理实测）
+a513ff9b docs: QODER-26 负责人复验补笔——自有四门/三构建读数 + H5 双 SKU 运行态实证
+3f70b749 docs: QODER-26 回传卡 + 回执 + 证据树
+
+$ git rev-parse HEAD   # 文档笔①（回传卡+回执+raw/00·10·20·30）
+d8e2ae49376ad77b3086dfd3bb628823c9b86e79
+
+$ git status --porcelain   # 期望：仅本文件 ??
+?? docs/evidence/qoder-26f1/raw/40-closeout.log
+
+$ git show --stat --oneline -1 HEAD | cat   # 本笔只含 7 个 docs 文件
+d8e2ae49 docs: QODER-26F1 回传卡 + 回执 + 证据树（git show+cp 恢复 dev-h5 日志、hash 对账、端口与遗留 PID 清理实测）
+ docs/evidence/qoder-26f1/README.md                 |  55 +++++++++++
+ docs/evidence/qoder-26f1/raw/00-pre-state.log      |  33 +++++++
+ docs/evidence/qoder-26f1/raw/10-restore.log        |  30 ++++++
+ .../qoder-26f1/raw/20-port-and-process.log         |  58 +++++++++++
+ .../qoder-26f1/raw/30-no-business-change.log       |  56 +++++++++++
+ .../R101-QODER-26F1-\345\233\236\344\274\240.md"   | 106 +++++++++++++++++++++
+ .../ACTIVE-\345\233\236\346\211\247-QODER-26F1.md" |  57 +++++++++++
+ 7 files changed, 395 insertions(+)
+
+$ git diff HEAD -- docs/evidence/qoder-26/h5/dev-h5-owner.log | wc -c   # 期望 0
+0
+
+$ git hash-object docs/evidence/qoder-26/h5/dev-h5-owner.log
+6b6cabfedb388a85874eda36639b8528975b3f08
+$ git rev-parse HEAD:docs/evidence/qoder-26/h5/dev-h5-owner.log
+6b6cabfedb388a85874eda36639b8528975b3f08
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c   # 期望 0
+0
+$ git diff --name-only a513ff9b..HEAD -- app-mobile backend | wc -l   # 期望 0（F1 文档笔零业务面）
+0
+
+$ for p in 5173 5174 8388: 复跑端口
+PORT_5173_LISTEN_COUNT=0
+PORT_5174_LISTEN_COUNT=0
+PORT_8388_LISTEN_COUNT=0

@@ -24,7 +24,7 @@
       <view
         class="result-item"
         v-for="item in searchResults"
-        :key="item.skuId"
+        :key="item.id"
         @tap="selectProduct(item)"
       >
         <view class="result-info">

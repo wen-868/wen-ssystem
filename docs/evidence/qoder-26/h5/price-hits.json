@@ -1,0 +1,16 @@
+[
+  {
+    "at": "2026-10-21T15:29:47.829Z",
+    "method": "PUT",
+    "path": "/api/admin/products/41/price",
+    "pathSegment": 41,
+    "body": "{\"wholesalePrice\":94.5}"
+  },
+  {
+    "at": "2026-10-21T15:29:47.846Z",
+    "method": "PUT",
+    "path": "/api/admin/products/42/price",
+    "pathSegment": 42,
+    "body": "{\"wholesalePrice\":546}"
+  }
+]

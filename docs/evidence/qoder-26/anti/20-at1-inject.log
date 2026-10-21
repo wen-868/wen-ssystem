@@ -1,0 +1,3 @@
+INJECT_CASE=AT1 FILE=app-mobile/src/api/modules/products.ts EOL=CRLF NEEDLE_HITS=1
+INJECT_READBACK replace_hits=1 needle_gone=true bytes_before=24634 bytes_after=24642
+INJECT_OK

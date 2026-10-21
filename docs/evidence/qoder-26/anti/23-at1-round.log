@@ -1,0 +1,32 @@
+=== AT1 round (fixed injector) ===
+SHA_BEFORE_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+INJECT_EXIT=0
+INJECT_CASE=AT1 FILE=app-mobile/src/api/modules/products.ts EOL=CRLF NEEDLE_HITS=1
+INJECT_READBACK replace_hits=1 needle_gone=true bytes_before=24634 bytes_after=24642
+INJECT_OK
+VITEST_EXIT=1
+[31m     [31m×[31m 返回 2 行（不得再按 spuId 合并成 1 行）[39m[32m 23[2mms[22m[39m
+[31m     [31m×[31m 两行 id 互不相同，且等于各自的 SKU 行主键[39m[32m 7[2mms[22m[39m
+[31m     [31m×[31m 两行 spuId 相同（详情维度仍是同一个 SPU）[39m[32m 4[2mms[22m[39m
+[31m     [31m×[31m 两行 skuId 各自正确（与 id 同值，不再是 skuCode）[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m 库存按各自 SKU 行读数，不跨规格累加[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m 五档价格按各自 SKU 行读数（改价/核价才不会串档）[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m 其余派生字段逐行独立（预警阈值/规格文案未被合并）[39m[32m 4[2mms[22m[39m
+[31m     [31m×[31m 缺 skuId 的行被丢弃（即便带 skuCode 也不拿来当 id）[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m 丢弃时写守卫日志，点名不得用 spuId/skuCode/barcode/name 顶替[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m 后端把 BIGINT 序列化成数字字符串时仍可判定为主键[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m skuCode/条码形态字符串一律判为无效主键[39m[32m 2[2mms[22m[39m
+[31m     [31m×[31m skuIdOfProduct：id 与 skuId 同值时返回真实 skuId[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m skuIdOfProduct：id 被换成 spuId（维度混用）⇒ 抛错点名"不同值"[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m updateSkuPrice 对同 SPU 的两个 SKU 打两条不同路径（不会写同一行）[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m productsApi.list ⇒ GET /admin/products 并返回两行 SKU（id 41/42、spuId 同为 7）[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m 点卡片用的 spuId 与加购用的 id 是两个不同读数（同 SPU 双 SKU 夹具）[39m[32m 1[2mms[22m[39m
+[31m     [31m×[31m E1 列表映射的 SKU 主键来源行恰好 1 处（反测 AT1 靶）[39m[32m 2[2mms[22m[39m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m17 failed[39m[22m[2m | [22m[1m[32m38 passed[39m[22m[90m (55)[39m
+SHA_AFTER_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+BYTE_IDENTICAL=true
+GIT_DIFF_BYTES=0
+RESTORED_VITEST_EXIT=0
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m55 passed[39m[22m[90m (55)[39m

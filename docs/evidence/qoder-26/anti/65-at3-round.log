@@ -1,0 +1,23 @@
+=== AT3 round ===
+SHA_BEFORE_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+INJECT_EXIT=0
+INJECT_CASE=AT3 FILE=app-mobile/src/api/modules/products.ts EOL=CRLF NEEDLE_HITS=1
+INJECT_READBACK replace_hits=1 needle_gone=false bytes_before=24634 bytes_after=24843
+INJECT_OK
+VITEST_EXIT=1
+[31m     [31m×[31m E6 批次追踪死包装已从 products 模块消失（反测 AT3 靶）[39m[32m 48[2mms[22m[39m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m54 passed[39m[22m[90m (55)[39m
+CONTRACT_EXIT=1
+差集（调用有、注册无）: 2 条，其中具名豁免 1 条
+✗ 未豁免的契约缺口 1 条（逐条点名 + 出处）：
+  /admin/products/batch/*
+SHA_AFTER_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+BYTE_IDENTICAL=true
+GIT_DIFF_BYTES=0
+RESTORED_VITEST_EXIT=0
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m55 passed[39m[22m[90m (55)[39m
+RESTORED_CONTRACT_EXIT=0
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
