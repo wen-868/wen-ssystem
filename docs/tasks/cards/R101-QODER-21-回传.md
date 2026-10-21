@@ -244,7 +244,7 @@ git log --oneline origin/main..HEAD                              # 2 笔：5bbd4
 
 ### D. 证据文件的一处口径更正
 
-`raw/00-sha-worktree-after-before-restore.txt` 实际**只含 7 个改后 SHA**，不含首轮采集时的 `SHA_MATCH` 逐字节比对行（该段被 SHA 列表覆盖、未留档）。README 原先写成「以及…SHA_MATCH 逐字节校验｜7/7 SHA_MATCH」是**超出文件内容的表述**，已更正。还原正确性并不因此失去证明：`anti/1`、`anti/2` 各自带 `SHA_IDENTICAL=YES` + `cmp` 逐字节一致，加上本附录 A 的 `sha256sum -c` **7/7 OK**（独立复跑）⇒ 三条证据闭合。
+`raw/00-sha-worktree-after-before-restore.txt` 实际**只含 7 个改后 SHA**，不含首轮采集时的 `SHA_MATCH` 逐字节比对行（该段被 SHA 列表覆盖、未留档）。README 原先写成「以及…SHA_MATCH 逐字节校验｜7/7 SHA_MATCH」是**超出文件内容的表述**，已更正。还原正确性并不因此失去证明：`anti/1`、`anti/2` 各自的 `SHA_BEFORE == SHA_AFTER ⇒ SHA_IDENTICAL=YES`（同形态 sha256 等值，未用 `cmp`；`anti/1` 的 `17d0f351…33c1` 与 `raw/00` 里 `storage.ts` 的改后 SHA 逐字符相同 ⇒ 两条证据互为交叉印证），加上本附录 A 的 `sha256sum -c` **7/7 OK**（独立复跑）⇒ 三点闭合。
 
 ### E. 本卡 §⑨ 复现命令的一处时效更正
 
