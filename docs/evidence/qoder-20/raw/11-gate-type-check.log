@@ -1,0 +1,10 @@
+##### npm --workspace app-mobile run type-check
+# QODER-20 合并态验收｜采集时刻 2026-10-21T08:09:33+08:00｜cwd=工作树根（npm --workspace 口径）｜HEAD=50b03a51f9d855f08c800c755440c363fcb01c32
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+EXIT=0

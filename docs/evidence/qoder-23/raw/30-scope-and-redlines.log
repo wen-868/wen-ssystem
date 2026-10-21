@@ -1,0 +1,47 @@
+# 范围与红线机检 2026-10-21T22:00:21+08:00
+
+$ git rev-parse HEAD           # 基线（未提交态）
+bc1087eec4b880827518444be36f5874e330e1d3
+$ git rev-parse --abbrev-ref HEAD
+fix/qoder-23-gcm-tag-length
+$ git merge-base --is-ancestor bc1087ee HEAD ; echo IS_ANCESTOR_RC=$?
+IS_ANCESTOR_RC=0
+
+$ git diff --name-only bc1087ee -- .   # 工作树相对基线的改动文件（含未跟踪前）
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/utils/crypto.ts
+app-mobile/tests/storage-crypto.spec.ts
+
+$ git status --porcelain
+ M app-mobile/scripts/gates-baseline.json
+ M app-mobile/src/utils/crypto.ts
+ M app-mobile/tests/storage-crypto.spec.ts
+?? docs/evidence/qoder-23/
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c   # 未提交 ⇒ HEAD==bc1087ee，此项将在提交后复测
+0
+$ git diff bc1087ee -- backend/ | wc -c   # 工作树侧 backend 字节数（必须 0）
+0
+
+$ git diff bc1087ee -- . ':!docs' | wc -l   # 非 docs 改动行数概览
+114
+
+# 行尾形态登记（worktree-crlf；SHA 不得与 git-blob-lf 跨形态比较）
+app-mobile/src/utils/crypto.ts totalLF=940 CRLF=940 bareLF=0
+app-mobile/tests/storage-crypto.spec.ts totalLF=82 CRLF=82 bareLF=0
+app-mobile/scripts/gates-baseline.json totalLF=47 CRLF=47 bareLF=0
+
+$ sha256sum（worktree-crlf 形态）
+97063e803c60a1bf541caf02c72dccd0b9712d2d3868e81afc0032845d0211c6 *app-mobile/src/utils/crypto.ts
+880fda057cc3bd9aa79425dd0e05be260eec2b9ee51f4b6fd34c6aee2a1f6476 *app-mobile/tests/storage-crypto.spec.ts
+83484b9b6f8fd6eb350fbaf26e7cfd047fdc0c3b942302e729423e03a22f8adb *app-mobile/scripts/gates-baseline.json
+
+$ git hash-object（git-blob-lf 形态，autocrlf=true ⇒ 与上方不可直接比）
+92ca8940e4203282c7c805f90c4901c57c020424 app-mobile/src/utils/crypto.ts
+9a0ce9a9b37879d876fb8e8f3ceb231b6db33c92 app-mobile/tests/storage-crypto.spec.ts
+eb820d0b877013d12ef132db126f3a371b92e4ab app-mobile/scripts/gates-baseline.json
+
+$ git ls-files --eol app-mobile/src/utils/crypto.ts app-mobile/tests/storage-crypto.spec.ts app-mobile/scripts/gates-baseline.json
+i/lf    w/crlf  attr/                 	app-mobile/scripts/gates-baseline.json
+i/lf    w/crlf  attr/                 	app-mobile/src/utils/crypto.ts
+i/lf    w/crlf  attr/                 	app-mobile/tests/storage-crypto.spec.ts

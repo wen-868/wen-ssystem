@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+/**
+ * QODER-23F1 反测注入器（放在**树外**，不污染 git status）
+ * 用法：node inject-f1.cjs <target-file> <R-IV|R-TAG>
+ *  - 按整行字面量匹配，命中次数 !== 1 ⇒ 不写文件、exit(2)（协议 §四.1 硬闸）
+ *  - utf8 读 / utf8 写，仅做单行子串替换，不触碰任何 \r\n（目标文件 worktree-crlf 形态）
+ *  - 写入后立刻回读，打印「注入确认行 + 注入后回读 + rc」三件套
+ */
+const fs = require('fs')
+
+const FILE = process.argv[2]
+const ROUND = process.argv[3]
+
+const IV_GUARD = '    if (iv.length !== 12) return null // IV 长度非法 ⇒ 等同校验失败'
+const TAG_GUARD = '    if (tag.length !== 16) return null // 认证标签长度非法 ⇒ 等同校验失败'
+
+const SPEC = {
+  'R-IV': {
+    // 摘掉 QODER-23F1 新增的 IV 规范长度守卫（tag 长度守卫保持在位）
+    needle: IV_GUARD,
+    patch: '    // [QODER-23F1-ANTI-R-IV] IV 长度守卫已摘除（反测临时态，禁止提交）',
+    mustAbsentAfter: IV_GUARD,
+    mustPresentAfter: '[QODER-23F1-ANTI-R-IV]',
+    expectStillThere: TAG_GUARD
+  },
+  'R-TAG': {
+    // 摘掉 QODER-23 的认证标签长度守卫（IV 长度守卫保持在位）
+    needle: TAG_GUARD,
+    patch: '    // [QODER-23F1-ANTI-R-TAG] 长度守卫已摘除（反测临时态，禁止提交）',
+    mustAbsentAfter: TAG_GUARD,
+    mustPresentAfter: '[QODER-23F1-ANTI-R-TAG]',
+    expectStillThere: IV_GUARD
+  }
+}[ROUND]
+
+if (!FILE || !SPEC) {
+  console.error('用法：node inject-f1.cjs <target-file> <R-IV|R-TAG>')
+  process.exit(3)
+}
+
+const before = fs.readFileSync(FILE, 'utf8')
+const hits = before.split(SPEC.needle).length - 1
+console.log(`INJECT_TARGET=${FILE}`)
+console.log(`INJECT_ROUND=${ROUND}`)
+console.log(`INJECT_NEEDLE_HITS=${hits} (期望 1)`)
+if (hits !== 1) {
+  console.error(`✗ 命中次数 ${hits} !== 1 ⇒ 拒绝写文件，本轮反测作废（VOID）`)
+  process.exit(2)
+}
+console.log(`INJECT_FILE_HAS_CRLF=${before.includes('\r\n')} BARE_LF_COUNT=${before.split('\n').length - 1 - (before.match(/\r\n/g) || []).length}`)
+
+const after = before.replace(SPEC.needle, SPEC.patch)
+fs.writeFileSync(FILE, after, 'utf8')
+
+const rb = fs.readFileSync(FILE, 'utf8')
+const present = rb.includes(SPEC.mustPresentAfter)
+const absent = !rb.includes(SPEC.mustAbsentAfter)
+const other = rb.includes(SPEC.expectStillThere)
+console.log(`INJECT_READBACK 注入标记在场=${present} 原守卫行已消失=${absent} 另一处守卫仍在场=${other}`)
+console.log(`INJECT_FILE_LEN before=${before.length} after=${after.length} rb=${rb.length}`)
+console.log(`INJECT_LINES rb_crlf=${(rb.match(/\r\n/g) || []).length} rb_totalLF=${(rb.match(/\n/g) || []).length}`)
+const rc = present && absent && other ? 0 : 4
+console.log(`INJECT_EXIT=${rc}`)
+process.exit(rc)

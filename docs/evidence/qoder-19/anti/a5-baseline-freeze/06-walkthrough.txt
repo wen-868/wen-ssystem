@@ -1,0 +1,26 @@
+### 轮次: ⑤ 基线门自身 —— gates-baseline.json 的 testCount 184 → 200（证明用例数冻结门真会咬人）
+### 目标文件: app-mobile/scripts/gates-baseline.json   门: npm run test
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 05:05:15 +0800（本文件是七步汇总，逐步原始输出见同目录 00-05）
+----------------------------------------
+七步走查:
+  1) 注入前 sha256        -> 00-pre-sha256.txt     ac183c567c76368360240200caa03e48ee4ad5c37b7a81e2bbf26de4331e729e
+  2) cp 备份              -> _scratch/q19-backup-anti-a5-baseline-freeze-gates-baseline.json
+  3) 树外 .mjs latin1 注入 -> 01-inject.txt         命中数=1；5488→5488 字节；CRLF 55→55（混合行尾未被归一，故禁 sed -i）
+  4) 跑门取红             -> 02-test-red.txt       EXIT=1（184 用例全过，仍被基线判红）
+  5) cp 复原              -> 备份原地覆盖
+  6) 复原后 sha256         -> 03-restore-sha256.txt ac183c567c76368360240200caa03e48ee4ad5c37b7a81e2bbf26de4331e729e  与注入前逐字节一致
+  7) 复跑转绿             -> 第 1 次尝试撞上一条与本注入无关的既存随机不稳定用例，如实存档：
+       04-test-green-attempt1-unrelated-flake.txt (EXIT=1) + 04a-attempt1-flake-note.txt（四条无关性依据）
+       05-test-green-attempt2.txt (EXIT=0，10 文件 / 184 用例) ⇒ 转绿
+
+★ 本轮判据读数（关键）:
+  RED         Tests  184 passed (184)
+  RED   —— test 门（用例数冻结）：当前 10 文件 / 184 用例，基线 10 / 200 ——
+  RED   ✗ 用例数劣化：10 文件 / 184 用例 < 基线 10 / 200（少了 0 文件 / 16 用例）⇒ 点名要求恢复或说明
+  GREEN       Tests  184 passed (184)
+  GREEN —— test 门（用例数冻结）：当前 10 文件 / 184 用例，基线 10 / 184 ——
+  GREEN ✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+
+结论: 抬基线 ⇒ 门立刻咬（EXIT=1 且点名少 16 条）；复原 ⇒ 10/184 复绿。
+      本轮全程未改 gates-baseline.json 的任何其它段，终态仍是负责人所定 10/184。

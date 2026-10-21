@@ -1,0 +1,56 @@
+### 命令: git show <rev>:app-mobile/scripts/gates-baseline.json（逐 parent/merge-base/结果取 tests 段）+ 非 tests 段一致性比对
+### 工作目录: D:/Users/ZXQL/wt-agents/QODER-19
+### 时间戳: 2026-10-21 04:41:00 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+### 判据: 冲突只在 gates-baseline.json 的 tests 段解决；其余四段与业务实现未被改写
+### 冲突判定口径: 取 merge-base b，仅当两侧相对 b 都改动了 tests 段才是内容冲突（单侧改动 = 自动合并）
+### 勘误留痕: 本文件首版曾用'两侧值不同即冲突'的错误启发式（会把 merge1 误标为冲突），
+###           已改用 merge-base 双侧改动判据重生成；首次生成未被任何提交或结论引用，无读数损失。
+========================================
+=== merge 0ddcc3d2  (QODER-14F1)  父1=21b465e5  父2=e6801de0  merge-base=dfeedbc0489276153eddc98cd0b1313b6961692c ===
+  tests 段  merge-base    = 5/56
+  tests 段  父1(集成分支侧)= 5/56   相对 base 改动: 否
+  tests 段  父2(被并分支侧)= 6/70   相对 base 改动: 是
+  tests 段  merge 结果     = 6/70
+  ⇒ 内容冲突判定: 仅单侧改动 → git 自动合并，无冲突
+  非 tests 四段 merge结果 vs 父1: 完全一致（本单零改动）
+  结果 tests 段是否等于父1或父2任一侧: 等于父2
+
+=== merge 25663f73  (QODER-15F1)  父1=0ddcc3d2  父2=316f2051  merge-base=dfeedbc0489276153eddc98cd0b1313b6961692c ===
+  tests 段  merge-base    = 5/56
+  tests 段  父1(集成分支侧)= 6/70   相对 base 改动: 是
+  tests 段  父2(被并分支侧)= 7/158   相对 base 改动: 是
+  tests 段  merge 结果     = 8/172
+  ⇒ 内容冲突判定: 双侧均改 tests 段 → 真冲突（已按卡 §二.2 只在集成结果上取累积并）
+  非 tests 四段 merge结果 vs 父1: 完全一致（本单零改动）
+  结果 tests 段是否等于父1或父2任一侧: 两侧都不等 → 人工取并（收敛值）
+
+=== merge bcf4f4e0  (QODER-16R)  父1=25663f73  父2=54ba998a  merge-base=dfeedbc0489276153eddc98cd0b1313b6961692c ===
+  tests 段  merge-base    = 5/56
+  tests 段  父1(集成分支侧)= 8/172   相对 base 改动: 是
+  tests 段  父2(被并分支侧)= 6/64   相对 base 改动: 是
+  tests 段  merge 结果     = 9/180
+  ⇒ 内容冲突判定: 双侧均改 tests 段 → 真冲突（已按卡 §二.2 只在集成结果上取累积并）
+  非 tests 四段 merge结果 vs 父1: 完全一致（本单零改动）
+  结果 tests 段是否等于父1或父2任一侧: 两侧都不等 → 人工取并（收敛值）
+
+=== merge 0963459d  (QODER-17F1)  父1=bcf4f4e0  父2=47c737e8  merge-base=dfeedbc0489276153eddc98cd0b1313b6961692c ===
+  tests 段  merge-base    = 5/56
+  tests 段  父1(集成分支侧)= 9/180   相对 base 改动: 是
+  tests 段  父2(被并分支侧)= 6/60   相对 base 改动: 是
+  tests 段  merge 结果     = 10/184
+  ⇒ 内容冲突判定: 双侧均改 tests 段 → 真冲突（已按卡 §二.2 只在集成结果上取累积并）
+  非 tests 四段 merge结果 vs 父1: 完全一致（本单零改动）
+  结果 tests 段是否等于父1或父2任一侧: 两侧都不等 → 人工取并（收敛值）
+
+=== 终态 note 逐项列源核对（卡 §二.4 禁止只写总数）===
+  note 含 QODER-14F1 逐项来源段: 是
+  note 含 QODER-15F1 逐项来源段: 是
+  note 含 QODER-16R 逐项来源段: 是
+  note 含 QODER-17F1 逐项来源段: 是
+  note 含递进 5/56 → 6/70: 是
+  note 含递进 6/70 → 8/172: 是
+  note 含递进 8/172 → 9/180: 是
+  note 含递进 9/180 → 10/184: 是
+  终态 tests = 10/184（卡 §二.3 要求 10/184）: 一致
+  组成核对 56+14+102+8+4 = 184（卡 §二.3）

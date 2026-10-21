@@ -1,0 +1,44 @@
+场景 3 取证说明（/admin/auth/me 与 /admin/menus/user 500 ⇒ ③ 未取到）
+====================================================================
+装置：mock-backend.mjs（curl POST http://localhost:8080/__mock 切模式）。
+清单 whistle/Charles 本机不可用，用本机 mock 服务改写响应体与状态码，等价能力覆盖清单所需
+（改状态码 500 / 改 permissions 字段 / delay 拉长在途窗口；abort 模式已备但未用）。
+
+【3a 无缓存】配置：login perms=missing、me=500、menus=500；localStorage.clear() 后重新登录进功能页。
+原样读数（evaluate_script，进功能页 1.5s 后）：
+{
+  "bannerPresent": true,
+  "bannerText": "权限信息未取到，已按最小可见集显示，请下拉刷新重试|重试",
+  "labels": ["经营报表","销售排行","库存报表","采购报表","客户报表","财务报表"],
+  "bannerChildren": ["UNI-TEXT.func-banner-text","SPAN.","UNI-TEXT.func-banner-retry","SPAN."],
+  "closeBtnFound": false,
+  "masks": [],            ← 无弹窗/遮罩节点（非阻塞成立）
+  "searchInputUsable": true
+}
+→ 可见集=最小可见集 6 项；文案与 PERMISSION_UNAVAILABLE_NOTICE 单一定义源逐字一致；
+→ **横幅只有「重试」，无 × 关闭按钮**（closeBtnFound=false，子节点枚举佐证）——
+   与 §〇 登记缺口一致；dismissBanner() 已在 store 导出但两页均未挂 × 按钮。判定按字面口径=不通过（该子项）。
+
+【3a 已知边界复现】reload（token 在、me 仍 500）→ console 原样（list_console_messages）：
+  [error] Failed to load resource: 500 (http://localhost:5173/api/admin/auth/me)
+  [error] [app] 恢复登录态失败: 服务器繁忙，请稍后重试(mock)  (src/App.vue)
+  [error] Failed to load resource: 500 (http://localhost:5173/api/admin/menus/user)
+读数：横幅仍由菜单侧驱动出现（文案同上），最小可见集不变 → 清单观察点「非 401 失败时入口门停在 ①，
+提示由菜单侧驱动」实测吻合，按清单口径**如实记录，不判缺陷**。截图 scene-3a-me500-reload.png。
+
+【重试恢复（3a）】menus 撤 mock（=ok）→ 点 .func-banner-retry：
+{ "bannerPresentAfter": false, "labelsAfter": 31, "cacheKeyNow": ["merchant_menu_codes_cache_1001"] }
+→ 横幅消失、渲染收敛；labels=31（本次登录 login.perms=missing，入口门第二道闸把 9 个 gated 写入口
+   失败关闭，属两道闸正常口径；对照组恢复全 ready 后为 42=40 项+2 分区标题，与场景 1 一致）。
+截图 scene-3-retry-banner-gone.png。
+
+【3b 有缓存】写缓存后 menus 再置 500 → reload 重进功能页：
+{
+  "bannerText": "权限信息加载失败，显示的是上次结果|重试",
+  "labels": [31 项上次缓存结果（经营报表/销售排行/…/对账单，含高频 4 项）]
+}
+→ stale 文案与 menu.ts:43 STALE_BANNER_TEXT 逐字一致；可见集=上次缓存结果。截图 scene-3b-stale-banner.png。
+【重试仍失败不闪坏】banner 在时点「重试」（menus 仍 500）→ {"bannerStillPresent":true, 文案不变}。
+【撤 mock 后恢复】menus=ok + me=ok(perms full) → 点重试 → {"bannerGone":true,"labels":31}；
+reload 重登对照组 → {"bannerPresent":false,"labels":40(+2 分区标题=42)} 回到 ready 正常态。
+截图 scene-3-ready-control.png。

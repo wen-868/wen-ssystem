@@ -1,0 +1,37 @@
+### QODER-13F1 · 收尾自检发现的门 3 超时缺陷（修正前最后态读数，未掩盖）
+# 采集时刻：2026-10-21T05:11–05:15（本机）｜代码态 = 实现笔 d9151ae5（已提交）+ docs 笔 50750e39
+# 现象：常驻四门里 type-check / lint / check:contract 全 EXIT=0，唯 test 门红：宿主用例越过 vitest 默认 5000 ms 用例超时
+#   Test Files 1 failed | 4 passed (5) ／ Tests 1 failed | 55 passed (56)
+# 归因（本卡自引入的缺陷，非既有问题）：首版把'扫全 src 求 installSslPinning( 调用点'的 IO 放在 it 体内，
+#   与同一用例内的 GCM 篡改/错误密钥运算叠加；实测该扫描：189 个 .ts/.vue、2.2 MB，冷启动 1121 ms、热 1829 ms，
+#   机器负载高时越过 5000 ms ⇒ 用例红。用例数与断言语义无问题，属实现选址不当（求值时机），故必须修。
+
+$ date -Iseconds
+2026-10-21T05:38:47+08:00
+
+--- 四门原始读数（05:11–05:15 那次全量复跑，去 ANSI 节选）---
+
+##### npm run type-check
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+
+##### npm run lint
+当前 error 20（基线 20）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+
+##### npm run test
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 55 passed (56)
+ FAIL  tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）
+Error: Test timed out in 5000ms.
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+
+##### npm run check:contract
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+
+--- 扫描耗时实测（同语义机检，用于给出归因数字）---
+冷启动：files=189 bytes=2210783 ms=1121
+热启动：files=189 ms=1829
+
+# 处置：见 raw/33（把静态求值移到 import 阶段后的四门复跑）与 anti2/（修正后复跑的三张红档）

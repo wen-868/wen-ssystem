@@ -1,0 +1,14 @@
+QODER-14 · 判据证据 03 —— 基线 test（既有用例面）
+命令：cd D:/Users/ZXQL/wt-agents/QODER-14/app-mobile && node ../node_modules/vitest/vitest.mjs run
+说明：基线 tests/ 目录为空 ⇒ vitest 报 No test files found 并以 1 退出；
+     这是「基线无既有用例」的读数，不是本单引入的失败。
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-14/app-mobile
+
+No test files found, exiting with code 1
+
+include: tests/**/*.spec.ts
+exclude:  **/node_modules/**, **/.git/**
+
+VITEST_EXIT=1

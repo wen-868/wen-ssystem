@@ -280,6 +280,10 @@ function snapshotActiveConversation() {
 const MAX_PERSIST_CONVERSATIONS = 50
 const MAX_PERSIST_MESSAGES = 100
 
+// 本地会话写入失败只提示一次：persistConversations 在每次消息更新都会被调用，
+// 若不去重会在存储写满时刷屏（QODER-21 no-empty 处置）。
+let persistWarned = false
+
 function persistConversations() {
   try {
     const trimmed = [...conversations.value]
@@ -287,7 +291,13 @@ function persistConversations() {
       .slice(0, MAX_PERSIST_CONVERSATIONS)
       .map((c) => ({ ...c, messages: c.messages.slice(-MAX_PERSIST_MESSAGES) }))
     uni.setStorageSync('ai_conversations', trimmed)
-  } catch {}
+  } catch {
+    // 吞异常 = 用户以为历史已保存但实际在丢数据；改为回写状态并显式提示（每次进页面最多一次）。
+    if (!persistWarned) {
+      persistWarned = true
+      uni.showToast({ title: '本地会话保存失败，历史记录可能无法保留', icon: 'none' })
+    }
+  }
 }
 
 function loadConversations() {
@@ -295,7 +305,10 @@ function loadConversations() {
   try {
     const s = uni.getStorageSync('ai_conversations')
     if (Array.isArray(s) && s.length) saved = s
-  } catch {}
+  } catch {
+    // 读取失败原先静默回落成空列表，用户会以为会话被清空；改为显式提示本次按新会话开始。
+    uni.showToast({ title: '本地会话读取失败，本次按新会话开始', icon: 'none' })
+  }
   if (saved.length) {
     conversations.value = saved
     convoSeq = saved.reduce((m, c) => Math.max(m, c.id), 0)
@@ -833,7 +846,7 @@ function speakSystem(text: string) {
   // #endif
   // #ifdef APP-PLUS
   try {
-    ;(plus as any).speech.startSpeak(
+    (plus as any).speech.startSpeak(
       { text, lang: 'zh-CN' },
       () => {},
       () => {}
@@ -858,7 +871,7 @@ function stopSpeak() {
   // #endif
   // #ifdef APP-PLUS
   try {
-    ;(plus as any).speech.stopSpeak?.()
+    (plus as any).speech.stopSpeak?.()
   } catch { /* 忽略 */ }
   // #endif
 }
@@ -884,14 +897,15 @@ function toggleRecording() {
 
 function startRecording() {
   if (recording.value) return
-  const started = (() => {
-    // #ifdef H5
-    return startH5Recording()
-    // #endif
-    // #ifndef H5
-    return startNativeRecording()
-    // #endif
-  })()
+  // 按端取录音启动结果：默认 false，再由条件编译用本端实现覆盖。
+  // （原 IIFE 双 return 形态下非本端的 return 在源码里不可达 ⇒ no-unreachable；行为逐端不变）
+  let started = false
+  // #ifdef H5
+  started = startH5Recording()
+  // #endif
+  // #ifndef H5
+  started = startNativeRecording()
+  // #endif
   if (!started) return
   recording.value = true
   recordingTime.value = 0
@@ -1008,7 +1022,7 @@ function startNativeRecording(): boolean {
   // #ifdef APP-PLUS
   // 原生语音识别（Android 需系统语音引擎；识别失败/无引擎时静默，不影响录音）
   try {
-    ;(plus as any).speech.startRecognize(
+    (plus as any).speech.startRecognize(
       { lang: 'zh-CN', continuous: false },
       (text: string) => {
         const t = String(text || '').trim()
@@ -1060,7 +1074,7 @@ onUnmounted(() => {
     abortController.abort()
     abortController = null
   }
-  ;(() => {
+  (() => {
     // #ifdef H5
     if (h5Recorder && h5Recorder.state !== 'inactive') {
       h5Recorder.stop()

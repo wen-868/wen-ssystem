@@ -1,0 +1,9 @@
+### 轮次: ① cp 复原 + sha256 与注入前逐字节比对
+### 命令: cp $S/q19-a1-request.ts.bak -> app-mobile/src/api/request.ts; sha256sum
+### 时间戳: 2026-10-21 04:47:22 +0800
+----------------------------------------
+d7f2cf731581374bbabdaf8b73eaf814444e77c82c1598fe3fcb46660d3e3723 */d/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/api/request.ts
+注入前 SHA（取自本目录 00-pre-sha256.txt）: d7f2cf731581374bbabdaf8b73eaf814444e77c82c1598fe3fcb46660d3e3723
+比对: PRE=d7f2cf731581374bbabdaf8b73eaf814444e77c82c1598fe3fcb46660d3e3723
+      POST=d7f2cf731581374bbabdaf8b73eaf814444e77c82c1598fe3fcb46660d3e3723
+      结论: 逐字节一致 ⇒ 复原成功

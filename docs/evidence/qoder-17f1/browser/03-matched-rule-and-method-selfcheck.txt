@@ -1,0 +1,33 @@
+$ mcp__browser-use__evaluate_script  （产物层叠规则读取 + 读数方法自证）
+
+函数：遍历 document.styleSheets 抓含 --safe-top 的规则；随后运行时把 uni-page-body 的 --safe-top
+      注成自引用 var(--safe-top) 再移除，验证 computed 读数对"无效变量"确有鉴别力
+
+返回（原样）：
+{
+  "matchedRules": [
+    {
+      "cssText": "uni-page-body { background-color: rgb(245, 245, 245); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", \"Microsoft YaHei\", sans-serif; --safe-top: env(safe-area-inset-top); }",
+      "href": "http://127.0.0.1:5181/assets/index-DpZdr1mN.css",
+      "selector": "uni-page-body"
+    },
+    {
+      "cssText": ".login-page[data-v-3ccac9dd] { min-height: 100vh; background: rgb(240, 245, 255); display: flex; flex-direction: column; padding-top: var(--safe-top); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box; }",
+      "href": "http://127.0.0.1:5181/assets/login-BwfxU_Xk.css",
+      "selector": ".login-page[data-v-3ccac9dd]"
+    }
+  ],
+  "methodSelfCheck": {
+    "normal": "0px",
+    "cyclicValue": "",
+    "afterRemove": "0px",
+    "proves_method_sensitive": true
+  }
+}
+
+读数解释（AGENTS.md R8.1：层叠/变量生效只用 computed 定论）：
+1) 产物里 `--safe-top` 的**定义只有 1 条**（uni-page-body，来自 index-DpZdr1mN.css，= App.vue page{} 的编译目标），
+   env 形态正确；`.login-page` 的使用点在同一份层叠里引用 `var(--safe-top)` ⇒ 定义→使用链完整。
+2) methodSelfCheck：`0px` ⇒（注自引用）`''`（IACVT，变量按定义即无效）⇒（移除）`0px`。
+   说明本目录所有 computed 读数**不是恒绿的死读数**：一旦变量失效，读数立刻变空串，能被这套装具抓到。
+   同时复核了上一轮 QODER-17 的活体反证结论（browser/02 同现象）。

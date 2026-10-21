@@ -1,0 +1,13 @@
+# 单 spec 直跑（校验双范围改写后本 it 为绿，用例数仍 1）2026-10-21 19:12:40
+$ npx vitest run tests/pin-ssl-static.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 14[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:13:07
+[2m   Duration [22m 3.36s[2m (transform 145ms, setup 0ms, import 914ms, tests 14ms, environment 1ms)[22m
+
+VITEST_EXIT=0

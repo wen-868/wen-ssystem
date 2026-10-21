@@ -1,0 +1,182 @@
+# QODER-18 · 改动面全量 diff（工作树 vs 基线 e6801de0）
+# CMD: git diff e6801de0 -- app-mobile/   date=2026-10-21 05:04:16
+
+ app-mobile/scripts/gates-baseline.json        |  4 +-
+ app-mobile/src/api/request.ts                 | 37 -----------
+ app-mobile/tests/request-retry-safety.spec.ts | 93 ++++++++++++++++++++++++++-
+ 3 files changed, 94 insertions(+), 40 deletions(-)
+
+===== 逐字节原文 =====
+
+diff --git a/app-mobile/scripts/gates-baseline.json b/app-mobile/scripts/gates-baseline.json
+index 3884eae7..f1b2490c 100644
+--- a/app-mobile/scripts/gates-baseline.json
++++ b/app-mobile/scripts/gates-baseline.json
+@@ -55,7 +55,7 @@
+   },
+   "tests": {
+     "testFiles": 6,
+-    "testCount": 70,
+-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。QODER-14F1（2026-10-21 重栈轮，实测即基线）：新增本单 request-retry-safety.spec.ts（14 用例：401 GET-only 重试 11 条 + enc_ 镜像键语义 3 条）⇒ 5/56 → 6/70；本卡只在该 spec 内扩断言（④ 被删键集合 4→5、⑫ 五敏感键明文+enc_ 镜像无残留、⑩ 源码兜底 +1 行 toContain），未新增 it ⇒ 用例数仍为 70，与卡内目标 6/70 一致。"
++    "testCount": 71,
++    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。QODER-14F1（2026-10-21 重栈轮，实测即基线）：新增本单 request-retry-safety.spec.ts（14 用例：401 GET-only 重试 11 条 + enc_ 镜像键语义 3 条）⇒ 5/56 → 6/70；本卡只在该 spec 内扩断言（④ 被删键集合 4→5、⑫ 五敏感键明文+enc_ 镜像无残留、⑩ 源码兜底 +1 行 toContain），未新增 it ⇒ 用例数仍为 70，与卡内目标 6/70 一致。QODER-18（2026-10-21 重栈轮，实测即基线）：删除 request.ts 死导出 upload()（原 :219-254，卡内 :211 因 QODER-14F1 在其上方新增 9 行而整体下移）后，在既有 request-retry-safety.spec.ts 内**只新增 1 条静态断言 it（⑭）**——① 源码不再有 upload 的两种导出形态且运行期导出面不含 upload，② 全仓 src+tests 无一处从 api/request 导入 upload；未新开 spec 文件、未改真实上传封装 products.ts uploadImage() / profile.ts uploadAvatar() ⇒ 6/70 → 6/71，与卡内预判 6/71 一致（2026-10-21 实测即基线）。"
+   }
+ }
+diff --git a/app-mobile/src/api/request.ts b/app-mobile/src/api/request.ts
+index c2eaeecb..79c97319 100644
+--- a/app-mobile/src/api/request.ts
++++ b/app-mobile/src/api/request.ts
+@@ -215,40 +215,3 @@ export function put<T = any>(url: string, data?: any): Promise<T> {
+ export function del<T = any>(url: string): Promise<T> {
+   return request<T>({ url, method: 'DELETE' })
+ }
+-
+-export function upload<T = any>(url: string, filePath: string, name = 'file', formData?: Record<string, any>): Promise<T> {
+-  const token = getToken()
+-  const tenantId = getTenantId()
+-  const csrfToken = getCsrfToken()
+-
+-  const headers: Record<string, string> = {}
+-  if (token) headers['Authorization'] = `Bearer ${token}`
+-  if (tenantId) headers['X-Tenant-Id'] = tenantId
+-  // CSRF 防护：上传同样属于写操作，注入 x-csrf-token
+-  if (csrfToken) headers['x-csrf-token'] = csrfToken
+-
+-  return new Promise((resolve, reject) => {
+-    uni.uploadFile({
+-      url: `${BASE_URL}${url}`,
+-      filePath,
+-      name,
+-      formData,
+-      header: headers,
+-      success: (res: any) => {
+-        try {
+-          const data = JSON.parse(res.data)
+-          if (data && 'data' in data) {
+-            resolve(data.data as T)
+-          } else {
+-            resolve(data as T)
+-          }
+-        } catch {
+-          reject(new Error('上传响应解析失败'))
+-        }
+-      },
+-      fail: () => {
+-        reject(new Error('上传失败，请检查网络'))
+-      }
+-    })
+-  })
+-}
+diff --git a/app-mobile/tests/request-retry-safety.spec.ts b/app-mobile/tests/request-retry-safety.spec.ts
+index f2b1667d..4f2d094c 100644
+--- a/app-mobile/tests/request-retry-safety.spec.ts
++++ b/app-mobile/tests/request-retry-safety.spec.ts
+@@ -1,5 +1,5 @@
+ /**
+- * QODER-14 / QODER-14F1 · 401 重试安全性 + 清态补 CSRF 与 merchant_tenant
++ * QODER-14 / QODER-14F1 / QODER-18 · 401 重试安全性 + 清态补 CSRF 与 merchant_tenant + upload() 死导出断言
+  *
+  * 目标：`src/api/request.ts` 的 401 分支。
+  *  - 静默重试（防误杀）**只允许幂等的 GET**；POST/PUT/DELETE 首次 401 直接清态 + 提示 + 跳登录。
+@@ -21,6 +21,8 @@
+  *  ② 删掉 `uni.removeStorageSync('merchant_csrf_token')` ⇒ 用例④（被删键集合）与⑫（镜像键不残留）必红；
+  *  ③ ★ QODER-14F1 删掉 `uni.removeStorageSync('merchant_tenant')` ⇒ 用例④ 集合少了该键、
+  *     用例⑫ 的 `enc_merchant_tenant` 仍残留 ⇒ 两条同时红。
++ *  ④ ★ QODER-18 把死导出 `export function upload(...)` 桩注回 `src/api/request.ts`
++ *     ⇒ 本文件末尾 QODER-18 describe 的静态断言①（源码正则 + 运行期导出面）必红。
+  */
+ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+ 
+@@ -410,3 +412,92 @@ describe('QODER-14 · 401 清态对 enc_ 镜像键的实际效果（storage.ts 
+     expect(storage.getCsrfToken()).toBe('')
+   })
+ })
++
++/**
++ * QODER-18 · `request.ts` 死导出 `upload()` 处置（静态断言）
++ *
++ * 背景：`upload()` 全仓 0 引用（真实上传走 products.ts `uploadImage()` 与 profile.ts
++ * `uploadAvatar()` 两处独立封装，直接调 `uni.uploadFile`），属死代码 ⇒ 本卡删除。
++ * 本用例把「删掉了、且不许再被引回来」做成门禁断言，防止后续又导出一个同名死函数：
++ *  ① `src/api/request.ts` 源码内不再出现 `upload` 的导出形态（`export function upload`
++ *     与 `export { … upload … }` 两种写法都拦）；运行期模块导出面同样不得含 `upload`；
++ *  ② 全仓（`app-mobile/src` + `app-mobile/tests`）不存在**从 `api/request` 导入 `upload`**
++ *     的 import 语句。匹配采用「锚定式」：具名绑定列表 `{…}` 必须紧邻 `from '…/api/request'`，
++ *     且 `[^}]*` 不跨右花括号 ⇒ 既不会把 `uploadImage` / `uploadFile` / `uploadAvatar` 这些
++ *     **真实上传封装**误判成命中，也不会像跨语句的 `[\s\S]*?` 那样把两条无关 import 粘成一条。
++ *     逗号切分后要求绑定名**逐字等于** `upload`（`x as upload` 形态也算命中）。
++ *
++ * 反测面：把 `export function upload(...) { … }` 桩注回 request.ts ⇒ 本用例 ① 的红线
++ * （源码正则）与导出面断言同时红；只注 `export { upload }` 形态则 ① 的第二条正则红。
++ */
++describe('QODER-18 · request.ts 死导出 upload() 已移除且不可回流', () => {
++  // 显式 30s 用例超时：本用例要做「全仓 .ts/.vue 递归 + 逐文件读取 + 一次真实模块动态 import」，
++  // 实测热态 ~2.3s、磁盘冷态（紧随 build:h5 产出大量 dist 文件之后）可冲到 >5s，
++  // 会被 vitest 默认 5000ms 判成 `Test timed out in 5000ms` 的**假红**。
++  // 这里放宽的是**超时**，不是断言强度（三条断言一字未减）⇒ 门依旧能红（见反测证据 anti/06），
++  // 但不会因机器负载把绿态洗成红态。
++  it(
++    '⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload',
++    async () => {
++    const { readFileSync, readdirSync } = await import('node:fs')
++    const { fileURLToPath } = await import('node:url')
++    const { join, relative } = await import('node:path')
++
++    /** 递归收集 .ts/.vue 文件（跳过 node_modules/dist/unpackage，与 check-contract.mjs 同口径） */
++    function collectSourceFiles(dir: string, out: string[] = []): string[] {
++      for (const e of readdirSync(dir, { withFileTypes: true })) {
++        if (e.name === 'node_modules' || e.name === 'dist' || e.name === 'unpackage') continue
++        const p = join(dir, e.name)
++        if (e.isDirectory()) collectSourceFiles(p, out)
++        else if (/\.(ts|vue)$/.test(e.name)) out.push(p)
++      }
++      return out
++    }
++
++    const mobileRoot = fileURLToPath(new URL('..', import.meta.url))
++    const requestTsPath = join(mobileRoot, 'src', 'api', 'request.ts')
++    const requestSrc = readFileSync(requestTsPath, 'utf8')
++
++    // —— 断言 ①：源码里不存在 upload 的任何导出形态 ——
++    expect(requestSrc, 'request.ts 又出现 export function upload').not.toMatch(
++      /export\s+(?:async\s+)?function\s+upload\b/
++    )
++    expect(requestSrc, 'request.ts 又出现 export { … upload … }').not.toMatch(
++      /export\s*\{[^}]*\bupload\b[^}]*\}/
++    )
++
++    // 导出面兜底：静态源码之外再看真实模块命名空间，注回的桩函数一定在这里露头
++    const mod = await importRequest()
++    expect(
++      Object.keys(mod).filter((k) => k === 'upload'),
++      'request.ts 运行期导出面仍含 upload'
++    ).toEqual([])
++
++    // —— 断言 ②：全仓不得有「从 api/request 导入 upload」的 import ——
++    const files = [
++      ...collectSourceFiles(join(mobileRoot, 'src')),
++      ...collectSourceFiles(join(mobileRoot, 'tests'))
++    ]
++    // 锚定式匹配：具名绑定列表 `{…}` 必须紧邻 `from '…/api/request'`，
++    // 且 [^}]* 不跨右花括号 ⇒ 绝不会把两条无关 import 粘成一条而误报。
++    const namedImportRe =
++      /\bimport\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"][^'"]*\/api\/request(?:\/index)?['"]/g
++    const offenders: string[] = []
++    for (const f of files) {
++      const text = readFileSync(f, 'utf8')
++      namedImportRe.lastIndex = 0
++      let m: RegExpExecArray | null
++      while ((m = namedImportRe.exec(text)) !== null) {
++        // 逗号切分后逐项比对「绑定名是否为裸 upload」，故 uploadImage/uploadFile/uploadAvatar 不算命中
++        const binds = m[1]
++          .split(',')
++          .map((s) => s.trim().split(/\s+as\s+/)[0])
++          .filter(Boolean)
++        if (binds.includes('upload')) offenders.push(relative(mobileRoot, f).replace(/\\/g, '/'))
++      }
++    }
++    expect(offenders, `存在从 api/request 导入 upload 的文件：${offenders.join(', ')}`).toEqual([])
++    },
++    30_000
++  )
++})

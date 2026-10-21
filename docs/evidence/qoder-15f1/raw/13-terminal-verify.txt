@@ -1,0 +1,43 @@
+QODER-15F1 终态自检（在已提交态上复跑四门；本文件采集时为唯一未提交项，随本笔 docs 提交后 git status 为空）
+采集时刻 HEAD = bd59a405（docs 笔 bd59a405）
+
+==== 常驻四门复跑（入口只用 npm run <gate>，输出已剥 ANSI 并只留判据行）====
+$ npm run type-check
+  —— type-check（vue-tsc --noEmit，0 新增口径）——
+  vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+  ✓ 无新增类型错误 ⇒ EXIT=0
+  EXIT=0
+
+$ npm run lint
+  —— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+  当前 error 20（基线 20）、warning 12872（基线 12872）
+  ✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+  ⚠ error 级不许长期冻结（当前 20 条）：清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。
+  EXIT=0
+
+$ npm run test
+   Test Files  7 passed (7)
+        Tests  158 passed (158)
+  —— test 门（用例数冻结）：当前 7 文件 / 158 用例，基线 7 / 158 ——
+  ✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+  EXIT=0
+
+$ npm run check:contract
+  —— 契约对账（QODER-1 门 4，口径见文件头注释）——
+  差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+  ✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+  EXIT=0
+
+==== 终态 git 读数 ====
+$ git status --porcelain
+?? docs/evidence/qoder-15f1/raw/13-terminal-verify.txt
+
+$ git log --oneline origin/main..HEAD
+bd59a405 docs: QODER-15F1 低价标红判定归一化回传卡/回执/证据（四门读数+反测+浏览器修复前后对比）
+477acdca fix: 价格异常页低价标红判定经 toNum 归一化杜绝字符串字典序误判
+241f1f15 docs: QODER-15 收尾自检证据
+86fc7fce docs: QODER-15 价格异常页数值入口止血回传卡/回执/证据
+81ef5c07 fix: 价格异常页金额显示接入 fmtAmount 数值归一化工具止血白屏
+
+$ git rev-parse --abbrev-ref HEAD
+fix/qoder-15f1-price-compare-restack

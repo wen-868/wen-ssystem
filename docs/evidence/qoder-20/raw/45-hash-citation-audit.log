@@ -1,0 +1,38 @@
+##### QODER-20 · raw/45 文内引用哈希逐条验真（自证纪律机检）
+# 采集 2026-10-21T08:58:49+08:00｜HEAD=24590d15
+# 判据：卡/回执/README 里出现的每一个哈希必须是本仓可解析对象；唯一例外是被明确标注为「凭空写的假哈希」的那一个（a1ad1cbf），它只能以「违规样例」身份出现。
+
+$ grep -hoE '[0-9a-f]{40}' <卡 + 回执> | sort -u | 逐个 git cat-file -e
+  REAL40 24590d15e565b05e4675ca46713151705f87bbd7
+  REAL40 50b03a51f9d855f08c800c755440c363fcb01c32
+  REAL40 602d9d362126a38107a5bbb5422318e6c2fc68f6
+  REAL40 99371862df326d3de3457a4d621d7494c75c59c4
+  REAL40 9ff7a47c6582f8c0db325a88f47a3292d4114996
+  REAL40 bd7e158f348bfc4de56bf1577e1d9b09ff18676b
+  REAL40 c1e4cd405c62a5a7cf6d8bb391e6ee25092fa269
+  REAL40 c3942309cd9277bde711ec3341f3bdaad4fdd2cb
+  REAL40 cdf16ce4a553bc0dc1659f65957ba3d31efa2d5b
+  REAL40 df5834013432ec4484a929c9252adf77ac2b245a
+
+$ grep -hoE '[0-9a-f]{8}' <卡 + 回执 + README> | sort -u | 逐个 git rev-parse --verify
+  REAL8  21b465e5
+  REAL8  24590d15
+  REAL8  50b03a51
+  REAL8  602d9d36
+  REAL8  8287f2bd
+  REAL8  99371862
+  REAL8  9ff7a47c
+  UNVERIFIED8 a1ad1cbf   # 预期只有 a1ad1cbf（我在卡 §九.0 自报的假哈希样例）
+  REAL8  bd7e158f
+  REAL8  c1e4cd40
+  REAL8  c3942309
+  REAL8  cdf16ce4
+  REAL8  df583401
+
+$ git rev-parse HEAD   # 分支尖端 = 补哈希笔（文内不写死，按纪律用命令表达）
+24590d15e565b05e4675ca46713151705f87bbd7
+
+$ git status --porcelain   # 本笔提交前应只有以下 3 个文件
+ M "docs/tasks/cards/R101-QODER-20-\345\233\236\344\274\240.md"
+ M "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-20.md"
+?? docs/evidence/qoder-20/raw/45-hash-citation-audit.log

@@ -1,0 +1,71 @@
+# QODER-22 反测轮 B1（v2）：2026-10-21 19:35:22
+## 0. 注入前（同形态 SHA 基线 = 工作树 CRLF 形态，非 git blob 形态）
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 */d/Users/ZXQL/wt-agents/QODER-22/app-mobile/src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 */d/Users/ZXQL/wt-agents/_scratch/qoder-22/pin-ssl.ts.PRE
+PRE_BACKUP_MATCHES_CURRENT=yes
+## 1. 注入（cwd=仓库根，node 参数走 Windows 路径形态）
+$ node D:/Users/ZXQL/wt-agents/_scratch/qoder-22/inject.cjs B1
+INJECT_MODE=B1
+INJECT_HITS=2 EXPECT=2
+AFTER_head_2026-09-15=0 FULL_2026-09-15=0
+AFTER_head_trustasia=0 FULL_trustasia=0
+AFTER_head_2026-11-11=0 FULL_2026-11-11=1
+AFTER_head_2026-12-22=2 FULL_2026-12-22=3
+INJECT_WRITTEN=1
+INJECT_EXIT=0
+## 2. 注入后红跑（须红且点名对应断言）
+$ npx vitest run tests/pin-ssl-static.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+ [31m❯[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 22[2mms[22m[39m
+[31m     [31m×[31m 全文无失效旧文案、文件头保留现网叶子到期日，且 installSslPinning 调用点恒为 0[39m[32m 18[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/pin-ssl-static.spec.ts[2m > [22mpin-ssl 在册事实静态守卫（QODER-22 双范围）[2m > [22m全文无失效旧文案、文件头保留现网叶子到期日，且 installSslPinning 调用点恒为 0
+[31m[1mAssertionError[22m: pin-ssl.ts 文件头缺少 api.onepan.cn 叶子到期日 2026-11-11: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/pin-ssl-static.spec.ts:[2m94:100[22m[39m
+    [90m 92|[39m     )[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m 93|[39m     [90m// ③ 现网叶子到期日必须在文件头在册（api / m 两条；正向 ⇒ 只认文件头块）[39m
+    [90m 94|[39m     expect(PIN_SSL_HEAD.includes('2026-11-11'), 'pin-ssl.ts 文件头缺少 api.…
+    [90m   |[39m                                                                                                    [31m^[39m
+    [90m 95|[39m     expect(PIN_SSL_HEAD.includes('2026-12-22'), 'pin-ssl.ts 文件头缺少 m.on…
+    [90m 96|[39m     [90m// ④ 未接线：调用点必须为空[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:35:31
+[2m   Duration [22m 1.86s[2m (transform 106ms, setup 0ms, import 528ms, tests 22ms, environment 0ms)[22m
+
+VITEST_EXIT=1
+## 3. cp 复原（绝不用 sed -i）
+RESTORE_EXIT=0
+SHA_BEFORE=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_AFTER=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_MATCH=yes
+## 4. 复原后复跑（须绿）
+$ npx vitest run tests/pin-ssl-static.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 60[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:35:44
+[2m   Duration [22m 1.84s[2m (transform 99ms, setup 0ms, import 790ms, tests 60ms, environment 0ms)[22m
+
+VITEST_EXIT_AFTER_RESTORE=0
+## 5. 复原后工作树状态（cwd=app-mobile ⇒ pathspec 相对；应 0 行）
+GIT_STATUS_LINES=0

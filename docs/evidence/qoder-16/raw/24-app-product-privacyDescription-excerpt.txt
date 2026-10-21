@@ -1,0 +1,27 @@
+--- product manifest.json privacyDescription excerpt ---
+  "arm64-v8a"
+        ]
+      },
+      "apple": {
+        "appid": "com.zhixiang.app",
+        "dSYMs": false,
+        "privacyDescription": {
+          "NSCameraUsageDescription": "用于扫描商品条码与二维码（扫码入库、扫码核销优惠券、扫码查溯源），以及在门店现场拍摄销售小票、盘点与损耗单据照片并上传留存。",
+          "NSMicrophoneUsageDescription": "用于AI经营助手语音输入：按住说话录制您的口述内容并上传，转写为文字后生成经营问答与开单草稿。",
+          "NSPhotoLibraryUsageDescription": "用于从相册选取已有照片，上传为商品主图与详情图、门店与个人头像、损耗及采购单据凭证、客户对账附件。",
+          "NSLocationWhenInUseUsageDescription": "用于在App运行期间定位您所在的门店，以便按当前门店展示库存、销售与配送数据，并核对门店档案中登记的门店经纬度。",
+          "NSBluetoothAlwaysUsageDescription": "用于搜索并连接门店的蓝牙热敏打印机，将销售单、退货单、收款单等小票直接打印输出；连接与打印在App使用期间进行。",
+          "NSSpeechRecognitionUsageDescription": "用于AI经营助手把您的语音转写为文字（例如“给张三开一箱52度白酒”），转写结果仅用于生成问答回复与单据草稿。"
+        }
+      }
+    },
+    "networkTimeout": {
+      "request": 30000,
+      "connectSocket": 30000,
+      "uploadFile": 60000,
+      "downloadFile": 60000
+    },
+    "statusbar": {
+      "immersed": "supportedDevice",
+      "style": "dark",
+      "backgroun

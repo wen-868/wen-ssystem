@@ -1,0 +1,54 @@
+# 收尾自检（采集时间 2026-10-21 02:24:42 +0800；本文件自身此刻为未跟踪，随后单独 docs 笔提交，提交后 git status 为空）
+== git log --oneline origin/main..HEAD ==
+a8a3b7b9 docs: QODER-13 回传卡与回执及指纹采集/反测/四门证据落盘
+1b61811b fix: pin-ssl四条在册指纹更新为2026-10-21现网Let's Encrypt值（不接线）+island-aftersale basis行号64→67+guard-rbac-wiring新增--no-stale可选开关
+
+== git diff --name-only 21b465e5..HEAD（改动面=卡点名3源文件+本单docs/证据）==
+app-mobile/src/config/permission-gates.ts
+app-mobile/src/utils/pin-ssl.ts
+backend/scripts/guard-rbac-wiring.mjs
+docs/evidence/qoder-13/anti/anti-attempt1-anchor-mismatch.log
+docs/evidence/qoder-13/anti/anti-inject-nostale-red.log
+docs/evidence/qoder-13/anti/anti-inject-strict-only-green.log
+docs/evidence/qoder-13/anti/anti-no-stale-full-run.log
+docs/evidence/qoder-13/anti/attempt1-anchor-mismatch.note.txt
+docs/evidence/qoder-13/anti/attempt1-invalid-nostale-run.log
+docs/evidence/qoder-13/anti/attempt1-invalid-strict-run.log
+docs/evidence/qoder-13/raw/01-pin-spki-api.onepan.cn.log
+docs/evidence/qoder-13/raw/02-pin-spki-m.onepan.cn.log
+docs/evidence/qoder-13/raw/03-rg-trustasia-and-install-callpoints.log
+docs/evidence/qoder-13/raw/04-basis-lineno-rg.log
+docs/evidence/qoder-13/raw/05-guard-strict-exit0.log
+docs/evidence/qoder-13/raw/05b-guard-strict-full-output.log
+docs/evidence/qoder-13/raw/06-guard-strict-nostale-exit0.log
+docs/evidence/qoder-13/raw/06b-guard-strict-nostale-full-output.log
+docs/evidence/qoder-13/raw/07-backend-wiring-tests.log
+docs/evidence/qoder-13/raw/08-new-pinned-certs-values.log
+docs/evidence/qoder-13/raw/09-gate-type-check.log
+docs/evidence/qoder-13/raw/10-gate-lint.log
+docs/evidence/qoder-13/raw/11-gate-test.log
+docs/evidence/qoder-13/raw/12-gate-check-contract.log
+docs/evidence/qoder-13/raw/13-git-diff-snapshot.log
+"docs/tasks/cards/R101-QODER-13-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-13.md"
+
+== git diff --stat 21b465e5..HEAD -- backend/（应仅 guard 脚本，台账/CI 0 改动）==
+ backend/scripts/guard-rbac-wiring.mjs | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+== 台账与 CI 未被改动证明 ==
+(空=0 改动)
+
+== git diff --stat 21b465e5..HEAD -- app-mobile/src（应仅 pin-ssl.ts 与 permission-gates.ts）==
+ app-mobile/src/config/permission-gates.ts |  2 +-
+ app-mobile/src/utils/pin-ssl.ts           | 12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+== gates-baseline.json 未动 ==
+(空=0 改动)
+
+== 任务书原件未动（与 origin/main 同哈希）==
+(空=0 改动)
+
+== 提交前 git status --porcelain ==
+?? docs/evidence/qoder-13/raw/16-final-selfcheck.log

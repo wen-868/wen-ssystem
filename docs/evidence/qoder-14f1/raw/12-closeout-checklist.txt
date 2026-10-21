@@ -1,0 +1,298 @@
+# 收尾自检（共享协议 §7 逐条）· QODER-14F1
+# 工作目录：D:/Users/ZXQL/wt-agents/QODER-14   时间：2026-10-21T02:28:41+08:00
+# 卡基线：dfeedbc0   开工尖端：a5294668   实现笔：8c09cfbd   证据 docs 笔：da6db146
+# 本文件由收尾 docs 笔携带（该笔自身哈希不可见于本行以上，见文末 git log）
+# ------------------------------------------------------------------
+$ git status --porcelain                      # 期望：空（本文件落盘后由最后一笔 docs 携带，故此处仅列它自己）
+?? docs/evidence/qoder-14f1/raw/12-closeout-checklist.txt
+
+$ git log --oneline origin/main..HEAD         # 笔数与哈希
+da6db146 docs: QODER-14F1 回传卡、ACTIVE 回执与 401 清态补删 merchant_tenant 的判据证据
+8c09cfbd fix: 401 清态补删 merchant_tenant 并将五敏感键无残留做成断言（QODER-14F1）
+a5294668 docs: QODER-14 收尾自检与改动面自证证据（协议 §6 逐条输出）
+e29b801e docs: QODER-14 回传卡与 401 重试安全性证据（判据读数 + 两条反测）
+5dbf1453 fix: 401 静默重试仅允许 GET 且清态补删 CSRF 令牌（QODER-14）
+
+$ git rev-parse --abbrev-ref HEAD; git rev-parse HEAD
+fix/qoder-14f1-auth-cleanup-restack
+da6db146810892809c0c71068175aa7d5c3c6d70
+
+$ git rev-parse origin/main
+21b465e5c2a9defd0e3f65809a4b2ba4bc6c0e18
+
+## 改动面（协议 §7：改动面 = 卡点名文件，不多一个）
+$ git diff --name-only a5294668..HEAD          # 本卡三笔的全部改动面
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+docs/evidence/qoder-14f1/README.md
+docs/evidence/qoder-14f1/anti/a-get-gate/00-pre-sha256.txt
+docs/evidence/qoder-14f1/anti/a-get-gate/01-red.txt
+docs/evidence/qoder-14f1/anti/a-get-gate/02-restore-sha256.txt
+docs/evidence/qoder-14f1/anti/a-get-gate/03-green.txt
+docs/evidence/qoder-14f1/anti/b-tenant-clear/00-pre-sha256.txt
+docs/evidence/qoder-14f1/anti/b-tenant-clear/01-red.txt
+docs/evidence/qoder-14f1/anti/b-tenant-clear/02-restore-sha256.txt
+docs/evidence/qoder-14f1/anti/b-tenant-clear/03-green.txt
+docs/evidence/qoder-14f1/raw/01-pre-type-check.txt
+docs/evidence/qoder-14f1/raw/02-pre-lint.txt
+docs/evidence/qoder-14f1/raw/03-pre-test.txt
+docs/evidence/qoder-14f1/raw/04-pre-check-contract.txt
+docs/evidence/qoder-14f1/raw/05-post-type-check.txt
+docs/evidence/qoder-14f1/raw/06-post-lint.txt
+docs/evidence/qoder-14f1/raw/07-post-lint-per-rule.txt
+docs/evidence/qoder-14f1/raw/08-post-test.txt
+docs/evidence/qoder-14f1/raw/09-post-check-contract.txt
+docs/evidence/qoder-14f1/raw/10-post-build-h5.txt
+docs/evidence/qoder-14f1/raw/11-change-scope.txt
+"docs/tasks/cards/R101-QODER-14F1-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-14F1.md"
+
+$ git diff --name-only a5294668..8c09cfbd      # 实现笔（代码面）改动面 = 卡点名 3 文件
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+
+$ git diff --stat a5294668..HEAD
+ app-mobile/scripts/gates-baseline.json             |   6 +-
+ app-mobile/src/api/request.ts                      |   8 +
+ app-mobile/tests/request-retry-safety.spec.ts      |  79 +++-
+ docs/evidence/qoder-14f1/README.md                 |  80 ++++
+ .../qoder-14f1/anti/a-get-gate/00-pre-sha256.txt   |   8 +
+ .../evidence/qoder-14f1/anti/a-get-gate/01-red.txt | 445 +++++++++++++++++++++
+ .../anti/a-get-gate/02-restore-sha256.txt          |  10 +
+ .../qoder-14f1/anti/a-get-gate/03-green.txt        |  38 ++
+ .../anti/b-tenant-clear/00-pre-sha256.txt          |   8 +
+ .../qoder-14f1/anti/b-tenant-clear/01-red.txt      | 385 ++++++++++++++++++
+ .../anti/b-tenant-clear/02-restore-sha256.txt      |  10 +
+ .../qoder-14f1/anti/b-tenant-clear/03-green.txt    |  36 ++
+ docs/evidence/qoder-14f1/raw/01-pre-type-check.txt |  13 +
+ docs/evidence/qoder-14f1/raw/02-pre-lint.txt       |  14 +
+ docs/evidence/qoder-14f1/raw/03-pre-test.txt       |  43 ++
+ .../qoder-14f1/raw/04-pre-check-contract.txt       |  18 +
+ .../evidence/qoder-14f1/raw/05-post-type-check.txt |  13 +
+ docs/evidence/qoder-14f1/raw/06-post-lint.txt      |  14 +
+ .../qoder-14f1/raw/07-post-lint-per-rule.txt       |  28 ++
+ docs/evidence/qoder-14f1/raw/08-post-test.txt      |  40 ++
+ .../qoder-14f1/raw/09-post-check-contract.txt      |  19 +
+ docs/evidence/qoder-14f1/raw/10-post-build-h5.txt  |  22 +
+ docs/evidence/qoder-14f1/raw/11-change-scope.txt   |  92 +++++
+ .../R101-QODER-14F1-\345\233\236\344\274\240.md"   | 174 ++++++++
+ .../ACTIVE-\345\233\236\346\211\247-QODER-14F1.md" |  69 ++++
+ 25 files changed, 1650 insertions(+), 22 deletions(-)
+
+## 按卡要求：git diff d1a6adcf..HEAD -- backend/  = 0
+$ git diff d1a6adcf..HEAD -- backend/ | wc -c
+0
+$ git diff --name-only d1a6adcf..HEAD -- backend/   # 应为空
+
+## 按卡要求：git diff <卡基线>..HEAD -- app-mobile/src
+$ git diff --stat a5294668..HEAD -- app-mobile/src
+ app-mobile/src/api/request.ts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+$ git diff --stat dfeedbc0..HEAD -- app-mobile/src   # 含分支上旧 QODER-14 实现笔
+ app-mobile/src/api/request.ts | 21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
+
+## 常驻门禁本体零改动（本轮未借入/未删除 harness）
+$ git diff --stat a5294668..HEAD -- app-mobile/vitest.config.ts app-mobile/.eslintrc.cjs app-mobile/scripts/lint-gate.mjs app-mobile/scripts/test-gate.mjs app-mobile/scripts/type-check-gate.mjs app-mobile/scripts/check-contract.mjs app-mobile/package.json package-lock.json   # 期望无输出
+（以上无输出 ⇒ 门禁本体与依赖清单 0 改动；本轮 harness 借入 0 次、删除 0 次）
+
+## 旧证据目录未被改写（协议 §5「证据不覆盖历史」）
+$ git diff --stat a5294668..HEAD -- docs/evidence/qoder-14   # 期望无输出
+$ ls docs/evidence/qoder-14/anti  # 旧目录仍是 a-get-gate + b-csrf-clear
+a-get-gate
+b-csrf-clear
+
+## 任务书原件与 ACTIVE.md 未动
+$ git status --porcelain docs/tasks/inbox   # 期望只列本轮新增的 ACTIVE-回执-QODER-14F1.md（已提交 ⇒ 空）
+$ ls docs/tasks/inbox | grep -i qoder-14
+ACTIVE-回执-QODER-14.md
+ACTIVE-回执-QODER-14F1.md
+QODER-14-auth-retry-safety.md
+QODER-14F1-auth-cleanup-restack.md
+$ git log --oneline -1 -- docs/tasks/inbox/QODER-14F1-auth-cleanup-restack.md   # 该文件不在本工作树（主仓派单态），故无记录
+
+## 四门各跑一遍并留 EXIT（终态复跑，命令均在 app-mobile/ 内）
+$ npm run type-check
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+EXIT=0
+（以上为改后终态读数；本轮四门在实现笔后即为此态，收尾笔只含 docs 文件，不影响门读数）
+$ npm run lint
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 20（基线 20）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+⚠ error 级不许长期冻结（当前 20 条）：清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。
+EXIT=0
+（以上为改后终态读数；本轮四门在实现笔后即为此态，收尾笔只含 docs 文件，不影响门读数）
+$ npm run test
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-14/app-mobile
+
+ ✓ tests/api-base-env.spec.ts (3 tests) 1686ms
+     ✓ 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用  1672ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 29ms
+ ✓ tests/request-retry-safety.spec.ts (14 tests) 1656ms
+     ✓ ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾  1005ms
+     ✓ ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键  422ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 763ms
+ ✓ tests/storage-crypto.spec.ts (4 tests) 1792ms
+     ✓ 派生密钥为 32 字节且同输入可复现  768ms
+     ✓ tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）  873ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 709ms
+
+ Test Files  6 passed (6)
+      Tests  70 passed (70)
+   Start at  01:54:42
+   Duration  19.70s (transform 16.97s, setup 0ms, import 26.96s, tests 6.63s, environment 3ms)
+
+—— test 门（用例数冻结）：当前 6 文件 / 70 用例，基线 6 / 70 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+EXIT=0
+（以上为改后终态读数；本轮四门在实现笔后即为此态，收尾笔只含 docs 文件，不影响门读数）
+$ npm run check:contract
+
+> zhixiang-app-mobile@1.0.0 check:contract
+> node scripts/check-contract.mjs
+
+—— 契约对账（QODER-1 门 4，口径见文件头注释）——
+A.2 口径① 引号内 '/admin/...' 出现次数（本脚本非注释行口径）: 292
+A.2 口径② 其中位于调用/ url: 行内的出现次数:              283
+A.2 口径③ 去重后的调用路径数:                              204
+后端注册端点（routes/*.routes.ts 抽得，含全动词）:          1498
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+EXIT=0
+（以上为改后终态读数；本轮四门在实现笔后即为此态，收尾笔只含 docs 文件，不影响门读数）
+
+## ★ 终态现场复跑（本文件生成时真跑，非复用上面日志；时间 2026-10-21T02:29:40+08:00）
+$ npm run type-check
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+EXIT=0
+
+$ npm run lint
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 20（基线 20）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+⚠ error 级不许长期冻结（当前 20 条）：清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。
+EXIT=0
+
+$ npm run test
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-14/app-mobile
+
+ ✓ tests/api-base-env.spec.ts (3 tests) 648ms
+     ✓ 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用  633ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 20ms
+ ✓ tests/request-retry-safety.spec.ts (14 tests) 600ms
+     ✓ ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾  427ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 115ms
+ ✓ tests/storage-crypto.spec.ts (4 tests) 550ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 331ms
+
+ Test Files  6 passed (6)
+      Tests  70 passed (70)
+   Start at  02:34:12
+   Duration  4.33s (transform 4.10s, setup 0ms, import 5.63s, tests 2.26s, environment 3ms)
+
+—— test 门（用例数冻结）：当前 6 文件 / 70 用例，基线 6 / 70 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+EXIT=0
+
+$ npm run check:contract
+
+> zhixiang-app-mobile@1.0.0 check:contract
+> node scripts/check-contract.mjs
+
+—— 契约对账（QODER-1 门 4，口径见文件头注释）——
+A.2 口径① 引号内 '/admin/...' 出现次数（本脚本非注释行口径）: 292
+A.2 口径② 其中位于调用/ url: 行内的出现次数:              283
+A.2 口径③ 去重后的调用路径数:                              204
+后端注册端点（routes/*.routes.ts 抽得，含全动词）:          1498
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+EXIT=0
+
+$ npm --workspace app-mobile run build:h5   # 在仓库根执行
+npm error No workspaces found:
+npm error   --workspace=app-mobile
+npm error A complete log of this run can be found in: C:\Users\XIONG\AppData\Local\npm-cache\_logs\2026-10-20T18_34_29_993Z-debug-0.log
+EXIT=1
+
+### 作废登记（不改写上面原始读数）
+上一条 `npm --workspace app-mobile run build:h5` 的 EXIT=1 **作废**：命令本身没跑起来——
+我把「在仓库根执行的 workspace 命令」放在了 `cd app-mobile` 之后的同一 shell 里，
+npm 报 `No workspaces found: --workspace=app-mobile`（未进入 uni 编译，非构建失败）。
+按协议 §6/§9「凡门没跑/注入没成的读数一律作废另立 note，不改写原始证据」处置，正确读数见下一条。
+
+### ★ 修正复跑：build:h5（工作目录 = 仓库根 D:/Users/ZXQL/wt-agents/QODER-14）
+$ npm --workspace app-mobile run build:h5
+
+> zhixiang-app-mobile@1.0.0 build:h5
+> uni build -p h5
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+​
+/static/icons/hd-scan.svg referenced in /static/icons/hd-scan.svg didn't resolve at build time, it will remain unchanged to be resolved at runtime​
+
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
+EXIT=0
+
+## 收尾结论（执行方自评，不含验收结论）
+- 四门终态现场复跑：type-check / lint / test / check:contract 全部 EXIT=0（原始输出见上面「★ 终态现场复跑」段）
+- build:h5 终态现场复跑：见「★ 修正复跑」段（前一条 EXIT=1 为执行目录写错，已作废登记）
+- 反测两条：红→cp 复原→SHA 逐字节一致→复跑绿，见 anti/a-get-gate/ 与 anti/b-tenant-clear/
+- 本文件是 QODER-14F1 的第三笔（1 impl + 2 docs）；本文件不印自身提交后的 `git status`（不可自含），终态空树由该笔提交本身保证，复验命令：`git status --porcelain` 与 `git log --oneline origin/main..HEAD`（见回传卡 §⑨）

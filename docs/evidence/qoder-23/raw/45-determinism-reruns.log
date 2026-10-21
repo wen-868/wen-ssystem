@@ -1,0 +1,10 @@
+# 确定性复跑：连跑 8 次常驻门 3（npm --workspace app-mobile run test），验旧写法的概率红面已消除 2026-10-21T22:10:11+08:00
+# 说明：这不是用统计替代证明——新用例的确定性是**结构性的**（探针 D3/D4：翻转 tag[0] 后差异恰 1 个字节且在被比较区内 ⇒ diff=1 恒成立；断言 :60/:64/:79 把解码长度钉成常量），8/8 只是复跑侧证。
+RUN=1 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 516ms
+RUN=2 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 508ms
+RUN=3 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 1018ms
+RUN=4 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 606ms
+RUN=5 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 981ms
+RUN=6 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 711ms
+RUN=7 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 749ms
+RUN=8 EXIT=0 ｜      Tests  187 passed (187) ｜ ✓ tests/storage-crypto.spec.ts (5 tests) 435ms

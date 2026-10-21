@@ -1,0 +1,19 @@
+截图未产出说明（screenshot-blocked.note.txt）
+=========================================
+browser-use MCP 的 take_screenshot 在本机连续两次（png 全页 / jpeg 视口）均返回：
+  NATIVE_BROWSER_VIEWPORT_UNAVAILABLE
+  In-app Browser did not provide a visible surface with a positive viewport within 1000ms
+  (viewport=0x0, visible=false, attached=false, cdpAttached=true, visibilityState=hidden)
+
+根因：当前移动端子代理环境没有可挂载的可见浏览器渲染表面（无头/无可见窗口）。
+影响范围：仅截图这一视觉产物无法落盘；computed 值取证不受影响——
+  navigate_page + evaluate_script 均正常返回，见同目录 01/02/03。
+
+复现命令（人工在有可见浏览器的环境）：
+  1) 构建：cd <工作树> && npm --workspace app-mobile run build:h5
+  2) 起服务：node -e "...(见 raw/11-server-source.txt)...".listen(5179)  指向 app-mobile/dist/build/h5
+  3) 打开 http://127.0.0.1:5179/ （无 token 会跳登录页）
+  4) 控制台执行：getComputedStyle(document.querySelector('uni-page-body')).getPropertyValue('--safe-top')
+     期望非空可解析值（桌面 0px，带刘海真机为安全区高度）。
+
+按协议 §7：此项如实登记「截图未验（阻塞：无可见浏览器表面）」，不以「通过」代替。

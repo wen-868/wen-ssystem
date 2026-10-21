@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-15/app-mobile
+
+ ✓ tests/price-anomaly-static.spec.ts (7 tests) 57ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  23:55:05
+   Duration  4.04s (transform 400ms, setup 0ms, import 501ms, tests 57ms, environment 1ms)
+
+GREEN_EXIT=0

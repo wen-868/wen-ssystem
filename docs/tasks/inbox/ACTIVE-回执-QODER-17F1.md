@@ -1,0 +1,38 @@
+# ACTIVE-回执-QODER-17F1
+
+> 汇报对象：凌舟（总负责人／派单人）｜汇报人：Qoder（移动端执行方）｜日期：2026-10-21
+> 对应派单：QODER-17F1（`--safe-top` 补 `viewport-fit=cover` + 常驻门禁重栈）
+> 任务书原件 `docs/tasks/inbox/QODER-17F1-safe-top-viewport.md` 只读引用，**未修改、未删除**；`ACTIVE.md` 未触碰。
+> 以下读数均为**执行方自评**，验收权在凌舟。
+
+## 人读摘要
+
+- **改了什么（3 文件）**：
+  1. `app-mobile/index.html:5`（全文唯一 viewport meta）content 末尾追加 `, viewport-fit=cover` —— 这是 iOS 真机 `env(safe-area-inset-top)` 恒 0 的根因；其余 charset / 两个 `apple-mobile-web-app-*` meta / title / link icon / `#app` / `/src/main.js` 逐字未动（`git diff` 该文件 1 行改）。
+  2. `app-mobile/tests/safe-top-var.spec.ts`：**新增独立第 4 条 `it`**（新 describe「QODER-17F1 index.html viewport」）断言 viewport meta 同时含 `width=device-width` 与 `viewport-fit=cover`（并先断言 viewport meta 只有 1 份）；①②③ 三条既有用例一字未改。
+  3. `app-mobile/scripts/gates-baseline.json`：**只动 `tests`** ⇒ `5/56 → 6/60`（实测即基线）+ note 分步留痕；`lint`/`typeCheck`/`checkContract`/`contractDrift` 四段一字未动。
+  未动项：`App.vue:54` env 定义与 `:59` `#ifdef APP-PLUS` 的 `var(--status-bar-height)` 覆盖**原样保留**；`app-mobile/src/**` 本轮零改动（96 处 / 89 文件使用点计数与上一轮负责人复核值一致）。
+- **判据自评（常驻四门，无借入装置，入口一律 `cd app-mobile && npm run <gate>`）**：
+  type-check **EXIT=0（错误 0=0）**；lint **EXIT=0（error 20 / warning 12872，逐规则与冻结基线逐项相等：`vue/html-indent=12299`、`no-console=225`、`html-closing-bracket-spacing=196`、`no-unused-vars=104`、`multiline-html-element-content-newline=47`、`html-closing-bracket-newline=1`，errorsByFileRule 13 对）**；test **EXIT=0（6 文件 / 60 用例，基线 6/60）**；check:contract **EXIT=0（292/283/204、注册 1498、差集 1 全具名豁免）**。`npm --workspace app-mobile run build:h5` **EXIT=0**，且**产物** `dist/build/h5/index.html:7` 回读到串尾带 `viewport-fit=cover`（命中 1）⇒ 配置进产物的直证。
+- **H5 computed 取证（新基线重做，R8.1）**：`getComputedStyle(uni-page-body).getPropertyValue('--safe-top')` = **`0px`（可解析、非空串；桌面 env=0 属正常）**；使用点 `.login-page` `padding-top` = 0px；运行时 DOM 里 viewport meta content 含 `viewport-fit=cover` 且只有 1 份；层叠规则读取（定义唯一 `uni-page-body{--safe-top: env(safe-area-inset-top)}` + `.login-page{padding-top:var(--safe-top)}`）；活体自证：注自引用 ⇒ computed 变空串、移除 ⇒ 回 0px ⇒ 读数方法有鉴别力。**运行时把 viewport-fit 注入/移除在桌面三态 computed 全为 0px（`desktop_identical=true`）⇒ 桌面无法鉴别该项，真机差异不写通过。** 截图本轮成功产出（上一轮 `NATIVE_BROWSER_VIEWPORT_UNAVAILABLE`）：`browser/screenshot-h5-login-desktop.png`（桌面视口，对 viewport-fit 无鉴别力）。
+- **反测（门能红）**：
+  ① 必做一条：scratch `.mjs`（latin1，命中≠1 即 exit 9）删唯一 `, viewport-fit=cover` ⇒ 常驻 `npm run test` **TEST_EXIT=1**，FAIL 点名「④ viewport meta 必须同时含 `width=device-width` 与 `viewport-fit=cover`」（1 failed / 59 passed，其余全绿）⇒ `cp` 复原 ⇒ sha256 `dd221de3…` **逐字节一致** ⇒ 复跑 **TEST_EXIT=0、6/60**（第一次复跑撞到与本单无关的 `api-base-env.spec.ts:33` 5000ms 超时 flake，失败原始输出保留为 `anti/03a`，干净复跑为 `anti/03`，已在回传卡 §⑤-4 点名）。全程未用 `sed -i`、未用 Edit 删功能行。
+  ② 加强一条：把 `App.vue:54` 注回 `var(--safe-top)` ⇒ **TEST_EXIT=1**，①② 两条红（2 failed / 58 passed），**同次运行里④保持绿**（两组断言互不粘连）⇒ `cp` 复原 sha256 `7b8d33bd…` 一致、`git status -- app-mobile/src` 空 ⇒ 复跑 6/60 绿。
+- **与卡内 targets 的差异（须报备）**：卡 §二.4 目标 `6/59` 的算术只计入原有 3 用例（main 5/56 + 3）；本单按卡 §二.3 新增**独立第 4 条断言** ⇒ 实测 `6/60`。协议 §2「实测即基线」⇒ 基线写 **6/60**，未为凑 59 把两条断言折进一个用例；若要严格 59，回退方案（折回用例②）已写在回传卡 §⑤-1，等裁定。
+- **未验清单**：iOS 真机 `env(safe-area-inset-top)` 是否非零（无设备）；App 端 `--status-bar-height` 运行时；微信/支付宝小程序 env 口径；登录态整页 E2E；真机截图目视。均给原因与复现命令（回传卡 §⑦、§⑨），未写通过。
+- **无阻塞**：本轮未出现需要越界（推远端/开 PR/改后端/装依赖/改 package.json）才能继续的情形。
+
+```
+===DSH-RECEIPT-BEGIN===
+id: QODER-17F1
+status: DONE
+summary: app-mobile/index.html:5 viewport content 追加 viewport-fit=cover（唯一源码改动，其余 meta 逐字未动）+ 新增独立静态断言④（viewport 同时含 width=device-width 与 viewport-fit=cover）+ gates-baseline.json 只动 tests 5/56⇒6/60（实测即基线，note 留痕）；App.vue:54 env 定义与 :59 #ifdef APP-PLUS 覆盖原样保留，app-mobile/src 本轮零改动（使用点 96 处/89 文件与上一轮复核值一致）；常驻四门全 EXIT=0（type 0=0、lint error20/warning12872 逐规则不劣化、test 6 文件/60 用例、contract 差集全豁免）、build:h5 EXIT=0 且产物 index.html:7 回读到 viewport-fit=cover；H5 computed 新基线重做：uni-page-body --safe-top=0px 可解析非空（桌面 env=0 正常）、.login-page padding-top=0px、运行时 viewport meta 含 cover 且仅 1 份，运行时摘掉/复原 viewport-fit 桌面三态全 0px ⇒ 桌面不可鉴别；反测①删 cover ⇒ test EXIT=1 点名④ ⇒ cp 复原 sha256 dd221de3 逐字节一致 ⇒ 复跑 6/60 绿（首复跑撞无关 api-base-env 5s 超时 flake，原始记录 anti/03a 保留）；反测②注回自引用 ⇒ ①②红④仍绿 ⇒ 复原 7b8d33bd 一致 ⇒ 绿；与卡内 6/59 差异 +1 已报备（独立 it 的用例代价）；未验：iOS 真机 env 非零、App/小程序运行时、登录态 E2E、真机截图（桌面截图本轮已产出，对 viewport-fit 无鉴别力）
+worktree: D:\Users\ZXQL\wt-agents\QODER-17
+branch: fix/qoder-17f1-safe-top-viewport
+commits: 6bd830d9(impl, 3 文件 index.html/spec/gates-baseline)；70c96326(docs, 回传卡+回执+证据 raw/01..08、10、11 + anti/00..09、03a + browser/*)；fe05735b(docs, 终态自检 raw/12)；引用补全笔(docs, 把上述哈希写进本行与卡 §①，自身哈希 = git log --oneline origin/main..HEAD 最新一笔，自指不可知)
+gates: npm run type-check=>EXIT=0(错误 0=0，改前改后同值); npm run lint=>EXIT=0(error 20=20 / warning 12872=12872 / vue/html-indent 12299=12299，逐规则与 errorsByFileRule 13 对与冻结基线逐项相等，未放宽任何基线); npm run test=>EXIT=0(改前 6 文件/59 用例、改后 6 文件/60 用例，基线已对齐 6/60); npm run check:contract=>EXIT=0(292/283/204、后端注册 1498、差集 1 条全具名豁免); npm --workspace app-mobile run build:h5=>EXIT=0(DONE Build complete.，dist/build/h5/index.html:7 含 viewport-fit=cover，grep -c=1); 反测①删 viewport-fit=>npm run test EXIT=1 点名断言④(1 failed/59 passed)=>cp 复原 sha256 逐字节一致 dd221de3=>复跑 EXIT=0 6/60; 反测②App.vue:54 注回自引用=>EXIT=1 ①②红 2 failed/58 passed 且④仍绿=>复原 7b8d33bd 一致=>复跑 EXIT=0 6/60; H5 computed=>uni-page-body --safe-top=0px(可解析非空)、.login-page padding-top=0px、运行时 viewport meta 含 cover 且 1 份、活体自证自引用='' 移除回 0px、viewport-fit 注入/移除桌面三态全 0px(不可鉴别); 真机=>未验(无设备); 小程序=>未验; 截图=>桌面产物已产出 browser/screenshot-h5-login-desktop.png，真机截图未验
+redlines: 遵守（未 push / 未开 PR / 未 git add -A，逐文件 add；未 rebase、未切分支、未碰 git 历史；只动 D:\Users\ZXQL\wt-agents\QODER-17 本分支，主仓与其它 wt-agents 只读；任务书原件与 ACTIVE.md 未改未删；未 npm install、未改 package.json 依赖与 lockfile；gates-baseline.json 只动 tests 一段，lint/typeCheck/checkContract/contractDrift 未放宽；App.vue src 96 处 var(--safe-top) 使用点零改动且 #ifdef APP-PLUS 覆盖保留；index.html 除 viewport 一行外未改；反测未用 sed -i 与 Edit 删功能行，scratch .mjs 字节注入 + cp 复原；未写任何归属凌舟的裁定/验收结论；旧证据目录 docs/evidence/qoder-17/ 原样保留未改写）
+evidence: docs/evidence/qoder-17f1/README.md, docs/evidence/qoder-17f1/raw/01-gates-before.txt, docs/evidence/qoder-17f1/raw/02-gates-after.txt, docs/evidence/qoder-17f1/raw/03-lint-per-rule-snapshot.txt, docs/evidence/qoder-17f1/raw/04-index-html-viewport-source.txt, docs/evidence/qoder-17f1/raw/05-build-h5.txt, docs/evidence/qoder-17f1/raw/06-dist-h5-index-viewport.txt, docs/evidence/qoder-17f1/raw/07-dist-css-safetop-snippet.txt, docs/evidence/qoder-17f1/raw/08-safetop-usage-grep.txt, docs/evidence/qoder-17f1/raw/10-server-source.txt, docs/evidence/qoder-17f1/raw/11-final-selfcheck-before-commit.txt, docs/evidence/qoder-17f1/raw/12-closing-check-after-commit.txt, docs/evidence/qoder-17f1/anti/00-pre-sha256.txt, docs/evidence/qoder-17f1/anti/01-strip-viewport-fit-red.txt, docs/evidence/qoder-17f1/anti/02-restore-sha256.txt, docs/evidence/qoder-17f1/anti/03-restore-green.txt, docs/evidence/qoder-17f1/anti/03a-restore-green-attempt1-flaky-timeout.txt, docs/evidence/qoder-17f1/anti/04-pre-sha256-appvue.txt, docs/evidence/qoder-17f1/anti/05-inject-selfref-red.txt, docs/evidence/qoder-17f1/anti/06-restore-sha256-appvue.txt, docs/evidence/qoder-17f1/anti/07-restore-green.txt, docs/evidence/qoder-17f1/anti/08-run-console.txt, docs/evidence/qoder-17f1/anti/09-aborted-first-attempt-path-mismatch.note.txt, docs/evidence/qoder-17f1/browser/README.md, docs/evidence/qoder-17f1/browser/01-computed-values.txt, docs/evidence/qoder-17f1/browser/02-live-viewport-fit-toggle-desktop-no-delta.txt, docs/evidence/qoder-17f1/browser/03-matched-rule-and-method-selfcheck.txt, docs/evidence/qoder-17f1/browser/screenshot-h5-login-desktop.png
+return_card: docs/tasks/cards/R101-QODER-17F1-回传.md
+===DSH-RECEIPT-END===
+```

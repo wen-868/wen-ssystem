@@ -1,0 +1,66 @@
+# QODER-22 合并前基座取证（基线 cf9a98fa = QODER-20 尖端）
+# 采集时间 2026-10-21 19:05:38  工作树 D:\Users\ZXQL\wt-agents\QODER-22
+$ git rev-parse HEAD
+cf9a98fa50b796cead73634ac294fea7ad0fd240
+HEAD_REV=0
+$ git branch --show-current
+chore/qoder-22-mobile-main-closeout
+BRANCH=0
+$ bash -c git status --porcelain | wc -l
+1
+STATUS_LINES=0
+$ git rev-parse 2e8cde17
+2e8cde17184c5cf3c68a308ba95fb72ecd42aecd
+PARENT_TIP=0
+$ git merge-base HEAD 2e8cde17
+21b465e5c2a9defd0e3f65809a4b2ba4bc6c0e18
+MERGE_BASE=0
+$ git show 2e8cde17:app-mobile/scripts/gates-baseline.json
+{
+  "_comment": "QODER-1 批次0 冻结基线（2026-10-18 实测）。type-check/lint/check:contract 三道门按「0 新增 / 不劣化」判定；只准降不准升，调低需人工改本文件并留痕。",
+  "typeCheck": {
+    "tool": "vue-tsc --noEmit（S3-245 同形态，scripts/type-check-gate.mjs 包装基线比较）",
+    "errors": {},
+    "note": "凌舟裁定②（2026-10-18 验收回传）已落地：PR #363（S3-245）已进 main（3fa138e7）→ 本分支已 rebase 到其上 → 原 12 条 crypto.ts TS2323/TS2393 随根治归零，errors 清空 ⇒ 门判据即 error===0。CI 类型门唯一形态 = 上方 S3-245 步骤；本脚本为本地同语义包装。"
+  },
+  "lint": {
+    "command": "eslint src --ext .ts,.vue（scripts/lint-gate.mjs 包装）",
+    "errorBaseline": 0,
+    "mustReachZero": true,
+    "dueBatch": "清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。",
+    "errorsByFileRule": {},
+    "warningsByRule": {
+      "no-console": 225,
+      "@typescript-eslint/no-unused-vars": 104,
+      "vue/html-indent": 12299,
+      "vue/html-closing-bracket-spacing": 196,
+      "vue/html-closing-bracket-newline": 1,
+      "vue/multiline-html-element-content-newline": 47
+    },
+    "note": "QODER-5（S3-247 离线链下线）删除 utils/sync-manager.ts 后现场调低：no-console 232→225、no-unused-vars 105→104（合计 −8），按「只准降不准升」留痕。★QODER-21（2026-10-21 执行方 Qoder 移动端实测）error 20→0：errorsByFileRule 清空、errorBaseline 改 0、mustReachZero 保持 true；逐条处置 ①no-extra-semi ×9（storage.ts 1／member-detail 1／batch-price 1／ai-chat 4／product-detail 2）删语句起始处的空语句分号，逐条确认前一句以右花括号收尾（函数声明块／if 块／try 块／箭头函数体首条），无 ASI 语义变化；②no-unreachable ×6（settings 1／ai-chat 1／product-detail 2／create-sale 2）经上下文判定全是 uni-app 条件编译并列分支被上一段无条件 return 遮蔽的真实逻辑，未删任何业务分支：settings 的 apiBase 与 ai-chat 的 started 由 IIFE 双 return 改为「默认值＋按端覆盖」，product-detail openScanner 与 create-sale handleShare 改为三端互斥标志（scanned／handled）跳过，逐端编译产物与改动前等价；③no-empty ×3（ai-chat 2／create-sale 1）不再吞异常，改为 uni.showToast 显式告知后果（ai-chat 持久化路径另加 persistWarned 去重，防每次消息更新刷屏）；④create-sale no-irregular-whitespace ×1：分享文案模板里的 U+3000 全角空格字面量改为等价的 unicode 转义写法，运行期字符串逐字节不变；⑤create-sale vue/no-unused-vars ×1：v-for 未使用的索引别名收回单变量，渲染逻辑未动。warning 六规则合计 12872 未劣化（本轮实测仍为 12872）。未改 .eslintrc.cjs／lint-gate.mjs／任何规则级别，未加文件级 disable，未删改测试；dueBatch 段属历史留痕保持原样。"
+  },
+  "checkContract": {
+    "callOccurrencesNonComment": 292,
+    "callSiteOccurrences": 283,
+    "uniqueCallPaths": 204,
+    "backendRegistered": 1498,
+    "missingAfterExemptions": 0,
+    "exempted": 1,
+    "exemptionsFile": "scripts/contract-exemptions.json",
+    "note": "A.2 三口径读数由 check-contract.mjs 每次运行现场打印"
+  },
+  "contractDrift": {
+    "command": "node scripts/check-contract-drift.mjs（S3-242 跨层漂移定性机，只跑本单 16+1 清单；QODER-7 起进 CI 阻断）",
+    "debt": 0,
+    "d1": 0,
+    "d2": 0,
+    "d4": 1,
+    "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
+  },
+  "tests": {
+    "testFiles": 5,
+    "testCount": 56,
+    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。"
+  }
+}
+THEIRS_TESTS=0

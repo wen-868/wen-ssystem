@@ -1,0 +1,23 @@
+##### QODER-20 · raw/42 「合并未改写被合入支的实现」逐文件 blob 比对
+# 采集时刻 2026-10-21T08:15:55+08:00
+# 判据：对每笔 merge，取「相对第一父发生了变化的 app-mobile/**.{ts,vue} 与 scripts 文件」，逐一把合并态 blob 与被合入支（第二父）的 blob 比哈希；相等 ⇒ 我这一侧没有改写它的实现（只有 gates-baseline.json 是我按实测收敛的，单列）。
+--- 9ff7a47c（第二父 99371862）---
+  app-mobile/scripts/gates-baseline.json                       DIFFERS(我解冲突的结果)
+  app-mobile/src/config/env.ts                                 SAME_AS_BRANCH
+  app-mobile/src/config/permission-gates.ts                    SAME_AS_BRANCH
+  app-mobile/src/utils/pin-ssl.ts                              SAME_AS_BRANCH
+  app-mobile/tests/pin-ssl-static.spec.ts                      SAME_AS_BRANCH
+--- c1e4cd40（第二父 bd7e158f）---
+  app-mobile/scripts/gates-baseline.json                       DIFFERS(我解冲突的结果)
+  app-mobile/src/api/request.ts                                SAME_AS_BRANCH
+  app-mobile/tests/request-retry-safety.spec.ts                SAME_AS_BRANCH
+--- 50b03a51（第二父 df583401）---
+
+##### 反向核验：被合入支的 blob 是否原样进入终态（HEAD 对比各支 tip，范围=各支自己的 app-mobile 文件）
+  app-mobile/tests/pin-ssl-static.spec.ts  ==  99371862 的 blob（终态原样保留）
+  app-mobile/tests/storage-crypto.spec.ts  ==  99371862 的 blob（终态原样保留）
+  app-mobile/src/config/env.ts  ==  99371862 的 blob（终态原样保留）
+  app-mobile/src/utils/pin-ssl.ts  ==  99371862 的 blob（终态原样保留）
+  app-mobile/src/api/request.ts  ==  bd7e158f 的 blob（终态原样保留）
+  app-mobile/tests/request-retry-safety.spec.ts  ==  bd7e158f 的 blob（终态原样保留）
+  backend/scripts/guard-rbac-wiring.mjs  ==  1b61811b 的 blob（终态原样保留）

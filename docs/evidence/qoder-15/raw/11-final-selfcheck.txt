@@ -1,0 +1,42 @@
+=== git status --short ===
+?? docs/evidence/qoder-15/raw/11-final-selfcheck.txt
+=== git ls-files --others --exclude-standard ===
+docs/evidence/qoder-15/raw/11-final-selfcheck.txt
+=== git diff --name-only 321b4f6b..HEAD (提交面) ===
+app-mobile/src/api/modules/price.ts
+app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+app-mobile/src/utils/format.ts
+app-mobile/tests/format.spec.ts
+app-mobile/tests/price-anomaly-static.spec.ts
+docs/evidence/qoder-15/README.md
+docs/evidence/qoder-15/anti/00-pre-sha256.txt
+docs/evidence/qoder-15/anti/01-static-red.txt
+docs/evidence/qoder-15/anti/02-restore-sha256.txt
+docs/evidence/qoder-15/anti/03-static-green.txt
+docs/evidence/qoder-15/browser/render-demo-a11y-snapshot.txt
+docs/evidence/qoder-15/browser/render-demo-dom-readback.txt
+docs/evidence/qoder-15/browser/render-demo-fixed.html
+docs/evidence/qoder-15/raw/01-typecheck-pre.txt
+docs/evidence/qoder-15/raw/02-typecheck-post.txt
+docs/evidence/qoder-15/raw/03-eslint-pre.txt
+docs/evidence/qoder-15/raw/04-eslint-post.txt
+docs/evidence/qoder-15/raw/05-eslint-compare.txt
+docs/evidence/qoder-15/raw/06-test-baseline.txt
+docs/evidence/qoder-15/raw/07-test-post.txt
+docs/evidence/qoder-15/raw/08-build-h5.txt
+docs/evidence/qoder-15/raw/09-eslint-full-json.note.txt
+docs/evidence/qoder-15/raw/10-test-final-green.txt
+docs/evidence/qoder-15/raw/render-evidence-stdout.txt
+"docs/tasks/cards/R101-QODER-15-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-15.md"
+=== git log --oneline origin/main..HEAD (未push) ===
+06a440c5 docs: QODER-15 价格异常页数值入口止血回传卡/回执/证据
+233cd2fc fix: 价格异常页金额显示接入 fmtAmount 数值归一化工具止血白屏
+=== git status -sb ===
+## fix/qoder-15-price-anomaly-numeric
+?? docs/evidence/qoder-15/raw/11-final-selfcheck.txt
+=== 借入 harness 是否存在 ===
+ls: cannot access 'app-mobile/vitest.config.ts': No such file or directory
+ls: cannot access 'app-mobile/.eslintrc.cjs': No such file or directory
+=== dist 是否被 gitignore (不应出现在 status) ===
+app-mobile/dist/build/h5/index.html

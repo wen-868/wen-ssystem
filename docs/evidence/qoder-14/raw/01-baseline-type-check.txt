@@ -1,0 +1,5 @@
+QODER-14 · 判据证据 01 —— 基线 type-check（未改动 321b4f6b + 借入门禁 harness）
+命令：cd D:/Users/ZXQL/wt-agents/QODER-14/app-mobile && node ../node_modules/vue-tsc/bin/vue-tsc.js --noEmit
+说明：ANSI 已剥；TSC_EXIT= 行为本次运行真实退出码
+
+TSC_EXIT=0

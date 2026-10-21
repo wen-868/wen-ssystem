@@ -1,0 +1,24 @@
+# QODER-18 · 删后精确复证（只检 app-mobile/src，排除 spec 自述文本的干扰命中）
+# date=2026-10-21 05:03:49
+# 说明：raw/30 的 CMD1/CMD2 在 app-mobile/tests 里有 4 处命中，全部落在
+#       request-retry-safety.spec.ts 的注释与本用例的 expect 消息字符串里（即断言自身的文字），
+#       不是源码导出形态。断言 ① 只对 src/api/request.ts 的内容做匹配，故不受影响。
+#       本文件把口径收窄到 src 目录，给出干净的 0 命中读数。
+
+## CMD A: grep -rn "export function upload" app-mobile/src
+EXIT=1 (1 = src 内 0 命中 ⇒ 断言① 达标)
+
+## CMD B: grep -rnE "export\s*\{[^}]*\bupload\b" app-mobile/src
+EXIT=1 (1 = 0 命中)
+
+## CMD C: request.ts 内是否还有任何 upload 标识符（含 uni.uploadFile）
+EXIT=1 (1 = request.ts 全文无 upload 字样)
+
+## CMD D: 全仓从 api/request 导入 upload（src + tests 双目录，0 命中）
+EXIT=1 (1 = 0 命中 ⇒ 断言② 达标)
+
+## CMD E: 真实上传封装与消费点零改动（对照基线 e6801de0 的 diff 行数，必须 0）
+app-mobile/src/api/modules/products.ts                       diff_lines=0
+app-mobile/src/api/modules/profile.ts                        diff_lines=0
+app-mobile/src/pages/products/product-detail.vue             diff_lines=0
+app-mobile/src/pages/profile/edit.vue                        diff_lines=0

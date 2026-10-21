@@ -1,0 +1,43 @@
+QODER-15F1 · 真实浏览器 DOM / classList / computed color 回读（标红判定修复前后对比）
+
+会话事实
+- 工具：mcp__browser-use__evaluate_script（连接 Qoder Browser Connector 的外链 Chrome）
+- URL：http://127.0.0.1:5183/price-danger-before-after.html（工作树外 node 静态服务，服务本目录）
+- 页面来源：真实 SFC 模板片段 + 真实 utils/format.ts（esbuild 转译后动态 import）经 vue 3.4.21 + @vue/server-renderer 渲染
+  生成器：D:/Users/ZXQL/wt-agents/_scratch/qoder-15f1/render-compare.cjs（脚本内容已在会话中展示，未入库）
+- computed 颜色与源码对应（R8/R8.1 口径：读数能在源码里找到对应）：
+    rgb(196, 80, 80) = $uni-color-error: #C45050（app-mobile/src/uni.scss:19，页面 .price-danger 用该 token）
+    rgb(64, 64, 64)  = $uni-gray-700:  #404040 （app-mobile/src/uni.scss:61，页面 .price-value 用该 token）
+
+判据读数（12 个单元格 = 6 行 × 修复前/修复后；只看零售价单元格的 class 与颜色）
+  行1 字符串低价 cost=12.00 retail=9.00  → 修复前 class="price-value"        不标红 rgb(64,64,64)   【漏判：'9.00' < '12.00' 字典序为 false】
+                                            修复后 class="price-danger price-value" 标红 rgb(196,80,80)  ★ 卡点名缺陷在此转对
+  行2 字符串高价 cost=9.00 retail=12.00  → 修复前 标红 rgb(196,80,80)         【误判：'12.00' < '9.00' 字典序为 true】
+                                            修复后 不标红 rgb(64,64,64)
+  行3 字典序 1000 vs 999                → 修复前 标红（'1000.00' < '999.00' 为 true，1000 元反而被标成低于 999 元成本）
+                                            修复后 不标红
+  行4 retail=null                        → 修复前 标红（null 隐式转 0，凭空标红且显示是 ¥—）
+                                            修复后 不标红（无效值不参与比较）
+  行5 number 0 < 8.5                     → 修复前标红 / 修复后标红（真低价，两侧一致，无回归）
+  行6 千分位串 1,234.56 < 2,000.00       → 修复前标红 / 修复后标红（该组合字典序碰巧与数值同向，无回归）
+
+  汇总：修复前标红 5/6 行、修复后标红 3/6 行；差异集中在 4 行（行1 由不标红转标红=补上漏判；行2/行3/行4 由标红转不标红=消除误判）。
+
+以下为 evaluate_script 原样回传（逐字节未加工）：
+"""
+"{\n \"title\": \"QODER-15F1 标红判定修复前后对比（真实 SFC 片段 + 真实 format.ts SSR）\",\n \"groups\": 12,\n \"rows\": [\n  {\n   \"label\": \"行1 字符串低价（卡点名缺陷）\",\n   \"variant\": \"before\",\n   \"header\": \"修复前 · 行1 字符串低价（卡点名缺陷）（cost=12.00 / retail=9.00）\",\n   \"className\": \"price-value\",\n   \"classList\": [\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": false,\n   \"text\": \"¥9.00\",\n   \"computedColor\": \"rgb(64, 64, 64)\"\n  },\n  {\n   \"label\": \"行1 字符串低价（卡点名缺陷）\",\n   \"variant\": \"after\",\n   \"header\": \"修复后 · 行1 字符串低价（卡点名缺陷）（cost=12.00 / retail=9.00）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥9.00\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  },\n  {\n   \"label\": \"行2 字符串高价（反向）\",\n   \"variant\": \"before\",\n   \"header\": \"修复前 · 行2 字符串高价（反向）（cost=9.00 / retail=12.00）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥12.00\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  },\n  {\n   \"label\": \"行2 字符串高价（反向）\",\n   \"variant\": \"after\",\n   \"header\": \"修复后 · 行2 字符串高价（反向）（cost=9.00 / retail=12.00）\",\n   \"className\": \"price-value\",\n   \"classList\": [\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": false,\n   \"text\": \"¥12.00\",\n   \"computedColor\": \"rgb(64, 64, 64)\"\n  },\n  {\n   \"label\": \"行3 字典序陷阱 1000 vs 999\",\n   \"variant\": \"before\",\n   \"header\": \"修复前 · 行3 字典序陷阱 1000 vs 999（cost=999.00 / retail=1000.00）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥1000.00\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  },\n  {\n   \"label\": \"行3 字典序陷阱 1000 vs 999\",\n   \"variant\": \"after\",\n   \"header\": \"修复后 · 行3 字典序陷阱 1000 vs 999（cost=999.00 / retail=1000.00）\",\n   \"className\": \"price-value\",\n   \"classList\": [\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": false,\n   \"text\": \"¥1000.00\",\n   \"computedColor\": \"rgb(64, 64, 64)\"\n  },\n  {\n   \"label\": \"行4 零售价为 null\",\n   \"variant\": \"before\",\n   \"header\": \"修复前 · 行4 零售价为 null（cost=12.34 / retail=null）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥—\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  },\n  {\n   \"label\": \"行4 零售价为 null\",\n   \"variant\": \"after\",\n   \"header\": \"修复后 · 行4 零售价为 null（cost=12.34 / retail=null）\",\n   \"className\": \"price-value\",\n   \"classList\": [\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": false,\n   \"text\": \"¥—\",\n   \"computedColor\": \"rgb(64, 64, 64)\"\n  },\n  {\n   \"label\": \"行5 number 真低价 0 < 8.5\",\n   \"variant\": \"before\",\n   \"header\": \"修复前 · 行5 number 真低价 0 < 8.5（cost=8.5 / retail=0）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥0.00\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  },\n  {\n   \"label\": \"行5 number 真低价 0 < 8.5\",\n   \"variant\": \"after\",\n   \"header\": \"修复后 · 行5 number 真低价 0 < 8.5（cost=8.5 / retail=0）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥0.00\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  },\n  {\n   \"label\": \"行6 千分位串 1,234.56 < 2,000.00\",\n   \"variant\": \"before\",\n   \"header\": \"修复前 · 行6 千分位串 1,234.56 < 2,000.00（cost=2,000.00 / retail=1,234.56）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥1234.56\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  },\n  {\n   \"label\": \"行6 千分位串 1,234.56 < 2,000.00\",\n   \"variant\": \"after\",\n   \"header\": \"修复后 · 行6 千分位串 1,234.56 < 2,000.00（cost=2,000.00 / retail=1,234.56）\",\n   \"className\": \"price-danger price-value\",\n   \"classList\": [\n    \"price-danger\",\n    \"price-value\"\n   ],\n   \"hasPriceDanger\": true,\n   \"text\": \"¥1234.56\",\n   \"computedColor\": \"rgb(196, 80, 80)\"\n  }\n ]\n}"
+"""
+
+复现命令（同一读数可复跑）：
+  1) node D:/Users/ZXQL/wt-agents/_scratch/qoder-15f1/render-compare.cjs     # 生成 html + SSR 读数
+  2) 在本目录起静态服务：node -e "http.createServer(...).listen(5183)"（见 browser-session-note.txt 全文）
+  3) browser-use：navigate_page → http://127.0.0.1:5183/price-danger-before-after.html → evaluate_script（本文件顶部段的取值脚本）
+
+
+未验与说明
+- PNG 目视：本次 take_screenshot 动作成功返回（viewport 不再像上一轮报 NATIVE_BROWSER_VIEWPORT_UNAVAILABLE），
+  但回传形态是图像文本描述、**PNG 二进制未落盘到本目录** ⇒ 「人眼目视截图」仍按未验登记，不做目视结论。
+- 门店价 / 小程序价 显示 `¥—`：演示数据只给 costPrice/retailPrice 两字段（本卡只改零售价标红判定），
+  未填字段按 QODER-15 口径显示占位符，属预期，**不是**本卡缺陷、也不是显示回归。
+- 无障碍快照（render-a11y-snapshot.txt）取不到 class/颜色，标红判定的浏览器级结论以 computed 值为准（项目 R8.1 口径）。
+- 登录态整页 E2E / 真机（iOS/Android/微信开发者工具/小程序后台）：未验（无 :8080 后端在线、无登录态 token）。

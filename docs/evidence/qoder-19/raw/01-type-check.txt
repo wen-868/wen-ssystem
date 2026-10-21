@@ -1,0 +1,17 @@
+### 命令: npm run type-check
+### 包装器: scripts/type-check-gate.mjs (vue-tsc --noEmit + 基线比较)
+### 工作目录: D:/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:26:05 +0800
+### 分支: chore/qoder-19-baseline-convergence
+### HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+### 判据: EXIT=0 且 error===0
+----------------------------------------
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+----------------------------------------
+EXIT=0

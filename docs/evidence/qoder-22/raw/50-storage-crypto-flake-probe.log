@@ -1,0 +1,25 @@
+# QODER-22 偶发红根因探针（临时 spec：app-mobile/tests/__q22-flake-probe.spec.ts，跑完即删、不交付）2026-10-21 19:41:27
+# 触发背景：anti v1 的 2b 步在**未注入**的清洁合并态上跑 npm --workspace app-mobile run test ⇒ TEST_GATE_EXIT=1，红点 tests/storage-crypto.spec.ts:37（1 failed | 185 passed）
+$ npx vitest run tests/__q22-flake-probe.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+[90mstdout[2m | tests/__q22-flake-probe.spec.ts[2m > [22m[2mQODER-22 探针 · tag 篡改的有效性只取决于 tag 第 16 字节[2m > [22m[2mspec:36 的篡改式（slice(0,-4)+AAAA）在 tag[15]==0 时不会被 decrypt 拒绝
+[22m[39m[PROBE-A] 命中于第 77 次加密｜tag(base64)=Ez/YxtiS7v8uD7FS5CKRAA==｜tag 字节数=16｜tag[15]=0
+[PROBE-A] 篡改后 tag(base64)=Ez/YxtiS7v8uD7FS5CKRAAAA｜字节数=18（比真 tag 多 2 字节）｜前 15 字节与真 tag 全部相同=true｜篡改后第 16 字节=0
+[PROBE-A] decrypt(篡改 tag) 是否抛错=false｜返回值="top-secret"
+
+[90mstdout[2m | tests/__q22-flake-probe.spec.ts[2m > [22m[2mQODER-22 探针 · tag 篡改的有效性只取决于 tag 第 16 字节[2m > [22m[2m对照：改 tag 前 20 个 base64 字符中的任意一个 ⇒ decrypt 必抛（检出只靠字节比较）
+[22m[39m[PROBE-B] 原 tag=hcOXHjSwgYgYzPGBPwUixQ==｜改第 0 字符后=AcOXHjSwgYgYzPGBPwUixQ==｜字节数=16
+
+[90mstdout[2m | tests/__q22-flake-probe.spec.ts[2m > [22m[2mQODER-22 探针 · tag 篡改的有效性只取决于 tag 第 16 字节[2m > [22m[2m概率：2000 次加密中 tag[15]==0 的比例应接近 1/256
+[22m[39m[PROBE-C] M=2000｜tag[15]==0 命中=8｜实测比例=0.00400｜理论 1/256=0.00391｜tag 字节数异常次数=0
+
+ [32m✓[39m tests/__q22-flake-probe.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 317[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m3 passed[39m[22m[90m (3)[39m
+[2m   Start at [22m 19:41:38
+[2m   Duration [22m 1.67s[2m (transform 208ms, setup 0ms, import 444ms, tests 317ms, environment 0ms)[22m
+
+PROBE_EXIT=0

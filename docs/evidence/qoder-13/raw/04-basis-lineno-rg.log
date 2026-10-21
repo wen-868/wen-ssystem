@@ -1,0 +1,10 @@
+# 采集时间(本机): 2026-10-21 01:55:31 +0800
+# 判据② 命令1: rg -n "aftersale.routes.ts:67" app-mobile/src/config/permission-gates.ts
+596:    basis: '售后族已落地同族码：同文件同前缀的 confirm-receipt 挂 `sale:return`（`backend/src/routes/aftersale.routes.ts:67`）；不新造码',
+EXIT=0
+
+# 命令2: 该行内 :64 残留检查 rg -n "aftersale.routes.ts:64" app-mobile/src/config/permission-gates.ts
+EXIT=1 (1=0命中)
+
+# 命令3: 后端真值核对 grep -n confirm-receipt backend/src/routes/aftersale.routes.ts
+67:adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", requirePermission("sale:return"), ctrl.adminConfirmReceipt);

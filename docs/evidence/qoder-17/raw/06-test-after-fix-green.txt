@@ -1,0 +1,12 @@
+cmd: cd app-mobile && node ../node_modules/vitest/vitest.mjs run   # 修复后
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-17/app-mobile
+
+ ✓ tests/safe-top-var.spec.ts (3 tests) 19ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  23:32:13
+   Duration  2.67s (transform 241ms, setup 0ms, import 363ms, tests 19ms, environment 1ms)
+
+EXIT=0

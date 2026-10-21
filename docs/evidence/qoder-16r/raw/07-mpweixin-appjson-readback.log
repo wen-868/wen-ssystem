@@ -1,0 +1,10 @@
+CMD: node -e 回读 dist/build/mp-weixin/app.json 的 permission 与 requiredPrivateInfos
+DATE: 2026-10-21 02:06:34
+permission = {
+  "scope.record": {
+    "desc": "用于AI经营助手语音输入：按住说话录制您的口述内容并转为文字，以便生成经营问答与开单草稿。"
+  }
+}
+requiredPrivateInfos = []
+appid = undefined
+EXIT=0

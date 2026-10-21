@@ -1,0 +1,45 @@
+##### 范围核验（卡 §三 后三条）
+# QODER-20 合并态验收｜采集时刻 2026-10-21T08:09:33+08:00｜cwd=工作树根（npm --workspace 口径）｜HEAD=50b03a51f9d855f08c800c755440c363fcb01c32
+
+$ git diff --stat 21b465e5..HEAD -- backend/src   # 期望 0 行
+BACKEND_SRC_DIFF_LINES=0
+
+$ git diff --name-only 21b465e5..HEAD -- backend   # backend 允许面 = QODER-13 的 guard 脚本
+backend/scripts/guard-rbac-wiring.mjs
+
+$ rg -n 'upload' app-mobile/src/api/request.ts   # 期望 0 命中
+RG_EXIT=1
+
+$ rg -n 'uploadFile|uploadImage|uploadAvatar|export function upload|export const upload' app-mobile/src/api/modules/products.ts app-mobile/src/api/modules/profile.ts   # 实际上传封装必须保留
+app-mobile/src/api/modules/profile.ts:33:  async uploadAvatar(filePath: string): Promise<{ avatar: string }> {
+app-mobile/src/api/modules/profile.ts:49:      uni.uploadFile({
+app-mobile/src/api/modules/products.ts:451:function uploadImage(filePath: string): Promise<string> {
+app-mobile/src/api/modules/products.ts:460:    uni.uploadFile({
+app-mobile/src/api/modules/products.ts:483:export { productsApi, uploadImage }
+RG_EXIT=0
+
+$ git status --porcelain   # 期望仅 docs/evidence/qoder-20/（本批证据）
+?? docs/evidence/qoder-20/
+
+$ git log --oneline cdf16ce4..HEAD   # 三笔 merge
+50b03a51 merge: QODER-11R H5 场景 3 重栈复跑（验收记录与证据进最终集成基线）
+c1e4cd40 merge: QODER-18 删除 request.ts 的 upload() 死导出 + MO-10 关闭（进最终集成基线收敛）
+9ff7a47c merge: QODER-13F2 pin-ssl 静态断言独立 spec + env.ts 旧文案收口（进最终集成基线收敛）
+99371862 docs: QODER-13F2 回传卡与回执 + 证据树落盘（四轮反测红档、首轮作废可复现取证、四门与范围机检）
+f4772512 fix: pin-ssl 静态断言拆为独立 spec，storage-crypto 逐字节还原纯 AES/GCM，env.ts 未接线/指纹口径假话收口（QODER-13F2）
+61514b02 fix: 静态断言求值移到 import 阶段以消除门 3 超时抖动，同轮落盘 raw/32-33 与 anti2/ 三张红档并同步更正回执与证据 README（QODER-13F1 第三笔）
+bd7e158f docs: QODER-18 回传卡、ACTIVE 回执与 upload() 死导出处置证据树
+50750e39 docs: QODER-13F1 回传卡与回执及 pin-ssl 文件头文案修正证据落盘（改前/改后、判据、四门读数、三轮反测红与复原绿）
+0aa5765e fix: 删除 request.ts 死导出 upload() 并加静态断言防回流（QODER-18）
+d9151ae5 fix: pin-ssl 文件头两处过期文案改真（在册指纹为2026-10-21现网Let's Encrypt值、api/m叶子实际到期日2026-11-11/2026-12-22）+ 静态断言挂进既有用例防回潮
+597230c4 docs: QODER-13 收尾自检证据（改动面核对与零残留证明）
+a8a3b7b9 docs: QODER-13 回传卡与回执及指纹采集/反测/四门证据落盘
+1b61811b fix: pin-ssl四条在册指纹更新为2026-10-21现网Let's Encrypt值（不接线）+island-aftersale basis行号64→67+guard-rbac-wiring新增--no-stale可选开关
+df583401 docs: QODER-11R 收尾自证补哈希笔——协议§7全量end-check(4门EXIT/关服复核/src&backend diff=0)+回传卡与回执补记提交哈希
+4746ab31 docs: QODER-11R 回传——执行记录场景3复核小节(基线2baf13af→dfeedbc0)+十项卡+ACTIVE回执(DSH-RECEIPT)
+ae5e0243 docs: QODER-11R 场景3复跑证据全集——mock装置(8288)+dev-h5(5288)+×关闭四步截图/DOM读数/console+四门EXIT+关服端口复核+diff自证
+66b54e2b docs: QODER-11 证据增补——dev-h5.log 完整收尾（TaskStop 后 socket hang up 与 npm 退出尾部，非展示态为真实差异）
+50fa99ae docs: QODER-11 补哈希笔——回执补记回传笔 cf415b21、终态 app-mobile/src diff=0 复跑、关服端口复核日志
+7969b2ae docs: QODER-11 回传——十项卡（基线披露/六场景读数/装置方法/红线对照/阻塞与自报备）+ ACTIVE 回执
+bf0f1362 docs: QODER-11 H5 手动验收执行记录——6 场景四列表+不通过项影响面与归属+判据自对账
+0f87bfa9 docs: QODER-11 证据全集——mock 网络手术装置+dev server 日志+11 张场景截图+每场景读数 note+设备探测+diff 自证

@@ -1,0 +1,20 @@
+场景 2 取证说明（permissions=[] ⇒ ② 确实无码）
+================================================
+场景配置：curl -X POST http://localhost:8080/__mock
+  {"login":{"mode":"ok","perms":"empty"},"me":{"mode":"ok","perms":"empty"},"menus":{"mode":"empty"}}
+  即登录响应与 /admin/auth/me 的 permissions 均为 []，/admin/menus/user 返回 data=[]（两来源都置空）。
+步骤：清 localStorage（先记录并删除场景1留下的 merchant_menu_codes_cache_1001 键）→ reload → 重新登录 → 进功能页。
+
+原样读数（evaluate_script）：
+A. 功能页 #/pages/functions/functions：
+   {"bannerPresent":false,"labels":[],"bodyHead":"功能\n搜索功能、订单、客户\n首页\n商品\nAI\n功能\n我的"}
+   → 需码菜单/入口全部隐藏（失败关闭），无失败横幅，页头/搜索/tabbar 仍在。
+B. 更多功能页 #/pages-sub/admin/more/more-functions：
+   {"bannerPresent":false,"labels":["高频功能","数据 · 工具"]}
+   → 条目 0 项；仅两个分区标题保留（该页分区头无 v-if 长度过滤，属外观残留，非 ② 口径违规）。
+C. 首页 #/pages/home/home：正常渲染（今日营业额/订单卡片、快捷入口、tabbar），无码入口不受影响；
+   页面自身业务数据请求命中 mock 兜底 404（截图可见 toast「资源不存在(mock兜底)」），属后端缺失噪音，与三态无关。
+D. 重进稳定性：functions→home→functions 往返读数
+   {"firstVisitItems":0,"firstVisitBanner":false,"revisitItems":0,"revisitBanner":false}
+   → 行为稳定仍是 ②。
+截图：scene-2-functions-empty.png / scene-2-more-functions-empty.png / scene-2-home-ok.png

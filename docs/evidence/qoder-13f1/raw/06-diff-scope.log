@@ -1,0 +1,92 @@
+$ git diff --stat 597230c4          # 改动面
+ app-mobile/src/utils/pin-ssl.ts         |  4 ++--
+ app-mobile/tests/storage-crypto.spec.ts | 38 +++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 2 deletions(-)
+
+$ git diff 597230c4                 # 全量逐行
+diff --git a/app-mobile/src/utils/pin-ssl.ts b/app-mobile/src/utils/pin-ssl.ts
+index cafd9824..cac6d376 100644
+--- a/app-mobile/src/utils/pin-ssl.ts
++++ b/app-mobile/src/utils/pin-ssl.ts
+@@ -3,7 +3,7 @@
+  *
+  * ⚠️ 接线状态（S3-247，2026-10-18 定性）：**当前未接线**。
+  *  - installSslPinning / validateCertificate 全仓零调用点（唯一历史提及是 config/env.ts 注释，已改）；
+- *  - PINNED_CERTS 叶子证书指纹已于 2026-09-15 过期——此刻接线会让 APP-PLUS 全部请求被判指纹不匹配拒连；
++ *  - PINNED_CERTS 在册指纹已更新为 2026-10-21 现网 Let's Encrypt 值（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，均在有效期内）；本模块仍未接线，且仍未接线的原因已不是"在册指纹已过期"，而是下文"原生层证书回调可用"这一前置尚未满足；
+  *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+  *    plus.networkEvent.addEventListener('certificateValidate') 为接口预留，当前运行时不可用，
+  *    接线即"静默放行"，无法满足本卡反测判据（指纹不匹配 ⇒ 请求失败）。
+@@ -25,7 +25,7 @@
+  *  - 使用 IIFE 包裹条件编译，避免 vue-tsc 误报重复声明（踩坑日志 [15]）
+  *
+  * 注意：
+- *  - 已配置生产证书实际指纹（2026-09-15 到期），证书轮换时同步更新叶子证书指纹
++ *  - 已配置生产证书实际指纹（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，中间证书 Let's Encrypt YE2/YE1 2028-09-02 到期）；叶子证书轮换（命中到期前 30 天提醒窗口即应启动）时必须同步更新在册叶子证书指纹
+  *  - 中间证书指纹用于轮换兜底（新叶子证书仍由同一中间证书签发）
+  *  - 应急开关关闭后，App 仍受 HTTPS 标准校验保护（仅失去 Pinning 额外防护）
+  *
+diff --git a/app-mobile/tests/storage-crypto.spec.ts b/app-mobile/tests/storage-crypto.spec.ts
+index 32a76815..f4760838 100644
+--- a/app-mobile/tests/storage-crypto.spec.ts
++++ b/app-mobile/tests/storage-crypto.spec.ts
+@@ -3,10 +3,42 @@
+  * ⚠️ 该文件带 uni 条件编译双份导出（S3-245 修复前现状），本仓测试依赖
+  *    `vitest.config.ts` 的 `uni-ifdef-shim` 插件按 **H5 分支**真实代码加载。
+  * 反测面：改动 encrypt/decrypt/deriveKey 任一导致密文不还原或 tag 校验失效 ⇒ 本用例必红并点名。
++ * QODER-13F1 追加静态断言（挂在下方「tag 校验失败即抛」用例的断言列表里，不新增 describe/it、用例数不变）：
++ * `src/utils/pin-ssl.ts` 文件头不得残留已失效旧事实，且 `installSslPinning(` 在 src 下不得出现调用点。
+  */
+ import { describe, it, expect } from 'vitest'
++import { readFileSync, readdirSync } from 'node:fs'
++import { dirname, join, resolve } from 'node:path'
++import { fileURLToPath } from 'node:url'
+ import { deriveKey, encrypt, decrypt } from '../src/utils/crypto'
+ 
++const SRC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../src')
++const PIN_SSL = join(SRC_DIR, 'utils', 'pin-ssl.ts')
++
++/**
++ * 收集 src 下 `installSslPinning(` 的**调用点**（定义行 `export function installSslPinning` 与
++ * 注释/文档块提及一律不计），返回 `文件:行号` 清单。与 `rg -n 'installSslPinning\(' app-mobile/src`
++ * 的人工判据同语义：调用点必须恒为 0（本卡未接线）。
++ */
++function collectInstallCallSites(dir: string, out: string[] = []): string[] {
++  for (const entry of readdirSync(dir, { withFileTypes: true })) {
++    const p = join(dir, entry.name)
++    if (entry.isDirectory()) {
++      collectInstallCallSites(p, out)
++      continue
++    }
++    if (!/\.(ts|vue)$/.test(entry.name)) continue
++    readFileSync(p, 'utf8').split(/\r?\n/).forEach((line, i) => {
++      if (!line.includes('installSslPinning(')) return
++      const t = line.trim()
++      if (t.startsWith('//') || t.startsWith('/*') || t.startsWith('*')) return
++      if (t.startsWith('export function installSslPinning')) return
++      out.push(`${p}:${i + 1}`)
++    })
++  }
++  return out
++}
++
+ describe('存储加解密往返（AES-256-GCM）', () => {
+   const key = deriveKey('unit-test-fingerprint')
+ 
+@@ -37,5 +69,11 @@ describe('存储加解密往返（AES-256-GCM）', () => {
+     expect(() => decrypt(bad, key)).toThrow()
+     const wrongKey = deriveKey('another-fingerprint')
+     expect(() => decrypt(enc, wrongKey)).toThrow()
++
++    // —— QODER-13F1 静态断言（同属「被篡改/失效内容绝不静默放行」契约，不新增 it）——
++    const pinSsl = readFileSync(PIN_SSL, 'utf8')
++    expect(pinSsl.includes('2026-09-15')).toBe(false)
++    expect(pinSsl.toLowerCase().includes('trustasia')).toBe(false)
++    expect(collectInstallCallSites(SRC_DIR)).toEqual([])
+   })
+ })
+
+$ git status --porcelain
+ M app-mobile/src/utils/pin-ssl.ts
+ M app-mobile/tests/storage-crypto.spec.ts
+?? docs/evidence/qoder-13f1/

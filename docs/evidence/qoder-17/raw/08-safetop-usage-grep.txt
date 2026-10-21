@@ -1,0 +1,100 @@
+cmd: grep -rn "var(--safe-top)" app-mobile/src   # 命中 97 处 / 90 文件，本单零改动
+app-mobile/src/App.vue:54:  --safe-top: var(--safe-top);
+app-mobile/src/components/page-header/page-header.vue:38:  padding-top: var(--safe-top);
+app-mobile/src/pages/ai-chat/ai-chat.vue:1094:  padding-top: calc(22rpx + var(--safe-top));
+app-mobile/src/pages/ai-chat/ai-chat.vue:1221:  padding-top: calc(120rpx + var(--safe-top));
+app-mobile/src/pages/login/login.vue:326:  padding-top: var(--safe-top);
+app-mobile/src/pages/notifications/notifications.vue:531:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages/orders/order-detail.vue:341:  padding-top: calc(48rpx + var(--safe-top));
+app-mobile/src/pages/orders/orders.vue:761:  height: calc(88rpx + var(--safe-top));
+app-mobile/src/pages/orders/orders.vue:762:  padding: var(--safe-top) 32rpx 0;
+app-mobile/src/pages/products/product-detail.vue:1615:  height: calc(88rpx + var(--safe-top));
+app-mobile/src/pages/products/product-detail.vue:1616:  padding: var(--safe-top) 32rpx 0;
+app-mobile/src/pages/profile/change-password.vue:147:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages/profile/profile.vue:338:  padding-top: calc(44rpx + var(--safe-top));
+app-mobile/src/pages/register/register.vue:236:  padding-top: var(--safe-top);
+app-mobile/src/pages/sales/create-sale.vue:2490:  height: calc(88rpx + var(--safe-top));
+app-mobile/src/pages/sales/create-sale.vue:2491:  padding: var(--safe-top) 32rpx 0;
+app-mobile/src/pages/todos/todos.vue:72:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/admin/admin.vue:170:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/admin/employees.vue:223:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/more/more-functions.vue:169:  padding-top: calc($uni-spacing-base + var(--safe-top));
+app-mobile/src/pages-sub/admin/print/print-records.vue:295:  padding-top: calc($uni-spacing-base + var(--safe-top));
+app-mobile/src/pages-sub/admin/print/print-records.vue:354:  height: calc(100vh - 260rpx - var(--safe-top));
+app-mobile/src/pages-sub/admin/report-permission/audit-detail.vue:128:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/report-permission/index.vue:88:  padding-top: calc(32rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/report-permission/my-permission.vue:211:  padding-top: calc(48rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/report-permission/permission-assign.vue:343:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/report-permission/report-matrix.vue:345:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/report-permission/store-data-permission.vue:224:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/admin/roles/role-edit.vue:246:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/admin/roles/roles.vue:133:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/admin/settings/settings.vue:269:  height: calc(100vh - 220rpx - var(--safe-top));
+app-mobile/src/pages-sub/admin/system/operation-log-detail.vue:145:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/finance/expense-detail.vue:148:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/finance/finance-dashboard.vue:207:  padding-top: calc(60rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/finance/finance-dashboard.vue:215:  top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/instant-retail/config.vue:223:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/instant-retail/orders.vue:308:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/instant-retail/products.vue:254:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/loss-gain/gain-list.vue:252:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/loss-gain/loss-gain-detail.vue:253:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/loss-gain/loss-gain-report.vue:341:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/loss-gain/loss-list.vue:252:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/purchase/orders.vue:139:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/receipts/receipts.vue:160:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/receivable/receivable.vue:225:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/reconciliation/reconciliation.vue:282:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/finance/reports/customer-reports.vue:161:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/reports/finance-reports.vue:216:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/reports/inventory-reports.vue:175:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/reports/purchase-reports.vue:154:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/reports/reports.vue:287:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/reports/sales-reports.vue:402:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/statements/statements.vue:147:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/finance/transfer/transfer.vue:302:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/activities.vue:203:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/bargain-list.vue:176:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/community-activities.vue:324:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/coupons.vue:205:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/create-coupon.vue:316:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/group-buy-list.vue:175:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/marketing.vue:214:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/marketing/seckill-list.vue:229:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/member/address.vue:361:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/member/member.vue:136:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/member-levels/level-config.vue:193:  padding-top: calc(20rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/member-levels/member-levels.vue:179:  padding-top: calc(20rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/points/points-detail.vue:143:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/points/points-exchange.vue:126:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/stored-cards/consume-records.vue:79:  padding-top: calc(20rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/stored-cards/recharge-records.vue:79:  padding-top: calc(20rpx + var(--safe-top));
+app-mobile/src/pages-sub/marketing/stored-cards/stored-cards.vue:184:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/order/order-aftersale/aftersale.vue:218:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/order/order-center/order-center.vue:161:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/order/order-exception/exception.vue:202:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/order/sales/sale-bills.vue:284:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/order/sales/sale-detail.vue:196:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/product/batches/batch-detail.vue:140:  padding-top: calc(20rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/batches/batch-list.vue:138:  padding-top: calc(16rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/categories/categories.vue:227:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/categories/category-edit.vue:212:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/collection-link/collection-link.vue:189:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/customers/customer-detail.vue:321:  padding-top: calc(32rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/customers/customers.vue:223:  padding-top: calc($uni-spacing-base + var(--safe-top));
+app-mobile/src/pages-sub/product/inventory/inventory.vue:224:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/price/batch-logs.vue:122:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/price/price-manage.vue:193:  padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue:178:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/price-push/price-push.vue:219:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/price-review/price-review.vue:215:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/product/product-edit.vue:505:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/stock-check/check-detail.vue:262:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/product/stock-check/create-check.vue:120:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/product/stock-check/stock-checks.vue:195:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/product/stock-warning/stock-warning.vue:199:.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
+app-mobile/src/pages-sub/product/suppliers/suppliers.vue:238:  padding-top: calc(24rpx + var(--safe-top));
+app-mobile/src/pages-sub/product/trace/trace-query.vue:272:  padding-top: calc($uni-spacing-base + var(--safe-top));
+app-mobile/src/pages-sub/product/trace/trace-query.vue:369:  height: calc(100vh - 240rpx - var(--safe-top));
+---STATS---
+lines=97 files=89

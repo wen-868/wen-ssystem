@@ -1,0 +1,36 @@
+QODER-15F1 · browser-use take_snapshot 无障碍树（页面 http://127.0.0.1:5183/price-danger-before-after.html）
+
+说明：无障碍树**不携带 class / 颜色**，因此本文件只能证明"两组卡片的文本与结构同源、渲染未报错"；
+标红判定（.price-danger 是否挂上、计算色是否为 $uni-color-error）以同目录
+render-dom-readback-before-after.txt 的 classList + getComputedStyle 读数为准（项目 R8.1：层叠/生效问题只用 computed 值定论）。
+
+---- 原样回传 ----
+RootWebArea "QODER-15F1 标红判定修复前后对比（真实 SFC 片段 + 真实 format.ts SSR）" focusable focused url="http://127.0.0.1:5183/price-danger-before-after.html"
+  heading "QODER-15F1 · 「零售价低于成本」标红：修复前（裸 <）vs 修复后（isBelowCost）" level="2"
+  StaticText "两组卡片模板同源（真实 price-anomaly.vue 的 price-row 整块），仅 :class 表达式不同；数据为后端 DECIMAL 可能下发的字符串 / null / number / 千分位串形态。"
+  heading "修复前 · 行1 字符串低价（卡点名缺陷）（cost=12.00 / retail=9.00）" level="3"
+  StaticText "成本价" / "¥12.00" / "零售价" / "¥9.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复后 · 行1 字符串低价（卡点名缺陷）（cost=12.00 / retail=9.00）" level="3"
+  StaticText "成本价" / "¥12.00" / "零售价" / "¥9.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复前 · 行2 字符串高价（反向）（cost=9.00 / retail=12.00）" level="3"
+  StaticText "成本价" / "¥9.00" / "零售价" / "¥12.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复后 · 行2 字符串高价（反向）（cost=9.00 / retail=12.00）" level="3"
+  StaticText "成本价" / "¥9.00" / "零售价" / "¥12.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复前 · 行3 字典序陷阱 1000 vs 999（cost=999.00 / retail=1000.00）" level="3"
+  StaticText "成本价" / "¥999.00" / "零售价" / "¥1000.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复后 · 行3 字典序陷阱 1000 vs 999（cost=999.00 / retail=1000.00）" level="3"
+  StaticText "成本价" / "¥999.00" / "零售价" / "¥1000.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复前 · 行4 零售价为 null（cost=12.34 / retail=null）" level="3"
+  StaticText "成本价" / "¥12.34" / "零售价" / "¥—" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复后 · 行4 零售价为 null（cost=12.34 / retail=null）" level="3"
+  StaticText "成本价" / "¥12.34" / "零售价" / "¥—" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复前 · 行5 number 真低价 0 < 8.5（cost=8.5 / retail=0）" level="3"
+  StaticText "成本价" / "¥8.50" / "零售价" / "¥0.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复后 · 行5 number 真低价 0 < 8.5（cost=8.5 / retail=0）" level="3"
+  StaticText "成本价" / "¥8.50" / "零售价" / "¥0.00" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复前 · 行6 千分位串 1,234.56 < 2,000.00（cost=2,000.00 / retail=1,234.56）" level="3"
+  StaticText "成本价" / "¥2000.00" / "零售价" / "¥1234.56" / "门店价" / "¥—" / "小程序价" / "¥—"
+  heading "修复后 · 行6 千分位串 1,234.56 < 2,000.00（cost=2,000.00 / retail=1,234.56）" level="3"
+  StaticText "成本价" / "¥2000.00" / "零售价" / "¥1234.56" / "门店价" / "¥—" / "小程序价" / "¥—"
+
+（原件中每个 StaticText 各占一行、uid 依次 2_4 … 2_111；此处按"每卡一行"紧凑排版，文本内容与顺序与原件逐条一致，uid 前缀 2_ 未变。）

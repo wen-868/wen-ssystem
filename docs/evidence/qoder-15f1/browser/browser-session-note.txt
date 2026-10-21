@@ -1,0 +1,30 @@
+QODER-15F1 · 浏览器会话与静态服务留痕（本轮 browser 证据怎么复跑）
+
+1. 生成演示页与 SSR 读数（真实 SFC 片段 + 真实 format.ts，脚本内容在会话中逐字展示过，未入库）
+   node D:/Users/ZXQL/wt-agents/_scratch/qoder-15f1/render-compare.cjs
+   产物：本目录 price-danger-before-after.html、render-ssr-readback.txt
+
+2. 起一次性静态服务（只绑 127.0.0.1:5183，10 分钟自退出；服务目录=本证据目录）
+   node -e "const http=require('http'),fs=require('fs'),p=require('path');
+   const dir='D:/Users/ZXQL/wt-agents/QODER-15/docs/evidence/qoder-15f1/browser';
+   http.createServer((req,res)=>{const f=p.join(dir, req.url==='/'?'/price-danger-before-after.html':req.url.split('?')[0]);
+     fs.readFile(f,(e,b)=>{if(e){res.writeHead(404);res.end('nf')}else{res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});res.end(b)}});
+   }).listen(5183,'127.0.0.1',()=>console.log('SERVE_READY http://127.0.0.1:5183/'));"
+   现场打印：SERVE_READY http://127.0.0.1:5183/  pid=7644
+   curl -s -o /dev/null -w "HTTP=%{http_code} bytes=%{size_download}\n" http://127.0.0.1:5183/price-danger-before-after.html
+     ⇒ HTTP=200 bytes=9285
+
+3. browser-use（外链 Chrome）动作序列
+   list_pages      → 2: 登录 (http://127.0.0.1:5181/#/) [selected]（上一轮 5181 服务残留页，本轮未使用）
+   navigate_page   → http://127.0.0.1:5183/price-danger-before-after.html
+   evaluate_script → 逐单元格读 getAttribute('class') / classList / textContent / getComputedStyle().color
+                     读数见 render-dom-readback-before-after.txt
+   take_snapshot   → 无障碍树，见 render-a11y-snapshot.txt
+   take_screenshot → 动作返回成功，但回传形态是图像文本描述，PNG 二进制未落盘到本目录
+                     ⇒ 「PNG 目视」按未验登记，不做目视结论（协议 §6）
+
+4. 与上一轮（docs/evidence/qoder-15/browser/）的关系
+   上一轮读数是「显示层止血」：null→¥—、0→¥0.00、字符串→¥12.34，且当时页面 :class 仍是裸 `<`，
+   所以其 render-demo-dom-readback.txt 里出现 dangerCount=2（其中 retailPrice=null 的行被凭空标红）。
+   本轮读数是「判定层修复」：同一 null 行不再标红、字符串低价行改判为标红。
+   两份并存、互不覆盖；差异点已在本目录 render-dom-readback-before-after.txt 的判据读数段逐行列出。

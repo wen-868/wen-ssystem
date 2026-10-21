@@ -1,0 +1,119 @@
+# QODER-22 反测轮 A1（v2）：2026-10-21 19:34:10
+## 0. 注入前（同形态 SHA 基线 = 工作树 CRLF 形态，非 git blob 形态）
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 */d/Users/ZXQL/wt-agents/QODER-22/app-mobile/src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 */d/Users/ZXQL/wt-agents/_scratch/qoder-22/pin-ssl.ts.PRE
+PRE_BACKUP_MATCHES_CURRENT=yes
+## 1. 注入（cwd=仓库根，node 参数走 Windows 路径形态）
+$ node D:/Users/ZXQL/wt-agents/_scratch/qoder-22/inject.cjs A1
+INJECT_MODE=A1
+INJECT_HITS=1 EXPECT=1
+AFTER_head_2026-09-15=0 FULL_2026-09-15=1
+AFTER_head_trustasia=0 FULL_trustasia=0
+AFTER_head_2026-11-11=2 FULL_2026-11-11=3
+AFTER_head_2026-12-22=2 FULL_2026-12-22=3
+INJECT_WRITTEN=1
+INJECT_EXIT=0
+## 2. 注入后红跑（须红且点名对应断言）
+$ npx vitest run tests/pin-ssl-static.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+ [31m❯[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 27[2mms[22m[39m
+[31m     [31m×[31m 全文无失效旧文案、文件头保留现网叶子到期日，且 installSslPinning 调用点恒为 0[39m[32m 22[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/pin-ssl-static.spec.ts[2m > [22mpin-ssl 在册事实静态守卫（QODER-22 双范围）[2m > [22m全文无失效旧文案、文件头保留现网叶子到期日，且 installSslPinning 调用点恒为 0
+[31m[1mAssertionError[22m: pin-ssl.ts 全文又出现已失效的 2026-09-15 过期表述（负向旧事实按全文守，不限于文件头）: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/pin-ssl-static.spec.ts:[2m87:7[22m[39m
+    [90m 85|[39m       [33mPIN_SSL_TEXT[39m[33m.[39m[34mincludes[39m([32m'2026-09-15'[39m)[33m,[39m
+    [90m 86|[39m       [32m'pin-ssl.ts 全文又出现已失效的 2026-09-15 过期表述（负向旧事实按全文守，不限于文件头）'[39m
+    [90m 87|[39m     )[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m   |[39m       [31m^[39m
+    [90m 88|[39m     [90m// ② 旧签发机构名不得在文件任何位置回潮（负向 ⇒ 全文，大小写不敏感）[39m
+    [90m 89|[39m     [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:34:20
+[2m   Duration [22m 1.89s[2m (transform 119ms, setup 0ms, import 670ms, tests 27ms, environment 1ms)[22m
+
+VITEST_EXIT=1
+## 2b. 常驻 test 门同态红跑（在仓库根跑；cd 到 app-mobile 会报 No workspaces）
+$ npm --workspace app-mobile run test
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+ [31m❯[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 137[2mms[22m[39m
+[31m     [31m×[31m 全文无失效旧文案、文件头保留现网叶子到期日，且 installSslPinning 调用点恒为 0[39m[32m 88[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 5242[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 543[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 4404[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 358[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m185 passed[39m[22m[90m (186)[39m
+[2m   Start at [22m 19:34:32
+[2m   Duration [22m 9.07s[2m (transform 9.42s, setup 0ms, import 20.58s, tests 8.01s, environment 7ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/pin-ssl-static.spec.ts[2m > [22mpin-ssl 在册事实静态守卫（QODER-22 双范围）[2m > [22m全文无失效旧文案、文件头保留现网叶子到期日，且 installSslPinning 调用点恒为 0
+[31m[1mAssertionError[22m: pin-ssl.ts 全文又出现已失效的 2026-09-15 过期表述（负向旧事实按全文守，不限于文件头）: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/pin-ssl-static.spec.ts:[2m87:7[22m[39m
+    [90m 85|[39m       [33mPIN_SSL_TEXT[39m[33m.[39m[34mincludes[39m([32m'2026-09-15'[39m)[33m,[39m
+    [90m 86|[39m       [32m'pin-ssl.ts 全文又出现已失效的 2026-09-15 过期表述（负向旧事实按全文守，不限于文件头）'[39m
+    [90m 87|[39m     )[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m   |[39m       [31m^[39m
+    [90m 88|[39m     [90m// ② 旧签发机构名不得在文件任何位置回潮（负向 ⇒ 全文，大小写不敏感）[39m
+    [90m 89|[39m     [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-22\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-22\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+TEST_GATE_EXIT=1
+## 3. cp 复原（绝不用 sed -i）
+RESTORE_EXIT=0
+SHA_BEFORE=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_AFTER=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_MATCH=yes
+## 4. 复原后复跑（须绿）
+$ npx vitest run tests/pin-ssl-static.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:34:51
+[2m   Duration [22m 2.09s[2m (transform 133ms, setup 0ms, import 809ms, tests 10ms, environment 1ms)[22m
+
+VITEST_EXIT_AFTER_RESTORE=0
+## 5. 复原后工作树状态（cwd=app-mobile ⇒ pathspec 相对；应 0 行）
+GIT_STATUS_LINES=0

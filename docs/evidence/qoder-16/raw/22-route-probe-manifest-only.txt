@@ -1,0 +1,9 @@
+PRE manifest sha=629c732f42c032609612fb694143e24376b4b96e915da100f6675ca4602107fe
+probe[manifest] injected -> D:/Users/ZXQL/wt-agents/QODER-16/app-mobile/src/manifest.json
+inject rc=0
+post-inject JSON.parse check:
+  OK mp-weixin={"appid":"wx3ea76428aa15cec7","setting":{"urlCheck":false,"es6":true,"postcss":true,"minified":true},"usingComponents":true,"permission":{"scope.record":{"desc":"QODER16_MANIFEST_PROBE"}},"requiredPrivateInfos":[]}
+build EXIT=0
+RESULT B: 探针出现在 dist app.json => manifest.json 的 mp-weixin 节点生效
+  dist app.json permission={"scope.record":{"desc":"QODER16_MANIFEST_PROBE"}} requiredPrivateInfos=[]
+restored sha=629c732f42c032609612fb694143e24376b4b96e915da100f6675ca4602107fe identical? YES

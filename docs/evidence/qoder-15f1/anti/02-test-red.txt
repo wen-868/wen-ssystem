@@ -1,0 +1,443 @@
+$ npm run test   （反测注入态：:class 已改回 item.retailPrice < item.costPrice）
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-15/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 1297[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 1270[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[32m 149[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [31m❯[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m | [22m[31m8 failed[39m[2m)[22m[33m 1107[2mms[22m[39m
+     [32m✓[39m fmtAmount( 在页面中出现且仅出现 4 次（四处金额显示）[32m 17[2mms[22m[39m
+     [32m✓[39m 页面不再对原始 API 值 costPrice 直接调用 .toFixed()[32m 6[2mms[22m[39m
+     [32m✓[39m 页面不再对原始 API 值 retailPrice 直接调用 .toFixed()[32m 4[2mms[22m[39m
+     [32m✓[39m 页面不再对原始 API 值 storePrice 直接调用 .toFixed()[32m 4[2mms[22m[39m
+     [32m✓[39m 页面不再对原始 API 值 miniappPrice 直接调用 .toFixed()[32m 3[2mms[22m[39m
+     [32m✓[39m 页面引入了公共工具 @/utils/format 的 fmtAmount[32m 4[2mms[22m[39m
+     [32m✓[39m 全页不存在任何对 item.*Price 的裸 .toFixed() 调用[32m 8[2mms[22m[39m
+[31m     [31m×[31m :class 标红判定调用 isBelowCost，且全页恰好出现 1 次[39m[32m 132[2mms[22m[39m
+[31m     [31m×[31m 页面不再直接比较原始 API 值 item.retailPrice < item.costPrice[39m[32m 119[2mms[22m[39m
+[31m     [31m×[31m 全页不存在任何 item.*Price < item.*Price 形态的裸价格比较[39m[32m 18[2mms[22m[39m
+     [32m✓[39m 页面从 @/utils/format 引入 isBelowCost（判定与显示同源）[32m 9[2mms[22m[39m
+[31m     [31m×[31m 绑定表达式确实走归一化工具（而非裸 `<`）[39m[32m 18[2mms[22m[39m
+[31m     [31m×[31m 字符串低价 retail "9.00" / cost "12.00" ⇒ 必须标红（卡点名复现）[39m[32m 9[2mms[22m[39m
+[31m     [31m×[31m 字符串高价 retail "12.00" / cost "9.00" ⇒ 不标红[39m[32m 26[2mms[22m[39m
+[31m     [31m×[31m 字典序反向 retail "1000.00" / cost "999.00" ⇒ 不得误标红[39m[32m 13[2mms[22m[39m
+     [32m✓[39m 相等 retail "9.00" / cost "9" ⇒ 不标红[32m 12[2mms[22m[39m
+     [32m✓[39m 千分位 retail "1,234.56" / cost "2,000.00" ⇒ 标红[32m 15[2mms[22m[39m
+     [32m✓[39m number retail 9 / cost 12 ⇒ 标红[32m 184[2mms[22m[39m
+     [32m✓[39m number retail 12 / cost 9 ⇒ 不标红[32m 287[2mms[22m[39m
+[31m     [31m×[31m retail null / cost "12.00" ⇒ 无效值不标红[39m[32m 33[2mms[22m[39m
+     [32m✓[39m retail "9.00" / cost null ⇒ 无效值不标红[32m 57[2mms[22m[39m
+     [32m✓[39m retail undefined / cost undefined ⇒ 无效值不标红[32m 18[2mms[22m[39m
+     [32m✓[39m retail 空串 / cost "" ⇒ 无效值不标红[32m 24[2mms[22m[39m
+     [32m✓[39m retail NaN / cost 12 ⇒ 无效值不标红[32m 42[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 289[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1261[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 541[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文） [33m 595[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 629[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m150 passed[39m[22m[90m (158)[39m
+[2m   Start at [22m 02:15:50
+[2m   Duration [22m 15.45s[2m (transform 20.59s, setup 0ms, import 29.74s, tests 4.76s, environment 7ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 8 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue 低价标红静态门（QODER-15F1）[2m > [22m:class 标红判定调用 isBelowCost，且全页恰好出现 1 次
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/price-anomaly-static.spec.ts:[2m62:19[22m[39m
+    [90m 60|[39m   [34mit[39m([32m':class 标红判定调用 isBelowCost，且全页恰好出现 1 次'[39m[33m,[39m () [33m=>[39m {
+    [90m 61|[39m     [35mconst[39m count [33m=[39m ([34mreadPage[39m()[33m.[39m[34mmatch[39m([36m/isBelowCost\(/g[39m) [33m??[39m [])[33m.[39mlength
+    [90m 62|[39m     [34mexpect[39m(count)[33m.[39m[34mtoBe[39m([34m1[39m)
+    [90m   |[39m                   [31m^[39m
+    [90m 63|[39m     [34mexpect[39m([34mreadPage[39m())[33m.[39m[34mtoContain[39m([33mCALL[39m)
+    [90m 64|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue 低价标红静态门（QODER-15F1）[2m > [22m页面不再直接比较原始 API 值 item.retailPrice < item.costPrice
+[31m[1mAssertionError[22m: expected '<template>\r\n  <view class="anomaly-…' not to contain 'item.retailPrice < item.costPrice'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- item.retailPrice < item.costPrice[39m
+[31m+ <template>[39m
+[31m+   <view class="anomaly-page">[39m
+[31m+     <page-header title="ä»·æ ¼å¼å¸¸" @back="goBack" />[39m
+[31m+ [39m
+[31m+     <view class="search-bar">[39m
+[31m+       <view class="search-input-wrap">[39m
+[31m+         <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>[39m
+[31m+         <input[39m
+[31m+           class="search-input"[39m
+[31m+           v-model="keyword"[39m
+[31m+           type="text"[39m
+[31m+           placeholder="æç´¢åååç§° / æ¡ç "[39m
+[31m+           placeholder-class="search-placeholder"[39m
+[31m+           confirm-type="search"[39m
+[31m+           @confirm="onSearch"[39m
+[31m+         />[39m
+[31m+         <image class="search-clear ic" v-if="keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>[39m
+[31m+       </view>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <view class="type-tabs">[39m
+[31m+       <view[39m
+[31m+         v-for="tab in typeTabs"[39m
+[31m+         :key="tab.value"[39m
+[31m+         class="type-tab"[39m
+[31m+         :class="{ 'type-tab--active': activeType === tab.value }"[39m
+[31m+         @tap="switchType(tab.value)"[39m
+[31m+       >[39m
+[31m+         <text class="type-tab-text">{{ tab.label }}</text>[39m
+[31m+       </view>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <scroll-view class="anomaly-list" scroll-y @scrolltolower="onLoadMore">[39m
+[31m+       <view class="anomaly-card" v-for="item in list" :key="item.skuId">[39m
+[31m+         <view class="card-header">[39m
+[31m+           <view class="header-left">[39m
+[31m+             <text class="product-name">{{ item.productName }}</text>[39m
+[31m+             <text class="anomaly-type" :class="item.anomalyType === 'BELOW_COST' ? 'type-below' : 'type-zero'">[39m
+[31m+               {{ item.anomalyTypeLabel }}[39m
+[31m+             </text>[39m
+[31m+           </view>[39m
+[31m+         </view>[39m
+[31m+         <view class="card-body">[39m
+[31m+           <view class="info-row" v-if="item.skuName && item.skuName !== item.productName">[39m
+[31m+             <text class="info-label">SKU</text>[39m
+[31m+             <text class="info-value">{{ item.skuName }}</text>[39m
+[31m+           </view>[39m
+[31m+           <view class="info-row">[39m
+[31m+             <text class="info-label">è§æ ¼</text>[39m
+[31m+             <text class="info-value">{{ item.spec || 'â' }}</text>[39m
+[31m+           </view>[39m
+[31m+           <view class="info-row">[39m
+[31m+             <text class="info-label">æ¡ç </text>[39m
+[31m+             <text class="info-value">{{ item.barcode || 'â' }}</text>[39m
+[31m+           </view>[39m
+[31m+           <view class="price-row">[39m
+[31m+             <view class="price-cell">[39m
+[31m+               <text class="price-label">ææ¬ä»·</text>[39m
+[31m+               <text class="price-value">Â¥{{ fmtAmount(item.costPrice) }}</text>[39m
+[31m+             </view>[39m
+[31m+             <view class="price-cell">[39m
+[31m+               <text class="price-label">é¶å®ä»·</text>[39m
+[31m+               <text class="price-value" :class="{ 'price-danger': item.retailPrice < item.costPrice }">[39m
+[31m+                 Â¥{{ fmtAmount(item.retailPrice) }}[39m
+[31m+               </text>[39m
+[31m+             </view>[39m
+[31m+             <view class="price-cell">[39m
+[31m+               <text class="price-label">é¨åºä»·</text>[39m
+[31m+               <text class="price-value">Â¥{{ fmtAmount(item.storePrice) }}</text>[39m
+[31m+             </view>[39m
+[31m+             <view class="price-cell">[39m
+[31m+               <text class="price-label">å°ç¨åºä»·</text>[39m
+[31m+               <text class="price-value">Â¥{{ fmtAmount(item.miniappPrice) }}</text>[39m
+[31m+             </view>[39m
+[31m+           </view>[39m
+[31m+         </view>[39m
+[31m+       </view>[39m
+[31m+ [39m
+[31m+       <view class="load-more" v-if="list.length > 0 && loadingMore">[39m
+[31m+         <text class="load-more-text">å è½½ä¸­...</text>[39m
+[31m+       </view>[39m
+[31m+       <view class="load-more" v-else-if="list.length > 0 && noMore">[39m
+[31m+         <text class="load-more-text">å·²å è½½å¨é¨</text>[39m
+[31m+       </view>[39m
+[31m+     </scroll-view>[39m
+[31m+ [39m
+[31m+     <view class="empty-state" v-if="!loading && list.length === 0">[39m
+[31m+       <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>[39m
+[31m+       <text class="empty-text">ææ ä»·æ ¼å¼å¸¸åå</text>[39m
+[31m+     </view>[39m
+[31m+ [39m
+[31m+     <view class="safe-bottom"></view>[39m
+[31m+   </view>[39m
+[31m+ </template>[39m
+[31m+ [39m
+[31m+ <script setup lang="ts">[39m
+[31m+ function goBack(){ uni.navigateBack() }[39m
+[31m+ [39m
+[31m+ import { ref, onMounted } from 'vue'[39m
+[31m+ import { priceApi } from '@/api/modules/price'[39m
+[31m+ import { fmtAmount } from '@/utils/format'[39m
+[31m+ // ä½ä»·æ çº¢å¤å®å¿é¡»èµ°åä¸å½ä¸åå£å¾ï¼QODER-15F1ï¼ï¼åå§ API å¼ç´æ¥ `<` ä¼æå­ç¬¦ä¸²å­å¸åºè¯¯å¤[39m
+[31m+ import { isBelowCost } from '@/utils/format'[39m
+[31m+ [39m
+[31m+ const typeTabs = [[39m
+[31m+   { label: 'å¨é¨', value: '' },[39m
+[31m+   { label: 'ä½äºææ¬', value: 'BELOW_COST' },[39m
+[31m+   { label: 'å®ä»·ä¸º0', value: 'ZERO_PRICE' },[39m
+[31m+ ][39m
+[31m+ [39m
+[31m+ const keyword = ref('')[39m
+[31m+ const activeType = ref('')[39m
+[31m+ const list = ref<any[]>([])[39m
+[31m+ const loading = ref(false)[39m
+[31m+ const loadingMore = ref(false)[39m
+[31m+ const noMore = ref(false)[39m
+[31m+ const page = ref(1)[39m
+[31m+ const pageSize = 20[39m
+[31m+ [39m
+[31m+ function onSearch() {[39m
+[31m+   page.value = 1[39m
+[31m+   list.value = [][39m
+[31m+   loadAnomalies()[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ function clearSearch() {[39m
+[31m+   keyword.value = ''[39m
+[31m+   onSearch()[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ function switchType(val: string) {[39m
+[31m+   activeType.value = val[39m
+[31m+   onSearch()[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ async function loadAnomalies() {[39m
+[31m+   if (loading.value || loadingMore.value) return[39m
+[31m+   loading.value = true[39m
+[31m+   try {[39m
+[31m+     const result = await priceApi.listAnomalies({[39m
+[31m+       keyword: keyword.value || undefined,[39m
+[31m+       anomalyType: activeType.value || undefined,[39m
+[31m+       page: page.value,[39m
+[31m+       pageSize,[39m
+[31m+     })[39m
+[31m+     const rows = result?.records ?? [][39m
+[31m+     if (page.value === 1) {[39m
+[31m+       list.value = rows[39m
+[31m+     } else {[39m
+[31m+       list.value = [...list.value, ...rows][39m
+[31m+     }[39m
+[31m+     noMore.value = rows.length < pageSize[39m
+[31m+   } catch (err) {[39m
+[31m+     console.error('å è½½ä»·æ ¼å¼å¸¸å¤±è´¥:', err)[39m
+[31m+     if (page.value === 1) list.value = [][39m
+[31m+   } finally {[39m
+[31m+     loading.value = false[39m
+[31m+     loadingMore.value = false[39m
+[31m+   }[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ function onLoadMore() {[39m
+[31m+   if (loading.value || loadingMore.value || noMore.value) return[39m
+[31m+   loadingMore.value = true[39m
+[31m+   page.value += 1[39m
+[31m+   loadAnomalies()[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ onMounted(() => {[39m
+[31m+   loadAnomalies()[39m
+[31m+ })[39m
+[31m+ </script>[39m
+[31m+ [39m
+[31m+ <style lang="scss" scoped>[39m
+[31m+ .anomaly-page {[39m
+[31m+   min-height: 100vh;[39m
+[31m+   background: $uni-color-primary-soft;[39m
+[31m+ }[39m
+[31m+ .page-header {[39m
+[31m+   padding: 24rpx 32rpx;[39m
+[31m+   padding-top: calc(24rpx + var(--safe-top));[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+ }[39m
+[31m+ .header-title {[39m
+[31m+   font-size: 34rpx;[39m
+[31m+   font-weight: 700;[39m
+[31m+   color: $uni-gray-700;[39m
+[31m+ }[39m
+[31m+ .search-bar {[39m
+[31m+   padding: 16rpx 24rpx;[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+ }[39m
+[31m+ .search-input-wrap {[39m
+[31m+   display: flex;[39m
+[31m+   align-items: center;[39m
+[31m+   height: 72rpx;[39m
+[31m+   background: $uni-bg-color-page;[39m
+[31m+   border-radius: 36rpx;[39m
+[31m+   padding: 0 24rpx;[39m
+[31m+ }[39m
+[31m+ .search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }[39m
+[31m+ .search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }[39m
+[31m+ .search-placeholder { color: $uni-gray-300; font-size: 26rpx; }[39m
+[31m+ .search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }[39m
+[31m+ .type-tabs {[39m
+[31m+   display: flex;[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+   padding: 0 24rpx 16rpx;[39m
+[31m+   gap: 12rpx;[39m
+[31m+ }[39m
+[31m+ .type-tab {[39m
+[31m+   padding: 10rpx 28rpx;[39m
+[31m+   border-radius: 28rpx;[39m
+[31m+   background: $uni-bg-color-page;[39m
+[31m+ }[39m
+[31m+ .type-tab--active { background: $uni-color-primary; }[39m
+[31m+ .type-tab--active .type-tab-text { color: $uni-text-color-inverse; }[39m
+[31m+ .type-tab-text { font-size: 24rpx; color: $uni-gray-500; }[39m
+[31m+ .anomaly-list { padding: $uni-spacing-sm $uni-spacing-lg; height: calc(100vh - 340rpx); }[39m
+[31m+ .anomaly-card {[39m
+[31m+   background: $uni-bg-color;[39m
+[31m+   border-radius: $uni-border-radius-xs;[39m
+[31m+   padding: $uni-spacing-base;[39m
+[31m+   margin-bottom: $uni-spacing-md;[39m
+[31m+   box-shadow: $uni-shadow-card-sm;[39m
+[31m+ }[39m
+[31m+ .card-header {[39m
+[31m+   display: flex;[39m
+[31m+   justify-content: space-between;[39m
+[31m+   align-items: center;[39m
+[31m+   margin-bottom: 16rpx;[39m
+[31m+ }[39m
+[31m+ .header-left { display: flex; align-items: center; gap: 12rpx; flex: 1; }[39m
+[31m+ .product-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; flex: 1; }[39m
+[31m+ .anomaly-type { padding: 4rpx $uni-spacing-sm; border-radius: 8rpx; font-size: 22rpx; flex-shrink: 0; }[39m
+[31m+ .type-below { background: $uni-color-error-soft; color: $uni-color-error; }[39m
+[31m+ .type-zero { background: $uni-color-warning-soft; color: $uni-color-warning; }[39m
+[31m+ .card-body { display: flex; flex-direction: column; gap: 10rpx; }[39m
+[31m+ .info-row { display: flex; justify-content: space-between; }[39m
+[31m+ .info-label { font-size: 24rpx; color: $uni-gray-400; }[39m
+[31m+ .info-value { font-size: 24rpx; color: $uni-gray-600; }[39m
+[31m+ .price-row {[39m
+[31m+   display: flex;[39m
+[31m+   margin-top: $uni-spacing-sm;[39m
+[31m+   padding-top: $uni-spacing-sm;[39m
+[31m+   border-top: 1rpx solid $uni-bg-color-grey;[39m
+[31m+ }[39m
+[31m+ .price-cell { flex: 1; display: flex; flex-direction: column; gap: 6rpx; align-items: center; }[39m
+[31m+ .price-label { font-size: 22rpx; color: $uni-gray-400; }[39m
+[31m+ .price-value { font-size: 26rpx; font-weight: 600; color: $uni-gray-700; }[39m
+[31m+ .price-danger { color: $uni-color-error; }[39m
+[31m+ .load-more { padding: $uni-spacing-md 0; text-align: center; }[39m
+[31m+ .load-more-text { font-size: 24rpx; color: $uni-gray-300; }[39m
+[31m+ .empty-state {[39m
+[31m+   display: flex;[39m
+[31m+   flex-direction: column;[39m
+[31m+   align-items: center;[39m
+[31m+   padding: 200rpx 0;[39m
+[31m+ }[39m
+[31m+ .empty-icon { font-size: 80rpx; color: $uni-gray-200; margin-bottom: $uni-spacing-sm; }[39m
+[31m+ .empty-text { font-size: 26rpx; color: $uni-gray-400; }[39m
+[31m+ </style>[39m
+[31m+[39m
+
+[36m [2m❯[22m tests/price-anomaly-static.spec.ts:[2m67:28[22m[39m
+    [90m 65|[39m
+    [90m 66|[39m   [34mit[39m([32m'页面不再直接比较原始 API 值 item.retailPrice < item.costPrice'[39m[33m,[39m () [33m=>[39m {
+    [90m 67|[39m     [34mexpect[39m([34mreadPage[39m())[33m.[39mnot[33m.[39m[34mtoContain[39m([33mRAW[39m)
+    [90m   |[39m                            [31m^[39m
+    [90m 68|[39m   })
+    [90m 69|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue 低价标红静态门（QODER-15F1）[2m > [22m全页不存在任何 item.*Price < item.*Price 形态的裸价格比较
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/price-anomaly-static.spec.ts:[2m72:74[22m[39m
+    [90m 70|[39m   [34mit[39m([32m'全页不存在任何 item.*Price < item.*Price 形态的裸价格比较'[39m[33m,[39m () [33m=>[39m {
+    [90m 71|[39m     [35mconst[39m text [33m=[39m [34mreadPage[39m()
+    [90m 72|[39m     expect(/item\.[A-Za-z]*Price\s*<\s*item\.[A-Za-z]*Price/.test(text…
+    [90m   |[39m                                                                          [31m^[39m
+    [90m 73|[39m   })
+    [90m 74|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标）[2m > [22m绑定表达式确实走归一化工具（而非裸 `<`）
+[31m[1mAssertionError[22m: expected 'item.retailPrice < item.costPrice' to be 'isBelowCost(item.retailPrice, item.co…' // Object.is equality[39m
+
+Expected: [32m"[7misBelowCost([27mitem.retailPrice[7m,[27m item.costPrice[7m)[27m"[39m
+Received: [31m"item.retailPrice[7m <[27m item.costPrice"[39m
+
+[36m [2m❯[22m tests/price-anomaly-static.spec.ts:[2m102:31[22m[39m
+    [90m100|[39m
+    [90m101|[39m   [34mit[39m([32m'绑定表达式确实走归一化工具（而非裸 `<`）'[39m[33m,[39m () [33m=>[39m {
+    [90m102|[39m     expect(priceDangerExpr()).toBe('isBelowCost(item.retailPrice, item…
+    [90m   |[39m                               [31m^[39m
+    [90m103|[39m   })
+    [90m104|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标）[2m > [22m字符串低价 retail "9.00" / cost "12.00" ⇒ 必须标红（卡点名复现）
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/price-anomaly-static.spec.ts:[2m119:70[22m[39m
+    [90m117|[39m     [[32m'retail NaN / cost 12 ⇒ 无效值不标红'[39m[33m,[39m [33mNaN[39m[33m,[39m [34m12[39m[33m,[39m [35mfalse[39m][33m,[39m
+    [90m118|[39m   ] [35mas[39m [35mconst[39m)([32m'%s'[39m[33m,[39m (_label[33m,[39m retail[33m,[39m cost[33m,[39m expected) [33m=>[39m {
+    [90m119|[39m     expect(isMarkedDanger({ retailPrice: retail, costPrice: cost })).t…
+    [90m   |[39m                                                                      [31m^[39m
+    [90m120|[39m   })
+    [90m121|[39m })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标）[2m > [22m字符串高价 retail "12.00" / cost "9.00" ⇒ 不标红
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标）[2m > [22m字典序反向 retail "1000.00" / cost "999.00" ⇒ 不得误标红
+[41m[1m FAIL [22m[49m tests/price-anomaly-static.spec.ts[2m > [22mprice-anomaly.vue :class 表达式行为门（QODER-15F1 反测目标）[2m > [22mretail null / cost "12.00" ⇒ 无效值不标红
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/price-anomaly-static.spec.ts:[2m119:70[22m[39m
+    [90m117|[39m     [[32m'retail NaN / cost 12 ⇒ 无效值不标红'[39m[33m,[39m [33mNaN[39m[33m,[39m [34m12[39m[33m,[39m [35mfalse[39m][33m,[39m
+    [90m118|[39m   ] [35mas[39m [35mconst[39m)([32m'%s'[39m[33m,[39m (_label[33m,[39m retail[33m,[39m cost[33m,[39m expected) [33m=>[39m {
+    [90m119|[39m     expect(isMarkedDanger({ retailPrice: retail, costPrice: cost })).t…
+    [90m   |[39m                                                                      [31m^[39m
+    [90m120|[39m   })
+    [90m121|[39m })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-15\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-15\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+TEST_RED_EXIT=1

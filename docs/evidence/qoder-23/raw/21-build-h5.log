@@ -1,0 +1,26 @@
+# build:h5 读数 2026-10-21T21:58:24+08:00
+$ cd /d/Users/ZXQL/wt-agents/QODER-23 && npm --workspace app-mobile run build:h5
+--- 原始输出开始 ---
+
+> zhixiang-app-mobile@1.0.0 build:h5
+> uni build -p h5
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+​
+/static/icons/hd-scan.svg referenced in /static/icons/hd-scan.svg didn't resolve at build time, it will remain unchanged to be resolved at runtime​
+
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
+BUILD_H5_EXIT=0
+--- 原始输出结束 ---
+$ ls -la app-mobile/dist/build/h5 | head
+total 132
+drwxr-xr-x 1 XIONG 197121   0 Oct 21 21:59 .
+drwxr-xr-x 1 XIONG 197121   0 Oct 21 21:59 ..
+drwxr-xr-x 1 XIONG 197121   0 Oct 21 21:59 assets
+-rw-r--r-- 1 XIONG 197121 836 Oct 21 21:59 index.html
+drwxr-xr-x 1 XIONG 197121   0 Oct 21 21:59 static

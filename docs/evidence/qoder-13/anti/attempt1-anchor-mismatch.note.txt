@@ -1,0 +1,1 @@
+本文件为第一次反测尝试：注入锚点用了 LF 而台账实为 CRLF ⇒ scratch 打印 HIT-COUNT=0 拒写（未污染任何字节，sha 前后一致）。步骤3/4读数无效（现场从未注入），保留不删；有效反测见 anti-no-stale-full-run.log。

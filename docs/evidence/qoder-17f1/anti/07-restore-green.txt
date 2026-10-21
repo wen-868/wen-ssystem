@@ -1,0 +1,38 @@
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-17/app-mobile
+
+ ✓ tests/safe-top-var.spec.ts (4 tests) 344ms
+ ✓ tests/api-base-env.spec.ts (3 tests) 1861ms
+     ✓ 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用  1838ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 41ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/storage-crypto.spec.ts (4 tests) 3504ms
+     ✓ 派生密钥为 32 字节且同输入可复现  1636ms
+     ✓ tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）  1684ms
+ ✓ tests/permission-view-state.spec.ts (29 tests) 2304ms
+     ✓ 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示  518ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 2993ms
+     ✓ gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名  597ms
+     ✓ 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单  753ms
+     ✓ 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行）  494ms
+     ✓ 售后门（gated sale:return）：持码/通配=显示；不持/空数组/未取到=隐藏  869ms
+
+ Test Files  6 passed (6)
+      Tests  60 passed (60)
+   Start at  02:24:25
+   Duration  46.92s (transform 43.65s, setup 0ms, import 68.28s, tests 11.05s, environment 15ms)
+
+—— test 门（用例数冻结）：当前 6 文件 / 60 用例，基线 6 / 60 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+TEST_EXIT=0

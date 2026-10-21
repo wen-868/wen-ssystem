@@ -1,0 +1,38 @@
+# 门禁装置与规则面零改动自检（本卡只准动 tests/ 与 gates-baseline.json）2026-10-21 19:50:04
+## 1. 本卡相对基座 cf9a98fa 的 app-mobile 改动面
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/storage.ts
+app-mobile/src/pages-sub/marketing/member/member-detail.vue
+app-mobile/src/pages-sub/product/batch-price/batch-price.vue
+app-mobile/src/pages-sub/settings/settings.vue
+app-mobile/src/pages/ai-chat/ai-chat.vue
+app-mobile/src/pages/products/product-detail.vue
+app-mobile/src/pages/sales/create-sale.vue
+app-mobile/tests/pin-ssl-static.spec.ts
+## 2. 门禁脚本与规则配置相对 cf9a98fa 的 diff 行数（须全 0）
+app-mobile/.eslintrc.cjs = 0
+app-mobile/vitest.config.ts = 0
+app-mobile/package.json = 0
+app-mobile/scripts/lint-gate.mjs = 0
+app-mobile/scripts/test-gate.mjs = 0
+app-mobile/scripts/type-check-gate.mjs = 0
+app-mobile/scripts/check-contract.mjs = 0
+app-mobile/scripts/check-contract-drift.mjs = 0
+app-mobile/src/utils/pin-ssl.ts = 0
+app-mobile/src/utils/crypto.ts = 0
+app-mobile/tests/storage-crypto.spec.ts = 0
+## 3. 并入面（相对 cf9a98fa 来自 QODER-21 的 7 个 src 文件 + docs）
+ app-mobile/src/pages/products/product-detail.vue   | 37 +++++++++++--------
+ app-mobile/src/pages/sales/create-sale.vue         | 19 +++++++---
+ 7 files changed, 75 insertions(+), 44 deletions(-)
+## 4. 未新增 eslint-disable / vitest 跳过标记
+app-mobile/tests\price-anomaly-static.spec.ts:96:    // eslint-disable-next-line no-new-func
+RG_EXIT=0
+## 5. pin-ssl 指纹常量与本卡无关且未动（相对 21b465e5 的 diff 应只含 13F 链的指纹更新）
+5	2	app-mobile/src/config/env.ts
+8	8	app-mobile/src/utils/pin-ssl.ts
+## 6. §4 唯一命中的 qualifier（同轮补记）
+`app-mobile/tests/price-anomaly-static.spec.ts:96` 的 `// eslint-disable-next-line no-new-func`
+**不是本卡新增**：`git show cf9a98fa:app-mobile/tests/price-anomaly-static.spec.ts | grep -n no-new-func` 同一行同一列命中
+⇒ 属 QODER-15/15F1 链上的既有用例装置（该行是单条规则级豁免，非整文件 disable，也不在本卡动作面内）。
+本卡 tests/pin-ssl-static.spec.ts 内 0 处 disable/skip/todo（§4 的 rg 面已覆盖 tests/ 全目录）。

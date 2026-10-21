@@ -1,0 +1,40 @@
+### 命令: git diff 21b465e5..HEAD --stat -- app-mobile/src
+###        git diff 21b465e5..HEAD --name-only -- app-mobile/src
+###        git log --format='%h %s' 21b465e5..HEAD -- <每个 src 文件>   （逐项追到来源 commit）
+### 工作目录: D:/Users/ZXQL/wt-agents/QODER-19
+### 时间戳: 2026-10-21 04:38:11 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+### 判据: src 下每一项都能对应到四卡之一，本单零业务码
+----------------------------------------
+ app-mobile/src/App.vue                             |  2 +-
+ app-mobile/src/api/modules/price.ts                |  9 +--
+ app-mobile/src/api/request.ts                      | 21 +++++-
+ app-mobile/src/manifest.json                       | 18 ++++-
+ .../product/price-anomaly/price-anomaly.vue        | 13 ++--
+ app-mobile/src/utils/format.ts                     | 79 ++++++++++++++++++++++
+ 6 files changed, 129 insertions(+), 13 deletions(-)
+
+=== name-only ===
+app-mobile/src/App.vue
+app-mobile/src/api/modules/price.ts
+app-mobile/src/api/request.ts
+app-mobile/src/manifest.json
+app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue
+app-mobile/src/utils/format.ts
+
+=== 逐文件来源归属（文件 → 引入它的提交）===
+[app-mobile/src/App.vue]
+    e3a4a7d0  fix: QODER-17 App.vue --safe-top 自引用改为 env(safe-area-inset-top) 并新增静态断言用例
+[app-mobile/src/api/modules/price.ts]
+    81ef5c07  fix: 价格异常页金额显示接入 fmtAmount 数值归一化工具止血白屏
+[app-mobile/src/api/request.ts]
+    8c09cfbd  fix: 401 清态补删 merchant_tenant 并将五敏感键无残留做成断言（QODER-14F1）
+    5dbf1453  fix: 401 静默重试仅允许 GET 且清态补删 CSRF 令牌（QODER-14）
+[app-mobile/src/manifest.json]
+    6b6fb197  fix: QODER-16 补 iOS 六键隐私描述与小程序录音授权并新增 JSON 权限断言用例
+[app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue]
+    477acdca  fix: 价格异常页低价标红判定经 toNum 归一化杜绝字符串字典序误判
+    81ef5c07  fix: 价格异常页金额显示接入 fmtAmount 数值归一化工具止血白屏
+[app-mobile/src/utils/format.ts]
+    477acdca  fix: 价格异常页低价标红判定经 toNum 归一化杜绝字符串字典序误判
+    81ef5c07  fix: 价格异常页金额显示接入 fmtAmount 数值归一化工具止血白屏

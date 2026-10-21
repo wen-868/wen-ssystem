@@ -1,0 +1,12 @@
+# 采集时间(本机): 2026-10-21 01:59:20 +0800
+# 状态1: node backend/scripts/guard-rbac-wiring.mjs --strict
+EXIT=0
+---- 台账核对段尾部 ----
+   L26: POST /api/admin/trace/configs/check ⇒ 查询型 POST（不改数据，非写端点缺口）
+        归属单：S3-231｜理由：追溯配置**判定**（只读查询）：`services/admin/trace-config.service.ts` 的 `checkSkuTrace` 只按 SKU → 分类 → 全局三级 `SELECT` 出「是否需要追溯」，不写库
+        裁定：§十八.3（S3-231 F4 逐条裁定；S3-198 追溯域判定遗留的 7 条疑似查询型之一）
+
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+gaps：已登记 289 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 0 条（仅提示，不判红）
+consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+✅ [--strict] 无「未登记」项（已登记欠账 289 条、已登记消费者端保护形态 45 条，均不计红）

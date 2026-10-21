@@ -1,0 +1,17 @@
+# 11 收尾自检·落文档提交前 2026-10-22T01:42:42+08:00
+$ git status --porcelain   # 此刻文档三件应为未跟踪（即将逐文件 add）
+?? docs/evidence/qoder-23f1/
+?? "docs/tasks/cards/R101-QODER-23F1-\345\233\236\344\274\240.md"
+?? "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-23F1.md"
+$ git log --oneline -3
+bbc8aa9e fix: QODER-23F1 AES-GCM 解密补 IV 规范长度守卫（构造 J0 前拒绝非 12 字节），测试补齐短 tag/短 IV/长 IV 边界四条并同步 tests 基线 187→191
+2568ef03 docs: QODER-23 证据补笔——尖端出厂读数 raw/48 与八次确定性复跑 raw/45（回填文档笔 e33f3541 实测哈希，app-mobile 面 0 行）
+e33f3541 docs: QODER-23 回传卡 + 回执 + 证据树（长度守卫与确定性篡改两轮反测分离复现、base64 定长比较语义探针、四门与 build:h5 实测读数）
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+0
+$ git diff 2568ef03..HEAD --name-only   # 实现提交面（应仅点名三文件）
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/utils/crypto.ts
+app-mobile/tests/storage-crypto.spec.ts
+$ git merge-base --is-ancestor bc1087ee HEAD; echo ANCESTOR_EXIT=$?
+ANCESTOR_EXIT=0

@@ -1,0 +1,17 @@
+# 采集时间(本机): 2026-10-21 02:08:14 +0800
+# 命令: (cd backend && npx vitest run src/__tests__/routes/rbac-g0-wiring.test.ts src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts)
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-13/backend[39m
+
+ [32m✓[39m src/__tests__/routes/rbac-g0-wiring.test.ts [2m([22m[2m147 tests[22m[2m)[22m[33m 5976[2mms[22m[39m
+     [33m[2m✓[22m[39m backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17 + QODER-9 新增 4 [33m 992[2mms[22m[39m
+     [33m[2m✓[22m[39m 'price.routes.ts POST /api/admin/price…'：READONLY（*:view）⇒ 403 且未到达业务层 [33m 1288[2mms[22m[39m
+ [32m✓[39m src/__tests__/routes/rbac-b2-s3-233-gate-wiring-parity.test.ts [2m([22m[2m135 tests[22m[2m)[22m[33m 1714[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m282 passed[39m[22m[90m (282)[39m
+[2m   Start at [22m 02:08:56
+[2m   Duration [22m 48.72s[2m (transform 12.32s, setup 347ms, import 80.87s, tests 7.69s, environment 1ms)[22m
+
+EXIT=0

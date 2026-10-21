@@ -1,0 +1,84 @@
+############ 超时假红修复说明 + 连续两遍稳定性复跑 ############
+# 现象：anti/04 的 STEP 7（复原后复跑）报 ANTI_GREEN_TEST_EXIT=1，
+#       失败原因不是断言，而是 vitest 默认 5000ms 用例超时：
+#       Error: Test timed out in 5000ms.  @ tests/request-retry-safety.spec.ts:434:3
+# 根因：本用例含「全仓 .ts/.vue 递归读取 + 一次真实模块动态 import」，热态 ~2.3s，
+#       紧随 build:h5 落大量 dist 文件后的冷态可冲到 >5s ⇒ 属**负载型假红**，不是内容差异。
+# 处置：给该 it 传显式 30_000ms 超时（vitest 标准做法），三条断言一字未减；
+#       门能否红另由 anti/06 的注桩反测重新证明。原始输出 anti/04 未改写（协议 §5 不覆盖历史）。
+# 复现：cd app-mobile && npm run test  （连续两遍，见下方 RUN-1 / RUN-2）
+
+########## RUN 1 ##########
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-18/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 1289[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 1270[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 207[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 536[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1490[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 779[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文） [33m 555[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 5525[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 1357[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 3347[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 646[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m71 passed[39m[22m[90m (71)[39m
+[2m   Start at [22m 04:49:29
+[2m   Duration [22m 12.93s[2m (transform 14.39s, setup 0ms, import 20.85s, tests 9.69s, environment 11ms)[22m
+
+—— test 门（用例数冻结）：当前 6 文件 / 71 用例，基线 6 / 71 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+RUN1_EXIT=0
+
+########## RUN 2 ##########
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-18/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 193[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 203[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 618[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1626[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 935[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文） [33m 574[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 4535[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 822[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 2684[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 1305[2mms[22m[39m
+     [33m[2m✓[22m[39m 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单 [33m 424[2mms[22m[39m
+     [33m[2m✓[22m[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行） [33m 326[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m71 passed[39m[22m[90m (71)[39m
+[2m   Start at [22m 04:50:01
+[2m   Duration [22m 13.44s[2m (transform 9.41s, setup 0ms, import 17.26s, tests 8.48s, environment 62ms)[22m
+
+—— test 门（用例数冻结）：当前 6 文件 / 71 用例，基线 6 / 71 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+RUN2_EXIT=0

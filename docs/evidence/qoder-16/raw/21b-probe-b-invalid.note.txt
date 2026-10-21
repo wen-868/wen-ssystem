@@ -1,0 +1,22 @@
+本件是**勘误说明**，不改动 `21-route-probe-pagesjson-vs-manifest.txt` 原文（原文件逐字节保留）。
+
+## 结论
+
+`21-route-probe-pagesjson-vs-manifest.txt` 的 **PROBE B 段（:12-17「RESULT B: 探针未出现在 dist app.json ⇒ manifest 路由也不生效」）作废**，不得作为任何判据依据。manifest 侧的探针结论一律以
+`22-route-probe-manifest-only.txt` 为准：**探针出现在 dist app.json ⇒ `src/manifest.json` 的 `mp-weixin` 节点生效**。
+
+## 作废理由（对照两份原文可核）
+
+1. **注入没有可核证的确认行**。PROBE A 段打印了 `probe[pages] injected -> …`；`raw/22` 打印了 `probe[manifest] injected -> …` + `inject rc=0` + 注入后 `JSON.parse` 回读（`permission.scope.record.desc` 确为探针串）。`21` 的 PROBE B 段**直接跳到 `build EXIT=0`**，没有任何注入确认或回读——即"探针是否真的写进过 manifest.json"这一步无证据。
+2. 因此该段的 `permission=undefined` 有两个可能成因：① 注入后 manifest 的 `mp-weixin` 不进产物（原结论）；② 压根没注入成功（静默失败）。**②无法排除**，"未出现"就推不出"不生效"——这是一次典型的"门没跑却读数"，属证据无效而非结论相反。
+3. **同一支脚本重跑得到相反读数**：`raw/22` 补齐 rc 与回读校验后，同样写 `src/manifest.json` 的 `mp-weixin` ⇒ 产物 `app.json` 出现 `permission={"scope.record":{"desc":"QODER16_MANIFEST_PROBE"}}` 与 `requiredPrivateInfos=[]`，`build EXIT=0`。`21` 的 PROBE B 与 `22` 的 RESULT B 互斥，采信有回读校验的那一份。
+4. **独立佐证（与探针无关的两条）**：① 框架源码 `@dcloudio/uni-cli-shared/dist/json/mp/pages.js:129-133` 只透传 `preloadRule|workers|plugins|entryPagePath`（pages.json 侧），而 `mergeMiniProgramAppJson`（同文件 :33-45）把 manifest 的 `mp-weixin` 逐键并入 app.json，排除表 `NON_APP_JSON_KEYS`/`projectKeys`（`json/mp/project.js:7-25`）不含 `permission`、`requiredPrivateInfos`；② 本单真实交付后的产物 `app-mobile/dist/build/mp-weixin/app.json`（`raw/23`）顶层确有 `permission["scope.record"].desc`。
+
+## PROBE A 段仍然有效
+
+`21` 的 PROBE A 段（:4-10）有注入确认行、有产物回读、复原 SHA 与 PRE 逐字节一致，结论保留：**pages.json 顶层 `mp-weixin` 不进产物 app.json**。靶点偏差（`scope.record`/`requiredPrivateInfos` 落点在 `src/manifest.json`）由 PROBE A + `raw/22` + `raw/23` + 框架源码四处支撑，成立。
+
+## 涉及文档的同步指向
+
+- 回传卡 `docs/tasks/cards/R101-QODER-16-回传.md` §五① 已加指向本件的一行。
+- `docs/evidence/qoder-16/README.md` 的 `21` 行已标注"仅 PROBE A 有效，PROBE B 作废见 `21b`"。

@@ -1,0 +1,19 @@
+# gates-baseline.json 双段收敛取证 2026-10-21 19:19:46
+## 追加前
+18c425512e5939ac969df82007ca52ff3c302f7933c4c926436c145e670a2fe0 *app-mobile/scripts/gates-baseline.json
+BEFORE lint.errorBaseline=0 errorsByFileRule=0 tests=11/186
+BEFORE lint.note.len=1052 tests.note.len=2270
+PARSE_AFTER=OK
+lint.errorBaseline= 0 errorsByFileRule= 0
+tests= 11 / 186
+lint.note.hasQ21= true hasQ22= true hasQ5= true
+tests.note.has7= true has8= true
+crlf= 47 bytes= 9891
+sections= _comment,typeCheck,lint,checkContract,contractDrift,tests
+warn= {"no-console":225,"@typescript-eslint/no-unused-vars":104,"vue/html-indent":12299,"vue/html-closing-bracket-spacing":196,"vue/html-closing-bracket-newline":1,"vue/multiline-html-element-content-newline":47}
+APPEND_EXIT=0
+## 追加后 diff（仅应为 2 行 note）
+2	2	app-mobile/scripts/gates-baseline.json
+4
+## 追加后 sha
+ebf8cf99363bf97f295737d2a11eb72c0eb56fd10870c376015d94044e91911a *app-mobile/scripts/gates-baseline.json

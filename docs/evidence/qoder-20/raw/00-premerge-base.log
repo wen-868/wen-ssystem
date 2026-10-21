@@ -1,0 +1,40 @@
+### QODER-20 · raw/00 合并前基座态（cdf16ce4）
+# date=2026-10-21T07:50:05+08:00
+$ git rev-parse --abbrev-ref HEAD; git rev-parse HEAD
+chore/qoder-20-mobile-final-integration
+cdf16ce4a553bc0dc1659f65957ba3d31efa2d5b
+
+$ git status --porcelain   # 期望空
+?? docs/evidence/qoder-20/
+(空=干净)
+
+$ git log --oneline -6
+cdf16ce4 docs: QODER-19 ACTIVE 回执与 raw/17 收尾终态校验 + 回传卡 ref 哈希回填（无判据变化）
+1d370838 docs: QODER-19 合并终态四门三构建复跑证据与五轮反测（基线 10/184 复现 + 四笔 merge 冲突取证 + 回传卡）
+0963459d merge: QODER-17F1 safe-top 根链补 viewport-fit=cover（进基线收敛）
+bcf4f4e0 merge: QODER-16R 隐私权限 manifest 落点（进基线收敛）
+25663f73 merge: QODER-15F1 低价比较经 toNum 归一化（进基线收敛）
+0ddcc3d2 merge: QODER-14F1 401 清态补 merchant_tenant（进基线收敛）
+
+##### 基座 gates-baseline.json tests / lint 段
+tests = {"testFiles":10,"testCount":184}
+lint  = {"errorBaseline":20,"mustReachZero":true,"rule_pairs":13}
+type  = {"tool":"vue-tsc --noEmit（S3-245 同形态，scripts/type-check-gate.mjs 包装基线比较）","errors":{},"note":"凌舟裁定②（2026-10-18 验收回传）已落地：PR #363（S3-245）已进 main（3fa138e7）→ 本分支已 rebase 到其上 → 原 12 条 crypto.ts TS2323/TS2393 随根治归零，errors 清空 ⇒ 门判据即 error===0。CI 类型门唯一形态 = 上方 S3-245 步骤；本脚本为本地同语义包装。"}
+NODE_EXIT=0
+
+##### 基座 app-mobile/tests 清单
+app-mobile/tests/api-base-env.spec.ts
+app-mobile/tests/entry-gate-consistency.spec.ts
+app-mobile/tests/format.spec.ts
+app-mobile/tests/mobile-permissions.spec.ts
+app-mobile/tests/permission-codes.spec.ts
+app-mobile/tests/permission-view-state.spec.ts
+app-mobile/tests/price-anomaly-static.spec.ts
+app-mobile/tests/request-retry-safety.spec.ts
+app-mobile/tests/safe-top-var.spec.ts
+app-mobile/tests/storage-crypto.spec.ts
+
+##### 三个待合入锚点
+99371862  99371862 docs: QODER-13F2 回传卡与回执 + 证据树落盘（四轮反测红档、首轮作废可复现取证、四门与范围机检）
+bd7e158f  bd7e158f docs: QODER-18 回传卡、ACTIVE 回执与 upload() 死导出处置证据树
+df583401  df583401 docs: QODER-11R 收尾自证补哈希笔——协议§7全量end-check(4门EXIT/关服复核/src&backend diff=0)+回传卡与回执补记提交哈希

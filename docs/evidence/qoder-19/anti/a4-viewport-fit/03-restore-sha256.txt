@@ -1,0 +1,10 @@
+### 轮次: ④ index.html 删 viewport-fit=cover（17F1 断言④ 目标）
+### 目标文件: app-mobile/index.html
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:58:37 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+5d13f82cf757915ca71a2bd0a2950804e7af1ca6cc0434a9563531671036b1a2 */d/Users/ZXQL/wt-agents/QODER-19/app-mobile/index.html
+注入前 SHA = 5d13f82cf757915ca71a2bd0a2950804e7af1ca6cc0434a9563531671036b1a2
+复原后 SHA = 5d13f82cf757915ca71a2bd0a2950804e7af1ca6cc0434a9563531671036b1a2
+结论: 逐字节一致 ⇒ 复原成功

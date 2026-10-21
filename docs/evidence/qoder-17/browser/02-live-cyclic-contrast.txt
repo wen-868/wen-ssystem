@@ -1,0 +1,13 @@
+$ mcp__browser-use__evaluate_script —— 现场活体反证（运行时注入自引用再复原，不改文件）
+在 uni-page-body 上临时 style.setProperty('--safe-top','var(--safe-top)')，读 computed，再 removeProperty 复原。
+
+{
+  "fixedValue": "0px",                // 修复后（构建产物）computed
+  "cyclicSelfRefComputed": "",        // 运行时注入自引用后 computed ⇒ 空串，按定义即无效（cyclic）
+  "cyclicLoginPaddingTop": "0px",     // 自引用下 var() 失效回退（padding-top 初值 0），无法体现安全区高度
+  "restoredValue": "0px",             // 移除注入后复原
+  "restoredLoginPaddingTop": "0px"
+}
+
+结论：自引用 var(--safe-top) 的 computed 值为空串（无效），修复为 env(safe-area-inset-top) 后
+computed 为可解析的 0px（桌面 env=0 属正常）。坐实原缺陷并使 R8.1「computed 定层叠」可复核。

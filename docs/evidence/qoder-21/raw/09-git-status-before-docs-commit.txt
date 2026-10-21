@@ -1,0 +1,10 @@
+命令：git status --short   工作树：D:/Users/ZXQL/wt-agents/QODER-21   分支：chore/qoder-21-lint-errors-zero
+时点：QODER-21 证据笔（docs:）提交之前。实现笔 5bbd4324 已落，8 个代码/基线文件已入库，剩下只有本卡三份文档与证据树。
+说明：证据目录内的文件无法自证「提交后」的 clean 状态（写它本身会让工作树再次变脏），故提交后的 git status --porcelain 空输出记在回传卡 §②/§⑨ 与回执 §判据自评里，可由 §⑨ 第 4 条命令复跑核对。
+
+?? docs/evidence/qoder-21/
+?? "docs/tasks/cards/R101-QODER-21-\345\233\236\344\274\240.md"
+?? "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-21.md"
+
+git log --oneline origin/main..HEAD（证据笔提交前，应为 1 笔）
+5bbd4324 fix: app-mobile lint error 20 条清零（QODER-21）

@@ -1,0 +1,105 @@
+# QODER-18 · 提交后终态读数（raw/60 的续件，不修改 raw/60 原文）
+# date=2026-10-21 05:15:03
+
+## git status --porcelain —— 本段为「docs 笔待 amend 的在办态」，不是终态
+ M "docs/tasks/cards/R101-QODER-18-\345\233\236\344\274\240.md"
+ M "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-18.md"
+?? docs/evidence/qoder-18/raw/70-post-commit-final-readings.txt
+(说明：本文件与上述两份 docs 的修正即将以 git commit --amend 折进同一笔 docs 提交，
+ 所以采集此刻**必然非空** —— 这是「证据文件无法记录自身提交后的状态」的自指限制，
+ 协议 §5 对 docs 哈希也有同一限制。终态判据 `git status --porcelain` = 空，
+ 由执行方在 amend 之后立即另行复核并回传负责人；复现命令见文末【amend 后复核口径】。)
+
+## git log --oneline e6801de0..HEAD  （本卡笔数 = 2）
+cffae0ac docs: QODER-18 回传卡、ACTIVE 回执与 upload() 死导出处置证据树   # ← 本笔即将被 amend，哈希届时失真；终态以 git log 最新一笔为准
+0aa5765e fix: 删除 request.ts 死导出 upload() 并加静态断言防回流（QODER-18）  # ← 实现笔，amend 不影响
+本卡笔数 = 2
+
+## 分支 / HEAD / 基线
+branch   = fix/qoder-18-upload-dead-code
+HEAD     = cffae0aca69ec0f84dfe86c89065b456f5acf66b   # 即将被 amend，不作终态引用
+HEAD~1   = 0aa5765ebb85e47ce5e97f0879aeb433fe7c26a2   # = 实现笔（本卡第 1 笔）
+HEAD~2   = e6801de01731fad01897d5bd93cd831a9fc17299   # = 卡基线，证明更早历史未动、未 rebase
+HEAD 上游 = fatal: no upstream configured for branch 'fix/qoder-18-upload-dead-code'  # 从未 push
+
+## 代码改动面（按实现笔计）
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+
+## docs 笔（最新一笔）改动面：必须全部是 docs/ 下的新增文件，不改任何既有文档
+          1 A	"docs/tasks/cards/R101-QODER-18-\345\233\236\344\274\240.md"
+          1 A	"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-18.md"
+          1 A	docs/evidence/qoder-18/README.md
+          1 A	docs/evidence/qoder-18/anti/00-inject.txt
+          1 A	docs/evidence/qoder-18/anti/01-gate-red-with-injection.txt
+          1 A	docs/evidence/qoder-18/anti/02-restore-sha.txt
+          1 A	docs/evidence/qoder-18/anti/03-gate-green-after-restore.txt
+          1 A	docs/evidence/qoder-18/anti/04-final-anti-atomic.txt
+          1 A	docs/evidence/qoder-18/anti/05-timeout-fix-stability.txt
+          1 A	docs/evidence/qoder-18/anti/06-final-anti-atomic-valid.txt
+          1 A	docs/evidence/qoder-18/raw/00-dead-export-before.txt
+          1 A	docs/evidence/qoder-18/raw/01-change-diff.txt
+          1 A	docs/evidence/qoder-18/raw/10-gate-type-check.txt
+          1 A	docs/evidence/qoder-18/raw/11-gate-lint.txt
+          1 A	docs/evidence/qoder-18/raw/12-gate-test.txt
+          1 A	docs/evidence/qoder-18/raw/13-gate-check-contract.txt
+          1 A	docs/evidence/qoder-18/raw/20-build-h5-wrong-entry-voided.note.txt
+          1 A	docs/evidence/qoder-18/raw/20-build-h5-wrong-entry-voided.txt
+          1 A	docs/evidence/qoder-18/raw/21-build-h5.txt
+          1 A	docs/evidence/qoder-18/raw/30-dead-export-after-and-scope.txt
+          1 A	docs/evidence/qoder-18/raw/31-post-delete-src-only.txt
+          1 A	docs/evidence/qoder-18/raw/40-final-four-gates.txt
+          1 A	docs/evidence/qoder-18/raw/41-final-build-h5.txt
+          1 A	docs/evidence/qoder-18/raw/42-contract-drift.txt
+          1 A	docs/evidence/qoder-18/raw/50-terminal-four-gates.txt
+          1 A	docs/evidence/qoder-18/raw/51-terminal-build-and-drift.txt
+          1 A	docs/evidence/qoder-18/raw/60-terminal-selfcheck.txt
+  （A = 新增；无 M/D ⇒ 既有文档与 QODER-14* 证据零改动）
+
+## 既有证据与任务书保护面（必须 0 行）
+docs/evidence/qoder-14/          : 0
+docs/evidence/qoder-14f1/        : 0
+任务书原件 QODER-18-*.md         : 0
+ACTIVE.md（路由表，禁止改）      : 0
+backend/                         : 0
+package.json / lockfile          : 0
+真实上传封装 api/modules/         : 0
+上传消费点两个页面                : 0
+
+## request.ts 终态 SHA（须与反测注入前一致）
+0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7 *app-mobile/src/api/request.ts
+   期望 0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7
+
+## docs 笔 --amend 报备（详见回传卡 §八.7）
+  docs 笔首建哈希 3dde2c11 -> 一次 --amend 后为当前分支尖端（本文件不写死自身哈希）。
+  amend 动机：修正回传卡 §① 改动面口径 + 去除对自身 docs 笔哈希的硬编码 + 补 §八.7/§⑩.7 与回执 amend 报备。
+  选择 amend 而非第 3 笔的原因：任务书限本卡提交 1~2 笔。实现笔 0aa5765e 未受影响。
+
+## 四门 / build / drift 终态 EXIT（原读数在 raw/50、raw/51；代码自 raw/50 后未变，仅 docs 变化）
+TYPE_CHECK_EXIT=0
+LINT_EXIT=0
+TEST_EXIT=0
+CHECK_CONTRACT_EXIT=0
+BUILD_H5_EXIT=0
+DRIFT_EXIT=0
+
+## 【对 raw/60 的一处措辞补正】（不改写 raw/60 原文）
+raw/60 的红线对照段写「未 rebase/改历史：基线 e6801de0 仍是 HEAD 的**第 2 笔**父提交 -> e6801de0」，
+该处「第 2 笔」措辞不准：raw/60 采集时 HEAD = 实现笔 0aa5765e，`git rev-parse HEAD~1` 打印出的 e6801de0
+是 HEAD 的**第 1 笔（直接父提交）**。数值输出本身无误（确实等于卡基线），仅文字标号错。
+docs 笔 amend 后关系为：HEAD = docs 笔、HEAD~1 = 0aa5765e（实现笔）、HEAD~2 = e6801de0（卡基线），
+即本文件【分支 / HEAD / 基线】段所示 ⇒ 更早历史未动、未 rebase 的结论不变。
+
+## 【amend 后复核口径】（负责人可直接复跑，验证终态干净）
+```bash
+cd /d/Users/ZXQL/wt-agents/QODER-18
+git status --porcelain                     # 期望：空
+git log --oneline e6801de0..HEAD           # 期望：2 笔（1 fix 0aa5765e + 1 docs 最新一笔）
+git rev-parse HEAD~2                       # 期望：e6801de01731fad01897d5bd93cd831a9fc17299
+git diff --name-only e6801de0..0aa5765e    # 期望：仅 3 个卡点名代码/基线文件
+git diff e6801de0..HEAD -- backend/ | wc -l        # 期望：0
+git diff e6801de0..HEAD -- app-mobile/src/api/modules/ | wc -l  # 期望：0（真实上传链路未动）
+sha256sum app-mobile/src/api/request.ts    # 期望：0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7
+(cd app-mobile && npm run check:contract)  # 期望：EXIT=0，292/283/204（与删前逐项相同）
+```

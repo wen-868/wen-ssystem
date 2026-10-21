@@ -1,0 +1,3 @@
+CMD: sha256sum src/manifest.json  (改前)
+DATE: 2026-10-21 02:09:17
+f551ca55f87c029522beb3ffeae86e76feb521fce868833fbb43e140f604e5fe *src/manifest.json

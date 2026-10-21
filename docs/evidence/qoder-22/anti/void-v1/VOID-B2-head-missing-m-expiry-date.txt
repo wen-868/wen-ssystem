@@ -1,0 +1,52 @@
+# QODER-22 反测轮 B2：2026-10-21 19:28:40
+## 0. 注入前
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 */d/Users/ZXQL/wt-agents/QODER-22/app-mobile/src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 */d/Users/ZXQL/wt-agents/_scratch/qoder-22/pin-ssl.ts.PRE
+PRE_BACKUP_MATCHES_CURRENT=yes
+## 1. 注入
+$ node /d/Users/ZXQL/wt-agents/_scratch/qoder-22/inject.mjs B2
+file:///D:/Users/ZXQL/wt-agents/_scratch/qoder-22/inject.mjs:7
+const fs = require('fs')
+           ^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+    at file:///D:/Users/ZXQL/wt-agents/_scratch/qoder-22/inject.mjs:7:12
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.18.0
+INJECT_EXIT=1
+## 2. 注入后红跑（须红且点名对应断言）
+$ npx vitest run tests/pin-ssl-static.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 9[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:28:48
+[2m   Duration [22m 1.21s[2m (transform 72ms, setup 0ms, import 466ms, tests 9ms, environment 0ms)[22m
+
+VITEST_EXIT=0
+## 3. cp 复原（绝不用 sed -i）
+RESTORE_EXIT=0
+SHA_BEFORE=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_AFTER=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_MATCH=yes
+## 4. 复原后复跑（须绿）
+$ npx vitest run tests/pin-ssl-static.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-22/app-mobile[39m
+
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:28:56
+[2m   Duration [22m 1.16s[2m (transform 104ms, setup 0ms, import 494ms, tests 11ms, environment 0ms)[22m
+
+VITEST_EXIT_AFTER_RESTORE=0
+## 5. 复原后工作树状态（cwd=app-mobile ⇒ pathspec 用相对路径；应无该文件改动）
+GIT_STATUS_LINES=0

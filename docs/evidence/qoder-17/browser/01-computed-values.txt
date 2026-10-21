@@ -1,0 +1,18 @@
+$ mcp__browser-use__evaluate_script (http://127.0.0.1:5179/#/ 登录页)
+函数：取 documentElement / uni-page-body / 首个子 div 的 --safe-top computed 值 + .login-page padding-top + viewport meta
+
+{
+  "child__safeTop": "0px",
+  "docEl__safeTop": "",
+  "loginFound": true,
+  "loginPage_paddingTop": "0px",
+  "pageBody__safeTop": "0px",
+  "pageBody__safeTop_trim_type": "string",
+  "readyState": "complete",
+  "statusBarHeight": "0px",
+  "url": "http://127.0.0.1:5179/#/",
+  "viewportMeta": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+}
+
+读数解释：桌面浏览器 env(safe-area-inset-top) 解析为 0px 属正常；关键判据是「可解析、不为空字符串」——达成。
+docEl 为空是因为变量定义在 uni-page-body（page 选择器编译目标），不是 :root；本单未改作用域。

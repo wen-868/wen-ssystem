@@ -1,0 +1,28 @@
+browser-use list_console_messages (types=log|error|warn) 原样输出
+取证时刻：场景 3 复跑结束时；装置 me=500 / menus=500 / login=ok
+命令等价：mcp__browser-use__list_console_messages {types:["log","error","warn"],pageSize:50}
+--------------------------------------------------------------------------------
+## Console messages
+Showing 1-13 of 13 (Page 1).
+msgid=28 [warn] [vue-router]: importing from 'vue-router/dist/vue-router.esm-bundler.js' is deprecated. Use 'vue-router' directly. (http://localhost:5288/@fs/D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vue-router/dist/vue-router.esm-bundler.js:0)
+msgid=29 [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error) (http://localhost:5288/api/admin/auth/me:0)
+msgid=30 [error] [app] 恢复登录态失败: 服务器繁忙，请稍后重试(mock) (arms-rum-browser.js:5)
+msgid=31 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/app/version/app_mobile:0)
+msgid=32 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/store/dashboard:0)
+msgid=33 [error] 加载首页数据失败: Error: 资源不存在(mock兜底)
+    at success (http://localhost:5288/src/api/request.ts:72:18)
+    at http://localhost:5288/@fs/D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/@dcloudio/uni-h5/dist/uni-h5.es.js:2732:17
+    ... xhr.onload (uni-h5.es.js:20911:9) (arms-rum-browser.js:5)
+msgid=34 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/admin/dashboard/todos:0)
+msgid=35 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/admin/dashboard/sales-trend-daily?days=7:0)
+msgid=36 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/admin/orders?page=1&pageSize=4:0)
+msgid=37 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/admin/notifications/unread-count:0)
+msgid=38 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/admin/reports/business-overview:0)
+msgid=39 [error] Failed to load resource: the server responded with a status of 404 (Not Found) (http://localhost:5288/api/admin/inventory-alerts:0)
+msgid=40 [error] Failed to load resource: the server responded with a status of 500 (Internal Server Error) (http://localhost:5288/api/admin/menus/user:0)
+
+说明：
+- msgid=29 (/admin/auth/me 500) + msgid=30 ([app] 恢复登录态失败) 对应 me=500；
+- msgid=40 (/admin/menus/user 500) 是驱动功能页 ③ 横幅（menuStore.load catch→firstfail→banner）的请求；
+- msgid=31~39 的 404 为 mock fallback 兜底噪音（home 业务数据），与权限三态验收无关；
+- node_modules 走 junction 指向主仓 D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules（与上一轮装置同构，全程未 npm install）。

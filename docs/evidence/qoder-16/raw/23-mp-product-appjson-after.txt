@@ -1,0 +1,3 @@
+topkeys=pages,subPackages,window,tabBar,permission,requiredPrivateInfos,usingComponents
+permission={"scope.record":{"desc":"用于AI经营助手语音输入：按住说话录制您的口述内容并转为文字，以便生成经营问答与开单草稿。"}}
+requiredPrivateInfos=[]

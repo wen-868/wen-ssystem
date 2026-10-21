@@ -1,0 +1,93 @@
+===== QODER-11R 收尾自检（协议 §7）2026-10-20T18:16:12Z =====
+
+## 1) git status --porcelain（写本文件前应为空，除本 end-check 与其 note 外）
+?? docs/evidence/qoder-11r/end-check.log
+
+## 2) 分支/基线
+branch=docs/qoder-11r-h5-rebase-rerun  HEAD=4746ab31974e34020a0a40f1c1053f228b7f6075  基线dfeedbc0=dfeedbc0
+
+## 3) git log --oneline dfeedbc0..HEAD（本卡全部 docs 笔，本地未 push）
+4746ab31 docs: QODER-11R 回传——执行记录场景3复核小节(基线2baf13af→dfeedbc0)+十项卡+ACTIVE回执(DSH-RECEIPT)
+ae5e0243 docs: QODER-11R 场景3复跑证据全集——mock装置(8288)+dev-h5(5288)+×关闭四步截图/DOM读数/console+四门EXIT+关服端口复核+diff自证
+66b54e2b docs: QODER-11 证据增补——dev-h5.log 完整收尾（TaskStop 后 socket hang up 与 npm 退出尾部，非展示态为真实差异）
+50fa99ae docs: QODER-11 补哈希笔——回执补记回传笔 cf415b21、终态 app-mobile/src diff=0 复跑、关服端口复核日志
+7969b2ae docs: QODER-11 回传——十项卡（基线披露/六场景读数/装置方法/红线对照/阻塞与自报备）+ ACTIVE 回执
+bf0f1362 docs: QODER-11 H5 手动验收执行记录——6 场景四列表+不通过项影响面与归属+判据自对账
+0f87bfa9 docs: QODER-11 证据全集——mock 网络手术装置+dev server 日志+11 张场景截图+每场景读数 note+设备探测+diff 自证
+
+## 4) git log --oneline origin/main..HEAD（若 origin/main 存在）
+4746ab31 docs: QODER-11R 回传——执行记录场景3复核小节(基线2baf13af→dfeedbc0)+十项卡+ACTIVE回执(DSH-RECEIPT)
+ae5e0243 docs: QODER-11R 场景3复跑证据全集——mock装置(8288)+dev-h5(5288)+×关闭四步截图/DOM读数/console+四门EXIT+关服端口复核+diff自证
+66b54e2b docs: QODER-11 证据增补——dev-h5.log 完整收尾（TaskStop 后 socket hang up 与 npm 退出尾部，非展示态为真实差异）
+50fa99ae docs: QODER-11 补哈希笔——回执补记回传笔 cf415b21、终态 app-mobile/src diff=0 复跑、关服端口复核日志
+7969b2ae docs: QODER-11 回传——十项卡（基线披露/六场景读数/装置方法/红线对照/阻塞与自报备）+ ACTIVE 回执
+bf0f1362 docs: QODER-11 H5 手动验收执行记录——6 场景四列表+不通过项影响面与归属+判据自对账
+0f87bfa9 docs: QODER-11 证据全集——mock 网络手术装置+dev server 日志+11 张场景截图+每场景读数 note+设备探测+diff 自证
+
+## 5) git diff --name-only dfeedbc0..HEAD（改动面=docs/证据，无 src/backend）
+"app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md"
+docs/evidence/qoder-11/dev-h5.log
+docs/evidence/qoder-11/device-probe.txt
+docs/evidence/qoder-11/git-diff-src-final.log
+docs/evidence/qoder-11/git-diff-src-selfcheck.log
+docs/evidence/qoder-11/mock-backend.log
+docs/evidence/qoder-11/mock-backend.mjs
+docs/evidence/qoder-11/port-shutdown-check.log
+docs/evidence/qoder-11/scene-1-loading.note.txt
+docs/evidence/qoder-11/scene-1-loading.png
+docs/evidence/qoder-11/scene-1-ready.png
+docs/evidence/qoder-11/scene-2-functions-empty.note.txt
+docs/evidence/qoder-11/scene-2-functions-empty.png
+docs/evidence/qoder-11/scene-2-home-ok.png
+docs/evidence/qoder-11/scene-2-more-functions-empty.png
+docs/evidence/qoder-11/scene-3-ready-control.png
+docs/evidence/qoder-11/scene-3-retry-banner-gone.png
+docs/evidence/qoder-11/scene-3a-banner-minimal.note.txt
+docs/evidence/qoder-11/scene-3a-banner-minimal.png
+docs/evidence/qoder-11/scene-3a-me500-reload.png
+docs/evidence/qoder-11/scene-3b-stale-banner.png
+docs/evidence/qoder-11/scene-4-functions-ready.png
+docs/evidence/qoder-11/scene-4-home.note.txt
+docs/evidence/qoder-11/scene-4-home.png
+docs/evidence/qoder-11/scene-4-more-functions.png
+docs/evidence/qoder-11/scene-4-report-page.png
+docs/evidence/qoder-11/scene-4-timeout-abort-stale.png
+docs/evidence/qoder-11r/console-messages.txt
+docs/evidence/qoder-11r/dev-h5.log
+docs/evidence/qoder-11r/gates-run.log
+docs/evidence/qoder-11r/git-diff-selfcheck.log
+docs/evidence/qoder-11r/mock-backend.log
+docs/evidence/qoder-11r/mock-backend.mjs
+docs/evidence/qoder-11r/mock-backend.stdout.log
+docs/evidence/qoder-11r/mock-backend.stdout.note.txt
+docs/evidence/qoder-11r/port-shutdown-check.log
+docs/evidence/qoder-11r/scene-3-more-functions-banner-with-close.png
+docs/evidence/qoder-11r/scene-3-rerun.note.txt
+docs/evidence/qoder-11r/scene-3-step1-banner-with-close.png
+docs/evidence/qoder-11r/scene-3-step2-after-close-gone.png
+docs/evidence/qoder-11r/scene-3-step3-retrigger-reappear.png
+docs/evidence/qoder-11r/snapshot-login-page.txt
+"docs/tasks/cards/R101-QODER-11-\345\233\236\344\274\240.md"
+"docs/tasks/cards/R101-QODER-11R-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-11.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-11R.md"
+
+## 6) git diff dfeedbc0..HEAD -- app-mobile/src 行数（验收第一条，必须 0）
+app-mobile/src diff 行数 = 0
+
+## 7) git diff dfeedbc0..HEAD -- backend/ 行数（必须 0）
+backend diff 行数 = 0
+
+## 8) 四门 EXIT 摘要（详见 gates-run.log）
+TYPE_CHECK_EXIT=0
+LINT_EXIT=0
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m56 passed[39m[22m[90m (56)[39m
+TEST_EXIT=0
+CHECK_CONTRACT_EXIT=0
+
+## 9) 端口复核（详见 port-shutdown-check.log）
+[curl after stop] 5288=200(vite 子进程存活) 8288=000
+5288=000
+8288=000
+shutdown-verified 2026-10-20T18:11:42Z

@@ -1,0 +1,12 @@
+### 轮次: ③ src/manifest.json 删一个 iOS 隐私描述键 NSCameraUsageDescription（16R 目标）
+### 目标文件: app-mobile/src/manifest.json
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:55:35 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+INJECTED D:/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/manifest.json
+  mode=dropline 命中行（含 EOL 一并移除）: "                    \"NSCameraUsageDescription\" : \"ç¨äºæ«æååæ¡ç ä¸äºç»´ç ï¼æ«ç å¥åºãæ«ç æ ¸éä¼æ å¸ãæ«ç æ¥æº¯æºï¼ï¼ä»¥åå¨é¨åºç°åºææéå®å°ç¥¨ãçç¹ä¸æèåæ®ç§çå¹¶ä¸ä¼ çå­ã\","
+  命中数=1（唯一，写入已执行）
+  字节数 5652 → 5413（差 -239）
+  CRLF 计数 0 → 0（行尾未被归一）
+注入器 EXIT=0

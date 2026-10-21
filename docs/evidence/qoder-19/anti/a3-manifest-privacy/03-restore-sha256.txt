@@ -1,0 +1,10 @@
+### 轮次: ③ src/manifest.json 删一个 iOS 隐私描述键 NSCameraUsageDescription（16R 目标）
+### 目标文件: app-mobile/src/manifest.json
+### 工作目录: /d/Users/ZXQL/wt-agents/QODER-19/app-mobile
+### 时间戳: 2026-10-21 04:56:15 +0800
+### 分支: chore/qoder-19-baseline-convergence  HEAD: 0963459d6d196c2eb41162d287e180c61a72701b
+----------------------------------------
+dca762a8d9ddbbfe8302f28ec77f6eed65f6280f49b169eeee4fee53b3684ea4 */d/Users/ZXQL/wt-agents/QODER-19/app-mobile/src/manifest.json
+注入前 SHA = dca762a8d9ddbbfe8302f28ec77f6eed65f6280f49b169eeee4fee53b3684ea4
+复原后 SHA = dca762a8d9ddbbfe8302f28ec77f6eed65f6280f49b169eeee4fee53b3684ea4
+结论: 逐字节一致 ⇒ 复原成功

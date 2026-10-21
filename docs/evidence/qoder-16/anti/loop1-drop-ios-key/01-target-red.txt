@@ -1,0 +1,50 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-16/app-mobile[39m
+
+ [31m❯[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 33[2mms[22m[39m
+     [32m✓[39m 两份配置文件必须是合法 JSON 且关键父节点存在[32m 7[2mms[22m[39m
+[31m     [31m×[31m iOS 六个隐私描述键齐备且描述非空、不是「用于XX功能」式空话[39m[32m 15[2mms[22m[39m
+[31m     [31m×[31m 每条隐私描述与其真实功能对得上（代码里能找到对应能力）[39m[32m 3[2mms[22m[39m
+     [32m✓[39m 小程序录音授权 scope.record.desc 必须存在且非空[32m 1[2mms[22m[39m
+     [32m✓[39m requiredPrivateInfos 每一项都必须是合法值且在代码实际使用清单里[32m 1[2mms[22m[39m
+     [32m✓[39m 录音接口不属于 requiredPrivateInfos 合法表（防误登记 startRecord）[32m 1[2mms[22m[39m
+     [32m✓[39m 页面配置文件保持原结构：mp-weixin 授权不放 pages.json（已取证为死配置）[32m 1[2mms[22m[39m
+     [32m✓[39m 红线自证：appid / 支付 / 推送 / SDK / 插件等字段保持基线取值不动[32m 2[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/mobile-permissions.spec.ts[2m > [22mQODER-16 · 隐私权限配置门[2m > [22miOS 六个隐私描述键齐备且描述非空、不是「用于XX功能」式空话
+[31m[1mAssertionError[22m: 缺少 NSBluetoothAlwaysUsageDescription: expected undefined to be type of 'string'[39m
+
+Expected: [32m"string"[39m
+Received: [31m"undefined"[39m
+
+[36m [2m❯[22m tests/mobile-permissions.spec.ts:[2m96:33[22m[39m
+    [90m 94|[39m     [35mfor[39m ([35mconst[39m key [35mof[39m [33mIOS_PRIVACY_KEYS[39m) {
+    [90m 95|[39m       [35mconst[39m desc [33m=[39m iosPrivacy[33m?.[39m[key]
+    [90m 96|[39m       [34mexpect[39m(desc[33m,[39m [32m`缺少 [39m[36m${[39mkey[36m}[39m[32m`[39m)[33m.[39m[34mtoBeTypeOf[39m([32m'string'[39m)
+    [90m   |[39m                                 [31m^[39m
+    [90m 97|[39m       expect((desc || '').trim().length, `${key} 描述为空`).toBeGreaterTha…
+    [90m 98|[39m       [90m// 苹果审核口径：必须写清具体场景，不能只给「用于相机功能」这类占位[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/mobile-permissions.spec.ts[2m > [22mQODER-16 · 隐私权限配置门[2m > [22m每条隐私描述与其真实功能对得上（代码里能找到对应能力）
+[31m[1mTypeError[22m: .toMatch() expects to receive a string, but got undefined[39m
+[36m [2m❯[22m tests/mobile-permissions.spec.ts:[2m111:58[22m[39m
+    [90m109|[39m     [34mexpect[39m(iosPrivacy[33m.[39m[33mNSPhotoLibraryUsageDescription[39m)[33m.[39m[34mtoMatch[39m([36m/相册/[39m)
+    [90m110|[39m     expect(iosPrivacy.NSLocationWhenInUseUsageDescription).toMatch(/门店…
+    [90m111|[39m     [34mexpect[39m(iosPrivacy[33m.[39m[33mNSBluetoothAlwaysUsageDescription[39m)[33m.[39m[34mtoMatch[39m([36m/打印/[39m)
+    [90m   |[39m                                                          [31m^[39m
+    [90m112|[39m     expect(iosPrivacy.NSSpeechRecognitionUsageDescription).toMatch(/语音…
+    [90m113|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 00:19:29
+[2m   Duration [22m 759ms[2m (transform 74ms, setup 0ms, import 108ms, tests 33ms, environment 0ms)[22m
+
+EXIT=1

@@ -1,0 +1,10 @@
+# 00 工作树基线核对 2026-10-22T01:12:11+08:00
+$ git rev-parse HEAD && git branch --show-current && git status --porcelain && git log --oneline -1
+2568ef0352929f29e4c99ba79627fea2b5a26476
+fix/qoder-23f1-aes-boundary
+?? docs/evidence/qoder-23f1/
+STATUS_EXIT=0
+2568ef03 docs: QODER-23 证据补笔——尖端出厂读数 raw/48 与八次确定性复跑 raw/45（回填文档笔 e33f3541 实测哈希，app-mobile 面 0 行）
+$ ls -la node_modules app-mobile/node_modules | head
+lrwxrwxrwx 1 XIONG 197121 56 Oct 22 01:03 app-mobile/node_modules -> /d/Users/ZXQL/wt-agents/QODER-23/app-mobile/node_modules
+lrwxrwxrwx 1 XIONG 197121 45 Oct 22 01:03 node_modules -> /d/Users/ZXQL/wt-agents/QODER-23/node_modules

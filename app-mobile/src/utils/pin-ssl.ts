@@ -3,7 +3,7 @@
  *
  * ⚠️ 接线状态（S3-247，2026-10-18 定性）：**当前未接线**。
  *  - installSslPinning / validateCertificate 全仓零调用点（唯一历史提及是 config/env.ts 注释，已改）；
- *  - PINNED_CERTS 叶子证书指纹已于 2026-09-15 过期——此刻接线会让 APP-PLUS 全部请求被判指纹不匹配拒连；
+ *  - PINNED_CERTS 在册指纹已更新为 2026-10-21 现网 Let's Encrypt 值（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，均在有效期内）；本模块仍未接线，且仍未接线的原因已不是"在册指纹已过期"，而是下文"原生层证书回调可用"这一前置尚未满足；
  *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
  *    plus.networkEvent.addEventListener('certificateValidate') 为接口预留，当前运行时不可用，
  *    接线即"静默放行"，无法满足本卡反测判据（指纹不匹配 ⇒ 请求失败）。
@@ -25,7 +25,7 @@
  *  - 使用 IIFE 包裹条件编译，避免 vue-tsc 误报重复声明（踩坑日志 [15]）
  *
  * 注意：
- *  - 已配置生产证书实际指纹（2026-09-15 到期），证书轮换时同步更新叶子证书指纹
+ *  - 已配置生产证书实际指纹（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，中间证书 Let's Encrypt YE2/YE1 2028-09-02 到期）；叶子证书轮换（命中到期前 30 天提醒窗口即应启动）时必须同步更新在册叶子证书指纹
  *  - 中间证书指纹用于轮换兜底（新叶子证书仍由同一中间证书签发）
  *  - 应急开关关闭后，App 仍受 HTTPS 标准校验保护（仅失去 Pinning 额外防护）
  *
@@ -65,20 +65,20 @@ export interface PinningResult {
 // ====================== 证书指纹配置 ======================
 
 /**
- * 锁定证书列表（生产环境实际 SHA256 指纹，2026-08-11 采集）
+ * 锁定证书列表（生产环境实际 SHA256 指纹，2026-10-21 采集）
  *
  * 格式：sha256/<Base64(SubjectPublicKeyInfo 的 SHA256)>=
  *
- * 每个域名保留 2 个指纹：叶子证书 + 中间证书（TrustAsia DV TLS RSA CA 2024，用于轮换兜底）
+ * 每个域名保留 2 个指纹：叶子证书 + 中间证书（Let's Encrypt YE2/YE1，用于轮换兜底；按域名成对录入，禁止跨域抄用）
  */
 const PINNED_CERTS: Record<string, string[]> = {
     'api.onepan.cn': [
-        'sha256/SS6pnMVjm+Pm2R2cPKFxCIn4G6mgE7D4rnUtHdW0NC4=', // 叶子证书（2026-09-15 到期）
-        'sha256/X4AGLwdqSLcL//rYNWWFtfT1CnCt94N7jSHB6cabFBU=' // 中间证书 TrustAsia DV TLS RSA CA 2024
+        'sha256/Y/uy8CcEO5D3HHhBa8iBqWJu3uEQwuA1bwRCpuVfcHs=', // 叶子证书 CN=api.onepan.cn（Let's Encrypt，2026-11-11 到期）
+        'sha256/s/tdAOmUzd8syaTuqfgGvFcn6DzA5Cmb+Vby1ST+U3Y=' // 中间证书 Let's Encrypt YE2（2028-09-02 到期）
     ],
     'm.onepan.cn': [
-        'sha256/JKxBAU4tJIzGZXm3bavQMEwJPILBOnmx/X9D5i9uJO4=', // 叶子证书（2026-09-15 到期）
-        'sha256/X4AGLwdqSLcL//rYNWWFtfT1CnCt94N7jSHB6cabFBU=' // 中间证书 TrustAsia DV TLS RSA CA 2024
+        'sha256/rH0oqsRgfu1hGtbs10FXorbhao99FC99nqVBGmWA1M4=', // 叶子证书 CN=admin.onepan.cn·SAN 含 m.onepan.cn（Let's Encrypt，2026-12-22 到期）
+        'sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=' // 中间证书 Let's Encrypt YE1（2028-09-02 到期）
     ]
 }
 

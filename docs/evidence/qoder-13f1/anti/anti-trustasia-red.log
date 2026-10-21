@@ -1,0 +1,77 @@
+### ROUND trustasia ###
+$ sha256sum src/utils/pin-ssl.ts   # 注入前
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *src/utils/pin-ssl.ts
+$ cp src/utils/pin-ssl.ts /d/Users/ZXQL/wt-agents/_scratch/qoder-13f1/pin-ssl.ts.trustasia.bak
+$ node _scratch/qoder-13f1/inject-13f1.mjs --case trustasia
+✓ [trustasia] 注入完成（337B → 341B）；预期：含 TrustAsia ⇒ 断言② 红
+INJECT_EXIT=0
+$ rg -n '2026-09-15|trustasia|installSslPinning\(' src/utils/pin-ssl.ts | head
+6: *  - PINNED_CERTS 在册指纹沿用 TrustAsia 旧签发链（2026-09-15 口径）（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，均在有效期内）；本模块仍未接线，且仍未接线的原因已不是"在册指纹已过期"，而是下文"原生层证书回调可用"这一前置尚未满足；
+7: *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+197: * installSslPinning()
+200:export function installSslPinning(): boolean {
+$ npm run test   # 期望红并点名
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-13/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 304[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 186[2mms[22m[39m
+ [31m❯[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 815[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 374[2mms[22m[39m
+     [32m✓[39m 明文往返一致（含中文与 JSON 结构）[32m 22[2mms[22m[39m
+     [32m✓[39m 同一条明文两次加密得到不同密文（IV 随机）[32m 9[2mms[22m[39m
+[31m     [31m×[31m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）[39m[33m 394[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 461[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m55 passed[39m[22m[90m (56)[39m
+[2m   Start at [22m 04:35:08
+[2m   Duration [22m 4.93s[2m (transform 3.44s, setup 0ms, import 6.68s, tests 1.79s, environment 2ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22mtag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- false[39m
+[31m+ true[39m
+
+[36m [2m❯[22m tests/storage-crypto.spec.ts:[2m75:43[22m[39m
+    [90m 73|[39m     [90m// —— QODER-13F1 静态断言（同属「被篡改/失效内容绝不静默放行」契约，不新增 it）——[39m
+    [90m 74|[39m     [35mconst[39m pinSsl [33m=[39m [34mreadFileSync[39m([33mPIN_SSL[39m[33m,[39m [32m'utf8'[39m)
+    [90m 75|[39m     [34mexpect[39m(pinSsl[33m.[39m[34mincludes[39m([32m'2026-09-15'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m   |[39m                                           [31m^[39m
+    [90m 76|[39m     [34mexpect[39m(pinSsl[33m.[39m[34mtoLowerCase[39m()[33m.[39m[34mincludes[39m([32m'trustasia'[39m))[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m 77|[39m     [34mexpect[39m([34mcollectInstallCallSites[39m([33mSRC_DIR[39m))[33m.[39m[34mtoEqual[39m([])
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-13\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-13\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+RED_EXIT=1
+$ cp /d/Users/ZXQL/wt-agents/_scratch/qoder-13f1/pin-ssl.ts.trustasia.bak src/utils/pin-ssl.ts   # 复原（禁 sed -i）
+$ sha256sum src/utils/pin-ssl.ts   # 复原后（须与注入前逐字节一致）
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *src/utils/pin-ssl.ts

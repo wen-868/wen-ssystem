@@ -1,0 +1,2 @@
+cmd: cd app-mobile && node ../node_modules/vue-tsc/bin/vue-tsc.js --noEmit   # 修后
+EXIT=0

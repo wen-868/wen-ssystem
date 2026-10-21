@@ -1,0 +1,8 @@
+目标文件 = src/pages-sub/product/price-anomaly/price-anomaly.vue
+待替换子串（恰 1 次）= isBelowCost(item.retailPrice, item.costPrice)
+注入回的缺陷写法 = item.retailPrice < item.costPrice
+命中数 = 1
+写盘后缺陷写法出现次数 = 1
+写盘后函数调用出现次数 = 0
+注入完成 ⇒ 预期 test 门红（静态门 4 条 + 表达式行为门）
+INJECT_EXIT=0

@@ -1,0 +1,18 @@
+QODER-14 · 判据证据 07 —— 修后 test（本单新增 1 文件 / 14 用例）
+命令：cd D:/Users/ZXQL/wt-agents/QODER-14/app-mobile && node ../node_modules/vitest/vitest.mjs run
+说明：反测复原后复跑的规范读数；request.ts 的 SHA256 见文件尾部附行
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-14/app-mobile
+
+ ✓ tests/request-retry-safety.spec.ts (14 tests) 243ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  23:51:52
+   Duration  934ms (transform 254ms, setup 0ms, import 123ms, tests 243ms, environment 0ms)
+
+VITEST_EXIT=0
+
+--- request.ts SHA256（跑该读数时的工作副本）---
+4db802da4c1dc73038863567ad2438d39a641b9a371d079aae98f279f9ce029f *src/api/request.ts

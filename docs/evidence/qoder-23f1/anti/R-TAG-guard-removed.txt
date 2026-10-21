@@ -1,0 +1,126 @@
+# R-TAG 反测：单独摘掉 aesGcmDecrypt 的认证标签长度守卫（crypto.ts:641），IV 长度守卫保持在位 ⇒ 短 tag（15 字节）与长 tag（18 字节）两条用例必须红并点名  2026-10-22T01:34:43+08:00
+$ git rev-parse HEAD
+bbc8aa9ec380133629733222bc766d8722d55b0a
+$ sha256sum app-mobile/src/utils/crypto.ts   # 形态 worktree-crlf
+SHA_BEFORE=1a6bd4ef655e9526864a1298323b9f6df967ba9276a1ea338fd69c607862f29f  （原始行：1a6bd4ef655e9526864a1298323b9f6df967ba9276a1ea338fd69c607862f29f *app-mobile/src/utils/crypto.ts）
+$ cp app-mobile/src/utils/crypto.ts /d/Users/ZXQL/wt-agents/_qoder23F1_bak/crypto.ts.R-TAG.before   # 树外备份
+1a6bd4ef655e9526864a1298323b9f6df967ba9276a1ea338fd69c607862f29f */d/Users/ZXQL/wt-agents/_qoder23F1_bak/crypto.ts.R-TAG.before
+$ node /d/Users/ZXQL/wt-agents/_qoder23F1_work/inject-f1.cjs app-mobile/src/utils/crypto.ts R-TAG
+INJECT_TARGET=app-mobile/src/utils/crypto.ts
+INJECT_ROUND=R-TAG
+INJECT_NEEDLE_HITS=1 (期望 1)
+INJECT_FILE_HAS_CRLF=true BARE_LF_COUNT=0
+INJECT_READBACK 注入标记在场=true 原守卫行已消失=true 另一处守卫仍在场=true
+INJECT_FILE_LEN before=32326 after=32317 rb=32317
+INJECT_LINES rb_crlf=951 rb_totalLF=951
+INJECT_EXIT=0
+INJECT_RC=0
+--- 注入态回读 ---
+618:    if (iv.length !== 12) return null // IV 长度非法 ⇒ 等同校验失败
+641:    // [QODER-23F1-ANTI-R-TAG] 长度守卫已摘除（反测临时态，禁止提交）
+$ npm --workspace app-mobile run test   # 注入态，预期 EXIT=1
+--- 原始输出开始 ---
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile
+
+ ✓ tests/api-base-env.spec.ts (3 tests) 663ms
+     ✓ 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用  652ms
+ ✓ tests/format.spec.ts (78 tests) 86ms
+ ✓ tests/price-anomaly-static.spec.ts (24 tests) 391ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 340ms
+ ❯ tests/storage-crypto.spec.ts (9 tests | 2 failed) 1073ms
+     ✓ 派生密钥为 32 字节且同输入可复现  435ms
+     ✓ 明文往返一致（含中文与 JSON 结构） 71ms
+     ✓ 同一条明文两次加密得到不同密文（IV 随机） 3ms
+     ✓ tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文）  311ms
+     × 非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较） 22ms
+     × 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败） 59ms
+     ✓ 短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败） 156ms
+     ✓ 长 IV 即拒·13 字节（守卫前实测静默零填充解密成功，守卫后必须抛已分类解密失败） 1ms
+     ✓ 长 IV 即拒·17 字节（守卫前实测抛未分类 RangeError，守卫后必须抛已分类解密失败） 3ms
+ ✓ tests/safe-top-var.spec.ts (4 tests) 15ms
+ ✓ tests/mobile-permissions.spec.ts (8 tests) 31ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 14ms
+ ✓ tests/request-retry-safety.spec.ts (15 tests) 2996ms
+     ✓ ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload  2560ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 375ms
+ ✓ tests/pin-ssl-static.spec.ts (1 test) 11ms
+
+ Test Files  1 failed | 10 passed (11)
+      Tests  2 failed | 189 passed (191)
+   Start at  01:34:52
+   Duration  7.50s (transform 5.75s, setup 0ms, import 10.89s, tests 6.00s, environment 9ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > 非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较）
+AssertionError: expected [Function] to throw an error
+ ❯ tests/storage-crypto.spec.ts:88:37
+     86|     const bad = { ...enc, tag: bytesToB64(padded) }
+     87|     expect(b64ToBytes(bad.tag).length).toBe(18)
+     88|     expect(() => decrypt(bad, key)).toThrow()
+       |                                     ^
+     89|   })
+     90|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败）
+AssertionError: 非规范输入绝不许解密成功返回明文: expected 'top-secret' to be null // Object.is equality
+
+- Expected:
+null
+
++ Received:
+"top-secret"
+
+ ❯ expectClassifiedDecryptFailure tests/storage-crypto.spec.ts:105:41
+    103|       err = e
+    104|     }
+    105|     expect(outcome, '非规范输入绝不许解密成功返回明文').toBe(null)
+       |                                         ^
+    106|     expect(err).toBeInstanceOf(Error)
+    107|     expect((err as Error).name).toBe('Error') // 必须是 decrypt() 抛的已分类 E…
+ ❯ tests/storage-crypto.spec.ts:133:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-23F1\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-23F1\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+TEST_EXIT=1
+--- 原始输出结束 ---
+$ cp /d/Users/ZXQL/wt-agents/_qoder23F1_bak/crypto.ts.R-TAG.before app-mobile/src/utils/crypto.ts   # 复原只用 cp（禁止 sed -i / 编辑器写回）
+RESTORE_RC=0
+$ sha256sum app-mobile/src/utils/crypto.ts   # 形态 worktree-crlf
+SHA_AFTER=1a6bd4ef655e9526864a1298323b9f6df967ba9276a1ea338fd69c607862f29f
+SHA_MATCH=true  (worktree-crlf 形态)
+MARKER_RG_EXIT=1
+$ npm --workspace app-mobile run test   # 复跑，预期 EXIT=0
+   Duration  8.08s (transform 6.27s, setup 0ms, import 12.57s, tests 6.58s, environment 3ms)
+
+—— test 门（用例数冻结）：当前 11 文件 / 191 用例，基线 11 / 191 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+TEST_EXIT_RERUN=0
+$ git status --porcelain
+?? app-mobile/probe-tmp/
+?? app-mobile/vitest.probe.config.ts
+?? docs/evidence/qoder-23f1/

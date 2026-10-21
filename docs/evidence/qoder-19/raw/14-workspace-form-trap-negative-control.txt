@@ -1,0 +1,17 @@
+### 命令: npm --workspace app-mobile run build:h5   （故意在 app-mobile/ 目录内执行 workspace 形态命令）
+### 工作目录: D:/Users/ZXQL/wt-agents/QODER-19/app-mobile  ← 错误目录，仅用于复现已知坑
+### 时间戳: 2026-10-21 04:42:22 +0800
+### 分支: chore/qoder-19-baseline-convergence
+### 性质: 负面控制/已知坑复现 —— 这不是构建失败，不构成对卡 §三 的违反
+### 结论登记: 本单三构建（raw/05、06、07）均在仓库根执行且 EXIT=0，未产生需作废的失败读数
+========================================
+npm error No workspaces found:
+npm error   --workspace=app-mobile
+npm error A complete log of this run can be found in: C:\Users\XIONG\AppData\Local\npm-cache\_logs\2026-10-20T20_42_33_378Z-debug-0.log
+----------------------------------------
+EXIT=1
+
+### 成因: npm 就近取 app-mobile/package.json，该文件无 workspaces 字段 ⇒ workspace 解析失败即退出，
+###        构建本体（uni build）从未启动，故与产物、代码、门禁均无关。
+### 正确形态: 三构建必须在仓库根 D:/Users/ZXQL/wt-agents/QODER-19 执行（见 raw/05-07 头部的工作目录行）。
+### 对照: 四道常驻门用 cd app-mobile && npm run <gate>（raw/01-04），与卡 §三 的 npm --workspace 形态等价（同一 scripts 段同一入口）。

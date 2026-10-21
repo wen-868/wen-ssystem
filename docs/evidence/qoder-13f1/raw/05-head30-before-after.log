@@ -1,0 +1,23 @@
+改动前后 pin-ssl.ts 文件头 30 行 unified diff（- 基线 597230c4 / + 本次）
+$ git show 597230c4:app-mobile/src/utils/pin-ssl.ts > /tmp/pin-before.ts
+$ diff -u <(sed -n 1,30p /tmp/pin-before.ts) <(sed -n 1,30p app-mobile/src/utils/pin-ssl.ts)
+--- /dev/fd/63	2026-10-21 04:31:15.000000000 +0800
++++ /dev/fd/62	2026-10-21 04:31:15.000000000 +0800
+@@ -3,7 +3,7 @@
+  *
+  * ⚠️ 接线状态（S3-247，2026-10-18 定性）：**当前未接线**。
+  *  - installSslPinning / validateCertificate 全仓零调用点（唯一历史提及是 config/env.ts 注释，已改）；
+- *  - PINNED_CERTS 叶子证书指纹已于 2026-09-15 过期——此刻接线会让 APP-PLUS 全部请求被判指纹不匹配拒连；
++ *  - PINNED_CERTS 在册指纹已更新为 2026-10-21 现网 Let's Encrypt 值（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，均在有效期内）；本模块仍未接线，且仍未接线的原因已不是"在册指纹已过期"，而是下文"原生层证书回调可用"这一前置尚未满足；
+  *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+  *    plus.networkEvent.addEventListener('certificateValidate') 为接口预留，当前运行时不可用，
+  *    接线即"静默放行"，无法满足本卡反测判据（指纹不匹配 ⇒ 请求失败）。
+@@ -25,6 +25,6 @@
+  *  - 使用 IIFE 包裹条件编译，避免 vue-tsc 误报重复声明（踩坑日志 [15]）
+  *
+  * 注意：
+- *  - 已配置生产证书实际指纹（2026-09-15 到期），证书轮换时同步更新叶子证书指纹
++ *  - 已配置生产证书实际指纹（api.onepan.cn 叶子 2026-11-11 到期、m.onepan.cn 叶子 2026-12-22 到期，中间证书 Let's Encrypt YE2/YE1 2028-09-02 到期）；叶子证书轮换（命中到期前 30 天提醒窗口即应启动）时必须同步更新在册叶子证书指纹
+  *  - 中间证书指纹用于轮换兜底（新叶子证书仍由同一中间证书签发）
+  *  - 应急开关关闭后，App 仍受 HTTPS 标准校验保护（仅失去 Pinning 额外防护）
+DIFF_EXIT=1 （1=有差异，符合预期）

@@ -1,0 +1,39 @@
+# 收尾自检（文档笔之前实测；文档笔自身哈希无法自指登记） 2026-10-21T22:08:10+08:00
+
+$ git log --oneline -3
+ad73898e fix: QODER-23 AES-GCM 认证标签长度守卫与确定性篡改用例
+bc1087ee docs: QODER-22 补哈希笔——回填 e9afb0a6/24811fa8 真实哈希 + 出厂四门复跑 raw/48（GATES_EXIT=0、11/186、error 0）
+24811fa8 docs: QODER-22 回传卡 + 回执 + 证据树（合并零冲突机械证明、pin-ssl 双范围四轮反测、storage-crypto 概率红根因探针）
+
+$ git rev-parse HEAD   # 此刻 HEAD = 实现笔
+ad73898e8da79a6ce6ec309cace397a96a667479
+$ git rev-list --parents -n1 HEAD
+ad73898e8da79a6ce6ec309cace397a96a667479 bc1087eec4b880827518444be36f5874e330e1d3
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c   # 期望 0
+0
+$ git diff bc1087ee -- backend/ | wc -c        # 工作树含未跟踪 docs 后仍 0（backend 面）
+0
+
+$ git diff --name-only bc1087ee HEAD   # 已入库改动面（期望恰好 3 个 app-mobile 文件）
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/utils/crypto.ts
+app-mobile/tests/storage-crypto.spec.ts
+$ git diff --name-only bc1087ee HEAD | grep -v '^app-mobile/' | wc -c   # 期望 0（非 app-mobile 面零改动，除下面的 docs 未跟踪文件）
+0
+
+$ git status --porcelain   # 此刻应只剩本卡文档面（本文件所在文档笔的内容）
+?? docs/evidence/qoder-23/
+?? "docs/tasks/cards/R101-QODER-23-\345\233\236\344\274\240.md"
+?? "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-23.md"
+
+# 文档笔内容（逐文件 git add，无 -A）：
+#   docs/evidence/qoder-23/README.md
+#   docs/evidence/qoder-23/probe/{README.md,probe-b64.txt,probe-b64.cjs.txt,inject-guard-off.cjs.txt}
+#   docs/evidence/qoder-23/raw/{00,20,21,30,40}-*.log
+#   docs/evidence/qoder-23/anti/{R1-guard-removed.txt,R2-compare-ignored.txt}
+#   docs/tasks/cards/R101-QODER-23-回传.md
+#   docs/tasks/inbox/ACTIVE-回执-QODER-23.md
+
+# ★ 自指限制（协议 §四.4 不许给不存在的东西预先写哈希）：文档笔包含本文件，故文档笔哈希不在本文件内登记。
+#   复现：提交后 `git log --oneline -3` 第 1 行即文档笔；`git status --porcelain` 必须为空。该两条由负责人独立复跑校验。
