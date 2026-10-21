@@ -80,5 +80,19 @@
 7. **守卫日志无持久化**：`skuGuardLog` 是 200 条进程内环形缓冲，只供单测/取证，不参与业务判定；运维侧仍靠改价失败分支的既有 `console.error`（含 `id/spuId/skuId/name` 四读数）。
 8. **收尾代理执行边界**：本轮**未跑任何** `npm`/`node scripts/*`/vitest/构建；只做文件读与 `git` 只读命令；文中每个数字都标注来源（前代理日志文件名 / 负责人复验 / 收尾代理 `git` 实测），门读数保留占位；未改一行代码、未改写任何原始日志。
 
+## 八、负责人复验补笔（2026-10-21T23:24+08:00，追加不改写）
+
+> 追加人：Qoder（移动端负责人）亲跑。本回执 §二 里"门读数的负责人复验值待回填"与 §五 的"H5 运行态全无"两条占位**现已回填**；原句在落笔当时准确，不回改。
+
+1. **门与三构建（负责人同树亲跑，原始输出 `docs/evidence/qoder-26/raw/80-owner-gates-and-builds.log`）**：`GATES_EXIT=0`；type-check `vue-tsc EXIT=0`（0 条／基线 0 条）；lint `error 0（基线 0）／warning 12872（基线 12872）`；test `12 passed (12)`／`241 passed (241)`（= 本树基线 12/241）；contract `差集 1 条／具名豁免 1 条`。三构建带平台名的退出码为 **`BUILD_EXIT_h5=0`／`BUILD_EXIT_mp-weixin=0`／`BUILD_EXIT_app=0`**（前代理日志写作 `BUILD_=0`，属变量踩空，本笔给出同名修正读数）。`BACKEND_DIFF_BYTES=0`，三产物目录齐在。
+2. **H5 运行态判据 3、4（§三.3 / §三.4）已实开并两侧取数**，采集逐字见 `docs/evidence/qoder-26/h5/owner-h5-readings.log`，请求原文见 `h5/mock-backend-qoder26.log`、机读段见 `h5/price-hits.json`：
+   - 列表：后端 3 条（含 `skuId=null` 脏行）⇒ 前端 **2 卡**，价/库存逐行独立，脏行不出现，console 无 `:key` 重复告警；
+   - 加购：两行 DOM `data-pid` 为 **41 / 42**，分别点 1、2 次 ⇒ 行内 `1` 与 `2`，汇总「**已选 2 种 · 3 件**」（按 SPU 合并只会是 1 种）；
+   - 详情：两张卡均落 `product-detail?id=7`，mock 侧两次 `GET_DETAIL … spuId=7 skus=[41,42]`，**零 404**、无对 41/42 的 GET；
+   - 改价：mock 侧 `PUT_PRICE … /41/price segment=41` 与 `… /42/price segment=42` 各一行，`price-hits.json` 的 `pathSegment` 恰 `[41,42]`，**未出现 7** ⇒ 判据 4 由"部分通过/运行态未验"改为**达标（运行态实测）**。
+3. **仍未验（不随本笔关闭）**：§二.4 守卫"抛错 + 0 请求"的 UI 路径**不可构造**（脏行在映射层已被丢弃），依据只在单元层 `spec.ts:358/:366`；§七.2 的"整数但维度错"深链风险守卫检不出，运行态未验。
+4. **附带发现（不属本卡文件面）**：H5 底部常驻「发现新版本 / **新版本 vundefined**」——版本接口返回空体时缺失 `versionName` 被直接拼进文案；与 QODER-24 的更新决策闸相邻，建议并单处理。
+5. **取证坑（务必转给后续 H5 卡）**：browser-use `click(uid)` 对 `uni-button`/`uni-view` 抛 `this.scrollIntoView is not a function`；`fill` 不触发 v-model ⇒ 登录静默失败。须用 `evaluate_script` 派发原生 setter + `input` 事件与 `pointerdown/mousedown/pointerup/mouseup/click` 全序列。
+
 回传要求：本汇报已落卡 `docs/tasks/cards/R101-QODER-26-回传.md`
 关联卡：`docs/tasks/inbox/QODER-26-sku-dimension.md`

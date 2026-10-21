@@ -117,3 +117,17 @@ VITE_PROXY_TARGET=http://localhost:8461 npm --workspace app-mobile run dev:h5 \
 ## 5. 本笔（文档笔）纳入的文件
 
 同一笔提交内容 = 上述 28 份原始件（**首次纳入 git**，此前为未跟踪目录）+ 本 `README.md` + `docs/tasks/cards/R101-QODER-26-回传.md` + `docs/tasks/inbox/ACTIVE-回执-QODER-26.md`。逐文件 `git add`，未用 `git add -A` / `git add .`；`app-mobile/**` 未重复纳入（实现笔已完成）。
+
+## 6. 负责人复验补笔（2026-10-21T23:24+08:00）——本 README §2/§3 的"H5 缺口"已闭合
+
+新增件（本笔纳入，逐文件 `git add`）：
+
+| 文件 | 内容 | 对应判据 |
+| --- | --- | --- |
+| `raw/80-owner-gates-and-builds.log` | 负责人同树亲跑四门与三构建的原始输出，含带平台名的 **`BUILD_EXIT_h5=0` / `_mp-weixin=0` / `_app=0`**（修正 §1 表中 `BUILD_=0` 的变量踩空）与 `GATES_EXIT=0`（12/241） | §三.1、§三.2 |
+| `h5/owner-h5-readings.log` | H5 运行态 A–E 五场景的采集命令 + 前端侧 DOM/console 读数 + mock 侧日志行逐字转录；E 段如实记「UI 不可构造 ⇒ 运行态未验」 | §三.3、§三.4 |
+| `h5/mock-backend-qoder26.log` | 夹具侧请求原文：`records=3 matched=3 skuIds=[41,42,]`、两次 `GET_DETAIL … spuId=7`（零 404）、两条 `PUT_PRICE … segment=41/42` | §三.3-①③、§三.4 |
+| `h5/price-hits.json` | 判据 4 的机读读数源：`pathSegment` 恰为 `[41,42]`，**无 7** | §三.4 |
+| `h5/dev-h5-owner.log`、`h5/mock-start-owner.log` | `dev:h5`（5174，因 5173 被占）与 mock（8461）的启动读数 | 复现链路 |
+
+判据表口径变化（追加说明，不回改 §2/§3 原句——原句在落笔当时准确）：**§三.3 与 §三.4 由「未验」改为「达标（运行态实测，两侧读数齐）」**；§二.4 守卫的"抛错 + 0 请求"仍为**运行态未验（UI 不可构造）**，依据只在单元层 `spec.ts:358/:366`。

@@ -287,3 +287,29 @@ VITE_PROXY_TARGET=http://localhost:8461 npm --workspace app-mobile run dev:h5
 - `docs/evidence/qoder-26/anti/**`（**23 份** = 注入器 `at-inject.cjs` 1 + 四轮日志 19 + 原始态 SHA 清单 `00-pristine-sha.txt` 1 + `pristine/` 备份 2）
 - `docs/evidence/qoder-26/h5/mock-backend-qoder26.mjs`（1 份，运行态装置，未跑）
 - 回执：`docs/tasks/inbox/ACTIVE-回执-QODER-26.md`
+
+---
+
+## 十一、负责人复验补笔（2026-10-21T23:24+08:00，追加不改写）
+
+> 追加人：Qoder（移动端负责人）亲跑。本卡 §四 判据 3、4 原记「未验」在落笔当时**是准确的**（装置在、读数全无），本节只登记复验后的新增读数与口径变化，不回改上文任何一行。
+
+**判据 3、4 的运行态读数已补齐**（两侧同取，采集过程逐字见 `docs/evidence/qoder-26/h5/owner-h5-readings.log`）：
+
+| 判据 | 复验读数（前端侧 / mock 侧） | 复验后口径 |
+| --- | --- | --- |
+| §三.3-① 列表两行 | `colaMentions=2`、`badrowPresent=false`，两行价/库存独立（90/100 与 520/560）／`GET /api/admin/products?page=1&pageSize=20 -> 200 records=3 matched=3 skuIds=[41,42,]` | 运行态**已证**（后端 3 条 ⇒ 前端 2 行，脏行被映射层丢弃） |
+| §三.3-② 两行独立加购 | 两行 DOM `data-pid="41"` / `data-pid="42"`；分别点 1 次与 2 次 ⇒ 行内计数 `−1+` 与 `−2+`，汇总「**已选 2 种 · 3 件**」 | 运行态**已证**（若仍按 SPU 合并只会是「1 种」）；加购为本地态，mock 日志无多余请求 |
+| §三.3-③ 详情同一 SPU | 两张卡均落 `#/pages/products/product-detail?id=7`／两次 `GET_DETAIL path=/api/admin/products/7 spuId=7 skus=[41,42]`，**全日志零 404**，无 `products/41`、`products/42` 的 GET | 运行态**已证** |
+| §三.4 改价路径逐条真实 skuId | `PUT_PRICE path=/api/admin/products/41/price segment=41 body={"wholesalePrice":94.5} total_hits=1` 与 `…42/price segment=42 … total_hits=2`（17ms 间隔，两条独立）；`h5/price-hits.json` 的 `pathSegment` 恰为 `[41,42]`，**未出现 7** | 运行态**已证**（以 mock 侧路径段为准，UI 的「调价完成」只作旁证） |
+| §二.4 守卫"抛错 + 0 请求" | 脏行在映射层即被丢弃 ⇒ 批量清单里点不到无效主键行，UI 路径**不可构造** | 仍记**运行态未验（不可构造，非失败）**；依据只在单元层 `spec.ts:358/:366` |
+
+**门与三构建的负责人亲跑值**（原卡转录自前代理日志，现回填同名读数；原始输出 `raw/80-owner-gates-and-builds.log`）：
+`GATES_EXIT=0`、`vue-tsc EXIT=0（0 条／基线 0 条）`、`error 0（基线 0）／warning 12872（基线 12872）`、`Test Files 12 passed (12)`／`Tests 241 passed (241)`、`差集 1 条／具名豁免 1 条`；`BUILD_EXIT_h5=0`、`BUILD_EXIT_mp-weixin=0`、`BUILD_EXIT_app=0`（修正了前代理 `BUILD_=0` 的变量踩空，见本卡 §九.6）。
+`BACKEND_DIFF_BYTES=0`；三产物目录 `app-mobile/dist/build/{h5,mp-weixin,app}` 齐在。
+
+**附带发现（不属本卡文件面，只登记不动作）**：H5 全站底部常驻「发现新版本 / **新版本 vundefined**」——mock 的 `/api/app/version/app_mobile` 返回空体时页面把缺失 `versionName` 直接拼进文案。该缺陷与 QODER-24 的 `decideUpdateAction`/`promptBlocked` 相邻（不同工作树），建议并单处理。
+
+**取证工具坑（写给下一张需要 H5 读数的卡）**：browser-use 的 `click(uid)` 对 uni-app H5 的 `uni-button`/`uni-view` 抛 `TypeError: this.scrollIntoView is not a function`；`fill` 只写 DOM 值不触发 v-model ⇒ 登录会**静默失败**（`merchant_token` 仍 absent 而无报错）。必须走 `evaluate_script`：原生 value setter + `dispatchEvent(new Event('input'))`，再对目标元素派发 `pointerdown/mousedown/pointerup/mouseup/click` 全序列。
+
+**复验后自评变化**：判据 3 **未通过 → 达标（运行态实测）**；判据 4 **部分通过 → 达标（运行态实测，mock 侧路径段为唯一依据）**。其余条目不变；§七.1 的"H5 缺口"就此关闭，但 §七.2 的深链维度混用风险仍**运行态未验**（守卫检不出"整数但维度错"）。
