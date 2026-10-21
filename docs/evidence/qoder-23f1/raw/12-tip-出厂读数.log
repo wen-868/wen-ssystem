@@ -1,0 +1,11 @@
+# 12 尖端出厂读数（文档提交 d0bd72f7 之后实测） 2026-10-22T01:43:41+08:00
+$ git status --porcelain   # 此刻应仅本文件未跟踪（提交后即 clean）
+?? "docs/evidence/qoder-23f1/raw/12-tip-\345\207\272\345\216\202\350\257\273\346\225\260.log"
+$ git log --oneline -3
+d0bd72f7 docs: QODER-23F1 回传卡 + 回执 + 证据树（IV/tag 双守卫分离反测两轮、守卫前后探针形态、四门与三构建读数）
+bbc8aa9e fix: QODER-23F1 AES-GCM 解密补 IV 规范长度守卫（构造 J0 前拒绝非 12 字节），测试补齐短 tag/短 IV/长 IV 边界四条并同步 tests 基线 187→191
+2568ef03 docs: QODER-23 证据补笔——尖端出厂读数 raw/48 与八次确定性复跑 raw/45（回填文档笔 e33f3541 实测哈希，app-mobile 面 0 行）
+$ git rev-parse HEAD
+d0bd72f7eb2f1d9ef8517368a8e61186cea3436a
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+0
