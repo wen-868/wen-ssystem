@@ -1,0 +1,17 @@
+命令：cd D:/Users/ZXQL/wt-agents/QODER-21/app-mobile && node ../node_modules/eslint/bin/eslint.js src --ext .ts,.vue -f unix
+时点：QODER-21 修复后（工作树 CRLF 形态，实现笔 5bbd4324）。用于逐规则核对 warning「只准降不准升」与 error=0。
+
+== eslint 汇总行 ==
+
+12872 problems
+
+== error 行数 ==
+0
+
+== 按规则计数（severity/规则 → 条数，基线见 gates-baseline.json）==
+  12299 Warning/vue/html-indent
+    225 Warning/no-console
+    196 Warning/vue/html-closing-bracket-spacing
+    104 Warning/@typescript-eslint/no-unused-vars
+     47 Warning/vue/multiline-html-element-content-newline
+      1 Warning/vue/html-closing-bracket-newline

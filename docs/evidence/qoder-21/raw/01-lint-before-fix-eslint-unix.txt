@@ -1,0 +1,28 @@
+命令：cd D:/Users/ZXQL/wt-agents/QODER-21/app-mobile && node ../node_modules/eslint/bin/eslint.js src --ext .ts,.vue -f unix
+时点：QODER-21 修复前。7 个改动文件用 git show 21b465e5:<path> 临时还原为基线内容（LF blob 形态，本仓工作树 core.autocrlf=true）；
+     本卡涉及的规则均与行尾形态无关，读数可与 gates-baseline.json 原 13 对 / 20 条逐条核对。
+     A4 已用 scratch 备份逐字节复原改后内容（SHA_MATCH 7/7，见 00-sha-worktree-after-before-restore.txt）。
+同一次运行 eslint 汇总行：12892 problems（= 20 error + 12872 warning，与基线 warning 合计一致）
+
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\api\storage.ts:208:1: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages-sub\marketing\member\member-detail.vue:494:3: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages-sub\product\batch-price\batch-price.vue:843:9: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages-sub\settings\settings.vue:186:3: Unreachable code. [Error/no-unreachable]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\ai-chat\ai-chat.vue:290:11: Empty block statement. [Error/no-empty]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\ai-chat\ai-chat.vue:298:11: Empty block statement. [Error/no-empty]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\ai-chat\ai-chat.vue:836:5: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\ai-chat\ai-chat.vue:861:5: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\ai-chat\ai-chat.vue:892:5: Unreachable code. [Error/no-unreachable]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\ai-chat\ai-chat.vue:1011:5: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\ai-chat\ai-chat.vue:1063:3: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\products\product-detail.vue:656:3: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\products\product-detail.vue:1159:3: Unreachable code. [Error/no-unreachable]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\products\product-detail.vue:1163:3: Unreachable code. [Error/no-unreachable]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\products\product-detail.vue:1195:7: Unnecessary semicolon. [Error/no-extra-semi]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\sales\create-sale.vue:574:22: 'i' is defined but never used. [Error/vue/no-unused-vars]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\sales\create-sale.vue:1977:76: Irregular whitespace not allowed. [Error/no-irregular-whitespace]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\sales\create-sale.vue:2017:3: Unreachable code. [Error/no-unreachable]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\sales\create-sale.vue:2043:3: Unreachable code. [Error/no-unreachable]
+D:\Users\ZXQL\wt-agents\QODER-21\app-mobile\src\pages\sales\create-sale.vue:2411:11: Empty block statement. [Error/no-empty]
+
+ERROR_LINES=20
