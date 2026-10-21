@@ -23,3 +23,29 @@
 3. 内置浏览器 runtime 通道会话初期卡死约 20 分钟（等待后恢复，未造数），已在回传卡 §八/§九 报备。
 
 详细十项见 `docs/tasks/cards/R101-QODER-25F1-回传.md`。
+
+---
+
+## 负责人复验补记（Qoder 亲自跑，2026-10-22 03:38~04:5x；上文为执行会话口径，本节不复用其装置）
+
+1. **四门**：串行独立复跑 GATES_EXIT=0、**13 文件 / 202 用例**（raw/60）；文档终态再复跑一次见 raw/67。
+2. **三构建 + 撞名 0 次的非假 0 证明**：mp-weixin/h5/app 全 EXIT=0、撞名警告计数 0（raw/61）；负责人自己另起正对照
+   ——把标签注回旧名后同一条管道计到 **1** 且 `BUILD_EXIT_mp-weixin=1`（Rollup 解析 `uni-components/lib/custom-tab-bar`
+   的 `uni-tabbar` 失败）。⇒ 撞名在 MP 侧不止是警告，而是**直接构建失败**，比派单原文的"警告"更严重。
+3. **产物级**：`custom-tab-bar*` 文件名计数 0；产物内该字符串仅剩 1 处 `<view class="custom-tab-bar …">` 的 **CSS 类名**（派单允许项）
+   （raw/63）。运行时形态仍未验（无 DevTools/真机），与上文待裁 1/2 同口径，负责人不代判。
+4. **两轮自有反测**：另写注入器 `probe/owner-inject-25f1.cjs.txt`，Ⓐ 摘 `reactive` ⇒ 仅 R1 红；Ⓑ 注回旧名 ⇒ S1/S2/S3+G6 红；
+   SHA 恒等 + `MARKER_RG_EXIT=1` + 复跑绿（anti/70、71）。两轮各出现一次**负责人自己的作废轮**（首轮注入未完整落盘 / 残留 `})` 致语法错），
+   已在对应日志内留档说明，未改写。
+5. **H5 未刷新实证（本卡最硬判据）**：同一页面实例，负责人用 `window.__OWNER25F1_MARK` 自定义全局标记逐字不变来自证"没有刷新"
+   （比"未调用 navigate_page"更强）；收流 len 逐点增长；点"■ 停止生成"后**同一序列内** stopBtn 1→0 且 len 冻结 200 连续 6 点 4.8s，
+   mock 侧 `SSE CLIENT CLOSE … remaining 101 events NOT sent` 与点击时间差 **+19ms**（raw/64）。
+6. **量具更正（影响上文第 6 条"端口归零"与 QODER-26F1 同类读数）**：执行会话 raw/59 与我自己的 26F1 raw/20 用
+   `Get-NetTCPConnection`/`netstat LISTENING` 计数判"端口已空"，该量具对本机 vite 的 `[::1]` 环回监听**报假 0**（同时 `curl` 返回 200）。
+   两处正面结论一律降级为"该设备下的读数"。负责人本轮改用 `curl_rc=7 / http_code=000` 为主设备，
+   实测 5499/8488/5399/5173/5174/8388 六端口全部拒绝连接（raw/65、66）。
+7. **口径更正（负责人自认）**：本会话早期我给执行会话的端口简报里"必须另起占位装置"的措辞，导致执行会话造了 `port-guard-f1.mjs`
+   并把 5173/5174 之争复杂化；实际框架支持显式 `--port`。该装置已由执行会话删除，本条为我的口径责任登记。
+8. **红线复核**：`git diff bc1087ee..HEAD -- backend/` = **0 字节**；`git diff d68e43e9..HEAD --name-only` 全部落在 `docs/` 前缀；
+   终态 porcelain 0（raw/66、67）；未 push、未开 PR、逐文件 `git add`。
+

@@ -1,6 +1,8 @@
 # QODER-25F1 证据树（tabBar 撞名改名 + AI 流式消息响应式）
 
-- 分支：`fix/qoder-25F1-tabbar-reactivity`，基线 `286d071b`（QODER-25 尖端）
+- 分支：`fix/qoder-25f1-tabbar-reactivity`（负责人就地更正：本行原写作 `fix/qoder-25F1-tabbar-reactivity`，
+  而 `git branch --show-current` 实测分支名为小写 `25f1`；工作树目录名 `QODER-25F1` 是大写，两者不同源，
+  复制命令时以 git 读数为准。见 `raw/67`），基线 `286d071b`（QODER-25 尖端）
 - 实现笔：`d68e43e9`（前一会话交付，10 文件）
 - 证据与反测复跑：本续办会话（负责人 Qoder 派单，2026-10-22）。前一会话跑到轮次上限中断，
   `raw/01–45`、`anti/01–02` 为其原始留档（时间戳 2026-10-21T17:1x–19:0xZ / 02:2x+08:00），
@@ -83,3 +85,15 @@ _comment identical = true
 
 1. 微信端与 App 端 tabBar 的**运行时**表现未验（无 DevTools / 无真机）；已到证据等级为"构建 + 产物"。
 2. 浏览器截图未取；证据形态为 DOM 采样 + window 标记 + mock 服务端日志三向对账。
+
+### 终笔自检（负责人补，raw/66–67）
+
+- `raw/66`：文档笔 `04e01af1` 之后的收尾读数 —— `PORCELAIN_LINES=1`（唯一那行就是 raw/66 自身，未提交前不可能为 0）、
+  `BACKEND_DIFF_BYTES=0`、`ai-chat.vue = c88fc7…738a` 与 `app-tab-bar.vue = f44ff4d4…` 两轮反测后恒等、
+  六端口 `curl` 全部 `HTTP=000`。
+- `raw/67`：三笔文档提交落成后的终态 —— 分支名实测、终笔四门复跑（`GATES_EXIT` / 文件数 / 用例数）、
+  `porcelain` 复跑、`git diff d68e43e9..HEAD --name-only` 全量清单。
+- 判据口径提醒：本 README 上文表格里"警告 0 次"这类计数，只有在**同一条 grep 管道先用已知串自证能命中**时才算数；
+  负责人本轮的正对照是 anti/71（注回旧名 ⇒ 同一管道计 1，且 mp-weixin 构建直接 `EXIT=1`）。
+  撞名在 MP 侧不只是警告：easycom 会把标签解析到 `@dcloudio/uni-components/lib/custom-tab-bar/custom-tab-bar.vue`，
+  其对 `@dcloudio/uni-ui/lib/uni-tabbar/uni-tabbar.vue` 的 import 令 Rollup 失败。
