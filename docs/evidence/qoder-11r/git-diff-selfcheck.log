@@ -1,0 +1,38 @@
+=== git diff dfeedbc0..HEAD -- app-mobile/src （本卡验收第一条：必须 0 行）===
+命令: git diff dfeedbc0..HEAD -- app-mobile/src
+行数 = 0
+
+=== git diff --name-only dfeedbc0..HEAD （改动面：纯 docs/证据，无 src/无 backend/）===
+"app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md"
+docs/evidence/qoder-11/dev-h5.log
+docs/evidence/qoder-11/device-probe.txt
+docs/evidence/qoder-11/git-diff-src-final.log
+docs/evidence/qoder-11/git-diff-src-selfcheck.log
+docs/evidence/qoder-11/mock-backend.log
+docs/evidence/qoder-11/mock-backend.mjs
+docs/evidence/qoder-11/port-shutdown-check.log
+docs/evidence/qoder-11/scene-1-loading.note.txt
+docs/evidence/qoder-11/scene-1-loading.png
+docs/evidence/qoder-11/scene-1-ready.png
+docs/evidence/qoder-11/scene-2-functions-empty.note.txt
+docs/evidence/qoder-11/scene-2-functions-empty.png
+docs/evidence/qoder-11/scene-2-home-ok.png
+docs/evidence/qoder-11/scene-2-more-functions-empty.png
+docs/evidence/qoder-11/scene-3-ready-control.png
+docs/evidence/qoder-11/scene-3-retry-banner-gone.png
+docs/evidence/qoder-11/scene-3a-banner-minimal.note.txt
+docs/evidence/qoder-11/scene-3a-banner-minimal.png
+docs/evidence/qoder-11/scene-3a-me500-reload.png
+docs/evidence/qoder-11/scene-3b-stale-banner.png
+docs/evidence/qoder-11/scene-4-functions-ready.png
+docs/evidence/qoder-11/scene-4-home.note.txt
+docs/evidence/qoder-11/scene-4-home.png
+docs/evidence/qoder-11/scene-4-more-functions.png
+docs/evidence/qoder-11/scene-4-report-page.png
+docs/evidence/qoder-11/scene-4-timeout-abort-stale.png
+"docs/tasks/cards/R101-QODER-11-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-11.md"
+
+=== git diff dfeedbc0..HEAD -- backend/ （应为 0）===
+行数 = 0
+生成时刻 2026-10-20T18:07:58Z  HEAD=66b54e2b4384248e75a28b8da6acb1ea11a94ecf  基线=dfeedbc0

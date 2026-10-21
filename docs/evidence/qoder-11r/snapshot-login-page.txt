@@ -1,0 +1,17 @@
+uid=1_1 RootWebArea "登录" focusable url="http://localhost:5288/#/pages/login/login"
+  uid=1_2 StaticText "智享全链"
+  uid=1_3 StaticText "酒水经营一体化工作台"
+  uid=1_4 StaticText "登录"
+  uid=1_5 StaticText "欢迎回来，请登录继续经营"
+  uid=1_6 StaticText "账号 / 手机号"
+  uid=1_7 textbox editable="plaintext" focusable invalid="false" settable
+  uid=1_8 StaticText "密码"
+  uid=1_9 textbox editable="plaintext" focusable invalid="false" settable
+  uid=1_10 StaticText "✓"
+  uid=1_11 StaticText "记住我"
+  uid=1_12 StaticText "记住账号密码，下次自动带出"
+  uid=1_13 StaticText "登 录"
+  uid=1_14 StaticText "或"
+  uid=1_15 StaticText "注 册"
+  uid=1_16 StaticText "演示登录（一键进入）"
+  uid=1_17 StaticText "无需输入，自动填入演示账号并登录"

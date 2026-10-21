@@ -1,0 +1,72 @@
+场景 3 复跑取证说明（QODER-11R · 2026-10-21）
+================================================
+基线：dfeedbc0（#368 已合并，main 现含 × 关闭按钮 + menuStore.dismissBanner()）
+上一轮记录基于 2baf13af（主线尚无 ×，故「× 可关闭」子项记不通过）——本卡在新增 × 后复跑。
+装置：与上一轮同一套 mock 网络手术装置（docs/evidence/qoder-11r/mock-backend.mjs，
+      仅改监听端口为环境变量 MOCK_PORT=8288，其余逻辑逐字一致）；
+      vite dev server 端口 5288（/api 代理目标经 VITE_PROXY_TARGET 指向 :8288）。
+浏览器：browser-use MCP（真实导航/填表/点击/截图/DOM 读数/console），非 curl。
+切态：curl -X POST http://localhost:8288/__mock
+      -d '{"me":{"mode":"500","perms":"full"},"menus":{"mode":"500"},"login":{"mode":"ok","perms":"full"}}'
+      ⇒ me=500、menus=500（③ 未取到）、login 正常；localStorage.clear() 后重新登录（无缓存⇒firstfail）。
+
+判据单一定义源：
+  · 文案 PERMISSION_UNAVAILABLE_NOTICE = 「权限信息未取到，已按最小可见集显示，请下拉刷新重试」
+    （config/permission-view-state.ts:65）
+  · 最小可见集 = MINIMUM_VISIBLE_MENU_CODES 6 项（报表域）
+  · × 关闭实现：functions.vue:21 <text class="func-banner-close" @tap="menuStore.dismissBanner()">×</text>
+    more-functions.vue:14 <text class="mf-banner-close" @tap="menuStore.dismissBanner()">×</text>
+    dismissBanner()（stores/menu.ts:160）只置会话内存态 noticeDismissed=true，不改渲染集合、不写持久存储；
+    bannerText（menu.ts:64）noticeDismissed⇒'' ⇒ 整条 banner（含 ×、重试）v-if 隐藏。
+    重新拉取（load() 成功或失败）都把 noticeDismissed 复位 false（menu.ts:133/139）⇒ 再次 ③ 态重现。
+
+--------------------------------------------------------------------------
+【步1】③态横幅出现 —— evaluate_script（登录后进入功能页，1.5~2s 后原样读数）
+{
+  "bannerPresent": true,
+  "bannerText": "权限信息未取到，已按最小可见集显示，请下拉刷新重试|重试|×",
+  "hasClose": true, "closeChar": "×",   ← × 关闭按钮存在（本轮关键差异）
+  "retryPresent": true,
+  "labelCount": 6,
+  "sampleLabels": ["经营报表","销售排行","库存报表","采购报表","客户报表","财务报表"]
+}
+截图：scene-3-step1-banner-with-close.png   判定：通过（③ 文案+最小集+× 均在位）
+
+【步2】点 × ⇒ 横幅消失（同页同会话，evaluate_script 对 .func-banner-close 原生 click 触发 @tap）
+{
+  "step": "after_click_x",
+  "bannerPresent": false, "hasClose": false,   ← 整条横幅（含 ×/重试）隐藏
+  "labelCount": 6, "sampleLabels": ["经营报表",…,"财务报表"],   ← 渲染集合不变（dismissBanner 不动 visibility）
+  "searchUsable": true, "masks": 0              ← 非阻塞成立
+}
+截图：scene-3-step2-after-close-gone.png   判定：通过（× 点击后横幅消失、集合不变）
+
+【步2b】同会话内切页往返仍隐藏（证明关闭只置会话内存态、未误持久）
+  home→functions 往返后：{ "bannerPresent": false, "labelCount": 6 }
+  本地存储仅有 enc_merchant_token/user/tenant/... （加密会话键），无任何 banner-dismiss 持久键
+  ⇒ 「本次会话隐藏」成立。
+
+【步3】再次触发 ③ 态 ⇒ 横幅重现（保持 me=500/menus=500，整页 reload 重走 ③）
+{
+  "url": ".../#/pages/functions/functions",
+  "bannerPresent": true,
+  "bannerText": "权限信息未取到，已按最小可见集显示，请下拉刷新重试|重试|×",
+  "hasClose": true, "closeChar": "×", "retryPresent": true,
+  "labelCount": 6, "sampleLabels": ["经营报表","销售排行","库存报表","采购报表","客户报表","财务报表"]
+}
+截图：scene-3-retrigger...（见 scene-3-step3-retrigger-reappear.png）
+判定：通过（再次 ③ 态横幅重现 ⇒ 证实 × 未写持久存储，符合「下次 ③ 态重现」设计）
+
+【补充】more-functions.vue 同 store 同 ×（共享 noticeDismissed）
+  进入「全部功能」页读数：{ "hasMfBanner": true, closeChar: "×", mfBannerClassExists: true }
+  文案同上 + 最小集 6 项；点 .mf-banner-close 后：{ "mfBannerPresent": false }
+  截图：scene-3-more-functions-banner-with-close.png
+
+【console 摘录】（console-messages.txt，list_console_messages types=log|error|warn 原样）
+  [error] Failed to load resource: 500 (http://localhost:500... /api/admin/auth/me)
+  [error] [app] 恢复登录态失败: 服务器繁忙，请稍后重试(mock)
+  [error] Failed to load resource: 500 (http://localhost:5288/api/admin/menus/user)  ← 驱动 ③ 横幅
+  其余 /api/store/dashboard、/api/admin/dashboard/* 等 404 为 mock 兜底噪音，与三态无关。
+
+场景 3 综合判定：**通过**（③ 横幅出现 ⇒ × 关闭隐藏 ⇒ 集合不变/非阻塞 ⇒ 再次 ③ 重现），
+与上一轮 2baf13af「× 可关闭」不通过形成对照——本轮基线 dfeedbc0 已并入 ×，缺的是复跑取证，非改代码。

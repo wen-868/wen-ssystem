@@ -1,0 +1,10 @@
+$ git diff 2baf13af -- app-mobile/src | wc -l  (执行前自证：工作树 vs 基线，HEAD 仍=基线)
+0
+
+$ git status --short -- app-mobile/src
+(空输出=app-mobile/src 无任何改动)
+
+$ git status --short (全集，应仅 docs/evidence/qoder-11 新增)
+?? docs/evidence/qoder-11/
+
+run-time 2026-10-20 01:35:01

@@ -1,0 +1,15 @@
+== QODER-11R 关服端口复核（预期 5288/8288 均无监听）==
+记录：dev server = 后台任务 b5onelm96（uni --port 5288）；mock = 后台任务 b8g1f6402（node mock-backend.mjs MOCK_PORT=8288）
+只关自己记录的 PID，未动其它代理进程
+
+[TaskStop] b5onelm96 -> killed (task tree pid 4340)；b8g1f6402 -> killed
+[curl after stop] 5288=200(vite 子进程存活) 8288=000
+[netstat 5288] [::1]:5288 owner PID=19076（vite node 子进程，TaskStop 后仍在监听，与上一轮同现象）
+[手动 taskkill 19076（本次记录的自己 PID）]
+
+== 复核 ==
+5288=000
+8288=000
+shutdown-verified 2026-10-20T18:11:42Z
+
+残留：netstat 5288 仅剩 browser-use 客户端(5496) SYN_SENT，无 LISTENING —— 非我进程、非监听

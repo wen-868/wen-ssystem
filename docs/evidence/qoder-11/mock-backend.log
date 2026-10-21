@@ -1,0 +1,133 @@
+[2026-10-19T17:06:40.226Z] MOCK BACKEND START port=8080 state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:06:40.305Z] LISTENING 8080
+[2026-10-19T17:07:42.883Z] CONTROL GET state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:09:14.735Z] CONTROL POST patch={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":8000},"fallback":{"mode":"404"}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":8000},"fallback":{"mode":"404"}}
+[2026-10-19T17:09:23.060Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:09:45.137Z] POST /api/store/auth/login -> 200 mode=ok perms=full
+[2026-10-19T17:09:46.665Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:09:46.676Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:09:46.678Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:09:46.690Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:09:46.693Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:09:46.708Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:09:46.717Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:10:09.512Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:10:09.519Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:10:09.536Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:10:09.538Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:10:09.539Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:10:09.541Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:10:09.542Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:10:18.161Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:10:19.045Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:10:19.050Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:10:19.058Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:10:19.060Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:10:19.065Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:10:19.077Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:10:19.078Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:11:41.827Z] POST /api/store/auth/login -> 200 mode=ok perms=full
+[2026-10-19T17:11:42.153Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:11:42.170Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:11:42.179Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:11:42.200Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:11:42.202Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:11:42.204Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:11:42.205Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:11:57.412Z] GET /api/admin/menus/user -> 200 mode=ok perms=-
+[2026-10-19T17:13:16.888Z] CONTROL POST patch={"login":{"mode":"ok","delayMs":0,"perms":"empty"},"me":{"mode":"ok","delayMs":0,"perms":"empty"},"menus":{"mode":"empty","delayMs":0}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"empty"},"me":{"mode":"ok","delayMs":0,"perms":"empty"},"menus":{"mode":"empty","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:13:20.220Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:13:20.233Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:13:20.234Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:13:20.236Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:13:20.250Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:13:20.251Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:13:20.308Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:13:30.206Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:13:31.237Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:13:31.240Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:13:31.244Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:13:31.246Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:13:31.248Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:13:31.249Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:13:31.312Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:14:02.039Z] POST /api/store/auth/login -> 200 mode=ok perms=empty
+[2026-10-19T17:14:02.419Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:14:02.420Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:14:02.454Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:14:02.461Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:14:02.463Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:14:02.469Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:14:02.474Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:14:09.839Z] GET /api/admin/menus/user -> 200 mode=empty perms=-
+[2026-10-19T17:14:44.735Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:14:44.736Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:14:44.737Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:14:44.738Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:14:44.738Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:14:44.740Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:14:44.813Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:15:50.149Z] CONTROL POST patch={"login":{"mode":"ok","delayMs":0,"perms":"missing"},"me":{"mode":"500","perms":"full"},"menus":{"mode":"500","delayMs":0}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"missing"},"me":{"mode":"500","delayMs":0,"perms":"full"},"menus":{"mode":"500","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:15:52.924Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:15:52.926Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:15:52.929Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:15:52.930Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:15:52.931Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:15:52.933Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:15:53.014Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:16:03.595Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:16:04.346Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:16:04.381Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:16:04.391Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:16:04.393Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:16:04.393Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:16:04.395Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:16:04.563Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:16:34.514Z] POST /api/store/auth/login -> 200 mode=ok perms=missing
+[2026-10-19T17:16:34.867Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:16:34.869Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:16:34.870Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:16:34.872Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:16:34.873Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:16:34.874Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:16:34.937Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:16:35.512Z] GET /api/admin/menus/user -> 500
+[2026-10-19T17:17:33.690Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:17:33.696Z] GET /api/admin/auth/me -> 500
+[2026-10-19T17:17:34.237Z] GET /api/admin/menus/user -> 500
+[2026-10-19T17:18:10.155Z] CONTROL POST patch={"menus":{"mode":"ok","delayMs":0}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"missing"},"me":{"mode":"500","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:18:50.043Z] GET /api/admin/menus/user -> 200 mode=ok perms=-
+[2026-10-19T17:19:11.626Z] CONTROL POST patch={"menus":{"mode":"500"}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"missing"},"me":{"mode":"500","delayMs":0,"perms":"full"},"menus":{"mode":"500","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:19:15.251Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:19:15.257Z] GET /api/admin/auth/me -> 500
+[2026-10-19T17:19:15.606Z] GET /api/admin/menus/user -> 500
+[2026-10-19T17:19:49.353Z] GET /api/admin/menus/user -> 500
+[2026-10-19T17:20:00.419Z] CONTROL POST patch={"menus":{"mode":"ok"},"me":{"mode":"ok","perms":"full"},"login":{"mode":"ok","perms":"full"}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:20:10.649Z] GET /api/admin/menus/user -> 200 mode=ok perms=-
+[2026-10-19T17:20:23.400Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:20:23.404Z] GET /api/admin/auth/me -> 200 mode=ok perms=full
+[2026-10-19T17:20:23.689Z] GET /api/admin/menus/user -> 200 mode=ok perms=-
+[2026-10-19T17:21:25.787Z] CONTROL POST patch={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":5000,"perms":"full"},"menus":{"mode":"ok","delayMs":6000},"fallback":{"mode":"404"}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":5000,"perms":"full"},"menus":{"mode":"ok","delayMs":6000},"fallback":{"mode":"404"}}
+[2026-10-19T17:21:26.120Z] CONTROL GET state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":5000,"perms":"full"},"menus":{"mode":"ok","delayMs":6000},"fallback":{"mode":"404"}}
+[2026-10-19T17:21:43.057Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:22:15.547Z] POST /api/store/auth/login -> 200 mode=ok perms=full
+[2026-10-19T17:22:16.327Z] GET /api/store/dashboard -> FALLBACK 404
+[2026-10-19T17:22:16.330Z] GET /api/admin/dashboard/todos -> FALLBACK 404
+[2026-10-19T17:22:16.331Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 404
+[2026-10-19T17:22:16.333Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 404
+[2026-10-19T17:22:16.366Z] GET /api/admin/notifications/unread-count -> FALLBACK 404
+[2026-10-19T17:22:16.368Z] GET /api/admin/reports/business-overview -> FALLBACK 404
+[2026-10-19T17:22:16.420Z] GET /api/admin/inventory-alerts -> FALLBACK 404
+[2026-10-19T17:23:06.997Z] GET /api/admin/menus/user -> 200 mode=ok perms=-
+[2026-10-19T17:23:56.075Z] GET /api/admin/reports/business-overview?startDate=2026-09-20&endDate=2026-10-20 -> FALLBACK 404
+[2026-10-19T17:23:56.077Z] GET /api/admin/reports/sales-ranking?startDate=2026-09-20&endDate=2026-10-20&limit=10&dimension=product -> FALLBACK 404
+[2026-10-19T17:23:56.078Z] GET /api/admin/reports/sales-trend?granularity=day -> FALLBACK 404
+[2026-10-19T17:24:22.079Z] CONTROL POST patch={"menus":{"mode":"abort","delayMs":0}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":5000,"perms":"full"},"menus":{"mode":"abort","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:24:34.581Z] GET /api/app/version/app_mobile -> FALLBACK 404
+[2026-10-19T17:24:35.824Z] GET /api/admin/reports/business-overview?startDate=2026-09-20&endDate=2026-10-20 -> FALLBACK 404
+[2026-10-19T17:24:35.825Z] GET /api/admin/reports/sales-trend?granularity=day -> FALLBACK 404
+[2026-10-19T17:24:35.827Z] GET /api/admin/reports/sales-ranking?startDate=2026-09-20&endDate=2026-10-20&limit=10&dimension=product -> FALLBACK 404
+[2026-10-19T17:24:39.599Z] GET /api/admin/auth/me -> 200 mode=ok perms=full
+[2026-10-19T17:24:54.731Z] GET /api/admin/menus/user -> ABORT(socket destroy)
+[2026-10-19T17:25:55.869Z] CONTROL POST patch={"menus":{"mode":"ok"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"login":{"mode":"ok","perms":"full"}} -> state={"login":{"mode":"ok","delayMs":0,"perms":"full"},"me":{"mode":"ok","delayMs":0,"perms":"full"},"menus":{"mode":"ok","delayMs":0},"fallback":{"mode":"404"}}
+[2026-10-19T17:30:14.154Z] GET /api/admin/menus/user -> 200 mode=ok perms=-

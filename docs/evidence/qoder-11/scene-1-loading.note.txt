@@ -1,0 +1,29 @@
+取证命令/口径说明（QODER-11 · 场景 1）
+========================================
+装置：docs/evidence/qoder-11/mock-backend.mjs（本机 8080，vite /api 代理目标）；
+H5 dev server：npm run dev:h5（工作树 D:\Users\ZXQL\wt-agents\QODER-11\app-mobile），http://localhost:5173/，日志 dev-h5.log。
+场景配置（curl POST http://localhost:8080/__mock）：
+  {"login":{"mode":"ok","perms":"full"},"me":{"mode":"ok","perms":"full"},"menus":{"mode":"ok","delayMs":8000}}
+  （delayMs=8000 等效清单 §一.5 的 Slow 3G/3~5s 延迟规则，拉长 ① 观察窗口）
+
+步骤实际执行：
+1. evaluate_script: localStorage.clear() —— 清前 18 键，其中 merchant_menu_codes_cache_* 为 0 条（无缓存态成立），
+   enc_merchant_token 随后确认 absent（退出登录态成立）。
+2. reload → 登录页 → 填 qoder11 / qoder11@2026 → click uni-button.login-btn → 登录成功进首页。
+3. 400ms 后 location.hash='#/pages/functions/functions'（进功能页，触发 onShow→ensureLoaded，
+   /admin/menus/user 在途 8s，① 窗口内取证）。
+
+scene-1-loading.png 同刻页面 DOM 读数（evaluate_script 原样）：
+{
+  "bannerPresent": false,
+  "hash": "#/pages/functions/functions",
+  "labels": ["数据 · 工具", "经营报表", "销售排行", "库存报表", "采购报表", "客户报表", "财务报表"]
+}
+→ 最小可见集=报表域 6 项（含分区标题「数据 · 工具」）；高频宫格 0 项（区块隐藏）；无任何失败横幅。
+
+scene-1-ready.png 收敛后（menus/user 200，mock-backend.log 17:11:57.412Z）DOM 读数（原样）：
+{
+  "bannerPresent": false, "count": 42,
+  "labels": ["销售开单","销售记录","库存管理","盘点调拨","进货入库","会员管理","数据 · 工具","经营报表","销售排行","库存报表","采购报表","客户报表","财务报表","溯源查询","全部功能","销售开单","销售记录","商品分类","价格管理","批次管理","库存管理","盘点调拨","报损报益","采购订单","进货入库","供应商管理","会员管理","会员等级","积分管理","储值卡","收货地址","优惠券","营销活动","秒杀活动","拼团活动","砍价活动","社区营销","收款管理","应收账款","费用支出","对账单","门店调拨"]
+}
+→ ① 的 7 个读数全部包含于 ready 42 项（只增不减、无闪回）；登录后首页(无码入口)已正常渲染（截图前 URL=home）。

@@ -1,0 +1,10 @@
+mock-backend.stdout.log 为 0 字节说明
+======================================
+取证命令：MOCK_PORT=8288 node docs/evidence/qoder-11r/mock-backend.mjs > mock-backend.stdout.log 2>&1
+原因：mock-backend.mjs 的所有运行期留痕走 log() 写入同目录 mock-backend.log（fs.appendFileSync），
+      进程本身不向 stdout/stderr 打印任何内容；server.listen 成功回调只写 mock-backend.log。
+      故 stdout 重定向文件为空属预期，非装置异常。逐请求证据见 mock-backend.log（START/LISTENING 8288 + 每请求行）。
+
+dev-h5.log 末尾 npm error code 1 说明：
+      收尾按记录的 PID（taskkill 19076）关闭 vite dev server 子进程，npm 包装器因收到终止而回报 exit 1，
+      属关服副作用，与场景 3 读数无关；dev server 正常编译读数见同文件上半段（Local: http://localhost:5288/ ready in 28169ms）。

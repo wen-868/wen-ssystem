@@ -1,0 +1,27 @@
+场景 4 取证说明（弱网首屏：不整端空白、不阻塞弹窗）
+====================================================
+限速手段：清单推荐 Slow 3G/自定义 400ms+RTT（DevTools 档位）。browser-use 工具面无 DevTools 节流开关，
+等效改用 mock 装置延迟：curl POST http://localhost:8080/__mock
+  {"me":{"mode":"ok","delayMs":5000},"menus":{"mode":"ok","delayMs":6000"}}（在途窗口比 Slow 3G 更宽，判定更严）。
+另用 menus abort 模式（socket 销毁，等效超时/断网）复测超时分支。
+
+链路（localStorage.clear 后从登录走全链）：登录→首页→功能页→更多功能页→报表页，逐步原样读数：
+
+1) 首页（登录成功后即刻，/me 在途 5s）：
+   {"hash":"#/pages/home/home","textLen":143,"head":"首页…今日营业额…快捷入口 快速开单/单据管理/扫码入库/会员管理…"}
+   → 非空白、无码入口恒可见。截图 scene-4-home.png
+2) 功能页 ①→ready 多点采样（evaluate_script 定时序列，原样数组）：
+   [ {t:0,items:0,banner:false,blank:false,modalMask:0},      ← 挂载帧：骨架(tabbar/页头)已在，items 计 0 因播种前无标签
+     {t:821,items:7},{t:1601,items:7},{t:2606,items:7},{t:4006,items:7},{t:5606,items:7},   ← ① 最小可见集(6 报表+分区标题)，无提示
+     {t:6872,items:42} ]                                       ← 返回后一次收敛 ready
+   → 全程 banner=false、modalMask=0、blank=false；7→42 一次性显隐变化、无反复闪回。
+   截图 scene-4-functions-ready.png（fullPage）
+3) 更多功能页：{"items":62,"banner":false,"blank":false,"modalMask":0} 截图 scene-4-more-functions.png
+4) 报表页（数据报表）：页面骨架完整（日期筛选/核心数据/报表分类），{"modalMask":2} 经复核两个 mask 节点
+   均为 uni-picker-mask 且 visible=false（隐藏占位非阻断）；截图 scene-4-report-page.png
+5) 超时/abort 分支：menus=abort 后 reload（缓存仍在）：
+   {"bannerText":"权限信息加载失败，显示的是上次结果|重试","items":42,"modalMaskVisible":0,"textLen":420}
+   → 落入 stale（上次缓存集），不卡死不白屏。截图 scene-4-timeout-abort-stale.png
+
+局限披露：报表页自身业务数据接口由 mock 兜底 404/空数据，页面**业务数值**不在本清单验收面（清单观察点为
+空白/弹窗/权限三态表现），已如实按观察点取证。
