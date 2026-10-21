@@ -1,0 +1,45 @@
+# 反测轮 02 · CASE=fs-in-app · 期望红点名 G1 · 2026-10-21T22:51:11+08:00
+# 依据任务书 §二.6 + 并发协议 §四.1/2/3
+PRECHECK_DIFF_BYTES=0  # 必须为 0，否则本轮起点就是脏文件
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue   # worktree-crlf 形态
+SHA_BEFORE=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725 (worktree-crlf)
+$ cp app-mobile/src/pages/ai-chat/ai-chat.vue /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-02.orig
+CP_BACKUP_EXIT=0
+BACKUP_SIZE=57913 bytes  backup=/d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-02.orig
+
+$ node D:/Users/ZXQL/wt-agents/_qoder25_cont/inject.cjs fs-in-app
+# file=D:/Users/ZXQL/wt-agents/QODER-25/app-mobile/src/pages/ai-chat/ai-chat.vue
+# eol-detected=crlf
+# sha256-before-crlf-file=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725
+# anchor-needle=本分支不得出现 uni.getFileSystemManager
+INJECT_HIT_COUNT=1 at lines [448]
+# anchor-line-raw="    // 本分支不得出现 uni.getFileSystemManager / wx.env（那两者是小程序专属 API）"
+INJECT_WRITTEN=1
+# readback-lines=["    // App：plus.io 把 uni.chooseImage 的临时路径解析为文件对象再读成 dataURL；","    // 本分支不得出现 uni.getFileSystemManager / wx.env（那两者是小程序专属 API）","    const qoder25AntiFsProbe = uni.getFileSystemManager()","    ;(() => {"]
+# sha256-after-inject-crlf-file=7aba084038a2ab2084109359ae9bdc2d484140548bfa8eb5d9d7a517d49c332c
+INJECT_EXIT=0
+INJECT_EXIT=0
+
+$ npm --workspace app-mobile run test    # 仓库根跑（在 app-mobile 里跑会报 No workspaces found）
+TEST_EXIT=1   # 期望 1（守卫真的会红）
+—— 红行原文（FAIL / × / AssertionError / 计数行） ——
+20:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+22:[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+24:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+26:[步4] 再点 × ⇒ bannerText=""
+43:[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (12)[39m
+51:[41m[1m FAIL [22m[49m tests/ai-cross-platform.spec.ts[2m > [22mQODER-25 AI Chat 三端条件编译与自绘 tabBar 静态配对守卫[2m > [22mG1 小程序专属文件 API（getFileSystemManager / wx.env）只出现在 #ifdef MP-WEIXIN 块内
+52:[31m[1mAssertionError[22m: 小程序专属 API 落到非 MP-WEIXIN 分支（App 会走进小程序 API）：449:const qoder25AntiFsProbe = uni.getFileSystemManager(): expected [ { no: 449, …(2) } ] to deeply equal [][39m
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-02.orig app-mobile/src/pages/ai-chat/ai-chat.vue   # 复原只用 cp（禁 sed -i / 禁编辑器写回）
+CP_RESTORE_EXIT=0
+SHA_AFTER=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725 (worktree-crlf)
+SHA_MATCH=1（非空且逐字节一致）
+DIFF_BYTES_AFTER_RESTORE=0
+GIT_STATUS_AFTER_RESTORE=
+
+$ npm --workspace app-mobile run test    # 复原后复跑（绿）
+GREEN_TEST_EXIT=0   # 期望 0
+35:[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+41:✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+RESULT=ROUND-02 DONE

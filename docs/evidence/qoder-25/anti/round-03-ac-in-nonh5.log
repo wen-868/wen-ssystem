@@ -1,0 +1,45 @@
+# 反测轮 03 · CASE=ac-in-nonh5 · 期望红点名 G2 · 2026-10-21T22:51:56+08:00
+# 依据任务书 §二.6 + 并发协议 §四.1/2/3
+PRECHECK_DIFF_BYTES=0  # 必须为 0，否则本轮起点就是脏文件
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue   # worktree-crlf 形态
+SHA_BEFORE=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725 (worktree-crlf)
+$ cp app-mobile/src/pages/ai-chat/ai-chat.vue /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-03.orig
+CP_BACKUP_EXIT=0
+BACKUP_SIZE=57913 bytes  backup=/d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-03.orig
+
+$ node D:/Users/ZXQL/wt-agents/_qoder25_cont/inject.cjs ac-in-nonh5
+# file=D:/Users/ZXQL/wt-agents/QODER-25/app-mobile/src/pages/ai-chat/ai-chat.vue
+# eol-detected=crlf
+# sha256-before-crlf-file=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725
+# anchor-needle=abortController = new AbortController()
+INJECT_HIT_COUNT=1 at lines [639]
+# anchor-line-raw="  abortController = new AbortController()"
+INJECT_WRITTEN=1
+# readback-lines=["  // #ifndef H5","  cancelLegacyRequest = undefined","  const qoder25AntiAcProbe = new AbortController()","  // #endif"]
+# sha256-after-inject-crlf-file=a14bfaa56c56704b9dba94b8a6dd22f0d4da8bcbf64aa28f356a7a46b76041c1
+INJECT_EXIT=0
+INJECT_EXIT=0
+
+$ npm --workspace app-mobile run test    # 仓库根跑（在 app-mobile 里跑会报 No workspaces found）
+TEST_EXIT=1   # 期望 1（守卫真的会红）
+—— 红行原文（FAIL / × / AssertionError / 计数行） ——
+12:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+14:[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+16:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+18:[步4] 再点 × ⇒ bannerText=""
+44:[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (12)[39m
+52:[41m[1m FAIL [22m[49m tests/ai-cross-platform.spec.ts[2m > [22mQODER-25 AI Chat 三端条件编译与自绘 tabBar 静态配对守卫[2m > [22mG2 AbortController 只出现在 #ifdef H5 块内（非 H5 不得引用）
+53:[31m[1mAssertionError[22m: AbortController 出现在非 H5 分支：643:const qoder25AntiAcProbe = new AbortController(): expected [ { no: 643, …(2) } ] to deeply equal [][39m
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-03.orig app-mobile/src/pages/ai-chat/ai-chat.vue   # 复原只用 cp（禁 sed -i / 禁编辑器写回）
+CP_RESTORE_EXIT=0
+SHA_AFTER=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725 (worktree-crlf)
+SHA_MATCH=1（非空且逐字节一致）
+DIFF_BYTES_AFTER_RESTORE=0
+GIT_STATUS_AFTER_RESTORE=
+
+$ npm --workspace app-mobile run test    # 复原后复跑（绿）
+GREEN_TEST_EXIT=0   # 期望 0
+36:[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+42:✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+RESULT=ROUND-03 DONE

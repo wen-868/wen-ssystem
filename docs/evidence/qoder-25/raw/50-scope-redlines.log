@@ -1,0 +1,241 @@
+==================================================================
+QODER-25 续办 P4：红线与范围自检
+执行时间(UTC)：2026-10-21T15:20:09Z
+工作树：D:/Users/ZXQL/wt-agents/QODER-25   分支：fix/qoder-25-ai-cross-platform
+说明：本段只做只读自检，不修改任何产品源码。
+      rg 使用真实 ripgrep（which rg -> /c/Users/XIONG/.qoder-cn/plugins/cache/qoderapp-bundler/qoder-context/1.0.78.26e781a/bin/rg，ripgrep 15.0.0 (rev 3a612f88b8)），
+      严禁 npx rg（协议 v18(d) 记其为仿冒包，会假绿）。
+==================================================================
+
+$ git rev-parse HEAD  (实现笔)
+5b90a744e76702aac4372ba91ac0849390dc4069
+$ git rev-parse bc1087ee  (基线)
+bc1087eec4b880827518444be36f5874e330e1d3
+$ git merge-base --is-ancestor bc1087ee HEAD; echo RC=$?
+IS_ANCESTOR_RC=0
+
+$ git log --oneline -4
+5b90a744 fix: QODER-25 AI Chat 三端条件编译与自绘 tabBar 收口
+bc1087ee docs: QODER-22 补哈希笔——回填 e9afb0a6/24811fa8 真实哈希 + 出厂四门复跑 raw/48（GATES_EXIT=0、11/186、error 0）
+24811fa8 docs: QODER-22 回传卡 + 回执 + 证据树（合并零冲突机械证明、pin-ssl 双范围四轮反测、storage-crypto 概率红根因探针）
+e9afb0a6 chore: QODER-22 移动端最终 main 收口——并入 QODER-21 lint 清零并按双范围收敛 pin-ssl 静态守卫
+GIT_LOG_EXIT=0
+
+$ git status --porcelain   (期望：仅未跟踪 docs/evidence/qoder-25/ 与本回传文档)
+?? docs/evidence/qoder-25/
+GIT_STATUS_EXIT=0  (空输出=工作树对已跟踪文件干净)
+
+### 红线 1：后端只读 —— git diff bc1087ee..HEAD -- backend/ | wc -c （必须 0）
+BACKEND_DIFF_BYTES=0
+BACKEND_MUST_BE_ZERO=PASS
+（补充：backend 目录在本 worktree 中的实际位置为 wen-ssystem/backend，一并核）
+WENSSYSTEM_BACKEND_DIFF_BYTES=0
+
+### 范围：改动文件清单 git diff --name-only bc1087ee..HEAD
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/App.vue
+app-mobile/src/api/modules/ai.ts
+app-mobile/src/components/custom-tab-bar.vue
+app-mobile/src/pages/ai-chat/ai-chat.vue
+app-mobile/tests/ai-cross-platform.spec.ts
+NAME_ONLY_EXIT=0
+
+### 范围：改动行数 git diff --stat bc1087ee..HEAD
+ app-mobile/scripts/gates-baseline.json       |   6 +-
+ app-mobile/src/App.vue                       |   7 +-
+ app-mobile/src/api/modules/ai.ts             |  60 ++++++-
+ app-mobile/src/components/custom-tab-bar.vue |  10 +-
+ app-mobile/src/pages/ai-chat/ai-chat.vue     | 204 +++++++++++++++++++---
+ app-mobile/tests/ai-cross-platform.spec.ts   | 250 +++++++++++++++++++++++++++
+ 6 files changed, 497 insertions(+), 40 deletions(-)
+STAT_EXIT=0
+
+==================================================================
+P4-2：卡红线自证 —— typeof x !== 'undefined' 平台嗅探（真实 rg）
+卡红线原文：不得以 typeof xxx !== 'undefined' 嗅探平台（条件编译必须走 #ifdef/#ifndef）
+==================================================================
+
+$ rg -c 'typeof .* !== .undefined' app-mobile/src/pages/ai-chat/ai-chat.vue
+RG_COUNT=2
+RG_EXIT=0
+
+$ rg -n 'typeof .* !== .undefined' app-mobile/src/pages/ai-chat/ai-chat.vue
+964:  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+1005:  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+RG_N_EXIT=0
+
+### 归因核：以上命中是否来自基线（非本笔新增）
+$ git show bc1087ee:app-mobile/src/pages/ai-chat/ai-chat.vue | rg -c 'typeof .* !== .undefined'
+2
+BASELINE_RG_EXIT=0
+$ git show bc1087ee:app-mobile/src/pages/ai-chat/ai-chat.vue | rg -n 'typeof .* !== .undefined'
+839:  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+868:  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+BASELINE_N_EXIT=0
+
+### 归因核 2：本笔 diff 中是否新增了该模式（只看新增行 +）
+$ git diff bc1087ee..HEAD -- app-mobile/src/pages/ai-chat/ai-chat.vue | rg '^\+.*typeof .* !== .undefined' | wc -l
+0
+(0 = 本笔未新增平台嗅探)
+$ git diff bc1087ee..HEAD | rg '^\+.*typeof .* !== .undefined' | wc -l   (全 6 文件)
+1
+  >> 归因：该 + 行是 app-mobile/tests/ai-cross-platform.spec.ts:165 的注释本身
+     （G9 守卫的说明文字，描述它要拦的东西），不是任何运行期平台嗅探代码。
+     源码 5 个文件新增行中该模式命中 0（见上一条 ai-chat.vue 读数 0）。
+     => 红线 4（typeof 嗅探）本笔未违反；页面里现存 2 处命中均为基线遗留
+        （基线 839/868 行 -> 本笔 964/1005 行，均在 #ifdef H5 块内，属浏览器
+         speechSynthesis 能力判断，不是平台嗅探代替条件编译）。
+
+$ rg -n -B2 'typeof window' app-mobile/src/pages/ai-chat/ai-chat.vue  (确认现存 2 处所在条件编译块)
+964:  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+1005:  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+1073:    typeof window === 'undefined' ||
+RG_EXIT=0
+$ rg -n '#ifdef|#ifndef|#endif' app-mobile/src/pages/ai-chat/ai-chat.vue | head -60
+261:// #ifdef H5
+264:// #endif
+265:// #ifndef H5
+268:// #endif
+422:    // 三端各走各的读取 API（QODER-25：原实现用 #ifndef H5 把 App 一并归进小程序分支，
+425:    // #ifdef H5
+435:    // #endif
+436:    // #ifdef MP-WEIXIN
+445:    // #endif
+446:    // #ifdef APP-PLUS
+474:    // #endif
+590:  // #ifdef H5
+596:  // #endif
+597:  // #ifndef H5
+603:  // #endif
+638:  // #ifdef H5
+640:  // #endif
+641:  // #ifndef H5
+643:  // #endif
+666:  // #ifdef H5
+668:  // #endif
+669:  // #ifndef H5
+673:  // #endif
+722:    // #ifdef H5
+724:    // #endif
+725:    // #ifndef H5
+727:    // #endif
+887:      // #ifdef H5
+891:      // #endif
+892:      // #ifdef MP-WEIXIN
+913:      // #endif
+914:      // #ifdef APP-PLUS
+915:      // R96-04：原实现用 #ifndef H5 把 App 端也归到小程序分支，但 uni.getFileSystemManager
+942:      // #endif
+950:  // #ifdef H5
+952:  // #endif
+953:  // #ifdef APP-PLUS
+955:  // #endif
+956:  // #ifdef MP-WEIXIN
+958:  // #endif
+963:  // #ifdef H5
+971:  // #endif
+972:  // #ifdef APP-PLUS
+980:  // #endif
+983:// #ifdef MP-WEIXIN
+993:// #endif
+1004:  // #ifdef H5
+1008:  // #endif
+1009:  // #ifdef APP-PLUS
+1013:  // #endif
+1040:  // #ifdef H5
+1042:  // #endif
+1043:  // #ifndef H5
+1045:  // #endif
+1061:    // #ifdef H5
+1063:    // #endif
+1064:    // #ifndef H5
+1066:    // #endif
+1159:  // #ifdef APP-PLUS
+1176:  // #endif
+RG_CTX_EXIT=0
+
+==================================================================
+P4-3：其余红线自检（基线数字只准涨 tests / 不许削弱测试 / 环境文件不入仓）
+==================================================================
+
+### 红线 2：gates-baseline.json 只允许 tests 段变化
+$ git diff bc1087ee..HEAD -- app-mobile/scripts/gates-baseline.json
+diff --git a/app-mobile/scripts/gates-baseline.json b/app-mobile/scripts/gates-baseline.json
+index 101dcec1..14d99473 100644
+--- a/app-mobile/scripts/gates-baseline.json
++++ b/app-mobile/scripts/gates-baseline.json
+@@ -40,8 +40,8 @@
+     "note": "QODER-7 收口（2026-10-19）：16 条 D1 已按注册表层修正（15 去 /platform 段 + deliveries status 改 PUT，以后端为准），复跑 D1=0/D2=0/debt=0，基线同步降 0（只准降留痕：16→0）。d4=1 为 employees 行保留读数——wrapper 已随 QODER-7 下线，sites=0 时脚本仍报 D4 作\"已删除\"说明；若将来 system.ts 重现 /admin/system/employees 字面量且后端 0 注册，脚本按 caller 数自动定 D4/D2，debt>0 即超基线转红。历史：QODER-6 定性 16 D1 + 1 D4（R101-QODER-6-回传.md §二 判定表 16 行全文）。"
+   },
+   "tests": {
+-    "testFiles": 11,
+-    "testCount": 186,
+-    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。★ QODER-19 基线收敛单（2026-10-21，逐项列来源，禁止只写总数）固定合并序 14F1→15F1→16R→17F1，四卡各自原基线均为 5/56、各自只抬 tests 段，收敛后统一为 10/184：①QODER-14F1 并入 request-retry-safety.spec.ts（1 文件 / 14 用例 = 401 GET-only 重试 11 + enc_ 镜像键语义 3）⇒ 5/56 → 6/70；②QODER-15F1 并入 format.spec.ts + price-anomaly-static.spec.ts（2 文件 / 102 用例 = QODER-15 上轮 44 + QODER-15F1 本轮 isBelowCost 归一化 58）⇒ 6/70 → 8/172；③QODER-16R 并入 mobile-permissions.spec.ts（1 文件 / 8 用例 = 配置 JSON 合法性 1 + iOS 隐私描述 2 + 小程序录音与 requiredPrivateInfos 3 + pages.json 死配置保持 1 + 红线字段自证 1）⇒ 8/172 → 9/180；④QODER-17F1 并入 safe-top-var.spec.ts（1 文件 / 4 用例 = App.vue 根定义 2 + APP-PLUS 覆盖 1 + index.html viewport-fit 静态断言 1）⇒ 9/180 → 10/184（与卡 §二.3 与 §三 判据一致，2026-10-21 四门现场复跑实测即基线）。lint / typeCheck / checkContract / contractDrift 四段本单零改动，仍为 main 上的 5/56 轮冻结值。 ★ QODER-20 最终集成单⑤并入 QODER-13F2（fix/qoder-13f2-pin-static-spec-and-env ⇒ f4772512 实现笔）：新增独立 spec tests/pin-ssl-static.spec.ts（1 文件 / 1 用例；1 个 it 内 5 条 expect 守 pin-ssl 文件头四条在册事实与 installSslPinning 调用点恒 0）⇒ 10/184 → 11/185。前史留痕：QODER-13F1 曾把同类断言塞进 storage-crypto.spec.ts 的既有 it，凌舟裁定不认可（测试名与守护对象错配，红了看不出守的是谁）；13F2 已把 storage-crypto.spec.ts 逐字节还原为 597230c4 的纯 AES/GCM 4 用例态 ⇒ 该文件用例数不因本单变化。本单同时并入 QODER-13 家族的 pin-ssl 在册指纹（2026-10-21 现网 Let's Encrypt 值）、env.ts 注释收口与 backend/scripts/guard-rbac-wiring.mjs 的 --no-stale 开关（backend/src 零改动）。 ★ QODER-20 最终集成单⑥并入 QODER-18（bd7e158f：删 request.ts 的 upload() 死导出、MO-10 关闭）：request-retry-safety.spec.ts 追加 it⑭「upload 导出已删除」⇒ 用例 +1 ⇒ 11/185 → 11/186。该支自带 tests 读数 6/71 只是它自己分支上的口径（未含 QODER-19 四卡并入的 format / price-anomaly-static / mobile-permissions / safe-top-var 与 QODER-13F2 的 pin-ssl-static 五个 spec），本单以合并态实测为准。 ★ QODER-20 最终集成单⑦并入 QODER-11R（df583401：H5 手动验收场景 3 重栈复跑，改动面仅 app-mobile/docs 执行记录 + docs/tasks + docs/evidence，零 tests 段/零 src ⇒ tests 读数保持 11/186 不变）：本行只作谱系可核用（三分支合并序 13F2→18→11R 各自净改动文件清单见 docs/evidence/qoder-20/raw/41）；机检 git diff --name-only cdf16ce4...df583401 -- app-mobile ⇒ 仅 1 个文件且不在 src/tests/scripts 内，故 11R 支从未抬动自身基线。 ★ QODER-22 最终 main 收口单⑧并入 QODER-21（2e8cde17：lint error 20→0，七文件逐条处置，见 lint 段 note）：该支自带 tests 读数 5/56 只是它自己分支上的口径（从 origin/main 21b465e5 派生，未含 QODER-19 四卡并入的 request-retry-safety / format / price-anomaly-static / mobile-permissions / safe-top-var 五个 spec，也未含 QODER-13F2 的 pin-ssl-static 与 QODER-18 追加的 it⑭），本单以合并态实测为准 ⇒ tests 段保持 11/186 不变（11 文件 / 186 用例、EXIT=0，docs/evidence/qoder-22/raw/10-gates-check-merged.log）。本单另按凌舟 2026-10-21 裁定把 tests/pin-ssl-static.spec.ts 由「四条全扫文件头」改为**双范围**：负向旧事实 2026-09-15／TrustAsia 扫 pin-ssl.ts 全文、正向现网日期 2026-11-11／2026-12-22 扫文件头块、installSslPinning 调用点仍扫全 src；该文件仍为 1 个 it / 5 条 expect（只换求值范围与消息文案，不增断言、不新增 spec）⇒ 用例数不升不降，11/186 与合并前一致。"
++    "testFiles": 12,
++    "testCount": 196,
++    "note": "门 3 用例数冻结（scripts/test-gate.mjs）：低于即红；新增用例后把基线调高（实测即基线）。B3-1 新增 entry-gate-consistency.spec.ts（12 用例）⇒ 3/15 → 4/27；QODER-4 新增 permission-view-state.spec.ts（26 用例）⇒ 5/53，凌舟裁定②（2026-10-18 QODER-4 验收）批准上调，QODER-5 随 lint warning 调低一并代执行留痕；QODER-10（卡①）permission-view-state 新增装置四步 +1、两页 × 挂载点静态断言 +2 ⇒ 5/56（2026-10-20 实测即基线）。★ QODER-19 基线收敛单（2026-10-21，逐项列来源，禁止只写总数）固定合并序 14F1→15F1→16R→17F1，四卡各自原基线均为 5/56、各自只抬 tests 段，收敛后统一为 10/184：①QODER-14F1 并入 request-retry-safety.spec.ts（1 文件 / 14 用例 = 401 GET-only 重试 11 + enc_ 镜像键语义 3）⇒ 5/56 → 6/70；②QODER-15F1 并入 format.spec.ts + price-anomaly-static.spec.ts（2 文件 / 102 用例 = QODER-15 上轮 44 + QODER-15F1 本轮 isBelowCost 归一化 58）⇒ 6/70 → 8/172；③QODER-16R 并入 mobile-permissions.spec.ts（1 文件 / 8 用例 = 配置 JSON 合法性 1 + iOS 隐私描述 2 + 小程序录音与 requiredPrivateInfos 3 + pages.json 死配置保持 1 + 红线字段自证 1）⇒ 8/172 → 9/180；④QODER-17F1 并入 safe-top-var.spec.ts（1 文件 / 4 用例 = App.vue 根定义 2 + APP-PLUS 覆盖 1 + index.html viewport-fit 静态断言 1）⇒ 9/180 → 10/184（与卡 §二.3 与 §三 判据一致，2026-10-21 四门现场复跑实测即基线）。lint / typeCheck / checkContract / contractDrift 四段本单零改动，仍为 main 上的 5/56 轮冻结值。 ★ QODER-20 最终集成单⑤并入 QODER-13F2（fix/qoder-13f2-pin-static-spec-and-env ⇒ f4772512 实现笔）：新增独立 spec tests/pin-ssl-static.spec.ts（1 文件 / 1 用例；1 个 it 内 5 条 expect 守 pin-ssl 文件头四条在册事实与 installSslPinning 调用点恒 0）⇒ 10/184 → 11/185。前史留痕：QODER-13F1 曾把同类断言塞进 storage-crypto.spec.ts 的既有 it，凌舟裁定不认可（测试名与守护对象错配，红了看不出守的是谁）；13F2 已把 storage-crypto.spec.ts 逐字节还原为 597230c4 的纯 AES/GCM 4 用例态 ⇒ 该文件用例数不因本单变化。本单同时并入 QODER-13 家族的 pin-ssl 在册指纹（2026-10-21 现网 Let's Encrypt 值）、env.ts 注释收口与 backend/scripts/guard-rbac-wiring.mjs 的 --no-stale 开关（backend/src 零改动）。 ★ QODER-20 最终集成单⑥并入 QODER-18（bd7e158f：删 request.ts 的 upload() 死导出、MO-10 关闭）：request-retry-safety.spec.ts 追加 it⑭「upload 导出已删除」⇒ 用例 +1 ⇒ 11/185 → 11/186。该支自带 tests 读数 6/71 只是它自己分支上的口径（未含 QODER-19 四卡并入的 format / price-anomaly-static / mobile-permissions / safe-top-var 与 QODER-13F2 的 pin-ssl-static 五个 spec），本单以合并态实测为准。 ★ QODER-20 最终集成单⑦并入 QODER-11R（df583401：H5 手动验收场景 3 重栈复跑，改动面仅 app-mobile/docs 执行记录 + docs/tasks + docs/evidence，零 tests 段/零 src ⇒ tests 读数保持 11/186 不变）：本行只作谱系可核用（三分支合并序 13F2→18→11R 各自净改动文件清单见 docs/evidence/qoder-20/raw/41）；机检 git diff --name-only cdf16ce4...df583401 -- app-mobile ⇒ 仅 1 个文件且不在 src/tests/scripts 内，故 11R 支从未抬动自身基线。 ★ QODER-22 最终 main 收口单⑧并入 QODER-21（2e8cde17：lint error 20→0，七文件逐条处置，见 lint 段 note）：该支自带 tests 读数 5/56 只是它自己分支上的口径（从 origin/main 21b465e5 派生，未含 QODER-19 四卡并入的 request-retry-safety / format / price-anomaly-static / mobile-permissions / safe-top-var 五个 spec，也未含 QODER-13F2 的 pin-ssl-static 与 QODER-18 追加的 it⑭），本单以合并态实测为准 ⇒ tests 段保持 11/186 不变（11 文件 / 186 用例、EXIT=0，docs/evidence/qoder-22/raw/10-gates-check-merged.log）。本单另按凌舟 2026-10-21 裁定把 tests/pin-ssl-static.spec.ts 由「四条全扫文件头」改为**双范围**：负向旧事实 2026-09-15／TrustAsia 扫 pin-ssl.ts 全文、正向现网日期 2026-11-11／2026-12-22 扫文件头块、installSslPinning 调用点仍扫全 src；该文件仍为 1 个 it / 5 条 expect（只换求值范围与消息文案，不增断言、不新增 spec）⇒ 用例数不升不降，11/186 与合并前一致。 ★ QODER-25（2026-10-21，执行方 Qoder 移动端，本卡工作树 bc1087ee 上实测）新增独立 spec tests/ai-cross-platform.spec.ts（1 文件 / 10 用例 = G1 小程序专属文件 API 只落 MP-WEIXIN 块 1 + G1b App 端 plus.io 读图分支 1 + G2 AbortController 只落 H5 块 1 + G3 speakSystem 调用点平台限制 1 + G4 小程序播报确定行为 1 + G6 AI 页挂载自绘栏 1 + G7 原生栏隐藏口径 #ifndef MP-WEIXIN 1 + G8 非 H5 取消落到真实 RequestTask.abort 1 + G9 typeof 平台探测红线自证 1 + G10 图片读取三端互斥 1）⇒ 11/186 → 12/196（本卡实测即基线）。该卡 src 面为 pages/ai-chat/ai-chat.vue、api/modules/ai.ts、components/custom-tab-bar.vue、App.vue 四文件；lint 段本单**零改动**——新增的两行模板（custom-tab-bar 挂载、停止生成按钮）按 vue/html-indent 的配置值 4 缩进，复跑 warning 六规则合计仍为 12872、error 0，未调任何 lint/typeCheck/checkContract/contractDrift 数字来换取绿。"
+   }
+ }
+DIFF_EXIT=0
+
+### 红线 3：不得 it.skip / xit / fdescribe / eslint-disable / 放宽 timeout
+  pattern [it\.skip] -> 0 命中 (RG_EXIT=1)
+  pattern [xit\(] -> 0 命中 (RG_EXIT=1)
+  pattern [describe\.skip] -> 0 命中 (RG_EXIT=1)
+  pattern [fdescribe] -> 0 命中 (RG_EXIT=1)
+  pattern [eslint-disable] -> 0 命中 (RG_EXIT=1)
+  pattern [timeout:] -> 0 命中 (RG_EXIT=1)
+  pattern [slow\(] -> 0 命中 (RG_EXIT=1)
+$ rg -c 'it\.skip|describe\.skip|eslint-disable' app-mobile/tests  (整个 tests 目录，仅新笔范围)
+app-mobile/tests\price-anomaly-static.spec.ts:1
+RG_TESTS_EXIT=0  (1=无任何命中)
+
+### 环境文件不入仓：app-mobile/.env（我在 P3 改成 8199 端口，必须被 gitignore）
+.gitignore:6:.env	app-mobile/.env
+CHECK_IGNORE_EXIT=0
+!! app-mobile/.env
+STATUS_IGNORED_EXIT=0
+
+### 交付范围核对：卡 §二.4 需 pages.json tabBar.custom=true（是否已在基线，本笔未改）
+$ git diff bc1087ee..HEAD --name-only -- app-mobile/src/pages.json | wc -l
+0
+$ rg -n -A3 '"tabBar"' app-mobile/src/pages.json
+834:  "tabBar": {
+835-    "color": "#999999",
+836-    "selectedColor": "#2563EB",
+837-    "backgroundColor": "#FFFFFF",
+838-    "borderStyle": "white",
+839-    "custom": true,
+840-    "list": [
+RG_PAGES_EXIT=0
+
+==================================================================
+P4-4：追加更正与归因（不改动上文原始行）
+==================================================================
+1) 上文 P4-3「rg -c 'it\.skip|describe\.skip|eslint-disable' app-mobile/tests」旁注
+   写的 (1=无任何命中) 是预判文案，实测 RG_TESTS_EXIT=0，命中 1 处：
+96:    // eslint-disable-next-line no-new-func
+   归因：该行属基线既有文件 app-mobile/tests/price-anomaly-static.spec.ts:96
+   （该行由 477acdca 引入，早于本卡基线 bc1087ee）；
+   机检：git diff bc1087ee..HEAD --name-only -- app-mobile/tests/price-anomaly-static.spec.ts
+   => 0 行（本笔零改动该文件）。
+   结论：本卡新增 spec tests/ai-cross-platform.spec.ts 内 0 命中（见上文逐 pattern 读数），
+   红线「不许削弱测试」本笔成立；基线文件里的 1 处 eslint-disable-next-line no-new-func
+   属既有事实，本笔未新增、未扩散，如实报备不清算。
+
+2) 上文 P4-2 的第二处 rg 命中（全 6 文件新增行 +1）已归因为
+   app-mobile/tests/ai-cross-platform.spec.ts:165 注释自身，非运行期平台嗅探。
+
+3) pages.json：本笔 0 改动（diff 文件名列表无该项），但 custom:true 已在位（:839），
+   故卡 §二.4 的『自绘栏开关』条件由基线满足；批量单把 pages.json 列为可动项，
+   本笔实际无需动它 => 记入回传卡 §七 的范围说明（非缺件）。
+
+==================================================================
+P4 自检小结（人工判定，非机器绿）
+==================================================================
+红线 1 后端只读         : BACKEND_DIFF_BYTES=0 / wen-ssystem/backend 亦 0 => 通过
+红线 2 基线只准涨 tests : diff 仅 tests 段（testFiles/testCount/note 三行）=> 通过
+红线 3 不削弱测试       : 新 spec 0 命中 skip/disable/timeout；基线 1 处 disable 非本笔 => 通过
+红线 4 不 typeof 嗅探   : 本笔 src 新增 0 处；现存 2 处为基线 H5 能力判断 => 通过
+范围 6 文件 +497/-40    : 与卡逐条实现面一致，无越面产品改动（.env 为 gitignored 本地取证件）
+工作树状态              : 已跟踪文件 0 改动；未跟踪仅 docs/evidence/qoder-25/（证据树）

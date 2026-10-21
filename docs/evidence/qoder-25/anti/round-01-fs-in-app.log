@@ -1,0 +1,60 @@
+# 反测轮 01 · CASE=fs-in-app · 期望红点名 G1 · 2026-10-21T22:49:14+08:00
+# 依据任务书 §二.6 + 并发协议 §四.1/2/3
+$ sha256sum app-mobile/pages/ai-chat/ai-chat.vue   # worktree-crlf 形态
+sha256sum: app-mobile/pages/ai-chat/ai-chat.vue: No such file or directory
+SHA_BEFORE= (worktree-crlf)
+$ cp app-mobile/pages/ai-chat/ai-chat.vue /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-01.orig
+cp: cannot stat 'app-mobile/pages/ai-chat/ai-chat.vue': No such file or directory
+/d/Users/ZXQL/wt-agents/_qoder25_cont/anti-round.sh: line 24: /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-01.orig: No such file or directory
+BACKUP_EXIT=0 backup=/d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-01.orig ( bytes)
+
+$ node D:/Users/ZXQL/wt-agents/_qoder25_cont/inject.cjs fs-in-app
+# file=D:/Users/ZXQL/wt-agents/QODER-25/app-mobile/src/pages/ai-chat/ai-chat.vue
+# eol-detected=crlf
+# sha256-before-crlf-file=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725
+# anchor-needle=本分支不得出现 uni.getFileSystemManager
+INJECT_HIT_COUNT=1 at lines [448]
+# anchor-line-raw="    // 本分支不得出现 uni.getFileSystemManager / wx.env（那两者是小程序专属 API）"
+INJECT_WRITTEN=1
+# readback-lines=["    // App：plus.io 把 uni.chooseImage 的临时路径解析为文件对象再读成 dataURL；","    // 本分支不得出现 uni.getFileSystemManager / wx.env（那两者是小程序专属 API）","    const qoder25AntiFsProbe = uni.getFileSystemManager()","    ;(() => {"]
+# sha256-after-inject-crlf-file=7aba084038a2ab2084109359ae9bdc2d484140548bfa8eb5d9d7a517d49c332c
+INJECT_EXIT=0
+INJECT_EXIT=0
+
+$ npm --workspace app-mobile run test    # 仓库根跑（在 app-mobile 里跑会报 No workspaces found）
+TEST_EXIT=1
+—— 红行原文（FAIL / ×） ——
+12:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+14:[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+16:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+18:[步4] 再点 × ⇒ bannerText=""
+43:[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (12)[39m
+51:[41m[1m FAIL [22m[49m tests/ai-cross-platform.spec.ts[2m > [22mQODER-25 AI Chat 三端条件编译与自绘 tabBar 静态配对守卫[2m > [22mG1 小程序专属文件 API（getFileSystemManager / wx.env）只出现在 #ifdef MP-WEIXIN 块内
+52:[31m[1mAssertionError[22m: 小程序专属 API 落到非 MP-WEIXIN 分支（App 会走进小程序 API）：449:const qoder25AntiFsProbe = uni.getFileSystemManager(): expected [ { no: 449, …(2) } ] to deeply equal [][39m
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-01.orig app-mobile/pages/ai-chat/ai-chat.vue   # 复原只用 cp（禁 sed -i / 禁编辑器写回）
+cp: cannot stat '/d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-01.orig': No such file or directory
+sha256sum: app-mobile/pages/ai-chat/ai-chat.vue: No such file or directory
+SHA_AFTER= (worktree-crlf)
+SHA_MATCH=1（逐字节一致）
+warning: could not open directory 'app-mobile/pages/ai-chat/': No such file or directory
+GIT_STATUS_AFTER_RESTORE=
+
+$ npm --workspace app-mobile run test    # 复原后复跑（绿）
+GREEN_TEST_EXIT=1
+44:[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (12)[39m
+52:[41m[1m FAIL [22m[49m tests/ai-cross-platform.spec.ts[2m > [22mQODER-25 AI Chat 三端条件编译与自绘 tabBar 静态配对守卫[2m > [22mG1 小程序专属文件 API（getFileSystemManager / wx.env）只出现在 #ifdef MP-WEIXIN 块内
+RESULT=ROUND-01 DONE
+
+## ★ 追加 note（不改写上文原始读数）2026-10-21T22:50:25+08:00
+本轮**注入与红读数有效**（INJECT_EXIT=0、TEST_EXIT=1、红点名 G1），但**驱动脚本传参有 bug**：我传的 REL 是 pages/ai-chat/ai-chat.vue（漏 src/），
+驱动把它拼成 app-mobile/pages/... ⇒ 备份 cp 与 sha256sum 都作用在不存在的文件上 ⇒ SHA_BEFORE/SHA_AFTER 双双为空，
+脚本里 `[ "$SHA_BEFORE" = "$SHA_AFTER" ]` 对两个空串判等 ⇒ SHA_MATCH=1 是**假对称**，本轮 SHA 复原证据作废（VOID-SHA）。
+注入行 qoder25AntiFsProbe 当时确实留在树内（rg 449 行实测），已按下列方式复原：
+$ git checkout -- app-mobile/src/pages/ai-chat/ai-chat.vue   # CHECKOUT_EXIT=0
+$ rg -n qoder25AntiFsProbe app-mobile/src/pages/ai-chat/ai-chat.vue   # RG_EXIT=1 零命中（注入行已消失）
+$ git diff -- app-mobile/src/pages/ai-chat/ai-chat.vue | wc -c   # =0（与已提交态逐字节口径一致）
+$ git status --porcelain   # 只剩 ?? docs/evidence/qoder-25/
+SHA_TIP(worktree-crlf)=a9e87c90d3892a98346f25b5757daf2b64fe39efc01f953274d52816170b9725
+处置：驱动改为「整仓相对路径 + 备份存在性硬闸 + SHA 非空才判等」，fs-in-app 本轮以 **round-02 完整重跑**为准（绿/红/SHA 三段齐全）。
+RESULT=ROUND-01 红点名有效、SHA 段 VOID

@@ -1,0 +1,104 @@
+# QODER-25 负责人 H5 实开读数（Qoder 移动端负责人本人，非执行方子代理）2026-10-21T23:52~23:58+08:00
+# 工作树 /d/Users/ZXQL/wt-agents/QODER-25　分支 fix/qoder-25-ai-cross-platform　HEAD=5b90a744e76702aac4372ba91ac0849390dc4069
+# 装置（全部与执行方错开）：mock AI 后端 = 8299　dev:h5 = 5299
+#   $ MOCK_PORT=8299 MOCK_LOG=…/raw/71-owner-mock-backend.log node docs/evidence/qoder-25/mock-ai-backend.mjs
+#   $ VITE_PROXY_TARGET=http://localhost:8299 VITE_AI_BASE_URL=http://localhost:8299 npm --workspace app-mobile run dev:h5 -- --port 5299
+#   app-mobile/.env 同步写两个 VITE_ 变量（gitignored，取证结束后已移树外，见 raw/74 与其追加更正）
+# 读数方式：browser-use MCP evaluate_script / list_console_messages；**未用 take_screenshot**（协议 §五 历史超时）。
+# 隔离声明：操作前浏览器只有 1 个页（我上一轮 QODER-26 遗留的 http://localhost:5174/…，其 dev server 已停），
+#   我直接把它导航到 5299，未开新页、未动他人页；下方每条读数都带 url 字段，全部为 5299 ⇒ 无串台。
+
+## 0 夹具就绪
+READY_AFTER=2x3s
+H5_HTTP=200
+$ curl -s http://localhost:8299/__mock                     → {"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+$ curl -s -X POST http://localhost:8299/__mock -d '{"chat":{"intervalMs":300,"events":200}}'
+                                                            → {"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+
+## ① 登录（H5 实开）
+登录页读数原文：{"url":"http://localhost:5299/#/","cands":[{"tag":"UNI-BUTTON","cls":"demo-btn","txt":"演示登录（一键进入）"}]}
+操作：对 uni-button.demo-btn 依序派发 pointerdown/mousedown/pointerup/mouseup/click（协议：click(uid) 在 uni-button 上抛
+this.scrollIntoView is not a function；fill 不触发 v-model ⇒ 必须走原生事件序列）。
+登录后读数原文：{"url":"http://localhost:5299/#/pages/home/home","tokenPresent":true,"lsKeys":[…"enc_merchant_token","enc_merchant_user","enc_merchant_tenant","enc_merchant_tenant_id"…],"body":…"已进入演示环境"}
+
+## ② 判据「底栏只出现一层」（AI 页）
+读数原文：{"url":"http://localhost:5299/#/pages/ai-chat/ai-chat","customTabBarNodes":1,
+ "customStyle":{"display":"block","visibility":"visible","opacity":"1","height":"90.0625px","bottom":"14.16px","zIndex":"999"},
+ "nativeUniTabbarNodes":1,"nativeBarStyle":{"display":"none","visibility":"visible","opacity":"1","height":"auto","bottom":"auto","zIndex":"998"},
+ "nativeText":"首页商品AI功能我的","hasStopBtn":false}
+⇒ 自绘 .custom-tab-bar = 1 且可见（z 999）；原生 uni-tabbar 节点仍在 DOM 但 computed display:none ⇒ 视觉单层。
+　 这与 App.vue:11-15 / components/custom-tab-bar.vue:98-100 的 `#ifndef MP-WEIXIN` + uni.hideTabBar 口径一致。
+
+## ③ 判据「停止生成」= 真中止（两侧互证，负责人独立取数）
+客户端操作序列读数原文（一次脚本内完成：填 textarea→点 .voice-send-btn→等 6s→点 .ai-stop-btn→等 2s→读数）：
+  {"taTag":"TEXTAREA","valueAfterSet":"负责人复测：请逐片输出经营分析",
+   "after6s":{"stopNodes":1,"stopText":"■ 停止生成","aiChars":0,"taDisabled":true},
+   "stopClicked":true,
+   "afterStop":{"stopNodes":1,"stopText":"■ 停止生成","aiChars":0,"taDisabled":false},
+   "ts":"2026-10-21T15:53:18.436Z"}
+服务端读数原文（raw/71-owner-mock-backend.log:17-20）：
+  [2026-10-21T15:53:09.456Z] POST /api/chat -> SSE stream interval=300ms events=200
+  [2026-10-21T15:53:12.548Z] SSE sent 10/200
+  [2026-10-21T15:53:15.620Z] SSE sent 20/200
+  [2026-10-21T15:53:16.442Z] SSE CLIENT CLOSE after 22 events (remaining 178 events NOT sent)
+重挂载后（location.reload）客户端读数原文：
+  {"url":"…/ai-chat","stopNodes":0,"typingNodes":0,"aiChars":22,"hasStoppedText":false,
+   "bodyTail":…"第1片经营分析数据。…第22片经营分析数据。\n🔊 播报"…}
+⇒ **中止判据成立**：服务端已发 22 片 == 重挂载后 DOM 实得 22 片；剩余 178 片**未发**（interval 300ms、POST 后 7.0s 即 close）
+　 ⇒ 底层 fetch 被 AbortController.abort() 真掐断，不是只改 UI 文案。时间线自洽：15:53:09.456 起流 → 脚本等 6s 点击 → 15:53:16.442 服务端看到 close。
+
+## ④ ★ 执行方 §⑤ 作废读数的处置：负责人重挂载实验（判「状态错」还是「渲染滞后」）
+点击停止后**当场**读数（未重挂载）：stopNodes=1（仍显示「■ 停止生成」）、aiChars=0（一片都没渲染）、但 taDisabled 已由 true→false。
+同刻仅改路由哈希（#/home→#/ai-chat）不重挂载：{"before":{"stopNodes":1,"aiChars":0},"after":{"stopNodes":1,"aiChars":0,"typingNodes":1}}
+真重挂载（location.reload）后：{"stopNodes":0,"typingNodes":0,"aiChars":22,"hasStoppedText":false,"taDisabled":false}
+⇒ 判定：该行**状态正确**（streaming 已 false、增量已入库），先前的「残留 ■ 停止生成」是**渲染未发生**，与执行方 raw/34 §⑥ 同一条根因
+　 （ai-chat.vue:630 起把 aiMsg 对象字面量 push 进 messages.value 后，回调里改的是原始对象 aiMsg.content/aiMsg.streaming，
+　　 未经 reactive proxy ⇒ 不触发更新；模板 :61 的 v-if="msg.streaming" 因此停在旧值）。
+⇒ 基线归因（机检，非推测）：`git show bc1087ee:app-mobile/src/pages/ai-chat/ai-chat.vue` 同形写法在 :546/:552/:611，
+　 本卡尖端同位置 :632/:634/:719 未改动 ⇒ **存量缺陷，非 QODER-25 引入**；本卡红线 §四「不得改页面业务流」⇒ 未修，只登记（见回传卡 §九 建议另立单）。
+⇒ 因此执行方 raw/34 §⑤ 那条作废读数现在可解释：不是中止逻辑错，是这条存量渲染滞后。本判据以本文件 ③ 为准。
+
+## ⑤ 完整收流（另一场景，证明 done 分支与持久化）
+场景：$ curl -X POST …/­__mock -d '{"chat":{"intervalMs":200,"events":8}}' → {"intervalMs":200,"events":8}
+发送后 5s（未重挂载）读数：{"live":{"aiChunks":22,"stopNodes":1,"taDisabled":false}}
+  （aiChunks 仍是 22 ⇒ 第二发的 8 片**没有渲染**，同 §④ 根因；stopNodes=1 为该行流式按钮）
+重挂载后读数：{"url":"…/ai-chat","aiChunks":30,"hasSend2":true,"stopNodes":0,"typingNodes":0,
+  "bodyTail":…"第22片经营分析数据。\n🔊 播报\n负责人复测第二发：完整收流\nAI\n第1片…第8片经营分析数据。\n🔊 播报"…}
+服务端读数原文（raw/71:32-34）：
+  [2026-10-21T15:55:04.181Z] POST /api/chat -> SSE stream interval=200ms events=8
+  [2026-10-21T15:55:06.042Z] SSE DONE after 8 events (client stayed until the end)
+  [2026-10-21T15:55:06.044Z] SSE CLIENT CLOSE after 9 events (remaining 0 events NOT sent)
+⇒ 判据「发送有运行证据」成立：8 片全收、DONE 帧到达、两行都进入 !streaming 终态（🔊 播报 出现）。
+　 计数口径说明：aiChunks 用 /第\d+片/g 全文匹配 = 22 + 8 = 30。
+　 ⚠ 本条读数里 speakBtns:0 是我选择器猜错（.voice-btn/.speak-btn 两个类名树内不存在），不是按钮缺失——
+　　 innerText 中两处「🔊 播报」为实证依据；不得据此写「播报按钮未渲染」。
+
+## ⑥ 附件读取（fileToDataUrl 的 H5 分支）
+操作：点 .camera-btn → uni-app H5 生成 <input type=file> → 用 base64 现造 70 字节 PNG（File + DataTransfer）写入 input.files → dispatchEvent('change')
+读数原文：{"fileInputs":1,"probeBytes":70,"imgs":[{"srcLen":118,"srcPrefix":"data:image/png;base64,iVBORw0KGg"},…],"attachFailText":false,"toastHit":false}
+⇒ H5 分支（fetch(filePath)→blob→FileReader.readAsDataURL）真实跑通：dataURL 长度 118、前缀与我注入的 PNG base64 同源；
+　 「图片读取失败」的 onFail 文案未出现（attachFailText=false）。
+　 toastHit=false 是我读得晚（等待 2.5s 后 toast 已消失），属未捕获，不与其他读数冲突。
+
+## ⑦ 控制台（list_console_messages 全量）
+Showing 1-3 of 3: [debug] [vite] connecting... / [debug] [vite] connected. / [warn] [vue-router]: importing from 'vue-router/dist/vue-router.esm-bundler.js' is deprecated.
+⇒ 无 error 级读数（含 abort、reload、附件注入之后）。
+
+## ⑧ 越面发现（本卡未修、非本卡引入）：更新提示显示「新版本 vundefined」
+现象：登录页与首页 body 尾部持续出现 "发现新版本\n新版本 vundefined\n稍后\n刷新"。
+伴随服务端读数（本 mock 未实现该端点，走 FALLBACK）：
+  [2026-10-21T15:52:20.074Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+  [2026-10-21T15:53:58.910Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+⇒ 在 **bc1087ee 基线态**（本卡树不含 QODER-24 改动）可实测复现：版本接口返回体无版本字段时，提示仍弹出且把 undefined 拼进文案。
+　 推断（未在本树验证，不得当实测引用）：QODER-24 分支的严格 semver 解析（update-security.ts:42/:53）会把该响应判为不合法 ⇒
+　 decideUpdateAction 不产生 prompt ⇒ 症状应消失。**展示层文案与失败关闭口径归属 QODER-24 卡，不由本卡管辖**，此处只作跨卡复现证据登记。
+
+## ⑨ 与执行方 raw/34 的读数对照（两方独立、结论同向）
+| 判据 | 执行方 raw/34 | 负责人本文件 |
+|---|---|---|
+| 底栏单层 | customTabBarNodes=1 / nativeBarStyle.display=none | ② 同形读数（zIndex 999 vs 998 亦一致） |
+| 停止生成=真中止 | 客户端 19 片 / 服务端 CLIENT CLOSE after 19 (remaining 181) | ③ 客户端 22 片 / 服务端 after 22 (remaining 178) |
+| 完整收流 | SSE DONE after 200 events | ⑤ DONE after 8 events（另场景） |
+| 附件读取 | srcLen=118 / roundTripsToOriginal=true | ⑥ srcLen=118 / 前缀同源 / onFail 未触发 |
+| 残留 ■ 停止生成 | §⑤ 作废、§⑥ 登记根因 | ④ 重挂载实验判定「渲染滞后、状态正确、基线存量」 |
+| 控制台 | 3 条、无 error | ⑦ 3 条、无 error |

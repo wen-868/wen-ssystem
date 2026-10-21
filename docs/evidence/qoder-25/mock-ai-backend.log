@@ -1,0 +1,48 @@
+[2026-10-21T14:24:04.893Z] MOCK AI BACKEND START port=8388 state={"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:24:04.969Z] LISTENING 8388
+[2026-10-21T14:24:07.869Z] CONTROL GET state={"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:26:18.239Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:27:14.264Z] POST /api/chat -> SSE stream interval=350ms events=60
+[2026-10-21T14:27:17.881Z] SSE sent 10/60
+[2026-10-21T14:27:21.480Z] SSE sent 20/60
+[2026-10-21T14:27:25.105Z] SSE sent 30/60
+[2026-10-21T14:27:28.814Z] SSE sent 40/60
+[2026-10-21T14:27:32.607Z] SSE sent 50/60
+[2026-10-21T14:27:36.206Z] SSE sent 60/60
+[2026-10-21T14:27:36.565Z] SSE DONE after 60 events (client stayed until the end)
+[2026-10-21T14:27:36.577Z] SSE CLIENT CLOSE after 61 events (remaining 0 events NOT sent)
+[2026-10-21T14:29:03.865Z] CONTROL POST patch={"chat":{"intervalMs":500,"events":200}} -> state={"chat":{"intervalMs":500,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:29:04.966Z] CONTROL GET state={"chat":{"intervalMs":500,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:32:45.498Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:33:40.003Z] POST /api/chat -> SSE stream interval=500ms events=200
+[2026-10-21T14:33:45.097Z] SSE sent 10/200
+[2026-10-21T14:33:50.199Z] SSE sent 20/200
+[2026-10-21T14:33:55.289Z] SSE sent 30/200
+[2026-10-21T14:34:00.349Z] SSE sent 40/200
+[2026-10-21T14:34:05.438Z] SSE sent 50/200
+[2026-10-21T14:34:10.626Z] SSE sent 60/200
+[2026-10-21T14:34:15.724Z] SSE sent 70/200
+[2026-10-21T14:34:20.767Z] SSE sent 80/200
+[2026-10-21T14:34:25.835Z] SSE sent 90/200
+[2026-10-21T14:34:30.881Z] SSE sent 100/200
+[2026-10-21T14:34:35.956Z] SSE sent 110/200
+[2026-10-21T14:34:41.008Z] SSE sent 120/200
+[2026-10-21T14:34:46.065Z] SSE sent 130/200
+[2026-10-21T14:34:51.100Z] SSE sent 140/200
+[2026-10-21T14:34:56.148Z] SSE sent 150/200
+[2026-10-21T14:35:01.185Z] SSE sent 160/200
+[2026-10-21T14:35:06.241Z] SSE sent 170/200
+[2026-10-21T14:35:11.290Z] SSE sent 180/200
+[2026-10-21T14:35:16.374Z] SSE sent 190/200
+[2026-10-21T14:35:21.411Z] SSE sent 200/200
+[2026-10-21T14:35:21.915Z] SSE DONE after 200 events (client stayed until the end)
+[2026-10-21T14:35:21.921Z] SSE CLIENT CLOSE after 201 events (remaining 0 events NOT sent)
+[2026-10-21T14:48:16.568Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:49:17.805Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:50:12.031Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:51:14.584Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:51:32.205Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:52:01.113Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:52:31.445Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:54:10.643Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:54:28.950Z] GET /api/chat/models -> 200 models=2

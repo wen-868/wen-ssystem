@@ -1,0 +1,31 @@
+# P3 装置就绪与场景设置 2026-10-21T22:59:26+08:00
+## 端口与命令（隔离要求）：mock=8199 / dev:h5=5199（QODER-26 若用默认 5173 与本卡无关）
+$ 2922 / 2923
+MOCK_PID=2922  DEVH5_PID=2923
+## mock 后端启动日志尾部
+[2026-10-21T14:55:41.778Z] MOCK AI BACKEND START port=8199 state={"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:55:41.910Z] LISTENING 8199
+[2026-10-21T14:56:19.281Z] GET /api/chat/models -> 200 models=2
+## dev:h5 启动日志尾部
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+[36m
+  vite v6.4.3[39m[32m dev server running at:
+[39m
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5199[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+
+  [36mready in 14014ms.[39m
+
+$ curl -s http://localhost:8199/__mock   # 场景初值
+{"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+$ curl -s -X POST http://localhost:8199/__mock -d '{"chat":{"intervalMs":300,"events":200}}'
+# ⇒ SSE 200 片 × 300ms ≈ 60s 流，够人工在中途点「停止生成」
+{"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+$ curl -s -o /dev/null -w 'H5_HTTP=%{http_code}\n' http://localhost:5199/
+H5_HTTP=200
+$ curl -s http://localhost:8199/__mock   # 场景回读确认
+{"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+$ netstat -ano | grep -E '8199|5199' | head -6

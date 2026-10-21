@@ -1,0 +1,45 @@
+# 反测轮 05 · CASE=drop-register-cancel · 期望红点名 G8 · 2026-10-21T22:54:07+08:00
+# 依据任务书 §二.6 + 并发协议 §四.1/2/3
+PRECHECK_DIFF_BYTES=0  # 必须为 0，否则本轮起点就是脏文件
+$ sha256sum app-mobile/src/api/modules/ai.ts   # worktree-crlf 形态
+SHA_BEFORE=28ae2973a8001b960ffec54cc9bf497648b53cadd925e628a568d7c15e17f0c3 (worktree-crlf)
+$ cp app-mobile/src/api/modules/ai.ts /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-05.orig
+CP_BACKUP_EXIT=0
+BACKUP_SIZE=16051 bytes  backup=/d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-05.orig
+
+$ node D:/Users/ZXQL/wt-agents/_qoder25_cont/inject.cjs drop-register-cancel
+# file=D:/Users/ZXQL/wt-agents/QODER-25/app-mobile/src/api/modules/ai.ts
+# eol-detected=crlf
+# sha256-before-crlf-file=28ae2973a8001b960ffec54cc9bf497648b53cadd925e628a568d7c15e17f0c3
+# anchor-needle=streamChatLegacy(params, handlers, controls.registerCancel)
+INJECT_HIT_COUNT=1 at lines [358]
+# anchor-line-raw="    return streamChatLegacy(params, handlers, controls.registerCancel)"
+INJECT_WRITTEN=1
+# readback-lines=["    // #ifndef H5","    return streamChatLegacy(params, handlers)","    // #endif","  })()"]
+# sha256-after-inject-crlf-file=f9b6b17b6eff9a149a7229e309b8837dc660102666aee19de1aca1c52e02425d
+INJECT_EXIT=0
+INJECT_EXIT=0
+
+$ npm --workspace app-mobile run test    # 仓库根跑（在 app-mobile 里跑会报 No workspaces found）
+TEST_EXIT=1   # 期望 1（守卫真的会红）
+—— 红行原文（FAIL / × / AssertionError / 计数行） ——
+11:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+13:[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+15:[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+17:[步4] 再点 × ⇒ bannerText=""
+44:[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[90m (12)[39m
+52:[41m[1m FAIL [22m[49m tests/ai-cross-platform.spec.ts[2m > [22mQODER-25 AI Chat 三端条件编译与自绘 tabBar 静态配对守卫[2m > [22mG8 非 H5 降级实现持有 RequestTask 并暴露真实 abort()
+53:[31m[1mAssertionError[22m: ai.ts 的 streamChat 未把 registerCancel 透传给降级实现: expected false to be true // Object.is equality[39m
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder25_cont/bak/round-05.orig app-mobile/src/api/modules/ai.ts   # 复原只用 cp（禁 sed -i / 禁编辑器写回）
+CP_RESTORE_EXIT=0
+SHA_AFTER=28ae2973a8001b960ffec54cc9bf497648b53cadd925e628a568d7c15e17f0c3 (worktree-crlf)
+SHA_MATCH=1（非空且逐字节一致）
+DIFF_BYTES_AFTER_RESTORE=0
+GIT_STATUS_AFTER_RESTORE=
+
+$ npm --workspace app-mobile run test    # 复原后复跑（绿）
+GREEN_TEST_EXIT=0   # 期望 0
+33:[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+39:✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+RESULT=ROUND-05 DONE

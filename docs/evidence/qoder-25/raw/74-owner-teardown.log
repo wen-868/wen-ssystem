@@ -1,0 +1,33 @@
+# 负责人装置收尾 2026-10-21T23:55:57+08:00
+$ netstat -ano | grep LISTENING | grep -E ':5299|:8299'
+PORTS_LISTEN_GREP_RC=1  # 1=已无监听
+$ curl -s -o /dev/null -w 'H5_HTTP=%{http_code}\n' http://localhost:5299/
+H5_HTTP=200 CURL_RC=%*
+$ curl -s -m 3 http://localhost:8299/__mock || echo REJECT
+MOCK_CURL_RC=7
+$ mv app-mobile/.env 树外（构建/入库不依赖取证 .env）
+MV_ENV_EXIT=0
+$ git status --porcelain
+?? docs/evidence/qoder-25/
+GIT_STATUS_EXIT=0
+$ git rev-parse HEAD
+5b90a744e76702aac4372ba91ac0849390dc4069
+
+## 追加更正（负责人自查发现上文两处读数不可靠，原文不改写）2026-10-21T23:57+08:00
+1) 上文 H5_HTTP=200 那行的 `-w` 串我写成了 '%*'（非法占位符，输出成字面 CURL_RC=%*），且 H5_HTTP=200 与同段
+   "PORTS_LISTEN_GREP_RC=1（已无监听）"互斥 ⇒ 按协议 §四.11 该次「无监听」判定作废，原因见下条。
+2) 直接按端口复核发现 **TaskStop 只杀了 npm 父进程，vite/uni 子进程存活**：
+   $ netstat -ano > /tmp/ns.txt; grep -E ':5299|:8299' /tmp/ns.txt | grep LISTENING
+     TCP    [::1]:5299             [::]:0                 LISTENING       20700
+   $ powershell Get-CimInstance Win32_Process -Filter 'ProcessId=20700 or ProcessId=18296'
+     18296  ParentProcessId 21264  "node.exe npm-cli.js --workspace app-mobile run dev:h5 -- --port 5299"
+     20700  ParentProcessId 6952   "node D:\Users\ZXQL\wt-agents\QODER-25\node_modules\.bin\..\@dcloudio\vite-plugin-uni\bin\uni.js --port 5299"
+   ⇒ 两者都是我本条命令链自己起的进程（StartTime 23:52:01/23:52:02），非他人进程；确认后按 PID 精确停：
+   $ taskkill //PID 20700 //F //T      KILL_20700_EXIT=0（含子树 21484/10396/14068）
+   $ taskkill //PID 18296 //F //T      KILL_18296_EXIT=128（"process not found"——已随上一步子树终止）
+   $ netstat -ano | grep -E ':5299|:8299' | grep LISTENING   RECHECK_LISTEN_GREP_RC=1（无监听）
+   $ curl -s -m 3 -o /dev/null -w 'H5_HTTP=%{http_code}' http://localhost:5299/     H5_HTTP=000  CURL_H5_EXIT=7
+   $ curl -s -m 3 -o /dev/null -w 'MOCK_HTTP=%{http_code}' http://localhost:8299/…  MOCK_HTTP=000 CURL_MOCK_EXIT=7
+3) 收尾后 $ git rev-parse HEAD = 5b90a744e76702aac4372ba91ac0849390dc4069；$ git status --porcelain 只列 ?? docs/evidence/qoder-25/（取证 .env 已移出树外）。
+4) 可复用结论（写进执行协议）：**Windows 下停 dev 夹具必须按「端口→PID→taskkill //F //T」复核，不能只停 npm 任务**；
+   凡"已无监听"与"HTTP=200"同时出现即视为互斥读数，须重取而不是择一引用。

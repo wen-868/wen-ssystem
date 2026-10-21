@@ -1,0 +1,75 @@
+# P1 构建产物核验：AI 页 + 自绘栏 + 按端代码是否真的进/出了各端包  2026-10-21T22:48:34+08:00
+# 产物路径口径：app-mobile/dist/build/<platform>（协议 §四.12，非仓库根 dist/）
+$ ls -d app-mobile/dist/build/*
+app-mobile/dist/build/app
+app-mobile/dist/build/h5
+app-mobile/dist/build/mp-weixin
+
+## H5
+$ ls app-mobile/dist/build/h5/assets | grep -E 'ai-chat|custom-tab-bar'
+ai-chat-DQJUtvTH.css
+custom-tab-bar-BGWXZz6J.css
+custom-tab-bar.C-imRqs-.js
+pages-ai-chat-ai-chat.BieDSea6.js
+$ rg -c '停止生成' app-mobile/dist/build/h5/assets/pages-ai-chat-ai-chat.*.js
+1
+RC=0
+$ rg -c 'custom-tab-bar' app-mobile/dist/build/h5/assets/pages-ai-chat-ai-chat.*.js  （自绘栏已挂到 AI 页 chunk）
+1
+RC=0
+$ rg -l 'getFileSystemManager' app-mobile/dist/build/h5/assets/*.js   （应 0 命中：小程序专属 API 不得进 H5 包）
+RC=1 （1=零命中）
+$ rg -l '小程序暂不支持系统语音播报' app-mobile/dist/build/h5/assets/*.js （应 0 命中：MP-WEIXIN 块被剥离）
+RC=1 （1=零命中）
+
+## MP-WEIXIN
+$ ls app-mobile/dist/build/mp-weixin/pages/ai-chat/
+ai-chat.js
+ai-chat.json
+ai-chat.wxml
+ai-chat.wxss
+$ rg -c 'custom-tab-bar' app-mobile/dist/build/mp-weixin/pages/ai-chat/ai-chat.wxml
+1
+RC=0
+$ rg -o '"custom": true' app-mobile/dist/build/mp-weixin/app.json  （pages.json:839 custom:true 透传到产物）
+"custom": true
+RC=0
+$ ls -d app-mobile/dist/build/mp-weixin/custom-tab-bar  （★ 微信原生自定义 tabBar 目录：不存在）
+ls: cannot access 'app-mobile/dist/build/mp-weixin/custom-tab-bar': No such file or directory
+RC=2 （2=目录不存在 ⇒ 见下方结论）
+$ rg -l 'getFileSystemManager' app-mobile/dist/build/mp-weixin/pages/ai-chat/  （MP 端应保留 FS 读取）
+app-mobile/dist/build/mp-weixin/pages/ai-chat/ai-chat.js
+RC=0
+
+## APP
+$ ls app-mobile/dist/build/app | head
+__uniappautomator.js
+__uniappchooselocation.js
+__uniapperror.png
+__uniappopenlocation.js
+__uniapppicker.js
+__uniappquill.js
+$ rg -l 'plus.io.resolveLocalFileSystemURL' app-mobile/dist/build/app/*.js app-mobile/dist/build/app/**/*.js 2>/dev/null | head -5
+app-mobile/dist/build/app\app-service.js
+app-mobile/dist/build/app\uni-app-view.umd.js
+RC=0
+$ rg -l 'uni.getFileSystemManager' app-mobile/dist/build/app 2>/dev/null  （★ App 包不得含小程序 FS API：应 0 命中）
+RC=0 （1=零命中）
+
+## 结论（任务书 §二.4 微信端核实项）
+1) mp-weixin 产物 app.json 保留 tabBar.custom:true，且 AI 页 wxml 内含 <custom-tab-bar>（页面内自绘组件渲染）。
+2) 微信原生自定义 tabBar 要求的根目录 custom-tab-bar/（小程序规范里的 custom-tab-bar/index.js）**不产出**：本仓 5 个 tab 页（home/products/functions/profile/ai-chat）
+   一律走「页面内挂 components/custom-tab-bar.vue」这一套既有口径，本卡把 AI 页补齐到同一口径，未新增原生目录（扩大改动，不在本单收口面）。
+3) 因此微信端底栏真机表现 = 未验（无设备/无微信开发者工具）；custom-tab-bar/ 原生目录是否必须补，列为待裁项（回传卡 §七）。
+
+## 追加更正（自查发现管道尾码问题：协议 §四 v18(d) —— `rg ... | head` 之后 $? 是 head 的）2026-10-21T22:48:54+08:00
+$ rg -l 'getFileSystemManager' app-mobile/dist/build/app  （App 包应 0 命中）
+RG_EXIT=1
+命中文件：
+$ rg -l 'plus.io.resolveLocalFileSystemURL' app-mobile/dist/build/app
+RG_EXIT=0
+app-mobile/dist/build/app\uni-app-view.umd.js
+app-mobile/dist/build/app\app-service.js
+$ rg -c '停止生成' app-mobile/dist/build/app/app-service.js
+RG_EXIT=0
+1
