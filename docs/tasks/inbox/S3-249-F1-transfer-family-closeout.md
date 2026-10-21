@@ -43,7 +43,8 @@ deadline_minutes: 75
 3. 明确列出 13/13 端点：文件:行、旧码、新码、业务依据。
 4. 新增或加强专项测试：13 条均行级带期望码；店长与仓管在 210 后均通过；无码角色 403。
 5. 反测两路：摘 v2 approve 的 transfer:approve ⇒ 红并点名；回滚店长 transfer:* 的角色夹具 ⇒ 目标运行时用例红。两轮复原 SHA 一致。
-6. 210 在 **MySQL 8.0.28** 两遍 + sentinel；sentinel 后恢复原始权限串。
+6. 210 在 **MySQL 8.0.28** 两遍 + sentinel；sentinel 后恢复原始权限串。实例：`D:\Users\ZXQL\ZXQL-OPS\tools\mysql-8.0.28-winx64`、端口 `3310`、库 `liquor_inventory`、root 空口令。
+7. 运行器不会读取进程环境：必须从 `D:\Users\ZXQL\dispatch\dsh\mysql8028-cwd` 启动 `node <worktree>\scripts\run-migration.mjs <绝对 SQL 路径>`。
 
 ## 三、硬验收
 

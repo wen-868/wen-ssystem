@@ -27,7 +27,7 @@
 
 ## 三、四项裁定
 
-1. **MySQL 8.0.28**：不接受 8.0.46 作为一般替代。官方 8.0.28 归档可下载，已启动补装；F1 最终真库证据必须用 8.0.28，8.0.46 只作兼容旁证。
+1. **MySQL 8.0.28**：不接受 8.0.46 作为一般替代。凌舟已从官方归档补装 `D:\Users\ZXQL\ZXQL-OPS\tools\mysql-8.0.28-winx64`，并在端口 `3310` 启动独立实例；原 209/210 已在该实例各跑两遍 EXIT=0。F1 最终真库证据继续使用 3310，8.0.46 只作兼容旁证。
 2. **S3-249 v2 审批**：不认可继续留 `inventory:approve`。生产在册的 `STORE_MANAGER` 与 `WAREHOUSE_STAFF` 在 210 后都持 `transfer:*`，改为 `transfer:approve` 不会造成这两类现役角色回归；S3-249F1 统一。
 3. **CSV 导入 2 条**：允许本轮暂留 `store:transfer` 以控制批次范围，但必须另立 S3-252；目标码为 customers ⇒ `customer:create`、products ⇒ `goods:create`，均取既有码。
 4. **B2 `report:permission:edit` 一码覆盖 4 条**：认可。207 只立此一个权限码，禁止为四动作临时自造细分码；将“报表权限写操作细分”登记为后续权限目录治理，不在本批扩码。

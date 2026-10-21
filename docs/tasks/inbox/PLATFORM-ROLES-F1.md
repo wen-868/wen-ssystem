@@ -43,7 +43,8 @@ deadline_minutes: 75
 3. 仅在新/清洁夹具上验证，预期 OPS 8 行、写码域 **3**（review/ticket/tenant），READONLY 7 行、写码域 0。
 4. 增加迁移结构断言或测试：209 必须同时含 `tenant:view` 可读与 tenant 域 `can_page_btn=1`，并明确依据当前 main 的 `tenant:manage` 常量。
 5. 运行 `rbac-b2-s3-238-platform-wiring.test.ts`，证明真实中间件层 401/403/矩阵放行三态仍绿。
-6. MySQL 版本必须 **8.0.28**；如由凌舟补装的归档启动，连接信息由环境提供。
+6. MySQL 版本必须 **8.0.28**。凌舟已补装并启动独立实例：`D:\Users\ZXQL\ZXQL-OPS\tools\mysql-8.0.28-winx64`、端口 `3310`、库 `liquor_inventory`、root 空口令。
+7. 运行器不会读取进程环境：必须从 `D:\Users\ZXQL\dispatch\dsh\mysql8028-cwd` 启动 `node <worktree>\scripts\run-migration.mjs <绝对 SQL 路径>`，该目录 `.env` 已指向 3310。
 
 ## 三、硬验收
 
