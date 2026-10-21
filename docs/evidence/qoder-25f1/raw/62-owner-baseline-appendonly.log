@@ -1,0 +1,14 @@
+# 负责人自有基线追加机检 2026-10-22T04:22+08:00（对基线 bc1087ee）
+
+$ git show bc1087ee:app-mobile/scripts/gates-baseline.json  # 树外副本 _qoder25f1_bak/gates-baseline.base.json
+$ node <逐段 JSON.stringify 比对 + tests.note 前缀机检>
+
+_comment 未改动=true
+typeCheck 未改动=true
+lint 未改动=true
+checkContract 未改动=true
+contractDrift 未改动=true
+tests.testFiles base=11 cur=13 只允许上调=true
+tests.testCount base=186 cur=202 只允许上调=true
+tests.note startsWith(old)=true oldLen=2941 newLen=4745
+新增分节应为空=[]

@@ -1,0 +1,84 @@
+# 负责人自有 H5 未刷新流式采样（Qoder 亲跑，2026-10-22 04:28~04:33 本地 / 20:28~20:33Z）
+
+装置与执行方（raw/58）不同处：本人在页面里写入 **window 标记** `window.__OWNER25F1_MARK = 'OWNER-25F1-1792614493581'`，
+整段观察序列结束后回读该属性 —— **JS 全局对象上的自定义属性只在页面重新加载时才会消失**，
+故"标记仍在 且 值逐字相同"是对"未刷新"的**自证**，不依赖"我没调用 navigate_page"这一口头声明。
+
+环境（负责人自选端口，避开执行方用过的 5399）：
+```
+$ MOCK_PORT=8488 MOCK_LOG=… node docs/evidence/qoder-25f1/mock-ai-backend-f1.mjs   # 日志 LISTENING 8488
+$ curl -X POST http://localhost:8488/__mock -d '{"chat":{"intervalMs":300,"events":120,"closeEarly":0}}'
+$ VITE_PROXY_TARGET=http://localhost:8488 VITE_AI_BASE_URL=http://localhost:8488 npm --workspace app-mobile run dev:h5 -- --port 5499
+  ready in 20025ms.  curl http://localhost:5499/ ⇒ HTTP_200
+```
+登录：页面自带「演示登录（一键进入）」（`src/api/modules/auth.ts:105 demoLogin()`）走 mock 的
+`/api/store/auth/login`；登录后 `localStorage` 出现 `enc_merchant_token` 等键。
+进 AI 页：**点击自绘栏 `.custom-tab-bar .tab-ai`**（不是手改 hash），顺带证明每页挂载的自绘栏在 H5 端可用。
+输入用原生 value setter + `dispatchEvent(new Event('input'))`（uni-app H5 的 v-model 只认这条路径），
+点击用 pointerdown/mousedown/pointerup/mouseup/click 序列。
+
+## RUN 1 自然收流（采样器 setInterval 700ms，最后一个 `.msg-row--ai .bubble-text`）
+
+发送调用原文返回：`{"sent":true,"inputVal":20,"first":{"len":51,"stopBtn":0,"rows":1},"mark":"OWNER-25F1-1792614493581"}`
+
+前 14 点原始读数（`len` 未刷新当场递增，`stopBtn` 全程 1）：
+```
+{"t":0,    "iso":"2026-10-21T20:28:34.673Z","len":51,  "stopBtn":0,"rows":1}
+{"t":706,  "iso":"2026-10-21T20:28:35.379Z","len":20,  "stopBtn":1,"rows":1}
+{"t":1410, "iso":"2026-10-21T20:28:36.083Z","len":30,  "stopBtn":1,"rows":1}
+{"t":2115, "iso":"2026-10-21T20:28:36.788Z","len":50,  "stopBtn":1,"rows":1}
+{"t":2812, "iso":"2026-10-21T20:28:37.485Z","len":70,  "stopBtn":1,"rows":1}
+{"t":3506, "iso":"2026-10-21T20:28:38.179Z","len":90,  "stopBtn":1,"rows":1}
+{"t":4209, "iso":"2026-10-21T20:28:38.882Z","len":112, "stopBtn":1,"rows":1}
+{"t":4912, "iso":"2026-10-21T20:28:39.585Z","len":134, "stopBtn":1,"rows":1}
+{"t":5606, "iso":"2026-10-21T20:28:40.279Z","len":156, "stopBtn":1,"rows":1}
+{"t":6305, "iso":"2026-10-21T20:28:40.978Z","len":178, "stopBtn":1,"rows":1}
+{"t":7009, "iso":"2026-10-21T20:28:41.682Z","len":211, "stopBtn":1,"rows":1}
+{"t":7706, "iso":"2026-10-21T20:28:42.379Z","len":233, "stopBtn":1,"rows":1}
+{"t":8405, "iso":"2026-10-21T20:28:43.078Z","len":255, "stopBtn":1,"rows":1}
+{"t":10806,"iso":"2026-10-21T20:28:45.479Z","len":332, "stopBtn":1,"rows":1}
+```
+中程回读（证明标记未变、共 30 点）：`{"markNow":"OWNER-25F1-1792614493581","markBefore":"OWNER-25F1-1792614493581","markStillThere":true,"n":30}`
+
+终态与末 6 点（共 144 个采样点）：
+```
+{"markNow":"OWNER-25F1-1792614493581","markUnchanged":true,"finalLen":1332,"stopBtnNow":0,"totalSamples":144,
+ "tail":[{"t":99412,"len":1332,"stopBtn":0},{"t":100106,"len":1332,"stopBtn":0},{"t":100813,"len":1332,"stopBtn":0},
+         {"t":101504,"len":1332,"stopBtn":0},{"t":102217,"len":1332,"stopBtn":0},{"t":102906,"len":1332,"stopBtn":0}]}
+```
+mock 侧同轮：`SSE sent 120/120` → `SSE DONE after 120 events (client stayed until the end)` @20:29:14.210Z
+
+## RUN 3 流式途中点停止（同一页面实例，标记未变；一次 evaluate_script 内完成"发送→8 点采样→点击→6 点采样"）
+
+```
+{"clicked":true,"markUnchanged":true,
+ "seqBeforeClick":[
+   {"i":0,"iso":"2026-10-21T20:32:14.889Z","len":20, "stopBtn":1},
+   {"i":1,"iso":"2026-10-21T20:32:15.703Z","len":40, "stopBtn":1},
+   {"i":2,"iso":"2026-10-21T20:32:16.504Z","len":70, "stopBtn":1},
+   {"i":3,"iso":"2026-10-21T20:32:17.308Z","len":90, "stopBtn":1},
+   {"i":4,"iso":"2026-10-21T20:32:18.109Z","len":123,"stopBtn":1},
+   {"i":5,"iso":"2026-10-21T20:32:18.911Z","len":145,"stopBtn":1},
+   {"i":6,"iso":"2026-10-21T20:32:19.722Z","len":178,"stopBtn":1},
+   {"i":7,"iso":"2026-10-21T20:32:20.528Z","len":200,"stopBtn":1}],
+ "atClick":{"len":200,"stopBtn":1},"clickIso":"2026-10-21T20:32:20.541Z",
+ "afterClick":[
+   {"i":0,"iso":"2026-10-21T20:32:21.347Z","len":200,"stopBtn":0},
+   {"i":1,"iso":"2026-10-21T20:32:22.155Z","len":200,"stopBtn":0},
+   {"i":2,"iso":"2026-10-21T20:32:22.970Z","len":200,"stopBtn":0},
+   {"i":3,"iso":"2026-10-21T20:32:23.771Z","len":200,"stopBtn":0},
+   {"i":4,"iso":"2026-10-21T20:32:24.581Z","len":200,"stopBtn":0},
+   {"i":5,"iso":"2026-10-21T20:32:25.396Z","len":200,"stopBtn":0}]}
+```
+mock 侧同轮（点击后 +19ms）：
+```
+[2026-10-21T20:32:14.092Z] POST /api/chat -> SSE stream interval=300ms events=120
+[2026-10-21T20:32:17.418Z] SSE sent 10/120
+[2026-10-21T20:32:20.560Z] SSE CLIENT CLOSE after 19 events (remaining 101 events NOT sent)
+```
+
+## 判据结论（负责人实测）
+
+1. **未刷新流式增长**：RUN 1 同一页面实例内 `len` 51→20→332→1332 递增、144 采样点、`window` 标记全程不变 ⇒ 响应式当场生效，非靠重挂载。
+2. **停止按钮当场消失**：点击时刻 `stopBtn=1`、点击后第一个采样点即 `stopBtn=0`，`len` 冻结在 200 且连续 6 点（4.8s）不再增长；mock 侧 `remaining 101 events NOT sent` ⇒ 前端确实断了流，不是"文本停在末尾"的巧合。
+3. **RUN 2 说明（如实留档，不改写）**：RUN 2 我按"发 9 秒后再点停止"分两次调用做，结果点击时 `stopBtn=0`、DOM 已是终态 1332 ⇒ 该次未测到停止时机，读数作废，仅作为"分次调用有竞态"的方法学教训留档；停止判据以上面 RUN 3 的单次自包含时序为准。

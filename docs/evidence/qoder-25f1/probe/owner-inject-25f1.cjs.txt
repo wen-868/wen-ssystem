@@ -1,0 +1,81 @@
+#!/usr/bin/env node
+/**
+ * QODER-25F1 负责人自有反测注入器（树外，不污染 git status）
+ * 用法：node owner-inject-25f1.cjs <R-OLDNAME|R-RAWPROXY> [targetFile]
+ *  Ⓑ R-OLDNAME   ：把 AI 页的模板标签与 import 注回平台保留名 custom-tab-bar
+ *                  ⇒ S1/S2 应红；mp-weixin 构建应重新出现「H5 平台专用组件」警告（撞名判据的正对照）
+ *  Ⓐ R-RAWPROXY  ：把 aiMsg 的 reactive(...) 写法注回裸对象 ⇒ R1 应红
+ * 硬闸：needle 命中次数 !== 1 ⇒ 不写文件并 exit(2)（本轮作废 VOID）。
+ * utf8 读 / utf8 写，单行子串替换，不触碰 CRLF。写后回读打印三 Boolean。
+ */
+const fs = require('fs')
+
+const ROUND = process.argv[2]
+const AI_CHAT = process.argv[3] || 'app-mobile/src/pages/ai-chat/ai-chat.vue'
+const TAB_BAR = process.argv[4] || 'app-mobile/src/components/app-tab-bar.vue'
+
+const AI_CHAT_LINES = (f) => {
+  const text = fs.readFileSync(f, 'utf8')
+  const eol = text.includes('\r\n') ? '\r\n' : '\n'
+  return { text, eol }
+}
+
+// 多行块 needle：必须整块替换，只改开头行会残留 `})` 造成语法错 ⇒ 红是解析错而不是断言红，读数不可用
+const RAWPROXY_BLOCK_OLD = ['  const aiMsg = reactive<ChatMessage>({', '    id: nextId(),', "    role: 'ai',", "    content: '',", '    streaming: true', '  })']
+const RAWPROXY_BLOCK_NEW = ['  const aiMsg: ChatMessage = { /* [QODER-25F1-OWNER-R-RAWPROXY] 负责人反测临时态，禁止提交 */', '    id: nextId(),', "    role: 'ai',", "    content: '',", '    streaming: true', '  }']
+
+const SPEC = {
+  'R-OLDNAME': [
+    { file: AI_CHAT, needle: `        <app-tab-bar :current="'ai'" />`, patch: `        <custom-tab-bar :current="'ai'" /> /* [QODER-25F1-OWNER-R-OLDNAME] 负责人反测临时态，禁止提交 */` },
+    { file: AI_CHAT, needle: `import AppTabBar from '@/components/app-tab-bar.vue'`, patch: `import AppTabBar from '@/components/custom-tab-bar.vue'` }
+  ],
+  'R-RAWPROXY': (() => {
+    const { eol } = AI_CHAT_LINES(AI_CHAT)
+    return [{ file: AI_CHAT, needle: RAWPROXY_BLOCK_OLD.join(eol), patch: RAWPROXY_BLOCK_NEW.join(eol) }]
+  })()
+}[ROUND]
+
+if (!SPEC) {
+  console.error('用法：node owner-inject-25f1.cjs <R-OLDNAME|R-RAWPROXY> [aiChat] [tabBar]')
+  process.exit(3)
+}
+
+const MARKER = { 'R-OLDNAME': '[QODER-25F1-OWNER-R-OLDNAME]', 'R-RAWPROXY': '[QODER-25F1-OWNER-R-RAWPROXY]' }[ROUND]
+
+// 先全部预检命中次数，任一处不为 1 就一个字节都不写
+// 预检必须按「同文件多步依次叠加」后的最终态计数，否则后一步会把前一步的写入整体覆盖
+//（负责人第一版正是在这里翻的车：预检缓存原始文本 ⇒ 写回循环读到旧态 ⇒ 注入不完整 ⇒ 本轮作废）
+const cache = new Map()
+let bad = 0
+for (const step of SPEC) {
+  const text = cache.get(step.file) ?? fs.readFileSync(step.file, 'utf8')
+  const projected = step.needle === step.patch ? text : text.replace(step.needle, step.patch)
+  cache.set(step.file, projected)
+  const hits = text.split(step.needle).length - 1
+  console.log(`OWNER_TARGET=${step.file} needleHits=${hits} (期望 1) hasCRLF=${text.includes('\r\n')}`)
+  if (hits !== 1) bad++
+}
+if (bad) {
+  console.error(`✗ ${bad} 处命中数不为 1 ⇒ 拒绝写文件，本轮作废（VOID）`)
+  process.exit(2)
+}
+
+for (const step of SPEC) {
+  const before = fs.readFileSync(step.file, 'utf8') // 每步都从磁盘重读，保证叠加而非覆盖
+  const hitsBefore = before.split(step.needle).length - 1
+  if (hitsBefore !== 1) {
+    console.error(`✗ 写回阶段 ${step.file} 命中 ${hitsBefore} !== 1（叠加态异常）⇒ 停手，本轮作废（VOID）`)
+    process.exit(2)
+  }
+  const after = before.replace(step.needle, step.patch)
+  fs.writeFileSync(step.file, after, 'utf8')
+  console.log(`OWNER_STEP file=${step.file} 写入前命中=${hitsBefore} 长度 ${before.length}→${after.length}`)
+}
+// 终态复核：每个 needle 应已消失、每个 patch 应已在场、标记计数与步数一致
+for (const step of SPEC) {
+  const rb = fs.readFileSync(step.file, 'utf8')
+  console.log(
+    `OWNER_FINAL file=${step.file} 原needle在场=${rb.includes(step.needle)}(应 false) patch已落盘=${rb.includes(step.patch)}(应 true) 标记出现次数=${rb.split(MARKER).length - 1}`
+  )
+}
+console.log('OWNER_INJECT_RC=0')

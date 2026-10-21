@@ -50,3 +50,36 @@ notePrefixCheck newNote.startsWith(oldNote) = true
 typeCheck / lint / checkContract / contractDrift section byte-identical = true
 _comment identical = true
 ```
+
+---
+
+## 负责人复验段（Qoder 亲自跑，2026-10-22 03:38~04:38；上文 raw/01–59 与 anti/* 为执行会话读数）
+
+本节为**独立复验**：注入器另写（`probe/owner-inject-25f1.cjs.txt`，needle 由负责人自己从尖端 `d68e43e9`
+读出并逐处实测命中数=1），不复用 `anti/inject-01/02`。负责人结论只到"自评 + 依据 + 待裁"，不构成验收裁定。
+
+| 项 | 负责人实测读数 | 出处 |
+|---|---|---|
+| 四门 `check:gates`（串行、无并行负载） | GATES_EXIT=0；type-check 0=0；lint error 0 / warning 12872；test **13 文件 / 202 用例**；contract 差集 1 / 具名豁免 1 | raw/60 |
+| 三构建 | mp-weixin / h5 / app 全 EXIT=0；撞名警告计数 **0** | raw/61 |
+| **撞名警告正对照**（判据非假 0） | 注回旧名 ⇒ `grep -c '专用组件'` = **1** 且 `BUILD_EXIT_mp-weixin=1`（Rollup 解析 `@dcloudio/uni-components/lib/custom-tab-bar/custom-tab-bar.vue` 的 `uni-tabbar/uni-tabbar.vue` 失败）；复原后重新 0 / EXIT=0 | raw/61、anti/71 |
+| 产物级核实 | `find -name 'custom-tab-bar*'` = **0**；产物内该字符串仅 1 处且为 `<view class="custom-tab-bar …">` 的 **CSS 类名**；`components/app-tab-bar.json` 的 `usingComponents` = `{}`；`app.json tabBar.custom=true`，list 5 页 | raw/63 |
+| 基线追加机检 | 五个非 tests 段对 `bc1087ee` 逐段相等=true；`testFiles` 11→13、`testCount` 186→202；`tests.note` `startsWith(old)=true`（2941→4745）；无新增分节 | raw/62 |
+| 反测 Ⓐ 摘 reactive | `INJECT_EXIT=0` ⇒ `TEST_EXIT=1`，`Tests 1 failed \| 201 passed (202)`，红点名 `R1 流式消息必须先入响应式代理再入 ref 数组…`，断言原文 `expected false to be true`；`SHA_BEFORE=SHA_AFTER=c88fc7…`、`MARKER_RG_EXIT=1`、复跑 13/202 绿。首轮因 patch 残留 `})` 造成语法错 ⇒ **作废留档**，改用整块多行 needle | anti/70 |
+| 反测 Ⓑ 注旧名 | `INJECT_EXIT=0` ⇒ `TEST_EXIT=1`，`Tests 4 failed \| 198 passed (202)`，红点名 **S1 / S2 / S3 / G6**；同一 SHA 恒等、`MARKER_RG_EXIT=1`；首轮多步注入被后一步覆盖 ⇒ **作废留档**，修正后两步均落盘 | anti/71 |
+| H5 未刷新流式增长 | 同一页面实例、**window 自定义标记 `__OWNER25F1_MARK` 全程逐字不变**（比"未调用 navigate"更强自证）；RUN1 `len` 51→20→332→1332、144 采样点、`stopBtn` 全程 1 后归 0；mock `SSE DONE after 120 events` | raw/64 |
+| H5 停止当场生效 | RUN3 单调用自包含时序：点击时刻 `len=200 stopBtn=1`，点击后第一点即 `stopBtn=0` 且 `len` 冻结 200 连续 6 点（4.8s）；mock `SSE CLIENT CLOSE after 19 events (remaining 101 events NOT sent)` @ 点击后 **+19ms** | raw/64 |
+| 红线 | `git diff bc1087ee..HEAD -- backend/` = **0 字节**；porcelain 0 行；未 push、未开 PR、逐文件 add | 本段末尾自检笔 |
+
+### 量具更正（负责人口径更正，影响所有"端口归零"类读数）
+
+`Get-NetTCPConnection -State Listen` 与 `netstat -ano | grep LISTENING` 在本机对 vite 的 **IPv6 环回 `[::1]` 监听**
+会报 **假 0**：同一时刻 `curl http://localhost:5499/` 明确返回 200，而两设备均报 `LISTEN_COUNT=0`。
+⇒ 本目录 `56b/59`（执行会话）与 `QODER-26F1 raw/20`（负责人自己）里"LISTEN_COUNT=0 即端口已空"的正面结论
+一律降级为"该设备下的读数"。负责人本轮起改用 `curl_rc=7 / http_code=000`（连接被拒）作为主设备，
+实测 5499/8488/5399/5173/5174/8388 **六端口全部拒绝连接**，详见 raw/65。原始日志均不改写，只另立更正段。
+
+### 未完成 / 未验（与执行会话同口径，负责人复述而非代判）
+
+1. 微信端与 App 端 tabBar 的**运行时**表现未验（无 DevTools / 无真机）；已到证据等级为"构建 + 产物"。
+2. 浏览器截图未取；证据形态为 DOM 采样 + window 标记 + mock 服务端日志三向对账。

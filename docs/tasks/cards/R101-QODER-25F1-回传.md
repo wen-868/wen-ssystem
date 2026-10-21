@@ -116,3 +116,21 @@ node -e "const j=require('./app-mobile/dist/build/mp-weixin/app.json');console.l
 ```
 
 建议：派一张微信真机/DevTools 接线卡（验证 `custom:true` 无根级 `custom-tab-bar/` 的运行时行为，并裁决是否需要落地根级组件目录）；App 端同题可并卡。
+
+## 十一、负责人复验补记（Qoder 亲自跑，2026-10-22 03:38~04:38）
+
+署名口径：§一~§十为执行会话自述；本节为负责人独立复验，出处 `docs/evidence/qoder-25f1/raw/60~65`、`anti/70-owner-*`、`anti/71-owner-*`、`probe/owner-inject-25f1.cjs.txt`。只写"自评 + 依据 + 待裁"，不构成验收裁定。
+
+1. **四门**（干净串行、无并行负载）：GATES_EXIT=0；type-check 0=0；lint error 0 / warning 12872；test **13 文件 / 202 用例**；contract 差集 1 / 具名豁免 1（raw/60）。与 §三 一致。
+2. **三构建**：mp-weixin / h5 / app 全 EXIT=0，撞名警告计数 **0**（raw/61）。与 §三 一致。
+3. **撞名判据做了正对照**（这是本卡唯一硬判据，负责人不接受"grep 到 0"单独成立）：把 AI 页标签与 import 注回 `custom-tab-bar` 后重跑 mp-weixin 构建 ⇒ 警告计数 **1**，且 **BUILD_EXIT=1**：Rollup 无法解析被 easycom 劫持到的 `@dcloudio/uni-components/lib/custom-tab-bar/custom-tab-bar.vue` 里 `@dcloudio/uni-ui/lib/uni-tabbar/uni-tabbar.vue`。复原后重新 0 / EXIT=0。**结论加强**：撞名不止是警告，在 mp-weixin 端会让构建失败（§九 可补此一条）。
+4. **产物级**：`find -name 'custom-tab-bar*'` = 0；产物内该字串只剩 `<view class="custom-tab-bar data-v-…">` 一处 CSS 类；`app-tab-bar.json` 的 `usingComponents={}`；`app.json tabBar.custom=true`、list 5 页（raw/63）。与 §四 一致。
+5. **基线追加机检**：五个非 tests 段对 `bc1087ee` 逐段相等=true；`testFiles` 11→13、`testCount` 186→202；`tests.note` `startsWith(old)=true`（2941→4745）；无新增分节（raw/62）。
+6. **负责人自有两轮反测**（注入器另写、零共用代码）：Ⓐ 摘 `reactive(...)` ⇒ `Tests 1 failed | 201 passed (202)`，红点名 R1，断言原文 `ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的…expected false to be true`；Ⓑ 注旧名 ⇒ `Tests 4 failed | 198 passed (202)`，红点名 S1/S2/S3/G6。两轮 `SHA_BEFORE=SHA_AFTER=c88fc79…738a`（worktree-crlf）、`MARKER_RG_EXIT=1`、树外 `cp` 复原、复跑绿 13/202。执行会话 §五 的红点名读数被独立复现。
+   - 负责人自曝两轮首轮均**作废**并留档：Ⓑ 首轮注入器把同文件多步写入按预检缓存覆盖（只有 import 落地、标签未改）；Ⓐ 首轮 patch 只换 `reactive(` 开头行、残留 `})` 会造语法错。两轮的"红"都不可信，故改用「逐步从磁盘重读」与「整块多行 needle」重跑。教训：`INJECT_EXIT=0` 不等于注入完整，**必须回读逐项确认真实落盘**。
+7. **H5 未刷新实证**（raw/64，负责人自选端口 5499 / mock 8488，与执行会话 5399 隔离）：装置上比 §五 多做一件——页面里写 `window.__OWNER25F1_MARK`，序列结束后回读该属性**逐字未变**；自定义全局属性只有整页重载才会消失，故"未刷新"由**自证**而非"我没调 navigate"的声明。RUN1 同一实例内 `len` 51→20→332→1332、144 采样点、`stopBtn` 全程 1、终态归 0，mock `SSE DONE after 120 events`。RUN3 单次调用内完成"发送→8 点采样→点击停止→6 点采样"：点击时刻 `len=200 stopBtn=1`，其后第一点即 `stopBtn=0` 且长度冻结在 200 连续 4.8s，mock `SSE CLIENT CLOSE after 19 events (remaining 101 events NOT sent)` @ 点击后 +19ms。
+   - 负责人 RUN2 作废留档：分两次调用"发送"与"点停止"存在竞态，点击时流已自然结束（`stopBtn=0`、len 已到 1332）⇒ 未测到停止时机，读数不可用，停止判据以 RUN3 为准。
+   - 复现命令修正（比 §十 更省事）：**不必手工往 localStorage 塞 token**，登录页自带「演示登录（一键进入）」（`src/api/modules/auth.ts:105`）即可让 mock 的 `/api/store/auth/login` 发 token；进 AI 页直接点自绘栏 `.custom-tab-bar .tab-ai`，顺带证明每页挂载路线在 H5 可用。
+8. **量具更正（负责人口径更正，牵连他卡与本会话读数）**：`Get-NetTCPConnection -State Listen` 与 `netstat LISTENING` 在本机对 vite 的 `[::1]` IPv6 监听**报假 0**（同刻 `curl` 得 200）。故 §三/`56b`/`59` 与本负责人在 QODER-26F1 `raw/20` 里"LISTEN_COUNT=0 ⇒ 端口已空"的正面结论一律降级为设备读数；本轮改以 `curl_rc=7` 为主设备，实测 5499/8488/5399/5173/5174/8388 六端口全部拒绝连接（raw/65）。
+9. **红线复核**：porcelain 0 行（**指本节文档笔落成之后的实测**，见 raw/66；写作过程中树内本就有 10 个待提交的负责人文档，那不是"未清"）；`git diff bc1087ee..HEAD -- backend/` = 0 字节；未 push、未开 PR、逐文件 add；teardown 前逐个核 CommandLine 再 `taskkill`。
+10. **待裁（只登记不裁定）**：① 微信/App tabBar 运行时未验 ⇒ 是否另派 DevTools/真机接线卡（§七.1/2）；② 执行会话 raw/50 与三构建并行的首跑是否采信（负责人口径：以 57 与本节 raw/60 为准，50 不必采信）；③ 跨树 tests 基线收敛单（23F1 11/191、24 12/227、25F1 13/202、26 12/241）。
