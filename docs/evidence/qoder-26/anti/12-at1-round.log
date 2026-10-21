@@ -1,0 +1,6 @@
+=== AT1 round ===
+SHA_BEFORE_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+INJECT_EXIT=9
+VOID: injection failed
+SHA_AFTER_worktree_crlf=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+BYTE_IDENTICAL=true

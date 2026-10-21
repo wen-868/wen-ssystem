@@ -1,0 +1,113 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-26/app-mobile[39m
+
+ [31m❯[39m tests/product-sku-dimension.spec.ts [2m([22m[2m55 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 292[2mms[22m[39m
+     [32m✓[39m 返回 2 行（不得再按 spuId 合并成 1 行）[32m 7[2mms[22m[39m
+     [32m✓[39m 两行 id 互不相同，且等于各自的 SKU 行主键[32m 3[2mms[22m[39m
+     [32m✓[39m 两行 spuId 相同（详情维度仍是同一个 SPU）[32m 1[2mms[22m[39m
+     [32m✓[39m 两行 skuId 各自正确（与 id 同值，不再是 skuCode）[32m 1[2mms[22m[39m
+     [32m✓[39m 每行 id===skuId（财务调拨/报损/盘盈直接把列表行 id 当 skuId 提交，靠这条不变式才不会送 spuId）[32m 1[2mms[22m[39m
+     [32m✓[39m 库存按各自 SKU 行读数，不跨规格累加[32m 1[2mms[22m[39m
+     [32m✓[39m 五档价格按各自 SKU 行读数（改价/核价才不会串档）[32m 1[2mms[22m[39m
+     [32m✓[39m 其余派生字段逐行独立（预警阈值/规格文案未被合并）[32m 1[2mms[22m[39m
+     [32m✓[39m 缺 skuId 的行被丢弃（即便带 skuCode 也不拿来当 id）[32m 1[2mms[22m[39m
+     [32m✓[39m 丢弃时写守卫日志，点名不得用 spuId/skuCode/barcode/name 顶替[32m 1[2mms[22m[39m
+     [32m✓[39m 只有条码/名称的行被丢弃（条码不是唯一身份）[32m 1[2mms[22m[39m
+     [32m✓[39m 同一 skuId 重复出现只保留首行（防御 JOIN 放大，不做跨行合并）[32m 1[2mms[22m[39m
+     [32m✓[39m 后端把 BIGINT 序列化成数字字符串时仍可判定为主键[32m 1[2mms[22m[39m
+     [32m✓[39m skuCode/条码形态字符串一律判为无效主键[32m 1[2mms[22m[39m
+     [32m✓[39m assertSkuId 放行正整数（含数字字符串）[32m 0[2mms[22m[39m
+     [32m✓[39m 0 非正整数 skuId ⇒ 抛错[32m 3[2mms[22m[39m
+     [32m✓[39m 1 非正整数 skuId ⇒ 抛错[32m 1[2mms[22m[39m
+     [32m✓[39m 2 非正整数 skuId ⇒ 抛错[32m 1[2mms[22m[39m
+     [32m✓[39m 3 非正整数 skuId ⇒ 抛错[32m 1[2mms[22m[39m
+     [32m✓[39m 4 非正整数 skuId ⇒ 抛错[32m 1[2mms[22m[39m
+     [32m✓[39m 5 非正整数 skuId ⇒ 抛错[32m 1[2mms[22m[39m
+     [32m✓[39m 0 非正整数 spuId ⇒ 抛错[32m 1[2mms[22m[39m
+     [32m✓[39m 1 非正整数 spuId ⇒ 抛错[32m 0[2mms[22m[39m
+     [32m✓[39m 2 非正整数 spuId ⇒ 抛错[32m 0[2mms[22m[39m
+[31m     [31m×[31m skuIdOfProduct：id 与 skuId 同值时返回真实 skuId[39m[32m 14[2mms[22m[39m
+[31m     [31m×[31m skuIdOfProduct：id 被换成 spuId（维度混用）⇒ 抛错点名"不同值"[39m[32m 8[2mms[22m[39m
+     [32m✓[39m 抛错读数同时进 skuGuardLog（无 console 也可取证）[32m 12[2mms[22m[39m
+     [32m✓[39m updateSkuPrice(41) ⇒ PUT 路径就是 /admin/products/41/price（SKU 维度）[32m 3[2mms[22m[39m
+[31m     [31m×[31m updateSkuPrice 对同 SPU 的两个 SKU 打两条不同路径（不会写同一行）[39m[32m 114[2mms[22m[39m
+     [32m✓[39m updateSkuPrice 拿到无效主键 ⇒ 拒发请求（0 次 PUT）[32m 4[2mms[22m[39m
+     [32m✓[39m updateSku(42) ⇒ PUT /admin/products/skus/42（SKU 维度）[32m 4[2mms[22m[39m
+     [32m✓[39m getProductDetail(7) ⇒ GET /admin/products/7（详情仍是 SPU 维度）[32m 1[2mms[22m[39m
+     [32m✓[39m getProductDetail 拿到无效 spuId ⇒ 拒发请求[32m 1[2mms[22m[39m
+     [32m✓[39m setMarketingTags(7) ⇒ PUT /admin/products/7/marketing-tags（SPU 维度）[32m 1[2mms[22m[39m
+     [32m✓[39m productsApi.list ⇒ GET /admin/products 并返回两行 SKU（id 41/42、spuId 同为 7）[32m 4[2mms[22m[39m
+     [32m✓[39m productsApi.list 的 total 透传后端 COUNT(*)（按 SKU 行计数）[32m 1[2mms[22m[39m
+     [32m✓[39m productsApi.detail 走 SPU 维度路径[32m 1[2mms[22m[39m
+     [32m✓[39m 点卡片用的 spuId 与加购用的 id 是两个不同读数（同 SPU 双 SKU 夹具）[32m 1[2mms[22m[39m
+     [32m✓[39m E1 列表映射的 SKU 主键来源行恰好 1 处（反测 AT1 靶）[32m 14[2mms[22m[39m
+     [32m✓[39m E2 products.ts 不再用 spuId 顶替 id[32m 1[2mms[22m[39m
+     [32m✓[39m E3 products.ts 不再把 skuCode 混进 skuId[32m 6[2mms[22m[39m
+     [32m✓[39m E4 映射对象以 SKU 行主键开头，并保留 spuId/skuId 两字段[32m 0[2mms[22m[39m
+     [32m✓[39m E5 SPU 合并/跨 SKU 累加库存的残留计数为 0[32m 1[2mms[22m[39m
+     [32m✓[39m E6 批次追踪死包装已从 products 模块消失（反测 AT3 靶）[32m 0[2mms[22m[39m
+     [32m✓[39m E7 数字批次追踪的唯一在册封装仍在 batches.ts（未长成第二份）[32m 0[2mms[22m[39m
+     [32m✓[39m E8 批量改价调用点恰好 1 处且必经 skuIdOfProduct 取号（反测 AT2 靶）[32m 0[2mms[22m[39m
+     [32m✓[39m E9 批量改价不再把行主键表达式裸传 updateSkuPrice[32m 0[2mms[22m[39m
+     [32m✓[39m E10 商品列表 :key 用 SKU 行主键、进详情用 spuId[32m 1[2mms[22m[39m
+     [32m✓[39m E11 首页扫码进详情同样用 spuId[32m 1[2mms[22m[39m
+     [32m✓[39m E12 销售页加购去重/待选数量/明细 productId 均 SKU 维度[32m 30[2mms[22m[39m
+     [32m✓[39m E13 销售页不得再用名称当身份定位新商品[32m 0[2mms[22m[39m
+     [32m✓[39m E14 核价搜索结果 :key 收口为 SKU 行主键[32m 1[2mms[22m[39m
+     [32m✓[39m E15 维度守卫三件套在 products 模块导出在册[32m 0[2mms[22m[39m
+     [32m✓[39m E16 财务三处"列表行 id ⇒ skuId"提交站点仍在册（本卡靠 api 层收口，未改文件）[32m 0[2mms[22m[39m
+     [32m✓[39m E17 详情页改价/改 SKU 走 detail.skus[].id，SPU 端点才用 spuId（不得反向）[32m 0[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 3 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/product-sku-dimension.spec.ts[2m > [22mC · 维度守卫行为[2m > [22mskuIdOfProduct：id 与 skuId 同值时返回真实 skuId
+[31m[1mError[22m: [SKU维度守卫] case: ProductInfo.id=42 与 skuId=7 不同值（疑似 spuId 顶替 SKU 主键）⇒ 拒发改价[39m
+[36m [2m❯[22m Module.skuIdOfProduct src/api/modules/products.ts:[2m90:11[22m[39m
+    [90m 88|[39m   [35mconst[39m skuId [33m=[39m [34mtoNumericId[39m(p[33m?.[39mspuId)
+    [90m 89|[39m   [35mconst[39m rowId [33m=[39m [34mtoNumericId[39m(p[33m?.[39mid)
+    [90m 90|[39m   [35mif[39m (rowId [33m!==[39m skuId) {
+    [90m   |[39m           [31m^[39m
+    [90m 91|[39m     [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m 92|[39m       [34mguardNote[39m(
+[90m [2m❯[22m tests/product-sku-dimension.spec.ts:[2m323:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/product-sku-dimension.spec.ts[2m > [22mC · 维度守卫行为[2m > [22mskuIdOfProduct：id 被换成 spuId（维度混用）⇒ 抛错点名"不同值"
+[31m[1mAssertionError[22m: expected [Function] to throw an error[39m
+
+[32m- Expected:[39m
+null
+
+[31m+ Received:[39m
+undefined
+
+[36m [2m❯[22m tests/product-sku-dimension.spec.ts:[2m329:52[22m[39m
+    [90m327|[39m     [35mconst[39m rows [33m=[39m [34mmapProductRecords[39m([34mtwoSkuRecords[39m())
+    [90m328|[39m     [35mconst[39m polluted [33m=[39m { [33m...[39mrows[[34m0[39m][33m![39m[33m,[39m id[33m:[39m [33mSPU[39m } [35mas[39m [33mProductInfo[39m
+    [90m329|[39m     [34mexpect[39m(() [33m=>[39m [34mskuIdOfProduct[39m(polluted[33m,[39m [32m'case'[39m))[33m.[39m[34mtoThrow[39m([36m/不同值/[39m)
+    [90m   |[39m                                                    [31m^[39m
+    [90m330|[39m   })
+    [90m331|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/product-sku-dimension.spec.ts[2m > [22mD · 路径参数实证[2m > [22mupdateSkuPrice 对同 SPU 的两个 SKU 打两条不同路径（不会写同一行）
+[31m[1mError[22m: [SKU维度守卫] case: ProductInfo.id=41 与 skuId=7 不同值（疑似 spuId 顶替 SKU 主键）⇒ 拒发改价[39m
+[36m [2m❯[22m Module.skuIdOfProduct src/api/modules/products.ts:[2m90:11[22m[39m
+    [90m 88|[39m   [35mconst[39m skuId [33m=[39m [34mtoNumericId[39m(p[33m?.[39mspuId)
+    [90m 89|[39m   [35mconst[39m rowId [33m=[39m [34mtoNumericId[39m(p[33m?.[39mid)
+    [90m 90|[39m   [35mif[39m (rowId [33m!==[39m skuId) {
+    [90m   |[39m           [31m^[39m
+    [90m 91|[39m     [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m 92|[39m       [34mguardNote[39m(
+[90m [2m❯[22m tests/product-sku-dimension.spec.ts:[2m358:28[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m52 passed[39m[22m[90m (55)[39m
+[2m   Start at [22m 22:45:24
+[2m   Duration [22m 3.16s[2m (transform 700ms, setup 0ms, import 807ms, tests 292ms, environment 0ms)[22m
+

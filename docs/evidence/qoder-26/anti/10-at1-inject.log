@@ -1,0 +1,3 @@
+INJECT_CASE=AT1 FILE=app-mobile/src/api/modules/products.ts EOL=CRLF NEEDLE_HITS=2
+INJECT_ABORT needle hits !== 1 ⇒ 不写一字节
+INJECT_EXIT=9

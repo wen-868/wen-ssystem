@@ -1,0 +1,3 @@
+INJECT_CASE=AT2 FILE=app-mobile/src/pages-sub/product/batch-price/batch-price.vue EOL=CRLF NEEDLE_HITS=1
+INJECT_READBACK replace_hits=1 needle_gone=true bytes_before=51377 bytes_after=51318
+INJECT_OK
