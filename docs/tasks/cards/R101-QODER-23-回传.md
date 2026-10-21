@@ -6,7 +6,7 @@
 汇报人：Qoder（移动端）｜2026-10-21
 交付物：
   ① 实现笔 ad73898e8da79a6ce6ec309cace397a96a667479 —— app-mobile/src/utils/crypto.ts（:598/:600/:625-630）、app-mobile/tests/storage-crypto.spec.ts（:5-8/:13-30/:56-68/:70-81）、app-mobile/scripts/gates-baseline.json（tests 段）
-  ② 文档笔 —— 本卡 + docs/tasks/inbox/ACTIVE-回执-QODER-23.md + docs/evidence/qoder-23/**（本卡提交后哈希见证据树 raw/40-terminal-selfcheck.log，不预先写不存在的哈希）
+  ② 文档笔 `e33f35411abb5ffa7e3fc3c12adcc29132afa9ab` —— 本卡 + docs/tasks/inbox/ACTIVE-回执-QODER-23.md + docs/evidence/qoder-23/**（14 文件）。其后另有一笔**只含两份日志**的证据补笔（`raw/45` 八次确定性复跑 + `raw/48` 尖端出厂读数，`app-mobile` 面 0 行），该笔哈希受自指限制不预写，复现 `git log --oneline -4`）
   ③ 未 push、未开 PR（红线 §四）
 证据（可复跑）：见 §三 / §五（命令 + 原始输出摘要 + 行号 + SHA256，全部落 docs/evidence/qoder-23/）
 验收自评：见 §四，逐条「自评达标 / 未达成 + 依据」；最终判定权在凌舟，本卡不含验收结论
@@ -32,7 +32,7 @@
 | 分支 | `fix/qoder-23-gcm-tag-length` | `raw/00` |
 | 实现笔 | `ad73898e8da79a6ce6ec309cace397a96a667479` `fix: QODER-23 AES-GCM 认证标签长度守卫与确定性篡改用例`（3 文件，逐文件 `git add`） | `raw/00` / `raw/40` |
 | 实现笔改动面 numstat | `crypto.ts +9/−2`、`storage-crypto.spec.ts +43/−2`、`gates-baseline.json +2/−2` | `git diff --numstat bc1087ee HEAD` |
-| 文档笔 | 本卡 + 回执 + 证据树（`docs:` 类型），哈希实测见 `raw/40-terminal-selfcheck.log` | — |
+| 文档笔 | `e33f35411abb5ffa7e3fc3c12adcc29132afa9ab` `docs: QODER-23 回传卡 + 回执 + 证据树（…）`（14 文件，逐文件 `git add`，无 `-A`）；其后一笔只含 `raw/45`+`raw/48` 两份日志（`app-mobile` 面 0 行，自指限制不预写哈希） | `raw/40` / `raw/48`：`git log --oneline -3` |
 | 上游 / push | 全程未 `git push`、未开 PR、无远端写动作 | §六 红线对照 |
 | node_modules | 树根与 `app-mobile/` 下均为可用真实目录（`vitest/vitest.mjs`、`vue-tsc/bin/vue-tsc.js` existsSync = true/true），未 `npm install` | `raw/00` |
 
@@ -111,6 +111,14 @@
 | 行尾形态 | `git ls-files --eol` | 三文件均 `i/lf w/crlf`；`bareLF=0`（未混入 LF） ⇒ SHA 分形态登记，不跨形态比较 | `raw/30` |
 
 终态 `worktree-crlf` SHA256（`raw/30`）：`crypto.ts 97063e80…d0211c6`／`storage-crypto.spec.ts 880fda05…a1f6476`／`gates-baseline.json 83484b9b…2f8adb`。
+
+补充两读（同一命令、文档笔 `e33f3541` 之后的尖端复跑）：
+
+| 补充 | 命令 | 读数 | 出处 |
+| --- | --- | --- | --- |
+| 尖端出厂 | `npm --workspace app-mobile run check:gates` ＋ `build:h5`（HEAD=`e33f3541`） | **CHECK_GATES_EXIT=0**（type 0=0／lint error 0 warning 12872／test 11/187=基线 11/187／contract 差集 1 豁免 1）；**BUILD_H5_EXIT=0**、`DONE Build complete.`；`git status --porcelain` 只余待补的 `raw/45`+`raw/48`；backend diff **0 字节** | `raw/48-tip-gates.log` |
+| 确定性复跑 | 连跑 `npm --workspace app-mobile run test` **8 次** | **RUN=1..8 全部 EXIT=0**，每次 `Tests 187 passed (187)`、`storage-crypto.spec.ts (5 tests)` ✓ ⇒ 旧写法那条 1/256 概率红面复跑不见（结构性依据是探针 D3/D4，8/8 只是侧证，不以统计替代证明） | `raw/45-determinism-reruns.log` |
+
 
 ---
 

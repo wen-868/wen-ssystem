@@ -4,7 +4,7 @@
 汇报对象：凌舟（总负责人）
 汇报人：Qoder（移动端）｜2026-10-21
 对应派单编号：QODER-23（`docs/tasks/inbox/QODER-23-gcm-tag-length.md`）
-交付物：实现笔 `ad73898e8da79a6ce6ec309cace397a96a667479`（`crypto.ts` / `storage-crypto.spec.ts` / `gates-baseline.json`）＋ 本回执 + `docs/tasks/cards/R101-QODER-23-回传.md` + `docs/evidence/qoder-23/**`（文档笔哈希见 `docs/evidence/qoder-23/raw/40-terminal-selfcheck.log` 说明段）
+交付物：实现笔 `ad73898e8da79a6ce6ec309cace397a96a667479`（`crypto.ts` / `storage-crypto.spec.ts` / `gates-baseline.json`）＋ 文档笔 `e33f35411abb5ffa7e3fc3c12adcc29132afa9ab`（本回执 + `docs/tasks/cards/R101-QODER-23-回传.md` + `docs/evidence/qoder-23/**` 14 文件）＋ 一笔只含 `raw/45`/`raw/48` 两份日志的证据补笔（`app-mobile` 面 0 行，自指限制不预写哈希）
 完整十项回传：`docs/tasks/cards/R101-QODER-23-回传.md`｜证据树：`docs/evidence/qoder-23/**`
 > 本回执只写执行方自评与卡片判据对照，**不含凌舟裁定／验收结论类判词**。
 
@@ -20,7 +20,8 @@
 
 | 判据 | 目标 | 实测 | 自评 |
 | --- | --- | --- | --- |
-| `check:gates` | EXIT=0 | **CHECK_GATES_EXIT=0**（`raw/20-gates-tip.log`） | 达标 |
+| `check:gates` | EXIT=0 | **CHECK_GATES_EXIT=0**（`raw/20-gates-tip.log`）；文档笔后尖端复跑同读数 **0**（`raw/48-tip-gates.log`） | 达标 |
+| test 复跑稳定性 | 无概率红 | 连跑常驻门 3 **8/8 全 EXIT=0**、每次 `187 passed (187)`（`raw/45-determinism-reruns.log`；结构性依据见探针 D3/D4） | 达标 |
 | type-check | 0 = 0 | **vue-tsc EXIT=0，当前 0 条／基线 0 条** | 达标 |
 | lint | error 0／warning ≤12872 | **error 0（基线 0）／warning 12872（= 基线，未劣化）** | 达标 |
 | test | 全过、基线只升 | **11 passed (11)／187 passed (187)**；门行"当前 11/187，基线 11/187"（已无"高于基线"提示） | 达标 |

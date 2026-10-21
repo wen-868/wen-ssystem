@@ -12,6 +12,9 @@
 | `raw/20-gates-tip.log` | 终态四门 `check:gates` ⇒ `CHECK_GATES_EXIT=0`；逐门：type-check EXIT=0（0=0）／lint EXIT=0（error 0、warning 12872=基线）／test EXIT=0（**11 文件 / 187 用例 = 基线 11/187**）／check:contract EXIT=0（差集 1／具名豁免 1）。 |
 | `raw/21-build-h5.log` | `npm --workspace app-mobile run build:h5` ⇒ `BUILD_H5_EXIT=0`、`DONE Build complete.`、产物在 `app-mobile/dist/build/h5/`（非仓库根 `dist/`）。 |
 | `raw/30-scope-and-redlines.log` | 改动面只有 3 个文件、`git diff bc1087ee -- backend/` = **0 字节**、行尾形态（`i/lf w/crlf`，SHA 分 `worktree-crlf` 与 `git-blob-lf` 两种登记、不跨形态比较）。 |
+| `raw/40-terminal-selfcheck.log` | 文档笔之前的收尾自检（HEAD=实现笔 `ad73898e`、第 1 父 = `bc1087ee`、backend diff 0、状态只余本卡文档面）。 |
+| `raw/45-determinism-reruns.log` | 连跑常驻门 3 **8 次** ⇒ `RUN=1..8 全部 EXIT=0`、每次 `Tests 187 passed (187)`（旧写法的 1/256 概率红面复跑不见；结构性依据仍是探针 D3/D4）。 |
+| `raw/48-tip-gates.log` | 文档笔 `e33f3541` 之后的**尖端出厂读数**：`check:gates` 四门全绿（type 0=0／lint error 0 warning 12872／test 11/187=基线／contract 差集 1 豁免 1）⇒ `CHECK_GATES_EXIT=0`；`build:h5` ⇒ `BUILD_H5_EXIT=0`；backend diff 0 字节。 |
 | `anti/R1-guard-removed.txt` | 反测 R1：摘掉**认证标签长度守卫**。 |
 | `anti/R2-compare-ignored.txt` | 反测 R2：摘掉**常量时间比较的失败分支**（守卫仍在场）。 |
 | `probe/probe-b64.txt` + `probe/README.md` | 动手前的 base64／定长比较语义探针与逐行读法（含对派单"NaN"口径的实测更正）。 |
