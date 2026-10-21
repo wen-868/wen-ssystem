@@ -1,0 +1,8 @@
+== A0 改后（本卡工作树）7 个文件 SHA256（CRLF 工作树形态）==
+17d0f351e53b59cf3af2d48c2b970b0b0b5289342fee0ff1ba31130d148233c1 *app-mobile/src/api/storage.ts
+189e8980f1a088c185c7fb6abb391fd288394de382cbfde7cb54f46333a3a77c *app-mobile/src/pages-sub/marketing/member/member-detail.vue
+2a208008515207ba8e4a506120a12a8fb44adc3c5850fd3362e45667a8d63675 *app-mobile/src/pages-sub/product/batch-price/batch-price.vue
+1b404822bfe5c243aab1ea809c5a2d01f043fd801906081d80389faa15cd74d6 *app-mobile/src/pages-sub/settings/settings.vue
+bc83060b7475ebe30fba5f7ed8456a4756c0335a83fed38b16f006a3f75409ef *app-mobile/src/pages/ai-chat/ai-chat.vue
+f6d9d8c0c9bed42f208edb0173a19899ceb6a65883a051612505035a90c343c0 *app-mobile/src/pages/products/product-detail.vue
+622273316aac1f73107948aec9b3615fd19886aa6f2f4deeb23e08429a1f2877 *app-mobile/src/pages/sales/create-sale.vue

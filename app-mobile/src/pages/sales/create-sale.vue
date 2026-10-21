@@ -571,7 +571,7 @@
     <!-- 底部提交（原稿 action-bar 悬浮按钮组：保存 secondary / 转单 primary 带箭头 / 分享 tertiary；输入聚焦时隐藏） -->
     <view class="bottom-bar" :class="{ 'bottom-bar--hidden': keyboardHideBar }">
       <button
-        v-for="(act, i) in visibleActions"
+        v-for="act in visibleActions"
         :key="act.label"
         :class="['submit-btn', act.label === '分享' ? 'share-btn' : (act.variant === 'ghost' ? 'draft-btn' : ''), { 'submit-btn--disabled': submitting }]"
         :disabled="submitting"
@@ -1974,7 +1974,7 @@ function buildShareText(): string {
   if (saleItems.length) {
     lines.push('商品明细：')
     saleItems.forEach((it, i) => {
-      lines.push(`${i + 1}. ${it.productName || '商品'} × ${it.quantity ?? 0}　${fmt((it.price ?? 0) * (it.quantity ?? 0))}`)
+      lines.push(`${i + 1}. ${it.productName || '商品'} × ${it.quantity ?? 0}\u3000${fmt((it.price ?? 0) * (it.quantity ?? 0))}`)
     })
   }
   lines.push(`合计：${fmt(docTotal.value)}`)
@@ -1983,6 +1983,9 @@ function buildShareText(): string {
 
 /** 分享（原稿 shareDoc：系统分享 / 复制链接） */
 function handleShare() {
+  // 三端分享分支互斥标志：条件编译后每端只保留自己那段；源码形态下用标志跳过，
+  // 不再用函数体内的无条件 return 遮蔽后一端的分支（no-unreachable）。
+  let handled = false
   const text = buildShareText()
   const shareTitle = '智享全链 · ' + docTitle.value
 
@@ -2008,17 +2011,19 @@ function handleShare() {
   }
   // 旧实现此处只 toast「当前环境不支持」就结束了，用户什么都拿不到；改为复制兜底
   fallbackCopy('当前浏览器不支持，已复制内容')
-  return
+  handled = true
   // #endif
 
   // #ifdef MP-WEIXIN
+  if (handled) return
   // 小程序端没有 plus.share，转发只能走右上角菜单（本页已在下方注册 onShareAppMessage）。
   // 旧实现用 #ifndef H5 把小程序也归到 plus 分支，plus 恒为 undefined → 永远只复制文本。
   fallbackCopy('已复制内容，点右上角「···」可转发')
-  return
+  handled = true
   // #endif
 
   // #ifdef APP-PLUS
+  if (handled) return
   // 系统分享面板。依赖 manifest.json → app-plus.modules 声明 Share 模块；
   // 未声明时 plus.share 为 undefined，这正是此前「点了分享却只复制文本、拉不起面板」的根因。
   const invokeShare = () => {
@@ -2408,7 +2413,11 @@ onMounted(() => {
       docMain.value = target[0]
       docSub.value = target[1]
     }
-  } catch {}
+  } catch {
+    // ?doc= 直达参数解析失败原先完全静默，页面会停在默认单据而用户不知情；
+    // 这里保留「回落默认单据」的行为，但把后果告诉用户。
+    uni.showToast({ title: '单据类型参数解析失败，已按默认单据打开', icon: 'none' })
+  }
   loadSourceBills()
   loadStores()
   ensurePurchaseData()

@@ -653,7 +653,7 @@ const priceForm = reactive({
 })
 
 function onPriceInput(key: string, e: any) {
-  ;(priceForm as any)[key] = e.detail.value || ''
+  (priceForm as any)[key] = e.detail.value || ''
   markField('price:' + key)
   if (key === 'costPrice') {
     // 辅单位进货价是「基础进货价 ÷ 换算率」的派生值，基础价变化即自动重算（清手改暂存）
@@ -1145,31 +1145,40 @@ const scannerLabel = computed(() =>
 
 function openScanner(type: 'base' | 'unit', index = -1) {
   if (!editable.value) { needEdit(); return }
+  // 三端扫码分支互斥标志：条件编译后每端只保留自己那段；源码形态下用标志跳过而非函数体内无条件
+  // return，后一端的分支就不再是不可达代码（no-unreachable）。
+  let scanned = false
   // #ifdef APP-PLUS
   // R102-04：App 端原先没有分支，会继续执行到函数尾部的 setTimeout(startScan, 320)，
   // 而 startScan 定义在 #ifdef H5 块内、App 产物中已被剥离 → 运行时 ReferenceError，
   // 表现为"点扫码无任何反应"。App 端改用原生扫码（manifest 已声明 Barcode 模块 + CAMERA 权限）。
-  uni.scanCode({
-    success: (res) => applyScanned(type, index, res.result || ''),
-    fail: () => {},
-  })
-  return
+  if (!scanned) {
+    uni.scanCode({
+      success: (res) => applyScanned(type, index, res.result || ''),
+      fail: () => {},
+    })
+    scanned = true
+  }
   // #endif
   // #ifdef MP-WEIXIN
-  uni.scanCode({
-    success: (res) => applyScanned(type, index, res.result || ''),
-    fail: () => {},
-  })
-  return
+  if (!scanned) {
+    uni.scanCode({
+      success: (res) => applyScanned(type, index, res.result || ''),
+      fail: () => {},
+    })
+    scanned = true
+  }
   // #endif
   // #ifdef H5
+  if (scanned) return
   const supported = !!(navigator.mediaDevices && (navigator.mediaDevices as any).getUserMedia && 'BarcodeDetector' in window)
   if (!supported) {
     uni.showToast({ title: '当前环境不支持扫码，请手动输入', icon: 'none' })
     return
   }
-  // 以下为 H5 扫码面板逻辑：仅在 H5 编译，App/小程序走上方原生 uni.scanCode 后已 return。
-  // （若不加条件编译，App 产物中该段位于 return 之后成为不可达代码，会触发 rollup ASI 告警）
+  // 以下为 H5 扫码面板逻辑：仅在 H5 编译，App/小程序走上方原生 uni.scanCode 后已置 scanned 并跳过。
+  // （QODER-21：互斥由 scanned 标志承担，函数体内不再有无条件 return——原形态下后一端的分支
+  //   在源码形态里是不可达代码 ⇒ no-unreachable；逐端编译产物与改动前等价）
   scanner.type = type
   scanner.index = index
   scanner.open = true
@@ -1192,7 +1201,7 @@ async function startScan() {
     scanStream = stream
     const v = scanVideoEl()
     if (v) {
-      ;(v as any).srcObject = stream
+      (v as any).srcObject = stream
       const p = v.play()
       if (p && p.catch) p.catch(() => {})
     }

@@ -1,0 +1,61 @@
+# 反测 2 · 注入说明：还原 apiBase 的 IIFE 双 return 形态（被上一段 return 遮蔽的非本端分支重新不可达）
+# 目标 文件::规则 = src/pages-sub/settings/settings.vue::no-unreachable   工作树 = /d/Users/ZXQL/wt-agents/QODER-21   分支 = chore/qoder-21-lint-errors-zero   基线 = 21b465e5
+
+## 1) 注入前 SHA256（工作树 CRLF 形态）
+1b404822bfe5c243aab1ea809c5a2d01f043fd801906081d80389faa15cd74d6 *app-mobile/src/pages-sub/settings/settings.vue
+
+## 2) 备份到 scratch
+BACKUP_OK /d/Users/ZXQL/wt-agents/_scratch/qoder-21/anti-bak-settings.vue
+
+## 3) 注入（把该文件还原为基线 21b465e5 形态 ⇒ 被修掉的 error 回来）
+INJECT_EXIT=0
+注入确认（该行应重新出现在文件里）：
+181:const apiBase = (() => {
+
+## 4) 跑 lint 门（期望：EXIT=1 且点名 src/pages-sub/settings/settings.vue::no-unreachable）
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 1（基线 0）、warning 12872（基线 12872）
+✗ 新增 error 1 条（基线之外，逐条点名）：
+  src/pages-sub/settings/settings.vue:186:3 no-unreachable Unreachable code.
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-21\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-21\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/lint-gate.mjs
+LINT_EXIT=1
+
+## 5) 复原（cp 回第 2 步备份）
+RESTORE_OK
+
+## 6) 复原后 SHA256（必须与第 1 步同形态逐字节一致）
+1b404822bfe5c243aab1ea809c5a2d01f043fd801906081d80389faa15cd74d6 *app-mobile/src/pages-sub/settings/settings.vue
+SHA_BEFORE=1b404822bfe5c243aab1ea809c5a2d01f043fd801906081d80389faa15cd74d6
+SHA_AFTER=1b404822bfe5c243aab1ea809c5a2d01f043fd801906081d80389faa15cd74d6
+SHA_IDENTICAL=YES
+
+## 7) 复跑 lint 门（期望：EXIT=0）
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 0（基线 0）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+LINT_EXIT=0
+
+## 8) git status --short
+ M app-mobile/scripts/gates-baseline.json
+ M app-mobile/src/api/storage.ts
+ M app-mobile/src/pages-sub/marketing/member/member-detail.vue
+ M app-mobile/src/pages-sub/product/batch-price/batch-price.vue
+ M app-mobile/src/pages-sub/settings/settings.vue
+ M app-mobile/src/pages/ai-chat/ai-chat.vue
+ M app-mobile/src/pages/products/product-detail.vue
+ M app-mobile/src/pages/sales/create-sale.vue
+?? docs/evidence/qoder-21/

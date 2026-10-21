@@ -1,0 +1,9 @@
+ M app-mobile/scripts/gates-baseline.json
+ M app-mobile/src/api/storage.ts
+ M app-mobile/src/pages-sub/marketing/member/member-detail.vue
+ M app-mobile/src/pages-sub/product/batch-price/batch-price.vue
+ M app-mobile/src/pages-sub/settings/settings.vue
+ M app-mobile/src/pages/ai-chat/ai-chat.vue
+ M app-mobile/src/pages/products/product-detail.vue
+ M app-mobile/src/pages/sales/create-sale.vue
+?? docs/evidence/qoder-21/
