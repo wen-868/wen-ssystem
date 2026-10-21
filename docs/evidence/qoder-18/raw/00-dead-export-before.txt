@@ -1,0 +1,44 @@
+# QODER-18 · 死导出复证【删前】
+# date: 2026-10-21 04:22:40
+
+## CMD 1: grep -rn "export function upload" app-mobile/src app-mobile/tests
+app-mobile/src/api/request.ts:219:export function upload<T = any>(url: string, filePath: string, name = 'file', formData?: Record<string, any>): Promise<T> {
+EXIT=0
+
+## CMD 2: 全仓 src+tests 内 upload 相关引用（区分真实上传封装）
+app-mobile/src/api/modules/products.ts:450:/** 上传商品主图（multipart 字段名 image，后端 POST /admin/products/upload-image） */
+app-mobile/src/api/modules/products.ts:461:      url: `${API_BASE}/admin/products/upload-image`,
+app-mobile/src/api/request.ts:219:export function upload<T = any>(url: string, filePath: string, name = 'file', formData?: Record<string, any>): Promise<T> {
+app-mobile/src/config/permission-gates.ts:368:      'POST /api/admin/products/upload-image'
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:57:      <view class="upload-list">
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:58:        <view class="upload-item" v-for="(photo, index) in formData.photos" :key="index">
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:59:          <image class="upload-img" :src="photo" mode="aspectFill" />
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:60:          <view class="upload-remove" @tap="removePhoto(index)">
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:64:        <view class="upload-add" v-if="formData.photos.length < 6" @tap="chooseImage">
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:65:          <text class="upload-icon">+</text>
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:66:          <text class="upload-text">上传照片</text>
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:448:.upload-list {
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:454:.upload-item {
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:462:.upload-img {
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:467:.upload-remove {
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:482:.upload-add {
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:494:.upload-icon {
+app-mobile/src/pages-sub/finance/loss-gain/create-loss.vue:500:.upload-text {
+app-mobile/src/pages-sub/product/product/product-edit.vue:15:        <view class="image-upload" @tap="onChooseImage">
+app-mobile/src/pages-sub/product/product/product-edit.vue:18:            <image class="upload-icon ic" src="/static/icons/ic/upload.svg" mode="aspectFit"/>
+app-mobile/src/pages-sub/product/product/product-edit.vue:19:            <text class="upload-text">点击上传主图</text>
+app-mobile/src/pages-sub/product/product/product-edit.vue:413:/** 上传主图：选择图片后调后端 POST /admin/products/upload-image 获取真实 URL */
+app-mobile/src/pages-sub/product/product/product-edit.vue:605:.image-upload {
+app-mobile/src/pages-sub/product/product/product-edit.vue:625:.upload-icon { font-size: 48rpx; color: $uni-gray-300; }
+app-mobile/src/pages-sub/product/product/product-edit.vue:626:.upload-text { font-size: 22rpx; color: $uni-gray-300; }
+EXIT=0
+
+## CMD 3: 从 api/request 导入 upload（应为 0 命中 ⇒ 假 0 已用 MSYS2_ARG_CONV_EXCL 排除）
+EXIT=1 (1 = 无命中)
+
+## CMD 4: upload() 函数体内是否含 /admin/ 字面量（决定 check:contract 读数是否受删除影响）
+EXIT=1 (1 = 无 /admin/ 字面量)
+
+## CMD 5: upload() 实际行号定位（卡内 :211 已过期）
+219:export function upload<T = any>(url: string, filePath: string, name = 'file', formData?: Record<string, any>): Promise<T> {
+request.ts 总行数: 254

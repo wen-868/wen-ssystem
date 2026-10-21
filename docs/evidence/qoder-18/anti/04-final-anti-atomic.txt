@@ -1,0 +1,41 @@
+############ QODER-18 反测【定稿复跑】协议 §4 原子序列（单条 bash 内完成，注入/复原与 vitest 不重叠）############
+# date=2026-10-21 04:45:59
+
+### STEP 1 注入前 sha256sum ###
+0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7 *src/api/request.ts
+
+### STEP 2 cp 备份到树外 scratch ###
+0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7 */d/Users/ZXQL/wt-agents/_scratch/qoder-18/request.ts.anti2-before.bak
+
+### STEP 3 latin1 字节精确注回死导出桩（守卫：del 锚点必须=1、upload 必须=0，否则 exit 9 拒写）###
+✓ 已注回死导出桩 upload()（CRLF 形态保真），目标: D:/Users/ZXQL/wt-agents/QODER-18/app-mobile/src/api/request.ts
+INJECT_EXIT=0
+-- 注入后 sha256（应改变）与桩位置 --
+101ca78e9c2121ba1cfe6cf545feb01976fcc34ca2c978e6533271ef11832e09 *src/api/request.ts
+220:export function upload<T = any>(url: string, filePath: string, name = "file", formData?: Record<string, any>): Promise<T> {
+
+### STEP 4 注入态跑门 npm run test（必须红且点名 ⑭）###
+ANTI_RED_TEST_EXIT=1
+49:[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+51:[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-18 · request.ts 死导出 upload() 已移除且不可回流[2m > [22m⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload
+52:[31m[1mAssertionError[22m: request.ts 又出现 export function upload: expected '/**\r\n * uni-app 网络请求适配层\r\n * 封装 un…' not to match /export\s+(?:async\s+)?function\s+uplo…/[39m
+292:✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+-- 门 3 包装器结论行 --
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-18\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+
+### STEP 5 cp 复原（禁止 sed -i，保 CRLF 形态）###
+复原完成
+
+### STEP 6 复原后 sha256 与注入前逐字节比对 ###
+0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7 *src/api/request.ts
+0c655044645726cdc9475389f69971c035bb4bf4ca6881c94625acd6fe9bfec7 */d/Users/ZXQL/wt-agents/_scratch/qoder-18/request.ts.anti2-before.bak
+✓ SHA256 完全一致
+✓ cmp 逐字节一致（备份即现状）
+
+### STEP 7 复原后复跑门（必须转绿）###
+ANTI_GREEN_TEST_EXIT=1
+44:[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (6)[39m
+50:[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
