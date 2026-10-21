@@ -125,14 +125,14 @@
       </view>
     </view>
 
-    <custom-tab-bar :current="'products'" />
+    <app-tab-bar :current="'products'" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
+import AppTabBar from '@/components/app-tab-bar.vue'
 // S3-230 入口权限门：批量改价入口按码显隐（注册表 goods-batch-price-submit）
 import { usePermissionGate } from '@/composables/usePermissionGate'
 

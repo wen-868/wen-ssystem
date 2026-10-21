@@ -205,12 +205,12 @@
         </scroll-view>
       </view>
     </view>
-        <custom-tab-bar :current="'ai'" />
+        <app-tab-bar :current="'ai'" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, reactive, computed, onUnmounted } from 'vue'
 import {
   aiApi,
   type AiModelOption,
@@ -220,7 +220,7 @@ import {
   type AiChatControls
 } from '@/api/modules/ai'
 import { voiceTts } from '@/api/modules/ai'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
+import AppTabBar from '@/components/app-tab-bar.vue'
 
 /** 对话消息 */
 interface ChatMessage {
@@ -627,12 +627,20 @@ async function sendMessage() {
   const imagePayload = attachmentImage.value || undefined
   attachmentImage.value = ''
 
-  const aiMsg: ChatMessage = {
+  // ★ 响应式收口（QODER-25F1）：流式消息必须**先**进入 Vue 响应式代理，再进 ref 数组。
+  //   旧写法是带类型标注的裸对象字面量（aiMsg 声明为 ChatMessage 的普通对象），它被 push
+  //   进 messages.value 后数组里存的仍是原始对象：
+  //   ref 数组内部存的是原始对象，onText/onDone/finally 继续写的又是这个**没进过代理的
+  //   原始对象**，不触发任何依赖 ⇒ 数据对、DOM 不动，只有重新挂载才显示（本卡点名缺陷）。
+  //   reactive() 与数组下标读取共用同一份 proxy 缓存（Vue 的 reactiveMap），
+  //   所以 aiMsg 与 messages.value[idx] 是同一个代理身份 ⇒ 下面所有回调写入都是代理写入，
+  //   模板 v-for（:key="msg.id" 全程不变，不靠强制重挂载）当场重渲染。
+  const aiMsg = reactive<ChatMessage>({
     id: nextId(),
     role: 'ai',
     content: '',
     streaming: true
-  }
+  })
   messages.value.push(aiMsg)
   sending.value = true
   // #ifdef H5
@@ -1710,9 +1718,9 @@ onUnmounted(() => {
 }
 
 /* 自定义 tabBar 占位：由 script 侧 footerBaseBottomPx（= 胶囊底栏 20rpx + 128rpx + 12rpx 间隙）
-   把输入栏整体抬到自绘栏上方；本页不再叠放第二条原生栏（components/custom-tab-bar.vue 与
+   把输入栏整体抬到自绘栏上方；本页不再叠放第二条原生栏（components/app-tab-bar.vue 与
    App.vue 在「非 MP-WEIXIN」端统一 uni.hideTabBar 隐藏原生栏）。
-   ★ 模板里新增的 custom-tab-bar 与 ai-stop-btn 两行按 vue/html-indent 的**配置值 4** 缩进：
+   ★ 模板里新增的 app-tab-bar 与 ai-stop-btn 两行按 vue/html-indent 的**配置值 4** 缩进：
    本文件存量全是 2 空格/级，属 QODER-1 冻结在 gates-baseline.json 的 12299 条 warning；
    按 2 空格写会让 lint 门 warning 计数超冻结基线而红，按协议「lint 劣化必须改代码」取规则口径。 */
 

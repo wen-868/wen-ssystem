@@ -75,14 +75,14 @@
     </view>
 
     <view class="safe-bottom"></view>
-    <custom-tab-bar :current="'functions'" />
+    <app-tab-bar :current="'functions'" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
+import AppTabBar from '@/components/app-tab-bar.vue'
 import {
   hotActions,
   dataTools,

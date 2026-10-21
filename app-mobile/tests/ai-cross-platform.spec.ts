@@ -14,7 +14,8 @@
  *  G5 App 端必须有 `plus.io` 读图分支（`#ifdef APP-PLUS` 内的 resolveLocalFileSystemURL）。
  *  G6 自绘栏必须挂到 AI 页（模板标签 + 组件导入两处都在）。
  *  G7 原生 tabBar 隐藏口径必须是 `#ifndef MP-WEIXIN`（只盖 APP-PLUS ⇒ H5 双栏 ⇒ 红），
- *     custom-tab-bar.vue 与 App.vue 两个兜底点都守。
+ *     app-tab-bar.vue 与 App.vue 两个兜底点都守（QODER-25F1：组件自 custom-tab-bar 改名而来，
+ *     本 spec 的 TAB_BAR 路径与 G6/G7 的字面量随改名同步，两侧必须一起动，否则门 3 直接红）。
  *  G8 非 H5 的取消必须落到真实 API：`ai.ts` 的降级实现里要持有 RequestTask 并调 `abort()`，
  *     且 `streamChat` 要把 `registerCancel` 透传进去（否则"停止"只是 UI）。
  *  G9 红线自证：`ai-chat.vue` / `ai.ts` 里不得用 `typeof uni.` / `typeof wx` / `typeof plus`
@@ -28,8 +29,10 @@
  *  ① 把 `const fs = uni.getFileSystemManager()` 注回 `#ifndef H5` 块 ⇒ 红，点名 G1；
  *  ② 把 `abortController = new AbortController()` 改成无条件（移出 `#ifdef H5`）⇒ 红，点名 G2；
  *  ③ 把小程序兜底 `notifyMpSpeakUnsupported()` 换回 `speakSystem(clean)` ⇒ 红，点名 G3；
- *  ④ 摘掉 AI 页的 `<custom-tab-bar>` 标签 ⇒ 红，点名 G6；
- *  ⑤ 把 custom-tab-bar.vue 的隐藏口径改回 `#ifdef APP-PLUS` ⇒ 红，点名 G7。
+ *  ④ 摘掉 AI 页的自绘栏标签（app-tab-bar）⇒ 红，点名 G6；
+ *  ⑤ 把 app-tab-bar.vue 的隐藏口径改回 `#ifdef APP-PLUS` ⇒ 红，点名 G7。
+ * （①~⑤ 沿用 QODER-25 轮台账；QODER-25F1 的撞名反测与响应式反测见
+ *   tests/tabbar-name-reactivity.spec.ts 文件头，改名注回 = 该 spec 的 S1 红。）
  * `cp` 复原后同形态 SHA256 与注入前逐字节一致 ⇒ 复跑转绿。
  */
 import { describe, it, expect } from 'vitest'
@@ -40,7 +43,7 @@ import { fileURLToPath } from 'node:url'
 const SRC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../src')
 const AI_CHAT = join(SRC_DIR, 'pages', 'ai-chat', 'ai-chat.vue')
 const AI_API = join(SRC_DIR, 'api', 'modules', 'ai.ts')
-const TAB_BAR = join(SRC_DIR, 'components', 'custom-tab-bar.vue')
+const TAB_BAR = join(SRC_DIR, 'components', 'app-tab-bar.vue')
 const APP_VUE = join(SRC_DIR, 'App.vue')
 
 /** uni-app 条件编译指令帧（`#ifdef X` / `#ifndef X`；`#endif` 出栈） */
@@ -141,8 +144,8 @@ const PLUSIO_HITS = collect(aiChatLines, aiChatCtx, 'plus.io.resolveLocalFileSys
 const PLUSIO_IN_APP = PLUSIO_HITS.filter((h) => inBlock(h.ctx[0], 'ifdef', 'APP-PLUS'))
 
 // ---- G6 自绘栏挂载 ----
-const TABBAR_TAG = collect(aiChatLines, aiChatCtx, '<custom-tab-bar')
-const TABBAR_IMPORT = collect(aiChatLines, aiChatCtx, "components/custom-tab-bar.vue'")
+const TABBAR_TAG = collect(aiChatLines, aiChatCtx, '<app-tab-bar')
+const TABBAR_IMPORT = collect(aiChatLines, aiChatCtx, "components/app-tab-bar.vue'")
 
 // ---- G7 原生栏隐藏口径 ----
 const HIDE_BAR = collect(tabBarLines, tabBarCtx, 'uni.hideTabBar')
@@ -217,12 +220,12 @@ describe('QODER-25 AI Chat 三端条件编译与自绘 tabBar 静态配对守卫
   })
 
   it('G6 AI 页挂载自绘 tabBar（模板标签与组件导入同时在册）', () => {
-    expect(TABBAR_TAG.length, 'ai-chat.vue 模板未挂载 <custom-tab-bar> ⇒ AI 页没有底栏').toBe(1)
-    expect(TABBAR_IMPORT.length, 'ai-chat.vue 未 import components/custom-tab-bar.vue').toBe(1)
+    expect(TABBAR_TAG.length, 'ai-chat.vue 模板未挂载 <app-tab-bar> ⇒ AI 页没有底栏').toBe(1)
+    expect(TABBAR_IMPORT.length, 'ai-chat.vue 未 import components/app-tab-bar.vue').toBe(1)
   })
 
   it('G7 原生 tabBar 隐藏口径为 #ifndef MP-WEIXIN（覆盖 H5 与 APP 双端）', () => {
-    expect(HIDE_BAR.length, 'custom-tab-bar.vue 已无 uni.hideTabBar 兜底').toBeGreaterThan(0)
+    expect(HIDE_BAR.length, 'app-tab-bar.vue 已无 uni.hideTabBar 兜底').toBeGreaterThan(0)
     expect(HIDE_BAR_NOT_UNION, `自绘栏隐藏原生栏的口径不是 #ifndef MP-WEIXIN：${fmt(HIDE_BAR_NOT_UNION)}`).toEqual([])
     expect(HIDE_BAR_APP.length, 'App.vue 已无启动期 uni.hideTabBar 兜底').toBeGreaterThan(0)
     expect(HIDE_BAR_APP_NOT_UNION, `App.vue 隐藏原生栏的口径不是 #ifndef MP-WEIXIN：${fmt(HIDE_BAR_APP_NOT_UNION)}`).toEqual([])

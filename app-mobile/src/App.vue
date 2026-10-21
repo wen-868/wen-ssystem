@@ -10,8 +10,8 @@ onLaunch(() => {
   checkAppUpdate()
   // #ifndef MP-WEIXIN
   // 原生 tabBar 的 custom:true 只有微信小程序认（App 与 H5 都不认），原生栏会与自绘
-  // custom-tab-bar 叠成双栏；启动即隐藏原生栏（页面组件挂载后还会兜底隐藏一次）。
-  // 口径与 components/custom-tab-bar.vue 保持一致：#ifndef MP-WEIXIN，不是只盖 APP-PLUS。
+  // app-tab-bar 叠成双栏；启动即隐藏原生栏（页面组件挂载后还会兜底隐藏一次）。
+  // 口径与 components/app-tab-bar.vue 保持一致：#ifndef MP-WEIXIN，不是只盖 APP-PLUS。
   try { uni.hideTabBar({ animation: false }) } catch { /* tabBar 未就绪时忽略 */ }
   // #endif
   // 检查登录状态

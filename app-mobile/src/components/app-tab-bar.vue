@@ -83,6 +83,14 @@
 </template>
 
 <script setup lang="ts">
+// ★ 组件名口径（QODER-25F1）：本组件**不得**再叫 custom-tab-bar，模板标签同理（尖括号写法见守卫）。
+//   uni-app 把 `custom-tab-bar` 列为 H5 平台专用组件（node_modules/@dcloudio/uni-cli-shared/
+//   dist/easycom.js:212 的 H5_ONLY_COMPONENTS = ['custom-tab-bar']），标签一旦被 easycom
+//   自动扫描命中（src/components 默认在扫描目录内），非 H5 端编译就会打
+//   「组件是 H5 平台专用组件，在 mp-weixin 平台使用可能导致错误」这条警告（原文由
+//   uni-cli-shared 用保留名 custom-tab-bar 拼出标签名后 console.warn）。
+//   改名 app-tab-bar 后 easycom 仍能正常解析到本文件，警告归零；CSS 类名 .custom-tab-bar
+//   不属组件注册面，保持不变（派单：不要求改 CSS 类名）。
 import { onMounted } from 'vue'
 
 defineProps<{
