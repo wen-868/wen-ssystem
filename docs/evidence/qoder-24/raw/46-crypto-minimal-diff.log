@@ -1,0 +1,69 @@
+# QODER-24 收尾自检⑥：crypto.ts 只做最小导出，不另写摘要实现（2026-10-21T22:54:24+08:00）
+$ git diff --numstat bc1087ee..HEAD -- app-mobile/src/utils/crypto.ts
+4	4	app-mobile/src/utils/crypto.ts
+
+$ git diff bc1087ee..HEAD -- app-mobile/src/utils/crypto.ts   # 全文 diff
+diff --git a/app-mobile/src/utils/crypto.ts b/app-mobile/src/utils/crypto.ts
+index 97661cf1..f4003152 100644
+--- a/app-mobile/src/utils/crypto.ts
++++ b/app-mobile/src/utils/crypto.ts
+@@ -65,8 +65,8 @@ function bytesToBase64(bytes: Uint8Array): string {
+     return result
+ }
+ 
+-/** base64 字符串转字节数组 */
+-function base64ToBytes(b64: string): Uint8Array {
++/** base64 字符串转字节数组（QODER-24：热更新包摘要需要对下载文件的原始字节实算 SHA-256，故导出复用） */
++export function base64ToBytes(b64: string): Uint8Array {
+     const clean = b64.replace(/[^A-Za-z0-9+/]/g, '')
+     const len = clean.length
+     const bytes: number[] = []
+@@ -163,8 +163,8 @@ function rotr(x: number, n: number): number {
+     return (x >>> n) | (x << (32 - n))
+ }
+ 
+-/** SHA-256 哈希（同步） */
+-function sha256(data: Uint8Array): Uint8Array {
++/** SHA-256 哈希（同步）（QODER-24：导出给热更新包摘要实算复用，禁止另写一份实现） */
++export function sha256(data: Uint8Array): Uint8Array {
+     const h = new Uint32Array([
+         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+         0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+
+$ git diff bc1087ee..HEAD -- app-mobile/src/utils/crypto.ts | rg "^[+-][^+-]" | rg -v "^[+-]\s*(/\*\*|export function|function)" | wc -l   # 除注释行与函数签名外的改动行数，必须 0
+0
+
+--- 本卡新增文件里是否另写了一份 sha256（必须只有"复用"一处 import）---
+$ rg -n "sha256|createHash|crypto" app-mobile/src/config/update-security.ts
+28:import { sha256, base64ToBytes } from '../utils/crypto'
+327:/** 字节数组转小写 hex（仅格式化，摘要本体复用 utils/crypto 的纯 JS sha256，不另写实现） */
+335:export function sha256HexFromBytes(bytes: Uint8Array): string {
+336:  return bytesToHex(sha256(bytes))
+349: * 只做**结构性校验 + 复用 crypto 的 base64ToBytes**；非法/空 ⇒ null（调用方据此失败关闭）。
+376:  const actual = sha256HexFromBytes(bytes)
+$ rg -n "from .\.\./utils/crypto|from ..utils/crypto|require\(.crypto" app-mobile/src/config/update-security.ts app-mobile/src/utils/update.ts
+app-mobile/src/utils/update.ts:17: *     ⇒ `dataUrlToBytes` ⇒ 复用 `utils/crypto.ts` 的纯 JS `sha256`），不校验长度、不校验首尾片段；
+app-mobile/src/config/update-security.ts:28:import { sha256, base64ToBytes } from '../utils/crypto'
+app-mobile/src/config/update-security.ts:327:/** 字节数组转小写 hex（仅格式化，摘要本体复用 utils/crypto 的纯 JS sha256，不另写实现） */
+
+--- 实算与 Node 官方实现对账（spec ③ 的前两条用例）---
+$ rg -n "createHash|node:crypto|KAT|testVectors|sha256Hex" app-mobile/tests/update-security.spec.ts | head -20
+21:import { createHash } from 'node:crypto'
+39:  sha256HexFromBytes,
+56:  return createHash('sha256').update(bytes).digest('hex')
+297:      expect(sha256HexFromBytes(bytes), `字节长度 ${bytes.length} 的摘要必须与 Node 一致`).toBe(nodeSha256Hex(bytes))
+299:    expect(sha256HexFromBytes(new Uint8Array(0))).toBe(SHA_EMPTY)
+300:    expect(sha256HexFromBytes(utf8('abc'))).toBe(SHA_ABC)
+337:    const digest = sha256HexFromBytes(file)
+382:    expect(sha256HexFromBytes(dataUrlToBytes(`data:;base64,${b64}`)!)).toBe(SHA_ABC)
+
+$ rg -n "SHA256 空串|abc|Vector|样本" app-mobile/tests/update-security.spec.ts | head -20
+118:    for (const bad of ['v1.0.0', '1.0', '1', '1.0.0.0', '01.0.0', '1.0.0-', '', '   ', 'abc', '1.0.0_1']) {
+221:    expect(validatePackageUrl('https://api.onepan.cn/dl/app.wgt?sig=abc123', API_BASE).ok).toBe(true)
+285:      utf8('abc'),
+295:    for (let i = 0; i < 1024; i++) cases.push(new Uint8Array([(i * 37) % 256]))
+300:    expect(sha256HexFromBytes(utf8('abc'))).toBe(SHA_ABC)
+363:    for (const missing of [undefined, null, '', '   ', 'abc', SHA_ABC.slice(0, 63), `${SHA_ABC}0`, 'zz'.repeat(32)]) {
+380:    const b64 = Buffer.from('abc', 'utf8').toString('base64')
+381:    expect(dataUrlToBytes(`data:application/octet-stream;base64,${b64}`)).toEqual(utf8('abc'))
+497:      { versionName: '1.0.1', packageUrl: GOOD_PACKAGE, packageSha256: 'abc', updateUrl: GOOD_PAGE },

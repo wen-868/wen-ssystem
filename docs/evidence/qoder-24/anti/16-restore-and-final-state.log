@@ -1,0 +1,73 @@
+# QODER-24 反测收尾：四轮复原后的终态自证（2026-10-21T22:47:41+08:00）
+# 判据：四轮共同靶文件 app-mobile/src/config/update-security.ts 的 worktree SHA 与 git blob SHA 都要回到注入前值；ANTI 标记 0 残留；工作树无 src/tests 改动
+
+$ git status --porcelain   # 只允许出现本卡自有文档目录（未跟踪），不得有 M app-mobile/*
+?? docs/evidence/qoder-24/
+?? "docs/tasks/cards/R101-QODER-24-\345\233\236\344\274\240.md"
+
+$ sha256sum app-mobile/src/config/update-security.ts   # worktree-crlf/lf 形态（本文件实测 LF）
+12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8 *app-mobile/src/config/update-security.ts
+$ git hash-object app-mobile/src/config/update-security.ts   # git-blob-lf 形态
+4c802a5d7ef09217bd9a688156c3eacd89531994
+$ git rev-parse HEAD:app-mobile/src/config/update-security.ts   # 提交进仓库的 blob（必须等于上一行）
+4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ sha256sum app-mobile/tests/update-security.spec.ts app-mobile/src/utils/update.ts
+39ba0f3d715dd6b7b2b0ecba8c9486eb3cdf726e0e553a443ce24d11501ce8e1 *app-mobile/tests/update-security.spec.ts
+3cd09dff73611a94d0de6768dddfc81cc67acbe36f09ec1aef7ef6dd27c13ba6 *app-mobile/src/utils/update.ts
+$ git hash-object app-mobile/tests/update-security.spec.ts app-mobile/src/utils/update.ts
+7efaaeb34700bf1b545f742172486125cf914881
+d72f042be4a47a1f95c706484a51288f20cd296c
+
+$ rg -n "QODER24-ANTI" app-mobile/src app-mobile/tests ; echo ANTI_MARKER_EXIT=$?   # 1=零残留（r3/r4 的 mutation 唯一尾标）
+ANTI_MARKER_EXIT=1
+
+$ rg -n "cmp !== 0|return true // QODER24|QODER-24-ANTI-MUTATED" app-mobile/src/config/update-security.ts ; echo MUTANT_LEAK_EXIT=$?
+23: *  ① semver：`isRemoteVersionNewer` 里 `return cmp > 0` 改成 `return cmp !== 0` ⇒ 「远端版本更低（降级）不得提示」红；
+MUTANT_LEAK_EXIT=0
+
+--- 四轮 SHA 台账（从 anti/11..15 原文回读，不得手写）---
+$ rg -n "SHA_BEFORE=|SHA_AFTER=|GIT_BLOB_SHA_BEFORE=|GIT_BLOB_SHA_AFTER=" docs/evidence/qoder-24/anti/*.log
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:4:SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:5:GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:32:SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:33:GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:4:SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:5:GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:32:SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:33:GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:4:SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:5:GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:31:SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:32:GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:4:SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:5:GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:31:SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:32:GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+docs/evidence/qoder-24/anti/13-anti-r3-digest.log:4:SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+docs/evidence/qoder-24/anti/13-anti-r3-digest.log:5:GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+--- 树外备份与注入器（协议 §四.2：备份必须在树外，避免污染 git status）---
+$ ls -1 /d/Users/ZXQL/wt-agents/_qoder24_bak/
+baseline-scope-check.cjs
+inject.cjs
+round.sh
+update-security.ts.orig
+vitest-r1-green.log
+vitest-r1-green.raw.log
+vitest-r1.log
+vitest-r1.raw.log
+vitest-r2-green.log
+vitest-r2-green.raw.log
+vitest-r2.log
+vitest-r2.raw.log
+vitest-r3-green.log
+vitest-r3-green.raw.log
+vitest-r3.log
+vitest-r3.raw.log
+vitest-r4-green.log
+vitest-r4-green.raw.log
+vitest-r4.log
+vitest-r4.raw.log
+$ sha256sum /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig   # 备份件必须与树内终态同 SHA
+12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8 */d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig

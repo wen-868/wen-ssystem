@@ -65,8 +65,8 @@ function bytesToBase64(bytes: Uint8Array): string {
     return result
 }
 
-/** base64 字符串转字节数组 */
-function base64ToBytes(b64: string): Uint8Array {
+/** base64 字符串转字节数组（QODER-24：热更新包摘要需要对下载文件的原始字节实算 SHA-256，故导出复用） */
+export function base64ToBytes(b64: string): Uint8Array {
     const clean = b64.replace(/[^A-Za-z0-9+/]/g, '')
     const len = clean.length
     const bytes: number[] = []
@@ -163,8 +163,8 @@ function rotr(x: number, n: number): number {
     return (x >>> n) | (x << (32 - n))
 }
 
-/** SHA-256 哈希（同步） */
-function sha256(data: Uint8Array): Uint8Array {
+/** SHA-256 哈希（同步）（QODER-24：导出给热更新包摘要实算复用，禁止另写一份实现） */
+export function sha256(data: Uint8Array): Uint8Array {
     const h = new Uint32Array([
         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
         0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19

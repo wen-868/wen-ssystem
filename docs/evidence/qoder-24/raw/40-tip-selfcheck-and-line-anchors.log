@@ -1,0 +1,46 @@
+# QODER-24 收尾自检①：尖端哈希 / 谱系 / 改动面实测（2026-10-21T22:44:14+08:00）
+# 纪律：引用任何哈希前先用 git rev-parse / git log 实测，不给'还不存在的东西'预写哈希
+
+$ git rev-parse --abbrev-ref HEAD
+fix/qoder-24-update-security
+
+$ git rev-parse HEAD
+622f5894f1e03f7f122706fe5d0c97b52e36d368
+
+$ git log --oneline -3
+622f5894 feat: QODER-24 热更新失败关闭——semver 严格更高、包地址同源、下载实算 SHA-256、跳转集中白名单
+bc1087ee docs: QODER-22 补哈希笔——回填 e9afb0a6/24811fa8 真实哈希 + 出厂四门复跑 raw/48（GATES_EXIT=0、11/186、error 0）
+24811fa8 docs: QODER-22 回传卡 + 回执 + 证据树（合并零冲突机械证明、pin-ssl 双范围四轮反测、storage-crypto 概率红根因探针）
+
+$ git merge-base --is-ancestor bc1087ee HEAD ; echo IS_ANCESTOR_EXIT=$?   # 0=是祖先
+IS_ANCESTOR_EXIT=0
+
+$ git diff --name-status bc1087ee..HEAD    # 实现提交的全部改动面
+M	app-mobile/scripts/gates-baseline.json
+A	app-mobile/src/config/update-security.ts
+M	app-mobile/src/utils/crypto.ts
+M	app-mobile/src/utils/update.ts
+A	app-mobile/tests/update-security.spec.ts
+
+$ git diff --numstat bc1087ee..HEAD
+3	3	app-mobile/scripts/gates-baseline.json
+495	0	app-mobile/src/config/update-security.ts
+4	4	app-mobile/src/utils/crypto.ts
+231	64	app-mobile/src/utils/update.ts
+571	0	app-mobile/tests/update-security.spec.ts
+
+$ git show --stat --oneline HEAD
+622f5894 feat: QODER-24 热更新失败关闭——semver 严格更高、包地址同源、下载实算 SHA-256、跳转集中白名单
+ app-mobile/scripts/gates-baseline.json   |   6 +-
+ app-mobile/src/config/update-security.ts | 495 +++++++++++++++++++++++++++
+ app-mobile/src/utils/crypto.ts           |   8 +-
+ app-mobile/src/utils/update.ts           | 295 ++++++++++++----
+ app-mobile/tests/update-security.spec.ts | 571 +++++++++++++++++++++++++++++++
+ 5 files changed, 1304 insertions(+), 71 deletions(-)
+
+$ git rev-list --count bc1087ee..HEAD
+1
+
+$ git status --porcelain   # 本日志生成前
+?? docs/evidence/qoder-24/
+?? "docs/tasks/cards/R101-QODER-24-\345\233\236\344\274\240.md"

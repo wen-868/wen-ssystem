@@ -1,0 +1,116 @@
+# QODER-24 收尾自检②：六项交付物的 file:line 锚点实测（2026-10-21T22:44:35+08:00）
+# 取证只用 PATH 里的 rg（rg --version 见下），永不用 npx rg（仿冒包假绿）
+$ rg --version | head -1
+ripgrep 15.0.0 (rev 3a612f88b8)
+
+===== 项① semver：只有合法且严格更高才提示 =====
+$ rg -n "SEMVER_RE|function parseSemver|function isValidSemver|function compareSemver|function isRemoteVersionNewer|return cmp > 0" app-mobile/src/config/update-security.ts
+23: *  ① semver：`isRemoteVersionNewer` 里 `return cmp > 0` 改成 `return cmp !== 0` ⇒ 「远端版本更低（降级）不得提示」红；
+42:const SEMVER_RE =
+53:export function parseSemver(input: unknown): Semver | null {
+56:  const m = SEMVER_RE.exec(s)
+67:export function isValidSemver(input: unknown): boolean {
+99:export function compareSemver(a: Semver, b: Semver): number {
+110:export function isRemoteVersionNewer(remote: unknown, current: unknown): boolean {
+115:  return cmp > 0
+
+$ rg -n "isRemoteVersionNewer|decideUpdateAction" app-mobile/src/utils/update.ts
+27:  decideUpdateAction,
+274:  const decision = decideUpdateAction(data, {
+312:      // 判据全部交给纯函数 decideUpdateAction（含版本、包地址同源、摘要、白名单四组闸）
+
+===== 项② packageUrl：https + 无 userinfo + 与运行时 API 同主机 + .wgt =====
+$ rg -n "function isStrictAsciiUrl|function parseHttpUrl|function isIpAddress|function isDomainHost|function deriveApiHost|function hardenedHttpsUrl|function validatePackageUrl|parsed.host !== apiHost|wgt|userinfo" app-mobile/src/config/update-security.ts
+5: *  - `src/utils/update.ts:42-80` 下载 `.wgt` 后直接 `plus.runtime.install(..., { force: true })`，**无任何摘要校验**；
+10: *    ⇒ 本卡按**失败关闭**落地：无合法摘要即关闭 `.wgt` 自动直装（这是本单预期结果，不是"通过"），
+24: *  ② 同源：`validatePackageUrl` 里 `if (parsed.host !== apiHost)` 短路 ⇒ 「跨主机 .wgt 必须拒装」红；
+124:  userinfo: string
+143:function isStrictAsciiUrl(s: string): boolean {
+153: * 手工解析 `scheme://[userinfo@]host[:port][/path][?query][#hash]`。
+157:export function parseHttpUrl(raw: unknown): ParsedUrl | null {
+198:  let userinfo = ''
+201:    userinfo = authority.slice(0, at)
+223:  return { protocol: `${protocol}:`, userinfo, host, port, path, query, hash }
+227:export function isIpAddress(host: string): boolean {
+234:export function isDomainHost(host: unknown): boolean {
+247:export function deriveApiHost(apiBase: unknown, runtimeOrigin = ''): string {
+268:function hardenedHttpsUrl(raw: unknown, label: string): HardenedResult {
+274:  if (parsed.userinfo !== '') {
+275:    return { parsed: null, reason: `${label} 带用户名/口令（userinfo）⇒ 拒绝` }
+292:// ====================== ② packageUrl（.wgt 直装地址） ======================
+295: * `.wgt` 包地址判据：`https:` + 无凭据 + 非 IP + 标准端口 + **主机与运行时 API 基址同源** +
+296: * 路径以 `.wgt` 结尾。任何一条不满足 ⇒ 拒装（返回原因）。
+298:export function validatePackageUrl(raw: unknown, apiBase: unknown, runtimeOrigin = ''): Verdict {
+306:  if (parsed.host !== apiHost) {
+309:  if (!parsed.path.toLowerCase().endsWith('.wgt')) {
+310:    return deny(`packageUrl 路径 ${parsed.path} 不以 .wgt 结尾 ⇒ 拒装`)
+364: *  - 摘要缺失/非 64 位 hex ⇒ 拒（后端契约未补齐时，`.wgt` 自动直装就是关的——本单预期结果）；
+429:export type UpdateActionKind = 'none' | 'wgt' | 'open-url'
+434:  /** 可执行动作：`.wgt` 直装 / 打开下载页 / 无可信动作 */
+455: * 顺序即判据：① semver 严格更高才提示；② `.wgt` 直装必须**同时**过 packageUrl 同源硬闸与合法摘要，
+476:      return decide('wgt', true, content, { packageUrl, expectedSha256: expectedSha })
+478:    // ★ 失败关闭：包地址不可信 **或** 摘要缺失/格式非法 ⇒ 一律不自动直装（后端补字段前 .wgt 通道就是关的）
+481:      : `后端未下发合法 packageSha256（缺失或非 64 位 hex）⇒ .wgt 自动直装关闭，本单预期结果；联调阻塞于后端契约`
+$ rg -n "function resolveBase|const base =|deriveApiHost" app-mobile/src/utils/update.ts
+49:function resolveBase(): string {
+
+===== 项③/④ 摘要：缺失/非 64hex/实算不一致 => 删临时文件 + 拒装 =====
+$ rg -n "SHA256_HEX_RE|function normalizeSha256Hex|function bytesToHex|function sha256HexFromBytes|function digestMatches|function dataUrlToBytes|function verifyPackageBytes" app-mobile/src/config/update-security.ts
+317:const SHA256_HEX_RE = /^[0-9a-f]{64}$/
+320:export function normalizeSha256Hex(raw: unknown): string | null {
+323:  if (!SHA256_HEX_RE.test(s)) return null
+328:export function bytesToHex(bytes: Uint8Array): string {
+335:export function sha256HexFromBytes(bytes: Uint8Array): string {
+340:export function digestMatches(expectedHex: unknown, actualHex: unknown): boolean {
+351:export function dataUrlToBytes(dataUrl: unknown): Uint8Array | null {
+368:export function verifyPackageBytes(bytes: Uint8Array | null | undefined, expectedSha256: unknown): Verdict {
+$ rg -n "packageSha256|function removeTempPackage|function readPackageBytes|function downloadAndVerify|function installVerifiedWgt|readAsDataURL|resolveLocalFileSystemURL|plus\.io\.FileReader|plus\.runtime\.install" app-mobile/src/utils/update.ts
+12: *  3. `packageSha256` **缺失 / 非 64 位 hex / 下载后实算不一致 ⇒ 删除临时文件并拒绝安装**（失败关闭）。
+16: *  4. 摘要**实算下载文件的原始字节**（`plus.io.resolveLocalFileSystemURL` + `plus.io.FileReader.readAsDataURL`
+21: *  6. 安装不再使用 force 直装：`plus.runtime.install` 的 options 改为 `{ force: false }`，
+37: * `packageSha256` 是**本卡要求后端补齐**的字段（后端当前无此字段，见文件头第 3 条）：
+46:  packageSha256?: string | null
+85:function removeTempPackage(filePath: string, done: () => void): void {
+90:    plus.io.resolveLocalFileSystemURL(
+112:function readPackageBytes(tempFilePath: string, onBytes: (bytes: Uint8Array | null) => void): void {
+117:    plus.io.resolveLocalFileSystemURL(
+122:            const reader = new plus.io.FileReader()
+127:            reader.readAsDataURL(file)
+142:function installVerifiedWgt(tempFilePath: string): void {
+146:  plus.runtime.install(
+174:function downloadAndVerify(url: string, expectedSha256: string): void {
+205:/** 提示并（在校验通过后）安装 .wgt；摘要通道在本卡之后是关闭的，除非后端已下发合法 packageSha256 */
+$ rg -n "export function base64ToBytes|export function sha256" app-mobile/src/utils/crypto.ts    # 复用既有实现，只加 export，未另写一份
+69:export function base64ToBytes(b64: string): Uint8Array {
+167:export function sha256(data: Uint8Array): Uint8Array {
+$ rg -n "force" app-mobile/src/utils/update.ts    # 必须无 force:true
+21: *  6. 安装不再使用 force 直装：`plus.runtime.install` 的 options 改为 `{ force: false }`，
+148:    // 未验包不再直装：本函数只在校验通过后被调用；force 关闭，同版本/降级包由运行时直接拒装
+149:    { force: false },
+
+===== 项⑤ updateUrl 集中白名单 =====
+$ rg -n "OFFICIAL_UPDATE_HOSTS|VITE_UPDATE_HOSTS|function updateHostAllowlist|function isAllowedUpdateHost|function validateUpdateUrl" app-mobile/src/config/update-security.ts
+18: *  3. 跳转白名单**集中在本文件**的 `OFFICIAL_UPDATE_HOSTS`（唯一配置点，页面与 update.ts 不得散落主机字面量），
+19: *     构建期可用 `VITE_UPDATE_HOSTS`（逗号分隔）追加；API 主机由运行时基址自动纳入，
+389: * 需要追加主机时只改本常量，或用构建环境变量 `VITE_UPDATE_HOSTS`（逗号分隔）注入，禁止散落到页面。
+391:const OFFICIAL_UPDATE_HOSTS: readonly string[] = ['www.onepan.cn', 'onepan.cn', 'm.onepan.cn']
+395:  const raw = (import.meta.env?.VITE_UPDATE_HOSTS as string | undefined) ?? ''
+403:export function updateHostAllowlist(apiBase: unknown, runtimeOrigin = ''): string[] {
+405:  const hosts = [...OFFICIAL_UPDATE_HOSTS, ...extraUpdateHosts()]
+411:export function isAllowedUpdateHost(host: unknown, apiBase: unknown, runtimeOrigin = ''): boolean {
+417:export function validateUpdateUrl(raw: unknown, apiBase: unknown, runtimeOrigin = ''): Verdict {
+$ rg -n "openURL|openUrl|promptOpenUrl|promptBlocked" app-mobile/src/utils/update.ts
+20: *     才允许 `plus.runtime.openURL`。
+223:function promptOpenUrl(data: LatestAppVersion, decision: UpdateDecision): void {
+235:      // decision.openUrl 已过 https + 无凭据 + 非 IP + 标准端口 + 集中白名单五道闸（update-security.ts）
+236:      if (r.confirm) plus.runtime.openURL(decision.openUrl)
+243:/** 有新版本但没有任何可信更新通道：只告知，不做任何自动动作（不 openURL、不 install） */
+244:function promptBlocked(data: LatestAppVersion): void {
+287:    promptOpenUrl(row, decision)
+290:  promptBlocked(row)
+
+===== 项⑥ 决策矩阵（版本门优先；wgt 需同时过包门+摘要有效）=====
+$ rg -n "type Verdict|function decide|function decideUpdateAction" app-mobile/src/config/update-security.ts
+31:export type Verdict = { ok: true; reason: '' } | { ok: false; reason: string }
+449:function decide(kind: UpdateActionKind, prompt: boolean, reason: string, patch?: Partial<UpdateDecision>): UpdateDecision {
+458:export function decideUpdateAction(data: unknown, ctx: UpdateDecisionContext): UpdateDecision {
