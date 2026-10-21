@@ -9,16 +9,16 @@
 
 | 判据（卡 §三） | 读数 | 出处 |
 |---|---|---|
-| `check:gates` EXIT | **0** | `raw/21`（摘要）/ `raw/21-…raw.log`（原文）/ `raw/70`（收尾复跑） |
+| `check:gates` EXIT | **0** | `raw/21-gates-full.log:21`（摘要末行 `GATES_EXIT=0`）／`raw/70-final-gates-recheck.raw.log:78`（收尾复跑 `FINAL_GATES_EXIT=0`）；原文各读数见下四行 |
 | tests | **15 文件 / 303 用例**（基线同值） | `raw/21-…raw.log:53-54`、`:58` |
 | type | **0**（基线 0） | `raw/21-…raw.log:10` |
 | lint | **error 0（基线 0）／warning 12872（基线 12872）** | `raw/21-…raw.log:17` |
 | contract | **差集 1 条，具名豁免 1 条** | `raw/21-…raw.log:69` |
 | h5 / mp-weixin / app 构建 | **三次 EXIT=0**，`DONE Build complete.` | `raw/22-build-*.raw.log`、`raw/22-builds-and-mp-warning.log` |
 | MP 保留名警告 | **0**（且有正对照可证伪） | `raw/22-builds-and-mp-warning.log:38-45` ＋ 正对照 `raw/anti/R-TAB-B.log` |
-| `git diff main..HEAD -- backend/` | **本卡 authored 0**；字面 −21 行全为继承（见 §5） | `raw/30`、`raw/71` §3 |
-| 工作树 clean | 除本证据目录外 **0 行** | `raw/50` §7、§8 |
-| 未 push / 未开 PR / 逐文件 add | 全部成立 | `raw/50` §1~§3 |
+| `git diff main..HEAD -- backend/` | **本卡 authored 0**；字面 `+21` 行全为继承（见 §5） | `raw/30`、`raw/71` §3 |
+| 工作树 clean | 文档笔之后 **0 行**（含未跟踪） | `raw/50` §7、§8（merge 时点）＋ `raw/73:6`（收尾） |
+| 未 push / 未开 PR / 逐文件 add | 三面均成立（在线 `ls-remote` 因网络未成，已登记） | `raw/50` §1~§3 ＋ `raw/73:26-40` |
 
 四笔真 merge（不 rebase、不 squash，固定序）：
 
@@ -34,7 +34,8 @@
 
 ## 2 `raw/` 索引（按取证顺序）
 
-本树共 **63 件**＝本 README ＋ `raw/` 32 ＋ `raw/anti/` 15 ＋ `tools/` 15（`git ls-files --others` 与 `find -type f` 双向对过，非估算）。
+本树件数：随第一笔文档提交（`ef9fcd50`）为 **63 件**＝本 README ＋ `raw/` 32 ＋ `raw/anti/` 15 ＋ `tools/` 15（`git ls-files --others` 与 `find -type f` 双向对过，非估算）；
+第二笔文档提交（`raw/73` 收尾态实测）后为 **64 件**。
 
 | 文件 | 内容 | 关键行 |
 |---|---|---|
@@ -53,13 +54,14 @@
 | `22-builds-and-mp-warning.log` | 三构建汇总＋**MP 撞名警告 0**＋`dist` 面枚举＋两段更正 | `:38-45`（读数）、`:49-55`（正对照更正）、`:56-62`（截断事故与恢复回证） |
 | `23-rebuild-mp-weixin.raw.log` | 收尾时重跑清洁态 mp 构建（为 §6 的 `dist` 复现铺底） | `BUILD_EXIT_mp-weixin=0`、`DONE Build complete.` |
 | `30-backend-and-scope-diff.log` | backend 零改动归因 ＋ `main..HEAD` 改动面按目录统计 | `:6-22`、`:50` |
-| `40-anti-test-ledger.log` | 反测五轮台账（四路必做＋一路加测正对照） | 表格 `:9-14`、归因唯一性 `:31-36`、出厂态复核 `:38-43` |
+| `40-anti-test-ledger.log` | 反测五轮台账（四路必做＋一路加测正对照） | 表格 `:9-14`、归因唯一性 `:30-36`、出厂态复核 `:38-45` |
 | `50-redline-selfcheck.log` | 红线八节自检 ＋ 两轮自我更正 | `:3/:11/:16`（push/PR/add）、`:117`（用例）、`:124`（非 tests 段）、`:134`（证据目录）、`:140`（clean）、`:146/:176`（更正） |
 | `51-merged-file-audit.log`／`51-audit-out.txt` | 三个双边自动合并文件相对两父的行级保全核对 | `MERGED_FILE_AUDIT=PASS` |
 | `52-authored-files.txt`／`52-authored-files.stderr.txt` | `main..HEAD` 全量文件清单（727 条＝42 代码 ＋ 685 文档）与首轮坏量具stderr | 全文 |
 | `70-final-gates-recheck.log`／`.raw.log` | **收尾复跑全量四门**（在提交文档后/最终树） | `FINAL_GATES_EXIT=` |
-| `71-main-lag-and-nontests-attribution.log` | 非 `tests` 段逐版本哈希表 ＋ main 落后度 ＋ backend −21 的钉死归因 | `:9-21`（哈希表）、`:44-56`（backend）、`:58-70`（main 落后度） |
+| `71-main-lag-and-nontests-attribution.log` | 非 `tests` 段逐版本哈希表 ＋ main 落后度 ＋ backend `+21` 的钉死归因 | `:12-24`（哈希表）、`:30-55`（逐字段）、`:56-69`（backend）、`:70-86`（main 落后度） |
 | `72-m1-measure-backfill.log` | M1 那一步的 vitest 补测（detached checkout `18cb89b0`） | 汇总行 ＋ 回枝后 `HEAD` 复核 |
+| `73-close-state.log` | 文档笔之后的收尾态（clean／源码 0 动／红线复核／交付清单总数／自指口径） | `:6` `PORCELAIN_LINES=0`、`:19` `app-mobile 改动文件数=0`、`:30` 无上游、`:44-52` 清单、`:53` `CLOSE_STATE_FINAL=clean`、`:55-61` 自指口径 |
 
 `raw/anti/` —— 五轮反测每轮三份：`R-*.log`（轮次台账）、`R-*.red.raw.log`（注入态原文失败输出）、`R-*.green.raw.log`（复原后绿）。
 `R-TAB-B.*` 是「MP 警告 0」的正对照（无 red/green 对，因为是构建路）。
@@ -118,7 +120,7 @@
   `find`/`grep -rl` 三段才与归档读数逐行一致。⇒ 教训：隔时重跑"读 dist"的命令，若不先复跑构建，会把上一次构建残留误读成当前树读数。
 - **本证据树内有一次自伤**：追加更正时把 `>>` 写成 `>`，`raw/22-builds-and-mp-warning.log` 被整文件覆盖（当时未跟踪 ⇒ git 无副本）。
   已从会话转录取回原文并三重对账（1601B＝1601B、47 行＝47 行、CRLF 0／LF 47 形态一致），
-  再**重跑该文件的生成命令**独立回证 ⇒ `IDENTICAL=true`。全过程登记在 `raw/22-builds-and-mp-warning.log:56-62`。
+  再**重跑该文件的生成命令**独立回证 ⇒ `IDENTICAL=true`。全过程登记在 `raw/22-builds-and-mp-warning.log:55-62`。
 - **M1 步缺当场 vitest 实测**（§1 表下 ⚠）⇒ 已用 detached checkout 到 `18cb89b0` 补测并登记在 `raw/72`；回枝后 `HEAD`/`porcelain` 复核原样。
 - 量具失误登记四条（详见 `raw/50` §8/§10、`raw/71` §5、`raw/anti/R-REACT.log` 更正段）：
   ① `execSync` 走 cmd.exe ⇒ `^` 被当转义符（`57ccbfe9^1` → `57ccbfe91`）、`;` 不被识别（`--is-ancestor` fatal）；
@@ -133,7 +135,8 @@ cd /d/Users/ZXQL/wt-agents/QODER-27/app-mobile
 npm run check:gates                      # 判据：type 0／error 0·warning 12872／tests 15·303／差集 1 豁免 1
 for t in h5 mp-weixin app; do npm run build:$t; done   # 三端各 EXIT=0；MP 日志 grep '专用组件|已内置|保留名' 应为 0
 cd ..
-git diff --numstat 7dda80b8..HEAD -- backend/          # 本卡 authored 面（应为 0 文件；字面 −21 见 raw/71 §3）
+git diff --numstat 7dda80b8..HEAD -- backend/          # 字面差＝21 0 backend/scripts/guard-rbac-wiring.mjs（继承面，raw/71 §3）
+git diff --numstat bc1087ee..HEAD -- backend/          # 本卡在此面上的改动＝0 文件（authored 0）
 git status --porcelain                                 # 应为空
 node docs/evidence/qoder-27/tools/verify-note-segments.cjs   # note 四段逐段验真
 node docs/evidence/qoder-27/tools/static-check.cjs           # §二.3 四项 19 条断言

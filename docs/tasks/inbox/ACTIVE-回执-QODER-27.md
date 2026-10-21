@@ -25,10 +25,12 @@ MP 保留名警告 0 且有可证伪正对照；反测 4 必做＋1 加测全红
 |---|---|---|---|
 | 1 | `git diff <main>..HEAD -- backend/` 字面不为 0 | 按 authored 判为通过（0 行）、按字面判为未通过；不自行改判据 | `raw/71` §3、`raw/30` |
 | 2 | **main 落后于 `bc1087ee`** ⇒ 合并带入 QODER-19~22 线，且 lint 基线 `errorBaseline` 由 20 收紧为 0（非 tests 段哈希四步未变，本卡手工 0 改动） | 若要求"只带四张卡"的收敛，需另开口径 | `raw/71` §1~§2、§4 |
-| 3 | MP/App 真机底栏未验（`tabBar.custom=true` 而产物不产出原生 `custom-tab-bar/` 目录） | 按红线保留给运行态卡，本单不自行处置；QODER-28 因无设备仍 BLOCKED | `raw/22:29-33,45` |
+| 3 | MP/App 真机底栏未验（`tabBar.custom=true` 而产物不产出原生 `custom-tab-bar/` 目录） | 按红线保留给运行态卡，本单不自行处置；QODER-28 因无设备仍 BLOCKED | `raw/22:29-30,47` |
 
-## 收尾自检（本笔文档提交时实测）
+## 收尾自检（文档笔之后实测，出处 `docs/evidence/qoder-27/raw/73-close-state.log`）
 
-- `git status --porcelain`（提交本笔文档后）⇒ 应为 0 行；本笔只含 `docs/**`，不含 `app-mobile/`、`backend/`、`admin/` 任何路径。
-- 本笔之后源码态未变：`git diff 167979aa..HEAD -- app-mobile` ⇒ 空（门禁与构建读数继续有效）。
-- 红线复核：未 push（分支无上游、远端无本支）、未开 PR、`git add` 全部走显式路径清单（未用 `-A`）。
+- 第一笔文档提交＝`ef9fcd50`（65 个新增文件，`git diff --name-only 167979aa..HEAD` ⇒ **非 docs 0 个**、`-- app-mobile` ⇒ **改动 0 文件**）⇒ 四门与三构建读数在交付态继续成立，无需重跑。
+- `git status --porcelain` ⇒ **0 行**（含未跟踪面）⇒ 卡 §三「工作树 clean」在文档笔之后成立。
+- 红线：`@{u}` 报 `no upstream configured`、`refs/remotes` 下无本支、`origin/main` 指针未前进 ⇒ **未 push**；本会话未调用任何 `git push`／`gh pr` ⇒ **未开 PR**；`git add` 全部走显式路径清单（`git ls-files --others -z | xargs -0 -n1 git add --`）⇒ **未用 `-A`**。
+  ⚠ 如实登记：想做的在线复核 `git ls-remote` 因网络 `Connection was reset` 未成 ⇒ 远端实况本时点无法在线证伪，待有网时由有权限方复核。
+- 第二笔文档提交（`raw/73` 收尾态）后证据树为 64 件；`README.md` §2 已同步。
