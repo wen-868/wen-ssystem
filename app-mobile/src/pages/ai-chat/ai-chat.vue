@@ -58,6 +58,7 @@
                 <view v-if="msg.streaming && !msg.content" class="typing">
                   <view class="typing-dot" v-for="n in 3" :key="n"></view>
                 </view>
+                                <view v-if="msg.streaming" class="ai-stop-btn" @tap="stopGeneration"><text class="ai-stop-btn-text">■ 停止生成</text></view>
                 <view
                   v-if="!msg.streaming && msg.content && !msg.preview"
                   class="ai-speak-btn"
@@ -204,19 +205,22 @@
         </scroll-view>
       </view>
     </view>
+        <app-tab-bar :current="'ai'" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, reactive, computed, onUnmounted } from 'vue'
 import {
   aiApi,
   type AiModelOption,
   type AiToolPreview,
   type AiChatToolResultEvent,
-  type AiChatParams
+  type AiChatParams,
+  type AiChatControls
 } from '@/api/modules/ai'
 import { voiceTts } from '@/api/modules/ai'
+import AppTabBar from '@/components/app-tab-bar.vue'
 
 /** 对话消息 */
 interface ChatMessage {
@@ -249,7 +253,21 @@ const voiceMode = ref(false)
 const models = ref<AiModelOption[]>([])
 const selectedModel = ref('')
 let messageSeq = 0
+// ====================== 按端的中止状态（QODER-25） ======================
+// AbortController 是 Web 平台 API，本项目里只有 H5 的 fetch 流真正消费它的 signal；
+// 小程序 / App 走 uni.request，可中止的是它返回的 RequestTask。原先无条件
+// `new AbortController()` 会让这两端持有一个永不生效的控制器 —— UI 显示「已停止」
+// 而请求仍在跑。现按端各存各的，条件编译即真实平台边界。
+// #ifdef H5
+/** H5：fetch 流式请求的中止控制器（仅本端 fetch 支持 signal） */
 let abortController: AbortController | null = null
+// #endif
+// #ifndef H5
+/** 小程序 / App：uni.request 的 RequestTask 取消入口；null 表示本端确实无法中止 */
+let cancelLegacyRequest: (() => void) | null | undefined = undefined
+// #endif
+/** 本次流是否由用户点「停止生成」中止（用于给出确定的收尾文案） */
+let stoppedByUser = false
 
 // ====================== 多会话（本地会话管理，跨端仅本机） ======================
 interface LocalConversation {
@@ -401,25 +419,58 @@ function onVoiceOrSend() {
 /** 拍照/相册：选择图片 → 转 base64 dataURL → 随消息发送给后端视觉模型 */
 function fileToDataUrl(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
+    // 三端各走各的读取 API（QODER-25：原实现用 #ifndef H5 把 App 一并归进小程序分支，
+    // 但 uni.getFileSystemManager 是小程序专属，App 端 undefined → 附件读取直接抛 TypeError）。
+    const onFail = () => reject(new Error('读取图片失败'))
     // #ifdef H5
     fetch(filePath)
       .then((r) => r.blob())
       .then((blob) => {
         const fr = new FileReader()
         fr.onload = () => resolve(String(fr.result || ''))
-        fr.onerror = () => reject(new Error('读取图片失败'))
+        fr.onerror = onFail
         fr.readAsDataURL(blob)
       })
-      .catch(() => reject(new Error('读取图片失败')))
+      .catch(onFail)
     // #endif
-    // #ifndef H5
+    // #ifdef MP-WEIXIN
+    // 小程序：FileSystemManager 读临时文件为 base64
     const fs = uni.getFileSystemManager()
     fs.readFile({
       filePath,
       encoding: 'base64',
       success: (res: any) => resolve(`data:image/jpeg;base64,${res.data}`),
-      fail: () => reject(new Error('读取图片失败'))
+      fail: onFail
     })
+    // #endif
+    // #ifdef APP-PLUS
+    // App：plus.io 把 uni.chooseImage 的临时路径解析为文件对象再读成 dataURL；
+    // 本分支不得出现 uni.getFileSystemManager / wx.env（那两者是小程序专属 API）
+    ;(() => {
+      // plus.io.FileReader 的事件对象上 result 挂在 target 上，官方类型未覆盖该形状 ⇒ 取 any
+      const readAsDataUrl = (source: any) => {
+        const reader: any = new plus.io.FileReader()
+        reader.onloadend = (e: any) => {
+          const url = String(e?.target?.result || '')
+          if (url) resolve(url)
+          else onFail()
+        }
+        reader.onerror = onFail
+        reader.readAsDataURL(source)
+      }
+      // resolveLocalFileSystemURL 失败时兜底：部分机型 tempFilePath 已是可直读路径
+      const failToNative = () => readAsDataUrl(filePath)
+      plus.io.resolveLocalFileSystemURL(
+        filePath,
+        (entry: any) => {
+          entry.file(
+            (file: any) => readAsDataUrl(file),
+            failToNative
+          )
+        },
+        failToNative
+      )
+    })()
     // #endif
   })
 }
@@ -482,7 +533,9 @@ loadConversations()
 
 // 手机键盘高度（输入栏 fixed 定位时动态上移，避免被键盘遮挡）
 const keyboardHeight = ref(0)
-const footerBaseBottomPx = uni.upx2px(20)
+// 输入栏基准下移量：本页挂了自绘 tabBar（胶囊底栏 bottom 20rpx + 高 128rpx），
+// 输入栏须抬到它上方，否则两者叠在一起看不出有几层（QODER-25）
+const footerBaseBottomPx = uni.upx2px(160)
 const footerBottomStyle = computed(() => ({
   bottom: `calc(${keyboardHeight.value + footerBaseBottomPx}px + env(safe-area-inset-bottom))`,
 }))
@@ -527,31 +580,75 @@ function quickSend(text: string) {
   sendMessage()
 }
 
+/**
+ * 停止当前进行中的流式请求：按端调用本端真实可用的中止入口。
+ * 返回 false 表示本端此刻拿不到可中止的句柄（调用方必须显式告知用户，不得只改 UI）。
+ */
+function abortActiveRequest(): boolean {
+  // 默认未中止，再由条件编译用本端实现覆盖（并列 if，不用双 return，避免不可达分支）
+  let aborted = false
+  // #ifdef H5
+  if (abortController) {
+    abortController.abort()
+    abortController = null
+    aborted = true
+  }
+  // #endif
+  // #ifndef H5
+  if (cancelLegacyRequest) {
+    cancelLegacyRequest()
+    cancelLegacyRequest = undefined
+    aborted = true
+  }
+  // #endif
+  return aborted
+}
+
+/** 「停止生成」入口：真实中止底层请求；本端无法中止时明确提示而不是假装已停 */
+function stopGeneration() {
+  if (abortActiveRequest()) {
+    stoppedByUser = true
+  } else {
+    uni.showToast({ title: '本端暂无法中止该请求，请稍候', icon: 'none' })
+  }
+}
+
 /** 发送消息：追加用户消息 → 创建 AI 流式消息 → 发起 SSE 对话 */
 async function sendMessage() {
   const text = inputText.value.trim()
   if (!text || sending.value) return
 
-  // 停止上一次未完成的流式请求
-  if (abortController) {
-    abortController.abort()
-    abortController = null
-  }
+  // 停止上一次未完成的流式请求（按端走本端中止入口）
+  abortActiveRequest()
+  stoppedByUser = false
 
   inputText.value = ''
   messages.value.push({ id: nextId(), role: 'user', content: text })
   const imagePayload = attachmentImage.value || undefined
   attachmentImage.value = ''
 
-  const aiMsg: ChatMessage = {
+  // ★ 响应式收口（QODER-25F1）：流式消息必须**先**进入 Vue 响应式代理，再进 ref 数组。
+  //   旧写法是带类型标注的裸对象字面量（aiMsg 声明为 ChatMessage 的普通对象），它被 push
+  //   进 messages.value 后数组里存的仍是原始对象：
+  //   ref 数组内部存的是原始对象，onText/onDone/finally 继续写的又是这个**没进过代理的
+  //   原始对象**，不触发任何依赖 ⇒ 数据对、DOM 不动，只有重新挂载才显示（本卡点名缺陷）。
+  //   reactive() 与数组下标读取共用同一份 proxy 缓存（Vue 的 reactiveMap），
+  //   所以 aiMsg 与 messages.value[idx] 是同一个代理身份 ⇒ 下面所有回调写入都是代理写入，
+  //   模板 v-for（:key="msg.id" 全程不变，不靠强制重挂载）当场重渲染。
+  const aiMsg = reactive<ChatMessage>({
     id: nextId(),
     role: 'ai',
     content: '',
     streaming: true
-  }
+  })
   messages.value.push(aiMsg)
   sending.value = true
+  // #ifdef H5
   abortController = new AbortController()
+  // #endif
+  // #ifndef H5
+  cancelLegacyRequest = undefined
+  // #endif
 
   // 显式标注 AiChatParams：三元两个分支的对象字面量在联合推导时会把 scope: 'mgmt'
   // 拓宽为 string，与 AiChatParams.scope（'mgmt'|'platform'）不兼容（TS2345）
@@ -569,6 +666,19 @@ async function sendMessage() {
         ...(selectedModel.value ? { model: selectedModel.value } : {}),
         ...(imagePayload ? { image: imagePayload } : {})
       }
+
+  // 按端装配中止通道：H5 才创建 AbortController 并把 signal 交给 fetch；
+  // 小程序 / App 的 uni.request 不认 AbortSignal，改用 RequestTask.abort() 的注册回调，
+  // 保证「停止生成」真的能把底层请求掐掉（QODER-25）。
+  const controls: AiChatControls = {}
+  // #ifdef H5
+  controls.signal = abortController.signal
+  // #endif
+  // #ifndef H5
+  controls.registerCancel = (cancel) => {
+    cancelLegacyRequest = cancel
+  }
+  // #endif
 
   try {
     await aiApi.streamChat(
@@ -596,7 +706,7 @@ async function sendMessage() {
           aiMsg.toolSuccess = false
         }
       },
-      abortController.signal
+      controls
     )
   } catch (err) {
     // 主动中止流不视为错误
@@ -608,10 +718,21 @@ async function sendMessage() {
       aiMsg.toolSuccess = false
     }
   } finally {
+    // 用户点「停止生成」后本端拿不到任何增量文本（小程序 / App 走一次性 uni.request，
+    // 取消即整段丢失），必须留下确定文案，不能停在一个空气泡上
+    if (stoppedByUser && !aiMsg.content) {
+      aiMsg.content = '已停止生成'
+    }
+    stoppedByUser = false
     aiMsg.streaming = false
     aiMsg.currentTool = ''
     sending.value = false
+    // #ifdef H5
     abortController = null
+    // #endif
+    // #ifndef H5
+    cancelLegacyRequest = undefined
+    // #endif
     snapshotActiveConversation()
     persistConversations()
   }
@@ -754,8 +875,9 @@ function formatDetailItem(item: unknown): string {
 
 /**
  * 语音播报（输出·说）：
- * 1) 后端 TTS（微软 Edge TTS，统一音质，mp3 base64）→ H5 data URL 播放 / App 写临时文件播放
- * 2) 失败降级：H5 speechSynthesis / APP plus.speech.startSpeak（系统 TTS）
+ * 1) 后端 TTS（微软 Edge TTS，统一音质，mp3 base64）→ H5 data URL 播放 / 小程序写临时文件播放 / App 用 plus.io 写临时文件播放
+ * 2) 失败降级：H5 speechSynthesis ／ APP plus.speech.startSpeak（系统 TTS）；
+ *    小程序两端能力都没有 ⇒ 兜底改为明确提示，不再调用无本端分支的空函数（QODER-25）
  */
 let speakingAudio: any = null
 
@@ -791,10 +913,10 @@ async function speakText(text: string) {
           inner.onEnded(() => inner.destroy())
           inner.onError(() => {
             inner.destroy()
-            speakSystem(clean)
+            notifyMpSpeakUnsupported()
           })
         },
-        fail: () => speakSystem(clean)
+        fail: () => notifyMpSpeakUnsupported()
       })
       // #endif
       // #ifdef APP-PLUS
@@ -828,12 +950,23 @@ async function speakText(text: string) {
       // #endif
       return
     }
-  } catch { /* 降级 */ }
+  } catch { /* 后端 TTS 不可用 ⇒ 转本端兜底 */ }
 
+  // 2. 后端 TTS 不可用时的兜底：逐端显式列出该端真实可用的能力。
+  //    小程序既没有 window.speechSynthesis 也没有 plus.speech，原先落到这里等于
+  //    调用一个对本端零分支的空函数（静默无反应）。现改为该端的确定行为：明确告知不支持。
+  // #ifdef H5
   speakSystem(clean)
+  // #endif
+  // #ifdef APP-PLUS
+  speakSystem(clean)
+  // #endif
+  // #ifdef MP-WEIXIN
+  notifyMpSpeakUnsupported()
+  // #endif
 }
 
-/** 系统级 TTS 兜底（H5 浏览器 / APP 原生语音） */
+/** 系统级 TTS 兜底。★ 仅 H5（speechSynthesis）与 APP-PLUS（plus.speech）有实现；小程序无此能力，不得在 MP 分支调用 */
 function speakSystem(text: string) {
   // #ifdef H5
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -854,6 +987,18 @@ function speakSystem(text: string) {
   } catch { /* 忽略 */ }
   // #endif
 }
+
+// #ifdef MP-WEIXIN
+/**
+ * 小程序端播报不可用的确定行为（QODER-25）。
+ * wx 没有系统语音合成 API（getFileSystemManager / createInnerAudioContext 只能播已有音频文件，
+ * 不能把任意文本读出来），所以后端 TTS 失败/写文件失败/播放失败时，
+ * 必须显式告知用户"这一端此刻播不出来"，而不是落到 speakSystem 那种对本端零分支的空函数。
+ */
+function notifyMpSpeakUnsupported() {
+  uni.showToast({ title: '小程序暂不支持系统语音播报', icon: 'none' })
+}
+// #endif
 
 function stopSpeak() {
   if (speakingAudio) {
@@ -1070,10 +1215,7 @@ onUnmounted(() => {
     clearInterval(recordingTimer)
     recordingTimer = null
   }
-  if (abortController) {
-    abortController.abort()
-    abortController = null
-  }
+  // 录音释放（放在中止之前：紧随其后的裸调用会被 ASI 接成 `abortActiveRequest()(...)`）
   (() => {
     // #ifdef H5
     if (h5Recorder && h5Recorder.state !== 'inactive') {
@@ -1088,6 +1230,8 @@ onUnmounted(() => {
     }
     // #endif
   })()
+  // 离开页面即掐掉进行中的请求：按端走本端中止入口（H5 AbortController ／ 小程序与 App RequestTask）
+  abortActiveRequest()
 })
 </script>
 
@@ -1196,6 +1340,21 @@ onUnmounted(() => {
   color: $uni-color-primary;
 }
 
+/* 停止生成（QODER-25：按端真实中止的入口，流式期间才出现） */
+.ai-stop-btn {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: 12rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: $zx-black-60;
+}
+.ai-stop-btn-text {
+  font-size: 22rpx;
+  color: $uni-gray-600;
+}
+
 /* ====================== 快捷指令 ====================== */
 .ai-quick-tags {
   white-space: nowrap;
@@ -1233,7 +1392,7 @@ onUnmounted(() => {
   flex: 1;
   overflow: hidden;
   padding-top: calc(120rpx + var(--safe-top));
-  padding-bottom: calc(170rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(300rpx + env(safe-area-inset-bottom));
 }
 
 .chat-list {
@@ -1558,7 +1717,12 @@ onUnmounted(() => {
   z-index: 20;
 }
 
-/* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
+/* 自定义 tabBar 占位：由 script 侧 footerBaseBottomPx（= 胶囊底栏 20rpx + 128rpx + 12rpx 间隙）
+   把输入栏整体抬到自绘栏上方；本页不再叠放第二条原生栏（components/app-tab-bar.vue 与
+   App.vue 在「非 MP-WEIXIN」端统一 uni.hideTabBar 隐藏原生栏）。
+   ★ 模板里新增的 app-tab-bar 与 ai-stop-btn 两行按 vue/html-indent 的**配置值 4** 缩进：
+   本文件存量全是 2 空格/级，属 QODER-1 冻结在 gates-baseline.json 的 12299 条 warning；
+   按 2 空格写会让 lint 门 warning 计数超冻结基线而红，按协议「lint 劣化必须改代码」取规则口径。 */
 
 .input-bar {
   display: flex;

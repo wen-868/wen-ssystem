@@ -1,0 +1,41 @@
+# 32 mp-weixin warning count + artifact residue verify (reads raw/31 build log) 2026-10-21T17:52:45Z
+$ git rev-parse HEAD
+286d071b568f754e291ef2d9b40240bcf82cebde
+--- (a) name-conflict warning occurrences in build log ---
+$ grep -c 'H5 平台专用组件' docs/evidence/qoder-25f1/raw/31-build-mp-weixin.log
+0
+GREP_EXIT=1  (grep -c prints 0 and exits 1 when no line matches)
+--- (b) any custom-tab-bar string anywhere in build log ---
+$ grep -c 'custom-tab-bar' docs/evidence/qoder-25f1/raw/31-build-mp-weixin.log
+0
+GREP_EXIT=1
+--- (c) dist residue: components/custom-tab-bar.* ---
+$ find app-mobile/dist/build/mp-weixin -name 'custom-tab-bar*' | wc -l
+0
+$ find app-mobile/dist/build/mp-weixin -name 'custom-tab-bar*' -print
+(empty above = 0 hits)
+--- (d) dist now ships components/app-tab-bar.* ---
+$ find app-mobile/dist/build/mp-weixin -name 'app-tab-bar*'
+app-mobile/dist/build/mp-weixin/components/app-tab-bar.js
+app-mobile/dist/build/mp-weixin/components/app-tab-bar.json
+app-mobile/dist/build/mp-weixin/components/app-tab-bar.wxml
+app-mobile/dist/build/mp-weixin/components/app-tab-bar.wxss
+--- (e) app.json tabBar.custom landed value ---
+tabBar.custom = true
+tabBar.list.length = 5
+tabBar.list pagePaths = pages/home/home,pages/products/products,pages/ai-chat/ai-chat,pages/functions/functions,pages/profile/profile
+--- (f) root-level native custom-tab-bar dir in output? ---
+$ ls -d app-mobile/dist/build/mp-weixin/custom-tab-bar
+ls: cannot access 'app-mobile/dist/build/mp-weixin/custom-tab-bar': No such file or directory
+LS_EXIT=2
+--- (g) page wxml mounts the renamed component ---
+$ grep -l app-tab-bar app-mobile/dist/build/mp-weixin/pages/*/*.wxml
+app-mobile/dist/build/mp-weixin/pages/ai-chat/ai-chat.wxml
+app-mobile/dist/build/mp-weixin/pages/functions/functions.wxml
+app-mobile/dist/build/mp-weixin/pages/home/home.wxml
+app-mobile/dist/build/mp-weixin/pages/products/products.wxml
+app-mobile/dist/build/mp-weixin/pages/profile/profile.wxml
+--- (h) any wxml still referencing custom-tab-bar ---
+$ grep -rl custom-tab-bar app-mobile/dist/build/mp-weixin || echo NONE
+app-mobile/dist/build/mp-weixin/components/app-tab-bar.wxml
+app-mobile/dist/build/mp-weixin/components/app-tab-bar.wxss

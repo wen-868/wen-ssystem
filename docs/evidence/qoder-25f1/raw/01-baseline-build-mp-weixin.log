@@ -1,0 +1,17 @@
+# 01 baseline mp-weixin build (reproduce name-conflict warning BEFORE fix) 2026-10-21T17:13:47Z
+$ git rev-parse HEAD
+286d071b568f754e291ef2d9b40240bcf82cebde
+$ npm --workspace app-mobile run build:mp-weixin 2>&1; echo BUILD_EXIT=$?
+
+> zhixiang-app-mobile@1.0.0 build:mp-weixin
+> uni build -p mp-weixin
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+​[uni-app] 组件 <custom-tab-bar> 是 H5 平台专用组件，在 mp-weixin 平台使用可能导致错误。如果你要引入自定义 tabBar 可重命名为其他名称。​
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import [36mdist\build\mp-weixin[39m run.
+BUILD_EXIT=0

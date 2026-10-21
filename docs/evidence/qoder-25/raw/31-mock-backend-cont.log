@@ -1,0 +1,101 @@
+[2026-10-21T14:55:41.778Z] MOCK AI BACKEND START port=8199 state={"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:55:41.910Z] LISTENING 8199
+[2026-10-21T14:56:19.281Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T14:59:27.193Z] CONTROL GET state={"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:59:27.441Z] CONTROL POST patch={"chat":{"intervalMs":300,"events":200}} -> state={"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T14:59:28.106Z] CONTROL GET state={"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T15:00:04.204Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+[2026-10-21T15:00:37.790Z] POST /api/store/auth/login -> 200 token
+[2026-10-21T15:00:43.967Z] GET /api/store/dashboard -> FALLBACK 200 empty
+[2026-10-21T15:00:43.977Z] GET /api/admin/dashboard/todos -> FALLBACK 200 empty
+[2026-10-21T15:00:44.012Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 200 empty
+[2026-10-21T15:00:44.032Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 200 empty
+[2026-10-21T15:00:44.054Z] GET /api/admin/notifications/unread-count -> FALLBACK 200 empty
+[2026-10-21T15:00:44.056Z] GET /api/admin/reports/business-overview -> FALLBACK 200 empty
+[2026-10-21T15:00:44.073Z] GET /api/admin/inventory-alerts -> FALLBACK 200 empty
+[2026-10-21T15:00:51.821Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+[2026-10-21T15:00:51.832Z] GET /api/admin/auth/me -> 200
+[2026-10-21T15:00:53.012Z] GET /api/store/dashboard -> FALLBACK 200 empty
+[2026-10-21T15:00:53.035Z] GET /api/admin/dashboard/todos -> FALLBACK 200 empty
+[2026-10-21T15:00:53.042Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 200 empty
+[2026-10-21T15:00:53.045Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 200 empty
+[2026-10-21T15:00:53.054Z] GET /api/admin/notifications/unread-count -> FALLBACK 200 empty
+[2026-10-21T15:00:53.061Z] GET /api/admin/reports/business-overview -> FALLBACK 200 empty
+[2026-10-21T15:00:53.073Z] GET /api/admin/inventory-alerts -> FALLBACK 200 empty
+[2026-10-21T15:00:57.835Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+[2026-10-21T15:00:57.836Z] GET /api/admin/auth/me -> 200
+[2026-10-21T15:00:58.214Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T15:01:01.527Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+[2026-10-21T15:01:01.529Z] GET /api/admin/auth/me -> 200
+[2026-10-21T15:01:01.862Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T15:01:07.236Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+[2026-10-21T15:01:07.239Z] GET /api/admin/auth/me -> 200
+[2026-10-21T15:01:07.596Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T15:02:05.484Z] POST /api/chat -> SSE stream interval=300ms events=200
+[2026-10-21T15:02:08.602Z] SSE sent 10/200
+[2026-10-21T15:02:11.679Z] SSE sent 20/200
+[2026-10-21T15:02:14.739Z] SSE sent 30/200
+[2026-10-21T15:02:17.781Z] SSE sent 40/200
+[2026-10-21T15:02:20.867Z] SSE sent 50/200
+[2026-10-21T15:02:23.951Z] SSE sent 60/200
+[2026-10-21T15:02:27.074Z] SSE sent 70/200
+[2026-10-21T15:02:30.253Z] SSE sent 80/200
+[2026-10-21T15:02:33.347Z] SSE sent 90/200
+[2026-10-21T15:02:36.423Z] SSE sent 100/200
+[2026-10-21T15:02:39.535Z] SSE sent 110/200
+[2026-10-21T15:02:42.598Z] SSE sent 120/200
+[2026-10-21T15:02:45.663Z] SSE sent 130/200
+[2026-10-21T15:02:48.798Z] SSE sent 140/200
+[2026-10-21T15:02:51.843Z] SSE sent 150/200
+[2026-10-21T15:02:54.969Z] SSE sent 160/200
+[2026-10-21T15:02:58.055Z] SSE sent 170/200
+[2026-10-21T15:03:01.137Z] SSE sent 180/200
+[2026-10-21T15:03:04.238Z] SSE sent 190/200
+[2026-10-21T15:03:07.343Z] SSE sent 200/200
+[2026-10-21T15:03:07.646Z] SSE DONE after 200 events (client stayed until the end)
+[2026-10-21T15:03:07.649Z] SSE CLIENT CLOSE after 201 events (remaining 0 events NOT sent)
+[2026-10-21T15:04:54.967Z] POST /api/chat -> SSE stream interval=300ms events=200
+[2026-10-21T15:04:58.021Z] SSE sent 10/200
+[2026-10-21T15:05:00.998Z] SSE CLIENT CLOSE after 19 events (remaining 181 events NOT sent)
+[2026-10-21T15:06:04.307Z] POST /api/chat -> SSE stream interval=300ms events=200
+[2026-10-21T15:06:07.357Z] SSE sent 10/200
+[2026-10-21T15:06:10.409Z] SSE sent 20/200
+[2026-10-21T15:06:13.480Z] SSE sent 30/200
+[2026-10-21T15:06:16.646Z] SSE sent 40/200
+[2026-10-21T15:06:19.914Z] SSE sent 50/200
+[2026-10-21T15:06:22.983Z] SSE sent 60/200
+[2026-10-21T15:06:26.087Z] SSE sent 70/200
+[2026-10-21T15:06:29.286Z] SSE sent 80/200
+[2026-10-21T15:06:32.341Z] SSE sent 90/200
+[2026-10-21T15:06:35.469Z] SSE sent 100/200
+[2026-10-21T15:06:38.565Z] SSE sent 110/200
+[2026-10-21T15:06:41.652Z] SSE sent 120/200
+[2026-10-21T15:06:44.744Z] SSE sent 130/200
+[2026-10-21T15:06:47.878Z] SSE sent 140/200
+[2026-10-21T15:06:50.936Z] SSE sent 150/200
+[2026-10-21T15:06:54.007Z] SSE sent 160/200
+[2026-10-21T15:06:57.115Z] SSE sent 170/200
+[2026-10-21T15:06:58.067Z] POST /api/chat -> SSE stream interval=300ms events=200
+[2026-10-21T15:07:00.181Z] SSE sent 180/200
+[2026-10-21T15:07:01.166Z] SSE sent 10/200
+[2026-10-21T15:07:03.278Z] SSE sent 190/200
+[2026-10-21T15:07:03.280Z] SSE CLIENT CLOSE after 16 events (remaining 184 events NOT sent)
+[2026-10-21T15:07:06.368Z] SSE sent 200/200
+[2026-10-21T15:07:06.691Z] SSE DONE after 200 events (client stayed until the end)
+[2026-10-21T15:07:06.694Z] SSE CLIENT CLOSE after 201 events (remaining 0 events NOT sent)
+[2026-10-21T15:07:12.869Z] GET /api/store/dashboard -> FALLBACK 200 empty
+[2026-10-21T15:07:12.877Z] GET /api/admin/dashboard/todos -> FALLBACK 200 empty
+[2026-10-21T15:07:12.879Z] GET /api/admin/dashboard/sales-trend-daily?days=7 -> FALLBACK 200 empty
+[2026-10-21T15:07:12.881Z] GET /api/admin/orders?page=1&pageSize=4 -> FALLBACK 200 empty
+[2026-10-21T15:07:12.883Z] GET /api/admin/notifications/unread-count -> FALLBACK 200 empty
+[2026-10-21T15:07:12.888Z] GET /api/admin/reports/business-overview -> FALLBACK 200 empty
+[2026-10-21T15:07:12.932Z] GET /api/admin/inventory-alerts -> FALLBACK 200 empty
+[2026-10-21T15:10:03.460Z] CONTROL GET state={"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T15:10:22.109Z] CONTROL GET state={"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+[2026-10-21T15:10:59.374Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+[2026-10-21T15:10:59.384Z] GET /api/admin/auth/me -> 200
+[2026-10-21T15:10:59.715Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T15:11:05.677Z] GET /api/app/version/app_mobile -> FALLBACK 200 empty
+[2026-10-21T15:11:05.679Z] GET /api/admin/auth/me -> 200
+[2026-10-21T15:11:06.352Z] GET /api/chat/models -> 200 models=2
+[2026-10-21T15:17:21.824Z] GET / -> FALLBACK 200 empty

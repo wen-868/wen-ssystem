@@ -1,0 +1,59 @@
+# 负责人自有 H5 装置 teardown 与量具更正 2026-10-22 04:33~04:38（Qoder 亲跑）
+
+## 一、测量装置失效与更正（负责人口径更正，影响既往"端口归零"类读数）
+
+本轮先跑 `Get-NetTCPConnection -State Listen` 与 `netstat -ano | grep LISTENING`，两者都报
+`PORT=5499 LISTEN_COUNT=0 / PORT=8488 LISTEN_COUNT=0`；**同一时刻** `curl` 明确拿到 200：
+
+```
+DEV5499_HTTP=200
+MOCK8488_HTTP=200
+```
+
+再用 netstat 原始行核对，发现监听确实存在、只是形态被设备漏掉：
+
+```
+$ netstat -ano | grep -a 5499
+  TCP    [::1]:5499    [::1]:17370   ESTABLISHED   7256
+  TCP    [::1]:17370   [::1]:5499    ESTABLISHED   16420
+  TCP    [::1]:22222   [::1]:5499    TIME_WAIT     0
+$ netstat -ano | grep -a 8488
+  TCP    [::1]:22223   [::1]:8488    TIME_WAIT     0
+```
+
+⇒ 本机 vite/uni dev server 绑 **IPv6 环回 `[::1]`**，`netstat` 的 LISTENING 表里不出现这些端口行，
+`Get-NetTCPConnection -State Listen -LocalPort <pt>` 也间歇漏报（同一命令早先能报出 8488、稍后报 0）。
+**结论：这两个设备对"端口是否有人监听"不可信，会出现假 0。**
+既往各卡（含 QODER-26F1 raw/20、执行方 raw/56b/59）凡以"LISTEN_COUNT=0"作"端口已空"的正面证据，
+都必须理解为**该设备下的读数**，不能单独作为"无监听"的结论；本卡起改用 `curl` 可达性作为主设备：
+`curl_rc=7 / http_code=000` = 连接被拒 = 无人监听（正面、可证伪）。
+
+负责人口径更正：我在 QODER-26F1 与本轮 brief 里沿用过的"端口归零"读数属同一家族的可疑读数，
+现已统一改用 curl 复验；原始日志不改写，只在此另立更正段。
+
+## 二、teardown（逐个先核 CommandLine 再杀，禁止盲杀）
+
+```
+PID=21772 PPID=13552 CMD="C:\Program Files\nodejs\node.exe" "…npm-cli.js" --workspace app-mobile run dev:h5 -- --port 5499
+PID=7256  PPID=18536 CMD="node" "D:\Users\ZXQL\wt-agents\QODER-25F1\node_modules\.bin\..\@dcloudio\vite-plugin-uni\bin\uni.js" --port 5499
+PID=21200 PPID=2584  CMD="C:\Program Files\nodejs\node.exe" docs/evidence/qoder-25f1/mock-ai-backend-f1.mjs
+```
+三者命令行均含本卡工作树/本卡 mock 路径 ⇒ 确属负责人本次起的装置。
+
+```
+$ taskkill /PID 21772 /F /T   SUCCESS: … PID 9264 (child of 20364) terminated
+$ taskkill /PID 7256  /F /T   SUCCESS: … PID 13404 (child of 7256) terminated；ERROR: The process "7256" not found（已随父树终止）
+$ taskkill /PID 21200 /F /T   SUCCESS: … PID 21200 (child of 2584) terminated
+```
+
+## 三、curl 复验（主设备，期望全部连接被拒）
+
+```
+PORT_5499: http_code=000 curl_rc=7
+PORT_8488: http_code=000 curl_rc=7
+PORT_5399: http_code=000 curl_rc=7
+PORT_5173: http_code=000 curl_rc=7
+PORT_5174: http_code=000 curl_rc=7
+PORT_8388: http_code=000 curl_rc=7
+```
+⇒ 六个端口全部无监听（含执行方用过的 5399 与批次保留端口）。

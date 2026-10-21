@@ -1,0 +1,15 @@
+# 35 three-build EXIT + name-conflict warning ledger (reads raw/31,33,34) 2026-10-21T17:59:44Z
+--- EXIT lines recorded inside each build log ---
+docs/evidence/qoder-25f1/raw/31-build-mp-weixin.log:18:BUILD_EXIT_MP_WEIXIN=0
+docs/evidence/qoder-25f1/raw/33-build-h5.log:19:BUILD_EXIT_H5=0
+docs/evidence/qoder-25f1/raw/34-build-app.log:19:BUILD_EXIT_APP=0
+--- name-conflict warning occurrence count per build log ---
+31-build-mp-weixin.log -> H5 平台专用组件 hits = 0
+33-build-h5.log -> H5 平台专用组件 hits = 0
+34-build-app.log -> H5 平台专用组件 hits = 0
+--- same for the old tag literal ---
+31-build-mp-weixin.log -> custom-tab-bar hits = 0
+33-build-h5.log -> custom-tab-bar hits = 0
+34-build-app.log -> custom-tab-bar hits = 0
+--- baseline (raw/01) for contrast ---
+01-baseline-build-mp-weixin.log -> H5 平台专用组件 hits = 1

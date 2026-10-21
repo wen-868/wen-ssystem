@@ -1,0 +1,83 @@
+# 反测①：注回裸对象写法（去掉 reactive 代理，回调写回未进代理的原始对象）2026-10-22T02:26:01+08:00
+$ pwd
+/d/Users/ZXQL/wt-agents/QODER-25F1
+$ git rev-parse HEAD
+d68e43e9e6a4b02b047c860f70c0367a0005e7a5
+$ git status --porcelain
+?? docs/evidence/qoder-25f1/
+$ cp app-mobile/src/pages/ai-chat/ai-chat.vue /d/Users/ZXQL/wt-agents/_qoder25f1_bak/round1-ai-chat.vue.orig
+cp ok -> /d/Users/ZXQL/wt-agents/_qoder25f1_bak/round1-ai-chat.vue.orig
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue
+SHA_BEFORE=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a   (工作区为 CRLF，此哈希是 CRLF 形态)
+$ node docs/evidence/qoder-25f1/anti/inject-01-raw-proxy.cjs app-mobile/src/pages/ai-chat/ai-chat.vue
+[inject-01] OK hits=1 :: "const aiMsg = reactive<ChatMessage>({" -> "const aiMsg: ChatMessage = {"
+INJECT_EXIT=0
+$ grep -n 'const aiMsg' app-mobile/src/pages/ai-chat/ai-chat.vue  （注入后回读，证明真的落进去了）
+638:  const aiMsg: ChatMessage = {
+$ grep -n 'messages.value.push(aiMsg)' app-mobile/src/pages/ai-chat/ai-chat.vue
+644:  messages.value.push(aiMsg)
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue  （注入后，应与 SHA_BEFORE 不同）
+093b784371627238b79f88c2810bd220e1422ccf00394c8b663044fcf5988dfa *app-mobile/src/pages/ai-chat/ai-chat.vue
+$ cd app-mobile && node ../node_modules/vitest/vitest.mjs run tests/tabbar-name-reactivity.spec.ts tests/ai-cross-platform.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-25F1/app-mobile[39m
+
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [31m❯[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 54[2mms[22m[39m
+     [32m✓[39m S1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入[32m 11[2mms[22m[39m
+     [32m✓[39m S2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1）[32m 1[2mms[22m[39m
+     [32m✓[39m S3 custom:true 与「每页手动挂载」互斥配对：出现微信原生 custom-tab-bar 目录必须同时收回 MP 端挂载[32m 1[2mms[22m[39m
+[31m     [31m×[31m R1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理[39m[32m 22[2mms[22m[39m
+     [32m✓[39m R2 不得用重挂载/整表重赋值/nextTick 轮询冒充响应式（红线自证）[32m 4[2mms[22m[39m
+     [32m✓[39m R3 机制自证：裸对象入数组后写裸对象不触发；reactive 入数组后写代理触发且代理身份一致[32m 8[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/tabbar-name-reactivity.spec.ts[2m > [22mQODER-25F1 AI 流式消息响应式守卫（R1/R2/R3）[2m > [22mR1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理
+[31m[1mAssertionError[22m: ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/finally 写的是未进过代理的裸对象: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/tabbar-name-reactivity.spec.ts:[2m165:7[22m[39m
+    [90m163|[39m       aiChatText[33m.[39m[34mincludes[39m([33mREACTIVE_CREATE[39m)[33m,[39m
+    [90m164|[39m       'ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/final…
+    [90m165|[39m     )[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m   |[39m       [31m^[39m
+    [90m166|[39m     [34mexpect[39m(
+    [90m167|[39m       aiChatText[33m.[39m[34mincludes[39m([33mRAW_LITERAL_CREATE[39m)[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 02:26:08
+[2m   Duration [22m 2.35s[2m (transform 335ms, setup 0ms, import 1.23s, tests 73ms, environment 1ms)[22m
+
+VITEST_ANTITEST1_RED_EXIT=1  （非 0 才算反测成立）
+$ cp /d/Users/ZXQL/wt-agents/_qoder25f1_bak/round1-ai-chat.vue.orig app-mobile/src/pages/ai-chat/ai-chat.vue  （只用 cp 复原，禁 sed -i / 编辑器写回）
+cp restore ok
+SHA_AFTER=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+SHA_BEFORE == SHA_AFTER ⇒ 复原逐字节一致
+$ grep -rn 'const aiMsg: ChatMessage = {' app-mobile/src ; grep 退出码 1 = 无残留
+MARKER_RG_EXIT=1
+$ cd app-mobile && node ../node_modules/vitest/vitest.mjs run tests/tabbar-name-reactivity.spec.ts tests/ai-cross-platform.spec.ts  （复原后复跑）
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-25F1/app-mobile[39m
+
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 02:26:15
+[2m   Duration [22m 2.63s[2m (transform 812ms, setup 0ms, import 2.01s, tests 54ms, environment 2ms)[22m
+
+VITEST_RESTORE_GREEN_EXIT=0  （期望 0）
+$ git status --porcelain
+?? docs/evidence/qoder-25f1/
+# 反测①结束 2026-10-22T02:26:18+08:00

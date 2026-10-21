@@ -131,14 +131,14 @@
     </view>
 
     <view class="safe-bottom"></view>
-    <custom-tab-bar :current="'profile'" />
+    <app-tab-bar :current="'profile'" />
   </scroll-view>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
+import AppTabBar from '@/components/app-tab-bar.vue'
 // S3-230 入口权限门：员工/角色管理入口、库存预警/对账快捷入口按码显隐
 import { usePermissionGate } from '@/composables/usePermissionGate'
 import { storesApi } from '@/api/modules/stores'

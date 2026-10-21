@@ -1,0 +1,59 @@
+# P3 H5 实开浏览器读数（browser-use MCP · evaluate_script/take_snapshot/list_network_requests） 2026-10-21T23:09:41+08:00
+# 装置：dev:h5 = http://localhost:5199（$ npm --workspace app-mobile run dev:h5 -- --port 5199）
+#       mock AI 后端 = http://localhost:8199（$ MOCK_PORT=8199 MOCK_LOG=raw/31-mock-backend-cont.log node docs/evidence/qoder-25/mock-ai-backend.mjs）
+#       场景：POST /__mock {"chat":{"intervalMs":300,"events":200}} ⇒ 200 片 × 300ms ≈ 60s 流
+# 隔离声明：共享浏览器在我操作前只有 1 个页（http://localhost:5173/#/pages/ai-chat/ai-chat，属上一轮/QODER-26 口径不明）。
+#   我用 evaluate_script(window.open) 另开自己的页，此后 list_pages 只列出 5199 页；下方每条读数都带 url 字段，全部为 5199 ⇒ 无串台。
+#   ⚠ 副作用报备：window.open 之后 5173 那个页不再出现在 list_pages 里（可能被本会话接管/关闭），若 QODER-26 正在用它需其复验。
+#   读数方式：take_snapshot + evaluate_script + list_network_requests + list_console_messages；**未用 take_screenshot**（协议 §五：历史超时）。
+
+## ① 登录与进入 AI 页（H5 实开）
+登录页快照：uid=4_16 StaticText '演示登录（一键进入）'；click 后 URL → http://localhost:5199/#/pages/home/home
+读数原文：{"url":"http://localhost:5199/#/pages/home/home","tokenPresent":true,"lsKeys":[..."enc_merchant_token"...]}
+进入 AI 页：$ navigate_page type=url url=http://localhost:5199/#/pages/ai-chat/ai-chat ⇒ 成功
+
+## ② 底栏只有一层（判据：AI 页自绘栏 1 层 + 原生栏已隐藏）
+读数原文（AI 页）：{"url":"http://localhost:5199/#/pages/ai-chat/ai-chat","customTabBarNodes":1,"nativeUniTabbarNodes":1,"tabBarInnerNodes":1,"customBarStyle":{"display":"block","visibility":"visible","opacity":"1","height":"90.0625px","bottom":"14.16px","zIndex":"999"},"nativeBarStyle":{"display":"none","zIndex":"998"},"tabLabels":"首页|商品|AI|功能|我的"}
+⇒ 自绘 .custom-tab-bar = **1 个**且可见；uni-tabbar（原生）节点虽存在但 computed display:none ⇒ 视觉上只有一层栏（#ifndef MP-WEIXIN 的 uni.hideTabBar 生效）。
+重进页面后再读（第二次读数，同一判据）："tabBar":{"custom":1,"nativeUniTabbar":1,"nativeDisplay":"none"}
+
+## ③ 发送（H5 流式确有收流）
+fill uid=5_14 = '今日经营分析，请逐片输出' → 点 .voice-send-btn ⇒ 网络读数（list_network_requests）：
+  reqid=960 OPTIONS http://localhost:8199/api/chat [204]
+  reqid=961 POST http://localhost:8199/api/chat [200] fetch mimeType=text/event-stream
+服务端（raw/31）：[15:02:05.484Z] POST /api/chat -> SSE stream interval=300ms events=200 ⇒ [15:03:07.646Z] SSE DONE after 200 events (client stayed until the end)
+浏览器侧最终 DOM（take_snapshot uid=6_9）：第1片经营分析数据。… 直到 第200片 ⇒ 收流完整。
+
+## ④ ★ 停止生成（硬验收：两侧同时拿到 ⇒ 真 abort，不是只改 UI 文案）
+操作：async 脚本 fill 第二条消息 → 点发送 → 等 6.0s → 点 .ai-stop-btn（原文本 '■ 停止生成'）→ 1.5s 后读数
+浏览器侧读数原文（点击前）：{"after6s":{"at":"2026-10-21T15:05:00.967Z","stopPresent":true,"typing":true}}
+浏览器侧读数原文（重新挂载后，take_snapshot）：
+  uid=6_11 '第二发：请逐片输出，我要测停止生成'
+  uid=6_13 '第1片经营分析数据。…第17片…第18片经营分析数据。第19片经营分析数据。'   ← 内容**停在第 19 片**，此后不再增长
+  uid=6_14 '🔊 播报'   ← 播报按钮只在 !msg.streaming 时出现 ⇒ 该条消息 streaming 已为 false
+  该区域内已无 '■ 停止生成' 节点；textarea 未 disabled（sending=false）
+服务端侧读数原文（raw/31:59）：[2026-10-21T15:05:00.998Z] SSE CLIENT CLOSE after 19 events (**remaining 181 events NOT sent**)
+⇒ 两侧互证：客户端 19 片 == 服务端已发 19 片；剩余 181 片未发 ⇒ 底层 fetch 被 AbortController.abort() 真实掐断，不是只改 UI。
+
+## ⑤ 本轮作废的第三次读数（另立 note，不改写④）
+第三发（15:06:58.067 POST）我也点了 .ai-stop-btn，服务端 15:07:03.280 'CLIENT CLOSE after 16 events (remaining 184 events NOT sent)'。
+但**该轮不作数**，两个原因：(a) querySelector('.ai-stop-btn') 命中的是第二发残留的按钮节点（DOM 未刷新，见⑥），点击语义不干净；
+(b) 重挂载后第三行仍显示 '■ 停止生成'（uid=6_17）⇒ 该条的 UI 终态与我预期的 finally 结果不一致，我无法用一次读数解释清楚 ⇒ 按协议 §四.11「互斥读数一律作废」。
+结论口径：停止生成的实证以 ④ 为准；⑤ 记录为待复核现象（不是绿、也不是红，是作废 + 一个可疑残留）。
+
+## ⑥ 越面发现（本卡未修、非本卡引入）：流式增量与终态不触发重渲染
+现象：流式期间 DOM 里 AI 气泡一直空（第 15:02:22 读数 chatListChars=22、hasDi1=false），直到下一次数组变动/重新挂载才整段刷出来。
+根因口径（代码层，非猜测）：ai-chat.vue 用对象字面量 aiMsg 直接 push 进 messages.value，回调里改的是**原始对象**（aiMsg.content += / aiMsg.streaming =），
+未经 reactive proxy ⇒ Vue 不触发更新。基线 bc1087ee 同一写法（/tmp/base-ai.vue:546/552/578），本卡尖端同位置（ai-chat.vue:630/636/680）未改动 ⇒ **存量缺陷，不是本卡引入**；
+本卡红线「不得改页面业务流」⇒ 未动，只登记（回传卡 §八/§十 建议另立单）。
+
+## ⑦ 附件读取运行读数（H5 fetch + FileReader 分支）
+操作：点 .camera-btn ⇒ uni-app H5 生成 <input type=file>（读数 fileInputs=1）⇒ 用 DataTransfer 注入 70 字节 PNG（D:/Users/ZXQL/wt-agents/_qoder25_cont/probe-1x1.png）⇒ dispatchEvent('change')
+浏览器侧读数原文：{"attachImgPresent":true,"toasts":["已添加图片","已添加图片"]}
+第二次读数原文：{"hostTag":"UNI-IMAGE","innerImgPresent":true,"srcPrefix":"data:image/png;base64,iVBORw0KGgoA","srcLen":118,"isPngDataUrl":true,"roundTripsToOriginal":true}
+⇒ fileToDataUrl 的 H5 分支（fetch(filePath) → blob → FileReader.readAsDataURL）真实跑通：dataURL 长度 118、解回字节与原文件逐字节相同（roundTripsToOriginal=true）；
+  '图片读取失败' 的 onFail 分支未触发（toast 是 '已添加图片'）。
+
+## ⑧ 控制台（list_console_messages 全量，证明无未捕获异常）
+Showing 1-3 of 3: [debug] [vite] connecting... / [debug] [vite] connected. / [warn] [vue-router]: importing from 'vue-router/dist/vue-router.esm-bundler.js' is deprecated.
+⇒ 无 error 级读数（含 abort 之后）。

@@ -1,0 +1,90 @@
+# 58 H5 实开未刷新采样序列（browser-use evaluate_script 原始输出逐字粘贴）2026-10-21T19:33Z
+# 装置：dev:h5 显式 --port 5399（PID 20944，CommandLine 见 raw/56 尾部）；mock SSE 8488（PID 2044，raw/55）
+# 页面实例：http://localhost:5399/#/pages/ai-chat/ai-chat —— 整个观察序列内**没有** navigate_page、没有 location.reload()
+# 采样器：页面内 setInterval 700ms 记录 {t(相对 ms), iso, len(最后一条 .msg-row--ai .bubble-text 的 textContent.length), stopBtn(.ai-stop-btn 节点数)}
+# 输入配方（uni-app H5 自动化坑，协议§五）：原生 value setter + dispatchEvent(new Event('input'))，再依序派发 pointerdown/mousedown/pointerup/mouseup/click
+
+=== RUN 1 完整收流（场景 events=200 interval=300ms，前端 fetch 走 VITE_AI_BASE_URL=http://localhost:8488 CORS 直连）===
+mcp__browser-use__evaluate_script 返回原文（发送与安装采样器在同一次调用内完成）：
+{
+  "installed": true,
+  "taValueAfter": "QODER-25F1 未刷新响应式取证消息",
+  "t0": 1792610968472
+}
+mcp__browser-use__evaluate_script 读回原文（seq + 8 个采样点）：
+{
+  "seq": [
+    {"step": "value-set+input", "iso": "2026-10-21T19:29:28.492Z", "taValue": "QODER-25F1 未刷新响应式取证消息"},
+    {"step": "clicked-send",    "iso": "2026-10-21T19:29:28.532Z"}
+  ],
+  "nSamples": 8,
+  "samples": [
+    {"t": 968,  "iso": "2026-10-21T19:29:29.440Z", "len": 20,   "stopBtn": 1},
+    {"t": 1963, "iso": "2026-10-21T19:29:30.435Z", "len": 60,   "stopBtn": 1},
+    {"t": 2968, "iso": "2026-10-21T19:29:31.440Z", "len": 90,   "stopBtn": 1},
+    {"t": 3971, "iso": "2026-10-21T19:29:32.443Z", "len": 123,  "stopBtn": 1},
+    {"t": 4969, "iso": "2026-10-21T19:29:33.441Z", "len": 156,  "stopBtn": 1},
+    {"t": 5988, "iso": "2026-10-21T19:29:34.460Z", "len": 200,  "stopBtn": 1},
+    {"t": 41968,"iso": "2026-10-21T19:30:10.441Z", "len": 1536, "stopBtn": 1},
+    {"t": 43988,"iso": "2026-10-21T19:30:12.461Z", "len": 1620, "stopBtn": 1}
+  ]
+}
+（注：t=5988→41968 的间隔是内置浏览器窗口节流导致采样点稀疏，不是页面重启；t 相对同一个 t0 单调递增，
+ 页面实例未换：全程无 navigate/reload。len 20→1620 严格递增，未刷新 DOM 当场增长。）
+收流自然结束后同一 evaluate_script 通道读数（RUN 1 终态）：
+{
+  "finalLen": 2292, "stopBtnNow": 0, "speakBtnNow": 1,
+  "url": "http://localhost:5399/#/pages/ai-chat/ai-chat"
+}
+mock 侧对应原文行（raw/55）：
+[2026-10-21T19:30:29.608Z] SSE DONE after 200 events (client stayed until the end)
+[2026-10-21T19:30:29.610Z] SSE CLIENT CLOSE after 201 events (remaining 0 events NOT sent)
+
+=== RUN 2 中途停止生成（场景改为 events=600，同一页面实例，新装 __f1b 采样器）===
+mcp__browser-use__evaluate_script（发送）返回原文：
+{
+  "ok": true,
+  "taVal": "QODER-25F1 停止生成取证消息"
+}
+mcp__browser-use__evaluate_script（读回前 7 点并在同一调用内派发 ■ 停止生成 点击）返回原文：
+{
+  "clickedNow": true,
+  "pre": {
+    "nSamples": 7,
+    "stopBtnAtClickMoment": true,
+    "samples": [
+      {"t": 1210,  "iso": "2026-10-21T19:31:36.441Z", "len": 30,   "stopBtn": 1},
+      {"t": 2211,  "iso": "2026-10-21T19:31:37.442Z", "len": 70,   "stopBtn": 1},
+      {"t": 3210,  "iso": "2026-10-21T19:31:38.441Z", "len": 101,  "stopBtn": 1},
+      {"t": 4211,  "iso": "2026-10-21T19:31:39.442Z", "len": 134,  "stopBtn": 1},
+      {"t": 5211,  "iso": "2026-10-21T19:31:40.442Z", "len": 167,  "stopBtn": 1},
+      {"t": 6211,  "iso": "2026-10-21T19:31:41.442Z", "len": 211,  "stopBtn": 1},
+      {"t": 37322, "iso": "2026-10-21T19:32:12.553Z", "len": 1356, "stopBtn": 1}
+    ]
+  }
+}
+mcp__browser-use__evaluate_script（停止后终态读数，停表）返回原文：
+{
+  "seq": [
+    {"step": "value-set+input", "iso": "2026-10-21T19:31:35.279Z"},
+    {"step": "clicked-send",    "iso": "2026-10-21T19:31:35.286Z"},
+    {"step": "clicked-stop",    "iso": "2026-10-21T19:32:40.002Z"}
+  ],
+  "totalSamples": 8,
+  "samples": [ ...前 7 点同上...,
+    {"t": 97225, "iso": "2026-10-21T19:33:12.456Z", "len": 2316, "stopBtn": 0}
+  ],
+  "finalDom": {
+    "stopBtn": 0,
+    "speakBtn": 2,
+    "lastLen": 2316,
+    "url": "http://localhost:5399/#/pages/ai-chat/ai-chat"
+  }
+}
+（★ 判据落点：clicked-stop 页面内时刻 19:32:40.002Z ⇒ 同一 __f1b.samples 数组内下一采样点 19:33:12 stopBtn 由 1 → **0**；
+  len 冻结在 2316 不再增长；全程同一页面实例（t 自 19:31:35 的 t0 单调到 97225ms，无 navigate/无 reload）。）
+mock 侧互证原文行（raw/55）：
+[2026-10-21T19:32:40.052Z] SSE sent 210/600
+[2026-10-21T19:32:40.111Z] SSE CLIENT CLOSE after 210 events (remaining 390 events NOT sent)
+（★ 两侧时间戳对齐：前端点击 19:32:40.002 ⇒ mock 断连 19:32:40.111，差 109ms；
+ 已发 210 事件 ≈ 前端 DOM 冻结长度 2316 字符；剩余 390 事件未发 ⇒ 停止生成真的掐断了底层 fetch，不是只改 UI。）

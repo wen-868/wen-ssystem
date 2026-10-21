@@ -1,0 +1,35 @@
+# 负责人自有 mp-weixin 产物级核实 2026-10-22T04:16+08:00（针对复原后那次构建的产物）
+
+$ find . -name "custom-tab-bar*"   # 期望 0
+CTB_ARTIFACT_COUNT=0
+
+$ grep -rl -a "custom-tab-bar" --include="*.wxml" --include="*.js" .   # 残余字符串定位
+./components/app-tab-bar.wxml
+CTB_TAG_REF_FILES=1
+
+$ grep -a -c "<custom-tab-bar" components/app-tab-bar.wxml   # 标签名形态，期望 0
+0
+TAG_HITS_EXIT=1
+
+残余字符串上下文（唯一一处，证明是 CSS 类名不是组件注册面）：
+<view class="custom-tab-bar data-v-b5920aa0">
+
+$ cat components/app-tab-bar.json   # usingComponents 应为空对象
+{
+  "component": true,
+  "usingComponents": {}
+}
+$ grep -rn "custom-tab-bar" --include="*.json" .   # 期望无命中
+JSON_HITS_EXIT=0
+
+$ find . -name "app-tab-bar*"
+./components/app-tab-bar.js
+./components/app-tab-bar.json
+./components/app-tab-bar.wxml
+./components/app-tab-bar.wxss
+
+$ node -e "读 app.json tabBar" 
+tabBar.custom=true
+list=pages/home/home,pages/products/products,pages/ai-chat/ai-chat,pages/functions/functions,pages/profile/profile
+
+产物级结论：撞名件为 0；`custom:true` 由微信侧抑制原生栏，可见栏来自每页手挂的 app-tab-bar。微信运行时表现无 DevTools/真机 ⇒ 未验（与执行方 §七.1 同口径）。

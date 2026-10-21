@@ -211,7 +211,7 @@
     </view>
 
     <view class="safe-bottom"></view>
-    <custom-tab-bar :current="'home'" />
+    <app-tab-bar :current="'home'" />
   </scroll-view>
 </template>
 
@@ -223,7 +223,7 @@ import { notificationsApi } from '@/api/modules/notifications'
 import { reportsApi } from '@/api/modules/reports'
 import { inventoryApi } from '@/api/modules/inventory'
 import { productsApi } from '@/api/modules/products'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
+import AppTabBar from '@/components/app-tab-bar.vue'
 import { COLOR_PRIMARY, COLOR_WHITE, COLOR_WARNING, COLOR_ERROR, COLOR_BLACK_03 } from '@/constants/colors'
 // S3-230 入口权限门：快捷入口按"该端点将使用的码"显隐（注册表见 config/permission-gates.ts）
 import { usePermissionGate } from '@/composables/usePermissionGate'

@@ -1,0 +1,109 @@
+# 负责人终笔自检（文档终态，四门复跑于本笔之前取数） 2026-10-22T04:50:01+08:00
+
+$ git branch --show-current
+fix/qoder-25f1-tabbar-reactivity
+
+$ git rev-parse HEAD
+2796e0fc550c43178a0f1b80c8b95f232f130232
+
+$ git log --oneline -5
+2796e0fc docs: QODER-25F1 负责人复验补记落进回执 + 证据树终笔段（含分支名小写更正与端口量具假 0 口径登记）
+caa2e0ef docs: QODER-25F1 负责人收尾自检原始读数（HEAD/porcelain/backend 0 字节/两 SHA 恒等/六端口 curl 归零）
+04e01af1 docs: QODER-25F1 负责人独立复验证据（四门/三构建+撞名正对照/产物级/两轮自有反测/H5 未刷新自证/量具假 0 更正）
+b1bef005 docs: QODER-25F1 回传卡 + 回执 + 证据树（续办会话：四门/三构建复跑、产物级 tabBar 核实、H5 未刷新采样、两轮反测复跑、端口更正与 teardown）
+d68e43e9 fix: QODER-25F1 自绘 tabBar 撞名改名 app-tab-bar 并收口 AI 流式消息响应式
+
+$ npm --workspace app-mobile run check:gates   # 工作树根执行；ANSI 已剥离
+
+> zhixiang-app-mobile@1.0.0 check:gates
+> npm run type-check && npm run lint && npm run test && npm run check:contract
+
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 0（基线 0）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-25F1/app-mobile
+
+ ✓ tests/price-anomaly-static.spec.ts (24 tests) 180ms
+ ✓ tests/mobile-permissions.spec.ts (8 tests) 24ms
+ ✓ tests/api-base-env.spec.ts (3 tests) 97ms
+ ✓ tests/storage-crypto.spec.ts (4 tests) 965ms
+     ✓ 派生密钥为 32 字节且同输入可复现  438ms
+     ✓ tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）  351ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 215ms
+ ✓ tests/format.spec.ts (78 tests) 224ms
+ ✓ tests/ai-cross-platform.spec.ts (10 tests) 17ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 13ms
+ ✓ tests/safe-top-var.spec.ts (4 tests) 12ms
+ ✓ tests/pin-ssl-static.spec.ts (1 test) 14ms
+ ✓ tests/request-retry-safety.spec.ts (15 tests) 5235ms
+     ✓ ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾  512ms
+     ✓ ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload  4520ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 381ms
+ ✓ tests/tabbar-name-reactivity.spec.ts (6 tests) 47ms
+
+ Test Files  13 passed (13)
+      Tests  202 passed (202)
+   Start at  04:52:32
+   Duration  9.65s (transform 5.52s, setup 0ms, import 16.21s, tests 7.42s, environment 7ms)
+
+—— test 门（用例数冻结）：当前 13 文件 / 202 用例，基线 13 / 202 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 check:contract
+> node scripts/check-contract.mjs
+
+—— 契约对账（QODER-1 门 4，口径见文件头注释）——
+A.2 口径① 引号内 '/admin/...' 出现次数（本脚本非注释行口径）: 292
+A.2 口径② 其中位于调用/ url: 行内的出现次数:              283
+A.2 口径③ 去重后的调用路径数:                              204
+后端注册端点（routes/*.routes.ts 抽得，含全动词）:          1498
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+GATES_EXIT=0
+
+$ git status --porcelain
+?? docs/evidence/qoder-25f1/raw/67-owner-final-tip.log
+PORCELAIN_LINES_BEFORE_SELF=1   # 只应含本 raw/67 自身
+
+$ git -c core.quotepath=false diff d68e43e9..HEAD --name-only | grep -v "^docs/" | wc -l   # 实现笔之后非 docs 改动面
+NON_DOCS_FILES_AFTER_IMPL=0
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+BACKEND_DIFF_BYTES=0
+
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue app-mobile/src/components/app-tab-bar.vue   # 应恒等 c88fc7../f44ff4..
+c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a *app-mobile/src/pages/ai-chat/ai-chat.vue
+f44ff4d463fbe93dc2ab6a4075d6e5d8cf5264bad6fff052cc612d5e8d599bb1 *app-mobile/src/components/app-tab-bar.vue
+
+$ curl 六端口终笔复验（主设备 http_code；000=连接被拒=无监听）
+PORT_5499_HTTP=000
+PORT_8488_HTTP=000
+PORT_5399_HTTP=000
+PORT_5173_HTTP=000
+PORT_5174_HTTP=000
+PORT_8388_HTTP=000

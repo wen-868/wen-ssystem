@@ -1,0 +1,54 @@
+# 负责人独立核验：三端产物内的 AI 页 / 自绘栏 / 按端代码进出（我自己刚构建的产物）2026-10-21T23:51:14+08:00
+# 产物口径 app-mobile/dist/build/<platform>
+
+$ ls -d app-mobile/dist/build/*
+app-mobile/dist/build/app
+app-mobile/dist/build/h5
+app-mobile/dist/build/mp-weixin
+
+## H5
+$ ls app-mobile/dist/build/h5/assets | grep -E 'ai-chat|custom-tab-bar'
+ai-chat-DQJUtvTH.css
+custom-tab-bar-BGWXZz6J.css
+custom-tab-bar.C-imRqs-.js
+pages-ai-chat-ai-chat.BieDSea6.js
+GREP_EXIT=0
+$ rg -c '停止生成' app-mobile/dist/build/h5/assets/pages-ai-chat-ai-chat.*.js
+HIT=1 RG_EXIT=0
+$ rg -c 'custom-tab-bar' app-mobile/dist/build/h5/assets/pages-ai-chat-ai-chat.*.js
+HIT=1 RG_EXIT=0
+$ rg -l 'getFileSystemManager' app-mobile/dist/build/h5/assets/*.js   # 期望零命中
+RG_EXIT=1
+H5_MP_API_FILES=0
+
+## MP-WEIXIN
+$ ls app-mobile/dist/build/mp-weixin/pages/ai-chat/
+ai-chat.js
+ai-chat.json
+ai-chat.wxml
+ai-chat.wxss
+$ rg -c 'custom-tab-bar' app-mobile/dist/build/mp-weixin/pages/ai-chat/ai-chat.wxml
+1
+RG_EXIT=0
+$ rg -o '"custom": true' app-mobile/dist/build/mp-weixin/app.json
+"custom": true
+RG_EXIT=0
+$ ls -d app-mobile/dist/build/mp-weixin/custom-tab-bar   # 微信原生自定义 tabBar 目录
+ls: cannot access 'app-mobile/dist/build/mp-weixin/custom-tab-bar': No such file or directory
+LS_EXIT=2  # 2=目录不存在
+$ rg -l 'getFileSystemManager' app-mobile/dist/build/mp-weixin/pages/ai-chat/   # MP 端应保留
+app-mobile/dist/build/mp-weixin/pages/ai-chat/ai-chat.js
+RG_EXIT=0
+
+## APP
+$ rg -l 'plus.io.resolveLocalFileSystemURL' app-mobile/dist/build/app
+app-mobile/dist/build/app\app-service.js
+app-mobile/dist/build/app\uni-app-view.umd.js
+RG_EXIT=0
+$ rg -l 'uni.getFileSystemManager' app-mobile/dist/build/app   # App 包不得含小程序 FS API
+RG_EXIT=1  # 1=零命中
+$ rg -c '停止生成' app-mobile/dist/build/app/app-service.js
+1
+RG_EXIT=0
+$ rg -c '小程序暂不支持系统语音播报' app-mobile/dist/build/app/app-service.js   # MP 文案不得进 App 包
+RG_EXIT=1

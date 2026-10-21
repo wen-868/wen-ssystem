@@ -1,0 +1,164 @@
+# 负责人自有反测 Ⓐ R-RAWPROXY（摘 reactive 代理）2026-10-22 04:18~04:22
+
+作废轮与修正轮均在档：首轮的 patch 只替换了 `reactive(` 的开头行，残留 `})` 会让文件语法不合法 ⇒ 红将是解析错而非 R1 断言红，读数不可用，故作废并改用整块多行 needle。
+
+----- 首轮（VOID 留档，原文未改写）与修正轮全文 -----
+##### 负责人反测 A R-RAWPROXY（摘 reactive 代理） 2026-10-22T04:18:44+08:00
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue   # worktree-crlf 形态
+SHA_BEFORE=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+$ cp 备份到树外 _qoder25f1_bak/ai-chat.vue.pre-A
+BACKUP_EXIT=0
+$ node _qoder25f1_ownverify/owner-inject-25f1.cjs R-RAWPROXY
+OWNER_TARGET=app-mobile/src/pages/ai-chat/ai-chat.vue needleHits=1 (期望 1) hasCRLF=true
+OWNER_STEP file=app-mobile/src/pages/ai-chat/ai-chat.vue 写入前命中=1 长度 52478→52519
+OWNER_FINAL file=app-mobile/src/pages/ai-chat/ai-chat.vue 原needle在场=false(应 false) patch已落盘=true(应 true) 标记出现次数=1
+OWNER_INJECT_RC=0
+INJECT_EXIT=0
+----- Ⓐ 首轮作废（VOID）：patch 只替换了 reactive( 的开头行，残留的 }) 使文件语法不合法 ⇒ 红会是解析错而非 R1 断言红，读数不可用。另立修正轮（整块多行 needle）。
+
+##### 修正轮 负责人反测 A R-RAWPROXY 2026-10-22T04:20:20+08:00
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue   # worktree-crlf 形态
+SHA_BEFORE=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+$ node _qoder25f1_ownverify/owner-inject-25f1.cjs R-RAWPROXY   # 整块多行 needle
+OWNER_TARGET=app-mobile/src/pages/ai-chat/ai-chat.vue needleHits=1 (期望 1) hasCRLF=true
+OWNER_STEP file=app-mobile/src/pages/ai-chat/ai-chat.vue 写入前命中=1 长度 52478→52518
+OWNER_FINAL file=app-mobile/src/pages/ai-chat/ai-chat.vue 原needle在场=false(应 false) patch已落盘=true(应 true) 标记出现次数=1
+OWNER_INJECT_RC=0
+INJECT_EXIT=0
+
+----- 修正轮红态测试原始输出 -----
+$ npm --workspace app-mobile run test   # TEST_EXIT=1
+
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-25F1/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 1497[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 1485[2mms[22m[39m
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 1550[2mms[22m[39m
+     [33m[2m✓[22m[39m retail NaN / cost 12 ⇒ 无效值不标红 [33m 433[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1966[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 992[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文） [33m 781[2mms[22m[39m
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 1748[2mms[22m[39m
+     [33m[2m✓[22m[39m gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名 [33m 325[2mms[22m[39m
+     [33m[2m✓[22m[39m 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单 [33m 677[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 925[2mms[22m[39m
+ [31m❯[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 234[2mms[22m[39m
+     [32m✓[39m S1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入[32m 39[2mms[22m[39m
+     [32m✓[39m S2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1）[32m 1[2mms[22m[39m
+     [32m✓[39m S3 custom:true 与「每页手动挂载」互斥配对：出现微信原生 custom-tab-bar 目录必须同时收回 MP 端挂载[32m 1[2mms[22m[39m
+[31m     [31m×[31m R1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理[39m[32m 132[2mms[22m[39m
+     [32m✓[39m R2 不得用重挂载/整表重赋值/nextTick 轮询冒充响应式（红线自证）[32m 2[2mms[22m[39m
+     [32m✓[39m R3 机制自证：裸对象入数组后写裸对象不触发；reactive 入数组后写代理触发且代理身份一致[32m 7[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 393[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 60[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 64[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 12959[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 1170[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键 [33m 462[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 10843[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 66[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m201 passed[39m[22m[90m (202)[39m
+[2m   Start at [22m 04:20:54
+[2m   Duration [22m 21.94s[2m (transform 15.23s, setup 0ms, import 39.99s, tests 21.53s, environment 54ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/tabbar-name-reactivity.spec.ts[2m > [22mQODER-25F1 AI 流式消息响应式守卫（R1/R2/R3）[2m > [22mR1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理
+[31m[1mAssertionError[22m: ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/finally 写的是未进过代理的裸对象: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/tabbar-name-reactivity.spec.ts:[2m165:7[22m[39m
+    [90m163|[39m       aiChatText[33m.[39m[34mincludes[39m([33mREACTIVE_CREATE[39m)[33m,[39m
+    [90m164|[39m       'ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/final…
+    [90m165|[39m     )[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m   |[39m       [31m^[39m
+    [90m166|[39m     [34mexpect[39m(
+    [90m167|[39m       aiChatText[33m.[39m[34mincludes[39m([33mRAW_LITERAL_CREATE[39m)[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-25F1\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-25F1\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+
+----- 绿态复跑（同一 SHA 形态，亦覆盖 Ⓑ 轮的复原后绿态） -----
+$ npm --workspace app-mobile run test   # TEST_EXIT_GREEN=0
+
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-25F1/app-mobile[39m
+
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 526[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 516[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 2498[2mms[22m[39m
+     [33m[2m✓[22m[39m 字符串低价 retail "9.00" / cost "12.00" ⇒ 必须标红（卡点名复现） [33m 311[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 2092[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 1080[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文） [33m 876[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 1370[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 392[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 422[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 182[2mms[22m[39m
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 49[2mms[22m[39m
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 13385[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 543[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键 [33m 741[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 11567[2mms[22m[39m
+ [32m✓[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 190[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 1049[2mms[22m[39m
+     [33m[2m✓[22m[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行） [33m 365[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 13[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[32m202 passed[39m[22m[90m (202)[39m
+[2m   Start at [22m 04:21:56
+[2m   Duration [22m 22.88s[2m (transform 17.76s, setup 0ms, import 53.71s, tests 22.19s, environment 5ms)[22m
+
+—— test 门（用例数冻结）：当前 13 文件 / 202 用例，基线 13 / 202 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+
+----- 去 ANSI 汇总（便于检索） -----
+     × R1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理 132ms
+ Test Files  1 failed | 12 passed (13)
+      Tests  1 failed | 201 passed (202)
+AssertionError: ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/finally 写的是未进过代理的裸对象: expected false to be true // Object.is equality

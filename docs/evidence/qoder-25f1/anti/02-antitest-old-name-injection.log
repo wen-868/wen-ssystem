@@ -1,0 +1,162 @@
+# 反测②：把 AI 页标签/导入注回旧组件名 custom-tab-bar（撞 uni-app 平台保留名）2026-10-22T02:26:33+08:00
+$ pwd
+/d/Users/ZXQL/wt-agents/QODER-25F1
+$ git rev-parse HEAD
+d68e43e9e6a4b02b047c860f70c0367a0005e7a5
+$ git status --porcelain
+?? docs/evidence/qoder-25f1/
+$ cp app-mobile/src/pages/ai-chat/ai-chat.vue /d/Users/ZXQL/wt-agents/_qoder25f1_bak/round2-ai-chat.vue.orig
+cp ok -> /d/Users/ZXQL/wt-agents/_qoder25f1_bak/round2-ai-chat.vue.orig
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue
+SHA_BEFORE=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a   (工作区为 CRLF，此哈希是 CRLF 形态)
+$ node docs/evidence/qoder-25f1/anti/inject-02-old-name.cjs app-mobile/src/pages/ai-chat/ai-chat.vue
+[inject-02] OK injected=2 pairs, each hits=1
+INJECT_EXIT=0
+$ grep -n 'tab-bar' app-mobile/src/pages/ai-chat/ai-chat.vue  （注入后回读）
+208:        <custom-tab-bar :current="'ai'" />
+223:import AppTabBar from '@/components/custom-tab-bar.vue'
+1721:   把输入栏整体抬到自绘栏上方；本页不再叠放第二条原生栏（components/app-tab-bar.vue 与
+1723:   ★ 模板里新增的 app-tab-bar 与 ai-stop-btn 两行按 vue/html-indent 的**配置值 4** 缩进：
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue  （注入后，应与 SHA_BEFORE 不同）
+babe4fc6dca8426b7b5c8c35e6f719f4af446ac4aee80e762bfc6dceb872fb7f *app-mobile/src/pages/ai-chat/ai-chat.vue
+$ cd app-mobile && node ../node_modules/vitest/vitest.mjs run tests/tabbar-name-reactivity.spec.ts tests/ai-cross-platform.spec.ts
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-25F1/app-mobile[39m
+
+ [31m❯[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 32[2mms[22m[39m
+     [32m✓[39m G1 小程序专属文件 API（getFileSystemManager / wx.env）只出现在 #ifdef MP-WEIXIN 块内[32m 7[2mms[22m[39m
+     [32m✓[39m G1b App 端有独立的 plus.io 读取分支（不得只靠 H5 fetch 与小程序 FS）[32m 1[2mms[22m[39m
+     [32m✓[39m G2 AbortController 只出现在 #ifdef H5 块内（非 H5 不得引用）[32m 1[2mms[22m[39m
+     [32m✓[39m G3 speakSystem 的每个调用点都落在有该系统 TTS 实现的平台块内[32m 0[2mms[22m[39m
+     [32m✓[39m G4 小程序播报失败走 notifyMpSpeakUnsupported 的确定行为[32m 1[2mms[22m[39m
+[31m     [31m×[31m G6 AI 页挂载自绘 tabBar（模板标签与组件导入同时在册）[39m[32m 16[2mms[22m[39m
+     [32m✓[39m G7 原生 tabBar 隐藏口径为 #ifndef MP-WEIXIN（覆盖 H5 与 APP 双端）[32m 1[2mms[22m[39m
+     [32m✓[39m G8 非 H5 降级实现持有 RequestTask 并暴露真实 abort()[32m 1[2mms[22m[39m
+     [32m✓[39m G9 未用 typeof 探测吞掉平台错配（红线自证）[32m 1[2mms[22m[39m
+     [32m✓[39m G10 图片读取三端互斥：小程序分支用 FS、App 分支用 plus.io、H5 用 fetch[32m 2[2mms[22m[39m
+ [31m❯[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 39[2mms[22m[39m
+[31m     [31m×[31m S1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入[39m[32m 22[2mms[22m[39m
+[31m     [31m×[31m S2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1）[39m[32m 5[2mms[22m[39m
+[31m     [31m×[31m S3 custom:true 与「每页手动挂载」互斥配对：出现微信原生 custom-tab-bar 目录必须同时收回 MP 端挂载[39m[32m 2[2mms[22m[39m
+     [32m✓[39m R1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理[32m 1[2mms[22m[39m
+     [32m✓[39m R2 不得用重挂载/整表重赋值/nextTick 轮询冒充响应式（红线自证）[32m 1[2mms[22m[39m
+     [32m✓[39m R3 机制自证：裸对象入数组后写裸对象不触发；reactive 入数组后写代理触发且代理身份一致[32m 5[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/ai-cross-platform.spec.ts[2m > [22mQODER-25 AI Chat 三端条件编译与自绘 tabBar 静态配对守卫[2m > [22mG6 AI 页挂载自绘 tabBar（模板标签与组件导入同时在册）
+[31m[1mAssertionError[22m: ai-chat.vue 模板未挂载 <app-tab-bar> ⇒ AI 页没有底栏: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/ai-cross-platform.spec.ts:[2m223:77[22m[39m
+    [90m221|[39m
+    [90m222|[39m   [34mit[39m([32m'G6 AI 页挂载自绘 tabBar（模板标签与组件导入同时在册）'[39m[33m,[39m () [33m=>[39m {
+    [90m223|[39m     expect(TABBAR_TAG.length, 'ai-chat.vue 模板未挂载 <app-tab-bar> ⇒ AI 页没…
+    [90m   |[39m                                                                             [31m^[39m
+    [90m224|[39m     expect(TABBAR_IMPORT.length, 'ai-chat.vue 未 import components/app-…
+    [90m225|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/tabbar-name-reactivity.spec.ts[2m > [22mQODER-25F1 自绘 tabBar 撞名守卫（S1/S2/S3）[2m > [22mS1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入
+[31m[1mAssertionError[22m: 组件注册面撞平台保留名（mp-weixin 构建会打"是 H5 平台专用组件"警告）：pages\ai-chat\ai-chat.vue :: <custom-tab-bar :: <custom-tab-bar :current="'ai'" /> | pages\ai-chat\ai-chat.vue :: components/custom-tab-bar.vue :: import AppTabBar from '@/components/custom-tab-bar.vue': expected [ …(2) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "pages\\ai-chat\\ai-chat.vue :: <custom-tab-bar :: <custom-tab-bar :current=\"'ai'\" />",[39m
+[31m+   "pages\\ai-chat\\ai-chat.vue :: components/custom-tab-bar.vue :: import AppTabBar from '@/components/custom-tab-bar.vue'",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/tabbar-name-reactivity.spec.ts:[2m130:94[22m[39m
+    [90m128|[39m     expect(SOURCE_FILES.length, 'src 下没扫到任何 .vue/.ts ⇒ 扫描根配错了').toBeGr…
+    [90m129|[39m     expect(FORBIDDEN_NEEDLES.length, '保留名清单为空 ⇒ 守卫失去对象').toBeGreaterTh…
+    [90m130|[39m     expect(NAME_HITS, `组件注册面撞平台保留名（mp-weixin 构建会打"是 H5 平台专用组件"警告）：${NA…
+    [90m   |[39m                                                                                              [31m^[39m
+    [90m131|[39m     [34mexpect[39m(
+    [90m132|[39m       [34mexistsSync[39m([33mLEGACY_COMPONENT_FILE[39m)[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/tabbar-name-reactivity.spec.ts[2m > [22mQODER-25F1 自绘 tabBar 撞名守卫（S1/S2/S3）[2m > [22mS2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1）
+[31m[1mAssertionError[22m: 页面挂载次数不等于 1 标签 + 1 导入：[{"pagePath":"pages/ai-chat/ai-chat","exists":true,"tag":0,"imp":0}]: expected [ { …(4) } ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   {[39m
+[31m+     "exists": true,[39m
+[31m+     "imp": 0,[39m
+[31m+     "pagePath": "pages/ai-chat/ai-chat",[39m
+[31m+     "tag": 0,[39m
+[31m+   },[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/tabbar-name-reactivity.spec.ts:[2m141:77[22m[39m
+    [90m139|[39m   it('S2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1）', () …
+    [90m140|[39m     expect(TAB_LIST.length, `pages.json tabBar.list 应为 5 项，实测 ${TAB_LI…
+    [90m141|[39m     expect(MOUNT_BAD, `页面挂载次数不等于 1 标签 + 1 导入：${JSON.stringify(MOUNT_BA…
+    [90m   |[39m                                                                             [31m^[39m
+    [90m142|[39m   })
+    [90m143|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/tabbar-name-reactivity.spec.ts[2m > [22mQODER-25F1 自绘 tabBar 撞名守卫（S1/S2/S3）[2m > [22mS3 custom:true 与「每页手动挂载」互斥配对：出现微信原生 custom-tab-bar 目录必须同时收回 MP 端挂载
+[31m[1mAssertionError[22m: 每页挂载路线要求 5 个 tab 页都挂 app-tab-bar（否则微信端一条栏都没有）: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/tabbar-name-reactivity.spec.ts:[2m155:81[22m[39m
+    [90m153|[39m       )[33m.[39m[34mtoBe[39m([35mfalse[39m)
+    [90m154|[39m     } [35melse[39m {
+    [90m155|[39m       expect(MOUNTS_ON_MP_TOO, '每页挂载路线要求 5 个 tab 页都挂 app-tab-bar（否则微信端…
+    [90m   |[39m                                                                                 [31m^[39m
+    [90m156|[39m     }
+    [90m157|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 02:26:37
+[2m   Duration [22m 1.51s[2m (transform 178ms, setup 0ms, import 892ms, tests 71ms, environment 0ms)[22m
+
+VITEST_ANTITEST2_RED_EXIT=1  （非 0 才算反测成立）
+$ cp /d/Users/ZXQL/wt-agents/_qoder25f1_bak/round2-ai-chat.vue.orig app-mobile/src/pages/ai-chat/ai-chat.vue  （只用 cp 复原，禁 sed -i / 编辑器写回）
+cp restore ok
+SHA_AFTER=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+SHA_BEFORE == SHA_AFTER ⇒ 复原逐字节一致
+$ grep -rn '<custom-tab-bar' app-mobile/src ; grep -rn 'components/custom-tab-bar.vue' app-mobile/src
+MARKER_RG_EXIT_TAG=1
+MARKER_RG_EXIT_PATH=1
+$ cd app-mobile && node ../node_modules/vitest/vitest.mjs run tests/tabbar-name-reactivity.spec.ts tests/ai-cross-platform.spec.ts  （复原后复跑）
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-25F1/app-mobile[39m
+
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m   Start at [22m 02:26:42
+[2m   Duration [22m 1.77s[2m (transform 255ms, setup 0ms, import 953ms, tests 41ms, environment 0ms)[22m
+
+VITEST_RESTORE_GREEN_EXIT=0  （期望 0）
+$ git status --porcelain
+?? docs/evidence/qoder-25f1/
+# 反测②结束 2026-10-22T02:26:44+08:00

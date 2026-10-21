@@ -1,0 +1,95 @@
+# P3 取证装置收尾（端口释放与最终读数） 2026-10-21T23:10:17+08:00
+$ netstat -ano | grep LISTENING | grep -E ':5199|:8199'
+PID_5199=  PID_8199=
+## 释放后复测
+$ netstat -ano | grep LISTENING | grep -E ':5199|:8199'   # 应为空
+PORTS_GREP_RC=1 (1=已无监听)
+$ curl -s -o /dev/null -w '%{http_code}' --max-time 4 http://localhost:5199/  与  http://localhost:8199/__mock
+H5_5199=200
+MOCK_8199=200
+## mock 后端最终日志（raw/31 全文行数与 abort 相关行）
+MOCK_LOG_LINES=94
+1:[2026-10-21T14:55:41.778Z] MOCK AI BACKEND START port=8199 state={"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+2:[2026-10-21T14:55:41.910Z] LISTENING 8199
+34:[2026-10-21T15:02:05.484Z] POST /api/chat -> SSE stream interval=300ms events=200
+55:[2026-10-21T15:03:07.646Z] SSE DONE after 200 events (client stayed until the end)
+56:[2026-10-21T15:03:07.649Z] SSE CLIENT CLOSE after 201 events (remaining 0 events NOT sent)
+57:[2026-10-21T15:04:54.967Z] POST /api/chat -> SSE stream interval=300ms events=200
+59:[2026-10-21T15:05:00.998Z] SSE CLIENT CLOSE after 19 events (remaining 181 events NOT sent)
+60:[2026-10-21T15:06:04.307Z] POST /api/chat -> SSE stream interval=300ms events=200
+78:[2026-10-21T15:06:58.067Z] POST /api/chat -> SSE stream interval=300ms events=200
+82:[2026-10-21T15:07:03.280Z] SSE CLIENT CLOSE after 16 events (remaining 184 events NOT sent)
+84:[2026-10-21T15:07:06.691Z] SSE DONE after 200 events (client stayed until the end)
+85:[2026-10-21T15:07:06.694Z] SSE CLIENT CLOSE after 201 events (remaining 0 events NOT sent)
+## 取证用 .env（gitignored，不入库）保持 8199 口径；本卡入库文件未含它
+.gitignore:6:.env	app-mobile/.env
+ENV_IGNORED_EXIT=0
+
+==================================================================
+追加更正 (2026-10-21 续办，同一执行者)：上文 35 号拆除读数的复核与补拆
+原因：上文曾记录 PORTS_GREP_RC=1（判定已无监听），但同一段又打印 H5_5199=200 /
+     MOCK_8199=200，两条读数互斥。按协议 §四.11「读数互斥时一律作废另立 note，
+     不得改写原始证据」——上文所有原始行保持不动，仅在此追加复核。
+结论：上文那次 taskkill 的目标 PID 有误（或执行时 netstat 输出尚未刷新），
+     两个取证进程实际仍在运行，本次按命令行核身后再拆。
+==================================================================
+
+$ powershell Get-CimInstance Win32_Process -Filter 'ProcessId=9008 or ProcessId=11912' | CommandLine
+
+
+ProcessId       : 11912
+ParentProcessId : 1812
+CommandLine     : "C:\Program Files\nodejs\node.exe" docs/evidence/qoder-25/mock-ai-backend.mjs
+
+ProcessId       : 9008
+ParentProcessId : 19252
+CommandLine     : "node"   "D:\Users\ZXQL\wt-agents\QODER-25\node_modules\.bin\\..\@dcloudio\vite-plugin-uni\bin\uni.js
+                  " --port 5199
+
+
+
+  ^ 核身结果：9008 = 本 worktree 的 uni.js --port 5199（dev:h5）
+              11912 = node docs/evidence/qoder-25/mock-ai-backend.mjs（我的 mock）
+              两进程均属本次取证，非 QODER-26 所有。
+
+$ netstat -ano | grep '8199'   (复核：上文判定无监听，实为仍有 LISTENING)
+  TCP    0.0.0.0:8199           0.0.0.0:0              LISTENING       11912
+  TCP    [::]:8199              [::]:0                 LISTENING       11912
+RC_8199=0
+
+$ netstat -ano | grep '5199'
+  TCP    [::1]:5199             [::]:0                 CLOSED          9008
+  TCP    [::1]:5199             [::1]:51555            ESTABLISHED     9008
+  TCP    [::1]:51555            [::1]:5199             ESTABLISHED     16420
+RC_5199=0
+
+--- 补拆执行 ---
+$ taskkill //PID 9008 //F //T
+SUCCESS: The process with PID 10812 (child process of PID 19776) has been terminated.
+SUCCESS: The process with PID 20132 (child process of PID 9008) has been terminated.
+SUCCESS: The process with PID 19776 (child process of PID 9008) has been terminated.
+SUCCESS: The process with PID 9008 (child process of PID 19252) has been terminated.
+KILL_9008_EXIT=0
+$ taskkill //PID 11912 //F //T
+SUCCESS: The process with PID 11912 (child process of PID 1812) has been terminated.
+KILL_11912_EXIT=0
+
+--- 拆除后复核 ---
+$ netstat -ano | grep -E 'LISTENING' | grep -E ':5199|:8199'
+PORTS_LISTEN_GREP_RC=1  (1=已无监听)
+
+$ curl http://localhost:5199/ ; curl http://localhost:8199/
+H5_5199=000
+CURL_H5_RC=7
+MOCK_8199=000
+CURL_MOCK_RC=7
+
+--- mock 进程存活复核 ---
+PROC_CHECK_EXIT=1
+
+--- 复核结论（本追加段）---
+补拆后两条读数一致：PORTS_LISTEN_GREP_RC=1（无监听）且 curl 返回 000 / RC=7（连接被拒）；
+Get-Process -Id 9008,11912 已无对象（PROC_CHECK_EXIT=1）。
+=> 5199(dev:h5) 与 8199(mock) 已确实释放，上文第一段的 PORTS_GREP_RC=1 判定当时是误判
+   （当时实际仍有监听），已在 §四.11 规则下作废并另立本追加段，原始行未改写。
+=> 本追加段不影响 P3 任何浏览器/服务端取证读数（那些读数取自 34 号 log，进程存续期间完成）。
