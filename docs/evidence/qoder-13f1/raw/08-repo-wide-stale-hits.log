@@ -1,0 +1,77 @@
+### 全仓剩余 2026-09-15 / TrustAsia 命中面（HEAD 实测；本卡范围外，如实报备、未动）###
+
+★ 先记一条取证陷阱（本轮实测，与协议 §3 的 MSYS2_ARG_CONV_EXCL 同族、成因不同）：
+   rg 的取反 glob（-g 后接「感叹号 + 路径」）在本机 Git Bash 通道里感叹号会被转义为「反斜杠 + 感叹号」，
+   取反随之失效，该模式退化为"必须匹配字面感叹号前缀"的正向 glob ⇒ 全量零命中（RG_EXIT=1）＝假 0 命中。
+   对照读数（同一目录同一模式，逐条复跑）：
+     T1 rg -in '2026-09-15|trustasia' .                                   ⇒ EXIT=0，134 行
+     T2 同上 + --glob '\!node_modules'                          ⇒ EXIT=1，0 行（假 0 命中）
+   ⇒ 本档改用「先全量 rg，再用 grep -Ev 管道过滤」，不使用 -g 取反。
+
+$ rg -in '2026-09-15|trustasia' . > 全量后过滤 node_modules / unpackage / docs/evidence / app-mobile/tests
+全量命中 134 行，过滤后 54 行
+
+—— 过滤后逐条原文 ——
+.\docs\配置项契约登记表.md:68:> **项数来源（凌舟 2026-09-15 裁定②）**：23 项＝**设计稿 §03 功能开关矩阵**的实际条目数（逐组 6+4+3+4+6），
+.\docs\配置项契约登记表.md:243:### 6.4 裁定①修订：欠费处理时间线补足 **4 段边界字段**（2026-09-15 凌舟裁定）
+.\docs\踩坑日志.md:1086:- ⚠️ **又是 [78]「前置失败掩蔽后置缺陷」的实例**：2026-09-15 之前的 E2E 大多卡在
+.\docs\踩坑日志.md:1576:  | `api.onepan.cn` | TrustAsia | **2026-09-15（已过期 9 天）** | **失败（code 000）** |
+.\docs\踩坑日志.md:1577:  | `admin.onepan.cn` | TrustAsia | **2026-09-15（已过期）** | **失败（000）** |
+.\docs\踩坑日志.md:1578:  | `m.onepan.cn` | TrustAsia | **2026-09-15（已过期）** | （同前端证书问题） |
+.\docs\踩坑日志.md:1579:  | `saas.onepan.cn` / `www.onepan.cn` | TrustAsia | 2026-10-26 | 暂时正常 |
+.\docs\踩坑日志.md:1583:  1. **证书来源是"手工路径"**：nginx 生效配置 `/etc/nginx/sites-available/zhixiang.conf` 用的是 `/etc/nginx/ssl/<域名>_nginx/*_bundle.pem`（**腾讯云/TrustAsia 手工签发的证书**），**不在 certbot 的自动续期链路里**；没有人续，就过期了。
+.\docs\tasks\inbox\QODER-5-三兄弟落地.md:13:| `pin-ssl.ts` | 全仓**零调用点**，唯一提及是 `config/env.ts:8` 注释；`installSslPinning(` 0 命中；指纹已于 2026-09-15 过期 | **未接线**（不是死代码） |
+.\docs\tasks\inbox\QODER-13-指纹更新与守卫收口.md:10:- 现网已换 **Let's Encrypt**，在册 4 条是 **TrustAsia** ⇒ **无一命中**（QODER-12 独立复核）；
+.\docs\tasks\inbox\QODER-13-指纹更新与守卫收口.md:24:1. ①：`pin-spki.sh` 采集输出原文（两域各一对）；`PINNED_CERTS` 4 条新值与输出逐字一致；`rg "trustasia" -i` 0 命中；
+.\docs\tasks\inbox\ACTIVE-回执-QODER-5.md:13:- ② **pin-ssl.ts：暂不接线**——指纹 2026-09-15 已过期（接线＝APP-PLUS 全量拒连事故）；`installSslPinning` 的证书回调本体在原生层、JS 侧是接口预留（接线即静默放行，违反反测要求）。env.ts 误导注释已改「当前未接线」，pin-ssl.ts 文件头标注状态；**指纹维护口径**（谁更新/从哪取/何时/过期告警/接线前置清单）在回传卡 §二；
+.\docs\tasks\inbox\ACTIVE-回执-QODER-13F1.md:23:| `rg -in '2026-09-15\|trustasia' pin-ssl.ts` | 0 命中 | **0 命中**（RG_EXIT=1；先 `export MSYS2_ARG_CONV_EXCL='*'`） | `raw/03-rg-judgements.log` |
+.\docs\tasks\inbox\ACTIVE-回执-QODER-13F1.md:32:反测三轮：`date`（卡点名的旧文案原样注回 ⇒ 断言① :75 红）、`trustasia`（补正轮 ⇒ 断言② :76 红；首轮流文本同时带两个 token，红点错位到 :75，已按"证据不覆盖历史"留档并补跑）、`callsite`（注入真实调用点 ⇒ 断言③ :77 红）。全程树外 `.mjs` latin1 字节精确注入、命中≠1 即 exit 9、`cp` 复原（未用 `sed -i`）。
+.\docs\tasks\inbox\ACTIVE-回执-QODER-13F1.md:49:summary: pin-ssl.ts 文件头 :6/:28 两处"2026-09-15 过期/到期"假话改真（在册指纹=2026-10-21 现网 Let's Encrypt 值、api 叶子 2026-11-11 与 m 叶子 2026-12-22 到期、中间 YE2/YE1 2028-09-02，仍未接线）；指纹常量与 installSslPinning 调用点(0)一字未动；卡 §三「静态断言可红」与「test 5/56 不变」内部矛盾已按不新增 spec/不新增 it、把三条静态断言追加进 storage-crypto.spec.ts 既有 it 的方式化解并在回传卡 §五 报备
+.\docs\tasks\inbox\ACTIVE-回执-QODER-13.md:14:判据自评：卡 §二.1-4 全达成（`rg -i trustasia` 判据范围按指令取 `pin-ssl.ts` 文件内 0 命中；全仓其余命中均为文档/历史证据未动，清单见回传卡 §五-1）。后端受影响两测试文件 282 passed EXIT=0。
+.\docs\tasks\inbox\ACTIVE-回执-QODER-13.md:21:- 遗留注释漂移（已报备）：`pin-ssl.ts` 文件头 `:6/:28` 两处"2026-09-15 过期"表述随本次换值已语义过时，不属"紧邻注释"范围未动，待接线卡/凌舟裁定。
+.\docs\tasks\inbox\ACTIVE-回执-QODER-12.md:20:无。A 级新事实提请派单人知悉：**在册 4 条指纹与现网全失配**（生产链已换 Let's Encrypt，TrustAsia 条目整体陈旧），且 `api.onepan.cn` 叶子已进入 30 天窗口（2026-11-11 到期）——接线时点须先重采指纹。口径偏差 2 处（脚本/文档路径按任务书、失败退出码细化为 2）已在回传卡 §五报备。
+.\docs\tasks\current-tasks.md:107:> **S2-02 组1+组4① 验收（2026-09-15 凌舟复跑）：有条件通过 ✅**（`6536b4ad` 契约先行 → `5989c71d` 组4①+三处缺陷 → `b55c06c4` 组1策略落库 → `ac57b68d` 回传/踩坑[64]）。复跑：后端 **550 files / 5859 tests 全绿**（回传写的"70 passed"是子集，门禁按全量）、`vue-tsc` 20＝基线且本批 4 前端文件 0 处、build exit 0、工作区 0 0。**核实**：`features` 泄露自查成立（`migrations/016:172` 种子为特性码数组 + `platform-miniapp.routes.ts:20/35` 该端点 `auth:none` 免鉴权）→ 回退落 `t_platform_config(plan_policy:<planId>)` 零 DDL 合规；契约先行真先行；三处存量缺陷（sort_order/AI写死回退/积分抵扣置灰）均已修。**三项裁定**：① `module_access` 语义冲突**登记 S3-34**，规范 module_code 数组+码表+白名单防御，**组2 前置先出只读影响面评估**（若授权链路已失配则升格必修）；② 「28 项」**全局统一为设计稿实际 23 项**；③ 取证边界**有条件通过**——S2-02 收口**硬条件=真库保存→读回→留痕取证**（服务器执行），S2-01 遗留 4 处截图**转入 S2-03/S2-04**。**放行组2（账单类）**；独立复核位保留给含 DDL/契约变更的批次（由凌舟 CLI 通道派）
+.\docs\tasks\current-tasks.md:108:> **S2-02 组2（账单类）验收（2026-09-15 凌舟复跑）：通过 ✅**（`828d251f` 契约→`30153939` 实现→`6e9f191f` 回传/踩坑[65]）。复跑：后端 **552 files / 5871 tests 全绿**、`vue-tsc` 20＝基线且 `Reconciliation.vue` 0 处、build exit 0。核实：落 `t_platform_config` 的 `billing:arrears_policy`/`billing:addon_price`，零 DDL 零索引变更，端点 `GET|PUT /api/platform/billing/{...}` 带 `requirePlatformAuth`；**派生文案硬编码自查成立且关键**——页顶「宽限期 15 天 → D+16~30 → D+31~60 → D+61~90」因 HEAD 与工作区一致而在 diff 中 0 命中、测试也不失败，属静默残留，已改 `arrearsTimeline` 计算属性（未配置输出「待配置」、不回落默认）。`module_access` 影响面评估结论（语义失配成立但**不升格**，中英码并存不冲突）**认可**。**两项裁定**：① **授权按设计稿第 809 行补足 4 段边界为可配置**（宽限/降级/冻结/保留截止，零 DDL），要求严格递增校验 + 未配置显示「待配置」+ 页顶文案由配置推导；② 真库取证**不可豁免**（由凌舟协调服务器执行），**S2-02 状态置「待取证」，取证前不得置已完成**；独立复核位在 S2-02 收口时一次派发（凌舟 CLI 通道）。**S3-34 补充**：修复须含存量脏数据清理，计数放 S2-04/服务器阶段
+.\docs\R101-S2-02-凌舟裁定.md:59:# 组 1（套餐类）+ 组 4①（08 全局功能开关）验收与三项裁定 · 2026-09-15
+.\docs\R101-S2-02-凌舟裁定.md:115:**签署**：凌舟 · 2026-09-15（组1 + 组4① 有条件通过；三项裁定）
+.\docs\R101-S2-02-凌舟裁定.md:119:# 组 2（账单类）验收与两项裁定 · 2026-09-15
+.\docs\R101-S2-02-凌舟裁定.md:171:**签署**：凌舟 · 2026-09-15（组 2 通过；两项裁定）
+.\backend\src\controllers\miniapp\miniapp.controller.ts:511:      { id: 2, templateId: 2, name: "满200减30", discountValue: 30, discountType: "FIXED", minAmount: 200, status: "AVAILABLE", expireAt: "2026-09-15 23:59:59" },
+.\docs\tasks\cards\R101-QODER-5-回传.md:21:| ② `pin-ssl.ts` | **暂不接线**（定性 + 注释纠偏 + 指纹维护口径见 §二） | a) `PINNED_CERTS` 叶子指纹已于 2026-09-15 过期——`validateCertificate` 不匹配即拒连，**此刻接线＝APP-PLUS 全量请求失败＝事故**，不是反测；b) `installSslPinning()` 的 APP-PLUS 分支自己写明「实际安装逻辑在原生层（NetworkClient）」，JS 侧 `plus.networkEvent.addEventListener('certificateValidate')` 是接口预留、当前运行时不可用——接了也只剩「校验不存在⇒静默放行」，正是任务书禁止的形态，且反测（指纹不匹配⇒请求失败）无法构造；c) H5/小程序本就无法应用层 Pinning（浏览器/宿主自带 HTTPS 校验） | `config/env.ts:7-9` 已改为「**当前未接线**（零调用点，指纹已过期）」；`utils/pin-ssl.ts:4-12` 文件头标注状态与接线前置；改后 `rg installSslPinning app-mobile/src` 命中全部为 pin-ssl.ts 自身（定义/状态块），零外部调用点 |
+.\docs\tasks\cards\R101-QODER-13-回传.md:25:| ① | 换 `PINNED_CERTS` 四条指纹（只改常量+紧邻注释） | `pin-spki.sh` 两域采集 EXIT=0；新值与输出逐字一致；`pin-ssl.ts` 内 `rg -i trustasia` 0 命中 | api/m 两域各采一次均 EXIT=0；`08-new-pinned-certs-values.log` 机器校验 4 条值逐一命中来源域日志（api 值只出现在 api 日志、m 值只出现在 m 日志，禁跨域抄用达成）；`rg -n -i trustasia app-mobile/src/utils/pin-ssl.ts` EXIT=1（0 命中） | 达成 |
+.\docs\tasks\cards\R101-QODER-13-回传.md:39:   - `installSslPinning()` 未被调用（调用点 0，见 `03-rg-trustasia-and-install-callpoints.log`）；脚本输出原文 = `raw/01`、`raw/02`。
+.\docs\tasks\cards\R101-QODER-13-回传.md:52:1. **「trustasia 0 命中」范围判断**：按派单指令，该判据范围取 `pin-ssl.ts` 文件内（已 0 命中）。全仓其余命中**一律未动**，清单（`rg -i -l trustasia` 现场读数）：`app-mobile/docs/pin-ssl指纹维护口径.md`、`docs/踩坑日志.md`、`docs/tasks/inbox/QODER-13-指纹更新与守卫收口.md`（任务书原件，禁改）、`docs/tasks/inbox/ACTIVE-回执-QODER-12.md`、`docs/tasks/cards/R101-QODER-12-回传.md`、`docs/tasks/cards/R101-QODER-10-11-12-凌舟验收-20261020.md`、本单证据日志自身——均为文档/历史证据，判定不属"只改常量"范围。若凌舟认为判据应覆盖全仓文档，**另行裁定**，本单未擅自执行。
+.\docs\tasks\cards\R101-QODER-13-回传.md:53:2. **紧邻注释范围**：除四条行尾注释外，同步改了 `PINNED_CERTS` 直接上方的 JSDoc 块（`:68` 采集日、`:72` CA 名——不改则判据①无法达成且注释继续说谎）。**文件头状态块未动**：`:6`「叶子指纹已于 2026-09-15 过期」与 `:28`「（2026-09-15 到期）」两条现随本次更新而**语义过时**（指纹已换成现网 Let's Encrypt 值），但它们不是 PINNED_CERTS 的紧邻注释，且"不接线"总状态未变（`:2-9` 其余论据仍成立）——**遗留为已报备的注释漂移**，接线卡或凌舟裁定后续处理。
+.\docs\tasks\cards\R101-QODER-13-回传.md:86:rg -n -i trustasia app-mobile/src/utils/pin-ssl.ts  # 期望 EXIT=1（0 命中）
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:23:| 1 | §二.1 `pin-ssl.ts:6` | 整行替换为"在册指纹已更新为 2026-10-21 现网 Let's Encrypt 值；仍未接线"口径（并修正"未接线原因不再是过期"） | 该行不再含 `2026-09-15` | 命中 0（`raw/03`） |
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:24:| 2 | §二.2 `pin-ssl.ts:28` | 整行替换为 api/m 叶子实际到期日 + 中间证书 YE2/YE1 2028-09-02 + 轮换提醒口径 | 该行不再含 `2026-09-15` | 命中 0（`raw/03`） |
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:26:| 4 | §三.1 rg 判据 | — | `rg -in '2026-09-15\|trustasia' pin-ssl.ts` = 0 命中 | **0 命中**（`RG_EXIT=1`） |
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:35:2. **`:28`（"注意"段第 1 条）**：原文"已配置生产证书实际指纹（2026-09-15 到期）"同为假话。新行给出两条叶子的**实际到期日**与中间证书 YE2/YE1 的 2028-09-02，并把轮换提醒写成"命中到期前 30 天提醒窗口即应启动"——该窗口口径直接来自 `qoder-13/raw/01` 采集时 api 叶子剩 22 天触发的 WARN，不是新造的规则。
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:37:4. **静态断言（防回潮）**：`tests/storage-crypto.spec.ts` 顶部加导入与 `collectInstallCallSites()`（与 `rg -n 'installSslPinning\(' app-mobile/src` 同语义：跳过注释行与 `export function` 定义行），并在既有 `it` 的断言列表末尾追加 3 条：不含 `2026-09-15`、小写化后不含 `trustasia`、调用点清单 `toEqual([])`。**不新增 spec 文件、不新增 `it`**，用例数保持 5/56。
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:101:1. **反测第一轮未隔离断言②**（`anti/attempt1-trustasia-note.note.txt`）：第一轮注入文本写成 `沿用 TrustAsia 旧签发链（2026-09-15 口径）`，同时携带两个禁用 token，vitest 按断言书写顺序命中 `:75`（断言①）即失败，拿不到"断言②能红"的证明。已补跑 `anti-trustasia2-red.log`（只注入 `TrustAsia`、不含 `2026-09-15`）⇒ 红点 `:76`。第一轮日志按"证据不覆盖历史"原样留档，未改写。**这是本单执行方的处置瑕疵，主动报备**。
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:103:3. 反测绿跑：`trustasia2`（补正轮）自带完整闭环（红 `spec:76` ⇒ `cp` 复原 ⇒ SHA 一致 ⇒ 复跑 5/56 EXIT=0，见该档尾部 `GREEN_EXIT=0`）；另三轮（`date`/`trustasia`/`callsite`）共用同一份复原态复跑转绿（`anti/anti-green-after-restore.log`），未逐轮重复绿跑；理由：四份红档的"复原后 SHA"彼此相同且等于注入前值（`cb27d321…408889`），字节同一 ⇒ 一次绿跑对三轮同等成立。
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:119:rg -in '2026-09-15|trustasia' app-mobile/src/utils/pin-ssl.ts      # 期望：无输出，RG_EXIT=1
+.\docs\tasks\cards\R101-QODER-13F1-回传.md:129:node /d/Users/ZXQL/wt-agents/_scratch/qoder-13f1/inject-13f1.mjs --case date     # | trustasia | callsite
+.\docs\tasks\cards\R101-QODER-12-回传.md:38:- **A 级新事实（登记）**：`pin-ssl.ts` 在册 4 条指纹（TrustAsia，2026-09-15 到期）**与现网全部失配**——生产链已换成 Let's Encrypt 且 CA、中间条目均不同；api 叶子距到期 23 天已入 30 天窗口。因未接线不发作（§一-⑤①形态），但坐实"过期指纹接线即全量拒连"。
+.\docs\tasks\cards\R101-QODER-12-回传.md:72:- 在册指纹与现网**四条全失配**已坐实（A）：若任何代理据在册 TrustAsia 注释推导"现网仍是 TrustAsia"将出错——文档 §二.3 对照表为准，且指纹读数带采集时刻（LE 链 90 天级漂移，引用前重跑脚本）。
+.\docs\tasks\cards\R101-S2-03-监控-日志-商品库数据对接.md:27:### 2.1 并入本卡的 S2-01 遗留交付（凌舟 2026-09-15 裁定③，禁止第三次挂空）
+.\docs\tasks\cards\R101-S2-02-组3-林夕实施回传.md:4:> 执行方：林夕（UI/UX 设计），暂代阿坚｜日期：2026-09-15
+.\docs\tasks\cards\R101-S2-02-组2修订-林夕实施回传.md:4:- 裁定依据：`docs/R101-S2-02-凌舟裁定.md` 组2 验收（2026-09-15），依据设计稿 v1.6 **第 809 行**
+.\docs\tasks\cards\R101-S2-02-组2-林夕实施回传.md:75:`docs/tasks/cards/R101-S2-03-监控-日志-商品库数据对接.md` 有 14 行改动（并入 S2-01 遗留 4 处收口截图，2026-09-15 裁定③）。**非本轮我的动作，未纳入组2 提交**，保持未提交状态。
+.\docs\tasks\cards\R101-QODER-10-11-12-凌舟验收-20261020.md:33:- 在册 TrustAsia 四条与现网 Let's Encrypt 全失配，且旧叶子已过期；QODER-13 仍需执行，未接线前不得调用 `installSslPinning()`。
+.\docs\tasks\cards\R101-S3-46-林夕实施回传.md:97:- ⚠️ 又是 [78] 的实例：2026-09-15 前的 E2E 大多卡在 `npm ci` EUSAGE（S3-41 的 lock 问题），**根本没走到测试步骤**；lock 修好后才暴露真红点
+.\app-mobile\docs\pin-ssl指纹维护口径.md:63:| api.onepan.cn 叶子 | `SS6pnMVjm…`（注释：2026-09-15 到期） | `Y/uy8CcEO5D3HHhBa8iBqWJu3uEQwuA1bwRCpuVfcHs=`（LE，notAfter 2026-11-11） | **已过期失配**：现网早已换成 Let's Encrypt 链，在册 TrustAsia 条目整体陈旧 |
+.\app-mobile\docs\pin-ssl指纹维护口径.md:64:| api.onepan.cn 中间 | `X4AGLwdqSLc…`（TrustAsia DV TLS RSA CA 2024） | `s/tdAOmUzd8syaTuqfgGvFcn6DzA5Cmb+Vby1ST+U3Y=`（Let's Encrypt YE2，notAfter 2028-09-02） | **已失配**（CA 已换） |
+.\app-mobile\docs\pin-ssl指纹维护口径.md:65:| m.onepan.cn 叶子 | `JKxBAU4tJIz…`（2026-09-15 到期） | `rH0oqsRgfu1hGtbs10FXorbhao99FC99nqVBGmWA1M4=`（CN=admin.onepan.cn，SAN 含 m.onepan.cn，notAfter 2026-12-22） | **已失配**；叶子与 admin 共用一张证书属正常 SAN 泛化，接线时以指纹全等为准 |
+.\app-mobile\docs\pin-ssl指纹维护口径.md:66:| m.onepan.cn 中间 | `X4AGLwdqSLc…`（TrustAsia） | `sha256/brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=`（Let's Encrypt YE1） | **已失配** |
+.\app-mobile\docs\pin-ssl指纹维护口径.md:77:4. **固定节拍兜底**：未接线期间，每自然月跑一次脚本对在册两域名留痕（防注释腐化重演——本轮 TrustAsia→Let's Encrypt 的更换就没人追）。C：该节拍是否并入现有发版检查流程，待派单人定，本卡不代裁。
+.\app-mobile\docs\移动端全面审查清单与修复方案-2026-10-18.md:66:| MO-13 | 证书固定指纹 2026-09-15 到期，今日已逾期一个月；因未接线暂未发作，接线即打挂 App | `src/utils/pin-ssl.ts:67,71` | A |
+
+判读：
+ 1. 卡 §三.1 的 0 命中判据范围 = app-mobile/src/utils/pin-ssl.ts 单文件（与 QODER-13 同口径），
+    本卡已达成，判据原文与 RG_EXIT=1 见 raw/03（该处不含 / 开头模式，另已按协议先 export MSYS2_ARG_CONV_EXCL='*'）。
+ 2. 上表为范围外既存命中：历史文档（踩坑日志 [78]/[ ]、审查清单 MO-13、pin-ssl 指纹维护口径、往期卡与回执、
+    任务书原件）、后端一条与证书无关的业务样例数据（miniapp.controller.ts:511 expireAt 2026-09-15，backend 红线不可动）、
+    以及 app-mobile/src/config/env.ts:8 一行注释（与本卡 :6 同一条假话）。
+ 3. 卡 §二 只点名 pin-ssl.ts:6/:28 两行 ⇒ 以上一律未动（项目红线：没有问题的地方禁止私自修改）；
+    env.ts:8 已在回传卡 §五.3 报备并给出追单建议。

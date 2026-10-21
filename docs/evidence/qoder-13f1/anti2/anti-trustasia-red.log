@@ -1,0 +1,56 @@
+### QODER-13F1 反测（第二轮，spec 求值时机更正后）· case=trustasia
+# 宿主用例：tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > tag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）
+# 注入面：app-mobile/src/utils/pin-ssl.ts（唯一被改文件；spec 与其余文件全程未动）
+
+$ date -Iseconds
+2026-10-21T05:35:51+08:00
+$ sha256sum app-mobile/src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *app-mobile/src/utils/pin-ssl.ts
+SHA_BEFORE=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+
+$ cp pin-ssl.ts -> D:/Users/ZXQL/wt-agents/_scratch/qoder-13f1/pin-ssl.ts.trustasia.r2bak（注入前备份，复原只用 cp，禁止 sed -i）
+
+$ node D:/Users/ZXQL/wt-agents/_scratch/qoder-13f1/inject-13f1.mjs --case trustasia
+✓ [trustasia] 注入完成（337B → 342B）；预期：含 TrustAsia ⇒ 断言② 红
+INJECT_EXIT=0
+
+# 注入现场定性（三条断言各自只应命中其一）
+$ grep -c '2026-09-15' / grep -ci trustasia / grep -n 'installSslPinning()'
+date_hits=0
+ta_hits=1
+callsite=2:export function installSslPinning(): boolean {
+
+$ npm run test   # 期望 EXIT=1，红点点名宿主用例与对应断言行
+RED_EXIT=1
+--- vitest 失败摘要（节选）---
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (5)[39m
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22mtag 校验失败即抛（密文/认证标签被篡改时绝不返回明文）
+[31m[1mAssertionError[22m: expected true to be false // Object.is equality[39m
+[32m- Expected[39m
+[31m+ Received[39m
+
+$ cp D:/Users/ZXQL/wt-agents/_scratch/qoder-13f1/pin-ssl.ts.trustasia.r2bak -> pin-ssl.ts（原子自复原）
+RESTORE_EXIT=0
+$ sha256sum app-mobile/src/utils/pin-ssl.ts
+cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889 *app-mobile/src/utils/pin-ssl.ts
+SHA_AFTER=cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889
+SHA_EQUAL=yes（注入前后逐字节一致）
+$ git status --porcelain
+ M app-mobile/tests/storage-crypto.spec.ts
+?? docs/evidence/qoder-13f1/anti2/
+
+$ npm run test   # 复原态复跑，期望 EXIT=0 且 5 文件 / 56 用例
+GREEN_EXIT=0
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+### 本轮结束 date=2026-10-21T05:36:39+08:00
+
+# 断言行定位（同一次运行的原始日志去 ANSI 后节选，用于把红点钉到具体断言行）
+# 宿主用例 it 起始行 = tests/storage-crypto.spec.ts:76；断言① :85 / ② :86 / ③ :87
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 55 passed (56)
+AssertionError: expected true to be false // Object.is equality
+ ❯ tests/storage-crypto.spec.ts:86:62
+
+# 本轮 git status 里的 ` M app-mobile/tests/storage-crypto.spec.ts` 不是反测残留：
+# 反测只改 pin-ssl.ts（已 cp 复原、SHA 一致）；该 M 是本轮之前为消除用例超时抖动所做的
+#   spec 求值时机更正（求值移到 import 阶段），尚未提交，故 git 必然列为 M。

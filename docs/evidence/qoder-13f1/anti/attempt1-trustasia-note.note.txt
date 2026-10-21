@@ -1,0 +1,15 @@
+本目录 anti-trustasia-red.log（第一轮 TrustAsia 注入）读数说明与更正
+
+1. 现象：该轮 vitest 红点落在 tests/storage-crypto.spec.ts:75（断言①「不含 2026-09-15」），
+   而不是预期的 :76（断言②「不含 trustasia」）。
+2. 根因：注入文本 `在册指纹沿用 TrustAsia 旧签发链（2026-09-15 口径）` 同时携带两个禁用 token，
+   vitest 在断言列表中按书写顺序命中第一个即失败 ⇒ 无法据此单独证明断言②本身可红。
+   （按「证据不覆盖历史」，该轮日志原样留档，不改写。）
+3. 更正：anti-trustasia2-red.log 把注入文本改为只含 `TrustAsia`（不含 2026-09-15），
+   rg 复核该轮注入后 pin-ssl.ts 命中 1 处（仅 trustasia），vitest 红点为 :76（断言②）
+   ⇒ 三条静态断言各自的可红性已逐一隔离证明：
+     断言①（:75）anti-date-red.log
+     断言②（:76）anti-trustasia2-red.log
+     断言③（:77）anti-callsite-red.log
+4. 该轮 SHA 一致性与其余轮次相同：注入前与 cp 复原后 pin-ssl.ts 均为
+   cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889（逐字节一致，未用 sed -i）。

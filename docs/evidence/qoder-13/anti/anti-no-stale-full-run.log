@@ -1,0 +1,29 @@
+# 反测（有效次）：--no-stale 判红 + 行为隔离（采集时间 2026-10-21 02:06:45 +0800）
+== 1. 改前 sha256sum ==
+05ee3642758b9abafe65115b9a4b07767ee74a4c2fc735496cf381e0cc43e926 *backend/scripts/rbac-wiring-baseline.json
+== 2. 注入 1 条陈旧登记（scratch latin1，CRLF 锚点）==
+INJECTED ok: 已注入 1 条指向不存在缺口的陈旧登记
+inject EXIT=0
+1
+== 3. 注入态 --strict --no-stale（应 EXIT=1 且点名）==
+EXIT=1
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+gaps：已登记 290 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 1 条（仅提示，不判红）
+consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+❌ [--no-stale] 陈旧台账登记（gaps：已登记但当前无缺口）：admin-auth.routes.ts|POST /api/qoder13-antitest/never-exists
+
+❌ [--no-stale] 存在 1 条 gaps 陈旧登记 ＋ 0 条 consumerEnd 陈旧登记 ⇒ exit 1（清理 rbac-wiring-baseline.json 后复跑）
+== 4. 注入态 --strict 不带开关（行为隔离：应仍 EXIT=0）==
+EXIT=0
+—— 台账核对（rbac-wiring-baseline.json 存在）——
+gaps：已登记 290 条 ／ 未登记 0 条 ／ 已登记但当前无缺口 1 条（仅提示，不判红）
+consumerEnd：已登记 45 条 ／ 未登记 0 条 ／ 已登记但当前非消费者端形态 0 条（仅提示，不判红）
+✅ [--strict] 无「未登记」项（已登记欠账 290 条、已登记消费者端保护形态 45 条，均不计红）
+== 5. cp 复原 ==
+== 6. 复原后 sha256sum（须与第1步逐字节一致）==
+05ee3642758b9abafe65115b9a4b07767ee74a4c2fc735496cf381e0cc43e926 *backend/scripts/rbac-wiring-baseline.json
+== 7. 复跑两态应均 EXIT=0 ==
+strict EXIT=0
+strict+no-stale EXIT=0
+== 8. git status 该文件（空=无残留）==
+(以上为空则无残留)

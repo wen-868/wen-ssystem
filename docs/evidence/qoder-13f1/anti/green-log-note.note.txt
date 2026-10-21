@@ -1,0 +1,27 @@
+### 本目录时间线更正与补充说明（不改写任何原始日志，按"证据不覆盖历史"另存）
+
+时间线（本机时刻，全部对齐 `git log` 与各日志 mtime）：
+
+| 时刻 | 事件 |
+|---|---|
+| 04:27 | 改动前常驻四门基线复跑（`raw/00`）⇒ 全 EXIT=0、test 5/56 |
+| 04:29 | 应用本卡改动（树外 `apply-13f1.mjs`，5 处单点替换） |
+| 04:32–04:33 | 改动后常驻四门（`raw/21`–`raw/24`）⇒ 全 EXIT=0、test 5/56 |
+| 04:34–04:35 | 反测三轮 `date` / `trustasia` / `callsite` 红档 + 复原绿档 |
+| 04:41 | 反测补正轮 `trustasia2`（隔离断言②）红 → cp 复原 → SHA 一致 → 复跑绿 |
+| **04:42:35** | **实现笔 `d9151ae5` 才创建** |
+| 04:49 | 已提交态上常驻四门终态复跑（`raw/31`）⇒ 全 EXIT=0、test 5/56 |
+
+由此更正两条事实：
+
+1. `anti-green-after-restore.log` 第一段读数为 ` M app-mobile/src/utils/pin-ssl.ts`，**不是反测残留**：
+   四轮反测（含 `trustasia2`）全部跑在实现笔落定**之前**——文件已改、`d9151ae5` 尚未创建，故 git 必然列 ` M`。
+   我在命令里预写的注释"空 ⇒ 与已提交实现笔逐字节一致"当时不成立，此处更正。
+   （`anti-trustasia2-red.log` 内未采集 `git status`，只有 `RED_EXIT=1` / `GREEN_EXIT=0` 两条读数，不受此影响。）
+2. 实现笔落定后的终态读数看：
+   - `raw/30-final-selfcheck.log`（04:42 采）⇒ `git status --porcelain` 只剩未提交的 `?? docs/evidence/qoder-13f1/`；
+   - `raw/31-postcommit-gates.log`（04:49 采）⇒ 已提交态上四门复跑全 EXIT=0（test 5 文件 / 56 用例）。
+   两者与四份红档"cp 复原后 SHA = 注入前 SHA = `cb27d321c52d487042c65bfe5061f7bce23fd6ed12963d17108f384ed9408889`"
+   互相印证：反测注入确已逐字节自复原，且该复原态就是最终提交态。
+3. `anti-trustasia-red.log`（第一轮 TrustAsia 注入）红点错位到断言①的原因与更正见
+   `attempt1-trustasia-note.note.txt`；隔离断言②的有效轮是 `anti-trustasia2-red.log`（红点 `spec:76`）。

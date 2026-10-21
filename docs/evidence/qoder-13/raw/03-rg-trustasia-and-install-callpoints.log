@@ -1,0 +1,32 @@
+# 采集时间(本机): 2026-10-21 01:52:20 +0800
+# 命令1: rg -n -i trustasia app-mobile/src/utils/pin-ssl.ts
+EXIT=1 (1=0命中，判据①文件内达成)
+
+# 命令2: 全仓 rg -i -l trustasia（默认排除 node_modules/.git）
+.\app-mobile\docs\pin-ssl指纹维护口径.md
+.\docs\踩坑日志.md
+.\docs\tasks\inbox\QODER-13-指纹更新与守卫收口.md
+.\docs\tasks\inbox\ACTIVE-回执-QODER-12.md
+.\docs\evidence\qoder-13\raw\03-rg-trustasia-and-install-callpoints.log
+.\docs\tasks\cards\R101-QODER-12-回传.md
+.\docs\tasks\cards\R101-QODER-10-11-12-凌舟验收-20261020.md
+EXIT=0
+
+# 命令3: installSslPinning 全仓命中文件清单
+.\app-mobile\src\utils\pin-ssl.ts
+.\app-mobile\docs\pin-ssl指纹维护口径.md
+.\docs\tasks\inbox\QODER-5-三兄弟落地.md
+.\docs\tasks\inbox\QODER-13-指纹更新与守卫收口.md
+.\docs\evidence\qoder-5\rg-before.log
+.\docs\evidence\qoder-5\rg-after-fullpattern.log
+.\docs\tasks\inbox\ACTIVE-回执-QODER-5.md
+.\docs\evidence\qoder-13\raw\03-rg-trustasia-and-install-callpoints.log
+.\docs\tasks\cards\R101-QODER-5-回传.md
+.\docs\tasks\cards\R101-QODER-10-11-12-凌舟验收-20261020.md
+.\docs\tasks\cards\R101-手机端收口-五条裁定与派单-凌舟-20261017.md
+.\docs\reports\test-report-2026-07-20.md
+
+# 命令4: 调用点自证（排除定义文件本身与文档/证据）
+EXIT=1 (1=src 内除定义文件外 0 命中)
+# 命令5: 定义存在证明
+200:export function installSslPinning(): boolean {

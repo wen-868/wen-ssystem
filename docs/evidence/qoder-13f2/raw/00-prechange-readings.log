@@ -1,0 +1,51 @@
+### QODER-13F2 · raw/00 改动前（基线 61514b02）读数与事实
+# 采集时刻：2026-10-21T07:22:05+08:00
+# 形态说明：本文件不是一次新的四门运行——13F2 的「改动前态」就是 QODER-13F1 的终态（tip 61514b02），
+#           该态常驻四门已由 13F1 独立采集并随 61514b02 提交，落在 docs/evidence/qoder-13f1/raw/33-post-fix-gates.log；
+#           此处按【引用】处理，不重复计为 13F2 实测证据。13F2 开工前实测的是「基线本身 + 测试文件清单」，见下方 git show。
+
+$ git rev-parse HEAD   # 13F2 起点 = 13F1 tip
+61514b028baed6de34837aa1cac7fce76a309c48
+
+$ git show 61514b02:app-mobile/scripts/gates-baseline.json 的 tests / lint 段
+tests = {"testFiles":5,"testCount":56}
+lint  = {"errorBaseline":20,"mustReachZero":true,"errorsByFileRule_pairs":13}
+NODE_EXIT=0
+
+$ git ls-tree 61514b02 --name-only app-mobile/tests/   # 改动前测试文件（5 个，无 pin-ssl-static.spec.ts）
+
+$ git show 61514b02:app-mobile/tests/storage-crypto.spec.ts | sha256sum   # LF blob 形态
+c87e8b88066e9dde6b7f1838e940a386218275d538aefb616fe843c651c0d246 *-
+$ git show 597230c4:app-mobile/tests/storage-crypto.spec.ts | sha256sum   # 13F2 回退目标（LF blob 形态）
+52f2d74c922c49e1b33a9a5bcfd5f523c3ff5d8b02db566b28c19774588545c4 *-
+
+--- 引用的 13F1 终态四门读数（原文摘录，来源 docs/evidence/qoder-13f1/raw/33-post-fix-gates.log）---
+EXIT=0
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+EXIT=0
+当前 error 20（基线 20）、warning 12872（基线 12872）
+EXIT=0
+ Test Files  5 passed (5)
+      Tests  56 passed (56)
+EXIT=0
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+
+# 结论：改动前 = 四门 EXIT 全 0，test 5 文件 / 56 用例，lint error 20 / warning 12872，type 0=0，contract 差集 1（具名豁免 1）；
+#         13F2 目标 ⇒ tests 基线 5/56 → 6/57（新增独立 tests/pin-ssl-static.spec.ts：1 describe / 1 it），lint/type/contract/security 四段基线一律不动。
+
+--- 更正（不覆盖上文，保留首采记录）---
+# 上文 $ git ls-tree 61514b02 --name-only app-mobile/tests/ 输出为空 = 取值错误：命令 cwd 在 app-mobile/，
+# 而 pathspec 写成仓库根相对路径 app-mobile/tests/，该 cwd 下不存在此路径 ⇒ git 返回空（非「无测试文件」）。
+# 正确采集（cwd=app-mobile ⇒ pathspec 用 tests/）如下：
+$ git ls-tree 61514b02 --name-only tests/
+tests/api-base-env.spec.ts
+tests/entry-gate-consistency.spec.ts
+tests/permission-codes.spec.ts
+tests/permission-view-state.spec.ts
+tests/storage-crypto.spec.ts
+$ git ls-tree 61514b02 --name-only ../app-mobile/tests/   # 仓库根相对写法须从根目录 cwd 采，此处用 ../ 前缀复现
+tests/api-base-env.spec.ts
+tests/entry-gate-consistency.spec.ts
+tests/permission-codes.spec.ts
+tests/permission-view-state.spec.ts
+tests/storage-crypto.spec.ts

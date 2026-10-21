@@ -1,0 +1,52 @@
+### 卡 §三 内部矛盾的现场核对：改动前 tests 下无任何 spec 引用 pin-ssl ###
+
+$ ls app-mobile/tests
+api-base-env.spec.ts
+entry-gate-consistency.spec.ts
+permission-codes.spec.ts
+permission-view-state.spec.ts
+storage-crypto.spec.ts
+
+—— 逐文件核验（直接取基线 597230c4 的入库内容，与本卡动工无关）——
+$ for f in app-mobile/tests/*.spec.ts: git show 597230c4:<该文件> | rg -in 'pin-ssl|PINNED_CERTS|installSslPinning|validateCertificate'
+  api-base-env.spec.ts              零命中（rg EXIT=1）
+  entry-gate-consistency.spec.ts    零命中（rg EXIT=1）
+  permission-codes.spec.ts          零命中（rg EXIT=1）
+  permission-view-state.spec.ts     零命中（rg EXIT=1）
+  storage-crypto.spec.ts            零命中（rg EXIT=1）
+
+$ rg -n 'pin-ssl' app-mobile/src app-mobile/src/config/env.ts   # 基线上 pin-ssl 的全部非自身引用面
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":1:# pin-ssl 证书指纹维护口径（QODER-12 交付①）
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":4:> **本卡口径为「不接线」**：`app-mobile/src/utils/pin-ssl.ts` 零改动（`git diff` 见 `docs/evidence/qoder-12/pin-ssl-zero-diff.log`）；接线与否由后续卡另行处理。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":14:| 采指纹、改 `PINNED_CERTS`、提更新 PR | **移动端执行方（Qoder，移动端 agent）** | B：`R101-QODER-5-回传.md` §二"谁更新"既立口径；`pin-ssl.ts` 历史署名 @author 阿澈（该行属存量代码，非职责变更） |
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":25:现 `PINNED_CERTS` 格式为 `sha256/<Base64(SPKI 的 SHA-256)>`（B：`app-mobile/src/utils/pin-ssl.ts:70-83`）。采集链 = `s_client 取证书 → 提取公钥 → 公钥 DER → SHA-256 → base64`：
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":50:**格式一致性要求**：粘贴进 `PINNED_CERTS` 时须为 `sha256/<上面输出>`（含末尾 `=`），与 `validateCertificate` 的**字符串全等比较**口径一致（B：`pin-ssl.ts:168-173`——比对是 `fingerprint === pinned`，不做大小写/编码归一）。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":54:1. **中间证书轮换期不断连**：叶子证书短周期轮换（如 Let's Encrypt 约 90 天，A：本次实测 `api.onepan.cn` 叶子剩余仅 23 天）时，只要新叶子仍由**同一中间 CA** 签发，客户端凭中间指纹即可直接连通，**无需等发版**；只 pin 叶子则每次换证书都是一次"全客户端失联倒计时"。B：`pin-ssl.ts:72/:77` 既有注释"中间证书指纹用于轮换兜底"即此设计。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":61:| 域名 | 在册指纹（`pin-ssl.ts:74-83`） | 现网实测 | 状态 |
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":76:   - **接线后触发手段**：release 前置检查脚本比对在线 `validTo`，≤30 天即红并点名——此条在 R101-QODER-5 §二登记为**接线卡交付物**（B），当前仓库**尚无此门禁**，**不得**写成已存在（C：`pin-ssl.ts` 的 `CertificateInfo.validTo` 字段仅声明、`validateCertificate` 从不比对时间，见 `pin-ssl.ts:49-50,150-180`）。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":89:4. **H5/小程序不受影响**：`installSslPinning()` 非 APP-PLUS 分支恒 `false`（B：`pin-ssl.ts:237-240`），浏览器自带 HTTPS 校验；但指纹条目腐化会让**接线决策时点**重新踩坑，所以并存/删旧纪律对未接线期间同样适用。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":95:1. **当前形态（未接线，`pin-ssl.ts` 零调用点，B）**：指纹过期/失配 ⇒ **线上无感、不发作**（没有校验在跑）。风险仅两处：a) 注释与真实状态腐化（已发生，见 §二-3 对照表）；b) 接线时点误用陈旧指纹——把"不发作"读成"没问题"就是事故前奏。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":96:2. **接线后 + 指纹过期** ⇒ **全量 TLS 拒连事故**：`validateCertificate` 对 APP-PLUS 所有请求逐条比对指纹，`PINNED_CERTS` 非空且全不匹配即返回 `valid:false` ⇒ 该域名请求**全部失败**，App 表现为登录/接口整段不可用。反测判据口径（接线卡执行）：**伪造指纹 ⇒ 请求必须失败点名，不许静默放行**（B：`pin-ssl.ts:4-9,150-180`；接线前置两条 R101-QODER-5 §二：① 新指纹采齐并在线校验通过、② 原生层（NetworkClient/plus）证书校验事件确认存在且回调可控——当前 JS 侧 `plus.networkEvent.addEventListener('certificateValidate')` 为接口预留、运行时不可用，B：`pin-ssl.ts:207-231`；C：现网原生包实际行为需真机取证）。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":101:**第一层（秒级、免发版）**：应急开关关闭 Pinning——服务端远程下发 `{ pinning: false }` ⇒ `setPinningEnabled(false)` 加密落盘 ⇒ `validateCertificate` 首行放行（**仍受 HTTPS 标准校验保护，仅失去 Pinning 额外防护**）。B：`pin-ssl.ts:101-119,151-153`。C：**开关对原生层接线路径是否同样生效未经真机验证**——若接线逻辑落在 NetworkClient 原生侧，JS 开关未必被读取；接线前必须把"开关能红能关"写进反测。
+  597230c4:"app-mobile/docs/pin-ssl\346\214\207\347\272\271\347\273\264\346\212\244\345\217\243\345\276\204.md":109:- 本卡**不接线**：判据 `git diff 844515d5..HEAD -- app-mobile/src` = **0 行**（命令+输出落盘 `docs/evidence/qoder-12/pin-ssl-zero-diff.log`）。
+  597230c4:"app-mobile/docs/\345\217\221\345\270\203\345\211\215\351\205\215\347\275\256\346\270\205\345\215\225-P2.md":13:- ⚠️ 域名变更时，**必须同步更新** `src/utils/pin-ssl.ts` 的 `PINNED_CERTS` 证书固定指纹，否则 SSL Pinning 校验会失败。
+  597230c4:"app-mobile/docs/\347\247\273\345\212\250\347\253\257\345\205\250\351\235\242\345\256\241\346\237\245\346\270\205\345\215\225\344\270\216\344\277\256\345\244\215\346\226\271\346\241\210-2026-10-18.md":33:| 死代码 | `res?.result ?? res` 163 处 / 34 文件；`upload()` 定义但 0 调用；`sync-manager`、`security`、`pin-ssl` 全仓 0 引用 | A（引用计数）+ B（处数） |
+  597230c4:"app-mobile/docs/\347\247\273\345\212\250\347\253\257\345\205\250\351\235\242\345\256\241\346\237\245\346\270\205\345\215\225\344\270\216\344\277\256\345\244\215\346\226\271\346\241\210-2026-10-18.md":65:| MO-12 | 离线/安全整层孤岛：`sync-manager`、`security`、`pin-ssl` **0 引用**；`local-db` 仅被 `native/scan.ts` 与 sync-manager 读，`create-sale.vue` 无草稿分支 ⇒ 本地库永远为空、scan 本地读必 miss | grep 计数（A）；链路判断（B） |
+  597230c4:"app-mobile/docs/\347\247\273\345\212\250\347\253\257\345\205\250\351\235\242\345\256\241\346\237\245\346\270\205\345\215\225\344\270\216\344\277\256\345\244\215\346\226\271\346\241\210-2026-10-18.md":66:| MO-13 | 证书固定指纹 2026-09-15 到期，今日已逾期一个月；因未接线暂未发作，接线即打挂 App | `src/utils/pin-ssl.ts:67,71` | A |
+  597230c4:"app-mobile/docs/\347\247\273\345\212\250\347\253\257\345\205\250\351\235\242\345\256\241\346\237\245\346\270\205\345\215\225\344\270\216\344\277\256\345\244\215\346\226\271\346\241\210-2026-10-18.md":89:| MO-31 | 定时器无 `onHide` 清理：秒杀列表/详情 1s 倒计时在页面压栈或切 tab 时空跑；`pin-ssl.ts:203` 原生监听器无 remove | `pages-sub/marketing/marketing/seckill-list.vue:198`、`seckill-detail.vue:303` | B |
+  597230c4:"app-mobile/docs/\347\247\273\345\212\250\347\253\257\345\205\250\351\235\242\345\256\241\346\237\245\346\270\205\345\215\225\344\270\216\344\277\256\345\244\215\346\226\271\346\241\210-2026-10-18.md":162:- **B3-6**（MO-10/12/13）死代码二选一：`security.ts`、`pin-ssl.ts`、离线链（`sync-manager`+`local-db`+`sync.ts`）按在册 S3-247 的"二选一禁半接线"裁定收口——**删除或完整接线**，不允许继续挂着；`upload()` 若接线必须复用统一拦截（含 statusCode/401/CSRF），否则删除。注意：接线前置条件是 B2 完成后换新证书指纹，否则上线即挂。
+  597230c4:"app-mobile/docs/\347\247\273\345\212\250\347\253\257\345\205\250\351\235\242\345\256\241\346\237\245\346\270\205\345\215\225\344\270\216\344\277\256\345\244\215\346\226\271\346\241\210-2026-10-18.md":190:3. **B3-6 死代码**：`security.ts` / `pin-ssl.ts` / 离线链 / `upload()` —— 接线还是删除？（删除可即刻执行；接线就必须先换证书指纹并排真机验证。）
+  597230c4:"app-mobile/docs/\347\247\273\345\212\250\347\253\257\345\205\250\351\235\242\345\256\241\346\237\245\346\270\205\345\215\225\344\270\216\344\277\256\345\244\215\346\226\271\346\241\210-2026-10-18.md":206:`S3-245`（crypto 重复声明 + vue-tsc 进 CI，执行方阿潵，`docs/tasks/inbox/ACTIVE-S3-245.md`）＝本方案 B2-1/B0-2；`S3-239`（权限三态同源）＝B3-2；`S3-230/231`（权限门铺开，PR 受部署红阻断未合并）＝B3-1 的上下游；`S3-247`（pin-ssl 指纹 / 离线链二选一）＝B3-6；`S3-242`（跨层漂移 16 条定性）＝MO-04 的部分；`S3-244`（`check-miniapp-release` 假门禁）＝B0 同类；`S3-153`（交接班页面）＝MO-42；`D-1`（`App.vue:42 --safe-top`）＝MO-06。队列真相源为 `docs/tasks/当前批次.md`，进度源 `docs/tasks/R101-总进度与推进计划.md`，`current-tasks.md` 已不再是队列真相源。
+  597230c4:app-mobile/scripts/pin-spki.sh:8:#   粘贴到 app-mobile/src/utils/pin-ssl.ts 的 PINNED_CERTS。
+  597230c4:app-mobile/scripts/pin-spki.sh:10:#   维护口径与接线前置见 app-mobile/docs/pin-ssl指纹维护口径.md。
+  597230c4:app-mobile/scripts/pin-spki.sh:117:echo "RESULT  : 已打印 2 条（叶子 + 中间）。仅供人工核对/粘贴到 app-mobile/src/utils/pin-ssl.ts 的 '${HOST}' 条目。"
+  597230c4:app-mobile/src/config/env.ts:8: * 注：src/utils/pin-ssl.ts 的证书固定（PINNED_CERTS）**当前未接线**（全仓零调用点，且指纹已过期），
+  597230c4:app-mobile/src/utils/pin-ssl.ts:195: * import { installSslPinning } from '@/utils/pin-ssl'
+
+结论：基线 597230c4 上 app-mobile/tests 5 个 spec 对 pin-ssl 家族符号全部零命中；
+      全仓（app-mobile 内）除 pin-ssl.ts 自身外，只有 src/config/env.ts:8 的一行注释提到它。
+      ⇒ 卡 §三 同时要求「反测恢复旧文案 ⇒ 静态断言红」与「test 5/56 不升不降」，字面上无法同时成立：
+        新增 spec 文件或新增 it ⇒ 用例数必升（违反不升不降、违反 gates-baseline 一字不动）；
+        不新增 ⇒ 当场没有任何静态断言可供反测命中（违反静态断言红）。
+      ⇒ 唯一同时满足两条的落法＝不新增 spec 文件、不新增 it，把静态断言追加进某个既有 it 的断言列表
+        （本卡采法；宿主 it 选择理由见回传卡 §五.2，矛盾本身在回传卡 §五.1 点名报备，不自裁口径）。
