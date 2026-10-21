@@ -1,0 +1,33 @@
+# QODER-26F1 前置态取证 2026-10-22T01:10:14+08:00
+
+$ git rev-parse --short HEAD
+a513ff9b
+
+$ git status --porcelain   # 恢复前实测（本轮 00:54 前后）
+ M docs/evidence/qoder-26/h5/dev-h5-owner.log
+porcelain_lines_before=1
+
+$ cp docs/evidence/qoder-26/h5/dev-h5-owner.log /d/Users/ZXQL/wt-agents/_qoder26f1_bak/dev-h5-owner.log.dirty-27lines
+# 恢复前的脏态已整份保存到树外，可从该副本复算下列全部读数
+
+$ git hash-object /d/Users/ZXQL/wt-agents/_qoder26f1_bak/dev-h5-owner.log.dirty-27lines   # = 恢复前工作树文件
+e7d854ceafd3d5ca2557194a71833a2405804b23
+$ git rev-parse HEAD:docs/evidence/qoder-26/h5/dev-h5-owner.log   # = HEAD 已提交 blob
+6b6cabfedb388a85874eda36639b8528975b3f08
+
+$ wc -l < dirty-27lines  /  < head-23lines
+lines_before=27
+lines_head=23
+
+$ diff -u HEAD版本 脏版本   # 多出 4 行 vite 空错误日志
+--- /d/Users/ZXQL/wt-agents/_qoder26f1_bak/dev-h5-owner.log.head-23lines	2026-10-22 00:54:52.073083300 +0800
++++ /d/Users/ZXQL/wt-agents/_qoder26f1_bak/dev-h5-owner.log.dirty-27lines	2026-10-22 00:54:51.757577600 +0800
+@@ -21,3 +21,7 @@
+ 
+   [36mready in 7403ms.[39m
+ 
++[2m23:44:54[22m [31m[1m[vite][22m[39m [31m[39m
++[2m23:44:54[22m [31m[1m[vite][22m[39m [31m[39m
++[2m23:44:54[22m [31m[1m[vite][22m[39m [31m[39m
++[2m23:44:54[22m [31m[1m[vite][22m[39m [31m[39m
+DIFF_EXIT=1

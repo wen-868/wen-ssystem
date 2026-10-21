@@ -1,0 +1,56 @@
+# QODER-26F1 无业务改动自证 + 上一轮尖端读数指针
+
+## (1) 尖端 `a513ff9b` 相对其父提交只动 docs
+
+见本文件末尾脚本追加的 `git show --name-only` 输出。据此，派单 §二.4「不重复上调基线，保留上一轮四门 12/241 与三构建 0 的读数作为尖端证据」成立：`a513ff9b` 与 `3f70b749` 在 `app-mobile/` 与 `backend/` 两面的字节完全一致。
+
+## (2) 上一轮尖端读数（负责人亲自跑，非子代理自述；本卡未复跑，因零业务改动）
+
+| 读数 | 出处（已实测行号） |
+|---|---|
+| `GATES_EXIT=0` | `docs/evidence/qoder-26/raw/80-owner-gates-and-builds.log:17` |
+| `Tests 241 passed (241)` | 同上 `:21`；另 `raw/00-check-gates.log:53` |
+| test 门 12 文件 / 241 用例（基线 12/241） | `raw/00-check-gates.log:57` |
+| `BUILD_EXIT_h5=0` | `raw/80-owner-gates-and-builds.log:7` |
+| `BUILD_EXIT_mp-weixin=0` | 同上 `:10` |
+| `BUILD_EXIT_app=0` | 同上 `:13` |
+| vue-tsc EXIT=0（0=0） | 同上 `:18` |
+
+该组读数现场 HEAD=`3f70b749`（见 `raw/80-owner-gates-and-builds.log:6`）；`a513ff9b` 为其上的 docs-only 提交。
+
+## (3) 本卡零业务改动自证（脚本追加）
+
+# 复跑时间戳 2026-10-22T01:14:41+08:00
+$ git show --name-only --oneline -1 a513ff9b
+  a513ff9b docs: QODER-26 负责人复验补笔——自有四门/三构建读数 + H5 双 SKU 运行态实证
+  docs/evidence/qoder-26/README.md
+  docs/evidence/qoder-26/h5/dev-h5-owner.log
+  docs/evidence/qoder-26/h5/mock-backend-qoder26.log
+  docs/evidence/qoder-26/h5/mock-start-owner.log
+  docs/evidence/qoder-26/h5/owner-h5-readings.log
+  docs/evidence/qoder-26/h5/price-hits.json
+  docs/evidence/qoder-26/raw/80-owner-gates-and-builds.log
+  "docs/tasks/cards/R101-QODER-26-\345\233\236\344\274\240.md"
+  "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-26.md"
+
+$ git diff --name-only a513ff9b^..a513ff9b | grep -v "^docs/" | wc -l   # 期望 0
+  nondocs_lines=2
+
+$ git diff --name-only 3f70b749..a513ff9b -- app-mobile backend | wc -l   # 期望 0（尖端两提交业务面零差异）
+  business_diff_files=0
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c   # 期望 0
+  BACKEND_DIFF_BYTES=0
+
+$ git diff --name-only HEAD -- app-mobile backend   # 工作树相对 HEAD 的业务面改动，期望空
+(空=零业务改动)
+
+$ git diff HEAD | wc -c
+  tracked_diff_bytes=0
+
+## (4) 读数勘误注（追加，不改写上文）
+时间戳 2026-10-22T01:15:46+08:00
+
+`nondocs_lines=2` 不是业务改动：git 的 --name-only 会把含非 ASCII 的路径整体加引号（`"docs/tasks/cards/R101-QODER-26-\345\233\236\344\274\240.md"` 这种 C 转义形态），因此这两行以 `"` 开头、不被 `grep -v "^docs/"` 过滤掉。
+它们就是上文 `git show --name-only` 里的两个 docs 文件：`docs/tasks/cards/R101-QODER-26-回传.md` 与 `docs/tasks/inbox/ACTIVE-回执-QODER-26.md`。
+权威口径是带路径限定的机检：`business_diff_files=0`（app-mobile+backend 面零文件差异）、`BACKEND_DIFF_BYTES=0`、`tracked_diff_bytes=0`。
