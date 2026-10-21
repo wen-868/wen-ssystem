@@ -357,6 +357,7 @@ const { canEntry } = usePermissionGate()
 import {
   productsApi,
   updateSkuPrice,
+  skuIdOfProduct,
   type ProductInfo,
   type CategoryInfo,
 } from '@/api/modules/products'
@@ -836,7 +837,12 @@ async function doAdjust() {
   for (let i = 0; i < ops.length; i++) {
     const { p, payload } = ops[i]
     try {
-      await updateSkuPrice(Number(p.id), payload)
+      // QODER-26：PUT /admin/products/:skuId/price 的路径段是 **skuId**（后端 admin-product.routes.ts:63
+      // → product.controller.ts:256 `Number(req.params.skuId)`）。skuIdOfProduct 取号时校验
+      // ProductInfo.id 与 skuId 同值（不同值＝又有人把 spuId 当 SKU 主键）⇒ 抛错走 catch 计入 failCnt，
+      // 守卫读数由下面既有的 console.error 打印（本文件 console 条数不变：lint no-console 基线冻结 225）。
+      const skuId = skuIdOfProduct(p, `batch-price 第${i + 1}笔`)
+      await updateSkuPrice(skuId, payload)
       okCnt++
       // 本地同步新价，试算与清单即时反映
       Object.keys(payload).forEach((k) => {
@@ -844,7 +850,7 @@ async function doAdjust() {
       })
     } catch (err) {
       failCnt++
-      console.error(`更新商品 ${p.name} 价格失败:`, err)
+      console.error(`改价未提交 id=${p.id} skuId=${p.skuId} spuId=${p.spuId} name=${p.name}:`, err)
     }
     if ((i + 1) % 5 === 0 || i + 1 === ops.length) {
       uni.showLoading({ title: `执行中 ${i + 1}/${ops.length}`, mask: true })

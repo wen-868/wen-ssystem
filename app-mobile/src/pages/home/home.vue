@@ -476,7 +476,12 @@ async function onScan() {
     const rows = res?.list ?? []
     const matched = rows.find((p) => String(p.skuId) === code || (p.name || '').includes(code)) ?? rows[0]
     if (matched) {
-      uni.navigateTo({ url: `/pages/products/product-detail?id=${matched.id}` })
+      // QODER-26：商品列表是 SKU 粒度（matched.id = SKU 行主键），详情接口只认 SPU 主键
+      if (matched.spuId > 0) {
+        uni.navigateTo({ url: `/pages/products/product-detail?id=${matched.spuId}` })
+      } else {
+        uni.showToast({ title: '该商品缺少 SPU 主键，无法打开详情', icon: 'none' })
+      }
     } else {
       uni.showToast({ title: '未找到该条码商品', icon: 'none' })
     }
