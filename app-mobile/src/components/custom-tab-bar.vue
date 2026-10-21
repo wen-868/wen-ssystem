@@ -90,10 +90,12 @@ defineProps<{
   current: 'home' | 'products' | 'functions' | 'profile' | 'ai'
 }>()
 
-// App 端不支持 tabBar 的 custom:true（该属性仅微信小程序支持），
-// 原生 tabBar 会与自绘 custom-tab-bar 叠成双栏；挂载时隐藏原生栏，
-// tabBar 配置保留，uni.switchTab 跳转不受影响
-// #ifdef APP-PLUS
+// 原生 tabBar 只应在**微信小程序**端保留：
+//  · App 端根本不支持 tabBar 的 custom:true（该属性是 mp-weixin 专属），原生栏会与自绘栏叠成双栏；
+//  · H5 端同样不认 custom:true，uni-app 照旧渲染原生栏，也与自绘栏叠成双栏。
+// 因此隐藏口径必须是 #ifndef MP-WEIXIN（不是只覆盖 APP-PLUS），否则 H5 出现两条底栏。
+// tabBar 配置本身保留，uni.switchTab 跳转不受影响。
+// #ifndef MP-WEIXIN
 onMounted(() => {
   try { uni.hideTabBar({ animation: false }) } catch { /* 未就绪时忽略 */ }
 })
