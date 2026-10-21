@@ -1,0 +1,49 @@
+main..HEAD 改动文件数=727（代码面 42／docs 面 685）
+
+代码面中「HEAD blob 与五个输入面全不同」= 本卡产生：4 个
+  app-mobile/scripts/gates-baseline.json
+  app-mobile/src/pages/home/home.vue
+  app-mobile/src/pages/products/products.vue
+  app-mobile/src/utils/crypto.ts
+
+代码面中原样继承某个输入面的文件：38 个
+  app-mobile/docs/H5手动验收执行记录-2026-10-20.md  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/index.html  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/App.vue  ← 与 25F1 同 blob（原样继承）
+  app-mobile/src/api/modules/ai.ts  ← 与 25F1 同 blob（原样继承）
+  app-mobile/src/api/modules/price.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/api/modules/products.ts  ← 与 26 同 blob（原样继承）
+  app-mobile/src/api/request.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/api/storage.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/components/app-tab-bar.vue  ← 与 25F1 同 blob（原样继承）
+  app-mobile/src/config/env.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/config/permission-gates.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/config/update-security.ts  ← 与 24 同 blob（原样继承）
+  app-mobile/src/manifest.json  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/pages-sub/marketing/member/member-detail.vue  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/pages-sub/product/batch-price/batch-price.vue  ← 与 26 同 blob（原样继承）
+  app-mobile/src/pages-sub/product/price-anomaly/price-anomaly.vue  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/pages-sub/product/price-review/price-review.vue  ← 与 26 同 blob（原样继承）
+  app-mobile/src/pages-sub/settings/settings.vue  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/pages/ai-chat/ai-chat.vue  ← 与 25F1 同 blob（原样继承）
+  app-mobile/src/pages/functions/functions.vue  ← 与 25F1 同 blob（原样继承）
+  app-mobile/src/pages/products/product-detail.vue  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/pages/profile/profile.vue  ← 与 25F1 同 blob（原样继承）
+  app-mobile/src/pages/sales/create-sale.vue  ← 与 26 同 blob（原样继承）
+  app-mobile/src/utils/format.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/utils/pin-ssl.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/src/utils/update.ts  ← 与 24 同 blob（原样继承）
+  app-mobile/tests/ai-cross-platform.spec.ts  ← 与 25F1 同 blob（原样继承）
+  app-mobile/tests/format.spec.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/tests/mobile-permissions.spec.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/tests/pin-ssl-static.spec.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/tests/price-anomaly-static.spec.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/tests/product-sku-dimension.spec.ts  ← 与 26 同 blob（原样继承）
+  app-mobile/tests/request-retry-safety.spec.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/tests/safe-top-var.spec.ts  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+  app-mobile/tests/storage-crypto.spec.ts  ← 与 23F1 同 blob（原样继承）
+  app-mobile/tests/tabbar-name-reactivity.spec.ts  ← 与 25F1 同 blob（原样继承）
+  app-mobile/tests/update-security.spec.ts  ← 与 24 同 blob（原样继承）
+  backend/scripts/guard-rbac-wiring.mjs  ← 与 24/26/23F1/25F1 同 blob（原样继承）
+
+AUTHORED_CODE_FILES=4 INHERITED_CODE_FILES=38

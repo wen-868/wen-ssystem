@@ -1,0 +1,94 @@
+# QODER-27 收敛序第 4 笔：merge QODER-26 1b6da083（2026-10-22，Qoder 亲跑）
+
+## (0) 合并提交与真实双亲
+
+```
+$ git merge --no-ff 1b6da0830a24ed7da09b6fc30b5d0dca6dcd8b1e
+$ git log --format='%h %p %s' -1
+167979aa 8835d11c 1b6da083 chore: 合并 QODER-26（1b6da083）——SKU/SPU 维度收口，QODER-27 收敛序第 4 笔
+```
+
+⇒ 真 merge（双亲 = 收敛支尖 + 26 原 tip），未 rebase、未 squash、未改写来源支。
+
+## (1) merge 原始输出与冲突面
+
+```
+$ git merge --no-ff 1b6da0830a24ed7da09b6fc30b5d0dca6dcd8b1e
+Auto-merging app-mobile/scripts/gates-baseline.json
+CONFLICT (content): Merge conflict in app-mobile/scripts/gates-baseline.json
+Auto-merging app-mobile/src/pages/home/home.vue
+Auto-merging app-mobile/src/pages/products/products.vue
+Automatic merge failed; fix conflicts and then commit the result.
+MERGE_EXIT=1
+
+$ git diff --name-only --diff-filter=U
+app-mobile/scripts/gates-baseline.json
+```
+
+⇒ 冲突面仍**只有** `gates-baseline.json`。`home.vue` / `products.vue` 是 25F1 与 26 的**共同触碰文件**（25F1 挂 tabBar、26 改 SKU 维度），由 git 自动合并成功——本卡未手工改写任何业务实现（卡 §二.1 约束）。
+
+## (2) 并入的代码侧改动（全自动合并）
+
+```
+$ git diff --name-status 8835d11c 167979aa   （已滤去 docs/）
+M	app-mobile/scripts/gates-baseline.json
+M	app-mobile/src/api/modules/products.ts
+M	app-mobile/src/pages-sub/product/batch-price/batch-price.vue
+M	app-mobile/src/pages-sub/product/price-review/price-review.vue
+M	app-mobile/src/pages/home/home.vue
+M	app-mobile/src/pages/products/products.vue
+M	app-mobile/src/pages/sales/create-sale.vue
+A	app-mobile/tests/product-sku-dimension.spec.ts
+```
+
+## (3) vitest 实测（终值判据）
+
+```
+$ cd app-mobile && npm run test        # 原始日志 raw/14a-m4-test-measure.raw.log（含 ANSI）
+ ✓ tests/product-sku-dimension.spec.ts (55 tests) 55ms
+ Test Files  15 passed (15)
+      Tests  303 passed (303)
+—— test 门（用例数冻结）：当前 15 文件 / 303 用例，基线 14 / 248 ——
+ℹ 用例数高于基线 ⇒ 请把 gates-baseline.json 的 tests 同步调高（保持"实测即基线"）。
+TEST_M4_EXIT=0
+```
+
+⇒ **实测终值 15 文件 / 303 用例**，与卡 §二.2 要求同值（= 248 + 26 自有 1 文件 55 用例）。
+
+## (4) `tests` 段解算器读数
+
+```
+$ node _qoder27_setup/resolve-tests.cjs --files 15 --count 303 --segs 1b6da083 --extra-file _qoder27_setup/extra-27-ledger.txt
+SEG 1b6da083 segLen=971 头=" ★ QODER-26（2026-10-21 执"
+READBACK testFiles=15 testCount=303 noteLen=9460
+READBACK before=14/248 noteLen=7899
+READBACK noteStartsWithOld=true (只准追加)
+READBACK noteStartsWithBase=true
+READBACK nonTestsByteIdentical=true
+READBACK eolCrlfOnly=47 bareLf=0
+READBACK keysOrder=_comment,typeCheck,lint,checkContract,contractDrift,tests
+RESOLVE_EXIT=0
+```
+
+## (5) 逐段回证（四树来源原文不得删的机械化）
+
+```
+$ node _qoder27_setup/verify-note-segments.cjs
+BASE bc1087ee noteLen=2941
+FINAL noteLen=9460
+FINAL headIsBasePrefix=true
+SEG 23F1  71b248c8 segLen=2454 foundAt=2941 occurrences=1 afterPrevSeg=true verbatimInSource=true head=" ★ QODER-23（2026-1"
+SEG 24    dd44e321 segLen= 700 foundAt=5395 occurrences=1 afterPrevSeg=true verbatimInSource=true head=" ★ QODER-24（2026-1"
+SEG 25F1  317e421d segLen=1804 foundAt=6095 occurrences=1 afterPrevSeg=true verbatimInSource=true head=" ★ QODER-25（2026-1"
+SEG 26    1b6da083 segLen= 971 foundAt=7899 occurrences=1 afterPrevSeg=true verbatimInSource=true head=" ★ QODER-26（2026-1"
+LEDGER tailLen=590 head=" ★ QODER-27（2026-10-22，负责人 Qod"
+ORDER 23F1 → 24 → 25F1 → 26 逐段在册且互不重叠
+VERIFY_NOTE_SEGMENTS=PASS
+VERIFY_EXIT=0
+```
+
+⇒ 2941 + 2454 + 700 + 1804 + 971 + 590 = 9460（逐段长度和 == 终 note 长度，无截断、无重叠、无删改）；四段各出现 1 次、按合并序排列；`verbatimInSource` 证明每段确实是该来源 note 的尾部原文切片。
+
+## (6) `backend/` 归因（重要口径，详见 raw/30）
+
+本笔未触碰 `backend/`。四笔合并后 `HEAD:backend` 与四个来源 tip 及 `bc1087ee` 全部 **0 文件差异**；`main..HEAD` 的 backend 增量是**继承自四树共同祖先链**的历史改动，不是本卡写的。证据与逐条读数见 `raw/30-backend-and-scope-diff.log`。

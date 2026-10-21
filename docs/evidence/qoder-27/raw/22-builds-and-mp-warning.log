@@ -1,0 +1,62 @@
+# QODER-27 三端构建与 MP 撞名读数（2026-10-22，Qoder 亲跑）
+
+命令：cd app-mobile && for t in h5 mp-weixin app; do npm run build:$t; done
+
+```
+BUILD_EXIT_h5=0
+BUILD_EXIT_mp-weixin=0
+BUILD_EXIT_app=0
+
+$ ls app-mobile/dist/build/
+app
+h5
+mp-weixin
+
+$ find dist/build/mp-weixin -iname "*custom-tab-bar*" | wc -l
+0
+
+$ find dist/build/mp-weixin -iname "*app-tab-bar*"
+dist/build/mp-weixin/components/app-tab-bar.js
+dist/build/mp-weixin/components/app-tab-bar.json
+dist/build/mp-weixin/components/app-tab-bar.wxml
+dist/build/mp-weixin/components/app-tab-bar.wxss
+
+$ grep -rl "custom-tab-bar" dist/build/mp-weixin   （串命中，非文件命中）
+dist/build/mp-weixin/components/app-tab-bar.wxml
+dist/build/mp-weixin/components/app-tab-bar.wxss
+
+$ node -e "app.json tabBar"
+tabBar.custom=true
+tabBar.list.len=5
+```
+
+## MP 构建日志撞名警告 = 0（判据面）
+
+```
+$ sed ANSI-strip raw/22-build-mp-weixin.raw.log | wc -l
+13
+$ ... | grep -c "custom-tab-bar"
+0
+$ ... | grep -cE "专用组件|已内置|保留名"
+0
+DONE  Build complete.
+```
+
+⇒ 撞名警告 0 与「专用组件」类警告 0 同时成立；本读数是**假 0 风险读数**，正对照见 raw/41（反测 R-TAB：把组件改回 custom-tab-bar 后该 grep 必出 1 且 mp 构建 EXIT=1）。
+⇒ 允许残留：`custom-tab-bar` 串只出现在 `app-tab-bar.wxml`/`.wxss` 的 **CSS 类名**里（组件名/文件名/标签均已去撞名）。
+⇒ MP/App 真机底栏仍未验（`tabBar.custom=true` 而原生约定目录 `custom-tab-bar/` 不产出），按卡 §四 保留给运行态卡，本单不自行处置。
+
+## 更正 1（收尾追加，原 41~43 行不改）：正对照指针与口径写错
+
+- 指针错：`raw/41` 不存在。正对照实际落在 **`raw/anti/R-TAB-B.log`**（+ `raw/anti/R-TAB-B.build.raw.log`），台账汇总在 `raw/40-anti-test-ledger.log` §R-TAB-B。
+- 口径错：正对照不是 R-TAB 那一路（R-TAB 的靶是单测 S1/S2/S3），而是**加测路 R-TAB-B**——新建 `src/components/custom-tab-bar.vue`（cp 自 `app-tab-bar.vue`）＋把 `ai-chat.vue` 的标签与 import 两处注回，再跑 `build:mp-weixin`。
+- 复跑读数：`BUILD_EXIT_mp-weixin=1`、`grep -c 'custom-tab-bar' = 2`、`grep -cE '专用组件|已内置|保留名' = 1`（命中原文 `[uni-app] 组件 <custom-tab-bar> 是 H5 平台专用组件…`）⇒ 上面「两个 0」可证伪，属有效零。
+
+## 事故登记 2（收尾追加）：本文件曾被我自己截断，已逐字节恢复并回证
+
+- 事故：追加「更正」时把 `>>` 写成 `>`，**整文件被覆盖**（该文件当时未跟踪 ⇒ git 无副本）。发现后立即停手，未提交、未扩散。
+- 恢复源：会话转录 `b6b05a16-….jsonl` 第 14861 行记录着原始 `cat` 全文（时间戳 2026-10-21T22:16:24Z，即覆盖之前）。
+- 三重对账：字节 `1601 == 1601`；行数 `47 == 47`；换行形态 `CRLF 0 / bare LF 47`（与 printf 生成形态一致）。
+- 独立回证（不靠转录自证）：**重跑本文件的生成命令**（逐字复制转录第 14859 行的原命令）⇒ `IDENTICAL=true`（1601B）。
+- 重跑时发现的前置条件：`dist/build/mp-weixin/components/` 在恢复前是**空的**——里面残留的是 R-TAB-B 那次 `BUILD_EXIT=1` 中断路构建的产物，不是清洁态产物。先 `npm run build:mp-weixin` 复跑清洁态（`raw/23-rebuild-mp-weixin.raw.log`，`BUILD_EXIT_mp-weixin=0`、`DONE Build complete.`、无保留名警告）后，`find`/`grep -rl` 三段才与归档读数逐行一致。
+- ⇒ 登记一条通用坑：**`dist/` 是构建副产物，不是证据源**。反测路里任何一次失败构建都会就地改写它；隔时重跑「读 dist」的命令，必须先复跑清洁构建，否则会把"上一次构建的残留"误读成"当前树的读数"。源码侧结论不受影响（`git status --porcelain app-mobile` 恢复前后均为 0 行）。

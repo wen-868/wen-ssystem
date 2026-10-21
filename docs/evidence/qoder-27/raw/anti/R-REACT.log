@@ -1,0 +1,82 @@
+# 反测 R-REACT · 靶文件 src/pages/ai-chat/ai-chat.vue · 判据 tests/tabbar-name-reactivity.spec.ts（2026-10-22，Qoder 亲跑）
+
+## 注入前
+```
+SHA_BEFORE=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+```
+```
+$ node inject.cjs inject --file src/pages/ai-chat/ai-chat.vue
+  old=const\ aiMsg\ =\ reactive\<ChatMessage\>\(\{
+  new=const\ aiMsg:\ ChatMessage\ =\ \{
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  old="const aiMsg = reactive<ChatMessage>({" hits=1
+  new="const aiMsg: ChatMessage = {"
+  written=true 新SHA=093b784371627238b79f88c2810bd220e1422ccf00394c8b663044fcf5988dfa
+INJECT_EXIT=0
+VERIFY D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  has("const aiMsg: ChatMessage = {") hits=1
+  not-has("const aiMsg = reactive<ChatMessage>({") hits=0
+  ✓ 磁盘回证通过
+VERIFY_EXIT=0
+```
+```
+$ node inject.cjs inject --file src/pages/ai-chat/ai-chat.vue
+  old=$'    streaming: true\r\n  })'
+  new=$'    streaming: true\r\n  }'
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  old="    streaming: true\r\n  })" hits=1
+  new="    streaming: true\r\n  }"
+  written=true 新SHA=ca868f9a63d7db06e326c002fd40baf54b98cd32a401ad8ea17c80f567ffc3ac
+INJECT_EXIT=0
+VERIFY D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  has("    streaming: true\r\n  }") hits=1
+  not-has("    streaming: true\r\n  })") hits=0
+  ✓ 磁盘回证通过
+VERIFY_EXIT=0
+```
+
+## 红跑（判据：tests/tabbar-name-reactivity.spec.ts 必须 FAILED 且点名用例）
+```
+$ node ../node_modules/vitest/vitest.mjs run tests/tabbar-name-reactivity.spec.ts
+RED_EXIT=1（期望 ≠0）
+—— 剥 ANSI 后的红点名（原文未改写，仅另段摘录）——
+     × R1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理 15ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/tabbar-name-reactivity.spec.ts > QODER-25F1 AI 流式消息响应式守卫（R1/R2/R3） > R1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理
+AssertionError: ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/finally 写的是未进过代理的裸对象: expected false to be true // Object.is equality
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+```
+
+## 复原与字节恒等
+```
+$ cp /tmp/q27-R-REACT.bak → src/pages/ai-chat/ai-chat.vue
+SHA_AFTER=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+BYTE_IDENTICAL=true
+$ rg --no-heading -n -F -e '<最后一个注入串>' src/pages/ai-chat/ai-chat.vue ⇒ MARKER_RG_EXIT=2（1=已无残留）
+```
+
+## 复跑（复原后必须绿）
+```
+$ git status --porcelain src/pages/ai-chat/ai-chat.vue ⇒ 0 行（0=与 HEAD 一致）
+GREEN_EXIT=0（期望 0）
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+```
+
+## 负责人量具更正（追加段，上文原文未改写）2026-10-22
+
+上文的 `MARKER_RG_EXIT=2` 不是"残留"读数，是**我这台的量具坏**：
+R-REACT 的最后一个注入串含真实 CR/LF（`    streaming: true` + CRLF + `  }`），
+而 `rg` 是逐行匹配器，跨行 needle 直接 regex parse error ⇒ EXIT=2（工具错），既不是 0 也不是 1。
+改用 node 子串法复测复原后的磁盘态：
+
+```
+RESIDUE_CHECK(node 子串法)
+  注入串 const aiMsg: ChatMessage = {  hits=0（期望 0）
+  正向锚 const aiMsg = reactive<ChatMessage>({  hits=1（期望 1）
+  跨行串不参与 rg 判定：其新串是老串的子串，rg 法本身无法区分有无残留
+```
+
+⇒ 结论不变且更强：`SHA_BEFORE == SHA_AFTER == c88fc796…da738a` + `git status --porcelain` 0 行 + 注入串 0 命中，三重复原证据；
+   rg 那一行自本段起对**跨行 needle 一律作废**（单行 needle 的 R-IV/R-TAB/R-SKU 三轮 MARKER_RG_EXIT=1 仍有效）。

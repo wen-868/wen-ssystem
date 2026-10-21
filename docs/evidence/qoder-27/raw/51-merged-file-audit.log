@@ -1,0 +1,56 @@
+# QODER-27 合并文件审计与手工改动面澄清（2026-10-22，Qoder 亲跑）
+
+## 1 口径更正（负责人自我更正，两处）
+
+- **更正 A**：本节初稿写「三个文件我都动过（手工改写过业务件）」⇒ **不成立**。
+  手工改写过的文件全程**只有** `app-mobile/scripts/gates-baseline.json` 一个，且只动 `tests` 段，共 3 笔（M2/M3/M4；M1 无冲突）。
+  `crypto.ts` / `home.vue` / `products.vue` 之所以出现在 `git show --name-only`，是 **combined diff 语义**：
+  「合并结果与**两个父都不同**」＝两个父各自相对 merge-base 改了同一文件、由 git **自动双边合并**，不是人工改写。
+- **更正 B**：初稿写「只 gates-baseline.json」时漏了笔数口径。准确读数＝冲突 3 次、每次冲突面 1 个文件、`git add` 也各只有 1 个文件。
+
+## 2 combined-diff 逐笔读数（机读）
+
+```
+$ git show --format= --name-only <merge>
+18cb89b0（P1 7dda80b8 main / P2 71b248c8 23F1）    combined: （空）
+57ccbfe9（P1 18cb89b0        / P2 dd44e321 24 ）    combined: app-mobile/scripts/gates-baseline.json
+                                                    app-mobile/src/utils/crypto.ts
+8835d11c（P1 57ccbfe9        / P2 317e421d 25F1）   combined: app-mobile/scripts/gates-baseline.json
+167979aa（P1 8835d11c        / P2 1b6da083 26 ）    combined: app-mobile/scripts/gates-baseline.json
+                                                    app-mobile/src/pages/home/home.vue
+                                                    app-mobile/src/pages/products/products.vue
+```
+
+⇒ 自动双边合并的代码件共 3 个：`crypto.ts`（23F1 × 24 同改）、`home.vue` 与 `products.vue`（25F1 × 26 同改）。
+
+## 3 「自动合并成功」≠「两侧改动都保住」⇒ 逐行回证
+
+```
+$ node _qoder27_setup/merge-file-audit.cjs
+
+== merge 57ccbfe9（P1 18cb89b0 = 收敛支, P2 dd44e321 = 来源支, merge-base bc1087ee）
+   crypto.ts P1 新增行=19 结果中缺失=0 ✓
+   crypto.ts P2 新增行=4 结果中缺失=0 ✓
+
+== merge 8835d11c（P1 57ccbfe9, P2 317e421d, merge-base bc1087ee）
+   无 combined-diff 代码文件（只 gates-baseline.json）
+
+== merge 167979aa（P1 8835d11c, P2 1b6da083, merge-base bc1087ee）
+   home.vue P1 新增行=2 结果中缺失=0 ✓
+   home.vue P2 新增行=6 结果中缺失=0 ✓
+   products.vue P1 新增行=2 结果中缺失=0 ✓
+   products.vue P2 新增行=14 结果中缺失=0 ✓
+
+MERGED_FILE_AUDIT=PASS missing=0
+AUDIT_EXIT=0
+```
+
+判据：对每个双边合并件，取「该父相对 merge-base 的新增行集合」，逐行在合并结果里查在册；缺失 0 行 ⇒ 两侧改动均保住。
+语义面另由 raw/20 静态检查独立锁定（`crypto.ts` 的 IV/tag 双守卫、`home.vue`/`products.vue` 的 tabBar 挂载 × SKU/SPU 维度配对）。
+
+## 4 本卡实际写入的业务文件清单
+
+```
+$ 手工改写：app-mobile/scripts/gates-baseline.json（3 笔，每次只 tests 段；非 tests 段逐字节不变，见 raw/10~14 READBACK nonTestsByteIdentical=true）
+$ 其余代码件：全部由 git 自动合并产生，本卡零手工改写 ⇒ 卡 §二.1「除 gates-baseline.json.tests 外不得手工改写业务实现」成立。
+```

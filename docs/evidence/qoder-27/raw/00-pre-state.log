@@ -1,0 +1,39 @@
+# QODER-27 开工前提核验 2026-10-22T05:44:30+08:00
+
+$ git branch --show-current
+chore/qoder-27-f1-baseline-convergence
+
+$ git rev-parse HEAD   # 基座=当前 main
+7dda80b8bf1faf3e0f6ed955724bb3cb320d49fa
+
+$ git rev-parse main origin/main
+7dda80b8bf1faf3e0f6ed955724bb3cb320d49fa
+14924d626a8f2baba0f75138e2cccc1387d0e1d1
+ahead_of_origin=6 behind=0
+
+$ git log --oneline -3 main
+7dda80b8 docs: 验收移动端三张F1并派发基线收敛
+55727eea docs: 总台后续派单默认切换WorkBuddy
+89fde5b8 docs: 补MySQL8.0.28精确复验环境
+
+$ main 自 merge-base 21b465e5 起 app-mobile/backend 改动字节（都应为 0）
+MAIN_APPMOBILE_DIFF_BYTES=0
+MAIN_BACKEND_DIFF_BYTES=0
+
+$ 四个来源 tip 的类型
+71b248c80cbc7e82b1b5ed78efd7097e6a1bc573 : commit
+dd44e32114141ebaaca94c3487eb1343d50c0ab1 : commit
+317e421d9b35e06014c8c6b5530bf69204252005 : commit
+1b6da0830a24ed7da09b6fc30b5d0dca6dcd8b1e : commit
+
+$ 两两 merge-base（应同为 bc1087ee）
+71b248c8 dd44e321 -> bc1087eec4b880827518444be36f5874e330e1d3
+71b248c8 317e421d -> bc1087eec4b880827518444be36f5874e330e1d3
+71b248c8 1b6da083 -> bc1087eec4b880827518444be36f5874e330e1d3
+dd44e321 317e421d -> bc1087eec4b880827518444be36f5874e330e1d3
+dd44e321 1b6da083 -> bc1087eec4b880827518444be36f5874e330e1d3
+317e421d 1b6da083 -> bc1087eec4b880827518444be36f5874e330e1d3
+merge-base(main,23F1)=21b465e5c2a9defd0e3f65809a4b2ba4bc6c0e18
+
+$ bc1087ee 是否为 main 祖先（NO ⇒ main 不含常驻门禁收敛链）
+NO

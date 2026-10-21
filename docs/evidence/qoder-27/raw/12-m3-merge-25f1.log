@@ -1,0 +1,85 @@
+# QODER-27 收敛序第 3 笔：merge QODER-25F1 317e421d（2026-10-22，Qoder 亲跑）
+
+## (0) 合并提交与真实双亲
+
+```
+$ git merge --no-ff 317e421d9b35e06014c8c6b5530bf69204252005
+$ git log --format='%h parents=[%p]' -1
+8835d11c parents=[57ccbfe9 317e421d]
+```
+
+⇒ 真 merge（双亲 = 收敛支尖 + 25F1 原 tip），未 rebase、未 squash、未改写来源支。
+
+## (1) merge 原始输出与冲突面
+
+```
+$ git merge --no-ff 317e421d9b35e06014c8c6b5530bf69204252005
+Auto-merging app-mobile/scripts/gates-baseline.json
+CONFLICT (content): Merge conflict in app-mobile/scripts/gates-baseline.json
+Automatic merge failed; fix conflicts and then commit the result.
+MERGE_EXIT=1（预期：冲突只落在 gates-baseline.json）
+
+$ git diff --name-only --diff-filter=U
+app-mobile/scripts/gates-baseline.json
+```
+
+⇒ 冲突面**只有** `app-mobile/scripts/gates-baseline.json` 一个文件，符合卡 §一「冲突只允许落在 tests 段」。
+
+## (2) 并入的代码侧改动（全自动合并，本卡零手工改写）
+
+```
+$ git diff --name-status 57ccbfe9 8835d11c   （已滤去 docs/ 证据与卡片）
+M	app-mobile/scripts/gates-baseline.json
+M	app-mobile/src/App.vue
+M	app-mobile/src/api/modules/ai.ts
+R083	app-mobile/src/components/custom-tab-bar.vue	app-mobile/src/components/app-tab-bar.vue
+M	app-mobile/src/pages/ai-chat/ai-chat.vue
+M	app-mobile/src/pages/functions/functions.vue
+M	app-mobile/src/pages/home/home.vue
+M	app-mobile/src/pages/products/products.vue
+M	app-mobile/src/pages/profile/profile.vue
+A	app-mobile/tests/ai-cross-platform.spec.ts
+A	app-mobile/tests/tabbar-name-reactivity.spec.ts
+```
+
+⇒ 组件改名以 **R083（重命名）** 形态落地：旧 `custom-tab-bar.vue` 文件名在本支消失；`gates-baseline.json` 是唯一被解算器改写的文件，且只动 `tests` 段（见 §4 `nonTestsByteIdentical=true`）。
+
+## (3) vitest 实测（先量后写基线，不拿预测当读数）
+
+```
+$ cd app-mobile && npm run test        # 原始日志 raw/13a-m3-test-measure.raw.log（含 ANSI）
+ ✓ tests/ai-cross-platform.spec.ts (10 tests) 21ms
+ ✓ tests/tabbar-name-reactivity.spec.ts (6 tests) 36ms
+ Test Files  14 passed (14)
+      Tests  248 passed (248)
+—— test 门（用例数冻结）：当前 14 文件 / 248 用例，基线 12 / 232 ——
+ℹ 用例数高于基线 ⇒ 请把 gates-baseline.json 的 tests 同步调高（保持"实测即基线"）。
+TEST_M3_EXIT=0
+```
+
+⇒ 实测 **14 文件 / 248 用例**（= 上一笔 232 + 25F1 自有 2 文件 16 用例）。
+
+## (4) `tests` 段解算器读数（append-only 机检）
+
+```
+$ git checkout --ours -- app-mobile/scripts/gates-baseline.json      # 取 12/232 · note 6095 态
+$ node /d/Users/ZXQL/wt-agents/_qoder27_setup/resolve-tests.cjs --files 14 --count 248 --segs 317e421d9b35e06014c8c6b5530bf69204252005
+SEG 317e421d segLen=1804 头=" ★ QODER-25（2026-10-21，执"
+READBACK testFiles=14 testCount=248 noteLen=7899
+READBACK before=12/232 noteLen=6095
+READBACK noteStartsWithOld=true (只准追加)
+READBACK noteStartsWithBase=true
+READBACK nonTestsByteIdentical=true
+READBACK eolCrlfOnly=47 bareLf=0
+READBACK keysOrder=_comment,typeCheck,lint,checkContract,contractDrift,tests
+RESOLVE_EXIT=0
+```
+
+⇒ note 7899 = 6095 + 1804（25F1 自有段原文逐字追加，未删、未改写、未与别的段合并）；非 `tests` 段逐字节不变；CRLF 形态与换行数（47）保持。
+
+## (5) 本笔落卡
+
+```
+git add app-mobile/scripts/gates-baseline.json      # 只 add 解冲突的这一个文件
+git commit  →  8835d11c（parents 57ccbfe9 + 317e421d）
+```

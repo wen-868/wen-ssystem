@@ -1,0 +1,15 @@
+
+== merge 57ccbfe9（P1 18cb89b0 = 收敛支, P2 dd44e321 = 来源支, merge-base bc1087ee）
+   crypto.ts P1 新增行=19 结果中缺失=0 ✓
+   crypto.ts P2 新增行=4 结果中缺失=0 ✓
+
+== merge 8835d11c（P1 57ccbfe9 = 收敛支, P2 317e421d = 来源支, merge-base bc1087ee）
+   无 combined-diff 代码文件（只 gates-baseline.json）
+
+== merge 167979aa（P1 8835d11c = 收敛支, P2 1b6da083 = 来源支, merge-base bc1087ee）
+   home.vue P1 新增行=2 结果中缺失=0 ✓
+   home.vue P2 新增行=6 结果中缺失=0 ✓
+   products.vue P1 新增行=2 结果中缺失=0 ✓
+   products.vue P2 新增行=14 结果中缺失=0 ✓
+
+MERGED_FILE_AUDIT=PASS missing=0

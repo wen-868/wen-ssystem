@@ -1,0 +1,27 @@
+✓ 1a 文件名含 custom-tab-bar 的在册文件 :: count=0 []
+✓ 1b `<custom-tab-bar` 标签命中 :: count=0 []
+✓ 1c CustomTabBar 标识符/导入命中 :: count=0 []
+✓ 1d 新组件在册且被挂载 :: app-tab-bar.vue=true mounts=5
+     src\pages\profile\profile.vue:134:    <app-tab-bar :current="'profile'" />
+     src\pages\functions\functions.vue:78:    <app-tab-bar :current="'functions'" />
+     src\pages\products\products.vue:128:    <app-tab-bar :current="'products'" />
+     src\pages\ai-chat\ai-chat.vue:208:        <app-tab-bar :current="'ai'" />
+     src\pages\home\home.vue:214:    <app-tab-bar :current="'home'" />
+   ℹ 允许残留（CSS 类名，非组件名）count=1: ["src\\components\\app-tab-bar.vue:2:  <view class=\"custom-tab-bar\">"]
+✓ 2a aiMsg 以 reactive 构造 :: ai-chat.vue:638
+✓ 2b push 的是 reactive 代理对象 :: reactive@638 push@644
+✓ 2c 旧"裸字面量 aiMsg"形态归零 :: count=0 []
+✓ 3a SKU 行主键来源在位 :: products.ts:339
+✓ 3b id 取自 skuId（与 skuId 分离于 SPU） :: products.ts:353
+✓ 3c spuId 与 skuId 两字段并列在册 :: regex /spuId,\n\s*skuId,/
+✓ 3d 旧缺陷字面量在代码视图归零 :: spuTop=0 codeMix=0 mergedSet=0
+   ℹ 全文口径对照（含注释，26 卡刻意留的根因痕）：spuTop=1 codeMix=0 mergedSet=0
+✓ 3e SKU/SPU 双守卫三件套在位 :: assertSkuId@58 assertSpuId@71 skuIdOfProduct@87
+✓ 4a IV 长度守卫在位 :: crypto.ts:618（aesGcmDecrypt 起于 602）
+✓ 4b tag 长度守卫在位 :: crypto.ts:641
+✓ 4c IV 守卫早于密钥扩展与 J0 构造（不靠 set 的巧合行为） :: iv@618 < keyExpand@620 / j0声明@626 < j0.set@627
+✓ 4d IV 守卫早于 tag 守卫 :: iv@618 < tag@641
+✓ 5a home.vue 同时含 25F1 tabBar 挂载 与 26 spuId 深链 :: tabBar=true spuIdDeepLink=true
+✓ 5b products.vue 同时含 25F1 tabBar 挂载 与 26 :key/详情维度 :: tabBar=true key=true detail=true
+✓ 5c 旧维度写法未被"合并覆盖"复活 :: homeOld=false productsOld=false
+STATIC_CHECK=PASS failures=0

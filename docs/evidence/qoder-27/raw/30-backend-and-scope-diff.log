@@ -1,0 +1,57 @@
+# QODER-27 backend 零改动归因与改动面读数（2026-10-22，Qoder 亲跑）
+
+## (1) 卡 §三「`git diff <main>..HEAD -- backend/` 0」的逐条实测
+
+```
+$ git diff --numstat 7dda80b8..HEAD -- backend/src/ | wc -l
+0                                     ← backend/src 全目录 0 文件差异
+
+$ git diff --numstat 7dda80b8..HEAD -- backend/
+21	0	backend/scripts/guard-rbac-wiring.mjs     ← 整个 backend/ 只有这一条
+
+$ git diff --numstat bc1087ee..HEAD -- backend/ | wc -l
+0                                     ← 对四树共同祖先 bc1087ee：0 文件
+
+$ for r in 71b248c8 dd44e321 317e421d 1b6da083; do git diff --numstat $r..HEAD -- backend/ | wc -l; done
+0
+0
+0
+0                                     ← 对四个来源 tip 逐个：全部 0 文件
+```
+
+⇒ **本卡对 `backend/`  authored 0 行**（对共同祖先与对四个来源 tip 均为 0）。
+⇒ 但 `main..HEAD` 口径下有 **+21/−0 一条**，因此卡 §三该行判据按字面**不成立**，须由凌舟裁定口径。
+
+## (2) 那 21 行的归属（不是本卡、不是四张 F1 卡）
+
+```
+$ git log --format='%h %ad %s' -1 1b61811b
+1b61811b 2026-10-21 fix: pin-ssl四条在册指纹更新…+guard-rbac-wiring新增--no-stale可选开关
+
+$ git merge-base --is-ancestor 1b61811b bc1087ee ; echo EXIT=$?
+EXIT=0        ← 0 = 是祖先：QODER-13 的这笔在 bc1087ee 链上
+
+$ git merge-base --is-ancestor 1b61811b 7dda80b8 ; echo EXIT=$?
+EXIT=1        ← 1 = 不是祖先：main 没有这笔
+```
+
+⇒ 根因：`main`（`7dda80b8`）与四树共同祖先 `bc1087ee` 的分叉点是 `21b465e5`，**`bc1087ee` 不是 `main` 的祖先**（见 raw/00）。
+四张 F1 卡全部栈在 `bc1087ee` 上，因此把它们合进 `main` 必然连带 `bc1087ee` 链上**既有的**历史改动（含 QODER-13 的 `--no-stale` 开关 21 行）。
+这不是 QODER-27 写的后端代码，也不是"冲突被掩盖"——`git log -1 -- backend/scripts/guard-rbac-wiring.mjs` 指到 2026-10-21 的 QODER-13 提交。
+
+## (3) 收敛后 main..HEAD 改动面（按目录统计文件数，机读）
+
+```
+$ git diff --name-only 7dda80b8..HEAD | awk -F/ '{print $1"/"$2}' | sort | uniq -c | sort -rn
+    634 docs/evidence
+     50 "docs/tasks
+     27 app-mobile/src
+     11 app-mobile/tests
+      1 backend/scripts
+      1 app-mobile/scripts
+      1 app-mobile/index.html
+      1 "docs/evidence
+      1 "app-mobile/docs
+```
+
+⇒ `app-mobile/src + tests + scripts` 共 **39 文件**，全部可归到四张卡各自的改动面（`git diff --name-status` 逐笔见 raw/10/11/12/14）；`docs/` 是四树证据与卡片随合并进来的档案（卡 §四「不得合并证据目录」⇒ 各树证据仍各在自己路径下）。

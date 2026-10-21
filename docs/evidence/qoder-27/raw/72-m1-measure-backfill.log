@@ -1,0 +1,41 @@
+# QODER-27 M1 步补测：在 `18cb89b0` 上真跑一次 test 门（2026-10-22，Qoder 亲跑）
+
+## 为什么要补
+
+`README.md` §1 的 ⚠ 与 `raw/10` 只证明 M1 合并后的 **blob 值**是 `11/191`（`raw/11:51` 的 `OURS 取到后：testFiles=11 testCount=191`），
+但 M2/M3/M4 三步都有当场 vitest 实测（`raw/11a`、`raw/13a`、`raw/14a`），M1 没有 ⇒ 四步口径不齐，"每笔实测"这句话当时只有 3/4 撑得住。本节把它补成 4/4。
+
+## 做法与安全边界
+
+只在本机本工作树内做临时 `--detach` 到 `18cb89b0`（M1 merge 提交本身），跑 `npm run test`，再切回 `chore/qoder-27-f1-baseline-convergence`。
+不改分支 ref、不 rebase、不 squash、不写源码；跑前 `git status --porcelain`（除本证据目录外）= **0 行**，跑后复核同为 0 行。
+`node_modules` 是仓外联接，detach 不影响；本证据目录未跟踪，checkout 不动它。
+
+## 读数（原文见 `raw/72-m1-measure.raw.log`，52 行）
+
+```
+回枝前：HEAD=167979aa…  branch=chore/qoder-27-f1-baseline-convergence  非证据目录改动=0 行
+$ git checkout --detach 18cb89b0                → DETACH_EXIT=0                       raw:7
+$ node -e gates-baseline.json                    → testFiles=11 testCount=191 noteLen=5395   raw:9
+$ cd app-mobile && npm run test
+   Test Files  11 passed (11)                                                          raw:45
+         Tests  191 passed (191)                                                       raw:46
+  —— test 门（用例数冻结）：当前 11 文件 / 191 用例，基线 11 / 191 ——                  raw:50
+  ✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+   M1_TEST_EXIT=0                                                                      raw:52
+```
+
+切回后复核（另一次命令，未并入上行原文）：
+
+```
+$ git checkout chore/qoder-27-f1-baseline-convergence → BACK_EXIT=0
+$ git rev-parse HEAD        → 167979aa1805a7f728b67e0bdea67aadaa0c50be
+$ git branch --show-current → chore/qoder-27-f1-baseline-convergence
+$ git status --porcelain（除 ?? docs/evidence/qoder-27/ 外）→ 0 行
+$ node -e gates-baseline.json → tests=15/303 noteLen=9460
+```
+
+⇒ M1 的 `11/191` 从"blob 读数"升级为"当场实测读数"：`11 passed (11) / 191 passed (191)`，与预测值 `raw/10:4 PREDICT_M1=11/191` 一致，note 长度 5395 也与 `raw/11:51` 同值。
+⇒ 四笔 merge 的 tests 数值现全部为实测：`11/191`（本文件）→ `12/232`（`raw/11a:30-31`）→ `14/248`（`raw/13a:33-34`）→ `15/303`（`raw/14a:34-35`）。
+
+M1_MEASURE_BACKFILL=DONE

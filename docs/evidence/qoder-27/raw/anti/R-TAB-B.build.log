@@ -1,0 +1,25 @@
+
+> zhixiang-app-mobile@1.0.0 build:mp-weixin
+> uni build -p mp-weixin
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+​[uni-app] 组件 <custom-tab-bar> 是 H5 平台专用组件，在 mp-weixin 平台使用可能导致错误。如果你要引入自定义 tabBar 可重命名为其他名称。​
+✗ Build failed in 36.42s
+[vite]: Rollup failed to resolve import "@dcloudio/uni-ui/lib/uni-tabbar/uni-tabbar.vue" from "D:/Users/ZXQL/wt-agents/QODER-27/node_modules/@dcloudio/uni-components/lib/custom-tab-bar/custom-tab-bar.vue".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+Build failed with errors.
+npm error Lifecycle script `build:mp-weixin` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-27\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-27\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c uni build -p mp-weixin

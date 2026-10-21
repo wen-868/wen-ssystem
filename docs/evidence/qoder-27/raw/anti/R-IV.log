@@ -1,0 +1,56 @@
+# 反测 R-IV · 靶文件 src/utils/crypto.ts · 判据 tests/storage-crypto.spec.ts（2026-10-22，Qoder 亲跑）
+
+## 注入前
+```
+SHA_BEFORE=15fdc4fa1083f3bec25e7e809d7edcbdb0d87bfb6a74cccfe1126ccb45122175
+```
+```
+$ node inject.cjs inject --file src/utils/crypto.ts
+  old=if\ \(iv.length\ \!==\ 12\)\ return\ null
+  new=if\ \(false\ \&\&\ iv.length\ \!==\ 12\)\ return\ null
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/utils/crypto.ts
+  old="if (iv.length !== 12) return null" hits=1
+  new="if (false && iv.length !== 12) return null"
+  written=true 新SHA=e9f10dfb2e6b8469c596638d98dddec491a0132c38b3c632d0665eb3bad6f2bd
+INJECT_EXIT=0
+VERIFY D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/utils/crypto.ts
+  has("if (false && iv.length !== 12) return null") hits=1
+  not-has("if (iv.length !== 12) return null") hits=0
+  ✓ 磁盘回证通过
+VERIFY_EXIT=0
+```
+
+## 红跑（判据：tests/storage-crypto.spec.ts 必须 FAILED 且点名用例）
+```
+$ node ../node_modules/vitest/vitest.mjs run tests/storage-crypto.spec.ts
+RED_EXIT=1（期望 ≠0）
+—— 剥 ANSI 后的红点名（原文未改写，仅另段摘录）——
+     × 短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败） 61ms
+     × 长 IV 即拒·13 字节（守卫前实测静默零填充解密成功，守卫后必须抛已分类解密失败） 3ms
+     × 长 IV 即拒·17 字节（守卫前实测抛未分类 RangeError，守卫后必须抛已分类解密失败） 7ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > 短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败）
+AssertionError: 非规范输入绝不许解密成功返回明文: expected 'top-secret' to be null // Object.is equality
+ FAIL  tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > 长 IV 即拒·13 字节（守卫前实测静默零填充解密成功，守卫后必须抛已分类解密失败）
+AssertionError: 非规范输入绝不许解密成功返回明文: expected 'top-secret' to be null // Object.is equality
+ FAIL  tests/storage-crypto.spec.ts > 存储加解密往返（AES-256-GCM） > 长 IV 即拒·17 字节（守卫前实测抛未分类 RangeError，守卫后必须抛已分类解密失败）
+AssertionError: expected 'RangeError' to be 'Error' // Object.is equality
+ Test Files  1 failed (1)
+      Tests  3 failed | 6 passed (9)
+```
+
+## 复原与字节恒等
+```
+$ cp /tmp/q27-R-IV.bak → src/utils/crypto.ts
+SHA_AFTER=15fdc4fa1083f3bec25e7e809d7edcbdb0d87bfb6a74cccfe1126ccb45122175
+BYTE_IDENTICAL=true
+$ rg --no-heading -n -F -e '<最后一个注入串>' src/utils/crypto.ts ⇒ MARKER_RG_EXIT=1（1=已无残留）
+```
+
+## 复跑（复原后必须绿）
+```
+$ git status --porcelain src/utils/crypto.ts ⇒ 0 行（0=与 HEAD 一致）
+GREEN_EXIT=0（期望 0）
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+```

@@ -1,0 +1,38 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-27/app-mobile[39m
+
+ [31m❯[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 34[2mms[22m[39m
+     [32m✓[39m S1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入[32m 7[2mms[22m[39m
+     [32m✓[39m S2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1）[32m 1[2mms[22m[39m
+     [32m✓[39m S3 custom:true 与「每页手动挂载」互斥配对：出现微信原生 custom-tab-bar 目录必须同时收回 MP 端挂载[32m 1[2mms[22m[39m
+[31m     [31m×[31m R1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理[39m[32m 15[2mms[22m[39m
+     [32m✓[39m R2 不得用重挂载/整表重赋值/nextTick 轮询冒充响应式（红线自证）[32m 1[2mms[22m[39m
+     [32m✓[39m R3 机制自证：裸对象入数组后写裸对象不触发；reactive 入数组后写代理触发且代理身份一致[32m 5[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/tabbar-name-reactivity.spec.ts[2m > [22mQODER-25F1 AI 流式消息响应式守卫（R1/R2/R3）[2m > [22mR1 流式消息必须先入响应式代理再入 ref 数组，回调写的就是那个代理
+[31m[1mAssertionError[22m: ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/finally 写的是未进过代理的裸对象: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/tabbar-name-reactivity.spec.ts:[2m165:7[22m[39m
+    [90m163|[39m       aiChatText[33m.[39m[34mincludes[39m([33mREACTIVE_CREATE[39m)[33m,[39m
+    [90m164|[39m       'ai-chat.vue 的 aiMsg 不是由 reactive(...) 创建的 ⇒ onText/onDone/final…
+    [90m165|[39m     )[33m.[39m[34mtoBe[39m([35mtrue[39m)
+    [90m   |[39m       [31m^[39m
+    [90m166|[39m     [34mexpect[39m(
+    [90m167|[39m       aiChatText[33m.[39m[34mincludes[39m([33mRAW_LITERAL_CREATE[39m)[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m5 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 06:22:39
+[2m   Duration [22m 1.84s[2m (transform 189ms, setup 0ms, import 789ms, tests 34ms, environment 0ms)[22m
+

@@ -1,0 +1,5 @@
+Auto-merging app-mobile/scripts/gates-baseline.json
+CONFLICT (content): Merge conflict in app-mobile/scripts/gates-baseline.json
+Auto-merging app-mobile/src/pages/home/home.vue
+Auto-merging app-mobile/src/pages/products/products.vue
+Automatic merge failed; fix conflicts and then commit the result.

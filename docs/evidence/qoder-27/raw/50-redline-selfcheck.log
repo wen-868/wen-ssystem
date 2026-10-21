@@ -1,0 +1,204 @@
+# QODER-27 红线与范围自检（2026-10-22，Qoder 亲跑）
+
+## 1 未 push／无上游／远端无本支
+```
+$ git rev-parse --abbrev-ref --symbolic-full-name @{u}
+  fatal: no upstream configured for branch 'chore/qoder-27-f1-baseline-convergence'
+$ git ls-remote --heads origin chore/qoder-27-f1-baseline-convergence ⇒ 行数=0
+$ git log --oneline origin/main..HEAD ⇒ 领先提交数=102
+```
+
+## 2 未开 PR（本会话未调用任何 gh pr 命令；仓库根非 git，PR 只能在远端存在）
+```
+$ gh pr list --repo <remote> 未执行；改为核对远端分支不存在 ⇒ 0
+```
+
+## 3 逐文件 add（提交面反查：每笔 merge 提交的文件清单里无越面件）
+```
+167979aa 8835d11c 1b6da083
+8835d11c 57ccbfe9 317e421d
+57ccbfe9 18cb89b0 dd44e321
+18cb89b0 7dda80b8 71b248c8
+1b6da083 7577b1ab
+317e421d 2796e0fc
+2796e0fc caa2e0ef
+caa2e0ef 04e01af1
+04e01af1 b1bef005
+b1bef005 d68e43e9
+71b248c8 0f3a4501
+0f3a4501 457d8b88
+d68e43e9 286d071b
+457d8b88 d0bd72f7
+d0bd72f7 bbc8aa9e
+bbc8aa9e 2568ef03
+7577b1ab d8e2ae49
+d8e2ae49 a513ff9b
+286d071b 350b3132
+350b3132 5b90a744
+a513ff9b 3f70b749
+dd44e321 622f5894
+3f70b749 3228ffc5
+3228ffc5 bc1087ee
+622f5894 bc1087ee
+2568ef03 e33f3541
+5b90a744 bc1087ee
+e33f3541 ad73898e
+ad73898e bc1087ee
+bc1087ee 24811fa8
+24811fa8 e9afb0a6
+e9afb0a6 cf9a98fa 2e8cde17
+2e8cde17 39e658d3
+39e658d3 f22f537b
+cf9a98fa 534813fa
+534813fa 45c0533c
+45c0533c 24590d15
+24590d15 c3942309
+f22f537b 5523cdb0
+c3942309 602d9d36
+602d9d36 50b03a51
+50b03a51 c1e4cd40 df583401
+c1e4cd40 9ff7a47c bd7e158f
+9ff7a47c cdf16ce4 99371862
+5523cdb0 5bbd4324
+5bbd4324 21b465e5
+99371862 f4772512
+f4772512 61514b02
+61514b02 50750e39
+cdf16ce4 1d370838
+1d370838 0963459d
+bd7e158f 0aa5765e
+50750e39 d9151ae5
+0aa5765e e6801de0
+d9151ae5 597230c4
+0963459d bcf4f4e0 47c737e8
+bcf4f4e0 25663f73 54ba998a
+25663f73 0ddcc3d2 316f2051
+0ddcc3d2 21b465e5 e6801de0
+316f2051 bd59a405
+47c737e8 fe05735b
+bd59a405 477acdca
+fe05735b 70c96326
+70c96326 6bd830d9
+477acdca 241f1f15
+e6801de0 da6db146
+54ba998a 9b12c4ba
+9b12c4ba f4260a90
+da6db146 8c09cfbd
+597230c4 a8a3b7b9
+a8a3b7b9 1b61811b
+1b61811b 21b465e5
+df583401 4746ab31
+8c09cfbd a5294668
+4746ab31 ae5e0243
+ae5e0243 66b54e2b
+6bd830d9 6e714beb
+66b54e2b 50fa99ae
+50fa99ae 7969b2ae
+7969b2ae bf0f1362
+bf0f1362 0f87bfa9
+0f87bfa9 dfeedbc0
+6e714beb 16761f56
+16761f56 f91673c8
+f91673c8 2860151d
+2860151d e3a4a7d0
+e3a4a7d0 dfeedbc0
+f4260a90 67546800
+67546800 6b6fb197
+6b6fb197 dfeedbc0
+241f1f15 86fc7fce
+86fc7fce 81ef5c07
+81ef5c07 dfeedbc0
+a5294668 e29b801e
+e29b801e 5dbf1453
+5dbf1453 dfeedbc0
+$ git show --name-only --format= 每笔解冲突提交的文件数（应=1，只 gates-baseline.json）⇒ 57ccbfe9:2 8835d11c:1 167979aa:3 
+```
+
+## 4 未删除/跳过任何用例
+```
+$ rg -c '(it|test)\.skip|describe\.skip|\.only|xit\(|xdescribe\(' app-mobile/tests ⇒ RESIDUE_RG_EXIT=1（1=0 命中）
+$ 四树 spec 文件全部在册 ⇒ storage-crypto:Y update-security:Y ai-cross-platform:Y tabbar-name-reactivity:Y product-sku-dimension:Y pin-ssl-static:Y 
+$ ls app-mobile/tests | wc -l = 15
+```
+
+## 5 基线非 tests 段零改动（对四树共同祖先逐个比）
+```
+  非tests段 vs bc1087ee 相等=true
+  非tests段 vs 21b465e5 相等=false
+  非tests段 vs 7dda80b8 相等=false
+  tests: testFiles=15 testCount=303 noteLen=9460
+  note startsWith bc1087ee 的 note =true
+  note startsWith 7dda80b8 的 note =true
+```
+
+## 6 证据目录未合并（各卡各路径）
+```
+B-2b C2-4 C6-1A C6-1B C6-2-T6-F2 C6-3-2b C7 D1-S3-57 LZ-ledger-sync MIG-1 MIG-1-drill MIG-2 MIG-4 MIG-5 MIG-5b R101-S2-01-b1 R101-S2-01-b2 R101-S2-01-b2.2 R101-S2-01-b3 R101-S2-01-b4 R101-S2-R1 R101-S3-64 R101-台账对账 S3-106 S3-107 S3-109 S3-110 S3-111 S3-112 S3-113 S3-115 S3-141 S3-144 S3-145 S3-146 S3-149 S3-150 S3-152 S3-154 S3-155 S3-174 S3-174-F1-凌舟复核 S3-174-F2 S3-178 S3-185 S3-186 S3-190 S3-191 S3-192 S3-193 S3-194 S3-195 S3-196 S3-197 S3-199 S3-200 S3-201 S3-202 S3-203 S3-204 S3-205 S3-206 S3-207 S3-208 S3-209 S3-210 S3-211 S3-212 S3-214 S3-218 S3-219 S3-220 S3-221 S3-222 S3-223 S3-224 S3-225 S3-226 S3-227 S3-229 S3-230 S3-231 S3-232 S3-233 S3-234 S3-235 S3-236 S3-237 S3-238 S3-245 S3-50 S3-67 S3-80-B2 _shared qoder-1 qoder-10 qoder-10f1 qoder-11 qoder-11r qoder-12 qoder-13 qoder-13f1 qoder-13f2 qoder-14 qoder-14f1 qoder-15 qoder-15f1 qoder-16 qoder-16r qoder-17 qoder-17f1 qoder-18 qoder-19 qoder-2 qoder-20 qoder-21 qoder-22 qoder-23 qoder-23f1 qoder-24 qoder-25 qoder-25f1 qoder-26 qoder-26f1 qoder-27 qoder-4 qoder-5 qoder-6 qoder-7 qoder-9 
+$ docs/evidence/qoder-27 内是否混入他卡文件（应只有 qoder-27 前缀的目录/文件）⇒ 37
+```
+
+## 7 工作树 clean
+```
+$ git status --porcelain（含未跟踪）⇒ 1
+?? docs/evidence/qoder-27/
+$ git diff --stat HEAD ⇒ ```
+
+## 8 追加更正与补强（负责人自我更正，上文原文未改写）2026-10-22
+
+- §3 初判「每笔解冲突提交的文件数应=1」用错了量具：`git show --name-only` 对 merge 打印的是 **combined diff**
+  （结果与两个父都不同的文件），不是"我 add 了哪些文件"。真实 add 面见 raw/52（blob 比对法）。
+- §5 「非 tests 段 vs 21b465e5 / vs main 相等=false」不是劣化：这两面都**早于** QODER-13/22 的 lint 段收口，
+  正确的对照面是四树共同祖先 `bc1087ee` ⇒ `相等=true`（唯一在册的正面判据）。
+- §7 当时 `?? docs/evidence/qoder-27/` 是本卡自己的证据面（尚未提交），非脏改；提交后复跑见 raw/53。
+- §1 领先 origin/main 102 笔 = 本卡 4 笔 merge + 四树自身历史，不是本卡新写 102 笔。
+
+## 9 本卡真实改动面（blob 比对法，raw/52 摘录）
+
+```
+main..HEAD 改动文件数=727（代码面 93／docs 面 634）
+fatal: path 'app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md' does not exist in 'HEAD'
+fatal: path 'app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md' does not exist in 'dd44e321'
+fatal: path 'app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md' does not exist in '1b6da083'
+fatal: path 'app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md' does not exist in '7dda80b8'
+fatal: path 'app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md' does not exist in '71b248c8'
+fatal: path 'app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md' does not exist in '317e421d'
+fatal: path 'app-mobile/src/components/app-tab-bar.vue' exists on disk, but not in 'dd44e321'
+fatal: path 'app-mobile/src/components/app-tab-bar.vue' exists on disk, but not in '1b6da083'
+fatal: path 'app-mobile/src/components/app-tab-bar.vue' exists on disk, but not in '7dda80b8'
+fatal: path 'app-mobile/src/components/app-tab-bar.vue' exists on disk, but not in '71b248c8'
+fatal: path 'app-mobile/src/config/update-security.ts' exists on disk, but not in '1b6da083'
+```
+
+⇒ 手工改写过的文件全程只有 `app-mobile/scripts/gates-baseline.json`（3 笔冲突各解一次，只动 tests 段）；
+   `App.vue / ai-chat.vue / crypto.ts / home.vue / products.vue` 是 git **自动双边合并**的并集形态，本卡零手工改写，
+   两侧改动保全已由 raw/51 逐行回证（missing=0）。
+
+## 10 §9 引的 raw/52 是坏量具的首轮输出 ⇒ 本节为终版（再次自我更正，§9 原文不改写）
+
+首轮 raw/52 有两个量具错：①`git diff --name-only` 把中文路径 C 转义后送进 `rev-parse` ⇒ 一堆 fatal 与"代码面 93"的错计数；
+②execSync 默认透子进程 stderr ⇒ 日志被 fatal 刷屏。改成 `-z` NUL 切分 + `ls-tree` 取 blob + stderr 静音后重跑：
+
+```
+main..HEAD 改动文件数=727（代码面 42／docs 面 685）
+
+代码面中「HEAD blob 与五个输入面全不同」= 本卡产生：4 个
+  app-mobile/scripts/gates-baseline.json
+  app-mobile/src/pages/home/home.vue
+  app-mobile/src/pages/products/products.vue
+  app-mobile/src/utils/crypto.ts
+
+代码面中原样继承某个输入面的文件：38 个
+  …（其余 38 个为"与某个输入面同 blob"的原样继承清单，见 raw/52-authored-files.txt 全文 49 行）
+```
+
+**终版结论**：`main..HEAD` 代码面 **42 个文件**，其中 HEAD 的 blob 与五个输入面（main/23F1/24/25F1/26）**全不同**的只有 **4 个**：
+
+| 文件 | 来源形态 | 谁改的 | 保全证据 |
+|---|---|---|---|
+| `app-mobile/scripts/gates-baseline.json` | 冲突手工解 ×3 | **本卡**（只 tests 段） | raw/10~14 `nonTestsByteIdentical=true` |
+| `app-mobile/src/utils/crypto.ts` | 23F1 × 24 双边自动合并 | git | raw/51 P1 19 行/P2 4 行 缺失 0；raw/20 §4a~4d |
+| `app-mobile/src/pages/home/home.vue` | 25F1 × 26 双边自动合并 | git | raw/51 P1 2/P2 6 缺失 0；raw/20 §5a/§5c |
+| `app-mobile/src/pages/products/products.vue` | 25F1 × 26 双边自动合并 | git | raw/51 P2 14/P1 2 缺失 0；raw/20 §5b/§5c |
+
+⇒ 与 raw/51 的 combined-diff 清单**逐字一致**（同 3 个代码件 + 基线件）。本卡手工改写业务实现 = **0 个文件**，
+   即 `App.vue`／`ai-chat.vue`／`products.ts`／`update.ts` 等全部与某个输入面同 blob（继承，未被本卡碰过）。

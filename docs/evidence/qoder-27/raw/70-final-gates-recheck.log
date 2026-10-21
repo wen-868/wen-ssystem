@@ -1,0 +1,25 @@
+# QODER-27 收尾复跑：全量四门（2026-10-22，Qoder 亲跑）
+
+跑前树态：`HEAD=167979aa`（M4）、`git status --porcelain` 除本证据目录（未跟踪）外 0 行；
+文档三件套（回传卡／回执／证据树 README）**尚未提交** ⇒ 本次读数是"源码态＝交付态"的复跑。
+原文（去 ANSI 后落盘）：`raw/70-final-gates-recheck.raw.log`（78 行）。
+
+命令：`cd app-mobile && npm run check:gates`
+
+| 门 | 读数 | 原文行号 |
+|---|---|---|
+| type-check | `vue-tsc EXIT=0，当前错误 0 条，基线 0 条` | `raw:10-11` |
+| lint | `当前 error 0（基线 0）、warning 12872（基线 12872）` | `raw:17-18` |
+| test | `Test Files 15 passed (15)`／`Tests 303 passed (303)`／`当前 15 文件 / 303 用例，基线 15 / 303` | `raw:59-60`、`raw:64-65` |
+| check:contract | `差集（调用有、注册无）: 1 条，其中具名豁免 1 条` | `raw:75-77` |
+| 总退出码 | **`FINAL_GATES_EXIT=0`** | `raw:78` |
+
+⇒ 与 `raw/21`（首次全量跑，同一棵树）**逐行同值**，含 `warning 12872`、`差集 1 豁免 1` 两个易漂移项 ⇒ 门读数可复现，不是单次侥幸。
+⇒ 判据对齐卡 §三：type 0／lint error 0·warning 12872／tests 15 文件 303 用例（基线同值）／contract 差集 1 具名豁免 1 ⇒ 四项全中。
+
+## 本轮附带复跑的另一件事
+
+`npm run build:mp-weixin` 在收尾时又跑了一次清洁态（`raw/23-rebuild-mp-weixin.raw.log`：`BUILD_EXIT_mp-weixin=0`、`DONE Build complete.`、
+`grep -c '专用组件|已内置|保留名'` = 0），目的是把被反测 R-TAB-B 中断路覆盖空的 `dist/` 复位，
+从而让 `raw/22` 里"读 dist"的三段命令能逐行重放（过程与教训见 `raw/22-builds-and-mp-warning.log:56-62`、`README.md` §6）。
+`h5`／`app` 两端未重跑：`main..HEAD` 之后没有再动过 `app-mobile/`（本笔只提交文档），归档读数 `raw/22-build-{h5,app}.raw.log` 仍代表当前源码态。

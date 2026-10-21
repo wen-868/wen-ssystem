@@ -1,0 +1,24 @@
+# QODER-27 出厂四门全量读数（2026-10-22，Qoder 亲跑）
+
+命令：cd app-mobile && npm run check:gates
+原始日志：raw/21-gates-full.raw.log（含 ANSI）；本文件为剥码摘录，原文未改写。
+
+```
+$ sed ANSI-strip raw/21-gates-full.raw.log | grep 关键行
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 0（基线 0）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+ Test Files  15 passed (15)
+      Tests  303 passed (303)
+—— test 门（用例数冻结）：当前 15 文件 / 303 用例，基线 15 / 303 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+—— 契约对账（QODER-1 门 4，口径见文件头注释）——
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+GATES_EXIT=0
+```
+
+判据对齐（卡 §三）：type 0／lint error 0 warning 12872／tests 15 文件 303 用例（基线同值，非"高于基线"）／contract 差集 1 具名豁免 1。

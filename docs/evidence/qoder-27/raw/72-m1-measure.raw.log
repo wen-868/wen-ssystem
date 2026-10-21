@@ -1,0 +1,52 @@
+## 回枝前基线
+167979aa1805a7f728b67e0bdea67aadaa0c50be
+chore/qoder-27-f1-baseline-convergence
+0
+## detach 到 M1 18cb89b0
+HEAD is now at 18cb89b0 chore: 合并 QODER-23F1（71b248c8）——AES-GCM IV 长度守卫与 4 条边界用例，QODER-27 收敛序第 1 笔
+DETACH_EXIT=0
+## M1 态的 gates-baseline tests 段
+testFiles=11 testCount=191 noteLen=5395
+## M1 态 vitest 实测
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/QODER-27/app-mobile
+
+ ✓ tests/mobile-permissions.spec.ts (8 tests) 31ms
+ ✓ tests/format.spec.ts (78 tests) 137ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/price-anomaly-static.spec.ts (24 tests) 1757ms
+     ✓ number retail 12 / cost 9 ⇒ 不标红  346ms
+ ✓ tests/permission-view-state.spec.ts (29 tests) 1090ms
+     ✓ 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示  396ms
+ ✓ tests/api-base-env.spec.ts (3 tests) 22ms
+ ✓ tests/storage-crypto.spec.ts (9 tests) 2116ms
+     ✓ 派生密钥为 32 字节且同输入可复现  724ms
+     ✓ tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文）  530ms
+     ✓ 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败）  341ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 18ms
+ ✓ tests/safe-top-var.spec.ts (4 tests) 16ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 731ms
+ ✓ tests/request-retry-safety.spec.ts (15 tests) 12923ms
+     ✓ ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾  939ms
+     ✓ ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload  11322ms
+ ✓ tests/pin-ssl-static.spec.ts (1 test) 10ms
+
+ Test Files  11 passed (11)
+      Tests  191 passed (191)
+   Start at  06:51:11
+   Duration  18.24s (transform 12.16s, setup 0ms, import 31.08s, tests 18.85s, environment 4ms)
+
+—— test 门（用例数冻结）：当前 11 文件 / 191 用例，基线 11 / 191 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+M1_TEST_EXIT=0

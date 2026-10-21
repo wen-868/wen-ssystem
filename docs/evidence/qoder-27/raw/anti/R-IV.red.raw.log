@@ -1,0 +1,79 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-27/app-mobile[39m
+
+ [31m❯[39m tests/storage-crypto.spec.ts [2m([22m[2m9 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 575[2mms[22m[39m
+     [32m✓[39m 派生密钥为 32 字节且同输入可复现[32m 290[2mms[22m[39m
+     [32m✓[39m 明文往返一致（含中文与 JSON 结构）[32m 9[2mms[22m[39m
+     [32m✓[39m 同一条明文两次加密得到不同密文（IV 随机）[32m 3[2mms[22m[39m
+     [32m✓[39m tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文）[32m 146[2mms[22m[39m
+     [32m✓[39m 非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较）[32m 3[2mms[22m[39m
+     [32m✓[39m 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败）[32m 44[2mms[22m[39m
+[31m     [31m×[31m 短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败）[39m[32m 61[2mms[22m[39m
+[31m     [31m×[31m 长 IV 即拒·13 字节（守卫前实测静默零填充解密成功，守卫后必须抛已分类解密失败）[39m[32m 3[2mms[22m[39m
+[31m     [31m×[31m 长 IV 即拒·17 字节（守卫前实测抛未分类 RangeError，守卫后必须抛已分类解密失败）[39m[32m 7[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 3 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败）
+[31m[1mAssertionError[22m: 非规范输入绝不许解密成功返回明文: expected 'top-secret' to be null // Object.is equality[39m
+
+[32m- Expected:[39m
+null
+
+[31m+ Received:[39m
+"top-secret"
+
+[36m [2m❯[22m expectClassifiedDecryptFailure tests/storage-crypto.spec.ts:[2m105:41[22m[39m
+    [90m103|[39m       err [33m=[39m e
+    [90m104|[39m     }
+    [90m105|[39m     [34mexpect[39m(outcome[33m,[39m [32m'非规范输入绝不许解密成功返回明文'[39m)[33m.[39m[34mtoBe[39m([35mnull[39m)
+    [90m   |[39m                                         [31m^[39m
+    [90m106|[39m     [34mexpect[39m(err)[33m.[39m[34mtoBeInstanceOf[39m([33mError[39m)
+    [90m107|[39m     expect((err as Error).name).toBe('Error') // 必须是 decrypt() 抛的已分类 E…
+[90m [2m❯[22m tests/storage-crypto.spec.ts:[2m146:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m长 IV 即拒·13 字节（守卫前实测静默零填充解密成功，守卫后必须抛已分类解密失败）
+[31m[1mAssertionError[22m: 非规范输入绝不许解密成功返回明文: expected 'top-secret' to be null // Object.is equality[39m
+
+[32m- Expected:[39m
+null
+
+[31m+ Received:[39m
+"top-secret"
+
+[36m [2m❯[22m expectClassifiedDecryptFailure tests/storage-crypto.spec.ts:[2m105:41[22m[39m
+    [90m103|[39m       err [33m=[39m e
+    [90m104|[39m     }
+    [90m105|[39m     [34mexpect[39m(outcome[33m,[39m [32m'非规范输入绝不许解密成功返回明文'[39m)[33m.[39m[34mtoBe[39m([35mnull[39m)
+    [90m   |[39m                                         [31m^[39m
+    [90m106|[39m     [34mexpect[39m(err)[33m.[39m[34mtoBeInstanceOf[39m([33mError[39m)
+    [90m107|[39m     expect((err as Error).name).toBe('Error') // 必须是 decrypt() 抛的已分类 E…
+[90m [2m❯[22m tests/storage-crypto.spec.ts:[2m160:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m长 IV 即拒·17 字节（守卫前实测抛未分类 RangeError，守卫后必须抛已分类解密失败）
+[31m[1mAssertionError[22m: expected 'RangeError' to be 'Error' // Object.is equality[39m
+
+Expected: [32m"Error"[39m
+Received: [31m"[7mRange[27mError"[39m
+
+[36m [2m❯[22m expectClassifiedDecryptFailure tests/storage-crypto.spec.ts:[2m107:33[22m[39m
+    [90m105|[39m     [34mexpect[39m(outcome[33m,[39m [32m'非规范输入绝不许解密成功返回明文'[39m)[33m.[39m[34mtoBe[39m([35mnull[39m)
+    [90m106|[39m     [34mexpect[39m(err)[33m.[39m[34mtoBeInstanceOf[39m([33mError[39m)
+    [90m107|[39m     expect((err as Error).name).toBe('Error') // 必须是 decrypt() 抛的已分类 E…
+    [90m   |[39m                                 [31m^[39m
+    [90m108|[39m     [34mexpect[39m((err [35mas[39m [33mError[39m)[33m.[39mmessage)[33m.[39m[34mtoContain[39m([32m'AES-256-GCM 解密失败'[39m)
+    [90m109|[39m   }
+[90m [2m❯[22m tests/storage-crypto.spec.ts:[2m172:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 06:22:10
+[2m   Duration [22m 1.73s[2m (transform 186ms, setup 0ms, import 376ms, tests 575ms, environment 0ms)[22m
+

@@ -1,0 +1,71 @@
+# 反测 R-TAB · 靶文件 src/pages/ai-chat/ai-chat.vue · 判据 tests/tabbar-name-reactivity.spec.ts（2026-10-22，Qoder 亲跑）
+
+## 注入前
+```
+SHA_BEFORE=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+```
+```
+$ node inject.cjs inject --file src/pages/ai-chat/ai-chat.vue
+  old=\<app-tab-bar\ :current=\"\'ai\'\"
+  new=\<custom-tab-bar\ :current=\"\'ai\'\"
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  old="<app-tab-bar :current=\"'ai'\"" hits=1
+  new="<custom-tab-bar :current=\"'ai'\""
+  written=true 新SHA=cbdac70754a98716eb5973dfd2e2fe8f9c0bb75d62cc44ff854125c5c23f4414
+INJECT_EXIT=0
+VERIFY D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  has("<custom-tab-bar :current=\"'ai'\"") hits=1
+  not-has("<app-tab-bar :current=\"'ai'\"") hits=0
+  ✓ 磁盘回证通过
+VERIFY_EXIT=0
+```
+```
+$ node inject.cjs inject --file src/pages/ai-chat/ai-chat.vue
+  old=components/app-tab-bar.vue\'
+  new=components/custom-tab-bar.vue\'
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  old="components/app-tab-bar.vue'" hits=1
+  new="components/custom-tab-bar.vue'"
+  written=true 新SHA=babe4fc6dca8426b7b5c8c35e6f719f4af446ac4aee80e762bfc6dceb872fb7f
+INJECT_EXIT=0
+VERIFY D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  has("components/custom-tab-bar.vue'") hits=1
+  not-has("components/app-tab-bar.vue'") hits=0
+  ✓ 磁盘回证通过
+VERIFY_EXIT=0
+```
+
+## 红跑（判据：tests/tabbar-name-reactivity.spec.ts 必须 FAILED 且点名用例）
+```
+$ node ../node_modules/vitest/vitest.mjs run tests/tabbar-name-reactivity.spec.ts
+RED_EXIT=1（期望 ≠0）
+—— 剥 ANSI 后的红点名（原文未改写，仅另段摘录）——
+     × S1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入 35ms
+     × S2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1） 8ms
+     × S3 custom:true 与「每页手动挂载」互斥配对：出现微信原生 custom-tab-bar 目录必须同时收回 MP 端挂载 4ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/tabbar-name-reactivity.spec.ts > QODER-25F1 自绘 tabBar 撞名守卫（S1/S2/S3） > S1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入
+AssertionError: 组件注册面撞平台保留名（mp-weixin 构建会打"是 H5 平台专用组件"警告）：pages\ai-chat\ai-chat.vue :: <custom-tab-bar :: <custom-tab-bar :current="'ai'" /> | pages\ai-chat\ai-chat.vue :: components/custom-tab-bar.vue :: import AppTabBar from '@/components/custom-tab-bar.vue': expected [ …(2) ] to deeply equal []
+ FAIL  tests/tabbar-name-reactivity.spec.ts > QODER-25F1 自绘 tabBar 撞名守卫（S1/S2/S3） > S2 tabBar.list 的 5 个页面各挂一次 app-tab-bar（模板标签与 import 同时为 1）
+AssertionError: 页面挂载次数不等于 1 标签 + 1 导入：[{"pagePath":"pages/ai-chat/ai-chat","exists":true,"tag":0,"imp":0}]: expected [ { …(4) } ] to deeply equal []
+ FAIL  tests/tabbar-name-reactivity.spec.ts > QODER-25F1 自绘 tabBar 撞名守卫（S1/S2/S3） > S3 custom:true 与「每页手动挂载」互斥配对：出现微信原生 custom-tab-bar 目录必须同时收回 MP 端挂载
+AssertionError: 每页挂载路线要求 5 个 tab 页都挂 app-tab-bar（否则微信端一条栏都没有）: expected false to be true // Object.is equality
+ Test Files  1 failed (1)
+      Tests  3 failed | 3 passed (6)
+```
+
+## 复原与字节恒等
+```
+$ cp /tmp/q27-R-TAB.bak → src/pages/ai-chat/ai-chat.vue
+SHA_AFTER=c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a
+BYTE_IDENTICAL=true
+$ rg --no-heading -n -F -e '<最后一个注入串>' src/pages/ai-chat/ai-chat.vue ⇒ MARKER_RG_EXIT=1（1=已无残留）
+```
+
+## 复跑（复原后必须绿）
+```
+$ git status --porcelain src/pages/ai-chat/ai-chat.vue ⇒ 0 行（0=与 HEAD 一致）
+GREEN_EXIT=0（期望 0）
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+```

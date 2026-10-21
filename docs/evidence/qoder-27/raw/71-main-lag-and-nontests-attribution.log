@@ -1,0 +1,92 @@
+# QODER-27 收尾复算：非 tests 段归属 与 main 落后度（2026-10-22，Qoder 亲跑，只读）
+
+触发：`raw/01`（main 上的门读数）写的是「lint error 20（基线 20）／tests 5 文件 56 用例」，
+`raw/21`（HEAD）写的是「error 0（基线 0）／15 文件 303 用例」。两条读数必须落到具体 blob 上才能定性，
+故本节从 git blob 逐版本重取，回答两个问题：
+①非 `tests` 段从 20→0 是本卡手工改的吗？②`git diff main..HEAD -- backend/` 的 +21 行是谁的？
+
+装置：`tools/nontests-audit2.cjs`（逐版本段落表）、`tools/main-lag-audit.cjs`（祖先关系＋落后度＋diff 正文）。
+
+## 1 非 tests 段逐版本哈希（SHA256[:16]，只取 tests 以外的全部键）
+
+| 版本 | 说明 | tests | 非tests段哈希 |
+|---|---|---|---|
+| `21b465e5` | origin/main＝main 与四树的 merge-base | 5/56 | `66572971fdd0dff3` |
+| `7dda80b8` | **main（本卡基座）** | 5/56 | `66572971fdd0dff3` |
+| `bc1087ee` | 四树共同基线 | 11/186 | `e56a03ac4fc36231` |
+| `71b248c8` | QODER-23F1 tip | 11/191 | `e56a03ac4fc36231` |
+| `dd44e321` | QODER-24 tip | 12/227 | `e56a03ac4fc36231` |
+| `317e421d` | QODER-25F1 tip | 13/202 | `e56a03ac4fc36231` |
+| `1b6da083` | QODER-26 tip | 12/241 | `e56a03ac4fc36231` |
+| `18cb89b0` | M1＝main+23F1 | 11/191 | `e56a03ac4fc36231` |
+| `57ccbfe9` | M2＝M1+24 | 12/232 | `e56a03ac4fc36231` |
+| `8835d11c` | M3＝M2+25F1 | 14/248 | `e56a03ac4fc36231` |
+| `167979aa` | M4＝M3+26＝**HEAD** | 15/303 | `e56a03ac4fc36231` |
+
+⇒ **决定性读数**：`bc1087ee`、四个来源 tip、四个 merge 中间点、HEAD 的非 tests 段哈希**全部等于 `e56a03ac4fc36231`**，
+   而 main/origin/main 是另一个值 `66572971fdd0dff3`。本卡四步合并全程没让这个哈希变过一个字 ⇒
+   **卡 §四「不得调整 tests 以外的基线字段」成立，且是哈希级成立**。
+
+## 2 main → HEAD 的 non-tests 逐字段比对
+
+```
+- _comment: SAME
+- typeCheck: SAME
+- lint: DIFF
+- checkContract: SAME
+- contractDrift: SAME
+```
+
+`lint` 段的 DIFF 明细（blob 重取实测）：
+
+| 字段 | main `7dda80b8` | HEAD `167979aa` |
+|---|---|---|
+| `errorBaseline` | 20 | 0 |
+| `errorsByFileRule` | 13 对 | `{}` |
+| `note` | 165 字符 | 1524 字符 |
+| `warningsByRule` 六规则合计 | 12872 | 12872（**逐键相等**） |
+| `command` / `mustReachZero` / `dueBatch` | 同 | 同 |
+
+⇒ 唯一变化是 **error 20→0 的收紧**，来自 QODER-21 的逐条处置＋QODER-22 的收口（正文见 `bc1087ee` blob 的 `lint.note`），
+   与 HEAD 的 note **不是前缀关系**（两边各自从 merge-base 演化），但 HEAD 侧与 `bc1087ee` 逐字节同。
+⇒ 归因：main 自 merge-base 起 `app-mobile` 改动面为 **0 文件**（`git diff --numstat 21b465e5..7dda80b8 -- app-mobile` ⇒ 空），
+   所以 M1（`main ← 23F1`）对 `lint` 段是**单边改动**，git 自动合并取来源侧 ⇒ 这正是 `raw/10` 里 `MERGE_EXIT=0`（无冲突）的原因。
+⇒ **本卡对 `lint` 段的手工改写 = 0**；main..HEAD 的门禁口径变严属"合并带入的既有收紧"，不是本单动作。
+
+## 3 `git diff main..HEAD -- backend/` 的 +21 行：本节把 raw/30 的「口径待裁」钉死
+
+```
+$ git diff --numstat 7dda80b8..HEAD     -- backend/   →  21  0  backend/scripts/guard-rbac-wiring.mjs
+$ git diff --numstat 7dda80b8..bc1087ee -- backend/   →  21  0  backend/scripts/guard-rbac-wiring.mjs   ← 同一行、同一数
+$ git diff --numstat bc1087ee..HEAD     -- backend/   →  （空，0 文件）
+```
+
+⇒ 卡 §三「`git diff <main>..HEAD -- backend/` 0」的**字面**判据不成立（确有 +21 行），
+   但这 21 行在**四树共同基线 `bc1087ee` 上就已存在**（main 落后于该基线，见 §4），
+   且本卡四笔 merge 对 `backend/` 的净改动是 **0 文件 / 0 字节**（`bc1087ee..HEAD` 为空）。
+⇒ 结论口径交给凌舟裁定：按「main..HEAD」字面 ⇒ 未通过；按「本卡 authored」⇒ 通过（0 行）。
+   `raw/30` 已把归因指到 `1b61811b`（QODER-13，2026-10-21），本节用共同基线比对把同一结论钉成可复核的两行 diff。
+
+## 4 main 落后度（本卡改动面为何不止四张卡）
+
+```
+$ git merge-base --is-ancestor 21b465e5 bc1087ee   → 0（是）
+$ git merge-base --is-ancestor bc1087ee 7dda80b8   → 1（否）  ← 四树共同基线不在 main 上
+$ git ls-tree -r --name-only 7dda80b8 app-mobile/tests | wc -l  → 5
+$ git ls-tree -r --name-only bc1087ee app-mobile/tests | wc -l  → 11
+$ git ls-tree -r --name-only 167979aa app-mobile/tests | wc -l  → 15
+$ git diff --numstat 21b465e5..7dda80b8 -- app-mobile | wc -l   → 0（main 自带 app-mobile 改动面＝0）
+$ git diff --numstat bc1087ee..HEAD -- app-mobile/scripts/gates-baseline.json  → 3 3   （只有 tests 三行）
+$ git diff --numstat 7dda80b8..HEAD -- app-mobile/scripts/gates-baseline.json  → 6 20  （tests 三行 + lint 收紧）
+```
+
+⇒ main 停在 merge-base 的 app-mobile 态（tests 5 文件／error 基线 20），而四棵树都长在 `bc1087ee`（tests 11/186／error 基线 0）之上。
+⇒ 所以 `main..HEAD` 的 39 个 app-mobile 代码文件里，**既有四张卡的面，也有 QODER-19~22 那条线随 `bc1087ee` 一起并进 main 线的面**；
+   本卡真实 authored 面仍以 `raw/50` §10 的 blob 比对为准（4 个文件，其中 3 个是 git 双边自动合并，手工改写只有 `gates-baseline.json` ×3 次 tests 段）。
+
+## 5 量具/流程自我更正（本节新增）
+
+1. 首版 `nontests-audit.cjs` 把整段 `note`（数千字符）打进 stdout ⇒ 输出 45.9KB 被截断；改成只打结构化字段＋哈希的 `nontests-audit2.cjs` 才可用。**通用坑：取证脚本要压掉长文本字段，否则关键表被顶出读数窗口。**
+2. `G('merge-base --is-ancestor A B; echo $?')` 在 Windows 下走 cmd.exe，`;` 不被识别 ⇒ 变成 `--is-ancestor takes exactly two commits` 的 fatal。改 try/catch 判成功/失败。**与已登记的 cmd `^` 吃字符同族：`execSync` 的 shell 是 cmd.exe，不是 sh。**
+
+MAIN_LAG_AND_NONTESTS_ATTRIBUTION=DONE

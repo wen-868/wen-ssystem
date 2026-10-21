@@ -1,0 +1,45 @@
+# QODER-27 反测台账（卡 §二.5 要求 ≥4 路，本单实跑 4 路 + 1 路加测）2026-10-22，Qoder 亲跑
+
+设备：`node app-mobile/../node_modules/vitest/vitest.mjs run <spec>`（单 spec 冷跑）＋ `npm run build:mp-weixin`（加测路）。
+注入器：`_qoder27_setup/inject.cjs`（latin1 逐字节、`hits !== 1 ⇒ exit(2)` 不写盘）。
+驱动：`_qoder27_setup/anti-rounds.sh` / `anti-tab-mp-control.sh`。
+复原：`cp /tmp/q27-<轮>.bak`（**不用 sed**，避免 CRLF↔LF 归一导致 SHA 假差）。
+
+| 路 | 打坏什么 | 靶文件:行 | 注入（单点、命中数=1） | 判据 spec | 红点名 | RED | SHA 恒等 | 残字 | GREEN |
+|---|---|---|---|---|---|---|---|---|---|
+| R-IV | AES-GCM IV 规范长度守卫 | `src/utils/crypto.ts:618` | `if (iv.length !== 12) return null` ⇒ `if (false && …) return null`（短路＝等价摘除） | `storage-crypto.spec.ts` | 短 IV 即拒／长 IV 即拒·13 字节／长 IV 即拒·17 字节（3 条，23F1 追加面） | 1 | `15fdc4fa…45122175` == | rg EXIT=1 | 0（9 passed） |
+| R-TAB | tabBar 平台保留名 | `src/pages/ai-chat/ai-chat.vue:208/:223` | 标签 `<app-tab-bar` ⇒ `<custom-tab-bar`；import `components/app-tab-bar.vue'` ⇒ `custom-tab-bar.vue'` | `tabbar-name-reactivity.spec.ts` | S1／S2／S3（3 条） | 1 | `c88fc796…82da738a` == | rg EXIT=1 | 0（6 passed） |
+| R-REACT | 流式消息 reactive 代理 | `src/pages/ai-chat/ai-chat.vue:638/643` | `const aiMsg = reactive<ChatMessage>({` ⇒ `const aiMsg: ChatMessage = {`；收尾 `})` ⇒ `}`（CRLF needle） | `tabbar-name-reactivity.spec.ts` | R1（1 条） | 1 | `c88fc796…82da738a` == | rg 作废⇒ node 子串法 0 命中（见 R-REACT.log 更正段） | 0（6 passed） |
+| R-SKU | SKU 行主键 | `src/api/modules/products.ts:353` | `      id: skuId,` ⇒ `      id: r.spuId ?? r.id,`（26 卡点名缺陷本体字面量） | `product-sku-dimension.spec.ts` | A×2／B×2／C×1／D×3／E2／E4（10 条） | 1 | `3b0185ad…6eb720cd` == | rg EXIT=1 | 0（55 passed） |
+| R-TAB-B（加测） | 「MP 撞名警告 0」的正对照 | 新建 `src/components/custom-tab-bar.vue`（cp 自 app-tab-bar）＋ 同 R-TAB 的两处注回 | —— | `build:mp-weixin` | 见下 | 构建 **EXIT=1** | 复原后 `git status --porcelain app-mobile` = 0 行、`ls-files --others` = 0 | EXTRA_FILE_GONE=true | —— |
+
+## R-TAB-B 正对照原文（证明 raw/22 的「0」可证伪，不是假 0）
+
+```
+[uni-app] 组件 <custom-tab-bar> 是 H5 平台专用组件，在 mp-weixin 平台使用可能导致错误。如果你要引入自定义 tabBar 可重命名为其他名称。
+[vite]: Rollup failed to resolve import "@dcloudio/uni-ui/lib/uni-tabbar/uni-tabbar.vue"
+        from ".../node_modules/@dcloudio/uni-components/lib/custom-tab-bar/custom-tab-bar.vue".
+BUILD_EXIT_mp-weixin=1
+grep -c 'custom-tab-bar'          = 2
+grep -cE '专用组件|已内置|保留名'  = 1
+```
+
+⇒ 清洁树读数：`grep -c 'custom-tab-bar' = 0`、`grep -cE '专用组件|已内置|保留名' = 0`、`BUILD_EXIT_mp-weixin=0`（raw/22）。
+⇒ 同一台量具在注入态能出 2/1、在清洁态出 0/0 ⇒ 清洁态的 0 是**有效零**。
+
+## 四路红点名的归因唯一性（不是"整体跑挂了"）
+
+- R-IV 只打掉 3 条 IV 用例，tag 侧 6 条仍绿 ⇒ 打坏的是 IV 守卫，不是整个 crypto 模块。
+- R-TAB 打掉 S1/S2/S3，R1/R2/R3（响应式）仍绿 ⇒ 打坏的是保留名守卫。
+- R-REACT 只打掉 R1，S1/S2/S3 仍绿 ⇒ 打坏的是 reactive 代理创建。
+- R-SKU 一次打掉 10 条（含静态源门 E2/E4 与路径参数实证 D 组），复原后 55 条全绿。
+- 四路的 `FAIL` 行全部落在预期 spec，无一例外。
+
+## 反测后出厂态复核
+
+```
+$ git -C D:/Users/ZXQL/wt-agents/QODER-27 status --porcelain | grep -v '^?? docs/evidence/qoder-27/' | wc -l
+0
+```
+
+⇒ 五轮注入全部逐字节复原，代码面与 `167979aa` 一致；唯一未跟踪面是本卡证据目录。

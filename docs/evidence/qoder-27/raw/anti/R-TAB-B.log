@@ -1,0 +1,33 @@
+# 反测加测 R-TAB-B · MP 保留名警告正对照（2026-10-22，Qoder 亲跑）
+
+目的：raw/22 读到「mp-weixin 构建日志里 custom-tab-bar 命中 0」——0 读数必须有正对照才算可证伪。
+```
+$ cp src/components/app-tab-bar.vue src/components/custom-tab-bar.vue（复现 25 卡缺陷形态）
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  old="<app-tab-bar :current=\"'ai'\"" hits=1
+  new="<custom-tab-bar :current=\"'ai'\""
+  written=true 新SHA=cbdac70754a98716eb5973dfd2e2fe8f9c0bb75d62cc44ff854125c5c23f4414
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/pages/ai-chat/ai-chat.vue
+  old="components/app-tab-bar.vue'" hits=1
+  new="components/custom-tab-bar.vue'"
+  written=true 新SHA=babe4fc6dca8426b7b5c8c35e6f719f4af446ac4aee80e762bfc6dceb872fb7f
+INJECT_EXIT_TAG=0 INJECT_EXIT_IMPORT=0
+```
+## 正对照读数
+```
+$ BUILD_EXIT_mp-weixin=1
+$ grep -c 'custom-tab-bar' = 2
+$ grep -cE '专用组件|已内置|保留名' = 1
+—— 命中行原文（最多 12 行）——
+12:​[uni-app] 组件 <custom-tab-bar> 是 H5 平台专用组件，在 mp-weixin 平台使用可能导致错误。如果你要引入自定义 tabBar 可重命名为其他名称。​
+14:[vite]: Rollup failed to resolve import "@dcloudio/uni-ui/lib/uni-tabbar/uni-tabbar.vue" from "D:/Users/ZXQL/wt-agents/QODER-27/node_modules/@dcloudio/uni-components/lib/custom-tab-bar/custom-tab-bar.vue".
+```
+
+## 复原
+```
+$ rm -f src/components/custom-tab-bar.vue
+$ cp /tmp/q27-R-TAB-B.bak src/pages/ai-chat/ai-chat.vue
+EXTRA_FILE_GONE=true
+$ git status --porcelain app-mobile ⇒ 0
+$ git ls-files --others --exclude-standard app-mobile ⇒ 0
+```

@@ -1,0 +1,74 @@
+# 反测 R-SKU · 靶文件 src/api/modules/products.ts · 判据 tests/product-sku-dimension.spec.ts（2026-10-22，Qoder 亲跑）
+
+## 注入前
+```
+SHA_BEFORE=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+```
+```
+$ node inject.cjs inject --file src/api/modules/products.ts
+  old=\ \ \ \ \ \ id:\ skuId\,
+  new=\ \ \ \ \ \ id:\ r.spuId\ \?\?\ r.id\,
+INJECT D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/api/modules/products.ts
+  old="      id: skuId," hits=1
+  new="      id: r.spuId ?? r.id,"
+  written=true 新SHA=2254149a51699f011400d7e9abd97b47edc666204dc22f8bf6ea993a291b7202
+INJECT_EXIT=0
+VERIFY D:/Users/ZXQL/wt-agents/QODER-27/app-mobile/src/api/modules/products.ts
+  has("      id: r.spuId ?? r.id,") hits=1
+  not-has("      id: skuId,") hits=0
+  ✓ 磁盘回证通过
+VERIFY_EXIT=0
+```
+
+## 红跑（判据：tests/product-sku-dimension.spec.ts 必须 FAILED 且点名用例）
+```
+$ node ../node_modules/vitest/vitest.mjs run tests/product-sku-dimension.spec.ts
+RED_EXIT=1（期望 ≠0）
+—— 剥 ANSI 后的红点名（原文未改写，仅另段摘录）——
+     × 两行 id 互不相同，且等于各自的 SKU 行主键 23ms
+     × 每行 id===skuId（财务调拨/报损/盘盈直接把列表行 id 当 skuId 提交，靠这条不变式才不会送 spuId） 4ms
+     × 缺 skuId 的行被丢弃（即便带 skuCode 也不拿来当 id） 4ms
+     × 后端把 BIGINT 序列化成数字字符串时仍可判定为主键 3ms
+     × skuIdOfProduct：id 与 skuId 同值时返回真实 skuId 3ms
+     × updateSkuPrice 对同 SPU 的两个 SKU 打两条不同路径（不会写同一行） 2ms
+     × productsApi.list ⇒ GET /admin/products 并返回两行 SKU（id 41/42、spuId 同为 7） 5ms
+     × 点卡片用的 spuId 与加购用的 id 是两个不同读数（同 SPU 双 SKU 夹具） 2ms
+     × E2 products.ts 不再用 spuId 顶替 id 1ms
+     × E4 映射对象以 SKU 行主键开头，并保留 spuId/skuId 两字段 1ms
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/product-sku-dimension.spec.ts > A · 列表映射是 SKU 粒度（同 SPU 双 SKU ⇒ 两行不同 id） > 两行 id 互不相同，且等于各自的 SKU 行主键
+AssertionError: expected [ 7, 7 ] to deeply equal [ 41, 42 ]
+ FAIL  tests/product-sku-dimension.spec.ts > A · 列表映射是 SKU 粒度（同 SPU 双 SKU ⇒ 两行不同 id） > 每行 id===skuId（财务调拨/报损/盘盈直接把列表行 id 当 skuId 提交，靠这条不变式才不会送 spuId）
+AssertionError: expected false to be true // Object.is equality
+ FAIL  tests/product-sku-dimension.spec.ts > B · 无效 SKU 主键的行被跳过并留守卫日志 > 缺 skuId 的行被丢弃（即便带 skuCode 也不拿来当 id）
+AssertionError: expected [ 7 ] to deeply equal [ 42 ]
+ FAIL  tests/product-sku-dimension.spec.ts > B · 无效 SKU 主键的行被跳过并留守卫日志 > 后端把 BIGINT 序列化成数字字符串时仍可判定为主键
+AssertionError: expected [ '7', '7' ] to deeply equal [ 41, 42 ]
+ FAIL  tests/product-sku-dimension.spec.ts > C · 维度守卫行为 > skuIdOfProduct：id 与 skuId 同值时返回真实 skuId
+ FAIL  tests/product-sku-dimension.spec.ts > D · 路径参数实证 > updateSkuPrice 对同 SPU 的两个 SKU 打两条不同路径（不会写同一行）
+ FAIL  tests/product-sku-dimension.spec.ts > D · 路径参数实证 > productsApi.list ⇒ GET /admin/products 并返回两行 SKU（id 41/42、spuId 同为 7）
+AssertionError: expected [ 7, 7 ] to deeply equal [ 41, 42 ]
+ FAIL  tests/product-sku-dimension.spec.ts > D · 路径参数实证 > 点卡片用的 spuId 与加购用的 id 是两个不同读数（同 SPU 双 SKU 夹具）
+AssertionError: expected 1 to be 2 // Object.is equality
+ FAIL  tests/product-sku-dimension.spec.ts > E · 静态源门 > E2 products.ts 不再用 spuId 顶替 id
+AssertionError: expected 1 to be +0 // Object.is equality
+ FAIL  tests/product-sku-dimension.spec.ts > E · 静态源门 > E4 映射对象以 SKU 行主键开头，并保留 spuId/skuId 两字段
+AssertionError: expected +0 to be 1 // Object.is equality
+ Test Files  1 failed (1)
+```
+
+## 复原与字节恒等
+```
+$ cp /tmp/q27-R-SKU.bak → src/api/modules/products.ts
+SHA_AFTER=3b0185ad71f01bb03d280e0e27933ef3ffead79eeb913ef87080af086eb720cd
+BYTE_IDENTICAL=true
+$ rg --no-heading -n -F -e '<最后一个注入串>' src/api/modules/products.ts ⇒ MARKER_RG_EXIT=1（1=已无残留）
+```
+
+## 复跑（复原后必须绿）
+```
+$ git status --porcelain src/api/modules/products.ts ⇒ 0 行（0=与 HEAD 一致）
+GREEN_EXIT=0（期望 0）
+ Test Files  1 passed (1)
+      Tests  55 passed (55)
+```

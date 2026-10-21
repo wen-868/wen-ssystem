@@ -1,0 +1,82 @@
+# M2 合并 QODER-24 dd44e321 2026-10-22T05:52:43+08:00
+$ 预测：冲突仅 gates-baseline.json；tests 11/191 -> 12/232（24 相对共同基线 bc1087ee 为 +1 文件 / +41 用例）
+$ git merge --no-ff dd44e32114141ebaaca94c3487eb1343d50c0ab1
+MERGE_EXIT=1
+Auto-merging app-mobile/scripts/gates-baseline.json
+CONFLICT (content): Merge conflict in app-mobile/scripts/gates-baseline.json
+Auto-merging app-mobile/src/utils/crypto.ts
+Automatic merge failed; fix conflicts and then commit the result.
+
+$ git status --porcelain（冲突面必须只有 gates-baseline.json）
+UU app-mobile/scripts/gates-baseline.json
+A  app-mobile/src/config/update-security.ts
+M  app-mobile/src/utils/crypto.ts
+M  app-mobile/src/utils/update.ts
+A  app-mobile/tests/update-security.spec.ts
+A  docs/evidence/qoder-24/anti/11-anti-r1-semver.log
+A  docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log
+A  docs/evidence/qoder-24/anti/13-anti-r3-digest.log
+A  docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log
+A  docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log
+A  docs/evidence/qoder-24/anti/16-restore-and-final-state.log
+A  docs/evidence/qoder-24/anti/17-void-r3-round-restore-chain.log
+A  docs/evidence/qoder-24/anti/50-owner-anti-r1-r3.log
+A  docs/evidence/qoder-24/anti/void-rg-h-flagtypo/17a-void-rg-h-flagtypo.log
+A  docs/evidence/qoder-24/anti/void-rg-h-flagtypo/NOTE.md
+A  docs/evidence/qoder-24/raw/00-worktree-and-baseline.log
+A  docs/evidence/qoder-24/raw/10-gates-green.log
+A  docs/evidence/qoder-24/raw/20-build-h5.log
+A  docs/evidence/qoder-24/raw/21-build-mp-weixin.log
+A  docs/evidence/qoder-24/raw/22-build-app.log
+A  docs/evidence/qoder-24/raw/23-artifacts-and-exits.log
+A  docs/evidence/qoder-24/raw/24-artifacts-check.log
+A  docs/evidence/qoder-24/raw/40-tip-selfcheck-and-line-anchors.log
+A  docs/evidence/qoder-24/raw/41-line-anchors-all-six-items.log
+A  docs/evidence/qoder-24/raw/42-baseline-scope-machine-check.log
+A  docs/evidence/qoder-24/raw/43-redlines-no-disable-no-skip.log
+A  docs/evidence/qoder-24/raw/44-redline-readings-disambiguated.log
+A  docs/evidence/qoder-24/raw/45-backend-contract-no-digest-readonly.log
+A  docs/evidence/qoder-24/raw/46-crypto-minimal-diff.log
+A  docs/evidence/qoder-24/raw/50-owner-gates-and-builds.log
+A  docs/evidence/qoder-24/raw/51-owner-ownverify-note.log
+A  "docs/tasks/cards/R101-QODER-24-\345\233\236\344\274\240.md"
+A  "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-24.md"
+?? docs/evidence/qoder-27/
+UNMERGED=app-mobile/scripts/gates-baseline.json 
+
+## (2) 解冲突：只动 tests 段（ours=并入 23F1 后的 11/191，note 5395）
+
+```
+$ git checkout --ours -- app-mobile/scripts/gates-baseline.json
+OURS 取到后：testFiles=11 testCount=191 noteLen=5395 hasConflictMarkers=false
+```
+
+## (3) vitest 实测（先量后写基线，不预测）
+
+```
+$ cd app-mobile && npm run test   # 原始日志 raw/11a-m2-test-measure.raw.log
+ Test Files  12 passed (12)
+      Tests  232 passed (232)
+—— test 门（用例数冻结）：当前 12 文件 / 232 用例，基线 11 / 191 ——
+ℹ 用例数高于基线 ⇒ 请把 gates-baseline.json 的 tests 同步调高（保持"实测即基线"）。
+TEST_M2_EXIT=0
+```
+
+⇒ 实测 **12 文件 / 232 用例**（= 共同基线 186 + 23F1 追加 5 + 24 追加 41）。
+
+## (4) 解算器读数（append-only 机检）
+
+```
+$ node _qoder27_setup/resolve-tests.cjs --files 12 --count 232 --segs dd44e321
+SEG dd44e321 segLen=700 头=" ★ QODER-24（2026-10-21 执"
+READBACK testFiles=12 testCount=232 noteLen=6095
+READBACK before=11/191 noteLen=5395
+READBACK noteStartsWithOld=true (只准追加)
+READBACK noteStartsWithBase=true
+READBACK nonTestsByteIdentical=true
+READBACK eolCrlfOnly=47 bareLf=0
+READBACK keysOrder=_comment,typeCheck,lint,checkContract,contractDrift,tests
+RESOLVE_EXIT=0
+```
+
+⇒ note 6095 = 5395 + 700（24 自有段原文逐字追加，未改写、未合并成一段）；非 tests 段逐字节不变。
