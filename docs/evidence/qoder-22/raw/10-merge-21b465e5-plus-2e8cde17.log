@@ -1,0 +1,7 @@
+# 合并 QODER-21（2e8cde17）入 chore/qoder-22-mobile-main-closeout（基座 cf9a98fa）
+# git merge-base HEAD 2e8cde17 = 21b465e5c2a9（= origin/main）
+# 采集时间 2026-10-21 19:06:34
+$ git merge --no-ff --no-commit 2e8cde17 -m chore: QODER-22 移动端最终 main 收口——并入 QODER-21 lint error 清零
+Auto-merging app-mobile/scripts/gates-baseline.json
+Automatic merge went well; stopped before committing as requested
+MERGE_EXIT=0

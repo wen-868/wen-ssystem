@@ -1,0 +1,29 @@
+# gates-baseline.json 两段来源归属取证（为什么本单零冲突，以及每段究竟取了谁）2026-10-21 19:45:47
+## 1. 相对共同祖先 21b465e5，两侧各自动了哪些行（hunk 头 = 行范围，不重叠 ⇒ git 自动合并合法）
+$ git diff -U0 21b465e5 cf9a98fa -- app-mobile/scripts/gates-baseline.json | grep '^@@'
+@@ -57,3 +57,3 @@
+  ↑ 以上 = 我方基座（QODER-19/20 链）改动行
+$ git diff -U0 21b465e5 2e8cde17 -- app-mobile/scripts/gates-baseline.json | grep '^@@'
+@@ -10 +10 @@
+@@ -13,15 +13 @@
+@@ -36 +22 @@
+  ↑ 以上 = 并入方（QODER-21）改动行
+$ git diff --numstat 21b465e5 cf9a98fa -- app-mobile/scripts/gates-baseline.json
+3	3	app-mobile/scripts/gates-baseline.json
+$ git diff --numstat 21b465e5 2e8cde17 -- app-mobile/scripts/gates-baseline.json
+3	17	app-mobile/scripts/gates-baseline.json
+## 2. 四态读数对照（机械判据：lint 段跟随 2e8cde17，tests 段跟随 cf9a98fa，note 各自追加 ★ QODER-22 段）
+21b465e5(origin/main 共同祖先)             lint.errorBaseline=20  errorsByFileRule对数=13  tests=5/56 lint.note字数=165 tests.note字数=320
+cf9a98fa(本卡基座=QODER-20)                lint.errorBaseline=20  errorsByFileRule对数=13  tests=11/186 lint.note字数=165 tests.note字数=2270
+2e8cde17(并入方=QODER-21)                 lint.errorBaseline=0   errorsByFileRule对数=0   tests=5/56 lint.note字数=1052 tests.note字数=320
+HEAD(合并+本单追加 note 后)                   lint.errorBaseline=0   errorsByFileRule对数=0   tests=11/186 lint.note字数=1524 tests.note字数=2941
+## 3. 归属断言
+lint.errorBaseline: HEAD==theirs = true | HEAD!=base = true | ours==base = true
+lint.errorsByFileRule 对数: HEAD==theirs(0) = true | ours 仍为 13 对 = true
+tests: HEAD==ours = true ( 11/186 ) | theirs 仍为 5/56 = 5/56
+warningsByRule: HEAD==theirs = true | 合计 = 12872
+note 来源并存: lint.note 含 QODER-5 = true 含 QODER-21 = true 含 QODER-22 段 = true | tests.note 含 ①~⑦ = true 含 ⑧ = true
+其余四段零漂移: typeCheck==ours = true | checkContract==ours = true | contractDrift==ours = true | _comment==ours = true
+## 4. 我方基座 hunk 头逐行（补记，避免只余 ↑ 说明行）
+@@ -57,3 +57,3 @@
+⇒ 我方只动 57-59 行（tests 段），并入方只动 10/13-27/36 行（lint 段），两组行区间不相交 ⇒ 零冲突是三方合并的正常结果，不是谁被丢弃。

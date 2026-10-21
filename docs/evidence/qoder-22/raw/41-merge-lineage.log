@@ -1,0 +1,43 @@
+# 合并谱系（真双父、未 rebase/未 squash、来源支尖端未被改写）2026-10-21 19:47:51
+$ git rev-list --parents -n1 HEAD
+e9afb0a69df38bbf7ec2093cbe936fa06cbdbf16 cf9a98fa50b796cead73634ac294fea7ad0fd240 2e8cde17184c5cf3c68a308ba95fb72ecd42aecd
+$ git log --graph --first-parent -4 --oneline
+* e9afb0a6 chore: QODER-22 移动端最终 main 收口——并入 QODER-21 lint 清零并按双范围收敛 pin-ssl 静态守卫
+* cf9a98fa docs: QODER-20 索引同步——回填 45c0533c/534813fa 真实全哈希并登记 raw/46 终态复跑
+* 534813fa docs: QODER-20 收尾自证——分支尖端终态四门复跑（CHECK_GATES_EXIT=0、test 11/186、代码面相对 602d9d36 零改动）
+* 45c0533c docs: QODER-20 补哈希笔——回填真实哈希（含我自报的两次凭空哈希违规与收口纪律）+ raw/45 引用哈希逐条验真
+$ git log --graph -6 --oneline
+*   e9afb0a6 chore: QODER-22 移动端最终 main 收口——并入 QODER-21 lint 清零并按双范围收敛 pin-ssl 静态守卫
+|\  
+| * 2e8cde17 docs: QODER-21 复核附录 D 更正复原证明形态（anti 日志用 SHA_BEFORE==SHA_AFTER，非 cmp；并与 raw/00 的 SHA 交叉印证）
+| * 39e658d3 docs: QODER-21 回传卡追加验收方复核补充（独立复跑读数、逐处等价性判读、三处 showToast 行为增量精确定位、raw/00 口径更正与复现命令时效更正）
+| * f22f537b docs: QODER-21 验收方独立复跑证据入库（sha256sum -c 7/7 OK、门与规则改动面机检、四门 EXIT=0）+ README 更正 raw/00 不含 SHA_MATCH 段的表述
+| * 5523cdb0 docs: QODER-21 回传卡 + 回执 + 证据树（lint error 20→0 原始读数与两组反测）
+| * 5bbd4324 fix: app-mobile lint error 20 条清零（QODER-21）
+## 祖先关系（1=是祖先）
+21b465e5 是 HEAD 祖先 = 0
+cf9a98fa 是 HEAD 祖先 = 0
+2e8cde17 是 HEAD 祖先 = 0
+cdf16ce4 是 HEAD 祖先 = 0
+99371862 是 HEAD 祖先 = 0
+bd7e158f 是 HEAD 祖先 = 0
+df583401 是 HEAD 祖先 = 0
+## 来源支尖端仍是原哈希（本卡没有改写 QODER-21）
+QODER-21 尖端在仓内 = 2e8cde17184c  分支 fix/qoder-21* 指向 = 2e8cde17
+$ git branch --contains 2e8cde17
++ chore/qoder-21-lint-errors-zero
+* chore/qoder-22-mobile-main-closeout
+## 本卡工作树分支与上游（应为无上游）
+## chore/qoder-22-mobile-main-closeout
+?? docs/evidence/qoder-22/
+fatal: no upstream configured for branch 'chore/qoder-22-mobile-main-closeout'
+## 补记（同轮立即更正，不改写上文原文）
+上文 "分支 fix/qoder-21* 指向" 一行的**标签写错**：命令实际是 `git branch --list 'chore/qoder-21*'`，
+QODER-21 的分支名是 **chore/qoder-21-lint-errors-zero**（不是 fix/ 前缀）。读数本身有效：该分支尖端仍为 2e8cde17 ⇒ 并入未改写来源支。
+
+## 补记 2（同轮立即更正标签口径）
+上文 "## 祖先关系（1=是祖先）" 的**口径写反**：命令形态是 `git merge-base --is-ancestor <anc> HEAD; echo $?`，
+`--is-ancestor` 的约定是 **0=是祖先、1=不是**（与 status-code 常规一致）。⇒ 该段读数 `= 0` 的正确解读是
+"21b465e5 / cf9a98fa / 2e8cde17 / cdf16ce4 / 99371862 / bd7e158f / df583401 **都是 HEAD 的祖先**"，
+即合并谱系完整、无丢支。2026-10-21 复跑确认：
+`git merge-base --is-ancestor 21b465e5 HEAD` ⇒ exit=0；`cf9a98fa` ⇒ exit=0；`2e8cde17` ⇒ exit=0。

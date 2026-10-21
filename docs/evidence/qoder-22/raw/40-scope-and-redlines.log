@@ -1,0 +1,31 @@
+# 范围与红线自检（HEAD=e9afb0a69df3，基线 cf9a98fa，并入 2e8cde17）2026-10-21 19:29:37
+$ bash -c git diff --numstat 21b465e5..HEAD -- backend/src | wc -l
+0
+BACKEND_SRC_DIFF_LINES=0
+$ bash -c git diff 21b465e5..HEAD -- backend/src | wc -c
+0
+BACKEND_SRC_DIFF_BYTES=0
+$ bash -c git diff --name-only 21b465e5..HEAD -- backend | tr "\n" " "
+backend/scripts/guard-rbac-wiring.mjs BACKEND_ALL_DIFF_FILES=0
+$ bash -c git diff --name-only cf9a98fa..HEAD | tr "\n" " "
+app-mobile/scripts/gates-baseline.json app-mobile/src/api/storage.ts app-mobile/src/pages-sub/marketing/member/member-detail.vue app-mobile/src/pages-sub/product/batch-price/batch-price.vue app-mobile/src/pages-sub/settings/settings.vue app-mobile/src/pages/ai-chat/ai-chat.vue app-mobile/src/pages/products/product-detail.vue app-mobile/src/pages/sales/create-sale.vue app-mobile/tests/pin-ssl-static.spec.ts docs/evidence/qoder-21/README.md docs/evidence/qoder-21/anti/1-anti-storage.ts-no-extra-semi.txt docs/evidence/qoder-21/anti/2-anti-settings.vue-no-unreachable.txt docs/evidence/qoder-21/raw/00-sha-worktree-after-before-restore.txt docs/evidence/qoder-21/raw/01-lint-before-fix-eslint-unix.txt docs/evidence/qoder-21/raw/02-git-status-after-restore.txt docs/evidence/qoder-21/raw/03-lint-gate-after.txt docs/evidence/qoder-21/raw/04-type-check.txt docs/evidence/qoder-21/raw/05-test.txt docs/evidence/qoder-21/raw/06-check-contract.txt docs/evidence/qoder-21/raw/07-build-h5.txt docs/evidence/qoder-21/raw/08-lint-after-by-rule.txt docs/evidence/qoder-21/raw/09-git-status-before-docs-commit.txt docs/evidence/qoder-21/raw/10-independent-verify-by-acceptance.txt "docs/tasks/cards/R101-QODER-21-\345\233\236\344\274\240.md" "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-21.md" OURS_FACE=0
+$ bash -c git diff --name-only 21b465e5..2e8cde17 -- app-mobile/src | tr "\n" " "
+app-mobile/src/api/storage.ts app-mobile/src/pages-sub/marketing/member/member-detail.vue app-mobile/src/pages-sub/product/batch-price/batch-price.vue app-mobile/src/pages-sub/settings/settings.vue app-mobile/src/pages/ai-chat/ai-chat.vue app-mobile/src/pages/products/product-detail.vue app-mobile/src/pages/sales/create-sale.vue THEIRS_FACE=0
+$ bash -c git diff --name-only cf9a98fa..HEAD -- app-mobile/tests app-mobile/scripts app-mobile/src | tr "\n" " "
+app-mobile/scripts/gates-baseline.json app-mobile/src/api/storage.ts app-mobile/src/pages-sub/marketing/member/member-detail.vue app-mobile/src/pages-sub/product/batch-price/batch-price.vue app-mobile/src/pages-sub/settings/settings.vue app-mobile/src/pages/ai-chat/ai-chat.vue app-mobile/src/pages/products/product-detail.vue app-mobile/src/pages/sales/create-sale.vue app-mobile/tests/pin-ssl-static.spec.ts THIS_CARD_SPEC_FACE=0
+$ bash -c rg -n 'export function upload|export const upload' app-mobile/src/api/request.ts; echo RG_EXIT=$?
+RG_EXIT=1
+UPLOAD_EXPORT_IN_REQUEST=0
+$ bash -c rg -n 'upload' app-mobile/src/api/request.ts; echo RG_EXIT=$?
+RG_EXIT=1
+UPLOAD_ANYwhere=0
+$ bash -c rg -n 'installSslPinning\(' app-mobile/src; echo '--- 以上为全部 installSslPinning( 命中（含注释与定义行）'; rg -c 'installSslPinning\(\)' app-mobile/src/App.vue 2>/dev/null; echo APPVUE_EXIT=$?
+app-mobile/src\utils\pin-ssl.ts:7: *  - installSslPinning() 的 APP-PLUS 分支自述"实际安装逻辑在原生层（NetworkClient）"，JS 侧
+app-mobile/src\utils\pin-ssl.ts:197: * installSslPinning()
+app-mobile/src\utils\pin-ssl.ts:200:export function installSslPinning(): boolean {
+--- 以上为全部 installSslPinning( 命中（含注释与定义行）
+APPVUE_EXIT=1
+PINNED_INSTALL_CALLS=0
+$ bash -c rg -in '2026-09-15|trustasia' app-mobile/src; echo RG_EXIT=$?
+RG_EXIT=1
+OLD_FACTS_IN_SRC=0

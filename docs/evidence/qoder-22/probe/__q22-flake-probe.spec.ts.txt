@@ -1,0 +1,77 @@
+/**
+ * ⚠️ QODER-22 临时诊断探针 —— **不交付**，跑完即删，不进任何提交。
+ * 目的：把 19:27:56 合并态清洁树上 `tests/storage-crypto.spec.ts:37` 的偶发红
+ * 从"复现概率 1/256 的抖动"升级为**确定性复现 + 根因定位**。
+ * 读数落 docs/evidence/qoder-22/raw/50-storage-crypto-flake-probe.log
+ */
+import { describe, it, expect } from 'vitest'
+import { deriveKey, encrypt, decrypt } from '../src/utils/crypto'
+
+const b64len = (s: string) => Buffer.from(s, 'base64').length
+const byteAt = (s: string, i: number) => Buffer.from(s, 'base64')[i]
+
+describe('QODER-22 探针 · tag 篡改的有效性只取决于 tag 第 16 字节', () => {
+  const key = deriveKey('unit-test-fingerprint')
+
+  it('spec:36 的篡改式（slice(0,-4)+AAAA）在 tag[15]==0 时不会被 decrypt 拒绝', 120000, () => {
+    let found: { enc: ReturnType<typeof encrypt>; tries: number } | null = null
+    const N = 5000
+    for (let i = 1; i <= N; i++) {
+      const enc = encrypt('top-secret', key)
+      if (byteAt(enc.tag, 15) === 0) {
+        found = { enc, tries: i }
+        break
+      }
+    }
+    expect(found, `前 ${N} 次加密都没出现 tag[15]==0（期望约每 256 次一次）`).not.toBeNull()
+    const enc = found!.enc
+    console.log(
+      `[PROBE-A] 命中于第 ${found!.tries} 次加密｜tag(base64)=${enc.tag}｜tag 字节数=${b64len(enc.tag)}｜tag[15]=${byteAt(enc.tag, 15)}`
+    )
+    const bad = { ...enc, tag: enc.tag.slice(0, -4) + 'AAAA' }
+    console.log(
+      `[PROBE-A] 篡改后 tag(base64)=${bad.tag}｜字节数=${b64len(bad.tag)}（比真 tag 多 ${b64len(bad.tag) - b64len(enc.tag)} 字节）｜前 15 字节与真 tag 全部相同=${
+        Buffer.from(bad.tag, 'base64').subarray(0, 15).equals(Buffer.from(enc.tag, 'base64').subarray(0, 15))
+      }｜篡改后第 16 字节=${byteAt(bad.tag, 15)}`
+    )
+    let threw = false
+    let out: string | null = null
+    try {
+      out = decrypt(bad, key)
+    } catch {
+      threw = true
+    }
+    console.log(`[PROBE-A] decrypt(篡改 tag) 是否抛错=${threw}｜返回值=${JSON.stringify(out)}`)
+    // 缺陷复现：这种篡改被"验通过" ⇒ 用例的 toThrow() 在这一天然是概率性的（1/256）
+    expect(threw, 'tag[15]==0 时 spec:36 式篡改被 aesGcmDecrypt 接受（不抛）⇒ 这正是 storage-crypto.spec.ts:37 的偶发红').toBe(false)
+  })
+
+  it('对照：改 tag 前 20 个 base64 字符中的任意一个 ⇒ decrypt 必抛（检出只靠字节比较）', 120000, () => {
+    const enc = encrypt('top-secret', key)
+    const chars = enc.tag.split('')
+    const idx = 0
+    chars[idx] = chars[idx] === 'A' ? 'B' : 'A'
+    const bad = { ...enc, tag: chars.join('') }
+    console.log(
+      `[PROBE-B] 原 tag=${enc.tag}｜改第 ${idx} 字符后=${bad.tag}｜字节数=${b64len(bad.tag)}`
+    )
+    expect(() => decrypt(bad, key)).toThrow()
+  })
+
+  it('概率：2000 次加密中 tag[15]==0 的比例应接近 1/256', 180000, () => {
+    const M = 2000
+    let hits = 0
+    let wrongLen = 0
+    for (let i = 0; i < M; i++) {
+      const enc = encrypt('top-secret', key)
+      if (b64len(enc.tag) !== 16) wrongLen++
+      if (byteAt(enc.tag, 15) === 0) hits++
+    }
+    const rate = hits / M
+    console.log(
+      `[PROBE-C] M=${M}｜tag[15]==0 命中=${hits}｜实测比例=${rate.toFixed(5)}｜理论 1/256=${(1 / 256).toFixed(5)}｜tag 字节数异常次数=${wrongLen}`
+    )
+    expect(hits).toBeGreaterThan(0)
+    expect(Math.abs(rate - 1 / 256)).toBeLessThan(0.01)
+  })
+})

@@ -1,0 +1,21 @@
+# 产物级抽查（三构建之后现场复跑）2026-10-21 20:26:49  HEAD=e9afb0a6
+# 口径更正：首次尝试把路径写成仓库根的 dist/build/…（实为 app-mobile/dist/build/…，且 dist/ 被 app-mobile/.gitignore:2 忽略），只得到 MODULE_NOT_FOUND／No such file；本文件为路径更正后的重跑，不含任何判据读数。
+
+## 1) h5 index.html 的 viewport-fit=cover 命中数（期望 1）
+1
+## 2) h5 index.html viewport meta 原文
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+## 3) mp-weixin app.json 关键项
+pages=16
+requiredPrivateInfos=[]
+permission.scope.record.desc=用于AI经营助手语音输入：按住说话录制您的口述内容并转为文字，以便生成经营问答与开单草稿。
+## 4) app 端产物顶层
+__uniappautomator.js
+__uniappchooselocation.js
+__uniapperror.png
+__uniappopenlocation.js
+__uniapppicker.js
+__uniappquill.js
+__uniappquillhighlight.js
+__uniappquillimageresize.js
