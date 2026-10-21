@@ -1,0 +1,48 @@
+# 负责人收尾自检 2026-10-22T03:12 2026-10-22T03:11:12+08:00
+
+$ git log --oneline -3
+0f3a4501 docs: QODER-23F1 负责人独立复验证据与回传卡补记
+457d8b88 docs: QODER-23F1 证据补笔——文档提交后尖端出厂读数 raw/12（porcelain 归零复核 + backend diff 0 字节）
+d0bd72f7 docs: QODER-23F1 回传卡 + 回执 + 证据树（IV/tag 双守卫分离反测两轮、守卫前后探针形态、四门与三构建读数）
+
+$ git rev-parse HEAD
+0f3a4501d192fc4e72d1ea2ee4adef06c7b2cb31
+
+$ git show --stat --oneline HEAD | head -20
+0f3a4501 docs: QODER-23F1 负责人独立复验证据与回传卡补记
+ docs/evidence/qoder-23f1/README.md                 |  19 ++
+ docs/evidence/qoder-23f1/anti/59-owner-README.txt  |   6 +
+ .../anti/60-owner-R-TAG-guard-removed.txt          | 170 +++++++++++++++++
+ .../anti/61-owner-R-IV-guard-removed.txt           | 205 +++++++++++++++++++++
+ .../qoder-23f1/probe/owner-inject-23f1.cjs.txt     |  57 ++++++
+ docs/evidence/qoder-23f1/raw/20-owner-gates.log    |  80 ++++++++
+ docs/evidence/qoder-23f1/raw/21-owner-builds.log   |  60 ++++++
+ .../raw/22-owner-baseline-appendonly.log           |  16 ++
+ .../R101-QODER-23F1-\345\233\236\344\274\240.md"   |  15 ++
+ 9 files changed, 628 insertions(+)
+
+$ git status --porcelain   # 本文件自身为唯一未跟踪项
+?? docs/evidence/qoder-23f1/raw/23-owner-closeout.log
+PORCELAIN_LINES=1
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+BACKEND_DIFF_BYTES=0
+
+$ git diff 457d8b88..HEAD --name-only   # 负责人补记提交只含 docs
+docs/evidence/qoder-23f1/README.md
+docs/evidence/qoder-23f1/anti/59-owner-README.txt
+docs/evidence/qoder-23f1/anti/60-owner-R-TAG-guard-removed.txt
+docs/evidence/qoder-23f1/anti/61-owner-R-IV-guard-removed.txt
+docs/evidence/qoder-23f1/probe/owner-inject-23f1.cjs.txt
+docs/evidence/qoder-23f1/raw/20-owner-gates.log
+docs/evidence/qoder-23f1/raw/21-owner-builds.log
+docs/evidence/qoder-23f1/raw/22-owner-baseline-appendonly.log
+"docs/tasks/cards/R101-QODER-23F1-\345\233\236\344\274\240.md"
+
+$ sha256sum app-mobile/src/utils/crypto.ts   # worktree-crlf 形态，两轮反测后应仍为 1a6bd4ef…
+1a6bd4ef655e9526864a1298323b9f6df967ba9276a1ea338fd69c607862f29f *app-mobile/src/utils/crypto.ts
+
+$ git diff bc1087ee..HEAD --stat -- app-mobile/src/utils/crypto.ts app-mobile/tests/storage-crypto.spec.ts
+ app-mobile/src/utils/crypto.ts          |  24 +++++-
+ app-mobile/tests/storage-crypto.spec.ts | 137 +++++++++++++++++++++++++++++++-
+ 2 files changed, 156 insertions(+), 5 deletions(-)
