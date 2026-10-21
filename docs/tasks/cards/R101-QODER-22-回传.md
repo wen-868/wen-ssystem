@@ -16,7 +16,8 @@
 | 并入（第 2 父） | `2e8cde17184c5cf3c68a308ba95fb72ecd42aecd`（QODER-21 尖端） | `raw/00` / `raw/41` |
 | 共同祖先（合并基线） | `21b465e5c2a9defd0e3f65809a4b2ba4bc6c0e18`（= `origin/main`） | `raw/00`：`git merge-base HEAD 2e8cde17` |
 | 本卡代码笔 | `e9afb0a69df38bbf7ec2093cbe936fa06cbdbf16` `chore: QODER-22 移动端最终 main 收口——并入 QODER-21 lint 清零并按双范围收敛 pin-ssl 静态守卫` | `raw/41`：`git rev-list --parents -n1 HEAD` |
-| 交付笔 | `docs: QODER-22 回传卡 + 回执 + 证据树`（本文件所在笔，逐文件 `git add`，无 `-A`） | 本卡提交后 `git log --oneline -1` |
+| 交付笔 | `24811fa86f677064a165e582b4a3a514c2b051e5` `docs: QODER-22 回传卡 + 回执 + 证据树（合并零冲突机械证明、pin-ssl 双范围四轮反测、storage-crypto 概率红根因探针）`（32 个文件，逐文件 `git add`，无 `-A`） | 本卡提交后 `git log --oneline -3` |
+| 终态四门复跑笔 | 见 §四.4（在交付笔之后复跑并登记；该笔本身只含一份日志，`app-mobile` 面 0 行） | `raw/48-tip-gates.log` |
 | 谱系形态 | **真双父 merge**，未 rebase、未 squash；`21b465e5`／`cf9a98fa`／`2e8cde17` 均为 HEAD 祖先（`--is-ancestor` 全部 exit=0）；来源支 `chore/qoder-21-lint-errors-zero` 尖端仍是 `2e8cde17`（未改写别人的支） | `raw/41-merge-lineage.log`（含两条同轮标签补记） |
 | 上游 | `fatal: no upstream configured` ⇒ 未 push、无远端跟踪 | `raw/41` |
 
@@ -150,13 +151,18 @@ GATES_EXIT=0
 
 两份日志的台账核对段逐字相同（`已登记 289 条 ／ 未登记 0 条 ／ 陈旧 0 条`）⇒ `--no-stale` 这一轮没有新增陈旧项。
 
+### 4.4 出厂复跑（交付笔 `24811fa8` 之后）→ `GATES_EXIT=0`
+
+交付笔入库后再跑一次常驻四门：`type-check 0=0`／`error 0（基线 0）、warning 12872（基线 12872）`／`Test Files 11 passed (11)`、`Tests 186 passed (186)`／`差集 1 条、具名豁免 1 条`，末行 `GATES_EXIT=0`。出处 `raw/48-tip-gates.log`。
+该轮工作树的 `app-mobile` 面与 `24811fa8` **完全一致**（当时未提交的只有 `docs/` 下两个文件），所以读数对交付笔成立；紧随其后的补哈希笔只增 1 份日志（`git diff --name-only` 无 `app-mobile/` 条目）。
+
 ---
 
 ## 五、判据自对账（任务书 §三逐条 → 证据 → 读数）
 
 | 卡 §三 判据 | 目标 | 实测 | 出处 |
 | --- | --- | --- | --- |
-| `check:gates` | EXIT=0 | **GATES_EXIT=0**（终态 + 合并态两轮同读数） | `raw/46`、`raw/10-gates-check-merged` |
+| `check:gates` | EXIT=0 | **GATES_EXIT=0**（三轮同读数：合并态 vitest 起于 19:17:21、终态 19:55:00、交付笔之后 20:34） | `raw/10-gates-check-merged`、`raw/46`、`raw/48` |
 | lint | error 0、warning ≤12872 | **error 0（基线 0）／warning 12872（= 基线，六规则逐项相等）** | `raw/46`、`raw/11` |
 | test | 11 文件 / 186 用例 | **11 passed (11)／186 passed (186)** | `raw/46` |
 | type-check | 0 = 0 | **vue-tsc 当前 0 条／基线 0 条** | `raw/46` |
@@ -179,7 +185,7 @@ GATES_EXIT=0
 
 | 轮 | 注入位置 | 注入内容（等价性说明） | 红了什么 | 复原 |
 | --- | --- | --- | --- | --- |
-| **A1** | `PINNING_ENABLED_KEY` 常量行尾注释（在块结束符 `:33` **之外**） | `… // stale fact: expired on 2026-09-15` | `AssertionError: pin-ssl.ts 全文又出现已失效的 2026-09-15 过期表述（负向旧事实按全文守，不限于文件头）: expected true to be false` @ `spec.ts:87:7`，`Test Files 1 failed (1)`；**并把常驻 test 门整体拖红**：`1 failed \| 185 passed (186)`、`TEST_GATE_EXIT=1` | `RESTORE_EXIT=0`、`SHA_IDENTICAL`、`VITEST_EXIT_AFTER_RESTORE=0` |
+| **A1** | `PINNING_ENABLED_KEY` 常量行尾注释（在块结束符 `:33` **之外**） | `… // stale fact: expired on 2026-09-15` | `AssertionError: pin-ssl.ts 全文又出现已失效的 2026-09-15 过期表述（负向旧事实按全文守，不限于文件头）: expected true to be false` @ `spec.ts:87:7`，`Test Files 1 failed (1)`；**并把常驻 test 门整体拖红**：`FAIL tests/pin-ssl-static.spec.ts`、`1 failed \| 185 passed (186)`、`TEST_GATE_EXIT=1`（注意：这里的红点是我注入的 pin-ssl-static，与 §9.1 清洁树那次同为 `1 failed \| 185 passed` 但红点不同 —— 那次是 `storage-crypto.spec.ts:37`） | `RESTORE_EXIT=0`、`SHA_IDENTICAL`、`VITEST_EXIT_AFTER_RESTORE=0` |
 | **A2** | `DEFAULT_PINNING_ENABLED` 常量行尾注释（同外） | `… // old issuer TrustAsia` | `… 全文又出现 TrustAsia 旧签发链表述（负向旧事实按全文守，不限于文件头）: expected true to be false` @ `spec.ts:92:7` | 同上 |
 | **B1** | 文件头 `:6`/`:28` 的 `叶子 2026-11-11 到期` → `叶子到期`（`expect 2`；常量旁 `:76` 同值字符串**保持不动**） | 只抹文件头的正向值 | `… 文件头缺少 api.onepan.cn 叶子到期日 2026-11-11: expected false to be true` @ `spec.ts:94:100` ⇒ **证明正向断言确实只认文件头、不会被常量注释顶包** | 同上 |
 | **B2** | 文件头 `叶子 2026-12-22 到期` → `叶子到期`（常量旁 `:80` 不动） | 同上（m 侧） | `… 文件头缺少 m.onepan.cn 叶子到期日 2026-12-22` @ `spec.ts:95:98` | 同上 |

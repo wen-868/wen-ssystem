@@ -22,8 +22,9 @@
 | `41-merge-lineage.log` | 合并谱系：真双父、祖先关系、来源支尖端未被改写、无上游分支（含两条同轮标签补记） | `HEAD parents = cf9a98fa + 2e8cde17`、`--is-ancestor` 全部 exit=0、`chore/qoder-21…` 尖端仍 `2e8cde17`、`no upstream configured` |
 | `42-section-provenance.log` | **两段冲突处理**的机械证明：`-U0` hunk 行区间不相交 + 四态读数归因表 + §4 hunk 补记 | 我方仅动 57-59（tests 段）、并入方仅动 10/13-27/36（lint 段）⇒ 零冲突属正常三方合并；`HEAD lint=0/{}` 取 theirs、`HEAD tests=11/186` 取 ours |
 | `43-config-and-rule-face.log` | 门禁装置与规则面零改动自检 + 本卡改动面清单 + disable 扫描面（含 §6 qualifier） | `.eslintrc.cjs`/`vitest.config.ts`/`package.json`/四门脚本/pin-ssl.ts/crypto.ts/storage-crypto.spec.ts 相对 `cf9a98fa` diff 全 0 |
-| `47-artifact-spot-check.log` | 三构建产物级抽查（`app-mobile/dist/**`，已被 `app-mobile/.gitignore:2` 忽略、不入库；非判据，仅补"构建绿之外还能看到什么"） | h5 `index.html` 的 `viewport-fit=cover` 命中 **1**、mp `app.json` `pages=16`／`requiredPrivateInfos=[]`／`scope.record.desc` 为真实中文用途说明 |
 | `46-terminal-gates.log` | **终态**四门复跑（反测全部复原、探针删除之后） | `GATES_EXIT=0`、`11 passed (11)`、`186 passed (186)`、error 0（基线 0）、warning 12872（基线 12872）、vue-tsc 0=0、差集 1/豁免 1 |
+| `47-artifact-spot-check.log` | 三构建产物级抽查（`app-mobile/dist/**`，已被 `app-mobile/.gitignore:2` 忽略、不入库；非判据，仅补"构建绿之外还能看到什么"） | h5 `index.html` 的 `viewport-fit=cover` 命中 **1**、mp `app.json` `pages=16`／`requiredPrivateInfos=[]`／`scope.record.desc` 为真实中文用途说明 |
+| `48-tip-gates.log` | **出厂复跑**：交付笔 `24811fa8` 之后再跑一次常驻四门（当时未提交面只有 `docs/` 两文件 ⇒ `app-mobile` 面与该笔一致） | `GATES_EXIT=0`、type 0=0、error 0／warning 12872、`11 passed (11)`／`186 passed (186)`、差集 1／豁免 1 |
 | `50-storage-crypto-flake-probe.log` | 附带发现的根因探针（临时 spec，跑完即删、不入库） | A：第 77 次加密命中，`decrypt(篡改 tag)=false` 抛错、返回 `"top-secret"`；B 对照必抛；C：2000 次命中 8 = 0.00400（理论 0.00391） |
 
 ## anti/ —— 反测四轮（卡 §三 两条判据，证明"不是只看文件头"）
