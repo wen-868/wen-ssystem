@@ -1,0 +1,11 @@
+##### npm --workspace app-mobile run lint
+# QODER-20 合并态验收｜采集时刻 2026-10-21T08:09:33+08:00｜cwd=工作树根（npm --workspace 口径）｜HEAD=50b03a51f9d855f08c800c755440c363fcb01c32
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 20（基线 20）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+⚠ error 级不许长期冻结（当前 20 条）：清零卡由凌舟下一批出；该批起 lint 门判据改 error===0（warning 仍按规则计数冻结）。20 条 error 的 文件::规则 清单见下方 errorsByFileRule（13 对，逐条可核对）。
+EXIT=0

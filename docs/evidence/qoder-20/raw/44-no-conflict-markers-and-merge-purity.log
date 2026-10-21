@@ -1,0 +1,21 @@
+##### QODER-20 · raw/44 冲突标记零残留 + 合并纯度机检
+# 采集 2026-10-21T08:38:09+08:00｜HEAD=50b03a51f9d855f08c800c755440c363fcb01c32
+
+$ rg -n '^<<<<<<<|^>>>>>>>' app-mobile/src app-mobile/tests app-mobile/scripts app-mobile/scripts/gates-baseline.json backend/scripts/guard-rbac-wiring.mjs   # 期望 0 命中
+RG_MARKER_EXIT=1 (1 = 无残留标记)
+
+$ node -e require gates-baseline.json   # JSON 必须可解析（latin1 事故后的复检形态）
+PARSE_OK sections=_comment,typeCheck,lint,checkContract,contractDrift,tests
+tests=11/186
+lint=20/12872 errorsByFileRule=13 对
+NODE_EXIT=0
+
+$ git rev-list --parents -n 1 <每笔 merge>   # 双父 = 真合并（非 squash/rebase）
+9ff7a47c ⇒ 9ff7a47c6582f8c0db325a88f47a3292d4114996 cdf16ce4a553bc0dc1659f65957ba3d31efa2d5b 99371862df326d3de3457a4d621d7494c75c59c4
+c1e4cd40 ⇒ c1e4cd405c62a5a7cf6d8bb391e6ee25092fa269 9ff7a47c6582f8c0db325a88f47a3292d4114996 bd7e158f348bfc4de56bf1577e1d9b09ff18676b
+50b03a51 ⇒ 50b03a51f9d855f08c800c755440c363fcb01c32 c1e4cd405c62a5a7cf6d8bb391e6ee25092fa269 df5834013432ec4484a929c9252adf77ac2b245a
+
+$ git log --format='%h %p %s' cdf16ce4..HEAD --first-parent
+50b03a51 c1e4cd40 df583401 merge: QODER-11R H5 场景 3 重栈复跑（验收记录与证据进最终集成基线）
+c1e4cd40 9ff7a47c bd7e158f merge: QODER-18 删除 request.ts 的 upload() 死导出 + MO-10 关闭（进最终集成基线收敛）
+9ff7a47c cdf16ce4 99371862 merge: QODER-13F2 pin-ssl 静态断言独立 spec + env.ts 旧文案收口（进最终集成基线收敛）

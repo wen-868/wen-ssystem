@@ -1,0 +1,258 @@
+##### QODER-20 · raw/41 合并谱系与「不得改写业务实现」机检
+# 采集时刻 2026-10-21T08:14:40+08:00｜HEAD=50b03a51f9d855f08c800c755440c363fcb01c32
+
+$ git log --graph --oneline cdf16ce4..HEAD
+*   50b03a51 merge: QODER-11R H5 场景 3 重栈复跑（验收记录与证据进最终集成基线）
+|\  
+| * df583401 docs: QODER-11R 收尾自证补哈希笔——协议§7全量end-check(4门EXIT/关服复核/src&backend diff=0)+回传卡与回执补记提交哈希
+| * 4746ab31 docs: QODER-11R 回传——执行记录场景3复核小节(基线2baf13af→dfeedbc0)+十项卡+ACTIVE回执(DSH-RECEIPT)
+| * ae5e0243 docs: QODER-11R 场景3复跑证据全集——mock装置(8288)+dev-h5(5288)+×关闭四步截图/DOM读数/console+四门EXIT+关服端口复核+diff自证
+| * 66b54e2b docs: QODER-11 证据增补——dev-h5.log 完整收尾（TaskStop 后 socket hang up 与 npm 退出尾部，非展示态为真实差异）
+| * 50fa99ae docs: QODER-11 补哈希笔——回执补记回传笔 cf415b21、终态 app-mobile/src diff=0 复跑、关服端口复核日志
+| * 7969b2ae docs: QODER-11 回传——十项卡（基线披露/六场景读数/装置方法/红线对照/阻塞与自报备）+ ACTIVE 回执
+| * bf0f1362 docs: QODER-11 H5 手动验收执行记录——6 场景四列表+不通过项影响面与归属+判据自对账
+| * 0f87bfa9 docs: QODER-11 证据全集——mock 网络手术装置+dev server 日志+11 张场景截图+每场景读数 note+设备探测+diff 自证
+*   c1e4cd40 merge: QODER-18 删除 request.ts 的 upload() 死导出 + MO-10 关闭（进最终集成基线收敛）
+|\  
+| * bd7e158f docs: QODER-18 回传卡、ACTIVE 回执与 upload() 死导出处置证据树
+| * 0aa5765e fix: 删除 request.ts 死导出 upload() 并加静态断言防回流（QODER-18）
+* 9ff7a47c merge: QODER-13F2 pin-ssl 静态断言独立 spec + env.ts 旧文案收口（进最终集成基线收敛）
+* 99371862 docs: QODER-13F2 回传卡与回执 + 证据树落盘（四轮反测红档、首轮作废可复现取证、四门与范围机检）
+* f4772512 fix: pin-ssl 静态断言拆为独立 spec，storage-crypto 逐字节还原纯 AES/GCM，env.ts 未接线/指纹口径假话收口（QODER-13F2）
+* 61514b02 fix: 静态断言求值移到 import 阶段以消除门 3 超时抖动，同轮落盘 raw/32-33 与 anti2/ 三张红档并同步更正回执与证据 README（QODER-13F1 第三笔）
+* 50750e39 docs: QODER-13F1 回传卡与回执及 pin-ssl 文件头文案修正证据落盘（改前/改后、判据、四门读数、三轮反测红与复原绿）
+* d9151ae5 fix: pin-ssl 文件头两处过期文案改真（在册指纹为2026-10-21现网Let's Encrypt值、api/m叶子实际到期日2026-11-11/2026-12-22）+ 静态断言挂进既有用例防回潮
+* 597230c4 docs: QODER-13 收尾自检证据（改动面核对与零残留证明）
+* a8a3b7b9 docs: QODER-13 回传卡与回执及指纹采集/反测/四门证据落盘
+* 1b61811b fix: pin-ssl四条在册指纹更新为2026-10-21现网Let's Encrypt值（不接线）+island-aftersale basis行号64→67+guard-rbac-wiring新增--no-stale可选开关
+
+##### 每笔 merge 的第二父（被合入锚点）
+9ff7a47c 第二父=99371862
+c1e4cd40 第二父=bd7e158f
+50b03a51 第二父=df583401
+
+##### 冲突面取证：三笔 merge 各自实际改写的文件（相对第一父）
+--- 9ff7a47c ---
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/config/env.ts
+app-mobile/src/config/permission-gates.ts
+app-mobile/src/utils/pin-ssl.ts
+app-mobile/tests/pin-ssl-static.spec.ts
+backend/scripts/guard-rbac-wiring.mjs
+docs/evidence/qoder-13/anti/anti-attempt1-anchor-mismatch.log
+docs/evidence/qoder-13/anti/anti-inject-nostale-red.log
+docs/evidence/qoder-13/anti/anti-inject-strict-only-green.log
+docs/evidence/qoder-13/anti/anti-no-stale-full-run.log
+docs/evidence/qoder-13/anti/attempt1-anchor-mismatch.note.txt
+docs/evidence/qoder-13/anti/attempt1-invalid-nostale-run.log
+docs/evidence/qoder-13/anti/attempt1-invalid-strict-run.log
+docs/evidence/qoder-13/raw/01-pin-spki-api.onepan.cn.log
+docs/evidence/qoder-13/raw/02-pin-spki-m.onepan.cn.log
+docs/evidence/qoder-13/raw/03-rg-trustasia-and-install-callpoints.log
+docs/evidence/qoder-13/raw/04-basis-lineno-rg.log
+docs/evidence/qoder-13/raw/05-guard-strict-exit0.log
+docs/evidence/qoder-13/raw/05b-guard-strict-full-output.log
+docs/evidence/qoder-13/raw/06-guard-strict-nostale-exit0.log
+docs/evidence/qoder-13/raw/06b-guard-strict-nostale-full-output.log
+docs/evidence/qoder-13/raw/07-backend-wiring-tests.log
+docs/evidence/qoder-13/raw/08-new-pinned-certs-values.log
+docs/evidence/qoder-13/raw/09-gate-type-check.log
+docs/evidence/qoder-13/raw/10-gate-lint.log
+docs/evidence/qoder-13/raw/11-gate-test.log
+docs/evidence/qoder-13/raw/12-gate-check-contract.log
+docs/evidence/qoder-13/raw/13-git-diff-snapshot.log
+docs/evidence/qoder-13/raw/16-final-selfcheck.log
+docs/evidence/qoder-13f1/README.md
+docs/evidence/qoder-13f1/anti/anti-callsite-red.log
+docs/evidence/qoder-13f1/anti/anti-date-red.log
+docs/evidence/qoder-13f1/anti/anti-green-after-restore.log
+docs/evidence/qoder-13f1/anti/anti-trustasia-red.log
+docs/evidence/qoder-13f1/anti/anti-trustasia2-red.log
+docs/evidence/qoder-13f1/anti/attempt1-trustasia-note.note.txt
+docs/evidence/qoder-13f1/anti/green-log-note.note.txt
+docs/evidence/qoder-13f1/anti2/anti-callsite-red.log
+docs/evidence/qoder-13f1/anti2/anti-date-red.log
+docs/evidence/qoder-13f1/anti2/anti-trustasia-red.log
+docs/evidence/qoder-13f1/anti2/injector-guard-attempt.note.txt
+docs/evidence/qoder-13f1/raw/00-prechange-gates-baseline.log
+docs/evidence/qoder-13f1/raw/01-before-pin-ssl-head30.log
+docs/evidence/qoder-13f1/raw/02-after-pin-ssl-head30.log
+docs/evidence/qoder-13f1/raw/03-rg-judgements.log
+docs/evidence/qoder-13f1/raw/05-head30-before-after.log
+docs/evidence/qoder-13f1/raw/06-diff-scope.log
+docs/evidence/qoder-13f1/raw/07-no-spec-references-pinssl.log
+docs/evidence/qoder-13f1/raw/08-repo-wide-stale-hits.log
+docs/evidence/qoder-13f1/raw/21-gate-type-check.log
+docs/evidence/qoder-13f1/raw/22-gate-lint.log
+docs/evidence/qoder-13f1/raw/23-gate-test.log
+docs/evidence/qoder-13f1/raw/24-gate-check-contract.log
+docs/evidence/qoder-13f1/raw/30-final-selfcheck.log
+docs/evidence/qoder-13f1/raw/31-postcommit-gates.log
+docs/evidence/qoder-13f1/raw/32-timeout-before-fix.log
+docs/evidence/qoder-13f1/raw/33-post-fix-gates.log
+docs/evidence/qoder-13f2/README.md
+docs/evidence/qoder-13f2/anti/90-round1-voided.note.txt
+docs/evidence/qoder-13f2/anti/anti-callsite-red.log
+docs/evidence/qoder-13f2/anti/anti-date-red.log
+docs/evidence/qoder-13f2/anti/anti-dates-red.log
+docs/evidence/qoder-13f2/anti/anti-trustasia-red.log
+docs/evidence/qoder-13f2/raw/00-prechange-readings.log
+docs/evidence/qoder-13f2/raw/01-change-scope.log
+docs/evidence/qoder-13f2/raw/02-rg-judgements.log
+docs/evidence/qoder-13f2/raw/03-gate-type-check.log
+docs/evidence/qoder-13f2/raw/04-gate-lint.log
+docs/evidence/qoder-13f2/raw/05-gate-test.log
+docs/evidence/qoder-13f2/raw/06-gate-check-contract.log
+docs/evidence/qoder-13f2/raw/07-storage-crypto-restore-proof.log
+docs/evidence/qoder-13f2/raw/08-final-selfcheck.log
+docs/evidence/qoder-13f2/raw/09-postcommit-gates.log
+docs/evidence/qoder-13f2/raw/10-commit-scope.log
+"docs/tasks/cards/R101-QODER-13-\345\233\236\344\274\240.md"
+"docs/tasks/cards/R101-QODER-13F1-\345\233\236\344\274\240.md"
+"docs/tasks/cards/R101-QODER-13F2-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-13.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-13F1.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-13F2.md"
+--- c1e4cd40 ---
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+docs/evidence/qoder-18/README.md
+docs/evidence/qoder-18/anti/00-inject.txt
+docs/evidence/qoder-18/anti/01-gate-red-with-injection.txt
+docs/evidence/qoder-18/anti/02-restore-sha.txt
+docs/evidence/qoder-18/anti/03-gate-green-after-restore.txt
+docs/evidence/qoder-18/anti/04-final-anti-atomic.txt
+docs/evidence/qoder-18/anti/05-timeout-fix-stability.txt
+docs/evidence/qoder-18/anti/06-final-anti-atomic-valid.txt
+docs/evidence/qoder-18/raw/00-dead-export-before.txt
+docs/evidence/qoder-18/raw/01-change-diff.txt
+docs/evidence/qoder-18/raw/10-gate-type-check.txt
+docs/evidence/qoder-18/raw/11-gate-lint.txt
+docs/evidence/qoder-18/raw/12-gate-test.txt
+docs/evidence/qoder-18/raw/13-gate-check-contract.txt
+docs/evidence/qoder-18/raw/20-build-h5-wrong-entry-voided.note.txt
+docs/evidence/qoder-18/raw/20-build-h5-wrong-entry-voided.txt
+docs/evidence/qoder-18/raw/21-build-h5.txt
+docs/evidence/qoder-18/raw/30-dead-export-after-and-scope.txt
+docs/evidence/qoder-18/raw/31-post-delete-src-only.txt
+docs/evidence/qoder-18/raw/40-final-four-gates.txt
+docs/evidence/qoder-18/raw/41-final-build-h5.txt
+docs/evidence/qoder-18/raw/42-contract-drift.txt
+docs/evidence/qoder-18/raw/50-terminal-four-gates.txt
+docs/evidence/qoder-18/raw/51-terminal-build-and-drift.txt
+docs/evidence/qoder-18/raw/60-terminal-selfcheck.txt
+docs/evidence/qoder-18/raw/70-post-commit-final-readings.txt
+"docs/tasks/cards/R101-QODER-18-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-18.md"
+--- 50b03a51 ---
+"app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md"
+docs/evidence/qoder-11/dev-h5.log
+docs/evidence/qoder-11/device-probe.txt
+docs/evidence/qoder-11/git-diff-src-final.log
+docs/evidence/qoder-11/git-diff-src-selfcheck.log
+docs/evidence/qoder-11/mock-backend.log
+docs/evidence/qoder-11/mock-backend.mjs
+docs/evidence/qoder-11/port-shutdown-check.log
+docs/evidence/qoder-11/scene-1-loading.note.txt
+docs/evidence/qoder-11/scene-1-loading.png
+docs/evidence/qoder-11/scene-1-ready.png
+docs/evidence/qoder-11/scene-2-functions-empty.note.txt
+docs/evidence/qoder-11/scene-2-functions-empty.png
+docs/evidence/qoder-11/scene-2-home-ok.png
+docs/evidence/qoder-11/scene-2-more-functions-empty.png
+docs/evidence/qoder-11/scene-3-ready-control.png
+docs/evidence/qoder-11/scene-3-retry-banner-gone.png
+docs/evidence/qoder-11/scene-3a-banner-minimal.note.txt
+docs/evidence/qoder-11/scene-3a-banner-minimal.png
+docs/evidence/qoder-11/scene-3a-me500-reload.png
+docs/evidence/qoder-11/scene-3b-stale-banner.png
+docs/evidence/qoder-11/scene-4-functions-ready.png
+docs/evidence/qoder-11/scene-4-home.note.txt
+docs/evidence/qoder-11/scene-4-home.png
+docs/evidence/qoder-11/scene-4-more-functions.png
+docs/evidence/qoder-11/scene-4-report-page.png
+docs/evidence/qoder-11/scene-4-timeout-abort-stale.png
+docs/evidence/qoder-11r/console-messages.txt
+docs/evidence/qoder-11r/dev-h5.log
+docs/evidence/qoder-11r/end-check.log
+docs/evidence/qoder-11r/gates-run.log
+docs/evidence/qoder-11r/git-diff-selfcheck.log
+docs/evidence/qoder-11r/mock-backend.log
+docs/evidence/qoder-11r/mock-backend.mjs
+docs/evidence/qoder-11r/mock-backend.stdout.log
+docs/evidence/qoder-11r/mock-backend.stdout.note.txt
+docs/evidence/qoder-11r/port-shutdown-check.log
+docs/evidence/qoder-11r/scene-3-more-functions-banner-with-close.png
+docs/evidence/qoder-11r/scene-3-rerun.note.txt
+docs/evidence/qoder-11r/scene-3-step1-banner-with-close.png
+docs/evidence/qoder-11r/scene-3-step2-after-close-gone.png
+docs/evidence/qoder-11r/scene-3-step3-retrigger-reappear.png
+docs/evidence/qoder-11r/snapshot-login-page.txt
+"docs/tasks/cards/R101-QODER-11-\345\233\236\344\274\240.md"
+"docs/tasks/cards/R101-QODER-11R-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-11.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-11R.md"
+
+##### 卡 §一.5：业务实现不得被合并改写 ⇒ 三方合并只允许落在 gates-baseline.json
+（上表若出现 src 文件，必须是「被合入支自己的改动」，即该文件在 <merge>^2 相对 <merge>^1 的祖先基线里已由该支作者改动；逐笔判据见下）
+--- 9ff7a47c: 我这一侧解冲突留下的净改动（diff^1 vs diff^2 交集）---
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/config/env.ts
+app-mobile/src/config/permission-gates.ts
+app-mobile/src/utils/pin-ssl.ts
+app-mobile/tests/pin-ssl-static.spec.ts
+--- c1e4cd40: 我这一侧解冲突留下的净改动（diff^1 vs diff^2 交集）---
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/tests/request-retry-safety.spec.ts
+--- 50b03a51: 我这一侧解冲突留下的净改动（diff^1 vs diff^2 交集）---
+  （本笔合并态落地的 app-mobile 文件：见上，其中除 gates-baseline.json 外全部来自被合入支自身）
+
+##### 三方合并是否产生「两侧之外」的新增代码（检查合并解法是否只动 baseline）
+$ git diff --name-only cdf16ce4..HEAD -- app-mobile/src app-mobile/tests app-mobile/scripts
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/api/request.ts
+app-mobile/src/config/env.ts
+app-mobile/src/config/permission-gates.ts
+app-mobile/src/utils/pin-ssl.ts
+app-mobile/tests/pin-ssl-static.spec.ts
+app-mobile/tests/request-retry-safety.spec.ts
+
+##### gates-baseline.json 相对基座的净 diff（只应 tests 段）
+ app-mobile/scripts/gates-baseline.json | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+-    "testFiles": 10,
+-    "testCount": 184,
++    "testFiles": 11,
++    "testCount": 186,
+
+HEAD tests = 11/186 （卡 §二 目标 11/186）
+  _comment 相对基座 UNCHANGED = true
+  typeCheck 相对基座 UNCHANGED = true
+  lint 相对基座 UNCHANGED = true
+  checkContract 相对基座 UNCHANGED = true
+  contractDrift 相对基座 UNCHANGED = true
+note 逐项来源可核 = 10/184:true | 11/185:true | 11/186:true | 最终集成单⑤:true | 最终集成单⑥:true | 最终集成单⑦:false
+NODE_EXIT=0
+
+##### raw/41 补记（采集时刻 2026-10-21T08:33:52+08:00）：note 逐项来源可核的最后一项原判为 false ⇒ 已补写留痕并复跑
+原判读：note 逐项来源可核 = … | 最终集成单⑦:false
+根因：QODER-11R 支（df583401）改动面只有 app-mobile/docs 执行记录 + docs/tasks + docs/evidence，未碰 gates-baseline.json ⇒ 第三笔 merge 无 tests 段冲突 ⇒ 我的解冲突脚本（只在冲突时运行）没有追加 ⑦ 段。这不是读数错误，是留痕缺项：卡 §二 要求「单一基线 + 逐项来源可核」，合并序三段都应在 note 里可核。
+处置：向 tests.note 追加「最终集成单⑦」一行（testFiles/testCount 一字未动，diff = 1 增 1 删，仅 note 行）。
+
+$ node -e '…require(gates-baseline.json)…'   # 追加后重验
+  最终集成单⑤ in HEAD-worktree note = true
+  最终集成单⑥ in HEAD-worktree note = true
+  最终集成单⑦ in HEAD-worktree note = true
+  tests = 11/186
+NODE_EXIT=0
+
+$ git diff --stat -- app-mobile/scripts/gates-baseline.json
+ app-mobile/scripts/gates-baseline.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ git diff --name-only cdf16ce4...df583401 -- app-mobile   # 11R 支在 app-mobile 内的改动面
+"app-mobile/docs/H5\346\211\213\345\212\250\351\252\214\346\224\266\346\211\247\350\241\214\350\256\260\345\275\225-2026-10-20.md"
+
+复跑读数见 43-note7-provenance-rerun.log（四门 EXIT=0、test 仍 11/186）。
