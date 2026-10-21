@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+/**
+ * QODER-23 反测注入器（放在**树外**，不污染 git status）
+ * 用法：node inject-guard-off.cjs <target-file> <R1|R2>
+ *  - 按整行字面量匹配，命中次数 !== 1 ⇒ 不写文件、exit(2)（协议 §四.1 硬闸）
+ *  - 写入后立刻回读，打印「注入确认行 + 注入后回读 + rc」三件套
+ *  - 只做单行替换，不触碰任何行尾（目标文件是 worktree-crlf 形态）
+ */
+const fs = require('fs')
+
+const FILE = process.argv[2]
+const ROUND = process.argv[3]
+
+const SPEC = {
+  R1: {
+    // 摘掉 QODER-23 新增的认证标签长度守卫
+    needle: '    if (tag.length !== 16) return null // 认证标签长度非法 ⇒ 等同校验失败',
+    patch: '    // [QODER-23-ANTI-R1] 长度守卫已摘除（反测临时态，禁止提交）',
+    mustAbsentAfter: 'if (tag.length !== 16) return null',
+    mustPresentAfter: '[QODER-23-ANTI-R1]',
+    expectStillThere: 'if (diff !== 0) return null'
+  },
+  R2: {
+    // 摘掉常量时间比较的失败分支（长度守卫保持在场）
+    needle: '    if (diff !== 0) return null // tag 校验失败',
+    patch: '    // [QODER-23-ANTI-R2] 比较结果被忽略（反测临时态，禁止提交）',
+    mustAbsentAfter: 'if (diff !== 0) return null',
+    mustPresentAfter: '[QODER-23-ANTI-R2]',
+    expectStillThere: 'if (tag.length !== 16) return null'
+  }
+}[ROUND]
+
+if (!FILE || !SPEC) {
+  console.error('用法：node inject-guard-off.cjs <target-file> <R1|R2>')
+  process.exit(3)
+}
+
+const before = fs.readFileSync(FILE, 'utf8')
+const hits = before.split(SPEC.needle).length - 1
+console.log(`INJECT_TARGET=${FILE}`)
+console.log(`INJECT_ROUND=${ROUND}`)
+console.log(`INJECT_NEEDLE_HITS=${hits} (期望 1)`)
+if (hits !== 1) {
+  console.error(`✗ 命中次数 ${hits} !== 1 ⇒ 拒绝写文件，本轮反测作废`)
+  process.exit(2)
+}
+const lf = before.replace(/\r\n/g, '\n').match(/^\r?\n/m) // 仅探测，不改动
+console.log(`INJECT_FILE_HAS_CRLF=${before.includes('\r\n')} BARE_LF_COUNT=${before.split('\n').length - 1 - (before.match(/\r\n/g) || []).length}${lf ? ' (multi-blank-line-probe)' : ''}`)
+
+const after = before.replace(SPEC.needle, SPEC.patch)
+fs.writeFileSync(FILE, after, 'utf8')
+
+const rb = fs.readFileSync(FILE, 'utf8')
+const present = rb.includes(SPEC.mustPresentAfter)
+const absent = !rb.includes(SPEC.mustAbsentAfter)
+const other = rb.includes(SPEC.expectStillThere)
+console.log(`INJECT_READBACK 注入标记在场=${present} 原行已消失=${absent} 另一处守卫仍在场=${other}`)
+console.log(`INJECT_FILE_LEN before=${before.length} after=${after.length} rb=${rb.length}`)
+console.log(`INJECT_LINES rb_crlf=${(rb.match(/\r\n/g) || []).length} rb_totalLF=${(rb.match(/\n/g) || []).length}`)
+const rc = present && absent && other ? 0 : 4
+console.log(`INJECT_EXIT=${rc}`)
+process.exit(rc)

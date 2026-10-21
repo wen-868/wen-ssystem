@@ -1,0 +1,25 @@
+# QODER-23 base64 语义探针（改测试前的实测依据） 2026-10-21T21:55:47+08:00
+$ node /d/Users/ZXQL/wt-agents/_qoder23_work/probe-b64.cjs
+C1 tagB64            = BRYnOElaa3yNnq/A0eLzBA==  (len=24)
+B1 旧写法串           = BRYnOElaa3yNnq/A0eLzAAAA  (len=24)
+B2 旧写法 module 解码长度 = 18
+B3 旧写法 atob 解码长度    = 18
+B4 与合法 tag 的差异字节   = 15:4->0 16:undefined->0 17:undefined->0
+B5 结论：差异是否只落在 tag[15]（被比较区最后一字节）= false
+B6 若原 tag[15]===0 则旧用例静默通过（假绿概率 1/256）；本探针 tag[15]=4
+C2 atob 解码 16 字节且与 module 解码逐字节相同 = true
+C3 btoa 往返串        = BRYnOElaa3yNnq/A0eLzBA==  module 再解码长度 = 16  与 tagB64 相同 = true
+D1 翻转后串           = BBYnOElaa3yNnq/A0eLzBA==
+D2 翻转后 module 解码长度 = 16
+D3 差异字节（必须恰为 1 个且为 tag[0]）= 0:5->4  确定性 = true
+D4 常量时间比较将累加到 diff = 1 （非 0 ⇒ 必红，与随机数无关）
+E1 18 字节串          = BRYnOElaa3yNnq/A0eLzBAAA  (len=24)
+E2 module 解码长度     = 18  atob 解码长度 = 18
+E3 前 16 字节与合法 tag 逐字节相同 = true
+E4 无守卫时 diff       = 0 （0 ⇒ 静默通过 ⇒ 摘掉守卫后 18 字节用例必红，靶标成立）
+F1 短 tag（15 字节）越界异或后 diff = 4
+F2 实测 undefined ^ 4 = 4，undefined ^ 0 = 0 ⇒ ^ 先做 ToInt32，undefined 归 0（不是 NaN）
+F3 所以短 tag 是"拿 0 去比期望字节"，期望字节非 0 才恰好拒绝；构造期望尾字节全为 0 时可静默通过
+F4 期望尾字节恰为 0 的短 tag 场景 diff = 0 ⇒ 0 ⇒ 无守卫时静默通过（缺陷面二，靠巧合不成立）
+PROBE_OK
+PROBE_EXIT=0

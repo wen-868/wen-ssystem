@@ -1,0 +1,29 @@
+# 开工核验：工作树／基线／node_modules（协议 §一/§三）  本文件落盘于 2026-10-21T22:01+08:00（实现笔之后）
+# ★ 诚实标注：开工时刻（21:50）的读数当时未落文件，只在会话里实测过 —— HEAD=bc1087eec4b880827518444be36f5874e330e1d3、分支 fix/qoder-23-gcm-tag-length、git status --porcelain 空。
+#   该开工态现无法复测（工作树已含实现笔），可核证据改为下面两条：① HEAD 的第 1 父 = bc1087ee（rev-list --parents 实测）；② 本卡改动面只有 3 个文件（raw/30）。
+
+$ git rev-list --parents -n1 HEAD   # 实现笔与其父（基线）
+ad73898e8da79a6ce6ec309cace397a96a667479 bc1087eec4b880827518444be36f5874e330e1d3
+$ git rev-parse bc1087ee
+bc1087eec4b880827518444be36f5874e330e1d3
+$ git rev-parse --abbrev-ref HEAD
+fix/qoder-23-gcm-tag-length
+$ git log --oneline -2
+ad73898e fix: QODER-23 AES-GCM 认证标签长度守卫与确定性篡改用例
+bc1087ee docs: QODER-22 补哈希笔——回填 e9afb0a6/24811fa8 真实哈希 + 出厂四门复跑 raw/48（GATES_EXIT=0、11/186、error 0）
+
+$ git status --porcelain   # 此刻只应剩本卡证据目录未跟踪
+?? docs/evidence/qoder-23/
+
+$ ls -d node_modules app-mobile/node_modules
+app-mobile/node_modules
+node_modules
+$ node -e "existsSync(vitest.mjs) existsSync(vue-tsc.js)"
+true true
+$ node -v
+v24.18.0
+
+# 基线健康态（负责人 2026-10-21 在 bc1087ee 亲跑，本卡不重复取证、不当自己成果）：
+#   type-check EXIT=0（0=0）／lint EXIT=0（error 0／warning 12872）／test EXIT=0（11 文件／186 用例）／check:contract EXIT=0（差集 1／具名豁免 1）
+# 本卡实测终态读数见 raw/20-gates-tip.log（test 段因新增 1 用例升为 11/187）。
+# 跑门目录口径：全程在**工作树根** /d/Users/ZXQL/wt-agents/QODER-23 执行 npm --workspace app-mobile run …（协议 §三：在 app-mobile/ 里跑会报 No workspaces found，属作废读数；本卡无该类读数）。

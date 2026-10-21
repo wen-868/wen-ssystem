@@ -1,0 +1,122 @@
+#!/usr/bin/env node
+/*
+ * QODER-23 探针（树外，不进 git status）
+ * 目的：在改测试之前，先用**实测**确认 base64 语义，不靠推理。
+ *  - A) 复刻 crypto.ts 的 bytesToBase64 / base64ToBytes（逐字复制源码逻辑）
+ *  - B) 确认「旧篡改写法 slice(0,-4)+"AAAA"」解出多少字节、哪一字节被改
+ *  - C) 确认 Node 全局 atob/btoa 与模块自研 codec 对同一串的**解码长度一致**
+ *  - D) 确认「翻转 tag[0] 后重新编码」是被改动的字节确实在被比较的 16 字节内（确定性）
+ *  - E) 确认「合法 16 字节 tag + 尾部补 2 字节」= 18 字节且前 16 字节逐字节相同（长度守卫反测靶标）
+ */
+const assert = require('assert')
+
+const B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+// ↓ 逐字复制自 app-mobile/src/utils/crypto.ts:50-86（S3/H5 分支同款实现）
+function bytesToBase64(bytes) {
+  let result = ''
+  const len = bytes.length
+  for (let i = 0; i < len; i += 3) {
+    const b1 = bytes[i]
+    const b2 = i + 1 < len ? bytes[i + 1] : 0
+    const b3 = i + 2 < len ? bytes[i + 2] : 0
+    const e1 = b1 >> 2
+    const e2 = ((b1 & 0x03) << 4) | (b2 >> 4)
+    const e3 = ((b2 & 0x0f) << 2) | (b3 >> 6)
+    const e4 = b3 & 0x3f
+    result += B64_CHARS[e1] + B64_CHARS[e2]
+    result += i + 1 < len ? B64_CHARS[e3] : '='
+    result += i + 2 < len ? B64_CHARS[e4] : '='
+  }
+  return result
+}
+function base64ToBytes(b64) {
+  const clean = b64.replace(/[^A-Za-z0-9+/]/g, '')
+  const len = clean.length
+  const bytes = []
+  for (let i = 0; i < len; i += 4) {
+    const e1 = B64_CHARS.indexOf(clean[i])
+    const e2 = B64_CHARS.indexOf(clean[i + 1])
+    const e3 = B64_CHARS.indexOf(clean[i + 2])
+    const e4 = B64_CHARS.indexOf(clean[i + 3])
+    const b1 = (e1 << 2) | (e2 >> 4)
+    const b2 = ((e2 & 0x0f) << 4) | (e3 >> 2)
+    const b3 = ((e3 & 0x03) << 6) | e4
+    bytes.push(b1)
+    if (e3 !== -1 && clean[i + 2] !== '=') bytes.push(b2)
+    if (e4 !== -1 && clean[i + 3] !== '=') bytes.push(b3)
+  }
+  return new Uint8Array(bytes)
+}
+
+// 造一个"看起来像 GCM tag"的 16 字节（固定值，探针可复跑）
+const tag = new Uint8Array(16)
+for (let i = 0; i < 16; i++) tag[i] = (i * 17 + 5) & 0xff
+
+const tagB64 = bytesToBase64(tag)
+console.log(`C1 tagB64            = ${tagB64}  (len=${tagB64.length})`)
+
+// ---- B) 旧篡改写法 ----
+const oldBad = tagB64.slice(0, -4) + 'AAAA'
+const oldBadBytes = base64ToBytes(oldBad)
+console.log(`B1 旧写法串           = ${oldBad}  (len=${oldBad.length})`)
+console.log(`B2 旧写法 module 解码长度 = ${oldBadBytes.length}`)
+console.log(`B3 旧写法 atob 解码长度    = ${atob(oldBad).length}`)
+const diffIdx = []
+for (let i = 0; i < Math.max(tag.length, oldBadBytes.length); i++) {
+  if (oldBadBytes[i] !== tag[i]) diffIdx.push(`${i}:${tag[i]}->${oldBadBytes[i] === undefined ? 'undef' : oldBadBytes[i]}`)
+}
+console.log(`B4 与合法 tag 的差异字节   = ${diffIdx.join(' ')}`)
+console.log(`B5 结论：差异是否只落在 tag[15]（被比较区最后一字节）= ${diffIdx.length === 1 && diffIdx[0].startsWith('15:')}`)
+console.log(`B6 若原 tag[15]===0 则旧用例静默通过（假绿概率 1/256）；本探针 tag[15]=${tag[15]}`)
+
+// ---- C) atob/btoa 与 module codec 长度一致性 ----
+assert.strictEqual(atob(tagB64).length, 16, 'atob 与 module 解码长度必须一致(16)')
+assert.strictEqual(base64ToBytes(tagB64).length, 16)
+// 逐字节一致
+const atobBytes = new Uint8Array([...atob(tagB64)].map((c) => c.charCodeAt(0)))
+for (let i = 0; i < 16; i++) assert.strictEqual(atobBytes[i], tag[i], `atob 第 ${i} 字节不一致`)
+console.log(`C2 atob 解码 16 字节且与 module 解码逐字节相同 = true`)
+// btoa 往返
+const reB64 = btoa(String.fromCharCode(...Array.from(atobBytes)))
+console.log(`C3 btoa 往返串        = ${reB64}  module 再解码长度 = ${base64ToBytes(reB64).length}  与 tagB64 相同 = ${reB64 === tagB64}`)
+
+// ---- D) 确定性翻转 tag[0] ----
+const flipped = Uint8Array.from(atobBytes)
+flipped[0] ^= 0x01
+const flippedB64 = btoa(String.fromCharCode(...Array.from(flipped)))
+const fb = base64ToBytes(flippedB64)
+console.log(`D1 翻转后串           = ${flippedB64}`)
+console.log(`D2 翻转后 module 解码长度 = ${fb.length}`)
+const d2 = []
+for (let i = 0; i < 16; i++) if (fb[i] !== tag[i]) d2.push(`${i}:${tag[i]}->${fb[i]}`)
+console.log(`D3 差异字节（必须恰为 1 个且为 tag[0]）= ${d2.join(' ')}  确定性 = ${d2.length === 1 && d2[0].startsWith('0:')}`)
+console.log(`D4 常量时间比较将累加到 diff = ${(() => { let diff = 0; for (let i = 0; i < 16; i++) diff |= fb[i] ^ tag[i]; return diff })()} （非 0 ⇒ 必红，与随机数无关）`)
+
+// ---- E) 18 字节非规范标签（前 16 字节 = 合法 tag）----
+const t18 = new Uint8Array(18)
+t18.set(atobBytes) // 追加 2 个 0 字节
+const t18B64 = btoa(String.fromCharCode(...Array.from(t18)))
+const t18Decoded = base64ToBytes(t18B64)
+console.log(`E1 18 字节串          = ${t18B64}  (len=${t18B64.length})`)
+console.log(`E2 module 解码长度     = ${t18Decoded.length}  atob 解码长度 = ${atob(t18B64).length}`)
+let same16 = true
+for (let i = 0; i < 16; i++) if (t18Decoded[i] !== tag[i]) same16 = false
+console.log(`E3 前 16 字节与合法 tag 逐字节相同 = ${same16}`)
+console.log(`E4 无守卫时 diff       = ${(() => { let diff = 0; for (let i = 0; i < 16; i++) diff |= t18Decoded[i] ^ tag[i]; return diff })()} （0 ⇒ 静默通过 ⇒ 摘掉守卫后 18 字节用例必红，靶标成立）`)
+
+// 越界 undefined 的实际语义（确认「短 tag」与「长 tag」两种失效形态互不相同）
+const short = base64ToBytes(tagB64.slice(0, 20)) // 15 字节
+let sd = 0
+for (let i = 0; i < 16; i++) sd |= short[i] ^ tag[i]
+console.log(`F1 短 tag（${short.length} 字节）越界异或后 diff = ${sd}`)
+console.log(`F2 实测 undefined ^ 4 = ${undefined ^ 4}，undefined ^ 0 = ${undefined ^ 0} ⇒ ^ 先做 ToInt32，undefined 归 0（不是 NaN）`)
+console.log(`F3 所以短 tag 是"拿 0 去比期望字节"，期望字节非 0 才恰好拒绝；构造期望尾字节全为 0 时可静默通过`)
+const zeroTail = new Uint8Array(15) // 前 15 字节与 tag[0..14] 相同、缺 tag[15]
+zeroTail.set(atobBytes.slice(0, 15))
+let zd = 0
+const tagWithZeroLast = Uint8Array.from(tag)
+tagWithZeroLast[15] = 0 // 模拟"期望 tag 的最后一字节恰为 0"（1/256 概率）
+for (let i = 0; i < 16; i++) zd |= zeroTail[i] ^ tagWithZeroLast[i]
+console.log(`F4 期望尾字节恰为 0 的短 tag 场景 diff = ${zd} ⇒ 0 ⇒ 无守卫时静默通过（缺陷面二，靠巧合不成立）`)
+console.log('PROBE_OK')

@@ -1,0 +1,96 @@
+# R2 反测：摘掉常量时间比较的失败分支（长度守卫保持在场）⇒「确定性翻转 tag[0]」用例必红并点名  2026-10-21T21:54:55+08:00
+$ sha256sum app-mobile/src/utils/crypto.ts   # 形态 worktree-crlf
+97063e803c60a1bf541caf02c72dccd0b9712d2d3868e81afc0032845d0211c6 *app-mobile/src/utils/crypto.ts
+$ cp app-mobile/src/utils/crypto.ts /d/Users/ZXQL/wt-agents/_qoder23_bak/crypto.ts.R2.before
+$ node /d/Users/ZXQL/wt-agents/_qoder23_work/inject-guard-off.cjs app-mobile/src/utils/crypto.ts R2
+INJECT_TARGET=app-mobile/src/utils/crypto.ts
+INJECT_ROUND=R2
+INJECT_NEEDLE_HITS=1 (期望 1)
+INJECT_FILE_HAS_CRLF=true BARE_LF_COUNT=0 (multi-blank-line-probe)
+INJECT_READBACK 注入标记在场=true 原行已消失=true 另一处守卫仍在场=true
+INJECT_FILE_LEN before=31576 after=31578 rb=31578
+INJECT_LINES rb_crlf=940 rb_totalLF=940
+INJECT_EXIT=0
+INJECT_RC=0
+$ npm --workspace app-mobile run test   # 门 3（注入态，预期 EXIT=1）
+--- 原始输出开始 ---
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-23/app-mobile[39m
+
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [31m❯[39m tests/storage-crypto.spec.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 386[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 333[2mms[22m[39m
+     [32m✓[39m 明文往返一致（含中文与 JSON 结构）[32m 8[2mms[22m[39m
+     [32m✓[39m 同一条明文两次加密得到不同密文（IV 随机）[32m 4[2mms[22m[39m
+[31m     [31m×[31m tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文）[39m[32m 31[2mms[22m[39m
+     [32m✓[39m 非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较）[32m 2[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 883[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 457[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 195[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 278[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m186 passed[39m[22m[90m (187)[39m
+[2m   Start at [22m 21:55:09
+[2m   Duration [22m 4.34s[2m (transform 4.91s, setup 0ms, import 6.41s, tests 1.89s, environment 5ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22mtag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文）
+[31m[1mAssertionError[22m: expected [Function] to throw an error[39m
+[36m [2m❯[22m tests/storage-crypto.spec.ts:[2m65:37[22m[39m
+    [90m 63|[39m     [35mconst[39m bad [33m=[39m { [33m...[39menc[33m,[39m tag[33m:[39m [34mbytesToB64[39m(tagBytes) }
+    [90m 64|[39m     expect(b64ToBytes(bad.tag).length).toBe(16) // 长度仍是规范 16 字节 ⇒ 本用例考…
+    [90m 65|[39m     [34mexpect[39m(() [33m=>[39m [34mdecrypt[39m(bad[33m,[39m key))[33m.[39m[34mtoThrow[39m()
+    [90m   |[39m                                     [31m^[39m
+    [90m 66|[39m     [35mconst[39m wrongKey [33m=[39m [34mderiveKey[39m([32m'another-fingerprint'[39m)
+    [90m 67|[39m     [34mexpect[39m(() [33m=>[39m [34mdecrypt[39m(enc[33m,[39m wrongKey))[33m.[39m[34mtoThrow[39m()
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-23\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-23\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+TEST_EXIT=1
+--- 原始输出结束 ---
+$ cp /d/Users/ZXQL/wt-agents/_qoder23_bak/crypto.ts.R2.before app-mobile/src/utils/crypto.ts
+RESTORE_RC=0
+$ sha256sum app-mobile/src/utils/crypto.ts   # 形态 worktree-crlf
+SHA_BEFORE=97063e803c60a1bf541caf02c72dccd0b9712d2d3868e81afc0032845d0211c6
+SHA_AFTER=97063e803c60a1bf541caf02c72dccd0b9712d2d3868e81afc0032845d0211c6
+SHA_MATCH=true
+$ grep -n 'ANTI-R' app-mobile/src/utils/crypto.ts   # 反测标记必须 0 命中
+0
+(0 命中即已出清；grep -c 打印 0)
+$ npm --workspace app-mobile run test   # 复跑，预期 EXIT=0
+[2m   Start at [22m 21:55:25
+[2m   Duration [22m 3.34s[2m (transform 2.65s, setup 0ms, import 5.70s, tests 2.45s, environment 4ms)[22m
+
+—— test 门（用例数冻结）：当前 11 文件 / 187 用例，基线 11 / 186 ——
+ℹ 用例数高于基线 ⇒ 请把 gates-baseline.json 的 tests 同步调高（保持"实测即基线"）。
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+TEST_EXIT_RERUN=0
