@@ -1,0 +1,88 @@
+# 负责人收尾自检 2026-10-22T04:40:52+08:00
+
+$ git log --oneline -3
+04e01af1 docs: QODER-25F1 负责人独立复验证据（四门/三构建+撞名正对照/产物级/两轮自有反测/H5 未刷新自证/量具假 0 更正）
+b1bef005 docs: QODER-25F1 回传卡 + 回执 + 证据树（续办会话：四门/三构建复跑、产物级 tabBar 核实、H5 未刷新采样、两轮反测复跑、端口更正与 teardown）
+d68e43e9 fix: QODER-25F1 自绘 tabBar 撞名改名 app-tab-bar 并收口 AI 流式消息响应式
+
+$ git rev-parse HEAD
+04e01af1ce9aa8f404b6052b26fa51f3f2253529
+
+$ git show --stat --oneline HEAD
+04e01af1 docs: QODER-25F1 负责人独立复验证据（四门/三构建+撞名正对照/产物级/两轮自有反测/H5 未刷新自证/量具假 0 更正）
+ docs/evidence/qoder-25f1/README.md                 |  33 +++
+ .../qoder-25f1/anti/70-owner-A-raw-proxy.txt       | 164 ++++++++++++++
+ .../qoder-25f1/anti/71-owner-B-old-name.txt        | 251 +++++++++++++++++++++
+ .../qoder-25f1/probe/owner-inject-25f1.cjs.txt     |  81 +++++++
+ docs/evidence/qoder-25f1/raw/60-owner-gates.log    |  79 +++++++
+ docs/evidence/qoder-25f1/raw/61-owner-builds.log   | 110 +++++++++
+ .../raw/62-owner-baseline-appendonly.log           |  14 ++
+ .../qoder-25f1/raw/63-owner-mp-artifact.log        |  35 +++
+ .../qoder-25f1/raw/64-owner-h5-unrefreshed.log     |  84 +++++++
+ .../raw/65-owner-teardown-and-device-fix.log       |  59 +++++
+ .../R101-QODER-25F1-\345\233\236\344\274\240.md"   |  18 ++
+ 11 files changed, 928 insertions(+)
+
+$ git status --porcelain
+?? docs/evidence/qoder-25f1/raw/66-owner-closeout.log
+PORCELAIN_LINES=1
+
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+BACKEND_DIFF_BYTES=0
+
+$ git diff d68e43e9..HEAD --name-only   # 两笔文档提交只应含 docs/ 前缀
+docs/evidence/qoder-25f1/README.md
+docs/evidence/qoder-25f1/anti/01-antitest-raw-proxy.log
+docs/evidence/qoder-25f1/anti/02-antitest-old-name-injection.log
+docs/evidence/qoder-25f1/anti/70-owner-A-raw-proxy.txt
+docs/evidence/qoder-25f1/anti/71-owner-B-old-name.txt
+docs/evidence/qoder-25f1/anti/A1-antitest-raw-proxy-resume.log
+docs/evidence/qoder-25f1/anti/A2-antitest-old-name-resume.log
+docs/evidence/qoder-25f1/anti/inject-01-raw-proxy.cjs
+docs/evidence/qoder-25f1/anti/inject-02-old-name.cjs
+docs/evidence/qoder-25f1/mock-ai-backend-f1.mjs
+docs/evidence/qoder-25f1/probe/owner-inject-25f1.cjs.txt
+docs/evidence/qoder-25f1/raw/01-baseline-build-mp-weixin.log
+docs/evidence/qoder-25f1/raw/02-baseline-artifact-mpweixin.log
+docs/evidence/qoder-25f1/raw/30-gates-tip.log
+docs/evidence/qoder-25f1/raw/31-build-mp-weixin.log
+docs/evidence/qoder-25f1/raw/32-mpweixin-artifact-verify.log
+docs/evidence/qoder-25f1/raw/33-build-h5.log
+docs/evidence/qoder-25f1/raw/34-build-app.log
+docs/evidence/qoder-25f1/raw/35-builds-ledger.log
+docs/evidence/qoder-25f1/raw/41-mock-backend.log
+docs/evidence/qoder-25f1/raw/43-devh5-port-incident.note.log
+docs/evidence/qoder-25f1/raw/44-dev-h5.log
+docs/evidence/qoder-25f1/raw/45-h5-setup.log
+docs/evidence/qoder-25f1/raw/50-gates-tip-resume.log
+docs/evidence/qoder-25f1/raw/51-53-builds-resume.log
+docs/evidence/qoder-25f1/raw/54-mpweixin-artifact-resume.log
+docs/evidence/qoder-25f1/raw/54b-hideTabBar-hits.txt
+docs/evidence/qoder-25f1/raw/55-mock-backend-resume.log
+docs/evidence/qoder-25f1/raw/56-dev-h5-resume.log
+docs/evidence/qoder-25f1/raw/56b-netstat-snapshot.txt
+docs/evidence/qoder-25f1/raw/57-gates-tip-clean.log
+docs/evidence/qoder-25f1/raw/58-h5-unrefreshed-sampling.log
+docs/evidence/qoder-25f1/raw/59-teardown-resume.log
+docs/evidence/qoder-25f1/raw/60-owner-gates.log
+docs/evidence/qoder-25f1/raw/61-owner-builds.log
+docs/evidence/qoder-25f1/raw/62-owner-baseline-appendonly.log
+docs/evidence/qoder-25f1/raw/63-owner-mp-artifact.log
+docs/evidence/qoder-25f1/raw/64-owner-h5-unrefreshed.log
+docs/evidence/qoder-25f1/raw/65-owner-teardown-and-device-fix.log
+"docs/tasks/cards/R101-QODER-25F1-\345\233\236\344\274\240.md"
+"docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-25F1.md"
+
+$ sha256sum app-mobile/src/pages/ai-chat/ai-chat.vue   # worktree-crlf, 两轮反测后应恒等 c88fc7..738a
+c88fc79603d382b2607448f45c23c6ee9ab9f3dd7365d0619a5d367982da738a *app-mobile/src/pages/ai-chat/ai-chat.vue
+
+$ sha256sum app-mobile/src/components/app-tab-bar.vue
+f44ff4d463fbe93dc2ab6a4075d6e5d8cf5264bad6fff052cc612d5e8d599bb1 *app-mobile/src/components/app-tab-bar.vue
+
+$ curl 六端口复验 teardown 结果
+PORT_5499_HTTP=000
+PORT_8488_HTTP=000
+PORT_5399_HTTP=000
+PORT_5173_HTTP=000
+PORT_5174_HTTP=000
+PORT_8388_HTTP=000
