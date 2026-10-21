@@ -1,0 +1,39 @@
+# QODER-24 反测轮次 r3（注入对象 app-mobile/src/config/update-security.ts） 2026-10-21T22:25:03+08:00
+$ cp $T /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig && sha256sum $T
+BACKUP_CP_EXIT=0
+SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ node /d/Users/ZXQL/wt-agents/_qoder24_bak/inject.cjs r3
+INJECT[r3] EOL=lf
+INJECT[r3] LABEL=摘掉下载后实算摘要与下发摘要的比较
+INJECT[r3] BEFORE_HIT=1
+INJECT[r3] PREFLIGHT_AFTER_HIT=0（必须为 0）
+INJECT[r3] CONFIRM=注入后回读 AFTER_HIT=1 BEFORE_LEFT=0
+INJECT[r3] OK=已写入 mutation（请用 cp 从树外备份复原）
+INJECT_EXIT=0
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts
+VITEST_RED_EXIT=1
+—— 汇总行 ——
+ Test Files  1 failed (1)
+      Tests  2 failed | 39 passed (41)
+—— 红用例点名 ——（grep '^ *× '）
+     × digestMatches 任一侧非法即 false；合法且相等才 true 32ms
+     × ★ 实算与下发不一致必须拒装（改首字节 / 改中间字节 / 改尾字节 / 改长度四种都得红）【反测③目标用例】 13ms
+—— Failed Tests 明细头 ——（grep 'FAIL |AssertionError'）
+ FAIL  tests/update-security.spec.ts > QODER-24③ 摘要：实算文件字节，缺失/非法/不一致全部拒装 > digestMatches 任一侧非法即 false；合法且相等才 true
+AssertionError: expected true to be false // Object.is equality
+ FAIL  tests/update-security.spec.ts > QODER-24③ 摘要：实算文件字节，缺失/非法/不一致全部拒装 > ★ 实算与下发不一致必须拒装（改首字节 / 改中间字节 / 改尾字节 / 改长度四种都得红）【反测③目标用例】
+AssertionError: 首字节被改 ⇒ 必须拒装（摘要实算覆盖全部字节，不是长度或首尾片段）: expected true to be false // Object.is equality
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig $T
+RESTORE_CP_EXIT=0
+SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts  # 复原后复跑
+VITEST_GREEN_EXIT=0
+ Test Files  1 passed (1)
+      Tests  41 passed (41)
+STATUS=DONE

@@ -1,0 +1,18 @@
+# QODER-24 三构建产物与判据入产物机检 2026-10-21T22:37:48+08:00
+$ ls app-mobile/dist/build/{h5,mp-weixin,app} | head ; grep -rl "packageSha256" app-mobile/dist/build ; grep -rlo "force:!0\|force: *true" app-mobile/dist/build/app | head -3
+[dir h5] 3 个条目
+[dir mp-weixin] 16 个条目
+[dir app] 21 个条目
+[mp-weixin 关键文件]
+app.js
+app.json
+[判据字符串是否进入三端产物]
+PACKAGE_SHA256_HITS_h5=1
+PACKAGE_SHA256_HITS_mp-weixin=1
+PACKAGE_SHA256_HITS_app=1
+[同源/白名单函数名（压缩前语义）是否入产物：搜 OFFICIAL 主机值]
+OFFICIAL_HOST_HITS_h5=2
+OFFICIAL_HOST_HITS_mp-weixin=2
+OFFICIAL_HOST_HITS_app=1
+[产物里是否残留 force:!0 直装（minified 形态）]
+FORCE_TRUE_MINIFIED_APP=0

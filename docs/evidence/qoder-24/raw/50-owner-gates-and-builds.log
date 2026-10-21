@@ -1,0 +1,28 @@
+### OWN-VERIFY 24 2026-10-21T23:04:10+08:00
+HEAD=622f5894
+GATES_EXIT=0
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+当前 error 0（基线 0）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m227 passed[39m[22m[90m (227)[39m
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+BUILD_EXIT_h5=0
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
+BUILD_EXIT_mp-weixin=0
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import [36mdist\build\mp-weixin[39m run.
+BUILD_EXIT_app=0
+DONE  Build complete.
+Run method: open HBuilderX, import [36mdist\build\app[39m run.
+### artifacts
+app-mobile/dist/build/app
+app-mobile/dist/build/h5
+app-mobile/dist/build/mp-weixin
+?? docs/evidence/qoder-24/
+?? "docs/tasks/cards/R101-QODER-24-\345\233\236\344\274\240.md"
+BACKEND_DIFF_BYTES=0

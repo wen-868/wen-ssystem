@@ -1,0 +1,68 @@
+# QODER-24 反测 r3 首轮（anti/13）VOID 的复原链证明（2026-10-21T22:50:05+08:00）
+# 前情：anti/13 那版注入器无 PREFLIGHT 预检、且 r3 的 after 串是裸 '  return true'（与 isStrictAsciiUrl 末行同形）
+#       ⇒ 注入器先写盘、注入后回读才得到 AFTER_HIT=2 ⇒ INJECT_EXIT=2 ⇒ 本轮作废（当时文件确已被写坏）。
+# 纪律：anti/13 原文不改写；本文件只另立复原链证据。
+# 更正①：anti/16 的四轮 SHA 台账echo 文本写成 glob，实际执行是显式列举 5 个文件 ⇒ 读数有效、echo 形态有误。
+# 更正②：作废档 anti/void-rg-h-flagtypo/17a 用错了 rg 的 -h（那是 --help，无文件名是 -I）⇒ 整档作废，见同目录 NOTE.md。
+
+--- ① 现状：注入前 needle 原样存在且唯一；带尾标的 mutated 形态 0 命中 ---
+$ rg -c "^  return e === a$" app-mobile/src/config/update-security.ts   # 必须 1（digestMatches 原始末行）
+1
+$ rg -n "^  return true" app-mobile/src/config/update-security.ts   # 只剩 isStrictAsciiUrl 的既有同形行
+149:  return true
+$ rg -n "QODER24-ANTI" app-mobile/src/config/update-security.ts ; echo ANTI_MARKER_EXIT=$?   # 1=零残留
+ANTI_MARKER_EXIT=1
+
+--- ② 复原链：四轮 SHA 读数去重后各只 1 个值，且等于终端实算值与入库 blob ---
+$ sha256sum app-mobile/src/config/update-security.ts
+12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8 *app-mobile/src/config/update-security.ts
+$ rg -o "SHA_(BEFORE|AFTER)=[0-9a-f]{64}" anti/11 anti/12 anti/13 anti/14 anti/15 | sed s/.*:SHA_[A-Z]*=// | sort -u   # 带文件名可归属
+12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8
+UNIQUE_WORKTREE_SHA_COUNT=1   （必须 1）
+$ rg -o "GIT_BLOB_SHA_(BEFORE|AFTER)=[0-9a-f]{40}" anti/11..15 | sed s/.*=// | sort -u
+4c802a5d7ef09217bd9a688156c3eacd89531994
+UNIQUE_BLOB_SHA_COUNT=1   （必须 1）
+$ git hash-object app-mobile/src/config/update-security.ts
+4c802a5d7ef09217bd9a688156c3eacd89531994
+$ git rev-parse HEAD:app-mobile/src/config/update-security.ts
+4c802a5d7ef09217bd9a688156c3eacd89531994
+$ git diff HEAD --numstat -- app-mobile/src/config/update-security.ts | wc -l   # 必须 0
+WORKTREE_VS_HEAD_DIFF_LINES=0
+
+--- ③ 每轮 INJECT_EXIT / 红跑 EXIT / 绿跑 EXIT（保留文件名归属，从 anti 原文回读）---
+$ rg -n "INJECT_EXIT=|VITEST_RED_EXIT=|VITEST_GREEN_EXIT=|VOID" anti/11..15
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:14:INJECT_EXIT=0
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:17:VITEST_RED_EXIT=1
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:36:VITEST_GREEN_EXIT=0
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:14:INJECT_EXIT=0
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:17:VITEST_RED_EXIT=1
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:36:VITEST_GREEN_EXIT=0
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:13:INJECT_EXIT=0
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:16:VITEST_RED_EXIT=1
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:35:VITEST_GREEN_EXIT=0
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:13:INJECT_EXIT=0
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:16:VITEST_RED_EXIT=1
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:35:VITEST_GREEN_EXIT=0
+docs/evidence/qoder-24/anti/13-anti-r3-digest.log:12:INJECT[r3] REJECT=回读不一致 ⇒ 本轮反测作废（VOID）
+docs/evidence/qoder-24/anti/13-anti-r3-digest.log:13:INJECT_EXIT=2
+docs/evidence/qoder-24/anti/13-anti-r3-digest.log:14:VOID：INJECT_EXIT != 0 ⇒ 本轮反测作废（未写文件或回读不一致）
+
+--- ④ 每轮红用例点名（× 行原文，含归属文件）---
+$ rg -n "^ +× " anti/11 anti/12 anti/14 anti/15   # anti/13 作废轮未进 vitest ⇒ 应 0 命中
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:21:     × 预发布版低于同版本正式版，且按 semver §11 逐标识符比较 18ms
+docs/evidence/qoder-24/anti/11-anti-r1-semver.log:22:     × ★ 远端版本更低（降级）必须不提示【反测①目标用例】 3ms
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:21:     × 同源判定从运行时 API 基址解析主机（不做字面量比对：换基址就换结论） 41ms
+docs/evidence/qoder-24/anti/12-anti-r2-same-origin.log:22:     × ★ 主机与 API 不同源的 .wgt 必须拒装【反测②目标用例】 55ms
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:22:     × digestMatches 任一侧非法即 false；合法且相等才 true 32ms
+docs/evidence/qoder-24/anti/14-anti-r3-digest-retry.log:23:     × ★ 实算与下发不一致必须拒装（改首字节 / 改中间字节 / 改尾字节 / 改长度四种都得红）【反测③目标用例】 13ms
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:22:     × ★ 未命中白名单的 updateUrl 禁止打开【反测④目标用例】 104ms
+docs/evidence/qoder-24/anti/15-anti-r4-allowlist.log:23:     × ★ 未命中白名单的 updateUrl 不会进入 open-url 决策 7ms
+NAMED_RED_LINES_EXIT=0
+$ rg -n "^ +× " docs/evidence/qoder-24/anti/13-anti-r3-digest.log ; echo VOID_ROUND_RED_LINES=$?   # 1=该轮没有红跑（作废）
+VOID_ROUND_RED_LINES=1
+
+--- ⑤ VOID 根因最小探针（只在树外副本上跑，不碰工作树）---
+PROBE_BARE_RETURN_TRUE_OCCURRENCES=1
+PROBE_MARKED_RETURN_TRUE_OCCURRENCES=0
+PROBE_NEEDLE_RETURN_E_EQ_A_OCCURRENCES=1
+探针结论：裸 after 串本来就存在(=1) ⇒ 旧注入器（无预检）注入后回读必然 AFTER_HIT=2 ⇒ "先写坏再判废"；加唯一尾标后 after 串原本不存在(=0) ⇒ 新增 PREFLIGHT_AFTER_HIT=0 这道闸有效。

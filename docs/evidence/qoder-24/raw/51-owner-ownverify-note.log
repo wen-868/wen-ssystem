@@ -1,0 +1,4 @@
+# QODER-24 负责人独立复跑（非执行代理读数） 2026-10-21T23:15+08:00
+$ cd D:/Users/ZXQL/wt-agents/QODER-24 && npm --workspace app-mobile run check:gates ; for p in h5 mp-weixin app; do npm --workspace app-mobile run build:$p; echo BUILD_EXIT_${p}=$?; done
+# 原始输出见 raw/50-owner-gates-and-builds.log（本文件为口径说明）
+# 反测复跑见 anti/50-owner-anti-r1-r3.log：注入器与驱动为负责人自有副本 _qoder24_ownverify/（BAK 已改到树外自有目录，未覆盖代理 scratch）

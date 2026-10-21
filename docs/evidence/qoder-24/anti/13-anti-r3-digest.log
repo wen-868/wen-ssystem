@@ -1,0 +1,14 @@
+# QODER-24 反测轮次 r3（注入对象 app-mobile/src/config/update-security.ts） 2026-10-21T22:24:06+08:00
+$ cp $T /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig && sha256sum $T
+BACKUP_CP_EXIT=0
+SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ node /d/Users/ZXQL/wt-agents/_qoder24_bak/inject.cjs r3
+INJECT[r3] EOL=lf
+INJECT[r3] LABEL=摘掉下载后实算摘要与下发摘要的比较
+INJECT[r3] BEFORE_HIT=1
+INJECT[r3] CONFIRM=注入后回读 AFTER_HIT=2 BEFORE_LEFT=0
+INJECT[r3] REJECT=回读不一致 ⇒ 本轮反测作废（VOID）
+INJECT_EXIT=2
+VOID：INJECT_EXIT != 0 ⇒ 本轮反测作废（未写文件或回读不一致）

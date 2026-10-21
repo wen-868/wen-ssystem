@@ -1,0 +1,38 @@
+# QODER-24 反测轮次 r2（注入对象 app-mobile/src/config/update-security.ts） 2026-10-21T22:23:24+08:00
+$ cp $T /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig && sha256sum $T
+BACKUP_CP_EXIT=0
+SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ node /d/Users/ZXQL/wt-agents/_qoder24_bak/inject.cjs r2
+INJECT[r2] EOL=lf
+INJECT[r2] LABEL=摘掉 packageUrl 与 API 主机的同源判断
+INJECT[r2] BEFORE_HIT=1
+INJECT[r2] CONFIRM=注入后回读 AFTER_HIT=1 BEFORE_LEFT=0
+INJECT[r2] OK=已写入 mutation（请用 cp 从树外备份复原）
+INJECT_EXIT=0
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts
+VITEST_RED_EXIT=1
+—— 汇总行 ——
+ Test Files  1 failed (1)
+      Tests  2 failed | 39 passed (41)
+—— 红用例点名 ——（grep '^ *× '）
+     × 同源判定从运行时 API 基址解析主机（不做字面量比对：换基址就换结论） 41ms
+     × ★ 主机与 API 不同源的 .wgt 必须拒装【反测②目标用例】 55ms
+—— Failed Tests 明细头 ——（grep 'FAIL |AssertionError'）
+ FAIL  tests/update-security.spec.ts > QODER-24② packageUrl：https + 无凭据 + 同源 + .wgt，否则拒装 > 同源判定从运行时 API 基址解析主机（不做字面量比对：换基址就换结论）
+AssertionError: expected true to be false // Object.is equality
+ FAIL  tests/update-security.spec.ts > QODER-24② packageUrl：https + 无凭据 + 同源 + .wgt，否则拒装 > ★ 主机与 API 不同源的 .wgt 必须拒装【反测②目标用例】
+AssertionError: 跨主机包地址必须拒装：https://evil.example/app-1.0.1.wgt: expected true to be false // Object.is equality
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig $T
+RESTORE_CP_EXIT=0
+SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts  # 复原后复跑
+VITEST_GREEN_EXIT=0
+ Test Files  1 passed (1)
+      Tests  41 passed (41)
+STATUS=DONE

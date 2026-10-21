@@ -1,0 +1,101 @@
+# QODER-24 外部前置事实取证：后端 LatestAppVersion 契约**无任何摘要字段**（只读，本单未改后端）（2026-10-21T22:51:47+08:00）
+# 用途：证明失败关闭是被事实逼出来的，不是执行方自选的收紧；也是 §七.1 那张后端卡的入口行号
+
+--- ① 全仓检索摘要字段名（后端 + 迁移）：必须 0 命中 ---
+$ rg -in "package_sha256|packageSha256|sha256" backend/src/services/platform backend/src/controllers/platform docs/migrations/141_app_version.sql > /tmp/o 2>&1; echo RC=$?   # 1=零命中
+RC=1
+命中行数=0
+
+--- ② 后端下发对象 AppVersionRow 全字段（:16-35）：无摘要列 ---
+$ rg -n "" backend/src/services/platform/app-version.service.ts | sed -n "16,35p"
+16:export interface AppVersionRow {
+17:  id: number;
+18:  platform: string;
+19:  versionCode: number;
+20:  versionName: string;
+21:  minVersionCode: number;
+22:  isForce: number;
+23:  updateUrl: string;
+24:  packageUrl: string;
+25:  updateNote: string | null;
+26:  enabled: number;
+27:  /** C6-1A：发布状态 DRAFT/PUBLISHED/PAUSED/ARCHIVED（178 迁移加列） */
+28:  status: string;
+29:  /** C6-1A：灰度放量比例 0-100（178 迁移加列） */
+30:  grayRatio: number;
+31:  /** C6-1A：归档时间（178 迁移加列） */
+32:  archivedAt: string | null;
+33:  createdAt: string;
+34:  updatedAt: string;
+35:}
+
+--- ③ SELECT 列清单（下发给移动端的字段就是这些）---
+$ rg -n "package_url AS packageUrl" backend/src/services/platform/app-version.service.ts
+53:            update_url AS updateUrl, package_url AS packageUrl,
+105:                      update_url AS updateUrl, package_url AS packageUrl,
+
+--- ④ 表结构：package_url 存在、摘要列不存在 ---
+$ rg -n "CREATE TABLE|package_url|update_url|version_name|sha" docs/migrations/141_app_version.sql
+1:CREATE TABLE IF NOT EXISTS t_app_version (
+5:  version_name    VARCHAR(32) NOT NULL COMMENT '版本名，如 1.0.0',
+8:  update_url      VARCHAR(512) NOT NULL DEFAULT '' COMMENT '下载/详情地址',
+9:  package_url     VARCHAR(512) NOT NULL DEFAULT '' COMMENT '安装包/wgt 热更新包地址',
+17:INSERT IGNORE INTO t_app_version (platform, version_code, version_name, min_version_code, is_force, update_url, package_url, update_note, enabled)
+
+--- ⑤ 总台发布写入面（将来补字段必须同时改这几处）：zod 入参与 INSERT/UPDATE 列 ---
+$ rg -n "packageUrl" backend/src/controllers/platform/app-version.controller.ts
+49:    packageUrl: z.string().max(512).default(""),
+100:    packageUrl: z.string().max(512).default(""),
+$ rg -n "package_url" backend/src/services/platform/app-version.service.ts
+53:            update_url AS updateUrl, package_url AS packageUrl,
+105:                      update_url AS updateUrl, package_url AS packageUrl,
+152:              package_url=?, update_note=?, enabled=?, status='PUBLISHED', updated_at=NOW() WHERE id=?`,
+157:      `INSERT INTO t_app_version (platform, version_code, version_name, min_version_code, is_force, update_url, update_url_x64, update_url_ia32, update_url_arm64, package_url, update_note, enabled, status)
+268:              package_url=?, update_note=?, enabled=0, status='DRAFT', updated_at=NOW()
+276:            update_url, update_url_x64, update_url_ia32, update_url_arm64, package_url, update_note,
+
+--- ⑥ 移动端消费的端点与后端路由 ---
+$ rg -n "app/version" backend/src/routes backend/src/app.ts 2>/dev/null | head
+$ rg -n "app/version/app_mobile" app-mobile/src/utils/update.ts
+36: * 后端 `/app/version/app_mobile` 下发的最新版本对象。
+307:    url: `${base}/app/version/app_mobile${arch ? `?arch=${arch}` : ''}`,
+
+--- ⑦ 后端零改动（红线自证）---
+$ git diff bc1087ee..HEAD --name-only -- backend/ | wc -l
+0
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+0
+$ git status --porcelain -- backend/ ; echo （空=连未跟踪改动都没有）
+
+===== 口径补记（$(date -Iseconds) 追加，原文未改写）=====
+/usr/bin/bash: line 4: app/version: No such file or directory
+/usr/bin/bash: line 4: /version/:platform: No such file or directory
+# ⑥ 小节那条 rg 模式写错（在 routes 里搜 ），该路由挂载串其实是  ⇒ 上面那次读数 0 命中属模式不匹配，不是路由不存在。
+$ rg -n "app/version" backend/src -g "*.ts" -l
+backend/src\services\platform\app-version.service.ts
+$ rg -n "version/:platform" backend/src/routes/platform-app-version.routes.ts
+7:appVersionPublicRouter.get("/version/:platform", appVersionController.checkAppVersion);
+$ rg -n "appVersionPublicRouter" backend/src/routes -g "*.ts"
+backend/src/routes\platform-app-version.routes.ts:6:export const appVersionPublicRouter = Router();
+backend/src/routes\platform-app-version.routes.ts:7:appVersionPublicRouter.get("/version/:platform", appVersionController.checkAppVersion);
+backend/src/routes\platform-app-version.routes.ts:24:  { prefix: "/api/app", router: appVersionPublicRouter, auth: "none" },
+$ rg -n "appVersionPublicRouter" backend/src/app.ts   # 前缀挂载点
+rg: backend/src/app.ts: IO error for operation on backend/src/app.ts: 系统找不到指定的文件。 (os error 2)
+
+===== 口径补记 2（2026-10-21T22:53:20+08:00 追加；上一块补记的 echo 行被反引号命令替换吃掉、且写错了一个文件路径 ⇒ 那两块原文一字不改地保留，正确读数在本块）=====
+# 坑：echo 的双引号串里放反引号 = 命令替换。取证说明里的代码片段必须用单引号或转义。
+# 坑2：后端入口文件是 backend/src/server.ts，不是 backend/src/app.ts ⇒ 上一块最后一条 rg 的报错属"路径写错"，不是"路由不存在"。
+$ rg -n "version/:platform|prefix: ./api/app." backend/src/routes/platform-app-version.routes.ts
+7:appVersionPublicRouter.get("/version/:platform", appVersionController.checkAppVersion);
+24:  { prefix: "/api/app", router: appVersionPublicRouter, auth: "none" },
+$ rg -n "appVersionPublicRouter|routes" backend/src/server.ts | head -8   # 真实入口文件
+16:import { setupRoutes } from "./shared/auto-routes";
+35:// 路由已通过 auto-routes 自动注册，此处不再手动导入
+238:// admin/store 登录由 server.ts 手动注册，其他 /api/admin/auth/* 路由（me/settings/change-password）由 admin-auth.routes.ts 自动注册
+249:// CSRF 防护：不再全局注册，避免与 auto-routes 中的按路由注册形成双重注册。
+250:// - 自动注册的路由：auto-routes.ts 的 getAuthMiddlewares 已对 requireAuth/requireAuthWithTenant/requirePlatformAuth 三种模式附加 csrfMiddleware
+253:// 自动发现并注册 routes/ 目录下所有路由
+$ rg -n "app/version/app_mobile" app-mobile/src/utils/update.ts   # 移动端拼出的完整 URL = \${base}/app/version/app_mobile
+36: * 后端 `/app/version/app_mobile` 下发的最新版本对象。
+307:    url: `${base}/app/version/app_mobile${arch ? `?arch=${arch}` : ''}`,
+# 结论未变：该公开端点（auth none）下发的对象里没有摘要字段（本文件 §①§② 读数成立），失败关闭的外部前置判断成立。

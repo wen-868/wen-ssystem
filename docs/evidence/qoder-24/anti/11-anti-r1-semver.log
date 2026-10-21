@@ -1,0 +1,38 @@
+# QODER-24 反测轮次 r1（注入对象 app-mobile/src/config/update-security.ts） 2026-10-21T22:22:46+08:00
+$ cp $T /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig && sha256sum $T
+BACKUP_CP_EXIT=0
+SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ node /d/Users/ZXQL/wt-agents/_qoder24_bak/inject.cjs r1
+INJECT[r1] EOL=lf
+INJECT[r1] LABEL=摘掉 semver 严格更高判断（降级也算"更新"）
+INJECT[r1] BEFORE_HIT=1
+INJECT[r1] CONFIRM=注入后回读 AFTER_HIT=1 BEFORE_LEFT=0
+INJECT[r1] OK=已写入 mutation（请用 cp 从树外备份复原）
+INJECT_EXIT=0
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts
+VITEST_RED_EXIT=1
+—— 汇总行 ——
+ Test Files  1 failed (1)
+      Tests  2 failed | 39 passed (41)
+—— 红用例点名 ——（grep '^ *× '）
+     × 预发布版低于同版本正式版，且按 semver §11 逐标识符比较 18ms
+     × ★ 远端版本更低（降级）必须不提示【反测①目标用例】 3ms
+—— Failed Tests 明细头 ——（grep 'FAIL |AssertionError'）
+ FAIL  tests/update-security.spec.ts > QODER-24① semver：仅合法 semver 且严格更高才提示 > 预发布版低于同版本正式版，且按 semver §11 逐标识符比较
+AssertionError: expected true to be false // Object.is equality
+ FAIL  tests/update-security.spec.ts > QODER-24① semver：仅合法 semver 且严格更高才提示 > ★ 远端版本更低（降级）必须不提示【反测①目标用例】
+AssertionError: expected true to be false // Object.is equality
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig $T
+RESTORE_CP_EXIT=0
+SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts  # 复原后复跑
+VITEST_GREEN_EXIT=0
+ Test Files  1 passed (1)
+      Tests  41 passed (41)
+STATUS=DONE

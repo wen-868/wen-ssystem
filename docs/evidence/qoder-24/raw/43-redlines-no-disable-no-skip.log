@@ -1,0 +1,70 @@
+# QODER-24 收尾自检④：红线对照（放宽断言 / skip / eslint-disable / 改超时 / 后端面 / push）（2026-10-21T22:46:23+08:00）
+$ export MSYS2_ARG_CONV_EXCL="*"   # 保护以 / 开头的 rg 模式不被 MSYS 转成 Windows 路径（假 0 命中）
+
+--- ① eslint-disable / eslint-enable 在本单新增改动面上是否出现（必须 0 命中）---
+$ rg -n "eslint-disable|eslint-enable|eslint-disable-line|eslint-disable-next-line" app-mobile/src/config/update-security.ts app-mobile/src/utils/update.ts app-mobile/tests/update-security.spec.ts ; echo RG_EXIT=$?   # 1=零命中
+RG_EXIT=1
+
+--- ② it.skip / describe.skip / test.skip / .only / xit / xdescribe（必须 0 命中）---
+$ rg -n "it\.skip|describe\.skip|test\.skip|\.only\(|xit\(|xdescribe\(|todo\(" app-mobile/tests ; echo RG_EXIT=$?
+RG_EXIT=1
+
+--- ③ 超时：本卡不得改 vitest 超时；vitest.config.ts diff 必须 0 行 ---
+$ git diff bc1087ee..HEAD --numstat -- app-mobile/vitest.config.ts app-mobile/.eslintrc.cjs app-mobile/scripts/type-check-gate.mjs app-mobile/scripts/lint-gate.mjs app-mobile/scripts/test-gate.mjs app-mobile/scripts/check-contract.mjs   # 必须空输出
+HARNESS_DIFF_LINES_ABOVE(空=0)
+$ rg -n "timeout" app-mobile/tests/update-security.spec.ts ; echo RG_EXIT=$?   # 本卡 spec 不引入任何超时放宽
+RG_EXIT=1
+
+--- ④ 吞异常换绿：本卡 src 里的 catch 必须都带失败关闭动作 ---
+$ rg -n "catch" app-mobile/src/utils/update.ts
+62:  } catch {
+75:  } catch {
+100:  } catch {
+134:  } catch {
+304:  } catch { /* 忽略 */ }
+$ rg -n -A2 "catch" app-mobile/src/utils/update.ts | rg "onBytes\(null\)|done\(\)|version = H5_LOCAL_VERSION|origin|忽略" | wc -l   # 每个 catch 都能点名其失败关闭去向
+4
+
+--- ⑤ 后端只读：git diff bc1087ee..HEAD -- backend/ 必须 0 字节 ---
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+0
+$ git diff --name-only bc1087ee..HEAD -- backend/ | wc -l
+0
+$ git diff bc1087ee..HEAD --stat -- backend/ ; echo BACKEND_DIFF_STAT_EXIT=$?   # 空输出=未改动
+BACKEND_DIFF_STAT_EXIT=0
+
+--- ⑥ 未 push：本分支无上游（@{u} 报错即未跟踪远端）---
+$ git rev-parse --abbrev-ref --symbolic-full-name "@{u}" ; echo UPSTREAM_EXIT=$?   # 128=无上游
+fatal: no upstream configured for branch 'fix/qoder-24-update-security'
+UPSTREAM_EXIT=128
+$ git branch -vv | rg "qoder-24"
+* fix/qoder-24-update-security            622f5894 feat: QODER-24 热更新失败关闭——semver 严格更高、包地址同源、下载实算 SHA-256、跳转集中白名单
+
+--- ⑦ 逐文件 add（禁 git add -A）：实现提交只含 5 个文件，无游离文件 ---
+$ git show --name-only --format="%H %s" HEAD
+622f5894f1e03f7f122706fe5d0c97b52e36d368 feat: QODER-24 热更新失败关闭——semver 严格更高、包地址同源、下载实算 SHA-256、跳转集中白名单
+
+app-mobile/scripts/gates-baseline.json
+app-mobile/src/config/update-security.ts
+app-mobile/src/utils/crypto.ts
+app-mobile/src/utils/update.ts
+app-mobile/tests/update-security.spec.ts
+
+--- ⑧ force:true 复位确认（原 update.ts:55 的 { force: true } 必须不存在）---
+$ rg -n "force: *true|force:true" app-mobile/src ; echo RG_EXIT=$?
+app-mobile/src\config\update-security.ts:5: *  - `src/utils/update.ts:42-80` 下载 `.wgt` 后直接 `plus.runtime.install(..., { force: true })`，**无任何摘要校验**；
+RG_EXIT=0
+
+--- ⑨ 无"提示不支持"冒充校验（任务书 §二.4 禁止项）---
+$ rg -n "不支持" app-mobile/src/utils/update.ts app-mobile/src/config/update-security.ts
+app-mobile/src/config/update-security.ts:365: *  - 字节读不到（null / 0 长度）⇒ 拒（**不得**用 toast"提示不支持"冒充校验完成）；
+app-mobile/src/utils/update.ts:18: *     读不到字节的端（H5 / 小程序 / 任何 plus.io 失败分支）**一律不安装**，不用 toast"提示不支持"冒充校验完成。
+RG_EXIT=0
+
+--- ⑩ 集中白名单唯一配置点：主机字面量不得散落到 update.ts / 页面 ---
+$ rg -n "onepan\.cn" app-mobile/src/utils/update.ts app-mobile/src/pages app-mobile/src/pages-sub 2>/dev/null ; echo RG_EXIT=$?   # 1=零命中
+app-mobile/src/pages\profile\profile.vue:265:      ? `联系人：${t.contactPerson || '—'}\n电话：${t.contactMobile}\n帮助中心：https://www.onepan.cn`
+app-mobile/src/pages\profile\profile.vue:266:      : '帮助中心：https://www.onepan.cn（联系方式可在系统设置中维护）',
+RG_EXIT=0
+$ rg -c "onepan\.cn" app-mobile/src/config/update-security.ts   # 只允许集中在策略模块
+3

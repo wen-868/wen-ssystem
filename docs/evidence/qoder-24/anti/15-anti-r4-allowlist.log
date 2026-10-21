@@ -1,0 +1,39 @@
+# QODER-24 反测轮次 r4（注入对象 app-mobile/src/config/update-security.ts） 2026-10-21T22:25:30+08:00
+$ cp $T /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig && sha256sum $T
+BACKUP_CP_EXIT=0
+SHA_BEFORE=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态（该文件实测为 LF，非 CRLF）
+GIT_BLOB_SHA_BEFORE=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ node /d/Users/ZXQL/wt-agents/_qoder24_bak/inject.cjs r4
+INJECT[r4] EOL=lf
+INJECT[r4] LABEL=摘掉 updateUrl 主机白名单判断
+INJECT[r4] BEFORE_HIT=1
+INJECT[r4] PREFLIGHT_AFTER_HIT=0（必须为 0）
+INJECT[r4] CONFIRM=注入后回读 AFTER_HIT=1 BEFORE_LEFT=0
+INJECT[r4] OK=已写入 mutation（请用 cp 从树外备份复原）
+INJECT_EXIT=0
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts
+VITEST_RED_EXIT=1
+—— 汇总行 ——
+ Test Files  1 failed (1)
+      Tests  2 failed | 39 passed (41)
+—— 红用例点名 ——（grep '^ *× '）
+     × ★ 未命中白名单的 updateUrl 禁止打开【反测④目标用例】 104ms
+     × ★ 未命中白名单的 updateUrl 不会进入 open-url 决策 7ms
+—— Failed Tests 明细头 ——（grep 'FAIL |AssertionError'）
+ FAIL  tests/update-security.spec.ts > QODER-24④ updateUrl：仅 https 且主机命中集中白名单 > ★ 未命中白名单的 updateUrl 禁止打开【反测④目标用例】
+AssertionError: 未命中白名单必须拒绝：https://evil.example/download: expected true to be false // Object.is equality
+ FAIL  tests/update-security.spec.ts > QODER-24④ updateUrl：仅 https 且主机命中集中白名单 > ★ 未命中白名单的 updateUrl 不会进入 open-url 决策
+AssertionError: expected 'open-url' to be 'none' // Object.is equality
+
+$ cp /d/Users/ZXQL/wt-agents/_qoder24_bak/update-security.ts.orig $T
+RESTORE_CP_EXIT=0
+SHA_AFTER=12fb8fbc182ea6ae9cfa6b602ea565ef3a3fc8798adf5819d4b3a83eef7866c8  # worktree 形态
+GIT_BLOB_SHA_AFTER=4c802a5d7ef09217bd9a688156c3eacd89531994
+
+$ cd /d/Users/ZXQL/wt-agents/QODER-24/app-mobile && node ../node_modules/vitest/vitest.mjs run tests/update-security.spec.ts  # 复原后复跑
+VITEST_GREEN_EXIT=0
+ Test Files  1 passed (1)
+      Tests  41 passed (41)
+STATUS=DONE

@@ -1,0 +1,26 @@
+# QODER-24 工作树与基线确认（派单读数核对，不重复负责人已跑的基线取证） 2026-10-21T22:32:55+08:00
+$ git rev-parse HEAD ; git branch --show-current ; git status --porcelain ; git log --oneline -1 ; ls node_modules/.bin | head -3
+[rev-parse HEAD]
+622f5894f1e03f7f122706fe5d0c97b52e36d368
+[branch]
+fix/qoder-24-update-security
+[log -1]
+622f5894 feat: QODER-24 热更新失败关闭——semver 严格更高、包地址同源、下载实算 SHA-256、跳转集中白名单
+[node_modules 可用]
+app-mobile/node_modules
+node_modules
+[基线口径文件现状：任务书 §一 三条 + crypto/env]
+167:export function sha256(data: Uint8Array): Uint8Array {
+15:export const API_BASE_H5: string =
+18:export const API_BASE_NATIVE: string =
+[后端 LatestAppVersion 无摘要字段（只读）]
+20:  versionName: string;
+23:  updateUrl: string;
+24:  packageUrl: string;
+51:    `SELECT platform, version_code AS versionCode, version_name AS versionName,
+53:            update_url AS updateUrl, package_url AS packageUrl,
+54:            update_url_x64 AS updateUrlX64, update_url_ia32 AS updateUrlIa32,
+
+## 口径补记（同轮） 2026-10-21T22:33:15+08:00
+- 上方 `grep -n "force: true" app-mobile/src/utils/update.ts` 打在**改造后**的 HEAD 上 ⇒ 0 命中（预期结果，静态断言用例也守这条）；基线态的 `:55 { force: true }`、`:131` 等值比较等读数以负责人在 `bc1087ee` 的实测为唯一口径（协议 §三"勿重复取证"），本单未复跑基线态取证。
+- 后端 `LatestAppVersion`（backend/src/services/platform/app-version.service.ts:20-24）在册字段为 versionName/isForce?/updateUrl/packageUrl（+ 分平台 update_url_x64/ia32），**确无摘要字段** ⇒ 本卡"缺摘要失败关闭"直接生效，联调阻塞点在后端契约。

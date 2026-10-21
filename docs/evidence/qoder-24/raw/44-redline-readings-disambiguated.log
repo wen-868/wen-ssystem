@@ -1,0 +1,65 @@
+# QODER-24 收尾自检⑤：raw/43 里三处'非零命中'的逐条定性（注释 vs 代码）（2026-10-21T22:46:58+08:00）
+# 目的：避免把文档注释里的历史事实描述读成'代码仍在直装/仍散落主机'
+
+--- A. force：代码里只允许 { force: false }；raw/43 ⑧ 的唯一 force: true 命中在注释行 ---
+$ rg -n "force" app-mobile/src/config/update-security.ts | rg -v "^5:" ; echo COMMENT_ONLY_HIT_CHECK_EXIT=$?
+COMMENT_ONLY_HIT_CHECK_EXIT=1
+$ rg -n "force" app-mobile/src/utils/update.ts
+21: *  6. 安装不再使用 force 直装：`plus.runtime.install` 的 options 改为 `{ force: false }`，
+148:    // 未验包不再直装：本函数只在校验通过后被调用；force 关闭，同版本/降级包由运行时直接拒装
+149:    { force: false },
+$ rg -n "\{ *force: *false *\}" app-mobile/src/utils/update.ts ; echo FORCE_FALSE_CODE_HIT=$?
+21: *  6. 安装不再使用 force 直装：`plus.runtime.install` 的 options 改为 `{ force: false }`，
+149:    { force: false },
+FORCE_FALSE_CODE_HIT=0
+$ rg -n "plus\.runtime\.install" app-mobile/src ; echo INSTALL_CALL_POINTS_ABOVE   # install 只允许一个调用点（校验通过后）
+app-mobile/src\config\update-security.ts:5: *  - `src/utils/update.ts:42-80` 下载 `.wgt` 后直接 `plus.runtime.install(..., { force: true })`，**无任何摘要校验**；
+app-mobile/src\utils\update.ts:21: *  6. 安装不再使用 force 直装：`plus.runtime.install` 的 options 改为 `{ force: false }`，
+app-mobile/src\utils\update.ts:146:  plus.runtime.install(
+INSTALL_CALL_POINTS_EXIT=0
+
+--- B. "不支持"两处命中全在注释（禁止用 toast 冒充校验），代码里没有任何"不支持"文案 ---
+$ rg -n "icon: .none." app-mobile/src/utils/update.ts   # 现存 toast 文案逐条点名，无"不支持"字样
+164:      uni.showToast({ title: `安装失败：${err?.message || '未知错误'}`, icon: 'none' })
+170:    uni.showToast({ title: '当前端无安装能力，已取消安装', icon: 'none' })
+182:        uni.showToast({ title: '更新包下载失败', icon: 'none' })
+194:          uni.showToast({ title: '更新包校验未通过，已取消安装', icon: 'none' })
+200:      uni.showToast({ title: '更新包下载失败', icon: 'none' })
+$ rg -n "title: " app-mobile/src/utils/update.ts
+153:        title: '更新完成',
+164:      uni.showToast({ title: `安装失败：${err?.message || '未知错误'}`, icon: 'none' })
+170:    uni.showToast({ title: '当前端无安装能力，已取消安装', icon: 'none' })
+175:  uni.showLoading({ title: '下载更新包…' })
+182:        uni.showToast({ title: '更新包下载失败', icon: 'none' })
+194:          uni.showToast({ title: '更新包校验未通过，已取消安装', icon: 'none' })
+200:      uni.showToast({ title: '更新包下载失败', icon: 'none' })
+210:    title: '发现新版本',
+229:    title: '发现新版本',
+248:    title: '发现新版本',
+260:    title: '发现新版本',
+
+--- C. 主机字面量集中：update.ts / update-security.ts 之外的更新面 0 命中 ---
+$ rg -n "onepan\.cn" app-mobile/src/utils/update.ts ; echo UPDATE_TS_HOST_LITERALS_EXIT=$?   # 1=零命中（同源主机全部运行时解析）
+UPDATE_TS_HOST_LITERALS_EXIT=1
+$ rg -n "onepan\.cn" app-mobile/src/config/update-security.ts   # 仅 OFFICIAL_UPDATE_HOSTS 一处常量 + 注释来源
+141: * 反斜杠必须单独拒：WHATWG 归一化会把 `\` 当 `/`，`https://api.onepan.cn\.evil.example/` 可伪造主机边界。
+387: * `server_name www.onepan.cn onepan.cn`；`:85` H5/移动端站点 `m.onepan.cn`）。
+391:const OFFICIAL_UPDATE_HOSTS: readonly string[] = ['www.onepan.cn', 'onepan.cn', 'm.onepan.cn']
+$ rg -n "onepan\.cn" app-mobile/src/pages/profile/profile.vue   # 既有帮助中心展示文案，非更新通道，本单未动（越面发现，回传卡 §八）
+265:      ? `联系人：${t.contactPerson || '—'}\n电话：${t.contactMobile}\n帮助中心：https://www.onepan.cn`
+266:      : '帮助中心：https://www.onepan.cn（联系方式可在系统设置中维护）',
+$ git diff bc1087ee..HEAD --name-only -- app-mobile/src/pages app-mobile/src/pages-sub ; echo PAGES_DIFF(空=0)
+PAGES_DIFF_DONE
+
+--- D. env.ts 未被本单改动（同源主机走运行时基址，不写死字面量比对）---
+$ git diff bc1087ee..HEAD --numstat -- app-mobile/src/config/env.ts ; echo ENV_DIFF_LINES_ABOVE(空=0)
+ENV_DIFF_DONE
+$ rg -n "API_BASE_H5|API_BASE_NATIVE" app-mobile/src/config/env.ts
+15:export const API_BASE_H5: string =
+18:export const API_BASE_NATIVE: string =
+$ rg -n "API_BASE_NATIVE|API_BASE_H5|runtimeOrigin" app-mobile/src/utils/update.ts   # 基址来自 env 常量/运行时，主机由 parseHttpUrl 解析
+24:import { API_BASE_H5, API_BASE_NATIVE } from '../config/env'
+50:  let base = API_BASE_NATIVE
+52:  base = API_BASE_H5
+70:function runtimeOrigin(): string {
+277:    runtimeOrigin: runtimeOrigin(),
