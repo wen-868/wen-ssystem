@@ -3,7 +3,7 @@
 > 汇报对象：凌舟（经用户中转）｜汇报人：Qoder（移动端执行方）｜日期：2026-10-21｜编号：R101-QODER-20
 > 卡：`docs/tasks/inbox/QODER-20-mobile-final-integration.md`
 > 工作树：`D:\Users\ZXQL\wt-agents\QODER-20`｜分支：`chore/qoder-20-mobile-final-integration`｜基座：`cdf16ce4`（QODER-19 尖端，10/184）
-> 证据树：`docs/evidence/qoder-20/`（README + raw/00、10–14、20–22、30–31、40–45）
+> 证据树：`docs/evidence/qoder-20/`（README + raw/00、10–14、20–22、30–31、40–46）
 
 ## 一、基线与提交
 
@@ -16,7 +16,8 @@
 | 补写 | `602d9d36` | `602d9d362126a38107a5bbb5422318e6c2fc68f6` | 合并后自检暴露的留痕缺项 | `gates-baseline.json` tests.note 追加「最终集成单⑦」一行，**testFiles/testCount 一字未动**，四门复跑仍 `11/186 EXIT=0`（`raw/43`） |
 | 证据 | `c3942309` | `c3942309cd9277bde711ec3341f3bdaad4fdd2cb` | docs | `docs/evidence/qoder-20/**` 17 个文件 |
 | 回传笔 | `24590d15` | `24590d15e565b05e4675ca46713151705f87bbd7` | docs | 本卡 + `ACTIVE-回执-QODER-20.md`（DSH 区块） |
-| 补哈希笔 | 本笔（= 分支尖端） | 请用 `git rev-parse HEAD` 现场取（本笔无法自含其哈希） | docs | 回填上表真实哈希 |
+| 补哈希笔 | `45c0533c` | `45c0533c7501bd4a3330386718389f64a4748e31` | docs | 回填上表真实哈希 + `raw/45` 引用哈希逐条验真 |
+| 收尾自证笔 | `534813fa` | `534813fa8521b7becf65ea134abcd865e570b666` | docs | `raw/46` 分支尖端终态四门复跑：`CHECK_GATES_EXIT=0`、test 仍 `11/186`、代码面相对 `602d9d36` 零改动 |
 
 三笔合并的 `--first-parent` 链条与双父取证：`raw/44`（`git rev-list --parents`）。合并序严格按卡 §一.2–4：**13F2 → 18 → 11R**，未做任何 rebase/squash，来源支尖端哈希未被改写（可继续被 main 直接引用）。
 

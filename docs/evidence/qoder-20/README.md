@@ -31,6 +31,7 @@
 | `raw/42-blob-identity.log` | 卡 §一.5「业务实现不得被合并改写」的逐文件 blob 身份 | 正向（每笔 merge 相对第一父的变化文件逐个与第二父比哈希）：`9ff7a47c` 5 项、`c1e4cd40` 2 项、`50b03a51` 0 项 ⇒ 两笔共 7 项里**只有 `gates-baseline.json` DIFFERS（我解冲突的结果）**，`env.ts` / `permission-gates.ts` / `pin-ssl.ts` / `pin-ssl-static.spec.ts` / `request.ts` / `request-retry-safety.spec.ts` 全部 `SAME_AS_BRANCH`。反向（终态 HEAD 对比各支尖端）7 个文件逐字节一致（另含 `storage-crypto.spec.ts` 与 `backend/scripts/guard-rbac-wiring.mjs`）⇒ 终态原样保留，未被合并重写 |
 | `raw/43-note7-provenance-rerun.log` | 补写 ⑦ 留痕后的四门复跑 | `CHECK_GATES_EXIT=0`，test 门仍 `11 文件 / 186 用例，基线 11 / 186`；该笔 diff = `1 insertion(+), 1 deletion(-)`，只动 note 行 |
 | `raw/44-no-conflict-markers-and-merge-purity.log` | 冲突标记零残留 + 合并纯度 | `rg '^<<<<<<<\|^>>>>>>>' app-mobile/{src,tests,scripts} backend/scripts/guard-rbac-wiring.mjs` = 0 命中（`RG_MARKER_EXIT=1`）；`gates-baseline.json` `require()` 可解析（latin1 事故后形态复检）；三笔 merge 均为双父真合并 |
+| `raw/46-terminal-gates.log` | 分支尖端终态四门复跑（收尾自证） | `CHECK_GATES_EXIT=0`；test 门「当前 11 文件 / 186 用例，基线 11 / 186」；`CODE_DIFF_FILES=0`（`602d9d36..HEAD` 只动 docs）；`STATUS_LINES=1` 是采集当时本文件自身未跟踪，提交后为 0 |
 | `raw/45-hash-citation-audit.log` | 卡与回执里**每一个引用哈希**的逐条验真（自证纪律机检） | 10 个 40 位哈希全 `REAL40`；13 个 8 位短哈希里 12 个 `REAL8`，唯一 `UNVERIFIED8 a1ad1cbf` 是卡 §九.0 自报的「我在提交前凭空写的假哈希」样例，只允许以违规样例身份出现 |
 
 ## 186 的构成（门 3 原始输出逐文件对账，`raw/13`）
