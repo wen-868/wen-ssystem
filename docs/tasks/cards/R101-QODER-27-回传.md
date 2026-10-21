@@ -22,7 +22,7 @@
       ③dist/ 是构建副产物不是证据源，反测失败路会就地改写它，隔时重跑读 dist 的命令必须先复跑清洁构建；
       ④四条量具失误已就地更正并登记（cmd.exe 吃 ^ 与 ;、rg 的 -F/跨行/CJK 路径三坑、空 SHA 造出假恒等、git show 的 combined diff 语义）；
       ⑤M1 步原缺当场 vitest 实测，已用本树内临时 --detach 到 18cb89b0 补测（11/191 实测通过）并切回，跑前后 HEAD 与 porcelain 均复核原样。
-回传要求：本汇报已落卡 docs/tasks/cards/R101-QODER-27-回传.md
+回传要求：本汇报已落卡 docs/tasks/cards/R101-QODER-27-回传.md；DSH-RECEIPT 区块落 docs/tasks/inbox/ACTIVE-回执-QODER-27.md 末节
 关联卡：docs/tasks/inbox/QODER-27-f1-baseline-convergence.md
 ```
 

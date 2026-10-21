@@ -36,3 +36,24 @@ MP 保留名警告 0 且有可证伪正对照；反测 4 必做＋1 加测全红
 - 红线：`@{u}` 报 `no upstream configured`、`refs/remotes` 下无本支、`origin/main` 指针未前进 ⇒ **未 push**；本会话未调用任何 `git push`／`gh pr` ⇒ **未开 PR**；`git add` 全部走显式路径清单（`git ls-files --others -z | xargs -0 -n1 git add --`）⇒ **未用 `-A`**。
   ⚠ 如实登记：想做的在线复核 `git ls-remote` 因网络 `Connection was reset` 未成 ⇒ 远端实况本时点无法在线证伪，待有网时由有权限方复核。
 - 证据树件数：`ef9fcd50` 后 63 件 → `3924cd04` 后 64 件 → 第三笔（`raw/74` 原文＋摘要）后 **66 件**＝README ＋ `raw/` 35 ＋ `raw/anti/` 15 ＋ `tools/` 15；`README.md` §2 已同步。
+- 未 push 的零值可证伪复核（本笔补测）：`git for-each-ref refs/remotes` ⇒ **143 条在册**（非空 ⇒ 不是假 0），其中含 `qoder-27` 的 ⇒ **0 条**；四个来源 tip 也不在任何 `refs/remotes` ⇒ 本支与四 tip 均为本地态。`main`＝`7dda80b8`、`origin/main`＝`14924d62`（`ahead 6 / behind 0`，本单未动远端）。
+
+## DSH-RECEIPT
+
+> 同 S3-236 那笔的固有约束：**本区块所在的那笔提交无法在自身内容里引用自身 sha**，其 sha 以 `git log --oneline -1` 为准；
+> 故 `commits` 末项写作 `DOCS-3(本笔)`，且区块落盘后的 `git status --porcelain = 0 行` 读数由执行方在本会话收尾时亲跑并随消息回传。
+
+```
+===DSH-RECEIPT-BEGIN===
+id: QODER-27
+status: DONE
+summary: 四树 tests 基线收敛完成 —— 按固定序落四笔真 merge（不 rebase 不 squash，逐笔两父实测），冲突面只在 app-mobile/scripts/gates-baseline.json；tests 段收敛到 15 文件 / 303 用例且四步全部当场 vitest 实测（11/191→12/232→14/248→15/303），note 9460 字符＝bc1087ee 原文 2941 前缀＋四段来源（2454/700/1804/971）＋本单台账 590，机检逐段 foundAt 递增、occurrences=1、verbatim；交付 HEAD 上亲跑 check:gates EXIT=0（type 0／error 0·warning 12872／15·303／差集 1 具名豁免 1），三端构建各 EXIT=0，MP 保留名警告 0（正对照可出 2/1 并令构建 EXIT=1）；反测 4 必做＋1 加测全部先红且点名、cp 复原后 SHA 逐字节恒等再绿。⚠ 待裁：`git diff main..HEAD -- backend/` 字面 +21 行（100% 继承自 bc1087ee、本卡 authored 0）；main 落后于四树共同基线 ⇒ 合并面不止四张卡；MP/App 真机底栏运行态未验（QODER-28 无设备仍 BLOCKED）。
+worktree: D:\Users\ZXQL\wt-agents\QODER-27
+branch: chore/qoder-27-f1-baseline-convergence
+commits: 18cb89b0,57ccbfe9,8835d11c,167979aa,ef9fcd50,3924cd04,DOCS-3(本笔)
+evidence: docs/evidence/qoder-27/README.md,docs/evidence/qoder-27/raw/74-final-gates-at-delivered-head.raw.log,docs/evidence/qoder-27/raw/70-final-gates-recheck.raw.log,docs/evidence/qoder-27/raw/21-gates-full.raw.log,docs/evidence/qoder-27/raw/22-build-mp-weixin.raw.log,docs/evidence/qoder-27/raw/23-rebuild-mp-weixin.raw.log,docs/evidence/qoder-27/raw/14-m4-merge-26.log,docs/evidence/qoder-27/raw/71-main-lag-and-nontests-attribution.log,docs/evidence/qoder-27/raw/72-m1-measure.raw.log,docs/evidence/qoder-27/raw/73-close-state.log,docs/evidence/qoder-27/raw/40-anti-test-ledger.log,docs/evidence/qoder-27/raw/anti/,docs/evidence/qoder-27/tools/
+return_card: docs/tasks/cards/R101-QODER-27-回传.md
+gates: cd app-mobile && npm run check:gates（交付 HEAD 3924cd04 亲跑）=>DELIVERED_HEAD_GATES_EXIT=0, type 0=0, lint error 0=0 / warning 12872=12872, Test Files 15 passed (15) / Tests 303 passed (303), 差集 1 条·具名豁免 1 条; npm run build:h5|build:mp-weixin|build:app=>各 BUILD_EXIT=0; MP 日志 grep 'custom-tab-bar' 与 '专用组件|已内置|保留名'=>0 与 0（正对照 R-TAB-B 出 2/1 且 BUILD_EXIT_mp-weixin=1）; 反测 R-IV/R-TAB/R-REACT/R-SKU(+R-TAB-B)=>每轮 RED=1 且点名、cp 复原 SHA256 恒等、残字 0、GREEN=0; git diff --numstat 7dda80b8..HEAD -- backend/=>21 0（bc1087ee..HEAD=>0 文件）; git status --porcelain=>0 行
+redlines: 遵守（未 push／未开 PR／`git add` 全走显式路径未用 `-A`；只动本卡范围，非 docs 改动 0 文件；四段来源 note 未被覆盖成一段；未删除或跳过任何卡测试；证据目录未与他卡合并；MP/App 真机项未自行处置；未重写历史——四笔 merge 与三笔文档提交均为新增提交）
+===DSH-RECEIPT-END===
+```
