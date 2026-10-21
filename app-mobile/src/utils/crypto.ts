@@ -594,10 +594,10 @@ function aesGcmEncrypt(
  * AES-256-GCM 解密
  * @param ciphertext 密文
  * @param key        32 字节密钥
- * @param iv         12 字节 IV
+ * @param iv         初始化向量（GCM 规范长度恒为 12 字节；非 12 字节直接拒绝，不进入 J0 构造）
  * @param tag        认证标签（GCM 规范长度 16 字节；非 16 字节直接拒绝，不参与比较）
  * @param aad        附加认证数据（可选）
- * @returns 解密后的明文；tag 长度非 16 字节或 tag 校验失败均返回 null
+ * @returns 解密后的明文；IV 或 tag 长度非规范、tag 校验失败均返回 null
  */
 function aesGcmDecrypt(
     ciphertext: Uint8Array,
@@ -606,6 +606,17 @@ function aesGcmDecrypt(
     tag: Uint8Array,
     aad: Uint8Array = new Uint8Array(0)
 ): Uint8Array | null {
+    // IV 规范长度守卫（QODER-23F1）：GCM 规范 IV 长度恒为 12 字节（96 位，J0 = IV || 0^31 || 1 模式），
+    // 必须在下方构造 J0 之前显式校验返回，不得依赖 Uint8Array.set 的两个巧合行为
+    //（守卫前形态实测见 docs/evidence/qoder-23f1/raw/02c-probe-pre-guard-ok.log）：
+    //   · iv 长于 16 字节 ⇒ j0.set(iv) 溢出抛未分类 RangeError("offset is out of bounds")（探针 P4 行），
+    //     绕过 decrypt() 已分类的"解密失败"异常，调用方无法区分恶意输入与程序缺陷；
+    //   · iv 短于 16 字节 ⇒ set 静默零填充：13 字节 IV 只要第 13 字节为 0x00，零填充后的 J0 与
+    //     规范 12 字节 IV 构造出的完全相同 ⇒ tag 校验"意外"通过、解密成功（探针 P1 行实测返回了原文），
+    //     非规范 IV 被静默接受，认证边界被绕过。11 字节 IV 与 tag[15] 越界读同型（探针 P3/P5b 行 + 反测轮 R-TAG）。
+    // 两种形态都不该依赖巧合，统一在此返回 null，由 decrypt() 抛与 tag 校验失败同一条已分类异常。
+    if (iv.length !== 12) return null // IV 长度非法 ⇒ 等同校验失败
+
     const expandedKey = aesKeyExpansion(key)
 
     // 1. H = AES_K(0^128)
