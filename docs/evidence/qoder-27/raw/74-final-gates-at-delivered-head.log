@@ -1,0 +1,39 @@
+# QODER-27 交付 HEAD 上的四门复跑摘要（原文 `raw/74-final-gates-at-delivered-head.raw.log`）
+
+时点：2026-10-22｜执行：Qoder（移动端）亲跑｜命令：`cd app-mobile && npm run check:gates`
+跑前 HEAD＝`3924cd04a6dc961fda8b33f0e979d6b4a7375e0c`（第二笔文档提交之后），分支＝`chore/qoder-27-f1-baseline-convergence`
+（该两值已写进原文 `:2`，跑前采集，非事后补记）
+
+## 1 读数（行号＝原文去 ANSI 色后的实际行号）
+
+| 行号 | 原文读数 |
+|---|---|
+| `:14` | `vue-tsc EXIT=0，当前错误 0 条，基线 0 条` |
+| `:21` | `当前 error 0（基线 0）、warning 12872（基线 12872）` |
+| `:56` | `Test Files  15 passed (15)` |
+| `:57` | `Tests  303 passed (303)` |
+| `:61` | `—— test 门（用例数冻结）：当前 15 文件 / 303 用例，基线 15 / 303 ——` |
+| `:72` | `差集（调用有、注册无）: 1 条，其中具名豁免 1 条` |
+| `:75` | **`DELIVERED_HEAD_GATES_EXIT=0`** |
+
+⇒ 与代码 tip 上的两次读数逐值相同：首跑 `raw/21-gates-full.raw.log:10,17,53-54,58,69` ＋ `raw/21-gates-full.log:21`，
+收尾复跑 `raw/70-final-gates-recheck.raw.log:10,17,59-60,64,75,78`。本笔是第三次跑，口径是把门跑到**交付 HEAD**上。
+
+## 2 为什么门可以在文档提交之后再跑一次就够（代码面恒等证明）
+
+```
+$ git diff --name-only -z 167979aa..HEAD   →  changed=66  非 docs=0
+$ git diff --name-only 167979aa..HEAD -- app-mobile backend（NUL 口径同上）→ 0 文件
+$ node -e 读 gates-baseline.json           →  testFiles=15 testCount=303 noteLen=9460
+```
+
+⇒ 交付 HEAD 相对代码 tip `167979aa` 只在 `docs/` 下多出 66 个文件，`app-mobile/`、`backend/` 一字未差，
+基线文件终值仍是 15／303／note 9460 ⇒ 四门与三端构建的读数在交付 HEAD 上必然同值，本笔实测直接证实该推断。
+⚠ 计数口径：必须用 `--name-only -z` ＋ NUL 切分。中文路径会被 git 的 C-引号包成 `"docs/…"`，
+用 `grep -v '^docs/'` 数会把 2 个文档文件误报成非 docs（本卡 §六 已登记该坑）。
+
+## 3 三端构建在本笔未重跑的理由
+
+构建产物 `dist/` 只由 `app-mobile/` 源码决定，而上面已证 `app-mobile/` 自 `167979aa` 起 0 改动 ⇒
+`raw/22-build-{h5,mp-weixin,app}.raw.log` 三份 `BUILD_EXIT_*=0` 与 `raw/23-rebuild-mp-weixin.raw.log`（收尾清洁复跑）
+即为交付态的构建读数；本笔不重复跑构建，也不把 `dist/` 当证据源（反测失败路会就地改写它，见 `README.md` §6）。

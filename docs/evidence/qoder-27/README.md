@@ -35,7 +35,7 @@
 ## 2 `raw/` 索引（按取证顺序）
 
 本树件数：随第一笔文档提交（`ef9fcd50`）为 **63 件**＝本 README ＋ `raw/` 32 ＋ `raw/anti/` 15 ＋ `tools/` 15（`git ls-files --others` 与 `find -type f` 双向对过，非估算）；
-第二笔文档提交（`raw/73` 收尾态实测）后为 **64 件**。
+第二笔文档提交（`3924cd04`，收入 `raw/73` 收尾态实测）后为 **64 件**；第三笔文档提交（收入交付 HEAD 上的四门复跑 `raw/74` ×2）后为 **66 件**＝本 README ＋ `raw/` 35 ＋ `raw/anti/` 15 ＋ `tools/` 15。
 
 | 文件 | 内容 | 关键行 |
 |---|---|---|
@@ -62,6 +62,8 @@
 | `71-main-lag-and-nontests-attribution.log` | 非 `tests` 段逐版本哈希表 ＋ main 落后度 ＋ backend `+21` 的钉死归因 | `:12-24`（哈希表）、`:30-55`（逐字段）、`:56-69`（backend）、`:70-86`（main 落后度） |
 | `72-m1-measure-backfill.log` | M1 那一步的 vitest 补测（detached checkout `18cb89b0`） | 汇总行 ＋ 回枝后 `HEAD` 复核 |
 | `73-close-state.log` | 文档笔之后的收尾态（clean／源码 0 动／红线复核／交付清单总数／自指口径） | `:6` `PORCELAIN_LINES=0`、`:19` `app-mobile 改动文件数=0`、`:30` 无上游、`:44-52` 清单、`:53` `CLOSE_STATE_FINAL=clean`、`:55-61` 自指口径 |
+| `74-final-gates-at-delivered-head.raw.log` | **交付 HEAD `3924cd04` 上第三次亲跑四门**（跑前 HEAD／分支已记入 `:2`） | `:14` type 0、`:21` error 0／warning 12872、`:56-57` 15／303、`:61` 基线同值、`:72` 差集 1 豁免 1、`:75` `DELIVERED_HEAD_GATES_EXIT=0` |
+| `74-final-gates-at-delivered-head.log` | 上文的摘要＋代码面恒等证明（`167979aa..HEAD` 非 docs 0 文件）＋三端构建未重跑的理由与 C-引号计数坑 | §1 读数表、§2 恒等证明、§3 构建口径 |
 
 `raw/anti/` —— 五轮反测每轮三份：`R-*.log`（轮次台账）、`R-*.red.raw.log`（注入态原文失败输出）、`R-*.green.raw.log`（复原后绿）。
 `R-TAB-B.*` 是「MP 警告 0」的正对照（无 red/green 对，因为是构建路）。

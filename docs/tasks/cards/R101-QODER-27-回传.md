@@ -10,7 +10,7 @@
 汇报人：Qoder（移动端）｜2026-10-22
 交付物：四笔真 merge（18cb89b0 ←71b248c8、57ccbfe9 ←dd44e321、8835d11c ←317e421d、167979aa ←1b6da083，固定序、不 rebase 不 squash）；
       app-mobile/scripts/gates-baseline.json 的 tests 段收敛到 15 文件 / 303 用例，note 9460 字符逐段保全四树来源＋本单台账；
-      卡 §二.3 四项静态检查 19 条断言全过；全量四门 GATES_EXIT=0、三端构建各 EXIT=0、MP 保留名警告 0（带正对照）；
+      卡 §二.3 四项静态检查 19 条断言全过；全量四门在代码 tip 与交付 HEAD 上三次亲跑同值（DELIVERED_HEAD_GATES_EXIT=0）、三端构建各 EXIT=0、MP 保留名警告 0（带正对照）；
       反测 4 路必做＋1 路加测全部先红且点名、cp 复原后 SHA 逐字节恒等再绿；证据树 docs/evidence/qoder-27/**（含 tools/ 15 件装置）。
 证据（可复跑）：见本卡 §二（命令＋原始输出摘要＋文件行号），装置已随证据树入库（docs/evidence/qoder-27/tools/）。
 验收自评：§三 表 11 条中，除第 7 条「git diff main..HEAD -- backend/ 0」按字面未通过（+21 行，100% 继承自共同基线 bc1087ee，
@@ -34,17 +34,17 @@
 | 1′ | 手工改写面 | **只有** `app-mobile/scripts/gates-baseline.json`，且只在 3 次冲突解算里动 `tests` 段；`crypto.ts`／`home.vue`／`products.vue` 是 git 双边自动合并 | `raw/50` §9/§10（blob 比对终版）、`raw/51`、`raw/52-authored-files.txt` |
 | 2 | `tests` 终值 15/303；note 逐段保留四树来源、原文不删 | 终态 `testFiles=15 testCount=303 noteLen=9460`；note＝`bc1087ee` 原文 2941 字符前缀＋四段来源（2454／700／1804／971）＋本单台账 590 | `raw/14:63`、`raw/14:80-83`、`raw/71` §1 |
 | 3 | 合并后静态检查四项 | `tools/static-check.cjs` 19 条断言：旧 `custom-tab-bar` 组件文件名/标签 0（残留仅 CSS 类名 1 处）、`aiMsg` 为 reactive（`:638`/`:644`）、`ProductInfo.id` 与 `skuId` 同源且与 SPU 分离（`products.ts:339/353`）、IV＋tag 双守卫在位且 IV 守卫早于密钥扩展/J0（`crypto.ts:618/620/626-627/641`） | `raw/20:1-27`，终行 `STATIC_CHECK=PASS failures=0` |
-| 4 | 全量四门、三端构建、backend 零 diff、工作树 clean | 四门 `FINAL_GATES_EXIT=0`（15/303）；`build:h5`／`mp-weixin`／`app` 各 `EXIT=0`；backend 见 §三 第 7 条；工作树除文档外 0 行 | `raw/70`、`raw/21-…raw.log`、`raw/22-build-*.raw.log`、`raw/71` §3、`raw/50` §7、`raw/73:6` |
+| 4 | 全量四门、三端构建、backend 零 diff、工作树 clean | 四门在代码 tip 与交付 HEAD 三次亲跑同值，`DELIVERED_HEAD_GATES_EXIT=0`（15/303）；`build:h5`／`mp-weixin`／`app` 各 `EXIT=0`；backend 见 §三 第 7 条；工作树除文档外 0 行 | `raw/74`、`raw/70`、`raw/21-…raw.log`、`raw/22-build-*.raw.log`、`raw/71` §3、`raw/50` §7、`raw/73:6` |
 | 5 | 反测至少四路（IV 守卫／tabBar 保留名／reactive 代理／SKU 主键），每路必红且点名，复原 SHA 一致后绿 | 实跑 **5 轮**＝4 必做＋1 加测正对照；每轮 `注入(hits=1) ⇒ 红 ⇒ cp 复原 ⇒ SHA 恒等 ⇒ 残字核对 ⇒ 绿` | `raw/40` 台账表 `:9-14`，逐轮 `raw/anti/R-*.log` ＋ `.red.raw.log` ＋ `.green.raw.log` |
 
-文档交付件（本笔）：`docs/tasks/cards/R101-QODER-27-回传.md`、`docs/tasks/inbox/ACTIVE-回执-QODER-27.md`、`docs/evidence/qoder-27/**` 共 **64 件**＝README ＋ `raw/` 33 ＋ `raw/anti/` 15 ＋ `tools/` 15。
+文档交付件（三笔文档提交累计）：`docs/tasks/cards/R101-QODER-27-回传.md`、`docs/tasks/inbox/ACTIVE-回执-QODER-27.md`、`docs/evidence/qoder-27/**` 共 **66 件**＝README ＋ `raw/` 35 ＋ `raw/anti/` 15 ＋ `tools/` 15。
 
 ## 二、证据（可复跑）——命令 ＋ 原始输出摘要 ＋ 行号
 
-1. 四门（收尾复跑，与首跑逐行同值）
-   `cd app-mobile && npm run check:gates` ⇒ `raw/70-final-gates-recheck.raw.log`
-   `:10` `vue-tsc EXIT=0，当前错误 0 条，基线 0 条`｜`:17` `当前 error 0（基线 0）、warning 12872（基线 12872）`｜`:59-60` `Test Files 15 passed (15)`／`Tests 303 passed (303)`｜`:64` `当前 15 文件 / 303 用例，基线 15 / 303`｜`:75` `差集 1 条，其中具名豁免 1 条`｜**`:78 FINAL_GATES_EXIT=0`**
-   首跑原文同读数：`raw/21-gates-full.raw.log:10,17,53-54,58,69`；首跑总出口在摘要 `raw/21-gates-full.log:21 GATES_EXIT=0`（原文本份只逐段落 `⇒ EXIT=0`，末行 `:71`）。
+1. 四门（交付 HEAD `3924cd04` 上的第三次亲跑，与首跑、收尾复跑逐值同）
+   `cd app-mobile && npm run check:gates` ⇒ `raw/74-final-gates-at-delivered-head.raw.log`（跑前 HEAD／分支已记入原文 `:2`）
+   `:14` `vue-tsc EXIT=0，当前错误 0 条，基线 0 条`｜`:21` `当前 error 0（基线 0）、warning 12872（基线 12872）`｜`:56-57` `Test Files 15 passed (15)`／`Tests 303 passed (303)`｜`:61` `当前 15 文件 / 303 用例，基线 15 / 303`｜`:72` `差集 1 条，其中具名豁免 1 条`｜**`:75 DELIVERED_HEAD_GATES_EXIT=0`**
+   代码 tip 上的两次同值读数：首跑 `raw/21-gates-full.raw.log:10,17,53-54,58,69` ＋ 摘要 `raw/21-gates-full.log:21 GATES_EXIT=0`；收尾复跑 `raw/70-final-gates-recheck.raw.log:10,17,59-60,64,75,78`（`FINAL_GATES_EXIT=0`）。
 2. 三端构建
    `cd app-mobile && npm run build:h5|build:mp-weixin|build:app` ⇒ `raw/22-build-h5.raw.log`、`raw/22-build-mp-weixin.raw.log`、`raw/22-build-app.raw.log`（各 `DONE Build complete.`＋`BUILD_EXIT_*=0`）；汇总 `raw/22-builds-and-mp-warning.log:5-33`。
    mp 在收尾时另复跑一次清洁态：`raw/23-rebuild-mp-weixin.raw.log`（`BUILD_EXIT_mp-weixin=0`、无保留名警告）。
@@ -76,7 +76,7 @@
 
 | # | 判据 | 自评 | 依据 |
 |---|---|---|---|
-| 1 | `check:gates` EXIT=0，15/303 | **通过** | `raw/70…raw.log:78 FINAL_GATES_EXIT=0`、`:59-60` 15/303；与首跑 `raw/21-…raw.log` 逐行同值 |
+| 1 | `check:gates` EXIT=0，15/303 | **通过** | 交付 HEAD 上亲跑 `raw/74…raw.log:75 DELIVERED_HEAD_GATES_EXIT=0`、`:56-57` 15/303；代码 tip 上首跑 `raw/21`＋收尾复跑 `raw/70…raw.log:78` 三份逐值同 |
 | 2 | type 0 | **通过** | `raw/70…raw.log:10`（当前 0＝基线 0） |
 | 3 | lint error 0／warning 12872 | **通过** | `raw/70…raw.log:17`；与卡内数字逐位同 |
 | 4 | contract 差集 1 条、具名豁免 1 条 | **通过** | `raw/70…raw.log:75` |
