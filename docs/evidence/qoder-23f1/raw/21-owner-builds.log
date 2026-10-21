@@ -1,0 +1,60 @@
+# 负责人自有三构建复跑 2026-10-22T02:31~02:36（Qoder 亲自跑）
+
+工作树 `D:\Users\ZXQL\wt-agents\QODER-23F1`，尖端 `457d8b88`。三份日志依次拼接，标题行给出各自的命令。
+
+$ npm --workspace app-mobile run build:h5         # BUILD_EXIT_h5=0
+$ npm --workspace app-mobile run build:mp-weixin  # BUILD_EXIT_mp-weixin=0
+$ npm --workspace app-mobile run build:app        # BUILD_EXIT_app=0
+
+----- build:h5 -----
+
+> zhixiang-app-mobile@1.0.0 build:h5
+> uni build -p h5
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+​
+/static/icons/hd-scan.svg referenced in /static/icons/hd-scan.svg didn't resolve at build time, it will remain unchanged to be resolved at runtime​
+
+欢迎将web站点部署到uniCloud前端网页托管平台，高速、免费、安全、省心，详见：https://uniapp.dcloud.io/uniCloud/hosting
+DONE  Build complete.
+----- build:mp-weixin -----
+
+> zhixiang-app-mobile@1.0.0 build:mp-weixin
+> uni build -p mp-weixin
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+​[uni-app] 组件 <custom-tab-bar> 是 H5 平台专用组件，在 mp-weixin 平台使用可能导致错误。如果你要引入自定义 tabBar 可重命名为其他名称。​
+DONE  Build complete.
+Run method: open Weixin Mini Program Devtools, import [36mdist\build\mp-weixin[39m run.
+----- build:app -----
+
+> zhixiang-app-mobile@1.0.0 build:app
+> uni build -p app
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+​[33m 
+(!) D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile/src/native/scan.ts is dynamically imported by D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile/src/pages/home/home.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile/src/pages/products/products.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts but also statically imported by D:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile/src/pages-sub/product/product/product-edit.vue?vue&type=script&setup=true&lang.ts, dynamic import will not move module into another chunk.
+[39m​
+DONE  Build complete.
+Run method: open HBuilderX, import [36mdist\build\app[39m run.
+BUILD_EXIT_h5=0
+BUILD_EXIT_mp-weixin=0
+BUILD_EXIT_app=0

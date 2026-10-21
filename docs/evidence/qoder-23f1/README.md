@@ -35,3 +35,22 @@
 - `probe/`：探针 spec / 探针 vitest 配置 / 注入器 inject-f1.cjs 源码存档（`.txt` 后缀防误跑；工作树内临时件已删）
 
 复现命令与判据自对账见回传卡 §十 / §四。
+
+---
+
+## 负责人复验段（Qoder 亲自跑，2026-10-22 02:31~03:05；以上各行为子代理读数）
+
+本节由负责人独立取证，与上文子代理轮次**相互独立**：注入器另写一份、needle 由负责人自己从尖端 `457d8b88` 文件读出，不复用 `probe/inject-f1.cjs`。归属已在文内逐处标明，避免与执行方读数混淆。
+
+| 项 | 负责人实测读数 | 出处 |
+|---|---|---|
+| 四门全量 `check:gates` | EXIT=0；type-check 0=0；lint error 0 / warning 12872；test **11 文件 / 191 用例**（与基线一致）；check:contract 差集 1 / 具名豁免 1 | raw/20 |
+| 三构建 | `build:h5` / `build:mp-weixin` / `build:app` 全部 EXIT=0 | raw/21 |
+| 基线追加机检 | `_comment`/`typeCheck`/`lint`/`checkContract`/`contractDrift` 对 `bc1087ee` **全部未改动=true**；`tests.testFiles` 11→11、`testCount` 186→191；`tests.note` `startsWith(old)=true`（2941→5395）；新增分节为空 | raw/22 |
+| 负责人反测 R-IV | `INJECT_EXIT=0`；`TEST_EXIT=1`，`Test Files 1 failed \| 10 passed (11)`、`Tests 3 failed \| 188 passed (191)`，三条 IV 用例逐字点名红（短 IV 11 字节 / 长 IV 13 字节 / 长 IV 17 字节）；两条 tag 用例保持绿；`SHA_BEFORE=SHA_AFTER=1a6bd4ef…`；`MARKER_RG_EXIT=1`；复跑 `TEST_EXIT_GREEN=0` 11/191 | anti/61-owner-R-IV-guard-removed.txt |
+| 负责人反测 R-TAG | `INJECT_EXIT=0`；`TEST_EXIT=1`，`Test Files 1 failed \| 10 passed (11)`、`Tests 2 failed \| 189 passed (191)`，红点名为两条 tag 用例（短 tag 15 字节 / 可解码为 18 字节的长 tag）；三条 IV 用例保持绿；`SHA_BEFORE=SHA_AFTER=1a6bd4ef…`；`MARKER_RG_EXIT=1`；复跑 `TEST_EXIT_GREEN=0` 11/191 | anti/60-owner-R-TAG-guard-removed.txt |
+| 注入器 | `OWNER_NEEDLE_HITS=1`、`OWNER_FILE_HAS_CRLF=true LINES=952`、回读「标记在场=true 原守卫行已消失=true 另一守卫仍在场=true」 | probe/owner-inject-23f1.cjs.txt |
+
+负责人对守卫正当性的独立复核：`j0.set(iv)` 写入 `new Uint8Array(16)` 对 13 字节 IV **不抛错**而按零填充，当被截掉的尾字节恰为 `0x00` 时构造出的 J0 与合法 12 字节 IV 的 J0 **逐字节相同** ⇒ 认证被静默绕过；17 字节则抛未分类 `RangeError: offset is out of bounds`。因此 `if (iv.length !== 12) return null` 必须在任何 J0 构造**之前**，实测其确为 `aesGcmDecrypt` 的第一条语句。新用例采用确定性重采样（`tag[15]===0` / `iv[11]===0`）保证反测必红而非依赖巧合。
+
+一处排版越面报备（**未改动**）：本表上方子代理表格「backend diff」行内含未转义的 `|`，markdown 会多渲染一列。属执行方文档，负责人只作登记不代改。

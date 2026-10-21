@@ -117,3 +117,18 @@ git diff bc1087ee..HEAD -- backend/ | wc -c          # 期望 0
 ```
 
 建议派单：① 集成收敛单——本卡把本树 tests 抬到 11/191，与 25F1/26F1 树读数收敛；② （可选）decrypt() 已分类异常文案细分卡——把"IV 长度非法/tag 长度非法/tag 校验失败"三类共用一条『认证标签校验未通过』文案的问题单独立项，涉及用户可见字符串，非本卡面；③ 加密侧 `aesGcmEncrypt` 的 iv 参数目前只有 encrypt() 内部传随机 12 字节一条路径，是否加开发期断言请裁（本卡按红线未动加密侧）。
+
+## 十一、负责人复验补记（Qoder 亲自跑，2026-10-22 02:31~03:06）
+
+署名口径：§一~§十为执行方子代理自述；本节为**负责人独立复验**，读数出处见 `docs/evidence/qoder-23f1/raw/20~22`、`anti/60-owner-*`、`anti/61-owner-*`、`probe/owner-inject-23f1.cjs.txt`。负责人结论仅"自评 + 依据 + 待裁"，不构成验收裁定。
+
+1. **四门全量**：`check:gates` EXIT=0；type-check 0=0；lint error 0 / warning 12872；test **11 文件 / 191 用例**；check:contract 差集 1 / 具名豁免 1。与执行方 §三 读数一致。
+2. **三构建**：h5 / mp-weixin / app 均 EXIT=0。与 §三 一致。
+3. **基线追加机检**（负责人自己另写一遍，对比 `bc1087ee`）：`_comment`/`typeCheck`/`lint`/`checkContract`/`contractDrift` 五段 `JSON.stringify` 逐段相等=true；`testFiles` 11→11、`testCount` 186→191；`tests.note` `startsWith(old)=true`（2941→5395 字符）；无新增分节。⇒ 未重排他人记录。
+4. **负责人自有反测两轮**（注入器另写，needle 由负责人自己从尖端 `457d8b88` 读出，与执行方注入器零共用代码）：
+   - R-IV：`OWNER_NEEDLE_HITS=1`、`INJECT_EXIT=0`、回读三 Boolean 全真 ⇒ `TEST_EXIT=1`，`Tests 3 failed | 188 passed (191)`，红点名与 §五 逐字相同（短 IV 11 / 长 IV 13 / 长 IV 17），两条 tag 用例保持绿；`SHA_BEFORE=SHA_AFTER=1a6bd4ef…`、`MARKER_RG_EXIT=1`、复跑 `TEST_EXIT_GREEN=0`（11/191）。
+   - R-TAG：`INJECT_EXIT=0` ⇒ `TEST_EXIT=1`，`Tests 2 failed | 189 passed (191)`，红点名为两条 tag 用例，三条 IV 用例保持绿；同一 SHA 恒等、`MARKER_RG_EXIT=1`、复跑绿。
+   ⇒ 执行方 §五 的读数被独立复现，非自述。
+5. **守卫位置复核**：`if (iv.length !== 12) return null` 实测为 `aesGcmDecrypt` 函数体第一条语句（crypto.ts:618，早于 `aesKeyExpansion`/`H`/`J0` 构造）；负责人独立重推 `j0.set(iv)` 零填充 ⇒ 尾字节为 `0x00` 的 13 字节 IV 构造出与合法 12 字节 IV **逐字节相同的 J0** ⇒ 认证静默绕过，属实现层破口而非理论风险。加密侧 `encrypt()` 自生 12 字节 IV（crypto.ts:780），故 §十 建议 ③ 负责人口径：**本卡不加加密侧断言**，避免无调用路径的死代码。
+6. **红线复核**：`git status --porcelain` 本轮全部反测与复跑结束后为 0 行；`git diff bc1087ee..HEAD -- backend/` 字节数 0；未 push、未开 PR、逐文件 add。
+7. **待裁项（负责人只登记，不裁定）**：即 §八.2 与 §十 建议 ①②——已分类解密失败文案三类共用一条、跨树 tests 基线收敛、加密侧断言。负责人意见：①必须走收敛单；②可单列文案卡；③建议不做。

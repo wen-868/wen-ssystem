@@ -1,0 +1,170 @@
+# 负责人自有反测 R-TAG 摘除认证标签长度守卫 2026-10-22T02:55:13+08:00
+
+$ sha256sum app-mobile/src/utils/crypto.ts  # worktree-crlf 形态
+$ cp 备份到树外 _qoder23f1_bak/crypto.ts.pre-owner-rtag
+$ node _qoder23f1_ownverify/owner-inject-23f1.cjs app-mobile/src/utils/crypto.ts R-TAG
+
+### OWNER R-TAG 2026-10-22T02:55:13+08:00
+SHA_BEFORE=1a6bd4ef655e9526864a1298323b9f6df967ba9276a1ea338fd69c607862f29f
+BACKUP_EXIT=0
+OWNER_INJECT_TARGET=app-mobile/src/utils/crypto.ts
+OWNER_INJECT_ROUND=R-TAG
+OWNER_NEEDLE_HITS=1 (期望 1)
+OWNER_FILE_HAS_CRLF=true LINES=952
+OWNER_READBACK 标记在场=true 原守卫行已消失=true 另一守卫仍在场=true
+OWNER_LEN before=32326 after=32325 readback=32325
+OWNER_INJECT_RC=0
+INJECT_EXIT=0
+RESTORE_EXIT=0
+SHA_AFTER=1a6bd4ef655e9526864a1298323b9f6df967ba9276a1ea338fd69c607862f29f
+0
+MARKER_RG_EXIT=1
+PORCELAIN_LINES=0
+
+----- 红态测试原始输出 -----
+$ npm --workspace app-mobile run test   # TEST_EXIT=1
+
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile[39m
+
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 79[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 2891[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 2879[2mms[22m[39m
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 2510[2mms[22m[39m
+     [33m[2m✓[22m[39m number retail 9 / cost 12 ⇒ 标红 [33m 326[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [31m❯[39m tests/storage-crypto.spec.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 5086[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 1133[2mms[22m[39m
+     [33m[2m✓[22m[39m 明文往返一致（含中文与 JSON 结构） [33m 346[2mms[22m[39m
+     [32m✓[39m 同一条明文两次加密得到不同密文（IV 随机）[32m 6[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文） [33m 1590[2mms[22m[39m
+[31m     [31m×[31m 非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较）[39m[33m 717[2mms[22m[39m
+[31m     [31m×[31m 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败）[39m[32m 263[2mms[22m[39m
+     [33m[2m✓[22m[39m 短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败） [33m 720[2mms[22m[39m
+     [32m✓[39m 长 IV 即拒·13 字节（守卫前实测静默零填充解密成功，守卫后必须抛已分类解密失败）[32m 12[2mms[22m[39m
+     [32m✓[39m 长 IV 即拒·17 字节（守卫前实测抛未分类 RangeError，守卫后必须抛已分类解密失败）[32m 93[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 2742[2mms[22m[39m
+     [33m[2m✓[22m[39m 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示 [33m 665[2mms[22m[39m
+     [33m[2m✓[22m[39m 用例③：请求失败且无缓存 ⇒ 最小可见集 + 提示出现；可关闭且关闭后集合不变 [33m 456[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 245[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 197[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 600[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 15616[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 2886[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键 [33m 344[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 11790[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 1730[2mms[22m[39m
+     [33m[2m✓[22m[39m gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名 [33m 308[2mms[22m[39m
+     [33m[2m✓[22m[39m 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单 [33m 637[2mms[22m[39m
+     [33m[2m✓[22m[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行） [33m 309[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 193[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m189 passed[39m[22m[90m (191)[39m
+[2m   Start at [22m 02:56:46
+[2m   Duration [22m 45.72s[2m (transform 32.21s, setup 0ms, import 68.22s, tests 31.89s, environment 125ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较）
+[31m[1mAssertionError[22m: expected [Function] to throw an error[39m
+[36m [2m❯[22m tests/storage-crypto.spec.ts:[2m88:37[22m[39m
+    [90m 86|[39m     [35mconst[39m bad [33m=[39m { [33m...[39menc[33m,[39m tag[33m:[39m [34mbytesToB64[39m(padded) }
+    [90m 87|[39m     [34mexpect[39m([34mb64ToBytes[39m(bad[33m.[39mtag)[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m18[39m)
+    [90m 88|[39m     [34mexpect[39m(() [33m=>[39m [34mdecrypt[39m(bad[33m,[39m key))[33m.[39m[34mtoThrow[39m()
+    [90m   |[39m                                     [31m^[39m
+    [90m 89|[39m   })
+    [90m 90|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败）
+[31m[1mAssertionError[22m: 非规范输入绝不许解密成功返回明文: expected 'top-secret' to be null // Object.is equality[39m
+
+[32m- Expected:[39m
+null
+
+[31m+ Received:[39m
+"top-secret"
+
+[36m [2m❯[22m expectClassifiedDecryptFailure tests/storage-crypto.spec.ts:[2m105:41[22m[39m
+    [90m103|[39m       err [33m=[39m e
+    [90m104|[39m     }
+    [90m105|[39m     [34mexpect[39m(outcome[33m,[39m [32m'非规范输入绝不许解密成功返回明文'[39m)[33m.[39m[34mtoBe[39m([35mnull[39m)
+    [90m   |[39m                                         [31m^[39m
+    [90m106|[39m     [34mexpect[39m(err)[33m.[39m[34mtoBeInstanceOf[39m([33mError[39m)
+    [90m107|[39m     expect((err as Error).name).toBe('Error') // 必须是 decrypt() 抛的已分类 E…
+[90m [2m❯[22m tests/storage-crypto.spec.ts:[2m133:5[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\QODER-23F1\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\QODER-23F1\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+
+----- 绿态复跑 -----
+$ npm --workspace app-mobile run test   # TEST_EXIT_GREEN=0
+
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile[39m
+
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 83[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 541[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1801[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 989[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文） [33m 474[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 781[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 773[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 492[2mms[22m[39m
+     [33m[2m✓[22m[39m 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示 [33m 387[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 8896[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 1155[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 7381[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 687[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m11 passed[39m[22m[90m (11)[39m
+[2m      Tests [22m [1m[32m191 passed[39m[22m[90m (191)[39m
+[2m   Start at [22m 03:00:16
+[2m   Duration [22m 17.10s[2m (transform 9.32s, setup 0ms, import 19.86s, tests 13.38s, environment 6ms)[22m
+
+—— test 门（用例数冻结）：当前 11 文件 / 191 用例，基线 11 / 191 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+
+----- 去 ANSI 后的汇总行（便于检索；只取用例级红行） -----
+     × 非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较） 717ms
+     × 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败） 263ms
+ Test Files  1 failed | 10 passed (11)
+      Tests  2 failed | 189 passed (191)

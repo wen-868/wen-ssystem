@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+/**
+ * QODER-23F1 负责人自有反测注入器（树外，不污染 git status）
+ * 用法：node owner-inject-23f1.cjs <target-file> <R-IV|R-TAG>
+ *  - 整行字面量匹配；命中次数 !== 1 ⇒ 拒绝写文件并 exit(2)（协议硬闸）
+ *  - utf8 读 / utf8 写，单行子串替换，不触碰 \r\n
+ *  - 写入后回读，打印「命中数 + 注入确认 + 另一守卫仍在场 + rc」
+ * 与子代理注入器相互独立编写，needle 由负责人从尖端文件自己读出。
+ */
+const fs = require('fs')
+
+const FILE = process.argv[2]
+const ROUND = process.argv[3]
+
+const IV_GUARD = '    if (iv.length !== 12) return null // IV 长度非法 ⇒ 等同校验失败'
+const TAG_GUARD = '    if (tag.length !== 16) return null // 认证标签长度非法 ⇒ 等同校验失败'
+
+const SPEC = {
+    'R-IV': {
+        needle: IV_GUARD,
+        patch: '    // [QODER-23F1-OWNER-R-IV] IV 长度守卫已摘除（负责人反测临时态，禁止提交）',
+        gone: IV_GUARD,
+        marker: '[QODER-23F1-OWNER-R-IV]',
+        otherGuard: TAG_GUARD
+    },
+    'R-TAG': {
+        needle: TAG_GUARD,
+        patch: '    // [QODER-23F1-OWNER-R-TAG] 认证标签长度守卫已摘除（负责人反测临时态，禁止提交）',
+        gone: TAG_GUARD,
+        marker: '[QODER-23F1-OWNER-R-TAG]',
+        otherGuard: IV_GUARD
+    }
+}[ROUND]
+
+if (!FILE || !SPEC) {
+    console.error('用法：node owner-inject-23f1.cjs <target-file> <R-IV|R-TAG>')
+    process.exit(3)
+}
+
+const before = fs.readFileSync(FILE, 'utf8')
+const hits = before.split(SPEC.needle).length - 1
+console.log(`OWNER_INJECT_TARGET=${FILE}`)
+console.log(`OWNER_INJECT_ROUND=${ROUND}`)
+console.log(`OWNER_NEEDLE_HITS=${hits} (期望 1)`)
+console.log(`OWNER_FILE_HAS_CRLF=${before.includes('\r\n')} LINES=${before.split('\n').length}`)
+if (hits !== 1) {
+    console.error(`✗ 命中 ${hits} !== 1 ⇒ 不写文件，本轮作废（VOID）`)
+    process.exit(2)
+}
+
+const after = before.replace(SPEC.needle, SPEC.patch)
+fs.writeFileSync(FILE, after, 'utf8')
+
+const rb = fs.readFileSync(FILE, 'utf8')
+console.log(`OWNER_READBACK 标记在场=${rb.includes(SPEC.marker)} 原守卫行已消失=${!rb.includes(SPEC.gone)} 另一守卫仍在场=${rb.includes(SPEC.otherGuard)}`)
+console.log(`OWNER_LEN before=${before.length} after=${after.length} readback=${rb.length}`)
+console.log('OWNER_INJECT_RC=0')
