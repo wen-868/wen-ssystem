@@ -1,0 +1,126 @@
+# 59 teardown (resume) 2026-10-21T19:34:21Z 端口->PID->CommandLine->taskkill->端口复跑归零
+$ Get-CimInstance Win32_Process -Filter "ProcessId=2044 or ProcessId=20944"
+
+
+ProcessId       : 2044
+ParentProcessId : 22188
+CommandLine     : "C:\Program Files\nodejs\node.exe" docs/evidence/qoder-25f1/mock-ai-backend-f1.mjs
+
+ProcessId       : 20944
+ParentProcessId : 16972
+CommandLine     : "node"   "D:\Users\ZXQL\wt-agents\QODER-25F1\node_modules\.bin\\..\@dcloudio\vite-plugin-uni\bin\uni.
+                  js" --port 5399
+
+
+
+$ taskkill //PID 20944 //F //T   (dev:h5 uni.js, CommandLine proven above)
+SUCCESS: The process with PID 21148 (child process of PID 4376) has been terminated.
+SUCCESS: The process with PID 3944 (child process of PID 20944) has been terminated.
+SUCCESS: The process with PID 4376 (child process of PID 20944) has been terminated.
+SUCCESS: The process with PID 20944 (child process of PID 16972) has been terminated.
+$ taskkill //PID 2044 //F //T   (mock-ai-backend, CommandLine proven above)
+SUCCESS: The process with PID 2044 (child process of PID 22188) has been terminated.
+$ netstat -ano > /tmp/ns-teardown.txt; grep -E ":5399|:8488|:5173|:5174|:8388" ports:
+PORT_GREP_EXIT=1 (1 = all zero)
+$ any node.exe remaining:
+
+
+ProcessId   : 7128
+CommandLine : "C:\Program Files\nodejs\node.exe" C:\Users\XIONG\CodexTool\qoder-bridge\serve.mjs 
+
+ProcessId   : 13900
+CommandLine : C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe "C:\Program Files\WorkBuddy\resources
+              \app.asar.unpacked\main\preload\fork-preload.cjs" "C:\Program Files\WorkBuddy\resources\app.asar.unpacked
+              \resources\extensions\edge-sync\server\index.cjs"
+
+ProcessId   : 6224
+CommandLine : node C:\Users\XIONG\.workbuddy\plugins\cache\workbuddy-builtin\workbuddy-sheetagent\5.8.3-wb.41334564.gdb
+              0e9b51.h4da087921e4a/mcp/start.mjs
+
+ProcessId   : 17900
+CommandLine : "C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe"  "C:\Users\XIONG\.workbuddy\plugins
+              \cache\workbuddy-builtin\weixinpay\1.6.110/dist/mcp-server.mjs"
+
+ProcessId   : 13668
+CommandLine : "C:\Program Files\nodejs\node.exe" "C:\Program Files\nodejs/node_modules/npm/bin/npm-cli.js" --workspace 
+              app-mobile run dev:h5
+
+ProcessId   : 7388
+CommandLine : "node"   "D:\Users\ZXQL\wt-agents\QODER-25F1\node_modules\.bin\\..\@dcloudio\vite-plugin-uni\bin\uni.js" 
+
+ProcessId   : 9812
+CommandLine : node C:\Users\XIONG\.workbuddy\plugins\cache\workbuddy-builtin\workbuddy-sheetagent\5.8.3-wb.41334564.gdb
+              0e9b51.h4da087921e4a/mcp/start.mjs
+
+ProcessId   : 18856
+CommandLine : "C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe"  "C:\Users\XIONG\.workbuddy\plugins
+              \cache\workbuddy-builtin\weixinpay\1.6.110/dist/mcp-server.mjs"
+
+
+
+--- post-kill port recheck incl 5175 (orphan of PREVIOUS session for this same card, see raw/43/raw/45 PIDs 13668/7388) ---
+PORT_GREP_EXIT=1
+$ Get-CimInstance Win32_Process -Filter "ProcessId=13668 or ProcessId=7388" (CommandLine 自证)
+
+
+ProcessId       : 13668
+ParentProcessId : 11384
+CommandLine     : "C:\Program Files\nodejs\node.exe" "C:\Program Files\nodejs/node_modules/npm/bin/npm-cli.js" --worksp
+                  ace app-mobile run dev:h5
+
+ProcessId       : 7388
+ParentProcessId : 6660
+CommandLine     : "node"   "D:\Users\ZXQL\wt-agents\QODER-25F1\node_modules\.bin\\..\@dcloudio\vite-plugin-uni\bin\uni.
+                  js" 
+
+
+
+$ taskkill //PID 13668 //F //T; taskkill //PID 7388 //F //T
+SUCCESS: The process with PID 13936 (child process of PID 20668) has been terminated.
+SUCCESS: The process with PID 18956 (child process of PID 7388) has been terminated.
+SUCCESS: The process with PID 20668 (child process of PID 7388) has been terminated.
+SUCCESS: The process with PID 7388 (child process of PID 6660) has been terminated.
+SUCCESS: The process with PID 6660 (child process of PID 13668) has been terminated.
+SUCCESS: The process with PID 13668 (child process of PID 11384) has been terminated.
+ERROR: The process "7388" not found.
+PORT_GREP_FINAL_EXIT=1 (1 = zero)
+$ remaining node.exe (must be none belonging to this card):
+
+
+ProcessId   : 7128
+CommandLine : "C:\Program Files\nodejs\node.exe" C:\Users\XIONG\CodexTool\qoder-bridge\serve.mjs 
+
+ProcessId   : 13900
+CommandLine : C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe "C:\Program Files\WorkBuddy\resources
+              \app.asar.unpacked\main\preload\fork-preload.cjs" "C:\Program Files\WorkBuddy\resources\app.asar.unpacked
+              \resources\extensions\edge-sync\server\index.cjs"
+
+ProcessId   : 6224
+CommandLine : node C:\Users\XIONG\.workbuddy\plugins\cache\workbuddy-builtin\workbuddy-sheetagent\5.8.3-wb.41334564.gdb
+              0e9b51.h4da087921e4a/mcp/start.mjs
+
+ProcessId   : 17900
+CommandLine : "C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe"  "C:\Users\XIONG\.workbuddy\plugins
+              \cache\workbuddy-builtin\weixinpay\1.6.110/dist/mcp-server.mjs"
+
+ProcessId   : 9812
+CommandLine : node C:\Users\XIONG\.workbuddy\plugins\cache\workbuddy-builtin\workbuddy-sheetagent\5.8.3-wb.41334564.gdb
+              0e9b51.h4da087921e4a/mcp/start.mjs
+
+ProcessId   : 18856
+CommandLine : "C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe"  "C:\Users\XIONG\.workbuddy\plugins
+              \cache\workbuddy-builtin\weixinpay\1.6.110/dist/mcp-server.mjs"
+
+
+
+--- final self-check (resume session) ---
+$ git diff bc1087ee..HEAD -- backend/ | wc -c
+0
+$ git log --oneline -3
+d68e43e9 fix: QODER-25F1 自绘 tabBar 撞名改名 app-tab-bar 并收口 AI 流式消息响应式
+286d071b docs: QODER-25 收口笔——文档笔哈希与终态实测入证据树（raw/75）
+350b3132 docs: QODER-25 回传卡 + 回执 + 证据树（负责人补做文档，含自有四门/三构建/反测/H5 复验读数）
+$ git status --porcelain (before docs commit)
+?? docs/evidence/qoder-25f1/
+?? "docs/tasks/cards/R101-QODER-25F1-\345\233\236\344\274\240.md"
+?? "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247-QODER-25F1.md"

@@ -1,0 +1,42 @@
+# 43 NOTE：第一次裸跑 dev:h5 落在禁用端口 5173 ⇒ 作废并改端口自选方式 2026-10-21T18:08:51Z
+# 事实：裸跑 `npm --workspace app-mobile run dev:h5` 时 vite 的默认自选端口就是 5173（派单禁止 5173/5174）。
+# 我先用 docs/evidence/qoder-25f1/port-guard-f1.mjs 占 5173/5174 想让 vite 跳过，实测出现**分脑**：
+#   占位进程 PID 19832 持 0.0.0.0:5173 与 [::]:5173；vite（PID 20532）另外绑上了 [::1]:5173，
+#   于是 curl 127.0.0.1:5173 ⇒ 404（占位进程）而 curl localhost:5173 ⇒ 200（vite）。取证装置绝不能长这样 ⇒ 占位方案作废。
+--- 端口归属与命令行自证（杀前必读） ---
+
+
+ProcessId   : 7128
+CommandLine : "C:\Program Files\nodejs\node.exe" C:\Users\XIONG\CodexTool\qoder-bridge\serve.mjs 
+
+ProcessId   : 13900
+CommandLine : C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe "C:\Program Files\WorkBuddy\resources
+              \app.asar.unpacked\main\preload\fork-preload.cjs" "C:\Program Files\WorkBuddy\resources\app.asar.unpacked
+              \resources\extensions\edge-sync\server\index.cjs"
+
+ProcessId   : 6224
+CommandLine : node C:\Users\XIONG\.workbuddy\plugins\cache\workbuddy-builtin\workbuddy-sheetagent\5.8.3-wb.41334564.gdb
+              0e9b51.h4da087921e4a/mcp/start.mjs
+
+ProcessId   : 17900
+CommandLine : "C:\Users\XIONG\.workbuddy\binaries\node\versions\22.22.2-6\node.exe"  "C:\Users\XIONG\.workbuddy\plugins
+              \cache\workbuddy-builtin\weixinpay\1.6.110/dist/mcp-server.mjs"
+
+ProcessId   : 19832
+CommandLine : "C:\Program Files\nodejs\node.exe" docs/evidence/qoder-25f1/port-guard-f1.mjs
+
+ProcessId   : 5608
+CommandLine : "C:\Program Files\nodejs\node.exe" docs/evidence/qoder-25f1/mock-ai-backend-f1.mjs
+
+ProcessId   : 16236
+CommandLine : "C:\Program Files\nodejs\node.exe" "C:\Program Files\nodejs/node_modules/npm/bin/npm-cli.js" --workspace 
+              app-mobile run dev:h5
+
+ProcessId   : 20532
+CommandLine : "node"   "D:\Users\ZXQL\wt-agents\QODER-25F1\node_modules\.bin\\..\@dcloudio\vite-plugin-uni\bin\uni.js" 
+
+ProcessId   : 1724
+CommandLine : "C:\Program Files\nodejs\node.exe" node_modules/typescript/bin/tsc -p tsconfig.json --noEmit
+
+
+

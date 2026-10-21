@@ -1,0 +1,65 @@
+# 02 baseline mp-weixin artifact inspection (app.json tabBar.custom / custom-tab-bar residue) 2026-10-21T17:16:23Z
+$ grep -c '组件 <custom-tab-bar> 是 H5 平台专用组件' docs/evidence/qoder-25f1/raw/01-baseline-build-mp-weixin.log
+1
+$ find app-mobile/dist/build/mp-weixin -name 'custom-tab-bar*'
+app-mobile/dist/build/mp-weixin/components/custom-tab-bar.js
+app-mobile/dist/build/mp-weixin/components/custom-tab-bar.json
+app-mobile/dist/build/mp-weixin/components/custom-tab-bar.wxml
+app-mobile/dist/build/mp-weixin/components/custom-tab-bar.wxss
+$ ls app-mobile/dist/build/mp-weixin
+api
+app.js
+app.json
+app.wxss
+common
+components
+composables
+config
+constants
+native
+pages
+pages-sub
+project.config.json
+static
+stores
+utils
+$ python -c print app.json tabBar
+{
+  "color": "#999999",
+  "selectedColor": "#2563EB",
+  "backgroundColor": "#FFFFFF",
+  "borderStyle": "white",
+  "custom": true,
+  "list": [
+    {
+      "pagePath": "pages/home/home",
+      "text": "首页",
+      "iconPath": "static/tabbar/home.png",
+      "selectedIconPath": "static/tabbar/home-active.png"
+    },
+    {
+      "pagePath": "pages/products/products",
+      "text": "商品",
+      "iconPath": "static/tabbar/product.png",
+      "selectedIconPath": "static/tabbar/product-active.png"
+    },
+    {
+      "pagePath": "pages/ai-chat/ai-chat",
+      "text": "AI",
+      "iconPath": "static/tabbar/ai.png",
+      "selectedIconPath": "static/tabbar/ai-active.png"
+    },
+    {
+      "pagePath": "pages/functions/functions",
+      "text": "功能",
+      "iconPath": "static/tabbar/functions.png",
+      "selectedIconPath": "static/tabbar/functions-active.png"
+    },
+    {
+      "pagePath": "pages/profile/profile",
+      "text": "我的",
+      "iconPath": "static/tabbar/user.png",
+      "selectedIconPath": "static/tabbar/user-active.png"
+    }
+  ]
+}

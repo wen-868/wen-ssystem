@@ -1,0 +1,95 @@
+# 54 mp-weixin warning-count + artifact investigation on tip (resume) 2026-10-21T18:41:27Z
+$ git rev-parse HEAD
+d68e43e9e6a4b02b047c860f70c0367a0005e7a5
+--- (a0) GREP PIPE SELF-PROOF: count a string known to exist in the same log (proves -c is not a fake 0) ---
+$ grep -c 'Build complete' docs/evidence/qoder-25f1/raw/51-53-builds-resume.log
+1
+$ grep -c 'DONE' docs/evidence/qoder-25f1/raw/51-53-builds-resume.log
+1
+--- (a1) same pipe applied to the baseline (pre-fix) log: warning must appear 1 time ---
+$ grep -c 'H5 平台专用组件' docs/evidence/qoder-25f1/raw/01-baseline-build-mp-weixin.log
+1
+--- (a2) target: name-conflict warning occurrences in NEW mp-weixin build log section ---
+$ awk '/# 51 /,/^# 52 /' docs/evidence/qoder-25f1/raw/51-53-builds-resume.log | grep -c 'H5 平台专用组件'
+0
+AWK_SECTION_GREP_EXIT=1
+--- (b) custom-tab-bar literal anywhere in new mp-weixin section ---
+0
+GREP_EXIT=1
+--- (c) dist residue components/custom-tab-bar.* count ---
+0
+--- (d) actual files under dist components/ ---
+BanksCard.js
+BanksCard.json
+BanksCard.wxml
+BanksCard.wxss
+DocPage.js
+DocPage.json
+DocPage.wxml
+DocPage.wxss
+app-tab-bar.js
+app-tab-bar.json
+app-tab-bar.wxml
+app-tab-bar.wxss
+page-header
+virtual-list.js
+virtual-list.json
+virtual-list.wxml
+virtual-list.wxss
+--- (e) app.json tabBar values (node -e extraction, original output) ---
+tabBar.custom = true
+tabBar.position = undefined
+tabBar.list.length = 5
+tabBar.list pagePaths = pages/home/home,pages/products/products,pages/ai-chat/ai-chat,pages/functions/functions,pages/profile/profile
+--- (f) root-level custom-tab-bar/ dir in output? ---
+ls: cannot access 'app-mobile/dist/build/mp-weixin/custom-tab-bar': No such file or directory
+LS_EXIT=2
+--- (g) is uni.hideTabBar compiled into mp-weixin page/component js? ---
+HIDETABBAR_GREP_RL_EXIT=0
+--- (h) src conditional form (App.vue / app-tab-bar.vue) ---
+app-mobile/src/App.vue-14-  // 口径与 components/app-tab-bar.vue 保持一致：#ifndef MP-WEIXIN，不是只盖 APP-PLUS。
+app-mobile/src/App.vue:15:  try { uni.hideTabBar({ animation: false }) } catch { /* tabBar 未就绪时忽略 */ }
+app-mobile/src/App.vue-16-  // #endif
+app-mobile/src/App.vue-17-  // 检查登录状态
+app-mobile/src/App.vue-18-  const token = uni.getStorageSync('merchant_token')
+--
+app-mobile/src/components/app-tab-bar.vue-107-onMounted(() => {
+app-mobile/src/components/app-tab-bar.vue:108:  try { uni.hideTabBar({ animation: false }) } catch { /* 未就绪时忽略 */ }
+app-mobile/src/components/app-tab-bar.vue-109-})
+app-mobile/src/components/app-tab-bar.vue-110-// #endif
+app-mobile/src/components/app-tab-bar.vue-111-
+--- (g-fixed) hideTabBar occurrences in mp-weixin output (proper exit capture, no pipe) ---
+$ grep -rl "hideTabBar" app-mobile/dist/build/mp-weixin/ > docs/evidence/qoder-25f1/raw/54b-hidewtabbar-hits.txt
+HIDETABBAR_GREP_EXIT=1  (1 = zero files contain hideTabBar)
+$ wc -l docs/evidence/qoder-25f1/raw/54b-hideTabBar-hits.txt
+0 docs/evidence/qoder-25f1/raw/54b-hideTabBar-hits.txt
+--- (i) framework source anchors (line-numbered originals) ---
+$ sed -n "208,216p" node_modules/@dcloudio/uni-cli-shared/dist/easycom.js   # reserved-name warning source
+    source = tag.replace(matcher.pattern, matcher.replacement);
+    easycomsCache.set(tag, source);
+    debugEasycom('matchEasycom', tag, source);
+    // 检查 H5 专用组件 ask163203
+    const H5_ONLY_COMPONENTS = ['custom-tab-bar'];
+    if (H5_ONLY_COMPONENTS.includes(tag) && process.env.UNI_PLATFORM !== 'h5') {
+        console.warn(`[uni-app] 组件 <${tag}> 是 H5 平台专用组件，在 ${process.env.UNI_PLATFORM} 平台使用可能导致错误。如果你要引入自定义 tabBar 可重命名为其他名称。`);
+    }
+    return source;
+$ sed -n "260,277p" node_modules/@dcloudio/uni-mp-weixin/dist/uni.compiler.js   # src/custom-tab-bar is a copy target only, not generated
+        copyOptions: {
+            assets: uniCliShared.createCopyComponentDirs(COMPONENTS_DIR),
+            targets: [
+                ...(process.env.UNI_MP_PLUGIN ? [uniCliShared.copyMiniProgramPluginJson] : []),
+                {
+                    src: [
+                        'sitemap.json',
+                        'custom-tab-bar',
+                        'functional-pages',
+                        'project.private.config.json',
+                        projectConfigFilename,
+                        ...getMiniProgramAIPaths(process.env.UNI_INPUT_DIR, process.env.UNI_PLATFORM),
+                    ],
+                    get dest() {
+                        return process.env.UNI_OUTPUT_DIR;
+                    },
+                },
+                ...uniCliShared.copyMiniProgramThemeJson(),

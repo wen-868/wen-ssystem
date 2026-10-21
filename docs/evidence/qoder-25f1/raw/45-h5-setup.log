@@ -1,0 +1,91 @@
+# 45 H5 取证装置就绪（dev:h5 自选端口 5175 / mock 8488）2026-10-21T18:14:08Z
+$ VITE_PROXY_TARGET=http://localhost:8488 npm --workspace app-mobile run dev:h5    # 裸跑，未指定 --port
+14:Port 5173 is in use, trying another one...
+15:Port 5174 is in use, trying another one...
+19:  ➜  Local:   http://localhost:5175/
+22:  ready in 7093ms.
+$ curl -s -o /dev/null -w '%{http_code}' http://localhost:5175/
+H5_HTTP=200
+$ curl -s http://127.0.0.1:8488/__mock   # 场景初值
+{"chat":{"intervalMs":350,"events":60,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+$ curl -s -X POST http://127.0.0.1:8488/__mock -d '{"chat":{"intervalMs":300,"events":200}}'
+{"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+$ curl -s http://127.0.0.1:8488/__mock   # 场景回读
+{"chat":{"intervalMs":300,"events":200,"closeEarly":0},"models":{"mode":"ok"},"tts":{"mode":"ok"}}
+--- 端口→PID 归属自证（5175 与 8488；5173/5174 归占位装置）---
+
+Displays protocol statistics and current TCP/IP network connections.
+
+NETSTAT [-a] [-b] [-e] [-f] [-i] [-n] [-o] [-p proto] [-r] [-s] [-t] [-x] [-y] [interval]
+
+  -a            Displays all connections and listening ports.
+  -b            Displays the executable involved in creating each connection or
+                listening port. In some cases well-known executables host
+                multiple independent components, and in these cases the
+                sequence of components involved in creating the connection
+                or listening port is displayed. In this case the executable
+                name is in [] at the bottom, on top is the component it called,
+                and so forth until TCP/IP was reached. Note that this option
+                can be time-consuming and will fail unless you have sufficient
+                permissions.
+  -c            Displays a list of processes sorted by the number of TCP or UDP
+                ports currently consumed.
+  -d            Displays DSCP value assocated with each connection.
+  -e            Displays Ethernet statistics. This may be combined with the -s
+                option.
+  -f            Displays Fully Qualified Domain Names (FQDN) for foreign
+                addresses.
+  -i            Displays the time spent by a TCP connection in its current state.
+  -n            Displays addresses and port numbers in numerical form.
+  -o            Displays the owning process ID associated with each connection.
+  -p proto      Shows connections for the protocol specified by proto; proto
+                may be any of: TCP, UDP, TCPv6, or UDPv6.  If used with the -s
+                option to display per-protocol statistics, proto may be any of:
+                IP, IPv6, ICMP, ICMPv6, TCP, TCPv6, UDP, or UDPv6.
+  -q            Displays all connections, listening ports, and bound
+                nonlistening TCP ports. Bound nonlistening ports may or may not
+                be associated with an active connection.
+  -r            Displays the routing table.
+  -s            Displays per-protocol statistics.  By default, statistics are
+                shown for IP, IPv6, ICMP, ICMPv6, TCP, TCPv6, UDP, and UDPv6;
+                the -p option may be used to specify a subset of the default.
+  -t            Displays the current connection offload state.
+  -x            Displays NetworkDirect connections, listeners, and shared
+                endpoints.
+  -y            Displays the TCP connection template for all connections.
+                Cannot be combined with the other options.
+  interval      Redisplays selected statistics, pausing interval seconds
+                between each display.  Press CTRL+C to stop redisplaying
+                statistics.  If omitted, netstat will print the current
+                configuration information once.
+
+--- 三个 PID 的命令行原文 ---
+
+
+ProcessId       : 5608
+ParentProcessId : 8440
+CommandLine     : "C:\Program Files\nodejs\node.exe" docs/evidence/qoder-25f1/mock-ai-backend-f1.mjs
+
+ProcessId       : 13672
+ParentProcessId : 5556
+CommandLine     : "C:\Program Files\nodejs\node.exe" docs/evidence/qoder-25f1/port-guard-f1.mjs
+
+ProcessId       : 13668
+ParentProcessId : 11384
+CommandLine     : "C:\Program Files\nodejs\node.exe" "C:\Program Files\nodejs/node_modules/npm/bin/npm-cli.js" --worksp
+                  ace app-mobile run dev:h5
+
+ProcessId       : 7388
+ParentProcessId : 6660
+CommandLine     : "node"   "D:\Users\ZXQL\wt-agents\QODER-25F1\node_modules\.bin\\..\@dcloudio\vite-plugin-uni\bin\uni.
+                  js" 
+
+
+
+--- 端口→PID 归属自证（改正确写法：netstat -ano | Select-String）---
+$ netstat -ano | Select-String ':5173|:5174|:5175|:8488' | Select-String 'LISTENING'
+
+  TCP    127.0.0.1:5174         0.0.0.0:0              LISTENING       13672
+  TCP    [::1]:5173             [::]:0                 LISTENING       13672
+
+
