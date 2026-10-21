@@ -204,3 +204,48 @@ git log --oneline origin/main..HEAD                              # 2 笔：5bbd4
 4. **门禁判据的打印格式可以补一个 `文件::规则`**：`lint-gate.mjs` 现在只打印 `文件:行:列 规则`，反测要在日志里证明"点名了某个 文件::规则 对"得靠读者拼接。下一单（若有门禁改造权）建议加一行 `key` 输出，减少验收歧义。
 5. **`gates-baseline.json` 的机械改法**：该文件是 `JSON.stringify(obj, null, 2)` + CRLF 的规范形态，改基线建议一律走"解析→改字段→重序列化"并保留写盘前的形态校验；手抄中文字面量做模式极易命中 0 次。
 6. **`errorBaseline` 已为 0、`errorsByFileRule` 已空**：下一单若新增 `.vue`/`.ts` 页面，`vue/html-indent`（12299）会因新增模板行**立刻劣化并红门**（协议 §2 明令"修代码不调基线"）。建议新页面直接用 4 空格模板缩进写，别指望事后清。
+
+---
+
+## 附：验收方（主代理 Qoder）复核补充
+
+> 复核对象：本卡 `5bbd4324`（实现）+ `5523cdb0`（docs）｜复核时刻：2026-10-21｜复核证据：`docs/evidence/qoder-21/raw/10-independent-verify-by-acceptance.txt`（本笔 `f22f537b`）
+> 以下是**独立复跑与逐处代码判读**，不是对本卡的验收结论（裁定权在凌舟）。
+
+### A. 独立复跑读数（cwd=工作树根，`npm --workspace` 口径）
+
+| 项 | 命令 | 复跑读数 | EXIT |
+| --- | --- | --- | --- |
+| 还原残留 | `sha256sum -c raw/00…` | **7 个文件全 `OK`**（工作树 == raw/00 记录的改后 SHA ⇒ 改前还原没有留下任何字节残留） | `SHA_CHECK_EXIT=0` |
+| 门/规则未被动 | `git diff --name-only 21b465e5..HEAD -- app-mobile/.eslintrc.cjs app-mobile/scripts/lint-gate.mjs` | **空**（`ESLINT_CONFIG_DIFF_FILES=0`） | — |
+| 未用 disable 绕过 | `rg -n 'eslint-disable' <本卡 7 个改动文件>` | **0 命中** | `RG_DISABLE_EXIT=1` |
+| 门 1 | `npm --workspace app-mobile run type-check` | `vue-tsc EXIT=0，当前错误 0 条，基线 0 条` | 0 |
+| 门 2 | `npm --workspace app-mobile run lint` | `当前 error 0（基线 0）、warning 12872（基线 12872）`；⚠「error 级不许长期冻结」提示**已消失** ⇒ `errorBaseline=0` 真的被门读到 | 0 |
+| 门 3 | `npm --workspace app-mobile run test` | `Test Files 5 passed (5)`、`Tests 56 passed (56)`，基线 5/56 | 0 |
+| 门 4 | `npm --workspace app-mobile run check:contract` | 292/283/204、后端 1498、差集 1 条全具名豁免 | 0 |
+| 门包 | `npm --workspace app-mobile run check:gates` | 四门全过 | `CHECK_GATES_EXIT=0` |
+
+### B. 逐处判读确认（等价性）
+
+- **9 处 `no-extra-semi`（`;(...)` → `(...)`）**：逐处看前行，全部是 `{`、`if` 块的 `}` 或注释行 ⇒ 前一行不以 `(`/`[`/`` ` ``/运算符结尾，ASI 不会把两句连读。等价。
+- **6 处 `no-unreachable`**：两类修法都成立。值型（`settings.vue` 的 `apiBase`、`ai-chat` 的 `started`）改成「默认值 + `#ifdef` 按端覆盖」，每端最终值仍由本端分支赋值；过程型（`create-sale.vue` 的 `handled`、`product-detail.vue` 的 `scanned`）改成互斥标志 + `if (handled) return`，逐端推演（H5 命中 `nav.share` 时仍 `return`；MP/APP 构建里前序 `#ifdef` 块被剔除 ⇒ 标志恒 `false` ⇒ 本端分支照旧执行）行为不变。等价。
+- **`vue/no-unused-vars`（`v-for="(act, i) in visibleActions"` → `v-for="act in visibleActions"`）**：该模板块内 `i` 零引用（已 rg 确认）。等价。
+- **`no-irregular-whitespace`（全角空格 → `\u3000`）**：模板字符串里 `\u3000` 与原 U+3000 是同码位，输出字节一致。等价。
+
+### C. 需要凌舟知道的一处**行为增量**（本卡已列「未验」，此处补精确位置）
+
+三条 `no-empty` 的处置把「静默吞异常」改成了显式 `uni.showToast`，这是**用户可见的新提示**，不是纯 lint 修复：
+
+1. `src/pages/ai-chat/ai-chat.vue:298`（`persistConversations` 的 catch）⇒ 存储写满时最多提示一次（模块作用域 `let persistWarned` 在 `<script setup>` 下是**页面实例级**，不会跨页面串提示）。
+2. `src/pages/ai-chat/ai-chat.vue:310`（`loadConversations` 的 catch）⇒ 读取失败由「静默当新会话」改为「明确告知本次按新会话开始」。
+3. `src/pages/sales/create-sale.vue:2419`（`onMounted` 里 `?doc=` 直达参数解析的 catch）⇒ 保留回落默认单据，但增加告知。
+
+三处都只在**原本就异常**的路径上触发，正常路径零变化；但 `showToast` 属新增副作用，**H5/小程序/APP 三端运行时未验**（本卡与复核方都未起过设备/浏览器）。若凌舟要求「lint 清零零行为变更」，可裁一版只留 `//` 注释处置或改登记为 warning 级豁免——那属于口径裁定，不是本轮执行偏差。
+
+### D. 证据文件的一处口径更正
+
+`raw/00-sha-worktree-after-before-restore.txt` 实际**只含 7 个改后 SHA**，不含首轮采集时的 `SHA_MATCH` 逐字节比对行（该段被 SHA 列表覆盖、未留档）。README 原先写成「以及…SHA_MATCH 逐字节校验｜7/7 SHA_MATCH」是**超出文件内容的表述**，已更正。还原正确性并不因此失去证明：`anti/1`、`anti/2` 各自带 `SHA_IDENTICAL=YES` + `cmp` 逐字节一致，加上本附录 A 的 `sha256sum -c` **7/7 OK**（独立复跑）⇒ 三条证据闭合。
+
+### E. 本卡 §⑨ 复现命令的一处时效更正
+
+`git log --oneline origin/main..HEAD` 原注释「2 笔」；加入本复核笔 `f22f537b` 后为 **3 笔**（`5bbd4324` 实现 / `5523cdb0` docs / `f22f537b` 验收证据）。`origin/main` 与本地 `main` 同为 `8287f2bd`，命令本身有效。
