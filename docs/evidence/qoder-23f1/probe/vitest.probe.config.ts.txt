@@ -1,0 +1,14 @@
+// QODER-23F1 探针专用 vitest 配置（临时文件，反测/探针跑完即删，不进提交）
+// 复用主 vitest.config.ts 的 uni-ifdef-shim 插件与别名，仅把 include 换到 probe-tmp/，
+// 保证探针不被 tests 目录计数（test 文件数必须保持 11）。
+// 注意：注释里禁止写 "星斜杠" 连排的 glob 字面量——块注释会被提前闭合（本轮 02b 实测翻车）。
+import { defineConfig } from 'vitest/config'
+import base from './vitest.config'
+
+export default defineConfig({
+    ...base,
+    test: {
+        ...(base.test ?? {}),
+        include: ['probe-tmp/**/*.spec.ts'],
+    },
+})

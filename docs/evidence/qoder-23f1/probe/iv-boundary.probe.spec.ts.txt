@@ -1,0 +1,104 @@
+// QODER-23F1 探针：aesGcmDecrypt 的 IV 越界形态实测（守卫前 / 守卫后各跑一次）
+// 临时文件（probe-tmp/ 不在 tests/ include 内，不影响门 3 计数），跑完删除、源码存档到
+// docs/evidence/qoder-23f1/probe/。本探针只打印形态、不做红/绿断言（唯一例外：P0 往返 sanity）。
+// 关注点（派单 §一.3）：
+//  · iv.length 大于 16 ⇒ Uint8Array.set 溢出抛未分类 RangeError（越过 decrypt 的已分类"解密失败"异常）
+//  · iv.length 小于 16 ⇒ set 静默零填充：13 字节 IV 若第 13 字节恰为 0x00，构造的 J0 与规范 12 字节 IV
+//    完全相同 ⇒ tag 校验"意外"通过、解密成功（认证边界被绕过）——这就是不能靠零填充的原因。
+//  · tag 短于 16 ⇒ 定长比较越界读 undefined，ToInt32(undefined)===0，期望 tag[15]===0 时静默通过（1/256 概率，可确定性构造）。
+import { describe, it, expect } from 'vitest'
+import { deriveKey, encrypt, decrypt } from '../src/utils/crypto'
+
+function b64ToBytes(b64: string): Uint8Array {
+    const bin = atob(b64)
+    const out = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i)
+    return out
+}
+function bytesToB64(bytes: Uint8Array): string {
+    let bin = ''
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
+    return btoa(bin)
+}
+
+function report(label: string, fn: () => string): void {
+    try {
+        const outcome = fn()
+        console.log(`PROBE ${label} ⇒ 正常返回: ${outcome}`)
+    } catch (e: any) {
+        console.log(`PROBE ${label} ⇒ 抛异常 name=${e?.name} message=${JSON.stringify(e?.message)}`)
+    }
+}
+
+describe('QODER-23F1 IV/短tag 边界探针', () => {
+    const key = deriveKey('unit-test-fingerprint')
+
+    it('打印各越界输入在 decrypt 上的实际形态（不断言红绿）', () => {
+        const payload = 'probe-payload-中文'
+        const enc = encrypt(payload, key)
+        const iv12 = b64ToBytes(enc.iv)
+        expect(iv12.length).toBe(12)
+        // P0 sanity：合法输入必须能解回明文（否则后面所有形态读数都无意义）
+        expect(decrypt(enc, key)).toBe(payload)
+        console.log(`PROBE P0 合法往返 ⇒ OK iv.len=${iv12.length} tag.len=${b64ToBytes(enc.tag).length}`)
+
+        // P1：13 字节 IV，第 13 字节取 0x00（与零填充后的 J0 完全一致）
+        const iv13z = new Uint8Array(13)
+        iv13z.set(iv12)
+        iv13z[12] = 0x00
+        report('P1 iv.len=13 第13字节=0x00（零填充同型）', () =>
+            JSON.stringify(decrypt({ ...enc, iv: bytesToB64(iv13z) }, key)))
+
+        // P2：13 字节 IV，第 13 字节取 0xFF（零填充后 J0 改变 ⇒ 期望 tag 不同）
+        const iv13f = new Uint8Array(13)
+        iv13f.set(iv12)
+        iv13f[12] = 0xff
+        report('P2 iv.len=13 第13字节=0xFF', () =>
+            JSON.stringify(decrypt({ ...enc, iv: bytesToB64(iv13f) }, key)))
+
+        // P3：11 字节 IV（截尾 1 字节，零填充改变 J0）
+        report('P3 iv.len=11（截掉 iv[11]）', () =>
+            JSON.stringify(decrypt({ ...enc, iv: bytesToB64(iv12.slice(0, 11)) }, key)))
+
+        // P4：17 字节 IV（>16 ⇒ j0.set 溢出）
+        const iv17 = new Uint8Array(17)
+        iv17.set(iv12)
+        report('P4 iv.len=17（set 溢出候选）', () =>
+            JSON.stringify(decrypt({ ...enc, iv: bytesToB64(iv17) }, key)))
+
+        // P5：15 字节短 tag —— 确定性构造：反复加密直到 tag[15]===0（期望 256 次内命中）
+        const tagBytes = b64ToBytes(enc.tag)
+        const shortTag = tagBytes.slice(0, 15)
+        console.log(`PROBE P5a 任意 15 字节 tag（tag[15]=${tagBytes[15]}，截尾）`)
+        report('P5a tag.len=15（未挑 tag[15]===0）', () =>
+            JSON.stringify(decrypt({ ...enc, tag: bytesToB64(shortTag) }, key)))
+
+        let found = -1
+        let foundEnc: ReturnType<typeof encrypt> | null = null
+        for (let n = 0; n < 20000; n++) {
+            const e = encrypt('top-secret', key)
+            if (b64ToBytes(e.tag)[15] === 0) {
+                found = n
+                foundEnc = e
+                break
+            }
+        }
+        console.log(`PROBE P5b 构造 tag[15]===0 ⇒ 命中于第 ${found + 1} 次加密（0 起算=${found}）`)
+        if (foundEnc) {
+            const t15 = b64ToBytes(foundEnc.tag).slice(0, 15)
+            report('P5b tag.len=15 且期望 tag[15]===0（越界读 undefined 巧合候选）', () =>
+                JSON.stringify(decrypt({ ...foundEnc!, tag: bytesToB64(t15) }, key)))
+        }
+
+        // P6：18 字节长 tag（前 16 与合法 tag 相同）——QODER-23 已知形态，复测存档
+        const padded = new Uint8Array(18)
+        padded.set(tagBytes)
+        report('P6 tag.len=18（前 16 与合法 tag 相同）', () =>
+            JSON.stringify(decrypt({ ...enc, tag: bytesToB64(padded) }, key)))
+
+        // P7：0 字节 IV（set 不抛，纯零填充 J0）
+        report('P7 iv.len=0', () =>
+            JSON.stringify(decrypt({ ...enc, iv: bytesToB64(new Uint8Array(0)) }, key)))
+        console.log('PROBE 结束')
+    })
+})

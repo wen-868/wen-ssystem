@@ -1,0 +1,30 @@
+# 02b 探针·守卫前形态实测（修正调用路径：vitest 在仓库根 node_modules；raw/02 为 MODULE_NOT_FOUND 作废读数，另立此笔不改写原日志） 2026-10-22T01:18:55+08:00
+$ node ../node_modules/vitest/vitest.mjs run --config vitest.probe.config.ts   # cwd=app-mobile
+X [ERROR] Unexpected "*"
+
+    vitest.probe.config.ts:4:31:
+      4 │  * 保证探针不被 tests/**/*.spec.ts 计数（test 文件数必...
+        ╵                    ^
+
+[31mfailed to load config from D:\Users\ZXQL\wt-agents\QODER-23F1\app-mobile\vitest.probe.config.ts[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Startup Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯⎯[39m
+Error: Build failed with 1 error:
+vitest.probe.config.ts:4:31: ERROR: Unexpected "*"
+    at failureErrorWithLog (D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:1467:15)
+    at D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:926:25
+    at runOnEndCallbacks (D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:1307:45)
+    at buildResponseToResult (D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:924:7)
+    at D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:951:16
+    at responseCallbacks.<computed> (D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (D:\Users\ZXQL\wt-agents\QODER-23\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+
+
+PROBE_EXIT=1

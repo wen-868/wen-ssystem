@@ -1,0 +1,23 @@
+# 02 探针·守卫前形态实测（crypto.ts 停在 2568ef03 基线态，IV 守卫未加） 2026-10-22T01:18:35+08:00
+$ git rev-parse HEAD
+2568ef0352929f29e4c99ba79627fea2b5a26476
+$ (cd app-mobile && node node_modules/vitest/vitest.mjs run --config vitest.probe.config.ts)  # 探针临时文件 probe-tmp/，不在 tests include 内
+node:internal/modules/cjs/loader:1520
+  throw err;
+  ^
+
+Error: Cannot find module 'D:\Users\ZXQL\wt-agents\QODER-23F1\app-mobile\node_modules\vitest\vitest.mjs'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v24.18.0
+PROBE_EXIT=1

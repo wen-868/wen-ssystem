@@ -1,0 +1,29 @@
+# 03 探针·守卫后形态实测（crypto.ts 已加 IV 守卫，其余不变） 2026-10-22T01:24:39+08:00
+$ git rev-parse HEAD（工作树含未提交实现改动）
+2568ef0352929f29e4c99ba79627fea2b5a26476
+$ node ../node_modules/vitest/vitest.mjs run --config vitest.probe.config.ts   # cwd=app-mobile
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-23F1/app-mobile[39m
+
+[90mstdout[2m | probe-tmp/iv-boundary.probe.spec.ts[2m > [22m[2mQODER-23F1 IV/短tag 边界探针[2m > [22m[2m打印各越界输入在 decrypt 上的实际形态（不断言红绿）
+[22m[39mPROBE P0 合法往返 ⇒ OK iv.len=12 tag.len=16
+PROBE P1 iv.len=13 第13字节=0x00（零填充同型） ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE P2 iv.len=13 第13字节=0xFF ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE P3 iv.len=11（截掉 iv[11]） ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE P4 iv.len=17（set 溢出候选） ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE P5a 任意 15 字节 tag（tag[15]=188，截尾）
+PROBE P5a tag.len=15（未挑 tag[15]===0） ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE P5b 构造 tag[15]===0 ⇒ 命中于第 146 次加密（0 起算=145）
+PROBE P5b tag.len=15 且期望 tag[15]===0（越界读 undefined 巧合候选） ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE P6 tag.len=18（前 16 与合法 tag 相同） ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE P7 iv.len=0 ⇒ 抛异常 name=Error message="AES-256-GCM 解密失败：认证标签校验未通过（数据可能被篡改或密钥不匹配）"
+PROBE 结束
+
+ [32m✓[39m probe-tmp/iv-boundary.probe.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 77[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 01:24:43
+[2m   Duration [22m 3.21s[2m (transform 468ms, setup 0ms, import 755ms, tests 77ms, environment 1ms)[22m
+
+PROBE_EXIT=0
