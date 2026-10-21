@@ -595,9 +595,9 @@ function aesGcmEncrypt(
  * @param ciphertext 密文
  * @param key        32 字节密钥
  * @param iv         12 字节 IV
- * @param tag        16 字节认证标签
+ * @param tag        认证标签（GCM 规范长度 16 字节；非 16 字节直接拒绝，不参与比较）
  * @param aad        附加认证数据（可选）
- * @returns 解密后的明文；tag 校验失败返回 null
+ * @returns 解密后的明文；tag 长度非 16 字节或 tag 校验失败均返回 null
  */
 function aesGcmDecrypt(
     ciphertext: Uint8Array,
@@ -621,6 +621,13 @@ function aesGcmDecrypt(
     const j0Encrypted = aesEncryptBlock(j0, expandedKey)
     const expectedTag = new Uint8Array(16)
     for (let i = 0; i < 16; i++) expectedTag[i] = j0Encrypted[i] ^ s[i]
+
+    // 认证标签长度守卫（QODER-23）：GCM tag 规范长度恒为 16 字节，必须先拒绝非规范长度，
+    // 再进入下面的定长比较。原因（实测见 docs/evidence/qoder-23/probe）：比较循环只取 tag[0..15]，
+    //   · tag 长于 16 字节 ⇒ 尾部字节完全不参与校验，前 16 字节合法即可静默通过（认证被绕过）；
+    //   · tag 短于 16 字节 ⇒ 越界位读作 undefined，ToInt32(undefined)===0，只是"恰好"被非零期望字节兜住。
+    // 两种形态都不该依赖巧合，统一在此返回 null。
+    if (tag.length !== 16) return null // 认证标签长度非法 ⇒ 等同校验失败
 
     // 常量时间比较（防止时序攻击）
     let diff = 0
