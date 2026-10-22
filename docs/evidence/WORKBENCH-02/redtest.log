@@ -1,0 +1,16 @@
+PASS  结构：12 组 / 71 项 / 收银 9 项 / menuCode 唯一  ← 12 组 / 71 项 / 收银 9 项
+PASS  路由对齐：每个 routeName 在真实 router 存在且 path 一致  ← 79 条路由映射全部对齐
+PASS  组件一致：manifest component 与 router lazy import 指向同一文件且文件存在  ← 77 个组件文件与路由表一致（1 个本地弹窗动作除外）
+PASS  角色可见性：SUPER_ADMIN 全量可见（人工 71 / 收银 9）  ← 人工 71 / 收银 9
+FAIL  角色可见性：STORE_MANAGER 只见授权项（系统设置 8 项不可见）  ← STORE_MANAGER 基线可见项应为 23（全部来自 meta.roles 授权）
+
+22 !== 23
+
+PASS  角色可见性：STORE_OPERATOR 不可见人工 12 组、可见收银 9 项  ← 人工 0 组 / 收银 9 项
+PASS  角色可见性：READONLY 全不可见 + 未知路由 fail-closed  ← READONLY 0 / 幽灵路由不可见
+PASS  路由装配：根布局为 WorkbenchShell，旧壳仅在 flag 关闭时回退  ← WorkbenchShell 已装配，回退路径保留
+PASS  约束：无动态菜单调用、无新增 AI 写动作  ← 12 个文件均未接动态菜单与 AI 写动作
+PASS  特征开关：默认启用，wb.shell.v2=0 关闭，=1 恢复  ← 默认 on / 0 off / 1 on
+PASS  模式状态：默认人工，切换 AI 后持久化  ← human ⇄ ai 可持久化
+
+小结：10 passed / 1 failed

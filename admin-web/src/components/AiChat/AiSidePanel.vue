@@ -6,14 +6,25 @@
         <el-icon class="header-logo"><MagicStick /></el-icon>
         <span v-show="!collapsed">经营助手</span>
       </div>
-      <el-button
-        class="ai-collapse-btn"
-        aria-label="折叠或展开智能助手"
-        :icon="collapsed ? 'Expand' : 'Fold'"
-        size="small"
-        text
-        @click="collapsed = !collapsed"
-      />
+      <div class="ai-header-actions">
+        <el-button
+          v-show="!collapsed && messages.length > 0"
+          class="ai-clear-btn"
+          aria-label="清空对话"
+          :icon="Delete"
+          size="small"
+          text
+          @click="clearChat"
+        />
+        <el-button
+          class="ai-collapse-btn"
+          aria-label="折叠或展开智能助手"
+          :icon="collapsed ? Expand : Fold"
+          size="small"
+          text
+          @click="collapsed = !collapsed"
+        />
+      </div>
     </div>
 
     <!-- 消息区 -->
@@ -118,7 +129,17 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { MagicStick, Promotion, Microphone, Loading, Picture, Close } from "@element-plus/icons-vue";
+import {
+  MagicStick,
+  Promotion,
+  Microphone,
+  Loading,
+  Picture,
+  Close,
+  Delete,
+  Expand,
+  Fold,
+} from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
 import { createMessageId, type AiChatMessage } from "./types";
 import {
@@ -425,6 +446,12 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border-light);
+}
+
+.ai-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .ai-header-title {
