@@ -1,0 +1,17 @@
+—— QODER-29 请求出口 & 凭据日志静态守卫 ——
+直接网络调用（uni.request/uploadFile/downloadFile，非注释行）：共 9 处
+  src/api/modules/ai.ts:259  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:383  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:416  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:457  uni.request  ✔ 已登记
+  src/api/modules/products.ts:603  uni.uploadFile  ✔ 已登记
+  src/api/modules/profile.ts:47  uni.uploadFile  ✔ 已登记
+  src/api/request.ts:102  uni.request  ✔ 已登记
+  src/pages/login/login.vue:277  uni.request  ✘ 未登记
+  src/utils/update.ts:177  uni.downloadFile  ✔ 已登记
+
+✗ [A] 存在未登记 / 超出额度的直接调用（MO-29）：
+    src/pages/login/login.vue: 实际 1 > 登记 0 — src/pages/login/login.vue:277 uni.request
+
+✗ [B] 直接调用未复用统一安全头 buildRequestHeaders（MO-29）：
+    src/pages/login/login.vue

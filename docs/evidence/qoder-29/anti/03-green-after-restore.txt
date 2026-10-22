@@ -1,0 +1,12 @@
+—— QODER-29 请求出口 & 凭据日志静态守卫 ——
+直接网络调用（uni.request/uploadFile/downloadFile，非注释行）：共 8 处
+  src/api/modules/ai.ts:259  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:383  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:416  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:457  uni.request  ✔ 已登记
+  src/api/modules/products.ts:603  uni.uploadFile  ✔ 已登记
+  src/api/modules/profile.ts:47  uni.uploadFile  ✔ 已登记
+  src/api/request.ts:102  uni.request  ✔ 已登记
+  src/utils/update.ts:177  uni.downloadFile  ✔ 已登记
+
+✓ A 全部登记且未超额 · B 复用统一安全头 · C 无明文凭据日志 ⇒ EXIT=0

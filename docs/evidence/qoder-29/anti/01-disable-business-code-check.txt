@@ -1,0 +1,95 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/QODER-29/app-mobile[39m
+
+ [31m❯[39m tests/request-contract.spec.ts [2m([22m[2m19 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 506[2mms[22m[39m
+     [32m✓[39m ② 200 + code "0" + data ⇒ 成功解包 data[32m 259[2mms[22m[39m
+[31m     [31m×[31m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[39m[32m 23[2mms[22m[39m
+[31m     [31m×[31m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[39m[32m 6[2mms[22m[39m
+     [32m✓[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功[32m 4[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 4[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 4[2mms[22m[39m
+[31m     [31m×[31m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast[39m[32m 7[2mms[22m[39m
+     [32m✓[39m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发[32m 3[2mms[22m[39m
+     [32m✓[39m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[32m 3[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 2[2mms[22m[39m
+     [32m✓[39m ⑫ request() 出口实际带上了这三头（构建器真被消费）[32m 15[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 7[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 11[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 6[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 4[2mms[22m[39m
+     [32m✓[39m ⑰ 多行 text 事件逐条增量分发，不吞并[32m 132[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 1[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 1[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 4[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 3 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回
+[31m[1mAssertionError[22m: promise resolved "null" instead of rejecting[39m
+
+[32m- Expected:[39m
+Error {
+  "message": "rejected promise",
+}
+
+[31m+ Received:[39m
+null
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m119:87[22m[39m
+    [90m117|[39m   it('③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回', async () =>…
+    [90m118|[39m     const { stub, mod } = await runWith({ code: '1001', msg: '库存不足', d…
+    [90m119|[39m     await expect(mod.request({ url: '/admin/order/create', method: 'PO…
+    [90m   |[39m                                                                                       [31m^[39m
+    [90m120|[39m       [32m'库存不足'[39m
+    [90m121|[39m     )
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码
+[31m[1mAssertionError[22m: promise resolved "null" instead of rejecting[39m
+
+[32m- Expected:[39m
+Error {
+  "message": "rejected promise",
+}
+
+[31m+ Received:[39m
+null
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m127:65[22m[39m
+    [90m125|[39m   [34mit[39m([32m'④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m126|[39m     const { mod } = await runWith({ code: '400', msg: '', data: null, …
+    [90m127|[39m     await expect(mod.request({ url: '/admin/x', method: 'GET' })).reje…
+    [90m   |[39m                                                                 [31m^[39m
+    [90m128|[39m   })
+    [90m129|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast
+[31m[1mAssertionError[22m: promise resolved "null" instead of rejecting[39m
+
+[32m- Expected:[39m
+Error {
+  "message": "rejected promise",
+}
+
+[31m+ Received:[39m
+null
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m150:79[22m[39m
+    [90m148|[39m   [34mit[39m([32m'⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m149|[39m     const { stub, mod } = await runWith({ code: '2001', msg: '配额耗尽', d…
+    [90m150|[39m     await expect(mod.request({ url: '/admin/x', method: 'GET', silent:…
+    [90m   |[39m                                                                               [31m^[39m
+    [90m151|[39m     [34mexpect[39m(stub[33m.[39mtoasts)[33m.[39m[34mtoEqual[39m([])
+    [90m152|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (19)[39m
+[2m   Start at [22m 08:59:34
+[2m   Duration [22m 2.65s[2m (transform 603ms, setup 0ms, import 392ms, tests 506ms, environment 2ms)[22m
+
