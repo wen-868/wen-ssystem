@@ -63,7 +63,7 @@
       </main>
     </div>
 
-    <!-- AI 数字员工：一级 rail + 信息流容器 + 会话面板（骨架，不接写动作） -->
+    <!-- AI 数字员工：一级 rail + 主交互面 + 会话面板（真实对话；故障可一键回人工） -->
     <div v-else class="wb-ai-body">
       <AiNavRail
         :groups="visibleGroups"
@@ -73,9 +73,16 @@
       <AiFeedContainer
         :title="activeGroupTitle"
         :items="activeGroupItems"
+        :session-state="aiSessionState"
         @open="openManualItem"
+        @command="sendQuickCommand"
+        @new-conversation="startNewConversation"
       />
-      <AiChatPanel />
+      <AiChatPanel
+        ref="chatPanel"
+        @status="handleAiStatus"
+        @fallback="switchMode('human')"
+      />
     </div>
 
     <!-- 收银台本机打印设置（沿用现有本地弹窗，不走路由） -->
@@ -160,6 +167,26 @@ const pageTitle = computed(() => {
 });
 
 const printSettingsVisible = ref(false);
+
+/** AI 会话面板上报的真实状态（仅客户端观测，不臆造“在线”） */
+const aiSessionState = ref<"idle" | "streaming" | "error">("idle");
+const chatPanel = ref<{
+  sendQuickCommand?: (text: string) => void;
+  newConversation?: () => void;
+} | null>(null);
+
+function handleAiStatus(payload: { state: "idle" | "streaming" | "error" }): void {
+  aiSessionState.value = payload.state;
+}
+
+/** 快捷经营指令：复用右侧面板的真实发送逻辑（POST /api/chat） */
+function sendQuickCommand(prompt: string): void {
+  chatPanel.value?.sendQuickCommand?.(prompt);
+}
+
+function startNewConversation(): void {
+  chatPanel.value?.newConversation?.();
+}
 
 function switchMode(mode: WorkbenchMode): void {
   if (isCashierRoute.value) return;

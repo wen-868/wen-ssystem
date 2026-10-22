@@ -158,6 +158,11 @@ const listEl = ref<HTMLElement | null>(null);
 /** 折叠状态：列表页可收起 AI 面板，给数据区腾空间 */
 const collapsed = ref(false);
 
+/** 会话状态上报：供 AI 主交互面显示故障横幅并一键切回人工（不改变内部对话逻辑） */
+const emit = defineEmits<{
+  (event: "status", payload: { state: "idle" | "streaming" | "error"; message?: string }): void;
+}>();
+
 /** 语音输入（Web Speech API：浏览器原生中文识别，Chrome/Edge 支持） */
 const speechSupported =
   typeof window !== "undefined" &&
@@ -299,6 +304,7 @@ async function sendMessage(): Promise<void> {
   const assistant = pushMessage({ role: "assistant", kind: "text", content: "" });
   streaming.value = true;
   abortController.value = new AbortController();
+  emit("status", { state: "streaming" });
 
   try {
     await sendChatMessage(
@@ -329,6 +335,7 @@ async function sendMessage(): Promise<void> {
         onDone: (cid) => {
           conversationId.value = cid;
           streaming.value = false;
+          emit("status", { state: "idle" });
         },
         onError: (message) => {
           reportStreamError(assistant, message);
@@ -355,6 +362,7 @@ function reportStreamError(assistant: AiChatMessage, message: string): void {
     pushMessage({ role: "assistant", kind: "error", error: message });
   }
   streaming.value = false;
+  emit("status", { state: "error", message });
 }
 
 function sendSuggestion(text: string): void {
@@ -406,6 +414,9 @@ async function handleRevoke(id: string): Promise<void> {
     ElMessage.error(e instanceof Error ? e.message : "撤销失败");
   }
 }
+
+/** 对外暴露：AI 主交互面的快捷指令与“新对话”复用同一套真实发送逻辑 */
+defineExpose({ sendText: sendSuggestion, clearChat });
 
 watch(messages, () => scrollToBottom(), { deep: true });
 

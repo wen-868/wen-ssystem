@@ -1,0 +1,34 @@
+PASS  能力台账结构：19 项，ID/矩阵行号连续且唯一  ← ai-01…ai-19 / matrixRow 1…19
+FAIL  状态守恒：LIVE 1 / PARTIAL 12 / PLANNED 6 / BLOCKED 0  ← 状态计数应为 {"LIVE":1,"PARTIAL":12,"PLANNED":6,"BLOCKED":0}
++ actual - expected
+
+  {
+    BLOCKED: 0,
++   LIVE: 2,
+-   LIVE: 1,
+    PARTIAL: 12,
++   PLANNED: 5
+-   PLANNED: 6
+  }
+
+FAIL  P0 矩阵对账：逐行比对标题与状态  ← #2 状态应与矩阵一致（矩阵 PLANNED）
+
+'LIVE' !== 'PLANNED'
+
+FAIL  LIVE 依据：ai-08 端点 + 挂载中的真实调用点  ← LIVE 应仅有 1 项
+
+2 !== 1
+
+FAIL  PLANNED：必填缺失原因且 UI 禁用，不伪造入口  ← PLANNED 应为 6 项
+
+5 !== 6
+
+PASS  无 mock：AI 主交互面无随机数/模拟数据/演示数字  ← 6 文件零命中
+PASS  单一对话实现：AI 主交互面不复制第二套对话  ← 0 套新对话实现
+PASS  约束：不接动态菜单，不新增 AI 写动作确认链  ← 6 文件零命中
+PASS  AI 故障隔离：明确状态 + 一键回人工 + 人工路由不受阻  ← alert + 切人工 + 人工路由无条件渲染
+PASS  权限继承：AI 模式入口 = 角色可见项，收银 9 项不变  ← 71 / 23 / 0 + 收银 9
+PASS  快捷指令：3 条，走真实对话（不新建指令端点）  ← 3 条指令复用 POST /api/chat
+PASS  业务冻结面：views / backend 相对基线零改动  ← 0 文件
+
+小结：8 passed / 4 failed
