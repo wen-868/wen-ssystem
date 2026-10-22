@@ -68,6 +68,65 @@
       <section class="afc-card afc-card-wide">
         <h3 class="afc-card-title">能力台账（{{ capabilities.length }}）</h3>
         <p class="afc-card-sub">状态与 P0 矩阵逐项一致；待建设项禁用，不伪造入口。</p>
+        <!-- 人工 / AI 对等覆盖：80 个人工入口全登记；未实现 AI 不隐藏人工入口 -->
+        <div class="afc-parity" data-testid="parity-summary">
+          <p class="afc-parity-line">{{ parityLine }}</p>
+          <p class="afc-parity-meta">
+            动作状态：已上线 {{ parity.statusCounts.LIVE }} · 部分接入 {{ parity.statusCounts.PARTIAL }} ·
+            待建设 {{ parity.statusCounts.PLANNED }} · 阻塞 {{ parity.statusCounts.BLOCKED }}；
+            人工入口状态：已上线 {{ parity.manualStatusCounts.LIVE }} · 部分接入 {{ parity.manualStatusCounts.PARTIAL }} ·
+            待建设 {{ parity.manualStatusCounts.PLANNED }} · 阻塞 {{ parity.manualStatusCounts.BLOCKED }}
+          </p>
+          <p class="afc-parity-meta">
+            其中 {{ parity.manualWithActions }} 个入口映射到写动作，{{ parity.readonlyEntries.length }} 个入口为只读页 / 本地弹窗动作（无 AI 对应项，单列原因）。
+            未实现 AI 的入口不会消失：人工仍可从左侧导航进入并操作。
+          </p>
+          <button
+            type="button"
+            class="afc-link"
+            data-testid="parity-expand"
+            :aria-expanded="parityExpanded ? 'true' : 'false'"
+            @click="parityExpanded = !parityExpanded"
+          >
+            {{ parityExpanded ? "收起业务域" : "按业务域查看（" + parity.domains.length + " 域）" }}
+          </button>
+          <ul v-if="parityExpanded" class="afc-domains" data-testid="parity-domains">
+            <li
+              v-for="domain in parity.domains"
+              :key="domain.domain"
+              class="afc-domain"
+              :data-domain="domain.domain"
+              :data-status="domain.status"
+            >
+              <div class="afc-domain-head">
+                <span class="afc-domain-label">{{ domain.label }}</span>
+                <span class="afc-cap-status" :data-status="domain.status">{{ capabilityStatusLabel(domain.status) }}</span>
+                <span class="afc-domain-count">人工 {{ domain.manualCount }} 项 · 动作 {{ domain.actionCount }} 项</span>
+              </div>
+              <p v-if="domain.blockedReason" class="afc-domain-reason">{{ domain.blockedReason }}</p>
+              <p class="afc-domain-fallback">{{ domain.manualFallback }}</p>
+              <ul v-if="domain.manualEntries.length > 0" class="afc-domain-entries">
+                <li
+                  v-for="entry in domain.manualEntries"
+                  :key="entry.menuCode"
+                  :data-menu-code="entry.menuCode"
+                  :data-status="entry.status"
+                >
+                  <span class="afc-cap-status" :data-status="entry.status">{{ capabilityStatusLabel(entry.status) }}</span>
+                  <span>{{ entry.title }}<template v-if="entry.missingReason">：{{ entry.missingReason }}</template></span>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <div v-if="parityExpanded && parity.readonlyEntries.length > 0" class="afc-parity-readonly" data-testid="parity-readonly">
+            <p class="afc-parity-meta">只读页 / 本地弹窗动作（无 AI 对应项，人工入口保留）：</p>
+            <ul>
+              <li v-for="entry in parity.readonlyEntries" :key="entry.menuCode" :data-menu-code="entry.menuCode" :data-status="entry.status">
+                {{ entry.ownerDomain }} › {{ entry.title }} — {{ entry.missingReason }}
+              </li>
+            </ul>
+          </div>
+        </div>
         <ul class="afc-caps">
           <li
             v-for="capability in capabilities"
@@ -91,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { ManifestItem } from "../../shared/workbench/route-manifest";
 import {
   CAPABILITIES,
@@ -102,6 +161,7 @@ import {
   isCapabilityEnabled,
   type CapabilityEntry,
 } from "../../shared/workbench/capability-registry";
+import { PARITY, paritySummaryText } from "../../shared/workbench/parity-ledger";
 
 const props = defineProps<{
   title: string;
@@ -121,6 +181,11 @@ const emit = defineEmits<{
 const capabilities = computed(() => props.capabilities ?? CAPABILITIES);
 const quickCommands = QUICK_COMMANDS;
 const summary = computed(() => capabilitySummary(capabilities.value));
+
+// 对等覆盖摘要与域展开：数据由 parity-ledger 从 30 矩阵 + route-manifest 派生（非手写）
+const parity = PARITY;
+const parityLine = paritySummaryText();
+const parityExpanded = ref(false);
 
 const sessionLabel = computed(() => {
   switch (props.sessionState) {
@@ -387,4 +452,102 @@ const infoFeedStatus = computed(() => getCapability("ai-03")?.status ?? "PLANNED
   background: #fdf2f2;
   color: #b42318;
 }
+.afc-parity {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light, #e5e7eb);
+  border-radius: 8px;
+  background: var(--bg-soft, #f7f8fa);
+}
+
+.afc-parity-line {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+.afc-parity-meta {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #595959;
+}
+
+.afc-domains {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.afc-domain {
+  padding: 8px 10px;
+  border: 1px solid var(--border-light, #e5e7eb);
+  border-radius: 8px;
+  background: var(--gray-0, #fff);
+}
+
+.afc-domain-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.afc-domain-label {
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+.afc-domain-count {
+  font-size: 11px;
+  color: #8c8c8c;
+}
+
+.afc-domain-reason,
+.afc-domain-fallback {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #595959;
+}
+
+.afc-domain-entries {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-primary, #1f2937);
+}
+
+.afc-domain-entries > li {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.afc-parity-readonly {
+  margin-top: 10px;
+}
+
+.afc-parity-readonly ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #595959;
+}
+
 </style>

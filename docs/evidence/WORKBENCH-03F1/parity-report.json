@@ -1,0 +1,34 @@
+{
+  "generatedFrom": [
+    "docs/evidence/WB-REFACTOR-P0/30-action-permission-matrix.md",
+    "admin-web/src/shared/workbench/route-manifest.ts",
+    "admin-web/src/shared/workbench/parity-domains.ts"
+  ],
+  "baseline": "45b8cf1507dc6706ce512c1647770555d2da9234",
+  "manualEntries": 80,
+  "manualEntriesMapped": 80,
+  "missingManualMappings": 0,
+  "actionRows": 254,
+  "actionAnchors": 254,
+  "unmappedActionRows": 0,
+  "onMenuActionRows": 155,
+  "offMenuActionRows": 99,
+  "statusCounts": {
+    "LIVE": 26,
+    "PARTIAL": 0,
+    "PLANNED": 213,
+    "BLOCKED": 15
+  },
+  "manualStatusCounts": {
+    "LIVE": 2,
+    "PARTIAL": 12,
+    "PLANNED": 60,
+    "BLOCKED": 6
+  },
+  "aiCapabilities": 19,
+  "actionCapabilities": 254,
+  "orphanCapabilities": [],
+  "unregisteredDomains": [],
+  "missing": [],
+  "pass": true
+}

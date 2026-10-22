@@ -1,0 +1,13 @@
+# 反测 A · 造错：{"mode":"A","menuCode":"web.order.aftersale","removedActionId":"\"aftersale.approve_create\""}
+# 文件：D:\Users\ZXQL\wt-agents\WORKBENCH-03F1\admin-web\src\shared\workbench\parity-manual-gen.ts
+# 复原前 SHA256：D7C108B2B3EF4FE2371ABBBB8B36E8CB2A92094A8FEC1493187E4704E1F4A31B
+
+## 造错后运行 tests/parity-coverage.spec.mjs
+FAIL  人工入口守恒：80/80 登记，含本地弹窗显式登记  ← web.order.aftersale 动作计数应与锚点一致
+
+小结：15 passed / 1 failed
+
+## 复原后
+SHA256 复原一致：True（D7C108B2B3EF4FE2371ABBBB8B36E8CB2A92094A8FEC1493187E4704E1F4A31B）
+复绿：小结：16 passed / 0 failed
+复绿 FAIL 行数：0

@@ -1,0 +1,17 @@
+# 反测 C · 造错：{"mode":"C","washedActionId":"aftersale.approve_create"}
+# 文件：D:\Users\ZXQL\wt-agents\WORKBENCH-03F1\admin-web\src\shared\workbench\parity-actions-gen.ts
+# 复原前 SHA256：6045B07864BEDB42BA912AD24C430C56FF9EF344F622F216AD168B4856EEA4CF
+
+## 造错后运行 tests/parity-coverage.spec.mjs
+FAIL  状态守恒：动作 26/0/213/15，入口 2/12/60/6  ← 动作状态分布不符合矩阵
+FAIL  独立重解析 30 矩阵：254 行逐行一致（漂移必红）  ← 台账与矩阵漂移（前 10 条）：aftersale.approve_create 状态被改：LIVE≠PLANNED
+FAIL  PLANNED/BLOCKED：原因 + 责任域 + 人工回退齐全；LIVE 必须工具+确认链  ← aftersale.approve_create 被标 LIVE 但矩阵无工具/确认链
+FAIL  入口状态聚合：与所辖动作最严重状态一致，能力引用无悬空  ← web.order.aftersale 聚合状态 PLANNED≠PARTIAL
+FAIL  parity-report.json 与运行时一致：missingManualMappings=0、pass=true  ← Expected values to be strictly deep-equal:
+
+小结：11 passed / 5 failed
+
+## 复原后
+SHA256 复原一致：True（6045B07864BEDB42BA912AD24C430C56FF9EF344F622F216AD168B4856EEA4CF）
+复绿：小结：16 passed / 0 failed
+复绿 FAIL 行数：0
