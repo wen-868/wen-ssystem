@@ -1,4 +1,4 @@
-﻿import { get, post, put, del } from '../request'
+﻿import { get, post, put, del, buildRequestHeaders } from '../request'
 import { API_BASE_H5, API_BASE_NATIVE } from '../../config/env'
 
 /** API 基础地址（与 request.ts 保持一致） */
@@ -597,13 +597,9 @@ export async function listStockWarnings(): Promise<StockWarningItem[]> {
 /** 上传商品主图（multipart 字段名 image，后端 POST /admin/products/upload-image） */
 function uploadImage(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const token = uni.getStorageSync('merchant_token') || ''
-    const tenantId = uni.getStorageSync('merchant_tenant_id') || ''
-    const csrfToken = uni.getStorageSync('merchant_csrf_token') || ''
-    const header: Record<string, string> = {}
-    if (token) header['Authorization'] = `Bearer ${token}`
-    if (tenantId) header['X-Tenant-Id'] = tenantId
-    if (csrfToken) header['x-csrf-token'] = csrfToken
+    // 直接调用 uni.uploadFile（multipart 无法走 Promise 型统一入口），
+    // 但安全头复用 buildRequestHeaders，鉴权 / 租户头 / CSRF 与 request.ts 同源（★ QODER-29 MO-29）
+    const header = buildRequestHeaders()
     uni.uploadFile({
       url: `${API_BASE}/admin/products/upload-image`,
       filePath,

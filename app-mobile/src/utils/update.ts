@@ -22,6 +22,7 @@
  *     且只有实算摘要与下发摘要一致后才会走到安装（semver 闸已保证只装严格更高的版本）。
  */
 import { API_BASE_H5, API_BASE_NATIVE } from '../config/env'
+import { request, buildRequestHeaders } from '../api/request'
 import {
   dataUrlToBytes,
   decideUpdateAction,
@@ -175,6 +176,9 @@ function downloadAndVerify(url: string, expectedSha256: string): void {
   uni.showLoading({ title: '下载更新包…' })
   uni.downloadFile({
     url,
+    // ★ QODER-29 MO-29：更新包下载确需直接调用 uni.downloadFile（二进制流，非 Promise 型统一入口），
+    // 但必须复用统一安全头，鉴权 / 租户头 / CSRF 与 request.ts 同源
+    header: buildRequestHeaders(),
     success: (res) => {
       const tempFilePath = res.tempFilePath
       if (res.statusCode !== 200 || !tempFilePath) {
@@ -292,7 +296,6 @@ function handleAppUpdate(data: unknown): void {
 
 /** 启动/回前台时调用：检查是否有新版本 */
 export function checkAppUpdate(): void {
-  const base = resolveBase()
   // 按操作系统平台请求对应安装包地址（android / ios / harmony）
   let arch = ''
   // #ifdef APP-PLUS
@@ -303,14 +306,22 @@ export function checkAppUpdate(): void {
     else if (osName.indexOf('Harmony') >= 0 || osName.indexOf('鸿蒙') >= 0) arch = 'harmony'
   } catch { /* 忽略 */ }
   // #endif
-  uni.request({
-    url: `${base}/app/version/app_mobile${arch ? `?arch=${arch}` : ''}`,
+  // ★ QODER-29 MO-29：版本检查是普通 GET，收口到统一请求入口（自动带鉴权 / 租户头 / CSRF，
+  // 且经 HTTP 2xx 业务码判定）。属非关键后台请求 ⇒ silent：出错不打扰用户；
+  // 网络错误 / 超时 / 非成功业务码 ⇒ reject 被 catch 静默吞掉，与旧实现"取不到 data 就不提示"结果等价。
+  // 统一入口内部把成功信封的 data 解出后透传给 then，等价于旧代码的 `res.data.data`。
+  const query = arch ? `?arch=${arch}` : ''
+  request<LatestAppVersion | null>({
+    url: `/app/version/app_mobile${query}`,
     method: 'GET',
     timeout: 8000,
-    success: (res) => {
-      const data = (res.data as any)?.data as LatestAppVersion | null
+    silent: true
+  })
+    .then((data) => {
       // 判据全部交给纯函数 decideUpdateAction（含版本、包地址同源、摘要、白名单四组闸）
       handleAppUpdate(data)
-    },
-  })
+    })
+    .catch(() => {
+      /* 静默：版本检查失败不影响正常使用，也不清除登录态（silent 已抑制跳登录） */
+    })
 }

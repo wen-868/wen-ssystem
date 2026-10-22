@@ -37,21 +37,13 @@ const AI_BASE_URL: string = (() => {
   // #endif
 })()
 
-/** 读取当前登录态 JWT（与 request.ts 存储键一致） */
-function getToken(): string {
-  return uni.getStorageSync('merchant_token') || ''
-}
+// 直接调用（SSE 流式降级 / 模型列表 / 写操作确认 / TTS）确需绕过 Promise 型统一入口，
+// 但安全头必须复用统一构建器，保证鉴权 / 租户头 / CSRF 与 request.ts 同源（★ QODER-29 MO-29）。
+import { buildRequestHeaders } from '../request'
 
-/** 构造带鉴权的请求头（JWT 复用现有登录态） */
+/** 构造带鉴权的请求头（复用统一构建器：Authorization + X-Tenant-Id + x-csrf-token 同源下发） */
 function buildHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  }
-  const token = getToken()
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-  return headers
+  return buildRequestHeaders()
 }
 
 // ====================== SSE 事件类型定义 ======================

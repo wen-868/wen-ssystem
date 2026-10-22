@@ -1,4 +1,4 @@
-import { get, post, put } from '../request'
+import { get, post, put, buildRequestHeaders } from '../request'
 import { API_BASE_H5, API_BASE_NATIVE } from '../../config/env'
 
 export interface UserProfile {
@@ -41,11 +41,9 @@ export const profileApi = {
       // #endif
     })()
     return new Promise((resolve, reject) => {
-      const token = uni.getStorageSync('merchant_token') || ''
-      const csrf = uni.getStorageSync('merchant_csrf_token') || ''
-      const header: Record<string, string> = {}
-      if (token) header.Authorization = `Bearer ${token}`
-      if (csrf) header['x-csrf-token'] = csrf
+      // 直接调用 uni.uploadFile（multipart），安全头复用 buildRequestHeaders，
+      // 鉴权 / 租户头 / CSRF 与 request.ts 同源（★ QODER-29 MO-29：旧实现漏发 X-Tenant-Id）
+      const header = buildRequestHeaders()
       uni.uploadFile({
         url: `${base}/admin/auth/avatar`,
         filePath,

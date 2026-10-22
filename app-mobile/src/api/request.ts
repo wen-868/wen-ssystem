@@ -38,7 +38,17 @@ interface RequestResponse<T = any> {
 }
 
 /**
- * 并发 401 去重锁
+ * 业务成功码（唯一判定值）
+ *
+ * 依据后端唯一真相源 `backend/src/shared/response.ts`：`ok()` 固定下发字符串 `code: "0"`，
+ * `fail(msg, code="400")` 及其业务码（400/401/403/404/500、1001~2xxx）均非 `"0"`。
+ * 项目标准 `docs/项目统一标准.md` 第三章 3.1 亦规定 `"0"=成功，非 0=错误`。
+ * 故成功码集合不臆测、不自造，就是这一条 `"0"`（用 String() 归一，兼容个别接口族回数字 0）。
+ * ★ QODER-29 MO-11：HTTP 2xx 但业务码非成功码，必须走错误分支，不得当成功数据返回。
+ */
+const BUSINESS_SUCCESS_CODE = '0'
+
+/** 并发 401 去重锁
  *
  * token 失效时，首屏往往有多个请求同时返回 401。若每个都独立执行
  * 清存储 + toast + reLaunch，会造成重复弹窗与多次重定位（页面闪烁、登录页入栈多次）。
@@ -59,28 +69,34 @@ function getCsrfToken(): string {
   return uni.getStorageSync('merchant_csrf_token') || ''
 }
 
+/**
+ * 统一安全请求头构建器（★ QODER-29 MO-29：鉴权 / 租户头 / CSRF 的唯一出处）
+ *
+ * 统一入口 `request()` 与所有"确需直接调用"的 uni.request / uni.uploadFile / uni.downloadFile
+ * 都必须复用本函数产出安全头，不得在别处再逐行 `getStorageSync('merchant_token')` 自行拼装
+ * （公共逻辑只写一次，项目标准核心原则 3）。缺任一登录态时对应头自然省略，与旧行为一致。
+ *
+ * @param extra 调用方自定义头（Content-Type 之外的覆盖项）；安全头在其后写入，优先级最高。
+ */
+export function buildRequestHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(extra || {})
+  }
+  const token = getToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  const tenantId = getTenantId()
+  if (tenantId) headers['X-Tenant-Id'] = tenantId
+  const csrfToken = getCsrfToken()
+  if (csrfToken) headers['x-csrf-token'] = csrfToken
+  return headers
+}
+
 export async function request<T = any>(options: RequestOptions): Promise<T> {
   const { url, method = 'GET', data, header = {}, timeout = 30000, responseType, silent = false } = options
 
-  const token = getToken()
-  const tenantId = getTenantId()
-  const csrfToken = getCsrfToken()
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...header
-  }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-  if (tenantId) {
-    headers['X-Tenant-Id'] = tenantId
-  }
-  // CSRF 防护：写操作需注入 x-csrf-token header（后端登录接口下发，存于加密 storage）
-  if (csrfToken) {
-    headers['x-csrf-token'] = csrfToken
-  }
+  // 统一安全头：Authorization / X-Tenant-Id / x-csrf-token 全部走同一构建器（★ QODER-29 MO-29）
+  const headers = buildRequestHeaders(header)
 
   return new Promise((resolve, reject) => {
     uni.request({
@@ -165,6 +181,24 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
 
         // 2xx: 成功
         if (statusCode >= 200 && statusCode < 300) {
+          // ★ QODER-29 MO-11：HTTP 2xx 但业务码表示失败，必须走错误分支，不得当成功数据返回。
+          // 只对"带 code 字段的响应信封"生效；不带 code 的裸响应维持原透传语义（不臆测成功码集合）。
+          if (resData && typeof resData === 'object' && 'code' in resData) {
+            if (String(resData.code) !== BUSINESS_SUCCESS_CODE) {
+              const msg = resData.msg || `业务处理失败 (${String(resData.code)})`
+              if (!silent) uni.showToast({ title: msg, icon: 'none' })
+              reject(new Error(msg))
+              return
+            }
+            // 业务码成功：信封带 data 则解包，否则透传（与旧行为逐字节一致）
+            if ('data' in resData) {
+              resolve(resData.data as T)
+            } else {
+              resolve(resData as T)
+            }
+            return
+          }
+          // 无响应信封（裸数组 / 裸对象）：维持原透传
           if (resData && typeof resData === 'object' && 'data' in resData) {
             resolve(resData.data as T)
           } else {
