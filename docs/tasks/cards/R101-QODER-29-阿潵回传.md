@@ -61,3 +61,21 @@
 - 未放宽现有测试：request-retry-safety.spec.ts（401/403/清态/upload 死导出）15 用例逐字保留且全绿。
 - 未破坏 AI SSE 增量：AI 走独立 `AI_BASE_URL`、不经 `request.ts`；`dispatchSseText` 逐事件分发未动，单测⑰⑱⑲实测增量未被吞。
 - 未重放原写请求：401 仍 GET-only 静默重试（本卡未触碰该逻辑）。
+
+---
+
+## 三、负责人复验补记（阿潵亲测，2026-10-22）
+
+执行通道交付后，我（汇报人：阿潵）在**本工作树尖** `88dfe963` 上复跑，未复用执行方读数：
+
+| 项 | 我的实测 |
+|:--|:--|
+| `check:gates` | **EXIT=0**（type-check 0 错 / lint error 0·warning 12872 / `Test Files 16 passed (16)` / `Tests 322 passed (322)` / contract 差集 1·具名豁免 1 / `guard:request` 8 处直调全登记 EXIT=0） |
+| 三端构建 | `build:h5` **EXIT=0**、`build:mp-weixin` **EXIT=0**、`build:app` **EXIT=0** |
+| 反测复原 | 独立哈希：`request.ts=0a6808154d829790`、`login.vue=bbed53e1f4bf5c33`、`profile.ts=1aed0a8ab89fb2b4` ⇒ 与 `anti-test-ledger.md` 声明逐字一致，四轮注入均已逐字节复原 |
+| 基线纪律 | note `9460 → 10635`（UTF-8 同编码复算）前缀逐字保全；CRLF 47 / 裸 LF 0；`tests.testFiles/testCount` 只升不降 |
+| 额外查证（执行方未申报的回归面） | ①`checkAppUpdate` 收进统一入口后 URL 主机与改动前等价（同一对常量、同一条件编译）；②后端版本路由 `res.json(ok(data))` ⇒ 新旧取值等价；③AI 跨域多出两头的预检：`ZXQL-AI/src/main.ts:81-94` 未设 `allowedHeaders` ⇒ 预检放行 |
+
+逐条证据与遗留账（R1 运行态 / R2 console 剥离移交 QODER-31 / R3 守卫跳过注释行）见 [`docs/evidence/qoder-29/owner-recheck.md`](../../evidence/qoder-29/owner-recheck.md)。
+
+R1 更新：凌舟侧人工登录已完成（`cli.bat islogin` ⇒ `{"login":true}`），QODER-28 小程序侧已可实开；App 真机侧仍无设备，继续挂账。
