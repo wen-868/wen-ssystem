@@ -3823,3 +3823,21 @@
 - **跨批状态同步（3 处既有用例，只同步"总数 + 逐文件计数"）**：`rbac-b2-s3-229`（W 4 → 0、未接 28 → 24、runnable 12 → 8）、`rbac-b2-s3-226`（W 4 → 0、混合态自证 4 行 false → true）、`rbac-g0-wiring`（新增 `S3_231_WIRED_FILES` 块 + 折叠循环 `set` → `+=`，**不改** S3-226 的声明值）；G0 名单行与其逐行 403/200 断言**一字未动**。
 - **待凌舟裁定（4 项，详见回传卡 §九）**：① F2 的平台侧单归属与 `PERMISSION_CATALOG` 补目录；② F3 引出的两套 null 语义（入口门失败关闭 vs `stores/menu.ts` 放全量）是否统一另立单；③ S3-226 用例的 W 4 只显式 2 行（该用例自身口径不自洽）是否补登；④ F4 未裁定的其余候选（台账 `附.5-1`）。
 - **自我报备**：① F3 与 `stores/menu.ts` 的 null 语义**有意分叉**（按卡不动 menu.ts）⇒ 成技术债，已写入回传卡 §六.2；② 证据目录内 `raw/30-full-vitest-after.txt` 是**首轮失败**记录（S3-226 未同步时 5 failed），终轮以 `raw/31-…` 为准，已在回传卡 §六.1 说明；③ 路由表只改**自己那一行** + 追加一条报备注（未删任何他人行；`inbox/ACTIVE.md` 原件未删，按"路由文件只追加"纪律）。
+
+---
+
+## WB-REFACTOR-P0 交付记录（2026-10-22，墨 / 工作台负责人 · WorkBuddy 通道）
+
+> 十项回传卡：`docs/tasks/cards/R101-WB-REFACTOR-P0-墨回传.md`｜关联卡：`docs/tasks/inbox/WB-REFACTOR-P0.md`｜冻结规划：`docs/tasks/cards/R101-工作台双模式重构-冻结与实施规划-凌舟-20261022.md`
+> 产物：工作树 `D:\Users\ZXQL\wt-agents\WB-REFACTOR-P0`，分支 `docs/wb-refactor-p0-inventory`，基线 `7dda80b8` → **HEAD `3b8dd8a0`**；**未 push / 未开 PR / 逐文件 add**；证据 `docs/evidence/WB-REFACTOR-P0/**`（9 文件：矩阵 10/20/30/40 + 反测记录 50 + 4 个复算脚本）
+
+- **结论（矩阵10 · 路由菜单）**：164 条路由声明 / 155 个唯一页面组件（去重全集 158，剔 `MainLayout`/`LoginView`/`NotFound` 3 个非页面）/ 12 组 71 项 + 收银 9 项；原型 SECTORS 13 版块 103 基础二级页 + 24 fuse = 127；双向差集 = **原型有现网无 24（这 24 页在盘上组件文件 0 个）**、**现网有原型未列 61**。
+- **结论（菜单真相源缺口）**：后端 `GET /api/admin/menus/user` 端点真实存在，但 **admin-web 调用点 0 处**（现网菜单是 `MainLayout.vue` 硬编码）；后端 163 个唯一 `menuCode`（BUTTON 74 / CATALOG 11 / MENU 53 / MENU-app-mobile 25）中**仅 10 条可对齐路由**，菜单类 89 条内亦仅 10 条 ⇒ R101 §6.2 的动态菜单在 P1 现在接就是 fail-closed 空菜单。
+- **结论（矩阵20 · AI 能力 19 行）**：**LIVE 1 / PARTIAL 12 / PLANNED 6 / BLOCKED 0**。缺口性质不是"后端没有"而是"前端不接"：`AiChatWindow.vue` 全仓引用 0 处（仅 `components/AiChat/index.ts:4` barrel 再导出）、三个 AI 封装函数零调用点、`MainLayout.vue:344` 在收银模式整块隐藏 AI 面板、`BillingService.checkQuota` 零调用；**盘点级事实**：工作树内 `backend/ai-base` 目录不存在，而 `docker-compose.yml:71-74` 的 build context 正是它（回退路径失效）。
+- **结论（矩阵30 · 动作权限）**：前端封装 687（25 文件）/ 后端路由 1454（GET 721 + 写 733）/ 封装调用点 716；**被页面调用的写动作 254 条（66 域）**中有码 182 / 无码 57 / 接线不明 15；全量写路由无码 **45.8%（336/733）**；**无审计 217/254（85.4%）**（无全局审计中间件，仅 32 文件内联 `INSERT INTO t_operation_log`）；底座 84 个 AI 工具自报 path 仅覆盖 **26/254（10.2%）**；`hasPermission`（`stores/app.ts:18`）**全仓调用点 0 处** ⇒ 按码显隐未实施。
+- **结论（台账40 · 页面质量）**：157 页 = **P0 冒充 LIVE 1 / P1 部分假 48 / P2 纯占位 3 / P3 干净 97 / UNKNOWN 8**；唯一 P0 = `views/components/PlatformPanel.vue:239`（`Math.random()>0.3` 伪造连接测试成功）；恒空候选 38 页、静默失败 12 页；21 条 `[DEV_NOTE]` 线索（8 条 `// === Mock 数据 ===` 段头、3 条自证「未实现 / 无数据源」）；**运行态全部未验**（无 `node_modules`，未 build / 未起服务）。
+- **机器复算**：新增 `scripts/verify-inventory.cjs`（合计↔明细↔脚本三方互锁）`--strict` **42 项 FAIL=0 / EXIT=0**；矩阵10 文档↔脚本 6 项读数逐项 0 差异；台账40 同输入连跑两次产物 **SHA1 相同**（`f6d67dbc…29651`）。
+- **反测 7 例（全在工作树外沙盒造错，业务代码一字未动；原始输出 `50-reverse-test-log.md`）**：① 删 `router/index.ts:102` 一条声明 ⇒ `164→163`、`155→154`、`PROTO_PAGE_MISSING_IN_ADMIN 24→25`、`PROTO_MISSING_WITH_COMP_FILE 0→1`，`--strict`（本轮新增）**EXIT=1**，复原逐字节一致；②③④ 矩阵20 抽行 / 翻转 `LIVE`→`PARTIAL` / 合计行号漏写 ⇒ 分别变红 1/4/2 项，复原归零；⑤ 摘 `admin-customer.routes.ts:16` 的 `requirePermission` ⇒ `WRITE_ACTIONS_NO_PERM 57→58`；⑥ 改 `api/customer.ts:276` 封装函数名 ⇒ `VIEW_WRAPPER_CALL_SITES 716→715`、写动作 `254→253`；⑦ 台账40 把唯一 P0 改判 `P3 干净` ⇒ **4 项同时报警**（摘要/明细/COUNTS 互锁，"洗绿"在机器层过不去）。
+- **顺带修掉两个可复现性缺陷**（只改 `docs/evidence/WB-REFACTOR-P0/**`）：产物内曾烤进本机临时目录绝对路径（`ROUTES_CSV: C:/…/Temp/wb40/…`）与 `ELAPSED_MS` 时间戳 ⇒ 换机复跑产物不一致；已改为工作树外只登记 `<工作树外临时目录>/文件名`、计时移出产物只打 stdout。矩阵40 收口补记一并纳入生成器，避免手改被复跑覆盖。
+- **待凌舟裁定（6 项，详见回传卡 §五.2）**：① `menuCode` 口径归一（153 条不可对齐，改菜单种子还是改 route manifest）；② `backend/ai-base` 源码归属与 compose 假回退；③ 收银台 AI 面板整块隐藏是否符合冻结规划"预警弹窗保留"；④ 唯一 P0 页是否单独开修（不由壳重构洗绿）；⑤ S3-240「已做完」是否等于"已进 main 并生效"（矩阵30 实测 `hasPermission` 0 调用点互证）；⑥ 矩阵30 例②（加 `INSERT INTO t_operation_log` ⇒ 审计由无变有）是否补跑。
+- **自我报备**：① 中间汇报口径曾写「12 条自证后端未实现」，**实测为 3 条**，回传卡已用实测值；② 矩阵20 落款曾误署「阿潵通道」（阿潵为移动端负责人），已按「不同窗口、不同职责」更正；③ 反测沙盒只完整复现 5 个头条读数，`WRITE_ACTIONS_DTO_FOUND` 沙盒 170 vs 工作树 173、`BACKEND_MENU_CODES_PARSED` 110 vs 201（未复制全部后端与 CJK 名迁移）⇒ 红/绿结论成立但沙盒读数非权威；④ 本仓 `core.autocrlf=true` 且 `.gitattributes` 只钉 `*.sh`，9 个交付物现为 `i/lf w/lf`，但换机 checkout 会得到 `w/crlf` ⇒ 跨机比较须取 index blob；⑤ 时间盒 90 分钟**已超**，超时主要耗在两子代理撞 max-turn 重派、markdown 表格内联代码 `|` 破列、反测从只打印补成 EXIT=1 门禁；未靠压缩验收项凑时间。
