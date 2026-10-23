@@ -1,0 +1,23 @@
+# 反测 B（mutation B）：AI 对等视图改回服务端原始路由 → 必须变红
+# 目标文件：admin-web/src/layouts/WorkbenchShell.vue
+# 注入内容：
+#   const visibleRouteNameList = computed(() => [...access.value.visibleRouteNames]);
+# → const visibleRouteNameList = computed(() => [...access.value.businessVisibleRouteNames]);
+# 即把 AI 容器/对等统计喂回服务端原始 8 路由（凌舟驳回的 8/27 现象）
+
+$ node tests/menu-ai-bridge.spec.mjs
+FAIL  【F1】源码护栏：Shell 用最终角色集、收银不接菜单、AI 容器只吃最终集  ← AI 容器集合必须取自最终角色集
+...
+小结：23 passed / 1 failed
+EXIT=1
+
+# 结论：AI 对等一旦取回业务原始集合，护栏直接点名变红 —— 该护栏有效。
+
+# 复原
+$ Copy-Item "$env:TEMP\shell.f1.bak.vue" admin-web/src/layouts/WorkbenchShell.vue -Force
+$ Get-FileHash admin-web/src/layouts/WorkbenchShell.vue -Algorithm SHA256
+B85DAF49DB875D298D3EE4D5A13030FB27CBFDD38A8F5CBD834939AC85AB8D1E
+
+$ node tests/menu-ai-bridge.spec.mjs
+小结：24 passed / 0 failed
+EXIT=0

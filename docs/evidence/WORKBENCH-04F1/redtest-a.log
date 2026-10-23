@@ -1,0 +1,26 @@
+# 反测 A（mutation A）：把收银重新接入 /menus/user 交集 → 必须变红
+# 目标文件：admin-web/src/shared/workbench/menu-access.ts 的 restrictManifestItems
+# 注入内容：return [...items]  →  return items.filter((entry) => isEntryVisible(entry, visibleRouteNames))
+# 注入后正常态 SHA256 变化，复原后用 SHA256 校验回滚完整性
+
+$ node tests/menu-ai-bridge.spec.mjs
+FAIL  【F1】STORE_OPERATOR：收银 9/9（菜单 ready 与 error 两态），业务路由为空  ← ready 态收银必须保持 9 项
+...
+小结：23 passed / 1 failed
+EXIT=1
+
+$ node <凌舟验收>/runtime-permission-probe.mjs
+{"serverVisibleRoutes":[],"storeOperatorCashierBefore":9,"storeOperatorCashierAfter":0,"storeManagerRoleRoutes":[],"rawParityManual":0,"roleParityManual":0,"rawParityActions":0,"roleParityActions":0,"pass":false}
+EXIT=1
+
+# 结论：收银一旦重新吃 /menus/user 交集，STORE_OPERATOR 收银由 9 变 0，正是凌舟驳回项，
+#       本地 F1 用例与凌舟探针同步变红 —— 该护栏有效。
+
+# 复原
+$ Copy-Item "$env:TEMP\ma.f1.bak.ts" admin-web/src/shared/workbench/menu-access.ts -Force
+$ Get-FileHash admin-web/src/shared/workbench/menu-access.ts -Algorithm SHA256
+751788344B57192335E34594A80DD00A389BAC648479AB58D0D6D654BEA4ECA6
+
+$ node tests/menu-ai-bridge.spec.mjs
+小结：24 passed / 0 failed
+EXIT=0
