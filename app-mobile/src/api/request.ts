@@ -109,7 +109,8 @@ export function buildJsonHeaders(extra?: Record<string, string>): Record<string,
 }
 
 /**
- * 安全头构建器（★ MOBILE-29F1：只含安全三头，绝不含 Content-Type）
+ * 安全头构建器（★ MOBILE-29F1：只含安全三头，绝不含 Content-Type；
+ * ★ MOBILE-29F2：extra 夹带的 Content-Type 一律剥离，契约不可绕过）
  *
  * 只用于"确需直接调用"的 `uni.uploadFile`（multipart 表单）与 `uni.downloadFile`
  * （二进制流）：这两种场景的 Content-Type / boundary 由 uni / 微信 / 浏览器自行生成，
@@ -118,10 +119,17 @@ export function buildJsonHeaders(extra?: Record<string, string>): Record<string,
  * 产出且仅产出 Authorization / X-Tenant-Id / x-csrf-token（+ 调用方 extra，
  * 如 Accept）；缺登录态时对应头自然省略，与旧行为一致。
  *
- * @param extra 调用方自定义头（不得含 Content-Type）；安全头在其后写入，优先级最高。
+ * @param extra 调用方自定义头；含 Content-Type（任意大小写形式）也会被剥离；安全头在其后写入，优先级最高。
  */
 export function buildSecureHeaders(extra?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = { ...(extra || {}) }
+  // ★ MOBILE-29F2：契约不可绕过——multipart / 二进制场景的 Content-Type 与 boundary
+  // 只能由 uni / 微信 / 浏览器生成，调用方经 extra 夹带的 Content-Type 一律剥离
+  // （`content-type` / `Content-Type` / `CONTENT-TYPE` 等任意大小写形式）。
+  // 依据：凌舟 2026-10-24 MOBILE-29F1 验收阻断项 3.2。
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === 'content-type') delete headers[key]
+  }
   writeSecureHeaders(headers)
   return headers
 }

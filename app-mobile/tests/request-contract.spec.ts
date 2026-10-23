@@ -15,6 +15,9 @@
  *  - MOBILE-29F1（本单核心）：JSON 构建器与安全头构建器拆分——uploadFile / downloadFile
  *    路径只收安全三头、**绝不下发 Content-Type**（QODER-29 驳回根因）；普通 request()
  *    仍带 application/json。
+ *  - MOBILE-29F2（本单新增）：`buildSecureHeaders(extra)` **剥离**调用方夹带的 Content-Type
+ *    （任意大小写形式）——契约"只含安全三头"不可绕过（凌舟 2026-10-24 验收阻断项 3.2）；
+ *    用例 ㉗ 逐形态真实传入并断言产物不含该键，㉒ 的"声称但未真传"由此补齐。
  *  - 401 GET 静默重试 / 403 权限 / 网络错误 / 超时：每条都有真实用例（补齐 401/403 之外
  *    在 request-retry-safety.spec.ts 未展开的「fail 回调族」）。
  *  - MO-29 AI：`dispatchSseText` 逐事件增量分发（text/tool_start/tool_result/done/error），
@@ -277,6 +280,27 @@ describe('MOBILE-29F1 · buildSecureHeaders 只含安全三头（Content-Type �
     expect(headers['Accept']).toBe('application/octet-stream') // extra 生效
     expect(headers['Authorization']).toBe('Bearer jwt-live') // 安全头回写、覆盖 extra
     expect('Content-Type' in headers).toBe(false) // 调用方塞 Content-Type 也不该出现——本构建器不写该键
+  })
+
+  it('㉗ extra 夹带 Content-Type（任意大小写形式）⇒ 一律被剥离，产物不含该键', async () => {
+    const stub = createUniStub()
+    vi.stubGlobal('uni', stub.uni)
+    const mod = await importRequest()
+    // ★ MOBILE-29F2：逐个形态真实传入（㉒ 只传了 Accept/Authorization，未真传 Content-Type）
+    for (const ct of ['Content-Type', 'content-type', 'CONTENT-TYPE', 'CoNtEnT-TyPe']) {
+      const headers = mod.buildSecureHeaders({
+        [ct]: 'application/json',
+        Accept: 'application/octet-stream'
+      })
+      // 任一大小写形态的 Content-Type 都不应出现在产物里
+      const ctKeys = Object.keys(headers).filter((k) => k.toLowerCase() === 'content-type')
+      expect(ctKeys, `extra 传入 ${ct} 时产物仍含 Content-Type 类键：${ctKeys.join(',')}`).toEqual([])
+      // 剥离必须是精准的：非 Content-Type 的 extra 与安全三头都还在
+      expect(headers['Accept']).toBe('application/octet-stream')
+      expect(headers['Authorization']).toBe('Bearer jwt-live')
+      expect(headers['X-Tenant-Id']).toBe('tenant-001')
+      expect(headers['x-csrf-token']).toBe('csrf-live')
+    }
   })
 })
 
