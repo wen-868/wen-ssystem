@@ -71,3 +71,18 @@ export function filterVisibleItems(
 export function countManualItems(groups: readonly ManifestGroup[] = MANUAL_GROUPS): number {
   return groups.reduce((sum, group) => sum + group.items.length, 0);
 }
+
+/** 全部人工入口（71 + 收银 9），供动态菜单裁剪与 AI 代办定位当前页 */
+export const ALL_MANIFEST_ITEMS: readonly ManifestItem[] = [
+  ...MANUAL_GROUPS.flatMap((group) => group.items),
+  ...CASHIER_ITEMS,
+];
+
+/** 白名单中真实存在的 routeName 全集（本地动作项无路由，不计入） */
+export const ALL_MANIFEST_ROUTE_NAMES: readonly string[] = [
+  ...new Set(
+    ALL_MANIFEST_ITEMS.map((entry) => entry.routeName).filter(
+      (name): name is string => typeof name === "string" && name.length > 0,
+    ),
+  ),
+];

@@ -71,6 +71,7 @@
         <!-- 人工 / AI 对等覆盖：80 个人工入口全登记；未实现 AI 不隐藏人工入口 -->
         <div class="afc-parity" data-testid="parity-summary">
           <p class="afc-parity-line">{{ parityLine }}</p>
+          <p v-if="menuNotice" class="afc-parity-notice" data-testid="menu-notice">{{ menuNotice }}</p>
           <p class="afc-parity-meta">
             动作状态：已上线 {{ parity.statusCounts.LIVE }} · 部分接入 {{ parity.statusCounts.PARTIAL }} ·
             待建设 {{ parity.statusCounts.PLANNED }} · 阻塞 {{ parity.statusCounts.BLOCKED }}；
@@ -161,7 +162,7 @@ import {
   isCapabilityEnabled,
   type CapabilityEntry,
 } from "../../shared/workbench/capability-registry";
-import { PARITY, paritySummaryText } from "../../shared/workbench/parity-ledger";
+import { PARITY, paritySummaryText, projectParityRuntime } from "../../shared/workbench/parity-ledger";
 
 const props = defineProps<{
   title: string;
@@ -169,6 +170,10 @@ const props = defineProps<{
   /** 右侧会话面板上报的真实状态（不臆造“在线”） */
   sessionState?: "idle" | "streaming" | "error";
   capabilities?: readonly CapabilityEntry[];
+  /** 服务端菜单裁剪后的可见 routeName（与人工侧同一集合；null/缺省 = 不裁剪） */
+  visibleRouteNames?: readonly string[] | null;
+  /** 菜单加载状态文案（失败/空集/未映射计数） */
+  menuNotice?: string;
 }>();
 
 const emit = defineEmits<{
@@ -183,8 +188,13 @@ const quickCommands = QUICK_COMMANDS;
 const summary = computed(() => capabilitySummary(capabilities.value));
 
 // 对等覆盖摘要与域展开：数据由 parity-ledger 从 30 矩阵 + route-manifest 派生（非手写）
-const parity = PARITY;
-const parityLine = paritySummaryText();
+// 运行时按服务端菜单裁剪；静态台账（80/80、254/254）保持不变，仅展示口径变化
+const parity = computed(() => projectParityRuntime(props.visibleRouteNames ?? null));
+const parityLine = computed(() =>
+  parity.value.restricted
+    ? `运行时可见 ${parity.value.manualCount}/${PARITY.manualCovered} 个人工入口 · ${parity.value.actionCount}/${PARITY.actionCovered} 项写动作（按服务端菜单裁剪，静态台账不变）`
+    : paritySummaryText(),
+);
 const parityExpanded = ref(false);
 
 const sessionLabel = computed(() => {
@@ -472,6 +482,13 @@ const infoFeedStatus = computed(() => getCapability("ai-03")?.status ?? "PLANNED
   font-size: 11px;
   line-height: 1.6;
   color: #595959;
+}
+
+.afc-parity-notice {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #ad6800;
 }
 
 .afc-domains {

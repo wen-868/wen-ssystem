@@ -23,6 +23,7 @@ import { CAPABILITIES } from "./capability-registry";
 import { domainLabel, STATUS_SEVERITY } from "./parity-domains";
 import { PARITY_ACTION_ROWS } from "./parity-actions-gen";
 import { PARITY_MANUAL_ENTRIES } from "./parity-manual-gen";
+import { ALL_MANIFEST_ITEMS } from "./route-manifest";
 import type { ManifestItem } from "./types";
 
 export { PARITY_ACTION_ROWS, PARITY_MANUAL_ENTRIES };
@@ -410,6 +411,99 @@ export function validateParity(input: ParityValidateInput): ParityFailure[] {
   }
 
   return failures;
+}
+
+// ── 运行时裁剪视图（WORKBENCH-04：服务端菜单裁剪，静态台账不变） ──────────
+
+export interface ParityRuntimeView {
+  /** 是否按可见集合裁剪（false = 静态台账全量） */
+  restricted: boolean;
+  manualCount: number;
+  /** 映射到写动作的人工入口数（运行时） */
+  manualWithActions: number;
+  actionCount: number;
+  statusCounts: Record<CapabilityStatus, number>;
+  manualStatusCounts: Record<CapabilityStatus, number>;
+  domains: readonly ParityDomainSummary[];
+  readonlyEntries: readonly ManualParityView[];
+}
+
+/**
+ * 按当前用户可见 routeName 裁剪对等视图（只影响运行时展示）。
+ * - 路由项按 routeName 精确匹配；本地动作项按 manifest 的 visibilityFrom 判定；
+ * - 动作行按可见入口登记的 actionId 取子集，不改静态台账与 80/80、254/254 基线。
+ */
+export function projectParityRuntime(
+  visibleRouteNames: readonly string[] | null,
+): ParityRuntimeView {
+  if (!visibleRouteNames) {
+    return {
+      restricted: false,
+      manualCount: PARITY.manualCovered,
+      manualWithActions: PARITY.manualWithActions,
+      actionCount: PARITY.actionCovered,
+      statusCounts: PARITY.statusCounts,
+      manualStatusCounts: PARITY.manualStatusCounts,
+      domains: PARITY.domains,
+      readonlyEntries: PARITY.readonlyEntries,
+    };
+  }
+
+  const visibleSources = new Set(visibleRouteNames);
+  const isEntryVisible = (entry: ManualParityView): boolean => {
+    if (entry.routeName) return visibleSources.has(entry.routeName);
+    const source = ALL_MANIFEST_ITEMS.find((item) => item.menuCode === entry.menuCode)?.visibilityFrom;
+    return Boolean(source && visibleSources.has(source));
+  };
+
+  const entries = MANUAL_PARITY.filter(isEntryVisible);
+  const visibleCodes = new Set(entries.map((entry) => entry.menuCode));
+  const actionIds = new Set(entries.flatMap((entry) => entry.actionIds));
+  const rows = PARITY_ACTION_ROWS.filter((row) => actionIds.has(row.id));
+
+  const manualStatusCounts = entries.reduce(
+    (counts, entry) => ({ ...counts, [entry.status]: counts[entry.status] + 1 }),
+    emptyCounts(),
+  );
+  const statusCounts = rows.reduce(
+    (counts, row) => ({ ...counts, [row.status]: counts[row.status] + 1 }),
+    emptyCounts(),
+  );
+  const domains: ParityDomainSummary[] = [];
+  for (const domain of PARITY.domains) {
+    const domainRows = rows.filter((row) => row.domain === domain.domain);
+    if (domainRows.length === 0) continue;
+    const domainStatusCounts = emptyCounts();
+    let status: CapabilityStatus = "LIVE";
+    for (const row of domainRows) {
+      domainStatusCounts[row.status] += 1;
+      if (STATUS_SEVERITY[row.status] > STATUS_SEVERITY[status]) status = row.status;
+    }
+    domains.push({
+      ...domain,
+      status,
+      statusCounts: domainStatusCounts,
+      actionCount: domainRows.length,
+      manualEntries: domain.manualEntries.filter((entry) => visibleCodes.has(entry.menuCode)),
+      blockedReason:
+        status === "LIVE"
+          ? undefined
+          : status === "BLOCKED"
+            ? "该域全部/部分动作前置依赖未满足，需先补后端注册与权限判定"
+            : "该域仍有动作缺 AI 工具或确认链，需补齐后逐项放开",
+    });
+  }
+
+  return {
+    restricted: true,
+    manualCount: entries.length,
+    manualWithActions: entries.filter((entry) => entry.actionCount > 0).length,
+    actionCount: rows.length,
+    statusCounts,
+    manualStatusCounts,
+    domains,
+    readonlyEntries: entries.filter((entry) => entry.actionCount === 0),
+  };
 }
 
 

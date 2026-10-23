@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, ref } from "vue";
+import { defineAsyncComponent, ref, watch } from "vue";
 
 const emit = defineEmits<{
   (event: "status", payload: { state: "idle" | "streaming" | "error"; message?: string }): void;
@@ -30,8 +30,17 @@ type PanelExposed = {
 };
 
 const panelRef = ref<PanelExposed | null>(null);
+/** 面板为异步加载：未就绪时先入队，挂载后按原顺序交给同一会话（不丢上下文） */
+const pendingCommands = ref<string[]>([]);
 /** 故障文案：本地仅承载“会话失败/断开”的真实错误信息，不做自动重试 */
 const faultMessage = ref("");
+
+watch(panelRef, (panel) => {
+  if (!panel) return;
+  const queued = pendingCommands.value;
+  pendingCommands.value = [];
+  for (const text of queued) panel.sendText?.(text);
+});
 
 function handleStatus(payload: {
   state: "idle" | "streaming" | "error";
@@ -45,9 +54,13 @@ function handleStatus(payload: {
   emit("status", payload);
 }
 
-/** 供 AI 信息流快捷指令调用：走同一套真实发送逻辑（POST /api/chat） */
+/** 供 AI 信息流快捷指令 / 页面代办调用：走同一套真实发送逻辑（POST /api/chat） */
 function sendQuickCommand(text: string): void {
-  panelRef.value?.sendText?.(text);
+  if (panelRef.value?.sendText) {
+    panelRef.value.sendText(text);
+    return;
+  }
+  pendingCommands.value = [...pendingCommands.value, text];
 }
 
 /** 新对话：清空本地会话上下文（底座无独立新建会话端点） */
