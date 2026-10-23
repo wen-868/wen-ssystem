@@ -1,0 +1,95 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F1/app-mobile[39m
+
+ [31m❯[39m tests/request-contract.spec.ts [2m([22m[2m25 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 1207[2mms[22m[39m
+     [33m[2m✓[22m[39m ② 200 + code "0" + data ⇒ 成功解包 data [33m 340[2mms[22m[39m
+     [32m✓[39m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[32m 31[2mms[22m[39m
+     [32m✓[39m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[32m 29[2mms[22m[39m
+     [32m✓[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功[32m 29[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 27[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 17[2mms[22m[39m
+     [32m✓[39m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast[32m 10[2mms[22m[39m
+[31m     [31m×[31m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json[39m[32m 82[2mms[22m[39m
+[31m     [31m×[31m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[39m[32m 19[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 25[2mms[22m[39m
+[31m     [31m×[31m ⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）[39m[32m 15[2mms[22m[39m
+     [32m✓[39m ㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在[32m 14[2mms[22m[39m
+     [32m✓[39m ㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type[32m 12[2mms[22m[39m
+     [32m✓[39m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image[32m 180[2mms[22m[39m
+     [32m✓[39m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar[32m 76[2mms[22m[39m
+     [32m✓[39m ㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用[32m 4[2mms[22m[39m
+     [32m✓[39m ㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用[32m 4[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 6[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 12[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 9[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 7[2mms[22m[39m
+     [32m✓[39m ⑰ 多行 text 事件逐条增量分发，不吞并[32m 207[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 3[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 5[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 15[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m22 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 00:29:51
+[2m   Duration [22m 4.04s[2m (transform 1.17s, setup 0ms, import 773ms, tests 1.21s, environment 1ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 3 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-29 · buildJsonHeaders 统一安全头（三源 + 优先级 + JSON Content-Type）[2m > [22m⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json
+[31m[1mAssertionError[22m: expected undefined to be 'application/json' // Object.is equality[39m
+
+[32m- Expected:[39m
+"application/json"
+
+[31m+ Received:[39m
+undefined
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m178:37[22m[39m
+    [90m176|[39m     [34mexpect[39m(headers[[32m'X-Tenant-Id'[39m])[33m.[39m[34mtoBe[39m([32m'tenant-001'[39m)
+    [90m177|[39m     [34mexpect[39m(headers[[32m'x-csrf-token'[39m])[33m.[39m[34mtoBe[39m([32m'csrf-live'[39m)
+    [90m178|[39m     [34mexpect[39m(headers[[32m'Content-Type'[39m])[33m.[39m[34mtoBe[39m([32m'application/json'[39m)
+    [90m   |[39m                                     [31m^[39m
+    [90m179|[39m   })
+    [90m180|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-29 · buildJsonHeaders 统一安全头（三源 + 优先级 + JSON Content-Type）[2m > [22m⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发
+[31m[1mAssertionError[22m: expected undefined to be 'application/json' // Object.is equality[39m
+
+[32m- Expected:[39m
+"application/json"
+
+[31m+ Received:[39m
+undefined
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m189:37[22m[39m
+    [90m187|[39m     [34mexpect[39m(headers[[32m'x-csrf-token'[39m])[33m.[39m[34mtoBeUndefined[39m()
+    [90m188|[39m     [34mexpect[39m(headers[[32m'X-Tenant-Id'[39m])[33m.[39m[34mtoBe[39m([32m'tenant-001'[39m) [90m// 仍读到租户[39m
+    [90m189|[39m     expect(headers['Content-Type']).toBe('application/json') // JSON 场…
+    [90m   |[39m                                     [31m^[39m
+    [90m190|[39m   })
+    [90m191|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-29 · buildJsonHeaders 统一安全头（三源 + 优先级 + JSON Content-Type）[2m > [22m⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）
+[31m[1mAssertionError[22m: expected undefined to be 'application/json' // Object.is equality[39m
+
+[32m- Expected:[39m
+"application/json"
+
+[31m+ Received:[39m
+undefined
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m213:31[22m[39m
+    [90m211|[39m     [34mexpect[39m(h[[32m'X-Tenant-Id'[39m])[33m.[39m[34mtoBe[39m([32m'tenant-001'[39m)
+    [90m212|[39m     [34mexpect[39m(h[[32m'x-csrf-token'[39m])[33m.[39m[34mtoBe[39m([32m'csrf-live'[39m)
+    [90m213|[39m     [34mexpect[39m(h[[32m'Content-Type'[39m])[33m.[39m[34mtoBe[39m([32m'application/json'[39m) [90m// 普通 JSON 请求必须带[39m
+    [90m   |[39m                               [31m^[39m
+    [90m214|[39m   })
+    [90m215|[39m })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+

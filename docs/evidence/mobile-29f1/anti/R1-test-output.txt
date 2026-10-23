@@ -1,0 +1,703 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F1/app-mobile[39m
+
+ [31m❯[39m tests/request-contract.spec.ts [2m([22m[2m25 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 1490[2mms[22m[39m
+     [33m[2m✓[22m[39m ② 200 + code "0" + data ⇒ 成功解包 data [33m 344[2mms[22m[39m
+     [32m✓[39m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[32m 26[2mms[22m[39m
+     [32m✓[39m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[32m 19[2mms[22m[39m
+     [32m✓[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功[32m 26[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 47[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 16[2mms[22m[39m
+     [32m✓[39m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast[32m 9[2mms[22m[39m
+     [32m✓[39m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json[32m 8[2mms[22m[39m
+     [32m✓[39m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[32m 13[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 20[2mms[22m[39m
+     [32m✓[39m ⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）[32m 7[2mms[22m[39m
+     [32m✓[39m ㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在[32m 13[2mms[22m[39m
+     [32m✓[39m ㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type[32m 8[2mms[22m[39m
+[31m     [31m×[31m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image[39m[32m 298[2mms[22m[39m
+     [32m✓[39m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar[32m 126[2mms[22m[39m
+     [32m✓[39m ㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用[32m 6[2mms[22m[39m
+[31m     [31m×[31m ㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用[39m[32m 139[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 8[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 11[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 13[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 8[2mms[22m[39m
+     [32m✓[39m ⑰ 多行 text 事件逐条增量分发，不吞并[32m 278[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 3[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 6[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 13[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m23 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 00:29:12
+[2m   Duration [22m 3.79s[2m (transform 1.22s, setup 0ms, import 720ms, tests 1.49s, environment 1ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · 上传函数实调：uni.uploadFile 只收安全头（驱动真实 products.ts / profile.ts）[2m > [22m㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image
+[31m[1mAssertionError[22m: expected 'application/json' to be undefined[39m
+
+[32m- Expected:[39m
+undefined
+
+[31m+ Received:[39m
+"application/json"
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m301:38[22m[39m
+    [90m299|[39m     [34mexpect[39m(p[33m.[39mfilePath)[33m.[39m[34mtoBe[39m([32m'blob:https://h5.example/abc'[39m)
+    [90m300|[39m     [34mexpect[39m(p[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/admin/products/upload-image'[39m)
+    [90m301|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Content-Type'[39m])[33m.[39m[34mtoBeUndefined[39m()
+    [90m   |[39m                                      [31m^[39m
+    [90m302|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Authorization'[39m])[33m.[39m[34mtoBe[39m([32m'Bearer jwt-live'[39m)
+    [90m303|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'X-Tenant-Id'[39m])[33m.[39m[34mtoBe[39m([32m'tenant-001'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · downloadFile 与源码静态面（配合静态守卫 B/D，update.ts 沿用静态断言口径）[2m > [22m㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用
+[31m[1mAssertionError[22m: ../src/api/modules/products.ts 必须复用安全头构建器: expected '\ufeffimport { get, post, put, del, b…' to contain 'buildSecureHeaders()'[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- buildSecureHeaders()[39m
+[31m+ ﻿import { get, post, put, del, buildJsonHeaders } from '../request'[39m
+[31m+ import { API_BASE_H5, API_BASE_NATIVE } from '../../config/env'[39m
+[31m+ [39m
+[31m+ /** API 基础地址（与 request.ts 保持一致） */[39m
+[31m+ const API_BASE: string = (() => {[39m
+[31m+   // #ifdef H5[39m
+[31m+   return API_BASE_H5[39m
+[31m+   // #endif[39m
+[31m+   // #ifndef H5[39m
+[31m+   return API_BASE_NATIVE[39m
+[31m+   // #endif[39m
+[31m+ })()[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * ── QODER-26 · SKU/SPU 维度守卫（路径参数收口）────────────────────────────────[39m
+[31m+  * 后端商品域的两组路径段是**两个不同维度**（以后端真实注册为准，非前端变量名）：[39m
+[31m+  *   · `admin-product.routes.ts:35` GET  /products                → **SKU 粒度**行（`product.service.ts:259-273` 从 t_product_sku 出发，同查 `p.id AS spuId` 与 `s.id AS skuId`）[39m
+[31m+  *   · `:46` GET  /products/:spuId(\\d+)              → SPU[39m
+[31m+  *   · `:60` PUT  /products/:id                      → SPU（controller `:118` 读 req.params.spuId）[39m
+[31m+  *   · `:63` PUT  /products/:skuId/price             → SKU（controller `:256` 读 req.params.skuId）[39m
+[31m+  *   · `:69` PUT  /products/skus/:skuId              → SKU（controller `:152`）[39m
+[31m+  *   · `:74` PUT  /products/:spuId/marketing-tags    → SPU（controller `:296`）[39m
+[31m+  * 喂错维度＝写错对象（把 A 规格的价格改到同 SPU 的 B 规格上），所以这里把维度钉死。[39m
+[31m+  *[39m
+[31m+  * 为什么守卫不用 console 打日志：`scripts/gates-baseline.json` 的 `lint.warningsByRule.no-console`[39m
+[31m+  * 冻结为 225 条，新增任一 console.* 都会让 lint 门红（红线禁止调整 lint.* 基线）。[39m
+[31m+  * 故守卫采用两件事：①**可断言的结构化守卫日志** `skuGuardLog`（单测直接读数，页面亦可展示）；[39m
+[31m+  * ②**抛错**，由调用点**既有**的 console.error 打印（batch-price.vue 的失败分支），[39m
+[31m+  * 消息里带 id/spuId/skuId 三个读数，运维侧照样看得到。[39m
+[31m+  * ────────────────────────────────────────────────────────────────────────────[39m
+[31m+  */[39m
+[31m+ [39m
+[31m+ /** 守卫日志环形缓冲（上限 200 条，防长跑内存泄漏）；只追加字符串，不参与业务判定 */[39m
+[31m+ export const skuGuardLog: string[] = [][39m
+[31m+ const GUARD_LOG_CAP = 200[39m
+[31m+ [39m
+[31m+ function guardNote(msg: string): string {[39m
+[31m+   if (skuGuardLog.length >= GUARD_LOG_CAP) skuGuardLog.shift()[39m
+[31m+   skuGuardLog.push(msg)[39m
+[31m+   return msg[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * 数字主键归一：只有**正整数**才算有效身份。[39m
+[31m+  * NaN / 0 / 负数 / 编码串（skuCode、条码、名称）一律归 0（＝无效身份），[39m
+[31m+  * 对应本卡红线：不得用空格、名称或条码当唯一身份替代 SKU 主键。[39m
+[31m+  */[39m
+[31m+ function toNumericId(value: unknown): number {[39m
+[31m+   if (typeof value === 'number') return Number.isInteger(value) && value > 0 ? value : 0[39m
+[31m+   if (typeof value === 'string' && value.trim() !== '') {[39m
+[31m+     const n = Number(value)[39m
+[31m+     return Number.isInteger(n) && n > 0 ? n : 0[39m
+[31m+   }[39m
+[31m+   return 0[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** SKU 维度断言：拿到真实 skuId 才放行，否则抛错（不发请求＝不写错对象） */[39m
+[31m+ export function assertSkuId(value: unknown, ctx: string): number {[39m
+[31m+   const id = toNumericId(value)[39m
+[31m+   if (!id) {[39m
+[31m+     throw new Error([39m
+[31m+       guardNote([39m
+[31m+         `[SKU维度守卫] ${ctx}: 参数不是正整数 skuId（收到 ${JSON.stringify(value ?? null)}）⇒ 拒发 PUT /admin/products/:skuId/price`[39m
+[31m+       )[39m
+[31m+     )[39m
+[31m+   }[39m
+[31m+   return id[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** SPU 维度断言：详情/SPU 更新/营销标签只认 spuId */[39m
+[31m+ export function assertSpuId(value: unknown, ctx: string): number {[39m
+[31m+   const id = toNumericId(value)[39m
+[31m+   if (!id) {[39m
+[31m+     throw new Error([39m
+[31m+       guardNote([39m
+[31m+         `[SPU维度守卫] ${ctx}: 参数不是正整数 spuId（收到 ${JSON.stringify(value ?? null)}）⇒ 拒发 /admin/products/:spuId 请求`[39m
+[31m+       )[39m
+[31m+     )[39m
+[31m+   }[39m
+[31m+   return id[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * 从商品行取改价用的 skuId，并校验 `ProductInfo.id` 与 `ProductInfo.skuId` 同值。[39m
+[31m+  * 两者不同值只可能是「有人又把 SPU 主键塞进 id」＝本卡根因，宁可抛错也不发请求。[39m
+[31m+  */[39m
+[31m+ export function skuIdOfProduct(p: ProductInfo, ctx: string): number {[39m
+[31m+   const skuId = assertSkuId(p?.skuId, `${ctx}.skuId`)[39m
+[31m+   const rowId = toNumericId(p?.id)[39m
+[31m+   if (rowId !== skuId) {[39m
+[31m+     throw new Error([39m
+[31m+       guardNote([39m
+[31m+         `[SKU维度守卫] ${ctx}: ProductInfo.id=${rowId} 与 skuId=${skuId} 不同值（疑似 spuId 顶替 SKU 主键）⇒ 拒发改价`[39m
+[31m+       )[39m
+[31m+     )[39m
+[31m+   }[39m
+[31m+   return skuId[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 创建商品（后端 POST /admin/products） */[39m
+[31m+ export async function createProduct(data: Record<string, any>): Promise<any> {[39m
+[31m+   return post('/admin/products', data)[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * 商品详情（含 SKU 与单位换算链）——**SPU 维度**[39m
+[31m+  * 后端注册：`backend/src/routes/admin-product.routes.ts:46` `GET /products/:spuId(\d+)`[39m
+[31m+  * → controller `:36` `getProductDetail(Number(req.params.spuId))`。只准喂 `ProductInfo.spuId`。[39m
+[31m+  */[39m
+[31m+ export async function getProductDetail(spuId: number): Promise<ProductDetail> {[39m
+[31m+   const id = assertSpuId(spuId, 'getProductDetail')[39m
+[31m+   const res: any = await get(`/admin/products/${id}`)[39m
+[31m+   return (res?.result ?? res) as ProductDetail[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * 更新商品 SPU 字段（价格/单位属 SKU 域，后端 update 不含，详情页价格表格只读展示）[39m
+[31m+  * 后端注册：`admin-product.routes.ts:60` `PUT /products/:id` → controller `:118` 读 `spuId` ⇒ SPU 维度[39m
+[31m+  */[39m
+[31m+ export async function updateProduct(spuId: number, data: ProductUpdateParams): Promise<any> {[39m
+[31m+   const id = assertSpuId(spuId, 'updateProduct')[39m
+[31m+   return put(`/admin/products/${id}`, data)[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** SKU 五档价格更新契约（product.controller.ts#updateProductPrice，zod 校验）[39m
+[31m+  *  miniappPrice / storePrice 允许传 null（前端清空该档价格时即传 null，后端已接受） */[39m
+[31m+ export interface SkuPriceParams {[39m
+[31m+   costPrice?: number[39m
+[31m+   retailPrice?: number[39m
+[31m+   wholesalePrice?: number[39m
+[31m+   miniappPrice?: number | null[39m
+[31m+   storePrice?: number | null[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * 更新 SKU 价格（PUT /admin/products/:skuId/price）——**SKU 维度**[39m
+[31m+  * 后端注册：`admin-product.routes.ts:63` → controller `:256` `Number(req.params.skuId)`[39m
+[31m+  * ⇒ 路径段是 skuId，喂 SPU 主键＝把价格改到同 SPU 的别的规格上（写错对象）。[39m
+[31m+  * QODER-26：入参先过 `assertSkuId` 守卫（非正整数直接抛错，不发请求），[39m
+[31m+  * 调用点请用 `skuIdOfProduct(product, ctx)` 取号，可一并校验 `ProductInfo.id` 与 `skuId` 同值。[39m
+[31m+  */[39m
+[31m+ export async function updateSkuPrice(skuId: number, data: SkuPriceParams): Promise<any> {[39m
+[31m+   const id = assertSkuId(skuId, 'updateSkuPrice')[39m
+[31m+   return put(`/admin/products/${id}/price`, data)[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** SKU 配置更新入参（traceEnabled/warningThreshold 等可选，配合下方 PUT /admin/products/skus/:skuId） */[39m
+[31m+ export interface SkuUpdateParams {[39m
+[31m+   skuName?: string[39m
+[31m+   baseUnit?: string[39m
+[31m+   boxUnit?: string[39m
+[31m+   boxRatio?: number[39m
+[31m+   traceEnabled?: boolean[39m
+[31m+   warningThreshold?: number[39m
+[31m+ }[39m
+[31m+ /** 更新 SKU 配置（PUT /admin/products/skus/:skuId，traceEnabled/warningThreshold 等可选）[39m
+[31m+  *  ——**SKU 维度**：后端 `admin-product.routes.ts:69` → controller `:152` `Number(req.params.skuId)` */[39m
+[31m+ export async function updateSku(skuId: number, data: SkuUpdateParams): Promise<any> {[39m
+[31m+   const id = assertSkuId(skuId, 'updateSku')[39m
+[31m+   return put(`/admin/products/skus/${id}`, data)[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 新增辅单位（POST /admin/products/skus/:skuId/units，units 无 costPrice 字段） */[39m
+[31m+ export interface SkuUnitParams {[39m
+[31m+   unitName: string[39m
+[31m+   ratio?: number[39m
+[31m+   barcode?: string[39m
+[31m+   retailPrice?: number | null[39m
+[31m+   wholesalePrice?: number | null[39m
+[31m+   storePrice?: number | null[39m
+[31m+   miniappPrice?: number | null[39m
+[31m+ }[39m
+[31m+ export async function addSkuUnit(skuId: number, data: SkuUnitParams): Promise<any> {[39m
+[31m+   return post(`/admin/products/skus/${skuId}/units`, data)[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 更新辅单位（PUT /admin/products/skus/:skuId/units/:unitId） */[39m
+[31m+ export async function updateSkuUnit(skuId: number, unitId: number, data: Partial<SkuUnitParams>): Promise<any> {[39m
+[31m+   return put(`/admin/products/skus/${skuId}/units/${unitId}`, data)[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 删除辅单位（DELETE /admin/products/skus/:skuId/units/:unitId） */[39m
+[31m+ export async function deleteSkuUnit(skuId: number, unitId: number): Promise<any> {[39m
+[31m+   return del(`/admin/products/skus/${skuId}/units/${unitId}`)[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 设置商品营销标签（PUT /admin/products/:spuId/marketing-tags，body {tags: string[]}）[39m
+[31m+  *  ——**SPU 维度**：后端 `admin-product.routes.ts:74` → controller `:296` `Number(req.params.spuId)` */[39m
+[31m+ export async function setMarketingTags(spuId: number, tags: string[]): Promise<any> {[39m
+[31m+   const id = assertSpuId(spuId, 'setMarketingTags')[39m
+[31m+   return put(`/admin/products/${id}/marketing-tags`, { tags })[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 商品详情（GET /admin/products/:spuId，含 SKU 单位换算链与四档价格） */[39m
+[31m+ export interface ProductDetail {[39m
+[31m+   id: number[39m
+[31m+   name: string[39m
+[31m+   categoryId: number[39m
+[31m+   categoryName: string[39m
+[31m+   brandName?: string[39m
+[31m+   unit: string[39m
+[31m+   specs?: string[39m
+[31m+   origin?: string[39m
+[31m+   alcoholContent?: string | null[39m
+[31m+   mainImage?: string[39m
+[31m+   marketingTags?: string[][39m
+[31m+   saleChannels?: string[][39m
+[31m+   status: string[39m
+[31m+   isNew?: number[39m
+[31m+   isRecommend?: number[39m
+[31m+   enabled?: number[39m
+[31m+   shelfLifeOn?: number[39m
+[31m+   batchOn?: number[39m
+[31m+   createdAt?: string[39m
+[31m+   updatedAt?: string[39m
+[31m+   skus: Array<{[39m
+[31m+     id: number[39m
+[31m+     skuCode: string[39m
+[31m+     barcode?: string[39m
+[31m+     baseUnit: string[39m
+[31m+     boxUnit?: string[39m
+[31m+     boxRatio?: number[39m
+[31m+     traceEnabled?: number[39m
+[31m+     warningThreshold?: number[39m
+[31m+     costPrice: string[39m
+[31m+     retailPrice: string[39m
+[31m+     wholesalePrice: string[39m
+[31m+     miniappPrice?: string[39m
+[31m+     storePrice?: string[39m
+[31m+     availableQty: number[39m
+[31m+     units: Array<{[39m
+[31m+       id: number[39m
+[31m+       unitName: string[39m
+[31m+       ratio: string[39m
+[31m+       barcode?: string[39m
+[31m+       retailPrice: string[39m
+[31m+       wholesalePrice: string[39m
+[31m+       miniappPrice?: string[39m
+[31m+       storePrice?: string[39m
+[31m+       isBase: number[39m
+[31m+     }>[39m
+[31m+   }>[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 商品更新契约（PUT /admin/products/:id，product.service.ts#updateProduct） */[39m
+[31m+ export interface ProductUpdateParams {[39m
+[31m+   name?: string[39m
+[31m+   barcode?: string[39m
+[31m+   category?: string[39m
+[31m+   /** 后端 zod 只接收 brand 字符串（非 brandId），service 亦按品牌名更新 */[39m
+[31m+   brand?: string[39m
+[31m+   unit?: string[39m
+[31m+   boxRatio?: number[39m
+[31m+   specs?: string[39m
+[31m+   alcoholContent?: number | null[39m
+[31m+   origin?: string[39m
+[31m+   saleChannels?: string[][39m
+[31m+   status?: 'DRAFT' | 'ON_SALE' | 'OFF_SALE'[39m
+[31m+   isNew?: boolean[39m
+[31m+   isRecommend?: boolean[39m
+[31m+   /** 商品启用（停用后开单/采购不可选） */[39m
+[31m+   enabled?: boolean[39m
+[31m+   /** 保质期开关（开单需录入生产日期与保质期） */[39m
+[31m+   shelfLifeOn?: boolean[39m
+[31m+   /** 批次开关（开单需选择商品批次） */[39m
+[31m+   batchOn?: boolean[39m
+[31m+   mainImage?: string[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ export interface ProductInfo {[39m
+[31m+   /**[39m
+[31m+    * **SKU 行主键**（= 后端 `s.id AS skuId`，与 `skuId` 同源同值）。[39m
+[31m+    * 商品列表 `:key`、加购去重、待选数量、销售明细 `productId`、批量改价选择集全部用它。[39m
+[31m+    * QODER-26 根因：原先写作 `id: r.spuId ?? r.id` ⇒ 同 SPU 的多 SKU 撞同一个 id（重复 :key、[39m
+[31m+    * 跨规格合并库存、改价写错对象）。**不得**再用 spuId／skuCode／条码／名称顶替它。[39m
+[31m+    */[39m
+[31m+   id: number[39m
+[31m+   /** **SPU 主键**（= 后端 `p.id AS spuId`）：点商品卡/扫码进详情用它，对齐 GET /admin/products/:spuId */[39m
+[31m+   spuId: number[39m
+[31m+   /** **SKU 主键**（数值，后端 `s.id`）：PUT /admin/products/:skuId/price 与 skus/:skuId 只认它 */[39m
+[31m+   skuId: number[39m
+[31m+   name: string[39m
+[31m+   categoryId?: number[39m
+[31m+   categoryName?: string[39m
+[31m+   brandName?: string[39m
+[31m+   barcode?: string[39m
+[31m+   price: number[39m
+[31m+   wholesalePrice?: number[39m
+[31m+   retailPrice?: number[39m
+[31m+   /** 门店售价（线下门店档，列表接口已返回，核价页需展示） */[39m
+[31m+   storePrice?: number[39m
+[31m+   /** 小程序渠道价 */[39m
+[31m+   miniappPrice?: number[39m
+[31m+   /** 成本价：受 priceResponseFilter 权限控制，无权限时为 null（须如实显示，不造假） */[39m
+[31m+   costPrice?: number | null[39m
+[31m+   stock: number[39m
+[31m+   unit: string[39m
+[31m+   image?: string[39m
+[31m+   specs?: string[39m
+[31m+   origin?: string[39m
+[31m+   safetyStock?: number[39m
+[31m+   status: 'ON' | 'OFF'[39m
+[31m+   allowOnlineSale?: number[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ export interface ProductListParams {[39m
+[31m+   page?: number[39m
+[31m+   pageSize?: number[39m
+[31m+   keyword?: string[39m
+[31m+   categoryId?: number[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ export interface ProductListResult {[39m
+[31m+   list: ProductInfo[][39m
+[31m+   total: number[39m
+[31m+   page: number[39m
+[31m+   pageSize: number[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * 后端商品列表行 → `ProductInfo`（**SKU 粒度：一条 SKU 一行**）[39m
+[31m+  *[39m
+[31m+  * 依据（只读后端）：`backend/src/services/admin/product.service.ts:258-301`（有关键词）[39m
+[31m+  * 与 `:307-339`（无关键词）两条 SQL 都是 `FROM t_product_sku s JOIN t_product_spu p ...`，[39m
+[31m+  * select 同时给出 `p.id AS spuId` 与 `s.id AS skuId`，`total` 也按 `COUNT(*) FROM t_product_sku` 算[39m
+[31m+  * ⇒ **列表本身就不是 SPU 维度**，前端按 spuId 合并会造出"一行代表多个规格"的假行。[39m
+[31m+  *[39m
+[31m+  * 处置（QODER-26）：[39m
+[31m+  * 1. `id`/`skuId` 取 `r.skuId`（SKU 行主键），`spuId` 取 `r.spuId`，三者语义分离；[39m
+[31m+  * 2. 不再按 spuId 合并、不再跨 SKU 累加库存（原 :319-328 的 merged 逻辑整段废除）；[39m
+[31m+  * 3. 缺正整数 skuId 的行**跳过并写守卫日志**——宁可少一行，也不让"没有 SKU 主键的行"[39m
+[31m+  *    用 spuId/skuCode/条码/名称凑身份（那样会重新长出重复 :key 与写错对象）；[39m
+[31m+  * 4. 同 skuId 重复出现只保留首行（分页边界/后端 JOIN 放大时的防御），同样写守卫日志。[39m
+[31m+  */[39m
+[31m+ export function mapProductRecords(records: any[]): ProductInfo[] {[39m
+[31m+   const out: ProductInfo[] = [][39m
+[31m+   const seen = new Set<number>()[39m
+[31m+   for (const r of records) {[39m
+[31m+     const skuId = toNumericId(r.skuId)[39m
+[31m+     const spuId = toNumericId(r.spuId)[39m
+[31m+     if (!skuId) {[39m
+[31m+       guardNote([39m
+[31m+         `[SKU维度守卫] 列表行缺正整数 skuId，已跳过（不得用 spuId/skuCode/barcode/name 顶替 SKU 主键）：spuId=${spuId || '-'} skuCode=${r?.skuCode ?? '-'} name=${r?.name ?? '-'}`[39m
+[31m+       )[39m
+[31m+       continue[39m
+[31m+     }[39m
+[31m+     if (seen.has(skuId)) {[39m
+[31m+       guardNote(`[SKU维度守卫] 列表内 skuId=${skuId} 重复出现，仅保留首行（不跨 SKU 合并库存/价格）`)[39m
+[31m+       continue[39m
+[31m+     }[39m
+[31m+     seen.add(skuId)[39m
+[31m+     out.push({[39m
+[31m+       id: skuId,[39m
+[31m+       spuId,[39m
+[31m+       skuId,[39m
+[31m+       name: r.name ?? '',[39m
+[31m+       categoryId: r.categoryId,[39m
+[31m+       categoryName: r.categoryName,[39m
+[31m+       brandName: r.brandName ?? '',[39m
+[31m+       barcode: r.barcode ?? '',[39m
+[31m+       price: Number(r.retailPrice ?? r.price ?? 0),[39m
+[31m+       wholesalePrice: r.wholesalePrice != null ? Number(r.wholesalePrice) : Number(r.price ?? 0),[39m
+[31m+       retailPrice: r.retailPrice != null ? Number(r.retailPrice) : Number(r.price ?? 0),[39m
+[31m+       // 门店价 / 小程序价：与后端五档价格体系一致（列表接口已返回）[39m
+[31m+       storePrice: r.storePrice != null ? Number(r.storePrice) : undefined,[39m
+[31m+       miniappPrice: r.miniappPrice != null ? Number(r.miniappPrice) : undefined,[39m
+[31m+       // 成本价：权限剥离后为 null，由页面如实展示（不能当作 0）[39m
+[31m+       costPrice: r.costPrice != null ? Number(r.costPrice) : null,[39m
+[31m+       // 库存取该 SKU 行自己的 available_qty（t_inventory_balance 按 ib.sku_id JOIN），不得累加别的规格[39m
+[31m+       stock: Number(r.availableQty ?? r.stock ?? 0),[39m
+[31m+       unit: r.unit ?? '',[39m
+[31m+       image: r.mainImage ?? r.image,[39m
+[31m+       specs: r.specs,[39m
+[31m+       origin: r.origin,[39m
+[31m+       safetyStock: r.warningThreshold != null ? Number(r.warningThreshold) : undefined,[39m
+[31m+       // 后端状态枚举为大写 ON_SALE / OFF_SALE / DRAFT，上架 → ON，其余 → OFF[39m
+[31m+       status: r.status === 'ON_SALE' ? 'ON' : 'OFF',[39m
+[31m+       // 分类级 allow_online_sale：0 = 该分类商品仅线下销售[39m
+[31m+       allowOnlineSale: r.allowOnlineSale,[39m
+[31m+     })[39m
+[31m+   }[39m
+[31m+   return out[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ export interface CategoryInfo {[39m
+[31m+   id: number[39m
+[31m+   name: string[39m
+[31m+   parentId?: number[39m
+[31m+   children?: CategoryInfo[][39m
+[31m+   allowOnlineSale?: number[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /**[39m
+[31m+  * 平台商品库查询结果（新建商品流程扫码命中时返回）[39m
+[31m+  * category 字段故意留空（不填充），由商户在创建页手动选择[39m
+[31m+  */[39m
+[31m+ export interface LibraryLookupResult {[39m
+[31m+   /** 是否命中平台商品库 */[39m
+[31m+   matched: boolean[39m
+[31m+   /** SPU 信息（命中时返回） */[39m
+[31m+   spu?: {[39m
+[31m+     id: number[39m
+[31m+     spuCode: string[39m
+[31m+     /** 商品名称（自动填充） */[39m
+[31m+     name: string[39m
+[31m+     brandId: number[39m
+[31m+     /** 品牌名称（自动填充） */[39m
+[31m+     brandName: string[39m
+[31m+     /** 规格（自动填充） */[39m
+[31m+     specs: string[39m
+[31m+     /** 单位（自动填充） */[39m
+[31m+     unit: string[39m
+[31m+     /** 主图 URL（自动填充） */[39m
+[31m+     mainImage: string[39m
+[31m+     /** 多图 JSON */[39m
+[31m+     imageUrls: string | object[39m
+[31m+     /** 扩展属性 JSON，含酒精度/产地/香型等（自动填充） */[39m
+[31m+     properties: string | object[39m
+[31m+     /** 商品简介（自动填充） */[39m
+[31m+     description: string[39m
+[31m+     /** 建议零售价 */[39m
+[31m+     suggestedRetailPrice: string[39m
+[31m+   }[39m
+[31m+   /** SKU 信息（命中时返回） */[39m
+[31m+   sku?: {[39m
+[31m+     id: number[39m
+[31m+     spuId: number[39m
+[31m+     skuCode: string[39m
+[31m+     /** 条码（自动填充） */[39m
+[31m+     barcode: string[39m
+[31m+     /** SKU 名称（自动填充） */[39m
+[31m+     skuName: string[39m
+[31m+     /** 容量/酒规格（自动填充） */[39m
+[31m+     volume: string[39m
+[31m+     /** 包装（自动填充） */[39m
+[31m+     packaging: string[39m
+[31m+     /** 基础单位（自动填充） */[39m
+[31m+     baseUnit: string[39m
+[31m+     /** 箱单位（自动填充） */[39m
+[31m+     boxUnit: string[39m
+[31m+     /** 箱规比例（自动填充） */[39m
+[31m+     boxRatio: number[39m
+[31m+     /** SKU 主图（自动填充） */[39m
+[31m+     skuImage: string[39m
+[31m+   }[39m
+[31m+   /** 品牌信息（命中时返回） */[39m
+[31m+   brand?: {[39m
+[31m+     id: number[39m
+[31m+     name: string[39m
+[31m+     logo: string[39m
+[31m+   }[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ const productsApi = {[39m
+[31m+   /**[39m
+[31m+    * 创建商品（POST /admin/products）[39m
+[31m+    * R96-04：本模块顶层原本就有独立导出的 createProduct()，但 productsApi 对象漏收，[39m
+[31m+    * create-sale.vue 快速添加商品调 productsApi.createProduct(...) 拿到 undefined，[39m
+[31m+    * 一点保存即 TypeError「createProduct is not a function」。此处收编修复。[39m
+[31m+    */[39m
+[31m+   async createProduct(data: Record<string, any>): Promise<any> {[39m
+[31m+     return createProduct(data)[39m
+[31m+   },[39m
+[31m+ [39m
+[31m+   async list(params?: ProductListParams): Promise<ProductListResult> {[39m
+[31m+     const res = (await get('/admin/products', params)) as any[39m
+[31m+     const raw = res?.result ?? res[39m
+[31m+     // 后端返回 records 数组（SKU 粒度），映射见 mapProductRecords：id=skuId（SKU 行主键）、spuId 另存[39m
+[31m+     const records: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])[39m
+[31m+     const list = mapProductRecords(records)[39m
+[31m+     return {[39m
+[31m+       list,[39m
+[31m+       total: raw?.total ?? list.length,[39m
+[31m+       page: raw?.page ?? params?.page ?? 1,[39m
+[31m+       pageSize: raw?.pageSize ?? params?.pageSize ?? 20,[39m
+[31m+     }[39m
+[31m+   },[39m
+[31m+ [39m
+[31m+   /** 商品详情（GET /admin/products/:spuId）——**SPU 维度**，参数名收口为 spuId（原 `id` 易被误喂 SKU 主键） */[39m
+[31m+   async detail(spuId: number): Promise<ProductInfo> {[39m
+[31m+     const id = assertSpuId(spuId, 'productsApi.detail')[39m
+[31m+     const res = (await get(`/admin/products/${id}`)) as any[39m
+[31m+     return (res as any)?.result ?? res[39m
+[31m+   },[39m
+[31m+ [39m
+[31m+   async categories(): Promise<CategoryInfo[]> {[39m
+[31m+     // 后端分类路由 prefix 为 /api/admin/products/categories[39m
+[31m+     const res = (await get('/admin/products/categories')) as any[39m
+[31m+     const rows: any[] = res?.list ?? res ?? [][39m
+[31m+     // 后端返回下划线命名 allow_online_sale，统一映射为驼峰 allowOnlineSale[39m
+[31m+     return rows.map((c: any) => ({[39m
+[31m+       id: c.id,[39m
+[31m+       name: c.name,[39m
+[31m+       parentId: c.parentId ?? c.parent_id,[39m
+[31m+       allowOnlineSale: c.allowOnlineSale ?? c.allow_online_sale,[39m
+[31m+     }))[39m
+[31m+   },[39m
+[31m+ [39m
+[31m+   /**[39m
+[31m+    * QODER-26（交付物 5）· 批次追踪死包装已删除。[39m
+[31m+    * 原包装收**批次号字符串**却拼进数字主键段（后端 `inventory-batch.routes.ts:26` 注册的是[39m
+[31m+    * `GET /batches/:id/trace`，controller 按数字 `:id` 查 ⇒ 字符串进段就是 NaN），[39m
+[31m+    * 且全仓零调用点（`rg -n` 实测仅本文件定义处 1 命中，页面侧 0 命中，详见 QODER-26 证据树），[39m
+[31m+    * 正确封装已在册：`api/modules/batches.ts` 的 `batchApi.trace(id: number)` ⇒ 本处不再留第二份。[39m
+[31m+    */[39m
+[31m+ [39m
+[31m+   /**[39m
+[31m+    * 按条码查询平台商品库（仅用于"新建商品流程"扫码命中自动填充）[39m
+[31m+    *[39m
+[31m+    * POST /api/admin/library/lookup[39m
+[31m+    * Body: { barcode: string }[39m
+[31m+    * 返回：{ matched: boolean, spu?, sku?, brand? }[39m
+[31m+    * 注意：返回结果不含 category 字段，命中后分类留空不填充，由商户在创建页手动选择[39m
+[31m+    *[39m
+[31m+    * @param barcode 扫码得到的条码[39m
+[31m+    * @returns 商品库查询结果[39m
+[31m+    */[39m
+[31m+   async libraryLookup(barcode: string): Promise<LibraryLookupResult> {[39m
+[31m+     const res = (await post('/admin/library/lookup', { barcode })) as any[39m
+[31m+     // request.ts 的 post() 已解包 res.data，这里再兼容一层[39m
+[31m+     const raw = res?.data ?? res[39m
+[31m+     const matched: boolean = !!(raw?.matched)[39m
+[31m+     const result: LibraryLookupResult = { matched }[39m
+[31m+     if (matched) {[39m
+[31m+       result.spu = raw.spu[39m
+[31m+       result.sku = raw.sku[39m
+[31m+       result.brand = raw.brand[39m
+[31m+     }[39m
+[31m+     return result[39m
+[31m+   },[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 品牌库（GET /admin/brands，租户隔离）—— 商品详情/新建的品牌下拉数据源 */[39m
+[31m+ export interface BrandItem {[39m
+[31m+   id: number[39m
+[31m+   name: string[39m
+[31m+   logo?: string[39m
+[31m+   description?: string[39m
+[31m+   sortNo?: number[39m
+[31m+   status?: number[39m
+[31m+ }[39m
+[31m+ export async function listBrands(): Promise<BrandItem[]> {[39m
+[31m+   const res: any = await get('/admin/brands')[39m
+[31m+   const rows: any[] = Array.isArray(res) ? res : res?.list ?? res?.data ?? [][39m
+[31m+   return rows.map((b: any) => ({[39m
+[31m+     id: b.id,[39m
+[31m+     name: b.name ?? '',[39m
+[31m+     logo: b.logo,[39m
+[31m+     description: b.description,[39m
+[31m+     sortNo: b.sortNo ?? b.sort_no,[39m
+[31m+     status: b.status,[39m
+[31m+   }))[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 单位库（GET /admin/units，租户隔离）—— 商品详情/新建的单位下拉数据源 */[39m
+[31m+ export interface UnitItem {[39m
+[31m+   id: number[39m
+[31m+   name: string[39m
+[31m+   code?: string[39m
+[31m+   type?: string[39m
+[31m+   sortNo?: number[39m
+[31m+   status?: number[39m
+[31m+ }[39m
+[31m+ export async function listUnits(): Promise<UnitItem[]> {[39m
+[31m+   const res: any = await get('/admin/units')[39m
+[31m+   const rows: any[] = Array.isArray(res) ? res : res?.list ?? res?.data ?? [][39m
+[31m+   return rows.map((u: any) => ({[39m
+[31m+     id: u.id,[39m
+[31m+     name: u.name ?? '',[39m
+[31m+     code: u.code,[39m
+[31m+     type: u.type,[39m
+[31m+     sortNo: u.sortNo ?? u.sort_no,[39m
+[31m+     status: u.status,[39m
+[31m+   }))[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 库存预警（GET /admin/stock-warnings，返回全部预警 SKU 行；无配置时默认 physical_qty<=5 判 LOW） */[39m
+[31m+ export interface StockWarningItem {[39m
+[31m+   skuId: number[39m
+[31m+   skuName: string[39m
+[31m+   storeId?: number[39m
+[31m+   storeName?: string[39m
+[31m+   currentStock: number[39m
+[31m+   minQty: number[39m
+[31m+   maxQty: number[39m
+[31m+   warningLevel: 'LOW' | 'HIGH' | 'NORMAL'[39m
+[31m+   safetyStock?: number[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 拉取全量库存预警（用于列表页预警/缺货真实统计，不依赖分页） */[39m
+[31m+ export async function listStockWarnings(): Promise<StockWarningItem[]> {[39m
+[31m+   const res: any = await get('/admin/stock-warnings')[39m
+[31m+   const rows: any[] = Array.isArray(res) ? res : res?.data ?? res?.list ?? [][39m
+[31m+   return rows as StockWarningItem[][39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ /** 上传商品主图（multipart 字段名 image，后端 POST /admin/products/upload-image） */[39m
+[31m+ function uploadImage(filePath: string): Promise<string> {[39m
+[31m+   return new Promise((resolve, reject) => {[39m
+[31m+     // 直接调用 uni.uploadFile（multipart 无法走 Promise 型统一入口）。[39m
+[31m+     // ★ MOBILE-29F1：只用安全头构建器——绝不下发 Content-Type，multipart boundary 由[39m
+[31m+     // uni / 微信 / 浏览器自行生成（QODER-29 驳回根因：复用 JSON 构建器会破坏 multipart）[39m
+[31m+     const header = buildJsonHeaders()[39m
+[31m+     uni.uploadFile({[39m
+[31m+       url: `${API_BASE}/admin/products/upload-image`,[39m
+[31m+       filePath,[39m
+[31m+       name: 'image',[39m
+[31m+       header,[39m
+[31m+       success: (res: any) => {[39m
+[31m+         try {[39m
+[31m+           const body = typeof res.data === 'string' ? JSON.parse(res.data) : res.data[39m
+[31m+           const url = body?.data?.url ?? body?.url[39m
+[31m+           if (res.statusCode === 200 && url) {[39m
+[31m+             resolve(url)[39m
+[31m+           } else {[39m
+[31m+             reject(new Error(body?.msg || '图片上传失败'))[39m
+[31m+           }[39m
+[31m+         } catch (err) {[39m
+[31m+           reject(new Error('图片上传响应解析失败'))[39m
+[31m+         }[39m
+[31m+       },[39m
+[31m+       fail: (err: any) => reject(new Error(err?.errMsg || '图片上传失败')),[39m
+[31m+     })[39m
+[31m+   })[39m
+[31m+ }[39m
+[31m+ [39m
+[31m+ export { productsApi, uploadImage }[39m
+[31m+[39m
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m341:40[22m[39m
+    [90m339|[39m     for (const rel of ['../src/api/modules/products.ts', '../src/api/m…
+    [90m340|[39m       [35mconst[39m src [33m=[39m [34mreadSrc[39m(rel)
+    [90m341|[39m       expect(src, `${rel} 必须复用安全头构建器`).toContain('buildSecureHeaders()…
+    [90m   |[39m                                        [31m^[39m
+    [90m342|[39m       expect(src, `${rel} 上传场景禁用 JSON 构建器`).not.toContain('buildJsonHe…
+    [90m343|[39m       expect(src, `${rel} 上传场景禁用旧名构建器（QODER-29 驳回根因）`).not.toContain('…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+

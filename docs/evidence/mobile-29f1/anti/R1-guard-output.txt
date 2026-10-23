@@ -1,0 +1,16 @@
+—— QODER-29 + MOBILE-29F1 请求出口 & 凭据日志静态守卫 ——
+直接网络调用（uni.request/uploadFile/downloadFile，非注释行）：共 8 处
+  src/api/modules/ai.ts:259  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:383  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:416  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:457  uni.request  ✔ 已登记
+  src/api/modules/products.ts:604  uni.uploadFile  ✔ 已登记
+  src/api/modules/profile.ts:49  uni.uploadFile  ✔ 已登记
+  src/api/request.ts:136  uni.request  ✔ 已登记
+  src/utils/update.ts:177  uni.downloadFile  ✔ 已登记
+
+✗ [B] 直接调用未按类型复用对应构建器（MO-29 / MOBILE-29F1）：
+    src/api/modules/products.ts: 缺少 buildSecureHeaders（uni.request⇒buildJsonHeaders；uploadFile/downloadFile⇒buildSecureHeaders）
+
+✗ [D] multipart/二进制直调文件引用 JSON 构建器（MOBILE-29F1，QODER-29 驳回根因回归）：
+    src/api/modules/products.ts:603  const header = buildJsonHeaders()

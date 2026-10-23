@@ -1,0 +1,111 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F1/app-mobile[39m
+
+ [31m❯[39m tests/request-contract.spec.ts [2m([22m[2m25 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 1177[2mms[22m[39m
+     [32m✓[39m ② 200 + code "0" + data ⇒ 成功解包 data[32m 298[2mms[22m[39m
+     [32m✓[39m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[32m 21[2mms[22m[39m
+     [32m✓[39m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[32m 19[2mms[22m[39m
+     [32m✓[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功[32m 24[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 23[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 27[2mms[22m[39m
+     [32m✓[39m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast[32m 12[2mms[22m[39m
+     [32m✓[39m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json[32m 11[2mms[22m[39m
+     [32m✓[39m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[32m 13[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 20[2mms[22m[39m
+     [32m✓[39m ⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）[32m 7[2mms[22m[39m
+[31m     [31m×[31m ㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在[39m[32m 70[2mms[22m[39m
+[31m     [31m×[31m ㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type[39m[32m 41[2mms[22m[39m
+[31m     [31m×[31m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image[39m[32m 197[2mms[22m[39m
+[31m     [31m×[31m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar[39m[32m 68[2mms[22m[39m
+     [32m✓[39m ㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用[32m 4[2mms[22m[39m
+     [32m✓[39m ㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用[32m 3[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 6[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 8[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 10[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 9[2mms[22m[39m
+     [32m✓[39m ⑰ 多行 text 事件逐条增量分发，不吞并[32m 238[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 2[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 7[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 15[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m21 passed[39m[22m[90m (25)[39m
+[2m   Start at [22m 00:29:33
+[2m   Duration [22m 3.71s[2m (transform 1.17s, setup 0ms, import 750ms, tests 1.18s, environment 1ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · buildSecureHeaders 只含安全三头（Content-Type 绝不存在）[2m > [22m㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在
+[31m[1mAssertionError[22m: expected undefined to be 'Bearer jwt-live' // Object.is equality[39m
+
+[32m- Expected:[39m
+"Bearer jwt-live"
+
+[31m+ Received:[39m
+undefined
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m262:38[22m[39m
+    [90m260|[39m     [35mconst[39m mod [33m=[39m [35mawait[39m [34mimportRequest[39m()
+    [90m261|[39m     [35mconst[39m headers [33m=[39m mod[33m.[39m[34mbuildSecureHeaders[39m()
+    [90m262|[39m     [34mexpect[39m(headers[[32m'Authorization'[39m])[33m.[39m[34mtoBe[39m([32m'Bearer jwt-live'[39m)
+    [90m   |[39m                                      [31m^[39m
+    [90m263|[39m     [34mexpect[39m(headers[[32m'X-Tenant-Id'[39m])[33m.[39m[34mtoBe[39m([32m'tenant-001'[39m)
+    [90m264|[39m     [34mexpect[39m(headers[[32m'x-csrf-token'[39m])[33m.[39m[34mtoBe[39m([32m'csrf-live'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · buildSecureHeaders 只含安全三头（Content-Type 绝不存在）[2m > [22m㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type
+[31m[1mAssertionError[22m: expected 'Evil-Should-Be-Overwritten' to be 'Bearer jwt-live' // Object.is equality[39m
+
+Expected: [32m"Bearer jwt-live"[39m
+Received: [31m"Evil-Should-Be-Overwritten"[39m
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m278:38[22m[39m
+    [90m276|[39m     })
+    [90m277|[39m     expect(headers['Accept']).toBe('application/octet-stream') // extr…
+    [90m278|[39m     expect(headers['Authorization']).toBe('Bearer jwt-live') // 安全头回写、…
+    [90m   |[39m                                      [31m^[39m
+    [90m279|[39m     expect('Content-Type' in headers).toBe(false) // 调用方塞 Content-Type…
+    [90m280|[39m   })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · 上传函数实调：uni.uploadFile 只收安全头（驱动真实 products.ts / profile.ts）[2m > [22m㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image
+[31m[1mAssertionError[22m: expected undefined to be 'Bearer jwt-live' // Object.is equality[39m
+
+[32m- Expected:[39m
+"Bearer jwt-live"
+
+[31m+ Received:[39m
+undefined
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m302:39[22m[39m
+    [90m300|[39m     [34mexpect[39m(p[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/admin/products/upload-image'[39m)
+    [90m301|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Content-Type'[39m])[33m.[39m[34mtoBeUndefined[39m()
+    [90m302|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Authorization'[39m])[33m.[39m[34mtoBe[39m([32m'Bearer jwt-live'[39m)
+    [90m   |[39m                                       [31m^[39m
+    [90m303|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'X-Tenant-Id'[39m])[33m.[39m[34mtoBe[39m([32m'tenant-001'[39m)
+    [90m304|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'x-csrf-token'[39m])[33m.[39m[34mtoBe[39m([32m'csrf-live'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · 上传函数实调：uni.uploadFile 只收安全头（驱动真实 products.ts / profile.ts）[2m > [22m㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar
+[31m[1mAssertionError[22m: expected undefined to be 'Bearer jwt-live' // Object.is equality[39m
+
+[32m- Expected:[39m
+"Bearer jwt-live"
+
+[31m+ Received:[39m
+undefined
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m321:39[22m[39m
+    [90m319|[39m     [34mexpect[39m(p[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/admin/auth/avatar'[39m)
+    [90m320|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Content-Type'[39m])[33m.[39m[34mtoBeUndefined[39m()
+    [90m321|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Authorization'[39m])[33m.[39m[34mtoBe[39m([32m'Bearer jwt-live'[39m)
+    [90m   |[39m                                       [31m^[39m
+    [90m322|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'X-Tenant-Id'[39m])[33m.[39m[34mtoBe[39m([32m'tenant-001'[39m)
+    [90m323|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'x-csrf-token'[39m])[33m.[39m[34mtoBe[39m([32m'csrf-live'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+

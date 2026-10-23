@@ -1,0 +1,72 @@
+{
+  "directCallTotal": 8,
+  "inventory": [
+    {
+      "file": "src/api/modules/ai.ts",
+      "line": 259,
+      "kind": "uni.request"
+    },
+    {
+      "file": "src/api/modules/ai.ts",
+      "line": 383,
+      "kind": "uni.request"
+    },
+    {
+      "file": "src/api/modules/ai.ts",
+      "line": 416,
+      "kind": "uni.request"
+    },
+    {
+      "file": "src/api/modules/ai.ts",
+      "line": 457,
+      "kind": "uni.request"
+    },
+    {
+      "file": "src/api/modules/products.ts",
+      "line": 604,
+      "kind": "uni.uploadFile"
+    },
+    {
+      "file": "src/api/modules/profile.ts",
+      "line": 49,
+      "kind": "uni.uploadFile"
+    },
+    {
+      "file": "src/api/request.ts",
+      "line": 136,
+      "kind": "uni.request"
+    },
+    {
+      "file": "src/utils/update.ts",
+      "line": 177,
+      "kind": "uni.downloadFile"
+    }
+  ],
+  "registry": {
+    "src/api/request.ts": {
+      "count": 1,
+      "reason": "统一请求入口本体（Promise 封装 uni.request，buildJsonHeaders / buildSecureHeaders 两个构建器来源）"
+    },
+    "src/api/modules/ai.ts": {
+      "count": 4,
+      "reason": "AI 底座独立服务基址 + SSE 流式/非流式与写操作确认，无法走 Promise 型统一入口"
+    },
+    "src/utils/update.ts": {
+      "count": 1,
+      "reason": "热更新 .wgt 包下载 uni.downloadFile（二进制流，非请求型入口）"
+    },
+    "src/api/modules/products.ts": {
+      "count": 1,
+      "reason": "商品主图 multipart uni.uploadFile"
+    },
+    "src/api/modules/profile.ts": {
+      "count": 1,
+      "reason": "头像 multipart uni.uploadFile"
+    }
+  },
+  "A_unregisteredOrExcess": [],
+  "B_headerReuseMissing": [],
+  "C_credentialLogLeaks": [],
+  "D_jsonBuilderInBinaryFiles": [],
+  "exit": 0
+}
