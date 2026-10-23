@@ -146,7 +146,6 @@ import {
   isRouteVisible,
   resolveMenuAccess,
   restrictManifestGroups,
-  restrictManifestItems,
   type MenuLoadState,
   type ServerMenuRow,
 } from "../shared/workbench/menu-access";
@@ -192,6 +191,9 @@ const access = computed(() =>
     state: menuState.value,
     rows: menuRows.value,
     manifestRouteNames: ALL_MANIFEST_ROUTE_NAMES,
+    // 角色最终裁剪：auth.userRoles + 路由 meta.roles（与路由守卫同一语义）
+    userRoles: auth.userRoles,
+    resolveRoles,
   }),
 );
 
@@ -210,7 +212,7 @@ async function loadMenus(): Promise<void> {
 
 onMounted(loadMenus);
 
-/** 人工与 AI 共用同一份可见 routeName 集合（同源，不允许两侧各算一套） */
+/** 人工与 AI 共用同一份「最终角色集」（业务菜单 ∩ meta.roles，同源，不允许两侧各算一套） */
 const visibleRouteNameList = computed(() => [...access.value.visibleRouteNames]);
 
 const visibleGroups = computed(() =>
@@ -220,12 +222,9 @@ const visibleGroups = computed(() =>
     resolveRoles,
   ),
 );
+/** 收银保底：只按路由 meta.roles 判定，不吃 /menus/user 交集（菜单失败/空集时也不清空收银导航） */
 const visibleCashierItems = computed(() =>
-  filterVisibleItems(
-    restrictManifestItems(CASHIER_ITEMS, access.value.visibleRouteNames),
-    auth.userRoles,
-    resolveRoles,
-  ),
+  filterVisibleItems(CASHIER_ITEMS, auth.userRoles, resolveRoles),
 );
 
 const visibleEntryCount = computed(

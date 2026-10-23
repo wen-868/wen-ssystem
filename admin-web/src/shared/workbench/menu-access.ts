@@ -96,12 +96,21 @@ export interface MenuAccessInput {
   /** 静态白名单中真实存在的 routeName（由 route-manifest 派生） */
   manifestRouteNames: readonly string[];
   bridge?: readonly MenuBridgeEntry[];
+  /**
+   * 当前用户角色（来自 auth.userRoles）。
+   * 未提供时 fail-closed：角色层不放行任何路由（业务集合仍单独保留供诊断）。
+   */
+  userRoles?: readonly string[] | null;
+  /** 路由 meta.roles 解析器（与路由守卫同一语义）；未知路由返回 null */
+  resolveRoles?: (routeName: string) => readonly string[] | null;
 }
 
 export interface MenuAccessSnapshot {
   state: MenuLoadState;
-  /** 运行时可见 routeName（人工导航与 AI 能力视图共用同一集合） */
+  /** 最终可见 routeName（业务集合 ∩ 当前角色；人工导航与 AI 能力视图共用同一集合） */
   visibleRouteNames: ReadonlySet<string>;
+  /** 业务集合（服务端 menuCode ∩ 静态白名单），仅供诊断与文案，不直接驱动 UI */
+  businessVisibleRouteNames: ReadonlySet<string>;
   /** 服务端返回的菜单码总数（去重后） */
   serverMenuCount: number;
   /** 命中桥接的菜单码 */
@@ -130,6 +139,7 @@ function emptySnapshot(
   return {
     state,
     visibleRouteNames: new Set<string>(),
+    businessVisibleRouteNames: new Set<string>(),
     serverMenuCount: 0,
     mappedMenuCodes: [],
     unmappedMenuCodes: [],
@@ -165,7 +175,8 @@ export function resolveMenuAccess(input: MenuAccessInput): MenuAccessSnapshot {
   const mapped: string[] = [];
   const unmapped: string[] = [];
   const unroutable: string[] = [];
-  const visible = new Set<string>();
+  // 第一层：业务集合 = 服务端 menuCode ∩ 静态白名单（不代表当前角色可访问）
+  const business = new Set<string>();
 
   for (const code of serverCodes) {
     const routeName = bridgeByCode.get(code);
@@ -178,22 +189,38 @@ export function resolveMenuAccess(input: MenuAccessInput): MenuAccessSnapshot {
       continue;
     }
     mapped.push(code);
-    visible.add(routeName);
+    business.add(routeName);
+  }
+
+  // 第二层：角色最终裁剪（auth.userRoles + 路由 meta.roles），AI 与人工共用
+  const userRoles = input.userRoles ?? null;
+  const resolveRoles = input.resolveRoles ?? null;
+  const visible = new Set<string>();
+  if (userRoles && resolveRoles) {
+    for (const routeName of business) {
+      const roles = resolveRoles(routeName);
+      if (roles === null) continue; // 未知路由不可见
+      const allowed = roles.length === 0 || userRoles.some((role) => roles.includes(role));
+      if (allowed) visible.add(routeName);
+    }
   }
 
   const trimmed = input.manifestRouteNames.filter((name) => !visible.has(name));
   const notice =
     serverCodes.length === 0
       ? "服务端未返回任何可见菜单：当前账号无可见入口，请联系管理员"
-      : visible.size === 0
+      : business.size === 0
         ? `服务端返回 ${serverCodes.length} 个菜单码，但均未映射到前端白名单路由（已全部隐藏，不回退全量）`
-        : `服务端返回 ${serverCodes.length} 个菜单码：已映射 ${visible.size} 项，未映射 ${unmapped.length} 个（已隐藏）${
-            unroutable.length > 0 ? `，白名单缺失 ${unroutable.length} 项` : ""
-          }`;
+        : visible.size === 0
+          ? `服务端返回 ${serverCodes.length} 个菜单码，业务层命中 ${business.size} 项，但当前角色无权访问（已全部隐藏，不回退全量）`
+          : `服务端返回 ${serverCodes.length} 个菜单码：已映射 ${visible.size} 项，未映射 ${unmapped.length} 个（已隐藏）${
+              unroutable.length > 0 ? `，白名单缺失 ${unroutable.length} 项` : ""
+            }`;
 
   return {
     state: "ready",
     visibleRouteNames: visible,
+    businessVisibleRouteNames: business,
     serverMenuCount: serverCodes.length,
     mappedMenuCodes: mapped,
     unmappedMenuCodes: unmapped,
@@ -228,11 +255,16 @@ export function restrictManifestGroups(
     .filter((group) => group.items.length > 0);
 }
 
+/**
+ * 收银台保底（WORKBENCH-04F1）：
+ * `CASHIER_ITEMS` 不参与 `/menus/user` 交集，只由路由 `meta.roles` 判定；
+ * 菜单 loading/error 时收银导航也不得被清空。保留入参以兼容既有调用点。
+ */
 export function restrictManifestItems(
   items: readonly ManifestItem[],
-  visibleRouteNames: ReadonlySet<string>,
+  _visibleRouteNames: ReadonlySet<string>,
 ): ManifestItem[] {
-  return items.filter((entry) => isEntryVisible(entry, visibleRouteNames));
+  return [...items];
 }
 
 /** 当前页是否对当前用户可见（AI 代办按钮的显示条件） */
