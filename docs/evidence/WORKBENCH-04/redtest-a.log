@@ -1,0 +1,50 @@
+### RedTest A · 服务失败回退全量菜单（注入 mutation）
+EXIT=1
+PASS  桥接表：10 条显式映射，serverCode 唯一，均带矩阵行号证据  ← 10 条（含 2 条白名单缺失，见下）
+PASS  正常菜单：10 码 → 8 条白名单路由；system / finance-expenses 登记为不可路由  ← 8/10 可路由；unroutable=finance-expenses,system
+PASS  停用菜单：status=0 的行不计入可见集合  ← status=0 已剔除
+FAIL  反测点 A：服务失败 → 空集且不回退全量（回退全量必红）  ← 服务失败必须空集，禁止回退全量
+
+79 !== 0
+
+PASS  反测点 B：未知菜单码只登记不渲染（越权透传必红）  ← ghost:page 已隐藏
+PASS  未知 routeName：桥接存在但白名单缺失 → fail-closed 且登记 unroutable  ← route-not-exists 不可见
+PASS  空菜单：ready 空数组 → 空集 + 联系管理员文案  ← 空集 + 提示
+PASS  加载中：idle/loading 均为空集，且不可重试  ← idle/loading 空集
+PASS  载荷解析：兼容 {data:[]} 与裸数组；非数组/缺 menuCode 一律抛错  ← wrapped/bare ok，异常形状抛错
+PASS  人工/AI 同源：两侧可见集合完全一致，且所有可见路由均有白名单入口  ← 人工 8 项 / 收银 0 项 / 路由 8
+PASS  对等裁剪：运行时视图收缩，静态台账仍为 80/80、254/254  ← 运行时 8/80 · 27/254（静态基线不变）
+PASS  AI 代办：只交上下文，含真实 routeName/path/实体 ID/动作清单与确认链要求  ← 3 项动作 / 可代办 0
+PASS  AI 代办：PLANNED/BLOCKED 明确不能代办并给人工回退，不做已可执行暗示  ← order-aftersale: 不能代办 3/3
+PASS  AI 代办：只读页不编造写入口  ← dashboard
+PASS  UI 接线：Shell 菜单状态/重试/空态/代办按钮，AI 容器接运行时裁剪  ← Shell / AI 容器 / 会话面板接线就绪
+PASS  唯一消费点：/admin/menus/user 只出现在 src/api/workbench-menu.ts  ← api/workbench-menu.ts
+PASS  反测点 C：AI 代办不直接写——无写接口调用、桥模块只产上下文  ← 仅上下文，无直接写
+PASS  业务冻结：views 与 backend 相对基线零改动  ← views/backend 零 diff
+
+小结：17 passed / 1 failed
+
+
+### 复原后 SHA256=AFE58AFD6AC1FD55B04672439B2B2FA10B3A244391835CDF9FEAD469C66BE48B
+### 复原后复跑 EXIT=0
+PASS  桥接表：10 条显式映射，serverCode 唯一，均带矩阵行号证据  ← 10 条（含 2 条白名单缺失，见下）
+PASS  正常菜单：10 码 → 8 条白名单路由；system / finance-expenses 登记为不可路由  ← 8/10 可路由；unroutable=finance-expenses,system
+PASS  停用菜单：status=0 的行不计入可见集合  ← status=0 已剔除
+PASS  反测点 A：服务失败 → 空集且不回退全量（回退全量必红）  ← trimmed 79/79
+PASS  反测点 B：未知菜单码只登记不渲染（越权透传必红）  ← ghost:page 已隐藏
+PASS  未知 routeName：桥接存在但白名单缺失 → fail-closed 且登记 unroutable  ← route-not-exists 不可见
+PASS  空菜单：ready 空数组 → 空集 + 联系管理员文案  ← 空集 + 提示
+PASS  加载中：idle/loading 均为空集，且不可重试  ← idle/loading 空集
+PASS  载荷解析：兼容 {data:[]} 与裸数组；非数组/缺 menuCode 一律抛错  ← wrapped/bare ok，异常形状抛错
+PASS  人工/AI 同源：两侧可见集合完全一致，且所有可见路由均有白名单入口  ← 人工 8 项 / 收银 0 项 / 路由 8
+PASS  对等裁剪：运行时视图收缩，静态台账仍为 80/80、254/254  ← 运行时 8/80 · 27/254（静态基线不变）
+PASS  AI 代办：只交上下文，含真实 routeName/path/实体 ID/动作清单与确认链要求  ← 3 项动作 / 可代办 0
+PASS  AI 代办：PLANNED/BLOCKED 明确不能代办并给人工回退，不做已可执行暗示  ← order-aftersale: 不能代办 3/3
+PASS  AI 代办：只读页不编造写入口  ← dashboard
+PASS  UI 接线：Shell 菜单状态/重试/空态/代办按钮，AI 容器接运行时裁剪  ← Shell / AI 容器 / 会话面板接线就绪
+PASS  唯一消费点：/admin/menus/user 只出现在 src/api/workbench-menu.ts  ← api/workbench-menu.ts
+PASS  反测点 C：AI 代办不直接写——无写接口调用、桥模块只产上下文  ← 仅上下文，无直接写
+PASS  业务冻结：views 与 backend 相对基线零改动  ← views/backend 零 diff
+
+小结：18 passed / 0 failed
+
