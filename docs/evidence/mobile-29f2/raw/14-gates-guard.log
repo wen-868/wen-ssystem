@@ -1,0 +1,16 @@
+
+> zhixiang-app-mobile@1.0.0 guard:request
+> node scripts/guard-request-contract.mjs
+
+—— QODER-29 + MOBILE-29F1 请求出口 & 凭据日志静态守卫 ——
+直接网络调用（uni.request/uploadFile/downloadFile，非注释行）：共 8 处
+  src/api/modules/ai.ts:259  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:383  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:416  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:457  uni.request  ✔ 已登记
+  src/api/modules/products.ts:604  uni.uploadFile  ✔ 已登记
+  src/api/modules/profile.ts:49  uni.uploadFile  ✔ 已登记
+  src/api/request.ts:144  uni.request  ✔ 已登记
+  src/utils/update.ts:177  uni.downloadFile  ✔ 已登记
+
+✓ A 全部登记且未超额 · B 按调用类型复用对应构建器 · C 无明文凭据日志 · D 无 JSON 构建器误用 ⇒ EXIT=0

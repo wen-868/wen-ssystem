@@ -1,0 +1,202 @@
+{
+  "ok": true,
+  "steps": {
+    "smokeServer": "up",
+    "devH5": "http://localhost:5173",
+    "drive": {
+      "avatar": {
+        "avatar": "http://127.0.0.1:5199/files/1792791869932-kudv1g-file-1792791869883"
+      },
+      "image": "http://127.0.0.1:5199/files/1792791870620-w7bb5q-file-1792791870598",
+      "avatarErr": null,
+      "imageErr": null
+    }
+  },
+  "assertions": [
+    {
+      "name": "恰好两条上传记录（avatar + image）",
+      "pass": true,
+      "detail": "records=2"
+    },
+    {
+      "name": "avatar 记录存在",
+      "pass": true
+    },
+    {
+      "name": "image 记录存在",
+      "pass": true
+    },
+    {
+      "name": "avatar: Content-Type 为浏览器 multipart 且 boundary 在场",
+      "pass": true,
+      "detail": "multipart/form-data; boundary=----WebKitFormBoundaryHAxsmS12tGDYoZGv"
+    },
+    {
+      "name": "avatar: multer 零错误（旧 bug 会在此报 boundary 错）",
+      "pass": true,
+      "detail": "null"
+    },
+    {
+      "name": "avatar: req.file 非空且字段名=avatar",
+      "pass": true,
+      "detail": "{\"fieldname\":\"avatar\",\"originalname\":\"file-1792791869883\",\"size\":70,\"mimetype\":\"image/png\",\"savedAs\":\"1792791869932-kudv1g-file-1792791869883\"}"
+    },
+    {
+      "name": "avatar: 文件大小与页面 blob 逐字节一致（70B）",
+      "pass": true,
+      "detail": "70"
+    },
+    {
+      "name": "avatar: 文件 MIME 为 image/png",
+      "pass": true,
+      "detail": "image/png"
+    },
+    {
+      "name": "image: Content-Type 为浏览器 multipart 且 boundary 在场",
+      "pass": true,
+      "detail": "multipart/form-data; boundary=----WebKitFormBoundaryAWEDa3h5xaeWfB7S"
+    },
+    {
+      "name": "image: multer 零错误（旧 bug 会在此报 boundary 错）",
+      "pass": true,
+      "detail": "null"
+    },
+    {
+      "name": "image: req.file 非空且字段名=image",
+      "pass": true,
+      "detail": "{\"fieldname\":\"image\",\"originalname\":\"file-1792791870598\",\"size\":70,\"mimetype\":\"image/png\",\"savedAs\":\"1792791870620-w7bb5q-file-1792791870598\"}"
+    },
+    {
+      "name": "image: 文件大小与页面 blob 逐字节一致（70B）",
+      "pass": true,
+      "detail": "70"
+    },
+    {
+      "name": "image: 文件 MIME 为 image/png",
+      "pass": true,
+      "detail": "image/png"
+    },
+    {
+      "name": "页面内 uploadAvatar 成功解出 data.avatar",
+      "pass": true,
+      "detail": "{\"avatar\":\"http://127.0.0.1:5199/files/1792791869932-kudv1g-file-1792791869883\"}"
+    },
+    {
+      "name": "页面内 uploadImage 成功解出 url",
+      "pass": true,
+      "detail": "\"http://127.0.0.1:5199/files/1792791870620-w7bb5q-file-1792791870598\""
+    },
+    {
+      "name": "无未知 pageerror（仅允许具名 hideTabBar:fail not TabBar page）",
+      "pass": true,
+      "detail": "已知豁免：PlaywrightError 空壳（工具侧：name/stack 为空且 log 为空数组，非页面运行时错误）"
+    },
+    {
+      "name": "交付态：根与 app-mobile 均无 .env.local 残留",
+      "pass": true,
+      "detail": "两处均已清理"
+    },
+    {
+      "name": "交付态：两处 .env* 中 127.0.0.1:5199 命中为 0",
+      "pass": true,
+      "detail": "命中 0 处"
+    },
+    {
+      "name": "冒烟端口 5199 已释放",
+      "pass": true,
+      "detail": "free"
+    }
+  ],
+  "pageErrors": [
+    {
+      "raw": "Object",
+      "knownId": "PlaywrightError 空壳（工具侧：name/stack 为空且 log 为空数组，非页面运行时错误）",
+      "parts": {
+        "name": "",
+        "ctor": "PlaywrightError",
+        "logLen": 0,
+        "keys": [
+          "log",
+          "name"
+        ],
+        "inspect": "[Object] { log: [] }",
+        "stack": ""
+      }
+    }
+  ],
+  "env": {
+    "files": [
+      "D:\\Users\\ZXQL\\wt-agents\\MOBILE-29F2\\.env.local",
+      "D:\\Users\\ZXQL\\wt-agents\\MOBILE-29F2\\app-mobile\\.env.local"
+    ],
+    "after": {
+      "D:\\Users\\ZXQL\\wt-agents\\MOBILE-29F2\\.env.local": null,
+      "D:\\Users\\ZXQL\\wt-agents\\MOBILE-29F2\\app-mobile\\.env.local": null
+    },
+    "residue": [],
+    "smokePortHits": 0
+  },
+  "error": null,
+  "console": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting..."
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected."
+    },
+    {
+      "type": "warning",
+      "text": "[vue-router]: importing from 'vue-router/dist/vue-router.esm-bundler.js' is deprecated. Use 'vue-router' directly."
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "records": [
+    {
+      "t": "2026-10-23T21:44:29.954Z",
+      "method": "POST",
+      "endpoint": "/api/admin/auth/avatar",
+      "contentType": "multipart/form-data; boundary=----WebKitFormBoundaryHAxsmS12tGDYoZGv",
+      "hasBoundary": true,
+      "headers": {
+        "authorization": null,
+        "x-tenant-id": null,
+        "x-csrf-token": null
+      },
+      "file": {
+        "fieldname": "avatar",
+        "originalname": "file-1792791869883",
+        "size": 70,
+        "mimetype": "image/png",
+        "savedAs": "1792791869932-kudv1g-file-1792791869883"
+      },
+      "fields": {},
+      "multerError": null
+    },
+    {
+      "t": "2026-10-23T21:44:30.627Z",
+      "method": "POST",
+      "endpoint": "/api/admin/products/upload-image",
+      "contentType": "multipart/form-data; boundary=----WebKitFormBoundaryAWEDa3h5xaeWfB7S",
+      "hasBoundary": true,
+      "headers": {
+        "authorization": null,
+        "x-tenant-id": null,
+        "x-csrf-token": null
+      },
+      "file": {
+        "fieldname": "image",
+        "originalname": "file-1792791870598",
+        "size": 70,
+        "mimetype": "image/png",
+        "savedAs": "1792791870620-w7bb5q-file-1792791870598"
+      },
+      "fields": {},
+      "multerError": null
+    }
+  ]
+}

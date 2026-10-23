@@ -1,0 +1,56 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F2/app-mobile[39m
+
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 707[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 2397[2mms[22m[39m
+     [33m[2m✓[22m[39m 生产路径永不返回 showAll（该值仅为反测注入点存在） [33m 307[2mms[22m[39m
+     [33m[2m✓[22m[39m 入口门最小可见集当前为空集（gated 写入口不得混入） [33m 341[2mms[22m[39m
+     [33m[2m✓[22m[39m 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示 [33m 343[2mms[22m[39m
+     [33m[2m✓[22m[39m pages/functions/functions.vue：横幅内 × 必须直调 menuStore.dismissBanner() [33m 408[2mms[22m[39m
+ [32m✓[39m tests/update-security.spec.ts [2m([22m[2m41 tests[22m[2m)[22m[33m 4151[2mms[22m[39m
+     [33m[2m✓[22m[39m 纯 JS sha256 与 Node crypto 逐一对账（空、单块、跨块、边界、1KB 伪随机） [33m 2221[2mms[22m[39m
+     [33m[2m✓[22m[39m dataUrlToBytes 还原 plus.io.FileReader.readAsDataURL 的 base64 为原始字节 [33m 322[2mms[22m[39m
+ [32m✓[39m tests/request-contract.spec.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 10054[2mms[22m[39m
+     [33m[2m✓[22m[39m ② 200 + code "0" + data ⇒ 成功解包 data [33m 3433[2mms[22m[39m
+     [33m[2m✓[22m[39m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image [33m 774[2mms[22m[39m
+     [33m[2m✓[22m[39m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar [33m 750[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑰ 多行 text 事件逐条增量分发，不吞并 [33m 3166[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 6871[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 2561[2mms[22m[39m
+     [33m[2m✓[22m[39m 明文往返一致（含中文与 JSON 结构） [33m 393[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文） [33m 3357[2mms[22m[39m
+ [32m✓[39m tests/product-sku-dimension.spec.ts [2m([22m[2m55 tests[22m[2m)[22m[33m 1446[2mms[22m[39m
+ [32m✓[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 12575[2mms[22m[39m
+     [33m[2m✓[22m[39m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾 [33m 3685[2mms[22m[39m
+     [33m[2m✓[22m[39m ④ 401 清态必须包含 merchant_csrf_token 与 merchant_tenant（连带 token / user / tenant_id） [33m 333[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键 [33m 854[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 6018[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 1948[2mms[22m[39m
+     [33m[2m✓[22m[39m gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名 [33m 758[2mms[22m[39m
+     [33m[2m✓[22m[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行） [33m 434[2mms[22m[39m
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 933[2mms[22m[39m
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 672[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 226[2mms[22m[39m
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 662[2mms[22m[39m
+ [32m✓[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 401[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 140[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[32m 181[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 123[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[32m329 passed[39m[22m[90m (329)[39m
+[2m   Start at [22m 02:30:39
+[2m   Duration [22m 33.25s[2m (transform 75.24s, setup 0ms, import 87.06s, tests 43.49s, environment 194ms)[22m
+
+—— test 门（用例数冻结）：当前 16 文件 / 329 用例，基线 16 / 328 ——
+ℹ 用例数高于基线 ⇒ 请把 gates-baseline.json 的 tests 同步调高（保持"实测即基线"）。
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+EXIT=0

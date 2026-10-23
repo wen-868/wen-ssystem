@@ -1,0 +1,302 @@
+
+> zhixiang-app-mobile@1.0.0 check:gates
+> npm run type-check && npm run lint && npm run test && npm run check:contract && npm run guard:request
+
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 0（基线 0）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F2/app-mobile[39m
+
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 1590[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 4977[2mms[22m[39m
+     [33m[2m✓[22m[39m 入口门最小可见集当前为空集（gated 写入口不得混入） [33m 977[2mms[22m[39m
+     [33m[2m✓[22m[39m 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示 [33m 974[2mms[22m[39m
+     [33m[2m✓[22m[39m 用例③：请求失败且无缓存 ⇒ 最小可见集 + 提示出现；可关闭且关闭后集合不变 [33m 418[2mms[22m[39m
+     [33m[2m✓[22m[39m composables/usePermissionGate.ts 必须经单一定义源判定 [33m 374[2mms[22m[39m
+ [31m❯[39m tests/update-security.spec.ts [2m([22m[2m41 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 10076[2mms[22m[39m
+     [32m✓[39m 合法 semver 解析成功（含 prerelease 与 build 元数据）[32m 27[2mms[22m[39m
+     [32m✓[39m 非法版本一律解析为 null（v 前缀 / 缺位 / 前导零 / 四段 / 空 / 非字符串）[32m 207[2mms[22m[39m
+     [32m✓[39m compareSemver 按数值比而非词典序（1.10.0 > 1.9.0，2.0.0 < 10.0.0）[32m 33[2mms[22m[39m
+     [32m✓[39m 预发布版低于同版本正式版，且按 semver §11 逐标识符比较[32m 118[2mms[22m[39m
+     [32m✓[39m build 元数据不参与优先级（1.0.0+b 对 1.0.0+a 不算更新）[32m 24[2mms[22m[39m
+     [32m✓[39m ★ 远端版本更低（降级）必须不提示【反测①目标用例】[32m 60[2mms[22m[39m
+     [32m✓[39m ★ 等值版本必须不提示【反测①目标用例】[32m 1[2mms[22m[39m
+     [32m✓[39m ★ 任一侧非法 semver 必须不提示（旧实现是"名字不等就提示"）【反测①目标用例】[32m 13[2mms[22m[39m
+     [32m✓[39m 严格更高才提示（1.0.1 > 1.0.0 ⇒ prompt=true）[32m 270[2mms[22m[39m
+     [32m✓[39m parseHttpUrl 正确切分 scheme/userinfo/host/port/path/query/hash[32m 29[2mms[22m[39m
+     [32m✓[39m parseHttpUrl 拒绝非绝对形态（相对路径、缺 //、空主机、非法端口、非法 scheme）[32m 81[2mms[22m[39m
+     [32m✓[39m IP / 域名判定：IPv4、IPv6 字面量不得进入白名单；单标签主机与 xn-- 仿冒域名不得进入[32m 112[2mms[22m[39m
+     [32m✓[39m 同源判定从运行时 API 基址解析主机（不做字面量比对：换基址就换结论）[32m 33[2mms[22m[39m
+     [32m✓[39m 合法 .wgt 包地址通过（默认端口、显式 443、大小写后缀、带 query 的签名地址）[32m 17[2mms[22m[39m
+     [32m✓[39m ★ 主机与 API 不同源的 .wgt 必须拒装【反测②目标用例】[32m 129[2mms[22m[39m
+     [33m[2m✓[22m[39m 协议、凭据、IP、端口、路径形态不合规一律拒装 [33m 421[2mms[22m[39m
+     [32m✓[39m 非 .wgt 的包地址不会变成 wgt 直装决策（改走白名单下载页）[32m 22[2mms[22m[39m
+[31m     [31m×[31m 纯 JS sha256 与 Node crypto 逐一对账（空、单块、跨块、边界、1KB 伪随机）[39m[33m 5785[2mms[22m[39m
+     [32m✓[39m normalizeSha256Hex 只接受整串 64 位 hex（大小写均可，前后空格可容忍）[32m 39[2mms[22m[39m
+     [33m[2m✓[22m[39m digestMatches 任一侧非法即 false；合法且相等才 true [33m 344[2mms[22m[39m
+     [32m✓[39m ★ 实算与下发不一致必须拒装（改首字节 / 改中间字节 / 改尾字节 / 改长度四种都得红）【反测③目标用例】[32m 5[2mms[22m[39m
+     [32m✓[39m ★ 摘要缺失 / 格式非 64 位 hex ⇒ 失败关闭，拒装（"无摘要"不是通过）[32m 3[2mms[22m[39m
+     [32m✓[39m ★ 读不到原始字节 ⇒ 失败关闭不安装（禁止用 toast"提示不支持"冒充校验完成）[32m 2[2mms[22m[39m
+     [32m✓[39m dataUrlToBytes 还原 plus.io.FileReader.readAsDataURL 的 base64 为原始字节[32m 250[2mms[22m[39m
+     [32m✓[39m 白名单集中配置且至少覆盖 API 主机与官网下载主机[32m 289[2mms[22m[39m
+     [33m[2m✓[22m[39m API 主机由运行时基址派生进入白名单（基址换主机，白名单跟着换） [33m 326[2mms[22m[39m
+     [32m✓[39m H5 相对基址：同源主机来自运行时 location.origin，解析不出主机即失败关闭[32m 115[2mms[22m[39m
+     [32m✓[39m VITE_UPDATE_HOSTS 可追加主机（非法条目丢弃，不参与白名单）[32m 43[2mms[22m[39m
+     [32m✓[39m ★ 未命中白名单的 updateUrl 禁止打开【反测④目标用例】[32m 271[2mms[22m[39m
+     [32m✓[39m updateUrl 的 https / 凭据 / IP / 端口硬闸同样生效[32m 4[2mms[22m[39m
+     [32m✓[39m ★ 未命中白名单的 updateUrl 不会进入 open-url 决策[32m 5[2mms[22m[39m
+     [32m✓[39m 合法 semver + 同源 .wgt + 合法摘要 ⇒ 才给出 wgt 直装决策[32m 5[2mms[22m[39m
+     [33m[2m✓[22m[39m ★ 后端无摘要字段（现状）⇒ wgt 直装通道必须关闭，改走白名单下载页（本单预期结果） [33m 407[2mms[22m[39m
+     [32m✓[39m 缺摘要且 updateUrl 也不可信 ⇒ 只提示，不做任何自动动作[32m 29[2mms[22m[39m
+     [32m✓[39m 响应异常（null / 非对象 / versionName 非字符串）⇒ 不提示[32m 83[2mms[22m[39m
+     [32m✓[39m 无 packageUrl 但 updateUrl 在白名单 ⇒ open-url；两者皆无 ⇒ 只提示[32m 9[2mms[22m[39m
+     [32m✓[39m 版本判据先于通道判据：等值版本即使包与摘要都合法也不提示[32m 2[2mms[22m[39m
+     [32m✓[39m 不再存在 force 直装：plus.runtime.install 只有一处且位于 installVerifiedWgt 内、options 为 force:false[32m 2[2mms[22m[39m
+     [32m✓[39m 下载入口只有一处，且安装必须经 verifyPackageBytes 与失败删除临时文件[32m 3[2mms[22m[39m
+     [32m✓[39m plus.runtime.openURL 只有一处，且参数只能是决策产出的白名单 URL（不吃后端原始 updateUrl）[32m 5[2mms[22m[39m
+     [32m✓[39m 提示与否只由纯函数 decideUpdateAction 的 prompt 决定，update.ts 内不再自写版本比较[32m 3[2mms[22m[39m
+ [31m❯[39m tests/request-contract.spec.ts [2m([22m[2m26 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 26059[2mms[22m[39m
+[31m     [31m×[31m ② 200 + code "0" + data ⇒ 成功解包 data[39m[33m 5736[2mms[22m[39m
+[31m     [31m×[31m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[39m[33m 5025[2mms[22m[39m
+[31m     [31m×[31m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[39m[33m 5199[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功 [33m 2623[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 212[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 13[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast [33m 579[2mms[22m[39m
+     [32m✓[39m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json[32m 13[2mms[22m[39m
+     [32m✓[39m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[32m 230[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 230[2mms[22m[39m
+     [32m✓[39m ⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）[32m 276[2mms[22m[39m
+     [32m✓[39m ㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在[32m 6[2mms[22m[39m
+     [32m✓[39m ㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type[32m 7[2mms[22m[39m
+     [32m✓[39m ㉗ extra 夹带 Content-Type（任意大小写形式）⇒ 一律被剥离，产物不含该键[32m 244[2mms[22m[39m
+     [33m[2m✓[22m[39m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image [33m 2383[2mms[22m[39m
+     [33m[2m✓[22m[39m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar [33m 919[2mms[22m[39m
+     [32m✓[39m ㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用[32m 9[2mms[22m[39m
+     [32m✓[39m ㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用[32m 5[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 179[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 7[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 112[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 8[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑰ 多行 text 事件逐条增量分发，不吞并 [33m 1514[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 8[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 13[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 204[2mms[22m[39m
+ [31m❯[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 26205[2mms[22m[39m
+[31m     [31m×[31m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾[39m[33m 5387[2mms[22m[39m
+[31m     [31m×[31m ② POST 首请求 401 且本地可读 token ⇒ 0 次重试（写操作禁止重放）[39m[33m 5154[2mms[22m[39m
+[31m     [31m×[31m ③ PUT 首请求 401 ⇒ 0 次重放[39m[33m 5029[2mms[22m[39m
+[31m     [31m×[31m ③ DELETE 首请求 401 ⇒ 0 次重放[39m[33m 2852[2mms[22m[39m
+     [32m✓[39m ④ 401 清态必须包含 merchant_csrf_token 与 merchant_tenant（连带 token / user / tenant_id）[32m 282[2mms[22m[39m
+     [32m✓[39m ⑤ method 缺省 ⇒ 按 GET 处理，仍允许静默重试一次[32m 203[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑥ 小写 method "get" ⇒ 统一大写比较后仍按 GET 重试 [33m 425[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑦ GET 401 但本地读不到 token ⇒ 不重试，直接清态并跳登录 [33m 450[2mms[22m[39m
+     [32m✓[39m ⑧ 401 重试只重试一次（GET 二次仍 401 ⇒ 不再无限重放）[32m 123[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑨ 403 / 404 / 500 处理不受本次改动影响 [33m 352[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑩ 源码静态兜底：重试条件里带 GET 判定且清理 CSRF 与 merchant_tenant（不可代替上面的行为用例） [33m 323[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键 [33m 1008[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑫ 真实 401 路径跑完后，token/user/tenant/tenant_id/csrf 五个敏感键的明文与 enc_ 镜像均不残留 [33m 304[2mms[22m[39m
+     [32m✓[39m ⑬ 未装拦截器的裸 uni（等价于存储层退化态）下，镜像键只能由 storage.ts 的 removeCsrfToken 清[32m 249[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 3995[2mms[22m[39m
+ [31m❯[39m tests/storage-crypto.spec.ts [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 15077[2mms[22m[39m
+[31m     [31m×[31m 派生密钥为 32 字节且同输入可复现[39m[33m 6141[2mms[22m[39m
+     [33m[2m✓[22m[39m 明文往返一致（含中文与 JSON 结构） [33m 994[2mms[22m[39m
+     [33m[2m✓[22m[39m 同一条明文两次加密得到不同密文（IV 随机） [33m 408[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文） [33m 4946[2mms[22m[39m
+     [32m✓[39m 非规范长度 tag 一律拒绝（可解码为 18 字节的标签不得进入定长比较）[32m 147[2mms[22m[39m
+     [33m[2m✓[22m[39m 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败） [33m 1379[2mms[22m[39m
+     [33m[2m✓[22m[39m 短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败） [33m 998[2mms[22m[39m
+     [32m✓[39m 长 IV 即拒·13 字节（守卫前实测静默零填充解密成功，守卫后必须抛已分类解密失败）[32m 2[2mms[22m[39m
+     [32m✓[39m 长 IV 即拒·17 字节（守卫前实测抛未分类 RangeError，守卫后必须抛已分类解密失败）[32m 4[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 5343[2mms[22m[39m
+     [33m[2m✓[22m[39m gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名 [33m 913[2mms[22m[39m
+     [33m[2m✓[22m[39m 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单 [33m 1379[2mms[22m[39m
+     [33m[2m✓[22m[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行） [33m 1349[2mms[22m[39m
+ [32m✓[39m tests/product-sku-dimension.spec.ts [2m([22m[2m55 tests[22m[2m)[22m[33m 2881[2mms[22m[39m
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 983[2mms[22m[39m
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 1024[2mms[22m[39m
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 1618[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1042[2mms[22m[39m
+     [33m[2m✓[22m[39m ① 全局通配 `*` 命中一切码 [33m 316[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 976[2mms[22m[39m
+     [33m[2m✓[22m[39m 设置了 VITE_API_BASE ⇒ H5 与 App 均原样采用 [33m 558[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 639[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 567[2mms[22m[39m
+     [33m[2m✓[22m[39m 全文无失效旧文案、文件头保留现网叶子到期日，且 installSslPinning 调用点恒为 0 [33m 539[2mms[22m[39m
+ [32m✓[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1400[2mms[22m[39m
+     [33m[2m✓[22m[39m S1 src 全量扫描不得出现 uni-app 平台保留组件名 custom-tab-bar 的标签/导入 [33m 377[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[31m9 failed[39m[22m[2m | [22m[1m[32m320 passed[39m[22m[90m (329)[39m
+[2m   Start at [22m 03:36:59
+[2m   Duration [22m 108.30s[2m (transform 207.51s, setup 0ms, import 239.73s, tests 100.46s, environment 28ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 9 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m② 200 + code "0" + data ⇒ 成功解包 data
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m122:3[22m[39m
+    [90m120|[39m   }
+    [90m121|[39m
+    [90m122|[39m   [34mit[39m([32m'② 200 + code "0" + data ⇒ 成功解包 data'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m123|[39m     const { stub, mod } = await runWith({ code: '0', msg: 'ok', data: …
+    [90m124|[39m     const result = await mod.request({ url: '/admin/x', method: 'GET' …
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m129:3[22m[39m
+    [90m127|[39m   })
+    [90m128|[39m
+    [90m129|[39m   it('③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回', async () =>…
+    [90m   |[39m   [31m^[39m
+    [90m130|[39m     const { stub, mod } = await runWith({ code: '1001', msg: '库存不足', d…
+    [90m131|[39m     await expect(mod.request({ url: '/admin/order/create', method: 'PO…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m137:3[22m[39m
+    [90m135|[39m   })
+    [90m136|[39m
+    [90m137|[39m   [34mit[39m([32m'④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m138|[39m     const { mod } = await runWith({ code: '400', msg: '', data: null, …
+    [90m139|[39m     await expect(mod.request({ url: '/admin/x', method: 'GET' })).reje…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-14 · 401 静默重试只允许 GET + 清 CSRF[2m > [22m① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-retry-safety.spec.ts:[2m125:3[22m[39m
+    [90m123|[39m   })
+    [90m124|[39m
+    [90m125|[39m   [34mit[39m([32m'① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m126|[39m     [35mconst[39m mod [33m=[39m [35mawait[39m [34mimportRequest[39m()
+    [90m127|[39m     const data = await mod.request({ url: '/admin/order/list', method:…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-14 · 401 静默重试只允许 GET + 清 CSRF[2m > [22m② POST 首请求 401 且本地可读 token ⇒ 0 次重试（写操作禁止重放）
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-retry-safety.spec.ts:[2m139:3[22m[39m
+    [90m137|[39m   })
+    [90m138|[39m
+    [90m139|[39m   [34mit[39m([32m'② POST 首请求 401 且本地可读 token ⇒ 0 次重试（写操作禁止重放）'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m140|[39m     [35mconst[39m mod [33m=[39m [35mawait[39m [34mimportRequest[39m()
+    [90m141|[39m     [35mawait[39m [34mexpect[39m(
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-14 · 401 静默重试只允许 GET + 清 CSRF[2m > [22m③ PUT 首请求 401 ⇒ 0 次重放
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-retry-safety.spec.ts:[2m151:3[22m[39m
+    [90m149|[39m   })
+    [90m150|[39m
+    [90m151|[39m   [34mit[39m([32m'③ PUT 首请求 401 ⇒ 0 次重放'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m152|[39m     [35mconst[39m mod [33m=[39m [35mawait[39m [34mimportRequest[39m()
+    [90m153|[39m     await expect(mod.request({ url: '/admin/order/1', method: 'PUT', d…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-14 · 401 静默重试只允许 GET + 清 CSRF[2m > [22m③ DELETE 首请求 401 ⇒ 0 次重放
+[31m[1mAssertionError[22m: promise resolved "{ ok: true }" instead of rejecting[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Error {[39m
+[32m-   "message": "rejected promise",[39m
+[31m+ {[39m
+[31m+   "ok": true,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/request-retry-safety.spec.ts:[2m162:74[22m[39m
+    [90m160|[39m   [34mit[39m([32m'③ DELETE 首请求 401 ⇒ 0 次重放'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m161|[39m     [35mconst[39m mod [33m=[39m [35mawait[39m [34mimportRequest[39m()
+    [90m162|[39m     await expect(mod.request({ url: '/admin/order/1', method: 'DELETE'…
+    [90m   |[39m                                                                          [31m^[39m
+    [90m163|[39m       [32m'登录已过期，请重新登录'[39m
+    [90m164|[39m     )
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/storage-crypto.spec.ts[2m > [22m存储加解密往返（AES-256-GCM）[2m > [22m派生密钥为 32 字节且同输入可复现
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/storage-crypto.spec.ts:[2m43:3[22m[39m
+    [90m 41|[39m   [35mconst[39m key [33m=[39m [34mderiveKey[39m([32m'unit-test-fingerprint'[39m)
+    [90m 42|[39m
+    [90m 43|[39m   [34mit[39m([32m'派生密钥为 32 字节且同输入可复现'[39m[33m,[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m 44|[39m     [34mexpect[39m(key[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m32[39m)
+    [90m 45|[39m     [35mconst[39m again [33m=[39m [34mderiveKey[39m([32m'unit-test-fingerprint'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/update-security.spec.ts[2m > [22mQODER-24③ 摘要：实算文件字节，缺失/非法/不一致全部拒装[2m > [22m纯 JS sha256 与 Node crypto 逐一对账（空、单块、跨块、边界、1KB 伪随机）
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/update-security.spec.ts:[2m282:3[22m[39m
+    [90m280|[39m // ===================================================================…
+    [90m281|[39m [34mdescribe[39m([32m'QODER-24③ 摘要：实算文件字节，缺失/非法/不一致全部拒装'[39m[33m,[39m () [33m=>[39m {
+    [90m282|[39m   [34mit[39m([32m'纯 JS sha256 与 Node crypto 逐一对账（空、单块、跨块、边界、1KB 伪随机）'[39m[33m,[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m283|[39m     [35mconst[39m cases[33m:[39m [33mUint8Array[39m[] [33m=[39m [
+    [90m284|[39m       [35mnew[39m [33mUint8Array[39m([34m0[39m)[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+npm error Lifecycle script `check:gates` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c npm run type-check && npm run lint && npm run test && npm run check:contract && npm run guard:request
+FINAL_EXIT=1

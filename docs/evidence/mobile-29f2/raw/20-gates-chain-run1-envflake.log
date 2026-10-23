@@ -1,0 +1,195 @@
+
+> zhixiang-app-mobile@1.0.0 check:gates
+> npm run type-check && npm run lint && npm run test && npm run check:contract && npm run guard:request
+
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 0（基线 0）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F2/app-mobile[39m
+
+ [32m✓[39m tests/product-sku-dimension.spec.ts [2m([22m[2m55 tests[22m[2m)[22m[33m 1584[2mms[22m[39m
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+[90mstdout[2m | tests/permission-view-state.spec.ts[2m > [22m[2mmenu store（三态接线的渲染结果）[2m > [22m[2m装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[22m[39m[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ [31m❯[39m tests/request-contract.spec.ts [2m([22m[2m26 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 9650[2mms[22m[39m
+[31m     [31m×[31m ② 200 + code "0" + data ⇒ 成功解包 data[39m[33m 5086[2mms[22m[39m
+[31m     [31m×[31m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[39m[33m 1316[2mms[22m[39m
+     [32m✓[39m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[32m 39[2mms[22m[39m
+     [32m✓[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功[32m 52[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 87[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 258[2mms[22m[39m
+     [32m✓[39m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast[32m 25[2mms[22m[39m
+     [32m✓[39m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json[32m 13[2mms[22m[39m
+     [32m✓[39m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[32m 137[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 45[2mms[22m[39m
+     [32m✓[39m ⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）[32m 13[2mms[22m[39m
+     [32m✓[39m ㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在[32m 27[2mms[22m[39m
+     [32m✓[39m ㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type[32m 68[2mms[22m[39m
+     [32m✓[39m ㉗ extra 夹带 Content-Type（任意大小写形式）⇒ 一律被剥离，产物不含该键[32m 97[2mms[22m[39m
+     [32m✓[39m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image[32m 102[2mms[22m[39m
+     [33m[2m✓[22m[39m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar [33m 938[2mms[22m[39m
+     [32m✓[39m ㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用[32m 7[2mms[22m[39m
+     [32m✓[39m ㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用[32m 9[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 14[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 10[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 10[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 9[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑰ 多行 text 事件逐条增量分发，不吞并 [33m 712[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 6[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 6[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 161[2mms[22m[39m
+ [31m❯[39m tests/request-retry-safety.spec.ts [2m([22m[2m15 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 9757[2mms[22m[39m
+[31m     [31m×[31m ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾[39m[33m 5259[2mms[22m[39m
+[31m     [31m×[31m ② POST 首请求 401 且本地可读 token ⇒ 0 次重试（写操作禁止重放）[39m[33m 1649[2mms[22m[39m
+     [32m✓[39m ③ PUT 首请求 401 ⇒ 0 次重放[32m 66[2mms[22m[39m
+     [32m✓[39m ③ DELETE 首请求 401 ⇒ 0 次重放[32m 134[2mms[22m[39m
+     [32m✓[39m ④ 401 清态必须包含 merchant_csrf_token 与 merchant_tenant（连带 token / user / tenant_id）[32m 200[2mms[22m[39m
+     [32m✓[39m ⑤ method 缺省 ⇒ 按 GET 处理，仍允许静默重试一次[32m 37[2mms[22m[39m
+     [32m✓[39m ⑥ 小写 method "get" ⇒ 统一大写比较后仍按 GET 重试[32m 109[2mms[22m[39m
+     [32m✓[39m ⑦ GET 401 但本地读不到 token ⇒ 不重试，直接清态并跳登录[32m 42[2mms[22m[39m
+     [32m✓[39m ⑧ 401 重试只重试一次（GET 二次仍 401 ⇒ 不再无限重放）[32m 37[2mms[22m[39m
+     [32m✓[39m ⑨ 403 / 404 / 500 处理不受本次改动影响[32m 284[2mms[22m[39m
+     [32m✓[39m ⑩ 源码静态兜底：重试条件里带 GET 判定且清理 CSRF 与 merchant_tenant（不可代替上面的行为用例）[32m 35[2mms[22m[39m
+     [32m✓[39m ⑪ 拦截器在环时，单条 removeStorageSync(csrf) 同时清掉明文键与 enc_ 镜像键[32m 261[2mms[22m[39m
+     [32m✓[39m ⑫ 真实 401 路径跑完后，token/user/tenant/tenant_id/csrf 五个敏感键的明文与 enc_ 镜像均不残留[32m 43[2mms[22m[39m
+     [32m✓[39m ⑬ 未装拦截器的裸 uni（等价于存储层退化态）下，镜像键只能由 storage.ts 的 removeCsrfToken 清[32m 233[2mms[22m[39m
+     [33m[2m✓[22m[39m ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload [33m 1234[2mms[22m[39m
+ [32m✓[39m tests/permission-view-state.spec.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 2191[2mms[22m[39m
+     [33m[2m✓[22m[39m 用例①：请求挂起不返回 ⇒ 首帧就是最小可见集（不是全量、不是空），无失败提示 [33m 325[2mms[22m[39m
+ [32m✓[39m tests/update-security.spec.ts [2m([22m[2m41 tests[22m[2m)[22m[33m 4373[2mms[22m[39m
+     [33m[2m✓[22m[39m 纯 JS sha256 与 Node crypto 逐一对账（空、单块、跨块、边界、1KB 伪随机） [33m 2851[2mms[22m[39m
+ [32m✓[39m tests/storage-crypto.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 7143[2mms[22m[39m
+     [33m[2m✓[22m[39m 派生密钥为 32 字节且同输入可复现 [33m 1867[2mms[22m[39m
+     [33m[2m✓[22m[39m tag 校验失败即抛（确定性翻转 tag[0]，绝不返回明文） [33m 2060[2mms[22m[39m
+     [33m[2m✓[22m[39m 短 tag 一律拒绝（解码 15 字节、且期望 tag[15]===0 的标签必须抛已分类解密失败） [33m 819[2mms[22m[39m
+     [33m[2m✓[22m[39m 短 IV 即拒（11 字节、截尾后零填充与规范 J0 同型的 IV 必须抛已分类解密失败） [33m 1997[2mms[22m[39m
+ [32m✓[39m tests/entry-gate-consistency.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 2353[2mms[22m[39m
+     [33m[2m✓[22m[39m gated 端点：后端已接且码 ∈ codes，或命中具名待接白名单；违反逐条点名 [33m 474[2mms[22m[39m
+     [33m[2m✓[22m[39m 自动转绿机检（合成后端，不碰 backend 文件）：4 条售后端点挂上 sale:return ⇒ 零违规且无需改白名单 [33m 636[2mms[22m[39m
+     [33m[2m✓[22m[39m 反例自检：后端若挂了 ∉ 门 codes 的码 ⇒ 逐条点名违规（不许静默放行） [33m 550[2mms[22m[39m
+ [32m✓[39m tests/api-base-env.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 782[2mms[22m[39m
+     [33m[2m✓[22m[39m 基址解析为空 ⇒ 判据即失败（抛错点名，不允许空基址继续跑） [33m 331[2mms[22m[39m
+ [32m✓[39m tests/ai-cross-platform.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 1046[2mms[22m[39m
+ [32m✓[39m tests/mobile-permissions.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1089[2mms[22m[39m
+     [33m[2m✓[22m[39m 两份配置文件必须是合法 JSON 且关键父节点存在 [33m 450[2mms[22m[39m
+ [32m✓[39m tests/price-anomaly-static.spec.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 1493[2mms[22m[39m
+ [32m✓[39m tests/format.spec.ts [2m([22m[2m78 tests[22m[2m)[22m[33m 1851[2mms[22m[39m
+ [32m✓[39m tests/pin-ssl-static.spec.ts [2m([22m[2m1 test[22m[2m)[22m[33m 351[2mms[22m[39m
+ [32m✓[39m tests/tabbar-name-reactivity.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 437[2mms[22m[39m
+ [32m✓[39m tests/safe-top-var.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 526[2mms[22m[39m
+ [32m✓[39m tests/permission-codes.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 886[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m14 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m325 passed[39m[22m[90m (329)[39m
+[2m   Start at [22m 03:01:53
+[2m   Duration [22m 66.29s[2m (transform 118.23s, setup 0ms, import 144.99s, tests 45.51s, environment 81ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m② 200 + code "0" + data ⇒ 成功解包 data
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m122:3[22m[39m
+    [90m120|[39m   }
+    [90m121|[39m
+    [90m122|[39m   [34mit[39m([32m'② 200 + code "0" + data ⇒ 成功解包 data'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m123|[39m     const { stub, mod } = await runWith({ code: '0', msg: 'ok', data: …
+    [90m124|[39m     const result = await mod.request({ url: '/admin/x', method: 'GET' …
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mQODER-29 MO-11 · 业务码信封判定（精确构造每条响应体）[2m > [22m③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回
+[31m[1mAssertionError[22m: expected [ '库存不足', '库存不足' ] to deeply equal [ '库存不足' ][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  [[22m
+[2m    "库存不足",[22m
+[31m+   "库存不足",[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m134:25[22m[39m
+    [90m132|[39m       [32m'库存不足'[39m
+    [90m133|[39m     )
+    [90m134|[39m     [34mexpect[39m(stub[33m.[39mtoasts)[33m.[39m[34mtoEqual[39m([[32m'库存不足'[39m])
+    [90m   |[39m                         [31m^[39m
+    [90m135|[39m   })
+    [90m136|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-14 · 401 静默重试只允许 GET + 清 CSRF[2m > [22m① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/request-retry-safety.spec.ts:[2m125:3[22m[39m
+    [90m123|[39m   })
+    [90m124|[39m
+    [90m125|[39m   [34mit[39m([32m'① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m   |[39m   [31m^[39m
+    [90m126|[39m     [35mconst[39m mod [33m=[39m [35mawait[39m [34mimportRequest[39m()
+    [90m127|[39m     const data = await mod.request({ url: '/admin/order/list', method:…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/request-retry-safety.spec.ts[2m > [22mQODER-14 · 401 静默重试只允许 GET + 清 CSRF[2m > [22m② POST 首请求 401 且本地可读 token ⇒ 0 次重试（写操作禁止重放）
+[31m[1mAssertionError[22m: promise resolved "{ ok: true }" instead of rejecting[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- Error {[39m
+[32m-   "message": "rejected promise",[39m
+[31m+ {[39m
+[31m+   "ok": true,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/request-retry-safety.spec.ts:[2m143:5[22m[39m
+    [90m141|[39m     [35mawait[39m [34mexpect[39m(
+    [90m142|[39m       mod.request({ url: '/admin/order/create', method: 'POST', data: …
+    [90m143|[39m     )[33m.[39mrejects[33m.[39m[34mtoThrow[39m([32m'登录已过期，请重新登录'[39m)
+    [90m   |[39m     [31m^[39m
+    [90m144|[39m
+    [90m145|[39m     [90m// 只有原始那一次调用 ⇒ 没有任何重放（重放 = 重复开单）[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/test-gate.mjs
+npm error Lifecycle script `check:gates` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\MOBILE-29F2\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c npm run type-check && npm run lint && npm run test && npm run check:contract && npm run guard:request
+FINAL_EXIT=1

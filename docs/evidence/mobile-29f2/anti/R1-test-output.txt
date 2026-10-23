@@ -1,0 +1,60 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F2/app-mobile[39m
+
+ [31m❯[39m tests/request-contract.spec.ts [2m([22m[2m26 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1461[2mms[22m[39m
+     [33m[2m✓[22m[39m ② 200 + code "0" + data ⇒ 成功解包 data [33m 418[2mms[22m[39m
+     [32m✓[39m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[32m 34[2mms[22m[39m
+     [32m✓[39m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[32m 26[2mms[22m[39m
+     [32m✓[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功[32m 38[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 31[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 16[2mms[22m[39m
+     [32m✓[39m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast[32m 18[2mms[22m[39m
+     [32m✓[39m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json[32m 9[2mms[22m[39m
+     [32m✓[39m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[32m 10[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 26[2mms[22m[39m
+     [32m✓[39m ⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）[32m 9[2mms[22m[39m
+     [32m✓[39m ㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在[32m 13[2mms[22m[39m
+     [32m✓[39m ㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type[32m 14[2mms[22m[39m
+[31m     [31m×[31m ㉗ extra 夹带 Content-Type（任意大小写形式）⇒ 一律被剥离，产物不含该键[39m[32m 109[2mms[22m[39m
+     [32m✓[39m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image[32m 251[2mms[22m[39m
+     [32m✓[39m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar[32m 93[2mms[22m[39m
+     [32m✓[39m ㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用[32m 5[2mms[22m[39m
+     [32m✓[39m ㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用[32m 5[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 9[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 10[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 16[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 17[2mms[22m[39m
+     [32m✓[39m ⑰ 多行 text 事件逐条增量分发，不吞并[32m 223[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 4[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 6[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 24[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m25 passed[39m[22m[90m (26)[39m
+[2m   Start at [22m 02:24:16
+[2m   Duration [22m 4.46s[2m (transform 1.43s, setup 0ms, import 844ms, tests 1.46s, environment 1ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · buildSecureHeaders 只含安全三头（Content-Type 绝不存在）[2m > [22m㉗ extra 夹带 Content-Type（任意大小写形式）⇒ 一律被剥离，产物不含该键
+[31m[1mAssertionError[22m: extra 传入 Content-Type 时产物仍含 Content-Type 类键：Content-Type: expected [ 'Content-Type' ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "Content-Type",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m tests/request-contract.spec.ts:[2m297:82[22m[39m
+    [90m295|[39m       [90m// 任一大小写形态的 Content-Type 都不应出现在产物里[39m
+    [90m296|[39m       const ctKeys = Object.keys(headers).filter((k) => k.toLowerCase(…
+    [90m297|[39m       expect(ctKeys, `extra 传入 ${ct} 时产物仍含 Content-Type 类键：${ctKeys.jo…
+    [90m   |[39m                                                                                  [31m^[39m
+    [90m298|[39m       [90m// 剥离必须是精准的：非 Content-Type 的 extra 与安全三头都还在[39m
+    [90m299|[39m       [34mexpect[39m(headers[[32m'Accept'[39m])[33m.[39m[34mtoBe[39m([32m'application/octet-stream'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+

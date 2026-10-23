@@ -1,0 +1,71 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/Users/ZXQL/wt-agents/MOBILE-29F2[39m
+
+ [31m❯[39m app-mobile/tests/request-contract.spec.ts [2m([22m[2m26 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 2773[2mms[22m[39m
+     [33m[2m✓[22m[39m ② 200 + code "0" + data ⇒ 成功解包 data [33m 683[2mms[22m[39m
+     [32m✓[39m ③ 200 + code "1001"（业务失败）⇒ reject 且弹 msg，绝不当成功数据返回[32m 33[2mms[22m[39m
+     [32m✓[39m ④ 200 + code "400" 且 msg 为空 ⇒ reject 兜底文案带业务码[32m 73[2mms[22m[39m
+     [32m✓[39m ⑤ 200 + 数字 0（非字符串）⇒ String() 归一后仍判成功[32m 27[2mms[22m[39m
+     [32m✓[39m ⑥ 200 + code "0" 但无 data 字段 ⇒ 透传整个信封（不臆测解包）[32m 131[2mms[22m[39m
+     [32m✓[39m ⑦ 200 裸数组（无 code 字段）⇒ 维持透传，不触发业务码判定[32m 18[2mms[22m[39m
+     [32m✓[39m ⑧ 200 + 业务失败 + silent ⇒ reject 但不弹 toast[32m 54[2mms[22m[39m
+     [32m✓[39m ⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json[32m 20[2mms[22m[39m
+     [32m✓[39m ⑩ 缺任一登录态 ⇒ 对应头自然省略，其余照发[32m 24[2mms[22m[39m
+     [32m✓[39m ⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）[32m 86[2mms[22m[39m
+     [32m✓[39m ⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）[32m 28[2mms[22m[39m
+     [32m✓[39m ㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在[32m 14[2mms[22m[39m
+     [32m✓[39m ㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type[32m 44[2mms[22m[39m
+     [32m✓[39m ㉗ extra 夹带 Content-Type（任意大小写形式）⇒ 一律被剥离，产物不含该键[32m 26[2mms[22m[39m
+[31m     [31m×[31m ㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image[39m[33m 519[2mms[22m[39m
+[31m     [31m×[31m ㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar[39m[32m 297[2mms[22m[39m
+     [32m✓[39m ㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用[32m 8[2mms[22m[39m
+     [32m✓[39m ㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用[32m 6[2mms[22m[39m
+     [32m✓[39m ⑬ 401 GET 且本地可读 token ⇒ 静默重试恰一次并成功[32m 37[2mms[22m[39m
+     [32m✓[39m ⑭ 403 ⇒ reject 权限兜底文案[32m 86[2mms[22m[39m
+     [32m✓[39m ⑮ 网络错误（fail 非 timeout）⇒ reject「网络连接失败」[32m 26[2mms[22m[39m
+     [32m✓[39m ⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」[32m 83[2mms[22m[39m
+     [32m✓[39m ⑰ 多行 text 事件逐条增量分发，不吞并[32m 290[2mms[22m[39m
+     [32m✓[39m ⑱ tool_start / tool_result / error 各自路由到对应回调[32m 4[2mms[22m[39m
+     [32m✓[39m ⑲ 非 data 行与坏 JSON 被安全忽略（不抛、不误触回调）[32m 12[2mms[22m[39m
+     [32m✓[39m ⑳ 登录页演示日志只打长度、绝不打明文 password（跳过注释行，与守卫 C 同口径）[32m 69[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m24 passed[39m[22m[90m (26)[39m
+[2m   Start at [22m 02:35:52
+[2m   Duration [22m 11.75s[2m (transform 4.32s, setup 0ms, import 3.56s, tests 2.77s, environment 1ms)[22m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m app-mobile/tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · 上传函数实调：uni.uploadFile 只收安全头（驱动真实 products.ts / profile.ts）[2m > [22m㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image
+[31m[1mAssertionError[22m: expected 'http://127.0.0.1:5199/api/admin/produ…' to be '/api/admin/products/upload-image' // Object.is equality[39m
+
+Expected: [32m"/api/admin/products/upload-image"[39m
+Received: [31m"[7mhttp://127.0.0.1:5199[27m/api/admin/products/upload-image"[39m
+
+[36m [2m❯[22m app-mobile/tests/request-contract.spec.ts:[2m324:19[22m[39m
+    [90m322|[39m     [34mexpect[39m(p[33m.[39mname)[33m.[39m[34mtoBe[39m([32m'image'[39m)
+    [90m323|[39m     [34mexpect[39m(p[33m.[39mfilePath)[33m.[39m[34mtoBe[39m([32m'blob:https://h5.example/abc'[39m)
+    [90m324|[39m     [34mexpect[39m(p[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/admin/products/upload-image'[39m)
+    [90m   |[39m                   [31m^[39m
+    [90m325|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Content-Type'[39m])[33m.[39m[34mtoBeUndefined[39m()
+    [90m326|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Authorization'[39m])[33m.[39m[34mtoBe[39m([32m'Bearer jwt-live'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m app-mobile/tests/request-contract.spec.ts[2m > [22mMOBILE-29F1 · 上传函数实调：uni.uploadFile 只收安全头（驱动真实 products.ts / profile.ts）[2m > [22m㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar
+[31m[1mAssertionError[22m: expected 'http://127.0.0.1:5199/api/admin/auth/…' to be '/api/admin/auth/avatar' // Object.is equality[39m
+
+Expected: [32m"/api/admin/auth/avatar"[39m
+Received: [31m"[7mhttp://127.0.0.1:5199[27m/api/admin/auth/avatar"[39m
+
+[36m [2m❯[22m app-mobile/tests/request-contract.spec.ts:[2m343:19[22m[39m
+    [90m341|[39m     [35mconst[39m p [33m=[39m stub[33m.[39muploadCalls[[34m0[39m]
+    [90m342|[39m     [34mexpect[39m(p[33m.[39mname)[33m.[39m[34mtoBe[39m([32m'avatar'[39m)
+    [90m343|[39m     [34mexpect[39m(p[33m.[39murl)[33m.[39m[34mtoBe[39m([32m'/api/admin/auth/avatar'[39m)
+    [90m   |[39m                   [31m^[39m
+    [90m344|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Content-Type'[39m])[33m.[39m[34mtoBeUndefined[39m()
+    [90m345|[39m     [34mexpect[39m(p[33m.[39mheader[[32m'Authorization'[39m])[33m.[39m[34mtoBe[39m([32m'Bearer jwt-live'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
