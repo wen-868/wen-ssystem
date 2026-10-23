@@ -48,20 +48,77 @@ const PNG_BYTES = Buffer.from(PNG_B64, 'base64').length
 
 /** 具名已知噪声（白名单）——只有命中这里才允许豁免，其它一律判红
  *
- * 两条都是**具名 + 紧判据**，且第二条是 29F2 现场取证后补入的（29F1 只打印不裁决，
- * 把下面这条空壳与 hideTabBar 混为一谈）：
- *   ① uni 运行时在非 TabBar 页调 hideTabBar 的失败（凌舟 2026-10-24 裁定归为已知噪声）；
- *   ② Playwright **工具侧空壳**错误：ctor=PlaywrightError、name/stack 为空、log 为空数组
- *      （实测字段 `{"name":"","ctor":"PlaywrightError","keys":["log","name"],"inspect":"[Object] { log: [] }","stack":""}`），
- *      不含任何页面运行时信息，稳定出现 1 条且与上传链路无关（15 条上传断言全绿）。
- *      判据刻意收紧到"三项全空"，任何带 message / stack / 非空 log 的 PlaywrightError 仍判红。 */
+ * ★ MOBILE-29F3（凌舟 2026-10-24 驳回后收紧）：
+ *   29F2 的判据 `ctor==='PlaywrightError' && !name && !stack && logLen===0` **不够精确**——
+ *   它不查 message / keys / inspect，也不限次数 ⇒ 任何同构造器、空 name/stack、空 log 的
+ *   未知结构化对象（如凌舟注入的 `{name:'',message:'unknown-object-marker',log:[]}`）
+ *   都会被当成"已知空壳"洗白（实测 SMOKE PASS/EXIT=0）。
+ *   29F3 收紧为**逐字段精确 signature**，并限制同类空壳在单次冒烟中最多出现 1 条：
+ *     - ctor === 'PlaywrightError'（构造器名精确）；
+ *     - message 精确 === 'Object'（依据 29F2 留档实测：raw 恰为 "Object" 而 inspect 为
+ *       "[Object] { log: [] }" ⇒ message 是字面 'Object' 且非枚举自有属性，见
+ *       `docs/evidence/mobile-29f3/00-signature-forensics-from-29f2-tracked-results.md`）；
+ *     - name === ''、stack === ''（空字符串精确，不是"缺失/falsy"）；
+ *     - log 恰为空数组（Array.isArray 且 length === 0）；
+ *     - keys **恰为** ['log','name']（集合相等、不得有额外字段）；
+ *     - inspect 精确 === '[Object] { log: [] }'（稳定序列化，不接受正则宽泛匹配）。
+ *   任一字段不满足（不同 message / 额外键 / 非空 stack / 第二条同类）⇒ 判红并留原文。 */
+const KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE = Object.freeze({
+  ctor: 'PlaywrightError',
+  message: 'Object',
+  name: '',
+  stack: '',
+  logLen: 0,
+  keys: ['log', 'name'],
+  inspect: '[Object] { log: [] }',
+  maxOccurrences: 1 // 单次冒烟允许 0 或 1 条；>1 ⇒ 判红
+})
+
+/** 已知 PlaywrightError 空壳的精确判据（逐字段；全部相等才豁免） */
+function isKnownPlaywrightErrorShell(parts) {
+  if (!parts) return false
+  if (parts.ctor !== KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.ctor) return false
+  // message 精确 === 'Object'（29F2 留档实测：raw 恰为 "Object"，而 inspect 为 "[Object] { log: [] }"；
+  // 若 message 为 falsy，raw 会等于 inspect 全文 ⇒ 证明现场 message 就是字面 'Object'，
+  // 且它是**非枚举自有属性**（keys 只有 ['log','name']）。不接受 message||inspect 的宽松取值。）
+  if (parts.message !== KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.message) return false
+  if (parts.name !== KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.name) return false
+  if (String(parts.stack || '') !== KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.stack) return false
+  if (parts.logLen !== KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.logLen) return false
+  const sigKeys = KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.keys
+  const partsKeys = Array.isArray(parts.keys) ? [...parts.keys].sort() : []
+  const sigSorted = [...sigKeys].sort()
+  if (partsKeys.length !== sigSorted.length) return false
+  for (let i = 0; i < sigSorted.length; i++) if (partsKeys[i] !== sigSorted[i]) return false
+  if (parts.inspect !== KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.inspect) return false
+  return true
+}
+
 const KNOWN_PAGEERRORS = [
   { id: 'hideTabBar:fail not TabBar page', match: (hay) => hay.includes('hideTabBar:fail not TabBar page') },
   {
-    id: 'PlaywrightError 空壳（工具侧：name/stack 为空且 log 为空数组，非页面运行时错误）',
-    match: (_hay, parts) => parts && parts.ctor === 'PlaywrightError' && !parts.name && !parts.stack && parts.logLen === 0
+    id: 'PlaywrightError 空壳（29F3 精确 signature：ctor/message/name/stack/log/keys/inspect 逐字段相等）',
+    match: (_hay, parts) => isKnownPlaywrightErrorShell(parts)
   }
 ]
+
+/** ★ MOBILE-29F3：可复用裁决器工厂 —— 把"同类已知空壳单次最多 maxOccurrences(=1) 条"
+ *   的次数上限封进闭包：冒烟内部用它，`docs/evidence/mobile-29f3/` 的反测装置也能
+ *   **直接 import 单测**（不必起浏览器即可证明"第二条同类 ⇒ 判红"）。
+ *   judge(hay, parts) ⇒ { known, shell, overLimit }；known=null 即判红。 */
+export function createPageErrorJudge(limit = KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE.maxOccurrences) {
+  let shellSeen = 0
+  return function judge(hay, parts) {
+    if (hay.includes('hideTabBar:fail not TabBar page')) return { known: KNOWN_PAGEERRORS[0], shell: false, overLimit: false }
+    const shell = isKnownPlaywrightErrorShell(parts)
+    if (!shell) return { known: null, shell: false, overLimit: false }
+    shellSeen += 1
+    const overLimit = shellSeen > limit
+    return { known: overLimit ? null : KNOWN_PAGEERRORS[1], shell: true, overLimit }
+  }
+}
+
+export { isKnownPlaywrightErrorShell, KNOWN_PLAYWRIGHT_ERROR_SHELL_SIGNATURE }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const log = (...a) => console.log('[run-smoke]', ...a)
@@ -166,6 +223,9 @@ async function main() {
       try {
         const page = await browser.newPage()
         // ★ MOBILE-29F2：pageerror 先收集再分类裁决（不再只打印）
+        // ★ MOBILE-29F3：改用 createPageErrorJudge() —— 逐字段精确 signature + 同类空壳单次冒烟
+        //   最多 maxOccurrences(=1) 条，第二条同类 ⇒ 不豁免、按未知判红（凌舟裁定 3）。
+        const judgePageError = createPageErrorJudge()
         page.on('pageerror', (e) => {
           // ★ MOBILE-29F2：取证要能定位来源——pageerror 可能是非 Error 抛出（实测 uni 运行时
           // 会抛 message 为 "Object" 的对象），只记 message 会永远查不出是谁抛的，故全字段留原文。
@@ -180,14 +240,19 @@ async function main() {
           }
           const hay = [parts.name, parts.message, parts.ctor, parts.inspect, parts.stack].filter(Boolean).join('\n')
           const raw = String(parts.message || parts.inspect || '(空)')
-          const known = KNOWN_PAGEERRORS.find((k) => k.match(hay, parts)) || null
+          const verdict = judgePageError(hay, parts)
+          const known = verdict.known
           results.pageErrors.push({ raw: String(raw).slice(0, 500), knownId: known ? known.id : null, parts: {
-            name: parts.name, ctor: parts.ctor, logLen: parts.logLen,
+            name: parts.name, message: parts.message, ctor: parts.ctor, logLen: parts.logLen,
             keys: parts.keys,
             inspect: String(parts.inspect).slice(0, 800),
             stack: String(parts.stack || '').slice(0, 800)
           } })
-          log('pageerror:', known ? `已知豁免（${known.id}）` : `未知 ⇒ 判红：${String(raw).slice(0, 200)}`)
+          if (verdict.overLimit) {
+            log('pageerror: 已知空壳**超出 maxOccurrences=1**（第二次同类）⇒ 判红：', String(raw).slice(0, 200))
+          } else {
+            log('pageerror:', known ? `已知豁免（${known.id}）` : `未知 ⇒ 判红：${String(raw).slice(0, 200)}`)
+          }
           if (!known) log('pageerror 全字段原文：', JSON.stringify(results.pageErrors[results.pageErrors.length - 1].parts).slice(0, 800))
         })
         // 辅助取证：收集页面 console（用于坐实 pageerror 与 uni 运行时噪声的同源关系）
@@ -201,14 +266,26 @@ async function main() {
         await page.waitForFunction(() => typeof window.uni !== 'undefined' && typeof window.uni.uploadFile === 'function', { timeout: 60000 })
         log('uni 运行时在位，开始驱动上传')
 
-        // 反测注入口（仅 SMOKE_INJECT_PAGEERROR 有值时生效，正式跑不带该变量）：
-        // 让页面抛一个**未知** pageerror，用于验证"未知 pageerror 必须判红"这一裁决本身有效
+        // 反测注入口 A（仅 SMOKE_INJECT_PAGEERROR 有值时生效，正式跑不带该变量）：
+        // 让页面抛一个**未知** pageerror（普通 Error），用于验证"未知 pageerror 必须判红"这一裁决本身有效
         // （§9.1：反测装置必须在已知坏版本上跑出红）。
         if (process.env.SMOKE_INJECT_PAGEERROR) {
-          log('反测注入未知 pageerror：', process.env.SMOKE_INJECT_PAGEERROR)
+          log('反测注入未知 pageerror（普通 Error）：', process.env.SMOKE_INJECT_PAGEERROR)
           await page.evaluate((msg) => {
             setTimeout(() => { throw new Error(msg) }, 0)
           }, process.env.SMOKE_INJECT_PAGEERROR)
+          await sleep(500)
+        }
+
+        // ★ MOBILE-29F3 反测注入口 B（仅 SMOKE_INJECT_UNKNOWN_OBJ=1 时生效，正式跑不带）：
+        // 抛 凌舟 2026-10-24 的**结构化未知对象**反例 `{name:'',message:'unknown-object-marker',log:[]}`。
+        // 29F2 的宽泛判据（不查 message/keys/inspect、不限次数）会把它当"已知空壳"洗白 ⇒ SMOKE PASS/EXIT=0；
+        // 29F3 收紧后 message 与 keys 均不精确匹配 signature ⇒ **必须 EXIT=1**（凌舟裁定 4）。
+        if (process.env.SMOKE_INJECT_UNKNOWN_OBJ === '1') {
+          log('反测注入未知 pageerror（结构化未知对象 name="" / message="unknown-object-marker" / log=[]）')
+          await page.evaluate(() => {
+            setTimeout(() => { throw { name: '', message: 'unknown-object-marker', log: [] } }, 0)
+          })
           await sleep(500)
         }
 
@@ -308,4 +385,8 @@ async function main() {
   process.exit(results.ok ? 0 : 1)
 }
 
-main()
+// ★ MOBILE-29F3：仅在**被直接执行**时跑冒烟；被反测装置 `import` 时只导出判据函数。
+//   （import 会求值整个模块，若无此守卫，反测装置 import 一次就会起一场完整冒烟。）
+const selfPath = resolve(fileURLToPath(import.meta.url))
+const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null
+if (invokedPath === selfPath) main()

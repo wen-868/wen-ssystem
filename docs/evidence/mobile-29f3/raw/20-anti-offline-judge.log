@@ -1,0 +1,16 @@
+MOBILE-29F3 反测装置（离线判据单测）
+========================================================================
+✓ A 已知空壳第 1 条 ⇒ 豁免  [expected=true actual=true] — known="PlaywrightError 空壳（29F3 精确 signature：ctor/message/name/stack/log/keys/inspect 逐字段相等）" overLimit=false
+✓ B 已知空壳第 2 条 ⇒ 判红  [expected=false actual=false] — overLimit=true（上限=1）
+✓ C 结构化未知对象（凌舟反例）⇒ 判红  [expected=false actual=false] — known=null
+✓ C2 伪造 ctor=PlaywrightError 但 message/keys 不符 ⇒ 判红  [expected=false actual=false] 
+✓ D 普通 new Error ⇒ 判红  [expected=false actual=false] — message=anti-29f3-normal-error ctor=Error
+✓ E 额外一个自有键 ⇒ 判红  [expected=false actual=false] 
+✓ F stack 非空 ⇒ 判红  [expected=false actual=false] 
+✓ G log 非空数组 ⇒ 判红  [expected=false actual=false] 
+✓ H message 非 "Object" ⇒ 判红  [expected=false actual=false] 
+✓ I hideTabBar 具名噪声 ⇒ 仍豁免  [expected=true actual=true] 
+========================================================================
+用例 10 条 / 失败 0 条
+WHITELIST_PRECISION_PASS
+[run-smoke] env 恢复（触发：exit）： （无快照可恢复）

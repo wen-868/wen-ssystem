@@ -1,0 +1,61 @@
+[run-smoke] env 快照： D:\Users\ZXQL\wt-agents\MOBILE-29F3\.env.local ⇒ 不存在 | D:\Users\ZXQL\wt-agents\MOBILE-29F3\app-mobile\.env.local ⇒ 不存在
+[smoke-srv] [smoke] upload smoke server listening on http://127.0.0.1:5199
+[run-smoke] 冒烟服务就绪 http://127.0.0.1:5199
+[run-smoke] env 已注入： D:\Users\ZXQL\wt-agents\MOBILE-29F3\.env.local , D:\Users\ZXQL\wt-agents\MOBILE-29F3\app-mobile\.env.local
+(node:17180) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[dev-h5] 
+> zhixiang-app-mobile@1.0.0 dev:h5
+> uni
+
+[dev-h5] Please note that in running mode, due to log output, sourcemap, and uncompressed source code, the performance and package size are not as good as release mode.
+Vite is compiled on demand, and clicking on an uncompiled page at runtime will compile first and then load, resulting in a slower display, and there is no such problem after release.
+[dev-h5] Compiler version: 5.23（vue3）
+[dev-h5] Compiling...
+[dev-h5] 
+[dev-h5] ​已开启 uni统计 2.0​
+
+[dev-h5] 
+[dev-h5] uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+[dev-h5] 
+  vite v6.4.3 dev server running at:
+
+[dev-h5]   ➜  Local:   http://localhost:5173/
+[dev-h5]   ➜  Network: use --host to expose
+[dev-h5] 
+  ready in 2270ms.
+
+[run-smoke] dev:h5 就绪 http://localhost:5173
+[run-smoke] pageerror: 已知豁免（PlaywrightError 空壳（29F3 精确 signature：ctor/message/name/stack/log/keys/inspect 逐字段相等））
+[run-smoke] uni 运行时在位，开始驱动上传
+[run-smoke] 反测注入未知 pageerror（结构化未知对象 name="" / message="unknown-object-marker" / log=[]）
+[run-smoke] pageerror: 已知空壳**超出 maxOccurrences=1**（第二次同类）⇒ 判红： Object
+[run-smoke] pageerror 全字段原文： {"name":"","message":"Object","ctor":"PlaywrightError","logLen":0,"keys":["log","name"],"inspect":"[Object] { log: [] }","stack":""}
+[smoke-srv] [smoke] POST /api/admin/auth/avatar ct=multipart/form-data; boundary=----WebKitFormBoundary31zVmHR2 file=avatar err=none
+[smoke-srv] [smoke] POST /api/admin/products/upload-image ct=multipart/form-data; boundary=----WebKitFormBoundary3T5FJnWB file=image err=none
+[run-smoke] 页面内上传结果 {"avatar":{"avatar":"http://127.0.0.1:5199/files/1792797144947-wumg7u-file-1792797144930"},"image":"http://127.0.0.1:5199/files/1792797144983-f8tkxl-file-1792797144979","avatarErr":null,"imageErr":null}
+[run-smoke] env 恢复（触发：teardown）： D:\Users\ZXQL\wt-agents\MOBILE-29F3\.env.local ⇒ 删除（快照时不存在） | D:\Users\ZXQL\wt-agents\MOBILE-29F3\app-mobile\.env.local ⇒ 删除（快照时不存在）
+
+========== 冒烟断言汇总 ==========
+✓ 恰好两条上传记录（avatar + image）
+✓ avatar 记录存在
+✓ image 记录存在
+✓ avatar: Content-Type 为浏览器 multipart 且 boundary 在场
+✓ avatar: multer 零错误（旧 bug 会在此报 boundary 错）
+✓ avatar: req.file 非空且字段名=avatar
+✓ avatar: 文件大小与页面 blob 逐字节一致（70B）
+✓ avatar: 文件 MIME 为 image/png
+✓ image: Content-Type 为浏览器 multipart 且 boundary 在场
+✓ image: multer 零错误（旧 bug 会在此报 boundary 错）
+✓ image: req.file 非空且字段名=image
+✓ image: 文件大小与页面 blob 逐字节一致（70B）
+✓ image: 文件 MIME 为 image/png
+✓ 页面内 uploadAvatar 成功解出 data.avatar
+✓ 页面内 uploadImage 成功解出 url
+✗ 无未知 pageerror（仅允许具名 hideTabBar:fail not TabBar page）  ⇒ 未知 1 条：["Object"]
+✓ 交付态：根与 app-mobile 均无 .env.local 残留
+✓ 交付态：两处 .env* 中 127.0.0.1:5199 命中为 0
+✓ 冒烟端口 5199 已释放
+================================
+
+[run-smoke] SMOKE FAIL（EXIT=1） results → D:\Users\ZXQL\wt-agents\MOBILE-29F3\docs\evidence\mobile-29f2\smoke\results.json
