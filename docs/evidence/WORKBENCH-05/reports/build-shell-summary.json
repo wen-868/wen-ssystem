@@ -1,0 +1,12 @@
+{
+  "phase": "build-shell",
+  "total": 1,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "构建产物 http://[::1]:4174：期望旧壳(.layout)且收银页可访问",
+      "ok": true,
+      "detail": "{\"url\":\"/pos/cashier\",\"newShell\":0,\"oldShell\":1,\"hasAuth\":true,\"cashier\":true}"
+    }
+  ]
+}

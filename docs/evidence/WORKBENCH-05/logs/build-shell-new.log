@@ -1,0 +1,4 @@
+PASS  构建产物 http://[::1]:4173：期望新壳(.wb-shell)且收银页可访问  ← {"url":"/pos/cashier","newShell":1,"oldShell":0,"hasAuth":true,"cashier":true}
+  截图：build-new-cashier.png
+
+小结[build-shell]：1 passed / 0 failed

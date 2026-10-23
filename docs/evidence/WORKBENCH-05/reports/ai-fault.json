@@ -1,0 +1,53 @@
+{
+  "checks": [
+    {
+      "name": "AI 故障态：真实连接失败并显示故障横幅",
+      "ok": true,
+      "detail": "AI 会话不可用无法连接 AI 服务，请检查 AI 底座（VITE_AI_BASE_URL）是否已启动 切换人工操作台（业务页面不受影响）"
+    },
+    {
+      "name": "AI 故障态：一键切回人工操作台且业务页面可用",
+      "ok": true,
+      "detail": "human=true url=http://localhost:5173/dashboard"
+    },
+    {
+      "name": "AI 故障态：切回人工未触发跳登录/重定向",
+      "ok": true,
+      "detail": "http://localhost:5173/dashboard"
+    },
+    {
+      "name": "AI 故障态：人工业务页（收银）始终可访问",
+      "ok": true,
+      "detail": "true"
+    }
+  ],
+  "net": {
+    "menus": [
+      {
+        "status": 200,
+        "url": "http://localhost:8080/api/admin/menus/user"
+      },
+      {
+        "status": 200,
+        "url": "http://localhost:8080/api/admin/menus/user"
+      }
+    ],
+    "ai": [],
+    "menuRequests": [
+      "http://localhost:8080/api/admin/menus/user",
+      "http://localhost:8080/api/admin/menus/user"
+    ],
+    "aiRequests": [
+      "http://localhost:3016/api/chat"
+    ],
+    "errors": [
+      {
+        "url": "http://localhost:3016/api/chat",
+        "reason": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "console": "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+      }
+    ]
+  }
+}

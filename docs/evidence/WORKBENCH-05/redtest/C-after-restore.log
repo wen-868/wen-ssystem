@@ -1,0 +1,10 @@
+PASS  回滚开关：wb.shell.v2 缺省开启，0/off 关闭，1/on 开启  ← 0/off→旧壳，1/on→新壳
+PASS  灰度双向：1→0→1→0 四连切且清除后回落缺省  ← true → false → true → false
+PASS  切换不丢登录态：灰度往返后 admin_auth 原值不变  ← admin_auth 零变化
+PASS  壳层渲染互斥：新壳与旧壳只渲染其一，旧壳不回引新壳  ← v-if/v-else 互斥，MainLayout 无回引
+PASS  无循环重定向：POS 角色落地自洽且二次解析收敛  ← SUPER_ADMIN/STORE_MANAGER/STORE_OPERATOR 均收敛
+PASS  关键路由回归：命名路由不减、manifest 路由存在且唯一、POS 路由对收银开放  ← 163 命名路由 / 15 条 POS 路由
+PASS  构建级回退护栏：VITE_WORKBENCH_SHELL_V2 可关闭新壳且构建未写死  ← 运行时优先，构建级 0/false 生效
+PASS  收银 9 项：8 条路由 + 1 个本地动作，且对 STORE_OPERATOR 全可达  ← 9 = 8 路由 + 1 本地动作
+
+小结：8 passed / 0 failed

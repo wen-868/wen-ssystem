@@ -1,0 +1,13 @@
+# 冻结面核对（基线 6b0a87c3dcf048d3319058780531cc0b6b8cd84c）
+## git diff --name-only 基线 -- admin-web/src/views backend
+（空：零改动）
+## git diff --name-only 基线 -- admin-web/src
+（空：零改动）
+## 关键文件 SHA256（本轮前后一致）
+shell-mode.ts      4EE8232814E1DC8E7C9F8AB1B20787B638E7DFF508C5E18220B87A278BC0B02B
+WorkbenchShell.vue 22A20B6072F2F267DF43749E5991B27C73A3407D577D76B83D6216E5D71507D5
+menu-access.ts     6C26831258E4ADED4233F5ED43481EA9872BC3BAF25A7C452131B0E8CC8E7279
+## 本轮改动清单（git status）
+ M admin-web/package.json
+?? admin-web/tests/rollout-rollback.spec.mjs
+?? docs/evidence/WORKBENCH-05/

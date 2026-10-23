@@ -1,0 +1,15 @@
+{
+  "checks": [
+    {
+      "name": "构建产物 http://[::1]:4173：期望新壳(.wb-shell)且收银页可访问",
+      "ok": true,
+      "detail": "{\"url\":\"/pos/cashier\",\"newShell\":1,\"oldShell\":0,\"hasAuth\":true,\"cashier\":true}"
+    }
+  ],
+  "state": {
+    "url": "/pos/cashier",
+    "newShell": 1,
+    "oldShell": 0,
+    "hasAuth": true
+  }
+}

@@ -1,0 +1,31 @@
+PASS  正常态：真实登录 admin/admin@2026 返回 200  ← status=200
+PASS  正常态：登录后落到 /dashboard  ← http://localhost:5173/dashboard
+PASS  正常态：新壳(.wb-shell)渲染且旧壳(.layout)不出现  ← {"url":"/dashboard","newShell":1,"oldShell":0,"hasAuth":true}
+PASS  正常态：登录态持久化到 admin_auth  ← token 已写入
+PASS  正常态：/api/admin/menus/user 真实返回 200  ← status=200
+PASS  正常态：服务端空集时侧栏 0 组 0 项（fail-closed，不回退全量菜单）  ← groups=0 items=0 menu-empty节点=0（收银保底 9 项计入可见入口，故不满足 menu-empty）
+PASS  多宽度 1280：人工操作台无横向溢出且侧栏可见  ← {"body":1280,"sidebarWidth":209}
+  截图：normal-human-1280x900.png
+PASS  多宽度 1440：人工操作台无横向溢出且侧栏可见  ← {"body":1440,"sidebarWidth":209}
+  截图：normal-human-1440x900.png
+PASS  多宽度 1920：人工操作台无横向溢出且侧栏可见  ← {"body":1920,"sidebarWidth":209}
+  截图：normal-human-1920x900.png
+PASS  正常态：AI rail 与人工侧栏共用同一最终角色集（组数一致）  ← rail=0 sidebar=0 empty=1
+PASS  正常态：对等摘要按运行时可见集裁剪并明示无可见菜单  ← 运行时可见 0/80 个人工入口 · 0/254 项写动作（按服务端菜单裁剪，静态台账不变）服务端未返回任何可见菜单：当前账号无可见入口，请联系管理员 动作状态：已上线 0 · 部分接入 0 · 待建设 0 · 阻塞 0； 人工入口状态：已
+PASS  正常态：空菜单下不提供 AI 代办入口（fail-closed，不给全量页面代办）  ← visible=false
+  对等摘要：运行时可见 0/80 个人工入口 · 0/254 项写动作（按服务端菜单裁剪，静态台账不变）服务端未返回任何可见菜单：当前账号无可见入口，请联系管理员 动作状态：已上线 0 · 部分接入 0 · 待建设 0 · 阻塞 0； 人工入口状态：已上线 0 · 部分接入 0 · 待建设 0 · 阻塞 0 其中 0 个入口映射到写动作，0 个入口为只读页 / 本地弹窗动作（无 AI 对应项，单列原因）。 未
+  截图：normal-ai-1440x900.png
+PASS  正常态：收银台导航 9 项（SUPER_ADMIN）  ← web.pos.cashier / web.pos.sale-bills / web.pos.hold-order / web.pos.shift / web.pos.sale-return / web.pos.member / web.pos.collection / web.pos.daily-settle / web.pos.print-settings
+PASS  正常态：收银业务页真实渲染  ← true
+  截图：normal-cashier-1440x900.png
+PASS  灰度 旧壳：wb.shell.v2=0 渲染对应壳且收银页可访问  ← {"url":"/pos/cashier","newShell":0,"oldShell":1,"hasAuth":true,"cashier":true}
+PASS  灰度 新壳：wb.shell.v2=1 渲染对应壳且收银页可访问  ← {"url":"/pos/cashier","newShell":1,"oldShell":0,"hasAuth":true,"cashier":true}
+PASS  灰度 旧壳：wb.shell.v2=0 渲染对应壳且收银页可访问  ← {"url":"/pos/cashier","newShell":0,"oldShell":1,"hasAuth":true,"cashier":true}
+PASS  灰度 新壳：wb.shell.v2=1 渲染对应壳且收银页可访问  ← {"url":"/pos/cashier","newShell":1,"oldShell":0,"hasAuth":true,"cashier":true}
+PASS  灰度：清除开关后回落缺省新壳  ← {"url":"/pos/cashier","newShell":1,"oldShell":0,"hasAuth":true}
+PASS  角色 STORE_OPERATOR：收银台 9 项可用（会话注入，仅 UI）  ← count=9 badge=快速收银台
+  截图：role-STORE_OPERATOR-cashier-1440x900.png
+PASS  角色 STORE_MANAGER：收银台 9 项可用（会话注入，仅 UI）  ← count=9 badge=快速收银台
+  截图：role-STORE_MANAGER-cashier-1440x900.png
+
+小结[normal]：21 passed / 0 failed

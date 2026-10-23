@@ -1,0 +1,32 @@
+{
+  "phase": "menu-fault",
+  "total": 5,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "菜单失败态：真实请求失败并显示失败提示",
+      "ok": true,
+      "detail": "visible=true 请求次数=1 等待=1883ms 失败=11"
+    },
+    {
+      "name": "菜单失败态：不回退全量菜单（侧栏 0 组）",
+      "ok": true,
+      "detail": "groups=0"
+    },
+    {
+      "name": "菜单失败态：点重试触发真实重试请求且仍失败（不伪造成功）",
+      "ok": true,
+      "detail": "重试前=1 重试后=2 仍失败=true"
+    },
+    {
+      "name": "菜单失败态：STORE_OPERATOR 收银 9 项仍可用（业务页不受菜单故障影响）",
+      "ok": true,
+      "detail": "count=9"
+    },
+    {
+      "name": "菜单失败态：收银台同样明示菜单失败且请求真实失败",
+      "ok": true,
+      "detail": "visible=true 请求=1"
+    }
+  ]
+}

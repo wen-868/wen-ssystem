@@ -1,0 +1,12 @@
+PASS  菜单失败态：真实请求失败并显示失败提示  ← visible=true 请求次数=1 等待=1883ms 失败=11
+PASS  菜单失败态：不回退全量菜单（侧栏 0 组）  ← groups=0
+  失败提示：菜单加载失败（不回退全量菜单） 重试若持续失败请联系管理员
+  原始失败：[{"console":"Failed to load resource: net::ERR_CONNECTION_REFUSED"},{"console":"Failed to load resource: net::ERR_CONNECTION_REFUSED"},{"console":"Failed to load resource: net::ERR_CONNECTION_REFUSED"}]
+  截图：menu-fault-1440x900.png
+PASS  菜单失败态：点重试触发真实重试请求且仍失败（不伪造成功）  ← 重试前=1 重试后=2 仍失败=true
+  截图：menu-fault-after-retry-1440x900.png
+PASS  菜单失败态：STORE_OPERATOR 收银 9 项仍可用（业务页不受菜单故障影响）  ← count=9
+PASS  菜单失败态：收银台同样明示菜单失败且请求真实失败  ← visible=true 请求=1
+  截图：menu-fault-cashier-1440x900.png
+
+小结[menu-fault]：5 passed / 0 failed
