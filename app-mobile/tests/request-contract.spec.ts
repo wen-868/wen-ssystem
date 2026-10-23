@@ -1,14 +1,20 @@
 /**
  * QODER-29 · 请求出口契约 & 凭据日志（MO-11 业务码 / MO-29 统一出口与安全头 / MO-26）
+ * ★ MOBILE-29F1 · 请求头拆分：buildJsonHeaders（JSON 专用，含 Content-Type）与
+ *   buildSecureHeaders（uploadFile/downloadFile 专用，绝不含 Content-Type）
  *
  * 本文件**真实驱动** `src/api/request.ts`（`vi.stubGlobal('uni', …)` 造运行时 mock，
- * 动态 import 后调用导出的 `request()` / `buildRequestHeaders()`），断言的是行为，不是读代码。
+ * 动态 import 后调用导出的 `request()` / `buildJsonHeaders()` / `buildSecureHeaders()`，
+ * 并真实驱动 products.ts / profile.ts 的上传函数），断言的是行为，不是读代码。
  *
  * 覆盖：
  *  - MO-11（本卡核心新增）：HTTP 2xx 但业务码非成功码 ⇒ 走错误分支（reject + toast），
  *    不得当成功数据 resolve。成功码唯一真相 `"0"`（见 request.ts:40-49），不臆造集合。
- *  - MO-29：统一安全头构建器 `buildRequestHeaders()` 产出 Authorization / X-Tenant-Id /
- *    x-csrf-token 三源；缺登录态时对应头省略；安全头优先级高于调用方 extra。
+ *  - MO-29：统一安全头构建器产出 Authorization / X-Tenant-Id / x-csrf-token 三源；
+ *    缺登录态时对应头省略；安全头优先级高于调用方 extra。
+ *  - MOBILE-29F1（本单核心）：JSON 构建器与安全头构建器拆分——uploadFile / downloadFile
+ *    路径只收安全三头、**绝不下发 Content-Type**（QODER-29 驳回根因）；普通 request()
+ *    仍带 application/json。
  *  - 401 GET 静默重试 / 403 权限 / 网络错误 / 超时：每条都有真实用例（补齐 401/403 之外
  *    在 request-retry-safety.spec.ts 未展开的「fail 回调族」）。
  *  - MO-29 AI：`dispatchSseText` 逐事件增量分发（text/tool_start/tool_result/done/error），
@@ -17,10 +23,13 @@
  * 反测面（门必须能红，见回传卡 §二.5）：
  *  ① 摘掉 request.ts 的 MO-11 业务码判定分支 ⇒ 本文件「MO-11」describe 的 ②③⑥ 必红
  *     （2xx+非 0 码会被当成功 resolve）；
- *  ② 把 `buildRequestHeaders` 的 CSRF / 租户头写入摘掉 ⇒ 本文件 ⑦⑨⑩ 与静态守卫 B 同红；
- *  ③ 把 `dispatchSseText` 改成只分发首个 text 事件 ⇒ 本文件 ⑬⑭ 必红。
+ *  ② 把 JSON 构建器的 CSRF / 租户头写入摘掉 ⇒ 本文件 ⑦⑨⑩ 与静态守卫 B 同红；
+ *  ③ 把 `dispatchSseText` 改成只分发首个 text 事件 ⇒ 本文件 ⑬⑭ 必红；
+ *  ④（MOBILE-29F1）把 buildSecureHeaders 的 Content-Type 绝不下发改成跟随 JSON 构建器
+ *     （或把 products.ts 改回 buildJsonHeaders）⇒ 本文件 ㉑㉒㉓ 与静态守卫 B/D 同红。
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
 
 interface CallRecord {
   url: string
@@ -152,17 +161,17 @@ describe('QODER-29 MO-11 · 业务码信封判定（精确构造每条响应体�
   })
 })
 
-describe('QODER-29 MO-29 · buildRequestHeaders 统一安全头（三源 + 优先级）', () => {
+describe('QODER-29 MO-29 · buildJsonHeaders 统一安全头（三源 + 优先级 + JSON Content-Type）', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 
-  it('⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发', async () => {
+  it('⑨ 登录态齐全 ⇒ Authorization + X-Tenant-Id + x-csrf-token 三头同源下发，且带 application/json', async () => {
     const stub = createUniStub()
     vi.stubGlobal('uni', stub.uni)
     const mod = await importRequest()
-    const headers = mod.buildRequestHeaders()
+    const headers = mod.buildJsonHeaders()
     expect(headers['Authorization']).toBe('Bearer jwt-live')
     expect(headers['X-Tenant-Id']).toBe('tenant-001')
     expect(headers['x-csrf-token']).toBe('csrf-live')
@@ -173,17 +182,18 @@ describe('QODER-29 MO-29 · buildRequestHeaders 统一安全头（三源 + 优�
     const stub = createUniStub({ token: '', csrf: '' })
     vi.stubGlobal('uni', stub.uni)
     const mod = await importRequest()
-    const headers = mod.buildRequestHeaders()
+    const headers = mod.buildJsonHeaders()
     expect(headers['Authorization']).toBeUndefined()
     expect(headers['x-csrf-token']).toBeUndefined()
     expect(headers['X-Tenant-Id']).toBe('tenant-001') // 仍读到租户
+    expect(headers['Content-Type']).toBe('application/json') // JSON 场景与登录态无关
   })
 
   it('⑪ extra 覆盖 Content-Type，但安全头优先级最高（不可被 extra 顶掉）', async () => {
     const stub = createUniStub()
     vi.stubGlobal('uni', stub.uni)
     const mod = await importRequest()
-    const headers = mod.buildRequestHeaders({
+    const headers = mod.buildJsonHeaders({
       'Content-Type': 'multipart/form-data',
       Authorization: 'Evil-Should-Be-Overwritten'
     })
@@ -191,7 +201,7 @@ describe('QODER-29 MO-29 · buildRequestHeaders 统一安全头（三源 + 优�
     expect(headers['Authorization']).toBe('Bearer jwt-live') // 安全头回写、覆盖 extra
   })
 
-  it('⑫ request() 出口实际带上了这三头（构建器真被消费）', async () => {
+  it('⑫ request() 出口实际带上了这三头 + application/json（构建器真被消费）', async () => {
     const stub = createUniStub({ statusCode: 200, data: { code: '0', data: { ok: 1 } } })
     vi.stubGlobal('uni', stub.uni)
     const mod = await importRequest()
@@ -200,6 +210,138 @@ describe('QODER-29 MO-29 · buildRequestHeaders 统一安全头（三源 + 优�
     expect(h['Authorization']).toBe('Bearer jwt-live')
     expect(h['X-Tenant-Id']).toBe('tenant-001')
     expect(h['x-csrf-token']).toBe('csrf-live')
+    expect(h['Content-Type']).toBe('application/json') // 普通 JSON 请求必须带
+  })
+})
+
+// ==========================================================================
+// MOBILE-29F1 · 请求头拆分：uploadFile / downloadFile 只传安全头，绝不下发 Content-Type
+// （QODER-29 驳回根因：JSON 构建器的 application/json 被复用进 multipart，破坏 boundary）
+// ==========================================================================
+
+/** 上传/下载直调场景的 uni stub：捕获 uni.uploadFile 入参并代为回调 success */
+function createUploadStub(response: { statusCode?: number; data?: any } = {}) {
+  const uploadCalls: any[] = []
+  const uni = {
+    uploadFile: vi.fn((param: any) => {
+      uploadCalls.push(param)
+      param.success({ statusCode: response.statusCode ?? 200, data: response.data })
+    }),
+    downloadFile: vi.fn((param: any) => {
+      uploadCalls.push(param)
+      param.success({ statusCode: 200, tempFilePath: 'blob:https://x/pkg' })
+    }),
+    showToast: vi.fn(),
+    showLoading: vi.fn(),
+    hideLoading: vi.fn(),
+    showModal: vi.fn(),
+    reLaunch: vi.fn(),
+    getStorageSync: vi.fn((key: string) => {
+      if (key === 'merchant_token') return 'jwt-live'
+      if (key === 'merchant_tenant_id') return 'tenant-001'
+      if (key === 'merchant_csrf_token') return 'csrf-live'
+      return ''
+    }),
+    setStorageSync: vi.fn(),
+    removeStorageSync: vi.fn()
+  }
+  return { uni, uploadCalls }
+}
+
+describe('MOBILE-29F1 · buildSecureHeaders 只含安全三头（Content-Type 绝不存在）', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+  })
+
+  it('㉑ 登录态齐全 ⇒ 三头同源下发，且 Content-Type 一律不存在', async () => {
+    const stub = createUniStub()
+    vi.stubGlobal('uni', stub.uni)
+    const mod = await importRequest()
+    const headers = mod.buildSecureHeaders()
+    expect(headers['Authorization']).toBe('Bearer jwt-live')
+    expect(headers['X-Tenant-Id']).toBe('tenant-001')
+    expect(headers['x-csrf-token']).toBe('csrf-live')
+    // 核心：multipart/二进制场景绝不下发 Content-Type（boundary 由 uni/微信/浏览器生成）
+    expect('Content-Type' in headers).toBe(false)
+  })
+
+  it('㉒ extra（如 Accept）可下发，安全头仍最高优先，且绝不带入 Content-Type', async () => {
+    const stub = createUniStub()
+    vi.stubGlobal('uni', stub.uni)
+    const mod = await importRequest()
+    const headers = mod.buildSecureHeaders({
+      Accept: 'application/octet-stream',
+      Authorization: 'Evil-Should-Be-Overwritten'
+    })
+    expect(headers['Accept']).toBe('application/octet-stream') // extra 生效
+    expect(headers['Authorization']).toBe('Bearer jwt-live') // 安全头回写、覆盖 extra
+    expect('Content-Type' in headers).toBe(false) // 调用方塞 Content-Type 也不该出现——本构建器不写该键
+  })
+})
+
+describe('MOBILE-29F1 · 上传函数实调：uni.uploadFile 只收安全头（驱动真实 products.ts / profile.ts）', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+  })
+
+  it('㉓ 商品主图上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 image', async () => {
+    const stub = createUploadStub({ data: { code: '0', msg: '成功', data: { url: 'https://cdn.example/p.png' } } })
+    vi.stubGlobal('uni', stub.uni)
+    vi.resetModules()
+    const products = await import('../src/api/modules/products')
+    const url = await products.uploadImage('blob:https://h5.example/abc')
+    expect(url).toBe('https://cdn.example/p.png') // 业务链路仍通（不被本次改动破坏）
+    expect(stub.uploadCalls.length).toBe(1)
+    const p = stub.uploadCalls[0]
+    expect(p.name).toBe('image')
+    expect(p.filePath).toBe('blob:https://h5.example/abc')
+    expect(p.url).toBe('/api/admin/products/upload-image')
+    expect(p.header['Content-Type']).toBeUndefined()
+    expect(p.header['Authorization']).toBe('Bearer jwt-live')
+    expect(p.header['X-Tenant-Id']).toBe('tenant-001')
+    expect(p.header['x-csrf-token']).toBe('csrf-live')
+  })
+
+  it('㉔ 头像上传：uni.uploadFile 入参 header 无 Content-Type、三头齐全、字段名 avatar', async () => {
+    const stub = createUploadStub({
+      data: JSON.stringify({ code: '0', msg: '成功', data: { avatar: 'https://cdn.example/a.png' } })
+    })
+    vi.stubGlobal('uni', stub.uni)
+    vi.resetModules()
+    const profile = await import('../src/api/modules/profile')
+    const res = await profile.profileApi.uploadAvatar('blob:https://h5.example/def')
+    expect(res).toEqual({ avatar: 'https://cdn.example/a.png' }) // 业务链路仍通
+    expect(stub.uploadCalls.length).toBe(1)
+    const p = stub.uploadCalls[0]
+    expect(p.name).toBe('avatar')
+    expect(p.url).toBe('/api/admin/auth/avatar')
+    expect(p.header['Content-Type']).toBeUndefined()
+    expect(p.header['Authorization']).toBe('Bearer jwt-live')
+    expect(p.header['X-Tenant-Id']).toBe('tenant-001')
+    expect(p.header['x-csrf-token']).toBe('csrf-live')
+  })
+})
+
+describe('MOBILE-29F1 · downloadFile 与源码静态面（配合静态守卫 B/D，update.ts 沿用静态断言口径）', () => {
+  const readSrc = (rel: string) => readFileSync(new URL(rel, import.meta.url), 'utf8')
+
+  it('㉕ update.ts：uni.downloadFile 恰一处，header 用 buildSecureHeaders，无 JSON 构建器引用', () => {
+    const src = readSrc('../src/utils/update.ts')
+    expect(src.split('uni.downloadFile(').length - 1, '下载入口必须恰为 1 处').toBe(1)
+    expect(src, '下载必须只用安全头构建器').toContain('header: buildSecureHeaders()')
+    expect(src, '下载场景禁用 JSON 构建器').not.toContain('buildJsonHeaders')
+    expect(src, '下载场景禁用旧名构建器（QODER-29 驳回根因）').not.toContain('buildRequestHeaders')
+  })
+
+  it('㉖ products.ts / profile.ts：上传只用 buildSecureHeaders，源码无 JSON 构建器引用', () => {
+    for (const rel of ['../src/api/modules/products.ts', '../src/api/modules/profile.ts']) {
+      const src = readSrc(rel)
+      expect(src, `${rel} 必须复用安全头构建器`).toContain('buildSecureHeaders()')
+      expect(src, `${rel} 上传场景禁用 JSON 构建器`).not.toContain('buildJsonHeaders')
+      expect(src, `${rel} 上传场景禁用旧名构建器（QODER-29 驳回根因）`).not.toContain('buildRequestHeaders')
+    }
   })
 })
 

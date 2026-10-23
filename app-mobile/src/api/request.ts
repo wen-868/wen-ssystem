@@ -70,33 +70,67 @@ function getCsrfToken(): string {
 }
 
 /**
- * 统一安全请求头构建器（★ QODER-29 MO-29：鉴权 / 租户头 / CSRF 的唯一出处）
+ * 统一安全三头写入（★ QODER-29 MO-29：鉴权 / 租户头 / CSRF 的唯一出处）
  *
- * 统一入口 `request()` 与所有"确需直接调用"的 uni.request / uni.uploadFile / uni.downloadFile
- * 都必须复用本函数产出安全头，不得在别处再逐行 `getStorageSync('merchant_token')` 自行拼装
+ * `buildJsonHeaders()` 与 `buildSecureHeaders()` 都复用本函数产出安全头，
+ * 不得在别处再逐行 `getStorageSync('merchant_token')` 自行拼装
  * （公共逻辑只写一次，项目标准核心原则 3）。缺任一登录态时对应头自然省略，与旧行为一致。
  *
- * @param extra 调用方自定义头（Content-Type 之外的覆盖项）；安全头在其后写入，优先级最高。
+ * ★ MOBILE-29F1：安全头在 extra 之后写入，优先级最高（不可被调用方顶掉）。
  */
-export function buildRequestHeaders(extra?: Record<string, string>): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(extra || {})
-  }
+function writeSecureHeaders(headers: Record<string, string>): void {
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
   const tenantId = getTenantId()
   if (tenantId) headers['X-Tenant-Id'] = tenantId
   const csrfToken = getCsrfToken()
   if (csrfToken) headers['x-csrf-token'] = csrfToken
+}
+
+/**
+ * JSON 请求头构建器（★ MOBILE-29F1：与安全头构建器拆分，专用于 JSON 请求体场景）
+ *
+ * 只用于请求体为 JSON 的场景：统一入口 `request()` 与 AI 底座的 fetch / uni.request。
+ * 产出 `Content-Type: application/json` + 安全三头。
+ *
+ * ⚠️ 绝不用于 `uni.uploadFile` / `uni.downloadFile`：multipart 的 boundary 必须由
+ * uni / 微信 / 浏览器自行生成，前端下发 `application/json` 会直接破坏 multipipart
+ * （QODER-29 驳回根因）。那两个场景只能用 `buildSecureHeaders()`。
+ *
+ * @param extra 调用方自定义头；安全头在其后写入，优先级最高。
+ */
+export function buildJsonHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(extra || {})
+  }
+  writeSecureHeaders(headers)
+  return headers
+}
+
+/**
+ * 安全头构建器（★ MOBILE-29F1：只含安全三头，绝不含 Content-Type）
+ *
+ * 只用于"确需直接调用"的 `uni.uploadFile`（multipart 表单）与 `uni.downloadFile`
+ * （二进制流）：这两种场景的 Content-Type / boundary 由 uni / 微信 / 浏览器自行生成，
+ * 前端任何形式的 Content-Type 下发都会破坏请求（QODER-29 驳回根因）。
+ *
+ * 产出且仅产出 Authorization / X-Tenant-Id / x-csrf-token（+ 调用方 extra，
+ * 如 Accept）；缺登录态时对应头自然省略，与旧行为一致。
+ *
+ * @param extra 调用方自定义头（不得含 Content-Type）；安全头在其后写入，优先级最高。
+ */
+export function buildSecureHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...(extra || {}) }
+  writeSecureHeaders(headers)
   return headers
 }
 
 export async function request<T = any>(options: RequestOptions): Promise<T> {
   const { url, method = 'GET', data, header = {}, timeout = 30000, responseType, silent = false } = options
 
-  // 统一安全头：Authorization / X-Tenant-Id / x-csrf-token 全部走同一构建器（★ QODER-29 MO-29）
-  const headers = buildRequestHeaders(header)
+  // 统一 JSON 请求头：Content-Type + Authorization / X-Tenant-Id / x-csrf-token 全部走同一构建器（★ QODER-29 MO-29 / ★ MOBILE-29F1）
+  const headers = buildJsonHeaders(header)
 
   return new Promise((resolve, reject) => {
     uni.request({

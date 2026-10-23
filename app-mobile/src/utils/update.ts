@@ -22,7 +22,7 @@
  *     且只有实算摘要与下发摘要一致后才会走到安装（semver 闸已保证只装严格更高的版本）。
  */
 import { API_BASE_H5, API_BASE_NATIVE } from '../config/env'
-import { request, buildRequestHeaders } from '../api/request'
+import { request, buildSecureHeaders } from '../api/request'
 import {
   dataUrlToBytes,
   decideUpdateAction,
@@ -176,9 +176,10 @@ function downloadAndVerify(url: string, expectedSha256: string): void {
   uni.showLoading({ title: '下载更新包…' })
   uni.downloadFile({
     url,
-    // ★ QODER-29 MO-29：更新包下载确需直接调用 uni.downloadFile（二进制流，非 Promise 型统一入口），
-    // 但必须复用统一安全头，鉴权 / 租户头 / CSRF 与 request.ts 同源
-    header: buildRequestHeaders(),
+    // ★ QODER-29 MO-29：更新包下载确需直接调用 uni.downloadFile（二进制流，非 Promise 型统一入口）。
+    // ★ MOBILE-29F1：只用安全头构建器——绝不下发 Content-Type（响应类型由服务端决定；
+    // 与上传同族，JSON 构建器误用到下载场景同样属于驳回根因）
+    header: buildSecureHeaders(),
     success: (res) => {
       const tempFilePath = res.tempFilePath
       if (res.statusCode !== 200 || !tempFilePath) {

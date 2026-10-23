@@ -38,12 +38,12 @@ const AI_BASE_URL: string = (() => {
 })()
 
 // 直接调用（SSE 流式降级 / 模型列表 / 写操作确认 / TTS）确需绕过 Promise 型统一入口，
-// 但安全头必须复用统一构建器，保证鉴权 / 租户头 / CSRF 与 request.ts 同源（★ QODER-29 MO-29）。
-import { buildRequestHeaders } from '../request'
+// 但请求头必须复用统一 JSON 构建器，保证 Content-Type + 鉴权 / 租户头 / CSRF 与 request.ts 同源（★ QODER-29 MO-29）。
+import { buildJsonHeaders } from '../request'
 
-/** 构造带鉴权的请求头（复用统一构建器：Authorization + X-Tenant-Id + x-csrf-token 同源下发） */
+/** 构造带鉴权的 JSON 请求头（★ MOBILE-29F1：AI 底座全是 JSON 请求体，走 JSON 构建器；与 uploadFile/downloadFile 的安全头构建器分流） */
 function buildHeaders(): Record<string, string> {
-  return buildRequestHeaders()
+  return buildJsonHeaders()
 }
 
 // ====================== SSE 事件类型定义 ======================

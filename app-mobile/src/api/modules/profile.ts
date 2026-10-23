@@ -1,4 +1,4 @@
-import { get, post, put, buildRequestHeaders } from '../request'
+import { get, post, put, buildSecureHeaders } from '../request'
 import { API_BASE_H5, API_BASE_NATIVE } from '../../config/env'
 
 export interface UserProfile {
@@ -41,9 +41,11 @@ export const profileApi = {
       // #endif
     })()
     return new Promise((resolve, reject) => {
-      // 直接调用 uni.uploadFile（multipart），安全头复用 buildRequestHeaders，
-      // 鉴权 / 租户头 / CSRF 与 request.ts 同源（★ QODER-29 MO-29：旧实现漏发 X-Tenant-Id）
-      const header = buildRequestHeaders()
+      // 直接调用 uni.uploadFile（multipart）。
+      // ★ MOBILE-29F1：只用安全头构建器——绝不下发 Content-Type，multipart boundary 由
+      // uni / 微信 / 浏览器自行生成（★ QODER-29 MO-29：旧实现漏发 X-Tenant-Id；
+      // QODER-29 驳回根因：复用 JSON 构建器会破坏 multipart）
+      const header = buildSecureHeaders()
       uni.uploadFile({
         url: `${base}/admin/auth/avatar`,
         filePath,
