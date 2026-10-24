@@ -39,4 +39,10 @@
 ## 四、MP 侧行为影响（如实标注证据等级）
 
 修复前 `*, …` 规则**确实进了 MP 产物**（`raw/11` 三条命中），但按卡 §一"已知事实"（凌舟 preview 报 `unexpected token '*'`、仓库外仅替换这些 token 后得到 `✔ preview`），微信侧对该文件的解析本就失败 ⇒ 这些规则在 MP **从未生效**。本单把它们隔掉，MP 侧不产生"失去有效样式"的行为变化。
-⚠️ 该结论的**运行态证据来自凌舟的 preview 实测（卡面既有事实）**，本单**未能在本机复现 preview**（无 CLI，见 `raw/29`），故本条为**推断 + 引用**，不是本单实测。
+⚠️ 该结论的**运行态证据来自凌舟的 preview 实测（卡面既有事实）**，本单**未能复现 preview**，故本条为**推断 + 引用**，不是本单实测。
+
+> 🔴 **2026-10-25 · MOBILE-28F1R1 更正（本 README 以下结论已失效，勿再引用）**
+> 1. 本 README 与 `raw/29-wechat-cli-probe-not-run.txt` 中「本机无微信开发者工具 CLI」**结论失实**：该文件自身即记录 `PATH-CHECK … cli.bat => FOUND`，且 28F1R1 实测 `cli.bat --help` 可执行（列出 `preview/islogin/open`）。
+> 2. `raw/29` **原样保留、未改写**（卡要求），但其结论**不再作为验收依据**；以 `docs/evidence/mobile-28f1r1/raw/10-cli-four-criteria-probe.txt` 与 `raw/40-preview-attempt.txt` 为准。
+> 3. 真实状态是「CLI 已安装、`--help` 可执行，但 IDE 服务端口关闭且 GUI 启动即退出」⇒ 微信 preview **BLOCKED**（详见 `docs/evidence/mobile-28f1r1/01-cli-correction-and-preview-blocked.md`）。
+> 4. 「MP 产物 0 通配」只证明构建产物静态干净，**不等于**微信侧可预览（红线：不得用构建成功替代 preview）。

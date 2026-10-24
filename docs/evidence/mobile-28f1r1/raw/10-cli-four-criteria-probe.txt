@@ -1,0 +1,70 @@
+MOBILE-28F1R1 · 微信 CLI 四判据探测（原始输出，2026-10-25 00:35）
+CLI_ABS_PATH=C:\Program Files (x86)\Tencent\微信web开发者工具\cli.bat
+
+[判据1] 安装路径存在
+Test-Path -LiteralPath cli.bat => True
+
+[判据2] CLI 可执行（--help）
+  cli
+  
+  Commands:
+    cli cloud            CloudBase commands
+    cli open             Open IDE / IDE project
+    cli login            re-login IDE
+    cli islogin          #islogin-desc
+    cli preview          preview
+    cli auto-preview     Auto preview
+    cli upload           Upload mini program
+    cli build-npm        build NPM
+    cli auto             Enable automation
+    cli auto-replay      Enable automation
+    cli agent            Agent commands
+    cli reset-fileutils  #reset-fileutils-desc
+    cli close            Close project
+    cli quit             Quit IDE
+    cli cache            clean cache
+    cli engine           engine
+    cli open-other       Open other project
+    cli build-ipa        generate ipa
+    cli build-apk        genreate apk
+  
+  Project options:
+    --project    project path
+    --appid      miniprogram appid or 3rd platform appid. Ignored when --project
+                 is provided
+    --ext-appid  miniprogram appid to be developed by 3rd platform. Ignored when
+                 --project is provided
+  
+  Other global options:
+    --port         Optional. IDE HTTP server port. If IDE hasn't been launched, it
+                   will be launched and start HTTP server at <port>. If IDE has
+                   launched with a HTTP server of different port, you must quit
+                   IDE before re-run the command.                         [number]
+    --token        Optional. CLI access token configured in IDE Security Settings.
+                   It can also be set with the WECHAT_DEVTOOLS_CLI_TOKEN
+                   environment variable.                                  [string]
+    --lang         Optional. 'en' or 'zh'. Defaults to 'en'.
+    --debug        Optional. Turn on debug mode
+    --disable-gpu  Disable GPU Acceleration when launching IDE           [boolean]
+    -h, --help     Show help                                             [boolean]
+HELP_EXIT=0
+
+[判据3] IDE 已初始化（islogin）
+  - initialize
+  
+  (node:21704) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+  (Use `微信开发者工具 --trace-deprecation ...` to show where the warning was created)
+  × initialize
+  
+  [error] IDE service port disabled. To use CLI Call, please enter y to confirm enabling CLI capability, or manually open IDE -> Settings -> Security Settings, and set Service Port On.
+  For more details see: https://developers.weixin.qq.com/miniprogram/en/dev/devtools/cli.html
+  [error] 工具的服务端口已关闭。要使用命令行调用工具，请手动打开工具 -> 设置 -> 安全设置，将服务端口开启。
+  详细信息: https://developers.weixin.qq.com/miniprogram/dev/devtools/cli.html
+  
+  [info] 退出
+ISLOGIN_EXIT=0
+
+[判据4] IDE 服务端口 / GUI 启动
+IDE PID=2428 HasExited=True ExitCode=0
+SessionId=3 UserInteractive=True
+结论：CLI 已安装且 --help 可执行；但 islogin 报 initialize error（服务端口关闭），GUI 启动即退出 ⇒ preview 无法完成 ⇒ BLOCKED

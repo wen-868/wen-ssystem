@@ -1,0 +1,18 @@
+
+> zhixiang-app-mobile@1.0.0 guard:mp-style
+> node scripts/guard-mp-style-selectors.mjs
+
+源码通配 prelude：命中 4 处 / 未隔离 1 处（已隔离=有 /* #ifndef MP-WEIXIN */ 等包裹，不进 MP 产物）
+✓ 已隔离 App.vue:70  ⇒  *, *::before, *::after
+✓ 已隔离 App.vue:121  ⇒  *, *::before, *::after
+✓ 已隔离 pages/sales/create-sale.vue:2474  ⇒  .create-sale-page *, .create-sale-page *::before, .create-sale-page *::after
+✗ 未隔离 pages-sub/admin/more/more-functions.vue:364  ⇒  .__probe-28f1r1 *
+MP_STAR_GUARD_SRC_FAIL
+npm error Lifecycle script `guard:mp-style` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\MOBILE-28F1R1\app-mobile
+npm error workspace zhixiang-app-mobile@1.0.0
+npm error location D:\Users\ZXQL\wt-agents\MOBILE-28F1R1\app-mobile
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c node scripts/guard-mp-style-selectors.mjs
+GUARD_EXIT=1

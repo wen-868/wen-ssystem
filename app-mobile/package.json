@@ -17,7 +17,8 @@
     "test": "node scripts/test-gate.mjs",
     "check:contract": "node scripts/check-contract.mjs",
     "guard:request": "node scripts/guard-request-contract.mjs",
-    "check:gates": "npm run type-check && npm run lint && npm run test && npm run check:contract && npm run guard:request"
+    "guard:mp-style": "node scripts/guard-mp-style-selectors.mjs",
+    "check:gates": "npm run type-check && npm run lint && npm run test && npm run check:contract && npm run guard:request && npm run guard:mp-style"
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-5020320260806002",

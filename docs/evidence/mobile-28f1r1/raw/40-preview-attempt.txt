@@ -1,0 +1,26 @@
+MOBILE-28F1R1 · preview 实跑（2026-10-25 00:52）
+CLI=C:\Program Files (x86)\Tencent\微信web开发者工具\cli.bat
+PROJECT=D:\Users\ZXQL\wt-agents\MOBILE-28F1R1\app-mobile\dist\build\mp-weixin
+PREVIEW_EXIT=0
+
+--- 原始输出（原样） ---
+  - initialize
+  
+  (node:8840) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+  (Use `微信开发者工具 --trace-deprecation ...` to show where the warning was created)
+  × initialize
+  
+  [error] IDE service port disabled. To use CLI Call, please enter y to confirm enabling CLI capability, or manually open IDE -> Settings -> Security Settings, and set Service Port On.
+  For more details see: https://developers.weixin.qq.com/miniprogram/en/dev/devtools/cli.html
+  [error] 工具的服务端口已关闭。要使用命令行调用工具，请手动打开工具 -> 设置 -> 安全设置，将服务端口开启。
+  详细信息: https://developers.weixin.qq.com/miniprogram/dev/devtools/cli.html
+  
+  [info] 退出
+
+--- 成功判据逐条（卡 §二.1：三条必须同时满足才算成功）---
+[1] 无 initialize/error 标记（含 × initialize / [error] 均算失败）: False  （检测到错误标记=True）
+[2] 无 unexpected token '*'                              : True
+[3] 有可识别成功输出（✔/preview success/二维码/已启动）  : False
+
+结论：BLOCKED — 未同时满足三条成功判据（IDE 服务端口关闭，GUI 无法启动）
+注：PREVIEW_EXIT=0 但输出含错误标记 ⇒ 依卡 §四 红线，退出码不得用于判绿。

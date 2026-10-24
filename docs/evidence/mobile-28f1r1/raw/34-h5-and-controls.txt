@@ -1,0 +1,35 @@
+A) 正对照注入（临时副本 C:\Users\XIONG\AppData\Local\Temp\m28f1-positive-control-3f2psa；真实产物未写入）
+   注入后命中 = 1
+   ✗ app.wxss  ⇒  .injected-positive-control-28f1 *
+   判定 = PASS（注入即被扫出 ⇒ 扫描器有分辨力，非恒绿）
+
+B) 真实 MP 产物扫描（dist\build\mp-weixin）
+   命中 = 0
+   判定 = PASS（`*` 通配 prelude = 0）
+
+C) H5 产物行为保留（硬验收 3）
+   扫描 H5 CSS 文件数 = 119
+   ① 全局 box-sizing 通配块（prelude 含 *）：PRESENT ×6
+      · assets/index-DpZdr1mN.css  |  .uni-tabbar *
+      · assets/index-DpZdr1mN.css  |  .uni-modal *
+      · assets/index-DpZdr1mN.css  |  .uni-toast *
+      · assets/index-DpZdr1mN.css  |  .uni-actionsheet *
+      · assets/index-DpZdr1mN.css  |  *,*:before,*:after
+      · assets/uni.c2110723.css  |  .uni-picker-container .uni-picker-custom *
+   ② @media (prefers-reduced-motion) 带 transition 降级：PRESENT → assets/create-sale-CSqN0HI9.css, assets/index-DpZdr1mN.css
+   ③ create-sale 页 .create-sale-page * 降级：PRESENT → assets/create-sale-CSqN0HI9.css
+   ④ uni-form display:block（同批 H5 修复，须一并保留）：PRESENT → assets/index-DpZdr1mN.css
+   判定 = PASS（H5 四处行为全部保留，未删规则）
+
+D) 源码规则未删除 + 已被条件编译隔离
+   守卫在源码里扫到的通配 prelude 共 3 处：
+   ✓ 已隔离 App.vue:70  ⇒  *, *::before, *::after
+   ✓ 已隔离 App.vue:121  ⇒  *, *::before, *::after
+   ✓ 已隔离 pages/sales/create-sale.vue:2474  ⇒  .create-sale-page *, .create-sale-page *::before, .create-sale-page *:
+   ✓ App.vue box-sizing 规则文本仍在（未删）
+   ✓ App.vue 全局 reduced-motion 规则文本仍在
+   ✓ create-sale.vue 页级 reduced-motion 规则文本仍在
+   ✓ 源码全部通配被守卫判为已隔离
+
+MOBILE_28F1_CONTROLS_PASS
+CONTROLS_EXIT=0
