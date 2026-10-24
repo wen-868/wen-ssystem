@@ -1,0 +1,6 @@
+命令：node admin-web/node_modules/vue-tsc/bin/vue-tsc.js -b admin-web/tsconfig.json --force
+退出码：0
+为何零输出：vue-tsc 类型检查无任何错误时按设计零输出（不打印 PASS/统计）。
+同时执行的环境：
+pm test 同批次已全绿（见 20-npm-test.log），构建产物已生成（见 40-build.log）。
+判定：EXIT=0 + 零输出 = 类型检查通过（0 error）。

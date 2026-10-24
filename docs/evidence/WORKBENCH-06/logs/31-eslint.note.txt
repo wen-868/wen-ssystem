@@ -1,0 +1,5 @@
+命令：node admin-web/node_modules/eslint/bin/eslint.js admin-web/src/
+退出码：0
+为何零输出：ESLint 在 0 error 0 warning 时不输出任何内容（8.x 行为）。
+判定：EXIT=0 + 零输出 = lint 通过（0 error / 0 warning）。
+覆盖范围：admin-web/src 全量（含本轮新增 4 个组件/布局与 2 个测试文件的源码侧）。

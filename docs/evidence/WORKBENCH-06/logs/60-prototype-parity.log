@@ -1,0 +1,23 @@
+PASS  原型文件 SHA256 与冻结值一致  ← 6A2724A640DD613E…
+      [警告] 原型主面未渲染（inputZone display=none）—— 该宽度下输入区对照记为"原型未渲染"
+PASS  1280px 原型：rail/side/top/feed/input 五区齐备  ← {"x":0,"y":0,"w":60,"h":800} / side {"x":60,"y":0,"w":230,"h":800}
+PASS  1280px 实现：rail/second-nav/top/feed/composer 五区齐备  ← {"x":0,"y":0,"w":64,"h":800} / second {"x":64,"y":0,"w":231,"h":800}
+PASS  1280px 两列布局一致（rail 宽差 ≤8px，side 宽差 ≤30px）  ← rail 原型 60 vs 实现 64；side 原型 230 vs 实现 231
+PASS  1280px 底部输入区：实现精确贴底 + 原型信息流态输入区贴 .main 底  ← 实现 708+92 vs 视口 800；原型 inputZone {"x":290,"y":651,"w":990,"h":149} 贴 main 底 800
+PASS  1280px 原型加载无 pageerror  ← 0 条
+      [警告] 原型主面未渲染（inputZone display=none）—— 该宽度下输入区对照记为"原型未渲染"
+PASS  1440px 原型：rail/side/top/feed/input 五区齐备  ← {"x":0,"y":0,"w":60,"h":900} / side {"x":60,"y":0,"w":230,"h":900}
+PASS  1440px 实现：rail/second-nav/top/feed/composer 五区齐备  ← {"x":0,"y":0,"w":64,"h":900} / second {"x":64,"y":0,"w":231,"h":900}
+PASS  1440px 两列布局一致（rail 宽差 ≤8px，side 宽差 ≤30px）  ← rail 原型 60 vs 实现 64；side 原型 230 vs 实现 231
+PASS  1440px 底部输入区：实现精确贴底 + 原型信息流态输入区贴 .main 底  ← 实现 808+92 vs 视口 900；原型 inputZone {"x":290,"y":751,"w":1150,"h":149} 贴 main 底 900
+PASS  1440px 原型加载无 pageerror  ← 0 条
+      [警告] 原型主面未渲染（inputZone display=none）—— 该宽度下输入区对照记为"原型未渲染"
+PASS  1920px 原型：rail/side/top/feed/input 五区齐备  ← {"x":0,"y":0,"w":60,"h":1080} / side {"x":60,"y":0,"w":230,"h":1080}
+PASS  1920px 实现：rail/second-nav/top/feed/composer 五区齐备  ← {"x":0,"y":0,"w":64,"h":1080} / second {"x":64,"y":0,"w":231,"h":1080}
+PASS  1920px 两列布局一致（rail 宽差 ≤8px，side 宽差 ≤30px）  ← rail 原型 60 vs 实现 64；side 原型 230 vs 实现 231
+PASS  1920px 底部输入区：实现精确贴底 + 原型信息流态输入区贴 .main 底  ← 实现 988+92 vs 视口 1080；原型 inputZone {"x":290,"y":931,"w":1630,"h":149} 贴 main 底 1080
+PASS  1920px 原型加载无 pageerror  ← 0 条
+
+同尺寸对照报告：docs/evidence/WORKBENCH-06/reports/prototype-parity.json
+
+小结：16 passed / 0 failed

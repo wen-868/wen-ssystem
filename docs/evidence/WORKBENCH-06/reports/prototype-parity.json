@@ -1,0 +1,365 @@
+{
+  "prototype": "D:\\Users\\ZXQL\\ZXQL-AI\\docs\\设计\\智享全链_工作台电脑端_UI原型_融合版.html",
+  "sha256": "6A2724A640DD613E3688EF79AF9369A978669DD2FA3B359DA31F705A3FC30C51",
+  "widths": [
+    {
+      "w": 1280,
+      "h": 800
+    },
+    {
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "w": 1920,
+      "h": 1080
+    }
+  ],
+  "pairs": [
+    {
+      "vp": {
+        "w": 1280,
+        "h": 800
+      },
+      "protoGeo": {
+        "rail": {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 800
+        },
+        "side": {
+          "x": 60,
+          "y": 0,
+          "w": 230,
+          "h": 800
+        },
+        "top": {
+          "x": 290,
+          "y": 0,
+          "w": 990,
+          "h": 54
+        },
+        "feedView": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "inputZone": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "inputBox": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "mainBox": {
+          "x": 290,
+          "y": 0,
+          "w": 990,
+          "h": 800
+        },
+        "modeSeg": {
+          "x": 1084,
+          "y": 9,
+          "w": 174,
+          "h": 36
+        },
+        "railItems": 13,
+        "subCards": 6
+      },
+      "implGeo": {
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "w": 1280,
+          "h": 800
+        },
+        "rail": {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 800
+        },
+        "railItems": 2,
+        "secondNav": {
+          "x": 64,
+          "y": 0,
+          "w": 231,
+          "h": 800
+        },
+        "secondNavItems": 0,
+        "agentStatus": {
+          "x": 403,
+          "y": 13,
+          "w": 164,
+          "h": 24
+        },
+        "modeSeg": {
+          "x": 585,
+          "y": 10,
+          "w": 134,
+          "h": 30
+        },
+        "feed": {
+          "x": 294,
+          "y": 51,
+          "w": 986,
+          "h": 657
+        },
+        "feedVisible": true,
+        "chatVisible": false,
+        "manualVisible": false,
+        "composer": {
+          "x": 294,
+          "y": 708,
+          "w": 986,
+          "h": 92
+        },
+        "composerInput": true,
+        "menuFault": false,
+        "menuEmpty": true,
+        "aiFaultBanner": false,
+        "oldShell": false
+      },
+      "protoShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06\\docs\\evidence\\WORKBENCH-06\\screenshots\\prototype-1280.png",
+      "implShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06\\docs\\evidence\\WORKBENCH-06\\screenshots\\impl-1280.png",
+      "protoErrors": []
+    },
+    {
+      "vp": {
+        "w": 1440,
+        "h": 900
+      },
+      "protoGeo": {
+        "rail": {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 900
+        },
+        "side": {
+          "x": 60,
+          "y": 0,
+          "w": 230,
+          "h": 900
+        },
+        "top": {
+          "x": 290,
+          "y": 0,
+          "w": 1150,
+          "h": 54
+        },
+        "feedView": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "inputZone": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "inputBox": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "mainBox": {
+          "x": 290,
+          "y": 0,
+          "w": 1150,
+          "h": 900
+        },
+        "modeSeg": {
+          "x": 1244,
+          "y": 9,
+          "w": 174,
+          "h": 36
+        },
+        "railItems": 13,
+        "subCards": 6
+      },
+      "implGeo": {
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 900
+        },
+        "rail": {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 900
+        },
+        "railItems": 2,
+        "secondNav": {
+          "x": 64,
+          "y": 0,
+          "w": 231,
+          "h": 900
+        },
+        "secondNavItems": 0,
+        "agentStatus": {
+          "x": 403,
+          "y": 13,
+          "w": 164,
+          "h": 24
+        },
+        "modeSeg": {
+          "x": 585,
+          "y": 10,
+          "w": 134,
+          "h": 30
+        },
+        "feed": {
+          "x": 294,
+          "y": 51,
+          "w": 1146,
+          "h": 757
+        },
+        "feedVisible": true,
+        "chatVisible": false,
+        "manualVisible": false,
+        "composer": {
+          "x": 294,
+          "y": 808,
+          "w": 1146,
+          "h": 92
+        },
+        "composerInput": true,
+        "menuFault": false,
+        "menuEmpty": true,
+        "aiFaultBanner": false,
+        "oldShell": false
+      },
+      "protoShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06\\docs\\evidence\\WORKBENCH-06\\screenshots\\prototype-1440.png",
+      "implShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06\\docs\\evidence\\WORKBENCH-06\\screenshots\\impl-1440.png",
+      "protoErrors": []
+    },
+    {
+      "vp": {
+        "w": 1920,
+        "h": 1080
+      },
+      "protoGeo": {
+        "rail": {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 1080
+        },
+        "side": {
+          "x": 60,
+          "y": 0,
+          "w": 230,
+          "h": 1080
+        },
+        "top": {
+          "x": 290,
+          "y": 0,
+          "w": 1630,
+          "h": 54
+        },
+        "feedView": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "inputZone": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "inputBox": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "mainBox": {
+          "x": 290,
+          "y": 0,
+          "w": 1630,
+          "h": 1080
+        },
+        "modeSeg": {
+          "x": 1724,
+          "y": 9,
+          "w": 174,
+          "h": 36
+        },
+        "railItems": 13,
+        "subCards": 6
+      },
+      "implGeo": {
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "w": 1920,
+          "h": 1080
+        },
+        "rail": {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 1080
+        },
+        "railItems": 2,
+        "secondNav": {
+          "x": 64,
+          "y": 0,
+          "w": 231,
+          "h": 1080
+        },
+        "secondNavItems": 0,
+        "agentStatus": {
+          "x": 403,
+          "y": 13,
+          "w": 164,
+          "h": 24
+        },
+        "modeSeg": {
+          "x": 585,
+          "y": 10,
+          "w": 134,
+          "h": 30
+        },
+        "feed": {
+          "x": 294,
+          "y": 51,
+          "w": 1626,
+          "h": 937
+        },
+        "feedVisible": true,
+        "chatVisible": false,
+        "manualVisible": false,
+        "composer": {
+          "x": 294,
+          "y": 988,
+          "w": 1626,
+          "h": 92
+        },
+        "composerInput": true,
+        "menuFault": false,
+        "menuEmpty": true,
+        "aiFaultBanner": false,
+        "oldShell": false
+      },
+      "protoShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06\\docs\\evidence\\WORKBENCH-06\\screenshots\\prototype-1920.png",
+      "implShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06\\docs\\evidence\\WORKBENCH-06\\screenshots\\impl-1920.png",
+      "protoErrors": []
+    }
+  ]
+}

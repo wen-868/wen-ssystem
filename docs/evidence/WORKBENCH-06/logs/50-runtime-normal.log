@@ -1,0 +1,17 @@
+PASS  原型文件 SHA256 与冻结值一致  ← 6A2724A640DD613E…
+PASS  真实登录 /api/admin/auth/login 返回 200  ← [200]
+PASS  会话已持久化（admin_auth 非空）
+PASS  新壳装配：rail + 第二列 + Agent 状态 + 底部输入区  ← rail=64 second=231 agent=164 composerH=92
+PASS  默认主面 = 信息流（feed 可见，chat 不可见）  ← feed=true chat=false
+PASS  旧壳未渲染（灰度默认走新壳）
+PASS  /menus/user 已真实请求  ← 1 次
+PASS  /menus/user 返回 200（空集 fail-closed 为真实运行态）  ← [200]
+PASS  空菜单走 fail-closed（空态提示可见，不回退全量）  ← menuEmpty=true
+PASS  点「新对话」⇒ 主面切到 AI 会话（chat 可见 feed 隐藏）  ← chat=true feed=false
+PASS  点 rail「工作台」⇒ 回信息流主面
+PASS  点胶囊「收银台」⇒ 进入 POS 路由且人工面可见  ← http://127.0.0.1:4173/pos/dashboard
+PASS  点胶囊「工作台」⇒ 回到 /dashboard 信息流  ← http://127.0.0.1:4173/dashboard
+PASS  第二列一级入口数量（mock DB 空菜单 ⇒ 期望 0，如实登记）  ← 0 项
+PASS  无 pageerror/网络失败（除 AI 底座 3016/生产 ai-api 未达外）  ← []
+
+小结：15 passed / 0 failed

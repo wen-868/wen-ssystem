@@ -1,0 +1,7 @@
+PASS  原型文件 SHA256 与冻结值一致  ← 6A2724A640DD613E…
+PASS  菜单失败态：故障横幅可见（role=alert + 重试按钮）
+PASS  菜单失败态：不回退全量菜单（第二列入口为 0）  ← 0 项
+PASS  菜单失败态：rail/输入区仍可用（不阻塞人工操作）
+PASS  菜单请求真实失败（ECONNREFUSED 或 5xx，非伪造）  ← [{"url":"https://admin.onepan.cn/ai-api/api/chat/confirmations","reason":"net::ERR_FAILED"},{"url":"https://admin.onepan.cn/ai-api/api/chat/confirmations","reason":"net::ERR_FAILED"}]
+
+小结：5 passed / 0 failed

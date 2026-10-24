@@ -1,0 +1,159 @@
+{
+  "phase": "normal",
+  "checks": [
+    {
+      "name": "原型文件 SHA256 与冻结值一致",
+      "ok": true,
+      "detail": "6A2724A640DD613E…"
+    },
+    {
+      "name": "真实登录 /api/admin/auth/login 返回 200",
+      "ok": true,
+      "detail": "[200]"
+    },
+    {
+      "name": "会话已持久化（admin_auth 非空）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "新壳装配：rail + 第二列 + Agent 状态 + 底部输入区",
+      "ok": true,
+      "detail": "rail=64 second=231 agent=164 composerH=92"
+    },
+    {
+      "name": "默认主面 = 信息流（feed 可见，chat 不可见）",
+      "ok": true,
+      "detail": "feed=true chat=false"
+    },
+    {
+      "name": "旧壳未渲染（灰度默认走新壳）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "/menus/user 已真实请求",
+      "ok": true,
+      "detail": "1 次"
+    },
+    {
+      "name": "/menus/user 返回 200（空集 fail-closed 为真实运行态）",
+      "ok": true,
+      "detail": "[200]"
+    },
+    {
+      "name": "空菜单走 fail-closed（空态提示可见，不回退全量）",
+      "ok": true,
+      "detail": "menuEmpty=true"
+    },
+    {
+      "name": "点「新对话」⇒ 主面切到 AI 会话（chat 可见 feed 隐藏）",
+      "ok": true,
+      "detail": "chat=true feed=false"
+    },
+    {
+      "name": "点 rail「工作台」⇒ 回信息流主面",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "点胶囊「收银台」⇒ 进入 POS 路由且人工面可见",
+      "ok": true,
+      "detail": "http://127.0.0.1:4173/pos/dashboard"
+    },
+    {
+      "name": "点胶囊「工作台」⇒ 回到 /dashboard 信息流",
+      "ok": true,
+      "detail": "http://127.0.0.1:4173/dashboard"
+    },
+    {
+      "name": "第二列一级入口数量（mock DB 空菜单 ⇒ 期望 0，如实登记）",
+      "ok": true,
+      "detail": "0 项"
+    },
+    {
+      "name": "无 pageerror/网络失败（除 AI 底座 3016/生产 ai-api 未达外）",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "net": {
+    "menuRequests": [
+      "http://localhost:8080/api/admin/menus/user"
+    ],
+    "menuResponses": [
+      {
+        "status": 200,
+        "url": "http://localhost:8080/api/admin/menus/user"
+      }
+    ],
+    "aiRequests": [
+      "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+      "https://admin.onepan.cn/ai-api/api/chat/confirmations"
+    ],
+    "errors": [
+      {
+        "url": "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+        "reason": "net::ERR_FAILED"
+      },
+      {
+        "url": "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+        "reason": "net::ERR_FAILED"
+      }
+    ]
+  },
+  "geo": {
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    "rail": {
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 900
+    },
+    "railItems": 2,
+    "secondNav": {
+      "x": 64,
+      "y": 0,
+      "w": 231,
+      "h": 900
+    },
+    "secondNavItems": 0,
+    "agentStatus": {
+      "x": 403,
+      "y": 13,
+      "w": 164,
+      "h": 24
+    },
+    "modeSeg": {
+      "x": 585,
+      "y": 10,
+      "w": 134,
+      "h": 30
+    },
+    "feed": {
+      "x": 294,
+      "y": 51,
+      "w": 1146,
+      "h": 757
+    },
+    "feedVisible": true,
+    "chatVisible": false,
+    "manualVisible": false,
+    "composer": {
+      "x": 294,
+      "y": 808,
+      "w": 1146,
+      "h": 92
+    },
+    "composerInput": true,
+    "menuFault": false,
+    "menuEmpty": true,
+    "aiFaultBanner": false,
+    "oldShell": false
+  }
+}

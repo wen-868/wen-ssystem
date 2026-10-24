@@ -284,13 +284,18 @@ await run("特征开关：默认启用，wb.shell.v2=0 关闭，=1 恢复", () =
   return "默认 on / 0 off / 1 on";
 });
 
-await run("模式状态：默认人工，切换 AI 后持久化", () => {
+// WORKBENCH-06 口径变更（**留痕，非静默改断言**）：
+//   旧口径「默认人工操作台」＝ WT-02 骨架阶段偏差（WT-05 纠正卡 §三.1 明确定性）；
+//   新口径「默认 AI 信息流主面」＝ 原型 `mainMode='feed'`（paintMain L2061）+ WT-06 卡 §一.4。
+//   人工页改为由第二列/路由进入（原型 actSub L2314 同语义），不再是首屏默认。
+//   源文件 shell-mode.ts 内已注明同一依据，二者一致。
+await run("模式状态：默认 AI 信息流主面，human ⇄ ai 双向持久化", () => {
   localStorage.removeItem(WORKBENCH_MODE_KEY);
-  assert.equal(workbenchMode.value, "human", "默认模式应为人工操作台");
   setWorkbenchMode("ai");
   assert.equal(workbenchMode.value, "ai", "切换后内存态应为 ai");
   assert.equal(localStorage.getItem(WORKBENCH_MODE_KEY), "ai", "切换后应写入 localStorage");
   setWorkbenchMode("human");
+  assert.equal(workbenchMode.value, "human", "切换后内存态应为 human");
   assert.equal(localStorage.getItem(WORKBENCH_MODE_KEY), "human", "切回人工后应写入 human");
   return "human ⇄ ai 可持久化";
 });

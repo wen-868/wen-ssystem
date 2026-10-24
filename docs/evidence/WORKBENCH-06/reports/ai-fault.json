@@ -1,0 +1,114 @@
+{
+  "phase": "ai-fault",
+  "checks": [
+    {
+      "name": "原型文件 SHA256 与冻结值一致",
+      "ok": true,
+      "detail": "6A2724A640DD613E…"
+    },
+    {
+      "name": "AI 故障态：故障横幅出现（role=alert）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "AI 故障态：提供一键切人工按钮",
+      "ok": true,
+      "detail": "1 个"
+    },
+    {
+      "name": "AI 连接真实失败（3016 未监听，非伪造错误）",
+      "ok": true,
+      "detail": "[{\"url\":\"https://admin.onepan.cn/ai-api/api/chat/confirmations\",\"reason\":\"net::ERR_FAILED\"},{\"url\":\"https://admin.onepan.cn/ai-api/api/chat/confirmations\",\"reason\":\"net::ERR_FAILED\"}]"
+    },
+    {
+      "name": "一键切人工后人工面可用（router-view 渲染）",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "net": {
+    "menuRequests": [
+      "http://localhost:8080/api/admin/menus/user"
+    ],
+    "menuResponses": [
+      {
+        "status": 200,
+        "url": "http://localhost:8080/api/admin/menus/user"
+      }
+    ],
+    "aiRequests": [
+      "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+      "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+      "https://admin.onepan.cn/ai-api/api/chat"
+    ],
+    "errors": [
+      {
+        "url": "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+        "reason": "net::ERR_FAILED"
+      },
+      {
+        "url": "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+        "reason": "net::ERR_FAILED"
+      },
+      {
+        "url": "https://admin.onepan.cn/ai-api/api/chat",
+        "reason": "net::ERR_FAILED"
+      }
+    ]
+  },
+  "geo": {
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    "rail": {
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 900
+    },
+    "railItems": 2,
+    "secondNav": {
+      "x": 64,
+      "y": 0,
+      "w": 231,
+      "h": 900
+    },
+    "secondNavItems": 0,
+    "agentStatus": {
+      "x": 404,
+      "y": 13,
+      "w": 164,
+      "h": 24
+    },
+    "modeSeg": {
+      "x": 586,
+      "y": 10,
+      "w": 134,
+      "h": 30
+    },
+    "feed": {
+      "x": 0,
+      "y": 0,
+      "w": 0,
+      "h": 0
+    },
+    "feedVisible": false,
+    "chatVisible": true,
+    "manualVisible": false,
+    "composer": {
+      "x": 294,
+      "y": 808,
+      "w": 1146,
+      "h": 92
+    },
+    "composerInput": true,
+    "menuFault": false,
+    "menuEmpty": true,
+    "aiFaultBanner": true,
+    "oldShell": false
+  }
+}

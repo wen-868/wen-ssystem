@@ -2,118 +2,199 @@
   <!-- 灰度回滚路径：特征开关关闭时直接使用旧壳，行为与改动前一致 -->
   <MainLayout v-if="!shellEnabled" />
 
-  <div v-else class="wb-shell" :class="{ 'is-ai': effectiveMode === 'ai' }">
-    <header class="wb-topbar">
-      <div class="wb-brand">
-        <span class="wb-brand-name">智享全链</span>
-        <span class="wb-crumb">{{ pageTitle }}</span>
-      </div>
-
-      <div v-if="!isCashierRoute" class="wb-mode-switch" role="tablist" aria-label="工作台模式">
-        <button
-          type="button"
-          role="tab"
-          class="wb-mode-item"
-          :class="{ active: effectiveMode === 'human' }"
-          :aria-selected="effectiveMode === 'human'"
-          @click="switchMode('human')"
-        >
-          人工操作台
-        </button>
-        <button
-          type="button"
-          role="tab"
-          class="wb-mode-item"
-          :class="{ active: effectiveMode === 'ai' }"
-          :aria-selected="effectiveMode === 'ai'"
-          @click="switchMode('ai')"
-        >
-          AI 数字员工
-        </button>
-      </div>
-      <div v-else class="wb-mode-badge">快速收银台</div>
-
-      <!-- 动态菜单状态：失败/加载中不显示全量；明示重试与联系入口 -->
-      <span v-if="menuState === 'loading'" class="wb-menu-state" data-testid="menu-loading">
-        正在加载权限菜单…
-      </span>
-      <span v-else-if="menuState === 'error'" class="wb-menu-state is-error" role="alert" data-testid="menu-fault">
-        菜单加载失败（不回退全量菜单）
-        <button type="button" class="wb-text-btn" data-testid="menu-retry" @click="loadMenus">重试</button>
-        <span class="wb-menu-contact">若持续失败请联系管理员</span>
-      </span>
+  <div v-else class="wb-shell" :class="{ 'is-ai': effectiveMode === 'ai', 'is-cashier': isCashierRoute, 'side-hidden': sideCollapsed }" data-testid="wb-shell">
+    <!-- ══ 一级模块图标栏（最左 · 常驻）＝原型 .rail（renderRail L2293）══ -->
+    <nav class="wb-rail" aria-label="一级模块导航" data-testid="rail">
+      <div class="wb-rail-logo" title="智享全链">智</div>
       <button
-        v-if="showDelegateButton"
         type="button"
-        class="wb-text-btn wb-delegate"
-        data-testid="ai-delegate-current"
-        @click="delegateCurrentPage"
+        class="wb-rail-item"
+        :class="{ on: railKey === 'desk', alert: feedAlert }"
+        data-rail-key="desk"
+        :title="feedAlert ? '工作台 · 有新动态，点开查看' : '工作台 · 信息流'"
+        @click="goDeskHome"
       >
-        AI 代办当前页
+        <el-icon :size="17"><MagicStick /></el-icon><span>工作台</span>
       </button>
+      <button
+        v-for="group in visibleGroups"
+        :key="group.groupCode"
+        type="button"
+        class="wb-rail-item"
+        :class="{ on: railKey === group.groupCode }"
+        :data-rail-key="group.groupCode"
+        :title="group.title"
+        @click="openModule(group.groupCode)"
+      >
+        <el-icon :size="17"><component :is="groupIcon(group.groupCode)" /></el-icon><span>{{ group.title }}</span>
+      </button>
+      <span class="wb-rail-gap" />
+      <button
+        v-if="canOpenSystemSettings"
+        type="button"
+        class="wb-rail-item wb-rail-set"
+        data-rail-key="set"
+        title="系统设置"
+        @click="openSettings"
+      >
+        <el-icon :size="17"><Setting /></el-icon><span>设置</span>
+      </button>
+    </nav>
 
-      <div class="wb-topbar-right">
-        <button v-if="isCashierRoute" type="button" class="wb-text-btn" @click="backToWorkbench">
-          返回工作台
-        </button>
-        <span class="wb-user">{{ auth.userName }}</span>
-        <button type="button" class="wb-text-btn" @click="handleLogout">退出登录</button>
-      </div>
-    </header>
+    <!-- ══ 第二列上下文导航（常用功能/二级菜单 · 新对话 · 会话 · 账户）＝原型 .side（L923）══ -->
+    <WorkbenchSubnav
+      :class="{ hidden: sideCollapsed }"
+      :mode="currentNavMode"
+      :groups="visibleGroups"
+      :active-group-code="selectedGroupCode"
+      :active-path="route.path"
+      :cashier-items="visibleCashierItems"
+      :menu-state="menuState"
+      :session-active="face === 'chat'"
+      :user-name="auth.userName"
+      :user-roles="auth.userRoles"
+      @open="openManualItem"
+      @open-cashier="openCashierItem"
+      @new-chat="startNewConversation"
+      @collapse="sideCollapsed = !sideCollapsed"
+    />
 
-    <!-- 人工操作台：二级导航（角色派生）+ 现有页面路由出口 -->
-    <div v-if="effectiveMode === 'human'" class="wb-body">
-      <nav v-if="isCashierRoute" class="wb-cashier-nav" aria-label="收银台导航">
+    <div class="wb-main">
+      <!-- ══ 顶部：Agent 状态 · 菜单状态 · 待审阅 · 任务进度 · 工作台/收银台胶囊 ══ -->
+      <header class="wb-top">
         <button
-          v-for="entry in visibleCashierItems"
-          :key="entry.menuCode"
           type="button"
-          class="wb-cashier-item"
-          :class="{ active: isCashierActive(entry) }"
-          :data-menu-code="entry.menuCode"
-          @click="openCashierItem(entry)"
+          class="wb-icon-btn"
+          data-testid="side-toggle"
+          :aria-label="sideCollapsed ? '展开导航' : '收起导航'"
+          @click="sideCollapsed = !sideCollapsed"
         >
-          {{ entry.title }}
+          <el-icon :size="18"><Expand v-if="sideCollapsed" /><Fold v-else /></el-icon>
         </button>
-      </nav>
-      <ManualSidebar v-else :groups="visibleGroups" :active-path="route.path" @open="openManualItem" />
-      <main class="wb-main">
-        <div
-          v-if="menuState === 'ready' && visibleEntryCount === 0"
-          class="wb-menu-empty"
-          data-testid="menu-empty"
-          role="status"
+        <span class="wb-top-title">{{ topTitle }}</span>
+
+        <AgentStatusBar
+          :session-state="aiSessionState"
+          :pending-review-count="pendingReviewCount"
+          :menu-state="menuState"
+          @open-ledger="ledgerOpen = true"
+        />
+
+        <span v-if="menuState === 'loading'" class="wb-menu-state" data-testid="menu-loading">
+          正在加载权限菜单…
+        </span>
+        <span v-else-if="menuState === 'error'" class="wb-menu-state is-error" role="alert" data-testid="menu-fault">
+          菜单加载失败（不回退全量菜单）
+          <button type="button" class="wb-text-btn" data-testid="menu-retry" @click="loadMenus">重试</button>
+          <span class="wb-menu-contact">若持续失败请联系管理员</span>
+        </span>
+        <button
+          v-if="showDelegateButton"
+          type="button"
+          class="wb-text-btn wb-delegate"
+          data-testid="ai-delegate-current"
+          @click="delegateCurrentPage"
         >
-          <p class="wb-menu-empty-title">当前账号暂无可显示的菜单</p>
-          <p class="wb-menu-empty-desc">{{ access.notice }}；请重试或联系管理员开通权限（不会回退全量菜单）。</p>
+          AI 代办当前页
+        </button>
+
+        <!-- 工作台 ⇄ 收银台 胶囊（原型 renderModeSeg L1998：双向一键切换） -->
+        <div class="wb-mode-seg" role="group" aria-label="工作台/收银台切换" data-testid="mode-seg">
+          <button
+            type="button"
+            class="wb-mode-seg-item"
+            :class="{ on: !isCashierRoute }"
+            data-mode-seg="desk"
+            @click="goDesk"
+          >
+            工作台
+          </button>
+          <button
+            type="button"
+            class="wb-mode-seg-item"
+            :class="{ on: isCashierRoute }"
+            data-mode-seg="pos"
+            title="收银界面（管理面与收银一体，收银仅工作台人工态承载）"
+            @click="goPos"
+          >
+            收银台
+          </button>
         </div>
-        <router-view />
-      </main>
+
+        <div class="wb-top-right">
+          <span class="wb-user">{{ auth.userName }}</span>
+          <button type="button" class="wb-text-btn" @click="handleLogout">退出</button>
+        </div>
+      </header>
+
+      <!-- ══ 主面：feed（默认）⇄ chat ⇄ 人工业务页（router-view 常驻，按可见性切换层）══
+           三层必须**互斥**：feed/chat 仅在 AI 模式显示，manual 仅在人工模式显示。
+           若 feed 层漏掉 `effectiveMode === 'ai'`，会与 manual 层同时 shown
+           ⇒ 主面被业务页盖住、信息流不可见（WORKBENCH-06 运行态截图实测发现并修正）。 -->
+      <div class="wb-content">
+        <main class="wb-view" :class="{ shown: effectiveMode === 'ai' && face === 'feed' && !isCashierRoute }" data-view="feed" data-testid="view-feed">
+          <AiFeedView
+            :user-name="auth.userName"
+            :items="visibleEntryItems"
+            :session-state="aiSessionState"
+            :pending-review-count="pendingReviewCount"
+            @ask="enterChatAndSend"
+            @open="openManualItem"
+            @open-chat="enterChat"
+          />
+        </main>
+        <main class="wb-view" :class="{ shown: effectiveMode === 'ai' && face === 'chat' && !isCashierRoute }" data-view="chat" data-testid="view-chat">
+          <AiChatPanel
+            ref="chatPanel"
+            class="wb-chat-main"
+            style="width: 100%; flex: 1"
+            @status="handleAiStatus"
+            @fallback="switchMode('human')"
+          />
+        </main>
+        <!-- 人工业务页：router-view 常驻（不得被条件渲染包裹 —— ai-primary 断言），收银路由亦走此层 -->
+        <main class="wb-view wb-view-manual" :class="{ shown: effectiveMode === 'human' }" data-view="manual">
+          <div
+            v-if="menuState === 'ready' && visibleBusinessEntryCount === 0 && !isCashierRoute"
+            class="wb-menu-empty"
+            data-testid="menu-empty"
+            role="status"
+          >
+            <p class="wb-menu-empty-title">当前账号暂无可显示的菜单</p>
+            <p class="wb-menu-empty-desc">{{ access.notice }}；请重试或联系管理员开通权限（不会回退全量菜单）。</p>
+          </div>
+          <router-view />
+        </main>
+      </div>
+
+      <!-- ══ 底部固定 AI 输入区（原型 .input-zone L976：信息流/会话常驻；人工页收为一条入口）══ -->
+      <AiChatComposer
+        :compact="effectiveMode === 'human'"
+        :streaming="aiSessionState === 'streaming'"
+        @send="enterChatAndSend"
+      />
     </div>
 
-    <!-- AI 数字员工：一级 rail + 主交互面 + 会话面板（真实对话；故障可一键回人工） -->
-    <div v-else class="wb-ai-body">
-      <AiNavRail
-        :groups="visibleGroups"
-        :active-group-code="selectedGroupCode"
-        @select="selectedGroupCode = $event"
-      />
-      <AiFeedContainer
-        :title="activeGroupTitle"
-        :items="activeGroupItems"
-        :session-state="aiSessionState"
-        :visible-route-names="visibleRouteNameList"
-        :menu-notice="access.notice"
-        @open="openManualItem"
-        @command="sendQuickCommand"
-        @new-conversation="startNewConversation"
-      />
-      <AiChatPanel
-        ref="chatPanel"
-        @status="handleAiStatus"
-        @fallback="switchMode('human')"
-      />
-    </div>
+    <!-- AI 能力台账抽屉（WT-03 成果保留：从 feed「能力台账」入口打开，不占主面） -->
+    <div v-if="ledgerOpen" class="wb-ledger-mask" data-testid="ledger-mask" @click="ledgerOpen = false" />
+    <aside v-if="ledgerOpen" class="wb-ledger" data-testid="ledger-drawer" aria-label="AI 能力台账">
+      <header class="wb-ledger-head">
+        <span>AI 能力台账</span>
+        <button type="button" class="wb-text-btn" @click="ledgerOpen = false">收起</button>
+      </header>
+      <div class="wb-ledger-body">
+        <AiFeedContainer
+          :title="activeGroupTitle"
+          :items="activeGroupItems"
+          :session-state="aiSessionState"
+          :visible-route-names="visibleRouteNameList"
+          :menu-notice="access.notice"
+          @open="openManualItem"
+          @command="sendQuickCommand"
+          @new-conversation="startNewConversation"
+        />
+      </div>
+    </aside>
 
     <!-- 收银台本机打印设置（沿用现有本地弹窗，不走路由） -->
     <PrintSettingsPanel v-model="printSettingsVisible" />
@@ -121,18 +202,60 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+/**
+ * 工作台壳层（WORKBENCH-06 · 原型结构对齐版）
+ *
+ * 结构 = 权威原型《智享全链_工作台电脑端_UI原型_融合版.html》三段式：
+ *   rail(一级模块图标栏) | side(第二列上下文/会话/二级菜单) | main(默认信息流 feed ⇄ AI 会话 chat ⇄ 人工业务页)
+ *   + 顶部 Agent 状态/菜单状态/工作台·收银台胶囊 + 底部固定 AI 输入区（人工页收为入口条）。
+ * 权威原型 SHA256=6A2724A640DD613E3688EF79AF9369A978669DD2FA3B359DA31F705A3FC30C51
+ * 依据：docs/tasks/cards/R101-WORKBENCH-05-凌舟复核纠正-20261024.md §二（六维偏差表）
+ *       + docs/tasks/inbox/WORKBENCH-06-prototype-structural-parity.md §一
+ *
+ * 能力保留（不得为视觉回退）：
+ *   - 动态菜单 fail-closed（WORKBENCH-04）：fetchUserMenus → resolveMenuAccess → restrictManifestGroups；
+ *   - 角色裁剪（04F1）：userRoles: auth.userRoles + meta.roles 同源；收银 9 项不吃 /menus/user 交集；
+ *   - AI 故障回退（WORKBENCH-03）：AiChatPanel fallback → switchMode('human')，router-view 无条件渲染；
+ *   - 灰度回滚（WORKBENCH-02/05）：wb.shell.v2 / VITE_WORKBENCH_SHELL_V2 双开关 + 旧壳分支；
+ *   - 能力台账（WT-03/03F1）：AiFeedContainer 全量保留，改为抽屉承载（主面让位给原型信息流/会话）。
+ * 数据纪律：feed/待审阅只用真实端点（GET /admin/notifications、AI /api/chat/confirmations）；
+ *   端点失败 ⇒ 诚实错误态；无数据源的项（如「在线数」）不展示、不编造（登记回传卡）。
+ */
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
+import {
+  MagicStick,
+  Setting,
+  Expand,
+  Fold,
+  DataAnalysis,
+  Tickets,
+  ShoppingCart,
+  Goods,
+  User,
+  Box,
+  Money,
+  TrendCharts,
+  Shop,
+  Present,
+  PieChart,
+  Key,
+  Grid,
+} from "@element-plus/icons-vue";
+import type { Component } from "vue";
 import MainLayout from "./MainLayout.vue";
-import ManualSidebar from "./ManualSidebar.vue";
-import AiNavRail from "./AiNavRail.vue";
+import WorkbenchSubnav from "./WorkbenchSubnav.vue";
+import AgentStatusBar from "../components/workbench/AgentStatusBar.vue";
+import AiFeedView from "../components/workbench/AiFeedView.vue";
+import AiChatComposer from "../components/workbench/AiChatComposer.vue";
 import AiFeedContainer from "../components/workbench/AiFeedContainer.vue";
 import AiChatPanel from "../components/workbench/AiChatPanel.vue";
 import PrintSettingsPanel from "../modules/print/PrintSettingsPanel.vue";
 import { useAuthStore } from "../stores/auth";
 import { getErrorMessage } from "../api/request";
 import { fetchUserMenus } from "../api/workbench-menu";
+import { fetchAiConfirmations } from "../api/ai";
 import {
   ALL_MANIFEST_ITEMS,
   ALL_MANIFEST_ROUTE_NAMES,
@@ -149,7 +272,6 @@ import {
   type MenuLoadState,
   type ServerMenuRow,
 } from "../shared/workbench/menu-access";
-import { PARITY_ACTION_ROWS } from "../shared/workbench/parity-ledger";
 import { buildPageDelegation, selectPageActionRows } from "../shared/workbench/ai-bridge";
 import {
   isWorkbenchShellV2Enabled,
@@ -171,7 +293,12 @@ const effectiveMode = computed<WorkbenchMode>(() =>
   isCashierRoute.value ? "human" : workbenchMode.value,
 );
 
-/** 路由记录只读索引：可见性统一从 route.meta.roles 派生（与守卫同一份声明） */
+/** 主面：feed=信息流（原型默认面）/ chat=AI 会话；仅 AI 模式内有层切换 */
+type MainFace = "feed" | "chat";
+const face = ref<MainFace>("feed");
+const sideCollapsed = ref(false);
+const ledgerOpen = ref(false);
+
 function resolveRoles(routeName: string): string[] | null {
   const record = router.getRoutes().find((entry) => entry.name === routeName);
   if (!record) return null; // 未知路由 fail-closed
@@ -180,10 +307,6 @@ function resolveRoles(routeName: string): string[] | null {
   return roles.filter((role): role is string => typeof role === "string");
 }
 
-/**
- * 动态菜单（WORKBENCH-04）：服务端 menuCode 集为运行时真理，静态 manifest 只做组件白名单。
- * fail-closed：加载中 / 失败 / 空集 / 未知码一律最小可见集，不回退全量菜单。
- */
 const menuState = ref<MenuLoadState>("loading");
 const menuRows = ref<ServerMenuRow[]>([]);
 const access = computed(() =>
@@ -210,9 +333,30 @@ async function loadMenus(): Promise<void> {
   }
 }
 
-onMounted(loadMenus);
+/** AI 待审阅数（真实端点 /api/chat/confirmations；失败/未启动 ⇒ null 不展示，不编造） */
+const pendingReviewCount = ref<number | null>(null);
+let confirmTimer: number | undefined;
 
-/** 人工与 AI 共用同一份「最终角色集」（业务菜单 ∩ meta.roles，同源，不允许两侧各算一套） */
+async function loadPendingReview(): Promise<void> {
+  try {
+    const rows = await fetchAiConfirmations();
+    pendingReviewCount.value = Array.isArray(rows) ? rows.length : 0;
+  } catch {
+    pendingReviewCount.value = null; // 底座不可达/未登录：如实不可见，不显示 0 假装无待办
+  }
+}
+
+onMounted(() => {
+  loadMenus();
+  loadPendingReview();
+  confirmTimer = window.setInterval(() => {
+    void loadPendingReview();
+  }, 60_000);
+});
+onBeforeUnmount(() => {
+  if (confirmTimer !== undefined) window.clearInterval(confirmTimer);
+});
+
 const visibleRouteNameList = computed(() => [...access.value.visibleRouteNames]);
 
 const visibleGroups = computed(() =>
@@ -227,11 +371,20 @@ const visibleCashierItems = computed(() =>
   filterVisibleItems(CASHIER_ITEMS, auth.userRoles, resolveRoles),
 );
 
-const visibleEntryCount = computed(
-  () =>
-    visibleGroups.value.reduce((total, group) => total + group.items.length, 0) +
-    visibleCashierItems.value.length,
+/**
+ * 业务入口数（**只算业务菜单项，不含收银保底**）。
+ *
+ * 与 04F1 裁定一致：收银 9 项按 meta.roles 保底、**不吃 /menus/user 交集** ⇒ 菜单为空/失败时
+ * 收银导航仍应可用。因此「暂无可显示的菜单」空态只能由**业务入口为 0** 触发；
+ * 若把收银项计入（旧写法 `+ visibleCashierItems.length`），空菜单时总数恒 ≥9，
+ * 空态永不出现 —— 使 fail-closed 的"明示无可见菜单"承诺落空（WORKBENCH-06 运行态实测发现并修正）。
+ */
+const visibleBusinessEntryCount = computed(() =>
+  visibleGroups.value.reduce((total, group) => total + group.items.length, 0),
 );
+
+/** 信息流「快速入口」：当前角色可见的真实入口（manifest 派生，不造数据） */
+const visibleEntryItems = computed(() => visibleGroups.value.flatMap((group) => group.items));
 
 const selectedGroupCode = ref("");
 watch(
@@ -250,14 +403,60 @@ const activeGroup = computed(
 const activeGroupTitle = computed(() => activeGroup.value?.title ?? "AI 信息流");
 const activeGroupItems = computed(() => activeGroup.value?.items ?? []);
 
+/** 一级 rail 选中态：desk=信息流 / groupCode=模块 / pos=收银 / set=系统设置 */
+const railKey = computed(() => {
+  if (isCashierRoute.value) return "pos";
+  if (route.name === "system") return "set";
+  if (effectiveMode.value !== "ai" || face.value === "feed") {
+    const owner = visibleGroups.value.find((group) =>
+      group.items.some((item) => item.path && route.path.startsWith(item.path)),
+    );
+    return owner?.groupCode ?? "desk";
+  }
+  return selectedGroupCode.value;
+});
+
+const currentNavMode = computed<"quick" | "module" | "pos">(() => {
+  if (isCashierRoute.value) return "pos";
+  return effectiveMode.value === "ai" && face.value === "feed" && railKey.value === "desk"
+    ? "quick"
+    : "module";
+});
+
+const GROUP_ICONS: Record<string, Component> = {
+  "wb.dashboard": DataAnalysis,
+  "wb.order": Tickets,
+  "wb.sales": Money,
+  "wb.product": Goods,
+  "wb.inventory": Box,
+  "wb.customer": User,
+  "wb.finance": TrendCharts,
+  "wb.purchase": ShoppingCart,
+  "wb.instant-retail": Shop,
+  "wb.marketing": Present,
+  "wb.report": PieChart,
+  "wb.system": Key,
+};
+function groupIcon(groupCode: string): Component {
+  return GROUP_ICONS[groupCode] ?? Grid;
+}
+
+const topTitle = computed(() => {
+  if (isCashierRoute.value) return "收银台";
+  if (effectiveMode.value === "human") return pageTitle.value;
+  return face.value === "feed" ? "工作台" : "智享AI";
+});
+
 const pageTitle = computed(() => {
   const metaTitle = route.meta?.title;
   return typeof metaTitle === "string" && metaTitle ? metaTitle : "工作台";
 });
 
+/** 有新动态 ⇒ rail 工作台按钮红闪（feedAlert）：未读数增长由 feed 视图上报，这里用待审阅>0 驱动（真实数据） */
+const feedAlert = computed(() => (pendingReviewCount.value ?? 0) > 0 && face.value !== "feed");
+
 const printSettingsVisible = ref(false);
 
-/** AI 会话面板上报的真实状态（仅客户端观测，不臆造“在线”） */
 const aiSessionState = ref<"idle" | "streaming" | "error">("idle");
 const chatPanel = ref<{
   sendQuickCommand?: (text: string) => void;
@@ -268,23 +467,33 @@ function handleAiStatus(payload: { state: "idle" | "streaming" | "error" }): voi
   aiSessionState.value = payload.state;
 }
 
-/** 快捷经营指令：复用右侧面板的真实发送逻辑（POST /api/chat） */
 function sendQuickCommand(prompt: string): void {
   chatPanel.value?.sendQuickCommand?.(prompt);
 }
 
 function startNewConversation(): void {
+  setWorkbenchMode("ai");
+  face.value = "chat";
   chatPanel.value?.newConversation?.();
 }
 
-/** 当前路由对应的白名单入口（静态 manifest 只读索引） */
+/** 底部输入区 / feed 提问：切 AI 会话面并发送（原型：信息流态直接发消息） */
+function enterChatAndSend(prompt: string): void {
+  setWorkbenchMode("ai");
+  face.value = "chat";
+  nextTick(() => chatPanel.value?.sendQuickCommand?.(prompt));
+}
+function enterChat(): void {
+  setWorkbenchMode("ai");
+  face.value = "chat";
+}
+
 const currentItem = computed<ManifestItem | null>(() => {
   const routeName = typeof route.name === "string" ? route.name : "";
   if (!routeName) return null;
   return ALL_MANIFEST_ITEMS.find((entry) => entry.routeName === routeName) ?? null;
 });
 
-/** 当前路由参数中的实体 ID（无则 null，上下文如实标注“未提供”） */
 function resolveCurrentEntityId(): string | null {
   for (const value of Object.values(route.params)) {
     if (typeof value === "string" && value) return value;
@@ -296,7 +505,6 @@ function resolveCurrentEntityId(): string | null {
   return null;
 }
 
-/** AI 代办按钮：仅当前页在白名单内且服务端菜单可见时出现（不可见页不提供代办入口） */
 const showDelegateButton = computed(
   () =>
     !isCashierRoute.value &&
@@ -304,7 +512,6 @@ const showDelegateButton = computed(
     isRouteVisible(currentItem.value?.routeName, access.value.visibleRouteNames),
 );
 
-/** 代办上下文：动作行取自静态台账，不新增第二套动作目录 */
 const pageDelegation = computed(() => {
   const entry = currentItem.value;
   if (!entry || !entry.routeName || !entry.path) return null;
@@ -318,11 +525,11 @@ const pageDelegation = computed(() => {
   });
 });
 
-/** 「AI 代办当前页」：切到 AI 模式，只把上下文交给既有会话；写操作仍走确认链 */
 async function delegateCurrentPage(): Promise<void> {
   const delegation = pageDelegation.value;
   if (!delegation) return;
   setWorkbenchMode("ai");
+  face.value = "chat";
   await nextTick();
   chatPanel.value?.sendQuickCommand?.(delegation.prompt);
   if (delegation.blockedCount > 0) {
@@ -356,8 +563,36 @@ function openCashierItem(entry: ManifestItem): void {
   if (entry.path) router.push(entry.path);
 }
 
+/** rail：工作台（信息流默认面）/ 模块选择 / 设置 */
+function goDeskHome(): void {
+  setWorkbenchMode("ai");
+  face.value = "feed";
+  if (route.path !== "/dashboard") router.push("/dashboard").catch(() => undefined);
+}
+function openModule(groupCode: string): void {
+  selectedGroupCode.value = groupCode;
+  setWorkbenchMode("ai");
+  face.value = "feed";
+}
+const canOpenSystemSettings = computed(() => {
+  const roles = resolveRoles("system");
+  return Boolean(roles && roles.length > 0 && auth.userRoles.some((r) => roles.includes(r)));
+});
+function openSettings(): void {
+  setWorkbenchMode("human");
+  router.push("/system");
+}
+
+/** 顶部胶囊：工作台 ⇄ 收银台 */
+function goDesk(): void {
+  if (isCashierRoute.value) goDeskHome();
+}
+function goPos(): void {
+  if (!isCashierRoute.value) router.push("/pos/dashboard");
+}
+
 function backToWorkbench(): void {
-  router.push("/dashboard");
+  goDeskHome();
 }
 
 function handleLogout(): void {
@@ -365,151 +600,157 @@ function handleLogout(): void {
   ElMessage.success("已退出登录");
   router.push("/login");
 }
+
+defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 </script>
 
 <style scoped>
 .wb-shell {
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-soft, #f7f8fa);
+  display: grid;
+  grid-template-columns: var(--wb-rail-w, 64px) var(--wb-side-w, 230px) minmax(0, 1fr);
+  background: var(--wb-bg, #f4f6f8);
   overflow: hidden;
 }
+.wb-shell.side-hidden {
+  grid-template-columns: var(--wb-rail-w, 64px) 0 minmax(0, 1fr);
+}
+.wb-shell :deep(.wb-subnav.hidden) {
+  display: none;
+}
+/* 收银台：不渲染 AI 会话层的宽度挤压，仍保持三段（原型 side=收银功能列表） */
 
-.wb-topbar {
-  height: var(--topbar-height, 56px);
+/* ── 一级 rail ── */
+.wb-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 8px 4px;
+  background: var(--wb-panel, #ffffff);
+  border-right: 1px solid var(--wb-line, #eceef1);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.wb-rail::-webkit-scrollbar {
+  display: none;
+}
+.wb-rail-logo {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 8px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.wb-rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--wb-ink2, #8a8f98);
+  font-size: 11px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.wb-rail-item:hover {
+  background: var(--wb-hover, #f4f6f8);
+  color: var(--wb-ink, #16181d);
+}
+.wb-rail-item.on {
+  background: var(--wb-primary-soft, #eff4ff);
+  color: var(--wb-primary, #2563eb);
+  font-weight: 600;
+}
+.wb-rail-item.alert {
+  animation: wb-rail-blink 1.1s ease-in-out infinite;
+  color: #dc2626;
+}
+@keyframes wb-rail-blink {
+  0%, 100% { background: #fee2e2; }
+  50% { background: #fecaca; }
+}
+.wb-rail-gap {
+  flex: 1;
+}
+.wb-rail-set {
+  margin-top: 6px;
+  border-top: 1px solid var(--wb-line, #eceef1);
+  border-radius: 0;
+  padding-top: 10px;
+}
+
+/* ── main 区 ── */
+.wb-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.wb-top {
+  height: 50px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-  background: var(--gray-0, #fff);
-  border-bottom: 1px solid var(--border-light, #e5e7eb);
+  gap: 10px;
+  padding: 0 14px;
+  background: var(--wb-panel, #ffffff);
+  border-bottom: 1px solid var(--wb-line, #eceef1);
 }
-
-.wb-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 200px;
-}
-
-.wb-brand-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary, #1f2937);
-}
-
-.wb-crumb {
-  font-size: 12px;
-  color: #595959;
-}
-
-.wb-mode-switch {
-  display: flex;
-  padding: 2px;
-  border-radius: 8px;
-  background: var(--bg-soft, #f2f3f5);
-}
-
-.wb-mode-item {
-  padding: 6px 14px;
+.wb-icon-btn {
+  width: 30px;
+  height: 30px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
-  font-size: 13px;
-  color: #595959;
+  color: var(--wb-ink2, #8a8f98);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
-
-.wb-mode-item.active {
-  background: var(--gray-0, #fff);
-  color: var(--color-primary, #3f6fef);
-  font-weight: 500;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+.wb-icon-btn:hover {
+  background: var(--wb-hover, #f4f6f8);
 }
-
-.wb-mode-badge {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-primary, #3f6fef);
+.wb-top-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--wb-ink, #16181d);
+  white-space: nowrap;
 }
-
-.wb-topbar-right {
+.wb-top-right {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
-
 .wb-user {
   font-size: 13px;
-  color: var(--text-primary, #1f2937);
+  color: var(--wb-ink, #16181d);
 }
-
 .wb-text-btn {
   padding: 4px 10px;
-  border: 1px solid var(--border-light, #e5e7eb);
+  border: 1px solid var(--wb-line, #eceef1);
   border-radius: 6px;
-  background: var(--gray-0, #fff);
+  background: var(--wb-panel, #fff);
   font-size: 12px;
   color: #595959;
   cursor: pointer;
 }
-
 .wb-text-btn:hover {
-  border-color: var(--color-primary, #3f6fef);
-  color: var(--color-primary, #3f6fef);
+  border-color: var(--wb-primary, #2563eb);
+  color: var(--wb-primary, #2563eb);
 }
-
-.wb-body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-}
-
-.wb-cashier-nav {
-  width: 148px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-  background: var(--frost-sidebar, #1f2937);
-  overflow-y: auto;
-}
-
-.wb-cashier-item {
-  width: 100%;
-  height: 34px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  font-size: 13px;
-  color: var(--sidebar-text-secondary, #d1d5db);
-  text-align: left;
-  cursor: pointer;
-}
-
-.wb-cashier-item:hover,
-.wb-cashier-item.active {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--sidebar-text-primary, #f9fafb);
-}
-
-.wb-main {
-  flex: 1;
-  min-width: 0;
-  overflow: auto;
-}
-
-.wb-ai-body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-}
-
 .wb-menu-state {
   display: inline-flex;
   align-items: center;
@@ -517,7 +758,6 @@ function handleLogout(): void {
   font-size: 12px;
   color: #595959;
 }
-
 .wb-menu-state.is-error {
   padding: 4px 10px;
   border: 1px solid #f0c2c2;
@@ -525,37 +765,133 @@ function handleLogout(): void {
   background: #fdf2f2;
   color: #b42318;
 }
-
 .wb-menu-contact {
   font-size: 12px;
   color: inherit;
   opacity: 0.8;
 }
-
 .wb-delegate {
-  border-color: var(--color-primary, #3f6fef);
-  color: var(--color-primary, #3f6fef);
+  border-color: var(--wb-primary, #2563eb);
+  color: var(--wb-primary, #2563eb);
+}
+
+/* 工作台/收银台胶囊（原型 .mode-seg） */
+.wb-mode-seg {
+  display: flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--wb-hover, #f4f6f8);
+  border: 1px solid var(--wb-line, #eceef1);
+  margin-left: 8px;
+}
+.wb-mode-seg-item {
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12px;
+  color: var(--wb-ink2, #8a8f98);
+  cursor: pointer;
+}
+.wb-mode-seg-item.on {
+  background: var(--wb-panel, #fff);
+  color: var(--wb-primary, #2563eb);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* ── 主面层（feed/chat/manual 同层堆叠，feed/chat 可滚动） ── */
+.wb-content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+}
+.wb-view {
+  position: absolute;
+  inset: 0;
+  display: none;
+  min-width: 0;
+}
+.wb-view.shown {
+  display: flex;
+  flex-direction: column;
+}
+.wb-view-manual {
+  background: var(--wb-bg, #f4f6f8);
+}
+.wb-view-manual.shown {
+  overflow: auto;
+}
+.wb-view-manual > :deep(*) {
+  flex: 1;
+  min-width: 0;
+}
+.wb-chat-main {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+/* 会话主面：既有 AiChatPanel 是 360px 侧栏形态，嵌入主面时铺满（不改其内部实现） */
+.wb-view[data-view="chat"] :deep(.acp) {
+  width: 100%;
+  flex: 1;
 }
 
 .wb-menu-empty {
   margin: 24px;
   padding: 20px 24px;
-  border: 1px dashed var(--border-light, #e5e7eb);
+  border: 1px dashed var(--wb-line, #e5e7eb);
   border-radius: 8px;
-  background: var(--gray-0, #fff);
+  background: var(--wb-panel, #fff);
 }
-
 .wb-menu-empty-title {
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary, #1f2937);
+  color: var(--wb-ink, #16181d);
 }
-
 .wb-menu-empty-desc {
   margin: 0;
   font-size: 12px;
   line-height: 1.6;
   color: #595959;
+}
+
+/* ── 能力台账抽屉 ── */
+.wb-ledger-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: 40;
+}
+.wb-ledger {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(720px, 92vw);
+  background: var(--wb-panel, #fff);
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.18);
+}
+.wb-ledger-head {
+  height: 50px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--wb-line, #eceef1);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wb-ink, #16181d);
+}
+.wb-ledger-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 </style>

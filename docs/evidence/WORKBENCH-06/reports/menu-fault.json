@@ -1,0 +1,108 @@
+{
+  "phase": "menu-fault",
+  "checks": [
+    {
+      "name": "原型文件 SHA256 与冻结值一致",
+      "ok": true,
+      "detail": "6A2724A640DD613E…"
+    },
+    {
+      "name": "菜单失败态：故障横幅可见（role=alert + 重试按钮）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "菜单失败态：不回退全量菜单（第二列入口为 0）",
+      "ok": true,
+      "detail": "0 项"
+    },
+    {
+      "name": "菜单失败态：rail/输入区仍可用（不阻塞人工操作）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "菜单请求真实失败（ECONNREFUSED 或 5xx，非伪造）",
+      "ok": true,
+      "detail": "[{\"url\":\"https://admin.onepan.cn/ai-api/api/chat/confirmations\",\"reason\":\"net::ERR_FAILED\"},{\"url\":\"https://admin.onepan.cn/ai-api/api/chat/confirmations\",\"reason\":\"net::ERR_FAILED\"}]"
+    }
+  ],
+  "net": {
+    "menuRequests": [
+      "http://localhost:8080/api/admin/menus/user"
+    ],
+    "menuResponses": [],
+    "aiRequests": [
+      "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+      "https://admin.onepan.cn/ai-api/api/chat/confirmations"
+    ],
+    "errors": [
+      {
+        "url": "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+        "reason": "net::ERR_FAILED"
+      },
+      {
+        "url": "https://admin.onepan.cn/ai-api/api/chat/confirmations",
+        "reason": "net::ERR_FAILED"
+      },
+      {
+        "url": "http://localhost:8080/api/admin/menus/user",
+        "reason": "net::ERR_CONNECTION_REFUSED"
+      }
+    ]
+  },
+  "geo": {
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    "rail": {
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 900
+    },
+    "railItems": 2,
+    "secondNav": {
+      "x": 64,
+      "y": 0,
+      "w": 231,
+      "h": 900
+    },
+    "secondNavItems": 0,
+    "agentStatus": {
+      "x": 403,
+      "y": 13,
+      "w": 164,
+      "h": 24
+    },
+    "modeSeg": {
+      "x": 991,
+      "y": 10,
+      "w": 134,
+      "h": 30
+    },
+    "feed": {
+      "x": 294,
+      "y": 51,
+      "w": 1146,
+      "h": 757
+    },
+    "feedVisible": true,
+    "chatVisible": false,
+    "manualVisible": false,
+    "composer": {
+      "x": 294,
+      "y": 808,
+      "w": 1146,
+      "h": 92
+    },
+    "composerInput": true,
+    "menuFault": true,
+    "menuEmpty": false,
+    "aiFaultBanner": false,
+    "oldShell": false
+  }
+}

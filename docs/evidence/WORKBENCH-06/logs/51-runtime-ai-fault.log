@@ -1,0 +1,7 @@
+PASS  原型文件 SHA256 与冻结值一致  ← 6A2724A640DD613E…
+PASS  AI 故障态：故障横幅出现（role=alert）
+PASS  AI 故障态：提供一键切人工按钮  ← 1 个
+PASS  AI 连接真实失败（3016 未监听，非伪造错误）  ← [{"url":"https://admin.onepan.cn/ai-api/api/chat/confirmations","reason":"net::ERR_FAILED"},{"url":"https://admin.onepan.cn/ai-api/api/chat/confirmations","reason":"net::ERR_FAILED"}]
+PASS  一键切人工后人工面可用（router-view 渲染）
+
+小结：5 passed / 0 failed
