@@ -1,0 +1,260 @@
+{
+  "phase": "shots",
+  "checks": [
+    {
+      "name": "原型 SHA256 与冻结值一致",
+      "ok": true,
+      "detail": "6A2724A640DD613E…"
+    },
+    {
+      "name": "1280px 原型设置弹窗已关闭（截图可供人眼核对）",
+      "ok": true,
+      "detail": "setwin=false mask=false toasts=0"
+    },
+    {
+      "name": "1280px 原型停在**可见主面**（rail/side/top 齐备 + feed/chat/manual 三选一可见）",
+      "ok": true,
+      "detail": "rail={\"x\":0,\"y\":0,\"w\":60,\"h\":800} surface=chat"
+    },
+    {
+      "name": "1280px 实现与原型**同主面**（原型=chat）且顶栏三格有读数",
+      "ok": true,
+      "detail": "shell=true impl(feed=false chat=true manual=false) ai=AI 就绪"
+    },
+    {
+      "name": "1440px 原型设置弹窗已关闭（截图可供人眼核对）",
+      "ok": true,
+      "detail": "setwin=false mask=false toasts=0"
+    },
+    {
+      "name": "1440px 原型停在**可见主面**（rail/side/top 齐备 + feed/chat/manual 三选一可见）",
+      "ok": true,
+      "detail": "rail={\"x\":0,\"y\":0,\"w\":60,\"h\":900} surface=chat"
+    },
+    {
+      "name": "1440px 实现与原型**同主面**（原型=chat）且顶栏三格有读数",
+      "ok": true,
+      "detail": "shell=true impl(feed=false chat=true manual=false) ai=AI 就绪"
+    },
+    {
+      "name": "1920px 原型设置弹窗已关闭（截图可供人眼核对）",
+      "ok": true,
+      "detail": "setwin=false mask=false toasts=0"
+    },
+    {
+      "name": "1920px 原型停在**可见主面**（rail/side/top 齐备 + feed/chat/manual 三选一可见）",
+      "ok": true,
+      "detail": "rail={\"x\":0,\"y\":0,\"w\":60,\"h\":1080} surface=chat"
+    },
+    {
+      "name": "1920px 实现与原型**同主面**（原型=chat）且顶栏三格有读数",
+      "ok": true,
+      "detail": "shell=true impl(feed=false chat=true manual=false) ai=AI 就绪"
+    },
+    {
+      "name": "四态①AI 会话：chat 面可见",
+      "ok": true,
+      "detail": "chat=true"
+    },
+    {
+      "name": "四态①chat 面**不得有两个输入框**（会话内输入区承载，外层输入条隐藏）",
+      "ok": true,
+      "detail": "外层composer=false 会话内textarea=1"
+    },
+    {
+      "name": "四态②人工工作台首页：人工面可见且业务页渲染",
+      "ok": true,
+      "detail": "manual=true"
+    },
+    {
+      "name": "四态③收银台：POS 路由可达且人工面可见",
+      "ok": true,
+      "detail": "http://127.0.0.1:4173/pos/dashboard"
+    }
+  ],
+  "pairs": [
+    {
+      "vp": {
+        "w": 1280,
+        "h": 800
+      },
+      "dismissed": {
+        "alreadyClosed": true,
+        "calledCloseSet": false,
+        "calledGoDeskHome": true,
+        "clearedToasts": 1
+      },
+      "overlayState": {
+        "setwinVisible": false,
+        "maskVisible": false,
+        "toastCount": 0,
+        "railRect": {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 800
+        },
+        "sideRect": {
+          "x": 60,
+          "y": 0,
+          "w": 230,
+          "h": 800
+        },
+        "topRect": {
+          "x": 290,
+          "y": 0,
+          "w": 990,
+          "h": 54
+        },
+        "feedVisible": false,
+        "chatVisible": true,
+        "manualVisible": false,
+        "surface": "chat"
+      },
+      "protoErrors": [],
+      "implTop": {
+        "url": "/dashboard",
+        "aiState": "ready",
+        "aiLabel": "AI 就绪",
+        "aiDotColor": "rgb(22, 163, 74)",
+        "employeesState": "degraded",
+        "employeesText": "数字员工未知",
+        "plansState": "degraded",
+        "plansText": "任务进度未知",
+        "reviewText": "",
+        "hasRetry": false,
+        "shell": true,
+        "feedShown": false,
+        "chatShown": true,
+        "manualShown": false,
+        "composerShown": false,
+        "chatPanelInputCount": 1,
+        "menuEmpty": true
+      },
+      "protoShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06F1\\docs\\evidence\\WORKBENCH-06F1\\screenshots\\prototype-1280.png",
+      "implShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06F1\\docs\\evidence\\WORKBENCH-06F1\\screenshots\\impl-1280.png"
+    },
+    {
+      "vp": {
+        "w": 1440,
+        "h": 900
+      },
+      "dismissed": {
+        "alreadyClosed": true,
+        "calledCloseSet": false,
+        "calledGoDeskHome": true,
+        "clearedToasts": 1
+      },
+      "overlayState": {
+        "setwinVisible": false,
+        "maskVisible": false,
+        "toastCount": 0,
+        "railRect": {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 900
+        },
+        "sideRect": {
+          "x": 60,
+          "y": 0,
+          "w": 230,
+          "h": 900
+        },
+        "topRect": {
+          "x": 290,
+          "y": 0,
+          "w": 1150,
+          "h": 54
+        },
+        "feedVisible": false,
+        "chatVisible": true,
+        "manualVisible": false,
+        "surface": "chat"
+      },
+      "protoErrors": [],
+      "implTop": {
+        "url": "/dashboard",
+        "aiState": "ready",
+        "aiLabel": "AI 就绪",
+        "aiDotColor": "rgb(22, 163, 74)",
+        "employeesState": "degraded",
+        "employeesText": "数字员工未知",
+        "plansState": "degraded",
+        "plansText": "任务进度未知",
+        "reviewText": "",
+        "hasRetry": false,
+        "shell": true,
+        "feedShown": false,
+        "chatShown": true,
+        "manualShown": false,
+        "composerShown": false,
+        "chatPanelInputCount": 1,
+        "menuEmpty": true
+      },
+      "protoShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06F1\\docs\\evidence\\WORKBENCH-06F1\\screenshots\\prototype-1440.png",
+      "implShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06F1\\docs\\evidence\\WORKBENCH-06F1\\screenshots\\impl-1440.png"
+    },
+    {
+      "vp": {
+        "w": 1920,
+        "h": 1080
+      },
+      "dismissed": {
+        "alreadyClosed": true,
+        "calledCloseSet": false,
+        "calledGoDeskHome": true,
+        "clearedToasts": 1
+      },
+      "overlayState": {
+        "setwinVisible": false,
+        "maskVisible": false,
+        "toastCount": 0,
+        "railRect": {
+          "x": 0,
+          "y": 0,
+          "w": 60,
+          "h": 1080
+        },
+        "sideRect": {
+          "x": 60,
+          "y": 0,
+          "w": 230,
+          "h": 1080
+        },
+        "topRect": {
+          "x": 290,
+          "y": 0,
+          "w": 1630,
+          "h": 54
+        },
+        "feedVisible": false,
+        "chatVisible": true,
+        "manualVisible": false,
+        "surface": "chat"
+      },
+      "protoErrors": [],
+      "implTop": {
+        "url": "/dashboard",
+        "aiState": "ready",
+        "aiLabel": "AI 就绪",
+        "aiDotColor": "rgb(22, 163, 74)",
+        "employeesState": "degraded",
+        "employeesText": "数字员工未知",
+        "plansState": "degraded",
+        "plansText": "任务进度未知",
+        "reviewText": "",
+        "hasRetry": false,
+        "shell": true,
+        "feedShown": false,
+        "chatShown": true,
+        "manualShown": false,
+        "composerShown": false,
+        "chatPanelInputCount": 1,
+        "menuEmpty": true
+      },
+      "protoShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06F1\\docs\\evidence\\WORKBENCH-06F1\\screenshots\\prototype-1920.png",
+      "implShot": "D:\\Users\\ZXQL\\ZXQL-MS\\wt-works\\WORKBENCH-06F1\\docs\\evidence\\WORKBENCH-06F1\\screenshots\\impl-1920.png"
+    }
+  ]
+}

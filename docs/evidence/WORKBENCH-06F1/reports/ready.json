@@ -1,0 +1,107 @@
+{
+  "phase": "ready",
+  "checks": [
+    {
+      "name": "原型 SHA256 与冻结值一致",
+      "ok": true,
+      "detail": "6A2724A640DD613E…"
+    },
+    {
+      "name": "真实登录 200",
+      "ok": true,
+      "detail": "[200]"
+    },
+    {
+      "name": "AI 就绪状态取自真实探针（/api/health/ready 已发出）",
+      "ok": true,
+      "detail": "[\"/api/health/ready\",\"/api/ai/employees\",\"/api/ai/agent/plans\"]"
+    },
+    {
+      "name": "探针真实返回 2xx（上游 X-AI-Readiness=ready）",
+      "ok": true,
+      "detail": "[{\"url\":\"/api/health/ready\",\"status\":200},{\"url\":\"/api/ai/agent/plans\",\"status\":401},{\"url\":\"/api/ai/employees\",\"status\":401}]"
+    },
+    {
+      "name": "真实 ready ⇒ 状态=ready 且**点为绿**",
+      "ok": true,
+      "detail": "state=ready dot=rgb(22, 163, 74) label=AI 就绪"
+    },
+    {
+      "name": "数字员工：真实 GET /api/ai/employees 已调用",
+      "ok": true,
+      "detail": "[{\"url\":\"/api/ai/employees\",\"method\":\"GET\"}]"
+    },
+    {
+      "name": "数字员工：UI 无假分母（不得出现 N/M 人数）",
+      "ok": true,
+      "detail": "text=数字员工未知"
+    },
+    {
+      "name": "数字员工：有真实读数（三格均渲染且状态已知）",
+      "ok": true,
+      "detail": "state=degraded text=数字员工未知"
+    },
+    {
+      "name": "任务进度：真实 GET /api/ai/agent/plans 已调用",
+      "ok": true,
+      "detail": "[{\"url\":\"/api/ai/agent/plans\",\"method\":\"GET\"}]"
+    },
+    {
+      "name": "任务进度：有真实读数（非假 0）",
+      "ok": true,
+      "detail": "state=degraded text=任务进度未知"
+    }
+  ],
+  "top": {
+    "url": "/dashboard",
+    "aiState": "ready",
+    "aiLabel": "AI 就绪",
+    "aiDotColor": "rgb(22, 163, 74)",
+    "employeesState": "degraded",
+    "employeesText": "数字员工未知",
+    "plansState": "degraded",
+    "plansText": "任务进度未知",
+    "reviewText": "",
+    "hasRetry": false,
+    "shell": true,
+    "feedShown": true,
+    "chatShown": false,
+    "manualShown": false,
+    "composerShown": true,
+    "chatPanelInputCount": 1,
+    "menuEmpty": true
+  },
+  "net": {
+    "requests": [
+      {
+        "url": "/api/health/ready",
+        "method": "GET"
+      },
+      {
+        "url": "/api/ai/employees",
+        "method": "GET"
+      },
+      {
+        "url": "/api/ai/agent/plans",
+        "method": "GET"
+      }
+    ],
+    "responses": [
+      {
+        "url": "/api/health/ready",
+        "status": 200
+      },
+      {
+        "url": "/api/ai/agent/plans",
+        "status": 401
+      },
+      {
+        "url": "/api/ai/employees",
+        "status": 401
+      }
+    ],
+    "failures": [],
+    "pageErrors": []
+  },
+  "upstream": "https://admin.onepan.cn/ai-api（经 local-ai-proxy 3017 透明转发，仅补 CORS 头）"
+}

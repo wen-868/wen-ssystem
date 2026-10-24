@@ -74,10 +74,11 @@
         <span class="wb-top-title">{{ topTitle }}</span>
 
         <AgentStatusBar
-          :session-state="aiSessionState"
+          :readiness-state="aiReadiness.state"
           :pending-review-count="pendingReviewCount"
           :menu-state="menuState"
           @open-ledger="ledgerOpen = true"
+          @retry-readiness="retryAiReadiness"
         />
 
         <span v-if="menuState === 'loading'" class="wb-menu-state" data-testid="menu-loading">
@@ -167,8 +168,12 @@
         </main>
       </div>
 
-      <!-- ══ 底部固定 AI 输入区（原型 .input-zone L976：信息流/会话常驻；人工页收为一条入口）══ -->
+      <!-- ══ 底部固定 AI 输入区（原型 .input-zone L976：信息流/人工页常驻；人工页收为一条入口）
+           ⚠️ chat 面**不渲染**以下输入条：会话主面内已有 AiSidePanel 的完整输入区（文本+图片+语音），
+              再叠一条会出现**两个输入框**（WORKBENCH-06F1 运行态截图实测发现并修正）。
+              原型同语义：对话态输入区在会话列内，信息流态才用底部 input-zone。 -->
       <AiChatComposer
+        v-if="!showChatComposer"
         :compact="effectiveMode === 'human'"
         :streaming="aiSessionState === 'streaming'"
         @send="enterChatAndSend"
@@ -256,6 +261,8 @@ import { useAuthStore } from "../stores/auth";
 import { getErrorMessage } from "../api/request";
 import { fetchUserMenus } from "../api/workbench-menu";
 import { fetchAiConfirmations } from "../api/ai";
+import { aiReadiness, probeAiReadiness } from "../shared/workbench/ai-readiness";
+import { loadAgentTopMetrics } from "../shared/workbench/agent-metrics";
 import {
   ALL_MANIFEST_ITEMS,
   ALL_MANIFEST_ROUTE_NAMES,
@@ -349,6 +356,10 @@ async function loadPendingReview(): Promise<void> {
 onMounted(() => {
   loadMenus();
   loadPendingReview();
+  // WORKBENCH-06F1：AI 可用性探针 + 顶部 Agent 真实数据（员工数 / 计划进度）。
+  // 三者各自独立，互不阻塞（AI 不可达时菜单与人工页照常）。
+  void probeAiReadiness();
+  void loadAgentTopMetrics();
   confirmTimer = window.setInterval(() => {
     void loadPendingReview();
   }, 60_000);
@@ -356,6 +367,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (confirmTimer !== undefined) window.clearInterval(confirmTimer);
 });
+
+/** 手动重试就绪探测：绕过 60s 冷却但**不允许并发**（防请求风暴） */
+function retryAiReadiness(): void {
+  void probeAiReadiness({ force: true });
+  void loadAgentTopMetrics();
+}
 
 const visibleRouteNameList = computed(() => [...access.value.visibleRouteNames]);
 
@@ -451,6 +468,13 @@ const pageTitle = computed(() => {
   const metaTitle = route.meta?.title;
   return typeof metaTitle === "string" && metaTitle ? metaTitle : "工作台";
 });
+
+/**
+ * chat 面是否隐藏底部输入条。
+ * 会话主面（AiSidePanel）自带完整输入区 ⇒ 外层输入条隐藏，避免"两个输入框"重复控件。
+ * feed 面与人工面仍显示（feed 要"直接发消息"、人工面保留协同入口，均为派单卡明确要求）。
+ */
+const showChatComposer = computed(() => effectiveMode.value === "ai" && face.value === "chat" && !isCashierRoute.value);
 
 /** 有新动态 ⇒ rail 工作台按钮红闪（feedAlert）：未读数增长由 feed 视图上报，这里用待审阅>0 驱动（真实数据） */
 const feedAlert = computed(() => (pendingReviewCount.value ?? 0) > 0 && face.value !== "feed");

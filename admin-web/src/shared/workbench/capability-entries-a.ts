@@ -55,8 +55,10 @@ export const CAPABILITIES_A: readonly CapabilityEntry[] = [
     title: "Agent 工作过程与进度",
     group: "Agent",
     status: "PARTIAL",
-    realAction: "底座 POST /api/ai/agent/run、/plans；GET /api/ai/employees",
-    missingReason: "admin-web 0 调用，且当前面板 onToolStart 静默 ⇒ 进度不可见",
+    realAction:
+      "底座 GET /api/ai/agent/plans（计划列表，含 steps.status 六态）→ 顶部「任务进度」；GET /api/ai/employees（数字员工列表）→ 顶部「数字员工 N 人就绪」。接线点：shared/workbench/agent-metrics.ts（parseEmployeesPayload/parsePlansPayload + loadAgentTopMetrics）→ AgentStatusBar.vue；另 GET /api/ai/employees/:id/tasks、GET /api/ai/agent/plans/:id 可用未接",
+    missingReason:
+      "已接：员工计数 + 计划进度（步骤 C/T 或进行中计划 N），各数据源独立降级。仍缺：① 对话框内实时工具过程卡片（AiSidePanel onToolStart 仍静默，未消费 tool_start/tool_result）；② 单员工任务列表与计划详情未在 UI 展开；③ 底座无员工「在线」字段 ⇒ 只显示「N 人就绪」，不写 N/M 分母",
     matrixRow: 6,
   },
   {

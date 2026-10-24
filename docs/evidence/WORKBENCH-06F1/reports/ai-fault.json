@@ -1,0 +1,102 @@
+{
+  "phase": "ai-fault",
+  "checks": [
+    {
+      "name": "原型 SHA256 与冻结值一致",
+      "ok": true,
+      "detail": "6A2724A640DD613E…"
+    },
+    {
+      "name": "AI 不可达是**真实失败**（有 requestfailed 记录）",
+      "ok": true,
+      "detail": "[{\"url\":\"http://127.0.0.1:3017/api/health/ready\",\"reason\":\"net::ERR_CONNECTION_REFUSED\"},{\"url\":\"http://127.0.0.1:3017/api/ai/employees\",\"reason\":\"net::ERR_CONNECTION_REFUSED\"},{\"url\":\"http://127.0.0.1:3017/api/ai/agent/plans\",\"reason\":\"net::ERR_CONNECTION_REFUSED\"}]"
+    },
+    {
+      "name": "AI 不可达 ⇒ 状态非 ready（显式 error）",
+      "ok": true,
+      "detail": "state=error label=AI 不通 重试"
+    },
+    {
+      "name": "AI 不可达 ⇒ **点不是绿色**（B1 核心判据，computed 值）",
+      "ok": true,
+      "detail": "dot=rgb(220, 38, 38)"
+    },
+    {
+      "name": "AI 不可达 ⇒ 文案不含「在线待命」",
+      "ok": true,
+      "detail": "label=AI 不通 重试"
+    },
+    {
+      "name": "AI 不可达 ⇒ 提供重试入口",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "员工数据独立降级（unknown，非假 0）",
+      "ok": true,
+      "detail": "state=degraded text=数字员工未知"
+    },
+    {
+      "name": "计划数据独立降级（unknown，非假 0）",
+      "ok": true,
+      "detail": "state=degraded text=任务进度未知"
+    },
+    {
+      "name": "AI 故障不阻塞：壳层仍在、信息流可见（人工/业务可进入）",
+      "ok": true,
+      "detail": "shell=true feed=true"
+    }
+  ],
+  "top": {
+    "url": "/dashboard",
+    "aiState": "error",
+    "aiLabel": "AI 不通 重试",
+    "aiDotColor": "rgb(220, 38, 38)",
+    "employeesState": "degraded",
+    "employeesText": "数字员工未知",
+    "plansState": "degraded",
+    "plansText": "任务进度未知",
+    "reviewText": "",
+    "hasRetry": true,
+    "shell": true,
+    "feedShown": true,
+    "chatShown": false,
+    "manualShown": false,
+    "composerShown": true,
+    "chatPanelInputCount": 1,
+    "menuEmpty": true
+  },
+  "net": {
+    "requests": [
+      {
+        "url": "/api/health/ready",
+        "method": "GET"
+      },
+      {
+        "url": "/api/ai/employees",
+        "method": "GET"
+      },
+      {
+        "url": "/api/ai/agent/plans",
+        "method": "GET"
+      }
+    ],
+    "responses": [],
+    "failures": [
+      {
+        "url": "http://127.0.0.1:3017/api/health/ready",
+        "reason": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://127.0.0.1:3017/api/ai/employees",
+        "reason": "net::ERR_CONNECTION_REFUSED"
+      },
+      {
+        "url": "http://127.0.0.1:3017/api/ai/agent/plans",
+        "reason": "net::ERR_CONNECTION_REFUSED"
+      }
+    ],
+    "pageErrors": []
+  },
+  "upstreamDown": "local-ai-proxy 3017 已停 ⇒ 真实 ECONNREFUSED"
+}

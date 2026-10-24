@@ -1,0 +1,33 @@
+基线 SHA256：
+  ai-readiness.ts = F6AEBD8DAB4807DC5158A7C744642859B4EE6829AA9E53795B6EA947FD29F05E
+  agent-metrics.ts = CFCF94F362911C96E930AF6DD7367E1E6B91BFACA443B1B66281E0D618AAA5B9
+
+基线复跑（应绿）：EXIT=0
+小结：23 passed / 0 failed
+
+[反测 A-idle-as-online] 把失败/idle 改回「在线」：resolveReadiness 直接返回 ready（忽略网络失败与非 2xx）
+  注入后 SHA256 = C29E81B227E5B61761AFD96BCBBCD441F9812A0BB12480C03ECA254436A9DECB
+  EXIT=1；FAIL=2；点名「状态机」=true
+  FAIL  状态机：resolveReadiness 真值表（网络失败/CORS/401/形状异常 全非绿）  ← Expected values to be strictly equal:
+  FAIL  状态机·实跑：HTTP 500 + body ready ⇒ error（body 不可信当 HTTP 失败）  ← 非 2xx ⇒ error（不因 body 而判绿）
+  复原 SHA256 = F6AEBD8DAB4807DC5158A7C744642859B4EE6829AA9E53795B6EA947FD29F05E；恒等=true
+
+[反测 B-employees-constant] 删除 employees 真实调用：改成写死常量（不走 fetch）
+  注入后 SHA256 = 4E715170764A135DFBF974C95EFFD9AF394530385E0087450325717C36F7D6D1
+  EXIT=1；FAIL=3；点名「员工」=true
+  FAIL  员工：真实 HTTP 调用（走 AI_BASE_URL + JWT header），失败 ⇒ unknown  ← 应真实发起请求，实际 0（state=ready, error=null）
+  FAIL  员工：JWT 透传（有 token 时必须带 Authorization）  ← 必须携带真实 JWT
+  FAIL  两源独立降级：员工失败不影响计划成功，反之亦然  ← 员工源应 unknown
+  复原 SHA256 = CFCF94F362911C96E930AF6DD7367E1E6B91BFACA443B1B66281E0D618AAA5B9；恒等=true
+
+[反测 C-plans-constant] 删除 plans 真实调用：改成写死常量（不走 fetch）
+  注入后 SHA256 = C95B44F4359AD31E669494B3F85E344ECD0F830200E8FEAF2819E420AF1A0E6D
+  EXIT=1；FAIL=1；点名「计划」=true
+  FAIL  计划：真实 HTTP 调用（/api/ai/agent/plans），失败 ⇒ unknown  ← 应真实发起 1 次请求
+  复原 SHA256 = CFCF94F362911C96E930AF6DD7367E1E6B91BFACA443B1B66281E0D618AAA5B9；恒等=true
+
+复原后复跑：EXIT=0
+小结：23 passed / 0 failed
+
+证据已落盘：docs/evidence/WORKBENCH-06F1/redtest/ai-status-countertest.md
+全部反测通过：3/3 点名变红 + 3/3 SHA256 恒等 + 复原后回绿

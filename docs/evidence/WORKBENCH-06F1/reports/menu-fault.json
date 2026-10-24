@@ -1,0 +1,76 @@
+{
+  "phase": "menu-fault",
+  "checks": [
+    {
+      "name": "原型 SHA256 与冻结值一致",
+      "ok": true,
+      "detail": "6A2724A640DD613E…"
+    },
+    {
+      "name": "菜单失败态：故障横幅可见",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "菜单失败态：不回退全量（空态/0 入口）",
+      "ok": true,
+      "detail": "menuEmpty=false"
+    },
+    {
+      "name": "菜单失败不影响 AI 状态判定（AI 仍按自身探针）",
+      "ok": true,
+      "detail": "aiState=ready（与菜单状态解耦）"
+    }
+  ],
+  "top": {
+    "url": "/dashboard",
+    "aiState": "ready",
+    "aiLabel": "AI 就绪",
+    "aiDotColor": "rgb(22, 163, 74)",
+    "employeesState": "degraded",
+    "employeesText": "数字员工未知",
+    "plansState": "degraded",
+    "plansText": "任务进度未知",
+    "reviewText": "",
+    "hasRetry": false,
+    "shell": true,
+    "feedShown": true,
+    "chatShown": false,
+    "manualShown": false,
+    "composerShown": true,
+    "chatPanelInputCount": 1,
+    "menuEmpty": false
+  },
+  "net": {
+    "requests": [
+      {
+        "url": "/api/health/ready",
+        "method": "GET"
+      },
+      {
+        "url": "/api/ai/employees",
+        "method": "GET"
+      },
+      {
+        "url": "/api/ai/agent/plans",
+        "method": "GET"
+      }
+    ],
+    "responses": [
+      {
+        "url": "/api/health/ready",
+        "status": 200
+      },
+      {
+        "url": "/api/ai/employees",
+        "status": 401
+      },
+      {
+        "url": "/api/ai/agent/plans",
+        "status": 401
+      }
+    ],
+    "failures": [],
+    "pageErrors": []
+  }
+}
