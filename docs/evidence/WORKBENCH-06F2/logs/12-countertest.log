@@ -1,0 +1,47 @@
+基线 SHA256：
+  ai-readiness.ts = 9865AC856D75F3F8BCFB1C904DC5687741E3645879FDFE857673EC5B9D66F568
+  agent-metrics.ts = 9B9FBFD875EFC09AD6C1F627A3D12AEBE347EA79B4915735EB1569834083A688
+  WorkbenchShell.vue = 4E348142F08D66A3099566FA272AF895138C444A951FA3E3721A0EE04EF89231
+
+基线复跑（应绿）：EXIT=0
+小结：29 passed / 0 failed
+
+[反测 A-idle-as-online] 把失败/idle 改回「在线」：resolveReadiness 直接返回 ready（忽略网络失败与非 2xx）
+  注入后 SHA256 = F225DE13AE0753AACEE172329D8E6C3E6AFCCB336D526EB5436779CD43AC4E02
+  EXIT=1；FAIL=2；点名「状态机」=true
+  FAIL  状态机：resolveReadiness 真值表（网络失败/CORS/401/形状异常 全非绿）  ← Expected values to be strictly equal:
+  FAIL  状态机·实跑：HTTP 500 + body ready ⇒ error（body 不可信当 HTTP 失败）  ← 非 2xx ⇒ error（不因 body 而判绿）
+  复原 SHA256 = 9865AC856D75F3F8BCFB1C904DC5687741E3645879FDFE857673EC5B9D66F568；恒等=true
+
+[反测 B-employees-constant] 删除 employees 真实调用：改成写死常量（不走 fetch）
+  注入后 SHA256 = DABD0018FEBF113DA38314799E52D060D8675D1E3C5293E6D132C08B059C352A
+  EXIT=1；FAIL=3；点名「员工」=true
+  FAIL  员工：真实 HTTP 调用（走 AI_BASE_URL + JWT header），失败 ⇒ unknown  ← 应真实发起请求，实际 0（state=ready, error=null）
+  FAIL  员工：JWT 透传（有 token 时必须带 Authorization）  ← 必须携带真实 JWT
+  FAIL  两源独立降级：员工失败不影响计划成功，反之亦然  ← 员工源应 unknown
+  复原 SHA256 = 9B9FBFD875EFC09AD6C1F627A3D12AEBE347EA79B4915735EB1569834083A688；恒等=true
+
+[反测 C-plans-constant] 删除 plans 真实调用：改成写死常量（不走 fetch）
+  注入后 SHA256 = CE2428CCD091607CF95F0DC79569DB35AC10191DA00915F5759F3253A82F50D7
+  EXIT=1；FAIL=1；点名「计划」=true
+  FAIL  计划：真实 HTTP 调用（/api/ai/agent/plans），失败 ⇒ unknown  ← 应真实发起 1 次请求
+  复原 SHA256 = 9B9FBFD875EFC09AD6C1F627A3D12AEBE347EA79B4915735EB1569834083A688；恒等=true
+
+[反测 D-drop-success-terminal] 删除真实 success 终态识别：把 success 从终态集合移出（退化成：成功计划仍算进行中）
+  注入后 SHA256 = 8B0E639794A9D2D226F7FE039ED150EB5BF4A5DA057CF81799ABF6F873573B2B
+  EXIT=1；FAIL=2；点名「计划·真实契约」=true
+  FAIL  计划·真实契约：success 计划不计进行中、success 步骤计完成、skipped 不计完成  ← 只有 state=running 的 p1 算进行中（success/failed/skipped 都是终态）
+  FAIL  计划·真实契约：单条成功计划 ⇒ running=0（B2-1 核心：不得把 success 算成进行中）  ← 真实 success 计划必须不计入进行中（旧实现会算成 1）
+  复原 SHA256 = 9B9FBFD875EFC09AD6C1F627A3D12AEBE347EA79B4915735EB1569834083A688；恒等=true
+
+[反测 E-revert-session-state-binding] 把旧 :session-state 接回 AgentStatusBar（退回到 B1 假绿接线）
+  注入后 SHA256 = EA950B7D8641A87EECF1314FBA409E76DD3A931FF380F1D1EA05FB017E187929
+  EXIT=1；FAIL=1；点名「壳层接真实探针」=true
+  FAIL  结构：壳层接真实探针与真实指标（非注释登记）  ← AgentStatusBar 不得再接 session-state（B1 假绿根因）；实际标签：<AgentStatusBar :readiness-state="aiReadiness.state" :session-state="aiSessionState" :pending-review-count="pendingReviewCount" :menu-state="menuState" @open-ledger="ledgerOpen = true" @retry-readiness="retryAiReadiness" />
+  复原 SHA256 = 4E348142F08D66A3099566FA272AF895138C444A951FA3E3721A0EE04EF89231；恒等=true
+
+复原后复跑：EXIT=0
+小结：29 passed / 0 failed
+
+证据已落盘：docs/evidence/WORKBENCH-06F2/redtest/ai-status-countertest.md
+全部反测通过：5/5 点名变红 + 5/5 SHA256 恒等 + 复原后回绿

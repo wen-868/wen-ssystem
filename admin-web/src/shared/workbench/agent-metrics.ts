@@ -37,17 +37,25 @@ export interface AgentEmployeesMetric {
   error: string | null;
 }
 
-/** 计划步骤六态在底座的定义见 agent.types.ts；这里按"已完成/总步数"折算，不预设具体枚举名 */
+/**
+ * 计划折算结果。
+ * 状态契约见本文件顶部（底座六态：pending/running/success/failed/suspended/skipped）。
+ */
 export interface AgentPlansMetric {
   state: AgentMetricState;
   /** 计划总数 */
   totalPlans: number | null;
-  /** 进行中计划数（state 非终态） */
+  /** 进行中计划数：state ∉ {success, failed, skipped}（含 pending/running/suspended） */
   runningPlans: number | null;
-  /** 步骤完成 C / 总步骤 T（有 steps 时才有值） */
+  /** 步骤完成 C / 总步骤 T（有 steps 时才有值；完成只认 status='success'） */
   stepsDone: number | null;
   stepsTotal: number | null;
   error: string | null;
+  /**
+   * 非六态的未知状态计数（计划级 + 步骤级合计）。
+   * 用于如实披露"后端出现了本端不认识的枚举"，而不是静默按某个桶计数。
+   */
+  unknownStates?: number;
 }
 
 export const agentEmployees = ref<AgentEmployeesMetric>({
@@ -64,6 +72,7 @@ export const agentPlans = ref<AgentPlansMetric>({
   stepsDone: null,
   stepsTotal: null,
   error: null,
+  unknownStates: 0,
 });
 
 function authHeaders(): Record<string, string> {
@@ -119,15 +128,63 @@ export function parseEmployeesPayload(payload: unknown): AgentEmployeesMetric {
   return { state: "ready", count: employees.length, employees, error: null };
 }
 
-/** 底座计划终态（用于算"进行中"；未识别的状态按非终态计，避免把进行中算丢） */
-const TERMINAL_PLAN_STATES = new Set(["done", "completed", "succeeded", "failed", "cancelled", "canceled", "rejected", "aborted"]);
+/**
+ * AI 底座计划/步骤状态六态（**唯一契约源**）
+ *
+ * 契约出处：`ZXQL-AI/src/brain/agent/agent.types.ts:14-23`
+ *   export type PlanStepStatus =
+ *     | 'pending'   // 待执行
+ *     | 'running'   // 执行中
+ *     | 'success'   // 成功
+ *     | 'failed'    // 失败（触发自愈或单步容错）
+ *     | 'suspended' // 挂起待人工确认
+ *     | 'skipped';  // 跳过
+ *   export type PlanState = PlanStepStatus;   // 计划级与步骤级同一套六态
+ *
+ * ⚠️ 历史缺陷（WORKBENCH-06F1 被凌舟判红，本单修正）：旧实现用了
+ *   `done / completed / succeeded / cancelled / rejected / aborted` —— 这些**后端并不存在**，
+ *   导致真实 `success` 计划被算成"进行中"、真实 `success` 步骤不计入完成、`skipped` 也被算进行中。
+ *   ⇒ 本文件**只认上述六态**；不保留虚构别名（红线：不得用虚构状态替换真实 enum）。
+ */
+/** 计划/步骤状态（六态，与底座逐字一致） */
+export type PlanStepStatus = "pending" | "running" | "success" | "failed" | "suspended" | "skipped";
+
+export const PLAN_STEP_STATUSES: readonly PlanStepStatus[] = [
+  "pending",
+  "running",
+  "success",
+  "failed",
+  "suspended",
+  "skipped",
+];
+
+/**
+ * 终态计划（不再计入"进行中"）。
+ * 依据六态语义：`success` 已完成、`failed` 已失败、`skipped` 已跳过 ⇒ 三者都不是"正在跑"。
+ * `suspended` **不算终态**：它是"挂起待人工确认"，仍需人处理 ⇒ 计入"需人工/进行中"一栏。
+ */
+const TERMINAL_PLAN_STATES = new Set<PlanStepStatus>(["success", "failed", "skipped"]);
+
+/** 步骤"已完成"只认 `success`（`skipped` 计入总数但不计完成，不冒充成功） */
+const COMPLETED_STEP_STATUS = "success" satisfies PlanStepStatus;
+
+/** 把任意原始值规范化为六态之一；非六态返回 null（未知状态不猜） */
+export function normalizePlanStatus(raw: unknown): PlanStepStatus | null {
+  if (typeof raw !== "string") return null;
+  const lowered = raw.trim().toLowerCase();
+  return (PLAN_STEP_STATUSES as readonly string[]).includes(lowered) ? (lowered as PlanStepStatus) : null;
+}
 
 /**
  * 折算计划数据 —— 纯函数。
  *
  * 形状：`{ success, total, items[] }`；`success===false` ⇒ unknown（底座显式报错）。
- * 步骤统计：`steps[].status` 中"完成"口径 = done/completed/succeeded（与底座步骤枚举一致处即算完成）；
- * 若某计划无 steps（如纯计划态），该计划的步骤不计入分母（不编造 T）。
+ * 状态口径（严格按六态，不猜、不采用虚构别名）：
+ *   - `runningPlans`：state ∉ {success, failed, skipped} ⇒ 计入（含 `pending`/`running`/`suspended`，
+ *     其中 `suspended` 属"挂起待人工"，UI 另给提示文案）；
+ *   - `stepsDone`：只数 `status === 'success'`；
+ *   - `stepsTotal`：每个有效 step 都计入（含 `skipped`——它占一个步骤位，但不算完成）；
+ *   - 未知状态值 **不计入任何桶**（不猜），但会在 `unknownStates` 里如实计数供 UI/证据披露。
  */
 export function parsePlansPayload(payload: unknown): AgentPlansMetric {
   const empty: AgentPlansMetric = {
@@ -137,6 +194,7 @@ export function parsePlansPayload(payload: unknown): AgentPlansMetric {
     stepsDone: null,
     stepsTotal: null,
     error: null,
+    unknownStates: 0,
   };
   if (!payload || typeof payload !== "object") {
     return { ...empty, error: "计划端点返回形状异常" };
@@ -154,15 +212,21 @@ export function parsePlansPayload(payload: unknown): AgentPlansMetric {
   let running = 0;
   let stepsDone = 0;
   let stepsTotal = 0;
+  let unknownStates = 0;
   for (const plan of items) {
-    const state = String(plan.state ?? "").toLowerCase();
-    if (!TERMINAL_PLAN_STATES.has(state)) running += 1;
+    const state = normalizePlanStatus(plan.state);
+    if (state === null) {
+      unknownStates += 1; // 未知状态不猜（不计进行中、不计终态）
+    } else if (!TERMINAL_PLAN_STATES.has(state)) {
+      running += 1;
+    }
     const steps = Array.isArray(plan.steps) ? plan.steps : [];
     for (const step of steps) {
       if (!step || typeof step !== "object") continue;
       stepsTotal += 1;
-      const stepStatus = String((step as { status?: unknown }).status ?? "").toLowerCase();
-      if (stepStatus === "done" || stepStatus === "completed" || stepStatus === "succeeded") stepsDone += 1;
+      const stepStatus = normalizePlanStatus((step as { status?: unknown }).status);
+      if (stepStatus === COMPLETED_STEP_STATUS) stepsDone += 1;
+      if (stepStatus === null) unknownStates += 1;
     }
   }
   return {
@@ -173,6 +237,7 @@ export function parsePlansPayload(payload: unknown): AgentPlansMetric {
     stepsDone: stepsTotal > 0 ? stepsDone : null,
     stepsTotal: stepsTotal > 0 ? stepsTotal : null,
     error: null,
+    unknownStates,
   };
 }
 
@@ -206,6 +271,7 @@ export async function loadAgentPlans(): Promise<void> {
       stepsDone: null,
       stepsTotal: null,
       error: error instanceof Error ? error.message : String(error),
+      unknownStates: 0,
     };
   }
 }
@@ -225,5 +291,6 @@ export function __resetAgentMetricsForTest(): void {
     stepsDone: null,
     stepsTotal: null,
     error: null,
+    unknownStates: 0,
   };
 }

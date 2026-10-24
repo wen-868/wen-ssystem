@@ -1,5 +1,5 @@
 /**
- * WORKBENCH-06F1 反测装置（派单卡 §二.4 mutation A/B/C + §三.5）
+ * WORKBENCH-06F2 反测装置（5 条 mutation：A/B/C 沿用 F1 + D/E 为 F2 新增）
  *
  * 三条 mutation，逐条注入 → 断言 `ai-status-truth.spec.mjs` **点名变红** → 逐字节复原（SHA256 恒等）→ 复绿：
  *
@@ -11,7 +11,7 @@
  *      ⇒ 必须被「真实 HTTP 调用 /api/ai/agent/plans」判红。
  *
  * 运行（工作树根目录）：node admin-web/tests/ai-status-countertest.mjs
- * 产物：docs/evidence/WORKBENCH-06F1/redtest/*.md
+ * 产物：docs/evidence/WORKBENCH-06F2/redtest/*.md
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -23,11 +23,12 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.join(here, "..");
 const SRC = path.join(WEB, "src");
-const OUT = path.join(WEB, "..", "docs", "evidence", "WORKBENCH-06F1", "redtest");
+const OUT = path.join(WEB, "..", "docs", "evidence", "WORKBENCH-06F2", "redtest");
 mkdirSync(OUT, { recursive: true });
 
 const READINESS = path.join(SRC, "shared", "workbench", "ai-readiness.ts");
 const METRICS = path.join(SRC, "shared", "workbench", "agent-metrics.ts");
+const SHELL = path.join(SRC, "layouts", "WorkbenchShell.vue");
 const SPEC = path.join(WEB, "tests", "ai-status-truth.spec.mjs");
 
 function sha256(file) {
@@ -82,15 +83,47 @@ const CASES = [
       assert.ok(text.includes(marker), "mutation C 注入点未找到");
       return text.replace(
         marker,
-        "    const payload = { success: true, total: 1, items: [{ state: \"running\", steps: [{ status: \"done\" }] }] }; // MUTATION-C（不走真实调用）",
+        "    const payload = { success: true, total: 1, items: [{ state: \"running\", steps: [{ status: \"success\" }] }] }; // MUTATION-C（不走真实调用）",
       );
     },
     expectName: "计划",
   },
+  // ── WORKBENCH-06F2 新增（F2 卡 §二.5 / §三.3 要求）─────────────────────────
+  {
+    id: "D-drop-success-terminal",
+    title: "删除真实 success 终态识别：把 success 从终态集合移出（退化成：成功计划仍算进行中）",
+    target: METRICS,
+    mutate: (text) => {
+      const marker = 'const TERMINAL_PLAN_STATES = new Set<PlanStepStatus>(["success", "failed", "skipped"]);';
+      assert.ok(text.includes(marker), "mutation D 注入点未找到");
+      // 去掉 success ⇒ 真实成功计划会被算作"进行中"（即 F1 被驳回的那个缺陷）
+      return text.replace(marker, 'const TERMINAL_PLAN_STATES = new Set<PlanStepStatus>(["failed", "skipped"]); // MUTATION-D（success 不再算终态）');
+    },
+    expectName: "计划·真实契约",
+  },
+  {
+    id: "E-revert-session-state-binding",
+    title: "把旧 :session-state 接回 AgentStatusBar（退回到 B1 假绿接线）",
+    target: SHELL,
+    mutate: (text) => {
+      /**
+       * ⚠️ 该文件是 CRLF；不能用带 \n 的 marker（会匹配失败）。
+       * 用"单属性片段"定位，并保留原行尾风格，避免整文件行尾被改写（复原要逐字节恒等）。
+       */
+      const marker = ':readiness-state="aiReadiness.state"';
+      assert.ok(text.includes(marker), "mutation E 注入点未找到");
+      // 在原绑定后追加旧绑定（同一行内，不引入换行差异）
+      return text.replace(
+        marker,
+        `${marker} :session-state="aiSessionState"`,
+      );
+    },
+    expectName: "壳层接真实探针",
+  },
 ];
 
 const originals = new Map();
-for (const file of [READINESS, METRICS]) originals.set(file, readFileSync(file));
+for (const file of [READINESS, METRICS, SHELL]) originals.set(file, readFileSync(file));
 
 console.log("基线 SHA256：");
 for (const [file, buf] of originals) console.log(`  ${path.basename(file)} = ${createHash("sha256").update(buf).digest("hex").toUpperCase()}`);
@@ -146,7 +179,7 @@ console.log(after.stdout.split("\n").filter((l) => l.startsWith("小结")).join(
 assert.equal(after.code, 0, "复原后必须回绿");
 
 const log = [
-  "# WORKBENCH-06F1 反测记录（三条 mutation）",
+  "# WORKBENCH-06F2 反测记录（五条 mutation）",
   "",
   "> 被测用例：`admin-web/tests/ai-status-truth.spec.mjs`（23 例）",
   "> 装置：`admin-web/tests/ai-status-countertest.mjs`（注入 → 断言点名红 → 逐字节复原 SHA256 → 复跑回绿）",
@@ -170,5 +203,5 @@ const log = [
 ].join("\n");
 
 writeFileSync(path.join(OUT, "ai-status-countertest.md"), log);
-console.log("\n证据已落盘：docs/evidence/WORKBENCH-06F1/redtest/ai-status-countertest.md");
-console.log("全部反测通过：3/3 点名变红 + 3/3 SHA256 恒等 + 复原后回绿");
+console.log("\n证据已落盘：docs/evidence/WORKBENCH-06F2/redtest/ai-status-countertest.md");
+console.log("全部反测通过：5/5 点名变红 + 5/5 SHA256 恒等 + 复原后回绿");

@@ -280,24 +280,83 @@ await run("员工：JWT 透传（有 token 时必须带 Authorization）", async
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 三、计划端点：真实调用 + 真实进度折算 + 降级
+// 三、计划端点：真实进度折算 + 降级
+//    ⚠️ 状态夹具全部取自 AI 底座真实契约 `ZXQL-AI/src/brain/agent/agent.types.ts:14-23`：
+//       PlanStepStatus = pending | running | success | failed | suspended | skipped
+//       PlanState      = PlanStepStatus
+//    WORKBENCH-06F1 曾用后端不存在的 done/completed/succeeded 作夹具（导致 23/23 全绿也证明不了真实契约），
+//    WORKBENCH-06F2 已全部改为真实枚举；**测试里不得再出现虚构状态字面量**（下面有护栏用例）。
 // ═══════════════════════════════════════════════════════════════════════════
 
-await run("计划：真实折算（steps 完成 C/T + 进行中数）", () => {
+await run("计划·真实契约：success 计划不计进行中、success 步骤计完成、skipped 不计完成", () => {
+  const metric = metrics.parsePlansPayload({
+    success: true,
+    total: 4,
+    items: [
+      // 运行中计划：2 步成功、1 步运行中、1 步跳过
+      {
+        id: "p1",
+        state: "running",
+        steps: [{ status: "success" }, { status: "success" }, { status: "running" }, { status: "skipped" }],
+      },
+      // 成功终态计划：全部 success ⇒ 不计进行中
+      { id: "p2", state: "success", steps: [{ status: "success" }, { status: "success" }] },
+      // 失败计划：不计进行中
+      { id: "p3", state: "failed", steps: [{ status: "success" }, { status: "failed" }] },
+      // 跳过计划：不计进行中
+      { id: "p4", state: "skipped", steps: [{ status: "skipped" }] },
+    ],
+  });
+  assert.equal(metric.state, "ready");
+  assert.equal(metric.totalPlans, 4);
+  assert.equal(metric.runningPlans, 1, "只有 state=running 的 p1 算进行中（success/failed/skipped 都是终态）");
+  // 步骤：success 计完成 = p1(2) + p2(2) + p3(1) = 5；总数 = 4+2+2+1 = 9
+  assert.equal(metric.stepsDone, 5, "完成只认 status=success");
+  assert.equal(metric.stepsTotal, 9, "skipped 也计入总步骤（占位）但不计完成");
+  assert.equal(metric.unknownStates, 0, "真实六态不应产生未知状态");
+  return "running=1（success/failed/skipped 皆终态）/ steps=5/9（skipped 计总数不计完成）";
+});
+
+await run("计划·真实契约：pending / suspended 属非终态（计入进行中，suspended 待人处理）", () => {
+  const metric = metrics.parsePlansPayload({
+    success: true,
+    total: 3,
+    items: [
+      { id: "p1", state: "pending", steps: [] },
+      { id: "p2", state: "suspended", steps: [] },
+      { id: "p3", state: "running", steps: [] },
+    ],
+  });
+  assert.equal(metric.runningPlans, 3, "pending/running/suspended 三者均非终态");
+  return "pending+suspended+running ⇒ 3（suspended 不算 success，也不当终态丢弃）";
+});
+
+await run("计划·真实契约：单条成功计划 ⇒ running=0（B2-1 核心：不得把 success 算成进行中）", () => {
+  const metric = metrics.parsePlansPayload({
+    success: true,
+    total: 1,
+    items: [{ id: "p1", state: "success", steps: [{ status: "success" }] }],
+  });
+  assert.equal(metric.runningPlans, 0, "真实 success 计划必须不计入进行中（旧实现会算成 1）");
+  assert.equal(metric.stepsDone, 1, "真实 success 步骤必须计入完成（旧实现会算成 0）");
+  assert.equal(metric.stepsTotal, 1);
+  return "success 计划 running=0 / steps=1/1 —— 旧缺陷已修";
+});
+
+await run("计划·真实契约：非六态的未知状态不被猜（计 unknownStates，不进任何桶）", () => {
   const metric = metrics.parsePlansPayload({
     success: true,
     total: 2,
     items: [
-      { id: "p1", state: "running", steps: [{ status: "done" }, { status: "running" }, { status: "pending" }] },
-      { id: "p2", state: "completed", steps: [{ status: "done" }, { status: "done" }] },
+      { id: "p1", state: "done", steps: [{ status: "completed" }] }, // 旧虚构别名，底座不存在
+      { id: "p2", state: "running", steps: [{ status: "success" }] },
     ],
   });
-  assert.equal(metric.state, "ready");
-  assert.equal(metric.totalPlans, 2);
-  assert.equal(metric.runningPlans, 1, "终态(completed)不算进行中 ⇒ 1");
-  assert.equal(metric.stepsDone, 3, "done 步骤数 = 3");
-  assert.equal(metric.stepsTotal, 5, "步骤总数 = 5");
-  return "total=2 / running=1 / steps=3/5";
+  assert.equal(metric.runningPlans, 1, "只认真实 running；未知 state 不猜成进行中");
+  assert.equal(metric.stepsDone, 1, "completed 不是底座状态 ⇒ 不计完成");
+  assert.equal(metric.stepsTotal, 2, "未知步骤仍占总数（如实计位）");
+  assert.equal(metric.unknownStates, 2, "1 个未知 state + 1 个未知 step status = 2");
+  return "未知状态不猜：unknownStates=2，不混入 running/stepsDone";
 });
 
 await run("计划：无 steps ⇒ 步骤口径置 null（不伪造 0/0）", () => {
@@ -356,7 +415,7 @@ await run("两源独立降级：员工失败不影响计划成功，反之亦然
   globalThis.fetch = async (url) => {
     const u = String(url);
     if (u.includes("/api/ai/employees")) throw new Error("employees down");
-    return { ok: true, status: 200, json: async () => ({ success: true, total: 1, items: [{ state: "running", steps: [{ status: "done" }] }] }) };
+    return { ok: true, status: 200, json: async () => ({ success: true, total: 1, items: [{ state: "running", steps: [{ status: "success" }] }] }) };
   };
   try {
     metrics.__resetAgentMetricsForTest();
@@ -398,8 +457,24 @@ await run("结构：壳层接真实探针与真实指标（非注释登记）", 
   assert.ok(shell.includes("loadAgentTopMetrics"), "壳层必须真实加载员工/计划指标");
   assert.ok(shell.includes(":readiness-state=\"aiReadiness.state\""), "必须把真实就绪态传给顶栏");
   assert.ok(shell.includes("retryAiReadiness"), "必须提供手动重试");
-  assert.ok(!/:session-state="aiSessionState"[\s\S]{0,200}<AgentStatusBar/.test(shell) || true);
-  return "探针 + 指标 + 状态透传 + 重试 均已接线";
+  /**
+   * 真实负断言（WORKBENCH-06F2 修正）：
+   *   旧写法 `assert.ok(... || true)` 恒真 ⇒ 无法证明"壳层未接旧 sessionState"，属**假门禁**（凌舟 B2-2 驳回）。
+   *   这里的判据：`<AgentStatusBar ...>` 标签内**不得**出现 `:session-state` 绑定。
+   *   注意：壳层**仍会渲染 AiFeedView / AiChatPanel**，它们合法使用 `:session-state` 传会话状态，
+   *   因此**只能**限定在 AgentStatusBar 的标签范围内检查，不能全局 ban（否则会误伤）。
+   */
+  const agentBarTag = shell.match(/<AgentStatusBar\b[\s\S]*?\/?>/);
+  assert.ok(agentBarTag, "壳层必须渲染 <AgentStatusBar>");
+  assert.ok(
+    !/:(session-state|sessionState)\b/.test(agentBarTag[0]),
+    `AgentStatusBar 不得再接 session-state（B1 假绿根因）；实际标签：${agentBarTag[0].replace(/\s+/g, " ")}`,
+  );
+  assert.ok(
+    /:readiness-state="aiReadiness\.state"/.test(agentBarTag[0]),
+    "AgentStatusBar 必须以 readiness-state 接收真实就绪态",
+  );
+  return "探针 + 指标 + readiness-state 透传 + 重试；AgentStatusBar 标签内无 session-state（真实负断言）";
 });
 
 await run("结构：能力台账 ai-06 文案已改为真实情况（不再是「无真实端点」）", () => {
@@ -433,6 +508,63 @@ await run("回归：隐藏旧行为 —— 源码不得把 idle/挂载 当作在
     assert.ok(!/sessionState[\s\S]{0,40}在线/.test(codeLines), `${rel}: 不得由 sessionState 直接产出"在线"文案`);
   }
   return "3 文件代码区零「idle⇒在线」映射";
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 六、契约护栏（WORKBENCH-06F2 新增）：计划状态只认真实六态
+// ═══════════════════════════════════════════════════════════════════════════
+
+await run("契约护栏：agent-metrics.ts 代码区不得把虚构状态当作底座原生终态", () => {
+  const src = read("shared/workbench/agent-metrics.ts");
+  // 只查代码区（剥注释）：注释里可合法出现"旧实现曾用 done/completed"这类历史说明
+  const codeOnly = src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:'"])\/\/.*$/gm, "$1");
+  for (const fake of ["done", "completed", "succeeded", "cancelled", "canceled", "rejected", "aborted"]) {
+    assert.ok(
+      !new RegExp(`["'\`]${fake}["'\`]`).test(codeOnly),
+      `代码区不得再出现虚构状态字面量 "${fake}"（底座真实 enum 无此值）`,
+    );
+  }
+  // 真实六态必须齐备
+  for (const real of ["pending", "running", "success", "failed", "suspended", "skipped"]) {
+    assert.ok(codeOnly.includes(`"${real}"`), `必须声明真实状态 "${real}"`);
+  }
+  return "代码区零虚构状态；真实六态齐备";
+});
+
+await run("契约护栏：测试夹具只用真实六态（不再出现虚构状态字面量）", () => {
+  const spec = readFileSync(path.join(here, "ai-status-truth.spec.mjs"), "utf8");
+  /**
+   * 只扫「计划状态夹具」区域（`parsePlansPayload({...})` 的实参），并排除两类**合法例外**：
+   *   ① 负向验证用例段：`计划·真实契约：非六态的未知状态不被猜` —— 该用例**故意**喂 done/completed
+   *      来证明它们不被识别（这是本单要求的反向证据，删掉它等于失去分辨力）；
+   *   ② 员工夹具的 `post/department` 占位符（与计划状态无关）。
+   * 其余任何 `state: / status: "xxx"` 都必须落在真实六态内。
+   */
+  const planCalls = [...spec.matchAll(/parsePlansPayload\(\{[\s\S]*?\n  \}\)/g)].map((m) => m[0]);
+  const allowed = new Set(["pending", "running", "success", "failed", "suspended", "skipped"]);
+  const bad = [];
+  for (const call of planCalls) {
+    // 跳过"故意用虚构状态做负向验证"的那条用例
+    if (call.includes("旧虚构别名，底座不存在")) continue;
+    for (const m of call.matchAll(/(?:state|status)\s*:\s*"([a-z]+)"/g)) {
+      if (!allowed.has(m[1])) bad.push(m[1]);
+    }
+  }
+  assert.deepEqual([...new Set(bad)], [], `计划夹具出现非契约状态值：${[...new Set(bad)].join(", ")}`);
+  return `${planCalls.length} 处计划夹具（含 1 处负向验证用例）状态值全部在真实六态内`;
+});
+
+await run("契约护栏：normalizePlanStatus 只接受真实六态", () => {
+  for (const real of ["pending", "running", "success", "failed", "suspended", "skipped"]) {
+    assert.equal(metrics.normalizePlanStatus(real), real, `真实状态 ${real} 应被接受`);
+    assert.equal(metrics.normalizePlanStatus(real.toUpperCase()), real, `大写 ${real} 应归一为小写`);
+  }
+  for (const fake of ["done", "completed", "succeeded", "cancelled", "rejected", "aborted", "", null, 42, {}]) {
+    assert.equal(metrics.normalizePlanStatus(fake), null, `非契约值 ${JSON.stringify(fake)} 必须返回 null（不猜）`);
+  }
+  return "6 真实态通过 / 10 非契约值返回 null";
 });
 
 const failed = results.filter((r) => !r.ok);

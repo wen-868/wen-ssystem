@@ -1,0 +1,17 @@
+== 产品代码 agent-metrics.ts（代码区）==
+  done         absent(OK)
+  completed    absent(OK)
+  succeeded    absent(OK)
+  cancelled    absent(OK)
+  canceled     absent(OK)
+  rejected     absent(OK)
+  aborted      absent(OK)
+== 真实六态必须齐备 ==
+  pending      present(OK)
+  running      present(OK)
+  success      present(OK)
+  failed       present(OK)
+  suspended    present(OK)
+  skipped      present(OK)
+
+结论：PASS —— 零虚构状态、真实六态齐备
