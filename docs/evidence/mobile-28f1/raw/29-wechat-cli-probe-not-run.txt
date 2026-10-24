@@ -1,0 +1,12 @@
+微信开发者工具 CLI 探测（硬验收 4：有 CLI 必须跑 preview；无 CLI 必须如实记未验）
+探测时间：2026-10-24 09:10
+PATH-CHECK  C:\Program Files\Tencent\微信web开发者工具\cli.bat  => ABSENT
+PATH-CHECK  C:\Program Files (x86)\Tencent\微信web开发者工具\cli.bat  => FOUND
+PATH-CHECK  D:\Program Files\Tencent\微信web开发者工具\cli.bat  => ABSENT
+PATH-CHECK  D:\Program Files (x86)\Tencent\微信web开发者工具\cli.bat  => ABSENT
+where.exe cli.bat => 未找到（exit 1）
+where.exe wechatide => 未找到
+DIR  C:\Program Files\Tencent => TDSData, Weixin
+DIR  D:\Program Files\Tencent => ABSENT
+DIR  C:\Program Files (x86)\Tencent => 微信web开发者工具, QQ, Qzone, QzoneMusic
+结论：本机无微信开发者工具 CLI ⇒ preview 未执行，本单**不写"运行通过"**（红线「不以构建 EXIT=0 替代微信运行态」）。

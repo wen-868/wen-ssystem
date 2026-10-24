@@ -63,12 +63,16 @@ page {
 
 /* 根治：uni-app H5 大量容器用 width:100% + 水平 padding 但未设 box-sizing，
    默认 content-box 导致 宽度+padding 超出视口、右边距/右缘被裁。全局补 border-box，
-   让所有 padding 计入 width（绝大多数页都预期 border-box 语义）。 */
+   让所有 padding 计入 width（绝大多数页都预期 border-box 语义）。
+   ★ MOBILE-28F1：`*` 通配 prelude 微信 WXSS 不支持（preview 报 unexpected token '*'），
+     故用样式级条件编译只在**非微信小程序**端编译（H5 / App 行为原样保留），MP 侧整块隔掉。 */
+/* #ifndef MP-WEIXIN */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+/* #endif */
 
 /* 根治：uni-app H5 把 <form> 编译成 <uni-form>（未知自定义元素），
    浏览器默认 display:inline，导致其内部块级子元素突破容器、左右 padding/边距失效、
@@ -109,7 +113,10 @@ image.ic {
   height: 1em;
 }
 
-/* 无障碍：用户开启「减少动态效果」时全局降级动画与过渡（spec06/12） */
+/* 无障碍：用户开启「减少动态效果」时全局降级动画与过渡（spec06/12）
+   ★ MOBILE-28F1：prelude 为 `*` 通配，微信 WXSS 不支持 ⇒ 同样只在非微信小程序端编译；
+     H5/App 的 reduced-motion 降级行为保持不变（不得删规则）。 */
+/* #ifndef MP-WEIXIN */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -119,4 +126,5 @@ image.ic {
     transition-duration: 0.01ms !important;
   }
 }
+/* #endif */
 </style>

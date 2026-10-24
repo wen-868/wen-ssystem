@@ -1,0 +1,6 @@
+MP 产物通配 prelude（dist/build/mp-weixin）：命中 3 处
+✗ app.wxss  ⇒  *,*:before,*:after
+✗ app.wxss  ⇒  *,*:before,*:after
+✗ pages/sales/create-sale.wxss  ⇒  .create-sale-page *.data-v-0925e575,.create-sale-page *.data-v-0925e575:before,.create-sale-page *.data-v-0925e575:after
+MP_STAR_GUARD_DIST_FAIL
+DIST_EXIT=1

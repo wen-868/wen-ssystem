@@ -1,0 +1,6 @@
+源码通配 prelude：命中 3 处 / 未隔离 3 处（已隔离=有 /* #ifndef MP-WEIXIN */ 等包裹，不进 MP 产物）
+✗ 未隔离 App.vue:67  ⇒  *, *::before, *::after
+✗ 未隔离 App.vue:114  ⇒  *, *::before, *::after
+✗ 未隔离 pages/sales/create-sale.vue:2471  ⇒  .create-sale-page *, .create-sale-page *::before, .create-sale-page *::after
+MP_STAR_GUARD_SRC_FAIL
+SRC_EXIT=1

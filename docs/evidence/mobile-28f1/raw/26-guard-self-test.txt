@@ -1,0 +1,3 @@
+self-test: {"ok":true,"positiveHits":1,"negativeHits":0,"mediaInnerHits":1,"keyframeFalseHits":0,"atOnlyHits":0}
+MP_STAR_GUARD_SELF_TEST_PASS（注入必红 / 干净必 0 / @media 内层可检 / @规则不误报）
+SELFTEST_EXIT=0

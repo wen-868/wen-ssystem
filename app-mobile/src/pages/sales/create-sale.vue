@@ -2466,7 +2466,10 @@ function onDocFocus(e: FocusEvent) {
   flex-direction: column;
 }
 
-/* 无障碍：系统开启「减少动态效果」时降级为瞬时切换（原稿 prefers-reduced-motion） */
+/* 无障碍：系统开启「减少动态效果」时降级为瞬时切换（原稿 prefers-reduced-motion）
+   ★ MOBILE-28F1：prelude 含 `*` 通配（`.create-sale-page *`），微信 WXSS 不支持 ⇒
+     用样式级条件编译只在非微信小程序端编译；H5/App 的降级行为保持不变（不得删规则）。 */
+/* #ifndef MP-WEIXIN */
 @media (prefers-reduced-motion: reduce) {
   .create-sale-page *,
   .create-sale-page *::before,
@@ -2476,6 +2479,7 @@ function onDocFocus(e: FocusEvent) {
     transition-duration: 0.01ms !important;
   }
 }
+/* #endif */
 
 /* 单据切换入场（原稿 switch-anim / fadeUp） */
 .sale-form {

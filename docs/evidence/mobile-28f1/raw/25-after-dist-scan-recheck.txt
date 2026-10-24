@@ -1,0 +1,3 @@
+MP 产物通配 prelude（dist/build/mp-weixin）：命中 0 处
+MP_STAR_GUARD_DIST_PASS
+DIST_RECHECK_EXIT=0
