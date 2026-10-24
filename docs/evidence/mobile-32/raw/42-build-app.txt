@@ -1,0 +1,17 @@
+
+> zhixiang-app-mobile@1.0.0 build:app
+> uni build -p app
+
+Compiler version: 5.23（vue3）
+Compiling...
+
+​已开启 uni统计 2.0​
+
+
+uni-app 有新版本发布，请执行 `npx @dcloudio/uvm@latest` 更新，更新日志详见：https://download1.dcloud.net.cn/hbuilderx/changelog/5.26.2026091802.html
+​ 
+(!) D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile/src/native/scan.ts is dynamically imported by D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile/src/pages/home/home.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile/src/pages/products/products.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts, D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile/src/pages/sales/create-sale.vue?vue&type=script&setup=true&lang.ts but also statically imported by D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile/src/pages-sub/product/product/product-edit.vue?vue&type=script&setup=true&lang.ts, dynamic import will not move module into another chunk.
+​
+DONE  Build complete.
+Run method: open HBuilderX, import dist\build\app run.
+build_app_EXIT=0

@@ -1,0 +1,18 @@
+✓ M1-删按钮门(页面接线)  红EXIT=1 绿EXIT=0 SHA一致=true
+    FAIL  tests/page-wiring.spec.ts > MOBILE-32 · 页面接线：每个按钮绑自己的码 > src/pages-sub/finance/transfer/transfer.vue 的 6 个 gate 均按后端实证码声明
+    AssertionError: src/pages-sub/finance/transfer/transfer.vue 缺少 gateCancel 声明: expected null to be truthy
+    FAIL  tests/page-wiring.spec.ts > MOBILE-32 · 多按钮独立性（不得一把大锁） > transfer.vue 六个 gate 各自独立声明（不是同一个常量复用别名）
+    AssertionError: expected 5 to be greater than or equal to 6
+    FAIL  tests/page-wiring.spec.ts > MOBILE-32 · 多按钮独立性（不得一把大锁） > 同一页不同按钮的码不得被绑成一个宽泛码集合以外的错码
+✓ M2-null改放行(纯函数)  红EXIT=1 绿EXIT=0 SHA一致=true
+    FAIL  tests/button-gates.spec.ts > MOBILE-32 · resolveButtonGate 四态 > codes 为空（后端无确定码）⇒ blocked，禁用而非放行（红线：不得自造码）
+    AssertionError: expected 'allowed' to be 'blocked' // Object.is equality
+    FAIL  tests/button-gates.spec.ts > MOBILE-32 · 未取到权限时写请求零调用 > loading / unavailable / denied / blocked 四态下 handler 一次都不执行
+    AssertionError: expected 'allowed' to be 'blocked' // Object.is equality
+    ✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）
+✓ M3-多按钮绑同码(页面接线)  红EXIT=1 绿EXIT=0 SHA一致=true
+    FAIL  tests/page-wiring.spec.ts > MOBILE-32 · 页面接线：每个按钮绑自己的码 > src/pages-sub/finance/transfer/transfer.vue 的 6 个 gate 均按后端实证码声明
+    AssertionError: gateReceive 的码应为 store:transfer: expected [ 'store:transfer', 'goods:edit' ] to deeply equal [ 'store:transfer' ]
+    FAIL  tests/page-wiring.spec.ts > MOBILE-32 · 多按钮独立性（不得一把大锁） > 同一页不同按钮的码不得被绑成一个宽泛码集合以外的错码
+    AssertionError: expected '\'store:transfer\', \'goods:edit\'' not to match /goods:|sale:create|inventory:/
+    ✗ vitest 本体失败（EXIT=1）⇒ 门 3 红（用例失败/配置坏）

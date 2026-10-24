@@ -1,0 +1,1917 @@
+{
+  "total": 179,
+  "unguarded": 168,
+  "rows": [
+    {
+      "page": "pages/ai-chat/ai-chat.vue",
+      "line": 114,
+      "element": "button",
+      "handler": "handleCancel",
+      "text": "取消",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/ai-chat/ai-chat.vue",
+      "line": 140,
+      "element": "view",
+      "handler": "removeAttachmentImage",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/notifications/notification-detail.vue",
+      "line": 61,
+      "element": "text",
+      "handler": "handleDelete",
+      "text": "删除",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/notifications/notifications.vue",
+      "line": 7,
+      "element": "text",
+      "handler": "toggleEditMode",
+      "text": "0 || editMode\">{{ editMode ? '取消' : '管理",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/notifications/notifications.vue",
+      "line": 31,
+      "element": "view",
+      "handler": "toggleSelectAll",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/notifications/notifications.vue",
+      "line": 37,
+      "element": "text",
+      "handler": "handleBatchDelete",
+      "text": "删除({{ selectedIds.length }})",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/orders/order-detail.vue",
+      "line": 158,
+      "element": "button",
+      "handler": "handleDeliver",
+      "text": "{{ actionLoading ? '处理中...' : '开",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "sale-order-detail-deliver",
+        "sale-order-detail-deliver",
+        "sale-order-detail-deliver",
+        "sale-order-detail-cancel"
+      ]
+    },
+    {
+      "page": "pages/orders/order-detail.vue",
+      "line": 166,
+      "element": "button",
+      "handler": "handleComplete",
+      "text": "{{ actionLoading ? '处理中...' : '完",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "sale-order-detail-deliver",
+        "sale-order-detail-deliver",
+        "sale-order-detail-deliver",
+        "sale-order-detail-cancel"
+      ]
+    },
+    {
+      "page": "pages/orders/order-detail.vue",
+      "line": 175,
+      "element": "button",
+      "handler": "handleCancel",
+      "text": "取消订单",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "sale-order-detail-deliver",
+        "sale-order-detail-deliver",
+        "sale-order-detail-deliver",
+        "sale-order-detail-cancel"
+      ]
+    },
+    {
+      "page": "pages/orders/orders.vue",
+      "line": 9,
+      "element": "view",
+      "handler": "toggleFilter",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/orders/orders.vue",
+      "line": 68,
+      "element": "view",
+      "handler": "toggleStatus",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/orders/orders.vue",
+      "line": 80,
+      "element": "view",
+      "handler": "toggleAttr",
+      "text": "{{ tag.txt }}",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 40,
+      "element": "view",
+      "handler": "toggleDrop",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 65,
+      "element": "view",
+      "handler": "toggleDrop",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 83,
+      "element": "view",
+      "handler": "toggleDrop",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 121,
+      "element": "view",
+      "handler": "toggleDrop",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 146,
+      "element": "view",
+      "handler": "toggleChannel",
+      "text": "{{ c.label }}",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 156,
+      "element": "view",
+      "handler": "setStatus",
+      "text": "上架",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 157,
+      "element": "view",
+      "handler": "setStatus",
+      "text": "下架",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 279,
+      "element": "view",
+      "handler": "toggleEnabled",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 284,
+      "element": "view",
+      "handler": "toggleTrace",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 289,
+      "element": "view",
+      "handler": "toggleShelfLife",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 294,
+      "element": "view",
+      "handler": "toggleBatch",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 299,
+      "element": "view",
+      "handler": "toggleOnSale",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 310,
+      "element": "view",
+      "handler": "removeTag",
+      "text": "{{ t }}",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 316,
+      "element": "view",
+      "handler": "toggleNew",
+      "text": "新品",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 317,
+      "element": "view",
+      "handler": "toggleRecommend",
+      "text": "推荐",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 331,
+      "element": "view",
+      "handler": "cancelEdit",
+      "text": "取消",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/product-detail.vue",
+      "line": 337,
+      "element": "view",
+      "handler": "onMainAction",
+      "text": "{{ editable ? '保存' : '修改' }}",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-detail-edit"
+      ]
+    },
+    {
+      "page": "pages/products/products.vue",
+      "line": 6,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-batch-price-submit"
+      ]
+    },
+    {
+      "page": "pages/profile/edit.vue",
+      "line": 98,
+      "element": "button",
+      "handler": "onSubmit",
+      "text": "保存修改",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages/sales/create-sale.vue",
+      "line": 227,
+      "element": "view",
+      "handler": "toggleTaxIncluded",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages/sales/create-sale.vue",
+      "line": 258,
+      "element": "text",
+      "handler": "toggleInvoiceStatus",
+      "text": "{{ invoiceStatusLabel }}",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages/sales/create-sale.vue",
+      "line": 285,
+      "element": "view",
+      "handler": "removeItem",
+      "text": "删除",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages/sales/create-sale.vue",
+      "line": 376,
+      "element": "view",
+      "handler": "toggleVerify",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages/sales/create-sale.vue",
+      "line": 640,
+      "element": "view",
+      "handler": "cancelPick",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages/sales/create-sale.vue",
+      "line": 645,
+      "element": "view",
+      "handler": "toggleHideStock",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages/sales/create-sale.vue",
+      "line": 765,
+      "element": "view",
+      "handler": "saveQuickAdd",
+      "text": "保存并选中",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/admin/employees.vue",
+      "line": 70,
+      "element": "button",
+      "handler": "editEmployee",
+      "text": "编辑",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/admin/employees.vue",
+      "line": 71,
+      "element": "button",
+      "handler": "toggleStatus",
+      "text": "离职",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/admin/employees.vue",
+      "line": 78,
+      "element": "button",
+      "handler": "toggleStatus",
+      "text": "复职",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/permission-assign.vue",
+      "line": 75,
+      "element": "view",
+      "handler": "toggleRole",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/permission-assign.vue",
+      "line": 99,
+      "element": "view",
+      "handler": "toggleExtraPerm",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/permission-assign.vue",
+      "line": 161,
+      "element": "view",
+      "handler": "toggleUserStore",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/permission-assign.vue",
+      "line": 179,
+      "element": "view",
+      "handler": "onSave",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/report-matrix.vue",
+      "line": 9,
+      "element": "view",
+      "handler": "onSave",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/report-matrix.vue",
+      "line": 110,
+      "element": "view",
+      "handler": "toggleBatchRole",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/report-matrix.vue",
+      "line": 123,
+      "element": "view",
+      "handler": "toggleBatchReport",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/store-data-permission.vue",
+      "line": 6,
+      "element": "view",
+      "handler": "onSave",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/store-data-permission.vue",
+      "line": 90,
+      "element": "view",
+      "handler": "toggleSelectAll",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/report-permission/store-data-permission.vue",
+      "line": 95,
+      "element": "view",
+      "handler": "toggleStore",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/roles/role-edit.vue",
+      "line": 28,
+      "element": "view",
+      "handler": "toggleExpandAll",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/roles/role-edit.vue",
+      "line": 35,
+      "element": "view",
+      "handler": "toggleExpand",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/roles/role-edit.vue",
+      "line": 66,
+      "element": "button",
+      "handler": "onSave",
+      "text": "保存",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/roles/roles.vue",
+      "line": 10,
+      "element": "view",
+      "handler": "goEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/roles/roles.vue",
+      "line": 44,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/settings/settings.vue",
+      "line": 7,
+      "element": "view",
+      "handler": "toggleSection",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/settings/settings.vue",
+      "line": 73,
+      "element": "view",
+      "handler": "onSave",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/stores/store-edit.vue",
+      "line": 100,
+      "element": "view",
+      "handler": "cancelEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/stores/store-edit.vue",
+      "line": 101,
+      "element": "view",
+      "handler": "onSave",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/stores/store-edit.vue",
+      "line": 104,
+      "element": "view",
+      "handler": "onDelete",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/stores/store-edit.vue",
+      "line": 105,
+      "element": "view",
+      "handler": "startEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/admin/stores/stores.vue",
+      "line": 17,
+      "element": "view",
+      "handler": "startCoEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fin-bank-accounts",
+        "fin-bank-accounts",
+        "fin-bank-accounts"
+      ]
+    },
+    {
+      "page": "pages-sub/admin/stores/stores.vue",
+      "line": 67,
+      "element": "text",
+      "handler": "removeBank",
+      "text": "删除",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "fin-bank-accounts",
+        "fin-bank-accounts",
+        "fin-bank-accounts"
+      ]
+    },
+    {
+      "page": "pages-sub/admin/stores/stores.vue",
+      "line": 86,
+      "element": "view",
+      "handler": "cancelBankAdd",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fin-bank-accounts",
+        "fin-bank-accounts",
+        "fin-bank-accounts"
+      ]
+    },
+    {
+      "page": "pages-sub/admin/stores/stores.vue",
+      "line": 123,
+      "element": "view",
+      "handler": "goEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fin-bank-accounts",
+        "fin-bank-accounts",
+        "fin-bank-accounts"
+      ]
+    },
+    {
+      "page": "pages-sub/admin/stores/stores.vue",
+      "line": 161,
+      "element": "view",
+      "handler": "cancelCoEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fin-bank-accounts",
+        "fin-bank-accounts",
+        "fin-bank-accounts"
+      ]
+    },
+    {
+      "page": "pages-sub/admin/stores/stores.vue",
+      "line": 162,
+      "element": "view",
+      "handler": "saveCompany",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fin-bank-accounts",
+        "fin-bank-accounts",
+        "fin-bank-accounts"
+      ]
+    },
+    {
+      "page": "pages-sub/admin/stores/stores.vue",
+      "line": 165,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fin-bank-accounts",
+        "fin-bank-accounts",
+        "fin-bank-accounts"
+      ]
+    },
+    {
+      "page": "pages-sub/finance/finance/expense-create.vue",
+      "line": 43,
+      "element": "view",
+      "handler": "onSubmit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/finance/expense-detail.vue",
+      "line": 42,
+      "element": "button",
+      "handler": "onReject",
+      "text": "驳回",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/finance/expense-detail.vue",
+      "line": 43,
+      "element": "button",
+      "handler": "onApprove",
+      "text": "审核通过",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/finance/expense-detail.vue",
+      "line": 54,
+      "element": "button",
+      "handler": "confirmReject",
+      "text": "确认驳回",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/finance/expenses.vue",
+      "line": 74,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/finance/expenses.vue",
+      "line": 85,
+      "element": "view",
+      "handler": "confirmReject",
+      "text": "确定",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/config.vue",
+      "line": 48,
+      "element": "button",
+      "handler": "onDeleteConfig",
+      "text": "删除",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/config.vue",
+      "line": 81,
+      "element": "button",
+      "handler": "onSaveConfig",
+      "text": "保存配置",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/orders.vue",
+      "line": 91,
+      "element": "button",
+      "handler": "acceptOrder",
+      "text": "接单",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/orders.vue",
+      "line": 92,
+      "element": "button",
+      "handler": "shipOrder",
+      "text": "发货",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/orders.vue",
+      "line": 93,
+      "element": "button",
+      "handler": "rejectOrder",
+      "text": "拒单",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/products.vue",
+      "line": 39,
+      "element": "button",
+      "handler": "onEditPrice",
+      "text": "改价/上架",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/products.vue",
+      "line": 40,
+      "element": "button",
+      "handler": "onEditPrice",
+      "text": "改价",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/products.vue",
+      "line": 41,
+      "element": "button",
+      "handler": "onRemove",
+      "text": "下架",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/products.vue",
+      "line": 60,
+      "element": "view",
+      "handler": "closeEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/products.vue",
+      "line": 64,
+      "element": "text",
+      "handler": "closeEdit",
+      "text": "X",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/instant-retail/products.vue",
+      "line": 81,
+      "element": "button",
+      "handler": "onSaveEdit",
+      "text": "确认",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/create-gain.vue",
+      "line": 31,
+      "element": "text",
+      "handler": "removeProduct",
+      "text": "删除",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/create-gain.vue",
+      "line": 68,
+      "element": "view",
+      "handler": "onSubmit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/create-gain.vue",
+      "line": 84,
+      "element": "view",
+      "handler": "toggleProduct",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/create-loss.vue",
+      "line": 31,
+      "element": "text",
+      "handler": "removeProduct",
+      "text": "删除",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/create-loss.vue",
+      "line": 60,
+      "element": "view",
+      "handler": "removePhoto",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/create-loss.vue",
+      "line": 85,
+      "element": "view",
+      "handler": "onSubmit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/create-loss.vue",
+      "line": 101,
+      "element": "view",
+      "handler": "toggleProduct",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/gain-list.vue",
+      "line": 105,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/loss-gain-detail.vue",
+      "line": 129,
+      "element": "button",
+      "handler": "onReject",
+      "text": "驳回",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/loss-gain-detail.vue",
+      "line": 130,
+      "element": "button",
+      "handler": "onApprove",
+      "text": "审核通过",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/loss-gain-detail.vue",
+      "line": 147,
+      "element": "button",
+      "handler": "confirmReject",
+      "text": "确认驳回",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/loss-gain/loss-list.vue",
+      "line": 105,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/purchase/orders.vue",
+      "line": 64,
+      "element": "button",
+      "handler": "handleInStock",
+      "text": "入库",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/receipts/receipts.vue",
+      "line": 72,
+      "element": "button",
+      "handler": "voidReceipt",
+      "text": "作废",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/reports/customer-reports.vue",
+      "line": 7,
+      "element": "view",
+      "handler": "chooseStartDate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/reports/finance-reports.vue",
+      "line": 7,
+      "element": "view",
+      "handler": "chooseStartDate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/reports/inventory-reports.vue",
+      "line": 7,
+      "element": "view",
+      "handler": "chooseStartDate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/reports/purchase-reports.vue",
+      "line": 7,
+      "element": "view",
+      "handler": "chooseStartDate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/transfer/create.vue",
+      "line": 43,
+      "element": "text",
+      "handler": "addItem",
+      "text": "+ 添加商品",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/transfer/create.vue",
+      "line": 56,
+      "element": "text",
+      "handler": "removeItem",
+      "text": "1\">删除",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/transfer/create.vue",
+      "line": 67,
+      "element": "view",
+      "handler": "onSubmit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/finance/transfer/transfer.vue",
+      "line": 36,
+      "element": "button",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fx-transfer-receive"
+      ]
+    },
+    {
+      "page": "pages-sub/finance/transfer/transfer.vue",
+      "line": 78,
+      "element": "button",
+      "handler": "handleCancel",
+      "text": "取消单据",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fx-transfer-receive"
+      ]
+    },
+    {
+      "page": "pages-sub/finance/transfer/transfer.vue",
+      "line": 79,
+      "element": "button",
+      "handler": "handleSubmit",
+      "text": "提交审核",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fx-transfer-receive"
+      ]
+    },
+    {
+      "page": "pages-sub/finance/transfer/transfer.vue",
+      "line": 82,
+      "element": "button",
+      "handler": "handleReject",
+      "text": "驳回",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fx-transfer-receive"
+      ]
+    },
+    {
+      "page": "pages-sub/finance/transfer/transfer.vue",
+      "line": 83,
+      "element": "button",
+      "handler": "handleApprove",
+      "text": "审核通过",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fx-transfer-receive"
+      ]
+    },
+    {
+      "page": "pages-sub/finance/transfer/transfer.vue",
+      "line": 86,
+      "element": "button",
+      "handler": "handleShip",
+      "text": "确认发货",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "fx-transfer-receive"
+      ]
+    },
+    {
+      "page": "pages-sub/finance/transfer/transfer.vue",
+      "line": 90,
+      "element": "button",
+      "handler": "handleReceive",
+      "text": "确认收货",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "fx-transfer-receive"
+      ]
+    },
+    {
+      "page": "pages-sub/marketing/marketing/activities.vue",
+      "line": 55,
+      "element": "view",
+      "handler": "handleStart",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/activities.vue",
+      "line": 61,
+      "element": "view",
+      "handler": "handleStart",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/activities.vue",
+      "line": 64,
+      "element": "view",
+      "handler": "handleDelete",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/bargain-detail.vue",
+      "line": 156,
+      "element": "button",
+      "handler": "startBargain",
+      "text": "发起砍价",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/coupons.vue",
+      "line": 35,
+      "element": "button",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/coupons.vue",
+      "line": 66,
+      "element": "button",
+      "handler": "editCoupon",
+      "text": "编辑",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/coupons.vue",
+      "line": 67,
+      "element": "button",
+      "handler": "stopCoupon",
+      "text": "停用",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/create-coupon.vue",
+      "line": 111,
+      "element": "view",
+      "handler": "chooseStartDate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/create-coupon.vue",
+      "line": 169,
+      "element": "button",
+      "handler": "onSubmit",
+      "text": "发布优惠券",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/group-buy-detail.vue",
+      "line": 126,
+      "element": "button",
+      "handler": "startGroupBuy",
+      "text": "发起拼团",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/marketing.vue",
+      "line": 38,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/marketing.vue",
+      "line": 42,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/marketing.vue",
+      "line": 46,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/marketing.vue",
+      "line": 50,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/marketing/marketing.vue",
+      "line": 90,
+      "element": "button",
+      "handler": "editActivity",
+      "text": "编辑",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/address.vue",
+      "line": 11,
+      "element": "view",
+      "handler": "editAddress",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/address.vue",
+      "line": 25,
+      "element": "view",
+      "handler": "toggleDefault",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/address.vue",
+      "line": 33,
+      "element": "view",
+      "handler": "editAddress",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/address.vue",
+      "line": 37,
+      "element": "view",
+      "handler": "deleteAddress",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/address.vue",
+      "line": 67,
+      "element": "view",
+      "handler": "closeEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/address.vue",
+      "line": 71,
+      "element": "text",
+      "handler": "closeEdit",
+      "text": "×",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/address.vue",
+      "line": 177,
+      "element": "button",
+      "handler": "saveAddress",
+      "text": "{{ submitting ? '保存中...' :",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member/member-detail.vue",
+      "line": 184,
+      "element": "view",
+      "handler": "editMode && removeTag",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "mkt-points-adjust"
+      ]
+    },
+    {
+      "page": "pages-sub/marketing/member/member-detail.vue",
+      "line": 213,
+      "element": "view",
+      "handler": "toggleStatus",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "mkt-points-adjust"
+      ]
+    },
+    {
+      "page": "pages-sub/marketing/member/member-detail.vue",
+      "line": 249,
+      "element": "view",
+      "handler": "cancelEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "mkt-points-adjust"
+      ]
+    },
+    {
+      "page": "pages-sub/marketing/member/member-detail.vue",
+      "line": 250,
+      "element": "view",
+      "handler": "saveEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "mkt-points-adjust"
+      ]
+    },
+    {
+      "page": "pages-sub/marketing/member/member-detail.vue",
+      "line": 255,
+      "element": "view",
+      "handler": "startEdit",
+      "text": "",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "mkt-points-adjust"
+      ]
+    },
+    {
+      "page": "pages-sub/marketing/member-levels/level-config.vue",
+      "line": 80,
+      "element": "view",
+      "handler": "saveLevel",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member-levels/member-levels.vue",
+      "line": 28,
+      "element": "view",
+      "handler": "goEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member-levels/member-levels.vue",
+      "line": 54,
+      "element": "view",
+      "handler": "toggleStatus",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/member-levels/member-levels.vue",
+      "line": 57,
+      "element": "view",
+      "handler": "deleteLevel",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/stored-cards/stored-cards.vue",
+      "line": 56,
+      "element": "view",
+      "handler": "toggleLock",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/marketing/stored-cards/stored-cards.vue",
+      "line": 59,
+      "element": "view",
+      "handler": "toggleLock",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/order/order-aftersale/aftersale.vue",
+      "line": 71,
+      "element": "button",
+      "handler": "handleApprove",
+      "text": "同意",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "island-aftersale"
+      ]
+    },
+    {
+      "page": "pages-sub/order/order-aftersale/aftersale.vue",
+      "line": 72,
+      "element": "button",
+      "handler": "handleReject",
+      "text": "拒绝",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "island-aftersale"
+      ]
+    },
+    {
+      "page": "pages-sub/order/sales/sale-detail.vue",
+      "line": 54,
+      "element": "button",
+      "handler": "onCollect",
+      "text": "确认收款",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": [
+        "sale-bill-offline-pay"
+      ]
+    },
+    {
+      "page": "pages-sub/product/batch-price/batch-price.vue",
+      "line": 14,
+      "element": "view",
+      "handler": "togglePop",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-batch-price-submit"
+      ]
+    },
+    {
+      "page": "pages-sub/product/batch-price/batch-price.vue",
+      "line": 62,
+      "element": "view",
+      "handler": "toggleType",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-batch-price-submit"
+      ]
+    },
+    {
+      "page": "pages-sub/product/batch-price/batch-price.vue",
+      "line": 203,
+      "element": "view",
+      "handler": "toggleSel",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-batch-price-submit"
+      ]
+    },
+    {
+      "page": "pages-sub/product/categories/categories.vue",
+      "line": 28,
+      "element": "view",
+      "handler": "toggleExpand",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": true,
+      "gateIds": [
+        "goods-category-edit",
+        "goods-category-edit",
+        "goods-category-create",
+        "goods-category-delete",
+        "goods-category-create"
+      ]
+    },
+    {
+      "page": "pages-sub/product/categories/category-edit.vue",
+      "line": 68,
+      "element": "button",
+      "handler": "onSubmit",
+      "text": "{{ isEdit ? '保存修改' : '创建分类' }}",
+      "guarded": true,
+      "pageHasGate": true,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/collection-link/collection-link.vue",
+      "line": 77,
+      "element": "button",
+      "handler": "revokeLink",
+      "text": "撤销",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/customers/customer-detail.vue",
+      "line": 77,
+      "element": "text",
+      "handler": "toggleEdit",
+      "text": "{{ isEdit ? '取消' : '编辑' }}",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/customers/customer-detail.vue",
+      "line": 144,
+      "element": "button",
+      "handler": "onSubmit",
+      "text": "保存修改",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/price/price-manage.vue",
+      "line": 59,
+      "element": "button",
+      "handler": "onEditLevel",
+      "text": "编辑",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/price/price-manage.vue",
+      "line": 60,
+      "element": "button",
+      "handler": "onToggleLevel",
+      "text": "{{ level.status === 1 ? '禁",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/price-push/price-push.vue",
+      "line": 56,
+      "element": "view",
+      "handler": "toggleChannel",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/price-review/price-review.vue",
+      "line": 84,
+      "element": "button",
+      "handler": "onSubmit",
+      "text": "提交核价",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/product/product-edit.vue",
+      "line": 222,
+      "element": "button",
+      "handler": "onSubmit",
+      "text": "{{ isEdit ? '保存修改' : '创建商品'",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/stock-check/check-detail.vue",
+      "line": 39,
+      "element": "button",
+      "handler": "onStart",
+      "text": "开始盘点",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/stock-check/check-detail.vue",
+      "line": 40,
+      "element": "button",
+      "handler": "onComplete",
+      "text": "完成盘点",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/stock-check/check-detail.vue",
+      "line": 41,
+      "element": "button",
+      "handler": "onCancel",
+      "text": "取消盘点",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/stock-check/check-detail.vue",
+      "line": 102,
+      "element": "button",
+      "handler": "onHandleDiff",
+      "text": "提交差异处理",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/stock-check/create-check.vue",
+      "line": 60,
+      "element": "button",
+      "handler": "onSubmit",
+      "text": "{{ submitting ? '创建中...' : '创建",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/stock-check/stock-checks.vue",
+      "line": 83,
+      "element": "view",
+      "handler": "goCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/stock-warning/stock-warning.vue",
+      "line": 76,
+      "element": "button",
+      "handler": "onSaveConfig",
+      "text": "保存配置",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/suppliers/detail.vue",
+      "line": 63,
+      "element": "text",
+      "handler": "showEdit &&",
+      "text": "{{ c }}",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/suppliers/detail.vue",
+      "line": 105,
+      "element": "text",
+      "handler": "showEdit && !opt.pending &&",
+      "text": "{{ opt.label }}{{ opt.pending ? '·待后端' :",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/suppliers/detail.vue",
+      "line": 198,
+      "element": "view",
+      "handler": "toggleStatus",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/suppliers/detail.vue",
+      "line": 235,
+      "element": "view",
+      "handler": "cancelEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/suppliers/detail.vue",
+      "line": 236,
+      "element": "view",
+      "handler": "submitEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/suppliers/detail.vue",
+      "line": 239,
+      "element": "view",
+      "handler": "openEdit",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/product/suppliers/suppliers.vue",
+      "line": 5,
+      "element": "view",
+      "handler": "openCreate",
+      "text": "",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/settings/settings.vue",
+      "line": 65,
+      "element": "button",
+      "handler": "saveConfigs",
+      "text": "保存",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    },
+    {
+      "page": "pages-sub/settings/settings.vue",
+      "line": 122,
+      "element": "button",
+      "handler": "startSetup",
+      "text": "开启双因素认证",
+      "guarded": false,
+      "pageHasGate": false,
+      "gateIds": []
+    }
+  ]
+}

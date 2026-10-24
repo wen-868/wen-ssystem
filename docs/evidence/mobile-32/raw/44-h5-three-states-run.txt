@@ -1,0 +1,39 @@
+(node:10032) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+MOBILE-32 · H5 三态运行态取证 v2（2026-10-24T20:20:36.483Z）
+dev base = http://localhost:5173/
+
+[前置①] 有权限态渲染按钮数 = 1（hash=#/pages-sub/finance/transfer/transfer, bodyLen=7745）
+✓ 目标页已渲染按钮
+
+=== ready-granted · 有权限（STORE_MANAGER 持 store:transfer） ===
+写请求数 = 0
+按钮总数 = 1；disabled = 0
+按钮明细(前6) = 「+ 新建调拨单」enabled op=1
+gate-hint = (无)
+pageerror = Object ‖ Object
+
+（对照态：disabled=0 / 写请求=0）
+=== ready-denied · 无权限（STORE_OPERATOR 不持 store:transfer） ===
+写请求数 = 0
+按钮总数 = 1；disabled = 1
+按钮明细(前6) = 「+ 新建调拨单」DISABLED op=0.45
+gate-hint = (无)
+pageerror = Object ‖ Object
+
+✓ 写请求 0
+✓ 有 1 个 disabled 写按钮
+=== unavailable · 权限失败（/auth/me 500） ===
+写请求数 = 0
+按钮总数 = 1；disabled = 1
+按钮明细(前6) = 「+ 新建调拨单」DISABLED op=0.45
+gate-hint = (无)
+pageerror = Object ‖ Object
+
+✓ 写请求 0
+✓ 有 1 个 disabled 写按钮
+
+[前置②] 有权限态 disabled=0 / 无权限态 disabled=1 ⇒ 差异=true
+✓ 三态按钮状态有差异（权限接线生效）
+
+H5_THREE_STATES_PASS（含前置①②）

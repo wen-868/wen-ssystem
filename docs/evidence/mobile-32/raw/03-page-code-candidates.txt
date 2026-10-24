@@ -1,0 +1,55 @@
+### pages-sub/finance/transfer/transfer.vue
+路由文件：transfer.routes.ts
+候选码：store:transfer(8)
+
+### pages-sub/finance/transfer/create.vue
+路由文件：transfer.routes.ts
+候选码：store:transfer(8)
+
+### pages-sub/finance/finance/expenses.vue
+路由文件：expense.routes.ts
+候选码：finance:create(4)
+
+### pages-sub/finance/finance/expense-create.vue
+路由文件：expense.routes.ts
+候选码：finance:create(4)
+
+### pages-sub/finance/finance/expense-detail.vue
+路由文件：expense.routes.ts
+候选码：finance:create(4)
+
+### pages-sub/finance/receipts/receipts.vue
+路由文件：receipt.routes.ts
+候选码：sale:create(1)  finance:payment(1)  finance:receipt:create(1)
+
+### pages-sub/finance/statements/statements.vue
+路由文件：customer-statement.routes.ts
+候选码：customer:statement(2)
+
+### pages-sub/finance/reconciliation/reconciliation.vue
+路由文件：reconciliation.routes.ts
+候选码：report:finance(2)
+
+### pages-sub/marketing/member-levels/member-levels.vue
+路由文件：member-level.routes.ts, customer-level.routes.ts
+候选码：（该路由文件无 requirePermission ⇒ BLOCKED）
+
+### pages-sub/marketing/member-levels/level-config.vue
+路由文件：member-level.routes.ts, customer-level.routes.ts
+候选码：（该路由文件无 requirePermission ⇒ BLOCKED）
+
+### pages-sub/marketing/marketing/activities.vue
+路由文件：admin-marketing-full-reduction.routes.ts
+候选码：marketing:create(5)
+
+### pages-sub/marketing/marketing/coupons.vue
+路由文件：admin-marketing-coupon.routes.ts
+候选码：marketing:create(5)
+
+### pages-sub/marketing/marketing/create-coupon.vue
+路由文件：admin-marketing-coupon.routes.ts
+候选码：marketing:create(5)
+
+### pages-sub/product/batch-price/batch-price.vue
+路由文件：admin-product.routes.ts
+候选码：goods:edit(8)  goods:create(2)  goods:price(1)  goods:delete(1)

@@ -69,7 +69,7 @@
           </view>
         </view>
         <view class="card-actions" v-if="item.status === 'active'">
-          <button class="action-btn void-btn" @tap="voidReceipt(item)">作废</button>
+          <button class="action-btn void-btn" :disabled="!gateReceiptVoid.enabled" @tap="gateReceiptVoid.enabled && voidReceipt(item)">作废</button>
         </view>
       </view>
     </scroll-view>
@@ -86,12 +86,18 @@
 <script setup lang="ts">
 function goBack(){ uni.navigateBack() }
 
+// MOBILE-32：按钮级权限预判（码来源见回传卡矩阵）
+import { usePermissionGate } from '@/composables/usePermissionGate'
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { receiptApi } from '@/api/modules/receipts'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
+
+// MOBILE-32：该页写动作的按钮级门（码=finance:receipt:create，逐按钮各自判定）
+const { buttonGate } = usePermissionGate()
+const gateReceiptVoid = buttonGate(['finance:receipt:create'])
 const searchRules: Rules = {
   keyword: [{ minLength: 1, message: '输入至少1个字符', required: false }],
 }
@@ -256,4 +262,9 @@ onMounted(() => { loadReceipts() })
 .empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
+
+/* MOBILE-32：权限预判态（禁用观感 + 统一说明行；文案来自 BUTTON_HINTS，不含权限码） */
+.action-btn[disabled], .modal-btn--disabled, .fab-btn--disabled { opacity: .45; }
+.gate-hint { margin-top: 12rpx; padding: 0 12rpx; }
+.gate-hint-text { font-size: 24rpx; color: #737373; line-height: 1.4; display: block; }
 </style>

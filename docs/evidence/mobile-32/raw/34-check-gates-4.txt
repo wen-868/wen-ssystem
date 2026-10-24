@@ -1,0 +1,99 @@
+
+> zhixiang-app-mobile@1.0.0 check:gates
+> npm run type-check && npm run lint && npm run test && npm run check:contract && npm run guard:request && npm run guard:mp-style
+
+
+> zhixiang-app-mobile@1.0.0 type-check
+> node scripts/type-check-gate.mjs
+
+—— type-check（vue-tsc --noEmit，0 新增口径）——
+vue-tsc EXIT=0，当前错误 0 条，基线 0 条
+✓ 无新增类型错误 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 lint
+> node scripts/lint-gate.mjs
+
+—— lint（eslint src --ext .ts,.vue，error 0 新增 / warning 不劣化）——
+当前 error 0（基线 0）、warning 12872（基线 12872）
+✓ 无新增 error、warning 未劣化 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 test
+> node scripts/test-gate.mjs
+
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile
+
+ ✓ tests/page-wiring.spec.ts (15 tests) 55ms
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步1] ③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" showRetry=true status=firstfail
+[步2] 点 × ⇒ bannerText="" 存储键 before=[] after=[]
+
+stdout | tests/permission-view-state.spec.ts > menu store（三态接线的渲染结果） > 装置四步：× 关闭仅本次会话（不写存储），再次③态提示重现
+[步3] 再次③态 ⇒ bannerText="权限信息未取到，已按最小可见集显示，请下拉刷新重试" status=firstfail
+[步4] 再点 × ⇒ bannerText=""
+
+ ✓ tests/permission-view-state.spec.ts (29 tests) 133ms
+ ✓ tests/request-contract.spec.ts (26 tests) 696ms
+     ✓ ② 200 + code "0" + data ⇒ 成功解包 data  333ms
+ ✓ tests/update-security.spec.ts (41 tests) 388ms
+ ✓ tests/storage-crypto.spec.ts (9 tests) 552ms
+ ✓ tests/request-retry-safety.spec.ts (15 tests) 1123ms
+     ✓ ① GET 首请求 401 且本地可读 token ⇒ 静默重试恰好一次并成功收尾  341ms
+     ✓ ⑭ request.ts 不再导出 upload，且全仓无一处从 api/request 导入 upload  617ms
+ ✓ tests/entry-gate-consistency.spec.ts (12 tests) 306ms
+ ✓ tests/product-sku-dimension.spec.ts (55 tests) 53ms
+ ✓ tests/button-gates.spec.ts (23 tests) 35ms
+ ✓ tests/price-anomaly-static.spec.ts (24 tests) 35ms
+ ✓ tests/format.spec.ts (78 tests) 36ms
+ ✓ tests/api-base-env.spec.ts (3 tests) 18ms
+ ✓ tests/mobile-permissions.spec.ts (8 tests) 30ms
+ ✓ tests/tabbar-name-reactivity.spec.ts (6 tests) 20ms
+ ✓ tests/ai-cross-platform.spec.ts (10 tests) 19ms
+ ✓ tests/safe-top-var.spec.ts (4 tests) 11ms
+ ✓ tests/pin-ssl-static.spec.ts (1 test) 12ms
+ ✓ tests/permission-codes.spec.ts (8 tests) 12ms
+
+ Test Files  18 passed (18)
+      Tests  367 passed (367)
+   Start at  03:48:28
+   Duration  5.84s (transform 7.57s, setup 0ms, import 9.49s, tests 3.53s, environment 12ms)
+
+—— test 门（用例数冻结）：当前 18 文件 / 367 用例，基线 18 / 367 ——
+✓ vitest 全过且用例数不劣化 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 check:contract
+> node scripts/check-contract.mjs
+
+—— 契约对账（QODER-1 门 4，口径见文件头注释）——
+A.2 口径① 引号内 '/admin/...' 出现次数（本脚本非注释行口径）: 291
+A.2 口径② 其中位于调用/ url: 行内的出现次数:              282
+A.2 口径③ 去重后的调用路径数:                              204
+后端注册端点（routes/*.routes.ts 抽得，含全动词）:          1498
+差集（调用有、注册无）: 1 条，其中具名豁免 1 条
+
+✓ 差集为 0 或全部具名豁免 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 guard:request
+> node scripts/guard-request-contract.mjs
+
+—— QODER-29 + MOBILE-29F1 请求出口 & 凭据日志静态守卫 ——
+直接网络调用（uni.request/uploadFile/downloadFile，非注释行）：共 8 处
+  src/api/modules/ai.ts:259  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:383  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:416  uni.request  ✔ 已登记
+  src/api/modules/ai.ts:457  uni.request  ✔ 已登记
+  src/api/modules/products.ts:604  uni.uploadFile  ✔ 已登记
+  src/api/modules/profile.ts:49  uni.uploadFile  ✔ 已登记
+  src/api/request.ts:144  uni.request  ✔ 已登记
+  src/utils/update.ts:177  uni.downloadFile  ✔ 已登记
+
+✓ A 全部登记且未超额 · B 按调用类型复用对应构建器 · C 无明文凭据日志 · D 无 JSON 构建器误用 ⇒ EXIT=0
+
+> zhixiang-app-mobile@1.0.0 guard:mp-style
+> node scripts/guard-mp-style-selectors.mjs
+
+源码通配 prelude：命中 3 处 / 未隔离 0 处（已隔离=有 /* #ifndef MP-WEIXIN */ 等包裹，不进 MP 产物）
+✓ 已隔离 App.vue:70  ⇒  *, *::before, *::after
+✓ 已隔离 App.vue:121  ⇒  *, *::before, *::after
+✓ 已隔离 pages/sales/create-sale.vue:2474  ⇒  .create-sale-page *, .create-sale-page *::before, .create-sale-page *::after
+MP_STAR_GUARD_SRC_PASS

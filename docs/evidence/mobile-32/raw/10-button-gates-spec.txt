@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile
+
+ ✓ tests/button-gates.spec.ts (23 tests) 35ms
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  02:27:58
+   Duration  1.19s (transform 223ms, setup 0ms, import 287ms, tests 35ms, environment 0ms)
+

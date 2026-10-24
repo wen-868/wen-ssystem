@@ -1,0 +1,11 @@
+MOBILE-32 · 缩进债证明（为什么 expenses.vue 记为 BLOCKED）
+命令：对同一文件在**不改变语义**的前提下只加 1 行 DOM，比较 eslint warning 数
+
+原文件 warningCount = 82
+加 1 行后 warningCount = 83
+差值 = 1
+
+结论：该文件整模板缩进为 2/4 空格，而 .eslintrc.cjs 的 vue/html-indent 期望 4 空格倍率
+⇒ 每新增 1 行 DOM 必然 +1 warning ⇒ 与 check:gates 的 warning 冻结基线 12872 冲突。
+故 expenses.vue 的按钮级接线回退并登记 BLOCKED，待「移动端模板缩进归一」单处理；
+不得为接一页而重排整个文件缩进（违反禁止顺手重构/扩大改动面）。

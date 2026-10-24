@@ -1,0 +1,122 @@
+=== 有权限码的路由文件（83）===
+admin-customer.routes.ts                   customer:create,customer:edit
+admin-marketing-coupon.routes.ts           marketing:create
+admin-marketing-flash-sale.routes.ts       sale:create,sale:edit
+admin-marketing-full-reduction.routes.ts   marketing:create
+admin-marketing-group-buy.routes.ts        marketing:create
+admin-marketing-points.routes.ts           marketing:points
+admin-marketing-stack-rule.routes.ts       marketing:create
+admin-order.routes.ts                      sale:edit,sale:void,sale:create
+admin-product.routes.ts                    goods:create,goods:edit,goods:price,goods:delete
+admin-quote-push.routes.ts                 sale:create,sale:void
+admin-report.routes.ts                     report:finance
+admin-staff.routes.ts                      system:user:create,system:user:edit
+aftersale.routes.ts                        sale:return
+bank-account.routes.ts                     finance:create
+brand.routes.ts                            goods:create,goods:edit
+category.routes.ts                         goods:create,goods:edit,goods:delete
+commerce-fix.routes.ts                     sale:edit,sale:create,sale:void
+commission.routes.ts                       sale:commission,finance:payment
+community-marketing.routes.ts              marketing:create
+credit.routes.ts                           customer:credit
+customer-care.routes.ts                    customer:create,customer:edit
+customer-merge.routes.ts                   customer:create
+customer-payment.routes.ts                 customer:payment
+customer-price.routes.ts                   customer:create,customer:edit
+customer-segment.routes.ts                 customer:create,customer:edit
+customer-statement.routes.ts               customer:statement
+customer-tag.routes.ts                     customer:create,customer:edit
+customer-type.routes.ts                    customer:create,customer:edit
+customer-visit.routes.ts                   customer:visit
+data-permission.routes.ts                  system:role:create,system:role:edit
+data-transfer.routes.ts                    store:transfer
+demo.routes.ts                             store:create
+expense.routes.ts                          finance:create
+instant-retail-store.routes.ts             sale:create,sale:void
+inventory-batch.routes.ts                  inventory:create,inventory:adjust
+inventory-loss-gain.routes.ts              inventory:adjust
+inventory-profit-loss.routes.ts            inventory:create,inventory:approve
+inventory-share.routes.ts                  inventory:adjust,inventory:create
+marketing-asset.routes.ts                  marketing:create
+marketing-gift-rule.routes.ts              marketing:create
+marketing-limited-discount.routes.ts       marketing:create
+marketing-material.routes.ts               marketing:create
+marketing-points-mall.routes.ts            marketing:points
+order-timeout.routes.ts                    sale:edit
+payment-config.routes.ts                   finance:create
+payment-new.routes.ts                      finance:payment
+payment.routes.ts                          finance:create
+points-mall.routes.ts                      marketing:points
+points.routes.ts                           marketing:create,customer:level
+price.routes.ts                            goods:price
+product-bundle.routes.ts                   goods:create,goods:edit,goods:delete
+product-marketing-tag.routes.ts            goods:create,goods:edit
+product-review.routes.ts                   goods:create
+purchase-contract.routes.ts                purchase:create
+purchase-in-stock.routes.ts                inventory:inbound
+purchase-payment.routes.ts                 finance:payment
+purchase-return.routes.ts                  sale:return
+purchase.routes.ts                         purchase:create,purchase:approve
+rbac.routes.ts                             system:role:create,system:role:edit
+receipt.routes.ts                          sale:create,finance:payment,finance:receipt:create
+reconciliation.routes.ts                   report:finance
+retail-announcement.routes.ts              marketing:create
+retail-announcements-admin.routes.ts       marketing:create
+sale-return.routes.ts                      sale:return
+seckill.routes.ts                          marketing:create
+stock-check.routes.ts                      inventory:create,inventory:adjust
+stock-warning.routes.ts                    inventory:adjust
+store-control.routes.ts                    store:edit,store:create
+store-inventory.routes.ts                  inventory:adjust
+store-order.routes.ts                      sale:create,sale:void
+store-receivable.routes.ts                 finance:payment
+store-sale-bill.routes.ts                  sale:create
+store-value-card.routes.ts                 finance:create
+supplier-contact.routes.ts                 purchase:supplier
+supplier-statement.routes.ts               report:finance
+supplier.routes.ts                         purchase:supplier
+sys-user.routes.ts                         system:user:create,system:user:edit
+tag.routes.ts                              customer:create,customer:edit
+transfer-order.routes.ts                   store:transfer,inventory:approve
+transfer.routes.ts                         store:transfer
+unit-group.routes.ts                       goods:create,goods:edit
+unit.routes.ts                             goods:create,goods:edit,goods:delete
+warehouse.routes.ts                        inventory:create,inventory:adjust
+
+=== 码 → 文件 反查（供矩阵取码用）===
+customer:create          8 文件: admin-customer.routes.ts, customer-care.routes.ts, customer-merge.routes.ts, customer-price.routes.ts, customer-segment.routes.ts, customer-tag.routes.ts, customer-type.routes.ts, tag.routes.ts
+customer:credit          1 文件: credit.routes.ts
+customer:edit            7 文件: admin-customer.routes.ts, customer-care.routes.ts, customer-price.routes.ts, customer-segment.routes.ts, customer-tag.routes.ts, customer-type.routes.ts, tag.routes.ts
+customer:level           1 文件: points.routes.ts
+customer:payment         1 文件: customer-payment.routes.ts
+customer:statement       1 文件: customer-statement.routes.ts
+customer:visit           1 文件: customer-visit.routes.ts
+finance:create           5 文件: bank-account.routes.ts, expense.routes.ts, payment-config.routes.ts, payment.routes.ts, store-value-card.routes.ts
+finance:payment          5 文件: commission.routes.ts, payment-new.routes.ts, purchase-payment.routes.ts, receipt.routes.ts, store-receivable.routes.ts
+finance:receipt:create   1 文件: receipt.routes.ts
+goods:create             8 文件: admin-product.routes.ts, brand.routes.ts, category.routes.ts, product-bundle.routes.ts, product-marketing-tag.routes.ts, product-review.routes.ts, unit-group.routes.ts, unit.routes.ts
+goods:delete             4 文件: admin-product.routes.ts, category.routes.ts, product-bundle.routes.ts, unit.routes.ts
+goods:edit               7 文件: admin-product.routes.ts, brand.routes.ts, category.routes.ts, product-bundle.routes.ts, product-marketing-tag.routes.ts, unit-group.routes.ts, unit.routes.ts
+goods:price              2 文件: admin-product.routes.ts, price.routes.ts
+inventory:adjust         7 文件: inventory-batch.routes.ts, inventory-loss-gain.routes.ts, inventory-share.routes.ts, stock-check.routes.ts, stock-warning.routes.ts, store-inventory.routes.ts, warehouse.routes.ts
+inventory:approve        2 文件: inventory-profit-loss.routes.ts, transfer-order.routes.ts
+inventory:create         5 文件: inventory-batch.routes.ts, inventory-profit-loss.routes.ts, inventory-share.routes.ts, stock-check.routes.ts, warehouse.routes.ts
+inventory:inbound        1 文件: purchase-in-stock.routes.ts
+marketing:create         13 文件: admin-marketing-coupon.routes.ts, admin-marketing-full-reduction.routes.ts, admin-marketing-group-buy.routes.ts, admin-marketing-stack-rule.routes.ts, community-marketing.routes.ts, marketing-asset.routes.ts, marketing-gift-rule.routes.ts, marketing-limited-discount.routes.ts, marketing-material.routes.ts, points.routes.ts, retail-announcement.routes.ts, retail-announcements-admin.routes.ts, seckill.routes.ts
+marketing:points         3 文件: admin-marketing-points.routes.ts, marketing-points-mall.routes.ts, points-mall.routes.ts
+purchase:approve         1 文件: purchase.routes.ts
+purchase:create          2 文件: purchase-contract.routes.ts, purchase.routes.ts
+purchase:supplier        2 文件: supplier-contact.routes.ts, supplier.routes.ts
+report:finance           3 文件: admin-report.routes.ts, reconciliation.routes.ts, supplier-statement.routes.ts
+sale:commission          1 文件: commission.routes.ts
+sale:create              8 文件: admin-marketing-flash-sale.routes.ts, admin-order.routes.ts, admin-quote-push.routes.ts, commerce-fix.routes.ts, instant-retail-store.routes.ts, receipt.routes.ts, store-order.routes.ts, store-sale-bill.routes.ts
+sale:edit                4 文件: admin-marketing-flash-sale.routes.ts, admin-order.routes.ts, commerce-fix.routes.ts, order-timeout.routes.ts
+sale:return              3 文件: aftersale.routes.ts, purchase-return.routes.ts, sale-return.routes.ts
+sale:void                5 文件: admin-order.routes.ts, admin-quote-push.routes.ts, commerce-fix.routes.ts, instant-retail-store.routes.ts, store-order.routes.ts
+store:create             2 文件: demo.routes.ts, store-control.routes.ts
+store:edit               1 文件: store-control.routes.ts
+store:transfer           3 文件: data-transfer.routes.ts, transfer-order.routes.ts, transfer.routes.ts
+system:role:create       2 文件: data-permission.routes.ts, rbac.routes.ts
+system:role:edit         2 文件: data-permission.routes.ts, rbac.routes.ts
+system:user:create       2 文件: admin-staff.routes.ts, sys-user.routes.ts
+system:user:edit         2 文件: admin-staff.routes.ts, sys-user.routes.ts

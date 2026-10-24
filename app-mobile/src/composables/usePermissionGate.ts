@@ -34,6 +34,7 @@ import { computed } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { hasPermissionCodes, isEntryVisible } from '@/config/permission-gates'
 import { resolvePermissionViewState, type PermissionRequestState } from '@/config/permission-view-state'
+import { resolveButtonGate } from '@/config/button-gates'
 
 export function usePermissionGate() {
   const userStore = useUserStore()
@@ -90,5 +91,38 @@ export function usePermissionGate() {
     return entryIds.some((id) => canEntry(id))
   }
 
-  return { permissions, permissionsLoaded, hasSession, requestState, viewState, can, canEntry, canAnyEntry }
+  /**
+   * 按钮级写动作预判（MOBILE-32 / MO-16）。
+   *
+   * 与 `can()` 的区别：`can()` 只回答"能不能"，且对 `codes===null` 放行（那是"该动作不设门"）；
+   * 本函数回答"按钮该显示什么状态 + 为什么"，并把 `codes` 为空视为 **blocked（后端无确定码）**
+   * 而非放行 —— 写动作绝不能因"码未定"就默认可点（卡 §五 红线）。
+   *
+   * 用法：`const gate = buttonGate(['goods:edit'])`，模板里
+   * `:disabled="!gate.enabled"` + `v-if="gate.showHint"` 显示 `gate.hint`。
+   * 只读按钮**不要**调本函数。
+   */
+  function buttonGate(codes: readonly string[] | null | undefined, cachedPermissions?: readonly string[] | null) {
+    return computed(() =>
+      resolveButtonGate({
+        codes,
+        permissions: permissions.value,
+        hasSession: hasSession.value,
+        requestState: requestState.value,
+        cachedPermissions,
+      })
+    )
+  }
+
+  return {
+    permissions,
+    permissionsLoaded,
+    hasSession,
+    requestState,
+    viewState,
+    can,
+    canEntry,
+    canAnyEntry,
+    buttonGate,
+  }
 }

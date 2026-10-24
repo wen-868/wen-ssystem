@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/MOBILE-32/app-mobile
+
+ ✓ tests/page-wiring.spec.ts (15 tests) 62ms
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  03:42:38
+   Duration  908ms (transform 95ms, setup 0ms, import 134ms, tests 62ms, environment 0ms)
+
