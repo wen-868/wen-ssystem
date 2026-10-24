@@ -42,7 +42,8 @@
 | 5 | **独立核验工具**：产品代码零虚构状态 + 真实六态齐备 | `docs/evidence/WORKBENCH-06F2/tools/verify-no-fabricated-status.mjs` | 新增 |
 | 6 | **证据包**：README + 7 日志(+2 note) + 5 条 mutation 记录 + 核验日志 | `docs/evidence/WORKBENCH-06F2/**` | 新增 |
 
-**提交**：见 §七。
+**提交**：`948de65a951fd4ed1213da6eb33a1f5c826843b1`（父 `e68315f4` = 派单基线），16 个文件，
+逐文件 `git add`（**未用 `git add -A`**），见 §七。
 
 ## 二、改动面
 
@@ -227,8 +228,41 @@ $ git diff --name-only e68315f4 -- admin-web/src/views backend
 
 ## 七、提交与分支（未 push、未开 PR）
 
-逐文件 `git add`（**未用 `git add -A`**）。提交见 `git log`；`git status` clean；
-`git ls-remote origin workbench/WORKBENCH-06F2-plan-status-contract` 为空（未 push）。
+```
+$ git log --oneline -3
+948de65a fix(workbench): WORKBENCH-06F2 AI 计划状态契约对齐（真实六态）
+e68315f4 docs(workbench): WORKBENCH-06F1 回传卡补提交哈希与分支/远端正弦证据   ← 派单基线
+59187712 fix(workbench): WORKBENCH-06F1 AI 状态真实性与 Agent 顶部真实数据
+
+$ git rev-parse HEAD
+948de65a951fd4ed1213da6eb33a1f5c826843b1
+
+$ git status --short --branch
+## workbench/WORKBENCH-06F2-plan-status-contract        ← clean
+```
+
+**"未 push"的取证说明（重要，避免据不确定读数下结论）**：
+本次 `git ls-remote origin <该分支>` **因网络失败**（`Recv failure: Connection was reset`）而无法给出空输出，
+**该读数不能作为"未 push"的证据**（网络失败 ≠ 远端无此分支）。改用三条本地可复核证据：
+
+```text
+① 无 upstream：
+   $ git rev-parse --abbrev-ref <branch>@{upstream}
+   → fatal: ambiguous argument '<branch>@': unknown revision   （该分支未与远端建立关联）
+
+② reflog 只有两次本地操作，全程无 push 记录：
+   $ git reflog show <branch>
+   948de65a <branch>@{0}: commit: fix(workbench): WORKBENCH-06F2 …
+   e68315f4 <branch>@{1}: branch: Created from e68315f4224deb6114cc035de406eade74952503
+
+③ 远端追踪 ref 中不存在该分支：
+   $ git for-each-ref --format="%(refname)" refs/remotes | grep 06F2
+   → （空）
+```
+⇒ 本单**未执行任何 push**、**未开 PR**。
+
+逐文件 `git add`（**未用 `git add -A`**）：1 改源码 + 2 改测试 + 证据包（12 文件）+ 回传卡 = **16 个文件**。
+工作树 `D:\Users\ZXQL\ZXQL-MS\wt-works\WORKBENCH-06F2`｜分支 `workbench/WORKBENCH-06F2-plan-status-contract`。
 
 ## 八、环境复原
 
