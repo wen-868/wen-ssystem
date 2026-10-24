@@ -44,7 +44,8 @@
 | 10 | 真实上游透明反代（仅补 CORS 头，供跨域取证） | `docs/evidence/WORKBENCH-06F1/local-ai-proxy.mjs` | 新增 |
 | 11 | 证据包（README + 7 日志(+2 note) + 4 报告 + 11 截图(+README) + 1 反测记录） | `docs/evidence/WORKBENCH-06F1/**` | 新增 |
 
-**提交**：见 §七。
+**提交**：`591877125139d85ddf59996bd68e99f66d405908`（父 `20fdd794` = 派单基线），39 个文件，
+逐文件 `git add`（**未用 `git add -A`**），见 §七。
 
 ## 二、改动面
 
@@ -252,8 +253,24 @@ $ git diff --name-only 20fdd794 -- admin-web/src/views backend
 
 ## 七、提交与分支（未 push、未开 PR）
 
-逐文件 `git add`（**未用 `git add -A`**）。提交见 `git log`；`git status` clean；
-`git ls-remote origin workbench/WORKBENCH-06F1-agent-status-truth` 为空（未 push）。
+```
+$ git log --oneline -3
+59187712 fix(workbench): WORKBENCH-06F1 AI 状态真实性与 Agent 顶部真实数据
+20fdd794 docs(workbench): WORKBENCH-06 回传卡补提交哈希与分支/远端正弦证据   ← 派单基线
+ad1679e2 feat(workbench): WORKBENCH-06 壳层按原型重构…
+
+$ git rev-parse HEAD
+591877125139d85ddf59996bd68e99f66d405908
+
+$ git status --short --branch
+## workbench/WORKBENCH-06F1-agent-status-truth          ← clean
+
+$ git ls-remote origin workbench/WORKBENCH-06F1-agent-status-truth
+（空输出 ⇒ 远端无此分支 ⇒ 未 push）
+```
+
+逐文件 `git add`（**未用 `git add -A`**）：4 改 + 2 新增源码 + 2 新增测试 + 证据包（30 文件）+ 回传卡 = **39 个文件**。
+工作树 `D:\Users\ZXQL\ZXQL-MS\wt-works\WORKBENCH-06F1`｜分支 `workbench/WORKBENCH-06F1-agent-status-truth`。
 
 ## 八、环境复原
 
