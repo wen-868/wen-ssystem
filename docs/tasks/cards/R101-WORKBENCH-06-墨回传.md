@@ -39,7 +39,8 @@
 | 10 | 默认模式口径变更断言（留痕，非静默改） | `admin-web/tests/workbench-shell.spec.mjs` | 修改（+9/−4） |
 | 11 | 证据包（README + 取证脚本 + 9 份日志/说明 + 4 份报告 + 11 张截图 + 1 份反测记录） | `docs/evidence/WORKBENCH-06/**` | 新增 |
 
-**提交**：见 §七（逐文件 add，本地分支，未 push、未开 PR）。
+**提交**：`ad1679e2cced3974e5fbc95887f4067ddaab04d5`（父提交 `11aeda17` = 派单基线）。
+逐文件 `git add`（15 源码/测试/文档 + 32 证据文件），**未用 `git add -A`**；见 §七。
 
 ## 二、改动面
 
@@ -227,14 +228,24 @@ $ git status --short -- admin-web/src/views backend                 → （零�
 
 ## 七、提交与分支（未 push、未开 PR）
 
-逐文件 `git add`（未用 `git add -A`），提交见 `git log`：
-
 ```
-11aeda17 (base) → <commit> feat(workbench): WORKBENCH-06 壳层按原型重构（rail/第二列/Agent 状态/信息流主面/底部输入区）
+$ git log --oneline -3
+ad1679e2 feat(workbench): WORKBENCH-06 壳层按原型重构（rail/第二列/Agent 状态/信息流主面/底部输入区）
+11aeda17 docs(workbench): 落 WORKBENCH-05 墨回传卡     ← 派单基线
+eef659fe test(workbench): 补 WORKBENCH-05 全量回归…
+
+$ git rev-parse HEAD
+ad1679e2cced3974e5fbc95887f4067ddaab04d5
+
+$ git status --short --branch
+## workbench/WORKBENCH-06-prototype-parity            ← clean（无未提交改动）
+
+$ git ls-remote origin workbench/WORKBENCH-06-prototype-parity
+（空输出 ⇒ 远端无此分支 ⇒ 未 push）
 ```
 
-工作树 `D:\Users\ZXQL\ZXQL-MS\wt-works\WORKBENCH-06`｜分支 `workbench/WORKBENCH-06-prototype-parity`｜
-`git status` clean｜`git ls-remote origin workbench/WORKBENCH-06-prototype-parity` 为空（未 push）。
+逐文件 `git add`（**未用 `git add -A`**）：10 个源码/测试/配置 + 1 个回传卡 + 1 个在办卡 + 33 个证据文件。
+工作树 `D:\Users\ZXQL\ZXQL-MS\wt-works\WORKBENCH-06`｜分支 `workbench/WORKBENCH-06-prototype-parity`。
 
 ## 八、环境复原
 
