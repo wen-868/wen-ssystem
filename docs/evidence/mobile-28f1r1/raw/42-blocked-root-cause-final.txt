@@ -1,0 +1,14 @@
+MOBILE-28F1R1 · BLOCKED 根因定论（2026-10-25 01:13）
+
+[1] .cli 内容 = 3799（CLI 期望的 IDE 服务端口）
+    path=C:\Users\XIONG\AppData\Local\微信开发者工具\User Data\2ca4252ffa87560ea1fd48b913e45179\Default\.cli
+[2] 端口 3799 无监听、TCP 连通失败 => Port3799_TcpTestSucceeded=False
+[3] launch.log 最后活动 2026-10-22 15:37（今日 10-25 多次启动尝试均未写入任何日志）
+[4] 进程核查 proc_count=0（IDE 从未真正运行）
+[5] cli.bat open/auto/login/quit 四条命令均报同一错误：IDE service port disabled（EXIT=0 但含 [error]）
+
+定论：IDE 进程无法在本会话启动 => 服务端口 3799 永不监听 => CLI 侧无合法路径可自解
+解除条件（必须由具备可见 GUI 的操作者完成其一）：
+  a) 打开 IDE -> 设置 -> 安全设置 -> 开启服务端口（使 3799 监听）
+  b) 在真实交互终端执行 cli.bat login/islogin 并在提示处输入 y
+完成后复跑 raw/40 同一命令，三条成功判据须同时为真。
