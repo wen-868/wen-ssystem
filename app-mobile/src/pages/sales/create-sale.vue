@@ -1,773 +1,773 @@
 <template>
-  <view class="create-sale-page">
-    <!-- 顶部栏（原稿 pg-hd：返回 + 动态单据标题 + 草稿/已保存徽标 + 三点） -->
-    <view class="page-hd">
-      <view class="hd-back" @tap="goBack">
-        <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
-      </view>
-      <text class="hd-title">{{ docTitle }}</text>
-      <view class="hd-status" :class="isSaved ? 'hd-status--saved' : 'hd-status--draft'">
-        <text class="hd-status-text">{{ isSaved ? '已保存' : '编辑中' }}</text>
-      </view>
-      <view class="qo-menu-trigger" @tap="onMoreMenu">
-        <view class="qo-menu-dot"></view>
-        <view class="qo-menu-dot"></view>
-        <view class="qo-menu-dot"></view>
-      </view>
-    </view>
+    <view class="create-sale-page">
+        <!-- 顶部栏（原稿 pg-hd：返回 + 动态单据标题 + 草稿/已保存徽标 + 三点） -->
+        <view class="page-hd">
+            <view class="hd-back" @tap="goBack">
+                <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
+            </view>
+            <text class="hd-title">{{ docTitle }}</text>
+            <view class="hd-status" :class="isSaved ? 'hd-status--saved' : 'hd-status--draft'">
+                <text class="hd-status-text">{{ isSaved ? '已保存' : '编辑中' }}</text>
+            </view>
+            <view class="qo-menu-trigger" @tap="onMoreMenu">
+                <view class="qo-menu-dot"></view>
+                <view class="qo-menu-dot"></view>
+                <view class="qo-menu-dot"></view>
+            </view>
+        </view>
 
-    <!-- 单据类型分段导航（主段 销售/采购 + 子段 订单/销售单/退货/收款单） -->
-    <view class="doc-nav">
-      <view class="doc-nav-main">
-        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'sale' }" @tap="switchDocMain('sale')">销售</view>
-        <!--
+        <!-- 单据类型分段导航（主段 销售/采购 + 子段 订单/销售单/退货/收款单） -->
+        <view class="doc-nav">
+            <view class="doc-nav-main">
+                <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'sale' }" @tap="switchDocMain('sale')">销售</view>
+                <!--
           S3-230 入口权限门：采购主段承载 4 个采购写端点（下单/入库/退货/付款），
           只有在该账号**至少持有一个采购子段的门码**时才显示（子段本身再各自按码过滤）。
         -->
-        <view
-          v-if="canAnyEntry(['purchase-sub-order', 'purchase-sub-inbound', 'purchase-sub-return', 'purchase-sub-payment'])"
-          class="doc-seg"
-          :class="{ 'doc-seg--active': docMain === 'purchase' }"
-          @tap="switchDocMain('purchase')"
-        >采购</view>
-      </view>
-      <view class="doc-nav-sub">
-        <view
-          class="doc-seg doc-seg--sub"
-          v-for="s in docSubs"
-          :key="s"
-          :class="{ 'doc-seg--sub-active': docSub === s }"
-          @tap="selectDocSub(s)"
-        >{{ s }}</view>
-      </view>
-    </view>
-
-    <!-- 当前门店（原稿 store-card：蓝渐变卡） -->
-    <picker class="store-card" mode="selector" :range="storeNames" @change="onStoreCardChange">
-      <view class="sc-main">
-        <view class="sc-ico">
-          <image class="sc-ico-img" src="/static/icons/store-white.svg" mode="aspectFit" />
-        </view>
-        <view class="sc-body">
-          <text class="sc-label">当前门店</text>
-          <text class="sc-name">{{ storeCardName }}</text>
-        </view>
-        <text class="sc-arrow">›</text>
-      </view>
-    </picker>
-
-    <!-- 单据表单容器 -->
-    <view class="sale-form-scroll">
-      <scroll-view class="sale-form" :class="{ 'sale-form--locked': isSaved }" scroll-y>
-      <!-- 退货：关联原单（原稿 link-box）+ 退货原因 + 退货仓库 -->
-      <view class="form-section" v-if="isReturnDoc">
-        <view class="link-box">
-          <image class="lb-ico" src="/static/icons/ic/file-blue.svg" mode="aspectFit" />
-          <text class="lb-text">关联原单：{{ selectedSourceBill || '请选择' }}</text>
-          <text class="lb-arrow">›</text>
-          <picker
-            class="form-row-picker"
-            mode="selector"
-            :range="sourceBills"
-            range-key="label"
-            @change="onSourceBillChange"
-          >
-            <view class="form-row-cover"></view>
-          </picker>
-        </view>
-        <view class="form-row">
-          <view class="fr-body">
-            <text class="fr-label">退货原因</text>
-            <text class="fr-value" :class="{ 'fr-value--placeholder': !returnReason }">{{ returnReason || '请选择' }}</text>
-          </view>
-          <text class="fr-arrow">›</text>
-          <picker
-            class="form-row-picker"
-            mode="selector"
-            :range="returnReasonOptions"
-            @change="onReturnReasonChange"
-          >
-            <view class="form-row-cover"></view>
-          </picker>
-        </view>
-        <view class="form-row">
-          <view class="fr-body">
-            <text class="fr-label">退货仓库</text>
-            <text class="fr-value">{{ storeCardName }}</text>
-          </view>
-          <text class="fr-arrow">›</text>
-          <picker class="form-row-picker" mode="selector" :range="storeNames" @change="onStoreCardChange">
-            <view class="form-row-cover"></view>
-          </picker>
-        </view>
-      </view>
-
-      <!-- 关联销售单（收款单：前端反查客户与金额，按 Receipt 契约提交） -->
-      <view class="form-section" v-if="docConfig.showSourceBill">
-        <view class="section-title">关联销售单</view>
-        <picker
-          class="qc-cell"
-          mode="selector"
-          :range="sourceBills"
-          range-key="label"
-          @change="onSourceBillChange"
-        >
-          <view class="qc-val">{{ sourceBillLabel }} <text class="qc-chev">▾</text></view>
-        </picker>
-      </view>
-
-      <!-- 客户（收款单：后端 createReceipt 必填 customerId，须从客户选择器获取，不能仅用源单反查名字） -->
-      <view class="form-section" v-if="docConfig.showReceiptCustomer">
-        <view class="section-title">{{ docKey === 'sale_return' ? '客户' : '收款客户' }}</view>
-        <view class="qc-cell" @tap="openCustomerPicker">
-          <view class="qc-val">{{ receiptCustomerName || '请选择客户' }} <text class="qc-chev">▾</text></view>
-        </view>
-      </view>
-
-      <!-- 供应商（进货单：真实供应商接口，非客户） -->
-      <view class="form-section" v-if="docConfig.showSupplier">
-        <view class="section-title">供应商</view>
-        <picker
-          class="qc-cell"
-          mode="selector"
-          :range="supplierOptions"
-          range-key="name"
-          @change="onSupplierChange"
-        >
-          <view class="qc-val">{{ supplierLabel }} <text class="qc-chev">▾</text></view>
-        </picker>
-      </view>
-
-      <!-- 门店统一由顶部蓝渐变「当前门店」卡承担（原稿 store-card），不再单列表单块 -->
-
-      <!-- 收款方式（收款单）：对齐 HTML .chip 胶囊选择 -->
-      <view class="form-section" v-if="docConfig.showPayment">
-        <view class="section-title">{{ docKey === 'pur_payment' ? '付款方式' : '收款方式' }}</view>
-        <view class="chip-row">
-          <view
-            v-for="m in paymentOptions"
-            :key="m.value"
-            class="chip"
-            :class="{ 'chip--active': paymentMethod === m.value }"
-            @tap="selectPayment(m.value)"
-          >{{ m.label }}</view>
-        </view>
-      </view>
-      <!-- 客户 / 配送方式 / 日期（原稿 form-row 图标行列表） -->
-      <view class="form-section" v-if="docConfig.showCustomer || docConfig.showDelivery || docConfig.showOrderDate">
-        <view class="form-row" v-if="docConfig.showCustomer" @tap="openCustomerPicker">
-          <view class="fr-ico">
-            <image class="fr-ico-img" src="/static/icons/ic/users-blue.svg" mode="aspectFit" />
-          </view>
-          <view class="fr-body">
-            <text class="fr-label">客户</text>
-            <text class="fr-value" :class="{ 'fr-value--placeholder': !selectedCustomer }">{{ selectedCustomer?.name || '散客' }}</text>
-          </view>
-          <text class="fr-arrow">›</text>
-        </view>
-        <view class="form-row" v-if="docConfig.showDelivery">
-          <view class="fr-ico">
-            <image class="fr-ico-img" src="/static/icons/ic/truck-blue.svg" mode="aspectFit" />
-          </view>
-          <view class="fr-body">
-            <text class="fr-label">配送方式</text>
-            <text class="fr-value">{{ deliveryMethod }}</text>
-          </view>
-          <text class="fr-arrow">›</text>
-          <picker class="form-row-picker" mode="selector" :range="deliveryOptions" @change="onDeliveryChange">
-            <view class="form-row-cover"></view>
-          </picker>
-        </view>
-        <view class="form-row" v-if="docConfig.showOrderDate">
-          <view class="fr-ico">
-            <image class="fr-ico-img" src="/static/icons/ic/calendar-blue.svg" mode="aspectFit" />
-          </view>
-          <view class="fr-body">
-            <text class="fr-label">{{ docKey === 'sale_receipt' ? '收款日期' : docKey === 'pur_payment' ? '付款日期' : '单据日期' }}</text>
-          </view>
-          <text class="fr-value fr-value--date">{{ orderDate }}</text>
-          <picker class="form-row-picker" mode="date" :value="orderDate" @change="onDateChange">
-            <view class="form-row-cover"></view>
-          </picker>
-        </view>
-        <view
-          class="form-row"
-          v-if="docKey === 'sale_order' || docKey === 'pur_order'"
-        >
-          <view class="fr-ico">
-            <image class="fr-ico-img" src="/static/icons/ic/calendar-check-blue.svg" mode="aspectFit" />
-          </view>
-          <view class="fr-body">
-            <text class="fr-label">{{ docKey === 'sale_order' ? '交货日期' : '到货日期' }}</text>
-          </view>
-          <text class="fr-value fr-value--date">{{ deliveryDate || '请选择' }}</text>
-          <picker class="form-row-picker" mode="date" :value="deliveryDate" @change="onDeliveryDateChange">
-            <view class="form-row-cover"></view>
-          </picker>
-        </view>
-      </view>
-
-      <!-- 订单状态（原稿 status-pill 卡：新建单据真实初始态为待确认） -->
-      <view class="form-section status-card" v-if="docConfig.showOrderStatus">
-        <text class="status-label">订单状态</text>
-        <text class="status-pill" :class="orderStatus === 'confirmed' ? 'status-pill--paid' : 'status-pill--confirmed'">{{ orderStatusLabel }}</text>
-      </view>
-      <!-- 退款状态（退货单） -->
-      <view class="form-section status-card" v-if="isReturnDoc">
-        <text class="status-label">退款状态</text>
-        <text class="status-pill status-pill--pending">{{ refundStatusLabel }}</text>
-      </view>
-
-      <!-- 采购税额（采购订单/入库：含税 toggle + 税率选择） -->
-      <view class="form-section" v-if="docConfig.showTax">
-        <view class="special-field">
-          <text class="sf-label">含税单价</text>
-          <view class="tax-toggle">
-            <text class="tax-toggle-text" :class="{ 'tax-toggle-text--on': taxIncluded }">{{ taxIncluded ? '含税' : '不含税' }}</text>
-            <view class="toggle-switch" :class="{ 'toggle-switch--on': taxIncluded }" @tap="toggleTaxIncluded">
-              <view class="toggle-knob"></view>
-            </view>
-          </view>
-        </view>
-        <view class="special-field">
-          <text class="sf-label">税率</text>
-          <view class="tax-rate-wrap">
-            <text class="sf-value sf-value--blue">{{ taxRate }}%</text>
-            <picker class="form-row-picker" mode="selector" :range="taxRateLabels" @change="onTaxRateChange">
-              <view class="form-row-cover"></view>
-            </picker>
-          </view>
-        </view>
-      </view>
-
-      <!-- 入库批次（采购入库：批次号 / 有效期 / 到票状态，均为真实录入） -->
-      <view class="form-section" v-if="docConfig.showBatch">
-        <view class="special-field">
-          <text class="sf-label">批次号</text>
-          <input class="sf-input sf-input--mono" :value="batchNo" type="text" placeholder="录入批次号" placeholder-class="sf-placeholder" @input="onBatchChange" />
-        </view>
-        <view class="special-field">
-          <text class="sf-label">有效期至</text>
-          <text class="sf-value" :class="{ 'sf-value--placeholder': !expiryDate }">{{ expiryDate || '请选择' }}</text>
-          <picker class="form-row-picker" mode="date" :value="expiryDate" @change="onExpiryChange">
-            <view class="form-row-cover"></view>
-          </picker>
-        </view>
-        <view class="special-field">
-          <text class="sf-label">到票状态</text>
-          <text class="sf-badge" :class="invoiceStatus === 'received' ? 'sf-badge--green' : 'sf-badge--orange'" @tap="toggleInvoiceStatus">{{ invoiceStatusLabel }}</text>
-        </view>
-      </view>
-
-      <!-- 商品明细（原稿 card：card-title + prod-list + add-prod-row） -->
-      <view class="form-section" v-if="docConfig.showProducts">
-        <view class="card-title">
-          <text>商品明细</text>
-          <text class="ct-badge">{{ saleItems.length }} 种</text>
-        </view>
-
-        <!-- 空态（原稿 empty-prod：盒子图标 + 引导文案） -->
-        <view class="empty-prod" v-if="saleItems.length === 0">
-          <image class="empty-prod-img" src="/static/icons/es-box.svg" mode="aspectFit" />
-          <text class="ep-title">暂无商品</text>
-          <text class="ep-sub">点击下方「添加商品」或「扫码」快速录入</text>
-        </view>
-
-        <view
-          class="prod-item"
-          v-for="(item, index) in saleItems"
-          :key="index"
-          :class="{ 'prod-item--swiped': swipeOpenIndex === index }"
-          @touchstart="onSwipeStart(index)"
-          @touchmove.prevent="onSwipeMove(index, $event)"
-          @touchend="onSwipeEnd(index)"
-        >
-          <view class="swipe-hint" @tap="removeItem(index)">删除</view>
-          <view class="prod-item-content">
-            <view class="prod-main">
-              <view class="prod-thumb-col">
-                <view class="prod-thumb" :style="{ background: itemTint(item.productName) }">
-                  <text class="pt-letter" :style="{ color: itemColor(item.productName) }">{{ firstChar(item.productName) }}</text>
-                </view>
-              </view>
-              <view class="prod-body">
-                <view class="prod-top">
-                  <view class="prod-info">
-                    <text class="prod-name">{{ item.productName }}</text>
-                    <text class="prod-spec" v-if="item.specs">{{ item.specs }}</text>
-                  </view>
-                  <text class="prod-sum" :class="{ 'prod-sum--red': docMain === 'purchase' }">{{ fmt((item.price ?? 0) * (item.quantity ?? 0)) }}</text>
-                </view>
-                <view class="prod-bottom">
-                  <view class="prod-unit">
-                    <text class="pu-label">单价</text>
-                    <input
-                      class="price-input"
-                      :value="item.price"
-                      type="digit"
-                      @input="onPriceChange(index, $event)"
-                      @blur="onPriceConfirm(index)"
-                    />
-                  </view>
-                  <view class="qty-ctrl">
-                    <view class="qty-btn" :class="{ 'qty-btn--disabled': (item.quantity ?? 0) <= 1 }" @tap.stop="decreaseQty(index)">−</view>
-                    <input
-                      class="qty-input"
-                      :value="item.quantity"
-                      type="number"
-                      @input="onQtyChange(index, $event)"
-                    />
-                    <view class="qty-btn" @tap.stop="increaseQty(index)">+</view>
-                  </view>
-                </view>
-              </view>
-            </view>
-            <!-- 追溯码（原稿 prod-trace：灰底行 + Qr 框图标 + 蓝色追溯码胶囊（可多码）+ 扫码） -->
-            <view class="prod-trace">
-              <image class="pt-ico" src="/static/icons/trace-gray.svg" mode="aspectFit" />
-              <text class="pt-label">追溯码</text>
-              <view class="trace-codes" v-if="(item.traceCodes || []).length">
-                <view class="trace-chip" v-for="(tc, tcIdx) in item.traceCodes" :key="tc">
-                  <text class="trace-chip-text">{{ tc }}</text>
-                  <text class="trace-x" @tap.stop="removeTrace(index, tcIdx)">×</text>
-                </view>
-              </view>
-              <input
-                class="trace-input"
-                :value="item.draftTrace || ''"
-                type="text"
-                placeholder="录入 / 扫描追溯码，回车确认"
-                placeholder-class="trace-placeholder"
-                @input="onTraceInput(index, $event)"
-                @confirm="commitTrace(index)"
-                @blur="commitTrace(index)"
-              />
-              <view class="trace-scan" @tap.stop="handleScanTrace(index)">
-                <image class="trace-scan-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
-                <text>扫码</text>
-              </view>
-            </view>
-          </view>
-        </view>
-
-        <view class="add-prod-row">
-          <view class="add-btn add-btn--primary" @tap="openProductPicker">
-            <image class="add-btn-img" src="/static/icons/ic/plus.svg" mode="aspectFit" />
-            <text>添加商品</text>
-          </view>
-          <view class="add-btn add-btn--secondary" @tap="handleScanAdd">
-            <image class="add-btn-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
-            <text>扫码</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 待核销单据（收款单/付款单：真实单据列表勾选核销，原稿 verify-item） -->
-      <view class="form-section" v-if="docConfig.showVerify">
-        <view class="card-title">
-          <text>待核销单据</text>
-          <text class="ct-badge">{{ verifiedCheckedCount }}/{{ verifiedDocs.length }}</text>
-        </view>
-        <view class="empty-prod" v-if="!verifiedLoading && verifiedDocs.length === 0">
-          <image class="empty-prod-img" src="/static/icons/es-box.svg" mode="aspectFit" />
-          <text class="ep-title">暂无可核销单据</text>
-        </view>
-        <view class="verify-item" v-for="(d, i) in verifiedDocs" :key="d.no">
-          <view class="verify-check" :class="{ 'verify-check--checked': d.checked }" @tap="toggleVerify(i)">
-            <text v-if="d.checked" class="verify-check-mark">✓</text>
-          </view>
-          <view class="verify-info">
-            <text class="verify-no">{{ docKey === 'sale_receipt' ? '销售单' : '采购订单' }} {{ d.no }}</text>
-            <text class="verify-amount">{{ fmt(d.amount) }}</text>
-          </view>
-          <input
-            class="verify-input"
-            :value="d.verifyAmount || ''"
-            type="digit"
-            placeholder="核销额"
-            placeholder-class="sf-placeholder"
-            @input="onVerifyAmountChange(i, $event)"
-          />
-        </view>
-        <view class="special-field" v-if="docKey === 'pur_payment'">
-          <text class="sf-label">预付款抵扣</text>
-          <input class="sf-input sf-input--money" :value="prepaymentDeduct" type="digit" @input="onPrepayChange" />
-        </view>
-      </view>
-
-      <!-- 收款金额（收款单：随核销勾选自动带出，可手动微调，提交按后端 amount 契约） -->
-      <view class="form-section" v-if="docConfig.showAmount">
-        <view class="section-title">收款金额</view>
-        <view class="amount-input-row">
-          <text class="price-unit">¥</text>
-          <input
-            class="discount-input"
-            :value="receiptAmount"
-            type="digit"
-            @input="onReceiptAmountChange"
-            placeholder="请输入收款金额"
-          />
-        </view>
-      </view>
-
-      <!-- 备注（原稿顺序：商品明细 → 备注 → 金额汇总） -->
-      <view class="form-section" v-if="docConfig.showRemark">
-        <view class="section-title">备注</view>
-        <textarea
-          class="remark-input"
-          v-model="remark"
-          placeholder="请输入备注信息（选填）"
-          placeholder-class="remark-placeholder"
-        />
-      </view>
-
-      <!-- 金额汇总（原稿 summary-card：按单据类型分列） -->
-      <view class="form-section" v-if="!docConfig.placeholder">
-        <view class="card-title">金额汇总</view>
-
-        <!-- 收款单 / 付款单 -->
-        <template v-if="isMoneyDoc">
-          <view class="amount-row">
-            <text class="amount-label">待核销总额</text>
-            <text class="amount-value amount-value--mono">{{ fmt(pendingTotal) }}</text>
-          </view>
-          <view class="amount-row">
-            <text class="amount-label">本次核销</text>
-            <text class="amount-value amount-value--mono">{{ fmt(verifiedTotal) }}</text>
-          </view>
-          <view class="amount-row" v-if="docKey === 'pur_payment'">
-            <text class="amount-label amount-label--red">预付款抵扣</text>
-            <text class="amount-value amount-value--red">-{{ fmt(prepaymentDeduct) }}</text>
-          </view>
-          <view class="sum-divider"></view>
-          <view class="amount-row amount-row--total">
-            <text class="amount-label amount-label--strong">{{ docKey === 'sale_receipt' ? '实收金额' : '实付金额' }}</text>
-            <text class="amount-value amount-value--total">{{ fmt(docTotal) }}</text>
-          </view>
-        </template>
-
-        <!-- 销售订单 / 采购订单 -->
-        <template v-else-if="isOrderDoc">
-          <view class="amount-row">
-            <text class="amount-label">商品总额</text>
-            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
-          </view>
-          <view class="amount-row" v-if="taxAmount > 0">
-            <text class="amount-label">税额</text>
-            <text class="amount-value amount-value--mono">{{ fmt(taxAmount) }}</text>
-          </view>
-          <view class="amount-row">
-            <text class="amount-label amount-label--green">定金收取</text>
-            <text class="amount-value amount-value--green">-{{ fmt(deposit) }}</text>
-          </view>
-          <view class="sum-divider"></view>
-          <view class="amount-row" v-if="isLogistics">
-            <text class="amount-label">物流单号</text>
-            <view class="logi-wrap">
-              <input class="logi-input" :value="logisticsNo" type="text" placeholder="录入/扫描物流单号" placeholder-class="sf-placeholder" @input="onLogisticsChange" />
-              <view class="logi-scan" @tap="scanLogistics">
-                <image class="logi-scan-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
-                <text>扫码</text>
-              </view>
-            </view>
-          </view>
-          <view class="amount-row amount-row--total">
-            <text class="amount-label amount-label--strong">剩余尾款</text>
-            <text class="amount-value amount-value--total">{{ fmt(Math.max(0, docTotal - deposit)) }}</text>
-          </view>
-          <view class="deposit-input-row">
-            <text class="amount-label">定金金额</text>
-            <input class="sf-input sf-input--money" :value="deposit" type="digit" @input="onDepositChange" />
-          </view>
-        </template>
-
-        <!-- 销售单（出货）：抹零 + 配送费 -->
-        <template v-else-if="docKey === 'sale_ticket'">
-          <view class="amount-row">
-            <text class="amount-label">商品总额</text>
-            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
-          </view>
-          <view class="amount-row">
-            <text class="amount-label amount-label--red">抹零</text>
-            <view class="round-wrap">
-              <text class="amount-value amount-value--red amount-value--mono">-{{ fmt(roundOffAmount) }}</text>
-              <view class="round-chips">
                 <view
-                  v-for="m in roundModes"
-                  :key="m[0]"
-                  class="chip chip--sm"
-                  :class="{ 'chip--active': roundMode === m[0] }"
-                  @tap="selectRoundMode(m[0] as any)"
-                >{{ m[1] }}</view>
-              </view>
+                    v-if="canAnyEntry(['purchase-sub-order', 'purchase-sub-inbound', 'purchase-sub-return', 'purchase-sub-payment'])"
+                    class="doc-seg"
+                    :class="{ 'doc-seg--active': docMain === 'purchase' }"
+                    @tap="switchDocMain('purchase')"
+                >采购</view>
             </view>
-          </view>
-          <view class="amount-row">
-            <text class="amount-label amount-label--orange">配送费</text>
-            <input class="sf-input sf-input--money sf-input--inline" :value="shipping" type="digit" @input="onShippingChange" />
-          </view>
-          <view class="sum-divider"></view>
-          <view class="amount-row" v-if="isLogistics">
-            <text class="amount-label">物流单号</text>
-            <view class="logi-wrap">
-              <input class="logi-input" :value="logisticsNo" type="text" placeholder="录入/扫描物流单号" placeholder-class="sf-placeholder" @input="onLogisticsChange" />
-              <view class="logi-scan" @tap="scanLogistics">
-                <image class="logi-scan-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
-                <text>扫码</text>
-              </view>
+            <view class="doc-nav-sub">
+                <view
+                    class="doc-seg doc-seg--sub"
+                    v-for="s in docSubs"
+                    :key="s"
+                    :class="{ 'doc-seg--sub-active': docSub === s }"
+                    @tap="selectDocSub(s)"
+                >{{ s }}</view>
             </view>
-          </view>
-          <view class="amount-row amount-row--total">
-            <text class="amount-label amount-label--strong">应收金额</text>
-            <text class="amount-value amount-value--total">{{ fmt(docTotal) }}</text>
-          </view>
-        </template>
+        </view>
 
-        <!-- 采购入库：税额 + 运费分摊 -->
-        <template v-else-if="docKey === 'pur_inbound'">
-          <view class="amount-row">
-            <text class="amount-label">商品总额</text>
-            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
-          </view>
-          <view class="amount-row" v-if="taxAmount > 0">
-            <text class="amount-label">{{ taxIncluded ? '其中税额' : `税额(${taxRate}%)` }}</text>
-            <text class="amount-value amount-value--mono">{{ fmt(taxAmount) }}</text>
-          </view>
-          <view class="amount-row">
-            <text class="amount-label amount-label--orange">运费分摊</text>
-            <input class="sf-input sf-input--money sf-input--inline" :value="shipping" type="digit" @input="onShippingChange" />
-          </view>
-          <view class="sum-divider"></view>
-          <view class="amount-row amount-row--total">
-            <text class="amount-label amount-label--strong">应付金额</text>
-            <text class="amount-value amount-value--total amount-value--red">{{ fmt(docTotal) }}</text>
-          </view>
-        </template>
+        <!-- 当前门店（原稿 store-card：蓝渐变卡） -->
+        <picker class="store-card" mode="selector" :range="storeNames" @change="onStoreCardChange">
+            <view class="sc-main">
+                <view class="sc-ico">
+                    <image class="sc-ico-img" src="/static/icons/store-white.svg" mode="aspectFit" />
+                </view>
+                <view class="sc-body">
+                    <text class="sc-label">当前门店</text>
+                    <text class="sc-name">{{ storeCardName }}</text>
+                </view>
+                <text class="sc-arrow">›</text>
+            </view>
+        </picker>
 
-        <!-- 退货 -->
-        <template v-else-if="isReturnDoc">
-          <view class="amount-row">
-            <text class="amount-label">商品总额</text>
-            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
-          </view>
-          <view class="sum-divider"></view>
-          <view class="amount-row amount-row--total">
-            <text class="amount-label amount-label--strong">{{ docMain === 'sale' ? '应收金额' : '应付金额' }}</text>
-            <text class="amount-value amount-value--total" :class="{ 'amount-value--red': docMain === 'purchase' }">{{ fmt(docTotal) }}</text>
-          </view>
-        </template>
-      </view>
+        <!-- 单据表单容器 -->
+        <view class="sale-form-scroll">
+            <scroll-view class="sale-form" :class="{ 'sale-form--locked': isSaved }" scroll-y>
+                <!-- 退货：关联原单（原稿 link-box）+ 退货原因 + 退货仓库 -->
+                <view class="form-section" v-if="isReturnDoc">
+                    <view class="link-box">
+                        <image class="lb-ico" src="/static/icons/ic/file-blue.svg" mode="aspectFit" />
+                        <text class="lb-text">关联原单：{{ selectedSourceBill || '请选择' }}</text>
+                        <text class="lb-arrow">›</text>
+                        <picker
+                            class="form-row-picker"
+                            mode="selector"
+                            :range="sourceBills"
+                            range-key="label"
+                            @change="onSourceBillChange"
+                        >
+                            <view class="form-row-cover"></view>
+                        </picker>
+                    </view>
+                    <view class="form-row">
+                        <view class="fr-body">
+                            <text class="fr-label">退货原因</text>
+                            <text class="fr-value" :class="{ 'fr-value--placeholder': !returnReason }">{{ returnReason || '请选择' }}</text>
+                        </view>
+                        <text class="fr-arrow">›</text>
+                        <picker
+                            class="form-row-picker"
+                            mode="selector"
+                            :range="returnReasonOptions"
+                            @change="onReturnReasonChange"
+                        >
+                            <view class="form-row-cover"></view>
+                        </picker>
+                    </view>
+                    <view class="form-row">
+                        <view class="fr-body">
+                            <text class="fr-label">退货仓库</text>
+                            <text class="fr-value">{{ storeCardName }}</text>
+                        </view>
+                        <text class="fr-arrow">›</text>
+                        <picker class="form-row-picker" mode="selector" :range="storeNames" @change="onStoreCardChange">
+                            <view class="form-row-cover"></view>
+                        </picker>
+                    </view>
+                </view>
 
-      <!-- 出货占位（后端接口待开放） -->
-      <view class="form-section doc-placeholder" v-if="docConfig.placeholder">
-        <image class="placeholder-img" src="/static/icons/es-box.svg" mode="aspectFit" />
-        <text class="placeholder-text">{{ docConfig.placeholder }}</text>
-      </view>
+                <!-- 关联销售单（收款单：前端反查客户与金额，按 Receipt 契约提交） -->
+                <view class="form-section" v-if="docConfig.showSourceBill">
+                    <view class="section-title">关联销售单</view>
+                    <picker
+                        class="qc-cell"
+                        mode="selector"
+                        :range="sourceBills"
+                        range-key="label"
+                        @change="onSourceBillChange"
+                    >
+                        <view class="qc-val">{{ sourceBillLabel }} <text class="qc-chev">▾</text></view>
+                    </picker>
+                </view>
 
-      <view class="safe-bottom"></view>
-    </scroll-view>
+                <!-- 客户（收款单：后端 createReceipt 必填 customerId，须从客户选择器获取，不能仅用源单反查名字） -->
+                <view class="form-section" v-if="docConfig.showReceiptCustomer">
+                    <view class="section-title">{{ docKey === 'sale_return' ? '客户' : '收款客户' }}</view>
+                    <view class="qc-cell" @tap="openCustomerPicker">
+                        <view class="qc-val">{{ receiptCustomerName || '请选择客户' }} <text class="qc-chev">▾</text></view>
+                    </view>
+                </view>
+
+                <!-- 供应商（进货单：真实供应商接口，非客户） -->
+                <view class="form-section" v-if="docConfig.showSupplier">
+                    <view class="section-title">供应商</view>
+                    <picker
+                        class="qc-cell"
+                        mode="selector"
+                        :range="supplierOptions"
+                        range-key="name"
+                        @change="onSupplierChange"
+                    >
+                        <view class="qc-val">{{ supplierLabel }} <text class="qc-chev">▾</text></view>
+                    </picker>
+                </view>
+
+                <!-- 门店统一由顶部蓝渐变「当前门店」卡承担（原稿 store-card），不再单列表单块 -->
+
+                <!-- 收款方式（收款单）：对齐 HTML .chip 胶囊选择 -->
+                <view class="form-section" v-if="docConfig.showPayment">
+                    <view class="section-title">{{ docKey === 'pur_payment' ? '付款方式' : '收款方式' }}</view>
+                    <view class="chip-row">
+                        <view
+                            v-for="m in paymentOptions"
+                            :key="m.value"
+                            class="chip"
+                            :class="{ 'chip--active': paymentMethod === m.value }"
+                            @tap="selectPayment(m.value)"
+                        >{{ m.label }}</view>
+                    </view>
+                </view>
+                <!-- 客户 / 配送方式 / 日期（原稿 form-row 图标行列表） -->
+                <view class="form-section" v-if="docConfig.showCustomer || docConfig.showDelivery || docConfig.showOrderDate">
+                    <view class="form-row" v-if="docConfig.showCustomer" @tap="openCustomerPicker">
+                        <view class="fr-ico">
+                            <image class="fr-ico-img" src="/static/icons/ic/users-blue.svg" mode="aspectFit" />
+                        </view>
+                        <view class="fr-body">
+                            <text class="fr-label">客户</text>
+                            <text class="fr-value" :class="{ 'fr-value--placeholder': !selectedCustomer }">{{ selectedCustomer?.name || '散客' }}</text>
+                        </view>
+                        <text class="fr-arrow">›</text>
+                    </view>
+                    <view class="form-row" v-if="docConfig.showDelivery">
+                        <view class="fr-ico">
+                            <image class="fr-ico-img" src="/static/icons/ic/truck-blue.svg" mode="aspectFit" />
+                        </view>
+                        <view class="fr-body">
+                            <text class="fr-label">配送方式</text>
+                            <text class="fr-value">{{ deliveryMethod }}</text>
+                        </view>
+                        <text class="fr-arrow">›</text>
+                        <picker class="form-row-picker" mode="selector" :range="deliveryOptions" @change="onDeliveryChange">
+                            <view class="form-row-cover"></view>
+                        </picker>
+                    </view>
+                    <view class="form-row" v-if="docConfig.showOrderDate">
+                        <view class="fr-ico">
+                            <image class="fr-ico-img" src="/static/icons/ic/calendar-blue.svg" mode="aspectFit" />
+                        </view>
+                        <view class="fr-body">
+                            <text class="fr-label">{{ docKey === 'sale_receipt' ? '收款日期' : docKey === 'pur_payment' ? '付款日期' : '单据日期' }}</text>
+                        </view>
+                        <text class="fr-value fr-value--date">{{ orderDate }}</text>
+                        <picker class="form-row-picker" mode="date" :value="orderDate" @change="onDateChange">
+                            <view class="form-row-cover"></view>
+                        </picker>
+                    </view>
+                    <view
+                        class="form-row"
+                        v-if="docKey === 'sale_order' || docKey === 'pur_order'"
+                    >
+                        <view class="fr-ico">
+                            <image class="fr-ico-img" src="/static/icons/ic/calendar-check-blue.svg" mode="aspectFit" />
+                        </view>
+                        <view class="fr-body">
+                            <text class="fr-label">{{ docKey === 'sale_order' ? '交货日期' : '到货日期' }}</text>
+                        </view>
+                        <text class="fr-value fr-value--date">{{ deliveryDate || '请选择' }}</text>
+                        <picker class="form-row-picker" mode="date" :value="deliveryDate" @change="onDeliveryDateChange">
+                            <view class="form-row-cover"></view>
+                        </picker>
+                    </view>
+                </view>
+
+                <!-- 订单状态（原稿 status-pill 卡：新建单据真实初始态为待确认） -->
+                <view class="form-section status-card" v-if="docConfig.showOrderStatus">
+                    <text class="status-label">订单状态</text>
+                    <text class="status-pill" :class="orderStatus === 'confirmed' ? 'status-pill--paid' : 'status-pill--confirmed'">{{ orderStatusLabel }}</text>
+                </view>
+                <!-- 退款状态（退货单） -->
+                <view class="form-section status-card" v-if="isReturnDoc">
+                    <text class="status-label">退款状态</text>
+                    <text class="status-pill status-pill--pending">{{ refundStatusLabel }}</text>
+                </view>
+
+                <!-- 采购税额（采购订单/入库：含税 toggle + 税率选择） -->
+                <view class="form-section" v-if="docConfig.showTax">
+                    <view class="special-field">
+                        <text class="sf-label">含税单价</text>
+                        <view class="tax-toggle">
+                            <text class="tax-toggle-text" :class="{ 'tax-toggle-text--on': taxIncluded }">{{ taxIncluded ? '含税' : '不含税' }}</text>
+                            <view class="toggle-switch" :class="{ 'toggle-switch--on': taxIncluded }" @tap="toggleTaxIncluded">
+                                <view class="toggle-knob"></view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="special-field">
+                        <text class="sf-label">税率</text>
+                        <view class="tax-rate-wrap">
+                            <text class="sf-value sf-value--blue">{{ taxRate }}%</text>
+                            <picker class="form-row-picker" mode="selector" :range="taxRateLabels" @change="onTaxRateChange">
+                                <view class="form-row-cover"></view>
+                            </picker>
+                        </view>
+                    </view>
+                </view>
+
+                <!-- 入库批次（采购入库：批次号 / 有效期 / 到票状态，均为真实录入） -->
+                <view class="form-section" v-if="docConfig.showBatch">
+                    <view class="special-field">
+                        <text class="sf-label">批次号</text>
+                        <input class="sf-input sf-input--mono" :value="batchNo" type="text" placeholder="录入批次号" placeholder-class="sf-placeholder" @input="onBatchChange" />
+                    </view>
+                    <view class="special-field">
+                        <text class="sf-label">有效期至</text>
+                        <text class="sf-value" :class="{ 'sf-value--placeholder': !expiryDate }">{{ expiryDate || '请选择' }}</text>
+                        <picker class="form-row-picker" mode="date" :value="expiryDate" @change="onExpiryChange">
+                            <view class="form-row-cover"></view>
+                        </picker>
+                    </view>
+                    <view class="special-field">
+                        <text class="sf-label">到票状态</text>
+                        <text class="sf-badge" :class="invoiceStatus === 'received' ? 'sf-badge--green' : 'sf-badge--orange'" @tap="toggleInvoiceStatus">{{ invoiceStatusLabel }}</text>
+                    </view>
+                </view>
+
+                <!-- 商品明细（原稿 card：card-title + prod-list + add-prod-row） -->
+                <view class="form-section" v-if="docConfig.showProducts">
+                    <view class="card-title">
+                        <text>商品明细</text>
+                        <text class="ct-badge">{{ saleItems.length }} 种</text>
+                    </view>
+
+                    <!-- 空态（原稿 empty-prod：盒子图标 + 引导文案） -->
+                    <view class="empty-prod" v-if="saleItems.length === 0">
+                        <image class="empty-prod-img" src="/static/icons/es-box.svg" mode="aspectFit" />
+                        <text class="ep-title">暂无商品</text>
+                        <text class="ep-sub">点击下方「添加商品」或「扫码」快速录入</text>
+                    </view>
+
+                    <view
+                        class="prod-item"
+                        v-for="(item, index) in saleItems"
+                        :key="index"
+                        :class="{ 'prod-item--swiped': swipeOpenIndex === index }"
+                        @touchstart="onSwipeStart(index)"
+                        @touchmove.prevent="onSwipeMove(index, $event)"
+                        @touchend="onSwipeEnd(index)"
+                    >
+                        <view class="swipe-hint" @tap="removeItem(index)">删除</view>
+                        <view class="prod-item-content">
+                            <view class="prod-main">
+                                <view class="prod-thumb-col">
+                                    <view class="prod-thumb" :style="{ background: itemTint(item.productName) }">
+                                        <text class="pt-letter" :style="{ color: itemColor(item.productName) }">{{ firstChar(item.productName) }}</text>
+                                    </view>
+                                </view>
+                                <view class="prod-body">
+                                    <view class="prod-top">
+                                        <view class="prod-info">
+                                            <text class="prod-name">{{ item.productName }}</text>
+                                            <text class="prod-spec" v-if="item.specs">{{ item.specs }}</text>
+                                        </view>
+                                        <text class="prod-sum" :class="{ 'prod-sum--red': docMain === 'purchase' }">{{ fmt((item.price ?? 0) * (item.quantity ?? 0)) }}</text>
+                                    </view>
+                                    <view class="prod-bottom">
+                                        <view class="prod-unit">
+                                            <text class="pu-label">单价</text>
+                                            <input
+                                                class="price-input"
+                                                :value="item.price"
+                                                type="digit"
+                                                @input="onPriceChange(index, $event)"
+                                                @blur="onPriceConfirm(index)"
+                                            />
+                                        </view>
+                                        <view class="qty-ctrl">
+                                            <view class="qty-btn" :class="{ 'qty-btn--disabled': (item.quantity ?? 0) <= 1 }" @tap.stop="decreaseQty(index)">−</view>
+                                            <input
+                                                class="qty-input"
+                                                :value="item.quantity"
+                                                type="number"
+                                                @input="onQtyChange(index, $event)"
+                                            />
+                                            <view class="qty-btn" @tap.stop="increaseQty(index)">+</view>
+                                        </view>
+                                    </view>
+                                </view>
+                            </view>
+                            <!-- 追溯码（原稿 prod-trace：灰底行 + Qr 框图标 + 蓝色追溯码胶囊（可多码）+ 扫码） -->
+                            <view class="prod-trace">
+                                <image class="pt-ico" src="/static/icons/trace-gray.svg" mode="aspectFit" />
+                                <text class="pt-label">追溯码</text>
+                                <view class="trace-codes" v-if="(item.traceCodes || []).length">
+                                    <view class="trace-chip" v-for="(tc, tcIdx) in item.traceCodes" :key="tc">
+                                        <text class="trace-chip-text">{{ tc }}</text>
+                                        <text class="trace-x" @tap.stop="removeTrace(index, tcIdx)">×</text>
+                                    </view>
+                                </view>
+                                <input
+                                    class="trace-input"
+                                    :value="item.draftTrace || ''"
+                                    type="text"
+                                    placeholder="录入 / 扫描追溯码，回车确认"
+                                    placeholder-class="trace-placeholder"
+                                    @input="onTraceInput(index, $event)"
+                                    @confirm="commitTrace(index)"
+                                    @blur="commitTrace(index)"
+                                />
+                                <view class="trace-scan" @tap.stop="handleScanTrace(index)">
+                                    <image class="trace-scan-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
+                                    <text>扫码</text>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+
+                    <view class="add-prod-row">
+                        <view class="add-btn add-btn--primary" @tap="openProductPicker">
+                            <image class="add-btn-img" src="/static/icons/ic/plus.svg" mode="aspectFit" />
+                            <text>添加商品</text>
+                        </view>
+                        <view class="add-btn add-btn--secondary" @tap="handleScanAdd">
+                            <image class="add-btn-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
+                            <text>扫码</text>
+                        </view>
+                    </view>
+                </view>
+
+                <!-- 待核销单据（收款单/付款单：真实单据列表勾选核销，原稿 verify-item） -->
+                <view class="form-section" v-if="docConfig.showVerify">
+                    <view class="card-title">
+                        <text>待核销单据</text>
+                        <text class="ct-badge">{{ verifiedCheckedCount }}/{{ verifiedDocs.length }}</text>
+                    </view>
+                    <view class="empty-prod" v-if="!verifiedLoading && verifiedDocs.length === 0">
+                        <image class="empty-prod-img" src="/static/icons/es-box.svg" mode="aspectFit" />
+                        <text class="ep-title">暂无可核销单据</text>
+                    </view>
+                    <view class="verify-item" v-for="(d, i) in verifiedDocs" :key="d.no">
+                        <view class="verify-check" :class="{ 'verify-check--checked': d.checked }" @tap="toggleVerify(i)">
+                            <text v-if="d.checked" class="verify-check-mark">✓</text>
+                        </view>
+                        <view class="verify-info">
+                            <text class="verify-no">{{ docKey === 'sale_receipt' ? '销售单' : '采购订单' }} {{ d.no }}</text>
+                            <text class="verify-amount">{{ fmt(d.amount) }}</text>
+                        </view>
+                        <input
+                            class="verify-input"
+                            :value="d.verifyAmount || ''"
+                            type="digit"
+                            placeholder="核销额"
+                            placeholder-class="sf-placeholder"
+                            @input="onVerifyAmountChange(i, $event)"
+                        />
+                    </view>
+                    <view class="special-field" v-if="docKey === 'pur_payment'">
+                        <text class="sf-label">预付款抵扣</text>
+                        <input class="sf-input sf-input--money" :value="prepaymentDeduct" type="digit" @input="onPrepayChange" />
+                    </view>
+                </view>
+
+                <!-- 收款金额（收款单：随核销勾选自动带出，可手动微调，提交按后端 amount 契约） -->
+                <view class="form-section" v-if="docConfig.showAmount">
+                    <view class="section-title">收款金额</view>
+                    <view class="amount-input-row">
+                        <text class="price-unit">¥</text>
+                        <input
+                            class="discount-input"
+                            :value="receiptAmount"
+                            type="digit"
+                            @input="onReceiptAmountChange"
+                            placeholder="请输入收款金额"
+                        />
+                    </view>
+                </view>
+
+                <!-- 备注（原稿顺序：商品明细 → 备注 → 金额汇总） -->
+                <view class="form-section" v-if="docConfig.showRemark">
+                    <view class="section-title">备注</view>
+                    <textarea
+                        class="remark-input"
+                        v-model="remark"
+                        placeholder="请输入备注信息（选填）"
+                        placeholder-class="remark-placeholder"
+                    />
+                </view>
+
+                <!-- 金额汇总（原稿 summary-card：按单据类型分列） -->
+                <view class="form-section" v-if="!docConfig.placeholder">
+                    <view class="card-title">金额汇总</view>
+
+                    <!-- 收款单 / 付款单 -->
+                    <template v-if="isMoneyDoc">
+                        <view class="amount-row">
+                            <text class="amount-label">待核销总额</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(pendingTotal) }}</text>
+                        </view>
+                        <view class="amount-row">
+                            <text class="amount-label">本次核销</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(verifiedTotal) }}</text>
+                        </view>
+                        <view class="amount-row" v-if="docKey === 'pur_payment'">
+                            <text class="amount-label amount-label--red">预付款抵扣</text>
+                            <text class="amount-value amount-value--red">-{{ fmt(prepaymentDeduct) }}</text>
+                        </view>
+                        <view class="sum-divider"></view>
+                        <view class="amount-row amount-row--total">
+                            <text class="amount-label amount-label--strong">{{ docKey === 'sale_receipt' ? '实收金额' : '实付金额' }}</text>
+                            <text class="amount-value amount-value--total">{{ fmt(docTotal) }}</text>
+                        </view>
+                    </template>
+
+                    <!-- 销售订单 / 采购订单 -->
+                    <template v-else-if="isOrderDoc">
+                        <view class="amount-row">
+                            <text class="amount-label">商品总额</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
+                        </view>
+                        <view class="amount-row" v-if="taxAmount > 0">
+                            <text class="amount-label">税额</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(taxAmount) }}</text>
+                        </view>
+                        <view class="amount-row">
+                            <text class="amount-label amount-label--green">定金收取</text>
+                            <text class="amount-value amount-value--green">-{{ fmt(deposit) }}</text>
+                        </view>
+                        <view class="sum-divider"></view>
+                        <view class="amount-row" v-if="isLogistics">
+                            <text class="amount-label">物流单号</text>
+                            <view class="logi-wrap">
+                                <input class="logi-input" :value="logisticsNo" type="text" placeholder="录入/扫描物流单号" placeholder-class="sf-placeholder" @input="onLogisticsChange" />
+                                <view class="logi-scan" @tap="scanLogistics">
+                                    <image class="logi-scan-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
+                                    <text>扫码</text>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="amount-row amount-row--total">
+                            <text class="amount-label amount-label--strong">剩余尾款</text>
+                            <text class="amount-value amount-value--total">{{ fmt(Math.max(0, docTotal - deposit)) }}</text>
+                        </view>
+                        <view class="deposit-input-row">
+                            <text class="amount-label">定金金额</text>
+                            <input class="sf-input sf-input--money" :value="deposit" type="digit" @input="onDepositChange" />
+                        </view>
+                    </template>
+
+                    <!-- 销售单（出货）：抹零 + 配送费 -->
+                    <template v-else-if="docKey === 'sale_ticket'">
+                        <view class="amount-row">
+                            <text class="amount-label">商品总额</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
+                        </view>
+                        <view class="amount-row">
+                            <text class="amount-label amount-label--red">抹零</text>
+                            <view class="round-wrap">
+                                <text class="amount-value amount-value--red amount-value--mono">-{{ fmt(roundOffAmount) }}</text>
+                                <view class="round-chips">
+                                    <view
+                                        v-for="m in roundModes"
+                                        :key="m[0]"
+                                        class="chip chip--sm"
+                                        :class="{ 'chip--active': roundMode === m[0] }"
+                                        @tap="selectRoundMode(m[0] as any)"
+                                    >{{ m[1] }}</view>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="amount-row">
+                            <text class="amount-label amount-label--orange">配送费</text>
+                            <input class="sf-input sf-input--money sf-input--inline" :value="shipping" type="digit" @input="onShippingChange" />
+                        </view>
+                        <view class="sum-divider"></view>
+                        <view class="amount-row" v-if="isLogistics">
+                            <text class="amount-label">物流单号</text>
+                            <view class="logi-wrap">
+                                <input class="logi-input" :value="logisticsNo" type="text" placeholder="录入/扫描物流单号" placeholder-class="sf-placeholder" @input="onLogisticsChange" />
+                                <view class="logi-scan" @tap="scanLogistics">
+                                    <image class="logi-scan-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
+                                    <text>扫码</text>
+                                </view>
+                            </view>
+                        </view>
+                        <view class="amount-row amount-row--total">
+                            <text class="amount-label amount-label--strong">应收金额</text>
+                            <text class="amount-value amount-value--total">{{ fmt(docTotal) }}</text>
+                        </view>
+                    </template>
+
+                    <!-- 采购入库：税额 + 运费分摊 -->
+                    <template v-else-if="docKey === 'pur_inbound'">
+                        <view class="amount-row">
+                            <text class="amount-label">商品总额</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
+                        </view>
+                        <view class="amount-row" v-if="taxAmount > 0">
+                            <text class="amount-label">{{ taxIncluded ? '其中税额' : `税额(${taxRate}%)` }}</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(taxAmount) }}</text>
+                        </view>
+                        <view class="amount-row">
+                            <text class="amount-label amount-label--orange">运费分摊</text>
+                            <input class="sf-input sf-input--money sf-input--inline" :value="shipping" type="digit" @input="onShippingChange" />
+                        </view>
+                        <view class="sum-divider"></view>
+                        <view class="amount-row amount-row--total">
+                            <text class="amount-label amount-label--strong">应付金额</text>
+                            <text class="amount-value amount-value--total amount-value--red">{{ fmt(docTotal) }}</text>
+                        </view>
+                    </template>
+
+                    <!-- 退货 -->
+                    <template v-else-if="isReturnDoc">
+                        <view class="amount-row">
+                            <text class="amount-label">商品总额</text>
+                            <text class="amount-value amount-value--mono">{{ fmt(totalAmount) }}</text>
+                        </view>
+                        <view class="sum-divider"></view>
+                        <view class="amount-row amount-row--total">
+                            <text class="amount-label amount-label--strong">{{ docMain === 'sale' ? '应收金额' : '应付金额' }}</text>
+                            <text class="amount-value amount-value--total" :class="{ 'amount-value--red': docMain === 'purchase' }">{{ fmt(docTotal) }}</text>
+                        </view>
+                    </template>
+                </view>
+
+                <!-- 出货占位（后端接口待开放） -->
+                <view class="form-section doc-placeholder" v-if="docConfig.placeholder">
+                    <image class="placeholder-img" src="/static/icons/es-box.svg" mode="aspectFit" />
+                    <text class="placeholder-text">{{ docConfig.placeholder }}</text>
+                </view>
+
+                <view class="safe-bottom"></view>
+            </scroll-view>
+        </view>
+
+        <!-- 底部提交（原稿 action-bar 悬浮按钮组：保存 secondary / 转单 primary 带箭头 / 分享 tertiary；输入聚焦时隐藏） -->
+        <view class="bottom-bar" :class="{ 'bottom-bar--hidden': keyboardHideBar }">
+            <button
+                v-for="act in visibleActions"
+                :key="act.label"
+                :class="['submit-btn', act.label === '分享' ? 'share-btn' : (act.variant === 'ghost' ? 'draft-btn' : ''), { 'submit-btn--disabled': submitting }]"
+                :disabled="submitting"
+                @tap="onActionTap(act)"
+            >
+                {{ bottomLabel(act) }}
+                <image v-if="act.needsSaved" class="ab-arrow" src="/static/icons/ic/arrow-right-white.svg" mode="aspectFit" />
+            </button>
+        </view>
+
+        <!-- 客户选择弹窗 -->
+        <view class="picker-mask" v-if="showCustomerPicker" @tap="closeCustomerPicker">
+            <view class="picker-popup picker-popup--large" @tap.stop>
+                <view class="picker-header">
+                    <text class="picker-title">选择客户</text>
+                    <text class="picker-close" @tap="closeCustomerPicker">×</text>
+                </view>
+                <view class="picker-search">
+                    <view class="search-input-wrap">
+                        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit" />
+                        <input
+                            class="search-input"
+                            v-model="customerSearchKeyword"
+                            type="text"
+                            placeholder="搜索客户名称/手机号"
+                            placeholder-class="search-placeholder"
+                            confirm-type="search"
+                            @confirm="searchCustomers"
+                        />
+                    </view>
+                </view>
+                <scroll-view class="picker-content picker-content--with-search" scroll-y @scrolltolower="loadMoreCustomers">
+                    <view class="customer-loading" v-if="customerLoading && customerList.length === 0">
+                        <view class="loading-spinner"></view>
+                        <text class="loading-text">加载中...</text>
+                    </view>
+                    <view
+                        class="picker-item picker-item--customer"
+                        v-for="customer in customerList"
+                        :key="customer.id"
+                        :class="{ 'picker-item--active': selectedCustomer?.id === customer.id }"
+                        @tap="selectCustomer(customer)"
+                    >
+                        <view class="customer-item-info">
+                            <text class="customer-item-name">{{ customer.name }}</text>
+                            <text class="customer-item-phone" v-if="customer.phone">{{ customer.phone }}</text>
+                        </view>
+                        <view class="customer-item-type" v-if="customer.typeLabel">{{ customer.typeLabel }}</view>
+                        <view class="picker-check" v-if="selectedCustomer?.id === customer.id">✓</view>
+                    </view>
+                    <view class="load-more" v-if="customerList.length > 0">
+                        <view class="loading-more-spinner" v-if="customerLoadingMore"></view>
+                        <text class="load-more-text" v-if="customerLoadingMore">加载中...</text>
+                        <text class="load-more-text" v-else-if="customerNoMore">-- 没有更多了 --</text>
+                    </view>
+                    <view class="empty-state" v-if="!customerLoading && customerList.length === 0">
+                        <text class="empty-text">暂无客户</text>
+                    </view>
+                </scroll-view>
+            </view>
+        </view>
+
+        <!-- 商品选择子页面（原稿 subpage：全屏侧滑，搜索 + 分类 + 无库存开关 + 快速新增 + 底部已选汇总） -->
+        <view class="subpage" :class="{ 'subpage--show': showProductPicker }">
+            <view class="page-hd">
+                <view class="hd-back" @tap="cancelPick">
+                    <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
+                </view>
+                <text class="hd-title">选择商品</text>
+                <view class="pp-hd-acts">
+                    <view class="pp-hd-btn" :class="{ 'pp-hd-btn--on': hideNoStock }" @tap="toggleHideStock">
+                        <image class="pp-hd-ico" :src="hideNoStock ? '/static/icons/ic/eyeoff-gray.svg' : '/static/icons/ic/eye-gray.svg'" mode="aspectFit" />
+                        <text>{{ hideNoStock ? '无库存' : '全部' }}</text>
+                    </view>
+                    <view class="pp-hd-btn pp-hd-btn--plus" @tap="openQuickAdd">
+                        <image class="pp-hd-ico" src="/static/icons/ic/plus.svg" mode="aspectFit" />
+                    </view>
+                </view>
+            </view>
+
+            <view class="pp-search">
+                <view class="pp-search-inner">
+                    <image class="pp-search-ico" src="/static/icons/ic/search.svg" mode="aspectFit" />
+                    <input
+                        class="pp-search-input"
+                        :value="productSearchKeyword"
+                        type="text"
+                        placeholder="搜索商品名称 / 条码"
+                        placeholder-class="pp-search-ph"
+                        @input="onPPSearch($event)"
+                    />
+                    <text class="pp-search-clear" v-if="productSearchKeyword" @tap="clearPPSearch">×</text>
+                </view>
+            </view>
+
+            <scroll-view class="pp-cats" scroll-x :show-scrollbar="false">
+                <view
+                    class="pp-cat"
+                    :class="{ 'pp-cat--active': selectedCategoryId === 0 }"
+                    @tap="selectCategory(0)"
+                >
+                    <text>全部</text>
+                </view>
+                <view
+                    class="pp-cat"
+                    v-for="cat in categoryList"
+                    :key="cat.id"
+                    :class="{ 'pp-cat--active': selectedCategoryId === cat.id }"
+                    @tap="selectCategory(cat.id)"
+                >
+                    <text>{{ cat.name }}</text>
+                </view>
+            </scroll-view>
+
+            <scroll-view class="pp-list" scroll-y @scrolltolower="loadMoreProducts">
+                <view class="product-loading" v-if="productLoading && productList.length === 0">
+                    <view class="loading-spinner"></view>
+                    <text class="loading-text">加载中...</text>
+                </view>
+                <view class="pp-empty" v-if="!productLoading && productList.length === 0">
+                    <text>没有找到相关商品</text>
+                </view>
+                <view
+                    class="pp-item"
+                    :class="{ 'pp-item--sel': (pendingPicks[product.id] || 0) > 0, 'pp-item--nostock': product.stock <= 0 }"
+                    v-for="product in visibleProducts"
+                    :key="product.id"
+                >
+                    <view class="pp-thumb" :style="{ background: itemTint(product.name) }">
+                        <text class="pp-thumb-letter" :style="{ color: itemColor(product.name) }">{{ firstChar(product.name) }}</text>
+                    </view>
+                    <view class="pp-body">
+                        <view class="pp-name">
+                            <text>{{ product.name }}</text>
+                            <text class="pp-nostock-tag" v-if="product.stock <= 0">无库存</text>
+                        </view>
+                        <text class="pp-desc">{{ product.specs || product.unit }} · 库存{{ product.stock }}{{ product.unit }}</text>
+                        <view class="pp-price-row">
+                            <text class="pp-price">{{ fmt(product.wholesalePrice ?? product.price) }}</text>
+                            <text class="pp-retail" v-if="product.retailPrice">零售{{ fmt(product.retailPrice) }}</text>
+                        </view>
+                    </view>
+                    <view class="pp-act">
+                        <view class="pp-qty" v-if="(pendingPicks[product.id] || 0) > 0">
+                            <view class="pp-qty-btn" :data-pid="product.id" data-delta="-1" @tap.stop="onPickTap">−</view>
+                            <text class="pp-qty-num">{{ pendingPicks[product.id] }}</text>
+                            <view class="pp-qty-btn" :data-pid="product.id" data-delta="1" @tap.stop="onPickTap">+</view>
+                        </view>
+                        <view class="pp-add" v-else :data-pid="product.id" data-delta="1" @tap.stop="onPickTap">
+                            <image class="pp-add-ico" src="/static/icons/ic/plus.svg" mode="aspectFit" />
+                        </view>
+                    </view>
+                </view>
+                <view class="load-more" v-if="productList.length > 0">
+                    <view class="loading-more-spinner" v-if="productLoadingMore"></view>
+                    <text class="load-more-text" v-if="productLoadingMore">加载中...</text>
+                    <text class="load-more-text" v-else-if="productNoMore">-- 没有更多了 --</text>
+                </view>
+            </scroll-view>
+
+            <view class="pp-bar">
+                <view class="pp-bar-inner">
+                    <view class="pp-sum">
+                        <text class="pp-sum-l">{{ ppSumLeft }}</text>
+                        <text class="pp-sum-amt" :class="{ 'pp-sum-amt--zero': ppKinds === 0 }">{{ fmt(ppTotal) }}</text>
+                    </view>
+                    <view class="pp-btn" :class="{ 'pp-btn--dis': ppKinds === 0 }" @tap="confirmPick">选好了</view>
+                </view>
+            </view>
+        </view>
+
+        <!-- 快速新增商品（原稿 openQuickAdd：保存后自动选中 1 件） -->
+        <view class="picker-mask" v-if="quickAddShow" @tap="closeQuickAdd">
+            <view class="picker-popup" @tap.stop>
+                <view class="picker-header">
+                    <text class="picker-title">快速新增商品</text>
+                    <text class="picker-close" @tap="closeQuickAdd">×</text>
+                </view>
+                <scroll-view class="qa-scroll" scroll-y>
+                    <text class="qa-tip">商品库里没有的商品，可在这里快速新增，保存后会自动加入本次选择。</text>
+                    <view class="qa-body">
+                        <view class="qa-field"><text class="qa-label">名称</text><input class="qa-input" v-model="quickAddForm.name" placeholder="请输入商品名称" placeholder-class="qa-ph" /></view>
+                        <view class="qa-field"><text class="qa-label">规格</text><input class="qa-input" v-model="quickAddForm.spec" placeholder="如 500ml*12/箱" placeholder-class="qa-ph" /></view>
+                        <view class="qa-field"><text class="qa-label">单位</text><input class="qa-input" v-model="quickAddForm.unit" placeholder="箱 / 瓶 / 袋" placeholder-class="qa-ph" /></view>
+                        <view class="qa-field"><text class="qa-label">批发价</text><input class="qa-input" v-model="quickAddForm.wholesalePrice" type="digit" placeholder="0.00" placeholder-class="qa-ph" /></view>
+                        <view class="qa-field"><text class="qa-label">零售价</text><input class="qa-input" v-model="quickAddForm.retailPrice" type="digit" placeholder="0.00" placeholder-class="qa-ph" /></view>
+                        <view class="qa-field"><text class="qa-label">库存</text><input class="qa-input" v-model="quickAddForm.stock" type="number" placeholder="0" placeholder-class="qa-ph" /></view>
+                    </view>
+                    <view class="qa-actions">
+                        <view class="qa-btn qa-btn--ghost" @tap="closeQuickAdd">取消</view>
+                        <view class="qa-btn qa-btn--primary" @tap="saveQuickAdd">保存并选中</view>
+                    </view>
+                </scroll-view>
+            </view>
+        </view>
     </view>
-
-    <!-- 底部提交（原稿 action-bar 悬浮按钮组：保存 secondary / 转单 primary 带箭头 / 分享 tertiary；输入聚焦时隐藏） -->
-    <view class="bottom-bar" :class="{ 'bottom-bar--hidden': keyboardHideBar }">
-      <button
-        v-for="act in visibleActions"
-        :key="act.label"
-        :class="['submit-btn', act.label === '分享' ? 'share-btn' : (act.variant === 'ghost' ? 'draft-btn' : ''), { 'submit-btn--disabled': submitting }]"
-        :disabled="submitting"
-        @tap="onActionTap(act)"
-      >
-        {{ bottomLabel(act) }}
-        <image v-if="act.needsSaved" class="ab-arrow" src="/static/icons/ic/arrow-right-white.svg" mode="aspectFit" />
-      </button>
-    </view>
-
-    <!-- 客户选择弹窗 -->
-    <view class="picker-mask" v-if="showCustomerPicker" @tap="closeCustomerPicker">
-      <view class="picker-popup picker-popup--large" @tap.stop>
-        <view class="picker-header">
-          <text class="picker-title">选择客户</text>
-          <text class="picker-close" @tap="closeCustomerPicker">×</text>
-        </view>
-        <view class="picker-search">
-          <view class="search-input-wrap">
-            <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
-            <input
-              class="search-input"
-              v-model="customerSearchKeyword"
-              type="text"
-              placeholder="搜索客户名称/手机号"
-              placeholder-class="search-placeholder"
-              confirm-type="search"
-              @confirm="searchCustomers"
-            />
-          </view>
-        </view>
-        <scroll-view class="picker-content picker-content--with-search" scroll-y @scrolltolower="loadMoreCustomers">
-          <view class="customer-loading" v-if="customerLoading && customerList.length === 0">
-            <view class="loading-spinner"></view>
-            <text class="loading-text">加载中...</text>
-          </view>
-          <view
-            class="picker-item picker-item--customer"
-            v-for="customer in customerList"
-            :key="customer.id"
-            :class="{ 'picker-item--active': selectedCustomer?.id === customer.id }"
-            @tap="selectCustomer(customer)"
-          >
-            <view class="customer-item-info">
-              <text class="customer-item-name">{{ customer.name }}</text>
-              <text class="customer-item-phone" v-if="customer.phone">{{ customer.phone }}</text>
-            </view>
-            <view class="customer-item-type" v-if="customer.typeLabel">{{ customer.typeLabel }}</view>
-            <view class="picker-check" v-if="selectedCustomer?.id === customer.id">✓</view>
-          </view>
-          <view class="load-more" v-if="customerList.length > 0">
-            <view class="loading-more-spinner" v-if="customerLoadingMore"></view>
-            <text class="load-more-text" v-if="customerLoadingMore">加载中...</text>
-            <text class="load-more-text" v-else-if="customerNoMore">-- 没有更多了 --</text>
-          </view>
-          <view class="empty-state" v-if="!customerLoading && customerList.length === 0">
-            <text class="empty-text">暂无客户</text>
-          </view>
-        </scroll-view>
-      </view>
-    </view>
-
-    <!-- 商品选择子页面（原稿 subpage：全屏侧滑，搜索 + 分类 + 无库存开关 + 快速新增 + 底部已选汇总） -->
-    <view class="subpage" :class="{ 'subpage--show': showProductPicker }">
-      <view class="page-hd">
-        <view class="hd-back" @tap="cancelPick">
-          <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
-        </view>
-        <text class="hd-title">选择商品</text>
-        <view class="pp-hd-acts">
-          <view class="pp-hd-btn" :class="{ 'pp-hd-btn--on': hideNoStock }" @tap="toggleHideStock">
-            <image class="pp-hd-ico" :src="hideNoStock ? '/static/icons/ic/eyeoff-gray.svg' : '/static/icons/ic/eye-gray.svg'" mode="aspectFit" />
-            <text>{{ hideNoStock ? '无库存' : '全部' }}</text>
-          </view>
-          <view class="pp-hd-btn pp-hd-btn--plus" @tap="openQuickAdd">
-            <image class="pp-hd-ico" src="/static/icons/ic/plus.svg" mode="aspectFit" />
-          </view>
-        </view>
-      </view>
-
-      <view class="pp-search">
-        <view class="pp-search-inner">
-          <image class="pp-search-ico" src="/static/icons/ic/search.svg" mode="aspectFit" />
-          <input
-            class="pp-search-input"
-            :value="productSearchKeyword"
-            type="text"
-            placeholder="搜索商品名称 / 条码"
-            placeholder-class="pp-search-ph"
-            @input="onPPSearch($event)"
-          />
-          <text class="pp-search-clear" v-if="productSearchKeyword" @tap="clearPPSearch">×</text>
-        </view>
-      </view>
-
-      <scroll-view class="pp-cats" scroll-x :show-scrollbar="false">
-        <view
-          class="pp-cat"
-          :class="{ 'pp-cat--active': selectedCategoryId === 0 }"
-          @tap="selectCategory(0)"
-        >
-          <text>全部</text>
-        </view>
-        <view
-          class="pp-cat"
-          v-for="cat in categoryList"
-          :key="cat.id"
-          :class="{ 'pp-cat--active': selectedCategoryId === cat.id }"
-          @tap="selectCategory(cat.id)"
-        >
-          <text>{{ cat.name }}</text>
-        </view>
-      </scroll-view>
-
-      <scroll-view class="pp-list" scroll-y @scrolltolower="loadMoreProducts">
-        <view class="product-loading" v-if="productLoading && productList.length === 0">
-          <view class="loading-spinner"></view>
-          <text class="loading-text">加载中...</text>
-        </view>
-        <view class="pp-empty" v-if="!productLoading && productList.length === 0">
-          <text>没有找到相关商品</text>
-        </view>
-        <view
-          class="pp-item"
-          :class="{ 'pp-item--sel': (pendingPicks[product.id] || 0) > 0, 'pp-item--nostock': product.stock <= 0 }"
-          v-for="product in visibleProducts"
-          :key="product.id"
-        >
-          <view class="pp-thumb" :style="{ background: itemTint(product.name) }">
-            <text class="pp-thumb-letter" :style="{ color: itemColor(product.name) }">{{ firstChar(product.name) }}</text>
-          </view>
-          <view class="pp-body">
-            <view class="pp-name">
-              <text>{{ product.name }}</text>
-              <text class="pp-nostock-tag" v-if="product.stock <= 0">无库存</text>
-            </view>
-            <text class="pp-desc">{{ product.specs || product.unit }} · 库存{{ product.stock }}{{ product.unit }}</text>
-            <view class="pp-price-row">
-              <text class="pp-price">{{ fmt(product.wholesalePrice ?? product.price) }}</text>
-              <text class="pp-retail" v-if="product.retailPrice">零售{{ fmt(product.retailPrice) }}</text>
-            </view>
-          </view>
-          <view class="pp-act">
-            <view class="pp-qty" v-if="(pendingPicks[product.id] || 0) > 0">
-              <view class="pp-qty-btn" :data-pid="product.id" data-delta="-1" @tap.stop="onPickTap">−</view>
-              <text class="pp-qty-num">{{ pendingPicks[product.id] }}</text>
-              <view class="pp-qty-btn" :data-pid="product.id" data-delta="1" @tap.stop="onPickTap">+</view>
-            </view>
-            <view class="pp-add" v-else :data-pid="product.id" data-delta="1" @tap.stop="onPickTap">
-              <image class="pp-add-ico" src="/static/icons/ic/plus.svg" mode="aspectFit" />
-            </view>
-          </view>
-        </view>
-        <view class="load-more" v-if="productList.length > 0">
-          <view class="loading-more-spinner" v-if="productLoadingMore"></view>
-          <text class="load-more-text" v-if="productLoadingMore">加载中...</text>
-          <text class="load-more-text" v-else-if="productNoMore">-- 没有更多了 --</text>
-        </view>
-      </scroll-view>
-
-      <view class="pp-bar">
-        <view class="pp-bar-inner">
-          <view class="pp-sum">
-            <text class="pp-sum-l">{{ ppSumLeft }}</text>
-            <text class="pp-sum-amt" :class="{ 'pp-sum-amt--zero': ppKinds === 0 }">{{ fmt(ppTotal) }}</text>
-          </view>
-          <view class="pp-btn" :class="{ 'pp-btn--dis': ppKinds === 0 }" @tap="confirmPick">选好了</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 快速新增商品（原稿 openQuickAdd：保存后自动选中 1 件） -->
-    <view class="picker-mask" v-if="quickAddShow" @tap="closeQuickAdd">
-      <view class="picker-popup" @tap.stop>
-        <view class="picker-header">
-          <text class="picker-title">快速新增商品</text>
-          <text class="picker-close" @tap="closeQuickAdd">×</text>
-        </view>
-        <scroll-view class="qa-scroll" scroll-y>
-          <text class="qa-tip">商品库里没有的商品，可在这里快速新增，保存后会自动加入本次选择。</text>
-          <view class="qa-body">
-            <view class="qa-field"><text class="qa-label">名称</text><input class="qa-input" v-model="quickAddForm.name" placeholder="请输入商品名称" placeholder-class="qa-ph" /></view>
-            <view class="qa-field"><text class="qa-label">规格</text><input class="qa-input" v-model="quickAddForm.spec" placeholder="如 500ml*12/箱" placeholder-class="qa-ph" /></view>
-            <view class="qa-field"><text class="qa-label">单位</text><input class="qa-input" v-model="quickAddForm.unit" placeholder="箱 / 瓶 / 袋" placeholder-class="qa-ph" /></view>
-            <view class="qa-field"><text class="qa-label">批发价</text><input class="qa-input" v-model="quickAddForm.wholesalePrice" type="digit" placeholder="0.00" placeholder-class="qa-ph" /></view>
-            <view class="qa-field"><text class="qa-label">零售价</text><input class="qa-input" v-model="quickAddForm.retailPrice" type="digit" placeholder="0.00" placeholder-class="qa-ph" /></view>
-            <view class="qa-field"><text class="qa-label">库存</text><input class="qa-input" v-model="quickAddForm.stock" type="number" placeholder="0" placeholder-class="qa-ph" /></view>
-          </view>
-          <view class="qa-actions">
-            <view class="qa-btn qa-btn--ghost" @tap="closeQuickAdd">取消</view>
-            <view class="qa-btn qa-btn--primary" @tap="saveQuickAdd">保存并选中</view>
-          </view>
-        </scroll-view>
-      </view>
-    </view>
-  </view>
 </template>
 
 <script setup lang="ts">

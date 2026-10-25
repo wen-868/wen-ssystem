@@ -1,427 +1,427 @@
 <template>
-  <view class="pd-page">
-    <!-- 页头（原稿 pg-hd：返回 + 商品信息 + 三态徽标） -->
-    <view class="pg-hd">
-      <view class="hd-back" @tap="goBack">
-        <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
-      </view>
-      <text class="hd-title">商品信息</text>
-      <view class="hd-status" :class="dirty ? 'hd-status--draft' : editable ? 'hd-status--editing' : 'hd-status--saved'">
-        <text class="hd-status-text">{{ editable ? (dirty ? '未保存' : '编辑中') : '已保存' }}</text>
-      </view>
-    </view>
-
-    <!-- 加载骨架（原稿 skl） -->
-    <view v-if="loading" class="pd-skeleton">
-      <view class="skl skl-thumb"></view>
-      <view class="skl skl-line" style="width: 56%;"></view>
-      <view class="skl skl-line" style="width: 86%;"></view>
-      <view class="skl skl-line" style="width: 72%;"></view>
-      <view class="skl skl-block"></view>
-      <view class="skl skl-block"></view>
-    </view>
-
-    <scroll-view v-else class="content-area" scroll-y>
-      <view class="content-inner" :class="{ locked: !editable }">
-        <!-- 基本信息 -->
-        <view class="pd-group">
-          <view class="pd-gtitle"><text class="gt-bar"></text><text>基本信息</text></view>
-          <view class="pd-basic">
-            <view class="pd-thumb" :style="form.mainImage ? '' : { background: thumbTint, color: thumbColor }" @tap="onThumbTap">
-              <image v-if="form.mainImage" class="pd-thumb-img" :src="form.mainImage" mode="aspectFill" />
-              <text v-else class="ph">{{ (form.name || '商').charAt(0) }}</text>
-              <view class="pd-add">+</view>
+    <view class="pd-page">
+        <!-- 页头（原稿 pg-hd：返回 + 商品信息 + 三态徽标） -->
+        <view class="pg-hd">
+            <view class="hd-back" @tap="goBack">
+                <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
             </view>
-            <view class="pd-basic-fields">
-              <view class="f-row static">
-                <text class="f-label">商品名称</text>
-                <input class="f-input" v-model="form.name" placeholder="请输入商品名称" placeholder-class="f-ph" @input="markField('name')" />
-              </view>
-              <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'brand' }" @tap="toggleDrop('brand')">
-                <text class="f-label">商品品牌</text>
-                <text class="f-value" :class="{ 'f-value--ph': !form.brandName }">{{ form.brandName || '请选择' }}</text>
-                <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'brand' }"></view>
-              </view>
-              <view v-if="editable && dropOpen === 'brand'" class="f-drop">
-                <view class="f-drop-list">
-                  <view class="f-drop-item" :class="{ 'f-drop-item--sel': form.brandName === b.name }" v-for="b in brandOptions" :key="b.id" @tap="pickBrand(b.name)">
-                    <text>{{ b.name }}</text>
-                    <text v-if="form.brandName === b.name" class="f-drop-ck">✓</text>
-                  </view>
-                  <view v-if="!brandOptions.length" class="f-drop-empty">暂无品牌库数据，可直接输入自定义品牌</view>
-                </view>
-                <view class="f-drop-custom">
-                  <input class="f-input" v-model="brandCustom" placeholder="自定义品牌" placeholder-class="f-ph" confirm-type="done" @confirm="pickBrand(brandCustom)" />
-                  <view class="f-drop-custom-btn" @tap="pickBrand(brandCustom)">确定</view>
-                </view>
-              </view>
-              <view class="f-row static" @tap="openCatPicker">
-                <text class="f-label">商品分类</text>
-                <text class="f-value" :class="{ 'f-value--ph': !form.categoryName }">{{ form.categoryName || '请选择' }}</text>
-                <view class="f-arrow"></view>
-              </view>
+            <text class="hd-title">商品信息</text>
+            <view class="hd-status" :class="dirty ? 'hd-status--draft' : editable ? 'hd-status--editing' : 'hd-status--saved'">
+                <text class="hd-status-text">{{ editable ? (dirty ? '未保存' : '编辑中') : '已保存' }}</text>
             </view>
-          </view>
-          <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'spec' }" @tap="toggleDrop('spec')">
-            <text class="f-label">规格/净含量</text>
-            <text class="f-value" :class="{ 'f-value--ph': !form.specs }">{{ form.specs || '请选择' }}</text>
-            <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'spec' }"></view>
-          </view>
-          <view v-if="editable && dropOpen === 'spec'" class="f-drop">
-            <view class="f-drop-list">
-              <view class="f-drop-item" :class="{ 'f-drop-item--sel': form.specs === s }" v-for="s in specOptions" :key="s" @tap="pickSpec(s)">
-                <text>{{ s }}</text>
-                <text v-if="form.specs === s" class="f-drop-ck">✓</text>
-              </view>
-              <view v-if="!specOptions.length" class="f-drop-empty">暂无规格库数据，可直接输入自定义规格</view>
-            </view>
-            <view class="f-drop-custom">
-              <input class="f-input" v-model="specCustom" placeholder="自定义规格" placeholder-class="f-ph" confirm-type="done" @confirm="pickSpec(specCustom)" />
-              <view class="f-drop-custom-btn" @tap="pickSpec(specCustom)">确定</view>
-            </view>
-          </view>
-          <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'unit' }" @tap="toggleDrop('unit')">
-            <text class="f-label">基础单位</text>
-            <text class="f-value" :class="{ 'f-value--ph': !form.unit }">{{ form.unit || '请选择' }}</text>
-            <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'unit' }"></view>
-          </view>
-          <view v-if="editable && dropOpen === 'unit'" class="f-drop">
-            <view class="f-drop-list">
-              <view
-                class="f-drop-item"
-                :class="{ 'f-drop-item--sel': form.unit === u.name, 'f-drop-item--used': usedUnitNames.includes(u.name) }"
-                v-for="u in unitOptions"
-                :key="u.id"
-                @tap="!usedUnitNames.includes(u.name) && pickUnit(u.name)"
-              >
-                <text>{{ u.name }}</text>
-                <text v-if="form.unit === u.name" class="f-drop-ck">✓</text>
-                <text v-else-if="usedUnitNames.includes(u.name)" class="f-drop-used-tag">已用作辅单位</text>
-              </view>
-              <view v-if="!unitOptions.length" class="f-drop-empty">暂无单位库数据，可直接输入自定义单位</view>
-            </view>
-            <view class="f-drop-custom">
-              <input class="f-input" v-model="unitCustom" placeholder="自定义单位，如「听」「提」" placeholder-class="f-ph" confirm-type="done" @confirm="pickUnit(unitCustom)" />
-              <view class="f-drop-custom-btn" @tap="pickUnit(unitCustom)">确定</view>
-            </view>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">商品条码</text>
-            <input class="f-input f-input--mono" v-model="form.barcode" placeholder="录入或扫描条码" placeholder-class="f-ph" @input="markField('barcode')" />
-            <view class="f-scan" @tap="openScanner('base')">
-              <view class="scan-ic">
-                <view class="scan-ic-c scan-ic-c--tl"></view>
-                <view class="scan-ic-c scan-ic-c--tr"></view>
-                <view class="scan-ic-c scan-ic-c--bl"></view>
-                <view class="scan-ic-c scan-ic-c--br"></view>
-                <view class="scan-ic-line"></view>
-              </view>
-            </view>
-          </view>
-          <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'origin' }" @tap="toggleDrop('origin')">
-            <text class="f-label">产地</text>
-            <text class="f-value" :class="{ 'f-value--ph': !form.origin }">{{ form.origin || '请选择' }}</text>
-            <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'origin' }"></view>
-          </view>
-          <view v-if="editable && dropOpen === 'origin'" class="f-drop">
-            <view class="f-drop-list">
-              <view class="f-drop-item" :class="{ 'f-drop-item--sel': form.origin === s }" v-for="s in originOptions" :key="s" @tap="pickOrigin(s)">
-                <text>{{ s }}</text>
-                <text v-if="form.origin === s" class="f-drop-ck">✓</text>
-              </view>
-              <view v-if="!originOptions.length" class="f-drop-empty">暂无产地库数据，可直接输入自定义产地</view>
-            </view>
-            <view class="f-drop-custom">
-              <input class="f-input" v-model="originCustom" placeholder="自定义产地" placeholder-class="f-ph" confirm-type="done" @confirm="pickOrigin(originCustom)" />
-              <view class="f-drop-custom-btn" @tap="pickOrigin(originCustom)">确定</view>
-            </view>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">酒精度</text>
-            <input class="f-input f-input--mono" v-model="form.alcoholContent" placeholder="%vol，非酒类可不填" placeholder-class="f-ph" @input="markField('alcohol')" />
-            <text class="f-unit">%vol</text>
-          </view>
-          <view class="chips-row">
-            <text class="chips-label">销售渠道</text>
-            <view
-              class="chip"
-              v-for="c in channelOptions"
-              :key="c.value"
-              :class="{ 'chip--on': form.saleChannels.includes(c.value) }"
-              @tap="toggleChannel(c.value)"
-            >{{ c.label }}</view>
-          </view>
-          <view class="chips-row chips-row--last">
-            <text class="chips-label">状态</text>
-            <view class="chip" :class="{ 'chip--on': form.status === 'ON_SALE' }" @tap="setStatus('ON_SALE')">上架</view>
-            <view class="chip" :class="{ 'chip--on': form.status === 'OFF_SALE' }" @tap="setStatus('OFF_SALE')">下架</view>
-          </view>
         </view>
 
-        <!-- 单位信息（原稿：辅单位行内编辑——比例输入 + 条码框内嵌扫码 + 直接删除） -->
-        <view class="pd-group">
-          <view class="pd-gtitle"><text class="gt-bar"></text><text>单位信息</text></view>
-          <view class="rt-sub" v-if="units.length > 1">辅单位换算（逐级折算，主单位在前）</view>
-          <view class="rt-empty" v-if="units.length < 2">当前只有基础单位，无需换算。添加辅单位后可逐级设置换算。</view>
-          <view class="rt-row" v-for="(u, i) in units" :key="i" v-show="i > 0">
-            <text class="rt-name">{{ u.unitName }}</text>
-            <view class="rt-eq">
-              <input class="rt-in" type="digit" :disabled="!editable" :value="abValue(i, 'a')" placeholder="1" @input="onSubRatio(i, 'a', $event)" @blur="onSubRatioBlur(i, 'a', $event)" />
-              <text class="rt-bu">{{ units[i - 1]?.unitName }}</text>
-              <text class="rt-eqsign">=</text>
-              <input class="rt-in" type="digit" :disabled="!editable" :value="abValue(i, 'b')" placeholder="1" @input="onSubRatio(i, 'b', $event)" @blur="onSubRatioBlur(i, 'b', $event)" />
-              <text class="rt-bu">{{ u.unitName }}</text>
-            </view>
-            <view class="rt-bcw">
-              <view class="rt-scan" v-if="editable" @tap="openScanner('unit', i)">
-                <view class="scan-ic scan-ic--sm">
-                  <view class="scan-ic-c scan-ic-c--tl"></view>
-                  <view class="scan-ic-c scan-ic-c--tr"></view>
-                  <view class="scan-ic-c scan-ic-c--bl"></view>
-                  <view class="scan-ic-c scan-ic-c--br"></view>
-                  <view class="scan-ic-line"></view>
-                </view>
-              </view>
-              <input class="rt-bc" :disabled="!editable" :value="u.barcode || ''" placeholder="条码" @input="onUnitBarcode(i, $event)" />
-            </view>
-            <view class="rt-del" v-if="editable" @tap.stop="removeUnit(i)">×</view>
-          </view>
-          <view class="rt-chain" v-if="units.length > 1">{{ chainText }}</view>
-          <view class="add-unit" v-if="editable" @tap="openUnitAddPicker">
-            <text class="add-unit-icon">＋</text>
-            <text>添加辅单位</text>
-          </view>
+        <!-- 加载骨架（原稿 skl） -->
+        <view v-if="loading" class="pd-skeleton">
+            <view class="skl skl-thumb"></view>
+            <view class="skl skl-line" style="width: 56%;"></view>
+            <view class="skl skl-line" style="width: 86%;"></view>
+            <view class="skl skl-line" style="width: 72%;"></view>
+            <view class="skl skl-block"></view>
+            <view class="skl skl-block"></view>
         </view>
 
-        <!-- 价格信息（价格属 SKU 域：后端商品更新接口不含价格字段，展示为只读） -->
-        <view class="pd-group">
-          <view class="pd-gtitle"><text class="gt-bar"></text><text>价格信息</text></view>
-          <view class="pt-wrap">
-            <view class="ptable">
-              <view class="pt-tr pt-head">
-                <view class="pt-th pt-rh"></view>
-                <view class="pt-th" v-for="(u, i) in units" :key="i">
-                  <text class="pt-utag" :class="{ 'pt-utag--base': u.isBase }">{{ u.isBase ? '基础单位' : '辅单位' }}</text>
-                  <text class="pt-ubadge">{{ u.unitName }}</text>
+        <scroll-view v-else class="content-area" scroll-y>
+            <view class="content-inner" :class="{ locked: !editable }">
+                <!-- 基本信息 -->
+                <view class="pd-group">
+                    <view class="pd-gtitle"><text class="gt-bar"></text><text>基本信息</text></view>
+                    <view class="pd-basic">
+                        <view class="pd-thumb" :style="form.mainImage ? '' : { background: thumbTint, color: thumbColor }" @tap="onThumbTap">
+                            <image v-if="form.mainImage" class="pd-thumb-img" :src="form.mainImage" mode="aspectFill" />
+                            <text v-else class="ph">{{ (form.name || '商').charAt(0) }}</text>
+                            <view class="pd-add">+</view>
+                        </view>
+                        <view class="pd-basic-fields">
+                            <view class="f-row static">
+                                <text class="f-label">商品名称</text>
+                                <input class="f-input" v-model="form.name" placeholder="请输入商品名称" placeholder-class="f-ph" @input="markField('name')" />
+                            </view>
+                            <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'brand' }" @tap="toggleDrop('brand')">
+                                <text class="f-label">商品品牌</text>
+                                <text class="f-value" :class="{ 'f-value--ph': !form.brandName }">{{ form.brandName || '请选择' }}</text>
+                                <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'brand' }"></view>
+                            </view>
+                            <view v-if="editable && dropOpen === 'brand'" class="f-drop">
+                                <view class="f-drop-list">
+                                    <view class="f-drop-item" :class="{ 'f-drop-item--sel': form.brandName === b.name }" v-for="b in brandOptions" :key="b.id" @tap="pickBrand(b.name)">
+                                        <text>{{ b.name }}</text>
+                                        <text v-if="form.brandName === b.name" class="f-drop-ck">✓</text>
+                                    </view>
+                                    <view v-if="!brandOptions.length" class="f-drop-empty">暂无品牌库数据，可直接输入自定义品牌</view>
+                                </view>
+                                <view class="f-drop-custom">
+                                    <input class="f-input" v-model="brandCustom" placeholder="自定义品牌" placeholder-class="f-ph" confirm-type="done" @confirm="pickBrand(brandCustom)" />
+                                    <view class="f-drop-custom-btn" @tap="pickBrand(brandCustom)">确定</view>
+                                </view>
+                            </view>
+                            <view class="f-row static" @tap="openCatPicker">
+                                <text class="f-label">商品分类</text>
+                                <text class="f-value" :class="{ 'f-value--ph': !form.categoryName }">{{ form.categoryName || '请选择' }}</text>
+                                <view class="f-arrow"></view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'spec' }" @tap="toggleDrop('spec')">
+                        <text class="f-label">规格/净含量</text>
+                        <text class="f-value" :class="{ 'f-value--ph': !form.specs }">{{ form.specs || '请选择' }}</text>
+                        <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'spec' }"></view>
+                    </view>
+                    <view v-if="editable && dropOpen === 'spec'" class="f-drop">
+                        <view class="f-drop-list">
+                            <view class="f-drop-item" :class="{ 'f-drop-item--sel': form.specs === s }" v-for="s in specOptions" :key="s" @tap="pickSpec(s)">
+                                <text>{{ s }}</text>
+                                <text v-if="form.specs === s" class="f-drop-ck">✓</text>
+                            </view>
+                            <view v-if="!specOptions.length" class="f-drop-empty">暂无规格库数据，可直接输入自定义规格</view>
+                        </view>
+                        <view class="f-drop-custom">
+                            <input class="f-input" v-model="specCustom" placeholder="自定义规格" placeholder-class="f-ph" confirm-type="done" @confirm="pickSpec(specCustom)" />
+                            <view class="f-drop-custom-btn" @tap="pickSpec(specCustom)">确定</view>
+                        </view>
+                    </view>
+                    <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'unit' }" @tap="toggleDrop('unit')">
+                        <text class="f-label">基础单位</text>
+                        <text class="f-value" :class="{ 'f-value--ph': !form.unit }">{{ form.unit || '请选择' }}</text>
+                        <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'unit' }"></view>
+                    </view>
+                    <view v-if="editable && dropOpen === 'unit'" class="f-drop">
+                        <view class="f-drop-list">
+                            <view
+                                class="f-drop-item"
+                                :class="{ 'f-drop-item--sel': form.unit === u.name, 'f-drop-item--used': usedUnitNames.includes(u.name) }"
+                                v-for="u in unitOptions"
+                                :key="u.id"
+                                @tap="!usedUnitNames.includes(u.name) && pickUnit(u.name)"
+                            >
+                                <text>{{ u.name }}</text>
+                                <text v-if="form.unit === u.name" class="f-drop-ck">✓</text>
+                                <text v-else-if="usedUnitNames.includes(u.name)" class="f-drop-used-tag">已用作辅单位</text>
+                            </view>
+                            <view v-if="!unitOptions.length" class="f-drop-empty">暂无单位库数据，可直接输入自定义单位</view>
+                        </view>
+                        <view class="f-drop-custom">
+                            <input class="f-input" v-model="unitCustom" placeholder="自定义单位，如「听」「提」" placeholder-class="f-ph" confirm-type="done" @confirm="pickUnit(unitCustom)" />
+                            <view class="f-drop-custom-btn" @tap="pickUnit(unitCustom)">确定</view>
+                        </view>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">商品条码</text>
+                        <input class="f-input f-input--mono" v-model="form.barcode" placeholder="录入或扫描条码" placeholder-class="f-ph" @input="markField('barcode')" />
+                        <view class="f-scan" @tap="openScanner('base')">
+                            <view class="scan-ic">
+                                <view class="scan-ic-c scan-ic-c--tl"></view>
+                                <view class="scan-ic-c scan-ic-c--tr"></view>
+                                <view class="scan-ic-c scan-ic-c--bl"></view>
+                                <view class="scan-ic-c scan-ic-c--br"></view>
+                                <view class="scan-ic-line"></view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="f-row static" :class="{ 'f-row--active': dropOpen === 'origin' }" @tap="toggleDrop('origin')">
+                        <text class="f-label">产地</text>
+                        <text class="f-value" :class="{ 'f-value--ph': !form.origin }">{{ form.origin || '请选择' }}</text>
+                        <view class="f-arrow" :class="{ 'f-arrow--up': dropOpen === 'origin' }"></view>
+                    </view>
+                    <view v-if="editable && dropOpen === 'origin'" class="f-drop">
+                        <view class="f-drop-list">
+                            <view class="f-drop-item" :class="{ 'f-drop-item--sel': form.origin === s }" v-for="s in originOptions" :key="s" @tap="pickOrigin(s)">
+                                <text>{{ s }}</text>
+                                <text v-if="form.origin === s" class="f-drop-ck">✓</text>
+                            </view>
+                            <view v-if="!originOptions.length" class="f-drop-empty">暂无产地库数据，可直接输入自定义产地</view>
+                        </view>
+                        <view class="f-drop-custom">
+                            <input class="f-input" v-model="originCustom" placeholder="自定义产地" placeholder-class="f-ph" confirm-type="done" @confirm="pickOrigin(originCustom)" />
+                            <view class="f-drop-custom-btn" @tap="pickOrigin(originCustom)">确定</view>
+                        </view>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">酒精度</text>
+                        <input class="f-input f-input--mono" v-model="form.alcoholContent" placeholder="%vol，非酒类可不填" placeholder-class="f-ph" @input="markField('alcohol')" />
+                        <text class="f-unit">%vol</text>
+                    </view>
+                    <view class="chips-row">
+                        <text class="chips-label">销售渠道</text>
+                        <view
+                            class="chip"
+                            v-for="c in channelOptions"
+                            :key="c.value"
+                            :class="{ 'chip--on': form.saleChannels.includes(c.value) }"
+                            @tap="toggleChannel(c.value)"
+                        >{{ c.label }}</view>
+                    </view>
+                    <view class="chips-row chips-row--last">
+                        <text class="chips-label">状态</text>
+                        <view class="chip" :class="{ 'chip--on': form.status === 'ON_SALE' }" @tap="setStatus('ON_SALE')">上架</view>
+                        <view class="chip" :class="{ 'chip--on': form.status === 'OFF_SALE' }" @tap="setStatus('OFF_SALE')">下架</view>
+                    </view>
                 </view>
-              </view>
-              <view class="pt-tr" v-for="row in priceRows" :key="row.key">
-                <view class="pt-th">{{ row.label }}</view>
-                <view class="pt-td">
-                  <input
-                    v-if="editable"
-                    class="pt-input"
-                    :value="priceForm[row.key]"
-                    type="digit"
-                    @input="onPriceInput(row.key, $event)"
-                  />
-                  <text v-else>{{ priceForm[row.key] }}</text>
+
+                <!-- 单位信息（原稿：辅单位行内编辑——比例输入 + 条码框内嵌扫码 + 直接删除） -->
+                <view class="pd-group">
+                    <view class="pd-gtitle"><text class="gt-bar"></text><text>单位信息</text></view>
+                    <view class="rt-sub" v-if="units.length > 1">辅单位换算（逐级折算，主单位在前）</view>
+                    <view class="rt-empty" v-if="units.length < 2">当前只有基础单位，无需换算。添加辅单位后可逐级设置换算。</view>
+                    <view class="rt-row" v-for="(u, i) in units" :key="i" v-show="i > 0">
+                        <text class="rt-name">{{ u.unitName }}</text>
+                        <view class="rt-eq">
+                            <input class="rt-in" type="digit" :disabled="!editable" :value="abValue(i, 'a')" placeholder="1" @input="onSubRatio(i, 'a', $event)" @blur="onSubRatioBlur(i, 'a', $event)" />
+                            <text class="rt-bu">{{ units[i - 1]?.unitName }}</text>
+                            <text class="rt-eqsign">=</text>
+                            <input class="rt-in" type="digit" :disabled="!editable" :value="abValue(i, 'b')" placeholder="1" @input="onSubRatio(i, 'b', $event)" @blur="onSubRatioBlur(i, 'b', $event)" />
+                            <text class="rt-bu">{{ u.unitName }}</text>
+                        </view>
+                        <view class="rt-bcw">
+                            <view class="rt-scan" v-if="editable" @tap="openScanner('unit', i)">
+                                <view class="scan-ic scan-ic--sm">
+                                    <view class="scan-ic-c scan-ic-c--tl"></view>
+                                    <view class="scan-ic-c scan-ic-c--tr"></view>
+                                    <view class="scan-ic-c scan-ic-c--bl"></view>
+                                    <view class="scan-ic-c scan-ic-c--br"></view>
+                                    <view class="scan-ic-line"></view>
+                                </view>
+                            </view>
+                            <input class="rt-bc" :disabled="!editable" :value="u.barcode || ''" placeholder="条码" @input="onUnitBarcode(i, $event)" />
+                        </view>
+                        <view class="rt-del" v-if="editable" @tap.stop="removeUnit(i)">×</view>
+                    </view>
+                    <view class="rt-chain" v-if="units.length > 1">{{ chainText }}</view>
+                    <view class="add-unit" v-if="editable" @tap="openUnitAddPicker">
+                        <text class="add-unit-icon">＋</text>
+                        <text>添加辅单位</text>
+                    </view>
                 </view>
-                <!-- 辅单位列：只遍历辅单位。四档价存 unitPriceForm（保存走 updateSkuUnit）；
+
+                <!-- 价格信息（价格属 SKU 域：后端商品更新接口不含价格字段，展示为只读） -->
+                <view class="pd-group">
+                    <view class="pd-gtitle"><text class="gt-bar"></text><text>价格信息</text></view>
+                    <view class="pt-wrap">
+                        <view class="ptable">
+                            <view class="pt-tr pt-head">
+                                <view class="pt-th pt-rh"></view>
+                                <view class="pt-th" v-for="(u, i) in units" :key="i">
+                                    <text class="pt-utag" :class="{ 'pt-utag--base': u.isBase }">{{ u.isBase ? '基础单位' : '辅单位' }}</text>
+                                    <text class="pt-ubadge">{{ u.unitName }}</text>
+                                </view>
+                            </view>
+                            <view class="pt-tr" v-for="row in priceRows" :key="row.key">
+                                <view class="pt-th">{{ row.label }}</view>
+                                <view class="pt-td">
+                                    <input
+                                        v-if="editable"
+                                        class="pt-input"
+                                        :value="priceForm[row.key]"
+                                        type="digit"
+                                        @input="onPriceInput(row.key, $event)"
+                                    />
+                                    <text v-else>{{ priceForm[row.key] }}</text>
+                                </view>
+                                <!-- 辅单位列：只遍历辅单位。四档价存 unitPriceForm（保存走 updateSkuUnit）；
                      进货价后端无单位级字段，显示为「基础进货价 ÷ 换算率」派生值，改它即反推基础进货价（保存走 updateSkuPrice） -->
-                <view class="pt-td" v-for="(u, si) in subUnits" :key="'u' + si">
-                  <input
-                    v-if="editable"
-                    class="pt-input"
-                    :value="unitCellDisplay(si, row.key)"
-                    type="digit"
-                    @input="onUnitCellInput(si, row.key, $event)"
-                  />
-                  <text v-else>{{ unitCellDisplay(si, row.key) || '—' }}</text>
+                                <view class="pt-td" v-for="(u, si) in subUnits" :key="'u' + si">
+                                    <input
+                                        v-if="editable"
+                                        class="pt-input"
+                                        :value="unitCellDisplay(si, row.key)"
+                                        type="digit"
+                                        @input="onUnitCellInput(si, row.key, $event)"
+                                    />
+                                    <text v-else>{{ unitCellDisplay(si, row.key) || '—' }}</text>
+                                </view>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="pt-note">主辅单位价格双向自动换算填充：修改任一单位价格，其余单位价格按换算率联动重算</view>
+                    <view class="f-derived">
+                        <text class="fd-label">零售毛利 / 毛利率</text>
+                        <text class="fd-value fd-value--blue">{{ marginText }}</text>
+                    </view>
                 </view>
-              </view>
+
+                <!-- 库存信息 -->
+                <view class="pd-group">
+                    <view class="pd-gtitle">
+                        <text class="gt-bar"></text><text>库存信息</text>
+                        <text class="pd-badge" :class="stockBadgeCls">{{ stockBadgeTxt }}</text>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">当前库存</text>
+                        <text class="f-value f-value--mono">{{ stock }}</text>
+                        <text class="f-unit">{{ form.unit }}</text>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">预警阈值</text>
+                        <input
+                            v-if="editable"
+                            class="f-input f-input--mono"
+                            type="digit"
+                            :value="String(warningThreshold)"
+                            placeholder="0"
+                            placeholder-class="f-ph"
+                            @input="onWarningThreshold"
+                        />
+                        <text v-else class="f-value f-value--mono">{{ warningThreshold }}</text>
+                        <text class="f-unit">{{ form.unit }}</text>
+                    </view>
+                    <view class="f-derived">
+                        <text class="fd-label">按成本价计算的库存金额</text>
+                        <text class="fd-value" :class="{ 'fd-value--muted': stockAmount === '¥—' }">{{ stockAmount }}</text>
+                    </view>
+                </view>
+
+                <!-- 扩展信息（原稿：原扩展信息/商品标签/其它设置三组合并；标签与标记移至最末尾组） -->
+                <view class="pd-group">
+                    <view class="pd-gtitle"><text class="gt-bar"></text><text>扩展信息</text></view>
+                    <view class="f-row static">
+                        <text class="f-label">商品启用</text>
+                        <text class="f-hint">停用后开单/采购选不到该商品，历史单据不受影响</text>
+                        <view class="sw" :class="{ on: form.enabled }" @tap="toggleEnabled"><view class="sw-knob"></view></view>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">启用追溯码</text>
+                        <text class="f-hint">开单时需扫码录入追溯信息</text>
+                        <view class="sw" :class="{ on: traceEnabled }" @tap="toggleTrace"><view class="sw-knob"></view></view>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">保质期</text>
+                        <text class="f-hint">开单时需录入生产日期与保质期</text>
+                        <view class="sw" :class="{ on: form.shelfLifeOn }" @tap="toggleShelfLife"><view class="sw-knob"></view></view>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">批次</text>
+                        <text class="f-hint">开单时需选择商品批次</text>
+                        <view class="sw" :class="{ on: form.batchOn }" @tap="toggleBatch"><view class="sw-knob"></view></view>
+                    </view>
+                    <view class="f-row static">
+                        <text class="f-label">上架销售</text>
+                        <text class="f-hint">关闭后开单时不再显示</text>
+                        <view class="sw" :class="{ on: form.status === 'ON_SALE' }" @tap="toggleOnSale"><view class="sw-knob"></view></view>
+                    </view>
+                    <view class="f-derived"><text class="fd-label">创建时间</text><text class="fd-value">{{ createdAt }}</text></view>
+                    <view class="f-derived"><text class="fd-label">更新时间</text><text class="fd-value">{{ updatedAt }}</text></view>
+                </view>
+
+                <!-- 标签与标记（原稿：商品标签 + 商品标记合并，置于页面最末尾） -->
+                <view class="pd-group">
+                    <view class="pd-gtitle"><text class="gt-bar"></text><text>标签与标记</text></view>
+                    <view class="tag-box">
+                        <view class="tag-list" v-if="tags.length">
+                            <view class="tag-item" v-for="(t, i) in tags" :key="i" @tap="removeTag(i)">{{ t }}<text class="rm">×</text></view>
+                        </view>
+                        <input class="tag-input" v-model="tagInput" placeholder="输入标签，回车添加" placeholder-class="f-ph" confirm-type="done" @confirm="addTag" />
+                    </view>
+                    <view class="chips-row chips-row--last">
+                        <text class="chips-label">商品标记</text>
+                        <view class="chip" :class="{ 'chip--on': form.isNew }" @tap="toggleNew">新品</view>
+                        <view class="chip" :class="{ 'chip--on': form.isRecommend }" @tap="toggleRecommend">推荐</view>
+                    </view>
+                </view>
             </view>
-          </view>
-          <view class="pt-note">主辅单位价格双向自动换算填充：修改任一单位价格，其余单位价格按换算率联动重算</view>
-          <view class="f-derived">
-            <text class="fd-label">零售毛利 / 毛利率</text>
-            <text class="fd-value fd-value--blue">{{ marginText }}</text>
-          </view>
-        </view>
+        </scroll-view>
 
-        <!-- 库存信息 -->
-        <view class="pd-group">
-          <view class="pd-gtitle">
-            <text class="gt-bar"></text><text>库存信息</text>
-            <text class="pd-badge" :class="stockBadgeCls">{{ stockBadgeTxt }}</text>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">当前库存</text>
-            <text class="f-value f-value--mono">{{ stock }}</text>
-            <text class="f-unit">{{ form.unit }}</text>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">预警阈值</text>
-            <input
-              v-if="editable"
-              class="f-input f-input--mono"
-              type="digit"
-              :value="String(warningThreshold)"
-              placeholder="0"
-              placeholder-class="f-ph"
-              @input="onWarningThreshold"
-            />
-            <text v-else class="f-value f-value--mono">{{ warningThreshold }}</text>
-            <text class="f-unit">{{ form.unit }}</text>
-          </view>
-          <view class="f-derived">
-            <text class="fd-label">按成本价计算的库存金额</text>
-            <text class="fd-value" :class="{ 'fd-value--muted': stockAmount === '¥—' }">{{ stockAmount }}</text>
-          </view>
-        </view>
-
-        <!-- 扩展信息（原稿：原扩展信息/商品标签/其它设置三组合并；标签与标记移至最末尾组） -->
-        <view class="pd-group">
-          <view class="pd-gtitle"><text class="gt-bar"></text><text>扩展信息</text></view>
-          <view class="f-row static">
-            <text class="f-label">商品启用</text>
-            <text class="f-hint">停用后开单/采购选不到该商品，历史单据不受影响</text>
-            <view class="sw" :class="{ on: form.enabled }" @tap="toggleEnabled"><view class="sw-knob"></view></view>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">启用追溯码</text>
-            <text class="f-hint">开单时需扫码录入追溯信息</text>
-            <view class="sw" :class="{ on: traceEnabled }" @tap="toggleTrace"><view class="sw-knob"></view></view>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">保质期</text>
-            <text class="f-hint">开单时需录入生产日期与保质期</text>
-            <view class="sw" :class="{ on: form.shelfLifeOn }" @tap="toggleShelfLife"><view class="sw-knob"></view></view>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">批次</text>
-            <text class="f-hint">开单时需选择商品批次</text>
-            <view class="sw" :class="{ on: form.batchOn }" @tap="toggleBatch"><view class="sw-knob"></view></view>
-          </view>
-          <view class="f-row static">
-            <text class="f-label">上架销售</text>
-            <text class="f-hint">关闭后开单时不再显示</text>
-            <view class="sw" :class="{ on: form.status === 'ON_SALE' }" @tap="toggleOnSale"><view class="sw-knob"></view></view>
-          </view>
-          <view class="f-derived"><text class="fd-label">创建时间</text><text class="fd-value">{{ createdAt }}</text></view>
-          <view class="f-derived"><text class="fd-label">更新时间</text><text class="fd-value">{{ updatedAt }}</text></view>
-        </view>
-
-        <!-- 标签与标记（原稿：商品标签 + 商品标记合并，置于页面最末尾） -->
-        <view class="pd-group">
-          <view class="pd-gtitle"><text class="gt-bar"></text><text>标签与标记</text></view>
-          <view class="tag-box">
-            <view class="tag-list" v-if="tags.length">
-              <view class="tag-item" v-for="(t, i) in tags" :key="i" @tap="removeTag(i)">{{ t }}<text class="rm">×</text></view>
-            </view>
-            <input class="tag-input" v-model="tagInput" placeholder="输入标签，回车添加" placeholder-class="f-ph" confirm-type="done" @confirm="addTag" />
-          </view>
-          <view class="chips-row chips-row--last">
-            <text class="chips-label">商品标记</text>
-            <view class="chip" :class="{ 'chip--on': form.isNew }" @tap="toggleNew">新品</view>
-            <view class="chip" :class="{ 'chip--on': form.isRecommend }" @tap="toggleRecommend">推荐</view>
-          </view>
-        </view>
-      </view>
-    </scroll-view>
-
-    <!-- 底栏（原稿 pp-bar：N 项改动未保存 + 取消/修改或保存） -->
-    <view class="pp-bar">
-      <view class="pp-bar-inner">
-        <view class="pp-sum">
-          <view class="pp-sum-l"><template v-if="dirty">有 <text class="pp-sum-n">{{ dirtyCount }}</text> 项改动未保存</template><template v-else>内容未变更</template></view>
-          <view class="pp-sum-amt" :class="{ 'pp-sum-amt--zero': stock <= 0 }">{{ stockAmount }}</view>
-        </view>
-        <view class="pp-acts">
-          <view class="pp-btn pp-btn--ghost" v-if="editable" @tap="cancelEdit">取消</view>
-          <!--
+        <!-- 底栏（原稿 pp-bar：N 项改动未保存 + 取消/修改或保存） -->
+        <view class="pp-bar">
+            <view class="pp-bar-inner">
+                <view class="pp-sum">
+                    <view class="pp-sum-l"><template v-if="dirty">有 <text class="pp-sum-n">{{ dirtyCount }}</text> 项改动未保存</template><template v-else>内容未变更</template></view>
+                    <view class="pp-sum-amt" :class="{ 'pp-sum-amt--zero': stock <= 0 }">{{ stockAmount }}</view>
+                </view>
+                <view class="pp-acts">
+                    <view class="pp-btn pp-btn--ghost" v-if="editable" @tap="cancelEdit">取消</view>
+                    <!--
             S3-230 入口权限门：「保存」一次会打商品主数据 / 价格 / 单位 / 标签四族端点
             （`PUT /admin/products/:id`、`PUT /products/:skuId/price`、单位增删改、`marketing-tags`），
             故门 = 四码全持（注册表 goods-detail-edit）。
           -->
-          <view
-            class="pp-btn"
-            v-if="canEntry('goods-detail-edit')"
-            :class="{ 'pp-btn--dis': editable && !dirty }"
-            @tap="onMainAction"
-          >{{ editable ? '保存' : '修改' }}</view>
+                    <view
+                        class="pp-btn"
+                        v-if="canEntry('goods-detail-edit')"
+                        :class="{ 'pp-btn--dis': editable && !dirty }"
+                        @tap="onMainAction"
+                    >{{ editable ? '保存' : '修改' }}</view>
+                </view>
+            </view>
         </view>
-      </view>
-    </view>
 
-    <!-- 添加辅单位弹层（原稿 openUnitPicker：单位库搜索 + chips（已用置灰）+ 自定义兜底） -->
-    <view class="qa-mask" v-if="unitPicker" @tap="unitPicker = false">
-      <view class="qa-popup" @tap.stop>
-        <view class="qa-header">
-          <text class="qa-title">添加辅单位</text>
-          <text class="qa-close" @tap="unitPicker = false">×</text>
+        <!-- 添加辅单位弹层（原稿 openUnitPicker：单位库搜索 + chips（已用置灰）+ 自定义兜底） -->
+        <view class="qa-mask" v-if="unitPicker" @tap="unitPicker = false">
+            <view class="qa-popup" @tap.stop>
+                <view class="qa-header">
+                    <text class="qa-title">添加辅单位</text>
+                    <text class="qa-close" @tap="unitPicker = false">×</text>
+                </view>
+                <view class="qa-body">
+                    <view class="qa-tip">从单位库中选择，或直接输入自定义单位。新辅单位接在当前最后一个单位之后，价格按换算率自动填充。</view>
+                    <view class="ul-search">
+                        <input class="ul-input" v-model="unitKw" placeholder="搜索单位库" confirm-type="search" />
+                    </view>
+                    <view class="md-chips">
+                        <view
+                            class="ul-chip"
+                            v-for="u in unitLibFiltered"
+                            :key="u"
+                            :class="{ 'ul-chip--used': usedUnitNames.includes(u) }"
+                            @tap="!usedUnitNames.includes(u) && addUnitByName(u)"
+                        >{{ u }}</view>
+                        <view v-if="!unitLibFiltered.length" class="ul-empty">单位库中没有「{{ unitKw }}」<br>可在下方自定义输入后添加</view>
+                    </view>
+                    <view class="md-sep"></view>
+                    <view class="md-subt">自定义单位</view>
+                    <view class="md-row">
+                        <input class="ul-input ul-input--row" v-model="unitCustomName" placeholder="如「听」「提」「扎」" confirm-type="done" @confirm="addUnitCustom" />
+                        <view class="md-add-btn" @tap="addUnitCustom">添加</view>
+                    </view>
+                </view>
+                <view class="qa-actions">
+                    <view class="qa-btn qa-btn--ghost" @tap="unitPicker = false">取消</view>
+                </view>
+            </view>
         </view>
-        <view class="qa-body">
-          <view class="qa-tip">从单位库中选择，或直接输入自定义单位。新辅单位接在当前最后一个单位之后，价格按换算率自动填充。</view>
-          <view class="ul-search">
-            <input class="ul-input" v-model="unitKw" placeholder="搜索单位库" confirm-type="search" />
-          </view>
-          <view class="md-chips">
-            <view
-              class="ul-chip"
-              v-for="u in unitLibFiltered"
-              :key="u"
-              :class="{ 'ul-chip--used': usedUnitNames.includes(u) }"
-              @tap="!usedUnitNames.includes(u) && addUnitByName(u)"
-            >{{ u }}</view>
-            <view v-if="!unitLibFiltered.length" class="ul-empty">单位库中没有「{{ unitKw }}」<br>可在下方自定义输入后添加</view>
-          </view>
-          <view class="md-sep"></view>
-          <view class="md-subt">自定义单位</view>
-          <view class="md-row">
-            <input class="ul-input ul-input--row" v-model="unitCustomName" placeholder="如「听」「提」「扎」" confirm-type="done" @confirm="addUnitCustom" />
-            <view class="md-add-btn" @tap="addUnitCustom">添加</view>
-          </view>
-        </view>
-        <view class="qa-actions">
-          <view class="qa-btn qa-btn--ghost" @tap="unitPicker = false">取消</view>
-        </view>
-      </view>
-    </view>
 
-    <!-- 扫码面板（原稿 openScanner：摄像头 + BarcodeDetector，不支持时提示手动输入） -->
-    <view class="qa-mask" v-if="scanner.open" @tap="closeScanner">
-      <view class="qa-popup" @tap.stop>
-        <view class="qa-header">
-          <text class="qa-title">扫描条码</text>
-          <text class="qa-close" @tap="closeScanner">×</text>
+        <!-- 扫码面板（原稿 openScanner：摄像头 + BarcodeDetector，不支持时提示手动输入） -->
+        <view class="qa-mask" v-if="scanner.open" @tap="closeScanner">
+            <view class="qa-popup" @tap.stop>
+                <view class="qa-header">
+                    <text class="qa-title">扫描条码</text>
+                    <text class="qa-close" @tap="closeScanner">×</text>
+                </view>
+                <view class="sc-cam">
+                    <video id="scVideo" class="sc-video" autoplay playsinline muted :controls="false"></video>
+                    <view class="sc-frame">
+                        <view class="sc-c sc-c--tl"></view>
+                        <view class="sc-c sc-c--tr"></view>
+                        <view class="sc-c sc-c--bl"></view>
+                        <view class="sc-c sc-c--br"></view>
+                        <view class="sc-line"></view>
+                    </view>
+                </view>
+                <view class="sc-tip">将条码对准取景框，识别成功后自动填入<br>正在录入：<text class="sc-tip-b">{{ scannerLabel }}</text></view>
+                <view class="qa-actions">
+                    <view class="qa-btn qa-btn--ghost" @tap="closeScanner">取消</view>
+                </view>
+            </view>
         </view>
-        <view class="sc-cam">
-          <video id="scVideo" class="sc-video" autoplay playsinline muted :controls="false"></video>
-          <view class="sc-frame">
-            <view class="sc-c sc-c--tl"></view>
-            <view class="sc-c sc-c--tr"></view>
-            <view class="sc-c sc-c--bl"></view>
-            <view class="sc-c sc-c--br"></view>
-            <view class="sc-line"></view>
-          </view>
-        </view>
-        <view class="sc-tip">将条码对准取景框，识别成功后自动填入<br>正在录入：<text class="sc-tip-b">{{ scannerLabel }}</text></view>
-        <view class="qa-actions">
-          <view class="qa-btn qa-btn--ghost" @tap="closeScanner">取消</view>
-        </view>
-      </view>
-    </view>
 
-    <!-- 分类选择弹窗（原稿 openPicker('cat')） -->
-    <view class="qa-mask" v-if="catModal" @tap="catModal = false">
-      <view class="qa-popup" @tap.stop>
-        <view class="qa-header">
-          <text class="qa-title">选择分类</text>
-          <text class="qa-close" @tap="catModal = false">×</text>
+        <!-- 分类选择弹窗（原稿 openPicker('cat')） -->
+        <view class="qa-mask" v-if="catModal" @tap="catModal = false">
+            <view class="qa-popup" @tap.stop>
+                <view class="qa-header">
+                    <text class="qa-title">选择分类</text>
+                    <text class="qa-close" @tap="catModal = false">×</text>
+                </view>
+                <view class="qa-list">
+                    <view class="qa-opt" :class="{ 'qa-opt--sel': form.categoryId === c.id }" v-for="c in categoryOptions" :key="c.id" @tap="pickCategory(c)">
+                        <text>{{ c.name }}</text>
+                        <text v-if="form.categoryId === c.id" class="qa-opt-ck">✓</text>
+                    </view>
+                    <view v-if="!categoryOptions.length" class="qa-empty">暂无分类数据，请先在分类管理中创建</view>
+                </view>
+            </view>
         </view>
-        <view class="qa-list">
-          <view class="qa-opt" :class="{ 'qa-opt--sel': form.categoryId === c.id }" v-for="c in categoryOptions" :key="c.id" @tap="pickCategory(c)">
-            <text>{{ c.name }}</text>
-            <text v-if="form.categoryId === c.id" class="qa-opt-ck">✓</text>
-          </view>
-          <view v-if="!categoryOptions.length" class="qa-empty">暂无分类数据，请先在分类管理中创建</view>
-        </view>
-      </view>
-    </view>
 
-    <view class="safe-bottom"></view>
-  </view>
+        <view class="safe-bottom"></view>
+    </view>
 </template>
 
 <script setup lang="ts">

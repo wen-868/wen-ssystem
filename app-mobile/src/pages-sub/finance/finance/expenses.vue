@@ -1,92 +1,92 @@
 <template>
-  <view class="expenses-page">
-    <page-header title="费用管理" @back="goBack" />
-    <!-- 搜索栏 -->
-    <view class="search-bar">
-      <view class="search-input-wrap">
-        <image class="search-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
-        <input class="search-input" placeholder="搜索费用单号/备注" v-model="keyword" @confirm="onSearch" />
-      </view>
-      <view class="search-btn" @tap="onSearch">搜索</view>
+    <view class="expenses-page">
+        <page-header title="费用管理" @back="goBack" />
+        <!-- 搜索栏 -->
+        <view class="search-bar">
+            <view class="search-input-wrap">
+                <image class="search-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit" />
+                <input class="search-input" placeholder="搜索费用单号/备注" v-model="keyword" @confirm="onSearch" />
+            </view>
+            <view class="search-btn" @tap="onSearch">搜索</view>
+        </view>
+
+        <!-- 筛选栏 -->
+        <view class="filter-bar">
+            <view class="filter-item" :class="{ active: statusFilter === '' }" @tap="statusFilter = ''">
+                <text class="filter-text">全部</text>
+            </view>
+            <view class="filter-item" :class="{ active: statusFilter === 'PENDING' }" @tap="statusFilter = 'PENDING'">
+                <text class="filter-text">待审核</text>
+            </view>
+            <view class="filter-item" :class="{ active: statusFilter === 'APPROVED' }" @tap="statusFilter = 'APPROVED'">
+                <text class="filter-text">已通过</text>
+            </view>
+            <view class="filter-item" :class="{ active: statusFilter === 'REJECTED' }" @tap="statusFilter = 'REJECTED'">
+                <text class="filter-text">已驳回</text>
+            </view>
+        </view>
+
+        <!-- 费用列表 -->
+        <scroll-view class="expense-list" scroll-y>
+            <view class="expense-card" v-for="item in expenseList" :key="item.id" @tap="goDetail(item.id)">
+                <view class="card-header">
+                    <text class="expense-no">{{ item.expenseNo }}</text>
+                    <view class="status-tag" :class="`status-tag--${item.status.toLowerCase()}`">
+                        <text class="status-text">{{ item.statusName }}</text>
+                    </view>
+                </view>
+
+                <view class="card-body">
+                    <view class="expense-info">
+                        <text class="expense-type">{{ item.typeName }}</text>
+                        <text class="expense-date">{{ formatDate(item.date) }}</text>
+                    </view>
+                    <text class="expense-amount">¥{{ formatAmount(item.amount) }}</text>
+                </view>
+
+                <view class="card-footer">
+                    <text class="submitter">{{ item.submitterName }}</text>
+                    <text class="remark" v-if="item.remark">{{ item.remark }}</text>
+                </view>
+
+                <view class="card-actions" v-if="item.status === 'PENDING'">
+                    <view class="action-btn action-btn--reject" @tap.stop="rejectExpense(item)">
+                        <text class="action-text">驳回</text>
+                    </view>
+                    <view class="action-btn action-btn--approve" @tap.stop="approveExpense(item)">
+                        <text class="action-text">通过</text>
+                    </view>
+                </view>
+            </view>
+
+            <view class="empty-state" v-if="expenseList.length === 0">
+                <text class="empty-text">暂无费用记录</text>
+            </view>
+
+            <!-- 分页加载 -->
+            <view class="load-more" v-if="total > expenseList.length">
+                <text class="load-more-text" v-if="loading">加载中...</text>
+                <text class="load-more-text" v-else @tap="loadMore">点击加载更多</text>
+            </view>
+        </scroll-view>
+
+        <!-- 新增按钮 -->
+        <view class="fab-btn" @tap="goCreate">
+            <image class="fab-icon ic" src="/static/icons/ic/plus.svg" mode="aspectFit" />
+        </view>
+
+        <!-- 驳回弹窗 -->
+        <view class="modal-overlay" v-if="showRejectModal" @tap="showRejectModal = false">
+            <view class="modal-content" @tap.stop>
+                <text class="modal-title">驳回原因</text>
+                <textarea class="modal-textarea" placeholder="请输入驳回原因" v-model="rejectReason"></textarea>
+                <view class="modal-actions">
+                    <view class="modal-btn modal-btn--cancel" @tap="showRejectModal = false">取消</view>
+                    <view class="modal-btn modal-btn--confirm" @tap="confirmReject">确定</view>
+                </view>
+            </view>
+        </view>
     </view>
-
-    <!-- 筛选栏 -->
-    <view class="filter-bar">
-      <view class="filter-item" :class="{ active: statusFilter === '' }" @tap="statusFilter = ''">
-        <text class="filter-text">全部</text>
-      </view>
-      <view class="filter-item" :class="{ active: statusFilter === 'PENDING' }" @tap="statusFilter = 'PENDING'">
-        <text class="filter-text">待审核</text>
-      </view>
-      <view class="filter-item" :class="{ active: statusFilter === 'APPROVED' }" @tap="statusFilter = 'APPROVED'">
-        <text class="filter-text">已通过</text>
-      </view>
-      <view class="filter-item" :class="{ active: statusFilter === 'REJECTED' }" @tap="statusFilter = 'REJECTED'">
-        <text class="filter-text">已驳回</text>
-      </view>
-    </view>
-
-    <!-- 费用列表 -->
-    <scroll-view class="expense-list" scroll-y>
-      <view class="expense-card" v-for="item in expenseList" :key="item.id" @tap="goDetail(item.id)">
-        <view class="card-header">
-          <text class="expense-no">{{ item.expenseNo }}</text>
-          <view class="status-tag" :class="`status-tag--${item.status.toLowerCase()}`">
-            <text class="status-text">{{ item.statusName }}</text>
-          </view>
-        </view>
-
-        <view class="card-body">
-          <view class="expense-info">
-            <text class="expense-type">{{ item.typeName }}</text>
-            <text class="expense-date">{{ formatDate(item.date) }}</text>
-          </view>
-          <text class="expense-amount">¥{{ formatAmount(item.amount) }}</text>
-        </view>
-
-        <view class="card-footer">
-          <text class="submitter">{{ item.submitterName }}</text>
-          <text class="remark" v-if="item.remark">{{ item.remark }}</text>
-        </view>
-
-        <view class="card-actions" v-if="item.status === 'PENDING'">
-          <view class="action-btn action-btn--reject" @tap.stop="rejectExpense(item)">
-            <text class="action-text">驳回</text>
-          </view>
-          <view class="action-btn action-btn--approve" @tap.stop="approveExpense(item)">
-            <text class="action-text">通过</text>
-          </view>
-        </view>
-      </view>
-
-      <view class="empty-state" v-if="expenseList.length === 0">
-        <text class="empty-text">暂无费用记录</text>
-      </view>
-
-      <!-- 分页加载 -->
-      <view class="load-more" v-if="total > expenseList.length">
-        <text class="load-more-text" v-if="loading">加载中...</text>
-        <text class="load-more-text" v-else @tap="loadMore">点击加载更多</text>
-      </view>
-    </scroll-view>
-
-    <!-- 新增按钮 -->
-    <view class="fab-btn" @tap="goCreate">
-      <image class="fab-icon ic" src="/static/icons/ic/plus.svg" mode="aspectFit"/>
-    </view>
-
-    <!-- 驳回弹窗 -->
-    <view class="modal-overlay" v-if="showRejectModal" @tap="showRejectModal = false">
-      <view class="modal-content" @tap.stop>
-        <text class="modal-title">驳回原因</text>
-        <textarea class="modal-textarea" placeholder="请输入驳回原因" v-model="rejectReason"></textarea>
-        <view class="modal-actions">
-          <view class="modal-btn modal-btn--cancel" @tap="showRejectModal = false">取消</view>
-          <view class="modal-btn modal-btn--confirm" @tap="confirmReject">确定</view>
-        </view>
-      </view>
-    </view>
-  </view>
 </template>
 
 <script setup lang="ts">
