@@ -1,0 +1,22 @@
+PASS  真实登录成功（会话可用于后续取证）  ← [200]
+PASS  媒体查询前提（实现侧）：reduce-motion 已关闭 ⇒ transition 读数有效  ← reduce=false no-preference=true
+PASS  媒体查询前提（原型侧）：reduce-motion 已关闭 ⇒ transition 读数有效  ← reduce=false no-preference=true
+PASS  rail-item-transition：一级 rail 项 hover/选中过渡  ← MATCH（transition 150/150ms）
+PASS  rail-alert-flash：工作台有新动态时 rail 项整块红闪  ← SKIP-SAMPLING（运行态不渲染：无「新动态」时不加 .alert 类（railAlertCount=0）⇒ 该动效不渲染；源码侧已确认动效存在 ⇒ 非缺陷）
+PASS  side-collapse：第二列收起（margin 过渡）  ← SKIP-SAMPLING（当前态无该类：过渡发生在 .wb-shell 的 grid-template-columns，非 .wb-subnav 自身；改由中间帧实测判决；源码侧已确认 ⇒ 非缺陷）
+PASS  sub-card-transition：二级功能卡 hover 过渡  ← SKIP-SAMPLING（运行态不渲染：mock DB 空菜单 ⇒ 第二列 0 张卡（snCardCount=0）；源码侧已确认动效存在 ⇒ 非缺陷）
+PASS  feed-card-enter：信息流卡片入场动画（fin）  ← MATCH（transition 200/150ms · animation 350/350ms）
+PASS  feed-live-dot：「实时推送中」圆点呼吸  ← SKIP-SAMPLING（运行态不渲染：AI 推送 WS 未连 ⇒ 渲染的是「推送离线」分支，.fdv-dot 不存在；源码侧已确认动效存在 ⇒ 非缺陷）
+PASS  feed-ask-hover：信息流提问条 hover 变色  ← MATCH（transition 150/150ms）
+PASS  mode-seg-item：工作台/收银台胶囊项过渡  ← MATCH（transition 120/120ms）
+PASS  input-box-focus：底部输入框聚焦双环  ← MATCH（transition 150/150ms）
+PASS  setwin-enter：设置弹窗入场（swIn）  ← SKIP（实现无对应对象，D-6 已裁定跳 /system）
+PASS  feed-live-dot（离线态取样限制）：圆点不渲染，改判源码真值  ← @keyframes fdv-blink 存在=true；.fdv-dot 引用 animation=true（仅在 socketOnline=true 时渲染）
+PASS  side-collapse：第二列收起是**真实过渡**（中间帧列宽介于起止之间）  ← 起 230.0px → 中间帧 26.3px → 终 0.0px；transition=grid-template-columns/0.25s
+PASS  hover 反馈：信息流提问条 hover 变色  ← rgb(255, 255, 255)→rgb(239, 244, 255)｜rgb(37, 99, 235)→rgb(37, 99, 235)
+PASS  hover 反馈：rail **非选中项**（设置）hover 变色  ← rgba(0, 0, 0, 0)→rgb(244, 246, 248)｜rgb(138, 143, 152)→rgb(22, 24, 29)
+PASS  hover 反馈：胶囊 **非选中项** hover 变色  ← rgba(0, 0, 0, 0)→rgba(0, 0, 0, 0)｜rgb(138, 143, 152)→rgb(22, 24, 29)
+
+小结：18 passed / 0 failed
+动效比对：MATCH 5 / MISSING 0 / DURATION-DIFF 0 / SKIP 5 / NONE-BOTH 0
+报告：docs/evidence/WORKBENCH-06F3/reports/ui-animation-audit.json

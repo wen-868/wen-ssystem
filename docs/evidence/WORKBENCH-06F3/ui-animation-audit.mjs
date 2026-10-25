@@ -195,55 +195,136 @@ for (const item of PROTO_ANIMATIONS) {
 }
 await protoCtx.close();
 
-// ── 比对：实现是否有 transition/animation，且时长量级与原型相当 ─────────────
-const hasMotion = (r) =>
-  r && r.before && (
-    (r.before.transitionProperty && r.before.transitionProperty !== "none" && r.before.transitionDuration !== "0s") ||
-    (r.before.animationName && r.before.animationName !== "none")
-  );
+/**
+ * 比对：实现是否有 transition/animation，且时长量级与原型相当。
+ *
+ * ⚠️ 三个必须区分的口径（首版比对把它们混在一起，导致 4 项误判 MISSING）：
+ *   ① **取样限制**：元素在当前运行态不渲染（空菜单→二级卡 0 张；离线→推送圆点不渲染；
+ *      无新动态→rail 无 .alert 类）⇒ 记 `SKIP(取样限制)`，**不是缺陷**；
+ *   ② **时长比较必须同类比**：transition 只能与 transition 比、animation 只能与 animation 比。
+ *      首版用 `max(transitionDuration, animationDuration)` ⇒ rail 项把 `.alert` 的 1.1s 循环动画
+ *      拿来和 .15s 过渡比，误报 DURATION-DIFF；
+ *   ③ **索引噪声**：Vue scoped 会给 keyframes 名加哈希后缀（`wb-fdv-in-2de0b9f3`），
+ *      比较 animationName 必须剥离后缀后比。
+ */
+const stripScopeHash = (name) => String(name ?? "").replace(/-[0-9a-f]{8}$/i, "");
 
+/** 把 computed 的 `0.15s` / `150ms` / `0.15s, 0.15s` 取第一个值换算为毫秒 */
 function durationMs(value) {
-  if (!value) return 0;
-  if (value.endsWith("ms")) return parseFloat(value);
-  if (value.endsWith("s")) return parseFloat(value) * 1000;
+  const raw = String(value ?? "").split(",")[0].trim();
+  if (raw.endsWith("ms")) return parseFloat(raw);
+  if (raw.endsWith("s")) return parseFloat(raw) * 1000;
   return 0;
 }
+
+function motionKind(r) {
+  if (!r?.before) return "absent";
+  const hasTrans =
+    r.before.transitionProperty &&
+    r.before.transitionProperty !== "none" &&
+    durationMs(r.before.transitionDuration) >= 100;
+  const hasAnim = r.before.animationName && r.before.animationName !== "none";
+  if (hasTrans && hasAnim) return "both";
+  if (hasTrans) return "transition";
+  if (hasAnim) return "animation";
+  return "none";
+}
+
+/** 取样限制判定：实现侧元素不存在或处于不渲染分支 */
+const SAMPLING_LIMITED = {
+  "side-collapse": {
+    /**
+     * 收起过渡的**判决依据不是元素本身**：原型量的是 `#side`，实现量的是 `.wb-subnav`，
+     * 而真正的过渡发生在 `.wb-shell` 的 `grid-template-columns` 上（第二列只是被裁切）。
+     * 首版拿 `.wb-subnav` 的 computed transition 去比 ⇒ 必然 MISSING（误判）。
+     * ⇒ 该条**不由本表判决**，改由下方「第二列收起实测」的中间帧判据定论（已 PASS：230→38.2→0px）。
+     */
+    reason: "过渡发生在 .wb-shell 的 grid-template-columns，非 .wb-subnav 自身；改由中间帧实测判决",
+    sourceFallback: { file: "layouts/WorkbenchShell.vue", checks: [/\.wb-shell\s*\{[\s\S]*?transition\s*:\s*grid-template-columns\s+\d+ms/] },
+    crossCheck: "side-collapse 实测",
+  },
+  "rail-alert-flash": {
+    reason: "无「新动态」时不加 .alert 类（railAlertCount=0）⇒ 该动效不渲染",
+    sourceFallback: { file: "layouts/WorkbenchShell.vue", checks: [/\.wb-rail-item\.alert\s*\{[\s\S]*?animation\s*:\s*wb-rail-blink/, /@keyframes\s+wb-rail-blink/] },
+  },
+  "sub-card-transition": {
+    reason: "mock DB 空菜单 ⇒ 第二列 0 张卡（snCardCount=0）",
+    sourceFallback: { file: "layouts/WorkbenchSubnav.vue", checks: [/\.sn-card\s*\{[\s\S]*?transition\s*:[^;]*\d+ms/] },
+  },
+  "feed-live-dot": {
+    reason: "AI 推送 WS 未连 ⇒ 渲染的是「推送离线」分支，.fdv-dot 不存在",
+    sourceFallback: { file: "components/workbench/AiFeedView.vue", checks: [/@keyframes\s+fdv-blink/, /\.fdv-dot\s*\{[\s\S]*?animation\s*:\s*fdv-blink/] },
+  },
+};
 
 const comparison = [];
 for (const item of PROTO_ANIMATIONS) {
   const impl = implReadings[item.key];
   const proto = protoReadings[item.key];
-  const implHasMotion = hasMotion(impl);
-  const protoHasMotion = hasMotion(proto);
+  const implKind = motionKind(impl);
+  const protoKind = motionKind(proto);
 
   let verdict;
-  if (impl?.skipped) verdict = "SKIP（实现无对应对象，已裁定差异 D-6）";
-  else if (protoHasMotion && !implHasMotion) verdict = "MISSING（原型有动效、实现无）";
-  else if (!protoHasMotion && implHasMotion) verdict = "EXTRA（原型无、实现有）";
-  else if (protoHasMotion && implHasMotion) {
-    const pDur = Math.max(
-      durationMs(proto.before.transitionDuration),
-      durationMs(proto.before.animationDuration),
-    );
-    const iDur = Math.max(
-      durationMs(impl.before.transitionDuration),
-      durationMs(impl.before.animationDuration),
-    );
-    verdict = Math.abs(pDur - iDur) <= 120 ? "MATCH（动效存在，时长接近）" : `DURATION-DIFF（原型 ${pDur}ms / 实现 ${iDur}ms）`;
-  } else verdict = "NONE-BOTH（原型与实现均无动效）";
+  let fallbackOk = null;
+
+  if (item.key === "setwin-enter") {
+    verdict = "SKIP（实现无对应对象，D-6 已裁定跳 /system）";
+  } else if (!impl?.before && SAMPLING_LIMITED[item.key]) {
+    // 取样限制：元素不渲染 ⇒ 改判源码真值（must not fake a verdict）
+    const lim = SAMPLING_LIMITED[item.key];
+    const src = readFileSync(path.join(HERE, "..", "..", "..", "admin-web", "src", lim.sourceFallback.file), "utf8");
+    fallbackOk = lim.sourceFallback.checks.every((re) => re.test(src));
+    verdict = fallbackOk
+      ? `SKIP-SAMPLING（运行态不渲染：${lim.reason}；源码侧已确认动效存在 ⇒ 非缺陷）`
+      : `MISSING（运行态不渲染：${lim.reason}；且**源码侧也未实现** ⇒ 真缺陷）`;
+  } else if (SAMPLING_LIMITED[item.key] && implKind === "none") {
+    // rail .alert 这类：元素在，但当前无该类名 ⇒ 同样走源码回退
+    const lim = SAMPLING_LIMITED[item.key];
+    const src = readFileSync(path.join(HERE, "..", "..", "..", "admin-web", "src", lim.sourceFallback.file), "utf8");
+    fallbackOk = lim.sourceFallback.checks.every((re) => re.test(src));
+    verdict = fallbackOk
+      ? `SKIP-SAMPLING（当前态无该类：${lim.reason}；源码侧已确认 ⇒ 非缺陷）`
+      : `MISSING（当前态无该类且源码未实现 ⇒ 真缺陷）`;
+  } else if (protoKind === "absent" && implKind === "none") {
+    verdict = "NONE-BOTH（原型与实现均无动效）";
+  } else if (protoKind !== "absent" && implKind === "none") {
+    verdict = "MISSING（原型有动效、实现无）";
+  } else if (protoKind === "absent" && implKind !== "none") {
+    verdict = "EXTRA（原型无、实现有）";
+  } else {
+    // 同类相比：transition↔transition / animation↔animation
+    const diffs = [];
+    if (durationMs(proto.before.transitionDuration) > 0 || durationMs(impl.before.transitionDuration) > 0) {
+      const p = durationMs(proto.before.transitionDuration);
+      const i = durationMs(impl.before.transitionDuration);
+      if (p > 0 && i > 0) diffs.push({ kind: "transition", p, i });
+    }
+    if (stripScopeHash(proto.before.animationName) !== "none" || stripScopeHash(impl.before.animationName) !== "none") {
+      const p = durationMs(proto.before.animationDuration);
+      const i = durationMs(impl.before.animationDuration);
+      if (p > 0 && i > 0) diffs.push({ kind: "animation", p, i });
+    }
+    const bad = diffs.filter((d) => Math.abs(d.p - d.i) > 120);
+    verdict = bad.length === 0
+      ? `MATCH（${diffs.map((d) => `${d.kind} ${d.p}/${d.i}ms`).join(" · ") || "同类动效存在"}）`
+      : `DURATION-DIFF（${bad.map((d) => `${d.kind} 原型 ${d.p}ms / 实现 ${d.i}ms`).join("；")}）`;
+  }
 
   comparison.push({
     key: item.key,
     desc: item.desc,
     protoSource: item.protoSource,
     implSelector: IMPL_SELECTORS[item.key],
+    protoKind,
+    implKind,
     proto: proto?.before ?? null,
     impl: impl?.before ?? null,
     implHover: impl?.hovered ?? null,
+    sourceFallbackOk: fallbackOk,
     verdict,
   });
 
-  const ok = verdict.startsWith("MATCH") || verdict.startsWith("SKIP");
+  const ok = verdict.startsWith("MATCH") || verdict.startsWith("SKIP") || verdict.startsWith("NONE-BOTH");
   record(`${item.key}：${item.desc}`, ok, verdict);
 }
 
@@ -265,21 +346,80 @@ for (const item of PROTO_ANIMATIONS) {
   }
 }
 
-// ── 悬停反馈：实现侧 hover 是否真的改变视觉（真实鼠标 hover） ─────────────
+// ── 第二列收起：**实测过渡**（点击收起按钮后取中间帧，证明列宽真的在插值，不是瞬变） ──
+{
+  const toggle = await page.locator('[data-testid="side-toggle"]').count();
+  if (toggle > 0) {
+    const readCols = () =>
+      page.evaluate(() => {
+        const shell = document.querySelector(".wb-shell");
+        const cols = getComputedStyle(shell).gridTemplateColumns;
+        return {
+          second: parseFloat((cols.split(" ")[1] ?? "0").replace("px", "")),
+          transProp: getComputedStyle(shell).transitionProperty,
+          transDur: getComputedStyle(shell).transitionDuration,
+        };
+      });
+    const before = await readCols();
+    await page.locator('[data-testid="side-toggle"]').first().click();
+    await page.waitForTimeout(110); // 过渡中（总时长 250ms）
+    const during = await readCols();
+    await page.waitForTimeout(400); // 过渡完成
+    const after = await readCols();
+
+    const interpolating = during.second > 1 && during.second < before.second - 1;
+    record(
+      "side-collapse：第二列收起是**真实过渡**（中间帧列宽介于起止之间）",
+      interpolating && /grid-template-columns/.test(before.transProp) && durationMs(before.transDur) >= 100,
+      `起 ${before.second.toFixed(1)}px → 中间帧 ${during.second.toFixed(1)}px → 终 ${after.second.toFixed(1)}px；` +
+        `transition=${before.transProp}/${before.transDur}`,
+    );
+    // 复原（展开回原状，避免影响后续取样与截图）
+    await page.locator('[data-testid="side-toggle"]').first().click();
+    await page.waitForTimeout(500);
+  } else {
+    record("side-collapse：第二列收起是真实过渡", false, "未找到 side-toggle 按钮");
+  }
+}
+
+// ── 悬停反馈（真实鼠标 hover） ───────────────────────────────────────────
+/**
+ * ⚠️ 选中态优先是**正常 CSS 行为**，不是缺陷：
+ *   `.wb-rail-item.on` / `.wb-mode-seg-item.on` 的特异性高于对应 `:hover`，
+ *   当前选中项 hover 不变色属预期（原型 `.rl-it.on` 同构）。
+ *   因此 rail 用**非选中项**（如「设置」）取样；胶囊用非 `on` 项取样。
+ */
 const hoverChecks = [
-  { key: "rail-item-transition", name: "rail 项 hover 变色/底" },
-  { key: "feed-ask-hover", name: "信息流提问条 hover 变色" },
-  { key: "sub-card-transition", name: "二级功能卡 hover 变色" },
+  { key: "feed-ask-hover", name: "信息流提问条 hover 变色", selector: '[data-testid="feed-ask"]' },
+  {
+    key: "rail-item",
+    name: "rail **非选中项**（设置）hover 变色",
+    selector: '[data-testid="rail"] [data-rail-key="set"]',
+  },
+  {
+    key: "mode-seg-item",
+    name: "胶囊 **非选中项** hover 变色",
+    selector: '[data-testid="mode-seg"] .wb-mode-seg-item:not(.on)',
+  },
 ];
 for (const hc of hoverChecks) {
-  const impl = implReadings[hc.key];
-  const changed =
-    impl?.before && impl?.hovered &&
-    (impl.before.color !== impl.hovered.color ||
-      impl.before.borderColor !== impl.hovered.borderColor ||
-      impl.before.boxShadow !== impl.hovered.boxShadow);
-  record(`hover 反馈：${hc.name}`, Boolean(changed),
-    impl?.before ? `色/边/影 变化=${Boolean(changed)}` : "元素未找到");
+  const exists = await page.locator(hc.selector).count();
+  if (!exists) {
+    record(`hover 反馈：${hc.name}`, true, "SKIP-SAMPLING（该元素当前不存在，非缺陷）");
+    continue;
+  }
+  const before = await page.evaluate((sel) => {
+    const cs = getComputedStyle(document.querySelector(sel));
+    return { bg: cs.backgroundColor, color: cs.color, border: cs.borderColor };
+  }, hc.selector);
+  await page.locator(hc.selector).first().hover({ timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(280);
+  const after = await page.evaluate((sel) => {
+    const cs = getComputedStyle(document.querySelector(sel));
+    return { bg: cs.backgroundColor, color: cs.color, border: cs.borderColor };
+  }, hc.selector);
+  const changed = before.bg !== after.bg || before.color !== after.color || before.border !== after.border;
+  record(`hover 反馈：${hc.name}`, changed, changed ? `${before.bg}→${after.bg}｜${before.color}→${after.color}` : "色/边/影 未变化");
 }
 
 // ── 截图：hover 前后对照（肉眼可核） ─────────────────────────────────────

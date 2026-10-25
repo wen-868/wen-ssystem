@@ -278,6 +278,8 @@ function openMessages(): void {
   font-size: 13px;
   cursor: pointer;
   text-align: left;
+  /* 对齐原型 L147-148 `.feed-ask` hover（WORKBENCH-06F3 MISSING #7：变色有、过渡缺） */
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 .fdv-ask:hover {
   border-color: var(--wb-primary, #2563eb);
@@ -317,6 +319,34 @@ function openMessages(): void {
   border-radius: 10px;
   background: var(--wb-panel, #fff);
   margin-bottom: 8px;
+  /* 对齐原型 L150 `.feed-card{transition:.15s;animation:fin .35s}`：
+     ① 入场动画 fin → wb-fdv-in（WORKBENCH-06F3 MISSING #5）
+     ② hover 过渡 + 边框高亮（MISSING #4 卡片 hover 缺失一侧） */
+  animation: wb-fdv-in 350ms ease-out both;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.fdv-item:hover {
+  border-color: var(--wb-primary, #2563eb);
+}
+/**
+ * 入场动画：与原型 `@keyframes fin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}` 对齐。
+ * `both` 保证动画结束保留终态（不会闪回未动画前的初始渲染）。
+ */
+@keyframes wb-fdv-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* 无障碍：与全局 tokens.css 同口径 —— 用户选择减少动效时不播入场动画 */
+  .fdv-item {
+    animation: none;
+  }
 }
 .fdv-item.unread {
   border-color: #bcd0f7;

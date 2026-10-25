@@ -245,6 +245,8 @@ function emitEntry(entry: ManifestItem): void {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* 对齐原型 L133-134 `.sub-card` + `i{transition:.15s}`（WORKBENCH-06F3 MISSING #4） */
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 .sn-card:hover {
   border-color: var(--wb-primary, #2563eb);

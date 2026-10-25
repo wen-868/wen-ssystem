@@ -632,15 +632,19 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 .wb-shell {
   height: 100vh;
   display: grid;
+  /* 第二列收起用 grid 列宽过渡（对齐原型 .side{transition:margin .25s} 的平滑滑出手感）；
+     不用 display:none 瞬隐 —— WORKBENCH-06F3 审计 MISSING #3 修复。 */
   grid-template-columns: var(--wb-rail-w, 64px) var(--wb-side-w, 230px) minmax(0, 1fr);
+  transition: grid-template-columns 250ms ease;
   background: var(--wb-bg, #f4f6f8);
   overflow: hidden;
 }
 .wb-shell.side-hidden {
   grid-template-columns: var(--wb-rail-w, 64px) 0 minmax(0, 1fr);
 }
+/* 收起态：内容溢出裁掉 + 不做 visibility 切换，保证过渡期间可见滑出 */
 .wb-shell :deep(.wb-subnav.hidden) {
-  display: none;
+  overflow: hidden;
 }
 /* 收银台：不渲染 AI 会话层的宽度挤压，仍保持三段（原型 side=收银功能列表） */
 
@@ -686,6 +690,8 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   font-size: 11px;
   cursor: pointer;
   flex-shrink: 0;
+  /* 对齐原型 L122 `.rl-it{transition:.15s}`（WORKBENCH-06F3 MISSING #1） */
+  transition: background-color 150ms ease, color 150ms ease;
 }
 .wb-rail-item:hover {
   background: var(--wb-hover, #f4f6f8);
@@ -696,13 +702,28 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   color: var(--wb-primary, #2563eb);
   font-weight: 600;
 }
+/**
+ * 有新动态时整块红闪（对齐原型 L187 `.rl-it.alert{background:#DC2626;animation:rlFlash 1.1s}`）。
+ * ⚠️ WORKBENCH-06F3 审计 MISSING #2 根因：旧版只设了 `color`，而 keyframes 只改 `background`
+ *    ⇒ 底色始终是父级透明，闪烁视觉不成立。此处补 `background`（动画期间由 keyframes 接管）。
+ */
 .wb-rail-item.alert {
+  background: #dc2626;
+  color: #fff;
   animation: wb-rail-blink 1.1s ease-in-out infinite;
-  color: #dc2626;
+}
+.wb-rail-item.alert :deep(.el-icon) {
+  color: #fff;
 }
 @keyframes wb-rail-blink {
-  0%, 100% { background: #fee2e2; }
-  50% { background: #fecaca; }
+  0%, 100% {
+    background: #dc2626;
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.45);
+  }
+  50% {
+    background: #f87171;
+    box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
+  }
 }
 .wb-rail-gap {
   flex: 1;
@@ -816,6 +837,20 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   font-size: 12px;
   color: var(--wb-ink2, #8a8f98);
   cursor: pointer;
+  /* 对齐原型 L87 `.ms{transition:…}`（WORKBENCH-06F3 MISSING #8） */
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+/**
+ * 对齐原型 L88 `.ms:hover{color:var(--ink)}`。
+ * ⚠️ WORKBENCH-06F3 二轮审计发现：此前只有 transition 与 `.on` 态、**缺 hover 规则**
+ *    ⇒ 未选中项悬停无任何视觉反馈（原型有）。此为审计新增发现的真缺陷。
+ */
+.wb-mode-seg-item:hover {
+  color: var(--wb-ink, #16181d);
+}
+/* 选中项悬停保持主色（原型 `.ms.on` 特异性更高，这里显式声明意图，避免被 hover 覆盖成黑） */
+.wb-mode-seg-item.on:hover {
+  color: var(--wb-primary, #2563eb);
 }
 .wb-mode-seg-item.on {
   background: var(--wb-panel, #fff);

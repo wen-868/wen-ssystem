@@ -1,0 +1,186 @@
+
+> admin-web@0.1.0 test
+> node tests/role-guard.spec.mjs && node tests/landing.spec.mjs && node tests/workbench-shell.spec.mjs && node tests/ai-primary.spec.mjs && node tests/parity-coverage.spec.mjs && node tests/menu-ai-bridge.spec.mjs && node tests/rollout-rollback.spec.mjs && node tests/prototype-parity.spec.mjs && node tests/ai-status-truth.spec.mjs && node tests/ui-animation.spec.mjs
+
+守卫判定行 → 315:   if (allowedRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
+
+PASS  用例一 命中 meta.roles ⇒ 放行  ← 落点=/quick-entries 拒绝提示=0
+PASS  用例二 有角色但不命中 ⇒ 拒绝并跳既有落点  ← 落点=/dashboard 拒绝提示=1
+PASS  用例三 空角色 ⇒ 拒绝（fail-closed）  ← 落点=/login 拒绝提示=1 导航中止=false
+
+小结：3 passed / 0 failed
+守卫判定/落地块 →
+  315:   if (allowedRoles.length > 0 && !userRoles.some(r => allowedRoles.includes(r))) {
+  320:     const landing = resolveLandingPath(userRoles, auth.user?.defaultHomepage, routes);
+
+PASS  真值表 [SUPER_ADMIN] homepage=空 ⇒ /dashboard  ← 无配置 → /dashboard 可访问；落点=/dashboard
+PASS  真值表 [SUPER_ADMIN] homepage=/quick-entries ⇒ /quick-entries  ← 配置存在且可访问；落点=/quick-entries
+PASS  真值表 [SUPER_ADMIN] homepage=/dashboard ⇒ /dashboard  ← 配置存在且可访问；落点=/dashboard
+PASS  真值表 [SUPER_ADMIN] homepage=/no-such-page ⇒ /dashboard  ← 配置的路径不存在 → 跳过；落点=/dashboard
+PASS  真值表 [STORE_MANAGER] homepage=空 ⇒ /dashboard  ← 既有落点不变；落点=/dashboard
+PASS  真值表 [STORE_MANAGER] homepage=/quick-entries ⇒ /dashboard  ← 配置存在但角色不可访问 → 跳过；落点=/dashboard
+PASS  真值表 [STORE_MANAGER] homepage=/pos/dashboard ⇒ /pos/dashboard  ← 配置存在且可访问；落点=/pos/dashboard
+PASS  真值表 [STORE_OPERATOR] homepage=空 ⇒ /pos/dashboard  ← 不可访问 /dashboard → POS 映射；落点=/pos/dashboard
+PASS  真值表 [STORE_OPERATOR] homepage=/pos/cashier ⇒ /pos/cashier  ← 配置存在且可访问；落点=/pos/cashier
+PASS  真值表 [STORE_OPERATOR] homepage=/dashboard ⇒ /pos/dashboard  ← 配置存在但不可访问 → 跳过；落点=/pos/dashboard
+PASS  真值表 [READONLY] homepage=空 ⇒ /login  ← 无可用页 → /login；落点=/login
+PASS  真值表 [READONLY] homepage=/dashboard ⇒ /login  ← 配置存在但不可访问、无 POS 映射；落点=/login
+PASS  真值表 [FINANCE_ADMIN] homepage=/products/review-tasks ⇒ /products/review-tasks  ← 配置存在且可访问；落点=/products/review-tasks
+PASS  真值表 [FINANCE_ADMIN] homepage=空 ⇒ /login  ← 无可用页 → /login；落点=/login
+PASS  真值表 [空角色] homepage=空 ⇒ /login  ← 空角色 → /login（fail-closed）；落点=/login
+PASS  真值表 [空角色] homepage=/dashboard ⇒ /login  ← 空角色、配置不可访问 → /login；落点=/login
+PASS  真值表 [STORE_MANAGER] homepage=/ ⇒ /dashboard  ← 纯重定向路由 / 不作为落地（否则再跳一次 /dashboard）；落点=/dashboard
+PASS  真值表 [READONLY] homepage=/ ⇒ /login  ← 纯重定向路由 + 无可用页 → /login；落点=/login
+PASS  环消除 [空角色] 被拒目标=/dashboard ⇒ /login  ← 空角色的旧行为=循环 30 次后中止；落点=/login 拒绝提示=1 infinite 告警=0
+PASS  环消除 [空角色] 被拒目标=/quick-entries ⇒ /login  ← 空角色被拒；落点=/login 拒绝提示=1 infinite 告警=0
+PASS  环消除 [READONLY] 被拒目标=/dashboard ⇒ /login  ← READONLY 无 /dashboard 权限；落点=/login 拒绝提示=1 infinite 告警=0
+PASS  环消除 [STORE_OPERATOR] 被拒目标=/dashboard ⇒ /pos/dashboard  ← POS 角色改落 /pos/dashboard；落点=/pos/dashboard 拒绝提示=1 infinite 告警=0
+PASS  环消除 [STORE_OPERATOR] 被拒目标=/quick-entries ⇒ /pos/dashboard  ← POS 角色改落 /pos/dashboard；落点=/pos/dashboard 拒绝提示=1 infinite 告警=0
+PASS  环消除 [STORE_MANAGER] 被拒目标=/quick-entries ⇒ /dashboard  ← 既有拒绝落点不变；落点=/dashboard 拒绝提示=1 infinite 告警=0
+PASS  环消除 [SUPER_ADMIN] 被拒目标=/quick-entries ⇒ /quick-entries  ← 命中即放行；落点=/quick-entries 拒绝提示=0 infinite 告警=0
+PASS  默认首页（default_homepage）优先于既有兜底  ← 落点=/pos/sale-bills
+PASS  守卫链路：配置的 default_homepage 生效（STORE_OPERATOR ⇒ /pos/sale-bills）  ← 落点=/pos/sale-bills 拒绝提示=1 infinite 告警=0
+PASS  守卫链路：配置的 default_homepage 不可访问 ⇒ 回落 /pos/dashboard  ← 落点=/pos/dashboard 拒绝提示=1 infinite 告警=0
+PASS  登录落地链 [STORE_OPERATOR] ⇒ /pos/dashboard（1 跳、0 提示）  ← 落点=/pos/dashboard 提示=0 infinite 告警=0
+PASS  登录落地链 [READONLY] ⇒ 停在 /login（清会话、不循环）  ← 落点=/login 提示=1 infinite 告警=0 已清会话=true
+
+小结：30 passed / 0 failed
+infinite redirection 告警累计：0 条
+PASS  结构：12 组 / 71 项 / 收银 9 项 / menuCode 唯一  ← 12 组 / 71 项 / 收银 9 项
+PASS  路由对齐：每个 routeName 在真实 router 存在且 path 一致  ← 79 条路由映射全部对齐
+PASS  组件一致：manifest component 与 router lazy import 指向同一文件且文件存在  ← 77 个组件文件与路由表一致（1 个本地弹窗动作除外）
+PASS  角色可见性：SUPER_ADMIN 全量可见（人工 71 / 收银 9）  ← 人工 71 / 收银 9
+PASS  角色可见性：STORE_MANAGER 只见授权项（系统设置 8 项不可见）  ← 人工 23（11 组）/ 收银 9
+PASS  角色可见性：STORE_OPERATOR 不可见人工 12 组、可见收银 9 项  ← 人工 0 组 / 收银 9 项
+PASS  角色可见性：READONLY 全不可见 + 未知路由 fail-closed  ← READONLY 0 / 幽灵路由不可见
+PASS  路由装配：根布局为 WorkbenchShell，旧壳仅在 flag 关闭时回退  ← WorkbenchShell 已装配，回退路径保留
+PASS  约束：无动态菜单调用、无新增 AI 写动作  ← 24 个文件均未接动态菜单与 AI 写动作
+PASS  特征开关：默认启用，wb.shell.v2=0 关闭，=1 恢复  ← 默认 on / 0 off / 1 on
+PASS  模式状态：默认 AI 信息流主面，human ⇄ ai 双向持久化  ← human ⇄ ai 可持久化
+
+小结：11 passed / 0 failed
+PASS  能力台账结构：19 项，ID/矩阵行号连续且唯一  ← ai-01…ai-19 / matrixRow 1…19
+PASS  状态守恒：LIVE 1 / PARTIAL 12 / PLANNED 6 / BLOCKED 0  ← 1+12+6+0=19
+PASS  P0 矩阵对账：逐行比对标题与状态  ← 19 行标题/状态全量一致
+PASS  LIVE 依据：ai-08 端点 + 挂载中的真实调用点  ← confirm/cancel/revoke 有真实调用点
+PASS  PLANNED：必填缺失原因且 UI 禁用，不伪造入口  ← 6 项待建设全部禁用并给出原因
+PASS  无 mock：AI 主交互面无随机数/模拟数据/演示数字  ← 6 文件零命中
+PASS  单一对话实现：AI 主交互面不复制第二套对话  ← 0 套新对话实现
+PASS  约束：不接动态菜单，不新增 AI 写动作确认链  ← 6 文件零命中
+PASS  AI 故障隔离：明确状态 + 一键回人工 + 人工路由不受阻  ← alert + 切人工 + 人工路由无条件渲染
+PASS  权限继承：AI 模式入口 = 角色可见项，收银 9 项不变  ← 71 / 23 / 0 + 收银 9
+PASS  快捷指令：3 条，走真实对话（不新建指令端点）  ← 3 条指令复用 POST /api/chat
+PASS  业务冻结面：views / backend 相对基线零改动  ← 0 文件
+
+小结：12 passed / 0 failed
+PASS  人工入口守恒：80/80 登记，含本地弹窗显式登记  ← 80/80（只读页 34 项、本地弹窗 1 项全部保留）
+PASS  routeName 并集守恒：能力锚点 ∪ 入口路由 == manifest 全部路由  ← 79/79 路由全映射（能力侧 46 条）
+PASS  动作锚点守恒：254 行 ↔ 254 个 act:<actionId>  ← 254 行逐行有 act: 锚点
+PASS  状态守恒：动作 26/0/213/15，入口 2/12/60/6  ← 254=26+0+213+15；80=2+12+60+6
+PASS  独立重解析 30 矩阵：254 行逐行一致（漂移必红）  ← 254 行 id/权限/AI 工具/确认链/状态全一致
+PASS  PLANNED/BLOCKED：原因 + 责任域 + 人工回退齐全；LIVE 必须工具+确认链  ← 213 PLANNED + 15 BLOCKED 三要素齐全
+PASS  AI 能力 19 项：ai-08 锚定 26 条确认链动作，其余 18 项显式 AI_ONLY  ← ai-08 锚点 26 条；18 项 AI_ONLY 有理由
+PASS  入口状态聚合：与所辖动作最严重状态一致，能力引用无悬空  ← 80 项聚合状态与能力引用全一致
+PASS  业务域汇总：66 域全量中文标签，域内人工入口可追溯  ← 66 域 / 41 域含人工入口
+PASS  mutation A 删动作映射：MISSING_ACTION_MAPPING 点名  ← 点名 aftersale.approve_create
+PASS  mutation B 删路由映射：MISSING_ROUTE_MAPPING 点名  ← 点名 dashboard
+PASS  mutation C PLANNED 洗 LIVE：UNSAFE_LIVE 点名  ← 点名 aftersale.approve_create
+PASS  parity-report.json 与运行时一致：missingManualMappings=0、pass=true  ← 报告字段与运行时逐项一致
+PASS  UI 接线：摘要来自台账计算，可展开业务域，不硬编码覆盖数  ← 摘要 + 66 域展开 + 只读分组 + 不消失文案
+PASS  无 mock：对等台账与生成物零随机/模拟数据  ← 5 文件零命中
+PASS  业务冻结：views/backend 相对基线零改动，既有 4 个 spec 不减少  ← 0 文件改动 + 5 个 spec 串联
+
+小结：16 passed / 0 failed
+PASS  桥接表：10 条显式映射，serverCode 唯一，均带矩阵行号证据  ← 10 条（含 2 条白名单缺失，见下）
+PASS  正常菜单：10 码 → 8 条白名单路由；system / finance-expenses 登记为不可路由  ← 8/10 可路由；unroutable=finance-expenses,system
+PASS  停用菜单：status=0 的行不计入可见集合  ← status=0 已剔除
+PASS  反测点 A：服务失败 → 空集且不回退全量（回退全量必红）  ← trimmed 79/79
+PASS  反测点 B：未知菜单码只登记不渲染（越权透传必红）  ← ghost:page 已隐藏
+PASS  未知 routeName：桥接存在但白名单缺失 → fail-closed 且登记 unroutable  ← route-not-exists 不可见
+PASS  空菜单：ready 空数组 → 空集 + 联系管理员文案  ← 空集 + 提示
+PASS  加载中：idle/loading 均为空集，且不可重试  ← idle/loading 空集
+PASS  载荷解析：兼容 {data:[]} 与裸数组；非数组/缺 menuCode 一律抛错  ← wrapped/bare ok，异常形状抛错
+PASS  人工/AI 同源：人工侧栏路由 ⊆ 最终角色集；收银 9 项按角色保底不参与菜单交集  ← 人工 8 项 / 收银 9 项 / 路由 8
+PASS  对等裁剪：运行时视图收缩，静态台账仍为 80/80、254/254  ← 运行时 8/80 · 27/254（静态基线不变）
+PASS  AI 代办：只交上下文，含真实 routeName/path/实体 ID/动作清单与确认链要求  ← 3 项动作 / 可代办 0
+PASS  AI 代办：PLANNED/BLOCKED 明确不能代办并给人工回退，不做已可执行暗示  ← order-aftersale: 不能代办 3/3
+PASS  AI 代办：只读页不编造写入口  ← dashboard
+PASS  UI 接线：Shell 菜单状态/重试/空态/代办按钮，AI 容器接运行时裁剪  ← Shell / AI 容器 / 会话面板接线就绪
+PASS  【F1】STORE_OPERATOR：收银 9/9（菜单 ready 与 error 两态），业务路由为空  ← 收银 9/9（ready + error）
+PASS  【F1】STORE_MANAGER：业务集合 8 与最终角色集 1 分离，AI 对等与人工入口一致  ← 业务 8 → 角色 1；parity 1/0
+PASS  【F1】SUPER_ADMIN 不回退：业务 8 = 最终 8，对等 8/27  ← 8/8，parity 8/27
+PASS  【F1】非 SUPER_ADMIN 不能经 AI 对等看到无权路由动作  ← domains=（无写域）
+PASS  【F1】无角色上下文：业务集合仅诊断，最终集为空（不回退业务全量）  ← 业务 8 / 最终 0
+PASS  【F1】源码护栏：Shell 用最终角色集、收银不接菜单、AI 容器只吃最终集  ← Shell / 收银 / AI 容器接线符合
+PASS  唯一消费点：/admin/menus/user 只出现在 src/api/workbench-menu.ts  ← api/workbench-menu.ts
+PASS  反测点 C：AI 代办不直接写——无写接口调用、桥模块只产上下文  ← 仅上下文，无直接写
+PASS  业务冻结：views 与 backend 相对基线零改动  ← views/backend 零 diff
+
+小结：24 passed / 0 failed
+PASS  回滚开关：wb.shell.v2 缺省开启，0/off 关闭，1/on 开启  ← 0/off→旧壳，1/on→新壳
+PASS  灰度双向：1→0→1→0 四连切且清除后回落缺省  ← true → false → true → false
+PASS  切换不丢登录态：灰度往返后 admin_auth 原值不变  ← admin_auth 零变化
+PASS  壳层渲染互斥：新壳与旧壳只渲染其一，旧壳不回引新壳  ← v-if/v-else 互斥，MainLayout 无回引
+PASS  无循环重定向：POS 角色落地自洽且二次解析收敛  ← SUPER_ADMIN/STORE_MANAGER/STORE_OPERATOR 均收敛
+PASS  关键路由回归：命名路由不减、manifest 路由存在且唯一、POS 路由对收银开放  ← 163 命名路由 / 15 条 POS 路由
+PASS  构建级回退护栏：VITE_WORKBENCH_SHELL_V2 可关闭新壳且构建未写死  ← 运行时优先，构建级 0/false 生效
+PASS  收银 9 项：8 条路由 + 1 个本地动作，且对 STORE_OPERATOR 全可达  ← 9 = 8 路由 + 1 本地动作
+
+小结：8 passed / 0 failed
+PASS  一级 rail：常驻图标栏存在且含工作台项 + 模块项循环 + 设置固定底部  ← rail + desk/模块/设置三类项齐备
+PASS  第二列导航：Subnav 被装配 + 含新对话/二级目录/账户区/可收起  ← 新对话 + 二级目录 + 账户 + 收起 齐备
+PASS  Agent 状态区：装配于顶栏且含会话状态 + 待审阅 + 台账入口  ← 会话状态 + 待审阅 + 台账入口 齐备
+PASS  主面三层：feed 默认 + chat + manual（router-view 常驻）  ← feed 默认 + chat + manual 三层，router-view 常驻
+PASS  底部输入区：Composer 常驻 + 人工态 compact + 发送经统一链  ← 常驻输入区 + 人工态收条 + 真实发送链
+PASS  工作台/收银台胶囊：mode-seg 双向 + desk/pos 两项  ← 工作台 ⇄ 收银台 双向胶囊
+PASS  旧壳回退：MainLayout v-if=!shellEnabled 分支保留且互斥  ← 灰度回滚分支完整
+PASS  无 mock：新面组件零原型数据层/随机/示例数据（红线：不用原型 mock）  ← 5 文件代码区零 mock / 零原型演示数据
+PASS  真实数据源：feed 走 /admin/wb-notifications，待审阅走 /api/chat/confirmations  ← 动态/推送/待审阅均有真实端点，失败诚实降级
+PASS  能力保留锚点：菜单 fail-closed / 角色裁剪 / AI 故障回退 / 收银保底未被破坏  ← 权限/菜单/故障/收银锚点全部保留
+
+小结：10 passed / 0 failed
+PASS  状态机：只有 ready 判绿（isAiOnline 唯一真值）  ← ready=true / 其余 4 态=false
+PASS  状态机：resolveReadiness 真值表（网络失败/CORS/401/形状异常 全非绿）  ← 8 组判定全部符合（无一条把失败判绿）
+PASS  状态机：文案纪律 —— 只有 ready 文案允许出现「在线/就绪」  ← ready=就绪 / 其余=未检测·检测中·降级·不通
+PASS  状态机：探针真实走 GET /api/health/ready（源码 + 允许注入 url）  ← health/ready + 双信号 + 冷却 + 并发去重 + 超时
+PASS  状态机·实跑：桩 fetch 成功 ready ⇒ 状态转 ready（真调用路径）  ← 1 次真实调用 → ready（http://ai.test/api/health/ready）
+PASS  状态机·实跑：桩 fetch 网络失败 ⇒ error（绝不假绿）  ← ERR_FAILED ⇒ error / 非绿
+PASS  状态机·实跑：HTTP 500 + body ready ⇒ error（body 不可信当 HTTP 失败）  ← HTTP 500 ⇒ error
+PASS  状态机·实跑：并发探测只发 1 次请求（防风暴）  ← 3 并发 → 1 请求
+PASS  员工：解析成功（数组 ⇒ ready + 真实 count）  ← 2 名员工 ⇒ ready/count=2
+PASS  员工：空数组 ⇒ ready 且 count=0（真空是真实结果，不是失败）  ← [] ⇒ ready/count=0
+PASS  员工：异常形状 ⇒ unknown 且 count=null（绝不假 0）  ← 6 种异常形状全部 unknown/count=null
+PASS  员工：真实 HTTP 调用（走 AI_BASE_URL + JWT header），失败 ⇒ unknown  ← 1 次真实调用 /api/ai/employees ⇒ unknown
+PASS  员工：JWT 透传（有 token 时必须带 Authorization）  ← Authorization: Bearer <token> 已透传
+PASS  计划·真实契约：success 计划不计进行中、success 步骤计完成、skipped 不计完成  ← running=1（success/failed/skipped 皆终态）/ steps=5/9（skipped 计总数不计完成）
+PASS  计划·真实契约：pending / suspended 属非终态（计入进行中，suspended 待人处理）  ← pending+suspended+running ⇒ 3（suspended 不算 success，也不当终态丢弃）
+PASS  计划·真实契约：单条成功计划 ⇒ running=0（B2-1 核心：不得把 success 算成进行中）  ← success 计划 running=0 / steps=1/1 —— 旧缺陷已修
+PASS  计划·真实契约：非六态的未知状态不被猜（计 unknownStates，不进任何桶）  ← 未知状态不猜：unknownStates=2，不混入 running/stepsDone
+PASS  计划：无 steps ⇒ 步骤口径置 null（不伪造 0/0）  ← steps=null/null（不写 0/0），running=1
+PASS  计划：success=false ⇒ unknown（底座显式失败）  ← success=false ⇒ unknown/error=未认证
+PASS  计划：异常形状 ⇒ unknown（不猜数据）  ← 6 种异常形状全部 unknown
+PASS  计划：真实 HTTP 调用（/api/ai/agent/plans），失败 ⇒ unknown  ← 1 次真实调用 /api/ai/agent/plans ⇒ unknown
+PASS  两源独立降级：员工失败不影响计划成功，反之亦然  ← employees=unknown / plans=ready（独立降级成立）
+PASS  结构：AgentStatusBar 三格齐备 + 无 N/M 假分母 + 无静默 id  ← 三格齐 + 重试 + 无 sessionState/无假分母/无在线待命
+PASS  结构：壳层接真实探针与真实指标（非注释登记）  ← 探针 + 指标 + readiness-state 透传 + 重试；AgentStatusBar 标签内无 session-state（真实负断言）
+PASS  结构：能力台账 ai-06 文案已改为真实情况（不再是「无真实端点」）  ← ai-06 真实文案 + PARTIAL；ai-02 仍 PLANNED
+PASS  回归：隐藏旧行为 —— 源码不得把 idle/挂载 当作在线  ← 3 文件代码区零「idle⇒在线」映射
+PASS  契约护栏：agent-metrics.ts 代码区不得把虚构状态当作底座原生终态  ← 代码区零虚构状态；真实六态齐备
+PASS  契约护栏：测试夹具只用真实六态（不再出现虚构状态字面量）  ← 5 处计划夹具（含 1 处负向验证用例）状态值全部在真实六态内
+PASS  契约护栏：normalizePlanStatus 只接受真实六态  ← 6 真实态通过 / 10 非契约值返回 null
+
+小结：29 passed / 0 failed
+PASS  #1 rail 项有非零 transition（原型 .rl-it{transition:.15s}）  ← background-color 150ms ease, color 150ms ease
+PASS  #2 rail .alert 有 animation 且设置了 background（否则 keyframes 底色不生效）  ← animation + background + keyframes(background+色值) 齐备
+PASS  #3 壳层第二列收起用 grid 过渡（非 display:none 瞬隐）  ← grid 列宽 250ms 过渡 + 收起态非 display:none
+PASS  #4-a 二级卡 .sn-card 有非零 transition  ← background-color 150ms ease, border-color 150ms ease, color 150ms ease
+PASS  #4-b 信息流卡片 .fdv-item 有 hover 边框规则 + 非零 transition  ← hover 边框 + 过渡齐备
+PASS  #5 信息流卡片有入场 keyframes 且被 .fdv-item 引用  ← w b-fdv-in（opacity+transform）+ .fdv-item 引用 + 保留终态
+PASS  #8b 胶囊**未选中项**有 hover 规则（对齐原型 .ms:hover{color:var(--ink)}）  ← hover 改 color=var(--wb-ink, #16181d) + 选中项独立规则
+PASS  #6 推送圆点 @keyframes fdv-blink 存在且 .fdv-dot 引用（锁住既有能力）  ← keyframes + 引用 均在位
+PASS  #7 信息流提问条 .fdv-ask 有非零 transition（变色之外还需过渡）  ← background-color 150ms ease, border-color 150ms ease, color 150ms ease
+PASS  #8 工作台/收银台胶囊项有非零 transition  ← background-color 120ms ease, color 120ms ease, box-shadow 120ms ease
+PASS  #9 无障碍：prefers-reduced-motion 规则仍在（不得为动效删掉）  ← 全局规则保留 + 组件内也尊重该偏好
+PASS  #10 动效时长落在原型区间 120–350ms（不自拟夸张值）  ← transition 18 处取值 120/150/250ms；animation 4 处取值 350/1100/1400ms
+
+小结：12 passed / 0 failed

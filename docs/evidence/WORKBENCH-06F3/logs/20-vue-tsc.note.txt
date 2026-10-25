@@ -1,0 +1,4 @@
+命令：node admin-web/node_modules/vue-tsc/bin/vue-tsc.js -b admin-web/tsconfig.json --force
+退出码：0
+为何零输出：vue-tsc 无类型错误时零输出。
+佐证：npm test 全绿（10-npm-test.log）、vite build EXIT=0（30-build.log）。

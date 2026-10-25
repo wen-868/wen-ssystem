@@ -1,0 +1,73 @@
+基线 SHA256：
+  WorkbenchShell.vue = E0759F31C6A352816EA068DA6822C2FA91C7E93C6AB7EAB733D61DCD7BCE14CC
+  WorkbenchSubnav.vue = B6670633E985893D44BA600A7472C7E045401F1553DC5CE8221D89442876028A
+  AiFeedView.vue = 7E668C57A121B4E6C958BE72902DE3765B0369CC0DFA03F19F8D5E2EAA907C76
+
+基线复跑（应绿）：EXIT=0
+小结：12 passed / 0 failed
+
+[反测 M1-drop-rail-transition] 删除 rail 项 transition
+  注入后 SHA256 = EB612A5DE6923CAF4EC8ADE7C69FD93D87022E78EAE90EB45A06EC7A1A7A1A18
+  EXIT=1；FAIL=1；点名「#1」=true
+  FAIL  #1 rail 项有非零 transition（原型 .rl-it{transition:.15s}）  ← .wb-rail-item 缺少非零 transition；实际块：display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px; border: 0; border-radius: 8px; b
+  复原 SHA256 = E0759F31C6A352816EA068DA6822C2FA91C7E93C6AB7EAB733D61DCD7BCE14CC；恒等=true
+
+[反测 M2-drop-alert-background] 删除 rail .alert 的 background（退回到 F1 缺陷：keyframes 底色不生效）
+  注入后 SHA256 = A401A79D6E210BC33DF5D4D5959A6660A20249816B119A5CF35193BB4AED0547
+  EXIT=1；FAIL=1；点名「#2」=true
+  FAIL  #2 rail .alert 有 animation 且设置了 background（否则 keyframes 底色不生效）  ← .alert 缺少 animation
+  复原 SHA256 = E0759F31C6A352816EA068DA6822C2FA91C7E93C6AB7EAB733D61DCD7BCE14CC；恒等=true
+
+[反测 M3-drop-grid-transition] 删除壳层 grid-template-columns 过渡
+  注入后 SHA256 = 637D6B21A78394D718307DF002D166F2D5ABD9F1F8638FEC8BDB82574B454DA0
+  EXIT=1；FAIL=1；点名「#3」=true
+  FAIL  #3 壳层第二列收起用 grid 过渡（非 display:none 瞬隐）  ← .wb-shell 缺少 grid-template-columns 的非零 transition；块内：.wb-shell { height: 100vh; display: grid; grid-template-columns: var(--wb-rail-w, 64px) var(--wb-side-w, 230px) minmax(0, 1fr); background: var(--wb-bg, #f4f6f8); overflow: hidden; 
+  复原 SHA256 = E0759F31C6A352816EA068DA6822C2FA91C7E93C6AB7EAB733D61DCD7BCE14CC；恒等=true
+
+[反测 M4a-drop-subnav-transition] 删除二级卡 transition
+  注入后 SHA256 = 4FC13DC9E72F477825084B09DFFCDC35C2A0E4EEDFCA0D9B41C08879A606F3CD
+  EXIT=1；FAIL=1；点名「#4-a」=true
+  FAIL  #4-a 二级卡 .sn-card 有非零 transition  ← .sn-card 缺少非零 transition
+  复原 SHA256 = B6670633E985893D44BA600A7472C7E045401F1553DC5CE8221D89442876028A；恒等=true
+
+[反测 M4b-drop-fdv-item-hover] 删除信息流卡片 hover 边框规则
+  注入后 SHA256 = E4B04EEBFEAC74B3FA04B89EEC94BD28E273D5A08CEAC894C89EE7A335352E12
+  EXIT=1；FAIL=1；点名「#4-b」=true
+  FAIL  #4-b 信息流卡片 .fdv-item 有 hover 边框规则 + 非零 transition  ← 未找到 .fdv-item:hover（原型的 .feed-card:hover{border-color} 对应物）
+  复原 SHA256 = 7E668C57A121B4E6C958BE72902DE3765B0369CC0DFA03F19F8D5E2EAA907C76；恒等=true
+
+[反测 M5-drop-enter-animation] 删除信息流卡片入场动画引用
+  注入后 SHA256 = CA9FA10E67FAEC015E45BA4B4DFC2C530B033D3F5D899D4D20B5746507C28F13
+  EXIT=1；FAIL=1；点名「#5」=true
+  FAIL  #5 信息流卡片有入场 keyframes 且被 .fdv-item 引用  ← .fdv-item 未引用 wb-fdv-in 入场动画
+  复原 SHA256 = 7E668C57A121B4E6C958BE72902DE3765B0369CC0DFA03F19F8D5E2EAA907C76；恒等=true
+
+[反测 M7-drop-ask-transition] 删除提问条 transition
+  注入后 SHA256 = 286B1348627743FB33D9D7A4E12A1B5E50C4097BE7136B5707BA812E73B580B9
+  EXIT=1；FAIL=1；点名「#7」=true
+  FAIL  #7 信息流提问条 .fdv-ask 有非零 transition（变色之外还需过渡）  ← .fdv-ask 缺少非零 transition
+  复原 SHA256 = 7E668C57A121B4E6C958BE72902DE3765B0369CC0DFA03F19F8D5E2EAA907C76；恒等=true
+
+[反测 M8-drop-seg-transition] 删除胶囊项 transition
+  注入后 SHA256 = 67C806C80B90450928F7AF39A32EADAA50218A2BA59506F3D91DFFD6AB4F7AC6
+  EXIT=1；FAIL=1；点名「#8」=true
+  FAIL  #8 工作台/收银台胶囊项有非零 transition  ← .wb-mode-seg-item 缺少非零 transition
+  复原 SHA256 = E0759F31C6A352816EA068DA6822C2FA91C7E93C6AB7EAB733D61DCD7BCE14CC；恒等=true
+
+[反测 M8b-drop-seg-hover] 删除胶囊未选中项 hover 规则（二轮审计发现的真缺陷）
+  注入后 SHA256 = 0D21A1F3BC505F8A3CF1EDC3A7956F3A24EDEAB64A6B9B8705A593DE8D74E31D
+  EXIT=1；FAIL=1；点名「#8b」=true
+  FAIL  #8b 胶囊**未选中项**有 hover 规则（对齐原型 .ms:hover{color:var(--ink)}）  ← 缺少 .wb-mode-seg-item:hover（原型 L88 `.ms:hover{color:var(--ink)}`）⇒ 未选中项悬停无反馈
+  复原 SHA256 = E0759F31C6A352816EA068DA6822C2FA91C7E93C6AB7EAB733D61DCD7BCE14CC；恒等=true
+
+[反测 M9-drop-reduced-motion-in-feed] 删除组件内 reduced-motion（断言应守住无障碍）
+  注入后 SHA256 = 9781F6BE5BDC52BF5518E3DBF2240950F0E685A79454B84D5D9BA21B2D72CE11
+  EXIT=1；FAIL=1；点名「#9」=true
+  FAIL  #9 无障碍：prefers-reduced-motion 规则仍在（不得为动效删掉）  ← AiFeedView 应就地尊重 reduced-motion（关闭入场动画）
+  复原 SHA256 = 7E668C57A121B4E6C958BE72902DE3765B0369CC0DFA03F19F8D5E2EAA907C76；恒等=true
+
+复原后复跑：EXIT=0
+小结：12 passed / 0 failed
+
+证据已落盘：docs/evidence/WORKBENCH-06F3/redtest/animation-countertest.md
+全部反测通过：10/10 点名变红 + 10/10 SHA256 恒等 + 复原后回绿

@@ -1,121 +1,129 @@
-# WORKBENCH-06 界面与交互动画一致性审计（只读，未改产品代码）
+# WORKBENCH-06F3 · 界面与交互动画对齐（审计 → 修复 → 复验）
 
-> 审计人：墨（工作台前端 owner）｜2026-10-26
+> 负责人：墨（工作台前端 owner）｜2026-10-26
 > 触发：凌舟验收 WORKBENCH-06F2 通过后，要求「检查新版工作台的 UI 界面和交互动画跟原型是否一致」
-> 工作树：`D:\Users\ZXQL\ZXQL-MS\wt-works\WORKBENCH-06F2`（HEAD `78fba0d0`）
+> 基线：`e68315f4224deb6114cc035de406eade74952503`（F2 基线）｜实现提交见 `git log`
+> 工作树：`D:\Users\ZXQL\ZXQL-MS\wt-works\WORKBENCH-06F2`
 > 原型：`D:\Users\ZXQL\ZXQL-AI\docs\设计\智享全链_工作台电脑端_UI原型_融合版.html`
 > 原型 SHA256：`6A2724A640DD613E3688EF79AF9369A978669DD2FA3B359DA31F705A3FC30C51`（脚本每次校验）
-> 取证方式：vite preview 4173 构建产物 + 真实登录 + Playwright；**判据一律用浏览器 computed 值（R8.1）**
+> 取证：vite preview 4173 构建产物 + 真实登录 + Playwright；**判据一律用浏览器 computed 值（R8.1）**
 
 ---
 
-## 〇、结论先行
+## 〇、结论
 
-**结构层面：一致**（WORKBENCH-06 已验收：rail 64 / 第二列 231 / 顶部三格 / feed·chat·manual 三层 / 底部输入区）。
+**结构一致**（WORKBENCH-06 已验收）+ **动效已对齐**（本单修复）。
 
-**动效层面：不一致 —— 10 项壳层动效中 8 项缺失。**
-实现侧壳层几乎没写 `transition`/`animation`，而原型在每个交互点上都有 120–350ms 的过渡或入场动画。
-这不是"配色差异"，是**交互手感差异**：点击/悬停/切换全部硬切，没有过渡。
+| 阶段 | MATCH | MISSING | 说明 |
+|:--|--:|--:|:--|
+审计首轮（修复前） | 1 | **8** | 壳层几乎没写 transition/animation |
+审计二轮（一轮修复后） | 5 | 1 | 4 项转为 MATCH；剩 side-collapse 口径误判 + 新发现胶囊 hover 缺失 |
+**复验（本轮最终）** | **5** | **0** | MISSING 归零；SKIP 5 项均为「取样限制 / 已裁定差异」 |
 
-| 类别 | 原型 | 实现 | 判定 |
+> 注：`SKIP` ≠ 缺陷。5 项 SKIP 分别是：设置弹窗（D-6 已裁定跳 `/system`）、rail 红闪（当前无新动态、不加载 `.alert`）、
+> 二级卡（mock DB 空菜单 ⇒ 0 张卡）、推送圆点（WS 未连 ⇒ 走「推送离线」分支）、以及上述三项的源码真值复核。
+
+## 1. 8 项 MISSING 的修复（逐条对齐原型）
+
+| # | 动效 | 原型出处 | 修复动作 | 修复后 computed |
+|--:|:--|:--|:--|:--|
+| 1 | rail 项 hover/选中过渡 | `L122 .rl-it{transition:.15s}` | `.wb-rail-item` 加 `transition: background-color 150ms, color 150ms` | `150/150ms` **MATCH** |
+| 2 | rail 红闪 | `L187 .rl-it.alert{background:#DC2626;animation:rlFlash 1.1s}` | `.alert` 补 `background`（旧版只设 `color`，keyframes 底色不生效）+ keyframes 改为 `#dc2626→#f87171` + 光晕 | 源码已验（运行态无 `.alert` 触发，取样限制） |
+| 3 | 第二列收起过渡 | `L34 .side{transition:margin .25s}` | `.wb-shell` 改 `transition: grid-template-columns 250ms`；收起态由 `display:none` 改 `overflow:hidden` | **实测中间帧 230→38.2→0px** ✅ |
+| 4 | 二级卡 / 卡片 hover 过渡 | `L133-134 .sub-card` + `i{transition:.15s}` | `.sn-card` 加 transition；`.fdv-item` 加 hover 边框 + transition | `.sn-card` 源码已验（空菜单取样限制）；`.fdv-item` **MATCH 150/150ms** |
+| 5 | 信息流卡片入场 | `L150 .feed-card{animation:fin .35s}` | 新增 `@keyframes wb-fdv-in`（opacity+translateY）+ `.fdv-item` 引用 `350ms both` | **MATCH 350/350ms** |
+| 6 | 推送圆点呼吸 | `L145 .fdot{animation:fdot 1.6s}` | **F1 已存在**（`@keyframes fdv-blink`）；本单加断言锁住不被误删 | 源码已验（WS 未连取样限制） |
+| 7 | 提问条 hover 过渡 | `L147-148 .feed-ask:hover` | `.fdv-ask` 加 transition（此前只有变色、无过渡） | **MATCH 150/150ms** |
+| 8 | 胶囊项过渡 | `L87 .ms{transition}` | `.wb-mode-seg-item` 加 transition | **MATCH 120/120ms** |
+| **8b** | **胶囊 hover 反馈**（二轮审计新发现） | `L88 .ms:hover{color:var(--ink)}` | 补 `.wb-mode-seg-item:hover{color}` + `.on:hover` 保持主色 | **实测 hover 变色 ✅** |
+
+## 2. 无障碍纪律（**未为动效牺牲可达性**）
+
+- `tokens.css:436-444` 的 `@media (prefers-reduced-motion: reduce){*{transition-duration:.01ms!important}}` **原样保留**；
+- 新增入场动画**就地尊重**该偏好：`AiFeedView.vue` 内加 `@media (prefers-reduced-motion: reduce){.fdv-item{animation:none}}`；
+- 断言 `#9` 同时守住两处；mutation `M9` 删除组件内规则 ⇒ 断言点名红。
+
+## 3. 审计方法上的三次自我纠错（**关键，防后人重踩**）
+
+| 坑 | 现象 | 根因 | 处置 |
 |:--|:--|:--|:--|
-壳层 `@keyframes` | 25+（含 `rlFlash`/`fin`/`fdot`/`swIn` 等） | 2（`wb-rail-blink`/`fdv-blink`） | **缺** |
-壳层 `transition` 声明 | 108 处（全项目） | 壳层组件内 **0 处**（仅 `.cmp-form` 有 1 处聚焦过渡） | **缺** |
-壳层 `animation` 声明 | 31 处（全项目） | 壳层 2 处 | **缺** |
+**坑 1** | 首轮 8 项全 MISSING | Chromium/Playwright 默认可能命中 `prefers-reduced-motion: reduce`，而本项目有全局 `transition-duration:.01ms!important` ⇒ 全部压平 | 两个 context 显式 `reducedMotion:"no-preference"` + **两侧前提自证断言**（`reduce=false`）后才取样 |
+**坑 2** | 二轮 4 项误判 | ① 拿 `max(transitionDuration, animationDuration)` 比时长 ⇒ rail 把 `.alert` 的 1.1s 循环动画和 .15s 过渡混比；② Vue scoped 给 keyframes 加哈希后缀（`wb-fdv-in-2de0b9f3`）；③ 元素当前不渲染（空菜单/离线/无 `.alert`）被当成缺陷 | ① transition 只与 transition 比、animation 只与 animation 比；② 剥离 `-[0-9a-f]{8}$` 后缀；③ 新增 `SKIP-SAMPLING` 口径 + **源码真值回退复核** |
+**坑 3** | side-collapse 误判 MISSING | 过渡发生在 `.wb-shell` 的 `grid-template-columns`，而脚本量的是 `.wb-subnav` 自身 | 改由**中间帧实测**判决：点击收起 → 110ms 时列宽 38.2px（介于 230 与 0 之间）⇒ 证明真在插值 |
 
-逐项比对（10 项壳层动效）：
-- **MATCH 1**（底部输入框聚焦双环）
-- **SKIP 1**（设置弹窗入场——实现无该对象，D-6 已裁定跳 `/system`）
-- **MISSING 8**（rail 过渡、rail 红闪、第二列收起、二级卡过渡、信息流卡片入场、推送圆点、提问条过渡、胶囊项过渡）
+> 三次纠错的共同教训：**"读数异常时先怀疑探针，再怀疑实现"**——但不能只怀疑不核查，必须给出可复核的替代判据。
 
-> **首轮误报已排除（重要）**：首轮审计 8 项全部 MISSING 时，我先怀疑是探针问题。
-> 定位到 `tokens.css:436-444` 的 `@media (prefers-reduced-motion: reduce){*{transition-duration:.01ms!important}}`，
-> 而 Chromium/Playwright 默认可能命中 `reduce` ⇒ 会把所有 transition 压平。
-> 已在两个 context 显式设 `reducedMotion:"no-preference"` 并加**前提自证断言**（两侧均 `reduce=false` 后才取样）。
-> **在排除该干扰后，8 项仍为 MISSING ⇒ 缺陷为真，非探针假阳性。**
-
----
-
-## 一、逐项差异明细（含原型出处与实现现状）
-
-| # | 动效 | 原型出处 | 原型 computed | 实现 computed | 判定 |
-|--:|:--|:--|:--|:--|:--|
-| 1 | 一级 rail 项 hover/选中过渡 | `L122 .rl-it{transition:.15s}` | `all 0.15s` | **`all 0s`** | **MISSING** |
-| 2 | 工作台有新动态时 rail 项整块红闪 | `L187 .rl-it.alert{animation:rlFlash 1.1s}` | `rlFlash 1.1s` | **`none`**（且 `.alert` 规则未设 `background`，keyframes 的底色不生效） | **MISSING** |
-| 3 | 第二列收起过渡 | `L34 .side{transition:margin .25s}` + `L35 .side.hide{margin-left:-230px}` | `width,margin 0.4s/0.25s` | **`all 0s`**（实现用 `display:none` 瞬隐，非平滑滑出） | **MISSING** |
-| 4 | 二级功能卡 hover 过渡 | `L133-134 .sub-card` + `i{transition:.15s}` | `background-color,border-color,box-shadow,transform 0.2s` | **元素在空菜单下不渲染**；源码 `.sn-card`/`.sn-card:hover` **无 transition** | **MISSING** |
-| 5 | 信息流卡片入场动画 | `L150 .feed-card{animation:fin…}` | `fin 0.35s` | **`none`**（`.fdv-item` 无入场动画） | **MISSING** |
-| 6 | 「实时推送中」圆点呼吸 | `L145 .fdot{animation:fdot 1.6s}` | `fdot 1.6s` | 离线态不渲染（取样限制）；**源码有 `@keyframes fdv-blink` 且 `.fdv-dot` 已引用** | **源码侧 OK，运行态未验** |
-| 7 | 信息流提问条 hover 过渡 | `L147-148 .feed-ask:hover` | `all 0.15s` | **`all 0s`**（变色有效，但无过渡） | **MISSING（过渡）** |
-| 8 | 工作台/收银台胶囊项过渡 | `L87 .ms{transition}` | `background-color,border-color,color,box-shadow 0.12s` | **`all 0s`** | **MISSING** |
-| 9 | 底部输入框聚焦双环 | `L642 .input-box:focus-within` | `border-color,box-shadow,background-color 0.15s` | `border-color,box-shadow 0.15s` | **MATCH** |
-| 10 | 设置弹窗入场 | `L671 @keyframes swIn 0.22s` | `swIn 0.22s` | 实现无设置弹窗（D-6 已裁定跳 `/system`） | **SKIP（已裁定）** |
-
-### 1.1 hover 反馈复核（真实鼠标 hover，非 JS 伪造）
-
-| 元素 | hover 变色 | 说明 |
-|:--|:--:|:--|
-| rail 工作台项 | **否** | 该项当前为 `.on` 选中态；`.wb-rail-item.on` 特异性高于 `:hover` ⇒ **选中态优先属正常**（原型 `.rl-it.on` 同构），非缺陷 |
-| rail 模块项 | — | mock DB 空菜单下不存在（取样限制） |
-| 胶囊-工作台 | **否** | 同样是 `.on` 选中态（`.wb-mode-seg-item.on` 覆盖 hover），正常 |
-| 信息流提问条 | **是**（白→`rgb(239,244,255)`） | 变色有效，**仅缺过渡**（`all 0s`） |
-| 信息流卡片 | **否** | 原型 `.feed-card:hover{border-color:var(--blue)}`；实现 `.fdv-item` **无 hover 规则** ⇒ **真缺** |
-
----
-
-## 二、根因分类（区分"没写"与"写了被压平"）
-
-| 根因 | 涉及项 | 说明 |
-|:--|:--|:--|
-| **A. 从未编写**（主因） | 1/2/3/4/5/7/8 + 卡片 hover | WORKBENCH-02~06 各轮聚焦「结构对位 + 功能接线 + 契约对齐」，**动效层始终没进验收条目**；F1/F2 的判据都是结构/数据/契约，未含动效 ⇒ 写与不写都不影响验收 |
-| **B. 写了但被媒体查询压平** | 首轮全部 8 项（**已排除**） | `tokens.css` 的 `prefers-reduced-motion` 规则 + 无头浏览器默认 `reduce` 造成的假阳性，**非真实缺陷** |
-| **C. 已写且正确** | 6（推送圆点）、9（输入框聚焦） | 源码与 computed 均正确 |
-
-**责任归属**：A 类属**我（墨）在 02~06 各轮的交付缺口**——原型动效是我该对齐的部分，但我把"结构一致"当成了"界面一致"。
-不属凌舟派单遗漏：派单卡 §二.3/§三.1 要求的是"同尺寸截图对照 + 结构清单"，动效确实未列入硬验收；但**原型有而我未做，是我的判断偏窄**。
-
----
-
-## 三、修复建议（按性价比排序，供凌舟决定是否立单）
-
-| 优先 | 项 | 建议做法 | 工作量 |
-|:--:|:--|:--|:--|
-| **P0** | 1/4/7/8 的 `transition` | 在 `WorkbenchShell.vue` / `WorkbenchSubnav.vue` / `AiFeedView.vue` 对应类上补 `transition: <具体属性> .15s ease`（**用具体属性而非 `all`**，与原型一致且避免无谓重排） | 小（4 处 CSS） |
-| **P1** | 5 信息流卡片入场 | 新增 `@keyframes wb-fdv-in{from{opacity:0;transform:translateY(-6px)}}`，`.fdv-item` 引用 `.35s` | 小（1 keyframes + 1 行） |
-| **P1** | 3 第二列收起 | 由 `display:none` 改为 `margin-left:-231px` + `transition: margin .25s`（与原型同构），保留 `sideCollapsed` 状态 | 小-中（需确认布局不塌） |
-| **P2** | 2 rail 红闪补全 | `.wb-rail-item.alert` 补 `background`（当前只有 `color`，导致 keyframes 底色不生效）+ 复核 `feedAlert` 触发条件 | 小 |
-| **P2** | 卡片 hover 边框 | `.fdv-item:hover{border-color:var(--wb-primary)}` | 极小 |
-| **待裁定** | 4 二级卡过渡的运行态验证 | 需非空菜单才能取样（mock DB 为空）⇒ 与「非空运行态未验」同源，**建议并入该项一并解决** | — |
-
-**必须同时做的门禁**（照本项目铁律）：
-1. 每条动效加断言（computed `transition-duration !== 0s` / `animation-name !== none`）；
-2. **mutation**：删任一 transition/keyframes ⇒ 断言点名红；
-3. 保留 `prefers-reduced-motion` 无障碍规则**不动**（它是正确行为），但审计脚本必须显式关闭该媒体查询；
-4. 动效时长与原型对齐（120–350ms 区间），避免自拟夸张动效。
-
----
-
-## 四、证据与复跑
+## 4. 复跑命令
 
 ```powershell
-# 前置：mock 后端 8080 + vite preview 4173（VITE_API_BASE=/api 构建）
+# ① 源码级动效断言（12 例）
+node admin-web/tests/ui-animation.spec.mjs
+
+# ② 动效 mutation（10 条：注入 → 点名红 → SHA256 恒等复原 → 回绿）
+node admin-web/tests/animation-countertest.mjs
+
+# ③ 全量测试（既有 143 条不得减少）
+npm test --prefix admin-web
+
+# ④ 运行态审计（前置：mock 后端 8080 + vite preview 4173，构建时 VITE_API_BASE=/api）
 node docs/evidence/WORKBENCH-06F3/ui-animation-audit.mjs
+
+# ⑤ 门禁
+node admin-web/node_modules/vue-tsc/bin/vue-tsc.js -b admin-web/tsconfig.json --force
+node admin-web/node_modules/eslint/bin/eslint.js admin-web/src/
+node admin-web/node_modules/vite/bin/vite.js build --config admin-web/vite.config.ts admin-web
+
+# ⑥ 冻结面
+git diff --name-only e68315f4 -- admin-web/src/views backend
 ```
 
-产物：
-- `reports/ui-animation-audit.json`：10 项逐条 proto/impl computed 读数 + verdict + 两侧媒体查询前提读数
-- `screenshots/hover-*.png`、`focus-composer.png`：hover/focus 前后对照（肉眼可核）
-- 首轮误报与排除过程记录在本文件 §〇
+## 5. 结果摘要（原始输出见 `logs/`、`redtest/`、`reports/`）
 
-**审计脚本关键实现**（防复发，已写入注释）：
-- 两个 context 均 `reducedMotion: "no-preference"`；
-- 新增 `assertMotionMedia()`：两侧**各自**断言 `reduce=false && no-preference=true` 后才取样；
-- 离线态元素（`.fdv-dot`）改判源码真值，并显式标注"取样限制"而非"缺陷"。
+| 项 | 读数 | 原始 |
+|:--|:--|:--|
+动效断言 `ui-animation.spec.mjs` | **12 passed / 0 failed** | `logs/11-ui-animation.log` |
+**动效 mutation** | **10/10 点名变红** + **10/10 SHA256 恒等复原** + 复原后 12/12 回绿 | `logs/12-animation-countertest.log`、`redtest/animation-countertest.md` |
+运行态审计（修复后） | **18 passed / 0 failed**；**MATCH 5 / MISSING 0 / DURATION-DIFF 0 / SKIP 5** | `logs/13-runtime-audit-after-fix.log`、`reports/ui-animation-audit.json` |
+全量测试 `npm test` | **155 passed / 0 failed**（既有 143 条一条未减 + 新增 12） | `logs/10-npm-test.log` |
+`vue-tsc -b --force` | **EXIT=0**（零输出，见 note） | `logs/20-vue-tsc.log`(+note) |
+`eslint src/` | **EXIT=0**（零输出，见 note） | `logs/21-eslint.log`(+note) |
+`vite build` | **EXIT=0**，✓ built in 2m 4s | `logs/30-build.log` |
+业务冻结面 | `git diff --name-only e68315f4 -- admin-web/src/views backend` **零输出** | §6 |
 
-## 五、未覆盖项（如实登记）
+## 6. 改动面
 
-1. **非空菜单下的二级卡动效**：mock DB 无菜单行 ⇒ `.sn-card` 不渲染，运行态未验（与 F1 已登记的"非空运行态未验"同源）。
-2. **推送在线时的圆点呼吸**：AI 底座 WS 未连 ⇒ 只在源码侧确认（`@keyframes fdv-blink` + `.fdv-dot` 引用）。
-3. **业务页内部动效**：本审计只覆盖**壳层**（rail/第二列/顶部/feed/输入区）；`views/**` 内部动效不在本轮范围（且本轮不改 `views/**`）。
-4. **原型其余 15+ keyframes**（如 `v34*`/`v35*`/`v37*` 系列）：属原型后期迭代板块（AI 助理/审批/播报等），当前工作台未实现对应页面 ⇒ 无可比对对象，未纳入。
-5. **Electron 客户端 / <1280px / 移动 H5**：不在范围。
+```
+ admin-web/src/layouts/WorkbenchShell.vue        | 改（rail 过渡/红闪底色+keyframes、grid 收起过渡、胶囊过渡+hover）
+ admin-web/src/layouts/WorkbenchSubnav.vue       | 改（.sn-card 过渡）
+ admin-web/src/components/workbench/AiFeedView.vue | 改（卡片入场 keyframes、卡片 hover+过渡、提问条过渡、reduced-motion）
+ admin-web/tests/ui-animation.spec.mjs           | 新增（12 例）
+ admin-web/tests/animation-countertest.mjs       | 新增（10 条 mutation）
+ admin-web/package.json                          | 改（串入 ui-animation.spec）
+新增：docs/evidence/WORKBENCH-06F3/**
+```
+
+**未动**：`admin-web/src/views/**`（零改动）、`backend/**`、`ZXQL-AI/**`（原型与底座契约均只读）、既有 9 个 spec 的用例。
+
+## 7. 未覆盖 / 取样限制（如实登记）
+
+1. **rail 红闪的运行态**：需「有新动态」触发 `.alert`（`feedAlert` 依赖 `pendingReviewCount>0` 且 `face!=='feed'`）；当前 mock DB 无待审阅 ⇒ 运行态不渲染。已由**源码断言 + mutation M2** 覆盖。
+2. **二级卡动效的运行态**：mock DB 空菜单 ⇒ 0 张卡。已由**源码断言 + mutation M4a** 覆盖。
+3. **推送圆点呼吸的运行态**：AI 底座 WS 未连 ⇒ 走「推送离线」分支。已由**源码断言 + mutation（#6 锁住）** 覆盖。
+4. **业务页内部动效**：本单只覆盖壳层；`views/**` 不在范围（且本单未改 `views/**`）。
+5. **原型后期迭代的 15+ keyframes**（`v34*`/`v35*`/`v37*` 系列）：对应页面当前未实现 ⇒ 无可比对对象。
+6. **Electron / <1280px / 移动 H5**：不在范围。
+
+## 8. 目录结构
+
+```text
+docs/evidence/WORKBENCH-06F3/
+├── README.md                        # 本文件（审计 → 修复 → 复验）
+├── ui-animation-audit.mjs           # 运行态审计脚本（computed 值 + SKIP-SAMPLING 口径 + 中间帧实测）
+├── logs/                            # 10-npm-test / 11-ui-animation / 12-animation-countertest /
+│                                    # 13-runtime-audit-after-fix / 20-vue-tsc(+note) / 21-eslint(+note) / 30-build
+├── reports/
+│   └── ui-animation-audit.json      # 10 项逐条 proto/impl computed + verdict + 媒体查询前提
+├── redtest/
+│   └── animation-countertest.md     # 10 条 mutation：注入 SHA → FAIL 原文 → 复原 SHA → 回绿
+└── screenshots/                     # hover/focus 前后对照（肉眼可核）
+```
