@@ -33,6 +33,34 @@ const WIRED: Record<string, Record<string, string[]>> = {
   'src/pages-sub/finance/statements/statements.vue': {
     gateStatementConfirm: ['customer:statement'],
   },
+  'src/pages/sales/create-sale.vue': {
+    gateSaleHold: ['sale:create'],
+    gateSaleCreate: ['sale:create'],
+    gateReceiptCreate: ['sale:create'],
+    gatePurchaseReturn: ['sale:return'],
+    gatePurchaseIn: ['inventory:inbound'],
+    gatePurchaseOrder: ['purchase:create'],
+    gateGoodsCreate: ['goods:create'],
+  },
+  'src/pages/products/product-detail.vue': {
+    gateGoodsCreate: ['goods:create'],
+    gateGoodsEdit: ['goods:edit'],
+    gateGoodsPrice: ['goods:price'],
+    gateGoodsDelete: ['goods:delete'],
+  },
+}
+
+/**
+ * MOBILE-32F2 · 后端**无权限守卫**的写动作 ⇒ 前端 gateVar 必须为 null（不自绑、不伪造）。
+ * 依据（逐条行号）：
+ *  - payment-new.routes.ts:14 `POST /api/admin/payments-new/` 无 requirePermission（S3-223「本行不接」，
+ *    属 rbac G0/G1/G2 锁定的 C 类待裁）；注册表 finance:payment 对应的是**另一条** /admin/purchase-payments。
+ *  - sale-return.routes.ts:12 `POST /` 无 requirePermission（同文件 :23-26 记录本批不接的理由：
+ *    接了会把 STORE_OPERATOR 打成 403）。
+ * 断言：这两个变量必须声明为 null，且**不得**出现 buttonGate([...]) 形态。
+ */
+const NO_BACKEND_CODE: Record<string, string[]> = {
+  'src/pages/sales/create-sale.vue': ['gatePaymentCreate', 'gateSaleReturn'],
 }
 
 /**
@@ -66,15 +94,50 @@ describe('MOBILE-32 · 页面接线：每个按钮绑自己的码', () => {
 
     it(`${page} 的每个写按钮 @tap 都带 gate 短路（不得"点了才 403"）`, () => {
       const src = read(page)
-      // 找出所有 @tap 里调用写 handler 且未带 gate 的按钮
-      const writeHandlers = Object.keys(gates).length // 仅用于提示
       const taps = [...src.matchAll(/@tap="([^"]*)"/g)].map((m) => m[1])
+      // 新页采用 dispatcher 模式：@tap="onActionTap(act)"/"onMainAction"，gate 检查在 handler 内
+      const isDispatcher = page.includes('create-sale.vue') || page.includes('product-detail.vue')
+      if (isDispatcher) {
+        // dispatcher 形态：每个 gate 常量都必须被绑定为某动作的 writeGate（或直接在 handler 首行检查），
+        // 且 dispatcher/handler 内存在 .value.enabled 短路
+        for (const gateName of Object.keys(gates)) {
+          const bound =
+            new RegExp(`writeGate:\\s*${gateName}\\b`).test(src) ||
+            new RegExp(`${gateName}\\.value\\.enabled`).test(src) ||
+            new RegExp(`gateOrHint\\(\\s*${gateName}\\s*\\)`).test(src)
+          expect(bound, `${page} 的 ${gateName} 既未绑定 writeGate，也未在 handler / gateOrHint 内检查`).toBe(true)
+        }
+        expect(src).toMatch(/\.value\.enabled/)
+        return
+      }
       const gatedTaps = taps.filter((t) => /gate\w+\.enabled\s*&&/.test(t))
-      // 每页至少应有与写按钮数相当的 gate 短路（写按钮数 = gates 声明数，但同码可复用）
       expect(gatedTaps.length, `${page} 带 gate 短路的 @tap 数为 ${gatedTaps.length}`).toBeGreaterThanOrEqual(1)
-      // 且不得出现"直接调用写 handler 而无 gate"的写动作
       const bareWrite = taps.filter((t) => /^(handleCancel|handleSubmit|handleReject|handleApprove|handleShip|handleReceive|goCreate|confirmReject|voidReceipt|confirmStatement)\(/.test(t.trim()))
       expect(bareWrite, `发现未预判的写按钮调用: ${bareWrite.join(' | ')}`).toEqual([])
+    })
+  }
+})
+
+describe('MOBILE-32F2 · NO_BACKEND_CODE 防伪造（后端没守卫就不许前端自称已门控）', () => {
+  for (const [page, vars] of Object.entries(NO_BACKEND_CODE)) {
+    it(`${page} 的 ${vars.join(' / ')} 必须声明为 null 且不得出现 buttonGate 绑定`, () => {
+      const src = read(page)
+      for (const v of vars) {
+        expect(src, `${v} 应为 null（不自绑、不伪造）`).toMatch(new RegExp(`const\\s+${v}\\s*=\\s*null\\b`))
+        expect(src, `${v} 不得被 buttonGate([…]) 赋码（后端该端点无 requirePermission）`).not.toMatch(new RegExp(`const\\s+${v}\\s*=\\s*buttonGate\\(`))
+      }
+    })
+
+    it(`${page} 的 manifest 中这些动作必须是 NO_BACKEND_CODE 且 permissionCodes 为空`, () => {
+      const mf = JSON.parse(read('scripts/button-gate-manifest.json'))
+      const pid = page.includes('create-sale') ? 'create-sale' : 'product-detail'
+      for (const v of vars) {
+        const e = mf.entries.find((x: any) => x.page === pid && x.gateVar === v)
+        expect(e, `manifest 缺少 ${v} 对应动作条目`).toBeTruthy()
+        expect(e!.status, `${v} 应为 NO_BACKEND_CODE`).toBe('NO_BACKEND_CODE')
+        expect(e!.permissionCodes, `${v} 不得带权限码`).toEqual([])
+        expect(e!.codeProof, `${v} 必须给出后端无守卫的行号依据`).toMatch(/routes\.ts:\d+/)
+      }
     })
   }
 })

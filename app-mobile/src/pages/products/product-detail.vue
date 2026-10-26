@@ -435,7 +435,27 @@ import { onLoad, onHide } from '@dcloudio/uni-app'
 // S3-230 入口权限门：底栏「修改/保存」按码显隐（注册表 goods-detail-edit）
 import { usePermissionGate } from '@/composables/usePermissionGate'
 
-const { canEntry } = usePermissionGate()
+const { canEntry, buttonGate } = usePermissionGate()
+// MOBILE-32F2：逐按钮/逐分支门控，码一律取后端路由实证（backend/src/routes/admin-product.routes.ts）
+//   POST /products               → goods:create  (:54 PERM_GOODS_CREATE)
+//   POST /products/upload-image  → goods:create  (:45)
+//   PUT  /products/:id           → goods:edit    (:60)
+//   PUT  /products/:skuId/price  → goods:price   (:63)
+//   PUT  /products/skus/:skuId   → goods:edit    (:69)
+//   POST /products/skus/:skuId/units           → goods:create (:70)
+//   PUT  /products/skus/:skuId/units/:unitId   → goods:edit   (:71)
+//   DELETE /products/skus/:skuId/units/:unitId → goods:delete (:72)
+//   PUT  /products/:spuId/marketing-tags       → goods:edit   (:74)
+const gateGoodsCreate = buttonGate(['goods:create'])
+const gateGoodsEdit = buttonGate(['goods:edit'])
+const gateGoodsPrice = buttonGate(['goods:price'])
+const gateGoodsDelete = buttonGate(['goods:delete'])
+/** 分支级预检：无权限/权限未取到 ⇒ toast + false（调用方据此中断，写请求为 0） */
+function gateOrHint(g: { value: { enabled: boolean; hint: string } }): boolean {
+  if (g.value.enabled) return true
+  uni.showToast({ title: g.value.hint, icon: 'none' })
+  return false
+}
 import {
   createProduct,
   getProductDetail,
@@ -960,6 +980,8 @@ function cancelEdit() {
 }
 
 async function onMainAction() {
+  // MOBILE-32F2：底栏主按钮按「新建 / 修改」分流到各自真实码（不用一个门覆盖两种动作）
+  if (!gateOrHint(spuId.value ? gateGoodsEdit : gateGoodsCreate)) return
   if (!editable.value) {
     editable.value = true
     uni.showToast({ title: '已进入编辑模式', icon: 'none' })
@@ -974,6 +996,8 @@ async function onMainAction() {
 }
 
 async function save() {
+  // MOBILE-32F2：入口按新建/编辑分流到各自真实码；分支内再按该分支自己的码预检（逐动作语义）
+  if (!gateOrHint(spuId.value ? gateGoodsEdit : gateGoodsCreate)) return
   if (!form.name.trim()) { uni.showToast({ title: '请填写商品名称', icon: 'none' }); return }
   uni.showLoading({ title: '保存中...' })
   try {
@@ -1041,36 +1065,53 @@ async function save() {
     })
     const skuItem = original.value?.skus?.[0]
     if (skuItem) {
-      // 五档价格：SKU 级接口（PUT /admin/products/:skuId/price）
-      await updateSkuPrice(skuItem.id, {
-        costPrice: Number(priceForm.costPrice) || 0,
-        wholesalePrice: Number(priceForm.wholesalePrice) || 0,
-        retailPrice: Number(priceForm.retailPrice) || 0,
-        miniappPrice: priceForm.miniappPrice === '' ? null : Number(priceForm.miniappPrice),
-        storePrice: priceForm.storePrice === '' ? null : Number(priceForm.storePrice),
-      })
-      // 追溯开关 + 预警阈值：PUT /admin/products/skus/:skuId
-      if (dirtyKeys['traceEnabled'] || dirtyKeys['warningThreshold']) {
+      // ===== MOBILE-32F2：SKU 段每个写动作按「自己那条后端路由的码」分别门控 =====
+      // 判据：只有该分支确有改动时才要求对应码（无改动不检查、也不发写请求）；
+      //       有改动但无权限 ⇒ 中断并给出该动作的说明（不得用 goods:edit 一把大锁覆盖四条码）。
+      const priceDirty = Object.keys(dirtyKeys).some((k) => k.startsWith('price:'))
+      const skuMetaDirty = !!(dirtyKeys['traceEnabled'] || dirtyKeys['warningThreshold'])
+      const baseUnitRename = !!(dirtyKeys['unit'] && (() => {
+        const b = units.value.find((u) => Number(u.isBase) === 1)
+        return b && form.unit.trim() && b.unitName !== form.unit.trim()
+      })())
+      const unitRowEdits = new Set<number>([...Object.keys(unitEdits), ...Object.keys(unitPriceEdits)].map(Number))
+      const newUnitRows = units.value.slice(1).filter((u: any) => !u.id).length
+      const hasDelete = removedUnitIds.value.length > 0
+
+      if (priceDirty && !gateOrHint(gateGoodsPrice)) return
+      if ((skuMetaDirty || baseUnitRename || unitRowEdits.size > 0) && !gateOrHint(gateGoodsEdit)) return
+      if (hasDelete && !gateOrHint(gateGoodsDelete)) return
+      if (newUnitRows > 0 && !gateOrHint(gateGoodsCreate)) return
+
+      // 五档价格：PUT /admin/products/:skuId/price（goods:price，:63）
+      if (priceDirty) {
+        await updateSkuPrice(skuItem.id, {
+          costPrice: Number(priceForm.costPrice) || 0,
+          wholesalePrice: Number(priceForm.wholesalePrice) || 0,
+          retailPrice: Number(priceForm.retailPrice) || 0,
+          miniappPrice: priceForm.miniappPrice === '' ? null : Number(priceForm.miniappPrice),
+          storePrice: priceForm.storePrice === '' ? null : Number(priceForm.storePrice),
+        })
+      }
+      // 追溯开关 + 预警阈值：PUT /admin/products/skus/:skuId（goods:edit，:69）
+      if (skuMetaDirty) {
         await updateSku(skuItem.id, {
           traceEnabled: traceEnabled.value,
           warningThreshold: warningThreshold.value,
         })
       }
-      // 基础单位改名：同步基础单位行名称（SPU unit 已随 updateProduct 提交）
-      if (dirtyKeys['unit']) {
-        const baseUnit = units.value.find(u => Number(u.isBase) === 1)
-        if (baseUnit && form.unit.trim() && baseUnit.unitName !== form.unit.trim()) {
-          await updateSkuUnit(skuItem.id, Number(baseUnit.id), { unitName: form.unit.trim() })
-        }
+      // 基础单位改名：PUT /admin/products/skus/:skuId/units/:unitId（goods:edit，:71）
+      if (baseUnitRename) {
+        const baseUnit = units.value.find((u) => Number(u.isBase) === 1)!
+        await updateSkuUnit(skuItem.id, Number(baseUnit.id), { unitName: form.unit.trim() })
       }
-      // 辅单位增删改统一提交：先删（已落库的本地删除）→ 再改（行内编辑）→ 后增（本地新增）
+      // 辅单位删除：DELETE /admin/products/skus/:skuId/units/:unitId（goods:delete，:72）
       for (const delId of removedUnitIds.value) {
         await deleteSkuUnit(skuItem.id, delId)
       }
       removedUnitIds.value = []
-      // 修改：已落库行（id>0）的行内编辑（比值/条码/价格）按行合并为一次 updateSkuUnit
-      const unitIdxs = new Set<number>([...Object.keys(unitEdits), ...Object.keys(unitPriceEdits)].map(Number))
-      for (const i of unitIdxs) {
+      // 修改：已落库行（id>0）的行内编辑（比值/条码/价格）按行合并为一次 updateSkuUnit（goods:edit，:71）
+      for (const i of unitRowEdits) {
         const u = units.value[i] as any
         if (!u || !u.id) continue
         const body: Record<string, unknown> = {}
@@ -1086,7 +1127,7 @@ async function save() {
           await updateSkuUnit(skuItem.id, Number(u.id), body)
         }
       }
-      // 新增：本地追加的行（id=0），价格取行内当前值（按换算率自动填充的结果）
+      // 新增：本地追加的行（id=0）：POST /admin/products/skus/:skuId/units（goods:create，:70）
       for (let i = 1; i < units.value.length; i++) {
         const u = units.value[i] as any
         if (u.id) continue
@@ -1101,7 +1142,8 @@ async function save() {
         })
       }
     }
-    // 商品标签：PUT /admin/products/:spuId/marketing-tags
+    // 商品标签：PUT /admin/products/:spuId/marketing-tags（goods:edit，:74）
+    if (dirtyKeys['tags'] && !gateOrHint(gateGoodsEdit)) return
     if (dirtyKeys['tags']) {
       await setMarketingTags(spuId.value, tags.value)
     }
@@ -1280,6 +1322,9 @@ function onThumbTap() {
 }
 
 function pickImage(source: 'camera' | 'album') {
+  // MOBILE-32F2：图片上传实际写 POST /admin/products/upload-image ⇒ 后端 admin-product.routes.ts:45
+  // 挂的是 **goods:create**（不是 goods:edit），故用建品门；选择前即挡（卡§三.2 确认链）
+  if (!gateOrHint(gateGoodsCreate)) return
   uni.chooseImage({
     count: 1,
     sourceType: [source],

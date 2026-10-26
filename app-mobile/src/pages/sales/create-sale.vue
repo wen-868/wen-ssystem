@@ -771,7 +771,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted, watch, type ComputedRef } from 'vue'
 // R96-02: 小程序端转发钩子。小程序没有 plus.share，转发只能走右上角菜单，
 // 必须注册 onShareAppMessage 后右上角「··· → 转发」才可用（此前全项目未注册，导致小程序端分享完全不可用）。
 import { onShow, onShareAppMessage } from '@dcloudio/uni-app'
@@ -789,8 +789,34 @@ import { PRODUCT_THUMB_COLORS } from '@/constants/colors'
 // S3-230 入口权限门：单据类型分段导航 / 底部动作按"该端点将使用的码"显隐
 // （注册表见 config/permission-gates.ts；写调用面见各 gate 的 endpoints）
 import { usePermissionGate } from '@/composables/usePermissionGate'
+import type { ButtonGateResult } from '@/config/button-gates'
 
-const { can, canEntry, canAnyEntry } = usePermissionGate()
+const { can, canEntry, canAnyEntry, buttonGate } = usePermissionGate()
+// MOBILE-32F2：逐按钮码 = **后端路由实证**（逐条行号见下），不取注册表标题、不猜、不自造：
+//   POST /store/hold-orders        store-order.routes.ts:31        sale:create
+//   POST /store/sale-bills         store-sale-bill.routes.ts:11    sale:create
+//   POST /admin/receipts           receipt.routes.ts:13            sale:create
+//       （finance:receipt:create 属 receipt.routes.ts:23 的 /void，不得错绑到「创建」）
+//   POST /admin/purchase-orders    purchase.routes.ts:16           purchase:create
+//   POST /admin/purchase-in-stocks purchase-in-stock.routes.ts:15  inventory:inbound
+//   POST /admin/purchase-returns   purchase-return.routes.ts:14    sale:return（非 purchase:create）
+//   POST /admin/payments-new       payment-new.routes.ts:14        **无 requirePermission**
+//       （S3-223 明确「本行不接」：该路由属 rbac G0/G1/G2 锁定的 C 类待裁 ⇒ 不自绑 finance:payment，
+//        那会把现网可成功的付款动作误禁用；注册表 purchase-sub-payment 的 finance:payment 属
+//        /admin/purchase-payments 这条**不同**端点，不得移用）
+//   POST /admin/products           admin-product.routes.ts:54      goods:create
+// ⚠️ POST /store/sale-returns（销售退货提交）后端**无 requirePermission**（sale-return.routes.ts:12），
+//    同文件 :23-26 记录「POST / 本批不接」理由 = 接了会把 STORE_OPERATOR 打成 403。前端自绑 sale:return
+//    同样会禁用现网可用流程 ⇒ 与 payments-new 一并登记为 NO_BACKEND_CODE，不自绑、不伪造。
+const gateSaleHold = buttonGate(['sale:create'])
+const gateSaleCreate = buttonGate(['sale:create'])
+const gateReceiptCreate = buttonGate(['sale:create'])
+const gatePaymentCreate = null
+const gateSaleReturn = null
+const gatePurchaseReturn = buttonGate(['sale:return'])
+const gatePurchaseIn = buttonGate(['inventory:inbound'])
+const gatePurchaseOrder = buttonGate(['purchase:create'])
+const gateGoodsCreate = buttonGate(['goods:create'])
 
 // ===================================================================
 // 单据框架：四种单据各自独立字段 / 底部动作 / 提交接口
@@ -892,6 +918,9 @@ interface DocAction {
   needsSaved?: boolean
   /** 入口权限门 id（S3-230）：该动作会打的写端点所用码不满足时，按钮**不渲染** */
   gate?: string
+  /** 按钮级写门控（MOBILE-32F2）：无权限 / 权限未取到时按钮**禁用 + 说明**，点击不发起写请求。
+   *  null = 该动作的后端写路由**尚未挂权限码**（NO_BACKEND_CODE），不自绑、不伪造。 */
+  writeGate?: ComputedRef<ButtonGateResult> | null
 }
 const docConfig = computed<{
   showCustomer: boolean
@@ -928,7 +957,7 @@ const docConfig = computed<{
         showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '转收款单', variant: 'primary', handler: () => convertDoc('sale_receipt'), loadingText: '转收款单中...', needsSaved: true },
+          { label: '转收款单', variant: 'primary', handler: () => convertDoc('sale_receipt'), loadingText: '转收款单中...', needsSaved: true, writeGate: gateSaleCreate },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -941,7 +970,7 @@ const docConfig = computed<{
         showBatch: false, showReason: true, showVerify: false, showOrderStatus: false,
         showShipSummary: false,
         actions: [
-          { label: '保存', variant: 'ghost', handler: submitSaleReturn },
+          { label: '保存', variant: 'ghost', handler: submitSaleReturn, writeGate: gateSaleReturn },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -956,7 +985,7 @@ const docConfig = computed<{
         actions: [
           // 收款单「确认收款」→ POST /api/admin/receipts/（码 sale:create，见注册表 sale-receipt-sub）
           { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...', gate: 'sale-receipt-sub' },
+          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...', gate: 'sale-receipt-sub', writeGate: gateReceiptCreate },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -970,7 +999,7 @@ const docConfig = computed<{
         showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '转入库单', variant: 'primary', handler: () => convertDoc('pur_inbound'), loadingText: '转入库单中...', needsSaved: true, gate: 'purchase-sub-order' },
+          { label: '转入库单', variant: 'primary', handler: () => convertDoc('pur_inbound'), loadingText: '转入库单中...', needsSaved: true, gate: 'purchase-sub-order', writeGate: gatePurchaseOrder },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -984,9 +1013,9 @@ const docConfig = computed<{
         showShipSummary: false,
         actions: [
           // 保存＝暂存/挂单 → POST /api/store/hold-orders/（码 sale:create，见注册表 sale-create-hold）
-          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold' },
+          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold', writeGate: gateSaleHold },
           // 转付款单＝提交本张入库单 → POST /api/admin/purchase-in-stocks/（码 inventory:inbound）
-          { label: '转付款单', variant: 'primary', handler: () => convertDoc('pur_payment'), loadingText: '转付款单中...', needsSaved: true, gate: 'purchase-sub-inbound' },
+          { label: '转付款单', variant: 'primary', handler: () => convertDoc('pur_payment'), loadingText: '转付款单中...', needsSaved: true, gate: 'purchase-sub-inbound', writeGate: gatePurchaseIn },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -1000,7 +1029,7 @@ const docConfig = computed<{
         showShipSummary: false,
         actions: [
           // 保存＝提交采购退货 → POST /api/admin/purchase-returns/（码 sale:return）
-          { label: '保存', variant: 'ghost', handler: submitPurchaseReturn, gate: 'purchase-sub-return' },
+          { label: '保存', variant: 'ghost', handler: submitPurchaseReturn, gate: 'purchase-sub-return', writeGate: gatePurchaseReturn },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -1015,7 +1044,7 @@ const docConfig = computed<{
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
           // 确认付款 → POST /api/admin/purchase-payments/（码 finance:payment）
-          { label: '确认付款', variant: 'primary', handler: submitPayment, loadingText: '付款中...', gate: 'purchase-sub-payment' },
+          { label: '确认付款', variant: 'primary', handler: submitPayment, loadingText: '付款中...', gate: 'purchase-sub-payment', writeGate: gatePaymentCreate },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -1029,8 +1058,8 @@ const docConfig = computed<{
         showShipSummary: false,
         actions: [
           // 保存＝暂存/挂单 → POST /api/store/hold-orders/（码 sale:create，见注册表 sale-create-hold）
-          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold' },
-          { label: '转销售单', variant: 'primary', handler: submitOrder, loadingText: '转销售单中...', needsSaved: true },
+          { label: '保存', variant: 'ghost', handler: handleDraft, gate: 'sale-create-hold', writeGate: gateSaleHold },
+          { label: '转销售单', variant: 'primary', handler: submitOrder, loadingText: '转销售单中...', needsSaved: true, writeGate: gateSaleCreate },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
@@ -1786,6 +1815,8 @@ function closeQuickAdd() {
 }
 
 async function saveQuickAdd() {
+  // MOBILE-32F2：快捷新增商品实际写 POST /admin/products（码 goods:create）⇒ 点击前门控
+  if (!gateGoodsCreate.value.enabled) { uni.showToast({ title: gateGoodsCreate.value.hint, icon: 'none' }); return }
   const name = quickAddForm.name.trim()
   if (!name) { uni.showToast({ title: '请填写商品名称', icon: 'none' }); return }
   if (quickAddSaving.value) return
@@ -2362,7 +2393,13 @@ function bottomLabel(act: { label: string; variant: string }): string {
   return act.label
 }
 
-function onActionTap(act: { label: string; variant: string; needsSaved?: boolean; handler: () => void }) {
+function onActionTap(act: DocAction) {
+  // MOBILE-32F2：写按钮点击前门控——无权限 / 权限未取到一律不执行写请求（卡 §三.3「写请求为 0」）
+  const wg = act.writeGate
+  if (wg && !wg.value.enabled) {
+    uni.showToast({ title: wg.value.hint, icon: 'none' })
+    return
+  }
   // 双状态机：已保存→「修改」入口 / 草稿→「保存」（原稿 editBtn：saved?startEdit():saveDoc）
   if (act.variant === 'ghost' && act.label === '保存') {
     if (isSaved.value) { startEdit(); return }
