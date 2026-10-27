@@ -13,7 +13,7 @@
  *                         handler 内 gateX.value.enabled / gateOrHint(gateX) 三种形态之一）；
  *  ③ UNKNOWN_CODE         manifest 权限码不在 config/permission-gates.ts 注册码集合；
  *  ④ ENDPOINT_MISMATCH    manifest 声明的 method+endpoint 在源码中解析不到（= 错绑 / 已删除的调用）；
- *  ⑤ STATUS_MISMATCH      status=GATED 却 permissionCodes 为空，或 status=NO_BACKEND_CODE 却带码
+ *  ⑤ STATUS_MISMATCH      status=GATED 却 permissionCodes 为空，或 status=BLOCKED_BACKEND_CODE 却带码
  *                         （= 伪造码 / 把"后端没守卫"说成"已门控"）；
  *  ⑥ FAIL_OPEN            config/button-gates.ts 的 unavailable 分支不再 deny（权限失败被当有权限）；
  *  ⑦ FAKE_UI_ONLY         status=UI_ONLY / READ_ONLY 的条目里出现了非 GET 端点
@@ -254,7 +254,7 @@ function run() {
   const bg = readFileSync(join(SRC, 'config/button-gates.ts'), 'utf8')
   if (!/deny\(\s*'unavailable'/.test(bg)) errors.push('FAIL_OPEN: config/button-gates.ts 的 unavailable 分支不再 deny（权限加载失败被当成有权限 ⇒ 放行）')
 
-  const stats = { pages: [], GATED: 0, UNGATED: 0, NO_BACKEND_CODE: 0, UI_ONLY: 0, READ_ONLY: 0, sourceWrites: 0 }
+  const stats = { pages: [], GATED: 0, UNGATED: 0, BLOCKED_BACKEND_CODE: 0, UI_ONLY: 0, READ_ONLY: 0, sourceWrites: 0 }
 
   for (const page of manifest.pages || []) {
     const { text, writes } = analyzePage(page.file, byModule)
@@ -264,9 +264,15 @@ function run() {
 
     for (const e of entries) {
       for (const c of e.permissionCodes || []) if (c && !known.has(c)) errors.push(`UNKNOWN_CODE: ${e.id} → 权限码 "${c}" 未在 config/permission-gates.ts 注册`)
-      if (e.status === 'GATED' && !(e.permissionCodes || []).length) errors.push(`STATUS_MISMATCH: ${e.id} status=GATED 但 permissionCodes 为空（无码即无从判定，应登记 NO_BACKEND_CODE 或 blocked）`)
-      if (e.status === 'NO_BACKEND_CODE' && (e.permissionCodes || []).length) errors.push(`STATUS_MISMATCH: ${e.id} status=NO_BACKEND_CODE 却带权限码 "${e.permissionCodes.join(',')}"（伪造码）`)
+      if (e.status === 'GATED' && !(e.permissionCodes || []).length) errors.push(`STATUS_MISMATCH: ${e.id} status=GATED 但 permissionCodes 为空（无码即无从判定，应登记 BLOCKED_BACKEND_CODE 或 blocked）`)
+      if (e.status === 'BLOCKED_BACKEND_CODE' && (e.permissionCodes || []).length) errors.push(`STATUS_MISMATCH: ${e.id} status=BLOCKED_BACKEND_CODE 却带权限码 "${e.permissionCodes.join(',')}"（伪造码）`)
       if ((e.status === 'UI_ONLY' || e.status === 'READ_ONLY') && e.method && e.method !== 'GET' && !String(e.endpoint).includes(',')) errors.push(`FAKE_UI_ONLY: ${e.id} 登记为 ${e.status} 却带 ${e.method} ${e.endpoint}（真实写不得伪装成 UI 开关）`)
+      // 卡 §三.4：BLOCKED_BACKEND_CODE 不得计入 GATED 完成数 ⇒ 必须显式标注 counted_as_completed=false
+      if (e.status === 'BLOCKED_BACKEND_CODE') {
+        if (e.countedAsCompleted !== false) errors.push(`BLOCKED_COUNTED_AS_DONE: ${e.id} 后端无码，必须 countedAsCompleted=false 且不得计入 GATED 完成数`)
+        if (e.codeProof === undefined) errors.push(`BLOCKED_MISSING_PROOF: ${e.id} 必须给出后端无 requirePermission 的行号依据 codeProof`)
+      }
+      if (e.status === 'GATED' && e.countedAsCompleted === false) errors.push(`STATUS_MISMATCH: ${e.id} status=GATED 却标 countedAsCompleted=false（状态与完成标记矛盾）`)
     }
 
     // ① 源码写调用必须登记
@@ -286,15 +292,15 @@ function run() {
         new RegExp(`gateOrHint\\(\\s*${e.gateVar}\\s*\\)`).test(text)
       if (!wired) errors.push(`UNGATED_WRITE: ${e.id} 声明 status=GATED，但源码未见 ${e.gateVar} 接线（既无 writeGate 绑定，也无 ${e.gateVar}.value.enabled / gateOrHint(${e.gateVar}) 预检）`)
     }
-    for (const e of entries.filter((x) => x.status === 'NO_BACKEND_CODE')) {
+    for (const e of entries.filter((x) => x.status === 'BLOCKED_BACKEND_CODE')) {
       const hit = writes.find((w) => w.method === e.method && pathEquals(e.endpoint, w.path))
       if (!hit) errors.push(`ENDPOINT_MISMATCH: ${e.id} 声明 ${e.method} ${e.endpoint}，但源码未解析到该写调用`)
     }
 
-    stats.pages.push({ page: page.id, GATED: gated.length, NO_BACKEND_CODE: entries.filter((e) => e.status === 'NO_BACKEND_CODE').length, UI_ONLY: entries.filter((e) => e.status === 'UI_ONLY').length, READ_ONLY: entries.filter((e) => e.status === 'READ_ONLY').length, sourceWrites: writes.length })
+    stats.pages.push({ page: page.id, GATED: gated.length, BLOCKED_BACKEND_CODE: entries.filter((e) => e.status === 'BLOCKED_BACKEND_CODE').length, UI_ONLY: entries.filter((e) => e.status === 'UI_ONLY').length, READ_ONLY: entries.filter((e) => e.status === 'READ_ONLY').length, sourceWrites: writes.length })
     // ⑧ 端点集合守恒：manifest 登记的写端点集合 == 源码真实写端点集合（不多不少，三方同数）
     const srcSet = new Set(writes.map((w) => `${w.method} ${w.path}`))
-    const manSet = new Set(entries.filter((e) => e.endpoint && e.method && ['GATED', 'NO_BACKEND_CODE'].includes(e.status)).map((e) => `${e.method} ${norm(e.endpoint)}`))
+    const manSet = new Set(entries.filter((e) => e.endpoint && e.method && ['GATED', 'BLOCKED_BACKEND_CODE'].includes(e.status)).map((e) => `${e.method} ${norm(e.endpoint)}`))
     const toKeySet = (s) => new Set([...s].map((k) => { const [m, p] = k.split(' '); return `${m} ${norm(p)}` }))
     const srcKeys = toKeySet(srcSet)
     const manKeys = toKeySet(manSet)
@@ -304,7 +310,7 @@ function run() {
     for (const k of onlySrc) errors.push(`SET_MISMATCH: ${page.id} 源码存在写端点 ${k}，manifest 未登记（审计器 ↔ manifest 数量不守恒）`)
     for (const k of onlyMan) errors.push(`SET_MISMATCH: ${page.id} manifest 登记了 ${k}，源码已无该写调用（数量不守恒 / 残留条目）`)
     stats.GATED += gated.length
-    stats.NO_BACKEND_CODE += entries.filter((e) => e.status === 'NO_BACKEND_CODE').length
+    stats.BLOCKED_BACKEND_CODE += entries.filter((e) => e.status === 'BLOCKED_BACKEND_CODE').length
     stats.UI_ONLY += entries.filter((e) => e.status === 'UI_ONLY').length
     stats.READ_ONLY += entries.filter((e) => e.status === 'READ_ONLY').length
     stats.sourceWrites += writes.length
@@ -324,6 +330,20 @@ if (args.includes('--self-test')) {
     { key: 'createSale', name: 'M2 摘掉目标按钮门', file: targets.createSale, apply: (t) => t.replace('writeGate: gatePurchaseIn', '/* M2: gate removed */') },
     { key: 'manifest', name: 'M3 manifest 错绑端点', file: targets.manifest, apply: (t) => t.replace('"endpoint": "/admin/receipts"', '"endpoint": "/admin/NOT-A-REAL-endpoint"') },
     { key: 'buttonGates', name: 'M4 权限失败改成放行', file: targets.buttonGates, apply: (t) => t.replace(/return deny\(\s*\n\s*'unavailable',\s*\n\s*BUTTON_HINTS\.unavailable,\s*\n\s*`三态=\$\{view\.viewState\}（\$\{view\.policy\}）⇒ 失败关闭`\s*\n\s*\)/, "return { status: 'allowed', enabled: true, showHint: false, hint: '', stale: false, reason: 'M4 probe: 失败改成放行' }") },
+    {
+      key: 'manifest',
+      name: 'M5 计数守恒破坏（真实写伪装成 UI_ONLY 减少 GATED）',
+      file: targets.manifest,
+      apply: (t) => {
+        // manifest 现为多行 JSON ⇒ 必须走 JSON 改写，字符串 replace 会静默失配（注入不生效=假反测）
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'cs-submitReceipt')
+        if (!e || e.status !== 'GATED') throw new Error('M5 前置不成立：cs-submitReceipt 不是 GATED')
+        e.status = 'UI_ONLY'
+        e.permissionCodes = []
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
   ]
   let ok = true
   for (const s of scenarios) {
@@ -341,7 +361,7 @@ if (args.includes('--self-test')) {
     console.log(`${pass ? '✓' : '✗'} ${s.name}｜注入生效=${injected} 判红=${red}（点名 ${errors.length} 条，首条判据=${kind}）逐字节复原=${restored} 复绿=${green}`)
     if (!pass) { ok = false; errors.slice(0, 3).forEach((e) => console.log('      · ' + e)) }
   }
-  console.log(ok ? 'SELF-TEST PASS：四条注入均点名变红且逐字节复原后复绿' : 'SELF-TEST FAIL')
+  console.log(ok ? 'SELF-TEST PASS：五条注入（M1-M5，含计数守恒红例）均点名变红且逐字节复原后复绿' : 'SELF-TEST FAIL')
   process.exit(ok ? 0 : 1)
 }
 
@@ -349,8 +369,8 @@ const { errors, stats } = run()
 if (args.includes('--json')) console.log(JSON.stringify({ errors, stats }, null, 2))
 else {
   console.log(`guard-button-gates · 三方守恒（manifest ↔ 源码绑定 ↔ API 端点）`)
-  for (const p of stats.pages) console.log(`  ${p.page}: GATED=${p.GATED} NO_BACKEND_CODE=${p.NO_BACKEND_CODE} UI_ONLY=${p.UI_ONLY} READ_ONLY=${p.READ_ONLY} 源码写调用=${p.sourceWrites}`)
-  console.log(`  合计：GATED=${stats.GATED}｜NO_BACKEND_CODE=${stats.NO_BACKEND_CODE}｜UI_ONLY=${stats.UI_ONLY}｜READ_ONLY=${stats.READ_ONLY}｜UNGATED=${stats.UNGATED}`)
+  for (const p of stats.pages) console.log(`  ${p.page}: GATED=${p.GATED} BLOCKED_BACKEND_CODE=${p.BLOCKED_BACKEND_CODE} UI_ONLY=${p.UI_ONLY} READ_ONLY=${p.READ_ONLY} 源码写调用=${p.sourceWrites}`)
+  console.log(`  合计：GATED=${stats.GATED}｜BLOCKED_BACKEND_CODE=${stats.BLOCKED_BACKEND_CODE}｜UI_ONLY=${stats.UI_ONLY}｜READ_ONLY=${stats.READ_ONLY}｜UNGATED=${stats.UNGATED}`)
   for (const e of errors) console.log('  ✗ ' + e)
   console.log(errors.length ? `✗ 判红 ${errors.length} 条 ⇒ EXIT=1` : '✓ 三方数量守恒、门控接线完整、码合法、失败关闭 ⇒ EXIT=0')
 }

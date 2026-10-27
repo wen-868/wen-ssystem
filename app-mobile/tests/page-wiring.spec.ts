@@ -59,7 +59,7 @@ const WIRED: Record<string, Record<string, string[]>> = {
  *    接了会把 STORE_OPERATOR 打成 403）。
  * 断言：这两个变量必须声明为 null，且**不得**出现 buttonGate([...]) 形态。
  */
-const NO_BACKEND_CODE: Record<string, string[]> = {
+const BLOCKED_BACKEND_CODE: Record<string, string[]> = {
   'src/pages/sales/create-sale.vue': ['gatePaymentCreate', 'gateSaleReturn'],
 }
 
@@ -118,8 +118,8 @@ describe('MOBILE-32 · 页面接线：每个按钮绑自己的码', () => {
   }
 })
 
-describe('MOBILE-32F2 · NO_BACKEND_CODE 防伪造（后端没守卫就不许前端自称已门控）', () => {
-  for (const [page, vars] of Object.entries(NO_BACKEND_CODE)) {
+describe('MOBILE-32F2 · BLOCKED_BACKEND_CODE 防伪造（后端没守卫就不许前端自称已门控）', () => {
+  for (const [page, vars] of Object.entries(BLOCKED_BACKEND_CODE)) {
     it(`${page} 的 ${vars.join(' / ')} 必须声明为 null 且不得出现 buttonGate 绑定`, () => {
       const src = read(page)
       for (const v of vars) {
@@ -128,13 +128,13 @@ describe('MOBILE-32F2 · NO_BACKEND_CODE 防伪造（后端没守卫就不许前
       }
     })
 
-    it(`${page} 的 manifest 中这些动作必须是 NO_BACKEND_CODE 且 permissionCodes 为空`, () => {
+    it(`${page} 的 manifest 中这些动作必须是 BLOCKED_BACKEND_CODE 且 permissionCodes 为空`, () => {
       const mf = JSON.parse(read('scripts/button-gate-manifest.json'))
       const pid = page.includes('create-sale') ? 'create-sale' : 'product-detail'
       for (const v of vars) {
         const e = mf.entries.find((x: any) => x.page === pid && x.gateVar === v)
         expect(e, `manifest 缺少 ${v} 对应动作条目`).toBeTruthy()
-        expect(e!.status, `${v} 应为 NO_BACKEND_CODE`).toBe('NO_BACKEND_CODE')
+        expect(e!.status, `${v} 应为 BLOCKED_BACKEND_CODE`).toBe('BLOCKED_BACKEND_CODE')
         expect(e!.permissionCodes, `${v} 不得带权限码`).toEqual([])
         expect(e!.codeProof, `${v} 必须给出后端无守卫的行号依据`).toMatch(/routes\.ts:\d+/)
       }
