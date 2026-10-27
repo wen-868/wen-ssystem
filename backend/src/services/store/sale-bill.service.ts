@@ -4,6 +4,8 @@ import { computeSellingPrice, getPriceType, type CustomerType } from "../../shar
 import { updateTraceCodesBySkuList, verifyTraceCode } from "../../shared/trace-code";
 // S3-78：切到「落库 + 推送」入口（原来是只落库的重复写入器；无推送凭据时推送分支自动降级为 no-op）
 import { sendNotificationWithPush } from "../admin/notification-sender.service";
+// TOTAL-ORDER-PROGRESS-02：订单进度事件底座——与业务状态变更同事务写事件（契约 §8.1）
+import { appendOrderProgressEvent, saleBillEvent } from "../../shared/order-progress-events";
 import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
 import type { RowDataPacket } from "mysql2";
@@ -357,6 +359,17 @@ export async function createSaleBill(params: {
       }
     }
 
+    // TOTAL-ORDER-PROGRESS-02：开单事件（同事务，契约 §8.1；upstream=单号本身，重试同键 ⇒ 幂等）
+    await appendOrderProgressEvent(conn, saleBillEvent({
+      tenantId, storeId, billNo,
+      businessStage: "CREATED",
+      businessStatus: "CREATED",
+      actorType: userId ? "user" : "system",
+      actorId: userId ?? operatorId ?? "sale-bill-create",
+      upstreamBizKey: billNo,
+      at: new Date(),
+    }));
+
     // 销售单创建通知（真实数据源，供工作台消息中心展示）
     try {
       await sendNotificationWithPush({
@@ -429,10 +442,23 @@ export async function offlinePayment(params: {
       `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
       [received, received, status, billNo, tenantId]
     );
+    const payNo = makeBizNo("ZF");
     await conn.execute(
       `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, transaction_id, auth_code, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?, ?, ?)`,
-      [makeBizNo("ZF"), billNo, paymentMethod, amount, transactionId || "", authCode || "", tenantId]
+      [payNo, billNo, paymentMethod, amount, transactionId || "", authCode || "", tenantId]
     );
+    // TOTAL-ORDER-PROGRESS-02：收款事件（同事务）。upstream 优先取渠道交易号（稳定上游业务号），
+    // 无渠道号时退化为本次收款流水号；结清 ⇒ COMPLETED 终态，部分收款 ⇒ 仍为 CREATED（业务状态携 PARTIAL 真值）。
+    await appendOrderProgressEvent(conn, saleBillEvent({
+      tenantId, storeId: Number(bill.store_id ?? bill.storeId), billNo,
+      businessStage: status === "PAID" ? "COMPLETED" : "CREATED",
+      businessStatus: status === "PAID" ? "PAID" : status,
+      actorType: userId ? "user" : "system",
+      actorId: userId ?? "offline-payment",
+      upstreamBizKey: transactionId || payNo,
+      statusReason: status === "PAID" ? "线下收款已结清" : "线下收款部分入账",
+      at: new Date(),
+    }));
     if (!alreadyDeducted) {
       const [items] = await conn.query<SaleBillItemConnRow[]>(
         `SELECT sku_id AS skuId, total_bottle_qty AS quantity FROM t_sale_bill_item WHERE bill_no = ?`, [billNo]
@@ -483,10 +509,22 @@ export async function paymentOnSaleBill(params: {
       `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0), collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
       [received, received, status, billNo, tenantId]
     );
+    const payNo = makeBizNo("ZF");
     await conn.execute(
       `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, transaction_id, auth_code, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?, ?, ?)`,
-      [makeBizNo("ZF"), billNo, paymentMethod, amount, transactionId || "", authCode || "", tenantId]
+      [payNo, billNo, paymentMethod, amount, transactionId || "", authCode || "", tenantId]
     );
+    // TOTAL-ORDER-PROGRESS-02：销售单页收款事件（同事务，口径与 offlinePayment 一致）
+    await appendOrderProgressEvent(conn, saleBillEvent({
+      tenantId, storeId: Number(bill.store_id ?? bill.storeId), billNo,
+      businessStage: status === "PAID" ? "COMPLETED" : "CREATED",
+      businessStatus: status,
+      actorType: userId ? "user" : "system",
+      actorId: userId ?? "sale-bill-page-payment",
+      upstreamBizKey: transactionId || payNo,
+      statusReason: status === "PAID" ? "销售单收款已结清" : "销售单收款部分入账",
+      at: new Date(),
+    }));
     await conn.execute(
       `INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id) VALUES (?, ?, 'SALE_BILL', 'PAYMENT', ?, ?, ?)`,
       [userId ?? null, username ?? "系统用户", billNo, JSON.stringify({ amount, received, status }), tenantId]
@@ -682,6 +720,19 @@ export async function cancelSaleBill(params: {
         tenantId,
       ]
     );
+
+    // ④ 作废事件（同事务，契约 §8.1）。upstream=单号+VOIDED 复合稳定键 ⇒ 重复取消幂等命中；
+    //    actor：source=ai ⇒ AI 底座发起（actor_type=ai），否则操作人 user/admin。
+    await appendOrderProgressEvent(conn, saleBillEvent({
+      tenantId, storeId: Number(bill.store_id), billNo,
+      businessStage: "VOIDED",
+      businessStatus: "VOIDED",
+      actorType: source === "ai" ? "ai" : (userId ? "user" : "system"),
+      actorId: userId ?? (source === "ai" ? "ai-cancel-sales-order" : "sale-bill-cancel"),
+      upstreamBizKey: `${billNo}:VOIDED`,
+      statusReason: reason ? `作废收款口径 CLOSED：${reason}` : "作废，收款状态收口 CLOSED",
+      at: new Date(),
+    }));
 
     return {
       billNo,
