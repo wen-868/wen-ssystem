@@ -1,4 +1,0 @@
-命令：node node_modules/eslint/bin/eslint.js admin-web/src/
-退出码：0
-为何零输出：ESLint 8.x 在 0 error 0 warning 时不输出。
-覆盖：admin-web/src 全量（含本单新增 utils/dashboard-contract.ts）。
