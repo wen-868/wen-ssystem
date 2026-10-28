@@ -72,8 +72,10 @@
                   v-for="item in group.items"
                   :key="item.key"
                   class="feed-item"
-                  tabindex="0"
-                  role="button"
+                  :class="{ 'feed-item--locked': !item.route }"
+                  :tabindex="item.route ? 0 : -1"
+                  :role="item.route ? 'button' : undefined"
+                  :aria-disabled="item.route ? undefined : 'true'"
                   @click="onFeedClick(item)"
                 >
                   <span class="feed-icon" :class="'feed-icon--' + item.type.toLowerCase()">
@@ -88,7 +90,8 @@
                   </div>
                   <div class="feed-side">
                     <span class="feed-time">{{ item.timeText }}</span>
-                    <span class="feed-arrow">›</span>
+                    <span v-if="item.route" class="feed-arrow">›</span>
+                    <span v-else class="feed-arrow feed-arrow--locked">不可跳转</span>
                   </div>
                 </div>
               </div>
@@ -129,7 +132,16 @@
           </template>
           <div v-if="recentBills.length === 0" class="side-empty">暂无最新订单</div>
           <div v-else class="order-list">
-            <div v-for="b in recentBills" :key="b.billNo || b.id" class="order-item" tabindex="0" role="button" @click="navTo(b.route || (b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills'))">
+            <div
+              v-for="b in recentBills"
+              :key="b.billNo || b.id"
+              class="order-item"
+              :class="{ 'order-item--locked': !b.route }"
+              :tabindex="b.route ? 0 : -1"
+              :role="b.route ? 'button' : undefined"
+              :aria-disabled="b.route ? undefined : 'true'"
+              @click="b.route && navTo(b.route)"
+            >
               <div class="order-main">
                 <div class="order-no-row">
                   <span class="order-no">{{ b.billNo || "-" }}</span>
@@ -189,13 +201,12 @@
         <!-- 快捷入口（原本页可帮你） -->
         <el-card class="side-card" shadow="hover">
           <template #header><span class="side-title">快捷入口</span></template>
+          <!-- WB-AUDIT-06/10：可见项由目标路由 meta.roles 派生，不再写死六项 -->
           <div class="quick-grid">
-            <div class="quick-cell" @click="navTo('/sales/create')">开单收银</div>
-            <div class="quick-cell" @click="navTo('/sale-bills')">销售单据</div>
-            <div class="quick-cell" @click="navTo('/messages')">消息中心</div>
-            <div class="quick-cell" @click="navTo('/inventory')">库存预警</div>
-            <div class="quick-cell" @click="navTo('/sales/reports')">销售报表</div>
-            <div class="quick-cell" @click="navTo(CUSTOMER_MEMBERS_ROUTE)">客户会员</div>
+            <div v-for="e in quickEntries" :key="e.key" class="quick-cell" :title="e.pageTitle" @click="navTo(e.target)">
+              {{ e.label }}
+            </div>
+            <div v-if="quickEntries.length === 0" class="quick-empty">当前角色无可用快捷入口</div>
           </div>
         </el-card>
       </el-col>
@@ -236,9 +247,26 @@ import { fetchSaleBills, fetchMembers, fetchStores } from "../../api";
 import { fetchReceipts } from "../../api/finance";
 import { fetchNotifications } from "../../api/system";
 import { fetchInstantOrders } from "../../api/instant-retail";
+/**
+ * 唯一导航适配器（WORKBENCH-08 硬验收 §1/§3/§4）：
+ * 入口可见性与动态链接可达性**只由真实路由 meta.roles 派生**，
+ * 页面内不得出现任何角色清单或"可点但会被守卫拦回"的链接。
+ */
+import {
+  collectRouteEntries,
+  decorateNavTarget,
+  mergeRecentOrders,
+  visibleQuickEntries,
+  type RouteEntry,
+} from "../../utils/dashboard-navigation";
 
 const router = useRouter();
 const auth = useAuthStore();
+
+// 真相源：router 实例的真实路由记录（与契约测试解析 router/index.ts 得到同一套 RouteEntry）
+const routeEntries = ref<RouteEntry[]>(collectRouteEntries(router));
+// 当前登录角色（来自登录态，不在页面内硬编码）
+const currentRoles = computed<string[]>(() => auth.userRoles ?? []);
 
 const userName = computed(() => auth.userName || "管理员");
 const storeList = ref<any[]>([]);
@@ -388,6 +416,18 @@ async function reloadMetrics() {
   }
 }
 
+// ==================== 入口与动态链接权限（WB-AUDIT-06/09/10） ====================
+/** 快捷入口：按当前角色对目标路由 meta.roles 的可见性派生（不再写死六项） */
+const quickEntries = computed(() => visibleQuickEntries(routeEntries.value, currentRoles.value));
+
+/**
+ * 动态条目挂目标链接：**无权 ⇒ route 为 null**，模板据此置为不可点击，
+ * 绝不保留"可点击但会被路由守卫拦回"的链接（R101 WB-AUDIT-09）。
+ */
+function navTarget(target: string): string | null {
+  return decorateNavTarget(routeEntries.value, currentRoles.value, target).route;
+}
+
 // ==================== 信息流构建 ====================
 function parseTime(v: any): Date | null {
   if (!v) return null;
@@ -512,7 +552,8 @@ function buildFeed() {
       desc: `客户：${b.customerName || "-"} · 金额 ¥${formatNum(b.receivableAmount)}`,
       tag: billStatusText(b.businessStatus),
       tagType: "success",
-      route: b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills",
+      // WB-AUDIT-09：生成时校验目标 route 权限，无权 ⇒ null（不可点击）
+      route: navTarget(b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills"),
     });
   }
   // 收款动态
@@ -525,7 +566,7 @@ function buildFeed() {
       desc: `客户：${r.customerName || "-"} · 金额 ¥${formatNum(r.amount)}`,
       tag: receiptStatusText(r.status),
       tagType: "primary",
-      route: "/finance/receipts",
+      route: navTarget("/finance/receipts"),
     });
   }
   // 客户动态
@@ -538,7 +579,7 @@ function buildFeed() {
       desc: `手机：${m.mobile || "-"}`,
       tag: "新客户",
       tagType: "success",
-      route: CUSTOMER_MEMBERS_ROUTE,
+      route: navTarget(CUSTOMER_MEMBERS_ROUTE),
     });
   }
   // 预警动态
@@ -551,7 +592,8 @@ function buildFeed() {
       desc: "部分商品可用库存低于预警阈值，请及时补货",
       tag: "预警",
       tagType: "warning",
-      route: "/inventory",
+      // WB-AUDIT-10：库存预警指向预警页 /inventory-alerts（/inventory 是库存列表页）
+      route: navTarget("/inventory-alerts"),
     });
   }
   if (d.expiryAlerts?.length) {
@@ -563,7 +605,7 @@ function buildFeed() {
       desc: "存在临近保质期的商品，请检查处理",
       tag: "临期",
       tagType: "warning",
-      route: "/inventory",
+      route: navTarget("/inventory-alerts"),
     });
   }
   if (d.overdueReceivables?.length) {
@@ -575,7 +617,7 @@ function buildFeed() {
       desc: "存在逾期应收款项，请及时跟进",
       tag: "应收",
       tagType: "danger",
-      route: "/credit",
+      route: navTarget("/credit"),
     });
   }
   if (bills.length) {
@@ -587,7 +629,7 @@ function buildFeed() {
       desc: "有订单等待处理，请及时响应",
       tag: "订单",
       tagType: "primary",
-      route: "/orders",
+      route: navTarget("/orders"),
     });
   }
 
@@ -790,16 +832,24 @@ async function loadAllData() {
     const channelOrders = results[8].status === "fulfilled" ? (results[8].value?.records || []) : [];
     const channelItems = channelOrders
       .filter((o: any) => !["COMPLETED", "CANCELLED", "VOIDED", "RETURNED"].includes(o.status))
-      .map(channelOrderToBill);
+      .map((o: any) => {
+        const bill = channelOrderToBill(o);
+        // WB-AUDIT-09：渠道订单目标 /order-center 仅 SUPER_ADMIN 可见，无权 ⇒ null（不可点击）
+        return { ...bill, route: navTarget(bill.route) };
+      });
     const offlineItems = (overviewActiveBills.length ? overviewActiveBills : activeBills)
       .map((b: any) => ({
         ...b,
         source: offlineSourceLabel(b),
-        route: b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills",
+        route: navTarget(b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills"),
       }));
-    recentBills.value = [...offlineItems, ...channelItems]
-      // 最新订单不限制条数，卡片内滚动查看所有进行中的单据
-      .sort((a: any, b: any) => (parseTime(b.createdAt)?.getTime() || 0) - (parseTime(a.createdAt)?.getTime() || 0));
+    // WB-AUDIT-07：线下 10 条与渠道订单合并后**最终截断到 10 条**
+    // （渠道订单接口仍按原分页取数，但无论返回多少条，进 DOM 的永远 ≤ 10）
+    recentBills.value = mergeRecentOrders({
+      offline: offlineItems,
+      channel: channelItems,
+      getTime: (b: any) => parseTime(b.createdAt)?.getTime() ?? null,
+    }).items;
     buildFeed();
     await nextTick();
     renderSalesTrendChart();
@@ -948,6 +998,17 @@ onUnmounted(() => {
 .feed-item:hover {
   background: var(--bg-soft);
 }
+/* 无权跳转的条目：明确不可点击（WB-AUDIT-09：不留"可点但会被守卫拦回"的链接） */
+.feed-item--locked,
+.order-item--locked {
+  cursor: default;
+}
+.feed-item--locked:hover {
+  background: transparent;
+}
+.order-item--locked:hover .order-no {
+  color: var(--text-regular);
+}
 .feed-icon {
   width: 34px;
   height: 34px;
@@ -1011,6 +1072,10 @@ onUnmounted(() => {
 .feed-arrow {
   color: #595959; /* WCAG AA */
   font-size: 14px;
+}
+.feed-arrow--locked {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 .trend-chart {
   width: 100%;
@@ -1262,6 +1327,14 @@ onUnmounted(() => {
   border-color: var(--color-primary);
   color: var(--color-primary-text);
   background: var(--color-primary-bg);
+}
+/* 当前角色无任何可用入口（由 meta.roles 派生后为空）时的占位，避免空卡片误导 */
+.quick-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-4);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
 
 /* WCAG AA：Element 组件对比度覆盖（el-select 占位符 / el-radio-button 激活态） */
