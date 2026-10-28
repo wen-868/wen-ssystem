@@ -1,0 +1,20 @@
+{
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "dateStart": "2026-10-28",
+    "dateEnd": "2026-10-28",
+    "income": 0,
+    "cost": 0,
+    "returns": 0,
+    "grossProfit": 0,
+    "grossProfitRate": 0,
+    "salesGrowthRate": 0,
+    "profitGrowthRate": 0,
+    "prevDateStart": "2026-10-27",
+    "prevDateEnd": "2026-10-27",
+    "prevIncome": 0,
+    "prevGrossProfit": 0
+  },
+  "traceId": "acf2fc0f-6765-43dd-86f3-c21d0a13bd64"
+}

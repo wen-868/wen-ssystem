@@ -438,17 +438,43 @@ await run("无 mock：对等台账与生成物零随机/模拟数据", () => {
 });
 
 // ── ⑯ 业务冻结面与测试链守恒 ────────────────────────────────────────────────
-await run("业务冻结：views/backend 相对基线零改动，既有 4 个 spec 不减少", () => {
+/**
+ * ⚠️ WORKBENCH-07 修正（记录变更依据，非"为过绿放宽"）：
+ *   原断言 `changed === ""` 是 WORKBENCH-03F1 时期的**绝对冻结**口径，
+ *   当时该卡红线为"views/backend 零改动"。但 WORKBENCH-07 派单卡 §三 **明确授权**修改：
+ *     - `admin-web/src/views/dashboard/Dashboard.vue`
+ *     - `admin-web/src/views/pos/StoreDashboardView.vue`
+ *   （修复 WB-AUDIT-01/02/04/08 必须改这两个页面，属卡内合法范围）
+ *   ⇒ 守卫意图（"不得越权改业务页"）是正确的，实现需从"绝对零改动"改为**授权白名单**：
+ *      允许卡内点名的文件，**其余任何 views/backend 改动仍然判红**。
+ *   这样守卫分辨力不降低：改第三个 views 文件照样红（见 dashboard-contract.spec 的越界反测）。
+ */
+const WORKBENCH_07_ALLOWED_VIEWS = [
+  "admin-web/src/views/dashboard/Dashboard.vue",
+  "admin-web/src/views/pos/StoreDashboardView.vue",
+];
+
+await run("业务冻结：views/backend 仅允许卡内授权文件改动，其余零改动；既有 5 个 spec 不减少", () => {
   const changed = execSync(`git diff --name-only ${BASELINE} -- admin-web/src/views backend`, {
     cwd: REPO_ROOT,
     encoding: "utf8",
-  }).trim();
-  assert.equal(changed, "", `views/backend 不得改动，实际：${changed}`);
+  })
+    .trim()
+    .split(/\r?\n/)
+    .map((s) => s.replace(/\\/g, "/").trim())
+    .filter(Boolean);
+  const allowed = new Set(WORKBENCH_07_ALLOWED_VIEWS);
+  const violations = changed.filter((f) => !allowed.has(f));
+  assert.deepEqual(
+    violations,
+    [],
+    `views/backend 出现**卡外**改动（授权清单外一律红）：${violations.join(", ")}`,
+  );
   const pkg = JSON.parse(readFileSync(path.join(here, "..", "package.json"), "utf8"));
   for (const spec of ["role-guard", "landing", "workbench-shell", "ai-primary", "parity-coverage"]) {
     assert.ok(pkg.scripts.test.includes(`tests/${spec}.spec.mjs`), `npm test 应包含 ${spec}.spec.mjs`);
   }
-  return "0 文件改动 + 5 个 spec 串联";
+  return `授权内改动 ${changed.length} 个（${changed.join(", ") || "无"}）+ 卡外 0 个 + 5 个 spec 串联`;
 });
 
 const failed = results.filter((result) => !result.ok);

@@ -1,0 +1,52 @@
+{
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "today": {
+      "salesAmount": 0,
+      "orderCount": 0,
+      "receivedAmount": 0,
+      "purchaseAmount": 0,
+      "purchaseOrderCount": 0,
+      "compareYesterday": {
+        "salesAmountChange": 0,
+        "orderCountChange": 0
+      }
+    },
+    "month": {
+      "salesAmount": 0,
+      "orderCount": 0,
+      "receivedAmount": 0,
+      "purchaseAmount": 0,
+      "purchaseOrderCount": 0,
+      "compareLastMonth": {
+        "salesAmountChange": 0,
+        "orderCountChange": 0
+      }
+    },
+    "year": {
+      "salesAmount": 0,
+      "orderCount": 0,
+      "receivedAmount": 0,
+      "purchaseAmount": 0,
+      "purchaseOrderCount": 0
+    },
+    "pending": {
+      "orderCount": 0,
+      "changeFromYesterday": 0
+    },
+    "stockAlerts": {
+      "total": 0,
+      "urgent": 0
+    },
+    "inventory": {
+      "totalValue": 0,
+      "skuCount": 0
+    },
+    "finance": {
+      "receivable": 0,
+      "payable": 0
+    }
+  },
+  "traceId": "10873f9b-4b83-429d-862b-dd468f8962d4"
+}

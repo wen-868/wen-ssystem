@@ -276,13 +276,30 @@ await run("快捷指令：3 条，走真实对话（不新建指令端点）", (
   return "3 条指令复用 POST /api/chat";
 });
 
-await run("业务冻结面：views / backend 相对基线零改动", () => {
+/**
+ * 业务冻结守卫 —— WORKBENCH-07 口径修正（变更依据，非放宽）：
+ *   原口径"views/backend 绝对零改动"设立于 ai-primary（WORKBENCH-03）时期。
+ *   WORKBENCH-07 派单卡 §三 **明确授权**修改两个看板页（WB-AUDIT-01/02/04/08 的修复面），
+ *   故改为**授权白名单**：允许卡内点名的文件，卡外改动一律判红（守卫分辨力不下降）。
+ */
+const WORKBENCH_07_ALLOWED_VIEWS = [
+  "admin-web/src/views/dashboard/Dashboard.vue",
+  "admin-web/src/views/pos/StoreDashboardView.vue",
+];
+
+await run("业务冻结面：views / backend 仅允许卡内授权文件改动，卡外零改动", () => {
   const changed = execSync(`git diff --name-only ${BASELINE} -- admin-web/src/views backend`, {
     cwd: REPO_ROOT,
     encoding: "utf8",
-  }).trim();
-  assert.equal(changed, "", `views/backend 不得改动，实际：${changed}`);
-  return "0 文件";
+  })
+    .trim()
+    .split(/\r?\n/)
+    .map((s) => s.replace(/\\/g, "/").trim())
+    .filter(Boolean);
+  const allowed = new Set(WORKBENCH_07_ALLOWED_VIEWS);
+  const violations = changed.filter((f) => !allowed.has(f));
+  assert.deepEqual(violations, [], `views/backend 出现卡外改动（授权清单外一律红）：${violations.join(", ")}`);
+  return `授权内 ${changed.length} 个 + 卡外 0 个`;
 });
 
 const failed = results.filter((result) => !result.ok);

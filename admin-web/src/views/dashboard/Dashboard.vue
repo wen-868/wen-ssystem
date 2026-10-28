@@ -35,6 +35,11 @@
           <span class="metric-strip-num" :class="{ 'metric-num--accent': m.accent }">{{ m.value }}</span>
         </div>
       </div>
+      <!-- 概览失败态：显式提示 + 重试（WB-AUDIT-01；失败不伪装成 0） -->
+      <div v-if="metricsState === 'error'" class="metric-strip-error" data-testid="metrics-error">
+        <span>今日指标加载失败：{{ metricsError }}</span>
+        <button type="button" class="metric-strip-retry" data-testid="metrics-retry" @click="reloadMetrics()">重试</button>
+      </div>
     </el-card>
 
     <el-row :gutter="16">
@@ -140,34 +145,42 @@
           </div>
         </el-card>
 
-        <!-- 待办与预警（原可帮你位） -->
+        <!-- 待办与预警（WB-AUDIT-02：改为消费真实 /dashboard/todos 平铺数组，四态可区分） -->
         <el-card class="side-card side-card--fill" shadow="hover" tabindex="0">
           <template #header>
             <div class="side-header">
               <span class="side-title">待办与预警</span>
-              <span v-if="todoCount > 0" class="side-badge">{{ todoCount }}</span>
+              <span v-if="todoState === 'ready'" class="side-badge">{{ todoGroups.totalItems }}</span>
             </div>
           </template>
-          <div v-if="todoCount === 0" class="side-empty">今日无待办事项</div>
-          <div v-else class="todo-list">
-            <div v-if="alertData.inventoryAlerts.length" class="todo-item" tabindex="0" role="button" @click="navTo('/inventory')">
-              <span class="todo-dot todo-dot--warning"></span>
-              <span class="todo-text">{{ alertData.inventoryAlerts.length }} 项库存预警</span>
-              <span class="todo-arrow">›</span>
-            </div>
-            <div v-if="alertData.expiryAlerts.length" class="todo-item" @click="navTo('/inventory')">
-              <span class="todo-dot todo-dot--warning"></span>
-              <span class="todo-text">{{ alertData.expiryAlerts.length }} 款商品临期</span>
-              <span class="todo-arrow">›</span>
-            </div>
-            <div v-if="alertData.overdueReceivables.length" class="todo-item" @click="navTo('/credit')">
-              <span class="todo-dot todo-dot--danger"></span>
-              <span class="todo-text">{{ alertData.overdueReceivables.length }} 笔应收待核销</span>
-              <span class="todo-arrow">›</span>
-            </div>
-            <div v-if="alertData.pendingOrders.length" class="todo-item" @click="navTo('/orders')">
-              <span class="todo-dot todo-dot--primary"></span>
-              <span class="todo-text">{{ alertData.pendingOrders.length }} 个待处理订单</span>
+
+          <!-- ① loading -->
+          <div v-if="todoState === 'loading'" class="side-empty" data-testid="todo-loading">加载中…</div>
+
+          <!-- ② error：**不得伪装成"今日无待办"**，必须显式报错 + 重试 -->
+          <div v-else-if="todoState === 'error'" class="side-error" data-testid="todo-error">
+            <span class="side-error-text">待办加载失败：{{ todoError }}</span>
+            <button class="side-retry" type="button" data-testid="todo-retry" @click="reloadTodos()">重试</button>
+          </div>
+
+          <!-- ③ empty：真的没有待办 -->
+          <div v-else-if="todoState === 'empty'" class="side-empty" data-testid="todo-empty">今日无待办事项</div>
+
+          <!-- ④ ready：真实待办分区渲染 -->
+          <div v-else class="todo-list" data-testid="todo-list">
+            <div
+              v-for="(item, i) in todoGroups.ordered"
+              :key="`${item.type}-${i}`"
+              class="todo-item"
+              tabindex="0"
+              role="button"
+              :data-todo-type="item.type"
+              @click="item.link && navTo(item.link)"
+            >
+              <span class="todo-dot" :class="todoDotClass(item.priority)"></span>
+              <span class="todo-text">{{ item.title || item.type }}</span>
+              <span v-if="item.count > 1" class="todo-count">×{{ item.count }}</span>
+              <span v-if="item.subtitle" class="todo-sub">{{ item.subtitle }}</span>
               <span class="todo-arrow">›</span>
             </div>
           </div>
@@ -182,7 +195,7 @@
             <div class="quick-cell" @click="navTo('/messages')">消息中心</div>
             <div class="quick-cell" @click="navTo('/inventory')">库存预警</div>
             <div class="quick-cell" @click="navTo('/sales/reports')">销售报表</div>
-            <div class="quick-cell" @click="navTo('/customer/members')">客户会员</div>
+            <div class="quick-cell" @click="navTo(CUSTOMER_MEMBERS_ROUTE)">客户会员</div>
           </div>
         </el-card>
       </el-col>
@@ -200,7 +213,25 @@ import {
   fetchDashboardOverview,
   fetchDashboardRecentAlerts,
   fetchDashboardSalesTrend,
+  fetchDashboardTodos,
+  fetchReportProfit,
 } from "../../api/report";
+/**
+ * 唯一字段适配器（WORKBENCH-07 硬验收 §2）：管理 Dashboard 与门店工作台**共用**
+ * `admin-web/src/utils/dashboard-contract.ts`，禁止各自手写字段映射。
+ */
+import {
+  CUSTOMER_MEMBERS_ROUTE,
+  groupTodos,
+  monthRange,
+  parseDashboardOverview,
+  parseDashboardTodos,
+  parseProfitGross,
+  resolveDataState,
+  todayRange,
+  type DashboardMetrics,
+  type TodoGroups,
+} from "../../utils/dashboard-contract";
 import { fetchSaleBills, fetchMembers, fetchStores } from "../../api";
 import { fetchReceipts } from "../../api/finance";
 import { fetchNotifications } from "../../api/system";
@@ -217,6 +248,16 @@ const feedFilter = ref("ALL");
 
 const overview = ref<any>({});
 const alertData = ref<any>({ inventoryAlerts: [], expiryAlerts: [], overdueReceivables: [], pendingOrders: [] });
+
+// ── 四态数据（WORKBENCH-07：loading / empty / ready / error 必须可区分）──
+/** 概览四态（今日/本月指标） */
+const metricsLoading = ref(true);
+const metricsError = ref<string | null>(null);
+const metrics = ref<DashboardMetrics | null>(null);
+/** 待办四态（真实 /dashboard/todos） */
+const todosLoading = ref(true);
+const todosError = ref<string | null>(null);
+const todosRaw = ref<import("../../utils/dashboard-contract").TodoItem[] | null>(null);
 const feedList = ref<any[]>([]);
 const recentBills = ref<any[]>([]);
 const salesTrendData = ref<any[]>([]);
@@ -243,22 +284,109 @@ function formatNum(v: any): string {
   return n.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
 }
 
+/**
+ * 今日指标（WB-AUDIT-01）。
+ * **字段全部来自共享适配器 `parseDashboardOverview`**：后端嵌套 `today.salesAmount` 等，
+ * 旧代码读扁平 `d.todaySalesAmount` ⇒ 恒为 0。
+ */
 const todayMetrics = computed(() => {
-  const d = overview.value || {};
+  const m = metrics.value;
+  if (metricsLoading.value) {
+    return [
+      { label: "今日销售额", value: "…", accent: false },
+      { label: "今日订单", value: "…", accent: false },
+      { label: "今日毛利", value: "…", accent: false },
+      { label: "待办事项", value: "…", accent: false },
+    ];
+  }
+  if (metricsError.value || !m) {
+    // 失败**不伪装成 0**：显式显示不可用
+    return [
+      { label: "今日销售额", value: "—", accent: false },
+      { label: "今日订单", value: "—", accent: false },
+      { label: "今日毛利", value: "—", accent: false },
+      { label: "待办事项", value: todoState.value === "error" ? "—" : `${todoGroups.value.totalItems} 项`, accent: false },
+    ];
+  }
+  // 毛利来自 reports/profit；未取到 ⇒ null ⇒ 显示"—"（**不填 0**）
+  const grossText = m.today.grossProfit === null ? "—" : `¥${formatNum(m.today.grossProfit)}`;
   return [
-    { label: "今日销售额", value: `¥${formatNum(d.todaySalesAmount)}`, accent: true },
-    { label: "今日订单", value: `${d.todayOrderCount ?? 0} 单` },
-    { label: "今日毛利", value: `¥${formatNum(d.todayGrossProfit)}` },
-    { label: "待办事项", value: `${todoCount.value} 项`, accent: todoCount.value > 0 },
+    { label: "今日销售额", value: `¥${formatNum(m.today.salesAmount)}`, accent: true },
+    { label: "今日订单", value: `${m.today.orderCount} 单`, accent: false },
+    { label: "今日毛利", value: grossText, accent: false },
+    {
+      label: "待办事项",
+      value: todoState.value === "error" ? "—" : `${todoGroups.value.totalItems} 项`,
+      accent: todoGroups.value.totalItems > 0,
+    },
   ];
 });
 
-const todoCount = computed(() =>
-  (alertData.value.inventoryAlerts?.length || 0) +
-  (alertData.value.expiryAlerts?.length || 0) +
-  (alertData.value.overdueReceivables?.length || 0) +
-  (alertData.value.pendingOrders?.length || 0)
+/** 待办展示态（loading / empty / ready / error）——失败绝不等于空 */
+const todoState = computed(() =>
+  resolveDataState(todosLoading.value, todosError.value, todosRaw.value ? todosRaw.value.length : null),
 );
+/** 概览指标展示态（同上四态口径） */
+const metricsState = computed(() => resolveDataState(metricsLoading.value, metricsError.value, metrics.value ? 1 : null));
+/** 待办分组（按 type/priority 归一；不预设固定类目，后端加类型也不丢） */
+const todoGroups = computed<TodoGroups>(() => groupTodos(todosRaw.value ?? []));
+const todoError = computed(() => todosError.value ?? "");
+
+/** 待办项左侧圆点按 priority 着色 */
+function todoDotClass(priority: string): string {
+  const map: Record<string, string> = {
+    urgent: "todo-dot--danger",
+    important: "todo-dot--warning",
+  };
+  return map[priority] ?? "todo-dot--primary";
+}
+
+/** 待办失败重试（独立于整页刷新，避免牵连其它区块） */
+async function reloadTodos() {
+  todosLoading.value = true;
+  todosError.value = null;
+  try {
+    const raw = await fetchDashboardTodos();
+    const parsed = parseDashboardTodos(raw);
+    if (!parsed.ok) {
+      todosError.value = parsed.reason;
+      todosRaw.value = null;
+    } else {
+      todosRaw.value = parsed.data;
+    }
+  } catch (e: any) {
+    // ⚠️ 失败**不得**当空数组：置 error，保留 null 让 UI 走错误态
+    todosError.value = e?.message || "请求失败";
+    todosRaw.value = null;
+  } finally {
+    todosLoading.value = false;
+  }
+}
+
+/** 概览失败重试（含毛利补取） */
+async function reloadMetrics() {
+  metricsLoading.value = true;
+  metricsError.value = null;
+  try {
+    const [ov, gross] = await Promise.all([
+      fetchDashboardOverview(),
+      // 毛利失败**不拖垮整块**：取不到即 null（UI 显示"—"）
+      fetchReportProfit(todayRange()).catch(() => null),
+    ]);
+    const parsed = parseDashboardOverview(ov, parseProfitGross(gross));
+    if (!parsed.ok) {
+      metricsError.value = parsed.reason;
+      metrics.value = null;
+    } else {
+      metrics.value = parsed.data;
+    }
+  } catch (e: any) {
+    metricsError.value = e?.message || "请求失败";
+    metrics.value = null;
+  } finally {
+    metricsLoading.value = false;
+  }
+}
 
 // ==================== 信息流构建 ====================
 function parseTime(v: any): Date | null {
@@ -410,7 +538,7 @@ function buildFeed() {
       desc: `手机：${m.mobile || "-"}`,
       tag: "新客户",
       tagType: "success",
-      route: "/customer/members",
+      route: CUSTOMER_MEMBERS_ROUTE,
     });
   }
   // 预警动态
@@ -625,6 +753,9 @@ function handleResize() {
 // ==================== 数据加载 ====================
 async function loadAllData() {
   feedLoading.value = true;
+  // 指标与待办各自独立加载（互不拖垮，失败也不伪装成空）
+  void reloadMetrics();
+  void reloadTodos();
   try {
     const results = await Promise.allSettled([
       fetchDashboardOverview(),
@@ -638,7 +769,7 @@ async function loadAllData() {
       fetchInstantOrders({ page: 1, pageSize: 100 }),
     ]);
     if (results[0].status === "fulfilled") overview.value = results[0].value || {};
-    if (results[1].status === "fulfilled") alertData.value = results[1].value || { inventoryAlerts: [], expiryAlerts: [], overdueReceivables: [], pendingOrders: [] };
+    if (results[1].status === "fulfilled") alertData.value = results[1].value || {};
     if (results[6].status === "fulfilled") storeList.value = results[6].value || [];
     if (results[7].status === "fulfilled") salesTrendData.value = Array.isArray(results[7].value) ? results[7].value : [];
 
@@ -1008,6 +1139,66 @@ onUnmounted(() => {
   color: #595959; /* WCAG AA */
   font-size: 13px;
   padding: 12px 0;
+}
+/* 待办失败态（WB-AUDIT-02）：显式报错 + 重试，**不得**与空态共用样式 */
+.side-error {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  font-size: 13px;
+  color: #b42318;
+}
+.side-error-text {
+  line-height: 1.5;
+}
+.side-retry {
+  align-self: flex-start;
+  padding: 3px 12px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.side-retry:hover {
+  background: rgba(180, 35, 24, 0.08);
+}
+/* 指标条失败提示 */
+.metric-strip-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(180, 35, 24, 0.35);
+  font-size: 12px;
+  color: #b42318;
+}
+.metric-strip-retry {
+  padding: 2px 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+/* 待办条目附加信息 */
+.todo-count {
+  margin-left: 6px;
+  color: #595959;
+  font-size: 12px;
+}
+.todo-sub {
+  margin-left: 8px;
+  color: #8c8c8c;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 .todo-list {
   display: flex;

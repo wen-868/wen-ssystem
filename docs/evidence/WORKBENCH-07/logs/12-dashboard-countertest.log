@@ -1,0 +1,39 @@
+基线 SHA256：
+  dashboard-contract.ts = 317D645C7256AF14CA0DD77E95B0D2C8A28D8D2166EA839DC710349783D41119
+  Dashboard.vue = A7D199BD0CE94C037BBE8EC51284D608325CFD72CB6170A433BC62795545F35A
+  StoreDashboardView.vue = F8D6BE636760A510CB67AC67B9C730330A1AB4BE645CAAC477525FB00B48C702
+
+基线复跑（应绿）：EXIT=0
+小结：23 passed / 0 failed
+
+[反测 M1-flat-fields-only] 适配器改回只读扁平字段（去掉嵌套优先）
+  注入后 SHA256 = 143A809927E812E99F33B72462515688AD64A95F12A8366EF8FB9F55751A5117
+  EXIT=1；FAIL=3；点名「嵌套契约」=true
+  FAIL  嵌套契约：today.* / month.* 正确读取（WB-AUDIT-01/08 主修复）  ← 今日销售额应读 today.salesAmount
+  FAIL  嵌套优先：嵌套与扁平同时存在时，**以嵌套为准**  ← 嵌套优先，扁平不得覆盖
+  FAIL  边界：嵌套字段为 null / 字符串数字 / NaN  ← 字符串数字应转为 12
+  复原 SHA256 = 317D645C7256AF14CA0DD77E95B0D2C8A28D8D2166EA839DC710349783D41119；恒等=true
+
+[反测 M2-fail-as-empty] 把接口失败映射为空数组（失败伪装成空态）
+  注入后 SHA256 = 47E60E93D264C2CA37CD41FFD276150D97701B9EF7990040699F597F7E7BD9E2
+  EXIT=1；FAIL=1；点名「alerts」=true
+  FAIL  alerts：平铺数组解析 + 失败与空可区分  ← Expected values to be strictly equal:
+  复原 SHA256 = 317D645C7256AF14CA0DD77E95B0D2C8A28D8D2166EA839DC710349783D41119；恒等=true
+
+[反测 M3-store-bypass-adapter] 门店工作台绕开共享适配器（手写字段映射）
+  注入后 SHA256 = 0BB95AEA25CE79236F4F2112F7527ED6844C0B3F0E3682C654D31716F4B349AA
+  EXIT=1；FAIL=1；点名「共用（强断言）」=true
+  FAIL  共用（强断言）：两页**不得**自建指标对象绕过适配器  ← views/pos/StoreDashboardView.vue 不得自建 {ok:true,data:{...}} 伪装适配器结果（绕过共享契约）
+  复原 SHA256 = F8D6BE636760A510CB67AC67B9C730330A1AB4BE645CAAC477525FB00B48C702；恒等=true
+
+[反测 M4-dead-link] 入口改回死链 /customer/members
+  注入后 SHA256 = 01C08E41C35936E746448056E40ACEE887EFBC75DA163D137F2225C9F1A0737F
+  EXIT=1；FAIL=1；点名「入口」=true
+  FAIL  入口：两处客户会员均指向 /customers（源码字符串断言）  ← Dashboard 不得再出现 /customer/members 死链
+  复原 SHA256 = A7D199BD0CE94C037BBE8EC51284D608325CFD72CB6170A433BC62795545F35A；恒等=true
+
+复原后复跑：EXIT=0
+小结：23 passed / 0 failed
+
+证据已落盘：docs/evidence/WORKBENCH-07/redtest/dashboard-countertest.md
+全部反测通过：4/4 点名变红 + 4/4 SHA256 恒等 + 复原后回绿
