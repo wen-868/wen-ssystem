@@ -7,21 +7,49 @@
  *   ③ 门店工作台绕开共享适配器 ⇒ 结构负断言红
  *   ④ 入口改回 /customer/members ⇒ 路由用例红
  *
- * 运行（工作树根目录）：node admin-web/tests/dashboard-countertest.mjs
- * 产物：docs/evidence/WORKBENCH-07/redtest/dashboard-countertest.md（中央副本另存）
+ * 运行（工作树根目录）：
+ *   node admin-web/tests/dashboard-countertest.mjs --out <中央证据目录>
+ *
+ * 产物（WORKBENCH-07F1 起）：
+ *   - 显式 `--out <dir>` ⇒ 写该绝对路径（相对路径按当前 cwd 解析为绝对路径）；
+ *   - 未显式给 `--out` ⇒ 只写系统临时目录（可重复执行，不留痕）；
+ *   - **绝不写代码仓**：内置守卫在写入前拒收任何落在仓库工作树内的 --out，
+ *     并由 `dashboard-contract.spec.mjs` 的静态负断言守住"源码不得再出现仓库内证据路径"。
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.join(here, "..");
-const REPO = path.join(WEB, "..");
+const REPO = path.resolve(path.join(WEB, ".."));
 const SRC = path.join(WEB, "src");
-const OUT = path.join(REPO, "docs", "evidence", "WORKBENCH-07", "redtest");
+
+/** 解析 --out <dir> / --out=<dir>；未给则空串 */
+function parseOutArg(argv) {
+  for (let i = 0; i < argv.length; i += 1) {
+    if (argv[i] === "--out") return argv[i + 1] ?? "";
+    if (argv[i].startsWith("--out=")) return argv[i].slice("--out=".length);
+  }
+  return "";
+}
+
+const OUT_RAW = parseOutArg(process.argv.slice(2));
+const OUT_IS_TMP = OUT_RAW.length === 0;
+const OUT = OUT_IS_TMP
+  ? path.join(os.tmpdir(), "wen-ssystem-mutation", "WORKBENCH-07F1", "redtest")
+  : path.resolve(OUT_RAW); // 绝对路径解析：相对路径一律按 cwd 归一
+
+// 红线守卫①：--out 绝不允许指向代码仓工作树内部
+// （跨盘符时 path.relative 会返回目标绝对路径，故必须同时排除绝对路径结果）
+const outRel = path.relative(REPO, path.resolve(OUT));
+if (!outRel.startsWith("..") && !path.isAbsolute(outRel)) {
+  throw new Error(`--out 不得指向代码仓内部：${OUT}（仓库根：${REPO}）`);
+}
 mkdirSync(OUT, { recursive: true });
 
 const CONTRACT = path.join(SRC, "utils", "dashboard-contract.ts");
@@ -30,6 +58,14 @@ const STORE = path.join(SRC, "views", "pos", "StoreDashboardView.vue");
 const SPEC = path.join(WEB, "tests", "dashboard-contract.spec.mjs");
 
 const sha256 = (buf) => createHash("sha256").update(buf).digest("hex").toUpperCase();
+
+/** 代码仓工作树的 git status --porcelain 行（不含空行） */
+function repoDirty() {
+  return execFileSync("git", ["status", "--porcelain"], { cwd: REPO, encoding: "utf8" })
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+}
 
 function runSpec() {
   try {
@@ -108,6 +144,10 @@ const CASES = [
   },
 ];
 
+// 基线：mutation 前的工作树读数（守卫②的比对基准）
+const dirtyBefore = repoDirty();
+console.log(`工作树基线：git status --porcelain = ${dirtyBefore.length} 行`);
+
 const originals = new Map();
 for (const f of [CONTRACT, DASH, STORE]) originals.set(f, readFileSync(f));
 
@@ -166,11 +206,21 @@ console.log(`\n复原后复跑：EXIT=${after.code}`);
 console.log(after.stdout.split("\n").filter((l) => l.startsWith("小结")).join("\n"));
 assert.equal(after.code, 0, "复原后必须回绿");
 
+// ── 红线守卫②：收工自检，本装置不得让代码仓工作树的 git status 发生任何变化 ──
+// （注入前 vs 复原后逐行比对：装置既不弄脏，也不顺手清理别人的东西）
+const dirtyAfter = repoDirty();
+const added = dirtyAfter.filter((l) => !dirtyBefore.includes(l));
+const removed = dirtyBefore.filter((l) => !dirtyAfter.includes(l));
+assert.deepEqual(added, [], `本装置弄脏了工作树：\n${added.join("\n")}`);
+assert.deepEqual(removed, [], `工作树凭空少了行（装置越权清理）：\n${removed.join("\n")}`);
+
 const md = [
-  "# WORKBENCH-07 mutation 反测记录（四类）",
+  "# WORKBENCH-07F1 mutation 反测记录（四类）",
   "",
   "> 被测用例：`admin-web/tests/dashboard-contract.spec.mjs`",
   "> 装置：`admin-web/tests/dashboard-countertest.mjs`（注入 → 点名红 → 逐字节复原 SHA256 → 复跑回绿）",
+  `> 输出目录（绝对路径）：\`${OUT}\`${OUT_IS_TMP ? "（未给 --out ⇒ 系统临时目录）" : "（--out 显式指定）"}`,
+  `> 代码仓工作树：\`${REPO}\`（本装置不向其写入任何证据）`,
   "",
   "| 反测 | 目标 | 注入 | EXIT | FAIL | 点名 | 复原恒等 |",
   "|:--|:--|:--|--:|--:|:--:|:--:|",
@@ -182,6 +232,14 @@ const md = [
   "## 逐条 FAIL 原文",
   "",
   ...records.flatMap((r) => [`### ${r.id}（${r.title}）`, "", "```text", ...r.failedLines, "```", ""]),
+  "## 工作树洁净度（派单卡 §五-1）",
+  "",
+  `| 读数 | git status --porcelain |`,
+  "|:--|--:|",
+  `| mutation 运行前 | ${dirtyBefore.length} 行 |`,
+  `| mutation 运行后 | ${dirtyAfter.length} 行 |`,
+  `| 新增 / 减少 | ${added.length} / ${removed.length} |`,
+  "",
   "## 复原后复跑",
   "",
   "```text",
@@ -189,6 +247,11 @@ const md = [
   "```",
   "",
 ].join("\n");
-writeFileSync(path.join(OUT, "dashboard-countertest.md"), md);
-console.log("\n证据已落盘：docs/evidence/WORKBENCH-07/redtest/dashboard-countertest.md");
+
+const mdPath = path.join(OUT, "dashboard-countertest.md");
+writeFileSync(mdPath, md);
+
+console.log(`\n输出目录：${OUT}${OUT_IS_TMP ? "（默认系统临时目录）" : ""}`);
+console.log(`证据已落盘：${mdPath}`);
+console.log(`代码仓 git status --porcelain：运行前 ${dirtyBefore.length} 行 → 运行后 ${dirtyAfter.length} 行；新增 ${added.length} / 减少 ${removed.length}`);
 console.log(`全部反测通过：${records.length}/${CASES.length} 点名变红 + ${records.length}/${CASES.length} SHA256 恒等 + 复原后回绿`);

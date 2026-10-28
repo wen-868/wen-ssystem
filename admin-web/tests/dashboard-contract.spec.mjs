@@ -393,6 +393,45 @@ await run("区间：todayRange / monthRange 正确", () => {
   return "今日 10-28/10-28；本月 10-01/10-28";
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// 十、mutation 装置自身的证据输出（WORKBENCH-07F1 静态守卫）
+// ═══════════════════════════════════════════════════════════════════════════
+
+await run("mutation 装置（负断言）：证据输出不得落回代码仓 docs/evidence/WORKBENCH-07", () => {
+  /**
+   * 判据（静态扫描装置源码**全文，含注释**）——两种写法都必须命中：
+   *   ① 字符串拼接式：`"docs/evidence/WORKBENCH-07"` / `"docs\evidence\WORKBENCH-07"`；
+   *   ② 分段拼接式：`path.join(REPO, "docs", "evidence", "WORKBENCH-07", "redtest")`。
+   * ⚠️ 口径教训（本条断言自己被反测抓出缺口）：只认①等于没设防——
+   *    WORKBENCH-07 的真实病灶正是 ② 的写法，首版断言扫不到它，反测 RT-1 只能靠
+   *   「os.tmpdir() 缺失」这条间接理由变红。故两式并列，缺一不可。
+   * 修复后装置必须 `--out <dir>` 输出到中央证据目录，未给 --out 时只写系统临时目录。
+   * 口径提醒：`WORKBENCH-07F1` 这类更长目录名不会被 `WORKBENCH-07\b` 误伤（\b 在 7 与 F 之间不成立）。
+   */
+  const device = path.join(WEB, "tests", "dashboard-countertest.mjs");
+  const src = readFileSync(device, "utf8");
+  const FORBIDDEN = new RegExp(
+    [
+      String.raw`docs[/\\]evidence[/\\]WORKBENCH-07\b`, // ① 拼接式
+      String.raw`["']docs["']\s*,\s*["']evidence["']\s*,\s*["']WORKBENCH-07["']`, // ② 分段式
+    ].join("|"),
+  );
+  const hits = src
+    .split(/\r?\n/)
+    .map((line, i) => ({ line: i + 1, text: line.trim() }))
+    .filter((h) => FORBIDDEN.test(h.text));
+  assert.equal(
+    hits.length,
+    0,
+    `装置源码不得出现代码仓证据路径（拼接式或分段式），命中 ${hits.length} 处：` +
+      hits.map((h) => `L${h.line} ${h.text.slice(0, 90)}`).join(" ; "),
+  );
+  // 正向确认：装置确实支持 --out，且未给 --out 时只落系统临时目录
+  assert.ok(/["']--out["']/.test(src), "装置必须支持 --out <dir>（权威证据输出到中央）");
+  assert.ok(/os\.tmpdir\(\)/.test(src), "未给 --out 时必须只写系统临时目录");
+  return "禁用路径 0 处（拼接式+分段式双式扫描）；--out 支持在位；默认落 os.tmpdir()";
+});
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n小结：${results.length - failed.length} passed / ${failed.length} failed`);
 if (failed.length) {
