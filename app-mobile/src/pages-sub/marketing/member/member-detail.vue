@@ -333,6 +333,9 @@ interface MemberOrder {
 
 // B3-1：「调整积分」入口门（pending-code ⇒ 恒隐藏，按未开通处理）
 const { canEntry } = usePermissionGate()
+// MOBILE-32F4 按钮级门控裁定：本页五个写端点后端均未立码（逐条实证见 scripts/button-gate-manifest.json
+// 的 BLOCKED_BACKEND_CODE 条目：会员新增/编辑/状态、储值充值/开卡、积分调整）⇒ 按既有先例
+// （create-sale 确认付款，F2 已验收）不自绑、不伪造码，不做按钮级预检绑定；后端立码后在此补 buttonGate(码)。
 
 const member = ref<MemberDetail | null>(null)
 const orders = ref<MemberOrder[]>([])

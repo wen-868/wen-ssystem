@@ -153,9 +153,10 @@ function buildIndex() {
   return byModule
 }
 
-/** 页面 import：局部名 → {module, orig} */
+/** 页面 import：局部名 → {module, orig}；另收 @/api/request 裸请求动词（MOBILE-32F4） */
 function parseImports(text) {
   const map = new Map()
+  const reqVerbs = new Map()
   let m
   const named = /import\s*\{([^}]+)\}\s*from\s*['"]@\/api\/modules\/([\w.-]+)['"]/g
   while ((m = named.exec(text))) {
@@ -166,7 +167,20 @@ function parseImports(text) {
       if (as) map.set(as[2] || as[1], { module: m[2], orig: as[1] })
     }
   }
-  return map
+  // MOBILE-32F4：部分页面直接 `import { get, put, post } from '@/api/request'` 调请求层
+  //（如 member-detail.vue）——此前守卫只认 api/modules 封装层，这些写调用点不可见 = 审计盲区。
+  // 局部名即请求动词名（get/post/put/del/patch/upload），method 以 requestVerbs() 实测为准。
+  const req = /import\s*\{([^}]+)\}\s*from\s*['"]@\/api\/request['"]/g
+  while ((m = req.exec(text))) {
+    for (const raw of m[1].split(',')) {
+      const t = raw.trim()
+      if (!t || t.startsWith('type ')) continue
+      const as = /^(\w+)(?:\s+as\s+(\w+))?$/.exec(t)
+      const local = as ? (as[2] || as[1]) : null
+      if (local && VERB[local]) reqVerbs.set(local, local)
+    }
+  }
+  return { map, reqVerbs }
 }
 
 /** 顶层函数声明行索引：用于把写调用归属到 handler */
@@ -183,7 +197,7 @@ function topLevelFns(text) {
 /** 解析一个页面：全部服务端写调用（含一层本地函数跟随 = 卡§三.2 确认链） */
 function analyzePage(relFile, byModule) {
   const text = readFileSync(join(SRC, relFile.replace(/^src\//, '')), 'utf8')
-  const imports = parseImports(text)
+  const { map: imports, reqVerbs } = parseImports(text)
   const objOwner = new Map()
   for (const [mod, rec] of byModule) for (const k of rec.keys()) if (k.includes('.')) { const o = k.split('.')[0]; if (!objOwner.has(o)) objOwner.set(o, mod) }
   const fns = topLevelFns(text)
@@ -197,6 +211,15 @@ function analyzePage(relFile, byModule) {
       if (rec && rec.method !== 'GET') raw.push({ line: i + 1, sym: `${o[1]}.${o[2]}`, ...rec })
     }
     for (const b of l.matchAll(/(?:^|[^.\w$])(\w+)\s*\(/g)) {
+      // MOBILE-32F4：@/api/request 裸请求动词调用（路径以调用点行内字面量为准）
+      if (reqVerbs.has(b[1])) {
+        const c = findRequestCall(lines, i, i + 1)
+        if (c && V[c.verb] !== 'GET') {
+          const sym = `request.${c.verb}`
+          if (!raw.some((x) => x.sym === sym && x.line === i + 1)) raw.push({ line: i + 1, sym, method: V[c.verb], path: norm(c.path), apiLine: c.line })
+        }
+        continue
+      }
       const imp = imports.get(b[1])
       if (!imp) continue
       const rec = byModule.get(imp.module)?.get(imp.orig)
@@ -437,6 +460,7 @@ if (args.includes('--self-test')) {
     manifest: MANIFEST,
     createSale: join(SRC, 'pages/sales/create-sale.vue'),
     expenses: join(SRC, 'pages-sub/finance/finance/expenses.vue'),
+    memberDetail: join(SRC, 'pages-sub/marketing/member/member-detail.vue'),
     buttonGates: join(SRC, 'config/button-gates.ts'),
   }
   const sha = (p) => createHash('sha256').update(readFileSync(p)).digest('hex')
@@ -513,6 +537,79 @@ if (args.includes('--self-test')) {
           m[0],
           `return { status: 'allowed', enabled: true, showHint: false, hint: '', stale: false, reason: 'M9 probe: 权限失败放行' }\n}`,
         )
+      },
+    },
+    // ===== MOBILE-32F4 新增六条（会员三页；JSON 改写均走结构化，防字符串静默失配） =====
+    {
+      key: 'memberDetail',
+      name: 'M10[F4] 会员详情写调用端点漂移（新增客户改指不存在的端点）',
+      file: targets.memberDetail,
+      apply: (t) => t.replace("post('/store/members/manage', payload)", "post('/store/members/manage-probe', payload)"),
+    },
+    {
+      key: 'manifest',
+      name: 'M11[F4] 把无码的会员新增伪造为 GATED 并配假实证',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-create')
+        if (!e || e.status !== 'BLOCKED_BACKEND_CODE') throw new Error('M11 前置不成立：mbr-dtl-create 不是 BLOCKED')
+        e.status = 'GATED'
+        e.permissionCodes = ['member:manage'] // 后端该端点确无此码 ⇒ 伪造
+        e.codeProof = 'store.routes.ts:44 requirePermission("member:manage")'
+        e.countedAsCompleted = true
+        delete e.approvedWriteAttempts
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M12[F4] 会员编辑条目端点错绑（PUT 改指他端点）',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-update')
+        if (!e) throw new Error('M12 前置不成立：缺 mbr-dtl-update')
+        e.endpoint = '/admin/members/{id}'
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M13[F4] 把 BLOCKED 充值动作计入完成（countedAsCompleted 翻真）',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-recharge')
+        if (!e || e.status !== 'BLOCKED_BACKEND_CODE') throw new Error('M13 前置不成立：mbr-dtl-recharge 不是 BLOCKED')
+        e.countedAsCompleted = true
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M14[F4] 删掉积分调整条目的无码实证（codeProof 消失）',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-points-adjust')
+        if (!e || e.status !== 'BLOCKED_BACKEND_CODE') throw new Error('M14 前置不成立：mbr-dtl-points-adjust 不是 BLOCKED')
+        delete e.codeProof
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M15[F4] 把列表「新增」导航伪造为 GATED 写动作',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-list-add')
+        if (!e || e.status !== 'UI_ONLY') throw new Error('M15 前置不成立：mbr-list-add 不是 UI_ONLY')
+        e.status = 'GATED'
+        e.permissionCodes = ['member:manage']
+        e.codeProof = 'store.routes.ts:44 requirePermission("member:manage")'
+        return JSON.stringify(j, null, 2) + '\n'
       },
     },
   ]

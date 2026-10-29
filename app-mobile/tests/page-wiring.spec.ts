@@ -220,9 +220,12 @@ describe('MOBILE-32F3 · 历史 BLOCKED 页面已解除（矩阵无空缺，且�
     for (const pg of mf.pages) {
       const es = mf.entries.filter((e: any) => e.page === pg.id)
       expect(es.length, `${pg.id} 无任何审计条目`).toBeGreaterThan(0)
-      // 每页至少覆盖一个写状态（GATED / BLOCKED_BACKEND_CODE）与一个非写状态标注
+      // 每页至少覆盖一个写状态（GATED / BLOCKED_BACKEND_CODE），或（纯读页）UI_ONLY 与 READ_ONLY 双标注。
+      // MOBILE-32F4：member-home / member-list 无服务端写调用 ⇒ 走后一分支（两态齐备才允许无写条目）。
       const kinds = new Set(es.map((e: any) => e.status))
-      expect([...kinds].some((k) => k === 'GATED' || k === 'BLOCKED_BACKEND_CODE'), `${pg.id} 缺写状态登记`).toBe(true)
+      const hasWrite = [...kinds].some((k) => k === 'GATED' || k === 'BLOCKED_BACKEND_CODE')
+      const fullyMarkedReadonly = [...kinds].some((k) => k === 'UI_ONLY') && [...kinds].some((k) => k === 'READ_ONLY')
+      expect(hasWrite || fullyMarkedReadonly, `${pg.id} 既无写状态登记也未把非写动作标全（卡§五.1）`).toBe(true)
       expect([...kinds].some((k) => k === 'UI_ONLY' || k === 'READ_ONLY'), `${pg.id} 未标注非写动作（卡§五.1）`).toBe(true)
     }
   })
@@ -268,15 +271,110 @@ describe('MOBILE-32F3 · 后端实证码机检（codeProof 行号必须与后端
 
   it('BLOCKED_BACKEND_CODE 必须零已批准写尝试且不携带任何码', () => {
     const blocked = mf.entries.filter((e: any) => e.status === 'BLOCKED_BACKEND_CODE')
-    expect(blocked.length).toBe(2)
+    // MOBILE-32F4：F2 的 2 条（create-sale）之外新增会员三页 6 条（member-detail）
+    expect(blocked.length).toBe(8)
     for (const e of blocked) {
       expect(e.approvedWriteAttempts, `${e.id} 必须 approvedWriteAttempts=0`).toBe(0)
       expect(e.countedAsCompleted).toBe(false)
       expect(e.permissionCodes).toEqual([])
-      // gateVar 保留"变量名"以说明它对应哪个按钮，但源码必须声明为 null（不得赋 buttonGate 码）
+      // gateVar 保留"变量名"以说明它对应哪个按钮；F2 两动作源码声明为 null（不得赋 buttonGate 码）
       expect(typeof e.gateVar, `${e.id} 应保留 gateVar 名指向空实现`).toBe('string')
-      const src = read('src/pages/sales/create-sale.vue')
-      expect(src, `${e.id} 的 ${e.gateVar} 必须声明为 null（不自绑、不伪造）`).toMatch(new RegExp(`const\\s+${e.gateVar}\\s*=\\s*null\\b`))
+      if (e.page === 'create-sale') {
+        const src = read('src/pages/sales/create-sale.vue')
+        expect(src, `${e.id} 的 ${e.gateVar} 必须声明为 null（不自绑、不伪造）`).toMatch(new RegExp(`const\\s+${e.gateVar}\\s*=\\s*null\\b`))
+      }
+    }
+  })
+})
+
+describe('MOBILE-32F4 · 会员三页（后端全无码 ⇒ 全 BLOCKED，如实登记不伪造）', () => {
+  const mf = JSON.parse(read('scripts/button-gate-manifest.json'))
+  const PAGES = ['member-home', 'member-list', 'member-detail']
+
+  it('三页均在 manifest 登记，写条目恰 6 条且全部 BLOCKED_BACKEND_CODE（后端无码禁止标 GATED）', () => {
+    for (const pid of PAGES) expect(mf.pages.find((p: any) => p.id === pid), `${pid} 缺 page 域`).toBeTruthy()
+    const writes = mf.entries.filter((e: any) => e.page === 'member-detail' && ['GATED', 'BLOCKED_BACKEND_CODE'].includes(e.status))
+    expect(writes.length, 'member-detail 写条目应为 6（6 调用点 / 5 端点，PUT 由保存与状态开关共享）').toBe(6)
+    for (const e of writes) expect(e.status, `${e.id} 后端无实证码，不得标 GATED`).toBe('BLOCKED_BACKEND_CODE')
+  })
+
+  it('写条目端点集合 == 源码真实写端点集合（5 个去重端点，双向覆盖）', () => {
+    const src = read('src/pages-sub/marketing/member/member-detail.vue')
+    // 源码 6 个写调用点：POST×4 + PUT×2（直接 import { put, post } from '@/api/request'）
+    expect(src.match(/await post\(/g)?.length, 'POST 调用点应为 4').toBe(4)
+    expect(src.match(/await put\(/g)?.length, 'PUT 调用点应为 2').toBe(2)
+    const endpoints = [
+      '/store/members/manage',
+      '/store/members/${memberId.value}',
+      '/admin/store-value-cards/${card.cardNo}/recharge',
+      '/admin/store-value-cards',
+      '/admin/members/${memberId.value}/points/adjust',
+    ]
+    for (const ep of endpoints) expect(src, `源码缺写调用 ${ep}`).toContain(ep)
+    const man = mf.entries
+      .filter((e: any) => e.page === 'member-detail' && ['GATED', 'BLOCKED_BACKEND_CODE'].includes(e.status))
+      .map((e: any) => `${e.method} ${e.endpoint}`.replace(/\{[^}]*\}/g, '*'))
+    expect(new Set(man).size, 'manifest 去重端点应为 5').toBe(5)
+    for (const ep of ['/store/members/*', '/admin/store-value-cards/*/recharge', '/admin/store-value-cards', '/admin/members/*/points/adjust']) {
+      expect(man.some((x: string) => x === ep || x.split(' ')[1] === ep), `manifest 缺端点 ${ep}`).toBe(true)
+    }
+  })
+
+  it('6 条 BLOCKED 条目逐条 countedAsCompleted=false + approvedWriteAttempts=0 + codeProof 带行号', () => {
+    const writes = mf.entries.filter((e: any) => e.page === 'member-detail' && e.status === 'BLOCKED_BACKEND_CODE')
+    for (const e of writes) {
+      expect(e.countedAsCompleted, `${e.id} 不得计入完成`).toBe(false)
+      expect(e.approvedWriteAttempts, `${e.id} 零已批准写尝试`).toBe(0)
+      expect(e.permissionCodes, `${e.id} 禁止伪造码`).toEqual([])
+      expect(String(e.codeProof), `${e.id} 须带 routes.ts:行`).toMatch(/[\w.-]+\.routes\.ts:\d+/)
+    }
+  })
+
+  it('codeProof 行号与后端实文一致：所指行确为该端点注册行且无 requirePermission', () => {
+    const beProof: Array<[string, number, string]> = [
+      ['../backend/src/routes/store.routes.ts', 44, 'storeMemberRouter.post("/manage"'],
+      ['../backend/src/routes/store.routes.ts', 45, 'storeMemberRouter.put("/:id'],
+      ['../backend/src/routes/store-value-card.routes.ts', 9, 'storeValueCardRouter.post("/"'],
+      ['../backend/src/routes/store-value-card.routes.ts', 11, 'storeValueCardRouter.post("/:cardNo/recharge"'],
+      ['../backend/src/routes/points.routes.ts', 14, 'pointsRouter.post("/:id/points/adjust"'],
+    ]
+    for (const [file, ln, frag] of beProof) {
+      const row = read(file).split(/\r?\n/)[ln - 1] ?? ''
+      expect(row, `${file}:${ln} 应为 ${frag} 的注册行`).toContain(frag)
+      expect(row, `${file}:${ln} 不得出现 requirePermission（后端未立码）`).not.toContain('requirePermission')
+    }
+  })
+
+  it('会员中心 / 会员列表两页无服务端写调用（不引 put/post/del/patch）', () => {
+    for (const f of ['src/pages-sub/marketing/member/member.vue', 'src/pages-sub/marketing/member/member-list.vue']) {
+      const src = read(f)
+      expect(src, `${f} 不得从请求层引入写动词`).not.toMatch(/import\s*\{[^}]*(put|post|del|patch)[^}]*}\s*from\s*'@\/api\/request'/)
+      expect(src, `${f} 不得出现非 GET 模块调用`).not.toMatch(/(put|del|patch)\s*\(\s*[`'"]\//)
+    }
+    const mfList = JSON.parse(read('scripts/button-gate-manifest.json'))
+    for (const pid of ['member-home', 'member-list']) {
+      const es = mfList.entries.filter((e: any) => e.page === pid)
+      expect(es.length, `${pid} 应有审计条目`).toBeGreaterThanOrEqual(2)
+      for (const e of es) {
+        if (e.method) expect(e.method, `${e.id} 非写页只允许 GET 或无 method`).toBe('GET')
+      }
+    }
+  })
+
+  it('列表「新增」为导航（openNew → member-detail?new=1），写动作归属详情页 saveEdit', () => {
+    const list = read('src/pages-sub/marketing/member/member-list.vue')
+    expect(list).toContain(`/pages-sub/marketing/member/member-detail?new=1`)
+    const detail = read('src/pages-sub/marketing/member/member-detail.vue')
+    expect(detail).toMatch(/async function saveEdit\(\)/)
+    expect(detail).toContain(`post('/store/members/manage'`)
+    // 调整积分按钮保持 B3-1 入口门原文（pending-code ⇒ 恒隐藏），不得改为放行
+    expect(detail).toContain(`v-if="canEntry(`)
+  })
+
+  it('会员三页不得出现假按钮门（无码页面禁止 const gateXxx = buttonGate(...)）', () => {
+    for (const f of ['member.vue', 'member-list.vue', 'member-detail.vue']) {
+      const src = read(`src/pages-sub/marketing/member/${f}`)
+      expect(src, `${f} 出现 buttonGate 绑定（后端无码 ⇒ 伪造门）`).not.toMatch(/const\s+gate\w+\s*=\s*buttonGate\(/)
     }
   })
 })

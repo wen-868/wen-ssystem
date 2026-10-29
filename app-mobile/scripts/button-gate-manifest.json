@@ -1,8 +1,8 @@
 {
-  "version": 3,
-  "task": "MOBILE-32F2 + MOBILE-32F3",
+  "version": 4,
+  "task": "MOBILE-32F2 + MOBILE-32F3 + MOBILE-32F4",
   "baseline": "05ae4180b63bb10ec2ef1a8f9d0d9e8156828f41",
-  "note": "actionId 为三方共用唯一标识（manifest / 源码门控 / 审计器），不得各自漂移。真实写动作按卡§三判据：handler 直达或一层跟随到 POST/PUT/PATCH/DELETE/upload。UI_ONLY / READ_ONLY 不计入 UNGATED。endpoint 均取自 api/modules/*.ts 实测行号（见中央证据 raw/endpoint-map.txt）。\nMOBILE-32F3（费用/收款/对账三页）：新增 expenses、receipts、reconciliation 三个 page 域共 10 条（5 GATED 写 + 2 UI_ONLY + 3 READ_ONLY）。写码逐条取后端实证：expense.routes.ts:19/20 ⇒ finance:create；receipt.routes.ts:23 ⇒ finance:receipt:create；reconciliation.routes.ts:14/17 ⇒ report:finance。recon 两条为 GATED（后端有码），此前误标 BLOCKED 已撤回。receipts.vue 的 rcpt-void 在 MOBILE-32 已接线，本卡纳入 manifest 守恒。",
+  "note": "actionId 为三方共用唯一标识（manifest / 源码门控 / 审计器），不得各自漂移。真实写动作按卡§三判据：handler 直达或一层跟随到 POST/PUT/PATCH/DELETE/upload。UI_ONLY / READ_ONLY 不计入 UNGATED。endpoint 均取自 api/modules/*.ts 实测行号（见中央证据 raw/endpoint-map.txt）。\nMOBILE-32F3（费用/收款/对账三页）：新增 expenses、receipts、reconciliation 三个 page 域共 10 条（5 GATED 写 + 2 UI_ONLY + 3 READ_ONLY）。写码逐条取后端实证：expense.routes.ts:19/20 ⇒ finance:create；receipt.routes.ts:23 ⇒ finance:receipt:create；reconciliation.routes.ts:14/17 ⇒ report:finance。recon 两条为 GATED（后端有码），此前误标 BLOCKED 已撤回。receipts.vue 的 rcpt-void 在 MOBILE-32 已接线，本卡纳入 manifest 守恒。\nMOBILE-32F4（会员三页）：新增 member-home、member-list、member-detail 三个 page 域共 10 条（5 写端点全部 BLOCKED_BACKEND_CODE + 2 UI_ONLY + 3 READ_ONLY；写调用点 6、去重端点 5：PUT /store/members/:id 由 saveEdit 与 toggleStatus 两个按钮共享）。后端实证（本工作树 backend/src/routes 实文，逐行核对无 requirePermission）：store.routes.ts:44(POST /manage)、:45(PUT /:id)、store-value-card.routes.ts:9(POST / 开卡)、:11(POST /:cardNo/recharge)、points.routes.ts:14(POST /:id/points/adjust，且注册表 mkt-points-adjust 为 pending-code，入口按 B3-1 恒隐藏)。按卡§三：后端无码禁止伪造码 ⇒ 全部登记 BLOCKED_BACKEND_CODE，countedAsCompleted=false、approvedWriteAttempts=0；按钮级门控按 MOBILE-32F2 已验收先例（cs-submitPayment）：gateVar=null 不自绑、不伪造，UI 行为不变。member-detail.vue 直接 import { get, put, post } from '@/api/request' 调请求层 ⇒ guard 同步扩了直接调用识别（此前只认 api/modules 封装层，属审计盲区）。",
   "pages": [
     {
       "id": "create-sale",
@@ -23,6 +23,18 @@
     {
       "id": "reconciliation",
       "file": "src/pages-sub/finance/reconciliation/reconciliation.vue"
+    },
+    {
+      "id": "member-home",
+      "file": "src/pages-sub/marketing/member/member.vue"
+    },
+    {
+      "id": "member-list",
+      "file": "src/pages-sub/marketing/member/member-list.vue"
+    },
+    {
+      "id": "member-detail",
+      "file": "src/pages-sub/marketing/member/member-detail.vue"
     }
   ],
   "entries": [
@@ -568,6 +580,186 @@
       "status": "READ_ONLY",
       "countedAsCompleted": false,
       "note": "只读不得误禁用"
+    },
+    {
+      "id": "mbr-home-readonly",
+      "actionId": "mbr-home-readonly",
+      "page": "member-home",
+      "selector": "member.vue loadMemberInfo（onMounted）",
+      "handler": "loadMemberInfo",
+      "method": "GET",
+      "endpoint": "/store/me",
+      "permissionCodes": [],
+      "gateVar": "—",
+      "gateExpr": "只读：memberApi.getMemberInfo ⇒ GET /store/me，不设按钮门",
+      "status": "READ_ONLY",
+      "countedAsCompleted": false
+    },
+    {
+      "id": "mbr-home-nav",
+      "actionId": "mbr-home-nav",
+      "page": "member-home",
+      "selector": "资产 3 卡 + 功能菜单 6 项（@tap=navigateTo）",
+      "handler": "navigateTo",
+      "method": null,
+      "endpoint": null,
+      "permissionCodes": [],
+      "gateVar": "—",
+      "gateExpr": "纯页面跳转（积分/储值/优惠券/等级/地址/资料），无服务端写",
+      "status": "UI_ONLY",
+      "countedAsCompleted": false
+    },
+    {
+      "id": "mbr-list-add",
+      "actionId": "mbr-list-add",
+      "page": "member-list",
+      "selector": "page-header #right [新增] @tap=openNew",
+      "handler": "openNew",
+      "method": null,
+      "endpoint": null,
+      "permissionCodes": [],
+      "gateVar": "—",
+      "gateExpr": "导航至 member-detail?new=1（新增表单），写动作在详情页 saveEdit 登记（mbr-dtl-create），本页无服务端写",
+      "status": "UI_ONLY",
+      "countedAsCompleted": false
+    },
+    {
+      "id": "mbr-list-readonly",
+      "actionId": "mbr-list-readonly",
+      "page": "member-list",
+      "selector": "列表加载 load / loadLevels",
+      "handler": "load, loadLevels",
+      "method": "GET",
+      "endpoint": "/store/members/manage,/admin/members/levels/config",
+      "permissionCodes": [],
+      "gateVar": "—",
+      "gateExpr": "只读：GET /store/members/manage（分页+统计）与 GET /admin/members/levels/config（等级驱动徽标）",
+      "status": "READ_ONLY",
+      "countedAsCompleted": false
+    },
+    {
+      "id": "mbr-dtl-create",
+      "actionId": "mbr-dtl-create",
+      "page": "member-detail",
+      "selector": "编辑态 ab-btn[保存]（isNew=true 时）@tap=saveEdit",
+      "handler": "saveEdit",
+      "method": "POST",
+      "endpoint": "/store/members/manage",
+      "permissionCodes": [],
+      "gateVar": "gateMemberCreate",
+      "gateExpr": "gateMemberCreate = null ⇒ 不做按钮级预检（不自绑、不伪造；MOBILE-32F2 cs-submitPayment 同款先例）",
+      "status": "BLOCKED_BACKEND_CODE",
+      "codeProof": "backend/src/routes/store.routes.ts:44 `POST /manage` 无 requirePermission（仅 routeConfigs auth=requireAuthWithTenant，:77）⇒ 后端未立码，禁止伪造码",
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
+    },
+    {
+      "id": "mbr-dtl-update",
+      "actionId": "mbr-dtl-update",
+      "page": "member-detail",
+      "selector": "编辑态 ab-btn[保存]（非 isNew）@tap=saveEdit",
+      "handler": "saveEdit",
+      "method": "PUT",
+      "endpoint": "/store/members/{id}",
+      "permissionCodes": [],
+      "gateVar": "gateMemberUpdate",
+      "gateExpr": "gateMemberUpdate = null ⇒ 不做按钮级预检（不自绑、不伪造）",
+      "status": "BLOCKED_BACKEND_CODE",
+      "codeProof": "backend/src/routes/store.routes.ts:45 `PUT /:id(\\d+)` 无 requirePermission ⇒ 后端未立码，禁止伪造码",
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
+    },
+    {
+      "id": "mbr-dtl-status",
+      "actionId": "mbr-dtl-status",
+      "page": "member-detail",
+      "selector": "状态设置 开关 .sw @tap=toggleStatus",
+      "handler": "toggleStatus",
+      "method": "PUT",
+      "endpoint": "/store/members/{id}",
+      "permissionCodes": [],
+      "gateVar": "gateMemberStatus",
+      "gateExpr": "gateMemberStatus = null ⇒ 不做按钮级预检（不自绑、不伪造）；与 mbr-dtl-update 同端点不同按钮，逐动作分记",
+      "status": "BLOCKED_BACKEND_CODE",
+      "codeProof": "backend/src/routes/store.routes.ts:45 `PUT /:id(\\d+)` 无 requirePermission ⇒ 后端未立码，禁止伪造码",
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
+    },
+    {
+      "id": "mbr-dtl-recharge",
+      "actionId": "mbr-dtl-recharge",
+      "page": "member-detail",
+      "selector": "弹窗 dlg-b--ok[确认充值]（已有卡分支）@tap=confirmDlg",
+      "handler": "confirmDlg",
+      "method": "POST",
+      "endpoint": "/admin/store-value-cards/{cardNo}/recharge",
+      "permissionCodes": [],
+      "gateVar": "gateValueCardRecharge",
+      "gateExpr": "gateValueCardRecharge = null ⇒ 不做按钮级预检（不自绑、不伪造）；与 mbr-dtl-opencard 同一确认按钮按有无卡分流",
+      "status": "BLOCKED_BACKEND_CODE",
+      "codeProof": "backend/src/routes/store-value-card.routes.ts:11 `POST /:cardNo/recharge` 无 requirePermission（同文件 :12/:13 consume/refund 挂 finance:create，不得移用）⇒ 后端未立码，禁止伪造码",
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
+    },
+    {
+      "id": "mbr-dtl-opencard",
+      "actionId": "mbr-dtl-opencard",
+      "page": "member-detail",
+      "selector": "弹窗 dlg-b--ok[确认充值]（无卡先开卡分支）@tap=confirmDlg",
+      "handler": "confirmDlg",
+      "method": "POST",
+      "endpoint": "/admin/store-value-cards",
+      "permissionCodes": [],
+      "gateVar": "gateValueCardRecharge",
+      "gateExpr": "gateValueCardRecharge = null ⇒ 不做按钮级预检（不自绑、不伪造）",
+      "status": "BLOCKED_BACKEND_CODE",
+      "codeProof": "backend/src/routes/store-value-card.routes.ts:9 `POST /` 无 requirePermission ⇒ 后端未立码，禁止伪造码",
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
+    },
+    {
+      "id": "mbr-dtl-points-adjust",
+      "actionId": "mbr-dtl-points-adjust",
+      "page": "member-detail",
+      "selector": "ab-btn[调整积分]（入口恒隐藏）→ 弹窗[确认调整]",
+      "handler": "confirmDlg",
+      "method": "POST",
+      "endpoint": "/admin/members/{id}/points/adjust",
+      "permissionCodes": [],
+      "gateVar": "gatePointsAdjust",
+      "gateExpr": "入口门 canEntry 判定该入口 pending-code ⇒ 按钮恒隐藏（B3-1，entry-gate-consistency.spec.ts 锁死挂载点原文）；按钮级 gatePointsAdjust = null（不自绑、不伪造）",
+      "status": "BLOCKED_BACKEND_CODE",
+      "codeProof": "backend/src/routes/points.routes.ts:14 `POST /:id/points/adjust` 无 requirePermission，且同文件 :17 注释明确「本批不接」；注册表 mkt-points-adjust 同为 pending-code ⇒ 双向一致，禁止伪造码",
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
+    },
+    {
+      "id": "mbr-dtl-readonly",
+      "actionId": "mbr-dtl-readonly",
+      "page": "member-detail",
+      "selector": "loadDetail / loadOrders / loadLevels / confirmDlg 查卡",
+      "handler": "loadDetail, loadOrders, loadLevels",
+      "method": "GET",
+      "endpoint": "/store/members/{id},/store/members/{id}/orders,/admin/store-value-cards,/admin/members/levels/config",
+      "permissionCodes": [],
+      "gateVar": "—",
+      "gateExpr": "只读：详情/订单/等级/储值卡查询",
+      "status": "READ_ONLY",
+      "countedAsCompleted": false
+    },
+    {
+      "id": "mbr-dtl-ui",
+      "actionId": "mbr-dtl-ui",
+      "page": "member-detail",
+      "selector": "编辑态切换/弹窗开合/标签本地增删/拨号/DocPage",
+      "handler": "startEdit, cancelEdit, openDlg, closeDlg, addTag, removeTag, pickVal, callPhone, openDoc",
+      "method": null,
+      "endpoint": null,
+      "permissionCodes": [],
+      "gateVar": "—",
+      "gateExpr": "纯本地态与系统能力（拨号），无服务端写",
+      "status": "UI_ONLY",
+      "countedAsCompleted": false
     }
   ],
   "backendCodeGaps": [
