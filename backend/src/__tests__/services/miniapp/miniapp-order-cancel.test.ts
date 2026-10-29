@@ -22,8 +22,16 @@ describe("miniapp order cancel/pay-result", () => {
   it("cancelOrder：更新订单状态并释放预留库存", async () => {
     const conn = { query: vi.fn(), execute: vi.fn() };
     conn.query
-      .mockResolvedValueOnce([[{ order_no: "DD001", store_id: 1 }]]) // 订单查询
+      .mockResolvedValueOnce([[{ order_no: "DD001", store_id: 1, customer_type: "RETAIL" }]]) // 订单查询
       .mockResolvedValueOnce([[{ sku_id: 10, reserved_qty: 2 }]]); // 明细查询
+    conn.execute.mockImplementation(async (sql: string) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) return [[]];
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_inventory_balance")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
     mocks.transaction.mockImplementation(async (fn: any) => fn(conn));
 
     const result = await cancelOrder("DD001", "t1", "不想要了");
@@ -34,10 +42,13 @@ describe("miniapp order cancel/pay-result", () => {
       expect.stringContaining("UPDATE t_inventory_balance"),
       [2, 1, 10]
     );
-    // 更新订单状态
-    const updateCalls = conn.execute.mock.calls;
-    expect(String(updateCalls[updateCalls.length - 1][0])).toContain("UPDATE t_miniapp_order");
+    // 更新订单状态（不是最后一个 execute，因为之后还有进度事件写入）
+    const updateCalls = conn.execute.mock.calls.filter((c) => String(c[0]).includes("UPDATE t_miniapp_order"));
+    expect(updateCalls.length).toBeGreaterThanOrEqual(1);
     expect(String(updateCalls[updateCalls.length - 1][0])).toContain("CANCELLED");
+    // 进度事件写入（03 契约 §8.1）
+    const eventCalls = conn.execute.mock.calls.filter((c) => String(c[0]).includes("t_order_progress_event"));
+    expect(eventCalls.length).toBeGreaterThanOrEqual(1);
   });
 
   it("cancelOrder：订单不存在或状态不可取消时抛错", async () => {

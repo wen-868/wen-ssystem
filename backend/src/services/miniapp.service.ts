@@ -1,9 +1,11 @@
 import crypto from "node:crypto";
+import type { PoolConnection } from "mysql2/promise";
 import { query, queryOne, transaction } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, type CustomerType } from "../shared/fulfillment";
 import { updateTraceCodesBySkuList } from "../shared/trace-code";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import { appendOrderProgressEvent, miniappRetailEvent, appendMiniappRetailCompletedEvent } from "../shared/order-progress-events";
 
 // ========== 类型定义 ==========
 
@@ -90,6 +92,7 @@ interface OrderItemSkuIdRow extends RowDataPacket {
 interface MiniappOrderCancelRow extends RowDataPacket {
   order_no: string;
   store_id: number;
+  customer_type?: string;
 }
 
 /** 支付结果查询行 */
@@ -311,6 +314,24 @@ export async function createOrder(tenantId: string, body: {
       }
     }
 
+    // 契约 §8.1：下单事件与主表/明细/锁库同事务；写失败 ⇒ 整单回滚。
+    // 仅 miniapp_retail（customer_type=RETAIL）发事件；批发单属 miniapp_wholesale 族，本卡红线不外扩。
+    if (customerType === "RETAIL") {
+      await appendOrderProgressEvent(conn as unknown as PoolConnection, miniappRetailEvent({
+        tenantId,
+        storeId: body.storeId,
+        orderNo,
+        businessStage: "PENDING_PAYMENT",
+        businessStatus: initialState.orderStatus,
+        actorType: "user",
+        actorId: anonymousMemberId || null,
+        upstreamBizKey: orderNo,
+        statusReason: null,
+        at: new Date(),
+        actorFallback: "miniapp-create-order",
+      }));
+    }
+
     return {
       orderNo,
       orderStatus: initialState.orderStatus,
@@ -393,6 +414,14 @@ export async function confirmReceipt(orderNo: string, tenantId: string) {
       await updateTraceCodesBySkuList(conn, (deliveryResult as { tenantId?: string })?.tenantId || tenantId, orderNo, skuIds);
     }
 
+    // 契约 §8.1：确认收货事件与配送完成（库存扣减/主表状态）同事务
+    await appendMiniappRetailCompletedEvent(conn, orderNo, {
+      tenantId,
+      actorId: null,
+      actorType: "user",
+      action: "CONFIRM_RECEIPT",
+    });
+
     return deliveryResult;
   });
   return result;
@@ -402,7 +431,7 @@ export async function confirmReceipt(orderNo: string, tenantId: string) {
 export async function cancelOrder(orderNo: string, tenantId: string, reason?: string) {
   return transaction(async (conn) => {
     const [orders] = await conn.query<MiniappOrderCancelRow[]>(
-      `SELECT order_no, store_id FROM t_miniapp_order
+      `SELECT order_no, store_id, customer_type FROM t_miniapp_order
        WHERE order_no = ? AND tenant_id = ?
          AND order_status IN ('PENDING_PAYMENT', 'PENDING_SHIP', 'WAIT_DELIVERY')
        FOR UPDATE`,
@@ -435,6 +464,25 @@ export async function cancelOrder(orderNo: string, tenantId: string, reason?: st
        WHERE order_no = ? AND tenant_id = ?`,
       [orderNo, tenantId]
     );
+
+    // 契约 §8.1：取消事件与状态/释放库存同事务；upstreamBizKey=orderNo:USER_CANCEL ⇒ 重复取消幂等
+    // 仅 miniapp_retail 族（RETAIL）写事件；批发单属 miniapp_wholesale，本卡不外扩
+    if ((order.customer_type ?? "RETAIL") === "RETAIL") {
+      await appendOrderProgressEvent(conn, miniappRetailEvent({
+        tenantId,
+        storeId: order.store_id,
+        orderNo,
+        businessStage: "CANCELLED",
+        businessStatus: "CANCELLED",
+        actorType: "user",
+        actorId: null,
+        upstreamBizKey: `${orderNo}:USER_CANCEL`,
+        statusReason: reason ?? "用户取消订单",
+        at: new Date(),
+        actorFallback: "miniapp-user-cancel",
+      }));
+    }
+
     return { orderNo, status: "CANCELLED" };
   });
 }
@@ -472,15 +520,69 @@ export async function queryPayResult(orderNo: string, tenantId: string) {
   }
 }
 
-/** 标记订单支付成功（幂等：仅 PENDING_PAYMENT → PAID 推进状态） */
+/**
+ * 标记订单支付成功（幂等：仅 PENDING_PAYMENT → PENDING_SHIP 推进状态）。
+ *
+ * TOTAL-ORDER-PROGRESS-03：
+ * - 包进 transaction() ⇒ 状态推进与 PENDING_SHIP 事件同一事务（契约 §8.1，事件失败回滚支付状态）；
+ * - 事件 `upstreamBizKey = orderNo:PAID` ⇒ 重复回调（含主动查单与微信回调双入口）走 source_event_id
+ *   去重，只保留一行 PENDING_SHIP（硬验收 3/7）；
+ * - business_status 取**本事务内 UPDATE 后**的真实 order_status，不由阶段名反推。
+ *
+ * 注：`wechat-pay.service.ts` 回调入口与 `queryPayResult` 主动查单入口都收敛到本函数
+ * ⇒ 事件写在内部，天然覆盖两个入口，无需扩围到回调文件（卡 §五·一.2）。
+ */
 export async function markOrderPaid(orderNo: string, tenantId: string) {
-  await query(
-    `UPDATE t_miniapp_order SET pay_status = 'PAID', paid_at = NOW(),
-            order_status = CASE WHEN order_status = 'PENDING_PAYMENT' THEN 'PENDING_SHIP' ELSE order_status END,
-            updated_at = NOW()
-     WHERE order_no = ? AND tenant_id = ? AND pay_status <> 'PAID'`,
-    [orderNo, tenantId]
-  );
+  await transaction(async (conn) => {
+    const [orders] = await conn.execute<MarkOrderPaidRow[]>(
+      `SELECT store_id, customer_type, pay_status, order_status
+       FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? FOR UPDATE`,
+      [orderNo, tenantId]
+    );
+    const before = orders[0];
+    if (!before) return;
+
+    const [res] = await conn.execute<ResultSetHeader>(
+      `UPDATE t_miniapp_order SET pay_status = 'PAID', paid_at = NOW(),
+              order_status = CASE WHEN order_status = 'PENDING_PAYMENT' THEN 'PENDING_SHIP' ELSE order_status END,
+              updated_at = NOW()
+       WHERE order_no = ? AND tenant_id = ? AND pay_status <> 'PAID'`,
+      [orderNo, tenantId]
+    );
+
+    // 仅 miniapp_retail 族写事件；批发单属 miniapp_wholesale（红线 §七 不外扩）
+    if (before.customer_type !== "RETAIL") return;
+
+    let realStatus = before.order_status;
+    if (Number(res?.affectedRows ?? 0) > 0) {
+      const [after] = await conn.execute<{ order_status: string }[] & RowDataPacket[]>(
+        `SELECT order_status FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? LIMIT 1`,
+        [orderNo, tenantId]
+      );
+      realStatus = after[0]?.order_status ?? realStatus;
+    }
+
+    await appendOrderProgressEvent(conn, miniappRetailEvent({
+      tenantId,
+      storeId: before.store_id,
+      orderNo,
+      businessStage: "PENDING_SHIP",
+      businessStatus: realStatus,
+      actorType: "system",
+      actorId: null,
+      upstreamBizKey: `${orderNo}:PAID`,
+      statusReason: null,
+      at: new Date(),
+      actorFallback: "miniapp-payment-paid",
+    }));
+  });
+}
+
+interface MarkOrderPaidRow extends RowDataPacket {
+  store_id: number | string;
+  customer_type: string;
+  pay_status: string;
+  order_status: string;
 }
 
 /** 获取订单支付人微信 openid（JSAPI 支付必需） */

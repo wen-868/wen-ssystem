@@ -199,3 +199,138 @@ export function saleBillEvent(input: {
     },
   };
 }
+
+/** §三 miniapp_retail 阶段值域（与契约 FAMILY_STAGES.miniapp_retail 一致，禁私加 REJECTED） */
+export type MiniappRetailStage =
+  | "PENDING_PAYMENT"
+  | "PENDING_SHIP"
+  | "ACCEPTED"
+  | "DELIVERING"
+  | "COMPLETED"
+  | "CANCELLED";
+
+/** 终态阶段（§4.4：COMPLETED / CANCELLED ⇒ ended_at 必填） */
+const MINIAPP_RETAIL_TERMINAL: ReadonlySet<string> = new Set(["COMPLETED", "CANCELLED"]);
+
+/**
+ * miniapp_retail 族事件语义装配（TOTAL-ORDER-PROGRESS-03）。
+ *
+ * - 阶段严格取契约 §三 六值（拒收 REJECTED 不在值域内 ⇒ 本卡不发正式事件，另卡扩契约）；
+ * - business_status 必须是**该动作落定后的真实订单状态**（由调用点从业务真值传入，不得由阶段名反推）；
+ * - visible_to 取契约 §六 miniapp_retail 默认 `["consumer","store_staff","store_manager","hq_admin"]`；
+ * - field_filter：AI 通道裁剪内部字段；**消费者视角**额外隐藏金额/收件人个人信息/操作人内部键
+ *   （§5.4 个人信息禁入 AI/消费者可读面），自由文本金额打码只对内部角色之外的视角生效。
+ */
+export function miniappRetailEvent(input: {
+  tenantId: string;
+  storeId?: number | string | null;
+  orderNo: string;
+  businessStage: MiniappRetailStage;
+  /** 动作后的真实 t_miniapp_order.order_status（或本次动作落定的 pay/delivery 维度真值） */
+  businessStatus: string;
+  actorType: "system" | "user" | "admin" | "ai" | "cron";
+  actorId?: number | string | null;
+  /** 稳定上游业务键：订单号 / 支付 out_trade_no / 平台单号 / 超时类型复合键 */
+  upstreamBizKey: string;
+  failureCode?: string | null;
+  retryEntry?: string | null;
+  manualInterventionUrl?: string | null;
+  statusReason?: string | null;
+  at: Date;
+  /** 调用点绑定的稳定主体名（system/cron 缺显式 actor_id 时兜底） */
+  actorFallback?: string;
+}): OrderProgressEventInput {
+  const terminal = MINIAPP_RETAIL_TERMINAL.has(input.businessStage);
+  return {
+    tenantId: input.tenantId,
+    storeId: input.storeId == null ? null : Number(input.storeId),
+    orderFamily: "miniapp_retail",
+    orderNo: input.orderNo,
+    businessStage: input.businessStage,
+    businessStatus: input.businessStatus,
+    actorType: input.actorType,
+    actorId: input.actorId ?? null,
+    upstreamBizKey: input.upstreamBizKey,
+    failureCode: input.failureCode ?? null,
+    retryEntry: input.retryEntry ?? null,
+    manualInterventionUrl: input.manualInterventionUrl ?? null,
+    statusReason: input.statusReason ?? null,
+    startedAt: input.at,
+    endedAt: terminal ? input.at : null,
+    actorFallback: input.actorFallback,
+    // 契约 §六：miniapp_retail 默认可见角色
+    visibleTo: ["consumer", "store_staff", "store_manager", "hq_admin"],
+    fieldFilter: {
+      // §5.4：AI 通道不下发操作人 ID/幂等键/门店/可见性快照本身
+      hidden_fields: {
+        ai: ["actor_id", "source_event_id", "idempotency_key", "store_id", "visible_to", "field_filter", "event_version"],
+        // 消费者可读面：内部键与操作人 ID 不外泄（个人信息/金额由 money_in_free_text + 列级白名单兜）
+        consumer: ["actor_id", "source_event_id", "idempotency_key", "field_filter", "event_version"],
+        // 店员（store_staff）：金额自由文本必须打码 ⇒ 不豁免（下方 exempt_roles 不含 store_staff/consumer）
+      },
+      // §5.3 + §5.4 自由文本金额脱敏：非内部豁免角色下 status_reason 夹带的金额数字一律打码
+      money_in_free_text: {
+        fields: ["status_reason"],
+        exempt_roles: ["hq_admin", "store_manager"],
+      },
+    },
+  };
+}
+
+/** 完成动作的上游业务幂等成分（同单同动作 ⇒ source_event_id 恒定） */
+export type MiniappRetailCompletionAction = "CONFIRM_RECEIPT" | "STORE_COMPLETE";
+
+interface MiniappOrderTruthRowLocal {
+  tenant_id: string;
+  store_id: number | string;
+  customer_type: string;
+  order_status: string;
+}
+
+/**
+ * miniapp_retail「完成」事件（§8.1 同事务）。
+ *
+ * - business_stage=COMPLETED（终态 ⇒ ended_at 由装配器补齐）；
+ * - business_status 从**同一事务连接**读回主表真实 order_status，不由阶段名反推（硬验收 4）；
+ * - 批发单（customer_type=WHOLESALE）属 miniapp_wholesale 族 ⇒ 直接跳过，不冒充本族事件（红线 §七）；
+ * - `upstreamBizKey = orderNo:action` ⇒ 同一动作（如商家端重复点完成）重试幂等；
+ *   不同动作（商家完成 vs 消费者确认收货）是两个业务事实，但现网第二个动作会被
+ *   `completeOrderDelivery` 的状态守卫（仅 WAIT_DELIVERY/DELIVERING 可完成）拦下 ⇒ 不会产生第二条 COMPLETED 事件。
+ */
+export async function appendMiniappRetailCompletedEvent(
+  conn: PoolConnection,
+  orderNo: string,
+  opts: {
+    /** 租户过滤（缺省则按主表行自身租户，跨租户查不到 ⇒ 不写事件） */
+    tenantId?: string | null;
+    actorId?: number | string | null;
+    actorType?: "system" | "user" | "admin" | "ai" | "cron";
+    action: MiniappRetailCompletionAction;
+    at?: Date;
+  },
+): Promise<{ written: boolean; reason?: string }> {
+  const params: (string | number)[] = opts.tenantId ? [orderNo, opts.tenantId] : [orderNo];
+  const where = opts.tenantId ? "order_no = ? AND tenant_id = ?" : "order_no = ?";
+  const [rows] = await conn.execute<(RowDataPacket & MiniappOrderTruthRowLocal)[]>(
+    `SELECT tenant_id, store_id, customer_type, order_status FROM t_miniapp_order WHERE ${where} LIMIT 1`,
+    params,
+  );
+  const order = rows[0] as MiniappOrderTruthRowLocal | undefined;
+  if (!order) return { written: false, reason: "订单不存在（租户口径未命中）" };
+  if (order.customer_type !== "RETAIL") return { written: false, reason: `非 miniapp_retail 族（customer_type=${order.customer_type}）` };
+
+  await appendOrderProgressEvent(conn, miniappRetailEvent({
+    tenantId: order.tenant_id,
+    storeId: order.store_id,
+    orderNo,
+    businessStage: "COMPLETED",
+    businessStatus: order.order_status,
+    actorType: opts.actorType ?? "user",
+    actorId: opts.actorId ?? null,
+    upstreamBizKey: `${orderNo}:${opts.action}`,
+    statusReason: null,
+    at: opts.at ?? new Date(),
+    actorFallback: `miniapp-${opts.action.toLowerCase()}`,
+  }));
+  return { written: true };
+}

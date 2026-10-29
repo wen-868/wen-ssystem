@@ -1,6 +1,8 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import type { RowDataPacket } from "mysql2/promise";
+import type { PoolConnection } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
+import { appendOrderProgressEvent, miniappRetailEvent } from "../../shared/order-progress-events";
 
 // ==================== 类型定义 ====================
 
@@ -398,6 +400,31 @@ export async function cancelOrder(orderNo: string, reason: string, operatorId: n
       "INSERT INTO t_operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'CANCEL', ?, ?, ?, ?, ?)",
       [logNo, orderNo, operatorId ?? 0, operatorName, reason || "管理员取消订单", tenantId]
     );
+
+    // 契约 §8.1：取消事件与状态变更/释放库存/操作日志同事务。
+    // business_stage=CANCELLED（终态），business_status 取本事务 UPDATE 后真实值。
+    // 仅 miniapp_retail（customer_type=RETAIL）写事件，批发单不外扩（红线 §七）。
+    const customerType = String(order.customer_type ?? "RETAIL");
+    if (customerType === "RETAIL") {
+      const [afterRows] = await conn.execute<RowDataPacket[]>(
+        "SELECT order_status, store_id FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? LIMIT 1",
+        [orderNo, tenantId]
+      );
+      const after = afterRows[0] as unknown as { order_status: string; store_id: number | string } | undefined;
+      await appendOrderProgressEvent(conn as unknown as PoolConnection, miniappRetailEvent({
+        tenantId,
+        storeId: after?.store_id ?? (order.store_id as number | string | undefined) ?? null,
+        orderNo,
+        businessStage: "CANCELLED",
+        businessStatus: after?.order_status ?? "CANCELLED",
+        actorType: "admin",
+        actorId: operatorId,
+        upstreamBizKey: `${orderNo}:ADMIN_CANCEL`,
+        statusReason: reason || "管理员取消订单",
+        at: new Date(),
+        actorFallback: "admin-cancel-order",
+      }));
+    }
   });
   return { orderNo, status: "CANCELLED" };
 }
@@ -445,9 +472,44 @@ export async function updateOrderStatus(orderNo: string, targetStatus: string, o
       "INSERT INTO t_operation_log (log_no, module, action, biz_no, operator_id, operator_name, remark, tenant_id) VALUES (?, 'ORDER', 'STATUS_CHANGE', ?, ?, ?, ?, ?)",
       [logNo, orderNo, operatorId ?? 0, operatorName, remark || `状态变更: ${order.order_status} -> ${targetStatus}`, tenantId]
     );
+
+    // 契约 §8.1：管理端人工状态变更若落在 miniapp_retail 阶段值域内 ⇒ 同事务写事件；
+    // 值域外状态（如 WAIT_DELIVERY/REJECTED）不发正式事件（§七 不私加阶段），与拒收同口径登记缺口。
+    const stage = ADMIN_STATUS_TO_STAGE[targetStatus];
+    if (stage && String(order.customer_type ?? "RETAIL") === "RETAIL") {
+      const [afterRows] = await conn.execute<RowDataPacket[]>(
+        "SELECT order_status, store_id FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? LIMIT 1",
+        [orderNo, tenantId]
+      );
+      const after = afterRows[0] as unknown as { order_status: string; store_id: number | string } | undefined;
+      await appendOrderProgressEvent(conn as unknown as PoolConnection, miniappRetailEvent({
+        tenantId,
+        storeId: after?.store_id ?? (order.store_id as number | string | undefined) ?? null,
+        orderNo,
+        businessStage: stage,
+        businessStatus: after?.order_status ?? targetStatus,
+        actorType: "admin",
+        actorId: operatorId,
+        upstreamBizKey: `${orderNo}:ADMIN:${targetStatus}`,
+        statusReason: remark || `状态变更: ${order.order_status} -> ${targetStatus}`,
+        at: new Date(),
+        actorFallback: "admin-update-order-status",
+      }));
+    }
   });
   return { orderNo, fromStatus: order.order_status, toStatus: targetStatus };
 }
+
+/**
+ * 管理端人工状态 → 契约 §三 miniapp_retail 阶段（仅值域内状态可发正式事件）。
+ * WAIT_DELIVERY / REJECTED 不在值域 ⇒ 不映射、不发事件（另卡扩契约）。
+ */
+const ADMIN_STATUS_TO_STAGE: Record<string, "ACCEPTED" | "DELIVERING" | "COMPLETED" | "CANCELLED"> = {
+  ACCEPTED: "ACCEPTED",
+  DELIVERING: "DELIVERING",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+};
 
 export async function batchUpdateOrderStatus(orderNos: string[], targetStatus: string, operatorId: number | null, operatorName: string, tenantId: string) {
   const results: { orderNo: string; success: boolean; error?: string }[] = [];

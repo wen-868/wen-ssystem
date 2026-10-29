@@ -247,12 +247,15 @@ describe("admin order.service - cancelOrder", () => {
   });
 
   it("正常取消 + 有 items（for 循环执行）+ reason 有值 + operatorId 有值", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "PENDING" });
+    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "PENDING", customer_type: "RETAIL", store_id: 1 });
     mockConn.execute.mockImplementation((sql: string) => {
-      if (sql.includes("SELECT sku_id, qty")) {
+      const s = String(sql);
+      if (s.includes("SELECT sku_id, qty")) {
         return Promise.resolve([[{ sku_id: 1, qty: 5 }, { sku_id: 2, qty: 3 }], undefined]);
       }
-      return Promise.resolve([]);
+      if (s.includes("FROM t_order_progress_event")) return Promise.resolve([[], []]);
+      if (s.includes("INSERT INTO t_order_progress_event")) return Promise.resolve([{ affectedRows: 1 }]);
+      return Promise.resolve([[], []]);
     });
     const res = await cancelOrder("O1", "客户取消", 1, "admin", "t1");
     expect(res).toEqual({ orderNo: "O1", status: "CANCELLED" });
@@ -265,12 +268,15 @@ describe("admin order.service - cancelOrder", () => {
   });
 
   it("正常取消 + items 为空（for 循环不执行）+ reason 无值（|| 右分支）+ operatorId 为 null（?? 0 右分支）", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "ACCEPTED" });
+    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "ACCEPTED", customer_type: "RETAIL", store_id: 1 });
     mockConn.execute.mockImplementation((sql: string) => {
-      if (sql.includes("SELECT sku_id, qty")) {
+      const s = String(sql);
+      if (s.includes("SELECT sku_id, qty")) {
         return Promise.resolve([[], undefined]);
       }
-      return Promise.resolve([]);
+      if (s.includes("FROM t_order_progress_event")) return Promise.resolve([[], []]);
+      if (s.includes("INSERT INTO t_order_progress_event")) return Promise.resolve([{ affectedRows: 1 }]);
+      return Promise.resolve([[], []]);
     });
     const res = await cancelOrder("O2", "", null, "admin", "t1");
     expect(res).toEqual({ orderNo: "O2", status: "CANCELLED" });
@@ -333,15 +339,25 @@ describe("admin order.service - updateOrderStatus", () => {
   });
 
   it("合法转换 + remark 有值（|| 左分支）", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "PENDING" });
-    mockConn.execute.mockResolvedValue([]);
+    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "PENDING", customer_type: "RETAIL", store_id: 1 });
+    mockConn.execute.mockImplementation(async (sql: string) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) return [[], []];
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      return [[], []];
+    });
     const res = await updateOrderStatus("O1", "ACCEPTED", 1, "admin", "手动接单", "t1");
     expect(res).toEqual({ orderNo: "O1", fromStatus: "PENDING", toStatus: "ACCEPTED" });
   });
 
   it("合法转换 + remark 无值 + operatorId 为 null（|| 右分支 + ?? 0 右分支）", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "ACCEPTED" });
-    mockConn.execute.mockResolvedValue([]);
+    mocks.queryOneWithTenant.mockResolvedValue({ order_status: "ACCEPTED", customer_type: "RETAIL", store_id: 1 });
+    mockConn.execute.mockImplementation(async (sql: string) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) return [[], []];
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      return [[], []];
+    });
     const res = await updateOrderStatus("O2", "DELIVERING", null, "admin", null, "t1");
     expect(res).toEqual({ orderNo: "O2", fromStatus: "ACCEPTED", toStatus: "DELIVERING" });
     // 验证 INSERT log 使用了默认 remark 和 operatorId ?? 0
@@ -359,9 +375,9 @@ describe("admin order.service - updateOrderStatus", () => {
 describe("admin order.service - batchUpdateOrderStatus", () => {
   it("全部成功（try 成功分支）", async () => {
     mocks.queryOneWithTenant
-      .mockResolvedValueOnce({ order_status: "PENDING" })
-      .mockResolvedValueOnce({ order_status: "PENDING" });
-    mockConn.execute.mockResolvedValue([]);
+      .mockResolvedValueOnce({ order_status: "PENDING", customer_type: "RETAIL", store_id: 1 })
+      .mockResolvedValueOnce({ order_status: "PENDING", customer_type: "RETAIL", store_id: 1 });
+    mockConn.execute.mockImplementation(async () => [[], []]);
     const res = await batchUpdateOrderStatus(["O1", "O2"], "ACCEPTED", 1, "admin", "t1");
     expect(res.total).toBe(2);
     expect(res.successCount).toBe(2);
@@ -371,10 +387,10 @@ describe("admin order.service - batchUpdateOrderStatus", () => {
 
   it("部分成功部分失败（O1 成功 + O2 订单不存在 + O3 状态非法，catch 分支）", async () => {
     mocks.queryOneWithTenant
-      .mockResolvedValueOnce({ order_status: "PENDING" })   // O1 成功
-      .mockResolvedValueOnce(null)                            // O2 订单不存在
-      .mockResolvedValueOnce({ order_status: "COMPLETED" }); // O3 非法转换
-    mockConn.execute.mockResolvedValue([]);
+      .mockResolvedValueOnce({ order_status: "PENDING", customer_type: "RETAIL", store_id: 1 })
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ order_status: "COMPLETED" });
+    mockConn.execute.mockImplementation(async () => [[], []]);
     const res = await batchUpdateOrderStatus(["O1", "O2", "O3"], "ACCEPTED", 1, "admin", "t1");
     expect(res.total).toBe(3);
     expect(res.successCount).toBe(1);

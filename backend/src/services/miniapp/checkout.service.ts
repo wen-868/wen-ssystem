@@ -1,8 +1,10 @@
 import mysql from "mysql2/promise";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import type { PoolConnection } from "mysql2/promise";
 import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
+import { appendOrderProgressEvent, miniappRetailEvent, appendMiniappRetailCompletedEvent } from "../../shared/order-progress-events";
 
 
 async function getBestPrice(conn: mysql.PoolConnection | null, tenantId: string, customerId: number, skuId: number, quantity: number): Promise<number> {
@@ -329,6 +331,23 @@ export async function createCheckoutOrder(params: {
       [customerId, tenantId, ...cartSkuIds]
     );
 
+    // 契约 §8.1：下单事件与主表/明细/锁库/删购物车同事务；写失败 ⇒ 整单回滚。
+    // 仅 miniapp_retail 族（customer_type=RETAIL）发事件；批发单属 miniapp_wholesale 族，本卡红线不外扩。
+    if (customerType === "RETAIL") {
+      await appendOrderProgressEvent(conn as unknown as PoolConnection, miniappRetailEvent({
+        tenantId,
+        storeId,
+        orderNo,
+        businessStage: "PENDING_PAYMENT",
+        businessStatus: initialState.orderStatus,
+        actorType: "user",
+        actorId: customerId,
+        upstreamBizKey: orderNo,
+        statusReason: null,
+        at: new Date(),
+      }));
+    }
+
     return {
       orderNo,
       orderStatus: initialState.orderStatus,
@@ -349,6 +368,16 @@ export async function createCheckoutOrder(params: {
 
 export async function completeDelivery(orderNo: string, userId: number | null) {
   return transaction(async (conn) => {
-    return completeOrderDelivery(conn, orderNo, userId ?? null, makeBizNo);
+    const result = await completeOrderDelivery(conn, orderNo, userId ?? null, makeBizNo);
+
+    // 契约 §8.1：完成事件与库存扣减/主表状态同事务（复用同一 conn）
+    await appendMiniappRetailCompletedEvent(conn as unknown as PoolConnection, orderNo, {
+      actorId: userId,
+      actorType: "user",
+      action: "STORE_COMPLETE",
+    });
+
+    return result;
   });
 }
+

@@ -251,12 +251,18 @@ export function assertKnownFamily(family: string): OrderFamily {
   return family as OrderFamily;
 }
 
+/** 需要按主表门店做隔离的族（门店级用户只能看本门店订单，§5.2） */
+const STORE_SCOPED_FAMILIES: Partial<Record<OrderFamily, { table: string; noCol: string }>> = {
+  sale_bill: { table: "t_sale_bill", noCol: "bill_no" },
+  miniapp_retail: { table: "t_miniapp_order", noCol: "order_no" },
+};
+
 /**
  * 订单进度查询（§4.3）。
  *
  * 强制判据：
  * 1. `WHERE tenant_id = ?`（§5.1，跨租户零命中）；
- * 2. 门店级用户 ⇒ 销售单主表 store_id 必须命中本门店，否则 404（不泄露存在性，同 S3-209 口径）；
+ * 2. 门店级用户 ⇒ 订单主表 store_id 必须命中本门店，否则 404（不泄露存在性，同 S3-209 口径）；
  * 3. visible_to 与调用者角色取交集（AI 通道走 §5.4 白名单投影）。
  */
 export async function queryOrderProgress(
@@ -269,14 +275,15 @@ export async function queryOrderProgress(
   const sinceSeq = params.sinceSeq != null && Number.isFinite(params.sinceSeq) ? Math.max(0, Math.floor(params.sinceSeq)) : null;
   const fromSeq = Math.max(cursorSeq ?? 0, sinceSeq ?? 0);
 
-  // 门店隔离：sale_bill 族先确认该单在本门店可见
-  if (caller.storeScoped && family === "sale_bill") {
+  // 门店隔离：先确认该单在本门店可见（sale_bill / miniapp_retail 各自主表）
+  const scope = STORE_SCOPED_FAMILIES[family];
+  if (caller.storeScoped && scope) {
     const bill = await queryOneWithTenant<RowDataPacket & { store_id: number }>(
-      "SELECT store_id FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?",
+      `SELECT store_id FROM ${scope.table} WHERE ${scope.noCol} = ? AND tenant_id = ?`,
       [params.orderNo, caller.tenantId],
       caller.tenantId,
     );
-    if (!bill || bill.store_id !== caller.storeId) {
+    if (!bill || Number(bill.store_id) !== Number(caller.storeId)) {
       throw new AppError("订单进度不存在", 404);
     }
   }
