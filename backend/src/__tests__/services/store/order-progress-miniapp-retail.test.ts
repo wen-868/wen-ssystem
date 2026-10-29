@@ -1,7 +1,7 @@
 /**
  * TOTAL-ORDER-PROGRESS-03 · miniapp_retail 全生命周期进度事件契约测试
- * 被测文件：src/shared/order-progress-events.ts + 各写点 service
- * 条件数 ≥ 20（卡片交付要求）
+ * 被测文件：src/shared/order-progress-events.ts + 各写点 service + 查询服务 + 即时零售转单
+ * 条件数 ≥ 20（卡片交付要求；本文件现含 31 条）
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -9,13 +9,33 @@ import {
   appendOrderProgressEvent,
   miniappRetailEvent,
   appendMiniappRetailCompletedEvent,
-} from "../../shared/order-progress-events";
-import { validateAndDerive } from "../../shared/order-progress-contract";
-import { acceptOrder, cancelOrder as storeCancelOrder, rejectOrder, startDelivery } from "../../services/store/order.service";
-import { cancelOrder as adminCancelOrder } from "../../services/admin/order.service";
-import { markOrderPaid } from "../../services/miniapp.service";
-import { createCheckoutOrder, completeDelivery } from "../../services/miniapp/checkout.service";
-import { processTimeoutConfig } from "../../services/admin/order-timeout.service";
+} from "../../../shared/order-progress-events";
+import { validateAndDerive } from "../../../shared/order-progress-contract";
+import { acceptOrder, cancelOrder as storeCancelOrder, rejectOrder, startDelivery } from "../../../services/store/order.service";
+import { cancelOrder as adminCancelOrder } from "../../../services/admin/order.service";
+import { markOrderPaid } from "../../../services/miniapp.service";
+import { createCheckoutOrder, completeDelivery } from "../../../services/miniapp/checkout.service";
+import { processTimeoutConfig } from "../../../services/admin/order-timeout.service";
+import { queryOrderProgress } from "../../../services/store/order-progress-query.service";
+import { handleWebhook } from "../../../services/admin/instant-retail.service";
+import { AppError } from "../../../shared/app-error";
+
+// 即时零售转单写点：adapter 与平台配置模块整体替换（webhook 入口外部依赖）
+const irMocks = vi.hoisted(() => ({
+  getPlatformConfig: vi.fn(),
+  getAdapter: vi.fn(),
+  parseUnifiedOrder: vi.fn(),
+}));
+vi.mock("../../../services/instant-retail/adapters/index", () => ({
+  getAdapter: irMocks.getAdapter,
+  parsePlatformType: vi.fn((p: string) => p),
+  parseUnifiedOrder: irMocks.parseUnifiedOrder,
+}));
+vi.mock("../../../services/instant-retail/common.service", () => ({
+  maskConfig: vi.fn((c: unknown) => c),
+  getPlatformConfig: irMocks.getPlatformConfig,
+  getPlatformConfigWithTenant: vi.fn(),
+}));
 
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
@@ -26,7 +46,7 @@ const mocks = vi.hoisted(() => ({
   connExecute: vi.fn(),
 }));
 
-vi.mock("../../shared/db", () => ({
+vi.mock("../../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
@@ -111,7 +131,7 @@ describe("miniapp_retail 进度事件全生命周期", () => {
       .mockResolvedValueOnce([[{ order_no: "DD1", store_id: 1, customer_type: "RETAIL" }]])
       .mockResolvedValueOnce([[{ sku_id: 10, reserved_qty: 2 }]]);
     mockConn.execute.mockResolvedValue([{ affectedRows: 1 }]);
-    const { rejectOrder: rj } = await import("../../services/store/order.service");
+    const { rejectOrder: rj } = await import("../../../services/store/order.service");
     await rj("DD1", 1, "t1");
     const eventCalls = mockConn.execute.mock.calls.filter((c: any) =>
       String(c[0]).includes("t_order_progress_event"),
@@ -317,6 +337,8 @@ describe("miniapp_retail 进度事件全生命周期", () => {
       String(c[0]).includes("INSERT INTO t_order_progress_event"),
     );
     expect(insertCalls.length).toBe(1); // 幂等：只写一次 PENDING_SHIP
+    // 事件阶段必须映射 PENDING_SHIP（契约 §三：支付 ⇒ order.progress.miniapp_retail.pending_ship）
+    expect((insertCalls[0][1] as unknown[])).toContain("order.progress.miniapp_retail.pending_ship");
   });
 
   // 条件 19：超时筛选口径 PENDING_PAYMENT + UNPAID，并发守卫 affectedRows=1
@@ -345,6 +367,13 @@ describe("miniapp_retail 进度事件全生命周期", () => {
         String(c[0]).includes("PENDING_PAYMENT"),
     );
     expect(guardCalls.length).toBeGreaterThanOrEqual(1);
+    // PAYMENT_TIMEOUT 九码与 retry_entry 必须随事件落库（契约 §7.1 needRetryEntry=true）
+    const evInsert = mockConn.execute.mock.calls.find((c: any) =>
+      String(c[0]).includes("INSERT INTO t_order_progress_event"),
+    );
+    expect(evInsert).toBeTruthy();
+    expect(evInsert![1] as unknown[]).toContain("PAYMENT_TIMEOUT");
+    expect(evInsert![1] as unknown[]).toContain("miniapp:/orders/create-again");
   });
 
   // 条件 20：系统/cron 主体缺 actorId 时兜底使用 actorFallback
@@ -411,5 +440,187 @@ describe("miniapp_retail 进度事件全生命周期", () => {
       ),
     ).rejects.toThrow();
     expect(typeof failingConn.execute).toBe("function");
+  });
+
+  // 条件 24：即时零售转单落 t_miniapp_order ⇒ 同事务写 PENDING_PAYMENT 事件（写点 #2）
+  it("instant-retail handleWebhook 转单同事务写 PENDING_PAYMENT 事件，真值读回不反推", async () => {
+    const payload = { platformOrderId: "P100", status: "PENDING", payAmount: 59.9 };
+    irMocks.getPlatformConfig.mockResolvedValue({ platform: "JD", storeId: "1" });
+    irMocks.getAdapter.mockReturnValue({ verifyWebhook: vi.fn().mockResolvedValue({ valid: true, payload }) });
+    irMocks.parseUnifiedOrder.mockReturnValue({
+      platformOrderId: "P100", platform: "JD", storeId: "2", status: "PENDING",
+      orderId: "IR_JD_P100", payAmount: 59.9,
+      address: { name: "张三", phone: "13800000000", province: "粤", city: "深圳", district: "南山", detail: "科技园" },
+      items: [{ localSkuId: 1, name: "商品A", quantity: 2, unitPrice: 29.95, totalPrice: 59.9 }],
+      remark: "",
+    });
+    mockConn.query.mockResolvedValueOnce([[]]); // 转单存在性检查：无既有单
+    setupTransactionMock((sql) => {
+      const s = String(sql);
+      if (s.includes("SELECT tenant_id, store_id, customer_type, order_status FROM t_miniapp_order"))
+        return [[{ tenant_id: "default", store_id: 2, customer_type: "RETAIL", order_status: "PENDING_PAYMENT" }]];
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 0 }]];
+        return [[]];
+      }
+      return [{ affectedRows: 1 }];
+    });
+    const res = await handleWebhook("JD", payload, "sig", "ts");
+    expect(res.status).toBe(200);
+    const eventInserts = mockConn.execute.mock.calls.filter((c: any) =>
+      String(c[0]).includes("INSERT INTO t_order_progress_event"),
+    );
+    expect(eventInserts.length).toBe(1);
+    const params = eventInserts[0][1] as unknown[];
+    expect(params).toContain("miniapp_retail");
+    expect(params).toContain("IR_JD_P100");
+    expect(params).toContain("PENDING_PAYMENT");
+    expect(params).toContain("default"); // 租户真值从主表读回
+  });
+
+  // 条件 25：支付与超时并发——超时 UPDATE 未命中（支付先成功）⇒ 不写 SUCCESS 日志、不写 PAYMENT_TIMEOUT 事件
+  it("超时 UPDATE affectedRows=0（支付先成功）⇒ 不写 SUCCESS 日志也不写 PAYMENT_TIMEOUT 事件", async () => {
+    mocks.query.mockResolvedValueOnce([{ id: 200, order_no: "XS002" }]);
+    setupTransactionMock((sql) => {
+      const s = String(sql);
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 0 }]; // 并发：已被支付/状态推进
+      return [{ affectedRows: 1 }];
+    });
+    await processTimeoutConfig({
+      id: 1, order_type: "SALE", timeout_type: "WAIT_PAY", timeout_minutes: 30, action: "CANCEL", tenant_id: 1,
+    });
+    const logCalls = mockConn.execute.mock.calls.filter((c: any) => String(c[0]).includes("t_order_timeout_log"));
+    const eventCalls = mockConn.execute.mock.calls.filter((c: any) => String(c[0]).includes("t_order_progress_event"));
+    expect(logCalls.length).toBe(0);
+    expect(eventCalls.length).toBe(0);
+  });
+
+  // 条件 26：查询 SQL 强制 tenant_id 谓词 + 租户参数绑定（跨租户同单号零泄漏前置）
+  it("queryOrderProgress 事件 SQL 强制 tenant_id = ? 谓词，绑定调用者租户", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null).mockResolvedValueOnce({ progress_seq: 0 });
+    const res = await queryOrderProgress(
+      { tenantId: "T1", roles: ["SUPER_ADMIN"], storeId: null, storeScoped: false },
+      { orderFamily: "miniapp_retail", orderNo: "DD-SHARED" },
+    );
+    expect(res.order_family).toBe("miniapp_retail");
+    const sql = String(mocks.queryWithTenant.mock.calls[0][0]);
+    expect(sql).toContain("tenant_id = ?");
+    expect(sql).toContain("order_family = ?");
+    expect(mocks.queryWithTenant.mock.calls[0][1][0]).toBe("T1"); // 绑定调用者租户，非单号归属租户
+    // 另一租户同单号 ⇒ 绑定切换为 T2，谓词不变 ⇒ 数据库层零泄漏
+    mocks.queryWithTenant.mockClear();
+    mocks.queryWithTenant.mockResolvedValueOnce([]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null).mockResolvedValueOnce({ progress_seq: 0 });
+    await queryOrderProgress(
+      { tenantId: "T2", roles: ["SUPER_ADMIN"], storeId: null, storeScoped: false },
+      { orderFamily: "miniapp_retail", orderNo: "DD-SHARED" },
+    );
+    expect(mocks.queryWithTenant.mock.calls[0][1][0]).toBe("T2");
+  });
+
+  // 条件 27：门店隔离——门店级用户查 miniapp_retail，主表 store_id 不匹配 ⇒ 404 不泄露存在性
+  it("storeScoped 用户 miniapp_retail 主表 store_id 不匹配 ⇒ 404", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ store_id: 2 }); // 主表在门店 2
+    await expect(queryOrderProgress(
+      { tenantId: "T1", roles: ["SALES_STAFF"], storeId: 1, storeScoped: true },
+      { orderFamily: "miniapp_retail", orderNo: "DD-OTHER-STORE" },
+    )).rejects.toMatchObject({ statusCode: 404 });
+    const sql = String(mocks.queryOneWithTenant.mock.calls[0][0]);
+    expect(sql).toContain("t_miniapp_order");
+    expect(sql).toContain("tenant_id = ?");
+  });
+
+  // 条件 28：门店隔离——store_id 匹配 ⇒ 正常返回且走同一租户谓词
+  it("storeScoped 用户 store_id 匹配 ⇒ 查询放行且 SQL 带租户谓词", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ store_id: 1 });
+    mocks.queryWithTenant.mockResolvedValueOnce([]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null).mockResolvedValueOnce({ progress_seq: 2 });
+    const res = await queryOrderProgress(
+      { tenantId: "T1", roles: ["STORE_MANAGER"], storeId: 1, storeScoped: true },
+      { orderFamily: "miniapp_retail", orderNo: "DD-MINE" },
+    );
+    expect(res.order_no).toBe("DD-MINE");
+    expect(res.last_seq).toBe(2);
+    const sql = String(mocks.queryWithTenant.mock.calls[0][0]);
+    expect(sql).toContain("tenant_id = ?");
+  });
+
+  // 条件 29：since_seq 游标——SQL progress_seq > sinceSeq 参数绑定
+  it("since_seq 增量：progress_seq > sinceSeq 以参数绑定传入", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null).mockResolvedValueOnce({ progress_seq: 9 });
+    await queryOrderProgress(
+      { tenantId: "T1", roles: ["SUPER_ADMIN"], storeId: null, storeScoped: false },
+      { orderFamily: "miniapp_retail", orderNo: "DD1", sinceSeq: 5 },
+    );
+    const sql = String(mocks.queryWithTenant.mock.calls[0][0]);
+    expect(sql).toContain("progress_seq > ?");
+    expect(mocks.queryWithTenant.mock.calls[0][1][3]).toBe(5); // 第 4 个绑定参数 = sinceSeq
+  });
+
+  // 条件 30：AI 通道字段裁剪——白名单投影，actor/source/idempotency/内部字段不下发，金额文本打码
+  it("AI 通道 miniapp_retail 只读结果裁剪：无 actor_id/source_event_id/idempotency_key/金额，status_reason 金额打码", async () => {
+    const sample = miniappRetailEvent({
+      tenantId: "T1", storeId: 1, orderNo: "DD1", businessStage: "PENDING_SHIP", businessStatus: "PENDING_SHIP",
+      actorType: "user", actorId: 42, upstreamBizKey: "DD1:PAID",
+      statusReason: "应收 59.90 元", at: new Date(),
+    });
+    mocks.queryWithTenant.mockResolvedValueOnce([{
+      progress_seq: 1, tenant_id: "T1", store_id: 1, order_family: "miniapp_retail", order_no: "DD1",
+      source_event_id: "a".repeat(64),
+      event_name: "order.progress.miniapp_retail.pending_ship", event_version: "1.0.0",
+      business_stage: "PENDING_SHIP", business_status: "PENDING_SHIP",
+      failure_code: null, retry_entry: null, manual_intervention_url: null,
+      status_reason: "应收 59.90 元", actor_type: "user", actor_id: "42",
+      visible_to: JSON.stringify(sample.visibleTo),
+      field_filter: JSON.stringify(sample.fieldFilter),
+      idempotency_key: "b".repeat(64),
+      started_at: "2026-10-29 10:00:00", ended_at: null, created_at: "2026-10-29 10:00:00",
+    }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null).mockResolvedValueOnce({ progress_seq: 1 });
+    const res = await queryOrderProgress(
+      { tenantId: "T1", roles: ["SUPER_ADMIN"], storeId: null, storeScoped: false },
+      { orderFamily: "miniapp_retail", orderNo: "DD1", channel: "ai" },
+    );
+    expect(res.events.length).toBe(1);
+    const ev = res.events[0] as Record<string, unknown>;
+    expect(ev).not.toHaveProperty("actor_id");
+    expect(ev).not.toHaveProperty("source_event_id");
+    expect(ev).not.toHaveProperty("idempotency_key");
+    expect(ev).not.toHaveProperty("visible_to");
+    expect(ev).not.toHaveProperty("store_id");
+    expect(String(ev.status_reason)).not.toContain("59.90");
+    expect(ev.actor_type).toBe("user"); // 类型可下发，ID 不下发
+  });
+
+  // 条件 31：人读通道消费者/店员视角隐藏内部键（field_filter.hidden_fields.consumer 生效）
+  it("人读通道按 field_filter.hidden_fields 裁剪内部键，金额文本对非豁免角色打码", async () => {
+    const sample = miniappRetailEvent({
+      tenantId: "T1", storeId: 1, orderNo: "DD1", businessStage: "CANCELLED", businessStatus: "CANCELLED",
+      actorType: "user", actorId: 42, upstreamBizKey: "DD1:USER_CANCEL",
+      statusReason: "含金额 88.00 的原因", at: new Date(),
+    });
+    mocks.queryWithTenant.mockResolvedValueOnce([{
+      progress_seq: 1, tenant_id: "T1", store_id: 1, order_family: "miniapp_retail", order_no: "DD1",
+      source_event_id: "c".repeat(64),
+      event_name: "order.progress.miniapp_retail.cancelled", event_version: "1.0.0",
+      business_stage: "CANCELLED", business_status: "CANCELLED",
+      failure_code: null, retry_entry: null, manual_intervention_url: null,
+      status_reason: "含金额 88.00 的原因", actor_type: "user", actor_id: "42",
+      visible_to: JSON.stringify(sample.visibleTo),
+      field_filter: JSON.stringify(sample.fieldFilter),
+      idempotency_key: "d".repeat(64),
+      started_at: "2026-10-29 10:00:00", ended_at: "2026-10-29 10:00:00", created_at: "2026-10-29 10:00:00",
+    }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null).mockResolvedValueOnce({ progress_seq: 1 });
+    // SALES_STAFF ⇒ store_staff token：非豁免角色 ⇒ 金额打码；consumer 隐藏面不含 store_staff ⇒ actor_id 保留给店员
+    const res = await queryOrderProgress(
+      { tenantId: "T1", roles: ["SALES_STAFF"], storeId: 1, storeScoped: false },
+      { orderFamily: "miniapp_retail", orderNo: "DD1" },
+    );
+    const ev = res.events[0] as Record<string, unknown>;
+    expect(String(ev.status_reason)).not.toContain("88.00");
+    expect(ev.visible_to).toEqual(sample.visibleTo);
   });
 });

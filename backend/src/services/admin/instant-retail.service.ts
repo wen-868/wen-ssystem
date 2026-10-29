@@ -11,6 +11,9 @@ import { getAdapter, parsePlatformType, parseUnifiedOrder } from "../instant-ret
 import type { PlatformType } from "../instant-retail/types";
 import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "../instant-retail/common.service";
 import { warnIfStockShortage } from "../instant-retail/shortage-handler.service";
+import type { PoolConnection } from "mysql2/promise";
+import type { RowDataPacket } from "mysql2";
+import { appendOrderProgressEvent, miniappRetailEvent } from "../../shared/order-progress-events";
 
 // ========== 类型定义 ==========
 
@@ -335,6 +338,38 @@ export async function handleWebhook(platform: PlatformType, rawBody: Record<stri
               item.totalPrice
             ]
           );
+        }
+
+        // TOTAL-ORDER-PROGRESS-03：即时零售转单落 t_miniapp_order ⇒ 与主表/明细同一事务写
+        // PENDING_PAYMENT 进度事件（契约 §8.1：事件失败 ⇒ 整个 webhook 事务回滚）。
+        // 仅在本事务新建成功时写一次；重复 webhook（同单已存在）不重插也不重写，
+        // source_event_id 六成分（含 upstreamBizKey=unified.orderId）兜底幂等。
+        // 租户/门店/族/状态真值从同事务主表读回（webhook 入口无 JWT 租户上下文，
+        // t_miniapp_order.tenant_id 落库默认 'default'，business_status 取落库真实值不反推）。
+        const [truthRows] = await conn.execute<(RowDataPacket & {
+          tenant_id: string;
+          store_id: number | string | null;
+          customer_type: string;
+          order_status: string;
+        })[]>(
+          `SELECT tenant_id, store_id, customer_type, order_status FROM t_miniapp_order WHERE order_no = ? LIMIT 1`,
+          [unified.orderId]
+        );
+        const truth = truthRows[0];
+        if (truth && truth.customer_type === "RETAIL") {
+          await appendOrderProgressEvent(conn as unknown as PoolConnection, miniappRetailEvent({
+            tenantId: String(truth.tenant_id),
+            storeId: truth.store_id,
+            orderNo: unified.orderId,
+            businessStage: "PENDING_PAYMENT",
+            businessStatus: String(truth.order_status),
+            actorType: "system",
+            actorId: null,
+            upstreamBizKey: unified.orderId,
+            statusReason: "即时零售平台转单",
+            at: new Date(),
+            actorFallback: `instant-retail-webhook:${platform}`,
+          }));
         }
       }
     }
