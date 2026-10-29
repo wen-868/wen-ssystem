@@ -735,7 +735,24 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   const QODER_9_WIRED_FILES = new Map<string, number>([["aftersale.routes.ts", 4]]);
   const QODER_9_WIRED_TOTAL = [...QODER_9_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17 + QODER-9 新增 4", () => {
+  // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30 · 会员域写端点立码 5 条）追加说明：
+  //   凌舟裁定（任务卡 §二）5 条挂**既有/已注册**码（不新立码、不改角色种子、不动迁移）：
+  //     store.routes.ts 2（POST /manage = customer:create、PUT /:id = customer:edit）
+  //     ＋store-value-card.routes.ts 2（POST / 与 POST /:cardNo/recharge = finance:create，同文件走累加：
+  //       G1 的 1 + 本批 2 = 3）
+  //     ＋points.routes.ts 1（POST /:id/points/adjust = customer:points，同文件走累加：
+  //       S3-226 的 2 + S3-231 的 4 + 本批 1 = 7）。
+  //   customer:points 已有正式注册行（app-mobile-menu-catalog.ts:70 + function-menu.ts:85）⇒ 无新迁移。
+  //   逐行 403/200 断言在 `total-member-permission-codes-wiring.test.ts`；台账同步见
+  //   `backend/scripts/rbac-wiring-baseline.json` `_total_member_permission_codes_note`。
+  const TOTAL_PC_WIRED_FILES = new Map<string, number>([
+    ["store.routes.ts", 2],
+    ["store-value-card.routes.ts", 2],
+    ["points.routes.ts", 1],
+  ]);
+  const TOTAL_PC_WIRED_TOTAL = [...TOTAL_PC_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
+
+  it("backend/src/routes 下 `requirePermission(` 出现次数 = G0 名单条数 32 + G1 新增 8 + S3-126 新增 8 + G2 新增 1 + C6-4-1 新增 4 + S3-142 新增 1 + S3-180 新增 2 + S3-198 新增 25 + S3-209 新增 1 + S3-214 新增 25 + S3-220 新增 15 + S3-222 新增 42 + S3-223 新增 19 + S3-224 新增 32 + S3-225 新增 11 + S3-226 新增 65 + S3-229 新增 17 + S3-231 新增 4 + S3-233 新增 57 + S3-237 新增 17 + QODER-9 新增 4 + TOTAL-MEMBER-PERMISSION-CODES-01 新增 5", () => {
     const files = readdirSync(ROUTES_DIR).filter((f) => f.endsWith(".routes.ts"));
     const perFile = new Map<string, number>();
     let total = 0;
@@ -745,7 +762,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
       if (n > 0) perFile.set(f, n);
       total += n;
     }
-    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL + S3_226_WIRED_TOTAL + S3_229_WIRED_TOTAL + S3_231_WIRED_TOTAL + S3_233_WIRED_TOTAL + S3_237_WIRED_TOTAL + QODER_9_WIRED_TOTAL);
+    expect(total).toBe(G0_TOTAL + G1_WIRED_TOTAL + S3_126_WIRED_TOTAL + G2_WIRED_TOTAL + C6_4_1_WIRED_TOTAL + S3_142_WIRED_TOTAL + S3_180_WIRED_TOTAL + S3_198_WIRED_TOTAL + S3_209_WIRED_TOTAL + S3_214_WIRED_TOTAL + S3_220_WIRED_TOTAL + S3_222_WIRED_TOTAL + S3_223_WIRED_TOTAL + S3_224_WIRED_TOTAL + S3_225_WIRED_TOTAL + S3_226_WIRED_TOTAL + S3_229_WIRED_TOTAL + S3_231_WIRED_TOTAL + S3_233_WIRED_TOTAL + S3_237_WIRED_TOTAL + QODER_9_WIRED_TOTAL + TOTAL_PC_WIRED_TOTAL);
 
     // S3-227 A（本单）：删除原 `expect(total).toBe(226)` 裸数字断言。
     //   为什么删：那是一个跨批共享的**单点数字**，每批都要改同一行（批 3⇒149、批 5⇒183、批 6⇒215、批 7⇒226 …），
@@ -787,7 +804,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
     for (const [f, n] of G1_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of S3_126_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
     for (const [f, n] of G2_WIRED_FILES) expected.set(f, (expected.get(f) ?? 0) + n);
-    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_224_WIRED_FILES, ...S3_225_WIRED_FILES, ...S3_226_WIRED_FILES, ...S3_229_WIRED_FILES, ...S3_231_WIRED_FILES, ...S3_233_WIRED_FILES, ...S3_237_WIRED_FILES, ...QODER_9_WIRED_FILES])
+    for (const [f, n] of [...C6_4_1_WIRED_FILES, ...S3_142_WIRED_FILES, ...S3_180_WIRED_FILES, ...S3_198_WIRED_FILES, ...S3_209_WIRED_FILES, ...S3_214_WIRED_FILES, ...S3_220_WIRED_FILES, ...S3_222_WIRED_FILES, ...S3_223_WIRED_FILES, ...S3_224_WIRED_FILES, ...S3_225_WIRED_FILES, ...S3_226_WIRED_FILES, ...S3_229_WIRED_FILES, ...S3_231_WIRED_FILES, ...S3_233_WIRED_FILES, ...S3_237_WIRED_FILES, ...QODER_9_WIRED_FILES, ...TOTAL_PC_WIRED_FILES])
       // ⚠️ S3-231 F1：同文件可被**两个批次**声明（points.routes.ts = S3-226 的 2 + S3-231 的 4）
       //    ⇒ 必须**累加**；用 `set(f, n)` 会让后一个块**覆盖**前一个块的声明（抹掉他人接线数）。
       //    S3-233（本批）同规则：`admin-product.routes.ts` 等若与既有块同文件，也走累加。
@@ -942,7 +959,9 @@ describe("S3-122-F2 G0 接线 · 范围控制：未纳入 G0 的端点不被拦�
     // rbac-b2-s3-233-gate-wiring-parity.test.ts（与 rbac-b2-s3-214-purchase-wiring.test.ts 的收编行）。
     { label: "查询型 POST /api/admin/prices/best-price（待裁定）", prefix: "/api/admin/prices", router: priceRouter, method: "post", path: "/best-price" },
     { label: "催收（归 G2）POST /api/admin/credits/collections", prefix: "/api/admin/credits", router: creditRouter, method: "post", path: "/collections" },
-    { label: "储值卡充值（非退款行）POST /api/admin/store-value-cards/:cardNo/recharge", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", path: "/VC1/recharge" },
+    // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）订正：原「储值卡充值（非退款行）
+    // POST /api/admin/store-value-cards/:cardNo/recharge」一行已由本卡接线（凌舟裁定既有码 finance:create）
+    // ⇒ 从本名单移出；该行的 403/200 断言见 total-member-permission-codes-wiring.test.ts。
     { label: "普通写 POST /api/admin/payments-new/", prefix: "/api/admin/payments-new", router: paymentNewRouter, method: "post", path: "/" },
     { label: "幂等 POST /api/admin/commission/calculate", prefix: "/api/admin/commission", router: commissionRouter, method: "post", path: "/calculate" },
     { label: "普通写 POST /api/admin/sale-returns/（创建退货单）", prefix: "/api/admin/sale-returns", router: saleReturnRouter, method: "post", path: "/" },
