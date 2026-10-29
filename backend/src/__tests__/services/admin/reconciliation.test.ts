@@ -123,3 +123,69 @@ describe("admin reconciliation.service - confirmSupplierReconciliation", () => {
     expect(mocks.queryWithTenant).toHaveBeenCalledOnce();
   });
 });
+
+// ============ 详情 SQL 别名回归（TOTAL-RECON-DETAIL-SQL-ALIAS-01） ============
+// 背景：客户详情 SQL 的 conditions 使用 `r.tenant_id`，但 FROM 子句曾缺失 `r` 别名，
+// 导致真实 MySQL 报 Unknown column 'r.tenant_id'（HTTP 500）。以下测试锁定
+// "WHERE 前缀列" 与 "FROM 表别名" 必须一致，防止同类回归。
+describe("admin reconciliation.service - 详情 SQL 别名回归（TOTAL-RECON-DETAIL-SQL-ALIAS-01）", () => {
+  const fetchSqls = () => ({
+    summarySql: mocks.queryOneWithTenant.mock.calls[1]?.[0] as string,
+    detailSql: mocks.queryWithTenant.mock.calls[0]?.[0] as string,
+  });
+
+  it("客户详情：FROM t_receivable 带 r 别名，与 r.tenant_id 条件匹配", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1, name: "张三" })
+      .mockResolvedValueOnce({ totalReceivable: 0, totalReceived: 0, balance: 0 });
+    mocks.queryWithTenant.mockResolvedValue([]);
+    await getCustomerReconciliationDetail(1, "t1");
+
+    const { summarySql, detailSql } = fetchSqls();
+    // conditions 中的 r.tenant_id / r.customer_id 必须有对应 FROM 别名 r
+    expect(summarySql).toContain("FROM t_receivable r WHERE r.tenant_id");
+    expect(detailSql).toContain("FROM t_receivable r WHERE r.tenant_id");
+    // 禁止回归：FROM 无别名却使用 r. 前缀（Unknown column 'r.tenant_id' 复发点）
+    expect(summarySql).not.toMatch(/FROM\s+t_receivable(?!\s+r)\s+WHERE\s+r\./);
+    expect(detailSql).not.toMatch(/FROM\s+t_receivable(?!\s+r)\s+WHERE\s+r\./);
+  });
+
+  it("供应商详情：FROM t_payable 带 p 别名，与 p.tenant_id 条件匹配", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1, name: "供应商A" })
+      .mockResolvedValueOnce({ totalPayable: 0, totalPaid: 0, balance: 0 });
+    mocks.queryWithTenant.mockResolvedValue([]);
+    await getSupplierReconciliationDetail(1, "t1");
+
+    const { summarySql, detailSql } = fetchSqls();
+    expect(summarySql).toContain("FROM t_payable p WHERE p.tenant_id");
+    expect(detailSql).toContain("FROM t_payable p WHERE p.tenant_id");
+    expect(summarySql).not.toMatch(/FROM\s+t_payable(?!\s+p)\s+WHERE\s+p\./);
+    expect(detailSql).not.toMatch(/FROM\s+t_payable(?!\s+p)\s+WHERE\s+p\./);
+  });
+
+  it("跨租户隔离：租户条件参数绑定（? 占位），tenantId 不拼接进 SQL", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1, name: "张三" })
+      .mockResolvedValueOnce({ totalReceivable: 0, totalReceived: 0, balance: 0 });
+    mocks.queryWithTenant.mockResolvedValue([]);
+    await getCustomerReconciliationDetail(1, "tenant-A");
+
+    const { summarySql, detailSql } = fetchSqls();
+    // 租户条件存在且经 ? 参数绑定，不允许把租户值内插进 SQL 文本
+    expect(summarySql).toMatch(/tenant_id\s*=\s*\?/);
+    expect(detailSql).toMatch(/tenant_id\s*=\s*\?/);
+    expect(summarySql).not.toContain("tenant-A");
+    expect(detailSql).not.toContain("tenant-A");
+    // 参数首位的 tenantId 与调用传入一致（跨租户不可泄漏的隔离口径）
+    expect(mocks.queryOneWithTenant.mock.calls[1][1]).toEqual(["tenant-A", 1]);
+    expect(mocks.queryWithTenant.mock.calls[0][1]).toEqual(["tenant-A", 1]);
+    // 供应商详情同口径
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1, name: "供应商A" })
+      .mockResolvedValueOnce({ totalPayable: 0, totalPaid: 0, balance: 0 });
+    mocks.queryWithTenant.mockResolvedValue([]);
+    await getSupplierReconciliationDetail(1, "tenant-B");
+    expect(mocks.queryWithTenant.mock.calls.at(-1)![1]).toEqual(["tenant-B", 1]);
+  });
+});

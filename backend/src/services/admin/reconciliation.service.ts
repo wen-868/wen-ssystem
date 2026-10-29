@@ -90,13 +90,13 @@ export async function getCustomerReconciliationDetail(customerId: number, tenant
   if (endDate) { conditions += " AND r.created_at <= ?"; values.push(endDate); }
   const customer = await queryOneWithTenant<IdNameRow>("SELECT id, name FROM t_member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
   const summary = await queryOneWithTenant<CustomerSummaryRow>(
-    `SELECT COALESCE(SUM(receivable_amount), 0) AS totalReceivable, COALESCE(SUM(received_amount), 0) AS totalReceived, COALESCE(SUM(balance), 0) AS balance
-     FROM t_receivable WHERE ${conditions}`,
+    `SELECT COALESCE(SUM(r.receivable_amount), 0) AS totalReceivable, COALESCE(SUM(r.received_amount), 0) AS totalReceived, COALESCE(SUM(r.balance), 0) AS balance
+     FROM t_receivable r WHERE ${conditions}`,
     values, tenantId
   );
   const details = await queryWithTenant<ReceivableDetailRow>(
-    `SELECT source_type AS sourceType, source_no AS sourceNo, receivable_amount AS receivableAmount, received_amount AS receivedAmount, balance, due_date AS dueDate, status, created_at AS createdAt
-     FROM t_receivable WHERE ${conditions} ORDER BY created_at`,
+    `SELECT r.source_type AS sourceType, r.source_no AS sourceNo, r.receivable_amount AS receivableAmount, r.received_amount AS receivedAmount, r.balance, r.due_date AS dueDate, r.status, r.created_at AS createdAt
+     FROM t_receivable r WHERE ${conditions} ORDER BY r.created_at`,
     values, tenantId
   );
   return { customerId, customerName: customer?.name ?? "", ...summary, details };
@@ -129,19 +129,19 @@ export async function getSupplierReconciliation(tenantId: string, startDate?: st
 }
 
 export async function getSupplierReconciliationDetail(supplierId: number, tenantId: string, startDate?: string, endDate?: string) {
-  let conditions = "tenant_id = ? AND supplier_id = ?";
+  let conditions = "p.tenant_id = ? AND p.supplier_id = ?";
   const values: unknown[] = [tenantId, supplierId];
-  if (startDate) { conditions += " AND created_at >= ?"; values.push(startDate); }
-  if (endDate) { conditions += " AND created_at <= ?"; values.push(endDate); }
+  if (startDate) { conditions += " AND p.created_at >= ?"; values.push(startDate); }
+  if (endDate) { conditions += " AND p.created_at <= ?"; values.push(endDate); }
   const supplier = await queryOneWithTenant<IdNameRow>("SELECT id, name FROM t_supplier WHERE id = ? AND tenant_id = ?", [supplierId, tenantId], tenantId);
   const summary = await queryOneWithTenant<SupplierSummaryRow>(
-    `SELECT COALESCE(SUM(payable_amount), 0) AS totalPayable, COALESCE(SUM(paid_amount), 0) AS totalPaid, COALESCE(SUM(balance), 0) AS balance
-     FROM t_payable WHERE ${conditions}`,
+    `SELECT COALESCE(SUM(p.payable_amount), 0) AS totalPayable, COALESCE(SUM(p.paid_amount), 0) AS totalPaid, COALESCE(SUM(p.balance), 0) AS balance
+     FROM t_payable p WHERE ${conditions}`,
     values, tenantId
   );
   const details = await queryWithTenant<PayableDetailRow>(
-    `SELECT source_type AS sourceType, source_no AS sourceNo, payable_amount AS payableAmount, paid_amount AS paidAmount, balance, due_date AS dueDate, status, created_at AS createdAt
-     FROM t_payable WHERE ${conditions} ORDER BY created_at`,
+    `SELECT p.source_type AS sourceType, p.source_no AS sourceNo, p.payable_amount AS payableAmount, p.paid_amount AS paidAmount, p.balance, p.due_date AS dueDate, p.status, p.created_at AS createdAt
+     FROM t_payable p WHERE ${conditions} ORDER BY p.created_at`,
     values, tenantId
   );
   return { supplierId, supplierName: supplier?.name ?? "", ...summary, details };
