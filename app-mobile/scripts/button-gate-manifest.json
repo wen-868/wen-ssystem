@@ -1,8 +1,8 @@
 {
-  "version": 2,
-  "task": "MOBILE-32F2",
+  "version": 3,
+  "task": "MOBILE-32F2 + MOBILE-32F3",
   "baseline": "05ae4180b63bb10ec2ef1a8f9d0d9e8156828f41",
-  "note": "actionId 为三方共用唯一标识（manifest / 源码门控 / 审计器），不得各自漂移。真实写动作按卡§三判据：handler 直达或一层跟随到 POST/PUT/PATCH/DELETE/upload。UI_ONLY / READ_ONLY 不计入 UNGATED。endpoint 均取自 api/modules/*.ts 实测行号（见中央证据 raw/endpoint-map.txt）。",
+  "note": "actionId 为三方共用唯一标识（manifest / 源码门控 / 审计器），不得各自漂移。真实写动作按卡§三判据：handler 直达或一层跟随到 POST/PUT/PATCH/DELETE/upload。UI_ONLY / READ_ONLY 不计入 UNGATED。endpoint 均取自 api/modules/*.ts 实测行号（见中央证据 raw/endpoint-map.txt）。\nMOBILE-32F3（费用/收款/对账三页）：新增 expenses、receipts、reconciliation 三个 page 域共 10 条（5 GATED 写 + 2 UI_ONLY + 3 READ_ONLY）。写码逐条取后端实证：expense.routes.ts:19/20 ⇒ finance:create；receipt.routes.ts:23 ⇒ finance:receipt:create；reconciliation.routes.ts:14/17 ⇒ report:finance。recon 两条为 GATED（后端有码），此前误标 BLOCKED 已撤回。receipts.vue 的 rcpt-void 在 MOBILE-32 已接线，本卡纳入 manifest 守恒。",
   "pages": [
     {
       "id": "create-sale",
@@ -11,6 +11,18 @@
     {
       "id": "product-detail",
       "file": "src/pages/products/product-detail.vue"
+    },
+    {
+      "id": "expenses",
+      "file": "src/pages-sub/finance/finance/expenses.vue"
+    },
+    {
+      "id": "receipts",
+      "file": "src/pages-sub/finance/receipts/receipts.vue"
+    },
+    {
+      "id": "reconciliation",
+      "file": "src/pages-sub/finance/reconciliation/reconciliation.vue"
     }
   ],
   "entries": [
@@ -29,7 +41,8 @@
       "gateExpr": "onActionTap: act.writeGate=gateSaleHold ⇒ !enabled 则 toast+return",
       "status": "GATED",
       "reach": "仅 docKey=sale_order/pur_inbound 产生真实写；其余单据为纯前端标记（UI_ONLY 分支）",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "store-order.routes.ts:31 requirePermission(\"sale:create\") [POST /store/hold-orders]"
     },
     {
       "id": "cs-submitOrder",
@@ -45,7 +58,8 @@
       "gateVar": "gateSaleCreate",
       "gateExpr": "onActionTap: act.writeGate=gateSaleCreate",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "store-sale-bill.routes.ts:11 requirePermission(\"sale:create\") [POST /store/sale-bills]"
     },
     {
       "id": "cs-convertSaleReceipt",
@@ -62,7 +76,8 @@
       "gateExpr": "onActionTap: act.writeGate=gateSaleCreate",
       "status": "GATED",
       "reach": "确认链：先创建销售单再切收款单（卡§三.2）",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "store-sale-bill.routes.ts:11 requirePermission(\"sale:create\") [POST /store/sale-bills]"
     },
     {
       "id": "cs-convertPurInbound",
@@ -78,7 +93,8 @@
       "gateVar": "gatePurchaseOrder",
       "gateExpr": "onActionTap: act.writeGate=gatePurchaseOrder",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "purchase.routes.ts:16 requirePermission(\"purchase:create\") [POST /admin/purchase-orders]"
     },
     {
       "id": "cs-convertPurPayment",
@@ -127,7 +143,8 @@
       "gateExpr": "gatePaymentCreate = null ⇒ onActionTap 不做按钮级预检（不自绑、不伪造）",
       "status": "BLOCKED_BACKEND_CODE",
       "codeProof": "backend/src/routes/payment-new.routes.ts:14 `POST /` 无 requirePermission；同文件 :8-11 记录 S3-223「本行不接」（属 rbac G0/G1/G2 锁定的 C 类待裁）。注册表 purchase-sub-payment 的 finance:payment 对应 /admin/purchase-payments（purchase-payment.routes.ts:14），与本端点不同，不得移用。",
-      "countedAsCompleted": false
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
     },
     {
       "id": "cs-submitSaleReturn",
@@ -142,7 +159,8 @@
       "gateExpr": "gateSaleReturn = null ⇒ onActionTap 不做按钮级预检（不自绑、不伪造）",
       "status": "BLOCKED_BACKEND_CODE",
       "codeProof": "backend/src/routes/sale-return.routes.ts:12 `POST /` 无 requirePermission；同文件 :23-26 记录「POST / 本批不接」理由 = 接了会把 STORE_OPERATOR 打成 403（admin-web pos/SaleReturnView.vue:216 与本页退货链路同受众）。自绑 sale:return 会误禁用现网可用流程，故登记 BLOCKED_BACKEND_CODE 待裁。",
-      "countedAsCompleted": false
+      "countedAsCompleted": false,
+      "approvedWriteAttempts": 0
     },
     {
       "id": "cs-submitPurchaseReturn",
@@ -175,7 +193,8 @@
       "gateVar": "gateGoodsCreate",
       "gateExpr": "saveQuickAdd 首行 gateGoodsCreate.value.enabled",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "admin-product.routes.ts:48 requirePermission(\"goods:create\")（PERM_GOODS_CREATE = \"goods:create\"，定义见 backend/src/shared/goods-permission-codes.ts） [POST /admin/products]"
     },
     {
       "id": "cs-ui-toggles",
@@ -219,7 +238,8 @@
       "gateVar": "gateGoodsCreate",
       "gateExpr": "save 首行 g = spuId ? gateGoodsEdit : gateGoodsCreate ⇒ !g.enabled 则 toast+return",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "admin-product.routes.ts:48 requirePermission(\"goods:create\")（PERM_GOODS_CREATE = \"goods:create\"，定义见 backend/src/shared/goods-permission-codes.ts） [POST /admin/products]"
     },
     {
       "id": "pd-updateProduct",
@@ -235,7 +255,8 @@
       "gateVar": "gateGoodsEdit",
       "gateExpr": "onMainAction 首行 gateGoodsEdit.value.enabled + save 内二次分流",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "admin-product.routes.ts:60 requirePermission(\"goods:edit\") [PUT /admin/products/:id]"
     },
     {
       "id": "pd-updateSkuPrice",
@@ -251,7 +272,8 @@
       "gateVar": "gateGoodsPrice",
       "gateExpr": "价格分支前独立 gateGoodsPrice.value.enabled 检查（不用 goods:edit 大锁替代）",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "admin-product.routes.ts:63 requirePermission(\"goods:price\") [PUT /admin/products/:skuId/price]"
     },
     {
       "id": "pd-updateSku",
@@ -267,7 +289,8 @@
       "gateVar": "gateGoodsEdit",
       "gateExpr": "save 前 gateGoodsEdit 分流",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "admin-product.routes.ts:69 requirePermission(\"goods:edit\") [PUT /admin/products/skus/:skuId]"
     },
     {
       "id": "pd-addSkuUnit",
@@ -300,7 +323,8 @@
       "gateVar": "gateGoodsEdit",
       "gateExpr": "save 前 gateGoodsEdit 分流",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "admin-product.routes.ts:71 requirePermission(\"goods:edit\") [PUT /admin/products/skus/:skuId/units/:unitId]"
     },
     {
       "id": "pd-deleteSkuUnit",
@@ -333,7 +357,8 @@
       "gateVar": "gateGoodsEdit",
       "gateExpr": "save 前 gateGoodsEdit 分流",
       "status": "GATED",
-      "countedAsCompleted": true
+      "countedAsCompleted": true,
+      "codeProof": "admin-product.routes.ts:74 requirePermission(\"goods:edit\") [PUT /admin/products/:spuId/marketing-tags]"
     },
     {
       "id": "pd-pickImage",
@@ -379,6 +404,170 @@
       "gateExpr": null,
       "status": "READ_ONLY",
       "note": "只读不得误禁用"
+    },
+    {
+      "id": "exp-approve",
+      "actionId": "exp-approve",
+      "page": "expenses",
+      "selector": "view.action-btn--approve[通过] @tap.stop",
+      "handler": "approveExpense→showModal.confirm 链",
+      "method": "POST",
+      "endpoint": "/admin/expenses/:expenseNo/approve",
+      "permissionCodes": [
+        "finance:create"
+      ],
+      "gateVar": "gateExpenseApprove",
+      "gateExpr": "@tap.stop=\"gateExpenseApprove.enabled && approveExpense(item)\"",
+      "status": "GATED",
+      "codeProof": "expense.routes.ts:19 requirePermission(\"finance:create\")",
+      "countedAsCompleted": true
+    },
+    {
+      "id": "exp-reject",
+      "actionId": "exp-reject",
+      "page": "expenses",
+      "selector": "view.action-btn--reject[驳回] @tap.stop（确认链经 confirmReject）",
+      "handler": "rejectExpense→confirmReject",
+      "method": "POST",
+      "endpoint": "/admin/expenses/:expenseNo/void",
+      "permissionCodes": [
+        "finance:create"
+      ],
+      "gateVar": "gateExpenseReject",
+      "gateExpr": "@tap.stop=\"gateExpenseReject.enabled && rejectExpense(item)\"",
+      "status": "GATED",
+      "codeProof": "expense.routes.ts:20 requirePermission(\"finance:create\")",
+      "countedAsCompleted": true,
+      "reach": "确认链：驳回弹层点「确定」才发 void 请求（卡§三.2 一层跟随）"
+    },
+    {
+      "id": "rcpt-void",
+      "actionId": "rcpt-void",
+      "page": "receipts",
+      "selector": "button.void-btn[作废] :disabled",
+      "handler": "voidReceipt→showModal.confirm 链",
+      "method": "POST",
+      "endpoint": "/admin/receipts/:receiptNo/void",
+      "permissionCodes": [
+        "finance:receipt:create"
+      ],
+      "gateVar": "gateReceiptVoid",
+      "gateExpr": ":disabled=\"!gateReceiptVoid.enabled\" + @tap=\"gateReceiptVoid.enabled && voidReceipt(item)\"",
+      "status": "GATED",
+      "codeProof": "receipt.routes.ts:23 requirePermission(\"finance:receipt:create\")",
+      "countedAsCompleted": true,
+      "reach": "MOBILE-32 已接线，本卡纳入 manifest 守恒（32F2 时该页在 manifest 之外）"
+    },
+    {
+      "id": "recon-confirm-customer",
+      "actionId": "recon-confirm-customer",
+      "page": "reconciliation",
+      "selector": "button.btn--primary[确认对账]（customer tab 弹层底部）",
+      "handler": "onConfirm",
+      "method": "POST",
+      "endpoint": "/admin/reconciliation/customer/:customerId/confirm",
+      "permissionCodes": [
+        "report:finance"
+      ],
+      "gateVar": "gateReconConfirm",
+      "gateExpr": "@tap=\"gateReconConfirm.enabled && onConfirm()\" + :disabled + onConfirm 首行 enabled 短路",
+      "status": "GATED",
+      "codeProof": "reconciliation.routes.ts:14 requirePermission(\"report:finance\")",
+      "countedAsCompleted": true,
+      "reach": "入口门 canEntry(fin-recon-confirm) 与注册表同源；本卡补按钮级 buttonGate 预判（卡 §四.2）"
+    },
+    {
+      "id": "recon-confirm-supplier",
+      "actionId": "recon-confirm-supplier",
+      "page": "reconciliation",
+      "selector": "button.btn--primary[确认对账]（supplier tab 弹层底部）",
+      "handler": "onConfirm",
+      "method": "POST",
+      "endpoint": "/admin/reconciliation/supplier/:supplierId/confirm",
+      "permissionCodes": [
+        "report:finance"
+      ],
+      "gateVar": "gateReconConfirm",
+      "gateExpr": "同上（同一按钮按 activeTab 分流两端点）",
+      "status": "GATED",
+      "codeProof": "reconciliation.routes.ts:17 requirePermission(\"report:finance\")",
+      "countedAsCompleted": true,
+      "note": "卡§五.2 反测口径：本动作绑 report:finance（对账自己的后端实证码），不得懒绑 finance:create/finance:receipt:create 等其它财务码"
+    },
+    {
+      "id": "exp-fab",
+      "actionId": "exp-fab",
+      "page": "expenses",
+      "selector": "view.fab-btn[+] @tap=goCreate",
+      "handler": "goCreate",
+      "method": null,
+      "endpoint": null,
+      "permissionCodes": [],
+      "gateVar": null,
+      "gateExpr": null,
+      "status": "UI_ONLY",
+      "countedAsCompleted": false,
+      "note": "导航到 expense-create 页（该页不在本卡三页范围）⇒ 本页无写调用，UI_ONLY，不禁用（卡§五.1 非写动作必须标出）"
+    },
+    {
+      "id": "exp-readonly",
+      "actionId": "exp-readonly",
+      "page": "expenses",
+      "selector": "loadExpenses/onSearch/loadMore/goDetail",
+      "handler": "（读接口）",
+      "method": "GET",
+      "endpoint": "/admin/expenses,/admin/expenses/:expenseNo",
+      "permissionCodes": [],
+      "gateVar": null,
+      "gateExpr": null,
+      "status": "READ_ONLY",
+      "countedAsCompleted": false,
+      "note": "只读不得误禁用"
+    },
+    {
+      "id": "rcpt-readonly",
+      "actionId": "rcpt-readonly",
+      "page": "receipts",
+      "selector": "loadReceipts/onSearch/switchTab/clearSearch",
+      "handler": "（读接口）",
+      "method": "GET",
+      "endpoint": "/admin/receipts",
+      "permissionCodes": [],
+      "gateVar": null,
+      "gateExpr": null,
+      "status": "READ_ONLY",
+      "countedAsCompleted": false,
+      "note": "只读不得误禁用"
+    },
+    {
+      "id": "recon-ui",
+      "actionId": "recon-ui",
+      "page": "reconciliation",
+      "selector": "switchTab/goDetail(弹层)/closeDetail/onLoadMore/goBack",
+      "handler": "（本地态/导航）",
+      "method": null,
+      "endpoint": null,
+      "permissionCodes": [],
+      "gateVar": null,
+      "gateExpr": null,
+      "status": "UI_ONLY",
+      "countedAsCompleted": false,
+      "note": "tab 切换与详情弹层开合为本地态（详情数据读取计入 recon-readonly）"
+    },
+    {
+      "id": "recon-readonly",
+      "actionId": "recon-readonly",
+      "page": "reconciliation",
+      "selector": "loadCustomer/loadSupplier/customerDetail/supplierDetail/onSearch",
+      "handler": "（读接口）",
+      "method": "GET",
+      "endpoint": "/admin/reconciliation/customer,/admin/reconciliation/customer/:customerId,/admin/reconciliation/supplier,/admin/reconciliation/supplier/:supplierId",
+      "permissionCodes": [],
+      "gateVar": null,
+      "gateExpr": null,
+      "status": "READ_ONLY",
+      "countedAsCompleted": false,
+      "note": "只读不得误禁用"
     }
   ],
   "backendCodeGaps": [
@@ -392,7 +581,8 @@
       "evidence": "同文件 :8-11 记录 S3-223「本行不接」：该路由属 rbac-g0-wiring.test.ts:704 范围控制名单，被 rbac-g1/g2 锁为 C 类待裁",
       "needsBackendTask": "admin-payments-new-write-code",
       "suggestedCode": "finance:payment",
-      "note": "注册表 purchase-sub-payment 的 finance:payment 对应另一端点 /admin/purchase-payments（purchase-payment.routes.ts:14），不得移用"
+      "note": "注册表 purchase-sub-payment 的 finance:payment 对应另一端点 /admin/purchase-payments（purchase-payment.routes.ts:14），不得移用",
+      "approvedWriteAttempts": 0
     },
     {
       "actionId": "cs-submitSaleReturn",
@@ -404,7 +594,8 @@
       "evidence": "同文件 :23-26 记录「POST / 本批不接」理由 = 接了会把 STORE_OPERATOR 打成 403（admin-web pos/SaleReturnView.vue:216 与本页退货链同受众）",
       "needsBackendTask": "admin-store-sale-returns-write-code",
       "suggestedCode": "sale:return",
-      "note": "同文件 /:returnNo/approve|reject|refund 已挂 sale:return（:20-22），仅 POST / 未接"
+      "note": "同文件 /:returnNo/approve|reject|refund 已挂 sale:return（:20-22），仅 POST / 未接",
+      "approvedWriteAttempts": 0
     }
   ]
 }

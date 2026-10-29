@@ -113,6 +113,13 @@ const activeTab = ref('')
 const list = ref<any[]>([])
 const loading = ref(false)
 
+// MOBILE-32F3：后端 receiptType 为英文枚举（online/offline/voided），模板需要中文标签
+const RECEIPT_TYPE_LABEL: Record<string, string> = {
+  online: '线上收款',
+  offline: '线下收款',
+  voided: '已作废',
+}
+
 function onSearch() { loadReceipts() }
 function clearSearch() { searchForm.keyword = ''; loadReceipts() }
 function switchTab(val: string) { activeTab.value = val; loadReceipts() }
@@ -138,13 +145,24 @@ async function voidReceipt(item: any) {
 async function loadReceipts() {
   loading.value = true
   try {
-    const res = await receiptApi.getList({
+    const res: any = await receiptApi.getList({
       page: 1,
       pageSize: 50,
       keyword: searchForm.keyword || undefined,
       type: activeTab.value || undefined
     })
-    list.value = res.list || []
+    // MOBILE-32F3：后端列表实回 { total, page, pageSize, records }（request.ts 已解包 data），
+    // 原代码只读 res.list ⇒ list 恒为 []，作废按钮永不出现。此处按接口实况兼容三种形态。
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    list.value = rows.map((r: any) => ({
+      ...r,
+      // 页面模板用 type/typeLabel 渲染标签，后端只给 receiptType ⇒ 在此派生，避免标签空白
+      type: String(r.receiptType ?? r.type ?? ''),
+      typeLabel: RECEIPT_TYPE_LABEL[String(r.receiptType ?? r.type ?? '')] ?? String(r.receiptType ?? ''),
+      // 作废按钮的显隐判据是 status==='active'（后端实回 active）
+      status: String(r.status ?? ''),
+    }))
   } catch (err) {
     console.error('加载收款单失败:', err)
     uni.showToast({ title: '加载失败', icon: 'error' })

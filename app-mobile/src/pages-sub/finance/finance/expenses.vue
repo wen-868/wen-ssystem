@@ -50,12 +50,13 @@
                 </view>
 
                 <view class="card-actions" v-if="item.status === 'PENDING'">
-                    <view class="action-btn action-btn--reject" @tap.stop="rejectExpense(item)">
+                    <view class="action-btn action-btn--reject" :class="{ 'action-btn--disabled': !gateExpenseReject.enabled }" @tap.stop="gateExpenseReject.enabled && rejectExpense(item)">
                         <text class="action-text">驳回</text>
                     </view>
-                    <view class="action-btn action-btn--approve" @tap.stop="approveExpense(item)">
+                    <view class="action-btn action-btn--approve" :class="{ 'action-btn--disabled': !gateExpenseApprove.enabled }" @tap.stop="gateExpenseApprove.enabled && approveExpense(item)">
                         <text class="action-text">通过</text>
                     </view>
+                    <text class="gate-hint-text" v-if="gateExpenseApprove.showHint || gateExpenseReject.showHint">{{ gateExpenseApprove.showHint ? gateExpenseApprove.hint : gateExpenseReject.hint }}</text>
                 </view>
             </view>
 
@@ -97,6 +98,10 @@ function goBack() {
 }
 import { ref, onMounted } from 'vue'
 import { expenseApi, type Expense } from '@/api/modules/expenses'
+import { usePermissionGate } from '@/composables/usePermissionGate'
+const { buttonGate } = usePermissionGate()
+const gateExpenseApprove = buttonGate(['finance:create'])
+const gateExpenseReject = buttonGate(['finance:create'])
 
 const expenseList = ref<Expense[]>([])
 const keyword = ref('')
@@ -415,6 +420,10 @@ onMounted(() => {
   font-size: 28rpx;
   font-weight: 600;
 }
+
+/* MOBILE-32F3：按钮级权限预判的禁用观感与说明行（文案来自 BUTTON_HINTS，不含内部权限码） */
+.action-btn--disabled { opacity: .45; }
+.gate-hint-text { font-size: 24rpx; color: $uni-gray-400; line-height: 1.4; display: block; margin-top: 8rpx; }
 
 .empty-state {
   padding: 100rpx 0;

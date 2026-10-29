@@ -238,6 +238,55 @@ function analyzePage(relFile, byModule) {
   return { text, writes: uniq }
 }
 
+/**
+ * 后端权限实证表（MOBILE-32F3 新增，卡§五.2/§五.3 的权威源）
+ *   codes   ：backend/src 下 .ts 里 requirePermission("x:y") / requirePermission(PERM_X) 的全部码
+ *   lineAt  ：某 routes.ts 文件某行的原文（供 codeProof 复核）
+ *   consts  ：PERM_* 常量名 → 码值（后端用常量挂码时，行内不含字面量，需二级解析）
+ * 后端不在本仓可达路径（例如只做前端 CI 检出）⇒ 返回 null，主校验退化为仅查前端注册表（并在读数里标注）。
+ */
+function backendPermissionTable() {
+  const beSrc = resolve(ROOT, '..', 'backend', 'src')
+  if (!existsSync(join(beSrc, 'routes'))) return null
+  const codes = new Set()
+  const consts = new Map()
+  const files = new Map()
+  const stack = [beSrc]
+  while (stack.length) {
+    const d = stack.pop()
+    for (const ent of readdirSync(join(d, ''), { withFileTypes: true })) {
+      const p = join(d, ent.name)
+      if (ent.isDirectory()) { if (!/node_modules|__tests__/.test(ent.name)) stack.push(p); continue }
+      if (!ent.name.endsWith('.ts')) continue
+      let t
+      try { t = readFileSync(p, 'utf8') } catch { continue }
+      for (const m of t.matchAll(/requirePermission\(\s*["'`]([^"'`]+)["'`]/g)) codes.add(m[1])
+      for (const m of t.matchAll(/export\s+const\s+([A-Z][A-Z0-9_]*)\s*=\s*["'`]([^"'`:]+:[^"'`]+)["'`]/g)) consts.set(m[1], m[2])
+      for (const m of t.matchAll(/requirePermission\(\s*([A-Z][A-Z0-9_]*)\s*\)/g)) { const v = consts.get(m[1]); if (v) codes.add(v) }
+      if (/\.routes\.ts$/.test(ent.name)) files.set(ent.name, t.split(/\r?\n/))
+    }
+  }
+  return {
+    codes,
+    consts,
+    lineAt: (file, ln) => (files.get(file) || [])[ln - 1] ?? null,
+    /** 该 routes.ts 文件所属路由器的挂载前缀（`{ prefix: "/api/xxx", router: XRouter }`） */
+    prefixOf: (file, ln) => {
+      const lines = files.get(file) || []
+      // 找本文件里的 router 变量名
+      const rvm = /(\w+)\.(?:get|post|put|delete|patch)\(\s*["'`]/.exec(lines[ln - 1] || '')
+      if (!rvm) return null
+      const rv = rvm[1]
+      const p = new RegExp(`\\{\\s*prefix:\\s*["'\`]([^"'\`]+)["'\`]\\s*,\\s*router:\\s*${rv}\\b`).exec(lines.join('\n'))
+      return p ? p[1] : null
+    },
+    fileCount: files.size,
+  }
+}
+
+/** 后端挂载前缀含 /api，manifest 端点不含 ⇒ 归一后再比 */
+const normApi = (p) => norm(String(p || '').replace(/^\/api(?=\/)/, ''))
+
 /** 主校验 */
 function run() {
   const errors = []
@@ -246,9 +295,18 @@ function run() {
   try { manifest = JSON.parse(readFileSync(MANIFEST, 'utf8')) } catch (e) { return { errors: ['MANIFEST_NOT_JSON: ' + e.message], stats: null } }
   const byModule = buildIndex()
 
-  // ③ 权限码合法性
+  // ③ 权限码合法性（MOBILE-32F3 起：以后端实文为权威源，前端注册表为辅证）
+  //    卡§五.2/§五.3 的判据是「后端实证权限码」，故：
+  //     · 码 ∈ 后端 requirePermission 全集 ⇒ 合法；
+  //     · 否则仅当已在前端注册表登记且给出 codeProof 才放行（防止把注册表当免检金牌）；
+  //     · status=GATED 必须给 codeProof，且该 `routes.ts:行` 实文确实挂了这个码（含常量间接引用）
+  //       ⇒ 机检不通过即 CODEPROOF_MISMATCH（比"字符串在不在注册表里"更强：错绑他页码会被点名）。
   const pgText = readFileSync(join(SRC, 'config/permission-gates.ts'), 'utf8')
   const known = new Set([...pgText.matchAll(/['"]([a-z][a-z0-9_]*(?::[a-z*][a-z0-9_:-]*)?)['"]/g)].map((m) => m[1]))
+  const be = backendPermissionTable()
+  if (be && be.codes.size) {
+    for (const c of known) if (!be.codes.has(c)) { /* 前端注册表有、后端无 ⇒ 不判红（入口门可先于后端），仅计入统计 */ }
+  }
 
   // ⑥ 失败关闭
   const bg = readFileSync(join(SRC, 'config/button-gates.ts'), 'utf8')
@@ -263,7 +321,51 @@ function run() {
     const declared = entries.filter((e) => e.endpoint && e.method)
 
     for (const e of entries) {
-      for (const c of e.permissionCodes || []) if (c && !known.has(c)) errors.push(`UNKNOWN_CODE: ${e.id} → 权限码 "${c}" 未在 config/permission-gates.ts 注册`)
+      for (const c of e.permissionCodes || []) {
+        if (!c) continue
+        const inBackend = be && be.codes.has(c)
+        if (!inBackend && !known.has(c)) errors.push(`UNKNOWN_CODE: ${e.id} → 权限码 "${c}" 既未出现在后端 requirePermission 实文，也未在 config/permission-gates.ts 注册`)
+      }
+      // 卡§五.2：status=GATED 的码必须有后端行号实证，且该行实文确实挂了这个码
+      if (e.status === 'GATED') {
+        if (!e.codeProof) errors.push(`GATED_MISSING_PROOF: ${e.id} status=GATED 但无 codeProof（须给出 backend routes.ts:行 + requirePermission 码）`)
+        else if (be) {
+          const m = /([\w.-]+\.routes\.ts):(\d+)/.exec(e.codeProof)
+          if (!m) errors.push(`CODEPROOF_UNPARSEABLE: ${e.id} codeProof 内找不到 "xxx.routes.ts:行" ⇒ ${String(e.codeProof).slice(0, 80)}`)
+          else {
+            const [, file, ln] = m
+            const row = be.lineAt(file, Number(ln))
+            if (!row) errors.push(`CODEPROOF_MISMATCH: ${e.id} codeProof 指向 ${file}:${ln}，但该文件无此行或文件不存在`)
+            else if (!/requirePermission/.test(row)) errors.push(`CODEPROOF_MISMATCH: ${e.id} codeProof 声称 ${file}:${ln} 挂码，实文无 requirePermission ⇒ ${row.trim().slice(0, 90)}`)
+            else {
+              const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+              for (const claimed of e.permissionCodes || []) {
+                if (!claimed) continue
+                const literal = new RegExp(`requirePermission\\(\\s*["'\`]${esc(claimed)}["'\`]`).test(row)
+                const viaConst = [...row.matchAll(/requirePermission\(\s*([A-Z][A-Z0-9_]*)\s*\)/g)].some((cm) => be.consts.get(cm[1]) === claimed)
+                if (!literal && !viaConst) errors.push(`CODEPROOF_MISMATCH: ${e.id} 声称 ${file}:${ln} 挂 "${claimed}"，实文不是该码 ⇒ ${row.trim().slice(0, 100)}`)
+              }
+              // ⚠️ 仅核"该行挂了某某码"是不够的：把 A 动作绑到 B 页面的码、再抄 B 页那一行的行号，
+              //    上面逐码比对照样通过（MOBILE-32F3 自测 M7 实测踩中）。
+              //    ⇒ 必须再核**该行注册的端点是否就是本条目声明的端点**（含 /api 前缀归一与参数段等价）。
+              if (e.method && e.endpoint) {
+                const rm = new RegExp(`\\.(get|post|put|delete|patch)\\(\\s*["'\`]([^"'\`]*)["'\`]`).exec(row)
+                const BE_VERB = { get: 'GET', post: 'POST', put: 'PUT', delete: 'DELETE', patch: 'PATCH' }
+                if (!rm) errors.push(`CODEPROOF_MISMATCH: ${e.id} codeProof 指向 ${file}:${ln}，但该行不是路由注册行（无法核对端点）`)
+                else {
+                  const [, rverb, rsub] = rm
+                  const prefix = be.prefixOf(file, ln)
+                  const full = normApi((prefix ?? '') + rsub)
+                  const want = normApi(e.endpoint)
+                  if (BE_VERB[rverb] !== e.method || !pathEquals(full, want)) {
+                    errors.push(`CODEPROOF_ENDPOINT_MISMATCH: ${e.id} 声明 ${e.method} ${e.endpoint}，但 codeProof 所指 ${file}:${ln} 注册的是 ${BE_VERB[rverb]} ${full}（错绑到别的端点/别的页）`)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
       if (e.status === 'GATED' && !(e.permissionCodes || []).length) errors.push(`STATUS_MISMATCH: ${e.id} status=GATED 但 permissionCodes 为空（无码即无从判定，应登记 BLOCKED_BACKEND_CODE 或 blocked）`)
       if (e.status === 'BLOCKED_BACKEND_CODE' && (e.permissionCodes || []).length) errors.push(`STATUS_MISMATCH: ${e.id} status=BLOCKED_BACKEND_CODE 却带权限码 "${e.permissionCodes.join(',')}"（伪造码）`)
       if ((e.status === 'UI_ONLY' || e.status === 'READ_ONLY') && e.method && e.method !== 'GET' && !String(e.endpoint).includes(',')) errors.push(`FAKE_UI_ONLY: ${e.id} 登记为 ${e.status} 却带 ${e.method} ${e.endpoint}（真实写不得伪装成 UI 开关）`)
@@ -271,7 +373,10 @@ function run() {
       if (e.status === 'BLOCKED_BACKEND_CODE') {
         if (e.countedAsCompleted !== false) errors.push(`BLOCKED_COUNTED_AS_DONE: ${e.id} 后端无码，必须 countedAsCompleted=false 且不得计入 GATED 完成数`)
         if (e.codeProof === undefined) errors.push(`BLOCKED_MISSING_PROOF: ${e.id} 必须给出后端无 requirePermission 的行号依据 codeProof`)
+        // 卡§五.3：后端确无挂码的端点不得伪造码，且**不得有任何已批准的写尝试**
+        if (e.approvedWriteAttempts !== 0) errors.push(`BLOCKED_MISSING_ZERO_ATTEMPTS: ${e.id} status=BLOCKED_BACKEND_CODE 必须 approvedWriteAttempts=0（当前 ${JSON.stringify(e.approvedWriteAttempts)}）`)
       }
+      if (e.status === 'GATED' && e.approvedWriteAttempts !== undefined) errors.push(`STATUS_MISMATCH: ${e.id} status=GATED 不应带 approvedWriteAttempts（该字段专属于 BLOCKED_BACKEND_CODE 的"零写尝试"承诺）`)
       if (e.status === 'GATED' && e.countedAsCompleted === false) errors.push(`STATUS_MISMATCH: ${e.id} status=GATED 却标 countedAsCompleted=false（状态与完成标记矛盾）`)
     }
 
@@ -289,8 +394,14 @@ function run() {
       const wired =
         new RegExp(`writeGate:\\s*${e.gateVar}\\b`).test(text) ||
         new RegExp(`${e.gateVar}\\.value\\.enabled`).test(text) ||
-        new RegExp(`gateOrHint\\(\\s*${e.gateVar}\\s*\\)`).test(text)
-      if (!wired) errors.push(`UNGATED_WRITE: ${e.id} 声明 status=GATED，但源码未见 ${e.gateVar} 接线（既无 writeGate 绑定，也无 ${e.gateVar}.value.enabled / gateOrHint(${e.gateVar}) 预检）`)
+        new RegExp(`gateOrHint\\(\\s*${e.gateVar}\\s*\\)`).test(text) ||
+        // 模板内联形态（transfer / receipts 既有风格；MOBILE-32F3 expenses 沿用 receipts 风格）：
+        //   @tap="gateX.enabled && fn()"  —— 点击前短路
+        //   :disabled="!gateX.enabled"    —— 按钮禁用
+        // 只认**带 && 的短路或 ! 取反**，裸 ${e.gateVar}.enabled 出现在插值文案里不算接线。
+        new RegExp(`@tap[^=]*=\\s*"[^"]*${e.gateVar}\\.enabled\\s*&&`).test(text) ||
+        new RegExp(`:disabled="!${e.gateVar}\\.enabled"`).test(text)
+      if (!wired) errors.push(`UNGATED_WRITE: ${e.id} 声明 status=GATED，但源码未见 ${e.gateVar} 接线（既无 writeGate 绑定，也无 ${e.gateVar}.value.enabled / gateOrHint(${e.gateVar}) / 模板 gate 短路预检）`)
     }
     for (const e of entries.filter((x) => x.status === 'BLOCKED_BACKEND_CODE')) {
       const hit = writes.find((w) => w.method === e.method && pathEquals(e.endpoint, w.path))
@@ -322,7 +433,12 @@ function run() {
 const args = process.argv.slice(2)
 
 if (args.includes('--self-test')) {
-  const targets = { manifest: MANIFEST, createSale: join(SRC, 'pages/sales/create-sale.vue'), buttonGates: join(SRC, 'config/button-gates.ts') }
+  const targets = {
+    manifest: MANIFEST,
+    createSale: join(SRC, 'pages/sales/create-sale.vue'),
+    expenses: join(SRC, 'pages-sub/finance/finance/expenses.vue'),
+    buttonGates: join(SRC, 'config/button-gates.ts'),
+  }
   const sha = (p) => createHash('sha256').update(readFileSync(p)).digest('hex')
   const before = Object.fromEntries(Object.entries(targets).map(([k, p]) => [k, sha(p)]))
   const scenarios = [
@@ -344,12 +460,72 @@ if (args.includes('--self-test')) {
         return JSON.stringify(j, null, 2) + '\n'
       },
     },
+    // ===== MOBILE-32F3 新增四类反测（逐条对应卡§六） =====
+    {
+      key: 'expenses',
+      name: 'M6[卡§六.1] 删掉费用页「通过」按钮的 gate 绑定',
+      file: targets.expenses,
+      apply: (t) => t.replace('@tap.stop="gateExpenseApprove.enabled && approveExpense(item)"', '@tap.stop="approveExpense(item)"'),
+    },
+    {
+      key: 'manifest',
+      name: 'M7[卡§六.2] 把费用动作绑到收款页的码（跨页错绑）',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'exp-approve')
+        if (!e) throw new Error('M7 前置不成立：缺 exp-approve')
+        // 同时改码与其"实证"行号，模拟"把错绑伪装成已核实"
+        e.permissionCodes = ['finance:receipt:create']
+        e.codeProof = 'receipt.routes.ts:23 requirePermission("finance:receipt:create")'
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M8[卡§六.3] 把 BLOCKED_BACKEND_CODE 伪造为可用码',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'cs-submitPayment')
+        if (!e || e.status !== 'BLOCKED_BACKEND_CODE') throw new Error('M8 前置不成立：cs-submitPayment 不是 BLOCKED')
+        e.status = 'GATED'
+        e.permissionCodes = ['finance:payment'] // 后端该端点确无此码 ⇒ 伪造
+        e.codeProof = 'payment-new.routes.ts:14 requirePermission("finance:payment")'
+        e.countedAsCompleted = true
+        delete e.approvedWriteAttempts
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'buttonGates',
+      name: 'M9[卡§六.4] 让权限请求失败路径返回 allowed',
+      file: targets.buttonGates,
+      apply: (t) => {
+        // 失败关闭的**兜底收尾**是 resolveButtonGate 末尾那句
+        //   return deny('unavailable', BUTTON_HINTS.unavailable, `三态=${view.viewState}…`)
+        // 把它改成放行 = "权限取不到也当有权限"（卡§六.4 要打的就是这条路径）。
+        // 注意 M4 打的是 guard 判据⑥的 fail-closed 特征（deny('unavailable') 字面消失），
+        // M9 打的是**行为**（运行态真会放行），两条各守一处，互不替代。
+        const m = /return\s+deny\(\s*\n?\s*'unavailable',[\s\S]{0,220}?\)\s*\n\}/.exec(t)
+        if (!m) return t
+        return t.replace(
+          m[0],
+          `return { status: 'allowed', enabled: true, showHint: false, hint: '', stale: false, reason: 'M9 probe: 权限失败放行' }\n}`,
+        )
+      },
+    },
   ]
   let ok = true
   for (const s of scenarios) {
     const orig = readFileSync(s.file, 'utf8')
     const mutated = s.apply(orig)
     const injected = mutated !== orig
+    if (!injected) {
+      console.log(`✗ ${s.name}｜注入未生效（字符串/结构未匹配 ⇒ 这是假反测，必须修判据而不是记账）`)
+      ok = false
+      continue
+    }
     writeFileSync(s.file, mutated, 'utf8')
     const { errors } = run()
     const red = errors.length > 0
@@ -361,7 +537,7 @@ if (args.includes('--self-test')) {
     console.log(`${pass ? '✓' : '✗'} ${s.name}｜注入生效=${injected} 判红=${red}（点名 ${errors.length} 条，首条判据=${kind}）逐字节复原=${restored} 复绿=${green}`)
     if (!pass) { ok = false; errors.slice(0, 3).forEach((e) => console.log('      · ' + e)) }
   }
-  console.log(ok ? 'SELF-TEST PASS：五条注入（M1-M5，含计数守恒红例）均点名变红且逐字节复原后复绿' : 'SELF-TEST FAIL')
+  console.log(ok ? `SELF-TEST PASS：${scenarios.length} 条注入（M1-M${scenarios.length}）均点名变红且逐字节复原后复绿` : 'SELF-TEST FAIL')
   process.exit(ok ? 0 : 1)
 }
 
