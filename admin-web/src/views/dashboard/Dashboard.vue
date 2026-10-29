@@ -7,7 +7,14 @@
         <span class="date-text">{{ formattedDate }}</span>
       </div>
       <div class="header-right">
-        <el-button type="primary" size="large" class="quick-cashier-btn" @click="navTo('/sales/create')">
+        <el-button
+          type="primary"
+          size="large"
+          class="quick-cashier-btn"
+          :disabled="!primaryCta.canOpen"
+          :aria-disabled="!primaryCta.canOpen"
+          @click="primaryCta.route && navTo(primaryCta.route)"
+        >
           <el-icon class="quick-cashier-icon"><ShoppingCart /></el-icon>
           开单收银
         </el-button>
@@ -256,6 +263,7 @@ import {
   collectRouteEntries,
   decorateNavTarget,
   mergeRecentOrders,
+  RECENT_FETCH_PAGE_SIZE,
   visibleQuickEntries,
   type RouteEntry,
 } from "../../utils/dashboard-navigation";
@@ -419,6 +427,13 @@ async function reloadMetrics() {
 // ==================== 入口与动态链接权限（WB-AUDIT-06/09/10） ====================
 /** 快捷入口：按当前角色对目标路由 meta.roles 的可见性派生（不再写死六项） */
 const quickEntries = computed(() => visibleQuickEntries(routeEntries.value, currentRoles.value));
+
+/**
+ * WORKBENCH-09：顶部主 CTA「开单收银」与快捷入口/动态链接走**同一 meta.roles 派生链**。
+ * /sales/create 的 roles=[SUPER_ADMIN, STORE_MANAGER] ⇒ OPERATOR/READONLY 无权，
+ * canOpen=false ⇒ 按钮 disabled（不可点击），绝不出现"能点但会被守卫拦回"的主 CTA。
+ */
+const primaryCta = computed(() => decorateNavTarget(routeEntries.value, currentRoles.value, "/sales/create"));
 
 /**
  * 动态条目挂目标链接：**无权 ⇒ route 为 null**，模板据此置为不可点击，
@@ -802,13 +817,13 @@ async function loadAllData() {
     const results = await Promise.allSettled([
       fetchDashboardOverview(),
       fetchDashboardRecentAlerts(),
-      fetchSaleBills({ page: 1, pageSize: 100 }),
+      fetchSaleBills({ page: 1, pageSize: RECENT_FETCH_PAGE_SIZE }),
       fetchReceipts({ page: 1, pageSize: 6 }),
       fetchNotifications({ page: 1, pageSize: 8 }),
       fetchMembers({ page: 1, pageSize: 6 }),
       fetchStores(),
       fetchDashboardSalesTrend(),
-      fetchInstantOrders({ page: 1, pageSize: 100 }),
+      fetchInstantOrders({ page: 1, pageSize: RECENT_FETCH_PAGE_SIZE }),
     ]);
     if (results[0].status === "fulfilled") overview.value = results[0].value || {};
     if (results[1].status === "fulfilled") alertData.value = results[1].value || {};

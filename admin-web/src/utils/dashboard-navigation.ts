@@ -61,13 +61,25 @@ export interface RouteTableLike {
 
 /** 最新订单（线下 + 渠道）合并后的**最终渲染上限**（WB-AUDIT-07） */
 export const RECENT_ORDER_LIMIT = 10;
+/**
+ * WORKBENCH-09：最新订单两个来源接口的首屏取数页大小（**最小安全值 = 最终上限**）。
+ * 推导（详见 evidence/WORKBENCH-09/raw/10-sorting-proof.txt）：
+ *   - 两接口均为 SQL 级 `ORDER BY created_at DESC LIMIT ? OFFSET ?`，第 1 页取 N 条即全局最新 N 条；
+ *   - offline 上限 10（overview.recentBills 后端 limit=5，fallback slice(0,10)），
+ *     offline 不足时由 channel 补足 ⇒ channel 至少要能独立供满 10 条 ⇒ pageSize ≥ 10；
+ *   - 「凑满 10 条进行中」在任何 pageSize 下都无保证（进行中比例是数据属性），
+ *     pageSize 只决定候选集边界：最新 10 条含进行中 ⇒ 出满 10 条，不含 ⇒ 100 条也不含。
+ *   故 10 是"足以产生最终 10 条"的最小安全值，网络返回由 200 条/首屏降至 20 条（-90%）。
+ */
+export const RECENT_FETCH_PAGE_SIZE = 10;
 /** 经营动态信息流上限（WB-OK-03 既有口径，本卡不改动） */
 export const FEED_LIMIT = 50;
 
 /**
  * 快捷入口配置（WB-AUDIT-06 / WB-AUDIT-10）。
  * 只登记"有哪些入口、各自跳哪"，**不登记谁能看**——谁看得见由 meta.roles 决定。
- * WB-AUDIT-04 已把客户会员目标订正为 /customers；WB-AUDIT-10 把库存预警订正为 /inventory-alerts。
+ * WB-AUDIT-04 已把客户入口目标订正为 /customers；WB-AUDIT-10 把库存预警订正为 /inventory-alerts。
+ * WORKBENCH-09：客户入口文案统一为「客户管理」，与目标页 meta.title 逐字一致。
  */
 export const QUICK_ENTRY_DEFS: readonly QuickEntryDef[] = [
   { key: "cashier", label: "开单收银", target: "/sales/create" },
@@ -75,7 +87,7 @@ export const QUICK_ENTRY_DEFS: readonly QuickEntryDef[] = [
   { key: "messages", label: "消息中心", target: "/messages" },
   { key: "inventory-alerts", label: "库存预警", target: "/inventory-alerts" },
   { key: "sales-reports", label: "销售报表", target: "/sales/reports" },
-  { key: "customers", label: "客户会员", target: "/customers" },
+  { key: "customers", label: "客户管理", target: "/customers" },
 ];
 
 /** 动态信息流里**目标页仅 SUPER_ADMIN 可见**的动作（用于证据留痕与反测命名） */

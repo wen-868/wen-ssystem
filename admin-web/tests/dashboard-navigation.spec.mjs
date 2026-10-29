@@ -6,7 +6,7 @@
  *   ② 四角色真值表 SUPER_ADMIN / STORE_MANAGER / STORE_OPERATOR / READONLY
  *   ③ 未知 route/path fail-closed
  *   ④ STORE_MANAGER 动态信息流零"会被守卫拦回"的链接（WB-AUDIT-09）
- *   ⑤ 库存预警 → /inventory-alerts、客户会员 → /customers（WB-AUDIT-10）
+ *   ⑤ 库存预警 → /inventory-alerts、客户入口 → /customers（WB-AUDIT-10；WORKBENCH-09 统一文案「客户管理」）
  *   ⑥ 渠道订单无论返回多少，最终合并列表 ≤ 10 且总数守恒（WB-AUDIT-07）
  *
  * 真相源：**直读 `admin-web/src/router/index.ts` 源码**解析出真实路由表（含 meta.roles），
@@ -259,15 +259,15 @@ await run("语义：库存预警入口目标 = /inventory-alerts 且目标页标
   return "库存预警 ⇒ /inventory-alerts（title=库存预警，与入口名一致）";
 });
 
-await run("语义：客户会员入口目标 = /customers（与真实路由逐项对齐）", () => {
+await run("语义：客户管理入口目标 = /customers，label 与目标页标题逐字一致（WORKBENCH-09）", () => {
   const def = nav.QUICK_ENTRY_DEFS.find((d) => d.key === "customers");
-  assert.ok(def, "必须存在客户会员入口定义");
-  assert.equal(def.target, "/customers", "客户会员必须跳 /customers（WB-AUDIT-04 已订正，不是 /customer/members）");
+  assert.ok(def, "必须存在客户管理入口定义");
+  assert.equal(def.target, "/customers", "客户入口必须跳 /customers（WB-AUDIT-04 已订正，不是 /customer/members）");
   const entry = nav.matchRouteEntry(ROUTES, def.target);
   assert.ok(entry, "/customers 必须在真实路由表内");
   assert.equal(entry.title, "客户管理", "目标页标题应为「客户管理」");
   assert.ok(entry.roles.includes("STORE_MANAGER"), "/customers 应对店长开放");
-  return "客户会员 ⇒ /customers（title=客户管理）";
+  return "客户管理 ⇒ /customers（title=客户管理）";
 });
 
 await run("语义：全部可见入口的 label 与目标页标题共享语义词（不做名称错配）", () => {
@@ -416,6 +416,170 @@ await run("静态守卫：页面内 /inventory 库存入口已消失（改用 /i
   assert.ok(!/navTarget\(["']\/inventory["']\)/.test(dashCode), "不得再向 /inventory 发起导航判定");
   assert.ok(/navTarget\(["']\/inventory-alerts["']\)/.test(dashCode), "库存预警应指向 /inventory-alerts");
   return "/inventory 0 处；/inventory-alerts 在位";
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 八、首屏载荷收敛（WORKBENCH-09 硬验收 ②③）
+// ═══════════════════════════════════════════════════════════════════════════
+
+await run("载荷：RECENT_FETCH_PAGE_SIZE 常量 = 10 且 = 最终展示上限（最小安全值语义）", () => {
+  assert.equal(nav.RECENT_FETCH_PAGE_SIZE, 10, "首屏取数页大小必须为最小安全值 10");
+  assert.equal(nav.RECENT_ORDER_LIMIT, 10, "最终展示上限应为 10");
+  assert.ok(
+    nav.RECENT_FETCH_PAGE_SIZE >= nav.RECENT_ORDER_LIMIT,
+    "单页取数必须 ≥ 最终上限（offline 不足时 channel 要能独立供满 10 条）",
+  );
+  return "RECENT_FETCH_PAGE_SIZE=10 ≥ RECENT_ORDER_LIMIT=10";
+});
+
+await run("载荷：fetchSaleBills 首屏取数用 RECENT_FETCH_PAGE_SIZE（不得写死字面量）", () => {
+  assert.ok(
+    /fetchSaleBills\(\{\s*page:\s*1,\s*pageSize:\s*RECENT_FETCH_PAGE_SIZE\s*\}\)/.test(dashCode),
+    "fetchSaleBills 必须以 RECENT_FETCH_PAGE_SIZE 取数",
+  );
+  return "fetchSaleBills({ page: 1, pageSize: RECENT_FETCH_PAGE_SIZE })";
+});
+
+await run("载荷：fetchInstantOrders 首屏取数用 RECENT_FETCH_PAGE_SIZE（不得写死字面量）", () => {
+  assert.ok(
+    /fetchInstantOrders\(\{\s*page:\s*1,\s*pageSize:\s*RECENT_FETCH_PAGE_SIZE\s*\}\)/.test(dashCode),
+    "fetchInstantOrders 必须以 RECENT_FETCH_PAGE_SIZE 取数",
+  );
+  return "fetchInstantOrders({ page: 1, pageSize: RECENT_FETCH_PAGE_SIZE })";
+});
+
+await run("载荷：Dashboard.vue 全文 0 处 pageSize: 100（防回退到超量拉取）", () => {
+  const hits = dashCode.match(/pageSize:\s*100/g) || [];
+  assert.equal(hits.length, 0, `不得出现 pageSize: 100，命中 ${hits.length} 处`);
+  return "pageSize: 100 命中 0 处（首屏载荷 200→20 条，-90%）";
+});
+
+await run("载荷：接口排序证据在案（两接口 SQL 级 ORDER BY created_at DESC，前置闸门）", () => {
+  // 契约侧固化前置闸门：后端服务排序语句的存在性由本用例对源码静态复核，
+  // 中央证据另有 raw/10-sorting-proof.txt 留痕（含路由与行号）。
+  const orderSvc = readFileSync(path.join(WEB, "..", "backend", "src", "services", "admin", "order.service.ts"), "utf8");
+  const retailSvc = readFileSync(
+    path.join(WEB, "..", "backend", "src", "services", "admin", "instant-retail.service.ts"),
+    "utf8",
+  );
+  const saleFn = orderSvc.slice(orderSvc.indexOf("export async function listSaleBills"));
+  const retailFn = retailSvc.slice(retailSvc.indexOf("export async function listRetailOrders"));
+  assert.ok(/ORDER BY\s+created_at\s+DESC/i.test(saleFn), "listSaleBills 必须 ORDER BY created_at DESC");
+  assert.ok(/LIMIT\s+\?\s+OFFSET\s+\?/i.test(saleFn), "listSaleBills 必须 LIMIT/OFFSET 分页");
+  assert.ok(/ORDER BY\s+created_at\s+DESC/i.test(retailFn), "listRetailOrders 必须 ORDER BY created_at DESC");
+  assert.ok(/LIMIT\s+\?\s+OFFSET\s+\?/i.test(retailFn), "listRetailOrders 必须 LIMIT/OFFSET 分页");
+  return "两接口均 created_at DESC + LIMIT/OFFSET（第 1 页 N 条 = 全局最新 N 条）";
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 九、主 CTA 同一派生链（WORKBENCH-09 硬验收 ④）
+// ═══════════════════════════════════════════════════════════════════════════
+
+await run("主 CTA：四角色矩阵 SUPER_ADMIN✓ STORE_MANAGER✓ OPERATOR✗ READONLY✗（与快捷入口同源）", () => {
+  const matrix = ["SUPER_ADMIN", "STORE_MANAGER", "STORE_OPERATOR", "READONLY"].map((r) => ({
+    role: r,
+    t: nav.decorateNavTarget(ROUTES, [r], "/sales/create"),
+  }));
+  assert.equal(matrix[0].t.canOpen, true, "SUPER_ADMIN 应可开单");
+  assert.equal(matrix[1].t.canOpen, true, "STORE_MANAGER 应可开单");
+  assert.equal(matrix[2].t.canOpen, false, "STORE_OPERATOR 不得可开单");
+  assert.equal(matrix[3].t.canOpen, false, "READONLY 不得可开单");
+  for (const m of matrix.slice(2)) {
+    assert.equal(m.t.route, null, `${m.role} 无权 ⇒ route 必须为 null`);
+  }
+  return "✓✓✗✗（/sales/create roles=[SUPER_ADMIN,STORE_MANAGER]，OPERATOR/READONLY route=null）";
+});
+
+await run("主 CTA：模板按钮必须绑定 disabled 派生（无权时物理不可点击）", () => {
+  let btn = dashCode.slice(dashCode.indexOf('class="quick-cashier-btn"'));
+  btn = btn.slice(0, btn.indexOf("</el-button>"));
+  assert.ok(/:disabled="!primaryCta\.canOpen"/.test(btn), "主 CTA 必须绑定 :disabled=\"!primaryCta.canOpen\"");
+  assert.ok(!btn.includes("navTo('/sales/create')"), "主 CTA @click 不得写死目标字面量（必须经派生链接）");
+  assert.ok(/primaryCta\.route\s*&&\s*navTo\(primaryCta\.route\)/.test(btn), "点击必须走 primaryCta.route 派生值");
+  return ":disabled 绑定在位；@click 走派生 route（无权 ⇒ disabled）";
+});
+
+await run("主 CTA：判定必须经 decorateNavTarget 共享派生链（与动态链接同源）", () => {
+  assert.ok(
+    /primaryCta\s*=\s*computed\(\(\)\s*=>\s*decorateNavTarget\(routeEntries\.value,\s*currentRoles\.value,\s*"\/sales\/create"\)\)/.test(
+      dashCode,
+    ),
+    "primaryCta 必须由 decorateNavTarget(routeEntries, currentRoles, '/sales/create') 派生",
+  );
+  return "primaryCta computed ⇒ decorateNavTarget（同一派生链，零特权路径）";
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 十、客户入口文案统一（WORKBENCH-09 硬验收 ⑤）
+// ═══════════════════════════════════════════════════════════════════════════
+
+await run("文案：客户入口 label = 目标页 title = 「客户管理」（三方逐字一致）", () => {
+  const def = nav.QUICK_ENTRY_DEFS.find((d) => d.key === "customers");
+  const entry = nav.matchRouteEntry(ROUTES, "/customers");
+  assert.equal(def.label, "客户管理", "入口文案必须为「客户管理」");
+  assert.equal(entry.title, "客户管理", "目标页标题应为「客户管理」");
+  assert.equal(def.label, entry.title, "label 与目标页 title 必须逐字一致");
+  return "label=客户管理 = title=客户管理";
+});
+
+await run("文案：「客户会员」旧文案在源码全文 0 处（含注释，防回潮）", () => {
+  for (const rel of ["utils/dashboard-navigation.ts", "views/dashboard/Dashboard.vue"]) {
+    const src = read(rel);
+    const n = (src.match(/客户会员/g) || []).length;
+    assert.equal(n, 0, `${rel} 仍出现「客户会员」${n} 处`);
+  }
+  return "dashboard-navigation.ts + Dashboard.vue 均 0 处";
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 十一、注入式区分度（WORKBENCH-09 硬验收 ⑦）
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * 注入式测试：临时构造一个 SUPER_ADMIN-only 入口（目标 = 真实路由 /order-center，
+ * 其 meta.roles 仅含 SUPER_ADMIN——**不改真实路由表**，只注入入口定义）。
+ * 区分度判据：注入后 SUPER_ADMIN 6/6、STORE_MANAGER 5/6（被注入入口拒之门外）。
+ * 若派生链被硬编码放行，STORE_MANAGER 也会看到注入入口 ⇒ 6/6，用例红。
+ */
+const INJECTED_DEF = { key: "audit-order-center", label: "订单中心（注入）", target: "/order-center" };
+const INJECTED_DEFS = [...nav.QUICK_ENTRY_DEFS.slice(0, 5), INJECTED_DEF];
+
+await run("注入区分度：SUPER_ADMIN-only 入口 ⇒ SUPER_ADMIN 6/6、STORE_MANAGER 5/6", () => {
+  const admin = nav.visibleQuickEntries(ROUTES, ROLES.SUPER_ADMIN, INJECTED_DEFS);
+  const manager = nav.visibleQuickEntries(ROUTES, ROLES.STORE_MANAGER, INJECTED_DEFS);
+  assert.equal(admin.length, 6, `SUPER_ADMIN 应可见 6/6（含注入入口），实际 ${admin.length}`);
+  assert.equal(manager.length, 5, `STORE_MANAGER 应可见 5/6（注入入口被拒），实际 ${manager.length}`);
+  assert.ok(admin.some((e) => e.key === INJECTED_DEF.key), "SUPER_ADMIN 应看到注入入口");
+  assert.ok(!manager.some((e) => e.key === INJECTED_DEF.key), "STORE_MANAGER 不得看到注入入口");
+  return "SUPER_ADMIN 6/6 vs STORE_MANAGER 5/6（区分度=1，来自 /order-center 的真实 meta.roles）";
+});
+
+await run("注入区分度：注入入口对 STORE_OPERATOR / READONLY ⇒ 0/6（不得放大）", () => {
+  for (const role of [ROLES.STORE_OPERATOR, ROLES.READONLY, []]) {
+    const v = nav.visibleQuickEntries(ROUTES, role, INJECTED_DEFS);
+    assert.equal(v.length, 0, `${JSON.stringify(role)} 应可见 0 项，实际 ${v.length}`);
+  }
+  return "OPERATOR/READONLY/空角色均 0/6";
+});
+
+await run("注入区分度：对照组——不注入时两角色同为 6/6（区分度来自注入而非常量）", () => {
+  const admin = visibleFor(ROLES.SUPER_ADMIN).length;
+  const manager = visibleFor(ROLES.STORE_MANAGER).length;
+  assert.equal(admin, 6, "不注入时 SUPER_ADMIN 6/6");
+  assert.equal(manager, 6, "不注入时 STORE_MANAGER 6/6");
+  assert.equal(admin, manager, "对照组两角色应无差异（证明 §十一 的差异全部来自注入入口的 meta.roles）");
+  return "对照组 6/6 = 6/6 ⇒ 注入组 6/6 vs 5/6 的差异归因于真实 meta.roles";
+});
+
+await run("注入区分度：注入入口的 allowedRoles 留痕 = 真实 meta.roles（SUPER_ADMIN-only）", () => {
+  const admin = nav.visibleQuickEntries(ROUTES, ROLES.SUPER_ADMIN, INJECTED_DEFS);
+  const injected = admin.find((e) => e.key === INJECTED_DEF.key);
+  assert.ok(injected, "SUPER_ADMIN 可见集中应有注入入口");
+  const realEntry = ROUTES.find((r) => r.path === "/order-center");
+  assert.deepEqual(injected.allowedRoles, realEntry.roles, "allowedRoles 必须与真实 meta.roles 逐字一致");
+  assert.deepEqual(injected.allowedRoles, ["SUPER_ADMIN"], "/order-center 真实 roles 应仅 SUPER_ADMIN");
+  assert.equal(injected.pageTitle, realEntry.title, "pageTitle 必须取自真实 meta.title");
+  return `allowedRoles=[${injected.allowedRoles.join(",")}] title=${injected.pageTitle}（真实路由留痕）`;
 });
 
 const failed = results.filter((r) => !r.ok);

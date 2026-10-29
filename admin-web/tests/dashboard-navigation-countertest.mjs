@@ -1,12 +1,18 @@
 /**
- * WORKBENCH-08 · mutation 反测装置（派单卡 §六 四类 + 1 条页面级加固）
+ * WORKBENCH-08/09 · mutation 反测装置
  *
  * 反测清单（逐条注入 → 断言**点名红** → 逐字节复原 SHA256 恒等 → 复跑回绿）：
+ *   WORKBENCH-08（§六 四类 + 1 条页面级加固）：
  *   ① 快捷入口改回硬编码全集（无视 meta.roles）  ⇒ 四角色真值表红
  *   ② 动态订单链接无视 route 权限                ⇒ STORE_MANAGER 无权链接用例红
  *   ③ 库存预警入口改回 /inventory                ⇒ 语义用例红
  *   ④ 去掉最终 10 条截断                         ⇒ 合并上限与守恒用例红
  *   ⑤（加固）页面快捷入口改回写死六项             ⇒ 静态守卫用例红
+ *   WORKBENCH-09（§四 四类）：
+ *   ⑥ 恢复 pageSize 100                          ⇒ 网络载荷用例红
+ *   ⑦ 主 CTA 固定显示并忽略 meta.roles           ⇒ 主 CTA 派生链用例红
+ *   ⑧ 客户入口改回「客户会员」                    ⇒ 文案统一用例红
+ *   ⑨ isRouteOpenTo 硬编码放行                    ⇒ 注入式 5/6 区分度用例红
  *
  * 运行（工作树根目录）：
  *   node admin-web/tests/dashboard-navigation-countertest.mjs --out <中央证据目录>
@@ -41,7 +47,7 @@ function parseOutArg(argv) {
 const OUT_RAW = parseOutArg(process.argv.slice(2));
 const OUT_IS_TMP = OUT_RAW.length === 0;
 const OUT = OUT_IS_TMP
-  ? path.join(os.tmpdir(), "wen-ssystem-mutation", "WORKBENCH-08", "redtest")
+  ? path.join(os.tmpdir(), "wen-ssystem-mutation", "WORKBENCH-09", "redtest")
   : path.resolve(OUT_RAW); // 绝对路径解析：相对路径一律按 cwd 归一
 
 // 红线守卫①：--out 绝不允许指向代码仓工作树内部
@@ -173,11 +179,80 @@ const CASES = [
             <div class="quick-cell" @click="navTo('/messages')">消息中心</div>
             <div class="quick-cell" @click="navTo('/inventory-alerts')">库存预警</div>
             <div class="quick-cell" @click="navTo('/sales/reports')">销售报表</div>
-            <div class="quick-cell" @click="navTo('/customers')">客户会员</div>
+            <div class="quick-cell" @click="navTo('/customers')">客户管理</div>
           </div>`,
         "M5",
       ),
     expect: "写死六项",
+    expectExit: 1,
+  },
+  {
+    id: "M6-page-size-restore-100",
+    title: "（09-⑥）恢复 pageSize 100（首屏超量拉取回潮）",
+    target: DASH,
+    mutate: (t) =>
+      patch(
+        t,
+        `      fetchSaleBills({ page: 1, pageSize: RECENT_FETCH_PAGE_SIZE }),`,
+        `      fetchSaleBills({ page: 1, pageSize: 100 }), // MUTATION-6：恢复 pageSize 100`,
+        "M6",
+      ),
+    expect: "载荷：fetchSaleBills",
+    expectExit: 1,
+  },
+  {
+    id: "M7-cta-ignore-roles",
+    title: "（09-⑦）主 CTA 固定显示并忽略 meta.roles（disabled 摘除 + 判定绕过派生链）",
+    target: DASH,
+    mutate: (t) => {
+      let out = patch(
+        t,
+        `          :disabled="!primaryCta.canOpen"
+          :aria-disabled="!primaryCta.canOpen"
+          @click="primaryCta.route && navTo(primaryCta.route)"`,
+        `          @click="navTo('/sales/create')" // MUTATION-7：固定可点击`,
+        "M7a",
+      );
+      out = patch(
+        out,
+        `const primaryCta = computed(() => decorateNavTarget(routeEntries.value, currentRoles.value, "/sales/create"));`,
+        `const primaryCta = computed(() => ({ route: "/sales/create", canOpen: true })); // MUTATION-7：忽略 meta.roles`,
+        "M7b",
+      );
+      return out;
+    },
+    expect: "主 CTA：模板按钮",
+    expectExit: 1,
+  },
+  {
+    id: "M8-customer-label-restore",
+    title: "（09-⑧）客户入口改回「客户会员」",
+    target: NAV,
+    mutate: (t) =>
+      patch(
+        t,
+        `  { key: "customers", label: "客户管理", target: "/customers" },`,
+        `  { key: "customers", label: "客户会员", target: "/customers" }, // MUTATION-8`,
+        "M8",
+      ),
+    expect: "文案：客户入口 label",
+    expectExit: 1,
+  },
+  {
+    id: "M9-hardcoded-pass-through",
+    title: "（09-⑨）isRouteOpenTo 硬编码放行（注入式 SUPER_ADMIN-only 区分度失效）",
+    target: NAV,
+    mutate: (t) =>
+      patch(
+        t,
+        `  if (!entry) return false;
+  if (!entry.roles || entry.roles.length === 0) return false;`,
+        `  if (!entry) return false;
+  if (entry) return true; // MUTATION-9：硬编码放行，区分度归零
+  if (!entry.roles || entry.roles.length === 0) return false;`,
+        "M9",
+      ),
+    expect: "注入区分度：SUPER_ADMIN-only 入口",
     expectExit: 1,
   },
 ];
@@ -253,7 +328,7 @@ assert.deepEqual(added, [], `本装置弄脏了工作树：\n${added.join("\n")}
 assert.deepEqual(removed, [], `工作树凭空少了行（装置越权清理）：\n${removed.join("\n")}`);
 
 const md = [
-  "# WORKBENCH-08 mutation 反测记录（五组）",
+  "# WORKBENCH-08/09 mutation 反测记录（九组）",
   "",
   "> 被测用例：`admin-web/tests/dashboard-navigation.spec.mjs`",
   "> 装置：`admin-web/tests/dashboard-navigation-countertest.mjs`（注入 → 点名红 → 逐字节复原 SHA256 → 复跑回绿）",
