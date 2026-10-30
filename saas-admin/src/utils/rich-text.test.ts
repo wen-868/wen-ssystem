@@ -5,21 +5,61 @@
 import { describe, it, expect } from "vitest";
 import { sanitizeRichText, isSafeUrl } from "./rich-text";
 
-describe("isSafeUrl", () => {
-  it("放行 http/https/mailto/相对路径/data:image", () => {
+describe("isSafeUrl（MS-SECURITY-BASELINE-01F1 显式协议白名单）", () => {
+  it("放行白名单协议 http/https/mailto/tel 与站内相对路径", () => {
     expect(isSafeUrl("https://example.com/a")).toBe(true);
     expect(isSafeUrl("http://example.com")).toBe(true);
     expect(isSafeUrl("mailto:a@b.com")).toBe(true);
+    expect(isSafeUrl("tel:+8613800000000")).toBe(true);
     expect(isSafeUrl("/relative/path")).toBe(true);
-    expect(isSafeUrl("data:image/png;base64,AAAA")).toBe(true);
+    expect(isSafeUrl("page.html")).toBe(true);
   });
 
-  it("拦截 javascript:/vbscript:/file:/非图片 data:", () => {
+  it("驳回项 1 三个现场 bypass 必须全部拒绝", () => {
+    // 控制字符变体：浏览器解析 href 时剥除 \n ⇒ 变成 javascript:
+    expect(isSafeUrl("java\nscript:alert(1)")).toBe(false);
+    // blob: 伪协议
+    expect(isSafeUrl("blob:https://evil.example/x")).toBe(false);
+    // SVG data URL（脚本执行向量）
+    expect(isSafeUrl("data:image/svg+xml,<svg onload=alert(1)>")).toBe(false);
+  });
+
+  it("拦截 javascript:/vbscript:/file:", () => {
     expect(isSafeUrl("javascript:alert(1)")).toBe(false);
     expect(isSafeUrl("JAVASCRIPT:alert(1)")).toBe(false);
     expect(isSafeUrl("vbscript:x")).toBe(false);
     expect(isSafeUrl("file:///c:/win.ini")).toBe(false);
+  });
+
+  it("data: 一律拒绝（含 data:image）", () => {
     expect(isSafeUrl("data:text/html;base64,AAAA")).toBe(false);
+    expect(isSafeUrl("data:image/png;base64,AAAA")).toBe(false);
+    expect(isSafeUrl("data:image/svg+xml;base64,AAAA")).toBe(false);
+    expect(isSafeUrl("DATA:IMAGE/SVG+XML,<svg onload=alert(1)>")).toBe(false);
+  });
+
+  it("控制字符与首部空白变体全部拒绝（≥8 个恶意用例之一组）", () => {
+    expect(isSafeUrl("java\rscript:alert(1)")).toBe(false);
+    expect(isSafeUrl("java\tscript:alert(1)")).toBe(false);
+    expect(isSafeUrl("java\0script:alert(1)")).toBe(false);
+    expect(isSafeUrl(" \tjavascript:alert(1)")).toBe(false);
+    expect(isSafeUrl("\njavascript:alert(1)")).toBe(false);
+  });
+
+  it("未知协议与协议相对 URL 拒绝", () => {
+    expect(isSafeUrl("unknown:whatever")).toBe(false);
+    expect(isSafeUrl("ftp://example.com/f")).toBe(false);
+    expect(isSafeUrl("//evil.example/x")).toBe(false);
+    expect(isSafeUrl("chrome://settings")).toBe(false);
+  });
+
+  it("sanitizeRichText 对 a[href]/img[src] 三个 bypass 同样收敛", () => {
+    const out = sanitizeRichText(
+      '<a href="java\nscript:alert(1)">x</a><img src="blob:https://evil.example/x"><a href="data:image/svg+xml,<svg onload=alert(1)>">y</a>',
+    );
+    expect(out).not.toContain("script:alert");
+    expect(out).not.toContain("blob:");
+    expect(out).not.toContain("data:image/svg+xml");
   });
 });
 

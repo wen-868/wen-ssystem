@@ -213,7 +213,16 @@ describe("routes/platform-tenant 集成测试", () => {
       expect(res.status).toBe(400);
     });
 
-    it("adminPassword 缺失时返回400", async () => {
+    it("MS-SECURITY-BASELINE-01F1：不再要求 adminPassword——缺失时仍创建成功且响应一次性返回随机 adminInitialPassword", async () => {
+      (platformTenantService.checkTenantNameExists as any).mockResolvedValue(false);
+      let generatedPassword = "";
+      (platformTenantService.createTenant as any).mockImplementation(async (data: any) => {
+        // 服务收到的 adminPassword 必须是服务端生成的随机口令（12 位无歧义字符集）
+        expect(typeof data.adminPassword).toBe("string");
+        expect(data.adminPassword.length).toBe(12);
+        generatedPassword = data.adminPassword;
+        return "tenant-uuid-1";
+      });
       const res = await request(app)
         .post("/api/platform-tenant")
         .send({
@@ -222,7 +231,29 @@ describe("routes/platform-tenant 集成测试", () => {
           contactMobile: "13800138000",
           adminUsername: "admin"
         });
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(200);
+      expect(res.body.data.adminInitialPassword).toBe(generatedPassword);
+      expect(res.body.data.adminInitialPassword).not.toBe("123456");
+      expect(platformTenantService.createTenant).toHaveBeenCalled();
+    });
+
+    it("MS-SECURITY-BASELINE-01F1：前端提交的 adminPassword 被忽略——服务收到的是服务端新生成的口令", async () => {
+      (platformTenantService.checkTenantNameExists as any).mockResolvedValue(false);
+      (platformTenantService.createTenant as any).mockImplementation(async (data: any) => {
+        expect(data.adminPassword).not.toBe("attacker-chosen-password");
+        return "tenant-uuid-2";
+      });
+      const res = await request(app)
+        .post("/api/platform-tenant")
+        .send({
+          tenantName: "新租户",
+          contactName: "联系人",
+          contactMobile: "13800138000",
+          adminUsername: "admin",
+          adminPassword: "attacker-chosen-password"
+        });
+      expect(res.status).toBe(200);
+      expect(res.body.data.adminInitialPassword).not.toBe("attacker-chosen-password");
     });
 
     it("租户名称已存在时返回400", async () => {

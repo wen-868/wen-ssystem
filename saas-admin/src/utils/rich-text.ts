@@ -9,7 +9,10 @@
  *   - script/style/iframe/object/embed 等危险标签连同内容整体移除；
  *   - 其余未列入白名单的标签做「解包」（保留子节点文本）；
  *   - 属性白名单：仅保留少量安全属性，style/class/on* 一律丢弃；
- *   - URL 属性（a[href]、img[src]）仅允许 http/https/mailto/相对路径与 data:image/。
+ *   - URL 属性（a[href]、img[src]）按**显式协议白名单**判定（MS-SECURITY-BASELINE-01F1 返工）：
+ *     仅允许 http:/https:/mailto:/tel: 与站内相对路径；先拒绝任何控制字符
+ *     （\n\r\t\0 等，防 "java\nscript:" 变体）与首部空白；blob:、data:（含 SVG
+ *     data URL）、协议相对 URL（//host，按页协议继承）、未知协议一律拒绝。
  */
 
 /** 允许保留的标签 */
@@ -36,12 +39,36 @@ const ALLOWED_ATTRS: Record<string, Set<string>> = {
   ol: new Set(["start"]),
 };
 
-/** 判定 URL 是否安全（仅 http/https/mailto/相对路径/data:image） */
+/**
+ * 显式协议白名单（MS-SECURITY-BASELINE-01F1 返工，替代旧黑名单实现）。
+ *
+ * 旧实现只拒绝 javascript:/vbscript:/file:/非图片 data:，其余一律放行——
+ * "java\nscript:"（控制字符变体）、"blob:"、"data:image/svg+xml"、任意未知协议
+ * 全部被探针证实放行（驳回项 1 现场读数）。改为白名单：不在名单内一律拒绝，
+ * 不再靠枚举危险前缀。
+ *
+ * 判定基于 href/src **原值**：
+ *  1. 含任何 C0 控制字符 / DEL / 空白字符（\n\r\t\0 空格等）⇒ 拒绝
+ *     （浏览器解析 href 时会剥除部分控制字符，"java\nscript:" 由此绕过前缀比对）；
+ *  2. 小写归一后按 RFC 3986 scheme 语法取 `^([a-z][a-z0-9+.-]*):` 前缀；
+ *  3. 命中白名单 http:/https:/mailto:/tel: ⇒ 放行；
+ *  4. 无 scheme 视为站内相对路径 ⇒ 放行，但协议相对 "//host" 除外
+ *     （继承页协议，驳回卡反测要求）；data:/blob:/其余一切 scheme ⇒ 拒绝。
+ */
+const ALLOWED_URL_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
+
+/** 判定 URL 是否安全（显式白名单：http/https/mailto/tel/站内相对路径） */
 export function isSafeUrl(url: string): boolean {
-  const v = url.trim().toLowerCase();
-  if (v.startsWith("javascript:") || v.startsWith("vbscript:") || v.startsWith("file:")) return false;
-  if (v.startsWith("data:") && !v.startsWith("data:image/")) return false;
-  return true;
+  if (typeof url !== "string" || url === "") return false;
+  // 控制字符与空白：\u0000-\u0020 覆盖 \n\r\t\0 空格等，\u007f 为 DEL
+  if (/[\u0000-\u0020\u007f]/.test(url)) return false;
+  const v = url.toLowerCase();
+  const schemeMatch = v.match(/^([a-z][a-z0-9+.-]*):/);
+  if (!schemeMatch) {
+    // 无 scheme：相对路径放行；协议相对 "//host" 拒绝
+    return !v.startsWith("//");
+  }
+  return ALLOWED_URL_PROTOCOLS.has(schemeMatch[1] + ":");
 }
 
 function sanitizeNode(node: Element, doc: Document): void {

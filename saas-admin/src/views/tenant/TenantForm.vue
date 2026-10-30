@@ -24,9 +24,6 @@
         <el-form-item label="管理员账号" prop="adminUsername">
           <el-input v-model="form.adminUsername" placeholder="请输入管理员账号" />
         </el-form-item>
-        <el-form-item label="管理员密码" prop="adminPassword">
-          <el-input v-model="form.adminPassword" type="password" show-password placeholder="请输入管理员密码" />
-        </el-form-item>
         <el-form-item label="到期时间">
           <el-date-picker v-model="form.expireAt" type="date" value-format="YYYY-MM-DD" placeholder="选择到期时间" />
         </el-form-item>
@@ -36,6 +33,27 @@
         </el-form-item>
       </el-form>
     </el-card>
+
+    <!-- 一次性初始口令交付（MS-SECURITY-BASELINE-01F1）：
+         后端随机生成的 adminInitialPassword 仅在创建响应里返回一次，
+         操作者点"我已妥善保存"确认前对话框不可被关闭/跳过，确认后才允许离开 -->
+    <el-dialog
+      v-model="initialPasswordVisible"
+      title="请保存租户管理员初始口令"
+      width="460px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+    >
+      <el-alert type="warning" :closable="false" title="该初始口令仅展示这一次，确认保存后无法再次查看" />
+      <div class="initial-password-row">
+        <span class="initial-password-value">{{ initialPasswordValue }}</span>
+        <el-button size="small" @click="copyInitialPassword">复制</el-button>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="confirmInitialPasswordDelivered">我已妥善保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -43,7 +61,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { createTenantApi } from '../../api/tenant'
+import { createTenantApi, extractInitialPassword } from '../../api/tenant'
 
 const router = useRouter()
 const saving = ref(false)
@@ -55,7 +73,6 @@ const form = reactive({
   contactMobile: '',
   contactEmail: '',
   adminUsername: '',
-  adminPassword: '',
   expireAt: '',
 })
 
@@ -64,7 +81,26 @@ const rules = {
   contactName: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
   contactMobile: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],
   adminUsername: [{ required: true, message: '请输入管理员账号', trigger: 'blur' }],
-  adminPassword: [{ required: true, message: '请输入管理员密码', trigger: 'blur' }, { min: 6, message: '密码至少6位', trigger: 'blur' }],
+}
+
+/* 一次性初始口令交付（MS-SECURITY-BASELINE-01F1） */
+const initialPasswordVisible = ref(false)
+const initialPasswordValue = ref('')
+
+async function copyInitialPassword() {
+  try {
+    await navigator.clipboard.writeText(initialPasswordValue.value)
+    ElMessage.success('已复制到剪贴板')
+  } catch {
+    ElMessage.error('复制失败，请手动选中口令复制')
+  }
+}
+
+async function confirmInitialPasswordDelivered() {
+  initialPasswordVisible.value = false
+  initialPasswordValue.value = ''
+  ElMessage.success('创建成功')
+  router.push('/tenants')
 }
 
 async function handleCreate() {
@@ -72,9 +108,19 @@ async function handleCreate() {
   if (!valid) return
   saving.value = true
   try {
-    await createTenantApi(form)
-    ElMessage.success('创建成功')
-    router.push('/tenants')
+    // MS-SECURITY-BASELINE-01F1：不再提交操作者手输的管理员口令（旧实现后端忽略该值）；
+    // 后端随机生成 adminInitialPassword 并仅在创建响应里返回一次，必须交付到操作者。
+    const resp: any = await createTenantApi(form)
+    let initialPassword: string
+    try {
+      initialPassword = extractInitialPassword(resp?.data, 'adminInitialPassword')
+    } catch (e: any) {
+      // 未取得 adminInitialPassword 时不得静默跳转
+      ElMessage.error(e?.message || '租户已写入但未取得一次性初始口令（adminInitialPassword），已阻止创建成功跳转，请重置该账号密码后交付')
+      return
+    }
+    initialPasswordValue.value = initialPassword
+    initialPasswordVisible.value = true
   } finally {
     saving.value = false
   }
@@ -83,4 +129,6 @@ async function handleCreate() {
 
 <style scoped>
 .card-header { display: flex; justify-content: space-between; align-items: center; }
+.initial-password-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.initial-password-value { flex: 1; font-family: monospace; font-size: 16px; font-weight: 600; user-select: all; }
 </style>
