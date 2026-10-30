@@ -200,15 +200,16 @@ describe('B3-1 注册表自洽（status/codes 不变量 + 本卡 5 条登记逐�
     expect(g!.note).toContain('gated')
   })
 
-  it('本卡登记：积分调整门 = pending-code + codes 空 + 未开通口径在册', () => {
+  it('本卡登记（MOBILE-32F4F1）：积分调整门已转 gated = customer:points + 后端已接线', () => {
     const g = ENTRY_GATES.find((x) => x.id === 'mkt-points-adjust')
     expect(g).toBeDefined()
-    expect(g!.status).toBe('pending-code')
-    expect(g!.codes).toEqual([])
+    expect(g!.status).toBe('gated')
+    expect(g!.codes).toEqual(['customer:points'])
     expect(g!.endpoints).toEqual(['POST /api/admin/members/:id/points/adjust'])
     expect(g!.page).toBe('pages-sub/marketing/member/member-detail.vue')
-    expect(g!.note).toContain('未开通')
-    expect(isPendingCodeEntry(g!.id)).toBe(true)
+    expect(g!.basis).toContain('TOTAL-MEMBER-PERMISSION-CODES-01')
+    expect(g!.basis).toContain('customer:points')
+    expect(isPendingCodeEntry(g!.id)).toBe(false)
   })
 })
 
@@ -284,9 +285,11 @@ describe('B3-1 三态装置（持码=显示 / 不持码=0 / 未取到=0；pendin
     expect(gate(undefined, 'island-aftersale')).toBe(false)
   })
 
-  it('积分调整门（pending-code）：任何权限形态一律隐藏（含持通配码）', () => {
-    expect(gate(['*'], 'mkt-points-adjust')).toBe(false)
+  it('积分调整门（gated customer:points，MOBILE-32F4F1）：持码/通配=显示；不持/空数组/未取到=隐藏', () => {
+    expect(gate(['customer:points'], 'mkt-points-adjust')).toBe(true)
+    expect(gate(['*'], 'mkt-points-adjust')).toBe(true)
     expect(gate(['sale:return'], 'mkt-points-adjust')).toBe(false)
+    expect(gate(['marketing:points'], 'mkt-points-adjust')).toBe(false)
     expect(gate([], 'mkt-points-adjust')).toBe(false)
     expect(gate(null, 'mkt-points-adjust')).toBe(false)
     expect(gate(undefined, 'mkt-points-adjust')).toBe(false)

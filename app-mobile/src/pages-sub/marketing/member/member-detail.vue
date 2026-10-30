@@ -1,288 +1,312 @@
 <template>
-  <view class="member-detail-page">
-    <page-header :title="isNew ? '新增客户' : (member?.name || '客户详情')" @back="goBack" />
+    <view class="member-detail-page">
+        <page-header :title="isNew ? '新增客户' : (member?.name || '客户详情')" @back="goBack" />
 
-    <view v-if="loading" class="loading-overlay">
-      <view class="loading-spinner"></view>
-      <text class="loading-text">加载中...</text>
-    </view>
+        <view v-if="loading" class="loading-overlay">
+            <view class="loading-spinner"></view>
+            <text class="loading-text">加载中...</text>
+        </view>
 
-    <view v-else-if="member" class="detail-body">
-      <!-- 1. 概览 -->
-      <view class="pd-group">
-        <view class="ov-head">
-          <view class="ov-ava">{{ avatarText }}</view>
-          <view class="ov-info">
-            <view class="ov-name">
-              <text class="ov-name-text">{{ member.name || '会员' }}</text>
-              <text class="lv-badge">{{ currentLevelName }}</text>
+        <view v-else-if="member" class="detail-body">
+            <!-- 1. 概览 -->
+            <view class="pd-group">
+                <view class="ov-head">
+                    <view class="ov-ava">{{ avatarText }}</view>
+                    <view class="ov-info">
+                        <view class="ov-name">
+                            <text class="ov-name-text">{{ member.name || '会员' }}</text>
+                            <text class="lv-badge">{{ currentLevelName }}</text>
+                        </view>
+                        <view class="ov-meta">
+                            <text class="ty-badge" :class="isWholesale ? 'ty-wholesale' : 'ty-retail'">{{ typeLabel }}</text>
+                            <text v-if="member.cardNo" class="ov-code">{{ member.cardNo }}</text>
+                            <text class="st-badge" :class="member.status === 1 ? 'st-on' : 'st-off'">{{ member.status === 1 ? '正常' : '已冻结' }}</text>
+                        </view>
+                    </view>
+                    <!-- 编辑状态徽标（对齐原稿详情头部 已保存 / 编辑中 / 未保存） -->
+                    <text class="hd-status" :class="editStatusCls">{{ editStatusText }}</text>
+                </view>
+                <view class="ov-stats">
+                    <view class="ov-si">
+                        <text class="ov-sl">可用积分</text>
+                        <text class="ov-sv ov-sv--gold">{{ pointBase }}</text>
+                    </view>
+                    <view class="ov-si">
+                        <text class="ov-sl">储值余额</text>
+                        <text class="ov-sv ov-sv--blue">¥{{ fmt(balance) }}</text>
+                    </view>
+                    <view class="ov-si">
+                        <text class="ov-sl">累计消费</text>
+                        <text class="ov-sv">¥{{ fmt(totalSpent) }}</text>
+                    </view>
+                </view>
             </view>
-            <view class="ov-meta">
-              <text class="ty-badge" :class="isWholesale ? 'ty-wholesale' : 'ty-retail'">{{ typeLabel }}</text>
-              <text v-if="member.cardNo" class="ov-code">{{ member.cardNo }}</text>
-              <text class="st-badge" :class="member.status === 1 ? 'st-on' : 'st-off'">{{ member.status === 1 ? '正常' : '已冻结' }}</text>
+
+            <!-- 2. 客户类型 -->
+            <view class="pd-group">
+                <view class="pd-gtitle"><view class="gt-bar"></view><text>客户类型</text></view>
+                <view class="chips-row">
+                    <text class="chip" :class="editForm.customerType === 'WHOLESALE' ? 'chip--on' : ''" @tap="pickVal('customerType', 'WHOLESALE')">批发客户</text>
+                    <text class="chip" :class="editForm.customerType !== 'WHOLESALE' ? 'chip--on' : ''" @tap="pickVal('customerType', 'RETAIL')">零售客户</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">注册日期</text>
+                    <text class="f-value">{{ regDate }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">最近消费</text>
+                    <text class="f-value" :class="member.lastConsumeAt ? '' : 'ph'">{{ lastConsumeText }}</text>
+                </view>
             </view>
-          </view>
-          <!-- 编辑状态徽标（对齐原稿详情头部 已保存 / 编辑中 / 未保存） -->
-          <text class="hd-status" :class="editStatusCls">{{ editStatusText }}</text>
-        </view>
-        <view class="ov-stats">
-          <view class="ov-si">
-            <text class="ov-sl">可用积分</text>
-            <text class="ov-sv ov-sv--gold">{{ pointBase }}</text>
-          </view>
-          <view class="ov-si">
-            <text class="ov-sl">储值余额</text>
-            <text class="ov-sv ov-sv--blue">¥{{ fmt(balance) }}</text>
-          </view>
-          <view class="ov-si">
-            <text class="ov-sl">累计消费</text>
-            <text class="ov-sv">¥{{ fmt(totalSpent) }}</text>
-          </view>
-        </view>
-      </view>
 
-      <!-- 2. 客户类型 -->
-      <view class="pd-group">
-        <view class="pd-gtitle"><view class="gt-bar"></view><text>客户类型</text></view>
-        <view class="chips-row">
-          <text class="chip" :class="editForm.customerType === 'WHOLESALE' ? 'chip--on' : ''" @tap="pickVal('customerType', 'WHOLESALE')">批发客户</text>
-          <text class="chip" :class="editForm.customerType !== 'WHOLESALE' ? 'chip--on' : ''" @tap="pickVal('customerType', 'RETAIL')">零售客户</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">注册日期</text>
-          <text class="f-value">{{ regDate }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">最近消费</text>
-          <text class="f-value" :class="member.lastConsumeAt ? '' : 'ph'">{{ lastConsumeText }}</text>
-        </view>
-      </view>
+            <!-- 3. 会员等级（autoRetailLevel，真实数据驱动） -->
+            <view class="pd-group">
+                <view class="pd-gtitle"><view class="gt-bar"></view><text>会员等级</text></view>
+                <view class="lv-box">
+                    <view class="lv-top">
+                        <text class="lv-cur">{{ currentLevelName }}</text>
+                        <text class="lv-auto">{{ isWholesale ? '不分级' : '积分自动提升' }}</text>
+                    </view>
 
-      <!-- 3. 会员等级（autoRetailLevel，真实数据驱动） -->
-      <view class="pd-group">
-        <view class="pd-gtitle"><view class="gt-bar"></view><text>会员等级</text></view>
-        <view class="lv-box">
-          <view class="lv-top">
-            <text class="lv-cur">{{ currentLevelName }}</text>
-            <text class="lv-auto">{{ isWholesale ? '不分级' : '积分自动提升' }}</text>
-          </view>
+                    <block v-if="!isWholesale">
+                        <view class="lv-prog-wrap">
+                            <view class="lv-prog" :style="{ width: levelProgress.percent + '%' }"></view>
+                        </view>
+                        <text class="lv-tip" v-if="nextLevel">
+                            累计积分 <text class="lv-strong">{{ pointBase }}</text>，距「{{ nextLevelName }}」还需
+                            <text class="lv-strong">{{ levelProgress.remain }}</text> 积分（{{ nextMin }} 起）
+                        </text>
+                        <text class="lv-tip" v-else>
+                            累计积分已达 <text class="lv-strong">{{ pointBase }}</text>，当前为最高等级「{{ currentLevelName }}」
+                        </text>
+                        <view class="lv-rule">升级规则（累计积分）：{{ ruleText }}</view>
+                    </block>
 
-          <block v-if="!isWholesale">
-            <view class="lv-prog-wrap">
-              <view class="lv-prog" :style="{ width: levelProgress.percent + '%' }"></view>
+                    <text v-else class="lv-tip">批发客户统一为「批发客户」，不区分金/银/铜牌；价格与账期在「客户类型」中体现。</text>
+                </view>
             </view>
-            <text class="lv-tip" v-if="nextLevel">
-              累计积分 <text class="lv-strong">{{ pointBase }}</text>，距「{{ nextLevelName }}」还需
-              <text class="lv-strong">{{ levelProgress.remain }}</text> 积分（{{ nextMin }} 起）
-            </text>
-            <text class="lv-tip" v-else>
-              累计积分已达 <text class="lv-strong">{{ pointBase }}</text>，当前为最高等级「{{ currentLevelName }}」
-            </text>
-            <view class="lv-rule">升级规则（累计积分）：{{ ruleText }}</view>
-          </block>
 
-          <text v-else class="lv-tip">批发客户统一为「批发客户」，不区分金/银/铜牌；价格与账期在「客户类型」中体现。</text>
-        </view>
-      </view>
-
-      <!-- 4. 基本信息（对齐原稿：卡号/名称/联系人(批发)/手机/性别/生日） -->
-      <view class="pd-group">
-        <view class="pd-gtitle"><view class="gt-bar"></view><text>基本信息</text></view>
-        <view class="f-row">
-          <text class="f-label">会员卡号</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.cardNo" placeholder="如 8801 2345 6789" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.cardNo }">{{ member.cardNo || '如 8801 2345 6789' }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">客户名称</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.name" :placeholder="editForm.customerType === 'WHOLESALE' ? '商号名称，如 红星商行' : '请输入姓名'" placeholder-class="f-ph" />
-          <text v-else class="f-value">{{ member.name || '—' }}</text>
-        </view>
-        <view class="f-row" v-if="editForm.customerType === 'WHOLESALE'">
-          <text class="f-label">联系人</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.contact" placeholder="对接人姓名" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.contact }">{{ member.contact || '对接人姓名' }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">手机号</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.mobile" type="number" placeholder="11 位手机号" placeholder-class="f-ph" />
-          <text v-else class="f-value f-value--link" @tap="callPhone">{{ member.mobile || '—' }}</text>
-        </view>
-        <view class="chips-row">
-          <text class="chips-lb">性别</text>
-          <text
-            class="chip"
-            v-for="g in ['男', '女', '未填写']"
-            :key="g"
-            :class="(editMode ? editForm.gender : (member.gender || '未填写')) === g ? 'chip--on' : ''"
-            @tap="pickVal('gender', g)"
-          >{{ g }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">生日</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.birthday" placeholder="如 1990-01-01" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.birthday }">{{ member.birthday || '如 1990-01-01' }}</text>
-        </view>
-      </view>
-
-      <!-- 5. 地址信息 -->
-      <view class="pd-group">
-        <view class="pd-gtitle"><view class="gt-bar"></view><text>地址信息</text></view>
-        <view class="f-row">
-          <text class="f-label">省份</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.province" placeholder="如 广东省" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.province }">{{ member.province || '如 广东省' }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">城市</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.city" placeholder="如 广州市" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.city }">{{ member.city || '如 广州市' }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">区/县</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.district" placeholder="如 白云区" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.district }">{{ member.district || '如 白云区' }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">详细地址</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.address" placeholder="街道、门牌号等" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.address }">{{ member.address || '街道、门牌号等' }}</text>
-        </view>
-      </view>
-
-      <!-- 6. 账户信息 -->
-      <view class="pd-group">
-        <view class="pd-gtitle"><view class="gt-bar"></view><text>账户信息</text></view>
-        <view class="f-row">
-          <text class="f-label">可用积分</text>
-          <text class="f-value f-value--gold">{{ pointBase }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">储值余额</text>
-          <text class="f-value f-value--blue">¥{{ fmt(balance) }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">累计消费</text>
-          <text class="f-value">¥{{ fmt(totalSpent) }}</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">消费次数</text>
-          <text class="f-value">{{ orders.length }} 次</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">客单价</text>
-          <text class="f-value">¥{{ fmt(avgOrder) }}</text>
-        </view>
-      </view>
-
-      <!-- 7. 标签与备注（对齐原稿：标签回车添加/点删 + 备注；167 迁移后 t_member 有 tags 列） -->
-      <view class="pd-group">
-        <view class="pd-gtitle"><view class="gt-bar"></view><text>标签与备注</text></view>
-        <view class="tag-box">
-          <view class="tag-list" v-if="tagList.length">
-            <view class="tag-item" v-for="(t, i) in tagList" :key="t" @tap="editMode && removeTag(i)">
-              <text>{{ t }}</text><text class="tag-rm" v-if="editMode">×</text>
+            <!-- 4. 基本信息（对齐原稿：卡号/名称/联系人(批发)/手机/性别/生日） -->
+            <view class="pd-group">
+                <view class="pd-gtitle"><view class="gt-bar"></view><text>基本信息</text></view>
+                <view class="f-row">
+                    <text class="f-label">会员卡号</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.cardNo" placeholder="如 8801 2345 6789" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.cardNo }">{{ member.cardNo || '如 8801 2345 6789' }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">客户名称</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.name" :placeholder="editForm.customerType === 'WHOLESALE' ? '商号名称，如 红星商行' : '请输入姓名'" placeholder-class="f-ph" />
+                    <text v-else class="f-value">{{ member.name || '—' }}</text>
+                </view>
+                <view class="f-row" v-if="editForm.customerType === 'WHOLESALE'">
+                    <text class="f-label">联系人</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.contact" placeholder="对接人姓名" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.contact }">{{ member.contact || '对接人姓名' }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">手机号</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.mobile" type="number" placeholder="11 位手机号" placeholder-class="f-ph" />
+                    <text v-else class="f-value f-value--link" @tap="callPhone">{{ member.mobile || '—' }}</text>
+                </view>
+                <view class="chips-row">
+                    <text class="chips-lb">性别</text>
+                    <text
+                        class="chip"
+                        v-for="g in ['男', '女', '未填写']"
+                        :key="g"
+                        :class="(editMode ? editForm.gender : genderToLabel(member?.gender)) === g ? 'chip--on' : ''"
+                        @tap="pickVal('gender', g)"
+                    >
+                        {{ g }}
+                    </text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">生日</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.birthday" placeholder="如 1990-01-01" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.birthday }">{{ member.birthday || '如 1990-01-01' }}</text>
+                </view>
             </view>
-          </view>
-          <input
-            v-if="editMode"
-            class="tag-input"
-            v-model="tagInput"
-            placeholder="输入标签，回车添加"
-            confirm-type="done"
-            @confirm="addTag"
-          />
-          <text v-else-if="!tagList.length" class="tag-empty">暂无标签</text>
-        </view>
-        <view class="f-row">
-          <text class="f-label">备注</text>
-          <input v-if="editMode" class="f-inp" v-model="editForm.remark" placeholder="消费偏好、配送要求等" placeholder-class="f-ph" />
-          <text v-else class="f-value" :class="{ 'ph': !member.remark }">{{ member.remark || '消费偏好、配送要求等' }}</text>
-        </view>
-      </view>
 
-      <!-- 8. 状态设置 -->
-      <view class="pd-group">
-        <view class="pd-gtitle"><view class="gt-bar"></view><text>状态设置</text></view>
-        <view class="f-row f-row--static">
-          <view class="f-flex">
-            <text class="f-label f-label--auto">账户正常</text>
-            <text class="f-hint">关闭后该客户无法享受积分与储值消费</text>
-          </view>
-          <view class="sw" :class="member.status === 1 ? 'sw--on' : ''" @tap="toggleStatus"></view>
-        </view>
-      </view>
-
-      <!-- 8. 历史单据 -->
-      <view class="pd-group">
-        <view class="pd-gtitle">
-          <view class="gt-bar"></view>
-          <text>历史单据<text v-if="docRows.length">（{{ docRows.length }}）</text></text>
-        </view>
-        <view v-if="docRows.length">
-          <view class="doc-row" v-for="d in docRows" :key="d.no" @tap="openDoc">
-            <view class="doc-main">
-              <text class="doc-no">{{ d.no }}</text>
-              <view class="doc-sub">
-                <text class="dt-type" :class="d.statusType === 'success' ? 'dt-sale' : 'dt-refund'">{{ d.sub }}</text>
-                <text v-if="d.date">{{ d.date }}</text>
-              </view>
+            <!-- 5. 地址信息 -->
+            <view class="pd-group">
+                <view class="pd-gtitle"><view class="gt-bar"></view><text>地址信息</text></view>
+                <view class="f-row">
+                    <text class="f-label">省份</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.province" placeholder="如 广东省" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.province }">{{ member.province || '如 广东省' }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">城市</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.city" placeholder="如 广州市" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.city }">{{ member.city || '如 广州市' }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">区/县</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.district" placeholder="如 白云区" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.district }">{{ member.district || '如 白云区' }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">详细地址</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.address" placeholder="街道、门牌号等" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.address }">{{ member.address || '街道、门牌号等' }}</text>
+                </view>
             </view>
-            <text class="doc-amt">¥{{ fmt(d.amount) }}</text>
-            <text class="doc-che">›</text>
-          </view>
+
+            <!-- 6. 账户信息 -->
+            <view class="pd-group">
+                <view class="pd-gtitle"><view class="gt-bar"></view><text>账户信息</text></view>
+                <view class="f-row">
+                    <text class="f-label">可用积分</text>
+                    <text class="f-value f-value--gold">{{ pointBase }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">储值余额</text>
+                    <text class="f-value f-value--blue">¥{{ fmt(balance) }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">累计消费</text>
+                    <text class="f-value">¥{{ fmt(totalSpent) }}</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">消费次数</text>
+                    <text class="f-value">{{ orders.length }} 次</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">客单价</text>
+                    <text class="f-value">¥{{ fmt(avgOrder) }}</text>
+                </view>
+            </view>
+
+            <!-- 7. 标签与备注（对齐原稿：标签回车添加/点删 + 备注；167 迁移后 t_member 有 tags 列） -->
+            <view class="pd-group">
+                <view class="pd-gtitle"><view class="gt-bar"></view><text>标签与备注</text></view>
+                <view class="tag-box">
+                    <view class="tag-list" v-if="tagList.length">
+                        <view class="tag-item" v-for="(t, i) in tagList" :key="t" @tap="editMode && removeTag(i)">
+                            <text>{{ t }}</text><text class="tag-rm" v-if="editMode">×</text>
+                        </view>
+                    </view>
+                    <input
+                        v-if="editMode"
+                        class="tag-input"
+                        v-model="tagInput"
+                        placeholder="输入标签，回车添加"
+                        confirm-type="done"
+                        @confirm="addTag"
+                    />
+                    <text v-else-if="!tagList.length" class="tag-empty">暂无标签</text>
+                </view>
+                <view class="f-row">
+                    <text class="f-label">备注</text>
+                    <input v-if="editMode" class="f-inp" v-model="editForm.remark" placeholder="消费偏好、配送要求等" placeholder-class="f-ph" />
+                    <text v-else class="f-value" :class="{ 'ph': !member.remark }">{{ member.remark || '消费偏好、配送要求等' }}</text>
+                </view>
+            </view>
+
+            <!-- 8. 状态设置 -->
+            <view class="pd-group">
+                <view class="pd-gtitle"><view class="gt-bar"></view><text>状态设置</text></view>
+                <view class="f-row f-row--static">
+                    <view class="f-flex">
+                        <text class="f-label f-label--auto">账户正常</text>
+                        <text class="f-hint">关闭后该客户无法享受积分与储值消费</text>
+                    </view>
+                    <view class="sw" :class="[member.status === 1 ? 'sw--on' : '', !gateMemberStatus.enabled ? 'sw--disabled' : '']" @tap="gateMemberStatus.enabled && toggleStatus()"></view>
+                </view>
+            </view>
+
+            <!-- 8. 历史单据 -->
+            <view class="pd-group">
+                <view class="pd-gtitle">
+                    <view class="gt-bar"></view>
+                    <text>历史单据<text v-if="docRows.length">（{{ docRows.length }}）</text></text>
+                </view>
+                <view v-if="docRows.length">
+                    <view class="doc-row" v-for="d in docRows" :key="d.no" @tap="openDoc">
+                        <view class="doc-main">
+                            <text class="doc-no">{{ d.no }}</text>
+                            <view class="doc-sub">
+                                <text class="dt-type" :class="d.statusType === 'success' ? 'dt-sale' : 'dt-refund'">{{ d.sub }}</text>
+                                <text v-if="d.date">{{ d.date }}</text>
+                            </view>
+                        </view>
+                        <text class="doc-amt">¥{{ fmt(d.amount) }}</text>
+                        <text class="doc-che">›</text>
+                    </view>
+                </view>
+                <view v-else class="empty">暂无历史单据</view>
+            </view>
         </view>
-        <view v-else class="empty">暂无历史单据</view>
-      </view>
-    </view>
 
-    <view v-else class="empty-state">
-      <text class="empty-text">会员不存在或已失效</text>
-    </view>
-
-    <view class="safe-bottom"></view>
-
-    <!-- 账户操作（对齐原稿 act-bar：查看态=充值/调整积分/修改；编辑态=取消/保存） -->
-    <view class="action-bar" v-if="member">
-      <block v-if="editMode">
-        <view class="ab-btn ab-ghost" @tap="cancelEdit"><text>取消</text></view>
-        <view class="ab-btn ab-primary" @tap="saveEdit"><text>保存</text></view>
-      </block>
-      <block v-else>
-        <view class="ab-btn ab-ghost" @tap="openDlg('recharge')"><text>充值</text></view>
-        <view class="ab-btn ab-warn" v-if="canEntry('mkt-points-adjust')" @tap="openDlg('points')"><text>调整积分</text></view>
-        <view class="ab-btn ab-primary" @tap="startEdit"><text>修改</text></view>
-      </block>
-    </view>
-
-    <!-- 充值 / 调整积分 弹窗（原稿同为弹窗：标题 + 当前值 + 单输入框 + 提示 + 取消/确认） -->
-    <view v-if="dlg" class="dlg-mask" @tap="closeDlg">
-      <view class="dlg" @tap.stop>
-        <text class="dlg-t">{{ dlg === 'recharge' ? '客户充值' : '调整积分' }}</text>
-        <text v-if="dlg === 'recharge'" class="dlg-d">{{ member?.name }} · 当前余额 ¥{{ fmt(balance) }}</text>
-        <text v-else class="dlg-d">{{ member?.name }} · 当前积分 {{ pointBase }}</text>
-        <input
-          v-if="dlg === 'recharge'"
-          class="dlg-inp" v-model="dlgValue" type="digit" placeholder="0.00" placeholder-class="dlg-ph"
-        />
-        <input
-          v-else
-          class="dlg-inp" v-model="dlgValue" type="number" placeholder="0" placeholder-class="dlg-ph"
-        />
-        <text class="dlg-tip">{{ dlg === 'recharge' ? '输入充值金额，保存后余额实时更新' : '正数增加积分，负数扣减积分' }}</text>
-        <view class="dlg-btns">
-          <view class="dlg-b dlg-b--cancel" @tap="closeDlg"><text>取消</text></view>
-          <view class="dlg-b dlg-b--ok" @tap="confirmDlg">
-            <text>{{ dlg === 'recharge' ? '确认充值' : '确认调整' }}</text>
-          </view>
+        <view v-else class="empty-state">
+            <text class="empty-text">会员不存在或已失效</text>
         </view>
-      </view>
-    </view>
 
-    <!-- 历史单据覆盖式子页 -->
-    <DocPage v-model="docVisible" title="单据明细" :docs="docRows" />
-  </view>
+        <view class="safe-bottom"></view>
+
+        <!-- 账户操作（对齐原稿 act-bar：查看态=充值/调整积分/修改；编辑态=取消/保存） -->
+        <view class="action-bar" v-if="member">
+            <block v-if="editMode">
+                <view class="ab-btn ab-ghost" @tap="cancelEdit"><text>取消</text></view>
+                <!-- MOBILE-32F4F1：新增/编辑是两个真实写动作（同端点不同码）⇒ 按 isNew 分流到各自 gate，
+             点击（enabled 短路）与 handler（saveEdit 首行预检）双层 fail-closed -->
+                <view
+                    v-if="isNew"
+                    class="ab-btn ab-primary"
+                    :class="{ 'ab-btn--disabled': !gateMemberCreate.enabled }"
+                    @tap="gateMemberCreate.enabled && saveEdit()"
+                >
+                    <text>保存</text>
+                </view>
+                <view
+                    v-else
+                    class="ab-btn ab-primary"
+                    :class="{ 'ab-btn--disabled': !gateMemberUpdate.enabled }"
+                    @tap="gateMemberUpdate.enabled && saveEdit()"
+                >
+                    <text>保存</text>
+                </view>
+            </block>
+            <block v-else>
+                <view class="ab-btn ab-ghost" @tap="openDlg('recharge')"><text>充值</text></view>
+                <view class="ab-btn ab-warn" v-if="canEntry('mkt-points-adjust')" @tap="openDlg('points')"><text>调整积分</text></view>
+                <view class="ab-btn ab-primary" @tap="startEdit"><text>修改</text></view>
+            </block>
+        </view>
+
+        <!-- 充值 / 调整积分 弹窗（原稿同为弹窗：标题 + 当前值 + 单输入框 + 提示 + 取消/确认） -->
+        <view v-if="dlg" class="dlg-mask" @tap="closeDlg">
+            <view class="dlg" @tap.stop>
+                <text class="dlg-t">{{ dlg === 'recharge' ? '客户充值' : '调整积分' }}</text>
+                <text v-if="dlg === 'recharge'" class="dlg-d">{{ member?.name }} · 当前余额 ¥{{ fmt(balance) }}</text>
+                <text v-else class="dlg-d">{{ member?.name }} · 当前积分 {{ pointBase }}</text>
+                <input
+                    v-if="dlg === 'recharge'"
+                    class="dlg-inp" v-model="dlgValue" type="digit" placeholder="0.00" placeholder-class="dlg-ph"
+                />
+                <input
+                    v-else
+                    class="dlg-inp" v-model="dlgValue" type="number" placeholder="0" placeholder-class="dlg-ph"
+                />
+                <text class="dlg-tip">{{ dlg === 'recharge' ? '输入充值金额，保存后余额实时更新' : '正数增加积分，负数扣减积分' }}</text>
+                <view class="dlg-btns">
+                    <view class="dlg-b dlg-b--cancel" @tap="closeDlg"><text>取消</text></view>
+                    <!-- MOBILE-32F4F1：确认按钮按弹窗类型分流到各自 gate（充值/开卡=finance:create，调整积分=customer:points） -->
+                    <view
+                        class="dlg-b dlg-b--ok"
+                        :class="{ 'dlg-b--disabled': !(dlg === 'points' ? gatePointsAdjust.enabled : gateValueCardRecharge.enabled) }"
+                        @tap="dlg === 'points' ? gatePointsAdjust.enabled && confirmDlg() : gateValueCardRecharge.enabled && confirmDlg()"
+                    >
+                        <text>{{ dlg === 'recharge' ? '确认充值' : '确认调整' }}</text>
+                    </view>
+                </view>
+            </view>
+        </view>
+
+        <!-- 历史单据覆盖式子页 -->
+        <DocPage v-model="docVisible" title="单据明细" :docs="docRows" />
+    </view>
 </template>
 
 <script setup lang="ts">
@@ -331,11 +355,17 @@ interface MemberOrder {
   createdAt: string
 }
 
-// B3-1：「调整积分」入口门（pending-code ⇒ 恒隐藏，按未开通处理）
-const { canEntry } = usePermissionGate()
-// MOBILE-32F4 按钮级门控裁定：本页五个写端点后端均未立码（逐条实证见 scripts/button-gate-manifest.json
-// 的 BLOCKED_BACKEND_CODE 条目：会员新增/编辑/状态、储值充值/开卡、积分调整）⇒ 按既有先例
-// （create-sale 确认付款，F2 已验收）不自绑、不伪造码，不做按钮级预检绑定；后端立码后在此补 buttonGate(码)。
+// B3-1：「调整积分」入口门（MOBILE-32F4F1 起已转 gated：customer:points 由
+// TOTAL-MEMBER-PERMISSION-CODES-01 立码并后端接线，granted 可见 / denied 隐藏 / 失败关闭）
+const { canEntry, buttonGate } = usePermissionGate()
+// MOBILE-32F4F1：六个写动作全部接真实 buttonGate（权限映射与 manifest/backend 实证逐字一致）；
+// 新增与编辑是同端点不同码的两个真实按钮，分别独立声明；点击（模板 enabled 短路）与
+// handler（saveEdit/toggleStatus/confirmDlg 首行预检）双层 fail-closed。
+const gateMemberCreate = buttonGate(['customer:create'])
+const gateMemberUpdate = buttonGate(['customer:edit'])
+const gateMemberStatus = buttonGate(['customer:edit'])
+const gateValueCardRecharge = buttonGate(['finance:create'])
+const gatePointsAdjust = buttonGate(['customer:points'])
 
 const member = ref<MemberDetail | null>(null)
 const orders = ref<MemberOrder[]>([])
@@ -517,6 +547,12 @@ function closeDlg() {
 }
 
 async function confirmDlg() {
+  // MOBILE-32F4F1 handler 层预检：充值/开卡（finance:create）与积分调整（customer:points）分码预检
+  const gate = dlg.value === 'points' ? gatePointsAdjust : gateValueCardRecharge
+  if (!gate.value.enabled) {
+    uni.showToast({ title: gate.value.hint, icon: 'none' })
+    return
+  }
   if (dlgSubmitting.value) return
   const v = Number(dlgValue.value)
   if (dlgValue.value === '' || isNaN(v)) {
@@ -558,6 +594,21 @@ async function confirmDlg() {
 
 /* ===== 修改客户（对齐原稿：行内编辑，无弹窗） ===== */
 
+// MOBILE-32F4F1：t_member.gender 为 tinyint（0=未填写/1=男/2=女），页面标签与接口码互转。
+// 后端契约为「数字字符串」：controller zod 是 z.string()（member.controller.ts:27/50）而列是 tinyint
+// ⇒ 送 '未填写' 等中文串 SQL 500（Incorrect integer value）、送 number 被 zod 拒 400，
+// 只有 '0'/'1'/'2' 两边都过（三态取证实测）。GET 回读为 number，由 genderToLabel 转标签。
+const GENDER_LABELS: Record<string, string> = { 0: '未填写', 1: '男', 2: '女' }
+function genderToLabel(v: number | string | null | undefined): string {
+  if (v === null || v === undefined || v === '') return '未填写'
+  return GENDER_LABELS[String(v)] ?? '未填写'
+}
+function genderToCode(v: string | number | null | undefined): string {
+  if (v === '男' || v === 1 || v === '1') return '1'
+  if (v === '女' || v === 2 || v === '2') return '2'
+  return '0'
+}
+
 function fillEditForm(m: MemberDetail) {
   editForm.value = {
     name: m.name || '',
@@ -567,7 +618,7 @@ function fillEditForm(m: MemberDetail) {
     remark: m.remark || '',
     cardNo: m.cardNo || '',
     contact: m.contact || '',
-    gender: m.gender || '未填写',
+    gender: genderToLabel(m.gender),
     birthday: m.birthday || '',
     province: m.province || '',
     city: m.city || '',
@@ -600,6 +651,12 @@ function dirtyReset() {
 }
 
 async function saveEdit() {
+  // MOBILE-32F4F1 handler 层预检：新增/编辑按模式分流到各自 gate（与模板短路双层 fail-closed）
+  const gate = isNew.value ? gateMemberCreate : gateMemberUpdate
+  if (!gate.value.enabled) {
+    uni.showToast({ title: gate.value.hint, icon: 'none' })
+    return
+  }
   if (!editForm.value.name.trim()) {
     uni.showToast({ title: '请填写客户名称', icon: 'none' })
     return
@@ -608,7 +665,7 @@ async function saveEdit() {
     uni.showToast({ title: '请填写手机号', icon: 'none' })
     return
   }
-  const payload = {
+  const payload: Record<string, string> = {
     name: editForm.value.name.trim(),
     mobile: editForm.value.mobile.trim(),
     customerType: editForm.value.customerType,
@@ -616,13 +673,15 @@ async function saveEdit() {
     remark: editForm.value.remark.trim(),
     cardNo: editForm.value.cardNo.trim(),
     contact: editForm.value.contact.trim(),
-    gender: editForm.value.gender || '未填写',
-    birthday: editForm.value.birthday.trim(),
+    gender: genderToCode(editForm.value.gender),
     province: editForm.value.province.trim(),
     city: editForm.value.city.trim(),
     district: editForm.value.district.trim(),
     tags: tagList.value.join(','),
   }
+  // birthday 是 DATE 列且后端 zod 为 .optional()（不接受显式 null）⇒ 空值必须整个字段省略
+  //（直接送 '' 会 "Incorrect date value" 500，送 null 会 ZodError 400；三态取证实测）
+  if (editForm.value.birthday.trim()) payload.birthday = editForm.value.birthday.trim()
   try {
     if (isNew.value) {
       await post('/store/members/manage', payload)
@@ -666,6 +725,11 @@ function callPhone() {
 }
 
 async function toggleStatus() {
+  // MOBILE-32F4F1 handler 层预检：冻结/恢复是真实 PUT 写（customer:edit）
+  if (!gateMemberStatus.value.enabled) {
+    uni.showToast({ title: gateMemberStatus.value.hint, icon: 'none' })
+    return
+  }
   if (!member.value) return
   const next = member.value.status === 1 ? 0 : 1
   const prev = member.value.status
@@ -952,6 +1016,7 @@ onLoad((query: any) => {
 }
 .sw--on { background: $uni-color-success; }
 .sw--on::after { transform: translateX(36rpx); }
+.sw--disabled { opacity: 0.45; }
 
 /* 会员等级盒（对齐原稿 .lv-box / .lv-prog） */
 .lv-box { padding: 24rpx 32rpx; }
@@ -1107,6 +1172,7 @@ onLoad((query: any) => {
   justify-content: center;
 }
 .ab-primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
+.ab-btn--disabled { opacity: 0.45; }
 .ab-ghost {
   background: $uni-bg-color;
   color: $uni-gray-600;
@@ -1221,6 +1287,9 @@ onLoad((query: any) => {
 .dlg-b--ok {
   background: $uni-color-primary;
   color: $uni-text-color-inverse;
+}
+.dlg-b--disabled {
+  opacity: 0.45;
 }
 .dlg-row {
   display: flex;

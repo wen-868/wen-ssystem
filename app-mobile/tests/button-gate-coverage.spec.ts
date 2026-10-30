@@ -273,78 +273,144 @@ describe('MOBILE-32F3 · 三页审计完备性（卡§五.1 不漏项 / §五.3 
 })
 
 // ===========================================================================
-// MOBILE-32F4 · 会员三页（member-home / member-list / member-detail）
-//   后端五个写端点全部无 requirePermission（store.routes.ts:44/45、
-//   store-value-card.routes.ts:9/11、points.routes.ts:14 逐行实证）⇒
-//   manifest 全部登记 BLOCKED_BACKEND_CODE；本节锁定「无码动作运行时恒拒绝」与守恒。
+// MOBILE-32F4F1 · 会员六写动作（member-detail）
+//   TOTAL-MEMBER-PERMISSION-CODES-01 已为 5 个写端点立码（卡§三映射，不得改写）⇒
+//   6 个写动作全 GATED；本节锁定真实码下的 granted/denied/fail 三态与守恒。
 // ===========================================================================
-const F4_MEMBER_WRITES = [
-  { id: 'mbr-dtl-create', endpoint: 'POST /store/members/manage' },
-  { id: 'mbr-dtl-update', endpoint: 'PUT /store/members/{id}' },
-  { id: 'mbr-dtl-status', endpoint: 'PUT /store/members/{id}' },
-  { id: 'mbr-dtl-recharge', endpoint: 'POST /admin/store-value-cards/{cardNo}/recharge' },
-  { id: 'mbr-dtl-opencard', endpoint: 'POST /admin/store-value-cards' },
-  { id: 'mbr-dtl-points-adjust', endpoint: 'POST /admin/members/{id}/points/adjust' },
+const F4F1_MEMBER_WRITES = [
+  { id: 'mbr-dtl-create', endpoint: 'POST /store/members/manage', code: 'customer:create' },
+  { id: 'mbr-dtl-update', endpoint: 'PUT /store/members/{id}', code: 'customer:edit' },
+  { id: 'mbr-dtl-status', endpoint: 'PUT /store/members/{id}', code: 'customer:edit' },
+  { id: 'mbr-dtl-recharge', endpoint: 'POST /admin/store-value-cards/{cardNo}/recharge', code: 'finance:create' },
+  { id: 'mbr-dtl-opencard', endpoint: 'POST /admin/store-value-cards', code: 'finance:create' },
+  { id: 'mbr-dtl-points-adjust', endpoint: 'POST /admin/members/{id}/points/adjust', code: 'customer:points' },
 ]
 
-describe('MOBILE-32F4 · 会员写动作运行时三态（无码 ⇒ blocked，任何账号/任何请求态都不得放行）', () => {
-  for (const a of F4_MEMBER_WRITES) {
-    it(`${a.id}（${a.endpoint}）codes=[] ⇒ blocked 禁用 + 引导文案 + 零写请求`, () => {
-      // 后端未立码 ⇒ 前端若将来接线只能传 []，buttonGate 必须显式 blocked（不自造码、不放行）
-      const r = resolveButtonGate({ codes: [], permissions: ['*'], hasSession: true, requestState: 'ok' })
-      expect(r.enabled, `${a.id} 无码不得放行`).toBe(false)
-      expect(r.status).toBe('blocked')
-      expect(r.hint).toBe(BUTTON_HINTS.blocked)
-      expect(buttonGateAllowsWrite(r), `${a.id} 不得发出写请求`).toBe(false)
+describe('MOBILE-32F4F1 · 六写动作 granted 态（持码 ⇒ 可点可写）', () => {
+  for (const a of F4F1_MEMBER_WRITES) {
+    it(`${a.id}（${a.code}）持有码 ⇒ enabled=true 且无提示`, () => {
+      const r = resolveButtonGate({ codes: [a.code], permissions: [a.code], hasSession: true, requestState: 'ok' })
+      expect(r.enabled, `${a.id}`).toBe(true)
+      expect(r.status, `${a.id}`).toBe('allowed')
+      expect(r.showHint, `${a.id}`).toBe(false)
+      expect(buttonGateAllowsWrite(r), `${a.id}`).toBe(true)
     })
   }
-
-  it('granted 账号 + 权限服务失败 + 加载中三态下，会员写动作点击模拟均零写请求', () => {
-    const states = [
-      { permissions: ['*'], requestState: 'ok' as const },          // granted（持码账号）
-      { permissions: [], requestState: 'ok' as const },             // denied（不持码账号）
-      { permissions: undefined, requestState: 'failed' as const },  // fail（权限服务失败）
-    ]
-    let sent = 0
-    for (const s of states) {
-      // 无码动作在三种状态下都先经 resolveButtonGate 预判（codes=[] ⇒ blocked），
-      // 模拟按钮点击仅在 allowed/stale-allowed 时发出写请求
-      for (const a of F4_MEMBER_WRITES) {
-        const r = resolveButtonGate({ codes: [], permissions: s.permissions, hasSession: true, requestState: s.requestState })
-        if (r.enabled && (r.status === 'allowed' || r.status === 'stale-allowed')) sent++
-        expect(buttonGateAllowsWrite(r), `${a.id} @ ${s.requestState}`).toBe(false)
-      }
+  it('超管通配 * 对六个动作全部放行（matchPermissionCode 同源语义）', () => {
+    for (const a of F4F1_MEMBER_WRITES) {
+      const r = resolveButtonGate({ codes: [a.code], permissions: ['*'], hasSession: true, requestState: 'ok' })
+      expect(buttonGateAllowsWrite(r), `${a.id} 应被通配码放行`).toBe(true)
     }
-    expect(sent, '会员写请求必须为 0').toBe(0)
-  })
-
-  it('有码对照：若后端将来立码，持有 ⇒ allowed（证明 blocked 是码缺失所致而非写死拒绝）', () => {
-    const r = resolveButtonGate({ codes: ['member:manage'], permissions: ['member:manage'], hasSession: true, requestState: 'ok' })
-    expect(r.enabled).toBe(true)
-    expect(r.status).toBe('allowed')
-    expect(buttonGateAllowsWrite(r)).toBe(true)
-  })
-
-  it('blocked 文案对商户说人话（不泄漏端点/码/内部态）', () => {
-    const r = resolveButtonGate({ codes: [], permissions: [], hasSession: true, requestState: 'ok' })
-    expect(r.hint).toBe(BUTTON_HINTS.blocked)
-    expect(r.hint).not.toMatch(/:/)
-    expect(r.hint).not.toMatch(/store|admin|member|BLOCKED/i)
   })
 })
 
-describe('MOBILE-32F4 · 全 manifest 守恒（F2+F3 基数不因扩面漂移）', () => {
-  it('GATED 仍为 22、BLOCKED 8、UI_ONLY 7、READ_ONLY 8、条目 45；写条目 = GATED + BLOCKED', () => {
+describe('MOBILE-32F4F1 · 六写动作 denied 态（不持码 ⇒ 禁用 + 商户文案 + 零写请求）', () => {
+  for (const a of F4F1_MEMBER_WRITES) {
+    it(`${a.id} 无该码 ⇒ disabled、提示正确、点击不发写请求`, () => {
+      const r = resolveButtonGate({ codes: [a.code], permissions: ['report:dashboard'], hasSession: true, requestState: 'ok' })
+      expect(r.enabled, `${a.id}`).toBe(false)
+      expect(r.status, `${a.id}`).toBe('denied')
+      expect(r.hint, `${a.id}`).toBe(BUTTON_HINTS.denied)
+      expect(buttonGateAllowsWrite(r), `${a.id} 被禁后仍发出写请求`).toBe(false)
+    })
+  }
+  it('跨码不放行：customer:create 不能放行编辑/状态/积分，finance:create 不能放行新增/积分', () => {
+    const foreign: Array<[string, string]> = [
+      ['customer:create', 'mbr-dtl-update'],
+      ['customer:create', 'mbr-dtl-status'],
+      ['customer:create', 'mbr-dtl-points-adjust'],
+      ['finance:create', 'mbr-dtl-create'],
+      ['finance:create', 'mbr-dtl-points-adjust'],
+      ['customer:points', 'mbr-dtl-create'],
+    ]
+    for (const [held, id] of foreign) {
+      const a = F4F1_MEMBER_WRITES.find((x) => x.id === id)!
+      const r = resolveButtonGate({ codes: [a.code], permissions: [held], hasSession: true, requestState: 'ok' })
+      expect(r.enabled, `${id} 被 ${held} 误放行（懒绑/错码）`).toBe(false)
+    }
+  })
+})
+
+describe('MOBILE-32F4F1 · 六写动作 fail 态（权限请求失败 ⇒ 失败关闭，不放出写控件）', () => {
+  for (const a of F4F1_MEMBER_WRITES) {
+    it(`${a.id} 取不到权限（requestState=failed 且非数组）⇒ disabled + 引导文案`, () => {
+      const r = resolveButtonGate({ codes: [a.code], permissions: undefined, hasSession: true, requestState: 'failed' })
+      expect(r.enabled, `${a.id}`).toBe(false)
+      expect(r.status, `${a.id}`).toBe('unavailable')
+      expect(r.hint, `${a.id}`).toBe(BUTTON_HINTS.unavailable)
+      expect(buttonGateAllowsWrite(r), `${a.id}`).toBe(false)
+    })
+  }
+  it('loading 态一律暂缓（不误报为权限不足）', () => {
+    for (const a of F4F1_MEMBER_WRITES) {
+      const r = resolveButtonGate({ codes: [a.code], permissions: undefined, hasSession: true, requestState: 'pending' })
+      expect(r.enabled, `${a.id}`).toBe(false)
+      expect(r.status, `${a.id}`).toBe('loading')
+      expect(r.hint, `${a.id}`).toBe(BUTTON_HINTS.loading)
+    }
+  })
+  it('granted/denied/fail 三态点击模拟：仅 granted 发写，denied/fail 恒 0', () => {
+    let sent = 0
+    for (const a of F4F1_MEMBER_WRITES) {
+      for (const s of [
+        { permissions: [a.code], requestState: 'ok' as const },
+        { permissions: [] as string[], requestState: 'ok' as const },
+        { permissions: undefined, requestState: 'failed' as const },
+      ]) {
+        const r = resolveButtonGate({ codes: [a.code], permissions: s.permissions, hasSession: true, requestState: s.requestState })
+        if (r.enabled && (r.status === 'allowed' || r.status === 'stale-allowed')) sent++
+        else expect(buttonGateAllowsWrite(r), `${a.id} @ ${s.requestState}`).toBe(false)
+      }
+    }
+    expect(sent, '每动作恰 1 次 granted 发写（模拟），denied/fail 必须为 0').toBe(6)
+  })
+  it('stale 缓存态：unavailable + 上次缓存持有 ⇒ 可用但标注（stale-allowed）；不持有 ⇒ stale-denied', () => {
+    const ok = resolveButtonGate({ codes: ['customer:create'], permissions: undefined, hasSession: true, requestState: 'failed', cachedPermissions: ['customer:create'] })
+    expect(ok.enabled).toBe(true)
+    expect(ok.status).toBe('stale-allowed')
+    expect(ok.stale).toBe(true)
+    expect(ok.showHint).toBe(true)
+    const no = resolveButtonGate({ codes: ['customer:create'], permissions: undefined, hasSession: true, requestState: 'failed', cachedPermissions: ['report:dashboard'] })
+    expect(no.enabled).toBe(false)
+    expect(no.status).toBe('stale-denied')
+    expect(buttonGateAllowsWrite(no)).toBe(false)
+  })
+
+  it('失败/拒绝文案对商户说人话（不泄漏权限码/端点/内部态）', () => {
+    for (const a of F4F1_MEMBER_WRITES) {
+      const d = resolveButtonGate({ codes: [a.code], permissions: [], hasSession: true, requestState: 'ok' })
+      expect(d.hint, `${a.id} denied 文案泄漏`).not.toMatch(/:|customer|finance|store|admin/)
+      const u = resolveButtonGate({ codes: [a.code], permissions: undefined, hasSession: true, requestState: 'failed' })
+      expect(u.hint, `${a.id} fail 文案泄漏`).not.toMatch(/:|customer|finance|store|admin/)
+    }
+  })
+})
+
+describe('MOBILE-32F4F1 · 全 manifest 守恒（GATED 22→28，BLOCKED 8→2，条目 45 不变）', () => {
+  it('GATED=28、BLOCKED=2、UI_ONLY=7、READ_ONLY=8、条目 45；写条目 = GATED + BLOCKED', () => {
     const mf = JSON.parse(read('scripts/button-gate-manifest.json'))
     const c = (s: string) => mf.entries.filter((e: any) => e.status === s).length
-    expect(c('GATED'), 'GATED 不得因 F4 虚增（后端无码禁止标 GATED）').toBe(22)
-    expect(c('BLOCKED_BACKEND_CODE')).toBe(8)
+    expect(c('GATED'), 'F4 的 6 条转 GATED 后应为 28').toBe(28)
+    expect(c('BLOCKED_BACKEND_CODE'), '仅剩 F2 的 2 条').toBe(2)
     expect(c('UI_ONLY')).toBe(7)
     expect(c('READ_ONLY')).toBe(8)
     expect(mf.entries.length).toBe(45)
     expect(c('GATED') + c('BLOCKED_BACKEND_CODE')).toBe(
       mf.entries.filter((e: any) => ['GATED', 'BLOCKED_BACKEND_CODE'].includes(e.status)).length
     )
+  })
+
+  it('member-detail 6 条 GATED 全部 countedAsCompleted=true 且带双证据（codeProof + gateVar）', () => {
+    const mf = JSON.parse(read('scripts/button-gate-manifest.json'))
+    const writes = mf.entries.filter((e: any) => e.page === 'member-detail' && e.status === 'GATED')
+    expect(writes.length, 'member-detail 写条目应为 6').toBe(6)
+    for (const e of writes) {
+      expect(e.countedAsCompleted, `${e.id} 应计入完成`).toBe(true)
+      expect(e.approvedWriteAttempts, `${e.id} 不得再带零写尝试字段`).toBeUndefined()
+      expect(String(e.codeProof), `${e.id} 须带 routes.ts:行`).toMatch(/[\w.-]+\.routes\.ts:\d+/)
+      expect(String(e.codeProof), `${e.id} codeProof 须含其码`).toContain(e.permissionCodes[0])
+      expect(typeof e.gateVar, `${e.id} 须指向真实 gate 常量`).toBe('string')
+    }
   })
 
   it('F4 三页 UI_ONLY / READ_ONLY 条目均显式标注且不得携带非 GET 端点', () => {

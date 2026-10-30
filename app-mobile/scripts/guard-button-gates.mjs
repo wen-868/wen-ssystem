@@ -50,9 +50,12 @@ function requestVerbs() {
 }
 const V = requestVerbs()
 
-/** `${id}` / `{id}` → `*`；去查询串；去掉 `${API_BASE}` 之类前缀段（真实 path 以 / 开头） */
+/** `${id}` / `{id}` → `*`；去查询串；去掉 `${API_BASE}` 之类前缀段（真实 path 以 / 开头）
+ *  MOBILE-32F4F1：后端路由段可带正则约束（如 `/:id(\d+)`）⇒ 去掉括号约束后按段比较，
+ *  使 manifest 的 `{id}`/`*` 通配与后端 `:id(\d+)` 段等价，不误报 CODEPROOF_ENDPOINT_MISMATCH。 */
 const norm = (p) => {
   let s = (p || '').replace(/\$\{[^}]*\}/g, '*').replace(/\{[^}]*\}/g, '*').split('?')[0]
+  s = s.replace(/\([^)]*\)/g, '')
   s = s.replace(/^(\*\/)+/, '/') // `${API_BASE}/admin/...` → `/admin/...`
   if (!s.startsWith('/')) s = '/' + s
   return s
@@ -425,6 +428,17 @@ function run() {
         new RegExp(`@tap[^=]*=\\s*"[^"]*${e.gateVar}\\.enabled\\s*&&`).test(text) ||
         new RegExp(`:disabled="!${e.gateVar}\\.enabled"`).test(text)
       if (!wired) errors.push(`UNGATED_WRITE: ${e.id} 声明 status=GATED，但源码未见 ${e.gateVar} 接线（既无 writeGate 绑定，也无 ${e.gateVar}.value.enabled / gateOrHint(${e.gateVar}) / 模板 gate 短路预检）`)
+      // MOBILE-32F4F1：页面 gate 声明的码必须与 manifest permissionCodes 逐字一致（漏码/错码/懒绑即红）
+      const gateDecl = new RegExp(`const\\s+${e.gateVar}\\s*=\\s*buttonGate\\(\\[([^\\]]*)\\]\\)`).exec(text)
+      if (gateDecl) {
+        const declared = [...gateDecl[1].matchAll(/'([^']+)'/g)].map((x) => x[1])
+        const want = e.permissionCodes || []
+        if (JSON.stringify(declared) !== JSON.stringify(want)) {
+          errors.push(`GATE_CODE_MISMATCH: ${e.id} 页面 ${e.gateVar}=buttonGate([${declared.join(',')}]) 与 manifest permissionCodes [${want.join(',')}] 不一致（漏码/错码/懒绑）`)
+        }
+      } else if ((e.permissionCodes || []).length) {
+        errors.push(`GATE_CODE_MISMATCH: ${e.id} manifest 声明码 [${(e.permissionCodes || []).join(',')}] 但页面未见 const ${e.gateVar} = buttonGate([...]) 声明（漏码）`)
+      }
     }
     for (const e of entries.filter((x) => x.status === 'BLOCKED_BACKEND_CODE')) {
       const hit = writes.find((w) => w.method === e.method && pathEquals(e.endpoint, w.path))
@@ -553,12 +567,11 @@ if (args.includes('--self-test')) {
       apply: (t) => {
         const j = JSON.parse(t)
         const e = j.entries.find((x) => x.id === 'mbr-dtl-create')
-        if (!e || e.status !== 'BLOCKED_BACKEND_CODE') throw new Error('M11 前置不成立：mbr-dtl-create 不是 BLOCKED')
-        e.status = 'GATED'
-        e.permissionCodes = ['member:manage'] // 后端该端点确无此码 ⇒ 伪造
-        e.codeProof = 'store.routes.ts:44 requirePermission("member:manage")'
-        e.countedAsCompleted = true
-        delete e.approvedWriteAttempts
+        if (!e || e.status !== 'GATED') throw new Error('M11[F4F1] 前置不成立：mbr-dtl-create 不是 GATED')
+        // F4 原场景（BLOCKED 伪造为 GATED）随立码反转 ⇒ 改打反向伪造：把已 GATED 的动作状态倒退回 BLOCKED
+        e.status = 'BLOCKED_BACKEND_CODE'
+        e.countedAsCompleted = false
+        e.approvedWriteAttempts = 0
         return JSON.stringify(j, null, 2) + '\n'
       },
     },
@@ -576,24 +589,24 @@ if (args.includes('--self-test')) {
     },
     {
       key: 'manifest',
-      name: 'M13[F4] 把 BLOCKED 充值动作计入完成（countedAsCompleted 翻真）',
+      name: 'M13[F4F1] 把 GATED 充值动作标成不计完成（状态与完成标记矛盾）',
       file: targets.manifest,
       apply: (t) => {
         const j = JSON.parse(t)
         const e = j.entries.find((x) => x.id === 'mbr-dtl-recharge')
-        if (!e || e.status !== 'BLOCKED_BACKEND_CODE') throw new Error('M13 前置不成立：mbr-dtl-recharge 不是 BLOCKED')
-        e.countedAsCompleted = true
+        if (!e || e.status !== 'GATED') throw new Error('M13[F4F1] 前置不成立：mbr-dtl-recharge 不是 GATED')
+        e.countedAsCompleted = false
         return JSON.stringify(j, null, 2) + '\n'
       },
     },
     {
       key: 'manifest',
-      name: 'M14[F4] 删掉积分调整条目的无码实证（codeProof 消失）',
+      name: 'M14[F4F1] 删掉积分调整条目的后端实证（codeProof 消失）',
       file: targets.manifest,
       apply: (t) => {
         const j = JSON.parse(t)
         const e = j.entries.find((x) => x.id === 'mbr-dtl-points-adjust')
-        if (!e || e.status !== 'BLOCKED_BACKEND_CODE') throw new Error('M14 前置不成立：mbr-dtl-points-adjust 不是 BLOCKED')
+        if (!e || e.status !== 'GATED') throw new Error('M14[F4F1] 前置不成立：mbr-dtl-points-adjust 不是 GATED')
         delete e.codeProof
         return JSON.stringify(j, null, 2) + '\n'
       },
@@ -611,6 +624,48 @@ if (args.includes('--self-test')) {
         e.codeProof = 'store.routes.ts:44 requirePermission("member:manage")'
         return JSON.stringify(j, null, 2) + '\n'
       },
+    },
+    // ===== MOBILE-32F4F1 新增（会员六动作 GATED 收口；fail-open 类由 M4/M9 覆盖） =====
+    {
+      key: 'memberDetail',
+      name: 'M16[F4F1] 漏码：会员新增 gate 声明码被清空',
+      file: targets.memberDetail,
+      apply: (t) => t.replace("const gateMemberCreate = buttonGate(['customer:create'])", 'const gateMemberCreate = buttonGate([])'),
+    },
+    {
+      key: 'manifest',
+      name: 'M17[F4F1] 错端点：会员新增条目端点漂移',
+      file: targets.manifest,
+      apply: (t) => t.replace('"endpoint": "/store/members/manage"', '"endpoint": "/store/members/manageX"'),
+    },
+    {
+      key: 'manifest',
+      name: 'M18[F4F1] 错码：会员编辑条目懒绑他动作的码',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-update')
+        if (!e || e.status !== 'GATED') throw new Error('M18 前置不成立：mbr-dtl-update 不是 GATED')
+        e.permissionCodes = ['customer:create']
+        e.codeProof = 'backend/src/routes/store.routes.ts:48 requirePermission("customer:create")'
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'memberDetail',
+      name: 'M19[F4F1] denied 放行：拆掉会员保存按钮全部三层门',
+      file: targets.memberDetail,
+      apply: (t) =>
+        t
+          .replace('@tap="gateMemberCreate.enabled && saveEdit()"', '@tap="saveEdit()"')
+          .replace('@tap="gateMemberUpdate.enabled && saveEdit()"', '@tap="saveEdit()"')
+          .replace(`  // MOBILE-32F4F1 handler 层预检：新增/编辑按模式分流到各自 gate（与模板短路双层 fail-closed）
+  const gate = isNew.value ? gateMemberCreate : gateMemberUpdate
+  if (!gate.value.enabled) {
+    uni.showToast({ title: gate.value.hint, icon: 'none' })
+    return
+  }
+`, ''),
     },
   ]
   let ok = true
