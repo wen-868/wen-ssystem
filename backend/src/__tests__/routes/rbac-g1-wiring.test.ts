@@ -272,10 +272,9 @@ const UNWIRED: G1UnwiredRow[] = [
   // ---- B：app-mobile（商家端）无角色门禁的写调用点 ⇒ 判据不可判定 ----
   // （S3-233：原 5 条财务/收款类 B 行已收编接线，见上方 `S3233_WIRED`。
   //   TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）又收编 1 条：store-value-card.routes.ts POST /
-  //   已按凌舟裁定挂 `finance:create` 接线（逐行断言见 total-member-permission-codes-wiring.test.ts）
-  //   ⇒ 余 2 条为储值卡族（freeze/unfreeze，不在该卡裁定范围），仍在办。）
-  { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, routePath: "/:cardNo/freeze", path: "/VC1/freeze", reason: "B", note: "app-mobile 储值卡页 stored-cards.vue:142（storedCardApi.lock）" },
-  { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, routePath: "/:cardNo/unfreeze", path: "/VC1/unfreeze", reason: "B", note: "app-mobile 储值卡页 stored-cards.vue:144（storedCardApi.unlock）" },
+  //   TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）再收编 2 条：同文件
+  //   /:cardNo/freeze 与 /:cardNo/unfreeze，均按凌舟裁定挂 `finance:create`
+  //   （逐行断言见 total-value-card-lifecycle-codes-wiring.test.ts）⇒ B 类待裁名单清零。）
 
   // ---- C：与既有 G0 断言冲突（G0 已断言这些端点 READONLY 仍 200，本单不得放宽该断言，故不可接）----
   // （TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）订正：原 C 类 recharge 一行已由该卡接线
@@ -471,10 +470,12 @@ describe("S3-122-G1 · 名单自证（验收标准①）", () => {
     expect(S3233_WIRED_TOTAL).toBe(5);
     // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）收编 2 行（store-value-card POST / 与
     // /:cardNo/recharge，均挂 finance:create）⇒ 未接 7 → 5；历史计数 28 → 26、29 → 27（状态变更登记）
-    expect(G1_UNWIRED_TOTAL).toBe(5);
+    // TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）再收编 2 行（同文件
+    // /:cardNo/freeze 与 /:cardNo/unfreeze，均挂 finance:create）⇒ 未接 5 → 3；历史计数 26 → 24、27 → 25
+    expect(G1_UNWIRED_TOTAL).toBe(3);
     // S3-125（G2）已把 expense.routes.ts POST / 接线并移出本名单（1 行）⇒ 28 + 1 = 29
-    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + S3233_WIRED_TOTAL + G1_UNWIRED_TOTAL).toBe(26);
-    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + S3233_WIRED_TOTAL + G1_UNWIRED_TOTAL + 1).toBe(27);
+    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + S3233_WIRED_TOTAL + G1_UNWIRED_TOTAL).toBe(24);
+    expect(G1_WIRED_TOTAL + S126_WIRED_TOTAL + S3233_WIRED_TOTAL + G1_UNWIRED_TOTAL + 1).toBe(25);
   });
 
   it("已接 8 行分布：bank-account 2 / payment 1 / store-value-card 1 / flash-sale 4", () => {
@@ -508,17 +509,14 @@ describe("S3-122-G1 · 形状断言（行级判据；验收标准③，踩坑[13
     expect(lines[0].line).toContain(`requirePermission("${row.perm}")`);
   });
 
-  it("整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但 freeze/unfreeze 两行没有", () => {
+  it("整文件子串不足以判定（踩坑[134]）：必须落到**注册行**级判据", () => {
     const src = readFileSync(path.join(ROUTES_DIR, "store-value-card.routes.ts"), "utf8");
     // 文件级子串判据会得到"存在"的错误结论（同一文件里 consume/refund 行确实接了 finance:create）
     expect(src).toContain('requirePermission("finance:create")');
     // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：recharge 行已由该卡接线（finance:create）
-    // ⇒ 从本判据的「未接」循环移出，其形状断言见 total-member-permission-codes-wiring.test.ts
-    for (const routePath of ["/:cardNo/freeze", "/:cardNo/unfreeze"]) {
-      const lines = registrationLines("store-value-card.routes.ts", "post", routePath);
-      expect(lines).toHaveLength(1);
-      expect(lines[0].line, `${routePath} 的注册行不得被误判为已接线`).not.toContain("requirePermission(");
-    }
+    // TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）：freeze/unfreeze 两行已由该卡接线
+    // （finance:create）⇒ 均从本判据的「未接」循环移出，形状断言见
+    // total-member-permission-codes-wiring.test.ts / total-value-card-lifecycle-codes-wiring.test.ts
     // 而本单真正接线的 consume 行必须在注册行上带中间件
     const consume = registrationLines("store-value-card.routes.ts", "post", "/:cardNo/consume");
     expect(consume[0].line).toContain('requirePermission("finance:create")');
@@ -665,10 +663,9 @@ describe("S3-122-G1 · 待裁原因可复核（A/B/C 三类证据锚点）", () 
     expect(holdersOf("sale:commission")).toContain(STORE_MANAGER_PROD);
   });
 
-  it("B 类 2 行（G2 移出 expense 1 行、S3-233 收编财务/收款 5 行、TOTAL-MEMBER-PERMISSION-CODES-01 收编储值卡开卡 1 行后）：均为 app-mobile 的写调用点（储值卡族）", () => {
+  it("B 类 0 行（G2 移出 expense 1 行、S3-233 收编财务/收款 5 行、TOTAL-MEMBER-PERMISSION-CODES-01 收编储值卡开卡 1 行、TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01 收编储值卡 freeze/unfreeze 2 行后）：B 类待裁名单清零", () => {
     const b = UNWIRED.filter((r) => r.reason === "B");
-    expect(b).toHaveLength(2);
-    for (const row of b) expect(row.note).toMatch(/app-mobile/);
+    expect(b).toHaveLength(0);
   });
 
   it("C 类 3 行：均落在 G0「范围控制」已断言 READONLY 仍 200 的名单内，本单不得放宽该断言", () => {

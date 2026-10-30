@@ -228,8 +228,13 @@ interface UnwiredRow {
  *    **TOTAL-MEMBER-PERMISSION-CODES-01** 按凌舟裁定（任务卡 §二）**立码接线**
  *    （finance:create ×2 / customer:create / customer:edit），
  *    故本名单由 22 → **18**（本条为**状态变更登记**，S3-229 的历史判定不改写；
- *    储值卡 freeze/unfreeze 2 条不在该卡裁定范围，保留登记）。
+ *    储值卡 freeze/unfreeze 2 条当时不在该卡裁定范围，保留登记）。
  *    已接线断言与零回归证据见 `backend/src/__tests__/routes/total-member-permission-codes-wiring.test.ts`。
+ * ── 状态变更登记（2026-10-31 · TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01）─────
+ *  · **B 再结 2 条**：储值卡冻结/解冻（svc /:cardNo/freeze、/:cardNo/unfreeze）由该卡按凌舟裁定
+ *    挂 `finance:create`（既有码，同文件开卡/充值/消费/退款同码；同域先例 bank-account
+ *    freeze/unfreeze 同码）⇒ 本名单由 18 → **16**（B 类 4 → 2，状态变更登记）。
+ *    已接线断言与零回归证据见 `backend/src/__tests__/routes/total-value-card-lifecycle-codes-wiring.test.ts`。
  */
 const UNWIRED: UnwiredRow[] = [
   // ---- G1 · B 类（8 → 4）----
@@ -237,8 +242,9 @@ const UNWIRED: UnwiredRow[] = [
   { file: "admin-store.routes.ts", prefix: "/api/admin/system", router: adminStoreRouter, method: "put", routePath: "/stores/:id", path: "/stores/1", reason: "B", note: "app-mobile store-edit.vue:218（storesApi.update），同上", runnable: true },
   // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：svc POST / 与 /:cardNo/recharge、members /manage 与
   // /:id(\d+) 4 行已按凌舟裁定立码接线（finance:create / customer:create / customer:edit）⇒ 从本名单移出。
-  { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", routePath: "/:cardNo/freeze", path: "/C1/freeze", reason: "B", note: "api/modules/stored-cards.ts:85（冻结）挂 app-mobile 储值卡页，同上链路", runnable: true },
-  { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", routePath: "/:cardNo/unfreeze", path: "/C1/unfreeze", reason: "B", note: "api/modules/stored-cards.ts:90（解冻）同上", runnable: true },
+  // TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）：svc /:cardNo/freeze 与 /:cardNo/unfreeze 2 行
+  // 已按凌舟裁定挂 `finance:create` 接线 ⇒ 从本名单移出（形状/403/200 断言见
+  // total-value-card-lifecycle-codes-wiring.test.ts）。
 
   // ---- G2 · W 类（4）已由 S3-231 F1 接线（改挂 customer:level）⇒ 本名单清零，见文件头「状态变更登记」----
   // ---- G1 · 公开端点（2）----
@@ -275,9 +281,9 @@ const UNWIRED: UnwiredRow[] = [
 const G1_TOTAL = 31;
 const G2_TOTAL = 14;
 /** 接线**前**的原缺口构成（S3-229 口径，F1 结项后仍用于历史对账） */
-const G1_UNWIRED_TOTAL = 18; // S3-238：tenant-register 审核 2 条已接线 ⇒ 24 → 22；TOTAL-MEMBER-PERMISSION-CODES-01：会员域 4 条已接线 ⇒ 22 → 18
-/** F1 后**当前**未接名单构成（W 桶清零；S3-238 后 PLATFORM 14 → 12；TOTAL-MEMBER-PERMISSION-CODES-01 后 B 8 → 4） */
-const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 4, W: 0, PUB: 2, PLATFORM: 12 };
+const G1_UNWIRED_TOTAL = 16; // S3-238 ⇒ 24→22；TOTAL-MEMBER-PERMISSION-CODES-01（会员域 4 条）⇒ 22→18；TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（储值卡 freeze/unfreeze 2 条）⇒ 18→16
+/** F1 后**当前**未接名单构成（W 桶清零；S3-238 后 PLATFORM 14 → 12；TOTAL-MEMBER-PERMISSION-CODES-01 后 B 8 → 4；TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01 后 B 4 → 2） */
+const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 2, W: 0, PUB: 2, PLATFORM: 12 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -393,9 +399,13 @@ describe("S3-229 · 名单自证", () => {
     // ⚠️ TOTAL-MEMBER-PERMISSION-CODES-01 后：G1 的「会员域 4 条」已按凌舟裁定立码接线
     //    （finance:create ×2 / customer:create / customer:edit）⇒ 守恒式再补一项：
     //    `7 + 18（未接）+ 2（S3-238）+ 4（本卡）= 31`（G1_UNWIRED_TOTAL 已 22→18）。
+    // ⚠️ TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01 后：G1 的「储值卡 freeze/unfreeze 2 条」已按
+    //    凌舟裁定挂 finance:create 接线 ⇒ 守恒式再补一项：
+    //    `7 + 16（未接）+ 2（S3-238）+ 4 + 2 = 31`（G1_UNWIRED_TOTAL 已 18→16）。
     const G1_PLATFORM_WIRED_BY_S3_238 = 2;
     const G1_WIRED_BY_TOTAL_MEMBER_PERMISSION_CODES_01 = 4;
-    expect(g1Wired + G1_UNWIRED_TOTAL + G1_PLATFORM_WIRED_BY_S3_238 + G1_WIRED_BY_TOTAL_MEMBER_PERMISSION_CODES_01).toBe(G1_TOTAL);
+    const G1_WIRED_BY_TOTAL_VALUE_CARD_LIFECYCLE_CODES_01 = 2;
+    expect(g1Wired + G1_UNWIRED_TOTAL + G1_PLATFORM_WIRED_BY_S3_238 + G1_WIRED_BY_TOTAL_MEMBER_PERMISSION_CODES_01 + G1_WIRED_BY_TOTAL_VALUE_CARD_LIFECYCLE_CODES_01).toBe(G1_TOTAL);
     expect(g2Wired + 4).toBe(G2_TOTAL);
     expect(UNWIRED.filter((r) => r.file === "points.routes.ts")).toHaveLength(0);
     expect(UNWIRED).toHaveLength(G1_UNWIRED_TOTAL);
@@ -409,7 +419,7 @@ describe("S3-229 · 名单自证", () => {
       PLATFORM: byReason(UNWIRED, "PLATFORM"),
     }).toEqual(UNWIRED_CLASS_TOTAL);
     expect(byReason(UNWIRED, "PLATFORM")).toBe(12); // S3-238：2 条已接线 ⇒ 14 → 12
-    expect(byReason(UNWIRED, "B")).toBe(4); // TOTAL-MEMBER-PERMISSION-CODES-01：会员域 4 条已接线 ⇒ 8 → 4
+    expect(byReason(UNWIRED, "B")).toBe(2); // TOTAL-MEMBER-PERMISSION-CODES-01：会员域 4 条 ⇒ 8 → 4；TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01：储值卡 2 条 ⇒ 4 → 2
     expect(byReason(UNWIRED, "PUB")).toBe(2);
   });
 });
@@ -577,8 +587,8 @@ describe("S3-229 · 范围控制：本批未接行 READONLY 仍到达业务层�
     expect(UNWIRED.filter((r) => r.reason === "W")).toHaveLength(0);
   });
 
-  it("4 行可实跑的未接行都被 READONLY 触达（B 4；原 W 4 已由 S3-231 F1 接线移出、原 B 4 已由 TOTAL-MEMBER-PERMISSION-CODES-01 接线移出本名单）", () => {
-    expect(UNWIRED.filter((r) => r.runnable)).toHaveLength(4);
+  it("2 行可实跑的未接行都被 READONLY 触达（B 2；原 W 4 已由 S3-231 F1 接线移出、原 B 4 已由 TOTAL-MEMBER-PERMISSION-CODES-01 接线移出、原 B 2（储值卡 freeze/unfreeze）已由 TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01 接线移出本名单）", () => {
+    expect(UNWIRED.filter((r) => r.runnable)).toHaveLength(2);
   });
 });
 
