@@ -139,6 +139,28 @@ describe("member.service - registerMember", () => {
     expect(res).toEqual({ id: 10, name: "李四", mobile: "13800000001" });
     expect(mocks.queryWithTenant).toHaveBeenCalledTimes(4);
   });
+
+  // MS-SECURITY-BASELINE-01：不再接收前端硬编码默认口令；未传密码时生成一次性初始口令并哈希
+  it("未传密码时生成随机一次性初始口令并哈希落库（MS-SECURITY-BASELINE-01）", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue(null);
+    mocks.queryWithTenant.mockResolvedValue({ insertId: 11 });
+    const res = await registerMember({ name: "王五", mobile: "13800000002", tenantId: "t1" });
+    const [calledPassword] = mocks.hashPassword.mock.calls[0];
+    expect(calledPassword).not.toBe("123456");
+    expect(calledPassword).toMatch(/^[A-HJ-NP-Za-hj-km-np-z2-9]{12}$/);
+    // 落库的是哈希，不是明文
+    const [, insertParams] = mocks.queryWithTenant.mock.calls[0];
+    expect(insertParams[2]).toBe("hashed");
+    // 一次性初始口令仅在响应中返回一次
+    expect((res as { initialPassword?: string }).initialPassword).toBe(calledPassword);
+  });
+
+  it("显式传入弱密码时拒绝（校验强度）", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue(null);
+    mocks.validatePassword.mockReturnValue({ valid: false, errors: ["长度不足"] });
+    await expect(registerMember({ name: "赵六", mobile: "13800000003", password: "123", tenantId: "t1" }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
 });
 
 describe("member.service - getMemberCard", () => {

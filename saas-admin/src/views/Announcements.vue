@@ -252,8 +252,8 @@
               类型：{{ typeView(form).text }} · 范围：{{ form.scope }} · 渠道：
               {{ form.channels.join(" + ") || "—" }}
             </p>
-            <!-- 正文为平台运营在本地富文本编辑器录入的内容（非外部输入），此处按原样渲染 -->
-            <div class="pv-body" v-html="form.content"></div>
+            <!-- 正文经 rich-text 白名单净化后渲染（MS-SECURITY-BASELINE-01） -->
+            <div class="pv-body" v-html="previewContent"></div>
             <p v-if="!form.content" class="small">（正文为空）</p>
           </div>
           <p class="small">
@@ -294,7 +294,7 @@
             </div>
             <div class="fld">
               <span>正文</span>
-              <div class="pv-body" v-html="detail.content"></div>
+              <div class="pv-body" v-html="detailContent"></div>
             </div>
             <p class="small">触达 / 已读明细暂无数据源（后端无已读统计表，S3-82 登记）。</p>
           </template>
@@ -358,6 +358,8 @@ import {
   updateAnnouncementApi,
 } from "../api/announcement";
 import type { AnnouncementItem, AnnouncementTemplateItem } from "../api/announcement";
+// MS-SECURITY-BASELINE-01：富文本渲染前统一走白名单净化（SEC-005 动态 HTML 直写整改）
+import { sanitizeRichText } from "../utils/rich-text";
 
 /** 统一解包响应信封 { code, msg, data, traceId }（业务码非 0 已由请求层拦截并给中文提示） */
 function unwrap(res: any) {
@@ -531,15 +533,18 @@ async function fetchStats() {
 /* ── 弹窗与正文编辑 ── */
 const editorRef = ref<HTMLElement | null>(null);
 
-/** 富文本区与 form.content 同步：输入取 innerHTML，打开弹窗时回填已存正文 */
+/** 富文本区与 form.content 同步：输入取 innerHTML（净化后），打开弹窗时回填净化后的已存正文 */
 function onContentInput() {
-  form.content = editorRef.value?.innerHTML ?? "";
+  form.content = sanitizeRichText(editorRef.value?.innerHTML ?? "");
 }
 function syncEditor() {
   nextTick(() => {
-    if (editorRef.value) editorRef.value.innerHTML = form.content;
+    if (editorRef.value) editorRef.value.innerHTML = sanitizeRichText(form.content);
   });
 }
+
+/** v-html 渲染统一走净化后的内容（MS-SECURITY-BASELINE-01） */
+const previewContent = computed(() => sanitizeRichText(form.content));
 
 function openCreate() {
   editingId.value = null;
@@ -663,6 +668,8 @@ const detailVisible = ref(false);
 const detailLoading = ref(false);
 const detailError = ref("");
 const detail = ref<AnnouncementItem | null>(null);
+// 公告详情正文 v-html 渲染统一走净化后的内容（MS-SECURITY-BASELINE-01）
+const detailContent = computed(() => sanitizeRichText(detail.value?.content ?? ""));
 async function openDetail(row: any) {
   detailVisible.value = true;
   detailLoading.value = true;

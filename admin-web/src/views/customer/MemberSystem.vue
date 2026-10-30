@@ -22,7 +22,7 @@
                 <el-input v-model="registerForm.mobile" placeholder="请输入手机号" />
               </el-form-item>
               <el-form-item label="初始密码">
-                <el-input v-model="registerForm.password" show-password />
+                <el-input v-model="registerForm.password" show-password placeholder="留空则系统自动生成一次性初始密码" />
               </el-form-item>
               <el-form-item label="推荐人">
                 <el-input v-model="registerForm.referrerId" placeholder="选填，推荐人ID" />
@@ -101,7 +101,8 @@ const mobilePattern = /^1[3-9]\d{9}$/;
 const registerForm = reactive({
   name: "",
   mobile: "",
-  password: "123456",
+  // MS-SECURITY-BASELINE-01：不再硬编码默认口令；留空由后端生成一次性初始口令
+  password: "",
   referrerId: ""
 });
 
@@ -124,11 +125,13 @@ async function handleRegister() {
     if (!valid) return;
     registerSubmitLoading.value = true;
     try {
-      await registerMember({ ...registerForm, referrerId: Number(registerForm.referrerId) || undefined });
-      ElMessage.success("会员注册成功");
+      // MS-SECURITY-BASELINE-01：后端生成的一次性初始口令只在本次响应中返回一次
+      const res = await registerMember({ ...registerForm, referrerId: Number(registerForm.referrerId) || undefined });
+      const initialPassword = (res as { initialPassword?: string })?.initialPassword;
+      ElMessage.success(initialPassword ? `会员注册成功，一次性初始密码：${initialPassword}（请妥善转交会员）` : "会员注册成功");
       registerForm.name = "";
       registerForm.mobile = "";
-      registerForm.password = "123456";
+      registerForm.password = "";
       registerForm.referrerId = "";
     } catch (e: any) {
       ElMessage.error(getErrorMessage(e, "注册失败"));

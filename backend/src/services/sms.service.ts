@@ -13,6 +13,7 @@
 import { query, queryOne } from "../shared/db";
 import { AppError } from "../shared/app-error";
 import logger from "../shared/logger";
+import { randomInt } from "crypto";
 import Dysmsapi20170525 from "@alicloud/dysmsapi20170525";
 import * as $OpenApi from "@alicloud/openapi-client";
 import tencentcloud from "tencentcloud-sdk-nodejs-sms";
@@ -184,6 +185,14 @@ export async function getSmsTemplateCode(purpose: string, tenantId: string): Pro
   return row.code;
 }
 
+/**
+ * 生成 6 位短信验证码（MS-SECURITY-BASELINE-01）
+ * 密码学安全随机源 crypto.randomInt，范围 [100000, 1000000)，恒为 6 位数字。
+ */
+export function generateSmsCode(): string {
+  return String(randomInt(100000, 1000000));
+}
+
 /** 生成并发送验证码（真实短信），60 秒防频、5 分钟过期 */
 export async function sendSmsCode(mobile: string, purpose: string, tenantId: string): Promise<{ success: boolean; message: string }> {
   if (!/^1[3-9]\d{9}$/.test(mobile)) {
@@ -203,7 +212,9 @@ export async function sendSmsCode(mobile: string, purpose: string, tenantId: str
   }
 
   const templateCode = await getSmsTemplateCode(purpose, tenantId);
-  const code = String(Math.floor(100000 + Math.random() * 900000));
+  // MS-SECURITY-BASELINE-01：验证码改用密码学安全随机源（crypto.randomInt），
+  // 原先的 Math.random 可预测（可被外部计时/状态推断），不符合验证码安全要求。
+  const code = generateSmsCode();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
   // 先真实发送，成功后再落库
