@@ -30,6 +30,14 @@
  *   16 行转普通登记；`POST /api/admin/members/:id/points/adjust` 一行已不在注册表 ⇒ 随真相源移出登记表。
  *   ⚠️ 这是**契约反转**（gated ⇒ 已接 的判据不变、由"4 条未接"变"4 条已接"），不是放宽：a) 仍用**真实注册行的
  *   `requirePermission("sale:return")`** 做形状断言（摘码即红），不是硬编码白名单。
+ *
+ * RBAC-GATE-PARITY-SYNC-01（2026-10-31，父卡 MOBILE-32F4F1）：F4F1 将门注册表 `mkt-points-adjust` 从
+ *   pending-code 转 `gated`（codes = [`customer:points`]）⇒ 本文件两项门读数增量均来自该单：
+ *   gated 门数 **27 → 28**、gated 门端点行 **64 → 65**（新增 1 行 = `POST /api/admin/members/:id/points/adjust`）；
+ *   registered 侧 9 道 38 行不变。后端接线由 TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）完成：
+ *   `points.routes.ts:19` `requirePermission("customer:points")`（立码裁定同卡，不改挂 marketing:*）。
+ *   ⚠️ 判据不放宽：新行同样走 a) 的「码 ∈ 门 codes + 真实注册行 `requirePermission` 形状断言」（摘码即红），
+ *   b) 的唯一端点数随真相源 62 → 63（65 行 − 2 行被双门引用的重复）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
@@ -116,6 +124,8 @@ import { adminMarketingFullReductionRouter } from "../../routes/admin-marketing-
 import { bankAccountRouter } from "../../routes/bank-account.routes";
 import { reconciliationRouter } from "../../routes/reconciliation.routes";
 import { adminAftersaleRouter } from "../../routes/aftersale.routes";
+// RBAC-GATE-PARITY-SYNC-01：`mkt-points-adjust` 门（F4F1 转 gated）对应的会员积分调整路由
+import { pointsRouter } from "../../routes/points.routes";
 
 const ROUTES_DIR = fileURLToPath(new URL("../../routes", import.meta.url));
 const APP_MOBILE_GATES = fileURLToPath(
@@ -177,11 +187,12 @@ interface WiredRow {
 }
 
 /**
- * 本单已接端点（**62 条唯一端点**；门注册表里 gated 门共 64 端点行，其中
+ * 本单已接端点（**63 条唯一端点**；门注册表里 gated 门共 65 端点行，其中
  * `POST /api/admin/purchase-in-stocks/`（purchase-sub-inbound + home-in-stock）与
- * `PUT /api/admin/products/:skuId/price`（goods-detail-edit + goods-batch-price-submit）各被两道门引用 ⇒ 去重后 62）。
+ * `PUT /api/admin/products/:skuId/price`（goods-detail-edit + goods-batch-price-submit）各被两道门引用 ⇒ 去重后 63）。
  * 其中 57 条为 S3-233 接线（`POST /api/admin/orders/:orderNo/cancel` 早已由 S3-209 挂 `sale:void`，本单只加断言）；
- * 4 条售后（approve/reject/inspect/complete，挂 `sale:return`）由 QODER-9（B3-1 收口）补接。
+ * 4 条售后（approve/reject/inspect/complete，挂 `sale:return`）由 QODER-9（B3-1 收口）补接；
+ * 1 条会员积分调整（挂 `customer:points`）由 RBAC-GATE-PARITY-SYNC-01 随 F4F1 门转 gated 补入（62 → 63）。
  */
 const WIRED_ROWS: WiredRow[] = [
   // ── 销售域 ────────────────────────────────────────────────────────────────
@@ -196,6 +207,12 @@ const WIRED_ROWS: WiredRow[] = [
   { endpoint: "POST /api/admin/aftersales/:id/reject", file: "aftersale.routes.ts", prefix: "/api/admin", router: adminAftersaleRouter, method: "post", routePath: "/aftersales/:id/reject", path: "/aftersales/1/reject", perm: "sale:return" },
   { endpoint: "POST /api/admin/aftersales/:id/inspect", file: "aftersale.routes.ts", prefix: "/api/admin", router: adminAftersaleRouter, method: "post", routePath: "/aftersales/:id/inspect", path: "/aftersales/1/inspect", perm: "sale:return" },
   { endpoint: "POST /api/admin/aftersales/:id/complete", file: "aftersale.routes.ts", prefix: "/api/admin", router: adminAftersaleRouter, method: "post", routePath: "/aftersales/:id/complete", path: "/aftersales/1/complete", perm: "sale:return" },
+
+  // ── 会员域 ────────────────────────────────────────────────────────────────
+  // RBAC-GATE-PARITY-SYNC-01（父卡 MOBILE-32F4F1）：门 `mkt-points-adjust` 由 pending-code 转 gated 后补入本表。
+  // 码 `customer:points` = 门注册表 codes（TOTAL-MEMBER-PERMISSION-CODES-01 立码，不改挂 marketing:*）；
+  // 后端接线行 = `points.routes.ts:19` `requirePermission("customer:points")`（a) 用例做注册行形状断言，摘码即红）。
+  { endpoint: "POST /api/admin/members/:id/points/adjust", file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/:id/points/adjust", path: "/1/points/adjust", perm: "customer:points" },
 
   // ── 采购域 ────────────────────────────────────────────────────────────────
   { endpoint: "POST /api/admin/purchase-orders/", file: "purchase.routes.ts", prefix: "/api/admin/purchase-orders", router: purchaseRouter, method: "post", routePath: "/", path: "/", perm: "purchase:create" },
@@ -424,9 +441,11 @@ function call(app: express.Express, method: Method, url: string, uid?: number) {
 }
 
 describe("S3-233 · 门注册表读取（唯一真相源自证）", () => {
-  it("门注册表规模：27 道 gated（64 端点行）+ 9 道 registered（38 端点行）", () => {
-    expect(gatedGates).toHaveLength(27);
-    expect(gatedGates.reduce((n, g) => n + g.endpoints.length, 0)).toBe(64);
+  it("门注册表规模：28 道 gated（65 端点行）+ 9 道 registered（38 端点行）", () => {
+    // 读数 27→28 / 64→65 的增量来自 F4F1（MOBILE-32F4F1）：`mkt-points-adjust` 由 pending-code 转 gated
+    //（+1 门 / +1 端点行 `POST /api/admin/members/:id/points/adjust`）；registered 侧 9 道 38 行不变。
+    expect(gatedGates).toHaveLength(28);
+    expect(gatedGates.reduce((n, g) => n + g.endpoints.length, 0)).toBe(65);
     expect(registeredGates).toHaveLength(9);
     expect(registeredGates.reduce((n, g) => n + g.endpoints.length, 0)).toBe(38);
   });
@@ -440,7 +459,7 @@ describe("S3-233 · 门注册表读取（唯一真相源自证）", () => {
 describe("S3-233 · a) 门 → 后端：gated 门的每条端点都已接线，且码 ∈ 该门 codes", () => {
   const cases = gatedGates.flatMap((g) => g.endpoints.map((ep) => ({ gate: g, ep })));
 
-  it("64 条门端点行逐条可对到本文件的已接表（无遗漏）", () => {
+  it("65 条门端点行逐条可对到本文件的已接表（无遗漏）", () => {
     const missing = cases.filter(({ ep }) => !wiredByEndpoint.has(ep));
     expect(missing.map(({ gate, ep }) => `${gate.id} | ${ep}`)).toEqual([]);
   });
@@ -462,13 +481,14 @@ describe("S3-233 · a) 门 → 后端：gated 门的每条端点都已接线，�
 describe("S3-233 · b) 后端 → 门：已接表的每条端点都至少被一道 gated 门引用", () => {
   const gatedEndpointSet = new Set(gatedGates.flatMap((g) => g.endpoints));
 
-  it("62 条唯一端点全部有门（无‘与本单无关的端点’混进表里）", () => {
+  it("63 条唯一端点全部有门（无‘与本单无关的端点’混进表里）", () => {
     const extra = WIRED_ROWS.filter((r) => !gatedEndpointSet.has(r.endpoint)).map((r) => r.endpoint);
     expect(extra).toEqual([]);
   });
 
-  it("去重后 62 条；其中 1 条（订单取消）为 S3-209 既有接线，本单只加断言", () => {
-    expect(new Set(WIRED_ROWS.map((r) => r.endpoint)).size).toBe(62);
+  it("去重后 63 条；其中 1 条（订单取消）为 S3-209 既有接线，本单只加断言", () => {
+    // 62→63：F4F1 将 `mkt-points-adjust` 转 gated 后，其唯一端点行随真相源补入已接表
+    expect(new Set(WIRED_ROWS.map((r) => r.endpoint)).size).toBe(63);
     expect(WIRED_ROWS.filter((r) => r.endpoint === "POST /api/admin/orders/:orderNo/cancel")).toHaveLength(1);
   });
 });
@@ -513,7 +533,7 @@ describe("S3-233 · c) registered ⇒ 仍是无门缺口（防‘悄悄接了但
 });
 
 describe("S3-233 · d) 台账一致：已接端点不再登记为缺口", () => {
-  it("62 条已接端点全部**不在**机读台账 gaps 里", () => {
+  it("63 条已接端点全部**不在**机读台账 gaps 里", () => {
     const baseline = JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as { gaps: Record<string, string[]> };
     const gapSet = new Set(Object.entries(baseline.gaps).flatMap(([f, list]) => list.map((p) => `${f}|${p}`)));
     const stillGap = WIRED_ROWS.map((r) => `${r.file}|${r.endpoint}`).filter((k) => gapSet.has(k));
