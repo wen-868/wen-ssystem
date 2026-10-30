@@ -337,12 +337,12 @@ export async function createMemberManage(
   return { id: row?.id ?? 0 };
 }
 
-/** 更新会员（仅 t_member 真实存在的列：名称/手机号/客户类型/地址） */
+/** 更新会员（仅 t_member 真实存在的列：名称/手机号/客户类型/状态/地址等） */
 export async function updateMemberManage(
   tenantId: string,
   id: number,
   body: {
-    name?: string; mobile?: string; customerType?: "RETAIL" | "WHOLESALE"; address?: string;
+    name?: string; mobile?: string; customerType?: "RETAIL" | "WHOLESALE"; status?: 0 | 1; address?: string;
     cardNo?: string; contact?: string; gender?: string; birthday?: string;
     province?: string; city?: string; district?: string; tags?: string; remark?: string;
   }
@@ -353,13 +353,17 @@ export async function updateMemberManage(
     tenantId
   );
   if (!exists) {
+    // 不存在 / 跨租户 / 已删除（t_member 无软删列，物理删即不存在）⇒ 统一 404，不伪成功
     throw Object.assign(new Error("会员不存在"), { statusCode: 404 });
   }
-  await executeWithTenant(
+  // TOTAL-MEMBER-STATUS-CONTRACT-01：UPDATE 白名单补 status（W3 状态开关）。
+  // 列名为字面白名单常量，值全部 ? 参数绑定；WHERE 同时含 id 与 tenant_id（tenant-scope 值谓词，注入器跳过）。
+  const [result] = await queryWithTenant<{ affectedRows?: number }>(
     `UPDATE t_member
      SET name = COALESCE(?, name),
          mobile = COALESCE(?, mobile),
          customer_type = COALESCE(?, customer_type),
+         status = COALESCE(?, status),
          address = COALESCE(?, address),
          card_no = COALESCE(?, card_no),
          contact = COALESCE(?, contact),
@@ -372,11 +376,24 @@ export async function updateMemberManage(
          remark = COALESCE(?, remark)
      WHERE id = ? AND tenant_id = ?`,
     [
-      body.name ?? null, body.mobile ?? null, body.customerType ?? null, body.address ?? null,
+      body.name ?? null, body.mobile ?? null, body.customerType ?? null, body.status ?? null, body.address ?? null,
       body.cardNo ?? null, body.contact ?? null, body.gender ?? null, body.birthday ?? null,
       body.province ?? null, body.city ?? null, body.district ?? null, body.tags ?? null, body.remark ?? null,
       id, tenantId
     ],
     tenantId
   );
+  const affectedRows = Number(result?.affectedRows ?? 0);
+  // 成功只代表落库事实：请求带 status 时回读复核；UPDATE 静默未生效（理论不可达）⇒ 500，不伪成功
+  if (body.status !== undefined) {
+    const after = await queryOneWithTenant<{ status: number }>(
+      `SELECT status FROM t_member WHERE id = ? AND tenant_id = ?`,
+      [id, tenantId],
+      tenantId
+    );
+    if (!after || Number(after.status) !== body.status) {
+      throw Object.assign(new Error("会员状态更新未落库"), { statusCode: 500 });
+    }
+  }
+  return { affectedRows };
 }
