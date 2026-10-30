@@ -13,7 +13,8 @@
  *  d) **三端一致**：同一条码在后台/移动端解析出的权限集合一致（`user-permissions.ts` 唯一出处）；
  *  e) **影响面逐条登记**：被降级（该页变只读）的角色集合与"因缺码被拦"的入口清单**必须非空且可复算**，
  *     不得静默 —— 本文件把影响面写成断言（SALES_STAFF / CUSTOMER_SERVICE 持 `customer:view` 精确码 ⇒ 不命中域通配）；
- *  f) 同文件**未接**的 `POST /:id/points/adjust`（B 类）注册行**不含** `requirePermission(`（没多接、没偷接）。
+ *  f) 同文件 `POST /:id/points/adjust`：F1 当时为 B 类未接（不含 `requirePermission(`）；
+ *     2026-10-30 已由 TOTAL-MEMBER-PERMISSION-CODES-01 立码 `customer:points` 接线（状态变更登记）。
  *
  * 判据来源：权限匹配语义用**生产同一份** `services/admin/rbac.service.ts` 的 `matchPermission`
  *   （`*` / `dom:*` / `*:action` / 精确码；`customer:level` 的域 = `customer` ⇒ `customer:*` 命中、`customer:view` 不命中）。
@@ -218,11 +219,16 @@ describe("S3-231 F1 · 形状断言（注册行级判据，踩坑[134]）", () =
     }
   });
 
-  it("同文件**未接**的 `POST /:id/points/adjust`（B 类）注册行**不含** requirePermission(", () => {
+  it("同文件 `POST /:id/points/adjust`：原 B 类未接（S3-231 F1 当时），已由 TOTAL-MEMBER-PERMISSION-CODES-01 立码 `customer:points` 接线（状态变更登记）", () => {
     const lines = registrationLines("points.routes.ts", "post", "/:id/points/adjust");
     expect(lines.length).toBeGreaterThan(0);
     for (const l of lines) {
-      expect(l.line, `points.routes.ts:${l.no} 不得带 requirePermission(`).not.toContain("requirePermission(");
+      // ⚠️ 状态变更登记（2026-10-30 · TOTAL-MEMBER-PERMISSION-CODES-01）：该行按凌舟裁定
+      //    立码 `customer:points` 接线（MOBILE-32F4 实证仅认证无权限码的后端缺口）；
+      //    F1 当时的「不含 requirePermission(」判据随真相源反转为「必须带 customer:points」。
+      expect(l.line, `points.routes.ts:${l.no} 应带 requirePermission("customer:points")`).toContain(
+        'requirePermission("customer:points")'
+      );
     }
   });
 });

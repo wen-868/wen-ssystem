@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePermission } from "../middleware/rbac-auth";
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as productController from "../controllers/store/product.controller";
 import * as tagController from "../controllers/admin/tag.controller";
@@ -41,8 +42,11 @@ storeMemberRouter.get("/", productController.listMembers);
 // 会员管理列表（统计 + 分页，设计稿 UI v1.2 会员管理页）
 storeMemberRouter.get("/manage", memberController.listMemberManage);
 // 会员维护（新增 / 编辑，会员管理页）
-storeMemberRouter.post("/manage", memberController.createMemberManage);
-storeMemberRouter.put("/:id(\\d+)", memberController.updateMemberManage);
+// TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30，凌舟裁定）：MOBILE-32F4 实证两行**仅认证无权限码**
+// （任何登录账号可写会员数据）⇒ 立码：新增挂 `customer:create`、编辑挂 `customer:edit`（既有码，
+// 与 admin-customer.routes.ts 同族同码）；GET 类（列表/详情/积分/明细/订单）**不挂码**，读取路径零影响。
+storeMemberRouter.post("/manage", requirePermission("customer:create"), memberController.createMemberManage);
+storeMemberRouter.put("/:id(\\d+)", requirePermission("customer:edit"), memberController.updateMemberManage);
 // R100-04 会员详情/积分/明细/订单（/members/:id 需在 /members 之后注册）
 storeMemberRouter.get("/:id(\\d+)", memberController.getMemberDetail);
 storeMemberRouter.get("/:id(\\d+)/points", memberController.getMemberPoints);
