@@ -1,4 +1,6 @@
 @import "./styles/tokens.css";
+/* 暗色覆盖层必须晚于 tokens.css：同名 token 由后声明者胜出 */
+@import "./styles/wb-theme.css";
 
 /* 整行可点击表格：行悬停指针 + 高亮 */
 .clickable-table .el-table__row {
@@ -1418,4 +1420,45 @@ kbd,
 .el-table .el-loading-spinner .circular {
   width: 26px;
   height: 26px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ≤390px 窄视口（WORKBENCH-10-F1 补齐项 F）
+   弹层走 body 传送，组件 scoped 样式管不到 ⇒ 在这里统一收口：
+   固定 width="640px" 之类的弹窗/抽屉/确认框在 390px 会横向溢出裁剪。
+   断点唯一真相源 = shared/workbench/wb-viewport.ts 的 390。
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 390px) {
+  .el-dialog {
+    width: 94vw !important;
+    max-width: 94vw;
+    margin: 0 auto !important;
+  }
+  .el-dialog__body {
+    padding: 14px;
+    max-height: calc(100vh - 190px);
+    overflow-y: auto;
+  }
+  .el-drawer,
+  .el-drawer.rtl,
+  .el-drawer.ltr {
+    width: 100vw !important;
+  }
+  .el-message-box {
+    width: 92vw !important;
+    max-width: 92vw;
+  }
+  .el-overlay-dialog {
+    overflow-x: hidden;
+  }
+  /* 桌面双/三列筛选条在窄口改单列，输入框不再顶出视口 */
+  .list-filter-bar .el-input,
+  .list-filter-bar .el-select,
+  .filter-bar .el-input,
+  .filter-bar .el-select {
+    width: 100%;
+  }
+  .page-header {
+    align-items: flex-start;
+  }
 }
