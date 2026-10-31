@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-31T17:03:48.060Z",
+  "mutations": [
+    {
+      "id": "M1 恢复重复定义",
+      "mutationCaught": true,
+      "detail": "\u001b[31m     \u001b[31m×\u001b[31m A 组. --text-primary 全 src 仅在 tokens.css 定义一次，值为 #000000\u001b[39m\u001b[32m 54\u001b[2mms\u001b[22m\u001b[39m | \u001b[31m     \u001b[31m×\u001b[31m A 组. --text-secondary 全 src 仅在 tokens.css 定义一次，值为 #444444\u001b[39m\u001b[32m 9\u001b[2mms\u001b[22m\u001b[39m | \u001b[31m     \u001b[31m×\u001b[31m A 组. --bg-page 全 sr"
+    },
+    {
+      "id": "M2 错误覆盖优先级（组件级样式再定义基线令牌）",
+      "mutationCaught": true,
+      "detail": "\u001b[31m     \u001b[31m×\u001b[31m A 组. --text-primary 全 src 仅在 tokens.css 定义一次，值为 #000000\u001b[39m\u001b[32m 57\u001b[2mms\u001b[22m\u001b[39m | \u001b[31m     \u001b[31m×\u001b[31m C1. tokens.css 每个自有令牌（非 --el-*）在全 src 恰好定义一次\u001b[39m\u001b[32m 37\u001b[2mms\u001b[22m\u001b[39m"
+    },
+    {
+      "id": "M3 删除仍被引用的 token",
+      "mutationCaught": true,
+      "detail": "\u001b[31m     \u001b[31m×\u001b[31m A 组. --bg-page 全 src 仅在 tokens.css 定义一次，值为 #f7f7f7\u001b[39m\u001b[32m 74\u001b[2mms\u001b[22m\u001b[39m | \u001b[31m     \u001b[31m×\u001b[31m D1. src/** 全部 var() 引用都有定义（tokens.css / 组件内 / 运行时注入）\u001b[39m\u001b[32m 215\u001b[2mms\u001b[22m\u001b[39m"
+    },
+    {
+      "id": "M4 改坏对比度",
+      "mutationCaught": true,
+      "detail": "\u001b[31m     \u001b[31m×\u001b[31m A 组. --text-secondary 全 src 仅在 tokens.css 定义一次，值为 #444444\u001b[39m\u001b[32m 87\u001b[2mms\u001b[22m\u001b[39m | \u001b[31m     \u001b[31m×\u001b[31m F1. --text-secondary = #444444 on #f7f7f7 ≥ 4.5\u001b[39m\u001b[32m 19\u001b[2mms\u001b[22m\u001b[39m | \u001b[31m     \u001b[31m×\u001b[31m F1. --text-secondary = #44"
+    }
+  ],
+  "restoredGreen": true
+}
