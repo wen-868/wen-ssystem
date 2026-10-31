@@ -29,9 +29,10 @@
 
     <!-- 消息区 -->
     <div v-show="!collapsed" ref="listEl" class="ai-messages">
-      <div v-if="messages.length === 0" class="ai-empty">
-        <p class="empty-title">你好，我是智享经营助手</p>
-        <p class="empty-sub">本地推理、数据不出店。可以这样问我：</p>
+      <!-- 新对话空状态（原型 .empty-chat L547 / emptyHTML L1256：「新对话已开启」+「问我任何经营问题…」） -->
+      <div v-if="messages.length === 0" class="ai-empty empty-chat" data-testid="chat-empty-state">
+        <p class="empty-title">新对话已开启</p>
+        <p class="empty-sub">问我任何经营问题，或直接说出经营诉求。本地推理、数据不出店。可以这样问我：</p>
         <div class="suggestions">
           <button
             v-for="s in suggestions"
@@ -45,14 +46,32 @@
         </div>
       </div>
 
-      <AiMessageCard
-        v-for="m in messages"
-        :key="m.id"
-        :message="m"
-        @confirm="handleConfirm"
-        @cancel="handleCancel"
-        @revoke="handleRevoke"
-      />
+      <!-- 消息序列：连续的工具调用折叠进「工具调用时间线」块（SSE tool_start/tool_result 驱动） -->
+      <template v-for="block in renderBlocks" :key="block.key">
+        <div v-if="block.type === 'timeline'" class="tool-timeline" data-testid="chat-tool-timeline">
+          <p class="tool-timeline-title">
+            工具调用时间线
+            <span class="tool-timeline-count">{{ block.msgs.length }} 步</span>
+          </p>
+          <AiMessageCard
+            v-for="m in block.msgs"
+            :key="m.id"
+            :message="m"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+            @revoke="handleRevoke"
+            @retry="retryMessage"
+          />
+        </div>
+        <AiMessageCard
+          v-else
+          :message="block.msg"
+          @confirm="handleConfirm"
+          @cancel="handleCancel"
+          @revoke="handleRevoke"
+          @retry="retryMessage"
+        />
+      </template>
     </div>
 
     <!-- 输入区 -->
@@ -81,7 +100,7 @@
           <span v-else class="ai-send-dots">···</span>
         </el-button>
       </div>
-      <!-- 第二段：操作栏（图片预览 / 图片 / 语音 / 提示） -->
+      <!-- 第二段：操作栏（附件菜单 / 语音 / 提示；结构对齐原型 .input-zone L976 + mic-btn L981） -->
       <div class="ai-input-actions">
         <div v-if="pendingImage" class="ai-image-preview">
           <img :src="pendingImage" alt="待发送图片" />
@@ -95,15 +114,35 @@
             <el-icon><Close /></el-icon>
           </el-button>
         </div>
-        <el-button
-          class="ai-image-btn"
-          circle
-          :disabled="streaming"
-          title="上传图片（AI 识别）"
-          @click="pickImage"
-        >
-          <el-icon><Picture /></el-icon>
-        </el-button>
+        <div class="ai-att-wrap">
+          <el-button
+            class="ai-att-btn"
+            circle
+            :disabled="streaming"
+            title="添加附件（图片 / 文件）"
+            data-testid="chat-att-btn"
+            @click="attMenuOpen = !attMenuOpen"
+          >
+            <el-icon><Plus /></el-icon>
+          </el-button>
+          <div v-if="attMenuOpen" class="ai-att-menu" data-testid="chat-att-menu">
+            <button
+              type="button"
+              data-testid="chat-att-image"
+              @click="pickImageFromMenu"
+            >
+              图片（AI 识别后随消息发送）
+            </button>
+            <button
+              type="button"
+              class="is-pending"
+              data-testid="chat-att-file"
+              @click="attachFileUnsupported"
+            >
+              文件 · 待接入
+            </button>
+          </div>
+        </div>
         <el-button
           class="ai-voice-btn"
           circle
@@ -116,11 +155,21 @@
                 : '语音输入'
               : '当前浏览器不支持语音输入（请用 Chrome/Edge）'
           "
+          data-testid="chat-mic-btn"
           @click="toggleVoice"
         >
           <el-icon><Microphone v-if="!listening" /><Loading v-else class="is-loading" /></el-icon>
         </el-button>
         <span class="ai-input-hint">{{ statusText || "Enter 发送 · Shift+Enter 换行 · 数据不出店" }}</span>
+      </div>
+      <!-- 附件回执行：文件项无端点 ⇒ 明示待接入，不做本地假附件 -->
+      <p v-if="attNotice" class="ai-att-notice" role="status" data-testid="chat-att-notice">{{ attNotice }}</p>
+      <!-- 语音录制态（原型 #micBtn「语音输入」的录制反馈：实时时长 + 完成 / 取消） -->
+      <div v-if="listening" class="ai-voice-bar" role="status" data-testid="chat-voice-bar">
+        <span class="rec-dot" />
+        <span class="rec-text">语音录制中 {{ voiceElapsedText }}</span>
+        <button type="button" data-testid="chat-voice-stop" @click="stopVoice">完成</button>
+        <button type="button" data-testid="chat-voice-cancel" @click="cancelVoice">取消</button>
       </div>
     </div>
   </aside>
@@ -134,7 +183,7 @@ import {
   Promotion,
   Microphone,
   Loading,
-  Picture,
+  Plus,
   Close,
   Delete,
   Expand,
@@ -161,6 +210,8 @@ const collapsed = ref(false);
 /** 会话状态上报：供 AI 主交互面显示故障横幅并一键切回人工（不改变内部对话逻辑） */
 const emit = defineEmits<{
   (event: "status", payload: { state: "idle" | "streaming" | "error"; message?: string }): void;
+  /** 服务端会话 ID 回传（POST /api/chat 的 done 事件）：会话列表据此显示真实当前会话 */
+  (event: "conversation", conversationId: string): void;
 }>();
 
 /** 语音输入（Web Speech API：浏览器原生中文识别，Chrome/Edge 支持） */
@@ -174,6 +225,48 @@ const speechSupported =
 const listening = ref(false);
 /** 待发送图片（data URL，AI 视觉识别） */
 const pendingImage = ref<string | null>(null);
+/** 附件菜单开合 + 结果回执行（文件项无端点 ⇒ 明示待接入，不放回假附件） */
+const attMenuOpen = ref(false);
+const attNotice = ref("");
+
+function pickImageFromMenu(): void {
+  attMenuOpen.value = false;
+  attNotice.value = "";
+  pickImage();
+}
+
+function attachFileUnsupported(): void {
+  attMenuOpen.value = false;
+  attNotice.value = "文件解析待接入（缺少文件上传端点）；当前仅图片可随消息发送";
+}
+
+/** 语音录制态展示（原型 #micBtn 只画了按钮，这里补录制中时长 + 完成/取消的真实反馈） */
+const voiceSeconds = ref(0);
+let voiceTimer: ReturnType<typeof setInterval> | null = null;
+/** 取消标记：丢弃本次识别结果，不回写输入框 */
+let voiceCancelled = false;
+
+function stopVoiceTimer(): void {
+  if (voiceTimer) {
+    clearInterval(voiceTimer);
+    voiceTimer = null;
+  }
+}
+
+function startVoiceTimer(): void {
+  stopVoiceTimer();
+  voiceSeconds.value = 0;
+  voiceTimer = setInterval(() => {
+    voiceSeconds.value += 1;
+  }, 1000);
+}
+
+const voiceElapsedText = computed(() => {
+  const s = voiceSeconds.value;
+  const mm = String(Math.floor(s / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return `${mm}:${ss}`;
+});
 
 function pickImage() {
   const fileInput = document.createElement("input");
@@ -216,10 +309,12 @@ function getRecognition() {
   return recognition;
 }
 
+/** 录音前草稿：识别结果追加在草稿之后，取消时整体还原 */
+let voiceDraftBefore = "";
+
 function toggleVoice() {
   if (listening.value) {
-    recognition?.stop();
-    listening.value = false;
+    stopVoice();
     return;
   }
   const rec = getRecognition();
@@ -227,24 +322,47 @@ function toggleVoice() {
     ElMessage.warning("当前浏览器不支持语音输入，请使用 Chrome/Edge");
     return;
   }
+  voiceCancelled = false;
+  voiceDraftBefore = input.value;
   rec.onresult = (e) => {
+    if (voiceCancelled) return;
     const text = e.results[0]?.[0]?.transcript ?? "";
-    if (text) input.value = text;
+    if (text) input.value = voiceDraftBefore ? `${voiceDraftBefore} ${text}` : text;
   };
   rec.onend = () => {
     listening.value = false;
+    stopVoiceTimer();
   };
   rec.onerror = () => {
     listening.value = false;
+    stopVoiceTimer();
     ElMessage.warning("语音识别失败，请重试或手动输入");
   };
   try {
     rec.start();
     listening.value = true;
+    startVoiceTimer();
   } catch {
     listening.value = false;
+    stopVoiceTimer();
     ElMessage.warning("无法启动语音识别，请重试");
   }
+}
+
+/** 完成录音：停止识别，保留已回写的文本 */
+function stopVoice(): void {
+  recognition?.stop();
+  listening.value = false;
+  stopVoiceTimer();
+}
+
+/** 取消录音：丢弃本次识别内容，还原录音前草稿（不留下半截转写） */
+function cancelVoice(): void {
+  voiceCancelled = true;
+  recognition?.stop();
+  input.value = voiceDraftBefore;
+  listening.value = false;
+  stopVoiceTimer();
 }
 const suggestions = [
   "创建销售单：给红星商行送10箱五粮液",
@@ -252,11 +370,33 @@ const suggestions = [
   "本月的销售报表",
 ];
 
-const canSend = computed(() => input.value.trim().length > 0 && !streaming.value);
+const canSend = computed(() => (input.value.trim().length > 0 || Boolean(pendingImage.value)) && !streaming.value);
 
 const statusText = computed(() => {
   if (streaming.value) return "AI 正在生成回复...";
   return "";
+});
+
+/** 渲染块：普通消息单条渲染；连续 tool 消息归组进「工具调用时间线」（SSE 事件驱动，非静态装饰） */
+type RenderBlock =
+  | { type: "msg"; key: string; msg: AiChatMessage }
+  | { type: "timeline"; key: string; msgs: AiChatMessage[] };
+
+const renderBlocks = computed<RenderBlock[]>(() => {
+  const blocks: RenderBlock[] = [];
+  for (const m of messages.value) {
+    const last = blocks[blocks.length - 1];
+    if (m.kind === "tool" && last && last.type === "timeline") {
+      last.msgs.push(m);
+      continue;
+    }
+    if (m.kind === "tool") {
+      blocks.push({ type: "timeline", key: `tl-${m.id}`, msgs: [m] });
+      continue;
+    }
+    blocks.push({ type: "msg", key: m.id, msg: m });
+  }
+  return blocks;
 });
 
 function clearChat(): void {
@@ -296,6 +436,7 @@ async function sendMessage(): Promise<void> {
   const image = pendingImage.value;
   pendingImage.value = null;
   input.value = "";
+  attNotice.value = "";
   pushMessage({
     role: "user",
     kind: "text",
@@ -314,12 +455,25 @@ async function sendMessage(): Promise<void> {
         onText: (content) => {
           assistant.content = (assistant.content || "") + content;
         },
-        // 只读工具过程不展示（用户只需最终结果），写操作预览仍出确认卡
-        onToolStart: () => {
-          /* 静默：不展示工具过程卡片 */
+        // 工具时间线：tool_start 先落一条「执行中」步骤，tool_result 就地更新其状态；
+        // 写操作的确认卡片仍由 preview 单独生成（确认卡既有链路不动）
+        onToolStart: (tool) => {
+          pushMessage({ role: "assistant", kind: "tool", tool, toolStatus: "running" });
         },
         onToolResult: (payload) => {
-          // 仅写操作预览（需人工确认）出卡片；只读结果由最终 AI 文本直接呈现
+          // 回填最近一条同名执行中步骤（找不到同名的取最后一条 running，宽容匹配 SSE 顺序）
+          const running = [...messages.value].reverse().find(
+            (m) => m.kind === "tool" && m.toolStatus === "running",
+          );
+          const matched =
+            [...messages.value].reverse().find(
+              (m) => m.kind === "tool" && m.toolStatus === "running" && m.tool === payload.tool,
+            ) || running;
+          if (matched) {
+            matched.toolStatus = payload.success ? "success" : "error";
+            matched.data = payload.data;
+          }
+          // 仅写操作预览（需人工确认）出确认卡片；只读结果由最终 AI 文本直接呈现
           if (payload.preview) {
             pushMessage({
               role: "assistant",
@@ -335,10 +489,11 @@ async function sendMessage(): Promise<void> {
         onDone: (cid) => {
           conversationId.value = cid;
           streaming.value = false;
+          if (cid) emit("conversation", cid);
           emit("status", { state: "idle" });
         },
         onError: (message) => {
-          reportStreamError(assistant, message);
+          reportStreamError(assistant, message, text);
         },
       },
       abortController.value.signal,
@@ -348,21 +503,38 @@ async function sendMessage(): Promise<void> {
   } catch (err) {
     streaming.value = false;
     const message = err instanceof Error ? err.message : "AI 服务调用失败";
-    reportStreamError(assistant, message);
+    reportStreamError(assistant, message, text);
   } finally {
     scrollToBottom();
   }
 }
 
-function reportStreamError(assistant: AiChatMessage, message: string): void {
+/**
+ * 失败恢复：发送/流式失败时把该条 AI 回复标记为 error 并保留原始提问（retryText）。
+ * 展示口径与成功明确区分（红色失败气泡 +「重试」按钮），绝不显示成已回复。
+ */
+function reportStreamError(assistant: AiChatMessage, message: string, retryText?: string): void {
   if (!assistant.content) {
     assistant.kind = "error";
     assistant.error = message;
+    assistant.retryText = retryText;
   } else {
-    pushMessage({ role: "assistant", kind: "error", error: message });
+    pushMessage({ role: "assistant", kind: "error", error: message, retryText });
   }
   streaming.value = false;
   emit("status", { state: "error", message });
+}
+
+/** 点「重试」：撤下失败气泡后走同一真实发送链（会新增用户消息，保留重试痕迹） */
+function retryMessage(messageId: string): void {
+  if (streaming.value) return;
+  const idx = messages.value.findIndex((m) => m.id === messageId);
+  if (idx < 0) return;
+  const text = messages.value[idx].retryText;
+  if (!text) return;
+  messages.value.splice(idx, 1);
+  input.value = text;
+  void sendMessage();
 }
 
 function sendSuggestion(text: string): void {
@@ -370,13 +542,15 @@ function sendSuggestion(text: string): void {
   sendMessage();
 }
 
-async function handleConfirm(id: string): Promise<void> {
+/** 确认卡动作：入参为 (messageId, confirmationId/operationId)，与 AiMessageCard 事件对齐 */
+async function handleConfirm(messageId: string, confirmationId: string): Promise<void> {
   try {
-    const res = await confirmAiOperation(id);
-    const target = findMessage(id);
+    const res = await confirmAiOperation(confirmationId);
+    const target = findMessage(messageId);
     if (target) {
       target.preview = undefined;
       target.confirmationId = undefined;
+      target.operationId = res;
       target.toolStatus = "success";
       target.data = res;
     }
@@ -386,13 +560,14 @@ async function handleConfirm(id: string): Promise<void> {
   }
 }
 
-async function handleCancel(id: string): Promise<void> {
+async function handleCancel(messageId: string, confirmationId: string): Promise<void> {
   try {
-    await cancelAiOperation(id);
-    const target = findMessage(id);
+    await cancelAiOperation(confirmationId);
+    const target = findMessage(messageId);
     if (target) {
       target.preview = undefined;
       target.confirmationId = undefined;
+      target.cancelled = true;
       target.toolStatus = "error";
     }
     ElMessage.info("操作已取消");
@@ -401,11 +576,12 @@ async function handleCancel(id: string): Promise<void> {
   }
 }
 
-async function handleRevoke(id: string): Promise<void> {
+async function handleRevoke(messageId: string, operationId: string): Promise<void> {
   try {
-    const res = await revokeAiOperation(id);
-    const target = findMessage(id);
+    const res = await revokeAiOperation(operationId);
+    const target = findMessage(messageId);
     if (target) {
+      target.revoked = true;
       target.toolStatus = "success";
       target.data = res;
     }
@@ -416,12 +592,13 @@ async function handleRevoke(id: string): Promise<void> {
 }
 
 /** 对外暴露：AI 主交互面的快捷指令与“新对话”复用同一套真实发送逻辑 */
-defineExpose({ sendText: sendSuggestion, clearChat });
+defineExpose({ sendText: sendSuggestion, clearChat, getConversationId: () => conversationId.value ?? null });
 
 watch(messages, () => scrollToBottom(), { deep: true });
 
 onBeforeUnmount(() => {
   abortCurrent();
+  stopVoiceTimer();
 });
 
 </script>
@@ -591,12 +768,124 @@ onBeforeUnmount(() => {
   min-height: 30px;
 }
 
-.ai-input-actions .ai-image-btn,
+.ai-input-actions .ai-att-btn,
 .ai-input-actions .ai-voice-btn {
   width: 28px;
   height: 28px;
   padding: 0;
   margin-right: 6px;
+}
+
+/* 附件菜单（原型 .up-menu 语义：⊕ 弹出「图片 / 文件」两项） */
+.ai-att-wrap {
+  position: relative;
+}
+
+.ai-att-menu {
+  position: absolute;
+  left: 0;
+  bottom: 34px;
+  z-index: 20;
+  min-width: 172px;
+  background: var(--gray-0, #fff);
+  border: 1px solid var(--border-light, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+}
+
+.ai-att-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 6px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary, #111827);
+}
+
+.ai-att-menu button:hover {
+  background: var(--bg-soft, #f3f4f6);
+}
+
+.ai-att-menu button.is-pending {
+  color: #92400e;
+}
+
+.ai-att-notice {
+  margin: 6px 2px 0;
+  font-size: 11px;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* 语音录制态（红点 + 实时时长 + 完成/取消） */
+.ai-voice-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  border: 1px solid #fca5a5;
+  background: #fdf2f2;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #b42318;
+}
+
+.ai-voice-bar .rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+  animation: recBlink 1s ease-in-out infinite;
+}
+
+@keyframes recBlink {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+.ai-voice-bar .rec-text {
+  flex: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-voice-bar button {
+  border: 1px solid #b42318;
+  background: #fff;
+  color: #b42318;
+  border-radius: 6px;
+  padding: 1px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* 工具调用时间线（SSE tool_start/tool_result 驱动的连续步骤） */
+.tool-timeline {
+  border-left: 2px solid var(--border-normal, #d1d5db);
+  padding: 2px 0 2px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tool-timeline-title {
+  margin: 0;
+  font-size: 11px;
+  color: #595959;
+  font-weight: 600;
+}
+
+.tool-timeline-count {
+  margin-left: 6px;
+  font-weight: 400;
 }
 
 /* 待发送图片缩略图（内联小卡 + 移除角标） */

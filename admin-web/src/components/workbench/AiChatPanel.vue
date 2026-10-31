@@ -9,7 +9,30 @@
       </button>
     </div>
 
-    <AiSidePanel ref="panelRef" @status="handleStatus" />
+    <!-- 会话管理条（原型 L1229 会话列表语义）：新对话=真实 clearChat；
+         历史/归档/删除走 wb-chat-sessions 适配器，端点缺失时显示「待接入」+重试，不做本地伪成功 -->
+    <div class="acp-sess-bar">
+      <button
+        type="button"
+        class="acp-sess-toggle"
+        data-testid="chat-sessions-toggle"
+        :aria-expanded="sessionsOpen"
+        @click="sessionsOpen = !sessionsOpen"
+      >
+        会话列表
+      </button>
+      <span class="acp-sess-current" data-testid="chat-sessions-current">
+        {{ conversationId ? `当前会话 ${conversationId}` : "当前会话未建立" }}
+      </span>
+    </div>
+    <AiSessionList
+      v-if="sessionsOpen"
+      class="acp-sessions"
+      :conversation-id="conversationId"
+      @new-conversation="onNewConversation"
+    />
+
+    <AiSidePanel ref="panelRef" @status="handleStatus" @conversation="handleConversation" />
   </div>
 </template>
 
@@ -23,10 +46,13 @@ const emit = defineEmits<{
 
 // 复用现有真实 AI 对话面板（SSE + 确认/撤销端点），不新建对话实现。
 const AiSidePanel = defineAsyncComponent(() => import("../AiChat/AiSidePanel.vue"));
+// 会话列表（区域 C 第 6 项）：数据驱动自 wb-chat-sessions 适配器（当前全部诚实降级为待接入）。
+const AiSessionList = defineAsyncComponent(() => import("../AiChat/AiSessionList.vue"));
 
 type PanelExposed = {
   sendText?: (text: string) => void;
   clearChat?: () => void;
+  getConversationId?: () => string | null;
 };
 
 const panelRef = ref<PanelExposed | null>(null);
@@ -34,9 +60,13 @@ const panelRef = ref<PanelExposed | null>(null);
 const pendingCommands = ref<string[]>([]);
 /** 故障文案：本地仅承载“会话失败/断开”的真实错误信息，不做自动重试 */
 const faultMessage = ref("");
+/** 会话列表开合 + 当前真实会话 ID（AiSidePanel done 事件回传，未回传如实为空） */
+const sessionsOpen = ref(false);
+const conversationId = ref<string | null>(null);
 
 watch(panelRef, (panel) => {
   if (!panel) return;
+  conversationId.value = panel.getConversationId?.() ?? null;
   const queued = pendingCommands.value;
   pendingCommands.value = [];
   for (const text of queued) panel.sendText?.(text);
@@ -54,6 +84,11 @@ function handleStatus(payload: {
   emit("status", payload);
 }
 
+/** 会话 ID 回传（真实 done 事件）：同步给会话列表显示 */
+function handleConversation(cid: string): void {
+  if (cid) conversationId.value = cid;
+}
+
 /** 供 AI 信息流快捷指令 / 页面代办调用：走同一套真实发送逻辑（POST /api/chat） */
 function sendQuickCommand(text: string): void {
   if (panelRef.value?.sendText) {
@@ -63,9 +98,15 @@ function sendQuickCommand(text: string): void {
   pendingCommands.value = [...pendingCommands.value, text];
 }
 
-/** 新对话：清空本地会话上下文（底座无独立新建会话端点） */
+/** 新对话：清空本地会话上下文（底座无独立新建会话端点），下一条消息即重开服务端会话 */
 function newConversation(): void {
   panelRef.value?.clearChat?.();
+  conversationId.value = null;
+}
+
+/** 会话列表「新对话」入口：与快捷指令/副导航同一真实链（不另起对话实现） */
+function onNewConversation(): void {
+  newConversation();
 }
 
 defineExpose({ sendQuickCommand, newConversation });
@@ -116,6 +157,45 @@ defineExpose({ sendQuickCommand, newConversation });
 .acp-fault-btn:hover {
   background: #b42318;
   color: #fff;
+}
+
+/* 会话管理条 + 会话列表容器（不改 AiSidePanel 内部实现） */
+.acp-sess-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-light, #e5e7eb);
+  background: var(--gray-0, #fff);
+}
+
+.acp-sess-toggle {
+  border: 1px solid var(--border-normal, #d1d5db);
+  background: #fff;
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.acp-sess-toggle:hover {
+  border-color: var(--color-primary, #2563eb);
+  color: var(--color-primary, #2563eb);
+}
+
+.acp-sess-current {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.acp-sessions {
+  flex-shrink: 0;
+  margin: 8px 12px 0;
 }
 
 /* AiSidePanel 原为 MainLayout 的 grid 第 3 列整栏（min-height:100vh），

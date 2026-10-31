@@ -35,11 +35,11 @@
         </div>
 
         <div ref="listEl" class="ai-messages">
-          <!-- 空状态引导 -->
-          <div v-if="messages.length === 0" class="ai-empty">
+          <!-- 空状态引导（原型 .empty-chat：「新对话已开启」+「问我任何经营问题…」） -->
+          <div v-if="messages.length === 0" class="ai-empty empty-chat" data-testid="window-empty-state">
             <el-icon class="empty-icon"><MagicStick /></el-icon>
-            <p class="empty-title">你好，我是智享AI助手</p>
-            <p class="empty-sub">可以这样问我：</p>
+            <p class="empty-title">新对话已开启</p>
+            <p class="empty-sub">问我任何经营问题，可以这样问我：</p>
             <div class="suggestions">
               <button
                 v-for="s in suggestions"
@@ -53,14 +53,29 @@
             </div>
           </div>
 
-          <AiMessageCard
-            v-for="m in messages"
-            :key="m.id"
-            :message="m"
-            @confirm="handleConfirm"
-            @cancel="handleCancel"
-            @revoke="handleRevoke"
-          />
+          <!-- 消息序列：连续 tool 消息归组为工具调用时间线 -->
+          <template v-for="block in renderBlocks" :key="block.key">
+            <div v-if="block.type === 'timeline'" class="tool-timeline" data-testid="window-tool-timeline">
+              <p class="tool-timeline-title">工具调用时间线</p>
+              <AiMessageCard
+                v-for="m in block.msgs"
+                :key="m.id"
+                :message="m"
+                @confirm="handleConfirm"
+                @cancel="handleCancel"
+                @revoke="handleRevoke"
+                @retry="retryMessage"
+              />
+            </div>
+            <AiMessageCard
+              v-else
+              :message="block.msg"
+              @confirm="handleConfirm"
+              @cancel="handleCancel"
+              @revoke="handleRevoke"
+              @retry="retryMessage"
+            />
+          </template>
         </div>
 
         <div class="ai-input-area">
@@ -179,13 +194,23 @@ async function sendMessage(): Promise<void> {
         onText: (content) => {
           assistant.content = (assistant.content || "") + content;
         },
-        onToolStart: () => {
-          // 不展示工具执行过程（用户只看最终结果）；
-          // 写操作的确认卡片由 onToolResult 的 preview 单独生成
+        onToolStart: (tool) => {
+          // 工具时间线：先落一条「执行中」步骤（SSE tool_start 驱动），tool_result 就地更新
+          pushMessage({ role: "assistant", kind: "tool", tool, toolStatus: "running" });
         },
         onToolResult: (payload) => {
-          // 只读工具结果不展示过程卡片（最终总结由 AI 文本输出）；
-          // 写操作（preview）单独生成确认卡片，供用户确认/取消
+          // 回填最近一条执行中的工具步骤状态；写操作（preview）另出确认卡片，供用户确认/取消
+          const matched =
+            [...messages.value].reverse().find(
+              (m) => m.kind === "tool" && m.toolStatus === "running" && m.tool === payload.tool,
+            ) ||
+            [...messages.value].reverse().find(
+              (m) => m.kind === "tool" && m.toolStatus === "running",
+            );
+          if (matched) {
+            matched.toolStatus = payload.success ? "success" : "error";
+            matched.data = payload.data;
+          }
           if (payload.preview) {
             pushMessage({
               role: "assistant",
@@ -204,7 +229,7 @@ async function sendMessage(): Promise<void> {
           if (!open.value) unreadCount.value += 1;
         },
         onError: (message) => {
-          reportStreamError(assistant, message);
+          reportStreamError(assistant, message, text);
         },
       },
       abortController.value.signal,
@@ -212,20 +237,58 @@ async function sendMessage(): Promise<void> {
   } catch (err) {
     streaming.value = false;
     const message = err instanceof Error ? err.message : "AI 服务调用失败";
-    reportStreamError(assistant, message);
+    reportStreamError(assistant, message, text);
   }
 }
 
-/** 流式过程中的错误：优先追加到当前回复，否则新建错误消息 */
-function reportStreamError(assistant: AiChatMessage, message: string): void {
+/**
+ * 失败恢复：失败气泡明确标「发送失败」并保留原文 retryText；
+ * 与成功回复在样式/文案上硬区分，绝不伪装成已回复。
+ */
+function reportStreamError(assistant: AiChatMessage, message: string, retryText?: string): void {
   if (!assistant.content) {
     assistant.kind = "error";
     assistant.error = message;
+    assistant.retryText = retryText;
   } else {
-    pushMessage({ role: "assistant", kind: "error", error: message });
+    pushMessage({ role: "assistant", kind: "error", error: message, retryText });
   }
   streaming.value = false;
 }
+
+/** 「重试」：撤下失败气泡，走同一真实发送链重发原文 */
+function retryMessage(messageId: string): void {
+  if (streaming.value) return;
+  const idx = messages.value.findIndex((m) => m.id === messageId);
+  if (idx < 0) return;
+  const text = messages.value[idx].retryText;
+  if (!text) return;
+  messages.value.splice(idx, 1);
+  input.value = text;
+  void sendMessage();
+}
+
+/** 渲染块：连续 tool 消息归组为「工具调用时间线」（与侧栏面板同一展示语义） */
+type RenderBlock =
+  | { type: "msg"; key: string; msg: AiChatMessage }
+  | { type: "timeline"; key: string; msgs: AiChatMessage[] };
+
+const renderBlocks = computed<RenderBlock[]>(() => {
+  const blocks: RenderBlock[] = [];
+  for (const m of messages.value) {
+    const last = blocks[blocks.length - 1];
+    if (m.kind === "tool" && last && last.type === "timeline") {
+      last.msgs.push(m);
+      continue;
+    }
+    if (m.kind === "tool") {
+      blocks.push({ type: "timeline", key: `tl-${m.id}`, msgs: [m] });
+      continue;
+    }
+    blocks.push({ type: "msg", key: m.id, msg: m });
+  }
+  return blocks;
+});
 
 function sendSuggestion(text: string): void {
   input.value = text;
@@ -496,6 +559,22 @@ onBeforeUnmount(() => {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-bg);
+}
+
+/* 工具调用时间线（SSE 事件驱动的连续步骤分组） */
+.tool-timeline {
+  border-left: 2px solid var(--border-normal, #d1d5db);
+  padding: 2px 0 2px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tool-timeline-title {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .ai-input-area {
