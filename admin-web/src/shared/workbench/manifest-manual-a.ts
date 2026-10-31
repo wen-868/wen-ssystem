@@ -47,7 +47,8 @@ export const MANUAL_GROUPS_A: ManifestGroup[] = [
   },
   {
     groupCode: "wb.inventory",
-    title: "库存中心",
+    // WORKBENCH-10：组名对齐原型一级模块（原「库存中心」）
+    title: "库存管理",
     items: [
       item("web.inventory.list", "inventory", "/inventory", "库存查询", () => import("../../views/inventory/Inventory.vue")),
       item("web.inventory.check", "inventory-check", "/inventory-check", "库存盘点", () => import("../../views/inventory/InventoryCheck.vue")),
@@ -58,7 +59,8 @@ export const MANUAL_GROUPS_A: ManifestGroup[] = [
   },
   {
     groupCode: "wb.customer",
-    title: "客户会员",
+    // WORKBENCH-10：组名对齐原型一级模块（原「客户会员」；WB-09 已把 Dashboard 入口统一为「客户管理」）
+    title: "客户管理",
     items: [
       item("web.customer.list", "customers", "/customers", "客户列表", () => import("../../views/customer/CustomersView.vue")),
       item("web.customer.member-system", "member-system", "/member-system", "会员体系", () => import("../../views/customer/MemberSystem.vue")),
@@ -70,7 +72,8 @@ export const MANUAL_GROUPS_A: ManifestGroup[] = [
   },
   {
     groupCode: "wb.finance",
-    title: "财务中心",
+    // WORKBENCH-10：组名对齐原型一级模块（原「财务中心」）
+    title: "财务管理",
     items: [
       item("web.finance.payments", "payments", "/payments", "收付款管理", () => import("../../views/finance/PaymentsView.vue")),
       item("web.finance.receivables", "finance-receivables-payables", "/finance/receivables-payables", "应收应付", () => import("../../views/finance/ReceivablesPayables.vue")),

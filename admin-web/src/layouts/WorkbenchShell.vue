@@ -16,17 +16,19 @@
       >
         <el-icon :size="17"><MagicStick /></el-icon><span>工作台</span>
       </button>
+      <!-- 11 个一级业务模块：顺序与文案一律取原型真相源，可见性仍由 meta.roles 派生 -->
       <button
-        v-for="group in visibleGroups"
-        :key="group.groupCode"
+        v-for="group in railModules"
+        :key="group.protoKey"
         type="button"
         class="wb-rail-item"
         :class="{ on: railKey === group.groupCode }"
         :data-rail-key="group.groupCode"
-        :title="group.title"
-        @click="openModule(group.groupCode)"
+        :data-proto-key="group.protoKey"
+        :title="group.protoTitle"
+        @click="toggleModule(group.groupCode)"
       >
-        <el-icon :size="17"><component :is="groupIcon(group.groupCode)" /></el-icon><span>{{ group.title }}</span>
+        <el-icon :size="17"><component :is="groupIcon(group.groupCode)" /></el-icon><span>{{ group.protoLabel }}</span>
       </button>
       <span class="wb-rail-gap" />
       <button
@@ -44,6 +46,7 @@
     <!-- ══ 第二列上下文导航（常用功能/二级菜单 · 新对话 · 会话 · 账户）＝原型 .side（L923）══ -->
     <WorkbenchSubnav
       :class="{ hidden: sideCollapsed }"
+      :collapsed="sideCollapsed"
       :mode="currentNavMode"
       :groups="visibleGroups"
       :active-group-code="selectedGroupCode"
@@ -270,6 +273,7 @@ import {
   MANUAL_GROUPS,
   filterVisibleGroups,
   filterVisibleItems,
+  type ManifestGroup,
   type ManifestItem,
 } from "../shared/workbench/route-manifest";
 import {
@@ -286,6 +290,10 @@ import {
   workbenchMode,
   type WorkbenchMode,
 } from "../shared/workbench/shell-mode";
+import {
+  decorateRailGroups,
+  toggleRailSelection,
+} from "../shared/workbench/prototype-nav";
 
 const route = useRoute();
 const router = useRouter();
@@ -403,16 +411,27 @@ const visibleBusinessEntryCount = computed(() =>
 /** 信息流「快速入口」：当前角色可见的真实入口（manifest 派生，不造数据） */
 const visibleEntryItems = computed(() => visibleGroups.value.flatMap((group) => group.items));
 
+/**
+ * 一级模块显式选中态。
+ *
+ * 原型语义（§动态交互 2）：选中某模块后再次点击 ⇒ **取消选中**，第二栏恢复「常用功能」。
+ * 因此 `""` 是一个合法且重要的状态（= 未选中 = 常用功能），
+ * 不能像 WORKBENCH-06 旧实现那样一上来就默认选中 groups[0]——那样第二栏永远回不到常用功能。
+ */
 const selectedGroupCode = ref("");
 watch(
   visibleGroups,
   (groups) => {
-    if (!groups.some((group) => group.groupCode === selectedGroupCode.value)) {
-      selectedGroupCode.value = groups[0]?.groupCode ?? "";
+    // 只在「已选中项不再可见」时回落为空（改由常用功能接管），不自动改选其它组
+    if (selectedGroupCode.value && !groups.some((group) => group.groupCode === selectedGroupCode.value)) {
+      selectedGroupCode.value = "";
     }
   },
   { immediate: true },
 );
+
+/** 一级 rail 渲染序列：原型顺序（decorateRailGroups）× 当前角色可见分组（不可见的模块整块不渲染） */
+const railModules = computed(() => decorateRailGroups(visibleGroups.value));
 
 const activeGroup = computed(
   () => visibleGroups.value.find((group) => group.groupCode === selectedGroupCode.value) ?? null,
@@ -420,17 +439,23 @@ const activeGroup = computed(
 const activeGroupTitle = computed(() => activeGroup.value?.title ?? "AI 信息流");
 const activeGroupItems = computed(() => activeGroup.value?.items ?? []);
 
-/** 一级 rail 选中态：desk=信息流 / groupCode=模块 / pos=收银 / set=系统设置 */
+/**
+ * 一级 rail 选中态：desk=信息流（常用功能）/ groupCode=模块 / pos=收银 / set=系统设置。
+ *
+ * 优先级：收银态 > 系统页 > **显式选中** > 由当前路由反推归属 > desk。
+ * 「显式选中」优先于路由反推，是为了让「点了模块但还没进任何页面」也有明确反馈（原型 §A-6）。
+ */
 const railKey = computed(() => {
   if (isCashierRoute.value) return "pos";
   if (route.name === "system") return "set";
+  if (selectedGroupCode.value) return selectedGroupCode.value;
   if (effectiveMode.value !== "ai" || face.value === "feed") {
     const owner = visibleGroups.value.find((group) =>
       group.items.some((item) => item.path && route.path.startsWith(item.path)),
     );
     return owner?.groupCode ?? "desk";
   }
-  return selectedGroupCode.value;
+  return "desk";
 });
 
 const currentNavMode = computed<"quick" | "module" | "pos">(() => {
@@ -591,10 +616,16 @@ function openCashierItem(entry: ManifestItem): void {
 function goDeskHome(): void {
   setWorkbenchMode("ai");
   face.value = "feed";
+  selectedGroupCode.value = "";
   if (route.path !== "/dashboard") router.push("/dashboard").catch(() => undefined);
 }
-function openModule(groupCode: string): void {
-  selectedGroupCode.value = groupCode;
+
+/**
+ * 点击一级模块：未选中 ⇒ 选中（第二栏切该模块二级目录）；
+ * 已选中 ⇒ **取消选中**（第二栏恢复「常用功能」）。原型 §动态交互 1/2。
+ */
+function toggleModule(groupCode: string): void {
+  selectedGroupCode.value = toggleRailSelection(selectedGroupCode.value || null, groupCode) ?? "";
   setWorkbenchMode("ai");
   face.value = "feed";
 }
@@ -634,13 +665,18 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   display: grid;
   /* 第二列收起用 grid 列宽过渡（对齐原型 .side{transition:margin .25s} 的平滑滑出手感）；
      不用 display:none 瞬隐 —— WORKBENCH-06F3 审计 MISSING #3 修复。 */
-  grid-template-columns: var(--wb-rail-w, 64px) var(--wb-side-w, 230px) minmax(0, 1fr);
+  /* 三宽度 = 原型 1440 视口实测值（Playwright 量取），唯一真相源在
+     shared/workbench/prototype-nav.ts 的 PROTOTYPE_METRICS：rail 60 / side 230 / 折叠 56。
+     CSS 无法读取 TS，此处是「已 documented 的固定常数」例外，测试会逐字比对三个数字。 */
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-w, 230px) minmax(0, 1fr);
   transition: grid-template-columns 250ms ease;
   background: var(--wb-bg, #f4f6f8);
   overflow: hidden;
 }
+/* 折叠态保留 56px 可见条（原型 .side 折叠后实测 56，不是 0）—— collapsing 到 0 会让
+   二级入口彻底不可达，与原型「可折叠但仍在」的语义不符。 */
 .wb-shell.side-hidden {
-  grid-template-columns: var(--wb-rail-w, 64px) 0 minmax(0, 1fr);
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr);
 }
 /* 收起态：内容溢出裁掉 + 不做 visibility 切换，保证过渡期间可见滑出 */
 .wb-shell :deep(.wb-subnav.hidden) {

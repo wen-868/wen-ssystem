@@ -32,7 +32,8 @@ export const MANUAL_GROUPS_B: ManifestGroup[] = [
   },
   {
     groupCode: "wb.marketing",
-    title: "营销中心",
+    // WORKBENCH-10：组名对齐原型一级模块（原「营销中心」）
+    title: "营销推广",
     items: [
       item("web.marketing.list", "marketing", "/marketing", "营销活动", () => import("../../views/marketing/MarketingView.vue")),
       item("web.marketing.coupon", "marketing-coupon", "/marketing/coupon", "优惠券管理", () => import("../../views/marketing/CouponManage.vue")),
@@ -54,7 +55,9 @@ export const MANUAL_GROUPS_B: ManifestGroup[] = [
   },
   {
     groupCode: "wb.system",
-    title: "系统设置",
+    // WORKBENCH-10：组名对齐原型一级模块「系统管理」（原「系统设置」；
+    // rail 末位另有独立的「设置」入口，两者在原型里是两个不同的东西，不可合并）
+    title: "系统管理",
     items: [
       item("web.system.organization", "organization", "/organization", "组织架构", () => import("../../views/system/OrganizationView.vue")),
       item("web.system.config", "system-config", "/system/config", "系统配置", () => import("../../views/system/SystemConfigView.vue")),
