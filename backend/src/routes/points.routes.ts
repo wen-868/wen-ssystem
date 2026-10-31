@@ -11,11 +11,16 @@ pointsRouter.get("/rules", pointsController.listPointsRules);
 // 生产持有 `marketing:create` ⊇ {SUPER_ADMIN} ⇒ 零回归（app-mobile / miniapp 零命中）。
 pointsRouter.post("/rules", requirePermission("marketing:create"), pointsController.createPointsRule);
 pointsRouter.put("/rules/:id", requirePermission("marketing:create"), pointsController.updatePointsRule);
-pointsRouter.post("/:id/points/adjust", pointsController.adjustCustomerPoints);
+// TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30，凌舟裁定）：本行原 S3-226/S3-231 两批判「B 类不接」
+// 留待移动端补权限门；MOBILE-32F4 实证任何登录账号可直接写会员积分 ⇒ 本卡按裁定立码 `customer:points`
+// （app-mobile「积分管理」页自身的注册码：`app-mobile/src/config/function-menu.ts:85`；
+// 菜单/权限目录行 `backend/src/shared/app-mobile-menu-catalog.ts:70`，经 server.ts ensureAppMobileMenus
+// 自愈进 t_sys_menu；S3-231 F1 的 `customer:level` 同款先例）。不改挂 marketing:points/marketing:create。
+pointsRouter.post("/:id/points/adjust", requirePermission("customer:points"), pointsController.adjustCustomerPoints);
 pointsRouter.get("/:id/points/records", pointsController.getCustomerPointsRecords);
 pointsRouter.get("/levels/config", pointsController.listLevelConfigs);
-// ⚠️ `POST /:id/points/adjust`（会员积分调整）本批**不接**：app-mobile `member-detail.vue:540` 有写调用点，
-// 而该页经首页快捷入口「会员管理」`pages/home/home.vue:87` **无条件可达** ⇒ 使用者集合不可枚举（B 类）。
+// 状态变更登记（2026-10-30 · TOTAL-MEMBER-PERMISSION-CODES-01）：下方原「⚠️ POST /:id/points/adjust 本批不接」
+// 的 B 类判定已由本卡凌舟裁定收口（立码 customer:points，见上行）；历史判定原文见 S3-226/S3-229/S3-231 台账。
 // S3-231（收尾批 · F1）：会员等级配置 4 条（增/改/启停/删）**改挂 `customer:level`**（页面**自身的注册码**，
 // `app-mobile/src/config/function-menu.ts:84`）= 凌舟裁定 1（`R101-S3-229-凌舟验收与裁定.md` §二.1）。
 // 满足不变量 I1'①（该码正是页面注册码）：店长经 `customer:*` 域通配命中（`matchPermission` 分支②：

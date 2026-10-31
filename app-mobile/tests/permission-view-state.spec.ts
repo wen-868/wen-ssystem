@@ -42,6 +42,9 @@ const SRC = resolve(HERE, '..', 'src')
 const gatedId = GATED_ENTRY_IDS[0]
 const gatedCodes = ENTRY_GATE_BY_ID[gatedId].codes
 const registeredId = REGISTERED_ENTRY_IDS[0]
+// MOBILE-32F4F1：唯一的 pending-code 条目（mkt-points-adjust）已随 TOTAL-MEMBER-PERMISSION-CODES-01
+// 立码转 gated ⇒ PENDING_CODE_ENTRY_IDS 现为空集；pending-code 分支语义仍由 config 保留（源码形态
+// 测试见「入口判定短路顺序」），本文件的 pending 断言改为「在册为空 + 转 gated 后可见性正确」。
 const pendingId = PENDING_CODE_ENTRY_IDS[0]
 
 // ── 一、单一定义源：三态契约（纯函数，全输入组合）──────────────────────────
@@ -134,11 +137,12 @@ describe('MINIMUM_VISIBLE_* 常量口径', () => {
 
 // ── 三、入口门三态表现（isEntryVisible，纯数据侧）───────────────────────────
 describe('isEntryVisible（入口门 ↔ 三态源）', () => {
-  it('① 加载中：gated 隐藏、无码入口可见、pending-code 恒隐藏', () => {
+  it('① 加载中：gated 隐藏、无码入口可见；pending-code 在册为空（F4F1 后唯一 pending 已转 gated）', () => {
     const q = { hasSession: true, requestState: 'pending' as const, permissions: null }
     expect(isEntryVisible(gatedId, q)).toBe(false)
     expect(isEntryVisible(registeredId, q)).toBe(true)
-    expect(isEntryVisible(pendingId, q)).toBe(false)
+    expect(PENDING_CODE_ENTRY_IDS, 'mkt-points-adjust 转 gated 后不应再有 pending-code 在册').toEqual([])
+    expect(pendingId).toBeUndefined()
   })
 
   it('③ 未取到：与 ① 同显隐、但状态可观测（三态源给提示）', () => {
@@ -148,20 +152,23 @@ describe('isEntryVisible（入口门 ↔ 三态源）', () => {
     expect(resolvePermissionViewState(q).showNotice).toBe(true)
   })
 
-  it('② 确实无码：gated / pending-code 全隐藏，无码入口仍可见（整端不空白）', () => {
+  it('② 确实无码：gated 全隐藏、无码入口仍可见（整端不空白）', () => {
     const q = { hasSession: true, requestState: 'ok' as const, permissions: [] }
     expect(isEntryVisible(gatedId, q)).toBe(false)
-    expect(isEntryVisible(pendingId, q)).toBe(false)
     expect(isEntryVisible(registeredId, q)).toBe(true)
+    // 原 pending-code 样本（mkt-points-adjust）转 gated 后按 gated 口径判定
+    expect(isEntryVisible('mkt-points-adjust', q)).toBe(false)
   })
 
-  it('ready：持码显示 / 不持码隐藏 / 通配码显示；pending-code 任何码都隐藏', () => {
+  it('ready：持码显示 / 不持码隐藏 / 通配码显示；转 gated 的 mkt-points-adjust 同口径', () => {
     expect(isEntryVisible(gatedId, { hasSession: true, requestState: 'ok', permissions: gatedCodes })).toBe(true)
     expect(isEntryVisible(gatedId, { hasSession: true, requestState: 'ok', permissions: ['nothing:match'] })).toBe(
       false
     )
     expect(isEntryVisible(gatedId, { hasSession: true, requestState: 'ok', permissions: ['*'] })).toBe(true)
-    expect(isEntryVisible(pendingId, { hasSession: true, requestState: 'ok', permissions: ['*'] })).toBe(false)
+    expect(isEntryVisible('mkt-points-adjust', { hasSession: true, requestState: 'ok', permissions: ['*'] })).toBe(true)
+    expect(isEntryVisible('mkt-points-adjust', { hasSession: true, requestState: 'ok', permissions: ['customer:points'] })).toBe(true)
+    expect(isEntryVisible('mkt-points-adjust', { hasSession: true, requestState: 'ok', permissions: ['marketing:points'] })).toBe(false)
   })
 
   it('未知 id ⇒ 无码口径：三态下恒可见（不抛错、不误隐藏）', () => {

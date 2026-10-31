@@ -511,10 +511,10 @@ export const ENTRY_GATES: EntryGate[] = [
     entry: '会员详情页「积分调整」按钮',
     page: 'pages-sub/marketing/member/member-detail.vue',
     endpoints: ['POST /api/admin/members/:id/points/adjust'],
-    codes: [],
-    basis: '码未立（三个候选互相冲突，待裁定）',
-    status: 'pending-code',
-    note: 'B3-1：候选码 `marketing:points`（超管/运营）／`customer:*`（店长）／`marketing:create` 互相冲突，取决于"谁该调积分"⇒ 不许硬挂不存在的码，登记 pending-code；页面入口按**未开通**处理（`canEntry` 恒 false，失败关闭）。立码裁定 + 后端接线（`requirePermission` 挂上）后转 gated 补码'
+    codes: ['customer:points'],
+    basis: 'TOTAL-MEMBER-PERMISSION-CODES-01 立码 customer:points（backend/src/routes/points.routes.ts:19 requirePermission 已接线）',
+    status: 'gated',
+    note: '原 B3-1 pending-code（三个候选冲突）已由立码单裁定为 customer:points 并在后端接线 ⇒ 本门转 gated：granted（持 customer:points/通配）可见，denied 隐藏，权限请求失败仍失败关闭；页面按钮级另由 member-detail.vue 的 gatePointsAdjust(buttonGate(customer:points)) 双层 fail-closed'
   },
   {
     id: 'mkt-points-exchange',

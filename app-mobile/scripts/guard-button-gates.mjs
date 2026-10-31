@@ -50,9 +50,12 @@ function requestVerbs() {
 }
 const V = requestVerbs()
 
-/** `${id}` / `{id}` → `*`；去查询串；去掉 `${API_BASE}` 之类前缀段（真实 path 以 / 开头） */
+/** `${id}` / `{id}` → `*`；去查询串；去掉 `${API_BASE}` 之类前缀段（真实 path 以 / 开头）
+ *  MOBILE-32F4F1：后端路由段可带正则约束（如 `/:id(\d+)`）⇒ 去掉括号约束后按段比较，
+ *  使 manifest 的 `{id}`/`*` 通配与后端 `:id(\d+)` 段等价，不误报 CODEPROOF_ENDPOINT_MISMATCH。 */
 const norm = (p) => {
   let s = (p || '').replace(/\$\{[^}]*\}/g, '*').replace(/\{[^}]*\}/g, '*').split('?')[0]
+  s = s.replace(/\([^)]*\)/g, '')
   s = s.replace(/^(\*\/)+/, '/') // `${API_BASE}/admin/...` → `/admin/...`
   if (!s.startsWith('/')) s = '/' + s
   return s
@@ -153,9 +156,10 @@ function buildIndex() {
   return byModule
 }
 
-/** 页面 import：局部名 → {module, orig} */
+/** 页面 import：局部名 → {module, orig}；另收 @/api/request 裸请求动词（MOBILE-32F4） */
 function parseImports(text) {
   const map = new Map()
+  const reqVerbs = new Map()
   let m
   const named = /import\s*\{([^}]+)\}\s*from\s*['"]@\/api\/modules\/([\w.-]+)['"]/g
   while ((m = named.exec(text))) {
@@ -166,7 +170,20 @@ function parseImports(text) {
       if (as) map.set(as[2] || as[1], { module: m[2], orig: as[1] })
     }
   }
-  return map
+  // MOBILE-32F4：部分页面直接 `import { get, put, post } from '@/api/request'` 调请求层
+  //（如 member-detail.vue）——此前守卫只认 api/modules 封装层，这些写调用点不可见 = 审计盲区。
+  // 局部名即请求动词名（get/post/put/del/patch/upload），method 以 requestVerbs() 实测为准。
+  const req = /import\s*\{([^}]+)\}\s*from\s*['"]@\/api\/request['"]/g
+  while ((m = req.exec(text))) {
+    for (const raw of m[1].split(',')) {
+      const t = raw.trim()
+      if (!t || t.startsWith('type ')) continue
+      const as = /^(\w+)(?:\s+as\s+(\w+))?$/.exec(t)
+      const local = as ? (as[2] || as[1]) : null
+      if (local && VERB[local]) reqVerbs.set(local, local)
+    }
+  }
+  return { map, reqVerbs }
 }
 
 /** 顶层函数声明行索引：用于把写调用归属到 handler */
@@ -183,7 +200,7 @@ function topLevelFns(text) {
 /** 解析一个页面：全部服务端写调用（含一层本地函数跟随 = 卡§三.2 确认链） */
 function analyzePage(relFile, byModule) {
   const text = readFileSync(join(SRC, relFile.replace(/^src\//, '')), 'utf8')
-  const imports = parseImports(text)
+  const { map: imports, reqVerbs } = parseImports(text)
   const objOwner = new Map()
   for (const [mod, rec] of byModule) for (const k of rec.keys()) if (k.includes('.')) { const o = k.split('.')[0]; if (!objOwner.has(o)) objOwner.set(o, mod) }
   const fns = topLevelFns(text)
@@ -197,6 +214,15 @@ function analyzePage(relFile, byModule) {
       if (rec && rec.method !== 'GET') raw.push({ line: i + 1, sym: `${o[1]}.${o[2]}`, ...rec })
     }
     for (const b of l.matchAll(/(?:^|[^.\w$])(\w+)\s*\(/g)) {
+      // MOBILE-32F4：@/api/request 裸请求动词调用（路径以调用点行内字面量为准）
+      if (reqVerbs.has(b[1])) {
+        const c = findRequestCall(lines, i, i + 1)
+        if (c && V[c.verb] !== 'GET') {
+          const sym = `request.${c.verb}`
+          if (!raw.some((x) => x.sym === sym && x.line === i + 1)) raw.push({ line: i + 1, sym, method: V[c.verb], path: norm(c.path), apiLine: c.line })
+        }
+        continue
+      }
       const imp = imports.get(b[1])
       if (!imp) continue
       const rec = byModule.get(imp.module)?.get(imp.orig)
@@ -402,6 +428,17 @@ function run() {
         new RegExp(`@tap[^=]*=\\s*"[^"]*${e.gateVar}\\.enabled\\s*&&`).test(text) ||
         new RegExp(`:disabled="!${e.gateVar}\\.enabled"`).test(text)
       if (!wired) errors.push(`UNGATED_WRITE: ${e.id} 声明 status=GATED，但源码未见 ${e.gateVar} 接线（既无 writeGate 绑定，也无 ${e.gateVar}.value.enabled / gateOrHint(${e.gateVar}) / 模板 gate 短路预检）`)
+      // MOBILE-32F4F1：页面 gate 声明的码必须与 manifest permissionCodes 逐字一致（漏码/错码/懒绑即红）
+      const gateDecl = new RegExp(`const\\s+${e.gateVar}\\s*=\\s*buttonGate\\(\\[([^\\]]*)\\]\\)`).exec(text)
+      if (gateDecl) {
+        const declared = [...gateDecl[1].matchAll(/'([^']+)'/g)].map((x) => x[1])
+        const want = e.permissionCodes || []
+        if (JSON.stringify(declared) !== JSON.stringify(want)) {
+          errors.push(`GATE_CODE_MISMATCH: ${e.id} 页面 ${e.gateVar}=buttonGate([${declared.join(',')}]) 与 manifest permissionCodes [${want.join(',')}] 不一致（漏码/错码/懒绑）`)
+        }
+      } else if ((e.permissionCodes || []).length) {
+        errors.push(`GATE_CODE_MISMATCH: ${e.id} manifest 声明码 [${(e.permissionCodes || []).join(',')}] 但页面未见 const ${e.gateVar} = buttonGate([...]) 声明（漏码）`)
+      }
     }
     for (const e of entries.filter((x) => x.status === 'BLOCKED_BACKEND_CODE')) {
       const hit = writes.find((w) => w.method === e.method && pathEquals(e.endpoint, w.path))
@@ -437,6 +474,7 @@ if (args.includes('--self-test')) {
     manifest: MANIFEST,
     createSale: join(SRC, 'pages/sales/create-sale.vue'),
     expenses: join(SRC, 'pages-sub/finance/finance/expenses.vue'),
+    memberDetail: join(SRC, 'pages-sub/marketing/member/member-detail.vue'),
     buttonGates: join(SRC, 'config/button-gates.ts'),
   }
   const sha = (p) => createHash('sha256').update(readFileSync(p)).digest('hex')
@@ -514,6 +552,120 @@ if (args.includes('--self-test')) {
           `return { status: 'allowed', enabled: true, showHint: false, hint: '', stale: false, reason: 'M9 probe: 权限失败放行' }\n}`,
         )
       },
+    },
+    // ===== MOBILE-32F4 新增六条（会员三页；JSON 改写均走结构化，防字符串静默失配） =====
+    {
+      key: 'memberDetail',
+      name: 'M10[F4] 会员详情写调用端点漂移（新增客户改指不存在的端点）',
+      file: targets.memberDetail,
+      apply: (t) => t.replace("post('/store/members/manage', payload)", "post('/store/members/manage-probe', payload)"),
+    },
+    {
+      key: 'manifest',
+      name: 'M11[F4] 把无码的会员新增伪造为 GATED 并配假实证',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-create')
+        if (!e || e.status !== 'GATED') throw new Error('M11[F4F1] 前置不成立：mbr-dtl-create 不是 GATED')
+        // F4 原场景（BLOCKED 伪造为 GATED）随立码反转 ⇒ 改打反向伪造：把已 GATED 的动作状态倒退回 BLOCKED
+        e.status = 'BLOCKED_BACKEND_CODE'
+        e.countedAsCompleted = false
+        e.approvedWriteAttempts = 0
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M12[F4] 会员编辑条目端点错绑（PUT 改指他端点）',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-update')
+        if (!e) throw new Error('M12 前置不成立：缺 mbr-dtl-update')
+        e.endpoint = '/admin/members/{id}'
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M13[F4F1] 把 GATED 充值动作标成不计完成（状态与完成标记矛盾）',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-recharge')
+        if (!e || e.status !== 'GATED') throw new Error('M13[F4F1] 前置不成立：mbr-dtl-recharge 不是 GATED')
+        e.countedAsCompleted = false
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M14[F4F1] 删掉积分调整条目的后端实证（codeProof 消失）',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-points-adjust')
+        if (!e || e.status !== 'GATED') throw new Error('M14[F4F1] 前置不成立：mbr-dtl-points-adjust 不是 GATED')
+        delete e.codeProof
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'manifest',
+      name: 'M15[F4] 把列表「新增」导航伪造为 GATED 写动作',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-list-add')
+        if (!e || e.status !== 'UI_ONLY') throw new Error('M15 前置不成立：mbr-list-add 不是 UI_ONLY')
+        e.status = 'GATED'
+        e.permissionCodes = ['member:manage']
+        e.codeProof = 'store.routes.ts:44 requirePermission("member:manage")'
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    // ===== MOBILE-32F4F1 新增（会员六动作 GATED 收口；fail-open 类由 M4/M9 覆盖） =====
+    {
+      key: 'memberDetail',
+      name: 'M16[F4F1] 漏码：会员新增 gate 声明码被清空',
+      file: targets.memberDetail,
+      apply: (t) => t.replace("const gateMemberCreate = buttonGate(['customer:create'])", 'const gateMemberCreate = buttonGate([])'),
+    },
+    {
+      key: 'manifest',
+      name: 'M17[F4F1] 错端点：会员新增条目端点漂移',
+      file: targets.manifest,
+      apply: (t) => t.replace('"endpoint": "/store/members/manage"', '"endpoint": "/store/members/manageX"'),
+    },
+    {
+      key: 'manifest',
+      name: 'M18[F4F1] 错码：会员编辑条目懒绑他动作的码',
+      file: targets.manifest,
+      apply: (t) => {
+        const j = JSON.parse(t)
+        const e = j.entries.find((x) => x.id === 'mbr-dtl-update')
+        if (!e || e.status !== 'GATED') throw new Error('M18 前置不成立：mbr-dtl-update 不是 GATED')
+        e.permissionCodes = ['customer:create']
+        e.codeProof = 'backend/src/routes/store.routes.ts:48 requirePermission("customer:create")'
+        return JSON.stringify(j, null, 2) + '\n'
+      },
+    },
+    {
+      key: 'memberDetail',
+      name: 'M19[F4F1] denied 放行：拆掉会员保存按钮全部三层门',
+      file: targets.memberDetail,
+      apply: (t) =>
+        t
+          .replace('@tap="gateMemberCreate.enabled && saveEdit()"', '@tap="saveEdit()"')
+          .replace('@tap="gateMemberUpdate.enabled && saveEdit()"', '@tap="saveEdit()"')
+          .replace(`  // MOBILE-32F4F1 handler 层预检：新增/编辑按模式分流到各自 gate（与模板短路双层 fail-closed）
+  const gate = isNew.value ? gateMemberCreate : gateMemberUpdate
+  if (!gate.value.enabled) {
+    uni.showToast({ title: gate.value.hint, icon: 'none' })
+    return
+  }
+`, ''),
     },
   ]
   let ok = true
