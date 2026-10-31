@@ -1,0 +1,108 @@
+/* ═══════════════════════════════════════════════════════════════
+   暗色主题覆盖层 — WORKBENCH-10-UIUX-PARITY-F1（卡 §三.E.3）
+
+   设计约束：
+   - 本文件只**覆盖取值**，不新造 token 名。浅色真相源仍是 styles/tokens.css 的 `:root`；
+     这里出现的每一个变量名都必须在 tokens.css 里有同名声明（由
+     tests/wb-e-settings.spec.mjs 机器校验，缺一个即红）。
+   - 选择器 `html[data-wb-theme="dark"]` 由 src/shared/workbench/wb-theme.ts 的
+     `themeDataAttribute()` 唯一决定：light ⇒ 摘掉属性 ⇒ 落回 :root，两套状态不会并存。
+   - 所有「文本 × 背景」组合按 WCAG 2.1 相对亮度公式核算 ≥4.5:1，
+     由同一 spec 逐对计算；不达标即红，不靠人工目测。
+     （根 scripts/contrast-check.cjs 只读 tokens.css 的浅色值，覆盖不到本文件，
+      故暗色侧的达标证据必须由本层自带。）
+   ═══════════════════════════════════════════════════════════════ */
+
+html[data-wb-theme="dark"] {
+  color-scheme: dark;
+
+  /* ── Neutral 灰阶：反转（--gray-0 恒为「最贴近表面的浅色」，--gray-900 恒为「最深」） ── */
+  --gray-0: #1b1b1d;
+  --gray-50: #202022;
+  --gray-100: #26262a;
+  --gray-200: #333338;
+  --gray-300: #45454c;
+  --gray-400: #6f6f78;
+  --gray-500: #9a9aa3;
+  --gray-600: #c4c4cc;
+  --gray-700: #dcdce2;
+  --gray-800: #ededf1;
+  --gray-900: #f7f7f9;
+
+  /* ── 文本 ── */
+  --text-primary: #f2f2f5;
+  --text-secondary: #cfcfd6;
+  --text-muted: #a8a8b2;
+  --text-placeholder: #a8a8b2;
+  --text-inverse: #16161a;
+  --text-link: #8fb0ff;
+
+  /* ── 侧栏文本 ── */
+  --sidebar-text-primary: #f2f2f5;
+  --sidebar-text-secondary: #cfcfd6;
+  --sidebar-text-muted: #a8a8b2;
+  --sidebar-text-active: #a9c4ff;
+
+  /* ── 背景面 ── */
+  --bg-page: #141417;
+  --bg-card: #1e1e22;
+  --bg-soft: #26262b;
+  --bg-elevated: #24242a;
+  --bg-sidebar: #191a1d;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  --bg-mask: rgba(0, 0, 0, 0.7);
+
+  /* ── 边框 ── */
+  --border-normal: #3b3b43;
+  --border-light: #2e2e35;
+  --border-focus: #7fa5ff;
+  --border-error: #f0836f;
+
+  /* ── 品牌色的暗面变体（仅半透明底，实色仍取 tokens.css） ── */
+  --color-primary-soft: rgba(127, 165, 255, 0.22);
+  --color-primary-bg: rgba(127, 165, 255, 0.14);
+  /* 浅色侧的 -text 变体是为白底选的深蓝/深绿/深橙，直接落在深底上对比度不足；
+     暗面必须换成同色相的浅变体，否则「选中态导航」「状态标签」在暗色下不达 AA。 */
+  --color-primary: #6b93f5;
+  --color-primary-text: #a9c4ff;
+  --color-primary-hover: #89abf8;
+  --color-primary-active: #5a80e0;
+  --color-success-text: #7fd8b5;
+  --color-warning-text: #e8b878;
+  --color-danger: #f0836f;
+
+  /* ── 控件与表格 ── */
+  --input-bg: #1a1a1e;
+  --input-border: #767685;
+  --input-focus-border: #a9c4ff;
+  --table-header-bg: #232329;
+  --table-header-text: #e4e4ea;
+  --table-row-hover: #2a2a31;
+  --table-stripe: #212127;
+  --table-border: #34343c;
+
+  /* ── 浮层与骨架 ── */
+  --tooltip-bg: #34343c;
+  --tooltip-text: #f2f2f5;
+  --skeleton-bg: #2a2a31;
+  --skeleton-shine: #3a3a43;
+
+  /* ── 图表辅助线（canvas 色值另见 styles/theme.ts，暗面由调用侧覆盖） ── */
+  --chart-grid: #33333a;
+  --chart-axis: #9a9aa3;
+
+  /* ── 阴影：暗面改描边式层次，黑阴影在深底上不可见 ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+  /* ── 磨砂层 ── */
+  --frost-sidebar: rgba(25, 26, 29, 0.82);
+  --frost-topbar: rgba(20, 20, 23, 0.82);
+  --frost-modal: rgba(30, 30, 34, 0.9);
+  --frost-bottom: rgba(20, 20, 23, 0.86);
+}
