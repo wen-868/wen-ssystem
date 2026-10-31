@@ -1,5 +1,17 @@
 <template>
-  <div class="pos-cashier">
+  <!--
+    D.3 收银台交易链路 · 全屏布局
+    原型 anchor L1757 `renderView()`：if(POSET.has(t)){renderPos(); if(w)w.classList.toggle('pos-full',t==='pos')}
+    对应 CSS L197-207（工作区占满可用高度 · 商品网格内部滚动 · 右侧购物车不限高）。
+    壳层归 WorkbenchShell（本卡不得改动），故 pos-full 落在收银台自身根节点上：
+    收银台态默认铺满工作区高度，可用按钮切回非全屏（还原）做对照。
+  -->
+  <div
+    class="pos-cashier"
+    :class="{ 'pos-full': posFull }"
+    data-pos-view="cashier"
+    :data-pos-full="posFull ? 'on' : 'off'"
+  >
     <!-- 工作区：分类 | 商品 | 购物车（对标设计稿收银台左右布局） -->
     <div class="cashier-workspace">
       <!-- 左侧：商品分类（固定可见，彩色分类标识） -->
@@ -51,23 +63,77 @@
             <el-icon class="btn-icon"><Setting /></el-icon>
             设置
           </el-button>
+          <!-- 全屏布局开关（pos-full 的唯一控制点） -->
+          <el-button
+            class="pos-full-btn"
+            :class="{ active: posFull }"
+            :aria-pressed="String(posFull)"
+            :title="posFull ? '退出收银台全屏布局' : '收银台全屏布局'"
+            data-testid="pos-full-toggle"
+            @click="togglePosFull"
+          >
+            <el-icon class="btn-icon"><FullScreen /></el-icon>
+            {{ posFull ? "全屏" : "还原" }}
+          </el-button>
         </div>
 
-        <div v-if="productOptions.length === 0" class="empty-state">
+        <!--
+          分类与商品选择（原型 anchor L497）：
+          .pos-cats{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+          数据源＝真实端点 GET /admin/products/categories + GET /store/products（不移植原型 POS_GOODS 假目录）
+          与左侧分类栏共用 activeCategory 单一状态，两处点击互相同步。
+        -->
+        <div class="pos-cats" data-testid="pos-cats">
+          <button
+            v-for="tab in posCatTabs"
+            :key="tab.id"
+            type="button"
+            class="pos-cat"
+            :class="{ on: activeCategory === tab.id }"
+            :data-cat="tab.name"
+            @click="selectCategory(tab.id)"
+          >
+            {{ tab.name }}<em>{{ tab.count }}</em>
+          </button>
+          <span
+            v-if="categoryState === 'unavailable'"
+            class="pos-cat pos-cat--unavailable"
+            data-capability="unavailable"
+            data-testid="pos-cats-unavailable"
+          >
+            {{ categoryMessage }}
+            <button type="button" class="pos-cat-retry" data-testid="pos-cats-retry" @click="retryLoadCategories">重试</button>
+          </span>
+        </div>
+
+        <!-- 商品目录不可用：保留结构，显式标 unavailable + 重试，不回落任何假商品 -->
+        <div
+          v-if="catalogueState === 'unavailable'"
+          class="empty-state pos-catalogue-unavailable"
+          data-capability="unavailable"
+          data-testid="pos-catalogue-unavailable"
+        >
+          <el-empty :description="catalogueMessage">
+            <el-button type="primary" data-testid="pos-catalogue-retry" @click="retryLoadProducts">重试</el-button>
+          </el-empty>
+        </div>
+        <div v-else-if="productOptions.length === 0" class="empty-state">
           <el-empty description="输入关键词搜索商品，或点击分类浏览" />
         </div>
-        <div v-else class="product-grid">
+        <div v-else class="product-grid" data-testid="pos-goods">
           <div
             v-for="product in filteredProducts"
             :key="product.skuId || product.id"
             class="product-card"
-            :class="{ 'is-out': Number(product.availableQty ?? 0) <= 0 }"
+            :class="{ 'is-out': stockOf(product).blockAdd, 'is-unknown': stockOf(product).state === 'unavailable' }"
+            :data-stock-state="stockOf(product).state"
             @click="addCartItem(product)"
           >
             <div class="product-card-top">
               <span class="product-cat-dot" :style="{ background: categoryColor(product.categoryId) }"></span>
-              <span class="product-stock" :class="stockClass(product.availableQty ?? 0)">
-                {{ stockText(product.availableQty ?? 0) }}
+              <!-- 库存四态：真实有货 / 低库存 / 真实缺货 / 无库存行 ⇒ unavailable（库存待接入），不冒充「缺货」 -->
+              <span class="product-stock" :class="stockOf(product).className" :data-stock-state="stockOf(product).state">
+                {{ stockOf(product).text }}
               </span>
             </div>
             <div class="product-name">{{ product.productName || product.skuName }}</div>
@@ -77,9 +143,12 @@
                 <span class="price-symbol">¥</span>
                 <span class="price-value">{{ Number(product.storePrice || product.retailPrice || 0).toFixed(2) }}</span>
               </div>
+              <!-- 加购：真实缺货才禁用；库存待接入仍可加购（无从判定，收款时由服务端出库校验兜底） -->
               <button
                 class="add-btn"
-                :disabled="Number(product.availableQty ?? 0) <= 0"
+                title="加购"
+                data-testid="pos-add-item"
+                :disabled="stockOf(product).blockAdd"
                 @click.stop="addCartItem(product)"
               >
                 <el-icon><Plus /></el-icon>
@@ -129,9 +198,17 @@
         <!-- 购物车列表 -->
         <div class="cart-list" :class="{ empty: cartItems.length === 0 }">
           <template v-if="cartItems.length > 0">
-            <div v-for="(item, index) in cartItems" :key="item.skuId" class="cart-row">
+            <div v-for="(item, index) in cartItems" :key="item.skuId" class="cart-row" :data-stock-state="stockOf(item).state">
               <div class="cart-row-main">
-                <div class="cart-row-name">{{ item.skuName }}</div>
+                <div class="cart-row-name">
+                  {{ item.skuName }}
+                  <span
+                    v-if="stockOf(item).state === 'unavailable'"
+                    class="cart-row-stock-tag"
+                    data-capability="unavailable"
+                    data-testid="pos-cart-stock-unknown"
+                  >库存待接入</span>
+                </div>
                 <div v-if="item.traceCodes?.length" class="cart-row-trace">
                   <span v-for="(c, i) in item.traceCodes" :key="i" class="trace-chip" :title="c">
                     {{ shortTrace(c) }}
@@ -157,14 +234,15 @@
                   <span class="cart-row-price-text">{{ Number(item.unitPrice).toFixed(2) }}</span>
                 </div>
               </div>
+              <!-- 数量增减：减到 0 自动移除该行（见 decreaseQty） -->
               <div class="cart-row-qty">
-                <button class="qty-btn" @click="decreaseQty(index)">−</button>
-                <span class="qty-value">{{ item.quantity }}</span>
-                <button class="qty-btn" @click="increaseQty(index)">+</button>
+                <button class="qty-btn" title="数量减一" data-testid="pos-qty-minus" @click="decreaseQty(index)">−</button>
+                <span class="qty-value" data-testid="pos-qty-value">{{ item.quantity }}</span>
+                <button class="qty-btn" title="加购一件" data-testid="pos-qty-plus" @click="increaseQty(index)">+</button>
               </div>
               <div class="cart-row-amount">¥{{ (item.unitPrice * item.quantity).toFixed(2) }}</div>
               <button class="cart-row-trace-btn" title="扫追溯码" @click="openTraceDialog(index)">追溯</button>
-              <button class="cart-row-del" @click="removeCartItem(index)">
+              <button class="cart-row-del" title="删除该行" data-testid="pos-cart-del" @click="removeCartItem(index)">
                 <el-icon><Close /></el-icon>
               </button>
             </div>
@@ -187,6 +265,28 @@
               <span class="price-symbol">¥</span>{{ cartAmount.toFixed(2) }}
             </span>
           </div>
+        </div>
+
+        <!--
+          交易结果条（成功 / 部分到账 / 失败 / 取消 / 待接入 五态可辨）
+          文案与状态全部来自 submitPosCheckout / cancelPosCheckout 的真实返回，视图不做推断。
+        -->
+        <div
+          v-if="lastResult"
+          class="cart-result"
+          :data-result-state="lastResult.state"
+          data-testid="pos-result-bar"
+        >
+          <span class="cart-result-badge" data-testid="pos-result-badge">{{ POS_STATE_BADGES[lastResult.state] }}</span>
+          <span class="cart-result-msg">{{ lastResult.message }}</span>
+          <button
+            v-if="canRetryPosCheckout(lastResult.state)"
+            type="button"
+            class="cart-result-retry"
+            data-testid="pos-result-retry"
+            @click="retryPay"
+          >重试</button>
+          <button type="button" class="cart-result-close" data-testid="pos-result-close" @click="dismissResult">×</button>
         </div>
 
         <!-- 支付方式 -->
@@ -218,14 +318,24 @@
             <span class="action-kbd">F4</span>
             <span class="action-label">取单</span>
           </button>
-          <button class="action-btn" @click="cartItems = []">
+          <button
+            class="action-btn"
+            :disabled="cartItems.length === 0"
+            data-testid="pos-clear-cart"
+            @click="clearCart"
+          >
             <span class="action-label">清空</span>
           </button>
           <button class="action-btn" @click="handlePrint">
             <span class="action-kbd">F9</span>
             <span class="action-label">打印</span>
           </button>
-          <button class="checkout-btn" :disabled="cartItems.length === 0 || loading" @click="openPayDialog">
+          <button
+            class="checkout-btn"
+            :disabled="cartItems.length === 0 || loading"
+            data-testid="pos-checkout"
+            @click="openPaySheet"
+          >
             <span class="checkout-label">结算</span>
             <span class="checkout-amount">
               <span class="price-symbol">¥</span>{{ cartAmount.toFixed(2) }}
@@ -244,7 +354,110 @@
       </section>
     </div>
 
-    <!-- 结算弹窗（对标设计稿 p12：应收 / 支付方式 / 实收 / 找零 / 确认收款 + 数字键盘） -->
+    <!--
+      支付弹层（原型 anchor L992-1004，逐字对齐结构）：
+        <div class="pos-mask" id="posPay" onclick="if(event.target===this)posClosePay()">
+          <div class="pos-panel">
+            <div class="pp-t">扫码 / 收款 · 应收金额</div>
+            <div class="pp-amt" id="ppAmt">¥0.00</div>
+            <div class="pays"> … 三个 .pay-b[data-p]：现金支付 / 微信支付 / 支付宝 … </div>
+            <button class="btn2" …>取消收款</button>
+      点击遮罩关闭 ⇒ @click.self="cancelPaySheet()"（等价于原型的 event.target===this 判定）。
+      三个按钮的 data-p 文案与原型一致；能力态由 wb-pos-checkout.resolvePayCapability 判定：
+      现金支付＝真实线下收款端点；微信/支付宝＝通道 ready 才可用，否则整条结构保留并显式标 unavailable（待接入 + 重试）。
+    -->
+    <div
+      v-if="paySheetVisible"
+      class="pos-mask show"
+      id="posPay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="收银结算"
+      data-testid="pos-pay-mask"
+      :data-pay-state="payState"
+      @click.self="cancelPaySheet()"
+    >
+      <div class="pos-panel" :data-pay-state="payState">
+        <div class="pp-t">扫码 / 收款 · 应收金额</div>
+        <div class="pp-amt" id="ppAmt">¥{{ paySheetAmount.toFixed(2) }}</div>
+        <div class="pp-meta">{{ paySheetSummary }}</div>
+
+        <!-- 库存缺口预警：存在无库存行 SKU 时先说明真实后果（出库校验 409），不掩饰 -->
+        <p
+          v-if="stockGapHint"
+          class="pp-warn"
+          data-capability="unavailable"
+          data-testid="pos-stock-gap"
+        >{{ stockGapHint }}</p>
+
+        <div class="pays" data-testid="pos-pays">
+          <button
+            v-for="btn in payButtons"
+            :key="btn.method"
+            type="button"
+            class="pay-b"
+            :data-p="btn.dataP"
+            :data-capability="btn.capability.state"
+            :class="{ okk: payState === 'success' && successPayMethod === btn.method }"
+            :disabled="btn.capability.state === 'unavailable' || payState === 'submitting' || payState === 'success'"
+            @click="onPayButton(btn)"
+          >
+            <PayMethodLogo :method="btn.logo" />
+            <span class="pay-b-text">{{ btn.dataP }}</span>
+            <span v-if="btn.capability.state === 'unavailable'" class="pay-b-tag" data-testid="pos-pay-unavailable">待接入</span>
+          </button>
+        </div>
+
+        <!-- unavailable 的具体缺口逐条写明 + 通道重试（照 agent-directory.ts 的 待接入/重试 范式） -->
+        <ul v-if="unavailablePayButtons.length" class="pp-cap-list" data-testid="pos-cap-list">
+          <li v-for="btn in unavailablePayButtons" :key="`cap-${btn.method}`" data-capability="unavailable">
+            {{ btn.dataP }}：{{ btn.capability.reason }}
+            <button type="button" class="pp-retry" data-testid="pos-channel-retry" @click="retryChannelProbe">重试</button>
+          </li>
+        </ul>
+
+        <!-- 微信 / 支付宝：只有拿到顾客付款码才可能真扣款（POST …/pay-by-code 的 16~24 位校验） -->
+        <div v-if="sheetNeedsCode" class="pp-code" data-testid="pos-pay-code">
+          <el-input
+            ref="sheetCodeRef"
+            v-model="payCode"
+            placeholder="用扫码枪扫顾客微信 / 支付宝付款码"
+            clearable
+            @keyup.enter="confirmSheetScanPay"
+          >
+            <template #prefix><el-icon><FullScreen /></el-icon></template>
+          </el-input>
+          <el-button type="success" :loading="payState === 'submitting'" @click="confirmSheetScanPay">扫码收款</el-button>
+        </div>
+        <p v-if="payHint" class="pp-hint" data-testid="pos-pay-hint">{{ payHint }}</p>
+        <p v-else-if="payCodeChannelLabel" class="pp-hint">{{ payCodeChannelLabel }}</p>
+
+        <!-- 反馈区：成功 / 部分到账 / 失败 / 取消 / 待接入 由真实结果驱动，失败与待接入均可重试 -->
+        <div
+          v-if="payState !== 'idle' && payState !== 'submitting'"
+          class="pp-feedback"
+          :data-pay-state="payState"
+          data-testid="pos-pay-feedback"
+        >
+          <span class="pp-badge">{{ POS_STATE_BADGES[payState] }}</span>
+          <span class="pp-msg">{{ payFeedback }}</span>
+          <button
+            v-if="canRetryPosCheckout(payState)"
+            type="button"
+            class="pp-retry pp-retry-main"
+            data-testid="pos-pay-retry"
+            @click="retryPay"
+          >重试</button>
+        </div>
+
+        <button type="button" class="btn2 pp-more" data-testid="pos-open-desk" @click="openPayDialog()">
+          收款台（实收 / 找零 / 会员余额 / 云闪付）
+        </button>
+        <button type="button" class="btn2 pp-cancel" data-testid="pos-cancel-pay" @click="cancelPaySheet()">取消收款</button>
+      </div>
+    </div>
+
+    <!-- 收款台弹窗（对标设计稿 p12：应收 / 支付方式 / 实收 / 找零 / 确认收款 + 数字键盘） -->
     <el-dialog
       v-model="payDialogVisible"
       title="收款结算"
@@ -326,8 +539,8 @@
         </div>
       </div>
       <template #footer>
-        <el-button @click="payDialogVisible = false">取消</el-button>
-        <el-button type="primary" size="large" :loading="loading" @click="confirmPayment">
+        <el-button data-testid="pos-desk-cancel" @click="cancelPayDesk()">取消</el-button>
+        <el-button type="primary" size="large" :loading="loading" data-testid="pos-desk-confirm" @click="confirmPayment">
           确认收款
         </el-button>
       </template>
@@ -546,17 +759,27 @@
         <div class="hardware-setting-footer">
           <span>支付通道状态：</span>
           <template v-if="channelStatus">
-            <el-tag size="small" :type="channelStatus.wechat.ready ? 'success' : 'info'" style="margin-right: 6px">
-              微信{{ channelStatus.wechat.ready ? "已配置" : "未配置" }}
+            <el-tag size="small" :type="channelStatus.wechat?.ready ? 'success' : 'info'" style="margin-right: 6px">
+              微信{{ channelStatus.wechat?.ready ? "已配置" : "未配置" }}
             </el-tag>
-            <el-tag size="small" :type="channelStatus.alipay.ready ? 'success' : 'info'" style="margin-right: 6px">
-              支付宝{{ channelStatus.alipay.ready ? "已配置" : "未配置" }}
+            <el-tag size="small" :type="channelStatus.alipay?.ready ? 'success' : 'info'" style="margin-right: 6px">
+              支付宝{{ channelStatus.alipay?.ready ? "已配置" : "未配置" }}
             </el-tag>
-            <el-tag size="small" :type="channelStatus.box.ready ? 'success' : 'info'">
-              收款盒子{{ channelStatus.box.ready ? "已配置" : "未配置" }}
+            <el-tag size="small" :type="channelStatus.box?.ready ? 'success' : 'info'">
+              收款盒子{{ channelStatus.box?.ready ? "已配置" : "未配置" }}
             </el-tag>
           </template>
-          <el-tag v-else size="small" type="info">查询中</el-tag>
+          <el-tag
+            v-else-if="channelProbe.state === 'unavailable'"
+            size="small"
+            type="danger"
+            data-capability="unavailable"
+            data-testid="pos-channel-unavailable"
+          >
+            {{ channelProbe.message }}
+          </el-tag>
+          <el-tag v-else size="small" type="info">通道状态探测中</el-tag>
+          <el-button size="small" text type="primary" data-testid="pos-channel-retry-settings" @click="retryChannelProbe">重试</el-button>
         </div>
       </div>
       <template #footer>
@@ -620,7 +843,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, nextTick, onMounted, onBeforeUnmount } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import {
   Search, User, Plus, Close, FullScreen, ShoppingCart, Setting
 } from "@element-plus/icons-vue";
@@ -630,15 +853,44 @@ import {
   searchStoreMembers,
   fetchProductCategories,
   createStoreSaleBill,
-  createStoreOfflinePayment,
   payStoreSaleBillByCode,
-  fetchStorePaymentChannels,
   verifyStoreTraceCode,
   createStoreHoldOrder,
   fetchStoreHoldOrders,
   restoreStoreHoldOrder,
   deleteStoreHoldOrder
 } from "../../api";
+/**
+ * D.3 收银台交易链路适配层（真实端点 + unavailable 分层，见文件头注释）
+ * - 支付弹层三按钮能力 / 建单+扣款状态机：wb-pos-checkout
+ * - 分类标签条 / 库存四态 / 目录可用性：wb-pos-catalogue
+ */
+import {
+  POS_PAY_BUTTONS,
+  POS_PAY_METHOD_LABELS,
+  POS_STATE_BADGES,
+  AUTH_CODE_PATTERN,
+  canRetryPosCheckout,
+  cancelPosCheckout,
+  probePosChannels,
+  requiresAuthCode,
+  resolvePayCapability,
+  submitPosCheckout,
+  type PosCapability,
+  type PosChannelProbe,
+  type PosCheckoutResult,
+  type PosCheckoutState,
+  type PosPayMethod,
+} from "../../shared/workbench/wb-pos-checkout";
+import {
+  buildPosCatTabs,
+  describeStockGap,
+  loadPosCatalogue,
+  normalizeCategoryRows,
+  resolveStockState,
+  type PosCatalogueState,
+  type PosStockView,
+} from "../../shared/workbench/wb-pos-catalogue";
 import { getLocalPrintConfig } from "../../modules/print/localConfig";
 import { openPrintWindow, printBill, openCashDrawer } from "../../modules/print/printClient";
 import {
@@ -667,6 +919,12 @@ const productSearchRef = ref();
 const productOptions = ref<any[]>([]);
 const categories = ref<any[]>([]);
 const activeCategory = ref(0);
+/** 商品目录可用性（unavailable ⇒ 显式「待接入」+ 重试，不回落任何假商品） */
+const catalogueState = ref<PosCatalogueState>("loading");
+const catalogueMessage = ref("");
+/** 分类可用性（GET /admin/products/categories 失败 ⇒ unavailable） */
+const categoryState = ref<"loading" | "ready" | "unavailable">("loading");
+const categoryMessage = ref("");
 const memberKeyword = ref("");
 const memberOptions = ref<any[]>([]);
 const selectedMemberId = ref<number | null>(null);
@@ -683,6 +941,31 @@ const currentAmount = ref(0);
 const holdDialogVisible = ref(false);
 const holdOrders = ref<any[]>([]);
 const payDialogVisible = ref(false);
+/* ─── D.3 收银台交易链路状态（全屏 / 支付弹层 / 四态反馈） ─── */
+/** 全屏布局开关：收银台默认全屏（原型 renderView 的 pos-full 语义） */
+const posFull = ref(true);
+/** 支付弹层（.pos-mask#posPay）可见性 */
+const paySheetVisible = ref(false);
+/** 弹层展示金额与摘要：打开时快照，成功后清车不会把数字抹成 0 */
+const paySheetAmount = ref(0);
+const paySheetSummary = ref("");
+/** 交易状态机（idle / submitting / success / partial / unverified / failure / cancelled / unavailable） */
+const payState = ref<PosCheckoutState>("idle");
+/** 状态徽标旁的说明文案（来自真实响应或 unavailable 缺口原因） */
+const payFeedback = ref("");
+/** 前置条件提示（如需扫付款码）——与结果态分开，避免把「还没扫」说成失败 */
+const payHint = ref("");
+/** 最近一次真实结果（弹层关闭后由购物车结果条持续显示） */
+const lastResult = ref<PosCheckoutResult | null>(null);
+/** 最近一次发起扣款的方式（重试沿用同方式 + 同单号） */
+const lastAttemptMethod = ref<PosPayMethod | null>(null);
+/** 本次成功的方式（.pay-b.okk 徽标定位） */
+const successPayMethod = ref<PosPayMethod | null>(null);
+/** 弹层内待补付款码的方式（点微信/支付宝但未扫码时聚焦输入框） */
+const sheetPayTarget = ref<PosPayMethod | null>(null);
+const sheetCodeRef = ref();
+/** 收款成功后停留展示 .okk 徽标的时长（对齐原型 posPay 的 900ms 反馈） */
+const PAY_SUCCESS_HOLD_MS = 900;
 const receivedAmount = ref(0);
 /** 会员可用余额（选中会员且有数据时展示，无则 0） */
 const memberBalance = ref(0);
@@ -696,8 +979,14 @@ const traceDialogItemIndex = ref(-1);
 const traceCodeInput = ref("");
 const traceCodeRef = ref();
 const traceScanLoading = ref(false);
-/** 支付渠道状态（微信/支付宝/收款盒子） */
-const channelStatus = ref<any>(null);
+/** 支付通道探测结果（GET /store/payment/channels；探测失败 ⇒ state=unavailable，绝不臆测 ready） */
+const channelProbe = ref<PosChannelProbe>({
+  state: "loading",
+  channels: null,
+  message: "支付通道状态探测中（GET /store/payment/channels）",
+});
+/** 硬件设置面板沿用的通道视图：未取到 ⇒ null，面板显示 unavailable */
+const channelStatus = computed(() => channelProbe.value.channels);
 /** 收银硬件设置 */
 const settingsDialogVisible = ref(false);
 const hardwareSettings = ref<PosHardwareSettings>({ ...DEFAULT_POS_HARDWARE });
@@ -750,14 +1039,18 @@ const payCodeChannelLabel = computed(() => {
   return "";
 });
 
-/** 扫码收款提示（通道状态 + 输入引导） */
+/** 扫码收款提示（通道探测真实态 + 输入引导；unavailable 时说明降级路径） */
 const payCodeHint = computed(() => {
   const code = payCode.value.trim();
-  if (code && !/^\d{16,24}$/.test(code)) return "付款码为 16~24 位纯数字，请直接扫顾客手机上的付款码";
-  if (channelStatus.value) {
+  if (code && !AUTH_CODE_PATTERN.test(code)) return "付款码为 16~24 位纯数字，请直接扫顾客手机上的付款码";
+  if (channelProbe.value.state === "unavailable") {
+    return `${channelProbe.value.message}；电子扫码不可用，可用现金支付完成收款`;
+  }
+  const channels = channelProbe.value.channels;
+  if (channels) {
     const readyChannels: string[] = [];
-    if (channelStatus.value.wechat.ready) readyChannels.push("微信");
-    if (channelStatus.value.alipay.ready) readyChannels.push("支付宝");
+    if (channels.wechat?.ready) readyChannels.push("微信");
+    if (channels.alipay?.ready) readyChannels.push("支付宝");
     if (readyChannels.length === 0) {
       return "微信/支付宝通道均未配置，扫码收款会提示失败；可先用现金/余额或手动确认收款";
     }
@@ -817,17 +1110,45 @@ function categoryCount(catId: number): number {
   return productOptions.value.filter((p) => Number(p.categoryId) === catId).length;
 }
 
-/** 库存状态：0 缺货红 / ≤10 告急橙 / 其余正常灰 */
-function stockClass(stock: number): string {
-  if (stock <= 0) return 'stock-out'
-  if (stock <= 10) return 'stock-low'
-  return 'stock-ok'
+/** .pos-cats 标签条（「全部」+ 真实分类 + 当前结果集内计数），与左栏分类同源 activeCategory */
+const posCatTabs = computed(() => buildPosCatTabs(categories.value, productOptions.value));
+
+/**
+ * 支付弹层三按钮（现金支付 / 微信支付 / 支付宝）＝原型 .pays > .pay-b[data-p]，
+ * 每个按钮的能力态实时取自通道探测：ready 才可点，unavailable 则禁用 + 标「待接入」。
+ */
+const payButtons = computed(() =>
+  POS_PAY_BUTTONS.map((btn) => ({
+    ...btn,
+    capability: resolvePayCapability(channelProbe.value, btn.method) as PosCapability,
+  })),
+);
+
+/** 处于 unavailable 的按钮（逐条列出缺口 + 重试入口） */
+const unavailablePayButtons = computed(() => payButtons.value.filter((b) => b.capability.state === "unavailable"));
+
+/** 弹层内是否需要补扫顾客付款码 */
+const sheetNeedsCode = computed(() => {
+  const method = sheetPayTarget.value;
+  if (!method) return false;
+  return requiresAuthCode(method) && !AUTH_CODE_PATTERN.test(payCode.value.trim());
+});
+
+/** 购物车库存缺口预警（存在无库存行 SKU 时给出真实后果说明） */
+const stockGapHint = computed(() => describeStockGap(cartItems.value));
+
+/** 切换全屏布局（pos-full 唯一控制点） */
+function togglePosFull() {
+  posFull.value = !posFull.value;
 }
 
-function stockText(stock: number): string {
-  if (stock <= 0) return "缺货"
-  if (stock <= 10) return `库存 ${stock}`
-  return `库存 ${stock}`
+/**
+ * 库存四态（真实商品行 / 购物车行共用）：
+ * null / undefined ⇒ unavailable「库存待接入」（门店无 t_inventory_balance 行，不是缺货也不是有货）；
+ * 0 ⇒ 真实缺货（禁用加购）；≤10 ⇒ 低库存。见 wb-pos-catalogue.ts 的端点核对。
+ */
+function stockOf(row: any): PosStockView {
+  return resolveStockState(row?.availableQty);
 }
 
 onMounted(() => {
@@ -844,12 +1165,23 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", handleHotkey);
 });
 
-/** 加载支付通道状态（微信/支付宝/收款盒子） */
+/** 加载支付通道状态（微信/支付宝/收款盒子）：真实 GET /store/payment/channels，失败 ⇒ unavailable */
 async function loadPosChannels() {
-  try {
-    channelStatus.value = await fetchStorePaymentChannels();
-  } catch {
-    channelStatus.value = null;
+  channelProbe.value = {
+    state: "loading",
+    channels: channelProbe.value.channels,
+    message: "支付通道状态探测中（GET /store/payment/channels）",
+  };
+  channelProbe.value = await probePosChannels();
+}
+
+/** 重试通道探测（unavailable 的唯一恢复入口；仍失败则继续显示缺口原因） */
+async function retryChannelProbe() {
+  await loadPosChannels();
+  if (channelProbe.value.state === "unavailable") {
+    ElMessage.warning(channelProbe.value.message);
+  } else {
+    ElMessage.success("支付通道状态已刷新");
   }
 }
 
@@ -1080,34 +1412,56 @@ function handleHotkey(e: KeyboardEvent) {
     loadHoldOrders();
   } else if (e.key === "F8") {
     e.preventDefault();
-    openPayDialog();
+    openPaySheet();
   } else if (e.key === "F9") {
     e.preventDefault();
     handlePrint();
   }
 }
 
-/** 加载商品分类 */
+/** 加载商品分类（真实 GET /admin/products/categories；失败 ⇒ 显式 unavailable + 重试） */
 async function loadCategories() {
+  categoryState.value = "loading";
   try {
     const list = await fetchProductCategories();
-    categories.value = Array.isArray(list) ? list : (list?.records || list?.list || []);
+    const normalized = normalizeCategoryRows(list);
+    categories.value = normalized.rows;
+    categoryMessage.value = normalized.message;
+    categoryState.value = normalized.rows.length > 0 ? "ready" : "unavailable";
   } catch (e) {
+    categories.value = [];
+    categoryState.value = "unavailable";
+    categoryMessage.value = "商品分类待接入（GET /admin/products/categories 请求失败）";
     console.error("加载商品分类失败", e);
   }
 }
 
-/** 默认加载全部在售商品（对标 POS 效率优先：进入即见商品） */
+/** 重试分类装载 */
+async function retryLoadCategories() {
+  await loadCategories();
+  if (categoryState.value === "unavailable") ElMessage.warning(categoryMessage.value);
+}
+
+/**
+ * 默认加载全部在售商品（对标 POS 效率优先：进入即见商品）
+ * 走 loadPosCatalogue：成功=真实 /store/products 记录；失败=unavailable，绝不填假商品
+ */
 async function loadAllProducts() {
   loading.value = true;
   try {
-    const data = await searchStoreProducts();
-    productOptions.value = data.records || [];
-  } catch (e) {
-    console.error("加载商品失败", e);
+    const result = await loadPosCatalogue();
+    productOptions.value = result.records;
+    catalogueState.value = result.state;
+    catalogueMessage.value = result.message;
   } finally {
     loading.value = false;
   }
+}
+
+/** 目录不可用时的重试（同时补分类，两者都是真实 GET） */
+async function retryLoadProducts() {
+  await Promise.all([loadAllProducts(), loadCategories()]);
+  if (catalogueState.value === "unavailable") ElMessage.warning(catalogueMessage.value);
 }
 
 /** 选择分类 */
@@ -1151,8 +1505,17 @@ async function handleSearchProducts() {
   }
   loading.value = true;
   try {
-    const data = await searchStoreProducts({ keyword: productKeyword.value.trim() });
-    productOptions.value = data.records || [];
+    const result = await loadPosCatalogue({ keyword: productKeyword.value.trim() });
+    if (result.state === "unavailable") {
+      productOptions.value = [];
+      catalogueState.value = "unavailable";
+      catalogueMessage.value = result.message;
+      ElMessage.error(result.message);
+      return;
+    }
+    productOptions.value = result.records;
+    catalogueState.value = "ready";
+    catalogueMessage.value = result.message;
     // 搜索结果展示全部匹配商品，重置分类过滤
     activeCategory.value = 0;
     if (productOptions.value.length === 0) {
@@ -1211,10 +1574,20 @@ function useWalkInCustomer() {
   selectedMemberId.value = null;
 }
 
+/**
+ * 加购（D.3 三件套之一）：点击商品卡 / 加购按钮 / 扫码命中唯一商品都走这里。
+ * 真实缺货（availableQty=0）禁止加购；库存待接入（null）仍可加购，
+ * 但行上保留 null ⇒ 购物车与支付弹层会持续显示「库存待接入」，不冒充有货。
+ */
 function addCartItem(row: any, opts?: { traceCode?: string }) {
   const skuId = Number(row.skuId || row.id);
   if (!skuId) {
     ElMessage.warning("当前商品缺少 SKU ID");
+    return;
+  }
+  const stock = stockOf(row);
+  if (stock.blockAdd) {
+    ElMessage.warning(`「${row.skuName || row.productName || `SKU-${skuId}`}」${stock.text}，无法加购`);
     return;
   }
   const unitPrice = Number(row.storePrice || row.retailPrice || 0);
@@ -1237,7 +1610,8 @@ function addCartItem(row: any, opts?: { traceCode?: string }) {
     productName: row.productName || "",
     quantity: 1,
     unitPrice,
-    availableQty: Number(row.availableQty || 0),
+    // 原样保留 null：门店无库存行 ≠ 库存 0，抹平成 0 会把「待接入」误报成「缺货」
+    availableQty: row.availableQty ?? null,
     traceCodes: opts?.traceCode ? [opts.traceCode] : []
   });
 }
@@ -1337,7 +1711,41 @@ function buildSaleItems() {
 }
 
 function increaseQty(index: number) {
-  cartItems.value[index].quantity = Number(cartItems.value[index].quantity || 0) + 1;
+  const item = cartItems.value[index];
+  if (!item) return;
+  const stock = stockOf(item);
+  // 有真实库存行时才做数量上限拦截；待接入（null）无从判定，交给服务端出库校验
+  if (stock.qty !== null && Number(item.quantity || 0) + 1 > stock.qty) {
+    ElMessage.warning(`「${item.skuName}」库存仅 ${stock.qty} 件，不能继续加购`);
+    return;
+  }
+  item.quantity = Number(item.quantity || 0) + 1;
+}
+
+/**
+ * 清空购物车（D.3 三件套之一）：二次确认后一次性复位购物车 + 本次单号/金额，
+ * 用户点「取消」则什么都不动（与收款「取消」一致，不静默丢单）。
+ */
+async function clearCart() {
+  if (cartItems.value.length === 0) {
+    ElMessage.info("购物车已经是空的");
+    return;
+  }
+  try {
+    await ElMessageBox.confirm(
+      `确认清空 ${totalQty.value} 件商品？已扫入的追溯码会一并清除`,
+      "清空购物车",
+      { confirmButtonText: "清空", cancelButtonText: "再想想", type: "warning" }
+    );
+  } catch {
+    return;
+  }
+  cartItems.value = [];
+  currentBillNo.value = "";
+  currentAmount.value = 0;
+  editingPriceIdx.value = -1;
+  payCode.value = "";
+  ElMessage.success("购物车已清空");
 }
 
 /** 改价：点击价格才进入编辑框，改完自动回到文本显示 */
@@ -1463,34 +1871,38 @@ function handlePrint() {
   });
 }
 
-async function handleCreateSaleBill() {
+/**
+ * 打开支付弹层（原型 .pos-mask#posPay，anchor L992-1004）
+ * 应收金额与摘要在打开时快照：收款成功清车后 #ppAmt 不会被抹成 ¥0.00
+ * （原型 posCheckout() 也是先写 $('#ppAmt').textContent 再 .show）。
+ */
+function openPaySheet() {
   if (cartItems.value.length === 0) {
     ElMessage.warning("请先加入商品到购物车");
     return;
   }
-  loading.value = true;
-  try {
-    const result = await createStoreSaleBill({
-      storeId: getLoginUserStoreId(),
-      customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
-      customerName: saleForm.customerName,
-      customerMobile: saleForm.customerMobile,
-      items: buildSaleItems()
-    });
-    currentBillNo.value = result.billNo;
-    currentAmount.value = Number(result.receivableAmount || cartAmount.value || 0);
-    ElMessage.success("销售单创建成功");
-  } finally {
-    loading.value = false;
-  }
+  paySheetAmount.value = currentAmount.value || cartAmount.value;
+  paySheetSummary.value = `${totalQty.value} 件 · ${saleForm.customerName || "散客"}`;
+  payState.value = "idle";
+  payFeedback.value = "";
+  payHint.value = "";
+  sheetPayTarget.value = null;
+  successPayMethod.value = null;
+  receivedAmount.value = cartAmount.value;
+  memberBalance.value = 0;
+  paySheetVisible.value = true;
+  showAmountOnCustomerDisplay();
+  // 通道结论缺失/失败时补探测一次，保证弹层的 ready/unavailable 判定是最新的真实结论
+  if (channelProbe.value.state !== "ready") loadPosChannels();
 }
 
-/** 打开结算弹窗：默认实收 = 应收 */
+/** 打开收款台弹窗（实收 / 找零 / 会员余额 / 扫付款码）：默认实收 = 应收 */
 function openPayDialog() {
   if (cartItems.value.length === 0) {
     ElMessage.warning("请先加入商品到购物车");
     return;
   }
+  paySheetTargetGuard();
   receivedAmount.value = cartAmount.value;
   memberBalance.value = 0;
   payCode.value = "";
@@ -1504,6 +1916,172 @@ function openPayDialog() {
   }
 }
 
+/** 收款台只在支付弹层内进入：未打开弹层时先补快照，避免 #ppAmt 与应收脱节 */
+function paySheetTargetGuard() {
+  if (!paySheetVisible.value && cartItems.value.length > 0) {
+    paySheetAmount.value = currentAmount.value || cartAmount.value;
+  }
+}
+
+/**
+ * 弹层三按钮点击（现金支付 / 微信支付 / 支付宝）
+ * - 能力 unavailable ⇒ 不发任何请求、不产生任何扣款，只写缺口原因 + 重试
+ * - 微信/支付宝 ready 但没有顾客付款码 ⇒ 前置提示并聚焦输入框（这不是失败，也不是成功）
+ */
+async function onPayButton(btn: { method: PosPayMethod; dataP: string; capability: PosCapability }) {
+  if (btn.capability.state === "unavailable") {
+    payState.value = "unavailable";
+    payFeedback.value = btn.capability.reason;
+    ElMessage.warning(btn.capability.reason);
+    return;
+  }
+  const code = payCode.value.trim();
+  if (requiresAuthCode(btn.method) && !AUTH_CODE_PATTERN.test(code)) {
+    sheetPayTarget.value = btn.method;
+    payHint.value = `${btn.dataP}需先扫顾客付款码（16~24 位纯数字）；未扫码不发起扣款`;
+    nextTick(() => sheetCodeRef.value?.focus?.());
+    return;
+  }
+  payHint.value = "";
+  await runCheckout(btn.method, code);
+}
+
+/** 弹层内扫付款码收款（渠道由后端按码段识别） */
+async function confirmSheetScanPay() {
+  const code = payCode.value.trim();
+  if (!AUTH_CODE_PATTERN.test(code)) {
+    payHint.value = "付款码为 16~24 位纯数字，请用扫码枪扫顾客手机上的付款码";
+    return;
+  }
+  await runCheckout(sheetPayTarget.value || "SCAN", code);
+}
+
+/**
+ * 唯一收款出口（D.3）：弹层按钮 / 收款台确认 / 扫码收款 / 重试 全部经此，
+ * 四态文案完全取自 submitPosCheckout 的真实响应；视图不推断、不伪造成功。
+ */
+async function runCheckout(method: PosPayMethod, authCode = "") {
+  if (cartItems.value.length === 0 && !currentBillNo.value) {
+    ElMessage.warning("请先加入商品到购物车");
+    return;
+  }
+  payState.value = "submitting";
+  payFeedback.value = "";
+  payHint.value = "";
+  lastAttemptMethod.value = method;
+
+  const result = await submitPosCheckout({
+    method,
+    amount: currentAmount.value || cartAmount.value,
+    items: buildSaleItems(),
+    billNo: currentBillNo.value,
+    authCode,
+    storeId: getLoginUserStoreId(),
+    customerId: saleForm.customerId,
+    customerName: saleForm.customerName,
+    customerMobile: saleForm.customerMobile,
+    channelProbe: channelProbe.value,
+  });
+
+  // 单号只在服务端返回后存在；失败 / 部分到账一律保留 ⇒ 重试沿用同单，不重复建单
+  if (result.billNo) currentBillNo.value = result.billNo;
+  if (result.amount > 0) currentAmount.value = result.amount;
+  lastResult.value = result;
+
+  if (result.state === "success") {
+    paySheetAmount.value = result.amount;
+    payState.value = "success";
+    payFeedback.value = result.message;
+    successPayMethod.value = method;
+    ElMessage.success(result.message);
+    completePaymentFlow(
+      result.billNo,
+      result.amount,
+      result.channelLabel || POS_PAY_METHOD_LABELS[method],
+      method
+    );
+    // 成功后停留展示 .pay-b.okk（对齐原型 900ms 反馈），再关闭弹层
+    window.setTimeout(() => {
+      if (payState.value === "success") {
+        paySheetVisible.value = false;
+        payDialogVisible.value = false;
+        payState.value = "idle";
+        payFeedback.value = "";
+        successPayMethod.value = null;
+        sheetPayTarget.value = null;
+        payCode.value = "";
+      }
+    }, PAY_SUCCESS_HOLD_MS);
+    return;
+  }
+
+  if (result.state === "unavailable") {
+    payState.value = "unavailable";
+    payFeedback.value = result.message;
+    ElMessage.warning(result.message);
+    if (requiresAuthCode(method)) {
+      sheetPayTarget.value = method;
+      nextTick(() => sheetCodeRef.value?.focus?.());
+    }
+    return;
+  }
+
+  // failure / partial / unverified：真实请求已发生 ⇒ 购物车与单号保留，等收银员重试或改用现金
+  payState.value = result.state;
+  payFeedback.value = result.message;
+  if (result.state === "partial" || result.state === "unverified") ElMessage.warning(result.message);
+  else ElMessage.error(result.message);
+  if (requiresAuthCode(method)) {
+    sheetPayTarget.value = method;
+    nextTick(() => payCodeRef.value?.focus?.());
+  }
+}
+
+/** 重试：待接入先重探通道，再按真实结论决定是否扣款；失败/部分沿用同一单号再收款 */
+async function retryPay() {
+  const method = lastAttemptMethod.value;
+  if (!method) {
+    await retryChannelProbe();
+    return;
+  }
+  if (payState.value === "unavailable") await loadPosChannels();
+  await runCheckout(method, requiresAuthCode(method) ? payCode.value.trim() : "");
+}
+
+/**
+ * 取消收款（原型 posClosePay）：未发起扣款 ⇒ 记 cancelled，
+ * 购物车与已建单号保留；请求飞行中不允许取消（扣款结果未知，不能假装没发生）。
+ */
+function cancelPaySheet() {
+  if (payState.value === "submitting") {
+    ElMessage.info("收款请求处理中，请等待结果后再操作");
+    return;
+  }
+  const method = (sheetPayTarget.value || lastAttemptMethod.value || paymentMethod.value) as PosPayMethod;
+  const result = cancelPosCheckout({ method, amount: paySheetAmount.value, billNo: currentBillNo.value });
+  lastResult.value = result;
+  payState.value = "cancelled";
+  payFeedback.value = result.message;
+  paySheetVisible.value = false;
+  payDialogVisible.value = false;
+  ElMessage.info(result.message);
+}
+
+/** 收款台「取消」：与弹层同一取消语义，不静默关闭 */
+function cancelPayDesk() {
+  cancelPaySheet();
+}
+
+/** 收起购物车结果条（成功 / 取消 已阅；失败与待接入不提供静默入口，只能重试或自行清空） */
+function dismissResult() {
+  lastResult.value = null;
+}
+
+/**
+ * 收款台「确认收款」：按所选方式走唯一收款出口
+ * 现金 / 余额 ⇒ POST /store/sale-bills/:billNo/offline-payment（真实存在）
+ * 微信 / 支付宝 ⇒ 必须有付款码，否则适配器返回 unavailable（不扣款、不谎报成功）
+ */
 async function confirmPayment() {
   if (cartItems.value.length === 0) {
     ElMessage.warning("请先加入商品到购物车");
@@ -1511,24 +2089,7 @@ async function confirmPayment() {
   }
   loading.value = true;
   try {
-    const result = await createStoreSaleBill({
-      storeId: getLoginUserStoreId(),
-      customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
-      customerName: saleForm.customerName,
-      customerMobile: saleForm.customerMobile,
-      items: buildSaleItems()
-    });
-    currentBillNo.value = result.billNo;
-    currentAmount.value = Number(result.receivableAmount || cartAmount.value || 0);
-
-    await createStoreOfflinePayment(currentBillNo.value, currentAmount.value, paymentMethod.value);
-    ElMessage.success("收款成功");
-    const payLabel =
-      payMethodOptions.find((m) => m.value === paymentMethod.value)?.label ??
-      paymentMethod.value;
-    completePaymentFlow(currentBillNo.value, currentAmount.value, payLabel, paymentMethod.value);
-  } catch (error) {
-    ElMessage.error(getErrorMessage(error, "收款失败"));
+    await runCheckout(paymentMethod.value as PosPayMethod, payCode.value.trim());
   } finally {
     loading.value = false;
   }
@@ -2755,5 +3316,60 @@ async function handleDeleteHoldOrder(holdNo: string) {
 .trace-dialog-tip {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ≤390px：收银台单列可用（WORKBENCH-10-F1 补齐项 F）
+   桌面三列（分类 / 商品 / 购物车）在 390px 会把购物车整列裁掉 ⇒ 改纵向单列：
+   分类转横向滑动、商品两列、支付方式与动作区两列，购物车排在商品之后仍可达。
+   断点与 wb-viewport.ts 的 390 由测试逐字比对。
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 390px) {
+  .pos-cashier {
+    height: auto;
+    min-height: 100%;
+    padding: 6px;
+    /* ≤760px 的「整体横向滚动」是给桌面三栏兜底的，单列后必须撤掉，
+       否则 .cashier-workspace 的 min-width:700px 会把商品/购物车并排留在 390 屏里（真裁切） */
+    overflow-x: visible;
+  }
+  .cashier-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    /* 1100px 的 grid-template-areas 会反向决定列数（两栏轨道），单列必须同时改写 areas */
+    grid-template-areas:
+      "cats"
+      "products"
+      "cart";
+    grid-template-rows: auto;
+    grid-auto-rows: min-content;
+    min-width: 0;
+    width: 100%;
+    height: auto;
+  }
+  .category-panel {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 6px;
+    max-height: 108px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .category-panel-title {
+    writing-mode: vertical-rl;
+    flex-shrink: 0;
+  }
+  .product-panel {
+    min-height: 260px;
+  }
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cart-panel {
+    max-height: none;
+  }
+  .pay-methods,
+  .cart-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>
