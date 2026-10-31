@@ -105,17 +105,38 @@ describe("store/order.service", () => {
     expect(eventInsert?.[1]).toContain("order.progress.miniapp_retail.cancelled");
   });
 
-  it("rejectOrder：释放预留并驳回 ⇒ 业务态 REJECTED，不冒充 CANCELLED 事件（03 契约缺口）", async () => {
+  it("rejectOrder：释放预留并驳回 ⇒ 业务态 REJECTED，同事务写 REJECTED 正式事件（04 卡：REJECTED 入域，不冒充 CANCELLED）", async () => {
     const conn = { query: vi.fn(), execute: vi.fn() };
     conn.query
       .mockResolvedValueOnce([[{ order_no: "DD001", store_id: 1, customer_type: "RETAIL" }]])
       .mockResolvedValueOnce([[{ skuId: 10, reservedQty: 2 }]]);
+    conn.execute.mockImplementation(async (sql: string) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 0 }]];
+        return [[]]; // 去重读：无既有事件
+      }
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_inventory_balance")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
     mocks.transaction.mockImplementation(async (fn: any) => fn(conn));
-    await rejectOrder("DD001", 1, "t1");
+    const result = await rejectOrder("DD001", 1, "t1");
+    expect(result).toEqual({ orderNo: "DD001", status: "REJECTED" });
     const updateCall = conn.execute.mock.calls.find((c) => String(c[0]).includes("UPDATE t_miniapp_order"));
     expect(updateCall?.[1]).toContain("REJECTED");
-    // REJECTED 不在契约 §三 miniapp_retail 值域 ⇒ 禁止写事件（卡 §五·一.3）
-    expect(conn.execute.mock.calls.some((c) => String(c[0]).includes("t_order_progress_event"))).toBe(false);
+    // 04 卡：REJECTED 已入契约 §三 值域 ⇒ 同事务写正式拒收事件
+    const eventInserts = conn.execute.mock.calls.filter((c) => String(c[0]).includes("INSERT INTO t_order_progress_event"));
+    expect(eventInserts.length).toBe(1);
+    const params = eventInserts[0]?.[1] ?? [];
+    expect(params).toContain("REJECTED");
+    expect(params).toContain("order.progress.miniapp_retail.rejected");
+    expect(params).toContain("DELIVERY_FAILED");
+    expect(params).toContain("store:manual-redeliver");
+    // 不冒充 CANCELLED：事件阶段与事件名均非 CANCELLED
+    expect(params).not.toContain("CANCELLED");
+    expect(params.some((p) => String(p).includes("miniapp_retail.cancelled"))).toBe(false);
   });
 
   it("startDelivery：状态与操作日志同事务并写 DELIVERING 事件（03）", async () => {

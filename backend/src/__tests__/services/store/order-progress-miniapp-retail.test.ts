@@ -76,17 +76,29 @@ function eventParamContains(eventCalls: any[], needle: string): boolean {
 }
 
 describe("miniapp_retail 进度事件全生命周期", () => {
-  // 条件 1-4：阶段值域严格，不私加 REJECTED
-  it("阶段 PENDING_PAYMENT/PENDING_SHIP/ACCEPTED/DELIVERING/COMPLETED/CANCELLED 合法，REJECTED 不在值域", () => {
-    const valid = ["PENDING_PAYMENT", "PENDING_SHIP", "ACCEPTED", "DELIVERING", "COMPLETED", "CANCELLED"];
+  // 条件 1-4：阶段值域严格（TOTAL-ORDER-PROGRESS-04：REJECTED 正式入域，不冒充 CANCELLED）
+  it("阶段 PENDING_PAYMENT/PENDING_SHIP/ACCEPTED/DELIVERING/COMPLETED/CANCELLED/REJECTED 合法且事件名机械派生", () => {
+    const valid = ["PENDING_PAYMENT", "PENDING_SHIP", "ACCEPTED", "DELIVERING", "COMPLETED", "CANCELLED", "REJECTED"];
     for (const stage of valid) {
       const input = miniappRetailEvent({
         tenantId: "t1", orderNo: "O1", businessStage: stage, businessStatus: stage,
-        actorType: "user", actorId: null, upstreamBizKey: `O1:${stage}`, at: new Date(),
+        actorType: "user", actorId: null,
+        failureCode: stage === "REJECTED" ? "DELIVERY_FAILED" : null,
+        retryEntry: stage === "REJECTED" ? "store:manual-redeliver" : null,
+        upstreamBizKey: `O1:${stage}`, at: new Date(),
       });
       expect(input.businessStage).toBe(stage);
     }
-    expect(valid).not.toContain("REJECTED");
+    // 04 卡：REJECTED 正式入域（契约 §三 miniapp_retail 七值）
+    expect(valid).toContain("REJECTED");
+    // 拒收事件名 = order.progress.miniapp_retail.rejected（≠ cancelled，不冒充）
+    const rej = miniappRetailEvent({
+      tenantId: "t1", orderNo: "O1", businessStage: "REJECTED", businessStatus: "REJECTED",
+      actorType: "user", actorId: 1, upstreamBizKey: "O1:STORE_REJECT",
+      failureCode: "DELIVERY_FAILED", retryEntry: "store:manual-redeliver", at: new Date(),
+    });
+    expect(validateAndDerive(rej).eventName).toBe("order.progress.miniapp_retail.rejected");
+    expect(validateAndDerive(rej).eventName).not.toBe("order.progress.miniapp_retail.cancelled");
   });
 
   // 条件 5：终态事件 ended_at 补齐；非终态 ended_at 为 null
@@ -125,18 +137,173 @@ describe("miniapp_retail 进度事件全生命周期", () => {
     expect(input.retryEntry).toBe("miniapp:/orders/create-again");
   });
 
-  // 条件 8：拒收 REJECTED 不发正式事件
-  it("store rejectOrder 业务态 REJECTED 但不写进度事件", async () => {
+  // 条件 5b：REJECTED 终态事件 ended_at 补齐（§4.4，TOTAL-ORDER-PROGRESS-04 入域后生效）
+  it("REJECTED 终态事件 ended_at 补齐（§4.4 终态必填）", () => {
+    const at = new Date("2026-10-31T10:00:00Z");
+    const r = miniappRetailEvent({
+      tenantId: "t1", orderNo: "O1", businessStage: "REJECTED", businessStatus: "REJECTED",
+      actorType: "user", actorId: 7, upstreamBizKey: "O1:STORE_REJECT",
+      failureCode: "DELIVERY_FAILED", retryEntry: "store:manual-redeliver", at,
+    });
+    expect(r.endedAt).toBe(at);
+  });
+
+  // 条件 7b：契约校验器——REJECTED 阶段必带 failure_code（§九 校验器同口径）
+  it("REJECTED 阶段缺 failure_code ⇒ validateAndDerive 判红；DELIVERY_FAILED 必带 retry_entry", () => {
+    expect(() => validateAndDerive(miniappRetailEvent({
+      tenantId: "t1", orderNo: "O1", businessStage: "REJECTED", businessStatus: "REJECTED",
+      actorType: "user", actorId: 7, upstreamBizKey: "O1:STORE_REJECT", at: new Date(),
+    }))).toThrow(/failure_code/);
+    // DELIVERY_FAILED（§7.1 适用族含 miniapp_retail）缺 retry_entry ⇒ 判红
+    expect(() => validateAndDerive(miniappRetailEvent({
+      tenantId: "t1", orderNo: "O1", businessStage: "REJECTED", businessStatus: "REJECTED",
+      actorType: "user", actorId: 7, upstreamBizKey: "O1:STORE_REJECT",
+      failureCode: "DELIVERY_FAILED", at: new Date(),
+    }))).toThrow(/retry_entry/);
+    // 私造码 ⇒ 判红（不私造码红线）
+    expect(() => validateAndDerive(miniappRetailEvent({
+      tenantId: "t1", orderNo: "O1", businessStage: "REJECTED", businessStatus: "REJECTED",
+      actorType: "user", actorId: 7, upstreamBizKey: "O1:STORE_REJECT",
+      failureCode: "CONSUMER_REJECTED", retryEntry: "x", at: new Date(),
+    }))).toThrow(/九码白名单/);
+  });
+
+  // 条件 8（TOTAL-ORDER-PROGRESS-04）：store rejectOrder 同事务写 REJECTED 正式事件
+  it("store rejectOrder 同事务写 REJECTED 事件（DELIVERY_FAILED/retry_entry/真实态），不冒充 CANCELLED", async () => {
     mockConn.query
       .mockResolvedValueOnce([[{ order_no: "DD1", store_id: 1, customer_type: "RETAIL" }]])
       .mockResolvedValueOnce([[{ sku_id: 10, reserved_qty: 2 }]]);
-    mockConn.execute.mockResolvedValue([{ affectedRows: 1 }]);
+    setupTransactionMock((sql) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 0 }]];
+        return [[]];
+      }
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_inventory_balance")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
     const { rejectOrder: rj } = await import("../../../services/store/order.service");
-    await rj("DD1", 1, "t1");
-    const eventCalls = mockConn.execute.mock.calls.filter((c: any) =>
-      String(c[0]).includes("t_order_progress_event"),
+    const res = await rj("DD1", 1, "t1");
+    expect(res).toEqual({ orderNo: "DD1", status: "REJECTED" });
+    const eventInserts = mockConn.execute.mock.calls.filter((c: any) =>
+      String(c[0]).includes("INSERT INTO t_order_progress_event"),
     );
-    expect(eventCalls.length).toBe(0);
+    expect(eventInserts.length).toBe(1); // 同事务恰好一条拒收事件
+    const params = eventInserts[0][1] as unknown[];
+    expect(params).toContain("REJECTED");                    // business_stage = REJECTED
+    expect(params).toContain("order.progress.miniapp_retail.rejected"); // 事件名机械派生
+    expect(params).toContain("DELIVERY_FAILED");             // §7.1 九码内
+    expect(params).toContain("store:manual-redeliver");      // retry_entry（needRetryEntry 闭环）
+    expect(params).toContain("客户拒收");                     // status_reason（§7.1 {reason} 槽位）
+    // upstream_biz_key=DD1:STORE_REJECT 经六成分 SHA-256 进入 source_event_id（非独立列）
+    const sid = String(params[4] ?? "");
+    expect(sid).toMatch(/^[0-9a-f]{64}$/);
+    expect(sid).toBe(validateAndDerive(miniappRetailEvent({
+      tenantId: "t1", storeId: 1, orderNo: "DD1", businessStage: "REJECTED", businessStatus: "REJECTED",
+      actorType: "user", actorId: 1, upstreamBizKey: "DD1:STORE_REJECT",
+      failureCode: "DELIVERY_FAILED", retryEntry: "store:manual-redeliver", statusReason: "客户拒收", at: new Date(),
+    })).sourceEventId);
+    expect(params).not.toContain("CANCELLED");               // 不冒充 CANCELLED
+    expect(params.some((p: any) => String(p).includes("order.progress.miniapp_retail.cancelled"))).toBe(false);
+  });
+
+  // 条件 8b：同事件重放幂等——同 actor 重复拒收同一单 ⇒ 只一条事件、复用同一 progress_seq
+  it("同 actor 重复拒收同一单 ⇒ source_event_id 去重，只保留一条事件复用同一 seq", async () => {
+    let insertCount = 0;
+    let qCount = 0;
+    mockConn.query.mockImplementation(async () => {
+      qCount += 1;
+      // 每次拒收两次 query：奇数次=主表真值，偶数次=订单项
+      return [[ qCount % 2 === 1
+        ? { order_no: "DD1", store_id: 1, customer_type: "RETAIL" }
+        : { sku_id: 10, reserved_qty: 2 } ]];
+    });
+    setupTransactionMock((sql) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 0 }]];
+        // 第二次拒收：去重读命中既有行（progress_seq=1）⇒ duplicate，不产生第二行、不领新 seq
+        if (insertCount >= 1) return [[{ progress_seq: 1 }]];
+        return [[]];
+      }
+      if (s.includes("INSERT INTO t_order_progress_event")) {
+        insertCount += 1;
+        return [{ affectedRows: 1 }];
+      }
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_inventory_balance")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
+    const { rejectOrder: rj } = await import("../../../services/store/order.service");
+    await rj("DD1", 1, "t1"); // 第一次：真实插入，seq=1
+    await rj("DD1", 1, "t1"); // 同 actor 重放：幂等命中，不新增
+    const eventInserts = mockConn.execute.mock.calls.filter((c: any) =>
+      String(c[0]).includes("INSERT INTO t_order_progress_event"),
+    );
+    expect(eventInserts.length).toBe(1); // 两次拒收只一条事件
+  });
+
+  // 条件 8c：不同合法动作 seq 严格递增（ACCEPTED=1 → REJECTED=2，不跳号不复用）
+  it("不同合法动作（ACCEPTED → REJECTED）progress_seq 严格递增", async () => {
+    const seqs: number[] = [];
+    let maxSeq = 0;
+    mockConn.query.mockImplementation(async () => {
+      return [[{ order_no: "DD1", store_id: 1, customer_type: "RETAIL" }]];
+    });
+    setupTransactionMock((sql) => {
+      const s = String(sql);
+      if (s.includes("FOR UPDATE")) return [[{ store_id: 1, customer_type: "RETAIL", order_status: "ACCEPTED" }]];
+      if (/SELECT\s+order_status\s+FROM/i.test(s)) return [[{ order_status: "ACCEPTED" }]];
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: maxSeq }]];
+        return [[]];
+      }
+      if (s.includes("INSERT INTO t_order_progress_event")) {
+        seqs.push(maxSeq + 1); // 本次写入的 seq = MAX+1
+        maxSeq += 1;
+        return [{ affectedRows: 1 }];
+      }
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_inventory_balance")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
+    const { acceptOrder: acc, rejectOrder: rj } = await import("../../../services/store/order.service");
+    await acc("DD1", "t1");
+    await rj("DD1", 1, "t1");
+    expect(seqs).toEqual([1, 2]); // ACCEPTED seq=1，REJECTED seq=2，严格递增
+  });
+
+  // 条件 8d：跨租户隔离——rejectOrder 的 FOR UPDATE 与 UPDATE 均绑定调用者租户谓词
+  it("rejectOrder SQL 强制 tenant_id 谓词且绑定调用者租户（跨租户同单号零命中）", async () => {
+    mockConn.query
+      .mockResolvedValueOnce([[{ order_no: "DD1", store_id: 1, customer_type: "RETAIL" }]])
+      .mockResolvedValueOnce([[{ sku_id: 10, reserved_qty: 2 }]]);
+    setupTransactionMock((sql) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 0 }]];
+        return [[]];
+      }
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_inventory_balance")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
+    const { rejectOrder: rj } = await import("../../../services/store/order.service");
+    await rj("DD1", 1, "tenant-B");
+    // FOR UPDATE 读与 UPDATE 均带 tenant_id = ? 且绑定调用者租户
+    const selectCall = mockConn.query.mock.calls.find((c: any) =>
+      String(c[0]).includes("t_miniapp_order") && String(c[0]).includes("FOR UPDATE"),
+    );
+    expect(String(selectCall[0])).toContain("tenant_id = ?");
+    expect(selectCall[1]).toContain("tenant-B");
+    const updateCall = mockConn.execute.mock.calls.find((c: any) =>
+      String(c[0]).includes("UPDATE t_miniapp_order"),
+    );
+    expect(String(updateCall[0])).toContain("tenant_id = ?");
+    expect(updateCall[1]).toContain("tenant-B");
   });
 
   // 条件 9：source_event_id 六成分，不含时间戳（derive 后获取源生成值）

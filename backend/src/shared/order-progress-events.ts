@@ -200,22 +200,23 @@ export function saleBillEvent(input: {
   };
 }
 
-/** §三 miniapp_retail 阶段值域（与契约 FAMILY_STAGES.miniapp_retail 一致，禁私加 REJECTED） */
+/** §三 miniapp_retail 阶段值域（与契约 FAMILY_STAGES.miniapp_retail 一致；TOTAL-ORDER-PROGRESS-04 起含 REJECTED） */
 export type MiniappRetailStage =
   | "PENDING_PAYMENT"
   | "PENDING_SHIP"
   | "ACCEPTED"
   | "DELIVERING"
   | "COMPLETED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "REJECTED";
 
-/** 终态阶段（§4.4：COMPLETED / CANCELLED ⇒ ended_at 必填） */
-const MINIAPP_RETAIL_TERMINAL: ReadonlySet<string> = new Set(["COMPLETED", "CANCELLED"]);
+/** 终态阶段（§4.4：COMPLETED / CANCELLED / REJECTED ⇒ ended_at 必填） */
+const MINIAPP_RETAIL_TERMINAL: ReadonlySet<string> = new Set(["COMPLETED", "CANCELLED", "REJECTED"]);
 
 /**
- * miniapp_retail 族事件语义装配（TOTAL-ORDER-PROGRESS-03）。
+ * miniapp_retail 族事件语义装配（TOTAL-ORDER-PROGRESS-03；04 卡扩 REJECTED 拒收阶段）。
  *
- * - 阶段严格取契约 §三 六值（拒收 REJECTED 不在值域内 ⇒ 本卡不发正式事件，另卡扩契约）；
+ * - 阶段严格取契约 §三 七值（TOTAL-ORDER-PROGRESS-04：REJECTED 正式入域，拒收不再受阻断）；
  * - business_status 必须是**该动作落定后的真实订单状态**（由调用点从业务真值传入，不得由阶段名反推）；
  * - visible_to 取契约 §六 miniapp_retail 默认 `["consumer","store_staff","store_manager","hq_admin"]`；
  * - field_filter：AI 通道裁剪内部字段；**消费者视角**额外隐藏金额/收件人个人信息/操作人内部键

@@ -163,7 +163,7 @@ async function appendMiniappRetailEventIfRetail(
     conn: PoolConnection;
     tenantId: string;
     orderNo: string;
-    businessStage: "ACCEPTED" | "DELIVERING" | "CANCELLED" | "COMPLETED" | "PENDING_SHIP";
+    businessStage: "ACCEPTED" | "DELIVERING" | "CANCELLED" | "COMPLETED" | "PENDING_SHIP" | "REJECTED";
     businessStatus: string;
     upstreamBizKey: string;
     actorFallback: string;
@@ -363,10 +363,29 @@ async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CA
       [status, status, orderNo, tenantId]
     );
 
-    // 契约 §8.1：取消事件与状态/释放库存/流水同事务。
-    // 拒收（REJECTED）不在契约 §三 miniapp_retail 阶段值域内 ⇒ **不冒充 CANCELLED 事件**，
-    // 业务态照常落 REJECTED，事件缺口按卡 §五·一.3 登记 BLOCKED_CONTRACT_STATUS: miniapp_retail.REJECTED（另卡扩契约）。
-    if (status === "CANCELLED") {
+    // 契约 §8.1：取消/拒收事件与状态/释放库存/流水**同一事务**，事件写失败 ⇒ 整个事务回滚（业务态不落）。
+    // TOTAL-ORDER-PROGRESS-04：REJECTED 已正式加入契约 §三 miniapp_retail 阶段值域 ⇒ 拒收发正式事件
+    // order.progress.miniapp_retail.rejected（不冒充 CANCELLED——两者是不同业务事实）。
+    // failure_code 选型（§7.1 九码内）：DELIVERY_FAILED（适用族含 miniapp_retail，文案
+    // "配送失败：{status_reason}"、下一步"联系客服重新配送"最贴近客户拒收场景），
+    // needRetryEntry=true ⇒ 必带 retry_entry（§7.1 重试入口列="人工重新发货" ⇒ 动作标识 store:manual-redeliver）；
+    // needManualUrl=false ⇒ manual_intervention_url 按契约为空。
+    if (status === "REJECTED") {
+      await appendMiniappRetailEventIfRetail(order as unknown as MiniappRetailTruthRow, {
+        conn,
+        tenantId,
+        orderNo,
+        businessStage: "REJECTED",
+        businessStatus: status,
+        actorId: operatorId,
+        actorType: "user",
+        upstreamBizKey: `${orderNo}:STORE_REJECT`,
+        failureCode: "DELIVERY_FAILED",
+        retryEntry: "store:manual-redeliver",
+        statusReason: "客户拒收",
+        actorFallback: "store-reject-order",
+      });
+    } else {
       await appendMiniappRetailEventIfRetail(order as unknown as MiniappRetailTruthRow, {
         conn,
         tenantId,

@@ -26,7 +26,10 @@ export type OrderFamily = (typeof ORDER_FAMILIES)[number];
 export const FAMILY_STAGES: Record<OrderFamily, readonly string[]> = {
   // 与 t_sale_bill.business_status DDL 值域一致（docs/init_database.sql:717：DRAFT/CREATED/COMPLETED/VOIDED/RETURNED）
   sale_bill: ["DRAFT", "CREATED", "COMPLETED", "VOIDED", "RETURNED"],
-  miniapp_retail: ["PENDING_PAYMENT", "PENDING_SHIP", "ACCEPTED", "DELIVERING", "COMPLETED", "CANCELLED"],
+  // TOTAL-ORDER-PROGRESS-04：REJECTED 正式入域（门店拒收写点 store/order.service.ts rejectOrder；
+  // 终态集合 §4.4 原本已含 REJECTED；事件名 order.progress.miniapp_retail.rejected，
+  // 不冒充 CANCELLED——两者是不同业务事实，各有独立事件）
+  miniapp_retail: ["PENDING_PAYMENT", "PENDING_SHIP", "ACCEPTED", "DELIVERING", "COMPLETED", "CANCELLED", "REJECTED"],
   miniapp_wholesale: ["PENDING", "PAID", "SHIPPED", "COMPLETED", "CANCELLED"],
   instant_platform: ["PENDING", "ACCEPTED", "DELIVERING", "COMPLETED", "CANCELLED"],
   instant_retail: ["PENDING", "CONFIRMED", "PREPARING", "DELIVERING", "COMPLETED", "CANCELLED"],
