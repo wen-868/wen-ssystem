@@ -78,6 +78,11 @@
   /* 紫=自定义（设计稿 .tag-p{background:#faf5ff;color:#7c3aed}） */
   --color-purple: #7c3aed;
   --color-purple-soft: #faf5ff;
+  /* TOTAL-SAAS-UI-TOKENS-01 新增：星级评分专用（el-rate text-color）。
+     原 PlatformReviews.vue 直接写死 #ff9900，属硬编码；此处提为令牌，
+     取值沿用 Element Plus 星级默认金黄，保证收口后视觉零位移。
+     ⚠️ 待设计确认：若品牌规范对「评分星」另有指定色，请只改本行。 */
+  --color-star: #FF9900;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Chart Colors — 图表色（可全彩）

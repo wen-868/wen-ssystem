@@ -19,7 +19,7 @@
         <el-descriptions-item label="租户">{{ detail.tenantName }}</el-descriptions-item>
         <el-descriptions-item label="套餐">{{ detail.planName }}</el-descriptions-item>
         <el-descriptions-item label="金额">
-          <span style="font-weight: 600; color: #ef4444;">¥{{ formatPrice(detail.price) }}</span>
+          <span style="font-weight: 600; color: var(--color-danger);">¥{{ formatPrice(detail.price) }}</span>
           <span v-if="detail.originalAmount" style="font-size: 12px; color: var(--text-secondary); text-decoration: line-through; margin-left: 6px;">¥{{ formatPrice(detail.originalAmount) }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="订阅状态">

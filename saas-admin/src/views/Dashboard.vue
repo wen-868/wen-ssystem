@@ -839,7 +839,7 @@ onUnmounted(() => {
 .dot {
   width: 9px;
   height: 9px;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   display: inline-block;
   margin-right: 5px;
 }

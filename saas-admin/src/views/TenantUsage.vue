@@ -53,7 +53,7 @@
                 {{ stat.change > 0 ? '↑' : '↓' }} {{ Math.abs(stat.change) }}% 较上期
               </div>
             </div>
-            <div style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;" :style="{ background: stat.bg }">
+            <div style="width: 48px; height: 48px; border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: center;" :style="{ background: stat.bg }">
               <el-icon :size="24" :color="stat.color"><component :is="stat.icon" /></el-icon>
             </div>
           </div>
@@ -148,13 +148,48 @@ const rankLoading = ref(false);
  * （原 change: 12.5 / 8.3 / 15.2 / -2.1 为硬编码假数据，R101-S2-R1 P0-2 清除；
  *  真实环比需后端补字段，属后续卡范围。）
  */
+/**
+ * TOTAL-SAAS-UI-TOKENS-01 · 图表/统计卡配色令牌化
+ * ───────────────────────────────────────────────────────────────
+ * ECharts 与图标容器只接受**具体色值字符串**，无法直接写 var(--x)，
+ * 故此处在运行时从 tokens.css 解析真实值 —— 单一真源仍是
+ * saas-admin/src/styles/tokens.css，杜绝「JS 一套色、CSS 一套色」的漂移。
+ *
+ * 原此处写死的是 Tailwind 默认色板（#10b981 emerald-500 / #f59e0b amber-500 /
+ * #ef4444 red-500 / #8b5cf6 violet-500），与 tokens.css 的 --chart-2 #16a34a、
+ * --chart-3 #ea580c、--chart-4 #dc2626、--chart-5 #7c3aed 并不一致，
+ * 属典型的跨体系视觉漂移。
+ *
+ * 兜底值取自 tokens.css 同名字面值：即便处于非浏览器环境（document 缺失）
+ * 取不到 CSS 变量，也只会落回令牌值本身，不会退回旧色板。
+ */
+const CHART_TOKEN_FALLBACK: Record<string, string> = {
+  "--chart-1": "#2563eb",
+  "--chart-2": "#16a34a",
+  "--chart-3": "#ea580c",
+  "--chart-5": "#7c3aed",
+  "--color-primary": "#2563eb",
+  "--color-primary-bg": "#eff6ff",
+  "--color-success-soft": "#f0fdf4",
+  "--color-warning-soft": "#fff7ed",
+  "--color-purple-soft": "#faf5ff",
+  "--gray-0": "#FFFFFF",
+};
+
+/** 解析设计令牌的实际色值；取不到时回落同名字面值（仍等于令牌值） */
+function tokenColor(name: string): string {
+  if (typeof document === "undefined") return CHART_TOKEN_FALLBACK[name] ?? "";
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || CHART_TOKEN_FALLBACK[name] || "";
+}
+
 const overviewStats = ref<
   Array<{ key: string; label: string; value: number | string; change: number | null; icon: string; color: string; bg: string }>
 >([
-  { key: "total_users", label: "总用户数", value: 0, change: null, icon: "User", color: "#2563eb", bg: "#eff6ff" },
-  { key: "total_orders", label: "总订单数", value: 0, change: null, icon: "ShoppingCart", color: "#10b981", bg: "#ecfdf5" },
-  { key: "total_sales", label: "总销售额", value: "¥0", change: null, icon: "Money", color: "#f59e0b", bg: "#fffbeb" },
-  { key: "total_products", label: "商品总数", value: 0, change: null, icon: "Box", color: "#8b5cf6", bg: "#f5f3ff" }
+  { key: "total_users", label: "总用户数", value: 0, change: null, icon: "User", color: tokenColor("--chart-1"), bg: tokenColor("--color-primary-bg") },
+  { key: "total_orders", label: "总订单数", value: 0, change: null, icon: "ShoppingCart", color: tokenColor("--chart-2"), bg: tokenColor("--color-success-soft") },
+  { key: "total_sales", label: "总销售额", value: "¥0", change: null, icon: "Money", color: tokenColor("--chart-3"), bg: tokenColor("--color-warning-soft") },
+  { key: "total_products", label: "商品总数", value: 0, change: null, icon: "Box", color: tokenColor("--chart-5"), bg: tokenColor("--color-purple-soft") }
 ]);
 
 const trendChartRef = ref<HTMLDivElement>();
@@ -234,7 +269,7 @@ function renderTrendChart(trendData: any[]) {
       data: values,
       smooth: true,
       areaStyle: { opacity: 0.15 },
-      itemStyle: { color: "#2563eb" },
+      itemStyle: { color: tokenColor("--color-primary") },
       lineStyle: { width: 3 }
     }]
   });
@@ -264,7 +299,7 @@ function renderModuleChart(moduleData: any[]) {
         radius: ["50%", "75%"],
         center: ["50%", "50%"],
         avoidLabelOverlap: false,
-        itemStyle: { borderRadius: 4, borderColor: "#fff", borderWidth: 2 },
+        itemStyle: { borderRadius: 4, borderColor: tokenColor("--gray-0"), borderWidth: 2 },
         label: { show: true, formatter: "{b}\n{d}%" },
         data: moduleData.map((d: any) => ({ name: d.moduleName ?? d.moduleCode ?? "", value: Number(d.usageCount ?? 0) })),
       }]
@@ -334,9 +369,9 @@ onUnmounted(() => {
 
 <style scoped>
 .text-success {
-  color: #10b981;
+  color: var(--color-success);
 }
 .text-danger {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 </style>

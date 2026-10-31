@@ -57,7 +57,7 @@
         </el-table-column>
         <el-table-column label="评分" width="140">
           <template #default="{ row }">
-            <el-rate v-model="row.rating" disabled show-score text-color="#ff9900" score-template="{value}分" />
+            <el-rate v-model="row.rating" disabled show-score text-color="var(--color-star)" score-template="{value}分" />
           </template>
         </el-table-column>
         <el-table-column label="评价内容" min-width="220" show-overflow-tooltip>
@@ -106,10 +106,10 @@
 
     <el-dialog v-model="replyVisible" title="回复评价" width="560px" :close-on-click-modal="false">
       <div v-if="currentReview" style="margin-bottom: 20px;">
-        <div style="color: #909399; font-size: 13px; margin-bottom: 8px;">
+        <div style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px;">
           {{ textOr(currentReview.platform, "未知平台") }} · 订单号 {{ textOr(currentReview.orderNo, "暂无") }}
         </div>
-        <div style="padding: 12px; background: #f5f7fa; border-radius: 4px; line-height: 1.6;">
+        <div style="padding: 12px; background: var(--bg-soft); border-radius: var(--radius-xs); line-height: 1.6;">
           {{ textOr(currentReview.content, "无内容") }}
         </div>
       </div>

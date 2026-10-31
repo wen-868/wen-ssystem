@@ -722,7 +722,7 @@ async function copyFrom(sourceId: number) {
   font-size: 8.5px;
   line-height: 1;
   padding: 2px 5px;
-  border-radius: 5px;
+  border-radius: var(--radius-xs);
   background: var(--color-warning-soft);
   border: 1px solid var(--warning-line);
   color: var(--color-warning);

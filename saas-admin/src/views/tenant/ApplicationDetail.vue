@@ -330,11 +330,11 @@ onMounted(() => {
 .page-header h2 { margin: 0; font-size: 18px; font-weight: 600; }
 .detail-content { padding: 8px 0; }
 .status-bar { margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
-.reject-reason { color: #F56C6C; font-size: 14px; }
-.form-value { color: #303133; font-size: 14px; }
-.audit-actions { margin-top: 16px; padding-top: 16px; border-top: 1px solid #EBEEF5; }
+.reject-reason { color: var(--color-danger); font-size: 14px; }
+.form-value { color: var(--text-primary); font-size: 14px; }
+.audit-actions { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light); }
 .action-buttons { margin-top: 16px; display: flex; gap: 12px; }
 .empty-state { text-align: center; padding: 40px 0; }
-.empty-icon { color: #C0C4CC; margin-bottom: 12px; }
-.empty-state p { color: #909399; }
+.empty-icon { color: var(--gray-300); margin-bottom: 12px; }
+.empty-state p { color: var(--text-muted); }
 </style>

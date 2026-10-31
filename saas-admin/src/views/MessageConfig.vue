@@ -231,12 +231,12 @@ onMounted(loadConfig);
 }
 .page-desc {
   margin: 0 0 16px;
-  color: #909399;
+  color: var(--text-muted);
   font-size: 13px;
 }
 .tip {
   margin-left: 10px;
-  color: #909399;
+  color: var(--text-muted);
   font-size: 12px;
 }
 </style>

@@ -590,7 +590,7 @@ onMounted(() => {
   place-items: center;
   width: 13px;
   height: 13px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--g3);
   color: var(--g6);
   flex: none;
