@@ -2,7 +2,9 @@
   <!-- 灰度回滚路径：特征开关关闭时直接使用旧壳，行为与改动前一致 -->
   <MainLayout v-if="!shellEnabled" />
 
-  <div v-else class="wb-shell" :class="{ 'is-ai': effectiveMode === 'ai', 'is-cashier': isCashierRoute, 'side-hidden': sideCollapsed }" data-testid="wb-shell">
+  <div v-else class="wb-shell" :class="{ 'is-ai': effectiveMode === 'ai', 'is-cashier': isCashierRoute, 'side-hidden': sideCollapsed, 'is-narrow': isNarrow }" :data-uiux-inject="uiuxInjected ? 'on' : 'off'" data-testid="wb-shell">
+    <!-- 注入态水印：截图即自证这不是生产权限态（仅 ?wb_uiux=12-groups 的开发态渲染） -->
+    <div v-if="uiuxInjected" class="wb-uiux-flag" data-testid="uiux-inject-flag">{{ WB_UIUX_INJECT_WATERMARK }}</div>
     <!-- ══ 一级模块图标栏（最左 · 常驻）＝原型 .rail（renderRail L2293）══ -->
     <nav class="wb-rail" aria-label="一级模块导航" data-testid="rail">
       <div class="wb-rail-logo" title="智享全链">智</div>
@@ -60,6 +62,14 @@
       @open-cashier="openCashierItem"
       @new-chat="startNewConversation"
       @collapse="sideCollapsed = !sideCollapsed"
+    />
+
+    <!-- 窄视口抽屉遮罩：点空白处收起二级导航（仅 ≤390px 渲染） -->
+    <div
+      v-if="isNarrow && !sideCollapsed"
+      class="wb-side-mask"
+      data-testid="side-mask"
+      @click="sideCollapsed = true"
     />
 
     <div class="wb-main">
@@ -206,6 +216,17 @@
 
     <!-- 收银台本机打印设置（沿用现有本地弹窗，不走路由） -->
     <PrintSettingsPanel v-model="printSettingsVisible" />
+
+    <!-- 设置中心（原型 .sw L2507-2603 · 7 分区 + 角色差异 + 明暗主题） -->
+    <WbSettingsCenter
+      v-model="settingsCenterVisible"
+      :user-roles="auth.userRoles"
+      :resolve-roles="resolveRoles"
+      :account="settingsAccount"
+      @logout="handleLogout"
+      @open-print-settings="printSettingsVisible = true"
+      @open-system-config="openSystemConfigPage"
+    />
   </div>
 </template>
 
@@ -260,6 +281,8 @@ import AiChatComposer from "../components/workbench/AiChatComposer.vue";
 import AiFeedContainer from "../components/workbench/AiFeedContainer.vue";
 import AiChatPanel from "../components/workbench/AiChatPanel.vue";
 import PrintSettingsPanel from "../modules/print/PrintSettingsPanel.vue";
+import WbSettingsCenter from "../components/workbench/WbSettingsCenter.vue";
+import { WB_NARROW_MEDIA_QUERY } from "../shared/workbench/wb-viewport";
 import { useAuthStore } from "../stores/auth";
 import { getErrorMessage } from "../api/request";
 import { fetchUserMenus } from "../api/workbench-menu";
@@ -283,6 +306,11 @@ import {
   type MenuLoadState,
   type ServerMenuRow,
 } from "../shared/workbench/menu-access";
+import {
+  WB_UIUX_INJECT_WATERMARK,
+  readUiuxInjection,
+  shouldSkipMenuBridgeTrimming,
+} from "../shared/workbench/wb-uiux-injection";
 import { buildPageDelegation, selectPageActionRows } from "../shared/workbench/ai-bridge";
 import {
   isWorkbenchShellV2Enabled,
@@ -312,6 +340,16 @@ const effectiveMode = computed<WorkbenchMode>(() =>
 type MainFace = "feed" | "chat";
 const face = ref<MainFace>("feed");
 const sideCollapsed = ref(false);
+/** 窄视口（≤390px）：rail 转底部横条、二级导航转左滑抽屉、主面单列（F1 补齐项 F） */
+const isNarrow = ref(false);
+let narrowQuery: MediaQueryList | null = null;
+function applyNarrow(narrow: boolean): void {
+  isNarrow.value = narrow;
+  sideCollapsed.value = narrow;
+}
+function onNarrowChange(event: MediaQueryListEvent): void {
+  applyNarrow(event.matches);
+}
 const ledgerOpen = ref(false);
 
 function resolveRoles(routeName: string): string[] | null {
@@ -371,9 +409,17 @@ onMounted(() => {
   confirmTimer = window.setInterval(() => {
     void loadPendingReview();
   }, 60_000);
+  // 390px 窄视口降级（F1 补齐项 F）：进入窄口即把二级导航收成抽屉，避免三列裁剪
+  if (typeof window.matchMedia === "function") {
+    narrowQuery = window.matchMedia(WB_NARROW_MEDIA_QUERY);
+    applyNarrow(narrowQuery.matches);
+    narrowQuery.addEventListener("change", onNarrowChange);
+  }
 });
 onBeforeUnmount(() => {
   if (confirmTimer !== undefined) window.clearInterval(confirmTimer);
+  narrowQuery?.removeEventListener("change", onNarrowChange);
+  narrowQuery = null;
 });
 
 /** 手动重试就绪探测：绕过 60s 冷却但**不允许并发**（防请求风暴） */
@@ -384,9 +430,19 @@ function retryAiReadiness(): void {
 
 const visibleRouteNameList = computed(() => [...access.value.visibleRouteNames]);
 
+/**
+ * UIUX 测试注入（补齐项 6）：`SERVER_MENU_BRIDGE` 只覆盖 4/12 组，真实交集会裁掉另外 8 组，
+ * 走查无法逐组点击。仅开发态 + 显式参数时跳过交集这一步，角色裁剪与生产链路都原样保留，
+ * 并在 DOM 留痕（data-uiux-inject + 角标），确保注入态不会被当成生产权限证据。
+ */
+const uiuxInjection = readUiuxInjection();
+const uiuxInjected = computed(() => uiuxInjection.active);
+
 const visibleGroups = computed(() =>
   filterVisibleGroups(
-    restrictManifestGroups(MANUAL_GROUPS, access.value.visibleRouteNames),
+    shouldSkipMenuBridgeTrimming(uiuxInjection)
+      ? MANUAL_GROUPS
+      : restrictManifestGroups(MANUAL_GROUPS, access.value.visibleRouteNames),
     auth.userRoles,
     resolveRoles,
   ),
@@ -505,6 +561,11 @@ const showChatComposer = computed(() => effectiveMode.value === "ai" && face.val
 const feedAlert = computed(() => (pendingReviewCount.value ?? 0) > 0 && face.value !== "feed");
 
 const printSettingsVisible = ref(false);
+/** 设置中心（原型 .sw 弹窗，WORKBENCH-10-F1 补齐项 E）：rail 设置项在壳层内打开，不跳路由 */
+const settingsCenterVisible = ref(false);
+const settingsAccount = computed(() =>
+  auth.user ? { name: auth.userName, store: String(auth.user.storeName ?? "") } : null,
+);
 
 const aiSessionState = ref<"idle" | "streaming" | "error">("idle");
 const chatPanel = ref<{
@@ -597,6 +658,8 @@ function openManualItem(entry: ManifestItem): void {
   if (!entry.path) return;
   setWorkbenchMode("human");
   router.push(entry.path);
+  // 390px：抽屉里选完条目后收起，把主面还给用户
+  if (isNarrow.value) sideCollapsed.value = true;
 }
 
 function isCashierActive(entry: ManifestItem): boolean {
@@ -628,12 +691,19 @@ function toggleModule(groupCode: string): void {
   selectedGroupCode.value = toggleRailSelection(selectedGroupCode.value || null, groupCode) ?? "";
   setWorkbenchMode("ai");
   face.value = "feed";
+  // 390px：二级导航是抽屉，选组即展开（运行态实测：不展开时移动端无法进入任何模块目录）
+  if (isNarrow.value) sideCollapsed.value = false;
 }
 const canOpenSystemSettings = computed(() => {
   const roles = resolveRoles("system");
   return Boolean(roles && roles.length > 0 && auth.userRoles.some((r) => roles.includes(r)));
 });
 function openSettings(): void {
+  settingsCenterVisible.value = true;
+}
+/** 设置中心「打开系统配置」：沿用原路由与人工态，权限与菜单语义不变 */
+function openSystemConfigPage(): void {
+  settingsCenterVisible.value = false;
   setWorkbenchMode("human");
   router.push("/system");
 }
@@ -988,5 +1058,121 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ≤390px 窄视口降级（WORKBENCH-10-F1 补齐项 F）
+   原型只有 1440 桌面稿 ⇒ 这里的目标不是「移动端设计」，是**不裁剪、可触达**：
+   · 三列 grid（60+230=290px 固定列）在 390px 下只剩 100px 主面 ⇒ 改单列
+   · rail 转底部横向条（卡片口径「底部或抽屉导航」）
+   · 二级导航转左滑抽屉 + 遮罩，默认收起，用顶部 side-toggle 开合
+   断点唯一真相源 = shared/workbench/wb-viewport.ts 的 390；两者由测试逐字比对。
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 390px) {
+  .wb-shell,
+  .wb-shell.side-hidden,
+  .wb-shell.is-ai {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wb-shell :deep(.wb-subnav),
+  .wb-shell :deep(.wb-subnav.hidden) {
+    position: fixed;
+    top: 0;
+    bottom: 56px;
+    left: 0;
+    width: min(320px, 86vw);
+    z-index: 45;
+    overflow: hidden auto;
+    background: var(--wb-panel, #fff);
+    border-right: 1px solid var(--wb-line, #eceef1);
+    box-shadow: 12px 0 32px rgba(15, 23, 42, 0.18);
+    transform: translateX(-100%);
+    transition: transform 220ms ease;
+  }
+  .wb-shell:not(.side-hidden) :deep(.wb-subnav) {
+    transform: translateX(0);
+  }
+  .wb-rail {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 46;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    height: 56px;
+    padding: 0 6px;
+    border-right: 0;
+    border-top: 1px solid var(--wb-line, #eceef1);
+    overflow: hidden auto;
+    overscroll-behavior-x: contain;
+  }
+  .wb-rail-logo {
+    width: 28px;
+    height: 28px;
+    margin: 0 8px 0 0;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .wb-rail-item {
+    flex-direction: row;
+    gap: 5px;
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+  .wb-rail-gap {
+    display: none;
+  }
+  .wb-rail-set {
+    margin-top: 0;
+    border-top: 0;
+  }
+  .wb-main {
+    padding-bottom: 56px;
+  }
+  .wb-top {
+    height: auto;
+    min-height: 44px;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  .wb-top-title {
+    font-size: 14px;
+  }
+  .wb-menu-state {
+    font-size: 12px;
+  }
+  .wb-user {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .wb-ledger {
+    width: 100vw;
+  }
+}
+.wb-side-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: 44;
+}
+
+/* 注入态角标压在抽屉（45）/底部栏（46）之上，任何截图都能看见「这是注入态」 */
+.wb-uiux-flag {
+  position: fixed;
+  top: 6px;
+  right: 6px;
+  z-index: 47;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
 }
 </style>
