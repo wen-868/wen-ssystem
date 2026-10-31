@@ -453,6 +453,15 @@ const WORKBENCH_07_ALLOWED_VIEWS = [
   "admin-web/src/views/dashboard/Dashboard.vue",
   "admin-web/src/views/pos/StoreDashboardView.vue",
 ];
+/**
+ * WORKBENCH-10-UIUX-PARITY-F1 §二 列名授权 `views/dashboard|pos|system/**`（补齐项 B/D.3/E 施工面）。
+ * backend、迁移、权限码、菜单桥接不在授权面内 → 仍一律判红（依据更新，非放宽）。
+ */
+const WORKBENCH_10_F1_ALLOWED_VIEW_DIRS = [
+  "admin-web/src/views/dashboard/",
+  "admin-web/src/views/pos/",
+  "admin-web/src/views/system/",
+];
 
 await run("业务冻结：views/backend 仅允许卡内授权文件改动，其余零改动；既有 5 个 spec 不减少", () => {
   const changed = execSync(`git diff --name-only ${BASELINE} -- admin-web/src/views backend`, {
@@ -464,7 +473,9 @@ await run("业务冻结：views/backend 仅允许卡内授权文件改动，其�
     .map((s) => s.replace(/\\/g, "/").trim())
     .filter(Boolean);
   const allowed = new Set(WORKBENCH_07_ALLOWED_VIEWS);
-  const violations = changed.filter((f) => !allowed.has(f));
+  const violations = changed.filter(
+    (f) => !allowed.has(f) && !WORKBENCH_10_F1_ALLOWED_VIEW_DIRS.some((dir) => f.startsWith(dir)),
+  );
   assert.deepEqual(
     violations,
     [],

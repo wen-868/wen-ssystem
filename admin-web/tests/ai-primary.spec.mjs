@@ -281,10 +281,19 @@ await run("快捷指令：3 条，走真实对话（不新建指令端点）", (
  *   原口径"views/backend 绝对零改动"设立于 ai-primary（WORKBENCH-03）时期。
  *   WORKBENCH-07 派单卡 §三 **明确授权**修改两个看板页（WB-AUDIT-01/02/04/08 的修复面），
  *   故改为**授权白名单**：允许卡内点名的文件，卡外改动一律判红（守卫分辨力不下降）。
+ * WORKBENCH-10-UIUX-PARITY-F1 二次修正（同为变更依据，非放宽）：
+ *   F1 卡 §二 **逐项列名授权** `views/dashboard/**`、`views/pos/**`、`views/system/**`
+ *   （补齐项 B 默认工作台 / D.3 收银台 / E 设置中心的施工面），故追加目录级授权；
+ *   backend、迁移、权限码、菜单桥接不在 F1 授权面内，仍一律判红。
  */
 const WORKBENCH_07_ALLOWED_VIEWS = [
   "admin-web/src/views/dashboard/Dashboard.vue",
   "admin-web/src/views/pos/StoreDashboardView.vue",
+];
+const WORKBENCH_10_F1_ALLOWED_VIEW_DIRS = [
+  "admin-web/src/views/dashboard/",
+  "admin-web/src/views/pos/",
+  "admin-web/src/views/system/",
 ];
 
 await run("业务冻结面：views / backend 仅允许卡内授权文件改动，卡外零改动", () => {
@@ -297,7 +306,9 @@ await run("业务冻结面：views / backend 仅允许卡内授权文件改动�
     .map((s) => s.replace(/\\/g, "/").trim())
     .filter(Boolean);
   const allowed = new Set(WORKBENCH_07_ALLOWED_VIEWS);
-  const violations = changed.filter((f) => !allowed.has(f));
+  const violations = changed.filter(
+    (f) => !allowed.has(f) && !WORKBENCH_10_F1_ALLOWED_VIEW_DIRS.some((dir) => f.startsWith(dir)),
+  );
   assert.deepEqual(violations, [], `views/backend 出现卡外改动（授权清单外一律红）：${violations.join(", ")}`);
   return `授权内 ${changed.length} 个 + 卡外 0 个`;
 });
