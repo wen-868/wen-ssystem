@@ -70,7 +70,7 @@
         <el-descriptions-item label="请求URL" :span="2">{{ currentLog.requestUrl }}</el-descriptions-item>
         <el-descriptions-item label="操作描述" :span="2">{{ currentLog.description }}</el-descriptions-item>
         <el-descriptions-item label="请求参数" :span="2">
-          <pre style="max-height: 200px; overflow: auto; font-size: 12px; background: #f5f7fa; padding: 8px; border-radius: 4px;">{{ currentLog.requestParams || "-" }}</pre>
+          <pre style="max-height: 200px; overflow: auto; font-size: 12px; background: var(--bg-soft); padding: 8px; border-radius: 4px;">{{ currentLog.requestParams || "-" }}</pre>
         </el-descriptions-item>
       </el-descriptions>
       <template #footer>

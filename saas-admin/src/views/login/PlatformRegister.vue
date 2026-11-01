@@ -87,9 +87,9 @@ function goLogin() {
 </script>
 
 <style scoped>
-.register-wrapper { display: flex; align-items: center; justify-content: center; height: 100vh; background: #f0f2f5; }
+.register-wrapper { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg-page); }
 .register-card { width: 400px; }
-.register-card h2 { text-align: center; margin-bottom: 8px; color: #303133; }
-.register-sub { text-align: center; margin-bottom: 20px; color: #909399; font-size: 13px; }
-.login-link { text-align: center; margin-top: 4px; color: #606266; font-size: 14px; }
+.register-card h2 { text-align: center; margin-bottom: 8px; color: var(--text-primary); }
+.register-sub { text-align: center; margin-bottom: 20px; color: var(--text-muted); font-size: 13px; }
+.login-link { text-align: center; margin-top: 4px; color: var(--text-secondary); font-size: 14px; }
 </style>

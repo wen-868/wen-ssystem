@@ -25,7 +25,7 @@
         <el-table-column prop="planName" label="套餐" width="120" />
         <el-table-column label="金额" width="130" align="right">
           <template #default="{ row }">
-            <span style="font-weight: 600; color: #ef4444;">¥{{ formatPrice(row.price) }}</span>
+            <span style="font-weight: 600; color: var(--color-danger);">¥{{ formatPrice(row.price) }}</span>
             <span v-if="row.originalAmount" style="font-size: 12px; color: var(--text-secondary); text-decoration: line-through; margin-left: 6px;">¥{{ formatPrice(row.originalAmount) }}</span>
           </template>
         </el-table-column>

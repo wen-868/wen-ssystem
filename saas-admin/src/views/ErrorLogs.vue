@@ -66,14 +66,14 @@
             <div style="padding: 12px 24px;">
               <el-descriptions :column="1" border size="small" v-if="row.stack">
                 <el-descriptions-item label="堆栈信息">
-                  <pre style="max-height: 300px; overflow: auto; font-size: 12px; background: #f5f7fa; padding: 8px; border-radius: 4px; white-space: pre-wrap; word-break: break-all;">{{ row.stack }}</pre>
+                  <pre style="max-height: 300px; overflow: auto; font-size: 12px; background: var(--bg-soft); padding: 8px; border-radius: 4px; white-space: pre-wrap; word-break: break-all;">{{ row.stack }}</pre>
                 </el-descriptions-item>
               </el-descriptions>
               <el-descriptions :column="2" border size="small" v-if="row.componentName || row.userAgent">
                 <el-descriptions-item label="组件名称" v-if="row.componentName">{{ row.componentName }}</el-descriptions-item>
                 <el-descriptions-item label="User-Agent" v-if="row.userAgent" :span="2">{{ row.userAgent }}</el-descriptions-item>
               </el-descriptions>
-              <div v-if="!row.stack && !row.componentName && !row.userAgent" style="color: #909399; font-size: 13px;">暂无详细堆栈信息</div>
+              <div v-if="!row.stack && !row.componentName && !row.userAgent" style="color: var(--text-muted); font-size: 13px;">暂无详细堆栈信息</div>
             </div>
           </template>
         </el-table-column>

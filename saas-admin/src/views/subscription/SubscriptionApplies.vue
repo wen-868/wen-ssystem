@@ -188,10 +188,10 @@ loadData()
 .subscription-apply-page { padding: 20px; }
 .page-header { margin-bottom: 20px; }
 .page-header h2 { margin: 0; font-size: 18px; font-weight: 600; }
-.page-tip { margin-left: 12px; font-size: 13px; color: #909399; }
+.page-tip { margin-left: 12px; font-size: 13px; color: var(--text-muted); }
 .filter-bar { margin-bottom: 16px; display: flex; gap: 12px; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
-.audit-box { margin-top: 20px; padding: 16px; background: #f5f7fa; border-radius: 6px; }
+.audit-box { margin-top: 20px; padding: 16px; background: var(--bg-soft); border-radius: 6px; }
 .audit-title { margin-bottom: 10px; font-weight: 600; }
 .audit-actions { margin-top: 12px; display: flex; justify-content: flex-end; gap: 12px; }
 </style>

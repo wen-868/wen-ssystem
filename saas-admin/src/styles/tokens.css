@@ -78,6 +78,9 @@
   /* 紫=自定义（设计稿 .tag-p{background:#faf5ff;color:#7c3aed}） */
   --color-purple: #7c3aed;
   --color-purple-soft: #faf5ff;
+  /* 星级评分专用色（el-rate 文字色）。来源：视图层硬编码 #ff9900 收口；
+     取值沿用浏览器默认星级色，零视觉位移。TOTAL-SAAS-VIEW-HARDCODED-COLORS-RECONSTRUCT-01 新增（不改任何既有令牌值）。 */
+  --color-star: #ff9900;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Chart Colors — 图表色（可全彩）

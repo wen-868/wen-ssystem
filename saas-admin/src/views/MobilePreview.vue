@@ -15,7 +15,7 @@
                 :value="device.id"
               >
                 <span style="float: left;">{{ device.name }}</span>
-                <span style="float: right; color: #8492a6; font-size: 12px;">
+                <span style="float: right; color: var(--text-muted); font-size: 12px;">
                   {{ device.width }}×{{ device.height }}
                 </span>
               </el-option>
@@ -137,13 +137,13 @@
           <!-- 加载遮罩 -->
           <div class="loading-overlay" v-if="loading">
             <el-icon class="is-loading" :size="32"><Loading /></el-icon>
-            <span style="margin-top: 8px; color: #909399;">加载中...</span>
+            <span style="margin-top: 8px; color: var(--text-muted);">加载中...</span>
           </div>
           <!-- 错误遮罩 -->
           <div class="error-overlay" v-if="loadError">
-            <el-icon :size="32" color="#F56C6C"><WarningFilled /></el-icon>
-            <span style="margin-top: 8px; color: #F56C6C;">页面加载失败</span>
-            <span style="margin-top: 4px; color: #909399; font-size: 12px;">请检查预览地址是否正确</span>
+            <el-icon :size="32" color="var(--color-danger)"><WarningFilled /></el-icon>
+            <span style="margin-top: 8px; color: var(--color-danger);">页面加载失败</span>
+            <span style="margin-top: 4px; color: var(--text-muted); font-size: 12px;">请检查预览地址是否正确</span>
           </div>
         </div>
 
@@ -542,13 +542,13 @@ watch(previewUrl, (val) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f0f2f5;
+  background: var(--bg-page);
 }
 
 /* ===== 工具栏 ===== */
 .toolbar-card {
   border: none;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--border-normal);
   border-radius: 0;
 }
 .toolbar-card :deep(.el-card__body) {
@@ -567,7 +567,7 @@ watch(previewUrl, (val) => {
 }
 .toolbar-label {
   font-size: 13px;
-  color: #606266;
+  color: var(--text-secondary);
   white-space: nowrap;
   font-weight: 500;
 }
@@ -735,7 +735,7 @@ watch(previewUrl, (val) => {
 }
 .quick-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 .quick-device-item {
@@ -746,18 +746,18 @@ watch(previewUrl, (val) => {
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--border-normal);
   font-size: 13px;
-  color: #606266;
+  color: var(--text-secondary);
 }
 .quick-device-item:hover {
-  border-color: #409eff;
-  color: #409eff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 .quick-device-item.active {
-  background: #409eff;
-  border-color: #409eff;
-  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--text-inverse);
 }
 .quick-device-icon {
   font-size: 16px;
