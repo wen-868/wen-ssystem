@@ -290,7 +290,7 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
   const token = typeof authStore.token === 'string' ? authStore.token : (authStore.token as any)?.value;
   const expired = token && isTokenExpired(token);
@@ -305,11 +305,27 @@ router.beforeEach((to, _from, next) => {
 
   if (to.meta.requiresAuth !== false && !token) {
     next("/login");
-  } else if (to.path === "/login" && token) {
-    next("/dashboard");
-  } else {
-    next();
+    return;
   }
+  if (to.path === "/login" && token) {
+    next("/dashboard");
+    return;
+  }
+
+  // 会话恢复（REHYDRATE-01）：token 有效但身份缺失（刷新页面/重开浏览器）时，
+  // 先恢复身份再放行 —— 避免页面先渲染「未登录」再闪烁成真实姓名（防路由闪烁）。
+  // - single-flight：并发导航复用同一次 /auth/me（防重复请求）；
+  // - 'expired' ⇒ fail-closed：清会话跳登录页；
+  // - 'network-error' ⇒ 保留 token 放行，顶栏提供「重试」（网络抖动 ≠ 身份无效）。
+  if (to.meta.requiresAuth !== false && token && !authStore.adminInfo) {
+    const state = await authStore.rehydrate();
+    if (state === "expired") {
+      next("/login");
+      return;
+    }
+  }
+
+  next();
 });
 
 export default router;
