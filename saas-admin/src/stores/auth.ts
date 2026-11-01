@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { loginApi, getAdminInfoApi, getAdminInfoRaw } from '../api/auth'
+import { loginApi, verifyMfaApi, getAdminInfoApi, getAdminInfoRaw, mfaRequiredOf } from '../api/auth'
 
 /**
  * 平台管理员身份（REHYDRATE-01 / MENU-ROLE-FILTER-01）。
@@ -53,20 +53,58 @@ export const useAuthStore = defineStore('auth', () => {
   // single-flight：并发恢复只发一次 /auth/me（REHYDRATE-01 防重复请求）
   let rehydrateInflight: Promise<RehydrateResult> | null = null
 
-  async function login(username: string, password: string, captchaId: string, captcha: string) {
+  /**
+   * 登录第一步（TOTAL-PLATFORM-MFA-CHALLENGE-UI-01）：
+   * - mfaRequired=true ⇒ **不落盘任何 token**（mfaToken 仅内存流转给挑战 UI），
+   *   返回 { mfaRequired: true, mfaToken }；此前的实现会把 undefined 写进 platform_token（隐患已修）；
+   * - 普通登录 ⇒ 原有落盘 + fetchAdminInfo 链路不变。
+   */
+  async function login(username: string, password: string, captchaId: string, captcha: string): Promise<{ mfaRequired: boolean; mfaToken?: string }> {
     const res = await loginApi({ username, password, captchaId, captcha })
-    token.value = res.data.token
-    localStorage.setItem('platform_token', res.data.token)
-    // 登录接口下发 csrfToken，持久化以供后续写操作注入
-    const loginCsrfToken = (res.data as any)?.csrfToken
-    if (loginCsrfToken) {
-      csrfToken.value = loginCsrfToken
-      localStorage.setItem('platform_csrf_token', loginCsrfToken)
+    if (mfaRequiredOf(res.data)) {
+      return { mfaRequired: true, mfaToken: String((res.data as any).mfaToken) }
+    }
+    if (res.data?.token) {
+      token.value = res.data.token
+      localStorage.setItem('platform_token', res.data.token)
+      // 登录接口下发 csrfToken，持久化以供后续写操作注入
+      const loginCsrfToken = (res.data as any)?.csrfToken
+      if (loginCsrfToken) {
+        csrfToken.value = loginCsrfToken
+        localStorage.setItem('platform_csrf_token', loginCsrfToken)
+      }
+      try {
+        await fetchAdminInfo()
+      } catch {
+        // me 失败不阻断登录（REHYDRATE-01）：token 已落盘，守卫会在下次导航 rehydrate 补拉
+      }
+    }
+    return { mfaRequired: false }
+  }
+
+  /**
+   * MFA 第二步（TOTAL-PLATFORM-MFA-CHALLENGE-UI-01）：
+   * 以挑战令牌换取正式登录结果后，走与普通登录完全相同的落盘 + fetchAdminInfo 链路
+   * （token/csrf 持久化 → role 经 /me 真实透出 → 菜单/守卫沿用已验收策略）。
+   * mfaToken 本身**绝不**写入 token 持久化键。
+   */
+  async function verifyMfa(mfaToken: string, code: string) {
+    const res = await verifyMfaApi(mfaToken, code)
+    const data = res.data as { token?: string; csrfToken?: string }
+    if (!data?.token) {
+      // 后端未下发正式令牌：视作失败处理，绝不让挑战令牌顶替正式 token
+      throw new Error('MFA 验证未返回有效登录态')
+    }
+    token.value = data.token
+    localStorage.setItem('platform_token', data.token)
+    if (data.csrfToken) {
+      csrfToken.value = data.csrfToken
+      localStorage.setItem('platform_csrf_token', data.csrfToken)
     }
     try {
       await fetchAdminInfo()
     } catch {
-      // me 失败不阻断登录（REHYDRATE-01）：token 已落盘，守卫会在下次导航 rehydrate 补拉
+      // 同 login：me 失败不阻断，守卫补拉
     }
   }
 
@@ -137,5 +175,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('platform_csrf_token')
   }
 
-  return { token, csrfToken, adminInfo, rehydrating, login, fetchAdminInfo, rehydrate, logout }
+  return { token, csrfToken, adminInfo, rehydrating, login, verifyMfa, fetchAdminInfo, rehydrate, logout }
 })
