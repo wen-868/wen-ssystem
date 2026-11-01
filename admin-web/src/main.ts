@@ -7,7 +7,13 @@ import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 //    resolver 只给模板里自动注册的组件补样式 ⇒ 不补 message 样式，`.el-message` 就以静态块
 //    落到文档末尾（top = 视口高），屏幕上看不见提示（WORKBENCH-13-F1 三视口实测：top 1000/768/844）。
 //    骨架意图未命中的「可重试告警」必须真的可见（卡 §三.8），所以这里显式补它的样式。
+// F2 收口（卡 §三.1/§三.2）：确认框与通知同样是显式导入的函数式组件，resolver 一样不补样式。
+// 此前 `.el-message-box` 的 CSS 只是 `ZxElTable.vue` 的副作用 ⇒ 不渲染表格的页面（如 /messages）
+// 里确认框会退化成无遮罩、无背景、静态定位的裸块；`.el-notification` 更是全仓无人引入。
+// 三类样式统一在应用入口加载，业务页面不再靠碰巧挂载某个组件才拿到弹窗 CSS。
 import "element-plus/es/components/message/style/css";
+import "element-plus/es/components/message-box/style/css";
+import "element-plus/es/components/notification/style/css";
 import "./styles/tokens.css";
 import "./styles.css";
 import App from "./App.vue";
