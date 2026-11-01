@@ -1,5 +1,31 @@
 import { createRouter, createWebHashHistory } from "vue-router";
+import { defineComponent, h } from "vue";
 import { useAuthStore } from "../stores/auth";
+import { resolvePlatformModule, platformRoleAllows } from "../config/platform-menu";
+
+/**
+ * 无权访问拒绝态（TOTAL-PLATFORM-MENU-ROLE-FILTER-01）：
+ * 直接访问无权路由（含复制 URL）时呈现明确拒绝，而不是空白或假成功。
+ * 内联组件（不新增文件）：语义色全部走 tokens.css 变量，不写死色值。
+ */
+const ForbiddenView = defineComponent({
+  name: "ForbiddenView",
+  setup() {
+    const back = () => { window.location.hash = "#/dashboard"; };
+    const retry = () => { window.location.reload(); };
+    return () =>
+      h("div", { style: "display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:12px;" }, [
+        h("div", { style: "font-size:40px;line-height:1;" }, "⛔"),
+        h("div", { style: "font-size:18px;font-weight:600;color:var(--text-primary);" }, "无权访问该页面"),
+        h("div", { style: "font-size:13px;color:var(--text-muted);max-width:420px;text-align:center;" },
+          "当前账号的角色未被授予该功能域的访问权限（fail-closed）。如需开通，请联系平台超级管理员调整角色授权。"),
+        h("div", { style: "display:flex;gap:8px;margin-top:8px;" }, [
+          h("button", { type: "button", onClick: back, style: "padding:6px 16px;border:1px solid var(--border-normal);background:var(--bg-card);color:var(--text-primary);border-radius:6px;cursor:pointer;font-size:13px;" }, "返回运营大盘"),
+          h("button", { type: "button", onClick: retry, style: "padding:6px 16px;border:none;background:var(--color-primary);color:#fff;border-radius:6px;cursor:pointer;font-size:13px;" }, "重试恢复身份"),
+        ]),
+      ]);
+  },
+});
 
 function parseJwtExp(token: string): number | null {
   try {
@@ -33,6 +59,12 @@ const router = createRouter({
       name: 'Register',
       component: () => import('../views/login/PlatformRegister.vue'),
       meta: { title: '商户注册', requiresAuth: false },
+    },
+    {
+      path: '/forbidden',
+      name: 'Forbidden',
+      component: ForbiddenView,
+      meta: { title: '无权访问', requiresAuth: false },
     },
     {
       path: '/',
@@ -321,6 +353,20 @@ router.beforeEach(async (to, _from, next) => {
     const state = await authStore.rehydrate();
     if (state === "expired") {
       next("/login");
+      return;
+    }
+  }
+
+  // 路由权限 fail-closed（MENU-ROLE-FILTER-01 · 关闭 G2）：菜单过滤 ≠ 权限放行，
+  // 复制 URL 直接访问无权路由一律拒绝态（/forbidden），不允许空白或假成功。
+  // - 未知角色/身份未恢复 ⇒ 一律无权（fail-closed）；
+  // - 受保护路由未命中任何权限域映射 ⇒ 同样拒绝（不因映射缺失而放行）；
+  // - /forbidden 本身放行（拒绝态终点，避免重定向循环）。
+  if (to.meta.requiresAuth !== false && to.path !== "/forbidden") {
+    const mod = resolvePlatformModule(to.path);
+    const role = (authStore.adminInfo as { role?: string | null } | null)?.role ?? null;
+    if (!mod || !platformRoleAllows(role, mod)) {
+      next("/forbidden");
       return;
     }
   }

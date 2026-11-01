@@ -11,7 +11,7 @@
       </div>
 
       <nav class="pf-nav">
-        <template v-for="g in platformMenus" :key="g.group">
+        <template v-for="g in visibleMenus" :key="g.group">
           <div class="pf-nav-group">{{ g.group }}</div>
           <template v-for="item in g.items" :key="item.path">
             <router-link
@@ -78,7 +78,7 @@
 import { computed, ref, unref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search, Bell } from '@element-plus/icons-vue'
-import { platformMenus, findMenuTitleByPath } from '../config/platform-menu'
+import { platformMenus, findMenuTitleByPath, filterPlatformMenusForRole } from '../config/platform-menu'
 import { PLATFORM_VERSION } from '../config/platform'
 import { useAuthStore, platformUserLabel } from '../stores/auth'
 import '../styles/layout.css'
@@ -102,6 +102,14 @@ function isActive(path: string): boolean {
 }
 
 const currentMenu = computed(() => findMenuTitleByPath(route.path))
+
+/**
+ * 侧边菜单按角色收敛（TOTAL-PLATFORM-MENU-ROLE-FILTER-01 · G2）：
+ * 与路由守卫共用同一份域声明（config/platform-menu.ts）——菜单隐藏≠权限放行，
+ * 直接访问无权路由会被守卫 fail-closed 拦截。isActive 的前缀匹配仍用全量
+ * platformMenus（避免过滤后详情页高亮误判），渲染层才按角色收敛。
+ */
+const visibleMenus = computed(() => filterPlatformMenusForRole(unref(authStore.adminInfo)?.role))
 
 /** 登录管理员信息：store 中该字段类型为 Ref，用 unref 兼容「Ref / 已解包」两种形态 */
 const adminInfo = computed(() => unref(authStore.adminInfo))

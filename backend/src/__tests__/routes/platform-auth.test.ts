@@ -473,4 +473,78 @@ describe("routes/platform-auth 集成测试", () => {
       expect(off.body.data.mfaEnabled).toBe(false);
     });
   });
+
+  /**
+   * TOTAL-PLATFORM-MENU-ROLE-FILTER-01 —— /auth/me 与登录响应真实透出 role。
+   * role 是前端平台菜单收敛 / 路由 fail-closed 的唯一角色来源，
+   * 缺失时前端一律视为无权 ⇒ 后端必须返回真实值，旧行缺失必须显式回 null（fail-closed）。
+   */
+  describe("role 透出（TOTAL-PLATFORM-MENU-ROLE-FILTER-01）", () => {
+    async function mockPasswordOk() {
+      const bcrypt = await import("bcryptjs");
+      (bcrypt.default.compare as any).mockResolvedValue(true);
+    }
+
+    it("登录成功响应 admin.role 为库中真实角色", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "cja_support",
+        password_hash: "hash",
+        real_name: "平台支持",
+        role: "SUPPORT",
+      });
+      await mockPasswordOk();
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "cja_support", password: "right" });
+      expect(res.status).toBe(200);
+      expect(res.body.data.admin.role).toBe("SUPPORT");
+      // 登录 SQL 必须把 role 查出来（缺列降级会让前端拿到恒 null）
+      // 注：探测 mfa 列就绪的辅助查询也可能占用 queryOne mock，故这里
+      // 在全部调用里找 t_platform_admin 的 SELECT，断言其 SELECT 列含 role
+      const loginSql = (queryOne as any).mock.calls
+        .map((c: unknown[]) => String(c[0]))
+        .find((s: string) => s.includes("FROM t_platform_admin"));
+      expect(loginSql).toBeTruthy();
+      expect(loginSql).toMatch(/SELECT [^\s].*role.*FROM t_platform_admin/);
+    });
+
+    it("登录旧行 role 列缺失时回 null（不伪造角色）", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "legacy",
+        password_hash: "hash",
+        real_name: "旧账号",
+      });
+      await mockPasswordOk();
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "legacy", password: "right" });
+      expect(res.status).toBe(200);
+      expect(res.body.data.admin.role).toBeNull();
+    });
+
+    it("GET /me 返回库中真实角色", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "cja_super",
+        real_name: "超级管理员",
+        role: "PLATFORM_SUPER_ADMIN",
+      });
+      const res = await request(app).get("/api/platform-auth/me");
+      expect(res.status).toBe(200);
+      expect(res.body.data.role).toBe("PLATFORM_SUPER_ADMIN");
+    });
+
+    it("GET /me 旧行 role 列缺失时回 null（fail-closed）", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "legacy",
+        real_name: "旧账号",
+      });
+      const res = await request(app).get("/api/platform-auth/me");
+      expect(res.status).toBe(200);
+      expect(res.body.data.role).toBeNull();
+    });
+  });
 });

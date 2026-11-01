@@ -3,25 +3,29 @@ import { ref } from 'vue'
 import { loginApi, getAdminInfoApi, getAdminInfoRaw } from '../api/auth'
 
 /**
- * 平台管理员身份（REHYDRATE-01）。
- * 后端 /platform/auth/me 现下发 { id, username, realName, mfaEnabled, csrfToken }；
- * role 为前端预留字段（后端 t_platform_admin.role 已存在但暂未透出），缺省时
- * 身份文案只显示姓名，绝不虚构「超级管理员」尾缀。
+ * 平台管理员身份（REHYDRATE-01 / MENU-ROLE-FILTER-01）。
+ * 后端 /platform/auth/me 与登录响应自 MENU-ROLE-FILTER-01 起真实透出 role（t_platform_admin.role）；
+ * role 缺失/未知时身份文案只显示姓名，绝不虚构「超级管理员」尾缀。
  */
 export interface PlatformAdminInfo {
   id: number
   username: string
   realName: string
   mfaEnabled?: boolean
-  role?: string
+  role?: string | null
 }
 
-/** 角色码 → 展示名（枚举见 backend middleware/platform-rbac.ts：全通 {PLATFORM_SUPER_ADMIN, SUPER_ADMIN}，普通 PLATFORM_ADMIN） */
+/**
+ * 角色码 → 展示名（枚举见 backend platform-rbac.ts 与 080/081 种子：
+ * 全通 PLATFORM_SUPER_ADMIN / SUPER_ADMIN；普通 PLATFORM_ADMIN；平台支持 SUPPORT）。
+ * 未知角色码不进映射 ⇒ 顶栏只显示姓名（不伪造）。
+ */
 const PLATFORM_ROLE_LABELS: Record<string, string> = {
   PLATFORM_SUPER_ADMIN: '超级管理员',
   SUPER_ADMIN: '超级管理员',
   PLATFORM_ADMIN: '平台管理员',
   PLATFORM_SUPPORT: '平台支持',
+  SUPPORT: '平台支持',
 }
 
 /**
