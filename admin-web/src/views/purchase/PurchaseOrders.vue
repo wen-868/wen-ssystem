@@ -360,10 +360,18 @@ async function handleCreate() {
   }
 }
 
+/**
+ * ⚠️ WORKBENCH-12：`useRoute()` 本质是 `inject(routeLocationKey)`，**必须在 setup 同步阶段**调用。
+ * 原实现写在 `onMounted(async () => {...})` 内 ⇒ 异步回调执行时 `currentInstance` 已为 null，
+ * 运行态抛 `inject() can only be used inside setup()`，单号跳转失效。
+ * 修正：setup 顶层取一次 route，回调内只读 `route.query`。
+ */
+const route = useRoute();
+
 onMounted(async () => {
   await Promise.all([loadOrders(), loadSuppliers()]);
   // 单据管理跳转：自动打开对应采购订单详情
-  const orderNo = useRoute().query.orderNo as string | undefined;
+  const orderNo = route.query.orderNo as string | undefined;
   if (orderNo) {
     const row = orders.value.find((o) => String(o.orderNo) === String(orderNo));
     if (row) viewDetail(row);

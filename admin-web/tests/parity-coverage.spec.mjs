@@ -457,6 +457,15 @@ const WORKBENCH_07_ALLOWED_VIEWS = [
  * WORKBENCH-10-UIUX-PARITY-F1 §二 列名授权 `views/dashboard|pos|system/**`（补齐项 B/D.3/E 施工面）。
  * backend、迁移、权限码、菜单桥接不在授权面内 → 仍一律判红（依据更新，非放宽）。
  */
+/**
+ * WORKBENCH-12-WIRING-BATCH-A 授权（派单卡 §二）：采购两页的 useRoute() 生命周期修复。
+ * 按卡累积、逐卡留痕；清单外任何 views/backend 改动仍判红（分辨力不降低）。
+ */
+const WORKBENCH_12_ALLOWED_VIEWS = [
+  "admin-web/src/views/purchase/PurchaseOrders.vue",
+  "admin-web/src/views/purchase/PurchaseInStocks.vue",
+];
+
 const WORKBENCH_10_F1_ALLOWED_VIEW_DIRS = [
   "admin-web/src/views/dashboard/",
   "admin-web/src/views/pos/",
@@ -472,7 +481,7 @@ await run("业务冻结：views/backend 仅允许卡内授权文件改动，其�
     .split(/\r?\n/)
     .map((s) => s.replace(/\\/g, "/").trim())
     .filter(Boolean);
-  const allowed = new Set(WORKBENCH_07_ALLOWED_VIEWS);
+  const allowed = new Set([...WORKBENCH_07_ALLOWED_VIEWS, ...WORKBENCH_12_ALLOWED_VIEWS]);
   const violations = changed.filter(
     (f) => !allowed.has(f) && !WORKBENCH_10_F1_ALLOWED_VIEW_DIRS.some((dir) => f.startsWith(dir)),
   );
