@@ -1,13 +1,15 @@
 /**
- * WORKBENCH-13 · UI 结构与状态契约测试（卡 §五.4：至少 12 条）
+ * WORKBENCH-13-F1 · UI 结构与状态契约测试（18 条；卡 §三.1/§三.2 要求 ≥12 且**自包含**）
  *
- * 覆盖四处修复（每处都有 file:line 级断言，防止回归）：
+ * 覆盖四处修复 + F1 返工项（每处都有 file:line 级断言，防止回归）：
  *   A. 菜单空态不得污染业务页（§三.1）
  *   B. 设置中心与打印弹层只能一个可交互模态（§三.2）
  *   C. 深链接/刷新必须真实可见业务页（§三.3）
- *   D. 冷启动首击稳定（§三.10）
+ *   D. 冷启动首击稳定 + 骨架可访问语义（§三.7/§三.10；凌舟驳回 §四.4）
  *   E. UIUX 注入不得当生产证据（§三.4/§六）
- *   F. 三视口无横向裁切（§三.8）
+ *   F. 场景证据与机器门禁（§三.5/§三.6/§三.9/§三.11）——只读仓内
+ *      `tests/uiux-scenarios-lib.mjs` 与 `tests/fixtures/uiux-scene-measures.json`，
+ *      不再引用工作树外的 `evidence/`、`tools/`（凌舟驳回 §二.1）
  *
  * 运行（admin-web 目录）：node tests/uiux-complete.spec.mjs
  */
@@ -163,12 +165,19 @@ await run("D1 加载期渲染 rail 骨架（首击不得落空）", () => {
   return "loading 且无真实模块时出骨架";
 });
 
-await run("D2 骨架点击记录意图（首击可进入），并标明非真实入口", () => {
+await run("D2 骨架是真实可点击按钮：记录首击意图，且不伪装 aria-disabled", () => {
   assert.ok(/pendingRailGroup/.test(shellCode), "应记录待进入的组");
   assert.ok(/function\s+clickRailSkeleton/.test(shellCode), "骨架点击应有独立 handler");
   assert.ok(/data-rail-skeleton="true"/.test(shellSrc), "骨架必须带 DOM 标记（可被证据识别）");
-  assert.ok(/aria-disabled="true"/.test(shellSrc), "骨架应对无障碍标注 disabled");
-  return "pendingRailGroup + data-rail-skeleton";
+  // 凌舟驳回 §四.4：骨架同时 aria-disabled=true ⇒ 可访问语义判为不可点击，与「要求点击记录意图」自相矛盾
+  const skelBlock = shellSrc.match(/<button[^>]*v-for="group in railSkeletons"[\s\S]*?@click="clickRailSkeleton/)?.[0] ?? "";
+  assert.ok(skelBlock.length > 0, "骨架按钮模板未找到");
+  assert.ok(!/aria-disabled/.test(skelBlock), "骨架不得标 aria-disabled（F1 卡 §三.7：不得用 aria-disabled 伪装可点击语义）");
+  assert.ok(/type="button"/.test(skelBlock), "骨架应为原生 <button type=button>（键盘 Enter/空格天然可触发）");
+  assert.ok(/aria-pressed/.test(skelBlock), "pending 态应通过 aria-pressed 暴露");
+  assert.ok(/aria-label=/.test(skelBlock), "骨架应有无障碍标签，说明非真实入口");
+  assert.ok(!/pointer-events:\s*none/.test(shellSrc.match(/\.wb-rail-item\.is-rail-skeleton\s*\{[^}]*\}/)?.[0] ?? ""), "骨架 CSS 不得禁用指针事件（否则首击落空）");
+  return "原生 button + aria-pressed + 无 aria-disabled/pointer-events";
 });
 
 await run("D3 ready 后自动应用首击意图；不可见时给可重试错误（不静默）", () => {
@@ -177,6 +186,19 @@ await run("D3 ready 后自动应用首击意图；不可见时给可重试错误
   assert.ok(/selectedGroupCode\.value\s*=\s*pending/.test(w), "命中则自动选中（首击可进入）");
   assert.ok(/ElMessage\.warning/.test(w), "未命中应给可重试提示，不得静默失败");
   return "自动选中 + 未命中告警";
+});
+
+await run("D4 未命中告警在屏幕上真的看得见（函数式组件样式必须显式引入）", () => {
+  // 根因：`import { ElMessage } from "element-plus"` 是显式导入，ElementPlusResolver 不给它补样式
+  // ⇒ .el-message 没有 CSS，以静态块落到文档末尾（实测 top=视口高），提示在屏幕上完全不可见。
+  const main = read("src/main.ts");
+  assert.ok(
+    /element-plus\/es\/components\/message\/style\/css/.test(main),
+    "main.ts 必须显式引入 ElMessage 样式，否则告警只在 DOM 里、不在屏幕上",
+  );
+  const shell = read(SHELL);
+  assert.ok(/from "element-plus"/.test(shell) && /ElMessage/.test(shell), "壳层应通过 ElMessage 给出可重试提示");
+  return "message 样式显式引入（否则告警不可见）";
 });
 
 /* ══════ E. UIUX 注入边界 ══════ */
@@ -190,21 +212,34 @@ await run("E1 UIUX 注入仅开发态生效，且 DOM 留痕（不得当生产�
   return "isDev 门 + 水印常量 + DOM 标记";
 });
 
-/* ══════ F. 视口与测量 ══════ */
+/* ══════ F. 视口、场景与机器门禁（全部依赖仓内文件） ══════ */
 
-await run("F1 三视口定义与测量产物存在（1440/1024/390）", () => {
-  const p = path.join(WEB, "..", "evidence", "final", "final-shots.json");
-  if (!existsSync(p)) {
-    // 允许在未跑证据时跳过文件断言，但必须断言测量脚本存在
-    assert.ok(existsSync(path.join(WEB, "..", "tools", "browser-evidence.mjs")), "应有视口测量脚本");
-    return "证据未生成（脚本已就绪，由 CI/人工跑）";
-  }
-  const shots = JSON.parse(readFileSync(p, "utf8"));
-  const vps = new Set(shots.map((s) => s.viewport));
-  for (const v of ["1440x1000", "1024x768", "390x844"]) assert.ok(vps.has(v), `应有 ${v} 视口证据`);
-  const clipped = shots.filter((s) => s.hasHorizontalClip);
-  assert.deepEqual(clipped.map((s) => `${s.viewport}/${s.name}`), [], "三视口不得横向裁切");
-  return `${shots.length} 张、3 视口、零横向裁切`;
+/**
+ * F1 的改造点（凌舟驳回 §二.1）：
+ *   旧写法读 `../evidence/final/final-shots.json`、回退读 `../tools/browser-evidence.mjs`，
+ *   两者都在工作树外 ⇒ clean 检出必红，且「证据没跑就自动放行」。
+ *   新写法只读同目录的 `uiux-scenarios-lib.mjs`（判定规则）与
+ *   `fixtures/uiux-scene-measures.json`（真实采集产物，随仓入库），缺任一个直接 FAIL。
+ */
+await run("F1 场景证据自包含：三视口、零横向裁切、真不同场景全部达标", async () => {
+  const libPath = path.join(here, "uiux-scenarios-lib.mjs");
+  const fixturePath = path.join(here, "fixtures", "uiux-scene-measures.json");
+  assert.ok(existsSync(libPath), "仓内应有 tests/uiux-scenarios-lib.mjs（门禁规则入库）");
+  assert.ok(existsSync(fixturePath), "仓内应有 tests/fixtures/uiux-scene-measures.json（真实采集产物入库）");
+  assert.ok(existsSync(path.join(here, "uiux-scenarios.mjs")), "仓内应有 tests/uiux-scenarios.mjs（采集脚本入库，不得放工作树外 tools/）");
+
+  const lib = await import("./uiux-scenarios-lib.mjs");
+  const bundle = JSON.parse(readFileSync(fixturePath, "utf8"));
+  assert.equal(bundle.schema, "wb13-f1-scene-measures/v1", "证据产物版本标记不符");
+  const scenes = bundle.scenes ?? [];
+  assert.ok(scenes.length >= 20, `场景证据过少：${scenes.length} 条`);
+
+  const violations = lib.collectViolations(bundle);
+  assert.deepEqual(violations, [], `证据门禁判红：\n    ${violations.join("\n    ")}`);
+
+  const vps = new Set(scenes.map((s) => s.viewport));
+  for (const v of lib.VIEWPORTS) assert.ok(vps.has(v.id), `应有 ${v.id} 视口证据`);
+  return `${scenes.length} 张、${vps.size} 视口、主场景 ${lib.countPrimaryScenes(scenes)} 个、零裁切、零重复平图`;
 });
 
 await run("F2 窄视口抽屉逻辑存在（390px rail 转抽屉，不裁切）", () => {
@@ -212,6 +247,71 @@ await run("F2 窄视口抽屉逻辑存在（390px rail 转抽屉，不裁切）"
   assert.ok(/WB_NARROW_MEDIA_QUERY/.test(shellCode) || /matchMedia/.test(shellCode), "应基于 media query");
   assert.ok(/sideCollapsed/.test(shellCode), "窄态应能收起第二栏");
   return "matchMedia + sideCollapsed";
+});
+
+await run("F3 门禁是活的：人造重复平图/裁切/未切换必须被判红", async () => {
+  const lib = await import("./uiux-scenarios-lib.mjs");
+  const base = [
+    { viewport: "1440x1000", scene: "01-feed", sha256: "a".repeat(64), overflowX: 0, stateSignature: "path=/dashboard|mode=ai" },
+    { viewport: "1440x1000", scene: "02-chat", sha256: "b".repeat(64), overflowX: 0, stateSignature: "path=/dashboard|mode=ai|chatShown=true" },
+  ];
+
+  // ① 同视口两张不同名场景 → 同一 SHA256（克隆平图）必须判红
+  const cloned = [{ ...base[1], sha256: base[0].sha256 }];
+  const dup = lib.findDuplicateHashes([...base, ...cloned]);
+  assert.equal(dup.length, 1, "重复平图必须被点名");
+  assert.deepEqual(dup[0].scenes.sort(), ["01-feed", "02-chat"], "应点名到具体场景对");
+
+  // ② 辅助图（aux- 前缀）不参与判红，但必须分开命名
+  const aux = lib.findDuplicateHashes([...base, { ...base[0], scene: `${lib.AUXILIARY_PREFIX}repeat` }]);
+  assert.equal(aux.length, 0, "aux- 前缀辅助图不参与重复判红");
+  assert.ok(lib.isAuxiliary("aux-x") && !lib.isAuxiliary("01-feed"), "辅助图命名判定应只认 aux- 前缀");
+
+  // ③ 横向裁切必须判红（含 1px 这种「>2 才算」的宽松口径）
+  assert.equal(lib.findClipped([{ viewport: "1440x1000", scene: "01-feed", overflowX: 1 }]).length, 1, "overflowX=1 也应判红");
+  assert.equal(lib.findClipped([...base]).length, 0, "零裁切不得误报");
+
+  // ④ 像素不同但结构读数相同 → 没有真实切换，判红
+  const sameState = lib.findDuplicateSignatures([
+    base[0],
+    { ...base[1], sha256: "c".repeat(64), stateSignature: base[0].stateSignature },
+  ]);
+  assert.equal(sameState.length, 1, "状态读数重复（未真实切换）必须判红");
+
+  // ⑤ 汇总门禁：真实 bundle 若被塞进克隆帧，collectViolations 必须非空
+  const bundle = JSON.parse(readFileSync(path.join(here, "fixtures", "uiux-scene-measures.json"), "utf8"));
+  const clean = lib.collectViolations(bundle);
+  assert.deepEqual(clean, [], "真实证据本身必须零违例（否则不可用于反测基线）");
+  const taintedScene = { ...bundle.scenes[0], scene: "99-taint-clone" };
+  const dirty = lib.collectViolations({ ...bundle, scenes: [...bundle.scenes, taintedScene] });
+  assert.ok(dirty.length > 0, "把同一帧改名成新场景后，门禁必须判红");
+
+  // ⑥ 网络审计：白名单外的失败必须判红，AI 3016 只能单列
+  const net = lib.findUnresolvedNetwork({
+    failures: [
+      { method: "GET", url: "http://localhost:8080/api/x", port: 8080, error: "net::ERR_FAILED", signature: "8080-x" },
+      { method: "GET", url: "http://localhost:3016/api/ai", port: 3016, error: "net::ERR_CONNECTION_REFUSED", signature: "3016-x" },
+    ],
+    recovered: [],
+  });
+  assert.equal(net.length, 1, "只有白名单离线端口可被单列，其余一律判红");
+  assert.equal(lib.portOfUrl("http://localhost:3016/api/ai"), 3016, "端口提取应支持无显式端口的 URL");
+  assert.equal(lib.findExpectedOffline({ failures: net.concat([{ method: "GET", url: "http://localhost:3016/a", port: 3016, error: "x", signature: "s" }]) }).length, 1, "3016 应作为离线项单列");
+
+  // ⑦ 脱敏：证据里不得留 JWT / token 参数 / CSRF token（常驻约束）
+  const secret = [
+    "GET /api/x?token=" + "a".repeat(40) + "&page=1",
+    '{"csrfToken":"' + "b".repeat(40) + '"}',
+    "Authorization: Bearer " + "c".repeat(60),
+    "eyJ" + "d".repeat(30) + ".eyJ" + "e".repeat(30) + ".eyJ" + "f".repeat(30),
+  ].join("  ");
+  const red = lib.redactText(secret);
+  assert.ok(!/eyJ[A-Za-z0-9_-]{8,}\./.test(red), "脱敏后不得残留 JWT 形态");
+  assert.ok(!/[?&]token=(?!<REDACTED>)[^&\s"]/.test(red), "脱敏后不得残留 token 查询参数（?token=<REDACTED> 标记本身不算泄漏）");
+  assert.ok(!/Bearer [A-Za-z0-9]{12,}/.test(red), "脱敏后不得残留 Bearer 凭据");
+  assert.ok(!/"csrfToken":"[A-Za-z0-9]{8,}/.test(red), "脱敏后不得残留 csrfToken 值");
+  assert.ok(/<REDACTED/.test(red) && /page=1/.test(red), "脱敏应显式留标记且不影响正常文本");
+  return "重复平图/裁切/未切换/未闭合网络/凭据 五类判红均生效";
 });
 
 const failed = results.filter((r) => !r.ok);

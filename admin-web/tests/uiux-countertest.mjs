@@ -1,15 +1,20 @@
 /**
- * WORKBENCH-13 · mutation 反测装置（卡 §五.5：至少 5 类）
+ * WORKBENCH-13-F1 · mutation 反测装置（卡 §三.3：9 类，≥6）
  *
- * 五类缺陷逐条注入 → 断言**点名变红** → 逐字节复原 SHA256 恒等 → 复跑回绿：
- *   M1 modal 双开         ：把「先关设置中心」删掉，退回模态双开
- *   M2 空态覆盖页面        ：删掉业务页豁免（空态重新污染业务页）
- *   M3 深链接隐藏          ：effectiveMode 去掉 isManualBusinessRoute（退回只认 /pos）
- *   M4 假 live 状态        ：把注入水印/isDev 门去掉（注入当生产可达）
- *   M5 错误禁用态          ：删掉「未命中给可重试告警」，静默失败
- *   M6 首击骨架缺失        ：删掉 railSkeletons（首击重新落空）— 附加第 6 类
+ * 缺陷逐条注入 → 断言**点名变红** → 逐字节复原 SHA256 恒等 → 复跑回绿：
+ *   M1 modal 双开         ：把「先关设置中心」删掉，退回模态双开            → B1
+ *   M2 空态覆盖页面        ：删掉业务页豁免（空态重新污染业务页）             → A1
+ *   M3 深链接隐藏          ：effectiveMode 去掉 isManualBusinessRoute        → C1
+ *   M4 假 live 状态        ：把注入 isDev 门去掉（注入可当生产可达）          → E1
+ *   M5 错误禁用态          ：删掉「未命中给可重试告警」，静默失败              → D3
+ *   M6 首击骨架缺失        ：删掉 railSkeletons（首击重新落空）               → D1
+ *   M7 假可点击语义        ：回插 aria-disabled=true（凌舟驳回 §四.4 回归位）  → D2
+ *   M8 门禁失效            ：findDuplicateHashes 恒返回空（重复平图不判红）    → F3
+ *   M9 告警不可见          ：删掉 main.ts 的 ElMessage 样式引入（提示掉到屏外） → D4
  *
- * 运行（工作树根）：node admin-web/tests/uiux-countertest.mjs
+ * 运行（必须显式给证据目录，避免把中间产物写进工作树而破坏 clean）：
+ *   node admin-web/tests/uiux-countertest.mjs <outDir>
+ *   例：node admin-web/tests/uiux-countertest.mjs <central>/projects/ms/evidence/WORKBENCH-13-WORKBENCH-UIUX-COMPLETE-01-F1/mutation
  */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -25,9 +30,16 @@ const SRC = path.join(WEB, "src");
 const TARGETS = {
   shell: path.join(SRC, "layouts", "WorkbenchShell.vue"),
   inject: path.join(SRC, "shared", "workbench", "wb-uiux-injection.ts"),
+  gate: path.join(WEB, "tests", "uiux-scenarios-lib.mjs"),
+  main: path.join(SRC, "main.ts"),
 };
 
 const SPEC = path.join(WEB, "tests", "uiux-complete.spec.mjs");
+const OUT = process.argv[2] ? path.resolve(process.argv[2]) : null;
+if (!OUT) {
+  console.error("必须显式传入证据输出目录（默认写进工作树会破坏 clean）：node tests/uiux-countertest.mjs <outDir>");
+  process.exit(2);
+}
 const sha256 = (b) => createHash("sha256").update(b).digest("hex").toUpperCase();
 
 function runSpec() {
@@ -145,6 +157,54 @@ const CASES = [
       ),
     expect: "D1",
   },
+  {
+    // 凌舟驳回 §四.4：骨架 aria-disabled=true 与「要求点击记录意图」自相矛盾；F1 已改为原生按钮语义
+    id: "M7-aria-disabled-mask",
+    title: "假可点击语义：把 aria-disabled=true 回插骨架（伪装不可点击却要求点击）",
+    target: TARGETS.shell,
+    mutate: (t) =>
+      patch(
+        t,
+        `        data-rail-skeleton="true"
+        :aria-busy=`,
+        `        data-rail-skeleton="true"
+        aria-disabled="true"
+        :aria-busy=`,
+        "M7",
+      ),
+    expect: "D2",
+  },
+  {
+    // 卡 §三.5「重复平图机器判红」必须是**活的**判定，而不是只在报告里写一句
+    id: "M8-gate-neutered",
+    title: "门禁失效：findDuplicateHashes 恒返回空（重复平图不再判红）",
+    target: TARGETS.gate,
+    mutate: (t) =>
+      patch(
+        t,
+        `  return [...groups.entries()]
+    .filter(([, list]) => list.length > 1)
+    .map(([key, list]) => ({ viewport: key.split("|")[0], sha256: key.split("|")[1], scenes: list }));`,
+        `  return [];`,
+        "M8",
+      ),
+    expect: "F3",
+  },
+  {
+    // 三视口实测：不显式引入 message 样式 ⇒ .el-message 以静态块落到文档末尾（top=视口高），
+    // 屏幕上根本看不见「可重试告警」，卡 §三.8 的不静默要求形同虚设。
+    id: "M9-invisible-warning",
+    title: "告警不可见：删掉 main.ts 的 ElMessage 样式引入（提示只在 DOM、不在屏幕）",
+    target: TARGETS.main,
+    mutate: (t) =>
+      patch(
+        t,
+        `import "element-plus/es/components/message/style/css";\n`,
+        ``,
+        "M9",
+      ),
+    expect: "D4",
+  },
 ];
 
 /* 基线 */
@@ -204,12 +264,11 @@ console.log(`\n复原后复跑：EXIT=${after.code}`);
 console.log(after.out.split("\n").filter((l) => l.startsWith("小结")).join("\n"));
 assert.equal(after.code, 0, "复原后必须回绿");
 
-const OUT = process.argv[2] ?? path.join(WEB, "..", "evidence", "mutation");
 mkdirSync(OUT, { recursive: true });
 const md = [
-  "# WORKBENCH-13 mutation 反测记录（6 类）",
+  "# WORKBENCH-13-F1 mutation 反测记录（9 类）",
   "",
-  "> 被测用例：`admin-web/tests/uiux-complete.spec.mjs`（16 条）",
+  "> 被测用例：`admin-web/tests/uiux-complete.spec.mjs`（18 条）",
   "> 装置：`admin-web/tests/uiux-countertest.mjs`（注入 → 点名红 → 逐字节复原 SHA256 → 复跑回绿）",
   "",
   "| 反测 | 目标 | 注入缺陷 | FAIL | 点名 | 复原恒等 |",
