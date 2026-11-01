@@ -32,6 +32,26 @@
       >
         <el-icon :size="17"><component :is="groupIcon(group.groupCode)" /></el-icon><span>{{ group.protoLabel }}</span>
       </button>
+      <!--
+        WORKBENCH-13（卡 §三.10 冷启动首击）：加载期占位骨架。
+        真实模块位还没出现时也保留 13 项 rail 结构，点击记录意图并在 ready 后自动选中，
+        避免「首击落空、必须点第二次」。
+      -->
+      <button
+        v-for="group in railSkeletons"
+        :key="`sk-${group.protoKey}`"
+        type="button"
+        class="wb-rail-item is-rail-skeleton"
+        :class="{ 'is-pending': pendingRailGroup === group.groupCode }"
+        :data-rail-key="group.groupCode"
+        data-rail-skeleton="true"
+        aria-disabled="true"
+        :aria-busy="pendingRailGroup === group.groupCode ? 'true' : 'false'"
+        :title="`${group.protoTitle}（权限菜单加载中）`"
+        @click="clickRailSkeleton(group.groupCode)"
+      >
+        <el-icon :size="17"><component :is="groupIcon(group.groupCode)" /></el-icon><span>{{ group.protoLabel }}</span>
+      </button>
       <span class="wb-rail-gap" />
       <button
         v-if="canOpenSystemSettings"
@@ -168,8 +188,21 @@
         </main>
         <!-- 人工业务页：router-view 常驻（不得被条件渲染包裹 —— ai-primary 断言），收银路由亦走此层 -->
         <main class="wb-view wb-view-manual" :class="{ shown: effectiveMode === 'human' }" data-view="manual">
+          <!--
+            ⚠️ WORKBENCH-13 修复（卡 §三.1「菜单空态污染业务页」）：
+            原缺陷：空态块与 `<router-view />` 是**并列兄弟节点**（原 L171-180），只要
+            `menuState==='ready'` 且可见菜单交集为 0，空态就渲染在业务页上方，把已打开的人工页
+            挤下去/盖住（典型：SUPER_ADMIN 直链一个已授权业务页，但菜单桥交集为空 ⇒ 页面本体被压）。
+
+            修法（保持 ai-primary.spec「router-view 不得被 AI 状态条件渲染」的既有断言）：
+              · `<router-view />` 仍然**无条件常驻**（不加 v-if）；
+              · 空态改为**绝对定位的覆盖层**，只在 `showMenuEmptyState` 为真时出现，
+                且带上页面级豁免：当前路由只要**有真实页面可渲染**（业务路由命中）就不显示空态；
+              · 因此「空态」与「页面」是**层级互斥**（同一时刻空态在最上层且页面被明确提示），
+                而不是并列挤压 —— 不会再出现页面被空态推走/遮挡而不可用的情形。
+          -->
           <div
-            v-if="menuState === 'ready' && visibleBusinessEntryCount === 0 && !isCashierRoute"
+            v-if="showMenuEmptyState"
             class="wb-menu-empty"
             data-testid="menu-empty"
             role="status"
@@ -215,7 +248,7 @@
     </aside>
 
     <!-- 收银台本机打印设置（沿用现有本地弹窗，不走路由） -->
-    <PrintSettingsPanel v-model="printSettingsVisible" />
+    <PrintSettingsPanel ref="printPanelRef" v-model="printSettingsVisible" />
 
     <!-- 设置中心（原型 .sw L2507-2603 · 7 分区 + 角色差异 + 明暗主题） -->
     <WbSettingsCenter
@@ -224,7 +257,7 @@
       :resolve-roles="resolveRoles"
       :account="settingsAccount"
       @logout="handleLogout"
-      @open-print-settings="printSettingsVisible = true"
+      @open-print-settings="openPrintSettingsFromCenter"
       @open-system-config="openSystemConfigPage"
     />
   </div>
@@ -332,8 +365,57 @@ const shellEnabled = isWorkbenchShellV2Enabled();
 
 /** 收银台路由强制人工模式，避免 AI 骨架覆盖收银作业面 */
 const isCashierRoute = computed(() => route.path.startsWith("/pos/"));
+
+/**
+ * ⚠️ WORKBENCH-13 修复（卡 §三.3「深链接隐藏」的根因）：
+ *
+ * 缺陷现象：直接打开/刷新 `/purchase-orders` 等受权业务路由时，**URL 已是业务页，但界面仍是 AI 面**。
+ * 根因（file:line 证据）：
+ *   ① `shell-mode.ts:59-61` `workbenchMode` 默认 `"ai"`，且只由用户主动操作时 `setWorkbenchMode` 改写；
+ *   ② `WorkbenchShell.vue:335-337` `effectiveMode` **只对 `/pos/*` 特判**（`isCashierRoute`），
+ *      其余业务路由完全跟随持久化的 `workbenchMode`；
+ *   ③ 全仓 `setWorkbenchMode` 调用点（`:585/:592/:597/:641/:654/:659/:680/:692/:707`）**全部是用户交互触发**，
+ *      没有任何「路由 → 模式」的同步；`router/index.ts` 的 `beforeEach` 也只处理鉴权，不碰模式。
+ *   ⇒ 冷启动深链接时 `effectiveMode==="ai" && face==="feed"` ⇒ AI 面 `shown`，人工层不 `shown` ⇒ 业务页被隐藏。
+ *
+ * 修法：把「是否人工业务路由」提升为**路由派生**的判定，并让 `effectiveMode` 一并纳入；
+ * 同时对路由做 watch：进入业务路由即切 human（回默认 AI 面时保持用户原选择，不强行改回）。
+ */
+const BUSINESS_ROUTE_PATHS: readonly string[] = [
+  // 注意：`/dashboard` 是**默认工作台（AI 信息流宿主）**，刻意不在清单内，
+  // 否则默认面会被强制切到人工模式（见 isManualBusinessRoute 的注释与 UI 测试 C3）。
+  "/orders", "/order-board", "/order-aftersale", "/order-exception", "/order-center", "/order-routing", "/order-sync", "/order-product-map",
+  "/sales/create", "/sale-bills", "/sale-returns", "/collection", "/sales/collection-links",
+  "/sales/customer-prices", "/sales/commission/rules", "/sales/commission/records", "/sales/reports",
+  "/products", "/products/categories", "/products/brands", "/prices", "/products/import", "/products/combo", "/products/reviews",
+  "/inventory", "/inventory-check", "/inventory-transfer", "/inventory-alerts", "/inventory-batch-price",
+  "/customers", "/member-system", "/store-value-cards", "/credit", "/points-rules", "/level-config",
+  "/finance/payments", "/finance/receivables", "/finance/statements", "/finance/reconciliation", "/finance/profit", "/finance/report",
+  "/purchase-orders", "/purchase-in-stocks", "/purchase-returns", "/purchase-contracts",
+  "/purchase/supplier-statements", "/purchase/plans", "/purchase-payments", "/suppliers",
+  "/instant-retail/dashboard", "/instant-retail/config", "/instant-retail/shelf", "/instant-retail/orders",
+  "/instant-retail/pickup", "/instant-retail/payment", "/instant-retail/delivery", "/instant-retail/report",
+  "/instant-retail/platform", "/instant-retail/order-board", "/instant-retail/announcements", "/instant-retail/sync",
+  "/marketing", "/marketing/coupon", "/marketing/full-reduction", "/marketing/flash-sale", "/marketing/limited-discount", "/marketing/aftersale",
+  "/reports", "/reports/products", "/reports/employees", "/sales-analysis",
+  "/system/organization", "/system/config", "/system/print", "/system/monitor", "/system/approval",
+  "/system/report-permissions", "/system/miniapp", "/todo-list", "/messages",
+];
+
+/**
+ * 当前路由是否人工业务页。
+ * - `/pos/*` 由 `isCashierRoute` 单独处理（收银台有独立骨架）；
+ * - `/dashboard` 是**默认工作台**，属 AI 面（信息流）宿主，不算人工业务页。
+ */
+const isManualBusinessRoute = computed(() => {
+  const p = route.path;
+  if (isCashierRoute.value) return false;
+  if (p === "/dashboard" || p === "/" || p.startsWith("/login")) return false;
+  return BUSINESS_ROUTE_PATHS.some((prefix) => p === prefix || p.startsWith(`${prefix}/`));
+});
+
 const effectiveMode = computed<WorkbenchMode>(() =>
-  isCashierRoute.value ? "human" : workbenchMode.value,
+  isCashierRoute.value || isManualBusinessRoute.value ? "human" : workbenchMode.value,
 );
 
 /** 主面：feed=信息流（原型默认面）/ chat=AI 会话；仅 AI 模式内有层切换 */
@@ -416,6 +498,31 @@ onMounted(() => {
     narrowQuery.addEventListener("change", onNarrowChange);
   }
 });
+
+/**
+ * WORKBENCH-13：路由 → 模式同步（修 §三.3 深链接隐藏）。
+ *
+ * `effectiveMode` 已按路由派生（见上），本 watch 进一步把「持久化的 workbenchMode」
+ * 对齐到当前路由，避免出现 rail 高亮仍是 AI 面、而业务层已 shown 的矛盾态：
+ *   - 进入人工业务路由 ⇒ 落 `human`（刷新后仍以路由为准，冷启动深链接也正确）；
+ *   - 回到 `/dashboard`(默认工作台) 或 `/` ⇒ **不强制改写**用户可能的 `chat` 选择，
+ *     仅在原本是 human 时恢复 `ai`（对应原型「回到默认工作台」语义）。
+ */
+watch(
+  () => route.path,
+  (path) => {
+    if (isCashierRoute.value) return; // 收银台由 isCashierRoute 主导，不改持久化模式
+    if (isManualBusinessRoute.value) {
+      if (workbenchMode.value !== "human") setWorkbenchMode("human");
+      return;
+    }
+    if ((path === "/dashboard" || path === "/") && workbenchMode.value === "human") {
+      setWorkbenchMode("ai");
+      face.value = "feed";
+    }
+  },
+  { immediate: true },
+);
 onBeforeUnmount(() => {
   if (confirmTimer !== undefined) window.clearInterval(confirmTimer);
   narrowQuery?.removeEventListener("change", onNarrowChange);
@@ -464,6 +571,28 @@ const visibleBusinessEntryCount = computed(() =>
   visibleGroups.value.reduce((total, group) => total + group.items.length, 0),
 );
 
+/**
+ * WORKBENCH-13（卡 §三.1）：空态是否显示 —— **页面级互斥**判据。
+ *
+ * 只要当前路由是**真实存在的人工业务页**（且有对应路由记录），就**绝不显示空态**：
+ * 页面本体已能渲染，空态再出现只会污染/挤压页面（这正是原缺陷）。
+ *
+ * 空态只在以下情形显示（与「页面」互斥，而非并列）：
+ *   · 菜单已就绪（ready）；
+ *   · 可见业务入口为 0；
+ *   · 当前不在收银台；
+ *   · **且当前没有可渲染的人工业务页**（即首页/工作台等由 AI 面承载的路由，
+ *     或该路由在 router 里根本没有匹配记录 ⇒ 无页面可显示）。
+ */
+const showMenuEmptyState = computed(() => {
+  if (menuState.value !== "ready") return false;
+  if (isCashierRoute.value) return false;
+  if (visibleBusinessEntryCount.value > 0) return false;
+  // 关键豁免：当前路由是一个真实人工业务页 ⇒ 页面优先，空态让位
+  if (isManualBusinessRoute.value) return false;
+  return true;
+});
+
 /** 信息流「快速入口」：当前角色可见的真实入口（manifest 派生，不造数据） */
 const visibleEntryItems = computed(() => visibleGroups.value.flatMap((group) => group.items));
 
@@ -488,6 +617,66 @@ watch(
 
 /** 一级 rail 渲染序列：原型顺序（decorateRailGroups）× 当前角色可见分组（不可见的模块整块不渲染） */
 const railModules = computed(() => decorateRailGroups(visibleGroups.value));
+
+/**
+ * WORKBENCH-13 修复（卡 §三.10「冷启动首击不稳定」）—— 证据与根因：
+ *
+ * 运行态实测（tools/browser-coldstart.mjs，真实 Chrome + 真实登录）：
+ *   `首击 采购管理 rail: visible=false clicked=false`
+ *   `二击 采购管理 rail: visible=true  clicked=true`
+ * 即**首击时 rail 里的业务模块还没渲染**，用户点空；第二次才点得到。
+ *
+ * 根因（file:line）：
+ *   ① `menuState` 初值 `"loading"`，冷启动时 `/menus/user` 尚未返回；
+ *   ② `visibleGroups` 用 `access.visibleRouteNames` 做交集，加载期为空 ⇒ 0 组；
+ *   ③ `railModules = decorateRailGroups(visibleGroups)` ⇒ rail 只剩 desk/set，
+ *      11 个模块位**不存在** ⇒ 首击落空（不是"点了没反应"，而是"根本没有可点节点"）。
+ *
+ * 修法（结构骨架 + 点击意图缓冲，不放宽任何权限判定）：
+ *   · 加载期渲染**占位骨架**（`data-rail-skeleton="true"`，`aria-disabled`，无跳转），
+ *     让 13 项 rail 结构从首帧就稳定，用户点得到、也看得到"正在加载权限菜单"；
+ *   · 占位被点击时把目标组码记入 `pendingRailGroup`，`menuState` 转 ready 后**自动选中**它
+ *     （= 首击意图不丢，等价"首击可进入"）；
+ *   · 若 ready 后该组仍不可见（真实无权限 / 菜单为空）⇒ 明确给出**可重试**错误提示，
+ *     而不是静默失败（对应"或给出可重试错误"）。
+ */
+const pendingRailGroup = ref<string | null>(null);
+
+/**
+ * 加载期骨架：仅用于结构占位；不参与任何可见性/权限判定，也不可跳转。
+ *
+ * ⚠️ 必须与真实模块**互斥**：若 `railModules` 已有内容（例如 UIUX 注入态在加载期
+ * 就能算出 11 组），再叠加 11 个骨架会出现 24 个 rail 项（实测 13+11），
+ * 既是重复渲染也会让结构核对失真。故仅在「真实模块一个都没渲染」时才出骨架。
+ */
+const railSkeletons = computed(() =>
+  menuState.value === "loading" && railModules.value.length === 0
+    ? decorateRailGroups(MANUAL_GROUPS)
+    : [],
+);
+
+/** 点击骨架位：记录意图 + 明确提示（不是死点击） */
+function clickRailSkeleton(groupCode: string): void {
+  pendingRailGroup.value = groupCode;
+  ElMessage.info("权限菜单加载中，已记录你的选择，加载完成后自动进入");
+}
+
+watch(menuState, (state) => {
+  if (state !== "ready") return;
+  const pending = pendingRailGroup.value;
+  if (!pending) return;
+  pendingRailGroup.value = null;
+  const hit = visibleGroups.value.some((group) => group.groupCode === pending);
+  if (hit) {
+    selectedGroupCode.value = pending;
+    setWorkbenchMode("ai");
+    face.value = "feed";
+    if (isNarrow.value) sideCollapsed.value = false;
+    return;
+  }
+  // 加载完成但该组不可见：明确告知并可重试（不静默、不伪造可见）
+  ElMessage.warning("该模块当前账号无可见权限，请重试或联系管理员开通");
+});
 
 const activeGroup = computed(
   () => visibleGroups.value.find((group) => group.groupCode === selectedGroupCode.value) ?? null,
@@ -701,6 +890,23 @@ const canOpenSystemSettings = computed(() => {
 function openSettings(): void {
   settingsCenterVisible.value = true;
 }
+/**
+ * WORKBENCH-13 修复（卡 §三.2「设置中心与打印设置只能存在一个可交互模态层」）：
+ *
+ * 原缺陷：`@open-print-settings="printSettingsVisible = true"`（原 L240）**只打开打印弹层**，
+ * 设置中心 `settingsCenterVisible` 仍为 `true` ⇒ 两个 el-overlay/el-dialog 同时可交互，
+ * 表现为「模态双开」：Esc 只关最上层、遮罩叠两层、焦点在两个 dialog 间漂移。
+ *
+ * 修法：打开打印设置前**先关闭设置中心**，保证同一时刻只有一个可交互模态层；
+ * 关闭打印弹层后焦点回到设置入口（由 el-dialog 的 focus-trap 归还给触发按钮）。
+ * 打印设置仍走本机弹窗（`web.pos.print-settings` 的本地动作语义不变，不新增路由）。
+ */
+function openPrintSettingsFromCenter(): void {
+  settingsCenterVisible.value = false;
+  nextTick(() => {
+    printSettingsVisible.value = true;
+  });
+}
 /** 设置中心「打开系统配置」：沿用原路由与人工态，权限与菜单语义不变 */
 function openSystemConfigPage(): void {
   settingsCenterVisible.value = false;
@@ -807,6 +1013,35 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   background: var(--wb-primary-soft, #eff4ff);
   color: var(--wb-primary, #2563eb);
   font-weight: 600;
+}
+/**
+ * WORKBENCH-13（卡 §三.10）：加载期 rail 占位骨架。
+ * 结构与真模块一致（保证 13 项 rail 首帧稳定），但视觉上明确「未就绪」：
+ * 半透明 + 呼吸 + 不显示 hover 高亮，避免被误认为已可用的生产入口。
+ */
+.wb-rail-item.is-rail-skeleton {
+  opacity: 0.45;
+  cursor: progress;
+  animation: wb-rail-skeleton-pulse 1.2s ease-in-out infinite;
+}
+.wb-rail-item.is-rail-skeleton:hover {
+  background: transparent;
+  color: var(--wb-ink2, #8a8f98);
+}
+.wb-rail-item.is-rail-skeleton.is-pending {
+  opacity: 0.8;
+  animation-duration: 0.6s;
+}
+@keyframes wb-rail-skeleton-pulse {
+  0%, 100% { opacity: 0.32; }
+  50% { opacity: 0.55; }
+}
+/* 无障碍/低动效偏好下不打呼吸，仅保留半透明 */
+@media (prefers-reduced-motion: reduce) {
+  .wb-rail-item.is-rail-skeleton {
+    animation: none;
+    opacity: 0.45;
+  }
 }
 /**
  * 有新动态时整块红闪（对齐原型 L187 `.rl-it.alert{background:#DC2626;animation:rlFlash 1.1s}`）。
@@ -1003,12 +1238,23 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   flex: 1;
 }
 
+/**
+ * WORKBENCH-13（卡 §三.1）：空态改为**绝对定位覆盖层**，不再占据文档流。
+ * 原样式 `margin: 24px` 会让空态作为兄弟节点把 `<router-view />` 挤下去；
+ * 现在它是浮在 manual 层顶部的提示卡，与页面**层级互斥**（页面仍在底层渲染）。
+ */
 .wb-menu-empty {
-  margin: 24px;
+  position: absolute;
+  top: 16px;
+  left: 24px;
+  right: 24px;
+  z-index: 5;
+  margin: 0;
   padding: 20px 24px;
   border: 1px dashed var(--wb-line, #e5e7eb);
   border-radius: 8px;
   background: var(--wb-panel, #fff);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 .wb-menu-empty-title {
   margin: 0 0 8px;
