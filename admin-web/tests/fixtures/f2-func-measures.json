@@ -1,0 +1,2349 @@
+{
+  "schema": "wb13-f2-func-measures/v1",
+  "generatedAt": "2026-11-01T21:30:38.568Z",
+  "task": "WORKBENCH-13-WORKBENCH-UIUX-COMPLETE-01-F2",
+  "app": {
+    "origin": "http://localhost:5299",
+    "apiBase": "/api",
+    "loginVia": "http://localhost:5299/api/admin/auth/demo-login",
+    "user": "admin",
+    "roles": [
+      "SUPER_ADMIN"
+    ]
+  },
+  "apiBase": "/api",
+  "browsers": {
+    "engine": "chrome",
+    "headless": true,
+    "reducedMotion": "reduce",
+    "executable": "C:/Program Files/Google/Chrome/Application/chrome.exe"
+  },
+  "servers": {
+    "backendPort": 8288,
+    "webPort": 5299,
+    "startedBy": "harness",
+    "portsAllDown": true
+  },
+  "viewports": [
+    "1440x1000",
+    "1024x768",
+    "390x844"
+  ],
+  "versionEndpoint": {
+    "path": "/api/app/version/admin_web",
+    "realBackendRead": {
+      "httpStatus": 200,
+      "dataNull": true,
+      "versionName": null
+    },
+    "disclosure": "mock 后端 t_app_version 无已发布行 ⇒ 真实返回 data:null，客户端检查永远不会出通知；通知/强制帧只在 HTTP 边界替换这一个端点的响应体，版本比较·节流·ElNotification·样式·点击刷新全部由 src/modules/update/checker.ts 原样执行（payloadSource=harness-version-stub，生产代码运行以节流键 zx_web_update_check_v1 机器自证）",
+    "stubFields": [
+      "versionCode",
+      "versionName",
+      "minVersionCode",
+      "isForce",
+      "updateUrl",
+      "packageUrl",
+      "updateNote",
+      "updatedAt"
+    ]
+  },
+  "updateCheckerMount": {
+    "file": "src/modules/update/checker.ts",
+    "calledBy": "src/layouts/MainLayout.vue (onMounted)",
+    "reachableWhen": "wb.shell.v2=0（旧壳回滚路径）；新壳默认开启时 MainLayout 不挂载 ⇒ 已登记为产品缺口",
+    "localVersion": "0.1.0"
+  },
+  "scenes": [
+    {
+      "viewport": "1440x1000",
+      "scene": "01-confirm-open",
+      "contract": "production",
+      "note": "真实 SUPER_ADMIN 登录 → /messages → 真实点击「全部标为已读」→ 读确认框几何与 computed style",
+      "shot": "shots/1440x1000-01-confirm-open.png",
+      "capturedAt": "post-run",
+      "legacyLayout": false,
+      "sha256": "1A37882CDF555DCAAC15CCE55B26404134713A07C49DDC313E8D670852EC1203",
+      "bytes": 88924,
+      "overflowX": 0,
+      "expectButtons": [
+        "取消",
+        "确定"
+      ],
+      "expectWrites": 0,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 411,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "message-box",
+          "exists": true,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 510,
+              "y": 436,
+              "w": 420,
+              "h": 128
+            },
+            "computed": {
+              "position": "relative",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "4px",
+              "boxShadow": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "420px",
+              "display": "inline-block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 1000
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "borderRadius": "0px",
+              "boxShadow": "none",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "1408px",
+              "display": "block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "buttons": [
+            {
+              "label": "取消",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 794,
+                "y": 520,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            },
+            {
+              "label": "确定",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 862,
+                "y": 520,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            }
+          ],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "确定",
+            "insideBox": true
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=1|rules=28|rect=510,436,420,128|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=取消:1+确定:1|focus=1|确定|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1440x1000",
+      "scene": "02-notify-update",
+      "contract": "production",
+      "note": "非强制更新通知：由 src/modules/update/checker.ts 的 ElNotification 真实产出（旧壳回滚路径：检查器的既有挂载点在 MainLayout）",
+      "shot": "shots/1440x1000-02-notify-update.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "sha256": "2C138BDB68E3B5E267B91C31E4CBA68F84ED30E8F1CB5A05A2C9D9EBD86A9073",
+      "bytes": 101603,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 0,
+        "bodyTextLen": 482,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "notification",
+          "exists": true,
+          "cssRules": 18,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 1094,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 1094,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+          },
+          "buttons": [
+            {
+              "label": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+              "tag": "DIV",
+              "enabled": true,
+              "rect": {
+                "x": 1094,
+                "y": 16,
+                "w": 330,
+                "h": 108
+              },
+              "hit": true,
+              "hitBy": "P"
+            }
+          ],
+          "focus": {
+            "activeTag": "BODY",
+            "activeClass": "",
+            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "notify": {
+          "required": true,
+          "throttleKeyWritten": true,
+          "payloadSource": "harness-version-stub",
+          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "checkerHitsElNotification": true,
+          "notificationGoneAfterReload": null,
+          "renotifiedAfterReload": null,
+          "documentReloads": 0,
+          "stubVersionName": "0.2.0",
+          "stubIsForce": false
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=1|rules=18|rect=1094,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）:1|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1440x1000",
+      "scene": "03-alert-forced",
+      "contract": "production",
+      "note": "强制更新：ElMessageBox.alert 在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
+      "shot": "shots/1440x1000-03-alert-forced.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "sha256": "590DBE2B82105B3DE1D98FC06D32DAC70C44650937D85682C6DD559D8BB70D0F",
+      "bytes": 107114,
+      "overflowX": 0,
+      "expectButtons": [
+        "立即刷新"
+      ],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 0,
+        "bodyTextLen": 511,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "message-box",
+          "exists": true,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 510,
+              "y": 424,
+              "w": 420,
+              "h": 152
+            },
+            "computed": {
+              "position": "relative",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "4px",
+              "boxShadow": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "420px",
+              "display": "inline-block"
+            },
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 1000
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "borderRadius": "0px",
+              "boxShadow": "none",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "1408px",
+              "display": "block"
+            },
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+          },
+          "buttons": [
+            {
+              "label": "立即刷新",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 836,
+                "y": 532,
+                "w": 82,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            }
+          ],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "立即刷新",
+            "insideBox": true
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=message-box|exists=1|rules=28|rect=510,424,420,152|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1440x1000",
+      "scene": "04-confirm-cancel",
+      "contract": "production",
+      "note": "取消 ⇒ 确认框关闭且**不产生任何写请求**（卡 §四.2）",
+      "shot": "shots/1440x1000-04-confirm-cancel.png",
+      "capturedAt": "post-run",
+      "legacyLayout": false,
+      "sha256": "25C14C015CC81F657B75FE8B3E45D2C361F9EE41415CD5753F14C5507D931532",
+      "bytes": 83900,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": 0,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 386,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": false,
+          "kind": "message-box",
+          "exists": false,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": null,
+          "wrapper": null,
+          "buttons": [],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary is-text",
+            "activeLabel": "全部标为已读",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|全部标为已读|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1440x1000",
+      "scene": "05-confirm-ok",
+      "contract": "production",
+      "note": "确定 ⇒ 真实发出 1 次 read-all 写请求 + 成功提示落在屏幕上（卡 §四.1/§四.2）",
+      "shot": "shots/1440x1000-05-confirm-ok.png",
+      "capturedAt": "post-run",
+      "legacyLayout": false,
+      "sha256": "A094404D2ED727313FE642348262759743D44CEB691F4CD79C6F51BAAD4D9B3C",
+      "bytes": 84761,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": 1,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 395,
+        "tableRendered": false,
+        "toast": "已全部标为已读",
+        "toastCount": 1,
+        "overlay": {
+          "required": false,
+          "kind": "message-box",
+          "exists": false,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": null,
+          "wrapper": null,
+          "buttons": [],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary is-text",
+            "activeLabel": "全部标为已读",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 1,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|全部标为已读|table=0|writes=1|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=已全部标为已读|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1440x1000",
+      "scene": "06-confirm-keyboard",
+      "contract": "production",
+      "note": "键盘：焦点进入确认框 → Tab 移到「确定」→ Enter 真正触发写（卡 §四.5）",
+      "shot": "shots/1440x1000-06-confirm-keyboard.png",
+      "capturedAt": "decisive-moment(self-shot)",
+      "legacyLayout": false,
+      "sha256": "72D9AFA73B33BECF365F5BA9364CA140CCDFADC8DDAC98B72DBBA180161C4677",
+      "bytes": 89124,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": 1,
+      "expectKeyboard": true,
+      "expectKeyboardEnter": true,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 395,
+        "tableRendered": false,
+        "toast": "已全部标为已读",
+        "toastCount": 1,
+        "overlay": {
+          "required": true,
+          "kind": "message-box",
+          "exists": true,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 510,
+              "y": 436,
+              "w": 420,
+              "h": 128
+            },
+            "computed": {
+              "position": "relative",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "4px",
+              "boxShadow": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "420px",
+              "display": "inline-block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 1440,
+              "h": 1000
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "borderRadius": "0px",
+              "boxShadow": "none",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "1408px",
+              "display": "block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "buttons": [
+            {
+              "label": "取消",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 794,
+                "y": 520,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            },
+            {
+              "label": "确定",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 862,
+                "y": 520,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            }
+          ],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "确定",
+            "insideBox": true
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "capturedAt": "decisive-moment(self-shot)",
+        "writes": {
+          "readAllRequests": 1,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "keyboardTrail": [
+          {
+            "step": "tab0",
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "确定",
+            "insideBox": true
+          },
+          {
+            "step": "tab1",
+            "activeTag": "BUTTON",
+            "activeClass": "el-message-box__headerbtn",
+            "activeLabel": "",
+            "insideBox": true
+          },
+          {
+            "step": "tab2",
+            "activeTag": "BUTTON",
+            "activeClass": "el-button",
+            "activeLabel": "取消",
+            "insideBox": true
+          },
+          {
+            "step": "to-confirm0",
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "确定",
+            "insideBox": true
+          }
+        ]
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=1|rules=28|rect=510,436,420,128|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=取消:1+确定:1|focus=1|确定|table=0|writes=1|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=已全部标为已读|blocked=|keyTrail=1:确定>1:>1:取消>1:确定"
+    },
+    {
+      "viewport": "1440x1000",
+      "scene": "07-notify-click-reload",
+      "contract": "production",
+      "note": "通知可点：真实点击通知 ⇒ 页面真的重新加载（document 请求 +1），末帧留重载后旧提示不残留的结果态（卡 §四.3）",
+      "shot": "shots/1440x1000-07-notify-click-reload.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "sha256": "196DC639D4A536F90C698FEC2AE1F1E469D24E33CBC1636DAF6B887A8323D6EB",
+      "bytes": 98860,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 0,
+        "bodyTextLen": 438,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": false,
+          "kind": "notification",
+          "exists": false,
+          "cssRules": 18,
+          "messageRules": 60,
+          "box": null,
+          "wrapper": null,
+          "buttons": [],
+          "focus": {
+            "activeTag": "BODY",
+            "activeClass": "",
+            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "notify": {
+          "required": true,
+          "throttleKeyWritten": true,
+          "payloadSource": "harness-version-stub",
+          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "checkerHitsElNotification": true,
+          "notificationGoneAfterReload": true,
+          "renotifiedAfterReload": true,
+          "documentReloads": 1,
+          "stubVersionName": "0.2.0",
+          "stubIsForce": false
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=0|rules=18|rect=|pos=|shadow=|btns=|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=1|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1024x768",
+      "scene": "01-confirm-open",
+      "contract": "production",
+      "note": "真实 SUPER_ADMIN 登录 → /messages → 真实点击「全部标为已读」→ 读确认框几何与 computed style",
+      "shot": "shots/1024x768-01-confirm-open.png",
+      "capturedAt": "post-run",
+      "legacyLayout": false,
+      "sha256": "89BA13272A82E1E065F242BEEA29D7A6EF74197903E73B85A71E6B8E0F0C1B18",
+      "bytes": 82362,
+      "overflowX": 0,
+      "expectButtons": [
+        "取消",
+        "确定"
+      ],
+      "expectWrites": 0,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 411,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "message-box",
+          "exists": true,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 302,
+              "y": 320,
+              "w": 420,
+              "h": 128
+            },
+            "computed": {
+              "position": "relative",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "4px",
+              "boxShadow": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "420px",
+              "display": "inline-block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 1024,
+              "h": 768
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "borderRadius": "0px",
+              "boxShadow": "none",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "992px",
+              "display": "block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "buttons": [
+            {
+              "label": "取消",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 586,
+                "y": 404,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            },
+            {
+              "label": "确定",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 654,
+                "y": 404,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            }
+          ],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "确定",
+            "insideBox": true
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=1|rules=28|rect=302,320,420,128|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=取消:1+确定:1|focus=1|确定|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1024x768",
+      "scene": "02-notify-update",
+      "contract": "production",
+      "note": "非强制更新通知：由 src/modules/update/checker.ts 的 ElNotification 真实产出（旧壳回滚路径：检查器的既有挂载点在 MainLayout）",
+      "shot": "shots/1024x768-02-notify-update.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "sha256": "198C48CCC60D479A05FB4CA302313B50A1E75005068ADAA31DA3B1143AB9DBBC",
+      "bytes": 89663,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 0,
+        "bodyTextLen": 482,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "notification",
+          "exists": true,
+          "cssRules": 18,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 678,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 678,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+          },
+          "buttons": [
+            {
+              "label": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+              "tag": "DIV",
+              "enabled": true,
+              "rect": {
+                "x": 678,
+                "y": 16,
+                "w": 330,
+                "h": 108
+              },
+              "hit": true,
+              "hitBy": "P"
+            }
+          ],
+          "focus": {
+            "activeTag": "BODY",
+            "activeClass": "",
+            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "notify": {
+          "required": true,
+          "throttleKeyWritten": true,
+          "payloadSource": "harness-version-stub",
+          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "checkerHitsElNotification": true,
+          "notificationGoneAfterReload": null,
+          "renotifiedAfterReload": null,
+          "documentReloads": 0,
+          "stubVersionName": "0.2.0",
+          "stubIsForce": false
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=1|rules=18|rect=678,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）:1|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1024x768",
+      "scene": "03-alert-forced",
+      "contract": "production",
+      "note": "强制更新：ElMessageBox.alert 在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
+      "shot": "shots/1024x768-03-alert-forced.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "sha256": "76B06C11B0DD46D0927518669EAE5A500BCB5F0CD0AD640B24B38DCD61D93B57",
+      "bytes": 95017,
+      "overflowX": 0,
+      "expectButtons": [
+        "立即刷新"
+      ],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 0,
+        "bodyTextLen": 511,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "message-box",
+          "exists": true,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 302,
+              "y": 308,
+              "w": 420,
+              "h": 152
+            },
+            "computed": {
+              "position": "relative",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "4px",
+              "boxShadow": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "420px",
+              "display": "inline-block"
+            },
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 1024,
+              "h": 768
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "borderRadius": "0px",
+              "boxShadow": "none",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "992px",
+              "display": "block"
+            },
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+          },
+          "buttons": [
+            {
+              "label": "立即刷新",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 628,
+                "y": 416,
+                "w": 82,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            }
+          ],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "立即刷新",
+            "insideBox": true
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=message-box|exists=1|rules=28|rect=302,308,420,152|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "390x844",
+      "scene": "01-confirm-open",
+      "contract": "production",
+      "note": "真实 SUPER_ADMIN 登录 → /messages → 真实点击「全部标为已读」→ 读确认框几何与 computed style",
+      "shot": "shots/390x844-01-confirm-open.png",
+      "capturedAt": "post-run",
+      "legacyLayout": false,
+      "sha256": "260D32149C5A16F71BF7BA7649487A466C74AB1F0C04EA8C4B3BC6E43CE9833B",
+      "bytes": 43944,
+      "overflowX": 0,
+      "expectButtons": [
+        "取消",
+        "确定"
+      ],
+      "expectWrites": 0,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 274,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "message-box",
+          "exists": true,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 16,
+              "y": 16,
+              "w": 359,
+              "h": 128
+            },
+            "computed": {
+              "position": "relative",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "4px",
+              "boxShadow": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "358.797px",
+              "display": "inline-block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 390,
+              "h": 844
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "borderRadius": "0px",
+              "boxShadow": "none",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "358px",
+              "display": "block"
+            },
+            "text": "提示确认将所有消息标记为已读？取消确定"
+          },
+          "buttons": [
+            {
+              "label": "取消",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 239,
+                "y": 100,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            },
+            {
+              "label": "确定",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 307,
+                "y": 100,
+                "w": 56,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            }
+          ],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "确定",
+            "insideBox": true
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=1|rules=28|rect=16,16,359,128|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=取消:1+确定:1|focus=1|确定|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "390x844",
+      "scene": "02-notify-update",
+      "contract": "production",
+      "note": "非强制更新通知：由 src/modules/update/checker.ts 的 ElNotification 真实产出（旧壳回滚路径：检查器的既有挂载点在 MainLayout）",
+      "shot": "shots/390x844-02-notify-update.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "sha256": "23643ACE2BC7FAF879C3322E125DF36CD9937E7D799AB68CC1FBC1A6E8100074",
+      "bytes": 38662,
+      "overflowX": 289,
+      "expectButtons": [],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 289,
+        "bodyTextLen": 482,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "notification",
+          "exists": true,
+          "cssRules": 18,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 44,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 44,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+          },
+          "buttons": [
+            {
+              "label": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+              "tag": "DIV",
+              "enabled": true,
+              "rect": {
+                "x": 44,
+                "y": 16,
+                "w": 330,
+                "h": 108
+              },
+              "hit": true,
+              "hitBy": "P"
+            }
+          ],
+          "focus": {
+            "activeTag": "BODY",
+            "activeClass": "",
+            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "notify": {
+          "required": true,
+          "throttleKeyWritten": true,
+          "payloadSource": "harness-version-stub",
+          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "checkerHitsElNotification": true,
+          "notificationGoneAfterReload": null,
+          "renotifiedAfterReload": null,
+          "documentReloads": 0,
+          "stubVersionName": "0.2.0",
+          "stubIsForce": false
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=1|rules=18|rect=44,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）:1|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "390x844",
+      "scene": "03-alert-forced",
+      "contract": "production",
+      "note": "强制更新：ElMessageBox.alert 在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
+      "shot": "shots/390x844-03-alert-forced.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "sha256": "40A8407F917553E461C0107A0A8625D13697C3B402443E4FB6E8237E973B45CB",
+      "bytes": 38440,
+      "overflowX": 289,
+      "expectButtons": [
+        "立即刷新"
+      ],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 289,
+        "bodyTextLen": 511,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "message-box",
+          "exists": true,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 16,
+              "y": 16,
+              "w": 359,
+              "h": 176
+            },
+            "computed": {
+              "position": "relative",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "4px",
+              "boxShadow": "rgba(16, 24, 40, 0.08) 0px 4px 8px -2px, rgba(16, 24, 40, 0.1) 0px 8px 16px -4px",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "358.797px",
+              "display": "inline-block"
+            },
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 390,
+              "h": 844
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "borderRadius": "0px",
+              "boxShadow": "none",
+              "borderWidth": "0px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "auto",
+              "width": "358px",
+              "display": "block"
+            },
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+          },
+          "buttons": [
+            {
+              "label": "立即刷新",
+              "tag": "BUTTON",
+              "enabled": true,
+              "rect": {
+                "x": 281,
+                "y": 148,
+                "w": 82,
+                "h": 32
+              },
+              "hit": true,
+              "hitBy": "SPAN"
+            }
+          ],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary",
+            "activeLabel": "立即刷新",
+            "insideBox": true
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=message-box|exists=1|rules=28|rect=16,16,359,176|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "390x844",
+      "scene": "08-drawer-mouse",
+      "contract": "production",
+      "note": "390×844 抽屉回归（新壳）：真实鼠标点遮罩露出点 ⇒ 抽屉关闭（卡 §四.4）",
+      "shot": "shots/390x844-08-drawer-mouse.png",
+      "capturedAt": "post-run",
+      "legacyLayout": false,
+      "sha256": "D0ABBE40B8FA7310219EA660DF572CC7CB5627AB75C5D4892884B266B3B28BD7",
+      "bytes": 45860,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 249,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": false,
+          "kind": "message-box",
+          "exists": false,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": null,
+          "wrapper": null,
+          "buttons": [],
+          "focus": {
+            "activeTag": "BODY",
+            "activeClass": "",
+            "activeLabel": "智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "drawer": {
+          "required": true,
+          "openBefore": true,
+          "closedAfter": true,
+          "method": "mouse",
+          "exposedPoint": {
+            "x": 328,
+            "y": 18
+          },
+          "forceUsed": false
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=1>1:mouse|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "390x844",
+      "scene": "09-drawer-touch",
+      "contract": "production",
+      "note": "390×844 抽屉回归：真实触摸 tap（hasTouch 上下文）同一露出点 ⇒ 抽屉关闭（卡 §四.4）",
+      "shot": "shots/390x844-09-drawer-touch.png",
+      "capturedAt": "decisive-moment(self-shot)",
+      "legacyLayout": false,
+      "sha256": "D0D96883B269F42C75641CAF153E4606FBFC5ABDB12C4947F3EF497AA5479712",
+      "bytes": 42240,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 249,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": false,
+          "kind": "message-box",
+          "exists": false,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": null,
+          "wrapper": null,
+          "buttons": [],
+          "focus": {
+            "activeTag": "BODY",
+            "activeClass": "",
+            "activeLabel": "智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "capturedAt": "decisive-moment(self-shot)",
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "drawer": {
+          "required": true,
+          "openBefore": true,
+          "closedAfter": true,
+          "method": "touch",
+          "exposedPoint": {
+            "x": 328,
+            "y": 18
+          },
+          "forceUsed": false
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=1>1:touch|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "390x844",
+      "scene": "10-toast-not-blocking",
+      "contract": "production",
+      "note": "窄屏 + 屏幕上同时有提示时，主操作「刷新」中心点仍命中自己（卡 §四.6：提示不盖主操作）",
+      "shot": "shots/390x844-10-toast-not-blocking.png",
+      "capturedAt": "post-run",
+      "legacyLayout": false,
+      "sha256": "8D9D49DC0DA96193290DC06E268AE3A607C5F71CAE7F4089003D4AAC4DCA744F",
+      "bytes": 47233,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": 1,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 258,
+        "tableRendered": false,
+        "toast": "已全部标为已读",
+        "toastCount": 1,
+        "overlay": {
+          "required": false,
+          "kind": "message-box",
+          "exists": false,
+          "cssRules": 28,
+          "messageRules": 60,
+          "box": null,
+          "wrapper": null,
+          "buttons": [],
+          "focus": {
+            "activeTag": "BUTTON",
+            "activeClass": "el-button el-button--primary is-text",
+            "activeLabel": "全部标为已读",
+            "insideBox": false
+          }
+        },
+        "primaryAction": {
+          "required": true,
+          "label": "刷新",
+          "toastExpected": true,
+          "hit": true,
+          "hitBy": "SPAN"
+        },
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 1,
+          "endpoint": "/admin/wb-notifications/read-all"
+        }
+      },
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|全部标为已读|table=0|writes=1|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=已全部标为已读|blocked=刷新:1|keyTrail="
+    }
+  ],
+  "findings": {
+    "legacyOverflow": [
+      {
+        "viewport": "390x844",
+        "scene": "02-notify-update",
+        "overflowX": 289
+      },
+      {
+        "viewport": "390x844",
+        "scene": "03-alert-forced",
+        "overflowX": 289
+      }
+    ],
+    "legacyOverflowNote": "更新通知/强制帧只能挂在 checkWebUpdate() 的既有挂载点（旧壳 MainLayout）上；旧壳本身不做窄屏适配 ⇒ 390 上的横向溢出登记为产品缺口（放开 MainLayout 写入权限后另单修），不静默放行、也不用 hack 推到首屏",
+    "updateCheckerNotMountedOnNewShell": "新壳（wb.shell.v2 默认开）不渲染 MainLayout ⇒ checkWebUpdate() 不执行 ⇒ 生产默认态下用户收不到更新提示；本卡不改业务页面，登记为产品缺口"
+  },
+  "network": {
+    "failures": [
+      {
+        "viewport": "1440x1000",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "04-confirm-cancel",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "04-confirm-cancel",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "04-confirm-cancel",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "04-confirm-cancel",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "04-confirm-cancel",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "04-confirm-cancel",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "05-confirm-ok",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "05-confirm-ok",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "05-confirm-ok",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "05-confirm-ok",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "05-confirm-ok",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "05-confirm-ok",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "06-confirm-keyboard",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "06-confirm-keyboard",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "06-confirm-keyboard",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "06-confirm-keyboard",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "06-confirm-keyboard",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "06-confirm-keyboard",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "01-confirm-open",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "08-drawer-mouse",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "08-drawer-mouse",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "08-drawer-mouse",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "08-drawer-mouse",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "08-drawer-mouse",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "08-drawer-mouse",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "09-drawer-touch",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "09-drawer-touch",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "09-drawer-touch",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "09-drawer-touch",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "09-drawer-touch",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "09-drawer-touch",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "10-toast-not-blocking",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "10-toast-not-blocking",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "10-toast-not-blocking",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "10-toast-not-blocking",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "10-toast-not-blocking",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "10-toast-not-blocking",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      }
+    ],
+    "recovered": [],
+    "expectedOffline": [
+      {
+        "port": 3016,
+        "reason": "AI 编排服务（本地未启动，单列不并入 CORS）"
+      }
+    ]
+  },
+  "sceneErrors": [],
+  "harness": {
+    "keepServers": false,
+    "only": null
+  },
+  "violations": []
+}
