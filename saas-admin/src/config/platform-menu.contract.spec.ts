@@ -149,3 +149,43 @@ describe('F5 · 声明完整性（守卫与菜单共用真源的结构防线）'
     for (const m of PLATFORM_SUPPORT_MODULES) expect(legal).toContain(m)
   })
 })
+
+describe('F6 · MFA 同口径与菜单-守卫一致性（MENU-ROLE-FILTER-01-F1）', () => {
+  it('F6-1 role 是唯一输入：同一 role 字符串（无论来自 MFA verify 还是普通登录）过滤结果恒等', () => {
+    // 超管分支返回**真源原样**（引用相等锁死）
+    for (const role of PLATFORM_SUPER_ROLES) {
+      expect(filterPlatformMenusForRole(role)).toBe(platformMenus)
+    }
+    // SUPPORT 分支同参同构（每次新数组但结构内容恒等 —— MFA verify 与普通登录同口径）
+    expect(filterPlatformMenusForRole('SUPPORT')).toStrictEqual(filterPlatformMenusForRole('SUPPORT'))
+    // role 缺失（MFA 偏差残留/旧行）与显式 null 同口径
+    expect(filterPlatformMenusForRole(null)).toEqual(filterPlatformMenusForRole(undefined))
+  })
+
+  it('F6-2 菜单与守卫判定一致：SUPPORT 可见项的 module 全在白名单内，不可见项全不在', () => {
+    const visible = filterPlatformMenusForRole('SUPPORT').flatMap((g) => g.items)
+    for (const item of visible) {
+      expect(PLATFORM_SUPPORT_MODULES).toContain(item.module)
+      expect(platformRoleAllows('SUPPORT', item.module)).toBe(true)
+    }
+    for (const item of allItems) {
+      if (!PLATFORM_SUPPORT_MODULES.includes(item.module)) {
+        expect(platformRoleAllows('SUPPORT', item.module)).toBe(false)
+      }
+    }
+  })
+
+  it('F6-3 /forbidden 与 /login 不在路由域映射表（守卫依赖 requiresAuth:false 放行，不得误拦成死循环）', () => {
+    expect(resolvePlatformModule('/forbidden')).toBeNull()
+    expect(resolvePlatformModule('/login')).toBeNull()
+  })
+
+  it('F6-4 未知角色码批量 fail-closed（含大小写变形与空白，防大小写绕过；白名单外的超管变体同样不放行）', () => {
+    // 注：'SUPER_ADMIN' 是合法超管角色（与后端 PLATFORM_SUPER_ROLES 逐字一致），不在未知列表
+    for (const bad of ['', ' ', 'support', 'Support', 'PLATFORM_SUPER', 'SUPER_ADMIN ', 'ROLE_UNKNOWN_X', 'PLATFORM_SUPPORT_ADMIN']) {
+      expect(filterPlatformMenusForRole(bad).map((g) => g.group)).toEqual(['概览'])
+      expect(platformRoleAllows(bad, 'dashboard')).toBe(false)
+      expect(platformRoleAllows(bad, 'tenant')).toBe(false)
+    }
+  })
+})

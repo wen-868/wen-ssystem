@@ -20,6 +20,8 @@ interface PlatformMfaRow {
   id: number;
   username: string;
   real_name: string;
+  /** 真实粗粒度角色（MENU-ROLE-FILTER-01-F1）：MFA verify 成功后必须与非 MFA 登录、/me 同口径透出 */
+  role: string | null;
   mfa_secret: string | null;
   mfa_enabled: number;
 }
@@ -38,7 +40,9 @@ async function getPlatformMfaAdmin(adminId: number): Promise<PlatformMfaRow> {
   let row: PlatformMfaRow | null;
   try {
     row = await queryOne<PlatformMfaRow>(
-      "SELECT id, username, real_name, mfa_secret, mfa_enabled FROM t_platform_admin WHERE id = ?",
+      // role（MENU-ROLE-FILTER-01-F1）：登录二次验证成功签发的登录结果必须带真实角色，
+      // 否则 MFA 用户在前端被 fail-closed 成「仅概览」（父卡遗留偏差，本卡补齐）
+      "SELECT id, username, real_name, role, mfa_secret, mfa_enabled FROM t_platform_admin WHERE id = ?",
       [adminId]
     );
   } catch (error) {
@@ -121,5 +125,7 @@ export async function verifyMfaChallenge(mfaToken: string, code: string) {
     id: row.id,
     username: row.username,
     real_name: row.real_name,
+    // MENU-ROLE-FILTER-01-F1：与非 MFA 登录、/me 完全同口径（旧行缺失时 ?? null 兜底，不伪造）
+    role: row.role ?? undefined,
   });
 }
