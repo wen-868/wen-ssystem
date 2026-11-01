@@ -45,8 +45,9 @@
         :class="{ 'is-pending': pendingRailGroup === group.groupCode }"
         :data-rail-key="group.groupCode"
         data-rail-skeleton="true"
-        aria-disabled="true"
         :aria-busy="pendingRailGroup === group.groupCode ? 'true' : 'false'"
+        :aria-pressed="pendingRailGroup === group.groupCode ? 'true' : 'false'"
+        :aria-label="`${group.protoTitle}（权限菜单加载中：点击或按回车/空格记录进入意图，非真实入口）`"
         :title="`${group.protoTitle}（权限菜单加载中）`"
         @click="clickRailSkeleton(group.groupCode)"
       >
@@ -633,7 +634,7 @@ const railModules = computed(() => decorateRailGroups(visibleGroups.value));
  *      11 个模块位**不存在** ⇒ 首击落空（不是"点了没反应"，而是"根本没有可点节点"）。
  *
  * 修法（结构骨架 + 点击意图缓冲，不放宽任何权限判定）：
- *   · 加载期渲染**占位骨架**（`data-rail-skeleton="true"`，`aria-disabled`，无跳转），
+ *   · 加载期渲染**占位骨架**（`data-rail-skeleton="true"`，真实 `<button>`：可聚焦、Enter/空格/鼠标首击都能记录意图，但不跳转），
  *     让 13 项 rail 结构从首帧就稳定，用户点得到、也看得到"正在加载权限菜单"；
  *   · 占位被点击时把目标组码记入 `pendingRailGroup`，`menuState` 转 ready 后**自动选中**它
  *     （= 首击意图不丢，等价"首击可进入"）；
