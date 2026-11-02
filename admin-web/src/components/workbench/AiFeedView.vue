@@ -22,7 +22,7 @@
 
     <!-- ① KPI 区（原型 .wb-kpis > .wb-kpi{.l/.v/.d} L1763；真实源 /admin/dashboard/overview） -->
     <section class="wfb" data-testid="wb-feed-kpi" :data-state="kpiBlock.state" :data-retry-available="canRetry(kpiBlock.state)" aria-label="今日经营指标">
-      <div class="fdv-block-title">
+      <div class="fdv-block-title wb-sec">
         今日经营指标<span>销售额 / 单据 / 库存预警 / 应收余额 · 与管理端概览同源折算</span>
       </div>
       <p v-if="kpiBlock.state === 'loading'" class="fdv-empty" data-testid="wb-kpi-loading">{{ kpiBlock.message }}</p>
@@ -44,7 +44,7 @@
 
     <!-- ② 待办审批（原型 .wb-sec「待办审批」+ #wbApps .wb-ap 卡 L1764-1768；真实源 /api/chat/confirmations） -->
     <section class="wfb" data-testid="wb-feed-approvals" :data-state="approvalsBlock.state" :data-retry-available="canRetry(approvalsBlock.state)" aria-label="待办审批">
-      <div class="fdv-block-title">
+      <div class="fdv-block-title wb-sec">
         待办审批<span>AI 已预审 · 确认后执行 · 全程留痕</span>
       </div>
       <p v-if="approvalsBlock.state === 'loading'" class="fdv-empty" data-testid="wb-ap-loading">{{ approvalsBlock.message }}</p>
@@ -101,11 +101,39 @@
         <p v-if="approvalActionError" class="fdv-empty is-error" data-testid="wb-ap-action-error">{{ approvalActionError }}</p>
         <p v-else-if="approvalNotice" class="fdv-empty" data-testid="wb-ap-action-note">{{ approvalNotice }}</p>
       </div>
+      <!-- AI 入口条（原型 al-v9-entry #al9Entry L6476＋CSS L6250、al-v10-entry #al10BCBar L7173＋CSS L6992：
+           高 54 · 1px 虚线（审批中心蓝 / 播报紫 #A78BFA）· 圆角 10 · 内边距 9px 12px · 两条间隔 10px，
+           与原型一致地紧贴在 #wbApps 之后）。读数只用本区真实计数：审批项数来自 /api/chat/confirmations，
+           播报端点缺失 ⇒ broadcastLabel 如实显示「待接入」，不在此伪造未读数或异动。 -->
+      <div class="wfb-entry al-v9-entry" data-testid="wb-ap-entry">
+        <b>AI 审批中心 · 集中待审阅</b>
+        <em>{{ approvalsEntryLabel }} · AI 结论 / 依据 / 影响分析在会话内并排核对</em>
+        <button
+          type="button"
+          class="wfb-btn"
+          data-testid="wb-ap-entry-go"
+          @click="$emit('open-chat')"
+        >
+          进入会话核对
+        </button>
+      </div>
+      <div class="wfb-entry al-v10-entry is-broadcast" data-testid="wb-bc-entry">
+        <b>AI 主动播报 · 播报中心</b>
+        <em>{{ broadcastLabel }} · 无真实播报读数时不本地伪造异动</em>
+        <button
+          type="button"
+          class="wfb-btn is-ghost"
+          data-testid="wb-bc-entry-go"
+          @click="$emit('open-chat')"
+        >
+          进入会话询问
+        </button>
+      </div>
     </section>
 
     <!-- ③ 经营异动播报（原型 L5620/L5709；底座无播报端点 ⇒ 常态「待接入」，不本地伪造） -->
     <section class="wfb" data-testid="wb-feed-broadcast" :data-state="broadcastBlock.state" :data-retry-available="canRetry(broadcastBlock.state)" aria-label="经营异动播报">
-      <div class="fdv-block-title">
+      <div class="fdv-block-title wb-sec">
         经营异动播报<span>GMV 环比 / 退款率 / 毛利异动 · AI 建议 · 人工核实后处置</span>
       </div>
       <p v-if="broadcastBlock.state === 'loading'" class="fdv-empty" data-testid="wb-bc-loading">{{ broadcastBlock.message }}</p>
@@ -130,7 +158,7 @@
 
     <!-- ④ 主管动作队列（原型任务看板/主管视图 L6834/L6894；真实源 /api/ai/agent/plans + 确认链并入待审阅） -->
     <section class="wfb" data-testid="wb-feed-taskboard" :data-state="boardBlock.state" :data-retry-available="canRetry(boardBlock.state)" aria-label="主管动作队列">
-      <div class="fdv-block-title">
+      <div class="fdv-block-title wb-sec">
         主管动作队列<span>任务看板 + 助理绩效 + 审批中心 + 播报 · 按状态分组（进行中 / 待审阅 / 已完成）</span>
       </div>
       <p v-if="boardBlock.state === 'loading'" class="fdv-empty" data-testid="wb-tb-loading">{{ boardBlock.message }}</p>
@@ -176,7 +204,7 @@
     <!-- ⑤ 任务步进（原型 V24 TASKFLOW L11711 · 步进链 L1810-1817 语义：done √ / wait ● / lock 🔒；
          真实源 /api/ai/agent/plans 的 steps 六态按门控折算三态） -->
     <section class="wfb" data-testid="wb-feed-taskflow" :data-state="flowBlock.state" :data-retry-available="canRetry(flowBlock.state)" aria-label="任务步进">
-      <div class="fdv-block-title">
+      <div class="fdv-block-title wb-sec">
         任务步进<span>环节门控 · √ 已完成 / ● 进行中 / 🔒 未解锁 · 完成上一步后解锁下一环节</span>
       </div>
       <p v-if="flowBlock.state === 'loading'" class="fdv-empty" data-testid="wb-tf-loading">{{ flowBlock.message }}</p>
@@ -462,6 +490,24 @@ const broadcastLabel = computed(() => {
   }
 });
 
+/**
+ * 审批中心入口条（#al9Entry）的读数文案：只有 ready/empty 才报真实项数，
+ * loading/unavailable/error 如实标态 —— 不写「0 项待审阅」冒充读到了空列表。
+ */
+const approvalsEntryLabel = computed(() => {
+  switch (approvalsBlock.value.state) {
+    case "ready":
+    case "empty":
+      return `${pendingApprovals.value.length} 项待审阅`;
+    case "unavailable":
+      return "待接入 · 无审批读数";
+    case "error":
+      return "读取失败 · 无审批读数";
+    default:
+      return "读数读取中";
+  }
+});
+
 async function approveCard(card: WbApprovalCard): Promise<void> {
   if (approvalBusy.value !== null) return;
   approvalBusy.value = card.id;
@@ -527,11 +573,25 @@ function openMessages(): void {
 </script>
 
 <style scoped>
+/* 内容列 = 原型 `.wb-wrap{max-width:1080px;margin:0 auto;padding:32px 44px 60px}`（L195）。
+   `.fdv` 本身既是滚动容器又是这一列：壳层 `.wb-view.shown` 是 column flex，
+   这里给 max-width + 左右 auto 边距即在该列内水平居中（不依赖 WorkbenchShell 的样式，
+   也不需要额外包一层 div）。box-sizing:border-box ⇒ 1080 含左右 44 内边距，内柱实测 992。
+   ⚠️ `width: 100%` 不是冗余：flex 项在交叉轴上带 auto 外边距时**不再 stretch**（CSS Flexbox
+   「auto 外边距吸收剩余空间」），只写 max-width 会收缩成 fit-content。
+   1440×1000 运行态实测：缺 width 时本列 741.84（内柱 653.84）vs 原型 992
+   ⇒ §三.A.8 KPI/播报的 gridColumns 全红；显式 100% 后被 max-width 截到 1080，
+   内柱 1080−44×2=992 与原型逐像素一致。 */
 .fdv {
   flex: 1;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
+  box-sizing: border-box;
+  max-width: 1080px;
+  margin: 0 auto;
   overflow-y: auto;
-  padding: 18px 24px 24px;
+  padding: 32px 44px 60px;
 }
 .fdv-head {
   display: flex;
@@ -765,16 +825,35 @@ function openMessages(): void {
 .wfb {
   margin-bottom: 18px;
 }
+/* 区块标题 = 原型 `.wb-sec{display:flex;align-items:baseline;gap:10px;margin:28px 0 12px;font-size:13.5px;font-weight:800}`
+   ＋ `.wb-sec span{font-size:11px;color:var(--sub);font-weight:400}`（L223-224）；
+   line-height:18px 使标题行实测高度落在 18。 */
+.fdv-block-title.wb-sec {
+  gap: 10px;
+  min-height: 18px;
+  margin: 28px 0 12px;
+  font-size: 13.5px;
+  line-height: 18px;
+  font-weight: 800;
+}
+.fdv-block-title.wb-sec span {
+  font-size: 11px;
+  line-height: 18px;
+}
 .wb-kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 13px;
 }
+/* 原型 `.wb-kpi{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--side)}`（L217）；
+   .l/.v/.d 给死行高（16 / 25 / 15）＋ 间距（0 + 6 + 5）⇒ 内容 67 ＋ 内边距 28 ＋ 边框 2 = 实测高 97。 */
 .wb-kpi {
-  padding: 12px 14px;
+  box-sizing: border-box;
+  min-height: 97px;
+  padding: 14px 16px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 12px;
-  background: var(--wb-panel, #fff);
+  border-radius: 14px;
+  background: var(--wb-side, #f9fafb);
   transition: border-color 150ms ease;
 }
 .wb-kpi:hover {
@@ -782,17 +861,20 @@ function openMessages(): void {
 }
 .wb-kpi .l {
   font-size: 11.5px;
+  line-height: 16px;
   color: var(--wb-ink2, #8a8f98);
 }
 .wb-kpi .v {
   margin-top: 6px;
   font-size: 20px;
+  line-height: 25px;
   font-weight: 800;
   color: var(--wb-ink, #16181d);
 }
 .wb-kpi .d {
   margin-top: 5px;
   font-size: 11px;
+  line-height: 15px;
   color: var(--wb-ink2, #8a8f98);
 }
 .wb-kpi .d.up {
@@ -803,15 +885,21 @@ function openMessages(): void {
   color: #ad6800;
   font-weight: 600;
 }
+/* 审批列表容器按原型 `#wbApps`（无自身样式，纯块级流），
+   卡与卡的 9px 间距由 `.wb-ap{margin-bottom:9px}` 提供（L225），不再叠加 flex gap。 */
 .wb-apps {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
+  display: block;
 }
+/* 原型 `.wb-ap{border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:9px}`
+   （圆角实测 14）；.hd 行高 35 ⇒ 35 ＋ 上下内边距 26 ＋ 边框 2 = 实测高 63、宽 992（满内柱）。
+   带 AI 预审意见的待确认卡因正文展开必然高于 63，这是「不折叠真实预审意见」的取舍。 */
 .wb-ap {
+  box-sizing: border-box;
+  min-height: 63px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 13px;
+  border-radius: 14px;
   padding: 13px 15px;
+  margin-bottom: 9px;
   background: var(--wb-panel, #fff);
   transition: border-color 150ms ease;
 }
@@ -822,6 +910,7 @@ function openMessages(): void {
   display: flex;
   align-items: center;
   gap: 11px;
+  min-height: 35px;
 }
 .wb-ap .wb-ap-ic {
   color: var(--wb-ink2, #8a8f98);
@@ -832,14 +921,17 @@ function openMessages(): void {
   flex: 1;
   min-width: 0;
   font-size: 13px;
+  line-height: 1.4;
   font-weight: 600;
   color: var(--wb-ink, #16181d);
+  overflow-wrap: anywhere;
 }
 .wb-ap .tt small {
   display: block;
   font-weight: 400;
   color: var(--wb-ink2, #8a8f98);
   font-size: 11px;
+  line-height: 1.2;
   margin-top: 2px;
 }
 .wb-ap .amt {
@@ -919,15 +1011,51 @@ function openMessages(): void {
 .wfb-retry:hover {
   background: var(--wb-primary-soft, #eff4ff);
 }
+/* AI 入口条 = 原型 `.al-v9-entry`（#al9Entry，CSS L6250）与 `.al-v10-entry`（#al10BCBar，CSS L6992）：
+   `display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px dashed …;border-radius:10px;
+    padding:9px 12px;margin:10px 0;background:var(--panel2)}` ⇒ 实测高 54、两条之间 10px（相邻 margin 折叠）。
+   审批中心虚线用主蓝，播报虚线用 #A78BFA。 */
+.wfb-entry {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 54px;
+  margin: 10px 0;
+  padding: 9px 12px;
+  border: 1px dashed var(--wb-primary, #2563eb);
+  border-radius: 10px;
+  background: var(--wb-panel2, #f4f6f8);
+}
+.wfb-entry.is-broadcast {
+  border-color: var(--wb-violet, #a78bfa);
+}
+.wfb-entry b {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--wb-ink, #16181d);
+  white-space: nowrap;
+}
+.wfb-entry em {
+  flex: 1;
+  min-width: 0;
+  font-style: normal;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--wb-ink2, #8a8f98);
+}
 .wfb-bcs {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .wfb-bc {
-  padding: 11px 14px;
+  box-sizing: border-box;
+  padding: 13px 15px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--wb-panel, #fff);
 }
 .wfb-bc-metric {
@@ -951,41 +1079,49 @@ function openMessages(): void {
   font-style: normal;
   color: #ad6800;
 }
+/* 主管动作队列（原型 #actHome 头部 + `.al-v10-nav4` 四合一聚合条，CSS L7039-7043）：
+   四合一 chips = 圆角 10 · 内边距 10px 12px · 底色 #F4F6F8 · 栅格 4 列，块内间隔统一 ~10。 */
 .wfb-nav4 {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0;
 }
 .wfb-nav-item {
-  padding: 6px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 8px;
-  background: var(--wb-panel, #fff);
+  border-radius: 10px;
+  background: var(--wb-panel2, #f4f6f8);
   font-size: 12px;
   color: var(--wb-ink, #16181d);
 }
 .wfb-nav-item em {
   font-style: normal;
-  margin-left: 6px;
-  font-size: 11px;
+  font-size: 10.5px;
+  line-height: 1.5;
   color: var(--wb-ink2, #8a8f98);
 }
 .wfb-group-title {
-  margin: 10px 2px 6px;
+  margin: 12px 2px 8px;
   font-size: 12px;
   font-weight: 700;
   color: var(--wb-ink2, #8a8f98);
 }
+/* 队列行与审批卡同一套卡片语言：圆角 14 · 内边距 13px 15px · 行间隔 10 */
 .wfb-task {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 13px 15px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 9px;
+  border-radius: 14px;
   background: var(--wb-panel, #fff);
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   font-size: 12.5px;
 }
 .wfb-task b {
@@ -1022,12 +1158,15 @@ function openMessages(): void {
   border-color: #bbf7d0;
   color: #166534;
 }
+/* 任务步进（原型 .act24-card L12010 系 + V24 TASKFLOW 面板）：外层卡圆角 14 · 内边距 13px 15px · 间隔 10；
+   步进胶囊 .act24-st / 标签 .act24-tag 保持原型 999px 药丸（L12013/L12018），不改成方角。 */
 .act24-card {
-  padding: 12px 14px;
+  box-sizing: border-box;
+  padding: 13px 15px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--wb-panel, #fff);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .act24-hd {
   display: flex;
@@ -1093,5 +1232,54 @@ function openMessages(): void {
 }
 .act24-st.lock {
   opacity: 0.55;
+}
+
+/* ── 响应式回退（1440×1000 / 1024×768 / 390×844 三档都要零横向溢出）──
+   列宽真相源仍是 `.fdv` 的 max-width:1080；窄口只降栅格列数与内柱内边距，
+   并把「不换行」的文本放开，避免 nowrap 子项把 min-content 顶出视口。 */
+@media (max-width: 1024px) {
+  .fdv {
+    padding: 28px 24px 48px;
+  }
+  .wb-kpis,
+  .wfb-nav4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 390px) {
+  .fdv {
+    padding: 20px 12px 40px;
+  }
+  .fdv-head {
+    flex-wrap: wrap;
+  }
+  .fdv-name {
+    overflow-wrap: anywhere;
+  }
+  .wb-kpis,
+  .wfb-nav4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wb-ap .hd,
+  .wfb-task,
+  .wfb-entry {
+    flex-wrap: wrap;
+  }
+  .wb-ap .amt,
+  .wb-ap.done .done-tag,
+  .wfb-entry b,
+  .wfb-task em {
+    white-space: normal;
+  }
+  .wb-ap.done .done-tag {
+    margin-left: 0;
+  }
+  /* 长单号 / 长计划 ID 在窄口必须可断行，否则 min-content 会把主面顶出视口 */
+  .wfb-nav-item,
+  .wfb-task b,
+  .act24-tag,
+  .act24-hd b {
+    overflow-wrap: anywhere;
+  }
 }
 </style>

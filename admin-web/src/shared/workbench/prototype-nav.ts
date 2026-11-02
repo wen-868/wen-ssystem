@@ -68,6 +68,21 @@ export const PROTOTYPE_BUSINESS_KEYS: readonly string[] = PROTOTYPE_RAIL_ITEMS.f
 ).map((item) => item.key);
 
 /**
+ * 固定 rail 项（工作台 / 设置）占用的分组码 → rail 键。
+ *
+ * 为什么需要：`MANUAL_GROUPS` 里有一组 `groupCode: "wb.dashboard"`，其唯一条目路径就是 `/dashboard`。
+ * rail 结构按角色派生（不吃菜单桥交集）后，路由反推归属会在 `/dashboard` 上命中这一组，
+ * 于是 railKey 变成 `"wb.dashboard"` —— 而 rail 上**没有**这个键的节点（工作台是固定的 `desk` 位），
+ * 结果 12 项全都不高亮（原型默认可见项「工作台」是实心蓝选中态）。这里把固定组的码映射回固定键，
+ * 选中态判定与 rail 渲染口径就重新一致了；业务模块仍原样返回自己的 groupCode。
+ */
+export const RAIL_FIXED_KEY_BY_GROUP: Readonly<Record<string, string>> = Object.fromEntries(
+  PROTOTYPE_RAIL_ITEMS.filter(
+    (item): item is RailPrototypeItem & { groupCode: string } => item.kind !== "module" && item.groupCode !== null,
+  ).map((item) => [item.groupCode, item.key]),
+);
+
+/**
  * 原型第二栏二级目录（实测：点击一级模块后 .sub-grid 渲染的 .sub-card 文字）。
  * 「工作台」项下为原型「常用功能」六宫格。
  */

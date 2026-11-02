@@ -67,11 +67,17 @@
     </nav>
 
     <!-- ══ 第二列上下文导航（常用功能/二级菜单 · 新对话 · 会话 · 账户）＝原型 .side（L923）══ -->
+    <!--
+      WORKBENCH-13-F2：groups 传 railGroups（**只按 meta.roles 派生**的一级结构），
+      供第二列折叠缩略条与模块标题使用；真实可打开的入口仍由壳层的 bridge 派生
+      （visibleEntryItems / 空态判定 = visibleGroups），二者口径互不放宽（见脚本注释）。
+      设置入口改由账户区（teammate 在第二列底部新增、emit open-settings）承载 → 打开设置中心。
+    -->
     <WorkbenchSubnav
       :class="{ hidden: sideCollapsed }"
       :collapsed="sideCollapsed"
       :mode="currentNavMode"
-      :groups="visibleGroups"
+      :groups="railGroups"
       :active-group-code="selectedGroupCode"
       :active-path="route.path"
       :cashier-items="visibleCashierItems"
@@ -81,6 +87,7 @@
       :user-roles="auth.userRoles"
       @open="openManualItem"
       @open-cashier="openCashierItem"
+      @open-settings="openSettings"
       @new-chat="startNewConversation"
       @collapse="sideCollapsed = !sideCollapsed"
     />
@@ -355,6 +362,7 @@ import {
 import {
   decorateRailGroups,
   toggleRailSelection,
+  RAIL_FIXED_KEY_BY_GROUP,
 } from "../shared/workbench/prototype-nav";
 
 const route = useRoute();
@@ -561,6 +569,19 @@ const visibleCashierItems = computed(() =>
 );
 
 /**
+ * 一级 rail 的**结构**来源：只按路由 meta.roles 判定，不吃 /menus/user 交集（与 visibleCashierItems 同一保底口径）。
+ *
+ * 为什么要与 visibleGroups 分道：`visibleGroups` 在 `filterVisibleGroups` 之前先叠加了服务端菜单桥
+ * （`restrictManifestGroups(MANUAL_GROUPS, access.visibleRouteNames)`），而 `SERVER_MENU_BRIDGE` 只覆盖
+ * 少数 routeName ⇒ 真实 SUPER_ADMIN 走生产入口（无测试注入）时交集为空，rail 会塌缩成「工作台 + 设置」，
+ * 违反卡 §三.A.2。rail 只决定**哪些一级模块存在/高亮**，点开页面与第二栏真实入口仍走 bridge 派生的
+ * visibleGroups（见 visibleEntryItems / visibleBusinessEntryCount / showMenuEmptyState，保持 fail-closed）；
+ * 受限角色经同一个 `filterVisibleGroups(MANUAL_GROUPS, auth.userRoles, resolveRoles)` 依旧裁到更少的组，
+ * 因此本处放宽的只是「结构呈现」，不放宽任何「能否进入页面」的权限判定。
+ */
+const railGroups = computed(() => filterVisibleGroups(MANUAL_GROUPS, auth.userRoles, resolveRoles));
+
+/**
  * 业务入口数（**只算业务菜单项，不含收银保底**）。
  *
  * 与 04F1 裁定一致：收银 9 项按 meta.roles 保底、**不吃 /menus/user 交集** ⇒ 菜单为空/失败时
@@ -606,7 +627,7 @@ const visibleEntryItems = computed(() => visibleGroups.value.flatMap((group) => 
  */
 const selectedGroupCode = ref("");
 watch(
-  visibleGroups,
+  railGroups,
   (groups) => {
     // 只在「已选中项不再可见」时回落为空（改由常用功能接管），不自动改选其它组
     if (selectedGroupCode.value && !groups.some((group) => group.groupCode === selectedGroupCode.value)) {
@@ -616,8 +637,17 @@ watch(
   { immediate: true },
 );
 
-/** 一级 rail 渲染序列：原型顺序（decorateRailGroups）× 当前角色可见分组（不可见的模块整块不渲染） */
-const railModules = computed(() => decorateRailGroups(visibleGroups.value));
+/**
+ * 一级 rail 渲染序列：原型顺序（decorateRailGroups）× **按 meta.roles 派生**的一级分组。
+ *
+ * WORKBENCH-13-F2：源从 visibleGroups（bridge 交集）切到 railGroups（只按角色）——
+ * 真实 SUPER_ADMIN 走生产入口时 bridge 交集为空，用 visibleGroups 会让 rail 塌缩（卡 §三.A.2）。
+ * 加载期返回 `[]`：真实模块位先不渲染，改由 `railSkeletons` 出 12 行占位（互斥契约见其注释），
+ * 计数不翻倍；`railSkeletons` 里的 `railModules.value.length === 0` 判据因此照常成立。
+ */
+const railModules = computed(() =>
+  menuState.value === "loading" ? [] : decorateRailGroups(railGroups.value),
+);
 
 /**
  * WORKBENCH-13 修复（卡 §三.10「冷启动首击不稳定」）—— 证据与根因：
@@ -680,7 +710,7 @@ watch(menuState, (state) => {
 });
 
 const activeGroup = computed(
-  () => visibleGroups.value.find((group) => group.groupCode === selectedGroupCode.value) ?? null,
+  () => railGroups.value.find((group) => group.groupCode === selectedGroupCode.value) ?? null,
 );
 const activeGroupTitle = computed(() => activeGroup.value?.title ?? "AI 信息流");
 const activeGroupItems = computed(() => activeGroup.value?.items ?? []);
@@ -696,10 +726,15 @@ const railKey = computed(() => {
   if (route.name === "system") return "set";
   if (selectedGroupCode.value) return selectedGroupCode.value;
   if (effectiveMode.value !== "ai" || face.value === "feed") {
-    const owner = visibleGroups.value.find((group) =>
+    // 路由反推归属也走 railGroups（与 rail 结构同源）：选中模块即便 bridge 无真实条目也不会漏判/崩，
+    // group.items 恒为数组，owner 缺省时回落 "desk"（fail-closed 到中性值）。
+    const owner = railGroups.value.find((group) =>
       group.items.some((item) => item.path && route.path.startsWith(item.path)),
     );
-    return owner?.groupCode ?? "desk";
+    if (!owner) return "desk";
+    // 命中固定项所属分组（`wb.dashboard` 的唯一条目就是 `/dashboard`）时高亮**固定 rail 位**，
+    // 否则 railKey 会是一个 rail 上不存在节点的值 ⇒ 12 项全不高亮（原型默认高亮「工作台」）。
+    return RAIL_FIXED_KEY_BY_GROUP[owner.groupCode] ?? owner.groupCode;
   }
   return "desk";
 });
@@ -962,13 +997,14 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 /* 收银台：不渲染 AI 会话层的宽度挤压，仍保持三段（原型 side=收银功能列表） */
 
 /* ── 一级 rail ── */
+/* 原型 nav.rail 实测（1440×1000）：x=0 y=0 w=60 h=1000 · #F7F9FC · padding 12px 0 · gap 5px · 右边线 #ECEEF1 */
 .wb-rail {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 2px;
-  padding: 8px 4px;
-  background: var(--wb-panel, #ffffff);
+  gap: 5px;
+  padding: 12px 0;
+  background: var(--wb-rail-bg, #f7f9fc);
   border-right: 1px solid var(--wb-line, #eceef1);
   overflow-y: auto;
   scrollbar-width: none;
@@ -976,11 +1012,12 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 .wb-rail::-webkit-scrollbar {
   display: none;
 }
+/* 原型 .rl-logo：34×34 · 圆角 10 · margin-bottom 8（配合 gap 5 ⇒ 首个 rail 项落在 y=59） */
 .wb-rail-logo {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   margin: 0 auto 8px;
-  border-radius: 9px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: #fff;
   font-size: 16px;
@@ -990,30 +1027,48 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   justify-content: center;
   flex-shrink: 0;
 }
+/* 原型 .rl-it：46×43 · x=7（margin auto 居中）· 圆角 11 · padding 7px 0 6px · 图标 17 · 字号 9.5 · 项内 gap 4 · 步进 48（43+容器 gap5） */
 .wb-rail-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 8px 2px;
+  justify-content: center;
+  width: 46px;
+  height: 43px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  gap: 4px;
+  padding: 7px 0 6px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 11px;
   background: transparent;
-  color: var(--wb-ink2, #8a8f98);
-  font-size: 11px;
+  /* 非选中项色 = 原型 --rail-sub #68758A（1440×1000 实测） */
+  color: #68758a;
+  font-size: 9.5px;
+  line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
   /* 对齐原型 L122 `.rl-it{transition:.15s}`（WORKBENCH-06F3 MISSING #1） */
   transition: background-color 150ms ease, color 150ms ease;
 }
+/* 未选中项 hover：文字/图标转主色 #2563EB、底色 #EFF4FF（原型 rail hover 态） */
 .wb-rail-item:hover {
-  background: var(--wb-hover, #f4f6f8);
-  color: var(--wb-ink, #16181d);
+  background: #eff4ff;
+  color: #2563eb;
 }
+/* 选中态 = 原型 `.rl-it.on{background:#2563EB;color:#fff}`：纯蓝底 + 白字，且内部 el-icon 强制白（沿用 .alert :deep 先例） */
 .wb-rail-item.on {
-  background: var(--wb-primary-soft, #eff4ff);
-  color: var(--wb-primary, #2563eb);
+  background: #2563eb;
+  color: #fff;
   font-weight: 600;
+}
+.wb-rail-item.on :deep(.el-icon) {
+  color: #fff;
+}
+/* hover 命中选中项时保持纯蓝白字（特异性 0-3-0 压过通用 .wb-rail-item:hover，不回退成 #2563eb/#eff4ff） */
+.wb-rail-item.on:hover {
+  background: #2563eb;
+  color: #fff;
 }
 /**
  * WORKBENCH-13（卡 §三.10）：加载期 rail 占位骨架。
@@ -1067,14 +1122,28 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
     box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
   }
 }
+/* 原型 .rl-gap（设置项上方的分隔线）：32×1 · #ECEEF1 · margin auto 0 7px。
+   margin-top:auto 吸收剩余空间把它与（已隐藏的）设置项压向 rail 底部，rail 底部只剩这条线；
+   容器 align-items:stretch ⇒ 用 align-self:center 让 32px 线水平居中（对齐原型 align-items:center 下的 auto 0）。 */
 .wb-rail-gap {
-  flex: 1;
+  width: 32px;
+  height: 1px;
+  background: var(--wb-line, #eceef1);
+  align-self: center;
+  margin: auto 0 7px;
+  flex-shrink: 0;
 }
+/* WORKBENCH-13-F2：设置项对齐原型最后一层 `.rl-set{display:none!important}`——
+   仍在 DOM（data-rail-key="set" 契约保留）但视觉隐藏，设置入口移至第二列账户区（open-settings）。
+   与 .wb-rail-item 同特异性且声明更靠后，故 display:none 稳定生效（含 390px 窄口，见下方同名规则）。 */
 .wb-rail-set {
+  display: none;
   margin-top: 6px;
   border-top: 1px solid var(--wb-line, #eceef1);
   border-radius: 0;
   padding-top: 10px;
+  /* 设置项带 border-top + padding-top，固定 43px 高会挤压内容：让它按内容自适应 */
+  height: auto;
 }
 
 /* ── main 区 ── */
@@ -1084,15 +1153,16 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   min-width: 0;
   min-height: 0;
 }
+/* 原型 header.top 实测（1440×1000）：x=290 y=0 w=1150 h=54 · padding 0 22px · gap 10 · 底边线 #DDE2E9 */
 .wb-top {
-  height: 50px;
+  height: 54px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 14px;
+  padding: 0 22px;
   background: var(--wb-panel, #ffffff);
-  border-bottom: 1px solid var(--wb-line, #eceef1);
+  border-bottom: 1px solid var(--wb-line-strong, #dde2e9);
 }
 .wb-icon-btn {
   width: 30px;
@@ -1372,6 +1442,9 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
     display: none;
   }
   .wb-rail-set {
+    /* 窄口（≤390px）rail 转底部横条时，设置项仍与原型一致地隐藏（入口在第二列账户区）；
+       显式重申 display:none，避免该 media 规则被误当作"重新显示"（基线 .wb-rail-set 已置 none）。 */
+    display: none;
     margin-top: 0;
     border-top: 0;
   }
