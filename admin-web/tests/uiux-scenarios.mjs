@@ -448,8 +448,15 @@ const act = {
     await page.getByTestId("composer-send").click({ timeout: 8000 });
     await page.waitForTimeout(2600);
   },
+  /**
+   * 卡 §三.A.2 末条：原型最后一层把 rail 末位 `.rl-set` **保留在 DOM 但视觉隐藏**，
+   * 设置入口移到第二列底部账号区（`WorkbenchSubnav` 的 `second-nav-settings` → shell `@open-settings`）。
+   * 因此这里点的是**真实可见的那个入口**，不是隐藏的 `[data-rail-key="set"]`
+   * （隐藏节点点得到≠用户点得到；用 force 点击冒充可用是卡 §六 红线）。
+   * rail 里的 set 节点仍存在，由 prototype-nav / prototype-parity 的源码契约继续守住。
+   */
   async openSettings(page) {
-    await page.locator('[data-rail-key="set"]').first().click({ timeout: 8000 });
+    await page.locator('[data-testid="second-nav-settings"]').first().click({ timeout: 8000 });
     await page.waitForSelector(".sw-bd", { timeout: 10000 });
     await page.waitForTimeout(700);
   },
