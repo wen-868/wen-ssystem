@@ -47,59 +47,74 @@
       <div class="fdv-block-title wb-sec">
         待办审批<span>AI 已预审 · 确认后执行 · 全程留痕</span>
       </div>
-      <p v-if="approvalsBlock.state === 'loading'" class="fdv-empty" data-testid="wb-ap-loading">{{ approvalsBlock.message }}</p>
-      <template v-else-if="canRetry(approvalsBlock.state)">
-        <p class="fdv-empty" :class="{ 'is-error': approvalsBlock.state === 'error' }" data-testid="wb-ap-note">
-          {{ approvalsBlock.state === "unavailable" ? "待接入 · " : "读取失败 · " }}{{ approvalsBlock.message }}
-        </p>
-        <button type="button" class="wfb-retry" data-testid="wb-ap-retry" @click="refreshApprovals">重试</button>
-      </template>
-      <p v-else-if="approvalsBlock.state === 'empty'" class="fdv-empty" data-testid="wb-ap-empty">{{ approvalsBlock.message }}</p>
-      <div v-else id="wbApps" class="wb-apps">
-        <!-- 已执行变体（原型 .wb-ap.done + .done-tag「AI 已执行 · 已回流」L1765）：
-             仅登记**本会话真实确认成功**的条目（持有底座返回的 operationId 回执） -->
-        <div v-for="card in executedApprovals" :key="`done-${card.id}`" class="wb-ap done" data-testid="wb-ap-done">
+      <!-- F3 §三.B：`#wbApps` 容器**恒在**（原型 L1764 同位），五态内容在容器内如实切换；
+           数据不可得 ⇒ 占位 .wb-ap.is-unavailable（复用原型卡同款边框/圆角/内边距）+ 重试，绝不删区块、不造假数据。 -->
+      <div id="wbApps" class="wb-apps" data-testid="wb-ap-zone">
+        <p v-if="approvalsBlock.state === 'loading'" class="fdv-empty" data-testid="wb-ap-loading">{{ approvalsBlock.message }}</p>
+        <div
+          v-else-if="canRetry(approvalsBlock.state)"
+          class="wb-ap is-unavailable"
+          :class="{ 'is-error': approvalsBlock.state === 'error' }"
+          data-testid="wb-ap-unavailable"
+        >
           <div class="hd">
             <span class="wb-ap-ic"><el-icon :size="15"><Stamp /></el-icon></span>
-            <div class="tt">{{ card.title }}<small>{{ card.refLabel }}</small></div>
-            <span v-if="card.amount" class="amt">{{ card.amount }}</span>
-            <span class="done-tag">AI 已执行 · 已回流{{ card.operationId ? `（操作号 ${card.operationId}）` : "" }}</span>
+            <div class="tt">
+              待办审批<small
+                data-testid="wb-ap-note"
+              >{{ approvalsBlock.state === "unavailable" ? "待接入" : "读取失败" }} · {{ approvalsBlock.message }} ——
+                无真实审批读数时不伪造待办项</small>
+            </div>
+            <button type="button" class="wfb-retry" data-testid="wb-ap-retry" @click="refreshApprovals">重试</button>
           </div>
         </div>
-        <!-- 待确认卡（原型 pending 变体：.hd + .ai(AI 预审意见) + .a-acts(通过 / 驳回)） -->
-        <div v-for="card in pendingApprovals" :key="card.id" class="wb-ap" :data-confirmation-id="card.id">
-          <div class="hd">
-            <span class="wb-ap-ic"><el-icon :size="15"><Stamp /></el-icon></span>
-            <div class="tt">{{ card.title }}<small>{{ card.refLabel }} · AI 预审完成</small></div>
-            <span v-if="card.amount" class="amt">{{ card.amount }}</span>
-          </div>
-          <div class="ai">
-            <b><el-icon :size="13"><MagicStick /></el-icon>AI 预审意见</b>
-            {{ card.opinion || "底座未返回预审意见 —— 请先在 AI 会话内核对操作明细，再决定是否确认。" }}
-            <div class="a-acts">
-              <button
-                type="button"
-                class="wfb-btn"
-                data-testid="wb-ap-approve"
-                :disabled="approvalBusy !== null"
-                @click="approveCard(card)"
-              >
-                通过并执行
-              </button>
-              <button
-                type="button"
-                class="wfb-btn is-ghost"
-                data-testid="wb-ap-reject"
-                :disabled="approvalBusy !== null"
-                @click="rejectCard(card)"
-              >
-                驳回 · 转人工
-              </button>
+        <p v-else-if="approvalsBlock.state === 'empty'" class="fdv-empty" data-testid="wb-ap-empty">{{ approvalsBlock.message }}</p>
+        <template v-else>
+          <!-- 已执行变体（原型 .wb-ap.done + .done-tag「AI 已执行 · 已回流」L1765）：
+               仅登记**本会话真实确认成功**的条目（持有底座返回的 operationId 回执） -->
+          <div v-for="card in executedApprovals" :key="`done-${card.id}`" class="wb-ap done" data-testid="wb-ap-done">
+            <div class="hd">
+              <span class="wb-ap-ic"><el-icon :size="15"><Stamp /></el-icon></span>
+              <div class="tt">{{ card.title }}<small>{{ card.refLabel }}</small></div>
+              <span v-if="card.amount" class="amt">{{ card.amount }}</span>
+              <span class="done-tag">AI 已执行 · 已回流{{ card.operationId ? `（操作号 ${card.operationId}）` : "" }}</span>
             </div>
           </div>
-        </div>
-        <p v-if="approvalActionError" class="fdv-empty is-error" data-testid="wb-ap-action-error">{{ approvalActionError }}</p>
-        <p v-else-if="approvalNotice" class="fdv-empty" data-testid="wb-ap-action-note">{{ approvalNotice }}</p>
+          <!-- 待确认卡（原型 pending 变体：.hd + .ai(AI 预审意见) + .a-acts(通过 / 驳回)） -->
+          <div v-for="card in pendingApprovals" :key="card.id" class="wb-ap" :data-confirmation-id="card.id">
+            <div class="hd">
+              <span class="wb-ap-ic"><el-icon :size="15"><Stamp /></el-icon></span>
+              <div class="tt">{{ card.title }}<small>{{ card.refLabel }} · AI 预审完成</small></div>
+              <span v-if="card.amount" class="amt">{{ card.amount }}</span>
+            </div>
+            <div class="ai">
+              <b><el-icon :size="13"><MagicStick /></el-icon>AI 预审意见</b>
+              {{ card.opinion || "底座未返回预审意见 —— 请先在 AI 会话内核对操作明细，再决定是否确认。" }}
+              <div class="a-acts">
+                <button
+                  type="button"
+                  class="wfb-btn"
+                  data-testid="wb-ap-approve"
+                  :disabled="approvalBusy !== null"
+                  @click="approveCard(card)"
+                >
+                  通过并执行
+                </button>
+                <button
+                  type="button"
+                  class="wfb-btn is-ghost"
+                  data-testid="wb-ap-reject"
+                  :disabled="approvalBusy !== null"
+                  @click="rejectCard(card)"
+                >
+                  驳回 · 转人工
+                </button>
+              </div>
+            </div>
+          </div>
+          <p v-if="approvalActionError" class="fdv-empty is-error" data-testid="wb-ap-action-error">{{ approvalActionError }}</p>
+          <p v-else-if="approvalNotice" class="fdv-empty" data-testid="wb-ap-action-note">{{ approvalNotice }}</p>
+        </template>
       </div>
       <!-- AI 入口条（原型 al-v9-entry #al9Entry L6476＋CSS L6250、al-v10-entry #al10BCBar L7173＋CSS L6992：
            高 54 · 1px 虚线（审批中心蓝 / 播报紫 #A78BFA）· 圆角 10 · 内边距 9px 12px · 两条间隔 10px，
@@ -136,23 +151,33 @@
       <div class="fdv-block-title wb-sec">
         经营异动播报<span>GMV 环比 / 退款率 / 毛利异动 · AI 建议 · 人工核实后处置</span>
       </div>
-      <p v-if="broadcastBlock.state === 'loading'" class="fdv-empty" data-testid="wb-bc-loading">{{ broadcastBlock.message }}</p>
-      <template v-else-if="canRetry(broadcastBlock.state)">
-        <p class="fdv-empty" :class="{ 'is-error': broadcastBlock.state === 'error' }" data-testid="wb-bc-note">
-          {{ broadcastBlock.state === "unavailable" ? "待接入 · " : "读取失败 · " }}{{ broadcastBlock.message }}
-        </p>
-        <button type="button" class="wfb-retry" data-testid="wb-bc-retry" @click="refreshBroadcast">重试</button>
-      </template>
-      <p v-else-if="broadcastBlock.state === 'empty'" class="fdv-empty" data-testid="wb-bc-empty">{{ broadcastBlock.message }}</p>
-      <div v-else class="wfb-bcs">
-        <div v-for="(bc, index) in broadcastBlock.data" :key="`${bc.metric}-${index}`" class="wfb-bc">
-          <span class="wfb-bc-metric">{{ bc.metric }}</span>
-          <span class="wfb-bc-value">{{ bc.value }}</span>
-          <p class="wfb-bc-advice">
-            AI 建议：{{ bc.advice || "（底座未返回建议原文 · 需人工核实）" }}
-            <em v-if="bc.needHumanCheck">· 人工核实后处置</em>
+      <!-- F3 §三.B：`.wfb-bcs` 容器恒在（原型播报区同位），不可得 ⇒ 占位条 + 重试，读数照常如实。 -->
+      <div class="wfb-bcs" data-testid="wb-bc-zone">
+        <p v-if="broadcastBlock.state === 'loading'" class="fdv-empty" data-testid="wb-bc-loading">{{ broadcastBlock.message }}</p>
+        <div
+          v-else-if="canRetry(broadcastBlock.state)"
+          class="wfb-bc is-unavailable"
+          :class="{ 'is-error': broadcastBlock.state === 'error' }"
+          data-testid="wb-bc-unavailable"
+        >
+          <span class="wfb-bc-metric">经营异动播报</span>
+          <span class="wfb-bc-value">{{ broadcastBlock.state === "unavailable" ? "待接入" : "读取失败" }}</span>
+          <p class="wfb-bc-advice" data-testid="wb-bc-note">
+            {{ broadcastBlock.message }} —— 无真实播报读数时不本地伪造异动
+            <button type="button" class="wfb-retry" data-testid="wb-bc-retry" @click="refreshBroadcast">重试</button>
           </p>
         </div>
+        <p v-else-if="broadcastBlock.state === 'empty'" class="fdv-empty" data-testid="wb-bc-empty">{{ broadcastBlock.message }}</p>
+        <template v-else>
+          <div v-for="(bc, index) in broadcastBlock.data" :key="`${bc.metric}-${index}`" class="wfb-bc">
+            <span class="wfb-bc-metric">{{ bc.metric }}</span>
+            <span class="wfb-bc-value">{{ bc.value }}</span>
+            <p class="wfb-bc-advice">
+              AI 建议：{{ bc.advice || "（底座未返回建议原文 · 需人工核实）" }}
+              <em v-if="bc.needHumanCheck">· 人工核实后处置</em>
+            </p>
+          </div>
+        </template>
       </div>
     </section>
 
@@ -161,44 +186,51 @@
       <div class="fdv-block-title wb-sec">
         主管动作队列<span>任务看板 + 助理绩效 + 审批中心 + 播报 · 按状态分组（进行中 / 待审阅 / 已完成）</span>
       </div>
-      <p v-if="boardBlock.state === 'loading'" class="fdv-empty" data-testid="wb-tb-loading">{{ boardBlock.message }}</p>
-      <template v-else-if="canRetry(boardBlock.state)">
-        <p class="fdv-empty" :class="{ 'is-error': boardBlock.state === 'error' }" data-testid="wb-tb-note">
-          {{ boardBlock.state === "unavailable" ? "待接入 · " : "读取失败 · " }}{{ boardBlock.message }}
-        </p>
-        <button type="button" class="wfb-retry" data-testid="wb-tb-retry" @click="refreshQueue">重试</button>
-      </template>
-      <p v-else-if="boardBlock.state === 'empty'" class="fdv-empty" data-testid="wb-tb-empty">{{ boardBlock.message }}</p>
-      <template v-else>
-        <!-- 主管视图聚合行（原型 al-v10-nav4 四合一）：计数只来自真实源，缺端点的位置如实「待接入」 -->
-        <div class="wfb-nav4" data-testid="wb-tb-nav4">
-          <span class="wfb-nav-item">任务看板<em>{{ boardBlock.data.totalEntries }} 项</em></span>
-          <span class="wfb-nav-item">助理绩效<em>待接入（绩效面板端点缺失）</em></span>
-          <span class="wfb-nav-item">审批中心<em>{{ pendingApprovals.length }} 项待审阅</em></span>
-          <span class="wfb-nav-item">播报中心<em>{{ broadcastLabel }}</em></span>
+      <!-- F3 §三.B：动作队列内容容器恒在；不可得 ⇒ 占位行 + 重试，标题区（上）不受状态影响。 -->
+      <div class="wfb-board" data-testid="wb-tb-zone">
+        <p v-if="boardBlock.state === 'loading'" class="fdv-empty" data-testid="wb-tb-loading">{{ boardBlock.message }}</p>
+        <div
+          v-else-if="canRetry(boardBlock.state)"
+          class="wfb-task is-unavailable"
+          :class="{ 'is-error': boardBlock.state === 'error' }"
+          data-testid="wb-tb-unavailable"
+        >
+          <b>主管动作队列</b>
+          <em data-testid="wb-tb-note">{{ boardBlock.state === "unavailable" ? "待接入" : "读取失败" }} · {{ boardBlock.message }} —— 无真实计划读数时不伪造任务项</em>
+          <button type="button" class="wfb-retry" data-testid="wb-tb-retry" @click="refreshQueue">重试</button>
         </div>
-        <template v-for="group in boardBlock.data.groups" :key="group.key">
-          <p class="wfb-group-title">
-            {{ group.label }}<template v-if="group.key === 'review'">（含审批待确认 {{ pendingApprovals.length }} 项）</template> · {{ group.entries.length }}
-          </p>
-          <div v-for="entry in group.entries" :key="entry.id" class="wfb-task" :data-bucket="group.key">
-            <span class="wfb-st" :class="`s-${group.key}`">{{ group.label }}</span>
-            <b>{{ entry.title }}</b>
-            <em>{{ entry.agent ? `${entry.agent} · ` : "" }}{{ entry.stepsTotal > 0 ? `${entry.stepsDone}/${entry.stepsTotal} 环节` : entry.rawState }}</em>
+        <p v-else-if="boardBlock.state === 'empty'" class="fdv-empty" data-testid="wb-tb-empty">{{ boardBlock.message }}</p>
+        <template v-else>
+          <!-- 主管视图聚合行（原型 al-v10-nav4 四合一）：计数只来自真实源，缺端点的位置如实「待接入」 -->
+          <div class="wfb-nav4" data-testid="wb-tb-nav4">
+            <span class="wfb-nav-item">任务看板<em>{{ boardBlock.data.totalEntries }} 项</em></span>
+            <span class="wfb-nav-item">助理绩效<em>待接入（绩效面板端点缺失）</em></span>
+            <span class="wfb-nav-item">审批中心<em>{{ pendingApprovals.length }} 项待审阅</em></span>
+            <span class="wfb-nav-item">播报中心<em>{{ broadcastLabel }}</em></span>
           </div>
-          <!-- 待审阅桶并入确认链真实条目（与②同源，不重复计数来源） -->
-          <template v-if="group.key === 'review'">
-            <div v-for="card in pendingApprovals" :key="`ap-${card.id}`" class="wfb-task" data-bucket="review">
-              <span class="wfb-st s-review">待审阅</span>
-              <b>{{ card.title }}</b>
-              <em>AI 预审完成 · 待确认</em>
+          <template v-for="group in boardBlock.data.groups" :key="group.key">
+            <p class="wfb-group-title">
+              {{ group.label }}<template v-if="group.key === 'review'">（含审批待确认 {{ pendingApprovals.length }} 项）</template> · {{ group.entries.length }}
+            </p>
+            <div v-for="entry in group.entries" :key="entry.id" class="wfb-task" :data-bucket="group.key">
+              <span class="wfb-st" :class="`s-${group.key}`">{{ group.label }}</span>
+              <b>{{ entry.title }}</b>
+              <em>{{ entry.agent ? `${entry.agent} · ` : "" }}{{ entry.stepsTotal > 0 ? `${entry.stepsDone}/${entry.stepsTotal} 环节` : entry.rawState }}</em>
             </div>
+            <!-- 待审阅桶并入确认链真实条目（与②同源，不重复计数来源） -->
+            <template v-if="group.key === 'review'">
+              <div v-for="card in pendingApprovals" :key="`ap-${card.id}`" class="wfb-task" data-bucket="review">
+                <span class="wfb-st s-review">待审阅</span>
+                <b>{{ card.title }}</b>
+                <em>AI 预审完成 · 待确认</em>
+              </div>
+            </template>
           </template>
+          <p v-if="boardBlock.data.unknownStates > 0" class="fdv-empty" data-testid="wb-tb-unknown">
+            另有 {{ boardBlock.data.unknownStates }} 项计划状态未识别（不在已知六态清单，未计入分组，如实披露）
+          </p>
         </template>
-        <p v-if="boardBlock.data.unknownStates > 0" class="fdv-empty" data-testid="wb-tb-unknown">
-          另有 {{ boardBlock.data.unknownStates }} 项计划状态未识别（不在已知六态清单，未计入分组，如实披露）
-        </p>
-      </template>
+      </div>
     </section>
 
     <!-- ⑤ 任务步进（原型 V24 TASKFLOW L11711 · 步进链 L1810-1817 语义：done √ / wait ● / lock 🔒；
@@ -207,28 +239,40 @@
       <div class="fdv-block-title wb-sec">
         任务步进<span>环节门控 · √ 已完成 / ● 进行中 / 🔒 未解锁 · 完成上一步后解锁下一环节</span>
       </div>
-      <p v-if="flowBlock.state === 'loading'" class="fdv-empty" data-testid="wb-tf-loading">{{ flowBlock.message }}</p>
-      <template v-else-if="canRetry(flowBlock.state)">
-        <p class="fdv-empty" :class="{ 'is-error': flowBlock.state === 'error' }" data-testid="wb-tf-note">
-          {{ flowBlock.state === "unavailable" ? "待接入 · " : "读取失败 · " }}{{ flowBlock.message }}
-        </p>
-        <button type="button" class="wfb-retry" data-testid="wb-tf-retry" @click="refreshQueue">重试</button>
-      </template>
-      <p v-else-if="flowBlock.state === 'empty'" class="fdv-empty" data-testid="wb-tf-empty">{{ flowBlock.message }}</p>
-      <div v-else class="act24-list">
-        <div v-for="flow in flowBlock.data.slice(0, 3)" :key="flow.id" class="act24-card" :data-act24f="flow.id">
+      <!-- F3 §三.B：`.act24-list` 容器恒在（原型 .act24-card 同位）；不可得 ⇒ 占位步进卡 + 重试，不伪造流程数据。 -->
+      <div class="act24-list" data-testid="wb-tf-zone">
+        <p v-if="flowBlock.state === 'loading'" class="fdv-empty" data-testid="wb-tf-loading">{{ flowBlock.message }}</p>
+        <div
+          v-else-if="canRetry(flowBlock.state)"
+          class="act24-card is-unavailable"
+          :class="{ 'is-error': flowBlock.state === 'error' }"
+          data-testid="wb-tf-unavailable"
+        >
           <div class="act24-hd">
-            任务步进 · AI 实时跟踪<b>{{ flow.title }}</b>
-            <span class="act24-tag">#{{ flow.id }}</span>
-            <span class="act24-tag" :class="flow.doneCount === flow.steps.length ? 'ok' : 'run'">{{ flow.statusText }}</span>
+            任务步进 · AI 实时跟踪<b>暂无真实任务读数</b>
+            <span class="act24-tag">{{ flowBlock.state === "unavailable" ? "待接入" : "读取失败" }}</span>
+            <button type="button" class="wfb-retry" data-testid="wb-tf-retry" @click="refreshQueue">重试</button>
           </div>
-          <div class="act24-steps">
-            <template v-for="(step, index) in flow.steps" :key="step.key">
-              <i v-if="index > 0" class="act24-arrow">→</i>
-              <b class="act24-st" :class="step.cls" :title="`状态：${step.rawStatus}`">{{ step.mark }} {{ step.label }}</b>
-            </template>
-          </div>
+          <p class="fdv-empty" :class="{ 'is-error': flowBlock.state === 'error' }" data-testid="wb-tf-note">
+            {{ flowBlock.message }} —— 环节链在无真实计划数据时不本地伪造
+          </p>
         </div>
+        <p v-else-if="flowBlock.state === 'empty'" class="fdv-empty" data-testid="wb-tf-empty">{{ flowBlock.message }}</p>
+        <template v-else>
+          <div v-for="flow in flowBlock.data.slice(0, 3)" :key="flow.id" class="act24-card" :data-act24f="flow.id">
+            <div class="act24-hd">
+              任务步进 · AI 实时跟踪<b>{{ flow.title }}</b>
+              <span class="act24-tag">#{{ flow.id }}</span>
+              <span class="act24-tag" :class="flow.doneCount === flow.steps.length ? 'ok' : 'run'">{{ flow.statusText }}</span>
+            </div>
+            <div class="act24-steps">
+              <template v-for="(step, index) in flow.steps" :key="step.key">
+                <i v-if="index > 0" class="act24-arrow">→</i>
+                <b class="act24-st" :class="step.cls" :title="`状态：${step.rawStatus}`">{{ step.mark }} {{ step.label }}</b>
+              </template>
+            </div>
+          </div>
+        </template>
       </div>
     </section>
 
@@ -1011,6 +1055,25 @@ function openMessages(): void {
 .wfb-retry:hover {
   background: var(--wb-primary-soft, #eff4ff);
 }
+/* F3 §三.B.6 占位变体：只改边框线型/文案色等诚实标记，**不动**门禁比对的圆角/内边距/外边距，
+   保证区块在 unavailable/empty 时仍占据原型同位、同尺寸。 */
+.wb-ap.is-unavailable,
+.wfb-bc.is-unavailable,
+.wfb-task.is-unavailable,
+.act24-card.is-unavailable {
+  border-style: dashed;
+}
+.wb-ap.is-unavailable .tt small,
+.wfb-task.is-unavailable em,
+.act24-card.is-unavailable .fdv-empty {
+  color: var(--wb-ink2, #8a8f98);
+}
+.wb-ap.is-unavailable.is-error,
+.wfb-bc.is-unavailable.is-error,
+.wfb-task.is-unavailable.is-error,
+.act24-card.is-unavailable.is-error {
+  border-color: #fca5a5;
+}
 /* AI 入口条 = 原型 `.al-v9-entry`（#al9Entry，CSS L6250）与 `.al-v10-entry`（#al10BCBar，CSS L6992）：
    `display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px dashed …;border-radius:10px;
     padding:9px 12px;margin:10px 0;background:var(--panel2)}` ⇒ 实测高 54、两条之间 10px（相邻 margin 折叠）。
@@ -1158,15 +1221,15 @@ function openMessages(): void {
   border-color: #bbf7d0;
   color: #166534;
 }
-/* 任务步进（原型 .act24-card L12010 系 + V24 TASKFLOW 面板）：外层卡圆角 14 · 内边距 13px 15px · 间隔 10；
-   步进胶囊 .act24-st / 标签 .act24-tag 保持原型 999px 药丸（L12013/L12018），不改成方角。 */
+/* 任务步进（原型 .act24-card L12010 系 + V24 TASKFLOW 面板）：F3 对齐原型真值 圆角 10 · 上下外边距 8 ·
+   内边距 13px 15px；步进胶囊 .act24-st / 标签 .act24-tag 保持原型 999px 药丸（L12013/L12018），不改成方角。 */
 .act24-card {
   box-sizing: border-box;
   padding: 13px 15px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--wb-panel, #fff);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .act24-hd {
   display: flex;

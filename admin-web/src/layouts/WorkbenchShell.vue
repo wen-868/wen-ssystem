@@ -324,6 +324,7 @@ import AiChatPanel from "../components/workbench/AiChatPanel.vue";
 import PrintSettingsPanel from "../modules/print/PrintSettingsPanel.vue";
 import WbSettingsCenter from "../components/workbench/WbSettingsCenter.vue";
 import { WB_NARROW_MEDIA_QUERY } from "../shared/workbench/wb-viewport";
+import { checkWebUpdate } from "../modules/update/checker";
 import { useAuthStore } from "../stores/auth";
 import { getErrorMessage } from "../api/request";
 import { fetchUserMenus } from "../api/workbench-menu";
@@ -493,6 +494,9 @@ async function loadPendingReview(): Promise<void> {
 onMounted(() => {
   loadMenus();
   loadPendingReview();
+  // WORKBENCH-13-F3 §三.C.9：新壳真实接入更新检查（检查器内部 catch ⇒ 失败静默降级，不阻塞工作台）。
+  // 旧壳回滚（!shellEnabled）时 MainLayout 自身已调用，这里只挂生产新壳，避免双通知。
+  if (shellEnabled) void checkWebUpdate();
   // WORKBENCH-06F1：AI 可用性探针 + 顶部 Agent 真实数据（员工数 / 计划进度）。
   // 三者各自独立，互不阻塞（AI 不可达时菜单与人工页照常）。
   void probeAiReadiness();
