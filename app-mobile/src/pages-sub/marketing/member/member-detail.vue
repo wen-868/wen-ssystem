@@ -7,6 +7,17 @@
             <text class="loading-text">加载中...</text>
         </view>
 
+        <!-- MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-5/6：错误态与空态严格区分 + 页内重试 -->
+        <view v-else-if="loadError" class="empty-state">
+            <text class="empty-text">{{ loadError.kind === 'notfound' ? '会员不存在或已失效' : loadError.kind === 'forbidden' ? '当前账号无权限查看该会员' : '系统繁忙，加载失败' }}</text>
+            <text class="error-sub-text" v-if="loadError.kind !== 'notfound' && loadError.kind !== 'forbidden'">{{ loadError.message }}</text>
+            <view
+                v-if="loadError.kind !== 'notfound' && loadError.kind !== 'forbidden'"
+                class="retry-btn"
+                :class="{ 'retry-btn--loading': loading }"
+                @tap="retryLoad"
+            ><text>{{ loading ? '重试中…' : '重试' }}</text></view>
+        </view>
         <view v-else-if="member" class="detail-body">
             <!-- 1. 概览 -->
             <view class="pd-group">
@@ -29,7 +40,7 @@
                 <view class="ov-stats">
                     <view class="ov-si">
                         <text class="ov-sl">可用积分</text>
-                        <text class="ov-sv ov-sv--gold">{{ pointBase }}</text>
+                        <text class="ov-sv ov-sv--gold">{{ availablePoints }}</text>
                     </view>
                     <view class="ov-si">
                         <text class="ov-sl">储值余额</text>
@@ -158,7 +169,7 @@
                 <view class="pd-gtitle"><view class="gt-bar"></view><text>账户信息</text></view>
                 <view class="f-row">
                     <text class="f-label">可用积分</text>
-                    <text class="f-value f-value--gold">{{ pointBase }}</text>
+                    <text class="f-value f-value--gold">{{ availablePoints }}</text>
                 </view>
                 <view class="f-row">
                     <text class="f-label">储值余额</text>
@@ -280,7 +291,7 @@
             <view class="dlg" @tap.stop>
                 <text class="dlg-t">{{ dlg === 'recharge' ? '客户充值' : '调整积分' }}</text>
                 <text v-if="dlg === 'recharge'" class="dlg-d">{{ member?.name }} · 当前余额 ¥{{ fmt(balance) }}</text>
-                <text v-else class="dlg-d">{{ member?.name }} · 当前积分 {{ pointBase }}</text>
+                <text v-else class="dlg-d">{{ member?.name }} · 当前可用积分 {{ availablePoints }}</text>
                 <input
                     v-if="dlg === 'recharge'"
                     class="dlg-inp" v-model="dlgValue" type="digit" placeholder="0.00" placeholder-class="dlg-ph"
@@ -311,7 +322,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { get, put, post } from '@/api/request'
 import { memberLevelApi, type MemberLevel } from '@/api/modules/member-levels'
 import DocPage, { type DocRow } from '@/components/DocPage.vue'
@@ -382,7 +393,16 @@ const sortedLevels = computed(() =>
 )
 
 // 晋级按累计积分计算（优先 totalPoints，回退 points）
+// MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-4：
+//  · availablePoints（可用积分展示/调整校验）来自真实积分账户 t_customer_points.available_points；
+//  · pointBase（等级晋级的累计口径）优先账户 totalPoints，账户缺失时回退 t_member 冗余列；
+//  · 两者在 loadAccountPoints() 后与台账一致，调整积分后重取。
+const availablePoints = computed(() => {
+  if (accountPoints.value) return accountPoints.value.available
+  return Number(member.value?.points ?? 0)
+})
 const pointBase = computed(() => {
+  if (accountPoints.value) return accountPoints.value.total
   const m = member.value
   if (!m) return 0
   return Number(m.totalPoints ?? m.points ?? 0)
@@ -564,7 +584,7 @@ async function confirmDlg() {
     uni.showToast({ title: '充值金额需大于 0', icon: 'none' })
     return
   }
-  if (dlg.value === 'points' && pointBase.value + v < 0) {
+  if (dlg.value === 'points' && availablePoints.value + v < 0) {
     uni.showToast({ title: '积分不能为负数', icon: 'none' })
     return
   }
@@ -743,17 +763,50 @@ async function toggleStatus() {
   }
 }
 
+// MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-5/6：加载失败态（404 不存在 / 403 无权限 / 500·断网 系统错误）
+// 与空态严格区分；系统错误提供页内「重试」，恢复后错误态清除。
+const loadError = ref<{ kind: 'notfound' | 'forbidden' | 'server' | 'timeout' | 'network' | 'business'; message: string } | null>(null)
+
 async function loadDetail() {
   if (!memberId.value) return
   loading.value = true
+  loadError.value = null
   try {
     const res: any = await get(`/store/members/${memberId.value}`)
     member.value = (res?.data ?? res) as MemberDetail
+    await loadAccountPoints()
   } catch (err: any) {
-    uni.showToast({ title: err?.msg || '加载会员详情失败', icon: 'none' })
+    const sc = err?.statusCode
+    loadError.value = {
+      kind: sc === 404 ? 'notfound' : sc === 403 ? 'forbidden' : sc && sc >= 500 ? 'server' : err?.kind === 'timeout' ? 'timeout' : err?.kind === 'network' ? 'network' : 'server',
+      message: err?.message || '加载会员详情失败，请重试',
+    }
+    uni.showToast({ title: err?.message || '加载会员详情失败，请重试', icon: 'none' })
   } finally {
     loading.value = false
   }
+}
+
+// MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-4：可用积分改读真实积分账户
+//（GET /store/members/:id/points 的 availablePoints 取自 t_customer_points.available_points，
+//  调整积分后重取即与台账一致；t_member.points 为端点不回写的冗余列，仅作兜底）
+const accountPoints = ref<{ available: number; total: number } | null>(null)
+async function loadAccountPoints() {
+  if (!memberId.value) return
+  try {
+    const res: any = await get(`/store/members/${memberId.value}/points`)
+    const d = res?.data ?? res ?? {}
+    accountPoints.value = { available: Number(d.availablePoints ?? d.points ?? 0), total: Number(d.totalPoints ?? d.availablePoints ?? 0) }
+  } catch (err) {
+    console.error('加载积分账户失败:', err)
+  }
+}
+
+/** GAP-6：错误态重试入口（重试期间 loading，恢复后错误态清除） */
+function retryLoad() {
+  if (loading.value) return
+  loadDetail()
+  loadOrders()
 }
 
 async function loadOrders() {
@@ -796,6 +849,48 @@ onLoad((query: any) => {
   loadOrders()
   loadLevels()
 })
+
+// MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-3：uni-app H5 同路由仅 query 变化时**不重挂载**、
+// onLoad 不重触发 ⇒ 从会员 A 直达/切换到 B 时页面仍是 A 的数据，充值/积分会施加到 A。
+// onShow 每次都会触发：这里重读当前页面栈的 query，id 变化即整体重载（写目标一致性随之成立）。
+/** GAP-3：从当前路由解析目标会员 id。
+ *  H5 下 location.hash 始终是最新的（getCurrentPages 的 options 停留在 onLoad 时刻）⇒ hash 优先；
+ *  非 H5（小程序/App）没有 location.hash，回退页面栈 options。 */
+function resolveRouteMemberId(): number {
+  // #ifdef H5
+  const m = location.hash.match(/[?&]id=(\d+)/)
+  if (m) return Number(m[1])
+  // #endif
+  const pages = getCurrentPages()
+  const cur: any = pages[pages.length - 1]
+  const q = cur?.options || cur?.$page?.options || {}
+  if (q?.id) return Number(q.id)
+  return 0
+}
+
+/** GAP-3：id 变化即整体重载（清旧数据 ⇒ 写目标一致性随之成立） */
+function syncToRouteMember() {
+  const qid = resolveRouteMemberId()
+  if (!qid) return
+  if (qid !== memberId.value) {
+    memberId.value = qid
+    editMode.value = false
+    member.value = null // 切换目标会员时先清旧数据，防止旧会员内容/操作落到新路由
+    loadDetail()
+    loadOrders()
+    loadLevels()
+  }
+}
+
+onShow(() => {
+  syncToRouteMember()
+})
+
+// #ifdef H5
+// 同文档 hash 变化（直达/切换）时 onShow 不触发；uni-app 路由内部可能用 replaceState
+// （hashchange/popstate 都可能不派发）⇒ 用 1.5s 轮询兜底，读取成本低（getCurrentPages + hash 解析）
+setInterval(() => { try { syncToRouteMember() } catch {} }, 1500)
+// #endif
 </script>
 
 <style lang="scss" scoped>
@@ -1143,6 +1238,28 @@ onLoad((query: any) => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.error-sub-text {
+    font-size: 24rpx;
+    color: $uni-gray-500;
+    margin-top: 8rpx;
+}
+
+.retry-btn {
+    margin-top: 24rpx;
+    padding: 16rpx 64rpx;
+    border-radius: $uni-border-radius-sm;
+    background: $uni-color-primary;
+}
+
+.retry-btn--loading {
+    opacity: 0.45;
+}
+
+.retry-btn text {
+    font-size: 28rpx;
+    color: $uni-text-color-inverse;
 }
 .empty-text { font-size: 26rpx; color: $uni-gray-400; }
 

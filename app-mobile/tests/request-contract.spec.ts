@@ -412,16 +412,17 @@ describe('QODER-29 · 401 重试 / 403 / 网络错误 / 超时（fail 回调族�
     const stub = createUniStub({ failErrMsg: 'request:fail' })
     vi.stubGlobal('uni', stub.uni)
     const mod = await importRequest()
-    await expect(mod.request({ url: '/admin/x', method: 'GET' })).rejects.toThrow('网络连接失败，请检查网络')
-    expect(stub.toasts).toEqual(['网络连接失败，请检查网络'])
+    // MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-5：文案随错误语义分类收敛（追加可执行的"重试"指引）
+    await expect(mod.request({ url: '/admin/x', method: 'GET' })).rejects.toThrow('网络连接失败，请检查网络后重试')
+    expect(stub.toasts).toEqual(['网络连接失败，请检查网络后重试'])
   })
 
   it('⑯ 超时（fail 含 timeout）⇒ reject「网络请求超时」', async () => {
     const stub = createUniStub({ failErrMsg: 'request:fail timeout' })
     vi.stubGlobal('uni', stub.uni)
     const mod = await importRequest()
-    await expect(mod.request({ url: '/admin/x', method: 'GET' })).rejects.toThrow('网络请求超时，请重试')
-    expect(stub.toasts).toEqual(['网络请求超时，请重试'])
+    await expect(mod.request({ url: '/admin/x', method: 'GET' })).rejects.toThrow('网络请求超时，请检查网络后重试')
+    expect(stub.toasts).toEqual(['网络请求超时，请检查网络后重试'])
   })
 })
 

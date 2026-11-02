@@ -134,6 +134,34 @@ export function buildSecureHeaders(extra?: Record<string, string>): Record<strin
   return headers
 }
 
+/**
+ * MOBILE-COMMERCIAL-IMPLEMENTATION-01 · GAP-5 错误语义分类（纯函数，可单测）
+ *
+ * 按 HTTP 状态码与失败形态给出**面向商户的**用户可区分文案，禁止把系统错误说成业务事实：
+ *  - 404 → 资源不存在；403 → 无权限；500/其它 5xx → 系统错误（重试可解）；
+ *  - 超时 / 断网 → 网络类；登录接口自身 401 → 凭据错误（与会话过期严格区分）；
+ *  - 文案不泄漏账号、密码、token 或内部堆叠。
+ */
+export function classifyApiError(input: {
+  statusCode?: number
+  isTimeout?: boolean
+  isNetworkFail?: boolean
+  isLoginRequest?: boolean
+  backendMsg?: string
+}): { kind: 'credentials' | 'session' | 'forbidden' | 'notfound' | 'server' | 'timeout' | 'network' | 'business'; message: string } {
+  const { statusCode, isTimeout, isNetworkFail, isLoginRequest, backendMsg } = input
+  if (isTimeout) return { kind: 'timeout', message: '网络请求超时，请检查网络后重试' }
+  if (isNetworkFail) return { kind: 'network', message: '网络连接失败，请检查网络后重试' }
+  if (statusCode === 401) {
+    if (isLoginRequest) return { kind: 'credentials', message: '账号或密码不正确，请重新输入' }
+    return { kind: 'session', message: '登录已过期，请重新登录' }
+  }
+  if (statusCode === 403) return { kind: 'forbidden', message: backendMsg || '没有该操作权限' }
+  if (statusCode === 404) return { kind: 'notfound', message: backendMsg || '请求的内容不存在或已删除' }
+  if (statusCode !== undefined && statusCode >= 500) return { kind: 'server', message: '系统繁忙，请稍后重试' }
+  return { kind: 'business', message: backendMsg || '操作失败，请稍后重试' }
+}
+
 export async function request<T = any>(options: RequestOptions): Promise<T> {
   const { url, method = 'GET', data, header = {}, timeout = 30000, responseType, silent = false } = options
 
@@ -153,6 +181,18 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
 
         // 401: 未认证，清除登录态并跳转登录页
         if (statusCode === 401) {
+          // ★ MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-2：登录接口自身的 401 是**凭据错误**
+          //   （口令不对），不得走"会话过期"的全局清态 + reLaunch——那会把登录页整页重置、
+          //   抹掉表单错误反馈，并把"密码错误"误报成"登录已过期"。此处直接以凭据语义拒绝，
+          //   由登录页在表单内呈现（login.vue 的 errorMsg 展示位）。
+          // 登录端点有两条：/store/auth/login（移动端登录页）与 /admin/auth/login（后台），
+          // 两者自身的 401 都是凭据错误，均豁免全局会话过期处理。
+          const isLoginRequest = /\/auth\/login$/.test(String(options.url || ''))
+          if (isLoginRequest) {
+            const c = classifyApiError({ statusCode: 401, isLoginRequest: true })
+            reject(Object.assign(new Error(c.message), { statusCode: 401, kind: c.kind }))
+            return
+          }
           // 防误杀：本地仍能读到 token 时先静默重试一次。
           // 页面刷新后的最初几百毫秒内，存储读取链路偶发返回空（时序问题），
           // 导致本应带 token 的请求裸奔 401；重试时读取已恢复，可直接成功。
@@ -201,7 +241,7 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
         if (statusCode === 403) {
           const msg = resData?.msg || '权限不足，无法访问'
           if (!silent) uni.showToast({ title: msg, icon: 'none' })
-          reject(new Error(msg))
+          reject(Object.assign(new Error(msg), { statusCode: 403 }))
           return
         }
 
@@ -209,7 +249,7 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
         if (statusCode === 404) {
           const msg = resData?.msg || '资源不存在'
           if (!silent) uni.showToast({ title: msg, icon: 'none' })
-          reject(new Error(msg))
+          reject(Object.assign(new Error(msg), { statusCode: 404 }))
           return
         }
 
@@ -217,7 +257,7 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
         if (statusCode === 500) {
           const msg = resData?.msg || '服务器繁忙，请稍后重试'
           if (!silent) uni.showToast({ title: msg, icon: 'none' })
-          reject(new Error(msg))
+          reject(Object.assign(new Error(msg), { statusCode: 500 }))
           return
         }
 
@@ -254,15 +294,10 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
         }
       },
       fail: (err: any) => {
-        // 超时错误
-        if (err.errMsg?.includes('timeout')) {
-          if (!silent) uni.showToast({ title: '网络请求超时，请重试', icon: 'none' })
-          reject(new Error('网络请求超时，请重试'))
-        } else {
-          // 网络错误
-          if (!silent) uni.showToast({ title: '网络连接失败，请检查网络', icon: 'none' })
-          reject(new Error('网络连接失败，请检查网络'))
-        }
+        // ★ MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-5：超时/断网与业务错误语义可区分
+        const c = classifyApiError({ isTimeout: !!err?.errMsg?.includes('timeout'), isNetworkFail: !err?.errMsg?.includes('timeout') })
+        if (!silent) uni.showToast({ title: c.message, icon: 'none' })
+        reject(Object.assign(new Error(c.message), { kind: c.kind }))
       }
     })
   })
