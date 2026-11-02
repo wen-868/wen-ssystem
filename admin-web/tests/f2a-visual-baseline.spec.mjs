@@ -220,7 +220,7 @@ await run("P6 账号区贴底：底边=视口高 1000（y=942 · h=58）", () =>
   return `y=${impl.acct.metrics.y} h=${impl.acct.metrics.height} → bottom=${bottom}`;
 });
 
-/* ══════ B. 主面区块顺序与诚实空位（卡 §三.A.8/9） ══════ */
+/* ══════ B. 主面区块顺序与原位诚实占位（F3 卡 §三.A.8 / §三.B.6） ══════ */
 
 await run("B1 主面区块顺序：KPI→待办审批→AI 播报→动作队列→任务步进（缺席区不参与顺序，但在场者不得乱序）", () => {
   assert.deepEqual(lib.findOrderViolations(base.implBody ?? impl, lib.BODY_ORDER), [], "主面区块顺序错位");
@@ -229,17 +229,27 @@ await run("B1 主面区块顺序：KPI→待办审批→AI 播报→动作队列
   return `${present.map((k) => `${k}@y=${(base.implBody ?? impl)[k].metrics.y}`).join(" > ")}`;
 });
 
-await run("B2 诚实 unavailable：审批卡/任务步进实现缺席时，读数与差异表都不得伪造存在", () => {
+await run("B2 F3 原位诚实占位：审批卡/任务步进数据不可得时保留原型位置（容器+标题+unavailable/retry），删除区块即判红", () => {
+  const gates = Object.fromEntries(lib.REGION_CONTRACT.map((c) => [c.key, c.gate ?? []]));
   for (const key of ["approvals", "taskStep"]) {
     const r = impl[key];
     assert.ok(r, `主面缺 ${key} 读数槽位`);
-    assert.equal(r.exists, false, `${key}.exists=${r.exists}：数据不可得时必须如实缺席，不得用假数据占位（卡 §三.A.9）`);
-    assert.deepEqual(Object.keys(r.metrics ?? {}), [], `${key} 缺席却携带伪造 metrics`);
+    assert.equal(r.exists, true, `${key}.exists=${r.exists}：F3（卡 §三.B.6）要求数据不可得时原位保留占位容器（标题+unavailable/retry），不得删除区块`);
+    assert.equal(r.visible, true, `${key}.visible=${r.visible}：占位容器必须真实绘制在原位，藏掉等于删区块`);
+    for (const metric of gates[key]) {
+      const v = r.metrics?.[metric];
+      assert.ok(v !== undefined && String(v) !== "", `${key}.${metric} 无实测读数：占位卡必须与真实卡同形同量（否则原型位置无从对齐）`);
+    }
+    const text = String(r.metrics?.text ?? "");
+    assert.match(text, /读取失败|待接入|暂无|无数据/, `${key} 占位文案必须如实声明数据不可得（不得伪造业务数据）：实读 "${text}"`);
+    assert.match(text, /重试/, `${key} 占位文案必须带重试入口（卡 §三.B.6 unavailable/retry）：实读 "${text}"`);
     const rows = (base.diffTable ?? []).filter((x) => x.region === key);
-    assert.ok(rows.length >= 1, `差异表缺 ${key} 行（缺席必须显式留痕，不得静默）`);
-    for (const row of rows) assert.ok(["n/a", "explained"].includes(row.verdict), `${key} 差异行判读异常：${row.verdict}`);
+    assert.ok(rows.length >= gates[key].length, `${key} 差异表行数 ${rows.length} < 门禁指标数 ${gates[key].length}（占位在原位，差异表必须逐指标比而非缺项留痕）`);
+    for (const row of rows) {
+      assert.ok(!["missing", "n/a"].includes(row.verdict), `${key}.${row.metric} 判读=${row.verdict}：F3 起占位在原位存在，不得再按缺席记 n/a/missing`);
+    }
   }
-  return "approvals / taskStep：exists=false + metrics 空 + 差异表 n/a 留痕";
+  return "approvals / taskStep：exists/visible=true + 门禁指标齐测 + 文案含诚实声明与重试 + 差异表逐指标比对";
 });
 
 /* ══════ D. 差异表与容差（卡 §三.A.7「偏差必须逐项解释，原则上为 0」） ══════ */

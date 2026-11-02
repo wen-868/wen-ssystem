@@ -1,10 +1,14 @@
 /**
- * WORKBENCH-13-F2 · A 段（原型视觉基线）门禁逻辑（纯函数，无 IO、无网络）
+ * WORKBENCH-13-F2/F3 · A 段（原型视觉基线）门禁逻辑（纯函数，无 IO、无网络）
  *
  * 卡 §三.A.1/§五.1 要的是「原型与实现同视口并排截图 + DOM/computed 差异表」，
  * 所以这里不比类名、不比源码字符串，只比**同一视口下两个真实渲染的读数**。
  * 原型侧与实现侧由 `f2a-visual-baseline.mjs` 在同一次浏览器运行里分别量取，
  * 本文件负责把两份读数对齐成差异表并判红。
+ *
+ * F3 增量（卡 §三.A）：主面五区一律 `required`（数据不可得也只能原位诚实占位，不得删区块）；
+ * 新增 `stateSignatureOf` + `findStateSignatureF3` —— 两侧活跃模态清零、状态签名从读数重算且
+ * 逐字符相等、签名写进并排图，任何一条不满足即判红。
  *
  * 为什么必须机器判红（卡 §六「不得用近似截图替代原型并排验收」）：
  * 只看两张图很容易自我说服，坐标差 8px、底色差一档、新对话还在顶部，
@@ -143,6 +147,7 @@ export const REGION_CONTRACT = [
     impl: ".wb-kpis",
     card: "§三.A.8",
     gate: ["gap", "gridColumns", "padding"],
+    required: true,
   },
   {
     key: "approvals",
@@ -151,6 +156,7 @@ export const REGION_CONTRACT = [
     impl: "#wbApps .wb-ap",
     card: "§三.A.8",
     gate: ["borderRadius", "padding", "marginBottom"],
+    required: true,
   },
   {
     key: "broadcast",
@@ -159,6 +165,7 @@ export const REGION_CONTRACT = [
     impl: '[data-testid="wb-bc-entry"]',
     card: "§三.A.8",
     gate: ["borderRadius", "padding"],
+    required: true,
   },
   {
     key: "queue",
@@ -167,6 +174,7 @@ export const REGION_CONTRACT = [
     impl: '[data-testid="wb-feed-taskboard"] .wb-sec',
     card: "§三.A.8",
     gate: ["marginBottom", "fontSize", "gap"],
+    required: true,
   },
   {
     key: "taskStep",
@@ -175,6 +183,7 @@ export const REGION_CONTRACT = [
     impl: ".act24-card",
     card: "§三.A.8",
     gate: ["borderRadius", "padding", "marginBottom"],
+    required: true,
   },
 ];
 
@@ -750,6 +759,67 @@ export function findEmptyDiff(rows = []) {
   return [];
 }
 
+/* ────────────────── F3 §三.A：同状态签名与模态清零 ────────────────── */
+
+/**
+ * 状态签名（卡 §三.A.3）：视口 + 面状态 + 活跃模态数 + REGION_CONTRACT 逐区「在场且可见」位向量。
+ * 两侧必须由**同一函数、同一读数口径**产出 ⇒ 签名不是手写说明，而是 DOM 读数的确定性映射；
+ * 门禁还会从读数重算并与存量比对，改字符串不改读数一样被抓。
+ */
+export function stateSignatureOf(readings = {}, { viewport = "", face = "unknown", overlays = null } = {}) {
+  const bits = REGION_CONTRACT.map((r) => {
+    const reg = readings?.[r.key] ?? {};
+    return `${r.key}:${reg.exists === true && reg.visible === true ? 1 : 0}`;
+  });
+  return `vp=${viewport}|face=${face}|overlay=${overlays}|${bits.join("|")}`;
+}
+
+/** 逐字段对照两个签名，只用于门禁文案（判定口径仍是整串相等） */
+export function diffStateSignatures(a = "", b = "") {
+  const pa = String(a).split("|");
+  const pb = String(b).split("|");
+  const out = [];
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    if (pa[i] !== pb[i]) out.push(`${pa[i] ?? "∅"} ≠ ${pb[i] ?? "∅"}`);
+  }
+  return out;
+}
+
+/**
+ * F3 §三.A 门禁（采集端与专项测试共用）：
+ *   · 两侧活跃模态必须为 0，且原型侧清零后要二次确认真稳定（§三.A.1/2）；
+ *   · 两侧状态签名必须存在、可从读数重算复现、且逐字符相等（§三.A.3，不等直接判红）；
+ *   · 签名必须写进并排图 figcaption（signaturesPrinted），让 PNG 证据自带状态声明（§五.1）。
+ * 返回违例字符串数组（为空 = 合格）。
+ */
+export function findStateSignatureF3(base = {}) {
+  const out = [];
+  const rec = base.stateSignature ?? {};
+  const pm = base.prototypeModals ?? {};
+  const io = base.implOverlays ?? {};
+  const protoActive = Number(pm.finalActive);
+  const implActive = Number(io.active);
+  if (!Number.isFinite(protoActive)) out.push("原型侧活跃模态读数缺失（§三.A.2 测量前必须为 0）");
+  else if (protoActive !== 0) out.push(`原型侧仍有 ${protoActive} 个活跃模态未关闭（§三.A.1）：${(pm.finalList ?? []).map((m) => m.id || m.cls || m.selector).join(",") || "∅"}`);
+  if (pm.stable !== true) out.push("原型侧模态清零后未二次确认稳定（§三.A.1「关闭并等待稳定」）");
+  if (!Number.isFinite(implActive)) out.push("实现侧活跃 overlay 读数缺失（§三.A.2 要求 .el-overlay=0）");
+  else if (implActive !== 0) out.push(`实现侧仍有 ${implActive} 个活跃 .el-overlay/浮层（§三.A.2）：${(io.list ?? []).map((m) => m.cls || m.selector).join(",") || "∅"}`);
+  const protoFace = base.prototypeFace?.ok === true ? "home-feed" : "not-home";
+  const implFace = base.implementation?.__page?.feedShown === true ? "home-feed" : "not-home";
+  const protoSig = stateSignatureOf(base.prototype ?? {}, { viewport: BASE_VIEWPORT.id, face: protoFace, overlays: Number.isFinite(protoActive) ? protoActive : null });
+  const implSig = stateSignatureOf(base.implementation ?? {}, { viewport: BASE_VIEWPORT.id, face: implFace, overlays: Number.isFinite(implActive) ? implActive : null });
+  if (!rec.prototype || !rec.implementation) {
+    out.push("状态签名读数缺失（§三.A.3 并排图必须写出两侧状态签名）");
+  } else {
+    if (rec.prototype !== protoSig) out.push("存量状态签名与区域读数重算不符（原型侧）——签名必须从读数派生，不得手写");
+    if (rec.implementation !== implSig) out.push("存量状态签名与区域读数重算不符（实现侧）——签名必须从读数派生，不得手写");
+    if (protoSig !== implSig) out.push(`两侧状态签名不一致（§三.A.3/§五.1 直接判红）：${diffStateSignatures(protoSig, implSig).join("；")}`);
+    if (rec.equal !== (protoSig === implSig)) out.push("存量签名相等性与重算结果不符（读数被改过而 equal 标志没跟着改）");
+  }
+  if (base.sideBySide?.signaturesPrinted !== true) out.push("并排图 figcaption 未写出两侧状态签名（§三.A.3 签名必须进 PNG 证据）");
+  return out;
+}
+
 /** 网络失败白名单沿用 A/B 段同一份口径（卡 §三.9） */
 export function findUnresolvedNetwork(audit = {}, allowedPorts = []) {
   const ports = new Set(allowedPorts.map((e) => Number(e.port)));
@@ -813,6 +883,7 @@ export function collectViolationsF2A(bundle = {}) {
   }
   for (const m of findMissingSideBySide(base.shots ?? {})) out.push(`并排证据不足：${m}`);
   for (const m of findSideBySideMismatch(base.sideBySide ?? {})) out.push(`并排图不同视口：${m.reason}`);
+  for (const s of findStateSignatureF3(base)) out.push(`同状态验收不合格（F3 §三.A）：${s}`);
   for (const c of findClippedA(bundle.frames ?? [])) {
     out.push(`横向裁切（§三.C.14）：${c.viewport}/${c.screen} overflowX=${c.overflowX}`);
   }

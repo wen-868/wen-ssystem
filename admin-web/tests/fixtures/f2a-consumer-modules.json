@@ -1,10 +1,10 @@
 {
   "schema": "wb13-f2a-consumer-modules/v1",
-  "generatedAt": "2026-11-02T19:17:15.104Z",
+  "generatedAt": "2026-11-02T21:54:18.471Z",
   "task": "WORKBENCH-13-WORKBENCH-UIUX-COMPLETE-01-F2",
   "segment": "A · 消费者验收（生产 URL · 真实 SUPER_ADMIN · 无注入）",
   "app": {
-    "origin": "http://localhost:5399",
+    "origin": "http://localhost:5299",
     "apiBase": "/api",
     "user": "admin",
     "roles": [
@@ -19,13 +19,13 @@
     "executable": "C:/Program Files/Google/Chrome/Application/chrome.exe"
   },
   "servers": {
-    "backendPort": 8388,
-    "webPort": 5399,
+    "backendPort": 8288,
+    "webPort": 5299,
     "startedBy": "harness",
     "portsAllDown": true
   },
   "production": {
-    "href": "http://localhost:5399/dashboard",
+    "href": "http://localhost:5299/dashboard",
     "injected": false,
     "uiuxInject": "off",
     "shellMounted": true
@@ -49,7 +49,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -64,8 +64,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-销售管理.png",
-        "bytes": 149911,
-        "sha256": "6214C1709762A202776662E661D08DE5D995A13EDB3A8110657A43EC3ECF6A8D"
+        "bytes": 160064,
+        "sha256": "4189E87780BFEE44071A49042825CE1AD2F144429641F4484A62F1E4D4F61A1E"
       }
     },
     {
@@ -85,7 +85,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -100,8 +100,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-订单管理.png",
-        "bytes": 145276,
-        "sha256": "42902BD62B47FD20FA2CE36CB84296704200D3C60D34BB7B931AEB4B8FD4CED3"
+        "bytes": 156051,
+        "sha256": "23864CE715BD10DC376D5495983C7CD28A6EFC042C47DE1FBC034A8E5268F9F1"
       }
     },
     {
@@ -121,7 +121,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -136,8 +136,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-采购管理.png",
-        "bytes": 149978,
-        "sha256": "719FF76D12407ECAD6473A506751492803D68C1D1E17CD971BB11E3305DADFEC"
+        "bytes": 160459,
+        "sha256": "C69156595D65A11DBA2FDDE0948AD2EDE84FEA21A9B25173F1CBB5AB255D1C1E"
       }
     },
     {
@@ -157,7 +157,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -172,8 +172,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-库存管理.png",
-        "bytes": 157634,
-        "sha256": "8FA79215F40E4147A0F69EE934568BEED104107E848A2378469C5EE35F61E12D"
+        "bytes": 168052,
+        "sha256": "EBD8BED6E20108642D884AE43E0323EAFEA3ACDBB802EC101E84D6A41DF96A80"
       }
     },
     {
@@ -193,7 +193,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -208,8 +208,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-客户管理.png",
-        "bytes": 147026,
-        "sha256": "ED5CF51E0478F892ABA6E9BBDEA47CF59E75B600B7FA67D7846AA481424A196C"
+        "bytes": 157382,
+        "sha256": "EA737F7293EA3231BCAE1FFD16DBDA37B9A7B9260B0143D621CA93872D76F1EA"
       }
     },
     {
@@ -229,7 +229,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -244,8 +244,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-商品中心.png",
-        "bytes": 152154,
-        "sha256": "76B87A88636ADD88939133976E4602C816796C9253CE9A904D3EAD3357A138D9"
+        "bytes": 162400,
+        "sha256": "CEE823286E5B292D7C68CEA679277E547AACAD903776C006902CECA1462FFD92"
       }
     },
     {
@@ -265,7 +265,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -280,8 +280,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-即时零售.png",
-        "bytes": 148857,
-        "sha256": "09ECA77FA247A63B79F8824D0D88E270906A5A8BD7B041E3A45E0AC508157144"
+        "bytes": 158937,
+        "sha256": "F481278DEF0D27BDAF9C4060041678346D7FEA2C52DCFB0053CD675FDD3B9DE5"
       }
     },
     {
@@ -301,7 +301,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -316,8 +316,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-财务管理.png",
-        "bytes": 154599,
-        "sha256": "5B9C2897A554A7C59611593B74DC18BFCC384903605B5E99FCD3BF041099C5FC"
+        "bytes": 164514,
+        "sha256": "0221643F7706FE51756B63A24CC406257D20EC3C7A9EF07AF4C160155D108D66"
       }
     },
     {
@@ -337,7 +337,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -352,8 +352,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-数据报表.png",
-        "bytes": 142136,
-        "sha256": "78CDAEB7C55C2DC19995C3FA79FC5B636905EBBB99AD58533A866786AA28E743"
+        "bytes": 152798,
+        "sha256": "AFA3226C59577F78BC1763D8A221D533E07216A8A1CABEB21CBBFDB240D62F4C"
       }
     },
     {
@@ -373,7 +373,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -388,8 +388,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-营销推广.png",
-        "bytes": 155204,
-        "sha256": "9B8C255FB95D3A874D55ED71462E30AD9C6BB3ED03DB3B2660A86D8D1D360C5F"
+        "bytes": 165577,
+        "sha256": "B8140FEF2BBD2AA4858AA6341F37FEA918A251182C570B3B7E0C1D9934FEBD77"
       }
     },
     {
@@ -409,7 +409,7 @@
         }
       },
       "main": {
-        "url": "http://localhost:5399/dashboard",
+        "url": "http://localhost:5299/dashboard",
         "hasContent": true,
         "mainVisible": true,
         "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
@@ -424,8 +424,8 @@
       "pageerror": [],
       "shot": {
         "file": "shots/consumer-module-系统管理.png",
-        "bytes": 153149,
-        "sha256": "A1AF31853DEE8FD68C2A226EB02620ACAF7C741B4C957E25AD9435FBD9D29EB0"
+        "bytes": 163179,
+        "sha256": "EDB128C11FD27AC91BBC5930179175BC191AFB47DF4140FE28A3E760793421BE"
       }
     }
   ],
@@ -439,11 +439,11 @@
       "backgroundColor": "rgb(37, 99, 235)",
       "color": "rgb(255, 255, 255)"
     },
-    "url": "http://localhost:5399/dashboard",
+    "url": "http://localhost:5299/dashboard",
     "shot": {
       "file": "shots/consumer-back-desk.png",
-      "bytes": 145464,
-      "sha256": "CD511F4C78012B9B3FA8B7C10D1E2155711B8C290DB3F1161366678EFF8145E7"
+      "bytes": 155851,
+      "sha256": "06142D472D03976C5FA3DBC86EFB70E60C6568A66DFA0644B1051580CF6ADB80"
     }
   },
   "segToggle": {
@@ -461,8 +461,8 @@
       "overflowX": 0,
       "shot": {
         "file": "shots/consumer-seg-chat.png",
-        "bytes": 145484,
-        "sha256": "01CC1036FEE7F9697B67C0AFA78E481601F0D48C906BD37005E70C0C242BF912"
+        "bytes": 155859,
+        "sha256": "1D5C2035E60D37010CB0DA8CA0EE25EA0527995BC5542F020B10E963B20F9E9B"
       }
     },
     "afterStaffAgain": {
@@ -473,8 +473,8 @@
       "overflowX": 0,
       "shot": {
         "file": "shots/consumer-seg-staff.png",
-        "bytes": 145463,
-        "sha256": "DE08E5960EEFF4C889D2F3AEE0C1517A1B9F951CF3A3BFA0DD831751804C259F"
+        "bytes": 155852,
+        "sha256": "6B39FF78DA8DDCF7CFFC08386C551B42070CFC06723FA3E0315DF4114DCE5EFA"
       }
     }
   },
@@ -482,99 +482,99 @@
     {
       "label": "seg-chat",
       "file": "shots/consumer-seg-chat.png",
-      "bytes": 145484,
-      "sha256": "01CC1036FEE7F9697B67C0AFA78E481601F0D48C906BD37005E70C0C242BF912",
+      "bytes": 155859,
+      "sha256": "1D5C2035E60D37010CB0DA8CA0EE25EA0527995BC5542F020B10E963B20F9E9B",
       "overflowX": 0
     },
     {
       "label": "seg-staff",
       "file": "shots/consumer-seg-staff.png",
-      "bytes": 145463,
-      "sha256": "DE08E5960EEFF4C889D2F3AEE0C1517A1B9F951CF3A3BFA0DD831751804C259F",
+      "bytes": 155852,
+      "sha256": "6B39FF78DA8DDCF7CFFC08386C551B42070CFC06723FA3E0315DF4114DCE5EFA",
       "overflowX": 0
     },
     {
       "label": "module-销售管理",
       "file": "shots/consumer-module-销售管理.png",
-      "bytes": 149911,
-      "sha256": "6214C1709762A202776662E661D08DE5D995A13EDB3A8110657A43EC3ECF6A8D",
+      "bytes": 160064,
+      "sha256": "4189E87780BFEE44071A49042825CE1AD2F144429641F4484A62F1E4D4F61A1E",
       "overflowX": 0
     },
     {
       "label": "module-订单管理",
       "file": "shots/consumer-module-订单管理.png",
-      "bytes": 145276,
-      "sha256": "42902BD62B47FD20FA2CE36CB84296704200D3C60D34BB7B931AEB4B8FD4CED3",
+      "bytes": 156051,
+      "sha256": "23864CE715BD10DC376D5495983C7CD28A6EFC042C47DE1FBC034A8E5268F9F1",
       "overflowX": 0
     },
     {
       "label": "module-采购管理",
       "file": "shots/consumer-module-采购管理.png",
-      "bytes": 149978,
-      "sha256": "719FF76D12407ECAD6473A506751492803D68C1D1E17CD971BB11E3305DADFEC",
+      "bytes": 160459,
+      "sha256": "C69156595D65A11DBA2FDDE0948AD2EDE84FEA21A9B25173F1CBB5AB255D1C1E",
       "overflowX": 0
     },
     {
       "label": "module-库存管理",
       "file": "shots/consumer-module-库存管理.png",
-      "bytes": 157634,
-      "sha256": "8FA79215F40E4147A0F69EE934568BEED104107E848A2378469C5EE35F61E12D",
+      "bytes": 168052,
+      "sha256": "EBD8BED6E20108642D884AE43E0323EAFEA3ACDBB802EC101E84D6A41DF96A80",
       "overflowX": 0
     },
     {
       "label": "module-客户管理",
       "file": "shots/consumer-module-客户管理.png",
-      "bytes": 147026,
-      "sha256": "ED5CF51E0478F892ABA6E9BBDEA47CF59E75B600B7FA67D7846AA481424A196C",
+      "bytes": 157382,
+      "sha256": "EA737F7293EA3231BCAE1FFD16DBDA37B9A7B9260B0143D621CA93872D76F1EA",
       "overflowX": 0
     },
     {
       "label": "module-商品中心",
       "file": "shots/consumer-module-商品中心.png",
-      "bytes": 152154,
-      "sha256": "76B87A88636ADD88939133976E4602C816796C9253CE9A904D3EAD3357A138D9",
+      "bytes": 162400,
+      "sha256": "CEE823286E5B292D7C68CEA679277E547AACAD903776C006902CECA1462FFD92",
       "overflowX": 0
     },
     {
       "label": "module-即时零售",
       "file": "shots/consumer-module-即时零售.png",
-      "bytes": 148857,
-      "sha256": "09ECA77FA247A63B79F8824D0D88E270906A5A8BD7B041E3A45E0AC508157144",
+      "bytes": 158937,
+      "sha256": "F481278DEF0D27BDAF9C4060041678346D7FEA2C52DCFB0053CD675FDD3B9DE5",
       "overflowX": 0
     },
     {
       "label": "module-财务管理",
       "file": "shots/consumer-module-财务管理.png",
-      "bytes": 154599,
-      "sha256": "5B9C2897A554A7C59611593B74DC18BFCC384903605B5E99FCD3BF041099C5FC",
+      "bytes": 164514,
+      "sha256": "0221643F7706FE51756B63A24CC406257D20EC3C7A9EF07AF4C160155D108D66",
       "overflowX": 0
     },
     {
       "label": "module-数据报表",
       "file": "shots/consumer-module-数据报表.png",
-      "bytes": 142136,
-      "sha256": "78CDAEB7C55C2DC19995C3FA79FC5B636905EBBB99AD58533A866786AA28E743",
+      "bytes": 152798,
+      "sha256": "AFA3226C59577F78BC1763D8A221D533E07216A8A1CABEB21CBBFDB240D62F4C",
       "overflowX": 0
     },
     {
       "label": "module-营销推广",
       "file": "shots/consumer-module-营销推广.png",
-      "bytes": 155204,
-      "sha256": "9B8C255FB95D3A874D55ED71462E30AD9C6BB3ED03DB3B2660A86D8D1D360C5F",
+      "bytes": 165577,
+      "sha256": "B8140FEF2BBD2AA4858AA6341F37FEA918A251182C570B3B7E0C1D9934FEBD77",
       "overflowX": 0
     },
     {
       "label": "module-系统管理",
       "file": "shots/consumer-module-系统管理.png",
-      "bytes": 153149,
-      "sha256": "A1AF31853DEE8FD68C2A226EB02620ACAF7C741B4C957E25AD9435FBD9D29EB0",
+      "bytes": 163179,
+      "sha256": "EDB128C11FD27AC91BBC5930179175BC191AFB47DF4140FE28A3E760793421BE",
       "overflowX": 0
     },
     {
       "label": "back-desk",
       "file": "shots/consumer-back-desk.png",
-      "bytes": 145464,
-      "sha256": "CD511F4C78012B9B3FA8B7C10D1E2155711B8C290DB3F1161366678EFF8145E7",
+      "bytes": 155851,
+      "sha256": "06142D472D03976C5FA3DBC86EFB70E60C6568A66DFA0644B1051580CF6ADB80",
       "overflowX": 0
     }
   ],
