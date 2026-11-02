@@ -1,6 +1,6 @@
 {
   "schema": "wb13-f2-func-measures/v1",
-  "generatedAt": "2026-11-01T21:30:38.568Z",
+  "generatedAt": "2026-11-02T21:53:41.015Z",
   "task": "WORKBENCH-13-WORKBENCH-UIUX-COMPLETE-01-F2",
   "app": {
     "origin": "http://localhost:5299",
@@ -50,9 +50,10 @@
   },
   "updateCheckerMount": {
     "file": "src/modules/update/checker.ts",
-    "calledBy": "src/layouts/MainLayout.vue (onMounted)",
-    "reachableWhen": "wb.shell.v2=0（旧壳回滚路径）；新壳默认开启时 MainLayout 不挂载 ⇒ 已登记为产品缺口",
-    "localVersion": "0.1.0"
+    "calledBy": "src/layouts/WorkbenchShell.vue (onMounted, shellEnabled 为真时) —— F3 §三.C.9 新壳真实接入；回滚路径 src/layouts/MainLayout.vue (onMounted) 仍保留（兼容回归）",
+    "reachableWhen": "wb-shell 生产新壳（默认）；wb.shell.v2=0 回滚时由 MainLayout 挂载点兜底 ⇒ 两种壳都可达，通知通过证据只取新壳帧（§三.C.10/C.11）",
+    "localVersion": "0.1.0",
+    "silentFallback": "检查失败静默降级不阻塞工作台（checker.ts 内部 catch，§三.C.12）"
   },
   "scenes": [
     {
@@ -63,8 +64,9 @@
       "shot": "shots/1440x1000-01-confirm-open.png",
       "capturedAt": "post-run",
       "legacyLayout": false,
-      "sha256": "1A37882CDF555DCAAC15CCE55B26404134713A07C49DDC313E8D670852EC1203",
-      "bytes": 88924,
+      "compatRole": null,
+      "sha256": "B7011D5E05F2C82A99419D6DB43E2A52DBCFBFD187730B1108F390E31A92218D",
+      "bytes": 103724,
       "overflowX": 0,
       "expectButtons": [
         "取消",
@@ -77,7 +79,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 411,
+        "bodyTextLen": 542,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -177,12 +179,13 @@
       "viewport": "1440x1000",
       "scene": "02-notify-update",
       "contract": "production",
-      "note": "非强制更新通知：由 src/modules/update/checker.ts 的 ElNotification 真实产出（旧壳回滚路径：检查器的既有挂载点在 MainLayout）",
+      "note": "非强制更新通知（F3 §三.C.10）：WorkbenchShell onMounted 真接 checkWebUpdate() ⇒ ElNotification 在 [data-testid=\"wb-shell\"] 生产新壳上真实产出",
       "shot": "shots/1440x1000-02-notify-update.png",
       "capturedAt": "post-run",
-      "legacyLayout": true,
-      "sha256": "2C138BDB68E3B5E267B91C31E4CBA68F84ED30E8F1CB5A05A2C9D9EBD86A9073",
-      "bytes": 101603,
+      "legacyLayout": false,
+      "compatRole": null,
+      "sha256": "E294DCA0BFA795D98BCEF22594E250F0F9405958E536CEFE1A9B4DCBEB92B932",
+      "bytes": 100616,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": null,
@@ -190,9 +193,9 @@
       "expectKeyboardEnter": false,
       "readout": {
         "path": "/messages",
-        "shell": "mainlayout",
+        "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 482,
+        "bodyTextLen": 563,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -217,11 +220,11 @@
               "borderWidth": "1px",
               "visibility": "visible",
               "opacity": "1",
-              "zIndex": "2005",
+              "zIndex": "2004",
               "width": "330px",
               "display": "flex"
             },
-            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
           },
           "wrapper": {
             "rect": {
@@ -238,15 +241,15 @@
               "borderWidth": "1px",
               "visibility": "visible",
               "opacity": "1",
-              "zIndex": "2005",
+              "zIndex": "2004",
               "width": "330px",
               "display": "flex"
             },
-            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
           },
           "buttons": [
             {
-              "label": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+              "label": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
               "tag": "DIV",
               "enabled": true,
               "rect": {
@@ -262,7 +265,7 @@
           "focus": {
             "activeTag": "BODY",
             "activeClass": "",
-            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "activeLabel": "智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表",
             "insideBox": false
           }
         },
@@ -276,7 +279,7 @@
           "required": true,
           "throttleKeyWritten": true,
           "payloadSource": "harness-version-stub",
-          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "overlayText": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
           "checkerHitsElNotification": true,
           "notificationGoneAfterReload": null,
           "renotifiedAfterReload": null,
@@ -285,18 +288,19 @@
           "stubIsForce": false
         }
       },
-      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=1|rules=18|rect=1094,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）:1|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=notification|exists=1|rules=18|rect=1094,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）:1|focus=0|智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "1440x1000",
       "scene": "03-alert-forced",
       "contract": "production",
-      "note": "强制更新：ElMessageBox.alert 在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
+      "note": "强制更新（F3 新壳）：ElMessageBox.alert 由 wb-shell 上挂载的检查器产出，且在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
       "shot": "shots/1440x1000-03-alert-forced.png",
       "capturedAt": "post-run",
-      "legacyLayout": true,
-      "sha256": "590DBE2B82105B3DE1D98FC06D32DAC70C44650937D85682C6DD559D8BB70D0F",
-      "bytes": 107114,
+      "legacyLayout": false,
+      "compatRole": null,
+      "sha256": "CFB9F1BBD707CBA64CD62E4090E36E1A3227E3A55CA1D6822D2FAD9374DCE2A8",
+      "bytes": 108579,
       "overflowX": 0,
       "expectButtons": [
         "立即刷新"
@@ -306,9 +310,9 @@
       "expectKeyboardEnter": false,
       "readout": {
         "path": "/messages",
-        "shell": "mainlayout",
+        "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 511,
+        "bodyTextLen": 592,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -337,7 +341,7 @@
               "width": "420px",
               "display": "inline-block"
             },
-            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F3证据帧：新壳真实强制更新确认（MessageBox.alert）立即刷新"
           },
           "wrapper": {
             "rect": {
@@ -358,7 +362,7 @@
               "width": "1408px",
               "display": "block"
             },
-            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F3证据帧：新壳真实强制更新确认（MessageBox.alert）立即刷新"
           },
           "buttons": [
             {
@@ -389,7 +393,7 @@
           "endpoint": "/admin/wb-notifications/read-all"
         }
       },
-      "stateSignature": "path=/messages|shell=mainlayout|kind=message-box|exists=1|rules=28|rect=510,424,420,152|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=1|rules=28|rect=510,424,420,152|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "1440x1000",
@@ -399,8 +403,9 @@
       "shot": "shots/1440x1000-04-confirm-cancel.png",
       "capturedAt": "post-run",
       "legacyLayout": false,
-      "sha256": "25C14C015CC81F657B75FE8B3E45D2C361F9EE41415CD5753F14C5507D931532",
-      "bytes": 83900,
+      "compatRole": null,
+      "sha256": "9E970120C7BBEB7E270A40ABEEB2F1E9B66E067ED67DA2725722E79AF8F6F961",
+      "bytes": 98766,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": 0,
@@ -410,7 +415,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 386,
+        "bodyTextLen": 517,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -447,8 +452,9 @@
       "shot": "shots/1440x1000-05-confirm-ok.png",
       "capturedAt": "post-run",
       "legacyLayout": false,
-      "sha256": "A094404D2ED727313FE642348262759743D44CEB691F4CD79C6F51BAAD4D9B3C",
-      "bytes": 84761,
+      "compatRole": null,
+      "sha256": "83A26FA26532BF94532CE8D794553E3FF17E9D352F050940FD69C5079FCE13F2",
+      "bytes": 99554,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": 1,
@@ -458,7 +464,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 395,
+        "bodyTextLen": 526,
         "tableRendered": false,
         "toast": "已全部标为已读",
         "toastCount": 1,
@@ -495,8 +501,9 @@
       "shot": "shots/1440x1000-06-confirm-keyboard.png",
       "capturedAt": "decisive-moment(self-shot)",
       "legacyLayout": false,
-      "sha256": "72D9AFA73B33BECF365F5BA9364CA140CCDFADC8DDAC98B72DBBA180161C4677",
-      "bytes": 89124,
+      "compatRole": null,
+      "sha256": "FFD03F9A1C0C913810F3C8A00A991160180BA30141397C786159C6CC8E210924",
+      "bytes": 104183,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": 1,
@@ -506,7 +513,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 395,
+        "bodyTextLen": 526,
         "tableRendered": false,
         "toast": "已全部标为已读",
         "toastCount": 1,
@@ -637,12 +644,13 @@
       "viewport": "1440x1000",
       "scene": "07-notify-click-reload",
       "contract": "production",
-      "note": "通知可点：真实点击通知 ⇒ 页面真的重新加载（document 请求 +1），末帧留重载后旧提示不残留的结果态（卡 §四.3）",
+      "note": "通知可点（F3 新壳）：wb-shell 上真实点击通知 ⇒ 页面真的重新加载（document 请求 +1），末帧留重载后旧提示不残留的结果态（卡 §四.3/§三.C.10）",
       "shot": "shots/1440x1000-07-notify-click-reload.png",
       "capturedAt": "post-run",
-      "legacyLayout": true,
-      "sha256": "196DC639D4A536F90C698FEC2AE1F1E469D24E33CBC1636DAF6B887A8323D6EB",
-      "bytes": 98860,
+      "legacyLayout": false,
+      "compatRole": null,
+      "sha256": "06FCE5B5174593164E9F159EA4E70A35F0ED9FF3F6655EC1980A010E1FBF1903",
+      "bytes": 98469,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": null,
@@ -650,9 +658,9 @@
       "expectKeyboardEnter": false,
       "readout": {
         "path": "/messages",
-        "shell": "mainlayout",
+        "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 438,
+        "bodyTextLen": 517,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -668,7 +676,7 @@
           "focus": {
             "activeTag": "BODY",
             "activeClass": "",
-            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "activeLabel": "智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表",
             "insideBox": false
           }
         },
@@ -682,7 +690,7 @@
           "required": true,
           "throttleKeyWritten": true,
           "payloadSource": "harness-version-stub",
-          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "overlayText": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
           "checkerHitsElNotification": true,
           "notificationGoneAfterReload": true,
           "renotifiedAfterReload": true,
@@ -691,7 +699,116 @@
           "stubIsForce": false
         }
       },
-      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=0|rules=18|rect=|pos=|shadow=|btns=|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=1|drawer=0>0:|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=notification|exists=0|rules=18|rect=|pos=|shadow=|btns=|focus=0|智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表|table=0|writes=0|throttle=1|notifyRect=|reload=1|drawer=0>0:|toast=|blocked=|keyTrail="
+    },
+    {
+      "viewport": "1440x1000",
+      "scene": "11-legacy-compat-notify",
+      "contract": "production",
+      "note": "兼容回归帧（F3 §三.C.11）：旧壳回滚路径（wb.shell.v2=0）下 MainLayout 挂载点仍能产出通知；此帧**不作通过证据**，只证明回滚不断通知链",
+      "shot": "shots/1440x1000-11-legacy-compat-notify.png",
+      "capturedAt": "post-run",
+      "legacyLayout": true,
+      "compatRole": "compat-regression",
+      "sha256": "9E5D297864DA9F76A070FA237971F0363FE13C30D8468CC83CFE89AC0408AEE8",
+      "bytes": 101885,
+      "overflowX": 0,
+      "expectButtons": [],
+      "expectWrites": null,
+      "expectKeyboard": false,
+      "expectKeyboardEnter": false,
+      "readout": {
+        "path": "/messages",
+        "shell": "mainlayout",
+        "overflowX": 0,
+        "bodyTextLen": 484,
+        "tableRendered": false,
+        "toast": "",
+        "toastCount": 0,
+        "overlay": {
+          "required": true,
+          "kind": "notification",
+          "exists": true,
+          "cssRules": 18,
+          "messageRules": 60,
+          "box": {
+            "rect": {
+              "x": 1094,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
+          },
+          "wrapper": {
+            "rect": {
+              "x": 1094,
+              "y": 16,
+              "w": 330,
+              "h": 108
+            },
+            "computed": {
+              "position": "fixed",
+              "backgroundColor": "rgb(255, 255, 255)",
+              "borderRadius": "8px",
+              "boxShadow": "rgba(16, 24, 40, 0.04) 0px 1px 2px 0px, rgba(16, 24, 40, 0.06) 0px 1px 3px 0px",
+              "borderWidth": "1px",
+              "visibility": "visible",
+              "opacity": "1",
+              "zIndex": "2005",
+              "width": "330px",
+              "display": "flex"
+            },
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
+          },
+          "buttons": [
+            {
+              "label": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
+              "tag": "DIV",
+              "enabled": true,
+              "rect": {
+                "x": 1094,
+                "y": 16,
+                "w": 330,
+                "h": 108
+              },
+              "hit": true,
+              "hitBy": "P"
+            }
+          ],
+          "focus": {
+            "activeTag": "BODY",
+            "activeClass": "",
+            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "insideBox": false
+          }
+        },
+        "primaryAction": null,
+        "focusTrail": [],
+        "writes": {
+          "readAllRequests": 0,
+          "endpoint": "/admin/wb-notifications/read-all"
+        },
+        "compatNotify": {
+          "observed": true,
+          "overlayText": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
+          "checkerHitsElNotification": true,
+          "role": "compat-regression-only"
+        }
+      },
+      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=1|rules=18|rect=1094,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）:1|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "1024x768",
@@ -701,8 +818,9 @@
       "shot": "shots/1024x768-01-confirm-open.png",
       "capturedAt": "post-run",
       "legacyLayout": false,
-      "sha256": "89BA13272A82E1E065F242BEEA29D7A6EF74197903E73B85A71E6B8E0F0C1B18",
-      "bytes": 82362,
+      "compatRole": null,
+      "sha256": "5F42343214AF86DCFA994E49CA6705F64E5680A024B27B4C0C93310B20238A71",
+      "bytes": 97059,
       "overflowX": 0,
       "expectButtons": [
         "取消",
@@ -715,7 +833,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 411,
+        "bodyTextLen": 542,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -815,12 +933,13 @@
       "viewport": "1024x768",
       "scene": "02-notify-update",
       "contract": "production",
-      "note": "非强制更新通知：由 src/modules/update/checker.ts 的 ElNotification 真实产出（旧壳回滚路径：检查器的既有挂载点在 MainLayout）",
+      "note": "非强制更新通知（F3 §三.C.10）：WorkbenchShell onMounted 真接 checkWebUpdate() ⇒ ElNotification 在 [data-testid=\"wb-shell\"] 生产新壳上真实产出",
       "shot": "shots/1024x768-02-notify-update.png",
       "capturedAt": "post-run",
-      "legacyLayout": true,
-      "sha256": "198C48CCC60D479A05FB4CA302313B50A1E75005068ADAA31DA3B1143AB9DBBC",
-      "bytes": 89663,
+      "legacyLayout": false,
+      "compatRole": null,
+      "sha256": "5F3713277C254DB35CB07166999021159221FC3ED08079E6F7B718FE11D6E029",
+      "bytes": 94214,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": null,
@@ -828,9 +947,9 @@
       "expectKeyboardEnter": false,
       "readout": {
         "path": "/messages",
-        "shell": "mainlayout",
+        "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 482,
+        "bodyTextLen": 563,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -855,11 +974,11 @@
               "borderWidth": "1px",
               "visibility": "visible",
               "opacity": "1",
-              "zIndex": "2005",
+              "zIndex": "2004",
               "width": "330px",
               "display": "flex"
             },
-            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
           },
           "wrapper": {
             "rect": {
@@ -876,15 +995,15 @@
               "borderWidth": "1px",
               "visibility": "visible",
               "opacity": "1",
-              "zIndex": "2005",
+              "zIndex": "2004",
               "width": "330px",
               "display": "flex"
             },
-            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
           },
           "buttons": [
             {
-              "label": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+              "label": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
               "tag": "DIV",
               "enabled": true,
               "rect": {
@@ -900,7 +1019,7 @@
           "focus": {
             "activeTag": "BODY",
             "activeClass": "",
-            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "activeLabel": "智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表",
             "insideBox": false
           }
         },
@@ -914,7 +1033,7 @@
           "required": true,
           "throttleKeyWritten": true,
           "payloadSource": "harness-version-stub",
-          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "overlayText": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
           "checkerHitsElNotification": true,
           "notificationGoneAfterReload": null,
           "renotifiedAfterReload": null,
@@ -923,18 +1042,19 @@
           "stubIsForce": false
         }
       },
-      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=1|rules=18|rect=678,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）:1|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=notification|exists=1|rules=18|rect=678,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）:1|focus=0|智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "1024x768",
       "scene": "03-alert-forced",
       "contract": "production",
-      "note": "强制更新：ElMessageBox.alert 在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
+      "note": "强制更新（F3 新壳）：ElMessageBox.alert 由 wb-shell 上挂载的检查器产出，且在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
       "shot": "shots/1024x768-03-alert-forced.png",
       "capturedAt": "post-run",
-      "legacyLayout": true,
-      "sha256": "76B06C11B0DD46D0927518669EAE5A500BCB5F0CD0AD640B24B38DCD61D93B57",
-      "bytes": 95017,
+      "legacyLayout": false,
+      "compatRole": null,
+      "sha256": "0221187ACAE69D417441B58D4D7CAE5AC7D6D23BC972234ED404F1573302139C",
+      "bytes": 102009,
       "overflowX": 0,
       "expectButtons": [
         "立即刷新"
@@ -944,9 +1064,9 @@
       "expectKeyboardEnter": false,
       "readout": {
         "path": "/messages",
-        "shell": "mainlayout",
+        "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 511,
+        "bodyTextLen": 592,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -975,7 +1095,7 @@
               "width": "420px",
               "display": "inline-block"
             },
-            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F3证据帧：新壳真实强制更新确认（MessageBox.alert）立即刷新"
           },
           "wrapper": {
             "rect": {
@@ -996,7 +1116,7 @@
               "width": "992px",
               "display": "block"
             },
-            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F3证据帧：新壳真实强制更新确认（MessageBox.alert）立即刷新"
           },
           "buttons": [
             {
@@ -1027,7 +1147,7 @@
           "endpoint": "/admin/wb-notifications/read-all"
         }
       },
-      "stateSignature": "path=/messages|shell=mainlayout|kind=message-box|exists=1|rules=28|rect=302,308,420,152|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=1|rules=28|rect=302,308,420,152|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "390x844",
@@ -1037,8 +1157,9 @@
       "shot": "shots/390x844-01-confirm-open.png",
       "capturedAt": "post-run",
       "legacyLayout": false,
-      "sha256": "260D32149C5A16F71BF7BA7649487A466C74AB1F0C04EA8C4B3BC6E43CE9833B",
-      "bytes": 43944,
+      "compatRole": null,
+      "sha256": "6379A9EA56DBB0AEFE6E3730712952E71CB4A20FD7CA996FD222ED495DD48B16",
+      "bytes": 47625,
       "overflowX": 0,
       "expectButtons": [
         "取消",
@@ -1051,7 +1172,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 274,
+        "bodyTextLen": 362,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -1151,22 +1272,23 @@
       "viewport": "390x844",
       "scene": "02-notify-update",
       "contract": "production",
-      "note": "非强制更新通知：由 src/modules/update/checker.ts 的 ElNotification 真实产出（旧壳回滚路径：检查器的既有挂载点在 MainLayout）",
+      "note": "非强制更新通知（F3 §三.C.10）：WorkbenchShell onMounted 真接 checkWebUpdate() ⇒ ElNotification 在 [data-testid=\"wb-shell\"] 生产新壳上真实产出",
       "shot": "shots/390x844-02-notify-update.png",
       "capturedAt": "post-run",
-      "legacyLayout": true,
-      "sha256": "23643ACE2BC7FAF879C3322E125DF36CD9937E7D799AB68CC1FBC1A6E8100074",
-      "bytes": 38662,
-      "overflowX": 289,
+      "legacyLayout": false,
+      "compatRole": null,
+      "sha256": "C941058FA0A085E6D1CF9F5BE17438E6C352767F66F0EB2BE0FE008D8ABF52B2",
+      "bytes": 49641,
+      "overflowX": 0,
       "expectButtons": [],
       "expectWrites": null,
       "expectKeyboard": false,
       "expectKeyboardEnter": false,
       "readout": {
         "path": "/messages",
-        "shell": "mainlayout",
-        "overflowX": 289,
-        "bodyTextLen": 482,
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 383,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -1191,11 +1313,11 @@
               "borderWidth": "1px",
               "visibility": "visible",
               "opacity": "1",
-              "zIndex": "2005",
+              "zIndex": "2004",
               "width": "330px",
               "display": "flex"
             },
-            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
           },
           "wrapper": {
             "rect": {
@@ -1212,15 +1334,15 @@
               "borderWidth": "1px",
               "visibility": "visible",
               "opacity": "1",
-              "zIndex": "2005",
+              "zIndex": "2004",
               "width": "330px",
               "display": "flex"
             },
-            "text": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）"
+            "text": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）"
           },
           "buttons": [
             {
-              "label": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+              "label": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
               "tag": "DIV",
               "enabled": true,
               "rect": {
@@ -1236,7 +1358,7 @@
           "focus": {
             "activeTag": "BODY",
             "activeClass": "",
-            "activeLabel": "智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作",
+            "activeLabel": "智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表",
             "insideBox": false
           }
         },
@@ -1250,7 +1372,7 @@
           "required": true,
           "throttleKeyWritten": true,
           "payloadSource": "harness-version-stub",
-          "overlayText": "系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）",
+          "overlayText": "系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）",
           "checkerHitsElNotification": true,
           "notificationGoneAfterReload": null,
           "renotifiedAfterReload": null,
@@ -1259,19 +1381,20 @@
           "stubIsForce": false
         }
       },
-      "stateSignature": "path=/messages|shell=mainlayout|kind=notification|exists=1|rules=18|rect=44,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F2证据帧：真实非强制更新通知（函数式组件样式）:1|focus=0|智享全链营业中消息中心搜索商品、订单...⌘K工作台收银台系统管理员智享全链工作|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=notification|exists=1|rules=18|rect=44,16,330,108|pos=fixed|shadow=rgba(16, 24, 40, 0.04) 0|btns=系统已更新新版本v0.2.0：F3证据帧：新壳真实非强制更新通知（函数式组件样式）:1|focus=0|智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表|table=0|writes=0|throttle=1|notifyRect=|reload=0|drawer=0>0:|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "390x844",
       "scene": "03-alert-forced",
       "contract": "production",
-      "note": "强制更新：ElMessageBox.alert 在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
+      "note": "强制更新（F3 新壳）：ElMessageBox.alert 由 wb-shell 上挂载的检查器产出，且在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
       "shot": "shots/390x844-03-alert-forced.png",
       "capturedAt": "post-run",
-      "legacyLayout": true,
-      "sha256": "40A8407F917553E461C0107A0A8625D13697C3B402443E4FB6E8237E973B45CB",
-      "bytes": 38440,
-      "overflowX": 289,
+      "legacyLayout": false,
+      "compatRole": null,
+      "sha256": "51DF622E2D0F101E5312F51C436CA24F9BB46EA8DBEAD7D757B36B38A30336D7",
+      "bytes": 46016,
+      "overflowX": 0,
       "expectButtons": [
         "立即刷新"
       ],
@@ -1280,9 +1403,9 @@
       "expectKeyboardEnter": false,
       "readout": {
         "path": "/messages",
-        "shell": "mainlayout",
-        "overflowX": 289,
-        "bodyTextLen": 511,
+        "shell": "v2",
+        "overflowX": 0,
+        "bodyTextLen": 412,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -1311,7 +1434,7 @@
               "width": "358.797px",
               "display": "inline-block"
             },
-            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F3证据帧：新壳真实强制更新确认（MessageBox.alert）立即刷新"
           },
           "wrapper": {
             "rect": {
@@ -1332,7 +1455,7 @@
               "width": "358px",
               "display": "block"
             },
-            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F2证据帧：真实强制更新确认（MessageBox.alert）立即刷新"
+            "text": "系统更新系统已升级到v0.2.0，请刷新页面使用最新功能。F3证据帧：新壳真实强制更新确认（MessageBox.alert）立即刷新"
           },
           "buttons": [
             {
@@ -1363,7 +1486,7 @@
           "endpoint": "/admin/wb-notifications/read-all"
         }
       },
-      "stateSignature": "path=/messages|shell=mainlayout|kind=message-box|exists=1|rules=28|rect=16,16,359,176|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=1|rules=28|rect=16,16,359,176|pos=relative|shadow=rgba(16, 24, 40, 0.08) 0|btns=立即刷新:1|focus=1|立即刷新|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=0>0:|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "390x844",
@@ -1373,8 +1496,9 @@
       "shot": "shots/390x844-08-drawer-mouse.png",
       "capturedAt": "post-run",
       "legacyLayout": false,
-      "sha256": "D0ABBE40B8FA7310219EA660DF572CC7CB5627AB75C5D4892884B266B3B28BD7",
-      "bytes": 45860,
+      "compatRole": null,
+      "sha256": "8E47DB330B41E47DD3F44F7B88473E60454C2C50AFCFF239F0E12F139F45CA6C",
+      "bytes": 49666,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": null,
@@ -1384,7 +1508,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 249,
+        "bodyTextLen": 337,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -1400,7 +1524,7 @@
           "focus": {
             "activeTag": "BODY",
             "activeClass": "",
-            "activeLabel": "智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工",
+            "activeLabel": "智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表",
             "insideBox": false
           }
         },
@@ -1422,7 +1546,7 @@
           "forceUsed": false
         }
       },
-      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=1>1:mouse|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=1>1:mouse|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "390x844",
@@ -1432,8 +1556,9 @@
       "shot": "shots/390x844-09-drawer-touch.png",
       "capturedAt": "decisive-moment(self-shot)",
       "legacyLayout": false,
-      "sha256": "D0D96883B269F42C75641CAF153E4606FBFC5ABDB12C4947F3EF497AA5479712",
-      "bytes": 42240,
+      "compatRole": null,
+      "sha256": "F5D3A87016ED19352A73B9EFDBDDDF6CCE147C9399C5F5D6345D1CD92ED770AF",
+      "bytes": 48514,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": null,
@@ -1443,7 +1568,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 249,
+        "bodyTextLen": 337,
         "tableRendered": false,
         "toast": "",
         "toastCount": 0,
@@ -1459,7 +1584,7 @@
           "focus": {
             "activeTag": "BODY",
             "activeClass": "",
-            "activeLabel": "智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工",
+            "activeLabel": "智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表",
             "insideBox": false
           }
         },
@@ -1482,7 +1607,7 @@
           "forceUsed": false
         }
       },
-      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|智工作台设置智智享全链AI经营底座·管理与收银一体»消息中心AI不通重试数字员工|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=1>1:touch|toast=|blocked=|keyTrail="
+      "stateSignature": "path=/messages|shell=v2|kind=message-box|exists=0|rules=28|rect=|pos=|shadow=|btns=|focus=0|智工作台销售管理订单管理采购管理库存管理客户管理商品中心即时零售财务管理数据报表|table=0|writes=0|throttle=0|notifyRect=|reload=|drawer=1>1:touch|toast=|blocked=|keyTrail="
     },
     {
       "viewport": "390x844",
@@ -1492,8 +1617,9 @@
       "shot": "shots/390x844-10-toast-not-blocking.png",
       "capturedAt": "post-run",
       "legacyLayout": false,
-      "sha256": "8D9D49DC0DA96193290DC06E268AE3A607C5F71CAE7F4089003D4AAC4DCA744F",
-      "bytes": 47233,
+      "compatRole": null,
+      "sha256": "0E0A661732A8C8E3A6702708C02C447C8EBA94080A7EA9F1D712488618066923",
+      "bytes": 51081,
       "overflowX": 0,
       "expectButtons": [],
       "expectWrites": 1,
@@ -1503,7 +1629,7 @@
         "path": "/messages",
         "shell": "v2",
         "overflowX": 0,
-        "bodyTextLen": 258,
+        "bodyTextLen": 346,
         "tableRendered": false,
         "toast": "已全部标为已读",
         "toastCount": 1,
@@ -1540,20 +1666,9 @@
     }
   ],
   "findings": {
-    "legacyOverflow": [
-      {
-        "viewport": "390x844",
-        "scene": "02-notify-update",
-        "overflowX": 289
-      },
-      {
-        "viewport": "390x844",
-        "scene": "03-alert-forced",
-        "overflowX": 289
-      }
-    ],
-    "legacyOverflowNote": "更新通知/强制帧只能挂在 checkWebUpdate() 的既有挂载点（旧壳 MainLayout）上；旧壳本身不做窄屏适配 ⇒ 390 上的横向溢出登记为产品缺口（放开 MainLayout 写入权限后另单修），不静默放行、也不用 hack 推到首屏",
-    "updateCheckerNotMountedOnNewShell": "新壳（wb.shell.v2 默认开）不渲染 MainLayout ⇒ checkWebUpdate() 不执行 ⇒ 生产默认态下用户收不到更新提示；本卡不改业务页面，登记为产品缺口"
+    "legacyOverflow": [],
+    "legacyOverflowNote": "F3 起更新通知/强制帧改在**生产新壳 wb-shell** 上采集（§三.C.10），旧壳 11-legacy-compat-notify 只是 1440 兼容回归帧 ⇒ 正常不应再有旧壳溢出豁免帧；若本表非空必须单列披露，不静默放行",
+    "updateCheckerOnNewShell": "F3 §三.C.9 已闭合：WorkbenchShell.onMounted 在 shellEnabled 为真时 void checkWebUpdate()；F2 登记的「新壳不跑检查器」产品缺口由本卡关闭（证据=02/03/07 帧读数壳层 shell=v2 + 节流键 zx_web_update_check_v1 机器自证）"
   },
   "network": {
     "failures": [
@@ -1624,6 +1739,24 @@
         "viewport": "1440x1000",
         "scene": "02-notify-update",
         "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "02-notify-update",
+        "method": "GET",
         "url": "http://localhost:3016/api/health/ready",
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
@@ -1660,6 +1793,24 @@
         "viewport": "1440x1000",
         "scene": "03-alert-forced",
         "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "03-alert-forced",
+        "method": "GET",
         "url": "http://localhost:3016/api/health/ready",
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
@@ -1705,19 +1856,19 @@
         "viewport": "1440x1000",
         "scene": "04-confirm-cancel",
         "method": "GET",
-        "url": "http://localhost:3016/api/health/ready",
+        "url": "http://localhost:3016/api/chat/confirmations",
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
-        "signature": "GET http://localhost:3016/api/health/ready"
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
       },
       {
         "viewport": "1440x1000",
         "scene": "04-confirm-cancel",
         "method": "GET",
-        "url": "http://localhost:3016/api/chat/confirmations",
+        "url": "http://localhost:3016/api/health/ready",
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
-        "signature": "GET http://localhost:3016/api/chat/confirmations"
+        "signature": "GET http://localhost:3016/api/health/ready"
       },
       {
         "viewport": "1440x1000",
@@ -1858,6 +2009,24 @@
         "viewport": "1440x1000",
         "scene": "07-notify-click-reload",
         "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
         "url": "http://localhost:3016/api/health/ready",
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
@@ -1871,6 +2040,24 @@
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
         "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
       },
       {
         "viewport": "1440x1000",
@@ -1911,6 +2098,42 @@
       {
         "viewport": "1440x1000",
         "scene": "07-notify-click-reload",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "11-legacy-compat-notify",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "11-legacy-compat-notify",
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "11-legacy-compat-notify",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "viewport": "1440x1000",
+        "scene": "11-legacy-compat-notify",
         "method": "GET",
         "url": "http://localhost:3016/api/ai/agent/plans",
         "port": 3016,
@@ -1984,6 +2207,24 @@
         "viewport": "1024x768",
         "scene": "02-notify-update",
         "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "02-notify-update",
+        "method": "GET",
         "url": "http://localhost:3016/api/health/ready",
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
@@ -2001,6 +2242,24 @@
       {
         "viewport": "1024x768",
         "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "1024x768",
+        "scene": "03-alert-forced",
         "method": "GET",
         "url": "http://localhost:3016/api/ai/agent/plans",
         "port": 3016,
@@ -2110,6 +2369,24 @@
         "viewport": "390x844",
         "scene": "02-notify-update",
         "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "02-notify-update",
+        "method": "GET",
         "url": "http://localhost:3016/api/health/ready",
         "port": 3016,
         "error": "net::ERR_CONNECTION_REFUSED",
@@ -2127,6 +2404,24 @@
       {
         "viewport": "390x844",
         "scene": "02-notify-update",
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "03-alert-forced",
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "viewport": "390x844",
+        "scene": "03-alert-forced",
         "method": "GET",
         "url": "http://localhost:3016/api/ai/agent/plans",
         "port": 3016,

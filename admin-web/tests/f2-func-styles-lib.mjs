@@ -49,6 +49,8 @@ export const REQUIRED_SCENES = [
   { scene: "08-drawer-mouse", viewports: ["390x844"] },
   { scene: "09-drawer-touch", viewports: ["390x844"] },
   { scene: "10-toast-not-blocking", viewports: ["390x844"] },
+  // F3 §三.C.11：旧壳兼容回归帧也必须出证（但它不携带通知通过证据）
+  { scene: "11-legacy-compat-notify", viewports: ["1440x1000"] },
 ];
 
 /** 场景状态签名：证明「这一帧的操作真的发生过」，改名复用同一帧过不了（卡 §三.7） */
@@ -291,6 +293,29 @@ export function listLegacyOverflow(scenes = []) {
     .map((s) => ({ viewport: s.viewport, scene: s.scene, overflowX: s.overflowX }));
 }
 
+/**
+ * F3 §三.C.10/C.11：通知**通过证据**必须来自 [data-testid="wb-shell"] 生产新壳（读数壳层 v2）。
+ * 旧壳回滚帧只能登记为 compat-regression 兼容回归，一旦携带 notify 判据即判红。
+ */
+export function findNotifyShellF3(scenes = []) {
+  const out = [];
+  for (const s of scenes) {
+    if (s.readout?.notify?.required !== true) continue;
+    if (s.readout?.shell !== "v2") {
+      out.push({ viewport: s.viewport, scene: s.scene, reason: `通知证据帧壳层=${String(s.readout?.shell)}（要求 v2：wb-shell 生产新壳）` });
+    }
+    if (s.legacyLayout === true) {
+      out.push({ viewport: s.viewport, scene: s.scene, reason: "旧壳回滚帧不得携带通知通过证据（只能作 compat-regression）" });
+    }
+  }
+  for (const s of scenes) {
+    if (s.compatRole === "compat-regression" && s.readout?.notify?.required === true) {
+      out.push({ viewport: s.viewport, scene: s.scene, reason: "兼容回归帧被标为 notify 通过证据（伪装新壳证据）" });
+    }
+  }
+  return out;
+}
+
 /** 汇总门禁违例：空数组 = 证据合格 */
 export function collectViolationsF2(bundle = {}) {
   const scenes = bundle.scenes ?? [];
@@ -309,6 +334,7 @@ export function collectViolationsF2(bundle = {}) {
   for (const b of findUnoperableButtons(scenes)) out.push(`按钮不可点：${b.viewport}/${b.scene}「${b.label}」→ ${b.reason}`);
   for (const w of findWriteMismatch(scenes)) out.push(`写操作与预期不符：${w.viewport}/${w.scene} 期望 ${w.expected} 次，实际 ${w.actual} 次`);
   for (const n of findSyntheticNotification(scenes)) out.push(`通知非生产路径：${n.viewport}/${n.scene} → ${n.reason}`);
+  for (const n of findNotifyShellF3(scenes)) out.push(`通知壳层违规：${n.viewport}/${n.scene} → ${n.reason}`);
   for (const k of findKeyboardBlocked(scenes)) out.push(`键盘操作受阻：${k.viewport}/${k.scene} → ${k.reason}`);
   for (const d of findStuckDrawer(scenes)) out.push(`抽屉回归：${d.viewport}/${d.scene} → ${d.reason}`);
   for (const t of findToastBlockingAction(scenes)) out.push(`提示遮挡主操作：${t.viewport}/${t.scene} → ${t.reason}`);

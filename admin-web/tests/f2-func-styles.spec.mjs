@@ -276,14 +276,24 @@ await run("E4 证据脱敏：仓内副本不得含凭据形态", () => {
   return "JWT / token 参数 / Bearer / csrfToken / 开发密钥 均未入证据";
 });
 
-await run("E5 披露守恒：通知帧必须落在旧壳上，且新壳不跑检查器的缺口被写进证据", () => {
+await run("E5 披露守恒：通知通过证据必须落在 wb-shell 生产新壳，旧壳只留兼容回归帧（F3 §三.C.10/C.11 反转口径）", () => {
   const notifyFrames = scenes.filter((s) => s.readout?.notify?.required);
   assert.ok(notifyFrames.length >= 4, `通知证据帧不足：${notifyFrames.length}`);
-  for (const f of notifyFrames) assert.equal(f.readout.shell, "mainlayout", `${f.viewport}/${f.scene} 的壳层读数不是旧壳`);
-  assert.ok(String(bundle.findings?.updateCheckerNotMountedOnNewShell ?? "").length > 30, "新壳不挂载 checkWebUpdate() 的缺口必须登记，不得静默");
-  assert.ok(Array.isArray(bundle.findings?.legacyOverflow), "旧壳 390 溢出必须显式列出");
+  for (const f of notifyFrames) {
+    assert.equal(f.readout.shell, "v2", `${f.viewport}/${f.scene} 的壳层读数不是 [data-testid="wb-shell"] 生产新壳`);
+    assert.equal(f.legacyLayout, false, `${f.viewport}/${f.scene} 旧壳回滚帧不得携带通知通过证据（卡 §三.C.11）`);
+  }
+  assert.deepEqual(lib.findNotifyShellF3(notifyFrames), [], "通知壳层门禁判红");
+  const compat = scenes.find((s) => s.compatRole === "compat-regression");
+  assert.ok(compat, "缺旧壳兼容回归帧（§三.C.11 要求回滚路径单列出证）");
+  assert.equal(compat.readout.shell, "mainlayout", "兼容帧必须落在旧壳读数上");
+  assert.equal(compat.readout.notify, undefined, "兼容回归帧不得标为通知通过证据");
+  assert.equal(compat.readout.compatNotify?.checkerHitsElNotification, true, "旧壳回滚路径必须仍能真实产出通知（兼容回归正证）");
+  assert.ok(String(bundle.findings?.updateCheckerOnNewShell ?? "").length > 30, "新壳接入说明必须写进证据");
+  assert.ok(!("updateCheckerNotMountedOnNewShell" in (bundle.findings ?? {})), "F3 已闭合的缺口不得再以旧名登记");
   assert.equal(bundle.updateCheckerMount?.file, "src/modules/update/checker.ts", "通知来源文件必须写明");
-  return `${notifyFrames.length} 帧均在旧壳；2 条产品缺口已登记`;
+  assert.match(String(bundle.updateCheckerMount?.calledBy ?? ""), /WorkbenchShell\.vue/, "挂载点必须写明新壳 WorkbenchShell");
+  return `${notifyFrames.length} 帧均 shell=v2；旧壳兼容回归帧 1 张单列；新壳挂载口径入证`;
 });
 
 const failed = results.filter((r) => !r.ok);

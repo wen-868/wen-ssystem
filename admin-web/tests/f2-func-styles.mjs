@@ -15,6 +15,10 @@
  *   证据里以 `notify.payloadSource="harness-version-stub"` 标注来源，并用「只有该文件会写的
  *   localStorage 节流键 `zx_web_update_check_v1`」机器证明生产检查器真的跑过。
  *
+ * F3 §三.C 口径：checkWebUpdate() 已真实接入 WorkbenchShell（生产新壳）的 onMounted ⇒
+ *   通知/强制帧一律在 [data-testid="wb-shell"] 上采集（读数壳层必须为 v2）；
+ *   旧壳回滚（wb.shell.v2=0）仍由 11-legacy-compat-notify 单列出**兼容回归**帧，不作通过证据。
+ *
  * 用法（admin-web 目录）：
  *   node tests/f2-func-styles.mjs <evidenceDir 绝对路径> [--only=1440x1000] [--scene=01] [--keep-servers]
  *
@@ -440,12 +444,12 @@ const STUB_VERSION = {
   isForce: false,
   updateUrl: "",
   packageUrl: "",
-  updateNote: "F2 证据帧：真实非强制更新通知（函数式组件样式）",
+  updateNote: "F3 证据帧：新壳真实非强制更新通知（函数式组件样式）",
   updatedAt: "2026-11-01 00:00:00",
 };
-const STUB_VERSION_FORCED = { ...STUB_VERSION, isForce: true, updateNote: "F2 证据帧：真实强制更新确认（MessageBox.alert）" };
+const STUB_VERSION_FORCED = { ...STUB_VERSION, isForce: true, updateNote: "F3 证据帧：新壳真实强制更新确认（MessageBox.alert）" };
 
-/** 旧壳回滚路径：checkWebUpdate() 的既有挂载点在 MainLayout（新壳下不挂载，已在回传卡登记为产品缺口） */
+/** 旧壳回滚路径（F3 §三.C.11：只作兼容回归，不再作为通知通过证据） */
 const OLD_SHELL_FLAGS = { "wb.shell.v2": "0" };
 
 const SCENES = [
@@ -465,11 +469,10 @@ const SCENES = [
     scene: "02-notify-update",
     viewports: ["1440x1000", "1024x768", "390x844"],
     versionPayload: STUB_VERSION,
-    flags: OLD_SHELL_FLAGS,
-    legacyLayout: true,
-    note: "非强制更新通知：由 src/modules/update/checker.ts 的 ElNotification 真实产出（旧壳回滚路径：检查器的既有挂载点在 MainLayout）",
+    note: "非强制更新通知（F3 §三.C.10）：WorkbenchShell onMounted 真接 checkWebUpdate() ⇒ ElNotification 在 [data-testid=\"wb-shell\"] 生产新壳上真实产出",
     async run(page, vp, state) {
       await page.goto(`${ORIGIN}${MSG_PATH}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+      await page.waitForSelector('[data-testid="wb-shell"]', { timeout: 20000 });
       await waitForOverlay(page, ".el-notification", 12000);
       await page.waitForTimeout(400);
       state.overlayText = await page.evaluate(() => (document.querySelector(".el-notification")?.textContent || "").replace(/\s+/g, ""));
@@ -480,11 +483,10 @@ const SCENES = [
     scene: "03-alert-forced",
     viewports: ["1440x1000", "1024x768", "390x844"],
     versionPayload: STUB_VERSION_FORCED,
-    flags: OLD_SHELL_FLAGS,
-    legacyLayout: true,
-    note: "强制更新：ElMessageBox.alert 在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
+    note: "强制更新（F3 新壳）：ElMessageBox.alert 由 wb-shell 上挂载的检查器产出，且在**不渲染 ZxElTable** 的 /messages 上必须有样式（卡 §三.2 去耦合的正证）",
     async run(page) {
       await page.goto(`${ORIGIN}${MSG_PATH}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+      await page.waitForSelector('[data-testid="wb-shell"]', { timeout: 20000 });
       await waitForOverlay(page, ".el-message-box", 12000);
       await page.waitForTimeout(400);
       return { probe: { kind: "message-box" }, expectButtons: ["立即刷新"] };
@@ -571,11 +573,10 @@ const SCENES = [
     scene: "07-notify-click-reload",
     viewports: ["1440x1000"],
     versionPayload: STUB_VERSION,
-    flags: OLD_SHELL_FLAGS,
-    legacyLayout: true,
-    note: "通知可点：真实点击通知 ⇒ 页面真的重新加载（document 请求 +1），末帧留重载后旧提示不残留的结果态（卡 §四.3）",
+    note: "通知可点（F3 新壳）：wb-shell 上真实点击通知 ⇒ 页面真的重新加载（document 请求 +1），末帧留重载后旧提示不残留的结果态（卡 §四.3/§三.C.10）",
     async run(page, vp, state) {
       await page.goto(`${ORIGIN}${MSG_PATH}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+      await page.waitForSelector('[data-testid="wb-shell"]', { timeout: 20000 });
       await waitForOverlay(page, ".el-notification", 12000);
       state.overlayText = await page.evaluate(() => (document.querySelector(".el-notification")?.textContent || "").replace(/\s+/g, ""));
       const before = state.documentRequests.length;
@@ -657,6 +658,23 @@ const SCENES = [
         probe: { kind: "message-box", overlayRequired: false, primaryAction: { selector: ".page-header-actions button:nth-child(2)", label: "刷新", toastExpected: true } },
         expectWrites: 1,
       };
+    },
+  },
+  {
+    scene: "11-legacy-compat-notify",
+    viewports: ["1440x1000"],
+    versionPayload: STUB_VERSION,
+    flags: OLD_SHELL_FLAGS,
+    legacyLayout: true,
+    compatRole: true,
+    note: "兼容回归帧（F3 §三.C.11）：旧壳回滚路径（wb.shell.v2=0）下 MainLayout 挂载点仍能产出通知；此帧**不作通过证据**，只证明回滚不断通知链",
+    async run(page, vp, state) {
+      await page.goto(`${ORIGIN}${MSG_PATH}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+      await page.waitForSelector(".layout .global-header", { timeout: 20000 });
+      await waitForOverlay(page, ".el-notification", 12000);
+      await page.waitForTimeout(400);
+      state.overlayText = await page.evaluate(() => (document.querySelector(".el-notification")?.textContent || "").replace(/\s+/g, ""));
+      return { probe: { kind: "notification" }, compatNotify: true };
     },
   },
 ];
@@ -750,6 +768,14 @@ async function runScene(browser, vp, auth, def) {
         stubIsForce: def.versionPayload.isForce,
       };
     }
+    if (extra.compatNotify) {
+      readout.compatNotify = {
+        observed: readout.overlay?.exists === true,
+        overlayText: String(state.overlayText ?? readout.overlay?.box?.text ?? ""),
+        checkerHitsElNotification: /v0\.2\.0/.test(String(state.overlayText ?? readout.overlay?.box?.text ?? "")),
+        role: "compat-regression-only",
+      };
+    }
     if (extra.expectKeyboard && state.focusSnapshot) readout.overlay.focus = state.focusSnapshot;
     if (state.keyboardTrail) readout.keyboardTrail = state.keyboardTrail;
     if (extra.drawer) {
@@ -771,6 +797,7 @@ async function runScene(browser, vp, auth, def) {
       shot: `shots/${shotFile}`,
       capturedAt: readout.capturedAt ?? "post-run",
       legacyLayout: def.legacyLayout === true,
+      compatRole: def.compatRole === true ? "compat-regression" : null,
       sha256: sha256(buf),
       bytes: buf.length,
       overflowX: readout.overflowX,
@@ -848,17 +875,18 @@ const bundle = {
   },
   updateCheckerMount: {
     file: "src/modules/update/checker.ts",
-    calledBy: "src/layouts/MainLayout.vue (onMounted)",
-    reachableWhen: 'wb.shell.v2=0（旧壳回滚路径）；新壳默认开启时 MainLayout 不挂载 ⇒ 已登记为产品缺口',
+    calledBy: "src/layouts/WorkbenchShell.vue (onMounted, shellEnabled 为真时) —— F3 §三.C.9 新壳真实接入；回滚路径 src/layouts/MainLayout.vue (onMounted) 仍保留（兼容回归）",
+    reachableWhen: 'wb-shell 生产新壳（默认）；wb.shell.v2=0 回滚时由 MainLayout 挂载点兜底 ⇒ 两种壳都可达，通知通过证据只取新壳帧（§三.C.10/C.11）',
     localVersion: "0.1.0",
+    silentFallback: "检查失败静默降级不阻塞工作台（checker.ts 内部 catch，§三.C.12）",
   },
   scenes: shots,
   findings: {
     legacyOverflow: listLegacyOverflow(shots),
     legacyOverflowNote:
-      "更新通知/强制帧只能挂在 checkWebUpdate() 的既有挂载点（旧壳 MainLayout）上；旧壳本身不做窄屏适配 ⇒ 390 上的横向溢出登记为产品缺口（放开 MainLayout 写入权限后另单修），不静默放行、也不用 hack 推到首屏",
-    updateCheckerNotMountedOnNewShell:
-      "新壳（wb.shell.v2 默认开）不渲染 MainLayout ⇒ checkWebUpdate() 不执行 ⇒ 生产默认态下用户收不到更新提示；本卡不改业务页面，登记为产品缺口",
+      "F3 起更新通知/强制帧改在**生产新壳 wb-shell** 上采集（§三.C.10），旧壳 11-legacy-compat-notify 只是 1440 兼容回归帧 ⇒ 正常不应再有旧壳溢出豁免帧；若本表非空必须单列披露，不静默放行",
+    updateCheckerOnNewShell:
+      "F3 §三.C.9 已闭合：WorkbenchShell.onMounted 在 shellEnabled 为真时 void checkWebUpdate()；F2 登记的「新壳不跑检查器」产品缺口由本卡关闭（证据=02/03/07 帧读数壳层 shell=v2 + 节流键 zx_web_update_check_v1 机器自证）",
   },
   network: {
     failures: netFailures,
