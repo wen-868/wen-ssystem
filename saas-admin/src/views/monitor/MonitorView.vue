@@ -11,11 +11,14 @@
       </div>
     </div>
 
-    <!-- 加载 / 错误态：写明**真实失败原因**（哪个端点、什么错），并提供重试入口 -->
-    <div v-if="error" class="tipbar r mt8">
+    <!-- 全部模块失败：页面内分类反馈（timeout/offline/500/403）+ 重试（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01） -->
+    <LoadFeedback :state="fb" @retry="onRetryAll" />
+
+    <!-- 部分模块失败：保留具名横幅，写明**真实失败原因**（哪个端点、什么错）+ 重试入口 -->
+    <div v-if="error && fb.phase !== 'error' && !(fb.phase === 'ready' && fb.stale)" class="tipbar r mt8">
       <span class="ic">!</span>
       <span>{{ error }}</span>
-      <span class="btn-t" style="margin-left: var(--space-2)" @click="loadAll">重试</span>
+      <span class="btn-t" style="margin-left: var(--space-2)" @click="onRetryAll">重试</span>
     </div>
 
     <!-- ② 三项核心 KPI —— 真源 GET /platform/monitor/api-stats（D1）：
@@ -468,6 +471,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import LoadFeedback from '../../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
 import * as echarts from 'echarts'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh } from '@element-plus/icons-vue'
@@ -513,6 +518,17 @@ const COLOR = {
 
 const loading = ref(false)
 const error = ref('')
+
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：全模块失败走分类整块反馈 */
+const fb = reactive(initialLoadFeedbackState())
+function fbDispatch(action: LoadFeedbackAction) {
+  Object.assign(fb, loadFeedbackReduce({ ...fb }, action))
+}
+function onRetryAll() {
+  fbDispatch({ type: 'retry' })
+  // retry 仅在 error/stale 态生效（状态机防重复点击），进入 loading 才真正发请求
+  if (fb.phase === 'loading') load()
+}
 
 /** 本批「不做」的行内动作：后端无该端点，按钮置灰 + 具名原因（不得用前端能力冒充） */
 const UNSUPPORTED = {
@@ -761,7 +777,7 @@ async function pushThresholds(payload: MonitorThresholds): Promise<boolean> {
   try {
     await updateMonitorThresholds(payload)
     ElMessage.success('监控阈值已保存（PUT /platform/monitor/thresholds，整包提交）')
-    await loadThresholds([])
+    await loadThresholds([], [])
     return true
   } catch {
     /* 失败原因由请求层统一给出中文提示（如 400：三档必须 warn<alert<block） */
@@ -1015,7 +1031,7 @@ async function onFilterAuditor() {
       cancelButtonText: '取消',
     })
     auditOperator.value = (value || '').trim()
-    await loadAudit([])
+    await loadAudit([], [])
   } catch {
     /* 用户取消：不改筛选条件 */
   }
@@ -1032,7 +1048,7 @@ async function onFilterMonth() {
       cancelButtonText: '取消',
     })
     auditMonth.value = (value || '').trim()
-    await loadAudit([])
+    await loadAudit([], [])
   } catch {
     /* 用户取消：不改筛选条件 */
   }
@@ -1064,7 +1080,7 @@ async function onExportMonthly() {
 }
 
 // ==================== 数据加载（每个模块独立，失败逐条具名） ====================
-async function loadApiStats(failures: string[]) {
+async function loadApiStats(failures: string[], errs: unknown[]) {
   try {
     const d = unwrap(await fetchMonitorApiStats())
     apiStats.value = (d || null) as MonitorApiStats | null
@@ -1074,10 +1090,11 @@ async function loadApiStats(failures: string[]) {
     apiStats.value = null
     trend.value = []
     failures.push(`运行统计（GET /platform/monitor/api-stats）：${errText(e)}`)
+    errs.push(e)
   }
 }
 
-async function loadStorageTop(failures: string[]) {
+async function loadStorageTop(failures: string[], errs: unknown[]) {
   try {
     const d = unwrap(await getStorageTop5()) as StorageTopResult | null
     storageRows.value = d?.records || []
@@ -1086,10 +1103,11 @@ async function loadStorageTop(failures: string[]) {
     storageRows.value = []
     storageNotes.value = []
     failures.push(`存储占用（GET /platform/monitor/storage/top5）：${errText(e)}`)
+    errs.push(e)
   }
 }
 
-async function loadTenantApi(failures: string[]) {
+async function loadTenantApi(failures: string[], errs: unknown[]) {
   try {
     const d = unwrap(await getTenantApiUsage()) as TenantApiResult | null
     tenantApiRows.value = d?.records || []
@@ -1105,20 +1123,22 @@ async function loadTenantApi(failures: string[]) {
     tenantApiRows.value = []
     tenantApiMeta.value = null
     failures.push(`租户 API 调用量（GET /platform/monitor/tenant-api）：${errText(e)}`)
+    errs.push(e)
   }
 }
 
-async function loadErrorLogs(failures: string[]) {
+async function loadErrorLogs(failures: string[], errs: unknown[]) {
   try {
     const d = unwrap(await getErrorLogs({ page: 1, pageSize: 50 }))
     errLogs.value = d?.records || []
   } catch (e) {
     errLogs.value = []
     failures.push(`错误日志（GET /platform/error-logs）：${errText(e)}`)
+    errs.push(e)
   }
 }
 
-async function loadAudit(failures: string[]) {
+async function loadAudit(failures: string[], errs: unknown[]) {
   try {
     const d = unwrap(
       await listProxyAudit({
@@ -1136,15 +1156,17 @@ async function loadAudit(failures: string[]) {
     auditRows.value = []
     auditMeta.value = null
     failures.push(`代登录审计（GET /platform/monitor/proxy-audit）：${errText(e)}`)
+    errs.push(e)
   }
 }
 
-async function loadThresholds(failures: string[]) {
+async function loadThresholds(failures: string[], errs: unknown[]) {
   try {
     thresholds.value = unwrap(await getMonitorThresholds()) as MonitorThresholdsResult | null
   } catch (e) {
     thresholds.value = null
     failures.push(`监控阈值（GET /platform/monitor/thresholds）：${errText(e)}`)
+    errs.push(e)
   }
 }
 
@@ -1153,20 +1175,36 @@ function resizeChart() {
 }
 
 async function load() {
+  const hasOld = apiStats.value != null || storageRows.value.length > 0
+  fbDispatch({ type: 'begin' })
   loading.value = true
   error.value = ''
   const failures: string[] = []
+  const errs: unknown[] = []
   await Promise.all([
-    loadApiStats(failures),
-    loadStorageTop(failures),
-    loadTenantApi(failures),
-    loadErrorLogs(failures),
-    loadAudit(failures),
-    loadThresholds(failures),
+    loadApiStats(failures, errs),
+    loadStorageTop(failures, errs),
+    loadTenantApi(failures, errs),
+    loadErrorLogs(failures, errs),
+    loadAudit(failures, errs),
+    loadThresholds(failures, errs),
   ])
   if (failures.length) {
     // A-11：写真实失败原因（端点 + 中文原因），不再用「接口未接入」式措辞掩盖故障
     error.value = `监控数据加载失败：${failures.join('；')}（其余模块已按接口真实返回渲染）`
+  }
+  if (errs.length >= 6) {
+    // 全部模块失败：整页分类反馈（403/500/超时/断网各有文案与动作）；有旧数据则保留（stale）
+    fbDispatch({ type: 'fail', err: errs[0], hasStaleData: hasOld })
+  } else {
+    // 全部或部分成功：ready（部分失败细节仍由上方具名横幅展示）
+    const hasData =
+      apiStats.value != null ||
+      storageRows.value.length > 0 ||
+      tenantApiRows.value.length > 0 ||
+      errLogs.value.length > 0 ||
+      auditRows.value.length > 0
+    fbDispatch({ type: 'success', hasData })
   }
   loading.value = false
   await nextTick()

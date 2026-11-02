@@ -15,6 +15,14 @@
       </div>
     </div>
 
+    <!-- 页面内反馈（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：详情加载失败/403/刷新失败保留旧数据 -->
+    <LoadFeedback
+      :state="fbDetail"
+      empty-text="租户不存在或已被删除"
+      @retry="onRetryDetail"
+      @back="onBackToDash"
+    />
+
     <!-- ════════ 租户概况面板（原「租户概况」弹窗内容挪入） ════════ -->
     <div class="panel">
       <div class="p-hd">
@@ -343,7 +351,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import LoadFeedback from '../../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getTenantApi,
@@ -365,6 +375,7 @@ import {
 } from './tenant-account-reset'
 
 const route = useRoute()
+const router = useRouter()
 const MODAL_W = 'var(--modal-width)'
 
 /* ───────────────────────────────────────────────────────────
@@ -374,12 +385,30 @@ const detail = ref<any>(null)
 const tenantName = computed(() => detail.value?.tenantName || '--')
 const tenantCode = computed(() => detail.value?.tenantCode || '--')
 
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：详情主数据 */
+const fbDetail = reactive(initialLoadFeedbackState())
+function fbDetailDispatch(action: LoadFeedbackAction) {
+  Object.assign(fbDetail, loadFeedbackReduce({ ...fbDetail }, action))
+}
+function onRetryDetail() {
+  fbDetailDispatch({ type: 'retry' })
+  if (fbDetail.phase === 'loading') fetchDetail()
+}
+/** 403/无权时的明确返回入口（不泄漏内部权限码） */
+function onBackToDash() {
+  router.push('/dashboard')
+}
+
 async function fetchDetail() {
+  const hasOld = !!detail.value
+  fbDetailDispatch({ type: 'begin' })
   try {
     const res: any = await getTenantApi(Number(route.params.id))
     detail.value = res.data
+    fbDetailDispatch({ type: 'success', hasData: !!detail.value })
   } catch (e) {
-    detail.value = null
+    // 有旧数据则保留（stale 横幅），无旧数据页面内分类错误态（403 独立文案+返回入口）
+    fbDetailDispatch({ type: 'fail', err: e, hasStaleData: hasOld })
   }
 }
 

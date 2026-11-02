@@ -24,7 +24,9 @@
     </el-card>
 
     <el-card>
-      <el-table :data="list" v-loading="loading" border stripe style="width: 100%;">
+      <!-- 页面内反馈（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：loading/empty/timeout/offline/500/403/恢复 分类呈现 -->
+      <LoadFeedback :state="fb" empty-text="暂无操作日志" @retry="onRetry" />
+      <el-table v-if="fb.phase === 'ready'" :data="list" v-loading="loading" border stripe style="width: 100%;">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="userName" label="操作人" width="120" />
         <el-table-column prop="action" label="操作类型" width="100">
@@ -46,7 +48,7 @@
         </el-table-column>
       </el-table>
 
-      <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+      <div v-if="fb.phase === 'ready'" style="display: flex; justify-content: flex-end; margin-top: 16px;">
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
@@ -82,14 +84,21 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
-import { ElMessage } from "element-plus";
 import { getAuditLogs } from "../api";
+import LoadFeedback from "../components/LoadFeedback.vue";
+// 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：分类/重试/保留旧数据/恢复清残留的真源在 api/feedback.ts
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from "../api/feedback";
 
 const loading = ref(false);
 const list = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
+
+const fb = reactive(initialLoadFeedbackState());
+function fbDispatch(action: LoadFeedbackAction) {
+  Object.assign(fb, loadFeedbackReduce({ ...fb }, action));
+}
 
 const searchForm = reactive({
   keyword: "",
@@ -114,6 +123,8 @@ function actionTag(action: string) {
 }
 
 async function fetchList() {
+  const hasOld = list.value.length > 0;
+  fbDispatch({ type: "begin" });
   loading.value = true;
   try {
     const res = await getAuditLogs({
@@ -125,11 +136,19 @@ async function fetchList() {
     const data = res.data?.data || (res as any).data || res;
     list.value = data.records || [];
     total.value = data.total || 0;
+    fbDispatch({ type: "success", hasData: list.value.length > 0 });
   } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "加载失败");
+    // 页面内错误态（分类文案 + 重试）替代 toast——失败与空态不同形
+    fbDispatch({ type: "fail", err: e, hasStaleData: hasOld });
   } finally {
     loading.value = false;
   }
+}
+
+function onRetry() {
+  fbDispatch({ type: "retry" });
+  // retry 仅在 loading 态生效（防重复点击由状态机锁定），loading 才真正发请求
+  if (fb.phase === "loading") fetchList();
 }
 
 const detailVisible = ref(false);

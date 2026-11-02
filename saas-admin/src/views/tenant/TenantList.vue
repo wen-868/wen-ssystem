@@ -76,12 +76,7 @@
         </table>
       </div>
 
-      <div v-if="loading" class="empty">加载中…</div>
-      <div v-else-if="listError" class="empty">
-        <span class="err-t">租户列表加载失败</span>
-        <span class="retry" @click="fetchList">重试</span>
-      </div>
-      <div v-else-if="!list.length" class="empty">暂无租户数据</div>
+      <LoadFeedback :state="fb" empty-text="暂无租户数据" @retry="onRetry" />
 
       <div class="pagebar">
         <span>共 {{ total }} 条 · 每页 {{ pageSize }} 条</span>
@@ -199,6 +194,8 @@ import {
   proxyLoginTenantApi,
 } from '../../api/tenant'
 import { buildQuotaRows, type QuotaRow } from './quota'
+import LoadFeedback from '../../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
 
 const router = useRouter()
 
@@ -206,11 +203,21 @@ const router = useRouter()
    列表数据（沿用现有 listTenantsApi，保留 loading / 空态 / 错误态 + 可重试）
    ─────────────────────────────────────────────────────────── */
 const loading = ref(false)
-const listError = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)
 const pageSize = ref(20)
 const page = ref(1)
+
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：loading/empty/timeout/offline/500/403/恢复 */
+const fb = reactive(initialLoadFeedbackState())
+function fbDispatch(action: LoadFeedbackAction) {
+  Object.assign(fb, loadFeedbackReduce({ ...fb }, action))
+}
+function onRetry() {
+  fbDispatch({ type: 'retry' })
+  // retry 仅在 error/stale 态生效（状态机防重复点击），进入 loading 才真正发请求
+  if (fb.phase === 'loading') fetchList()
+}
 
 /**
  * ✅ 已联调：GET /api/platform/tenants/stats（各状态租户计数，C1-2 A1 落地）
@@ -257,8 +264,9 @@ const expireOptions = ['全部', '近30天到期', '已到期', '永久免费']
 const filters = reactive({ plan: '全部', status: '全部', expire: '近30天到期', keyword: '' })
 
 async function fetchList() {
+  const hasOld = list.value.length > 0
+  fbDispatch({ type: 'begin' })
   loading.value = true
-  listError.value = false
   try {
     const params: any = { page: page.value, pageSize: pageSize.value }
     if (filters.keyword.trim()) params.keyword = filters.keyword.trim()
@@ -271,11 +279,11 @@ async function fetchList() {
     const res: any = await listTenantsApi(params)
     list.value = res.data?.records || res.data?.list || []
     total.value = res.data?.total || 0
+    fbDispatch({ type: 'success', hasData: list.value.length > 0 })
     await fetchStatusStats()
-  } catch {
-    list.value = []
-    total.value = 0
-    listError.value = true
+  } catch (e) {
+    // 刷新失败且有旧数据 → 保留旧数据（stale 横幅）；首载失败 → 页面内错误态（分类文案+重试）
+    fbDispatch({ type: 'fail', err: e, hasStaleData: hasOld })
     await fetchStatusStats()
   } finally {
     loading.value = false

@@ -25,14 +25,11 @@
       </div>
     </div>
 
-    <!-- 加载/错误态 -->
-    <div v-if="error" class="tipbar r mt8">
-      <span class="ic">!</span>
-      <span>{{ error }}（本次展示空态）</span>
-    </div>
+    <!-- 页面内反馈（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：分类错误态/重试/刷新失败保留看板数据 -->
+    <LoadFeedback :state="fb" empty-text="暂无工单" @retry="onRetry" />
 
     <!-- ② 看板（设计稿 .kan / .kan-col / .kan-hd / .kcard / .sla） -->
-    <div class="kan mt12">
+    <div class="kan mt12" v-show="fb.phase !== 'error'">
       <div v-for="col in columns" :key="col.key" class="kan-col">
         <div class="kan-hd">
           <span>{{ col.title }}</span>
@@ -190,14 +187,16 @@
     </template>
 
     <!-- 分类字典空态提示（工单类型未配置时卡片分类显示 — 而非臆造名称） -->
-    <p v-if="!loading && !error && categories.length === 0" class="small">
+    <p v-if="!loading && fb.phase !== 'error' && categories.length === 0" class="small">
       工单类型未配置（分类显示 —）；后端另有「工单类型配置」端点，本页暂无配置入口。
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import LoadFeedback from '../../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   closeSupportTicket,
@@ -323,6 +322,16 @@ const categories = ref<Array<{ id: number; name: string }>>([])
 const loading = ref(false)
 const error = ref('')
 const onlyMine = ref(false)
+
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01） */
+const fb = reactive(initialLoadFeedbackState())
+function fbDispatch(action: LoadFeedbackAction) {
+  Object.assign(fb, loadFeedbackReduce({ ...fb }, action))
+}
+function onRetry() {
+  fbDispatch({ type: 'retry' })
+  if (fb.phase === 'loading') load()
+}
 
 function toggleOnlyMine() {
   onlyMine.value = !onlyMine.value
@@ -574,6 +583,8 @@ function handleKnowledge() {
 
 /* ── 数据加载：GET /api/platform/support/tickets（分组看板 + 四态计数） ── */
 async function load() {
+  const hasOld = columns.value.some((col) => col.cards.length > 0)
+  fbDispatch({ type: 'begin' })
   loading.value = true
   error.value = ''
   try {
@@ -591,10 +602,11 @@ async function load() {
       resolved: Number(s.resolved ?? 0),
       closed: Number(s.closed ?? 0),
     }
-  } catch {
-    error.value = '工单数据加载失败'
-    columns.value = columns.value.map((col) => ({ ...col, cards: [] }))
-    boardCounts.value = { pending: 0, processing: 0, resolved: 0, closed: 0 }
+    const hasData = columns.value.some((col) => col.cards.length > 0)
+    fbDispatch({ type: 'success', hasData })
+  } catch (e) {
+    // 刷新失败保留看板旧数据（stale 横幅）；首载失败页面内分类错误态（不与「暂无工单」同形）
+    fbDispatch({ type: 'fail', err: e, hasStaleData: hasOld })
   } finally {
     loading.value = false
   }

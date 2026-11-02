@@ -123,7 +123,7 @@
           </thead>
           <tbody>
             <tr v-if="!compareRows.length">
-              <td colspan="7" class="muted">{{ listError ? '套餐列表加载失败' : '暂无套餐数据' }}</td>
+              <td colspan="7" class="muted">{{ fb.phase === 'error' ? fb.message : '暂无套餐数据' }}</td>
             </tr>
             <tr v-for="r in compareRows" :key="r.name">
               <td><b>{{ r.name }}</b></td>
@@ -146,32 +146,39 @@
       </div>
     </div>
 
-    <!-- 空态 / 错误态（接口无数据，禁模拟数据：不回落任何演示数据） -->
-    <div v-if="!plans.length" class="empty mt12">
-      <template v-if="listError">
-        <span class="err-t">套餐列表加载失败</span>
-        <span class="retry" @click="fetchList">重试</span>
-      </template>
-      <template v-else>
-        暂无套餐数据，点击「+ 新建套餐」创建平台第一个套餐
-      </template>
-    </div>
+    <!-- 空态 / 错误态（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01：分类反馈，失败与空态不同形） -->
+    <LoadFeedback
+      :state="fb"
+      empty-text="暂无套餐数据，点击「+ 新建套餐」创建平台第一个套餐"
+      @retry="onRetry"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getPlans, updatePlan, deletePlan, getPlanUpgradeFlowReport } from "../api";
 import { TOTAL_FEATURE_COUNT } from "../constants/plan-features";
+import LoadFeedback from "../components/LoadFeedback.vue";
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from "../api/feedback";
 
 const router = useRouter();
 
 /* ── 数据状态：仅取真实接口，无数据一律空态（禁模拟数据） ── */
 const loading = ref(false);
-const listError = ref(false);
 const apiPlans = ref<any[]>([]);
+
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01） */
+const fb = reactive(initialLoadFeedbackState());
+function fbDispatch(action: LoadFeedbackAction) {
+  Object.assign(fb, loadFeedbackReduce({ ...fb }, action));
+}
+function onRetry() {
+  fbDispatch({ type: "retry" });
+  if (fb.phase === "loading") fetchList();
+}
 
 interface PlanAction {
   key: string;
@@ -224,7 +231,7 @@ const headDesc = computed(() => {
     const draft = apiPlans.value.filter((p) => p.status === "DRAFT").length;
     return `共 ${apiPlans.value.length} 个套餐 · 上架中 ${on} · 停售 ${apiPlans.value.length - on - draft} · 草稿 ${draft} · 已订阅租户 --`;
   }
-  return listError.value ? "套餐列表加载失败，请重试" : "暂无套餐数据";
+  return fb.phase === "error" ? fb.message || "套餐列表加载失败，请重试" : "暂无套餐数据";
 });
 
 /* ── 对照表（仅展示真实接口套餐，无数据走空态，不编造业务数字） ── */
@@ -303,8 +310,9 @@ function switchFlowRange(r: string) {
 
 /* ── 列表加载：保留 getPlans 调用 ── */
 async function fetchList() {
+  const hasOld = apiPlans.value.length > 0;
+  fbDispatch({ type: "begin" });
   loading.value = true;
-  listError.value = false;
   try {
     // ✅ 已联调：GET /api/platform/subscriptions-management/plans
     //    （platform-plans.routes.ts:12 的 GET /api/platform/plans/: 由同一 controller 提供）
@@ -315,10 +323,10 @@ async function fetchList() {
       ...r,
       moduleAccess: typeof r.moduleAccess === "string" ? JSON.parse(r.moduleAccess || "[]") : (r.moduleAccess || []),
     }));
-  } catch {
-    /* 禁模拟数据：接口异常时保持空态，不回落任何演示数据 */
-    apiPlans.value = [];
-    listError.value = true;
+    fbDispatch({ type: "success", hasData: apiPlans.value.length > 0 });
+  } catch (e) {
+    /* 接口异常：页面内分类错误态（保留旧数据语义），不回落任何演示数据 */
+    fbDispatch({ type: "fail", err: e, hasStaleData: hasOld });
   } finally {
     loading.value = false;
   }

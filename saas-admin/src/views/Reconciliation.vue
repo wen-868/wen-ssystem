@@ -85,8 +85,8 @@
             </tbody>
           </table>
         </div>
-        <div v-if="loadingBill" class="empty">加载中…</div>
-        <div v-else-if="!billList.length" class="empty">暂无账单流水</div>
+        <!-- 页面内反馈（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：分类错误态，失败不与空态同形 -->
+        <LoadFeedback :state="fbBill" empty-text="暂无账单流水" @retry="onRetryBill" />
 
         <div class="pagebar">
           <span>共 {{ total }} 笔流水 · 增值扣费逐笔可查可导出</span>
@@ -627,6 +627,8 @@ import {
   listAddonCharges,
 } from '../api/billing'
 import { saveBlobResponse, readExportRows } from '../utils/download-blob'
+import LoadFeedback from '../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../api/feedback'
 
 const MODAL_W = 'var(--modal-width)'
 
@@ -647,6 +649,16 @@ const billList = ref<any[]>([])
 const page = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
+
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01） */
+const fbBill = reactive(initialLoadFeedbackState())
+function fbBillDispatch(action: LoadFeedbackAction) {
+  Object.assign(fbBill, loadFeedbackReduce({ ...fbBill }, action))
+}
+function onRetryBill() {
+  fbBillDispatch({ type: 'retry' })
+  if (fbBill.phase === 'loading') fetchBillList()
+}
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
 const pageBtns = computed<(number | string)[]>(() => {
@@ -997,6 +1009,8 @@ async function fetchStats() {
 }
 
 async function fetchBillList() {
+  const hasOld = billList.value.length > 0
+  fbBillDispatch({ type: 'begin' })
   loadingBill.value = true
   try {
     const res: any = await getPlatformReconciliations({
@@ -1006,9 +1020,10 @@ async function fetchBillList() {
     const d = res?.data?.data || res?.data || res || {}
     billList.value = d.records || []
     total.value = d.total || 0
-  } catch {
-    billList.value = []
-    total.value = 0
+    fbBillDispatch({ type: 'success', hasData: billList.value.length > 0 })
+  } catch (e) {
+    // 刷新失败保留旧数据（stale）；首载失败页面内分类错误态
+    fbBillDispatch({ type: 'fail', err: e, hasStaleData: hasOld })
   } finally {
     loadingBill.value = false
   }
