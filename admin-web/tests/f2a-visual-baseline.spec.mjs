@@ -1,5 +1,5 @@
 /**
- * WORKBENCH-13-F2 · A 段（原型视觉基线）契约测试（32 条；卡 §三.C.16/§三.C.17）
+ * WORKBENCH-13-F2 · A 段（原型视觉基线 + 消费者验收）契约测试（41 条；卡 §三.C.16/17 + §四.1/3/4）
  *
  * 只依赖三样东西，clean 检出即可复现绿色（与 f2-func-styles.spec.mjs 同一自包含口径）：
  *   1. 真源：`src/shared/workbench/prototype-nav.ts`、`src/layouts/WorkbenchShell.vue`、`src/layouts/WorkbenchSubnav.vue`
@@ -451,6 +451,91 @@ await run("E4 网络审计闭合：失败要么恢复、要么落在 expectedOff
   const unexplained = (bundle.network?.failures ?? []).filter((f) => !offlinePorts.includes(Number(f.port)) && !(bundle.network.recovered ?? []).some((r) => r.signature === f.signature));
   assert.equal(unexplained.length, 0, "存在既非白名单又未恢复的失败");
   return `失败 ${bundle.network?.failures?.length ?? 0} 条全部闭合`;
+});
+
+/* ══════ C. 消费者验收（卡 §四.1/3/4 · 生产态 · 只读仓内 f2a-consumer-modules 副本） ══════ */
+
+const CFIXTURE = "tests/fixtures/f2a-consumer-modules.json";
+assert.ok(existsSync(path.join(WEB, CFIXTURE)), `缺少仓内消费者证据副本 ${CFIXTURE}（请先跑 node tests/f2a-consumer-modules.mjs <evidenceDir>）`);
+const cb = JSON.parse(read(CFIXTURE));
+const cmods = cb.modules ?? [];
+
+await run("C1 消费者证据完整性：真实 SUPER_ADMIN、生产 URL 无注入、服务自停", () => {
+  assert.equal(cb.schema, "wb13-f2a-consumer-modules/v1", `schema 漂移：${cb.schema}`);
+  assert.ok(JSON.stringify(cb.app?.roles ?? []).includes("SUPER_ADMIN"), `登录态非 SUPER_ADMIN：${JSON.stringify(cb.app?.roles)}`);
+  assert.deepEqual(lib.findInjectionInProductionShot(cb.production ?? {}), [], "消费者验收被注入态污染");
+  assert.equal(cb.servers.portsAllDown, true, "服务未自停");
+  assert.equal(cb.apiBase, "/api", "API 基址不是同源 /api");
+  assert.equal(cb.aborted, null, `采集中止：${cb.aborted}`);
+  assert.equal((cb.errors ?? []).length, 0, `采集端异常未清零：${JSON.stringify(cb.errors)}`);
+  return `user=${cb.app.user} · ${cb.production.href}`;
+});
+
+await run("C2 11 个业务模块逐个真实点击：选中态主蓝实色、二级列与目录在场、零裁切", () => {
+  const labels = cmods.map((m) => String(m.label).trim());
+  const missing = lib.CONSUMER_MODULE_LABELS.filter((l) => !labels.includes(l));
+  assert.equal(missing.length, 0, `缺席模块：${missing.join("/")}`);
+  assert.equal(labels.length, 11, `模块帧数不是 11：${labels.length}`);
+  for (const m of cmods) {
+    assert.equal(m.clicked, true, `${m.label} 非真实点击`);
+    assert.equal(lib.normalizeColor(m.railItem?.backgroundColor), lib.RAIL_SELECTED_BG, `${m.label} 选中底色 ${m.railItem?.backgroundColor} 非主蓝`);
+    assert.equal(lib.normalizeColor(m.railItem?.color), lib.RAIL_SELECTED_FG, `${m.label} 选中文字非白`);
+    assert.equal(m.subnav?.secondNavVisible, true, `${m.label} 二级导航列不可见`);
+    assert.equal(m.subnav?.dirVisible, true, `${m.label} 二级目录不可见`);
+    assert.equal(Number(m.main?.overflowX), 0, `${m.label} 横向裁切 overflowX=${m.main?.overflowX}`);
+    assert.equal(m.main?.hasContent, true, `${m.label} 主面无任何可见内容（真实页与诚实占位都没有）`);
+    assert.equal((m.pageerror ?? []).length, 0, `${m.label} 触发未捕获异常`);
+  }
+  return `11/11 选中态 ${cmods[0].railItem.backgroundColor} · 目录在场 · 零裁切`;
+});
+
+await run("C3 回退工作台：信息流面 + 双入口说明块 + 常用功能六宫格回位，选中态回到主蓝", () => {
+  const d = cb.backToDesk ?? {};
+  assert.equal(d.feedShown, true, "信息流面未回位");
+  assert.equal(d.dualNoteVisible, true, "双入口说明块未回位");
+  assert.equal(d.gridVisible, true, "常用功能六宫格未回位");
+  assert.equal(lib.normalizeColor(d.railItem?.backgroundColor), lib.RAIL_SELECTED_BG, `工作台选中态异常：${d.railItem?.backgroundColor}`);
+  assert.equal(Number(d.overflowX), 0, "回位后横向裁切");
+  return "feed/说明块/六宫格 全部回位";
+});
+
+await run("C4 员工⇄对话分段双向切换：aria-label 与目录语义随切换迁移、往返一致", () => {
+  const s = cb.segToggle ?? {};
+  assert.equal(s.before?.activeTab, "员工", `初始分段不是员工：${s.before?.activeTab}`);
+  assert.equal(s.afterChat?.activeTab, "对话", "点「对话」未切换");
+  assert.equal(s.afterChat?.searchAriaLabel, "搜索会话", `对话态搜索语义未迁移：${s.afterChat?.searchAriaLabel}`);
+  assert.equal(s.afterStaffAgain?.activeTab, "员工", "点「员工」未回位");
+  assert.equal(s.afterStaffAgain?.searchAriaLabel, "搜索员工", `回位后搜索语义未复原：${s.afterStaffAgain?.searchAriaLabel}`);
+  assert.equal(s.afterStaffAgain?.dirState, s.before?.dirState, "员工态目录状态往返漂移");
+  assert.ok(/不伪造|待接入|尚未接入|暂无/.test(String(s.before?.dirText ?? "")), `目录缺席时必须诚实披露：${String(s.before?.dirText).slice(0, 60)}`);
+  return "员工→对话→员工 双向真实迁移";
+});
+
+await run("C5 消费者门禁反证：删模块/改选中色/切换不动作/六宫格不回位/平图复用都必须判红", () => {
+  const forgeries = [
+    (b) => b.modules.splice(3, 1),
+    (b) => { b.modules[0].railItem.backgroundColor = "rgb(37, 99, 236)"; },
+    (b) => { b.segToggle.afterChat.activeTab = "员工"; },
+    (b) => { b.backToDesk.gridVisible = false; },
+    (b) => { b.frames[2].sha256 = b.frames[1].sha256; },
+    (b) => { b.modules[5].main.hasContent = false; },
+  ];
+  for (const forge of forgeries) {
+    const f = clone(cb);
+    forge(f);
+    assert.ok(lib.collectConsumerViolations(f).length >= 1, "一类消费者伪造被门禁放行 ⇒ 门禁空转");
+  }
+  assert.deepEqual(lib.collectConsumerViolations(cb), [], "基线消费者证据在自家门禁下不绿");
+  return `${forgeries.length} 类伪造全部点名拦截`;
+});
+
+await run("C6 消费者证据去重与字节：14 帧逐模块唯一 PNG，截图不得是平图", () => {
+  const frames = cb.frames ?? [];
+  assert.ok(frames.length >= 14, `消费者帧不足：${frames.length}`);
+  assert.equal(new Set(frames.map((x) => x.sha256)).size, frames.length, "存在重复哈希帧");
+  for (const f of frames) assert.ok(Number(f.bytes) >= 8000, `帧字节不足：${f.file}`);
+  assert.deepEqual(lib.findDuplicateHashes(frames.map((f) => ({ scene: f.label, viewport: f.label, sha256: f.sha256 }))), [], "同视口帧哈希重复");
+  return `${frames.length} 帧唯一（11 模块 + 分段 2 + 回退 1）`;
 });
 
 const failed = results.filter((r) => !r.ok);

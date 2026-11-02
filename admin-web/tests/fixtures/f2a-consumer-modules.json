@@ -1,0 +1,637 @@
+{
+  "schema": "wb13-f2a-consumer-modules/v1",
+  "generatedAt": "2026-11-02T19:17:15.104Z",
+  "task": "WORKBENCH-13-WORKBENCH-UIUX-COMPLETE-01-F2",
+  "segment": "A · 消费者验收（生产 URL · 真实 SUPER_ADMIN · 无注入）",
+  "app": {
+    "origin": "http://localhost:5399",
+    "apiBase": "/api",
+    "user": "admin",
+    "roles": [
+      "SUPER_ADMIN"
+    ]
+  },
+  "apiBase": "/api",
+  "browsers": {
+    "engine": "chrome",
+    "headless": true,
+    "reducedMotion": "reduce",
+    "executable": "C:/Program Files/Google/Chrome/Application/chrome.exe"
+  },
+  "servers": {
+    "backendPort": 8388,
+    "webPort": 5399,
+    "startedBy": "harness",
+    "portsAllDown": true
+  },
+  "production": {
+    "href": "http://localhost:5399/dashboard",
+    "injected": false,
+    "uiuxInject": "off",
+    "shellMounted": true
+  },
+  "method": "逐个真实点击 11 个业务模块（不注入、不 force）：读选中态 computed 实色 + 二级目录在场 + 主面可见文本；员工⇄对话分段双向切换读 aria-label 与目录状态迁移",
+  "modules": [
+    {
+      "label": "销售管理",
+      "railKey": "wb.sales",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 107,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-销售管理.png",
+        "bytes": 149911,
+        "sha256": "6214C1709762A202776662E661D08DE5D995A13EDB3A8110657A43EC3ECF6A8D"
+      }
+    },
+    {
+      "label": "订单管理",
+      "railKey": "wb.order",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 155,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-订单管理.png",
+        "bytes": 145276,
+        "sha256": "42902BD62B47FD20FA2CE36CB84296704200D3C60D34BB7B931AEB4B8FD4CED3"
+      }
+    },
+    {
+      "label": "采购管理",
+      "railKey": "wb.purchase",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 203,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-采购管理.png",
+        "bytes": 149978,
+        "sha256": "719FF76D12407ECAD6473A506751492803D68C1D1E17CD971BB11E3305DADFEC"
+      }
+    },
+    {
+      "label": "库存管理",
+      "railKey": "wb.inventory",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 251,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-库存管理.png",
+        "bytes": 157634,
+        "sha256": "8FA79215F40E4147A0F69EE934568BEED104107E848A2378469C5EE35F61E12D"
+      }
+    },
+    {
+      "label": "客户管理",
+      "railKey": "wb.customer",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 299,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-客户管理.png",
+        "bytes": 147026,
+        "sha256": "ED5CF51E0478F892ABA6E9BBDEA47CF59E75B600B7FA67D7846AA481424A196C"
+      }
+    },
+    {
+      "label": "商品中心",
+      "railKey": "wb.product",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 347,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-商品中心.png",
+        "bytes": 152154,
+        "sha256": "76B87A88636ADD88939133976E4602C816796C9253CE9A904D3EAD3357A138D9"
+      }
+    },
+    {
+      "label": "即时零售",
+      "railKey": "wb.instant-retail",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 395,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-即时零售.png",
+        "bytes": 148857,
+        "sha256": "09ECA77FA247A63B79F8824D0D88E270906A5A8BD7B041E3A45E0AC508157144"
+      }
+    },
+    {
+      "label": "财务管理",
+      "railKey": "wb.finance",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 443,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-财务管理.png",
+        "bytes": 154599,
+        "sha256": "5B9C2897A554A7C59611593B74DC18BFCC384903605B5E99FCD3BF041099C5FC"
+      }
+    },
+    {
+      "label": "数据报表",
+      "railKey": "wb.report",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 491,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-数据报表.png",
+        "bytes": 142136,
+        "sha256": "78CDAEB7C55C2DC19995C3FA79FC5B636905EBBB99AD58533A866786AA28E743"
+      }
+    },
+    {
+      "label": "营销推广",
+      "railKey": "wb.marketing",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 539,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-营销推广.png",
+        "bytes": 155204,
+        "sha256": "9B8C255FB95D3A874D55ED71462E30AD9C6BB3ED03DB3B2660A86D8D1D360C5F"
+      }
+    },
+    {
+      "label": "系统管理",
+      "railKey": "wb.system",
+      "clicked": true,
+      "railItem": {
+        "on": true,
+        "backgroundColor": "rgb(37, 99, 235)",
+        "color": "rgb(255, 255, 255)",
+        "iconColor": "rgb(255, 255, 255)",
+        "rect": {
+          "x": 7,
+          "y": 587,
+          "width": 46,
+          "height": 43
+        }
+      },
+      "main": {
+        "url": "http://localhost:5399/dashboard",
+        "hasContent": true,
+        "mainVisible": true,
+        "mainText": "工作台AI 不通 重试 数字员工未知任务进度未知 能力台账 工作台 收银台 系统管理员退出早上好，系统管理员2026年11月3日 · 星期二 · 2 条动态 ·",
+        "overflowX": 0
+      },
+      "subnav": {
+        "secondNavVisible": true,
+        "dirVisible": true,
+        "dirState": "unavailable",
+        "subZoneVisible": true
+      },
+      "pageerror": [],
+      "shot": {
+        "file": "shots/consumer-module-系统管理.png",
+        "bytes": 153149,
+        "sha256": "A1AF31853DEE8FD68C2A226EB02620ACAF7C741B4C957E25AD9435FBD9D29EB0"
+      }
+    }
+  ],
+  "backToDesk": {
+    "feedShown": true,
+    "dualNoteVisible": true,
+    "gridVisible": true,
+    "overflowX": 0,
+    "railItem": {
+      "on": true,
+      "backgroundColor": "rgb(37, 99, 235)",
+      "color": "rgb(255, 255, 255)"
+    },
+    "url": "http://localhost:5399/dashboard",
+    "shot": {
+      "file": "shots/consumer-back-desk.png",
+      "bytes": 145464,
+      "sha256": "CD511F4C78012B9B3FA8B7C10D1E2155711B8C290DB3F1161366678EFF8145E7"
+    }
+  },
+  "segToggle": {
+    "before": {
+      "activeTab": "员工",
+      "searchAriaLabel": "搜索员工",
+      "dirState": "unavailable",
+      "dirText": "常用功能已接线 2/6 · 其余待接入（不伪造成功） 数字员工目录尚未接入（缺少目录端点） 重试"
+    },
+    "afterChat": {
+      "activeTab": "对话",
+      "searchAriaLabel": "搜索会话",
+      "dirState": "unavailable",
+      "dirText": "常用功能已接线 2/6 · 其余待接入（不伪造成功） 数字员工目录尚未接入（缺少目录端点） 重试",
+      "overflowX": 0,
+      "shot": {
+        "file": "shots/consumer-seg-chat.png",
+        "bytes": 145484,
+        "sha256": "01CC1036FEE7F9697B67C0AFA78E481601F0D48C906BD37005E70C0C242BF912"
+      }
+    },
+    "afterStaffAgain": {
+      "activeTab": "员工",
+      "searchAriaLabel": "搜索员工",
+      "dirState": "unavailable",
+      "dirText": "常用功能已接线 2/6 · 其余待接入（不伪造成功） 数字员工目录尚未接入（缺少目录端点） 重试",
+      "overflowX": 0,
+      "shot": {
+        "file": "shots/consumer-seg-staff.png",
+        "bytes": 145463,
+        "sha256": "DE08E5960EEFF4C889D2F3AEE0C1517A1B9F951CF3A3BFA0DD831751804C259F"
+      }
+    }
+  },
+  "frames": [
+    {
+      "label": "seg-chat",
+      "file": "shots/consumer-seg-chat.png",
+      "bytes": 145484,
+      "sha256": "01CC1036FEE7F9697B67C0AFA78E481601F0D48C906BD37005E70C0C242BF912",
+      "overflowX": 0
+    },
+    {
+      "label": "seg-staff",
+      "file": "shots/consumer-seg-staff.png",
+      "bytes": 145463,
+      "sha256": "DE08E5960EEFF4C889D2F3AEE0C1517A1B9F951CF3A3BFA0DD831751804C259F",
+      "overflowX": 0
+    },
+    {
+      "label": "module-销售管理",
+      "file": "shots/consumer-module-销售管理.png",
+      "bytes": 149911,
+      "sha256": "6214C1709762A202776662E661D08DE5D995A13EDB3A8110657A43EC3ECF6A8D",
+      "overflowX": 0
+    },
+    {
+      "label": "module-订单管理",
+      "file": "shots/consumer-module-订单管理.png",
+      "bytes": 145276,
+      "sha256": "42902BD62B47FD20FA2CE36CB84296704200D3C60D34BB7B931AEB4B8FD4CED3",
+      "overflowX": 0
+    },
+    {
+      "label": "module-采购管理",
+      "file": "shots/consumer-module-采购管理.png",
+      "bytes": 149978,
+      "sha256": "719FF76D12407ECAD6473A506751492803D68C1D1E17CD971BB11E3305DADFEC",
+      "overflowX": 0
+    },
+    {
+      "label": "module-库存管理",
+      "file": "shots/consumer-module-库存管理.png",
+      "bytes": 157634,
+      "sha256": "8FA79215F40E4147A0F69EE934568BEED104107E848A2378469C5EE35F61E12D",
+      "overflowX": 0
+    },
+    {
+      "label": "module-客户管理",
+      "file": "shots/consumer-module-客户管理.png",
+      "bytes": 147026,
+      "sha256": "ED5CF51E0478F892ABA6E9BBDEA47CF59E75B600B7FA67D7846AA481424A196C",
+      "overflowX": 0
+    },
+    {
+      "label": "module-商品中心",
+      "file": "shots/consumer-module-商品中心.png",
+      "bytes": 152154,
+      "sha256": "76B87A88636ADD88939133976E4602C816796C9253CE9A904D3EAD3357A138D9",
+      "overflowX": 0
+    },
+    {
+      "label": "module-即时零售",
+      "file": "shots/consumer-module-即时零售.png",
+      "bytes": 148857,
+      "sha256": "09ECA77FA247A63B79F8824D0D88E270906A5A8BD7B041E3A45E0AC508157144",
+      "overflowX": 0
+    },
+    {
+      "label": "module-财务管理",
+      "file": "shots/consumer-module-财务管理.png",
+      "bytes": 154599,
+      "sha256": "5B9C2897A554A7C59611593B74DC18BFCC384903605B5E99FCD3BF041099C5FC",
+      "overflowX": 0
+    },
+    {
+      "label": "module-数据报表",
+      "file": "shots/consumer-module-数据报表.png",
+      "bytes": 142136,
+      "sha256": "78CDAEB7C55C2DC19995C3FA79FC5B636905EBBB99AD58533A866786AA28E743",
+      "overflowX": 0
+    },
+    {
+      "label": "module-营销推广",
+      "file": "shots/consumer-module-营销推广.png",
+      "bytes": 155204,
+      "sha256": "9B8C255FB95D3A874D55ED71462E30AD9C6BB3ED03DB3B2660A86D8D1D360C5F",
+      "overflowX": 0
+    },
+    {
+      "label": "module-系统管理",
+      "file": "shots/consumer-module-系统管理.png",
+      "bytes": 153149,
+      "sha256": "A1AF31853DEE8FD68C2A226EB02620ACAF7C741B4C957E25AD9435FBD9D29EB0",
+      "overflowX": 0
+    },
+    {
+      "label": "back-desk",
+      "file": "shots/consumer-back-desk.png",
+      "bytes": 145464,
+      "sha256": "CD511F4C78012B9B3FA8B7C10D1E2155711B8C290DB3F1161366678EFF8145E7",
+      "overflowX": 0
+    }
+  ],
+  "errors": [],
+  "aborted": null,
+  "network": {
+    "failures": [
+      {
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3016/api/chat/confirmations",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/chat/confirmations"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3016/api/health/ready",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/health/ready"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/employees",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/employees"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:3016/api/ai/agent/plans",
+        "port": 3016,
+        "error": "net::ERR_CONNECTION_REFUSED",
+        "signature": "GET http://localhost:3016/api/ai/agent/plans"
+      }
+    ],
+    "recovered": []
+  },
+  "expectedOffline": [
+    {
+      "port": 3016,
+      "reason": "AI 编排服务（本地未启动，单列不并入 CORS）"
+    }
+  ],
+  "violations": []
+}

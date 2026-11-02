@@ -1,5 +1,5 @@
 /**
- * WORKBENCH-13-F2 · A 段视觉基线 mutation 反测装置（卡 §三.C.17：≥6 类，本次 15 类）
+ * WORKBENCH-13-F2 · A 段视觉基线 mutation 反测装置（卡 §三.C.17：≥6 类，本次 19 类）
  *
  * 与 B 段 f2-func-styles-countertest.mjs 同构：把缺陷注回**真源 / 门禁纯函数 / 已入库读数**
  * 三种位置 → 断言点名那条 A 段契约用例变红 → 逐字节复原并校验 SHA256 恒等 → 全部复原后复跑回绿。
@@ -20,8 +20,10 @@
  *   F6 伪造读数：账号区浮起          → P6
  *   F7 伪造读数：KPI 沉到队列之下    → B1
  *   F8 伪造读数：并排图高度不齐      → V2
- *
- * （下表与 CASES 一一对应：rail 几何伪读数为 F3，并排图高度为 F8。）
+ *   N8 消费者门禁恒放行              → C5
+ *   F9 伪造读数：模块扫描少一个      → C2
+ *   F10 伪造读数：六宫格不回位       → C3
+ *   F11 伪造读数：员工/对话假切换    → C4
  *
  * 运行（必须显式给输出目录，避免把中间产物写进工作树而破坏 clean）：
  *   node admin-web/tests/f2a-visual-baseline-countertest.mjs <outDir>
@@ -41,6 +43,7 @@ const TARGETS = {
   subnav: path.join(WEB, "src", "layouts", "WorkbenchSubnav.vue"),
   gate: path.join(WEB, "tests", "f2a-visual-baseline-lib.mjs"),
   fixture: path.join(WEB, "tests", "fixtures", "f2a-visual-measures.json"),
+  cfix: path.join(WEB, "tests", "fixtures", "f2a-consumer-modules.json"),
 };
 
 const SPEC = path.join(WEB, "tests", "f2a-visual-baseline.spec.mjs");
@@ -76,6 +79,15 @@ function falsifyReadout(json, mutate, id) {
   assert.ok(base, `${id}: 证据里缺 1440x1000 基线视口`);
   mutate(base, bundle);
   return JSON.stringify(bundle, null, 2);
+}
+
+/** 任意 JSON 证据副本的定点篡改（消费者副本用） */
+function mutateJson(json, mutate, id) {
+  const bundle = JSON.parse(json);
+  mutate(bundle);
+  const out = JSON.stringify(bundle, null, 2);
+  assert.notEqual(out, json.replace(/\r\n/g, "\n"), `${id}: 篡改没有实际改变内容`);
+  return out;
 }
 
 const CASES = [
@@ -255,6 +267,46 @@ const CASES = [
       }, "F8"),
     expect: "V2",
   },
+  {
+    id: "N8-consumer-gate-neutered",
+    title: "门禁失效：collectConsumerViolations 恒返回空（消费者验收被掏空）",
+    target: TARGETS.gate,
+    mutate: (t) =>
+      patch(
+        t,
+        "export function collectConsumerViolations(bundle = {}) {\n  const out = [];\n  const servers",
+        "export function collectConsumerViolations(bundle = {}) {\n  const out = [];\n  if (bundle) return out;\n  const servers",
+        "N8",
+      ),
+    expect: "C5",
+  },
+  {
+    id: "F9-forged-module-dropped",
+    title: "伪造读数：消费者模块扫描被偷偷删掉一个业务模块",
+    target: TARGETS.cfix,
+    mutate: (t) => mutateJson(t, (b) => b.modules.splice(3, 1), "F9"),
+    expect: "C2",
+  },
+  {
+    id: "F10-forged-grid-not-restored",
+    title: "伪造读数：回退工作台后常用功能六宫格没回位",
+    target: TARGETS.cfix,
+    mutate: (t) =>
+      mutateJson(t, (b) => {
+        b.backToDesk.gridVisible = false;
+      }, "F10"),
+    expect: "C3",
+  },
+  {
+    id: "F11-forged-seg-no-switch",
+    title: "伪造读数：点「对话」后分段根本没切换（假切换冒充可达）",
+    target: TARGETS.cfix,
+    mutate: (t) =>
+      mutateJson(t, (b) => {
+        b.segToggle.afterChat.activeTab = "员工";
+      }, "F11"),
+    expect: "C4",
+  },
 ];
 
 const originals = new Map();
@@ -317,7 +369,7 @@ const redCount = records.filter((r) => r.namedRed && r.restoreIdentical).length;
 const lines = [
   "# WORKBENCH-13-F2 · A 段视觉基线 mutation 反测记录",
   "",
-  `- 卡 §三.C.17 要求：≥6 类视觉 mutation 点名变红 + SHA256 复原 + 复跑回绿。本次 **${records.length} 类**（源码 2 · 门禁函数 5 · 入库读数 8），全部点名变红并复原恒等：**${redCount}/${records.length}**。`,
+  `- 卡 §三.C.17 要求：≥6 类视觉 mutation 点名变红 + SHA256 复原 + 复跑回绿。本次 **${records.length} 类**（源码 2 · 门禁函数 6 · 入库读数 11），全部点名变红并复原恒等：**${redCount}/${records.length}**。`,
   `- 基线复跑：EXIT=0（绿）；全部复原后复跑：EXIT=0（绿）。`,
   `- 专项测试：${green.out.split("\n").find((l) => l.startsWith("小结")) ?? "-"}`,
   "",

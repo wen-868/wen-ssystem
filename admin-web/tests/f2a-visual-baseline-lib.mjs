@@ -834,5 +834,71 @@ export function collectViolationsF2A(bundle = {}) {
   return out;
 }
 
+/* ────────────────────────── 消费者验收（卡 §四.1/3/4）────────────────────────── */
+
+/** 除「工作台」外必须逐个点击的 11 个一级业务模块（顺序即卡面顺序） */
+export const CONSUMER_MODULE_LABELS = RAIL_VISIBLE_LABELS.slice(1);
+
+/** 选中态判定基准（原型实测主蓝实心） */
+export const RAIL_SELECTED_BG = "37,99,235";
+export const RAIL_SELECTED_FG = "255,255,255";
+
+/** 消费者场景汇总门禁。空数组 = 生产态验收合格（采集端与专项测试共用）。 */
+export function collectConsumerViolations(bundle = {}) {
+  const out = [];
+  const servers = bundle.servers ?? {};
+  if (servers.portsAllDown !== true) out.push(`服务未自停：${servers.backendPort ?? "?"}/${servers.webPort ?? "?"} 未全部 DOWN`);
+  if (bundle.apiBase !== "/api") out.push(`API 基址未统一：${String(bundle.apiBase)}（要求同源 /api）`);
+  if (!JSON.stringify(bundle.app?.roles ?? []).includes("SUPER_ADMIN")) out.push(`登录态不是真实 SUPER_ADMIN：${JSON.stringify(bundle.app?.roles ?? [])}`);
+  const prod = bundle.production ?? {};
+  if (prod.uiuxInject === true || prod.injected === true || String(prod.href ?? "").includes("wb_uiux")) {
+    out.push("消费者验收被注入态污染（§四 要求生产 URL + 真实登录态）");
+  }
+  const mods = bundle.modules ?? [];
+  const gotLabels = mods.map((m) => String(m.label ?? "").trim());
+  for (const want of CONSUMER_MODULE_LABELS) {
+    if (!gotLabels.includes(want)) out.push(`业务模块缺席：${want}（§四.3 要求逐个点击 11 个模块）`);
+  }
+  for (const m of mods) {
+    const tag = `模块 ${m.label ?? m.railKey ?? "?"}`;
+    if (m.clicked !== true) out.push(`${tag} 未被真实点击（§四.3 不得用 hover/注入冒充）`);
+    const bg = normalizeColor(m.railItem?.backgroundColor);
+    const fg = normalizeColor(m.railItem?.color);
+    if (bg !== RAIL_SELECTED_BG || fg !== RAIL_SELECTED_FG) out.push(`${tag} 选中态不符原型：底色=${bg || "∅"}（应 ${RAIL_SELECTED_BG}）文字=${fg || "∅"}`);
+    if (m.main?.hasContent !== true) out.push(`${tag} 主面无可见内容（既不是真实页也不是诚实占位，疑似空白）`);
+    if (Number(m.main?.overflowX) !== 0) out.push(`${tag} 出现横向裁切 overflowX=${m.main?.overflowX}（§三.C.14）`);
+    if (m.subnav?.secondNavVisible !== true) out.push(`${tag} 二级导航列不可见`);
+    if (m.subnav?.dirVisible !== true) out.push(`${tag} 二级目录不可见（§四.3「二级目录符合原型」）`);
+    if (m.pageerror?.length) out.push(`${tag} 页面未捕获异常：${String(m.pageerror[0]).slice(0, 120)}`);
+  }
+  const desk = bundle.backToDesk ?? {};
+  if (desk.feedShown !== true) out.push("回退工作台后信息流面未出现");
+  if (desk.dualNoteVisible !== true) out.push("回退工作台后双入口说明块不可见（§四.3 回退常用功能）");
+  if (desk.gridVisible !== true) out.push("回退工作台后常用功能网格不可见（§四.3 回退常用功能）");
+  if (normalizeColor(desk.railItem?.backgroundColor) !== RAIL_SELECTED_BG) out.push(`回退后工作台选中态异常：${normalizeColor(desk.railItem?.backgroundColor)}`);
+  const seg = bundle.segToggle ?? {};
+  const before = seg.before ?? {};
+  const chat = seg.afterChat ?? {};
+  const staff = seg.afterStaffAgain ?? {};
+  if (before.activeTab !== "员工") out.push(`初始分段态不是「员工」：${before.activeTab ?? "∅"}`);
+  if (chat.activeTab !== "对话") out.push("点击「对话」后分段未切换（§四.4 员工/对话切换）");
+  if (chat.searchAriaLabel !== "搜索会话") out.push(`对话态搜索框语义未随切换：aria-label=${chat.searchAriaLabel ?? "∅"}`);
+  if (staff.activeTab !== "员工") out.push("切回「员工」后分段未回位（§四.4 双向切换）");
+  if (staff.searchAriaLabel !== "搜索员工") out.push(`回位后搜索框语义未复原：aria-label=${staff.searchAriaLabel ?? "∅"}`);
+  if (String(staff.dirState ?? "") !== String(before.dirState ?? "")) out.push(`员工态目录往返后状态漂移：${before.dirState} → ${staff.dirState}`);
+  const hashes = new Set();
+  for (const f of bundle.frames ?? []) {
+    if (Number(f.bytes) < 8000) out.push(`帧字节不足：${f.file ?? f.label ?? "?"}`);
+    if (hashes.has(f.sha256)) out.push(`帧哈希重复（平图复用冒充逐模块证据）：${f.file ?? "?"}`);
+    hashes.add(f.sha256);
+  }
+  for (const n of findUnresolvedNetwork(bundle.network ?? {}, bundle.expectedOffline ?? [])) {
+    out.push(`未闭合网络失败：${n.method} ${n.url} → ${n.error}`);
+  }
+  for (const e of bundle.errors ?? []) out.push(`采集端异常：${String(e).slice(0, 180)}`);
+  if (bundle.aborted) out.push(`采集中止：${String(bundle.aborted).slice(0, 180)}`);
+  return out;
+}
+
 /** 脱敏（沿用 F1/F2 同一规则：证据里不得出现凭据形态） */
 export { redactText, portOfUrl, findDuplicateHashes, VIEWPORTS } from "./uiux-scenarios-lib.mjs";
