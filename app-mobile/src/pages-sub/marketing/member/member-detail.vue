@@ -889,7 +889,7 @@ onShow(() => {
 // #ifdef H5
 // 同文档 hash 变化（直达/切换）时 onShow 不触发；uni-app 路由内部可能用 replaceState
 // （hashchange/popstate 都可能不派发）⇒ 用 1.5s 轮询兜底，读取成本低（getCurrentPages + hash 解析）
-setInterval(() => { try { syncToRouteMember() } catch {} }, 1500)
+setInterval(() => { try { syncToRouteMember() } catch { /* 轮询兜底：路由态不可读时静默跳过本周期 */ } }, 1500)
 // #endif
 </script>
 

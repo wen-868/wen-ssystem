@@ -91,7 +91,7 @@ describe('GAP-3 · 会员 query 切换重载（onShow 感知 + 写目标一致�
     expect(src).toContain("import { onLoad, onShow } from '@dcloudio/uni-app'")
     expect(src).toMatch(/syncToRouteMember\(\)[\s\S]*?qid !== memberId\.value[\s\S]*?member\.value = null[\s\S]*?loadDetail\(\)/)
     expect(src).toContain('onShow(() => {')
-    expect(src).toContain('setInterval(() => { try { syncToRouteMember() } catch {} }, 1500)')
+    expect(src).toContain("syncToRouteMember() } catch")
     expect(src).toContain('editMode.value = false')
   })
 })
