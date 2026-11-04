@@ -117,7 +117,7 @@
                         <view class="oc-status" :class="statusBadgeClass(item.status)">
                             <text class="oc-status-text">{{ statusText(item.status) }}</text>
                         </view>
-                        <text v-if="resolveRecoveryEntry({ status: item.status, retryEntry: (item as any).retryEntry, statusReason: (item as any).statusReason }).kind === 'manual-fallback'" class="oc-recovery-hint">{{ resolveRecoveryEntry({ status: item.status, retryEntry: (item as any).retryEntry, statusReason: (item as any).statusReason }).text }}</text>
+                        <text v-if="recoveryOf(item).kind === 'manual-fallback'" class="oc-recovery-hint">{{ recoveryOf(item).text }}</text>
                     </view>
                     <view class="oc-mid">
                         <view class="oc-chan" :class="chanClass(item)">
@@ -168,12 +168,26 @@ import { instantRetailApi, type RetailOrder } from '@/api/modules/instant-retail
 import { saleReturnApi, purchaseReturnApi } from '@/api/modules/returns'
 import { receiptApi } from '@/api/modules/receipts'
 import { paymentNewApi } from '@/api/modules/finance'
-import { resolveRecoveryEntry } from '@/utils/order-recovery-entry'
+import { resolveRecoveryEntry, type RecoveryEntry } from '@/utils/order-recovery-entry'
 
 /** 列表统一条目：历史单据 + 即时零售平台单 */
 interface OrderListItem extends BillHistoryItem {
   /** 即时零售平台 jd/mt/ele（仅即时零售单据） */
   platform?: string
+}
+
+/**
+ * 恢复入口（F2 起不再在模板里展开三次 resolveRecoveryEntry，也不再 (item as any) 兜字段）：
+ * 状态字段已由 api/modules/orders.ts 映射进 BillHistoryItem（deliveryStatus/statusReason/retryEntry
+ * 均为显式可选字段），此处只做一次求值，供 v-if 与文案复用。
+ */
+function recoveryOf(item: OrderListItem): RecoveryEntry {
+  return resolveRecoveryEntry({
+    status: item.status,
+    deliveryStatus: item.deliveryStatus,
+    retryEntry: item.retryEntry,
+    statusReason: item.statusReason,
+  })
 }
 
 // ===== 三大分类与单据类型（原稿 top-tabs/sub-tabs；billType 对齐 bills/history 契约） =====
@@ -640,6 +654,8 @@ function statusText(status: string): string {
     COMPLETED: '已完成',
     // 退货/收款/付款单状态（销售退货 REJECTED、收款单 VOIDED、采购退货 VOIDED 等）
     REJECTED: '已驳回',
+    // 配送失败（即时零售/小程序订单 delivery_status = DELIVERY_FAILED）
+    DELIVERY_FAILED: '配送失败',
     VOIDED: '已作废',
     // 即时零售平台状态（原稿 STATUS）
     ACCEPTED: '待配送',
@@ -652,7 +668,7 @@ function statusText(status: string): string {
 
 function statusBadgeClass(status: string): string {
   const s = (status || '').toUpperCase()
-  if (s === 'UNPAID' || s === 'PENDING_PAYMENT' || s === 'REFUNDING' || s === 'REJECTED') return 'oc-status--danger'
+  if (s === 'UNPAID' || s === 'PENDING_PAYMENT' || s === 'REFUNDING' || s === 'REJECTED' || s === 'DELIVERY_FAILED') return 'oc-status--danger'
   if (s === 'PAID' || s === 'COMPLETED') return 'oc-status--paid'
   if (s === 'CONFIRMED') return 'oc-status--confirmed'
   return 'oc-status--pending'
