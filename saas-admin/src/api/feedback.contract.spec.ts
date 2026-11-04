@@ -3,7 +3,13 @@
  * 真源：src/api/feedback.ts（纯函数，node 环境直接可测）
  * 覆盖：错误分类 / 文案区分度与安全 / 状态机（防重复、保留旧数据、恢复清残留）/ ARIA 语义
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+// api.ts 顶层 import element-plus（ElMessage）：node 测试环境无 DOM ⇒ mock 掉，仅验证实例配置
+vi.mock('element-plus', () => ({ ElMessage: { error: () => {}, success: () => {}, warning: () => {} } }))
+vi.mock('./stores/auth', () => ({ useAuthStore: () => ({ logout: () => {} }) }))
+import { api, MAIN_API_TIMEOUT_MS } from '../api'
 import {
   classifyFeedbackError,
   feedbackErrorText,
@@ -149,5 +155,44 @@ describe('F4 ARIA / 键盘可操作语义', () => {
     expect(canRetryFeedback({ phase: 'ready', kind: null, message: null, stale: true })).toBe(true)
     expect(canRetryFeedback({ phase: 'loading', kind: null, message: null, stale: false })).toBe(false)
     expect(canRetryFeedback({ phase: 'ready', kind: null, message: null, stale: false })).toBe(false)
+  })
+})
+
+describe('F5 主 API 实例统一 timeout（TOTAL-PLATFORM-RBAC-UI-COUPLING-01 · F-3/P2-1）', () => {
+  it('F5-1 主实例 axios defaults.timeout 必须为 15000ms（此前无超时 ⇒ 慢请求无限挂起）', () => {
+    expect(api.defaults.timeout).toBe(15000)
+    expect(MAIN_API_TIMEOUT_MS).toBe(15000)
+  })
+  it('F5-2 既有独立实例（auth per-request / ai-config）的 15000 不被本卡覆盖', () => {
+    const here = fileURLToPath(new URL('.', import.meta.url))
+    const authSrc = readFileSync(here + 'auth.ts', 'utf8')
+    const aiSrc = readFileSync(here + 'ai-config.ts', 'utf8')
+    expect(authSrc).toContain('timeout: 15000')
+    expect(aiSrc).toContain('timeout: 15000')
+  })
+  it('F5-3 timeout（ECONNABORTED）经状态机呈现 error + 超时文案，绝不伪装成空数据', () => {
+    const err = Object.assign(new Error('timeout of 15000ms exceeded'), { code: 'ECONNABORTED' })
+    const s = loadFeedbackReduce(initialLoadFeedbackState(), { type: 'fail', err, hasStaleData: false })
+    expect(s.phase).toBe('error')
+    expect(s.kind).toBe('timeout')
+    expect(s.message).toBe(FEEDBACK_ERROR_TEXT.timeout)
+    expect(s.message).not.toBe('暂无租户数据')
+    // 与 empty 态不同形：empty 的 kind 为 null
+    expect(loadFeedbackReduce(initialLoadFeedbackState(), { type: 'success', hasData: false }).kind).toBeNull()
+  })
+  it('F5-4 超时后可重试：error(timeout) → retry → loading（重试入口生效）', () => {
+    const err = { code: 'ETIMEDOUT' }
+    const failed = loadFeedbackReduce(initialLoadFeedbackState(), { type: 'fail', err, hasStaleData: false })
+    expect(canRetryFeedback(failed)).toBe(true)
+    const retried = loadFeedbackReduce(failed, { type: 'retry' })
+    expect(retried.phase).toBe('loading')
+    expect(retried.kind).toBeNull()
+  })
+  it('F5-5 有旧数据时刷新超时：保留旧数据 + stale 横幅（不闪空）', () => {
+    const err = Object.assign(new Error('timeout of 15000ms exceeded'), { code: 'ECONNABORTED' })
+    const s = loadFeedbackReduce(initialLoadFeedbackState(), { type: 'fail', err, hasStaleData: true })
+    expect(s.phase).toBe('ready')
+    expect(s.stale).toBe(true)
+    expect(s.kind).toBe('timeout')
   })
 })
