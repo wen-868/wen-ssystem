@@ -561,6 +561,21 @@ const WORKBENCH_10_F1_ALLOWED_VIEW_DIRS = [
   "admin-web/src/views/pos/",
   "admin-web/src/views/system/",
 ];
+/**
+ * WORKBENCH-13B-MODULE-VISUAL-PARITY-01 授权（派单卡 §二 第一行 `admin-web/src/views/**`，
+ * §三.C/D 要求 12 个业务模块逐页对齐 + 390 窄口）：本卡实际动过的 8 个页面文件逐名登记（变更依据，非放宽）。
+ * backend、迁移、权限码、package.json 不在授权面内 ⇒ 仍一律判红；清单外的第 9 个 views 文件照样红。
+ */
+const WORKBENCH_13B_ALLOWED_VIEWS = [
+  "admin-web/src/views/instant-retail/InstantRetailOrderBoard.vue",
+  "admin-web/src/views/instant-retail/InstantRetailShelf.vue",
+  "admin-web/src/views/marketing/CouponManage.vue",
+  "admin-web/src/views/marketing/FlashSale.vue",
+  "admin-web/src/views/marketing/FullReduction.vue",
+  "admin-web/src/views/marketing/MarketingView.vue",
+  "admin-web/src/views/pos/CashierView.vue",
+  "admin-web/src/views/pos/SaleReturnView.vue",
+];
 
 await run("业务冻结：views 与 backend 仅允许卡内授权文件改动，卡外零改动", () => {
   const out = execSync(
@@ -571,7 +586,7 @@ await run("业务冻结：views 与 backend 仅允许卡内授权文件改动，
     .split(/\r?\n/)
     .map((s) => s.replace(/\\/g, "/").trim())
     .filter(Boolean);
-  const allowed = new Set([...WORKBENCH_07_ALLOWED_VIEWS, ...WORKBENCH_12_ALLOWED_VIEWS]);
+  const allowed = new Set([...WORKBENCH_07_ALLOWED_VIEWS, ...WORKBENCH_12_ALLOWED_VIEWS, ...WORKBENCH_13B_ALLOWED_VIEWS]);
   const violations = changed.filter(
     (f) => !allowed.has(f) && !WORKBENCH_10_F1_ALLOWED_VIEW_DIRS.some((dir) => f.startsWith(dir)),
   );
