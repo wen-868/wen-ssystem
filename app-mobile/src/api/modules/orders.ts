@@ -253,14 +253,23 @@ export interface BillHistoryParams {
 const FAILURE_STATUSES = ['DELIVERY_FAILED', 'REJECTED']
 
 /**
- * 归一「列表展示用的真实业务状态」（MOBILE-REJECT-REDELIVER-ENTRY-01-F2 核心修复）
+ * 列表展示状态：**失败态覆盖，否则沿用原历史语义**（failure override, otherwise legacy display）
  *
- * 为什么必须按单据类型分支（而不是简单 `??` 链）：
- *  - sale_order / 即时零售单：失败语义落在 `delivery_status`（REJECTED / DELIVERY_FAILED），
- *    而 `order_status` 仍是 COMPLETED/DELIVERING ⇒ 只看 order_status 会把拒收单显示成正常单；
- *    ⇒ **失败状态必须优先**，否则 UI 永远看不到「拒收」。
- *  - sale_bill：失败语义落在 `business_status`（此前被 collection_status 顶替，故不可见）。
- *  - 采购侧：沿用原有 order_status / stock_status，不改变既有语义（防正常单据回归）。
+ * F3 订正（凌舟驳回 F2 §二/§三）：F2 让 `businessStatus` 在**非失败**情形也优先，
+ * 使正常销售单从 `UNPAID/PAID` 变成 `CREATED/COMPLETED`，页面「待收款/已收款」筛选随之失效
+ * （筛选按 `item.status` 与 UNPAID/PENDING_PAYMENT/PAID 比较）。违反「正常历史单据状态不得回归」。
+ *
+ * 现行口径（卡 §三）：
+ *  ① 失败态优先：`DELIVERY_FAILED` / `REJECTED` 任一来源命中 ⇒ 展示该失败态。
+ *     来源顺序按单据类型：sale_bill 先 business_status；其余先 delivery_status；
+ *     但**任一来源命中即算失败**（不因来源顺序漏判）。
+ *  ② 非失败态一律回到原历史语义：
+ *     · sale_bill      ⇒ collectionStatus（收款态；缺失才回退 business/order）
+ *     · sale_order     ⇒ orderStatus（缺失才回退 delivery/business）
+ *     · purchase_in_stock ⇒ stockStatus；purchase_order ⇒ orderStatus
+ *     ⇒ 正常单仍显示 `UNPAID/PAID` 等中文标签，筛选不受影响。
+ *  ③ businessStatus / deliveryStatus / collectionStatus 等字段继续保留在返回项里供诊断，
+ *     只是**不覆盖**正常列表语义。
  */
 function pickDisplayStatus(r: any, billType: string): string {
   const biz = str(r.businessStatus ?? r.business_status)
@@ -269,15 +278,16 @@ function pickDisplayStatus(r: any, billType: string): string {
   const coll = str(r.collectionStatus ?? r.collection_status)
   const stock = str(r.stockStatus ?? r.stock_status)
 
-  // 失败态优先：任一来源命中即展示失败态（用户必须能看见「拒收/配送失败」）
-  for (const cand of [deliv, biz, order]) {
+  // ① 失败态优先：任一来源命中即展示失败态（用户必须能看见「拒收/配送失败」）
+  for (const cand of [biz, deliv, order, coll]) {
     if (cand && FAILURE_STATUSES.includes(cand.toUpperCase())) return cand.toUpperCase()
   }
 
-  if (billType === 'sale_bill') return biz || coll || order || ''
-  if (billType === 'sale_order') return deliv || order || ''
+  // ② 非失败 ⇒ 严格回到原历史语义（不得让 business/delivery 覆盖正常收款态）
+  if (billType === 'sale_bill') return coll || biz || order || ''
+  if (billType === 'sale_order') return order || deliv || biz || ''
   if (billType === 'purchase_in_stock') return stock || order || ''
-    return order || stock || biz || ''
+  return order || stock || biz || ''
 }
 
 function str(v: any): string {

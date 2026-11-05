@@ -27,6 +27,24 @@ const read = (p: string) => readFileSync(join(ROOT, p), 'utf8')
  * 注意：request.ts 的 get 返回 `resData.data`（已解包 data），
  * 故这里直接返回 records/total 结构，与后端 `ok({records,total})` 一致。
  */
+/**
+ * 文件级模块句柄（F3 起提到顶层）：F2 的 describe 内 let 变量对后续 describe 不可见，
+ * 导致新增的筛选回归用例 ReferenceError。统一在这里 beforeAll 装配一次。
+ * （request.ts 的 get 返回 resData.data 已解包，故 mock 直接给 records/total 结构）
+ */
+let storeSaleBillsApi: any
+let billHistoryApi: any
+let mapBillHistoryRow: any
+let mapStoreSaleBillRow: any
+
+beforeAll(async () => {
+  const mod: any = await import('../src/api/modules/orders')
+  storeSaleBillsApi = mod.storeSaleBillsApi
+  billHistoryApi = mod.billHistoryApi
+  mapBillHistoryRow = mod.mapBillHistoryRow
+  mapStoreSaleBillRow = mod.mapStoreSaleBillRow
+})
+
 let getSpy: any
 async function withMockGet(payload: any, call: () => Promise<any>) {
   const req: any = await import('../src/api/request')
@@ -133,17 +151,7 @@ describe('GAP-1 已实现动作不回归', () => {
 // 并对正常单据做不回归断言。
 // ===========================================================================
 describe('F2 · 列表映射：businessStatus 必须进入 UI status', () => {
-  /** 直接调真实映射实现（不发网络请求）：mock 掉 request 层 */
-  let storeSaleBillsApi: typeof import('../src/api/modules/orders').storeSaleBillsApi
-  let billHistoryApi: typeof import('../src/api/modules/orders').billHistoryApi | any
-  let mapBillHistoryRow: typeof import('../src/api/modules/orders').mapBillHistoryRow
-
-  beforeAll(async () => {
-    const mod: any = await import('../src/api/modules/orders')
-    storeSaleBillsApi = mod.storeSaleBillsApi
-    billHistoryApi = mod.billHistoryApi
-    mapBillHistoryRow = mod.mapBillHistoryRow
-  })
+  // 模块句柄已在文件级 beforeAll 装配（F3 起提升，见文件头 setup）
 
   it('sale_bill：business_status=REJECTED ⇒ status=REJECTED（不再被 collectionStatus 顶替）', async () => {
     const res = await withMockGet({ records: [{ billNo: 'F2-SB-1', customerName: '甲', receivableAmount: 66, businessStatus: 'REJECTED', collectionStatus: 'UNPAID', createdAt: '2026-11-05' }], total: 1 }, () => storeSaleBillsApi.list())
@@ -158,10 +166,19 @@ describe('F2 · 列表映射：businessStatus 必须进入 UI status', () => {
     expect(res.list[0].status).toBe('DELIVERY_FAILED')
   })
 
-  it('sale_bill：正常 CREATED ⇒ status=CREATED（不回归成收款态）', async () => {
-    const res = await withMockGet({ records: [{ billNo: 'F2-SB-3', customerName: '丙', receivableAmount: 100, businessStatus: 'CREATED', collectionStatus: 'PAID' }], total: 1 }, () => storeSaleBillsApi.list())
-    expect(res.list[0].status, '正常单显示业务态 CREATED').toBe('CREATED')
+  it('sale_bill：正常 businessStatus=CREATED, collectionStatus=PAID ⇒ status=PAID（回到商品收款态，不是 CREATED）', async () => {
+    // F3 订正（凌舟驳回 F2 §二.2/§三）：非失败态的 sale_bill 必须回到 collectionStatus 口径，
+    // 否则页面「待收款/已收款」筛选失效。businessStatus 仍保留供诊断，但不得覆盖展示/筛选语义。
+    const res = await withMockGet({ records: [{ billNo: 'F3-SB-3', customerName: '丙', receivableAmount: 100, businessStatus: 'CREATED', collectionStatus: 'PAID' }], total: 1 }, () => storeSaleBillsApi.list())
+    expect(res.list[0].status, '正常单必须显示收款态 PAID').toBe('PAID')
+    expect(res.list[0].businessStatus, 'businessStatus 仍保留供诊断').toBe('CREATED')
     expect(res.list[0].collectionStatus).toBe('PAID')
+  })
+
+  it('sale_bill：正常 businessStatus=CREATED, collectionStatus=UNPAID ⇒ status=UNPAID（待收款可筛）', async () => {
+    const res = await withMockGet({ records: [{ billNo: 'F3-SB-4', customerName: '丙', receivableAmount: 100, businessStatus: 'CREATED', collectionStatus: 'UNPAID' }], total: 1 }, () => storeSaleBillsApi.list())
+    expect(res.list[0].status, '正常未收款单必须显示 UNPAID').toBe('UNPAID')
+    expect(res.list[0].collectionStatus).toBe('UNPAID')
   })
 
   it('sale_order：delivery_status=REJECTED 且 order_status=COMPLETED ⇒ status 取 REJECTED（失败态优先）', async () => {
@@ -198,6 +215,83 @@ describe('F2 · 列表映射：businessStatus 必须进入 UI status', () => {
     expect(entry.kind).toBe('manual-fallback')
     expect(entry.text).toContain('联系客服重新配送')
     expect(entry.clickable).toBe(false)
+  })
+})
+
+// ===========================================================================
+// MOBILE-REJECT-REDELIVER-ENTRY-01-F3 · 状态筛选回归（卡 §四 / §六）
+//
+// 页面筛选实现：`statuses.has((o.status||'').toUpperCase())`，筛选组为
+//   unpaid = ['UNPAID','PENDING_PAYMENT']，paid = ['PAID']（orders.vue statusTags）
+// ⇒ 筛选与展示**必须同源**（都用 item.status），故只要正常单 status 恢复为 collectionStatus，
+//    「待收款/已收款」即自动恢复；失败单 status=REJECTED/DELIVERY_FAILED 不属这两组，不会被误判。
+// ===========================================================================
+describe('F3 · 状态筛选回归（待收款/已收款真实可用）', () => {
+  /** 与 orders.vue 的 statusTags 同源口径（改页面时本测试同步红，防口径漂移） */
+  const FILTER_GROUPS: Record<string, string[]> = {
+    unpaid: ['UNPAID', 'PENDING_PAYMENT'],
+    paid: ['PAID'],
+  }
+  /** 复刻页面筛选：statusTags 多选 OR 匹配 */
+  const applyFilter = (rows: Array<{ status: string }>, keys: string[]) => {
+    const set = new Set(keys.flatMap((k) => FILTER_GROUPS[k] || []))
+    return rows.filter((r) => set.has((r.status || '').toUpperCase()))
+  }
+
+  it('正常 sale_bill UNPAID 命中「待收款」筛选', () => {
+    const rows = [{ status: 'UNPAID' }, { status: 'PAID' }, { status: 'REJECTED' }]
+    const got = applyFilter(rows, ['unpaid'])
+    expect(got.map((r) => r.status)).toEqual(['UNPAID'])
+  })
+
+  it('正常 sale_bill PAID 命中「已收款」筛选', () => {
+    const rows = [{ status: 'UNPAID' }, { status: 'PAID' }]
+    const got = applyFilter(rows, ['paid'])
+    expect(got.map((r) => r.status)).toEqual(['PAID'])
+  })
+
+  it('失败单不因「待收款」筛选被静默丢弃（它们不在收款组，应显式不被选中而非消失）', () => {
+    const rows = [{ status: 'REJECTED' }, { status: 'DELIVERY_FAILED' }, { status: 'UNPAID' }]
+    const unpaidHit = applyFilter(rows, ['unpaid'])
+    // 关键：失败单不是收款单 ⇒ 不出现在「待收款」结果里（这是语义正确，不是丢弃）
+    expect(unpaidHit.map((r) => r.status)).toEqual(['UNPAID'])
+    // 而未筛选时它们必须都在（证明「不被静默丢弃」指的是全量视图可见）
+    expect(rows.map((r) => r.status)).toContain('REJECTED')
+    expect(rows.map((r) => r.status)).toContain('DELIVERY_FAILED')
+  })
+
+  it('端到端同源：同一批真实形状数据，映射后的 status 直接喂筛选 ⇒ 待收款/已收款各命中 1 条，失败单不混入', async () => {
+    const payload = {
+      records: [
+        { billNo: 'F3-SB-UNPAID', customerName: '甲', receivableAmount: 66, businessStatus: 'CREATED', collectionStatus: 'UNPAID' },
+        { billNo: 'F3-SB-PAID', customerName: '乙', receivableAmount: 88, businessStatus: 'COMPLETED', collectionStatus: 'PAID' },
+        { billNo: 'F3-SB-REJ', customerName: '丙', receivableAmount: 33, businessStatus: 'REJECTED', collectionStatus: 'UNPAID' },
+        { billNo: 'F3-SB-DF', customerName: '丁', receivableAmount: 44, businessStatus: 'DELIVERY_FAILED', collectionStatus: 'UNPAID' },
+      ],
+      total: 4,
+    }
+    const res = await withMockGet(payload, () => storeSaleBillsApi.list())
+    const unpaidHit = applyFilter(res.list, ['unpaid'])
+    const paidHit = applyFilter(res.list, ['paid'])
+    // 待收款：只有正常 UNPAID 命中；失败单虽 collectionStatus=UNPAID，但 status 是失败态 ⇒ 不混入
+    expect(unpaidHit.map((r: any) => r.billNo)).toEqual(['F3-SB-UNPAID'])
+    expect(paidHit.map((r: any) => r.billNo)).toEqual(['F3-SB-PAID'])
+    // 失败单确实在列表里（全量视图可见），只是不属收款组
+    expect(res.list.filter((r: any) => /REJ|DF/.test(r.billNo)).map((r: any) => r.status).sort()).toEqual(['DELIVERY_FAILED', 'REJECTED'])
+  })
+
+  it('正常单显示中文「待收款/已收款」，不退化成裸 CREATED（页面 statusText 同源断言）', () => {
+    const src = read('src/pages/orders/orders.vue')
+    // 页面状态文案表必须含收款态中文
+    expect(src).toMatch(/UNPAID:\s*'待收款'/)
+    expect(src).toMatch(/PAID:\s*'已收款'/)
+    // 且筛选组必须仍按收款态建组（防有人把组改成 CREATED）
+    expect(src).toMatch(/key:\s*'unpaid',\s*keys:\s*\['UNPAID',\s*'PENDING_PAYMENT'\]/)
+    expect(src).toMatch(/key:\s*'paid',\s*keys:\s*\['PAID'\]/)
+    // 正常单的 status 不得是 CREATED：断言映射层非失败 sale_bill 不返回 businessStatus
+    const row = mapBillHistoryRow({ billType: 'sale_bill', billNo: 'F3-X', businessStatus: 'CREATED', collectionStatus: 'UNPAID' })
+    expect(row.status).toBe('UNPAID')
+    expect(row.status).not.toBe('CREATED')
   })
 })
 
