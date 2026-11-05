@@ -1462,3 +1462,597 @@ kbd,
     align-items: flex-start;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WORKBENCH-13B · 业务页视觉语法（逐条取自原型融合版 CSS，卡 §三.A.4/5）
+   ★ 口径前提：原型自带 **V16 视觉归一运行时**（L9669 `<!-- __V16_TIDY_START__ -->` 层的 `<script data-v16="tidy">`），
+     它在 boot 时**无条件**执行 `tidyAll(); startMO();`（L9864，并挂 MutationObserver 持续生效），
+     用 CSSOM+内联改写把静态声明收敛到阶梯（实测销售单据页：改写 891 条声明、冒烟 13 过）：
+       · 圆角 RM（L9685）5/7→6 · 8/9/11→10 · **12/13/16→14** · 18/26→20 · **99→999**
+       · 字号 FP（L9684）半像素向下取整 **11.5→11 · 12.5→12** · 13.5→13 · 9.5→9 …
+       · 阴影 SM／色彩 CM → token（同值替换，零视觉变化）
+     ⇒ 本段的取值目标是**归一后的计算值**（= 浏览器真正渲染出来的样子，也是 13B 差异表两侧同尺读到的数），
+       不是源码字面量。下面每条都写成「L<行号> 源码值 ⇒ 归一后值」。
+     证据：measure/wb13b-module-parity.json 的原型侧读数；本段实现值与之逐字节对齐（§三.A.6 偏差 ≤±1px、色值逐字节）。
+   真相源（融合版 HTML 行号，指纹 6A2724A6…30C51）：
+     L195 .wb-wrap{max-width:1080px;margin:0 auto;padding:32px 44px 60px} ⇒ 实测 1080×content@x=325、padding 32 44 60（无归一）
+     L197 .wb-wrap.pos-full{max-width:none;padding:16px 26px 18px}
+     L216-220 .wb-kpis(4 列 gap13) / .wb-kpi（#F9FAFB 底、1px #ECEEF1、padding 14 16、radius14 ⇒14、
+              .l 11.5⇒**11** #8A8F98、.v 20/800 上边距 6）
+     L269-272 .wb-tbl（1px #ECEEF1、radius13⇒**14**、separate 0、bg 透明）+ th(#F9FAFB、11.5⇒**11**、600、#8A8F98、10×14，实测高 35)
+              + td(11×14、12.5⇒**12**、#16181D、上边框 #ECEEF1，实测高 55)；行悬停 #F9FAFB
+     L764 .s-filter(gap9、11×13、#F9FAFB、1px #ECEEF1、radius12⇒**14**、mb13，实测高 101)
+     L766-769 .s-fi gap6 / label 11.5⇒**11** #8A8F98 / input·select(148×30、radius9⇒**10**、12px、1px #ECEEF1、白底深字)
+     L212 .btn2(8×14、radius99⇒**999**、1px #ECEEF1、白底 #16181D、12.5⇒**12**px，实测高 34)｜ L214 .btn2.pri(#2563EB 白字)
+     L771-774 .s-pg(space-between、10px 4px 0、11px #8A8F98，实测高 36；按钮 26×26、padding 0 7、radius8⇒**10**、1px #ECEEF1；.on #2563EB 白字)
+     L777-780 .s-fc(radius14⇒14、1px #ECEEF1、mb13、白底)｜.s-fc-hd(11×15、#F9FAFB、12.5⇒**12**、700、下边框 #ECEEF1，实测高 39)｜.s-fc-bd(14×15)
+     L775 .s-sec 13.5⇒**13**、800
+     L9890-9896 .v17-empty(38px 20px、#8A8F98、1px dashed #ECEEF1、radius13⇒**14**)
+   色值写法沿用 F3 已验收壳层的既有 seam（WorkbenchShell.vue:1184/1212 等 `var(--wb-*, 原型字面量)`），
+   对应原型融合版 L10-11 的浅色 token 组：
+     --wb-line #eceef1（L10 --line）· --wb-ink #16181d（L10 --ink）· --wb-ink2 #8a8f98（L10 --sub）
+     --wb-side #f9fafb（L10 --side）· --wb-panel #fff（L10 --bg）· --wb-primary #2563eb（L10 --blue）
+   口径边界①：本段只动**业务页自身**（`main.wb-view-manual` 里的路由页）。rail／二级列／顶栏／信息流是
+     F3 已验收的壳层视觉口径，卡 §二 列为禁改项，本段一条都不碰。
+   口径边界②：**不做暗色覆盖层**。壳层（WorkbenchShell.vue、components/workbench/*.vue）当前一律落在
+     `var(--wb-*)` 的浅色兜底字面量上，暗色切换只作用于 tokens.css/wb-theme.css 的旧后台层，工作台整面并不转暗。
+     13B 若单独把业务页刷成暗色，产出的是「白壳 + 黑页」的半暗状态 —— 那是本单新造的视觉偏差，不是对齐。
+     整面暗色属壳层口径（不在 13B 范围），此处刻意与壳层保持同源浅色。
+   口径边界③：**999px 不是笔误**。原型胶囊按钮经 V16 归一后就是 999px（99→999），
+     实现侧写 99px 会被差异表判成 Δ=-900 的真红；此处按渲染值写 999px。
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 0) 正文墨色：原型 L27 `body{color:var(--ink)}`（#16181D）一路继承进 `#wbBody`，
+      所以差异表原型侧每一页的 body/页根色都是 22,24,29。实现侧的壳层与视图都没有给业务页根设过 color
+      （`main.wb-view-manual > *` 落在浏览器默认 0,0,0）⇒ 逐页字体门禁每条配对都吃一行 `body.color` 真红，
+      这是画布级缺口，不是某一页的问题。只补这一条继承源头，EP 组件自带的文字色（表格/表单各自有 token）不受影响。 */
+main.wb-view-manual {
+  color: var(--wb-ink, #16181d);
+}
+
+/* 1) 页面容器：原型把业务页装在 .wb-wrap 里（1080 上限 + 32/44/60 内边距）。
+      实测同视口（1440×1000，销售单据页）：壳层列宽两侧逐字节相同
+      （原型 aside#side 230×1000@60 ⇄ 实现 aside.wb-subnav 230×1000@60），
+      而面板 x/宽差额（原型 .s-wrap 992@369 ⇄ 实现 .pos-sale-bills 1150@290）全部来自实现侧缺这一层包装。 */
+@media (min-width: 768px) {
+  main.wb-view-manual > *:not(.wb-menu-empty) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 32px 44px 60px;
+  }
+  /* 收银台走原型 .wb-wrap.pos-full 口径（L197：占满 + 16/26/18） */
+  main.wb-view-manual > .pos-cashier {
+    max-width: none;
+    padding: 16px 26px 18px;
+  }
+}
+
+/* 2) 筛选条：原型 L764 .s-filter（radius 源码 12 ⇒ V16 归一 **14**，实测 14px/14px/14px/14px）
+      全部规则以 `main.wb-view-manual` 为前缀：只作用于工作台业务页画布，
+      旧后台控制台（`.layout` / `.main`）继续吃 R100 全局皮肤，互不影响（卡 §二：不动其他业务域）。
+      宿主只取 `.filter-bar` / `.filter-card` 两种自绘写法。**`.el-form--inline` 刻意不在这里**：
+      实测 5 页（库存盘点 / 库存调拨 / 采购付款 / 供应商 / 商品审核）把筛选表单画在 `PageCard` **里面**
+      （`PageCard > el-form inline`），框与内边距由 §6 的卡片口径提供 ⇒ 再给内层表单打一遍 §2 皮肤
+      就是双层 11×13 内边距（与 D1 修的「条内套条」同一类缺陷）。契约里它仍是只读别名（没有它会把这 5 页
+      误读成「筛选条缺失」），其超容差行按 §三.A.6 走书面解释：读数落在没被画过的那一层，不是被剥掉的口径。 */
+main.wb-view-manual :is(.filter-bar, .filter-card) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  margin-bottom: 13px;
+  background: var(--wb-side, #f9fafb);
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 14px;
+  box-shadow: none;
+}
+/* 2b) 筛选控件：原型 L766-769 .s-fi label（11.5⇒11px #8A8F98）与 input·select（148×30、radius 9⇒10、12px、
+      1px 实线 #ECEEF1、白底深字、padding 0 9）。
+      EP 把描边画成 inset box-shadow（旧写法）⇒ 差异表 borderBottomColor 读出 none（没有真实下边框），
+      改成真实 1px 边框两侧同尺；盒模型统一 border-box，30 高才不会被边框顶成 32。
+      ⚠️ 宽度/间距必须用 `!important`：156 处视图在 `.filter-bar` 里**内联**写了 width 120～260px 与
+      margin 8～12px（实测分布见 13B 证据 `measure/wb13b-module-parity.json` 的 filterField.width 行）。
+      内联样式优先级高于任何选择器 ⇒ 不加 !important 就量不到原型的 148/gap9；逐文件删内联宽度要动
+      几十个视图（且旧后台控制台共用这些视图），画布内一处归一更小blast radius，也不会漏给旧控制台。
+      例外：`el-date-editor`（日期/区间选择器）保留原宽度 —— 原型没有区间选择器语法，148 会把
+      「YYYY-MM-DD 至 YYYY-MM-DD」裁断（§三.C.14 禁止裁切）⇒ 该例外已写进差异表豁免说明。 */
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-input,
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-select {
+  --el-input-height: 28px;
+  --el-component-size: 30px;
+  --el-component-size-small: 30px;
+}
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-input:not(.el-date-editor),
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-select {
+  width: 148px !important;
+}
+/* 2c) 原型 `.s-filter` 的间距只有一个来源：`gap:9px`（L764），条目自身不带 margin。
+       实现侧视图普遍写 `style="margin-left/right: 8~12px"`，EP 的 `.el-form-item` 又自带 18/32 外边距
+       ⇒ 同一行条目数与折行数都会偏。画布内一律收口到 gap 一源。 */
+main.wb-view-manual :is(.filter-bar, .filter-card) > *,
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-form-item {
+  margin: 0 !important;
+}
+/* 2d) 六个视图（营销 4 页 + 即时零售 2 页）把筛选条写成「条内再套一条」：外层 `.filter-bar` 里
+       既有 `.filter-bar` 又有 `.toolbar-right` ⇒ 同一条上叠两层 11×13 内边距 + 两层 1px 描边，
+       实测 filterBar.height 101⇒136、条目被推进第二层。内层已改名 `.filter-bar-items`，
+       画布内用 `display:contents` 让它的子项直接参加外层那一行（原型 L2761：`.s-filter` 只有一层 flex）。
+       `.toolbar-right` = 原型 L2764 的 `<div style="margin-left:auto;gap:8px">` 右侧动作组。 */
+main.wb-view-manual :is(.filter-bar, .filter-card) .filter-bar-items {
+  display: contents;
+}
+main.wb-view-manual :is(.filter-bar, .filter-card) .toolbar-right {
+  margin-left: auto !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-input__wrapper,
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-select__wrapper {
+  box-sizing: border-box;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: 10px;
+  background: var(--wb-panel, #ffffff);
+  border: 1px solid var(--wb-line, #eceef1);
+  box-shadow: none;
+  font-size: 12px;
+  color: var(--wb-ink, #16181d);
+}
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-input__wrapper.is-focus,
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-select__wrapper.is-focused {
+  border-color: var(--wb-primary, #2563eb);
+  box-shadow: none;
+}
+/* 390 窄口 D.16 复算揪出的第二条退步：区间选择器的包装层带的是 `.is-active`（不是 is-focus），
+   所以上面那条聚焦态选择器接不到它；又因为本画布把 `.el-input__wrapper` 钉成 box-shadow:none，
+   EP 原生的 `.el-date-editor.is-active` 阴影也被盖掉 ⇒ 营销筛选条的「结束日期」键盘聚焦零变化。
+   补 `.is-active` 同口径聚焦态（描边主色 + 3px 光晕），静止态读数不动，A 段并排证据不受影响。 */
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-date-editor.el-input__wrapper.is-active {
+  border-color: var(--wb-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-input__inner,
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-select__placeholder {
+  font-size: 12px;
+  color: var(--wb-ink, #16181d);
+}
+/* 2b-2) 字段标签：原型 L766 .s-fi label（11.5 ⇒ V16 **11**px #8A8F98） */
+main.wb-view-manual :is(.filter-bar, .filter-card) label,
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-form-item__label {
+  font-size: 11px;
+  color: var(--wb-ink2, #8a8f98);
+}
+/* 2c) 工具条按钮：原型 L212 .btn2（8×14、radius 99⇒**999**、1px 描边、白底深字、12.5⇒12px，实测 34 高）
+        / L214 .btn2.pri（#2563EB 底 + 白字）
+      高 34 = padding 8+8 + 内容 16 + 上下边框 1+1 ⇒ 用固定 height + border-box 复现，padding 读数仍是 8px 14px。
+      顺带盖掉 R100 全局皮肤的两条渗透（styles.css:1210 `.el-button--primary{linear-gradient(#3F6FEF,#2F5BD6)}`、
+      styles.css:1200 `.el-card{radius12/#E8ECF4/分层阴影}）——原型的工具条按钮是**实色** #2563EB（L10 --blue）。 */
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-button,
+main.wb-view-manual .page-header-actions .el-button,
+main.wb-view-manual .acts-bar .el-button,
+main.wb-view-manual .toolbar .el-button,
+main.wb-view-manual .table-card-footer .el-button {
+  box-sizing: border-box;
+  height: 34px;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--wb-line, #eceef1);
+  background: var(--wb-panel, #ffffff);
+  color: var(--wb-ink, #16181d);
+  font-size: 12px;
+  box-shadow: none;
+}
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-button--primary,
+main.wb-view-manual .page-header-actions .el-button--primary,
+main.wb-view-manual .acts-bar .el-button--primary,
+main.wb-view-manual .toolbar .el-button--primary,
+main.wb-view-manual .table-card-footer .el-button--primary {
+  background: var(--wb-primary, #2563eb);
+  border-color: var(--wb-primary, #2563eb);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* 3) 表格：原型 L269-272 把**外框直接画在 table 本体**（1px #ECEEF1 + radius 13⇒**14** + separate/0），
+      `.s-twrap`（L770）只是 `overflow-x:auto` 的滚动壳 ⇒ 分页条在框**外**。
+      实现侧原先把这一圈画在包装卡 `.table-card` 上，结果是两处结构性偏差：
+        ① `.el-table` 宽 = 卡内宽 = 外框宽 − 左右边框 ⇒ 992 vs 990 恒差 2px；
+        ② 分页条被包进框内（原型在框外），x/y/width 全线偏。
+      ⇒ 本段把同一圈外框移到表格本体、包装卡退回透明容器，两侧从此在**同一层**（带框的那层）读数。
+      共享组件 DataTable.vue 的根 `.data-table` 是同一层的另一种写法（自带 R100 卡片皮肤：--bg-card/
+      --card-radius/--shadow-card + overflow:hidden），画布内同样剥掉，框仍落在 `.el-table` 本体；
+      组件本体一字不改 ⇒ 旧后台控制台继续吃它原来的皮肤（卡 §二：不动其他业务域）。 */
+main.wb-view-manual .table-card,
+main.wb-view-manual .data-table {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+main.wb-view-manual .el-table {
+  box-sizing: border-box;
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 14px;
+  overflow: hidden;
+  font-size: 12px;
+  --el-table-border-color: var(--wb-line, #eceef1);
+  --el-table-header-bg-color: var(--wb-side, #f9fafb);
+  --el-table-header-text-color: var(--wb-ink2, #8a8f98);
+  --el-table-row-hover-bg-color: var(--wb-side, #f9fafb);
+  --el-table-text-color: var(--wb-ink, #16181d);
+  --el-table-tr-bg-color: var(--wb-panel, #ffffff);
+  --el-table-current-row-bg-color: var(--wb-side, #f9fafb);
+}
+/* 3b) 表头单元格 = 原型 L270 th（#F9FAFB 底 / 11.5⇒**11**px / 600 / #8A8F98 / 10×14，实测高 35）
+      · `!important` 是被迫的：R100 全局皮肤 styles.css:1259 `.el-table th.el-table__cell{background:#F4F7FF !important}`
+        用重要级压住了原型底色（L10 --side=#F9FAFB）⇒ 只能在工作台作用域内以同等重要级还原。
+      · 原型 th **没有下边框**，行分隔由 td 的 border-top 提供（L272）⇒ 这里去掉 EP 的 th 下边框，避免多画一条。 */
+main.wb-view-manual .el-table th.el-table__cell {
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--wb-ink2, #8a8f98);
+  background: var(--wb-side, #f9fafb) !important;
+  border-bottom: none;
+}
+/* 3c) 表体单元格 = 原型 L272 td（11×14 / 12.5⇒**12**px / #16181D / 上边框 1px #ECEEF1）
+      EP 默认把行分隔画成 td 的 **border-bottom** ⇒ 最后一行会多出一条压在框线上的线；
+      改成与原型同侧的 border-top（首行紧贴表头，位置一致），读数才可比。 */
+main.wb-view-manual .el-table td.el-table__cell {
+  box-sizing: border-box;
+  padding: 11px 14px;
+  font-size: 12px;
+  color: var(--wb-ink, #16181d);
+  border-top: 1px solid var(--wb-line, #eceef1);
+  border-bottom: none;
+}
+/* 3d) EP 的文字还套了一层 `.cell`（默认 padding:0 12px + line-height:23px）
+      ⇒ 横向内边距会与 th/td 的 14px 叠加成 26px，行高也会把表头从 35 顶到 43。
+      原型没有这一层（文字直接在 th/td 里，line-height 走 normal：11px⇒15 ⇒ 10+10+15=35）。 */
+main.wb-view-manual .el-table th.el-table__cell > .cell,
+main.wb-view-manual .el-table td.el-table__cell > .cell {
+  padding: 0;
+  line-height: normal;
+}
+main.wb-view-manual .el-table .el-table__row {
+  background: var(--wb-panel, #ffffff);
+}
+
+/* 4) 统计条：原型 L216 .wb-kpis（4 列 gap13）+ L217-220 .wb-kpi（#F9FAFB 底、1px #ECEEF1、radius14⇒14、14×16，实测高 97）
+      .l=11.5⇒**11**px #8A8F98 ｜ .v=20px/800 上边距 6px ｜ **原型没有左侧色条**
+      （R100 皮肤 styles.css:1264 给 `.stat-item` 加了 border-left:4px + border-image 渐变，属实现自造装饰 ⇒ 还原）。 */
+main.wb-view-manual .stat-row,
+main.wb-view-manual .stats-row,
+main.wb-view-manual .stat-grid,
+main.wb-view-manual .stat-cards,
+main.wb-view-manual .wb-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  /* 原型 L216 `.wb-kpis` 只有 gap，**没有下边距**（实测 margin=0,0,0,0：KPI 行底 379 与筛选条顶 379 齐平）。
+     原 13px 是 13B 自己加的，会把 statistics.marginBottom 判成 Δ=13 的红 ⇒ 按渲染真值归零，块间距交给下方区块自己的 margin。 */
+  margin-bottom: 0;
+}
+main.wb-view-manual .stat-item,
+main.wb-view-manual .stat-card,
+main.wb-view-manual .stat-grid-card,
+main.wb-view-manual .wb-kpi {
+  box-sizing: border-box;
+  padding: 14px 16px;
+  background: var(--wb-side, #f9fafb);
+  border: 1px solid var(--wb-line, #eceef1);
+  border-image: none;
+  border-radius: 14px;
+  box-shadow: none;
+}
+/* 4a-2) .stat-info 嵌套把视图作用域样式顶到 (0,4,0)，比画布的 (0,3,1) 更高（ProductReview 等 8 个视图）。
+         不写这两条，24px/600/#333 的视图口径就会盖掉画布 ⇒ 直接补进同一组选择器，让画布升到 (0,4,1) 赢回。 */
+main.wb-view-manual .stat-item .stat-value,
+main.wb-view-manual .stat-card .stat-value,
+main.wb-view-manual .stat-card .stat-info .stat-value,
+main.wb-view-manual .stat-grid-card .stat-grid-value,
+main.wb-view-manual .wb-kpi .v {
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--wb-ink, #16181d);
+}
+main.wb-view-manual .stat-item .stat-label,
+main.wb-view-manual .stat-card .stat-label,
+main.wb-view-manual .stat-card .stat-info .stat-label,
+main.wb-view-manual .stat-grid-card .stat-grid-label,
+main.wb-view-manual .wb-kpi .l {
+  margin-bottom: 0;
+  font-size: 11px;
+  color: var(--wb-ink2, #8a8f98);
+}
+/* 4b) 共享组件 StatBar.vue（客户 订单 商品 库存 财务 五个模块同用一条）把 KPI 画成
+      「一条灰底带 + 格子之间的竖分隔线」，原型 L216-219 是「4 张独立卡，卡间 13 间距，卡内左对齐」。
+      组件本体一字不改（旧后台控制台共用，卡 §二），只在工作台画布内把条状皮肤剥掉、
+      让每个格子长成 .wb-kpi。DOM 顺序是「数值在前 标签在后」（原型相反）⇒ 6px 间距挂在**后出现的**标签上，
+      读到的两块之间距离与原型一致；顺序本身属于实现自造，已由差异表记录。 */
+main.wb-view-manual .stat-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  padding: 0;
+  /* 同 §4：原型 `.wb-kpis` 不带下边距 ⇒ StatBar 宿主也归零，否则 statistics.marginBottom 逐页判红。 */
+  margin-bottom: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+main.wb-view-manual .stat-bar-item {
+  box-sizing: border-box;
+  padding: 14px 16px;
+  text-align: left;
+  background: var(--wb-side, #f9fafb);
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 14px;
+  box-shadow: none;
+}
+main.wb-view-manual .stat-bar-value {
+  margin-top: 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--wb-ink, #16181d);
+}
+main.wb-view-manual .stat-bar-label {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--wb-ink2, #8a8f98);
+}
+
+/* 5) 分页条：原型 L771-774 .s-pg（space-between、10px 4px 0、11px #8A8F98，实测高 36；按钮 26×26、padding 0 7、
+      radius 8⇒10、1px #ECEEF1；当前页 .on = #2563EB 白字）。
+      实现侧的分页宿主有六种命名（逐类取自 src/views 实测计数）：`.pagination`×21（主流，视图自带
+      margin-top:16 + 右对齐）、`.table-card-footer`、`.pagination-bar`、`.pagination-wrapper`（共享组件
+      DataTable.vue）、`.pagination-area`、`.product-pagination`、`.preview-pagination`。
+      只认其中两三种 ⇒ 其余页面量到的是视图自己的皮肤（实测财务页 padding 0、宽 926、x 402）。
+      宿主层统一按原型 `.s-pg` 铺透明底、去描边、space-between；控件层（`.el-pagination` 及其按钮）
+      不再挂宿主类前缀 —— 画布内任何分页控件都吃同一口径，避免「换个宿主就漏配」。 */
+main.wb-view-manual .pagination,
+main.wb-view-manual .pagination-bar,
+main.wb-view-manual .pagination-area,
+main.wb-view-manual .pagination-wrapper,
+main.wb-view-manual .product-pagination,
+main.wb-view-manual .preview-pagination,
+main.wb-view-manual .table-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px 0;
+  font-size: 11px;
+  color: var(--wb-ink2, #8a8f98);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-top: 0;
+}
+main.wb-view-manual .el-pagination {
+  box-sizing: border-box;
+  width: 100%;
+  height: 26px;
+  min-height: 26px;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--wb-ink2, #8a8f98);
+  --el-pagination-font-size: 11px;
+  --el-pagination-button-height: 26px;
+  --el-pagination-button-min-width: 26px;
+  --el-pagination-button-bg-color: var(--wb-panel, #ffffff);
+  --el-pagination-hover-color: var(--wb-primary, #2563eb);
+}
+main.wb-view-manual .el-pagination .el-pagination__total {
+  margin-right: auto;
+}
+/* 5b) 分页条行高：原型 `.s-pg` 的 36 = padding 上 10 + 控件 26，控件只有 26 高的按钮。
+       ElementPlus 的 layout 多了 sizes（下拉 128 宽）与 jumper（前往 __ 页），默认按 32 画盒，
+       flex 行高被顶到 30/34 ⇒ 宿主实测 40/44（7 个模块同一处）。共享组件 DataTable.vue 的
+       layout 一字不改（旧后台控制台共用，卡 §二）⇒ 画布内把「任何直接子项 + 其可视盒」统一压到 26。
+       控件本体（`.el-pagination` 自己）也必须钉到 26：只压它的子项时，ElementPlus 给本体画的 30 高盒
+       仍是宿主里最高的那一层，实测宿主 40（诊断读数 tallestChild=div.el-pagination=30 即此事）。 */
+main.wb-view-manual .el-pagination > * {
+  box-sizing: border-box;
+  min-height: 26px;
+  height: 26px;
+  line-height: 24px;
+  font-size: 11px;
+}
+main.wb-view-manual .el-pagination .el-pagination__sizes .el-select__wrapper,
+main.wb-view-manual .el-pagination .el-pagination__sizes .el-input__wrapper,
+main.wb-view-manual .el-pagination .el-pagination__jump .el-input__wrapper {
+  box-sizing: border-box;
+  min-height: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 10px;
+  background: var(--wb-panel, #ffffff);
+  font-size: 11px;
+  line-height: 24px;
+  color: var(--wb-ink, #16181d);
+  box-shadow: none;
+}
+main.wb-view-manual .el-pagination .el-pagination__sizes .el-select {
+  width: 88px;
+}
+/* 390 窄口 D.16 复核揪出的退步：上一条把分页控件钉成 `box-shadow: none` + 静态 #ECEEF1 描边，
+   而 ElementPlus 的 `.el-input__inner { outline: none }`  specificity 相等且后加载，压过全局
+   `:focus-visible` ⇒ 分页「每页条数 / 跳至」输入框聚焦后零变化，键盘焦点彻底不可见。
+   这里按筛选栏同一口径（styles.css:1606）补回聚焦态描边 + 主色光晕；静止态读数不变，不影响 A 段并排证据。 */
+main.wb-view-manual .el-pagination .el-pagination__sizes .el-select__wrapper.is-focused,
+main.wb-view-manual .el-pagination .el-pagination__sizes .el-input__wrapper.is-focus,
+main.wb-view-manual .el-pagination .el-pagination__jump .el-input__wrapper.is-focus {
+  border-color: var(--wb-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+main.wb-view-manual .el-pagination .el-pagination__sizes,
+main.wb-view-manual .el-pagination .el-pagination__jump,
+main.wb-view-manual .el-pagination .el-pagination__editor {
+  --el-pagination-font-size: 11px;
+  font-size: 11px;
+  color: var(--wb-ink2, #8a8f98);
+}
+main.wb-view-manual .el-pagination .el-pagination__editor .el-input__inner {
+  font-size: 11px;
+}
+main.wb-view-manual .el-pagination button,
+main.wb-view-manual .el-pagination .el-pager li {
+  box-sizing: border-box;
+  min-width: 26px;
+  height: 26px;
+  line-height: 24px;
+  padding: 0 7px;
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 10px;
+  background: var(--wb-panel, #ffffff);
+  color: var(--wb-ink2, #8a8f98);
+  font-size: 11px;
+  font-weight: 400;
+}
+main.wb-view-manual .el-pagination .el-pager li.is-active {
+  background: var(--wb-primary, #2563eb);
+  border-color: var(--wb-primary, #2563eb);
+  color: #ffffff;
+}
+
+/* 6) 信息卡：原型 L777-780 .s-fc（radius14、1px #ECEEF1、mb13、白底）
+      + .s-fc-hd（11×15、#F9FAFB、12.5⇒**12**、700、下边框 #ECEEF1，实测高 39）+ .s-fc-bd（14×15）
+      只挂画布前缀：工作台视图根（多为 `.page`）都在 `main.wb-view-manual` 之内，
+      再补一条裸 `.page .el-card` 反而会把这套口径漏给旧后台控制台（卡 §二：不动其他业务域）。
+      描边/圆角/阴影必须带 !important：全局皮肤 styles tokens 段用 `!important` 把 `.el-card`
+      钉成 radius 10、无边框、带阴影，画布规则即便特异度更高也压不过它（实测差异表 pageCard.borderRadius 10 vs 14）。
+      `.form-card` / `[data-testid='page-card']` 是 pageCard 契约别名的另两个宿主（会员体系页的「会员注册」卡自绘
+      `.form-card`，全局骨架段把它钉成 radius var(--card-radius)=10、--border-light=#e0e0e0、带阴影 ⇒ 同一行读到
+      borderRadius 10、borderTopColor 240,240,240）。契约别名就是画布口径的宿主清单：能命中的层必须有一条口径，
+      否则红的是「量到了第几层」，不是视觉本身（同 C3 用例对图表/看板别名的要求）。 */
+main.wb-view-manual :is(.el-card, .form-card, [data-testid='page-card']) {
+  box-sizing: border-box;
+  background: var(--wb-panel, #ffffff);
+  border: 1px solid var(--wb-line, #eceef1) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  margin-bottom: 13px;
+}
+main.wb-view-manual :is(.el-card__header, .form-card-header, [data-testid='page-card-header']) {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 15px;
+  background: var(--wb-side, #f9fafb);
+  border-bottom: 1px solid var(--wb-line, #eceef1) !important;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 17px;
+  color: var(--wb-ink, #16181d);
+}
+main.wb-view-manual :is(.el-card__body, .form-card-body, [data-testid='page-card-body']) {
+  padding: 14px 15px;
+}
+
+/* 6b) 看板列卡 + 图表块：原型 L795 `.s-focus`（1px #ECEEF1、radius14、14×15 内边距、白底，**无下外边距**）
+        与 L801 `.s-chart`（同 `.s-focus` + margin-bottom:14）。
+      实现侧同一角色散成三套自绘皮肤：订单看板的 `.board-column`（灰底 + radius md + **没有描边**）、
+      看板块的 `.chart-container`/`.chart-box`（多数只画了一块高度，没描边没圆角）、
+      以及全局皮肤 §4 的 `.chart-card`（--card-radius/--border-light/--shadow-card + 头 14×16、体 12×16 两层内衬）。
+      ⇒ 画布内统一到原型那一层；`.chart-card` 的头/体内衬压成 0，只留外层那一份（原型 .s-chart 只有一个内边距层，
+      L2778 的标题是 `<div style="font-size:12.5px;font-weight:800;margin-bottom:10px">` 而非第二条描边）。
+      `.board-card` 是**页面级的包装壳**（原型 L3149 的看板直接把三张 `.s-focus` 摆在 `.s-g3` 里，没有外框），
+      所以这里把它退成透明容器 —— 和 §3 把 `.table-card` 退成透明容器同一个道理：描边归属只能有一层。
+      特异度：画布 `main.wb-view-manual .x` = (0,2,1)，视图 scoped 的 `.x[data-v-*]` = (0,2,0) ⇒ 画布赢，
+      视图与共享组件本体一字不改（卡 §二：不动其他业务域，旧后台控制台继续吃它原来的皮肤）。 */
+main.wb-view-manual :is(.s-focus, .board-column, .chart-container, .chart-card, .s-chart) {
+  box-sizing: border-box;
+  background: var(--wb-panel, #ffffff);
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 14px 15px;
+}
+main.wb-view-manual :is(.s-chart, .chart-container, .chart-card) {
+  margin-bottom: 14px;
+}
+/* `.chart-box` 两处角色：单独当图表块（客户生命周期/画像、售后分析、渠道成功率）⇒ 要卡面；
+   画在 `.chart-card`/`.chart-container` 里面时它只是原型 `.s-cbox`（L802：只有高度和下基线，**没有卡面**）
+   ⇒ 用 :not() 把嵌套那一档排除掉，否则一个图表里出现两层框。 */
+main.wb-view-manual .chart-box:not(.chart-card .chart-box, .chart-container .chart-box, .el-card .chart-box, .table-card .chart-box) {
+  box-sizing: border-box;
+  background: var(--wb-panel, #ffffff);
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 14px 15px;
+}
+main.wb-view-manual .chart-card > .chart-card-header,
+main.wb-view-manual .chart-card > .chart-card-body {
+  padding: 0;
+  background: transparent;
+  border-bottom: none;
+}
+main.wb-view-manual .chart-card > .chart-card-header {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--wb-ink, #16181d);
+}
+main.wb-view-manual .board-card {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+/* 看板列卡的标题行＝原型 .s-focus .ft（L796：12.5⇒**12**、800、margin-bottom 9） */
+main.wb-view-manual .board-column > .column-header {
+  padding: 0 0 9px;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+main.wb-view-manual .board-column > .column-body {
+  padding: 0;
+}
+
+/* 7) 板块小标题 + 空态：原型 L775 .s-sec（margin 22 0 11、13.5⇒**13**、800）
+      / L9890-9896 .v17-empty（38px 20px、#8A8F98、1px dashed #ECEEF1、radius 13⇒**14**） */
+main.wb-view-manual .s-sec,
+main.wb-view-manual .section-title {
+  margin: 22px 0 11px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--wb-ink, #16181d);
+}
+main.wb-view-manual .v17-empty,
+main.wb-view-manual .empty-state,
+main.wb-view-manual .empty-tip,
+main.wb-view-manual .el-empty {
+  box-sizing: border-box;
+  padding: 38px 20px;
+  margin: 2px 0;
+  text-align: center;
+  color: var(--wb-ink2, #8a8f98);
+  border: 1px dashed var(--wb-line, #eceef1);
+  border-radius: 14px;
+  background: var(--wb-panel, #ffffff);
+}
+/* 7b) `.empty-tip` 是 POS 与即时零售视图的自绘空态（7 处，实测就是**一行居中文本**），
+       `.empty-state` 4 处，`.el-empty` 是 EP 默认组件 —— 三者与原型 L9890 .v17-empty 同一角色，
+       画布内统一成虚线框。`background: var(--wb-panel)` 取白底（原型 L9890 同值），
+       在白色画布上与透明底视觉相同，但差异表按计算值逐字节比 ⇒ 不留这一处假差。 */
+main.wb-view-manual .empty-tip {
+  font-size: 12px;
+}

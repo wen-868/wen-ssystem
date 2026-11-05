@@ -36,7 +36,7 @@
       <div class="main-content">
         <el-card>
           <div class="filter-bar">
-            <div class="filter-bar">
+            <div class="filter-bar-items">
               <el-input
                 v-model="keyword"
                 placeholder="搜索商品名称/SKU"

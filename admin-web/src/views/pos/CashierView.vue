@@ -3361,6 +3361,16 @@ async function handleDeleteHoldOrder(holdNo: string) {
   .product-panel {
     min-height: 260px;
   }
+  /* 390 窄口实测硬越界（机器门禁 action-offscreen 点名）：搜索行是不换行的 flex，
+     输入框 flex:1 + 扫码/搜索/设置/全屏四个按钮 ⇒ 「全屏」钮落在 x=354、right=426 溢出 390，
+     且没有任何可滚祖先能带它进视口 ⇒ 用户够不到。窄口必须换行，输入框独占一行。 */
+  .product-searchbar {
+    flex-wrap: wrap;
+  }
+  .product-search-input {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
   .product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

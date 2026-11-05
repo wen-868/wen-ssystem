@@ -8,7 +8,7 @@
   </div>
 <el-card>
       <div class="filter-bar">
-        <div class="filter-bar">
+        <div class="filter-bar-items">
           <el-select v-model="statusFilter" placeholder="状态" clearable style="width: 120px; margin-right: 12px" @change="loadData">
             <el-option label="草稿" value="DRAFT" />
             <el-option label="进行中" value="ACTIVE" />

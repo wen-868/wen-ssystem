@@ -401,6 +401,13 @@ const BUSINESS_ROUTE_PATHS: readonly string[] = [
   "/inventory", "/inventory-check", "/inventory-transfer", "/inventory-alerts", "/inventory-batch-price",
   "/customers", "/member-system", "/store-value-cards", "/credit", "/points-rules", "/level-config",
   "/finance/payments", "/finance/receivables", "/finance/statements", "/finance/reconciliation", "/finance/profit", "/finance/report",
+  // WORKBENCH-13B 实测补漏：这 10 条是 `src/router/index.ts` 里挂在父级 `/` 下的**真实业务路由**
+  // （逐条 grep 到 `path:` + `component: views/**`），但清单当年按「域前缀」猜着写，漏了它们。
+  // 后果（1440 并排实测）：真实 SUPER_ADMIN 走菜单桥时 `visibleBusinessEntryCount === 0`，
+  // 而 `isManualBusinessRoute` 判假 ⇒ 「当前账号暂无可显示的菜单」覆盖层压在已渲染的业务页之上，
+  // 财务/系统/营销三个模块的页根量到的是空态块（1102×88），整页视觉无从对齐（卡 §三.A.4 页面本体）。
+  "/payments", "/customer-statements", "/fund-report", "/history-bills", "/finance/receivables-payables",
+  "/aftersale", "/organization", "/report-permissions", "/system/payment", "/monitor-manage",
   "/purchase-orders", "/purchase-in-stocks", "/purchase-returns", "/purchase-contracts",
   "/purchase/supplier-statements", "/purchase/plans", "/purchase-payments", "/suppliers",
   "/instant-retail/dashboard", "/instant-retail/config", "/instant-retail/shelf", "/instant-retail/orders",
@@ -1183,9 +1190,14 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 .wb-icon-btn:hover {
   background: var(--wb-hover, #f4f6f8);
 }
+/* 顶栏唯一标题 = 页面标题（13B 差异表 pageTitle 角色两侧同尺：原型 #topTitle ⇄ 本元素）。
+   口径取自原型融合版 L99 `.top .name{font-size:15px;font-weight:800;letter-spacing:.3px}`；
+   原实现写 600，差异表按 §三.A.6 判红（proto=800 impl=600）。字重/字距属字号层级，
+   不改尺寸与颜色 ⇒ 不触碰 F3 已验收的壳层几何口径（F3 用例未对标题字重设断言）。 */
 .wb-top-title {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: 0.3px;
   color: var(--wb-ink, #16181d);
   white-space: nowrap;
 }
@@ -1292,8 +1304,12 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   display: flex;
   flex-direction: column;
 }
+/* 人工层画布 = 原型 L10 `--bg:#FFFFFF`（`.wb-view{background:var(--bg)}`，L193 逐字）。
+   原兜底字面量 #f4f6f8 是原型 L10 的**另一个 token**（`--panel2`，用于 chip/悬停底），
+   不是页面画布 ⇒ 这是 token 误映射，不是壳层已验收口径（F2/F3 的测试与证据都不含该色，逐条 grep 过）。
+   WORKBENCH-13B §三.A.4 的门禁把 pageRoot 底色读成 244,246,248 vs 原型 255,255,255 ⇒ 本行按原型改回 #ffffff。 */
 .wb-view-manual {
-  background: var(--wb-bg, #f4f6f8);
+  background: var(--wb-bg, #ffffff);
 }
 .wb-view-manual.shown {
   overflow: auto;
@@ -1426,8 +1442,12 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
     padding: 0 6px;
     border-right: 0;
     border-top: 1px solid var(--wb-line, #eceef1);
-    overflow: hidden auto;
+    /* 窄口实测修复：底部横条里 13 个一级条目横向排布（scrollWidth 比 clientWidth 宽 ~210px），
+       原先写成 `hidden auto`（= 横不可滚、纵可滚）⇒ 右侧条目被裁死、390 下点不到。
+       横条的正确方向是横向可滚；纵向由 56px 定高裁掉。滚动条已在基础规则里隐藏，不占命中区。 */
+    overflow: auto hidden;
     overscroll-behavior-x: contain;
+    scrollbar-width: none;
   }
   .wb-rail-logo {
     width: 28px;
