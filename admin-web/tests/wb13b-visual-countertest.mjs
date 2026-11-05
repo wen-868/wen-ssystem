@@ -1,5 +1,5 @@
 /**
- * WORKBENCH-13B · 业务页视觉语法 / 逐页契约 / 390 窄口门禁 mutation 反测装置（卡 §三.D.19：≥10 类，本次 54 类）
+ * WORKBENCH-13B · 业务页视觉语法 / 逐页契约 / 390 窄口门禁 mutation 反测装置（卡 §三.D.19：≥10 类，本次 55 类）
  *
  * 与 f3-visual-contract-countertest.mjs 同构，但目标面是本单的四层真源：
  *   ① `src/styles.css` 的画布语法段（口径本体）      → 点名 wb13b-visual-grammar.spec 的用例变红
@@ -39,6 +39,8 @@
  *   M47 hidden 同步容器只按静态判据就免红                → N39     M50 手势腿缺失不再记 record-incomplete  → N38
  *   M51 合并端不清陈旧 roster-incomplete（已齐说成缺）   → N3      M53 各块 origin 汇总写成单值            → N6
  *   M52 记录不再逐条落 captureOrigin                     → N40     M54 URL 与自身 origin 不再比对          → N40
+ *   M55 行注释里重新写 glob（views/**，F3 C3 假红根因）   → D4（回到 A 组语法：与 D 组判据同一条红线，
+ *        —— 朴素去注释吞代码这类「解析口径」缺陷只跑 F3 链才暴露，tsc/eslint/build 全绿不代表安全）
  *
  * 运行（必须显式给证据输出目录，避免把中间产物写进工作树而破坏 clean）：
  *   node tests/wb13b-visual-countertest.mjs <outDir>
@@ -551,6 +553,14 @@ const CASES = [
     target: TARGETS.narrow,
     mutate: (t) => patch(t, "if (r.paint?.url && r.captureOrigin && !String(r.paint.url).startsWith(String(r.captureOrigin))) lack.push(", "if (false) lack.push(", "M54"),
     expect: "N40",
+  },
+  {
+    id: "M55-glob-inside-line-comment",
+    title: "行注释里重新写回 glob（views/**）⇒ 朴素去注释把后面的路由清单当块注释吞掉，F3 C3 读到截断清单",
+    spec: "G",
+    target: TARGETS.shell,
+    mutate: (t) => patch(t, "指向 views 下同一批 .vue", "指向 component: views/**", "M55"),
+    expect: "D4",
   },
 ];
 

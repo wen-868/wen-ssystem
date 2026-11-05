@@ -515,6 +515,56 @@ await run("D3 查询按钮必须是主按钮（原型 L2762 .btn2.pri = 蓝底�
   return "标记层与语法层的命名一一对应，无残留";
 });
 
+/**
+ * 「去注释后代码变短」守卫：F3 的 uiux-complete.spec 用一条正则粗暴去注释
+ * （先 `/\*[\s\S]*?\*\//` 删块注释，再删 `//` 行注释）。当行注释里写了 glob（如 `views/**`），
+ * 那个斜杠星号会被当成**块注释开头**，从该处一路吞到下一个星号斜杠 ⇒ 中间的代码在「注释文本」里消失。
+ * 本轮 13B 就在 WorkbenchShell 的路由清单注释上踩过：C3 读到被截断的清单 ⇒ 判「清单应含 /purchase-orders」
+ * 假红，而 vue-tsc / eslint / build 全绿（真实解析器认这是行注释）⇒ 只有跑 F3 链才暴露。
+ * 判据用**自比较**而非硬编码清单：同一份源码，去注释前后提取到的 BUSINESS_ROUTE_PATHS 必须逐字节相等；
+ * 再加一条正控制（合成坏样本必须被检出），否则这条用例本身可能是惰性的。
+ */
+await run("D4 行注释里不许出现 /* 序列：去注释前后同一份代码必须等价（F3 C3 假红的机器守卫）", () => {
+  const stripComments = (t) =>
+    t
+      .replace(/<style[\s\S]*?<\/style>/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1")
+      .replace(/<!--[\s\S]*?-->/g, "");
+  const grabList = (text) => text.match(/BUSINESS_ROUTE_PATHS[^=]*=\s*\[([\s\S]*?)\];/)?.[1] ?? "";
+  const norm = (s) => (s.match(/"[^"]+"/g) ?? []).join(",");
+  const raw = SHELL.replace(/\r\n/g, "\n");
+  const before = norm(grabList(raw));
+  const after = norm(grabList(stripComments(raw)));
+  /* 正控制：这条用例不能惰性 ⇒ 同样写法的合成样本必须被同一判据抓到 */
+  const poisoned = raw.replace(
+    '"/finance/report",',
+    '"/finance/report",\n  // 合成样本 views/** 会提前闭合注释\n  "/__poison_probe__",',
+  );
+  const poisonCaught =
+    norm(grabList(poisoned)) !== norm(grabList(stripComments(poisoned))) &&
+    !norm(grabList(stripComments(poisoned))).includes("/__poison_probe__");
+  assert.ok(poisonCaught, "正控制失效：判据抓不到合成的「行注释含 /* ⇒ 后续代码被吞」⇒ 这条用例本身是惰性的");
+  assert.equal(
+    after,
+    before,
+    `去注释后路由清单变短（${before.split(",").length} ⇒ ${after.split(",").length} 条）⇒ 有 /* 序列落在行注释里，` +
+      "F3 uiux-complete C3 会读到截断清单并假红；把注释里的 glob 改成文字表述",
+  );
+  const hits = [];
+  for (const [file, text] of [["layouts/WorkbenchShell.vue", raw], ["styles.css", CSS], ...VUE_FILES]) {
+    text
+      .replace(/\r\n/g, "\n")
+      .split("\n")
+      .forEach((line, i) => {
+        const at = line.indexOf("//");
+        if (at >= 0 && line.slice(at + 2).includes("/*")) hits.push(`${file}:${i + 1}`);
+      });
+  }
+  assert.deepEqual(hits, [], `行注释内含 /* 的文件行：${hits.join(", ")} ⇒ 朴素去注释会把后面的代码当块注释吞掉`);
+  return `清单 ${before.split(",").length} 条去注释前后逐字节等价 · 正控制可检出 · ${VUE_FILES.length + 2} 个文件 0 处 /* 落进行注释`;
+});
+
 const passed = results.filter((r) => r.ok).length;
 const failed = results.length - passed;
 console.log(`\n小结：${passed} passed / ${failed} failed`);

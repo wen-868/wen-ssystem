@@ -402,7 +402,7 @@ const BUSINESS_ROUTE_PATHS: readonly string[] = [
   "/customers", "/member-system", "/store-value-cards", "/credit", "/points-rules", "/level-config",
   "/finance/payments", "/finance/receivables", "/finance/statements", "/finance/reconciliation", "/finance/profit", "/finance/report",
   // WORKBENCH-13B 实测补漏：这 10 条是 `src/router/index.ts` 里挂在父级 `/` 下的**真实业务路由**
-  // （逐条 grep 到 `path:` + `component: views/**`），但清单当年按「域前缀」猜着写，漏了它们。
+  // （逐条 grep 到 path 与 component 指向 views 下同一批 .vue），但清单当年按「域前缀」猜着写，漏了它们。
   // 后果（1440 并排实测）：真实 SUPER_ADMIN 走菜单桥时 `visibleBusinessEntryCount === 0`，
   // 而 `isManualBusinessRoute` 判假 ⇒ 「当前账号暂无可显示的菜单」覆盖层压在已渲染的业务页之上，
   // 财务/系统/营销三个模块的页根量到的是空态块（1102×88），整页视觉无从对齐（卡 §三.A.4 页面本体）。
