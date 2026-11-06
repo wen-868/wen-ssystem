@@ -1,7 +1,7 @@
 /**
  * WORKBENCH-13B · 390×844 窄口回归契约测试（D 组，卡 §三.D.15/16/17/18 + §六）
  *
- * 40 条用例，只读四类真源，不启服务、不碰 DOM ⇒ clean 检出即可复现（与 A/B/C 组同一自包含口径）：
+ * 45 条用例（父卡 40 条 + F1 庚组 5 条），只读四类真源，不启服务、不碰 DOM ⇒ clean 检出即可复现（与 A/B/C 组同一自包含口径）：
  *   1. `tests/fixtures/wb13b-narrow-390.json` —— 真实浏览器 390 窄口采集的仓内副本（由 tests/wb13b-narrow-390.mjs 写入）
  *   2. `src/styles/tokens.css` + `src/layouts/WorkbenchShell.vue` + `src/shared/workbench/wb-viewport.ts` —— 焦点环 / 断点 / 窄壳结构
  *   3. `tests/wb13b-narrow-390.mjs` —— 采集器自身的阈值与门禁词汇表（守住「只改测试夹具不改实现」这条红线）
@@ -50,11 +50,16 @@
  *     服务冒充自己的（v6 的 N6 假红）⇒ 逐条记录必须自带 captureOrigin/端口并与自身 URL 对齐，
  *     缺项由采集器判 record-incomplete（N6 逐条同源 + N40 来路口径）。
  *
- * 对比度冲突（N26/N28，本组最重要的诚实点）：13B 依原型把二级文字取色从基线 `#333333`（同底色 12.09:1）
- * 换成 ink2 `#8A8F98`（画布底色实测 3.11:1 / 3.25:1），在 11px 层级跌破 WCAG AA 4.5:1 ⇒ §三.A「与原型取色一致」与 §三.D.16
- * 「对比度不得退步」在同一处文字上对撞。本组**不软化红**：`contrast-regression` 必须仍在档，且每条红都要
- * 在 `deviations` 台账里点名（比值、选择器、基线比值、owner、裁定路径）。当场改色抹平＝推翻 §三.A 已定档的
- * 104 对并排证据，属卡 §六 红线，禁止。
+ * 对比度（N25-N28 + 庚组 N41-N45）：父卡曾把基线深灰 `#333333`（同底色 12.09:1）依原型换成 ink2
+ * `#8A8F98`（实测 3.11:1 / 3.25:1），11px 功能文字跌破 WCAG AA 4.5:1，留下 9 条真红 ⇒ 凌舟据此驳回，
+ * 裁定「WCAG AA 优先于原型取色」（13B-F1 §三.1）。F1 的整改落点是 `src/styles.css` 画布段的
+ * `main.wb-view-manual { --wb-ink2: … }`（全仓 `--wb-ink2` 从未定义过，53 处全靠兜底字面量 ⇒ 定义令牌是唯一小切口）。
+ * 本组因此两头都钉：
+ *   · 不许「把红说成豁免」——只要跌破 AA 就进 contrast-regression，红非零就非零退出（N26/N28 保持父卡判据）；
+ *   · 也不许「换个色值让门禁失明」——N41 实算令牌比值、N43 要求墨族按「当前值 ∪ 退役值 ∪ 运行时解析值」三来源识别、
+ *     N45 守住阈值表达式与 kind 词汇表；N44 用逐模块达标读数证明 0 红来自色值达标。
+ * 当场改色抹平 §三.A 已定档并排证据这件事，父卡当年不能自作；中央已裁定，F1 改色是**执行裁定**，
+ * 差异表不删行、按「可访问性例外」留痕（见回传卡 §三.C 与证据差异表）。
  *
  * 运行（admin-web 目录）：node tests/wb13b-narrow-390.spec.mjs
  */
@@ -544,7 +549,7 @@ await run("N26 对比度冲突逐条入台账：红保留、基线比值/选择�
   const byMod = new Set(DEVIATIONS.map((d) => d.moduleKey));
   const redMod = new Set(reds.map((v) => v.moduleKey));
   assert.deepEqual([...redMod].filter((k) => !byMod.has(k)), [], `有 contrast-regression 红未入台账：${[...redMod].filter((k) => !byMod.has(k)).join("/")}`);
-  return `红 ${reds.length} 条 ⇒ 台账 ${DEVIATIONS.length} 条，基线 ${DEVIATIONS[0]?.baselineRatioOnSameBg ?? "-"}:1 → 现值 ${DEVIATIONS[0]?.pairs?.[0]?.ratio ?? "-"}:1，待凌舟裁定`;
+  return `红 ${reds.length} 条 ⇒ 台账 ${DEVIATIONS.length} 条${reds.length ? `，基线 ${DEVIATIONS[0]?.baselineRatioOnSameBg}:1 → 现值 ${DEVIATIONS[0]?.pairs?.[0]?.ratio}:1，F1 未关闭` : "（整改成立：跌破 AA 的功能墨对为 0）"}`;
 });
 
 await run("N27 装饰线 ≈1.11:1 的 WCAG incidental 豁免必须披露为发现项（软化点见报告）", () => {
@@ -566,7 +571,7 @@ await run("N28 除对比度冲突外，六类具名门禁与四类完整性门�
   assert.deepEqual(hit, [], `门禁红：${hit.map(([k, n]) => `${k}×${n}`).join(" ｜ ")}`);
   const contrastRed = vOf("contrast-regression").length;
   assert.equal(VIOLATIONS.length, contrastRed, `违规总数 ${VIOLATIONS.length} ≠ 对比度红 ${contrastRed} ⇒ 有红没被本用例点名的 kind 覆盖`);
-  return `九类门禁 0 红 · 仅对比度冲突 ${contrastRed} 条在档（N26 台账，待裁定）`;
+  return `九类门禁 0 红 · 对比度红 ${contrastRed} 条${contrastRed ? "（N26 台账逐条在档，未关闭）" : "（F1 整改成立，N41/N44 负责证明是色值达标而非口径关闭）"}`;
 });
 
 await run("N29 窄口模块集合与 F3 一级导航真源一致（§三.D.17 一级 12 项保持）", () => {
@@ -836,6 +841,141 @@ await run("N40 采集来路口径逐条入库：缺 origin/端口/不同源 ⇒ 
   const lies = vOf("record-incomplete").filter((v) => /采集来路/.test(String(v.reason ?? "")));
   assert.deepEqual(lies, [], `采集器已判出采集来路断链：${lies.map((v) => `${v.moduleKey}(${v.reason})`).join(" ｜ ")}`);
   return `${RECORDS.length} 条记录逐条带 origin/端口 · 采集器自判来路断链 0 条 · 各块 origin ${[...new Set(RECORDS.map((r) => r.captureOrigin))].join("/")}`;
+});
+
+/* ══════════ 庚 · F1 对比度硬门整改（凌舟驳回 DEV-13B-01：WCAG AA 优先于原型取色） ══════════ */
+
+/**
+ * 这一组的职责不是重复「红为 0」，而是把「红为 0 从哪来」钉住：
+ *   N41 实算画布令牌比值（改回低对比值 ⇒ 立刻红，M56 的落点）
+ *   N42 功能文字只许走令牌，不许把退役值写回字面量
+ *   N43 采集器认「墨族三来源并集」，换色值/删令牌都不足以让门禁失明
+ *   N44 达标读数逐模块入档（证明 0 来自色值达标，而不是来自口径关闭）
+ *   N45 阈值表达式、kind 词汇表、台账数据源三处都不许被弱化（M57 的落点）
+ * 全部用与采集器同一套 WCAG 相对亮度公式现算，用例里不写死任何比值结论。
+ */
+const srgbLin = (c) => {
+  const v = c / 255;
+  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
+const relLum = ([r, g, b]) => 0.2126 * srgbLin(r) + 0.7152 * srgbLin(g) + 0.0722 * srgbLin(b);
+const wcag = (a, b) => {
+  const l1 = relLum(a);
+  const l2 = relLum(b);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+};
+const hexRgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const csvRgb = (s) => String(s).split(",").map((n) => Number(String(n).trim()));
+/** 承托面底色从采集器令牌表读（同一条真源），不在测试里另立一份色值 */
+const harnessToken = (name) => {
+  const m = new RegExp(`${name}:\\s*"([0-9]+,[0-9]+,[0-9]+)"`).exec(HARNESS);
+  assert.ok(m, `采集器 CANVAS_TOKENS 里读不到 ${name} ⇒ 承托面口径无从对齐`);
+  return csvRgb(m[1]);
+};
+const canvasInk2Decl = () => {
+  const m = /main\.wb-view-manual\s*\{\s*\n\s*--wb-ink2:\s*(#[0-9a-fA-F]{6})\s*;/.exec(STYLES);
+  assert.ok(m, "styles.css 画布段没有 `main.wb-view-manual { --wb-ink2: … }` 定义 ⇒ 画布功能文字退回 var() 兜底的原型低对比字面量（F1 §三.1 未整改）");
+  return m[1].toLowerCase();
+};
+
+await run("N41 画布次级功能墨必须实算达 AA 4.5:1（side/bg 两条承托面都过，退役原型值必须仍算不达标）", () => {
+  const ink2 = hexRgb(canvasInk2Decl());
+  const side = harnessToken("side");
+  const bg = harnessToken("bg");
+  const onSide = wcag(ink2, side);
+  const onBg = wcag(ink2, bg);
+  assert.ok(onSide >= 4.5, `--wb-ink2 对 side(#F9FAFB) 只有 ${onSide.toFixed(2)}:1 < 4.5:1 ⇒ 11px 表头/字段标签/分页信息在窄侧栏底色上跌破 AA（M56 注入的就是这一条）`);
+  assert.ok(onBg >= 4.5, `--wb-ink2 对 bg(#FFFFFF) 只有 ${onBg.toFixed(2)}:1 < 4.5:1 ⇒ 白底卡面上的功能文字跌破 AA`);
+  const retired = wcag(hexRgb("#8a8f98"), side);
+  assert.ok(retired < 4.5, `正控制失效：退役值 #8A8F98 在 side 上算出 ${retired.toFixed(2)}:1 竟然达标 ⇒ 本用例的公式已被换掉，绿不作数`);
+  return `${canvasInk2Decl()} on side ${onSide.toFixed(2)}:1 / on bg ${onBg.toFixed(2)}:1（退役 #8a8f98 = ${retired.toFixed(2)}:1 仍判不达标）`;
+});
+
+await run("N42 画布功能文字只许引用令牌：styles.css 零处把文字色写成退役值字面量，且令牌化用法齐（10 处）", () => {
+  const literals = [...STYLES.matchAll(/(?:^|[\s;{])color:\s*#8a8f98\s*;/gim)].map((m) => m.index);
+  assert.deepEqual(literals, [], `styles.css 里有 ${literals.length} 处把文字色直接写成退役低对比值 ⇒ 绕开令牌定义，N41 的实算会被跳过（M56 的另一条腿）`);
+  const uses = [...STYLES.matchAll(/[-\w]+:\s*var\(--wb-ink2[,)]/g)].length;
+  assert.ok(uses >= 10, `画布内走令牌的二级功能墨声明只剩 ${uses} 处（父卡定档 10：字段标签 / EP 表头变量 / th / KPI 标签 / 柱标签 / 分页宿主 / EP 分页 / 每页条数·跳至 / 页码 / 空态）⇒ 有用法被改成硬色值或删掉`);
+  const header = [...STYLES.matchAll(/--el-table-header-text-color:\s*var\(--wb-ink2/g)].length;
+  assert.ok(header >= 1, "EP 表头前景色不再引用画布令牌 ⇒ 表头这一族 11px 文字游离在整改之外");
+  return `令牌化声明 ${uses} 处（含 EP 表头 1 处）· 退役值字面量 0 处`;
+});
+
+await run("N43 门禁认墨族不认单值：当前令牌值 ∪ 退役登记表 ∪ 运行时解析值，三来源缺一即失明", () => {
+  const build = /function buildInkIndex\(resolvedInks = \{\}\)\s*\{[\s\S]*?\n\}/.exec(HARNESS);
+  assert.ok(build, "采集器里没有 buildInkIndex ⇒ 对比度又退回「只认一个十六进制」，改色即失明");
+  const body = build[0];
+  for (const [why, re] of [
+    ["当前令牌值", /CANVAS_TOKENS\[t\]/],
+    ["退役登记表", /RETIRED_INK_VALUES/],
+    ["运行时解析值", /resolvedInks/],
+  ]) assert.ok(re.test(body), `墨族索引少了${why}这一路（${re}）⇒ ${why === "退役登记表" ? "把颜色写回 #8A8F98 会被当成「非令牌，只记录」" : "令牌换成第三个值时门禁量不到"}`);
+  assert.match(HARNESS, /const tokenOf = \(value, inkIndex = null\)/, "tokenOf 不再接收墨族索引 ⇒ 判定退回单值精确匹配");
+  assert.match(HARNESS, /const fgToken = tokenOf\(p\.fg, inkIndex\)/, "前景色不再按墨族归类 ⇒ 功能文字换色后不进 contrast-regression 门禁");
+  assert.match(HARNESS, /contrastAnalyze\(await page\.evaluate\(TEXT_CONTRAST_SCAN\), await page\.evaluate\(CANVAS_INK_PROBE\)\)/, "采集时不再把画布根**实际解析到**的令牌值喂给判定 ⇒ 令牌被改名/换值后门禁无从对齐");
+  assert.match(HARNESS, /function CANVAS_INK_PROBE\(\)/, "运行时令牌取样探针不见了 ⇒ 三来源只剩两来源，删令牌定义这种退步会漏检");
+  const retiredKeys = [...HARNESS.matchAll(/"(\d+,\d+,\d+)":\s*\{\s*token:\s*"ink2"/g)].map((m) => csvRgb(m[1]));
+  assert.ok(retiredKeys.length >= 1, "退役登记表为空 ⇒ 低对比旧值可以随时写回来");
+  const side = harnessToken("side");
+  assert.ok(wcag(retiredKeys[0], side) < 4.5, "退役登记的第一条算出来竟达标 ⇒ 表里的值不是当初造成 9 条红的那个低对比墨");
+  assert.notEqual(harnessToken("ink2").join(","), retiredKeys[0].join(","), "CANVAS_TOKENS.ink2 仍等于退役值 ⇒ 令牌表没跟着 F1 整改，门禁与实现两张皮");
+  return `三来源齐 · 令牌现值 ${harnessToken("ink2").join(",")} vs 退役 ${retiredKeys[0].join(",")} · 退役值实算 ${wcag(retiredKeys[0], side).toFixed(2)}:1 判不达标`;
+});
+
+await run("N44 F1 达标读数逐模块入档：有 ink2 功能文字的模块（≥9 个受影响模块）必须采样且全数达 AA，无 ink2 文字的页面必须有真实扫描量且画布红 0，退役值渲染 0 处", () => {
+  const aa = needBundle().contrastAA;
+  assert.ok(aa, "证据里没有 contrastAA 段 ⇒ F1 的达标面没有读数，只有「没红」这一句话（不许）");
+  assert.ok(/WCAG AA 优先/.test(String(aa.rule)), "台账规则没写中央裁定依据 ⇒ 看不出这是裁定后的定向例外，不是自裁豁免");
+  const byRec = new Map((aa.perModule ?? []).map((x) => [`${x.moduleKey}/${x.pageKey}`, x]));
+  const bad = [];
+  const zeroInk2 = [];
+  for (const r of RECORDS) {
+    const x = byRec.get(`${r.moduleKey}/${r.pageKey}`);
+    if (!x) {
+      bad.push(`${r.moduleKey}：无达标读数`);
+      continue;
+    }
+    if (!x.ink2Sampled) {
+      /* 该代表页扫描面上没有 ink2 文字（如 report 纯图表、pos 收银片、product 空树）不是「没测」：
+         contrast.checked>0 证明扫描真实跑过、样本入档；但画布红必须仍为 0，退役值必须 0 处。
+         零采样模块逐个点名进 summary，不许静默 —— 谁想靠「换一个没有 ink2 的代表页」躲采样，
+         modulesWithInk2 ≥9 这条地板会先红。 */
+      zeroInk2.push(r.moduleKey);
+      const checked = r.contrast?.checked ?? 0;
+      if (checked <= 0) bad.push(`${r.moduleKey}：ink2 采样 0 组且对比度扫描 checked=${checked} ⇒ 页面根本没扫，属「没测冒充没问题」`);
+    } else if (!x.ink2AllPassAA) {
+      bad.push(`${r.moduleKey}：ink2 最低 ${x.ink2MinRatio}:1 未全达 AA`);
+    }
+    if (x.retiredInkRendered) bad.push(`${r.moduleKey}：画布仍渲染退役 #8A8F98 ${x.retiredInkRendered} 处`);
+    if (x.canvasFails) bad.push(`${r.moduleKey}：仍有 ${x.canvasFails} 组功能墨跌破阈值`);
+    const tok = String(x.inkTokens?.ink2 ?? "");
+    if (!/^\d{1,3},\d{1,3},\d{1,3}$/.test(tok)) bad.push(`${r.moduleKey}：画布根未解析到 --wb-ink2（运行时值=${tok || "空"}）`);
+  }
+  assert.deepEqual(bad, [], bad.join(" ｜ "));
+  const withInk2 = (aa.perModule ?? []).filter((x) => x.ink2Sampled > 0).length;
+  assert.ok(withInk2 >= 9, `有 ink2 采样的模块只剩 ${withInk2} 个（<9）⇒ 卡 §三.3 的九个受影响模块必须有 ink2 达标读数，不许用「换代表页」缩水采样面`);
+  assert.equal(vOf("contrast-regression").length, 0, `凌舟驳回的 9 条 contrast-regression 未全部关闭：现存 ${vOf("contrast-regression").length} 条`);
+  assert.deepEqual(DEVIATIONS, [], "红已为 0 但冲突台账仍有条目 ⇒ 台账与门禁读数两张皮");
+  assert.ok(aa.minInk2Ratio >= 4.5, `全档最弱 ink2 读数 ${aa.minInk2Ratio}:1 < 4.5:1`);
+  return `${aa.perModule.length} 条记录 · 有 ink2 采样 ${withInk2} 个模块（采样 ${aa.perModule.reduce((n, x) => n + x.ink2Sampled, 0)} 组全达标）· 无 ink2 文字页面 ${zeroInk2.join("/") || "无"}（扫描真跑、画布红 0）· 最弱 ${aa.minInk2Ratio.toFixed(2)}:1 · 退役值渲染 ${aa.retiredInkRendered} 处 · 令牌外暗字 ${aa.outsideTokenInks} 组转发现项`;
+});
+
+await run("N45 对比度门禁三处不许弱化：阈值表达式、kind 词汇表、台账数据源（M57 的落点）", () => {
+  assert.match(HARNESS, /const need = isLargeText\(size, weight\) \? 3 : 4\.5;/, "AA 阈值表达式被改写 ⇒ 把 11px 功能文字的 4.5:1 降档是最典型的门禁弱化");
+  assert.match(HARNESS, /const isLargeText = \(sizePx, weight\) => sizePx >= 24 \|\| \(sizePx >= 18\.66 && weight >= 700\)/, "大字豁免被放宽 ⇒ 用字号分类把功能文字踢出 AA 口径（卡 §二「不得靠提高字号阈值规避」）");
+  /* F1 裁定后门禁认「墨族 × 任意承托面」：canvasPair = 前景 ∈ INK_TOKEN_KEYS（ink/ink2/inkPrimary），
+     不再限定 bgToken ∈ {side,bg} —— 那层限定是给「换个淡底就把红抹掉」留后门。
+     反向锚点：INK_TOKEN_KEYS 必须是显式数组字面量且至少含 ink/ink2 ⇒ 谁把墨族掏空（如改成 []）门禁当场失明。 */
+  assert.match(HARNESS, /canvasPair: INK_TOKEN_KEYS\.includes\(fgToken\)/, "门禁对「哪些文字算画布功能墨」的判据被改动 ⇒ 范围收窄也能凑出 0 红");
+  assert.match(HARNESS, /const INK_TOKEN_KEYS = \["ink", "ink2"(?:, "[a-zA-Z]+")?\]/, "墨族令牌名清单被改写/掏空 ⇒ 换个数组形式或删名即可绕开门禁（M57 的另一条腿）");
+  assert.match(HARNESS, /kind: "contrast-regression"/, "contrast-regression 这一 kind 不见了 ⇒ 红没地方落，等于把门禁摘了");
+  assert.match(HARNESS, /if \(cs\.fails\.length\) V\.push\(\{ kind: "contrast-regression"/, "跌破阈值不再进 violations（只留台账）⇒ 0 红可以是「不判了」换来的");
+  assert.match(HARNESS, /const contrastConflicts = records\s*\n?\s*\.filter\(\(r\) => r\.contrast\?\.fails\?\.length\)/, "冲突台账不再从 fails 推导 ⇒ 可以硬塞空数组假装整改完成");
+  assert.match(HARNESS, /kind: "contrast-ink-outside-token"/, "令牌外暗字不再转发现项 ⇒ 换个非令牌色值就能既不进红也不留痕");
+  assert.match(HARNESS, /process\.exit\(violations\.length \? 1 : 0\)/, "采集器不再「有红就非零退出」");
+  const f = fOf("contrast-ink-outside-token");
+  for (const x of f) assert.match(String(x.reason), /13C|披露/, `${x.moduleKey} 的令牌外暗字发现项没写去向 ⇒ 口径外的问题被当成不存在`);
+  return `阈值 3/4.5 与大字定义逐字节在档 · 判红/kind/台账/发现项四路齐 · 令牌外发现项 ${f.length} 条已带 13C 去向`;
 });
 
 /* ══════════ 汇总 ══════════ */

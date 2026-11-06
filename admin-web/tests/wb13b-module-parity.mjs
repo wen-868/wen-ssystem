@@ -1813,6 +1813,67 @@ for (const c of clipped) errors.push(`帧横向裁切（§三.C.14）：${JSON.s
 const allShots = pairs.flatMap((p) => [p.shots?.prototype, p.shots?.implementation].filter(Boolean));
 const reused = findReusedFrames(allShots);
 
+/**
+ * F1 §三.5 待裁定分流台账（凌舟驳回 §三.2：227 行不许整片挂「待裁定」，每条必须带 owner、依赖和复核卡）。
+ * 族前缀写在说明文件的 owner 字段开头（`BLOCKED-SCOPE · owner=… · 依赖=… · 复核卡=…` /
+ * `13C · owner=… · 依赖=… · 复核卡=…`），这样差异表那一列自带分流结论，不必再靠第二份台账跟读数对表。
+ * 两族按驳回原文切：业务字段/列数、KPI 指标、权限、路由文案 ⇒ BLOCKED-SCOPE（视觉单无权代答）；
+ * 表格/看板/图表/表单/页卡宿主等纯视觉结构 ⇒ 转 WORKBENCH-13C。
+ * fail-closed：blocked 行拿不到族前缀 ⇒ 记 pending-ruling-unclassified 红。
+ * 「无主的待裁定」正是本卡被驳回的一条，缺分类不能让它在合并计数里悄悄算成已处置。
+ */
+const PENDING_FAMILIES = ["BLOCKED-SCOPE", "13C"];
+const familyOf = (owner) => PENDING_FAMILIES.find((f) => String(owner ?? "").trim().startsWith(f)) ?? "";
+const pendingLedger = [];
+for (const p of pairs) {
+  for (const r of p.diff?.blocked ?? []) {
+    pendingLedger.push({ pair: p.id, moduleKey: p.moduleKey, viewport: p.viewport, region: r.region, metric: r.metric, key: `${r.region}.${r.metric}`, family: familyOf(r.owner), owner: r.owner, prototype: r.prototype, impl: r.impl, delta: r.delta, card: r.card });
+  }
+}
+const pendingFamilyCount = { total: pendingLedger.length, "BLOCKED-SCOPE": 0, "13C": 0, unclassified: 0 };
+for (const e of pendingLedger) {
+  if (e.family) pendingFamilyCount[e.family] += 1;
+  else pendingFamilyCount.unclassified += 1;
+}
+const pendingFamilyByModule = {};
+for (const e of pendingLedger) {
+  const m = (pendingFamilyByModule[e.moduleKey] ??= { "BLOCKED-SCOPE": 0, "13C": 0, unclassified: 0 });
+  m[e.family || "unclassified"] += 1;
+}
+for (const e of pendingLedger.filter((x) => !x.family).slice(0, 12)) {
+  const v = { kind: "pending-ruling-unclassified", pair: e.pair, moduleKey: e.moduleKey, page: e.region, reason: `待裁定行 ${e.key} 的归属没有 BLOCKED-SCOPE / 13C 族前缀，也没有 owner·依赖·复核卡 三段（驳回 §三.2）`, detail: { owner: e.owner } };
+  violations.push(v);
+  if (!PROBE_ONLY) errors.push(`门禁判红：${JSON.stringify(v).slice(0, 300)}`);
+}
+
+/**
+ * F1 §三.1/§三.4 可访问性例外留痕：本卡唯一被中央裁定「允许保留」的原型 ⇄ 实现色差
+ * （表头 th 与分页条信息文字的次级功能墨 #8A8F98 ⇒ #666B73）。
+ * 这些行走「已解释」档，但绝不能和「内容量差」那 593 行混成一坨：单独计数、单独成表、
+ * 逐字节钉死色值对（说明正文首行由采集器写进 note，E1 用例据此反查）。
+ */
+const A11Y_MARK = "可访问性例外";
+const A11Y_PROTO = "138,143,152";
+const A11Y_IMPL = "102,107,115";
+const a11yExceptions = [];
+for (const p of pairs) {
+  for (const r of p.diff?.explained ?? []) {
+    if (!String(r.note ?? "").startsWith(A11Y_MARK)) continue;
+    a11yExceptions.push({ pair: p.id, moduleKey: p.moduleKey, viewport: p.viewport, region: r.region, metric: r.metric, key: `${r.region}.${r.metric}`, prototype: r.prototype, impl: r.impl, gated: r.gated === true, card: r.card, owner: r.owner });
+  }
+}
+/* 反过来也要钉：凡是颜色档指标上「既不是逐字节一致、又没打中央裁定留痕」的解释，一律红。
+   否则这条说明就成了万能挡箭牌 —— 驳回 §六 明禁「把低对比功能文字登记成豁免后宣称通过」。 */
+for (const p of pairs) {
+  for (const r of p.diff?.explained ?? []) {
+    if (!/color$/i.test(r.metric) || String(r.note ?? "").startsWith(A11Y_MARK)) continue;
+    if (r.prototype === r.impl) continue;
+    const v = { kind: "color-delta-without-ruling", pair: p.id, moduleKey: p.moduleKey, page: r.region, reason: `颜色指标 ${r.region}.${r.metric} 两侧不等（${r.prototype} ⇄ ${r.impl}）却用了非中央裁定的解释 ⇒ 色差只能「逐字节一致」或走 DEV-13B-01 可访问性例外，二者都不是就判红`, detail: { note: String(r.note ?? "").slice(0, 120) } };
+    violations.push(v);
+    if (!PROBE_ONLY) errors.push(`门禁判红：${JSON.stringify(v).slice(0, 300)}`);
+  }
+}
+
 const bundle = {
   schema: "wb13b-module-parity/v1",
   card: "WORKBENCH-13B-WORKBENCH-MODULE-VISUAL-PARITY-01",
@@ -1833,6 +1894,12 @@ const bundle = {
     // 待裁定行＝超容差但本单不改（差值来自后端字段／业务列数／视图结构）。既不并进判红，也不计成一致，
     // 逐条带 owner 写进回传卡，交凌舟裁定归属（卡 §三.A.7 的 blocked 处置）。
     pendingRulingRows: pairs.reduce((n, p) => n + (p.diff?.blocked?.length ?? 0), 0),
+    // F1 §三.5：待裁定两族分流计数（BLOCKED-SCOPE＝业务面，13C＝纯视觉结构），unclassified 必须为 0
+    pendingRuling: pendingFamilyCount,
+    pendingRulingByModule: pendingFamilyByModule,
+    // F1 §三.1：中央裁定的可访问性例外行数（表头/分页次级功能墨），这些行不并进「内容量差」那一档解释
+    a11yExceptionRows: a11yExceptions.length,
+
     explainedRows: pairs.reduce((n, p) => n + (p.diff?.explained?.length ?? 0), 0),
     exemptRows: pairs.reduce((n, p) => n + (p.diff?.exempted?.length ?? 0), 0),
     gated: pairs.reduce((n, p) => n + (p.diff?.stats?.gated ?? 0), 0),
@@ -1851,6 +1918,9 @@ const bundle = {
     blockedReasons: [...new Set(pairs.filter((p) => p.status === "blocked").map((p) => p.block?.reason ?? "unknown"))],
   },
   moduleNav,
+  // F1 台账（逐行，供人读表与专项测试反查；不依赖 pairs[].regionMetrics，仓内副本裁掉读数后仍可校验）
+  pendingLedger,
+  a11yExceptions,
   planIds: plan.map((p) => p.id),
   pairs,
   violations,
@@ -1870,7 +1940,8 @@ md.push(`- 原型：\`${PROTO_FILE.replace(/\\/g, "/")}\` · SHA256 \`${protoSha
 md.push(`- 视口档：${viewports.map((v) => v.id).join(" / ")}（两档各采各的帧，SHA 去重机器核对）`);
 md.push(`- 计划配对 ${bundle.summary.planned} · 完成 ${bundle.summary.captured} · 诚实阻断 ${bundle.summary.blocked} · 门禁判红 ${bundle.summary.gateRed}`);
 md.push(`- 门禁指标 ${bundle.summary.gated} 项，逐字节一致 ${bundle.summary.gatedExact} 项，超容差判红 ${bundle.summary.offSpecRows} 行，待裁定 ${bundle.summary.pendingRulingRows} 行，已书面解释 ${bundle.summary.explainedRows} 行，结构性豁免 ${bundle.summary.exemptRows} 行`);
-md.push(`- 最大偏差 ${bundle.summary.maxAbsDelta}px（卡 §三.A.6：≤±1px，颜色逐字节）· 状态签名不符 ${bundle.summary.signatureMismatch} · 节奏违规 ${bundle.summary.rhythmViolations} · 字体层级差 ${bundle.summary.fontViolations}\n`);
+md.push(`- 最大偏差 ${bundle.summary.maxAbsDelta}px（卡 §三.A.6：≤±1px，颜色逐字节）· 状态签名不符 ${bundle.summary.signatureMismatch} · 节奏违规 ${bundle.summary.rhythmViolations} · 字体层级差 ${bundle.summary.fontViolations}`);
+md.push(`- 待裁定分流：BLOCKED-SCOPE ${pendingFamilyCount["BLOCKED-SCOPE"]} 行（业务/权限/文案面）· 转 13C ${pendingFamilyCount["13C"]} 行（纯视觉结构）· 无主 ${pendingFamilyCount.unclassified} 行 · 其中中央裁定的可访问性例外 ${a11yExceptions.length} 行（不计入待裁定，见三·补三）\n`);
 md.push("## 一、逐模块覆盖");
 md.push("| 模块 | railKey | 版式分布 | 完成 | 阻断 | 判红行 | 门禁一致率 | 最大偏差 |");
 md.push("| --- | --- | --- | ---: | ---: | ---: | --- | ---: |");
@@ -1904,6 +1975,37 @@ for (const p of pairs) {
     md.push(`| ${p.id} | ${r.region} | ${r.metric} | ${r.prototype} | ${r.impl} | ${r.delta ?? "—"} | ${r.owner || "—"} | ${String(r.note).replace(/\|/g, "/").slice(0, 120)} |`);
   }
 }
+md.push("\n## 三·补二 待裁定分流台账（F1 §三.5 · 驳回 §三.2：不保留无主待裁定）\n");
+md.push(`- 全量 ${pendingFamilyCount.total} 行：**BLOCKED-SCOPE ${pendingFamilyCount["BLOCKED-SCOPE"]} 行**（业务字段/列数、KPI 指标、权限、路由文案 ⇒ 视觉单不代答，待中央转功能单）· **转 WORKBENCH-13C ${pendingFamilyCount["13C"]} 行**（表格/看板/图表/表单/页卡宿主等纯视觉结构）· 无主 ${pendingFamilyCount.unclassified} 行（不为 0 即判红）。`);
+md.push(`- 逐模块：${Object.entries(pendingFamilyByModule).map(([k, v]) => `${k}=B${v["BLOCKED-SCOPE"]}/C${v["13C"]}${v.unclassified ? `/无主${v.unclassified}` : ""}`).join("，") || "无"}`);
+md.push("");
+md.push("| 族 | 指标键 | 行数 | owner | 依赖 | 复核卡 |");
+md.push("| --- | --- | ---: | --- | --- | --- |");
+const ledgerGroups = new Map();
+for (const e of pendingLedger) {
+  const gk = `${e.family}::${e.key}`;
+  const g = ledgerGroups.get(gk) ?? { count: 0, owner: e.owner };
+  g.count += 1;
+  ledgerGroups.set(gk, g);
+}
+const seg = (owner, label) => {
+  const m = new RegExp(`${label}=(.*?)(?: · 复核卡=|$)`).exec(String(owner ?? ""));
+  return (m ? m[1] : "—").replace(/\|/g, "/");
+};
+for (const [gk, g] of [...ledgerGroups.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+  const [fam, key] = gk.split("::");
+  md.push(`| ${fam || "（无主）"} | ${key} | ${g.count} | ${seg(g.owner, "owner")} | ${seg(g.owner, "依赖")} | ${seg(g.owner, "复核卡")} |`);
+}
+md.push("\n## 三·补三 可访问性例外（F1 §三.1 中央裁定 DEV-13B-01：可访问性优先于原型色值）\n");
+md.push(a11yExceptions.length
+  ? `- 共 ${a11yExceptions.length} 行。原型次级功能墨 \`#8A8F98\`（${A11Y_PROTO}）⇒ 画布 \`--wb-ink2\` 取 \`#666B73\`（${A11Y_IMPL}）：11px 功能文字在 side 底由 3.11:1 升到 5.13:1、bg 底由 3.25:1 升到 5.36:1（WCAG AA 阈值 4.5:1）。`
+  : "- 本档无中央裁定例外行（若实现侧确实换过色而这里为空，说明差异表没读到该档 ⇒ 需人工复核，别当通过）。");
+md.push(`- 逐字节钉死：色值对与说明首行标记 \`${A11Y_MARK}\` 由 \`wb13b-visual-grammar.spec.mjs\` 的 E1 反查；任何别的颜色行借用这条说明 ⇒ \`color-delta-without-ruling\` 判红。`);
+md.push(`- 父卡的 9 条 390 \`contrast-regression\` 真红由本次换令牌关闭（证据见 \`wb13b-narrow-390.md\` 的对比度达标读数），不是把这 9 条登记成豁免。`);
+md.push("");
+md.push("| 配对 | 区域 | 指标 | 原型 | 实现 | 进门禁 | 卡段 |");
+md.push("| --- | --- | --- | --- | --- | --- | --- |");
+for (const e of a11yExceptions) md.push(`| ${e.pair} | ${e.region} | ${e.metric} | ${e.prototype} | ${e.impl} | ${e.gated ? "是" : "否（记录档）"} | ${e.card ?? "—"} |`);
 md.push("\n## 四、超容差但已书面解释（留在证据里，不抹平）\n");
 md.push("| 配对 | 区域 | 指标 | 原型 | 实现 | 差值 | 解释 |");
 md.push("| --- | --- | --- | --- | --- | ---: | --- |");

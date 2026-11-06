@@ -36,10 +36,13 @@
  *      视口内无环站判红 focus-invisible，视口外站（收起抽屉、横滚 rail）记 focus-offscreen 发现项；
  *   ⑥ 按钮语义（D.16）：文案 / aria-label / title 三者皆空的图标按钮如实计数入档；
  *   ⑦ 对比度（D.16）：页根内每段真实文字量「前景色 vs 实际承托底色」的 WCAG 相对亮度比值；
- *      13B 画布对（ink #16181D / ink2 #8A8F98 × --side #F9FAFB / --bg #FFFFFF）低于
- *      4.5:1（大字 3:1）判红 contrast-regression，并列出渲染 ink2-on-side 的选择器与字号字重；
+ *      功能墨族（`--wb-ink` / `--wb-ink2` 的当前令牌值 ∪ 退役值 ∪ 运行时解析值）× --side #F9FAFB /
+ *      --bg #FFFFFF 低于 4.5:1（大字 3:1）判红 contrast-regression，并列出渲染 ink2-on-side 的选择器与字号字重；
+ *      F1 中央裁定后 ink2 的真值已不是原型 #8A8F98（3.11:1/3.25:1，跌破 AA）而是画布达标令牌，
+ *      原型旧值进 RETIRED_INK_VALUES 继续参与判红 ⇒ 谁写回去谁吃红，门禁不随色值漂移；
  *      line-on-side / line-on-bg（≈1.11:1）属装饰性分隔线，按 WCAG 1.4.11 incidental
- *      豁免只记录不判红 —— 这一软化点必须写进交付报告，不许悄悄吞掉。
+ *      豁免只记录不判红 —— 该豁免只覆盖线，不覆盖任何带文字的元素；令牌外的暗色文字跌破 AA 时
+ *      转发现项 contrast-ink-outside-token（口径外不判红，但必须点名，不许静默丢弃）。
  *
  * 红线自查（卡 §六）：零注入 —— 不带 ?query、不改 DOM/class/style、不 dev 注入、不伪造元素
  * 或状态；登录走同源 /api 代理的真实 demo-login；抽屉/弹层/焦点全部是 page.mouse.click、
@@ -115,8 +118,34 @@ const LIVE_LOG = path.join(OUT, "logs", "wb13b-narrow-390.log");
 
 /** gap 归属（与 wb13b-state-matrix 同一责任人口径） */
 const OWNER = "墨（WORKBENCH-13B §三.D）";
-/** 13B 画布语法令牌组色（src/styles.css 画布段）；对比度只对这些前景色判红 */
-const CANVAS_TOKENS = { ink: "22,24,29", ink2: "138,143,152", line: "236,238,241", side: "249,250,251", bg: "255,255,255" };
+/**
+ * 13B 画布语法令牌组色（src/styles.css 画布段）；对比度门禁只对这些**功能墨**前景色判红。
+ * F1 中央裁定（凌舟驳回 DEV-13B-01）后，`ink2` 的真值是**达标值**，原型旧值降级为「退役值」。
+ * 本轮按中央裁定追加 `inkPrimary`（品牌主色**当文字用**）：#3F6FEF 当前景 4.44:1 跌破 AA，
+ * 达标值走 tokens.css 既有 S3-66.1/H-1 专用变体 `--color-primary-text` #365FCE（5.70:1）。
+ * ⚠️ 判红口径不得跟着色值走（卡 §三.7 M57 的反面教材）：令牌一旦改色，只认单值的实现会立刻
+ *    把新色认成「非令牌 ⇒ 只记录」，门禁当场瞎掉却仍然全绿。因此这里认的是**墨族**：
+ *    ① 当前令牌值（下面这张表）；② 全部退役值（RETIRED_INK_VALUES，回退即判红）；
+ *    ③ 页面里 `--wb-ink/--wb-ink2/--color-primary-text` 的**运行时解析值**（CANVAS_INK_PROBE 采回来，
+ *       任何人改成第三个值也还在档内）。
+ * 门禁范围按前景墨族判定，不再附加「承托面必须是 side/bg」：淡底/彩色底同样是功能文字的承托面，
+ * 加了这层限定等于给「换个淡底就把红抹掉」留后门（F1 §六 不以豁免制造绿色）。
+ */
+const CANVAS_TOKENS = { ink: "22,24,29", ink2: "102,107,115", inkPrimary: "54,95,206", line: "236,238,241", side: "249,250,251", bg: "255,255,255" };
+/** 退役功能墨值：仍算墨族、仍参与 AA 判红（谁把它们写回画布，谁就得吃一条红） */
+const RETIRED_INK_VALUES = {
+  "138,143,152": { token: "ink2", note: "原型 L10 --sub #8A8F98：3.11:1(side)/3.25:1(bg)，13B-F1 裁定不得用于功能文字" },
+  "63,111,239": { token: "inkPrimary", note: "品牌主色 --color-primary #3F6FEF 用作文字色：4.44:1(bg)/4.25:1(side)，淡底上更低；F1 中央裁定功能文字改走 --color-primary-text #365FCE" },
+};
+/** 参与对比度门禁的功能墨令牌名（承托面令牌不随色值漂移，仍按 CANVAS_TOKENS 精确认） */
+const INK_TOKEN_KEYS = ["ink", "ink2", "inkPrimary"];
+const SURFACE_TOKEN_KEYS = ["side", "bg"];
+/**
+ * 品牌主色**填充**（作底面用，不是文字色）：白字压在品牌底上属于品牌识别，改它=改品牌视觉，
+ * 不在 13B 功能墨令牌口径内 ⇒ 不进 contrast-regression 门禁；但必须实测点名，
+ * 谁都不能靠「不测」把它变成通过（F1 §六；本轮作为待裁定项上报，不自行判验收）。
+ */
+const BRAND_FILL_RGB = { "63,111,239": "--color-primary #3F6FEF 填充", "54,95,206": "--color-primary-text #365FCE 填充" };
 
 const harnessLog = [];
 const backendTail = [];
@@ -219,9 +248,14 @@ async function startBackend() {
   child.stderr.on("data", (b) => backendTail.push(String(b)));
   /* mock 后端经 dev-mock → tsx watch → server.ts 三段冷启动，空载实测 ~65-70s，机器被其它在办卡
      占CPU 时会拖到 90s 以上（C 段同口径已放宽到 240s）。超时不是产品问题，但把 stderr 尾巴带进
-     错误里，才能分清「冷启动慢」和「真起不来」，别拿 90s 的读数去判窄口红。 */
-  if (!(await waitForPort(BACKEND_PORT, true, 240000))) {
-    throw new Error(`后端 ${BACKEND_PORT} 未在 240s 内就绪；子进程尾巴=${backendTail.slice(-25).join("").slice(-900) || "(无输出)"}`);
+     错误里，才能分清「冷启动慢」和「真起不来」，别拿 90s 的读数去判窄口红。
+     F1 现场复算（logs/narrow-A.log + logs/backend-probe.log，2026-11-06 07:19~07:21）：240s 在本机
+     有并发采集时**实测过不了** —— 同一条 `tsx watch src/server.ts` 从 spawn 到 `listening on :18191`
+     实测 155s，而采集器那一次跑满 240s 仍未起（首块冷、无 tsx 缓存、Qoder 侧并发占 CPU）。
+     这不是门禁口径，是环境容差：放宽到 420s，超时依旧按「中止 + 逐模块 module-without-capture 红」
+     fail-closed，不因为等得久而放行任何一项。 */
+  if (!(await waitForPort(BACKEND_PORT, true, Number(process.env.WB13_BACKEND_READY_MS ?? 420000)))) {
+    throw new Error(`后端 ${BACKEND_PORT} 未在 ${Number(process.env.WB13_BACKEND_READY_MS ?? 420000) / 1000}s 内就绪；子进程尾巴=${backendTail.slice(-25).join("").slice(-900) || "(无输出)"}`);
   }
   boundPorts.add(BACKEND_PORT);
   log(`后端 mock 已起（127.0.0.1:${BACKEND_PORT}，USE_MOCK_DB=true）`);
@@ -1077,23 +1111,68 @@ function DRAWER_CARD_SCAN(cfg) {
   return out;
 }
 
+/**
+ * ⑦b 令牌真值取样（F1 §三.7 的反弱化装置）：把画布根**实际解析到**的功能墨令牌值取回 Node 侧。
+ * 门禁认的是「这一族令牌」，不是某个具体十六进制 ⇒ 谁改了令牌值，采样到的新值自动进档；
+ * 谁把令牌删了，页面就退回声明里的兜底字面量，而兜底（原型 #8A8F98）正是退役登记表里的值，照判红。
+ * 返回 {ink, ink2, inkPrimary, side, bg, line}（已归一成 "r,g,b"），量不到的一律给空串（Node 侧再退回静态表）。
+ */
+function CANVAS_INK_PROBE() {
+  const root = document.querySelector('main[data-view="manual"].shown') || document.querySelector("main.wb-view-manual");
+  const cs = root ? getComputedStyle(root) : null;
+  const toRgb = (v) => {
+    const s = String(v || "").trim();
+    if (!s) return "";
+    const el = document.createElement("span");
+    el.style.color = s;
+    document.body.appendChild(el);
+    const resolved = getComputedStyle(el).color;
+    el.remove();
+    const m = /rgba?\(([^)]*)\)/.exec(resolved);
+    if (!m) return "";
+    return m[1].trim().split(/[\s,/]+/).filter(Boolean).slice(0, 3).map((n) => String(Math.round(Number(n)))).join(",");
+  };
+  const read = (name) => toRgb(cs ? cs.getPropertyValue(name) : "");
+  return { ink: read("--wb-ink"), ink2: read("--wb-ink2"), inkPrimary: read("--color-primary-text"), side: read("--wb-side"), bg: read("--wb-bg"), line: read("--wb-line") };
+}
+
 /** ⑦ 对比度取样：页根内每段真实文字的「前景色 + 实际承托底色 + 字号字重」；亮度换算在 Node 侧做 */
 function TEXT_CONTRAST_SCAN() {
   const D = document;
-  const alphaOf = (c) => {
+  /**
+   * 承托底色 = 祖先链上全部半透明层**逐层合成**后的不透明真值（F1 整改）。
+   * 旧写法取「第一个 alpha>0.01 的层」原样返回 ⇒ Node 侧 rgbOf 只留前三个数、把 alpha 丢掉，
+   * 品牌主色文字压在自己 6%/12% 淡底上时算出 `#3F6FEF vs rgb(63,111,239)` = **1.00:1** 的假数，
+   * 门禁既没判红也没判绿，是把缺陷直接读成了「比值」的测量错误（不是口径宽松，是数算错了）。
+   * 合成序：自最外层（不含 alpha 时以画布白为底）向内按 source-over 叠加，撞上完全不透明层即停。
+   * 已知局限：只认 background-color，不解析 background-image 渐变/图片；这类底面若量到白底属于乐观估计，
+   * 报告与差异表按「computed background-color 口径」披露，不用它反证达标。
+   */
+  const layerOf = (c) => {
     const m = /rgba?\(([^)]*)\)/.exec(String(c || ""));
-    if (!m) return 1;
-    const p = m[1].trim().split(/[\s,/]+/).filter(Boolean);
-    return p.length >= 4 ? Number(p[3]) : 1;
+    if (!m) return null;
+    const p = m[1].trim().split(/[\s,/]+/).filter(Boolean).map(Number);
+    if (p.length < 3 || p.slice(0, 3).some((n) => !Number.isFinite(n))) return null;
+    const a = p.length >= 4 ? p[3] : 1;
+    return [Math.round(p[0]), Math.round(p[1]), Math.round(p[2]), Math.min(1, Math.max(0, Number.isFinite(a) ? a : 1))];
   };
   const paintedBg = (el) => {
+    const stack = [];
     let cur = el;
     for (let d = 0; d < 14 && cur; d += 1) {
-      const c = getComputedStyle(cur).backgroundColor;
-      if (c && alphaOf(c) > 0.01) return c;
+      const lay = layerOf(getComputedStyle(cur).backgroundColor);
+      if (lay) {
+        stack.push(lay);
+        if (lay[3] >= 0.999) break;
+      }
       cur = cur.parentElement;
     }
-    return "rgb(255, 255, 255)";
+    let base = [255, 255, 255];
+    for (let i = stack.length - 1; i >= 0; i -= 1) {
+      const [r, g, b, a] = stack[i];
+      base = [Math.round(r * a + base[0] * (1 - a)), Math.round(g * a + base[1] * (1 - a)), Math.round(b * a + base[2] * (1 - a))];
+    }
+    return `rgb(${base[0]}, ${base[1]}, ${base[2]})`;
   };
   const selish = (el) => {
     const tag = String(el.tagName || "").toLowerCase();
@@ -1159,21 +1238,61 @@ function rgbOf(value) {
     return null;
   }
 }
-const tokenOf = (value) => {
+const tokenOf = (value, inkIndex = null) => {
   const rgb = rgbOf(value);
   if (!rgb) return null;
   const key = rgb.join(",");
+  if (inkIndex && inkIndex.has(key)) return inkIndex.get(key);
   return Object.keys(CANVAS_TOKENS).find((t) => CANVAS_TOKENS[t] === key) ?? null;
 };
+/**
+ * 墨族索引（F1 §三.7）：当前令牌值 ∪ 退役值 ∪ 页面运行时解析值 ⇒ 「认色」不再等于「认门禁」。
+ * resolvedInks 由 CANVAS_INK_PROBE 从画布根量回来（形如 {ink:"22,24,29", ink2:"102,107,115"}），
+ * 采集时若解析不到（令牌被删、画布外页面）就退回静态表 + 退役值，绝不退回「谁都不认」。
+ */
+function buildInkIndex(resolvedInks = {}) {
+  const idx = new Map();
+  for (const t of INK_TOKEN_KEYS) if (CANVAS_TOKENS[t]) idx.set(CANVAS_TOKENS[t], t);
+  for (const [rgb, meta] of Object.entries(RETIRED_INK_VALUES)) idx.set(rgb, meta.token);
+  for (const t of INK_TOKEN_KEYS) {
+    const rgb = rgbOf(resolvedInks?.[t] ?? "");
+    if (rgb) idx.set(rgb.join(","), t);
+  }
+  return idx;
+}
+/**
+ * 承托面索引：与墨族同一条道理 —— 门禁认的是「画布的两块承托面」，不是写死的 rgb。
+ * 今天运行时解析值与静态表恒等（side 249,250,251 / bg 255,255,255），所以这条不改变任何现有读数；
+ * 它的价值在明天：谁把 `--wb-side` 换成第三个值，那些文字对仍然落在门禁里（换深了直接判红），
+ * 而不是「底色不再等于旧字面量 ⇒ 整批配对退出统计」这种把门禁改瞎的写法。
+ */
+function buildSurfaceIndex(resolvedInks = {}) {
+  const idx = new Map();
+  for (const t of SURFACE_TOKEN_KEYS) if (CANVAS_TOKENS[t]) idx.set(CANVAS_TOKENS[t], t);
+  for (const t of SURFACE_TOKEN_KEYS) {
+    const rgb = rgbOf(resolvedInks?.[t] ?? "");
+    if (rgb) idx.set(rgb.join(","), t);
+  }
+  return idx;
+}
 /** WCAG 大字豁免：≥24px，或 ≥18.66px 且字重 ≥700 ⇒ 阈值 3:1，否则 4.5:1 */
 const isLargeText = (sizePx, weight) => sizePx >= 24 || (sizePx >= 18.66 && weight >= 700);
+/** 比退役 #8A8F98 更深（或同级）的前景色算「功能墨候选」，用于把令牌外暗字全部披露成发现项而不是静默丢弃 */
+const INK_CANDIDATE_MAX_LUMINANCE = luminance([138, 143, 152]);
 
 /**
- * ⑦ 对比度换算与判红口径：只有「前景 = ink/ink2 且 承托 = side/bg」的 13B 画布文字对参与
- * contrast-regression 门禁；其余配色（Element Plus 默认色等）不在 13B 令牌口径内，只记录。
- * line-on-side / line-on-bg 装饰线读数单独带回（≈1.11:1），按 WCAG 1.4.11 incidental 豁免不判红。
+ * ⑦ 对比度换算与判红口径：前景属于**功能墨族**（ink/ink2/inkPrimary 的当前值、退役值、运行时解析值三来源并集）
+ * 的文字对，**不论落在哪块承托面**（side/bg/淡底/彩色底）都参与 contrast-regression 门禁。
+ * 其余跌破 AA 的文字不判红也不许静默丢弃，按 WCAG 自己的分界三路点名入档：
+ *   · 压在品牌主色填充上的字（含白字）→ contrast-on-brand-fill（改它＝改品牌，本轮作为待裁定项上报，不自判通过）；
+ *   · 禁用/不可用控件里的字 → contrast-inactive-text-recorded（WCAG 1.4.3 排除 inactive UI 组件，逐条带证据）；
+ *   · 其余非令牌色（Element 默认灰等）→ contrast-ink-outside-token（口径外如实点名 + 13C 去向）。
+ * line-on-side / line-on-bg 装饰线读数单独带回（≈1.11:1），按 WCAG 1.4.11 incidental 豁免不判红，逐项证明。
+ * 谁也不能靠「换个写法/换个底色就不测了」把红抹掉（F1 §三.2 / §六）。
  */
-function contrastAnalyze(rawPairs) {
+function contrastAnalyze(rawPairs, resolvedInks = {}) {
+  const inkIndex = buildInkIndex(resolvedInks);
+  const surfaceIndex = buildSurfaceIndex(resolvedInks);
   const seen = new Map();
   const pairs = [];
   for (const p of rawPairs) {
@@ -1184,13 +1303,14 @@ function contrastAnalyze(rawPairs) {
     const size = Number.parseFloat(p.fontSize) || 12;
     const weight = Number.parseInt(p.fontWeight, 10) || 400;
     const need = isLargeText(size, weight) ? 3 : 4.5;
-    const fgToken = tokenOf(p.fg);
-    const bgToken = tokenOf(p.bg);
+    const fgToken = tokenOf(p.fg, inkIndex);
+    const bgToken = tokenOf(p.bg, surfaceIndex);
     const key = `${fgToken ?? p.fg}|${bgToken ?? p.bg}|${size}|${weight}`;
     if (seen.has(key)) {
       seen.get(key).count += 1;
       continue;
     }
+    const brandFill = BRAND_FILL_RGB[bg.join(",")] ?? null;
     const rec = {
       sel: p.sel,
       text: p.text,
@@ -1203,7 +1323,9 @@ function contrastAnalyze(rawPairs) {
       ratio: Math.round(ratio * 100) / 100,
       need,
       pass: ratio >= need,
-      canvasPair: (fgToken === "ink" || fgToken === "ink2") && (bgToken === "side" || bgToken === "bg"),
+      canvasPair: INK_TOKEN_KEYS.includes(fgToken),
+      brandFill,
+      inactive: !!p.inactive,
       count: 1,
     };
     seen.set(key, rec);
@@ -1214,7 +1336,33 @@ function contrastAnalyze(rawPairs) {
   const weakestAny = pairs.reduce((a, b) => (!a || b.ratio < a.ratio ? b : a), null);
   const ink2OnSide = pairs.filter((r) => r.fgToken === "ink2" && r.bgToken === "side").map((r) => ({ sel: r.sel, fontSize: r.fontSize, fontWeight: r.fontWeight, ratio: r.ratio, text: r.text, count: r.count }));
   const linePairs = pairs.filter((r) => r.fgToken === "line").map((r) => ({ sel: r.sel, bgToken: r.bgToken, ratio: r.ratio, count: r.count }));
-  return { checked: pairs.length, samples: pairs.slice(0, 60), fails: fails.slice(0, 12), failCount: fails.length, weakestCanvas, weakestAny, ink2OnSide: ink2OnSide.slice(0, 12), linePairs: linePairs.slice(0, 6) };
+  const retiredRgbKeys = new Set(Object.keys(RETIRED_INK_VALUES));
+  const retiredInkSeen = pairs
+    .filter((r) => retiredRgbKeys.has(rgbOf(r.fg)?.join(",")))
+    .map((r) => ({ sel: r.sel, fg: r.fg, inkToken: retiredRgbKeys.has(rgbOf(r.fg)?.join(",")) ? RETIRED_INK_VALUES[rgbOf(r.fg).join(",")].token : null, bgToken: r.bgToken, fontSize: r.fontSize, ratio: r.ratio, need: r.need, text: r.text, count: r.count }));
+  const brief = (r) => ({ sel: r.sel, fg: r.fg, bg: r.bg, bgToken: r.bgToken, fontSize: r.fontSize, fontWeight: r.fontWeight, ratio: r.ratio, need: r.need, text: r.text, count: r.count });
+  /** 白字/深字压在品牌主色填充上：实测点名，改它属品牌视觉裁定，不由本卡自行放行也不由本卡自行判过 */
+  const brandFillFails = pairs.filter((r) => r.brandFill && !r.pass && !r.inactive).map(brief);
+  /** 令牌外跌破 AA 且不属于上面两类豁免口径的文字（Element 默认灰等）：按比值从低到高点名 */
+  const outsideTokenInks = pairs
+    .filter((r) => !r.fgToken && !r.brandFill && !r.inactive && r.pass === false)
+    .map(brief)
+    .sort((a, b) => a.ratio - b.ratio);
+  /** 禁用/不可用控件内的低对比文字：WCAG 1.4.3 排除 inactive UI，逐条带 sel 证据，不做批量豁免 */
+  const inactiveFails = pairs.filter((r) => r.inactive && !r.pass).map((r) => ({ ...brief(r), inactive: r.inactive }));
+  return {
+    checked: pairs.length,
+    samples: pairs.slice(0, 60),
+    fails: fails.slice(0, 12),
+    failCount: fails.length,
+    weakestCanvas,
+    weakestAny,
+    ink2OnSide: ink2OnSide.slice(0, 12),
+    linePairs: linePairs.slice(0, 6),
+    inkTokens: resolvedInks,
+    retiredInkSeen: retiredInkSeen.slice(0, 8),
+    outsideTokenInks: outsideTokenInks.slice(0, 8),
+  };
 }
 
 /* ────────────────────────── 计划：11 业务模块 + pos 的代表页 ────────────────────────── */
@@ -1985,10 +2133,11 @@ async function runModule(plan) {
     if (overBudget("对比度取样")) return bail();
 
     /* ⑦ 对比度 */
-    const cs = contrastAnalyze(await page.evaluate(TEXT_CONTRAST_SCAN));
+    const cs = contrastAnalyze(await page.evaluate(TEXT_CONTRAST_SCAN), await page.evaluate(CANVAS_INK_PROBE));
     rec.contrast = cs;
     if (cs.fails.length) V.push({ kind: "contrast-regression", moduleKey: plan.key, page: plan.pageKey, reason: `${cs.failCount} 组 13B 画布文字对（ink/ink2 × side/bg）低于 4.5:1（大字 3:1）`, detail: cs.fails });
     if (cs.linePairs.length) F.push({ kind: "contrast-hairline-recorded", moduleKey: plan.key, page: plan.pageKey, reason: "line-on-side / line-on-bg 装饰分隔线 ≈1.11:1，按 WCAG 1.4.11 incidental 豁免只记录不判红（软化点，报告必须披露）", detail: cs.linePairs });
+    if (cs.outsideTokenInks.length) F.push({ kind: "contrast-ink-outside-token", moduleKey: plan.key, page: plan.pageKey, reason: `画布承托面上有 ${cs.outsideTokenInks.length} 组「不比退役 #8A8F98 浅、但不属于 13B 功能墨令牌族」的文字跌破 AA ⇒ 不进 contrast-regression 门禁（口径外），但必须点名披露并交 13C 判定归属`, detail: cs.outsideTokenInks });
 
     /* ⑤ 键盘焦点 */
     rec.focus = await focusWalk(page, plan, V, F, step);
@@ -2157,11 +2306,15 @@ const perModule = records.map((r) => {
 const gateCounts = {};
 for (const v of violations) gateCounts[v.kind] = (gateCounts[v.kind] ?? 0) + 1;
 
-/* ── 对比度冲突台账（§三.A 原型取色 ⇄ §三.D.16「不得因视觉对齐退步」）──
-   机器只负责把两端比值如实换算并点名：13B 把基线深灰 #333333（同底色 12.43:1）换成原型二级文字色
-   ink2 #8A8F98（3.09:1），在 11px 层级跌破 WCAG AA 4.5:1。这不是采集噪声，也不是可以悄悄改色抹平的点
-   —— 调深 ink2 就能过 AA，但那会把 §三.A 已定档的 104 对并排取色证据整体作废，必须先由凌舟裁定优先级。
-   所以 contrast-regression 的红一律保留、以非零码退出，本台账只做「冲突可追溯」，不软化门禁。 */
+/* ── 对比度台账（F1 中央裁定后的口径）──
+   父卡事实：13B 把基线深灰 #333333（同底色 12.09:1）换成原型二级文字色 ink2 #8A8F98（3.11:1/3.25:1），
+   在 11px 功能文字上跌破 WCAG AA 4.5:1 ⇒ 凌舟驳回判「WCAG AA 优先」，实现侧已把画布 `--wb-ink2`
+   定义为达标值（src/styles.css 画布段 0b）。本台账因此换轴：
+     · `contrastConflicts` 仍然逐条如实登记任何跌破 AA 的功能墨对 —— 采集器**不许**因为「已经修过」就跳过；
+       整改成立时它必须是空数组，非空即 F1 未关闭（门禁照旧判红并以非零码退出）。
+     · `contrastAAReadings` 是新增的达标面读数：逐模块把 ink2-on-side / ink2-on-bg 的真实比值、字号、
+       选择器、画布令牌运行时解析值一并入档，用来证明「红为 0」来自色值达标，而不是来自口径被关掉。
+     · `retiredInkSeen` 记录画布里是否还渲染着退役低对比值 #8A8F98（非 0 ⇒ 有页面绕过了令牌）。 */
 const BASELINE_INK_RGB = [51, 51, 51];
 const canvasRgb = (token) => (CANVAS_TOKENS[token] ?? CANVAS_TOKENS.side).split(",").map(Number);
 const contrastConflicts = records
@@ -2173,10 +2326,30 @@ const contrastConflicts = records
     pairs: r.contrast.fails.map((f) => ({ sel: f.sel, text: f.text, fontSize: f.fontSize, fontWeight: f.fontWeight, fgToken: f.fgToken, bgToken: f.bgToken, ratio: f.ratio, need: f.need })),
     baselineRatioOnSameBg: Math.round(contrastRatio(BASELINE_INK_RGB, canvasRgb(r.contrast.fails[0]?.bgToken ?? "side")) * 100) / 100,
     conflict: "§三.A 要求与原型取色一致（ink2 #8A8F98 就是原型二级文字色）⇄ §三.D.16 要求对比度不因视觉对齐退步（基线同位置是 #333333）⇒ 两条卡面口径在同一处文字上对撞",
-    whyNotSilentlyFixed: "把 ink2 调深即可过 AA，但改色等于推翻 §三.A 已定档的并排取色证据（104 对）⇒ 只能先裁定，再决定复采或豁免，不许采集器自己抹平",
+    whyNotSilentlyFixed: "凌舟已按中央裁定关闭该冲突（13B-F1 §三.1：AA 优先）⇒ 本条若非空就是「整改未覆盖到这一处」，属于缺陷复发，不接受再走豁免",
     owner: OWNER,
-    followUp: "凌舟裁定「原型取色 ⇄ AA 对比度」优先级：判取色优先 ⇒ 本条转豁免（待裁定）；判对比度优先 ⇒ WORKBENCH-13C 复采受影响的并排对",
+    followUp: "WORKBENCH-13B-WORKBENCH-MODULE-VISUAL-PARITY-01-F1 §三.1/§三.3 返工未关闭：按 styles.css 0b 段令牌口径补齐该处，并复采本模块窄口帧",
   }));
+const contrastAAReadings = records
+  .filter((r) => r.contrast)
+  .map((r) => {
+    const ink2Pairs = (r.contrast.samples ?? []).filter((p) => p.fgToken === "ink2" && (p.bgToken === "side" || p.bgToken === "bg"));
+    const ratios = ink2Pairs.map((p) => p.ratio).filter(Number.isFinite);
+    return {
+      moduleKey: r.moduleKey,
+      pageKey: r.pageKey,
+      viewport: NARROW.id,
+      inkTokens: r.contrast.inkTokens ?? null,
+      ink2Pairs: ink2Pairs.map((p) => ({ sel: p.sel, bgToken: p.bgToken, fontSize: p.fontSize, fontWeight: p.fontWeight, ratio: p.ratio, need: p.need, pass: p.pass, count: p.count })),
+      ink2Sampled: ink2Pairs.length,
+      ink2MinRatio: ratios.length ? Math.min(...ratios) : null,
+      ink2AllPassAA: ink2Pairs.length > 0 && ink2Pairs.every((p) => p.pass),
+      retiredInkRendered: (r.contrast.retiredInkSeen ?? []).reduce((n, x) => n + (x.count ?? 1), 0),
+      canvasFails: r.contrast.fails.length,
+      weakestCanvas: r.contrast.weakestCanvas?.ratio ?? null,
+      outsideTokenInks: (r.contrast.outsideTokenInks ?? []).length,
+    };
+  });
 
 /* ── JSON 入档 ── */
 const bundle = {
@@ -2228,6 +2401,19 @@ const bundle = {
   gaps,
   findings,
   deviations: contrastConflicts,
+  contrastAA: {
+    rule: "F1 中央裁定（凌舟驳回 DEV-13B-01）：功能文字 WCAG AA 优先于原型取色；ink2 达标值 = 画布令牌解析值",
+    modulesWithInk2: contrastAAReadings.filter((x) => x.ink2Sampled > 0).length,
+    modulesAllPass: contrastAAReadings.filter((x) => x.ink2AllPassAA).length,
+    minInk2Ratio: (() => {
+      const rs = contrastAAReadings.map((x) => x.ink2MinRatio).filter(Number.isFinite);
+      return rs.length ? Math.min(...rs) : null;
+    })(),
+    retiredInkRendered: contrastAAReadings.reduce((n, x) => n + x.retiredInkRendered, 0),
+    canvasFails: contrastAAReadings.reduce((n, x) => n + x.canvasFails, 0),
+    outsideTokenInks: contrastAAReadings.reduce((n, x) => n + x.outsideTokenInks, 0),
+    perModule: contrastAAReadings,
+  },
   network: netFailures.slice(0, 60),
 };
 writeFileSync(MEASURE_JSON, JSON.stringify(bundle, null, 2));
@@ -2284,7 +2470,15 @@ const md = [
   "",
   ...(findings.length ? findings.map((f) => `- [${f.kind}] ${f.moduleKey ?? "-"}/${f.page ?? "-"}：${f.reason}`) : ["- 无。"]),
   "",
-  "## 对比度冲突台账（§三.A 原型取色 ⇄ §三.D.16 不得退步；红保留，只作可追溯）",
+  "## 对比度达标读数（F1 中央裁定：功能文字 WCAG AA 优先于原型取色）",
+  "",
+  `画布令牌运行时解析值：${[...new Set(contrastAAReadings.map((x) => `ink2=${x.inkTokens?.ink2 || "未定义（退回兜底）"}`))].join(" / ") || "—"}（退役值 #8A8F98 在画布渲染 ${contrastAAReadings.reduce((n, x) => n + x.retiredInkRendered, 0)} 处）`,
+  "",
+  "| 模块/页 | ink2 功能文字采样 | 最低比值 | 全达 AA | 令牌外暗字(AA 不达标) | 画布红 |",
+  "| --- | --- | --- | --- | --- | --- |",
+  ...contrastAAReadings.map((x) => `| ${x.moduleKey}/${x.pageKey} | ${x.ink2Sampled} | ${x.ink2MinRatio ?? "—"}:1 | ${x.ink2Sampled ? (x.ink2AllPassAA ? "是" : "否") : "无采样"} | ${x.outsideTokenInks} | ${x.canvasFails} |`),
+  "",
+  "## 对比度冲突台账（跌破 AA 的功能墨对；F1 整改成立时应当为空，非空＝返工未关闭）",
   "",
   ...(contrastConflicts.length
     ? contrastConflicts.flatMap((c) => [
@@ -2293,7 +2487,7 @@ const md = [
         `  - 为何不当场改色：${c.whyNotSilentlyFixed}`,
         `  - 处置：${c.owner} ⇒ ${c.followUp}`,
       ])
-    : ["- 无（画布文字对全部达 AA）。"]),
+    : ["- 无（画布功能墨文字对全部达 AA 4.5:1）—— 凌舟驳回的 9 条 contrast-regression 已由画布令牌整改关闭。"]),
   "",
   `网络失败 ${netFailures.length} 条（详见 JSON network 段）；端口收尾：${portsOk ? "全部 DOWN" : "有端口未清理，请人工复核"}。`,
   "",

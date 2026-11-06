@@ -1,5 +1,5 @@
 /**
- * WORKBENCH-13B · 业务页视觉语法 / 逐页契约 / 390 窄口门禁 mutation 反测装置（卡 §三.D.19：≥10 类，本次 55 类）
+ * WORKBENCH-13B · 业务页视觉语法 / 逐页契约 / 390 窄口门禁 mutation 反测装置（卡 §三.D.19：≥10 类，本次 57 类）
  *
  * 与 f3-visual-contract-countertest.mjs 同构，但目标面是本单的四层真源：
  *   ① `src/styles.css` 的画布语法段（口径本体）      → 点名 wb13b-visual-grammar.spec 的用例变红
@@ -41,6 +41,8 @@
  *   M52 记录不再逐条落 captureOrigin                     → N40     M54 URL 与自身 origin 不再比对          → N40
  *   M55 行注释里重新写 glob（views/**，F3 C3 假红根因）   → D4（回到 A 组语法：与 D 组判据同一条红线，
  *        —— 朴素去注释吞代码这类「解析口径」缺陷只跑 F3 链才暴露，tsc/eslint/build 全绿不代表安全）
+ *   —— 以下 2 类为 F1 对比度硬门整改追加（卡 §三.7）——
+ *   M56 画布 --wb-ink2 改回原型低对比值 #8A8F98（3.11:1）  → N41    M57 AA 阈值表达式 4.5 ⇒ 3（大字放行）  → N45
  *
  * 运行（必须显式给证据输出目录，避免把中间产物写进工作树而破坏 clean）：
  *   node tests/wb13b-visual-countertest.mjs <outDir>
@@ -561,6 +563,23 @@ const CASES = [
     target: TARGETS.shell,
     mutate: (t) => patch(t, "指向 views 下同一批 .vue", "指向 component: views/**", "M55"),
     expect: "D4",
+  },
+  /* —— 以下 2 类为 F1 对比度硬门整改追加（卡 §三.7：M56 恢复低对比 token / M57 门禁弱化）—— */
+  {
+    id: "M56-retire-low-contrast-ink2",
+    title: "画布次级功能墨令牌改回原型低对比值 #8A8F98（凌舟驳回 DEV-13B-01 的原始缺陷）⇒ 11px 表头/字段标签/分页信息对 side 只剩 3.11:1，跌破 WCAG AA 4.5:1",
+    spec: "N",
+    target: TARGETS.css,
+    mutate: (t) => patch(t, "main.wb-view-manual {\n  --wb-ink2: #666b73;\n}", "main.wb-view-manual {\n  --wb-ink2: #8a8f98;\n}", "M56"),
+    expect: "N41",
+  },
+  {
+    id: "M57-contrast-threshold-weakened",
+    title: "AA 阈值表达式 4.5 ⇒ 3（把 11px 功能文字当大字放行）⇒ 门禁弱化制造假绿，卡 §六「不通过弱化门禁制造绿色」点名的典型手法",
+    spec: "N",
+    target: TARGETS.narrow,
+    mutate: (t) => patch(t, "const need = isLargeText(size, weight) ? 3 : 4.5;", "const need = isLargeText(size, weight) ? 3 : 3;", "M57"),
+    expect: "N45",
   },
 ];
 

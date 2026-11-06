@@ -1500,6 +1500,11 @@ kbd,
      整面暗色属壳层口径（不在 13B 范围），此处刻意与壳层保持同源浅色。
    口径边界③：**999px 不是笔误**。原型胶囊按钮经 V16 归一后就是 999px（99→999），
      实现侧写 99px 会被差异表判成 Δ=-900 的真红；此处按渲染值写 999px。
+   口径边界④（13B-F1 中央裁定）：**次级功能墨色不服从原型色值**。凌舟驳回 DEV-13B-01 判据：WCAG AA 优先。
+     原型 L10 `--sub` = #8A8F98 在 11px 功能文字上只有 3.11:1（side）/3.25:1（bg），既跌破 AA 4.5:1，
+     也相对 F3 基线 #333333（12.09:1）构成可访问性退步 ⇒ 画布内 `--wb-ink2` 一律解析为达标冷灰（见 0b 段实测比值），
+     原型低对比色**只**允许出现在已逐项证明的装饰性分隔线（`--wb-line`，走 WCAG 1.4.11 incidental 豁免）上。
+     这条覆盖 §三.A「与原型取色逐字节一致」中 ink2 相关的全部读数；差异表不删行，改记「中央裁定的可访问性例外」。
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* 0) 正文墨色：原型 L27 `body{color:var(--ink)}`（#16181D）一路继承进 `#wbBody`，
@@ -1508,6 +1513,67 @@ kbd,
       这是画布级缺口，不是某一页的问题。只补这一条继承源头，EP 组件自带的文字色（表格/表单各自有 token）不受影响。 */
 main.wb-view-manual {
   color: var(--wb-ink, #16181d);
+}
+
+/* 0b) 次级功能墨色令牌（13B-F1 唯一实现侧整改，口径边界④的落点）。
+      事实：全仓 `--wb-ink2` **从未被定义过**（`grep -c` 定义 0 处 / 使用 53 处），所以画布里每一处
+      `var(--wb-ink2, #8a8f98)` 都落在兜底字面量上 ⇒ 11px 表头、字段标签、KPI 标签、分页信息、页码、
+      空态提示全部渲染成 #8A8F98（实测 3.11:1 on side、3.25:1 on bg）。
+      改法只有一处：在画布根把令牌**定义**为达标值，后代按继承解析，逐条声明一个字都不动。
+      取值 #666B73 = 原型 --sub 的同色相冷灰（R:G:B 相对关系与 #8A8F98 一致）按 WCAG 反算取整，
+      实测 5.13:1 on #F9FAFB(side) / 5.36:1 on #FFFFFF(bg)，两条口径都过 AA 4.5:1 且留 14% 余量。
+      为什么不动声明里的兜底字面量：那 53 处里有一多半落在 F3 已验收的壳层（二级列/顶栏/信息流/收银台组件），
+      而壳层视觉口径是本卡 §二 明列的禁改项 ⇒ 兜底继续解析成 #8a8f98，只有画布内换值。
+      装饰性分隔线走 `--wb-line`（#ECEEF1，≈1.11:1，WCAG 1.4.11 incidental 逐项豁免，见采集器 linePairs），
+      该豁免**不外溢**到任何带文字的元素——本段 10 处二级功能墨用法（字段标签 / EP 表头变量 / th / KPI 标签 /
+      柱标签 / 分页宿主 / EP 分页 / 每页条数·跳至 / 页码 / 空态）经逐条核对全是信息承载文字，无一例装饰用途。 */
+main.wb-view-manual {
+  --wb-ink2: #666b73;
+}
+
+/* 0c) 品牌主色当**文字**用必须走达标变体（13B-F1 补采发现，RETIRED_INK_VALUES 里 63,111,239 那条指令的落点）。
+      事实：库存总览页两处把 --color-primary #3F6FEF（4.44:1 on bg / 4.25:1 on side）当普通字号文字色：
+      ① `.el-tabs__item.is-active`（激活 Tab「库存总览」，13px/500 on #FFFFFF）实测 4.44:1，差 0.06 判红；
+      ② `.el-tag--primary`（「线上」淡底标签，12px/500 on --color-primary-soft #E8EEFD）实测 3.82:1 ×18 处。
+      这两处都是信息承载功能文字，走不了装饰豁免 ⇒ 按 F1 中央裁定改用 tokens.css 既有
+      S3-66.1/H-1 文本专用变体 --color-primary-text #365FCE（5.70:1 on bg / 4.86:1 on primary-soft，两条口径全过）。
+      为什么只加画布作用域覆盖、不改 571/881 两处全局声明：那两行同时服务 F3 已验收的壳层（壳层视觉口径
+      是本卡 §二 明列的禁改项）⇒ 壳层维持品牌主色，画布内换文本变体；填充/描边/active-bar 不在文字口径内，
+      一律不碰（brandFill 豁免，见采集器 BRAND_FILL_RGB）。 */
+main.wb-view-manual .el-tabs__item.is-active {
+  color: var(--color-primary-text, #365fce);
+}
+main.wb-view-manual .el-tag--primary {
+  --el-tag-text-color: var(--color-primary-text, #365fce);
+  /* tokens.css 362 行对 .el-tag--primary 直涂 color !important（壳层口径），画布内必须同强度压过；
+     只换文字色，soft 底/无边框等 tokens 既定视觉一字不动 */
+  color: var(--color-primary-text, #365fce) !important;
+}
+/* 0c·二（13B-F1 补采发现，重采 12 模块后逐条点名，全部是品牌蓝当 11-13px 功能文字、实测 <4.5:1）：
+   ① 文字按钮（采购订单「详情」el-button link type=primary，4.44:1 on bg）⇒ 链接钮走达标文本变体；
+      实心主钮的白字压品牌渐变属 brandFill（品牌识别，不属功能墨族），不受本条影响；
+   ② 开关激活文案（即时零售平台页「启用」.el-switch__label.is-active，4.44:1 on bg）；
+   ③ 输入框 append/prepend 按钮（平台页「复制」「重新生成」，styles.css:632 把 --el-color-info 重映射为
+      品牌蓝 + EP append 按钮color:inherit ⇒ #3F6FEF on #F0F0F0 实测 3.89:1）⇒ 画布内改走达标文本变体；
+      --el-color-info 本身的品牌映射是全站口径（壳层也在用），画布作用域外一字不动；
+   ④ 收银台选中片（.category-item.active / .category-item.active .category-count /
+      .pay-method-btn.active .pay-method-name，CashierView scoped 样式把品牌蓝当选中态文字，
+      压在 6%/12% 品牌淡底上实测 ~3.7-4.3:1；扫描器已按 source-over 合成半透明底）⇒ 同改达标文本变体。
+      #365FCE 实测：on bg 5.70 / on 合成 6% 淡底 ≈5.1 / on 合成 12% 淡底(#E4E9F9) 4.70 / on #F0F0F0 5.01，全过 AA。 */
+main.wb-view-manual .el-button--primary.is-link {
+  color: var(--color-primary-text, #365fce);
+}
+main.wb-view-manual .el-switch__label.is-active {
+  color: var(--color-primary-text, #365fce);
+}
+main.wb-view-manual .el-input-group__append,
+main.wb-view-manual .el-input-group__prepend {
+  color: var(--color-primary-text, #365fce);
+}
+main.wb-view-manual .category-item.active,
+main.wb-view-manual .category-item.active .category-count,
+main.wb-view-manual .pay-method-btn.active .pay-method-name {
+  color: var(--color-primary-text, #365fce);
 }
 
 /* 1) 页面容器：原型把业务页装在 .wb-wrap 里（1080 上限 + 32/44/60 内边距）。
