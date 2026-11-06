@@ -15,13 +15,14 @@
 import { readFileSync, readdirSync, statSync, existsSync } from "fs";
 import { mkdir, writeFile } from "fs/promises";
 import { join, resolve } from "path";
+import { tmpdir } from "os";
 import mysql from "mysql2/promise";
 
 const ROOT = resolve(process.cwd());
 const SRC_DIR = resolve(ROOT, "backend/src");
 const MIGRATIONS_DIR = resolve(ROOT, "docs/migrations");
 const INIT_SQL = resolve(ROOT, "docs/init_database.sql");
-const REPORTS_DIR = resolve(ROOT, "docs/reports");
+const REPORTS_DIR = resolve(process.env.ZXQL_REPORTS_DIR || join(tmpdir(), "zxql-reports"));
 
 const args = process.argv.slice(2);
 const IS_MOCK = args.includes("--mock") || process.env.USE_MOCK_DB === "true";

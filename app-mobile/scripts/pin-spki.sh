@@ -7,7 +7,8 @@
 #   【第一张中间证书】的 SPKI SHA-256（base64）+ notAfter，供人工核对、
 #   粘贴到 app-mobile/src/utils/pin-ssl.ts 的 PINNED_CERTS。
 #   本脚本不写入任何文件、不修改任何代码、不做任何接线；
-#   维护口径与接线前置见 app-mobile/docs/pin-ssl指纹维护口径.md。
+#   维护口径与接线前置见中央归档：
+#   D:/Users/ZXQL/ZXQL-WORK/projects/ms/archive/repo-docs-20261107/app-mobile/docs/pin-ssl指纹维护口径.md
 #
 # 默认域名：api.onepan.cn — 字面抄录自 app-mobile/src/config/env.ts
 #   API_BASE_NATIVE 回退值 "https://api.onepan.cn/api"（仅作只读取参考，

@@ -1,2 +1,0 @@
-### 命令: cd backend && npx tsc -p tsconfig.json --noEmit
-TSC_EXIT=0

@@ -13,7 +13,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${PROJECT_DIR}/.env"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/mysql}"
-REPORT_DIR="${PROJECT_DIR}/docs/reports"
+REPORT_DIR="${REPORT_DIR:-${TMPDIR:-/tmp}/zxql-restore-drills}"
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "找不到 .env，请先 cp deploy/.env.example .env 并填写数据库配置。" >&2

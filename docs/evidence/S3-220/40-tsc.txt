@@ -1,4 +1,0 @@
-命令：npx tsc -p tsconfig.json --noEmit（cwd=backend）
-EXIT=0
---- stdout/stderr（空 = 无诊断）---
-

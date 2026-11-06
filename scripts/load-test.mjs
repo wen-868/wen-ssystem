@@ -9,15 +9,15 @@
  *   login    POST /api/store/auth/login store_manager       （登录，限流接口，注意并发不宜过高）
  *   api      POST 登录后带 token 调 /api/store/dashboard     （核心业务链路）
  *
- * 输出：控制台摘要 + docs/reports/load-test-{时间戳}.json / .md
+ * 输出：控制台摘要 + ZXQL_REPORTS_DIR/load-test-{时间戳}.json / .md
+ *       未设置 ZXQL_REPORTS_DIR 时落系统临时目录
  */
 
 import { writeFileSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, "..");
+const REPORTS_DIR = resolve(process.env.ZXQL_REPORTS_DIR || join(tmpdir(), "zxql-reports"));
 
 function arg(name, fallback) {
   const idx = process.argv.indexOf(name);
@@ -133,11 +133,10 @@ async function run() {
   console.log("======= 压测摘要 =======");
   console.log(JSON.stringify(summary, null, 2));
 
-  const dir = join(ROOT, "docs", "reports");
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(REPORTS_DIR, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const jsonPath = join(dir, `load-test-${stamp}.json`);
-  const mdPath = join(dir, `load-test-${stamp}.md`);
+  const jsonPath = join(REPORTS_DIR, `load-test-${stamp}.json`);
+  const mdPath = join(REPORTS_DIR, `load-test-${stamp}.md`);
   writeFileSync(jsonPath, JSON.stringify(summary, null, 2), "utf8");
   writeFileSync(mdPath, [
     `# 压测报告 ${stamp}`,

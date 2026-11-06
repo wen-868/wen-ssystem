@@ -9,16 +9,24 @@
 
 import { createServer } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
-import { extname, join, resolve } from 'node:path'
+import { dirname, extname, join, resolve } from 'node:path'
 import { mkdirSync } from 'node:fs'
-import { pathToFileURL } from 'node:url'
+import { tmpdir } from 'node:os'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
+const MINIAPP_ROOT = resolve(SCRIPT_DIR, '..')
+const WORKSPACE_ROOT = resolve(MINIAPP_ROOT, '..')
+const PLAYWRIGHT_CORE = process.env.PLAYWRIGHT_CORE_ENTRY ||
+  join(WORKSPACE_ROOT, '.playwright-cli', 'pw-run', 'node_modules', 'playwright-core', 'index.mjs')
 const { chromium } = await import(
-  pathToFileURL('D:/Users/ZXQL/ZXQL-MS/wen-ssystem/.playwright-cli/pw-run/node_modules/playwright-core/index.mjs').href
+  pathToFileURL(PLAYWRIGHT_CORE).href
 )
 
-const DIST = resolve(process.argv[2] || 'D:/Users/ZXQL/ZXQL-MS/wen-ssystem/miniapp/dist')
-const OUT = resolve(process.argv[3] || 'D:/Users/ZXQL/ZXQL-MS/wen-ssystem/docs/reports/R96-01-themes')
+const DIST = resolve(process.argv[2] || join(MINIAPP_ROOT, 'dist'))
+const OUT = resolve(
+  process.argv[3] || process.env.ZXQL_REPORTS_DIR || join(tmpdir(), 'zxql-reports', 'R96-01-themes')
+)
 mkdirSync(OUT, { recursive: true })
 
 const MIME = {

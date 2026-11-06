@@ -1,2 +1,0 @@
-命令：cd backend; npx eslint src/__tests__/shared/migration.test.ts
-EXIT=0

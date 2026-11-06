@@ -1,3 +1,0 @@
-﻿== 命令：cd backend; npx tsc -p tsconfig.json --noEmit（本单验收标准①）
-
-EXIT=0

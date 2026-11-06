@@ -1,2 +1,0 @@
-命令：npx tsc -p tsconfig.json --noEmit
-EXIT=0（0 = 无类型错误）

@@ -1,3 +1,0 @@
-prev_api_key	varchar(64)
-prev_api_secret	varchar(256)
-rotate_expire_at	datetime

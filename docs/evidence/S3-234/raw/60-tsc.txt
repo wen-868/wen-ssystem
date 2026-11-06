@@ -1,2 +1,0 @@
-command: npx tsc -p backend/tsconfig.json --noEmit
-TSC_EXIT=0 (0 = zero type errors; no lines above = no diagnostics)

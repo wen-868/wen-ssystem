@@ -21,17 +21,16 @@
  *  14. 进化门控接口（/api/admin/evolution 200）
  *  15. API 目录接口（/api/admin/api-catalog 200）
  *
- * 输出：docs/reports/ai-base-e2e-{时间戳}.md
+ * 输出：ZXQL_REPORTS_DIR/ai-base-e2e-{时间戳}.md（未设置时落系统临时目录）
  */
 
 import { writeFileSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import http from "node:http";
 import https from "node:https";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, "..");
+const REPORTS_DIR = resolve(process.env.ZXQL_REPORTS_DIR || join(tmpdir(), "zxql-reports"));
 const AI_BASE = process.argv.includes("--ai-base")
   ? process.argv[process.argv.indexOf("--ai-base") + 1]
   : "http://127.0.0.1:3016";
@@ -265,10 +264,9 @@ async function run() {
   );
 
   const passed = results.filter((r) => r.pass).length;
-  const dir = join(ROOT, "docs", "reports");
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(REPORTS_DIR, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const mdPath = join(dir, `ai-base-e2e-${stamp}.md`);
+  const mdPath = join(REPORTS_DIR, `ai-base-e2e-${stamp}.md`);
   writeFileSync(mdPath, [
     `# AI 底座端到端验收报告 ${stamp}`,
     "",

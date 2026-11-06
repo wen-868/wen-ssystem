@@ -6,15 +6,14 @@
  *
  * 场景：越权访问、SQL 注入（登录/搜索）、路径遍历、无效输入
  * 原则：恶意请求必须被拦截（401/400/403），不得返回 200 数据或 500 崩溃
- * 输出：docs/reports/security-smoke-{时间戳}.md
+ * 输出：ZXQL_REPORTS_DIR/security-smoke-{时间戳}.md（未设置时落系统临时目录）
  */
 
 import { writeFileSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, "..");
+const REPORTS_DIR = resolve(process.env.ZXQL_REPORTS_DIR || join(tmpdir(), "zxql-reports"));
 const BASE = process.argv.includes("--base")
   ? process.argv[process.argv.indexOf("--base") + 1]
   : "http://127.0.0.1:8080";
@@ -102,10 +101,9 @@ async function run() {
   record("无效 JSON 拦截", badJson.status === 400, `坏 JSON → ${badJson.status}`);
 
   const passed = results.filter((r) => r.pass).length;
-  const dir = join(ROOT, "docs", "reports");
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(REPORTS_DIR, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const mdPath = join(dir, `security-smoke-${stamp}.md`);
+  const mdPath = join(REPORTS_DIR, `security-smoke-${stamp}.md`);
   writeFileSync(mdPath, [
     `# 安全冒烟扫描报告 ${stamp}`,
     "",
