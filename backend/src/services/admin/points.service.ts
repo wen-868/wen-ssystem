@@ -63,6 +63,60 @@ interface CustomerLevelNameRow {
   level_name: string;
 }
 
+// ===== 会员积分真源统一口径（TOTAL-MEMBER-POINTS-TRUTH-SOURCE-01 单点收口） =====
+/**
+ * 真源契约：
+ * - 真相源 = t_customer_points.available_points（积分账户）；
+ * - 遗留列 t_member.points 仅作兼容回退（会员无积分账户时），且回退规则只在本处实现；
+ * - 会员列表 / 会员详情 / 会员积分接口一律复用下面两个 SQL 片段（或 getMemberPointsTruth），
+ *   禁止各接口另写口径；
+ * - JOIN 引入方式固定：FROM t_member m + MEMBER_POINTS_TRUTH_JOIN_SQL（含 cp.tenant_id 租户边界），
+ *   外层查询必须再带 m.tenant_id = ? 谓词。
+ * - 调整链路（adjustCustomerPoints）只写积分账户，不回写 t_member.points（遗留列不再同步，
+ *   仅为存量无账户会员提供兼容读值）。
+ */
+export const MEMBER_POINTS_TRUTH_JOIN_SQL =
+  "LEFT JOIN t_customer_points cp ON cp.customer_id = m.id AND cp.tenant_id = m.tenant_id";
+
+export const MEMBER_POINTS_TRUTH_AVAILABLE_SQL =
+  "COALESCE(cp.available_points, m.points, 0)";
+
+/** 统一口径读取结果（真实 MySQL 数值均已 Number 归一化） */
+export interface MemberPointsTruth {
+  availablePoints: number;
+  totalPoints: number;
+  frozenPoints: number;
+}
+
+/** 统一口径 SQL 行（COALESCE 后的别名） */
+interface MemberPointsTruthRow {
+  availablePoints: number | string;
+  totalPoints: number | string | null;
+  frozenPoints: number | string | null;
+}
+
+/**
+ * 单点读取会员积分真源：同一会员在列表/详情/积分接口的可用积分必须来自本函数。
+ * 会员不存在返回 null（由调用方决定 404）。
+ */
+export async function getMemberPointsTruth(tenantId: string, memberId: number): Promise<MemberPointsTruth | null> {
+  const row = await queryOneWithTenant<MemberPointsTruthRow>(
+    `SELECT ${MEMBER_POINTS_TRUTH_AVAILABLE_SQL} AS availablePoints,
+            cp.total_points AS totalPoints, cp.frozen_points AS frozenPoints
+     FROM t_member m ${MEMBER_POINTS_TRUTH_JOIN_SQL}
+     WHERE m.id = ? AND m.tenant_id = ?`,
+    [memberId, tenantId],
+    tenantId
+  );
+  if (!row) return null;
+  const available = Number(row.availablePoints ?? 0);
+  return {
+    availablePoints: available,
+    totalPoints: Number(row.totalPoints ?? available),
+    frozenPoints: Number(row.frozenPoints ?? 0),
+  };
+}
+
 // ===== 积分规则 =====
 export async function listPointsRules(tenantId: string) {
   return queryWithTenant<PointsRuleListRow>(
