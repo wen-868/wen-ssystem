@@ -9,6 +9,12 @@ import { query, queryOne, transaction } from "../../shared/db";
 // 禁止裸 `bcrypt.hash`（两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false，S3-172）。
 import { hashPassword } from "../../shared/password";
 import { makeBizNo } from "../../shared/id";
+// TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：status 写分支接入租户启停统一审计入口
+import { randomUUID } from "node:crypto";
+import {
+  recordTenantToggleAudit,
+  type TenantToggleAuditContext,
+} from "../admin/platform-audit-tenant-toggle.service";
 import type mysql from "mysql2/promise";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 // S3-183（收口总清单第 18 项）：开通链路必须克隆角色/菜单并把首个管理员绑到本租户的角色行
@@ -370,13 +376,32 @@ async function initializeTenantDefaults(
  */
 export async function updatePlatformTenant(
   tenantId: string,
-  params: PlatformTenantUpdate
+  params: PlatformTenantUpdate,
+  auditCtx?: TenantToggleAuditContext
 ) {
-  const existing = await queryOne<IdRow>(
-    "SELECT id FROM t_tenant WHERE tenant_id = ?",
+  // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：预读扩展出 tenant_name/status，供启停审计行取
+  // 目标租户名与 fromStatus（查询语义不变：仍是「未知租户 ⇒ 404」的同一判定）。
+  const existing = await queryOne<IdRow & { tenantName?: string | null; status?: number | string | null }>(
+    "SELECT id, tenant_name AS tenantName, status FROM t_tenant WHERE tenant_id = ?",
     [tenantId]
   );
   if (!existing) {
+    // 未知租户且带 status 写分支 ⇒ 启停业务失败留痕（FAILED 行），再按原语义抛 404。
+    // （仅 status 写分支算 toggle：纯资料更新 404 不误记为启停。）
+    if (params.status !== undefined) {
+      await recordTenantToggleAudit({
+        operatorId: auditCtx?.operatorId ?? 0,
+        operatorName: auditCtx?.operatorName ?? "",
+        targetTenantId: tenantId,
+        fromStatus: null,
+        toStatus: params.status,
+        result: "FAILED",
+        failReason: "tenant_not_found(404)",
+        source: auditCtx?.source ?? "api",
+        traceId: auditCtx?.traceId ?? randomUUID(),
+        ip: auditCtx?.ip ?? null,
+      });
+    }
     throw Object.assign(new Error("租户不存在"), { statusCode: 404 });
   }
 
@@ -414,6 +439,28 @@ export async function updatePlatformTenant(
     `UPDATE t_tenant SET ${fields.join(", ")} WHERE tenant_id = ?`,
     values
   );
+
+  // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：status 写分支（legacy 启停路径）统一审计。
+  // 控制器 platform.controller.ts 不在本卡允许路径内 ⇒ 操作者上下文无法注入时按
+  // 缺省补齐（operatorId=0/source=api/traceId 自生成），目标/前后状态/结果/traceId
+  // 完整；审计写失败由统一入口 catch（不阻断、不回滚已生效更新）。
+  if (params.status !== undefined) {
+    await recordTenantToggleAudit({
+      operatorId: auditCtx?.operatorId ?? 0,
+      operatorName: auditCtx?.operatorName ?? "",
+      targetTenantId: tenantId,
+      targetTenantName: existing.tenantName ?? null,
+      fromStatus: existing.status == null ? null : String(existing.status),
+      toStatus: String(params.status),
+      result: "SUCCESS",
+      duplicate:
+        existing.status != null &&
+        String(existing.status).toUpperCase() === String(params.status).toUpperCase(),
+      source: auditCtx?.source ?? "api",
+      traceId: auditCtx?.traceId ?? randomUUID(),
+      ip: auditCtx?.ip ?? null,
+    });
+  }
 
   return { tenantId, updated: true };
 }

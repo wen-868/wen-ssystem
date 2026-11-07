@@ -306,7 +306,11 @@ describe("routes/platform-tenant 集成测试", () => {
         .post("/api/platform-tenant/1/toggle")
         .send({ status: "ACTIVE" });
       expect(res.status).toBe(200);
-      expect(platformTenantService.toggleTenantStatus).toHaveBeenCalledWith("1", "ACTIVE");
+      expect(platformTenantService.toggleTenantStatus).toHaveBeenCalledWith(
+        "1",
+        "ACTIVE",
+        expect.objectContaining({ operatorId: 1, operatorName: "testadmin", source: "api", traceId: expect.any(String) })
+      );
       expect(res.body.data).toEqual({ success: true, status: "ACTIVE" });
     });
 
@@ -316,7 +320,11 @@ describe("routes/platform-tenant 集成测试", () => {
         .post(`/api/platform-tenant/${UUID_ID}/toggle`)
         .send({ status: "DISABLED" });
       expect(res.status).toBe(200);
-      expect(platformTenantService.toggleTenantStatus).toHaveBeenCalledWith(UUID_ID, "DISABLED");
+      expect(platformTenantService.toggleTenantStatus).toHaveBeenCalledWith(
+        UUID_ID,
+        "DISABLED",
+        expect.objectContaining({ operatorId: 1, operatorName: "testadmin", source: "api", traceId: expect.any(String) })
+      );
       expect(res.body.data.status).toBe("DISABLED");
     });
 

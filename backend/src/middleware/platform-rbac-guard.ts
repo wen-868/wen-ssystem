@@ -270,6 +270,10 @@ async function auditGuardDenied(
         permKind: "platform-guard",
         domain: decision.domain,
         reason: decision.reason,
+        // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01（最小接入点增量）：拒绝结果显式标 REJECTED，
+        // 与租户启停统一审计口径（SUCCESS/REJECTED/FAILED）对齐；仅 detail 增字段，
+        // 判定逻辑、403 响应契约、既有 action/module 口径零改动。
+        result: "REJECTED",
         roleCode: decision.roleCode ?? null,
         method: req.method ?? null,
         path: req.originalUrl ?? req.path ?? null,

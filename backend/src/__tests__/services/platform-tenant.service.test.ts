@@ -116,21 +116,63 @@ describe("platform-tenant.service - 平台租户管理", () => {
       expect(await toggleTenantStatus(UUID_ID, "ACTIVE")).toBe("ACTIVE");
     });
 
-    it("未知 id（affectedRows=0）⇒ 404，不当成功返回（S3-65 教训）", async () => {
+    it("未知 id（affectedRows=0）⇒ 404，不当成功返回（S3-65 教训）；无 UPDATE 落库（TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 预读前置 + FAILED 留痕）", async () => {
+      mocks.queryOne.mockResolvedValue(null);
       mocks.query.mockResolvedValue({ affectedRows: 0 });
 
       await expect(toggleTenantStatus("not-exist", "ACTIVE")).rejects.toMatchObject({
         statusCode: 404,
         message: "租户不存在",
       });
-      expect(mocks.queryOne).not.toHaveBeenCalled();
+      // 断言口径更新（新增留痕，契约不变）：预读 SELECT 会发生，但绝不 UPDATE t_tenant
+      const updateCalls = mocks.query.mock.calls.filter((c: unknown[]) =>
+        String(c[0]).includes("UPDATE t_tenant")
+      );
+      expect(updateCalls).toHaveLength(0);
     });
 
-    it("非法 status 取值 ⇒ 400 且不落库（不静默兜底）", async () => {
+    it("非法 status 取值 ⇒ 400 且不落库（不静默兜底）；统一审计入口留 FAILED 行（TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01）", async () => {
       await expect(toggleTenantStatus(UUID_ID, "SUSPENDED" as never)).rejects.toMatchObject({
         statusCode: 400,
       });
-      expect(mocks.query).not.toHaveBeenCalled();
+      // 断言口径更新（新增留痕，契约不变）：审计 INSERT 会发生，但绝不 UPDATE t_tenant
+      const updateCalls = mocks.query.mock.calls.filter((c: unknown[]) =>
+        String(c[0]).includes("UPDATE t_tenant")
+      );
+      expect(updateCalls).toHaveLength(0);
+      const auditInsert = mocks.query.mock.calls.find((c: unknown[]) =>
+        String(c[0]).includes("INSERT INTO t_platform_audit_log")
+      );
+      expect(auditInsert).toBeDefined();
+      // params: [admin_id, admin_name, action, target_type, target_id, detail, ip, module]
+      expect((auditInsert as unknown as unknown[])[1]?.[2]).toBe("TENANT_TOGGLE");
+    });
+
+    it("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：审计上下文缺省（直调兜底）仍留痕，source=system 且 traceId 自生成", async () => {
+      mocks.query.mockResolvedValue({ affectedRows: 1 });
+      mocks.queryOne
+        .mockResolvedValueOnce({ tenantName: "酒行A", status: 1 })
+        .mockResolvedValueOnce({ status: 0 });
+
+      const applied = await toggleTenantStatus(UUID_ID, "DISABLED");
+
+      expect(applied).toBe("DISABLED");
+      const auditInsert = mocks.query.mock.calls.find((c: unknown[]) =>
+        String(c[0]).includes("INSERT INTO t_platform_audit_log")
+      );
+      expect(auditInsert).toBeDefined();
+      const params = (auditInsert as unknown as unknown[])[1] as unknown[];
+      expect(params[0]).toBe(0); // operatorId 缺省 0
+      expect(params[2]).toBe("TENANT_TOGGLE");
+      const detail = JSON.parse(String(params[5]));
+      expect(detail).toMatchObject({
+        result: "SUCCESS",
+        fromStatus: "ACTIVE",
+        toStatus: "DISABLED",
+        source: "system",
+        targetTenantName: "酒行A",
+      });
+      expect(String(detail.traceId)).not.toBe("");
     });
   });
 
