@@ -11,7 +11,7 @@
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <!-- 会员注册（表单页骨架） -->
       <el-tab-pane label="会员注册" name="register">
-        <div class="form-card form-card--narrow">
+        <div class="form-card">
           <div class="form-card-header">会员注册</div>
           <div class="form-card-body">
             <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" label-width="100px">
@@ -189,10 +189,9 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.form-card--narrow {
-  max-width: 560px;
-}
-.form-card--narrow .el-form {
-  max-width: 480px;
+/* 原型口径：页卡全宽（992 @1440），块级表单字段收口到 ≈187px（label + 控件整行），
+   不再整卡/整表定窄 */
+.form-card :deep(.el-form-item) {
+  max-width: 187px;
 }
 </style>

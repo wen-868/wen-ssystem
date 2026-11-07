@@ -190,19 +190,22 @@ onMounted(() => {
   padding: 16px;
 }
 .board-container {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
   min-height: 600px;
-  overflow-x: auto;
   padding-bottom: 8px;
 }
 .board-column {
-  flex: 1;
-  min-width: 260px;
   background: var(--gray-50);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
+}
+@media (max-width: 1200px) {
+  .board-container {
+    grid-template-columns: 1fr;
+  }
 }
 .column-header {
   padding: 12px 16px;

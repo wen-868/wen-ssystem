@@ -6,7 +6,7 @@
     </div>
 
     <PageCard>
-      <el-form :inline="true" :model="filterForm">
+      <el-form :inline="true" :model="filterForm" class="filter-bar">
         <el-form-item label="关键字">
           <el-input
             v-model="filterForm.keyword"
@@ -47,19 +47,18 @@
             <el-icon><Search /></el-icon> 搜索
           </el-button>
           <el-button @click="resetFilter">重置</el-button>
+          <!-- 13C：主行动钮从卡头 #extra 移入筛选条（原型 .s-filter 内 .btn2.pri 同构），卡头回 39px 标题行 -->
+          <el-button type="primary" @click="handleAdd">
+            <el-icon><Plus /></el-icon> 新增供应商
+          </el-button>
+          <el-button @click="loadSuppliers">
+            <el-icon><Refresh /></el-icon> 刷新
+          </el-button>
         </el-form-item>
       </el-form>
     </PageCard>
 
     <PageCard>
-      <template #extra>
-        <el-button type="primary" @click="handleAdd">
-          <el-icon><Plus /></el-icon> 新增供应商
-        </el-button>
-        <el-button @click="loadSuppliers">
-          <el-icon><Refresh /></el-icon> 刷新
-        </el-button>
-      </template>
 
       <DataTable
         :columns="columns"

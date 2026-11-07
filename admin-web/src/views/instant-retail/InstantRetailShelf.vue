@@ -7,6 +7,8 @@
     </div>
   </div>
 <div class="shelf-layout">
+      <!-- WORKBENCH-13B 全宽修复：原左侧 220px 分类面板把主体挤窄（filterBar/tableWrap/pagination x=622/width=722）。
+           按原型全宽布局改为「分类面板在上方 + 主体全宽」，分类筛选功能保留可达 -->
       <div class="category-sidebar">
         <el-card class="sidebar-card">
           <div class="sidebar-header">
@@ -34,7 +36,6 @@
       </div>
 
       <div class="main-content">
-        <el-card>
           <div class="filter-bar">
             <div class="filter-bar-items">
               <el-input
@@ -159,7 +160,6 @@
             />
           </div>
 </div>
-        </el-card>
       </div>
     </div>
 
@@ -780,16 +780,16 @@ onMounted(() => {
 .page { padding: 0;
 }
 .shelf-layout {
+  /* WORKBENCH-13B 全宽修复：上下堆叠（分类面板在上方），主体不再被左栏挤窄 */
   display: flex;
+  flex-direction: column;
   gap: 16px;
-  height: calc(100vh - 40px);
 }
 .category-sidebar {
-  width: 220px;
-  flex-shrink: 0;
+  width: 100%;
 }
 .sidebar-card {
-  height: 100%;
+  width: 100%;
 }
 .sidebar-header {
   padding: 4px 0 12px;
@@ -802,6 +802,9 @@ onMounted(() => {
 }
 .category-tree {
   background: transparent;
+  /* 全宽布局：分类树放在上方，限制高度避免占据整页纵向空间 */
+  max-height: 220px;
+  overflow-y: auto;
 }
 .custom-tree-node {
   display: flex;

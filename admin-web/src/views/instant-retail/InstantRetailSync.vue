@@ -6,33 +6,34 @@
       <p class="page-desc">价格/库存/商品同步状态</p>
     </div>
   </div>
-<!-- 同步状态概览 -->
-    <el-row :gutter="16" class="stats-row">
+<!-- 同步状态概览（统计小卡不再用 el-card 宿主：避免 pageCard 契约选择器把首张统计卡当成页卡；
+     行宿主也不用全局 .stats-row 网格皮肤（5 列网格曾把 el-col 压成 ≈64px 小胶囊卡）） -->
+    <el-row :gutter="16" class="sync-stats-row">
       <el-col :span="8">
-        <el-card shadow="never">
+        <div class="sync-stat-card">
           <div class="stat-title">价格同步</div>
           <div class="stat-body">
             <el-tag size="small" type="success">{{ priceSyncedCount }} 条已同步</el-tag>
             <span class="stat-time">最近同步：{{ priceLastSync || '-' }}</span>
           </div>
-        </el-card>
+        </div>
       </el-col>
       <el-col :span="8">
-        <el-card shadow="never">
+        <div class="sync-stat-card">
           <div class="stat-title">商品同步</div>
           <div class="stat-body">
             <el-tag size="small" type="success">{{ productSyncedCount }} 条已同步</el-tag>
             <span class="stat-time">最近同步：{{ productLastSync || '-' }}</span>
           </div>
-        </el-card>
+        </div>
       </el-col>
       <el-col :span="8">
-        <el-card shadow="never">
+        <div class="sync-stat-card">
           <div class="stat-title">已对接平台</div>
           <div class="stat-body">
             <span class="stat-time">{{ configuredPlatforms.length }} 个平台已配置（{{ enabledPlatforms }} 个启用）</span>
           </div>
-        </el-card>
+        </div>
       </el-col>
     </el-row>
 
@@ -371,8 +372,19 @@ onMounted(() => {
 <style scoped>
 .page { padding: 0;
 }
-.stats-row {
+.sync-stats-row {
   margin-bottom: 16px;
+}
+/* 统计小卡自绘卡面（与画布 el-card 口径一致：白底 / 1px #ECEEF1 / 圆角 14 / 14×15 内衬），
+   不带 .el-card 类 ⇒ pageCard 契约选择器（.el-card/.form-card/[data-testid='page-card']）
+   首个命中回到「平台同步」全宽页卡（992 @1440） */
+.sync-stat-card {
+  box-sizing: border-box;
+  height: 100%;
+  background: var(--wb-panel, #ffffff);
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 14px;
+  padding: 14px 15px;
 }
 .stat-title {
   font-size: 14px;

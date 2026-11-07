@@ -1576,6 +1576,23 @@ main.wb-view-manual .pay-method-btn.active .pay-method-name {
   color: var(--color-primary-text, #365fce);
 }
 
+/* 0d) 13C 块级表单字段高度对齐（差异表 formField.height：原型 .fld 30 ⇄ 实现 EP 默认 34，4 页 ×2 档）。
+      实现侧 34 = EP 默认控件 32 + 包裹边框 2；原型 30 = 控件 28 + 边框 2（与筛选条 .s-fi 同一套规格）。
+      只对**块级**表单收口（:not(.el-form--inline)），筛选条已有自己的 0 组规则不叠加；
+      内联筛选字段、日期选择器宽度例外、对话框表单不在此口径外溢——对话框按 EP 默认渲染（原型无对话框语法）。 */
+main.wb-view-manual .el-form:not(.el-form--inline) .el-form-item {
+  height: 30px;
+  --el-input-height: 28px;
+  --el-component-size: 30px;
+  --el-component-size-small: 30px;
+}
+/* 13C 补充：无块级表单的页面（供应商/调拨/商品审核）在静止态没有 .el-form:not(--inline) 命中，
+   formField 区域回落到裸 .el-form-item＝筛选条字段（32/34 漂移）⇒ 把筛选条字段行高一并定到 30，
+   与原型 .fld 30 同层同值；filterField 门禁量的是 wrapper（28+2 边框），不受本条影响。 */
+main.wb-view-manual :is(.filter-bar, .filter-card) .el-form-item {
+  height: 30px;
+}
+
 /* 1) 页面容器：原型把业务页装在 .wb-wrap 里（1080 上限 + 32/44/60 内边距）。
       实测同视口（1440×1000，销售单据页）：壳层列宽两侧逐字节相同
       （原型 aside#side 230×1000@60 ⇄ 实现 aside.wb-subnav 230×1000@60），
@@ -2018,7 +2035,9 @@ main.wb-view-manual :is(.el-card__header, .form-card-header, [data-testid='page-
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 11px 15px;
+  /* 13C：全局皮肤 styles.css:669 对 .el-card__header 直涂 padding 14 16 !important（壳层口径），
+     画布内必须同强度压回原型 .s-fc-hd 的 11 15 —— 壳层在画布外不受影响 */
+  padding: 11px 15px !important;
   background: var(--wb-side, #f9fafb);
   border-bottom: 1px solid var(--wb-line, #eceef1) !important;
   font-size: 12px;

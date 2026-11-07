@@ -20,38 +20,30 @@
 
       
 
-      <!-- 汇总卡片 -->
-      <el-row :gutter="16" class="summary-row">
-        <el-col :span="6">
-          <el-card shadow="hover">
-            <el-statistic title="总收入" :value="overview.totalRevenue || 0" :precision="2">
-              <template #prefix>¥</template>
-            </el-statistic>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover">
-            <el-statistic title="总成本" :value="overview.totalCost || 0" :precision="2">
-              <template #prefix>¥</template>
-            </el-statistic>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover">
-            <el-statistic title="毛利润" :value="overview.grossProfit || 0" :precision="2">
-              <template #prefix>¥</template>
-            </el-statistic>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card shadow="hover">
-            <el-statistic title="利润率" :value="overview.profitMargin || 0" :precision="1">
-              <template #suffix>%</template>
-            </el-statistic>
-          </el-card>
-        </el-col>
-      </el-row>
-    
+      <!-- 汇总卡片（看板三栏网格 boardGrid） -->
+      <div class="board-grid">
+        <el-card shadow="hover">
+          <el-statistic title="总收入" :value="overview.totalRevenue || 0" :precision="2">
+            <template #prefix>¥</template>
+          </el-statistic>
+        </el-card>
+        <el-card shadow="hover">
+          <el-statistic title="总成本" :value="overview.totalCost || 0" :precision="2">
+            <template #prefix>¥</template>
+          </el-statistic>
+        </el-card>
+        <el-card shadow="hover">
+          <el-statistic title="毛利润" :value="overview.grossProfit || 0" :precision="2">
+            <template #prefix>¥</template>
+          </el-statistic>
+        </el-card>
+        <el-card shadow="hover">
+          <el-statistic title="利润率" :value="overview.profitMargin || 0" :precision="1">
+            <template #suffix>%</template>
+          </el-statistic>
+        </el-card>
+      </div>
+
 
     <!-- 图表 -->
     <PageCard title="收入成本对比">
@@ -195,7 +187,7 @@ function renderBarChart() {
   if (!ctx) return;
 
   const width = barChartRef.value.clientWidth;
-  const height = 300;
+  const height = 244;
   canvas.width = width;
   canvas.height = height;
 
@@ -276,7 +268,7 @@ function renderLineChart() {
   if (!ctx) return;
 
   const width = lineChartRef.value.clientWidth;
-  const height = 300;
+  const height = 244;
   canvas.width = width;
   canvas.height = height;
 
@@ -344,13 +336,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.summary-row {
-  margin-bottom: 0;
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 13px;
+}
+
+@media (max-width: 1200px) {
+  .board-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .chart-container {
   width: 100%;
-  min-height: 300px;
+  height: 244px;
 }
 
 .pagination {

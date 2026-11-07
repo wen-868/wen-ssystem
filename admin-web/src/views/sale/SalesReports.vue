@@ -43,7 +43,7 @@
 
     <!-- 排行榜 -->
     <div class="chart-row">
-      <div class="chart-card half">
+      <div class="chart-card">
         <div class="chart-header">
           <span class="chart-title">销售排行</span>
           <el-select v-model="rankDimension" size="small" style="width: 120px" @change="loadRanking">
@@ -54,7 +54,7 @@
         </div>
         <div ref="rankChart" class="chart-body"></div>
       </div>
-      <div class="chart-card half">
+      <div class="chart-card">
         <div class="chart-header">
           <span class="chart-title">客户贡献度分布</span>
         </div>
@@ -68,7 +68,7 @@
         <div class="chart-header">
           <span class="chart-title">员工绩效排名</span>
         </div>
-        <div ref="staffChart" class="chart-body" style="height: 300px"></div>
+        <div ref="staffChart" class="chart-body"></div>
       </div>
     </div>
 </div>
@@ -239,14 +239,17 @@ onMounted(async () => {
   gap: 16px;
   margin-bottom: 16px;
 }
+/* 13C：图表卡对齐原型 .s-chart 盒高 244（含内衬），body 弹性收缩贴卡 */
 .chart-card {
   flex: 1;
   background: #fff;
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  height: 244px;
+  display: flex;
+  flex-direction: column;
 }
-.chart-card.half { flex: 0 0 calc(50% - 8px); }
 .chart-header {
   display: flex;
   justify-content: space-between;
@@ -254,5 +257,5 @@ onMounted(async () => {
   margin-bottom: 12px;
 }
 .chart-title { font-size: 15px; font-weight: 600; color: var(--gray-700); }
-.chart-body { width: 100%; height: 350px; }
+.chart-body { width: 100%; flex: 1 1 0; min-height: 0; }
 </style>

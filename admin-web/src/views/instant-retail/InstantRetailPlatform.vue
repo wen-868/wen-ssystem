@@ -123,6 +123,7 @@ const platforms = reactive({
 .platform-tabs {
   background: #fff;
   border-radius: 8px;
-  padding: 0 20px;
+  /* WORKBENCH-13B 内衬修复：去掉 0 20px 横向内衬，让面板内容与其它列表页同宽（x=369 / width=992） */
+  padding: 0;
 }
 </style>

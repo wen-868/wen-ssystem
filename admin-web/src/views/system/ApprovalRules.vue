@@ -1,12 +1,18 @@
 <template>
   <div class="page">
-    <PageCard title="审批规则管理">
-      <template #extra>
+    <!-- WORKBENCH-13B 内衬修复：表格/分页从 PageCard（el-card 内衬层）中移出，
+         与其它列表页同构（page-header + 全宽表格），tableWrap/pagination 到达内容区全宽 x=369/width=992 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">审批规则管理</h2>
+      </div>
+      <div class="page-header-actions">
         <el-button @click="loadList">刷新</el-button>
         <el-button type="primary" @click="showAddDialog">新增规则</el-button>
-      </template>
+      </div>
+    </div>
 
-      <DataTable
+    <DataTable
         :columns="columns"
         :data="records"
         :loading="loading"
@@ -36,7 +42,6 @@
           <el-button size="small" link type="danger" @click="handleDelete(row)">删除</el-button>
         </template>
       </DataTable>
-    </PageCard>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑规则' : '新增规则'" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -108,7 +113,6 @@ import { onMounted, ref } from "vue";
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { fetchApprovalRules, createApprovalRule, updateApprovalRule, deleteApprovalRule } from "../../api";
-import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 
 /** 后端 zod 业务类型枚举：PURCHASE_ORDER/SALE_RETURN/PRICE_CHANGE/CREDIT_LIMIT/EXPENSE */
