@@ -7,11 +7,11 @@
         <p class="pd">{{ tenantName }} · 租户编码 {{ tenantCode }}</p>
       </div>
       <div class="pg-act">
-        <span class="btn" @click="proxyVisible = true">模拟登录</span>
-        <span class="btn" @click="resetVisible = true">数据重置</span>
-        <span class="btn" @click="exportVisible = true">数据导出</span>
-        <span class="btn" @click="onRenew">续费</span>
-        <span class="btn btn-d" @click="onFreeze">冻结</span>
+        <span v-if="canWrite" class="btn" @click="openProxyDialog">模拟登录</span>
+        <span v-if="canWrite" class="btn" @click="openResetDialog">数据重置</span>
+        <span v-if="canWrite" class="btn" @click="openExportDialog">数据导出</span>
+        <span v-if="canWrite" class="btn" @click="onRenew">续费</span>
+        <span v-if="canWrite" class="btn btn-d" @click="onFreeze">冻结</span>
       </div>
     </div>
 
@@ -84,7 +84,7 @@
     <div class="panel">
       <div class="p-hd">
         <span class="pt">资源配额使用情况</span>
-        <span class="btn-t" @click="onExpandQuota">临时扩容</span>
+        <span v-if="canWrite" class="btn-t" @click="onExpandQuota">临时扩容</span>
       </div>
       <div class="p-bd">
         <template v-if="quotaLoading">
@@ -144,7 +144,7 @@
                 <td>{{ u.roleLabel }}</td>
                 <td>{{ u.statusLabel }}</td>
                 <td>
-                  <span class="btn-t gy" @click="onResetUserPassword(u)">重置该账号口令</span>
+                  <span v-if="canWrite" class="btn-t gy" @click="onResetUserPassword(u)">重置该账号口令</span>
                 </td>
               </tr>
             </tbody>
@@ -188,7 +188,7 @@
         </div>
         <div class="m-ft">
           <span class="btn" @click="proxyVisible = false">取消</span>
-          <span class="btn btn-p" @click="onSubmitProxy">提交审批</span>
+          <span v-if="canWrite" class="btn btn-p" @click="onSubmitProxy">提交审批</span>
         </div>
       </div>
     </el-dialog>
@@ -226,7 +226,7 @@
         </div>
         <div class="m-ft">
           <span class="btn" @click="resetVisible = false">取消</span>
-          <span class="btn btn-d" @click="onConfirmReset">确认重置</span>
+          <span v-if="canWrite" class="btn btn-d" @click="onConfirmReset">确认重置</span>
         </div>
       </div>
     </el-dialog>
@@ -270,7 +270,7 @@
         </div>
         <div class="m-ft">
           <span class="btn" @click="exportVisible = false">取消</span>
-          <span class="btn btn-p" @click="onCreateExport">创建导出任务</span>
+          <span v-if="canWrite" class="btn btn-p" @click="onCreateExport">创建导出任务</span>
         </div>
       </div>
     </el-dialog>
@@ -314,7 +314,7 @@
         </div>
         <div class="m-ft">
           <span class="btn" @click="expandVisible = false">取消</span>
-          <span class="btn btn-p" @click="onSubmitExpand">提交扩容</span>
+          <span v-if="canWrite" class="btn btn-p" @click="onSubmitExpand">提交扩容</span>
         </div>
       </div>
     </el-dialog>
@@ -351,6 +351,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useAuthStore } from '../../stores/auth'
+import { canWritePlatformTenant } from '../../config/platform-menu'
+import { HTTP_STATUS_TEXT } from '../../utils/http-error'
 import { useRoute, useRouter } from 'vue-router'
 import LoadFeedback from '../../components/LoadFeedback.vue'
 import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
@@ -390,6 +393,32 @@ const fbDetail = reactive(initialLoadFeedbackState())
 function fbDetailDispatch(action: LoadFeedbackAction) {
   Object.assign(fbDetail, loadFeedbackReduce({ ...fbDetail }, action))
 }
+/* ───────────────────────────────────────────────────────────
+   RBAC-UI-01：写动作按 /platform/auth/me 真实透出的 role 收敛。
+   前端隐藏只是交互防线，绝不替代服务端 403；提交函数另有 guardWrite() 二次守卫。
+   ─────────────────────────────────────────────────────────── */
+const authStore = useAuthStore()
+const viewerRole = computed(() => authStore.adminInfo?.role ?? null)
+const canWrite = computed(() => canWritePlatformTenant(viewerRole.value))
+function guardWrite(): boolean {
+  if (canWrite.value) return false
+  ElMessage.error(HTTP_STATUS_TEXT[403])
+  return true
+}
+/** 弹窗打开也是写入口：非超管不得进入（提交函数另有二次守卫） */
+function openProxyDialog() {
+  if (guardWrite()) return
+  proxyVisible.value = true
+}
+function openResetDialog() {
+  if (guardWrite()) return
+  resetVisible.value = true
+}
+function openExportDialog() {
+  if (guardWrite()) return
+  exportVisible.value = true
+}
+
 function onRetryDetail() {
   fbDetailDispatch({ type: 'retry' })
   if (fbDetail.phase === 'loading') fetchDetail()
@@ -445,6 +474,7 @@ function cycleProxyRole() {
   proxyForm.roleIdx = (proxyForm.roleIdx + 1) % proxyRoles.length
 }
 async function onSubmitProxy() {
+  if (guardWrite()) return
   // ✅ 已联调：POST /api/platform/tenants/:id/proxy-login（C1-2 A4 落地，写 t_platform_audit_log 留痕）
   // 原实现在此处直接弹「已提交代登录审批」——那是**谎报成功**（接口根本没调），本单改为真调用。
   if (!proxyForm.reason) {
@@ -470,6 +500,7 @@ async function onSubmitProxy() {
 const resetReasons = ['租户主动申请', '测试数据清理', '数据错乱恢复']
 const resetForm = reactive({ name: '', reason: '' })
 function onConfirmReset() {
+  if (guardWrite()) return
   // 本期不提供：平台租户域无 POST /platform/tenants/:id/reset（凌舟全仓核对 0 命中）。
   // 该动作属高危写操作，需双因子校验 + 操作留痕的专项设计与审批（涉新表）⇒ 凌舟裁定 R6 本期不做；
   // 原实现弹「已提交数据重置」属谎报成功，本单改为如实告知「本期不提供」并保持弹窗不关。
@@ -495,6 +526,7 @@ const exportRanges = reactive([
 const exportFormats = ['Excel', 'CSV']
 const exportFormat = ref('Excel')
 function onCreateExport() {
+  if (guardWrite()) return
   // 本期不提供（详情页级导出）：平台租户域无 POST /platform/tenants/:id/export（凌舟全仓核对 0 命中）。
   // 已有的是**列表级**导出 GET /api/platform/tenants/export（platform-tenant.routes.ts:27，返回 CSV）⇒ R7 改为指路真实能力。
   ElMessage.info('详情页数据导出本期不提供：请到「租户列表」页用「导出列表」按钮，导出当前筛选结果为 CSV（列表级导出已接通）')
@@ -507,11 +539,13 @@ function onCreateExport() {
    续费语义属**订阅实体**（在订阅管理中办理）⇒ 删除对不存在路径的承诺，改为「指路」订阅管理；
    且**不得**改调订阅端点来「凑通」。 */
 function onRenew() {
+  if (guardWrite()) return
   ElMessage.info('续费属订阅实体：请在「订阅管理」中找到该租户的订阅记录办理续费')
 }
 // ✅ 已联调：POST /platform/tenants/:id/toggle（platform-tenant.routes.ts:34，已存在）
 //    后端真实语义是「启用/禁用」，设计稿文案为「冻结」，本处按后端语义给提示，避免谎报动作名。
 async function onFreeze() {
+  if (guardWrite()) return
   const id = Number(route.params.id)
   const target = detail.value?.status === 'DISABLED' ? 'ACTIVE' : 'DISABLED'
   try {
@@ -614,6 +648,7 @@ async function fetchTenantUsers() {
 
 /** 重置该账号口令：行内按钮 → 二次确认 → 真调后端 → 成功才展示一次性口令 */
 async function onResetUserPassword(user: TenantUserRow) {
+  if (guardWrite()) return
   resetError.value = ''
   try {
     await ElMessageBox.confirm(buildResetConfirmText(user), '重置该账号口令', {
@@ -693,6 +728,7 @@ async function fetchQuota() {
 
 // ✅ 已联调：POST /api/platform/tenants/:id/quota-expand（C1-2 A5 落地，写 t_platform_audit_log 留痕）
 function onExpandQuota() {
+  if (guardWrite()) return
   expandForm.amount = ''
   expandForm.days = '30'
   expandForm.reason = ''
@@ -700,6 +736,7 @@ function onExpandQuota() {
 }
 
 async function onSubmitExpand() {
+  if (guardWrite()) return
   const amount = Number(expandForm.amount)
   const days = Number(expandForm.days)
   if (!Number.isInteger(amount) || amount <= 0) {

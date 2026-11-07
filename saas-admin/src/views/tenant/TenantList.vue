@@ -9,7 +9,7 @@
       <div class="pg-act">
         <span class="btn" @click="onExportList">导出列表</span>
         <span class="btn" @click="onBatch">批量操作 ▾</span>
-        <span class="btn btn-p" @click="onCreate">+ 新建租户</span>
+        <span v-if="canWrite" class="btn btn-p" @click="onCreate">+ 新建租户</span>
       </div>
     </div>
 
@@ -114,9 +114,9 @@
             <span class="pt">基础信息</span>
             <template v-if="editing">
               <span class="btn-t" @click="cancelEdit">取消</span>
-              <span class="btn-t" @click="saveEdit">保存</span>
+              <span v-if="canWrite" class="btn-t" @click="saveEdit">保存</span>
             </template>
-            <span v-else class="btn-t" @click="onEdit">编辑</span>
+            <span v-else-if="canWrite" class="btn-t" @click="onEdit">编辑</span>
           </div>
           <div class="p-bd base-grid">
             <div>
@@ -146,7 +146,7 @@
         <div class="panel mt12">
           <div class="p-hd">
             <span class="pt">资源配额使用情况</span>
-            <span class="btn-t" @click="onExpandQuota">临时扩容</span>
+            <span v-if="canWrite" class="btn-t" @click="onExpandQuota">临时扩容</span>
           </div>
           <div class="p-bd">
             <div v-if="quotaLoading" class="empty small">加载中…</div>
@@ -171,9 +171,9 @@
         </div>
       </div>
       <div class="d-ft">
-        <span class="btn btn-p" @click="onRenew">立即续费</span>
-        <span class="btn btn-s" @click="onProxyLogin">代登录（需审批）</span>
-        <span class="btn btn-d" @click="onFreeze">冻结</span>
+        <span v-if="canWrite" class="btn btn-p" @click="onRenew">立即续费</span>
+        <span v-if="canWrite" class="btn btn-s" @click="onProxyLogin">代登录（需审批）</span>
+        <span v-if="canWrite" class="btn btn-d" @click="onFreeze">冻结</span>
       </div>
     </div>
   </div>
@@ -196,8 +196,25 @@ import {
 import { buildQuotaRows, type QuotaRow } from './quota'
 import LoadFeedback from '../../components/LoadFeedback.vue'
 import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
+import { useAuthStore } from '../../stores/auth'
+import { canWritePlatformTenant, tenantRowActions } from '../../config/platform-menu'
+import { HTTP_STATUS_TEXT } from '../../utils/http-error'
 
 const router = useRouter()
+
+/* ───────────────────────────────────────────────────────────
+   RBAC-UI-01：写动作按 /platform/auth/me 真实透出的 role 收敛。
+   前端隐藏只是交互防线，绝不替代服务端 403；所有写函数再过一次 guardWrite()。
+   ─────────────────────────────────────────────────────────── */
+const authStore = useAuthStore()
+const viewerRole = computed(() => authStore.adminInfo?.role ?? null)
+const canWrite = computed(() => canWritePlatformTenant(viewerRole.value))
+/** 二次守卫：非超管一律拒绝，给 403 语义文案；不泄漏权限码/表名 */
+function guardWrite(): boolean {
+  if (canWrite.value) return false
+  ElMessage.error(HTTP_STATUS_TEXT[403])
+  return true
+}
 
 /* ───────────────────────────────────────────────────────────
    列表数据（沿用现有 listTenantsApi，保留 loading / 空态 / 错误态 + 可重试）
@@ -370,29 +387,9 @@ function statusLabel(s: string): string {
 /* ───────────────────────────────────────────────────────────
    行操作（按状态差异渲染，对齐设计稿 559~566）
    ─────────────────────────────────────────────────────────── */
+/** 行内动作真源已上提至 config/platform-menu.ts（可契约测试），此处只注入真实 role */
 function rowActions(row: any) {
-  const s = (row.status || '').toUpperCase()
-  const base = [{ key: 'detail', label: '详情', cls: '' }]
-  // 仅按后端真实枚举 ACTIVE / DISABLED 分支；不再为后端不存在的 FROZEN/OWED/CANCELLED 造分支
-  if (s === 'DISABLED') {
-    return [
-      ...base,
-      { key: 'unfreeze', label: '启用', cls: 'warn' },
-      { key: 'overview', label: '概况', cls: '' },
-    ]
-  }
-  if (s === 'ACTIVE') {
-    return [
-      ...base,
-      { key: 'freeze', label: '停用', cls: 'warn' },
-      { key: 'overview', label: '概况', cls: '' },
-      { key: 'renew', label: '续费', cls: '' },
-      { key: 'proxy', label: '代登录', cls: '' },
-      { key: 'export', label: '数据导出', cls: '' },
-      { key: 'reset', label: '重置数据', cls: 'dgr' },
-    ]
-  }
-  return [...base, { key: 'overview', label: '概况', cls: '' }]
+  return tenantRowActions(viewerRole.value, row.status)
 }
 
 /* 平台租户域**确实没有**的写操作（不得谎报成功，也不得承诺不存在的路径）：export / reset 后端全仓 0 命中。
@@ -404,6 +401,8 @@ const BLOCKED_ACTIONS: Record<string, string> = {
 }
 
 async function onRowAction(key: string, row: any) {
+  // 二次守卫：除详情/概况两个读动作外，非超管一律不执行（DOM 被注入也打不出写请求）
+  if (key !== 'detail' && key !== 'overview' && guardWrite()) return
   if (key === 'detail') return openDetail(row)
   // 概况 / 代登录：跳真实详情页（代登录需在详情页填「登录事由」才能提交审批，行内无输入位）
   if (key === 'overview' || key === 'proxy') return router.push(`/tenants/${row.id}`)
@@ -417,6 +416,7 @@ async function onRowAction(key: string, row: any) {
 
 /** POST /platform/tenants/:id/toggle（platform-tenant.routes.ts:34，已存在） */
 async function toggleTenantStatus(row: any, next: 'ACTIVE' | 'DISABLED') {
+  if (guardWrite()) return
   const text = next === 'ACTIVE' ? '启用' : '停用'
   try {
     await toggleTenantApi(row.id, next)
@@ -454,6 +454,7 @@ function onBatch() {
 }
 // ✅ 已联调：跳真实新建页（路由 /tenants/create → TenantForm.vue:75 调 POST /platform/tenants）
 function onCreate() {
+  if (guardWrite()) return
   router.push('/tenants/create')
 }
 function onReset() {
@@ -534,6 +535,7 @@ function closeDetail() {
 }
 
 function onEdit() {
+  if (guardWrite()) return
   editing.value = true
   editForm.contactName = detail.value?.contactName || ''
   editForm.contactMobile = detail.value?.contactMobile || ''
@@ -543,6 +545,7 @@ function cancelEdit() {
   editing.value = false
 }
 async function saveEdit() {
+  if (guardWrite()) return
   try {
     await updateTenantApi(detail.value.id, {
       contactName: editForm.contactName,
@@ -562,6 +565,7 @@ async function saveEdit() {
 // ✅ 已联调（改道）：POST /api/platform/tenants/:id/quota-expand 需 field/amount/days 三个必填参数，
 //    抽屉内无输入位，故跳租户详情页（那里有扩容表单弹窗）发起，不在抽屉里假装提交。
 function onExpandQuota() {
+  if (guardWrite()) return
   const id = detail.value?.id
   if (!id) return
   closeDetail()
@@ -571,6 +575,7 @@ function onExpandQuota() {
    续费语义属**订阅实体**（订阅管理中办理）⇒ 本期不做：删除对不存在路径的承诺，
    改为「指路」到订阅管理；且**不得**改调订阅端点来「凑通」。 */
 function onRenew() {
+  if (guardWrite()) return
   closeDetail()
   ElMessage.info('续费属订阅实体：请在「订阅管理」中找到该租户的订阅记录办理续费')
   router.push('/subscriptions')
@@ -581,6 +586,7 @@ function onRenew() {
    原「后端未就绪」的说法是过期口径 ⇒ 本单真接线。
    reason 必填（后端 tenant-ops.controller.ts 校验 trim 后 2-200 字）⇒ 前端先拦，不把 400 留给用户看。 */
 async function onProxyLogin() {
+  if (guardWrite()) return
   const id = detail.value?.id
   if (!id) return
   let reason = ''
@@ -614,6 +620,7 @@ async function onProxyLogin() {
 }
 // ✅ 已联调：抽屉「冻结」→ POST /platform/tenants/:id/toggle（后端真实语义为「停用」）
 async function onFreeze() {
+  if (guardWrite()) return
   if (!detail.value?.id) return
   await toggleTenantStatus(detail.value, 'DISABLED')
   closeDetail()

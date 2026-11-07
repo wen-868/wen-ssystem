@@ -17,8 +17,16 @@ function resolveApiBase() {
   return "/api";
 }
 
+/**
+ * 主 API 实例统一超时（TOTAL-PLATFORM-SERVER-SIDE-RBAC-01-UI-01 · P2-1）。
+ * 15s：超时异常 axios 以 ECONNABORTED 抛出，页面经 src/api/feedback.ts 既有
+ * 反馈契约归类为 timeout 并给出重试入口；断网走 offline，两者文案互斥。
+ */
+export const API_TIMEOUT_MS = 15000;
+
 export const api = axios.create({
-  baseURL: resolveApiBase()
+  baseURL: resolveApiBase(),
+  timeout: API_TIMEOUT_MS
 });
 
 api.interceptors.request.use((config) => {

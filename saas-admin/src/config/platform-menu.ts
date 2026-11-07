@@ -235,3 +235,64 @@ export function findMenuTitleByPath(path: string): { group: string; title: strin
   }
   return null
 }
+
+/* ════════ 租户域写动作角色真源（TOTAL-PLATFORM-SERVER-SIDE-RBAC-01-UI-01） ════════ */
+
+/**
+ * 平台租户域写操作是否可渲染 / 可提交。
+ * 与服务端 backend/src/middleware/platform-rbac.ts:isPlatformSuperRole 同口径：
+ * 仅 PLATFORM_SUPER_ADMIN / SUPER_ADMIN 全通；SUPPORT、其他角色、未知 / null 一律 fail-closed。
+ * ⚠️ 前端收敛只是交互层防线，绝不替代服务端 403；服务端必须独立拒绝并留审计。
+ */
+export function canWritePlatformTenant(role: string | null | undefined): boolean {
+  return !!role && PLATFORM_SUPER_ROLES.includes(role)
+}
+
+export interface TenantRowAction {
+  key: string
+  label: string
+  cls: string
+  /** true = 写动作（含跳写页 / 提交写 API 的入口）；非超管一律不渲染 */
+  write: boolean
+}
+
+/** 只读动作（详情 / 概况），任何角色都不得被误伤 */
+function readActions(): TenantRowAction[] {
+  return [
+    { key: 'detail', label: '详情', cls: '', write: false },
+    { key: 'overview', label: '概况', cls: '', write: false },
+  ]
+}
+
+/**
+ * 全量行内动作（仅按后端真实枚举 ACTIVE / DISABLED 分支，不自造状态）。
+ * 从 TenantList.vue 行 373 的 rowActions 上提为纯函数，便于契约测试直接断言。
+ */
+export function allTenantRowActions(status: string | null | undefined): TenantRowAction[] {
+  const s = String(status ?? '').toUpperCase()
+  const [detail, overview] = readActions()
+  if (s === 'DISABLED') {
+    return [detail, { key: 'unfreeze', label: '启用', cls: 'warn', write: true }, overview]
+  }
+  if (s === 'ACTIVE') {
+    return [
+      detail,
+      { key: 'freeze', label: '停用', cls: 'warn', write: true },
+      overview,
+      { key: 'renew', label: '续费', cls: '', write: true },
+      { key: 'proxy', label: '代登录', cls: '', write: true },
+      { key: 'export', label: '数据导出', cls: '', write: true },
+      { key: 'reset', label: '重置数据', cls: 'dgr', write: true },
+    ]
+  }
+  return [detail, overview]
+}
+
+/** 按真实 role 收敛行内写动作：非超管只保留详情 / 概况两个读动作（fail-closed） */
+export function tenantRowActions(
+  role: string | null | undefined,
+  status: string | null | undefined,
+): TenantRowAction[] {
+  const all = allTenantRowActions(status)
+  return canWritePlatformTenant(role) ? all : all.filter((a) => !a.write)
+}
