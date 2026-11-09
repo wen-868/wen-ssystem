@@ -320,6 +320,32 @@ const WORKBENCH_13B_ALLOWED_VIEWS = [
   "admin-web/src/views/pos/CashierView.vue",
   "admin-web/src/views/pos/SaleReturnView.vue",
 ];
+/**
+ * WORKBENCH-13C-WORKBENCH-VISUAL-COMPLETION-01 授权（派单卡 §二 `admin-web/src/views/**`，
+ * §三.5 无原型页统一语法归类）：仅 InventoryAlerts/ProductImport 两页做 PageCard/filter-bar/el-empty
+ * 统一语法补齐（不改业务/权限/路由/后端）；逐名登记，变更依据，非放宽。
+ */
+const WORKBENCH_13C_ALLOWED_VIEWS = [
+  "admin-web/src/views/inventory/InventoryAlerts.vue",
+  "admin-web/src/views/product/ProductImport.vue",
+  // 13C 批次1（b4a4b3fb，本分支已提交）视图收口，均属卡 §二 admin-web/src/views/**；逐名登记（变更依据，非放宽）
+  "admin-web/src/views/components/PlatformPanel.vue",
+  "admin-web/src/views/customer/MemberSystem.vue",
+  "admin-web/src/views/finance/FinanceProfit.vue",
+  "admin-web/src/views/instant-retail/InstantRetailDashboard.vue",
+  "admin-web/src/views/instant-retail/InstantRetailPlatform.vue",
+  "admin-web/src/views/instant-retail/InstantRetailSync.vue",
+  "admin-web/src/views/inventory/InventoryCheck.vue",
+  "admin-web/src/views/inventory/InventoryTransfer.vue",
+  "admin-web/src/views/order/OrderBoardView.vue",
+  "admin-web/src/views/product/ProductReview.vue",
+  "admin-web/src/views/purchase/PurchasePayments.vue",
+  "admin-web/src/views/purchase/Suppliers.vue",
+  "admin-web/src/views/report/Reports.vue",
+  "admin-web/src/views/report/SalesAnalysis.vue",
+  "admin-web/src/views/sale/SalesOrderCreate.vue",
+  "admin-web/src/views/sale/SalesReports.vue",
+];
 
 await run("业务冻结面：views / backend 仅允许卡内授权文件改动，卡外零改动", () => {
   const changed = execSync(`git diff --name-only ${BASELINE} -- admin-web/src/views backend`, {
@@ -330,7 +356,12 @@ await run("业务冻结面：views / backend 仅允许卡内授权文件改动�
     .split(/\r?\n/)
     .map((s) => s.replace(/\\/g, "/").trim())
     .filter(Boolean);
-  const allowed = new Set([...WORKBENCH_07_ALLOWED_VIEWS, ...WORKBENCH_12_ALLOWED_VIEWS, ...WORKBENCH_13B_ALLOWED_VIEWS]);
+  const allowed = new Set([
+    ...WORKBENCH_07_ALLOWED_VIEWS,
+    ...WORKBENCH_12_ALLOWED_VIEWS,
+    ...WORKBENCH_13B_ALLOWED_VIEWS,
+    ...WORKBENCH_13C_ALLOWED_VIEWS,
+  ]);
   const violations = changed.filter(
     (f) => !allowed.has(f) && !WORKBENCH_10_F1_ALLOWED_VIEW_DIRS.some((dir) => f.startsWith(dir)),
   );

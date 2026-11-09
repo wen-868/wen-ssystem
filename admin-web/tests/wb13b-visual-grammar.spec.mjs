@@ -282,7 +282,8 @@ await run("B14 信息卡 / 板块标题 / 空态：radius 14、卡片头 11×15 
   assert.equal(decl("main.wb-view-manual :is(.el-card, .form-card, [data-testid='page-card'])", "box-shadow"), "none !important");
   assert.ok(decl("main.wb-view-manual :is(.el-card, .form-card, [data-testid='page-card'])", "border").includes("!important"), "卡片描边未带 !important ⇒ 被全局皮肤剥成无边框");
   const hd = "main.wb-view-manual :is(.el-card__header, .form-card-header, [data-testid='page-card-header'])";
-  assert.equal(decl(hd, "padding"), "11px 15px");
+  // 13C：画布卡头需 !important 压回全局 .el-card__header 的壳层 padding（styles.css:669/2040）；declValue 返回原值含 !important
+  assert.equal(decl(hd, "padding"), "11px 15px !important");
   assert.equal(decl(hd, "font-size"), "12px");
   assert.equal(decl(hd, "font-weight"), "700");
   assert.equal(decl(hd, "border-bottom"), "1px solid var(--wb-line, #eceef1) !important");

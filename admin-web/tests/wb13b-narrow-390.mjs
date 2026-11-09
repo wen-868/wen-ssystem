@@ -452,6 +452,24 @@ function HEADER_SYNC_GESTURE(cfg) {
     }
     return null;
   };
+  /* 先按选择器定位隐藏同步容器并**把它滚进视口**：越界元素常常在折叠线以下（实测 y=1135 > 844），
+     直接用视口坐标算手势点会被 clamp 到底部 rail 上（y=840），于是 elementFromPoint 命中 nav.wb-rail
+     ⇒ 假「clipper-not-located」红。这里先 scrollIntoView 再按新矩形取点，才是用户真实手势的复现。 */
+  let located = null;
+  if (cfg.sel) {
+    const cands = [...D.querySelectorAll(cfg.sel)].filter((el) => {
+      const s = getComputedStyle(el);
+      const room = el.scrollWidth - el.clientWidth;
+      if (!((s.overflowX === "hidden" || s.overflowX === "clip") && room > 1)) return false;
+      return cfg.range == null || Math.abs(room - cfg.range) <= 2;
+    });
+    if (cands.length) {
+      located = cands[0];
+      located.scrollIntoView({ block: "center", inline: "nearest" });
+      const lr = located.getBoundingClientRect();
+      cfg = { ...cfg, x: lr.x, y: lr.y, w: lr.width, h: lr.height };
+    }
+  }
   const cx = Math.min(Math.max(cfg.x + 8, 4), VW - 4);
   const cy = Math.min(Math.max(cfg.y + cfg.h / 2, 4), VH - 4);
   const at = D.elementFromPoint(cx, cy);
@@ -720,7 +738,7 @@ function NARROW_OVERFLOW_READER() {
       if (clipper) {
         const cr = clipper.getBoundingClientRect();
         rec.clipperSel = selish(clipper).slice(0, 60);
-        rec.clipperKey = `${rec.clipperSel}@${Math.round(cr.x)},${Math.round(cr.y)},${Math.round(cr.w)}x${Math.round(cr.h)}`;
+        rec.clipperKey = `${rec.clipperSel}@${Math.round(cr.x)},${Math.round(cr.y)},${Math.round(cr.width)}x${Math.round(cr.height)}`;
         rec.clipperRange = Math.round(cr.width ? clipper.scrollWidth - clipper.clientWidth : 0);
         rec.clipperRect = { x: Math.round(cr.x), y: Math.round(cr.y), w: Math.round(cr.width), h: Math.round(cr.height) };
       }
@@ -2011,7 +2029,7 @@ async function runModule(plan) {
     const clipTrail = [];
     for (const g of clipGroups.values()) {
       const t = { group: `${g.offenders.length} 个越界 · ${g.sel}（hidden，量程 ${g.range}px）`, clipperKey: g.key };
-      const gp = await page.evaluate(HEADER_SYNC_GESTURE, { x: g.rect.x, y: g.rect.y, w: g.rect.w, h: g.rect.h });
+      const gp = await page.evaluate(HEADER_SYNC_GESTURE, { x: g.rect.x, y: g.rect.y, w: g.rect.w, h: g.rect.h, sel: g.sel, range: g.range });
       t.before = gp;
       let restored = false;
       if (gp.ok && gp.maxScrollLeft > 1) {
@@ -2030,7 +2048,7 @@ async function runModule(plan) {
           const seen = new Set((snap.pageOffenders ?? []).filter((o) => o.clipperKey === g.key).map(keyOf));
           for (const [k, v] of track) if (!seen.has(k)) v.inView = true;
           t.steps = (t.steps ?? 0) + 1;
-          t.lastClipperScrollLeft = (await page.evaluate(HEADER_SYNC_GESTURE, { x: g.rect.x, y: g.rect.y, w: g.rect.w, h: g.rect.h })).clipperScrollLeft;
+          t.lastClipperScrollLeft = (await page.evaluate(HEADER_SYNC_GESTURE, { x: g.rect.x, y: g.rect.y, w: g.rect.w, h: g.rect.h, sel: g.sel, range: g.range })).clipperScrollLeft;
           if (acc >= total) break;
           const nxt = Math.min(stepPx, total - acc);
           await page.mouse.wheel(nxt, 0);
@@ -2044,11 +2062,27 @@ async function runModule(plan) {
            只要存在 s ∈ [0, 量程] 让它整体落进 390 视口（ox-w 侧 ≤ s ≤ ox 侧，且列宽 ≤ 视口宽），
            就是「真实横滚手势能带到」；带不到（列比视口还宽 / 滚不到那个位）才是裁切。 */
         const maxS = gp.clipperRange;
-        const analytic = gateOff.filter((o) => o.clipperKey === g.key).map((o) => {
+        /* 整表结构容器（colgroup / thead / tr / table）宽 = 全部列宽之和，必然大于视口；
+           它本身不是「一列被裁」，而是窄口容器策略（表格宿主横滚）的正常形态。
+           判据只对**叶子单元格/列**要求整体可带入；结构容器按「其叶子列全部可达」判定，
+           否则任何多列表在 390 下都必然假红。叶子列有任一不可达 ⇒ 结构容器也一并判不可达。 */
+        const STRUCTURAL = /^(colgroup|thead|tbody|tfoot|tr|table)$/i;
+        const isStructural = (sel) => STRUCTURAL.test(String(sel ?? "").split(/[.#]/)[0]);
+        const leaves = gateOff.filter((o) => o.clipperKey === g.key && !isStructural(o.sel)).map((o) => {
           const ox = o.rect.x + gp.clipperScrollLeft;
           const lo = Math.max(0, ox + o.rect.w - ov.vw - 1);
           const hi = Math.min(maxS, ox + 1);
-          return { sel: o.sel, w: o.rect.w, ox: Math.round(ox), needScroll: [Math.round(lo), Math.round(hi)], reachable: hi >= lo && o.rect.w <= ov.vw };
+          return { sel: o.sel, w: o.rect.w, ox: Math.round(ox), needScroll: [Math.round(lo), Math.round(hi)], structural: false, reachable: hi >= lo && o.rect.w <= ov.vw };
+        });
+        const leavesOk = leaves.length > 0 && leaves.every((l) => l.reachable);
+        const analytic = gateOff.filter((o) => o.clipperKey === g.key).map((o) => {
+          const structural = isStructural(o.sel);
+          const leaf = leaves.find((l) => l.sel === o.sel);
+          if (leaf) return leaf;
+          const ox = o.rect.x + gp.clipperScrollLeft;
+          const lo = Math.max(0, ox + o.rect.w - ov.vw - 1);
+          const hi = Math.min(maxS, ox + 1);
+          return { sel: o.sel, w: o.rect.w, ox: Math.round(ox), needScroll: [Math.round(lo), Math.round(hi)], structural, reachable: structural ? leavesOk : hi >= lo && o.rect.w <= ov.vw };
         });
         const unreachable = analytic.filter((a) => !a.reachable);
         /* 判据 = 几何可达 + 手势确实把这个 hidden 容器滚动了；

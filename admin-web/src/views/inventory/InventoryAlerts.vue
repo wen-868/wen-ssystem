@@ -1,42 +1,50 @@
 <template>
-  <div class="page">
-    <!-- 页头 -->
+  <div class="page inventory-alerts-page">
     <div class="page-header">
       <div class="page-header-main">
         <h2 class="page-title">库存预警</h2>
         <p class="page-desc">低库存与缺货商品预警列表</p>
       </div>
-      <div class="page-header-actions">
-        <el-button @click="loadAlerts">
-          <el-icon><Refresh /></el-icon>&nbsp;刷新
-        </el-button>
-      </div>
     </div>
 
-    <DataTable
-      :columns="columns"
-      :data="alerts"
-      :loading="loading"
-      :total="total"
-      v-model:page="page"
-      v-model:page-size="pageSize"
-      @update:page="loadAlerts"
-      @update:page-size="loadAlerts"
-      empty-text="暂无库存预警"
-    >
-      <template #inventoryType="{ row }">
-        <el-tag v-if="row.inventoryType === 'NORMAL'" type="primary">正常库存</el-tag>
-        <el-tag v-else-if="row.inventoryType === 'LOW'" type="warning">低库存</el-tag>
-        <el-tag v-else-if="row.inventoryType === 'OUT'" type="danger">缺货</el-tag>
-        <el-tag v-else>{{ fmtInventoryType(row.inventoryType) }}</el-tag>
-      </template>
+    <PageCard>
+      <el-form :inline="true" class="filter-bar" @submit.prevent>
+        <el-form-item>
+          <el-button @click="loadAlerts">
+            <el-icon><Refresh /></el-icon>&nbsp;刷新
+          </el-button>
+        </el-form-item>
+      </el-form>
 
-      <template #availableQty="{ row }">
-        <span :class="{ 'low-stock': row.inventoryType === 'LOW' || row.inventoryType === 'OUT' }">
-          {{ Number(row.availableQty || 0).toFixed(0) }}
-        </span>
-      </template>
-    </DataTable>
+      <DataTable
+        :columns="columns"
+        :data="alerts"
+        :loading="loading"
+        :total="total"
+        v-model:page="page"
+        v-model:page-size="pageSize"
+        @update:page="loadAlerts"
+        @update:page-size="loadAlerts"
+        empty-text="暂无库存预警"
+      >
+        <template #inventoryType="{ row }">
+          <el-tag v-if="row.inventoryType === 'NORMAL'" type="primary">正常库存</el-tag>
+          <el-tag v-else-if="row.inventoryType === 'LOW'" type="warning">低库存</el-tag>
+          <el-tag v-else-if="row.inventoryType === 'OUT'" type="danger">缺货</el-tag>
+          <el-tag v-else>{{ fmtInventoryType(row.inventoryType) }}</el-tag>
+        </template>
+
+        <template #availableQty="{ row }">
+          <span :class="{ 'low-stock': row.inventoryType === 'LOW' || row.inventoryType === 'OUT' }">
+            {{ Number(row.availableQty || 0).toFixed(0) }}
+          </span>
+        </template>
+
+        <template #empty>
+          <el-empty description="暂无库存预警" :image-size="80" />
+        </template>
+      </DataTable>
+    </PageCard>
   </div>
 </template>
 
@@ -47,6 +55,7 @@ import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import { fetchInventoryAlerts } from "../../api";
 import DataTable from "../../components/DataTable.vue";
+import PageCard from "../../components/PageCard.vue";
 
 const loading = ref(false);
 const alerts = ref<any[]>([]);
