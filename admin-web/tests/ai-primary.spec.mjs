@@ -324,10 +324,13 @@ const WORKBENCH_13B_ALLOWED_VIEWS = [
  * WORKBENCH-13C-WORKBENCH-VISUAL-COMPLETION-01 授权（派单卡 §二 `admin-web/src/views/**`，
  * §三.5 无原型页统一语法归类）：仅 InventoryAlerts/ProductImport 两页做 PageCard/filter-bar/el-empty
  * 统一语法补齐（不改业务/权限/路由/后端）；逐名登记，变更依据，非放宽。
+ * 返工 R1（凌舟初审 fd562648/门1退回）：Inventory.vue 增加真实 403/错误态(el-result 无权限访问+重试)，
+ * 属卡 §二 views/** 允许面、§三.8/§五 状态复核真实 UI 承接；逐名登记，非放宽后端/迁移/权限码/package。
  */
 const WORKBENCH_13C_ALLOWED_VIEWS = [
   "admin-web/src/views/inventory/InventoryAlerts.vue",
   "admin-web/src/views/product/ProductImport.vue",
+  "admin-web/src/views/inventory/Inventory.vue", // R1返工：403/错误态真实UI承接（凌舟初审R1，变更依据，非放宽）
   // 13C 批次1（b4a4b3fb，本分支已提交）视图收口，均属卡 §二 admin-web/src/views/**；逐名登记（变更依据，非放宽）
   "admin-web/src/views/components/PlatformPanel.vue",
   "admin-web/src/views/customer/MemberSystem.vue",
