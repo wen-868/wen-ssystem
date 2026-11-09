@@ -226,8 +226,9 @@ export async function updateTenant(id: string, data: {
  * TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：租户启停的**活路径**统一入口（控制器
  * POST /api/platform/tenants/:id/toggle → 本函数）。成功 / 业务失败
  * （无效状态 400 / 未知租户 404）/ 重复提交四类结果全部经
- * `recordTenantToggleAudit`（唯一审计写入口）留痕；RBAC 403 的 REJECTED 行
- * 由中央守卫的 PERMISSION_DENIED 留痕承担（同一设施同一表，detail.result=REJECTED）。
+ * `recordTenantToggleAudit`（唯一审计写入口）留痕；RBAC 403 由中央守卫拒绝：
+ * PERMISSION_DENIED 安全行之外，F1 起守卫另经同一 `recordTenantToggleAudit`
+ * 落 TENANT_TOGGLE/REJECTED 行（failReason=rbac_denied(403)，同设施同表）。
  *
  * - 审计上下文 `auditCtx` 由控制器注入（操作者/来源/traceId）；缺省（直调兜底）按
  *   system/traceId 自生成补齐 —— 生产入口（控制器）恒传，任何路径都不漏痕。
@@ -295,6 +296,31 @@ export async function toggleTenantStatus(
 
   // S3-65 教训：affectedRows=0 不得当成功返回，按「租户不存在」处理
   if (!result || Number(result.affectedRows || 0) === 0) {
+    // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：真实 MySQL 下「同状态重复 toggle」
+    // （SET status = 现值）affectedRows 同样为 0（mysql2 默认返回 changed rows，
+    // 未开 CLIENT_FOUND_ROWS），不得误判 404 —— 回读区分：行仍在且状态已等于
+    // 目标 ⇒ no-op 重复提交，按 SUCCESS + duplicate=true 口径返回（响应契约不变）；
+    // 行不在 ⇒ 真 404，FAILED 行 + 原语义抛错。
+    const afterZero = await queryOne<{ status: number | string | null }>(
+      "SELECT status FROM t_tenant WHERE id = ?",
+      [id]
+    );
+    if (afterZero && toTenantStatus(afterZero.status) === status) {
+      await recordTenantToggleAudit({
+        operatorId: ctx.operatorId,
+        operatorName: ctx.operatorName,
+        targetTenantId: id,
+        targetTenantName: before.tenantName ?? null,
+        fromStatus,
+        toStatus: status,
+        result: "SUCCESS",
+        duplicate: true,
+        source: ctx.source,
+        traceId: ctx.traceId,
+        ip: ctx.ip,
+      });
+      return status;
+    }
     await recordTenantToggleAudit({
       operatorId: ctx.operatorId,
       operatorName: ctx.operatorName,

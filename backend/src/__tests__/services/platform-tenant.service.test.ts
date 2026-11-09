@@ -131,6 +131,30 @@ describe("platform-tenant.service - 平台租户管理", () => {
       expect(updateCalls).toHaveLength(0);
     });
 
+    it("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：同状态重复 toggle（真实 MySQL affectedRows=0）⇒ 回读判定 duplicate ⇒ SUCCESS + duplicate=true，不误判 404", async () => {
+      // 真实 MySQL：SET status = 现值 ⇒ changed rows=0（mysql2 未开 CLIENT_FOUND_ROWS）
+      mocks.query.mockResolvedValue({ affectedRows: 0 });
+      // 预读（status=0=DISABLED）→ affectedRows=0 回读（行仍在且已等于目标状态）
+      mocks.queryOne
+        .mockResolvedValueOnce({ tenantName: "酒行A", status: 0 })
+        .mockResolvedValueOnce({ status: 0 });
+
+      const applied = await toggleTenantStatus(UUID_ID, "DISABLED");
+
+      expect(applied).toBe("DISABLED");
+      const auditInsert = mocks.query.mock.calls.find((c: unknown[]) =>
+        String(c[0]).includes("INSERT INTO t_platform_audit_log")
+      );
+      expect(auditInsert).toBeDefined();
+      const detail = JSON.parse(String((auditInsert as unknown as unknown[])[1]?.[5]));
+      expect(detail).toMatchObject({
+        result: "SUCCESS",
+        fromStatus: "DISABLED",
+        toStatus: "DISABLED",
+        duplicate: true,
+      });
+    });
+
     it("非法 status 取值 ⇒ 400 且不落库（不静默兜底）；统一审计入口留 FAILED 行（TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01）", async () => {
       await expect(toggleTenantStatus(UUID_ID, "SUSPENDED" as never)).rejects.toMatchObject({
         statusCode: 400,

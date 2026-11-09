@@ -9,10 +9,15 @@
  *  ① 成功 toggle ⇒ 200 契约不变 + 一行 TENANT_TOGGLE/SUCCESS 核对 from→to + traceId 四方一致；
  *  ② 无效状态 400 ⇒ 契约不变 + FAILED 行（invalid_status）+ 不落 UPDATE；
  *  ③ 未知租户 404 ⇒ 契约不变 + FAILED 行（tenant_not_found）+ traceId 同响应；
- *  ④ SUPPORT RBAC 403 ⇒ REJECTED 行（PERMISSION_DENIED detail.result=REJECTED）+ 无 UPDATE；
+ *  ④ SUPPORT RBAC 403 ⇒ PERMISSION_DENIED 安全行 + TENANT_TOGGLE/REJECTED 统一入口行
+ *    （同 traceId、target/from/to/source/operator 完整、failReason=rbac_denied(403)）+ 无 UPDATE
+ *    （TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1 缺口①）；
  *  ⑤ 并发双 toggle ⇒ 两行 SUCCESS、from→to 可解释、traceId 各自对应响应；
  *  ⑥ audit helper 抛错 ⇒ 业务仍成功 + error 级日志 + 失败计数可观测；
- *  ⑦ 审计内容不含敏感信息（password/token/cookie）。
+ *  ⑦ 审计内容不含敏感信息（password/token/cookie）；
+ *  F1 新增：legacy PUT 真实控制器链路（platform.controller.ts::updateTenant →
+ *  tenant-admin.service.updatePlatformTenant）operator 非 0/空、traceId 与响应一致；
+ *  同状态重复 toggle ⇒ 200 + SUCCESS + duplicate=true（含真实 MySQL affectedRows=0 回读分支）。
  */
 import { vi, describe, it, beforeEach, expect } from "vitest";
 import express from "express";
@@ -61,6 +66,9 @@ import { getTenantToggleAuditWriteFailureCount } from "../../services/admin/plat
 import logger from "../../shared/logger";
 import { platformTenantRouter } from "../../routes/platform-tenant.routes";
 import { platformAccessGuard } from "../../middleware/platform-rbac-guard";
+// F1 缺口②：legacy PUT 真实控制器链路（真实控制器 + 真实 service，仅 mock db/审计底座）
+import { asyncHandler } from "../../middleware/async-handler";
+import * as platformController from "../../controllers/platform/platform.controller";
 
 const TID = "11111111-1111-4111-8111-111111111111";
 const SUPER_USER = { id: 7, username: "super01", realName: "超管01" };
@@ -90,6 +98,25 @@ function buildApp() {
 
 const app = buildApp();
 const URL = `/api/platform/tenants/${TID}/toggle`;
+
+/**
+ * F1 缺口②：legacy PUT 真实控制器链路专用 app —— **真实控制器**
+ * platform.controller.ts::updateTenant + **真实 service** tenant-admin.service +
+ * 真实统一审计入口，仅 mock shared/db 与审计底座（与本文件其余判据同口径）。
+ * 不挂中央守卫：本判据是「真实控制器链路的操作者上下文」，RBAC 面由 ④ 覆盖。
+ */
+function buildLegacyApp() {
+  const legacyApp = express();
+  legacyApp.use(express.json());
+  legacyApp.use((req: any, _res, next) => {
+    req.user = { ...SUPER_USER };
+    next();
+  });
+  legacyApp.put("/api/platform/tenants/:tenantId", asyncHandler(platformController.updateTenant));
+  return legacyApp;
+}
+
+const legacyApp = buildLegacyApp();
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -195,8 +222,10 @@ describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 · POST /api/platform/tenants/:id/t
     });
   });
 
-  it("④ SUPPORT RBAC 403 ⇒ 守卫 REJECTED 行（PERMISSION_DENIED detail.result=REJECTED），无 UPDATE、无 TENANT_TOGGLE 行", async () => {
+  it("④ SUPPORT RBAC 403 ⇒ 同 traceId 下 PERMISSION_DENIED 安全行 + TENANT_TOGGLE/REJECTED 统一入口行各 1 条，无 UPDATE（F1 缺口①）", async () => {
     guardRole = "SUPPORT";
+    // 守卫 403 分支的 fromStatus/targetTenantName 预读（可用时查库）
+    preSelectQueue = [{ tenantName: "探针租户", status: 1 }];
 
     const res = await request(app).post(URL).send({ status: "DISABLED" });
 
@@ -204,6 +233,7 @@ describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 · POST /api/platform/tenants/:id/t
     expect(res.body.code).toBe("403");
     expect(String(res.body.traceId)).not.toBe("");
 
+    // 第一行：PERMISSION_DENIED 安全日志（保留，不互相替代）
     const denied = (insertPlatformAuditLog.mock.calls as Array<[Record<string, unknown>]>)
       .map((c) => c[0])
       .filter((arg) => arg.action === "PERMISSION_DENIED");
@@ -215,11 +245,96 @@ describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 · POST /api/platform/tenants/:id/t
       traceId: res.body.traceId,
       method: "POST",
     });
-    expect(toggleAuditRows()).toHaveLength(0);
+
+    // 第二行：TENANT_TOGGLE/REJECTED（统一入口 recordTenantToggleAudit，F1 新增）
+    const rows = toggleAuditRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].detail).toMatchObject({
+      result: "REJECTED",
+      failReason: "rbac_denied(403)",
+      traceId: res.body.traceId,
+    });
+
+    // 403 路径绝不 UPDATE
     const updateCalls = (dbMocks.query.mock.calls as Array<[string]>).filter((c) =>
       String(c[0]).includes("UPDATE t_tenant")
     );
     expect(updateCalls).toHaveLength(0);
+  });
+
+  it("④b REJECTED 行字段完整性：targetTenantId/targetTenantName/from=ACTIVE/to=DISABLED/source/trace/operator/failReason 全数落行", async () => {
+    guardRole = "SUPPORT";
+    preSelectQueue = [{ tenantName: "探针租户", status: 1 }];
+
+    const res = await request(app).post(URL).send({ status: "DISABLED" });
+
+    expect(res.status).toBe(403);
+    const row = toggleAuditRows()[0];
+    expect(row).toMatchObject({
+      adminId: 9,
+      adminName: "super01",
+      module: "tenant",
+      action: "TENANT_TOGGLE",
+      auditType: "TENANT_TOGGLE",
+      targetType: "tenant",
+      targetId: TID,
+    });
+    expect(row.detail).toMatchObject({
+      result: "REJECTED",
+      failReason: "rbac_denied(403)",
+      targetTenantId: TID,
+      targetTenantName: "探针租户",
+      fromStatus: "ACTIVE",
+      toStatus: "DISABLED",
+      source: "api",
+      traceId: res.body.traceId,
+      duplicate: false,
+    });
+  });
+
+  it("④c 403 且租户预读不可用 ⇒ 仍落 REJECTED 行（fromStatus/targetTenantName 降级 null），403 响应不受影响", async () => {
+    guardRole = "SUPPORT";
+    preSelectQueue = [null]; // 守卫预读查无此租户（或库异常降级）
+
+    const res = await request(app).post(URL).send({ status: "ACTIVE" });
+
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe("403");
+    const rows = toggleAuditRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].detail).toMatchObject({
+      result: "REJECTED",
+      failReason: "rbac_denied(403)",
+      targetTenantId: TID,
+      targetTenantName: null,
+      fromStatus: null,
+      toStatus: "ACTIVE",
+      traceId: res.body.traceId,
+    });
+  });
+
+  it("④d legacy PUT 形（带 status 的 PUT /api/platform/tenants/:id）被 403 ⇒ 同样落 TENANT_TOGGLE/REJECTED；纯资料 PUT（无 status）不落启停行", async () => {
+    guardRole = "SUPPORT";
+    preSelectQueue = [{ tenantName: "探针租户", status: 1 }];
+
+    const withStatus = await request(app)
+      .put(`/api/platform/tenants/${TID}`)
+      .send({ status: "DISABLED" });
+    expect(withStatus.status).toBe(403);
+    expect(toggleAuditRows()).toHaveLength(1);
+    expect(toggleAuditRows()[0].detail).toMatchObject({
+      result: "REJECTED",
+      failReason: "rbac_denied(403)",
+      toStatus: "DISABLED",
+      targetTenantId: TID,
+      targetTenantName: "探针租户",
+      fromStatus: "ACTIVE",
+      traceId: withStatus.body.traceId,
+    });
+
+    // 纯资料更新（无 status）⇒ 不是启停，不得误记 TENANT_TOGGLE
+    await request(app).put(`/api/platform/tenants/${TID}`).send({ tenantName: "改名" });
+    expect(toggleAuditRows()).toHaveLength(1); // 仍只有带 status 那一条
   });
 
   it("⑤ 并发双 toggle ⇒ 两行 SUCCESS（ACTIVE→DISABLED 可解释），traceId 各自对应响应", async () => {
@@ -286,5 +401,130 @@ describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 · POST /api/platform/tenants/:id/t
       expect(serialized).not.toContain("should-not-leak");
       expect(serialized).not.toMatch(/"password|cookie|accesstoken/);
     }
+  });
+});
+
+describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1 · legacy PUT 真实控制器链路与重复 toggle", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    guardRole = "PLATFORM_SUPER_ADMIN";
+    preSelectQueue = [];
+    readBackQueue = [];
+    dbMocks.query.mockResolvedValue({ affectedRows: 1, insertId: 1 });
+    dbMocks.queryOne.mockImplementation(async (sql: unknown) => {
+      const s = String(sql);
+      if (s.includes("t_platform_admin")) return { role: guardRole };
+      if (s.includes("tenant_name AS tenantName")) return preSelectQueue.shift() ?? null;
+      if (s.includes("FROM t_tenant")) return readBackQueue.shift() ?? null;
+      return null;
+    });
+  });
+
+  it("⑧ legacy PUT 真实控制器链路 ⇒ 审计行 operator 非 0/空（真实平台账号），source/ip/traceId 完整且 traceId 与响应一致", async () => {
+    preSelectQueue = [{ id: 3, tenantName: "legacy租户", status: 1 }];
+
+    const res = await request(legacyApp)
+      .put("/api/platform/tenants/tenant_x")
+      .send({ status: "DISABLED" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.code).toBe("0");
+    expect(res.body.data).toEqual({ tenantId: "tenant_x", updated: true });
+    expect(String(res.body.traceId)).not.toBe("");
+
+    const rows = toggleAuditRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      adminId: 7,
+      adminName: "super01",
+      action: "TENANT_TOGGLE",
+      auditType: "TENANT_TOGGLE",
+      targetType: "tenant",
+      targetId: "tenant_x",
+    });
+    expect(rows[0].detail).toMatchObject({
+      result: "SUCCESS",
+      fromStatus: "ACTIVE",
+      toStatus: "DISABLED",
+      targetTenantName: "legacy租户",
+      source: "api",
+      traceId: res.body.traceId,
+      duplicate: false,
+    });
+    // req.ip 注入审计（supertest 真实 req.ip）
+    expect(typeof rows[0].ip).toBe("string");
+    expect(String(rows[0].ip)).not.toBe("");
+    // UPDATE 仍按 TINYINT 落库（契约不变）
+    const updateCall = (dbMocks.query.mock.calls as Array<[string, unknown[]]>).find((c) =>
+      String(c[0]).includes("UPDATE t_tenant SET")
+    );
+    expect(updateCall?.[1]).toContain("DISABLED");
+  });
+
+  it("⑨ legacy PUT source 头归一：x-platform-source=ui ⇒ 审计行 source=ui（同一归一真源）", async () => {
+    preSelectQueue = [{ id: 3, tenantName: "legacy租户", status: 0 }];
+
+    const res = await request(legacyApp)
+      .put("/api/platform/tenants/tenant_x")
+      .set("x-platform-source", "ui")
+      .send({ status: "ACTIVE" });
+
+    expect(res.status).toBe(200);
+    const row = toggleAuditRows()[0];
+    expect(row.detail).toMatchObject({ source: "ui", traceId: res.body.traceId });
+  });
+
+  it("⑩ legacy PUT 纯资料更新（无 status）⇒ 不留 TENANT_TOGGLE 痕（不误记启停），响应契约不变", async () => {
+    preSelectQueue = [{ id: 3, tenantName: "legacy租户", status: 1 }];
+
+    const res = await request(legacyApp)
+      .put("/api/platform/tenants/tenant_x")
+      .send({ tenantName: "改名" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.code).toBe("0");
+    expect(toggleAuditRows()).toHaveLength(0);
+  });
+
+  it("⑪ 同状态重复 toggle（预读 DISABLED + 请求 DISABLED）⇒ 200 + SUCCESS + duplicate=true（不误判 404），响应契约不变", async () => {
+    preSelectQueue = [{ tenantName: "探针租户", status: 0 }];
+    readBackQueue = [{ status: 0 }];
+
+    const res = await request(app).post(URL).send({ status: "DISABLED" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.code).toBe("0");
+    expect(res.body.data).toEqual({ success: true, status: "DISABLED" });
+    const rows = toggleAuditRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].detail).toMatchObject({
+      result: "SUCCESS",
+      fromStatus: "DISABLED",
+      toStatus: "DISABLED",
+      duplicate: true,
+      traceId: res.body.traceId,
+    });
+  });
+
+  it("⑫ 同状态重复 toggle（真实 MySQL affectedRows=0 形态）⇒ 回读判定 duplicate ⇒ 200 + SUCCESS + duplicate=true，不误判 404", async () => {
+    preSelectQueue = [{ tenantName: "探针租户", status: 1 }];
+    readBackQueue = [{ status: 1 }];
+    // 真实 MySQL：SET status = 现值 ⇒ changed rows=0（mysql2 未开 CLIENT_FOUND_ROWS）
+    dbMocks.query.mockResolvedValue({ affectedRows: 0, insertId: 0 });
+
+    const res = await request(app).post(URL).send({ status: "ACTIVE" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.code).toBe("0");
+    expect(res.body.data).toEqual({ success: true, status: "ACTIVE" });
+    const rows = toggleAuditRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].detail).toMatchObject({
+      result: "SUCCESS",
+      fromStatus: "ACTIVE",
+      toStatus: "ACTIVE",
+      duplicate: true,
+      traceId: res.body.traceId,
+    });
   });
 });

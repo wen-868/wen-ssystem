@@ -10,11 +10,14 @@ import { query, queryOne, transaction } from "../../shared/db";
 import { hashPassword } from "../../shared/password";
 import { makeBizNo } from "../../shared/id";
 // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：status 写分支接入租户启停统一审计入口
+// TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：fromStatus/duplicate 与活路径同一状态口径
+// （toTenantStatus 单一真源，0/"0"/"DISABLED"⇒DISABLED，其余⇒ACTIVE），不再裸 String()
 import { randomUUID } from "node:crypto";
 import {
   recordTenantToggleAudit,
   type TenantToggleAuditContext,
 } from "../admin/platform-audit-tenant-toggle.service";
+import { toTenantStatus } from "../platform-tenant.service";
 import type mysql from "mysql2/promise";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 // S3-183（收口总清单第 18 项）：开通链路必须克隆角色/菜单并把首个管理员绑到本租户的角色行
@@ -441,21 +444,25 @@ export async function updatePlatformTenant(
   );
 
   // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：status 写分支（legacy 启停路径）统一审计。
-  // 控制器 platform.controller.ts 不在本卡允许路径内 ⇒ 操作者上下文无法注入时按
-  // 缺省补齐（operatorId=0/source=api/traceId 自生成），目标/前后状态/结果/traceId
-  // 完整；审计写失败由统一入口 catch（不阻断、不回滚已生效更新）。
+  // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1（缺口②）：真实控制器
+  // platform.controller.ts::updateTenant 已改为构造并传入 auditCtx ⇒ 生产入口
+  // operator 恒为真实平台账号；缺省（直调兜底）仍按 operatorId=0/source=api/
+  // traceId 自生成补齐。fromStatus 与 duplicate 均按 toTenantStatus 归一口径：
+  //   · fromStatus：DB TINYINT/存量字符串 → 对外 ACTIVE/DISABLED（与活路径一致）；
+  //   · duplicate：from 与 to 同口径比较（修复存量 "1" vs 请求 "ACTIVE" 误判非重复）。
+  // 审计写失败由统一入口 catch（不阻断、不回滚已生效更新）。
   if (params.status !== undefined) {
+    const fromStatus = existing.status == null ? null : toTenantStatus(existing.status);
     await recordTenantToggleAudit({
       operatorId: auditCtx?.operatorId ?? 0,
       operatorName: auditCtx?.operatorName ?? "",
       targetTenantId: tenantId,
       targetTenantName: existing.tenantName ?? null,
-      fromStatus: existing.status == null ? null : String(existing.status),
+      fromStatus,
       toStatus: String(params.status),
       result: "SUCCESS",
       duplicate:
-        existing.status != null &&
-        String(existing.status).toUpperCase() === String(params.status).toUpperCase(),
+        fromStatus !== null && fromStatus === toTenantStatus(params.status),
       source: auditCtx?.source ?? "api",
       traceId: auditCtx?.traceId ?? randomUUID(),
       ip: auditCtx?.ip ?? null,

@@ -49,6 +49,26 @@ export interface TenantToggleAuditInput extends TenantToggleAuditContext {
   duplicate?: boolean;
 }
 
+/**
+ * TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：来源归一（ui/api/system）**单一真源**。
+ * 显式标记取头 `x-platform-source` 或体 `source`（可选项，契约不变：不传缺省 api），
+ * 仅白名单三值，其余一律按 api 处理。原先只在活路径控制器
+ * （tenant.controller.ts）内联，F1 起中央守卫 403 分支与 legacy 控制器
+ * （platform.controller.ts::updateTenant）也必须按同一口径落审计行，故上提至此共用。
+ */
+export function normalizeTenantToggleSource(
+  req: { headers?: Record<string, unknown>; body?: unknown } | undefined | null
+): TenantToggleSource {
+  const raw = String(
+    (req?.headers?.["x-platform-source"] as string | undefined) ??
+      ((req?.body as Record<string, unknown> | undefined)?.source as string | undefined) ??
+      ""
+  )
+    .trim()
+    .toLowerCase();
+  return raw === "ui" || raw === "api" || raw === "system" ? raw : "api";
+}
+
 /** 可观测指标：TENANT_TOGGLE 审计写失败进程内累计（只在本入口自增） */
 let tenantToggleAuditWriteFailureCount = 0;
 

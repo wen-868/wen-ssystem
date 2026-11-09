@@ -11,8 +11,15 @@ import {
   type TenantStatus,
 } from "../../services/platform-tenant.service";
 // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：唯一审计写入口（service 层统一入口，控制器只传上下文）
-import { recordTenantToggleAudit } from "../../services/admin/platform-audit-tenant-toggle.service";
-import type { TenantToggleAuditContext, TenantToggleSource } from "../../services/admin/platform-audit-tenant-toggle.service";
+// TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：来源归一上提为单一真源 normalizeTenantToggleSource
+import {
+  recordTenantToggleAudit,
+  normalizeTenantToggleSource,
+} from "../../services/admin/platform-audit-tenant-toggle.service";
+import type {
+  TenantToggleAuditContext,
+  TenantToggleSource,
+} from "../../services/admin/platform-audit-tenant-toggle.service";
 
 /** 租户列表 */
 export async function listPlatformTenants(req: any, res: any) {
@@ -63,14 +70,12 @@ export async function updatePlatformTenant(req: any, res: any) {
 
 /**
  * TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：来源归一（ui/api/system）。
- * 显式标记取头 `x-platform-source` 或体 `source`（可选项，契约不变：不传缺省 api），
- * 仅白名单三值，其余一律按 api 处理。
+ * TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：实现上提至
+ * services/admin/platform-audit-tenant-toggle.service::normalizeTenantToggleSource
+ * （单一真源，守卫 403 分支与 legacy 控制器共用），此处仅保留薄转发，语义逐字不变。
  */
 function normalizeToggleSource(req: any): TenantToggleSource {
-  const raw = String(req?.headers?.["x-platform-source"] ?? req?.body?.source ?? "")
-    .trim()
-    .toLowerCase();
-  return raw === "ui" || raw === "api" || raw === "system" ? raw : "api";
+  return normalizeTenantToggleSource(req);
 }
 
 /**

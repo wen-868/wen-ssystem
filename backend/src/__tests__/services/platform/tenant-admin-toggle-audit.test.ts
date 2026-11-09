@@ -67,7 +67,8 @@ describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 · legacy updatePlatformTenant stat
     });
     expect(rows[0].detail).toMatchObject({
       result: "SUCCESS",
-      fromStatus: "1",
+      // F1：fromStatus 与活路径同一口径（toTenantStatus 归一，TINYINT 1 ⇒ ACTIVE）
+      fromStatus: "ACTIVE",
       toStatus: "DISABLED",
       targetTenantName: "legacy租户",
       source: "ui",
@@ -117,7 +118,7 @@ describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 · legacy updatePlatformTenant stat
     expect(insertPlatformAuditLog).not.toHaveBeenCalled();
   });
 
-  it("审计上下文缺省（frozen 控制器未注入）⇒ 仍留痕：source=api、traceId 自生成非空", async () => {
+  it("审计上下文缺省（直调兜底）⇒ 仍留痕：source=api、traceId 自生成非空", async () => {
     mocks.queryOne.mockResolvedValue({ id: 3, tenantName: "legacy租户", status: 0 });
 
     const result = await updatePlatformTenant("tenant_x", { status: "ACTIVE" });
@@ -126,13 +127,32 @@ describe("TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01 · legacy updatePlatformTenant stat
     const row = (insertPlatformAuditLog.mock.calls as Array<[Record<string, unknown>]>)[0][0];
     expect(row.detail).toMatchObject({
       result: "SUCCESS",
-      fromStatus: "0",
+      // F1：fromStatus 归一口径（TINYINT 0 ⇒ DISABLED）
+      fromStatus: "DISABLED",
       toStatus: "ACTIVE",
       source: "api",
-      // legacy 口径：raw 值 "0" 与 "ACTIVE" 字面不同 ⇒ 不标 duplicate（不猜语义）
+      // DISABLED → ACTIVE 是真实切换 ⇒ 非 duplicate
       duplicate: false,
     });
     expect(String((row.detail as Record<string, unknown>).traceId)).not.toBe("");
     expect(row.adminId).toBe(0);
+  });
+
+  // ── TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：duplicate 归一口径 ──
+  it("F1 同状态重复 toggle（存量 1 + 请求 ACTIVE）⇒ SUCCESS + duplicate=true（按归一口径判定，不再因 1≠ACTIVE 误判）", async () => {
+    mocks.queryOne.mockResolvedValue({ id: 3, tenantName: "legacy租户", status: 1 });
+
+    const result = await updatePlatformTenant("tenant_x", { status: "ACTIVE" }, CTX);
+
+    expect(result).toEqual({ tenantId: "tenant_x", updated: true });
+    const row = (insertPlatformAuditLog.mock.calls as Array<[Record<string, unknown>]>)[0][0];
+    expect(row.detail).toMatchObject({
+      result: "SUCCESS",
+      fromStatus: "ACTIVE",
+      toStatus: "ACTIVE",
+      duplicate: true,
+      source: "ui",
+      traceId: "trace-legacy-01",
+    });
   });
 });
