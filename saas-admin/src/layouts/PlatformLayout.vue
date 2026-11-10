@@ -11,7 +11,7 @@
       </div>
 
       <nav class="pf-nav">
-        <template v-for="g in platformMenus" :key="g.group">
+        <template v-for="g in visibleMenus" :key="g.group">
           <div class="pf-nav-group">{{ g.group }}</div>
           <template v-for="item in g.items" :key="item.path">
             <router-link
@@ -61,7 +61,8 @@
             <b v-if="unreadCount > 0">{{ unreadCount }}</b>
           </span>
           <span class="pf-ava">{{ avatarChar }}</span>
-          <span class="pf-uname">{{ userLabel }}</span>
+          <span class="pf-uname">{{ statusLabel }}</span>
+          <el-button v-if="needsRestore && !restoring" text size="small" @click="retryRehydrate">重试</el-button>
           <el-button text size="small" @click="handleLogout">退出</el-button>
         </div>
       </header>
@@ -74,12 +75,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, unref } from 'vue'
+import { computed, ref, unref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search, Bell } from '@element-plus/icons-vue'
-import { platformMenus, findMenuTitleByPath } from '../config/platform-menu'
+import { platformMenus, findMenuTitleByPath, filterPlatformMenusForRole } from '../config/platform-menu'
 import { PLATFORM_VERSION } from '../config/platform'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore, platformUserLabel } from '../stores/auth'
 import '../styles/layout.css'
 
 const route = useRoute()
@@ -102,6 +103,14 @@ function isActive(path: string): boolean {
 
 const currentMenu = computed(() => findMenuTitleByPath(route.path))
 
+/**
+ * 侧边菜单按角色收敛（TOTAL-PLATFORM-MENU-ROLE-FILTER-01 · G2）：
+ * 与路由守卫共用同一份域声明（config/platform-menu.ts）——菜单隐藏≠权限放行，
+ * 直接访问无权路由会被守卫 fail-closed 拦截。isActive 的前缀匹配仍用全量
+ * platformMenus（避免过滤后详情页高亮误判），渲染层才按角色收敛。
+ */
+const visibleMenus = computed(() => filterPlatformMenusForRole(unref(authStore.adminInfo)?.role))
+
 /** 登录管理员信息：store 中该字段类型为 Ref，用 unref 兼容「Ref / 已解包」两种形态 */
 const adminInfo = computed(() => unref(authStore.adminInfo))
 
@@ -111,12 +120,27 @@ const avatarChar = computed(() => {
   return name ? name.slice(0, 1) : '—'
 })
 
-/** 用户名 + 角色（设计稿 .uname：陈默 · 超级管理员） */
-const userLabel = computed(() => {
-  const info = adminInfo.value
-  if (!info) return '未登录'
-  return `${info.realName || info.username} · 超级管理员`
+/** 用户名 + 角色（REHYDRATE-01）：真实数据驱动，角色缺失只显示姓名，不再硬编码「· 超级管理员」 */
+const userLabel = computed(() => platformUserLabel(adminInfo.value))
+
+/**
+ * 顶栏状态文案（REHYDRATE-01）：
+ * - token 有效但身份未恢复（守卫 rehydrate 网络失败后放行）⇒ 显示恢复中/失败，绝不显示「未登录」
+ *   （token 在 = 会话还在，只差身份拉取；「未登录」仅用于确实无 token 的场景）；
+ * - 其余场景 = 真实身份文案。
+ */
+const needsRestore = computed(() => !!(unref(authStore.token) && !adminInfo.value))
+const restoring = computed(() => !!unref(authStore.rehydrating))
+const statusLabel = computed(() => {
+  if (needsRestore.value) return restoring.value ? '身份恢复中…' : '身份恢复失败'
+  return userLabel.value
 })
+
+/** 恢复失败后的手动重试：force 绕过 single-flight 缓存重新拉取身份 */
+async function retryRehydrate() {
+  const state = await authStore.rehydrate(true)
+  if (state === 'expired') router.push('/login')
+}
 
 /**
  * 通知未读数：本期不接入（R101-C6-5 R2 裁定），当前不虚构数据。

@@ -9,7 +9,8 @@
       <div class="pg-act">
         <span class="btn" @click="onExportList">导出列表</span>
         <span class="btn" @click="onBatch">批量操作 ▾</span>
-        <span class="btn btn-p" @click="onCreate">+ 新建租户</span>
+        <!-- TOTAL-PLATFORM-RBAC-UI-COUPLING-01：新建租户是平台写操作，仅超管可见（SUPPORT/未知角色 fail-closed） -->
+        <span v-if="canTenantWrite" class="btn btn-p" @click="onCreate">+ 新建租户</span>
       </div>
     </div>
 
@@ -76,12 +77,7 @@
         </table>
       </div>
 
-      <div v-if="loading" class="empty">加载中…</div>
-      <div v-else-if="listError" class="empty">
-        <span class="err-t">租户列表加载失败</span>
-        <span class="retry" @click="fetchList">重试</span>
-      </div>
-      <div v-else-if="!list.length" class="empty">暂无租户数据</div>
+      <LoadFeedback :state="fb" empty-text="暂无租户数据" @retry="onRetry" />
 
       <div class="pagebar">
         <span>共 {{ total }} 条 · 每页 {{ pageSize }} 条</span>
@@ -121,7 +117,8 @@
               <span class="btn-t" @click="cancelEdit">取消</span>
               <span class="btn-t" @click="saveEdit">保存</span>
             </template>
-            <span v-else class="btn-t" @click="onEdit">编辑</span>
+            <!-- 基础信息编辑是写操作（PUT /tenants/:id），仅超管可进入编辑态 -->
+            <span v-else-if="canTenantWrite" class="btn-t" @click="onEdit">编辑</span>
           </div>
           <div class="p-bd base-grid">
             <div>
@@ -151,7 +148,8 @@
         <div class="panel mt12">
           <div class="p-hd">
             <span class="pt">资源配额使用情况</span>
-            <span class="btn-t" @click="onExpandQuota">临时扩容</span>
+            <!-- 临时扩容是写操作入口（详情页 quota-expand 提交），仅超管可见 -->
+            <span v-if="canTenantWrite" class="btn-t" @click="onExpandQuota">临时扩容</span>
           </div>
           <div class="p-bd">
             <div v-if="quotaLoading" class="empty small">加载中…</div>
@@ -176,9 +174,12 @@
         </div>
       </div>
       <div class="d-ft">
-        <span class="btn btn-p" @click="onRenew">立即续费</span>
-        <span class="btn btn-s" @click="onProxyLogin">代登录（需审批）</span>
-        <span class="btn btn-d" @click="onFreeze">冻结</span>
+        <!-- 立即续费/代登录/冻结均为平台写动作（RBAC-UI-COUPLING-01）：仅超管可见 -->
+        <template v-if="canTenantWrite">
+          <span class="btn btn-p" @click="onRenew">立即续费</span>
+          <span class="btn btn-s" @click="onProxyLogin">代登录（需审批）</span>
+          <span class="btn btn-d" @click="onFreeze">冻结</span>
+        </template>
       </div>
     </div>
   </div>
@@ -199,18 +200,38 @@ import {
   proxyLoginTenantApi,
 } from '../../api/tenant'
 import { buildQuotaRows, type QuotaRow } from './quota'
+import LoadFeedback from '../../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
+import { useAuthStore } from '../../stores/auth'
+// TOTAL-PLATFORM-RBAC-UI-COUPLING-01：行动作角色收敛唯一真源 + handler 二次防线
+import { tenantRowActions, guardTenantWrite, TENANT_WRITE_DENIED_TEXT } from './tenant-row-actions'
 
 const router = useRouter()
+const auth = useAuthStore()
+/** 平台写权限（唯一判定真源在 tenant-row-actions.ts，与菜单收敛同源口径） */
+const canTenantWrite = computed(() =>
+  guardTenantWrite(auth.adminInfo?.role, 'freeze'),
+)
 
 /* ───────────────────────────────────────────────────────────
    列表数据（沿用现有 listTenantsApi，保留 loading / 空态 / 错误态 + 可重试）
    ─────────────────────────────────────────────────────────── */
 const loading = ref(false)
-const listError = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)
 const pageSize = ref(20)
 const page = ref(1)
+
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：loading/empty/timeout/offline/500/403/恢复 */
+const fb = reactive(initialLoadFeedbackState())
+function fbDispatch(action: LoadFeedbackAction) {
+  Object.assign(fb, loadFeedbackReduce({ ...fb }, action))
+}
+function onRetry() {
+  fbDispatch({ type: 'retry' })
+  // retry 仅在 error/stale 态生效（状态机防重复点击），进入 loading 才真正发请求
+  if (fb.phase === 'loading') fetchList()
+}
 
 /**
  * ✅ 已联调：GET /api/platform/tenants/stats（各状态租户计数，C1-2 A1 落地）
@@ -257,8 +278,9 @@ const expireOptions = ['全部', '近30天到期', '已到期', '永久免费']
 const filters = reactive({ plan: '全部', status: '全部', expire: '近30天到期', keyword: '' })
 
 async function fetchList() {
+  const hasOld = list.value.length > 0
+  fbDispatch({ type: 'begin' })
   loading.value = true
-  listError.value = false
   try {
     const params: any = { page: page.value, pageSize: pageSize.value }
     if (filters.keyword.trim()) params.keyword = filters.keyword.trim()
@@ -271,11 +293,11 @@ async function fetchList() {
     const res: any = await listTenantsApi(params)
     list.value = res.data?.records || res.data?.list || []
     total.value = res.data?.total || 0
+    fbDispatch({ type: 'success', hasData: list.value.length > 0 })
     await fetchStatusStats()
-  } catch {
-    list.value = []
-    total.value = 0
-    listError.value = true
+  } catch (e) {
+    // 刷新失败且有旧数据 → 保留旧数据（stale 横幅）；首载失败 → 页面内错误态（分类文案+重试）
+    fbDispatch({ type: 'fail', err: e, hasStaleData: hasOld })
     await fetchStatusStats()
   } finally {
     loading.value = false
@@ -360,31 +382,12 @@ function statusLabel(s: string): string {
 }
 
 /* ───────────────────────────────────────────────────────────
-   行操作（按状态差异渲染，对齐设计稿 559~566）
+   行操作（TOTAL-PLATFORM-RBAC-UI-COUPLING-01：角色收敛唯一真源
+   tenantRowActions —— SUPER 系保留写动作；SUPPORT/未知/null fail-closed，
+   只保留 详情/概况 只读入口）
    ─────────────────────────────────────────────────────────── */
 function rowActions(row: any) {
-  const s = (row.status || '').toUpperCase()
-  const base = [{ key: 'detail', label: '详情', cls: '' }]
-  // 仅按后端真实枚举 ACTIVE / DISABLED 分支；不再为后端不存在的 FROZEN/OWED/CANCELLED 造分支
-  if (s === 'DISABLED') {
-    return [
-      ...base,
-      { key: 'unfreeze', label: '启用', cls: 'warn' },
-      { key: 'overview', label: '概况', cls: '' },
-    ]
-  }
-  if (s === 'ACTIVE') {
-    return [
-      ...base,
-      { key: 'freeze', label: '停用', cls: 'warn' },
-      { key: 'overview', label: '概况', cls: '' },
-      { key: 'renew', label: '续费', cls: '' },
-      { key: 'proxy', label: '代登录', cls: '' },
-      { key: 'export', label: '数据导出', cls: '' },
-      { key: 'reset', label: '重置数据', cls: 'dgr' },
-    ]
-  }
-  return [...base, { key: 'overview', label: '概况', cls: '' }]
+  return tenantRowActions(auth.adminInfo?.role, row)
 }
 
 /* 平台租户域**确实没有**的写操作（不得谎报成功，也不得承诺不存在的路径）：export / reset 后端全仓 0 命中。
@@ -399,6 +402,12 @@ async function onRowAction(key: string, row: any) {
   if (key === 'detail') return openDetail(row)
   // 概况 / 代登录：跳真实详情页（代登录需在详情页填「登录事由」才能提交审批，行内无输入位）
   if (key === 'overview' || key === 'proxy') return router.push(`/tenants/${row.id}`)
+  // 二次防线：写动作（启用/停用/续费等）在非超管时直接拦下，绝不发出写 API
+  // （覆盖按钮残留/事件绕过等意外路径；正常路径下按钮已按角色隐藏）
+  if (!guardTenantWrite(auth.adminInfo?.role, key)) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   // 启用/停用：接已存在的 POST /platform/tenants/:id/toggle
   if (key === 'freeze') return toggleTenantStatus(row, 'DISABLED')
   if (key === 'unfreeze') return toggleTenantStatus(row, 'ACTIVE')
@@ -409,6 +418,11 @@ async function onRowAction(key: string, row: any) {
 
 /** POST /platform/tenants/:id/toggle（platform-tenant.routes.ts:34，已存在） */
 async function toggleTenantStatus(row: any, next: 'ACTIVE' | 'DISABLED') {
+  // 二次防线（RBAC-UI-COUPLING-01）：抽屉「冻结」同样经由本函数，写请求发出前最终判定
+  if (!guardTenantWrite(auth.adminInfo?.role, next === 'ACTIVE' ? 'unfreeze' : 'freeze')) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   const text = next === 'ACTIVE' ? '启用' : '停用'
   try {
     await toggleTenantApi(row.id, next)
@@ -535,6 +549,11 @@ function cancelEdit() {
   editing.value = false
 }
 async function saveEdit() {
+  // 二次防线（RBAC-UI-COUPLING-01）：编辑保存是写操作（PUT /tenants/:id）
+  if (!guardTenantWrite(auth.adminInfo?.role, 'editTenant')) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   try {
     await updateTenantApi(detail.value.id, {
       contactName: editForm.contactName,
@@ -575,6 +594,11 @@ function onRenew() {
 async function onProxyLogin() {
   const id = detail.value?.id
   if (!id) return
+  // 二次防线（RBAC-UI-COUPLING-01）：代登录提交是写操作（proxy-login + 审计留痕）
+  if (!guardTenantWrite(auth.adminInfo?.role, 'proxyLogin')) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   let reason = ''
   try {
     const { value } = await ElMessageBox.prompt(

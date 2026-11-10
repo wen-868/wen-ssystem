@@ -142,6 +142,40 @@ const rankList = ref<any[]>([]);
 const rankLoading = ref(false);
 
 /**
+ * TOTAL-SAAS-VIEW-HARDCODED-COLORS-RECONSTRUCT-01 · 图表/统计卡配色令牌化
+ * ─────────────────────────────────────────────────────────────
+ * ECharts 与 el-icon 只接受**具体色值字符串**，无法直接写 var(--x)，
+ * 故此处在运行时从 tokens.css 解析真实值 —— 单一真源仍是
+ * saas-admin/src/styles/tokens.css，杜绝「JS 一套色、CSS 一套色」的漂移。
+ *
+ * 原此处写死的是 Tailwind 默认色板（#10b981 emerald-500 / #f59e0b amber-500 /
+ * #8b5cf6 violet-500），与 tokens.css 的 --chart-2 #16a34a、--chart-3 #ea580c、
+ * --chart-5 #7c3aed 并不一致，属典型的跨体系视觉漂移。
+ *
+ * 兜底值取自 tokens.css 同名字面值：即便处于非浏览器环境（document 缺失）
+ * 取不到 CSS 变量，也只会落回令牌值本身，不会退回旧色板。
+ */
+const CHART_TOKEN_FALLBACK: Record<string, string> = {
+  "--chart-1": "#2563eb",
+  "--chart-2": "#16a34a",
+  "--chart-3": "#ea580c",
+  "--chart-5": "#7c3aed",
+  "--color-primary": "#2563eb",
+  "--color-primary-bg": "#eff6ff",
+  "--color-success-soft": "#f0fdf4",
+  "--color-warning-soft": "#fff7ed",
+  "--color-purple-soft": "#faf5ff",
+  "--gray-0": "#FFFFFF",
+};
+
+/** 解析设计令牌的实际色值；取不到时回落同名字面值（仍等于令牌值） */
+function tokenColor(name: string): string {
+  if (typeof document === "undefined") return CHART_TOKEN_FALLBACK[name] ?? "";
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || CHART_TOKEN_FALLBACK[name] || "";
+}
+
+/**
  * 概览指标卡：数值来自 GET /api/platform/tenants/usage-stats 的 overview。
  * change（环比「较上期」）后端当前**未提供**对应字段，故恒为 null，
  * 模板 v-if 直接不渲染该行——绝不写死百分比冒充真实环比。
@@ -368,8 +402,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 文字用途按 S3-137-F1 分层令牌口径用 --color-success-text（白底 5.01:1；--color-success 白底仅 3.30:1 不达 AA，且该 token 不得用于文字） */
 .text-success {
-  color: var(--color-success);
+  color: var(--color-success-text);
 }
 .text-danger {
   color: var(--color-danger);

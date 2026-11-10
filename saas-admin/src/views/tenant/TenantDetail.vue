@@ -7,13 +7,24 @@
         <p class="pd">{{ tenantName }} · 租户编码 {{ tenantCode }}</p>
       </div>
       <div class="pg-act">
-        <span class="btn" @click="proxyVisible = true">模拟登录</span>
-        <span class="btn" @click="resetVisible = true">数据重置</span>
-        <span class="btn" @click="exportVisible = true">数据导出</span>
-        <span class="btn" @click="onRenew">续费</span>
-        <span class="btn btn-d" @click="onFreeze">冻结</span>
+        <!-- 模拟登录/数据重置/数据导出/续费/冻结均为平台写动作（RBAC-UI-COUPLING-01）：仅超管可见 -->
+        <template v-if="canTenantWrite">
+          <span class="btn" @click="proxyVisible = true">模拟登录</span>
+          <span class="btn" @click="resetVisible = true">数据重置</span>
+          <span class="btn" @click="exportVisible = true">数据导出</span>
+          <span class="btn" @click="onRenew">续费</span>
+          <span class="btn btn-d" @click="onFreeze">冻结</span>
+        </template>
       </div>
     </div>
+
+    <!-- 页面内反馈（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：详情加载失败/403/刷新失败保留旧数据 -->
+    <LoadFeedback
+      :state="fbDetail"
+      empty-text="租户不存在或已被删除"
+      @retry="onRetryDetail"
+      @back="onBackToDash"
+    />
 
     <!-- ════════ 租户概况面板（原「租户概况」弹窗内容挪入） ════════ -->
     <div class="panel">
@@ -76,7 +87,8 @@
     <div class="panel">
       <div class="p-hd">
         <span class="pt">资源配额使用情况</span>
-        <span class="btn-t" @click="onExpandQuota">临时扩容</span>
+        <!-- 临时扩容是写操作（quota-expand），仅超管可见 -->
+        <span v-if="canTenantWrite" class="btn-t" @click="onExpandQuota">临时扩容</span>
       </div>
       <div class="p-bd">
         <template v-if="quotaLoading">
@@ -136,7 +148,8 @@
                 <td>{{ u.roleLabel }}</td>
                 <td>{{ u.statusLabel }}</td>
                 <td>
-                  <span class="btn-t gy" @click="onResetUserPassword(u)">重置该账号口令</span>
+                  <span v-if="canTenantWrite" class="btn-t gy" @click="onResetUserPassword(u)">重置该账号口令</span>
+                  <span v-else class="muted">—</span>
                 </td>
               </tr>
             </tbody>
@@ -343,7 +356,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import LoadFeedback from '../../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../../api/feedback'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getTenantApi,
@@ -356,6 +371,9 @@ import {
   resetTenantUserPasswordApi,
 } from '../../api/tenant'
 import { buildQuotaRows, type QuotaRow } from './quota'
+import { useAuthStore } from '../../stores/auth'
+// TOTAL-PLATFORM-RBAC-UI-COUPLING-01：写动作二次防线（与 TenantList 同一真源）
+import { guardTenantWrite, TENANT_WRITE_DENIED_TEXT } from './tenant-row-actions'
 import {
   buildResetConfirmText,
   normalizeTenantUsers,
@@ -365,7 +383,11 @@ import {
 } from './tenant-account-reset'
 
 const route = useRoute()
+const router = useRouter()
 const MODAL_W = 'var(--modal-width)'
+const auth = useAuthStore()
+/** 平台写权限（唯一判定真源在 tenant-row-actions.ts；SUPPORT/未知/null fail-closed） */
+const canTenantWrite = computed(() => guardTenantWrite(auth.adminInfo?.role, 'freeze'))
 
 /* ───────────────────────────────────────────────────────────
    租户详情（沿用现有 getTenantApi，保留 loading / 空态 / 错误处理）
@@ -374,12 +396,30 @@ const detail = ref<any>(null)
 const tenantName = computed(() => detail.value?.tenantName || '--')
 const tenantCode = computed(() => detail.value?.tenantCode || '--')
 
+/* 页面反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：详情主数据 */
+const fbDetail = reactive(initialLoadFeedbackState())
+function fbDetailDispatch(action: LoadFeedbackAction) {
+  Object.assign(fbDetail, loadFeedbackReduce({ ...fbDetail }, action))
+}
+function onRetryDetail() {
+  fbDetailDispatch({ type: 'retry' })
+  if (fbDetail.phase === 'loading') fetchDetail()
+}
+/** 403/无权时的明确返回入口（不泄漏内部权限码） */
+function onBackToDash() {
+  router.push('/dashboard')
+}
+
 async function fetchDetail() {
+  const hasOld = !!detail.value
+  fbDetailDispatch({ type: 'begin' })
   try {
     const res: any = await getTenantApi(Number(route.params.id))
     detail.value = res.data
+    fbDetailDispatch({ type: 'success', hasData: !!detail.value })
   } catch (e) {
-    detail.value = null
+    // 有旧数据则保留（stale 横幅），无旧数据页面内分类错误态（403 独立文案+返回入口）
+    fbDetailDispatch({ type: 'fail', err: e, hasStaleData: hasOld })
   }
 }
 
@@ -416,6 +456,11 @@ function cycleProxyRole() {
   proxyForm.roleIdx = (proxyForm.roleIdx + 1) % proxyRoles.length
 }
 async function onSubmitProxy() {
+  // 二次防线（RBAC-UI-COUPLING-01）：代登录提交是写操作（proxy-login + 审计留痕）
+  if (!guardTenantWrite(auth.adminInfo?.role, 'proxyLogin')) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   // ✅ 已联调：POST /api/platform/tenants/:id/proxy-login（C1-2 A4 落地，写 t_platform_audit_log 留痕）
   // 原实现在此处直接弹「已提交代登录审批」——那是**谎报成功**（接口根本没调），本单改为真调用。
   if (!proxyForm.reason) {
@@ -483,6 +528,11 @@ function onRenew() {
 // ✅ 已联调：POST /platform/tenants/:id/toggle（platform-tenant.routes.ts:34，已存在）
 //    后端真实语义是「启用/禁用」，设计稿文案为「冻结」，本处按后端语义给提示，避免谎报动作名。
 async function onFreeze() {
+  // 二次防线（RBAC-UI-COUPLING-01）：启停是写操作（toggle）
+  if (!guardTenantWrite(auth.adminInfo?.role, 'freeze')) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   const id = Number(route.params.id)
   const target = detail.value?.status === 'DISABLED' ? 'ACTIVE' : 'DISABLED'
   try {
@@ -585,6 +635,11 @@ async function fetchTenantUsers() {
 
 /** 重置该账号口令：行内按钮 → 二次确认 → 真调后端 → 成功才展示一次性口令 */
 async function onResetUserPassword(user: TenantUserRow) {
+  // 二次防线（RBAC-UI-COUPLING-01）：重置租户账号口令是写操作
+  if (!guardTenantWrite(auth.adminInfo?.role, 'resetUserPassword')) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   resetError.value = ''
   try {
     await ElMessageBox.confirm(buildResetConfirmText(user), '重置该账号口令', {
@@ -671,6 +726,11 @@ function onExpandQuota() {
 }
 
 async function onSubmitExpand() {
+  // 二次防线（RBAC-UI-COUPLING-01）：配额扩容提交是写操作（quota-expand）
+  if (!guardTenantWrite(auth.adminInfo?.role, 'expand')) {
+    ElMessage.warning(TENANT_WRITE_DENIED_TEXT)
+    return
+  }
   const amount = Number(expandForm.amount)
   const days = Number(expandForm.days)
   if (!Number.isInteger(amount) || amount <= 0) {

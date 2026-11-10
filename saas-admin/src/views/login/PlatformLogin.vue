@@ -57,54 +57,95 @@
     <!-- 右：登录表单 -->
     <div class="lg-form">
       <div class="lg-box">
-        <div class="pt4">欢迎登录总后台</div>
-        <p class="ls">智享全链 · 平台运营中枢（仅限平台管理员）</p>
+        <!-- ═══ 第一步：账号 + 密码 + 图形验证码 ═══ -->
+        <template v-if="mfa.step !== 'challenge'">
+          <div class="pt4">欢迎登录总后台</div>
+          <p class="ls">智享全链 · 平台运营中枢（仅限平台管理员）</p>
 
-        <el-form ref="formRef" :model="form" :rules="rules" class="lg-form-el" @keyup.enter="handleLogin">
-          <div class="lg-fld">
-            <label>管理员账号</label>
-            <el-form-item prop="username">
-              <el-input v-model="form.username" placeholder="请输入邮箱 / 管理员账号" clearable />
-            </el-form-item>
-          </div>
-
-          <div class="lg-fld">
-            <label>密码</label>
-            <el-form-item prop="password">
-              <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password />
-            </el-form-item>
-          </div>
-
-          <div class="lg-fld">
-            <label>图形验证码</label>
-            <div class="cap-row">
-              <el-form-item prop="captcha">
-                <el-input v-model="form.captcha" placeholder="请输入右侧验证码" />
+          <el-form ref="formRef" :model="form" :rules="rules" class="lg-form-el" @keyup.enter="handleLogin">
+            <div class="lg-fld">
+              <label>管理员账号</label>
+              <el-form-item prop="username">
+                <el-input v-model="form.username" placeholder="请输入邮箱 / 管理员账号" clearable />
               </el-form-item>
-              <!-- 验证码图：后端 GET /platform/auth/captcha 下发（5 分钟有效、一次性），点击可刷新 -->
-              <img
-                v-if="captchaImage"
-                class="cap cap-img"
-                :src="captchaImage"
-                alt="图形验证码"
-                title="点击刷新验证码"
-                @click="loadCaptcha"
-              />
-              <span v-else class="cap" title="点击加载验证码" @click="loadCaptcha">加载中…</span>
             </div>
+
+            <div class="lg-fld">
+              <label>密码</label>
+              <el-form-item prop="password">
+                <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password />
+              </el-form-item>
+            </div>
+
+            <div class="lg-fld">
+              <label>图形验证码</label>
+              <div class="cap-row">
+                <el-form-item prop="captcha">
+                  <el-input v-model="form.captcha" placeholder="请输入右侧验证码" />
+                </el-form-item>
+                <!-- 验证码图：后端 GET /platform/auth/captcha 下发（5 分钟有效、一次性），点击可刷新 -->
+                <img
+                  v-if="captchaImage"
+                  class="cap cap-img"
+                  :src="captchaImage"
+                  alt="图形验证码"
+                  title="点击刷新验证码"
+                  @click="loadCaptcha"
+                />
+                <span v-else class="cap" title="点击加载验证码" @click="loadCaptcha">加载中…</span>
+              </div>
+            </div>
+
+            <div class="lg-meta">
+              <span class="lg-remember" @click="remember = !remember">
+                <span class="ck" :class="{ on: remember }"></span>记住此设备
+              </span>
+              <span class="lk" @click="onForgot">忘记密码？</span>
+            </div>
+
+            <el-button class="lg-btn" type="primary" :loading="loading" @click="handleLogin">登 录</el-button>
+          </el-form>
+
+          <p class="small lg-tip">登录即代表同意《平台管理员安全协议》· 首次登录将强制修改初始密码</p>
+        </template>
+
+        <!-- ═══ 第二步：MFA 动态码挑战（TOTAL-PLATFORM-MFA-CHALLENGE-UI-01）═══ -->
+        <template v-else>
+          <div class="pt4">双因素验证</div>
+          <p class="ls">账号 {{ form.username || '当前账号' }} 已开启两步验证，请输入认证应用中的 6 位动态码。</p>
+
+          <div class="lg-fld">
+            <label for="mfa-code">动态验证码</label>
+            <el-input
+              id="mfa-code"
+              ref="mfaInputRef"
+              v-model="mfaCode"
+              class="mfa-ipt"
+              placeholder="6 位数字动态码"
+              inputmode="numeric"
+              maxlength="6"
+              autocomplete="one-time-code"
+              aria-label="6 位动态验证码"
+              :disabled="mfa.submitting"
+              @keyup.enter="handleMfaVerify"
+            />
           </div>
 
-          <div class="lg-meta">
-            <span class="lg-remember" @click="remember = !remember">
-              <span class="ck" :class="{ on: remember }"></span>记住此设备
-            </span>
-            <span class="lk" @click="onForgot">忘记密码？</span>
-          </div>
+          <!-- 错误提示：role=alert 保证读屏即时播报；文案来自 mfaErrorText 分类真源，绝不含敏感信息 -->
+          <p v-if="mfa.error" class="mfa-err" role="alert">{{ mfa.error }}</p>
+          <p v-else-if="mfa.attempts > 0" class="mfa-err is-cleared" role="status">上次校验未通过，请重试</p>
 
-          <el-button class="lg-btn" type="primary" :loading="loading" @click="handleLogin">登 录</el-button>
-        </el-form>
+          <el-button
+            class="lg-btn"
+            type="primary"
+            :loading="mfa.submitting"
+            :disabled="mfa.submitting"
+            @click="handleMfaVerify"
+          >验 证</el-button>
+          <el-button class="lg-btn is-back" text :disabled="mfa.submitting" @click="handleMfaBack">返回上一步</el-button>
 
-        <p class="small lg-tip">登录即代表同意《平台管理员安全协议》· 首次登录将强制修改初始密码</p>
+          <p class="small lg-tip">动态码 30 秒刷新一次 · 验证会话短暂有效，过期请返回重新登录</p>
+        </template>
       </div>
 
       <div class="lg-foot">© 2026 智享全链 · 京ICP备2026XXXXXX号 · 京公网安备 XXXXXXXXXXXXX号</div>
@@ -113,11 +154,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../../stores/auth'
-import { getCaptchaApi } from '../../api/auth'
+import {
+  getCaptchaApi,
+  initialMfaChallengeState,
+  mfaChallengeReduce,
+  type MfaChallengeAction,
+} from '../../api/auth'
 
 /* 装饰描边色：读设计令牌 --chart-1-soft，避免在组件内写死色值 */
 const decoStroke = getComputedStyle(document.documentElement).getPropertyValue('--chart-1-soft').trim()
@@ -127,6 +173,7 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const remember = ref(false)
 const formRef = ref()
+const mfaInputRef = ref()
 
 const form = reactive({ username: '', password: '', captcha: '', captchaId: '' })
 const rules = {
@@ -134,6 +181,17 @@ const rules = {
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   captcha: [{ required: true, message: '请输入图形验证码', trigger: 'blur' }],
 }
+
+/**
+ * MFA 挑战状态机（TOTAL-PLATFORM-MFA-CHALLENGE-UI-01）：
+ * 状态转换/防重复提交/错误文案全部走 api/auth.ts 的纯函数真源；
+ * mfaToken 仅存活于本组件内存（不落 localStorage），刷新即丢失 ⇒ 天然无半登录态。
+ */
+const mfa = reactive(initialMfaChallengeState())
+function mfaDispatch(action: MfaChallengeAction) {
+  Object.assign(mfa, mfaChallengeReduce({ ...mfa }, action))
+}
+const mfaCode = ref('')
 
 /**
  * 图形验证码（R101-S2-01 裁定 4.1）
@@ -161,7 +219,15 @@ async function handleLogin() {
   if (!valid) return
   loading.value = true
   try {
-    await authStore.login(form.username, form.password, form.captchaId, form.captcha)
+    const result = await authStore.login(form.username, form.password, form.captchaId, form.captcha)
+    if (result.mfaRequired && result.mfaToken) {
+      // 进入 MFA 第二步；凭据表单原样保留（返回不丢上下文）
+      mfaDispatch({ type: 'enter', mfaToken: result.mfaToken })
+      mfaCode.value = ''
+      await nextTick()
+      mfaInputRef.value?.focus?.()
+      return
+    }
     router.push('/')
   } catch {
     // 错误由请求拦截器统一提示
@@ -171,6 +237,30 @@ async function handleLogin() {
   } finally {
     loading.value = false
   }
+}
+
+/** MFA 第二步提交：mfaToken 换正式登录结果；失败保留挑战上下文可原地重试 */
+async function handleMfaVerify() {
+  mfaDispatch({ type: 'submit', code: mfaCode.value })
+  if (!mfa.submitting) return // 格式无效或已在提交中：reducer 拒绝，无请求发出
+  try {
+    await authStore.verifyMfa(mfa.mfaToken, mfaCode.value)
+    mfaDispatch({ type: 'success' })
+    router.push('/')
+  } catch (err) {
+    mfaDispatch({ type: 'fail', err })
+    mfaCode.value = ''
+    await nextTick()
+    mfaInputRef.value?.focus?.()
+  }
+}
+
+/** 返回第一步：丢弃挑战令牌与错误；凭据保留；图形验证码已被登录请求消耗，必须换新图 */
+function handleMfaBack() {
+  mfaDispatch({ type: 'back' })
+  mfaCode.value = ''
+  form.captcha = ''
+  void loadCaptcha()
 }
 
 function onForgot() {
@@ -378,6 +468,32 @@ function onForgot() {
 .lg-form-el :deep(.el-input__wrapper) {
   padding: var(--login-ipt-padding);
   font-size: var(--login-ipt-font);
+}
+
+/* MFA 第二步（TOTAL-PLATFORM-MFA-CHALLENGE-UI-01）：全部引用 design token，不写死字面值 */
+.mfa-ipt :deep(.el-input__wrapper) {
+  padding: var(--login-ipt-padding);
+  font-size: var(--login-ipt-font);
+  letter-spacing: var(--login-cap-tracking);
+}
+.mfa-err {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+.mfa-err.is-cleared {
+  color: var(--g5);
+}
+.lg-btn.is-back {
+  margin-top: var(--space-2);
+  background: none;
+  border: none;
+  color: var(--g5);
+  font-weight: var(--font-medium);
+}
+.lg-btn.is-back:hover {
+  color: var(--color-primary);
+  background: none;
 }
 
 @media (max-width: 768px) {

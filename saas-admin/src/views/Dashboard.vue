@@ -14,11 +14,8 @@
       </div>
     </div>
 
-    <!-- 大盘接口错误态：取不到指标时显式报错（不留静默空白，也不拿 0 冒充） -->
-    <div v-if="loadError" class="tipbar r mt8">
-      <span class="ic">!</span>
-      <span>{{ loadError }}</span>
-    </div>
+    <!-- 大盘接口反馈（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：loading/empty/timeout/offline/500/403/恢复 分类呈现 + 页面内重试 -->
+    <LoadFeedback :state="fb" empty-text="大盘暂无指标数据" @retry="onRetryLoad" />
 
     <!-- ② 六项核心指标（设计稿 .g6 > .kpi） -->
     <div class="g6">
@@ -241,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { Download } from '@element-plus/icons-vue'
@@ -255,6 +252,18 @@ import {
   listExportTasks,
 } from '../api'
 import { pickBackendMessage } from '../utils/http-error'
+import LoadFeedback from '../components/LoadFeedback.vue'
+import { initialLoadFeedbackState, loadFeedbackReduce, type LoadFeedbackAction } from '../api/feedback'
+
+/* 大盘反馈契约（TOTAL-PLATFORM-UI-FEEDBACK-POLISH-01）：分类错误态/防重复重试/保留旧数据/恢复清残留 */
+const fb = reactive(initialLoadFeedbackState())
+function fbDispatch(action: LoadFeedbackAction) {
+  Object.assign(fb, loadFeedbackReduce({ ...fb }, action))
+}
+function onRetryLoad() {
+  fbDispatch({ type: 'retry' })
+  if (fb.phase === 'loading') load()
+}
 
 /* ── 图表配色：一律读取 design token，避免在脚本里写死色值 ── */
 function token(name: string, fallback = ''): string {
@@ -721,20 +730,26 @@ function resizeAll() {
 }
 
 async function load() {
+  const hasOld = raw.value != null && Object.keys(raw.value).length > 0
+  fbDispatch({ type: 'begin' })
   loadError.value = ''
   try {
     const res: any = await getPlatformOverview()
     const data = res?.data?.data || res?.data || {}
     raw.value = data && typeof data === 'object' ? data : {}
     if (!raw.value || Object.keys(raw.value).length === 0) {
-      // 接口通了但没有任何字段 ⇒ 也按错误态显式提示（避免页面全 '--' 却看不出原因）
+      // 接口通了但没有任何字段 ⇒ 按业务失败进分类错误态（避免页面全 '--' 却看不出原因）
       loadError.value = '大盘接口未返回任何指标字段（可能后端版本不匹配），当前展示空态'
+      fbDispatch({ type: 'fail', err: new Error('大盘接口未返回任何指标字段'), hasStaleData: hasOld })
+    } else {
+      fbDispatch({ type: 'success', hasData: true })
     }
     updatedAt.value = raw.value?.updatedAt || ''
-  } catch {
-    // 失败可见：显式错误态 + 清空数据，不填充示例数据、不沿用旧值
-    raw.value = {}
+  } catch (e) {
+    // 刷新失败且有旧指标 ⇒ 保留旧数据（stale 横幅，明确「数据可能已过期」）；
+    // 首载失败 ⇒ 页面内分类错误态（超时/断网/500/403 各有文案）+ 重试。不填充示例数据。
     loadError.value = '大盘指标加载失败（未取到指标数据），当前展示空态'
+    fbDispatch({ type: 'fail', err: e, hasStaleData: hasOld })
   } finally {
     await nextTick()
     renderTrend()

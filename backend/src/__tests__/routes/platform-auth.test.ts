@@ -473,4 +473,168 @@ describe("routes/platform-auth 集成测试", () => {
       expect(off.body.data.mfaEnabled).toBe(false);
     });
   });
+
+  /**
+   * TOTAL-PLATFORM-MENU-ROLE-FILTER-01 —— /auth/me 与登录响应真实透出 role。
+   * role 是前端平台菜单收敛 / 路由 fail-closed 的唯一角色来源，
+   * 缺失时前端一律视为无权 ⇒ 后端必须返回真实值，旧行缺失必须显式回 null（fail-closed）。
+   */
+  describe("role 透出（TOTAL-PLATFORM-MENU-ROLE-FILTER-01）", () => {
+    async function mockPasswordOk() {
+      const bcrypt = await import("bcryptjs");
+      (bcrypt.default.compare as any).mockResolvedValue(true);
+    }
+
+    it("登录成功响应 admin.role 为库中真实角色", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "cja_support",
+        password_hash: "hash",
+        real_name: "平台支持",
+        role: "SUPPORT",
+      });
+      await mockPasswordOk();
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "cja_support", password: "right" });
+      expect(res.status).toBe(200);
+      expect(res.body.data.admin.role).toBe("SUPPORT");
+      // 登录 SQL 必须把 role 查出来（缺列降级会让前端拿到恒 null）
+      // 注：探测 mfa 列就绪的辅助查询也可能占用 queryOne mock，故这里
+      // 在全部调用里找 t_platform_admin 的 SELECT，断言其 SELECT 列含 role
+      const loginSql = (queryOne as any).mock.calls
+        .map((c: unknown[]) => String(c[0]))
+        .find((s: string) => s.includes("FROM t_platform_admin"));
+      expect(loginSql).toBeTruthy();
+      expect(loginSql).toMatch(/SELECT [^\s].*role.*FROM t_platform_admin/);
+    });
+
+    it("登录旧行 role 列缺失时回 null（不伪造角色）", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "legacy",
+        password_hash: "hash",
+        real_name: "旧账号",
+      });
+      await mockPasswordOk();
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "legacy", password: "right" });
+      expect(res.status).toBe(200);
+      expect(res.body.data.admin.role).toBeNull();
+    });
+
+    it("GET /me 返回库中真实角色", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "cja_super",
+        real_name: "超级管理员",
+        role: "PLATFORM_SUPER_ADMIN",
+      });
+      const res = await request(app).get("/api/platform-auth/me");
+      expect(res.status).toBe(200);
+      expect(res.body.data.role).toBe("PLATFORM_SUPER_ADMIN");
+    });
+
+    it("GET /me 旧行 role 列缺失时回 null（fail-closed）", async () => {
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "legacy",
+        real_name: "旧账号",
+      });
+      const res = await request(app).get("/api/platform-auth/me");
+      expect(res.status).toBe(200);
+      expect(res.body.data.role).toBeNull();
+    });
+  });
+
+  /**
+   * MENU-ROLE-FILTER-01-F1 —— MFA verify 成功响应的 admin.role 与非 MFA 登录、/me 完全同口径。
+   * 父卡遗留偏差：verifyMfaChallenge 签发登录结果不带 role ⇒ MFA 用户被前端 fail-closed。
+   * 红线：不为 MFA 缺失伪造成超管；旧行缺失显式回 null。
+   */
+  describe("MFA verify role 透出（MENU-ROLE-FILTER-01-F1）", () => {
+    const SECRET = generateSecret();
+
+    const mfaAdminRow = (over: Record<string, unknown> = {}) => ({
+      id: 2,
+      username: "cja_support_mfa",
+      password_hash: "hash",
+      real_name: "MFA客服",
+      role: "SUPPORT",
+      mfa_secret: SECRET,
+      mfa_enabled: 1,
+      ...over,
+    });
+
+    async function mockPasswordOk() {
+      const bcrypt = await import("bcryptjs");
+      (bcrypt.default.compare as any).mockResolvedValue(true);
+    }
+
+    async function loginReturnMfaToken(row: Record<string, unknown>) {
+      (queryOne as any).mockResolvedValue(row);
+      await mockPasswordOk();
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: String(row.username), password: "right" });
+      expect(res.status).toBe(200);
+      expect(res.body.data.mfaRequired).toBe(true);
+      return String(res.body.data.mfaToken);
+    }
+
+    it("F-M1 MFA verify 成功响应 admin.role 为库中真实角色（与非 MFA 登录同口径）", async () => {
+      const mfaToken = await loginReturnMfaToken(mfaAdminRow());
+      const res = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken, code: generateTOTP(SECRET) });
+      expect(res.status).toBe(200);
+      expect(res.body.data.admin.username).toBe("cja_support_mfa");
+      expect(res.body.data.admin.role).toBe("SUPPORT");
+    });
+
+    it("F-M2 MFA verify 的 admin.role 与 GET /me 完全一致（同库行两次请求同值）", async () => {
+      const mfaToken = await loginReturnMfaToken(mfaAdminRow());
+      const verify = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken, code: generateTOTP(SECRET) });
+      expect(verify.status).toBe(200);
+      // /me 走 PLATFORM_ADMIN_BASE_COLUMNS.me 的行形态
+      (queryOne as any).mockResolvedValue({
+        id: 2,
+        username: "cja_support_mfa",
+        real_name: "MFA客服",
+        role: "SUPPORT",
+      });
+      const me = await request(app).get("/api/platform-auth/me");
+      expect(me.status).toBe(200);
+      expect(me.body.data.role).toBe(verify.body.data.admin.role);
+      expect(me.body.data.role).toBe("SUPPORT");
+    });
+
+    it("F-M3 MFA 行 role 缺失（旧行）时回 null，不伪造成超管", async () => {
+      const mfaToken = await loginReturnMfaToken(
+        mfaAdminRow({ id: 3, username: "legacy_mfa", role: undefined }),
+      );
+      const res = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken, code: generateTOTP(SECRET) });
+      expect(res.status).toBe(200);
+      expect(res.body.data.admin.role).toBeNull();
+    });
+
+    it("F-M4 MFA 行查询 SQL 含 role 列（缺列则 role 恒 null 的静默偏差被锁定）", async () => {
+      const mfaToken = await loginReturnMfaToken(mfaAdminRow());
+      (queryOne as any).mockClear();
+      const res = await request(app)
+        .post("/api/platform-auth/mfa/verify")
+        .send({ mfaToken, code: generateTOTP(SECRET) });
+      expect(res.status).toBe(200);
+      const mfaSql = (queryOne as any).mock.calls
+        .map((c: unknown[]) => String(c[0]))
+        .find((s: string) => s.includes("FROM t_platform_admin") && s.includes("mfa_secret"));
+      expect(mfaSql).toBeTruthy();
+      expect(mfaSql).toMatch(/SELECT [^\s].*role.*mfa_secret.*FROM t_platform_admin/);
+    });
+  });
 });

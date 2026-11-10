@@ -15,6 +15,8 @@ interface PlatformAdminLoginRow {
   username: string;
   password_hash: string;
   real_name: string;
+  /** 粗粒度角色（TOTAL-PLATFORM-MENU-ROLE-FILTER-01 起真实透出） */
+  role: string;
   /** 迁移 196 未执行时该列不存在，缺列防御下按 undefined 处理（等价于未启用） */
   mfa_enabled?: number;
 }
@@ -24,6 +26,8 @@ interface PlatformAdminRow {
   id: number;
   username: string;
   real_name: string;
+  /** 粗粒度角色（TOTAL-PLATFORM-MENU-ROLE-FILTER-01 起真实透出） */
+  role: string;
   /** 迁移 196 未执行时该列不存在，缺列防御下按 undefined 处理（等价于未启用） */
   mfa_enabled?: number;
 }
@@ -54,10 +58,11 @@ type PlatformMfaColumnsState = "unknown" | "present" | "absent";
 let platformMfaColumnsState: PlatformMfaColumnsState = "unknown";
 let platformMfaColumnsWarned = false;
 
-/** t_platform_admin 上**必然存在**的列（不含 MFA 列，缺列时只用这些拼 SELECT，不用 SELECT *） */
+/** t_platform_admin 上**必然存在**的列（不含 MFA 列，缺列时只用这些拼 SELECT，不用 SELECT *）
+ *  role 列（TOTAL-PLATFORM-MENU-ROLE-FILTER-01）：粗粒度角色（080/081 种子），/me 与登录响应必须真实透出 */
 const PLATFORM_ADMIN_BASE_COLUMNS = {
-  login: "id, username, password_hash, real_name",
-  me: "id, username, real_name",
+  login: "id, username, password_hash, real_name, role",
+  me: "id, username, real_name, role",
 } as const;
 
 function markPlatformMfaColumnsAbsent(reason?: unknown): void {
@@ -178,7 +183,7 @@ export async function login(username: string, password: string) {
  * 根据已通过密码校验的平台管理员签发完整登录结果（登录 / MFA 二次验证共用）。
  * 注意：只接收 id/username/real_name，**不接触** mfa_secret。
  */
-export function issueLoginResult(admin: { id: number; username: string; real_name: string }) {
+export function issueLoginResult(admin: { id: number; username: string; real_name: string; role?: string }) {
   const token = signPlatformToken({
     id: admin.id,
     username: admin.username,
@@ -187,7 +192,8 @@ export function issueLoginResult(admin: { id: number; username: string; real_nam
   });
 
   // 下发 CSRF token，saas-admin 写操作需注入 x-csrf-token header（与 admin-web 保持一致）
-  return { token, admin: { id: admin.id, username: admin.username, realName: admin.real_name }, csrfToken: generateCsrfToken(admin.id) };
+  // role（TOTAL-PLATFORM-MENU-ROLE-FILTER-01）：登录响应与 /me 同口径真实透出粗粒度角色
+  return { token, admin: { id: admin.id, username: admin.username, realName: admin.real_name, role: admin.role ?? null }, csrfToken: generateCsrfToken(admin.id) };
 }
 
 export async function getMe(adminId: number) {
@@ -195,10 +201,12 @@ export async function getMe(adminId: number) {
   if (!admin) throw new AppError("管理员不存在", 404);
   // /me 接口同步下发 csrfToken，便于前端刷新页面后重新获取
   // mfaEnabled（S3-58-F1 R3）：只作为「总台侧引导开启 MFA」的提示位，默认不强制
+  // role（TOTAL-PLATFORM-MENU-ROLE-FILTER-01）：真实粗粒度角色，前端菜单收敛/守卫 fail-closed 的唯一角色来源
   return {
     id: admin.id,
     username: admin.username,
     realName: admin.real_name,
+    role: admin.role ?? null,
     mfaEnabled: Number(admin.mfa_enabled) === 1,
     csrfToken: generateCsrfToken(admin.id),
   };
