@@ -8,6 +8,11 @@ import {
   provisionTenantRbac,
   type SqlRunner,
 } from "./platform/tenant-rbac-provision.service";
+// TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：租户启停统一审计入口（唯一写入口，见该文件头注释）
+import {
+  recordTenantToggleAudit,
+  type TenantToggleAuditContext,
+} from "./admin/platform-audit-tenant-toggle.service";
 // S3-205（总清单第 26 项）：开通租户时首个管理员的口令哈希一律走 `shared/password.ts` 的唯一封装
 // （`v2$` + cost 12），禁止裸 `bcrypt.hash`（两种口径并存会让裸 bcrypt 校验对 `v2$` 哈希恒 false）。
 import { hashPassword } from "../shared/password";
@@ -217,11 +222,70 @@ export async function updateTenant(id: string, data: {
 }
 
 // ============ 启用/禁用租户 ============
-export async function toggleTenantStatus(id: string, status: TenantStatus): Promise<TenantStatus> {
-  const statusValue = toTenantStatusValue(status);
+/**
+ * TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01：租户启停的**活路径**统一入口（控制器
+ * POST /api/platform/tenants/:id/toggle → 本函数）。成功 / 业务失败
+ * （无效状态 400 / 未知租户 404）/ 重复提交四类结果全部经
+ * `recordTenantToggleAudit`（唯一审计写入口）留痕；RBAC 403 由中央守卫拒绝：
+ * PERMISSION_DENIED 安全行之外，F1 起守卫另经同一 `recordTenantToggleAudit`
+ * 落 TENANT_TOGGLE/REJECTED 行（failReason=rbac_denied(403)，同设施同表）。
+ *
+ * - 审计上下文 `auditCtx` 由控制器注入（操作者/来源/traceId）；缺省（直调兜底）按
+ *   system/traceId 自生成补齐 —— 生产入口（控制器）恒传，任何路径都不漏痕。
+ * - 审计写失败不阻断、不回滚已生效 toggle（统一入口内 catch + error 日志 + 计数）。
+ * - 响应契约不变：返回对外字符串口径 status；400/404 语义与文案同旧实现。
+ */
+export async function toggleTenantStatus(
+  id: string,
+  status: TenantStatus,
+  auditCtx?: TenantToggleAuditContext
+): Promise<TenantStatus> {
+  const ctx: TenantToggleAuditContext = auditCtx ?? {
+    operatorId: 0,
+    operatorName: "",
+    source: "system",
+    traceId: randomUUID(),
+  };
+
+  // API 契约（旧控制器前置校验同义）：仅接受字面 "ACTIVE"/"DISABLED"，其余一律 400
+  const statusValue = status === "ACTIVE" ? 1 : status === "DISABLED" ? 0 : null;
   if (statusValue === null) {
+    await recordTenantToggleAudit({
+      operatorId: ctx.operatorId,
+      operatorName: ctx.operatorName,
+      targetTenantId: id,
+      fromStatus: null,
+      toStatus: String(status ?? ""),
+      result: "FAILED",
+      failReason: "invalid_status(400)",
+      source: ctx.source,
+      traceId: ctx.traceId,
+      ip: ctx.ip,
+    });
     throw new AppError("无效的状态值", 400);
   }
+
+  // 留痕前置读：取目标租户名与 fromStatus（未知租户先行 404，语义与旧实现一致）
+  const before = await queryOne<{ tenantName: string | null; status: number | string | null }>(
+    "SELECT tenant_name AS tenantName, status FROM t_tenant WHERE id = ?",
+    [id]
+  );
+  if (!before) {
+    await recordTenantToggleAudit({
+      operatorId: ctx.operatorId,
+      operatorName: ctx.operatorName,
+      targetTenantId: id,
+      fromStatus: null,
+      toStatus: status,
+      result: "FAILED",
+      failReason: "tenant_not_found(404)",
+      source: ctx.source,
+      traceId: ctx.traceId,
+      ip: ctx.ip,
+    });
+    throw new AppError("租户不存在", 404);
+  }
+  const fromStatus = toTenantStatus(before.status);
 
   const raw = await query<{ affectedRows: number }>(
     "UPDATE t_tenant SET status = ? WHERE id = ?",
@@ -232,6 +296,44 @@ export async function toggleTenantStatus(id: string, status: TenantStatus): Prom
 
   // S3-65 教训：affectedRows=0 不得当成功返回，按「租户不存在」处理
   if (!result || Number(result.affectedRows || 0) === 0) {
+    // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：真实 MySQL 下「同状态重复 toggle」
+    // （SET status = 现值）affectedRows 同样为 0（mysql2 默认返回 changed rows，
+    // 未开 CLIENT_FOUND_ROWS），不得误判 404 —— 回读区分：行仍在且状态已等于
+    // 目标 ⇒ no-op 重复提交，按 SUCCESS + duplicate=true 口径返回（响应契约不变）；
+    // 行不在 ⇒ 真 404，FAILED 行 + 原语义抛错。
+    const afterZero = await queryOne<{ status: number | string | null }>(
+      "SELECT status FROM t_tenant WHERE id = ?",
+      [id]
+    );
+    if (afterZero && toTenantStatus(afterZero.status) === status) {
+      await recordTenantToggleAudit({
+        operatorId: ctx.operatorId,
+        operatorName: ctx.operatorName,
+        targetTenantId: id,
+        targetTenantName: before.tenantName ?? null,
+        fromStatus,
+        toStatus: status,
+        result: "SUCCESS",
+        duplicate: true,
+        source: ctx.source,
+        traceId: ctx.traceId,
+        ip: ctx.ip,
+      });
+      return status;
+    }
+    await recordTenantToggleAudit({
+      operatorId: ctx.operatorId,
+      operatorName: ctx.operatorName,
+      targetTenantId: id,
+      targetTenantName: before.tenantName ?? null,
+      fromStatus,
+      toStatus: status,
+      result: "FAILED",
+      failReason: "tenant_not_found(404)",
+      source: ctx.source,
+      traceId: ctx.traceId,
+      ip: ctx.ip,
+    });
     throw new AppError("租户不存在", 404);
   }
 
@@ -241,7 +343,36 @@ export async function toggleTenantStatus(id: string, status: TenantStatus): Prom
     [id]
   );
   if (!row) {
+    await recordTenantToggleAudit({
+      operatorId: ctx.operatorId,
+      operatorName: ctx.operatorName,
+      targetTenantId: id,
+      targetTenantName: before.tenantName ?? null,
+      fromStatus,
+      toStatus: null,
+      result: "FAILED",
+      failReason: "tenant_not_found(404)",
+      source: ctx.source,
+      traceId: ctx.traceId,
+      ip: ctx.ip,
+    });
     throw new AppError("租户不存在", 404);
   }
-  return toTenantStatus(row.status);
+  const toStatus = toTenantStatus(row.status);
+
+  // 成功留痕（含重复提交标记：目标状态与切换前一致 ⇒ no-op 重复提交，仍按成功口径返回）
+  await recordTenantToggleAudit({
+    operatorId: ctx.operatorId,
+    operatorName: ctx.operatorName,
+    targetTenantId: id,
+    targetTenantName: before.tenantName ?? null,
+    fromStatus,
+    toStatus,
+    result: "SUCCESS",
+    duplicate: fromStatus === toStatus,
+    source: ctx.source,
+    traceId: ctx.traceId,
+    ip: ctx.ip,
+  });
+  return toStatus;
 }

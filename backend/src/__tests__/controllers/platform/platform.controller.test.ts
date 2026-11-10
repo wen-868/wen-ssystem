@@ -116,15 +116,32 @@ describe("platform/platform.controller", () => {
       expect(ok).toHaveBeenCalled();
     });
 
-    it("updateTenant - 应更新租户", async () => {
+    it("updateTenant - 应更新租户（F1：构造 auditCtx 传入，operator 取 req.user，traceId 与响应一致）", async () => {
       (tenantAdminService.updatePlatformTenant as any).mockResolvedValue({ tenantId: "t1" });
-      const req = mockReq({ params: { tenantId: "t1" }, body: { tenantName: "更新租户" } });
+      const req = mockReq({
+        params: { tenantId: "t1" },
+        user: { id: 1, username: "root", realName: "超管" },
+        body: { tenantName: "更新租户" },
+      });
       const res = mockRes();
       await updateTenant(req as any, res as any, vi.fn());
-      expect(tenantAdminService.updatePlatformTenant).toHaveBeenCalledWith("t1", expect.objectContaining({
-        tenantName: "更新租户",
-      }));
+      expect(tenantAdminService.updatePlatformTenant).toHaveBeenCalledWith(
+        "t1",
+        expect.objectContaining({ tenantName: "更新租户" }),
+        expect.objectContaining({
+          operatorId: 1,
+          operatorName: "root",
+          source: "api",
+          ip: null,
+          traceId: expect.any(String),
+        })
+      );
       expect(ok).toHaveBeenCalled();
+      // traceId 与响应体一致（四方一致口径）
+      const ctx = (tenantAdminService.updatePlatformTenant as any).mock.calls[0][2];
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ traceId: ctx.traceId })
+      );
     });
   });
 

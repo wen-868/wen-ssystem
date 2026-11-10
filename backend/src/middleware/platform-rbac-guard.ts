@@ -37,7 +37,12 @@
  *   · 每次拒绝写 `t_platform_audit_log`（既有 insertPlatformAuditLog 设施，复用
  *     S3-193 的 PERMISSION_DENIED 口径）：action=PERMISSION_DENIED、module=权限域、
  *     detail 带 permKind / domain / method / path / reason / traceId；留痕失败只记
- *     warn 日志，不改变 403 响应（与 platform-rbac.ts 同口径）。
+ *     warn 日志，不改变 403 响应（与 platform-rbac.ts 同口径）；
+ *   · TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1：租户启停形请求（POST …/tenants/:id/toggle
+ *     或带 status 的 PUT …/tenants/:tenantId）被拒时，**另**经统一入口
+ *     recordTenantToggleAudit 追加一行 TENANT_TOGGLE/REJECTED
+ *     （failReason=rbac_denied(403)，operator/source/traceId/from/to 完整）——
+ *     PERMISSION_DENIED 安全行保留，两者不互相替代；403 路径不执行任何 UPDATE。
  *
  * ── 不削弱既有机制 ────────────────────────────────────────────────────────
  *   · 本守卫只**新增**拒绝面：S3-193 试点端点上的内联 requirePlatformPermission
@@ -50,6 +55,15 @@ import { queryOne } from "../shared/db";
 import { fail } from "../shared/response";
 import logger from "../shared/logger";
 import { insertPlatformAuditLog } from "../services/admin/platform-audit-log.service";
+// TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1（缺口①）：toggle 形请求被 RBAC 403 拒时，
+// 除 PERMISSION_DENIED 安全留痕外，还必须走 TENANT_TOGGLE 统一审计入口落一行
+// TENANT_TOGGLE/REJECTED（唯一写入口 recordTenantToggleAudit，不散写审计 SQL）。
+import {
+  recordTenantToggleAudit,
+  normalizeTenantToggleSource,
+} from "../services/admin/platform-audit-tenant-toggle.service";
+// fromStatus=当前状态 的口径与活路径同源（不复制映射：0/"0"/"DISABLED"⇒DISABLED，其余 ACTIVE）
+import { toTenantStatus } from "../services/platform-tenant.service";
 import { isPlatformSuperRole, normalizePlatformRoleCode } from "./platform-rbac";
 import type { AuthUser } from "./auth";
 
@@ -270,6 +284,10 @@ async function auditGuardDenied(
         permKind: "platform-guard",
         domain: decision.domain,
         reason: decision.reason,
+        // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01（最小接入点增量）：拒绝结果显式标 REJECTED，
+        // 与租户启停统一审计口径（SUCCESS/REJECTED/FAILED）对齐；仅 detail 增字段，
+        // 判定逻辑、403 响应契约、既有 action/module 口径零改动。
+        result: "REJECTED",
         roleCode: decision.roleCode ?? null,
         method: req.method ?? null,
         path: req.originalUrl ?? req.path ?? null,
@@ -280,6 +298,119 @@ async function auditGuardDenied(
     logger.warn(
       `[platform-rbac-guard] 拒绝留痕写入失败（不影响 403）：adminId=${user.id} ` +
         `domain=${decision.domain} err=${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+/**
+ * TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1（缺口①）：租户启停形请求识别。
+ *
+ * 设计决策（403 → TENANT_TOGGLE 统一入口的接线点选在守卫）：
+ *   · RBAC 守卫拒在路由前，控制器/service 均未到达 ⇒ 无法在路由层包装后补写
+ *     （守卫 403 直接短路响应）；本文件在卡面允许路径内，且拒绝语义（含
+ *     traceId 生成）就在守卫内，故接线点选在这里 —— 最小增量：只在**既有 403
+ *     拒绝分支**追加一次条件化审计调用，判定逻辑/放行路径/403 响应契约零改动；
+ *   · 识别按「方法 × 路径形态（× body.status）」而非逐端点枚举，与守卫既有
+ *     deny-by-default 风格一致：
+ *     - 活路径：POST /api/platform/tenants/:id/toggle（id = t_tenant.id）；
+ *     - legacy 写路径：PUT /api/platform/tenants/:tenantId 且 body.status 存在
+ *       （tenantId = t_tenant.tenant_id；无 status 的纯资料更新**不**算启停，
+ *       不得误记 TENANT_TOGGLE）；
+ *     - 其余路径一律 null（不产生 TENANT_TOGGLE 行，不影响其他域的 403 留痕）。
+ */
+interface TenantToggleShape {
+  /** 目标租户键值（路径段） */
+  tenantKey: string;
+  /** 目标租户键列：活路径按 id，legacy 按 tenant_id */
+  keyColumn: "id" | "tenant_id";
+  /** 请求目标状态（未给则为 null） */
+  toStatus: string | null;
+}
+
+export function matchTenantToggleRequest(
+  method: string | undefined,
+  url: string | undefined,
+  body: unknown
+): TenantToggleShape | null {
+  const pathname = String(url ?? "").split("?")[0];
+  const parseBodyStatus = (): string | null => {
+    const status = (body as { status?: unknown } | null | undefined)?.status;
+    return status === undefined || status === null ? null : String(status);
+  };
+  const toggleMatch = pathname.match(/^\/api\/platform\/tenants\/([^/]+)\/toggle$/);
+  if (method === "POST" && toggleMatch) {
+    return {
+      tenantKey: decodeURIComponent(toggleMatch[1]),
+      keyColumn: "id",
+      toStatus: parseBodyStatus(),
+    };
+  }
+  const legacyMatch = pathname.match(/^\/api\/platform\/tenants\/([^/]+)$/);
+  if (method === "PUT" && legacyMatch) {
+    const toStatus = parseBodyStatus();
+    if (toStatus !== null) {
+      return {
+        tenantKey: decodeURIComponent(legacyMatch[1]),
+        keyColumn: "tenant_id",
+        toStatus,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1（缺口①）：403 拒绝面的租户启停 REJECTED 留痕。
+ *
+ * 仅对 toggle 形请求生效；写行走统一入口 recordTenantToggleAudit（同一设施同一表）：
+ *   action=TENANT_TOGGLE / result=REJECTED / failReason=rbac_denied(403)，
+ *   operator 来自 req.user，source/traceId（与 403 响应体同值）/ip 完整；
+ *   fromStatus=当前状态 + targetTenantName **可用时**查库补齐（预读失败不阻断
+ *   403 与审计行落库，fromStatus 降级为 null）。全程不执行任何 UPDATE —— 守卫
+ *   本就先于路由，被拒请求不可能触达 service 的 UPDATE 分支。
+ * 韧性：任何异常只记 warn，不影响 403 响应（与 auditGuardDenied 同口径）。
+ */
+async function auditTenantToggleRejected(
+  req: { ip?: string; method?: string; originalUrl?: string; path?: string; body?: unknown },
+  user: AuthUser,
+  traceId: string
+): Promise<void> {
+  const shape = matchTenantToggleRequest(req.method, req.originalUrl ?? req.path, req.body);
+  if (!shape) return;
+  try {
+    // fromStatus/targetTenantName 可用时查库补齐（只读；失败降级 null，不影响 403）
+    let fromStatus: string | null = null;
+    let targetTenantName: string | null = null;
+    try {
+      const row = await queryOne<{ tenantName?: string | null; status: number | string | null }>(
+        `SELECT tenant_name AS tenantName, status FROM t_tenant WHERE ${shape.keyColumn} = ?`,
+        [shape.tenantKey]
+      );
+      if (row) {
+        targetTenantName = row.tenantName ?? null;
+        fromStatus = toTenantStatus(row.status);
+      }
+    } catch {
+      // 查库失败 ⇒ fromStatus/targetTenantName 置空，仍落 REJECTED 行（拒绝事实先行留痕）
+    }
+    await recordTenantToggleAudit({
+      operatorId: Number(user.id),
+      operatorName: String(user.username ?? user.realName ?? ""),
+      targetTenantId: shape.tenantKey,
+      targetTenantName,
+      fromStatus,
+      toStatus: shape.toStatus,
+      result: "REJECTED",
+      failReason: "rbac_denied(403)",
+      source: normalizeTenantToggleSource(req as Parameters<typeof normalizeTenantToggleSource>[0]),
+      traceId,
+      ip: req.ip ?? null,
+    });
+  } catch (error) {
+    logger.warn(
+      `[platform-rbac-guard] toggle REJECTED 留痕失败（不影响 403）：adminId=${user.id} ` +
+        `target=${shape.tenantKey} traceId=${traceId} ` +
+        `err=${error instanceof Error ? error.message : String(error)}`
     );
   }
 }
@@ -317,6 +448,9 @@ export function platformAccessGuard(): RequestHandler {
         );
         const body = fail(decision.message, "403");
         await auditGuardDenied(req, user, decision, String(body.traceId));
+        // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1（缺口①）：toggle 形请求追加
+        // TENANT_TOGGLE/REJECTED 统一入口留痕（PERMISSION_DENIED 安全行保留，不互相替代）
+        await auditTenantToggleRejected(req, user, String(body.traceId));
         res.status(403).json(body);
       })
       .catch((error) => {

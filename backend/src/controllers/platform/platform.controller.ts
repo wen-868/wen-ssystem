@@ -1,6 +1,10 @@
 import { z } from "zod";
+import { v4 as uuid } from "uuid";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
+// TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1（缺口②）：legacy 启停审计行操作者不得为 0/空 ——
+// updateTenant 必须从 req 构造 auditCtx 传入 service（来源归一与活路径同一真源）。
+import { normalizeTenantToggleSource } from "../../services/admin/platform-audit-tenant-toggle.service";
 import * as tenantAdminService from "../../services/platform/tenant-admin.service";
 import * as adminAccountService from "../../services/platform/admin-account.service";
 import * as overviewService from "../../services/platform/platform-overview.service";
@@ -60,8 +64,23 @@ export const updateTenant = asyncHandler(async (req, res) => {
     status: z.enum(["ACTIVE", "DISABLED", "EXPIRED"]).optional()
   }).parse(req.body);
 
-  const result = await tenantAdminService.updatePlatformTenant(tenantId, body);
-  res.json(ok(result));
+  // TOTAL-TENANT-TOGGLE-AUDIT-TRAIL-01-F1（缺口②）：真实控制器构造 auditCtx 传入 service，
+  // legacy 启停审计行 operatorId/operatorName 取真实平台账号，禁止再落 0/空 ——
+  //   · operator：req.user（id/username/realName，与平台认证中间件注入的 JWT 载荷同源）；
+  //   · source：x-platform-source 头 / body.source 归一（缺省 api），与活路径同一真源；
+  //   · traceId：控制器生成，并覆盖到响应体（traceId 四方一致：响应 ↔ 审计行）；
+  //   · ip：req.ip。
+  // 响应契约不变：仍为 ok(result) 的 {code:"0",msg,data,traceId}，仅 traceId 由
+  // 控制器定值（原先 ok() 内部自生成的 uuid 同形字段）。
+  const traceId = uuid();
+  const result = await tenantAdminService.updatePlatformTenant(tenantId, body, {
+    operatorId: req.user?.id ?? 0,
+    operatorName: String(req.user?.username ?? req.user?.realName ?? ""),
+    source: normalizeTenantToggleSource(req),
+    traceId,
+    ip: typeof req.ip === "string" ? req.ip : null,
+  });
+  res.json({ ...ok(result), traceId });
 });
 
 // ─── 平台管理员 ──────────────────────────────────────────────
