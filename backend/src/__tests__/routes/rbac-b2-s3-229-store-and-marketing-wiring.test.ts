@@ -1,10 +1,10 @@
 /**
  * S3-229 · **门店/租户域 + 营销域 W 类**权限接线验收测试（本批接 **17 条**）
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-229.md`｜授权模型：`docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`（不变量 I1 · D2）
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.7 / §三.4（域明细）＋ §十七（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-229.md`｜授权模型：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`（不变量 I1 · D2）
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.7 / §三.4（域明细）＋ §十七（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 gaps 378 条 / 113 文件）
- * 判定留档：`docs/evidence/S3-229/01-plan-and-judgements.md`｜调用面原始输出：`docs/evidence/S3-229/02-callers.txt`
+ * 判定留档：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-229/01-plan-and-judgements.md`｜调用面原始输出：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-229/02-callers.txt`
  *
  * 本文件要证明的七件事（对应派单卡 §三.1/§三.2/§三.3/§三.5）：
  *  a) 本批已接 **17 行**的**注册行级**形状断言（踩坑[134]：注释里的 `requirePermission(` 不算调用）；
@@ -157,7 +157,7 @@ interface Row {
 }
 
 /**
- * 本批已接名单（**17 行**，逐行判定见 `docs/evidence/S3-229/01-plan-and-judgements.md`）。
+ * 本批已接名单（**17 行**，逐行判定见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-229/01-plan-and-judgements.md`）。
  * 口径（派单卡 §二）：① 挂「该端点**真实使用者已持有**的模块码」（零回归）；
  * ② 使用者集合不可枚举 / 页面在用可见角色 ⊄ 码持有人 ⇒ 不接线（见 UNWIRED）；
  * ③ 本批**不新立权限码、不改角色种子、不动迁移**（3 个码均为既有码）。
@@ -215,10 +215,10 @@ interface UnwiredRow {
  *
  * ── 状态变更登记（2026-10-16 · S3-231 F1）────────────────────────────
  *  · **W 4 已结项**：会员等级配置 4 条（`points.routes.ts`）由 **S3-231 F1** 按凌舟裁定 1
- *    （`docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1）**改挂 `customer:level` 接线**，
+ *    （`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1）**改挂 `customer:level` 接线**，
  *    故本名单由 28 → **24**（W 桶清零；本条为**状态变更登记**，S3-229 的历史判定不改写）。
  *    已接线断言与零回归证据见 `backend/src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts`
- *    与 `docs/evidence/S3-231/F1/`。
+ *    与 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F1/`。
  */
 const UNWIRED: UnwiredRow[] = [
   // ---- G1 · B 类（8）----

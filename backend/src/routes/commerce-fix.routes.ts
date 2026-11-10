@@ -40,7 +40,7 @@ adminCommerceFixRouter.post("/bills/:id/void", requirePermission("sale:void"), a
 // 与 /api/store/hardware/callbacks/* 这两个声明为不鉴权的公开/回调端点在整机下被拦成 401）。
 // 改后 URL 不变：/api/store/coupons/verify-records。
 // S3-208：本文件是被 PR #297 注解命中的**另一个**注册点——注解行（30 行）落在**这一条**门店端路由上
-// （见证据 `docs/evidence/S3-208/README.md` §二：PR 时点 67f178e1 与 main 2fe8f109 的第 30 行内容都
+// （见证据 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-208/README.md` §二：PR 时点 67f178e1 与 main 2fe8f109 的第 30 行内容都
 // 是 `storeCommerceFixRouter.get("/verify-records", …)`）。它的鉴权不在注册行上，而由本文件末尾的
 // `routeConfigs`（`auth: "requireAuthWithTenant"`）按前缀级前置 ⇒ 同样按"已鉴权路由"接线。
 storeCommerceFixRouter.get("/verify-records", rateLimit(AUTHED_ROUTE_LIMIT), asyncHandler(ctrl.listCouponVerifyRecords));

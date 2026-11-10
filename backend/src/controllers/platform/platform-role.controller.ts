@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-role.service";
 /**
  * C6-2-T6：平台角色与权限点目录控制器（7 条端点，路径由派单卡钉死）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T6.md 交付物②
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T6.md 交付物②
  *   · GET    /api/platform/admins/roles            → { roles: [{ id, name, code, type, domainCount }] }
  *   · GET    /api/platform/permissions/catalog     → { modules: [{ moduleCode, moduleName, permissions: [...] }] }
  *   · POST   /api/platform/roles                   → { id }

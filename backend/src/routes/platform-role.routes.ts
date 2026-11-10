@@ -6,7 +6,7 @@ import * as controller from "../controllers/platform/platform-role.controller";
 /**
  * C6-2-T6：平台角色与权限点目录路由（7 条端点，路径由派单卡钉死，不得自拟/增减）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T6.md 交付物②
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T6.md 交付物②
  * 三段前缀（同一条路径字面要求的自然拆分，全部挂 requirePlatformAuth，与既有平台路由同风格）：
  *   · /api/platform/admins/roles          —— 角色列表（前端 AdminPermissions.vue:189 字面期望）
  *   · /api/platform/permissions/catalog   —— 权限点目录（前端 :202）

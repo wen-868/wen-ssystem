@@ -1,7 +1,7 @@
 /**
  * R101-C6-4-1 迁移形状约束：190（t_library_call_log）/ 191（t_tenant_library_copy）
  *
- * 依据：docs/tasks/cards/R101-派单-20261001-C6-4-1.md 三、硬口径①
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20261001-C6-4-1.md 三、硬口径①
  *   · CREATE TABLE IF NOT EXISTS + 文本列**显式** COLLATE utf8mb4_0900_ai_ci + 零预置 + 不建物理外键
  *   · 可执行语句顶格写在注释块之前（规避踩坑日志 [63]：以注释开头的整块语句会被 runner 丢弃）
  *   · 注释文字内不得出现 ASCII 分号（否则注释块会被 splitSqlStatements 切成两半）

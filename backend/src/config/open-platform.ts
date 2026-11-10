@@ -1,7 +1,7 @@
 /**
  * 开放平台常量（事件目录 / 投递常量）
  *
- * 依据：`docs/tasks/cards/R101-C3-0-凌舟裁定.md` §二.4（事件目录不在本批实现范围内，
+ * 依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-0-凌舟裁定.md` §二.4（事件目录不在本批实现范围内，
  *       但 `GET /api/platform/open/events` 需返回码表）+ C3-0 清账 C3-0-17。
  *
  * 口径说明（诚实边界）：

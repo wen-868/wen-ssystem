@@ -2,7 +2,7 @@
  * C6-2-T2（+ F1 修订单）：平台报表导出任务中心服务单测
  * （t_platform_export_task / t_platform_export_task_log，迁移 182）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T2.md 交付物②③、验收标准③④⑤⑥
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T2.md 交付物②③、验收标准③④⑤⑥
  *       + docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md（仅把端点路径改为前端字面契约
  *         /api/platform/reports/export，并登记 download 的权限点；服务逻辑与 SQL 断言一字未动）
  * 覆盖：

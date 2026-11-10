@@ -102,7 +102,7 @@ export class MiniappUploadService {
     const keyFileName = `${base}.key`;
     const metaFileName = `${base}.meta.json`;
     // 读写路径归一到「密钥根目录」内：path.resolve() + startsWith(目录 + path.sep) 是 CodeQL
-    // 已建模的净化形态（依据见 docs/evidence/S3-211/README.md 二、1）。本函数是 8 条告警
+    // 已建模的净化形态（依据见 projects/ms/archive/repo-docs-20261107/docs/evidence/S3-211/README.md 二、1）。本函数是 8 条告警
     // （uploadKey / getKeyStatus / readDecryptedKey 的落盘点）唯一的路径来源，故净化只写在这里。
     const keyDir = path.resolve(getKeyDir());
     const keyPath = path.resolve(path.join(keyDir, keyFileName));

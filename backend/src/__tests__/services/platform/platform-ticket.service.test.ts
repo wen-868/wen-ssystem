@@ -2,7 +2,7 @@
  * C6-2-T7：平台工单系统服务单测
  * （t_support_ticket / t_support_ticket_message / t_support_ticket_attachment / t_support_ticket_category）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②③⑤、验收标准②⑦⑧
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②③⑤、验收标准②⑦⑧
  * 覆盖：
  *   · 看板列表：空表诚实空态 / onlyMine 作用域 / status 精确筛选 / 分页（每组各自生效）/ summary 四态计数；
  *   · 详情：不存在 404 / 字段口径（含 description·resolvedAt·closedAt，**无 tenantName**）；

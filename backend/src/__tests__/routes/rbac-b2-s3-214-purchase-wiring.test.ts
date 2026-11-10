@@ -1,8 +1,8 @@
 /**
  * S3-214-B2 · **采购域**（9 路由文件 / 31 写端点）权限接线验收测试
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-214-B2.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.16（域明细）＋ §十一（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-214-B2.md`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.16（域明细）＋ §十一（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 616 条 / 151 文件）
  * 基线：`origin/main` = 本单开工时 `7beafd24`（见回执 §三）
  *
@@ -30,7 +30,7 @@
  *        业务层」）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入）、`storageGuard`（存储配额查询）。
  *
  * 反测（门禁铁律）：摘掉本批任一条 `requirePermission(...)` ⇒ 对应「READONLY ⇒ 403」用例必红；
- *   复原 ⇒ 绿（原始输出见 `docs/evidence/S3-214/` 下反测日志与回执 §五）。
+ *   复原 ⇒ 绿（原始输出见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-214/` 下反测日志与回执 §五）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";

@@ -1,7 +1,7 @@
 /**
  * S3-151 迁移 194 形状约束：条码唯一键由 (barcode) 全库唯一改为 (tenant_id, barcode) 租户内唯一
  *
- * 依据：docs/tasks/cards/R101-派单-20261002-S3-151.md 三、交付物①④ / 四、验收标准①②
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20261002-S3-151.md 三、交付物①④ / 四、验收标准①②
  *   · 必须有：前置查重 SELECT + 幂等守卫（information_schema.STATISTICS）+ 一条 ALTER 完成 DROP 旧键/ADD 新键
  *   · 必须零 DML（MIG-4 写闸门默认 block 下整篇可执行），不得 DROP TABLE，不得回填数据
  *   · 必须带 回滚语句（注释里，含回滚前查重口径）

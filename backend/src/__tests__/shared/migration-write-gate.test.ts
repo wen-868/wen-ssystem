@@ -10,8 +10,8 @@
  *
  * harness 说明：本文件复刻 `migration.test.ts` 的进程内 harness（mock fs / mysql2 / logger / env），
  * 用"假迁移文件"驱动真实的 `runMigrations()`，断言"哪些语句真的发给了数据库连接"。
- * 同源断言在 `docs/evidence/MIG-4/tools/mig4-gate-verify.mjs` 里以同样口径复跑（本环境 vitest 起不来，
- * esbuild spawn EPERM，见 `docs/evidence/MIG-4/outputs/03-vitest-blocked.txt`）。
+ * 同源断言在 `projects/ms/archive/repo-docs-20261107/docs/evidence/MIG-4/tools/mig4-gate-verify.mjs` 里以同样口径复跑（本环境 vitest 起不来，
+ * esbuild spawn EPERM，见 `projects/ms/archive/repo-docs-20261107/docs/evidence/MIG-4/outputs/03-vitest-blocked.txt`）。
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 

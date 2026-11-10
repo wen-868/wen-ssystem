@@ -22,7 +22,7 @@ pointsRouter.get("/levels/config", pointsController.listLevelConfigs);
 // `customer:level` 的域 = `customer` ⇒ `customer:*` 命中）；原来取保守侧的 `marketing:create` 于本页无据（跨域）。
 // 生产持 `customer:level` 的在用角色 = `STORE_MANAGER`（1 账号，持 `customer:*`）⇒ 零回归；
 // `SALES_STAFF` / `CUSTOMER_SERVICE` 持精确码 `customer:view` ⇒ 域通配不命中 ⇒ 该两角色被降级（只读）；
-// 影响面与"因缺码被关闭/降级的入口"逐条登记见 `docs/evidence/S3-231/F1/`。
+// 影响面与"因缺码被关闭/降级的入口"逐条登记见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F1/`。
 pointsRouter.post("/levels/config", requirePermission("customer:level"), pointsController.createLevelConfig);
 pointsRouter.put("/levels/config/:id", requirePermission("customer:level"), pointsController.updateLevelConfig);
 pointsRouter.put("/levels/config/:id/status", requirePermission("customer:level"), pointsController.updateLevelConfigStatus);

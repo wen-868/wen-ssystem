@@ -6,8 +6,8 @@ import { AppError } from "../../shared/app-error";
 /**
  * C6-2-T1：平台通知服务（t_platform_notification / t_platform_notification_read）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③、验收标准③⑤⑥
- *       + docs/tasks/cards/R101-C6-2-批2-立项卡-T1+T2+T3+T5.md §二 T1 行、§三 通用硬口径
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③、验收标准③⑤⑥
+ *       + projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-2-批2-立项卡-T1+T2+T3+T5.md §二 T1 行、§三 通用硬口径
  *
  * 口径（逐条可核对）：
  * - 平台级表（无租户语义）：用 query()/queryOne()，不走 queryWithTenant（不注入 tenant_id 条件）；

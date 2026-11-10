@@ -77,7 +77,7 @@ jobs:
         run: npm --workspace backend run lint
 
       # S3-176 B0c：账号 / 鉴权域两道门禁接进 CI（**阻断**步骤）。
-      #   背景（`docs/tasks/R101-账号权限域-统一收口计划.md` §七.2 实测）：
+      #   背景（`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-账号权限域-统一收口计划.md` §七.2 实测）：
       #   `backend/scripts/guard-route-auth.mjs`（G3）与 `backend/scripts/guard-tenant-status.mjs`（G2）
       #   原本**不在任何 workflow 里** ⇒ 这两道门禁**不阻断任何人**，纯摆设
       #   （G3 当时实测红 14 条，照样能合进 main）。
@@ -102,11 +102,11 @@ jobs:
       #   与运行时判据（`backend/src/shared/tenant-scope.ts`）同形、共读同一份语料
       #   （`backend/scripts/fixtures/tenant-scope-corpus.json`，本脚本 `--self-test` 每跑必检）。
       #   红线同 G2/G3：不用 `continue-on-error`、不吞退出码、单独一步（红在哪一道看得清）。
-      #   反测证据：离线夹具双侧反测 `docs/evidence/S3-207/raw/71-guard-reverse-test.txt`（4/4 PASS）
+      #   反测证据：离线夹具双侧反测 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-207/raw/71-guard-reverse-test.txt`（4/4 PASS）
       #   与源码侧反测 `raw/50-reverse-guard-red.txt` / `raw/52-restore-guard-green.txt`。
       # ✅ S3-210（2026-10-15）：观察期结束，恢复**阻断**。
       #    S3-207 那一轮 CI 报的 40 项已全部落地处置，逐条台账（规则 / 文件:行 / 判定 / 处置 / 证据）
-      #    见 `docs/evidence/S3-210/raw/06-ledger-40.txt`（由 tools/audit-40-items.mjs 机械生成、可复跑）：
+      #    见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-210/raw/06-ledger-40.txt`（由 tools/audit-40-items.mjs 机械生成、可复跑）：
       #      21 条阻塞 = 10 条补显式租户值谓词 + 7 条平台显式标记 + 4 条单表登记；
       #      19 条未登记插值 = 17 条登记表登记 + 2 条随"补谓词 / 加标记"消解。
       #    按 S3-207 卡面"清完必须改回阻断（不得长期观察）"，本步骤移除 `continue-on-error`。
@@ -120,10 +120,10 @@ jobs:
 
       - name: Evidence secrets guard (第 70 项, blocking)
         # 判据：证据/脚本**不得把「敏感键的值」写进日志或证据**（第 69 项的根因治理 ⇒ 收口总清单第 70 项）。
-        #   来源：`docs/tasks/cards/R101-S3-217-第69项-证据脚本凭据家族-凌舟处置.md`（真问题已收口）
-        #   + `docs/tasks/inbox/ACTIVE-S3-218.md`（守卫卡）；凌舟接线（2026-10-16）。
+        #   来源：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-217-第69项-证据脚本凭据家族-凌舟处置.md`（真问题已收口）
+        #   + `projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-218.md`（守卫卡）；凌舟接线（2026-10-16）。
         # 零依赖、可独立复跑：node backend/scripts/guard-evidence-secrets.mjs [--json] [--root <dir>]
-        # 反测证据：docs/evidence/S3-218/ —— 绿侧 0 命中(EXIT=0) / 红侧注入两行即 EXIT=1 并点名文件:行 /
+        # 反测证据：projects/ms/archive/repo-docs-20261107/docs/evidence/S3-218/ —— 绿侧 0 命中(EXIT=0) / 红侧注入两行即 EXIT=1 并点名文件:行 /
         #   allowlist 两侧（登记即豁免、登记错行只 warn）/ 全仓 159 个脚本 0 命中（含历史快照目录）。
         run: node backend/scripts/guard-evidence-secrets.mjs
 
@@ -133,8 +133,8 @@ jobs:
         #   消费者端保护形态须登记在 `consumerEnd`；已裁定的查询型 POST 登记在脚本的 `READ_ONLY_POSTS`。
         # 为什么接 CI：B2 批次期间"接线了但没登记 / 登记了但源码回退"这类漂移只能靠这条门禁在**合并前**拦住
         #   （`--strict` 只认「未登记」与「陈旧登记」，0/0 才 EXIT=0）。
-        # 来源：`docs/tasks/cards/R101-S3-227-阿坚-回传.md` 待裁定④（凌舟裁定＝接为阻断步骤，2026-10-16）。
-        # 反测：见 `docs/evidence/S3-224/`~`docs/evidence/S3-227/`（多批"摘中间件 ⇒ EXIT=1 并点名端点 ⇒ 复原 EXIT=0"）。
+        # 来源：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-227-阿坚-回传.md` 待裁定④（凌舟裁定＝接为阻断步骤，2026-10-16）。
+        # 反测：见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-224/`~`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-227/`（多批"摘中间件 ⇒ EXIT=1 并点名端点 ⇒ 复原 EXIT=0"）。
         run: node backend/scripts/guard-rbac-wiring.mjs --strict
 
       - name: Migration manifest guard (第 74 项, blocking)
@@ -146,7 +146,7 @@ jobs:
         # 为什么接 CI（2026-10-16）：新增 `206_角色权限回补.sql` 时漏改该常量 ⇒ main 的 build-and-test
         #   连红 3 次（`38922663917` / `38925126923` / `38927967575`），而当时**没有任何门禁**发现这一漏改
         #   ⇒ 判据⑥ 把这半年才暴露一次的"漏同步"变成合并前必红。
-        # 反测：`docs/evidence/S3-234/`（红绿两侧 × 7 例）+ 本次判据⑥ 反测（常量改 205 ⇒ EXIT=1 并点名；复原 ⇒ 0）。
+        # 反测：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-234/`（红绿两侧 × 7 例）+ 本次判据⑥ 反测（常量改 205 ⇒ EXIT=1 并点名；复原 ⇒ 0）。
         run: node backend/scripts/guard-migration-manifest.mjs
 
       - name: Backend coverage gate (baseline 2026-08-15)

@@ -7,7 +7,7 @@
  * 本文件把这两点按**已在 main 的反引号形态**（MIG-2）钉死：全套模式统一支持反引号与裸名。
  *
  * 反引号（MIG-2）的存留断言在 `migration.test.ts` 的 `MIG-2:` 段（未改动，覆盖不得减少），
- * 本文件只补 REFERENCES / INTO 两类，并在 docs/evidence/MIG-5/tools/mig5-verify.mjs 里以同源断言复跑
+ * 本文件只补 REFERENCES / INTO 两类，并在 projects/ms/archive/repo-docs-20261107/docs/evidence/MIG-5/tools/mig5-verify.mjs 里以同源断言复跑
  * （含"把同族收口回退 ⇒ 本文件反测位变红"）。
  */
 import { describe, it, expect, vi } from "vitest";

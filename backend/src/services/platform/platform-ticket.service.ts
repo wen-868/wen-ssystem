@@ -8,7 +8,7 @@ import { AppError } from "../../shared/app-error";
  * t_support_ticket_attachment / t_support_ticket_category）
  *
  * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T7.md（交付物②③④、验收标准②⑤⑦⑧）
- *       + docs/tasks/cards/R101-C6-2-批1-立项卡-T6+T7.md §四（状态机、会话语义）、§五（SLA/报表口径未定）
+ *       + projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-2-批1-立项卡-T6+T7.md §四（状态机、会话语义）、§五（SLA/报表口径未定）
  *
  * 口径（逐条可核对）：
  * - 平台级表（除工单主表的 tenant_id 表示"工单归属租户"外，均无租户过滤语义）：用 query()/queryOne()，

@@ -7,7 +7,7 @@
  *   本批为四域各建一个 per-域常量文件，再由 `batch2-permission-codes.ts` 汇总（断言只认汇总文件）。
  *
  * 二、码表来源（**照抄，禁止自拟**）
- *   `docs/tasks/R101-待立码清单-五域.md` §二 —— 模块码取 079 既有模块码 `dashboard`（工作台）；`wb-notifications` 3 条自服务不立码（与 `/api/admin/notifications/*` 不是同一组端点，勿混一码）
+ *   `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-待立码清单-五域.md` §二 —— 模块码取 079 既有模块码 `dashboard`（工作台）；`wb-notifications` 3 条自服务不立码（与 `/api/admin/notifications/*` 不是同一组端点，勿混一码）
  *
  * 三、本批**不接任何业务路由**（`backend/src/routes/**` 零改动）：只立码本身，
  *   即「目录 + 迁移 207 + 断言 + 前端入口登记」；接线留给后续批次。
@@ -17,7 +17,7 @@
  */
 import { defineBatch2Entry, type Batch2PermissionEntry } from "./batch2-entry";
 
-/** 工作台 / 待办消息域（S3-236 · 8 码） —— 码表来源：`docs/tasks/R101-待立码清单-五域.md` §二 */
+/** 工作台 / 待办消息域（S3-236 · 8 码） —— 码表来源：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-待立码清单-五域.md` §二 */
 export const DASHBOARD_PERMISSION_CATALOG: ReadonlyArray<Batch2PermissionEntry> = [
   defineBatch2Entry({
     code: "dashboard:todo:create",

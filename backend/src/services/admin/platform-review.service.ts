@@ -10,7 +10,7 @@ import { query, queryOne } from "../../shared/db";
  * 注意：本表是**平台级表**（既无 tenant_id，也无 platform_name / platform_no /
  * review_type / status / review_result / review_at）⇒ 不得对它做租户注入
  * （queryWithTenant / queryOneWithTenant），也不得引用上述不存在的列。
- * 同族判例：docs/踩坑日志.md [35]（平台级端点错挂租户鉴权/数据源）。
+ * 同族判例：projects/ms/archive/repo-docs-20261107/docs/踩坑日志.md [35]（平台级端点错挂租户鉴权/数据源）。
  */
 interface PlatformReviewRow {
   id: number | string;

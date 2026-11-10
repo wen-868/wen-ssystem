@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-agent.service";
 /**
  * R101-C6-3-3：平台代理商**档案**控制器（5 条端点，路径由派单卡钉死，不得自拟）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-3.md §四
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-3.md §四
  *   · GET  /api/platform/agents             → { items, total, page, pageSize }（分页 + 关键词）
  *   · POST /api/platform/agents             → 新建档案（重复 agentCode ⇒ 409；未知 levelId ⇒ 400）
  *   · GET  /api/platform/agents/:id         → 详情（未知 id ⇒ 404）  ← 卡 §二"详情"字面要求

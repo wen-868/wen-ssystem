@@ -6,7 +6,7 @@ import * as service from "../../services/platform/platform-ticket.service";
 /**
  * C6-2-T7：平台工单系统控制器（10 条端点，路径由派单卡钉死）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②③
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②③
  *   · GET  /api/platform/support/tickets                    → { groups, summary }        ← ticket:view（看板）
  *   · GET  /api/platform/support/tickets/:id                → 工单详情（不存在 404）      ← ticket:view
  *   · GET  /api/platform/support/tickets/:id/timeline        → { items }（平台视角）       ← ticket:view

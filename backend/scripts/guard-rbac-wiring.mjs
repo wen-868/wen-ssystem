@@ -6,7 +6,7 @@
  *    接 CI 的前置条件（二选一，缺一不可）：
  *      ① 缺口清零（REGISTERED_GAPS 为空且扫描 0 条「无权限检查」）；或
  *      ② 逐条登记完毕（每一处缺口都在下方 REGISTERED_GAPS 里逐条留痕，
- *         并能在 `docs/tasks/R101-RBAC接线缺口清单.md` 找到「该不该要权限 / 建议权限码」的判定）。
+ *         并能在 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` 找到「该不该要权限 / 建议权限码」的判定）。
  *    在此之前 **禁止**把本脚本接进 CI：一个恒绿或恒红的门禁都是假门禁（项目已有三次教训）。
  *
  * 防的是什么（根因）：`requirePermission` 是租户端 RBAC 的唯一入口
@@ -50,14 +50,14 @@
  *     因此提供**显式登记表** `READ_ONLY_POSTS`（路径 + 理由 + 归属单）：命中者**不计入 `gaps`**、但**逐条打印**。
  *     ⚠️ 判据本身没有任何"自动判断改不改数据"的能力（静态扫描不可能判断业务语义）⇒ 本表是**人工裁定清单**，
  *     三道闸门防止它变成"登记即洗绿"：① 每条必须给 `reason` + `ruling`（归属单 + 裁定依据）+ `batch`；
- *     ② 每条路径必须能在**人读台账** `docs/tasks/R101-RBAC接线缺口清单.md` 里找到**同一行含「查询型」**的判定
+ *     ② 每条路径必须能在**人读台账** `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` 里找到**同一行含「查询型」**的判定
  *     （把登记锚在人工裁定上，脚本里单方面写一行**不生效**）；③ 缺任一 ⇒ 该条**不作为可登记项**（端点回落到
  *     `gaps`，`--strict` 随即因"未登记"判红）——即"拒绝登记"是自动后果，不靠人自觉。
  *   · 注释行 / import 行不算（踩坑[134]：注释里的 `requirePermission(` 不是调用）。
  *
  * 已知边界（写在明处，不藏着）：
  *   · 只看「有没有挂 `requirePermission`」，**不判断权限码选得对不对**（码的合理性由
- *     `docs/tasks/R101-RBAC接线缺口清单.md` 逐条判定 + 人工复核）；
+ *     `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` 逐条判定 + 人工复核）；
  *   · 自定义包装中间件（如 `requireStoreAuth` / `requireWxAuth`）内部的挂载看不穿（同 guard-route-auth）；
  *   · 多 routeConfig 文件按「离 `router: X` 最近的 `prefix: "..."`」配对；配不上时前缀记为 `?`
  *     并在输出里显式标出（不静默猜）。
@@ -75,7 +75,7 @@
  *                                                       （仓库角色种子 × 真实 `matchPermission` 语义复算；
  *                                                        用于接线前核对「持有者 ⊇ 页面角色」）
  *
- * 反测（2026-10-13，两侧原始输出见 `docs/tasks/cards/R101-S3-180-阿坚-回传.md`）：
+ * 反测（2026-10-13，两侧原始输出见 `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-180-阿坚-回传.md`）：
  *   A 分辨力：对既有**已知无权限**端点（如 `admin-report.routes.ts` 的 POST /collection-links/:linkNo/revoke）
  *     必须报「无权限检查」——证明它不是恒绿摆设；
  *   B `--strict` 两侧：摘掉试点域（报表域）任一新增的 `requirePermission` ⇒ exit 1 并点出该端点；
@@ -156,11 +156,11 @@ const DECLARATIVE_CONSUMER_AUTHS = (() => {
 
 /**
  * 已登记缺口台账（**逐条登记**）＝ 同目录 `rbac-wiring-baseline.json`（机读镜像；
- * 人读判定在 `docs/tasks/R101-RBAC接线缺口清单.md`；键 = 文件，值 = `["METHOD 完整路径", ...]`）。
+ * 人读判定在 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md`；键 = 文件，值 = `["METHOD 完整路径", ...]`）。
  *
  * ① 空台账 = 「缺口清零」，那是接 CI 的硬条件之一；
  * ② 当前非空（既有欠账，见 S3-180 卡 §一，**非本单引入**），每一条的
- *    「该不该要权限 / 建议权限码」判定在 `docs/tasks/R101-RBAC接线缺口清单.md`；
+ *    「该不该要权限 / 建议权限码」判定在 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md`；
  * ③ **登记 ≠ 合规**：登记只表示「已被盘点、待后续批次接线」，不表示这些端点安全；
  * ④ 台账只对 `--strict` 生效；报告模式永远 exit 0；
  * ⑤ 台账不得用于「让新增缺口变绿」：新加的裸写端点不在台账里 ⇒ `--strict` 必红；
@@ -194,7 +194,7 @@ if (existsSync(BASELINE_PATH)) {
  * ── S3-227 C：查询型 POST（不改数据）的显式登记表 ──────────────────────────────
  *
  * 只登记**已裁定**的查询型端点（判据与三道闸门见文件头「查询型 POST」一节）。**新增一条 = 改裁定面**，
- * 必须同时：① 在人读台账 `docs/tasks/R101-RBAC接线缺口清单.md` 写出含「查询型」的判定行（同一行含该路径）；
+ * 必须同时：① 在人读台账 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` 写出含「查询型」的判定行（同一行含该路径）；
  * ② 在本表逐条写明 reason / ruling / batch。缺任一 ⇒ 该条被拒（端点回落 gaps，`--strict` 判红）。
  */
 const LEDGER_PATH = resolve(HERE, "..", "..", "docs", "tasks", "R101-RBAC接线缺口清单.md");
@@ -206,7 +206,7 @@ const READ_ONLY_POSTS = [
     reason:
       "价格试算（只读查询）：输入取价条件、返回试算结果，不落库；全仓无页面调用点（api/sale.ts:111 calcBestPrice 未被使用）",
     ruling:
-      "docs/tasks/R101-RBAC接线缺口清单.md §十二.6 P 类 #1（`rbac-g0-wiring.test.ts` 已锁为「查询型 POST（待裁定）」）；本单处置=不接",
+      "projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md §十二.6 P 类 #1（`rbac-g0-wiring.test.ts` 已锁为「查询型 POST（待裁定）」）；本单处置=不接",
   },
   {
     path: "/api/admin/quote-push/preview",
@@ -299,7 +299,7 @@ const READ_ONLY = buildReadOnlyIndex(READ_ONLY_POSTS);
  *   · `docs/ops/S3-122-F4-finance-daily-settle.sql`（两角色 ← finance:daily-settle）
  *   · STORE_MANAGER 的 `goods:price` 取自 `backend/src/__tests__/routes/rbac-g1-wiring.test.ts`（生产实值 9009）
  * ⚠️ 边界：生产库另有仓库种子里没有的角色（`STORE_ADMIN` / `SALESMAN` 等，见
- *   `docs/tasks/cards/R101-S3-136-F1-生产矩阵基线.md` §二）⇒ 本表**不是**生产真值。
+ *   `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-136-F1-生产矩阵基线.md` §二）⇒ 本表**不是**生产真值。
  *   接线前的最终持有核对须由凌舟在服务器执行等价 SQL：
  *   `SELECT role_code, permissions FROM t_sys_role WHERE tenant_id='default' ORDER BY id;`
  */
@@ -785,7 +785,7 @@ if (STRICT && (unregistered.length > 0 || unregisteredConsumer.length > 0)) {
     `\n❌ [--strict] 存在 ${unregistered.length} 处**未登记**的无授权写端点` +
       ` ＋ ${unregisteredConsumer.length} 处**未登记**的消费者端保护形态 ⇒ exit 1` +
       `（前者确为既有欠账者登记进 \`gaps\`；后者登记进 \`consumerEnd\`；` +
-      `两类都须在 docs/tasks/R101-RBAC接线缺口清单.md 写明判定）`
+      `两类都须在 projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md 写明判定）`
   );
   process.exit(1);
 }

@@ -9,7 +9,7 @@ set -euo pipefail
 # 说明：
 #   - 回滚对象为远端 main 历史（git fetch 后 checkout），不依赖本地残留
 #   - 构建产物直接覆盖 /var/www/* 各站点目录，pm2 重启后端
-#   - 数据库迁移不回退（数据安全优先），如需回退请按 docs/数据库变更清单.md 手工执行反向 SQL
+#   - 数据库迁移不回退（数据安全优先），如需回退请按 projects/ms/archive/repo-docs-20261107/docs/数据库变更清单.md 手工执行反向 SQL
 # ============================================================
 
 PROJECT_DIR="/opt/zhixiang/liquor-inventory-system"

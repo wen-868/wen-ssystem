@@ -1,7 +1,7 @@
 /**
  * R101-C6-3-1：平台数据字典（t_platform_dict + t_platform_dict_item）
  *
- * 依据：docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 B①②、验收标准③
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 B①②、验收标准③
  *       + docs/migrations/185_平台数据字典.sql（表结构与零预置口径的唯一真相源）
  *
  * 口径（与卡逐条对齐）：

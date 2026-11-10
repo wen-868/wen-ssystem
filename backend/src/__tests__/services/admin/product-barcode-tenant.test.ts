@@ -1,7 +1,7 @@
 /**
  * S3-151 条码撞键语义统一（单位：admin/product.service）
  *
- * 口径（docs/tasks/cards/R101-派单-20261002-S3-151.md 二、范围 / 四、验收标准）：
+ * 口径（projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20261002-S3-151.md 二、范围 / 四、验收标准）：
  *   · 建品撞条码 ⇒ 业务错误 **400 + 中文文案**（修复前无 try/catch，直接落 500）
  *   · 批量导入撞条码 ⇒ 逐行 errors[] 为**中文业务文案**，不得回库报错原文（`Duplicate entry … for key …`）
  *   · 改条码 updateSkuBarcode 维持既有 400（本文件不改它，仅在旁证口径一致）

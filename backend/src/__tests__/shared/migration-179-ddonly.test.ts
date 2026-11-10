@@ -1,7 +1,7 @@
 /**
  * C6-2-T6-F2 防回归：迁移 179 必须保持"纯 DDL"——文件里不得出现任何数据写语句。
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T6-F2.md
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T6-F2.md
  *   - 交付物①：迁移 179 回归纯 DDL（删除预置 INSERT），只留 3 条 CREATE TABLE + 3 条跑后核对 SELECT；
  *   - 交付物③：新增防回归断言——读该迁移文件，断言不含任何 INSERT/UPDATE/DELETE/REPLACE 语句；
  *   - §四.8：必须用**与 runner 同源**的 `splitSqlStatements` / `isDataWriteStatement` 判定，

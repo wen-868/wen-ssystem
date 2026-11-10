@@ -1,8 +1,8 @@
 /**
  * S3-125 · G2（灰度第三档）权限接线验收测试
  *
- * 派单卡：docs/tasks/cards/R101-派单-20260926-S3-125.md
- * 审计表：docs/tasks/cards/R101-S3-125-阿坚-Audit.md
+ * 派单卡：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-S3-125.md
+ * 审计表：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-125-阿坚-Audit.md
  *
  * 本文件要证明的五件事（对应派单卡「验收标准（硬）」①③④⑤⑥）：
  *  a) 12 行候选 = 可接 1 行 + 待裁 11 行（等式自证）；

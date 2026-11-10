@@ -48,7 +48,7 @@ adminProductRouter.get("/products/:spuId(\\d+)", productController.getProductDet
 adminProductRouter.post("/products", requirePermission(PERM_GOODS_CREATE), productController.createProduct);
 // S3-220（商品域接线 · B2 批 3）：以下 3 行按派单卡 §二 接线，挂**既有**码 `goods:edit`
 // （`docs/migrations/079_权限矩阵.sql:202`）。逐条「真实使用者 ⊇ 码持有者」核对与
-// 「其余 42 行为何不接」见 `docs/tasks/cards/R101-S3-220-阿坚-回传.md` 与缺口清单 §十二。
+// 「其余 42 行为何不接」见 `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-220-阿坚-回传.md` 与缺口清单 §十二。
 adminProductRouter.put("/products/:id/status", requirePermission("goods:edit"), productController.updateProductStatus);
 // S3-233（B 类收编第一批 · 商品域）：以下 8 行按 permission-gates.ts 的两道门收编 ——
 //   · `goods-detail-edit`（商品详情页底栏「修改/保存」按钮，门码 = goods:edit|price|create|delete 四码全持）

@@ -3,7 +3,7 @@ import { query, queryOne } from "../../shared/db";
 /**
  * C2-0 实现段：公告模板清单（t_platform_config，config_key='announcement:templates'）
  *
- * 依据：docs/tasks/cards/R101-C2-0-凌舟裁定.md §二（草案 5 采纳推荐方案：0 DDL，复用 KV 表）。
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C2-0-凌舟裁定.md §二（草案 5 采纳推荐方案：0 DDL，复用 KV 表）。
  * 落库约定（与 R97-01 平台系统设置、S2-02 套餐策略包同表同模式）：
  *   t_platform_config
  *     platform   = 'SAAS'

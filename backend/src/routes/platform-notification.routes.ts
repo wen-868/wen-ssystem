@@ -6,7 +6,7 @@ import * as controller from "../controllers/platform/platform-notification.contr
 /**
  * C6-2-T1：平台通知路由（3 条端点，路径由派单卡钉死，不得自拟/增减）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③
  * 单一前缀 /api/platform/notifications，auth = requirePlatformAuth（与既有平台路由同风格）。
  *
  * 注册顺序（卡内要求「字面量先于参数」）：字面量端点 `POST /read-all` 排在 `POST /:id/read` 之前。

@@ -1,7 +1,7 @@
 /**
  * R101-C6-3-3：平台代理商**层级权益配置**（t_agent_level，迁移 187）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-3.md §三②（逐列口径）、§四（端点与校验口径）
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-3.md §三②（逐列口径）、§四（端点与校验口径）
  *
  * 口径（与卡逐条对齐）：
  * - 平台级表（**无 tenant_id**）：用 query()/queryOne()，不走 queryWithTenant；

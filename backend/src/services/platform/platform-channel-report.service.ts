@@ -1,7 +1,7 @@
 /**
  * R101-C6-3-2b：渠道效果报表（**按归因维度聚合**，读侧只读）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-2b.md §四（路径逐字：GET /api/platform/channel-reports/effect）
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-2b.md §四（路径逐字：GET /api/platform/channel-reports/effect）
  *       卡内要求「**口径与过滤条件必须写进响应或文档说明**」⇒ 本服务把口径（basis）与
  *       本次实际生效的过滤条件（filters）**随响应一起返回**，前端不再自行解释口径。
  *

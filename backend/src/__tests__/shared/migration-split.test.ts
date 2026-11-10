@@ -19,7 +19,7 @@
  *   使"读不到真文件 / runner 没读 006"时**必红**，不允许零命中空转通过（踩坑[103]）。
  *
  * 本环境 vitest 起不来（esbuild spawn EPERM，见 docs/evidence/MIG-5/outputs/03-vitest-blocked.txt），
- * 同源断言在 docs/evidence/MIG-5/tools/mig5-verify.mjs 里以同样口径复跑（含"回退 ⇒ 变红"反测）；
+ * 同源断言在 projects/ms/archive/repo-docs-20261107/docs/evidence/MIG-5/tools/mig5-verify.mjs 里以同样口径复跑（含"回退 ⇒ 变红"反测）；
  * 本文件"原样执行"的复跑证据见 docs/evidence/MIG-5b/（含"旧口径 ⇒ 2 条红"与"回退 ⇒ 变红"原始输出）。
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";

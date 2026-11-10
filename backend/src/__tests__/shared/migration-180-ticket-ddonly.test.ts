@@ -1,7 +1,7 @@
 /**
  * C6-2-T7 防回归：迁移 180（平台工单系统四表）必须保持"纯 DDL + 口径逐字对齐"。
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T7.md
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T7.md
  *   - 交付物①（四表逐列口径、引擎/collation、零预置数据、不建外键）；
  *   - 验收标准④（utf8mb4_0900_ai_ci 逐条命中 / utf8mb4_unicode_ci 与 tenant_id VARCHAR(32) 零命中 /
  *     tenant_id VARCHAR(36) 命中）；

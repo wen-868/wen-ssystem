@@ -257,7 +257,7 @@ function payloadOf(res: any): any {
   return res
 }
 /**
- * 兼容读取字段：C5-1 的 JSON 字段名尚未冻结进 docs/API接口文档.md ⇒ 同时接受 camelCase / snake_case，
+ * 兼容读取字段：C5-1 的 JSON 字段名尚未冻结进 projects/ms/archive/repo-docs-20261107/docs/API接口文档.md ⇒ 同时接受 camelCase / snake_case，
  * 取不到返回 null（渲染为「—」），绝不造值（零假数据）。
  */
 function pick(row: any, keys: string[]): any {

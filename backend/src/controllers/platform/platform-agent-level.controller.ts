@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-agent-level.service";
 /**
  * R101-C6-3-3：平台代理商**层级权益配置**控制器（3 条端点，路径由派单卡钉死，不得自拟）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-3.md §四
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-3.md §四
  *   · GET  /api/platform/agents/levels      → { items: [...] }（零预置 ⇒ 空表 ⇒ items: []）
  *   · POST /api/platform/agents/levels      → 新建层级（levelCode 重复 ⇒ 409）
  *   · PUT  /api/platform/agents/levels/:id  → 部分更新（未知 id ⇒ 404；无变更 ⇒ 400）

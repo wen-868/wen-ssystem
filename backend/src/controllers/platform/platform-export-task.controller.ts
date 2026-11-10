@@ -6,7 +6,7 @@ import * as service from "../../services/platform/platform-export-task.service";
 /**
  * C6-2-T2-F1：平台报表导出任务中心控制器（6 条端点，路径由 F1 派单卡钉死）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md 交付物①②
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md 交付物①②
  *   · GET  /api/platform/reports/export                → { total, page, pageSize, records }        ← export:view
  *   · POST /api/platform/reports/export                → { id, taskNo, status }（创建即 PENDING）   ← export:create
  *   · GET  /api/platform/reports/export/:id/status      → 任务状态（T2 详情记录的超集；不存在 404）  ← export:view

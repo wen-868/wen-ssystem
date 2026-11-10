@@ -8,7 +8,7 @@ import * as webhookController from "../controllers/platform/platform-open-webhoo
 /**
  * R101-C3-1 开放平台路由（prefix /api/platform/open）
  *
- * 依据：`docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三.1 + 派单卡 C3-1 交付物 1。
+ * 依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三.1 + 派单卡 C3-1 交付物 1。
  * 鉴权：`routeConfig.auth = "requirePlatformAuth"`（由 `shared/auto-routes.ts` 统一挂载
  *       `requirePlatformAuth + csrfMiddleware`，**不手写注册**、不在 router 内重复 `.use`）。
  * 注册顺序：同一 router 内先具体后通配 —— `/:id` 的动作子路由（enable/rotate/rotate-complete）

@@ -1,7 +1,7 @@
 /**
  * 开放平台 · API 密钥控制器（R101-C3-1，路由前缀 /api/platform/open）
  *
- * 依据：`docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三 + 派单卡 C3-1 交付物 1（密钥 8 条端点）。
+ * 依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三 + 派单卡 C3-1 交付物 1（密钥 8 条端点）。
  * 分层：controller 只做参数接收（zod）+ 调用 service + 返回统一信封；
  *       zod 解析失败 ⇒ 由 middleware/error-handler 的 `ZodError ⇒ 400` 链路统一返回；
  *       业务冲突（不存在 404 / 轮换中 409）由 service 抛 AppError。

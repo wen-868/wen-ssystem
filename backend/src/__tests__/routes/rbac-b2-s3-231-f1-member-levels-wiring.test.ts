@@ -1,10 +1,10 @@
 /**
  * S3-231 · **F1 · 会员等级配置 4 条改挂 `customer:level`** 接线验收测试
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-231.md` §F1｜依据：凌舟裁定 1
- *   （`docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1：**改挂 `customer:level`**）
- * 授权模型：`docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`（不变量 **I1'①**）
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md`（S3-229 §十七 → 本单 §十八）｜证据：`docs/evidence/S3-231/F1/`
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-231.md` §F1｜依据：凌舟裁定 1
+ *   （`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1：**改挂 `customer:level`**）
+ * 授权模型：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`（不变量 **I1'①**）
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md`（S3-229 §十七 → 本单 §十八）｜证据：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F1/`
  *
  * 本文件要证明的六件事（对应派单卡 §F1 证据行）：
  *  a) 4 条的**注册行级**形状：注册行直接带 `requirePermission("customer:level")`（踩坑[134]：注释不算）；

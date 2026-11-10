@@ -15,7 +15,7 @@
  * harness 说明：复刻 `migration-write-gate.test.ts` / `migration-split.test.ts` 的进程内 harness
  * （mock fs / mysql2 / logger / env），用"假迁移文件"驱动真实的 `runMigrations()`，
  * 断言"哪些语句真的发给了数据库连接"。反红能力（回退成文本包含式 ⇒ (b) 必红）见证据包
- * `docs/evidence/S3-106/`（本沙箱跑不了 vitest：esbuild `spawn EPERM`，见踩坑[118]）。
+ * `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-106/`（本沙箱跑不了 vitest：esbuild `spawn EPERM`，见踩坑[118]）。
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 

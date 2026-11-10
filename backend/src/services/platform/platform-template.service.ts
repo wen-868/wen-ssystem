@@ -5,7 +5,7 @@ import { AppError } from "../../shared/app-error";
 /**
  * C2-0 实现段：平台初始化模板（t_platform_template + t_platform_template_version）
  *
- * 依据：docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #1~#4）+ 清账草案 1/2。
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #1~#4）+ 清账草案 1/2。
  * 口径：
  * - 主表存四段式配置摘要（code_rule / convert_rule / print_ref / default_wh_account）
  *   与 config_json（完整配置，开户套用的值复制来源）；

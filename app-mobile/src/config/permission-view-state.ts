@@ -4,7 +4,7 @@
 // 背景：S3-231 F3 把**入口门**改成失败关闭后，同端存在**两套 null 语义**——
 //   · `stores/menu.ts`：null = 首屏加载中、放全量；
 //   · `config/permission-gates.ts`：null/undefined = 未取到 ⇒ 隐藏（失败关闭）。
-// 本文件把两套收成一套（凌舟口径见 `docs/tasks/inbox/ACTIVE-S3-239.md` §一）：
+// 本文件把两套收成一套（凌舟口径见 `projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-239.md` §一）：
 //
 //   | 态           | 触发条件                          | 显示策略（policy）                | 提示 |
 //   |:-------------|:----------------------------------|:----------------------------------|:-----|

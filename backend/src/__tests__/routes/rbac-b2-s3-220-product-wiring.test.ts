@@ -1,8 +1,8 @@
 /**
  * S3-220 · **商品域**（10 路由文件 / 45 写端点）权限接线验收测试
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-220.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.3（域明细）＋ §十二（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-220.md`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.3（域明细）＋ §十二（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 573 条 / 146 文件）
  * 基线：`origin/main` = 本单开工时 `11f4af48`（见回执 §三）
  *
@@ -19,7 +19,7 @@
  * 判据来源（逐条可核对）：
  *  · 权限匹配语义：`services/admin/rbac.service.ts` 的 `matchPermission`（`*` / `dom:*` / `*:action` / 精确码），
  *    测试用**生产同一份**匹配器（只把数据库读取换成角色权限串）；
- *  · 角色权限串：**生产只读导出**（`docs/evidence/S3-220/00-prod-roles-raw.txt`，
+ *  · 角色权限串：**生产只读导出**（`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-220/00-prod-roles-raw.txt`，
  *    由 `tools/prod-roles-dump.sh` 经服务器只读通道取得；持有关系复算见 `tools/prod-holders.mjs`）
  *    —— 含仓库种子（079/128/ops-S3-122*）里没有的 `STORE_ADMIN` / `SALESMAN`；
  *  · 页面真实使用者：`admin-web/src/router/index.ts:165-178`（桌面 `meta.roles` fail-closed）＋
@@ -34,7 +34,7 @@
  *        业务层」）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入）。
  *
  * 反测（门禁铁律）：摘掉本批任一条 `requirePermission(...)` ⇒ 对应「READONLY ⇒ 403」用例必红；
- *   复原 ⇒ 绿（原始输出见 `docs/evidence/S3-220/` 反测日志与回执 §五）。
+ *   复原 ⇒ 绿（原始输出见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-220/` 反测日志与回执 §五）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
@@ -122,7 +122,7 @@ import { unitGroupRouter } from "../../routes/unit-group.routes";
 import { unitRouter } from "../../routes/unit.routes";
 
 /**
- * 测试账号：权限串取**生产只读导出**（`docs/evidence/S3-220/00-prod-roles-raw.txt`，
+ * 测试账号：权限串取**生产只读导出**（`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-220/00-prod-roles-raw.txt`，
  * `tenant_id='default'` 的 12 个角色，逐条可核对），与 `tools/prod-holders.mjs` 复算口径同源。
  * 相比批 1/批 2 的账号集，本文件**补上了生产真实存在、仓库种子里没有**的两个角色：
  * `STORE_ADMIN`（product:read/order:read/order:write/inventory:read/inventory:write）与
@@ -444,7 +444,7 @@ describe("S3-220 · 名单自证", () => {
     expect(matchPermission(USERS[STORE_MANAGER].perms, "goods:price")).toBe(true);
   });
 
-  it("生产持有关系（`docs/evidence/S3-220/03-prod-holders.txt`）逐码钉住：goods 写码只归超管/运营，价格码另加店长", () => {
+  it("生产持有关系（`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-220/03-prod-holders.txt`）逐码钉住：goods 写码只归超管/运营，价格码另加店长", () => {
     // 持有者集合按 uid 升序（9002 超管 < 9009 店长 < 9010 运营）
     expect(holdersOf("goods:create")).toEqual([SUPER_ADMIN, OPERATION_ADMIN]);
     expect(holdersOf("goods:edit")).toEqual([SUPER_ADMIN, OPERATION_ADMIN]);

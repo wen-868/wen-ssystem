@@ -2,9 +2,9 @@
  * 开放平台（总后台）接口封装 —— `/api/platform/open/**`（R101-C3-2）
  *
  * 依据：
- * - `docs/tasks/cards/R101-C3-0-凌舟裁定.md` §二（7 项裁定）+ §三（实现形态）；
+ * - `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-0-凌舟裁定.md` §二（7 项裁定）+ §三（实现形态）；
  * - C3-1 后端已合并 main `e122502b0`：新域 16 端点（密钥 8 + event 目录 1 + Webhook 7），
- *   契约逐条见 `docs/tasks/cards/R101-C3-1-阿坚回传.md` §九（**前端唯一依据**）。
+ *   契约逐条见 `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-1-阿坚回传.md` §九（**前端唯一依据**）。
  *
  * 边界与口径（与后端实现逐条对齐，勿凭注释猜路径）：
  * 1. 路径前缀：本模块所有路径都以 `/platform/open/` 开头（`utils/request.ts` 的 baseURL 是 `/api`），

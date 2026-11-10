@@ -1,7 +1,7 @@
 /**
  * R101-C6-3-1：平台全局功能开关（t_platform_feature_switch）
  *
- * 依据：docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 A①②、验收标准③
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 A①②、验收标准③
  *       + docs/migrations/184_平台功能开关.sql（表结构与分层口径的唯一真相源）
  *
  * 口径（与卡 §二 逐条对齐，不得混用）：
