@@ -694,7 +694,7 @@
       "gateVar": "gateValueCardRecharge",
       "gateExpr": "弹窗确认 @tap 分流 \"gateValueCardRecharge.enabled && confirmDlg()\" + confirmDlg 首行预检（已有卡分支；与 mbr-dtl-opencard 同按钮同码）",
       "status": "GATED",
-      "codeProof": "backend/src/routes/store-value-card.routes.ts:14 requirePermission(\"finance:create\")；端点 POST /api/admin/store-value-cards/:cardNo/recharge 与 manifest 一致（同文件 :15/:16 consume/refund 同码不属本卡）",
+      "codeProof": "backend/src/routes/store-value-card.routes.ts:17 requirePermission(\"finance:create\")；端点 POST /api/admin/store-value-cards/:cardNo/recharge 与 manifest 一致（同文件 :18/:19 consume/refund 同码不属本卡）",
       "countedAsCompleted": true
     },
     {
@@ -709,7 +709,7 @@
       "gateVar": "gateValueCardRecharge",
       "gateExpr": "弹窗确认 @tap 分流 \"gateValueCardRecharge.enabled && confirmDlg()\"（无卡先开卡分支，与 recharge 同按钮同码 confirmDlg）",
       "status": "GATED",
-      "codeProof": "backend/src/routes/store-value-card.routes.ts:12 requirePermission(\"finance:create\")；端点 POST /api/admin/store-value-cards 与 manifest 一致",
+      "codeProof": "backend/src/routes/store-value-card.routes.ts:15 requirePermission(\"finance:create\")；端点 POST /api/admin/store-value-cards 与 manifest 一致",
       "countedAsCompleted": true
     },
     {

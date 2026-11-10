@@ -182,41 +182,6 @@ function tokenColor(name: string): string {
  * （原 change: 12.5 / 8.3 / 15.2 / -2.1 为硬编码假数据，R101-S2-R1 P0-2 清除；
  *  真实环比需后端补字段，属后续卡范围。）
  */
-/**
- * TOTAL-SAAS-UI-TOKENS-01 · 图表/统计卡配色令牌化
- * ───────────────────────────────────────────────────────────────
- * ECharts 与图标容器只接受**具体色值字符串**，无法直接写 var(--x)，
- * 故此处在运行时从 tokens.css 解析真实值 —— 单一真源仍是
- * saas-admin/src/styles/tokens.css，杜绝「JS 一套色、CSS 一套色」的漂移。
- *
- * 原此处写死的是 Tailwind 默认色板（#10b981 emerald-500 / #f59e0b amber-500 /
- * #ef4444 red-500 / #8b5cf6 violet-500），与 tokens.css 的 --chart-2 #16a34a、
- * --chart-3 #ea580c、--chart-4 #dc2626、--chart-5 #7c3aed 并不一致，
- * 属典型的跨体系视觉漂移。
- *
- * 兜底值取自 tokens.css 同名字面值：即便处于非浏览器环境（document 缺失）
- * 取不到 CSS 变量，也只会落回令牌值本身，不会退回旧色板。
- */
-const CHART_TOKEN_FALLBACK: Record<string, string> = {
-  "--chart-1": "#2563eb",
-  "--chart-2": "#16a34a",
-  "--chart-3": "#ea580c",
-  "--chart-5": "#7c3aed",
-  "--color-primary": "#2563eb",
-  "--color-primary-bg": "#eff6ff",
-  "--color-success-soft": "#f0fdf4",
-  "--color-warning-soft": "#fff7ed",
-  "--color-purple-soft": "#faf5ff",
-  "--gray-0": "#FFFFFF",
-};
-
-/** 解析设计令牌的实际色值；取不到时回落同名字面值（仍等于令牌值） */
-function tokenColor(name: string): string {
-  if (typeof document === "undefined") return CHART_TOKEN_FALLBACK[name] ?? "";
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v || CHART_TOKEN_FALLBACK[name] || "";
-}
-
 const overviewStats = ref<
   Array<{ key: string; label: string; value: number | string; change: number | null; icon: string; color: string; bg: string }>
 >([

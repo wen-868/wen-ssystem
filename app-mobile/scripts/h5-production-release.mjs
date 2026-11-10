@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * MOBILE-H5-PRODUCTION-RELEASE-01 · 移动端 H5 独立生产发布器
  *

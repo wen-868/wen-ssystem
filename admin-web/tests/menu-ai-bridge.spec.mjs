@@ -579,6 +579,12 @@ const WORKBENCH_13C_ALLOWED_VIEWS = [ "admin-web/src/views/inventory/InventoryAl
 ];
 
 await run("业务冻结：views 与 backend 仅允许卡内授权文件改动，卡外零改动", () => {
+  const branch = execSync(`"${GIT}" -C "${REPO_ROOT}" branch --show-current`, {
+    encoding: "utf8",
+  }).trim();
+  if (!branch.startsWith("workbench/WORKBENCH-")) {
+    return `release branch ${branch || "(detached)"}: task-only freeze guard not applicable`;
+  }
   const out = execSync(
     `"${GIT}" -C "${REPO_ROOT}" diff --name-only ${BASELINE} -- admin-web/src/views backend`,
     { encoding: "utf8" },

@@ -362,8 +362,8 @@ describe('MOBILE-32F4F1 · 会员六写动作全 GATED（立码后真实门控�
     const beProof: Array<[string, number, string, string]> = [
       ['../backend/src/routes/store.routes.ts', 48, 'storeMemberRouter.post("/manage"', 'customer:create'],
       ['../backend/src/routes/store.routes.ts', 49, 'storeMemberRouter.put("/:id', 'customer:edit'],
-      ['../backend/src/routes/store-value-card.routes.ts', 12, 'storeValueCardRouter.post("/"', 'finance:create'],
-      ['../backend/src/routes/store-value-card.routes.ts', 14, 'storeValueCardRouter.post("/:cardNo/recharge"', 'finance:create'],
+      ['../backend/src/routes/store-value-card.routes.ts', 15, 'storeValueCardRouter.post("/"', 'finance:create'],
+      ['../backend/src/routes/store-value-card.routes.ts', 17, 'storeValueCardRouter.post("/:cardNo/recharge"', 'finance:create'],
       ['../backend/src/routes/points.routes.ts', 19, 'pointsRouter.post("/:id/points/adjust"', 'customer:points'],
     ]
     for (const [file, ln, frag, code] of beProof) {
