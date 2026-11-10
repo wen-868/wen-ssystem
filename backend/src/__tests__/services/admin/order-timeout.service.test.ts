@@ -157,15 +157,27 @@ describe("order-timeout.service - processTimeoutConfig", () => {
 
   it("SALE+WAIT_PAY+CANCEL 取消未支付订单并写成功日志", async () => {
     mocks.query.mockResolvedValueOnce([{ id: 100, order_no: "XS001" }]);
-    mockConn.execute.mockResolvedValue([{ affectedRows: 1 }]);
+    // SELECT 返回该单行（支付超时事件读取 customer_type/order_status），UPDATE 返回 affectedRows=1，INSERT 超时日志/进度事件
+    mockConn.execute.mockImplementation(async (sql: string) => {
+      const s = String(sql);
+      if (s.includes("SELECT store_id, customer_type, order_status FROM t_miniapp_order")) {
+        return [[{ store_id: 5, customer_type: "RETAIL", order_status: "CANCELLED" }]];
+      }
+      if (s.includes("FROM t_order_progress_event")) return [[]];
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 1 }];
+    });
     await processTimeoutConfig(baseConfig);
     expect(mocks.query).toHaveBeenCalledOnce();
-    expect(String(mocks.query.mock.calls[0][0])).toContain("miniapp_order");
-    expect(String(mocks.query.mock.calls[0][0])).toContain("order_status = 'PENDING'");
+    expect(String(mocks.query.mock.calls[0][0])).toContain("t_miniapp_order");
+    expect(String(mocks.query.mock.calls[0][0])).toContain("pay_status = ?");
+    expect(String(mocks.query.mock.calls[0][0])).toContain("AND order_status = 'PENDING_PAYMENT'");
     expect(mocks.transaction).toHaveBeenCalledOnce();
-    expect(mockConn.execute).toHaveBeenCalledTimes(2);
-    expect(String(mockConn.execute.mock.calls[0][0])).toContain("pay_status = 'CANCELLED'");
-    expect(String(mockConn.execute.mock.calls[1][0])).toContain("INSERT INTO t_order_timeout_log");
+    const insertLogIdx = mockConn.execute.mock.calls.findIndex((c) => String(c[0]).includes("INSERT INTO t_order_timeout_log"));
+    const insertEventIdx = mockConn.execute.mock.calls.findIndex((c) => String(c[0]).includes("INSERT INTO t_order_progress_event"));
+    expect(insertLogIdx).toBeGreaterThanOrEqual(0);
+    expect(insertEventIdx).toBeGreaterThanOrEqual(0);
   });
 
   it("SALE+WAIT_ACCEPT+AUTO_ACCEPT 自动接单", async () => {

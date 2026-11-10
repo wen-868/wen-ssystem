@@ -1,4 +1,9 @@
 import { queryOneWithTenant, queryWithTenant, executeWithTenant } from "../../shared/db";
+import {
+  MEMBER_POINTS_TRUTH_JOIN_SQL,
+  MEMBER_POINTS_TRUTH_AVAILABLE_SQL,
+  getMemberPointsTruth,
+} from "../admin/points.service";
 
 /**
  * 门店会员服务（R100-04）：
@@ -10,7 +15,6 @@ interface MemberDetailRow {
   name: string | null;
   mobile: string;
   customerType: string;
-  points: number | string;
   levelCode: string | null;
   levelName: string | null;
   status: number;
@@ -21,7 +25,7 @@ interface MemberDetailRow {
 /** 会员详情（含等级名、累计消费、积分账户） */
 export async function getMemberDetail(tenantId: string, id: number) {
   const row = await queryOneWithTenant<MemberDetailRow & { contact: string | null; address: string | null; remark: string | null; card_no: string | null; gender: string | null; birthday: string | null; province: string | null; city: string | null; district: string | null; tags: string | null }>(
-    `SELECT m.id, m.name, m.mobile, m.customer_type AS customerType, m.points,
+    `SELECT m.id, m.name, m.mobile, m.customer_type AS customerType,
             m.level_code AS levelCode, ml.level_name AS levelName, m.status,
             m.contact, m.address, m.remark, m.card_no, m.gender, m.birthday,
             m.province, m.city, m.district, m.tags,
@@ -43,18 +47,8 @@ export async function getMemberDetail(tenantId: string, id: number) {
     [id],
     tenantId
   );
-  const cp = await queryOneWithTenant<{
-    available_points: number | string;
-    total_points: number | string;
-    frozen_points: number | string;
-  }>(
-    `SELECT available_points, total_points, frozen_points
-     FROM t_customer_points
-     WHERE customer_id = ?`,
-    [id],
-    tenantId
-  );
-  const available = Number(cp?.available_points ?? row.points ?? 0);
+  // 积分真源统一口径：详情/列表/积分接口共用 getMemberPointsTruth 单点实现
+  const truth = await getMemberPointsTruth(tenantId, id);
   // 储值余额：t_store_value_card ACTIVE 卡实盘（此前硬编码 0 属假数据，已改真实查询）
   const card = await queryOneWithTenant<{ balance: number | string }>(
     "SELECT balance FROM t_store_value_card WHERE customer_id = ? AND tenant_id = ? AND status = 'ACTIVE'",
@@ -79,9 +73,9 @@ export async function getMemberDetail(tenantId: string, id: number) {
     city: row.city ?? null,
     district: row.district ?? null,
     tags: row.tags ?? null,
-    points: available,
-    totalPoints: Number(cp?.total_points ?? available),
-    frozenPoints: Number(cp?.frozen_points ?? 0),
+    points: truth?.availablePoints ?? 0,
+    totalPoints: truth?.totalPoints ?? 0,
+    frozenPoints: truth?.frozenPoints ?? 0,
     balance: Number(card?.balance ?? 0),
     totalSpent: Number(spent?.total ?? 0),
     lastConsumeAt: row.lastOrderAt,
@@ -139,7 +133,8 @@ export async function listMemberManage(
   }>(
     `SELECT m.id, m.name, m.nickname, m.mobile,
             m.customer_type AS customerType,
-            m.level_code AS levelCode, ml.level_name AS levelName, m.points,
+            m.level_code AS levelCode, ml.level_name AS levelName,
+            ${MEMBER_POINTS_TRUTH_AVAILABLE_SQL} AS points,
             m.status, m.contact, m.address, m.province, m.city, m.district,
             vc.balance,
             m.last_order_at AS lastOrderAt, m.created_at AS createdAt,
@@ -147,6 +142,7 @@ export async function listMemberManage(
                       WHERE o.member_id = m.id AND o.order_status NOT IN ('CANCELLED', 'CLOSED')), 0) AS totalConsume
      FROM t_member m
      LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id
+     ${MEMBER_POINTS_TRUTH_JOIN_SQL}
      LEFT JOIN (
        SELECT customer_id, SUM(balance) AS balance
        FROM t_store_value_card
@@ -193,34 +189,18 @@ export async function listMemberManage(
   };
 }
 
-/** 会员积分（可用/累计/冻结） */
+/** 会员积分（可用/累计/冻结）——统一口径：getMemberPointsTruth 单点读取 */
 export async function getMemberPoints(tenantId: string, id: number) {
-  const member = await queryOneWithTenant<{ points: number | string }>(
-    "SELECT points FROM t_member WHERE id = ?",
-    [id],
-    tenantId
-  );
-  if (!member) {
+  const truth = await getMemberPointsTruth(tenantId, id);
+  if (!truth) {
     throw Object.assign(new Error("会员不存在"), { statusCode: 404 });
   }
-  const cp = await queryOneWithTenant<{
-    available_points: number | string;
-    total_points: number | string;
-    frozen_points: number | string;
-  }>(
-    `SELECT available_points, total_points, frozen_points
-     FROM t_customer_points
-     WHERE customer_id = ?`,
-    [id],
-    tenantId
-  );
-  const available = Number(cp?.available_points ?? member.points ?? 0);
   return {
     memberId: id,
-    points: available,
-    availablePoints: available,
-    totalPoints: Number(cp?.total_points ?? available),
-    frozenPoints: Number(cp?.frozen_points ?? 0),
+    points: truth.availablePoints,
+    availablePoints: truth.availablePoints,
+    totalPoints: truth.totalPoints,
+    frozenPoints: truth.frozenPoints,
   };
 }
 

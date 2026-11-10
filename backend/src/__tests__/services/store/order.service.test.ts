@@ -16,7 +16,32 @@ vi.mock("../../../shared/id", () => ({
   makeBizNo: vi.fn(() => "IL20260815001"),
 }));
 
-import { listOrders, getOrderDetail, acceptOrder, cancelOrder, rejectOrder } from "../../../services/store/order.service";
+import { listOrders, getOrderDetail, acceptOrder, cancelOrder, rejectOrder, startDelivery } from "../../../services/store/order.service";
+
+/**
+ * 事件感知 conn 桩（TOTAL-ORDER-PROGRESS-03）：
+ * 按 SQL 文本分派返回值，覆盖业务读写 + 写入器（SELECT 去重/SELECT MAX/INSERT 事件）。
+ */
+function makeEventAwareConn(opts: {
+  truthRow: { store_id: number | string; customer_type: string; order_status: string } | null;
+}) {
+  const conn: any = { execute: vi.fn(), query: vi.fn() };
+  conn.execute.mockImplementation(async (sql: string, params?: unknown[]) => {
+    const s = String(sql);
+    if (s.includes("FROM t_order_progress_event")) {
+      if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 0 }]];
+      return [[]]; // 去重读：无既有事件
+    }
+    if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+    if (/SELECT\s+order_status\s+FROM t_miniapp_order/i.test(s)) return [[{ order_status: opts.truthRow?.order_status ?? "ACCEPTED" }]];
+    if (s.includes("FROM t_miniapp_order") && s.includes("FOR UPDATE")) {
+      return [[opts.truthRow].filter(Boolean)];
+    }
+    if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: opts.truthRow ? 1 : 0 }];
+    return [{ affectedRows: 0 }];
+  });
+  return conn;
+}
 
 describe("store/order.service", () => {
   beforeEach(() => {
@@ -41,36 +66,101 @@ describe("store/order.service", () => {
     expect(order?.orderNo).toBe("DD001");
   });
 
-  it("acceptOrder：更新订单为待发货", async () => {
-    mocks.queryWithTenant.mockResolvedValueOnce({ affectedRows: 1 });
-    await acceptOrder("DD001", "t1");
-    expect(mocks.queryWithTenant).toHaveBeenCalledWith(
-      expect.stringContaining("UPDATE t_miniapp_order"),
-      expect.arrayContaining(["DD001"]),
-      "t1"
-    );
+  it("acceptOrder：包事务更新为 ACCEPTED 并同事务写进度事件（03）", async () => {
+    const conn = makeEventAwareConn({
+      truthRow: { store_id: 1, customer_type: "RETAIL", order_status: "ACCEPTED" },
+    });
+    mocks.transaction.mockImplementation(async (fn: any) => fn(conn));
+    const result = await acceptOrder("DD001", "t1");
+    expect(result).toEqual({ orderNo: "DD001", status: "ACCEPTED" });
+    const updateCall = conn.execute.mock.calls.find((c) => String(c[0]).includes("UPDATE t_miniapp_order"));
+    expect(String(updateCall?.[0])).toContain("order_status = 'ACCEPTED'");
+    const eventInsert = conn.execute.mock.calls.find((c) => String(c[0]).includes("INSERT INTO t_order_progress_event"));
+    expect(eventInsert).toBeTruthy();
+    expect(String(eventInsert?.[0])).toContain("business_stage");
+    // 事件阶段参数 = ACCEPTED（值数组第 9 位）
+    expect(eventInsert?.[1]).toContain("ACCEPTED");
   });
 
-  it("cancelOrder：释放预留并取消", async () => {
+  it("acceptOrder：订单不可命中 ⇒ 返回 null 且不写事件", async () => {
+    const conn = makeEventAwareConn({ truthRow: null });
+    mocks.transaction.mockImplementation(async (fn: any) => fn(conn));
+    const result = await acceptOrder("DD404", "t1");
+    expect(result).toBeNull();
+    expect(conn.execute.mock.calls.some((c) => String(c[0]).includes("t_order_progress_event"))).toBe(false);
+  });
+
+  it("cancelOrder：释放预留并取消 + 同事务写 CANCELLED 事件（03）", async () => {
     const conn = { query: vi.fn(), execute: vi.fn() };
     conn.query
-      .mockResolvedValueOnce([[{ order_no: "DD001", store_id: 1 }]])
+      .mockResolvedValueOnce([[{ order_no: "DD001", store_id: 1, customer_type: "RETAIL" }]])
       .mockResolvedValueOnce([[{ skuId: 10, reservedQty: 2 }]]);
     mocks.transaction.mockImplementation(async (fn: any) => fn(conn));
     await cancelOrder("DD001", 1, "t1");
-    const updateCalls = conn.execute.mock.calls;
-    expect(String(updateCalls[updateCalls.length - 1][0])).toContain("UPDATE t_miniapp_order");
-    expect(updateCalls[updateCalls.length - 1][1]).toContain("CANCELLED");
+    const updateCall = conn.execute.mock.calls.find((c) => String(c[0]).includes("UPDATE t_miniapp_order"));
+    expect(updateCall?.[1]).toContain("CANCELLED");
+    const eventInsert = conn.execute.mock.calls.find((c) => String(c[0]).includes("INSERT INTO t_order_progress_event"));
+    expect(eventInsert).toBeTruthy();
+    expect(eventInsert?.[1]).toContain("CANCELLED");
+    expect(eventInsert?.[1]).toContain("order.progress.miniapp_retail.cancelled");
   });
 
-  it("rejectOrder：释放预留并驳回", async () => {
+  it("rejectOrder：释放预留并驳回 ⇒ 业务态 REJECTED，同事务写 REJECTED 正式事件（04 卡：REJECTED 入域，不冒充 CANCELLED）", async () => {
     const conn = { query: vi.fn(), execute: vi.fn() };
     conn.query
-      .mockResolvedValueOnce([[{ order_no: "DD001", store_id: 1 }]])
+      .mockResolvedValueOnce([[{ order_no: "DD001", store_id: 1, customer_type: "RETAIL" }]])
       .mockResolvedValueOnce([[{ skuId: 10, reservedQty: 2 }]]);
+    conn.execute.mockImplementation(async (sql: string) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 0 }]];
+        return [[]]; // 去重读：无既有事件
+      }
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_inventory_balance")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
     mocks.transaction.mockImplementation(async (fn: any) => fn(conn));
-    await rejectOrder("DD001", 1, "t1");
-    const updateCalls = conn.execute.mock.calls;
-    expect(updateCalls[updateCalls.length - 1][1]).toContain("REJECTED");
+    const result = await rejectOrder("DD001", 1, "t1");
+    expect(result).toEqual({ orderNo: "DD001", status: "REJECTED" });
+    const updateCall = conn.execute.mock.calls.find((c) => String(c[0]).includes("UPDATE t_miniapp_order"));
+    expect(updateCall?.[1]).toContain("REJECTED");
+    // 04 卡：REJECTED 已入契约 §三 值域 ⇒ 同事务写正式拒收事件
+    const eventInserts = conn.execute.mock.calls.filter((c) => String(c[0]).includes("INSERT INTO t_order_progress_event"));
+    expect(eventInserts.length).toBe(1);
+    const params = eventInserts[0]?.[1] ?? [];
+    expect(params).toContain("REJECTED");
+    expect(params).toContain("order.progress.miniapp_retail.rejected");
+    expect(params).toContain("DELIVERY_FAILED");
+    expect(params).toContain("store:manual-redeliver");
+    // 不冒充 CANCELLED：事件阶段与事件名均非 CANCELLED
+    expect(params).not.toContain("CANCELLED");
+    expect(params.some((p) => String(p).includes("miniapp_retail.cancelled"))).toBe(false);
+  });
+
+  it("startDelivery：状态与操作日志同事务并写 DELIVERING 事件（03）", async () => {
+    const conn = { execute: vi.fn(), query: vi.fn() };
+    conn.execute.mockImplementation(async (sql: string, params?: unknown[]) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) {
+        if (/MAX\(progress_seq\)/i.test(s)) return [[{ max_seq: 1 }]];
+        return [[]];
+      }
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (/SELECT\s+order_status\s+FROM t_miniapp_order/i.test(s)) return [[{ order_status: "DELIVERING" }]];
+      if (s.includes("FROM t_miniapp_order") && s.includes("FOR UPDATE")) return [[{ store_id: 1, customer_type: "RETAIL", order_status: "WAIT_DELIVERY" }]];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      if (s.includes("INSERT INTO t_operation_log")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
+    mocks.transaction.mockImplementation(async (fn: any) => fn(conn));
+    const result = await startDelivery("DD001", "t1", 7, "店员A");
+    expect(result).toEqual({ orderNo: "DD001", status: "DELIVERING" });
+    const calls = conn.execute.mock.calls.map((c) => String(c[0]));
+    const logIdx = calls.findIndex((c) => c.includes("INSERT INTO t_operation_log"));
+    const eventIdx = calls.findIndex((c) => c.includes("INSERT INTO t_order_progress_event"));
+    expect(logIdx).toBeGreaterThanOrEqual(0);
+    expect(eventIdx).toBeGreaterThanOrEqual(0);
   });
 });

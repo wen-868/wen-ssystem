@@ -68,8 +68,10 @@ const FILE_191 = `191_${MIG_191}`;
 //   ；并由 `backend/scripts/guard-migration-manifest.mjs` 的"最大编号一致性"判据兜住（防再漏）。
 // S3-236（2026-10-17）：新增 `207_四域权限点立码.sql`（38 码）⇒ 最高编号 206 → 207。
 // S3-238（2026-10-18）：本单新增 `208_平台侧权限点立码.sql` ⇒ 最高编号 207 → 208。
-// 判据本身未变（190/191 各一号 + 最高编号唯一），只同步编号期望值。
-const EXPECTED_MAX_MIGRATION = 208;
+// TOTAL-ORDER-PROGRESS-02（2026-10-28）：本单新增 `209_订单进度事件表.sql`（订单进度事件底座建表，
+// 契约 §8.2 定稿含 field_filter JSON NOT NULL；CREATE TABLE IF NOT EXISTS 幂等，零 DML、不触碰既有表）
+// ⇒ 最高编号 208 → 209。判据本身未变（190/191 各一号 + 最高编号唯一），只同步编号期望值。
+const EXPECTED_MAX_MIGRATION = 209;
 
 const mig190 = readSql(MIG_190);
 const mig191 = readSql(FILE_191);

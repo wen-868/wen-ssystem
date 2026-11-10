@@ -1,8 +1,14 @@
+import type { PoolConnection } from "mysql2/promise";
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { completeOrderDelivery } from "../../shared/fulfillment";
 import { updateTraceCodesBySkuList } from "../../shared/trace-code";
-import type { RowDataPacket } from "mysql2";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import {
+  appendOrderProgressEvent,
+  miniappRetailEvent,
+  appendMiniappRetailCompletedEvent,
+} from "../../shared/order-progress-events";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -60,6 +66,7 @@ interface OrderConnRow extends RowDataPacket {
   order_no: string;
   store_id: number;
   tenantId?: string;
+  customer_type?: string;
 }
 
 /** 订单项行（事务查询用） */
@@ -137,32 +144,142 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
   return { ...order, items };
 }
 
-export async function acceptOrder(orderNo: string, tenantId: string) {
-  const result = await queryWithTenant(
-    `UPDATE t_miniapp_order SET order_status = 'ACCEPTED', updated_at = NOW() WHERE order_no = ? AND tenant_id = ?`,
-    [orderNo, tenantId],
-    tenantId
-  );
-  if (!result || (result as unknown as { affectedRows: number }).affectedRows === 0) return null;
-  return { orderNo, status: "ACCEPTED" };
+// ─── miniapp_retail 事件写点辅助（本卡仅处理 RETAIL 族，批发单不外扩）───────────
+
+/** 主表真值行（同事务内读取，business_status 不反推） */
+interface MiniappRetailTruthRow extends RowDataPacket {
+  store_id?: number | string;
+  customer_type?: string;
+  order_status: string;
 }
 
+/**
+ * 若该单属 miniapp_retail（customer_type=RETAIL）则在同一事务内写事件；
+ * 其他族（批发单 WHOLESALE）跳过 ⇒ 不冒充本族事件（红线 §七）。
+ */
+async function appendMiniappRetailEventIfRetail(
+  order: MiniappRetailTruthRow,
+  args: {
+    conn: PoolConnection;
+    tenantId: string;
+    orderNo: string;
+    businessStage: "ACCEPTED" | "DELIVERING" | "CANCELLED" | "COMPLETED" | "PENDING_SHIP" | "REJECTED";
+    businessStatus: string;
+    upstreamBizKey: string;
+    actorFallback: string;
+    actorType?: "system" | "user" | "admin" | "ai" | "cron";
+    actorId?: number | string | null;
+    statusReason?: string | null;
+    failureCode?: string | null;
+    retryEntry?: string | null;
+  },
+): Promise<boolean> {
+  if ((order.customer_type ?? "RETAIL") !== "RETAIL") return false;
+  await appendOrderProgressEvent(args.conn, miniappRetailEvent({
+    tenantId: args.tenantId,
+    storeId: order.store_id ?? null,
+    orderNo: args.orderNo,
+    businessStage: args.businessStage,
+    businessStatus: args.businessStatus,
+    actorType: args.actorType ?? "user",
+    actorId: args.actorId ?? null,
+    upstreamBizKey: args.upstreamBizKey,
+    failureCode: args.failureCode ?? null,
+    retryEntry: args.retryEntry ?? null,
+    statusReason: args.statusReason ?? null,
+    at: new Date(),
+    actorFallback: args.actorFallback,
+  }));
+  return true;
+}
+
+/**
+ * 门店接单（TOTAL-ORDER-PROGRESS-03：包事务 ⇒ 状态变更与 ACCEPTED 事件同一事务，契约 §8.1）。
+ * 语义保持：订单不可命中 ⇒ 返回 null（原 UPDATE affectedRows=0 口径）。
+ */
+export async function acceptOrder(orderNo: string, tenantId: string) {
+  return transaction(async (conn) => {
+    const [before] = await conn.execute<MiniappRetailTruthRow[]>(
+      `SELECT store_id, customer_type, order_status FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? FOR UPDATE`,
+      [orderNo, tenantId]
+    );
+    const order = before[0];
+    if (!order) return null;
+
+    const [res] = await conn.execute<ResultSetHeader>(
+      `UPDATE t_miniapp_order SET order_status = 'ACCEPTED', updated_at = NOW() WHERE order_no = ? AND tenant_id = ?`,
+      [orderNo, tenantId]
+    );
+    if (Number(res?.affectedRows ?? 0) === 0) return null;
+
+    // business_status 取本事务内 UPDATE 后的真实状态（不反推）
+    const [after] = await conn.execute<MiniappRetailTruthRow[]>(
+      `SELECT order_status FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? LIMIT 1`,
+      [orderNo, tenantId]
+    );
+    const realStatus = after[0]?.order_status ?? "ACCEPTED";
+
+    await appendMiniappRetailEventIfRetail(order, {
+      conn,
+      tenantId,
+      orderNo,
+      businessStage: "ACCEPTED",
+      businessStatus: realStatus,
+      upstreamBizKey: `${orderNo}:ACCEPTED`,
+      actorFallback: "store-accept-order",
+    });
+
+    return { orderNo, status: "ACCEPTED" };
+  });
+}
+
+/**
+ * 开始配送（TOTAL-ORDER-PROGRESS-03：状态 UPDATE 与操作日志合并进同一事务 + DELIVERING 事件）。
+ * 语义保持：非 WAIT_DELIVERY/不可命中 ⇒ 返回 null。
+ */
 export async function startDelivery(orderNo: string, tenantId: string, userId: number | null, username: string) {
-  const result = await queryWithTenant(
-    `UPDATE t_miniapp_order
-     SET order_status = 'DELIVERING', delivery_status = 'DELIVERING', updated_at = NOW()
-     WHERE order_no = ? AND order_status = 'WAIT_DELIVERY' AND tenant_id = ?`,
-    [orderNo, tenantId],
-    tenantId
-  );
-  if (!result || (result as unknown as { affectedRows: number }).affectedRows === 0) return null;
-  await queryWithTenant(
-    `INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
-     VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'), ?)`,
-    [userId ?? null, username ?? "系统用户", orderNo, tenantId],
-    tenantId
-  );
-  return { orderNo, status: "DELIVERING" };
+  return transaction(async (conn) => {
+    const [before] = await conn.execute<MiniappRetailTruthRow[]>(
+      `SELECT store_id, customer_type, order_status FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? FOR UPDATE`,
+      [orderNo, tenantId]
+    );
+    const order = before[0];
+    if (!order) return null;
+
+    const [res] = await conn.execute<ResultSetHeader>(
+      `UPDATE t_miniapp_order
+       SET order_status = 'DELIVERING', delivery_status = 'DELIVERING', updated_at = NOW()
+       WHERE order_no = ? AND order_status = 'WAIT_DELIVERY' AND tenant_id = ?`,
+      [orderNo, tenantId]
+    );
+    if (Number(res?.affectedRows ?? 0) === 0) return null;
+
+    await conn.execute(
+      `INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id)
+       VALUES (?, ?, 'ORDER_DELIVERY', 'START_DELIVERY', ?, JSON_OBJECT('status', 'DELIVERING'), ?)`,
+      [userId ?? null, username ?? "系统用户", orderNo, tenantId]
+    );
+
+    const [after] = await conn.execute<MiniappRetailTruthRow[]>(
+      `SELECT order_status FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? LIMIT 1`,
+      [orderNo, tenantId]
+    );
+    const realStatus = after[0]?.order_status ?? "DELIVERING";
+
+    await appendMiniappRetailEventIfRetail(order, {
+      conn,
+      tenantId,
+      orderNo,
+      businessStage: "DELIVERING",
+      businessStatus: realStatus,
+      actorId: userId,
+      actorType: "user",
+      upstreamBizKey: `${orderNo}:START_DELIVERY`,
+      actorFallback: "store-start-delivery",
+    });
+
+    return { orderNo, status: "DELIVERING" };
+  });
 }
 
 export async function completeDelivery(orderNo: string, userId: number | null) {
@@ -186,6 +303,16 @@ export async function completeDelivery(orderNo: string, userId: number | null) {
       }
     }
 
+    // 契约 §8.1：完成事件与库存扣减/主表状态/追溯码消费同事务（business_status 同事务读回真值）
+    if (tenantId) {
+      await appendMiniappRetailCompletedEvent(conn, orderNo, {
+        tenantId,
+        actorId: userId,
+        actorType: "user",
+        action: "STORE_COMPLETE",
+      });
+    }
+
     return result;
   });
 }
@@ -193,7 +320,7 @@ export async function completeDelivery(orderNo: string, userId: number | null) {
 async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CANCELLED", operatorId: number | null, tenantId: string) {
   return transaction(async (conn) => {
     const [orders] = await conn.query<OrderConnRow[]>(
-      `SELECT order_no, store_id FROM t_miniapp_order
+      `SELECT order_no, store_id, customer_type FROM t_miniapp_order
        WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING') AND tenant_id = ?
        FOR UPDATE`,
       [orderNo, tenantId]
@@ -235,6 +362,44 @@ async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CA
        WHERE order_no = ? AND tenant_id = ?`,
       [status, status, orderNo, tenantId]
     );
+
+    // 契约 §8.1：取消/拒收事件与状态/释放库存/流水**同一事务**，事件写失败 ⇒ 整个事务回滚（业务态不落）。
+    // TOTAL-ORDER-PROGRESS-04：REJECTED 已正式加入契约 §三 miniapp_retail 阶段值域 ⇒ 拒收发正式事件
+    // order.progress.miniapp_retail.rejected（不冒充 CANCELLED——两者是不同业务事实）。
+    // failure_code 选型（§7.1 九码内）：DELIVERY_FAILED（适用族含 miniapp_retail，文案
+    // "配送失败：{status_reason}"、下一步"联系客服重新配送"最贴近客户拒收场景），
+    // needRetryEntry=true ⇒ 必带 retry_entry（§7.1 重试入口列="人工重新发货" ⇒ 动作标识 store:manual-redeliver）；
+    // needManualUrl=false ⇒ manual_intervention_url 按契约为空。
+    if (status === "REJECTED") {
+      await appendMiniappRetailEventIfRetail(order as unknown as MiniappRetailTruthRow, {
+        conn,
+        tenantId,
+        orderNo,
+        businessStage: "REJECTED",
+        businessStatus: status,
+        actorId: operatorId,
+        actorType: "user",
+        upstreamBizKey: `${orderNo}:STORE_REJECT`,
+        failureCode: "DELIVERY_FAILED",
+        retryEntry: "store:manual-redeliver",
+        statusReason: "客户拒收",
+        actorFallback: "store-reject-order",
+      });
+    } else {
+      await appendMiniappRetailEventIfRetail(order as unknown as MiniappRetailTruthRow, {
+        conn,
+        tenantId,
+        orderNo,
+        businessStage: "CANCELLED",
+        businessStatus: status,
+        actorId: operatorId,
+        actorType: "user",
+        upstreamBizKey: `${orderNo}:STORE_CANCEL`,
+        statusReason: "订单取消释放占用库存",
+        actorFallback: "store-cancel-order",
+      });
+    }
+
     return { orderNo, status };
   });
 }

@@ -110,7 +110,7 @@ const EXPECTED_PREFIXES: readonly string[] = [
 ];
 
 /**
- * src/routes/ 下的路由文件清单（189 个）。
+ * src/routes/ 下的路由文件清单（190 个）。
  * 用于「新增文件护栏」：目录里新出现的 *.routes.ts 若不在此清单/豁免表内 ⇒ 判红。
  */
 const EXPECTED_FILES: readonly string[] = [
@@ -145,7 +145,8 @@ const EXPECTED_FILES: readonly string[] = [
   "menu-permission.routes.ts", "miniapp-config.routes.ts", "miniapp-order-sync.routes.ts",
   "miniapp.routes.ts", "monitor-slow-query.routes.ts", "monitor-system.routes.ts",
   "monitor.routes.ts", "notification.routes.ts", "open-library.routes.ts",
-  "operation-log.routes.ts", "order-exception.routes.ts", "order-timeout.routes.ts",
+  "operation-log.routes.ts", "order-exception.routes.ts", "order-progress.routes.ts",
+  "order-timeout.routes.ts",
   "payment-config.routes.ts", "payment-new.routes.ts", "payment.routes.ts",
   "platform-agent.routes.ts", "platform-app-version.routes.ts", "platform-applications.routes.ts",
   "platform-auth.routes.ts",
@@ -191,7 +192,8 @@ const EXEMPT_FILES: readonly string[] = [];
 
 /**
  * 注册总数基线（= app.use 被调用的次数）。
- * 当前 routes/ 下 189 个文件共产生 225 条注册（C6-3-2b 新增 platform-referral-ledger.routes.ts 与
+ * 当前 routes/ 下 190 个文件共产生 226 条注册（TOTAL-ORDER-PROGRESS-02 新增 order-progress.routes.ts
+ * 以 /api/admin 前缀注册 1 条，由 225 递增到 226；C6-3-2b 新增 platform-referral-ledger.routes.ts 与
  * platform-channel-report.routes.ts 后由 201 递增到 203；S3-195 把门店 9 个以根前缀 /api/store 注册
  * 的文件按「自己拥有的路径段」拆成 31 条注册后 +22）。
  *
@@ -200,7 +202,7 @@ const EXEMPT_FILES: readonly string[] = [];
  *   单个共享文件掉线时该前缀仍被其他文件注册 ⇒ toContain 抓不到；
  *   但注册总数必然下降 ⇒ 本条必红。因快照中**每个文件都贡献 ≥1 条注册**，故总数守恒等价于「无文件掉线」。
  */
-const EXPECTED_REGISTRATION_COUNT = 225;
+const EXPECTED_REGISTRATION_COUNT = 226;
 
 /**
  * 耗时基线告警（治标 ②）

@@ -40,7 +40,17 @@ beforeEach(() => {
   mocks.shouldReserveStock.mockReturnValue(false);
   mocks.calcReservation.mockReturnValue({ reservedQty: 0, unreservedQty: 1 });
   mocks.completeOrderDelivery.mockResolvedValue(undefined);
-  mocks.transaction.mockImplementation(async (fn: any) => fn({ query: connQuery }));
+  mocks.transaction.mockImplementation(async (fn: any) => {
+    const conn = { query: connQuery, execute: vi.fn() };
+    conn.execute.mockImplementation(async (sql: string) => {
+      const s = String(sql);
+      if (s.includes("FROM t_order_progress_event")) return [[]];
+      if (s.includes("INSERT INTO t_order_progress_event")) return [{ affectedRows: 1 }];
+      if (s.includes("UPDATE t_miniapp_order")) return [{ affectedRows: 1 }];
+      return [{ affectedRows: 0 }];
+    });
+    return fn(conn);
+  });
   connQuery.mockReset();
   connQuery.mockImplementation(async (sql: string) => {
     if (String(sql).includes("FROM t_cart_item")) return [[{ skuId: 1, quantity: 2 }]];

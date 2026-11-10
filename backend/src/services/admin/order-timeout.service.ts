@@ -1,5 +1,52 @@
 import { query, transaction, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import type { PoolConnection } from "mysql2/promise";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import logger from "../../shared/logger";
+import { appendOrderProgressEvent, miniappRetailEvent } from "../../shared/order-progress-events";
+
+/** 超时扫描命中行 */
+interface TimeoutOrderRow extends RowDataPacket {
+  id: number;
+  order_no: string;
+}
+
+/**
+ * 支付超时取消事件（miniapp_retail · 契约 §7.1 PAYMENT_TIMEOUT）。
+ *
+ * - 与状态 UPDATE / SUCCESS 超时日志同事务（调用方 conn）⇒ 事件写失败整单回滚；
+ * - 仅 miniapp_retail（customer_type=RETAIL）写事件，采购/批发单不外扩（红线 §七）；
+ * - business_stage=CANCELLED（终态，装配器补 ended_at），business_status 取事务内真实主表值；
+ * - failure_code=PAYMENT_TIMEOUT 必带 retry_entry（§7.1：重试入口=前端重新创建订单）；
+ * - upstreamBizKey=orderNo:TIMEOUT:WAIT_PAY ⇒ 重复扫描/重放按 source_event_id 幂等（只留一行）。
+ */
+async function appendPaymentTimeoutEvent(
+  conn: PoolConnection,
+  order: TimeoutOrderRow,
+  tenantId: string,
+): Promise<void> {
+  const [rows] = await conn.execute<RowDataPacket[]>(
+    `SELECT store_id, customer_type, order_status FROM t_miniapp_order WHERE id = ? AND tenant_id = ? LIMIT 1`,
+    [order.id, tenantId]
+  );
+  const o = rows[0] as unknown as { store_id: number | string; customer_type: string; order_status: string } | undefined;
+  if (!o || o.customer_type !== "RETAIL") return;
+
+  await appendOrderProgressEvent(conn, miniappRetailEvent({
+    tenantId,
+    storeId: o.store_id,
+    orderNo: order.order_no,
+    businessStage: "CANCELLED",
+    businessStatus: o.order_status,
+    actorType: "cron",
+    actorId: null,
+    upstreamBizKey: `${order.order_no}:TIMEOUT:WAIT_PAY`,
+    failureCode: "PAYMENT_TIMEOUT",
+    retryEntry: "miniapp:/orders/create-again",
+    statusReason: "支付超时，订单已自动取消",
+    at: new Date(),
+    actorFallback: "order-timeout-wait-pay",
+  }));
+}
 
 /** t_order_timeout_config 配置行（带别名） */
 interface OrderTimeoutConfigRow {
@@ -199,11 +246,15 @@ export async function processTimeoutConfig(config: {
   let extraWhere = "";
 
   if (config.order_type === "SALE") {
-    tableName = "miniapp_order";
+    // 修正：真实表名是 t_miniapp_order（原写 miniapp_order ⇒ 该表不存在，SALE 分支整体扫不到任何单）。
+    // 卡 §五·一.1 授权本卡修复 WAIT_PAY 筛选，使 miniapp_retail 族可真实命中。
+    tableName = "t_miniapp_order";
     if (config.timeout_type === "WAIT_PAY") {
+      // 修正：小程序零售真实待支付状态是 order_status='PENDING_PAYMENT' + pay_status='UNPAID'
+      //（原写 order_status='PENDING' ⇒ 与 t_miniapp_order 值域不符，本族零命中）
       statusField = "pay_status";
       statusValue = "UNPAID";
-      extraWhere = "AND order_status = 'PENDING'";
+      extraWhere = "AND order_status = 'PENDING_PAYMENT'";
     } else if (config.timeout_type === "WAIT_ACCEPT") {
       statusField = "order_status";
       statusValue = "PENDING";
@@ -212,6 +263,7 @@ export async function processTimeoutConfig(config: {
       statusValue = "PENDING_DELIVERY";
     }
   } else if (config.order_type === "PURCHASE") {
+    // 采购单属其他订单族 ⇒ 本卡红线不外扩，保持现网原样（表名/口径不在本卡改动范围）
     tableName = "purchase_order";
     if (config.timeout_type === "WAIT_CONFIRM") {
       statusField = "status";
@@ -223,7 +275,7 @@ export async function processTimeoutConfig(config: {
     return;
   }
 
-  const orders = await query<{ id: number; order_no: string }>(
+  const orders = await query<TimeoutOrderRow>(
     `SELECT id, order_no
      FROM ${tableName}
      WHERE ${statusField} = ?
@@ -241,12 +293,23 @@ export async function processTimeoutConfig(config: {
   for (const order of orders) {
     try {
       await transaction(async (conn) => {
+        // WAIT_PAY 超时取消：UPDATE 带并发守卫（扫描后用户恰好支付成功 ⇒ 不得误取消，
+        // 卡 §五·一.1）。仅 affectedRows=1 才写 SUCCESS 日志与 PAYMENT_TIMEOUT 事件。
+        let guardedCancel = false;
+
         if (config.action === "CANCEL") {
           if (config.timeout_type === "WAIT_PAY") {
-            await conn.execute(
-              `UPDATE ${tableName} SET order_status = 'CANCELLED', pay_status = 'CANCELLED', updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
+            const [res] = await conn.execute<ResultSetHeader>(
+              `UPDATE ${tableName} SET order_status = 'CANCELLED', pay_status = 'CANCELLED', updated_at = NOW()
+               WHERE id = ? AND tenant_id = ?
+                 AND order_status = 'PENDING_PAYMENT' AND pay_status = 'UNPAID'`,
               [order.id, tenantId]
             );
+            if (Number(res?.affectedRows ?? 0) !== 1) {
+              // 并发下已被支付/已取消 ⇒ 不写 SUCCESS 日志、不写超时事件（防误取消假成功）
+              return;
+            }
+            guardedCancel = true;
           } else if (config.timeout_type === "WAIT_SIGN") {
             await conn.execute(
               `UPDATE ${tableName} SET order_status = 'COMPLETED', updated_at = NOW() WHERE id = ? AND tenant_id = ?`,
@@ -275,6 +338,12 @@ export async function processTimeoutConfig(config: {
            VALUES (?, ?, ?, ?, NOW(), NOW(), 'SUCCESS', ?, ?)`,
           [order.id, config.order_type, config.timeout_type, config.action, `订单${order.order_no}超时自动${config.action}`, tenantId]
         );
+
+        // 契约 §8.1 + §五.5：支付超时取消 ⇒ 同事务写 CANCELLED 事件 + 九码 PAYMENT_TIMEOUT
+        //（§7.1 PAYMENT_TIMEOUT needRetryEntry=true ⇒ 必须携带 retry_entry，否则校验器判红）
+        if (guardedCancel) {
+          await appendPaymentTimeoutEvent(conn, order, String(tenantId));
+        }
       });
     } catch (err) {
       try {

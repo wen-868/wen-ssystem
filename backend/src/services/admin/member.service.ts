@@ -4,6 +4,7 @@ import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
 import { sendSmsCode, isSmsVerifyEnabled, verifySmsCode } from "../sms.service";
 import { generateInitialPassword } from "../../shared/initial-password";
+import { getMemberPointsTruth } from "./points.service";
 import type { ResultSetHeader } from "mysql2/promise";
 
 /** SELECT id 通用返回 */
@@ -18,12 +19,6 @@ interface MemberCardMemberRow {
   mobile: string;
   memberLevel: string | null;
   createdAt: string | Date;
-}
-
-/** t_customer_points 积分行（带别名） */
-interface CustomerPointsRow {
-  totalPoints: number | string;
-  availablePoints: number | string;
 }
 
 /** t_customer_level 等级行（带别名） */
@@ -173,7 +168,8 @@ export async function getMemberCard(memberId: number, tenantId: string) {
     [memberId, tenantId], tenantId
   );
   if (!member) throw new Error("会员不存在");
-  const points = await queryOneWithTenant<CustomerPointsRow>("SELECT total_points AS totalPoints, available_points AS availablePoints FROM t_customer_points WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  // 积分真源统一口径：会员卡可用积分与列表/详情/积分接口同源（getMemberPointsTruth 单点）
+  const truth = await getMemberPointsTruth(tenantId, memberId);
   const level = await queryOneWithTenant<CustomerLevelRow>("SELECT level_name AS levelName, level_points AS levelPoints, upgraded_at AS upgradedAt FROM t_customer_level WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   const card = await queryOneWithTenant<StoreValueCardRow>("SELECT card_no AS cardNo, balance, status FROM t_store_value_card WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   const levelConfig = await queryOneWithTenant<LevelConfigDiscountRow>(
@@ -182,8 +178,8 @@ export async function getMemberCard(memberId: number, tenantId: string) {
   );
   return {
     ...member,
-    totalPoints: points?.totalPoints ?? 0,
-    availablePoints: points?.availablePoints ?? 0,
+    totalPoints: truth?.totalPoints ?? 0,
+    availablePoints: truth?.availablePoints ?? 0,
     currentLevel: level?.levelName ?? "VIP1",
     levelPoints: level?.levelPoints ?? 0,
     upgradedAt: level?.upgradedAt ?? null,

@@ -187,6 +187,19 @@ describe("member.service - getMemberCard", () => {
       benefits: null,
     });
   });
+
+  it("会员卡可用积分来自真源统一口径（getMemberPointsTruth），与列表/详情/积分接口同值", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1, name: "张三", mobile: "138", memberLevel: "VIP2", createdAt: "2026-01-01" }) // 会员行
+      .mockResolvedValueOnce({ availablePoints: 456, totalPoints: 800, frozenPoints: 12 }) // 积分真源
+      .mockResolvedValueOnce(null) // 等级
+      .mockResolvedValueOnce(null) // 储值卡
+      .mockResolvedValueOnce(null); // 等级配置
+    const res = await getMemberCard(1, "t1");
+    expect(res).toMatchObject({ totalPoints: 800, availablePoints: 456 });
+    const truthSql = String(mocks.queryOneWithTenant.mock.calls[1][0]);
+    expect(truthSql).toContain("COALESCE(cp.available_points, m.points, 0) AS availablePoints");
+  });
 });
 
 describe("member.service - updateMemberLevel / getMemberBenefits", () => {
