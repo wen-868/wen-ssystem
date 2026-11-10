@@ -3,6 +3,7 @@ import { hashPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
 import { sendSmsCode, isSmsVerifyEnabled, verifySmsCode } from "../sms.service";
+import { generateInitialPassword } from "../../shared/initial-password";
 import type { ResultSetHeader } from "mysql2/promise";
 
 /** SELECT id 通用返回 */
@@ -133,9 +134,24 @@ export async function registerMember(params: { name: string; mobile: string; pas
   const { name, mobile, password, referrerId, tenantId } = params;
   const existing = await queryOneWithTenant<IdRow>("SELECT id FROM t_member WHERE mobile = ? AND tenant_id = ?", [mobile, tenantId], tenantId);
   if (existing) throw new Error("该手机号已注册");
+  // MS-SECURITY-BASELINE-01：前端不再硬编码默认口令 "123456"（也不再以明文直写入
+  // password_hash）。显式传入密码时校验强度并哈希；未传时生成不可预测的一次性
+  // 初始口令（crypto 随机源）并哈希，仅在创建响应中返回一次。
+  let initialPassword: string | undefined;
+  let passwordHash: string;
+  if (password) {
+    const validation = validatePassword(password);
+    if (!validation.valid) {
+      throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
+    }
+    passwordHash = await hashPassword(password);
+  } else {
+    initialPassword = generateInitialPassword();
+    passwordHash = await hashPassword(initialPassword);
+  }
   const result = await queryWithTenant<ResultSetHeader>(
     "INSERT INTO t_member (name, mobile, password_hash, referrer_id, level_code, tenant_id) VALUES (?, ?, ?, ?, 'VIP1', ?)",
-    [name, mobile, password ?? null, referrerId ?? null, tenantId], tenantId
+    [name, mobile, passwordHash, referrerId ?? null, tenantId], tenantId
   );
   const memberId = (result as unknown as Record<string, unknown>).insertId;
   // 初始化积分账户
@@ -144,6 +160,9 @@ export async function registerMember(params: { name: string; mobile: string; pas
   await queryWithTenant("INSERT INTO t_customer_level (customer_id, level_name, level_points, tenant_id) VALUES (?, 'VIP1', 0, ?)", [memberId, tenantId], tenantId);
   // 初始化画像
   await queryWithTenant("INSERT INTO t_customer_profile (customer_id, lifecycle_stage, tenant_id) VALUES (?, 'PROSPECT', ?)", [memberId, tenantId], tenantId);
+  if (initialPassword) {
+    return { id: memberId, name, mobile, initialPassword };
+  }
   return { id: memberId, name, mobile };
 }
 

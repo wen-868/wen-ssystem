@@ -4,6 +4,7 @@ import { makeBizNo } from "../../shared/id";
 // 禁止裸 `bcrypt.hash` —— 两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false（S3-172）。
 import { hashPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
+import { generateInitialPassword } from "../../shared/initial-password";
 import type { ResultSetHeader } from "mysql2/promise";
 
 // ===== 类型定义 =====
@@ -131,9 +132,10 @@ export async function createStaff(body: {
     }
   }
 
-  const passwordHash = body.password
-    ? await hashPassword(body.password)
-    : await hashPassword("123456");
+  // MS-SECURITY-BASELINE-01：取消硬编码默认口令 "123456"。未传密码时改为
+  // 生成不可预测的一次性初始口令（crypto 随机源），仅在创建响应中返回一次。
+  const initialPassword = body.password ?? generateInitialPassword();
+  const passwordHash = await hashPassword(initialPassword);
   const result = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_sys_user (username, real_name, mobile, store_id, department_id, position_id, status, password_hash)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -154,7 +156,11 @@ export async function createStaff(body: {
       tenantId
     );
   }
-  return { staffId, username: body.username, realName: body.realName };
+  // 一次性初始口令只在创建响应里返回一次（未显式传密码时），库里仅存哈希
+  if (body.password) {
+    return { staffId, username: body.username, realName: body.realName };
+  }
+  return { staffId, username: body.username, realName: body.realName, initialPassword };
 }
 
 export async function updateStaff(id: number, body: {

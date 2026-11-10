@@ -5,6 +5,12 @@ const mocks = vi.hoisted(() => ({
   queryOne: vi.fn(),
 }));
 
+// MS-SECURITY-BASELINE-01：监听 crypto.randomInt，验证码必须走密码学安全随机源
+vi.mock("crypto", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("crypto")>();
+  return { ...mod, randomInt: vi.fn(mod.randomInt) };
+});
+
 vi.mock("../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
@@ -19,10 +25,45 @@ import {
   assertSmsConfig,
   sendSmsCode,
   verifySmsCode,
+  generateSmsCode,
 } from "../../services/sms.service";
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+// MS-SECURITY-BASELINE-01：验证码必须来自密码学安全随机源（原先 Math.random 可预测）
+describe("sms.service - 验证码随机性（MS-SECURITY-BASELINE-01）", () => {
+  it("generateSmsCode 必须调用 crypto.randomInt（密码学安全随机源）", async () => {
+    const cryptoMod = await import("crypto");
+    const randomIntMock = vi.mocked(cryptoMod.randomInt);
+    randomIntMock.mockClear();
+    generateSmsCode();
+    expect(randomIntMock).toHaveBeenCalledWith(100000, 1000000);
+  });
+
+  it("generateSmsCode 恒为 6 位数字", () => {
+    for (let i = 0; i < 200; i++) {
+      expect(generateSmsCode()).toMatch(/^\d{6}$/);
+    }
+  });
+
+  it("generateSmsCode 大样本下不重复且覆盖高位与低位（非固定值/非可预测序列）", () => {
+    const samples = new Set<string>();
+    let sawLow = false;
+    let sawHigh = false;
+    for (let i = 0; i < 2000; i++) {
+      const c = generateSmsCode();
+      samples.add(c);
+      const n = Number(c);
+      if (n < 500000) sawLow = true;
+      if (n >= 500000) sawHigh = true;
+    }
+    // 2000 个样本几乎必然无碰撞（生日界 ~374 次即 50% 碰撞，安全随机源下此处仍允许极小概率）
+    expect(samples.size).toBeGreaterThan(1900);
+    expect(sawLow).toBe(true);
+    expect(sawHigh).toBe(true);
+  });
 });
 
 describe("sms.service - 短信验证开关与配置", () => {

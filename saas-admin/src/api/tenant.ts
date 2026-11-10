@@ -96,6 +96,21 @@ export function createTenantApi(data: any) {
   return request.post('/platform/tenants', data)
 }
 
+/**
+ * 一次性初始口令交付守卫（MS-SECURITY-BASELINE-01F1）。
+ *
+ * 后端创建租户时由服务端随机生成管理员一次性初始口令（adminInitialPassword），
+ * 仅在创建响应里返回一次。前端必须把该口令一次性交付给操作者；
+ * 响应中未携带口令时显式报错，禁止静默显示"创建成功"或直接跳转。
+ */
+export function extractInitialPassword(resp: unknown, field: string): string {
+  const value = (resp as Record<string, unknown> | null | undefined)?.[field];
+  if (typeof value !== "string" || value === "") {
+    throw new Error(`创建响应中未取得一次性初始口令（${field}），已阻止"创建成功"跳转，请重置该账号密码后交付`);
+  }
+  return value;
+}
+
 export function updateTenantApi(id: number, data: any) {
   return request.put(`/platform/tenants/${id}`, data)
 }

@@ -251,7 +251,8 @@ export async function fetchStoreValueTransactions(params?: { cardId?: number; pa
 }
 
 // --- 会员体系 ---
-export async function registerMember(payload: { name: string; mobile: string; password: string; referrerId?: number }) {
+// MS-SECURITY-BASELINE-01：password 可选（留空由后端生成一次性初始口令，响应 initialPassword 只返回一次）
+export async function registerMember(payload: { name: string; mobile: string; password?: string; referrerId?: number }) {
   const { data } = await api.post("/admin/customers/members/register", payload);
   return data.data;
 }

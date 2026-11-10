@@ -9,6 +9,7 @@ import { query, queryOne, transaction } from "../../shared/db";
 // 禁止裸 `bcrypt.hash`（两种口径并存会让按裸 bcrypt 校验的代码/测试对 `v2$` 哈希恒 false，S3-172）。
 import { hashPassword } from "../../shared/password";
 import { makeBizNo } from "../../shared/id";
+import { generateInitialPassword } from "../../shared/initial-password";
 import type mysql from "mysql2/promise";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 // S3-183（收口总清单第 18 项）：开通链路必须克隆角色/菜单并把首个管理员绑到本租户的角色行
@@ -282,9 +283,10 @@ export async function createPlatformTenant(params: PlatformTenantCreate) {
     }
 
     // 初始化租户默认数据
-    await initializeTenantDefaults(conn, tenantId, params.contactName, params.contactPhone);
+    const adminInitialPassword = await initializeTenantDefaults(conn, tenantId, params.contactName, params.contactPhone);
 
-    return { tenantId, tenantCode };
+    // MS-SECURITY-BASELINE-01：管理员一次性初始口令仅在创建租户响应中返回一次
+    return { tenantId, tenantCode, adminInitialPassword };
   });
 
   return result;
@@ -298,11 +300,13 @@ async function initializeTenantDefaults(
   tenantId: string,
   adminName: string,
   adminPhone: string
-) {
+): Promise<string> {
   // 创建默认管理员账号
   // S3-205（总清单第 26 项）：原为裸 `await import("bcryptjs")…hash("123456", 10)`，统一到唯一封装。
-  // ⚠️ 这里的默认口令字面量 "123456" 属**另一类问题**（弱默认口令），不在本单范围，已随回执报备。
-  const adminPassword = await hashPassword("123456");
+  // MS-SECURITY-BASELINE-01：取消硬编码默认口令 "123456"，改为生成不可预测的一次性初始口令
+  // （crypto 随机源），仅在创建租户响应中返回一次，库中仅存哈希。
+  const adminInitialPassword = generateInitialPassword();
+  const adminPassword = await hashPassword(adminInitialPassword);
   const [adminResult] = await conn.query(
     `INSERT INTO t_sys_user
      (tenant_id, username, password, real_name, phone, role, status, is_default)
@@ -363,6 +367,8 @@ async function initializeTenantDefaults(
      VALUES (?, '支付宝', 'ALIPAY', 'ACTIVE')`,
     [tenantId]
   );
+
+  return adminInitialPassword;
 }
 
 /**

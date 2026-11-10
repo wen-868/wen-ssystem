@@ -1,4 +1,5 @@
 import { ok, fail } from "../../shared/response";
+import { generateInitialPassword } from "../../shared/initial-password";
 import {
   listTenants,
   getTenantById,
@@ -30,9 +31,9 @@ export async function getPlatformTenantById(req: any, res: any) {
 
 /** 创建租户 */
 export async function createPlatformTenant(req: any, res: any) {
-  const { tenantName, contactName, contactMobile, contactEmail, adminUsername, adminPassword, expireAt } = req.body;
+  const { tenantName, contactName, contactMobile, contactEmail, adminUsername, expireAt } = req.body;
 
-  if (!tenantName || !contactName || !contactMobile || !adminUsername || !adminPassword) {
+  if (!tenantName || !contactName || !contactMobile || !adminUsername) {
     res.status(400).json(fail("缺少必填字段", "400"));
     return;
   }
@@ -43,11 +44,16 @@ export async function createPlatformTenant(req: any, res: any) {
     return;
   }
 
+  // MS-SECURITY-BASELINE-01F1：管理员口令不再由前端提交（旧实现"前端收密码但后端忽略"）。
+  // 改由服务端用 crypto 随机源生成一次性初始口令：真实哈希落库，明文仅在创建响应返回一次，
+  // 由前端一次性展示/复制/确认交付给操作者。
+  const adminInitialPassword = generateInitialPassword();
+
   const tenantId = await createTenant({
-    tenantName, contactName, contactMobile, contactEmail, adminUsername, adminPassword, expireAt
+    tenantName, contactName, contactMobile, contactEmail, adminUsername, adminPassword: adminInitialPassword, expireAt
   });
 
-  res.json(ok({ id: tenantId }));
+  res.json(ok({ id: tenantId, adminInitialPassword }));
 }
 
 /** 更新租户 */

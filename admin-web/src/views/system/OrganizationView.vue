@@ -92,13 +92,31 @@
           </el-select>
           <div v-if="staffForm.isBoss" class="boss-tip">超级管理员为老板唯一账号，不可通过员工管理修改</div>
         </el-form-item>
-        <el-form-item v-if="!staffForm.id" label="初始密码" prop="password">
-          <el-input v-model="staffForm.password" placeholder="留空默认 123456" show-password />
-        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="staffDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="handleSaveStaff">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 一次性初始口令交付（MS-SECURITY-BASELINE-01F1）：
+         后端随机生成的 initialPassword 仅在创建响应里返回一次，
+         操作者点"我已妥善保存"确认前对话框不可被关闭/跳过 -->
+    <el-dialog
+      v-model="initialPasswordVisible"
+      title="请保存员工初始口令"
+      width="460px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+    >
+      <el-alert type="warning" :closable="false" title="该初始口令仅展示这一次，确认保存后无法再次查看" />
+      <div class="initial-password-row">
+        <span class="initial-password-value">{{ initialPasswordValue }}</span>
+        <el-button size="small" @click="copyInitialPassword">复制</el-button>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="confirmInitialPasswordDelivered">我已妥善保存</el-button>
       </template>
     </el-dialog>
 
@@ -215,6 +233,7 @@ import {
   createDepartment,
   updateDepartment,
   deleteDepartment,
+  extractInitialPassword,
 } from "../../api/system";
 import { fetchPositions, createPosition, updatePosition, deletePosition } from "../../api/pos";
 import { fetchStaff, fetchStores } from "../../api";
@@ -236,12 +255,16 @@ const positionList = ref<any[]>([]);
 /* 员工表单 */
 const staffDialogVisible = ref(false);
 const staffFormRef = ref<FormInstance>();
-const staffForm = reactive<any>({ id: 0, username: "", realName: "", mobile: "", departmentId: undefined, storeId: undefined, positionId: undefined, roleId: undefined, password: "", isBoss: false });
+const staffForm = reactive<any>({ id: 0, username: "", realName: "", mobile: "", departmentId: undefined, storeId: undefined, positionId: undefined, roleId: undefined, isBoss: false });
 const staffRules: FormRules = {
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   realName: [{ required: true, message: "请输入姓名", trigger: "blur" }],
   mobile: [{ pattern: /^1[3-9]\d{9}$/, message: "手机号格式不正确", trigger: "blur" }],
 };
+
+/* 一次性初始口令交付（MS-SECURITY-BASELINE-01F1） */
+const initialPasswordVisible = ref(false);
+const initialPasswordValue = ref("");
 
 /* 重置密码 */
 const resetVisible = ref(false);
@@ -341,7 +364,6 @@ function openStaffDialog(row?: any) {
     storeId: row?.storeId ? Number(row.storeId) : undefined,
     positionId: row?.positionId ? Number(row.positionId) : undefined,
     roleId: row?.roleIds ? Number(String(row.roleIds).split(",")[0]) : undefined,
-    password: "",
     isBoss: row?.roleCodes ? String(row.roleCodes).includes("SUPER_ADMIN") : false,
   });
   staffDialogVisible.value = true;
@@ -366,8 +388,22 @@ async function handleSaveStaff() {
         await updateStaff(staffForm.id, payload);
         ElMessage.success("员工已更新");
       } else {
-        await createStaff({ ...payload, username: staffForm.username, password: staffForm.password || undefined });
-        ElMessage.success("员工已创建");
+        // MS-SECURITY-BASELINE-01F1：不再提交操作者手输的默认口令旧口径；
+        // 后端未收到密码时随机生成一次性初始口令，且必须交付到操作者本人。
+        const created = await createStaff({ ...payload, username: staffForm.username });
+        let initialPassword: string;
+        try {
+          initialPassword = extractInitialPassword(created, "initialPassword");
+        } catch (e: any) {
+          // 未取得 initialPassword 时不得静默显示"创建成功"
+          ElMessage.error(e?.message || "员工已写入但未取得一次性初始口令，请为该员工重置密码后交付");
+          await loadData();
+          return;
+        }
+        staffDialogVisible.value = false;
+        initialPasswordValue.value = initialPassword;
+        initialPasswordVisible.value = true;
+        return;
       }
       staffDialogVisible.value = false;
       await loadData();
@@ -379,8 +415,24 @@ async function handleSaveStaff() {
   });
 }
 
-async function handleToggleStatus(row: any) {
-  const next = row.status === 1 ? 0 : 1;
+/* 一次性初始口令交付：复制 + 确认后才关闭并继续 */
+async function copyInitialPassword() {
+  try {
+    await navigator.clipboard.writeText(initialPasswordValue.value);
+    ElMessage.success("已复制到剪贴板");
+  } catch {
+    ElMessage.error("复制失败，请手动选中口令复制");
+  }
+}
+
+async function confirmInitialPasswordDelivered() {
+  initialPasswordVisible.value = false;
+  initialPasswordValue.value = "";
+  ElMessage.success("员工已创建");
+  await loadData();
+}
+
+async function handleToggleStatus(row: any) {  const next = row.status === 1 ? 0 : 1;
   try {
     await toggleStaffStatus(row.staffId, next);
     row.status = next;
@@ -552,5 +604,18 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 10px;
+}
+.initial-password-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.initial-password-value {
+  flex: 1;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 600;
+  user-select: all;
 }
 </style>

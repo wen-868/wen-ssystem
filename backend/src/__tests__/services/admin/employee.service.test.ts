@@ -69,11 +69,32 @@ describe("employee.service", () => {
       expect(params).toEqual(["u", "r", null, null, null, null, 1, "hash_pwd"]);
     });
 
-    it("未传密码时使用默认 123456", async () => {
-      mocks.hashPassword.mockResolvedValue("hash_default");
+    // MS-SECURITY-BASELINE-01：取消硬编码默认口令，未传密码时改为随机一次性初始口令
+    it("未传密码时生成随机一次性初始口令（不再使用默认 123456）", async () => {
+      mocks.hashPassword.mockResolvedValue("hash_generated");
       mocks.queryWithTenant.mockResolvedValue({ insertId: 9 });
-      await createStaff({ username: "u", realName: "r" }, "t1");
-      expect(mocks.hashPassword).toHaveBeenCalledWith("123456");
+      const res = await createStaff({ username: "u", realName: "r" }, "t1");
+      const [calledPassword] = mocks.hashPassword.mock.calls[0];
+      // 非默认值、12 位、来自无歧义字符集
+      expect(calledPassword).not.toBe("123456");
+      expect(typeof calledPassword).toBe("string");
+      expect(calledPassword).toMatch(/^[A-HJ-NP-Za-hj-km-np-z2-9]{12}$/);
+      // 一次性初始口令在创建响应中返回一次
+      expect((res as { initialPassword?: string }).initialPassword).toBe(calledPassword);
+      // 再次创建应得到不同口令（随机性）
+      mocks.queryWithTenant.mockResolvedValue({ insertId: 10 });
+      const res2 = await createStaff({ username: "u2", realName: "r2" }, "t1");
+      const [second] = mocks.hashPassword.mock.calls[1];
+      expect(second).not.toBe(calledPassword);
+      expect((res2 as { initialPassword?: string }).initialPassword).toBe(second);
+    });
+
+    it("显式传密码时不在响应中暴露 initialPassword", async () => {
+      mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
+      mocks.hashPassword.mockResolvedValue("hash_pwd");
+      mocks.queryWithTenant.mockResolvedValue({ insertId: 11 });
+      const res = await createStaff({ username: "u", realName: "r", password: "secret" }, "t1");
+      expect((res as { initialPassword?: string }).initialPassword).toBeUndefined();
     });
   });
 
