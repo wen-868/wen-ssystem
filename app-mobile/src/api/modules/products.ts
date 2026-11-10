@@ -1,4 +1,4 @@
-﻿import { get, post, put, del } from '../request'
+﻿import { get, post, put, del, buildSecureHeaders } from '../request'
 import { API_BASE_H5, API_BASE_NATIVE } from '../../config/env'
 
 /** API 基础地址（与 request.ts 保持一致） */
@@ -11,20 +11,115 @@ const API_BASE: string = (() => {
   // #endif
 })()
 
+/**
+ * ── QODER-26 · SKU/SPU 维度守卫（路径参数收口）────────────────────────────────
+ * 后端商品域的两组路径段是**两个不同维度**（以后端真实注册为准，非前端变量名）：
+ *   · `admin-product.routes.ts:35` GET  /products                → **SKU 粒度**行（`product.service.ts:259-273` 从 t_product_sku 出发，同查 `p.id AS spuId` 与 `s.id AS skuId`）
+ *   · `:46` GET  /products/:spuId(\\d+)              → SPU
+ *   · `:60` PUT  /products/:id                      → SPU（controller `:118` 读 req.params.spuId）
+ *   · `:63` PUT  /products/:skuId/price             → SKU（controller `:256` 读 req.params.skuId）
+ *   · `:69` PUT  /products/skus/:skuId              → SKU（controller `:152`）
+ *   · `:74` PUT  /products/:spuId/marketing-tags    → SPU（controller `:296`）
+ * 喂错维度＝写错对象（把 A 规格的价格改到同 SPU 的 B 规格上），所以这里把维度钉死。
+ *
+ * 为什么守卫不用 console 打日志：`scripts/gates-baseline.json` 的 `lint.warningsByRule.no-console`
+ * 冻结为 225 条，新增任一 console.* 都会让 lint 门红（红线禁止调整 lint.* 基线）。
+ * 故守卫采用两件事：①**可断言的结构化守卫日志** `skuGuardLog`（单测直接读数，页面亦可展示）；
+ * ②**抛错**，由调用点**既有**的 console.error 打印（batch-price.vue 的失败分支），
+ * 消息里带 id/spuId/skuId 三个读数，运维侧照样看得到。
+ * ────────────────────────────────────────────────────────────────────────────
+ */
+
+/** 守卫日志环形缓冲（上限 200 条，防长跑内存泄漏）；只追加字符串，不参与业务判定 */
+export const skuGuardLog: string[] = []
+const GUARD_LOG_CAP = 200
+
+function guardNote(msg: string): string {
+  if (skuGuardLog.length >= GUARD_LOG_CAP) skuGuardLog.shift()
+  skuGuardLog.push(msg)
+  return msg
+}
+
+/**
+ * 数字主键归一：只有**正整数**才算有效身份。
+ * NaN / 0 / 负数 / 编码串（skuCode、条码、名称）一律归 0（＝无效身份），
+ * 对应本卡红线：不得用空格、名称或条码当唯一身份替代 SKU 主键。
+ */
+function toNumericId(value: unknown): number {
+  if (typeof value === 'number') return Number.isInteger(value) && value > 0 ? value : 0
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value)
+    return Number.isInteger(n) && n > 0 ? n : 0
+  }
+  return 0
+}
+
+/** SKU 维度断言：拿到真实 skuId 才放行，否则抛错（不发请求＝不写错对象） */
+export function assertSkuId(value: unknown, ctx: string): number {
+  const id = toNumericId(value)
+  if (!id) {
+    throw new Error(
+      guardNote(
+        `[SKU维度守卫] ${ctx}: 参数不是正整数 skuId（收到 ${JSON.stringify(value ?? null)}）⇒ 拒发 PUT /admin/products/:skuId/price`
+      )
+    )
+  }
+  return id
+}
+
+/** SPU 维度断言：详情/SPU 更新/营销标签只认 spuId */
+export function assertSpuId(value: unknown, ctx: string): number {
+  const id = toNumericId(value)
+  if (!id) {
+    throw new Error(
+      guardNote(
+        `[SPU维度守卫] ${ctx}: 参数不是正整数 spuId（收到 ${JSON.stringify(value ?? null)}）⇒ 拒发 /admin/products/:spuId 请求`
+      )
+    )
+  }
+  return id
+}
+
+/**
+ * 从商品行取改价用的 skuId，并校验 `ProductInfo.id` 与 `ProductInfo.skuId` 同值。
+ * 两者不同值只可能是「有人又把 SPU 主键塞进 id」＝本卡根因，宁可抛错也不发请求。
+ */
+export function skuIdOfProduct(p: ProductInfo, ctx: string): number {
+  const skuId = assertSkuId(p?.skuId, `${ctx}.skuId`)
+  const rowId = toNumericId(p?.id)
+  if (rowId !== skuId) {
+    throw new Error(
+      guardNote(
+        `[SKU维度守卫] ${ctx}: ProductInfo.id=${rowId} 与 skuId=${skuId} 不同值（疑似 spuId 顶替 SKU 主键）⇒ 拒发改价`
+      )
+    )
+  }
+  return skuId
+}
+
 /** 创建商品（后端 POST /admin/products） */
 export async function createProduct(data: Record<string, any>): Promise<any> {
   return post('/admin/products', data)
 }
 
-/** 商品详情（含 SKU 与单位换算链） */
+/**
+ * 商品详情（含 SKU 与单位换算链）——**SPU 维度**
+ * 后端注册：`backend/src/routes/admin-product.routes.ts:46` `GET /products/:spuId(\d+)`
+ * → controller `:36` `getProductDetail(Number(req.params.spuId))`。只准喂 `ProductInfo.spuId`。
+ */
 export async function getProductDetail(spuId: number): Promise<ProductDetail> {
-  const res: any = await get(`/admin/products/${spuId}`)
+  const id = assertSpuId(spuId, 'getProductDetail')
+  const res: any = await get(`/admin/products/${id}`)
   return (res?.result ?? res) as ProductDetail
 }
 
-/** 更新商品 SPU 字段（价格/单位属 SKU 域，后端 update 不含，详情页价格表格只读展示） */
+/**
+ * 更新商品 SPU 字段（价格/单位属 SKU 域，后端 update 不含，详情页价格表格只读展示）
+ * 后端注册：`admin-product.routes.ts:60` `PUT /products/:id` → controller `:118` 读 `spuId` ⇒ SPU 维度
+ */
 export async function updateProduct(spuId: number, data: ProductUpdateParams): Promise<any> {
-  return put(`/admin/products/${spuId}`, data)
+  const id = assertSpuId(spuId, 'updateProduct')
+  return put(`/admin/products/${id}`, data)
 }
 
 /** SKU 五档价格更新契约（product.controller.ts#updateProductPrice，zod 校验）
@@ -37,12 +132,19 @@ export interface SkuPriceParams {
   storePrice?: number | null
 }
 
-/** 更新 SKU 价格（PUT /admin/products/:skuId/price） */
+/**
+ * 更新 SKU 价格（PUT /admin/products/:skuId/price）——**SKU 维度**
+ * 后端注册：`admin-product.routes.ts:63` → controller `:256` `Number(req.params.skuId)`
+ * ⇒ 路径段是 skuId，喂 SPU 主键＝把价格改到同 SPU 的别的规格上（写错对象）。
+ * QODER-26：入参先过 `assertSkuId` 守卫（非正整数直接抛错，不发请求），
+ * 调用点请用 `skuIdOfProduct(product, ctx)` 取号，可一并校验 `ProductInfo.id` 与 `skuId` 同值。
+ */
 export async function updateSkuPrice(skuId: number, data: SkuPriceParams): Promise<any> {
-  return put(`/admin/products/${skuId}/price`, data)
+  const id = assertSkuId(skuId, 'updateSkuPrice')
+  return put(`/admin/products/${id}/price`, data)
 }
 
-/** 更新 SKU 配置（PUT /admin/products/skus/:skuId，traceEnabled/warningThreshold 等可选） */
+/** SKU 配置更新入参（traceEnabled/warningThreshold 等可选，配合下方 PUT /admin/products/skus/:skuId） */
 export interface SkuUpdateParams {
   skuName?: string
   baseUnit?: string
@@ -51,8 +153,11 @@ export interface SkuUpdateParams {
   traceEnabled?: boolean
   warningThreshold?: number
 }
+/** 更新 SKU 配置（PUT /admin/products/skus/:skuId，traceEnabled/warningThreshold 等可选）
+ *  ——**SKU 维度**：后端 `admin-product.routes.ts:69` → controller `:152` `Number(req.params.skuId)` */
 export async function updateSku(skuId: number, data: SkuUpdateParams): Promise<any> {
-  return put(`/admin/products/skus/${skuId}`, data)
+  const id = assertSkuId(skuId, 'updateSku')
+  return put(`/admin/products/skus/${id}`, data)
 }
 
 /** 新增辅单位（POST /admin/products/skus/:skuId/units，units 无 costPrice 字段） */
@@ -79,9 +184,11 @@ export async function deleteSkuUnit(skuId: number, unitId: number): Promise<any>
   return del(`/admin/products/skus/${skuId}/units/${unitId}`)
 }
 
-/** 设置商品营销标签（PUT /admin/products/:spuId/marketing-tags，body {tags: string[]}） */
+/** 设置商品营销标签（PUT /admin/products/:spuId/marketing-tags，body {tags: string[]}）
+ *  ——**SPU 维度**：后端 `admin-product.routes.ts:74` → controller `:296` `Number(req.params.spuId)` */
 export async function setMarketingTags(spuId: number, tags: string[]): Promise<any> {
-  return put(`/admin/products/${spuId}/marketing-tags`, { tags })
+  const id = assertSpuId(spuId, 'setMarketingTags')
+  return put(`/admin/products/${id}/marketing-tags`, { tags })
 }
 
 /** 商品详情（GET /admin/products/:spuId，含 SKU 单位换算链与四档价格） */
@@ -161,8 +268,17 @@ export interface ProductUpdateParams {
 }
 
 export interface ProductInfo {
+  /**
+   * **SKU 行主键**（= 后端 `s.id AS skuId`，与 `skuId` 同源同值）。
+   * 商品列表 `:key`、加购去重、待选数量、销售明细 `productId`、批量改价选择集全部用它。
+   * QODER-26 根因：原先写作 `id: r.spuId ?? r.id` ⇒ 同 SPU 的多 SKU 撞同一个 id（重复 :key、
+   * 跨规格合并库存、改价写错对象）。**不得**再用 spuId／skuCode／条码／名称顶替它。
+   */
   id: number
-  skuId: string
+  /** **SPU 主键**（= 后端 `p.id AS spuId`）：点商品卡/扫码进详情用它，对齐 GET /admin/products/:spuId */
+  spuId: number
+  /** **SKU 主键**（数值，后端 `s.id`）：PUT /admin/products/:skuId/price 与 skus/:skuId 只认它 */
+  skuId: number
   name: string
   categoryId?: number
   categoryName?: string
@@ -199,6 +315,71 @@ export interface ProductListResult {
   total: number
   page: number
   pageSize: number
+}
+
+/**
+ * 后端商品列表行 → `ProductInfo`（**SKU 粒度：一条 SKU 一行**）
+ *
+ * 依据（只读后端）：`backend/src/services/admin/product.service.ts:258-301`（有关键词）
+ * 与 `:307-339`（无关键词）两条 SQL 都是 `FROM t_product_sku s JOIN t_product_spu p ...`，
+ * select 同时给出 `p.id AS spuId` 与 `s.id AS skuId`，`total` 也按 `COUNT(*) FROM t_product_sku` 算
+ * ⇒ **列表本身就不是 SPU 维度**，前端按 spuId 合并会造出"一行代表多个规格"的假行。
+ *
+ * 处置（QODER-26）：
+ * 1. `id`/`skuId` 取 `r.skuId`（SKU 行主键），`spuId` 取 `r.spuId`，三者语义分离；
+ * 2. 不再按 spuId 合并、不再跨 SKU 累加库存（原 :319-328 的 merged 逻辑整段废除）；
+ * 3. 缺正整数 skuId 的行**跳过并写守卫日志**——宁可少一行，也不让"没有 SKU 主键的行"
+ *    用 spuId/skuCode/条码/名称凑身份（那样会重新长出重复 :key 与写错对象）；
+ * 4. 同 skuId 重复出现只保留首行（分页边界/后端 JOIN 放大时的防御），同样写守卫日志。
+ */
+export function mapProductRecords(records: any[]): ProductInfo[] {
+  const out: ProductInfo[] = []
+  const seen = new Set<number>()
+  for (const r of records) {
+    const skuId = toNumericId(r.skuId)
+    const spuId = toNumericId(r.spuId)
+    if (!skuId) {
+      guardNote(
+        `[SKU维度守卫] 列表行缺正整数 skuId，已跳过（不得用 spuId/skuCode/barcode/name 顶替 SKU 主键）：spuId=${spuId || '-'} skuCode=${r?.skuCode ?? '-'} name=${r?.name ?? '-'}`
+      )
+      continue
+    }
+    if (seen.has(skuId)) {
+      guardNote(`[SKU维度守卫] 列表内 skuId=${skuId} 重复出现，仅保留首行（不跨 SKU 合并库存/价格）`)
+      continue
+    }
+    seen.add(skuId)
+    out.push({
+      id: skuId,
+      spuId,
+      skuId,
+      name: r.name ?? '',
+      categoryId: r.categoryId,
+      categoryName: r.categoryName,
+      brandName: r.brandName ?? '',
+      barcode: r.barcode ?? '',
+      price: Number(r.retailPrice ?? r.price ?? 0),
+      wholesalePrice: r.wholesalePrice != null ? Number(r.wholesalePrice) : Number(r.price ?? 0),
+      retailPrice: r.retailPrice != null ? Number(r.retailPrice) : Number(r.price ?? 0),
+      // 门店价 / 小程序价：与后端五档价格体系一致（列表接口已返回）
+      storePrice: r.storePrice != null ? Number(r.storePrice) : undefined,
+      miniappPrice: r.miniappPrice != null ? Number(r.miniappPrice) : undefined,
+      // 成本价：权限剥离后为 null，由页面如实展示（不能当作 0）
+      costPrice: r.costPrice != null ? Number(r.costPrice) : null,
+      // 库存取该 SKU 行自己的 available_qty（t_inventory_balance 按 ib.sku_id JOIN），不得累加别的规格
+      stock: Number(r.availableQty ?? r.stock ?? 0),
+      unit: r.unit ?? '',
+      image: r.mainImage ?? r.image,
+      specs: r.specs,
+      origin: r.origin,
+      safetyStock: r.warningThreshold != null ? Number(r.warningThreshold) : undefined,
+      // 后端状态枚举为大写 ON_SALE / OFF_SALE / DRAFT，上架 → ON，其余 → OFF
+      status: r.status === 'ON_SALE' ? 'ON' : 'OFF',
+      // 分类级 allow_online_sale：0 = 该分类商品仅线下销售
+      allowOnlineSale: r.allowOnlineSale,
+    })
+  }
+  return out
 }
 
 export interface CategoryInfo {
@@ -284,48 +465,9 @@ const productsApi = {
   async list(params?: ProductListParams): Promise<ProductListResult> {
     const res = (await get('/admin/products', params)) as any
     const raw = res?.result ?? res
-    // 后端返回 records 数组，统一映射为前端 ProductInfo 结构
+    // 后端返回 records 数组（SKU 粒度），映射见 mapProductRecords：id=skuId（SKU 行主键）、spuId 另存
     const records: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
-    const mapped: ProductInfo[] = records.map((r: any) => ({
-      id: r.spuId ?? r.id,
-      skuId: r.skuId ?? r.skuCode ?? '',
-      name: r.name ?? '',
-      categoryId: r.categoryId,
-      categoryName: r.categoryName,
-      brandName: r.brandName ?? '',
-      barcode: r.barcode ?? '',
-      price: Number(r.retailPrice ?? r.price ?? 0),
-      wholesalePrice: r.wholesalePrice != null ? Number(r.wholesalePrice) : Number(r.price ?? 0),
-      retailPrice: r.retailPrice != null ? Number(r.retailPrice) : Number(r.price ?? 0),
-      // 门店价 / 小程序价：与后端五档价格体系一致（列表接口已返回）
-      storePrice: r.storePrice != null ? Number(r.storePrice) : undefined,
-      miniappPrice: r.miniappPrice != null ? Number(r.miniappPrice) : undefined,
-      // 成本价：权限剥离后为 null，由页面如实展示（不能当作 0）
-      costPrice: r.costPrice != null ? Number(r.costPrice) : null,
-      stock: Number(r.availableQty ?? r.stock ?? 0),
-      unit: r.unit ?? '',
-      image: r.mainImage ?? r.image,
-      specs: r.specs,
-      origin: r.origin,
-      safetyStock: r.warningThreshold != null ? Number(r.warningThreshold) : undefined,
-      // 后端状态枚举为大写 ON_SALE / OFF_SALE / DRAFT，上架 → ON，其余 → OFF
-      status: r.status === 'ON_SALE' ? 'ON' : 'OFF',
-      // 分类级 allow_online_sale：0 = 该分类商品仅线下销售
-      allowOnlineSale: r.allowOnlineSale,
-    }))
-    // 后端列表 SQL 从 t_product_sku 出发 JOIN t_product_spu：同一 SPU 有多个 SKU 时会返回多行。
-    // 商品列表以 SPU 为卡片维度，按 id 合并（库存累加），避免重复卡片与重复的 :key
-    // ——重复 key 会让 Vue 复用错误节点，表现为"点卡片进不了详情/点错行"。
-    const merged = new Map<number, ProductInfo>()
-    for (const item of mapped) {
-      const exist = merged.get(item.id)
-      if (!exist) {
-        merged.set(item.id, { ...item })
-        continue
-      }
-      exist.stock = Number(exist.stock ?? 0) + Number(item.stock ?? 0)
-    }
-    const list = Array.from(merged.values())
+    const list = mapProductRecords(records)
     return {
       list,
       total: raw?.total ?? list.length,
@@ -334,7 +476,9 @@ const productsApi = {
     }
   },
 
-  async detail(id: number): Promise<ProductInfo> {
+  /** 商品详情（GET /admin/products/:spuId）——**SPU 维度**，参数名收口为 spuId（原 `id` 易被误喂 SKU 主键） */
+  async detail(spuId: number): Promise<ProductInfo> {
+    const id = assertSpuId(spuId, 'productsApi.detail')
     const res = (await get(`/admin/products/${id}`)) as any
     return (res as any)?.result ?? res
   },
@@ -352,10 +496,13 @@ const productsApi = {
     }))
   },
 
-  async batchTrace(batchNo: string): Promise<any> {
-    // R94-03：原 /admin/products/batch/:batchNo 不存在；后端真实批次追踪接口为 /admin/inventory-batch/batches/:id/trace（按批次 id）
-    return get(`/admin/inventory-batch/batches/${batchNo}/trace`)
-  },
+  /**
+   * QODER-26（交付物 5）· 批次追踪死包装已删除。
+   * 原包装收**批次号字符串**却拼进数字主键段（后端 `inventory-batch.routes.ts:26` 注册的是
+   * `GET /batches/:id/trace`，controller 按数字 `:id` 查 ⇒ 字符串进段就是 NaN），
+   * 且全仓零调用点（`rg -n` 实测仅本文件定义处 1 命中，页面侧 0 命中，详见 QODER-26 证据树），
+   * 正确封装已在册：`api/modules/batches.ts` 的 `batchApi.trace(id: number)` ⇒ 本处不再留第二份。
+   */
 
   /**
    * 按条码查询平台商品库（仅用于"新建商品流程"扫码命中自动填充）
@@ -450,13 +597,10 @@ export async function listStockWarnings(): Promise<StockWarningItem[]> {
 /** 上传商品主图（multipart 字段名 image，后端 POST /admin/products/upload-image） */
 function uploadImage(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const token = uni.getStorageSync('merchant_token') || ''
-    const tenantId = uni.getStorageSync('merchant_tenant_id') || ''
-    const csrfToken = uni.getStorageSync('merchant_csrf_token') || ''
-    const header: Record<string, string> = {}
-    if (token) header['Authorization'] = `Bearer ${token}`
-    if (tenantId) header['X-Tenant-Id'] = tenantId
-    if (csrfToken) header['x-csrf-token'] = csrfToken
+    // 直接调用 uni.uploadFile（multipart 无法走 Promise 型统一入口）。
+    // ★ MOBILE-29F1：只用安全头构建器——绝不下发 Content-Type，multipart boundary 由
+    // uni / 微信 / 浏览器自行生成（QODER-29 驳回根因：复用 JSON 构建器会破坏 multipart）
+    const header = buildSecureHeaders()
     uni.uploadFile({
       url: `${API_BASE}/admin/products/upload-image`,
       filePath,

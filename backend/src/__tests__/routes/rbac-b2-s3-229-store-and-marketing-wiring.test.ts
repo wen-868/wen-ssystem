@@ -104,7 +104,9 @@ import {
 } from "../../routes/community-marketing.routes";
 import { adminStoreRouter } from "../../routes/admin-store.routes";
 import { storeValueCardRouter } from "../../routes/store-value-card.routes";
-import { storeMemberRouter } from "../../routes/store.routes";
+// 注：`store.routes.ts` 的 2 条门店会员写端点（POST /manage、PUT /:id(\d+)）原属本批 G1·B 类（未接）；
+// 2026-10-30 由 TOTAL-MEMBER-PERMISSION-CODES-01 立码接线（customer:create / customer:edit）后
+// 已移出本名单 ⇒ 此处不再导入其 router，该 2 条的接线断言由 total-member-permission-codes-wiring.test.ts 承接。
 // 注：`points.routes.ts` 的 4 条会员等级配置端点原属本批 G2·W 类（未接）；
 // 2026-10-16 由 S3-231 F1 改挂 `customer:level` 接线后已移出本名单 ⇒ 此处不再导入其 router，
 // 该 4 条的接线断言由 `rbac-b2-s3-231-f1-member-levels-wiring.test.ts` 承接。
@@ -203,7 +205,7 @@ interface UnwiredRow {
 }
 
 /**
- * 本域**未接**名单（24 行 = G1 的 24 + G2 的 0）。
+ * 本域**未接**名单（S3-229 原 28 行；S3-231 F1 后 24；S3-238 后 22；TOTAL-MEMBER-PERMISSION-CODES-01 后 **18** 行）。
  *
  * 分类（派单卡 §三.1/§三.2 的桶定义，逐条理由见台账 §十七）：
  *  · B 8 = 「使用者集合不可枚举」——储值卡 4（`member-detail.vue:531/534/536` 无门页写调用点）
@@ -219,17 +221,24 @@ interface UnwiredRow {
  *    故本名单由 28 → **24**（W 桶清零；本条为**状态变更登记**，S3-229 的历史判定不改写）。
  *    已接线断言与零回归证据见 `backend/src/__tests__/routes/rbac-b2-s3-231-f1-member-levels-wiring.test.ts`
  *    与 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F1/`。
+ *
+ * ── 状态变更登记（2026-10-30 · TOTAL-MEMBER-PERMISSION-CODES-01）─────
+ *  · **B 4 已结项**：储值卡开卡（svc POST /）、储值卡充值（svc /:cardNo/recharge）、
+ *    门店会员新增（store POST /manage）、门店会员编辑（store PUT /:id(\d+)）4 条由
+ *    **TOTAL-MEMBER-PERMISSION-CODES-01** 按凌舟裁定（任务卡 §二）**立码接线**
+ *    （finance:create ×2 / customer:create / customer:edit），
+ *    故本名单由 22 → **18**（本条为**状态变更登记**，S3-229 的历史判定不改写；
+ *    储值卡 freeze/unfreeze 2 条不在该卡裁定范围，保留登记）。
+ *    已接线断言与零回归证据见 `backend/src/__tests__/routes/total-member-permission-codes-wiring.test.ts`。
  */
 const UNWIRED: UnwiredRow[] = [
-  // ---- G1 · B 类（8）----
+  // ---- G1 · B 类（8 → 4）----
   { file: "admin-store.routes.ts", prefix: "/api/admin/system", router: adminStoreRouter, method: "post", routePath: "/stores", path: "/stores", reason: "B", note: "app-mobile store-edit.vue:220（storesApi.create）经我的页 profile.vue 无条件入口可达 ⇒ 使用者集合不可枚举", runnable: true },
   { file: "admin-store.routes.ts", prefix: "/api/admin/system", router: adminStoreRouter, method: "put", routePath: "/stores/:id", path: "/stores/1", reason: "B", note: "app-mobile store-edit.vue:218（storesApi.update），同上", runnable: true },
-  { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", routePath: "/", path: "/", reason: "B", note: "member-detail.vue:536（无卡先开卡）经首页快捷入口 member-list 无条件可达", runnable: true },
-  { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", routePath: "/:cardNo/recharge", path: "/C1/recharge", reason: "B", note: "member-detail.vue:534（充值）同上", runnable: true },
+  // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：svc POST / 与 /:cardNo/recharge、members /manage 与
+  // /:id(\d+) 4 行已按凌舟裁定立码接线（finance:create / customer:create / customer:edit）⇒ 从本名单移出。
   { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", routePath: "/:cardNo/freeze", path: "/C1/freeze", reason: "B", note: "api/modules/stored-cards.ts:85（冻结）挂 app-mobile 储值卡页，同上链路", runnable: true },
   { file: "store-value-card.routes.ts", prefix: "/api/admin/store-value-cards", router: storeValueCardRouter, method: "post", routePath: "/:cardNo/unfreeze", path: "/C1/unfreeze", reason: "B", note: "api/modules/stored-cards.ts:90（解冻）同上", runnable: true },
-  { file: "store.routes.ts", prefix: "/api/store/members", router: storeMemberRouter, method: "post", routePath: "/manage", path: "/manage", reason: "B", note: "member-detail.vue:621（新增会员）；member-list.vue:6 新增按钮 → 无门页", runnable: true },
-  { file: "store.routes.ts", prefix: "/api/store/members", router: storeMemberRouter, method: "put", routePath: "/:id(\\\\d+)", path: "/9", reason: "B", note: "member-detail.vue:626（保存客户），同上", runnable: true },
 
   // ---- G2 · W 类（4）已由 S3-231 F1 接线（改挂 customer:level）⇒ 本名单清零，见文件头「状态变更登记」----
   // ---- G1 · 公开端点（2）----
@@ -266,9 +275,9 @@ const UNWIRED: UnwiredRow[] = [
 const G1_TOTAL = 31;
 const G2_TOTAL = 14;
 /** 接线**前**的原缺口构成（S3-229 口径，F1 结项后仍用于历史对账） */
-const G1_UNWIRED_TOTAL = 22; // S3-238：tenant-register 审核 2 条已接线 ⇒ 24 → 22
-/** F1 后**当前**未接名单构成（W 桶清零；S3-238 后 PLATFORM 14 → 12） */
-const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 8, W: 0, PUB: 2, PLATFORM: 12 };
+const G1_UNWIRED_TOTAL = 18; // S3-238：tenant-register 审核 2 条已接线 ⇒ 24 → 22；TOTAL-MEMBER-PERMISSION-CODES-01：会员域 4 条已接线 ⇒ 22 → 18
+/** F1 后**当前**未接名单构成（W 桶清零；S3-238 后 PLATFORM 14 → 12；TOTAL-MEMBER-PERMISSION-CODES-01 后 B 8 → 4） */
+const UNWIRED_CLASS_TOTAL: Record<Reason, number> = { B: 4, W: 0, PUB: 2, PLATFORM: 12 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -381,8 +390,12 @@ describe("S3-229 · 名单自证", () => {
     //    改按 **接线前原缺口** 对账：G1 31 = 7 已接 + 24 未接；G2 14 = 10 已接 + 4（F1 结项）。
     // ⚠️ S3-238 后：G1 的「平台侧 2 条」已接**平台侧**码（不在本文件的商家侧 ROWS 里）⇒
     //    守恒式补一项：`7（商家侧已接）+ 22（未接）+ 2（平台侧已接，S3-238）= 31`（G1_UNWIRED_TOTAL 已 24→22）。
+    // ⚠️ TOTAL-MEMBER-PERMISSION-CODES-01 后：G1 的「会员域 4 条」已按凌舟裁定立码接线
+    //    （finance:create ×2 / customer:create / customer:edit）⇒ 守恒式再补一项：
+    //    `7 + 18（未接）+ 2（S3-238）+ 4（本卡）= 31`（G1_UNWIRED_TOTAL 已 22→18）。
     const G1_PLATFORM_WIRED_BY_S3_238 = 2;
-    expect(g1Wired + G1_UNWIRED_TOTAL + G1_PLATFORM_WIRED_BY_S3_238).toBe(G1_TOTAL);
+    const G1_WIRED_BY_TOTAL_MEMBER_PERMISSION_CODES_01 = 4;
+    expect(g1Wired + G1_UNWIRED_TOTAL + G1_PLATFORM_WIRED_BY_S3_238 + G1_WIRED_BY_TOTAL_MEMBER_PERMISSION_CODES_01).toBe(G1_TOTAL);
     expect(g2Wired + 4).toBe(G2_TOTAL);
     expect(UNWIRED.filter((r) => r.file === "points.routes.ts")).toHaveLength(0);
     expect(UNWIRED).toHaveLength(G1_UNWIRED_TOTAL);
@@ -396,7 +409,7 @@ describe("S3-229 · 名单自证", () => {
       PLATFORM: byReason(UNWIRED, "PLATFORM"),
     }).toEqual(UNWIRED_CLASS_TOTAL);
     expect(byReason(UNWIRED, "PLATFORM")).toBe(12); // S3-238：2 条已接线 ⇒ 14 → 12
-    expect(byReason(UNWIRED, "B")).toBe(8);
+    expect(byReason(UNWIRED, "B")).toBe(4); // TOTAL-MEMBER-PERMISSION-CODES-01：会员域 4 条已接线 ⇒ 8 → 4
     expect(byReason(UNWIRED, "PUB")).toBe(2);
   });
 });
@@ -564,8 +577,8 @@ describe("S3-229 · 范围控制：本批未接行 READONLY 仍到达业务层�
     expect(UNWIRED.filter((r) => r.reason === "W")).toHaveLength(0);
   });
 
-  it("8 行可实跑的未接行都被 READONLY 触达（B 8；原 W 4 已由 S3-231 F1 接线移出本名单）", () => {
-    expect(UNWIRED.filter((r) => r.runnable)).toHaveLength(8);
+  it("4 行可实跑的未接行都被 READONLY 触达（B 4；原 W 4 已由 S3-231 F1 接线移出、原 B 4 已由 TOTAL-MEMBER-PERMISSION-CODES-01 接线移出本名单）", () => {
+    expect(UNWIRED.filter((r) => r.runnable)).toHaveLength(4);
   });
 });
 

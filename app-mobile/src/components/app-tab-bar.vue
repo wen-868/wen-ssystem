@@ -83,6 +83,14 @@
 </template>
 
 <script setup lang="ts">
+// ★ 组件名口径（QODER-25F1）：本组件**不得**再叫 custom-tab-bar，模板标签同理（尖括号写法见守卫）。
+//   uni-app 把 `custom-tab-bar` 列为 H5 平台专用组件（node_modules/@dcloudio/uni-cli-shared/
+//   dist/easycom.js:212 的 H5_ONLY_COMPONENTS = ['custom-tab-bar']），标签一旦被 easycom
+//   自动扫描命中（src/components 默认在扫描目录内），非 H5 端编译就会打
+//   「组件是 H5 平台专用组件，在 mp-weixin 平台使用可能导致错误」这条警告（原文由
+//   uni-cli-shared 用保留名 custom-tab-bar 拼出标签名后 console.warn）。
+//   改名 app-tab-bar 后 easycom 仍能正常解析到本文件，警告归零；CSS 类名 .custom-tab-bar
+//   不属组件注册面，保持不变（派单：不要求改 CSS 类名）。
 import { onMounted } from 'vue'
 
 defineProps<{
@@ -90,10 +98,12 @@ defineProps<{
   current: 'home' | 'products' | 'functions' | 'profile' | 'ai'
 }>()
 
-// App 端不支持 tabBar 的 custom:true（该属性仅微信小程序支持），
-// 原生 tabBar 会与自绘 custom-tab-bar 叠成双栏；挂载时隐藏原生栏，
-// tabBar 配置保留，uni.switchTab 跳转不受影响
-// #ifdef APP-PLUS
+// 原生 tabBar 只应在**微信小程序**端保留：
+//  · App 端根本不支持 tabBar 的 custom:true（该属性是 mp-weixin 专属），原生栏会与自绘栏叠成双栏；
+//  · H5 端同样不认 custom:true，uni-app 照旧渲染原生栏，也与自绘栏叠成双栏。
+// 因此隐藏口径必须是 #ifndef MP-WEIXIN（不是只覆盖 APP-PLUS），否则 H5 出现两条底栏。
+// tabBar 配置本身保留，uni.switchTab 跳转不受影响。
+// #ifndef MP-WEIXIN
 onMounted(() => {
   try { uni.hideTabBar({ animation: false }) } catch { /* 未就绪时忽略 */ }
 })

@@ -102,8 +102,8 @@
           </view>
         </scroll-view>
         <view class="detail-bottom">
-          <!-- S3-230 入口权限门：确认对账 → POST /api/admin/reconciliation/{customer,supplier}/:id/confirm（report:finance） -->
-          <button class="btn btn--primary btn--block" v-if="canEntry('fin-recon-confirm')" @tap="onConfirm">确认对账</button>
+          <!-- S3-230 入口权限门：确认对账 → POST /api/admin/reconciliation/{customer,supplier}/:id/confirm（report:finance）；本入口 id 为 fin-recon-confirm（注册表同源）；MOBILE-32F3 起点击前再过 buttonGate(['report:finance']) -->
+          <button class="btn btn--primary btn--block" v-if="canEntry('fin-recon-confirm')" :disabled="!gateReconConfirm.enabled" @tap="gateReconConfirm.enabled && onConfirm()">确认对账</button>
         </view>
       </view>
     </view>
@@ -114,10 +114,12 @@
 function goBack(){ uni.navigateBack() }
 
 import { ref, computed } from 'vue'
-// S3-230 入口权限门：「确认对账」按钮按码显隐（注册表 fin-recon-confirm）
+// S3-230 入口权限门 + MOBILE-32F3 按钮级预判：「确认对账」先按入口码显隐，再按自己的写码判定
+// 码来源（后端实证）：reconciliation.routes.ts:14/:17 的 confirm 挂 report:finance
 import { usePermissionGate } from '@/composables/usePermissionGate'
 
-const { canEntry } = usePermissionGate()
+const { canEntry, buttonGate } = usePermissionGate()
+const gateReconConfirm = buttonGate(['report:finance'])
 import {
   reconciliationApi,
   type CustomerReconciliationItem,
@@ -187,12 +189,36 @@ function onSearch() {
   else { supplierList.value = []; loadSupplier() }
 }
 
+/**
+ * MOBILE-32F3：后端对账列表实回**裸数组**（每项 { customerId|supplierId, customerName|supplierName,
+ * totalReceivable, totalReceived, balance }，无 list/total 包装），而 api/modules 层按 { list, total }
+ * 约定映射（该文件不在本卡允许路径）。故在此按接口实况归一并派生页面所需字段，
+ * 否则列表恒为空、确认对账按钮永不出现（本卡运行态取证实测踩中）。
+ */
+function normalizeReconRows(res: any, key: 'customer' | 'supplier'): any[] {
+  const raw = res?.result ?? res
+  const rows: any[] = raw?.list ?? raw?.records ?? (Array.isArray(raw) ? raw : [])
+  return rows.map((r: any) => {
+    const id = r.customerId ?? r.customer_id ?? r.supplierId ?? r.supplier_id ?? 0
+    const name = r.customerName ?? r.customer_name ?? r.supplierName ?? r.supplier_name ?? '--'
+    const total = Number(r.totalReceivable ?? r.total_amount ?? r.totalAmount ?? 0)
+    const received = Number(r.totalReceived ?? r.confirmed_amount ?? r.confirmedAmount ?? 0)
+    const balance = Number(r.balance ?? r.unconfirmed_amount ?? r.unconfirmedAmount ?? 0)
+    return {
+      [`${key}Id`]: id, [`${key}Name`]: name,
+      totalAmount: total, confirmedAmount: received, unconfirmedAmount: balance,
+      status: r.status,
+    }
+  })
+}
+
 async function loadCustomer() {
   loading.value = true
   try {
-    const result = await reconciliationApi.listCustomerReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
-    customerList.value = result.list
-    noMore.value = result.list.length < pageSize
+    const result: any = await reconciliationApi.listCustomerReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
+    const rows = normalizeReconRows(result, 'customer')
+    customerList.value = rows
+    noMore.value = rows.length < pageSize
   } catch (err) {
     console.error('加载客户对账失败:', err)
   } finally {
@@ -203,9 +229,10 @@ async function loadCustomer() {
 async function loadSupplier() {
   loading.value = true
   try {
-    const result = await reconciliationApi.listSupplierReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
-    supplierList.value = result.list
-    noMore.value = result.list.length < pageSize
+    const result: any = await reconciliationApi.listSupplierReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
+    const rows = normalizeReconRows(result, 'supplier')
+    supplierList.value = rows
+    noMore.value = rows.length < pageSize
   } catch (err) {
     console.error('加载供应商对账失败:', err)
   } finally {
@@ -219,13 +246,15 @@ async function onLoadMore() {
   try {
     page.value++
     if (activeTab.value === 'customer') {
-      const result = await reconciliationApi.listCustomerReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
-      if (result.list.length === 0) { noMore.value = true; page.value-- }
-      else customerList.value = [...customerList.value, ...result.list]
+      const result: any = await reconciliationApi.listCustomerReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
+      const rows = normalizeReconRows(result, 'customer')
+      if (rows.length === 0) { noMore.value = true; page.value-- }
+      else customerList.value = [...customerList.value, ...rows]
     } else {
-      const result = await reconciliationApi.listSupplierReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
-      if (result.list.length === 0) { noMore.value = true; page.value-- }
-      else supplierList.value = [...supplierList.value, ...result.list]
+      const result: any = await reconciliationApi.listSupplierReconciliation({ page: page.value, pageSize, keyword: keyword.value || undefined })
+      const rows = normalizeReconRows(result, 'supplier')
+      if (rows.length === 0) { noMore.value = true; page.value-- }
+      else supplierList.value = [...supplierList.value, ...rows]
     }
   } catch (err) {
     page.value--
@@ -256,6 +285,11 @@ function closeDetail() {
 }
 
 async function onConfirm() {
+  // MOBILE-32F3：写请求发出前必须过按钮门（卡§三.2 不得"点了才 403"；denied/unavailable 均失败关闭）
+  if (!gateReconConfirm.value.enabled) {
+    uni.showToast({ title: gateReconConfirm.value.hint, icon: 'none' })
+    return
+  }
   try {
     if (activeTab.value === 'customer') {
       await reconciliationApi.confirmCustomer(currentPartyId.value)

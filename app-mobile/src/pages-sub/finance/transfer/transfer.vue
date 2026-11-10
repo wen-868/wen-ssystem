@@ -31,9 +31,9 @@
       </view>
     </view>
 
-    <!-- 新建按钮 -->
+    <!-- 新建按钮（MOBILE-32：写动作，后端码 store:transfer） -->
     <view class="create-section">
-      <button class="create-btn" @tap="goCreate">
+      <button class="create-btn" :class="{ 'create-btn--disabled': !gateCreate.enabled }" :disabled="!gateCreate.enabled" @tap="gateCreate.enabled && goCreate">
         <text>+ 新建调拨单</text>
       </button>
     </view>
@@ -73,22 +73,29 @@
             <text class="info-value">{{ item.createTime }}</text>
           </view>
         </view>
-        <!-- 状态流转动作（真实后端流转：DRAFT→PENDING→APPROVED→TRANSIT→RECEIVED） -->
+        <!-- 状态流转动作（真实后端流转：DRAFT→PENDING→APPROVED→TRANSIT→RECEIVED）
+             MOBILE-32：按钮级权限预判（点击前给出状态，不再"填完表单点提交才 403"）。
+             本域全部动作后端统一挂 `store:transfer`（transfer.routes.ts:19-36），
+             故每个按钮**各自**用同一后端既有码判定（非自造宽泛码）。 -->
         <view class="card-actions" v-if="item.status === 'DRAFT'">
-          <button class="action-btn ghost-btn" @tap="handleCancel(item)">取消单据</button>
-          <button class="action-btn stock-btn" @tap="handleSubmit(item)">提交审核</button>
+          <button class="action-btn ghost-btn" :disabled="!gateCancel.enabled" @tap="gateCancel.enabled && handleCancel(item)">取消单据</button>
+          <button class="action-btn stock-btn" :disabled="!gateSubmit.enabled" @tap="gateSubmit.enabled && handleSubmit(item)">提交审核</button>
         </view>
         <view class="card-actions" v-else-if="item.status === 'PENDING'">
-          <button class="action-btn reject-btn" @tap="handleReject(item)">驳回</button>
-          <button class="action-btn approve-btn" @tap="handleApprove(item)">审核通过</button>
+          <button class="action-btn reject-btn" :disabled="!gateReject.enabled" @tap="gateReject.enabled && handleReject(item)">驳回</button>
+          <button class="action-btn approve-btn" :disabled="!gateApprove.enabled" @tap="gateApprove.enabled && handleApprove(item)">审核通过</button>
         </view>
         <view class="card-actions" v-else-if="item.status === 'APPROVED'">
-          <button class="action-btn stock-btn" @tap="handleShip(item)">确认发货</button>
+          <button class="action-btn stock-btn" :disabled="!gateShip.enabled" @tap="gateShip.enabled && handleShip(item)">确认发货</button>
         </view>
         <view class="card-actions" v-else-if="item.status === 'TRANSIT'">
-          <!-- S3-230 入口权限门：确认收货 → POST /api/store/transfers/:id/receive（码 store:transfer） -->
-          <button class="action-btn stock-btn" v-if="canEntry('fx-transfer-receive')" @tap="handleReceive(item)">确认收货</button>
+          <!-- S3-230 入口权限门 + MOBILE-32 按钮级预判：确认收货 → store:transfer -->
+          <button class="action-btn stock-btn" v-if="canEntry('fx-transfer-receive')" :disabled="!gateReceive.enabled" @tap="gateReceive.enabled && handleReceive(item)">确认收货</button>
         </view>
+                <!-- 无权限说明（统一文案，商户可读；不出现权限码） -->
+                <view class="gate-hint" v-if="anyHint">
+                    <text class="gate-hint-text">{{ anyHint }}</text>
+                </view>
       </view>
       <view class="list-footer" v-if="list.length < total">
         <text class="footer-text">{{ loading ? '加载中…' : '上拉加载更多' }}</text>
@@ -113,7 +120,22 @@ import { onShow } from '@dcloudio/uni-app'
 // S3-230 入口权限门：「确认收货」按钮按码显隐（注册表 fx-transfer-receive）
 import { usePermissionGate } from '@/composables/usePermissionGate'
 
-const { canEntry } = usePermissionGate()
+// MOBILE-32：按钮级写动作预判（每个动作**各自**按其后端码判定；本域全部为 store:transfer）
+const { canEntry, buttonGate } = usePermissionGate()
+const gateCreate = buttonGate(['store:transfer'])
+const gateCancel = buttonGate(['store:transfer'])
+const gateSubmit = buttonGate(['store:transfer'])
+const gateReject = buttonGate(['store:transfer'])
+const gateApprove = buttonGate(['store:transfer'])
+const gateShip = buttonGate(['store:transfer'])
+const gateReceive = buttonGate(['store:transfer'])
+/** 当前页任一所展示写按钮不可用时的统一说明（取第一个非空提示） */
+const anyHint = computed(() => {
+  for (const g of [gateCancel, gateSubmit, gateReject, gateApprove, gateShip, gateReceive]) {
+    if (!g.value.enabled && g.value.showHint) return g.value.hint
+  }
+  return ''
+})
 import {
   transferApi,
   TRANSFER_STATUS_LABEL,
@@ -382,6 +404,10 @@ onShow(() => { loadTransfers() })
 .reject-btn { background: $uni-color-error-soft; color: $uni-color-error; }
 .stock-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .action-btn::after { border: none; }
+/* MOBILE-32：权限预判态 —— 禁用观感 + 统一说明行（文案来自 BUTTON_HINTS，不出现权限码） */
+.action-btn[disabled] { opacity: .45; }
+.gate-hint { margin-top: $uni-spacing-xs; padding: 0 $uni-spacing-xs; }
+.gate-hint-text { font-size: 24rpx; color: $uni-gray-500; line-height: 1.4; }
 .list-footer { display: flex; justify-content: center; padding: 20rpx 0 40rpx; }
 .footer-text { font-size: 24rpx; color: $uni-gray-400; }
 .empty-state {
@@ -392,4 +418,7 @@ onShow(() => { loadTransfers() })
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .empty-hint { font-size: 24rpx; color: $uni-gray-400; margin-top: 12rpx; }
 .safe-bottom { height: 40rpx; }
+
+/* MOBILE-32：新建按钮的权限预判禁用观感 */
+.create-btn--disabled { opacity: .45; }
 </style>

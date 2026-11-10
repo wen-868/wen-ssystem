@@ -52,7 +52,7 @@
           </view>
         </view>
         <view class="card-actions" v-if="item.status === 'pending'">
-          <button class="action-btn confirm-btn" @tap="confirmStatement(item)">确认</button>
+          <button class="action-btn confirm-btn" :disabled="!gateStatementConfirm.enabled" @tap="gateStatementConfirm.enabled && confirmStatement(item)">确认</button>
           <button class="action-btn dispute-btn" @tap="disputeStatement(item)">有争议</button>
         </view>
       </view>
@@ -70,12 +70,18 @@
 <script setup lang="ts">
 function goBack(){ uni.navigateBack() }
 
+// MOBILE-32：按钮级权限预判（码来源见回传卡矩阵）
+import { usePermissionGate } from '@/composables/usePermissionGate'
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { statementApi } from '@/api/modules/statements'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
+
+// MOBILE-32：该页写动作的按钮级门（码=customer:statement，逐按钮各自判定）
+const { buttonGate } = usePermissionGate()
+const gateStatementConfirm = buttonGate(['customer:statement'])
 const searchRules: Rules = {
   keyword: [{ minLength: 1, message: '输入至少1个字符', required: false }],
 }
@@ -234,4 +240,9 @@ onMounted(() => { loadStatements() })
 .empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
+
+/* MOBILE-32：权限预判态（禁用观感 + 统一说明行；文案来自 BUTTON_HINTS，不含权限码） */
+.action-btn[disabled], .modal-btn--disabled, .fab-btn--disabled { opacity: .45; }
+.gate-hint { margin-top: 12rpx; padding: 0 12rpx; }
+.gate-hint-text { font-size: 24rpx; color: #737373; line-height: 1.4; display: block; }
 </style>

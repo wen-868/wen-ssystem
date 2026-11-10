@@ -20,6 +20,8 @@
  *  - H5 端使用 fetch + ReadableStream 解析 SSE 流（POST 不能使用 EventSource）
  *  - 小程序/App 端 fetch 不可用，降级为 uni.request 一次性获取完整响应后本地解析 SSE
  *    （TODO：后续可接入 uni.connectSocket / 云函数中转实现真流式）
+ *  - 中止模型按端分两套（QODER-25）：H5 用 fetch 的 AbortSignal；小程序/App 用
+ *    uni.request 返回的 RequestTask.abort()。详见 AiChatControls。
  *
  * @author 阿澈
  */
@@ -35,21 +37,13 @@ const AI_BASE_URL: string = (() => {
   // #endif
 })()
 
-/** 读取当前登录态 JWT（与 request.ts 存储键一致） */
-function getToken(): string {
-  return uni.getStorageSync('merchant_token') || ''
-}
+// 直接调用（SSE 流式降级 / 模型列表 / 写操作确认 / TTS）确需绕过 Promise 型统一入口，
+// 但请求头必须复用统一 JSON 构建器，保证 Content-Type + 鉴权 / 租户头 / CSRF 与 request.ts 同源（★ QODER-29 MO-29）。
+import { buildJsonHeaders } from '../request'
 
-/** 构造带鉴权的请求头（JWT 复用现有登录态） */
+/** 构造带鉴权的 JSON 请求头（★ MOBILE-29F1：AI 底座全是 JSON 请求体，走 JSON 构建器；与 uploadFile/downloadFile 的安全头构建器分流） */
 function buildHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  }
-  const token = getToken()
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-  return headers
+  return buildJsonHeaders()
 }
 
 // ====================== SSE 事件类型定义 ======================
@@ -245,12 +239,24 @@ async function streamChatH5(
 /**
  * 非 H5 端：uni.request 一次性获取完整响应后本地解析 SSE（降级方案）
  *
+ * QODER-25 中止收口：本路径原先直接丢弃调用方的中止意图（uni.request 返回的 RequestTask
+ * 从未被持有），页面点「停止生成」只改 UI、请求仍在跑。现把 RequestTask 的 abort() 入口
+ * 通过 registerCancel 交回调用方，取消即真实中止底层请求。
+ * RequestTask 无 abort 能力时（极老基础库）registerCancel 回传 null，由调用方明确告知
+ * 「本端无法中止」，不得静默假装已停止。
+ *
  * TODO: 小程序/App 端如需真流式体验，可接入 uni.connectSocket(WebSocket 代理)
  *       或云函数中转 SSE，当前先保证功能可用
  */
-function streamChatLegacy(params: AiChatParams, handlers: AiChatHandlers): Promise<void> {
+function streamChatLegacy(
+  params: AiChatParams,
+  handlers: AiChatHandlers,
+  registerCancel?: (cancel: (() => void) | null) => void
+): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    uni.request({
+    // 主动取消标记：abort() 后 uni.request 走 fail 回调，那不是网络错误
+    let cancelledByUser = false
+    const task = uni.request({
       url: `${AI_BASE_URL}/api/chat`,
       method: 'POST',
       data: {
@@ -279,35 +285,69 @@ function streamChatLegacy(params: AiChatParams, handlers: AiChatHandlers): Promi
         resolve()
       },
       fail: () => {
+        // 用户主动取消：与 H5 端 fetch abort 同语义 —— 不报错、不算网络失败
+        if (cancelledByUser) {
+          resolve()
+          return
+        }
         const message = '网络连接失败，请检查网络'
         handlers.onError(message)
         reject(new Error(message))
       }
     })
+    if (registerCancel) {
+      if (task) {
+        // RequestTask.abort() 是 uni.request 返回值的既定能力，取消即真实中止底层请求
+        registerCancel(() => {
+          cancelledByUser = true
+          task.abort()
+        })
+      } else {
+        // 拿不到 RequestTask ⇒ 明确回传 null，调用方须显式告知用户本端无法中止，
+        // 不得把 UI 标成「已停止」而请求继续跑
+        registerCancel(null)
+      }
+    }
   })
 }
 
 // ====================== 对外统一入口 ======================
 
 /**
+ * 发起 SSE 流式对话的平台中止通道（QODER-25 按端收口）
+ *
+ * - `signal`：**仅 H5** 有意义。H5 用 fetch + ReadableStream，fetch 原生支持 AbortSignal。
+ * - `registerCancel`：**仅非 H5**（小程序 / App）有意义。这两端走 uni.request，
+ *   其返回值 RequestTask 才有 abort()；`signal` 在本路径根本不被消费，
+ *   因此必须用这条独立通道把真实取消入口交回调用方（小程序/App 的 uni.request 不认 AbortSignal）。
+ *
+ * 两个字段各归各端，由调用方用条件编译只填本端那一个；不得在小程序/App 里
+ * 靠 AbortController 假装能中止。
+ */
+export interface AiChatControls {
+  signal?: AbortSignal
+  registerCancel?: (cancel: (() => void) | null) => void
+}
+
+/**
  * 发起 SSE 流式对话（平台自适应）
  *
  * @param params 对话参数（message / conversationId）
  * @param handlers 事件回调集合
- * @param signal 中止信号（H5 端用于停止流式请求）
+ * @param controls 按端的中止通道（H5 走 signal，小程序/App 走 registerCancel）
  * @returns 对话结束或出错时 resolve/reject
  */
 export function streamChat(
   params: AiChatParams,
   handlers: AiChatHandlers,
-  signal?: AbortSignal
+  controls: AiChatControls = {}
 ): Promise<void> {
   return (() => {
     // #ifdef H5
-    return streamChatH5(params, handlers, signal)
+    return streamChatH5(params, handlers, controls.signal)
     // #endif
     // #ifndef H5
-    return streamChatLegacy(params, handlers)
+    return streamChatLegacy(params, handlers, controls.registerCancel)
     // #endif
   })()
 }

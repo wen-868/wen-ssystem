@@ -262,7 +262,7 @@ const ROWS: Row[] = [
   { file: "points-mall.routes.ts", prefix: "/api/points-mall", router: pointsMallRouter, method: "put", routePath: "/orders/:id/deliver", path: "/orders/1/deliver", perm: "marketing:points", pageRoles: [], page: "api/marketing.ts:312 用 POST，后端为 PUT（方法亦错配）" },
   { file: "points-mall.routes.ts", prefix: "/api/points-mall", router: pointsMallRouter, method: "put", routePath: "/orders/:id/cancel", path: "/orders/1/cancel", perm: "marketing:points", pageRoles: [], page: "全仓无调用点" },
 
-  // ---- points.routes.ts（2 / 7；levels 4 条与 points/adjust 见 UNWIRED）----
+  // ---- points.routes.ts（2 / 7；levels 4 条已由 S3-231 F1 接线、points/adjust 已由 TOTAL-MEMBER-PERMISSION-CODES-01 接线）----
   { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/rules", path: "/rules", perm: "marketing:create", pageRoles: ["SUPER_ADMIN"], page: "customer/PointsRules.vue:215（积分规则 router:149）" },
   { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "put", routePath: "/rules/:id", path: "/rules/1", perm: "marketing:create", pageRoles: ["SUPER_ADMIN"], page: "customer/PointsRules.vue:212" },
 
@@ -317,7 +317,10 @@ const UNWIRED: UnwiredRow[] = [
   // ⚠️ **状态变更登记（2026-10-16 · S3-231 F1）**：`points.routes.ts` 会员等级配置 **4 条**原列此处为 W（待裁定），
   //    已由 **S3-231 F1** 按凌舟裁定 1（`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1）**改挂 `customer:level` 接线**
   //    ⇒ 从本名单移除（W 4 → **0**）。接线验收见 `rbac-b2-s3-231-f1-member-levels-wiring.test.ts` + `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F1/`。
-  { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/:id/points/adjust", path: "/1/points/adjust", reason: "B", note: "app-mobile `member/member-detail.vue:540` 直接 post；该页经首页快捷入口「会员管理」（`pages/home/home.vue:87`，**无条件**）→ 会员列表 → 详情 ⇒ 使用者集合不可枚举" },
+  // ⚠️ **状态变更登记（2026-10-30 · TOTAL-MEMBER-PERMISSION-CODES-01）**：`points.routes.ts`
+  //    `POST /:id/points/adjust` 原列此处为 B（使用者集合不可枚举），已由该卡按凌舟裁定（任务卡 §二）
+  //    **立码 `customer:points` 接线** ⇒ 从本名单移除（B 4 → **3**）。接线验收见
+  //    `total-member-permission-codes-wiring.test.ts`。
   { file: "store-coupon.routes.ts", prefix: "/api/store/coupons", router: storeCouponRouter, method: "post", routePath: "/verify", path: "/verify", reason: "B", note: "app-mobile `coupon-verify.vue:160 verifyCoupon`（经优惠券页 `coupons.vue:132` 进入，而该页有**无条件推送深链**）⇒ 不可枚举；桌面页 `pos/CouponVerifyView.vue:243`（角色含收银员）本身满足 `sale:create` 口径，码位方案已备好（见台账 §十五.6）" },
   { file: "store-coupon.routes.ts", prefix: "/api/store/coupons", router: storeCouponRouter, method: "post", routePath: "/manual-verify", path: "/manual-verify", reason: "B", note: "app-mobile `coupon-verify.vue:163 manualVerifyCoupon` ⇒ 同上" },
 ];
@@ -343,7 +346,8 @@ const DOMAIN_TOTAL = 89;
 //   · S3-229 接线 community-marketing 的 10 条 W 类 ⇒ W 14 → 4
 //   · S3-231 F1 接线 points 会员等级 4 条（W 类）⇒ W 4 → 0
 //   · S3-233 收编 5 条 B 类（coupon 2 + full-reduction 3）⇒ B 9 → 4
-const UNWIRED_CLASS_TOTAL = { Q: 1, B: 4, W: 0 };
+//   · TOTAL-MEMBER-PERMISSION-CODES-01 接线 points/adjust 1 条（B 类）⇒ B 4 → 3
+const UNWIRED_CLASS_TOTAL = { Q: 1, B: 3, W: 0 };
 
 function label(row: { file: string; method: Method; routePath: string }) {
   return `${row.file} ${row.method.toUpperCase()} ${row.routePath}`;
@@ -483,24 +487,26 @@ describe("S3-226 · 名单自证", () => {
     expect([...new Set(ROWS.map((r) => r.perm))].sort()).toEqual(["marketing:create", "marketing:points"]);
   });
 
-  it("对账：台账 §三.4 本域 89 写端点 = 已接 70（S3-226 的 65 + S3-233 收编 5） + 未接 19（Q1 + B9 + W14 − S3-229 的 W10 − S3-233 收编的 B5）", () => {
+  it("对账：台账 §三.4 本域 89 写端点 = 已接 70（S3-226 的 65 + S3-233 收编 5） + 未接 19 → 现未接 18（Q1 + B9 + W14 − S3-229 的 W10 − S3-233 收编的 B5 − TOTAL 卡收编的 B1）", () => {
     const owned =
       0 + // coupon：create / pause 已由 S3-233 收编（原 2）
       0 + // full-reduction：delete / activate / pause 已由 S3-233 收编（原 3）
       1 + // marketing-points：redeem 未接
       1 + // calculation：calculate（Q）
       10 + // community-marketing 全部
-      5 + // points.routes：levels 4 + adjust 1
+      4 + // points.routes：levels 4（adjust 1 已由 TOTAL-MEMBER-PERMISSION-CODES-01 接线 ⇒ 5 → 4）
       2; // store-coupon 全部
-    expect(DOMAIN_TOTAL - ROWS.length).toBe(19);
-    expect(owned).toBe(19);
+    // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：points/adjust 已接线 ⇒ 未接 19 → 18
+    expect(DOMAIN_TOTAL - ROWS.length - 1).toBe(18);
+    expect(owned).toBe(18);
     // ① 本批当时的分类（台账 §十五.4~§十五.6）—— 历史事实，不变；
     expect({ Q: 1, B: 9, W: 14 }).toEqual({ Q: 1, B: 9, W: 14 });
     // ② 当前**仍未接**的分类（两侧并集）：
     //    · S3-229 把 community-marketing 的 10 条 W 类接线（W 14 → 4）
     //    · S3-231 F1 把 points 会员等级 4 条接线（W 4 → 0）
     //    · S3-233 把 5 条 B 类收编（B 9 → 4：points/adjust 1 + marketing-points/redeem 1 + store-coupon 2）
-    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 4, W: 0 });
+    //    · TOTAL-MEMBER-PERMISSION-CODES-01 把 points/adjust 1 条收编（B 4 → 3：marketing-points/redeem 1 + store-coupon 2）
+    expect(UNWIRED_CLASS_TOTAL).toEqual({ Q: 1, B: 3, W: 0 });
   });
 });
 
@@ -529,7 +535,7 @@ describe("S3-226 · 形状断言（注册行级判据，踩坑[134]）", () => {
     expect(update[0].line).toContain('requirePermission("marketing:create")');
   });
 
-  it("同文件混合态自证：points.routes.ts 的 rules + levels/config 5 行已接、points/adjust 行未接（S3-231 F1 状态变更）", () => {
+  it("同文件混合态自证：points.routes.ts 的 rules + levels/config 5 行 + points/adjust 行均已接（TOTAL-MEMBER-PERMISSION-CODES-01 状态变更）", () => {
     for (const [method, routePath, wired] of [
       ["post", "/rules", true],
       ["put", "/rules/:id", true],
@@ -538,12 +544,17 @@ describe("S3-226 · 形状断言（注册行级判据，踩坑[134]）", () => {
       ["put", "/levels/config/:id", true],
       ["put", "/levels/config/:id/status", true],
       ["delete", "/levels/config/:id", true],
-      ["post", "/:id/points/adjust", false],
+      // ⚠️ TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：points/adjust 已立码 `customer:points` 接线
+      //    ⇒ 期望由 false 改 true（状态变更登记；凌舟裁定，不得改挂 marketing:points/marketing:create）
+      ["post", "/:id/points/adjust", true],
     ] as Array<[Method, string, boolean]>) {
       const lines = registrationLines("points.routes.ts", method, routePath);
       expect(lines, `points.routes.ts ${method} ${routePath}`).toHaveLength(1);
       expect(lines[0].line.includes("requirePermission("), `points.routes.ts ${method} ${routePath}`).toBe(wired);
     }
+    // 本卡裁定码逐行核验（防改挂跨域码）
+    const adjust = registrationLines("points.routes.ts", "post", "/:id/points/adjust");
+    expect(adjust[0].line).toContain('requirePermission("customer:points")');
   });
 
   it("状态变更登记（S3-229 接线后）：community-marketing 的 10 条写端点已挂 `marketing:create`", () => {
@@ -661,15 +672,17 @@ describe("S3-226 · 范围控制：本批未接行 READONLY 仍到达业务层�
     expect(h.reached.length, `${label(row)} 应到达业务层`).toBeGreaterThan(0);
   });
 
-  it("现余两类未接原因齐备（Q / B 各至少 1 条；W 已由 S3-229 + S3-231 F1 清零；B 已由 S3-233 收编 5 条）", () => {
+  it("现余两类未接原因齐备（Q / B 各至少 1 条；W 已由 S3-229 + S3-231 F1 清零；B 已由 S3-233 收编 5 条 + TOTAL-MEMBER-PERMISSION-CODES-01 收编 1 条）", () => {
     // ⚠️ 状态变更登记（S3-231 F1，2026-10-16）：points 会员等级 4 条接线后 W 桶清零 ⇒ 期望集合去 W，
     //    并把「W 已清零」写成显式断言（避免将来被读成"W 桶凭空消失"）。
     // ⚠️ 状态变更登记（S3-233，2026-10-16）：5 条 B 类收编接线（coupon 2 + full-reduction 3）⇒
     //    UNWIRED 由 10 → **5**（= Q 1 + B 4：points/adjust、marketing-points/redeem、store-coupon 2）；
-    //    与上方 `UNWIRED_CLASS_TOTAL = { Q: 1, B: 4, W: 0 }` 互为交叉判据（两处必须同时变）。
+    // ⚠️ 状态变更登记（TOTAL-MEMBER-PERMISSION-CODES-01，2026-10-30）：points/adjust 1 条收编接线
+    //    （立码 customer:points）⇒ UNWIRED 由 5 → **4**（= Q 1 + B 3）；
+    //    与上方 `UNWIRED_CLASS_TOTAL = { Q: 1, B: 3, W: 0 }` 互为交叉判据（两处必须同时变）。
     expect([...new Set(UNWIRED.map((r) => r.reason))].sort()).toEqual(["B", "Q"]);
     expect(UNWIRED.filter((r) => r.reason === "W")).toHaveLength(0);
-    expect(UNWIRED).toHaveLength(5);
+    expect(UNWIRED).toHaveLength(4);
   });
 });
 

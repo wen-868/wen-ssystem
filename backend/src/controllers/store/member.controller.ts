@@ -44,6 +44,10 @@ export const updateMemberManage = asyncHandler(async (req, res) => {
       name: z.string().min(1).max(64).optional(),
       mobile: z.string().min(1).max(20).optional(),
       customerType: z.enum(["RETAIL", "WHOLESALE"]).optional(),
+      // TOTAL-MEMBER-STATUS-CONTRACT-01：状态开关（W3）显式入参——仅接受数字 0/1；
+      // 缺此行时 zod 静默剥离 {status} ⇒ 200 伪成功、库值不变（真库实证见本卡证据 raw/10）。
+      // 非法类型（"0"/true/null）与非法值（2/1.5）⇒ ZodError ⇒ error-handler 400。
+      status: z.union([z.literal(0), z.literal(1)]).optional(),
       address: z.string().max(255).optional(),
       cardNo: z.string().max(32).optional(),
       contact: z.string().max(64).optional(),

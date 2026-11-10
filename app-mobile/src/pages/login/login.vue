@@ -271,8 +271,9 @@ async function handleDemoLogin() {
     loginForm.password = DEMO_PASSWORD
     clearError('username')
     clearError('password')
-    // 可核对打点：证明两个字段都有值，且与随后的提交同属一次点击
-    console.log('[demo-login] 自动填入 username=%s password=%s', loginForm.username, loginForm.password)
+    // 可核对打点：只证明「两个字段都有值」，**不落任何凭据明文**（口径同 restoreSavedCredentials，
+    // 仅打长度；★ QODER-29 MO-26 收口：旧实现 console.log('...password=%s', loginForm.password) 泄漏明文口令）
+    console.log('[demo-login] 自动填入 accountLen=%d passwordLen=%d', loginForm.username.length, loginForm.password.length)
     // 等一帧，确保 DOM 上两个输入框确实带上值（运行期取证要能看见"填入"这一步）
     await nextTick()
 

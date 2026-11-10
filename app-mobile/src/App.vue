@@ -8,9 +8,10 @@ const userStore = useUserStore()
 onLaunch(() => {
   // 启动检查更新（有新版本及时提示）
   checkAppUpdate()
-  // #ifdef APP-PLUS
-  // App 端不支持 tabBar 的 custom:true（仅微信小程序支持），原生 tabBar 会与自绘
-  // custom-tab-bar 叠成双栏；启动即隐藏原生栏（页面组件挂载后还会兜底隐藏一次）
+  // #ifndef MP-WEIXIN
+  // 原生 tabBar 的 custom:true 只有微信小程序认（App 与 H5 都不认），原生栏会与自绘
+  // app-tab-bar 叠成双栏；启动即隐藏原生栏（页面组件挂载后还会兜底隐藏一次）。
+  // 口径与 components/app-tab-bar.vue 保持一致：#ifndef MP-WEIXIN，不是只盖 APP-PLUS。
   try { uni.hideTabBar({ animation: false }) } catch { /* tabBar 未就绪时忽略 */ }
   // #endif
   // 检查登录状态
@@ -51,7 +52,7 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
   /* 安全区统一变量：H5/浏览器用 env；App webview 中 env 恒为 0，
      导致页头顶进系统信号栏，App 端改用 uni 内置 --status-bar-height */
-  --safe-top: var(--safe-top);
+  --safe-top: env(safe-area-inset-top);
 }
 
 /* #ifdef APP-PLUS */
@@ -62,12 +63,16 @@ page {
 
 /* 根治：uni-app H5 大量容器用 width:100% + 水平 padding 但未设 box-sizing，
    默认 content-box 导致 宽度+padding 超出视口、右边距/右缘被裁。全局补 border-box，
-   让所有 padding 计入 width（绝大多数页都预期 border-box 语义）。 */
+   让所有 padding 计入 width（绝大多数页都预期 border-box 语义）。
+   ★ MOBILE-28F1：`*` 通配 prelude 微信 WXSS 不支持（preview 报 unexpected token '*'），
+     故用样式级条件编译只在**非微信小程序**端编译（H5 / App 行为原样保留），MP 侧整块隔掉。 */
+/* #ifndef MP-WEIXIN */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+/* #endif */
 
 /* 根治：uni-app H5 把 <form> 编译成 <uni-form>（未知自定义元素），
    浏览器默认 display:inline，导致其内部块级子元素突破容器、左右 padding/边距失效、
@@ -108,7 +113,10 @@ image.ic {
   height: 1em;
 }
 
-/* 无障碍：用户开启「减少动态效果」时全局降级动画与过渡（spec06/12） */
+/* 无障碍：用户开启「减少动态效果」时全局降级动画与过渡（spec06/12）
+   ★ MOBILE-28F1：prelude 为 `*` 通配，微信 WXSS 不支持 ⇒ 同样只在非微信小程序端编译；
+     H5/App 的 reduced-motion 降级行为保持不变（不得删规则）。 */
+/* #ifndef MP-WEIXIN */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -118,4 +126,5 @@ image.ic {
     transition-duration: 0.01ms !important;
   }
 }
+/* #endif */
 </style>

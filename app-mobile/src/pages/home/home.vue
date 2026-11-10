@@ -211,7 +211,7 @@
     </view>
 
     <view class="safe-bottom"></view>
-    <custom-tab-bar :current="'home'" />
+    <app-tab-bar :current="'home'" />
   </scroll-view>
 </template>
 
@@ -223,7 +223,7 @@ import { notificationsApi } from '@/api/modules/notifications'
 import { reportsApi } from '@/api/modules/reports'
 import { inventoryApi } from '@/api/modules/inventory'
 import { productsApi } from '@/api/modules/products'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
+import AppTabBar from '@/components/app-tab-bar.vue'
 import { COLOR_PRIMARY, COLOR_WHITE, COLOR_WARNING, COLOR_ERROR, COLOR_BLACK_03 } from '@/constants/colors'
 // S3-230 入口权限门：快捷入口按"该端点将使用的码"显隐（注册表见 config/permission-gates.ts）
 import { usePermissionGate } from '@/composables/usePermissionGate'
@@ -476,7 +476,12 @@ async function onScan() {
     const rows = res?.list ?? []
     const matched = rows.find((p) => String(p.skuId) === code || (p.name || '').includes(code)) ?? rows[0]
     if (matched) {
-      uni.navigateTo({ url: `/pages/products/product-detail?id=${matched.id}` })
+      // QODER-26：商品列表是 SKU 粒度（matched.id = SKU 行主键），详情接口只认 SPU 主键
+      if (matched.spuId > 0) {
+        uni.navigateTo({ url: `/pages/products/product-detail?id=${matched.spuId}` })
+      } else {
+        uni.showToast({ title: '该商品缺少 SPU 主键，无法打开详情', icon: 'none' })
+      }
     } else {
       uni.showToast({ title: '未找到该条码商品', icon: 'none' })
     }

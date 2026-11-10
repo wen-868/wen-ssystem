@@ -81,7 +81,7 @@
             class="product-card"
             v-for="item in productList"
             :key="item.id"
-            @tap="goDetail(item.id)"
+            @tap="goDetail(item.spuId)"
           >
             <view class="product-image-wrap">
               <image
@@ -125,14 +125,14 @@
       </view>
     </view>
 
-    <custom-tab-bar :current="'products'" />
+    <app-tab-bar :current="'products'" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
+import AppTabBar from '@/components/app-tab-bar.vue'
 // S3-230 入口权限门：批量改价入口按码显隐（注册表 goods-batch-price-submit）
 import { usePermissionGate } from '@/composables/usePermissionGate'
 
@@ -268,10 +268,21 @@ async function onPullDownRefresh() {
   }
 }
 
-function goDetail(id: number) {
+/**
+ * 点商品卡进详情——**SPU 维度**（QODER-26）
+ * 后端详情注册为 `GET /admin/products/:spuId(\d+)`（`admin-product.routes.ts:46`），
+ * 列表已是 SKU 粒度（一行一规格），卡片跳转必须喂 `item.spuId` 而不是 `item.id`（SKU 行主键）；
+ * 喂错会 404 或打开不相干的商品。id 只用于 :key、加购、改价等 SKU 维度场景。
+ */
+function goDetail(spuId: number) {
+  if (!(spuId > 0)) {
+    // 后端列表行没带 spuId 时不猜、不兜底用 SKU 主键（维度混用正是本卡根因）
+    uni.showToast({ title: '该商品缺少 SPU 主键，无法打开详情', icon: 'none' })
+    return
+  }
   // 兜底诊断：页面不存在/编译缺失时给出可见提示，避免"点了没反应"无法定位
   uni.navigateTo({
-    url: `/pages/products/product-detail?id=${id}`,
+    url: `/pages/products/product-detail?id=${spuId}`,
     fail: (e: any) => {
       uni.showToast({
         title: `打开商品详情失败：${e?.errMsg || e?.message || '页面不存在'}`,
@@ -314,7 +325,8 @@ async function onScan() {
     const matched =
       rows.find((p) => String(p.skuId) === code || (p.name || '').includes(code)) ?? rows[0]
     if (matched) {
-      goDetail(matched.id)
+      // 扫码进详情同样是 SPU 维度（详情接口只认 spuId）
+      goDetail(matched.spuId)
     } else {
       uni.showToast({ title: '未找到该条码商品', icon: 'none' })
     }

@@ -228,19 +228,9 @@ interface G2UnwiredRow {
 
 const UNWIRED: G2UnwiredRow[] = [
   // ---- B：页面可达角色集（写入角色）不 ⊆ finance:create 持有人集合 ----
-  // （S3-233：原 5 行 B 类（bank-accounts 2 / receipts 1 / reconciliation 2）已收编接线，见下方 `S3233_WIRED`）
-  {
-    file: "store-value-card.routes.ts",
-    prefix: "/api/admin/store-value-cards",
-    router: storeValueCardRouter,
-    routePath: "/",
-    path: "/",
-    reason: "B",
-    note:
-      "app-mobile 会员详情页 member-detail.vue:536（无卡先开卡 POST /admin/store-value-cards）；" +
-      "该页**零菜单映射**（member-detail 未在 function-menu.ts 注册），可达链 = 首页快捷入口" +
-      "home.vue:87（会员管理，无条件）→ member-list.vue:192/193 → member-detail ⇒ 写入角色 ⊄ finance:create",
-  },
+  // （S3-233：原 5 行 B 类（bank-accounts 2 / receipts 1 / reconciliation 2）已收编接线，见下方 `S3233_WIRED`。
+  //   TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）又收编 1 行：store-value-card.routes.ts POST /
+  //   已按凌舟裁定挂 `finance:create` 接线（逐行断言见 total-member-permission-codes-wiring.test.ts）。）
   {
     file: "store-value-card.routes.ts",
     prefix: "/api/admin/store-value-cards",
@@ -265,6 +255,8 @@ const UNWIRED: G2UnwiredRow[] = [
       "→ member-list.vue:192/193 → member-detail.vue:440 → stored-cards 页（member-detail 未在 function-menu.ts 注册）",
   },
   // ---- C（并含 B）：落在 G0「范围控制」已断言 READONLY 仍 200 的名单内 ----
+  // （TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）订正：原 C 类 recharge 一行已由该卡接线
+  //   （finance:create），G0 的 NOT_IN_G0 同步移出该行 ⇒ 本名单 C 类 2 → 1。）
   {
     file: "payment-new.routes.ts",
     prefix: "/api/admin/payments-new",
@@ -275,17 +267,6 @@ const UNWIRED: G2UnwiredRow[] = [
     note:
       "G0 NOT_IN_G0 断言 READONLY 仍 200（rbac-g0-wiring.test.ts:256 附近）；且 app-mobile" +
       " create-sale.vue:2218（paymentNewApi.create → finance.ts:128）为 sale:bill 页（无条件入口）写调用点 ⇒ B 亦不通过",
-  },
-  {
-    file: "store-value-card.routes.ts",
-    prefix: "/api/admin/store-value-cards",
-    router: storeValueCardRouter,
-    routePath: "/:cardNo/recharge",
-    path: "/VC1/recharge",
-    reason: "C",
-    note:
-      "G0 NOT_IN_G0 断言 READONLY 仍 200；且 app-mobile stored-cards.vue:115（stored-cards.ts:80）、" +
-      "member-detail.vue:534 为写调用点（可达链见上）⇒ B 亦不通过",
   },
   // ---- R（并含 C）：共享 Router 第二挂载点 ----
   {
@@ -414,11 +395,13 @@ beforeEach(() => {
 });
 
 describe("S3-125（G2）· 名单自证（验收标准①）", () => {
-  it("12 行 = G2 可接 1 行 + S3-233 收编 5 行（B 类）+ 待裁 6 行", () => {
+  it("12 行 = G2 可接 1 行 + S3-233 收编 5 行（B 类）+ 待裁 6 行（TOTAL-MEMBER-PERMISSION-CODES-01 收编 2 行后待裁 4）", () => {
     expect(G2_WIRED_TOTAL).toBe(1);
     expect(S3233_WIRED_TOTAL).toBe(5);
-    expect(G2_UNWIRED_TOTAL).toBe(6);
-    expect(G2_WIRED_TOTAL + S3233_WIRED_TOTAL + G2_UNWIRED_TOTAL).toBe(12);
+    // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：svc POST /（B）与 /:cardNo/recharge（C）
+    // 已按凌舟裁定接线（finance:create）⇒ 待裁 6 → 4；计数守恒 12 → 10（状态变更登记）
+    expect(G2_UNWIRED_TOTAL).toBe(4);
+    expect(G2_WIRED_TOTAL + S3233_WIRED_TOTAL + G2_UNWIRED_TOTAL).toBe(10);
   });
 
   it("已接 1 行分布：expense.routes.ts × 1", () => {
@@ -427,9 +410,9 @@ describe("S3-125（G2）· 名单自证（验收标准①）", () => {
     expect([...perFile.entries()].sort()).toEqual([["expense.routes.ts", 1]]);
   });
 
-  it("待裁原因分布：B 3 / C 2 / R 1（B 类原 9 行：1 行=expense 已由 G2 接、5 行已由 S3-233 收编；R 行同时属 C 类 G0 冲突）", () => {
-    expect(UNWIRED.filter((r) => r.reason === "B")).toHaveLength(3);
-    expect(UNWIRED.filter((r) => r.reason === "C")).toHaveLength(2);
+  it("待裁原因分布：B 2 / C 1 / R 1（B 类原 9 行：1 行=expense 已由 G2 接、5 行已由 S3-233 收编、1 行=储值卡开卡已由 TOTAL-MEMBER-PERMISSION-CODES-01 收编；R 行同时属 C 类 G0 冲突）", () => {
+    expect(UNWIRED.filter((r) => r.reason === "B")).toHaveLength(2);
+    expect(UNWIRED.filter((r) => r.reason === "C")).toHaveLength(1);
     expect(UNWIRED.filter((r) => r.reason === "R")).toHaveLength(1);
   });
 });
@@ -447,11 +430,13 @@ describe("S3-125（G2）· 形状断言（行级判据；验收标准③，踩�
     expect(lines[0].line).not.toContain("requirePermission(");
   });
 
-  it("整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但本单三行没有", () => {
+  it("整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但 freeze/unfreeze 两行没有", () => {
     const src = readFileSync(path.join(ROUTES_DIR, "store-value-card.routes.ts"), "utf8");
     // 文件级子串判据会得到"存在"的错误结论（同一文件里 consume/refund 行确实接了 finance:create）
     expect(src).toContain('requirePermission("finance:create")');
-    for (const routePath of ["/", "/:cardNo/recharge", "/:cardNo/freeze", "/:cardNo/unfreeze"]) {
+    // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）："/" 与 "/:cardNo/recharge" 两行已由该卡接线（finance:create）
+    // ⇒ 从本判据的「未接」循环移出，其形状断言见 total-member-permission-codes-wiring.test.ts
+    for (const routePath of ["/:cardNo/freeze", "/:cardNo/unfreeze"]) {
       const lines = registrationLines("store-value-card.routes.ts", "post", routePath);
       expect(lines).toHaveLength(1);
       expect(lines[0].line, `${routePath} 的注册行不得被误判为已接线`).not.toContain("requirePermission(");
@@ -563,7 +548,7 @@ describe("S3-233 · B 类 5 行收编接线（本文件待裁名单移出后的�
   });
 });
 
-describe("S3-125（G2）· c) 未接的 6 行仍然不被拦（验收标准⑤，证明没偷偷接）", () => {
+describe("S3-125（G2）· c) 未接的 4 行仍然不被拦（验收标准⑤，证明没偷偷接）", () => {
   it.each(UNWIRED)("$file POST $routePath（待裁 $reason）：READONLY 仍然 200", async (row) => {
     const res = await call(appFor(row.file, row.prefix, row.router), "post", `${row.prefix}${row.path}`, READONLY_USER);
     expect(res.status, `${row.file} ${row.routePath}（${row.note}）`).toBe(200);
@@ -603,7 +588,7 @@ describe("S3-125（G2）· d) 未登录 401（既有行为不变）", () => {
 describe("S3-125（G2）· 待裁原因可复核（B / C / R 三类证据锚点）", () => {
   it("B 类 3 行（S3-233 收编 5 行后）：note 均给出 app-mobile 调用点 + 页面→菜单映射（或零映射可达链）", () => {
     const b = UNWIRED.filter((r) => r.reason === "B");
-    expect(b).toHaveLength(3);
+    expect(b).toHaveLength(2);
     for (const row of b) {
       // 每行必须写明调用点（.vue:行）与可达性依据（菜单码或"无条件入口"）
       expect(row.note, `${row.file} ${row.routePath}`).toMatch(/\.vue:\d+/);
@@ -617,12 +602,13 @@ describe("S3-125（G2）· 待裁原因可复核（B / C / R 三类证据锚点�
     for (const uid of [9004, 9008, 9009]) expect(holders).not.toContain(uid);
   });
 
-  it("C 类 2 行的端点落在 G0「范围控制」名单内（与 rbac-g0-wiring.test.ts 交叉印证；只读该文件字符串）", () => {
+  it("C 类 1 行的端点落在 G0「范围控制」名单内（与 rbac-g0-wiring.test.ts 交叉印证；只读该文件字符串）", () => {
     const g0 = readFileSync(fileURLToPath(new URL("./rbac-g0-wiring.test.ts", import.meta.url)), "utf8");
-    for (const anchor of ["/VC1/recharge", "payments-new"]) {
+    // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：recharge 已由该卡接线 ⇒ G0 名单与 g2 UNWIRED 同步移出
+    for (const anchor of ["payments-new"]) {
       expect(g0, `G0 范围控制名单应仍含 ${anchor}`).toContain(anchor);
     }
-    // 本单未接该三行 ⇒ G0 的 NOT_IN_G0 断言（READONLY 仍 200）保持有效、一字未改
+    // G0 的 NOT_IN_G0 断言（READONLY 仍 200）对本单剩余 C/R 行保持有效
     expect(g0).toContain("NOT_IN_G0");
   });
 
@@ -635,11 +621,12 @@ describe("S3-125（G2）· 待裁原因可复核（B / C / R 三类证据锚点�
     expect(lines[0].line).not.toContain("requirePermission(");
   });
 
-  it("§三 授权未被使用：本单未把 payments-new / recharge / sale-returns 移出 G0 的 NOT_IN_G0（三行全判待裁）", () => {
+  it("§三 授权未被使用：本单未把 payments-new / sale-returns 移出 G0 的 NOT_IN_G0（两行全判待裁）", () => {
+    // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：recharge 行已由该卡凭自身裁定接线（finance:create）
+    // ⇒ 从本名单移出；payment-new / sale-returns 仍判待裁、未获授权不放行
     expect(UNWIRED.filter((r) => r.reason === "C" || r.reason === "R").map((r) => `${r.file} ${r.routePath}`).sort()).toEqual([
       "payment-new.routes.ts /",
       "sale-return.routes.ts /",
-      "store-value-card.routes.ts /:cardNo/recharge",
     ]);
   });
 });

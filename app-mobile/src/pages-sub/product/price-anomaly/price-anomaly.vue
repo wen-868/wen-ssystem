@@ -56,21 +56,21 @@
           <view class="price-row">
             <view class="price-cell">
               <text class="price-label">成本价</text>
-              <text class="price-value">¥{{ item.costPrice.toFixed(2) }}</text>
+              <text class="price-value">¥{{ fmtAmount(item.costPrice) }}</text>
             </view>
             <view class="price-cell">
               <text class="price-label">零售价</text>
-              <text class="price-value" :class="{ 'price-danger': item.retailPrice < item.costPrice }">
-                ¥{{ item.retailPrice.toFixed(2) }}
+              <text class="price-value" :class="{ 'price-danger': isBelowCost(item.retailPrice, item.costPrice) }">
+                ¥{{ fmtAmount(item.retailPrice) }}
               </text>
             </view>
             <view class="price-cell">
               <text class="price-label">门店价</text>
-              <text class="price-value">¥{{ item.storePrice.toFixed(2) }}</text>
+              <text class="price-value">¥{{ fmtAmount(item.storePrice) }}</text>
             </view>
             <view class="price-cell">
               <text class="price-label">小程序价</text>
-              <text class="price-value">¥{{ item.miniappPrice.toFixed(2) }}</text>
+              <text class="price-value">¥{{ fmtAmount(item.miniappPrice) }}</text>
             </view>
           </view>
         </view>
@@ -98,6 +98,9 @@ function goBack(){ uni.navigateBack() }
 
 import { ref, onMounted } from 'vue'
 import { priceApi } from '@/api/modules/price'
+import { fmtAmount } from '@/utils/format'
+// 低价标红判定必须走同一归一化口径（QODER-15F1）：原始 API 值直接 `<` 会按字符串字典序误判
+import { isBelowCost } from '@/utils/format'
 
 const typeTabs = [
   { label: '全部', value: '' },
