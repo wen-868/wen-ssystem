@@ -204,6 +204,7 @@ if (existsSync(BASELINE_PATH)) {
  * ② 在本表逐条写明 reason / ruling / batch。缺任一 ⇒ 该条被拒（端点回落 gaps，`--strict` 判红）。
  */
 const LEDGER_PATH = resolve(HERE, "..", "..", "docs", "tasks", "R101-RBAC接线缺口清单.md");
+const LEDGER_MIRROR_PATH = resolve(HERE, "fixtures", "rbac-readonly-posts-ledger.md");
 const READ_ONLY_POSTS = [
   {
     path: "/api/admin/prices/best-price",
@@ -260,7 +261,11 @@ const LEDGER_LINES = (() => {
   try {
     return readFileSync(LEDGER_PATH, "utf8").split(/\r?\n/);
   } catch {
-    return null;
+    try {
+      return readFileSync(LEDGER_MIRROR_PATH, "utf8").split(/\r?\n/);
+    } catch {
+      return null;
+    }
   }
 })();
 
@@ -284,7 +289,7 @@ function buildReadOnlyIndex(entries) {
     seen.add(id);
     if (typeof e.path === "string" && e.path.startsWith("/")) {
       if (!LEDGER_LINES) {
-        bad.push(`人读台账不可读（${LEDGER_PATH} 缺失）⇒ 无法核对裁定，拒收`);
+        bad.push(`人读台账及机读镜像均不可读（${LEDGER_PATH} / ${LEDGER_MIRROR_PATH} 缺失）⇒ 无法核对裁定，拒收`);
       } else if (!LEDGER_LINES.some((l) => l.includes(e.path) && l.includes("查询型"))) {
         bad.push("人读台账里找不到「同一行同时含该路径 + 『查询型』」的判定 ⇒ 拒收（登记必须先有人工裁定）");
       }
