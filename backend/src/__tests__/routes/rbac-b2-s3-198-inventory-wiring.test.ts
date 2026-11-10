@@ -2,7 +2,7 @@
  * S3-198 批B2-2 · **库存 / 追溯域**权限接线验收测试
  *
  * 派单卡：`docs/tasks/inbox/ACTIVE-S3-198.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.12（域明细）＋ §九（本批接线明细与守恒）
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.12（域明细）＋ §九（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 671 条）
  *
  * 本文件要证明的五件事（对应派单卡 §二.4 / §三.2 / §四；数字为**返工后**口径）：
@@ -29,7 +29,7 @@
  *        （只记录「请求是否到达业务层」）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入）。
  *
  * 反测（门禁铁律）：摘掉任一条本批 `requirePermission(...)` ⇒ 对应「READONLY ⇒ 403」用例必红；
- * 复原 ⇒ 绿（原始输出见 `docs/tasks/inbox/ACTIVE-回执-S3-198.md` §反测）。
+ * 复原 ⇒ 绿（原始输出见 `projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-回执-S3-198.md` §反测）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
@@ -226,7 +226,7 @@ const ROWS: Row[] = [
   //   `fx-loss-gain`（inventory:adjust）／`fx-transfer` + `fx-transfer-receive`（store:transfer）。
   // B 类前提（写调用点落在无权限门的页面上 ⇒ 使用者集合不可枚举）已由 S3-230 的**入口权限门**修复（D4/I1'）。
   // 逐条码选取口径与"为何 create/adjust 如此分工"见 backend/src/routes/stock-check.routes.ts 头部注释与
-  // docs/tasks/R101-RBAC接线缺口清单.md §十八；持有核对：inventory:create|adjust = 超管/运营 + 店长 + 仓管，
+  // projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md §十八；持有核对：inventory:create|adjust = 超管/运营 + 店长 + 仓管，
   // store:transfer = 超管/运营 + 店长（仓管的 `transfer:*` 不覆盖 `store:transfer`）。
   { file: "inventory-loss-gain.routes.ts", prefix: "/api/admin/inventory", router: inventoryLossGainRouter, method: "post", routePath: "/report-loss-gain", path: "/report-loss-gain", perm: "inventory:adjust" },
   { file: "stock-check.routes.ts", prefix: "/api/admin/stock-checks", router: adminStockCheckRouter, method: "post", routePath: "/", path: "/", perm: "inventory:create" },

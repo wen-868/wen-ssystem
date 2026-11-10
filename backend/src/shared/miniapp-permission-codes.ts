@@ -7,7 +7,7 @@
  *   本批为四域各建一个 per-域常量文件，再由 `batch2-permission-codes.ts` 汇总（断言只认汇总文件）。
  *
  * 二、码表来源（**照抄，禁止自拟**）
- *   `docs/tasks/R101-待立码清单-五域.md` §二 —— 消费者端 33 条不立商家码（S3-205 §10.3 改判）；`miniapp:wechat:decrypt-phone` 按卡 §三 裁定**本批不立码**（另立小单定门禁判据）。模块码取 079 既有码族 miniapp（079 角色种子的 CUSTOMER_SERVICE 已用 miniapp:*）；⚠️ 079 里**没有** `miniapp` CATALOG 行 ⇒ 父行按「必须存在、不得插孤儿行」的口径挂 `system` CATALOG（见迁移 207 §四）
+ *   `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-待立码清单-五域.md` §二 —— 消费者端 33 条不立商家码（S3-205 §10.3 改判）；`miniapp:wechat:decrypt-phone` 按卡 §三 裁定**本批不立码**（另立小单定门禁判据）。模块码取 079 既有码族 miniapp（079 角色种子的 CUSTOMER_SERVICE 已用 miniapp:*）；⚠️ 079 里**没有** `miniapp` CATALOG 行 ⇒ 父行按「必须存在、不得插孤儿行」的口径挂 `system` CATALOG（见迁移 207 §四）
  *
  * 三、本批**不接任何业务路由**（`backend/src/routes/**` 零改动）：只立码本身，
  *   即「目录 + 迁移 207 + 断言 + 前端入口登记」；接线留给后续批次。
@@ -17,7 +17,7 @@
  */
 import { defineBatch2Entry, type Batch2PermissionEntry } from "./batch2-entry";
 
-/** 小程序 / 移动端域（S3-236 · 5 码） —— 码表来源：`docs/tasks/R101-待立码清单-五域.md` §二 */
+/** 小程序 / 移动端域（S3-236 · 5 码） —— 码表来源：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-待立码清单-五域.md` §二 */
 export const MINIAPP_PERMISSION_CATALOG: ReadonlyArray<Batch2PermissionEntry> = [
   defineBatch2Entry({
     code: "miniapp:config:edit",

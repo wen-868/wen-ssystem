@@ -647,7 +647,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
 
   // S3-229（收口总清单第 43 项续 · B2 批 9）：门店/租户域 + 营销域 W 类共 **17 条**已接线
   //   （demo 2 + store-control 5 + community-marketing 10；`admin-store` / `store-value-card` / `store` /
-  //   `points` 的 W 与 B 类行、平台侧与平台域行**不在本表**，见 docs/tasks/R101-RBAC接线缺口清单.md §十七）。
+  //   `points` 的 W 与 B 类行、平台侧与平台域行**不在本表**，见 projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md §十七）。
   // 同样只同步"总数 + 逐文件计数"的期望值（新增 S3_229_WIRED_FILES）；G0 名单行与其逐行 403/200
   // 断言**一字未动**（本批的逐行 403/200 断言在 rbac-b2-s3-229-store-and-marketing-wiring.test.ts）。
   const S3_229_WIRED_FILES = new Map<string, number>([
@@ -658,7 +658,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   const S3_229_WIRED_TOTAL = [...S3_229_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
   // S3-231（收尾批 · F1）：`points.routes.ts` 会员等级配置 4 条改挂 `customer:level`
-  //   （凌舟裁定 1，见 `R101-S3-229-凌舟验收与裁定.md` §二.1 / `docs/tasks/R101-RBAC接线缺口清单.md` §十八）。
+  //   （凌舟裁定 1，见 `R101-S3-229-凌舟验收与裁定.md` §二.1 / `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §十八）。
   //   ⚠️ 与既往「整文件新增批次」不同：本批落在**已进入 S3_226 行**的同一文件（`points.routes.ts`）上。
   //     处置：**不改 S3-226 那行**（它的 2 是"营销积分规则增/改"的原始声明值，改它等于抹掉别人的声明），
   //     改为把两个常量块的**逐文件贡献相加**（下方 `expected` 的折叠循环用 `+=` 而非 `=`）⇒
@@ -672,7 +672,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   //     ＋库存追溯域 20（stock-check 9 / transfer 8 / stock-warning 1 / store-inventory 1 / inventory-loss-gain 1）
   //     ＋商品域 12（admin-product 8 / category 4）＋员工账号域 7（admin-staff 4 / rbac 3）
   //     ＋营销域 5（admin-marketing-coupon 2 / admin-marketing-full-reduction 3）＋财务域 4（bank-account 2 / reconciliation 2）。
-  //   逐条判定与依据门见 `docs/tasks/R101-RBAC接线缺口清单.md` §十八；本批的逐行 403/200 断言在
+  //   逐条判定与依据门见 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §十八；本批的逐行 403/200 断言在
   //   `rbac-b2-s3-233-gate-wiring-parity.test.ts`（跨层一致性）与各域批次用例里（收编行随原用例走既有两侧断言）。
   //   ⚠️ 跨批计数纪律（S3-227 §9.2）：只新增本批自己的常量块，不重排他人行；总数只写和式。
   const S3_233_WIRED_FILES = new Map<string, number>([
@@ -711,7 +711,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   //     ＋4 条审核端点「079/204 均无审核类码」＋1 条 products/import「无真实调用点」），
   //   故 notification.routes.ts 仍留在表内（计 1，而非其缺口的 5）、brand / product-marketing-tag / unit-group 各计 2（不是 3），
   //   admin-product.routes.ts 走累加（S3-220 的 3 + S3-233 的 8 + 本批 1，同文件另有 S3-142 等既有接线）。
-  //   逐条判定与证据见 `docs/tasks/R101-RBAC接线缺口清单.md` §二十；逐行 403/200 断言在
+  //   逐条判定与证据见 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §二十；逐行 403/200 断言在
   //   `rbac-b2-s3-237-system-wiring.test.ts` / `rbac-b2-s3-237-goods-wiring.test.ts`。
   const S3_237_WIRED_FILES = new Map<string, number>([
     ["alert.routes.ts", 3],
@@ -727,7 +727,7 @@ describe("S3-122-F2 G0 接线 · 接线数与名单一致（验收标准③）",
   ]);
   const S3_237_WIRED_TOTAL = [...S3_237_WIRED_FILES.values()].reduce((a, b) => a + b, 0);
 
-  // QODER-9（B3-1 收口 · `island-aftersale` 门与后端接线绑死，`docs/tasks/inbox/QODER-9-B31收口.md`）追加说明：
+  // QODER-9（B3-1 收口 · `island-aftersale` 门与后端接线绑死，`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/QODER-9-B31收口.md`）追加说明：
   //   售后 `approve / reject / inspect / complete` 4 条挂 `sale:return`（**零新码**：同族 S3-224 的
   //   confirm-receipt 同码，`aftersale.routes.ts:64`；门注册表 `island-aftersale` 已提 gated、codes=[`sale:return`]）。
   //   同文件走累加（S3-224 的 1 + 本批 4 = 5）。跨层一致性（gated⇒已接、台账、去重）在

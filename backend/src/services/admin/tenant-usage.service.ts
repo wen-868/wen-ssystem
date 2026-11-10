@@ -153,7 +153,7 @@ export async function getTrend(params: TrendParams): Promise<TrendItem[]> {
  * 已按验收裁定清除全部硬编码条目，改为返回空数组；前端走空态。
  *
  * 「模块使用统计接真实数据」需新建统计模型（记录各模块调用量），属 S3 范围，
- * 已登记至 docs/tasks/current-tasks.md 的 S3 待办，本卡不做。
+ * 已登记至 projects/ms/archive/repo-docs-20261107/docs/tasks/current-tasks.md 的 S3 待办，本卡不做。
  */
 export async function getModuleUsage(): Promise<ModuleUsageItem[]> {
   return [];

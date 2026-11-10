@@ -6,7 +6,7 @@ import * as service from "../../services/platform/platform-notification.service"
 /**
  * C6-2-T1：平台通知控制器（3 条端点，路径由派单卡钉死，不得自拟/增减）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③
  *   · GET  /api/platform/notifications         → { total, page, pageSize, unreadCount, records[] } ← notification:view
  *   · POST /api/platform/notifications/:id/read → 标记该通知对当前管理员已读（幂等）              ← notification:read
  *   · POST /api/platform/notifications/read-all → 标记当前管理员可见的全部未读（返回 marked）     ← notification:read

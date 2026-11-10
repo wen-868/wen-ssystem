@@ -9,7 +9,7 @@
  *   · 有权限码 / 超管 ⇒ 200（到达 handler，非 401/403）；
  *   · 无令牌 ⇒ 401（既有鉴权未被放宽）；
  *   · 有令牌无 CSRF ⇒ 403 CSRF（证明权限判定挂在校验之后，不抢先报权限错）。
- * 摘中间件变红：见 `docs/evidence/S3-193/` 的 06-反测日志（同一用例在摘除
+ * 摘中间件变红：见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-193/` 的 06-反测日志（同一用例在摘除
  * `requirePlatformPermission` 后由 403 变 200）。
  */
 import { vi, describe, it, expect, beforeEach } from "vitest";

@@ -1,7 +1,7 @@
 /**
  * C6-2-T7：平台工单系统 10 条端点的路由级测试（路径 / 方法 / 鉴权 / 校验 400 / 业务码 / 注册顺序）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②（含"路由注册顺序（硬）"）、验收标准②⑤c
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②（含"路由注册顺序（硬）"）、验收标准②⑤c
  * 范式：src/__tests__/routes/platform-role.test.ts（create-test-app 夹具 + service mock）。
  * 鉴权反向：单独挂载**真实** requirePlatformAuth（不带 Authorization）⇒ 401。
  * 路径口径来自派单卡交付物②——路径由卡钉死，本文件逐条断言（含"只准 10 条、不得自拟/增减"）。

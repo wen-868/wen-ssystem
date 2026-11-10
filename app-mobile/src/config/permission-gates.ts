@@ -7,7 +7,7 @@
 //   ⇒ 页面「看得到按钮的角色」无法枚举，后端**不敢**给这些端点挂权限码：
 //      一旦挂码，今天能点的角色（店长 / 店员）点下去就是 403。
 //
-//   依据：`docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`
+//   依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-授权模型提案-凌舟-20261016.md`
 //     · 不变量 I1：凡能看到某页的**在用**角色，必须持有该页写端点所用的码；
 //     · 裁定 D4：B 类**必须由前端按码显隐入口（补权限门）**，后端才可收编接线。
 //
@@ -34,7 +34,7 @@
 //   · pending-code ⇒ 任何态恒隐藏（B3-1，先于三态判定短路）。
 //   `hasPermissionCodes` 自身的 null 分支保留失败关闭，作为**直接调用方的兜底**；
 //   但经 `isEntryVisible` / `usePermissionGate` 走时，null 处置已先被三态源分流，不再落到该分支。
-//   影响面登记：`docs/evidence/S3-231/F3/`（旧分叉）与 `docs/evidence/qoder-4/`（本单统一）。
+//   影响面登记：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F3/`（旧分叉）与 `projects/ms/archive/repo-docs-20261107/docs/evidence/qoder-4/`（本单统一）。
 //
 // 代码层级：本文件**零依赖**（纯函数 + 常量，仅另引同目录的 permission-view-state.ts），
 // 可被 Node 直接加载（证据脚本用），也可被 Pinia store / 页面 / 组件引入，
@@ -124,7 +124,7 @@ export function hasPermissionCodes(
 export interface EntryGate {
   /** 稳定 id（页面 / 证据 / 断言共用键） */
   id: string
-  /** 域（与 `docs/tasks/R101-RBAC接线缺口清单.md` 的批次分域一致） */
+  /** 域（与 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` 的批次分域一致） */
   domain: string
   /** 入口人读描述（页面上的位置） */
   entry: string

@@ -1,8 +1,8 @@
 /**
  * 开放平台 API 密钥服务（R101-C3-1）
  *
- * 依据：`docs/tasks/cards/R101-C3-0-凌舟裁定.md` §二（7 项裁定）+ §三（实现形态）
- *      派单卡 `docs/tasks/cards/R101-派单-20260923-C3.md`（C3-1 段）
+ * 依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-0-凌舟裁定.md` §二（7 项裁定）+ §三（实现形态）
+ *      派单卡 `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260923-C3.md`（C3-1 段）
  *
  * 口径（逐条对应裁定）：
  * - **复用既有表 `t_library_api_key`**（裁定 §二.6）：不新建 `t_open_api_key`，

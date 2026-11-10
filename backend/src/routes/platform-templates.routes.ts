@@ -6,7 +6,7 @@ import * as controller from "../controllers/platform/platform-template.controlle
 /**
  * C2-0 实现段：平台模板中心路由（prefix /api/platform/templates）
  *
- * 依据：docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（12 个端点中的 #1~#10）。
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（12 个端点中的 #1~#10）。
  * 注册顺序：同一 router 内**先具体后通配**——
  *   /print/upload、/import-export/:id/download 一律写在任何 /:id 之前。
  * 鉴权：routeConfig.auth = "requirePlatformAuth"（与既有平台路由一致，由 auto-routes 挂载）。

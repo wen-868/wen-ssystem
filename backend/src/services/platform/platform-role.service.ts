@@ -6,7 +6,7 @@ import { AppError } from "../../shared/app-error";
  * C6-2-T6：平台角色（t_platform_role）+ 权限矩阵（t_platform_role_permission）+ 权限点目录（t_platform_permission_catalog）
  *
  * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T6.md（交付物② 七条端点、验收标准④~⑦）
- *       + docs/tasks/cards/R101-C6-2-批1-立项卡-T6+T7.md §三/§七（7 个功能域、三级权限点、权限点可双向核对）
+ *       + projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-2-批1-立项卡-T6+T7.md §三/§七（7 个功能域、三级权限点、权限点可双向核对）
  *
  * 口径（逐条可核对）：
  * - 平台级表（**无 tenant_id**）：用 query()/queryOne()，不走 queryWithTenant（不注入 tenant_id 条件）；

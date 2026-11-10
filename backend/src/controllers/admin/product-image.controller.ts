@@ -39,7 +39,7 @@ export const uploadProductImage = asyncHandler(async (req: any, res: any) => {
   const tenantId = req.tenantId || req.user?.tenantId || "default";
   const filename = `${tenantId}-${Date.now()}-${Math.round(Math.random() * 100000)}${ext}`;
   // 落盘路径归一到「商品主图目录」内再写：path.resolve() + startsWith(目录 + path.sep) 是 CodeQL
-  // 已建模的净化形态（依据见 docs/evidence/S3-211/README.md 二、1），用于替代它不认识的自研净化。
+  // 已建模的净化形态（依据见 projects/ms/archive/repo-docs-20261107/docs/evidence/S3-211/README.md 二、1），用于替代它不认识的自研净化。
   const imageBaseDir = productImageDir();
   const target = path.resolve(path.join(imageBaseDir, filename));
   if (!target.startsWith(imageBaseDir + path.sep)) {

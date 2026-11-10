@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-dict.service";
 /**
  * R101-C6-3-1：平台数据字典控制器（3 条端点，路径由派单卡钉死，不得自拟）
  *
- * 依据：docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 B②
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 B②
  *   · GET /api/platform/config/data-dict                 → { items: [{ dictType, dictName, remark, status, itemCount }] }
  *   · GET /api/platform/config/data-dict/:dictType/items  → { items: [{ itemCode, itemName, sortNo, status, remark }] }
  *   · PUT /api/platform/config/data-dict/:dictType        → 整包替换该类型字典项 → { dictType, saved }

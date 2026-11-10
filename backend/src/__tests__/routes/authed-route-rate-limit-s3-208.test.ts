@@ -9,7 +9,7 @@
  *   ① 前 N 次不是 429（无令牌 ⇒ 401/403，说明限流器在鉴权之前，且没把正常请求打死）；
  *   ② 首次响应带 `ratelimit-limit` 头（证明请求确实过了 express-rate-limit）；
  *   ③ 第 N+1 次是 429（限流真的生效）。
- * 反测（`docs/evidence/S3-208/README.md` §F1）：摘掉任一条路由上的 `rateLimit(...)` ⇒ 该条
+ * 反测（`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-208/README.md` §F1）：摘掉任一条路由上的 `rateLimit(...)` ⇒ 该条
  * 用例红（第 N+1 次拿到 401/403 而不是 429）。
  *
  * 覆盖范围：PR #297 check-run 115404340298 注解的 11 条 high（wechat 5 条路由 / marketing 4 条

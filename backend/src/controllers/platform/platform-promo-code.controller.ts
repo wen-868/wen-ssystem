@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-promo-code.service";
 /**
  * R101-C6-3-2a：平台渠道推广码控制器（**4 条端点**，路径由派单卡 §四 钉死，不得自拟）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-2a.md §四
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-2a.md §四
  *   · GET  /api/platform/promo-codes                  → { items, total, page, pageSize }（分页 + 关键词 + 状态）
  *   · POST /api/platform/promo-codes                  → { id, promoCode }（PC + 8 位去易混；冲突重试 5 次后 409）
  *   · POST /api/platform/promo-codes/:id/disable      → 停用（未知 id ⇒ 404；已停用 ⇒ 幂等 200 + 说明）

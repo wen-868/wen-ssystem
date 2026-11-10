@@ -2,7 +2,7 @@
  * R101-C6-4-1：平台侧「商品库调取统计」service 单元测试
  *
  * 被测：src/services/platform/library-call-log.service.ts（P1~P4）
- * 契约：docs/tasks/cards/R101-C6-4-0-阿坚-立项草案.md §4.3
+ * 契约：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-4-0-阿坚-立项草案.md §4.3
  * 硬口径（派单卡三②）：平台侧"调取次数"一律取 t_library_call_log；不得用 t_library_spu.hit_count（扫码命中）；
  *   不得把 /api/open/library/* 或扫码查询写进本表；平台侧不得暴露任何租户私有档案字段（价格/库存）。
  * Q9：类目分布无载体 ⇒ 不注册端点，由 stats.unavailable[] 显式说明。

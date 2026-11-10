@@ -2,7 +2,7 @@
  * 租户资源配额 service 单元测试（R101-S2-01 批 4）
  * 被测文件：src/services/platform/tenant-quota.service.ts
  *
- * 重点断言（契约 docs/API接口文档.md · GET /api/platform/tenants/:id/quota）：
+ * 重点断言（契约 projects/ms/archive/repo-docs-20261107/docs/API接口文档.md · GET /api/platform/tenants/:id/quota）：
  *  - 字节→GB 换算在后端完成、保留 2 位小数；
  *  - storage 限额：config MB→折 GB、GB→原值、两者都取不到时回退套餐 max_storage_mb（MB→GB）；
  *  - aiMonthly monthly_chat_limit = 0 → limit null + unlimited true；

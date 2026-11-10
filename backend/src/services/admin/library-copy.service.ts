@@ -7,8 +7,8 @@ import { getProductQuota } from "../platform/tenant-quota.service";
 /**
  * R101-C6-4-1：租户侧「商品库复制式调取（COPY）」服务
  *
- * 依据：docs/tasks/cards/R101-C6-4-0-阿坚-立项草案.md §四.2（T1~T4 契约）
- *       docs/tasks/cards/R101-C6-4-0-凌舟裁定.md Q2/Q3/Q4/Q6/Q7（条码降级/1001/软删仍 SKIPPED/只写成功/方案 B）
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-4-0-阿坚-立项草案.md §四.2（T1~T4 契约）
+ *       projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-4-0-凌舟裁定.md Q2/Q3/Q4/Q6/Q7（条码降级/1001/软删仍 SKIPPED/只写成功/方案 B）
  *
  * 统计边界（凌舟钉死，本文件是唯一落库点）：
  *   COPY＝调取 ⇒ 写 t_library_call_log + 扣商品配额 + 建租户私有档案（t_product_spu/t_product_sku/t_product_price）

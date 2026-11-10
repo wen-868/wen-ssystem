@@ -1,8 +1,8 @@
 /**
  * S3-223 · **财务域**（9 路由文件 / 28 写端点）权限接线验收测试（B2 批 5）
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-223.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.10（域明细）＋ §十三（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-223.md`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.10（域明细）＋ §十三（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 `gaps` 554 条 / 144 文件）
  * 基线：`origin/main` = `90119ef4`（本单开工时 `git fetch` 取真值，见回执 §三）
  *
@@ -32,7 +32,7 @@
  *        业务层」）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入）。
  *
  * 反测（门禁铁律）：摘掉本批任一条 `requirePermission(...)` ⇒ 对应「READONLY ⇒ 403」用例必红；
- *   复原 ⇒ 绿（原始输出见 `docs/evidence/S3-223/` 下反测日志与回执 §五）。
+ *   复原 ⇒ 绿（原始输出见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-223/` 下反测日志与回执 §五）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";

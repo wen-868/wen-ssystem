@@ -2,7 +2,7 @@
  * S3-208（R101 收口总清单第 57 项）：12 条 `js/path-injection`
  * （"This path depends on a user-provided value"）的**误报判定**的可执行证据。
  *
- * 判定的口径（见 `docs/evidence/S3-208/README.md` §三）：这 12 条的"数据流"确实存在
+ * 判定的口径（见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-208/README.md` §三）：这 12 条的"数据流"确实存在
  * （CodeQL 把 `req.*` 上的字段都当远端输入），但**路径拼接里可被用户控制的成分已被消解**：
  *   - 文件名 = 服务端取值（租户/用户 id，来自签名 JWT）+ `Date.now()` + **白名单扩展名**；
  *     用户可控的只有 `file.originalname`，它对最终路径的唯一贡献是 `path.extname()` 的返回值，

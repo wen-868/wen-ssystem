@@ -1,7 +1,7 @@
 /**
  * S3-211（R101 收口总清单第 **57** 项·**乙方案**）：12 条 `js/path-injection` 的**根治**回归。
  *
- * 口径（见 `docs/evidence/S3-211/README.md`）：
+ * 口径（见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-211/README.md`）：
  *   - 甲方案（S3-208）= 逐条 dismissal，属"人工背书"，代码一变、查询一升级就可能再报；
  *   - 乙方案（本单）= 把净化改写成 **CodeQL 已建模的形态**
  *     `path.resolve(path.join(根目录, 段))` + `resolved.startsWith(根目录 + path.sep)`，
@@ -12,7 +12,7 @@
  *      的落点、落盘名、返回码**逐字节一致**（legacy 公式 vs 改造后的真实输出）；
  *   ② **承重性探针**：`starter` 分隔符段（绕过前置净化）只能"被拒"或"落在根目录内"，
  *      绝不落盘到根目录外 —— 去掉 `startsWith` 校验后本文件会红（反测矩阵见
- *      `docs/evidence/S3-211/harness/antitest-remove-guard.mjs`）。
+ *      `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-211/harness/antitest-remove-guard.mjs`）。
  */
 import fs from "node:fs";
 import os from "node:os";

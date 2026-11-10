@@ -61,7 +61,7 @@ adminAftersaleRouter.post("/aftersales/:id/reject", requirePermission("sale:retu
 // ⚠️ 同文件 approve / reject / inspect / complete 4 条 S3-224 当时**不接**：app-mobile
 // `pages-sub/order/order-aftersale/aftersale.vue:144/178`（孤岛页，全仓无导航入口）有写调用点
 // ⇒ 使用者集合不可枚举（B 类）。2026-10-16
-// QODER-9（B3-1 收口，2026-10-19，`docs/tasks/inbox/QODER-9-B31收口.md`）：门注册表 `island-aftersale` 已提为
+// QODER-9（B3-1 收口，2026-10-19，`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/QODER-9-B31收口.md`）：门注册表 `island-aftersale` 已提为
 // `gated`（`app-mobile/src/config/permission-gates.ts:585-599`，codes = `sale:return`）⇒ parity 契约
 // 「gated ⇒ 后端已接线」；凌舟裁定**改补后端、不再拆栈** ⇒ 4 条挂同族既有码 `sale:return`（零新码）。
 adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", requirePermission("sale:return"), ctrl.adminConfirmReceipt);

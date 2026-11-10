@@ -1,7 +1,7 @@
 /**
  * S3-173 ③：平台侧「重置该账号口令」——与视图解耦的纯逻辑 + 流程函数（可单测）。
  *
- * 契约（与 docs/tasks/cards/R101-派单-20261007-S3-172.md §一③ 对齐，后端由 S3-172 提供）：
+ * 契约（与 projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20261007-S3-172.md §一③ 对齐，后端由 S3-172 提供）：
  *   列表：GET  /api/platform/tenants/:tenantId/users
  *   重置：POST /api/platform/tenants/:tenantId/users/:userId/reset-password ⇒ 一次性初始口令
  *

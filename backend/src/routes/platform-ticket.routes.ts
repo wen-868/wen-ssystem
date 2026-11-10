@@ -6,7 +6,7 @@ import * as controller from "../controllers/platform/platform-ticket.controller"
 /**
  * C6-2-T7：平台工单系统路由（10 条端点，路径由派单卡钉死，不得自拟/增减）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②（含"路由注册顺序（硬）"）
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T7.md 交付物②（含"路由注册顺序（硬）"）
  * 单一前缀 /api/platform/support，全部挂 requirePlatformAuth（与既有平台路由同风格）。
  *
  * ★ 注册顺序（硬，卡内钉死）：字面量子路由 `/tickets/report` **必须**写在 `/tickets/:id` 之前，

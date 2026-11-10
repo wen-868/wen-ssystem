@@ -1,10 +1,10 @@
 /**
  * S3-238 · 平台侧接线第一批 R3 —— **行级形状断言 + 双前缀收编**
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-238.md`｜工作树 `wt-agents/S3-238`｜分支 `feat/s3-238-platform-rbac-batch1`
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-238.md`｜工作树 `wt-agents/S3-238`｜分支 `feat/s3-238-platform-rbac-batch1`
  * 依据：收口总清单**第 50 项**、S3-231 F2 裁定 1（目录 + 常量**两处同改** + 双前缀收编）
- * 台账：`docs/tasks/R101-平台RBAC接线台账.md` §二 #13/#14、§六 105+1/105+2
- * 设计：`docs/evidence/S3-238/10-design.md`（R1 四问）
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-平台RBAC接线台账.md` §二 #13/#14、§六 105+1/105+2
+ * 设计：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-238/10-design.md`（R1 四问）
  *
  * 本文件要证明的四件事：
  *  a) **双前缀同业务两侧都接上**：`/api/platform/applications/:id/{approve,reject}`
@@ -20,7 +20,7 @@
  *  d) **运行时三态**（证明不是恒绿，也不是恒红）：无平台令牌 ⇒ **401**；
  *     平台令牌但角色无矩阵授权 ⇒ **403**（fail-closed）；平台超管 ⇒ 到达业务层。
  *
- * ⚠️ 反测（门禁铁律，`docs/tasks/派单规范.md` §9.1）：
+ * ⚠️ 反测（门禁铁律，`projects/ms/archive/repo-docs-20261107/docs/tasks/派单规范.md` §9.1）：
  *   把任一条端点（例如 `platform-applications.routes.ts` 的 `/:id/approve`）的
  *   `requirePlatformPermission("tenant:manage")` **摘掉** ⇒ 用例 a) 必红并**点名**该端点；复原 ⇒ 绿。
  *   注：本文件**不 exec 子进程**（本环境 vitest 起子进程会 EPERM，见

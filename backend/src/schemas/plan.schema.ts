@@ -1,7 +1,7 @@
 /**
  * R101-S2-02 组1：套餐（t_subscription_plan）契约校验
  *
- * 依据（文档：docs/配置项契约登记表.md 组1）：
+ * 依据（文档：projects/ms/archive/repo-docs-20261107/docs/配置项契约登记表.md 组1）：
  * - plan_type  VARCHAR(32) → MONTHLY / QUARTERLY / YEARLY / PERMANENT / CUSTOM
  * - status     VARCHAR(16) → DRAFT / ACTIVE / INACTIVE
  * - features   JSON        → 功能特性码数组（生产既有语义，禁止改作配置包）

@@ -1,7 +1,7 @@
 /**
  * C6-2-T5 防回归：迁移 183（商品库 SPU 审核流水单表）必须保持"纯 DDL + 口径逐字对齐"。
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T5.md
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T5.md
  *   - 交付物①（逐列口径、engine/collation、零预置数据、不建外键）；
  *   - 验收标准③（全新空库跑 183 能建成；文本列 collation 全 utf8mb4_0900_ai_ci；
  *     行首 INSERT/UPDATE/DELETE/REPLACE 零命中）；

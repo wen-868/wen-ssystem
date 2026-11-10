@@ -4,7 +4,7 @@ import { AppError } from "../../shared/app-error";
 /**
  * C2-0 实现段：平台公共打印模板（t_platform_print_template，清账草案 3-B）
  *
- * 依据：docs/tasks/cards/R101-C2-0-凌舟裁定.md §二（否决 3-A，选方案 B 新表）+ §三（端点 #5~#7）。
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C2-0-凌舟裁定.md §二（否决 3-A，选方案 B 新表）+ §三（端点 #5~#7）。
  * 口径：
  * - 不复用租户表 t_print_template（避免把平台行写进租户作用域表），本表独立；
  * - 上传即 is_public=1（平台侧维护的公共模板）；「设为公共模板」为幂等操作；

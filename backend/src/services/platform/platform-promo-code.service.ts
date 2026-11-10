@@ -1,7 +1,7 @@
 /**
  * R101-C6-3-2a：平台渠道推广码**码档案**（t_promo_code，迁移 188）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-2a.md §三①（逐列口径）、§四（端点与生成规则）
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-2a.md §三①（逐列口径）、§四（端点与生成规则）
  *
  * 口径：
  * - 平台级表（**无 tenant_id**）：用 query()/queryOne()，不走 queryWithTenant；

@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-channel-report.servic
 /**
  * R101-C6-3-2b：渠道效果报表控制器（**1 条端点**，路径由派单卡 §四 钉死，不得自拟）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-2b.md §四
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-2b.md §四
  *   · GET /api/platform/channel-reports/effect → { items:[{...}], basis, filters, totals }
  *
  * 口径与过滤条件**随响应返回**（卡 §四："口径与过滤条件必须写进响应或文档说明"）：

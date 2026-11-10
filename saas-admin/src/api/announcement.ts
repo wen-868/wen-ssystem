@@ -7,7 +7,7 @@ import request from '../utils/request'
  *   - 既有 6 端点：backend/src/routes/admin-platform-announcement.routes.ts:8-13
  *     （GET / 、GET /:id 、POST / 、PUT /:id 、DELETE /:id 、POST /:id/publish）
  *   - 公告模板 2 端点：同路由（C2-0 新增，注册在 GET /:id 之前，0 DDL 走 t_platform_config）
- *   - 契约：docs/API接口文档.md §公告管理 / §模板中心
+ *   - 契约：projects/ms/archive/repo-docs-20261107/docs/API接口文档.md §公告管理 / §模板中心
  *
  * 口径：状态枚举只有 DRAFT / PUBLISHED 两态（status 走字符串枚举，非数字）；
  * 定时发布 SCHEDULED 与已撤回 RECALLED 为预留状态，后端当前不支持（S3-32），故本模块不提供

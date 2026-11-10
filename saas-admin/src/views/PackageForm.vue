@@ -254,7 +254,7 @@ const copiedFromName = ref("");
 /* 策略包保存失败的内容区错误态（不重复弹 toast，见「双 toast 收敛口径」） */
 const policyError = ref("");
 
-/* ── 状态（枚举取值表见 docs/API接口文档.md · P36/POST /api/platform/plans） ── */
+/* ── 状态（枚举取值表见 projects/ms/archive/repo-docs-20261107/docs/API接口文档.md · P36/POST /api/platform/plans） ── */
 const statusCycle = PLAN_STATUS_OPTIONS;
 const statusIdx = ref(0);
 const statusLabel = computed(() => statusCycle[statusIdx.value]?.label || "—");

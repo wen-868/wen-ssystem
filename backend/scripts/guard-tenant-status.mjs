@@ -92,7 +92,7 @@ const LITERAL_ALLOWLIST = {
         "GET /statistics/overview 的**只读**统计分支（`COUNT(*) ... WHERE status = 'SUSPENDED'`），" +
         "仍按旧值域计数，存量收敛后这一桶恒为 0。改写为「按 suspend_reason 归因」属**口径设计**，" +
         "卡面 §二 未授权（只列两处写入）⇒ 本单保留原样并在回执里报回待裁定" +
-        "（见 docs/tasks/inbox/ACTIVE-回执-S3-192.md 的「读侧未收敛清单」）。",
+        "（见 projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-回执-S3-192.md 的「读侧未收敛清单」）。",
     },
     {
       literal: "EXPIRED",

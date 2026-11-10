@@ -1,7 +1,7 @@
 /**
  * C6-2-T1：平台通知服务单测（t_platform_notification / t_platform_notification_read）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物③、验收标准⑤⑥
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物③、验收标准⑤⑥
  * 覆盖：
  *   · 列表：空表诚实空态 / total 与 unreadCount 口径 / read 标记来自真实左连接 /
  *     参数化分页与夹取 / 可见性条件（全员 + 定向）与"按当前管理员"参数；

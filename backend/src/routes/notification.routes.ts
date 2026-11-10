@@ -28,7 +28,7 @@ adminNotificationRouter.post("/send", requirePermission(PERM_SYSTEM_NOTIFICATION
 //      全表 0 处引用 `/api/admin/notifications/*`）⇒ 在用角色（店长 1 账号 / 操作员 1 账号）能打开并调用；
 //   ② 这两个在用角色**不持** `system:notification:*` 任何一条（`store:*`/`sale:*` 等域通配都不跨 `system` 域）；
 //   ⇒ 按授权模型不变量 **I1'**（①持码 ②前端按码只读 ③页面不开放；三条都不成立 ⇒ 不接并登记），
-//      本批**不接**、只登记，待前端补门后收编（详见 `docs/tasks/R101-RBAC接线缺口清单.md` §二十 与回传卡 §五）。
+//      本批**不接**、只登记，待前端补门后收编（详见 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §二十 与回传卡 §五）。
 adminNotificationRouter.get("/:id", ctrl.getNotificationDetail);
 adminNotificationRouter.delete("/:id", ctrl.deleteNotification);
 adminNotificationRouter.post("/batch-delete", ctrl.batchDeleteNotifications);

@@ -1,8 +1,8 @@
 /**
  * S3-222 · **客户域**（12 路由文件 / 45 写端点）权限接线验收测试（B2 批 4）
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-222.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.2（域明细）＋ §十二（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-222.md`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.2（域明细）＋ §十二（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 `gaps` 546 条 / 138 文件）
  * 基线：`origin/main` = `e124173b`（本单开工时 `git fetch` 取真值，见回执 §三）
  *
@@ -19,7 +19,7 @@
  *  · 权限匹配语义：`services/admin/rbac.service.ts` 的 `matchPermission`（`*` / `dom:*` / `*:action` / 精确码），
  *    测试用**生产同一份**匹配器，只把「数据库读取」换成角色权限串；
  *  · 角色权限串：生产只读实值（`STORE_MANAGER` / `FINANCE_STAFF` / `STORE_OPERATOR` / `WAREHOUSE_STAFF`，
- *    凌舟 2026-10-15 生产核对，见 `docs/evidence/S3-214/01-roles-to-verify.md` §「凌舟生产核对结论」）
+ *    凌舟 2026-10-15 生产核对，见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-214/01-roles-to-verify.md` §「凌舟生产核对结论」）
  *    ＋ 仓库种子（`079_权限矩阵.sql` / `099_seed_data.sql` 旧词表口径），与 `guard-rbac-wiring.mjs --holders` 同源；
  *  · 页面真实使用者：`admin-web/src/router/index.ts` 的 `meta.roles`（fail-closed）＋
  *    `app-mobile/src/config/function-menu.ts` 的移动菜单码（对账页 `finance:statement`）。
@@ -31,7 +31,7 @@
  *        业务层」）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入）。
  *
  * 反测（门禁铁律）：摘掉本批任一条 `requirePermission(...)` ⇒ 对应「READONLY ⇒ 403」用例必红；
- *   复原 ⇒ 绿（原始输出见 `docs/evidence/S3-222/` 下反测日志与回执 §五）。
+ *   复原 ⇒ 绿（原始输出见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-222/` 下反测日志与回执 §五）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";

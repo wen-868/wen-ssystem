@@ -1,8 +1,8 @@
 /**
  * S3-122-G1 · G1（高风险写第二档）权限接线验收测试
  *
- * 派单卡：docs/tasks/cards/R101-派单-20260926-S3-122-G1.md
- * 审计表：docs/tasks/cards/R101-S3-122-G1-阿坚-Audit.md
+ * 派单卡：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-S3-122-G1.md
+ * 审计表：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-122-G1-阿坚-Audit.md
  *
  * 本文件要证明的四件事（对应派单卡「验收标准（硬）」③④⑤⑥）：
  *  a) 只读账号（READONLY = `["*:view"]`）调 **本单已接的 8 行** ⇒ 403，且**未到达业务层**；
@@ -298,7 +298,7 @@ const G1_UNWIRED_TOTAL = UNWIRED.length;
 
 /**
  * S3-126（G1b）改挂域内细码后的接线名单（**8 行**，来源 = G1 审计表 §3.1「A 类」8 行）。
- * 权限点口径 = 派单卡 `docs/tasks/cards/R101-派单-20260926-S3-126.md` §一（R7：只此一份）：
+ * 权限点口径 = 派单卡 `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-S3-126.md` §一（R7：只此一份）：
  *   信用管理 7 行 → `customer:credit`（店长持 `customer:*` ⇒ 域通配命中）
  *   提成规则 1 行 → `sale:commission`（店长持 `sale:*` ⇒ 域通配命中）
  * 关键反证：`FINANCE_STAFF`（`finance:*`）、`STORE_OPERATOR`/`SALES_STAFF`（只持精确 `sale:create`）、
@@ -333,7 +333,7 @@ const S126_WIRED_TOTAL = S126_CASES.length;
 
 /**
  * S3-233（B 类收编第一批）从本文件「待裁名单」移出并接线的 **5 行**（原判为 B 类：app-mobile 无角色门禁调用点）。
- * 依据：S3-230（PR #356）已给这 5 条写调用点所在入口补上**前端权限门**（`docs/tasks/cards/R101-S3-230-凌舟验收与裁定.md`
+ * 依据：S3-230（PR #356）已给这 5 条写调用点所在入口补上**前端权限门**（`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-230-凌舟验收与裁定.md`
  *   §二.1：门按码判定、D4/不变量 I1'「无码 ⇒ 无入口」）⇒ B 类根因消失，按门注册表（唯一真相源）接线：
  *     `fin-bank-accounts` ⇒ `finance:create`（2 行）、`sale-receipt-sub` ⇒ `sale:create`（1 行）、
  *     `fin-recon-confirm` ⇒ `report:finance`（2 行）。
@@ -676,7 +676,7 @@ describe("S3-122-G1 · 待裁原因可复核（A/B/C 三类证据锚点）", () 
 
 // ==================================================================================
 // S3-126（G1b）· A 类 8 行改挂域内细码后的接线验收
-//   派单卡：docs/tasks/cards/R101-派单-20260926-S3-126.md
+//   派单卡：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-S3-126.md
 //   口径：信用 7 行 → customer:credit；提成规则 1 行 → sale:commission（零角色数据变更）
 //   反测（门禁铁律）：任取 1 行改回 finance:create ⇒ 本段「店长 ⇒ 200」用例必红。
 // ==================================================================================

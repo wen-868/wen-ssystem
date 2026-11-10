@@ -7,7 +7,7 @@
  *
  * 保真度：真 = 被测函数本体、SQL 文本与参数、AppError 状态码、事务包裹语义；
  *   桩 = 数据库连接（`transaction` 直接回调 mockConn，不连真库 —— 真库真 HTTP 见
- *   `docs/evidence/S3-209/harness.mjs`）。
+ *   `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-209/harness.mjs`）。
  *
  * 反测（门禁铁律）：把 `cancelSaleBill` 里 `if (bill.business_status === "VOIDED")` 的幂等分支摘掉
  *   ⇒「重复取消只回滚一次」用例必红（第二次会再次写库存与流水）。

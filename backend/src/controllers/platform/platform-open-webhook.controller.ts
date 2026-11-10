@@ -1,7 +1,7 @@
 /**
  * 开放平台 · Webhook 控制器（R101-C3-1，路由前缀 /api/platform/open）
  *
- * 依据：`docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三 + 派单卡 C3-1 交付物 1（Webhook 7 条 + /events）。
+ * 依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三 + 派单卡 C3-1 交付物 1（Webhook 7 条 + /events）。
  * 分层与校验口径同 `platform-open-api-key.controller.ts`（zod 失败 ⇒ 生产 `ZodError ⇒ 400` 链路）。
  */
 

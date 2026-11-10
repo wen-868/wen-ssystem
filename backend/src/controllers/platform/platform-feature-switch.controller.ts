@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-feature-switch.servic
 /**
  * R101-C6-3-1：平台全局功能开关控制器（2 条端点，路径由派单卡钉死，不得自拟）
  *
- * 依据：docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 A②
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260927-C6-3-1.md 交付物 A②
  *   · GET /api/platform/config/feature-switches        → { items: [{ featureCode, featureName, enabled, defaultForNewTenant, remark }] }
  *   · PUT /api/platform/config/feature-switches/:code  → { featureCode, changedFields }
  *

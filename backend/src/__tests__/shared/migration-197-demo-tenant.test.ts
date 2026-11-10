@@ -1,9 +1,9 @@
 /**
  * R101-S3-174-F1 迁移形状约束：197（演示租户隔离 · 判红后重做版）
  *
- * 依据：docs/tasks/cards/R101-派单-20261007-S3-174.md 一① / 二 / 三
- *       docs/tasks/cards/R101-S3-174-凌舟验收-判红.md 三（①~⑤ 逐条修复要求）
- *       docs/tasks/cards/R101-S3-174-F1-凌舟验收-判红-v2.md 四（S3-174-F2 第 1/2 项）
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20261007-S3-174.md 一① / 二 / 三
+ *       projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-174-凌舟验收-判红.md 三（①~⑤ 逐条修复要求）
+ *       projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-174-F1-凌舟验收-判红-v2.md 四（S3-174-F2 第 1/2 项）
  *
  * 判红的三处生产同构硬伤，本测试各钉一条硬断言（谁改回去谁就红）：
  *   ① t_tenant 四个 NOT NULL 无默认值列（company_name / contact_person / contact_mobile /

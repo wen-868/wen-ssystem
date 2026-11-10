@@ -2,8 +2,8 @@
  * R101-C6-4-1：租户侧商品库调取（COPY）service 单元测试
  *
  * 被测：src/services/admin/library-copy.service.ts（+ 复用的 src/services/platform/tenant-quota.service.ts getProductQuota）
- * 契约：docs/tasks/cards/R101-C6-4-0-阿坚-立项草案.md §四.2（T3 请求体/result 取值/状态码）
- *        docs/tasks/cards/R101-C6-4-0-凌舟裁定.md Q2（条码降级）/Q3（配额不足 1001）/Q4（软删仍 SKIPPED）/Q6（只写成功）/Q7（方案 B）
+ * 契约：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-4-0-阿坚-立项草案.md §四.2（T3 请求体/result 取值/状态码）
+ *        projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-4-0-凌舟裁定.md Q2（条码降级）/Q3（配额不足 1001）/Q4（软删仍 SKIPPED）/Q6（只写成功）/Q7（方案 B）
  *
  * 覆盖四类语义（派单卡交付物②）：
  *   · 调取成功 ⇒ CREATED + 流水与映射**各 +1**（断言两条 INSERT 语句各出现一次）+ 档案可见（spuId 回传）

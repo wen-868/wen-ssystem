@@ -136,7 +136,7 @@ export class MiniappPackageService {
     // 压缩为 zip
     const fileName = `miniapp-${theme}-${safeName(tenantId)}-${Date.now()}.zip`;
     // 输出路径归一到「代码包存储目录」内：path.resolve() + startsWith(目录 + path.sep) 是 CodeQL
-    // 已建模的净化形态（依据见 docs/evidence/S3-211/README.md 二、1）；此处即 shared/zip.ts
+    // 已建模的净化形态（依据见 projects/ms/archive/repo-docs-20261107/docs/evidence/S3-211/README.md 二、1）；此处即 shared/zip.ts
     // 两条告警的污染源头（zipDirectory 是纯工具，根目录只有调用方知道）。
     const storageDir = getStorageDir();
     const zipPath = path.resolve(path.join(storageDir, fileName));

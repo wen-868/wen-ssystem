@@ -1,9 +1,9 @@
 /**
  * S3-237 · 接线批 10 · **组 2「商品 A 类」7 条接线 + 8 条「不接」判定** 验收测试
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-237.md` §一 组 2｜码：`docs/migrations/079_权限矩阵.sql:200-201`
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-237.md` §一 组 2｜码：`docs/migrations/079_权限矩阵.sql:200-201`
  * （既有码 `goods:create` / `goods:edit`）｜授权模型：不变量 **I1'** + 裁定 **D1**（店长补 goods 写码，不含 delete）+ **D4**
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §十二.4（A 类 15 条）→ §二十（本单处置）｜证据：`docs/evidence/S3-237/`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §十二.4（A 类 15 条）→ §二十（本单处置）｜证据：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-237/`
  *
  * ⚠️ **卡面数字差异（实名报备）**：派单卡 §一 组 2 表头写"**15 条 = 8（本批接）+ 3（DELETE 不接）+ 4（审核不接）+ 1（import 不接）**"，
  *   但 8 + 3 + 4 + 1 = 16 ≠ 15，且按机读台账 `rbac-wiring-baseline.json` 逐条清点是

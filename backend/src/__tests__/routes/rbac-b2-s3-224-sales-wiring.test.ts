@@ -1,10 +1,10 @@
 /**
  * S3-224 · **销售域**（17 路由文件 / 100 写端点里的 87 条仍缺口 → 本批接 32 条）权限接线验收测试
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-224.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.5（域明细）＋ §十四（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-224.md`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.5（域明细）＋ §十四（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 `gaps` 499 条 / 131 文件）
- * 判定留档：`docs/evidence/S3-224/01-plan-and-judgements.md`
+ * 判定留档：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-224/01-plan-and-judgements.md`
  *
  * 本文件要证明的六件事（对应派单卡 §三.1/§三.2/§三.5）：
  *  a) 本批已接 **32 行**的**注册行级**形状断言（踩坑[134]：注释里的 `requirePermission(` 不算调用）；
@@ -19,7 +19,7 @@
  *  · 权限匹配语义：`services/admin/rbac.service.ts` 的 `matchPermission`（`*` / `dom:*` / `*:action` / 精确码），
  *    测试用**生产同一份**匹配器，只把「数据库读取」换成角色权限串；
  *  · 角色权限串：**生产只读实值**（凌舟 2026-10-16 导出，12 角色 / 租户 `default`，
- *    原始输出 `docs/evidence/S3-220/00-prod-roles-raw.txt`，复算 `05-prod-holders.txt`）
+ *    原始输出 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-220/00-prod-roles-raw.txt`，复算 `05-prod-holders.txt`）
  *    ＋ 仓库种子（`079_权限矩阵.sql` / `099_seed_data.sql` 旧词表口径）；
  *  · 页面真实使用者：`admin-web/src/router/index.ts` 的 `meta.roles`（fail-closed）＋
  *    `app-mobile/src/config/function-menu.ts` 的移动菜单码与首页快捷入口（`pages/home/home.vue:69/75`）。
@@ -230,7 +230,7 @@ interface Row {
 
 /**
  * 已接名单（**36 行** = S3-224 的 32 行 + S3-233 收编的 4 行，逐行判定见
- * `docs/evidence/S3-224/01-plan-and-judgements.md` 与 `docs/tasks/R101-RBAC接线缺口清单.md` §十八）。
+ * `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-224/01-plan-and-judgements.md` 与 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §十八）。
  * 口径（派单卡 §二）：① 优先挂「该端点**真实使用者已持有**的模块码」（零回归）；
  * ② 使用者集合不可枚举 / 命中既有锁定 / 查询型 POST / 公开 / 待裁定 ⇒ 不接线（见 UNWIRED）；
  * ③ 本批**不新立权限码、不改角色种子、不动迁移**。

@@ -4,7 +4,7 @@ import { AppError } from "../../shared/app-error";
 /**
  * C2-0 实现段：平台导入 / 导出模板（t_platform_io_template，清账草案 4）
  *
- * 依据：docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #8~#10）。
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #8~#10）。
  * 口径：
  * - 只有列表 + 下载会让端点「永远返回空」，故本轮给出写入路径（POST #9），读端点才有真实数据源；
  * - 下载：有 file_content ⇒ 200 + Content-Disposition: attachment；

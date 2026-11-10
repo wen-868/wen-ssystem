@@ -6,7 +6,7 @@ import * as controller from "../controllers/platform/platform-export-task.contro
 /**
  * C6-2-T2-F1：平台报表导出任务中心路由（6 条端点，路径由 F1 派单卡钉死，不得自拟/增减）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md 交付物①
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md 交付物①
  *       + 该卡「R7 派单前内部一致性澄清」第 1 条（6 条即全集，无第 7 条详情端点）
  * 前缀 `/api/platform/reports/export` = **前端既有字面契约**
  * （saas-admin/src/views/Dashboard.vue :354 创建 / :344 status / :347 download / :350 logs；

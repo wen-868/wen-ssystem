@@ -9,9 +9,9 @@
  *  - 项目既有口径：**目录走代码常量、迁移只做 DDL**（先例：`platform-role.service.ts` 的 PERMISSION_CATALOG）。
  *
  * 二、25 个码的清单/parent/显示名/排序：**照抄，不自拟**
- *  - 逐码清单与"持有该前缀的角色集合"证据：`docs/tasks/cards/R101-S3-136-F1-阿澈回传.md`、
- *    `docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md`（§三 页面清单 + 附录 C 真库原始输出）、
- *    `docs/tasks/cards/R101-S3-136-F1-生产矩阵基线.md`（生产 64 码真值）；
+ *  - 逐码清单与"持有该前缀的角色集合"证据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-136-F1-阿澈回传.md`、
+ *    `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md`（§三 页面清单 + 附录 C 真库原始输出）、
+ *    `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-136-F1-生产矩阵基线.md`（生产 64 码真值）；
  *  - 与阿澈产出的迁移 `docs/migrations/186_app-mobile页面菜单码补齐.sql` **逐条同值**
  *    （code / parent / menu_name / path / sort_no 61~85 完全一致），唯一区别是**执行载体**
  *    ——本单走"代码常量 + 启动自愈"，不再依赖迁移写闸门，故新环境/灾备库可复现。

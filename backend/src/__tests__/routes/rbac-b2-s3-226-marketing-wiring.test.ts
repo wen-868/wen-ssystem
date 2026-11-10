@@ -1,10 +1,10 @@
 /**
  * S3-226 · **营销域**（18 路由文件 / 89 写端点 → 本批接 **65 条**）权限接线验收测试
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-226.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.4（域明细）＋ §十五（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-226.md`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.4（域明细）＋ §十五（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`
- * 判定留档：`docs/evidence/S3-226/01-plan-and-judgements.md`｜调用面原始输出：`docs/evidence/S3-226/02-callers.txt`
+ * 判定留档：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-226/01-plan-and-judgements.md`｜调用面原始输出：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-226/02-callers.txt`
  *
  * 本文件要证明的六件事（对应派单卡 §三.1/§三.2/§三.5）：
  *  a) 本批已接 **65 行**的**注册行级**形状断言（踩坑[134]：注释里的 `requirePermission(` 不算调用）；
@@ -22,7 +22,7 @@
  *  · 角色权限串：**生产只读实值**（`docs/evidence/_shared/prod-roles-20261016.txt`，12 角色 / 租户 `default`）；
  *  · 页面真实使用者：`admin-web/src/router/index.ts` 的 `meta.roles`（fail-closed）；app-mobile 侧用
  *    `config/function-menu.ts` 的菜单码 ＋ 生产菜单可见性对照表
- *    （`docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md`）＋ 首页快捷入口（`pages/home/home.vue:69-92`）
+ *    （`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-136-F1-阿澈-可见性对照表.md`）＋ 首页快捷入口（`pages/home/home.vue:69-92`）
  *    与推送深链（`native/push.ts:104-109`）。
  *
  * 保真度说明：
@@ -180,7 +180,7 @@ interface Row {
 }
 
 /**
- * 本批已接名单（**65 行**，逐行判定见 `docs/evidence/S3-226/01-plan-and-judgements.md`）。
+ * 本批已接名单（**65 行**，逐行判定见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-226/01-plan-and-judgements.md`）。
  * 口径（派单卡 §二）：① 挂「该端点**真实使用者已持有**的模块码」（零回归）；
  * ② 使用者集合不可枚举 / 页面角色 ⊄ 码持有人 / 查询型 POST ⇒ 不接线（见 UNWIRED）；
  * ③ 本批**不新立权限码、不改角色种子、不动迁移**（两个码均为 079_权限矩阵.sql 既有码）。
@@ -315,8 +315,8 @@ const UNWIRED: UnwiredRow[] = [
   //    ⇒ 无在用写角色回归）。故本文件不再把这 10 条列为"未接"，其接线验收在
   //    `rbac-b2-s3-229-store-and-marketing-wiring.test.ts`。此处保留 points 的会员等级 4 条（仍待裁定）。
   // ⚠️ **状态变更登记（2026-10-16 · S3-231 F1）**：`points.routes.ts` 会员等级配置 **4 条**原列此处为 W（待裁定），
-  //    已由 **S3-231 F1** 按凌舟裁定 1（`docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1）**改挂 `customer:level` 接线**
-  //    ⇒ 从本名单移除（W 4 → **0**）。接线验收见 `rbac-b2-s3-231-f1-member-levels-wiring.test.ts` + `docs/evidence/S3-231/F1/`。
+  //    已由 **S3-231 F1** 按凌舟裁定 1（`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-229-凌舟验收与裁定.md` §二.1）**改挂 `customer:level` 接线**
+  //    ⇒ 从本名单移除（W 4 → **0**）。接线验收见 `rbac-b2-s3-231-f1-member-levels-wiring.test.ts` + `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F1/`。
   { file: "points.routes.ts", prefix: "/api/admin/members", router: pointsRouter, method: "post", routePath: "/:id/points/adjust", path: "/1/points/adjust", reason: "B", note: "app-mobile `member/member-detail.vue:540` 直接 post；该页经首页快捷入口「会员管理」（`pages/home/home.vue:87`，**无条件**）→ 会员列表 → 详情 ⇒ 使用者集合不可枚举" },
   { file: "store-coupon.routes.ts", prefix: "/api/store/coupons", router: storeCouponRouter, method: "post", routePath: "/verify", path: "/verify", reason: "B", note: "app-mobile `coupon-verify.vue:160 verifyCoupon`（经优惠券页 `coupons.vue:132` 进入，而该页有**无条件推送深链**）⇒ 不可枚举；桌面页 `pos/CouponVerifyView.vue:243`（角色含收银员）本身满足 `sale:create` 口径，码位方案已备好（见台账 §十五.6）" },
   { file: "store-coupon.routes.ts", prefix: "/api/store/coupons", router: storeCouponRouter, method: "post", routePath: "/manual-verify", path: "/manual-verify", reason: "B", note: "app-mobile `coupon-verify.vue:163 manualVerifyCoupon` ⇒ 同上" },

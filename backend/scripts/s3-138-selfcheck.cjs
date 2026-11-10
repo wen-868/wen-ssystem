@@ -3,7 +3,7 @@
  * S3-138 自检 / 反测脚本（纯 node 直跑，无需 vitest）
  *
  * 为什么需要它：
- *   本沙箱**跑不了 vitest**（esbuild `spawn EPERM`，子进程被拒；见 `docs/踩坑日志.md`[143]
+ *   本沙箱**跑不了 vitest**（esbuild `spawn EPERM`，子进程被拒；见 `projects/ms/archive/repo-docs-20261107/docs/踩坑日志.md`[143]
  *   与 `backend/scripts/s3-125-selfcheck.mjs` 的同类说明），而 S3-138 的验收要求给出
  *   「同一组请求的原始输出」。本脚本用**同进程**（typescript 编译器 API 转译，不 spawn 子进程）
  *   加载**真实 controller / service / 路由 / 鉴权 / errorHandler**，只把 DB 访问换成内存桩，

@@ -15,7 +15,7 @@ storeOrderRouter.get("/:orderNo", orderController.getOrderDetail);
 //（页面 `router/index.ts:262` 角色 = SUPER_ADMIN / STORE_MANAGER / **STORE_OPERATOR**）⇒ 必须覆盖收银员；
 // 生产持有里**只有 `sale:create` 覆盖 STORE_OPERATOR**（`sale:edit`/`sale:void` 均不覆盖）⇒ 三条取 `sale:create`。
 // 订单取消：`sale:void`（作废语义，高风险动作不扩给收银员；本行全仓无页面调用点）。详见
-// docs/evidence/S3-224/01-plan-and-judgements.md 与 05-prod-holders.txt。
+// projects/ms/archive/repo-docs-20261107/docs/evidence/S3-224/01-plan-and-judgements.md 与 05-prod-holders.txt。
 // 2026-10-16
 storeOrderRouter.post("/:orderNo/accept", requirePermission("sale:create"), orderController.acceptOrder);
 // S3-233（B 类收编第一批 · 销售域）：`start-delivery` 与同文件 accept / complete-delivery / reject 同族（履约），

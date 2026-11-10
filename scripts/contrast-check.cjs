@@ -16,7 +16,7 @@
  *   - admin-web CHART_COLORS.textMuted / textSecondary：canvas/ECharts 文字，axe 扫不到，
  *     由本矩阵替代核查（S3-53 要求 3）——在图表白底上判定 4.5:1
  *
- * 不纳入「失败判定」的项（仍在 docs/design 工作台页面设计规范.md §八 登记为可接受偏差/待定）：
+ * 不纳入「失败判定」的项（仍在 projects/ms/archive/repo-docs-20261107/docs/design 工作台页面设计规范.md §八 登记为可接受偏差/待定）：
  *   - CHART_COLORS 系列填充色（primary/success/warning/...）：图形填充，属「图表配色设计变更」，
  *     不在本门禁的失败集合内（部分在白底上 < 3:1，改动需凌舟裁定，单列待定）。
  *
@@ -386,7 +386,7 @@ for (const t of ADMINWEB_REGISTERED_TOKENS) {
 function printRegisteredSection() {
   if (registeredMisses.length === 0 && awRegMissing.length === 0) return;
   console.log('');
-  console.log('⚠️ 未根治登记（**不参与失败判定**，待凌舟裁定；详见 docs/tasks/cards/R101-S3-221-林夕-回传.md §六）：');
+  console.log('⚠️ 未根治登记（**不参与失败判定**，待凌舟裁定；详见 projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-221-林夕-回传.md §六）：');
   for (const f of registeredMisses) {
     console.log(`::warning file=${f.file}::[S3-221 登记·未根治] ${f.msg}`);
     console.log(`  - [${f.file}] ${f.msg}`);

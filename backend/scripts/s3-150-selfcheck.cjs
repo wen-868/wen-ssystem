@@ -3,7 +3,7 @@
  * S3-150 自检 / 反测脚本（纯 node 直跑，无需 vitest）
  *
  * 为什么需要它：
- *   本沙箱跑不了 vitest（esbuild `spawn EPERM`，见 `docs/踩坑日志.md`[143] 与
+ *   本沙箱跑不了 vitest（esbuild `spawn EPERM`，见 `projects/ms/archive/repo-docs-20261107/docs/踩坑日志.md`[143] 与
  *   `backend/scripts/s3-138-selfcheck.cjs` 的同类说明），而 S3-150 的验收要求给出
  *   「启停两向的原始请求/响应 + 落库读数」与「去掉映射必报 1366」两组原始输出。
  *   本脚本用**同进程**（typescript 编译器 API 转译，不 spawn 子进程）加载**真实 controller /

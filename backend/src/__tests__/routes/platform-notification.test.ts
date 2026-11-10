@@ -1,7 +1,7 @@
 /**
  * C6-2-T1：平台通知 3 条端点的路由级测试（前缀 / 方法 / 路径钉死 / 鉴权 / zod 400 / 业务码）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③、验收标准③⑤
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T1.md 交付物②③、验收标准③⑤
  * 范式：src/__tests__/routes/platform-ticket.test.ts（create-test-app 夹具 + service mock）。
  * 鉴权反向：单独挂载**真实** requirePlatformAuth（不带 Authorization）⇒ 401。
  * 路径口径来自派单卡交付物②——路径由卡钉死，本文件逐条断言（含"只准 3 条、不得自拟/增减"）。

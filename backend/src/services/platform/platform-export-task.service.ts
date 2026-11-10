@@ -8,10 +8,10 @@ import { AppError } from "../../shared/app-error";
  * C6-2-T2（+ F1 修订单）：平台报表导出任务中心服务
  * （t_platform_export_task / t_platform_export_task_log，迁移 docs/migrations/182_平台报表导出任务.sql）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T2.md 交付物①②③、验收标准③④⑤⑥
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T2.md 交付物①②③、验收标准③④⑤⑥
  *       + docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md（仅改端点路径为前端字面契约 /api/platform/reports/export，
  *         并新增 download 只读端点；**业务逻辑、状态机、SQL 一字未动**）
- *       + docs/tasks/cards/R101-C6-2-批2-立项卡-T1+T2+T3+T5.md §二 T2 行、§三 通用硬口径
+ *       + projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C6-2-批2-立项卡-T1+T2+T3+T5.md §二 T2 行、§三 通用硬口径
  *
  * 口径（逐条可核对）：
  * - 平台级表：用 query()/queryOne()，不走 queryWithTenant（不注入 tenant_id 条件，与 /api/platform/* 一致）；

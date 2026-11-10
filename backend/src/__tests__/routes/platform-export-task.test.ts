@@ -2,7 +2,7 @@
  * C6-2-T2-F1：平台报表导出任务中心 6 条端点的路由级测试
  * （路径字面契约 / 方法 / 鉴权 / 参数校验 400 / 业务码 404·400 / 不吞错 / download 不假成功）
  *
- * 依据：docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md 交付物①②、验收标准①②③④⑤⑥
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260926-C6-2-T2-F1.md 交付物①②、验收标准①②③④⑤⑥
  *      + 该卡「R7 派单前内部一致性澄清」第 1 条（6 条即全集，无第 7 条）、第 2 条（反向路径断言翻正）
  * 范式：src/__tests__/routes/platform-ticket.test.ts（create-test-app 夹具 + service mock）。
  * 鉴权反向：单独挂载**真实** requirePlatformAuth（不带 Authorization）⇒ 401。

@@ -8,7 +8,7 @@
  *     （含 `*` / `<dom>:*` / `*:<action>` 三种通配语义）、CSRF 挂载顺序、`routeConfig.auth` 声明；
  *   · 桩：`checkUserPermission` 的**数据库读取**（用生产角色实值权限串喂真实匹配器）、控制器
  *     （只记录"请求是否到达业务层"）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入 ——
- *     见 `docs/evidence/S3-209/harness.mjs` 的真库真 HTTP 版本）。
+ *     见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-209/harness.mjs` 的真库真 HTTP 版本）。
  *
  * 反测（门禁铁律）：摘掉 `admin-order.routes.ts` 该行的 `requirePermission(PERM_SALE_CANCEL)`
  *   ⇒「无码角色 ⇒ 403」三条用例必红（会变成 200）；复原后回绿。

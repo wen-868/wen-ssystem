@@ -5,7 +5,7 @@ import * as service from "../../services/platform/platform-referral-ledger.servi
 /**
  * R101-C6-3-2b：老带新台账控制器（**1 条端点**，路径由派单卡 §四 钉死，不得自拟）
  *
- * 依据：docs/tasks/cards/R101-派单-20260929-C6-3-2b.md §四
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260929-C6-3-2b.md §四
  *   · GET /api/platform/referral-ledger → { items, total, page, pageSize }（分页 + 关键词 + 状态）
  *
  * **不得新增对外"写台账"端点**（卡 §四 硬约束）：台账由归因事件驱动，写入口只在服务层内部

@@ -1,9 +1,9 @@
 /**
  * S3-237 · 接线批 10 · **组 1「系统设置 / 基础域」10 条接线 + 4 条「不接」判定** 验收测试
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-237.md` §一 组 1｜码表：`backend/src/shared/system-permission-codes.ts`
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-237.md` §一 组 1｜码表：`backend/src/shared/system-permission-codes.ts`
  * （S3-232 立码，迁移 `docs/migrations/204_系统设置域权限点立码.sql`）｜授权模型不变量 **I1'**
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §二十｜证据：`docs/evidence/S3-237/`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §二十｜证据：`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-237/`
  *
  * 本文件要证明的六件事：
  *  a) **10 条**注册行自带 `requirePermission(...)`（注册行级判据，踩坑[134]：注释不算），
@@ -20,7 +20,7 @@
  *   `STORE_MANAGER` 行按该文件顶部凌舟的 **204 过期批注**叠加 `goods:create|edit`）。
  *
  * 反测（门禁铁律）：摘掉任一条的 `requirePermission(...)`（本文件取中间的 `POST /api/admin/archive/execute`）
- *   ⇒ 形状断言与「非持有人 ⇒ 403」用例必红；复原 ⇒ 绿（原始输出见 `docs/evidence/S3-237/`）。
+ *   ⇒ 形状断言与「非持有人 ⇒ 403」用例必红；复原 ⇒ 绿（原始输出见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-237/`）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";

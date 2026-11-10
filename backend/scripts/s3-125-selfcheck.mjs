@@ -3,7 +3,7 @@
  * S3-125（G2）自检脚本 —— “数据 ↔ 判据”离线复核（纯 node 直跑）
  *
  * 为什么需要它（S3-125-F1 的直接教训）：
- *   本沙箱**跑不了 vitest**（esbuild `spawn EPERM`，见 `docs/踩坑日志.md`[143]），
+ *   本沙箱**跑不了 vitest**（esbuild `spawn EPERM`，见 `projects/ms/archive/repo-docs-20261107/docs/踩坑日志.md`[143]），
  *   于是 `backend/src/__tests__/routes/rbac-g2-wiring.test.ts` 里
  *   “我写的数据”与“我写的正则判据”是否自洽，只能等凌舟真跑 `npx vitest run` 才暴露。
  *   S3-125 就是这样挂的：`bank-account.routes.ts /:id/close` 的 note 写成 `同上（…）`，

@@ -1,10 +1,10 @@
 /**
  * S3-233 · **跨层一致性**：把 S3-230 的入口权限门（门注册表）与后端接线**绑在一起断言**
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-233.md`｜工作树 `wt-agents/S3-233`｜分支 `feat/s3-233-bclass-wiring-batch1`
- * 依据：`docs/tasks/cards/R101-S3-230-凌舟验收与裁定.md`（D4/I1'：**门补好后即可收编**）、
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-233.md`｜工作树 `wt-agents/S3-233`｜分支 `feat/s3-233-bclass-wiring-batch1`
+ * 依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-S3-230-凌舟验收与裁定.md`（D4/I1'：**门补好后即可收编**）、
  *   `app-mobile/src/config/permission-gates.ts`（`ENTRY_GATES` = 门 → 码的**唯一真相源**）
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §十九｜机读台账：`backend/scripts/rbac-wiring-baseline.json`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §十九｜机读台账：`backend/scripts/rbac-wiring-baseline.json`
  * 证据：`docs/evidence/S3-233/**`（含 57 条从 gaps 移除的名单生成器 `tools/s3238-wired-map.mjs`）
  *
  * 本文件要证明的五件事：
@@ -22,7 +22,7 @@
  *   注：本文件**不 exec 子进程**（本环境 vitest 起子进程会 EPERM，见 `platform-export-task.service.test.ts:22` 的记载），
  *   故后端形态由**本文件自己的行级扫描**判定（判据与 `guard-rbac-wiring.mjs` 同形：注释行不算调用）。
  *
- * QODER-9（B3-1 收口，2026-10-19，`docs/tasks/inbox/QODER-9-B31收口.md`）：门注册表 `island-aftersale` 已提为
+ * QODER-9（B3-1 收口，2026-10-19，`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/QODER-9-B31收口.md`）：门注册表 `island-aftersale` 已提为
  *   `gated`（codes = `sale:return`）且后端 aftersale approve/reject/inspect/complete 4 条已接线 ⇒ 本文件规模读数由
  *   S3-233 原态「26 门 60 行 / 11 门 43 行 / 已接 58」变为「27 门 64 行 / 9 门 38 行 / 已接 62」。
  *   ⚠️ registered 侧还吸收了 #367 链上既有的两处注册表现场变化（非本单引入，逐条见
@@ -542,7 +542,7 @@ describe("S3-233 · d) 台账一致：已接端点不再登记为缺口", () => 
     // ⚠️ S3-233 收尾（2026-10-16）**删掉的两个裸数字断言**：原为 `expect(endpoints).toBe(321)` / `expect(c.files).toBe(94)`。
     //    为什么删：那是**跨批共享**的单点数字（本批 378/113 → 321/94；rebase 到含 #358 的 `origin/main`（371/113）后应为
     //    **314/91**），每批都要改同一行——派单规范 §9.2 明令禁止（既有实测：同一行被三批各改一次）。
-    //    本单读数改由**原始输出**固定（`docs/evidence/S3-233/raw/33-strict-after.txt` 与 `raw/64-s3240-final-check.txt`
+    //    本单读数改由**原始输出**固定（`projects/ms/archive/repo-docs-20261107/docs/evidence/S3-233/raw/33-strict-after.txt` 与 `raw/64-s3240-final-check.txt`
     //    的 `--strict` 读数 321 条 / 94 文件；rebase 投影见 `raw/63-s3240-main-vs-branch-baseline.txt`）。
     //    ⇒ 这是**断言口径的规范化**（改为和式 + 自洽），不是放宽：① ② 两条比裸数字更严（裸数字只查两个数，自洽式查整份台账的收支平衡）。
   });

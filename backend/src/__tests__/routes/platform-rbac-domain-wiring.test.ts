@@ -1,6 +1,6 @@
 /**
  * S3-219 · 平台侧 3 域（library / open / review）28 条写端点接线测试
- * （收口总清单第 67 项；台账见 `docs/tasks/R101-平台RBAC接线台账.md` §二 第 33~47 / 57~66 / 78~80 条）
+ * （收口总清单第 67 项；台账见 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-平台RBAC接线台账.md` §二 第 33~47 / 57~66 / 78~80 条）
  *
  * 范式：`src/__tests__/routes/ai-platform.test.ts`（真实 `requirePlatformAuth` + `signPlatformToken`）
  *   ＋ `src/__tests__/middleware/platform-rbac.test.ts`（按 SQL 内容分派 `shared/db` mock）。
@@ -17,7 +17,7 @@
  *   ③ 三态分辨力（同一端点）：缺令牌 ⇒ 401（认证层）／缺 CSRF ⇒ 403 且文案含 CSRF（CSRF 层）／
  *      令牌+CSRF+无码 ⇒ 403 且文案含权限码（授权层）—— 证明三条断言分别落在不同的门上；
  *   ④ 「摘掉中间件 ⇒ 必红」的实跑证据（临时删一条 `requirePlatformPermission`）见
- *      `docs/evidence/S3-219/`（不把恒红用例留在仓库里）。
+ *      `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-219/`（不把恒红用例留在仓库里）。
  *
  * 边界（写在这里，不藏着）：本文件**不覆盖** GET 读端点是否该接读码（第 67 项范围＝写端点，同 S3-193 口径），
  *   只断言「本次没有顺手把写码挂到读端点上」（读端点在此仍是放行态）。

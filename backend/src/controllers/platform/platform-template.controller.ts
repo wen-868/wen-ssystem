@@ -8,7 +8,7 @@ import * as ioService from "../../services/platform/platform-io-template.service
 /**
  * C2-0 实现段：平台模板中心控制器（路由 prefix /api/platform/templates）
  *
- * 依据：docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #1~#10）。
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #1~#10）。
  * 校验口径：zod 解析失败 ⇒ 由 error-handler 统一转 400；业务冲突（编码重复 409 /
  * 资源不存在 404）由 service 抛 AppError。
  */

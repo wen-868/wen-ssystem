@@ -7,16 +7,16 @@
  *     `library-permission-codes.ts` 三个 per-域常量文件）；
  *   · 本仓**不存在** `user-permissions.ts` 里的 `PERMISSION_CATALOG`（派单卡 §二.1 按平台侧命名写的，
  *     平台侧目录在 `services/platform/platform-role.service.ts:138`；商家侧目录就是本文件这种 per-域常量）
- *     ⇒ 按卡外纪律「只登记差异、不猜」，差异已写进 `docs/tasks/inbox/ACTIVE-回执-S3-232.md` §六。
+ *     ⇒ 按卡外纪律「只登记差异、不猜」，差异已写进 `projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-回执-S3-232.md` §六。
  *
  * 二、这 14 个码怎么来的（依据 = 派单卡 §一.2 + 台账 §三.9，逐条可复算）
- *   台账 `docs/tasks/R101-RBAC接线缺口清单.md` §三.9 里判「管理面 / 是 / 无现成码 ⇒ 需先立权限点」的有 22 条，
+ *   台账 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.9 里判「管理面 / 是 / 无现成码 ⇒ 需先立权限点」的有 22 条，
  *   本单按 §六 卡外纪律 + S3-205 §10.3 的**既有改判**拆成三段（22 = 14 + 2 + 6）：
  *     · **14 条立码**（本文件 + `docs/migrations/204_系统设置域权限点立码.sql`）；
  *     · **2 条已改判消费者端**（`notification.routes.ts` 的两条小程序通知写端点，§10.3 已更正 §三.9 的
  *       1186–1187 行：消费者 `roles` 恒空 ⇒ 商家权限码不适用，接了必 403）⇒ **不立码**；
  *     · **6 条登记差异 / 待裁定**（本人头像、前端错误上报、分享链接收款、App 离线同步 3 条）⇒ **不立码**，
- *       逐条给证据与建议去向，见 `docs/tasks/R101-待立码清单-五域.md` §二。
+ *       逐条给证据与建议去向，见 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-待立码清单-五域.md` §二。
  *
  * 三、命名规范（照派单卡 §一.2 与授权模型提案 §三）
  *   · `模块:子域:动作`，模块名取自 `docs/migrations/079_权限矩阵.sql` 的既有模块码（本域全部落 `system`，
@@ -33,7 +33,7 @@
  *
  * 五、前端入口（派单卡 §二.4 要求登记到位）
  *   本仓前端**不引用商家权限码**（`meta.roles` 按角色收口，见 `admin-web/src/router/index.ts`），
- *   故"入口登记"是**登记表**而非代码改动：见 `docs/tasks/R101-待立码清单-五域.md` §三
+ *   故"入口登记"是**登记表**而非代码改动：见 `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-待立码清单-五域.md` §三
  *   （14 码里 1 码有前端调用点、其余 13 码"暂无前端入口，仅后端授权位"）。
  */
 

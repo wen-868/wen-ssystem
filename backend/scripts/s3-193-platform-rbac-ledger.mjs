@@ -2,7 +2,7 @@
 /**
  * S3-193 · 平台 RBAC 接线台账生成器（只读扫描，可复跑）
  *
- * 产出：`docs/tasks/R101-平台RBAC接线台账.md`（105 个平台写端点逐条登记）
+ * 产出：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-平台RBAC接线台账.md`（105 个平台写端点逐条登记）
  * 用法：
  *   node backend/scripts/s3-193-platform-rbac-ledger.mjs            # 写台账 + 打印计数守恒
  *   node backend/scripts/s3-193-platform-rbac-ledger.mjs --json     # 只打印机读 JSON（不写文件）

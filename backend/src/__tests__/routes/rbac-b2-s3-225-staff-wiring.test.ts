@@ -1,8 +1,8 @@
 /**
  * S3-225 · **员工 / 账号域**（7 路由文件 / 31 写端点）权限接线验收测试（B2 批 7）
  *
- * 派单卡：`docs/tasks/inbox/ACTIVE-S3-225.md`
- * 台账：`docs/tasks/R101-RBAC接线缺口清单.md` §三.1（域明细）＋ §十五（本批接线明细与守恒）
+ * 派单卡：`projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/ACTIVE-S3-225.md`
+ * 台账：`projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §三.1（域明细）＋ §十五（本批接线明细与守恒）
  * 机读台账：`backend/scripts/rbac-wiring-baseline.json`（本批后 `gaps` 501 条 / 134 文件）
  *
  * 本文件要证明的六件事（对应派单卡 §三.1/§三.2/§三.5）：
@@ -33,7 +33,7 @@
  *        业务层」）、登录态（生产由 requireAuth 从 JWT 取，本测试用请求头注入）。
  *
  * 反测（门禁铁律）：摘掉本批任一条 `requirePermission(...)` ⇒ 对应「READONLY ⇒ 403」用例必红；
- *   复原 ⇒ 绿（原始输出见 `docs/evidence/S3-225/` 下反测日志与回执 §二）。
+ *   复原 ⇒ 绿（原始输出见 `projects/ms/archive/repo-docs-20261107/docs/evidence/S3-225/` 下反测日志与回执 §二）。
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";

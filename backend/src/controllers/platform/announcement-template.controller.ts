@@ -5,7 +5,7 @@ import * as service from "../../services/platform/announcement-template.service"
 /**
  * C2-0 实现段：公告模板清单控制器（路由挂在既有 /api/platform/announcements 下）
  *
- * 依据：docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #11/#12）。
+ * 依据：projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C2-0-凌舟裁定.md §三（端点 #11/#12）。
  * 落库走 t_platform_config（0 DDL，config_key='announcement:templates'）。
  */
 

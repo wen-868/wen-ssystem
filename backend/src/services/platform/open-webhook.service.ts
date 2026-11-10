@@ -1,8 +1,8 @@
 /**
  * 开放平台 Webhook 服务（R101-C3-1）
  *
- * 依据：`docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三.2（新表 t_open_webhook / t_open_webhook_delivery）
- *      派单卡 `docs/tasks/cards/R101-派单-20260923-C3.md`（C3-1 段）
+ * 依据：`projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-C3-0-凌舟裁定.md` §三.2（新表 t_open_webhook / t_open_webhook_delivery）
+ *      派单卡 `projects/ms/archive/repo-docs-20261107/docs/tasks/cards/R101-派单-20260923-C3.md`（C3-1 段）
  *
  * 口径：
  * - 订阅密钥 `sign_secret` 与密钥族同纪律：bcrypt 存储、明文只在创建响应出现一次、日志/审计不含明文；
