@@ -439,6 +439,7 @@ defineExpose({ keyword });
 <style scoped>
 /* ══ 列骨架（原型 aside.side：x=60 w=230 h=1000 · #F9FAFB · 右边线 #ECEEF1）══ */
 .wb-subnav {
+  --wb-ink2: #626f82;
   width: 100%;
   min-width: 0;
   /* 运行态取证实测：content-box + border-right 1px 会让侧栏实测 231/57，

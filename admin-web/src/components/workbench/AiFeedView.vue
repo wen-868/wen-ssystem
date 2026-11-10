@@ -659,7 +659,7 @@ function openMessages(): void {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #16a34a;
+  color: #15803d;
   padding: 4px 10px;
   border-radius: 999px;
   background: #f0fdf4;
@@ -667,7 +667,7 @@ function openMessages(): void {
   white-space: nowrap;
 }
 .fdv-live.is-off {
-  color: #8a8f98;
+  color: var(--wb-ink2, #626f82);
   background: #f4f6f8;
   border-color: #eceef1;
 }
@@ -922,7 +922,7 @@ function openMessages(): void {
   color: var(--wb-ink2, #8a8f98);
 }
 .wb-kpi .d.up {
-  color: #16a34a;
+  color: #15803d;
   font-weight: 600;
 }
 .wb-kpi .d.warn {

@@ -20,7 +20,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(here, "..", "src");
 const REPO_ROOT = path.join(here, "..", "..");
 const BASELINE = "db350f2f6758e3005f48d2226d639bdf230448f3";
-const GIT = "C:\\Program Files\\Git\\bin\\git.exe";
+const GIT = "git";
 
 const STUB_COMPONENT = "data:text/javascript,export default{render(){return null}}";
 const STUB_ELEMENT_PLUS = "data:text/javascript,export const ElMessage={warning(){},success(){},info(){},error(){}};";

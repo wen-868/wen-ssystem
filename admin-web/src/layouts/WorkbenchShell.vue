@@ -984,6 +984,7 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 
 <style scoped>
 .wb-shell {
+  --wb-ink2: #626f82;
   height: 100vh;
   display: grid;
   /* 第二列收起用 grid 列宽过渡（对齐原型 .side{transition:margin .25s} 的平滑滑出手感）；
@@ -1054,7 +1055,7 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   border-radius: 11px;
   background: transparent;
   /* 非选中项色 = 原型 --rail-sub #68758A（1440×1000 实测） */
-  color: #68758a;
+  color: #626f82;
   font-size: 9.5px;
   line-height: 1;
   cursor: pointer;

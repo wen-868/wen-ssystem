@@ -13,12 +13,12 @@ async function login(page: any) {
   await expect(page).not.toHaveURL(/\/login/, { timeout: 20_000 });
 }
 
-test("工作台首页核心数据区渲染", async ({ page }) => {
+test("工作台默认 AI 信息流渲染", async ({ page }) => {
   await login(page);
   await expect(page.getByText("工作台", { exact: false }).first()).toBeVisible({ timeout: 20_000 });
-  // 核心数据区：今日销售额/今日订单/经营动态
+  // 新壳默认 AI 信息流；人工业务面仅在使用者切到人工态后显示。
+  await expect(page.getByTestId("view-feed")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("今日销售额", { exact: false }).first()).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByText("经营动态", { exact: false }).first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("快速收银页面可访问", async ({ page }) => {
