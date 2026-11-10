@@ -9,6 +9,10 @@ import {
   toggleTenantStatus,
   type TenantStatus,
 } from "../../services/platform-tenant.service";
+// TOTAL-TENANT-NAME-SERVER-TRUTH-01：名称真源单点（回退链 tenantName→name→companyName、
+// 全空→「未命名租户」）只实现在 tenant-admin.service 的 enrichTenantRecords 一处，
+// 列表/详情/导出三类出口共用，禁止各层各写口径。
+import { enrichTenantRecords } from "../../services/platform/tenant-admin.service";
 
 /** 租户列表 */
 export async function listPlatformTenants(req: any, res: any) {
@@ -16,7 +20,13 @@ export async function listPlatformTenants(req: any, res: any) {
   const pageSize = Number(req.query.pageSize || 20);
   const keyword = req.query.keyword as string | undefined;
   const result = await listTenants(page, pageSize, keyword);
-  res.json(ok(result));
+  // 名称真源：出口补齐 name / companyName / tenantDisplayName 三字段。
+  // 前端 TenantList（UI 阶段）将用同一规则（tenantName → name → companyName → 「未命名租户」）
+  // 计算单一 tenantDisplayName，后端出口语义与前端单点 helper 对齐；
+  // tenantCode / contactMobile 为标识/联系字段，空值原样透传（不冒充、不出「—」）。
+  // `|| []`：上游异常形态（无 records 字段）不 500，与既有路由级契约兼容。
+  const records = await enrichTenantRecords(result.records || []);
+  res.json(ok({ ...result, records }));
 }
 
 /** 租户详情 */
@@ -26,7 +36,9 @@ export async function getPlatformTenantById(req: any, res: any) {
     res.status(404).json(fail("租户不存在", "404"));
     return;
   }
-  res.json(ok(tenant));
+  // 与列表同一单点规则（TenantDetail 前端将复算同一 tenantDisplayName）
+  const [enriched] = await enrichTenantRecords([tenant]);
+  res.json(ok(enriched));
 }
 
 /** 创建租户 */
