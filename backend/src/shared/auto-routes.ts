@@ -3,6 +3,7 @@ import { readdirSync } from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
 import { dirname, join } from "path";
 import { requireAuth, requireAuthWithTenant, requirePlatformAuth } from "../middleware/auth";
+import { platformAccessGuard } from "../middleware/platform-rbac-guard";
 import { requireConsumerAuthWithTenant } from "../middleware/consumer-auth";
 import { csrfMiddleware } from "../middleware/csrf";
 import logger from "./logger";
@@ -75,6 +76,21 @@ export function getAuthMiddlewares(auth?: RouteConfig["auth"]): RequestHandler[]
       return [...requireAuthWithTenant, csrfMiddleware];
   }
 }
+
+/**
+ * TOTAL-PLATFORM-SERVER-SIDE-RBAC-01（P0-1）：平台面在认证层之后追加的**额外挂载项**。
+ *
+ * 凡 `auth === "requirePlatformAuth"` 的路由，注册形状变为
+ *   `app.use(prefix, requirePlatformAuth, csrfMiddleware, platformAccessGuard(), router)`
+ * ⇒ 认证/CSRF 顺序不回退；守卫在认证后拿到 req.user，拒绝统一 403+traceId+审计留痕。
+ *
+ * 注意：`getAuthMiddlewares()` 的返回形状不动（其 `length === 2` 契约由既有测试冻结），
+ * 平台守卫只通过本函数在 `setupRoutes` 注册点追加。
+ */
+function platformMountExtras(auth?: RouteConfig["auth"]): RequestHandler[] {
+  return auth === "requirePlatformAuth" ? [platformAccessGuard()] : [];
+}
+export { platformMountExtras };
 
 /**
  * ── S3-179 ③：重复前缀「显式白名单 + 阻断」───────────────────────────────────
@@ -354,7 +370,7 @@ export async function setupRoutes(
       continue;
     }
     const middlewares = getAuthMiddlewares(config.auth);
-    app.use(config.prefix, ...middlewares, config.router);
+    app.use(config.prefix, ...middlewares, ...platformMountExtras(config.auth), config.router);
   }
 
   logger.info(`[auto-routes] 已自动注册 ${configs.length} 个路由`);

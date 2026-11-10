@@ -17,16 +17,20 @@ function resolveApiBase() {
   return "/api";
 }
 
-// TOTAL-PLATFORM-RBAC-UI-COUPLING-01 · F-3：主实例统一 timeout 15000ms（与 auth/ai-config
-// 既有实例同值）。此前主实例无超时 ⇒ 慢请求会无限挂起，页面永远停在 loading。
-// 超时抛 ECONNABORTED，经既有 classifyFeedbackError 识别为 timeout 分类（feedback.ts F1-1），
-// 页面呈现「请求超时…」+ 重试入口，绝不伪装成空数据。既有独立实例（auth/ai-config）不受影响。
-export const MAIN_API_TIMEOUT_MS = 15000;
+/**
+ * 主 API 实例统一超时（TOTAL-PLATFORM-SERVER-SIDE-RBAC-01-UI-01 · P2-1）。
+ * 15s：超时异常 axios 以 ECONNABORTED 抛出，页面经 src/api/feedback.ts 既有
+ * 反馈契约归类为 timeout 并给出重试入口；断网走 offline，两者文案互斥。
+ */
+export const API_TIMEOUT_MS = 15000;
 
 export const api = axios.create({
   baseURL: resolveApiBase(),
-  timeout: MAIN_API_TIMEOUT_MS
+  timeout: API_TIMEOUT_MS
 });
+
+/** 兼容既有反馈契约导出名（TOTAL-PLATFORM-RBAC-UI-COUPLING-01）。 */
+export const MAIN_API_TIMEOUT_MS = API_TIMEOUT_MS;
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("platform_token");
