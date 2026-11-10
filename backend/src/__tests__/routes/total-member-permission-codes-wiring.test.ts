@@ -278,11 +278,15 @@ describe("TOTAL-MEMBER-PERMISSION-CODES-01 · a) 形状断言（注册行级判�
     }
   });
 
-  it("同文件**未在本卡范围**的行保持原状：store-value-card freeze/unfreeze 两行不含 requirePermission(", () => {
+  it("同文件 freeze/unfreeze 两行已由后继卡接线（TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01，finance:create）", () => {
+    // 本卡（2026-10-30）裁定范围仅含 5 行；freeze/unfreeze 两行当时**不在本卡裁定范围**、保持原样。
+    // TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）已按凌舟裁定给这两行挂
+    // `finance:create`（同文件开卡/充值/消费/退款同码）⇒ 本卡原「不得偷接」断言由后继卡收编，
+    // 逐行形状/403/200 断言见 total-value-card-lifecycle-codes-wiring.test.ts。
     for (const routePath of ["/:cardNo/freeze", "/:cardNo/unfreeze"]) {
       const lines = registrationLines("store-value-card.routes.ts", "post", routePath);
       expect(lines).toHaveLength(1);
-      expect(lines[0].line, `${routePath} 不在本卡裁定范围，不得偷接`).not.toContain("requirePermission(");
+      expect(lines[0].line, `${routePath} 应由后继卡挂 finance:create`).toContain('requirePermission("finance:create")');
     }
   });
 });

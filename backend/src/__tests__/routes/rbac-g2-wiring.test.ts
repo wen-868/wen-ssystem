@@ -230,30 +230,9 @@ const UNWIRED: G2UnwiredRow[] = [
   // ---- B：页面可达角色集（写入角色）不 ⊆ finance:create 持有人集合 ----
   // （S3-233：原 5 行 B 类（bank-accounts 2 / receipts 1 / reconciliation 2）已收编接线，见下方 `S3233_WIRED`。
   //   TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）又收编 1 行：store-value-card.routes.ts POST /
-  //   已按凌舟裁定挂 `finance:create` 接线（逐行断言见 total-member-permission-codes-wiring.test.ts）。）
-  {
-    file: "store-value-card.routes.ts",
-    prefix: "/api/admin/store-value-cards",
-    router: storeValueCardRouter,
-    routePath: "/:cardNo/freeze",
-    path: "/VC1/freeze",
-    reason: "B",
-    note:
-      "app-mobile 储值卡页 stored-cards.vue:142（storedCardApi.lock → stored-cards.ts:85）；" +
-      "注册码 customer:stored-card 无对应 t_sys_menu 行，可达链 = member-detail.vue:440 → stored-cards 页（同上入口）",
-  },
-  {
-    file: "store-value-card.routes.ts",
-    prefix: "/api/admin/store-value-cards",
-    router: storeValueCardRouter,
-    routePath: "/:cardNo/unfreeze",
-    path: "/VC1/unfreeze",
-    reason: "B",
-    note:
-      "app-mobile 储值卡页 stored-cards.vue:144（storedCardApi.unlock → stored-cards.ts:90 解冻）；" +
-      "注册码 customer:stored-card 无对应 t_sys_menu 行，可达链 = 首页快捷入口 home.vue:87（会员管理，无条件）" +
-      "→ member-list.vue:192/193 → member-detail.vue:440 → stored-cards 页（member-detail 未在 function-menu.ts 注册）",
-  },
+  //   TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）再收编 2 行：同文件
+  //   /:cardNo/freeze 与 /:cardNo/unfreeze，均按凌舟裁定挂 `finance:create`
+  //   （逐行断言见 total-value-card-lifecycle-codes-wiring.test.ts）⇒ B 类待裁名单清零。）
   // ---- C（并含 B）：落在 G0「范围控制」已断言 READONLY 仍 200 的名单内 ----
   // （TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）订正：原 C 类 recharge 一行已由该卡接线
   //   （finance:create），G0 的 NOT_IN_G0 同步移出该行 ⇒ 本名单 C 类 2 → 1。）
@@ -400,8 +379,10 @@ describe("S3-125（G2）· 名单自证（验收标准①）", () => {
     expect(S3233_WIRED_TOTAL).toBe(5);
     // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）：svc POST /（B）与 /:cardNo/recharge（C）
     // 已按凌舟裁定接线（finance:create）⇒ 待裁 6 → 4；计数守恒 12 → 10（状态变更登记）
-    expect(G2_UNWIRED_TOTAL).toBe(4);
-    expect(G2_WIRED_TOTAL + S3233_WIRED_TOTAL + G2_UNWIRED_TOTAL).toBe(10);
+    // TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）：svc /:cardNo/freeze 与
+    // /:cardNo/unfreeze（均 B）已按凌舟裁定接线（finance:create）⇒ 待裁 4 → 2；计数守恒 10 → 8
+    expect(G2_UNWIRED_TOTAL).toBe(2);
+    expect(G2_WIRED_TOTAL + S3233_WIRED_TOTAL + G2_UNWIRED_TOTAL).toBe(8);
   });
 
   it("已接 1 行分布：expense.routes.ts × 1", () => {
@@ -410,8 +391,8 @@ describe("S3-125（G2）· 名单自证（验收标准①）", () => {
     expect([...perFile.entries()].sort()).toEqual([["expense.routes.ts", 1]]);
   });
 
-  it("待裁原因分布：B 2 / C 1 / R 1（B 类原 9 行：1 行=expense 已由 G2 接、5 行已由 S3-233 收编、1 行=储值卡开卡已由 TOTAL-MEMBER-PERMISSION-CODES-01 收编；R 行同时属 C 类 G0 冲突）", () => {
-    expect(UNWIRED.filter((r) => r.reason === "B")).toHaveLength(2);
+  it("待裁原因分布：B 0 / C 1 / R 1（B 类原 9 行：1 行=expense 已由 G2 接、5 行已由 S3-233 收编、1 行=储值卡开卡已由 TOTAL-MEMBER-PERMISSION-CODES-01 收编、2 行=储值卡 freeze/unfreeze 已由 TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01 收编；R 行同时属 C 类 G0 冲突）", () => {
+    expect(UNWIRED.filter((r) => r.reason === "B")).toHaveLength(0);
     expect(UNWIRED.filter((r) => r.reason === "C")).toHaveLength(1);
     expect(UNWIRED.filter((r) => r.reason === "R")).toHaveLength(1);
   });
@@ -430,17 +411,14 @@ describe("S3-125（G2）· 形状断言（行级判据；验收标准③，踩�
     expect(lines[0].line).not.toContain("requirePermission(");
   });
 
-  it("整文件子串不足以判定（踩坑[134]）：store-value-card.routes.ts 文件级含 finance:create，但 freeze/unfreeze 两行没有", () => {
+  it("整文件子串不足以判定（踩坑[134]）：必须落到**注册行**级判据", () => {
     const src = readFileSync(path.join(ROUTES_DIR, "store-value-card.routes.ts"), "utf8");
     // 文件级子串判据会得到"存在"的错误结论（同一文件里 consume/refund 行确实接了 finance:create）
     expect(src).toContain('requirePermission("finance:create")');
     // TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30）："/" 与 "/:cardNo/recharge" 两行已由该卡接线（finance:create）
-    // ⇒ 从本判据的「未接」循环移出，其形状断言见 total-member-permission-codes-wiring.test.ts
-    for (const routePath of ["/:cardNo/freeze", "/:cardNo/unfreeze"]) {
-      const lines = registrationLines("store-value-card.routes.ts", "post", routePath);
-      expect(lines).toHaveLength(1);
-      expect(lines[0].line, `${routePath} 的注册行不得被误判为已接线`).not.toContain("requirePermission(");
-    }
+    // TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31）："/:cardNo/freeze" 与 "/:cardNo/unfreeze"
+    // 两行已由该卡接线（finance:create）⇒ 均从本判据的「未接」循环移出，形状断言见
+    // total-member-permission-codes-wiring.test.ts / total-value-card-lifecycle-codes-wiring.test.ts
   });
 });
 
@@ -586,14 +564,9 @@ describe("S3-125（G2）· d) 未登录 401（既有行为不变）", () => {
 });
 
 describe("S3-125（G2）· 待裁原因可复核（B / C / R 三类证据锚点）", () => {
-  it("B 类 3 行（S3-233 收编 5 行后）：note 均给出 app-mobile 调用点 + 页面→菜单映射（或零映射可达链）", () => {
+  it("B 类 0 行（TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01 收编储值卡 freeze/unfreeze 2 行后）：B 类待裁名单清零", () => {
     const b = UNWIRED.filter((r) => r.reason === "B");
-    expect(b).toHaveLength(2);
-    for (const row of b) {
-      // 每行必须写明调用点（.vue:行）与可达性依据（菜单码或"无条件入口"）
-      expect(row.note, `${row.file} ${row.routePath}`).toMatch(/\.vue:\d+/);
-      expect(row.note, `${row.file} ${row.routePath}`).toMatch(/function-menu\.ts:\d+|t_sys_menu|零菜单映射|无条件/);
-    }
+    expect(b).toHaveLength(0);
   });
 
   it("B 类锁死面成立：页面可达的写入角色确实不持有 finance:create（抽 3 个代表角色反证）", () => {
