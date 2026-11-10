@@ -15,6 +15,8 @@ on:
       - "**.md"
       - ".github/**"
       - "e2e/**"
+      - "admin-web/tests/**"
+      - "backend/src/__tests__/**"
   # S3-44：paths-ignore 会堵死"只想把已推的文档/配置再部署一次"这条路，
   #   因此**必须**保留手动入口（否则只能上服务器手跑 auto-deploy.sh，反而增加人为操作）。
   #   ⚠️ 本文件自身位于 `.github/**` → 改本文件不会自动部署，这符合预期。

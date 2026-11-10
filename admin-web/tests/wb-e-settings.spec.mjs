@@ -16,7 +16,7 @@
  * mutation 证明：见 tests/wb-f1-mutation-countertest.mjs（本区 M8 砍 Tab、M9 暗色不落 DOM）
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { registerHooks } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -134,10 +134,13 @@ await run("卡面新增两块无原型锚点（prototypeKey=null），其余五�
 });
 
 await run("冻结原型未被本单改动（SW_TABS 仍为 5 项）", () => {
-  const proto = readFileSync(
-    "D:/Users/ZXQL/ZXQL-WORK/projects/ai/design/智享全链_工作台电脑端_UI原型_融合版.html",
-    "utf8",
-  );
+  const prototypeFile =
+    process.env.WB_PROTOTYPE ??
+    "D:/Users/ZXQL/ZXQL-WORK/projects/ai/design/智享全链_工作台电脑端_UI原型_融合版.html";
+  if (!existsSync(prototypeFile)) {
+    return "不适用：中央原型不在代码仓 checkout 内；本仓只验 7→5 映射，原型冻结由中央证据链校验";
+  }
+  const proto = readFileSync(prototypeFile, "utf8");
   const block = proto.match(/const SW_TABS=\[([\s\S]*?)\];/);
   assert.ok(block, "原型 SW_TABS 定义丢失");
   const n = (block[1].match(/\{k:'/g) || []).length;
