@@ -1,0 +1,98 @@
+name: Deploy H5 to Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 手动发布原因
+        required: true
+        type: string
+        default: 发布移动端 H5
+
+concurrency:
+  group: h5-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Build H5
+        env:
+          VITE_API_BASE: /api
+          VITE_AI_BASE_URL: /ai-api
+        run: npm --workspace app-mobile run build:h5
+      - name: Audit artifact
+        run: |
+          set -euo pipefail
+          ART=app-mobile/dist/build/h5
+          test -f "$ART/index.html"
+          test -z "$(find "$ART" -type f -name '*.map' -print -quit)"
+          ! grep -R "localhost:8080" "$ART"
+          tar -C "$ART" -czf "h5-release-${GITHUB_SHA}.tar.gz" .
+      - name: Upload artifact
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT != '' && secrets.SSH_PORT || '22' }}
+          source: h5-release-${{ github.sha }}.tar.gz
+          target: /tmp
+          overwrite: true
+      - name: Atomic deploy with rollback
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT != '' && secrets.SSH_PORT || '22' }}
+          envs: RELEASE_SHA
+          script: |
+            set -euo pipefail
+            ROOT=/var/www
+            CURRENT="$ROOT/app-mobile"
+            STAMP="$(date +%Y%m%d%H%M%S)"
+            PREVIOUS="$ROOT/app-mobile.pre-$STAMP"
+            NEXT="$ROOT/app-mobile.next-$RELEASE_SHA"
+            ARCHIVE="/tmp/h5-release-$RELEASE_SHA.tar.gz"
+
+            test -f "$ARCHIVE"
+            test -d "$CURRENT"
+            rm -rf "$NEXT"
+            mkdir -p "$NEXT"
+            tar -xzf "$ARCHIVE" -C "$NEXT"
+            test -f "$NEXT/index.html"
+
+            mv "$CURRENT" "$PREVIOUS"
+            if ! mv "$NEXT" "$CURRENT"; then
+              mv "$PREVIOUS" "$CURRENT"
+              exit 1
+            fi
+
+            ok=0
+            for path in "" "pages/login/login" "pages/home/home" "pages-sub/marketing/member/member" "pages-sub/marketing/member/member-list" "pages-sub/finance/finance/expenses" "pages-sub/finance/receipts/receipts" "pages-sub/finance/reconciliation/reconciliation"; do
+              if curl -fsS --max-time 20 "https://m.onepan.cn/${path}" >/dev/null; then
+                ok=$((ok + 1))
+              else
+                break
+              fi
+            done
+
+            if [ "$ok" -ne 8 ]; then
+              rm -rf "$CURRENT"
+              mv "$PREVIOUS" "$CURRENT"
+              nginx -t && nginx -s reload
+              exit 1
+            fi
+
+            echo "H5 deploy OK sha=$RELEASE_SHA backup=$PREVIOUS routes=$ok/8"
