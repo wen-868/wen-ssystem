@@ -30,22 +30,24 @@ function walkFiles(dir) {
   });
 }
 
-assertIncludes("store-terminal/.env.beta.example", "VITE_API_BASE=");
-assertNotIncludes("store-terminal/.env.beta.example", "VITE_API_BASE_URL");
-
-assertIncludes("scripts/build-store-beta.mjs", "VITE_API_BASE");
+// store-terminal 已从当前产品架构退场；仅在组件重新引入时执行其专属契约。
+if (existsSync("store-terminal")) {
+  assertIncludes("store-terminal/.env.beta.example", "VITE_API_BASE=");
+  assertNotIncludes("store-terminal/.env.beta.example", "VITE_API_BASE_URL");
+  assertIncludes("scripts/build-store-beta.mjs", "VITE_API_BASE");
+  assertIncludes("store-terminal/public/sw.js", "store-terminal-shell-v2");
+  assertNotIncludes("store-terminal/public/sw.js", "SHELL_ASSETS = [\"/\"");
+  assertIncludes("store-terminal/public/sw.js", "event.request.mode === \"navigate\"");
+}
 assertIncludes("deploy/03-deploy.sh", "https://api.${DOMAIN}/api");
 assertNotIncludes("deploy/03-deploy.sh", "VITE_API_BASE=\"http://localhost:8080/api\"");
 
 assertIncludes("deploy/07-local-archive-deploy.sh", "cd \"${PROJECT_DIR}\"");
 assertIncludes("deploy/04-nginx.conf", "Cache-Control \"no-cache, no-store, must-revalidate\"");
-assertIncludes("deploy/04-nginx.conf", "location = /sw.js");
 
-assertIncludes("store-terminal/public/sw.js", "store-terminal-shell-v2");
-assertNotIncludes("store-terminal/public/sw.js", "SHELL_ASSETS = [\"/\"");
-assertIncludes("store-terminal/public/sw.js", "event.request.mode === \"navigate\"");
-
-for (const dir of ["admin-web/dist", "store-terminal/dist"]) {
+const distDirs = ["admin-web/dist"];
+if (existsSync("store-terminal")) distDirs.push("store-terminal/dist");
+for (const dir of distDirs) {
   if (!existsSync(dir)) continue;
   for (const file of walkFiles(dir)) {
     if (!/\.(html|js|css|webmanifest)$/.test(file)) continue;
