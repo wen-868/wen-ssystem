@@ -16,6 +16,13 @@
       </el-col>
     </el-row>
 
+    <!-- 本月指标失败态：显式报错 + 重试（WB-AUDIT-08；不得伪装成 0） -->
+    <div v-if="metricsState === 'error'" class="metrics-error" data-testid="metrics-error">
+      <span>本月指标加载失败：{{ metricsError }}</span>
+      <el-button size="small" type="primary" plain data-testid="metrics-retry" @click="loadDashboardOverview">重试</el-button>
+    </div>
+    <div v-else-if="metricsState === 'loading'" class="metrics-loading" data-testid="metrics-loading">本月指标加载中…</div>
+
     <el-card v-if="inventoryAlerts.length > 0" style="margin-top: 16px; border-left: 4px solid #D48B3A">
       <template #header>
         <div class="card-header">
@@ -77,6 +84,13 @@ import {
   fetchStoreDailySales,
   fetchStoreInventoryAlerts
 } from "../../api";
+/**
+ * 唯一字段适配器（WORKBENCH-07 硬验收 §2 / WB-AUDIT-08）：
+ * 门店工作台与管理 Dashboard **共用** `utils/dashboard-contract.ts`，禁止各自手写字段映射。
+ * 后端 `/admin/dashboard/overview` 返回**嵌套** `month.salesAmount` / `month.orderCount`；
+ * 旧代码读扁平 `data.monthSalesAmount` ⇒ 两个本月指标恒为 0。
+ */
+import { parseDashboardOverview, resolveDataState, type DashboardMetrics } from "../../utils/dashboard-contract";
 
 const router = useRouter();
 
@@ -86,21 +100,30 @@ const dashboard = ref<any>({
   todaySalesAmount: 0,
   unReceivedAmount: 0
 });
-const dashboardOverview = ref<any>({
-  monthSalesAmount: 0,
-  monthOrderCount: 0
-});
+/** 归一化后的指标（来自共享适配器）；null = 尚未成功解析 */
+const metrics = ref<DashboardMetrics | null>(null);
+const metricsLoading = ref(true);
+const metricsError = ref<string | null>(null);
+/** 本月指标展示态：loading / empty / ready / error（失败不得伪装成 0） */
+const metricsState = computed(() => resolveDataState(metricsLoading.value, metricsError.value, metrics.value ? 1 : null));
 const dailySales = ref<any[]>([]);
 const inventoryAlerts = ref<any[]>([]);
 
-const cards = computed(() => [
-  { label: "今日销售额", value: formatYuan(dashboard.value.todaySalesAmount), desc: "销售单汇总" },
-  { label: "待收款", value: formatYuan(dashboard.value.unReceivedAmount), desc: "未收销售单金额" },
-  { label: "待处理订单", value: String(dashboard.value.pendingOrderCount || 0), desc: "待接单小程序订单" },
-  { label: "今日订单", value: String(dashboard.value.todayOrderCount || 0), desc: "今日小程序订单数" },
-  { label: "本月累计销售", value: formatYuan(dashboardOverview.value.monthSalesAmount), desc: "本月销售单汇总" },
-  { label: "本月累计订单", value: String(dashboardOverview.value.monthOrderCount || 0), desc: "本月小程序订单数" }
-]);
+const cards = computed(() => {
+  // 失败 ⇒ 显式"—"，**不显示 0**（0 会被误读为"本月真的没卖"）
+  const unavail = metricsState.value === "error" || metricsState.value === "loading";
+  const m = metrics.value;
+  const monthSales = unavail || !m ? "—" : formatYuan(m.month.salesAmount);
+  const monthOrders = unavail || !m ? "—" : String(m.month.orderCount);
+  return [
+    { label: "今日销售额", value: formatYuan(dashboard.value.todaySalesAmount), desc: "销售单汇总" },
+    { label: "待收款", value: formatYuan(dashboard.value.unReceivedAmount), desc: "未收销售单金额" },
+    { label: "待处理订单", value: String(dashboard.value.pendingOrderCount || 0), desc: "待接单小程序订单" },
+    { label: "今日订单", value: String(dashboard.value.todayOrderCount || 0), desc: "今日小程序订单数" },
+    { label: "本月累计销售", value: monthSales, desc: "本月销售单汇总" },
+    { label: "本月累计订单", value: monthOrders, desc: "本月小程序订单数" }
+  ];
+});
 
 function formatYuan(val: any): string {
   const n = Number(val || 0);
@@ -121,17 +144,28 @@ async function loadDashboard() {
   }
 }
 
+/**
+ * 本月指标加载（WB-AUDIT-08）。
+ * ✅ 走共享适配器解析**嵌套** `month.*`；
+ * ✅ 失败置 error 态并由卡片显示"—"，**不再静默失败、也不再显示假 0**。
+ */
 async function loadDashboardOverview() {
+  metricsLoading.value = true;
+  metricsError.value = null;
   try {
     const data = await fetchStoreDashboardOverview();
-    if (data) {
-      dashboardOverview.value = {
-        monthSalesAmount: Number(data.monthSalesAmount || data.monthSales || 0),
-        monthOrderCount: Number(data.monthOrderCount || data.monthOrders || 0)
-      };
+    const parsed = parseDashboardOverview(data);
+    if (!parsed.ok) {
+      metricsError.value = parsed.reason;
+      metrics.value = null;
+    } else {
+      metrics.value = parsed.data;
     }
-  } catch {
-    // 静默失败
+  } catch (e: any) {
+    metricsError.value = e?.message || "本月指标加载失败";
+    metrics.value = null;
+  } finally {
+    metricsLoading.value = false;
   }
 }
 

@@ -84,8 +84,8 @@
             </el-form>
           </el-card>
 
-          <!-- 商品明细 -->
-          <el-card shadow="never" class="info-card" style="margin-top:12px">
+          <!-- 商品明细（单据明细表收口到原型口径的窄表：宿主 714px ⇒ 表体 ≈646px @1440） -->
+          <el-card shadow="never" class="info-card detail-card" style="margin-top:12px">
             <template #header>
               <span class="card-title">商品明细</span>
               <el-button type="primary" size="small" link style="float:right" @click="addProductRow">+ 添加商品</el-button>
@@ -611,6 +611,9 @@ async function handleSubmit(print = false) {
 <style scoped>
 .page { padding: 0; }
 .info-card { margin-bottom: 0; }
+/* 原型该页是「开单表单 + 较窄的单据明细表」：明细表区域收口（宿主 714 ⇒ 明细 el-table ≈646，1440 视口），
+   底部结算/操作栏仍占全宽，主操作按钮可达 */
+.detail-card { max-width: 704px; }
 .card-title { font-weight: 600; color: var(--text-primary); }
 .settlement-card :deep(.el-card__body) { padding: 16px 20px; }
 .bill-actions-card :deep(.el-card__body) { padding: 14px 20px; }

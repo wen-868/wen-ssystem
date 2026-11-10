@@ -43,6 +43,33 @@ export async function fetchDashboardRecentAlerts() {
   return data.data;
 }
 
+/**
+ * 待办清单（WB-AUDIT-02）。
+ *
+ * 后端：`backend/src/services/admin/dashboard.service.ts:539` getTodos
+ * 路由：`backend/src/routes/dashboard.routes.ts:14` → `GET /api/admin/dashboard/todos`
+ * 返回：**平铺数组** `Array<{ type, priority, title, subtitle, count, link }>`
+ *   ⚠️ 前端旧代码读 `inventoryAlerts/expiryAlerts/...` 四个分组字段，后端并不返回 ⇒ 恒空。
+ */
+export async function fetchDashboardTodos() {
+  const { data } = await api.get("/admin/dashboard/todos");
+  return data.data;
+}
+
+/**
+ * 利润报告（含毛利）——**overview 不含 grossProfit，这是毛利的唯一真实来源**。
+ *
+ * 后端：`backend/src/services/admin/report/finance-report.service.ts:307` 返回
+ *       `{ dateStart, dateEnd, income, cost, returns, grossProfit, grossProfitRate, ... }`
+ * 路由：`backend/src/routes/report.routes.ts:36` → `GET /api/admin/reports/profit`
+ *
+ * @param params dateStart/dateEnd 均为 `YYYY-MM-DD`；不传则后端默认近 30 天
+ */
+export async function fetchReportProfit(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/reports/profit", { params });
+  return data.data;
+}
+
 
 // ========== Dashboard - 客户分析 ==========
 export async function fetchDashboardCustomerStats() {
@@ -166,10 +193,12 @@ export async function fetchReportPaymentAnalysis(params?: {
   return data.data;
 }
 
-export async function fetchReportProfit() {
-  const { data } = await api.get("/admin/reports/profit");
-  return data.data;
-}
+/**
+ * @deprecated 与文件上方 `fetchReportProfit(params)` **同名重复**（WORKBENCH-07 发现并合并）。
+ * 保留此导出仅为不打断既有调用方；新代码请用带参版本（可传 dateStart/dateEnd）。
+ * 行为完全等价：不带参时后端默认近 30 天。
+ */
+export const fetchReportProfitLegacy = fetchReportProfit;
 
 export async function fetchReportBusinessOverview() {
   const { data } = await api.get("/admin/reports/business-overview");

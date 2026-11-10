@@ -50,7 +50,8 @@
 
     <!-- 图表区 -->
     <el-row :gutter="16" class="chart-row">
-      <el-col :span="16">
+      <!-- 13C：图表区全宽（原型 .s-chart 992/646 单列），span16 半宽是差异表 chart.width 差的根因 -->
+      <el-col :span="24">
         <div class="chart-card">
           <div class="chart-card-header">销售趋势</div>
           <div class="chart-card-body">
@@ -334,7 +335,7 @@ onMounted(() => {
   box-shadow: none;
 }
 .chart-container {
-  height: 300px;
+  height: 244px;
   display: flex;
   align-items: flex-end;
 }

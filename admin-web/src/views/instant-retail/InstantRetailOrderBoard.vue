@@ -8,12 +8,12 @@
   </div>
 <el-card class="toolbar-card" shadow="never">
       <div class="filter-bar">
-        <div class="filter-bar">
+        <div class="filter-bar-items">
           <span class="toolbar-title">60秒接单看板</span>
           <el-tag v-if="autoAccept" type="success" effect="dark">自动接单</el-tag>
           <el-tag v-else type="warning" effect="dark">手动接单</el-tag>
         </div>
-        <div class="filter-bar">
+        <div class="toolbar-right">
           <el-tooltip content="新订单音效">
             <el-button :icon="soundEnabled ? 'Bell' : 'BellOff'" circle @click="toggleSound" />
           </el-tooltip>

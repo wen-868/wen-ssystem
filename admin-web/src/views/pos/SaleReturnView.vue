@@ -13,7 +13,7 @@
 </div>
 
       <div class="filter-bar">
-        <el-select v-model="returnStatus" placeholder="退货状态" clearable size="small" style="width: 140px">
+        <el-select v-model="returnStatus" placeholder="退货状态" clearable size="small">
           <el-option label="待审核" value="PENDING" />
           <el-option label="已批准" value="APPROVED" />
           <el-option label="已拒绝" value="REJECTED" />

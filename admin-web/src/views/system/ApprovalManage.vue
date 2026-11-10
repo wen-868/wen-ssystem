@@ -53,8 +53,9 @@ onMounted(loadApprovalSwitch);
 </script>
 
 <style scoped>
+/* 13C：画布 §1 已提供 32/44/60 页根内衬，本层不得再叠 16px（否则表格/分页 x+33、宽-66，机器对齐判差） */
 .page {
-  padding: 16px;
+  padding: 0;
 }
 .approval-switch-bar {
   display: flex;

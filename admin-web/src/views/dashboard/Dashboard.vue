@@ -7,7 +7,14 @@
         <span class="date-text">{{ formattedDate }}</span>
       </div>
       <div class="header-right">
-        <el-button type="primary" size="large" class="quick-cashier-btn" @click="navTo('/sales/create')">
+        <el-button
+          type="primary"
+          size="large"
+          class="quick-cashier-btn"
+          :disabled="!primaryCta.canOpen"
+          :aria-disabled="!primaryCta.canOpen"
+          @click="primaryCta.route && navTo(primaryCta.route)"
+        >
           <el-icon class="quick-cashier-icon"><ShoppingCart /></el-icon>
           开单收银
         </el-button>
@@ -34,6 +41,11 @@
           <span class="metric-strip-label">{{ m.label }}</span>
           <span class="metric-strip-num" :class="{ 'metric-num--accent': m.accent }">{{ m.value }}</span>
         </div>
+      </div>
+      <!-- 概览失败态：显式提示 + 重试（WB-AUDIT-01；失败不伪装成 0） -->
+      <div v-if="metricsState === 'error'" class="metric-strip-error" data-testid="metrics-error">
+        <span>今日指标加载失败：{{ metricsError }}</span>
+        <button type="button" class="metric-strip-retry" data-testid="metrics-retry" @click="reloadMetrics()">重试</button>
       </div>
     </el-card>
 
@@ -67,8 +79,10 @@
                   v-for="item in group.items"
                   :key="item.key"
                   class="feed-item"
-                  tabindex="0"
-                  role="button"
+                  :class="{ 'feed-item--locked': !item.route }"
+                  :tabindex="item.route ? 0 : -1"
+                  :role="item.route ? 'button' : undefined"
+                  :aria-disabled="item.route ? undefined : 'true'"
                   @click="onFeedClick(item)"
                 >
                   <span class="feed-icon" :class="'feed-icon--' + item.type.toLowerCase()">
@@ -83,7 +97,8 @@
                   </div>
                   <div class="feed-side">
                     <span class="feed-time">{{ item.timeText }}</span>
-                    <span class="feed-arrow">›</span>
+                    <span v-if="item.route" class="feed-arrow">›</span>
+                    <span v-else class="feed-arrow feed-arrow--locked">不可跳转</span>
                   </div>
                 </div>
               </div>
@@ -124,7 +139,16 @@
           </template>
           <div v-if="recentBills.length === 0" class="side-empty">暂无最新订单</div>
           <div v-else class="order-list">
-            <div v-for="b in recentBills" :key="b.billNo || b.id" class="order-item" tabindex="0" role="button" @click="navTo(b.route || (b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills'))">
+            <div
+              v-for="b in recentBills"
+              :key="b.billNo || b.id"
+              class="order-item"
+              :class="{ 'order-item--locked': !b.route }"
+              :tabindex="b.route ? 0 : -1"
+              :role="b.route ? 'button' : undefined"
+              :aria-disabled="b.route ? undefined : 'true'"
+              @click="b.route && navTo(b.route)"
+            >
               <div class="order-main">
                 <div class="order-no-row">
                   <span class="order-no">{{ b.billNo || "-" }}</span>
@@ -140,34 +164,42 @@
           </div>
         </el-card>
 
-        <!-- 待办与预警（原可帮你位） -->
+        <!-- 待办与预警（WB-AUDIT-02：改为消费真实 /dashboard/todos 平铺数组，四态可区分） -->
         <el-card class="side-card side-card--fill" shadow="hover" tabindex="0">
           <template #header>
             <div class="side-header">
               <span class="side-title">待办与预警</span>
-              <span v-if="todoCount > 0" class="side-badge">{{ todoCount }}</span>
+              <span v-if="todoState === 'ready'" class="side-badge">{{ todoGroups.totalItems }}</span>
             </div>
           </template>
-          <div v-if="todoCount === 0" class="side-empty">今日无待办事项</div>
-          <div v-else class="todo-list">
-            <div v-if="alertData.inventoryAlerts.length" class="todo-item" tabindex="0" role="button" @click="navTo('/inventory')">
-              <span class="todo-dot todo-dot--warning"></span>
-              <span class="todo-text">{{ alertData.inventoryAlerts.length }} 项库存预警</span>
-              <span class="todo-arrow">›</span>
-            </div>
-            <div v-if="alertData.expiryAlerts.length" class="todo-item" @click="navTo('/inventory')">
-              <span class="todo-dot todo-dot--warning"></span>
-              <span class="todo-text">{{ alertData.expiryAlerts.length }} 款商品临期</span>
-              <span class="todo-arrow">›</span>
-            </div>
-            <div v-if="alertData.overdueReceivables.length" class="todo-item" @click="navTo('/credit')">
-              <span class="todo-dot todo-dot--danger"></span>
-              <span class="todo-text">{{ alertData.overdueReceivables.length }} 笔应收待核销</span>
-              <span class="todo-arrow">›</span>
-            </div>
-            <div v-if="alertData.pendingOrders.length" class="todo-item" @click="navTo('/orders')">
-              <span class="todo-dot todo-dot--primary"></span>
-              <span class="todo-text">{{ alertData.pendingOrders.length }} 个待处理订单</span>
+
+          <!-- ① loading -->
+          <div v-if="todoState === 'loading'" class="side-empty" data-testid="todo-loading">加载中…</div>
+
+          <!-- ② error：**不得伪装成"今日无待办"**，必须显式报错 + 重试 -->
+          <div v-else-if="todoState === 'error'" class="side-error" data-testid="todo-error">
+            <span class="side-error-text">待办加载失败：{{ todoError }}</span>
+            <button class="side-retry" type="button" data-testid="todo-retry" @click="reloadTodos()">重试</button>
+          </div>
+
+          <!-- ③ empty：真的没有待办 -->
+          <div v-else-if="todoState === 'empty'" class="side-empty" data-testid="todo-empty">今日无待办事项</div>
+
+          <!-- ④ ready：真实待办分区渲染 -->
+          <div v-else class="todo-list" data-testid="todo-list">
+            <div
+              v-for="(item, i) in todoGroups.ordered"
+              :key="`${item.type}-${i}`"
+              class="todo-item"
+              tabindex="0"
+              role="button"
+              :data-todo-type="item.type"
+              @click="item.link && navTo(item.link)"
+            >
+              <span class="todo-dot" :class="todoDotClass(item.priority)"></span>
+              <span class="todo-text">{{ item.title || item.type }}</span>
+              <span v-if="item.count > 1" class="todo-count">×{{ item.count }}</span>
+              <span v-if="item.subtitle" class="todo-sub">{{ item.subtitle }}</span>
               <span class="todo-arrow">›</span>
             </div>
           </div>
@@ -176,13 +208,12 @@
         <!-- 快捷入口（原本页可帮你） -->
         <el-card class="side-card" shadow="hover">
           <template #header><span class="side-title">快捷入口</span></template>
+          <!-- WB-AUDIT-06/10：可见项由目标路由 meta.roles 派生，不再写死六项 -->
           <div class="quick-grid">
-            <div class="quick-cell" @click="navTo('/sales/create')">开单收银</div>
-            <div class="quick-cell" @click="navTo('/sale-bills')">销售单据</div>
-            <div class="quick-cell" @click="navTo('/messages')">消息中心</div>
-            <div class="quick-cell" @click="navTo('/inventory')">库存预警</div>
-            <div class="quick-cell" @click="navTo('/sales/reports')">销售报表</div>
-            <div class="quick-cell" @click="navTo('/customer/members')">客户会员</div>
+            <div v-for="e in quickEntries" :key="e.key" class="quick-cell" :title="e.pageTitle" @click="navTo(e.target)">
+              {{ e.label }}
+            </div>
+            <div v-if="quickEntries.length === 0" class="quick-empty">当前角色无可用快捷入口</div>
           </div>
         </el-card>
       </el-col>
@@ -200,14 +231,50 @@ import {
   fetchDashboardOverview,
   fetchDashboardRecentAlerts,
   fetchDashboardSalesTrend,
+  fetchDashboardTodos,
+  fetchReportProfit,
 } from "../../api/report";
+/**
+ * 唯一字段适配器（WORKBENCH-07 硬验收 §2）：管理 Dashboard 与门店工作台**共用**
+ * `admin-web/src/utils/dashboard-contract.ts`，禁止各自手写字段映射。
+ */
+import {
+  CUSTOMER_MEMBERS_ROUTE,
+  groupTodos,
+  monthRange,
+  parseDashboardOverview,
+  parseDashboardTodos,
+  parseProfitGross,
+  resolveDataState,
+  todayRange,
+  type DashboardMetrics,
+  type TodoGroups,
+} from "../../utils/dashboard-contract";
 import { fetchSaleBills, fetchMembers, fetchStores } from "../../api";
 import { fetchReceipts } from "../../api/finance";
 import { fetchNotifications } from "../../api/system";
 import { fetchInstantOrders } from "../../api/instant-retail";
+/**
+ * 唯一导航适配器（WORKBENCH-08 硬验收 §1/§3/§4）：
+ * 入口可见性与动态链接可达性**只由真实路由 meta.roles 派生**，
+ * 页面内不得出现任何角色清单或"可点但会被守卫拦回"的链接。
+ */
+import {
+  collectRouteEntries,
+  decorateNavTarget,
+  mergeRecentOrders,
+  RECENT_FETCH_PAGE_SIZE,
+  visibleQuickEntries,
+  type RouteEntry,
+} from "../../utils/dashboard-navigation";
 
 const router = useRouter();
 const auth = useAuthStore();
+
+// 真相源：router 实例的真实路由记录（与契约测试解析 router/index.ts 得到同一套 RouteEntry）
+const routeEntries = ref<RouteEntry[]>(collectRouteEntries(router));
+// 当前登录角色（来自登录态，不在页面内硬编码）
+const currentRoles = computed<string[]>(() => auth.userRoles ?? []);
 
 const userName = computed(() => auth.userName || "管理员");
 const storeList = ref<any[]>([]);
@@ -217,6 +284,16 @@ const feedFilter = ref("ALL");
 
 const overview = ref<any>({});
 const alertData = ref<any>({ inventoryAlerts: [], expiryAlerts: [], overdueReceivables: [], pendingOrders: [] });
+
+// ── 四态数据（WORKBENCH-07：loading / empty / ready / error 必须可区分）──
+/** 概览四态（今日/本月指标） */
+const metricsLoading = ref(true);
+const metricsError = ref<string | null>(null);
+const metrics = ref<DashboardMetrics | null>(null);
+/** 待办四态（真实 /dashboard/todos） */
+const todosLoading = ref(true);
+const todosError = ref<string | null>(null);
+const todosRaw = ref<import("../../utils/dashboard-contract").TodoItem[] | null>(null);
 const feedList = ref<any[]>([]);
 const recentBills = ref<any[]>([]);
 const salesTrendData = ref<any[]>([]);
@@ -243,22 +320,128 @@ function formatNum(v: any): string {
   return n.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
 }
 
+/**
+ * 今日指标（WB-AUDIT-01）。
+ * **字段全部来自共享适配器 `parseDashboardOverview`**：后端嵌套 `today.salesAmount` 等，
+ * 旧代码读扁平 `d.todaySalesAmount` ⇒ 恒为 0。
+ */
 const todayMetrics = computed(() => {
-  const d = overview.value || {};
+  const m = metrics.value;
+  if (metricsLoading.value) {
+    return [
+      { label: "今日销售额", value: "…", accent: false },
+      { label: "今日订单", value: "…", accent: false },
+      { label: "今日毛利", value: "…", accent: false },
+      { label: "待办事项", value: "…", accent: false },
+    ];
+  }
+  if (metricsError.value || !m) {
+    // 失败**不伪装成 0**：显式显示不可用
+    return [
+      { label: "今日销售额", value: "—", accent: false },
+      { label: "今日订单", value: "—", accent: false },
+      { label: "今日毛利", value: "—", accent: false },
+      { label: "待办事项", value: todoState.value === "error" ? "—" : `${todoGroups.value.totalItems} 项`, accent: false },
+    ];
+  }
+  // 毛利来自 reports/profit；未取到 ⇒ null ⇒ 显示"—"（**不填 0**）
+  const grossText = m.today.grossProfit === null ? "—" : `¥${formatNum(m.today.grossProfit)}`;
   return [
-    { label: "今日销售额", value: `¥${formatNum(d.todaySalesAmount)}`, accent: true },
-    { label: "今日订单", value: `${d.todayOrderCount ?? 0} 单` },
-    { label: "今日毛利", value: `¥${formatNum(d.todayGrossProfit)}` },
-    { label: "待办事项", value: `${todoCount.value} 项`, accent: todoCount.value > 0 },
+    { label: "今日销售额", value: `¥${formatNum(m.today.salesAmount)}`, accent: true },
+    { label: "今日订单", value: `${m.today.orderCount} 单`, accent: false },
+    { label: "今日毛利", value: grossText, accent: false },
+    {
+      label: "待办事项",
+      value: todoState.value === "error" ? "—" : `${todoGroups.value.totalItems} 项`,
+      accent: todoGroups.value.totalItems > 0,
+    },
   ];
 });
 
-const todoCount = computed(() =>
-  (alertData.value.inventoryAlerts?.length || 0) +
-  (alertData.value.expiryAlerts?.length || 0) +
-  (alertData.value.overdueReceivables?.length || 0) +
-  (alertData.value.pendingOrders?.length || 0)
+/** 待办展示态（loading / empty / ready / error）——失败绝不等于空 */
+const todoState = computed(() =>
+  resolveDataState(todosLoading.value, todosError.value, todosRaw.value ? todosRaw.value.length : null),
 );
+/** 概览指标展示态（同上四态口径） */
+const metricsState = computed(() => resolveDataState(metricsLoading.value, metricsError.value, metrics.value ? 1 : null));
+/** 待办分组（按 type/priority 归一；不预设固定类目，后端加类型也不丢） */
+const todoGroups = computed<TodoGroups>(() => groupTodos(todosRaw.value ?? []));
+const todoError = computed(() => todosError.value ?? "");
+
+/** 待办项左侧圆点按 priority 着色 */
+function todoDotClass(priority: string): string {
+  const map: Record<string, string> = {
+    urgent: "todo-dot--danger",
+    important: "todo-dot--warning",
+  };
+  return map[priority] ?? "todo-dot--primary";
+}
+
+/** 待办失败重试（独立于整页刷新，避免牵连其它区块） */
+async function reloadTodos() {
+  todosLoading.value = true;
+  todosError.value = null;
+  try {
+    const raw = await fetchDashboardTodos();
+    const parsed = parseDashboardTodos(raw);
+    if (!parsed.ok) {
+      todosError.value = parsed.reason;
+      todosRaw.value = null;
+    } else {
+      todosRaw.value = parsed.data;
+    }
+  } catch (e: any) {
+    // ⚠️ 失败**不得**当空数组：置 error，保留 null 让 UI 走错误态
+    todosError.value = e?.message || "请求失败";
+    todosRaw.value = null;
+  } finally {
+    todosLoading.value = false;
+  }
+}
+
+/** 概览失败重试（含毛利补取） */
+async function reloadMetrics() {
+  metricsLoading.value = true;
+  metricsError.value = null;
+  try {
+    const [ov, gross] = await Promise.all([
+      fetchDashboardOverview(),
+      // 毛利失败**不拖垮整块**：取不到即 null（UI 显示"—"）
+      fetchReportProfit(todayRange()).catch(() => null),
+    ]);
+    const parsed = parseDashboardOverview(ov, parseProfitGross(gross));
+    if (!parsed.ok) {
+      metricsError.value = parsed.reason;
+      metrics.value = null;
+    } else {
+      metrics.value = parsed.data;
+    }
+  } catch (e: any) {
+    metricsError.value = e?.message || "请求失败";
+    metrics.value = null;
+  } finally {
+    metricsLoading.value = false;
+  }
+}
+
+// ==================== 入口与动态链接权限（WB-AUDIT-06/09/10） ====================
+/** 快捷入口：按当前角色对目标路由 meta.roles 的可见性派生（不再写死六项） */
+const quickEntries = computed(() => visibleQuickEntries(routeEntries.value, currentRoles.value));
+
+/**
+ * WORKBENCH-09：顶部主 CTA「开单收银」与快捷入口/动态链接走**同一 meta.roles 派生链**。
+ * /sales/create 的 roles=[SUPER_ADMIN, STORE_MANAGER] ⇒ OPERATOR/READONLY 无权，
+ * canOpen=false ⇒ 按钮 disabled（不可点击），绝不出现"能点但会被守卫拦回"的主 CTA。
+ */
+const primaryCta = computed(() => decorateNavTarget(routeEntries.value, currentRoles.value, "/sales/create"));
+
+/**
+ * 动态条目挂目标链接：**无权 ⇒ route 为 null**，模板据此置为不可点击，
+ * 绝不保留"可点击但会被路由守卫拦回"的链接（R101 WB-AUDIT-09）。
+ */
+function navTarget(target: string): string | null {
+  return decorateNavTarget(routeEntries.value, currentRoles.value, target).route;
+}
 
 // ==================== 信息流构建 ====================
 function parseTime(v: any): Date | null {
@@ -384,7 +567,8 @@ function buildFeed() {
       desc: `客户：${b.customerName || "-"} · 金额 ¥${formatNum(b.receivableAmount)}`,
       tag: billStatusText(b.businessStatus),
       tagType: "success",
-      route: b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills",
+      // WB-AUDIT-09：生成时校验目标 route 权限，无权 ⇒ null（不可点击）
+      route: navTarget(b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills"),
     });
   }
   // 收款动态
@@ -397,7 +581,7 @@ function buildFeed() {
       desc: `客户：${r.customerName || "-"} · 金额 ¥${formatNum(r.amount)}`,
       tag: receiptStatusText(r.status),
       tagType: "primary",
-      route: "/finance/receipts",
+      route: navTarget("/finance/receipts"),
     });
   }
   // 客户动态
@@ -410,7 +594,7 @@ function buildFeed() {
       desc: `手机：${m.mobile || "-"}`,
       tag: "新客户",
       tagType: "success",
-      route: "/customer/members",
+      route: navTarget(CUSTOMER_MEMBERS_ROUTE),
     });
   }
   // 预警动态
@@ -423,7 +607,8 @@ function buildFeed() {
       desc: "部分商品可用库存低于预警阈值，请及时补货",
       tag: "预警",
       tagType: "warning",
-      route: "/inventory",
+      // WB-AUDIT-10：库存预警指向预警页 /inventory-alerts（/inventory 是库存列表页）
+      route: navTarget("/inventory-alerts"),
     });
   }
   if (d.expiryAlerts?.length) {
@@ -435,7 +620,7 @@ function buildFeed() {
       desc: "存在临近保质期的商品，请检查处理",
       tag: "临期",
       tagType: "warning",
-      route: "/inventory",
+      route: navTarget("/inventory-alerts"),
     });
   }
   if (d.overdueReceivables?.length) {
@@ -447,7 +632,7 @@ function buildFeed() {
       desc: "存在逾期应收款项，请及时跟进",
       tag: "应收",
       tagType: "danger",
-      route: "/credit",
+      route: navTarget("/credit"),
     });
   }
   if (bills.length) {
@@ -459,7 +644,7 @@ function buildFeed() {
       desc: "有订单等待处理，请及时响应",
       tag: "订单",
       tagType: "primary",
-      route: "/orders",
+      route: navTarget("/orders"),
     });
   }
 
@@ -625,20 +810,23 @@ function handleResize() {
 // ==================== 数据加载 ====================
 async function loadAllData() {
   feedLoading.value = true;
+  // 指标与待办各自独立加载（互不拖垮，失败也不伪装成空）
+  void reloadMetrics();
+  void reloadTodos();
   try {
     const results = await Promise.allSettled([
       fetchDashboardOverview(),
       fetchDashboardRecentAlerts(),
-      fetchSaleBills({ page: 1, pageSize: 100 }),
+      fetchSaleBills({ page: 1, pageSize: RECENT_FETCH_PAGE_SIZE }),
       fetchReceipts({ page: 1, pageSize: 6 }),
       fetchNotifications({ page: 1, pageSize: 8 }),
       fetchMembers({ page: 1, pageSize: 6 }),
       fetchStores(),
       fetchDashboardSalesTrend(),
-      fetchInstantOrders({ page: 1, pageSize: 100 }),
+      fetchInstantOrders({ page: 1, pageSize: RECENT_FETCH_PAGE_SIZE }),
     ]);
     if (results[0].status === "fulfilled") overview.value = results[0].value || {};
-    if (results[1].status === "fulfilled") alertData.value = results[1].value || { inventoryAlerts: [], expiryAlerts: [], overdueReceivables: [], pendingOrders: [] };
+    if (results[1].status === "fulfilled") alertData.value = results[1].value || {};
     if (results[6].status === "fulfilled") storeList.value = results[6].value || [];
     if (results[7].status === "fulfilled") salesTrendData.value = Array.isArray(results[7].value) ? results[7].value : [];
 
@@ -659,16 +847,24 @@ async function loadAllData() {
     const channelOrders = results[8].status === "fulfilled" ? (results[8].value?.records || []) : [];
     const channelItems = channelOrders
       .filter((o: any) => !["COMPLETED", "CANCELLED", "VOIDED", "RETURNED"].includes(o.status))
-      .map(channelOrderToBill);
+      .map((o: any) => {
+        const bill = channelOrderToBill(o);
+        // WB-AUDIT-09：渠道订单目标 /order-center 仅 SUPER_ADMIN 可见，无权 ⇒ null（不可点击）
+        return { ...bill, route: navTarget(bill.route) };
+      });
     const offlineItems = (overviewActiveBills.length ? overviewActiveBills : activeBills)
       .map((b: any) => ({
         ...b,
         source: offlineSourceLabel(b),
-        route: b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills",
+        route: navTarget(b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills"),
       }));
-    recentBills.value = [...offlineItems, ...channelItems]
-      // 最新订单不限制条数，卡片内滚动查看所有进行中的单据
-      .sort((a: any, b: any) => (parseTime(b.createdAt)?.getTime() || 0) - (parseTime(a.createdAt)?.getTime() || 0));
+    // WB-AUDIT-07：线下 10 条与渠道订单合并后**最终截断到 10 条**
+    // （渠道订单接口仍按原分页取数，但无论返回多少条，进 DOM 的永远 ≤ 10）
+    recentBills.value = mergeRecentOrders({
+      offline: offlineItems,
+      channel: channelItems,
+      getTime: (b: any) => parseTime(b.createdAt)?.getTime() ?? null,
+    }).items;
     buildFeed();
     await nextTick();
     renderSalesTrendChart();
@@ -817,6 +1013,17 @@ onUnmounted(() => {
 .feed-item:hover {
   background: var(--bg-soft);
 }
+/* 无权跳转的条目：明确不可点击（WB-AUDIT-09：不留"可点但会被守卫拦回"的链接） */
+.feed-item--locked,
+.order-item--locked {
+  cursor: default;
+}
+.feed-item--locked:hover {
+  background: transparent;
+}
+.order-item--locked:hover .order-no {
+  color: var(--text-regular);
+}
 .feed-icon {
   width: 34px;
   height: 34px;
@@ -880,6 +1087,10 @@ onUnmounted(() => {
 .feed-arrow {
   color: #595959; /* WCAG AA */
   font-size: 14px;
+}
+.feed-arrow--locked {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 .trend-chart {
   width: 100%;
@@ -1009,6 +1220,66 @@ onUnmounted(() => {
   font-size: 13px;
   padding: 12px 0;
 }
+/* 待办失败态（WB-AUDIT-02）：显式报错 + 重试，**不得**与空态共用样式 */
+.side-error {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  font-size: 13px;
+  color: #b42318;
+}
+.side-error-text {
+  line-height: 1.5;
+}
+.side-retry {
+  align-self: flex-start;
+  padding: 3px 12px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.side-retry:hover {
+  background: rgba(180, 35, 24, 0.08);
+}
+/* 指标条失败提示 */
+.metric-strip-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(180, 35, 24, 0.35);
+  font-size: 12px;
+  color: #b42318;
+}
+.metric-strip-retry {
+  padding: 2px 10px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+/* 待办条目附加信息 */
+.todo-count {
+  margin-left: 6px;
+  color: #595959;
+  font-size: 12px;
+}
+.todo-sub {
+  margin-left: 8px;
+  color: #8c8c8c;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
 .todo-list {
   display: flex;
   flex-direction: column;
@@ -1071,6 +1342,14 @@ onUnmounted(() => {
   border-color: var(--color-primary);
   color: var(--color-primary-text);
   background: var(--color-primary-bg);
+}
+/* 当前角色无任何可用入口（由 meta.roles 派生后为空）时的占位，避免空卡片误导 */
+.quick-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-4);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
 
 /* WCAG AA：Element 组件对比度覆盖（el-select 占位符 / el-radio-button 激活态） */

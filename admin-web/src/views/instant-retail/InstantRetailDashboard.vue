@@ -28,10 +28,9 @@
       </div>
     </div>
 
-    <!-- 指标卡片 -->
-    <el-row :gutter="16" class="metrics-row">
-      <el-col :span="6">
-        <el-card class="metric-card" shadow="hover">
+    <!-- 指标卡片（看板三栏网格 boardGrid） -->
+    <div class="board-grid">
+      <el-card class="metric-card" shadow="hover">
           <div class="metric-content">
             <div class="metric-icon" style="background: var(--el-color-primary-light-9); color: var(--el-color-primary);">
               <el-icon :size="28"><Tickets /></el-icon>
@@ -48,9 +47,7 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="metric-card" shadow="hover">
+      <el-card class="metric-card" shadow="hover">
           <div class="metric-content">
             <div class="metric-icon" style="background: var(--el-color-warning-light-9); color: var(--el-color-warning);">
               <el-icon :size="28"><Clock /></el-icon>
@@ -65,9 +62,7 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="metric-card" shadow="hover">
+      <el-card class="metric-card" shadow="hover">
           <div class="metric-content">
             <div class="metric-icon" style="background: var(--el-color-success-light-9); color: var(--el-color-success);">
               <el-icon :size="28"><Coin /></el-icon>
@@ -84,9 +79,7 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="metric-card" shadow="hover">
+      <el-card class="metric-card" shadow="hover">
           <div class="metric-content">
             <div class="metric-icon" :style="syncStatusStyle">
               <el-icon :size="28"><Connection /></el-icon>
@@ -102,13 +95,11 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
+    </div>
 
-    <!-- 图表区域 -->
-    <el-row :gutter="16" class="charts-row">
-      <el-col :span="16">
-        <el-card class="chart-card">
+    <!-- 图表区域（单列全宽） -->
+    <div class="charts-stack">
+      <el-card class="chart-card chart-card-trend">
           <template #header>
             <div class="chart-header">
               <span class="chart-title">近7日订单趋势</span>
@@ -136,9 +127,7 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-      <el-col :span="8">
-        <el-card class="chart-card">
+      <el-card class="chart-card">
           <template #header>
             <span class="chart-title">平台订单分布</span>
           </template>
@@ -158,8 +147,7 @@
             </div>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
+    </div>
 
     <!-- 最近订单列表 -->
     <el-card class="recent-orders">
@@ -396,8 +384,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
 }
-.metrics-row {
-  margin-bottom: 16px;
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 13px;
+}
+@media (max-width: 1200px) {
+  .board-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .metric-card {
   border-radius: 8px;
@@ -448,11 +444,27 @@ onMounted(() => {
   color: var(--el-color-danger);
   font-weight: 600;
 }
-.charts-row {
-  margin-bottom: 16px;
+.charts-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-bottom: 13px;
 }
 .chart-card {
   border-radius: 8px;
+}
+.chart-card-trend {
+  height: 244px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.chart-card-trend :deep(.el-card__header) {
+  flex: 0 0 auto;
+}
+.chart-card-trend :deep(.el-card__body) {
+  flex: 1 1 0;
+  min-height: 0;
 }
 .chart-header {
   display: flex;
@@ -464,7 +476,7 @@ onMounted(() => {
   font-size: 15px;
 }
 .chart-placeholder {
-  height: 280px;
+  height: 100%;
   display: flex;
   align-items: flex-end;
 }
@@ -492,7 +504,8 @@ onMounted(() => {
 }
 .bar-wrapper {
   width: 36px;
-  height: 200px;
+  flex: 1 1 0;
+  min-height: 0;
   background: var(--el-fill-color-light);
   border-radius: 6px 6px 0 0;
   position: relative;

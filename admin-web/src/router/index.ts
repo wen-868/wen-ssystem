@@ -71,7 +71,7 @@ import {
   Warning,
   WarningFilled
 } from "@element-plus/icons-vue";
-import MainLayout from "../layouts/MainLayout.vue";
+import WorkbenchShell from "../layouts/WorkbenchShell.vue";
 import LoginView from "../views/LoginView.vue";
 import NotFound from "../views/NotFound.vue";
 import { useAuthStore } from "../stores/auth";
@@ -92,7 +92,7 @@ const routes = [
   },
   {
     path: "/",
-    component: MainLayout,
+    component: WorkbenchShell,
     redirect: "/dashboard",
     meta: { requiresAuth: true },
     children: [

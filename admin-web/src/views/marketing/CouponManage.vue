@@ -8,7 +8,7 @@
   </div>
 <el-card>
       <div class="filter-bar">
-        <div class="filter-bar">
+        <div class="filter-bar-items">
           <el-select v-model="typeFilter" placeholder="优惠券类型" clearable style="width: 140px; margin-right: 12px" @change="loadData">
             <el-option label="满减券" value="FIXED" />
             <el-option label="折扣券" value="PERCENT" />

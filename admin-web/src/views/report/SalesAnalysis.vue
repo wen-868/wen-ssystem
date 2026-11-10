@@ -686,11 +686,11 @@ onBeforeUnmount(() => {
 }
 
 .chart-tall {
-  height: 420px;
+  height: 244px;
 }
 
 .chart-medium {
-  height: 340px;
+  height: 244px;
 }
 
 .growth-up-text {

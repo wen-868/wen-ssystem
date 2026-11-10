@@ -115,17 +115,18 @@
       </el-form>
     </el-card>
 
-    <el-card class="section-card" shadow="never">
-      <template #header>
-        <div class="section-header">
-          <span class="section-title">同步操作</span>
-          <div class="section-actions">
-            <el-button size="small" :loading="syncOrderLoading" @click="handleSyncOrders">手动同步订单</el-button>
-            <el-button size="small" :loading="syncProductLoading" @click="handleSyncProducts">手动同步商品</el-button>
-          </div>
+    <!-- WORKBENCH-13B 内衬修复：同步记录表从 el-card 体内移出（卡片体内衬会让表格 x/width 多缩一层），
+         改为「标题条 + 全宽表格」结构，与其它列表页同构（表格本体即外框层） -->
+    <div class="section-block">
+      <div class="section-bar">
+        <span class="section-title">同步操作</span>
+        <div class="section-actions">
+          <el-button size="small" :loading="syncOrderLoading" @click="handleSyncOrders">手动同步订单</el-button>
+          <el-button size="small" :loading="syncProductLoading" @click="handleSyncProducts">手动同步商品</el-button>
         </div>
-      </template>
-      <el-table :data="localPlatform.syncLogs" stripe style="width: 100%">
+      </div>
+      <div class="table-card">
+        <el-table :data="localPlatform.syncLogs" stripe style="width: 100%">
         <el-table-column prop="type" label="同步类型" width="120" />
         <el-table-column prop="time" label="同步时间" width="180" />
         <el-table-column prop="status" label="状态" width="100">
@@ -141,7 +142,8 @@
           <el-empty description="暂无同步记录" :image-size="60" />
         </template>
       </el-table>
-    </el-card>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -379,6 +381,24 @@ function handleSyncProducts() {
 .section-card {
   margin-bottom: 16px;
   border: 1px solid var(--border-light);
+}
+/* WORKBENCH-13B 内衬修复：同步操作区改为「标题条 + 全宽表格」，
+   标题条复用卡片头的观感（白底/描边/圆角），表格本体不吃额外内衬 */
+.section-block {
+  margin-bottom: 16px;
+}
+.section-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-light);
+  border-radius: var(--card-radius, 10px);
+  margin-bottom: 12px;
+}
+.table-card {
+  width: 100%;
 }
 .section-header {
   display: flex;

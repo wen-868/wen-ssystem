@@ -1,0 +1,86 @@
+/**
+ * 业务域中文标签（WORKBENCH-03F1）
+ * 域键 = 30 动作权限矩阵 actionId 的前缀（原样取自矩阵，不做名称相似归并）。
+ * 未登记的域一律回退为域键本身，便于发现新增域而不是静默吞掉。
+ */
+export const DOMAIN_LABELS: Readonly<Record<string, string>> = {
+  aftersale: "售后",
+  alert: "库存预警",
+  approval: "审批",
+  auth: "认证登录",
+  "bank-account": "银行账户",
+  bill: "票据",
+  "collection-link": "收款链接",
+  "combo-product": "套餐商品",
+  commission: "提成",
+  coupon: "优惠券",
+  credit: "客户授信",
+  customer: "客户",
+  "customer-price": "客户价格",
+  "customer-type": "客户类型",
+  "daily-settlement": "日结",
+  "data-transfer": "数据迁移",
+  demo: "演示数据",
+  expense: "费用",
+  hardware: "收银硬件",
+  "hold-order": "挂单",
+  "instant-retail": "即时零售",
+  "inventory-batch": "库存批次",
+  "inventory-share": "库存共享",
+  library: "素材库",
+  marketing: "营销",
+  member: "会员",
+  "miniapp-config": "小程序配置",
+  "miniapp-order-sync": "小程序订单同步",
+  monitor: "监控",
+  notification: "通知",
+  order: "订单",
+  "order-timeout": "订单超时",
+  "payments-new": "支付",
+  position: "岗位",
+  price: "价格策略",
+  product: "商品",
+  "product-bundle": "商品组合",
+  "product-review": "商品评价",
+  "product-tag": "商品标签",
+  "purchase-contract": "采购合同",
+  "purchase-in-stock": "采购入库",
+  "purchase-order": "采购订单",
+  "purchase-payment": "采购付款",
+  "purchase-plan": "采购计划",
+  "purchase-return": "采购退货",
+  receipt: "收款",
+  reconciliation: "对账",
+  register: "注册",
+  "report-permission": "报表权限",
+  "retail-announcement": "零售公告",
+  "sale-bill": "销售单据",
+  "sale-return": "销售退货",
+  shift: "交接班",
+  staff: "员工",
+  "stock-check": "盘点",
+  "stock-warning": "库存预警规则",
+  "store-value-card": "储值卡",
+  supplier: "供应商",
+  "supplier-contact": "供应商联系人",
+  "supplier-statement": "供应商对账",
+  "sys-user": "系统用户",
+  system: "系统设置",
+  tag: "标签",
+  trace: "溯源",
+  transfer: "调拨",
+  warehouse: "仓库",
+};
+
+/** 取域中文标签；未登记时回退域键（测试会点名未登记域） */
+export function domainLabel(domain: string): string {
+  return DOMAIN_LABELS[domain] ?? domain;
+}
+
+/** 状态严重度排序：BLOCKED > PLANNED > PARTIAL > LIVE（用于入口级聚合取最差） */
+export const STATUS_SEVERITY: Readonly<Record<string, number>> = {
+  LIVE: 0,
+  PARTIAL: 1,
+  PLANNED: 2,
+  BLOCKED: 3,
+};

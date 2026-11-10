@@ -38,19 +38,19 @@
       </div>
     </div>
 
-    <!-- Tab 切换 -->
-    <el-card class="tab-card" shadow="never">
+    <!-- Tab 切换（宿主不再用 el-card：避免 pageCard 契约选择器（.el-card/.form-card/[data-testid='page-card']）
+         把筛选条之前的页内 Tab 条当成信息卡，打乱纵向节奏） -->
+    <div class="tab-card">
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="待审核" name="PENDING" />
         <el-tab-pane label="已通过" name="APPROVED" />
         <el-tab-pane label="已驳回" name="REJECTED" />
         <el-tab-pane label="全部" name="ALL" />
       </el-tabs>
-    </el-card>
+    </div>
 
     <!-- 搜索筛选 -->
-    <el-card class="search-card" shadow="never">
-      <el-form :model="searchForm" inline>
+    <el-form :model="searchForm" inline class="filter-bar">
         <el-form-item label="关键词">
           <el-input v-model="searchForm.keyword" placeholder="商品名称/审核单号" clearable style="width: 200px" />
         </el-form-item>
@@ -80,8 +80,7 @@
           <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
-      </el-form>
-    </el-card>
+    </el-form>
 
     <!-- 列表表格 -->
     <el-card class="table-card" shadow="never">
@@ -689,12 +688,15 @@ onMounted(() => {
   color: var(--gray-700);
 }
 
+/* Tab 条宿主自绘卡面（与画布 el-card 口径一致：白底 / 1px #ECEEF1 / 圆角 14 / 14×15 内衬），
+   不带 .el-card 类 ⇒ 筛选条之前的元素不再命中 pageCard 选择器 */
 .tab-card {
-  margin-bottom: 16px;
-}
-
-.search-card {
-  margin-bottom: 16px;
+  box-sizing: border-box;
+  margin-bottom: 13px;
+  background: var(--wb-panel, #ffffff);
+  border: 1px solid var(--wb-line, #eceef1);
+  border-radius: 14px;
+  padding: 14px 15px;
 }
 
 .table-card .pagination {

@@ -85,10 +85,22 @@
       </div>
     </div>
 
-    <!-- 错误消息 -->
-    <div v-else class="bubble error-bubble">
+    <!-- 错误消息（发送失败：明示失败 + 原文重试入口，绝不渲染成成功样式） -->
+    <div v-else class="bubble error-bubble" data-testid="ai-error-bubble">
       <el-icon><WarningFilled /></el-icon>
-      <span>{{ message.error || "发生未知错误" }}</span>
+      <div class="error-body">
+        <p class="error-title">发送失败（本条未成功）</p>
+        <span class="error-text">{{ message.error || "发生未知错误" }}</span>
+        <button
+          v-if="message.retryText"
+          type="button"
+          class="error-retry"
+          data-testid="ai-error-retry"
+          @click="emit('retry', message.id)"
+        >
+          重试
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -106,6 +118,7 @@ const emit = defineEmits<{
   (e: "confirm", messageId: string, confirmationId: string): void;
   (e: "cancel", messageId: string, confirmationId: string): void;
   (e: "revoke", messageId: string, operationId: string): void;
+  (e: "retry", messageId: string): void;
 }>();
 
 /** 将 AI 文本拆分为普通文本段与图表段（[CHART] 标记） */
@@ -364,6 +377,33 @@ function toolSummary(message: AiChatMessage): string {
   align-items: flex-start;
   gap: 6px;
   max-width: 100%;
+}
+
+.error-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.error-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.error-retry {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  border-radius: var(--radius-pill, 999px);
+  padding: 2px 10px;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.error-retry:hover {
+  background: rgba(220, 38, 38, 0.08);
 }
 
 .tool-card {

@@ -13,7 +13,7 @@
 
       <!-- 统一筛选器 -->
       <div class="filter-bar">
-        <div class="filter-bar">
+        <div class="filter-bar-items">
           <el-input
             v-model="keyword"
             placeholder="搜索活动名称"
@@ -44,7 +44,7 @@
             style="margin-right: 10px"
             @change="loadActivities"
           />
-          <el-button @click="loadActivities">搜索</el-button>
+          <el-button type="primary" @click="loadActivities">搜索</el-button>
           <el-button @click="resetFilters">重置</el-button>
         </div>
       </div>

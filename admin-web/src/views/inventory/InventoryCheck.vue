@@ -6,7 +6,7 @@
     </div>
 
     <PageCard>
-      <el-form :inline="true" :model="filterForm">
+      <el-form :inline="true" :model="filterForm" class="filter-bar">
         <el-form-item label="门店">
           <el-select
             v-model="filterForm.storeId"

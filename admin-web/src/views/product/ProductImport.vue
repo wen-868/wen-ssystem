@@ -1,58 +1,64 @@
 <template>
-  <div class="page">
+  <div class="page product-import-page">
     <div class="page-header">
       <div class="page-header-main">
         <h2 class="page-title">商品导入</h2>
         <p class="page-desc">使用行业通用模板批量导入商品，兼容管家婆/用友/金蝶等导出的商品文件</p>
       </div>
-      <div class="page-header-actions">
-        <el-button @click="downloadTemplate">下载模板</el-button>
-        <el-button type="primary" @click="resetAll">继续导入</el-button>
-        <el-button @click="$router.push('/products')">查看商品列表</el-button>
-      </div>
     </div>
 
-    <div v-if="!done" class="step-content">
-      <el-upload
-        ref="uploadRef"
-        class="upload-area"
-        drag
-        :auto-upload="false"
-        :limit="1"
-        accept=".csv"
-        :on-change="handleFileChange"
-        :on-remove="handleFileRemove"
-      >
-        <el-icon :size="48"><Upload /></el-icon>
-        <div class="upload-text">将 CSV 文件拖到此处，或点击上传</div>
-        <template #tip>
-          <div class="upload-tip">支持 .csv 格式（Excel 编辑后另存为 CSV），文件大小不超过 10MB</div>
-        </template>
-      </el-upload>
+    <PageCard title="导入商品" description="选择 CSV 文件并执行导入">
+      <el-form :inline="true" class="filter-bar" @submit.prevent>
+        <el-form-item>
+          <el-button @click="downloadTemplate">下载模板</el-button>
+          <el-button type="primary" @click="resetAll">继续导入</el-button>
+          <el-button @click="$router.push('/products')">查看商品列表</el-button>
+        </el-form-item>
+      </el-form>
 
-      <div class="template-tip">
-        表头：商品编码, 条码, 商品名称, 规格型号, 单位, 分类, 品牌, 进价, 售价, 批发价, 库存数量, 预警值
-        <br />
-        也兼容 商品编号/货号、条形码、成本价、零售价、安全库存 等同行常用叫法；商品编码或条码任一可识别重复商品。
+      <div v-if="!done" class="step-content">
+        <el-upload
+          ref="uploadRef"
+          class="upload-area"
+          drag
+          :auto-upload="false"
+          :limit="1"
+          accept=".csv"
+          :on-change="handleFileChange"
+          :on-remove="handleFileRemove"
+        >
+          <el-icon :size="48"><Upload /></el-icon>
+          <div class="upload-text">将 CSV 文件拖到此处，或点击上传</div>
+          <template #tip>
+            <div class="upload-tip">支持 .csv 格式（Excel 编辑后另存为 CSV），文件大小不超过 10MB</div>
+          </template>
+        </el-upload>
+
+        <div class="template-tip">
+          表头：商品编码, 条码, 商品名称, 规格型号, 单位, 分类, 品牌, 进价, 售价, 批发价, 库存数量, 预警值
+          <br />
+          也兼容 商品编号/货号、条形码、成本价、零售价、安全库存 等同行常用叫法；商品编码或条码任一可识别重复商品。
+        </div>
+
+        <div class="step-actions">
+          <el-button type="primary" :disabled="!uploadFile" :loading="importLoading" @click="doImport">
+            开始导入
+          </el-button>
+        </div>
       </div>
 
-      <div class="step-actions">
-        <el-button type="primary" :disabled="!uploadFile" :loading="importLoading" @click="doImport">
-          开始导入
-        </el-button>
+      <div v-else class="step-content">
+        <el-result
+          icon="success"
+          title="导入完成"
+          :sub-title="`新增 ${result.imported} 条，更新 ${result.updated} 条，跳过 ${result.skipped} 条`"
+        />
+        <el-empty v-if="!result.errors.length" description="无错误明细" :image-size="60" />
+        <div v-if="result.errors.length" class="error-list">
+          <div v-for="(err, i) in result.errors" :key="i" class="error-item">{{ err }}</div>
+        </div>
       </div>
-    </div>
-
-    <div v-else class="step-content">
-      <el-result
-        icon="success"
-        title="导入完成"
-        :sub-title="`新增 ${result.imported} 条，更新 ${result.updated} 条，跳过 ${result.skipped} 条`"
-      />
-      <div v-if="result.errors.length" class="error-list">
-        <div v-for="(err, i) in result.errors" :key="i" class="error-item">{{ err }}</div>
-      </div>
-    </div>
+    </PageCard>
   </div>
 </template>
 
@@ -62,6 +68,7 @@ import { ElMessage } from "element-plus";
 import { Upload } from "@element-plus/icons-vue";
 import { api } from "../../api";
 import { downloadTextFile } from "../../utils/download";
+import PageCard from "../../components/PageCard.vue";
 
 const uploadFile = ref<any>(null);
 const importLoading = ref(false);

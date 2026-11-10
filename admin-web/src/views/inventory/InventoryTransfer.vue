@@ -7,7 +7,7 @@
 
     <!-- 搜索筛选区 -->
     <PageCard>
-      <el-form :inline="true" :model="filterForm" class="filter-form">
+      <el-form :inline="true" :model="filterForm" class="filter-form filter-bar">
         <el-form-item label="调拨单号">
           <el-input
             v-model="filterForm.keyword"
@@ -67,20 +67,19 @@
           <el-button @click="handleReset">
             <el-icon><RefreshLeft /></el-icon> 重置
           </el-button>
+          <!-- 13C：主行动钮从卡头 #extra 移入筛选条（原型 .s-filter 内 .btn2.pri 同构），卡头回 39px 标题行 -->
+          <el-button type="primary" @click="handleCreate">
+            <el-icon><Plus /></el-icon> 新建调拨
+          </el-button>
+          <el-button @click="loadTransfers">
+            <el-icon><Refresh /></el-icon> 刷新
+          </el-button>
         </el-form-item>
       </el-form>
     </PageCard>
 
     <!-- 列表区 -->
     <PageCard>
-      <template #extra>
-        <el-button type="primary" @click="handleCreate">
-          <el-icon><Plus /></el-icon> 新建调拨
-        </el-button>
-        <el-button @click="loadTransfers">
-          <el-icon><Refresh /></el-icon> 刷新
-        </el-button>
-      </template>
 
       <!-- Tab 切换 -->
       <el-tabs v-model="activeTab" class="status-tabs" @tab-change="handleTabChange">

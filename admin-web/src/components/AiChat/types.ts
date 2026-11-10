@@ -45,6 +45,8 @@ export interface AiChatMessage {
   proactiveType?: string;
   /** 错误描述 */
   error?: string;
+  /** 发送失败时保留的原始提问文本（失败恢复：点「重试」按原链路重发，不冒充已发送成功） */
+  retryText?: string;
   /** 创建时间戳 */
   createdAt: number;
 }

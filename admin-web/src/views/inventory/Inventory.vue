@@ -32,6 +32,17 @@
         </div>
 
         <TableSkeleton v-if="loading" />
+        <el-result
+          v-else-if="loadError"
+          :icon="loadError.code === 403 ? 'warning' : 'error'"
+          :title="loadError.code === 403 ? '无权限访问' : '数据加载失败'"
+          :sub-title="loadError.message"
+          class="inventory-state-result"
+        >
+          <template #extra>
+            <el-button type="primary" @click="loadData">重试</el-button>
+          </template>
+        </el-result>
         <div v-else class="table-card">
           <el-table :data="balances" stripe>
             <el-table-column prop="storeName" label="门店" width="140" />
@@ -94,6 +105,17 @@
         </div>
 
         <TableSkeleton v-if="loading" />
+        <el-result
+          v-else-if="loadError"
+          :icon="loadError.code === 403 ? 'warning' : 'error'"
+          :title="loadError.code === 403 ? '无权限访问' : '数据加载失败'"
+          :sub-title="loadError.message"
+          class="inventory-state-result"
+        >
+          <template #extra>
+            <el-button type="primary" @click="loadData">重试</el-button>
+          </template>
+        </el-result>
         <div v-else class="table-card">
           <el-table :data="logs" stripe>
             <el-table-column prop="logNo" label="流水单号" width="200" />
@@ -143,6 +165,7 @@ const activeTab = ref("balances");
 const stores = ref<any[]>([]);
 
 const balances = ref<any[]>([]);
+const loadError = ref<{ code: number | null; message: string } | null>(null);
 
 /** 库存统计条（对标设计稿 p06） */
 const inventoryStats = computed(() => {
@@ -179,8 +202,15 @@ async function loadStores() {
   }
 }
 
+function errorState(e: any, fallback: string) {
+  const status = e?.response?.status ?? null;
+  const msg = e?.response?.data?.msg || e?.response?.data?.message || fallback;
+  return { code: typeof status === "number" ? status : null, message: String(msg || fallback) };
+}
+
 async function loadBalances() {
   loading.value = true;
+  loadError.value = null;
   try {
     const data = await fetchInventoryBalances();
     let list = Array.isArray(data) ? data : (data.records || []);
@@ -199,7 +229,10 @@ async function loadBalances() {
     const end = start + balancePageSize.value;
     balances.value = list.slice(start, end);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.msg || "加载失败");
+    loadError.value = errorState(e, "加载库存失败");
+    balances.value = [];
+    balanceTotal.value = 0;
+    ElMessage.error(loadError.value.message);
   } finally {
     loading.value = false;
   }
@@ -207,6 +240,7 @@ async function loadBalances() {
 
 async function loadLogs() {
   loading.value = true;
+  loadError.value = null;
   try {
     const data = await fetchInventoryLogs();
     let list = Array.isArray(data) ? data : (data.records || []);
@@ -225,7 +259,10 @@ async function loadLogs() {
     const end = start + logPageSize.value;
     logs.value = list.slice(start, end);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.msg || "加载失败");
+    loadError.value = errorState(e, "加载流水失败");
+    logs.value = [];
+    logTotal.value = 0;
+    ElMessage.error(loadError.value.message);
   } finally {
     loading.value = false;
   }
@@ -298,5 +335,8 @@ onMounted(() => {
   color: var(--color-danger);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+.inventory-state-result {
+  padding: 32px 0;
 }
 </style>
