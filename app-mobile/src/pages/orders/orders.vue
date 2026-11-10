@@ -1,155 +1,164 @@
 <template>
-  <view class="orders-page">
-    <!-- 页头（原稿 pg-hd：返回 + 标题 + 右侧筛选胶囊） -->
-    <view class="pg-hd">
-      <view class="hd-back" @tap="goBack">
-        <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
-      </view>
-      <text class="hd-title">订单管理</text>
-      <view class="hd-filter" :class="{ 'hd-filter--active': filterOpen || activeFilterCount }" @tap="toggleFilter">
-        <image class="hd-filter-ico" src="/static/icons/ic/funnel.svg" mode="aspectFit" />
-        <text>筛选</text>
-        <view class="hd-filter-badge" v-if="activeFilterCount">{{ activeFilterCount }}</view>
-      </view>
-    </view>
-
-    <!-- 主段 tab（原稿 top-tabs：门店销售单据/即时零售单据/采购单据） -->
-    <view class="top-tabs">
-      <view
-        class="top-tab"
-        v-for="cat in cats"
-        :key="cat.key"
-        :class="{ 'top-tab--active': activeCat === cat.key }"
-        @tap="switchCat(cat.key)"
-      >{{ cat.name }}</view>
-    </view>
-
-    <!-- 子段 tab（原稿 sub-tabs：单据类型 / 即时零售平台） -->
-    <view class="sub-tabs">
-      <scroll-view class="sub-tabs-scroll" scroll-x :show-scrollbar="false">
-        <view class="sub-tabs-inner">
-          <view
-            class="sub-tab"
-            v-for="t in activeCatTypes"
-            :key="t.key"
-            :class="{ 'sub-tab--active': (activeCatDef.mode === 'channel' ? activeChannel : activeType) === t.key }"
-            @tap="switchType(t.key)"
-          >{{ t.name }}</view>
+    <view class="orders-page">
+        <!-- 页头（原稿 pg-hd：返回 + 标题 + 右侧筛选胶囊） -->
+        <view class="pg-hd">
+            <view class="hd-back" @tap="goBack">
+                <image class="hd-back-img" src="/static/icons/ic/back.svg" mode="aspectFit" />
+            </view>
+            <text class="hd-title">订单管理</text>
+            <view class="hd-filter" :class="{ 'hd-filter--active': filterOpen || activeFilterCount }" @tap="toggleFilter">
+                <image class="hd-filter-ico" src="/static/icons/ic/funnel.svg" mode="aspectFit" />
+                <text>筛选</text>
+                <view class="hd-filter-badge" v-if="activeFilterCount">{{ activeFilterCount }}</view>
+            </view>
         </view>
-      </scroll-view>
-    </view>
 
-    <!-- 搜索（原稿 search-bar） -->
-    <view class="search-bar">
-      <view class="search-inner">
-        <image class="search-ico" src="/static/icons/ic/search.svg" mode="aspectFit" />
-        <input
-          class="search-input"
-          :value="keyword"
-          type="text"
-          placeholder="搜索订单号 / 客户 / 商品"
-          placeholder-class="search-ph"
-          @input="onSearchInput"
-        />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">×</text>
-      </view>
-    </view>
-
-    <!-- 筛选面板（原稿 filter-panel：可折叠，状态标签 + 属性） -->
-    <view class="filter-panel" :class="{ 'filter-panel--open': filterOpen }">
-      <view class="filter-panel-inner">
-        <view class="fp-head">
-          <text class="fp-title">筛选条件</text>
-          <text class="fp-reset" @tap="resetFilter">重置</text>
-        </view>
-        <view class="fp-group">
-          <text class="fp-label">订单状态</text>
-          <view class="fp-tags fp-tags--row">
+        <!-- 主段 tab（原稿 top-tabs：门店销售单据/即时零售单据/采购单据） -->
+        <view class="top-tabs">
             <view
-              class="tag-chip"
-              v-for="tag in statusTags"
-              :key="tag.key"
-              :class="{ 'tag-chip--active': activeStatusTags.includes(tag.key) }"
-              @tap="toggleStatus(tag.key)"
-            ><text class="tag-dot"></text>{{ tag.txt }}</view>
-          </view>
-        </view>
-        <view class="fp-group">
-          <text class="fp-label">属性</text>
-          <view class="fp-tags">
-            <view
-              class="tag-chip"
-              v-for="tag in attrTags"
-              :key="tag.key"
-              :class="{ 'tag-chip--active': activeAttrTags.includes(tag.key) }"
-              @tap="toggleAttr(tag.key)"
-            >{{ tag.txt }}</view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 列表（原稿：日期分节 list-section + order-card oc 结构） -->
-    <scroll-view
-      class="content-area"
-      scroll-y
-      @scrolltolower="onLoadMore"
-      refresher-enabled
-      :refresher-triggered="refresherTriggered"
-      @refresherrefresh="onPullDownRefresh"
-    >
-      <template v-for="group in displayedGroups" :key="group.date">
-        <view class="list-section">{{ group.date }} · 共 {{ group.items.length }} 笔</view>
-        <view class="order-card" v-for="item in group.items" :key="item.billNo" @tap="onCardTap(item)">
-          <view class="oc-top">
-            <view class="oc-no-wrap">
-              <text class="oc-no">{{ item.billNo }}</text>
-              <text class="oc-type">{{ billShort(item.billType) }}</text>
-            </view>
-            <view class="oc-status" :class="statusBadgeClass(item.status)">
-              <text class="oc-status-text">{{ statusText(item.status) }}</text>
-            </view>
-          </view>
-          <view class="oc-mid">
-            <view class="oc-chan" :class="chanClass(item)">
-              <text class="oca-letter">{{ chanLetter(item) }}</text>
-              <text>{{ chanText(item) }}</text>
-            </view>
-            <text class="oc-partner">{{ item.billType.indexOf('purchase') === 0 ? '供应商：' : '' }}{{ item.partyName || '—' }}</text>
-          </view>
-          <view class="oc-bot">
-            <text class="oc-meta">{{ formatTime(item.createdAt) }}</text>
-            <text class="oc-amount" :class="{ 'oc-amount--red': isRedAmount(item) }"><text class="cur">¥</text>{{ fmtAmount(item.amount) }}</text>
-          </view>
-          <view class="oc-actions" v-if="item.billType === 'sale_order'">
-            <view class="oc-action" @tap.stop="goDetail(item.billNo)">
-              <text class="oc-action-text">详情</text>
-            </view>
-            <view
-              class="oc-action oc-action--primary"
-              v-if="item.status === 'PENDING_PAYMENT' || item.status === 'UNPAID'"
-              @tap.stop="confirmReceive(item)"
+                class="top-tab"
+                v-for="cat in cats"
+                :key="cat.key"
+                :class="{ 'top-tab--active': activeCat === cat.key }"
+                @tap="switchCat(cat.key)"
             >
-              <text class="oc-action-text">确认收款</text>
+                {{ cat.name }}
             </view>
-          </view>
         </view>
-      </template>
 
-      <view class="empty" v-if="displayedOrders.length === 0 && !loading">
-        <image class="empty-img" src="/static/icons/od-empty.svg" mode="aspectFit" />
-        <text class="empty-text">没有找到匹配的订单</text>
-      </view>
+        <!-- 子段 tab（原稿 sub-tabs：单据类型 / 即时零售平台） -->
+        <view class="sub-tabs">
+            <scroll-view class="sub-tabs-scroll" scroll-x :show-scrollbar="false">
+                <view class="sub-tabs-inner">
+                    <view
+                        class="sub-tab"
+                        v-for="t in activeCatTypes"
+                        :key="t.key"
+                        :class="{ 'sub-tab--active': (activeCatDef.mode === 'channel' ? activeChannel : activeType) === t.key }"
+                        @tap="switchType(t.key)"
+                    >
+                        {{ t.name }}
+                    </view>
+                </view>
+            </scroll-view>
+        </view>
 
-      <view class="load-more" v-if="orderList.length > 0">
-        <view class="loading-more-spinner" v-if="loadingMore"></view>
-        <text class="load-more-text" v-if="loadingMore">加载中...</text>
-        <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
-      </view>
-    </scroll-view>
+        <!-- 搜索（原稿 search-bar） -->
+        <view class="search-bar">
+            <view class="search-inner">
+                <image class="search-ico" src="/static/icons/ic/search.svg" mode="aspectFit" />
+                <input
+                    class="search-input"
+                    :value="keyword"
+                    type="text"
+                    placeholder="搜索订单号 / 客户 / 商品"
+                    placeholder-class="search-ph"
+                    @input="onSearchInput"
+                />
+                <text class="search-clear" v-if="keyword" @tap="clearSearch">×</text>
+            </view>
+        </view>
 
-    <view class="safe-bottom"></view>
-  </view>
+        <!-- 筛选面板（原稿 filter-panel：可折叠，状态标签 + 属性） -->
+        <view class="filter-panel" :class="{ 'filter-panel--open': filterOpen }">
+            <view class="filter-panel-inner">
+                <view class="fp-head">
+                    <text class="fp-title">筛选条件</text>
+                    <text class="fp-reset" @tap="resetFilter">重置</text>
+                </view>
+                <view class="fp-group">
+                    <text class="fp-label">订单状态</text>
+                    <view class="fp-tags fp-tags--row">
+                        <view
+                            class="tag-chip"
+                            v-for="tag in statusTags"
+                            :key="tag.key"
+                            :class="{ 'tag-chip--active': activeStatusTags.includes(tag.key) }"
+                            @tap="toggleStatus(tag.key)"
+                        >
+                            <text class="tag-dot"></text>{{ tag.txt }}
+                        </view>
+                    </view>
+                </view>
+                <view class="fp-group">
+                    <text class="fp-label">属性</text>
+                    <view class="fp-tags">
+                        <view
+                            class="tag-chip"
+                            v-for="tag in attrTags"
+                            :key="tag.key"
+                            :class="{ 'tag-chip--active': activeAttrTags.includes(tag.key) }"
+                            @tap="toggleAttr(tag.key)"
+                        >
+                            {{ tag.txt }}
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </view>
+
+        <!-- 列表（原稿：日期分节 list-section + order-card oc 结构） -->
+        <scroll-view
+            class="content-area"
+            scroll-y
+            @scrolltolower="onLoadMore"
+            refresher-enabled
+            :refresher-triggered="refresherTriggered"
+            @refresherrefresh="onPullDownRefresh"
+        >
+            <template v-for="group in displayedGroups" :key="group.date">
+                <view class="list-section">{{ group.date }} · 共 {{ group.items.length }} 笔</view>
+                <view class="order-card" v-for="item in group.items" :key="item.billNo" @tap="onCardTap(item)">
+                    <view class="oc-top">
+                        <view class="oc-no-wrap">
+                            <text class="oc-no">{{ item.billNo }}</text>
+                            <text class="oc-type">{{ billShort(item.billType) }}</text>
+                        </view>
+                        <view class="oc-status" :class="statusBadgeClass(item.status)">
+                            <text class="oc-status-text">{{ statusText(item.status) }}</text>
+                        </view>
+                        <text v-if="recoveryOf(item).kind === 'manual-fallback'" class="oc-recovery-hint">{{ recoveryOf(item).text }}</text>
+                    </view>
+                    <view class="oc-mid">
+                        <view class="oc-chan" :class="chanClass(item)">
+                            <text class="oca-letter">{{ chanLetter(item) }}</text>
+                            <text>{{ chanText(item) }}</text>
+                        </view>
+                        <text class="oc-partner">{{ item.billType.indexOf('purchase') === 0 ? '供应商：' : '' }}{{ item.partyName || '—' }}</text>
+                    </view>
+                    <view class="oc-bot">
+                        <text class="oc-meta">{{ formatTime(item.createdAt) }}</text>
+                        <text class="oc-amount" :class="{ 'oc-amount--red': isRedAmount(item) }"><text class="cur">¥</text>{{ fmtAmount(item.amount) }}</text>
+                    </view>
+                    <view class="oc-actions" v-if="item.billType === 'sale_order'">
+                        <view class="oc-action" @tap.stop="goDetail(item.billNo)">
+                            <text class="oc-action-text">详情</text>
+                        </view>
+                        <view
+                            class="oc-action oc-action--primary"
+                            v-if="item.status === 'PENDING_PAYMENT' || item.status === 'UNPAID'"
+                            @tap.stop="confirmReceive(item)"
+                        >
+                            <text class="oc-action-text">确认收款</text>
+                        </view>
+                    </view>
+                </view>
+            </template>
+
+            <view class="empty" v-if="displayedOrders.length === 0 && !loading">
+                <image class="empty-img" src="/static/icons/od-empty.svg" mode="aspectFit" />
+                <text class="empty-text">没有找到匹配的订单</text>
+            </view>
+
+            <view class="load-more" v-if="orderList.length > 0">
+                <view class="loading-more-spinner" v-if="loadingMore"></view>
+                <text class="load-more-text" v-if="loadingMore">加载中...</text>
+                <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
+            </view>
+        </scroll-view>
+
+        <view class="safe-bottom"></view>
+    </view>
 </template>
 
 <script setup lang="ts">
@@ -159,11 +168,26 @@ import { instantRetailApi, type RetailOrder } from '@/api/modules/instant-retail
 import { saleReturnApi, purchaseReturnApi } from '@/api/modules/returns'
 import { receiptApi } from '@/api/modules/receipts'
 import { paymentNewApi } from '@/api/modules/finance'
+import { resolveRecoveryEntry, type RecoveryEntry } from '@/utils/order-recovery-entry'
 
 /** 列表统一条目：历史单据 + 即时零售平台单 */
 interface OrderListItem extends BillHistoryItem {
   /** 即时零售平台 jd/mt/ele（仅即时零售单据） */
   platform?: string
+}
+
+/**
+ * 恢复入口（F2 起不再在模板里展开三次 resolveRecoveryEntry，也不再 (item as any) 兜字段）：
+ * 状态字段已由 api/modules/orders.ts 映射进 BillHistoryItem（deliveryStatus/statusReason/retryEntry
+ * 均为显式可选字段），此处只做一次求值，供 v-if 与文案复用。
+ */
+function recoveryOf(item: OrderListItem): RecoveryEntry {
+  return resolveRecoveryEntry({
+    status: item.status,
+    deliveryStatus: item.deliveryStatus,
+    retryEntry: item.retryEntry,
+    statusReason: item.statusReason,
+  })
 }
 
 // ===== 三大分类与单据类型（原稿 top-tabs/sub-tabs；billType 对齐 bills/history 契约） =====
@@ -630,6 +654,8 @@ function statusText(status: string): string {
     COMPLETED: '已完成',
     // 退货/收款/付款单状态（销售退货 REJECTED、收款单 VOIDED、采购退货 VOIDED 等）
     REJECTED: '已驳回',
+    // 配送失败（即时零售/小程序订单 delivery_status = DELIVERY_FAILED）
+    DELIVERY_FAILED: '配送失败',
     VOIDED: '已作废',
     // 即时零售平台状态（原稿 STATUS）
     ACCEPTED: '待配送',
@@ -642,7 +668,7 @@ function statusText(status: string): string {
 
 function statusBadgeClass(status: string): string {
   const s = (status || '').toUpperCase()
-  if (s === 'UNPAID' || s === 'PENDING_PAYMENT' || s === 'REFUNDING' || s === 'REJECTED') return 'oc-status--danger'
+  if (s === 'UNPAID' || s === 'PENDING_PAYMENT' || s === 'REFUNDING' || s === 'REJECTED' || s === 'DELIVERY_FAILED') return 'oc-status--danger'
   if (s === 'PAID' || s === 'COMPLETED') return 'oc-status--paid'
   if (s === 'CONFIRMED') return 'oc-status--confirmed'
   return 'oc-status--pending'
@@ -1339,4 +1365,11 @@ onUnmounted(() => {
 .safe-bottom {
   height: calc(40rpx + env(safe-area-inset-bottom));
 }
+
+.oc-recovery-hint {
+  font-size: 22rpx;
+  color: $uni-color-warning;
+  margin-top: 4rpx;
+}
 </style>
+

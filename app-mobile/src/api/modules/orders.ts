@@ -199,7 +199,14 @@ export { ordersApi }
 
 // ========== 历史单据统一查询（后端 admin-bill-history.routes：/api/admin/bills/history） ==========
 
-/** 历史单据记录（聚合：销售单/销售订单/采购订单/采购入库） */
+/**
+ * 历史单据记录（聚合：销售单/销售订单/采购订单/采购入库）
+ *
+ * MOBILE-REJECT-REDELIVER-ENTRY-01-F2：`status` 的口径必须是**业务真实状态**，
+ * 不是收款状态。此前本接口与 storeSaleBillsApi 都把 `collectionStatus` 直接当 status，
+ * 导致 DB 里 business_status=REJECTED / delivery_status=REJECTED 的单据在列表里
+ * 永远显示成 UNPAID/PAID 等收款态 ⇒ 「拒收/配送失败」在 UI 上不可见（F1 被判驳回的真因）。
+ */
 export interface BillHistoryItem {
   /** sale_bill | sale_order | purchase_order | purchase_in_stock */
   billType: string
@@ -207,11 +214,27 @@ export interface BillHistoryItem {
   /** 客户/供应商名称 */
   partyName: string
   amount: number
-  /** 各单据状态原文（collection_status / order_status / stock_status） */
+  /**
+   * 展示用真实业务状态（已按优先级归一）：
+   * sale_bill ⇒ business_status；sale_order ⇒ delivery_status 优先、其次 order_status；
+   * 采购侧 ⇒ 原 order_status / stock_status。**不再是 collection_status。**
+   */
   status: string
   createdAt: string
   /** 客户类型 RETAIL/WHOLESALE（仅销售单有值，渠道来源区分 门店零售/门店批发） */
   customerType?: string | null
+  /** 业务状态原文（销售单 business_status；仅后端有则透传，供诊断与高级渲染） */
+  businessStatus?: string | null
+  /** 配送状态原文（即时零售/小程序订单 delivery_status；WATTING/DELIVERING/COMPLETED/REJECTED/CANCELLED） */
+  deliveryStatus?: string | null
+  /** 订单状态原文（order_status） */
+  orderStatus?: string | null
+  /** 收款状态原文（collection_status）—— 与 status 分家后单独保留，避免信息丢失 */
+  collectionStatus?: string | null
+  /** 失败原因（后端有则透传；本表当前无此列时会为空 ⇒ 页面走稳定人工兜底文案） */
+  statusReason?: string | null
+  /** 恢复入口标记（后端有则透传；本版后端未实现 store:manual-redeliver ⇒ 仅用于识别） */
+  retryEntry?: string | null
 }
 
 export interface BillHistoryParams {
@@ -223,21 +246,97 @@ export interface BillHistoryParams {
   pageSize?: number
 }
 
+/**
+ * 配送/拒收失败等价状态集合（与 utils/order-recovery-entry.ts 的 FAILURE_STATUSES 同源口径）
+ * 单一真相源：本文件只做优先级挑选，判「是不是失败态」仍由 order-recovery-entry 决定。
+ */
+const FAILURE_STATUSES = ['DELIVERY_FAILED', 'REJECTED']
+
+/**
+ * 列表展示状态：**失败态覆盖，否则沿用原历史语义**（failure override, otherwise legacy display）
+ *
+ * F3 订正（凌舟驳回 F2 §二/§三）：F2 让 `businessStatus` 在**非失败**情形也优先，
+ * 使正常销售单从 `UNPAID/PAID` 变成 `CREATED/COMPLETED`，页面「待收款/已收款」筛选随之失效
+ * （筛选按 `item.status` 与 UNPAID/PENDING_PAYMENT/PAID 比较）。违反「正常历史单据状态不得回归」。
+ *
+ * 现行口径（卡 §三）：
+ *  ① 失败态优先：`DELIVERY_FAILED` / `REJECTED` 任一来源命中 ⇒ 展示该失败态。
+ *     来源顺序按单据类型：sale_bill 先 business_status；其余先 delivery_status；
+ *     但**任一来源命中即算失败**（不因来源顺序漏判）。
+ *  ② 非失败态一律回到原历史语义：
+ *     · sale_bill      ⇒ collectionStatus（收款态；缺失才回退 business/order）
+ *     · sale_order     ⇒ orderStatus（缺失才回退 delivery/business）
+ *     · purchase_in_stock ⇒ stockStatus；purchase_order ⇒ orderStatus
+ *     ⇒ 正常单仍显示 `UNPAID/PAID` 等中文标签，筛选不受影响。
+ *  ③ businessStatus / deliveryStatus / collectionStatus 等字段继续保留在返回项里供诊断，
+ *     只是**不覆盖**正常列表语义。
+ */
+function pickDisplayStatus(r: any, billType: string): string {
+  const biz = str(r.businessStatus ?? r.business_status)
+  const deliv = str(r.deliveryStatus ?? r.delivery_status)
+  const order = str(r.orderStatus ?? r.order_status)
+  const coll = str(r.collectionStatus ?? r.collection_status)
+  const stock = str(r.stockStatus ?? r.stock_status)
+
+  // ① 失败态优先：任一来源命中即展示失败态（用户必须能看见「拒收/配送失败」）
+  for (const cand of [biz, deliv, order, coll]) {
+    if (cand && FAILURE_STATUSES.includes(cand.toUpperCase())) return cand.toUpperCase()
+  }
+
+  // ② 非失败 ⇒ 严格回到原历史语义（不得让 business/delivery 覆盖正常收款态）
+  if (billType === 'sale_bill') return coll || biz || order || ''
+  if (billType === 'sale_order') return order || deliv || biz || ''
+  if (billType === 'purchase_in_stock') return stock || order || ''
+  return order || stock || biz || ''
+}
+
+function str(v: any): string {
+  if (v === null || v === undefined) return ''
+  return String(v)
+}
+
+/**
+ * 历史单据行 → BillHistoryItem（导出供单测直接验映射，不依赖网络）。
+ * 与 storeSaleBillsApi.list 共用 pickDisplayStatus 口径。
+ */
+export function mapBillHistoryRow(r: any): BillHistoryItem {
+  const billType = str(r.billType)
+  return {
+    billType,
+    billNo: str(r.billNo),
+    partyName: str(r.partyName),
+    amount: Number(r.amount ?? 0),
+    status: pickDisplayStatus(r, billType),
+    createdAt: str(r.createdAt),
+    customerType: r.customerType ?? null,
+    businessStatus: r.businessStatus ?? null,
+    deliveryStatus: r.deliveryStatus ?? null,
+    orderStatus: r.orderStatus ?? null,
+    collectionStatus: r.collectionStatus ?? null,
+    statusReason: r.statusReason ?? null,
+    retryEntry: r.retryEntry ?? null,
+  }
+}
+
+/** 门店销售单行 → BillHistoryItem（导出供单测直接验映射） */
+export function mapStoreSaleBillRow(r: any): BillHistoryItem {
+  // 门店销售单：失败语义在 business_status（后端 sale-bill.service.ts:183 已返回 businessStatus）。
+  // 此前这里写死 collectionStatus ⇒ 拒收单永远显示成收款态（F1 驳回真因）。
+  return mapBillHistoryRow({
+    ...r,
+    billType: 'sale_bill',
+    partyName: r.customerName,
+    amount: r.receivableAmount,
+  })
+}
+
 export const billHistoryApi = {
   async list(params?: BillHistoryParams): Promise<{ list: BillHistoryItem[]; total: number }> {
     const res: any = await get('/admin/bills/history', params)
     const raw: any = res?.result ?? res
     const records: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
     return {
-      list: records.map((r) => ({
-        billType: r.billType ?? '',
-        billNo: r.billNo ?? '',
-        partyName: r.partyName ?? '',
-        amount: Number(r.amount ?? 0),
-        status: r.status ?? '',
-        createdAt: r.createdAt ?? '',
-        customerType: r.customerType ?? null,
-      })),
+      list: records.map(mapBillHistoryRow),
       total: Number(raw?.total ?? records.length),
     }
   },
@@ -256,15 +355,7 @@ export const storeSaleBillsApi = {
     const raw: any = res?.result ?? res
     const records: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
     return {
-      list: records.map((r) => ({
-        billType: 'sale_bill',
-        billNo: r.billNo ?? '',
-        partyName: r.customerName ?? '',
-        amount: Number(r.receivableAmount ?? 0),
-        status: r.collectionStatus ?? '',
-        createdAt: r.createdAt ?? '',
-        customerType: r.customerType ?? null,
-      })),
+      list: records.map(mapStoreSaleBillRow),
       total: Number(raw?.total ?? records.length),
     }
   },

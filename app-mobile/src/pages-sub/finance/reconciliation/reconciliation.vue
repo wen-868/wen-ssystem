@@ -144,8 +144,10 @@ const detailVisible = ref(false)
 const detailData = ref<ReconciliationDetail | null>(null)
 const currentPartyId = ref(0)
 
-function formatMoney(val: number): string {
-  return '¥' + (val || 0).toFixed(2)
+function formatMoney(val: number | string): string {
+  // 详情接口的 decimal 字段以字符串回传（如 "500.00"）⇒ 必须显式转数字再 toFixed，
+  // 否则 (val || 0).toFixed 抛 TypeError（对账详情此前被后端 500 掩盖，数据通了才暴露）
+  return '¥' + Number(val || 0).toFixed(2)
 }
 
 function getKey(item: any): number {

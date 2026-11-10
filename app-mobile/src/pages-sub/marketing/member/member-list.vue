@@ -98,7 +98,12 @@
         </view>
       </view>
 
-      <view class="empty-state" v-if="!loading && filtered.length === 0">
+      <view class="list-error" v-if="!loading && listLoadError && filtered.length === 0">
+        <text class="list-error-text">{{ listLoadError.kind === 'forbidden' ? '当前账号无权限查看会员列表' : '会员列表加载失败' }}</text>
+        <text class="list-error-sub">{{ listLoadError.message }}</text>
+        <view class="retry-btn" :class="{ 'retry-btn--loading': loading }" @tap="retryLoadList"><text>{{ loading ? '重试中…' : '重试' }}</text></view>
+      </view>
+      <view class="empty-state" v-if="!loading && !listLoadError && filtered.length === 0">
         <text class="empty-text">没有符合条件的客户</text>
       </view>
 
@@ -217,18 +222,31 @@ async function load(reset = false) {
       totalConsume: Number(r.totalConsume ?? 0),
       addressText: [r.province, r.city, r.district, r.address].filter(Boolean).join('') || '',
     }))
+    listLoadError.value = null
     if (reset) list.value = mapped
     else list.value = list.value.concat(mapped)
     page.value = p + 1
     noMore.value = rows.length < pageSize
     if (data.stats) stats.value = { ...stats.value, ...data.stats }
-  } catch (err) {
-    console.error('加载会员列表失败:', err)
-    // 请求失败必须提示，否则用户会把失败误读为"没有会员"
-    uni.showToast({ title: '会员列表加载失败，请重试', icon: 'none' })
+  } catch (err: any) {
+    // MOBILE-COMMERCIAL-IMPLEMENTATION-01 GAP-5/6：错误态与空态严格区分并提供页内重试
+    const sc = err?.statusCode
+    listLoadError.value = {
+      kind: sc === 403 ? 'forbidden' : sc && sc >= 500 ? 'server' : err?.kind === 'timeout' ? 'timeout' : err?.kind === 'network' ? 'network' : 'server',
+      message: err?.message || '会员列表加载失败，请重试',
+    }
+    uni.showToast({ title: err?.message || '会员列表加载失败，请重试', icon: 'none' })
   } finally {
     loading.value = false
   }
+}
+
+const listLoadError = ref<{ kind: 'forbidden' | 'server' | 'timeout' | 'network'; message: string } | null>(null)
+/** GAP-6：页内重试（重试期间 loading，恢复后错误态清除） */
+function retryLoadList() {
+  if (loading.value) return
+  listLoadError.value = null
+  reload()
 }
 
 function reload() {
@@ -407,6 +425,12 @@ onShow(() => {
 .mc-fv--gold { color: $zx-badge-warning-strong; }
 
 .empty-state { padding: 120rpx 0; text-align: center; }
+.list-error { padding: 80rpx 24rpx; text-align: center; display: flex; flex-direction: column; gap: 12rpx; align-items: center; }
+.list-error-text { font-size: 28rpx; color: $uni-color-error; font-weight: 600; }
+.list-error-sub { font-size: 24rpx; color: $uni-gray-500; }
+.retry-btn { margin-top: 12rpx; padding: 14rpx 56rpx; border-radius: $uni-border-radius-sm; background: $uni-color-primary; }
+.retry-btn--loading { opacity: 0.45; }
+.retry-btn text { font-size: 26rpx; color: $uni-text-color-inverse; }
 .empty-text { color: $uni-gray-300; font-size: 26rpx; }
 .load-more { text-align: center; padding: $uni-spacing-sm 0; }
 .load-more-text { color: $zx-gray-400; font-size: 22rpx; }

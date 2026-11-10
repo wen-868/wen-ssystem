@@ -21,10 +21,12 @@ const HERE = fileURLToPath(new URL('.', import.meta.url))
 let audit
 let manifest
 
+// MOBILE-COMMERCIAL-IMPLEMENTATION-01：466 文件双遍扫描 + 全树 SHA256 在整链负载下可超
+// vitest 默认 10s 钩子超时（check:gates 实测 flake）⇒ 显式放宽到 60s
 beforeAll(() => {
   audit = auditArtifact()
   manifest = buildArtifactManifest()
-})
+}, 60000)
 
 describe('MOBILE-H5-DEPLOY-READINESS · 产物完整性', () => {
   it('① dist/build/h5/index.html 存在（生产构建入口）', () => {
