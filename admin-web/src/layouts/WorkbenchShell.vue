@@ -85,6 +85,7 @@
       :session-active="face === 'chat'"
       :user-name="auth.userName"
       :user-roles="auth.userRoles"
+      :production-snapshot="effectiveCapabilities"
       @open="openManualItem"
       @open-cashier="openCashierItem"
       @open-settings="openSettings"
@@ -357,6 +358,7 @@ import {
   type MenuLoadState,
   type ServerMenuRow,
 } from "../shared/workbench/menu-access";
+import { resolveEffectiveCapabilities } from "../shared/workbench/effective-capabilities";
 import {
   WB_UIUX_INJECT_WATERMARK,
   readUiuxInjection,
@@ -509,6 +511,16 @@ const access = computed(() =>
     rows: menuRows.value,
     manifestRouteNames: ALL_MANIFEST_ROUTE_NAMES,
     // 角色最终裁剪：auth.userRoles + 路由 meta.roles（与路由守卫同一语义）
+    userRoles: auth.userRoles,
+    resolveRoles,
+  }),
+);
+// S2 唯一生产能力源（门1 返工：二级栏生产投影的唯一解析入口；
+// 内部同样走 resolveMenuAccess 交集，不另立口径，fail-closed 与 access 同步）
+const effectiveCapabilities = computed(() =>
+  resolveEffectiveCapabilities({
+    menuState: menuState.value,
+    menuRows: menuRows.value,
     userRoles: auth.userRoles,
     resolveRoles,
   }),

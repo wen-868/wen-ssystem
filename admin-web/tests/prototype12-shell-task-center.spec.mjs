@@ -11,12 +11,15 @@
  *   §三.7  保持现有 13 项一级 rail 与 230px 二级栏
  *   §四.3  真实数据接入（任务中心消费真实端点；error/unavailable 如实标注，不伪造）
  *   §四.4  reduced-motion（收起切换无动画偏好下不闪烁/不位移）
+ *   门1 返工：二级栏切 S2 唯一口径（生产投影渲染，未接线项不显示），
+ *            真编译 SFC SSR 渲染 DOM 对黑名单（含「待接入」）零命中 + 投影与渲染同源
  *
  * 运行（admin-web 目录）：node tests/prototype12-shell-task-center.spec.mjs
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { readFileSync, existsSync } from "node:fs";
+import { registerHooks } from "node:module";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -26,6 +29,7 @@ const read = (rel) => readFileSync(path.join(SRC, rel), "utf8");
 
 const shellSrc = read("layouts/WorkbenchShell.vue");
 const taskCenterSrc = read("components/workbench/WorkbenchTaskCenter.vue");
+const subnavSrc = read("layouts/WorkbenchSubnav.vue");
 
 const results = [];
 async function run(name, fn) {
@@ -35,7 +39,8 @@ async function run(name, fn) {
     console.log(`PASS  ${name}${d ? `  ← ${d}` : ""}`);
   } catch (err) {
     results.push({ name, ok: false });
-    console.log(`FAIL  ${name}  ← ${err.message}`);
+    const stackLine = String(err.stack || "").split("\n")[1]?.trim() ?? "";
+    console.log(`FAIL  ${name}  ← ${err.message}${stackLine ? `  [${stackLine}]` : ""}`);
   }
 }
 
@@ -283,6 +288,231 @@ await run("反证：去掉 42px / 100px 会把断言变红（数字是唯一落�
   const deep = cssBlock(shellSrc, ".wb-main :deep(.cmp)");
   assert.ok(top && deep, "断言所需块缺失");
   return "42 / 100 均已落值";
+});
+
+/* ══ 8. 二级栏生产口径（门1 返工：S2 唯一口径 + 黑名单零命中）══ */
+
+await run("二级栏源码级：零「待接入」字面量、不再依赖原型 pending 计划，改消费 S2 生产口径", () => {
+  assert.ok(!/待接入/.test(subnavSrc), "WorkbenchSubnav.vue 不得出现「待接入」字面量（含注释与 title）");
+  assert.ok(!/planPrototypeSubnav|SubnavPlanEntry/.test(subnavSrc), "二级栏不得再消费原型目录计划（planPrototypeSubnav/SubnavPlanEntry）");
+  assert.ok(subnavSrc.includes("planProductionSubnav"), "quick 态未用 S2 生产二级栏函数（planProductionSubnav）");
+  assert.ok(subnavSrc.includes('from "../shared/workbench/effective-capabilities"'), "二级栏未引用 S2 唯一口径模块");
+  assert.ok(subnavSrc.includes("productionCards"), "二级栏卡片渲染未切生产口径派生");
+  assert.ok(subnavSrc.includes("productionSnapshot: EffectiveCapabilitySnapshot"), "二级栏缺生产快照 prop");
+  assert.ok(!/sn-wiring|sn-pending/.test(subnavSrc), "接线度说明（已接线 x/y · 其余占位文案）与 pending 角标未移除干净");
+  assert.ok(shellSrc.includes("resolveEffectiveCapabilities"), "壳层未引入 S2 唯一解析入口");
+  assert.ok(shellSrc.includes(':production-snapshot="effectiveCapabilities"'), "壳层未把生产快照传给二级栏");
+  return "源码级断言全过";
+});
+
+/* ── 真编译 SFC + SSR 渲染（Node 原生：vue/compiler-sfc 编译真实 .vue，@vue/server-renderer 出 DOM）── */
+
+const SFC_PATH = path.join(SRC, "layouts", "WorkbenchSubnav.vue");
+let compiledSubnavCode = null;
+let SubnavComp = null;
+
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "virtual:workbench-subnav-sfc") {
+      return { url: `${pathToFileURL(SFC_PATH).href}?sfc-compiled=1`, shortCircuit: true, format: "module" };
+    }
+    if (specifier.endsWith(".vue")) {
+      return { url: "data:text/javascript,export default{render(){return null}}", shortCircuit: true, format: "module" };
+    }
+    if (specifier === "element-plus") {
+      return { url: "data:text/javascript,export const ElMessage={warning(){},success(){},info(){},error(){}};", shortCircuit: true, format: "module" };
+    }
+    if (specifier.startsWith(".") && !path.extname(specifier)) {
+      const candidate = new URL(specifier + ".ts", context.parentURL);
+      if (existsSync(fileURLToPath(candidate))) {
+        return nextResolve(specifier + ".ts", context);
+      }
+    }
+    return nextResolve(specifier, context);
+  },
+  load(url, context, nextLoad) {
+    if (url.endsWith("?sfc-compiled=1")) {
+      return { format: "module", source: compiledSubnavCode, shortCircuit: true };
+    }
+    return nextLoad(url, context);
+  },
+});
+
+async function getSubnavComponent() {
+  if (SubnavComp) return SubnavComp;
+  await ensureBrowserGlobals();
+  const { parse, compileScript } = await import("vue/compiler-sfc");
+  const parsed = parse(readFileSync(SFC_PATH, "utf8"), { filename: SFC_PATH });
+  assert.equal(parsed.errors.length, 0, `SFC 解析错误：${parsed.errors.map((e) => e.message).join("; ")}`);
+  // compileScript 保留内联 type 导入（import { type X } from "vue"）——虚拟模块按纯 ESM 解析，
+  // 须再过一道 TS 剥离（esbuild）才能被 node 直接加载
+  const esbuild = await import("esbuild");
+  compiledSubnavCode = esbuild.transformSync(compileScript(parsed.descriptor, { id: "s3-subnav-compiled", inlineTemplate: true }).content, {
+    loader: "ts",
+    format: "esm",
+  }).code;
+  SubnavComp = (await import("virtual:workbench-subnav-sfc")).default;
+  assert.ok(SubnavComp, "编译产物缺默认导出组件");
+  return SubnavComp;
+}
+
+let browserGlobalsReady = false;
+/** 浏览器环境垫片（真实 router 依赖 createWebHistory；auth/shell-mode 模块级依赖 localStorage）——
+ *  必须先于 router/virtual 模块导入执行，否则模块级 localStorage 读数抛 ReferenceError */
+async function ensureBrowserGlobals() {
+  if (browserGlobalsReady) return;
+  const { JSDOM } = await import("jsdom");
+  const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "http://localhost/" });
+  for (const [key, value] of Object.entries({
+    window: dom.window,
+    document: dom.window.document,
+    location: dom.window.location,
+    history: dom.window.history,
+    localStorage: dom.window.localStorage,
+    navigator: dom.window.navigator,
+    HTMLElement: dom.window.HTMLElement,
+    MutationObserver: dom.window.MutationObserver,
+  })) {
+    Object.defineProperty(globalThis, key, { value, configurable: true, writable: true });
+  }
+  browserGlobalsReady = true;
+}
+
+async function renderSubnavHtml(props) {
+  const { createSSRApp, h } = await import("vue");
+  const { renderToString } = await import("@vue/server-renderer");
+  const Comp = await getSubnavComponent();
+  const app = createSSRApp({ render: () => h(Comp, props) });
+  app.config.warnHandler = () => {}; // el-icon 由壳层注册，SSR 桩下未解析告警静音（图标无文案，不影响黑名单断言）
+  app.component("el-icon", { render: () => null });
+  return renderToString(app);
+}
+
+/** 与 WorkbenchShell.vue 同语义的角色解析（真实路由表 meta.roles） */
+function makeResolveRoles(router) {
+  return (routeName) => {
+    const record = router.getRoutes().find((entry) => entry.name === routeName);
+    if (!record) return null;
+    const roles = record.meta?.roles;
+    if (!Array.isArray(roles)) return [];
+    return roles.filter((role) => typeof role === "string");
+  };
+}
+
+/** Subnav 必填 props 夹具（groups 用全量 manifest；可见性只由生产快照驱动） */
+async function subnavProps(eff, router, overrides = {}) {
+  const manifest = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "route-manifest.ts")).href);
+  return {
+    mode: "quick",
+    groups: manifest.MANUAL_GROUPS,
+    activeGroupCode: "wb.dashboard",
+    activePath: "/no-active-route",
+    cashierItems: [],
+    menuState: "ready",
+    sessionActive: false,
+    userName: "采集账号",
+    userRoles: ["SUPER_ADMIN"],
+    productionSnapshot: null,
+    collapsed: false,
+    ...overrides,
+  };
+}
+
+await run("二级栏 DOM（SSR 真渲染）：quick 态卡片 = planProductionSubnav 生产口径输出，集合内同源、黑名单零命中", async () => {
+  await ensureBrowserGlobals();
+  const { JSDOM } = await import("jsdom");
+  const router = (await import(pathToFileURL(path.join(SRC, "router", "index.ts")).href)).default;
+  const eff = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "effective-capabilities.ts")).href);
+  const menuAccess = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "menu-access.ts")).href);
+  const nav = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "prototype-nav.ts")).href);
+  const manifest = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "route-manifest.ts")).href);
+  const resolveRoles = makeResolveRoles(router);
+  const menuRows = menuAccess.SERVER_MENU_BRIDGE.map((entry) => ({
+    menuCode: entry.serverCode,
+    menuName: entry.serverCode,
+    menuType: "C",
+    path: null,
+    status: "1",
+  }));
+  const snapshot = eff.resolveEffectiveCapabilities({ menuState: "ready", menuRows, userRoles: ["SUPER_ADMIN"], resolveRoles });
+  assert.equal(snapshot.ok, true, `S2 解析应成功：${snapshot.notice}`);
+  const expected = nav.planProductionSubnav("desk", manifest.MANUAL_GROUPS.flatMap((group) => group.items), snapshot.routeNames);
+  assert.ok(expected.length > 0, "常用功能生产卡片不应为空（否则同源断言无意义）");
+
+  const html = await renderSubnavHtml(await subnavProps(eff, router, { productionSnapshot: snapshot }));
+  const aside = new JSDOM(html).window.document.querySelector('[data-testid="second-nav"]');
+  assert.ok(aside, "SSR 输出缺二级栏 aside");
+  const text = aside.textContent || "";
+  for (const banned of eff.PRODUCTION_COPY_BLACKLIST) {
+    assert.ok(!text.includes(banned), `二级栏 DOM 命中黑名单「${banned}」`);
+  }
+  const cards = [...aside.querySelectorAll(".sn-card")];
+  assert.equal(cards.length, expected.length, `卡片数 ${cards.length} ≠ 生产口径 ${expected.length}（渲染与投影不同源）`);
+  assert.deepEqual(
+    cards.map((card) => card.getAttribute("data-subnav-route")).sort(),
+    expected.map((row) => row.item.routeName).sort(),
+    "卡片 routeName 集合与 planProductionSubnav 输出不同源",
+  );
+  for (const routeName of cards.map((card) => card.getAttribute("data-subnav-route"))) {
+    assert.ok(snapshot.routeNames.has(routeName), `卡片越出生产集合：${routeName}`);
+  }
+  assert.ok(cards.every((card) => !card.disabled), "生产卡片不得有 disabled 项");
+  return `${expected.length} 卡（${expected.map((row) => row.item.routeName).join(",")}），黑名单 0 命中`;
+});
+
+await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；投影为空 ⇒ 如实空态（仍零黑名单）", async () => {
+  await ensureBrowserGlobals();
+  const { JSDOM } = await import("jsdom");
+  const router = (await import(pathToFileURL(path.join(SRC, "router", "index.ts")).href)).default;
+  const eff = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "effective-capabilities.ts")).href);
+  const menuAccess = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "menu-access.ts")).href);
+  const nav = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "prototype-nav.ts")).href);
+  const resolveRoles = makeResolveRoles(router);
+  const menuRows = menuAccess.SERVER_MENU_BRIDGE.map((entry) => ({
+    menuCode: entry.serverCode,
+    menuName: entry.serverCode,
+    menuType: "C",
+    path: null,
+    status: "1",
+  }));
+  const snapshot = eff.resolveEffectiveCapabilities({ menuState: "ready", menuRows, userRoles: ["SUPER_ADMIN"], resolveRoles });
+  const moduleRow = snapshot.subnav.find((entry) => entry.moduleKey !== "desk");
+  assert.ok(moduleRow, "S2 投影应存在非 desk 模块条目（否则 module 态断言无意义）");
+  const moduleProjection = snapshot.subnav.filter((entry) => entry.moduleKey === moduleRow.moduleKey);
+  const groupCode = nav.PROTOTYPE_RAIL_ITEMS.find((item) => item.key === moduleRow.moduleKey)?.groupCode ?? "";
+
+  const html = await renderSubnavHtml(
+    await subnavProps(eff, router, {
+      mode: "module",
+      activeGroupCode: groupCode,
+      productionSnapshot: snapshot,
+    }),
+  );
+  const aside = new JSDOM(html).window.document.querySelector('[data-testid="second-nav"]');
+  const text = aside.textContent || "";
+  for (const banned of eff.PRODUCTION_COPY_BLACKLIST) {
+    assert.ok(!text.includes(banned), `module 态 DOM 命中黑名单「${banned}」`);
+  }
+  const cards = [...aside.querySelectorAll(".sn-card")];
+  assert.deepEqual(
+    cards.map((card) => card.getAttribute("data-subnav-route")).sort(),
+    moduleProjection.map((entry) => entry.routeName).sort(),
+    `module 态渲染与投影不同源（${moduleRow.moduleKey}）`,
+  );
+
+  const failedSnapshot = eff.resolveEffectiveCapabilities({ menuState: "error", menuRows: null, userRoles: ["SUPER_ADMIN"], resolveRoles });
+  assert.equal(failedSnapshot.ok, false, "菜单失败快照应 fail-closed");
+  const emptyHtml = await renderSubnavHtml(
+    await subnavProps(eff, router, { menuState: "error", productionSnapshot: failedSnapshot }),
+  );
+  const emptyAside = new JSDOM(emptyHtml).window.document.querySelector('[data-testid="second-nav"]');
+  const emptyText = emptyAside.textContent || "";
+  for (const banned of eff.PRODUCTION_COPY_BLACKLIST) {
+    assert.ok(!emptyText.includes(banned), `空态 DOM 命中黑名单「${banned}」`);
+  }
+  assert.ok(emptyText.includes("菜单加载失败（不回退全量）"), "空投影应显示如实失败态文案");
+  assert.equal(emptyAside.querySelectorAll(".sn-card").length, 0, "空投影不得渲染卡片");
+  return `module ${moduleRow.moduleKey} ${moduleProjection.length} 卡同源；空投影零卡片零黑名单`;
 });
 
 const failed = results.filter((r) => !r.ok);
