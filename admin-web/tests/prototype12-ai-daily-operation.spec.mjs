@@ -172,10 +172,30 @@ for (const leak of PROTOTYPE_LEAKS) {
   );
 }
 
-// ── 8. 晨报数据不本地伪造（任务/通知走 S1 view-model；晨报内容由 AI 真实回复） ──
+// ── 8. unavailable 文案面向生产，不展示工程诊断词 ─────────────────────
+const visibleTemplate = feedView
+  .match(/<template>([\s\S]*)<\/template>/)?.[1]
+  .replace(/<!--[\s\S]*?-->/g, "");
+assert.ok(visibleTemplate, "S4-8 AiFeedView 模板不可定位");
+const COPY_BLACKLIST = [
+  "双入口左侧菜单",
+  "待接入",
+  "未接入",
+  "不伪造成功",
+  "端点缺失",
+  "设计说明",
+];
+for (const term of COPY_BLACKLIST) {
+  assert.ok(
+    !visibleTemplate.includes(term),
+    `S4-8 AiFeedView 产品可见模板命中工程诊断词：${term}`,
+  );
+}
 assert.ok(
-  feedView.includes("wb-feed-broadcast") && feedView.includes("待接入"),
-  "S4-8 播报块缺少诚实降级（待接入）——不得本地伪造晨报读数",
+  feedView.includes("wb-feed-broadcast") &&
+    feedView.includes('data-state="broadcastBlock.state"') &&
+    feedView.includes("暂不可用"),
+  "S4-8 播报块缺少可辨的诚实降级态（暂不可用）",
 );
 
 console.log(
@@ -187,6 +207,7 @@ console.log(
     "- 输入计数=1：AiSidePanel textarea 唯一；AiChatPanel 无第二输入；chat 态 composer 不渲染",
     "- 链复用：sendChatMessage(SSE) + confirm/cancel/revoke；AiChatPanel 无自建网络调用",
     "- 原型样例零泄漏：红星商行/五粮液/10箱 未出现在四组件",
+    "- 生产可见文案：unavailable 使用「暂不可用」，工程诊断词黑名单零命中",
     "",
   ].join("\n"),
 );

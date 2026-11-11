@@ -29,7 +29,7 @@
       <p v-if="kpiBlock.state === 'loading'" class="fdv-empty" data-testid="wb-kpi-loading">{{ kpiBlock.message }}</p>
       <template v-else-if="canRetry(kpiBlock.state)">
         <p class="fdv-empty" :class="{ 'is-error': kpiBlock.state === 'error' }" data-testid="wb-kpi-note">
-          {{ kpiBlock.state === "unavailable" ? "待接入 · " : "读取失败 · " }}{{ kpiBlock.message }}
+          {{ kpiBlock.state === "unavailable" ? "暂不可用 · 经营指标暂时无法获取" : `读取失败 · ${kpiBlock.message}` }}
         </p>
         <button type="button" class="wfb-retry" data-testid="wb-kpi-retry" @click="refreshKpi">重试</button>
       </template>
@@ -63,8 +63,9 @@
             <div class="tt">
               待办审批<small
                 data-testid="wb-ap-note"
-              >{{ approvalsBlock.state === "unavailable" ? "待接入" : "读取失败" }} · {{ approvalsBlock.message }} ——
-                无真实审批读数时不伪造待办项</small>
+              >{{ approvalsBlock.state === "unavailable"
+                ? "暂不可用 · 审批数据暂时无法获取"
+                : `读取失败 · ${approvalsBlock.message}` }}</small>
             </div>
             <button type="button" class="wfb-retry" data-testid="wb-ap-retry" @click="refreshApprovals">重试</button>
           </div>
@@ -162,9 +163,9 @@
           data-testid="wb-bc-unavailable"
         >
           <span class="wfb-bc-metric">经营异动播报</span>
-          <span class="wfb-bc-value">{{ broadcastBlock.state === "unavailable" ? "待接入" : "读取失败" }}</span>
+          <span class="wfb-bc-value">{{ broadcastBlock.state === "unavailable" ? "暂不可用" : "读取失败" }}</span>
           <p class="wfb-bc-advice" data-testid="wb-bc-note">
-            {{ broadcastBlock.message }} —— 无真实播报读数时不本地伪造异动
+            {{ broadcastBlock.state === "unavailable" ? "经营异动播报暂时无法获取" : broadcastBlock.message }}
             <button type="button" class="wfb-retry" data-testid="wb-bc-retry" @click="refreshBroadcast">重试</button>
           </p>
         </div>
@@ -197,7 +198,9 @@
           data-testid="wb-tb-unavailable"
         >
           <b>主管动作队列</b>
-          <em data-testid="wb-tb-note">{{ boardBlock.state === "unavailable" ? "待接入" : "读取失败" }} · {{ boardBlock.message }} —— 无真实计划读数时不伪造任务项</em>
+          <em data-testid="wb-tb-note">{{ boardBlock.state === "unavailable"
+            ? "暂不可用 · 任务数据暂时无法获取"
+            : `读取失败 · ${boardBlock.message}` }}</em>
           <button type="button" class="wfb-retry" data-testid="wb-tb-retry" @click="refreshQueue">重试</button>
         </div>
         <p v-else-if="boardBlock.state === 'empty'" class="fdv-empty" data-testid="wb-tb-empty">{{ boardBlock.message }}</p>
@@ -205,7 +208,7 @@
           <!-- 主管视图聚合行（原型 al-v10-nav4 四合一）：计数只来自真实源，缺端点的位置如实「待接入」 -->
           <div class="wfb-nav4" data-testid="wb-tb-nav4">
             <span class="wfb-nav-item">任务看板<em>{{ boardBlock.data.totalEntries }} 项</em></span>
-            <span class="wfb-nav-item">助理绩效<em>待接入（绩效面板端点缺失）</em></span>
+            <span class="wfb-nav-item">助理绩效<em>暂不可用（暂无绩效数据）</em></span>
             <span class="wfb-nav-item">审批中心<em>{{ pendingApprovals.length }} 项待审阅</em></span>
             <span class="wfb-nav-item">播报中心<em>{{ broadcastLabel }}</em></span>
           </div>
@@ -251,11 +254,11 @@
         >
           <div class="act24-hd">
             任务步进 · AI 实时跟踪<b>暂无真实任务读数</b>
-            <span class="act24-tag">{{ flowBlock.state === "unavailable" ? "待接入" : "读取失败" }}</span>
+            <span class="act24-tag">{{ flowBlock.state === "unavailable" ? "暂不可用" : "读取失败" }}</span>
             <button type="button" class="wfb-retry" data-testid="wb-tf-retry" @click="refreshQueue">重试</button>
           </div>
           <p class="fdv-empty" :class="{ 'is-error': flowBlock.state === 'error' }" data-testid="wb-tf-note">
-            {{ flowBlock.message }} —— 环节链在无真实计划数据时不本地伪造
+            {{ flowBlock.state === "unavailable" ? "任务步进暂时无法获取" : flowBlock.message }}
           </p>
         </div>
         <p v-else-if="flowBlock.state === 'empty'" class="fdv-empty" data-testid="wb-tf-empty">{{ flowBlock.message }}</p>
@@ -527,7 +530,7 @@ const broadcastLabel = computed(() => {
     case "empty":
       return "暂无异动";
     case "unavailable":
-      return "待接入";
+      return "暂不可用";
     case "error":
       return "读取失败";
     default:
@@ -545,7 +548,7 @@ const approvalsEntryLabel = computed(() => {
     case "empty":
       return `${pendingApprovals.value.length} 项待审阅`;
     case "unavailable":
-      return "待接入 · 无审批读数";
+      return "暂不可用 · 暂无审批读数";
     case "error":
       return "读取失败 · 无审批读数";
     default:
