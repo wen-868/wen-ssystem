@@ -1,10 +1,10 @@
 <template>
   <aside class="ai-side-panel" :class="{ 'is-collapsed': collapsed }">
-    <!-- 头部 -->
+    <!-- 头部（S4：主区收敛为「日常经营」AI 会话面，标题与其一致） -->
     <div class="ai-header">
       <div class="ai-header-title">
         <el-icon class="header-logo"><MagicStick /></el-icon>
-        <span v-show="!collapsed">经营助手</span>
+        <span v-show="!collapsed" data-testid="daily-op-title">日常经营</span>
       </div>
       <div class="ai-header-actions">
         <el-button
@@ -176,7 +176,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import {
   MagicStick,
@@ -364,9 +364,10 @@ function cancelVoice(): void {
   listening.value = false;
   stopVoiceTimer();
 }
+// S4：建议芯片用中性经营话术（不含原型人名/客户/金额/订单号——卡面"不复制原型业务样例"）
 const suggestions = [
-  "创建销售单：给红星商行送10箱五粮液",
-  "查询一下五粮液的库存",
+  "查看今日晨报",
+  "查询商品库存",
   "本月的销售报表",
 ];
 
@@ -595,6 +596,20 @@ async function handleRevoke(messageId: string, operationId: string): Promise<voi
 defineExpose({ sendText: sendSuggestion, clearChat, getConversationId: () => conversationId.value ?? null });
 
 watch(messages, () => scrollToBottom(), { deep: true });
+
+/**
+ * S4：晨报作为首条会话内容 —— 挂载且会话为空时自动发送「今日晨报」一次
+ * （真实 POST /api/chat SSE 由 AI 生成晨报，不本地伪造；briefingSent 模块级
+ * 一次性标志防重复提交——刷新/重开会话才重发，用户先行的输入优先）。
+ * 发送失败由既有 error/status 链如实呈现（AI 不可用 → 故障横幅 → 人工回退）。
+ */
+const BRIEFING_PROMPT = "今日晨报";
+let briefingSent = false;
+onMounted(() => {
+  if (briefingSent || messages.value.length > 0) return;
+  briefingSent = true;
+  void sendSuggestion(BRIEFING_PROMPT);
+});
 
 onBeforeUnmount(() => {
   abortCurrent();
