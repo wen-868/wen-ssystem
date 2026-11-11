@@ -109,7 +109,7 @@ export async function loadWbKpi(deps: WbKpiDeps = {}): Promise<FeedBlock<WbKpiMe
     return {
       state: "unavailable",
       data: [],
-      message: "经营指标待接入：未注入 /admin/dashboard/overview 读取器（数据源未接线）",
+      message: "经营指标暂不可用：数据读取器未就绪（/admin/dashboard/overview）",
     };
   }
   try {

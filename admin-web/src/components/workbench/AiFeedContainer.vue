@@ -34,16 +34,16 @@
           <dt>能力台账</dt>
           <dd>{{ summary }}</dd>
           <dt>Agent 任务通道</dt>
-          <dd>未接入（{{ agentTaskStatus }}）：本骨架不展示虚构进度</dd>
+          <dd>暂不可用（{{ agentTaskStatus }}）：暂无真实进度可展示</dd>
         </dl>
         <button type="button" class="afc-link" @click="emit('new-conversation')">新对话</button>
       </section>
 
-      <!-- AI 信息流：本体未接入，只列真实业务入口，不造数据 -->
+      <!-- AI 信息流：数据不可用时只列真实业务入口，不造数据 -->
       <section class="afc-card afc-card-wide">
         <h3 class="afc-card-title">AI 信息流</h3>
         <div class="afc-placeholder">
-          <p class="afc-placeholder-title">AI 信息流本体未接入（{{ infoFeedStatus }}）</p>
+          <p class="afc-placeholder-title">AI 信息流暂不可用（{{ infoFeedStatus }}）</p>
           <p class="afc-placeholder-desc">
             晨报、待办与异常播报需要底座 feed／晨报端点，本骨架不展示任何模拟数据；下方仅列当前角色可见的真实业务入口。
           </p>

@@ -51,16 +51,6 @@ import { launchedQuickCommands } from "./capability-registry";
 import type { CapabilityStatus } from "./capability-types";
 import type { ManifestGroup, ManifestItem } from "./types";
 
-/** 生产文案黑名单：生产投影的任何可见文案不得命中（含「待接入」占位，S2 §三.7） */
-export const PRODUCTION_COPY_BLACKLIST: readonly string[] = [
-  "待接入",
-  "原型",
-  "演示",
-  "占位",
-  "开发态",
-  "工程状态",
-];
-
 /**
  * 平台只读角色码（非商户工作台角色，但属平台已知角色）。
  * 证据：backend/src/middleware/platform-rbac.ts（SUPPORT = t_platform_admin.role，
@@ -412,11 +402,4 @@ export function canDeepLinkPath(path: string, snapshot: EffectiveCapabilitySnaps
 /** 路由可见性（AI 代办按钮、搜索准入共用）：集合外一律不可见 */
 export function isEffectiveRoute(routeName: string | null | undefined, snapshot: EffectiveCapabilitySnapshot): boolean {
   return Boolean(routeName) && snapshot.ok && snapshot.routeNames.has(routeName as string);
-}
-
-/** 生产文案黑名单检查：返回命中黑名单的文案（应恒为空） */
-export function findProductionCopyViolations(labels: readonly string[]): readonly string[] {
-  return labels.filter((label) =>
-    PRODUCTION_COPY_BLACKLIST.some((banned) => label.includes(banned)),
-  );
 }

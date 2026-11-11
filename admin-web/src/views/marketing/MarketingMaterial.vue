@@ -715,7 +715,7 @@ async function submitUpload() {
 
   // TODO: 素材上传能力依赖对象存储/静态文件服务，后端暂未实现（仅 t_upload_file 配额表，无写文件逻辑）。
   // 当前保留前端占位流程，不写入 mock 数据；接入存储后改为 multipart 上传并调用 POST /admin/marketing/materials。
-  ElMessage.info("素材上传功能待接入对象存储后开放（当前为占位）");
+  ElMessage.info("素材上传暂不支持（对象存储就绪后开放）");
   uploadDialogVisible.value = false;
   resetUploadForm();
 }

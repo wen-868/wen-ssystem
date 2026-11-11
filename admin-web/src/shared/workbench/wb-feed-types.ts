@@ -65,7 +65,7 @@ export function classifyFeedError<T>(err: unknown, label: string, emptyData: T):
     return {
       state: "unavailable",
       data: emptyData,
-      message: `${label}待接入：端点返回 404（${message}）`,
+      message: `${label}暂不可用：服务返回 404（${message}）`,
     };
   }
   return { state: "error", data: emptyData, message: `${label}读取失败：${message || "未知错误"}` };

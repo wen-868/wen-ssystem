@@ -22,7 +22,7 @@
         </button>
         <!-- 附件菜单（原型 .input-zone L976 的 add-btn/up-menu 语义）：
              图片随消息发送只在会话输入区有真实链（AiSidePanel→POST /api/chat image 参数），
-             信息流入口不复制第二套发送，故如实标注去向；文件解析无端点 ⇒ 待接入 -->
+             信息流入口不复制第二套发送，故如实标注去向；文件解析无端点 ⇒ 暂不支持 -->
         <div v-if="attMenuOpen" class="cmp-att-menu" data-testid="composer-att-menu">
           <button
             type="button"
@@ -37,7 +37,7 @@
             data-testid="composer-att-file"
             @click="noticeFor('file')"
           >
-            文件 · 待接入
+            文件 · 暂不支持
           </button>
         </div>
       </div>
@@ -97,7 +97,7 @@
  *
  * WORKBENCH-10 区域 C 增补（对齐原型 .input-zone 完整结构）：
  *   - 附件菜单（add-btn/up-menu 语义）：图片项如实指路会话输入区（唯一有 image 参数真实链的位置）、
- *     文件项显示「待接入」（api/ai.ts 无文件上传端点，不做假回显）；
+ *     文件项显示「暂不支持」（api/ai.ts 无文件上传端点，不做假回显）；
  *   - 语音录制态（mic-btn 语义）：Web Speech 识别结果回写输入框后随同一 send 链发出，
  *     录制中显示实时时长，支持完成/取消（取消还原草稿）。
  */
@@ -126,7 +126,7 @@ function noticeFor(kind: "image" | "file"): void {
   attNotice.value =
     kind === "image"
       ? "图片识别请在会话输入区使用（该入口已支持图片随消息发送）"
-      : "文件解析待接入（缺少文件上传端点）";
+      : "文件解析暂不支持（缺少文件上传端点）";
 }
 
 /** 语音输入（与侧栏面板同一浏览器原生识别能力；不支持则禁用按钮并如实提示） */

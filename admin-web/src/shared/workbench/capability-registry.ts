@@ -21,8 +21,8 @@ export const QUICK_COMMANDS: readonly {
   prompt: string;
   capabilityId: string;
 }[] = [
-  { label: "创建销售单", prompt: "创建销售单：给红星商行送10箱五粮液", capabilityId: "ai-05" },
-  { label: "查库存", prompt: "查询一下五粮液的库存", capabilityId: "ai-05" },
+  { label: "创建销售单", prompt: "创建销售单：为指定客户开一张销售单，写清商品与数量", capabilityId: "ai-05" },
+  { label: "查库存", prompt: "查询指定商品的当前库存", capabilityId: "ai-05" },
   { label: "本月销售报表", prompt: "本月的销售报表", capabilityId: "ai-05" },
 ];
 

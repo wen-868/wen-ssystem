@@ -68,7 +68,7 @@ export async function loadWbBroadcasts(deps: WbBroadcastDeps = {}): Promise<Feed
     return {
       state: "unavailable",
       data: [],
-      message: "经营异动播报尚未接入：GMV 环比 / 退款率 / 毛利异动与 AI 建议需要底座播报端点（现无此端点，不本地伪造）",
+      message: "经营异动播报暂不可用：播报数据暂未开放（GMV 环比 / 退款率 / 毛利异动与 AI 建议）",
     };
   }
   try {
