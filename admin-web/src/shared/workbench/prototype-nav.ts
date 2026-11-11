@@ -351,6 +351,45 @@ export function findRailItem(key: string | null | undefined): RailPrototypeItem 
   return PROTOTYPE_RAIL_ITEMS.find((item) => item.key === key) ?? null;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// 生产二级栏（WORKBENCH-PROTOTYPE-12 · S2 唯一生产能力源）
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** 生产二级栏条目：只含「已接线 ∧ 命中 EffectiveCapability 集合」的原型目录项 */
+export interface ProductionSubnavEntry {
+  /** 原型目录文案（= manifest title，planPrototypeSubnav 逐字对齐的命中项） */
+  label: string;
+  /** 已接线的 manifest 项；其 routeName 必在生效集合内 */
+  item: ManifestItem;
+}
+
+/**
+ * 生产态二级栏计划（与 `planPrototypeSubnav` 的分工边界）：
+ *
+ * - `planPrototypeSubnav` 是**原型结构契约**（开发态/设计预览用）：pending 项仍渲染并标注
+ *   「待接入」，保证原型结构不静默丢弃（派单卡 §六）；
+ * - 本函数是**生产消费口径**：原型 93 项目录中 manifest 未接线的项（未上线能力）一律不返回，
+ *   已接线项还必须命中 EffectiveCapability 生产集合（真实授权），否则裁掉。
+ *
+ * ⇒ 未上线能力不进生产 DOM/搜索/深链；原型目录只允许开发态/设计预览经
+ *   `planPrototypeSubnav` 呈现（`WORKBENCH-PROTOTYPE-12-S2` §三.4/§三.5）。
+ */
+export function planProductionSubnav(
+  moduleKey: string,
+  manifestItems: readonly ManifestItem[],
+  effectiveRouteNames: ReadonlySet<string>,
+): ProductionSubnavEntry[] {
+  const plan = planPrototypeSubnav(moduleKey, manifestItems);
+  const rows: ProductionSubnavEntry[] = [];
+  for (const entry of plan) {
+    if (entry.status !== "wired" || entry.item === null) continue;
+    const routeName = entry.item.routeName;
+    if (!routeName || !effectiveRouteNames.has(routeName)) continue;
+    rows.push({ label: entry.label, item: entry.item });
+  }
+  return rows;
+}
+
 /**
  * 一级 rail 的选中态切换语义（原型 §动态交互 1/2）：
  * - 点击未选中的模块 ⇒ 选中它，第二栏切成该模块二级目录；
