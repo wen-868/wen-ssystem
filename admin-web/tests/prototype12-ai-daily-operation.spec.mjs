@@ -205,6 +205,13 @@ const sessionListSrc = read("components/AiChat/AiSessionList.vue");
 const chatWindowSrc = read("components/AiChat/AiChatWindow.vue");
 const sessionsAdapterSrc = read("shared/workbench/wb-chat-sessions.ts");
 const capabilityRegistrySrc = read("shared/workbench/capability-registry.ts");
+const feedContainerSrc = read("components/workbench/AiFeedContainer.vue");
+const feedTypesSrc = read("shared/workbench/wb-feed-types.ts");
+const feedKpiSrc = read("shared/workbench/wb-feed-kpi.ts");
+const feedApprovalsSrc = read("shared/workbench/wb-feed-approvals.ts");
+const feedBroadcastSrc = read("shared/workbench/wb-feed-broadcast.ts");
+const feedTaskboardSrc = read("shared/workbench/wb-feed-taskboard.ts");
+const feedTaskflowSrc = read("shared/workbench/wb-feed-taskflow.ts");
 const stripAllComments = (src) =>
   src
     .replace(/<!--[\s\S]*?-->/g, "")
@@ -217,6 +224,13 @@ const sessionCopyFiles = {
   AiChatComposer: composer,
   "wb-chat-sessions.ts": sessionsAdapterSrc,
   "capability-registry.ts": capabilityRegistrySrc,
+  "AiFeedContainer.vue": feedContainerSrc,
+  "wb-feed-types.ts": feedTypesSrc,
+  "wb-feed-kpi.ts": feedKpiSrc,
+  "wb-feed-approvals.ts": feedApprovalsSrc,
+  "wb-feed-broadcast.ts": feedBroadcastSrc,
+  "wb-feed-taskboard.ts": feedTaskboardSrc,
+  "wb-feed-taskflow.ts": feedTaskflowSrc,
 };
 const SESSION_COPY_BLACKLIST = ["待接入", "未接入", "端点缺失", "不伪造成功"];
 for (const [name, src] of Object.entries(sessionCopyFiles)) {

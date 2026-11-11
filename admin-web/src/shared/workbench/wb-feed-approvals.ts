@@ -88,7 +88,7 @@ export async function loadWbApprovals(deps: WbApprovalsDeps = {}): Promise<FeedB
     return {
       state: "unavailable",
       data: [],
-      message: "审批区待接入：未注入 AI 写操作确认列表读取器（/api/chat/confirmations）",
+      message: "审批区暂不可用：审批数据读取器未就绪（/api/chat/confirmations）",
     };
   }
   try {

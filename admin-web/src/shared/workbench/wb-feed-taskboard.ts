@@ -157,7 +157,7 @@ export async function loadWbTaskBoard(deps: WbTaskBoardDeps = {}): Promise<FeedB
         unknownStates: 0,
         totalEntries: 0,
       },
-      message: "主管动作队列待接入：未注入 AI 底座任务计划读取器（GET /api/ai/agent/plans）",
+      message: "主管动作队列暂不可用：计划数据读取器未就绪（/api/ai/agent/plans）",
     };
   }
   try {

@@ -130,7 +130,7 @@ await run("待接入文案点名真实端点，可核对而不是万能话术", 
 
 await run("播报没有端点 ⇒ 文案承认为空，不伪造指标", async () => {
   const block = await broadcast.loadWbBroadcasts();
-  assert.match(block.message, /尚无|不本地伪造|未接入/);
+  assert.match(block.message, /暂不可用|暂未开放|暂无/);
   assert.ok(!/GMV 环比\s*[0-9]/.test(block.message), "不得在文案里塞示例数字");
   return block.message.slice(0, 40) + "…";
 });
@@ -211,7 +211,7 @@ await run("金额取不到返回 null，由 UI 隐藏而不是画 ¥0", () => {
 await run("错误分类：404 ⇒ 待接入，其余 ⇒ 可重试 error", () => {
   const nf = types.classifyFeedError(new Error("HTTP 404 Not Found"), "经营指标", []);
   assert.equal(nf.state, "unavailable");
-  assert.match(nf.message, /待接入：端点返回 404/);
+  assert.match(nf.message, /暂不可用：服务返回 404/);
   const boom = types.classifyFeedError(new Error("HTTP 500"), "经营指标", []);
   assert.equal(boom.state, "error");
   assert.match(boom.message, /HTTP 500/, "原始原因必须可追，不能吞成「读取失败」");

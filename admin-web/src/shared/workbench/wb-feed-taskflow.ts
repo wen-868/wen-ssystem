@@ -127,7 +127,7 @@ export async function loadWbTaskFlows(deps: WbTaskFlowDeps = {}): Promise<FeedBl
     return {
       state: "unavailable",
       data: [],
-      message: "任务步进待接入：未注入 AI 底座任务计划读取器（GET /api/ai/agent/plans）",
+      message: "任务步进暂不可用：计划数据读取器未就绪（/api/ai/agent/plans）",
     };
   }
   try {
