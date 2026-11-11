@@ -258,6 +258,14 @@
     <!-- 收银台本机打印设置（沿用现有本地弹窗，不走路由） -->
     <PrintSettingsPanel ref="printPanelRef" v-model="printSettingsVisible" />
 
+    <!-- ══ 任务中心（第 4 列 · 300px · 原型四列壳层 Prototype-12）══
+         可收起/展开且状态保持（localStorage wb.task-center.collapsed）。
+         窄视口（≤390px）整列随三列折叠一起降级（见样式 media 块）。 -->
+    <WorkbenchTaskCenter
+      :collapsed="taskCenterCollapsed"
+      @toggle="toggleTaskCenter"
+    />
+
     <!-- 设置中心（原型 .sw L2507-2603 · 7 分区 + 角色差异 + 明暗主题） -->
     <WbSettingsCenter
       v-model="settingsCenterVisible"
@@ -317,6 +325,7 @@ import type { Component } from "vue";
 import MainLayout from "./MainLayout.vue";
 import WorkbenchSubnav from "./WorkbenchSubnav.vue";
 import AgentStatusBar from "../components/workbench/AgentStatusBar.vue";
+import WorkbenchTaskCenter from "../components/workbench/WorkbenchTaskCenter.vue";
 import AiFeedView from "../components/workbench/AiFeedView.vue";
 import AiChatComposer from "../components/workbench/AiChatComposer.vue";
 import AiFeedContainer from "../components/workbench/AiFeedContainer.vue";
@@ -439,12 +448,45 @@ const effectiveMode = computed<WorkbenchMode>(() =>
 type MainFace = "feed" | "chat";
 const face = ref<MainFace>("feed");
 const sideCollapsed = ref(false);
+
+/**
+ * 任务中心收起态（卡面 §三.4：可收起/展开且状态保持）。
+ * 持久化在 localStorage `wb.task-center.collapsed`（"1" = 收起），
+ * 刷新/重开应用后保持上次选择；窄口进入时强制收起（不占主面）。
+ */
+const TASK_CENTER_KEY = "wb.task-center.collapsed";
+const taskCenterCollapsed = ref(false);
+function restoreTaskCenterState(): void {
+  try {
+    taskCenterCollapsed.value = localStorage.getItem(TASK_CENTER_KEY) === "1";
+  } catch {
+    taskCenterCollapsed.value = false;
+  }
+}
+/**
+ * 用户显式切换（模板 @toggle）：切换后持久化。
+ * 窄口强制收起（applyNarrow）不走此函数 ⇒ 不覆盖桌面偏好。
+ */
+function toggleTaskCenter(): void {
+  taskCenterCollapsed.value = !taskCenterCollapsed.value;
+  persistTaskCenterState();
+}
+function persistTaskCenterState(): void {
+  try {
+    localStorage.setItem(TASK_CENTER_KEY, taskCenterCollapsed.value ? "1" : "0");
+  } catch {
+    /* 存储不可用（隐私模式等）⇒ 状态只在会话内生效 */
+  }
+}
+restoreTaskCenterState();
 /** 窄视口（≤390px）：rail 转底部横条、二级导航转左滑抽屉、主面单列（F1 补齐项 F） */
 const isNarrow = ref(false);
 let narrowQuery: MediaQueryList | null = null;
 function applyNarrow(narrow: boolean): void {
   isNarrow.value = narrow;
   sideCollapsed.value = narrow;
+  // 窄口（≤390px）任务中心整列不占主面：进入窄口即收起（不覆盖用户桌面态偏好）
+  if (narrow) taskCenterCollapsed.value = true;
 }
 function onNarrowChange(event: MediaQueryListEvent): void {
   applyNarrow(event.matches);
@@ -989,10 +1031,11 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   display: grid;
   /* 第二列收起用 grid 列宽过渡（对齐原型 .side{transition:margin .25s} 的平滑滑出手感）；
      不用 display:none 瞬隐 —— WORKBENCH-06F3 审计 MISSING #3 修复。 */
-  /* 三宽度 = 原型 1440 视口实测值（Playwright 量取），唯一真相源在
-     shared/workbench/prototype-nav.ts 的 PROTOTYPE_METRICS：rail 60 / side 230 / 折叠 56。
-     CSS 无法读取 TS，此处是「已 documented 的固定常数」例外，测试会逐字比对三个数字。 */
-  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-w, 230px) minmax(0, 1fr);
+  /* 四宽度 = Prototype-12 四列壳层实测（Playwright 量取）：
+     rail 60 / side 230 / main minmax(0,1fr)（1440 视口实得 850）/ task center 300。
+     CSS 无法读取 TS，此处是「已 documented 的固定常数」例外，测试会逐字比对四个数字。
+     卡面 §三.1：1440×1000 几何 = 60/230/850/300；1024×768 = 60/230/434/300。 */
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-w, 230px) minmax(0, 1fr) var(--wb-task-center-w, 300px);
   transition: grid-template-columns 250ms ease;
   background: var(--wb-bg, #f4f6f8);
   overflow: hidden;
@@ -1000,13 +1043,29 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 /* 折叠态保留 56px 可见条（原型 .side 折叠后实测 56，不是 0）—— collapsing 到 0 会让
    二级入口彻底不可达，与原型「可折叠但仍在」的语义不符。 */
 .wb-shell.side-hidden {
-  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr);
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr) var(--wb-task-center-w, 300px);
 }
 /* 收起态：内容溢出裁掉 + 不做 visibility 切换，保证过渡期间可见滑出 */
 .wb-shell :deep(.wb-subnav.hidden) {
   overflow: hidden;
 }
 /* 收银台：不渲染 AI 会话层的宽度挤压，仍保持三段（原型 side=收银功能列表） */
+
+/* ── 底部输入区（卡面 §三.3：底部输入区 100px）──
+   AiChatComposer 自身在 WorkbenchShell 内渲染（.wb-main flex 列末位）。
+   固定 100px：flex-shrink 0 + 定高；内部 form/输入框随容器裁切（超出滚动由内部 max-height 承担）。
+   只改壳层作用域（:deep 覆盖），不触碰 AiChatComposer 文件本身（非本卡允许路径）。 */
+.wb-main :deep(.cmp) {
+  height: 100px;
+  min-height: 100px;
+  max-height: 100px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.wb-main :deep(.cmp .cmp-form) {
+  max-height: none;
+}
 
 /* ── 一级 rail ── */
 /* 原型 nav.rail 实测（1440×1000）：x=0 y=0 w=60 h=1000 · #F7F9FC · padding 12px 0 · gap 5px · 右边线 #ECEEF1 */
@@ -1165,9 +1224,10 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   min-width: 0;
   min-height: 0;
 }
-/* 原型 header.top 实测（1440×1000）：x=290 y=0 w=1150 h=54 · padding 0 22px · gap 10 · 底边线 #DDE2E9 */
+/* 原型 header.top 实测（Prototype-12 卡面 §三.3：顶栏 42px）；
+   WORKBENCH-13-F2 基线为 54px，本卡按原型四列壳层口径收敛为 42px（硬验收：42px 顶栏） */
 .wb-top {
-  height: 54px;
+  height: 42px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1475,6 +1535,11 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   }
   .wb-main {
     padding-bottom: 56px;
+  }
+  /* 任务中心（第 4 列）在 ≤390px 不占主面：整列隐藏（收起条也隐藏），
+     桌面四列能力仍由展开态保留（窄口无空间呈现 300px 列） */
+  .wb-shell :deep(.wtc) {
+    display: none;
   }
   .wb-top {
     height: auto;
