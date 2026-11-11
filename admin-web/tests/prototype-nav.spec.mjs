@@ -413,11 +413,12 @@ await run("约束：Shell 不得把 rail 顺序写回 manifest 原顺序（顺�
   return "rail 序列来自 decorateRailGroups";
 });
 
-await run("约束：Subnav 的二级目录由 planPrototypeSubnav 产出且渲染 pending「待接入」", () => {
+await run("约束：Subnav 二级目录切 S2 唯一口径生产投影", () => {
   const m = codeOnly(subnav);
-  assert.ok(m.includes("planPrototypeSubnav"), "Subnav 未消费真相源计划");
-  assert.ok(m.includes("待接入"), "Subnav 未对未接线项给出诚实的待接入标记");
-  return "计划驱动 + pending 显式标注";
+  assert.ok(m.includes("planProductionSubnav"), "Subnav 未消费 S2 生产二级栏口径");
+  assert.ok(!m.includes("planPrototypeSubnav"), "Subnav 不得再消费原型 pending 计划");
+  assert.ok(!m.includes("待接入"), "Subnav 生产 DOM 源不得出现黑名单占位词");
+  return "S2 唯一口径生产投影 + 黑名单零命中";
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
