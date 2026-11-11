@@ -4,7 +4,7 @@
  * 判据（派单卡 §C-6/§C-7 + 仓内既有 agent-directory.ts 口径）：
  *   ① api/ai.ts 没有「历史会话列表 / 归档 / 删除 / 恢复 / 重命名」端点
  *      ⇒ wb-chat-sessions 适配器全部动作必须返回 unavailable/ok:false，绝不伪造条目或伪成功；
- *   ② UI（AiSessionList.vue）必须显示「待接入」并给重试入口，不得出现成功口径（已归档/删除成功 toast）；
+ *   ② UI（AiSessionList.vue）必须显示「暂不可用」并给重试入口，不得出现成功口径（已归档/删除成功 toast）；
  *   ③ 不得冒用登录会话端点（getUserSessions）冒充 AI 会话；
  *   ④ AiChatPanel 装配会话列表且保留故障隔离锚点（回退到 AiChatPanel 既有语义）。
  *
@@ -59,7 +59,7 @@ await run("会话列表：无端点 ⇒ unavailable + sessions=[]（不返回任
   const res = await chat.loadChatSessions();
   assert.equal(res.state, "unavailable", "缺端点必须 unavailable");
   assert.deepEqual(res.sessions, [], "不可用不得附带任何条目（对齐 agent-directory 口径）");
-  assert.match(res.message, /尚未接入/, `message 应写明未接入：${res.message}`);
+  assert.match(res.message, /暂不可用/, `message 应写明暂不可用：${res.message}`);
   assert.match(res.message, /缺少/, `message 应写明缺什么端点：${res.message}`);
   return `unavailable / sessions=0 / ${res.message}`;
 });
@@ -69,7 +69,7 @@ await run("归档区列表：同样 unavailable + 空（归档区不画假存档
   assert.equal(res.state, "unavailable");
   assert.deepEqual(res.sessions, []);
   assert.match(res.message, /归档/);
-  assert.match(res.message, /尚未接入（缺少[^）]*端点）/);
+  assert.match(res.message, /暂不可用（缺少[^）]*端点）/);
   return res.message;
 });
 
@@ -79,20 +79,20 @@ await run("归档动作：ok:false + unavailable（绝不返回 ok:true 冒充�
   const res = await chat.archiveChatSession("sess-1");
   assert.equal(res.ok, false, "无端点时 ok 必须为 false");
   assert.equal(res.state, "unavailable");
-  assert.match(res.message, /归档会话尚未接入/);
+  assert.match(res.message, /归档会话暂不可用/);
   return res.message;
 });
 
 await run("删除 / 恢复 / 重命名动作：全部诚实失败（含入参缺失的 fail-closed）", async () => {
   const del = await chat.deleteChatSession("sess-1");
   assert.equal(del.ok, false);
-  assert.match(del.message, /删除会话尚未接入/);
+  assert.match(del.message, /删除会话暂不可用/);
   const restore = await chat.restoreChatSession("sess-1");
   assert.equal(restore.ok, false);
-  assert.match(restore.message, /恢复会话尚未接入/);
+  assert.match(restore.message, /恢复会话暂不可用/);
   const rename = await chat.renameChatSession("sess-1", "新标题");
   assert.equal(rename.ok, false);
-  assert.match(rename.message, /重命名会话尚未接入/);
+  assert.match(rename.message, /重命名会话暂不可用/);
   // fail-closed：空 ID / 空标题 ⇒ error 且 ok:false（不是抛错、更不是成功）
   const emptyId = await chat.archiveChatSession("");
   assert.equal(emptyId.ok, false);
@@ -115,16 +115,16 @@ await run("守恒：适配器当前不存在任何可达的成功分支（全部
   return `${calls.length} 个动作全部 ok:false`;
 });
 
-// ═══ 三、UI 结构：待接入 + 重试（不出现成功口径） ═══
+// ═══ 三、UI 结构：暂不可用 + 重试（不出现成功口径） ═══
 
-await run("会话列表 UI：待接入标记 + 双重试入口（列表级 + 动作级）", () => {
+await run("会话列表 UI：暂不可用标记 + 双重试入口（列表级 + 动作级）", () => {
   const ui = read("components/AiChat/AiSessionList.vue");
-  assert.ok(ui.includes("待接入"), "会话列表必须显示「待接入」");
+  assert.ok(ui.includes("暂不可用"), "会话列表必须显示「暂不可用」");
   assert.ok(ui.includes("chat-session-pending-retry"), "缺少列表级重试入口");
   assert.ok(ui.includes("chat-session-action-retry"), "缺少动作级重试入口（归档/删除未生效后可重试）");
   assert.ok(ui.includes("未生效："), "动作失败回执必须明说「未生效」，不得静默");
   assert.ok(ui.includes('data-testid="chat-arch-bar"'), "缺少归档区 bar（原型 L2213 结构锚点）");
-  return "待接入 + 2 处重试 + 未生效回执 + 归档区 bar";
+  return "暂不可用 + 2 处重试 + 未生效回执 + 归档区 bar";
 });
 
 await run("会话列表 UI 红线：无成功 toast / 无已归档口径 / 不冒用登录会话端点", () => {

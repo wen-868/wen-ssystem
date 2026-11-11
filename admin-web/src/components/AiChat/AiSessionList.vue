@@ -1,6 +1,6 @@
 <template>
   <!-- 会话列表（原型 L1229「hover「⋯」→ 归档 / 删除，归档区可展开恢复」的结构实现）
-       数据全部来自 wb-chat-sessions 适配器：端点缺失 ⇒ 待接入 + 重试，绝不本地伪成功 -->
+       数据全部来自 wb-chat-sessions 适配器：缺端点 ⇒ 暂不可用 + 重试，绝不本地伪成功 -->
   <section class="sess-list" data-testid="chat-session-list" aria-label="会话列表">
     <header class="sess-head">
       <span class="sess-head-title">会话</span>
@@ -27,10 +27,10 @@
       </div>
     </header>
 
-    <!-- 历史会话区：适配器 unavailable ⇒ 待接入 + 重试入口 -->
+    <!-- 历史会话区：适配器 unavailable ⇒ 暂不可用 + 重试入口 -->
     <div v-if="listState !== 'ready'" class="sess-pending" role="status" data-testid="chat-session-pending">
       <p class="sess-pending-text">
-        <span class="pending-tag">待接入</span>
+        <span class="pending-tag">暂不可用</span>
         {{ listMessage }}
       </p>
       <button
@@ -107,7 +107,7 @@
       </button>
     </div>
 
-    <!-- 归档区（原型 L2213 arch-bar：可展开恢复）。计数只认真实数据，未接入显示「待接入」 -->
+    <!-- 归档区（原型 L2213 arch-bar：可展开恢复）。计数只认真实数据，数据未就绪显示「暂不可用」 -->
     <div
       class="arch-bar"
       data-testid="chat-arch-bar"
@@ -117,12 +117,12 @@
       @keydown.enter="archOpen = !archOpen"
     >
       <span class="arr" :class="{ open: archOpen }">›</span>
-      归档 · {{ archState === "ready" ? String(archivedSessions.length) : "待接入" }}
+      归档 · {{ archState === "ready" ? String(archivedSessions.length) : "暂不可用" }}
     </div>
     <div v-if="archOpen" class="arch-body" data-testid="chat-arch-body">
       <div v-if="archState !== 'ready'" class="sess-pending" role="status" data-testid="chat-arch-pending">
         <p class="sess-pending-text">
-          <span class="pending-tag">待接入</span>
+          <span class="pending-tag">暂不可用</span>
           {{ archMessage }}
         </p>
         <button
@@ -151,7 +151,7 @@
  * 会话列表面板（WORKBENCH-10 · 区域 C 第 6 项）
  *
  * 诚实约束：归档 / 删除 / 恢复 / 重命名在 `api/ai.ts` 无对应端点（见 wb-chat-sessions.ts 头注），
- * 所以所有动作的真实结果恒为「未生效 · 待接入」。本组件：
+ * 所以所有动作的真实结果恒为「未生效 · 暂不可用」。本组件：
  *   - 不弹成功 toast、不删行、不打「已归档」标记（原型里是本地数组假动作，这里不复制该行为）；
  *   - 结果回执原样展示适配器 message，并给「重试」入口（端点就绪后重试即生效）；
  *   - 「新对话」是真实动作（clearChat 重置上下文），由父级接线，不走本适配器的伪链。

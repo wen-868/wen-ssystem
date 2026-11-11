@@ -139,7 +139,7 @@
               data-testid="chat-att-file"
               @click="attachFileUnsupported"
             >
-              文件 · 待接入
+              文件 · 暂不支持
             </button>
           </div>
         </div>
@@ -162,7 +162,7 @@
         </el-button>
         <span class="ai-input-hint">{{ statusText || "Enter 发送 · Shift+Enter 换行 · 数据不出店" }}</span>
       </div>
-      <!-- 附件回执行：文件项无端点 ⇒ 明示待接入，不做本地假附件 -->
+      <!-- 附件回执行：文件项无端点 ⇒ 明示暂不支持，不做本地假附件 -->
       <p v-if="attNotice" class="ai-att-notice" role="status" data-testid="chat-att-notice">{{ attNotice }}</p>
       <!-- 语音录制态（原型 #micBtn「语音输入」的录制反馈：实时时长 + 完成 / 取消） -->
       <div v-if="listening" class="ai-voice-bar" role="status" data-testid="chat-voice-bar">
@@ -225,7 +225,7 @@ const speechSupported =
 const listening = ref(false);
 /** 待发送图片（data URL，AI 视觉识别） */
 const pendingImage = ref<string | null>(null);
-/** 附件菜单开合 + 结果回执行（文件项无端点 ⇒ 明示待接入，不放回假附件） */
+/** 附件菜单开合 + 结果回执行（文件项无端点 ⇒ 明示暂不支持，不放回假附件） */
 const attMenuOpen = ref(false);
 const attNotice = ref("");
 
@@ -237,7 +237,7 @@ function pickImageFromMenu(): void {
 
 function attachFileUnsupported(): void {
   attMenuOpen.value = false;
-  attNotice.value = "文件解析待接入（缺少文件上传端点）；当前仅图片可随消息发送";
+  attNotice.value = "文件解析暂不支持（缺少文件上传端点）；当前仅图片可随消息发送";
 }
 
 /** 语音录制态展示（原型 #micBtn 只画了按钮，这里补录制中时长 + 完成/取消的真实反馈） */

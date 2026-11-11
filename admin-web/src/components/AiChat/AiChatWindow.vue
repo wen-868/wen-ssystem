@@ -132,10 +132,10 @@ const listEl = ref<HTMLElement | null>(null);
 const pushConnected = ref(false);
 let disconnectPush: (() => void) | null = null;
 
-/** 空状态引导示例（点击直接发送） */
+/** 空状态引导示例（点击直接发送；不含原型商户/客户/商品名） */
 const suggestions = [
-  "创建销售单：给红星商行送10箱五粮液",
-  "查询一下五粮液的库存",
+  "创建销售单：为指定客户开一张销售单，写清商品与数量",
+  "查询指定商品的当前库存",
   "本月的销售报表",
 ];
 

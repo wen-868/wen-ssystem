@@ -9,7 +9,7 @@
  *
  * 因此本适配器的所有管理动作一律返回 `unavailable` 且 `ok: false`，
  * **不做任何本地伪成功**（不假归档、不假删除、不假恢复）。
- * UI 侧（AiSessionList.vue）必须显示「待接入」并给出重试入口；
+ * UI 侧（AiSessionList.vue）必须显示「暂不可用」并给出重试入口；
  * 后续端点就绪时只需替换本文件实现，UI 与测试不必改动。
  *
  * 唯一真实存在的对话链：AiSidePanel 的流式发起对话（POST /api/chat）。
@@ -24,7 +24,7 @@ export interface ChatSessionEntry {
   title: string;
   /** 后端会话 ID（POST /api/chat 的 done 事件回传后才存在） */
   conversationId: string | null;
-  /** true＝本次页面里真实存活中的对话；false＝服务端历史会话（列表端点缺失，恒不会返回此类条目） */
+  /** true＝本次页面里真实存活中的对话；false＝服务端历史会话（缺会话列表端点，恒不会返回此类条目） */
   live: boolean;
   archived: boolean;
 }
@@ -36,18 +36,18 @@ export interface ChatSessionListResult {
 }
 
 export interface ChatSessionMutationResult {
-  /** 动作是否真实生效。端点缺失 ⇒ 恒 false（绝不返回 ok:true 冒充成功） */
+  /** 动作是否真实生效。缺端点 ⇒ 恒 false（绝不返回 ok:true 冒充成功） */
   ok: boolean;
   state: ChatSessionState;
   message: string;
 }
 
-const LIST_PENDING_MESSAGE = "历史会话列表尚未接入（缺少会话列表端点）";
-const ARCHIVE_LIST_PENDING_MESSAGE = "归档会话列表尚未接入（缺少归档会话列表端点）";
-const ARCHIVE_PENDING_MESSAGE = "归档会话尚未接入（缺少会话归档端点）";
-const DELETE_PENDING_MESSAGE = "删除会话尚未接入（缺少会话删除端点）";
-const RESTORE_PENDING_MESSAGE = "恢复会话尚未接入（缺少会话恢复端点）";
-const RENAME_PENDING_MESSAGE = "重命名会话尚未接入（缺少会话重命名端点）";
+const LIST_PENDING_MESSAGE = "历史会话列表暂不可用（缺少会话列表端点）";
+const ARCHIVE_LIST_PENDING_MESSAGE = "归档会话列表暂不可用（缺少归档会话列表端点）";
+const ARCHIVE_PENDING_MESSAGE = "归档会话暂不可用（缺少会话归档端点）";
+const DELETE_PENDING_MESSAGE = "删除会话暂不可用（缺少会话删除端点）";
+const RESTORE_PENDING_MESSAGE = "恢复会话暂不可用（缺少会话恢复端点）";
+const RENAME_PENDING_MESSAGE = "重命名会话暂不可用（缺少会话重命名端点）";
 
 /** 只读列表：结构化 empty，不返回任何虚构会话 */
 export async function loadChatSessions(): Promise<ChatSessionListResult> {
@@ -60,7 +60,7 @@ export async function loadArchivedChatSessions(): Promise<ChatSessionListResult>
 }
 
 /**
- * 管理动作统一降级：先校验入参（fail-closed），再返回未接入结论。
+ * 管理动作统一降级：先校验入参（fail-closed），再返回暂不可用结论。
  * 不改动服务端、不改动本地列表状态——调用方拿到 ok:false 后必须原样展示原因。
  */
 function mutationFailure(message: string, sessionId: string): ChatSessionMutationResult {
@@ -92,7 +92,7 @@ export async function renameChatSession(
   return mutationFailure(RENAME_PENDING_MESSAGE, sessionId);
 }
 
-/** 供 UI 直接引用的「待接入」口径文案（单一事实源，测试也读这里） */
+/** 供 UI 直接引用的「暂不可用」口径文案（单一事实源，测试也读这里） */
 export const CHAT_SESSION_PENDING_LABELS = {
   list: LIST_PENDING_MESSAGE,
   archiveList: ARCHIVE_LIST_PENDING_MESSAGE,

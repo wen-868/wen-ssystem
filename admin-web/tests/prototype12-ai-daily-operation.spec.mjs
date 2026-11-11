@@ -198,6 +198,51 @@ assert.ok(
   "S4-8 播报块缺少可辨的诚实降级态（暂不可用）",
 );
 
+// ── 9. AI 会话面生产文案收口（WORKBENCH-PROTOTYPE-12-AI-PRODUCTION-COPY-01） ──
+// 工程词（待接入/未接入/端点缺失/不伪造成功）不得出现在 AI 会话面任何可见文案（注释一并清零）；
+// 原型演示词（红星商行/五粮液/张三/10箱）不得出现在会话面组件、快捷提示台账与会话适配器。
+const sessionListSrc = read("components/AiChat/AiSessionList.vue");
+const chatWindowSrc = read("components/AiChat/AiChatWindow.vue");
+const sessionsAdapterSrc = read("shared/workbench/wb-chat-sessions.ts");
+const capabilityRegistrySrc = read("shared/workbench/capability-registry.ts");
+const stripAllComments = (src) =>
+  src
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+const sessionCopyFiles = {
+  AiSessionList: sessionListSrc,
+  AiSidePanel: sidePanel,
+  AiChatWindow: chatWindowSrc,
+  AiChatComposer: composer,
+  "wb-chat-sessions.ts": sessionsAdapterSrc,
+  "capability-registry.ts": capabilityRegistrySrc,
+};
+const SESSION_COPY_BLACKLIST = ["待接入", "未接入", "端点缺失", "不伪造成功"];
+for (const [name, src] of Object.entries(sessionCopyFiles)) {
+  const visible = stripAllComments(src);
+  for (const term of SESSION_COPY_BLACKLIST) {
+    assert.ok(!visible.includes(term), `S4-9 ${name} 生产文案命中工程词：${term}`);
+  }
+}
+const DEMO_LEAKS = ["红星商行", "五粮液", "10箱", "10 箱", "张三"];
+for (const [name, src] of Object.entries(sessionCopyFiles)) {
+  for (const leak of DEMO_LEAKS) {
+    assert.ok(!src.includes(leak), `S4-9 ${name} 含原型演示词：${leak}`);
+  }
+}
+// 快捷提示（QUICK_COMMANDS.prompt 与 AiChatWindow suggestions）必须同源且不含演示词
+const windowSuggestions = chatWindowSrc.match(/const suggestions = \[[\s\S]*?\];/)?.[0] ?? "";
+assert.ok(windowSuggestions, "S4-9 AiChatWindow 缺少建议芯片定义");
+const registryPrompts = [...capabilityRegistrySrc.matchAll(/prompt: "([^"]+)"/g)].map((m) => m[1]);
+for (const prompt of registryPrompts) {
+  assert.ok(
+    windowSuggestions.includes(`"${prompt}"`),
+    `S4-9 快捷提示与 AiChatWindow 建议芯片不同源：${prompt}`,
+  );
+}
+assert.equal(registryPrompts.length, 3, "S4-9 QUICK_COMMANDS 应为 3 条（与 ai-primary 守恒）");
+
 console.log(
   [
     "",
@@ -208,6 +253,7 @@ console.log(
     "- 链复用：sendChatMessage(SSE) + confirm/cancel/revoke；AiChatPanel 无自建网络调用",
     "- 原型样例零泄漏：红星商行/五粮液/10箱 未出现在四组件",
     "- 生产可见文案：unavailable 使用「暂不可用」，工程诊断词黑名单零命中",
+    "- S4-9 会话面文案收口：工程词/演示词在 AiSessionList/AiSidePanel/AiChatWindow/AiChatComposer/适配器/台账零命中",
     "",
   ].join("\n"),
 );

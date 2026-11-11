@@ -6,7 +6,7 @@
  *   ② 发送走唯一真实链 sendChatMessage（POST /api/chat），输入中（思考指示）与工具时间线由 SSE 事件驱动；
  *   ③ 确认卡既有链路（preview→confirm/cancel/revoke）只扩展不回归；
  *   ④ 发送失败必须显式失败态 + 原文重试，绝不渲染成成功；
- *   ⑤ 附件菜单/语音录制态结构齐备：图片有真实链，文件无端点 ⇒ 待接入；语音不支持时如实禁用。
+ *   ⑤ 附件菜单/语音录制态结构齐备：图片有真实链，文件无端点 ⇒ 暂不支持；语音不支持时如实禁用。
  *
  * 运行（admin-web 目录）：node tests/wb-c-chat-interaction.spec.mjs
  * 说明：纯源码文本断言（同 prototype-parity 风格），.vue 无需运行时。
@@ -132,16 +132,16 @@ await run("重试链：retryText 保留原文 →「重试」走同一真实发�
 
 // ═══ ⑤ 附件菜单与语音录制态（原型 .input-zone L976 / #micBtn L981） ═══
 
-await run("附件菜单：图片走真实链（image 参数），文件无端点 ⇒ 明示待接入、不放回假附件", () => {
+await run("附件菜单：图片走真实链（image 参数），文件无端点 ⇒ 明示暂不支持、不放回假附件", () => {
   assert.ok(side.includes("chat-att-btn") && side.includes("chat-att-menu"), "侧栏应有附件按钮 + 弹出菜单");
   assert.ok(side.includes("pickImageFromMenu"), "图片项应接真实文件选取");
   assert.ok(side.includes("image ?? undefined"), "图片应随 sendChatMessage 的 image 参数真实发出");
-  assert.ok(side.includes("文件解析待接入（缺少文件上传端点）"), "文件项必须如实标注待接入");
+  assert.ok(side.includes("文件解析暂不支持（缺少文件上传端点）"), "文件项必须如实标注暂不支持");
   assert.ok(composer.includes("composer-att-menu"), "底部输入条应有附件菜单结构");
-  assert.ok(composer.includes("待接入"), "底部输入条文件项应显示待接入");
+  assert.ok(composer.includes("暂不支持"), "底部输入条文件项应显示暂不支持");
   const composerCode = codeOf(composer);
   assert.ok(!/FileReader/.test(composerCode), "信息流入口无真实附件链，不得本地读取文件制造已附加假象");
-  return "菜单结构 + 图片真实链 + 文件待接入（两处输入面）";
+  return "菜单结构 + 图片真实链 + 文件暂不支持（两处输入面）";
 });
 
 await run("语音录制态：录制条（时长 + 完成/取消），取消还原草稿；不支持时如实禁用", () => {
