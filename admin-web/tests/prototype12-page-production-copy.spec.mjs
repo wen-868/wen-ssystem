@@ -97,6 +97,9 @@ const PRODUCT_FILES = [
   "modules/print/sampleVars.ts",
   "shared/workbench/wb-pos-catalogue.ts",
   "shared/workbench/wb-pos-checkout.ts",
+  "components/workbench/WbSettingsCenter.vue",
+  "shared/workbench/wb-settings.ts",
+  "views/LoginView.vue",
 ];
 
 /** 剥离注释，只留「产品可见字符串」扫描面（模板注释/块注释/整行行注释；不动字符串字面量） */
@@ -149,7 +152,7 @@ async function run(name, fn) {
 
 /* ── 1. 源码产品可见字符串黑名单（逐文件点名，恢复演示值即判红）── */
 
-await run("允许路径 7 个产品文件：S5 COPY_BLACKLIST 10 项零命中（注释剥离，逐文件点名）", () => {
+await run("允许路径 10 个产品文件：S5 COPY_BLACKLIST 10 项零命中（注释剥离，逐文件点名）", () => {
   const hits = [];
   for (const rel of PRODUCT_FILES) {
     const visible = stripComments(read(rel));
@@ -158,7 +161,7 @@ await run("允许路径 7 个产品文件：S5 COPY_BLACKLIST 10 项零命中（
     }
   }
   assert.deepEqual(hits, [], `产品可见字符串命中黑名单：\n${hits.join("\n")}`);
-  return `7 文件 × 10 词 = 0 命中`;
+  return `10 文件 × 10 词 = 0 命中`;
 });
 
 /* ── 2. sampleVars：预览单一源——结构完整 + 值中性 + 不进业务提交链 ── */

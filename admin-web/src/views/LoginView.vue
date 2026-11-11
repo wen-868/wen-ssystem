@@ -149,7 +149,7 @@
     <el-dialog v-model="forgotVisible" title="忘记密码怎么办？" width="480px">
       <div class="forgot-body">
         <p class="forgot-lead">
-          本系统暂未开放自助找回（短信 / 邮件通道未接入），请按你的身份联系管理员协助重置：
+          本系统暂未开放自助找回（短信 / 邮件通道暂不可用），请按你的身份联系管理员协助重置：
         </p>
         <div class="forgot-item">
           <div class="forgot-role">门店员工</div>

@@ -44,7 +44,7 @@ export const SETTINGS_TABS: readonly SettingTab[] = [
     prototypeKey: "conn",
     adminOnly: true,
     capability: "unavailable",
-    note: "业务系统 / 运营系统对接状态尚未接入（api/ 无对接端点）",
+    note: "业务系统 / 运营系统对接状态暂不可用（api/ 未提供对应能力）",
   },
   {
     key: "model",
@@ -84,7 +84,7 @@ export const SETTINGS_TABS: readonly SettingTab[] = [
     prototypeKey: null,
     adminOnly: true,
     capability: "unavailable",
-    note: "运营系统（短视频 / 电商 / 私域）尚未接入（api/ 无对应端点）",
+    note: "运营系统（短视频 / 电商 / 私域）暂未开放（api/ 未提供对应能力）",
   },
   {
     key: "config",
@@ -128,5 +128,5 @@ export interface CapabilityState {
 
 /** 与 shared/workbench/agent-directory.ts 同构：缺端点即 unavailable，不返回伪造条目。 */
 export function unavailableCapability(tab: SettingTab): CapabilityState {
-  return { state: "unavailable", message: `${tab.label} · 待接入：${tab.note}` };
+  return { state: "unavailable", message: `${tab.label} · 暂不可用：${tab.note}` };
 }

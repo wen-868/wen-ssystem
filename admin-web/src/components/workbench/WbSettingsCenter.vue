@@ -28,7 +28,7 @@
           @click="selectTab(tab.key)"
         >
           <span>{{ tab.label }}</span>
-          <span v-if="tab.capability === 'unavailable'" class="sw-badge">待接入</span>
+          <span v-if="tab.capability === 'unavailable'" class="sw-badge">暂不可用</span>
         </button>
       </nav>
 
@@ -42,7 +42,7 @@
           <div class="pane" :data-pane="activeTab.key">
             <div class="ad-note">管理员专属</div>
             <div class="cap-state cap-unavailable" data-testid="sw-unavailable">
-              <b>{{ activeTab.label }} · 待接入</b>
+              <b>{{ activeTab.label }} · 暂不可用</b>
               <p>{{ activeTab.note }}</p>
               <el-button size="small" :loading="retrying" @click="retryCapability">重试</el-button>
               <span v-if="retryHint" class="retry-hint">{{ retryHint }}</span>
@@ -171,7 +171,7 @@
             </div>
             <div class="dr-sec">账号安全</div>
             <div class="cap-state cap-unavailable" data-testid="sw-acct-pwd">
-              <b>修改登录密码 · 待接入</b>
+              <b>修改登录密码 · 暂不可用</b>
               <p>登录密码由业务系统统一管理，工作台侧无改密端点。</p>
             </div>
           </div>
@@ -271,7 +271,7 @@ async function retryCapability(): Promise<void> {
   try {
     await new Promise((resolve) => setTimeout(resolve, 300));
     // 端点仍不存在：如实回读，不把它翻成 ready
-    retryHint.value = "重试后仍未取到对接端点，保持待接入";
+    retryHint.value = "重试后仍无法取得对接状态";
   } finally {
     retrying.value = false;
   }
