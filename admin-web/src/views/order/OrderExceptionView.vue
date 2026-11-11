@@ -214,8 +214,8 @@
             <h4 style="margin: 16px 0 8px">关联订单信息</h4>
             <el-descriptions :column="1" border size="small">
               <el-descriptions-item label="关联订单号">{{ currentException.channelOrderNo }}</el-descriptions-item>
-              <el-descriptions-item label="订单金额">¥{{ (Math.random() * 300 + 50).toFixed(2) }}</el-descriptions-item>
-              <el-descriptions-item label="下单时间">2026-07-01 09:30:00</el-descriptions-item>
+              <el-descriptions-item label="订单金额">{{ currentException.orderAmount != null ? `¥${currentException.orderAmount}` : '-' }}</el-descriptions-item>
+              <el-descriptions-item label="下单时间">{{ currentException.orderCreatedAt || '-' }}</el-descriptions-item>
             </el-descriptions>
           </el-col>
           <el-col :span="12">
@@ -235,10 +235,8 @@
           </el-col>
         </el-row>
         <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-normal); display: flex; gap: 12px; align-items: center">
-          <el-select v-model="assignHandler" placeholder="分配处理人" clearable style="width: 160px">
-            <el-option label="张三" value="张三" />
-            <el-option label="李四" value="李四" />
-            <el-option label="王五" value="王五" />
+          <el-select v-model="assignHandler" placeholder="分配处理人（暂无可选人员名单）" clearable style="width: 200px">
+            <!-- 处理人名单必须来自真实人员数据；无人员接口 ⇒ 不渲染任何演示人员选项（本卡 §三.3） -->
           </el-select>
           <el-input v-model="handlePlan" type="textarea" placeholder="处理方案" :rows="2" style="flex: 1" />
           <el-button type="success" @click="markResolved">标记已解决</el-button>

@@ -40,11 +40,11 @@ export interface PosStockView {
 /** 库存可用性判定（null / undefined / 空串 / NaN ⇒ 待接入） */
 export function resolveStockState(availableQty: unknown, lowThreshold = 10): PosStockView {
   if (availableQty === null || availableQty === undefined || availableQty === "") {
-    return { state: "unavailable", text: "库存待接入", className: "stock-unknown", blockAdd: false, qty: null };
+    return { state: "unavailable", text: "暂无库存读数", className: "stock-unknown", blockAdd: false, qty: null };
   }
   const qty = Number(availableQty);
   if (!Number.isFinite(qty)) {
-    return { state: "unavailable", text: "库存待接入", className: "stock-unknown", blockAdd: false, qty: null };
+    return { state: "unavailable", text: "暂无库存读数", className: "stock-unknown", blockAdd: false, qty: null };
   }
   if (qty <= 0) return { state: "out", text: "缺货", className: "stock-out", blockAdd: true, qty: 0 };
   if (qty <= lowThreshold) {
@@ -121,7 +121,7 @@ export async function loadPosCatalogue(
       state: "unavailable",
       records: [],
       stockUnknownCount: 0,
-      message: `商品目录待接入（GET /store/products ${getErrorMessage(error, "请求失败")}）`,
+      message: `商品目录暂不可用（${getErrorMessage(error, "请求失败")}）`,
     };
   }
 }
@@ -131,7 +131,7 @@ export function normalizeCategoryRows(list: unknown): { rows: any[]; message: st
   if (Array.isArray(list)) return { rows: list, message: "" };
   const records = (list as any)?.records;
   if (Array.isArray(records)) return { rows: records, message: "" };
-  return { rows: [], message: "商品分类待接入（GET /admin/products/categories 返回体缺失）" };
+  return { rows: [], message: "商品分类暂不可用（接口返回体缺失）" };
 }
 
 /**
@@ -145,5 +145,5 @@ export function describeStockGap(cart: Array<{ skuName?: string; availableQty?: 
   if (unknown.length === 0) return "";
   const names = unknown.slice(0, 3).map((r) => r?.skuName || "未命名商品").join("、");
   const more = unknown.length > 3 ? ` 等 ${unknown.length} 项` : "";
-  return `${names}${more} 无门店库存行（t_inventory_balance 待接入），收款可能因出库校验失败`;
+  return `${names}${more} 门店暂无库存读数（无该门店库存行），收款可能因出库校验失败`;
 }

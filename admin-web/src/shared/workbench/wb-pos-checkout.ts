@@ -189,7 +189,7 @@ export function resolvePayCapability(probe: PosChannelProbe | null, method: PosP
       method,
       state: "unavailable",
       endpoint: POS_PAYMENT_ENDPOINTS.channels,
-      reason: `${probe.message || "通道状态未取到"} ⇒ ${label}待接入`,
+      reason: `${probe.message || "通道状态未取到"} ⇒ ${label}暂不可用`,
       channelLabel: label,
     };
   }
@@ -204,7 +204,7 @@ export function resolvePayCapability(probe: PosChannelProbe | null, method: PosP
       method,
       state: "unavailable",
       endpoint: POS_PAYMENT_ENDPOINTS.channels,
-      reason: `${keys.map(channelName).join("/")}付款码通道未配置（${detail}）⇒ ${label}待接入`,
+      reason: `${keys.map(channelName).join("/")}付款码通道未配置（${detail}）⇒ ${label}暂不可用`,
       channelLabel: label,
     };
   }
@@ -421,7 +421,7 @@ export const POS_STATE_BADGES: Record<PosCheckoutState, string> = {
   unverified: "到账待核对",
   failure: "收款失败",
   cancelled: "已取消",
-  unavailable: "待接入",
+  unavailable: "暂不可用",
 };
 
 /** 失败 / 部分到账 / 到账待核对 ⇒ 可重试（重试沿用同一单号，见 submitPosCheckout） */

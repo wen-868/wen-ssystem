@@ -180,9 +180,9 @@ await run("目录与分类读取失败 ⇒ 待接入零条目；空结果如实�
 
   const weird = catalogue.normalizeCategoryRows({ nope: 1 });
   assert.deepEqual(weird.rows, []);
-  assert.match(weird.message, /待接入/);
+  assert.match(weird.message, /暂不可用/);
   assert.deepEqual(catalogue.normalizeCategoryRows({ records: [{ id: 1 }] }).rows, [{ id: 1 }]);
-  return "500→待接入 / []→空 / 异形→待接入";
+  return "500→暂不可用 / []→空 / 异形→暂不可用";
 });
 
 /* ── 3. 支付方式与能力门槛 ── */

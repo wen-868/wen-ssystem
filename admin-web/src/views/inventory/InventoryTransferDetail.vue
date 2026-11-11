@@ -291,69 +291,25 @@ async function loadDetail() {
     detail.value = data.data || data;
     buildAuditRecords();
     buildOperationLogs();
-  } catch {
-    // 使用 mock 数据
-    detail.value = {
-      id: transferId.value,
-      transferNo: `DB202607${String(transferId.value).padStart(4, "0")}`,
-      fromStoreId: 1,
-      fromStoreName: "总店",
-      toStoreId: 2,
-      toStoreName: "朝阳门店",
-      reason: "RESTOCK",
-      status: "PENDING",
-      creatorName: "张三",
-      createdAt: "2026-07-14 10:30:00",
-      updatedAt: "2026-07-14 10:30:00",
-      remark: "朝阳门店白酒库存不足，从总店调拨补货",
-      items: [
-        {
-          skuId: 1,
-          skuName: "飞天茅台53度500ml",
-          specs: "53度/500ml",
-          barcode: "6902952880011",
-          fromStock: 120,
-          toStock: 15,
-          quantity: 30,
-          unitPrice: 2899,
-          imageUrl: ""
-        },
-        {
-          skuId: 2,
-          skuName: "五粮液普五52度500ml",
-          specs: "52度/500ml",
-          barcode: "6901382100015",
-          fromStock: 200,
-          toStock: 30,
-          quantity: 50,
-          unitPrice: 1099,
-          imageUrl: ""
-        },
-        {
-          skuId: 3,
-          skuName: "剑南春水晶剑52度500ml",
-          specs: "52度/500ml",
-          barcode: "6901434888886",
-          fromStock: 150,
-          toStock: 25,
-          quantity: 40,
-          unitPrice: 458,
-          imageUrl: ""
-        }
-      ]
-    };
-    buildAuditRecords();
-    buildOperationLogs();
+  } catch (error: any) {
+    // 加载失败 ⇒ 如实空态：不注入任何演示调拨单/演示操作人冒充生产数据
+    detail.value = null;
+    auditRecords.value = [];
+    operationLogs.value = [];
+    ElMessage.error(error?.response?.data?.msg || "调拨详情加载失败（接口不可用），请稍后重试");
   }
 }
 
 function buildAuditRecords() {
   if (!detail.value) return;
+  // 审批链节点按单据状态推导；操作人只取真实字段（creatorName），缺真实记录的节点
+  // 一律「未记录」——不得把演示人员当作生产操作者（本卡 §三.3）
+  const creator = detail.value.creatorName || "未记录";
   const records: any[] = [
     {
       title: "创建调拨单",
       time: detail.value.createdAt,
-      operator: detail.value.creatorName || "系统",
+      operator: creator,
       type: "primary",
       icon: markRaw(CircleCheck),
       remark: ""
@@ -362,8 +318,8 @@ function buildAuditRecords() {
   if (detail.value.status !== "DRAFT") {
     records.push({
       title: "提交审核",
-      time: detail.value.createdAt,
-      operator: detail.value.creatorName || "系统",
+      time: detail.value.updatedAt || detail.value.createdAt,
+      operator: creator,
       type: "warning",
       icon: markRaw(Warning),
       remark: ""
@@ -372,70 +328,74 @@ function buildAuditRecords() {
   if (detail.value.status === "APPROVED" || detail.value.status === "SHIPPED" || detail.value.status === "RECEIVED") {
     records.push({
       title: "审核通过",
-      time: "2026-07-14 11:00:00",
-      operator: "李经理",
+      time: detail.value.updatedAt || detail.value.createdAt,
+      operator: "未记录",
       type: "success",
       icon: markRaw(CircleCheck),
-      remark: "同意调拨，请尽快安排发货"
+      remark: ""
     });
   }
   if (detail.value.status === "SHIPPED" || detail.value.status === "RECEIVED") {
     records.push({
       title: "确认出库",
-      time: "2026-07-14 14:30:00",
-      operator: "库管员王",
+      time: detail.value.updatedAt || detail.value.createdAt,
+      operator: "未记录",
       type: "primary",
       icon: markRaw(CircleCheck),
-      remark: "商品已从总店发出"
+      remark: ""
     });
   }
   if (detail.value.status === "RECEIVED") {
     records.push({
       title: "确认入库",
-      time: "2026-07-15 09:15:00",
-      operator: "朝阳门店库管",
+      time: detail.value.updatedAt || detail.value.createdAt,
+      operator: "未记录",
       type: "success",
       icon: markRaw(CircleCheck),
-      remark: "商品已验收入库"
+      remark: ""
     });
   }
   if (detail.value.status === "REJECTED") {
     records.push({
       title: "审核驳回",
-      time: "2026-07-14 11:00:00",
-      operator: "李经理",
+      time: detail.value.updatedAt || detail.value.createdAt,
+      operator: "未记录",
       type: "danger",
       icon: markRaw(Close),
-      remark: "库存充足，无需调拨"
+      remark: ""
     });
   }
   if (detail.value.status === "CANCELLED") {
     records.push({
       title: "已取消",
-      time: "2026-07-14 11:00:00",
-      operator: detail.value.creatorName || "系统",
+      time: detail.value.updatedAt || detail.value.createdAt,
+      operator: creator,
       type: "info",
       icon: markRaw(Close),
-      remark: "用户取消"
+      remark: ""
     });
   }
   auditRecords.value = records;
 }
 
 function buildOperationLogs() {
-  operationLogs.value = [
-    { action: "创建", operator: "张三", time: "2026-07-14 10:30:00" },
-    { action: "提交审核", operator: "张三", time: "2026-07-14 10:35:00" }
+  const creator = detail.value?.creatorName || "未记录";
+  const createdAt = detail.value?.createdAt || "";
+  const updatedAt = detail.value?.updatedAt || createdAt;
+  const logs: any[] = [
+    { action: "创建", operator: creator, time: createdAt },
+    { action: "提交审核", operator: creator, time: updatedAt }
   ];
   if (detail.value?.status !== "DRAFT" && detail.value?.status !== "PENDING") {
-    operationLogs.value.push({ action: "审核通过", operator: "李经理", time: "2026-07-14 11:00:00" });
+    logs.push({ action: "审核通过", operator: "未记录", time: updatedAt });
   }
   if (detail.value?.status === "SHIPPED" || detail.value?.status === "RECEIVED") {
-    operationLogs.value.push({ action: "出库", operator: "库管员王", time: "2026-07-14 14:30:00" });
+    logs.push({ action: "出库", operator: "未记录", time: updatedAt });
   }
   if (detail.value?.status === "RECEIVED") {
-    operationLogs.value.push({ action: "入库", operator: "朝阳门店库管", time: "2026-07-15 09:15:00" });
+    logs.push({ action: "入库", operator: "未记录", time: updatedAt });
   }
+  operationLogs.value = logs;
 }
 
 async function handleSubmit() {
