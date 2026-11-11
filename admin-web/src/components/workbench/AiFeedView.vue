@@ -1,9 +1,10 @@
 <template>
-  <section class="fdv" aria-label="工作台信息流" data-testid="feed-view">
+  <section class="fdv" aria-label="日常经营" data-testid="feed-view">
     <header class="fdv-head">
       <div class="fdv-hi">
-        <div class="fdv-name">{{ greeting }}，{{ userName || "同事" }}</div>
-        <div class="fdv-sub">{{ todayLabel }} · {{ feedSummary }}</div>
+        <!-- S4：主区标题「日常经营」（feed 面 = 会话面入口，晨报经「问智享AI」进入会话首条） -->
+        <div class="fdv-name" data-testid="daily-op-title">日常经营</div>
+        <div class="fdv-sub">{{ greeting }}，{{ userName || "同事" }} · {{ todayLabel }} · {{ feedSummary }}</div>
       </div>
       <span v-if="socketOnline" class="fdv-live" data-testid="feed-live">
         <span class="fdv-dot" />实时推送中
