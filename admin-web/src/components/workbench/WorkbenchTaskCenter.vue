@@ -64,24 +64,22 @@
       </div>
 
       <div class="wtc-body">
-        <!-- ── 进度明细：执行计划六态 → 门控步进链（与 wb-feed-taskflow 同源同口径）── -->
+        <!-- ── 进度明细：执行计划六态（S1 plans 源）→ 门控步进链（deriveFlowSteps 同源同口径）── -->
         <section v-show="view === 'progress'" class="wtc-pane" data-task-center-pane="progress" data-testid="task-center-progress">
-          <template v-if="flowBlock.state === 'loading'">
-            <p class="wtc-empty" data-testid="tc-progress-loading">{{ flowBlock.message }}</p>
-          </template>
+          <p v-if="sourceState(plansSource) === 'loading'" class="wtc-empty" data-testid="tc-progress-loading">{{ plansSource.message }}</p>
           <div
-            v-else-if="canRetry(flowBlock.state)"
+            v-else-if="canRetry(sourceState(plansSource))"
             class="wtc-unavailable"
-            :class="{ 'is-error': flowBlock.state === 'error' }"
+            :class="{ 'is-error': plansSource.status === 'error' || plansSource.status === 'timeout' }"
             data-testid="tc-progress-unavailable"
           >
-            <b>{{ flowBlock.state === "unavailable" ? "不可用" : "读取失败" }}</b>
-            <p data-testid="tc-progress-note">{{ flowBlock.message }} —— 无真实计划读数时不伪造步进链</p>
+            <b>{{ plansSource.status === "unavailable" ? "不可用" : "读取失败" }}</b>
+            <p data-testid="tc-progress-note">{{ plansSource.message }} —— 无真实计划读数时不伪造步进链</p>
             <button type="button" class="wtc-retry" data-testid="tc-progress-retry" @click="refreshPlans">重试</button>
           </div>
-          <p v-else-if="flowBlock.state === 'empty'" class="wtc-empty" data-testid="tc-progress-empty">{{ flowBlock.message }}</p>
+          <p v-else-if="sourceState(plansSource) === 'empty'" class="wtc-empty" data-testid="tc-progress-empty">{{ plansSource.message }}</p>
           <template v-else>
-            <div v-for="flow in flowBlock.data.slice(0, 5)" :key="flow.id" class="wtc-flow" :data-flow-id="flow.id">
+            <div v-for="flow in flows.slice(0, 5)" :key="flow.id" class="wtc-flow" :data-flow-id="flow.id">
               <div class="wtc-flow-hd">
                 <b>{{ flow.title }}</b>
                 <em class="wtc-tag" :class="flow.doneCount === flow.steps.length ? 'ok' : 'run'">{{ flow.statusText }}</em>
@@ -93,61 +91,59 @@
                 </template>
               </div>
             </div>
-            <p v-if="flowBlock.data.length === 0" class="wtc-empty">{{ flowBlock.message }}</p>
+            <p v-if="flows.length === 0" class="wtc-empty">暂无含环节的任务计划（步进链需至少 1 个环节，不画空链）</p>
           </template>
         </section>
 
-        <!-- ── 任务跟踪：待确认（AI 写操作）/ 员工任务 / 通知 ── -->
+        <!-- ── 任务跟踪：待确认（AI 写操作）/ 员工任务 / 通知（均 S1 源） ── -->
         <section v-show="view === 'tracking'" class="wtc-pane" data-task-center-pane="tracking" data-testid="task-center-tracking">
           <div class="wtc-group" data-testid="tc-confirmations">
             <div class="wtc-group-hd">
               待确认
-              <em v-if="confirmationsBlock.state === 'ready' || confirmationsBlock.state === 'empty'">{{ confirmationsBlock.data.length }} 项</em>
+              <em v-if="sourceState(confirmationsSource) === 'ready' || sourceState(confirmationsSource) === 'empty'">{{ confirmationsSource.data?.length ?? 0 }} 项</em>
             </div>
-            <p v-if="confirmationsBlock.state === 'loading'" class="wtc-empty" data-testid="tc-conf-loading">{{ confirmationsBlock.message }}</p>
+            <p v-if="sourceState(confirmationsSource) === 'loading'" class="wtc-empty" data-testid="tc-conf-loading">{{ confirmationsSource.message }}</p>
             <div
-              v-else-if="canRetry(confirmationsBlock.state)"
+              v-else-if="canRetry(sourceState(confirmationsSource))"
               class="wtc-unavailable is-inline"
-              :class="{ 'is-error': confirmationsBlock.state === 'error' }"
+              :class="{ 'is-error': confirmationsSource.status === 'error' || confirmationsSource.status === 'timeout' }"
               data-testid="tc-conf-unavailable"
             >
-              <span>{{ confirmationsBlock.state === "unavailable" ? "不可用" : "读取失败" }}</span>
+              <span>{{ confirmationsSource.status === "unavailable" ? "不可用" : "读取失败" }}</span>
               <button type="button" class="wtc-retry" data-testid="tc-conf-retry" @click="refreshConfirmations">重试</button>
             </div>
-            <p v-else-if="confirmationsBlock.state === 'empty'" class="wtc-empty" data-testid="tc-conf-empty">{{ confirmationsBlock.message }}</p>
-            <div v-else-if="confirmationsBlock.state === 'ready' && confirmationsBlock.data.length === 0" class="wtc-empty">
-              当前没有待确认的 AI 写操作
-            </div>
-            <div v-for="row in confirmationsBlock.data.slice(0, 6)" :key="row.id" class="wtc-row" :data-conf-id="row.id">
+            <p v-else-if="sourceState(confirmationsSource) === 'empty'" class="wtc-empty" data-testid="tc-conf-empty">{{ confirmationsSource.message }}</p>
+            <div v-for="row in confirmationsSource.data?.slice(0, 6) ?? []" :key="row.id ?? row.confirmationId ?? ''" class="wtc-row" :data-conf-id="row.id ?? row.confirmationId ?? ''">
               <span class="wtc-dot is-review" />
               <span class="wtc-row-tx">
-                <b>{{ row.title }}</b>
-                <em>{{ row.agent ? `${row.agent} · ` : "" }}AI 预审完成 · 待确认</em>
+                <b>{{ row.operation || row.summary || "待确认操作" }}</b>
+                <em>AI 预审完成 · 待确认</em>
               </span>
             </div>
           </div>
 
           <div class="wtc-group" data-testid="tc-employees">
             <div class="wtc-group-hd">
-              数字员工
-              <em v-if="employeesBlock.state === 'ready'">{{ employeesBlock.data.length }} 人</em>
+              员工任务
+              <em v-if="sourceState(employeeTasksSource) === 'ready'">{{ employeeTasksSource.data?.length ?? 0 }} 项</em>
             </div>
-            <p v-if="employeesBlock.state === 'loading'" class="wtc-empty" data-testid="tc-emp-loading">{{ employeesBlock.message }}</p>
+            <p v-if="sourceState(employeeTasksSource) === 'loading'" class="wtc-empty" data-testid="tc-emp-loading">{{ employeeTasksSource.message }}</p>
             <div
-              v-else-if="canRetry(employeesBlock.state)"
+              v-else-if="canRetry(sourceState(employeeTasksSource))"
               class="wtc-unavailable is-inline"
-              :class="{ 'is-error': employeesBlock.state === 'error' }"
+              :class="{ 'is-error': employeeTasksSource.status === 'error' || employeeTasksSource.status === 'timeout' }"
               data-testid="tc-emp-unavailable"
             >
-              <span>{{ employeesBlock.state === "unavailable" ? "不可用" : "读取失败" }}</span>
+              <span>{{ employeeTasksSource.status === "unavailable" ? "不可用" : "读取失败" }}</span>
               <button type="button" class="wtc-retry" data-testid="tc-emp-retry" @click="refreshEmployees">重试</button>
             </div>
-            <p v-else-if="employeesBlock.state === 'empty'" class="wtc-empty" data-testid="tc-emp-empty">{{ employeesBlock.message }}</p>
-            <div v-for="emp in employeesBlock.data.slice(0, 6)" :key="emp.id" class="wtc-row" :data-emp-id="emp.id">
-              <span class="wtc-av">{{ emp.name.slice(0, 1) }}</span>
+            <p v-else-if="sourceState(employeeTasksSource) === 'empty'" class="wtc-empty" data-testid="tc-emp-empty">{{ employeeTasksSource.message }}</p>
+            <p v-else-if="sourceState(employeeTasksSource) === 'idle'" class="wtc-empty" data-testid="tc-emp-idle">{{ employeeTasksSource.message }}</p>
+            <div v-for="task in employeeTasksSource.data?.slice(0, 6) ?? []" :key="task.id" class="wtc-row" :data-emp-id="task.id">
+              <span class="wtc-dot" :class="taskDotClass(task.status)" />
               <span class="wtc-row-tx">
-                <b>{{ emp.name }}</b>
-                <em>{{ emp.post || "数字员工" }}</em>
+                <b>{{ task.task }}</b>
+                <em>{{ taskStatusText(task) }}</em>
               </span>
             </div>
           </div>
@@ -155,20 +151,20 @@
           <div class="wtc-group" data-testid="tc-notifications">
             <div class="wtc-group-hd">
               通知
-              <em v-if="notificationsBlock.state === 'ready' || notificationsBlock.state === 'empty'">{{ notificationsBlock.data.length }} 条</em>
+              <em v-if="sourceState(notificationsSource) === 'ready' || sourceState(notificationsSource) === 'empty'">{{ notificationsSource.data?.length ?? 0 }} 条</em>
             </div>
-            <p v-if="notificationsBlock.state === 'loading'" class="wtc-empty" data-testid="tc-noti-loading">{{ notificationsBlock.message }}</p>
+            <p v-if="sourceState(notificationsSource) === 'loading'" class="wtc-empty" data-testid="tc-noti-loading">{{ notificationsSource.message }}</p>
             <div
-              v-else-if="canRetry(notificationsBlock.state)"
+              v-else-if="canRetry(sourceState(notificationsSource))"
               class="wtc-unavailable is-inline"
-              :class="{ 'is-error': notificationsBlock.state === 'error' }"
+              :class="{ 'is-error': notificationsSource.status === 'error' || notificationsSource.status === 'timeout' }"
               data-testid="tc-noti-unavailable"
             >
-              <span>{{ notificationsBlock.state === "unavailable" ? "不可用" : "读取失败" }}</span>
+              <span>{{ notificationsSource.status === "unavailable" ? "不可用" : "读取失败" }}</span>
               <button type="button" class="wtc-retry" data-testid="tc-noti-retry" @click="refreshNotifications">重试</button>
             </div>
-            <p v-else-if="notificationsBlock.state === 'empty'" class="wtc-empty" data-testid="tc-noti-empty">{{ notificationsBlock.message }}</p>
-            <div v-for="note in notificationsBlock.data.slice(0, 6)" :key="note.id" class="wtc-row" :data-noti-id="note.id">
+            <p v-else-if="sourceState(notificationsSource) === 'empty'" class="wtc-empty" data-testid="tc-noti-empty">{{ notificationsSource.message }}</p>
+            <div v-for="note in notificationsSource.data?.slice(0, 6) ?? []" :key="note.id" class="wtc-row" :data-noti-id="note.id">
               <span class="wtc-dot" :class="{ read: note.isRead }" />
               <span class="wtc-row-tx">
                 <b>{{ note.title }}</b>
@@ -187,32 +183,33 @@
  * 任务中心（WORKBENCH-PROTOTYPE-12-S3 · 四列壳层第 4 列 · 300px）
  *
  * 卡面 §三.4：双态「进度明细 / 任务跟踪」+ 可收起/展开且状态保持（localStorage）。
- * 数据：真实端点（与信息流五块同源，不伪造、不复制原型演示数字）：
- *   - 进度明细 = GET {AI_BASE}/api/ai/agent/plans 的步骤六态按门控折算（与 wb-feed-taskflow 同解析）；
- *   - 待确认   = GET {AI_BASE}/api/chat/confirmations（与顶部待审阅/审批中心同源）；
- *   - 数字员工 = GET {AI_BASE}/api/ai/employees（与顶部 AgentStatusBar 同源）；
- *   - 通知     = GET /admin/wb-notifications（与信息流业务动态同源；主后端人工源，AI 故障不影响）。
- * 各源独立 loading/ready/empty/unavailable/error（error/unavailable 给重试入口），
- * 失败绝不渲染假 0（口径与 wb-feed-types 五态一致）。
- *
- * ⚠️ S1 view-model（task-center.ts）已由 S1 卡交付但**未合入 main**（门2 未过），
- *    且本卡允许路径不含 shared/workbench ⇒ 本组件直接消费 S3 既有真实端点与解析器，
- *    数据语义与 S1 契约同源（confirmations/plans/notifications/employees 四类真实源）。
- *    S1 合入后由后续卡切换到统一 view-model。
+ * 数据：S1 view-model（task-center.ts）统一装载，真实端点（不伪造、不复制原型演示数字）：
+ *   - 进度明细 = GET {AI_BASE}/api/ai/agent/plans（ParsedPlan[] → deriveFlowSteps 门控步进链）；
+ *   - 待确认   = GET {AI_BASE}/api/chat/confirmations（ConfirmationListRow[]）；
+ *   - 员工任务 = GET {AI_BASE}/api/ai/employees/:id/tasks（ParsedEmployeeTask[]；未选员工 ⇒ idle）；
+ *   - 通知     = GET /admin/notifications（主后端人工源，AI 故障不影响）。
+ * 各源独立 loading/ready/empty/unavailable/error/timeout（error/timeout/unavailable 给重试入口），
+ * 失败绝不渲染假 0（口径与 S1 硬验收一致）。
  */
 import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
-import { api } from "../../api/request";
-import { AI_BASE_URL, fetchAiConfirmations } from "../../api/ai";
-import { useAuthStore } from "../../stores/auth";
 import {
-  classifyFeedError,
-  feedLoading,
-  type FeedBlock,
-  type FeedBlockState,
-} from "../../shared/workbench/wb-feed-types";
-import { parseWbTaskFlows, type WbTaskFlow } from "../../shared/workbench/wb-feed-taskflow";
+  loadTaskCenterSnapshot,
+  loadConfirmationsSource,
+  loadPlansSource,
+  loadNotificationsSource,
+  deriveTaskCenterCounts,
+  taskCenterSnapshot,
+  type TaskSourceState,
+  type ConfirmationListRow,
+  type ParsedPlan,
+  type ParsedEmployeeTask,
+  type EmployeeTaskStatus,
+  type ParsedNotification,
+} from "../../shared/workbench/task-center";
+import { deriveFlowSteps, type WbTaskFlow } from "../../shared/workbench/wb-feed-taskflow";
+import type { FeedBlockState } from "../../shared/workbench/wb-feed-types";
 
-const props = defineProps<{
+defineProps<{
   collapsed: boolean;
 }>();
 
@@ -248,149 +245,142 @@ watch(view, (next) => {
   }
 });
 
-// ── 数据源（各自独立 loading/ready/empty/unavailable/error；失败可重试）──
-const EMPTY_FLOWS: WbTaskFlow[] = [];
-const EMPTY_ROWS: Array<Record<string, unknown>> = [];
+// ── 数据源（S1 view-model：各源独立 loading/ready/empty/unavailable/error/timeout，失败可重试）──
 
-const flowBlock = ref<FeedBlock<WbTaskFlow[]>>(feedLoading<WbTaskFlow[]>([], "任务进度"));
-const confirmationsBlock = ref<FeedBlock<Array<{ id: string; title: string; agent: string | null }>>>(
-  feedLoading<Array<{ id: string; title: string; agent: string | null }>>([], "待确认"),
-);
-const employeesBlock = ref<FeedBlock<Array<{ id: number; name: string; post: string }>>>(
-  feedLoading<Array<{ id: number; name: string; post: string }>>([], "数字员工"),
-);
-const notificationsBlock = ref<FeedBlock<Array<{ id: number; title: string; createdAt: string | null; isRead: boolean }>>>(
-  feedLoading<Array<{ id: number; title: string; createdAt: string | null; isRead: boolean }>>([], "通知"),
-);
+/** 进度明细：执行计划（S1 plans 源）→ 六态步进链（仅 ready/empty 有数据；unknown 不猜） */
+const plansSource = ref<TaskSourceState<ParsedPlan[]>>(taskCenterSnapshot.plans);
+/** 任务跟踪：待确认（S1 confirmations 源） */
+const confirmationsSource = ref<TaskSourceState<ConfirmationListRow[]>>(taskCenterSnapshot.confirmations);
+/** 任务跟踪：员工任务（S1 employeeTasks 源；未选员工 ⇒ idle，不渲染） */
+const employeeTasksSource = ref<TaskSourceState<ParsedEmployeeTask[]>>(taskCenterSnapshot.employeeTasks);
+/** 任务跟踪：通知（S1 notifications 源 · 主后端人工源，AI 故障不影响） */
+const notificationsSource = ref<TaskSourceState<ParsedNotification[]>>(taskCenterSnapshot.notifications);
 
-function canRetry(state: FeedBlockState): boolean {
+/** 双态可消费状态：S1 的 status 归一为组件级五态（timeout 并入 error 展示但保留原文案；idle 单独显示「未选择员工」） */
+function sourceState(source: TaskSourceState<unknown>): FeedBlockState | "idle" {
+  const status = source.status;
+  if (status === "loading") return "loading";
+  if (status === "ready" || status === "empty") return status;
+  if (status === "idle") return "idle";
+  return "error"; // error / timeout / unavailable 一律走可重试分支（原文案随 message）
+}
+
+function canRetry(state: FeedBlockState | "idle"): boolean {
   return state === "error" || state === "unavailable";
 }
 
-/** 顶部汇总：进行中计划 + 待确认（null = 该源不可得，不显示假 0） */
+/** 进度明细派生：ParsedPlan[] ⇒ 门控步进链（deriveFlowSteps 纯函数；与信息流任务步进同口径） */
+const flows = computed<WbTaskFlow[]>(() => {
+  const data = plansSource.value.data;
+  if (!data) return [];
+  const out: WbTaskFlow[] = [];
+  for (const plan of data) {
+    const steps = deriveFlowSteps(plan.steps as readonly unknown[]);
+    if (steps.length === 0) continue; // 无环节的计划画不出步进链 ⇒ 跳过（不造空链）
+    const doneCount = steps.filter((s) => s.rawStatus === "success").length;
+    out.push({
+      id: String(plan.id),
+      title: plan.goal.trim() || `计划 #${plan.id}`,
+      steps,
+      doneCount,
+      statusText:
+        doneCount === steps.length
+          ? "全链完成 · 证据齐备"
+          : plan.state === "failed"
+            ? `已中断 ${doneCount}/${steps.length}`
+            : `进行中 ${doneCount}/${steps.length}`,
+    });
+  }
+  return out;
+});
+
+/** 员工任务状态点 class（running=蓝 / completed=灰 / failed=红 / 未知=灰） */
+function taskDotClass(status: EmployeeTaskStatus | null): string {
+  if (status === "running") return "run";
+  if (status === "failed") return "fail";
+  return "read";
+}
+
+/** 员工任务副行：状态 + 派发人（状态未知如实标注，不猜） */
+function taskStatusText(task: ParsedEmployeeTask): string {
+  const statusLabel =
+    task.status === "running" ? "运行中" : task.status === "completed" ? "已完成" : task.status === "failed" ? "失败" : "状态未知";
+  const by = task.dispatchedBy && task.dispatchedBy !== "user" ? task.dispatchedBy : "我";
+  return `${statusLabel} · ${by} 派发`;
+}
+
+/** S1 顶部计数（deriveTaskCenterCounts 只读各源 data，同源派生；null = 源不可得，不显示假 0） */
+const counts = computed(() =>
+  deriveTaskCenterCounts({
+    confirmations: confirmationsSource.value,
+    employeeTasks: employeeTasksSource.value,
+    plans: plansSource.value,
+    notifications: notificationsSource.value,
+    historySessions: taskCenterSnapshot.historySessions,
+  }),
+);
+
+/** 顶部汇总：待确认数 + 进行中计划数（null ⇒ 不显示） */
 const activeTotal = computed<number | null>(() => {
   const parts: number[] = [];
-  if (flowBlock.value.state === "ready") parts.push(flowBlock.value.data.length);
-  if (confirmationsBlock.value.state === "ready") parts.push(confirmationsBlock.value.data.length);
+  if (counts.value.confirmations !== null) parts.push(counts.value.confirmations);
+  if (counts.value.plansRunning !== null) parts.push(counts.value.plansRunning);
   return parts.length > 0 ? parts.reduce((s, n) => s + n, 0) : null;
 });
 
 const summaryText = computed(() => {
   const parts: string[] = [];
   if (activeTotal.value !== null) parts.push(`${activeTotal.value} 项待处理`);
-  if (flowBlock.value.state === "loading" || confirmationsBlock.value.state === "loading") parts.push("读取中");
-  else if (flowBlock.value.state === "error" || confirmationsBlock.value.state === "error") parts.push("部分读取失败");
+  const loading = [plansSource.value, confirmationsSource.value, employeeTasksSource.value, notificationsSource.value].some(
+    (s) => s.status === "loading",
+  );
+  const failed = [plansSource.value, confirmationsSource.value, employeeTasksSource.value, notificationsSource.value].some((s) =>
+    ["error", "timeout", "unavailable"].includes(s.status),
+  );
+  if (loading) parts.push("读取中");
+  else if (failed) parts.push("部分读取失败");
   return parts.join(" · ") || "任务中心";
 });
 
-/** 整体状态：任一处 error/unavailable ⇒ error（组件级 data-state 供测试/诊断） */
+/** 整体状态（组件级 data-state 供测试/诊断） */
 const overallState = computed<FeedBlockState>(() => {
-  const blocks = [flowBlock.value, confirmationsBlock.value, employeesBlock.value, notificationsBlock.value];
-  if (blocks.some((b) => b.state === "loading")) return "loading";
-  if (blocks.some((b) => b.state === "error")) return "error";
-  if (blocks.some((b) => b.state === "unavailable")) return "unavailable";
-  if (blocks.some((b) => b.state === "ready")) return "ready";
+  const sources = [plansSource.value, confirmationsSource.value, employeeTasksSource.value, notificationsSource.value];
+  if (sources.some((s) => s.status === "loading")) return "loading";
+  if (sources.some((s) => s.status === "error" || s.status === "timeout")) return "error";
+  if (sources.some((s) => s.status === "unavailable")) return "unavailable";
+  if (sources.some((s) => s.status === "ready")) return "ready";
   return "empty";
 });
 
-// ── 取数（真实端点；AI 底座失败只影响 AI 源，主后端通知源照常）──
-
-function authHeaders(): Record<string, string> {
-  const headers: Record<string, string> = { Accept: "application/json" };
-  try {
-    const token = useAuthStore().token;
-    if (token) headers.Authorization = `Bearer ${token}`;
-  } catch {
-    /* 无登录态：按匿名发出，由服务端裁决 */
-  }
-  return headers;
-}
-
-async function fetchAgentPlans(): Promise<unknown> {
-  const resp = await fetch(`${AI_BASE_URL}/api/ai/agent/plans`, { headers: authHeaders() });
-  if (!resp.ok) throw new Error(`任务计划端点响应异常（HTTP ${resp.status}）`);
-  return (await resp.json()) as unknown;
-}
+// ── 取数（S1 view-model 装载器；各源独立失败隔离，AI 故障不影响通知源）──
 
 async function refreshPlans(): Promise<void> {
-  flowBlock.value = feedLoading<WbTaskFlow[]>([], "任务进度");
-  try {
-    const raw = await fetchAgentPlans();
-    flowBlock.value = parseWbTaskFlows(raw);
-  } catch (err) {
-    flowBlock.value = classifyFeedError(err, "任务进度", EMPTY_FLOWS);
-  }
+  plansSource.value = await loadPlansSource();
 }
 
 async function refreshConfirmations(): Promise<void> {
-  confirmationsBlock.value = feedLoading<Array<{ id: string; title: string; agent: string | null }>>([], "待确认");
-  try {
-    const rows = await fetchAiConfirmations();
-    confirmationsBlock.value = {
-      state: rows.length === 0 ? "empty" : "ready",
-      data: rows
-        .map((row) => ({
-          id: String(row.confirmationId ?? row.id ?? "").trim(),
-          title: String(row.operation ?? row.summary ?? "").trim() || "待确认操作",
-          agent: null,
-        }))
-        .filter((row) => row.id.length > 0),
-      message: rows.length === 0 ? "当前没有待确认的 AI 写操作（真实空列表）" : "",
-    };
-  } catch (err) {
-    confirmationsBlock.value = classifyFeedError(err, "待确认", EMPTY_ROWS as Array<{ id: string; title: string; agent: string | null }>);
-  }
+  confirmationsSource.value = await loadConfirmationsSource();
 }
 
 async function refreshEmployees(): Promise<void> {
-  employeesBlock.value = feedLoading<Array<{ id: number; name: string; post: string }>>([], "数字员工");
-  try {
-    const resp = await fetch(`${AI_BASE_URL}/api/ai/employees`, { headers: authHeaders() });
-    if (!resp.ok) throw new Error(`数字员工端点响应异常（HTTP ${resp.status}）`);
-    const payload = (await resp.json()) as unknown;
-    const rows = Array.isArray(payload)
-      ? payload
-          .filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === "object")
-          .map((row) => ({
-            id: Number(row.id ?? 0),
-            name: String(row.name ?? "").trim(),
-            post: String(row.post ?? "").trim(),
-          }))
-          .filter((row) => row.id > 0 || row.name.length > 0)
-      : [];
-    employeesBlock.value = {
-      state: rows.length === 0 ? "empty" : "ready",
-      data: rows,
-      message: rows.length === 0 ? "当前没有启用的数字员工（真实空列表）" : "",
-    };
-  } catch (err) {
-    employeesBlock.value = classifyFeedError(err, "数字员工", EMPTY_ROWS as Array<{ id: number; name: string; post: string }>);
-  }
+  // 未指定员工：S1 源保持 idle（组件如实显示「未选择员工」）
+  const snapshot = await loadTaskCenterSnapshot();
+  plansSource.value = snapshot.plans;
+  confirmationsSource.value = snapshot.confirmations;
+  notificationsSource.value = snapshot.notifications;
+  employeeTasksSource.value = snapshot.employeeTasks;
 }
 
 async function refreshNotifications(): Promise<void> {
-  notificationsBlock.value = feedLoading<Array<{ id: number; title: string; createdAt: string | null; isRead: boolean }>>([], "通知");
-  try {
-    const { data: res } = await api.get("/admin/wb-notifications", { params: { page: 1, pageSize: 10 } });
-    const data = res.data ?? res ?? {};
-    const rows = (data.records ?? data.list ?? []) as Array<Record<string, unknown>>;
-    const notes = rows
-      .filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === "object")
-      .map((row) => ({
-        id: Number(row.id ?? 0),
-        title: String(row.title ?? row.summary ?? "").trim(),
-        createdAt: typeof row.createdAt === "string" ? row.createdAt : null,
-        isRead: row.isRead === true || row.isRead === 1,
-      }))
-      .filter((row) => row.title.length > 0);
-    notificationsBlock.value = {
-      state: notes.length === 0 ? "empty" : "ready",
-      data: notes,
-      message: notes.length === 0 ? "当前没有通知（真实空列表）" : "",
-    };
-  } catch (err) {
-    notificationsBlock.value = classifyFeedError(err, "通知", EMPTY_ROWS as Array<{ id: number; title: string; createdAt: string | null; isRead: boolean }>);
-  }
+  notificationsSource.value = await loadNotificationsSource();
+}
+
+async function refreshAll(): Promise<void> {
+  const snapshot = await loadTaskCenterSnapshot();
+  plansSource.value = snapshot.plans;
+  confirmationsSource.value = snapshot.confirmations;
+  employeeTasksSource.value = snapshot.employeeTasks;
+  notificationsSource.value = snapshot.notifications;
 }
 
 function shortTime(value: string | null): string {
@@ -401,10 +391,7 @@ function shortTime(value: string | null): string {
 }
 
 onMounted(() => {
-  void refreshPlans();
-  void refreshConfirmations();
-  void refreshEmployees();
-  void refreshNotifications();
+  void refreshAll();
 });
 
 onBeforeUnmount(() => {
@@ -707,6 +694,12 @@ onBeforeUnmount(() => {
 }
 .wtc-dot.read {
   background: var(--wb-muted, #b0b6c0);
+}
+.wtc-dot.run {
+  background: var(--wb-primary, #2563eb);
+}
+.wtc-dot.fail {
+  background: var(--wb-danger, #dc2626);
 }
 .wtc-av {
   width: 26px;

@@ -2,7 +2,7 @@
   <!-- 灰度回滚路径：特征开关关闭时直接使用旧壳，行为与改动前一致 -->
   <MainLayout v-if="!shellEnabled" />
 
-  <div v-else class="wb-shell" :class="{ 'is-ai': effectiveMode === 'ai', 'is-cashier': isCashierRoute, 'side-hidden': sideCollapsed, 'is-narrow': isNarrow }" :data-uiux-inject="uiuxInjected ? 'on' : 'off'" data-testid="wb-shell">
+  <div v-else class="wb-shell" :class="{ 'is-ai': effectiveMode === 'ai', 'is-cashier': isCashierRoute, 'side-hidden': sideCollapsed, 'tc-collapsed': taskCenterCollapsed, 'is-narrow': isNarrow }" :data-uiux-inject="uiuxInjected ? 'on' : 'off'" data-testid="wb-shell">
     <!-- 注入态水印：截图即自证这不是生产权限态（仅 ?wb_uiux=12-groups 的开发态渲染） -->
     <div v-if="uiuxInjected" class="wb-uiux-flag" data-testid="uiux-inject-flag">{{ WB_UIUX_INJECT_WATERMARK }}</div>
     <!-- ══ 一级模块图标栏（最左 · 常驻）＝原型 .rail（renderRail L2293）══ -->
@@ -1045,6 +1045,16 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 .wb-shell.side-hidden {
   grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr) var(--wb-task-center-w, 300px);
 }
+/* 任务中心收起：第 4 列同步收窄为 56px 保留竖条入口（卡面 §四.2「收起前后主区宽度变化」——
+   main 为 1fr 自适应轨道，第 4 列 300→56 时主区宽度实际变宽 +244px，收起/展开有真实几何反馈；
+   状态保持由 localStorage wb.task-center.collapsed 承担（restoreTaskCenterState/toggleTaskCenter）。
+   56px 与二级栏折叠宽度同口径（可折叠但仍在，collapsing 到 0 会让入口不可达）。 */
+.wb-shell.tc-collapsed {
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-w, 230px) minmax(0, 1fr) var(--wb-task-center-collapsed-w, 56px);
+}
+.wb-shell.side-hidden.tc-collapsed {
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr) var(--wb-task-center-collapsed-w, 56px);
+}
 /* 收起态：内容溢出裁掉 + 不做 visibility 切换，保证过渡期间可见滑出 */
 .wb-shell :deep(.wb-subnav.hidden) {
   overflow: hidden;
@@ -1469,6 +1479,8 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 @media (max-width: 390px) {
   .wb-shell,
   .wb-shell.side-hidden,
+  .wb-shell.tc-collapsed,
+  .wb-shell.side-hidden.tc-collapsed,
   .wb-shell.is-ai {
     grid-template-columns: minmax(0, 1fr);
   }

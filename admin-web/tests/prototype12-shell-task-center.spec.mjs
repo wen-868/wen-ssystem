@@ -167,6 +167,19 @@ await run("窄口（≤390px）任务中心整列隐藏，不挤主面；无整�
   return "390 窄口 .wtc display:none";
 });
 
+await run("任务中心收起几何（§四.2）：第 4 列 300→56，main(1fr) 实际变宽；窄口覆盖不受影响", () => {
+  const collapsed = cssBlock(shellSrc, ".wb-shell.tc-collapsed");
+  assert.ok(collapsed, "壳层缺 .wb-shell.tc-collapsed 收起列宽规则");
+  assert.match(collapsed, /var\(--wb-task-center-collapsed-w,\s*56px\)/, "收起态第 4 列不是 56px");
+  const both = cssBlock(shellSrc, ".wb-shell.side-hidden.tc-collapsed");
+  assert.ok(both && /var\(--wb-task-center-collapsed-w,\s*56px\)/.test(both), "双折叠态第 4 列不是 56px");
+  assert.ok(/'tc-collapsed':\s*taskCenterCollapsed/.test(shellSrc), "壳层未绑定 tc-collapsed 类");
+  assert.match(cssBlock(shellSrc, ".wb-shell"), /var\(--wb-task-center-w,\s*300px\)/, "展开态第 4 列必须保持 300px（收起是可选态）");
+  const narrow = mediaBlock(shellSrc, 390);
+  assert.ok(/\.wb-shell\.tc-collapsed,/.test(narrow ?? ""), "窄口块未并入 tc-collapsed 覆盖（窄口单列会被压回）");
+  return "tc-collapsed 300→56（main +244）+ 窄口覆盖";
+});
+
 /* ══ 3. router-view 常驻与 AI 故障隔离 ══ */
 
 await run("router-view 常驻：无条件渲染（不被 AI 状态 v-if 包裹）", () => {
@@ -178,19 +191,28 @@ await run("router-view 常驻：无条件渲染（不被 AI 状态 v-if 包裹�
   return "无条件常驻";
 });
 
-/* ══ 4. 真实数据接入（§四.3）与无占位 ══ */
+/* ══ 4. 真实数据接入（§四.3，S1 view-model）与无占位 ══ */
 
-await run("任务中心消费真实端点（不伪造、无原型演示数字）", () => {
-  for (const endpoint of ["/api/ai/agent/plans", "/api/chat/confirmations", "/api/ai/employees", "/admin/wb-notifications"]) {
-    assert.ok(taskCenterSrc.includes(endpoint), `组件未引用真实端点 ${endpoint}`);
+await run("任务中心消费 S1 view-model（真实端点统一在 task-center.ts 契约）", () => {
+  assert.ok(
+    taskCenterSrc.includes('from "../../shared/workbench/task-center"'),
+    "组件未 import S1 task-center view-model（硬验收 §四.3 以此为准）",
+  );
+  assert.ok(
+    taskCenterSrc.includes("loadTaskCenterSnapshot") && taskCenterSrc.includes("loadPlansSource") && taskCenterSrc.includes("loadConfirmationsSource"),
+    "组件未使用 S1 各源装载器",
+  );
+  const tc = read("shared/workbench/task-center.ts");
+  for (const endpoint of ["/api/ai/agent/plans", "/api/chat/confirmations", "/api/ai/employees/", "/admin/notifications"]) {
+    assert.ok(tc.includes(endpoint), `S1 view-model 未消费真实端点 ${endpoint}`);
   }
   assert.ok(!/Math\.random\(/.test(taskCenterSrc), "组件不得使用随机数填充");
   assert.ok(!/红星商行|张三|王强/.test(taskCenterSrc), "组件不得出现原型演示姓名/店名");
-  return "4 个真实端点 + 无随机数 + 无演示数据";
+  return "S1 import + 4 个真实端点（契约文件）+ 无随机数 + 无演示数据";
 });
 
-await run("各源独立 loading/ready/empty/unavailable/error 且失败可重试", () => {
-  const states = ["loading", "empty", "unavailable", "error"];
+await run("各源独立 loading/ready/empty/unavailable/error/timeout/idle 且失败可重试", () => {
+  const states = ["loading", "ready", "empty", "unavailable", "error", "timeout", "idle"];
   for (const s of states) {
     assert.ok(taskCenterSrc.includes(`'${s}'`) || taskCenterSrc.includes(`"${s}"`), `组件缺 ${s} 态处理`);
   }
@@ -202,12 +224,15 @@ await run("各源独立 loading/ready/empty/unavailable/error 且失败可重试
 
 await run("无「待接入」占位：数据不可得时如实标 unavailable/error，不用占位文案冒充", () => {
   assert.ok(!/待接入/.test(taskCenterSrc), "任务中心不得出现「待接入」占位文案（数据源必须真实接线）");
+  const tc = read("shared/workbench/task-center.ts");
+  assert.ok(!/待接入/.test(tc), "S1 view-model 不得出现「待接入」占位文案");
   return "无待接入占位";
 });
 
-await run("AI 故障不影响人工通知源：主后端通知走 /admin/wb-notifications（独立失败隔离）", () => {
-  assert.ok(taskCenterSrc.includes('api.get("/admin/wb-notifications"'), "通知源未走主后端 REST");
-  assert.ok(taskCenterSrc.includes("classifyFeedError"), "未用统一失败分类（404→unavailable / 其余→error）");
+await run("AI 故障不影响人工通知源：主后端通知走 /admin/notifications（S1 独立失败隔离）", () => {
+  const tc = read("shared/workbench/task-center.ts");
+  assert.ok(tc.includes('api.get("/admin/notifications"'), "S1 通知装载器未走主后端 REST");
+  assert.ok(taskCenterSrc.includes("refreshNotifications"), "组件未独立装载通知源（AI 故障可单独重试）");
   return "通知源独立于 AI 底座";
 });
 
