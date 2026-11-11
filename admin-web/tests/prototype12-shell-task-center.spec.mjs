@@ -100,11 +100,12 @@ await run("四列 grid：60 / 230 / minmax(0,1fr) / 300 逐字落值（折叠态
   return "60 / 230 / 1fr / 300（折叠 60/56/1fr/300）";
 });
 
-await run("顶栏 42px（卡面 §三.3）", () => {
+await run("顶栏 42px（卡面 §三.3）：高度含 1px 下边线（border-box，浏览器实测=42）", () => {
   const top = cssBlock(shellSrc, ".wb-top");
   assert.ok(top, "缺少 .wb-top 块");
   assert.match(top, /height:\s*42px;/, "顶栏高度不是 42px");
-  return "42px";
+  assert.match(top, /box-sizing:\s*border-box;/, "顶栏缺 border-box（实测会变 43px）");
+  return "42px（含边线）";
 });
 
 await run("底部输入区 100px（卡面 §三.3）：壳层固定 .cmp 高度", () => {

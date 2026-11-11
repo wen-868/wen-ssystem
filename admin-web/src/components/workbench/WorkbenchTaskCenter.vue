@@ -127,7 +127,8 @@
               员工任务
               <em v-if="sourceState(employeeTasksSource) === 'ready'">{{ employeeTasksSource.data?.length ?? 0 }} 项</em>
             </div>
-            <p v-if="sourceState(employeeTasksSource) === 'loading'" class="wtc-empty" data-testid="tc-emp-loading">{{ employeeTasksSource.message }}</p>
+            <p v-if="employeeTasksSource.status === 'idle'" class="wtc-empty" data-testid="tc-emp-idle">{{ employeeTasksSource.message || "未选择员工" }}</p>
+            <p v-else-if="sourceState(employeeTasksSource) === 'loading'" class="wtc-empty" data-testid="tc-emp-loading">{{ employeeTasksSource.message }}</p>
             <div
               v-else-if="canRetry(sourceState(employeeTasksSource))"
               class="wtc-unavailable is-inline"
@@ -138,7 +139,6 @@
               <button type="button" class="wtc-retry" data-testid="tc-emp-retry" @click="refreshEmployees">重试</button>
             </div>
             <p v-else-if="sourceState(employeeTasksSource) === 'empty'" class="wtc-empty" data-testid="tc-emp-empty">{{ employeeTasksSource.message }}</p>
-            <p v-else-if="sourceState(employeeTasksSource) === 'idle'" class="wtc-empty" data-testid="tc-emp-idle">{{ employeeTasksSource.message }}</p>
             <div v-for="task in employeeTasksSource.data?.slice(0, 6) ?? []" :key="task.id" class="wtc-row" :data-emp-id="task.id">
               <span class="wtc-dot" :class="taskDotClass(task.status)" />
               <span class="wtc-row-tx">
@@ -246,26 +246,27 @@ watch(view, (next) => {
 });
 
 // ── 数据源（S1 view-model：各源独立 loading/ready/empty/unavailable/error/timeout，失败可重试）──
+// 初始即克隆：ref 持有独立对象，后续 refresh 全部以新引用覆盖（见 refresh* 的克隆注释）。
 
 /** 进度明细：执行计划（S1 plans 源）→ 六态步进链（仅 ready/empty 有数据；unknown 不猜） */
-const plansSource = ref<TaskSourceState<ParsedPlan[]>>(taskCenterSnapshot.plans);
+const plansSource = ref<TaskSourceState<ParsedPlan[]>>({ ...taskCenterSnapshot.plans });
 /** 任务跟踪：待确认（S1 confirmations 源） */
-const confirmationsSource = ref<TaskSourceState<ConfirmationListRow[]>>(taskCenterSnapshot.confirmations);
+const confirmationsSource = ref<TaskSourceState<ConfirmationListRow[]>>({ ...taskCenterSnapshot.confirmations });
 /** 任务跟踪：员工任务（S1 employeeTasks 源；未选员工 ⇒ idle，不渲染） */
-const employeeTasksSource = ref<TaskSourceState<ParsedEmployeeTask[]>>(taskCenterSnapshot.employeeTasks);
+const employeeTasksSource = ref<TaskSourceState<ParsedEmployeeTask[]>>({ ...taskCenterSnapshot.employeeTasks });
 /** 任务跟踪：通知（S1 notifications 源 · 主后端人工源，AI 故障不影响） */
-const notificationsSource = ref<TaskSourceState<ParsedNotification[]>>(taskCenterSnapshot.notifications);
+const notificationsSource = ref<TaskSourceState<ParsedNotification[]>>({ ...taskCenterSnapshot.notifications });
 
-/** 双态可消费状态：S1 的 status 归一为组件级五态（timeout 并入 error 展示但保留原文案；idle 单独显示「未选择员工」） */
-function sourceState(source: TaskSourceState<unknown>): FeedBlockState | "idle" {
+/** 双态可消费状态：S1 的 status 归一为组件级可消费态（timeout 并入 error 展示但保留原文案；
+ *  idle 视作尚未上报 ⇒ 显示加载文案；员工任务的 idle 语义（未选择员工）由模板按原始 status 单独判定） */
+function sourceState(source: TaskSourceState<unknown>): FeedBlockState {
   const status = source.status;
-  if (status === "loading") return "loading";
+  if (status === "loading" || status === "idle") return "loading";
   if (status === "ready" || status === "empty") return status;
-  if (status === "idle") return "idle";
   return "error"; // error / timeout / unavailable 一律走可重试分支（原文案随 message）
 }
 
-function canRetry(state: FeedBlockState | "idle"): boolean {
+function canRetry(state: FeedBlockState): boolean {
   return state === "error" || state === "unavailable";
 }
 
@@ -353,34 +354,37 @@ const overallState = computed<FeedBlockState>(() => {
 });
 
 // ── 取数（S1 view-model 装载器；各源独立失败隔离，AI 故障不影响通知源）──
+// ⚠️ S1 的 TaskSourceState 是普通对象（模块级单例，原地 mutate，非 Vue reactive）。
+// ref 必须赋「新对象引用」才能触发模板更新：一律展开克隆 {...source}，禁止直接赋 snapshot 内的同引用对象
+// （首帧后模板将永不更新 —— 本卡实测踩过：进度明细停在 idle 首帧文案）。
 
 async function refreshPlans(): Promise<void> {
-  plansSource.value = await loadPlansSource();
+  plansSource.value = { ...await loadPlansSource() };
 }
 
 async function refreshConfirmations(): Promise<void> {
-  confirmationsSource.value = await loadConfirmationsSource();
+  confirmationsSource.value = { ...await loadConfirmationsSource() };
 }
 
 async function refreshEmployees(): Promise<void> {
   // 未指定员工：S1 源保持 idle（组件如实显示「未选择员工」）
   const snapshot = await loadTaskCenterSnapshot();
-  plansSource.value = snapshot.plans;
-  confirmationsSource.value = snapshot.confirmations;
-  notificationsSource.value = snapshot.notifications;
-  employeeTasksSource.value = snapshot.employeeTasks;
+  plansSource.value = { ...snapshot.plans };
+  confirmationsSource.value = { ...snapshot.confirmations };
+  notificationsSource.value = { ...snapshot.notifications };
+  employeeTasksSource.value = { ...snapshot.employeeTasks };
 }
 
 async function refreshNotifications(): Promise<void> {
-  notificationsSource.value = await loadNotificationsSource();
+  notificationsSource.value = { ...await loadNotificationsSource() };
 }
 
 async function refreshAll(): Promise<void> {
   const snapshot = await loadTaskCenterSnapshot();
-  plansSource.value = snapshot.plans;
-  confirmationsSource.value = snapshot.confirmations;
-  employeeTasksSource.value = snapshot.employeeTasks;
-  notificationsSource.value = snapshot.notifications;
+  plansSource.value = { ...snapshot.plans };
+  confirmationsSource.value = { ...snapshot.confirmations };
+  employeeTasksSource.value = { ...snapshot.employeeTasks };
+  notificationsSource.value = { ...snapshot.notifications };
 }
 
 function shortTime(value: string | null): string {

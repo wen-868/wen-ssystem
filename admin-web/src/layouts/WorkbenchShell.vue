@@ -1237,6 +1237,7 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 /* 原型 header.top 实测（Prototype-12 卡面 §三.3：顶栏 42px）；
    WORKBENCH-13-F2 基线为 54px，本卡按原型四列壳层口径收敛为 42px（硬验收：42px 顶栏） */
 .wb-top {
+  box-sizing: border-box; /* 卡面 §三.3 顶栏 42px 含 1px 下边线（无 border-box 时浏览器实测 43） */
   height: 42px;
   flex-shrink: 0;
   display: flex;
