@@ -207,7 +207,7 @@
                     class="cart-row-stock-tag"
                     data-capability="unavailable"
                     data-testid="pos-cart-stock-unknown"
-                  >库存待接入</span>
+                  >暂无库存读数</span>
                 </div>
                 <div v-if="item.traceCodes?.length" class="cart-row-trace">
                   <span v-for="(c, i) in item.traceCodes" :key="i" class="trace-chip" :title="c">
@@ -404,7 +404,7 @@
           >
             <PayMethodLogo :method="btn.logo" />
             <span class="pay-b-text">{{ btn.dataP }}</span>
-            <span v-if="btn.capability.state === 'unavailable'" class="pay-b-tag" data-testid="pos-pay-unavailable">待接入</span>
+            <span v-if="btn.capability.state === 'unavailable'" class="pay-b-tag" data-testid="pos-pay-unavailable">暂不可用</span>
           </button>
         </div>
 
@@ -1431,7 +1431,7 @@ async function loadCategories() {
   } catch (e) {
     categories.value = [];
     categoryState.value = "unavailable";
-    categoryMessage.value = "商品分类待接入（GET /admin/products/categories 请求失败）";
+    categoryMessage.value = "商品分类暂不可用（接口请求失败）";
     console.error("加载商品分类失败", e);
   }
 }

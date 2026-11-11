@@ -30,6 +30,7 @@ const read = (rel) => readFileSync(path.join(SRC, rel), "utf8");
 const shellSrc = read("layouts/WorkbenchShell.vue");
 const taskCenterSrc = read("components/workbench/WorkbenchTaskCenter.vue");
 const subnavSrc = read("layouts/WorkbenchSubnav.vue");
+const PRODUCTION_COPY_BLACKLIST = ["待接入", "原型", "演示", "占位", "开发态", "工程状态"];
 
 const results = [];
 async function run(name, fn) {
@@ -443,7 +444,7 @@ await run("二级栏 DOM（SSR 真渲染）：quick 态卡片 = planProductionSu
   const aside = new JSDOM(html).window.document.querySelector('[data-testid="second-nav"]');
   assert.ok(aside, "SSR 输出缺二级栏 aside");
   const text = aside.textContent || "";
-  for (const banned of eff.PRODUCTION_COPY_BLACKLIST) {
+  for (const banned of PRODUCTION_COPY_BLACKLIST) {
     assert.ok(!text.includes(banned), `二级栏 DOM 命中黑名单「${banned}」`);
   }
   const cards = [...aside.querySelectorAll(".sn-card")];
@@ -490,7 +491,7 @@ await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；
   );
   const aside = new JSDOM(html).window.document.querySelector('[data-testid="second-nav"]');
   const text = aside.textContent || "";
-  for (const banned of eff.PRODUCTION_COPY_BLACKLIST) {
+  for (const banned of PRODUCTION_COPY_BLACKLIST) {
     assert.ok(!text.includes(banned), `module 态 DOM 命中黑名单「${banned}」`);
   }
   const cards = [...aside.querySelectorAll(".sn-card")];
@@ -507,7 +508,7 @@ await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；
   );
   const emptyAside = new JSDOM(emptyHtml).window.document.querySelector('[data-testid="second-nav"]');
   const emptyText = emptyAside.textContent || "";
-  for (const banned of eff.PRODUCTION_COPY_BLACKLIST) {
+  for (const banned of PRODUCTION_COPY_BLACKLIST) {
     assert.ok(!emptyText.includes(banned), `空态 DOM 命中黑名单「${banned}」`);
   }
   assert.ok(emptyText.includes("菜单加载失败（不回退全量）"), "空投影应显示如实失败态文案");

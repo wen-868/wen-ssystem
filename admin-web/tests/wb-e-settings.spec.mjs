@@ -282,23 +282,23 @@ await run("§三.E.4 无端点的两块标 unavailable 且说明真实缺失原�
   return `系统接入/运营 均写明缺哪类端点`;
 });
 
-await run("unavailable 文案落「待接入」字样（不得用空态冒充完成）", () => {
+await run("unavailable 文案落「暂不可用」字样（不得用空态冒充完成）", () => {
   const st = unavailableCapability(SETTINGS_TABS.find((t) => t.key === "conn"));
   assert.equal(st.state, "unavailable");
-  assert.match(st.message, /待接入/);
+  assert.match(st.message, /暂不可用/);
   assert.match(dialogVue, /data-testid="sw-unavailable"/);
-  assert.match(dialogVue, /待接入<\/span>/);
+  assert.match(dialogVue, /暂不可用<\/span>/);
   return `state 与 UI 双处在位`;
 });
 
-await run("待接入分区仍提供重试入口，且重试不得翻成 ready", () => {
+await run("暂不可用分区仍提供重试入口，且重试不得翻成 ready", () => {
   assert.match(dialogVue, /@click="retryCapability"/);
-  assert.match(dialogVue, /重试后仍未取到对接端点，保持待接入/);
+  assert.match(dialogVue, /重试后仍无法取得对接状态/);
   assert.doesNotMatch(dialogVue, /state:\s*"ready"[\s\S]{0,120}retryCapability/, "重试把未接能力伪装成就绪");
   return `重试只回读事实`;
 });
 
-await run("账号安全：改密无端点即标待接入，不放假表单", () => {
+await run("账号安全：改密无端点即标暂不可用，不放假表单", () => {
   assert.match(dialogVue, /data-testid="sw-acct-pwd"/);
   assert.match(dialogVue, /登录密码由业务系统统一管理，工作台侧无改密端点/);
   assert.doesNotMatch(dialogVue, /修改密码.*el-input/, "出现无端点的改密输入框");
