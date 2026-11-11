@@ -15,6 +15,10 @@
  */
 import { useAuthStore } from "../stores/auth";
 import { parseSseChunk, type SseEvent } from "./sse";
+// 待确认列表解析器（三形态 + unknown）的唯一实现位于 shared/workbench/task-center.ts
+// （父审计 D05：{ total, items } / { confirmations } / 裸数组；未知形态归 unknown 不硬猜）。
+// 该模块顶层零依赖，node 原生测试可直载测解析函数。
+import { parseConfirmationsPayload } from "../shared/workbench/task-center";
 
 // ==================== AI 底座基础配置 ====================
 
@@ -251,14 +255,40 @@ export interface AiConfirmationItem {
   expiresAt?: string;
 }
 
-/** 获取当前租户的待确认操作列表（兼容 { confirmations } 包装与裸数组两种返回形态） */
+/** 待确认列表请求超时（毫秒）；超时由调用方按 timeout 语义降级（与 error 区分） */
+const CONFIRMATIONS_TIMEOUT_MS = 8_000;
+
+/**
+ * 获取当前租户的待确认操作列表。
+ *
+ * 返回形态兼容三类（WORKBENCH-PROTOTYPE-12-S1 修复：旧实现只认裸数组与
+ * `{ confirmations }` 包装，对底座现行的 `{ total, items }`（chat.controller.ts:256）
+ * 会静默返回空数组——把"解析不了"伪装成"没有待确认"的假 0）：
+ *   1. `{ total, items }` —— 现行底座契约（空租户同形态）；
+ *   2. `{ confirmations }` —— 历史包装形态；
+ *   3. 裸数组 —— 旧假设形态。
+ * 其余未知形态 ⇒ 抛错（error 态），绝不返回空数组冒充真实空列表。
+ * 总数以解析器按 ID 去重后的真实记录为准（同源，见 task-center.parseConfirmationsPayload）。
+ */
 export async function fetchAiConfirmations(): Promise<AiConfirmationItem[]> {
-  const resp = await fetch(`${AI_BASE_URL}/api/chat/confirmations`, { headers: aiHeaders() });
-  if (!resp.ok) throw await readError(resp, `获取待确认列表失败（HTTP ${resp.status}）`);
-  const json: unknown = await resp.json();
-  if (Array.isArray(json)) return json as AiConfirmationItem[];
-  const wrapped = json as { confirmations?: AiConfirmationItem[] } | null;
-  return wrapped?.confirmations ?? [];
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), CONFIRMATIONS_TIMEOUT_MS) : null;
+  try {
+    const resp = await fetch(`${AI_BASE_URL}/api/chat/confirmations`, {
+      headers: aiHeaders(),
+      signal: controller?.signal,
+    });
+    if (!resp.ok) throw await readError(resp, `获取待确认列表失败（HTTP ${resp.status}）`);
+    const json: unknown = await resp.json();
+    const parsed = parseConfirmationsPayload(json);
+    if (parsed.kind === "unknown") {
+      // 未知形态 = 不知道，不是没有 ⇒ 抛错让调用方进 error 态（不显示假 0）
+      throw new Error("待确认列表响应形状异常（既非数组也无 items/confirmations 包装）");
+    }
+    return parsed.items as AiConfirmationItem[];
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 /** 确认执行写操作，返回 operationId（用于 3 分钟内撤销） */

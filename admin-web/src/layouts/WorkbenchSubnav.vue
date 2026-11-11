@@ -55,25 +55,22 @@
 
         <div class="sn-grid">
           <button
-            v-for="plan in subnavPlan"
-            :key="plan.label"
+            v-for="entry in productionCards"
+            :key="entry.routeName"
             type="button"
             class="sn-card"
-            :class="{ active: plan.status === 'wired' && isActive(plan.item), pending: plan.status === 'pending' }"
-            :data-plan-label="plan.label"
-            :data-plan-status="plan.status"
-            :disabled="plan.status === 'pending'"
-            :title="plan.status === 'pending' ? `待接入：${plan.label} 暂无可用接口` : plan.label"
-            @click="emitPlan(plan)"
+            :class="{ active: isActive(entry) }"
+            :data-subnav-route="entry.routeName"
+            :title="entry.label"
+            @click="emitEntry(entry)"
           >
-            <el-icon class="sn-card-ic" :size="16"><component :is="cardIcon(plan.label)" /></el-icon>
-            <span class="sn-card-tx">{{ plan.label }}</span>
-            <span v-if="plan.status === 'pending'" class="sn-pending">待接入</span>
+            <el-icon class="sn-card-ic" :size="16"><component :is="cardIcon(entry.label)" /></el-icon>
+            <span class="sn-card-tx">{{ entry.label }}</span>
           </button>
         </div>
 
-        <p v-if="subnavPlan.length === 0" class="sn-empty">
-          {{ menuState === "loading" ? "正在加载菜单…" : menuState === "error" ? "菜单加载失败（不回退全量）" : "当前角色暂无可见入口" }}
+        <p v-if="productionCards.length === 0" class="sn-empty">
+          {{ menuState === "loading" ? "正在加载菜单…" : menuState === "error" ? "菜单加载失败（不回退全量）" : "当前角色暂无已接线入口" }}
         </p>
       </div>
 
@@ -164,14 +161,10 @@
       <!-- 目录区：本列唯一的滚动容器；无端点 ⇒ 明确 unavailable，不造数据 -->
       <div class="sn-dir" data-testid="second-nav-directory" :data-dir-state="directoryState">
         <!--
-          接线度说明（F1 要求的诚实披露，不得删）原先挂在 #subZone 末尾，把员工/对话横栏
-          与目录整体顶低 36.78px，违反卡 §三.A.7 的 y=422 / y=460（偏差原则上为 0）。
-          原型 #subZone 只有「说明块 + 标题 + 六宫格」四段，所以这里把它移到**目录首部**：
-          目录内部内容不构成 y 锚点，披露不丢，锚点也不再被顶偏。
+          生产口径下二级栏只渲染「已接线 ∧ 命中集合」的条目（S2 唯一口径投影），
+          不存在 pending 项 ⇒ 原「接线度说明」（已接线 x/y · 其余 pending 文案）随之移除，
+          生产 DOM 不出现黑名单占位词（S3 §三.6 / S5 COPY_BLACKLIST 口径）。
         -->
-        <p v-if="pendingCount > 0" class="sn-wiring" data-testid="second-nav-wiring-note">
-          常用功能已接线 {{ wiredCount }}/{{ subnavPlan.length }} · 其余待接入（不伪造成功）
-        </p>
         <p v-if="directoryState === 'loading'" class="sn-empty">正在加载{{ dirNoun }}…</p>
         <p v-else-if="directoryState === 'unavailable'" class="sn-empty sn-unavailable">
           {{ directoryMessage }}
@@ -236,12 +229,14 @@
  * 第二列上下文导航（WORKBENCH-10 · 原型 .side 列）
  *
  * 与 WORKBENCH-06 旧实现的**关键差别**（原型 §A-2/3/5 与 §动态交互 1/2）：
- * 1. 二级目录文案一律取原型真相源 `PROTOTYPE_SUBCATALOG`，不再拿 manifest 前 N 项冒充；
- * 2. 原型有、manifest 未接线的项 **渲染但不可点击** 并标「待接入」——不静默丢弃（§六）；
- * 3. 「常用功能」是一个真实状态（= 未选中任何一级模块），由 rail 再次点击回归；
- * 4. 员工/对话双入口、部门分组展开收起、历史会话区按原型结构落地；
+ * 1. 二级栏内容切换到 S2 合并版唯一口径（WORKBENCH-PROTOTYPE-12 门1 返工项）：
+ *    渲染 `resolveEffectiveCapabilities` 产出的生产二级栏投影（snapshot.subnav，
+ *    已接线 ∧ 服务端菜单 ∩ manifest ∩ 角色 命中集合）——原型目录中的未接线项
+ *    **不渲染**（不是标 pending 徽标，生产 DOM 对 S5 文案黑名单零命中，S3 §三.6）；
+ * 2. 「常用功能」是一个真实状态（= 未选中任何一级模块），由 rail 再次点击回归；
+ * 3. 员工/对话双入口、部门分组展开收起、历史会话区按原型结构落地；
  *    **目录数据当前无端点**，按 §E-4 显示 unavailable + 重试，不伪造列表。
- * 5. 折叠态保留 56px 缩略条（原型实测），不再 display:none 整列消失。
+ * 4. 折叠态保留 56px 缩略条（原型实测），不再 display:none 整列消失。
  *
  * WORKBENCH-13-F2 视觉基线对齐（只做表现层，不加接口、不改可见性规则、不删能力）：
  * 列内坐标以原型融合版 1440×1000 实测为准 —— brand 54 → #subZone(y=66) →
@@ -264,13 +259,8 @@ import {
 } from "@element-plus/icons-vue";
 import type { ManifestItem } from "../shared/workbench/route-manifest";
 import type { MenuLoadState } from "../shared/workbench/menu-access";
-import {
-  PROTOTYPE_COMMON_LABEL,
-  PROTOTYPE_RAIL_ITEMS,
-  PROTOTYPE_SIDE_TABS,
-  planPrototypeSubnav,
-  type SubnavPlanEntry,
-} from "../shared/workbench/prototype-nav";
+import type { EffectiveCapabilitySnapshot } from "../shared/workbench/effective-capabilities";
+import { PROTOTYPE_COMMON_LABEL, PROTOTYPE_RAIL_ITEMS, PROTOTYPE_SIDE_TABS, planProductionSubnav } from "../shared/workbench/prototype-nav";
 import { loadAgentDirectory, loadHistoryConversations, type AgentDirectory, type DirectoryGroup } from "../shared/workbench/agent-directory";
 
 const props = defineProps<{
@@ -283,6 +273,8 @@ const props = defineProps<{
   sessionActive: boolean;
   userName: string;
   userRoles: string[];
+  /** S2 唯一口径生产快照（Shell 以 resolveEffectiveCapabilities 统一解析后传入；subnav 投影 + routeNames 集合） */
+  productionSnapshot: EffectiveCapabilitySnapshot;
   collapsed?: boolean;
 }>();
 
@@ -303,16 +295,32 @@ const activePrototypeKey = computed(() => {
 
 const activeGroup = computed(() => props.groups.find((g) => g.groupCode === props.activeGroupCode) ?? null);
 
-/** 二级目录渲染计划：原型文案 × manifest 接线现状 */
-const subnavPlan = computed<SubnavPlanEntry[]>(() => {
-  if (props.mode === "pos") return [];
-  if (props.mode === "module") return planPrototypeSubnav(activePrototypeKey.value, activeGroup.value?.items ?? []);
-  // quick：常用功能 —— 对齐当前角色可见的全部已接线入口
-  return planPrototypeSubnav("desk", props.groups.flatMap((g) => g.items));
-});
+/** 渲染卡片形状（label = manifest 标题，routeName 唯一键） */
+interface ProductionCard {
+  label: string;
+  routeName: string;
+  path: string | null;
+}
 
-const wiredCount = computed(() => subnavPlan.value.filter((p) => p.status === "wired").length);
-const pendingCount = computed(() => subnavPlan.value.length - wiredCount.value);
+/**
+ * 生产二级栏卡片（S2 唯一口径，门1 返工）：
+ *   - quick（常用功能）= planProductionSubnav("desk", 全量已授权 manifest 项, 生产集合)
+ *     —— 与旧的原型计划调用同形态的生产版：原型 6 槽目录中
+ *     已接线 ∧ 命中集合的项照常渲染，未接线项不返回（不渲染 pending 占位）；
+ *   - module = snapshot.subnav 的当前模块切片（S2 生产二级栏投影）；
+ *   - pos = 收银走 cashierItems（本区不渲染）。
+ */
+const productionCards = computed<ProductionCard[]>(() => {
+  if (props.mode === "pos") return [];
+  if (props.mode === "module") {
+    return props.productionSnapshot.subnav
+      .filter((entry) => entry.moduleKey === activePrototypeKey.value)
+      .map((entry) => ({ label: entry.label, routeName: entry.routeName, path: entry.path }));
+  }
+  return planProductionSubnav("desk", props.groups.flatMap((group) => group.items), props.productionSnapshot.routeNames).map(
+    (row) => ({ label: row.label, routeName: row.item.routeName as string, path: row.item.path ?? null }),
+  );
+});
 
 const sectionTitle = computed(() => {
   if (props.mode === "pos") return "收银功能";
@@ -423,14 +431,16 @@ const roleLabel = computed(() => {
   return mapped.length > 0 ? mapped.join(" · ") : props.userRoles.join(" · ") || "未登录";
 });
 
-function isActive(entry: ManifestItem | null): boolean {
+function isActive(entry: { path?: string | null } | null): boolean {
   if (!entry || !entry.path) return false;
   return props.activePath === entry.path || props.activePath.startsWith(`${entry.path}/`);
 }
 
-function emitPlan(plan: SubnavPlanEntry): void {
-  if (plan.status !== "wired" || !plan.item) return;
-  emit("open", plan.item);
+/** 生产条目 → manifest 条目（投影源自 manifest，按 routeName 回查；回查不到不发事件） */
+function emitEntry(entry: { routeName: string }): void {
+  const item = props.groups.flatMap((group) => group.items).find((candidate) => candidate.routeName === entry.routeName);
+  if (!item) return;
+  emit("open", item);
 }
 
 defineExpose({ keyword });
@@ -638,26 +648,6 @@ defineExpose({ keyword });
   background: var(--wb-primary-soft, #eff4ff);
   color: var(--wb-primary, #2563eb);
   font-weight: 600;
-}
-.sn-card.pending {
-  border-style: dashed;
-  color: var(--wb-ink2, #8a8f98);
-  cursor: not-allowed;
-}
-/* 待接入角标绝对定位：不占行高，避免把 55.8 的卡高撑歪 */
-.sn-pending {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  font-size: 9px;
-  line-height: 1.2;
-  color: var(--wb-muted, #b0b6c0);
-}
-.sn-wiring {
-  margin: 6px 2px 0;
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--wb-ink2, #8a8f98);
 }
 
 /* ══ 已接线入口区（模块/收银态）══ */

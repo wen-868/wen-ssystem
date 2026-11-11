@@ -262,18 +262,27 @@ await run("红线：原型演示员工姓名不得被搬进实现源码（假数
   return `${banned.length} 个原型姓名在 4 个文件零命中`;
 });
 
-await run("未接入诚实：员工目录缺端点 ⇒ unavailable + 空组，绝不返回伪造条目", async () => {
+await run("真实员工端点失败 ⇒ error + 空组，绝不返回伪造条目", async () => {
   const dir = await import(
     pathToFileURL(path.join(SRC, "shared", "workbench", "agent-directory.ts")).href
   );
-  const staff = await dir.loadAgentDirectory();
-  assert.equal(staff.state, "unavailable", "缺端点必须 unavailable");
-  assert.deepEqual(staff.groups, [], "不可用不得附带任何条目");
-  assert.ok(staff.message.length > 0, "必须给出原因文案");
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error("ENDPOINT_TEST_OFFLINE");
+  };
+  try {
+    const staff = await dir.loadAgentDirectory();
+    assert.equal(staff.state, "error", "真实端点请求失败必须 error");
+    assert.deepEqual(staff.groups, [], "失败不得附带任何条目");
+    assert.ok(staff.message.length > 0, "必须给出失败原因文案");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  // D11：历史会话仍无权威列表端点，必须保持 unavailable 且不渲染。
   const conv = await dir.loadHistoryConversations();
   assert.equal(conv.state, "unavailable");
   assert.deepEqual(conv.groups, []);
-  return `unavailable / groups=0 / message=「${staff.message}」`;
+  return "员工端点 error / groups=0；历史会话 unavailable / groups=0";
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -404,11 +413,12 @@ await run("约束：Shell 不得把 rail 顺序写回 manifest 原顺序（顺�
   return "rail 序列来自 decorateRailGroups";
 });
 
-await run("约束：Subnav 的二级目录由 planPrototypeSubnav 产出且渲染 pending「待接入」", () => {
+await run("约束：Subnav 二级目录切 S2 唯一口径生产投影", () => {
   const m = codeOnly(subnav);
-  assert.ok(m.includes("planPrototypeSubnav"), "Subnav 未消费真相源计划");
-  assert.ok(m.includes("待接入"), "Subnav 未对未接线项给出诚实的待接入标记");
-  return "计划驱动 + pending 显式标注";
+  assert.ok(m.includes("planProductionSubnav"), "Subnav 未消费 S2 生产二级栏口径");
+  assert.ok(!m.includes("planPrototypeSubnav"), "Subnav 不得再消费原型 pending 计划");
+  assert.ok(!m.includes("待接入"), "Subnav 生产 DOM 源不得出现黑名单占位词");
+  return "S2 唯一口径生产投影 + 黑名单零命中";
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -23,6 +23,9 @@
 import { ref } from "vue";
 import { AI_BASE_URL } from "../../api/ai";
 import { useAuthStore } from "../../stores/auth";
+// 六态枚举与计划解析的唯一契约实现位于 task-center.ts（顶层零依赖，可被 node 直测）；
+// 本文件委托同一实现 ⇒ 顶部指标与任务中心消费同一份解析口径（同源）。
+import { parsePlansPayloadForTaskCenter, normalizePlanStatus as normalizePlanStatusBase } from "./task-center";
 
 /** 单个数据源的状态（三态，与 UI 一一对应） */
 export type AgentMetricState = "unknown" | "loading" | "ready";
@@ -129,22 +132,12 @@ export function parseEmployeesPayload(payload: unknown): AgentEmployeesMetric {
 }
 
 /**
- * AI 底座计划/步骤状态六态（**唯一契约源**）
+ * AI 底座计划/步骤状态六态（契约源：ai-base `src/brain/agent/agent.types.ts:14-23`）：
+ *   pending / running / success / failed / suspended / skipped；`PlanState = PlanStepStatus`。
  *
- * 契约出处：`ZXQL-AI/src/brain/agent/agent.types.ts:14-23`
- *   export type PlanStepStatus =
- *     | 'pending'   // 待执行
- *     | 'running'   // 执行中
- *     | 'success'   // 成功
- *     | 'failed'    // 失败（触发自愈或单步容错）
- *     | 'suspended' // 挂起待人工确认
- *     | 'skipped';  // 跳过
- *   export type PlanState = PlanStepStatus;   // 计划级与步骤级同一套六态
- *
- * ⚠️ 历史缺陷（WORKBENCH-06F1 被凌舟判红，本单修正）：旧实现用了
- *   `done / completed / succeeded / cancelled / rejected / aborted` —— 这些**后端并不存在**，
- *   导致真实 `success` 计划被算成"进行中"、真实 `success` 步骤不计入完成、`skipped` 也被算进行中。
- *   ⇒ 本文件**只认上述六态**；不保留虚构别名（红线：不得用虚构状态替换真实 enum）。
+ * ⚠️ 唯一实现已收敛到 `task-center.ts`（含 WORKBENCH-06F1 修正：只认真实六态、
+ *   不保留 done/completed 等虚构别名）；本文件 re-export 保持既有消费面不变
+ *   （AgentStatusBar / ai-status-truth.spec.mjs），顶部指标与任务中心同源解析。
  */
 /** 计划/步骤状态（六态，与底座逐字一致） */
 export type PlanStepStatus = "pending" | "running" | "success" | "failed" | "suspended" | "skipped";
@@ -158,25 +151,15 @@ export const PLAN_STEP_STATUSES: readonly PlanStepStatus[] = [
   "skipped",
 ];
 
-/**
- * 终态计划（不再计入"进行中"）。
- * 依据六态语义：`success` 已完成、`failed` 已失败、`skipped` 已跳过 ⇒ 三者都不是"正在跑"。
- * `suspended` **不算终态**：它是"挂起待人工确认"，仍需人处理 ⇒ 计入"需人工/进行中"一栏。
- */
-const TERMINAL_PLAN_STATES = new Set<PlanStepStatus>(["success", "failed", "skipped"]);
-
-/** 步骤"已完成"只认 `success`（`skipped` 计入总数但不计完成，不冒充成功） */
-const COMPLETED_STEP_STATUS = "success" satisfies PlanStepStatus;
-
-/** 把任意原始值规范化为六态之一；非六态返回 null（未知状态不猜） */
+/** 把任意原始值规范化为六态之一；非六态返回 null（未知状态不猜）——委托 task-center 唯一实现 */
 export function normalizePlanStatus(raw: unknown): PlanStepStatus | null {
-  if (typeof raw !== "string") return null;
-  const lowered = raw.trim().toLowerCase();
-  return (PLAN_STEP_STATUSES as readonly string[]).includes(lowered) ? (lowered as PlanStepStatus) : null;
+  return normalizePlanStatusBase(raw);
 }
 
 /**
- * 折算计划数据 —— 纯函数。
+ * 折算计划数据 —— 纯函数（解析委托 task-center.parsePlansPayloadForTaskCenter，同源）。
+ * 终态口径同 task-center：success/failed/skipped 不计"进行中"；
+ * `suspended` 挂起待人工 ⇒ 仍计入"进行中/需人工"一栏。
  *
  * 形状：`{ success, total, items[] }`；`success===false` ⇒ unknown（底座显式报错）。
  * 状态口径（严格按六态，不猜、不采用虚构别名）：
@@ -199,46 +182,33 @@ export function parsePlansPayload(payload: unknown): AgentPlansMetric {
   if (!payload || typeof payload !== "object") {
     return { ...empty, error: "计划端点返回形状异常" };
   }
-  const obj = payload as { success?: unknown; total?: unknown; items?: unknown; error?: unknown };
-  if (obj.success === false) {
-    return { ...empty, error: typeof obj.error === "string" ? obj.error : "底座返回失败" };
+  const parsed = parsePlansPayloadForTaskCenter(payload);
+  if (parsed.failed) {
+    return { ...empty, error: parsed.errorMessage ?? "底座返回失败" };
   }
-  if (!Array.isArray(obj.items)) {
+  if (parsed.kind === "unknown") {
     return { ...empty, error: "计划端点返回形状异常" };
-  }
-  const items = obj.items.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === "object");
-  const totalPlans = typeof obj.total === "number" ? obj.total : items.length;
-
-  let running = 0;
-  let stepsDone = 0;
-  let stepsTotal = 0;
-  let unknownStates = 0;
-  for (const plan of items) {
-    const state = normalizePlanStatus(plan.state);
-    if (state === null) {
-      unknownStates += 1; // 未知状态不猜（不计进行中、不计终态）
-    } else if (!TERMINAL_PLAN_STATES.has(state)) {
-      running += 1;
-    }
-    const steps = Array.isArray(plan.steps) ? plan.steps : [];
-    for (const step of steps) {
-      if (!step || typeof step !== "object") continue;
-      stepsTotal += 1;
-      const stepStatus = normalizePlanStatus((step as { status?: unknown }).status);
-      if (stepStatus === COMPLETED_STEP_STATUS) stepsDone += 1;
-      if (stepStatus === null) unknownStates += 1;
-    }
   }
   return {
     state: "ready",
-    totalPlans,
-    runningPlans: running,
+    totalPlans: parsed.totalPlans,
+    runningPlans: parsed.runningPlans,
     // 没有任何 steps ⇒ 步骤口径不可得，置 null（UI 只显示"进行中计划 N"，不显示 0/0）
-    stepsDone: stepsTotal > 0 ? stepsDone : null,
-    stepsTotal: stepsTotal > 0 ? stepsTotal : null,
+    stepsDone: parsed.stepsTotal > 0 ? parsed.stepsDone : null,
+    stepsTotal: parsed.stepsTotal > 0 ? parsed.stepsTotal : null,
     error: null,
-    unknownStates,
+    unknownStates: parsed.unknownStates,
   };
+}
+
+/** 失败/超时原因文案（超时显式标注，与普通失败区分） */
+function metricErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  const name = (error as { name?: unknown } | null)?.name;
+  if (name === "AbortError" || name === "TimeoutError" || /timeout|timed?\s*out|超时/i.test(message)) {
+    return `请求超时：${message || "上游未在时限内响应"}`;
+  }
+  return message || "请求失败";
 }
 
 /** 拉取员工真实数据（失败 ⇒ unknown + 原因，绝不假 0） */
@@ -252,7 +222,7 @@ export async function loadAgentEmployees(): Promise<void> {
       state: "unknown",
       count: null,
       employees: [],
-      error: error instanceof Error ? error.message : String(error),
+      error: metricErrorMessage(error),
     };
   }
 }
@@ -270,7 +240,7 @@ export async function loadAgentPlans(): Promise<void> {
       runningPlans: null,
       stepsDone: null,
       stepsTotal: null,
-      error: error instanceof Error ? error.message : String(error),
+      error: metricErrorMessage(error),
       unknownStates: 0,
     };
   }

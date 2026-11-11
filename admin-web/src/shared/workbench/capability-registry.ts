@@ -45,6 +45,37 @@ export function isCapabilityEnabled(status: CapabilityStatus): boolean {
   return status === "LIVE" || status === "PARTIAL";
 }
 
+/**
+ * 上线判定（WORKBENCH-PROTOTYPE-12 · S2 唯一生产能力源的生产口径）：
+ * LIVE / PARTIAL 属已上线；PLANNED / BLOCKED 属未上线，不进生产集合
+ * （不进 DOM、搜索和深链）。与 isCapabilityEnabled 同一判据，语义分层导出。
+ */
+export function isCapabilityLaunched(status: CapabilityStatus): boolean {
+  return isCapabilityEnabled(status);
+}
+
+/** 上线能力子集（保持台账顺序）；未上线项由调用方按“待建设/阻塞”诚实呈现，不进生产入口 */
+export function launchedCapabilities(
+  entries: readonly CapabilityEntry[] = CAPABILITIES,
+): readonly CapabilityEntry[] {
+  return entries.filter((entry) => isCapabilityLaunched(entry.status));
+}
+
+/**
+ * 生产快捷指令：只保留挂靠能力**已上线**的指令（当前全部挂靠 ai-05「快捷经营指令」PARTIAL）。
+ * 未上线能力挂靠的指令一律不返回 —— 未上线能力不得出现在生产入口（S2 §三.4）。
+ */
+export function launchedQuickCommands(): readonly {
+  label: string;
+  prompt: string;
+  capabilityId: string;
+}[] {
+  return QUICK_COMMANDS.filter((command) => {
+    const capability = getCapability(command.capabilityId);
+    return Boolean(capability && isCapabilityLaunched(capability.status));
+  });
+}
+
 /** 状态中文标签 */
 export function capabilityStatusLabel(status: CapabilityStatus): string {
   switch (status) {
