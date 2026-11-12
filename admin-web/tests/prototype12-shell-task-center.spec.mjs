@@ -189,13 +189,25 @@ await run("任务中心收起几何（§四.2）：第 4 列 300→56，main(1fr
 
 /* ══ 3. router-view 常驻与 AI 故障隔离 ══ */
 
-await run("router-view 常驻：无条件渲染（不被 AI 状态 v-if 包裹）", () => {
-  const m = shellSrc.match(/<router-view\s*(\/>|>)/);
-  assert.ok(m, "缺 router-view");
-  const seg = shellSrc.slice(shellSrc.indexOf("<router-view"), shellSrc.indexOf("<router-view") + 80);
-  assert.ok(!/v-if/.test(seg), "router-view 被条件渲染包裹");
-  assert.ok(/<router-view\s*\/>/.test(shellSrc), "router-view 不是自闭合常驻");
-  return "无条件常驻";
+/** 剥离 HTML/块/行注释后，定位真实渲染的自闭合 router-view（禁止裸 indexOf 命中注释内字样）。 */
+function locateRouterView(source) {
+  const stripped = source
+    .replace(/<!--[\s\S]*?-->/g, (m) => " ".repeat(m.length))
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => " ".repeat(m.length))
+    .replace(/\/\/.*/g, (m) => " ".repeat(m.length));
+  const m = stripped.match(/<router-view\s*\/>/);
+  assert.ok(m && typeof m.index === "number", "缺少真实自闭合 <router-view /> 渲染节点（注释不计）");
+  return { index: m.index, tag: stripped.slice(m.index, m.index + "<router-view />".length) };
+}
+
+await run("router-view 常驻：去注释后真实自闭合渲染节点，无 v-if（裸 indexOf 禁用）", () => {
+  const selfSrc = readFileSync(fileURLToPath(import.meta.url), "utf8");
+  assert.ok(!/indexOf\(\s*["'`]<router-view/.test(selfSrc), "spec 不得用裸 indexOf 定位 router-view（会命中注释）");
+  const { index, tag } = locateRouterView(shellSrc);
+  assert.equal(tag, "<router-view />", "router-view 必须为自闭合常驻节点");
+  const around = shellSrc.slice(Math.max(0, index - 80), index + tag.length + 40);
+  assert.ok(!/\bv-(if|else-if|else|show)\b/.test(around), "真实 router-view 节点被条件渲染包裹（M10）");
+  return `self-closing @${index}`;
 });
 
 /* ══ 4. 真实数据接入（§四.3，S1 view-model）与无占位 ══ */
@@ -514,6 +526,13 @@ await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；
   assert.ok(emptyText.includes("菜单加载失败（不回退全量）"), "空投影应显示如实失败态文案");
   assert.equal(emptyAside.querySelectorAll(".sn-card").length, 0, "空投影不得渲染卡片");
   return `module ${moduleRow.moduleKey} ${moduleProjection.length} 卡同源；空投影零卡片零黑名单`;
+});
+
+await run("Subnav 无设计引导文案：源码不含「双入口」「左侧菜单」及 dual-note 块", () => {
+  assert.ok(!subnavSrc.includes("双入口"), "WorkbenchSubnav 源码仍含「双入口」（恢复引导文案 mutation 应点名红）");
+  assert.ok(!subnavSrc.includes("左侧菜单"), "WorkbenchSubnav 源码仍含「左侧菜单」");
+  assert.ok(!/sn-dual|second-nav-dual-note/.test(subnavSrc), "dual-note 说明块未移除");
+  return "引导文案/dual-note 已清零";
 });
 
 const failed = results.filter((r) => !r.ok);

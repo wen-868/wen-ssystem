@@ -124,6 +124,23 @@ function productionLabels(snapshot) {
   return labels;
 }
 
+/**
+ * 本地唯一黑名单 oracle（S2-SPEC-CLOSE-01）：不依赖生产 bundle 常量。
+ * 对 productionLabels 逐条实际匹配，返回命中的 [label, term] 违规项。
+ */
+const PRODUCTION_COPY_BLACKLIST = ["待接入"];
+
+function findProductionCopyViolations(labels) {
+  const violations = [];
+  for (const label of labels) {
+    if (typeof label !== "string") continue;
+    for (const term of PRODUCTION_COPY_BLACKLIST) {
+      if (label.includes(term)) violations.push({ label, term });
+    }
+  }
+  return violations;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // 一、SUPER_ADMIN × 完整服务端菜单：交集、顺序、五消费者差集为 0
 // ═══════════════════════════════════════════════════════════════════════════
@@ -293,8 +310,21 @@ await run("SUPER：未上线能力不进集合 —— PLANNED/BLOCKED 能力与�
 });
 
 await run("SUPER：生产文案黑名单与「待接入」占位零命中；深链/搜索准入口径正确", () => {
-  const violations = eff.findProductionCopyViolations(productionLabels(superSnapshot));
-  assert.deepEqual(violations, [], `生产文案命中黑名单：${violations.join(" | ")}`);
+  const labels = productionLabels(superSnapshot);
+  const violations = findProductionCopyViolations(labels);
+  assert.deepEqual(violations, [], `生产文案命中黑名单：${violations.map((v) => `${v.term}@${v.label}`).join(" | ")}`);
+  // mutation：恢复一个黑名单文案 ⇒ 断言必须点名命中并变红（oracle 实际执行逐条匹配）
+  const mutated = [...labels, "库存概览（待接入）"];
+  const mutatedViolations = findProductionCopyViolations(mutated);
+  assert.ok(mutatedViolations.length > 0, "mutation：注入黑名单文案后 oracle 未检出");
+  assert.ok(
+    mutatedViolations.some((v) => v.term === "待接入" && v.label.includes("待接入")),
+    `mutation：未点名命中项：${JSON.stringify(mutatedViolations)}`,
+  );
+  // 逐字节复原后复绿
+  const restored = findProductionCopyViolations(labels);
+  assert.deepEqual(restored, [], `复原后仍命中黑名单：${restored.map((v) => `${v.term}@${v.label}`).join(" | ")}`);
+
   const effectivePath = superSnapshot.entries.find((entry) => entry.path)?.path;
   assert.ok(effectivePath, "集合中应存在可跳转路由");
   assert.equal(eff.canDeepLinkPath(effectivePath, superSnapshot), true, "集合内路径应可深链");
@@ -308,7 +338,7 @@ await run("SUPER：生产文案黑名单与「待接入」占位零命中；深�
   assert.equal(eff.canDeepLinkPath("/no-such-page", superSnapshot), false, "未知路径 fail-closed");
   const outside = manifest.ALL_MANIFEST_ROUTE_NAMES.find((name) => !superSnapshot.routeNames.has(name));
   assert.equal(eff.isEffectiveRoute(outside, superSnapshot), false, "集合外路由不得进入搜索/DOM");
-  return `黑名单 0 命中；深链准入口径 ${superSnapshot.routeNames.size} 项`;
+  return `黑名单 0 命中 + mutation 点名红/复原绿；深链准入口径 ${superSnapshot.routeNames.size} 项`;
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
