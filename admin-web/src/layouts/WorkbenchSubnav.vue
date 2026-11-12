@@ -37,20 +37,11 @@
       <!--
         ══ 常用功能区（原型 #subZone · L130）══
         原型 quick 态的列内次序是硬约束：
-          说明块（.mf-dual）→ 常用功能卡（.qk-t + .sub-grid）→ 员工/对话栏（#alV21Sidehd）→ 目录（#sessList）
-        因此这里只承载「说明块 + 标题 + 卡片网格」，不再兼作整列的滚动容器；
+          常用功能卡（.qk-t + .sub-grid）→ 员工/对话栏（#alV21Sidehd）→ 目录（#sessList）
+        因此这里只承载「标题 + 卡片网格」，不再兼作整列的滚动容器；
         滚动权交给 .sn-dir（目录），列高恒等于视口高（见 .wb-subnav / .sn-acct）。
       -->
       <div class="sn-subzone" data-testid="second-nav-sub-zone">
-        <!--
-          双入口说明：文案逐字复制原型融合版 L3923（.mf-dual 注入语句）。
-          原型在标题含「收银」时不注入本块（L3920），此处同口径：pos 态不显示。
-        -->
-        <div v-if="mode !== 'pos'" class="sn-dual" data-testid="second-nav-dual-note">
-          <b>双入口</b>左侧菜单 = 人工操作入口（13 模块 · 全功能覆盖现有管理工作台）· 底部对话框 = AI
-          智能入口（说需求 · 确认后执行 · 全程留痕）
-        </div>
-
         <div class="sn-title" data-testid="second-nav-sub-title">{{ sectionTitle }}</div>
 
         <div class="sn-grid">
@@ -101,7 +92,7 @@
       </div>
 
       <!--
-        ══ 员工 / 对话 双入口横栏（原型 #alV21Sidehd · V36 重设计 L18304）══
+        ══ 员工 / 对话 横栏（原型 #alV21Sidehd · V36 重设计 L18304）══
         V36 把 .t「员工列表」改为 sr-only（节点在 DOM、读屏可达，视觉让位给分段控件），
         新对话按钮由全宽渐变条改成 32×32 描边图标钮并移到栏末位——本列同口径。
       -->
@@ -234,7 +225,7 @@
  *    已接线 ∧ 服务端菜单 ∩ manifest ∩ 角色 命中集合）——原型目录中的未接线项
  *    **不渲染**（不是标 pending 徽标，生产 DOM 对 S5 文案黑名单零命中，S3 §三.6）；
  * 2. 「常用功能」是一个真实状态（= 未选中任何一级模块），由 rail 再次点击回归；
- * 3. 员工/对话双入口、部门分组展开收起、历史会话区按原型结构落地；
+ * 3. 员工/对话横栏、部门分组展开收起、历史会话区按原型结构落地；
  *    **目录数据当前无端点**，按 §E-4 显示 unavailable + 重试，不伪造列表。
  * 4. 折叠态保留 56px 缩略条（原型实测），不再 display:none 整列消失。
  *
@@ -368,7 +359,7 @@ function segIcon(tab: string): Component {
   return SIDE_TAB_ICONS[tab] ?? Grid;
 }
 
-// ── 员工/对话双入口 ──
+// ── 员工/对话切换 ──
 type SideTab = (typeof PROTOTYPE_SIDE_TABS)[number];
 const sideTab = ref<SideTab>("员工");
 const keyword = ref("");
@@ -565,23 +556,6 @@ defineExpose({ keyword });
   margin: 12px 14px 6px;
   padding: 0 4px 14px;
   border-bottom: 1px solid var(--wb-line-strong, #dde2e9);
-}
-
-/* 双入口说明块（原型 .mf-dual · L912，文案 L3923） */
-.sn-dual {
-  box-sizing: border-box;
-  margin: 0 0 8px;
-  padding: 8px 10px;
-  border: 1px dashed var(--wb-line-strong, #dde2e9);
-  border-radius: 10px;
-  background: var(--wb-side-bg, #f9fafb);
-  font-size: 11px;
-  line-height: 1.7;
-  color: var(--wb-ink2, #8a8f98);
-}
-.sn-dual b {
-  color: var(--wb-primary, #2563eb);
-  font-weight: 700;
 }
 
 /* 小标题（原型 .sub-zone .qk-t · L131，V37 起为 flex 行） */
