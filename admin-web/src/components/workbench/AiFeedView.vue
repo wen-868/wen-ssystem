@@ -121,7 +121,7 @@
       <!-- AI 入口条（原型 al-v9-entry #al9Entry L6476＋CSS L6250、al-v10-entry #al10BCBar L7173＋CSS L6992：
            高 54 · 1px 虚线（审批中心蓝 / 播报紫 #A78BFA）· 圆角 10 · 内边距 9px 12px · 两条间隔 10px，
            与原型一致地紧贴在 #wbApps 之后）。读数只用本区真实计数：审批项数来自 /api/chat/confirmations，
-           播报端点缺失 ⇒ broadcastLabel 如实显示「待接入」，不在此伪造未读数或异动。 -->
+           播报端点缺失 ⇒ broadcastLabel 如实显示「未接线」，不在此伪造未读数或异动。 -->
       <div class="wfb-entry al-v9-entry" data-testid="wb-ap-entry">
         <b>AI 审批中心 · 集中待审阅</b>
         <em>{{ approvalsEntryLabel }} · AI 结论 / 依据 / 影响分析在会话内并排核对</em>
@@ -148,7 +148,7 @@
       </div>
     </section>
 
-    <!-- ③ 经营异动播报（原型 L5620/L5709；底座无播报端点 ⇒ 常态「待接入」，不本地伪造） -->
+    <!-- ③ 经营异动播报（原型 L5620/L5709；底座无播报端点 ⇒ 常态「未接线」，不本地伪造） -->
     <section class="wfb" data-testid="wb-feed-broadcast" :data-state="broadcastBlock.state" :data-retry-available="canRetry(broadcastBlock.state)" aria-label="经营异动播报">
       <div class="fdv-block-title wb-sec">
         经营异动播报<span>GMV 环比 / 退款率 / 毛利异动 · AI 建议 · 人工核实后处置</span>
@@ -205,7 +205,7 @@
         </div>
         <p v-else-if="boardBlock.state === 'empty'" class="fdv-empty" data-testid="wb-tb-empty">{{ boardBlock.message }}</p>
         <template v-else>
-          <!-- 主管视图聚合行（原型 al-v10-nav4 四合一）：计数只来自真实源，缺端点的位置如实「待接入」 -->
+          <!-- 主管视图聚合行（原型 al-v10-nav4 四合一）：计数只来自真实源，缺端点的位置如实「未接线」 -->
           <div class="wfb-nav4" data-testid="wb-tb-nav4">
             <span class="wfb-nav-item">任务看板<em>{{ boardBlock.data.totalEntries }} 项</em></span>
             <span class="wfb-nav-item">助理绩效<em>暂不可用（暂无绩效数据）</em></span>
@@ -336,7 +336,7 @@
  * 数据全部真实、可复跑，取数折算在 shared/workbench/wb-feed-*.ts 适配器：
  *   - KPI = GET /admin/dashboard/overview（与管理端 Dashboard 同一契约 dashboard-contract）；
  *   - 待办审批 = GET {AI_BASE}/api/chat/confirmations（通过/驳回走底座确认链，回执 operationId 留痕）；
- *   - 经营异动播报 = 底座无播报端点 ⇒ 恒「待接入」（agent-directory 同口径，不伪造建议文案）；
+ *   - 经营异动播报 = 底座无播报端点 ⇒ 恒「未接线」（agent-directory 同口径，不伪造建议文案）；
  *   - 主管动作队列 / 任务步进 = GET {AI_BASE}/api/ai/agent/plans（六态计划/步骤按门控折算）；
  *   - 业务动态 = GET /admin/wb-notifications（与 MessageCenter 同一端点同一形态）；
  *   - 实时推送 = connectAiPushSocket（AI 底座 WS；离线如实标注「推送离线」，不影响人工）；
@@ -464,7 +464,7 @@ function canRetry(state: FeedBlockState): boolean {
   return state === "error" || state === "unavailable";
 }
 
-/** AI 底座计划列表（主管动作队列 + 任务步进共用一次真实读取；404 ⇒ 待接入） */
+/** AI 底座计划列表（主管动作队列 + 任务步进共用一次真实读取；404 ⇒ 未接线） */
 async function fetchAgentPlans(): Promise<unknown> {
   const headers: Record<string, string> = { Accept: "application/json" };
   try {
@@ -488,7 +488,7 @@ async function refreshApprovals(): Promise<void> {
   approvalsBlock.value = await loadWbApprovals({ fetchConfirmations: fetchAiConfirmations });
 }
 
-/** 播报：底座端点不存在 ⇒ loadWbBroadcasts 不注入读取器，恒 unavailable（待接入 + 重试） */
+/** 播报：底座端点不存在 ⇒ loadWbBroadcasts 不注入读取器，恒 unavailable（未接线 + 重试） */
 async function refreshBroadcast(): Promise<void> {
   broadcastBlock.value = feedLoading<WbBroadcastItem[]>([], "经营异动播报");
   broadcastBlock.value = await loadWbBroadcasts();

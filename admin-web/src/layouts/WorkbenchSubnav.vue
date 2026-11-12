@@ -1,11 +1,6 @@
 <template>
   <aside class="wb-subnav" :class="{ hidden: collapsed }" aria-label="二级导航" data-testid="second-nav">
     <div class="sn-brand">
-      <span class="sn-logo">智</span>
-      <span class="sn-text">
-        <span class="sn-t">智享全链</span>
-        <span class="sn-s">AI 经营底座 · 管理与收银一体</span>
-      </span>
       <button
         type="button"
         class="sn-collapse"
@@ -14,8 +9,28 @@
         :title="collapsed ? '展开导航' : '收起导航'"
         @click="$emit('collapse')"
       >
-        {{ collapsed ? "»" : "«" }}
+        <WorkbenchChromeToggleIcon :mirrored="collapsed" />
       </button>
+      <div v-if="!collapsed" class="sn-mode-seg" role="group" aria-label="工作台/收银台切换" data-testid="mode-seg">
+        <button
+          type="button"
+          class="sn-mode-seg-item"
+          :class="{ on: !cashierActive }"
+          data-mode-seg="desk"
+          @click="$emit('go-desk')"
+        >
+          工作台
+        </button>
+        <button
+          type="button"
+          class="sn-mode-seg-item"
+          :class="{ on: cashierActive }"
+          data-mode-seg="pos"
+          @click="$emit('go-pos')"
+        >
+          收银台
+        </button>
+      </div>
     </div>
 
     <!-- 折叠态：只留可点的一级模块缩略条（原型 .side 折叠后仍可见 56px） -->
@@ -60,8 +75,16 @@
           </button>
         </div>
 
-        <p v-if="productionCards.length === 0" class="sn-empty">
-          {{ menuState === "loading" ? "正在加载菜单…" : menuState === "error" ? "菜单加载失败（不回退全量）" : "当前角色暂无已接线入口" }}
+        <p v-if="productionCards.length === 0 && (mode === 'quick' || realEntries.length === 0)" class="sn-empty">
+          {{
+            menuState === "loading"
+              ? "正在读取导航…"
+              : menuState === "error"
+                ? "导航暂不可用"
+                : mode === "quick"
+                  ? "暂无常用功能，使用后会自动按频率排列"
+                  : "当前角色暂无已接入入口"
+          }}
         </p>
       </div>
 
@@ -73,17 +96,19 @@
         区域与其 testid（second-nav-real-zone / second-nav-real-toggle）原样保留，未删除。
       -->
       <div v-if="mode !== 'quick' && realEntries.length > 0" class="sn-zone" data-testid="second-nav-real-zone">
-        <div class="sn-title">已接入入口（{{ realEntries.length }}）</div>
-        <div class="sn-list">
+        <div class="sn-grid sn-grid-real">
           <button
             v-for="entry in shownRealEntries"
             :key="entry.menuCode"
             type="button"
-            class="sn-row"
+            class="sn-card sn-card-real"
             :class="{ active: isActive(entry) }"
+            :data-subnav-route="entry.routeName"
+            :title="entry.title"
             @click="$emit('open', entry)"
           >
-            {{ entry.title }}
+            <el-icon class="sn-card-ic" :size="16"><component :is="cardIcon(entry.title)" /></el-icon>
+            <span class="sn-card-tx">{{ entry.title }}</span>
           </button>
         </div>
         <button v-if="realEntries.length > 8" type="button" class="sn-more" data-testid="second-nav-real-toggle" @click="expanded = !expanded">
@@ -133,7 +158,7 @@
           title="新对话"
           @click="$emit('new-chat')"
         >
-          <el-icon :size="15"><EditPen /></el-icon><span class="sn-sr">新对话</span>
+          <el-icon :size="16"><Plus /></el-icon><span class="sn-sr">新对话</span>
         </button>
       </div>
 
@@ -190,27 +215,6 @@
         </div>
       </div>
 
-      <!--
-        设置钮（原型终层 #v40SetBtn）：rail 的 .rl-set 被 display:none 隐藏后，
-        设置入口改挂在 .acct-zone 末位。监听归 Shell（@open-settings），本列只发事件。
-      -->
-      <div class="sn-acct" data-testid="second-nav-account">
-        <span class="sn-av">{{ (userName || "智").slice(0, 1) }}</span>
-        <span class="sn-acct-text">
-          <span class="sn-name">{{ userName || "未登录" }}</span>
-          <span class="sn-role">{{ roleLabel }}</span>
-        </span>
-        <button
-          type="button"
-          class="sn-setbtn"
-          data-testid="second-nav-settings"
-          title="设置"
-          aria-label="设置"
-          @click="$emit('open-settings')"
-        >
-          <el-icon :size="15"><Setting /></el-icon>
-        </button>
-      </div>
     </template>
   </aside>
 </template>
@@ -236,23 +240,53 @@
  */
 import { computed, nextTick, ref, type Component } from "vue";
 import {
+  Bell,
+  Box,
+  CircleCheck,
+  Clock,
+  CollectionTag,
   Comment,
+  CreditCard,
+  DataAnalysis,
+  Discount,
   Document,
+  DocumentChecked,
+  Download,
   EditPen,
+  Goods,
   Grid,
+  Histogram,
+  Iphone,
+  Memo,
+  Money,
+  OfficeBuilding,
+  PriceTag,
   Printer,
+  Plus,
+  Promotion,
+  RefreshLeft,
   Search,
   Setting,
+  Sort,
+  Star,
   Sunny,
   Tickets,
+  Timer,
   TrendCharts,
+  Upload,
   User,
+  UserFilled,
+  Van,
+  Wallet,
+  Warning,
 } from "@element-plus/icons-vue";
 import type { ManifestItem } from "../shared/workbench/route-manifest";
 import type { MenuLoadState } from "../shared/workbench/menu-access";
 import type { EffectiveCapabilitySnapshot } from "../shared/workbench/effective-capabilities";
-import { PROTOTYPE_COMMON_LABEL, PROTOTYPE_RAIL_ITEMS, PROTOTYPE_SIDE_TABS, planProductionSubnav } from "../shared/workbench/prototype-nav";
+import { PROTOTYPE_COMMON_LABEL, PROTOTYPE_RAIL_ITEMS, PROTOTYPE_SIDE_TABS } from "../shared/workbench/prototype-nav";
 import { loadAgentDirectory, loadHistoryConversations, type AgentDirectory, type DirectoryGroup } from "../shared/workbench/agent-directory";
+import { rankFrequentMenuItems, type MenuUsageMap } from "../shared/workbench/menu-usage";
+import WorkbenchChromeToggleIcon from "../components/workbench/WorkbenchChromeToggleIcon.vue";
 
 const props = defineProps<{
   mode: "quick" | "module" | "pos";
@@ -262,10 +296,11 @@ const props = defineProps<{
   cashierItems: ManifestItem[];
   menuState: MenuLoadState;
   sessionActive: boolean;
-  userName: string;
-  userRoles: string[];
+  cashierActive: boolean;
   /** S2 唯一口径生产快照（Shell 以 resolveEffectiveCapabilities 统一解析后传入；subnav 投影 + routeNames 集合） */
   productionSnapshot: EffectiveCapabilitySnapshot;
+  /** 当前账号的本机功能使用频率；无记录时不预置常用项 */
+  menuUsage?: MenuUsageMap;
   collapsed?: boolean;
 }>();
 
@@ -275,7 +310,8 @@ const emit = defineEmits<{
   (event: "new-chat"): void;
   (event: "collapse"): void;
   (event: "pick-group", groupCode: string): void;
-  (event: "open-settings"): void;
+  (event: "go-desk"): void;
+  (event: "go-pos"): void;
 }>();
 
 // ── 一级模块 ↔ 原型 key ──
@@ -295,9 +331,7 @@ interface ProductionCard {
 
 /**
  * 生产二级栏卡片（S2 唯一口径，门1 返工）：
- *   - quick（常用功能）= planProductionSubnav("desk", 全量已授权 manifest 项, 生产集合)
- *     —— 与旧的原型计划调用同形态的生产版：原型 6 槽目录中
- *     已接线 ∧ 命中集合的项照常渲染，未接线项不返回（不渲染 pending 占位）；
+ *   - quick（常用功能）= 真实使用频率排序（filtered by 生产集合）
  *   - module = snapshot.subnav 的当前模块切片（S2 生产二级栏投影）；
  *   - pos = 收银走 cashierItems（本区不渲染）。
  */
@@ -308,9 +342,14 @@ const productionCards = computed<ProductionCard[]>(() => {
       .filter((entry) => entry.moduleKey === activePrototypeKey.value)
       .map((entry) => ({ label: entry.label, routeName: entry.routeName, path: entry.path }));
   }
-  return planProductionSubnav("desk", props.groups.flatMap((group) => group.items), props.productionSnapshot.routeNames).map(
-    (row) => ({ label: row.label, routeName: row.item.routeName as string, path: row.item.path ?? null }),
-  );
+  const eligible = props.groups
+    .flatMap((group) => group.items)
+    .filter((item) => Boolean(item.routeName && props.productionSnapshot.routeNames.has(item.routeName)));
+  return rankFrequentMenuItems(eligible, props.menuUsage ?? {}).map((item) => ({
+    label: item.title,
+    routeName: item.routeName as string,
+    path: item.path ?? null,
+  }));
 });
 
 const sectionTitle = computed(() => {
@@ -345,6 +384,74 @@ const CARD_ICONS: Record<string, Component> = {
   今日晨报: Sunny,
   批量对账: Tickets,
   打印模板: Printer,
+  工作台: Sunny,
+  订单列表: Tickets,
+  订单看板: DataAnalysis,
+  订单售后: RefreshLeft,
+  订单异常: Warning,
+  销售开单: EditPen,
+  销售单据: Document,
+  销售退货: RefreshLeft,
+  收款管理: Wallet,
+  客户价格: PriceTag,
+  提成规则: Money,
+  销售报表: TrendCharts,
+  商品列表: Goods,
+  商品分类: CollectionTag,
+  品牌管理: Star,
+  价格管理: PriceTag,
+  商品导入: Upload,
+  套装与组合品: Box,
+  商品审核: CircleCheck,
+  库存盘点: Box,
+  库存调拨: Sort,
+  库存预警: Bell,
+  批量调价: Money,
+  客户列表: User,
+  会员体系: UserFilled,
+  储值卡: CreditCard,
+  信用管理: Money,
+  积分规则: Star,
+  等级配置: Promotion,
+  收付款管理: Wallet,
+  应收应付: Money,
+  客户对账: Tickets,
+  财务对账: Tickets,
+  利润核算: TrendCharts,
+  资金报表: DataAnalysis,
+  单据管理: Document,
+  采购订单: Tickets,
+  采购入库: Download,
+  供应商管理: User,
+  采购付款: Wallet,
+  平台配置: Setting,
+  接单工作台: EditPen,
+  小程序订单: Tickets,
+  商品货架: Goods,
+  库存同步: RefreshLeft,
+  配送管理: Van,
+  平台管理: Setting,
+  平台对账: Tickets,
+  平台公告: Bell,
+  零售看板: DataAnalysis,
+  零售报表: TrendCharts,
+  营销活动: Promotion,
+  优惠券管理: Discount,
+  限时折扣: Clock,
+  秒杀活动: Timer,
+  满减满赠: Discount,
+  售后管理: RefreshLeft,
+  销售统计: TrendCharts,
+  销售分析: DataAnalysis,
+  商品排行: Histogram,
+  员工业绩: User,
+  组织架构: OfficeBuilding,
+  系统配置: Setting,
+  审批管理: DocumentChecked,
+  报表权限: Setting,
+  支付配置: Wallet,
+  小程序配置: Iphone,
+  日志与反馈: Memo,
 };
 function cardIcon(label: string): Component {
   return CARD_ICONS[label] ?? Grid;
@@ -409,19 +516,6 @@ function toggleGroup(name: string): void {
   folded.value = next;
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  SUPER_ADMIN: "超级管理员",
-  STORE_MANAGER: "店长",
-  STORE_OPERATOR: "门店操作员",
-  STORE_CASHIER: "收银员",
-  FINANCE_STAFF: "财务",
-  WAREHOUSE_STAFF: "仓管员",
-};
-const roleLabel = computed(() => {
-  const mapped = props.userRoles.map((role) => ROLE_LABELS[role]).filter(Boolean);
-  return mapped.length > 0 ? mapped.join(" · ") : props.userRoles.join(" · ") || "未登录";
-});
-
 function isActive(entry: { path?: string | null } | null): boolean {
   if (!entry || !entry.path) return false;
   return props.activePath === entry.path || props.activePath.startsWith(`${entry.path}/`);
@@ -448,8 +542,8 @@ defineExpose({ keyword });
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  background: var(--wb-side-bg, #f9fafb);
-  border-right: 1px solid var(--wb-line, #eceef1);
+  background: var(--wb-chrome-bg, #f2f5f9);
+  border-right: 0;
   overflow: hidden;
 }
 /* 折叠态不使用 display:none（会瞬隐并让入口彻底不可达），改为裁掉溢出后渲染缩略条 */
@@ -461,66 +555,72 @@ defineExpose({ keyword });
 .sn-brand {
   box-sizing: border-box;
   margin: 0;
-  height: 54px;
-  min-height: 54px;
-  padding: 0 10px 0 14px;
+  height: 62px;
+  min-height: 62px;
+  padding: 12px 8px;
   border: 0;
-  border-bottom: 1px solid var(--wb-line-strong, #dde2e9);
+  border-bottom: 0;
   border-radius: 0;
-  background: var(--wb-panel, #ffffff);
+  background: var(--wb-chrome-bg, #f2f5f9);
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   flex-shrink: 0;
-}
-.sn-logo {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.sn-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-.sn-t {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--wb-ink, #16181d);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sn-s {
-  font-size: 11px;
-  color: var(--wb-ink2, #8a8f98);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .sn-collapse {
   border: 0;
   background: transparent;
   color: var(--wb-ink2, #8a8f98);
   font-family: inherit;
-  font-size: 14px;
   cursor: pointer;
-  padding: 2px 6px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border-radius: 6px;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .sn-collapse:hover {
   background: var(--wb-hover, #f4f6f8);
+}
+.sn-mode-seg {
+  flex: 0 1 164px;
+  width: 164px;
+  max-width: 164px;
+  margin-inline: auto;
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--wb-line, #e5e5e5);
+  border-radius: 999px;
+  background: var(--wb-hover, #f4f6f8);
+  box-sizing: border-box;
+}
+.sn-mode-seg-item {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--wb-ink2, #8a8f98);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+.sn-mode-seg-item:hover {
+  color: var(--wb-ink, #16181d);
+}
+.sn-mode-seg-item.on {
+  background: var(--wb-panel, #fff);
+  color: var(--wb-primary, #4f46e5);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(10, 12, 16, 0.08);
 }
 
 /* ══ 折叠缩略条 ══ */
@@ -578,32 +678,41 @@ defineExpose({ keyword });
   grid-template-columns: 1fr 1fr;
   gap: 7px;
 }
-/* 功能卡（原型 .sub-card · L133：93×55.8 = 16 图标 + 5 gap + 13.75 文案 + 19 padding + 2 边框） */
+/* 功能卡（原型终层 .sub-card：37px 横向卡 · 16px 图标 + 8px gap + 左对齐文案） */
 .sn-card {
   box-sizing: border-box;
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 10px 4px 9px;
+  justify-content: flex-start;
+  gap: 8px;
+  height: 37px;
+  min-height: 37px;
+  max-height: 37px;
+  padding: 0 10px;
   border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 10px;
+  border-radius: 9px;
   background: var(--wb-panel, #ffffff);
   color: var(--wb-ink, #16181d);
   font-family: inherit;
   font-size: 11px;
-  line-height: 1.25;
-  text-align: center;
+  line-height: 1.2;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
   cursor: pointer;
   user-select: none;
   transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 .sn-card-ic {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
   color: var(--wb-ink2, #8a8f98);
 }
 .sn-card-tx {
+  min-width: 0;
   max-width: 100%;
   overflow: hidden;
   white-space: nowrap;
@@ -986,77 +1095,4 @@ defineExpose({ keyword });
   background: var(--wb-muted, #b0b6c0);
 }
 
-/* ══ 底部账号区（原型 #acctZone L59：58px 贴底 · #F4F6F8 · 上边线 #ECEEF1）══ */
-.sn-acct {
-  box-sizing: border-box;
-  flex-shrink: 0;
-  height: 58px;
-  min-height: 58px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 0;
-  padding: 10px 12px 12px;
-  background: var(--wb-hover, #f4f6f8);
-  border: 0;
-  border-top: 1px solid var(--wb-line, #eceef1);
-}
-.sn-av {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  /* 原型 .av：渐变实底 + 白字，非浅蓝底蓝字；头像↔文字距 9px，
-     本列没有原型 .acct 内层包装（不让改结构），用 margin 补足 9 − 栏 gap 4 的差值 */
-  margin-right: 5px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.sn-acct-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-.sn-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--wb-ink, #16181d);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.sn-role {
-  font-size: 10.5px;
-  color: var(--wb-ink2, #8a8f98);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* 设置钮（原型终层 .v40-setbtn：36×32 · radius 8 · 透明底 #68758A · hover 白底深字） */
-.sn-setbtn {
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 32px;
-  padding: 0;
-  flex-shrink: 0;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #68758a;
-  cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease;
-}
-.sn-setbtn:hover {
-  background: var(--wb-panel, #ffffff);
-  color: var(--wb-ink, #16181d);
-}
 </style>

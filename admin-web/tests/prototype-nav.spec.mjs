@@ -413,12 +413,13 @@ await run("约束：Shell 不得把 rail 顺序写回 manifest 原顺序（顺�
   return "rail 序列来自 decorateRailGroups";
 });
 
-await run("约束：Subnav 二级目录切 S2 唯一口径生产投影", () => {
+await run("约束：Subnav 常用功能按真实使用频率排序并受 S2 生产集合约束", () => {
   const m = codeOnly(subnav);
-  assert.ok(m.includes("planProductionSubnav"), "Subnav 未消费 S2 生产二级栏口径");
+  assert.ok(m.includes("rankFrequentMenuItems"), "Subnav 未按真实使用频率生成常用功能");
+  assert.ok(m.includes("productionSnapshot.routeNames"), "Subnav 常用功能未受 S2 生产集合约束");
   assert.ok(!m.includes("planPrototypeSubnav"), "Subnav 不得再消费原型 pending 计划");
   assert.ok(!m.includes("待接入"), "Subnav 生产 DOM 源不得出现黑名单占位词");
-  return "S2 唯一口径生产投影 + 黑名单零命中";
+  return "使用频率排序 + S2 生产集合 + 黑名单零命中";
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

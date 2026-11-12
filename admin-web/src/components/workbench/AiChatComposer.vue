@@ -9,80 +9,64 @@
       <button type="button" data-testid="composer-voice-cancel" @click="cancelVoice">取消</button>
     </div>
     <form class="cmp-form" @submit.prevent="submit">
-      <div class="cmp-att-wrap">
-        <button
-          type="button"
-          class="cmp-att-btn"
-          :disabled="streaming"
-          title="附件（图片 / 文件）"
-          data-testid="composer-att-btn"
-          @click="attMenuOpen = !attMenuOpen"
-        >
-          ＋
-        </button>
-        <!-- 附件菜单（原型 .input-zone L976 的 add-btn/up-menu 语义）：
-             图片随消息发送只在会话输入区有真实链（AiSidePanel→POST /api/chat image 参数），
-             信息流入口不复制第二套发送，故如实标注去向；文件解析无端点 ⇒ 暂不支持 -->
-        <div v-if="attMenuOpen" class="cmp-att-menu" data-testid="composer-att-menu">
-          <button
-            type="button"
-            data-testid="composer-att-image"
-            @click="noticeFor('image')"
-          >
-            图片 · 请进入会话后附图
-          </button>
-          <button
-            type="button"
-            class="is-pending"
-            data-testid="composer-att-file"
-            @click="noticeFor('file')"
-          >
-            文件 · 暂不支持
-          </button>
-        </div>
-      </div>
       <textarea
         ref="txtEl"
         v-model="text"
         class="cmp-input"
         :placeholder="compact ? '问智享AI（回车发送）…' : '给智享AI发消息…'"
-        rows="1"
+        rows="2"
         :disabled="streaming"
         data-testid="composer-input"
         @keydown.enter.exact.prevent="submit"
         @input="autoGrow"
       />
-      <button
-        type="button"
-        class="cmp-mic-btn"
-        :class="{ 'is-recording': listening }"
-        :disabled="streaming || !speechSupported"
-        :title="
-          speechSupported
-            ? listening
-              ? '点击停止录音'
-              : '语音输入'
-            : '当前浏览器不支持语音输入（请用 Chrome/Edge）'
-        "
-        data-testid="composer-mic-btn"
-        @click="toggleVoice"
-      >
-        🎤
-      </button>
-      <button
-        type="submit"
-        class="cmp-send"
-        :disabled="!canSend"
-        :title="streaming ? 'AI 正在回复' : '发送'"
-        data-testid="composer-send"
-      >
-        <el-icon :size="16"><Promotion /></el-icon>
-      </button>
+      <div class="cmp-toolbar">
+        <div class="cmp-att-wrap">
+          <button
+            type="button"
+            class="cmp-att-btn"
+            :disabled="streaming"
+            title="附件（图片 / 文件）"
+            data-testid="composer-att-btn"
+            @click="attMenuOpen = !attMenuOpen"
+          >
+            ＋
+          </button>
+          <!-- 图片随消息发送只在会话输入区有真实链；文件解析无端点 ⇒ 暂不支持 -->
+          <div v-if="attMenuOpen" class="cmp-att-menu" data-testid="composer-att-menu">
+            <button
+              type="button"
+              data-testid="composer-att-image"
+              @click="noticeFor('image')"
+            >
+              图片 · 请进入会话后附图
+            </button>
+            <button
+              type="button"
+              class="is-pending"
+              data-testid="composer-att-file"
+              @click="noticeFor('file')"
+            >
+              文件 · 暂不支持
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="cmp-primary-btn"
+          :class="{ 'is-recording': listening }"
+          :disabled="streaming || (!hasInput && !speechSupported)"
+          :title="primaryActionTitle"
+          :data-testid="hasInput ? 'composer-send' : 'composer-mic-btn'"
+          @click="handlePrimaryAction"
+        >
+          <el-icon :size="16"><Promotion v-if="hasInput" /><Microphone v-else /></el-icon>
+        </button>
+      </div>
     </form>
     <p v-if="attNotice" class="cmp-att-notice" role="status" data-testid="composer-att-notice">
       {{ attNotice }}
     </p>
-    <p class="cmp-hint">读操作自动执行 · 写操作需你确认 · 数据不出域</p>
   </footer>
 </template>
 
@@ -102,7 +86,7 @@
  *     录制中显示实时时长，支持完成/取消（取消还原草稿）。
  */
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
-import { Promotion } from "@element-plus/icons-vue";
+import { Microphone, Promotion } from "@element-plus/icons-vue";
 
 const props = defineProps<{
   compact?: boolean;
@@ -116,6 +100,13 @@ const emit = defineEmits<{
 const text = ref("");
 const txtEl = ref<HTMLTextAreaElement | null>(null);
 const canSend = computed(() => text.value.trim().length > 0 && !props.streaming);
+const hasInput = computed(() => text.value.trim().length > 0);
+const primaryActionTitle = computed(() => {
+  if (props.streaming) return "AI 正在回复";
+  if (listening.value) return "点击停止录音";
+  if (hasInput.value) return "发送";
+  return speechSupported ? "语音输入" : "当前浏览器不支持语音输入";
+});
 
 /** 附件菜单：本入口（信息流态）没有随消息附件的真实链，菜单只做诚实指路，不产生假附件 */
 const attMenuOpen = ref(false);
@@ -231,6 +222,18 @@ function cancelVoice(): void {
   stopVoiceTimer();
 }
 
+function handlePrimaryAction(): void {
+  if (listening.value) {
+    stopVoice();
+    return;
+  }
+  if (hasInput.value) {
+    submit();
+    return;
+  }
+  toggleVoice();
+}
+
 onBeforeUnmount(() => {
   stopVoiceTimer();
 });
@@ -254,20 +257,31 @@ function submit(): void {
 
 <style scoped>
 .cmp {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
   flex-shrink: 0;
-  padding: 10px 18px 12px;
-  background: var(--wb-panel, #fff);
-  border-top: 1px solid var(--wb-line, #eceef1);
+  padding: 10px 40px 18px;
+  background: transparent;
+  border-top: 0;
+  pointer-events: none;
 }
 .cmp-form {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  max-width: 740px;
+  margin: 0 auto;
   border: 1px solid var(--wb-line-strong, #dde2e9);
-  border-radius: 12px;
-  padding: 8px 10px;
+  border-radius: 22px;
+  padding: 5px 8px 7px;
   background: var(--wb-panel, #fff);
+  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.08);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  pointer-events: auto;
 }
 .cmp-form:focus-within {
   border-color: var(--wb-primary, #2563eb);
@@ -282,10 +296,19 @@ function submit(): void {
   line-height: 1.5;
   color: var(--wb-ink, #16181d);
   background: transparent;
+  min-height: 44px;
   max-height: 120px;
   font-family: inherit;
+  padding: 6px 8px 3px;
 }
-.cmp-send {
+.cmp-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px;
+}
+.cmp-primary-btn {
   width: 30px;
   height: 30px;
   border: 0;
@@ -298,9 +321,12 @@ function submit(): void {
   cursor: pointer;
   flex-shrink: 0;
 }
-.cmp-send:disabled {
+.cmp-primary-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+.cmp-primary-btn.is-recording {
+  background: #dc2626;
 }
 
 /* 附件菜单（原型 .input-zone add-btn + up-menu 语义） */
@@ -362,48 +388,30 @@ function submit(): void {
 }
 
 .cmp-att-notice {
-  margin: 6px 2px 0;
+  max-width: 740px;
+  margin: 6px auto 0;
   padding: 4px 8px;
   font-size: 11px;
   color: #92400e;
   background: #fffbeb;
   border: 1px solid #fde68a;
   border-radius: 6px;
-}
-
-/* 语音按钮 + 录制态条（原型 #micBtn 语义的录制反馈） */
-.cmp-mic-btn {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--wb-line-strong, #dde2e9);
-  border-radius: 8px;
-  background: transparent;
-  font-size: 13px;
-  cursor: pointer;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.cmp-mic-btn:hover {
-  border-color: var(--wb-primary, #2563eb);
-}
-
-.cmp-mic-btn.is-recording {
-  border-color: #dc2626;
-  background: #fdf2f2;
+  pointer-events: auto;
 }
 
 .cmp-voice-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  max-width: 740px;
+  margin: 0 auto 6px;
   padding: 5px 10px;
   border: 1px solid #fca5a5;
   background: #fdf2f2;
   border-radius: 8px;
   font-size: 12px;
   color: #b42318;
+  pointer-events: auto;
 }
 
 .cmp-rec-dot {
@@ -433,21 +441,10 @@ function submit(): void {
   font-size: 11px;
   cursor: pointer;
 }
-.cmp-hint {
-  margin: 6px 2px 0;
-  font-size: 11px;
-  color: var(--wb-ink2, #8a8f98);
-}
 .cmp.is-compact {
-  padding: 8px 18px 10px;
+  padding: 8px 40px 14px;
 }
 .cmp.is-compact .cmp-form {
-  padding: 5px 10px;
-}
-.cmp.is-compact .cmp-input {
-  min-height: 22px;
-}
-.cmp.is-compact .cmp-hint {
-  display: none;
+  padding: 6px 10px;
 }
 </style>

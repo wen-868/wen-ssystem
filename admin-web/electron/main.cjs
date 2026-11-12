@@ -18,6 +18,7 @@ function createWindow() {
     minHeight: 700,
     center: true,
     show: false,
+    frame: false,
     title: "智享全链管理系统",
     icon: path.join(__dirname, "../public/icon.png"),
     webPreferences: {
@@ -101,5 +102,15 @@ ipcMain.handle("show-message", async (_event, options) => {
     buttons: options.buttons || ["确定"],
   });
   return result;
+});
+
+ipcMain.on("window-control", (event, action) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win) return;
+  if (action === "minimize") win.minimize();
+  else if (action === "toggle-maximize") {
+    if (win.isMaximized()) win.unmaximize();
+    else win.maximize();
+  } else if (action === "close") win.close();
 });
 // Build timestamp: 2026-07-14T19:30:28Z

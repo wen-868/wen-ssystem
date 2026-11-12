@@ -8,7 +8,7 @@
  *   GET  /store/payment/channels                        通道状态（wechat.ready / alipay.ready / box.ready）
  *
  * 三条**必须显式标 unavailable**的真实缺口（照 `agent-directory.ts` 的 no-fake 范式，
- * 返回结构化 unavailable + 原因，UI 显示「待接入」并给重试入口，绝不伪造扣款）：
+ * 返回结构化 unavailable + 原因，UI 显示「未接线」并给重试入口，绝不伪造扣款）：
  *   1. 微信 / 支付宝**没有「一键收款」端点**：`t_payment_config` 未配置（`GET /store/payment/channels`
  *      ⇒ `ready=false`）或探测本身失败时，按钮只能标 unavailable；`ready=true` 也**仍必须**有
  *      16~24 位顾客付款码才可能真扣款（`paySaleBillByCode` 的 zod 校验，
@@ -18,7 +18,7 @@
  *   3. 库存：`offlinePayment` 与收款在**同一事务**内做出库扣减，库存行不足即抛
  *      409「库存不足，无法完成收款出库」（`backend/src/services/admin/sale-bill.service.ts:449`）。
  *      购物车里存在 `availableQty === null`（门店无库存行，见 `wb-pos-catalogue.ts`）时，
- *      结果只可能是真实 409 失败，UI 必须先提示「库存待接入」，不得预先宣称收款成功。
+ *      结果只可能是真实 409 失败，UI 必须先提示「库存未接线」，不得预先宣称收款成功。
  *
  * 另外：服务端 `collectionStatus` 为 `PARTIAL` 时**只收到部分款**，本适配返回 `partial`
  * 而非 `success`，防止把未结清单据当已完成交易清车。
@@ -156,7 +156,7 @@ function channelName(key: keyof PosChannelStatus): string {
 }
 
 /**
- * 支付方式能力判定（弹层按钮 disabled / 待接入的唯一真源）：
+ * 支付方式能力判定（弹层按钮 disabled / 未接线的唯一真源）：
  * - CASH / BALANCE ⇒ ready，走线下收款端点（真实存在）
  * - WECHAT / ALIPAY / SCAN ⇒ 只有探测成功且对应通道 `ready === true` 才 ready；
  *   否则 unavailable，原因里写清缺哪一条，绝不因「按钮点了」而伪造成功
@@ -224,7 +224,7 @@ export interface PosSaleItem {
   skuId: number;
   quantity: number;
   unitPrice: number;
-  /** 门店可用库存：null/undefined ⇒ 无库存行（库存待接入），0 ⇒ 真实缺货 */
+  /** 门店可用库存：null/undefined ⇒ 无库存行（库存未接线），0 ⇒ 真实缺货 */
   availableQty?: number | null;
   [key: string]: unknown;
 }

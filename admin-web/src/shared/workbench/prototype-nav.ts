@@ -12,7 +12,7 @@
  * 1. 本表只声明「原型长什么样」（名称、顺序、数量、布局度量），**不声明谁能看**；
  *    谁看得见仍由路由 meta.roles 派生（沿用 WORKBENCH-08/09 同一条真相链）。
  * 2. 二级目录是**原型的 UI 结构清单**，不是现有 manifest 的别名。原型有、manifest 未接线的项，
- *    由 `planPrototypeSubnav()` 标记为「待接入」，**不得静默丢弃**（派单卡 §六）。
+ *    由 `planPrototypeSubnav()` 标记为「未接线」，**不得静默丢弃**（派单卡 §六）。
  * 3. 数字只来自原型实测，不使用随机数或演示值填充。
  */
 import type { ManifestItem } from "./types";
@@ -247,7 +247,7 @@ export const PROTOTYPE_STAFF_GROUPS: readonly { name: string; count: number }[] 
  */
 export const PROTOTYPE_MODES: readonly string[] = ["工作台", "收银台"];
 
-/** 第二栏双入口开关（员工 / 对话） */
+/** 第二栏切换开关（员工 / 对话） */
 export const PROTOTYPE_SIDE_TABS: readonly string[] = ["员工", "对话"];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -267,7 +267,7 @@ export interface SubnavPlanEntry {
 /**
  * 把「原型二级目录」与「现有 manifest 已接线项」按名称逐字对齐：
  * - 命中 ⇒ `wired`，可点击、走既有打开链路；
- * - 未命中 ⇒ `pending`，**仍渲染**但不可点击并标注「待接入」，不静默丢弃。
+ * - 未命中 ⇒ `pending`，**仍渲染**但不可点击并标注「未接线」，不静默丢弃。
  *
  * 理由：原型结构是 UIUX 契约，manifest 是接线现状；两者不同构时若只按 manifest 渲染，
  * 等于「以现有接口没有字段为由删掉原型结构」（§六明令禁止）。
@@ -367,7 +367,7 @@ export interface ProductionSubnavEntry {
  * 生产态二级栏计划（与 `planPrototypeSubnav` 的分工边界）：
  *
  * - `planPrototypeSubnav` 是**原型结构契约**（开发态/设计预览用）：pending 项仍渲染并标注
- *   「待接入」，保证原型结构不静默丢弃（派单卡 §六）；
+ *   「未接线」，保证原型结构不静默丢弃（派单卡 §六）；
  * - 本函数是**生产消费口径**：原型 93 项目录中 manifest 未接线的项（未上线能力）一律不返回，
  *   已接线项还必须命中 EffectiveCapability 生产集合（真实授权），否则裁掉。
  *

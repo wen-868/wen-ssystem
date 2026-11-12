@@ -107,10 +107,18 @@ export type ConfirmationListRow = {
   confirmationId?: string;
   id?: string;
   operation?: string;
+  operationLabel?: string;
   summary?: string;
   details?: Record<string, unknown>;
-  createdAt?: string;
-  expiresAt?: string;
+  toolName?: string;
+  status?: string;
+  preview?: {
+    operation?: string;
+    summary?: string;
+    details?: Record<string, unknown>;
+  };
+  createdAt?: string | number;
+  expiresAt?: string | number;
 };
 
 /** 待确认操作行（解析器侧：携带索引签名以容忍后端扩展字段） */
@@ -137,6 +145,53 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return Boolean(v) && typeof v === "object" && !Array.isArray(v);
 }
 
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+/**
+ * 底座现行待确认记录使用 operationLabel + preview.{operation,summary,details}，
+ * 历史前端契约则使用 operation/summary/details。这里在唯一解析入口做兼容归一，
+ * 保留原始字段并补齐消费字段，避免 UI 退化为“待确认操作”占位文案。
+ */
+function normalizeConfirmationRow(row: Record<string, unknown>): AiConfirmationRow {
+  const preview = isRecord(row.preview) ? row.preview : null;
+  const previewDetails = preview && isRecord(preview.details) ? preview.details : null;
+  const details = isRecord(row.details) ? row.details : previewDetails;
+  const operationLabel = optionalString(row.operationLabel);
+  const previewOperation = preview ? optionalString(preview.operation) : undefined;
+  const operation = optionalString(row.operation);
+  const toolName = optionalString(row.toolName);
+  const summary = optionalString(row.summary);
+  const previewSummary = preview ? optionalString(preview.summary) : undefined;
+
+  return {
+    ...row,
+    operation: operation ?? previewOperation ?? operationLabel ?? toolName,
+    operationLabel,
+    summary: summary ?? previewSummary,
+    details: details ?? undefined,
+    toolName,
+    status: optionalString(row.status),
+    preview:
+      preview
+        ? {
+            operation: previewOperation,
+            summary: previewSummary,
+            details: previewDetails ?? undefined,
+          }
+        : undefined,
+    createdAt:
+      typeof row.createdAt === "string" || typeof row.createdAt === "number"
+        ? row.createdAt
+        : undefined,
+    expiresAt:
+      typeof row.expiresAt === "string" || typeof row.expiresAt === "number"
+        ? row.expiresAt
+        : undefined,
+  };
+}
+
 /** 行去重 + 无 ID 丢弃（确认链入参必须有 ID，同 wb-feed-approvals 口径） */
 function dedupeConfirmationRows(rows: unknown[]): { items: AiConfirmationRow[]; droppedRows: number } {
   const seen = new Set<string>();
@@ -154,7 +209,7 @@ function dedupeConfirmationRows(rows: unknown[]): { items: AiConfirmationRow[]; 
     }
     if (seen.has(id)) continue;
     seen.add(id);
-    items.push(row as AiConfirmationRow);
+    items.push(normalizeConfirmationRow(row));
   }
   return { items, droppedRows };
 }

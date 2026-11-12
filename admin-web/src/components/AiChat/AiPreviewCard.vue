@@ -7,7 +7,7 @@
 
     <div v-if="preview.summary" class="preview-summary">{{ preview.summary }}</div>
 
-    <div class="preview-details">
+    <div v-if="!hideDetails" class="preview-details">
       <div v-for="(value, key) in preview.details" :key="key" class="detail-row">
         <span class="detail-label">{{ key }}</span>
         <span class="detail-value">{{ formatValue(value) }}</span>
@@ -15,7 +15,22 @@
     </div>
 
     <div class="preview-actions">
-      <template v-if="state === 'confirm' || state === 'executing'">
+      <template v-if="nativeFormAction && (state === 'confirm' || state === 'executing')">
+        <el-button
+          type="primary"
+          size="small"
+          :loading="state === 'executing'"
+          data-native-form="sales-order-form"
+          :data-native-form-path="nativeFormAction.path"
+          @click="emitOpenForm"
+        >
+          {{ nativeFormAction.label }}
+        </el-button>
+        <el-button size="small" :disabled="state === 'executing'" @click="emitCancel">
+          取消
+        </el-button>
+      </template>
+      <template v-else-if="state === 'confirm' || state === 'executing'">
         <el-button
           type="primary"
           size="small"
@@ -45,6 +60,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { AiPreviewPayload } from "../../api/ai";
+import type { AiNativeFormAction } from "../../shared/workbench/ai-form-bridge";
 
 const props = defineProps<{
   preview: AiPreviewPayload;
@@ -54,12 +70,15 @@ const props = defineProps<{
   pending?: boolean;
   cancelled?: boolean;
   revoked?: boolean;
+  hideDetails?: boolean;
+  nativeFormAction?: AiNativeFormAction | null;
 }>();
 
 const emit = defineEmits<{
   (e: "confirm", confirmationId: string): void;
   (e: "cancel", confirmationId: string): void;
   (e: "revoke", operationId: string): void;
+  (e: "open-form", action: AiNativeFormAction): void;
 }>();
 
 type PreviewState = "confirm" | "executing" | "revoking" | "executed" | "cancelled" | "revoked";
@@ -91,6 +110,10 @@ function emitConfirm(): void {
 
 function emitCancel(): void {
   if (props.confirmationId) emit("cancel", props.confirmationId);
+}
+
+function emitOpenForm(): void {
+  if (props.nativeFormAction) emit("open-form", props.nativeFormAction);
 }
 
 function emitRevoke(): void {

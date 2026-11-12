@@ -63,8 +63,8 @@ await run("一级 rail：常驻图标栏存在且含工作台项 + 模块项循�
   return "rail + desk/模块/设置三类项齐备";
 });
 
-// ── 2. 第二列上下文导航 ＝原型 .side（常用功能/二级/新对话/账户）─────────────
-await run("第二列导航：Subnav 被装配 + 含新对话/二级目录/账户区/可收起", () => {
+// ── 2. 第二列上下文导航 ＝原型 .side（常用功能/二级/新对话）；账户归一级 rail 底部 ──
+await run("第二列导航：Subnav 被装配 + 含新对话/二级目录/可收起；账户归一级 rail 底部", () => {
   const missing = [];
   if (!/WorkbenchSubnav/.test(shell)) missing.push("Shell 未装配 WorkbenchSubnav");
   if (!/<WorkbenchSubnav[\s\S]*?:mode="currentNavMode"/.test(shell)) {
@@ -73,10 +73,11 @@ await run("第二列导航：Subnav 被装配 + 含新对话/二级目录/账户
   if (!/data-testid="second-nav"/.test(subnav)) missing.push("second-nav 容器");
   if (!/data-testid="second-nav-new-chat"/.test(subnav)) missing.push("新对话按钮");
   if (!/data-testid="second-nav-sub-zone"/.test(subnav)) missing.push("二级目录区 sub-zone");
-  if (!/data-testid="second-nav-account"/.test(subnav)) missing.push("账户区");
+  if (/data-testid="second-nav-account"/.test(subnav)) missing.push("账户区仍错放在第二列");
+  if (!/data-testid="rail-account"/.test(shell)) missing.push("一级 rail 底部账号入口");
   if (!/data-testid="second-nav-collapse"/.test(subnav)) missing.push("可收起按钮");
   assert.equal(missing.length, 0, `第二列导航结构缺失：\n  - ${missing.join("\n  - ")}`);
-  return "新对话 + 二级目录 + 账户 + 收起 齐备";
+  return "新对话 + 二级目录 + 收起齐备；账号在 rail 底部";
 });
 
 // ── 3. 顶栏待审阅徽标（UI-PARITY-BASE §四.2.5 收敛：健康探针/员工数/步骤计数/台账入口已移除）──
@@ -113,17 +114,18 @@ await run("底部输入区：Composer 常驻 + 人工态 compact + 发送经统�
   if (!/:compact="effectiveMode === 'human'"/.test(shell)) missing.push("人工页 compact 收条");
   if (!/data-testid="chat-composer"/.test(composer)) missing.push("chat-composer 容器");
   if (!/data-testid="composer-input"/.test(composer)) missing.push("输入框");
-  if (!/data-testid="composer-send"/.test(composer)) missing.push("发送按钮");
+  if (!composer.includes("composer-send")) missing.push("发送按钮");
   assert.equal(missing.length, 0, `底部输入区结构缺失：\n  - ${missing.join("\n  - ")}`);
   return "常驻输入区 + 人工态收条 + 真实发送链";
 });
 
 // ── 6. 工作台 / 收银台 顶部胶囊切换 ＝原型 renderModeSeg ────────────────────
-await run("工作台/收银台胶囊：mode-seg 双向 + desk/pos 两项", () => {
+await run("工作台/收银台胶囊：位于左侧品牌位，mode-seg 双向 + desk/pos 两项", () => {
   const missing = [];
-  if (!/data-testid="mode-seg"/.test(shell)) missing.push("mode-seg 容器");
-  if (!/data-mode-seg="desk"/.test(shell)) missing.push("工作台项");
-  if (!/data-mode-seg="pos"/.test(shell)) missing.push("收银台项");
+  if (/data-testid="mode-seg"/.test(shell)) missing.push("mode-seg 仍在主内容顶栏");
+  if (!/data-testid="mode-seg"/.test(subnav)) missing.push("mode-seg 容器（左侧品牌位）");
+  if (!/data-mode-seg="desk"/.test(subnav)) missing.push("工作台项");
+  if (!/data-mode-seg="pos"/.test(subnav)) missing.push("收银台项");
   assert.equal(missing.length, 0, `模式胶囊结构缺失：\n  - ${missing.join("\n  - ")}`);
   return "工作台 ⇄ 收银台 双向胶囊";
 });

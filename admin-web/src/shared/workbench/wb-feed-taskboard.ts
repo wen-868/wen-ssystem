@@ -13,7 +13,7 @@
  *     （pending/running/success/failed/suspended/skipped）。
  *   - 「待审阅」桶由确认链（审批区块）在视图层并入本队列聚合——审批卡来自
  *     `wb-feed-approvals.ts`，这里不重复计数、不发明条目。
- * 「助理绩效」面板（处理项/拦截/采纳率）无端点 ⇒ 队列聚合行如实显示「待接入」。
+ * 「助理绩效」面板（处理项/拦截/采纳率）无端点 ⇒ 队列聚合行如实显示「未接线」。
  *
  * 分组口径（不猜）：
  *   - run   进行中：state ∈ {pending, running}
@@ -141,7 +141,7 @@ export function parseWbTaskBoard(payload: unknown): FeedBlock<WbTaskBoard> {
 }
 
 /**
- * 装载主管动作队列。判定「真实 vs 待接入」的关键行是 `if (!deps.fetchPlans)`：
+ * 装载主管动作队列。判定「真实 vs 未接线」的关键行是 `if (!deps.fetchPlans)`：
  * 视图注入底座计划读取器才走真数据；404 经 classifyFeedError 同样落 unavailable。
  */
 export async function loadWbTaskBoard(deps: WbTaskBoardDeps = {}): Promise<FeedBlock<WbTaskBoard>> {

@@ -1,34 +1,7 @@
 <template>
-  <aside class="ai-side-panel" :class="{ 'is-collapsed': collapsed }">
-    <!-- 头部（S4：主区收敛为「日常经营」AI 会话面，标题与其一致） -->
-    <div class="ai-header">
-      <div class="ai-header-title">
-        <el-icon class="header-logo"><MagicStick /></el-icon>
-        <span v-show="!collapsed" data-testid="daily-op-title">日常经营</span>
-      </div>
-      <div class="ai-header-actions">
-        <el-button
-          v-show="!collapsed && messages.length > 0"
-          class="ai-clear-btn"
-          aria-label="清空对话"
-          :icon="Delete"
-          size="small"
-          text
-          @click="clearChat"
-        />
-        <el-button
-          class="ai-collapse-btn"
-          aria-label="折叠或展开智能助手"
-          :icon="collapsed ? Expand : Fold"
-          size="small"
-          text
-          @click="collapsed = !collapsed"
-        />
-      </div>
-    </div>
-
+  <aside class="ai-side-panel">
     <!-- 消息区 -->
-    <div v-show="!collapsed" ref="listEl" class="ai-messages">
+    <div ref="listEl" class="ai-messages">
       <!-- 新对话空状态（原型 .empty-chat L547 / emptyHTML L1256：「新对话已开启」+「问我任何经营问题…」） -->
       <div v-if="messages.length === 0" class="ai-empty empty-chat" data-testid="chat-empty-state">
         <p class="empty-title">新对话已开启</p>
@@ -61,6 +34,7 @@
             @cancel="handleCancel"
             @revoke="handleRevoke"
             @retry="retryMessage"
+            @open-form="openNativeForm"
           />
         </div>
         <AiMessageCard
@@ -70,39 +44,15 @@
           @cancel="handleCancel"
           @revoke="handleRevoke"
           @retry="retryMessage"
+          @open-form="openNativeForm"
         />
       </template>
     </div>
 
     <!-- 输入区 -->
-    <div v-show="!collapsed" class="ai-input-area">
-      <!-- 第一段：文本输入 + 发送（发送按钮悬浮于输入框右下角） -->
-      <div class="ai-input-box">
-        <el-input
-          v-model="input"
-          type="textarea"
-          :rows="2"
-          resize="none"
-          placeholder="输入问题，Enter 发送"
-          :disabled="streaming"
-          @keydown.enter.exact.prevent="sendMessage"
-        />
-        <el-button
-          type="primary"
-          circle
-          class="ai-send-btn"
-          :loading="streaming"
-          :disabled="!canSend"
-          title="发送"
-          @click="sendMessage"
-        >
-          <el-icon v-if="!streaming"><Promotion /></el-icon>
-          <span v-else class="ai-send-dots">···</span>
-        </el-button>
-      </div>
-      <!-- 第二段：操作栏（附件菜单 / 语音 / 提示；结构对齐原型 .input-zone L976 + mic-btn L981） -->
-      <div class="ai-input-actions">
-        <div v-if="pendingImage" class="ai-image-preview">
+    <div class="ai-input-area">
+      <div v-if="pendingImage" class="ai-pending-row">
+        <div class="ai-image-preview">
           <img :src="pendingImage" alt="待发送图片" />
           <el-button
             class="ai-image-remove"
@@ -114,53 +64,56 @@
             <el-icon><Close /></el-icon>
           </el-button>
         </div>
-        <div class="ai-att-wrap">
-          <el-button
-            class="ai-att-btn"
-            circle
-            :disabled="streaming"
-            title="添加附件（图片 / 文件）"
-            data-testid="chat-att-btn"
-            @click="attMenuOpen = !attMenuOpen"
-          >
-            <el-icon><Plus /></el-icon>
-          </el-button>
-          <div v-if="attMenuOpen" class="ai-att-menu" data-testid="chat-att-menu">
+      </div>
+      <div class="ai-input-box">
+        <el-input
+          v-model="input"
+          type="textarea"
+          :autosize="{ minRows: 2, maxRows: 6 }"
+          resize="none"
+          placeholder="输入问题，Enter 发送"
+          :disabled="streaming"
+          @keydown.enter.exact.prevent="sendMessage"
+        />
+        <div class="ai-input-toolbar">
+          <div class="ai-inline-att">
             <button
               type="button"
-              data-testid="chat-att-image"
-              @click="pickImageFromMenu"
+              class="ai-inline-plus"
+              :disabled="streaming"
+              title="添加附件（图片 / 文件）"
+              data-testid="chat-att-btn"
+              @click="attMenuOpen = !attMenuOpen"
             >
-              图片（AI 识别后随消息发送）
+              <el-icon :size="16"><Plus /></el-icon>
             </button>
-            <button
-              type="button"
-              class="is-pending"
-              data-testid="chat-att-file"
-              @click="attachFileUnsupported"
-            >
-              文件 · 暂不支持
-            </button>
+            <div v-if="attMenuOpen" class="ai-att-menu" data-testid="chat-att-menu">
+              <button type="button" data-testid="chat-att-image" @click="pickImageFromMenu">
+                图片（AI 识别后随消息发送）
+              </button>
+              <button
+                type="button"
+                class="is-pending"
+                data-testid="chat-att-file"
+                @click="attachFileUnsupported"
+              >
+                文件 · 暂不支持
+              </button>
+            </div>
           </div>
+          <el-button
+            circle
+            class="ai-primary-btn"
+            :type="listening ? 'danger' : 'primary'"
+            :disabled="streaming || (!hasInput && !speechSupported)"
+            :title="primaryActionTitle"
+            :data-testid="hasInput ? 'chat-send-btn' : 'chat-mic-btn'"
+            @click="handlePrimaryAction"
+          >
+            <el-icon v-if="hasInput"><Promotion /></el-icon>
+            <el-icon v-else><Microphone v-if="!listening" /><Loading v-else class="is-loading" /></el-icon>
+          </el-button>
         </div>
-        <el-button
-          class="ai-voice-btn"
-          circle
-          :type="listening ? 'danger' : 'default'"
-          :disabled="streaming || !speechSupported"
-          :title="
-            speechSupported
-              ? listening
-                ? '点击停止录音'
-                : '语音输入'
-              : '当前浏览器不支持语音输入（请用 Chrome/Edge）'
-          "
-          data-testid="chat-mic-btn"
-          @click="toggleVoice"
-        >
-          <el-icon><Microphone v-if="!listening" /><Loading v-else class="is-loading" /></el-icon>
-        </el-button>
-        <span class="ai-input-hint">{{ statusText || "Enter 发送 · Shift+Enter 换行 · 数据不出店" }}</span>
       </div>
       <!-- 附件回执行：文件项无端点 ⇒ 明示暂不支持，不做本地假附件 -->
       <p v-if="attNotice" class="ai-att-notice" role="status" data-testid="chat-att-notice">{{ attNotice }}</p>
@@ -179,18 +132,18 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import {
-  MagicStick,
   Promotion,
   Microphone,
   Loading,
   Plus,
   Close,
-  Delete,
-  Expand,
-  Fold,
 } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
 import { createMessageId, type AiChatMessage } from "./types";
+import {
+  stageAiSalesOrderDraft,
+  type AiNativeFormAction,
+} from "../../shared/workbench/ai-form-bridge";
 import {
   cancelAiOperation,
   confirmAiOperation,
@@ -204,14 +157,13 @@ const conversationId = ref<string | undefined>(undefined);
 const messages = ref<AiChatMessage[]>([]);
 const abortController = ref<AbortController | null>(null);
 const listEl = ref<HTMLElement | null>(null);
-/** 折叠状态：列表页可收起 AI 面板，给数据区腾空间 */
-const collapsed = ref(false);
 
 /** 会话状态上报：供 AI 主交互面显示故障横幅并一键切回人工（不改变内部对话逻辑） */
 const emit = defineEmits<{
   (event: "status", payload: { state: "idle" | "streaming" | "error"; message?: string }): void;
   /** 服务端会话 ID 回传（POST /api/chat 的 done 事件）：会话列表据此显示真实当前会话 */
   (event: "conversation", conversationId: string): void;
+  (event: "open-form", action: AiNativeFormAction): void;
 }>();
 
 /** 语音输入（Web Speech API：浏览器原生中文识别，Chrome/Edge 支持） */
@@ -372,11 +324,25 @@ const suggestions = [
 ];
 
 const canSend = computed(() => (input.value.trim().length > 0 || Boolean(pendingImage.value)) && !streaming.value);
-
-const statusText = computed(() => {
-  if (streaming.value) return "AI 正在生成回复...";
-  return "";
+const hasInput = computed(() => input.value.trim().length > 0 || Boolean(pendingImage.value));
+const primaryActionTitle = computed(() => {
+  if (streaming.value) return "AI 正在回复";
+  if (listening.value) return "点击停止录音";
+  if (hasInput.value) return "发送";
+  return speechSupported ? "语音输入" : "当前浏览器不支持语音输入";
 });
+
+function handlePrimaryAction(): void {
+  if (listening.value) {
+    stopVoice();
+    return;
+  }
+  if (hasInput.value) {
+    void sendMessage();
+    return;
+  }
+  toggleVoice();
+}
 
 /** 渲染块：普通消息单条渲染；连续 tool 消息归组进「工具调用时间线」（SSE 事件驱动，非静态装饰） */
 type RenderBlock =
@@ -577,6 +543,32 @@ async function handleCancel(messageId: string, confirmationId: string): Promise<
   }
 }
 
+/** 只打开系统原有业务页；销售开单预填通过本地一次性草稿传递，不改写 URL 数据。 */
+async function openNativeForm(action: AiNativeFormAction): Promise<void> {
+  if (action.kind === "sales-order-form" && action.draft) {
+    const staged = stageAiSalesOrderDraft(action.draft);
+    if (!staged) {
+      ElMessage.error("无法打开销售开单预填草稿，请检查浏览器本地存储权限");
+      return;
+    }
+    if (action.confirmationId) {
+      try {
+        await cancelAiOperation(action.confirmationId);
+        const source = messages.value.find((message) => message.confirmationId === action.confirmationId);
+        if (source) {
+          source.cancelled = true;
+          source.confirmationId = undefined;
+          source.preview = undefined;
+        }
+      } catch (error) {
+        ElMessage.error(`无法转交销售开单：${error instanceof Error ? error.message : "取消失败"}`);
+        return;
+      }
+    }
+  }
+  emit("open-form", action);
+}
+
 async function handleRevoke(messageId: string, operationId: string): Promise<void> {
   try {
     const res = await revokeAiOperation(operationId);
@@ -627,54 +619,16 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
   background: var(--gray-0);
   border-left: 1px solid var(--border-light);
   min-height: 100vh;
 }
 
-.ai-side-panel.is-collapsed {
-  width: 48px;
-}
-.ai-side-panel.is-collapsed .ai-header {
-  justify-content: center;
-  padding: 14px 0;
-}
-.ai-side-panel.is-collapsed .ai-collapse-btn {
-  margin: 0;
-}
-
-.ai-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.ai-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.ai-header-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.header-logo {
-  color: var(--color-primary);
-  font-size: 17px;
-}
-
 .ai-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 14px 16px;
+  padding: 24px 16px 220px;
 }
 
 .ai-empty {
@@ -718,77 +672,101 @@ onBeforeUnmount(() => {
 }
 
 .ai-input-area {
-  border-top: 1px solid var(--border-light);
-  padding: 10px 12px 12px;
-  background: var(--gray-0);
-  flex-shrink: 0;
-  margin-top: auto;
-  position: sticky;
+  position: absolute;
+  left: 0;
+  right: 0;
   bottom: 0;
   z-index: 5;
+  padding: 10px 18px 16px;
+  border-top: 0;
+  background: linear-gradient(to bottom, transparent, var(--gray-0) 28%, var(--gray-0));
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .ai-input-box {
-  position: relative;
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 5px 8px 7px;
+  border: 1px solid var(--border-light);
+  border-radius: 22px;
+  background: var(--gray-0);
+  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.08);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+  pointer-events: auto;
 }
 
 .ai-input-box :deep(.el-textarea__inner) {
-  border-radius: 10px;
-  background: var(--bg-soft);
-  border: 1px solid var(--border-light);
-  padding: 10px 46px 10px 12px;
+  min-height: 44px !important;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  padding: 6px 8px 3px;
   font-size: 13px;
   line-height: 1.5;
-  transition: all 160ms ease;
+  transition: none;
   box-shadow: none;
 }
 .ai-input-box :deep(.el-textarea__inner:focus) {
-  background: var(--gray-0);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.ai-input-box:focus-within {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-focus);
+  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.12), var(--shadow-focus);
 }
 
-.ai-send-btn {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
+.ai-inline-att {
+  position: relative;
+}
+
+.ai-inline-plus {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted, #6b7280);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-inline-plus:hover {
+  background: var(--bg-soft, #f3f4f6);
+  color: var(--primary, #2563eb);
+}
+
+.ai-input-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px;
+}
+
+.ai-primary-btn {
   width: 30px;
   height: 30px;
   padding: 0;
   font-size: 14px;
 }
 
-.ai-send-dots {
-  font-size: 12px;
-  line-height: 1;
+.ai-pending-row {
+  max-width: 740px;
+  margin: 0 auto 6px;
+  pointer-events: auto;
 }
 
-.ai-input-hint {
-  flex: 1;
-  margin-left: 8px;
-  font-size: 11px;
-  color: #595959; /* WCAG AA */
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 第二段操作栏：图片预览 / 图片 / 语音 / 提示 一行排列 */
-.ai-input-actions {
-  display: flex;
-  align-items: center;
-  margin-top: 6px;
-  padding-left: 2px;
-  min-height: 30px;
-}
-
-.ai-input-actions .ai-att-btn,
-.ai-input-actions .ai-voice-btn {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  margin-right: 6px;
+.ai-att-notice,
+.ai-voice-bar {
+  max-width: 740px;
+  margin-left: auto;
+  margin-right: auto;
+  pointer-events: auto;
 }
 
 /* 附件菜单（原型 .up-menu 语义：⊕ 弹出「图片 / 文件」两项） */

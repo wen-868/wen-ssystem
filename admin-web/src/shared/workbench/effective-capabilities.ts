@@ -22,7 +22,7 @@
  * 消费者投影（全部由同一集合确定性派生，测试断言差集为 0）：
  *   - rail：一级模块行 = 有效分组 × 原型顺序（decorateRailGroups），按真实授权裁剪；
  *   - subnav：生产二级栏 = 已接线 ∧ 命中集合（planProductionSubnav），原型目录中的
- *     未接线项（待接入占位）不进生产；
+ *     未接线项（未接线占位）不进生产；
  *   - quickEntry：信息流快速入口 = 集合全量（扁平化）；
  *   - quickCommands：生产快捷指令 = 挂靠能力已上线的指令（capability-registry）；
  *   - ai：AI 对等能力 = 已上线 ∧（AI 原生 ∨ 锚点路由命中集合）；

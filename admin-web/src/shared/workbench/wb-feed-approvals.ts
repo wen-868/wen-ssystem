@@ -13,7 +13,7 @@
  * WORKBENCH-02 约束不得出现 AI 写动作符号名，本文件只提供折算与装载）。
  *
  * 状态口径：
- *   - 未注入读取器 ⇒ unavailable「待接入」；404 ⇒ unavailable；其它失败 ⇒ error + 重试；
+ *   - 未注入读取器 ⇒ unavailable「未接线」；404 ⇒ unavailable；其它失败 ⇒ error + 重试；
  *   - 真实空列表 ⇒ empty（真的没有待确认，不伪装成有审批）；
  *   - AI 预审意见取底座返回的 `summary`，缺失时如实标注缺失，不生成建议文案。
  */
@@ -80,8 +80,8 @@ export function parseWbApprovalsPayload(raw: unknown): FeedBlock<WbApprovalCard[
 }
 
 /**
- * 装载审批区。判定「真实 vs 待接入」的关键行是 `if (!deps.fetchConfirmations)`：
- * 视图注入确认列表读取器才走真数据；否则 unavailable，UI 显示待接入 + 重试。
+ * 装载审批区。判定「真实 vs 未接线」的关键行是 `if (!deps.fetchConfirmations)`：
+ * 视图注入确认列表读取器才走真数据；否则 unavailable，UI 显示未接线 + 重试。
  */
 export async function loadWbApprovals(deps: WbApprovalsDeps = {}): Promise<FeedBlock<WbApprovalCard[]>> {
   if (!deps.fetchConfirmations) {

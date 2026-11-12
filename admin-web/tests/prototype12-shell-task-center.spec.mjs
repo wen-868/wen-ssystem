@@ -114,14 +114,15 @@ await run("顶栏 42px（卡面 §三.3）：高度含 1px 下边线（border-bo
   return "42px（含边线）";
 });
 
-await run("底部输入区 100px（卡面 §三.3）：壳层固定 .cmp 高度", () => {
+await run("底部输入区悬浮：.cmp 绝对定位、透明背景、740px 圆角卡", () => {
   const deep = cssBlock(shellSrc, ".wb-main :deep(.cmp)");
-  assert.ok(deep, "缺少壳层对 .cmp 的 100px 约束");
-  assert.match(deep, /height:\s*100px;/, ".cmp 高度不是 100px");
-  assert.match(deep, /min-height:\s*100px;/, ".cmp 缺 min-height 100px");
-  assert.match(deep, /max-height:\s*100px;/, ".cmp 缺 max-height 100px");
-  assert.match(deep, /flex-shrink:\s*0;/, ".cmp 未固定不收缩");
-  return "100px 固定";
+  assert.ok(deep, "缺少壳层对 .cmp 的悬浮约束");
+  assert.match(deep, /position:\s*absolute;/, ".cmp 不是悬浮定位");
+  assert.match(deep, /background:\s*transparent;/, ".cmp 仍铺满整面背景");
+  assert.match(deep, /pointer-events:\s*none;/, ".cmp 透明层未让点击穿透");
+  const form = cssBlock(shellSrc, ".wb-main :deep(.cmp .cmp-form)");
+  assert.ok(form && /max-width:\s*740px/.test(form) && /border-radius:\s*22px/.test(form), "输入卡未收窄为 740px/22px");
+  return "floating + 740px/22px";
 });
 
 await run("main 列 = minmax(0,1fr)：1440 几何 850 / 1024 几何 434 由真实浏览器实测证明", () => {
@@ -303,11 +304,12 @@ await run("反证：main 列硬编码 850px 会被判红（四列几何必须由
   return "850px 字面量不在源";
 });
 
-await run("反证：去掉 42px / 100px 会把断言变红（数字是唯一落点）", () => {
+await run("反证：顶栏 42px 或悬浮输入卡被改回整面固定会判红", () => {
   const top = cssBlock(shellSrc, ".wb-top");
   const deep = cssBlock(shellSrc, ".wb-main :deep(.cmp)");
   assert.ok(top && deep, "断言所需块缺失");
-  return "42 / 100 均已落值";
+  assert.match(deep, /position:\s*absolute;/, "悬浮输入锚点丢失");
+  return "42px + absolute cmp";
 });
 
 /* ══ 8. 二级栏生产口径（门1 返工：S2 唯一口径 + 黑名单零命中）══ */
@@ -315,7 +317,7 @@ await run("反证：去掉 42px / 100px 会把断言变红（数字是唯一落�
 await run("二级栏源码级：零「待接入」字面量、不再依赖原型 pending 计划，改消费 S2 生产口径", () => {
   assert.ok(!/待接入/.test(subnavSrc), "WorkbenchSubnav.vue 不得出现「待接入」字面量（含注释与 title）");
   assert.ok(!/planPrototypeSubnav|SubnavPlanEntry/.test(subnavSrc), "二级栏不得再消费原型目录计划（planPrototypeSubnav/SubnavPlanEntry）");
-  assert.ok(subnavSrc.includes("planProductionSubnav"), "quick 态未用 S2 生产二级栏函数（planProductionSubnav）");
+  assert.ok(subnavSrc.includes("rankFrequentMenuItems"), "quick 态未按真实使用频率生成常用功能");
   assert.ok(subnavSrc.includes('from "../shared/workbench/effective-capabilities"'), "二级栏未引用 S2 唯一口径模块");
   assert.ok(subnavSrc.includes("productionCards"), "二级栏卡片渲染未切生产口径派生");
   assert.ok(subnavSrc.includes("productionSnapshot: EffectiveCapabilitySnapshot"), "二级栏缺生产快照 prop");
@@ -430,21 +432,20 @@ async function subnavProps(eff, router, overrides = {}) {
     cashierItems: [],
     menuState: "ready",
     sessionActive: false,
-    userName: "采集账号",
-    userRoles: ["SUPER_ADMIN"],
+    cashierActive: false,
     productionSnapshot: null,
     collapsed: false,
     ...overrides,
   };
 }
 
-await run("二级栏 DOM（SSR 真渲染）：quick 态卡片 = planProductionSubnav 生产口径输出，集合内同源、黑名单零命中", async () => {
+await run("二级栏 DOM（SSR 真渲染）：quick 态卡片 = 使用频率排序输出，集合内同源、黑名单零命中", async () => {
   await ensureBrowserGlobals();
   const { JSDOM } = await import("jsdom");
   const router = (await import(pathToFileURL(path.join(SRC, "router", "index.ts")).href)).default;
   const eff = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "effective-capabilities.ts")).href);
   const menuAccess = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "menu-access.ts")).href);
-  const nav = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "prototype-nav.ts")).href);
+  const usageModule = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "menu-usage.ts")).href);
   const manifest = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "route-manifest.ts")).href);
   const resolveRoles = makeResolveRoles(router);
   const menuRows = menuAccess.SERVER_MENU_BRIDGE.map((entry) => ({
@@ -456,10 +457,19 @@ await run("二级栏 DOM（SSR 真渲染）：quick 态卡片 = planProductionSu
   }));
   const snapshot = eff.resolveEffectiveCapabilities({ menuState: "ready", menuRows, userRoles: ["SUPER_ADMIN"], resolveRoles });
   assert.equal(snapshot.ok, true, `S2 解析应成功：${snapshot.notice}`);
-  const expected = nav.planProductionSubnav("desk", manifest.MANUAL_GROUPS.flatMap((group) => group.items), snapshot.routeNames);
-  assert.ok(expected.length > 0, "常用功能生产卡片不应为空（否则同源断言无意义）");
+  const eligible = manifest.MANUAL_GROUPS.flatMap((group) => group.items).filter(
+    (item) => item.routeName && item.path && snapshot.routeNames.has(item.routeName),
+  );
+  const usage = Object.fromEntries(
+    eligible.slice(0, 6).map((item, index) => [
+      item.routeName,
+      { count: 20 - index, lastUsedAt: 1_790_000_000_000 - index },
+    ]),
+  );
+  const expected = usageModule.rankFrequentMenuItems(eligible, usage);
+  assert.ok(expected.length > 0, "常用功能频率夹具不应为空");
 
-  const html = await renderSubnavHtml(await subnavProps(eff, router, { productionSnapshot: snapshot }));
+  const html = await renderSubnavHtml(await subnavProps(eff, router, { productionSnapshot: snapshot, menuUsage: usage }));
   const aside = new JSDOM(html).window.document.querySelector('[data-testid="second-nav"]');
   assert.ok(aside, "SSR 输出缺二级栏 aside");
   const text = aside.textContent || "";
@@ -467,17 +477,17 @@ await run("二级栏 DOM（SSR 真渲染）：quick 态卡片 = planProductionSu
     assert.ok(!text.includes(banned), `二级栏 DOM 命中黑名单「${banned}」`);
   }
   const cards = [...aside.querySelectorAll(".sn-card")];
-  assert.equal(cards.length, expected.length, `卡片数 ${cards.length} ≠ 生产口径 ${expected.length}（渲染与投影不同源）`);
+  assert.equal(cards.length, expected.length, `卡片数 ${cards.length} ≠ 频率排序 ${expected.length}（渲染与排序不同源）`);
   assert.deepEqual(
     cards.map((card) => card.getAttribute("data-subnav-route")).sort(),
-    expected.map((row) => row.item.routeName).sort(),
-    "卡片 routeName 集合与 planProductionSubnav 输出不同源",
+    expected.map((item) => item.routeName).sort(),
+    "卡片 routeName 集合与使用频率排序输出不同源",
   );
   for (const routeName of cards.map((card) => card.getAttribute("data-subnav-route"))) {
     assert.ok(snapshot.routeNames.has(routeName), `卡片越出生产集合：${routeName}`);
   }
   assert.ok(cards.every((card) => !card.disabled), "生产卡片不得有 disabled 项");
-  return `${expected.length} 卡（${expected.map((row) => row.item.routeName).join(",")}），黑名单 0 命中`;
+  return `${expected.length} 卡（${expected.map((item) => item.routeName).join(",")}），黑名单 0 命中`;
 });
 
 await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；投影为空 ⇒ 如实空态（仍零黑名单）", async () => {
@@ -487,6 +497,7 @@ await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；
   const eff = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "effective-capabilities.ts")).href);
   const menuAccess = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "menu-access.ts")).href);
   const nav = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "prototype-nav.ts")).href);
+  const manifest = await import(pathToFileURL(path.join(SRC, "shared", "workbench", "route-manifest.ts")).href);
   const resolveRoles = makeResolveRoles(router);
   const menuRows = menuAccess.SERVER_MENU_BRIDGE.map((entry) => ({
     menuCode: entry.serverCode,
@@ -513,11 +524,18 @@ await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；
   for (const banned of PRODUCTION_COPY_BLACKLIST) {
     assert.ok(!text.includes(banned), `module 态 DOM 命中黑名单「${banned}」`);
   }
-  const cards = [...aside.querySelectorAll(".sn-card")];
+  const cards = [...aside.querySelectorAll(".sn-subzone .sn-card")];
   assert.deepEqual(
     cards.map((card) => card.getAttribute("data-subnav-route")).sort(),
     moduleProjection.map((entry) => entry.routeName).sort(),
     `module 态渲染与投影不同源（${moduleRow.moduleKey}）`,
+  );
+  const group = manifest.MANUAL_GROUPS.find((entry) => entry.groupCode === groupCode);
+  const realCards = [...aside.querySelectorAll(".sn-grid-real .sn-card")];
+  assert.deepEqual(
+    realCards.map((card) => card.getAttribute("data-subnav-route")).sort(),
+    (group?.items ?? []).map((entry) => entry.routeName).sort(),
+    "module 态真实入口未以双列卡片完整渲染",
   );
 
   const failedSnapshot = eff.resolveEffectiveCapabilities({ menuState: "error", menuRows: null, userRoles: ["SUPER_ADMIN"], resolveRoles });
@@ -530,7 +548,8 @@ await run("二级栏 DOM（SSR 真渲染）：module 态按模块切片同源；
   for (const banned of PRODUCTION_COPY_BLACKLIST) {
     assert.ok(!emptyText.includes(banned), `空态 DOM 命中黑名单「${banned}」`);
   }
-  assert.ok(emptyText.includes("菜单加载失败（不回退全量）"), "空投影应显示如实失败态文案");
+  assert.ok(emptyText.includes("导航暂不可用"), "空投影应显示面向业务用户的失败态文案");
+  assert.ok(!emptyText.includes("不回退全量"), "导航失败态不得把开发实现口径展示给用户");
   assert.equal(emptyAside.querySelectorAll(".sn-card").length, 0, "空投影不得渲染卡片");
   return `module ${moduleRow.moduleKey} ${moduleProjection.length} 卡同源；空投影零卡片零黑名单`;
 });

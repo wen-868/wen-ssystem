@@ -12,7 +12,7 @@
  * ⇒ 门店没有该 SKU 的库存行时字段是 **null（未知）**，不是 0、也不是「缺货」。
  * 而收款端 `offlinePayment` 与出库同事务，`beforeQty(=0) < quantity` 直接抛
  * 409「库存不足，无法完成收款出库」（`backend/src/services/admin/sale-bill.service.ts:449`）。
- * ⇒ 结论：`availableQty == null` 只能标 **unavailable（库存待接入）**；把它显示成「缺货」是误报，
+ * ⇒ 结论：`availableQty == null` 只能标 **unavailable（库存未接线）**；把它显示成「缺货」是误报，
  *   把它当「有货」并在收款时不说一句则是伪造可成功性。本文件把两者分开，交视图分别渲染。
  *
  * 原型的 `POS_GOODS`（芙蓉王 / 可乐 500ml / 农夫山泉…）与 `POS_FLOW` 是演示数据，
@@ -22,7 +22,7 @@
 import { searchStoreProducts } from "../../api/pos";
 import { getErrorMessage } from "../../api/request";
 
-/** 库存四态：真实有货 / 低库存 / 真实为 0 / 无库存行（待接入） */
+/** 库存四态：真实有货 / 低库存 / 真实为 0 / 无库存行（未接线） */
 export type PosStockState = "ok" | "low" | "out" | "unavailable";
 
 export interface PosStockView {
@@ -31,13 +31,13 @@ export interface PosStockView {
   text: string;
   /** 样式后缀（stock-ok / stock-low / stock-out / stock-unknown） */
   className: string;
-  /** 是否阻止加购：只有「真实缺货」阻止；「待接入」不阻止（无从判定） */
+  /** 是否阻止加购：只有「真实缺货」阻止；「未接线」不阻止（无从判定） */
   blockAdd: boolean;
-  /** 归一化后的数值；待接入时为 null，UI 不得画成 0 */
+  /** 归一化后的数值；未接线时为 null，UI 不得画成 0 */
   qty: number | null;
 }
 
-/** 库存可用性判定（null / undefined / 空串 / NaN ⇒ 待接入） */
+/** 库存可用性判定（null / undefined / 空串 / NaN ⇒ 未接线） */
 export function resolveStockState(availableQty: unknown, lowThreshold = 10): PosStockView {
   if (availableQty === null || availableQty === undefined || availableQty === "") {
     return { state: "unavailable", text: "暂无库存读数", className: "stock-unknown", blockAdd: false, qty: null };
@@ -53,7 +53,7 @@ export function resolveStockState(availableQty: unknown, lowThreshold = 10): Pos
   return { state: "ok", text: `库存 ${qty}`, className: "stock-ok", blockAdd: false, qty };
 }
 
-/** 商品行是否真实可售（缺货不可加购，其余含待接入均可加购） */
+/** 商品行是否真实可售（缺货不可加购，其余含未接线均可加购） */
 export function canAddToCart(product: { availableQty?: unknown } | null): boolean {
   if (!product) return false;
   return !resolveStockState(product.availableQty).blockAdd;
@@ -74,7 +74,7 @@ export interface PosCatTab {
 
 /**
  * `.pos-cats` 标签条数据（原型 anchor L497）：
- * 「全部」恒在首位，其后按接口顺序列分类；无分类数据时只出「全部」+ 由视图显示待接入。
+ * 「全部」恒在首位，其后按接口顺序列分类；无分类数据时只出「全部」+ 由视图显示未接线。
  */
 export function buildPosCatTabs(categories: any[], products: any[]): PosCatTab[] {
   const list = Array.isArray(categories) ? categories : [];
@@ -97,7 +97,7 @@ export type PosCatalogueState = "loading" | "ready" | "unavailable";
 export interface PosCatalogueResult {
   state: PosCatalogueState;
   records: any[];
-  /** 本次查询里库存行缺失（待接入）的条数 */
+  /** 本次查询里库存行缺失（未接线）的条数 */
   stockUnknownCount: number;
   message: string;
 }

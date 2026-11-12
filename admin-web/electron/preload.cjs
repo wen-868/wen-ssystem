@@ -14,6 +14,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // 显示消息对话框
   showMessage: (options) => ipcRenderer.invoke("show-message", options),
 
+  // 无边框窗口控制
+  windowControls: {
+    minimize: () => ipcRenderer.send("window-control", "minimize"),
+    toggleMaximize: () => ipcRenderer.send("window-control", "toggle-maximize"),
+    close: () => ipcRenderer.send("window-control", "close"),
+  },
+
   // 平台信息
   platform: process.platform,
 
