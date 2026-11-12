@@ -3,8 +3,11 @@
     <!-- 页头 -->
     <div class="page-header">
       <div class="page-header-main">
-        <h2 class="page-title">套装与组合品管理</h2>
+        <h2 class="page-title">套装与组合品</h2>
         <p class="page-desc">套装商品、组合品与销售统计</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="loadAllData">刷新</el-button>
       </div>
     </div>
 
@@ -1337,11 +1340,16 @@ function resizeCharts() {
   discountChart?.resize();
 }
 
-onMounted(() => {
+/** 手动刷新入口（超时/失败恢复）：重拉基础数据与全部列表 */
+function loadAllData() {
   loadBaseData();
   searchCombo();
   searchGroup();
   loadStats();
+}
+
+onMounted(() => {
+  loadAllData();
   window.addEventListener("resize", resizeCharts);
 });
 </script>

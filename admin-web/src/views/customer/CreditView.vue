@@ -2,7 +2,7 @@
 <div class="page">
 <div class="page-header">
   <div class="page-header-main">
-    <h2 class="page-title">授信管理</h2>
+    <h2 class="page-title">信用管理</h2>
     <p class="page-desc">客户赊销</p>
   </div>
 </div>

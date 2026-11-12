@@ -1,7 +1,7 @@
 <template>
 <div class="page">
 <div class="page-header">
-      <h2>多店调拨</h2>
+      <h2>库存调拨</h2>
       <p class="page-desc">管理门店间库存调拨，支持提交、审批、发货、收货全流程</p>
     </div>
 

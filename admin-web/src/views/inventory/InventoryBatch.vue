@@ -3,7 +3,7 @@
     <!-- 页头 -->
     <div class="page-header">
       <div class="page-header-main">
-        <h2 class="page-title">批次追溯</h2>
+        <h2 class="page-title">库存批次</h2>
         <p class="page-desc">批次库存、效期预警配置与预警列表</p>
       </div>
       <div class="page-header-actions">

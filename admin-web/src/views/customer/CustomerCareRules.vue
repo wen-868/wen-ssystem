@@ -2,7 +2,7 @@
 <div class="page">
 <div class="page-header">
   <div class="page-header-main">
-    <h2 class="page-title">客户关怀规则</h2>
+    <h2 class="page-title">客户运营</h2>
     <p class="page-desc">客户关怀规则配置</p>
   </div>
   <div class="page-header-actions">

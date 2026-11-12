@@ -118,8 +118,16 @@ async function openTagDialog(row: any) {
   tagDialogVisible.value = true;
   selectedTagIds.value = (row._tags || []).map((t: any) => t.id);
   try {
-    const { data } = await api.get("/product-tags/by-type");
-    const grouped = data.data || {};
+    // 真实端点对齐（本卡契约审计：后端无 /admin/product-tags/by-type）：
+    // GET /admin/tags/groups（标签组）+ GET /admin/tags（标签行含 group_id）⇒ 客户端按组名分组
+    const [gRes, tRes] = await Promise.all([
+      api.get("/admin/tags/groups"),
+      api.get("/admin/tags"),
+    ]);
+    const groups = gRes.data?.data || [];
+    const tags = tRes.data?.data || [];
+    const grouped: Record<string, any[]> = {};
+    for (const g of groups) grouped[g.name] = tags.filter((t: any) => t.group_id === g.id);
     tagsByType.value = grouped;
     tagGroups.value = Object.keys(grouped);
     if (tagGroups.value.length > 0) tagTypeTab.value = tagGroups.value[0];

@@ -3,7 +3,7 @@
     <!-- 页头 -->
     <div class="page-header">
       <div class="page-header-main">
-        <h2 class="page-title">商品分类管理</h2>
+        <h2 class="page-title">分类管理</h2>
         <p class="page-desc">管理商品分类树结构，支持拖拽排序</p>
       </div>
     </div>

@@ -3,7 +3,7 @@
     <!-- 页头 -->
     <div class="page-header">
       <div class="page-header-main">
-        <h2 class="page-title">库存管理</h2>
+        <h2 class="page-title">库存列表</h2>
         <p class="page-desc">库存总览与出入库流水查询</p>
       </div>
       <div class="page-header-actions">
@@ -44,10 +44,10 @@
           </template>
         </el-result>
         <div v-else class="table-card">
-          <el-table :data="balances" stripe>
-            <el-table-column prop="storeName" label="门店" width="140" />
+          <el-table :data="balances" v-loading="loading" stripe>
+            <el-table-column prop="storeName" label="门店" width="140" fixed="left" />
             <el-table-column prop="barcode" label="条码" width="160" />
-            <el-table-column prop="skuName" label="商品名称" min-width="180" />
+            <el-table-column prop="skuName" label="商品名称" min-width="180" fixed="left" />
             <el-table-column label="库存类型" width="100">
               <template #default="{ row }">
                 <el-tag size="small" :type="row.stockType === 'ONLINE' ? 'primary' : 'info'">
@@ -118,7 +118,7 @@
         </el-result>
         <div v-else class="table-card">
           <el-table :data="logs" stripe>
-            <el-table-column prop="logNo" label="流水单号" width="200" />
+            <el-table-column prop="logNo" label="流水单号" width="200" fixed="left" />
             <el-table-column prop="skuName" label="商品名称" min-width="160" />
             <el-table-column prop="reason" label="原因" min-width="120" />
             <el-table-column prop="changeQty" label="变动数量" width="100">

@@ -3,7 +3,7 @@
     <!-- 页头 -->
     <div class="page-header">
       <div class="page-header-main">
-        <h2 class="page-title">价格中心</h2>
+        <h2 class="page-title">价格管理</h2>
         <p class="page-desc">价格等级、SKU 价格与客户价格绑定管理</p>
       </div>
       <div class="page-header-actions">

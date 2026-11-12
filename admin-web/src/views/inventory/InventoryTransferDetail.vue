@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <div class="detail-content">
+    <div class="detail-content" v-loading="pageLoading">
       <!-- 左侧：基本信息和商品明细 -->
       <div class="main-col">
         <!-- 基本信息 -->
@@ -224,6 +224,7 @@ const placeholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/
 const detail = ref<any>(null);
 const auditRecords = ref<any[]>([]);
 const operationLogs = ref<any[]>([]);
+const pageLoading = ref(false);
 
 const statusMap: Record<string, { text: string; type: string }> = {
   DRAFT: { text: "草稿", type: "info" },
@@ -286,6 +287,7 @@ function handleEdit() {
 }
 
 async function loadDetail() {
+  pageLoading.value = true;
   try {
     const data = await fetchTransferDetail(transferId.value);
     detail.value = data.data || data;
@@ -297,6 +299,8 @@ async function loadDetail() {
     auditRecords.value = [];
     operationLogs.value = [];
     ElMessage.error(error?.response?.data?.msg || "调拨详情加载失败（接口不可用），请稍后重试");
+  } finally {
+    pageLoading.value = false;
   }
 }
 

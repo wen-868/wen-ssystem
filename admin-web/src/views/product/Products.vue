@@ -3,7 +3,7 @@
     <!-- 页头：标题 + 说明 + 操作区（列表页骨架示范） -->
     <div class="page-header">
       <div class="page-header-main">
-        <h2 class="page-title">商品中心</h2>
+        <h2 class="page-title">商品管理</h2>
         <p class="page-desc">管理商品 SPU 与 SKU 规格、价格与库存</p>
       </div>
       <div class="page-header-actions">
@@ -1086,8 +1086,13 @@ async function openDetail(row: any) {
   try {
     const { data: td } = await api.get(`/admin/products/${row.spuId}/tags`);
     detailTagIds.value = (td.data || []).map((t: any) => t.id);
-    const { data: r1 } = await api.get("/product-tags/by-type");
-    const grouped = r1.data || {};
+    // 真实端点对齐（本卡契约审计：后端无 /admin/product-tags/by-type）：
+    // GET /admin/tags/groups（标签组）+ GET /admin/tags（标签行含 group_id）⇒ 客户端按组名分组
+    const [gRes, tRes] = await Promise.all([api.get("/admin/tags/groups"), api.get("/admin/tags")]);
+    const groups = (gRes.data?.data || []) as Array<{ id: number; name: string }>;
+    const tags = (tRes.data?.data || []) as Array<{ id: number; group_id: number; name: string }>;
+    const grouped: Record<string, Array<{ id: number; name: string }>> = {};
+    for (const g of groups) grouped[g.name] = tags.filter(t => t.group_id === g.id).map(t => ({ id: t.id, name: t.name }));
     tagsByType.value = grouped;
     tagGroups.value = Object.keys(grouped);
     if (tagGroups.value.length > 0) tagTypeTab.value = tagGroups.value[0];

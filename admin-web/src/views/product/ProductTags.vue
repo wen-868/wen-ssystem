@@ -2,7 +2,7 @@
 <div class="page">
 <div class="page-header">
   <div class="page-header-main">
-    <h2 class="page-title">商品标签管理</h2>
+    <h2 class="page-title">标签体系</h2>
     <p class="page-desc">商品标签维护</p>
   </div>
   <div class="page-header-actions">

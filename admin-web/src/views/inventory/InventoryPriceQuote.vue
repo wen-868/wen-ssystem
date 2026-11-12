@@ -2,7 +2,7 @@
 <div class="page">
 <div class="page-header">
   <div class="page-header-main">
-    <h2 class="page-title">报价推送</h2>
+    <h2 class="page-title">报价管理</h2>
     <p class="page-desc">报价单推送记录</p>
   </div>
   <div class="page-header-actions">

@@ -2,8 +2,11 @@
 <div class="page">
     <div class="page-header">
     <div class="page-header-main">
-      <h2 class="page-title">成本分析</h2>
+      <h2 class="page-title">库存成本</h2>
       <p class="page-desc">成本趋势与成本明细</p>
+    </div>
+    <div class="page-header-actions">
+      <el-button @click="loadData">刷新</el-button>
     </div>
   </div>
 <!-- 统计卡片 -->
@@ -69,7 +72,7 @@
       </div>
       <div class="table-card">
 <el-table :data="records" v-loading="loading" stripe>
-        <el-table-column prop="skuName" label="商品名称" min-width="140" />
+        <el-table-column prop="skuName" label="商品名称" min-width="140" fixed="left" />
         <el-table-column prop="productName" label="SPU" min-width="120" />
         <el-table-column prop="storeName" label="门店" width="100" />
         <el-table-column prop="batchNo" label="批次号" width="140" />

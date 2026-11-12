@@ -2,7 +2,7 @@
 <div class="page">
 <div class="page-header">
   <div class="page-header-main">
-    <h2 class="page-title">单位组管理</h2>
+    <h2 class="page-title">单位管理</h2>
     <p class="page-desc">计量单位组维护</p>
   </div>
   <div class="page-header-actions">

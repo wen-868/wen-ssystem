@@ -2,7 +2,7 @@
 <div class="page">
 <div class="page-header">
   <div class="page-header-main">
-    <h2 class="page-title">批量价格调整</h2>
+    <h2 class="page-title">批量调价</h2>
     <p class="page-desc">批量调价与调价历史</p>
   </div>
   <div class="page-header-actions">
