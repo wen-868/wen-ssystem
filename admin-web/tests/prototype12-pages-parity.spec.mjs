@@ -275,17 +275,23 @@ await run("黑名单（§四.5 全工作台源码）：10 词 × src/** 全文 0
 
 /* ══ §五.1 采集证据链 ══ */
 
-await run("采集链：page-parity-visual-manifest 存在，逐页黑名单 0 命中且无横向溢出（待采集期此断言随 manifest 生成转绿）", () => {
+await run("采集链：manifest 双视口逐页 fail-closed —— 每页 ok:true 且 url≠/login 且 topTitle 非空且 mainRect 非空（门1返工口径，禁止空洞 ok:true）", () => {
   const mfPath = path.join(EV, "measure", "page-parity-visual-manifest.json");
   assert.ok(existsSync(mfPath), "缺 page-parity-visual-manifest.json（运行 tools/capture-page-parity.mjs）");
   const mf = JSON.parse(readFileSync(mfPath, "utf8"));
+  assert.equal(mf.impl.length, mf.pagesTotal * 2, `impl 条目数 ${mf.impl.length} ≠ 双视口总页数 ${mf.pagesTotal * 2}`);
+  for (const vp of ["1440x1000", "1024x768"]) {
+    const rows = mf.impl.filter((r) => r.viewport === vp);
+    assert.equal(rows.length, mf.pagesTotal, `${vp} 页数 ${rows.length} ≠ ${mf.pagesTotal}`);
+    const bad = rows.filter((r) => !r.ok || !r.readings || r.readings.url === "/login" || !r.readings.topTitle || r.readings.mainRect == null);
+    assert.equal(bad.length, 0, `${vp} 存在失效页（登录页/空标题/无主区，禁止空洞 ok:true）：${bad.map((b) => `${b.routeName}(${b.reason ?? b.error ?? "hollow-ok"})`).join(",")}`);
+  }
   const implOk = mf.impl.filter((r) => r.ok);
-  assert.ok(implOk.length >= mf.pagesTotal * 2 - 8, `逐页采集完成度不足：${implOk.length}/${mf.pagesTotal * 2}（容差 8 页：登录页/本地动作项）`);
   const dirty = implOk.filter((r) => (r.readings?.blacklistHits?.length ?? 0) > 0);
   assert.equal(dirty.length, 0, `DOM 黑名单命中页：${dirty.map((d) => d.routeName).join(",")}`);
   const overflow = implOk.filter((r) => r.readings?.overflowX);
   assert.ok(overflow.length <= 4, `横向溢出页过多：${overflow.map((o) => `${o.routeName}@${o.viewport}`).join(",")}`);
-  return `impl=${implOk.length}/${mf.pagesTotal * 2} 黑名单 0 溢出 ${overflow.length}`;
+  return `双视口 ${mf.pagesTotal}×2 全真实页 黑名单 0 溢出 ${overflow.length}`;
 });
 
 /* ══ 小结 ══ */
