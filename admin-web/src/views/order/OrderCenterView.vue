@@ -148,6 +148,7 @@
             <el-button size="small" link type="success" @click="handleSync(row)">手动同步</el-button>
           </template>
         </el-table-column>
+        <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
       <div class="table-card-footer">
         <el-pagination
@@ -229,7 +230,8 @@
                 <el-table-column label="合计金额" width="90">
                   <template #default="{ row }">¥{{ Number(row.price * row.quantity || 0).toFixed(2) }}</template>
                 </el-table-column>
-              </el-table>
+                <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
             </el-card>
           </el-col>
         </el-row>

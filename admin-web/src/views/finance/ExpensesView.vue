@@ -71,6 +71,7 @@
             <el-button v-if="row.status === 'PENDING'" size="small" link type="danger" @click="handleVoid(row)">作废</el-button>
           </template>
         </el-table-column>
+        <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 
       <div class="table-card-footer">

@@ -44,7 +44,7 @@
       <el-tab-pane label="客户贡献排行" name="customerContribution">
         <div ref="customerContributionChartRef" class="chart-box chart-medium"></div>
         <div class="table-card chart-table">
-          <el-table :data="customerContribution" stripe style="width:100%">
+          <el-table v-loading="loading" :data="customerContribution" stripe style="width:100%">
             <el-table-column type="index" label="排名" width="60" align="center" />
             <el-table-column prop="customerName" label="客户名称" min-width="140" />
             <el-table-column label="累计消费" width="120" align="right">
@@ -73,7 +73,7 @@
           <el-col :span="14"><div ref="aoDistributionChartRef" class="chart-box chart-medium"></div></el-col>
           <el-col :span="10">
             <div class="table-card">
-              <el-table :data="avgOrderValueDistribution" stripe size="small">
+              <el-table v-loading="loading" :data="avgOrderValueDistribution" stripe size="small">
                 <el-table-column prop="label" label="客单价区间" width="120" />
                 <el-table-column prop="customerCount" label="客户数" width="90" align="right" />
                 <el-table-column prop="orderCount" label="订单数" width="90" align="right" />
@@ -100,7 +100,7 @@
           <el-col :span="14"><div ref="rfmScatterChartRef" class="chart-box chart-medium"></div></el-col>
           <el-col :span="10">
             <div class="table-card">
-              <el-table :data="rfm.segments" stripe size="small" max-height="350" @row-click="onRFMGroupClick">
+              <el-table v-loading="loading" :data="rfm.segments" stripe size="small" max-height="350" @row-click="onRFMGroupClick">
                 <el-table-column prop="group" label="分群名称" min-width="120" />
                 <el-table-column prop="customerCount" label="客户数" width="80" align="right" />
                 <el-table-column label="销售额" width="110" align="right">
@@ -118,7 +118,7 @@
         </el-row>
         <!-- 客户明细弹窗 -->
         <el-dialog v-model="rfmDetailVisible" title="客户明细" width="720px">
-          <el-table :data="rfmDetailCustomers" stripe size="small">
+          <el-table v-loading="loading" :data="rfmDetailCustomers" stripe size="small">
             <el-table-column prop="customerName" label="客户名称" />
             <el-table-column prop="r" label="R值" width="80" align="center" />
             <el-table-column prop="f" label="F值" width="80" align="center" />
@@ -136,7 +136,7 @@
       <el-tab-pane label="流失客户预警" name="lostCustomer">
         <div ref="lostCustomerTrendChartRef" class="chart-box chart-medium"></div>
         <div class="table-card chart-table">
-          <el-table :data="lostCustomer.list" stripe style="width:100%">
+          <el-table v-loading="loading" :data="lostCustomer.list" stripe style="width:100%">
             <el-table-column type="index" label="序号" width="60" align="center" />
             <el-table-column prop="customerName" label="客户名称" min-width="140" />
             <el-table-column prop="lastOrderDate" label="最后消费日期" width="130" align="center" />
@@ -159,6 +159,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+const loading = ref(false);
 import { Refresh, Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from '@/styles/theme'

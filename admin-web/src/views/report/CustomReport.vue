@@ -78,7 +78,8 @@
               <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
             </template>
           </el-table-column>
-        </el-table>
+          <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
         <div class="table-card-footer">
           <el-pagination
             v-model:current-page="pagination.page"
@@ -365,7 +366,8 @@
                     min-width="120"
                     align="center"
                   />
-                </el-table>
+                  <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
               </div>
               <div v-else ref="chartRef" class="chart-canvas"></div>
@@ -384,7 +386,8 @@
                   min-width="120"
                   show-overflow-tooltip
                 />
-              </el-table>
+                <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
               <div class="preview-pagination">
                 <el-pagination

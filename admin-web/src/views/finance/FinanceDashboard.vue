@@ -83,7 +83,7 @@
     <!-- 日报表 -->
     <PageCard title="日报表">
       <div class="table-card">
-<el-table :data="dailyReport" stripe>
+<el-table v-loading="loading" :data="dailyReport" stripe>
         <el-table-column prop="date" label="日期" width="140">
           <template #default="{ row }">
             {{ formatDate(row.date) }}
@@ -106,6 +106,7 @@
             </span>
           </template>
         </el-table-column>
+        <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 </div>
     </PageCard>
@@ -113,7 +114,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from "vue";
+import { ref, reactive, onMounted, nextTick } from "vue"
+const loading = ref(false);;
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
 import PageCard from "../../components/PageCard.vue";

@@ -104,7 +104,7 @@
           </el-col>
           <el-col :span="12">
             <div class="table-card">
-<el-table :data="channelConversionData" stripe border style="width: 100%">
+<el-table v-loading="loading" :data="channelConversionData" stripe border style="width: 100%">
               <el-table-column prop="channel" label="渠道" width="100" />
               <el-table-column prop="shareCount" label="分享数" width="80" />
               <el-table-column prop="viewCount" label="查看数" width="80" />
@@ -118,7 +118,8 @@
               <el-table-column prop="ratio" label="占比" width="80">
                 <template #default="{ row }">{{ row.ratio }}%</template>
               </el-table-column>
-            </el-table>
+              <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
           </el-col>
         </el-row>
@@ -135,7 +136,7 @@
           </el-col>
         </el-row>
         <div class="table-card">
-<el-table :data="timeoutOrders" stripe border style="width: 100%; margin-top: 16px">
+<el-table v-loading="loading" :data="timeoutOrders" stripe border style="width: 100%; margin-top: 16px">
           <el-table-column prop="billNo" label="订单号" width="180" />
           <el-table-column prop="customerName" label="客户" width="120" />
           <el-table-column prop="amount" label="金额" width="120">
@@ -148,7 +149,8 @@
               <el-tag type="danger" size="small">超时未付</el-tag>
             </template>
           </el-table-column>
-        </el-table>
+          <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
         <el-pagination
           v-if="timeoutOrders.length > 0"
@@ -178,6 +180,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+const loading = ref(false);
 import { CHART_COLORS } from "@/styles/theme";
 import { Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'

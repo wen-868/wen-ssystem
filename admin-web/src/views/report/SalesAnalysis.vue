@@ -74,7 +74,7 @@
           </el-button>
         </div>
         <div class="table-card">
-          <el-table :data="productRanking" stripe border style="width: 100%">
+          <el-table v-loading="loading" :data="productRanking" stripe border style="width: 100%">
             <el-table-column type="index" label="排名" width="60" />
             <el-table-column prop="productName" label="商品名" width="150" />
             <el-table-column prop="categoryName" label="品类" width="100" />
@@ -88,7 +88,8 @@
             <el-table-column prop="profitRate" label="毛利率" sortable width="100">
               <template #default="{ row }">{{ row.profitRate }}%</template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
           <div class="table-card-footer">
             <el-pagination
               v-if="productRanking.length > 0"
@@ -105,7 +106,7 @@
       <!-- Tab 4: 客户排行 -->
       <el-tab-pane label="客户排行" name="customerRank">
         <div class="table-card">
-          <el-table :data="customerRanking" stripe border style="width: 100%">
+          <el-table v-loading="loading" :data="customerRanking" stripe border style="width: 100%">
             <el-table-column type="index" label="排名" width="60" />
             <el-table-column prop="customerName" label="客户名" width="150" />
             <el-table-column prop="totalAmount" label="消费金额" sortable width="130">
@@ -116,7 +117,8 @@
               <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.avgOrderValue) }}</span></template>
             </el-table-column>
             <el-table-column prop="lastOrderTime" label="最近消费" width="160" />
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
           <div class="table-card-footer">
             <el-pagination
               v-if="customerRanking.length > 0"
@@ -134,7 +136,7 @@
       <el-tab-pane label="门店排行" name="storeRank">
         <div ref="storeRankChartRef" class="chart-box chart-medium"></div>
         <div class="table-card chart-table">
-          <el-table :data="storeRankingData" stripe border style="width: 100%">
+          <el-table v-loading="loading" :data="storeRankingData" stripe border style="width: 100%">
             <el-table-column type="index" label="排名" width="60" />
             <el-table-column prop="storeName" label="门店" width="150" />
             <el-table-column prop="salesAmount" label="销售额" sortable width="130">
@@ -144,7 +146,8 @@
             <el-table-column prop="grossProfit" label="毛利" sortable width="120">
               <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.grossProfit) }}</span></template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
         </div>
       </el-tab-pane>
 
@@ -152,7 +155,7 @@
       <el-tab-pane label="业务员排行" name="salesmanRank">
         <div ref="salesmanChartRef" class="chart-box chart-medium"></div>
         <div class="table-card chart-table">
-          <el-table :data="salesmanRanking" stripe border style="width: 100%">
+          <el-table v-loading="loading" :data="salesmanRanking" stripe border style="width: 100%">
             <el-table-column type="index" label="排名" width="60" />
             <el-table-column prop="salesmanName" label="业务员" width="120" />
             <el-table-column prop="salesAmount" label="销售额" sortable width="130">
@@ -162,14 +165,15 @@
             <el-table-column prop="grossProfit" label="毛利" sortable width="120">
               <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.grossProfit) }}</span></template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
         </div>
       </el-tab-pane>
 
       <!-- Tab 7: 同期对比 -->
       <el-tab-pane label="同期对比" name="compare">
         <div class="table-card">
-          <el-table :data="compareData" stripe border style="width: 100%">
+          <el-table v-loading="loading" :data="compareData" stripe border style="width: 100%">
             <el-table-column prop="metric" label="指标" width="150" />
             <el-table-column prop="currentValue" label="本期" width="150" />
             <el-table-column prop="previousValue" label="上期" width="150" />
@@ -181,14 +185,15 @@
                 </span>
               </template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
         </div>
       </el-tab-pane>
 
       <!-- Tab 8: 销售日报 -->
       <el-tab-pane label="销售日报" name="dailyReport">
         <div class="table-card">
-          <el-table :data="paginatedDailyReport" stripe border style="width: 100%">
+          <el-table v-loading="loading" :data="paginatedDailyReport" stripe border style="width: 100%">
             <el-table-column prop="date" label="日期" width="120" />
             <el-table-column prop="salesAmount" label="销售额" sortable width="130">
               <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.salesAmount) }}</span></template>
@@ -203,7 +208,8 @@
             <el-table-column prop="refundRate" label="退款率" width="100">
               <template #default="{ row }">{{ row.refundRate }}%</template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
           <div class="table-card-footer">
             <el-pagination
               v-model:current-page="dailyReportPage"
@@ -221,6 +227,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+const loading = ref(false);
 import { CHART_COLORS } from "@/styles/theme";
 import { Download, Refresh, Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'

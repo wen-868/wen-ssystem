@@ -93,7 +93,8 @@
           </el-table-column>
           <el-table-column prop="inStockCount" label="入库次数" sortable width="100" />
           <el-table-column prop="returnCount" label="退货次数" sortable width="100" />
-        </el-table>
+          <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
       </el-tab-pane>
 
@@ -123,7 +124,8 @@
               <el-tag v-else size="small">{{ fmtStatus(row.status) }}</el-tag>
             </template>
           </el-table-column>
-        </el-table>
+          <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
         <el-pagination
           v-if="purchaseDetailList.length > 0"

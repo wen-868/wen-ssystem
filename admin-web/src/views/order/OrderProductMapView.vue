@@ -47,7 +47,7 @@
 
       <!-- 映射列表表格 -->
       <div class="table-card">
-<el-table :data="filteredMaps" stripe>
+<el-table v-loading="loading" :data="filteredMaps" stripe>
         <el-table-column label="渠道" width="90">
           <template #default="{ row }">
             <el-tag :type="channelTagType(row.channelType)" size="small">{{ channelName(row.channelType) }}</el-tag>
@@ -102,7 +102,7 @@
             <el-tag type="warning" size="small" style="margin-left: 8px">{{ unmappedProducts.length }}条</el-tag>
           </template>
           <div class="table-card">
-<el-table :data="unmappedProducts" stripe size="small">
+<el-table v-loading="loading" :data="unmappedProducts" stripe size="small">
             <el-table-column label="渠道" width="90">
               <template #default="{ row }">
                 <el-tag :type="channelTagType(row.channelType)" size="small">{{ channelName(row.channelType) }}</el-tag>
@@ -202,7 +202,7 @@
       </div>
       <!-- 步骤2：预览 -->
       <div v-if="importStep === 1">
-        <el-table :data="importPreviewData" border stripe max-height="360">
+        <el-table v-loading="loading" :data="importPreviewData" border stripe max-height="360">
           <el-table-column prop="channelType" label="渠道" width="80" />
           <el-table-column prop="channelSkuId" label="渠道SKU" width="130" />
           <el-table-column prop="channelProductName" label="渠道商品名" min-width="130" />
@@ -272,12 +272,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue"
+const loading = ref(false);;
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, UploadFilled, WarningFilled } from "@element-plus/icons-vue";
 import { fetchProductMaps, fetchProductMapStats } from "../../api/instant-retail";
 
-// ── Mock 数据 ──
+// ── 渠道与状态映射 ──
 const channelTypes = ["ALL", "WECHAT", "DOUYIN", "MEITUAN", "ELEME", "JD"];
 const channelNames: Record<string, string> = { ALL: "全部", WECHAT: "微信", DOUYIN: "抖音", MEITUAN: "美团", ELEME: "饿了么", JD: "京东" };
 

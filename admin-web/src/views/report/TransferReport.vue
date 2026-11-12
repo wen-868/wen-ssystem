@@ -1,5 +1,5 @@
 <template>
-<div class="page">
+<div class="page" v-loading="loading">
 <div class="page-header">
       <h2>调拨统计报表</h2>
       <p class="page-desc">多维度分析门店调拨数据，辅助库存调配决策</p>
@@ -137,12 +137,14 @@
       <PageCard title="调拨原因分布" class="chart-card chart-small">
         <div ref="reasonPieChartRef" class="chart-container"></div>
       </PageCard>
+    <el-empty v-if="!trendCache.length && !loading" description="暂无调拨数据" :image-size="96" />
     </div>
 </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
+const loading = ref(false);
 import { fetchTransferStatistics, fetchTransferTrend } from "../../api";
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
@@ -187,6 +189,7 @@ let reasonPieChart: any = null;
 const trendCache = ref<any[]>([])
 
 async function loadRealData() {
+  loading.value = true
   try {
     const [stats, trend] = await Promise.all([
       fetchTransferStatistics(),
@@ -200,6 +203,8 @@ async function loadRealData() {
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || '加载调拨统计失败')
     trendCache.value = []
+  } finally {
+    loading.value = false
   }
 }
 

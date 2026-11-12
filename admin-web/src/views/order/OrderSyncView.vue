@@ -107,7 +107,7 @@
       </el-row>
 
       <div class="table-card">
-<el-table :data="filteredSyncLogs" stripe border style="width: 100%; margin-top: 12px">
+<el-table v-loading="loading" :data="filteredSyncLogs" stripe border style="width: 100%; margin-top: 12px">
         <el-table-column prop="channelOrderNo" label="订单号" width="150" />
         <el-table-column label="渠道" width="80">
           <template #default="{ row }">
@@ -157,6 +157,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="syncedAt" label="同步时间" width="160" />
+        <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 </div>
       <el-pagination
@@ -219,12 +220,13 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+const loading = ref(false);
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from 'element-plus'
 import { fetchInstantRetailSyncStats, fetchInstantRetailSyncLogs } from '../../api'
 
-// ─── Mock 数据 ───
+// ─── 渠道与状态映射 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
 const orderStatusNames: Record<string, string> = {
   PENDING_PAY: '待付款', PENDING_SHIP: '待发货', PENDING_RECEIVE: '待收货',

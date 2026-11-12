@@ -88,7 +88,8 @@
                 <span v-else>-</span>
               </template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
         </el-tab-pane>
 
@@ -159,7 +160,8 @@
                 <span v-else>-</span>
               </template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
         </el-tab-pane>
       </el-tabs>

@@ -115,7 +115,7 @@
         </div>
       </template>
       <div class="table-card">
-<el-table :data="filteredExceptions" stripe>
+<el-table v-loading="loading" :data="filteredExceptions" stripe>
         <el-table-column label="异常级别" width="120">
           <template #default="{ row }">
             <el-tag v-if="row.exceptionLevel === 'WARNING'" type="warning" effect="dark">
@@ -168,6 +168,7 @@
             <el-button size="small" link type="primary" @click="viewDetail(row)">查看详情</el-button>
           </template>
         </el-table-column>
+        <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
       <div class="table-card-footer">
         <el-pagination
@@ -248,14 +249,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue"
+const loading = ref(false);;
 import { fetchOrderExceptions, fetchOrderExceptionStats, handleOrderException, fetchOrderExceptionLogs } from "../../api";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { WarningFilled, Plus, CircleCheckFilled, Warning, CircleClose, CircleCloseFilled } from "@element-plus/icons-vue";
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
 
-// ── Mock 数据 ──
+// ── 页面状态与数据源 ──
 const exceptionStats = ref({ pendingCount: 0, todayNewCount: 0, weekResolvedCount: 0, avgHandleHours: 0 });
 
 const exceptionTypes = ref<any[]>([])

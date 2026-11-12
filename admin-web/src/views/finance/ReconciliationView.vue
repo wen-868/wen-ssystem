@@ -69,7 +69,8 @@
                 <el-button v-if="row.status === 'PENDING'" size="small" link type="success" @click="handleConfirm(row)">确认对账</el-button>
               </template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
         </el-tab-pane>
 
@@ -134,7 +135,8 @@
                 <el-button v-if="row.status === 'PENDING'" size="small" link type="success" @click="handleConfirm(row)">确认对账</el-button>
               </template>
             </el-table-column>
-          </el-table>
+            <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
         </el-tab-pane>
       </el-tabs>
@@ -205,6 +207,7 @@
             {{ formatYuan(row.balance) }}
           </template>
         </el-table-column>
+        <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 
       <template #footer>

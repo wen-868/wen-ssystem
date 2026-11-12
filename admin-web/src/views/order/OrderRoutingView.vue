@@ -44,7 +44,7 @@
 
         <!-- 规则表格 -->
         <div class="table-card">
-<el-table :data="routingRules" stripe border style="width: 100%">
+<el-table v-loading="loading" :data="routingRules" stripe border style="width: 100%">
           <el-table-column prop="ruleName" label="规则名称" width="140" />
           <el-table-column label="适用渠道" width="120">
             <template #default="{ row }">
@@ -67,7 +67,8 @@
               <el-button size="small" link type="danger" @click="handleDeleteRule(row)">删除</el-button>
             </template>
           </el-table-column>
-        </el-table>
+          <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
       </el-tab-pane>
 
@@ -105,7 +106,7 @@
 
         <!-- 日志表格 -->
         <div class="table-card">
-<el-table :data="filteredDispatchLogs" stripe border style="width: 100%">
+<el-table v-loading="loading" :data="filteredDispatchLogs" stripe border style="width: 100%">
           <el-table-column prop="channelOrderNo" label="订单号" width="150" />
           <el-table-column label="渠道" width="80">
             <template #default="{ row }">
@@ -126,7 +127,8 @@
           </el-table-column>
           <el-table-column prop="dispatchReason" label="分发原因" min-width="150" show-overflow-tooltip />
           <el-table-column prop="createdAt" label="分发时间" width="160" />
-        </el-table>
+          <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
+      </el-table>
 </div>
         <el-pagination
           style="margin-top: 16px; justify-content: flex-end"
@@ -263,11 +265,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+const loading = ref(false);
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchRoutingRules, createRoutingRule, updateRoutingRule, deleteRoutingRule, fetchStoreLoad } from '../../api'
 import { fetchWarehouses } from '../../api/system'
 
-// ─── Mock 数据 ───
+// ─── 渠道与状态映射 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
 const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 
