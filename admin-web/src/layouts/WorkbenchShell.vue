@@ -2,7 +2,7 @@
   <!-- 灰度回滚路径：特征开关关闭时直接使用旧壳，行为与改动前一致 -->
   <MainLayout v-if="!shellEnabled" />
 
-  <div v-else class="wb-shell" :class="{ 'is-ai': effectiveMode === 'ai', 'is-cashier': isCashierRoute, 'side-hidden': sideCollapsed, 'tc-collapsed': taskCenterCollapsed, 'is-narrow': isNarrow }" :data-uiux-inject="uiuxInjected ? 'on' : 'off'" data-testid="wb-shell">
+  <div v-else class="wb-shell" data-wb-scope="workbench" :class="{ 'is-ai': effectiveMode === 'ai', 'is-cashier': isCashierRoute, 'side-hidden': sideCollapsed, 'tc-collapsed': taskCenterCollapsed, 'is-narrow': isNarrow }" :data-uiux-inject="uiuxInjected ? 'on' : 'off'" data-testid="wb-shell">
     <!-- 注入态水印：截图即自证这不是生产权限态（仅 ?wb_uiux=12-groups 的开发态渲染） -->
     <div v-if="uiuxInjected" class="wb-uiux-flag" data-testid="uiux-inject-flag">{{ WB_UIUX_INJECT_WATERMARK }}</div>
     <!-- ══ 一级模块图标栏（最左 · 常驻）＝原型 .rail（renderRail L2293）══ -->
@@ -115,13 +115,13 @@
         </button>
         <span class="wb-top-title">{{ topTitle }}</span>
 
-        <AgentStatusBar
-          :readiness-state="aiReadiness.state"
-          :pending-review-count="pendingReviewCount"
-          :menu-state="menuState"
-          @open-ledger="ledgerOpen = true"
-          @retry-readiness="retryAiReadiness"
-        />
+        <!--
+          顶栏要素收敛（UI-PARITY-BASE 卡 §四.2.5 + DELTA-CONTRACT top_bar）：
+          仅保留 菜单开关 / 日常经营标题 / 待审阅徽标 / 工作台·收银台 / 任务中心开关。
+          旧「研发健康指标（探针灯）/ 数字员工数 / 无上下文步骤计数 / 能力台账」已按合同移除，
+          AgentStatusBar 收敛为待审阅徽标容器（其余数据在任务中心与对话面各自承载）。
+        -->
+        <AgentStatusBar :pending-review-count="pendingReviewCount" />
 
         <span v-if="menuState === 'loading'" class="wb-menu-state" data-testid="menu-loading">
           正在加载权限菜单…
@@ -165,6 +165,18 @@
         </div>
 
         <div class="wb-top-right">
+          <!-- 任务中心开关（合同 top_bar.right 唯一右侧业务要素）：收起后第 4 列为 0px，这里是唯一常驻重开入口 -->
+          <button
+            type="button"
+            class="wb-icon-btn wb-tc-toggle"
+            data-testid="task-center-toggle"
+            :aria-pressed="taskCenterCollapsed ? 'false' : 'true'"
+            :aria-label="taskCenterCollapsed ? '展开任务中心' : '收起任务中心'"
+            :title="taskCenterCollapsed ? '展开任务中心' : '收起任务中心'"
+            @click="toggleTaskCenter"
+          >
+            <el-icon :size="18"><Tickets /></el-icon>
+          </button>
           <span class="wb-user">{{ auth.userName }}</span>
           <button type="button" class="wb-text-btn" @click="handleLogout">退出</button>
         </div>
@@ -235,36 +247,23 @@
       />
     </div>
 
-    <!-- AI 能力台账抽屉（WT-03 成果保留：从 feed「能力台账」入口打开，不占主面） -->
-    <div v-if="ledgerOpen" class="wb-ledger-mask" data-testid="ledger-mask" @click="ledgerOpen = false" />
-    <aside v-if="ledgerOpen" class="wb-ledger" data-testid="ledger-drawer" aria-label="AI 能力台账">
-      <header class="wb-ledger-head">
-        <span>AI 能力台账</span>
-        <button type="button" class="wb-text-btn" @click="ledgerOpen = false">收起</button>
-      </header>
-      <div class="wb-ledger-body">
-        <AiFeedContainer
-          :title="activeGroupTitle"
-          :items="activeGroupItems"
-          :session-state="aiSessionState"
-          :visible-route-names="visibleRouteNameList"
-          :menu-notice="access.notice"
-          @open="openManualItem"
-          @command="sendQuickCommand"
-          @new-conversation="startNewConversation"
-        />
-      </div>
-    </aside>
+    <!--
+      AI 能力台账抽屉已按 UI-PARITY-BASE 合同移除（top_bar.forbidden: 能力台账）。
+      能力目录事实源（capability-entries）保留在 shared 层供对话面/设置中心引用，此处不再挂抽屉。
+    -->
 
     <!-- 收银台本机打印设置（沿用现有本地弹窗，不走路由） -->
     <PrintSettingsPanel ref="printPanelRef" v-model="printSettingsVisible" />
 
     <!-- ══ 任务中心（第 4 列 · 300px · 原型四列壳层 Prototype-12）══
-         可收起/展开且状态保持（localStorage wb.task-center.collapsed）。
-         窄视口（≤390px）整列随三列折叠一起降级（见样式 media 块）。 -->
+         收起 = 整列 0px（卡 §四.1.4：不是 56px 窄条），重开走顶栏 task-center-toggle；
+         无真实待办时默认收起、有待办默认展开（合同 task_center.default），
+         用户显式偏好（localStorage wb.task-center.collapsed）优先于默认。
+         窄视口（≤390px）整列随单列降级（见样式 media 块）。 -->
     <WorkbenchTaskCenter
       :collapsed="taskCenterCollapsed"
       @toggle="toggleTaskCenter"
+      @settle="onTaskCenterSettle"
     />
 
     <!-- 设置中心（原型 .sw L2507-2603 · 7 分区 + 角色差异 + 明暗主题） -->
@@ -296,7 +295,8 @@
  *   - 角色裁剪（04F1）：userRoles: auth.userRoles + meta.roles 同源；收银 9 项不吃 /menus/user 交集；
  *   - AI 故障回退（WORKBENCH-03）：AiChatPanel fallback → switchMode('human')，router-view 无条件渲染；
  *   - 灰度回滚（WORKBENCH-02/05）：wb.shell.v2 / VITE_WORKBENCH_SHELL_V2 双开关 + 旧壳分支；
- *   - 能力台账（WT-03/03F1）：AiFeedContainer 全量保留，改为抽屉承载（主面让位给原型信息流/会话）。
+ *   - 能力台账（WT-03/03F1 → UI-PARITY-BASE）：能力目录事实源保留在 shared 层（capability-entries），
+ *     顶栏/抽屉承载按 DELTA-CONTRACT top_bar.forbidden 移除（能力台账不再是顶栏要素）。
  * 数据纪律：feed/待审阅只用真实端点（GET /admin/notifications、AI /api/chat/confirmations）；
  *   端点失败 ⇒ 诚实错误态；无数据源的项（如「在线数」）不展示、不编造（登记回传卡）。
  */
@@ -329,7 +329,6 @@ import AgentStatusBar from "../components/workbench/AgentStatusBar.vue";
 import WorkbenchTaskCenter from "../components/workbench/WorkbenchTaskCenter.vue";
 import AiFeedView from "../components/workbench/AiFeedView.vue";
 import AiChatComposer from "../components/workbench/AiChatComposer.vue";
-import AiFeedContainer from "../components/workbench/AiFeedContainer.vue";
 import AiChatPanel from "../components/workbench/AiChatPanel.vue";
 import PrintSettingsPanel from "../modules/print/PrintSettingsPanel.vue";
 import WbSettingsCenter from "../components/workbench/WbSettingsCenter.vue";
@@ -339,8 +338,6 @@ import { useAuthStore } from "../stores/auth";
 import { getErrorMessage } from "../api/request";
 import { fetchUserMenus } from "../api/workbench-menu";
 import { fetchAiConfirmations } from "../api/ai";
-import { aiReadiness, probeAiReadiness } from "../shared/workbench/ai-readiness";
-import { loadAgentTopMetrics } from "../shared/workbench/agent-metrics";
 import {
   ALL_MANIFEST_ITEMS,
   ALL_MANIFEST_ROUTE_NAMES,
@@ -348,7 +345,6 @@ import {
   MANUAL_GROUPS,
   filterVisibleGroups,
   filterVisibleItems,
-  type ManifestGroup,
   type ManifestItem,
 } from "../shared/workbench/route-manifest";
 import {
@@ -446,27 +442,51 @@ const effectiveMode = computed<WorkbenchMode>(() =>
   isCashierRoute.value || isManualBusinessRoute.value ? "human" : workbenchMode.value,
 );
 
-/** 主面：feed=信息流（原型默认面）/ chat=AI 会话；仅 AI 模式内有层切换 */
-type MainFace = "feed" | "chat";
-const face = ref<MainFace>("feed");
+/** 主面：chat=AI 日常经营对话/晨报（原型默认主面 · UI-PARITY-BASE §四.3.1）；
+ *  feed=旧信息流层（结构保留、数据 hook 保留，不再作为任何入口的默认/落地面）。
+ *  仅 AI 模式内有层切换。 */
+type MainFace = "chat" | "feed";
+const face = ref<MainFace>("chat");
 const sideCollapsed = ref(false);
 
 /**
- * 任务中心收起态（卡面 §三.4：可收起/展开且状态保持）。
- * 持久化在 localStorage `wb.task-center.collapsed`（"1" = 收起），
- * 刷新/重开应用后保持上次选择；窄口进入时强制收起（不占主面）。
+ * 任务中心收起态（卡面 §四.1.4：收起 = 整列 0px，不是 56px 窄条；顶栏开关是唯一常驻重开入口）。
+ * 持久化在 localStorage `wb.task-center.collapsed`（"1" = 收起）：
+ *  - 显式偏好（用户点过开关）永远优先；
+ *  - 无偏好时按合同默认：数据落地后无真实待办 ⇒ 收起（0px），有待办 ⇒ 展开；
+ *  - 刷新/重开应用后保持上次显式选择；窄口进入时强制收起（不占主面）。
  */
 const TASK_CENTER_KEY = "wb.task-center.collapsed";
 const taskCenterCollapsed = ref(false);
-function restoreTaskCenterState(): void {
+/** 合同默认是否已应用过一次（只应用一次，之后交给显式偏好/用户操作） */
+let taskCenterDefaultApplied = false;
+function readTaskCenterPref(): string | null {
   try {
-    taskCenterCollapsed.value = localStorage.getItem(TASK_CENTER_KEY) === "1";
+    return localStorage.getItem(TASK_CENTER_KEY);
   } catch {
-    taskCenterCollapsed.value = false;
+    return null;
   }
 }
+function restoreTaskCenterState(): void {
+  const pref = readTaskCenterPref();
+  taskCenterCollapsed.value = pref === "1";
+}
 /**
- * 用户显式切换（模板 @toggle）：切换后持久化。
+ * 任务中心数据落地回调（WorkbenchTaskCenter @settle）：仅在用户没有显式偏好时
+ * 按合同应用一次默认态（无真实待办 ⇒ 收起；有待办 ⇒ 保持展开）。失败态不参与
+ * 默认判定（读不到 ≠ 没有待办，不因故障收起入口）。
+ */
+function onTaskCenterSettle(hasWork: boolean): void {
+  if (taskCenterDefaultApplied) return;
+  if (readTaskCenterPref() !== null) {
+    taskCenterDefaultApplied = true;
+    return;
+  }
+  taskCenterDefaultApplied = true;
+  if (!hasWork) taskCenterCollapsed.value = true;
+}
+/**
+ * 用户显式切换（顶栏开关 / 面板内收起钮）：切换后持久化。
  * 窄口强制收起（applyNarrow）不走此函数 ⇒ 不覆盖桌面偏好。
  */
 function toggleTaskCenter(): void {
@@ -493,7 +513,7 @@ function applyNarrow(narrow: boolean): void {
 function onNarrowChange(event: MediaQueryListEvent): void {
   applyNarrow(event.matches);
 }
-const ledgerOpen = ref(false);
+// （UI-PARITY-BASE）AI 能力台账抽屉已按合同移除，ledgerOpen 状态随之删除
 
 function resolveRoles(routeName: string): string[] | null {
   const record = router.getRoutes().find((entry) => entry.name === routeName);
@@ -558,10 +578,8 @@ onMounted(() => {
   // WORKBENCH-13-F3 §三.C.9：新壳真实接入更新检查（检查器内部 catch ⇒ 失败静默降级，不阻塞工作台）。
   // 旧壳回滚（!shellEnabled）时 MainLayout 自身已调用，这里只挂生产新壳，避免双通知。
   if (shellEnabled) void checkWebUpdate();
-  // WORKBENCH-06F1：AI 可用性探针 + 顶部 Agent 真实数据（员工数 / 计划进度）。
-  // 三者各自独立，互不阻塞（AI 不可达时菜单与人工页照常）。
-  void probeAiReadiness();
-  void loadAgentTopMetrics();
+  // （UI-PARITY-BASE §四.2.5）顶栏研发健康指标/员工数/步骤计数已按合同移除，
+  // 探针与顶部指标装载不再由壳层调用（ai-readiness/agent-metrics 模块保留供其余消费方）。
   confirmTimer = window.setInterval(() => {
     void loadPendingReview();
   }, 60_000);
@@ -592,7 +610,7 @@ watch(
     }
     if ((path === "/dashboard" || path === "/") && workbenchMode.value === "human") {
       setWorkbenchMode("ai");
-      face.value = "feed";
+      face.value = "chat";
     }
   },
   { immediate: true },
@@ -602,14 +620,6 @@ onBeforeUnmount(() => {
   narrowQuery?.removeEventListener("change", onNarrowChange);
   narrowQuery = null;
 });
-
-/** 手动重试就绪探测：绕过 60s 冷却但**不允许并发**（防请求风暴） */
-function retryAiReadiness(): void {
-  void probeAiReadiness({ force: true });
-  void loadAgentTopMetrics();
-}
-
-const visibleRouteNameList = computed(() => [...access.value.visibleRouteNames]);
 
 /**
  * UIUX 测试注入（补齐项 6）：`SERVER_MENU_BRIDGE` 只覆盖 4/12 组，真实交集会裁掉另外 8 组，
@@ -766,7 +776,7 @@ watch(menuState, (state) => {
   if (hit) {
     selectedGroupCode.value = pending;
     setWorkbenchMode("ai");
-    face.value = "feed";
+    face.value = "chat";
     if (isNarrow.value) sideCollapsed.value = false;
     return;
   }
@@ -774,11 +784,7 @@ watch(menuState, (state) => {
   ElMessage.warning("该模块当前账号无可见权限，请重试或联系管理员开通");
 });
 
-const activeGroup = computed(
-  () => railGroups.value.find((group) => group.groupCode === selectedGroupCode.value) ?? null,
-);
-const activeGroupTitle = computed(() => activeGroup.value?.title ?? "AI 信息流");
-const activeGroupItems = computed(() => activeGroup.value?.items ?? []);
+// （UI-PARITY-BASE）能力台账抽屉移除后，activeGroup/activeGroupTitle/activeGroupItems 已无消费方，随之删除。
 
 /**
  * 一级 rail 选中态：desk=信息流（常用功能）/ groupCode=模块 / pos=收银 / set=系统设置。
@@ -790,7 +796,7 @@ const railKey = computed(() => {
   if (isCashierRoute.value) return "pos";
   if (route.name === "system") return "set";
   if (selectedGroupCode.value) return selectedGroupCode.value;
-  if (effectiveMode.value !== "ai" || face.value === "feed") {
+  if (effectiveMode.value !== "ai") {
     // 路由反推归属也走 railGroups（与 rail 结构同源）：选中模块即便 bridge 无真实条目也不会漏判/崩，
     // group.items 恒为数组，owner 缺省时回落 "desk"（fail-closed 到中性值）。
     const owner = railGroups.value.find((group) =>
@@ -806,9 +812,9 @@ const railKey = computed(() => {
 
 const currentNavMode = computed<"quick" | "module" | "pos">(() => {
   if (isCashierRoute.value) return "pos";
-  return effectiveMode.value === "ai" && face.value === "feed" && railKey.value === "desk"
-    ? "quick"
-    : "module";
+  // （UI-PARITY-BASE）默认主面恒为 AI 日常经营对话 ⇒ quick 态只看 rail 是否处于「工作台」位，
+  // 不再依赖旧 feed 面（face==="feed" 已不可达）。
+  return effectiveMode.value === "ai" && railKey.value === "desk" ? "quick" : "module";
 });
 
 const GROUP_ICONS: Record<string, Component> = {
@@ -832,7 +838,8 @@ function groupIcon(groupCode: string): Component {
 const topTitle = computed(() => {
   if (isCashierRoute.value) return "收银台";
   if (effectiveMode.value === "human") return pageTitle.value;
-  return face.value === "feed" ? "工作台" : "智享AI";
+  // （UI-PARITY-BASE + DELTA-CONTRACT top_bar.left）AI 模式顶栏标题 = 日常经营（会话面即日常经营）
+  return "日常经营";
 });
 
 const pageTitle = computed(() => {
@@ -847,8 +854,8 @@ const pageTitle = computed(() => {
  */
 const showChatComposer = computed(() => effectiveMode.value === "ai" && face.value === "chat" && !isCashierRoute.value);
 
-/** 有新动态 ⇒ rail 工作台按钮红闪（feedAlert）：未读数增长由 feed 视图上报，这里用待审阅>0 驱动（真实数据） */
-const feedAlert = computed(() => (pendingReviewCount.value ?? 0) > 0 && face.value !== "feed");
+/** 有新动态 ⇒ rail 工作台按钮红闪（feedAlert）：用待审阅>0 驱动（真实数据） */
+const feedAlert = computed(() => (pendingReviewCount.value ?? 0) > 0);
 
 const printSettingsVisible = ref(false);
 /** 设置中心（原型 .sw 弹窗，WORKBENCH-10-F1 补齐项 E）：rail 设置项在壳层内打开，不跳路由 */
@@ -865,10 +872,6 @@ const chatPanel = ref<{
 
 function handleAiStatus(payload: { state: "idle" | "streaming" | "error" }): void {
   aiSessionState.value = payload.state;
-}
-
-function sendQuickCommand(prompt: string): void {
-  chatPanel.value?.sendQuickCommand?.(prompt);
 }
 
 function startNewConversation(): void {
@@ -965,10 +968,10 @@ function openCashierItem(entry: ManifestItem): void {
   if (entry.path) router.push(entry.path);
 }
 
-/** rail：工作台（信息流默认面）/ 模块选择 / 设置 */
+/** rail：工作台（= AI 日常经营对话主面）/ 模块选择 / 设置 */
 function goDeskHome(): void {
   setWorkbenchMode("ai");
-  face.value = "feed";
+  face.value = "chat";
   selectedGroupCode.value = "";
   if (route.path !== "/dashboard") router.push("/dashboard").catch(() => undefined);
 }
@@ -980,7 +983,8 @@ function goDeskHome(): void {
 function toggleModule(groupCode: string): void {
   selectedGroupCode.value = toggleRailSelection(selectedGroupCode.value || null, groupCode) ?? "";
   setWorkbenchMode("ai");
-  face.value = "feed";
+  // （UI-PARITY-BASE §四.3.1）选模块只切第二栏目录，中央主面保持 AI 日常经营对话（不再回落旧信息流）
+  face.value = "chat";
   // 390px：二级导航是抽屉，选组即展开（运行态实测：不展开时移动端无法进入任何模块目录）
   if (isNarrow.value) sideCollapsed.value = false;
 }
@@ -1037,8 +1041,26 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 </script>
 
 <style scoped>
+/* ══ 工作台作用域主题令牌（UI-PARITY-BASE 卡 §四.5）══
+   真相源=本块：工作台组件内全部 var(--wb-*, fallback) 由此统一定义，不再各写各的 fallback 值。
+   浅色：主色 #4F46E5 / soft #EEF2FF / 正文 #0A0A0A / 次文 #737373 /
+         边线 #E5E5E5(#D4D4D4) / 画布 #F2F5F9（卡面逐字值）。
+   暗色：#14161C 体系（html[data-wb-theme="dark"] 由 WbSettingsCenter/wb-theme.ts 写入），
+         结构/尺寸/交互与浅色完全同一套（不另建布局）。
+   作用域限定 .wb-shell（data-wb-scope="workbench"），不扩散总后台/移动端/非工作台页面令牌。 */
 .wb-shell {
-  --wb-ink2: #626f82;
+  --wb-primary: #4f46e5;
+  --wb-primary-soft: #eef2ff;
+  --wb-ink: #0a0a0a;
+  --wb-ink2: #737373;
+  --wb-line: #e5e5e5;
+  --wb-line-strong: #d4d4d4;
+  --wb-canvas: #f2f5f9;
+  --wb-panel: #ffffff;
+  --wb-bg: #ffffff; /* 人工业务页画布保持原型 --bg:#FFFFFF（F3 已验收口径，勿并入画布色） */
+  --wb-hover: #f2f4fa;
+  --wb-rail-bg: #f7f8fb;
+  --wb-side-bg: #f9fafc;
   height: 100vh;
   display: grid;
   /* 第二列收起用 grid 列宽过渡（对齐原型 .side{transition:margin .25s} 的平滑滑出手感）；
@@ -1049,23 +1071,39 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
      卡面 §三.1：1440×1000 几何 = 60/230/850/300；1024×768 = 60/230/434/300。 */
   grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-w, 230px) minmax(0, 1fr) var(--wb-task-center-w, 300px);
   transition: grid-template-columns 250ms ease;
-  background: var(--wb-bg, #f4f6f8);
+  background: var(--wb-canvas, #f2f5f9);
   overflow: hidden;
+}
+/* 暗色：#14161C 体系（html[data-wb-theme="dark"] 由 WbSettingsCenter/wb-theme.ts 写入），
+   结构/尺寸/交互与浅色完全同一套（不另建布局，UI-PARITY-BASE §四.5.2）。 */
+html[data-wb-theme="dark"] .wb-shell {
+  --wb-primary: #818cf8;
+  --wb-primary-soft: rgba(79, 70, 229, 0.3);
+  --wb-ink: #f4f5f7;
+  --wb-ink2: #a3a8b3;
+  --wb-line: #2e3138;
+  --wb-line-strong: #3c4048;
+  --wb-canvas: #14161c;
+  --wb-panel: #1b1e26;
+  --wb-bg: #1b1e26;
+  --wb-hover: #232733;
+  --wb-rail-bg: #171920;
+  --wb-side-bg: #191c24;
 }
 /* 折叠态保留 56px 可见条（原型 .side 折叠后实测 56，不是 0）—— collapsing 到 0 会让
    二级入口彻底不可达，与原型「可折叠但仍在」的语义不符。 */
 .wb-shell.side-hidden {
   grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr) var(--wb-task-center-w, 300px);
 }
-/* 任务中心收起：第 4 列同步收窄为 56px 保留竖条入口（卡面 §四.2「收起前后主区宽度变化」——
-   main 为 1fr 自适应轨道，第 4 列 300→56 时主区宽度实际变宽 +244px，收起/展开有真实几何反馈；
-   状态保持由 localStorage wb.task-center.collapsed 承担（restoreTaskCenterState/toggleTaskCenter）。
-   56px 与二级栏折叠宽度同口径（可折叠但仍在，collapsing 到 0 会让入口不可达）。 */
+/* 任务中心收起：第 4 列收成 **0px**（UI-PARITY-BASE 卡 §四.1.4 明确「不是 56px 窄条」）。
+   与二级栏折叠（56px）口径刻意不同：任务中心重开入口由顶栏 task-center-toggle 承担
+   （合同 top_bar.right），列内不再保留竖条 ⇒ 收起后主区实得 +300px；
+   状态保持由 localStorage wb.task-center.collapsed 承担（restoreTaskCenterState/toggleTaskCenter）。 */
 .wb-shell.tc-collapsed {
-  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-w, 230px) minmax(0, 1fr) var(--wb-task-center-collapsed-w, 56px);
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-w, 230px) minmax(0, 1fr) var(--wb-task-center-collapsed-w, 0px);
 }
 .wb-shell.side-hidden.tc-collapsed {
-  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr) var(--wb-task-center-collapsed-w, 56px);
+  grid-template-columns: var(--wb-rail-w, 60px) var(--wb-side-collapsed-w, 56px) minmax(0, 1fr) var(--wb-task-center-collapsed-w, 0px);
 }
 /* 收起态：内容溢出裁掉 + 不做 visibility 切换，保证过渡期间可见滑出 */
 .wb-shell :deep(.wb-subnav.hidden) {
@@ -1105,13 +1143,14 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
 .wb-rail::-webkit-scrollbar {
   display: none;
 }
-/* 原型 .rl-logo：34×34 · 圆角 10 · margin-bottom 8（配合 gap 5 ⇒ 首个 rail 项落在 y=59） */
+/* 原型 .rl-logo：34×34 · 圆角 10 · margin-bottom 8（配合 gap 5 ⇒ 首个 rail 项落在 y=59）
+   渐变换用主题主色（UI-PARITY-BASE §四.5.1：工作台主色统一 #4F46E5，明暗同源）。 */
 .wb-rail-logo {
   width: 34px;
   height: 34px;
   margin: 0 auto 8px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--wb-primary, #4f46e5), #3730c8);
   color: #fff;
   font-size: 16px;
   font-weight: 700;
@@ -1144,23 +1183,23 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   /* 对齐原型 L122 `.rl-it{transition:.15s}`（WORKBENCH-06F3 MISSING #1） */
   transition: background-color 150ms ease, color 150ms ease;
 }
-/* 未选中项 hover：文字/图标转主色 #2563EB、底色 #EFF4FF（原型 rail hover 态） */
+/* 未选中项 hover：文字/图标转主色、底色主色 soft（原型 rail hover 态；色值走 §四.5.1 主题令牌） */
 .wb-rail-item:hover {
-  background: #eff4ff;
-  color: #2563eb;
+  background: var(--wb-primary-soft, #eef2ff);
+  color: var(--wb-primary, #4f46e5);
 }
-/* 选中态 = 原型 `.rl-it.on{background:#2563EB;color:#fff}`：纯蓝底 + 白字，且内部 el-icon 强制白（沿用 .alert :deep 先例） */
+/* 选中态 = 主色底 + 白字（原 `.rl-it.on{background:主色;color:#fff}`；#4F46E5 上白字对比 6.3:1 ≥AA），且内部 el-icon 强制白 */
 .wb-rail-item.on {
-  background: #2563eb;
+  background: var(--wb-primary, #4f46e5);
   color: #fff;
   font-weight: 600;
 }
 .wb-rail-item.on :deep(.el-icon) {
   color: #fff;
 }
-/* hover 命中选中项时保持纯蓝白字（特异性 0-3-0 压过通用 .wb-rail-item:hover，不回退成 #2563eb/#eff4ff） */
+/* hover 命中选中项时保持主色白字（特异性 0-3-0 压过通用 .wb-rail-item:hover，不回退成 soft 底） */
 .wb-rail-item.on:hover {
-  background: #2563eb;
+  background: var(--wb-primary, #4f46e5);
   color: #fff;
 }
 /**
@@ -1444,42 +1483,7 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   color: #595959;
 }
 
-/* ── 能力台账抽屉 ── */
-.wb-ledger-mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-  z-index: 40;
-}
-.wb-ledger {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(720px, 92vw);
-  background: var(--wb-panel, #fff);
-  z-index: 41;
-  display: flex;
-  flex-direction: column;
-  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.18);
-}
-.wb-ledger-head {
-  height: 50px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--wb-line, #eceef1);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--wb-ink, #16181d);
-}
-.wb-ledger-body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
+/* ── 能力台账抽屉：已按 UI-PARITY-BASE 合同移除（top_bar.forbidden），样式随之删除 ── */
 
 /* ══════════════════════════════════════════════════════════════
    ≤390px 窄视口降级（WORKBENCH-10-F1 补齐项 F）
@@ -1584,9 +1588,6 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .wb-ledger {
-    width: 100vw;
   }
 }
 .wb-side-mask {

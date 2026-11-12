@@ -255,26 +255,31 @@ await run("权限继承：AI 模式入口 = 角色可见项，收银 9 项不变
   assert.equal(countFor(["STORE_OPERATOR"]), 0, "STORE_OPERATOR 不应看到人工入口");
   assert.equal(filterVisibleItems(CASHIER_ITEMS, ["STORE_OPERATOR"], resolveRoles).length, 9, "收银 9 项");
   const shell = read("layouts/WorkbenchShell.vue");
-  assert.ok(shell.includes(':items="activeGroupItems"'), "AI 主交互面入口应来自角色过滤后的分组");
+  // 口径变更留痕（非静默改断言）：UI-PARITY-BASE 按 DELTA-CONTRACT top_bar.forbidden 移除能力台账抽屉，
+  // 旧断言 :items="activeGroupItems"（台账容器绑定）随之作废；AI 面入口改核信息流保留层的角色过滤集。
+  assert.ok(shell.includes(':items="visibleEntryItems"'), "AI 面入口应来自角色过滤后的分组（visibleEntryItems）");
   return "71 / 23 / 0 + 收银 9";
 });
 
-await run("快捷指令：3 条，走真实对话（不新建指令端点）", () => {
+await run("快捷指令：3 条能力登记真实、指令走唯一会话链（台账抽屉已按合同移除）", () => {
   assert.equal(QUICK_COMMANDS.length, 3, "快捷指令应为 3 条");
   for (const command of QUICK_COMMANDS) {
     const entry = getCapability(command.capabilityId);
     assert.ok(entry, `指令 ${command.label} 缺少能力登记`);
     assert.notEqual(entry.status, "PLANNED", `${command.label} 不应指向待建设能力`);
   }
-  const feed = read("components/workbench/AiFeedContainer.vue");
-  assert.ok(feed.includes("emit('command', command.prompt)"), "主交互面应发出真实指令");
   const shell = read("layouts/WorkbenchShell.vue");
-  assert.ok(shell.includes("@command=\"sendQuickCommand\""), "壳层应转发指令到会话面板");
   const panel = read("components/workbench/AiChatPanel.vue");
-  assert.ok(panel.includes("sendQuickCommand"), "会话面板应暴露 sendQuickCommand");
   const side = read("components/AiChat/AiSidePanel.vue");
+  // 口径变更留痕：能力台账抽屉按 UI-PARITY-BASE（top_bar.forbidden: 能力台账）移除，
+  // 旧「台账 @command 转发」断言作废；指令入口收敛为 唯一会话链：
+  // 底部输入区 @send → enterChatAndSend → chatPanel.sendQuickCommand → AiSidePanel 复用真实发送。
+  assert.ok(shell.includes("@send=\"enterChatAndSend\""), "底部输入区发送必须走唯一会话链");
+  assert.ok(shell.includes("chatPanel.value?.sendQuickCommand?.("), "壳层应把指令送进会话面板 sendQuickCommand");
+  assert.ok(panel.includes("sendQuickCommand"), "会话面板应暴露 sendQuickCommand");
   assert.ok(side.includes("defineExpose({ sendText: sendSuggestion"), "AiSidePanel 应复用真实发送逻辑");
-  return "3 条指令复用 POST /api/chat";
+  assert.ok(!shell.includes("agent-ledger-entry"), "壳层不得有台账入口（top_bar.forbidden）");
+  return "3 条指令能力登记真实 + 唯一会话链（POST /api/chat）";
 });
 
 /**

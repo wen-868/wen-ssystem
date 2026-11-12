@@ -429,52 +429,47 @@ await run("两源独立降级：员工失败不影响计划成功，反之亦然
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 四、结构：UI 三格真实接线 + 无假分母
+// 四、结构：顶栏按 UI-PARITY-BASE / DELTA-CONTRACT 收敛（待审阅徽标；无健康探针/步骤计数/台账）
+//   口径变更留痕（非静默改断言）：WORKBENCH-PROTOTYPE-12-UI-PARITY-BASE-01 卡 §四.2.5
+//   「顶栏仅保留原型业务要素：菜单开关、工作台/收银台、日常经营、待审阅、任务中心开关；
+//   移除常驻研发健康指标和无上下文步骤数字」+ interaction-contract.json top_bar.forbidden
+//   （研发阶段状态 / 内部健康探针 / 能力台账 / 无上下文步骤计数）。
+//   旧三格接线断言与该合同正相反，属已作废旧契约 —— 与 prototype-nav.spec 同类修正。
 // ═══════════════════════════════════════════════════════════════════════════
 
-await run("结构：AgentStatusBar 三格齐备 + 无 N/M 假分母 + 无静默 id", () => {
+await run("结构：顶栏收敛为待审阅徽标（无健康探针/员工数/步骤计数/台账格）", () => {
   const bar = read("components/workbench/AgentStatusBar.vue");
-  for (const testid of ["agent-ai-state", "agent-employees", "agent-plans"]) {
-    assert.ok(bar.includes(`data-testid="${testid}"`), `缺少 ${testid} 数据格`);
+  assert.ok(bar.includes('data-testid="agent-status-bar"'), "缺 agent-status-bar 容器");
+  assert.ok(bar.includes('data-testid="agent-pending-review"'), "缺待审阅徽标");
+  for (const banned of ["agent-ai-state", "agent-employees", "agent-plans", "agent-ai-retry", "agent-ledger-entry"]) {
+    assert.ok(!bar.includes(`data-testid="${banned}"`), `顶栏不得再出现 ${banned}（UI-PARITY-BASE §四.2.5 / top_bar.forbidden）`);
   }
-  assert.ok(bar.includes("agent-ai-retry"), "缺少就绪重试入口");
-  // 只查代码区（剥注释）：文件头注释里合法地提到 sessionState（说明 B1 假绿根因），不算违规
-  const codeOnly = bar
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:'"])\/\/.*$/gm, "$1");
-  assert.ok(!/sessionState|session-state/.test(codeOnly), "代码区不得再依赖 sessionState（B1 假绿根因）");
-  assert.ok(!/AI 在线待命/.test(codeOnly), "不得保留「AI 在线待命」文案");
-  // 红线：不得出现 N/M 分母写法（如 12/14）
-  assert.ok(!/\d+\s*\/\s*\d+\s*人/.test(codeOnly), "不得出现 N/M 人数分母");
-  assert.ok(!/在线数/.test(codeOnly), "不得使用原型「在线数」概念（底座无该字段）");
-  return "三格齐 + 重试 + 无 sessionState/无假分母/无在线待命";
+  // 红线不回退：null = 未取到 ⇒ 徽标整体隐藏（不显示假 0）
+  assert.ok(/v-if="pendingReviewCount !== null"/.test(bar), "待审阅徽标必须在 null 时隐藏（不显示假 0）");
+  return "徽标容器 + null 隐藏 + 五个旧数据格零残留";
 });
 
-await run("结构：壳层接真实探针与真实指标（非注释登记）", () => {
+await run("结构：壳层顶栏按合同接线（任务中心开关 + 日常经营标题；探针/指标调用移除）", () => {
   const shell = read("layouts/WorkbenchShell.vue");
-  assert.ok(shell.includes("probeAiReadiness"), "壳层必须真实调用探针");
-  assert.ok(shell.includes("loadAgentTopMetrics"), "壳层必须真实加载员工/计划指标");
-  assert.ok(shell.includes(":readiness-state=\"aiReadiness.state\""), "必须把真实就绪态传给顶栏");
-  assert.ok(shell.includes("retryAiReadiness"), "必须提供手动重试");
+  assert.ok(shell.includes('data-testid="task-center-toggle"'), "顶栏缺任务中心开关（合同 top_bar.right 唯一右侧业务要素）");
+  assert.ok(/aria-pressed/.test(shell), "任务中心开关缺 aria-pressed（可访问性合同）");
+  assert.ok(shell.includes("日常经营"), "顶栏标题未落「日常经营」（合同 top_bar.left）");
+  // 研发健康指标移出顶栏 ⇒ 壳层不再调用探针/装载顶部指标（模块本身保留）
+  assert.ok(!shell.includes("probeAiReadiness"), "壳层不得再调用探针展示（健康指标移出顶栏）");
+  assert.ok(!shell.includes("loadAgentTopMetrics"), "壳层不得再装载顶部员工/计划指标");
+  assert.ok(!shell.includes("agent-ledger-entry"), "顶栏不得有台账入口（top_bar.forbidden: 能力台账）");
   /**
-   * 真实负断言（WORKBENCH-06F2 修正）：
-   *   旧写法 `assert.ok(... || true)` 恒真 ⇒ 无法证明"壳层未接旧 sessionState"，属**假门禁**（凌舟 B2-2 驳回）。
-   *   这里的判据：`<AgentStatusBar ...>` 标签内**不得**出现 `:session-state` 绑定。
-   *   注意：壳层**仍会渲染 AiFeedView / AiChatPanel**，它们合法使用 `:session-state` 传会话状态，
-   *   因此**只能**限定在 AgentStatusBar 的标签范围内检查，不能全局 ban（否则会误伤）。
+   * 旧负断言保留（WORKBENCH-06F2 真实负断言）：AgentStatusBar 标签内不得出现 session-state 绑定
+   * （B1 假绿根因）。壳层仍渲染 AiFeedView / AiChatPanel，它们合法使用 :session-state，
+   * 因此只限定在 AgentStatusBar 标签范围内检查。
    */
-  const agentBarTag = shell.match(/<AgentStatusBar\b[\s\S]*?\/?>/);
+  const agentBarTag = shell.match(/<AgentStatusBar\b[\s\S]*?\/>/);
   assert.ok(agentBarTag, "壳层必须渲染 <AgentStatusBar>");
   assert.ok(
     !/:(session-state|sessionState)\b/.test(agentBarTag[0]),
-    `AgentStatusBar 不得再接 session-state（B1 假绿根因）；实际标签：${agentBarTag[0].replace(/\s+/g, " ")}`,
+    `AgentStatusBar 不得接 session-state（B1 假绿根因）；实际标签：${agentBarTag[0].replace(/\s+/g, " ")}`,
   );
-  assert.ok(
-    /:readiness-state="aiReadiness\.state"/.test(agentBarTag[0]),
-    "AgentStatusBar 必须以 readiness-state 接收真实就绪态",
-  );
-  return "探针 + 指标 + readiness-state 透传 + 重试；AgentStatusBar 标签内无 session-state（真实负断言）";
+  return "任务中心开关 + 日常经营标题 + 探针/指标/台账移除 + 无 session-state（真实负断言）";
 });
 
 await run("结构：能力台账 ai-06 文案已改为真实情况（不再是「无真实端点」）", () => {

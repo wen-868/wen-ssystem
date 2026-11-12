@@ -154,17 +154,23 @@ await run("收起/展开 + 状态保持：localStorage 键读写（壳层持久�
   assert.ok(shellSrc.includes("restoreTaskCenterState()"), "壳层未在挂载前恢复收起态");
   assert.ok(shellSrc.includes("toggleTaskCenter"), "壳层缺切换函数（持久化入口）");
   assert.ok(shellSrc.includes("persistTaskCenterState"), "壳层缺持久化函数");
-  assert.ok(shellSrc.includes('localStorage.getItem(TASK_CENTER_KEY) === "1"'), "收起恢复判据非 '1'");
+  // 口径变更留痕（UI-PARITY-BASE）：恢复改为 readTaskCenterPref()（null=无偏好 ⇒ 合同默认态可生效）
+  assert.ok(shellSrc.includes("function readTaskCenterPref()"), "壳层缺显式偏好读取（合同默认态判据）");
+  assert.ok(shellSrc.includes("onTaskCenterSettle"), "壳层缺合同默认态回调（无待办默认收起）");
   assert.ok(taskCenterSrc.includes('"wb.task-center.view"'), "组件缺双态 localStorage 键");
   assert.ok(taskCenterSrc.includes("restoreView()"), "组件未恢复双态选择");
-  return "收起态 + 双态均持久化";
+  return "收起态 + 双态均持久化 + 合同默认回调";
 });
 
-await run("收起条保留可点入口（不 display:none 瞬隐，可折叠但仍在）", () => {
-  assert.ok(taskCenterSrc.includes("data-testid=\"task-center-strip\""), "缺收起条");
-  assert.ok(taskCenterSrc.includes("data-testid=\"task-center-expand\""), "缺展开按钮");
-  assert.ok(taskCenterSrc.includes('@click="emit(\'toggle\')"'), "收起条未发 toggle");
-  return "strip + expand 入口";
+await run("收起重开入口 = 顶栏开关（0px 收起后列内无竖条，合同 top_bar.right）", () => {
+  // 口径变更留痕（UI-PARITY-BASE §四.1.4）：收起 = 0px，不再保留 56px 竖条；
+  // 唯一常驻重开入口 = 壳层顶栏 task-center-toggle。
+  assert.ok(!taskCenterSrc.includes("task-center-strip"), "任务中心不得再渲染收起竖条（0px 口径）");
+  assert.ok(shellSrc.includes('data-testid="task-center-toggle"'), "顶栏缺任务中心开关");
+  assert.ok(shellSrc.includes("@click=\"toggleTaskCenter\""), "顶栏开关未接 toggleTaskCenter");
+  assert.ok(/aria-pressed/.test(shellSrc), "顶栏开关缺 aria-pressed");
+  assert.ok(taskCenterSrc.includes('data-testid="task-center-collapse"'), "面板内缺收起按钮（合同 close button collapses）");
+  return "顶栏 toggle（aria-pressed）+ 面板内收起钮；竖条零残留";
 });
 
 await run("窄口（≤390px）任务中心整列隐藏，不挤主面；无整页横向滚动", () => {
@@ -174,17 +180,18 @@ await run("窄口（≤390px）任务中心整列隐藏，不挤主面；无整�
   return "390 窄口 .wtc display:none";
 });
 
-await run("任务中心收起几何（§四.2）：第 4 列 300→56，main(1fr) 实际变宽；窄口覆盖不受影响", () => {
+await run("任务中心收起几何（UI-PARITY-BASE §四.1.4）：第 4 列 300→0（非 56px 窄条），main(1fr) 实际变宽；窄口覆盖不受影响", () => {
   const collapsed = cssBlock(shellSrc, ".wb-shell.tc-collapsed");
   assert.ok(collapsed, "壳层缺 .wb-shell.tc-collapsed 收起列宽规则");
-  assert.match(collapsed, /var\(--wb-task-center-collapsed-w,\s*56px\)/, "收起态第 4 列不是 56px");
+  assert.match(collapsed, /var\(--wb-task-center-collapsed-w,\s*0px\)/, "收起态第 4 列不是 0px（卡面明确非 56px 窄条）");
   const both = cssBlock(shellSrc, ".wb-shell.side-hidden.tc-collapsed");
-  assert.ok(both && /var\(--wb-task-center-collapsed-w,\s*56px\)/.test(both), "双折叠态第 4 列不是 56px");
+  assert.ok(both && /var\(--wb-task-center-collapsed-w,\s*0px\)/.test(both), "双折叠态第 4 列不是 0px");
+  assert.ok(!/task-center-collapsed-w,\s*56px/.test(shellSrc), "壳层残留 56px 任务中心收起宽（旧口径回潮）");
   assert.ok(/'tc-collapsed':\s*taskCenterCollapsed/.test(shellSrc), "壳层未绑定 tc-collapsed 类");
   assert.match(cssBlock(shellSrc, ".wb-shell"), /var\(--wb-task-center-w,\s*300px\)/, "展开态第 4 列必须保持 300px（收起是可选态）");
   const narrow = mediaBlock(shellSrc, 390);
   assert.ok(/\.wb-shell\.tc-collapsed,/.test(narrow ?? ""), "窄口块未并入 tc-collapsed 覆盖（窄口单列会被压回）");
-  return "tc-collapsed 300→56（main +244）+ 窄口覆盖";
+  return "tc-collapsed 300→0（main +300）+ 窄口覆盖";
 });
 
 /* ══ 3. router-view 常驻与 AI 故障隔离 ══ */

@@ -486,15 +486,18 @@ await run("【F1】源码护栏：Shell 用最终角色集、收银不接菜单�
     "收银只按 meta.roles 判定",
   );
   assert.ok(!shell.includes("restrictManifestItems"), "收银不得再接 /menus/user 交集");
-  assert.ok(shell.includes(':visible-route-names="visibleRouteNameList"'), "AI 容器必须接收最终角色集");
+  // 口径变更留痕（非静默改断言）：UI-PARITY-BASE 按 top_bar.forbidden 移除能力台账抽屉，
+  // 旧「AI 容器（AiFeedContainer）:visible-route-names」绑定随之作废；
+  // 最终角色集护栏改核 AI 信息流保留层（AiFeedView 只吃 visibleGroups 最终过滤集）与 fail-closed 空态。
+  assert.ok(shell.includes(':items="visibleEntryItems"'), "AI 信息流层必须接收最终角色过滤集（visibleGroups 派生）");
+  assert.ok(shell.includes("visibleBusinessEntryCount"), "业务入口计数仍由最终集派生（空态判据）");
   assert.ok(
-    shell.includes("computed(() => [...access.value.visibleRouteNames])"),
-    "AI 容器集合必须取自最终角色集",
+    !shell.includes("businessVisibleRouteNames"),
+    "业务原始集合不得驱动 UI/对等",
   );
-  assert.ok(!shell.includes("businessVisibleRouteNames"), "业务原始集合不得驱动 UI/对等");
   const feed = readFileSync(path.join(SRC, "components", "workbench", "AiFeedContainer.vue"), "utf8");
   assert.ok(feed.includes("projectParityRuntime(props.visibleRouteNames"), "对等统计必须用最终集");
-  return "Shell / 收银 / AI 容器接线符合";
+  return "Shell / 收银 / AI 层接线符合";
 });
 await run("唯一消费点：/admin/menus/user 只出现在 src/api/workbench-menu.ts", () => {
   const hits = [];

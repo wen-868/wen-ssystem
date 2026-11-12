@@ -4,26 +4,15 @@
     :class="{ collapsed }"
     :data-state="overallState"
     :data-open="!collapsed"
+    :aria-hidden="collapsed ? 'true' : 'false'"
     aria-label="任务中心"
     data-testid="task-center"
   >
-    <!-- 收起态：只留一条竖排入口，保留可点性（对齐二级导航折叠口径：可折叠但仍在） -->
-    <div v-if="collapsed" class="wtc-strip" data-testid="task-center-strip">
-      <button
-        type="button"
-        class="wtc-strip-toggle"
-        data-testid="task-center-expand"
-        :aria-label="`展开任务中心（${summaryText}）`"
-        :title="`任务中心 · ${summaryText}`"
-        @click="emit('toggle')"
-      >
-        <span class="wtc-strip-t">任务</span>
-        <span v-if="activeTotal !== null" class="wtc-strip-n" :data-active-total="activeTotal">{{ activeTotal }}</span>
-        <span class="wtc-strip-arr">«</span>
-      </button>
-    </div>
-
-    <template v-else>
+    <!--
+      收起态 = 第 4 列 0px（UI-PARITY-BASE §四.1.4：不是 56px 窄条）：
+      本组件不渲染任何收起条，重开唯一常驻入口 = 壳层顶栏 task-center-toggle（合同 top_bar.right）。
+    -->
+    <template v-if="!collapsed">
       <header class="wtc-head">
         <span class="wtc-title">任务中心</span>
         <span class="wtc-sub">{{ summaryText }}</span>
@@ -180,9 +169,10 @@
 
 <script setup lang="ts">
 /**
- * 任务中心（WORKBENCH-PROTOTYPE-12-S3 · 四列壳层第 4 列 · 300px）
+ * 任务中心（WORKBENCH-PROTOTYPE-12 · 四列壳层第 4 列 · 300px；UI-PARITY-BASE 收起=0px）
  *
- * 卡面 §三.4：双态「进度明细 / 任务跟踪」+ 可收起/展开且状态保持（localStorage）。
+ * 卡面 §四.4：双态「进度明细 / 任务跟踪」；收起 = 整列 0px（无竖条），重开走顶栏开关；
+ * 数据落地后向壳层上报 settle(有无真实待办)，供合同默认态判定（无待办默认收起、有待办默认展开）。
  * 数据：S1 view-model（task-center.ts）统一装载，真实端点（不伪造、不复制原型演示数字）：
  *   - 进度明细 = GET {AI_BASE}/api/ai/agent/plans（ParsedPlan[] → deriveFlowSteps 门控步进链）；
  *   - 待确认   = GET {AI_BASE}/api/chat/confirmations（ConfirmationListRow[]）；
@@ -200,6 +190,7 @@ import {
   deriveTaskCenterCounts,
   taskCenterSnapshot,
   type TaskSourceState,
+  type TaskSourceStatus,
   type ConfirmationListRow,
   type ParsedPlan,
   type ParsedEmployeeTask,
@@ -215,6 +206,8 @@ defineProps<{
 
 const emit = defineEmits<{
   (event: "toggle"): void;
+  /** 数据落地（ready/empty，非故障态）：hasWork = 有真实待办（待确认+进行中计划 > 0） */
+  (event: "settle", hasWork: boolean): void;
 }>();
 
 // ── 双态 ──
@@ -353,6 +346,24 @@ const overallState = computed<FeedBlockState>(() => {
   return "empty";
 });
 
+/**
+ * 合同默认态上报（UI-PARITY-BASE / DELTA-CONTRACT task_center.default）：
+ * 三个主源（plans/confirmations/notifications）全部离开 loading/idle 即视为「数据落地」，
+ * 向壳层发 settle(有无真实待办)。hasWork 口径 = activeTotal（待确认 + 进行中计划）> 0；
+ * 通知属被动信息不算「待办」。员工任务未选员工恒 idle，不参与落地判据。
+ * 故障态（error/timeout/unavailable）不上报 —— 读不到 ≠ 没有待办，不因故障收起入口。
+ * （注意不能 watch(overallState)：全空数据时 idle→empty 的计算值不变，watch 永不触发。）
+ */
+watch(
+  () => [plansSource.value.status, confirmationsSource.value.status, notificationsSource.value.status] as const,
+  (states) => {
+    const loadingOrIdle = (s: TaskSourceStatus) => s === "loading" || s === "idle";
+    if (states.some(loadingOrIdle)) return;
+    if (states.some((s) => s === "error" || s === "timeout" || s === "unavailable")) return;
+    emit("settle", (activeTotal.value ?? 0) > 0);
+  },
+);
+
 // ── 取数（S1 view-model 装载器；各源独立失败隔离，AI 故障不影响通知源）──
 // ⚠️ S1 的 TaskSourceState 是普通对象（模块级单例，原地 mutate，非 Vue reactive）。
 // ref 必须赋「新对象引用」才能触发模板更新：一律展开克隆 {...source}，禁止直接赋 snapshot 内的同引用对象
@@ -408,73 +419,21 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* ══ 任务中心列（第 4 列 · 300px）：整列 flex 纵向，不整体滚动（目录区各自可滚）══ */
+/* ══ 任务中心列（第 4 列 · 300px）：整列 flex 纵向，不整体滚动（目录区各自可滚）══
+   颜色全部走壳层 .wb-shell 主题令牌（UI-PARITY-BASE §四.5），本组件不再本地覆写 --wb-ink2。 */
 .wtc {
-  --wb-ink2: #626f82;
   box-sizing: border-box;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--wb-side-bg, #f9fafb);
-  border-left: 1px solid var(--wb-line, #eceef1);
+  background: var(--wb-side-bg, #f9fafc);
+  border-left: 1px solid var(--wb-line, #e5e5e5);
   overflow: hidden;
 }
 .wtc.collapsed {
-  /* 收起态：整列裁成窄条，保留可点入口（不 display:none，可折叠但仍在） */
-  background: var(--wb-side-bg, #f9fafb);
-}
-
-/* ── 收起条 ── */
-.wtc-strip {
-  box-sizing: border-box;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0;
-}
-.wtc-strip-toggle {
-  box-sizing: border-box;
-  width: 30px;
-  min-height: 96px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid var(--wb-line, #eceef1);
-  border-radius: 10px;
-  background: var(--wb-panel, #ffffff);
-  color: var(--wb-ink2, #8a8f98);
-  font-family: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-.wtc-strip-toggle:hover {
-  background: var(--wb-primary-soft, #eff4ff);
-  color: var(--wb-primary, #2563eb);
-  border-color: var(--wb-primary, #2563eb);
-}
-.wtc-strip-t {
-  writing-mode: vertical-rl;
-  letter-spacing: 2px;
-  font-weight: 600;
-}
-.wtc-strip-n {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 9px;
-  background: var(--wb-danger, #dc2626);
-  color: #fff;
-  font-size: 10px;
-  line-height: 18px;
-  text-align: center;
-}
-.wtc-strip-arr {
-  font-size: 13px;
-  line-height: 1;
+  /* 收起态 = 第 4 列 0px（UI-PARITY-BASE §四.1.4）：列内不渲染任何收起条，
+     组件随 0px 轨道裁掉（aria-hidden 同步置真），重开唯一入口 = 顶栏 task-center-toggle。 */
+  border-left: 0;
 }
 
 /* ── 头部 ── */

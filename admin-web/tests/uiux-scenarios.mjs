@@ -468,10 +468,22 @@ const act = {
     await page.locator('[data-pane="print"]').getByRole("button", { name: "打开打印设置" }).first().click({ timeout: 8000 });
     await page.waitForTimeout(1000);
   },
-  async openLedger(page) {
-    await page.getByTestId("agent-ledger-entry").click({ timeout: 8000 });
-    await page.waitForSelector('[data-testid="ledger-drawer"]', { timeout: 8000 });
-    await page.waitForTimeout(600);
+  /**
+   * UI-PARITY-BASE 口径留痕：能力台账抽屉已按 top_bar.forbidden 移除，
+   * 旧 openLedger（点击 agent-ledger-entry）作废；改为顶栏任务中心开关往返（合同 top_bar.right）。
+   */
+  async openTaskCenter(page) {
+    const shell = page.locator('[data-testid="wb-shell"]');
+    const collapsedBefore = await shell.evaluate((el) => el.classList.contains("tc-collapsed"));
+    await page.getByTestId("task-center-toggle").click({ timeout: 8000 });
+    await page.waitForTimeout(700);
+    const collapsedAfter = await shell.evaluate((el) => el.classList.contains("tc-collapsed"));
+    if (collapsedBefore === collapsedAfter) throw new Error("task-center-toggle 点击后 tc-collapsed 态未翻转");
+    // 翻回原态，保持场景其余步骤的基线几何
+    await page.getByTestId("task-center-toggle").click({ timeout: 8000 });
+    await page.waitForTimeout(700);
+    const collapsedBack = await shell.evaluate((el) => el.classList.contains("tc-collapsed"));
+    if (collapsedBack !== collapsedBefore) throw new Error("task-center-toggle 二次点击未复原");
   },
   async collapseSide(page) {
     await page.getByTestId("second-nav-collapse").first().click({ timeout: 8000 });
@@ -566,7 +578,7 @@ const SCENES = [
   { scene: "13-purchase-orders-deeplink", vps: ALL3, contract: "production", run: async (p) => { await open(p, "/purchase-orders"); await p.waitForTimeout(1400); } },
   { scene: "14-order-aftersale", vps: ALL3, contract: "production", run: async (p) => { await open(p, "/order-aftersale"); await p.waitForTimeout(1400); } },
   { scene: "15-instant-retail-orders", vps: WIDE, contract: "production", run: async (p) => { await open(p, "/instant-retail/orders"); await p.waitForTimeout(1400); } },
-  { scene: "16-ai-ledger-drawer", vps: WIDE, contract: "production", run: async (p) => { await open(p, "/dashboard"); await act.menuReady(p); await act.openLedger(p); } },
+  { scene: "16-task-center-toggle", vps: WIDE, contract: "production", run: async (p) => { await open(p, "/dashboard"); await act.menuReady(p); await act.openTaskCenter(p); } },
   { scene: "17-coldstart-rail-skeleton", vps: ALL3, contract: "production", run: async (p) => { await act.slowMenus(p); await open(p, "/dashboard", { waitIdle: false }); await act.waitForSkeletons(p); } },
   { scene: "18-skeleton-intent-enter", vps: ALL3, contract: "production", run: async (p) => { await act.slowMenus(p); await open(p, "/dashboard", { waitIdle: false }); await act.waitForSkeletons(p); await act.keyboardOnSkeleton(p, "wb.purchase", "Enter"); } },
   { scene: "19-skeleton-intent-space", vps: ["1440x1000"], contract: "production", run: async (p) => { await act.slowMenus(p); await open(p, "/dashboard", { waitIdle: false }); await act.waitForSkeletons(p); await act.keyboardOnSkeleton(p, "wb.sales", "Space"); } },

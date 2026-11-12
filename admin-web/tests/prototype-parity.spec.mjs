@@ -79,32 +79,31 @@ await run("第二列导航：Subnav 被装配 + 含新对话/二级目录/账户
   return "新对话 + 二级目录 + 账户 + 收起 齐备";
 });
 
-// ── 3. 顶部 Agent 状态区（会话通道 / 待审阅 / 菜单态 / 能力台账入口）──────────
-await run("Agent 状态区：装配于顶栏且含会话状态 + 待审阅 + 台账入口", () => {
+// ── 3. 顶栏待审阅徽标（UI-PARITY-BASE §四.2.5 收敛：健康探针/员工数/步骤计数/台账入口已移除）──
+await run("顶栏徽标：装配于顶栏且含待审阅 + 台账入口已按合同移除", () => {
   const missing = [];
   if (!/AgentStatusBar/.test(shell)) missing.push("Shell 未装配 AgentStatusBar");
-  if (!/:session-state="aiSessionState"/.test(shell)) missing.push("未接会话状态");
   if (!/:pending-review-count="pendingReviewCount"/.test(shell)) missing.push("未接待审阅数");
   if (!/data-testid="agent-status-bar"/.test(agentBar)) missing.push("agent-status-bar 容器");
   if (!/data-testid="agent-pending-review"/.test(agentBar)) missing.push("待审阅显示位");
-  if (!/data-testid="agent-ledger-entry"/.test(agentBar)) missing.push("能力台账入口");
-  assert.equal(missing.length, 0, `Agent 状态区结构缺失：\n  - ${missing.join("\n  - ")}`);
-  return "会话状态 + 待审阅 + 台账入口 齐备";
+  if (/data-testid="agent-ledger-entry"/.test(agentBar)) missing.push("台账入口应已移除（top_bar.forbidden）");
+  assert.equal(missing.length, 0, `顶栏徽标结构异常：\n  - ${missing.join("\n  - ")}`);
+  return "待审阅徽标齐备 + 台账入口零残留（口径变更已留痕）";
 });
 
-// ── 4. 主面：feed（默认）⇄ chat ⇄ 人工页，三层堆叠可切换 ───────────────────
-await run("主面三层：feed 默认 + chat + manual（router-view 常驻）", () => {
+// ── 4. 主面：chat（AI 日常经营 · 默认）⇄ feed（退场保留层）⇄ 人工页，router-view 常驻 ──
+await run("主面三层：chat 默认（AI 日常经营）+ feed 保留层 + manual（router-view 常驻）", () => {
   const missing = [];
   if (!/data-testid="view-feed"/.test(shell)) missing.push("view-feed 层");
   if (!/data-testid="view-chat"/.test(shell)) missing.push("view-chat 层");
   if (!/data-view="manual"/.test(shell)) missing.push("view-manual 层");
-  if (!/const face = ref<MainFace>\("feed"\)/.test(shell)) missing.push("默认 face=feed（原型默认信息流）");
+  if (!/const face = ref<MainFace>\("chat"\)/.test(shell)) missing.push("默认 face=chat（AI 日常经营主面 · UI-PARITY-BASE §四.3.1）");
   if (!/AiFeedView/.test(shell)) missing.push("信息流视图装配");
   if (!/<router-view\s*\/>/.test(shell)) missing.push("人工页 router-view 出口");
   // router-view 不得被条件渲染包裹（保持 ai-primary 断言同语义）
   if (/v-if=[^\n]*\n\s*<router-view/.test(shell)) missing.push("router-view 被条件渲染包裹（回退风险）");
   assert.equal(missing.length, 0, `主面三层结构缺失：\n  - ${missing.join("\n  - ")}`);
-  return "feed 默认 + chat + manual 三层，router-view 常驻";
+  return "chat 默认 + feed 保留层 + manual 三层，router-view 常驻";
 });
 
 // ── 5. 底部固定 AI 输入区（人工页收为入口条）＝原型 .input-zone ──────────────
