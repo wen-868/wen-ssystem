@@ -10,7 +10,7 @@
  *   - 原型第 4 项「应收逾期」在 overview 契约中**没有对应字段** ⇒ 如实改为「应收余额」
  *     （`finance.receivable`），不虚构逾期数；
  *   - 字段缺省 ⇒ 该指标整条不渲染（不填 0）；一条都取不到 ⇒ empty；
- *   - 未注入读取器（数据源未接线）⇒ unavailable「待接入」；
+ *   - 未注入读取器（数据源未接线）⇒ unavailable「未接线」；
  *   - 形状异常 / 请求失败 ⇒ error + 重试。
  */
 import { classifyFeedError, type FeedBlock, isFeedObject } from "./wb-feed-types";
@@ -101,7 +101,7 @@ export function parseWbKpiPayload(raw: unknown): FeedBlock<WbKpiMetric[]> {
 }
 
 /**
- * 装载 KPI。判定「真实 vs 待接入」的关键行是下面的 `if (!deps.fetchOverview)`：
+ * 装载 KPI。判定「真实 vs 未接线」的关键行是下面的 `if (!deps.fetchOverview)`：
  * 视图注入了 report 层真实读取器才走真数据；未注入即 unavailable，不显示任何占位数字。
  */
 export async function loadWbKpi(deps: WbKpiDeps = {}): Promise<FeedBlock<WbKpiMetric[]>> {

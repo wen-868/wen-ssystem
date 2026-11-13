@@ -5,7 +5,7 @@
  *   - loading     ：读取中（首屏与每次重试都会进入）；
  *   - empty       ：端点真实返回了「没有数据」——空是结果，不是故障；
  *   - unavailable ：数据源缺失（端点未接入 / HTTP 404），沿用 `agent-directory.ts`
- *                  的统一形态：诚实说明缺什么，UI 显示「待接入」，**绝不编造条目**；
+ *                  的统一形态：诚实说明缺什么，UI 显示「未接线」，**绝不编造条目**；
  *   - error       ：端点存在但请求失败或响应形状异常（失败 ≠ 空）；
  *   - retry       ：error / unavailable 两态在 UI 上必须给出可点的重试入口
  *                  （各块 `data-testid="wb-*-retry"`，重试即重跑对应 loader）。
@@ -56,7 +56,7 @@ export function feedError<T>(emptyData: T, message: string): FeedBlock<T> {
 
 /**
  * 失败分类（各 loader 与视图共用）：
- *   - 明确 404 / not found ⇒ unavailable —— 端点没挂（数据源缺失），文案给「待接入」依据；
+ *   - 明确 404 / not found ⇒ unavailable —— 端点没挂（数据源缺失），文案给「未接线」依据；
  *   - 其余（网络/超时/5xx/形状异常）⇒ error —— 真实故障，可重试。
  */
 export function classifyFeedError<T>(err: unknown, label: string, emptyData: T): FeedBlock<T> {

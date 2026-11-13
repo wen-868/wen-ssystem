@@ -128,6 +128,33 @@ await run("待确认去重与脏行：总数以去重后真实记录为准（D05
   assert.equal(p.reportedTotal, 4, "壳层 total 仅披露，不冒充列表");
 });
 
+await run("待确认现行底座字段归一：operationLabel + preview → 可消费 operation/summary/details", () => {
+  const p = taskCenter.parseConfirmationsPayload({
+    total: 1,
+    items: [
+      {
+        confirmationId: "wg_live_1",
+        operationLabel: "创建销售单",
+        toolName: "create_sales_order",
+        preview: {
+          operation: "创建销售单",
+          summary: "客户 A · 商品 B · 2 件",
+          details: { customer: "客户 A", quantity: 2 },
+        },
+        createdAt: 1_790_000_000_000,
+        expiresAt: 1_790_007_200_000,
+      },
+    ],
+  });
+  const row = p.items[0];
+  assert.equal(row.operation, "创建销售单");
+  assert.equal(row.operationLabel, "创建销售单");
+  assert.equal(row.summary, "客户 A · 商品 B · 2 件");
+  assert.deepEqual(row.details, { customer: "客户 A", quantity: 2 });
+  assert.equal(row.createdAt, 1_790_000_000_000);
+  assert.equal(row.expiresAt, 1_790_007_200_000);
+});
+
 await run("空列表形态 {total:0,items:[]} ⇒ items=[]（真空，不是失败）", () => {
   const p = taskCenter.parseConfirmationsPayload({ total: 0, items: [] });
   assert.equal(p.kind, "items");

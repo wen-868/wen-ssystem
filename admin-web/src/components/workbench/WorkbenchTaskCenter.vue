@@ -14,8 +14,6 @@
     -->
     <template v-if="!collapsed">
       <header class="wtc-head">
-        <span class="wtc-title">任务中心</span>
-        <span class="wtc-sub">{{ summaryText }}</span>
         <button
           type="button"
           class="wtc-collapse"
@@ -24,8 +22,11 @@
           title="收起任务中心"
           @click="emit('toggle')"
         >
-          »
+          <WorkbenchChromeToggleIcon mirrored />
         </button>
+        <span class="wtc-title">任务中心</span>
+        <span class="wtc-sub">{{ summaryText }}</span>
+        <WorkbenchWindowControls />
       </header>
 
       <!-- 双态切换：进度明细（计划步骤六态）/ 任务跟踪（待确认+员工任务+通知） -->
@@ -86,6 +87,43 @@
 
         <!-- ── 任务跟踪：待确认（AI 写操作）/ 员工任务 / 通知（均 S1 源） ── -->
         <section v-show="view === 'tracking'" class="wtc-pane" data-task-center-pane="tracking" data-testid="task-center-tracking">
+          <div class="wtc-group" data-testid="tc-active-plans">
+            <div class="wtc-group-hd">
+              进行中
+              <em v-if="sourceState(plansSource) === 'ready' || sourceState(plansSource) === 'empty'">{{ activePlans.length }} 项</em>
+            </div>
+            <p v-if="sourceState(plansSource) === 'loading'" class="wtc-empty" data-testid="tc-active-loading">{{ plansSource.message }}</p>
+            <div
+              v-else-if="canRetry(sourceState(plansSource))"
+              class="wtc-unavailable is-inline"
+              :class="{ 'is-error': plansSource.status === 'error' || plansSource.status === 'timeout' }"
+              data-testid="tc-active-unavailable"
+            >
+              <span>{{ plansSource.status === "unavailable" ? "不可用" : "读取失败" }}</span>
+              <button type="button" class="wtc-retry" data-testid="tc-active-retry" @click="refreshPlans">重试</button>
+            </div>
+            <p v-else-if="activePlans.length === 0" class="wtc-empty" data-testid="tc-active-empty">暂无进行中的任务</p>
+            <div
+              v-for="plan in activePlans.slice(0, 6)"
+              :key="`active-${plan.id}`"
+              class="wtc-row wtc-row-action"
+              role="button"
+              tabindex="0"
+              :data-plan-id="plan.id"
+              :aria-label="`${plan.goal || `计划 ${plan.id}`}，查看任务明细`"
+              @click="openTrackingDetail({ kind: 'plan', plan })"
+              @keydown.enter="openTrackingDetail({ kind: 'plan', plan })"
+              @keydown.space.prevent="openTrackingDetail({ kind: 'plan', plan })"
+            >
+              <span class="wtc-dot run" />
+              <span class="wtc-row-tx">
+                <b>{{ plan.goal || `计划 #${plan.id}` }}</b>
+                <em>{{ planProgressText(plan) }}</em>
+              </span>
+              <span class="wtc-row-chevron" aria-hidden="true">›</span>
+            </div>
+          </div>
+
           <div class="wtc-group" data-testid="tc-confirmations">
             <div class="wtc-group-hd">
               待确认
@@ -102,12 +140,32 @@
               <button type="button" class="wtc-retry" data-testid="tc-conf-retry" @click="refreshConfirmations">重试</button>
             </div>
             <p v-else-if="sourceState(confirmationsSource) === 'empty'" class="wtc-empty" data-testid="tc-conf-empty">{{ confirmationsSource.message }}</p>
-            <div v-for="row in confirmationsSource.data?.slice(0, 6) ?? []" :key="row.id ?? row.confirmationId ?? ''" class="wtc-row" :data-conf-id="row.id ?? row.confirmationId ?? ''">
+            <div
+              v-for="row in confirmationsSource.data?.slice(0, 6) ?? []"
+              :key="row.id ?? row.confirmationId ?? ''"
+              class="wtc-row wtc-row-action"
+              role="button"
+              tabindex="0"
+              :data-conf-id="row.id ?? row.confirmationId ?? ''"
+              :aria-label="`${confirmationOperation(row)}，查看任务明细`"
+              @click="openTrackingDetail({ kind: 'confirmation', row })"
+              @keydown.enter="openTrackingDetail({ kind: 'confirmation', row })"
+              @keydown.space.prevent="openTrackingDetail({ kind: 'confirmation', row })"
+            >
               <span class="wtc-dot is-review" />
               <span class="wtc-row-tx">
-                <b>{{ row.operation || row.summary || "待确认操作" }}</b>
-                <em>AI 预审完成 · 待确认</em>
+                <b>{{ confirmationOperation(row) }}</b>
+                <em>{{ confirmationSummary(row) }}</em>
               </span>
+              <button
+                type="button"
+                class="wtc-confirm-btn"
+                :disabled="confirmingId !== ''"
+                :data-confirm-id="row.confirmationId ?? row.id ?? ''"
+                @click.stop="confirmTrackingRow(row)"
+              >
+                {{ confirmingId === String(row.confirmationId ?? row.id ?? '') ? "确认中" : "确认" }}
+              </button>
             </div>
           </div>
 
@@ -128,12 +186,24 @@
               <button type="button" class="wtc-retry" data-testid="tc-emp-retry" @click="refreshEmployees">重试</button>
             </div>
             <p v-else-if="sourceState(employeeTasksSource) === 'empty'" class="wtc-empty" data-testid="tc-emp-empty">{{ employeeTasksSource.message }}</p>
-            <div v-for="task in employeeTasksSource.data?.slice(0, 6) ?? []" :key="task.id" class="wtc-row" :data-emp-id="task.id">
+            <div
+              v-for="task in employeeTasksSource.data?.slice(0, 6) ?? []"
+              :key="task.id"
+              class="wtc-row"
+              role="button"
+              tabindex="0"
+              :data-emp-id="task.id"
+              :aria-label="`${task.task || '员工任务'}，查看任务明细`"
+              @click="openTrackingDetail({ kind: 'employee', task })"
+              @keydown.enter="openTrackingDetail({ kind: 'employee', task })"
+              @keydown.space.prevent="openTrackingDetail({ kind: 'employee', task })"
+            >
               <span class="wtc-dot" :class="taskDotClass(task.status)" />
               <span class="wtc-row-tx">
                 <b>{{ task.task }}</b>
                 <em>{{ taskStatusText(task) }}</em>
               </span>
+              <span class="wtc-row-chevron" aria-hidden="true">›</span>
             </div>
           </div>
 
@@ -153,17 +223,101 @@
               <button type="button" class="wtc-retry" data-testid="tc-noti-retry" @click="refreshNotifications">重试</button>
             </div>
             <p v-else-if="sourceState(notificationsSource) === 'empty'" class="wtc-empty" data-testid="tc-noti-empty">{{ notificationsSource.message }}</p>
-            <div v-for="note in notificationsSource.data?.slice(0, 6) ?? []" :key="note.id" class="wtc-row" :data-noti-id="note.id">
+            <div
+              v-for="note in notificationsSource.data?.slice(0, 6) ?? []"
+              :key="note.id"
+              class="wtc-row"
+              role="button"
+              tabindex="0"
+              :data-noti-id="note.id"
+              :aria-label="`${note.title || '通知'}，查看任务明细`"
+              @click="openTrackingDetail({ kind: 'notification', note })"
+              @keydown.enter="openTrackingDetail({ kind: 'notification', note })"
+              @keydown.space.prevent="openTrackingDetail({ kind: 'notification', note })"
+            >
               <span class="wtc-dot" :class="{ read: note.isRead }" />
               <span class="wtc-row-tx">
                 <b>{{ note.title }}</b>
                 <em>{{ shortTime(note.createdAt) }}</em>
               </span>
+              <span class="wtc-row-chevron" aria-hidden="true">›</span>
             </div>
           </div>
         </section>
       </div>
     </template>
+
+    <el-dialog
+      v-model="detailVisible"
+      class="wtc-detail-dialog"
+      width="520px"
+      title="任务明细"
+      append-to-body
+    >
+      <template v-if="detail">
+        <div class="wtc-detail">
+          <div class="wtc-detail-hd">
+            <b>{{ detailTitle }}</b>
+            <span class="wtc-detail-kind">{{ detailKindLabel }}</span>
+          </div>
+          <div class="wtc-detail-grid">
+            <template v-if="detail.kind === 'confirmation'">
+              <span>操作</span><b>{{ confirmationOperation(detail.row) }}</b>
+              <span>内容</span><b>{{ confirmationSummary(detail.row) }}</b>
+              <span>状态</span><b>等待确认</b>
+              <span>确认编号</span><b>{{ detail.row.confirmationId || detail.row.id || "—" }}</b>
+              <span>发起时间</span><b>{{ detail.row.createdAt ? shortTime(detail.row.createdAt) : "未提供" }}</b>
+              <span>到期时间</span><b>{{ detail.row.expiresAt ? shortTime(detail.row.expiresAt) : "未提供" }}</b>
+            </template>
+            <template v-else-if="detail.kind === 'plan'">
+              <span>任务</span><b>{{ detail.plan.goal || `计划 #${detail.plan.id}` }}</b>
+              <span>状态</span><b>{{ planStateText(detail.plan) }}</b>
+              <span>进度</span><b>{{ planProgressText(detail.plan) }}</b>
+            </template>
+            <template v-else-if="detail.kind === 'employee'">
+              <span>任务</span><b>{{ detail.task.task || "—" }}</b>
+              <span>状态</span><b>{{ taskStatusText(detail.task) }}</b>
+              <span>结果</span><b>{{ detail.task.resultSummary || "暂无结果摘要" }}</b>
+              <span>发起时间</span><b>{{ detail.task.createdAt ? shortTime(detail.task.createdAt) : "未提供" }}</b>
+              <span>更新时间</span><b>{{ detail.task.updatedAt ? shortTime(detail.task.updatedAt) : "未提供" }}</b>
+            </template>
+            <template v-else>
+              <span>通知</span><b>{{ detail.note.title || "—" }}</b>
+              <span>内容</span><b>{{ detail.note.content || "暂无内容" }}</b>
+              <span>状态</span><b>{{ detail.note.isRead ? "已读" : "未读" }}</b>
+              <span>时间</span><b>{{ detail.note.createdAt ? shortTime(detail.note.createdAt) : "未提供" }}</b>
+            </template>
+          </div>
+          <div v-if="detail.kind === 'confirmation' && confirmationDetailEntries(detail.row).length" class="wtc-detail-block">
+            <h4>操作明细</h4>
+            <dl>
+              <template v-for="[key, value] in confirmationDetailEntries(detail.row)" :key="key">
+                <dt>{{ key }}</dt>
+                <dd>{{ value }}</dd>
+              </template>
+            </dl>
+          </div>
+          <div v-if="detail.kind === 'plan' && detail.plan.steps.length" class="wtc-detail-block">
+            <h4>执行步骤</h4>
+            <ol class="wtc-detail-steps">
+              <li v-for="step in detail.plan.steps" :key="step.id || step.label">
+                <span class="wtc-detail-step-dot" :class="`is-${step.status ?? 'unknown'}`" />
+                <b>{{ step.label || step.id || "未命名步骤" }}</b>
+                <em>{{ planStepStateText(step.status) }}</em>
+              </li>
+            </ol>
+          </div>
+          <div v-if="detail.kind === 'confirmation'" class="wtc-detail-actions">
+            <button type="button" class="wtc-detail-cancel" :disabled="confirmingId !== ''" @click="cancelTrackingRow(detail.row)">
+              取消挂起
+            </button>
+            <button type="button" class="wtc-detail-confirm" :disabled="confirmingId !== ''" @click="confirmTrackingRow(detail.row)">
+              {{ confirmingId ? "处理中" : "确认执行" }}
+            </button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
   </aside>
 </template>
 
@@ -182,6 +336,8 @@
  * 失败绝不渲染假 0（口径与 S1 硬验收一致）。
  */
 import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { ElMessage } from "element-plus";
+import { cancelAiOperation, confirmAiOperation } from "../../api/ai";
 import {
   loadTaskCenterSnapshot,
   loadConfirmationsSource,
@@ -193,12 +349,15 @@ import {
   type TaskSourceStatus,
   type ConfirmationListRow,
   type ParsedPlan,
+  type PlanStepStatus,
   type ParsedEmployeeTask,
   type EmployeeTaskStatus,
   type ParsedNotification,
 } from "../../shared/workbench/task-center";
 import { deriveFlowSteps, type WbTaskFlow } from "../../shared/workbench/wb-feed-taskflow";
 import type { FeedBlockState } from "../../shared/workbench/wb-feed-types";
+import WorkbenchChromeToggleIcon from "./WorkbenchChromeToggleIcon.vue";
+import WorkbenchWindowControls from "./WorkbenchWindowControls.vue";
 
 defineProps<{
   collapsed: boolean;
@@ -250,6 +409,117 @@ const employeeTasksSource = ref<TaskSourceState<ParsedEmployeeTask[]>>({ ...task
 /** 任务跟踪：通知（S1 notifications 源 · 主后端人工源，AI 故障不影响） */
 const notificationsSource = ref<TaskSourceState<ParsedNotification[]>>({ ...taskCenterSnapshot.notifications });
 
+type TrackingDetail =
+  | { kind: "confirmation"; row: ConfirmationListRow }
+  | { kind: "plan"; plan: ParsedPlan }
+  | { kind: "employee"; task: ParsedEmployeeTask }
+  | { kind: "notification"; note: ParsedNotification };
+
+const detailVisible = ref(false);
+const detail = ref<TrackingDetail | null>(null);
+const confirmingId = ref("");
+
+const detailTitle = computed(() => {
+  if (!detail.value) return "任务明细";
+  if (detail.value.kind === "confirmation") return confirmationOperation(detail.value.row);
+  if (detail.value.kind === "plan") return detail.value.plan.goal || `计划 #${detail.value.plan.id}`;
+  if (detail.value.kind === "employee") return detail.value.task.task || "员工任务";
+  return detail.value.note.title || "通知";
+});
+
+const detailKindLabel = computed(() => {
+  if (!detail.value) return "";
+  if (detail.value.kind === "confirmation") return "待确认";
+  if (detail.value.kind === "plan") return "进行中任务";
+  if (detail.value.kind === "employee") return "员工任务";
+  return "通知";
+});
+
+function openTrackingDetail(next: TrackingDetail): void {
+  detail.value = next;
+  detailVisible.value = true;
+}
+
+function confirmationIdOf(row: ConfirmationListRow): string {
+  return String(row.confirmationId ?? row.id ?? "").trim();
+}
+
+function confirmationOperation(row: ConfirmationListRow): string {
+  return row.operation || row.operationLabel || row.preview?.operation || row.toolName || "待确认操作";
+}
+
+function confirmationSummary(row: ConfirmationListRow): string {
+  return row.summary || row.preview?.summary || "等待人工确认后执行";
+}
+
+function formatDetailValue(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function confirmationDetailEntries(row: ConfirmationListRow): Array<[string, string]> {
+  const details = row.details ?? row.preview?.details;
+  if (!details || typeof details !== "object") return [];
+  return Object.entries(details)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => [key, formatDetailValue(value)]);
+}
+
+function actionErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (typeof error === "string" && error.trim()) return error;
+  return fallback;
+}
+
+async function confirmTrackingRow(row: ConfirmationListRow): Promise<void> {
+  const id = confirmationIdOf(row);
+  if (!id || confirmingId.value) return;
+  confirmingId.value = id;
+  try {
+    const operationId = await confirmAiOperation(id);
+    if (!operationId) {
+      throw new Error("确认接口未返回操作编号，操作状态尚未确认");
+    }
+    await refreshAll();
+    const stillPending = confirmationsSource.value.data?.some((item) => confirmationIdOf(item) === id) ?? false;
+    if (stillPending) {
+      throw new Error("确认后待确认列表仍存在该任务，请刷新后复核");
+    }
+    detailVisible.value = false;
+    ElMessage.success("任务已确认并执行");
+  } catch (error) {
+    ElMessage.error(actionErrorMessage(error, "确认任务失败"));
+  } finally {
+    confirmingId.value = "";
+  }
+}
+
+async function cancelTrackingRow(row: ConfirmationListRow): Promise<void> {
+  const id = confirmationIdOf(row);
+  if (!id || confirmingId.value) return;
+  confirmingId.value = id;
+  try {
+    await cancelAiOperation(id);
+    await refreshAll();
+    const stillPending = confirmationsSource.value.data?.some((item) => confirmationIdOf(item) === id) ?? false;
+    if (stillPending) {
+      throw new Error("取消后任务仍在待确认列表，请刷新后复核");
+    }
+    detailVisible.value = false;
+    ElMessage.success("已取消挂起任务");
+  } catch (error) {
+    ElMessage.error(actionErrorMessage(error, "取消任务失败"));
+  } finally {
+    confirmingId.value = "";
+  }
+}
+
 /** 双态可消费状态：S1 的 status 归一为组件级可消费态（timeout 并入 error 展示但保留原文案；
  *  idle 视作尚未上报 ⇒ 显示加载文案；员工任务的 idle 语义（未选择员工）由模板按原始 status 单独判定） */
 function sourceState(source: TaskSourceState<unknown>): FeedBlockState {
@@ -287,6 +557,39 @@ const flows = computed<WbTaskFlow[]>(() => {
   }
   return out;
 });
+
+const activePlans = computed<ParsedPlan[]>(() => {
+  const data = plansSource.value.data;
+  if (!data) return [];
+  return data.filter((plan) => plan.state !== "success" && plan.state !== "failed" && plan.state !== "skipped");
+});
+
+function planStateText(plan: ParsedPlan): string {
+  if (plan.state === "running") return "执行中";
+  if (plan.state === "pending") return "待执行";
+  if (plan.state === "suspended") return "等待人工确认";
+  if (plan.state === "success") return "已完成";
+  if (plan.state === "failed") return "执行失败";
+  if (plan.state === "skipped") return "已跳过";
+  return "状态未知";
+}
+
+function planProgressText(plan: ParsedPlan): string {
+  const total = plan.stepsTotal || plan.steps.length;
+  const done = plan.stepsDone || plan.steps.filter((step) => step.status === "success").length;
+  if (total === 0) return `${planStateText(plan)} · 暂无步骤读数`;
+  return `${planStateText(plan)} · ${done}/${total} 步`;
+}
+
+function planStepStateText(status: PlanStepStatus | null): string {
+  if (status === "pending") return "待执行";
+  if (status === "running") return "执行中";
+  if (status === "success") return "已完成";
+  if (status === "failed") return "失败";
+  if (status === "suspended") return "等待确认";
+  if (status === "skipped") return "已跳过";
+  return "状态未知";
+}
 
 /** 员工任务状态点 class（running=蓝 / completed=灰 / failed=红 / 未知=灰） */
 function taskDotClass(status: EmployeeTaskStatus | null): string {
@@ -398,9 +701,10 @@ async function refreshAll(): Promise<void> {
   notificationsSource.value = { ...snapshot.notifications };
 }
 
-function shortTime(value: string | null): string {
+function shortTime(value: string | number | null): string {
   if (!value) return "";
-  const date = new Date(value);
+  const normalized = typeof value === "number" && value > 0 && value < 1_000_000_000_000 ? value * 1000 : value;
+  const date = new Date(normalized);
   if (Number.isNaN(date.getTime())) return "";
   return `${date.getMonth() + 1}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
@@ -426,8 +730,8 @@ onBeforeUnmount(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--wb-side-bg, #f9fafc);
-  border-left: 1px solid var(--wb-line, #e5e5e5);
+  background: var(--wb-bg, #fff);
+  border-left: 0;
   overflow: hidden;
 }
 .wtc.collapsed {
@@ -442,12 +746,16 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   height: 42px;
   min-height: 42px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--wb-line, #eceef1);
-  background: var(--wb-panel, #ffffff);
+  padding: 0 0 0 10px;
+  border-bottom: 0;
+  background: var(--wb-chrome-bg, #f2f5f9);
+  -webkit-app-region: drag;
+}
+.wtc-head :deep(button) {
+  -webkit-app-region: no-drag;
 }
 .wtc-title {
   font-size: 13px;
@@ -469,13 +777,17 @@ onBeforeUnmount(() => {
   width: 26px;
   height: 26px;
   flex-shrink: 0;
+  margin-right: 2px;
   border: 1px solid var(--wb-line, #eceef1);
   border-radius: 7px;
   background: transparent;
   color: var(--wb-ink2, #8a8f98);
-  font-size: 14px;
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 .wtc-collapse:hover {
   background: var(--wb-hover, #f4f6f8);
@@ -591,6 +903,9 @@ onBeforeUnmount(() => {
 /* ── 分组 ── */
 .wtc-group {
   margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .wtc-group-hd {
   display: flex;
@@ -600,7 +915,7 @@ onBeforeUnmount(() => {
   font-weight: 800;
   letter-spacing: 0.5px;
   color: var(--wb-ink2, #8a8f98);
-  margin: 0 2px 4px;
+  margin: 0 2px 1px;
 }
 .wtc-group-hd em {
   font-style: normal;
@@ -615,13 +930,26 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 42px;
-  padding: 6px 8px;
-  border-radius: 10px;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px solid var(--wb-line, #e5e5e5);
+  border-radius: 12px;
+  background: var(--wb-panel, #fff);
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.055);
   cursor: default;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.wtc-row-action {
+  cursor: pointer;
 }
 .wtc-row:hover {
-  background: var(--wb-hover, #f4f6f8);
+  border-color: var(--wb-line-strong, #d4d4d4);
+  background: var(--wb-panel, #fff);
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.09);
+}
+.wtc-row-action:focus-visible {
+  outline: 2px solid var(--wb-primary, #2563eb);
+  outline-offset: 2px;
 }
 .wtc-row-tx {
   display: flex;
@@ -644,6 +972,39 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.wtc-row-chevron {
+  flex-shrink: 0;
+  color: var(--wb-muted, #b0b6c0);
+  font-size: 18px;
+  line-height: 1;
+}
+.wtc-confirm-btn {
+  flex-shrink: 0;
+  min-width: 48px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--wb-primary, #2563eb);
+  border-radius: 7px;
+  background: var(--wb-primary-soft, #eff4ff);
+  color: var(--wb-primary, #2563eb);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+.wtc-confirm-btn:hover:not(:disabled) {
+  background: var(--wb-primary, #2563eb);
+  color: #fff;
+}
+.wtc-confirm-btn:focus-visible {
+  outline: 2px solid var(--wb-primary, #2563eb);
+  outline-offset: 2px;
+}
+.wtc-confirm-btn:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 .wtc-dot {
   width: 8px;
@@ -753,5 +1114,153 @@ onBeforeUnmount(() => {
 .wtc-st.lock {
   background: var(--wb-hover, #f4f6f8);
   color: var(--wb-muted, #b0b6c0);
+}
+
+/* ── 任务明细弹层 ── */
+.wtc-detail {
+  color: var(--wb-ink, #16181d);
+}
+.wtc-detail-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--wb-line, #e5e5e5);
+}
+.wtc-detail-hd b {
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+.wtc-detail-kind {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--wb-primary-soft, #eff4ff);
+  color: var(--wb-primary, #2563eb);
+  font-size: 11px;
+}
+.wtc-detail-grid {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 9px 12px;
+  padding: 14px 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.wtc-detail-grid > span {
+  color: var(--wb-ink2, #626f82);
+}
+.wtc-detail-grid > b {
+  min-width: 0;
+  font-weight: 500;
+  word-break: break-word;
+}
+.wtc-detail-block {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid var(--wb-line, #e5e5e5);
+  border-radius: 10px;
+  background: var(--wb-canvas, #f2f5f9);
+}
+.wtc-detail-block h4 {
+  margin: 0 0 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wb-ink2, #626f82);
+}
+.wtc-detail-block dl {
+  display: grid;
+  grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
+  gap: 7px 12px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.wtc-detail-block dt {
+  color: var(--wb-ink2, #626f82);
+}
+.wtc-detail-block dd {
+  min-width: 0;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wtc-detail-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wtc-detail-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+.wtc-detail-steps li b {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.wtc-detail-steps li em {
+  flex-shrink: 0;
+  color: var(--wb-ink2, #626f82);
+  font-style: normal;
+}
+.wtc-detail-step-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--wb-muted, #b0b6c0);
+}
+.wtc-detail-step-dot.is-running,
+.wtc-detail-step-dot.is-suspended {
+  background: var(--wb-primary, #2563eb);
+}
+.wtc-detail-step-dot.is-success {
+  background: #15803d;
+}
+.wtc-detail-step-dot.is-failed {
+  background: #dc2626;
+}
+.wtc-detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--wb-line, #e5e5e5);
+}
+.wtc-detail-actions button {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.wtc-detail-actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.wtc-detail-cancel {
+  border: 1px solid var(--wb-line-strong, #d4d4d4);
+  background: var(--wb-panel, #fff);
+  color: var(--wb-ink2, #626f82);
+}
+.wtc-detail-confirm {
+  border: 1px solid var(--wb-primary, #2563eb);
+  background: var(--wb-primary, #2563eb);
+  color: #fff;
 }
 </style>

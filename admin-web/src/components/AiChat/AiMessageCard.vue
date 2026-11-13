@@ -68,9 +68,12 @@
         :pending="message.pending"
         :cancelled="message.cancelled"
         :revoked="message.revoked"
+        :hide-details="message.tool === 'createSalesOrder'"
+        :native-form-action="nativeFormAction"
         @confirm="emit('confirm', message.id, $event)"
         @cancel="emit('cancel', message.id, $event)"
         @revoke="emit('revoke', message.id, $event)"
+        @open-form="emit('open-form', $event)"
       />
 
       <!-- 工具执行成功且无预览时的摘要 -->
@@ -82,6 +85,20 @@
       <div v-else-if="message.toolStatus === 'error'" class="tool-error">
         <el-icon><WarningFilled /></el-icon>
         <span>{{ message.error || "工具执行失败" }}</span>
+      </div>
+
+      <div v-if="externalNativeFormActions.length > 0" class="tool-native-forms">
+        <button
+          v-for="action in externalNativeFormActions"
+          :key="action.id"
+          type="button"
+          class="tool-native-form"
+          :data-native-form="action.kind"
+          :data-native-form-path="action.path"
+          @click="emit('open-form', action)"
+        >
+          {{ action.label }}
+        </button>
       </div>
     </div>
 
@@ -111,6 +128,10 @@ import { computed, onBeforeUnmount, ref } from "vue";
 import AiPreviewCard from "./AiPreviewCard.vue";
 import AiChart from "./AiChart.vue";
 import type { AiChatMessage } from "./types";
+import {
+  resolveAiNativeFormActions,
+  type AiNativeFormAction,
+} from "../../shared/workbench/ai-form-bridge";
 
 const props = defineProps<{ message: AiChatMessage }>();
 
@@ -119,7 +140,25 @@ const emit = defineEmits<{
   (e: "cancel", messageId: string, confirmationId: string): void;
   (e: "revoke", messageId: string, operationId: string): void;
   (e: "retry", messageId: string): void;
+  (e: "open-form", action: AiNativeFormAction): void;
 }>();
+
+const nativeFormActions = computed(() =>
+  props.message.toolStatus === "success"
+    ? resolveAiNativeFormActions({
+        tool: props.message.tool,
+        data: props.message.data,
+        preview: props.message.preview,
+        confirmationId: props.message.confirmationId,
+      })
+    : [],
+);
+const nativeFormAction = computed(
+  () => nativeFormActions.value.find((action) => action.kind === "sales-order-form") ?? null,
+);
+const externalNativeFormActions = computed(() =>
+  nativeFormActions.value.filter((action) => action.kind !== "sales-order-form"),
+);
 
 /** 将 AI 文本拆分为普通文本段与图表段（[CHART] 标记） */
 const contentSegments = computed(() => {
@@ -179,6 +218,7 @@ function toolLabel(tool?: string): string {
   const map: Record<string, string> = {
     createSalesOrder: "创建销售单",
     querySaleBills: "查询销售单",
+    getSaleBillDetail: "查询销售单详情",
     cancelOrder: "取消销售单",
     searchProduct: "搜索商品",
     queryProductDetail: "查询商品详情",
@@ -458,5 +498,28 @@ function toolSummary(message: AiChatMessage): string {
   gap: 6px;
   font-size: var(--text-sm);
   color: var(--color-danger);
+}
+
+.tool-native-forms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light, #e5e7eb);
+}
+.tool-native-form {
+  padding: 4px 10px;
+  border: 1px solid var(--color-primary, #3f6fef);
+  border-radius: 6px;
+  background: var(--color-primary-soft, #eef2ff);
+  color: var(--color-primary-text, #365fce);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tool-native-form:hover {
+  background: var(--color-primary, #3f6fef);
+  color: #fff;
 }
 </style>

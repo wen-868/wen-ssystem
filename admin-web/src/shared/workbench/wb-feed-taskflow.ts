@@ -119,7 +119,7 @@ export function parseWbTaskFlows(payload: unknown): FeedBlock<WbTaskFlow[]> {
 }
 
 /**
- * 装载任务步进。判定「真实 vs 待接入」的关键行是 `if (!deps.fetchPlans)`；
+ * 装载任务步进。判定「真实 vs 未接线」的关键行是 `if (!deps.fetchPlans)`；
  * 404 ⇒ unavailable（classifyFeedError），其它失败 ⇒ error，均可重试。
  */
 export async function loadWbTaskFlows(deps: WbTaskFlowDeps = {}): Promise<FeedBlock<WbTaskFlow[]>> {

@@ -29,12 +29,10 @@ const composer = read("components/workbench/AiChatComposer.vue");
 const shell = read("layouts/WorkbenchShell.vue");
 
 // ── 1. 主区标题「日常经营」 ──────────────────────────────────────────
-// S4 标题落点：会话面本体 AiSidePanel（AiChat/ 允许路径内）+ feed 面标题（AiFeedView）
-assert.ok(
-  sidePanel.includes('data-testid="daily-op-title"') &&
-    sidePanel.includes("日常经营"),
-  "S4-1 AiSidePanel 缺少「日常经营」会话面标题（daily-op-title）",
-);
+// S4 标题只保留全局顶栏一处；会话内部不再重复标题。
+assert.ok(!sidePanel.includes('data-testid="daily-op-title"'), "S4-1 AiSidePanel 仍重复渲染「日常经营」标题");
+assert.ok(!sidePanel.includes('class="ai-header"'), "S4-1 AiSidePanel 仍保留重复标题栏");
+assert.ok(shell.includes('return "日常经营"'), "S4-1 全局顶栏缺少「日常经营」标题");
 assert.ok(
   feedView.includes('data-testid="daily-op-title"') &&
     feedView.includes("日常经营"),

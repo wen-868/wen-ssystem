@@ -10,7 +10,7 @@
  *   - capability 按 `src/api/` 的真实导出核定，不按页面需要填写：
  *     `fetchAiModels` / `fetchAiTools` 在（ai.ts L215/L235）⇒ AI 模型 live；
  *     打印走 hardware.ts 的 fetch/save/test + modules/print/localConfig.ts ⇒ live；
- *     系统接入与运营在 api/ 全域无端点 ⇒ unavailable，UI 必须显示待接入。
+ *     系统接入与运营在 api/ 全域无端点 ⇒ unavailable，UI 必须显示未接线。
  */
 
 export type SettingTabKey =

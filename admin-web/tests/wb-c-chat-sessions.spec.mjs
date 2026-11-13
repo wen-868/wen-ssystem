@@ -138,18 +138,18 @@ await run("会话列表 UI 红线：无成功 toast / 无已归档口径 / 不�
   return "零成功 toast / 零伪「已归档」/ 零冒用 + 适配器数据源 + arch/del 锚点";
 });
 
-await run("面板装配：AiChatPanel 挂会话列表 + 新对话走真实 clearChat + 故障锚点未回退", () => {
+await run("重复会话条已移除；新对话仍复用 clearChat，故障锚点未回退", () => {
   const panel = read("components/workbench/AiChatPanel.vue");
-  assert.ok(panel.includes("AiSessionList"), "会话列表未装配进 AiChatPanel");
-  assert.ok(panel.includes("new-conversation"), "新对话入口应由会话列表触发");
+  assert.ok(!panel.includes("AiSessionList"), "重复会话列表仍装配进 AiChatPanel");
+  assert.ok(!panel.includes("acp-sess-bar"), "重复会话管理条仍存在");
+  assert.ok(!panel.includes("chat-sessions-toggle"), "重复会话列表开关仍存在");
   assert.ok(panel.includes("clearChat"), "新对话必须复用面板真实 clearChat（不另起会话实现）");
-  assert.ok(panel.includes("conversationId"), "应透传真实会话 ID（done 回传后才显示）");
   // 回归护栏：WORKBENCH-03 故障隔离锚点不得被我方改动破坏
   assert.ok(panel.includes("切换人工操作台"), "故障横幅回人工入口丢失");
   assert.ok(panel.includes('role="alert"'), "故障 alert 语义丢失");
   assert.ok(!panel.includes("sendChatMessage("), "主交互面不得直接调用对话接口（单一实现约束）");
   assert.ok(!panel.includes("confirmAiOperation("), "面板不得新增写动作确认链调用");
-  return "装配 + 真实新对话 + 故障/单一实现锚点齐全";
+  return "重复条清零 + 真实新对话 + 故障/单一实现锚点齐全";
 });
 
 const failed = results.filter((r) => !r.ok);

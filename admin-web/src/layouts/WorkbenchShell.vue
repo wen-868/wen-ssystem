@@ -7,7 +7,9 @@
     <div v-if="uiuxInjected" class="wb-uiux-flag" data-testid="uiux-inject-flag">{{ WB_UIUX_INJECT_WATERMARK }}</div>
     <!-- ══ 一级模块图标栏（最左 · 常驻）＝原型 .rail（renderRail L2293）══ -->
     <nav class="wb-rail" aria-label="一级模块导航" data-testid="rail">
-      <div class="wb-rail-logo" title="智享全链">智</div>
+      <div class="wb-rail-logo" title="智享全链">
+        <img :src="brandLogo" alt="智享全链" />
+      </div>
       <button
         type="button"
         class="wb-rail-item"
@@ -59,11 +61,36 @@
         type="button"
         class="wb-rail-item wb-rail-set"
         data-rail-key="set"
-        title="系统设置"
+        title="设置"
+        aria-label="打开设置"
         @click="openSettings"
       >
-        <el-icon :size="17"><Setting /></el-icon><span>设置</span>
+        <el-icon :size="17"><Setting /></el-icon>
       </button>
+      <el-popover
+        placement="right-end"
+        trigger="click"
+        :width="210"
+        popper-class="wb-rail-account-pop"
+        data-testid="rail-account-popover"
+      >
+        <template #reference>
+          <button
+            type="button"
+            class="wb-rail-account"
+            data-testid="rail-account"
+            :aria-label="`账号：${auth.userName}，打开账号菜单`"
+            :title="auth.userName"
+          >
+            {{ (auth.userName || "智").slice(0, 1) }}
+          </button>
+        </template>
+        <div class="wb-rail-account-card" data-testid="rail-account-menu">
+          <strong>{{ auth.userName || "未登录" }}</strong>
+          <span>{{ auth.userRoles.join(" · ") || "未登录" }}</span>
+          <button type="button" class="is-danger" data-testid="rail-account-logout" @click="handleLogout">退出登录</button>
+        </div>
+      </el-popover>
     </nav>
 
     <!-- ══ 第二列上下文导航（常用功能/二级菜单 · 新对话 · 会话 · 账户）＝原型 .side（L923）══ -->
@@ -83,12 +110,13 @@
       :cashier-items="visibleCashierItems"
       :menu-state="menuState"
       :session-active="face === 'chat'"
-      :user-name="auth.userName"
-      :user-roles="auth.userRoles"
+      :cashier-active="isCashierRoute"
       :production-snapshot="effectiveCapabilities"
+      :menu-usage="menuUsage"
       @open="openManualItem"
       @open-cashier="openCashierItem"
-      @open-settings="openSettings"
+      @go-desk="goDesk"
+      @go-pos="goPos"
       @new-chat="startNewConversation"
       @collapse="sideCollapsed = !sideCollapsed"
     />
@@ -111,7 +139,7 @@
           :aria-label="sideCollapsed ? '展开导航' : '收起导航'"
           @click="sideCollapsed = !sideCollapsed"
         >
-          <el-icon :size="18"><Expand v-if="sideCollapsed" /><Fold v-else /></el-icon>
+          <WorkbenchChromeToggleIcon :mirrored="sideCollapsed" />
         </button>
         <span class="wb-top-title">{{ topTitle }}</span>
 
@@ -141,32 +169,10 @@
           AI 代办当前页
         </button>
 
-        <!-- 工作台 ⇄ 收银台 胶囊（原型 renderModeSeg L1998：双向一键切换） -->
-        <div class="wb-mode-seg" role="group" aria-label="工作台/收银台切换" data-testid="mode-seg">
-          <button
-            type="button"
-            class="wb-mode-seg-item"
-            :class="{ on: !isCashierRoute }"
-            data-mode-seg="desk"
-            @click="goDesk"
-          >
-            工作台
-          </button>
-          <button
-            type="button"
-            class="wb-mode-seg-item"
-            :class="{ on: isCashierRoute }"
-            data-mode-seg="pos"
-            title="收银界面（管理面与收银一体，收银仅工作台人工态承载）"
-            @click="goPos"
-          >
-            收银台
-          </button>
-        </div>
-
         <div class="wb-top-right">
           <!-- 任务中心开关（合同 top_bar.right 唯一右侧业务要素）：收起后第 4 列为 0px，这里是唯一常驻重开入口 -->
           <button
+            v-if="taskCenterCollapsed"
             type="button"
             class="wb-icon-btn wb-tc-toggle"
             data-testid="task-center-toggle"
@@ -175,10 +181,8 @@
             :title="taskCenterCollapsed ? '展开任务中心' : '收起任务中心'"
             @click="toggleTaskCenter"
           >
-            <el-icon :size="18"><Tickets /></el-icon>
+            <WorkbenchChromeToggleIcon mirrored />
           </button>
-          <span class="wb-user">{{ auth.userName }}</span>
-          <button type="button" class="wb-text-btn" @click="handleLogout">退出</button>
         </div>
       </header>
 
@@ -205,6 +209,7 @@
             style="width: 100%; flex: 1"
             @status="handleAiStatus"
             @fallback="switchMode('human')"
+            @open-form="openAiNativeForm"
           />
         </main>
         <!-- 人工业务页：router-view 常驻（不得被条件渲染包裹 —— ai-primary 断言），收银路由亦走此层 -->
@@ -272,9 +277,11 @@
       :user-roles="auth.userRoles"
       :resolve-roles="resolveRoles"
       :account="settingsAccount"
+      :system-entries="settingsSystemEntries"
       @logout="handleLogout"
       @open-print-settings="openPrintSettingsFromCenter"
       @open-system-config="openSystemConfigPage"
+      @open-system-entry="openSystemManagementEntry"
     />
   </div>
 </template>
@@ -306,8 +313,6 @@ import { ElMessage } from "element-plus";
 import {
   MagicStick,
   Setting,
-  Expand,
-  Fold,
   DataAnalysis,
   Tickets,
   ShoppingCart,
@@ -323,6 +328,7 @@ import {
   Grid,
 } from "@element-plus/icons-vue";
 import type { Component } from "vue";
+import brandLogo from "../assets/logo.png";
 import MainLayout from "./MainLayout.vue";
 import WorkbenchSubnav from "./WorkbenchSubnav.vue";
 import AgentStatusBar from "../components/workbench/AgentStatusBar.vue";
@@ -332,6 +338,7 @@ import AiChatComposer from "../components/workbench/AiChatComposer.vue";
 import AiChatPanel from "../components/workbench/AiChatPanel.vue";
 import PrintSettingsPanel from "../modules/print/PrintSettingsPanel.vue";
 import WbSettingsCenter from "../components/workbench/WbSettingsCenter.vue";
+import WorkbenchChromeToggleIcon from "../components/workbench/WorkbenchChromeToggleIcon.vue";
 import { WB_NARROW_MEDIA_QUERY } from "../shared/workbench/wb-viewport";
 import { checkWebUpdate } from "../modules/update/checker";
 import { useAuthStore } from "../stores/auth";
@@ -372,6 +379,8 @@ import {
   toggleRailSelection,
   RAIL_FIXED_KEY_BY_GROUP,
 } from "../shared/workbench/prototype-nav";
+import { readMenuUsage, recordMenuUsage } from "../shared/workbench/menu-usage";
+import type { AiNativeFormAction } from "../shared/workbench/ai-form-bridge";
 
 const route = useRoute();
 const router = useRouter();
@@ -441,6 +450,9 @@ const isManualBusinessRoute = computed(() => {
 const effectiveMode = computed<WorkbenchMode>(() =>
   isCashierRoute.value || isManualBusinessRoute.value ? "human" : workbenchMode.value,
 );
+
+/** 本机真实使用频率：只参与「常用功能」排序，不扩权限、不持久化业务数据。 */
+const menuUsage = ref(readMenuUsage());
 
 /** 主面：chat=AI 日常经营对话/晨报（原型默认主面 · UI-PARITY-BASE §四.3.1）；
  *  feed=旧信息流层（结构保留、数据 hook 保留，不再作为任何入口的默认/落地面）。
@@ -603,6 +615,10 @@ onMounted(() => {
 watch(
   () => route.path,
   (path) => {
+    const routeName = typeof route.name === "string" ? route.name : "";
+    if (routeName && path !== "/dashboard" && ALL_MANIFEST_ROUTE_NAMES.includes(routeName)) {
+      menuUsage.value = recordMenuUsage(routeName);
+    }
     if (isCashierRoute.value) return; // 收银台由 isCashierRoute 主导，不改持久化模式
     if (isManualBusinessRoute.value) {
       if (workbenchMode.value !== "human") setWorkbenchMode("human");
@@ -654,7 +670,17 @@ const visibleCashierItems = computed(() =>
  * 受限角色经同一个 `filterVisibleGroups(MANUAL_GROUPS, auth.userRoles, resolveRoles)` 依旧裁到更少的组，
  * 因此本处放宽的只是「结构呈现」，不放宽任何「能否进入页面」的权限判定。
  */
-const railGroups = computed(() => filterVisibleGroups(MANUAL_GROUPS, auth.userRoles, resolveRoles));
+const SETTINGS_ONLY_GROUP_CODE = "wb.system";
+const roleVisibleGroups = computed(() =>
+  filterVisibleGroups(MANUAL_GROUPS, auth.userRoles, resolveRoles),
+);
+/** 系统管理不占一级栏；“设置”是其唯一导航入口。 */
+const railGroups = computed(() =>
+  roleVisibleGroups.value.filter((group) => group.groupCode !== SETTINGS_ONLY_GROUP_CODE),
+);
+const settingsSystemEntries = computed<ManifestItem[]>(
+  () => roleVisibleGroups.value.find((group) => group.groupCode === SETTINGS_ONLY_GROUP_CODE)?.items ?? [],
+);
 
 /**
  * 业务入口数（**只算业务菜单项，不含收银保底**）。
@@ -757,7 +783,9 @@ const pendingRailGroup = ref<string | null>(null);
  */
 const railSkeletons = computed(() =>
   menuState.value === "loading" && railModules.value.length === 0
-    ? decorateRailGroups(MANUAL_GROUPS)
+    ? decorateRailGroups(MANUAL_GROUPS).filter(
+        (group) => group.groupCode !== SETTINGS_ONLY_GROUP_CODE,
+      )
     : [],
 );
 
@@ -795,6 +823,13 @@ watch(menuState, (state) => {
 const railKey = computed(() => {
   if (isCashierRoute.value) return "pos";
   if (route.name === "system") return "set";
+  if (
+    settingsSystemEntries.value.some(
+      (entry) => entry.path && (route.path === entry.path || route.path.startsWith(`${entry.path}/`)),
+    )
+  ) {
+    return "set";
+  }
   if (selectedGroupCode.value) return selectedGroupCode.value;
   if (effectiveMode.value !== "ai") {
     // 路由反推归属也走 railGroups（与 rail 结构同源）：选中模块即便 bridge 无真实条目也不会漏判/崩，
@@ -947,6 +982,13 @@ function switchMode(mode: WorkbenchMode): void {
   setWorkbenchMode(mode);
 }
 
+/** AI 结果只跳系统原生表单/页面；不开简化版单据弹层。 */
+function openAiNativeForm(action: AiNativeFormAction): void {
+  setWorkbenchMode("human");
+  router.push(action.path);
+  if (isNarrow.value) sideCollapsed.value = true;
+}
+
 function openManualItem(entry: ManifestItem): void {
   if (!entry.path) return;
   setWorkbenchMode("human");
@@ -1019,6 +1061,13 @@ function openSystemConfigPage(): void {
   router.push("/system");
 }
 
+function openSystemManagementEntry(entry: { path: string | null }): void {
+  if (!entry.path) return;
+  settingsCenterVisible.value = false;
+  setWorkbenchMode("human");
+  router.push(entry.path);
+}
+
 /** 顶部胶囊：工作台 ⇄ 收银台 */
 function goDesk(): void {
   if (isCashierRoute.value) goDeskHome();
@@ -1059,8 +1108,9 @@ defineExpose({ backToWorkbench, isCashierActive, goDeskHome, face, topTitle });
   --wb-panel: #ffffff;
   --wb-bg: #ffffff; /* 人工业务页画布保持原型 --bg:#FFFFFF（F3 已验收口径，勿并入画布色） */
   --wb-hover: #f2f4fa;
-  --wb-rail-bg: #f7f8fb;
-  --wb-side-bg: #f9fafc;
+  --wb-chrome-bg: #f2f5f9;
+  --wb-rail-bg: #f2f5f9;
+  --wb-side-bg: #f2f5f9;
   height: 100vh;
   display: grid;
   /* 第二列收起用 grid 列宽过渡（对齐原型 .side{transition:margin .25s} 的平滑滑出手感）；
@@ -1087,6 +1137,7 @@ html[data-wb-theme="dark"] .wb-shell {
   --wb-panel: #1b1e26;
   --wb-bg: #1b1e26;
   --wb-hover: #232733;
+  --wb-chrome-bg: #14161c;
   --wb-rail-bg: #171920;
   --wb-side-bg: #191c24;
 }
@@ -1116,15 +1167,37 @@ html[data-wb-theme="dark"] .wb-shell {
    固定 100px：flex-shrink 0 + 定高；内部 form/输入框随容器裁切（超出滚动由内部 max-height 承担）。
    只改壳层作用域（:deep 覆盖），不触碰 AiChatComposer 文件本身（非本卡允许路径）。 */
 .wb-main :deep(.cmp) {
-  height: 100px;
-  min-height: 100px;
-  max-height: 100px;
-  flex-shrink: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
+  padding: 10px 40px 18px;
+  border-top: 0;
+  background: transparent;
+  pointer-events: none;
 }
 .wb-main :deep(.cmp .cmp-form) {
+  max-width: 740px;
+  margin: 0 auto;
   max-height: none;
+  border-radius: 22px;
+  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.08);
+  pointer-events: auto;
+}
+.wb-main :deep(.cmp .cmp-hint),
+.wb-main :deep(.cmp .cmp-att-notice),
+.wb-main :deep(.cmp .cmp-voice-bar) {
+  max-width: 740px;
+  margin-left: auto;
+  margin-right: auto;
+  pointer-events: auto;
 }
 
 /* ── 一级 rail ── */
@@ -1133,8 +1206,8 @@ html[data-wb-theme="dark"] .wb-shell {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 5px;
-  padding: 12px 0;
+  gap: 9px;
+  padding: 16px 0;
   background: var(--wb-rail-bg, #f7f9fc);
   border-right: 1px solid var(--wb-line, #eceef1);
   overflow-y: auto;
@@ -1143,21 +1216,27 @@ html[data-wb-theme="dark"] .wb-shell {
 .wb-rail::-webkit-scrollbar {
   display: none;
 }
-/* 原型 .rl-logo：34×34 · 圆角 10 · margin-bottom 8（配合 gap 5 ⇒ 首个 rail 项落在 y=59）
-   渐变换用主题主色（UI-PARITY-BASE §四.5.1：工作台主色统一 #4F46E5，明暗同源）。 */
+/* 品牌位使用正式 Logo 资产，不再使用文字占位。 */
 .wb-rail-logo {
   width: 34px;
   height: 34px;
-  margin: 0 auto 8px;
+  margin: 0 auto 12px;
+  padding: 3px;
+  box-sizing: border-box;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--wb-primary, #4f46e5), #3730c8);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  background: #fff;
+  border: 1px solid var(--wb-line, #e5e5e5);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+.wb-rail-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 /* 原型 .rl-it：46×43 · x=7（margin auto 居中）· 圆角 11 · padding 7px 0 6px · 图标 17 · 字号 9.5 · 项内 gap 4 · 步进 48（43+容器 gap5） */
 .wb-rail-item {
@@ -1166,17 +1245,17 @@ html[data-wb-theme="dark"] .wb-shell {
   align-items: center;
   justify-content: center;
   width: 46px;
-  height: 43px;
+  height: 46px;
   margin: 0 auto;
   box-sizing: border-box;
-  gap: 4px;
-  padding: 7px 0 6px;
+  gap: 5px;
+  padding: 8px 0 7px;
   border: 0;
   border-radius: 11px;
   background: transparent;
   /* 非选中项色 = 原型 --rail-sub #68758A（1440×1000 实测） */
   color: #626f82;
-  font-size: 9.5px;
+  font-size: 10px;
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
@@ -1258,32 +1337,89 @@ html[data-wb-theme="dark"] .wb-shell {
    margin-top:auto 吸收剩余空间把它与（已隐藏的）设置项压向 rail 底部，rail 底部只剩这条线；
    容器 align-items:stretch ⇒ 用 align-self:center 让 32px 线水平居中（对齐原型 align-items:center 下的 auto 0）。 */
 .wb-rail-gap {
-  width: 32px;
+  width: 1px;
   height: 1px;
-  background: var(--wb-line, #eceef1);
+  background: transparent;
   align-self: center;
-  margin: auto 0 7px;
+  margin: auto 0 2px;
   flex-shrink: 0;
 }
-/* WORKBENCH-13-F2：设置项对齐原型最后一层 `.rl-set{display:none!important}`——
-   仍在 DOM（data-rail-key="set" 契约保留）但视觉隐藏，设置入口移至第二列账户区（open-settings）。
-   与 .wb-rail-item 同特异性且声明更靠后，故 display:none 稳定生效（含 390px 窄口，见下方同名规则）。 */
+
+/* 账号只在第一列 rail 底部出现；点击后在右侧浮出账号菜单。 */
+.wb-rail-account {
+  width: 34px;
+  height: 34px;
+  margin: 0 auto 2px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--wb-primary, #4f46e5), #4338ca);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wb-rail-account:hover {
+  box-shadow: 0 0 0 3px var(--wb-primary-soft, #eef2ff);
+}
+.wb-rail-account-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 3px;
+}
+.wb-rail-account-card strong {
+  font-size: 13px;
+  color: var(--wb-ink, #16181d);
+}
+.wb-rail-account-card span {
+  margin-bottom: 5px;
+  font-size: 11px;
+  color: var(--wb-ink2, #8a8f98);
+}
+.wb-rail-account-card button {
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  padding: 8px 9px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--wb-ink, #16181d);
+  cursor: pointer;
+}
+.wb-rail-account-card button:hover {
+  background: var(--wb-hover, #f4f6f8);
+}
+.wb-rail-account-card button.is-danger {
+  color: #dc2626;
+}
+/* 设置与账号同处一级栏底部；系统管理入口统一收进设置中心。 */
 .wb-rail-set {
-  display: none;
-  margin-top: 6px;
-  border-top: 1px solid var(--wb-line, #eceef1);
-  border-radius: 0;
-  padding-top: 10px;
-  /* 设置项带 border-top + padding-top，固定 43px 高会挤压内容：让它按内容自适应 */
-  height: auto;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin: 0 auto 4px;
+  border-radius: 9px;
 }
 
 /* ── main 区 ── */
 .wb-main {
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
   min-width: 0;
   min-height: 0;
+}
+.wb-main :deep(.ai-side-panel),
+.wb-view-manual {
+  border-top-left-radius: 16px;
+  overflow: hidden;
 }
 /* 原型 header.top 实测（Prototype-12 卡面 §三.3：顶栏 42px）；
    WORKBENCH-13-F2 基线为 54px，本卡按原型四列壳层口径收敛为 42px（硬验收：42px 顶栏） */
@@ -1295,8 +1431,8 @@ html[data-wb-theme="dark"] .wb-shell {
   align-items: center;
   gap: 10px;
   padding: 0 22px;
-  background: var(--wb-panel, #ffffff);
-  border-bottom: 1px solid var(--wb-line-strong, #dde2e9);
+  background: var(--wb-chrome-bg, #f2f5f9);
+  border-bottom: 0;
 }
 .wb-icon-btn {
   width: 30px;
@@ -1426,6 +1562,11 @@ html[data-wb-theme="dark"] .wb-shell {
 .wb-view.shown {
   display: flex;
   flex-direction: column;
+}
+.wb-view.shown[data-view="feed"],
+.wb-view.shown[data-view="manual"] {
+  box-sizing: border-box;
+  padding-bottom: 190px;
 }
 /* 人工层画布 = 原型 L10 `--bg:#FFFFFF`（`.wb-view{background:var(--bg)}`，L193 逐字）。
    原兜底字面量 #f4f6f8 是原型 L10 的**另一个 token**（`--panel2`，用于 chip/悬停底），

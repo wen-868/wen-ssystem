@@ -11,7 +11,7 @@
  *   - AI 底座（`src/api/ai.ts`）只有对话、模型/工具枚举、确认链与服务端推送，
  *     **没有**播报 / 晨报 / 异动分析端点；异动建议若由前端本地文案拼出来即为伪造 AI 结论。
  * ⇒ 结论：**播报数据源不存在**，本适配按 agent-directory.ts 的强制形态返回
- *   `{ state: "unavailable", data: [], message: "<缺什么、为什么>" }`，UI 显示「待接入」+ 重试。
+ *   `{ state: "unavailable", data: [], message: "<缺什么、为什么>" }`，UI 显示「未接线」+ 重试。
  *
  * 端点补齐后只需注入 `fetchBroadcasts`（或改本文件默认实现），UI 与测试无需改动：
  *   - `parseWbBroadcastRows` 已定义好 ready/empty/error 折算（形状：数组，
@@ -60,8 +60,8 @@ export function parseWbBroadcastRows(raw: unknown): FeedBlock<WbBroadcastItem[]>
 }
 
 /**
- * 装载播报。判定「真实 vs 待接入」的关键行是 `if (!deps.fetchBroadcasts)`：
- * 底座播报端点不存在 ⇒ 视图无读取器可注入 ⇒ 恒为 unavailable（待接入 + 重试）。
+ * 装载播报。判定「真实 vs 未接线」的关键行是 `if (!deps.fetchBroadcasts)`：
+ * 底座播报端点不存在 ⇒ 视图无读取器可注入 ⇒ 恒为 unavailable（未接线 + 重试）。
  */
 export async function loadWbBroadcasts(deps: WbBroadcastDeps = {}): Promise<FeedBlock<WbBroadcastItem[]>> {
   if (!deps.fetchBroadcasts) {

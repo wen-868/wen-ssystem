@@ -37,7 +37,7 @@
           当前账号没有任何可见的设置分区（权限未命中）。
         </p>
 
-        <!-- 系统接入 / 运营：无端点 ⇒ 结构保留 + 待接入 + 重试 -->
+        <!-- 系统接入 / 运营：无端点 ⇒ 结构保留 + 未接线 + 重试 -->
         <template v-else-if="activeTab && isPlaceholderPane">
           <div class="pane" :data-pane="activeTab.key">
             <div class="ad-note">管理员专属</div>
@@ -181,13 +181,23 @@
         <template v-else-if="active === 'config'">
           <div class="pane" data-pane="config">
             <div class="ad-note">管理员专属</div>
-            <div class="dr-sec">系统配置</div>
-            <div class="dr-row">
-              <span class="k">系统配置页</span>
-              <span class="v">参数、组织、角色等配置仍在原配置页维护，避免两处真值分叉</span>
-              <el-button size="small" data-testid="sw-open-system" @click="emit('open-system-config')">
-                打开系统配置
-              </el-button>
+            <div class="dr-sec">系统管理</div>
+            <p class="pane-hint">组织、配置、审批、权限、支付、小程序、日志与反馈统一从这里进入。</p>
+            <div v-if="systemEntries.length === 0" class="cap-state" data-testid="sw-system-empty">
+              当前账号没有可访问的系统管理入口。
+            </div>
+            <div v-else class="system-entry-grid" data-testid="sw-system-entries">
+              <button
+                v-for="entry in systemEntries"
+                :key="entry.menuCode"
+                type="button"
+                class="system-entry"
+                :data-system-route="entry.routeName"
+                @click="emit('open-system-entry', entry)"
+              >
+                <span>{{ entry.title }}</span>
+                <em>打开</em>
+              </button>
             </div>
           </div>
         </template>
@@ -222,6 +232,12 @@ const props = defineProps<{
   userRoles: readonly string[];
   resolveRoles: RoleResolver;
   account: { name: string; store: string } | null;
+  systemEntries?: Array<{
+    menuCode: string;
+    routeName: string | null;
+    path: string | null;
+    title: string;
+  }>;
 }>();
 
 const emit = defineEmits<{
@@ -229,8 +245,17 @@ const emit = defineEmits<{
   logout: [];
   "open-print-settings": [];
   "open-system-config": [];
+  "open-system-entry": [
+    entry: {
+      menuCode: string;
+      routeName: string | null;
+      path: string | null;
+      title: string;
+    },
+  ];
 }>();
 
+const systemEntries = computed(() => props.systemEntries ?? []);
 const tabs = computed(() => visibleSettingTabs(props.userRoles, props.resolveRoles));
 const active = ref<SettingTabKey>("appear");
 const activeTab = computed<SettingTab | undefined>(
@@ -431,6 +456,36 @@ defineExpose({ active, tabs, theme, SETTINGS_TABS });
   border: 1px solid var(--border-normal);
   border-radius: var(--radius-pill);
   padding: 0 6px;
+}
+.system-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.system-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 9px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.system-entry:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+}
+.system-entry em {
+  flex-shrink: 0;
+  font-style: normal;
+  color: var(--text-muted);
 }
 .sw-body {
   min-width: 0;

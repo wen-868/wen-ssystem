@@ -131,7 +131,7 @@
           >
             <div class="product-card-top">
               <span class="product-cat-dot" :style="{ background: categoryColor(product.categoryId) }"></span>
-              <!-- 库存四态：真实有货 / 低库存 / 真实缺货 / 无库存行 ⇒ unavailable（库存待接入），不冒充「缺货」 -->
+              <!-- 库存四态：真实有货 / 低库存 / 真实缺货 / 无库存行 ⇒ unavailable（库存未接线），不冒充「缺货」 -->
               <span class="product-stock" :class="stockOf(product).className" :data-stock-state="stockOf(product).state">
                 {{ stockOf(product).text }}
               </span>
@@ -143,7 +143,7 @@
                 <span class="price-symbol">¥</span>
                 <span class="price-value">{{ Number(product.storePrice || product.retailPrice || 0).toFixed(2) }}</span>
               </div>
-              <!-- 加购：真实缺货才禁用；库存待接入仍可加购（无从判定，收款时由服务端出库校验兜底） -->
+              <!-- 加购：真实缺货才禁用；库存未接线仍可加购（无从判定，收款时由服务端出库校验兜底） -->
               <button
                 class="add-btn"
                 title="加购"
@@ -268,7 +268,7 @@
         </div>
 
         <!--
-          交易结果条（成功 / 部分到账 / 失败 / 取消 / 待接入 五态可辨）
+          交易结果条（成功 / 部分到账 / 失败 / 取消 / 未接线 五态可辨）
           文案与状态全部来自 submitPosCheckout / cancelPosCheckout 的真实返回，视图不做推断。
         -->
         <div
@@ -364,7 +364,7 @@
             <button class="btn2" …>取消收款</button>
       点击遮罩关闭 ⇒ @click.self="cancelPaySheet()"（等价于原型的 event.target===this 判定）。
       三个按钮的 data-p 文案与原型一致；能力态由 wb-pos-checkout.resolvePayCapability 判定：
-      现金支付＝真实线下收款端点；微信/支付宝＝通道 ready 才可用，否则整条结构保留并显式标 unavailable（待接入 + 重试）。
+      现金支付＝真实线下收款端点；微信/支付宝＝通道 ready 才可用，否则整条结构保留并显式标 unavailable（未接线 + 重试）。
     -->
     <div
       v-if="paySheetVisible"
@@ -408,7 +408,7 @@
           </button>
         </div>
 
-        <!-- unavailable 的具体缺口逐条写明 + 通道重试（照 agent-directory.ts 的 待接入/重试 范式） -->
+        <!-- unavailable 的具体缺口逐条写明 + 通道重试（照 agent-directory.ts 的 未接线/重试 范式） -->
         <ul v-if="unavailablePayButtons.length" class="pp-cap-list" data-testid="pos-cap-list">
           <li v-for="btn in unavailablePayButtons" :key="`cap-${btn.method}`" data-capability="unavailable">
             {{ btn.dataP }}：{{ btn.capability.reason }}
@@ -432,7 +432,7 @@
         <p v-if="payHint" class="pp-hint" data-testid="pos-pay-hint">{{ payHint }}</p>
         <p v-else-if="payCodeChannelLabel" class="pp-hint">{{ payCodeChannelLabel }}</p>
 
-        <!-- 反馈区：成功 / 部分到账 / 失败 / 取消 / 待接入 由真实结果驱动，失败与待接入均可重试 -->
+        <!-- 反馈区：成功 / 部分到账 / 失败 / 取消 / 未接线 由真实结果驱动，失败与未接线均可重试 -->
         <div
           v-if="payState !== 'idle' && payState !== 'submitting'"
           class="pp-feedback"
@@ -919,7 +919,7 @@ const productSearchRef = ref();
 const productOptions = ref<any[]>([]);
 const categories = ref<any[]>([]);
 const activeCategory = ref(0);
-/** 商品目录可用性（unavailable ⇒ 显式「待接入」+ 重试，不回落任何假商品） */
+/** 商品目录可用性（unavailable ⇒ 显式「未接线」+ 重试，不回落任何假商品） */
 const catalogueState = ref<PosCatalogueState>("loading");
 const catalogueMessage = ref("");
 /** 分类可用性（GET /admin/products/categories 失败 ⇒ unavailable） */
@@ -1115,7 +1115,7 @@ const posCatTabs = computed(() => buildPosCatTabs(categories.value, productOptio
 
 /**
  * 支付弹层三按钮（现金支付 / 微信支付 / 支付宝）＝原型 .pays > .pay-b[data-p]，
- * 每个按钮的能力态实时取自通道探测：ready 才可点，unavailable 则禁用 + 标「待接入」。
+ * 每个按钮的能力态实时取自通道探测：ready 才可点，unavailable 则禁用 + 标「未接线」。
  */
 const payButtons = computed(() =>
   POS_PAY_BUTTONS.map((btn) => ({
@@ -1144,7 +1144,7 @@ function togglePosFull() {
 
 /**
  * 库存四态（真实商品行 / 购物车行共用）：
- * null / undefined ⇒ unavailable「库存待接入」（门店无 t_inventory_balance 行，不是缺货也不是有货）；
+ * null / undefined ⇒ unavailable「库存未接线」（门店无 t_inventory_balance 行，不是缺货也不是有货）；
  * 0 ⇒ 真实缺货（禁用加购）；≤10 ⇒ 低库存。见 wb-pos-catalogue.ts 的端点核对。
  */
 function stockOf(row: any): PosStockView {
@@ -1576,8 +1576,8 @@ function useWalkInCustomer() {
 
 /**
  * 加购（D.3 三件套之一）：点击商品卡 / 加购按钮 / 扫码命中唯一商品都走这里。
- * 真实缺货（availableQty=0）禁止加购；库存待接入（null）仍可加购，
- * 但行上保留 null ⇒ 购物车与支付弹层会持续显示「库存待接入」，不冒充有货。
+ * 真实缺货（availableQty=0）禁止加购；库存未接线（null）仍可加购，
+ * 但行上保留 null ⇒ 购物车与支付弹层会持续显示「库存未接线」，不冒充有货。
  */
 function addCartItem(row: any, opts?: { traceCode?: string }) {
   const skuId = Number(row.skuId || row.id);
@@ -1610,7 +1610,7 @@ function addCartItem(row: any, opts?: { traceCode?: string }) {
     productName: row.productName || "",
     quantity: 1,
     unitPrice,
-    // 原样保留 null：门店无库存行 ≠ 库存 0，抹平成 0 会把「待接入」误报成「缺货」
+    // 原样保留 null：门店无库存行 ≠ 库存 0，抹平成 0 会把「未接线」误报成「缺货」
     availableQty: row.availableQty ?? null,
     traceCodes: opts?.traceCode ? [opts.traceCode] : []
   });
@@ -1714,7 +1714,7 @@ function increaseQty(index: number) {
   const item = cartItems.value[index];
   if (!item) return;
   const stock = stockOf(item);
-  // 有真实库存行时才做数量上限拦截；待接入（null）无从判定，交给服务端出库校验
+  // 有真实库存行时才做数量上限拦截；未接线（null）无从判定，交给服务端出库校验
   if (stock.qty !== null && Number(item.quantity || 0) + 1 > stock.qty) {
     ElMessage.warning(`「${item.skuName}」库存仅 ${stock.qty} 件，不能继续加购`);
     return;
@@ -2037,7 +2037,7 @@ async function runCheckout(method: PosPayMethod, authCode = "") {
   }
 }
 
-/** 重试：待接入先重探通道，再按真实结论决定是否扣款；失败/部分沿用同一单号再收款 */
+/** 重试：未接线先重探通道，再按真实结论决定是否扣款；失败/部分沿用同一单号再收款 */
 async function retryPay() {
   const method = lastAttemptMethod.value;
   if (!method) {
@@ -2072,7 +2072,7 @@ function cancelPayDesk() {
   cancelPaySheet();
 }
 
-/** 收起购物车结果条（成功 / 取消 已阅；失败与待接入不提供静默入口，只能重试或自行清空） */
+/** 收起购物车结果条（成功 / 取消 已阅；失败与未接线不提供静默入口，只能重试或自行清空） */
 function dismissResult() {
   lastResult.value = null;
 }

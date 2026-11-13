@@ -1,6 +1,15 @@
 <template>
   <div class="page">
     <PageCard title="销售开单">
+      <el-alert
+        v-if="aiPrefilled"
+        class="ai-prefill-notice"
+        type="info"
+        show-icon
+        :closable="true"
+        title="已按 AI 识别结果预填，请核对完整销售单后提交"
+        data-testid="ai-sales-order-prefill"
+      />
       <el-row :gutter="16">
         <!-- 主区域：基础信息 + 商品明细 + 底部结算 -->
         <el-col :span="24">
@@ -24,7 +33,7 @@
                       <el-option
                         v-for="c in customerOptions"
                         :key="c.id"
-                        :label="`${c.name} (${c.mobile})`"
+                        :label="c.mobile ? `${c.name} (${c.mobile})` : c.name"
                         :value="c.id"
                       />
                     </el-select>
@@ -280,6 +289,10 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import PageCard from "../../components/PageCard.vue";
 import { api, fetchStores, fetchMemberDetail, fetchStaff } from "../../api";
 import { useAuthStore } from "../../stores/auth";
+import {
+  consumeAiSalesOrderDraft,
+  type AiSalesOrderDraft,
+} from "../../shared/workbench/ai-form-bridge";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -310,6 +323,7 @@ const form = reactive({
 });
 
 const formRef = ref<FormInstance>();
+const aiPrefilled = ref(false);
 const rules: FormRules = {
   storeId: [{ required: true, message: "请选择门店", trigger: "change" }],
   customerId: [{ required: true, message: "请选择客户", trigger: "change" }],
@@ -479,15 +493,67 @@ async function loadStores() {
   }
 }
 
-onMounted(() => {
-  loadStores();
-  searchCustomers("");
-  fetchStaff()
-    .then((list) => {
-      staffOptions.value = list || [];
-      applyDefaultRoles();
-    })
-    .catch(() => applyDefaultRoles());
+function applyAiSalesOrderDraft(draft: AiSalesOrderDraft): void {
+  form.customerId = draft.customerId;
+  form.customerName = draft.customerName;
+  form.saleType = draft.saleType;
+  form.customerRemark = draft.customerRemark;
+  form.internalRemark = draft.internalRemark;
+
+  if (draft.customerId) {
+    customerOptions.value = [
+      { id: draft.customerId, name: draft.customerName || `客户 ${draft.customerId}`, mobile: "" },
+      ...customerOptions.value.filter((customer) => customer.id !== draft.customerId),
+    ];
+    void onCustomerChange(draft.customerId);
+  }
+
+  form.items = draft.items.map((item, index) => {
+    const product = {
+      id: item.skuId ?? -(index + 1),
+      name: item.skuName || `商品 ${item.skuId ?? index + 1}`,
+      retailPrice: item.unitPrice,
+      price: item.unitPrice,
+      skuSpec: "",
+      barcode: "",
+      units: ["瓶"],
+      defaultUnit: "瓶",
+    };
+    productOptions.value[index] = [product];
+    return {
+      productId: item.skuId,
+      productName: product.name,
+      barcode: "",
+      spec: "",
+      units: ["瓶"],
+      unit: "瓶",
+      qty: item.quantity || 1,
+      price: item.unitPrice,
+      discount: 0,
+      remark: "",
+      traceCodes: "",
+      subtotal: item.subtotal || Number(((item.quantity || 1) * item.unitPrice).toFixed(2)),
+    };
+  });
+  aiPrefilled.value = form.items.length > 0;
+}
+
+onMounted(async () => {
+  await Promise.allSettled([
+    loadStores(),
+    searchCustomers(""),
+    fetchStaff()
+      .then((list) => {
+        staffOptions.value = list || [];
+        applyDefaultRoles();
+      })
+      .catch(() => applyDefaultRoles()),
+  ]);
+  const draft = consumeAiSalesOrderDraft();
+  if (draft) {
+    applyAiSalesOrderDraft(draft);
+    ElMessage.info("AI 预填已完成，请核对完整销售单");
+  }
 });
 
 async function searchProducts(query: string, index: number) {
@@ -610,6 +676,7 @@ async function handleSubmit(print = false) {
 
 <style scoped>
 .page { padding: 0; }
+.ai-prefill-notice { margin-bottom: 12px; }
 .info-card { margin-bottom: 0; }
 /* 原型该页是「开单表单 + 较窄的单据明细表」：明细表区域收口（宿主 714 ⇒ 明细 el-table ≈646，1440 视口），
    底部结算/操作栏仍占全宽，主操作按钮可达 */
