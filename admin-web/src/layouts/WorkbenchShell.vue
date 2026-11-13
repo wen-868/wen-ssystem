@@ -113,11 +113,15 @@
       :cashier-active="isCashierRoute"
       :production-snapshot="effectiveCapabilities"
       :menu-usage="menuUsage"
+      :active-conversation-id="currentAiConversationId"
+      :history-revision="aiHistoryRevision"
       @open="openManualItem"
       @open-cashier="openCashierItem"
       @go-desk="goDesk"
       @go-pos="goPos"
       @new-chat="startNewConversation"
+      @open-conversation="openAiConversation"
+      @open-employee="openAiEmployee"
       @collapse="sideCollapsed = !sideCollapsed"
     />
 
@@ -200,6 +204,7 @@
             @ask="enterChatAndSend"
             @open="openManualItem"
             @open-chat="enterChat"
+            @new-info="pulseWorkbenchAlert"
           />
         </main>
         <main class="wb-view" :class="{ shown: effectiveMode === 'ai' && face === 'chat' && !isCashierRoute }" data-view="chat" data-testid="view-chat">
@@ -208,6 +213,7 @@
             class="wb-chat-main"
             style="width: 100%; flex: 1"
             @status="handleAiStatus"
+            @conversation="handleAiConversation"
             @fallback="switchMode('human')"
             @open-form="openAiNativeForm"
           />
@@ -458,7 +464,7 @@ const menuUsage = ref(readMenuUsage());
  *  feed=旧信息流层（结构保留、数据 hook 保留，不再作为任何入口的默认/落地面）。
  *  仅 AI 模式内有层切换。 */
 type MainFace = "chat" | "feed";
-const face = ref<MainFace>("chat");
+const face = ref<MainFace>("feed");
 const sideCollapsed = ref(false);
 
 /**
@@ -573,12 +579,20 @@ async function loadMenus(): Promise<void> {
 
 /** AI 待审阅数（真实端点 /api/chat/confirmations；失败/未启动 ⇒ null 不展示，不编造） */
 const pendingReviewCount = ref<number | null>(null);
+let previousPendingReviewCount: number | null = null;
 let confirmTimer: number | undefined;
 
 async function loadPendingReview(): Promise<void> {
   try {
     const rows = await fetchAiConfirmations();
     pendingReviewCount.value = Array.isArray(rows) ? rows.length : 0;
+    if (
+      previousPendingReviewCount !== null &&
+      pendingReviewCount.value > previousPendingReviewCount
+    ) {
+      pulseWorkbenchAlert();
+    }
+    previousPendingReviewCount = pendingReviewCount.value;
   } catch {
     pendingReviewCount.value = null; // 底座不可达/未登录：如实不可见，不显示 0 假装无待办
   }
@@ -626,13 +640,14 @@ watch(
     }
     if ((path === "/dashboard" || path === "/") && workbenchMode.value === "human") {
       setWorkbenchMode("ai");
-      face.value = "chat";
+      face.value = "feed";
     }
   },
   { immediate: true },
 );
 onBeforeUnmount(() => {
   if (confirmTimer !== undefined) window.clearInterval(confirmTimer);
+  if (feedAlertTimer !== undefined) window.clearTimeout(feedAlertTimer);
   narrowQuery?.removeEventListener("change", onNarrowChange);
   narrowQuery = null;
 });
@@ -889,8 +904,22 @@ const pageTitle = computed(() => {
  */
 const showChatComposer = computed(() => effectiveMode.value === "ai" && face.value === "chat" && !isCashierRoute.value);
 
-/** 有新动态 ⇒ rail 工作台按钮红闪（feedAlert）：用待审阅>0 驱动（真实数据） */
-const feedAlert = computed(() => (pendingReviewCount.value ?? 0) > 0);
+/** 新信息到达时短暂点亮工作台入口；不是“待审阅>0”常亮。 */
+const feedAlert = ref(false);
+let feedAlertTimer: number | undefined;
+function pulseWorkbenchAlert(): void {
+  feedAlert.value = true;
+  if (feedAlertTimer !== undefined) window.clearTimeout(feedAlertTimer);
+  feedAlertTimer = window.setTimeout(() => {
+    feedAlert.value = false;
+    feedAlertTimer = undefined;
+  }, 2_400);
+}
+function clearWorkbenchAlert(): void {
+  feedAlert.value = false;
+  if (feedAlertTimer !== undefined) window.clearTimeout(feedAlertTimer);
+  feedAlertTimer = undefined;
+}
 
 const printSettingsVisible = ref(false);
 /** 设置中心（原型 .sw 弹窗，WORKBENCH-10-F1 补齐项 E）：rail 设置项在壳层内打开，不跳路由 */
@@ -900,19 +929,53 @@ const settingsAccount = computed(() =>
 );
 
 const aiSessionState = ref<"idle" | "streaming" | "error">("idle");
+const currentAiConversationId = ref("");
+const aiHistoryRevision = ref(0);
 const chatPanel = ref<{
   sendQuickCommand?: (text: string) => void;
   newConversation?: () => void;
+  loadConversation?: (conversationId: string) => void;
+  selectEmployee?: (employee: {
+    employeeUid: string;
+    name: string;
+    post: string;
+    department?: string;
+    collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+  }) => void;
 } | null>(null);
 
 function handleAiStatus(payload: { state: "idle" | "streaming" | "error" }): void {
   aiSessionState.value = payload.state;
+  if (payload.state === "idle") aiHistoryRevision.value += 1;
+}
+
+function handleAiConversation(conversationId: string): void {
+  if (!conversationId) return;
+  currentAiConversationId.value = conversationId;
 }
 
 function startNewConversation(): void {
   setWorkbenchMode("ai");
   face.value = "chat";
   chatPanel.value?.newConversation?.();
+}
+
+function openAiConversation(conversationId: string): void {
+  setWorkbenchMode("ai");
+  face.value = "chat";
+  nextTick(() => chatPanel.value?.loadConversation?.(conversationId));
+}
+
+function openAiEmployee(employee: {
+  employeeUid: string;
+  name: string;
+  post: string;
+  department?: string;
+  collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+}): void {
+  setWorkbenchMode("ai");
+  face.value = "chat";
+  nextTick(() => chatPanel.value?.selectEmployee?.(employee));
 }
 
 /** 底部输入区 / feed 提问：切 AI 会话面并发送（原型：信息流态直接发消息） */
@@ -1010,10 +1073,11 @@ function openCashierItem(entry: ManifestItem): void {
   if (entry.path) router.push(entry.path);
 }
 
-/** rail：工作台（= AI 日常经营对话主面）/ 模块选择 / 设置 */
+/** rail：工作台 = 数据大屏 / 信息流；AI 对话由新对话与显式入口进入。 */
 function goDeskHome(): void {
   setWorkbenchMode("ai");
-  face.value = "chat";
+  face.value = "feed";
+  clearWorkbenchAlert();
   selectedGroupCode.value = "";
   if (route.path !== "/dashboard") router.push("/dashboard").catch(() => undefined);
 }

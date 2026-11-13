@@ -53,29 +53,16 @@
             </div>
           </div>
 
-          <!-- 消息序列：连续 tool 消息归组为工具调用时间线 -->
-          <template v-for="block in renderBlocks" :key="block.key">
-            <div v-if="block.type === 'timeline'" class="tool-timeline" data-testid="window-tool-timeline">
-              <p class="tool-timeline-title">工具调用时间线</p>
-              <AiMessageCard
-                v-for="m in block.msgs"
-                :key="m.id"
-                :message="m"
-                @confirm="handleConfirm"
-                @cancel="handleCancel"
-                @revoke="handleRevoke"
-                @retry="retryMessage"
-              />
-            </div>
-            <AiMessageCard
-              v-else
-              :message="block.msg"
-              @confirm="handleConfirm"
-              @cancel="handleCancel"
-              @revoke="handleRevoke"
-              @retry="retryMessage"
-            />
-          </template>
+          <!-- 工具执行过程属于内部细节；消费者只看到最终回复与写操作确认卡。 -->
+          <AiMessageCard
+            v-for="m in visibleMessages"
+            :key="m.id"
+            :message="m"
+            @confirm="handleConfirm"
+            @cancel="handleCancel"
+            @revoke="handleRevoke"
+            @retry="retryMessage"
+          />
         </div>
 
         <div class="ai-input-area">
@@ -113,6 +100,7 @@ import { Close, Delete, MagicStick } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
 import { createMessageId, type AiChatMessage } from "./types";
 import {
+  createAiConversationId,
   cancelAiOperation,
   confirmAiOperation,
   connectAiPushSocket,
@@ -155,7 +143,7 @@ function toggle(): void {
 function clearChat(): void {
   if (streaming.value) abortCurrent();
   messages.value = [];
-  conversationId.value = undefined;
+  conversationId.value = createAiConversationId();
   unreadCount.value = 0;
 }
 
@@ -179,6 +167,7 @@ function abortCurrent(): void {
 async function sendMessage(): Promise<void> {
   const text = input.value.trim();
   if (!text || streaming.value) return;
+  if (!conversationId.value) conversationId.value = createAiConversationId();
   input.value = "";
   pushMessage({ role: "user", kind: "text", content: text });
   const assistant = pushMessage({ role: "assistant", kind: "text", content: "" });
@@ -194,23 +183,11 @@ async function sendMessage(): Promise<void> {
         onText: (content) => {
           assistant.content = (assistant.content || "") + content;
         },
-        onToolStart: (tool) => {
-          // 工具时间线：先落一条「执行中」步骤（SSE tool_start 驱动），tool_result 就地更新
-          pushMessage({ role: "assistant", kind: "tool", tool, toolStatus: "running" });
+        onToolStart: () => {
+          // 工具执行过程不进入消费者消息流
         },
         onToolResult: (payload) => {
-          // 回填最近一条执行中的工具步骤状态；写操作（preview）另出确认卡片，供用户确认/取消
-          const matched =
-            [...messages.value].reverse().find(
-              (m) => m.kind === "tool" && m.toolStatus === "running" && m.tool === payload.tool,
-            ) ||
-            [...messages.value].reverse().find(
-              (m) => m.kind === "tool" && m.toolStatus === "running",
-            );
-          if (matched) {
-            matched.toolStatus = payload.success ? "success" : "error";
-            matched.data = payload.data;
-          }
+          // 只读工具结果不展示；写操作预览仍生成确认卡片。
           if (payload.preview) {
             pushMessage({
               role: "assistant",
@@ -268,27 +245,7 @@ function retryMessage(messageId: string): void {
   void sendMessage();
 }
 
-/** 渲染块：连续 tool 消息归组为「工具调用时间线」（与侧栏面板同一展示语义） */
-type RenderBlock =
-  | { type: "msg"; key: string; msg: AiChatMessage }
-  | { type: "timeline"; key: string; msgs: AiChatMessage[] };
-
-const renderBlocks = computed<RenderBlock[]>(() => {
-  const blocks: RenderBlock[] = [];
-  for (const m of messages.value) {
-    const last = blocks[blocks.length - 1];
-    if (m.kind === "tool" && last && last.type === "timeline") {
-      last.msgs.push(m);
-      continue;
-    }
-    if (m.kind === "tool") {
-      blocks.push({ type: "timeline", key: `tl-${m.id}`, msgs: [m] });
-      continue;
-    }
-    blocks.push({ type: "msg", key: m.id, msg: m });
-  }
-  return blocks;
-});
+const visibleMessages = computed(() => messages.value.filter((m) => m.kind !== "tool"));
 
 function sendSuggestion(text: string): void {
   input.value = text;
@@ -374,6 +331,7 @@ function handleProactivePush(payload: AiProactivePayload): void {
 }
 
 onMounted(() => {
+  if (!conversationId.value) conversationId.value = createAiConversationId();
   // 连接 AI 主动推送实时通道（断线自动重连，卸载时断开）
   disconnectPush = connectAiPushSocket({
     onMessage: handleProactivePush,
@@ -559,22 +517,6 @@ onBeforeUnmount(() => {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-bg);
-}
-
-/* 工具调用时间线（SSE 事件驱动的连续步骤分组） */
-.tool-timeline {
-  border-left: 2px solid var(--border-normal, #d1d5db);
-  padding: 2px 0 2px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.tool-timeline-title {
-  margin: 0;
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 600;
 }
 
 .ai-input-area {

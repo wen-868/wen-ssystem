@@ -81,15 +81,15 @@ await run("输入中指示：空 assistant 消息即渲染「正在思考」脉�
   return "占位消息 + 条件渲染 + 动画";
 });
 
-await run("工具时间线：onToolStart 落 running 步骤、onToolResult 回填状态、连续步骤归组", () => {
+await run("工具过程隐藏：只读调用不进入消费者消息流，写操作确认卡保留", () => {
   for (const [name, text] of [["AiSidePanel", side], ["AiChatWindow", win]]) {
-    assert.ok(text.includes('kind: "tool", tool, toolStatus: "running"'), `${name} onToolStart 应落「执行中」步骤`);
-    assert.ok(text.includes('m.toolStatus === "running"'), `${name} onToolResult 应回填最近执行中步骤`);
-    assert.ok(text.includes('type: "timeline"'), `${name} 应把连续 tool 消息归组为时间线块`);
-    assert.ok(text.includes("工具调用时间线"), `${name} 时间线应有标题`);
+    assert.ok(!text.includes("工具调用时间线"), `${name} 仍渲染工具时间线`);
+    assert.ok(!text.includes('kind: "tool", tool, toolStatus: "running"'), `${name} onToolStart 仍生成可见工具消息`);
+    assert.ok(!text.includes('type: "timeline"'), `${name} 仍保留时间线归组`);
+    assert.ok(text.includes("if (payload.preview)"), `${name} 写操作预览确认卡被一并删除`);
   }
-  assert.ok(side.includes("chat-tool-timeline"), "侧栏时间线缺 data-testid 锚点");
-  return "SSE 事件驱动的执行中→结果回填→归组";
+  assert.ok(!side.includes("chat-tool-timeline"), "侧栏仍存在工具时间线锚点");
+  return "只读工具 0 渲染 + 写确认卡保留";
 });
 
 // ═══ ③ 确认卡：既有链路只扩展不回归 ═══
@@ -102,7 +102,7 @@ await run("确认卡保留：preview→确认卡 + confirm/cancel/revoke 真实�
   }
   assert.ok(card.includes("AiPreviewCard"), "消息卡应继续渲染确认卡组件");
   assert.ok(preview.includes("确认执行") && preview.includes("撤销（3分钟内）"), "确认卡动作文案保留");
-  assert.ok(side.includes("defineExpose({ sendText: sendSuggestion"), "快捷指令暴露锚点保留（ai-primary 护栏）");
+  assert.ok(side.includes("sendText: sendSuggestion"), "快捷指令暴露锚点保留（ai-primary 护栏）");
   return "确认/取消/撤销三链 + 组件 + 文案锚点齐全";
 });
 

@@ -152,6 +152,40 @@ await run("重复会话条已移除；新对话仍复用 clearChat，故障锚�
   return "重复条清零 + 真实新对话 + 故障/单一实现锚点齐全";
 });
 
+await run("新对话立即有会话 ID；联系人 + 号按页签真实新增员工或新会话", () => {
+  const side = read("components/AiChat/AiSidePanel.vue");
+  const window = read("components/AiChat/AiChatWindow.vue");
+  const subnav = read("layouts/WorkbenchSubnav.vue");
+  const api = read("api/ai.ts");
+  assert.ok(side.includes("createAiConversationId") && side.includes('emit("conversation"'), "侧栏新对话未生成/上报会话 ID");
+  const clearBlock = side.slice(side.indexOf("function clearChat"), side.indexOf("async function loadConversation"));
+  assert.ok(clearBlock.includes("createAiConversationId"), "clearChat 未生成新会话 ID");
+  assert.ok(window.includes("createAiConversationId"), "悬浮窗新对话未生成会话 ID");
+  assert.ok(subnav.includes("handlePlusAction"), "联系人栏 + 号缺少动作分发");
+  assert.ok(subnav.includes('sideTab.value === "员工"'), "员工页签 + 号未进入新增员工分支");
+  assert.ok(subnav.includes("createAiEmployee"), "新增员工未调用真实 API");
+  const employeeApi = api.slice(
+    api.indexOf("export async function createAiEmployee"),
+    api.indexOf("export interface AiToolInfo"),
+  );
+  assert.ok(employeeApi.includes("/api/ai/employees") && employeeApi.includes('method: "POST"'), "缺少 POST /api/ai/employees 真源");
+  return "新对话 ID + 员工创建真实端点 + 对话新会话分支";
+});
+
+await run("员工身份与协同：对话前显示姓名/岗位/部门，并携带 employeeUid", () => {
+  const side = read("components/AiChat/AiSidePanel.vue");
+  const shell = read("layouts/WorkbenchShell.vue");
+  const subnav = read("layouts/WorkbenchSubnav.vue");
+  const api = read("api/ai.ts");
+  assert.ok(side.includes('data-testid="chat-agent-identity"'), "缺少对话主体身份栏");
+  assert.ok(side.includes("activeEmployee?.name") && side.includes("activeEmployee.post"), "身份栏未显示员工姓名/岗位");
+  assert.ok(side.includes("可协同："), "未展示可结构化调度的员工");
+  assert.ok(api.includes("...(employeeUid ? { employeeUid } : {})"), "POST /api/chat 未携带 employeeUid");
+  assert.ok(subnav.includes('emit("open-employee"'), "员工联系人点击未向上派发");
+  assert.ok(shell.includes("openAiEmployee"), "壳层未接员工会话");
+  return "身份栏 + 协同员工 + employeeUid 贯通";
+});
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n小结：${results.length - failed.length} passed / ${failed.length} failed`);
 if (failed.length) {

@@ -4,6 +4,7 @@
  * AI 底座为独立 NestJS 服务（默认端口 3016），通过环境变量 VITE_AI_BASE_URL 配置地址。
  * 端点前缀与底座一致（底座全局前缀 /api）：
  *   - POST /api/chat                          SSE 流式对话
+ *   - GET  /api/admin/session-archive         真实历史会话 / 对话找回
  *   - GET  /api/admin/tools                   工具列表
  *   - GET  /api/chat/confirmations            当前租户待确认列表
  *   - POST /api/chat/confirmations/:id/confirm 确认执行（返回 operationId）
@@ -37,6 +38,15 @@ function resolveAiBase(): string {
 
 export const AI_BASE_URL = resolveAiBase();
 
+/** 新对话立即使用的客户端会话 ID；服务端首条消息会沿用该 ID 写入记忆与归档。 */
+export function createAiConversationId(): string {
+  const random =
+    typeof globalThis.crypto?.randomUUID === "function"
+      ? globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 8)
+      : Math.random().toString(36).slice(2, 10);
+  return `sess_${Date.now()}_${random}`;
+}
+
 /** 从当前登录态获取 JWT（AI 底座通过 Authorization 注入租户上下文） */
 function getAiAuthToken(): string {
   return useAuthStore().token || "";
@@ -67,6 +77,62 @@ async function readError(resp: Response, fallback: string): Promise<Error> {
     // 读取响应体失败时使用兜底文案
   }
   return new Error(message);
+}
+
+// ==================== 会话归档 ====================
+
+export interface AiSessionArchiveItem {
+  id?: string | number;
+  sessionId?: string;
+  session_id?: string;
+  tenantId?: string;
+  tenant_id?: string;
+  userId?: string | null;
+  user_id?: string | null;
+  messagesJson?: unknown;
+  messages_json?: unknown;
+  messageCount?: number;
+  message_count?: number;
+  startedAt?: string | null;
+  started_at?: string | null;
+  endedAt?: string | null;
+  ended_at?: string | null;
+  createdAt?: string | null;
+  created_at?: string | null;
+}
+
+export interface AiSessionArchiveResponse {
+  total?: number;
+  items?: AiSessionArchiveItem[];
+}
+
+/**
+ * 查询 AI 底座真实会话归档。
+ *
+ * GET /api/admin/session-archive
+ * - sessionId 为空时返回当前租户最近会话；
+ * - sessionId 有值时返回该会话的完整归档消息；
+ * - 该端点是历史会话与“找回对话”的唯一真源，不得用本地缓存冒充。
+ */
+export async function fetchAiSessionArchive(options?: {
+  sessionId?: string;
+  limit?: number;
+  signal?: AbortSignal;
+}): Promise<AiSessionArchiveResponse> {
+  const params = new URLSearchParams();
+  params.set("limit", String(Math.max(1, Math.min(options?.limit ?? 40, 100))));
+  if (options?.sessionId) params.set("sessionId", options.sessionId);
+  const resp = await fetch(`${AI_BASE_URL}/api/admin/session-archive?${params.toString()}`, {
+    method: "GET",
+    headers: aiHeaders(),
+    signal: options?.signal,
+  });
+  if (!resp.ok) throw await readError(resp, `获取历史会话失败（HTTP ${resp.status}）`);
+  const json: unknown = await resp.json();
+  if (!json || typeof json !== "object") {
+    throw new Error("历史会话返回形状异常（非对象）");
+  }
+  return json as AiSessionArchiveResponse;
 }
 
 /** 判断是否为用户主动中断（AbortController.abort 触发） */
@@ -159,6 +225,7 @@ export async function sendChatMessage(
   signal?: AbortSignal,
   model?: string,
   image?: string,
+  employeeUid?: string,
 ): Promise<void> {
   let resp: Response;
   try {
@@ -170,6 +237,7 @@ export async function sendChatMessage(
         conversationId,
         ...(model ? { model } : {}),
         ...(image ? { image } : {}),
+        ...(employeeUid ? { employeeUid } : {}),
       }),
       signal,
     });
@@ -213,6 +281,32 @@ export interface AiModelOption {
 export interface AiModelsResponse {
   default: string;
   models: AiModelOption[];
+}
+
+export interface AiEmployeeCreateInput {
+  name: string;
+  post: string;
+  department: string;
+  personaPrompt?: string;
+  toolCategories?: string[];
+  replyStyle?: string;
+  dispatchUids?: string[];
+}
+
+/** 新建数字员工；成功后由调用方刷新联系人目录。 */
+export async function createAiEmployee(
+  input: AiEmployeeCreateInput,
+): Promise<Record<string, unknown>> {
+  const resp = await fetch(`${AI_BASE_URL}/api/ai/employees`, {
+    method: "POST",
+    headers: aiHeaders(),
+    body: JSON.stringify(input),
+  });
+  if (!resp.ok) throw await readError(resp, `创建数字员工失败（HTTP ${resp.status}）`);
+  const json: unknown = await resp.json();
+  return json && typeof json === "object"
+    ? (json as Record<string, unknown>)
+    : { success: true };
 }
 
 /** 获取当前租户可用模型列表（内置 + 启用外部模型）与默认模型 */
