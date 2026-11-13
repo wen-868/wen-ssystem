@@ -6,7 +6,7 @@
  * 补拍口径：
  *  1. 先切业务视图（壳层 localStorage wb.shell.mode=human / 点「切换人工操作台」）再截图；
  *  2. 截图前断言目标页主体（员工表格行 / 页头「员工管理」）在视口内可见，不满足重试；
- *  3. stateKind + visualKind 双字段，防壳层遮挡冒充 data 态；
+ *  3. stateKind + visualKind 双字段（visualKind: manual-console / ai-shell-blocked / not-visible），防壳层遮挡冒充数据态；
  *  4. 1440x1000 + 1024x768 两视口。
  */
 import { chromium } from "playwright";
@@ -103,8 +103,12 @@ for (const vp of VIEWPORTS) {
   const shot = path.join(OUT, `_employees.${vp.tag}.png`);
   await page.screenshot({ path: shot, fullPage: false });
   const stateKind = m.tableRows > 0 ? "data" : (m.hasEmpty ? "empty" : "other");
-  // visualKind：视觉是否真能看到目标页主体（防壳层遮挡冒充 data 态）
-  const visualKind = m.visibleRows > 0 && !m.isAiShell ? "data-visible" : (m.isAiShell ? "shell-blocked" : "not-visible");
+  // visualKind：视觉呈现归属（门2 口径命名）
+  //  - manual-console：人工操作台视图（wb.shell.mode=human，无 AI 壳层遮挡），且目标页主体在视口内可见 ⇒ 合格
+  //  - ai-shell-blocked：仍处 AI 壳层（is-ai + 故障 banner 占主区）⇒ 遮挡，不合格
+  //  - not-visible：既非 AI 壳层但表格行仍不在视口内 ⇒ 不可见，不合格
+  const bodyVisible = m.visibleRows > 0 && !m.isAiShell;
+  const visualKind = m.isAiShell ? "ai-shell-blocked" : (bodyVisible ? "manual-console" : "not-visible");
   out.viewports.push({
     vp: vp.tag, finalUrl: page.url(), geom: { w: vp.w, h: vp.h },
     tableRows: m.tableRows, visibleRows: m.visibleRows,
@@ -120,6 +124,7 @@ for (const vp of VIEWPORTS) {
 
 await browser.close();
 fs.writeFileSync(path.join(OUT, "capture-employees-refix.json"), JSON.stringify(out, null, 2), "utf8");
-const allOk = out.viewports.every((v) => v.visualKind === "data-visible");
+const allOk = out.viewports.every((v) => v.visualKind === "manual-console");
 console.log(`\nSUMMARY viewports=${out.viewports.length} allDataVisible=${allOk}`);
 process.exit(allOk ? 0 : 3);
+
