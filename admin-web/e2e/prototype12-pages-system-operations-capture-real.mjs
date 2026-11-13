@@ -65,6 +65,9 @@ for (const vp of VIEWPORTS) {
   const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h } });
   await ctx.addInitScript(([token, user]) => {
     localStorage.setItem("admin_auth", JSON.stringify({ token, user }));
+    // 系统页均属人工操作台业务视图：预置 human 模式，避免 AI 壳层遮挡业务页
+    // （壳层 BUSINESS_ROUTE_PATHS 未覆盖 /employees 等系统路由，属壳层缺陷，已登记转墨卡）
+    localStorage.setItem("wb.shell.mode", "human");
   }, [login.token, login.user]);
   for (const pg of PAGES) {
     const page = await ctx.newPage();
@@ -92,27 +95,70 @@ for (const vp of VIEWPORTS) {
       const txt = (document.querySelector("#app")?.innerText || "").slice(0, 6000);
       const tableRows = document.querySelectorAll(".el-table__body tr").length;
       const hasLoading = !!document.querySelector(".el-loading-mask");
-      return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), left: Math.round(r.left), innerText: txt, tableRows, hasLoading };
+      // 主体可见性：页头标题 + 主内容区是否在视口内，且是否被壳层遮挡
+      const inView = (e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0 && b.top < window.innerHeight && b.bottom > 0 && b.left < window.innerWidth && b.right > 0; };
+      const shell = document.querySelector(".wb-shell");
+      const isAiShell = shell ? shell.classList.contains("is-ai") : false;
+      const faultBanner = document.querySelector('[data-testid="ai-fault-banner"]');
+      const mainEl = document.querySelector("#app .el-main") || document.querySelector(".wb-view-manual") || document.querySelector("#app");
+      const mainBox = mainEl ? mainEl.getBoundingClientRect() : null;
+      const heading = [...document.querySelectorAll(".card-header span, .page-header, h1, h2")].map((e) => e.textContent.trim()).filter(Boolean).slice(0, 4);
+      const visibleRows = [...document.querySelectorAll(".el-table__body tr")].filter(inView).length;
+      // 横向溢出：文档宽度超出视口即记录（响应式/挤压诊断）
+      const docOverflowX = Math.max(0, document.documentElement.scrollWidth - window.innerWidth);
+      const bodyOverflowX = Math.max(0, document.body.scrollWidth - window.innerWidth);
+      // 二级导航是否挤压主内容区（新壳层重点核对项）
+      const subnav = document.querySelector(".wb-subnav, [data-testid='wb-subnav']");
+      const subnavBox = subnav ? subnav.getBoundingClientRect() : null;
+      const mainOverlappedBySubnav = !!(subnavBox && mainBox && subnavBox.height > 0 &&
+        mainBox.top < subnavBox.bottom - 1 && mainBox.bottom > subnavBox.top + 1 &&
+        mainBox.left < subnavBox.right - 1 && mainBox.right > subnavBox.left + 1);
+      return {
+        w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top), left: Math.round(r.left),
+        innerText: txt, tableRows, visibleRows, hasLoading,
+        isAiShell, hasFaultBanner: !!faultBanner, heading,
+        mainBox: mainBox ? { w: Math.round(mainBox.width), h: Math.round(mainBox.height), top: Math.round(mainBox.top), left: Math.round(mainBox.left) } : null,
+        mainInView: mainBox ? inView(mainEl) : false,
+        docOverflowX, bodyOverflowX,
+        hasSubnav: !!subnav,
+        subnavBox: subnavBox ? { w: Math.round(subnavBox.width), h: Math.round(subnavBox.height), top: Math.round(subnavBox.top), left: Math.round(subnavBox.left) } : null,
+        mainOverlappedBySubnav,
+      };
     });
     const blHits = BLACKLIST.filter((t) => m.innerText.includes(t));
     const shot = path.join(OUT, `${pg.route.replace(/[/:]/g, "_") || "root"}.${vp.tag}.png`);
     await page.screenshot({ path: shot, fullPage: false }).catch(() => {});
     let rec = results.pages.find((p) => p.route === pg.route);
     if (!rec) { rec = { route: pg.route, name: pg.name, proto: pg.proto, viewports: [] }; results.pages.push(rec); }
+    const stateKind = m.tableRows > 0 ? "data" : (/暂无数据|暂无相关数据|无数据/.test(m.innerText) ? "empty" : "other");
+    const bodyVisible = m.mainInView && !m.isAiShell;
+    const visualKind = m.isAiShell ? "ai-shell-blocked" : (bodyVisible ? "manual-console" : "not-visible");
     rec.viewports.push({
       vp: vp.tag, finalUrl: page.url(), title, httpErr,
       geom: { w: m.w, h: m.h, top: m.top, left: m.left }, textLen: m.innerText.length,
-      tableRows: m.tableRows, isLoaded: !m.hasLoading,
-      stateKind: m.tableRows > 0 ? "data" : (/暂无数据|暂无相关数据|无数据/.test(m.innerText) ? "empty" : "other"),
+      tableRows: m.tableRows, visibleRows: m.visibleRows, isLoaded: !m.hasLoading,
+      stateKind, visualKind,
+      isAiShell: m.isAiShell, hasFaultBanner: m.hasFaultBanner,
+      heading: m.heading, mainBox: m.mainBox, mainInView: m.mainInView,
+      docOverflowX: m.docOverflowX, bodyOverflowX: m.bodyOverflowX,
+      hasSubnav: m.hasSubnav, subnavBox: m.subnavBox, mainOverlappedBySubnav: m.mainOverlappedBySubnav,
       blacklistHits: blHits, screenshot: path.basename(shot), consoleErrors: consoleErr.slice(0, 3),
     });
     await page.close();
-    console.log(`${pg.route} [${vp.tag}] rows=${m.tableRows} loaded=${!m.hasLoading} textLen=${m.innerText.length} bl=${blHits.length} http=${httpErr || "-"}`);
+    console.log(`${pg.route} [${vp.tag}] rows=${m.tableRows}/${m.visibleRows} visual=${visualKind} overflowX=${m.docOverflowX} subnav=${m.hasSubnav}(${m.mainOverlappedBySubnav ? "OVERLAP!" : "ok"}) bl=${blHits.length} http=${httpErr || "-"}`);
   }
   await ctx.close();
 }
 await browser.close();
+let bl = 0, rendered = 0, blocked = 0, overlap = 0, overflow = 0;
+for (const p of results.pages) for (const v of p.viewports) {
+  bl += v.blacklistHits.length;
+  if (v.textLen > 0) rendered++;
+  if (v.visualKind === "ai-shell-blocked" || v.visualKind === "not-visible") blocked++;
+  if (v.mainOverlappedBySubnav) overlap++;
+  if (v.docOverflowX > 0) overflow++;
+}
+results.summary = { pages: results.pages.length, viewports: results.pages.length * 2, blacklistTotal: bl, rendered, blocked, subnavOverlap: overlap, horizontalOverflow: overflow };
 fs.writeFileSync(path.join(OUT, "capture-results.json"), JSON.stringify(results, null, 2), "utf8");
-let bl = 0, rendered = 0; for (const p of results.pages) for (const v of p.viewports) { bl += v.blacklistHits.length; if (v.textLen > 0) rendered++; }
-console.log(`\nSUMMARY real-login pages=${results.pages.length} viewports=${results.pages.length * 2} blacklistTotal=${bl} rendered=${rendered}`);
-process.exit(0);
+console.log(`\nSUMMARY real-login pages=${results.pages.length} viewports=${results.pages.length * 2} blacklistTotal=${bl} rendered=${rendered} blocked=${blocked} subnavOverlap=${overlap} overflowX=${overflow}`);
+process.exit(blocked > 0 ? 4 : 0);
