@@ -276,8 +276,28 @@ export async function deleteMarketingTag(id: number) {
   return data.data;
 }
 export async function fetchMarketingTagsByType() {
-  const { data } = await api.get("/admin/product-tags/by-type");
-  return data.data;
+  // 死路径修复（凌舟 2026-11-13 裁定 A）：原 /admin/product-tags/by-type 后端零实现，运行时必 404。
+  // 改接真实端点并按分组聚合：
+  // - GET /admin/tags/groups → listGroups，行字段 id / name（无 groupName）
+  // - GET /admin/tags        → listTags，行字段 id / group_id / name（无 tagType）
+  const [groupsRes, tagsRes] = await Promise.all([
+    api.get("/admin/tags/groups"),
+    api.get("/admin/tags"),
+  ]);
+  const groups: Array<Record<string, unknown>> = groupsRes.data.data || [];
+  const tags: Array<Record<string, unknown>> = tagsRes.data.data || [];
+  const nameById = new Map<unknown, string>();
+  for (const g of groups) {
+    nameById.set(g.id, String(g.name ?? ""));
+  }
+  // 服务端标签行只有 group_id，按 group_id → 组名聚合，输出 { 组名: [标签...] }
+  const byGroup: Record<string, Array<Record<string, unknown>>> = {};
+  for (const t of tags) {
+    const key = nameById.get(t.group_id) || "未分组";
+    if (!byGroup[key]) byGroup[key] = [];
+    byGroup[key].push(t);
+  }
+  return byGroup;
 }
 export async function fetchProductMarketingTags(productId: number) {
   const { data } = await api.get(`/admin/products/${productId}/marketing-tags`);
