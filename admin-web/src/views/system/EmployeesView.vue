@@ -9,7 +9,7 @@
               v-model="keyword"
               placeholder="搜索用户名/姓名"
               size="default"
-              style="width: 200px; margin-right: 10px"
+              class="header-search"
               clearable
               @clear="loadStaff"
               @keyup.enter="loadStaff"
@@ -21,11 +21,11 @@
       </template>
 
       <el-table :data="staffList" v-loading="loading" stripe empty-text="暂无员工">
-        <el-table-column prop="staffId" label="员工ID" width="100" />
-        <el-table-column prop="username" label="用户名" min-width="120" />
-        <el-table-column prop="realName" label="姓名" min-width="120" />
-        <el-table-column prop="mobile" label="手机号" width="140" />
-        <el-table-column prop="role" label="角色" width="120">
+        <el-table-column prop="staffId" label="员工ID" min-width="60" />
+        <el-table-column prop="username" label="用户名" min-width="85" />
+        <el-table-column prop="realName" label="姓名" min-width="85" />
+        <el-table-column prop="mobile" label="手机号" min-width="100" />
+        <el-table-column prop="role" label="角色" min-width="80">
           <template #default="{ row }">
             <el-tag v-if="row.role === 'ADMIN'" type="danger">管理员</el-tag>
             <el-tag v-else-if="row.role === 'MANAGER'" type="warning">店长</el-tag>
@@ -33,14 +33,14 @@
             <el-tag v-else>{{ fmtRole(row.role) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="storeName" label="所属门店" min-width="140" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="storeName" label="所属门店" min-width="85" />
+        <el-table-column prop="status" label="状态" min-width="60">
           <template #default="{ row }">
             <el-tag v-if="row.status === 1 || row.status === 'ACTIVE'" type="success">在职</el-tag>
             <el-tag v-else type="info">离职</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" min-width="155">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openEdit(row)">编辑</el-button>
             <el-button size="small" link type="warning" @click="openResetPassword(row)">重置密码</el-button>
@@ -385,10 +385,24 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.card-header > span {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .header-actions {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+.header-actions :deep(.el-input) {
+  width: 160px;
+}
+.header-search {
+  margin-right: 10px;
 }
 .pagination {
   margin-top: 16px;
