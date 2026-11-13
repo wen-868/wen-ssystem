@@ -1,5 +1,5 @@
 /**
- * WORKBENCH-PROTOTYPE-12-PAGES-SALES-RETAIL-MARKETING-01 · 27 页合同门禁用例
+ * WORKBENCH-PROTOTYPE-12-PAGES-SALES-RETAIL-MARKETING-01 · 28 页合同门禁用例
  *
  * 覆盖卡面「必须完成」§1/§3/§5：
  *   1. 三组全部生产路由逐页建档（路由注册合同 + 建档证据在中央 evidence archive-cards/pages/）；
@@ -23,7 +23,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(here, "..", "src");
 const read = (rel) => readFileSync(path.join(SRC, rel), "utf8");
 
-/** 本卡页面域 27 文件（sale 5 + instant-retail 12 + marketing 11；SalesOrderCreate.vue 归墨不在列） */
+/** 本卡页面域 28 文件（sale 5 + instant-retail 12 + marketing 11 = 28；SalesOrderCreate.vue 归墨不在列） */
 const SALE_PAGES = [
   "views/sale/CollectionLinks.vue",
   "views/sale/CommissionRecords.vue",
@@ -83,7 +83,7 @@ async function run(name, fn) {
   }
 }
 
-/* ══ 1. 生产路由注册合同（27 页逐页点名）══ */
+/* ══ 1. 生产路由注册合同（28 页逐页点名）══ */
 
 const ROUTES = [
   ["sales/collection-links", "collection-links", "sale/CollectionLinks.vue"],
@@ -116,7 +116,7 @@ const ROUTES = [
   ["aftersale", "aftersale", "marketing/AftersaleView.vue"],
 ];
 
-await run("生产路由注册合同：27 页 path+name+组件文件在 router/index.ts 逐页齐备（缺一即红）", () => {
+await run("生产路由注册合同：28 页 path+name+组件文件在 router/index.ts 逐页齐备（缺一即红）", () => {
   const routerSrc = read("router/index.ts");
   const missing = [];
   for (const [routePath, name, comp] of ROUTES) {
@@ -125,7 +125,7 @@ await run("生产路由注册合同：27 页 path+name+组件文件在 router/in
     if (!routerSrc.includes(comp)) missing.push(`${comp} 组件未注册`);
   }
   assert.deepEqual(missing, [], `路由注册缺失：\n${missing.join("\n")}`);
-  return `27 路由 × (path+name+组件) 齐备`;
+  return `${ALL_PAGES.length} 路由 × (path+name+组件) 齐备`;
 });
 
 /* ══ 2. S5 COPY_BLACKLIST 零命中（M1 锚点）══ */
@@ -143,7 +143,7 @@ const COPY_BLACKLIST = [
   "¥8,900",
 ];
 
-await run("S5 COPY_BLACKLIST 10 项 × 27 页零命中（剥注释，逐文件点名）", () => {
+await run("S5 COPY_BLACKLIST 10 项 × 28 页零命中（剥注释，逐文件点名）", () => {
   const hits = [];
   for (const rel of ALL_PAGES) {
     const visible = stripComments(read(rel));
@@ -152,7 +152,7 @@ await run("S5 COPY_BLACKLIST 10 项 × 27 页零命中（剥注释，逐文件�
     }
   }
   assert.deepEqual(hits, [], `产品可见字符串命中黑名单：\n${hits.join("\n")}`);
-  return `27 文件 × 10 词 = 0 命中`;
+  return `${ALL_PAGES.length} 文件 × 10 词 = 0 命中`;
 });
 
 /* ══ 3-5. 演示数据边界锁定（红线：不以原型演示数据冒充真实数据）══ */
@@ -337,7 +337,7 @@ const EL_EMPTY_EXPECTED = [
   "views/marketing/MarketingView.vue",
 ];
 
-await run("空态合同：27 页中 el-empty 落点精确集 = 15 文件（建档逐页核过；多余/缺失均点名）", () => {
+await run("空态合同：28 页中 el-empty 落点精确集 = 15 文件（建档逐页核过；多余/缺失均点名）", () => {
   const actual = ALL_PAGES.filter((rel) => read(rel).includes("el-empty"));
   assert.deepEqual(
     actual.sort(),
@@ -368,7 +368,7 @@ const V_LOADING_EXPECTED = [
   "views/marketing/MarketingTags.vue",
 ];
 
-await run("loading 合同：27 页中 v-loading 落点精确集 = 16 文件（sale 4 页走 DataTable :loading 口径，不混入）", () => {
+await run("loading 合同：28 页中 v-loading 落点精确集 = 16 文件（sale 4 页走 DataTable :loading 口径，不混入）", () => {
   const actual = ALL_PAGES.filter((rel) => read(rel).includes("v-loading"));
   assert.deepEqual(
     actual.sort(),
@@ -403,7 +403,7 @@ const PAGINATION_EXPECTED = [
   "views/marketing/MarketingTags.vue",
 ];
 
-await run("分页合同：27 页中 el-pagination 落点精确集 = 16 文件（sale 4 页走 DataTable 内置分页）", () => {
+await run("分页合同：28 页中 el-pagination 落点精确集 = 16 文件（sale 4 页走 DataTable 内置分页）", () => {
   const actual = ALL_PAGES.filter((rel) => read(rel).includes("el-pagination"));
   assert.deepEqual(
     actual.sort(),
@@ -483,10 +483,10 @@ await run("表单必填规则合同：关键表单校验逐字在位（批量生
 
 /* ══ 17. SalesOrderCreate 隔离红线（归墨）══ */
 
-await run("SalesOrderCreate.vue 隔离红线：本卡 27 页零引用（页面域不越界）", () => {
+await run("SalesOrderCreate.vue 隔离红线：本卡 28 页零引用（页面域不越界）", () => {
   const refs = ALL_PAGES.filter((rel) => read(rel).includes("SalesOrderCreate"));
-  assert.deepEqual(refs, [], `27 页出现 SalesOrderCreate 引用（越界即红）：\n${refs.join("\n")}`);
-  return "27 页 × 0 引用";
+  assert.deepEqual(refs, [], `${ALL_PAGES.length} 页出现 SalesOrderCreate 引用（越界即红）：\n${refs.join("\n")}`);
+  return `${ALL_PAGES.length} 页 × 0 引用`;
 });
 
 /* ══ 18. 13B 修复锚点不回潮 ══ */

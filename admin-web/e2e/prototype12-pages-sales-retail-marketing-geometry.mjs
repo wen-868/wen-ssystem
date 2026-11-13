@@ -1,5 +1,5 @@
 /**
- * WORKBENCH-PROTOTYPE-12-PAGES-SALES-RETAIL-MARKETING-01 · 27 页视觉/DOM 几何取证采集
+ * WORKBENCH-PROTOTYPE-12-PAGES-SALES-RETAIL-MARKETING-01 · 28 页视觉/DOM 几何取证采集
  *
  * 卡面「必须完成」§2：1440×1000、1024×768 逐页视觉和 DOM 几何。
  * 运行（worktree 根）：node admin-web/e2e/prototype12-pages-sales-retail-marketing-geometry.mjs
@@ -40,7 +40,7 @@ const PW = (envText.match(new RegExp("^" + ENV_KEY + "=(.*)$", "m")) || [])[1];
 if (!PW) { console.error("backend/.env 缺键 " + ENV_KEY + "（" + envPath + "）"); process.exit(2); }
 console.log("凭据解析 OK：账号=" + SUPER_USER + "，.env=" + envPath + "，键=" + ENV_KEY + "（值不落日志）");
 
-/* ── 27 页路由（与合同 spec ROUTES 同源）── */
+/* ── 28 页路由（与合同 spec ROUTES 同源：sale 5 + instant-retail 12 + marketing 11）── */
 const ROUTES = [
   ["sale/CollectionLinks", "/sales/collection-links"],
   ["sale/CustomerPrices", "/sales/customer-prices"],
@@ -242,6 +242,6 @@ try {
 }
 fs.writeFileSync(path.join(OUT, "geometry-summary.json"), JSON.stringify(summary, null, 2));
 const bad = Object.entries(summary.pages).filter(([, v]) => !v["1440x1000"]?.pageRect || !v["1024x768"]?.pageRect);
-log(`DONE 27 页 × 2 视口，无有效几何页=${bad.length}，错误=${summary.errors.length} → ${OUT}`);
+log(`DONE ${ROUTES.length} 页 × 2 视口，无有效几何页=${bad.length}，错误=${summary.errors.length} → ${OUT}`);
 if (bad.length) log("无效页：" + bad.map(([k]) => k).join(", "));
 process.exit(bad.length === 0 ? 0 : 1);

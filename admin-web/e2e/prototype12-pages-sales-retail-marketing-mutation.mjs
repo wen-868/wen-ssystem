@@ -77,7 +77,7 @@ function writeKeepingEol(file, originalText, newText) {
   writeFileSync(file, crlf ? newText.replace(/\n/g, "\r\n") : newText);
 }
 
-/** 门禁 runner：跑 27 页合同 spec，返回 { code, stdout } */
+/** 门禁 runner：跑本卡合同 spec（28 页），返回 { code, stdout } */
 function runGates() {
   const gatesPath = path.join(here, "..", "tests", "prototype12-pages-sales-retail-marketing-contract.spec.mjs");
   try {
