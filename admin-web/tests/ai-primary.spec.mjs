@@ -277,7 +277,7 @@ await run("快捷指令：3 条能力登记真实、指令走唯一会话链（�
   assert.ok(shell.includes("@send=\"enterChatAndSend\""), "底部输入区发送必须走唯一会话链");
   assert.ok(shell.includes("chatPanel.value?.sendQuickCommand?.("), "壳层应把指令送进会话面板 sendQuickCommand");
   assert.ok(panel.includes("sendQuickCommand"), "会话面板应暴露 sendQuickCommand");
-  assert.ok(side.includes("defineExpose({ sendText: sendSuggestion"), "AiSidePanel 应复用真实发送逻辑");
+  assert.ok(side.includes("sendText: sendSuggestion"), "AiSidePanel 应复用真实发送逻辑");
   assert.ok(!shell.includes("agent-ledger-entry"), "壳层不得有台账入口（top_bar.forbidden）");
   return "3 条指令能力登记真实 + 唯一会话链（POST /api/chat）";
 });

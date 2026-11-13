@@ -133,7 +133,7 @@
             :data-side-tab="tab"
             :aria-pressed="sideTab === tab ? 'true' : 'false'"
             :title="tab === '员工' ? '员工视图' : '对话视图'"
-            @click="sideTab = tab"
+            @click="selectSideTab(tab)"
           >
             <el-icon class="sn-seg-ic" :size="13"><component :is="segIcon(tab)" /></el-icon><span>{{ tab }}</span>
           </button>
@@ -154,11 +154,12 @@
           type="button"
           class="sn-newchat"
           data-testid="second-nav-new-chat"
-          aria-label="新对话"
-          title="新对话"
-          @click="$emit('new-chat')"
+          :aria-label="sideTab === '员工' ? '新增数字员工' : '新对话'"
+          :title="sideTab === '员工' ? '新增数字员工' : '新对话'"
+          @click="handlePlusAction"
         >
-          <el-icon :size="16"><Plus /></el-icon><span class="sn-sr">新对话</span>
+          <el-icon :size="16"><Plus /></el-icon>
+          <span class="sn-sr">{{ sideTab === "员工" ? "新增数字员工" : "新对话" }}</span>
         </button>
       </div>
 
@@ -201,7 +202,17 @@
               <em>{{ g.staffs.length }}</em>
             </button>
             <div v-if="!folded.has(g.name)" class="sn-group-bd">
-              <div v-for="s in g.staffs" :key="s.id" class="sn-staff" :title="`${s.name} · ${s.post}`">
+              <div
+                v-for="s in g.staffs"
+                :key="s.id"
+                class="sn-staff"
+                :class="{ clickable: Boolean(s.conversationId || s.employeeUid) }"
+                :title="`${s.name} · ${s.post}`"
+                :role="sideTab === '对话' || s.employeeUid ? 'button' : undefined"
+                :tabindex="sideTab === '对话' || s.employeeUid ? 0 : undefined"
+                @click="openDirectoryItem(s)"
+                @keydown.enter.prevent="openDirectoryItem(s)"
+              >
                 <span class="sn-staff-av">{{ s.name.slice(0, 1) }}</span>
                 <span class="sn-staff-mid">
                   <span class="sn-staff-nm">{{ s.name }}<i class="sn-staff-post">{{ s.post }}</i></span>
@@ -216,6 +227,53 @@
       </div>
 
     </template>
+
+    <el-dialog
+      v-model="employeeDialogOpen"
+      title="新增数字员工"
+      width="460px"
+      append-to-body
+      :close-on-click-modal="!employeeSaving"
+    >
+      <div class="sn-emp-form">
+        <label>
+          <span>姓名</span>
+          <input v-model.trim="employeeForm.name" placeholder="例如：采购专员小周" />
+        </label>
+        <label>
+          <span>岗位</span>
+          <input v-model.trim="employeeForm.post" placeholder="例如：采购专员" />
+        </label>
+        <label>
+          <span>部门</span>
+          <input v-model.trim="employeeForm.department" placeholder="例如：采购部" />
+        </label>
+        <label>
+          <span>职责说明</span>
+          <textarea
+            v-model.trim="employeeForm.personaPrompt"
+            rows="3"
+            placeholder="该员工负责什么、如何协同（可稍后在员工管理中完善）"
+          />
+        </label>
+        <fieldset v-if="employeeOptions.length" class="sn-emp-team">
+          <legend>可调度协同员工</legend>
+          <label v-for="employee in employeeOptions" :key="employee.employeeUid">
+            <input v-model="employeeForm.dispatchUids" type="checkbox" :value="employee.employeeUid" />
+            <span>{{ employee.name }} · {{ employee.post }}</span>
+          </label>
+        </fieldset>
+        <p v-if="employeeError" class="sn-emp-error" role="alert">{{ employeeError }}</p>
+      </div>
+      <template #footer>
+        <button type="button" class="sn-emp-cancel" :disabled="employeeSaving" @click="employeeDialogOpen = false">
+          取消
+        </button>
+        <button type="button" class="sn-emp-submit" :disabled="employeeSaving" @click="submitEmployee">
+          {{ employeeSaving ? "创建中…" : "创建员工" }}
+        </button>
+      </template>
+    </el-dialog>
   </aside>
 </template>
 
@@ -238,7 +296,8 @@
  * #alV21Sidehd(y≈421.8) → #sessList(y≈459.8 · 唯一滚动区) → #acctZone(y=942 · 58px 贴底)，
  * 合计恰好 1000，列本身不滚动、页面不出现纵向滚动条。
  */
-import { computed, nextTick, ref, type Component } from "vue";
+import { computed, nextTick, ref, watch, type Component } from "vue";
+import { ElMessage } from "element-plus";
 import {
   Bell,
   Box,
@@ -284,9 +343,16 @@ import type { ManifestItem } from "../shared/workbench/route-manifest";
 import type { MenuLoadState } from "../shared/workbench/menu-access";
 import type { EffectiveCapabilitySnapshot } from "../shared/workbench/effective-capabilities";
 import { PROTOTYPE_COMMON_LABEL, PROTOTYPE_RAIL_ITEMS, PROTOTYPE_SIDE_TABS } from "../shared/workbench/prototype-nav";
-import { loadAgentDirectory, loadHistoryConversations, type AgentDirectory, type DirectoryGroup } from "../shared/workbench/agent-directory";
+import {
+  loadAgentDirectory,
+  loadHistoryConversations,
+  type AgentDirectory,
+  type DirectoryGroup,
+  type DirectoryStaff,
+} from "../shared/workbench/agent-directory";
 import { rankFrequentMenuItems, type MenuUsageMap } from "../shared/workbench/menu-usage";
 import WorkbenchChromeToggleIcon from "../components/workbench/WorkbenchChromeToggleIcon.vue";
+import { createAiEmployee } from "../api/ai";
 
 const props = defineProps<{
   mode: "quick" | "module" | "pos";
@@ -302,12 +368,24 @@ const props = defineProps<{
   /** 当前账号的本机功能使用频率；无记录时不预置常用项 */
   menuUsage?: MenuUsageMap;
   collapsed?: boolean;
+  /** 当前 AI 会话 ID；新对话一生成即由 Shell 传入，用于“对话”目录的当前会话行 */
+  activeConversationId?: string;
+  /** 每轮对话完成后递增，驱动历史归档刷新 */
+  historyRevision?: number;
 }>();
 
 const emit = defineEmits<{
   (event: "open", entry: ManifestItem): void;
   (event: "openCashier", entry: ManifestItem): void;
   (event: "new-chat"): void;
+  (event: "open-conversation", conversationId: string): void;
+  (event: "open-employee", employee: {
+    employeeUid: string;
+    name: string;
+    post: string;
+    department?: string;
+    collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+  }): void;
   (event: "collapse"): void;
   (event: "pick-group", groupCode: string): void;
   (event: "go-desk"): void;
@@ -471,6 +549,75 @@ type SideTab = (typeof PROTOTYPE_SIDE_TABS)[number];
 const sideTab = ref<SideTab>("员工");
 const keyword = ref("");
 const folded = ref<Set<string>>(new Set());
+const employeeDialogOpen = ref(false);
+const employeeSaving = ref(false);
+const employeeError = ref("");
+const employeeForm = ref({
+  name: "",
+  post: "",
+  department: "",
+  personaPrompt: "",
+  dispatchUids: [] as string[],
+});
+const employeeOptions = computed(() =>
+  directory.value
+    .flatMap((group) => group.staffs)
+    .filter(
+      (employee): employee is DirectoryStaff & { employeeUid: string } =>
+        Boolean(employee.employeeUid),
+    ),
+);
+
+function handlePlusAction(): void {
+  if (sideTab.value === "员工") {
+    employeeError.value = "";
+    employeeDialogOpen.value = true;
+    return;
+  }
+  emit("new-chat");
+}
+
+async function submitEmployee(): Promise<void> {
+  employeeError.value = "";
+  if (!employeeForm.value.name || !employeeForm.value.post || !employeeForm.value.department) {
+    employeeError.value = "姓名、岗位、部门均为必填项";
+    return;
+  }
+  employeeSaving.value = true;
+  try {
+    await createAiEmployee({
+      name: employeeForm.value.name,
+      post: employeeForm.value.post,
+      department: employeeForm.value.department,
+      ...(employeeForm.value.personaPrompt
+        ? { personaPrompt: employeeForm.value.personaPrompt }
+        : {}),
+      ...(employeeForm.value.dispatchUids.length
+        ? { dispatchUids: [...employeeForm.value.dispatchUids] }
+        : {}),
+    });
+    employeeDialogOpen.value = false;
+    employeeForm.value = {
+      name: "",
+      post: "",
+      department: "",
+      personaPrompt: "",
+      dispatchUids: [],
+    };
+    sideTab.value = "员工";
+    await reloadDirectory();
+    ElMessage.success("数字员工已创建");
+  } catch (err) {
+    employeeError.value = err instanceof Error ? err.message : "创建数字员工失败";
+  } finally {
+    employeeSaving.value = false;
+  }
+}
+
+function selectSideTab(tab: SideTab): void {
+  sideTab.value = tab;
+  void reloadDirectory();
+}
 
 /** 搜索框：默认隐藏（原型口径），由横栏的图标钮唤出并聚焦 */
 const searchOpen = ref(false);
@@ -489,10 +636,31 @@ const dirNoun = computed(() => (sideTab.value === "员工" ? "数字员工" : "�
  * 目录的本地过滤：只在上限内已加载的分组/条目里做字符串匹配，
  * 不发新请求、不补任何服务端没有的条目；关键词为空时原样返回。
  */
+/** “对话”目录：把当前刚创建的会话置顶；其余来自底座 session-archive。 */
+const effectiveDirectory = computed<DirectoryGroup[]>(() => {
+  if (sideTab.value !== "对话") return directory.value;
+  const activeId = props.activeConversationId?.trim();
+  if (!activeId) return directory.value;
+  const exists = directory.value.some((g) =>
+    g.staffs.some((s) => s.conversationId === activeId),
+  );
+  if (exists) return directory.value;
+  const current: DirectoryStaff = {
+    id: activeId,
+    conversationId: activeId,
+    name: "当前新对话",
+    post: "当前会话",
+    summary: "等待第一条消息，发送后自动归档",
+    online: null,
+    unread: null,
+  };
+  return [{ name: "当前会话", staffs: [current] }, ...directory.value];
+});
+
 const visibleDirectory = computed<DirectoryGroup[]>(() => {
   const q = keyword.value.trim().toLowerCase();
-  if (!q) return directory.value;
-  return directory.value
+  if (!q) return effectiveDirectory.value;
+  return effectiveDirectory.value
     .map((g) => ({
       ...g,
       staffs: g.staffs.filter((s) => `${g.name} ${s.name} ${s.post} ${s.summary}`.toLowerCase().includes(q)),
@@ -508,6 +676,44 @@ async function reloadDirectory(): Promise<void> {
   directoryMessage.value = result.message;
 }
 void reloadDirectory();
+
+watch(
+  () => props.historyRevision,
+  () => {
+    if (sideTab.value === "对话") void reloadDirectory();
+  },
+);
+
+watch(
+  () => props.activeConversationId,
+  () => {
+    if (sideTab.value === "对话") keyword.value = "";
+  },
+);
+
+function openDirectoryItem(staff: DirectoryStaff): void {
+  if (sideTab.value === "对话" && staff.conversationId) {
+    emit("open-conversation", staff.conversationId);
+    return;
+  }
+  if (!staff.employeeUid) return;
+  const allEmployees = directory.value.flatMap((g) => g.staffs);
+  const collaborators = (staff.dispatchUids ?? [])
+    .map((uid) => allEmployees.find((e) => e.employeeUid === uid))
+    .filter((e): e is DirectoryStaff => Boolean(e))
+    .map((e) => ({
+      employeeUid: e.employeeUid as string,
+      name: e.name,
+      post: e.post,
+    }));
+  emit("open-employee", {
+    employeeUid: staff.employeeUid,
+    name: staff.name,
+    post: staff.post,
+    department: staff.summary,
+    collaborators,
+  });
+}
 
 function toggleGroup(name: string): void {
   const next = new Set(folded.value);
@@ -905,6 +1111,72 @@ defineExpose({ keyword });
   border-color: var(--wb-primary, #2563eb);
   color: var(--wb-primary, #2563eb);
 }
+
+.sn-emp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sn-emp-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--text-secondary, #4b5563);
+  font-size: 12px;
+}
+.sn-emp-form input,
+.sn-emp-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-normal, #d1d5db);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--text-primary, #111827);
+  font: inherit;
+}
+.sn-emp-form textarea {
+  resize: vertical;
+}
+.sn-emp-team {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--border-normal, #d1d5db);
+  border-radius: 7px;
+}
+.sn-emp-team legend {
+  padding: 0 4px;
+  color: var(--text-secondary, #4b5563);
+  font-size: 12px;
+}
+.sn-emp-team label {
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+}
+.sn-emp-team input {
+  width: auto;
+}
+.sn-emp-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 12px;
+}
+.sn-emp-cancel,
+.sn-emp-submit {
+  padding: 7px 14px;
+  border: 1px solid var(--border-normal, #d1d5db);
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+}
+.sn-emp-submit {
+  border-color: var(--wb-primary, #4f46e5);
+  background: var(--wb-primary, #4f46e5);
+  color: #fff;
+}
 .sn-sr {
   position: absolute;
   width: 1px;
@@ -1020,6 +1292,10 @@ defineExpose({ keyword });
 }
 .sn-staff:hover {
   background: var(--wb-hover, #f4f6f8);
+}
+.sn-staff.clickable:focus-visible {
+  outline: 2px solid var(--wb-primary, #4f46e5);
+  outline-offset: -2px;
 }
 .sn-staff-av {
   width: 30px;

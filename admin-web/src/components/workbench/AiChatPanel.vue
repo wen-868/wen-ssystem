@@ -9,7 +9,12 @@
       </button>
     </div>
 
-    <AiSidePanel ref="panelRef" @status="handleStatus" @open-form="emit('open-form', $event)" />
+    <AiSidePanel
+      ref="panelRef"
+      @status="handleStatus"
+      @conversation="emit('conversation', $event)"
+      @open-form="emit('open-form', $event)"
+    />
   </div>
 </template>
 
@@ -19,6 +24,7 @@ import type { AiNativeFormAction } from "../../shared/workbench/ai-form-bridge";
 
 const emit = defineEmits<{
   (event: "status", payload: { state: "idle" | "streaming" | "error"; message?: string }): void;
+  (event: "conversation", conversationId: string): void;
   (event: "fallback"): void;
   (event: "open-form", action: AiNativeFormAction): void;
 }>();
@@ -28,6 +34,14 @@ const AiSidePanel = defineAsyncComponent(() => import("../AiChat/AiSidePanel.vue
 type PanelExposed = {
   sendText?: (text: string) => void;
   clearChat?: () => void;
+  loadConversation?: (conversationId: string) => void;
+  selectEmployee?: (employee: {
+    employeeUid: string;
+    name: string;
+    post: string;
+    department?: string;
+    collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+  }) => void;
   getConversationId?: () => string | null;
 };
 
@@ -70,7 +84,21 @@ function newConversation(): void {
   panelRef.value?.clearChat?.();
 }
 
-defineExpose({ sendQuickCommand, newConversation });
+function loadConversation(conversationId: string): void {
+  panelRef.value?.loadConversation?.(conversationId);
+}
+
+function selectEmployee(employee: {
+  employeeUid: string;
+  name: string;
+  post: string;
+  department?: string;
+  collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+}): void {
+  panelRef.value?.selectEmployee?.(employee);
+}
+
+defineExpose({ sendQuickCommand, newConversation, loadConversation, selectEmployee });
 </script>
 
 <style scoped>

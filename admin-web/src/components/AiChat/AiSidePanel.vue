@@ -1,5 +1,21 @@
 <template>
   <aside class="ai-side-panel">
+    <!-- 对话主体：明确当前是与总台助手还是某位数字员工沟通 -->
+    <header class="ai-agent-head" data-testid="chat-agent-identity">
+      <span class="ai-agent-avatar">{{ activeEmployee ? activeEmployee.name.slice(0, 1) : "智" }}</span>
+      <span class="ai-agent-copy">
+        <strong>{{ activeEmployee?.name || "智享 AI 助手" }}</strong>
+        <small v-if="activeEmployee">
+          {{ activeEmployee.post }}<template v-if="activeEmployee.department"> · {{ activeEmployee.department }}</template>
+        </small>
+        <small v-else>总台协调助手 · 自动分派数字员工</small>
+      </span>
+      <span class="ai-agent-kind">{{ activeEmployee ? "数字员工" : "总台助手" }}</span>
+      <span v-if="activeEmployee" class="ai-agent-collab">
+        {{ activeEmployee.collaborators.length ? `可协同：${activeEmployee.collaborators.map((e) => e.name).join("、")}` : "独立执行" }}
+      </span>
+    </header>
+
     <!-- 消息区 -->
     <div ref="listEl" class="ai-messages">
       <!-- 新对话空状态（原型 .empty-chat L547 / emptyHTML L1256：「新对话已开启」+「问我任何经营问题…」） -->
@@ -19,34 +35,17 @@
         </div>
       </div>
 
-      <!-- 消息序列：连续的工具调用折叠进「工具调用时间线」块（SSE tool_start/tool_result 驱动） -->
-      <template v-for="block in renderBlocks" :key="block.key">
-        <div v-if="block.type === 'timeline'" class="tool-timeline" data-testid="chat-tool-timeline">
-          <p class="tool-timeline-title">
-            工具调用时间线
-            <span class="tool-timeline-count">{{ block.msgs.length }} 步</span>
-          </p>
-          <AiMessageCard
-            v-for="m in block.msgs"
-            :key="m.id"
-            :message="m"
-            @confirm="handleConfirm"
-            @cancel="handleCancel"
-            @revoke="handleRevoke"
-            @retry="retryMessage"
-            @open-form="openNativeForm"
-          />
-        </div>
-        <AiMessageCard
-          v-else
-          :message="block.msg"
-          @confirm="handleConfirm"
-          @cancel="handleCancel"
-          @revoke="handleRevoke"
-          @retry="retryMessage"
-          @open-form="openNativeForm"
-        />
-      </template>
+      <!-- 工具调用属于内部执行细节，不进入消费者消息流；写操作预览仍由 preview 卡片承载。 -->
+      <AiMessageCard
+        v-for="m in visibleMessages"
+        :key="m.id"
+        :message="m"
+        @confirm="handleConfirm"
+        @cancel="handleCancel"
+        @revoke="handleRevoke"
+        @retry="retryMessage"
+        @open-form="openNativeForm"
+      />
     </div>
 
     <!-- 输入区 -->
@@ -145,8 +144,10 @@ import {
   type AiNativeFormAction,
 } from "../../shared/workbench/ai-form-bridge";
 import {
+  createAiConversationId,
   cancelAiOperation,
   confirmAiOperation,
+  fetchAiSessionArchive,
   revokeAiOperation,
   sendChatMessage,
 } from "../../api/ai";
@@ -157,6 +158,14 @@ const conversationId = ref<string | undefined>(undefined);
 const messages = ref<AiChatMessage[]>([]);
 const abortController = ref<AbortController | null>(null);
 const listEl = ref<HTMLElement | null>(null);
+type ActiveAiEmployee = {
+  employeeUid: string;
+  name: string;
+  post: string;
+  department?: string;
+  collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+};
+const activeEmployee = ref<ActiveAiEmployee | null>(null);
 
 /** 会话状态上报：供 AI 主交互面显示故障横幅并一键切回人工（不改变内部对话逻辑） */
 const emit = defineEmits<{
@@ -344,32 +353,79 @@ function handlePrimaryAction(): void {
   toggleVoice();
 }
 
-/** 渲染块：普通消息单条渲染；连续 tool 消息归组进「工具调用时间线」（SSE 事件驱动，非静态装饰） */
-type RenderBlock =
-  | { type: "msg"; key: string; msg: AiChatMessage }
-  | { type: "timeline"; key: string; msgs: AiChatMessage[] };
-
-const renderBlocks = computed<RenderBlock[]>(() => {
-  const blocks: RenderBlock[] = [];
-  for (const m of messages.value) {
-    const last = blocks[blocks.length - 1];
-    if (m.kind === "tool" && last && last.type === "timeline") {
-      last.msgs.push(m);
-      continue;
-    }
-    if (m.kind === "tool") {
-      blocks.push({ type: "timeline", key: `tl-${m.id}`, msgs: [m] });
-      continue;
-    }
-    blocks.push({ type: "msg", key: m.id, msg: m });
-  }
-  return blocks;
-});
+/** 消费者消息流不展示只读工具过程；工具消息只用于内部状态，不参与渲染。 */
+const visibleMessages = computed(() => messages.value.filter((m) => m.kind !== "tool"));
 
 function clearChat(): void {
   if (streaming.value) abortCurrent();
   messages.value = [];
-  conversationId.value = undefined;
+  conversationId.value = activeEmployee.value?.employeeUid
+    ? `emp_${activeEmployee.value.employeeUid}_${createAiConversationId().replace(/^sess_/, "")}`
+    : createAiConversationId();
+  emit("conversation", conversationId.value);
+}
+
+/** 从底座真实会话归档恢复一段对话；只恢复用户/助手文本，过滤工具执行过程。 */
+async function loadConversation(sessionId: string, options?: { silentEmpty?: boolean }): Promise<void> {
+  if (!sessionId) return;
+  if (streaming.value) abortCurrent();
+  try {
+    const payload = await fetchAiSessionArchive({ sessionId, limit: 1 });
+    const item = payload.items?.find(
+      (row) => String(row.sessionId ?? row.session_id ?? "") === sessionId,
+    );
+    const rawMessages = item?.messagesJson ?? item?.messages_json;
+    const history = Array.isArray(rawMessages)
+      ? rawMessages
+          .filter(
+            (m): m is Record<string, unknown> =>
+              Boolean(m) && typeof m === "object" && !Array.isArray(m),
+          )
+          .flatMap((m) => {
+            const role = m.role;
+            const content = m.content;
+            if ((role !== "user" && role !== "assistant") || typeof content !== "string") {
+              return [];
+            }
+            return [{
+              id: createMessageId(),
+              role: role as "user" | "assistant",
+              kind: "text" as const,
+              content,
+              createdAt: Date.now(),
+            }];
+          })
+      : [];
+    if (!item) {
+      if (options?.silentEmpty) {
+        conversationId.value = sessionId;
+        messages.value = [];
+        briefingSent = true;
+        emit("conversation", sessionId);
+        emit("status", { state: "idle" });
+        return;
+      }
+      throw new Error("该会话没有可读取的归档记录");
+    }
+    conversationId.value = sessionId;
+    messages.value = history;
+    briefingSent = true;
+    emit("conversation", sessionId);
+    emit("status", { state: "idle" });
+    scrollToBottom();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "历史会话加载失败";
+    emit("status", { state: "error", message });
+    ElMessage.error(message);
+  }
+}
+
+/** 进入某位数字员工的独立对话框：显示身份、可调度下级，并恢复其历史会话。 */
+async function selectEmployee(employee: ActiveAiEmployee): Promise<void> {
+  activeEmployee.value = employee;
+  const sessionId = `emp_${employee.employeeUid}`;
+  await loadConversation(sessionId, { silentEmpty: true });
+  emit("status", { state: "idle" });
 }
 
 function pushMessage(partial: Omit<AiChatMessage, "id" | "createdAt">): AiChatMessage {
@@ -400,6 +456,10 @@ function scrollToBottom(): void {
 async function sendMessage(): Promise<void> {
   const text = input.value.trim();
   if ((!text && !pendingImage.value) || streaming.value) return;
+  if (!conversationId.value) {
+    conversationId.value = createAiConversationId();
+    emit("conversation", conversationId.value);
+  }
   const image = pendingImage.value;
   pendingImage.value = null;
   input.value = "";
@@ -422,24 +482,12 @@ async function sendMessage(): Promise<void> {
         onText: (content) => {
           assistant.content = (assistant.content || "") + content;
         },
-        // 工具时间线：tool_start 先落一条「执行中」步骤，tool_result 就地更新其状态；
-        // 写操作的确认卡片仍由 preview 单独生成（确认卡既有链路不动）
-        onToolStart: (tool) => {
-          pushMessage({ role: "assistant", kind: "tool", tool, toolStatus: "running" });
+        // 只读工具调用属于内部执行细节，不生成消费者可见消息；
+        // 写操作预览仍由 tool_result.preview 单独生成确认卡。
+        onToolStart: () => {
+          /* 静默：不展示工具过程 */
         },
         onToolResult: (payload) => {
-          // 回填最近一条同名执行中步骤（找不到同名的取最后一条 running，宽容匹配 SSE 顺序）
-          const running = [...messages.value].reverse().find(
-            (m) => m.kind === "tool" && m.toolStatus === "running",
-          );
-          const matched =
-            [...messages.value].reverse().find(
-              (m) => m.kind === "tool" && m.toolStatus === "running" && m.tool === payload.tool,
-            ) || running;
-          if (matched) {
-            matched.toolStatus = payload.success ? "success" : "error";
-            matched.data = payload.data;
-          }
           // 仅写操作预览（需人工确认）出确认卡片；只读结果由最终 AI 文本直接呈现
           if (payload.preview) {
             pushMessage({
@@ -466,6 +514,7 @@ async function sendMessage(): Promise<void> {
       abortController.value.signal,
       undefined, // 模型参数：已移除模型选择，使用租户/平台默认
       image ?? undefined,
+      activeEmployee.value?.employeeUid,
     );
   } catch (err) {
     streaming.value = false;
@@ -584,8 +633,14 @@ async function handleRevoke(messageId: string, operationId: string): Promise<voi
   }
 }
 
-/** 对外暴露：AI 主交互面的快捷指令与“新对话”复用同一套真实发送逻辑 */
-defineExpose({ sendText: sendSuggestion, clearChat, getConversationId: () => conversationId.value ?? null });
+/** 对外暴露：快捷指令、新建/恢复会话与当前会话 ID 共用同一套真实逻辑 */
+defineExpose({
+  sendText: sendSuggestion,
+  clearChat,
+  loadConversation,
+  selectEmployee,
+  getConversationId: () => conversationId.value ?? null,
+});
 
 watch(messages, () => scrollToBottom(), { deep: true });
 
@@ -598,6 +653,10 @@ watch(messages, () => scrollToBottom(), { deep: true });
 const BRIEFING_PROMPT = "今日晨报";
 let briefingSent = false;
 onMounted(() => {
+  if (!conversationId.value) {
+    conversationId.value = createAiConversationId();
+    emit("conversation", conversationId.value);
+  }
   if (briefingSent || messages.value.length > 0) return;
   briefingSent = true;
   void sendSuggestion(BRIEFING_PROMPT);
@@ -623,6 +682,73 @@ onBeforeUnmount(() => {
   background: var(--gray-0);
   border-left: 1px solid var(--border-light);
   min-height: 100vh;
+}
+
+.ai-agent-head {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "avatar copy kind"
+    "avatar collab collab";
+  align-items: center;
+  gap: 2px 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-light, #e5e7eb);
+  background: #fafbff;
+}
+
+.ai-agent-avatar {
+  grid-area: avatar;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--color-primary, #4f46e5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ai-agent-copy {
+  grid-area: copy;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-agent-copy strong {
+  font-size: 13px;
+  color: var(--text-primary, #111827);
+}
+
+.ai-agent-copy small {
+  overflow: hidden;
+  color: var(--text-muted, #6b7280);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-agent-kind {
+  grid-area: kind;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ai-agent-collab {
+  grid-area: collab;
+  overflow: hidden;
+  color: var(--text-secondary, #4b5563);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ai-messages {
@@ -858,27 +984,6 @@ onBeforeUnmount(() => {
   padding: 1px 8px;
   font-size: 11px;
   cursor: pointer;
-}
-
-/* 工具调用时间线（SSE tool_start/tool_result 驱动的连续步骤） */
-.tool-timeline {
-  border-left: 2px solid var(--border-normal, #d1d5db);
-  padding: 2px 0 2px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.tool-timeline-title {
-  margin: 0;
-  font-size: 11px;
-  color: #595959;
-  font-weight: 600;
-}
-
-.tool-timeline-count {
-  margin-left: 6px;
-  font-weight: 400;
 }
 
 /* 待发送图片缩略图（内联小卡 + 移除角标） */

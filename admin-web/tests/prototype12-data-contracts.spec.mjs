@@ -217,11 +217,26 @@ await run("员工目录：空数组 ⇒ ready 业务空态（真空 ≠ 失败�
   assert.match(bad.message, /形状异常/);
 });
 
-await run("员工目录：loadHistoryConversations 恒 unavailable（D11 历史会话 MISSING）", async () => {
-  const conv = await agentDirectory.loadHistoryConversations();
-  assert.equal(conv.state, "unavailable");
-  assert.deepEqual(conv.groups, []);
-  assert.match(conv.message, /暂不可用/);
+await run("历史会话：session-archive 真实载荷解析并按 sessionId 去重（D11 已解除）", () => {
+  const conv = agentDirectory.parseHistoryConversationsPayload({
+    total: 2,
+    items: [
+      {
+        sessionId: "sess_1",
+        messagesJson: [{ role: "user", content: "查库存" }],
+        messageCount: 1,
+        endedAt: "2026-11-13T08:00:00.000Z",
+      },
+      {
+        sessionId: "sess_1",
+        messagesJson: [{ role: "user", content: "重复旧行" }],
+        messageCount: 1,
+      },
+    ],
+  });
+  assert.equal(conv.state, "ready");
+  assert.equal(conv.enabledCount, 1);
+  assert.equal(conv.groups[0].staffs[0].name, "查库存");
 });
 
 await run("员工目录源码：无 14 个原型助理姓名、无 N/M 在线硬编码（D06/D07/D14）", () => {

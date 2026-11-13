@@ -113,11 +113,15 @@
       :cashier-active="isCashierRoute"
       :production-snapshot="effectiveCapabilities"
       :menu-usage="menuUsage"
+      :active-conversation-id="currentAiConversationId"
+      :history-revision="aiHistoryRevision"
       @open="openManualItem"
       @open-cashier="openCashierItem"
       @go-desk="goDesk"
       @go-pos="goPos"
       @new-chat="startNewConversation"
+      @open-conversation="openAiConversation"
+      @open-employee="openAiEmployee"
       @collapse="sideCollapsed = !sideCollapsed"
     />
 
@@ -208,6 +212,7 @@
             class="wb-chat-main"
             style="width: 100%; flex: 1"
             @status="handleAiStatus"
+            @conversation="handleAiConversation"
             @fallback="switchMode('human')"
             @open-form="openAiNativeForm"
           />
@@ -900,19 +905,53 @@ const settingsAccount = computed(() =>
 );
 
 const aiSessionState = ref<"idle" | "streaming" | "error">("idle");
+const currentAiConversationId = ref("");
+const aiHistoryRevision = ref(0);
 const chatPanel = ref<{
   sendQuickCommand?: (text: string) => void;
   newConversation?: () => void;
+  loadConversation?: (conversationId: string) => void;
+  selectEmployee?: (employee: {
+    employeeUid: string;
+    name: string;
+    post: string;
+    department?: string;
+    collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+  }) => void;
 } | null>(null);
 
 function handleAiStatus(payload: { state: "idle" | "streaming" | "error" }): void {
   aiSessionState.value = payload.state;
+  if (payload.state === "idle") aiHistoryRevision.value += 1;
+}
+
+function handleAiConversation(conversationId: string): void {
+  if (!conversationId) return;
+  currentAiConversationId.value = conversationId;
 }
 
 function startNewConversation(): void {
   setWorkbenchMode("ai");
   face.value = "chat";
   chatPanel.value?.newConversation?.();
+}
+
+function openAiConversation(conversationId: string): void {
+  setWorkbenchMode("ai");
+  face.value = "chat";
+  nextTick(() => chatPanel.value?.loadConversation?.(conversationId));
+}
+
+function openAiEmployee(employee: {
+  employeeUid: string;
+  name: string;
+  post: string;
+  department?: string;
+  collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+}): void {
+  setWorkbenchMode("ai");
+  face.value = "chat";
+  nextTick(() => chatPanel.value?.selectEmployee?.(employee));
 }
 
 /** 底部输入区 / feed 提问：切 AI 会话面并发送（原型：信息流态直接发消息） */

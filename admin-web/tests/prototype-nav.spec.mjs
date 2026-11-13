@@ -278,11 +278,36 @@ await run("真实员工端点失败 ⇒ error + 空组，绝不返回伪造条�
   } finally {
     globalThis.fetch = originalFetch;
   }
-  // D11：历史会话仍无权威列表端点，必须保持 unavailable 且不渲染。
+  // 会话归档：改用 AI 底座真实 GET /api/admin/session-archive，按 sessionId 去重并取首条用户消息作标题。
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => ({
+      total: 2,
+      items: [
+        {
+          sessionId: "sess_archive_1",
+          messagesJson: [
+            { role: "user", content: "查询五粮液库存" },
+            { role: "assistant", content: "总店 76 箱" },
+          ],
+          messageCount: 2,
+          endedAt: "2026-11-13T08:00:00.000Z",
+        },
+        {
+          sessionId: "sess_archive_1",
+          messagesJson: [{ role: "user", content: "旧重复" }],
+          messageCount: 1,
+          endedAt: "2026-11-12T08:00:00.000Z",
+        },
+      ],
+    }),
+  });
   const conv = await dir.loadHistoryConversations();
-  assert.equal(conv.state, "unavailable");
-  assert.deepEqual(conv.groups, []);
-  return "员工端点 error / groups=0；历史会话 unavailable / groups=0";
+  assert.equal(conv.state, "ready", `历史会话应 ready：${conv.message}`);
+  assert.equal(conv.enabledCount, 1, "同一 sessionId 必须去重");
+  assert.equal(conv.groups[0]?.staffs[0]?.name, "查询五粮液库存");
+  assert.equal(conv.groups[0]?.staffs[0]?.conversationId, "sess_archive_1");
+  return "员工端点 error / groups=0；历史会话 archive ready / 去重 1";
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
