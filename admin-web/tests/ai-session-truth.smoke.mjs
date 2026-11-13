@@ -174,7 +174,11 @@ await page.route("**/*", async (route) => {
 
 try {
   await page.goto(`${baseURL}/dashboard`, { waitUntil: "networkidle" });
-  await page.getByTestId("chat-agent-identity").waitFor({ timeout: 15_000 });
+  await page.getByTestId("view-feed").waitFor({ state: "visible", timeout: 15_000 });
+  assert.ok((await page.getByTestId("view-feed").getAttribute("class"))?.includes("shown"), "工作台未默认落到数据大屏/信息流");
+  assert.equal(await page.locator('[data-rail-key="desk"]').evaluate((el) => el.classList.contains("alert")), false, "无新信息时工作台入口错误常亮");
+  if (shotDir) await page.screenshot({ path: `${shotDir.replace(/\\/g, "/")}/workbench-feed-default-1440.png`, fullPage: true });
+  await page.getByTestId("chat-agent-identity").waitFor({ state: "attached", timeout: 15_000 });
   await page.waitForTimeout(500);
 
   assert.equal(await page.getByTestId("chat-tool-timeline").count(), 0, "工具时间线仍渲染");

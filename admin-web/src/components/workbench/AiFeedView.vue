@@ -380,10 +380,11 @@ const props = defineProps<{
   pendingReviewCount: number | null;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   (event: "ask", prompt: string): void;
   (event: "open", entry: ManifestItem): void;
   (event: "open-chat"): void;
+  (event: "new-info"): void;
 }>();
 
 const router = useRouter();
@@ -602,6 +603,7 @@ onMounted(() => {
   disconnectPush = connectAiPushSocket({
     onMessage: () => {
       // 收到推送即刷新动态与审批（真实触发，不本地伪造）
+      emit("new-info");
       loadMessages();
       refreshApprovals();
     },

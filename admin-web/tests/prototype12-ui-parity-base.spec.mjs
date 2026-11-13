@@ -286,15 +286,15 @@ await run("二级栏 230px 保留且唯一口径：production-snapshot 投影（
 
 /* ══ 3. 默认主面与唯一输入（§四.3 · M7 锚点）══ */
 
-await run("默认主面 = AI 日常经营对话/晨报：face 默认 chat，旧信息流不再作为任何入口落地面（M7/M1 相邻锚）", () => {
-  assert.ok(/const face = ref<MainFace>\("chat"\)/.test(shellSrc), "face 默认不是 chat（§四.3.1 ⇒ 点名红）");
+await run("默认主面 = 数据大屏/信息流：face 默认 feed；AI 对话由新对话显式进入", () => {
+  assert.ok(/const face = ref<MainFace>\("feed"\)/.test(shellSrc), "face 默认不是 feed（工作台数据大屏口径 ⇒ 点名红）");
   assert.ok(/return "日常经营"/.test(shellSrc), "AI 面顶栏标题未落「日常经营」");
   const goDesk = shellSrc.slice(shellSrc.indexOf("function goDeskHome"), shellSrc.indexOf("function goDeskHome") + 400);
-  assert.ok(/face\.value = "chat"/.test(goDesk), "rail 工作台落地面不是 AI 日常经营对话");
+  assert.ok(/face\.value = "feed"/.test(goDesk), "rail 工作台落地面不是数据大屏/信息流");
   const toggleMod = shellSrc.slice(shellSrc.indexOf("function toggleModule"), shellSrc.indexOf("function toggleModule") + 500);
   assert.ok(/face\.value = "chat"/.test(toggleMod), "选模块后主面回落旧信息流（§四.3.1 禁止）");
-  assert.ok(/data-testid="view-feed"/.test(shellSrc), "旧信息流层应保留（数据 hook 不删）但不得默认");
-  return "face=chat 默认 + rail/模块落点同口径";
+  assert.ok(/data-testid="view-feed"/.test(shellSrc), "信息流主面缺失");
+  return "face=feed 默认 + rail 落到数据大屏";
 });
 
 await run("唯一输入面：chat 态隐藏底部输入条（会话面自带悬浮输入），人工/feed 态走悬浮 .cmp（双输入 ⇒ M7 点名红）", () => {
@@ -303,7 +303,7 @@ await run("唯一输入面：chat 态隐藏底部输入条（会话面自带悬�
   assert.ok(/face\.value === "chat" && !isCashierRoute\.value/.test(shellSrc), "showChatComposer 未绑定 chat 面");
   assert.ok(/:compact="effectiveMode === 'human'"/.test(shellSrc), "人工态缺 compact 收条");
   assert.ok(chatPanelSrc.includes("AiSidePanel"), "会话面缺 AiSidePanel（唯一 SSE/确认链宿主）");
-  assert.ok(sidePanelSrc.includes("defineExpose({ sendText: sendSuggestion"), "AiSidePanel 未复用真实发送逻辑");
+  assert.ok(sidePanelSrc.includes("sendText: sendSuggestion"), "AiSidePanel 未复用真实发送逻辑");
   const chatInput = cssBlock(sidePanelSrc, ".ai-input-area");
   assert.ok(chatInput && /position:\s*absolute/.test(chatInput), "会话输入区仍为整面固定底栏");
   assert.ok(/background:\s*linear-gradient/.test(chatInput), "会话输入区未改为透明悬浮画布");

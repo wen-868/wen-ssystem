@@ -93,18 +93,30 @@ await run("顶栏徽标：装配于顶栏且含待审阅 + 台账入口已按合
 });
 
 // ── 4. 主面：chat（AI 日常经营 · 默认）⇄ feed（退场保留层）⇄ 人工页，router-view 常驻 ──
-await run("主面三层：chat 默认（AI 日常经营）+ feed 保留层 + manual（router-view 常驻）", () => {
+await run("主面三层：feed 默认数据大屏 + chat 入口 + manual（router-view 常驻）", () => {
   const missing = [];
   if (!/data-testid="view-feed"/.test(shell)) missing.push("view-feed 层");
   if (!/data-testid="view-chat"/.test(shell)) missing.push("view-chat 层");
   if (!/data-view="manual"/.test(shell)) missing.push("view-manual 层");
-  if (!/const face = ref<MainFace>\("chat"\)/.test(shell)) missing.push("默认 face=chat（AI 日常经营主面 · UI-PARITY-BASE §四.3.1）");
+  if (!/const face = ref<MainFace>\("feed"\)/.test(shell)) missing.push("默认 face=feed（工作台数据大屏 / 信息流）");
   if (!/AiFeedView/.test(shell)) missing.push("信息流视图装配");
   if (!/<router-view\s*\/>/.test(shell)) missing.push("人工页 router-view 出口");
   // router-view 不得被条件渲染包裹（保持 ai-primary 断言同语义）
   if (/v-if=[^\n]*\n\s*<router-view/.test(shell)) missing.push("router-view 被条件渲染包裹（回退风险）");
   assert.equal(missing.length, 0, `主面三层结构缺失：\n  - ${missing.join("\n  - ")}`);
-  return "chat 默认 + feed 保留层 + manual 三层，router-view 常驻";
+  return "feed 默认 + chat 入口 + manual 三层，router-view 常驻";
+});
+
+await run("工作台入口提示：仅新信息到达时短暂闪烁，待审阅存量不常亮", () => {
+  const feedView = read("components/workbench/AiFeedView.vue");
+  assert.ok(/feedAlert\s*=\s*ref\(false\)/.test(shell), "feedAlert 仍不是瞬时状态");
+  assert.ok(shell.includes("pulseWorkbenchAlert"), "缺少新信息闪烁触发器");
+  assert.ok(shell.includes("clearWorkbenchAlert"), "点回工作台未清除闪烁");
+  assert.ok(shell.includes('@new-info="pulseWorkbenchAlert"'), "信息流新消息未接到工作台入口");
+  assert.ok(feedView.includes('(event: "new-info"): void'), "信息流未声明 new-info");
+  assert.ok(feedView.includes('emit("new-info")'), "推送到达未发送 new-info");
+  assert.ok(!/const feedAlert = computed\(\(\) => \(pendingReviewCount/.test(shell), "待审阅存量仍驱动常亮红闪");
+  return "new-info 触发 2.4s 瞬时提示 + 点击清除";
 });
 
 // ── 5. 底部固定 AI 输入区（人工页收为入口条）＝原型 .input-zone ──────────────
