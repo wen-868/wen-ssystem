@@ -45,6 +45,15 @@ export interface DirectoryGroup {
   staffs: DirectoryStaff[];
 }
 
+/** 当前会话参与者；空/null 表示默认“总负责人”，由底座自动调度数字员工。 */
+export interface ActiveAiEmployee {
+  employeeUid: string;
+  name: string;
+  post: string;
+  department?: string;
+  collaborators: Array<{ employeeUid: string; name: string; post: string }>;
+}
+
 export interface AgentDirectory {
   state: DirectoryState;
   groups: DirectoryGroup[];

@@ -861,7 +861,6 @@ defineExpose({ keyword });
   flex-shrink: 0;
   margin: 12px 14px 6px;
   padding: 0 4px 14px;
-  border-bottom: 1px solid var(--wb-line-strong, #dde2e9);
 }
 
 /* 小标题（原型 .sub-zone .qk-t · L131，V37 起为 flex 行） */

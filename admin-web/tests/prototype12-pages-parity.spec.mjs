@@ -196,7 +196,8 @@ await run("结构锚：顶栏标题取路由 meta.title（人工态），缺省�
   assert.ok(/pageTitle/.test(SHELL), "壳层 pageTitle 函数缺失（标题路由映射断裂）");
   assert.ok(/route\.meta\?\.title/.test(SHELL), "壳层 pageTitle 未读 route.meta.title");
   assert.ok(/metaTitle\s*\?\s*metaTitle\s*:\s*"工作台"/.test(SHELL), "pageTitle 缺省回落不再是「工作台」（标题错配 ⇒ 点名红）");
-  assert.ok(/return "日常经营"/.test(SHELL), "AI 面标题未落日常经营");
+  assert.ok(SHELL.includes("selectedGroupLabel.value"), "AI 面标题未跟随一级选择");
+  assert.ok(SHELL.includes('?? "工作台"'), "工作台位缺少默认标题");
   return "标题路由映射 + 缺省回落 + AI 面标题在位";
 });
 

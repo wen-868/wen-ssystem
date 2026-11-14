@@ -8,48 +8,81 @@
       <button type="button" data-testid="composer-voice-stop" @click="stopVoice">完成</button>
       <button type="button" data-testid="composer-voice-cancel" @click="cancelVoice">取消</button>
     </div>
-    <form class="cmp-form" @submit.prevent="submit">
+    <form
+      class="cmp-form"
+      :class="{ 'is-expanded': inputExpanded }"
+      @submit.prevent="submit"
+      @focusin="inputFocused = true"
+      @focusout="onFocusOut"
+    >
       <textarea
         ref="txtEl"
         v-model="text"
         class="cmp-input"
         :placeholder="compact ? '问智享AI（回车发送）…' : '给智享AI发消息…'"
-        rows="2"
+        rows="1"
         :disabled="streaming"
         data-testid="composer-input"
         @keydown.enter.exact.prevent="submit"
         @input="autoGrow"
       />
       <div class="cmp-toolbar">
-        <div class="cmp-att-wrap">
-          <button
-            type="button"
-            class="cmp-att-btn"
-            :disabled="streaming"
-            title="附件（图片 / 文件）"
-            data-testid="composer-att-btn"
-            @click="attMenuOpen = !attMenuOpen"
-          >
-            ＋
-          </button>
-          <!-- 图片随消息发送只在会话输入区有真实链；文件解析无端点 ⇒ 暂不支持 -->
-          <div v-if="attMenuOpen" class="cmp-att-menu" data-testid="composer-att-menu">
+        <div class="cmp-toolbar-left">
+          <div class="cmp-att-wrap">
             <button
               type="button"
-              data-testid="composer-att-image"
-              @click="noticeFor('image')"
+              class="cmp-att-btn"
+              :disabled="streaming"
+              title="附件（图片 / 文件）"
+              data-testid="composer-att-btn"
+              @click="attMenuOpen = !attMenuOpen"
             >
-              图片 · 请进入会话后附图
+              ＋
             </button>
-            <button
-              type="button"
-              class="is-pending"
-              data-testid="composer-att-file"
-              @click="noticeFor('file')"
-            >
-              文件 · 暂不支持
-            </button>
+            <!-- 图片随消息发送只在会话输入区有真实链；文件解析无端点 ⇒ 暂不支持 -->
+            <div v-if="attMenuOpen" class="cmp-att-menu" data-testid="composer-att-menu">
+              <button
+                type="button"
+                data-testid="composer-att-image"
+                @click="noticeFor('image')"
+              >
+                图片 · 请进入会话后附图
+              </button>
+              <button
+                type="button"
+                class="is-pending"
+                data-testid="composer-att-file"
+                @click="noticeFor('file')"
+              >
+                文件 · 暂不支持
+              </button>
+            </div>
           </div>
+          <el-select
+            :model-value="selectedEmployeeUid"
+            class="cmp-employee-select"
+            size="small"
+            :disabled="streaming"
+            filterable
+            @visible-change="employeeMenuOpen = $event"
+            data-testid="composer-employee-select"
+            aria-label="选择当前对话的数字员工"
+            @change="onEmployeeChange"
+          >
+            <el-option label="总负责人" value="__supervisor" />
+            <el-option-group
+              v-for="group in employeeGroups"
+              :key="group.name"
+              :label="group.name"
+            >
+              <el-option
+                v-for="staff in group.staffs"
+                :key="staff.employeeUid"
+                :label="`${staff.name} · ${staff.post}`"
+                :value="staff.employeeUid"
+              />
+            </el-option-group>
+          </el-select>
         </div>
         <button
           type="button"
@@ -87,20 +120,34 @@
  */
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import { Microphone, Promotion } from "@element-plus/icons-vue";
+import type { ActiveAiEmployee, DirectoryGroup } from "../../shared/workbench/agent-directory";
 
 const props = defineProps<{
   compact?: boolean;
   streaming?: boolean;
+  employee?: ActiveAiEmployee | null;
+  employeeGroups?: readonly DirectoryGroup[];
 }>();
 
 const emit = defineEmits<{
   (event: "send", prompt: string): void;
+  (event: "employee-change", employeeUid: string): void;
 }>();
 
 const text = ref("");
 const txtEl = ref<HTMLTextAreaElement | null>(null);
+const inputFocused = ref(false);
+const employeeMenuOpen = ref(false);
 const canSend = computed(() => text.value.trim().length > 0 && !props.streaming);
 const hasInput = computed(() => text.value.trim().length > 0);
+const inputExpanded = computed(
+  () => inputFocused.value || hasInput.value || attMenuOpen.value || employeeMenuOpen.value,
+);
+const employeeGroups = computed(() => props.employeeGroups ?? []);
+const selectedEmployeeUid = computed(() => props.employee?.employeeUid ?? "__supervisor");
+function onEmployeeChange(value: string): void {
+  emit("employee-change", value || "__supervisor");
+}
 const primaryActionTitle = computed(() => {
   if (props.streaming) return "AI 正在回复";
   if (listening.value) return "点击停止录音";
@@ -111,6 +158,13 @@ const primaryActionTitle = computed(() => {
 /** 附件菜单：本入口（信息流态）没有随消息附件的真实链，菜单只做诚实指路，不产生假附件 */
 const attMenuOpen = ref(false);
 const attNotice = ref("");
+
+function onFocusOut(event: FocusEvent): void {
+  const next = event.relatedTarget as Node | null;
+  if (!next || !(event.currentTarget as HTMLElement).contains(next)) {
+    inputFocused.value = false;
+  }
+}
 
 function noticeFor(kind: "image" | "file"): void {
   attMenuOpen.value = false;
@@ -296,10 +350,15 @@ function submit(): void {
   line-height: 1.5;
   color: var(--wb-ink, #16181d);
   background: transparent;
-  min-height: 44px;
+  min-height: 24px;
+  height: 24px;
   max-height: 120px;
   font-family: inherit;
   padding: 6px 8px 3px;
+  transition: height 180ms ease, min-height 180ms ease;
+}
+.cmp-form.is-expanded .cmp-input {
+  min-height: 44px;
 }
 .cmp-toolbar {
   display: flex;
@@ -308,11 +367,26 @@ function submit(): void {
   gap: 8px;
   padding: 0 2px;
 }
+.cmp-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.cmp-employee-select {
+  width: 154px;
+}
+.cmp-employee-select :deep(.el-select__wrapper) {
+  min-height: 28px;
+  border-radius: 999px;
+  box-shadow: none;
+  background: transparent;
+}
 .cmp-primary-btn {
   width: 30px;
   height: 30px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 50%;
   background: var(--wb-primary, #2563eb);
   color: #fff;
   display: inline-flex;
@@ -340,7 +414,7 @@ function submit(): void {
   width: 28px;
   height: 28px;
   border: 1px solid var(--wb-line-strong, #dde2e9);
-  border-radius: 8px;
+  border-radius: 50%;
   background: transparent;
   color: var(--wb-ink2, #8a8f98);
   font-size: 15px;

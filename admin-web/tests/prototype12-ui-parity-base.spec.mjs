@@ -133,12 +133,13 @@ await run("router-view 常驻：去注释后真实自闭合渲染节点、无 v-
 
 /* ══ 2. 顶栏合同（§四.2.5 + top_bar 合同）══ */
 
-await run("顶栏保留菜单开关 / 日常经营 / 待审阅；任务中心仅收起后显示重开键", () => {
+await run("顶栏保留菜单开关 / 当前选择标题 / 待审阅；任务中心仅收起后显示重开键", () => {
   assert.ok(shellSrc.includes('data-testid="side-toggle"'), "缺菜单开关");
   assert.ok(!shellSrc.includes('data-testid="mode-seg"'), "工作台/收银台仍错放在主内容顶栏");
   assert.ok(subnavSrc.includes('data-testid="mode-seg"'), "二级栏品牌位缺工作台/收银台胶囊");
   assert.ok(/data-mode-seg="desk"/.test(subnavSrc) && /data-mode-seg="pos"/.test(subnavSrc), "胶囊缺工作台或收银台项");
-  assert.ok(/return "日常经营"/.test(shellSrc), "AI 模式顶栏标题不是「日常经营」（top_bar.left）");
+  assert.ok(shellSrc.includes("selectedGroupLabel.value"), "AI 模式顶栏标题未跟随一级选择");
+  assert.ok(shellSrc.includes('?? "工作台"'), "工作台位缺少默认顶栏标题");
   assert.ok(agentBarSrc.includes('data-testid="agent-pending-review"'), "缺待审阅徽标（top_bar.left unread review badge）");
   assert.ok(shellSrc.includes('data-testid="task-center-toggle"'), "缺任务中心重开键（top_bar.right）");
   return "模式胶囊在左侧品牌位；任务中心重开键按需显示";
@@ -180,9 +181,12 @@ await run("中央工作区画布左上角使用圆角裁切", () => {
   return "AI 画布 + 人工画布 top-left 16px";
 });
 
-await run("会话内部重复标题与重复会话状态条均已删除", () => {
+await run("工作台内部重复标题与重复会话状态条均已删除", () => {
   assert.ok(!sidePanelSrc.includes('class="ai-header"'), "AiSidePanel 仍保留重复标题栏");
   assert.ok(!sidePanelSrc.includes('data-testid="daily-op-title"'), "AiSidePanel 仍重复显示「日常经营」");
+  const feedSrc = read("components/workbench/AiFeedView.vue");
+  assert.ok(!feedSrc.includes('data-testid="daily-op-title"'), "AiFeedView 仍重复显示「日常经营」");
+  assert.ok(!feedSrc.includes('class="fdv-name"'), "AiFeedView 仍保留页内重复标题节点");
   const aiPanelSrc = read("components/workbench/AiChatPanel.vue");
   assert.ok(!aiPanelSrc.includes("acp-sess-bar"), "仍保留「会话列表/当前会话」重复状态条");
   assert.ok(!aiPanelSrc.includes("chat-sessions-toggle"), "仍保留重复会话列表开关");
@@ -198,6 +202,13 @@ await run("二级栏工作台/收银台胶囊加高下移，上下保留充足�
   assert.ok(seg && /max-width:\s*164px;/.test(seg), "模式胶囊宽度未收窄");
   assert.ok(item && /padding:\s*6px 9px;/.test(item), "模式按钮未恢复加高");
   return "62px 品牌区 + 164px 胶囊 + 上下留白";
+});
+
+await run("二级栏模块标签与菜单卡片之间无分隔线", () => {
+  const subzone = cssBlock(subnavSrc, ".sn-subzone");
+  assert.ok(subzone, "缺少 .sn-subzone 样式块");
+  assert.ok(!/border-bottom\s*:/.test(subzone), "模块标签与菜单卡片之间仍存在分隔线");
+  return "sn-subzone border-bottom 已移除";
 });
 
 await run("任务中心头部：收起键在左，最小化/最大化/关闭三键在右且接通 Electron", () => {
@@ -288,7 +299,8 @@ await run("二级栏 230px 保留且唯一口径：production-snapshot 投影（
 
 await run("默认主面 = 数据大屏/信息流：face 默认 feed；AI 对话由新对话显式进入", () => {
   assert.ok(/const face = ref<MainFace>\("feed"\)/.test(shellSrc), "face 默认不是 feed（工作台数据大屏口径 ⇒ 点名红）");
-  assert.ok(/return "日常经营"/.test(shellSrc), "AI 面顶栏标题未落「日常经营」");
+  assert.ok(shellSrc.includes("selectedGroupLabel.value"), "AI 面顶栏标题未跟随选择联动");
+  assert.ok(!/return "日常经营"/.test(shellSrc), "AI 面顶栏仍被写死为「日常经营」");
   const goDesk = shellSrc.slice(shellSrc.indexOf("function goDeskHome"), shellSrc.indexOf("function goDeskHome") + 400);
   assert.ok(/face\.value = "feed"/.test(goDesk), "rail 工作台落地面不是数据大屏/信息流");
   const toggleMod = shellSrc.slice(shellSrc.indexOf("function toggleModule"), shellSrc.indexOf("function toggleModule") + 500);
@@ -310,24 +322,31 @@ await run("唯一输入面：chat 态隐藏底部输入条（会话面自带悬�
   return "chat 单输入 + 人工 compact + 真实发送链";
 });
 
-await run("输入框三行结构：上两行文字，底行放附件与语音/发送合并键", () => {
+await run("输入框默认两行、聚焦展开三行；按钮统一圆形", () => {
   assert.ok(
-    sidePanelSrc.includes(':autosize="{ minRows: 2, maxRows: 6 }"'),
-    "会话输入框未启用 2-6 行自动增高",
+    sidePanelSrc.includes('minRows: inputExpanded ? 2 : 1'),
+    "会话输入框未按焦点/内容在 1↔2 文字行间切换",
   );
   const sideInput = cssBlock(sidePanelSrc, ".ai-input-box :deep(.el-textarea__inner)");
   const sideSend = cssBlock(sidePanelSrc, ".ai-primary-btn");
-  assert.ok(sideInput && /padding:\s*6px 8px 3px;/.test(sideInput), "会话文字区未独立占上方两行");
-  assert.ok(sideSend && /width:\s*30px;/.test(sideSend), "会话语音/发送合并键丢失");
+  const sidePlus = cssBlock(sidePanelSrc, ".ai-inline-plus");
+  assert.ok(sideInput && /min-height:\s*24px/.test(sideInput), "会话输入框默认未收敛为单文字行");
+  assert.ok(sideInput && /transition:\s*min-height 180ms/.test(sideInput), "会话输入框缺少展开动效");
+  assert.ok(sideSend && /width:\s*30px;/.test(sideSend) && /border-radius:\s*50%/.test(sideSend || ""), "会话语音/发送按钮未保持圆形");
+  assert.ok(sidePlus && /border-radius:\s*50%/.test(sidePlus), "会话附件按钮不是圆形");
   assert.ok(sidePanelSrc.includes('class="ai-inline-plus"'), "附件加号未放进会话输入框");
   assert.ok(sidePanelSrc.includes('class="ai-input-toolbar"'), "会话输入框缺底部按钮行");
   assert.ok(sidePanelSrc.includes("chat-mic-btn") && sidePanelSrc.includes("chat-send-btn"), "语音/发送未合并为动态键");
-  assert.ok(composerSrc.includes('@input="autoGrow"'), "人工页输入框未随内容自动增高");
+  assert.ok(composerSrc.includes("@input=\"autoGrow\""), "人工页输入框未随内容自动增高");
+  assert.ok(composerSrc.includes('rows="1"') && composerSrc.includes("inputExpanded"), "人工页输入框默认未收敛为两栏");
+  assert.ok(composerSrc.includes("height 180ms"), "人工页输入框缺少展开动效");
   const send = cssBlock(composerSrc, ".cmp-primary-btn");
-  assert.ok(send && /width:\s*30px;/.test(send), "人工页语音/发送合并键丢失");
+  const att = cssBlock(composerSrc, ".cmp-att-btn");
+  assert.ok(send && /width:\s*30px;/.test(send) && /border-radius:\s*50%/.test(send), "人工页语音/发送按钮未保持圆形");
+  assert.ok(att && /border-radius:\s*50%/.test(att), "人工页附件按钮不是圆形");
   assert.ok(composerSrc.includes('class="cmp-toolbar"'), "人工页输入框缺底部按钮行");
   assert.ok(composerSrc.includes("composer-mic-btn") && composerSrc.includes("composer-send"), "人工页语音/发送未合并为动态键");
-  return "2 行文字 + 底行按钮 / 语音发送合并";
+  return "默认 1 文字行+按钮行 = 2 栏；聚焦 2 文字行+按钮行 = 3 栏；圆形按钮";
 });
 
 await run("任务中心主体用画布底色，顶栏并入全局顶栏", () => {
