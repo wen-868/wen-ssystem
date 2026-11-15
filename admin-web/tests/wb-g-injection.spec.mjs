@@ -1,9 +1,11 @@
 /**
  * WORKBENCH-10-UIUX-PARITY-F1 补齐项 6 断言用例 —— 12 模块测试注入的边界（诚实侧）
  *
- * 判据（派单卡 §四 原文四条要求 + §六 红线）：
+ * 判据（派单卡 §四 原文四条要求 + §六 红线；2026-11-15 MS-WB-CONTENT-WIRING-B-01 扩条新口径）：
  *   1. 保留静态 rail 12 组真相源（`MANUAL_GROUPS` 12 组 71 项不得被改动或替换）；
- *   2. 注入只服务 UIUX 走查：生产 `SERVER_MENU_BRIDGE` 真值一条不动（10 条 ⇒ 4 组 8 项）；
+ *   2. 生产 `SERVER_MENU_BRIDGE` 桥扩条真值：20 条（旧 10 条证据不变 + 新 10 条
+ *      menu-bridge-alignment.md 立证）⇒ 交集覆盖 10 组 17 项；wb.order/wb.instant-retail
+ *      两域服务端目录缺码，交集为空属诚实状态（卡 §五）；
  *   3. 注入必须自证：仅开发态 + 精确参数才激活，且 DOM 留「测试注入」角标；
  *   4. 真实生产态仍按权限 fail-closed：注入只跳过 `/menus/user` 交集这一步，
  *      `meta.roles` 角色裁剪照常 ⇒ 低权限角色即使带参数也看不到 12 组。
@@ -69,20 +71,30 @@ const VALUE = inject.WB_UIUX_INJECT_VALUE;
 
 // ═══ 一、生产上界：桥接真值未被本单改动，注入存在的理由就是这道缺口 ═══
 
-await run("生产上界：SERVER_MENU_BRIDGE 仍 10 条 ⇒ 交集只覆盖 4 组 8 项（12 组 71 项真相源不动）", () => {
-  assert.equal(menuAccess.SERVER_MENU_BRIDGE.length, 10, "菜单桥条数被改动即越权（卡§六禁改桥接真值）");
+await run("生产上界：SERVER_MENU_BRIDGE 扩条后 20 条 ⇒ 交集覆盖 10 组 17 项（12 组 71 项真相源不动）", () => {
+  assert.equal(menuAccess.SERVER_MENU_BRIDGE.length, 20, "菜单桥条数必须=旧10+新10（扩条口径，卡§二授权）");
   assert.ok(
     menuAccess.SERVER_MENU_BRIDGE.every((entry) => typeof entry.evidence === "string" && entry.evidence.includes(".md:")),
     "每条桥接都必须有证据行号，不得有空口",
   );
+  const legacy = menuAccess.SERVER_MENU_BRIDGE.filter((entry) => entry.evidence.startsWith("10-route-menu-matrix.md:"));
+  const expanded = menuAccess.SERVER_MENU_BRIDGE.filter((entry) => entry.evidence.startsWith("menu-bridge-alignment.md:"));
+  assert.equal(legacy.length, 10, "旧 10 条（矩阵「可对齐」全集）证据必须原样保留");
+  assert.equal(expanded.length, 10, "新 10 条必须逐条引 menu-bridge-alignment.md 行号（本卡立证）");
   const bridgeNames = new Set(menuAccess.SERVER_MENU_BRIDGE.map((entry) => entry.routeName));
   const restricted = menuAccess.restrictManifestGroups(manifest.MANUAL_GROUPS, bridgeNames);
   const restrictedItems = restricted.reduce((sum, group) => sum + group.items.length, 0);
   assert.equal(manifest.MANUAL_GROUPS.length, 12, "静态 rail 12 组真相源必须保留");
   assert.equal(manifest.countManualItems(), 71, "71 项真相源必须保留");
-  assert.equal(restricted.length, 4, "生产交集覆盖组数就是 4（卡§四口径），多或少都说明桥被改过");
-  assert.equal(restrictedItems, 8);
-  return `桥 10 条 · 生产 ${restricted.length}/12 组 ${restrictedItems}/71 项`;
+  assert.equal(restricted.length, 10, "扩条后交集覆盖 10 组（wb.order/wb.instant-retail 服务端缺码，卡§五口径）");
+  assert.equal(restrictedItems, 17);
+  const coveredGroups = new Set(restricted.map((group) => group.groupCode));
+  assert.deepEqual(
+    ["wb.dashboard", "wb.sales", "wb.product", "wb.inventory", "wb.customer", "wb.finance", "wb.purchase", "wb.marketing", "wb.report", "wb.system"].every((g) => coveredGroups.has(g)),
+    true,
+    "扩条后必须覆盖除缺码两域外的全部 10 组",
+  );
+  return `桥 20 条（旧10+新10） · 生产 ${restricted.length}/12 组 ${restrictedItems}/71 项`;
 });
 
 // ═══ 二、激活条件：开发态 + 精确参数，两缺一不激活 ═══

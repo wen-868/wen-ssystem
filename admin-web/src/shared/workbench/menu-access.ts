@@ -25,15 +25,18 @@ export interface ServerMenuRow {
   status: string;
 }
 
-/** 服务端 menuCode → 前端 routeName：仅收录 10-route-menu-matrix.md 判定「可对齐」的条目 */
+/** 服务端 menuCode → 前端 routeName：
+ *  - 旧 10 条：10-route-menu-matrix.md「可对齐」全集；
+ *  - 新 10 条：MS-WB-CONTENT-WIRING-B-01 桥扩条（业主 2026-11-15 授权），证据=menu-bridge-alignment.md §三。 */
 export interface MenuBridgeEntry {
   serverCode: string;
   routeName: string;
-  /** 证据行（矩阵文件 + 行号），禁止按名称相似临时新增 */
+  /** 证据行（对齐证据文件 + 行号），禁止按名称相似临时新增 */
   evidence: string;
 }
 
 export const SERVER_MENU_BRIDGE: readonly MenuBridgeEntry[] = [
+  // ── 旧 10 条（10-route-menu-matrix.md「可对齐」全集，证据行号不变）──────────
   { serverCode: "dashboard", routeName: "dashboard", evidence: "10-route-menu-matrix.md:497" },
   { serverCode: "marketing", routeName: "marketing", evidence: "10-route-menu-matrix.md:503" },
   { serverCode: "system", routeName: "system", evidence: "10-route-menu-matrix.md:507" },
@@ -44,6 +47,20 @@ export const SERVER_MENU_BRIDGE: readonly MenuBridgeEntry[] = [
   { serverCode: "finance:expenses", routeName: "finance-expenses", evidence: "10-route-menu-matrix.md:639" },
   { serverCode: "finance:reconciliation", routeName: "finance-reconciliation", evidence: "10-route-menu-matrix.md:640" },
   { serverCode: "system:print", routeName: "system-print", evidence: "10-route-menu-matrix.md:659" },
+  // ── 新 10 条（MS-WB-CONTENT-WIRING-B-01 桥扩条，业主 2026-11-15 授权；
+  //     隔离库 zxql_wb_verify_isolated 真实 57 码目录逐条对齐，证据=menu-bridge-alignment.md §三）──
+  // 域首项对齐：服务端 CATALOG 域 → 工作台对应业务组 manifest 首项
+  { serverCode: "goods", routeName: "products", evidence: "menu-bridge-alignment.md:35" },
+  { serverCode: "sale", routeName: "sales-order-create", evidence: "menu-bridge-alignment.md:36" },
+  { serverCode: "purchase", routeName: "purchase-orders", evidence: "menu-bridge-alignment.md:37" },
+  { serverCode: "customer", routeName: "customers", evidence: "menu-bridge-alignment.md:38" },
+  { serverCode: "finance", routeName: "payments", evidence: "menu-bridge-alignment.md:39" },
+  { serverCode: "report", routeName: "reports", evidence: "menu-bridge-alignment.md:40" },
+  // 名称精确对齐：menu_name 与 manifest 标题全等（隔离库 t_sys_menu 逐行核对）
+  { serverCode: "goods:stock-warning", routeName: "inventory-alerts", evidence: "menu-bridge-alignment.md:41" },
+  { serverCode: "customer:stored-card", routeName: "store-value-cards", evidence: "menu-bridge-alignment.md:42" },
+  { serverCode: "marketing:seckill", routeName: "marketing-flash-sale", evidence: "menu-bridge-alignment.md:43" },
+  { serverCode: "system:permission", routeName: "report-permissions", evidence: "menu-bridge-alignment.md:44" },
 ];
 
 /** 载荷不合法（非数组 / 行缺 menuCode）：调用方按失败处理，不得猜数据 */
