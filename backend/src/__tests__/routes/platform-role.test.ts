@@ -35,6 +35,17 @@ vi.mock("../../services/platform/platform-role.service", () => ({
   replaceRolePermissions: mocks.replaceRolePermissions,
 }));
 
+/**
+ * MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01：本文件测的是角色/权限点目录端点业务行为，不是 RBAC
+ * ⇒ 平台权限中间件替换为放行桩（与 platform-open-api-keys.test.ts 同款范式）。权限判定反测见
+ * platform-rbac-pilot.test.ts / platform-write-guard.test.ts。必须放在本文件对
+ * platform-role.service 的 mock 之后：真实 platform-rbac 会 import 该 service 的 PERMISSION_CATALOG，
+ * 放行桩让真实 platform-rbac 不被加载（mock 的 service 缺 PERMISSION_CATALOG 导出会整文件炸）。
+ */
+vi.mock("../../middleware/platform-rbac", () => ({
+  requirePlatformPermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 import { AppError } from "../../shared/app-error";
 import { routeConfigs } from "../../routes/platform-role.routes";
 import { requirePlatformAuth } from "../../middleware/auth";

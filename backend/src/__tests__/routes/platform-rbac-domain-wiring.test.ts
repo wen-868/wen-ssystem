@@ -356,9 +356,15 @@ describe("S3-219 · 三态分辨力（同一端点：认证层 / CSRF 层 / 授�
   });
 });
 
-describe("S3-219 · 范围边界：本单只接写端点（未顺手给读端点挂写码）", () => {
+describe("S3-219 · 范围边界：读端点的接线口径（S3-219 只接写端点；MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01 起敏感读也接）", () => {
+  /**
+   * S3-219 当时的口径是"读端点不接"，本用例原文断言 GET 读端点**不**被 403。
+   * MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01（卡 §三.3「敏感读仅 SUPER_ADMIN 可读」）改变了该口径：
+   * open 域的 `GET /api-keys` 已挂 `open:manage`（目录内既有码），因此**无码时读端点同样 403**。
+   * 断言随之翻转为"敏感读端点无码 ⇒ 403 + 拒绝留痕"，两侧分辨力由本文件其余用例覆盖。
+   */
   it.each(SUITES.map((suite) => [suite.name, suite] as [string, DomainSuite]))(
-    "%s 的 GET 读端点在无写码时**不**被 403（读码属后续批次）",
+    "%s 的敏感 GET 读端点在无码时**被** 403（本卡起敏感读也接权限码）",
     async (_name, suite) => {
       setupDeny();
       const [readPath] = readPathsOf(suite);
@@ -366,8 +372,16 @@ describe("S3-219 · 范围边界：本单只接写端点（未顺手给读端点
       const res = await request(app)
         .get(readPath)
         .set("Authorization", `Bearer ${PLATFORM_TOKEN}`);
-      expect(res.status).not.toBe(403);
-      expect(auditCalls()).toHaveLength(0);
+      // open 域 GET /api-keys 已接 open:manage ⇒ 无码（can_page_btn=0）必 403
+      if (suite.moduleCode === "open") {
+        expect(res.status).toBe(403);
+        expect(String(res.body.msg)).toContain(suite.permCode);
+        expect(auditCalls()).toHaveLength(1);
+      } else {
+        // library / review 的读端点本单仍未接（卡 §三.3 的敏感读清单不含商品库列表/评价列表）
+        expect(res.status).not.toBe(403);
+        expect(auditCalls()).toHaveLength(0);
+      }
     }
   );
 });

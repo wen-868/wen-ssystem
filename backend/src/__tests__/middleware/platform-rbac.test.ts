@@ -63,8 +63,9 @@ describe("S3-193 · 权限码登记表", () => {
   it("写码按 `<域>:manage` 登记；读码派生自权限点目录（MENU 级），两侧都可解析", () => {
     expect(WRITE_SPEC).toMatchObject({ moduleCode: "sysconfig", level: "WRITE", catalogReady: true });
     expect(READ_SPEC).toMatchObject({ moduleCode: "sysconfig", level: "READ", catalogReady: true });
-    // 读码来自 PERMISSION_CATALOG（7 个功能域各 1 条 MENU）+ 本单新增 9 条写码
-    expect(PLATFORM_PERMISSIONS.size).toBe(16);
+    // 读码来自 PERMISSION_CATALOG（7 个功能域各 1 条 MENU）+ 写码 14 条
+    // （9 个 `:manage` + ticket 域既有的 5 条逐动作 BUTTON，见 MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01）
+    expect(PLATFORM_PERMISSIONS.size).toBe(21);
     expect(isRegisteredPlatformPermission("sysconfig:manage")).toBe(true);
     expect(isRegisteredPlatformPermission("sysconfig:delete-all")).toBe(false);
   });

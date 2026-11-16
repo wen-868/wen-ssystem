@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-monitor-ops.controller";
 
@@ -35,7 +36,7 @@ platformMonitorOpsRouter.get("/tenant-api/export", asyncHandler(controller.expor
 
 // C-6 监控阈值配置（读 / 写）
 platformMonitorOpsRouter.get("/thresholds", asyncHandler(controller.getThresholdsCtrl));
-platformMonitorOpsRouter.put("/thresholds", asyncHandler(controller.updateThresholdsCtrl));
+platformMonitorOpsRouter.put("/thresholds", requirePlatformPermission("monitor:manage"), asyncHandler(controller.updateThresholdsCtrl));
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/monitor",

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-ticket.controller";
 
@@ -23,6 +24,8 @@ export const platformSupportRouter = Router();
 
 // —— 字面量子路由（必须先于 /tickets/:id）——
 // GET /api/platform/support/tickets/report —— 服务报表（口径未定 ⇒ { items: [], definitionPending: true }）
+// 读端点**不接**权限码：卡 §三.1「SUPPORT 仅保留 dashboard / tenant / billing / monitor / ticket 的既有只读能力」
+// 与 §三.3「SUPPORT 白名单列表/详情/统计不得误伤」⇒ 工单只读属白名单，接入会 403 误伤。
 platformSupportRouter.get("/tickets/report", asyncHandler(controller.getServiceReport));
 
 // —— 字面量端点（与 /tickets/:id 段数不同，顺序无关，仍按"具体→通配"排列）——
@@ -36,16 +39,16 @@ platformSupportRouter.get("/ticket-categories", asyncHandler(controller.listTick
 platformSupportRouter.get("/tickets/:id", asyncHandler(controller.getTicket));
 // GET /api/platform/support/tickets/:id/timeline —— 对话时间线（平台视角）
 platformSupportRouter.get("/tickets/:id/timeline", asyncHandler(controller.getTicketTimeline));
-// POST /api/platform/support/tickets/:id/reply —— 公开回复
-platformSupportRouter.post("/tickets/:id/reply", asyncHandler(controller.replyTicket));
+// POST /api/platform/support/tickets/:id/reply —— 公开回复（写码用目录内已有的逐动作 BUTTON：ticket:reply）
+platformSupportRouter.post("/tickets/:id/reply", requirePlatformPermission("ticket:reply"), asyncHandler(controller.replyTicket));
 // POST /api/platform/support/tickets/:id/note —— 内部备注
-platformSupportRouter.post("/tickets/:id/note", asyncHandler(controller.noteTicket));
+platformSupportRouter.post("/tickets/:id/note", requirePlatformPermission("ticket:note"), asyncHandler(controller.noteTicket));
 // POST /api/platform/support/tickets/:id/transfer —— 转交 / 改派
-platformSupportRouter.post("/tickets/:id/transfer", asyncHandler(controller.transferTicket));
+platformSupportRouter.post("/tickets/:id/transfer", requirePlatformPermission("ticket:transfer"), asyncHandler(controller.transferTicket));
 // POST /api/platform/support/tickets/:id/resolve —— 标记已解决
-platformSupportRouter.post("/tickets/:id/resolve", asyncHandler(controller.resolveTicket));
+platformSupportRouter.post("/tickets/:id/resolve", requirePlatformPermission("ticket:resolve"), asyncHandler(controller.resolveTicket));
 // POST /api/platform/support/tickets/:id/close —— 关闭工单
-platformSupportRouter.post("/tickets/:id/close", asyncHandler(controller.closeTicket));
+platformSupportRouter.post("/tickets/:id/close", requirePlatformPermission("ticket:close"), asyncHandler(controller.closeTicket));
 
 export const routeConfigs: RouteConfig[] = [
   {

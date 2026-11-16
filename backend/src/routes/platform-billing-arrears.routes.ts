@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-billing-arrears.controller";
 
@@ -18,6 +19,7 @@ export const platformBillingArrearsRouter = Router();
 platformBillingArrearsRouter.get("/arrears", asyncHandler(controller.listArrearsCtrl));
 platformBillingArrearsRouter.post(
   "/arrears/urge",
+  requirePlatformPermission("billing:manage"),
   asyncHandler(controller.urgeArrearsCtrl)
 );
 platformBillingArrearsRouter.get(

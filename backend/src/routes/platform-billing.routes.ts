@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-billing.controller";
 
@@ -27,9 +28,9 @@ platformBillingRouter.get(
   "/reconciliation-daily/:date/diff",
   asyncHandler(controller.getDailyDiffCtrl)
 );
-platformBillingRouter.post("/generate", asyncHandler(controller.generateBillingCtrl));
-platformBillingRouter.post("/statement/export", asyncHandler(controller.exportStatementCtrl));
-platformBillingRouter.post("/invoice", asyncHandler(controller.createInvoiceCtrl));
+platformBillingRouter.post("/generate", requirePlatformPermission("billing:manage"), asyncHandler(controller.generateBillingCtrl));
+platformBillingRouter.post("/statement/export", requirePlatformPermission("billing:manage"), asyncHandler(controller.exportStatementCtrl));
+platformBillingRouter.post("/invoice", requirePlatformPermission("billing:manage"), asyncHandler(controller.createInvoiceCtrl));
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/billing",

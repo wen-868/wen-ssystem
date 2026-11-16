@@ -25,8 +25,8 @@ export const platformOpenRouter = Router();
 // 读端点（GET）本单不接（第 67 项范围是写端点，同 S3-193 口径）。
 
 // ─── 密钥管理（复用 t_library_api_key，AppKey 一律服务端打码） ─────────
-// GET /api/platform/open/api-keys - 密钥列表
-platformOpenRouter.get("/api-keys", asyncHandler(keyController.listApiKeys));
+// GET /api/platform/open/api-keys - 密钥列表（敏感读：挂 open 域已登记的写码 open:manage，未接目录时不留读码缺口）
+platformOpenRouter.get("/api-keys", requirePlatformPermission("open:manage"), asyncHandler(keyController.listApiKeys));
 // POST /api/platform/open/api-keys - 签发密钥（明文 AppSecret 仅一次）
 platformOpenRouter.post(
   "/api-keys",

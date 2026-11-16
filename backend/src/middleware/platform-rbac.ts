@@ -60,11 +60,20 @@ export interface PlatformPermissionSpec {
 }
 
 /**
- * 端点级**写**权限码（本单新增）——一域一码，不按端点数 1:1 建码。
+ * 端点级**写**权限码——默认一域一码（`:manage`），不按端点数 1:1 建码。
  *
  * 为什么不是 105 个码：105 个端点里大量是同域同语义的 CRUD（如商品库 15 条、
  * 开放平台 10 条），按端点建码会让角色矩阵碎片化到无法配置；粒度取"功能域 × 读写"，
  * 与迁移 179 的矩阵结构（`module_code` + can_menu/can_page_btn）天然对齐。
+ *
+ * 例外（MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01）：**ticket 域沿用目录里既有的 5 个逐动作 BUTTON 码**
+ * （`ticket:reply` / `ticket:note` / `ticket:transfer` / `ticket:resolve` / `ticket:close`）。
+ * 这 5 条**不是本单新造的码**，它们在 `PERMISSION_CATALOG` 的 ticket 域里早已存在（BUTTON 级），
+ * 且 `services/platform/platform-ticket.service.ts` 的 `TICKET_PERMISSIONS` 常量逐字给出同一组取值
+ * （双向核对用例在 `services/platform/platform-ticket.service.test.ts`）⇒ 本单只是把它们**登记进本表**，
+ * 使工单写端点可以引用；不登记的话 `resolvePlatformPermission()` 在路由注册期直接抛错。
+ * 为什么不给 ticket 造一个 `ticket:manage` 而是沿用这 5 条：造新码要同时扩 `PERMISSION_CATALOG`（否则
+ * `catalogReady=false`，非超管永久 403），而目录里已有语义精确的逐动作码，沿用即可零扩目录。
  *
  * `catalogReady` **不手写**，一律派生自平台侧目录 `PERMISSION_CATALOG`（见下 CATALOG_MODULE_CODES）：
  * 域不在目录内 ⇒ 现在建了码也无法在矩阵里授予（`updateRolePermissions()` 对目录外域直接 400）。
@@ -83,6 +92,12 @@ const PLATFORM_WRITE_CODES: ReadonlyArray<{ code: string; moduleCode: string }> 
   { code: "open:manage", moduleCode: "open" },
   { code: "review:manage", moduleCode: "review" },
   { code: "miniapp:manage", moduleCode: "miniapp" },
+  // ticket 域：沿用目录既有 5 条 BUTTON 码（理由见上）
+  { code: "ticket:reply", moduleCode: "ticket" },
+  { code: "ticket:note", moduleCode: "ticket" },
+  { code: "ticket:transfer", moduleCode: "ticket" },
+  { code: "ticket:resolve", moduleCode: "ticket" },
+  { code: "ticket:close", moduleCode: "ticket" },
 ];
 
 /** 平台侧目录里已登记的功能域集合（`catalogReady` 的唯一判据；与 platform-role.service 同源） */

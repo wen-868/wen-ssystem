@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-export-task.controller";
 
@@ -25,7 +26,7 @@ export const platformExportTaskRouter = Router();
 // GET /api/platform/reports/export —— 任务列表（分页 + status 筛选；空表 ⇒ records: []）
 platformExportTaskRouter.get("/", asyncHandler(controller.listExportTasks));
 // POST /api/platform/reports/export —— 创建任务（创建即 PENDING，等待生成器接入）
-platformExportTaskRouter.post("/", asyncHandler(controller.createExportTask));
+platformExportTaskRouter.post("/", requirePlatformPermission("monitor:manage"), asyncHandler(controller.createExportTask));
 
 // GET /api/platform/reports/export/:id/status —— 任务状态（T2 详情记录的超集；不存在 404）
 platformExportTaskRouter.get("/:id/status", asyncHandler(controller.getExportTaskStatus));

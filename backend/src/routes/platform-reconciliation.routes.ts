@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as legacyController from "../controllers/admin/platform-reconciliation.controller";
 import * as platformController from "../controllers/platform/platform-reconciliation.controller";
@@ -11,11 +12,11 @@ export const platformReconciliationRouter = Router();
 platformReconciliationRouter.get("/stats", asyncHandler(platformController.getPlatformReconciliationStats));
 platformReconciliationRouter.get("/", asyncHandler(platformController.listPlatformReconciliations));
 platformReconciliationRouter.get("/:id", asyncHandler(platformController.getPlatformReconciliationDetail));
-platformReconciliationRouter.put("/:id/settle", asyncHandler(platformController.settlePlatformReconciliation));
+platformReconciliationRouter.put("/:id/settle", requirePlatformPermission("billing:manage"), asyncHandler(platformController.settlePlatformReconciliation));
 
 // 保留原租户级对账能力（POST/PUT，即时零售平台对账，saas-admin 未使用）
-platformReconciliationRouter.post("/", asyncHandler(legacyController.createReconciliation));
-platformReconciliationRouter.put("/:id", asyncHandler(legacyController.updateReconciliation));
+platformReconciliationRouter.post("/", requirePlatformPermission("billing:manage"), asyncHandler(legacyController.createReconciliation));
+platformReconciliationRouter.put("/:id", requirePlatformPermission("billing:manage"), asyncHandler(legacyController.updateReconciliation));
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/reconciliation",
