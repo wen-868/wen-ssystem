@@ -469,6 +469,10 @@
       "PUT /api/admin/todos/:id/complete",
       "PUT /api/admin/todos/:id/dismiss",
       "PUT /api/admin/wb-notifications/:id/read"
+    ],
+    "workbench-settings.routes.ts": [
+      "PUT /api/admin/workbench-settings/me",
+      "POST /api/admin/workbench-settings/me/reset"
     ]
   },
   "consumerEnd": {
@@ -529,15 +533,15 @@
     ]
   },
   "_counts": {
-    "files": 84,
-    "endpoints": 282,
+    "files": 85,
+    "endpoints": 284,
     "consumerEndFiles": 5,
     "consumerEndEndpoints": 45,
     "readOnlyPostFiles": 4,
     "readOnlyPostEndpoints": 6,
-    "wiredEndpoints": 430,
-    "scannedEndpoints": 763,
-    "wiredPermOccurrences": 397
+    "wiredEndpoints": 432,
+    "scannedEndpoints": 767,
+    "wiredPermOccurrences": 399
   },
   "_qoder10_note": "QODER-10（2026-10-20，卡③「4 条基线陈旧具名清理」）：guard --strict 报「已登记但当前无缺口 4 条」，逐条判定=**已接线可删**（现况 authForm=inline，`requirePlatformPermission(\"tenant:manage\")`，S3-238 双前缀同批接线，行级形状断言在 rbac-b2-s3-238-platform-wiring.test.ts 锁定，与本台账互不依赖）：① platform-applications.routes.ts `PUT /api/platform/applications/:id/approve`（:35-37）→ 删；② 同文件 `PUT /api/platform/applications/:id/reject`（:44）→ 删（该文件缺口清零，键整体移除）；③ tenant-register.routes.ts `POST /api/tenant/applications/:id/approve`（:43-45）→ 删；④ 同文件 `POST /api/tenant/applications/:id/reject`（:52）→ 删。**保留**同文件 `POST /api/tenant/register` 与 `/register/sms-code`（现况 authForm=none，routeConfig.auth=\"none\" 真公开，仍是登记缺口）。`_counts` 联动：endpoints 293→289、files 88→87、wiredEndpoints 419→423（4 条从缺口列搬入已接列）；和式 289+45+6+423=763=scannedEndpoints 守恒；`wiredPermOccurrences` 390 **不动**（g0 用例只数 `requirePermission(` 出现次数，这 4 条用的是 `requirePlatformPermission(`，不在该口径内）。逐条现场读数见 docs/evidence/qoder-10/raw/01~02。",
   "_s3227_merge": "2026-10-16 merge with main (#350~#352 之后)：gaps 按 authForm=none 重算（395/116），consumerEnd=45，read-only POST=3，wired=320，wiredPermOccurrences=291。",
@@ -545,5 +549,6 @@
   "_s3231_note": "S3-231（收尾批）两条通道，逐条留痕：**① F1 已接线 4 条**：`points.routes.ts` 会员等级配置（增/改/启停/删）挂 `requirePermission(\"customer:level\")`（凌舟裁定 1，`R101-S3-229-凌舟验收与裁定.md` §二.1；依据 = 该页**自身的注册码** `customer:level`，`app-mobile/src/config/function-menu.ts:84`）⇒ `wiredEndpoints` / `wiredPermOccurrences` 各 +4。命中机制：`STORE_MANAGER`（生产在用、1 账号）持 `customer:*` ⇒ `matchPermission` 域通配命中（零回归）；`SALES_STAFF` / `CUSTOMER_SERVICE`（各 0 账号）持精确码 `customer:view` ⇒ 不命中（该两角色在该页被降级为只读，影响面见 projects/ms/archive/repo-docs-20261107/docs/evidence/S3-231/F1）。**② F4 查询型 POST 登记 3 条**（**不是接线**，只 +`readOnlyPostEndpoints`）：`POST /api/admin/marketing/calculate`（试算，全 SELECT）/ `POST /api/admin/trace/configs/check`（配置判定，全 SELECT）/`POST /api/platform/billing/statement/export`（对账单导出，SELECT + sendCsv）⇒ 已在 `guard-rbac-wiring.mjs` 的 `READ_ONLY_POSTS` 逐条登记（batch=S3-231、含 reason/ruling）+ `projects/ms/archive/repo-docs-20261107/docs/tasks/R101-RBAC接线缺口清单.md` §十八.3 同时含路径与「查询型」判定行（门禁闸门②）。**③ F4 不可登记 3 条**（有写 ⇒ 留在 gaps 按真写端点处理）：`POST /api/admin/alerts/check`（INSERT t_alert_record）、`POST /api/platform/reports/export/`（createExportTask 落 PENDING）、`POST /api/admin/commission/calculate`（INSERT t_sales_commission_record；且已被 `rbac-g0-wiring.test.ts` NOT_IN_G0 锁定）。本单**保留登记**的行：`POST /api/admin/members/:id/points/adjust`（同文件 B 类，不在 F1 范围）。⚠️ 域外无关项（含 F2/F3 涉及项）一条未动。",
   "_qoder9_note": "QODER-9（B3-1 收口，2026-10-19，派单卡 `projects/ms/archive/repo-docs-20261107/docs/tasks/inbox/QODER-9-B31收口.md`）：`aftersale.routes.ts` 的 admin `POST /aftersales/:id/{approve,reject,inspect,complete}` 4 条已挂**既有码** `sale:return`（零新码，同族 confirm-receipt 同码）⇒ 不再是无授权缺口，按流程从 `gaps` 逐条移除（本文件该键整删，`files` 89→88）；`wiredEndpoints` 415→419、`wiredPermOccurrences` 386→390、`endpoints` 297→293，和式 419+293+45+6=763=`scannedEndpoints` 不变。**移除的是同一批端点的登记，不是新缺口洗绿**：门注册表 `island-aftersale`（`app-mobile/src/config/permission-gates.ts:585-599`）已提 `gated`，接线由 parity 用例 a) 的真实注册行断言兜底（摘码即红，见 `projects/ms/archive/repo-docs-20261107/docs/evidence/qoder-9/**` 反测）。miniapp 分支 5 条消费者端登记（`consumerEnd`）一条未动；域外无关项一条未动。",
   "_total_member_permission_codes_note": "TOTAL-MEMBER-PERMISSION-CODES-01（2026-10-30，会员域写端点立码，父卡 MOBILE-32F4）：已给 **5 条**端点挂权限码并逐条移出本台账（缺口 289 → 284，文件 87 → 85；points.routes.ts 与 store.routes.ts 两键清零整删，store-value-card.routes.ts 保留 freeze/unfreeze 2 条）：① store.routes.ts 2 条（`POST /api/store/members/manage` ⇒ `customer:create`、`PUT /api/store/members/:id(\\d+)` ⇒ `customer:edit`）；② store-value-card.routes.ts 2 条（`POST /api/admin/store-value-cards/` 与 `/:cardNo/recharge` ⇒ `finance:create`，与同文件 consume/refund 同码同域）；③ points.routes.ts 1 条（`POST /api/admin/members/:id/points/adjust` ⇒ `customer:points`；该行原由 S3-226/S3-231 判 B 类保留登记，本卡凌舟裁定收口——码 = app-mobile「积分管理」页自身注册码 `function-menu.ts:85`，菜单目录行 `app-mobile-menu-catalog.ts:70` 已有正式注册行 ⇒ **不新增迁移**，S3-231 F1 `customer:level` 同款先例；不得改挂 marketing:points/marketing:create）。`_counts` 联动：endpoints 289→284、files 87→85、wiredEndpoints 423→428、wiredPermOccurrences 390→395（g0 用例和式同步 +TOTAL_PC_WIRED_FILES 5）；和式 284+45+6+428=763=`scannedEndpoints` 守恒。移除的是**同一批端点**的登记（MOBILE-32F4 实证 5 行仅认证无权限码的后端缺口），不是新缺口洗绿；逐行 403/200 断言在 `backend/src/__tests__/routes/total-member-permission-codes-wiring.test.ts`。⚠️ 本卡允许路径未列本文件（`backend/scripts/**`），同步系按本仓接线批一致先例（S3-220…S3-237、QODER-9/10 各批均更新本台账）执行，已在回传卡实名报备。",
-  "_total_value_card_lifecycle_codes_note": "TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31，储值卡冻结/解冻权限码收口，父卡 TOTAL-MEMBER-PERMISSION-CODES-01）：已给 **2 条**端点挂权限码并逐条移出本台账（缺口 284 → 282，文件 85 → 84；store-value-card.routes.ts 键清零整删）：① `POST /api/admin/store-value-cards/:cardNo/freeze` ⇒ `finance:create`；② `POST /api/admin/store-value-cards/:cardNo/unfreeze` ⇒ `finance:create`。码 = **既有码**（不新立码、不改迁移、不改业务状态机）：与同文件开卡/充值/消费/退款四行同码同域（TOTAL-MEMBER-PERMISSION-CODES-01 先例）；同域先例 `bank-account.routes.ts` freeze/unfreeze 亦为 `finance:create`（G1 已接 8 行中 2 行）。`_counts` 联动：endpoints 284→282、files 85→84、wiredEndpoints 428→430、wiredPermOccurrences 395→397（g0 用例和式同步 +TOTAL_VCL_WIRED_FILES 2）；和式 282+45+6+430=763=`scannedEndpoints` 守恒。移除的是**同一批端点**的登记（该两行原仅认证无权限码，为 TOTAL-MEMBER-PERMISSION-CODES-01 与 G1/G2 B 类名单共同指名的后继任务），不是新缺口洗绿；逐行形状/403/200 断言在 `backend/src/__tests__/routes/total-value-card-lifecycle-codes-wiring.test.ts`。G1/G2/S3-229 三个待裁名单中该 2 行同步移出（B 类相应清零/减 2，计数守恒同步）。"
+  "_total_value_card_lifecycle_codes_note": "TOTAL-MEMBER-VALUE-CARD-LIFECYCLE-CODES-01（2026-10-31，储值卡冻结/解冻权限码收口，父卡 TOTAL-MEMBER-PERMISSION-CODES-01）：已给 **2 条**端点挂权限码并逐条移出本台账（缺口 284 → 282，文件 85 → 84；store-value-card.routes.ts 键清零整删）：① `POST /api/admin/store-value-cards/:cardNo/freeze` ⇒ `finance:create`；② `POST /api/admin/store-value-cards/:cardNo/unfreeze` ⇒ `finance:create`。码 = **既有码**（不新立码、不改迁移、不改业务状态机）：与同文件开卡/充值/消费/退款四行同码同域（TOTAL-MEMBER-PERMISSION-CODES-01 先例）；同域先例 `bank-account.routes.ts` freeze/unfreeze 亦为 `finance:create`（G1 已接 8 行中 2 行）。`_counts` 联动：endpoints 284→282、files 85→84、wiredEndpoints 428→430、wiredPermOccurrences 395→397（g0 用例和式同步 +TOTAL_VCL_WIRED_FILES 2）；和式 282+45+6+430=763=`scannedEndpoints` 守恒。移除的是**同一批端点**的登记（该两行原仅认证无权限码，为 TOTAL-MEMBER-PERMISSION-CODES-01 与 G1/G2 B 类名单共同指名的后继任务），不是新缺口洗绿；逐行形状/403/200 断言在 `backend/src/__tests__/routes/total-value-card-lifecycle-codes-wiring.test.ts`。G1/G2/S3-229 三个待裁名单中该 2 行同步移出（B 类相应清零/减 2，计数守恒同步）。",
+  "_wb_settings_wiring_note": "MS-WB-SETTINGS-SERVER-WIRING-01（2026-11-16，设置中心服务端接线）：新增 workbench-settings.routes.ts 4 条写端点。① 已接线 2 条挂既有码 system:config（PUT /tenant、POST /tenant/reset，租户设置保存/恢复默认，卡面 §三.1 明确要求）；② 自服务登记 2 条（PUT /me、POST /me/reset）——个人设置按 JWT 身份读写本人数据，同 admin-auth 自服务先例不套管理面权限码（S3-225 ②同类判定），逐行身份绑定断言在 backend/src/__tests__/routes/workbench-settings.test.ts（不信任 body.userId）。_counts 联动：files 84→85、endpoints 282→284、wiredEndpoints 430→432、scannedEndpoints 763→767、wiredPermOccurrences 397→399；和式 284+45+6+432=767 守恒。"
 }

@@ -165,6 +165,61 @@
               <span class="v">{{ userRoles.length ? userRoles.join(" / ") : "无角色（按 fail-closed 仅见公开分区）" }}</span>
             </div>
             <div class="dr-row">
+              <span class="k">跨设备设置</span>
+              <span class="v sync-state" :data-state="serverView.state" data-testid="sw-server-sync-state">
+                {{ serverStatusLabel }}
+                <small v-if="serverView.updatedAt">最近同步：{{ serverView.updatedAt }}</small>
+                <small v-if="hasDraft">本机草稿未同步（失败后可重试保存）</small>
+              </span>
+              <el-button
+                v-if="serverView.state === 'error' || hasDraft"
+                size="small"
+                data-testid="sw-server-sync-retry"
+                @click="retryServerSettings"
+              >
+                {{ hasDraft ? "重试保存" : "重试" }}
+              </el-button>
+            </div>
+            <div class="dr-sec">个人偏好（跨设备）</div>
+            <div class="dr-row">
+              <span class="k">界面密度</span>
+              <span class="v">{{ mergedPersonalValues()["ui.density"] === "compact" ? "紧凑" : "标准" }}</span>
+              <el-select
+                size="small"
+                style="width: 120px"
+                :model-value="String(mergedPersonalValues()['ui.density'] ?? 'standard')"
+                data-testid="sw-pref-density"
+                @update:model-value="(v: string | number | boolean | null) => markPersonalDirty('ui.density', v)"
+              >
+                <el-option label="标准" value="standard" />
+                <el-option label="紧凑" value="compact" />
+              </el-select>
+            </div>
+            <div class="dr-row">
+              <span class="k">减少动效</span>
+              <span class="v">{{ mergedPersonalValues()["ui.reduceMotion"] ? "开启" : "关闭" }}</span>
+              <el-switch
+                :model-value="Boolean(mergedPersonalValues()['ui.reduceMotion'])"
+                data-testid="sw-pref-reduce-motion"
+                @change="(v: string | number | boolean) => markPersonalDirty('ui.reduceMotion', Boolean(v))"
+              />
+            </div>
+            <div class="dr-row">
+              <span class="k">任务中心默认展开</span>
+              <span class="v">{{ mergedPersonalValues()["ui.taskCenter.open"] ? "展开" : "收起" }}</span>
+              <el-switch
+                :model-value="mergedPersonalValues()['ui.taskCenter.open'] !== false"
+                data-testid="sw-pref-task-center"
+                @change="(v: string | number | boolean) => markPersonalDirty('ui.taskCenter.open', Boolean(v))"
+              />
+            </div>
+            <div class="dr-row">
+              <span class="k">偏好操作</span>
+              <span class="v">保存到服务器并写审计；失败保留本机草稿可重试</span>
+              <el-button size="small" type="primary" :loading="serverView.state === 'saving'" :disabled="!hasDraft" data-testid="sw-pref-save" @click="saveServerDraft">保存</el-button>
+              <el-button size="small" :disabled="serverView.state === 'saving'" data-testid="sw-pref-reset" @click="restoreServerSettings([...PERSONAL_KEYS])">恢复默认</el-button>
+            </div>
+            <div class="dr-row">
               <span class="k">退出登录</span>
               <span class="v">结束当前会话并返回登录页</span>
               <el-button size="small" @click="emit('logout')">退出登录</el-button>
@@ -207,14 +262,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import {
   SETTINGS_TABS,
   visibleSettingTabs,
+  createSettingsPersistence,
   type RoleResolver,
   type SettingTab,
   type SettingTabKey,
+  type SettingsPersistenceView,
 } from "../../shared/workbench/wb-settings";
+import {
+  fetchWorkbenchSettings,
+  resetWorkbenchSettings,
+  saveWorkbenchSettings,
+  type WorkbenchSettingsSnapshot,
+} from "../../api/workbench-settings";
 import {
   clearStoredTheme,
   readStoredTheme,
@@ -261,6 +324,30 @@ const active = ref<SettingTabKey>("appear");
 const activeTab = computed<SettingTab | undefined>(
   () => tabs.value.find((tab) => tab.key === active.value) ?? tabs.value[0],
 );
+const serverPersistence = createSettingsPersistence({
+  load: (scope) => fetchWorkbenchSettings(scope),
+  save: (scope, values, baseRevision) => saveWorkbenchSettings(scope, values, baseRevision),
+  reset: (scope, keys, baseRevision) => resetWorkbenchSettings(scope, { keys, baseRevision }),
+});
+const serverView = ref<SettingsPersistenceView>(serverPersistence.get());
+const serverSnapshot = ref<WorkbenchSettingsSnapshot | null>(null);
+const serverStatusLabel = computed(() => {
+  switch (serverView.value.state) {
+    case "loading":
+      return "正在读取服务器设置…";
+    case "saving":
+      return "正在保存到服务器…";
+    case "dirty":
+      return "本机有未同步更改";
+    case "saved":
+      return `服务器已同步 · revision ${serverView.value.revision}`;
+    case "error":
+      return `同步失败：${serverView.value.error}`;
+    default:
+      return "尚未读取服务器设置";
+  }
+});
+let serverUnsubscribe: (() => void) | null = null;
 
 /** 打开时若当前选中项已不可见（角色变化），回落到首个可见分区 */
 watch(
@@ -351,7 +438,7 @@ function readPrintSummary() {
 }
 const printSummary = ref(readPrintSummary());
 
-/* ── 外观：切换 + 持久化 + 恢复 ── */
+/* ── 外观：切换 + 持久化 + 恢复（本机偏好，不随账号同步） ── */
 const systemPrefersDark =
   typeof window !== "undefined" && typeof window.matchMedia === "function"
     ? window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -385,17 +472,134 @@ function restoreDefaultTheme(): void {
   applyToDom(theme.value);
 }
 
-/** 打开弹层即回显当前真实主题，避免显示值与 DOM 属性分叉 */
+type DraftValue = string | number | boolean | null;
+const PERSONAL_DRAFT_KEY = "wb.settings.draft.me";
+const PERSONAL_KEYS = ["ui.density", "ui.reduceMotion", "ui.taskCenter.open"] as const;
+
+function readDraft(): Record<string, DraftValue> {
+  try {
+    const raw = storage.getItem(PERSONAL_DRAFT_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return parsed as Record<string, DraftValue>;
+  } catch {
+    return {};
+  }
+}
+function writeDraft(values: Record<string, DraftValue>): void {
+  storage.setItem(PERSONAL_DRAFT_KEY, JSON.stringify(values));
+}
+function clearDraft(): void {
+  storage.removeItem(PERSONAL_DRAFT_KEY);
+}
+
+const personalValues = ref<Record<string, DraftValue>>({
+  "ui.density": "standard",
+  "ui.reduceMotion": false,
+  "ui.taskCenter.open": true,
+});
+const draftValues = ref<Record<string, DraftValue>>(readDraft());
+const hasDraft = computed(() => Object.keys(draftValues.value).length > 0);
+
+function mergedPersonalValues(): Record<string, DraftValue> {
+  return { ...personalValues.value, ...draftValues.value };
+}
+
+function applySnapshotValues(values: Record<string, DraftValue>): void {
+  const next: Record<string, DraftValue> = { ...personalValues.value };
+  for (const [k, v] of Object.entries(values || {})) next[k] = v as DraftValue;
+  personalValues.value = next;
+}
+
+async function loadServerSettings(): Promise<void> {
+  const snapshot = await serverPersistence.load("me");
+  serverSnapshot.value = snapshot;
+  applySnapshotValues(snapshot.values || {});
+}
+
+function retryServerSettings(): void {
+  if (hasDraft.value) void saveServerDraft();
+  else void loadServerSettings().catch(() => undefined);
+}
+
+function markPersonalDirty(key: string, value: DraftValue): void {
+  draftValues.value = { ...draftValues.value, [key]: value };
+  writeDraft(draftValues.value);
+  serverPersistence.markDirty();
+}
+
+async function saveServerDraft(): Promise<void> {
+  const values = { ...draftValues.value };
+  if (Object.keys(values).length === 0) return;
+  try {
+    const snapshot = await serverPersistence.save("me", values);
+    serverSnapshot.value = snapshot;
+    applySnapshotValues(snapshot.values || {});
+    clearDraft();
+    draftValues.value = {};
+  } catch {
+    // 失败保留本机草稿，可重试
+  }
+}
+
+async function restoreServerSettings(keys?: string[]): Promise<void> {
+  try {
+    const snapshot = await serverPersistence.reset("me", keys);
+    serverSnapshot.value = snapshot;
+    applySnapshotValues(snapshot.values || {});
+    clearDraft();
+    draftValues.value = {};
+  } catch {
+    // 控制器已记录 error，草稿状态保留给调用方决定
+  }
+}
+
+async function persistServerSettings(values: Record<string, DraftValue>): Promise<void> {
+  draftValues.value = { ...draftValues.value, ...values };
+  writeDraft(draftValues.value);
+  await saveServerDraft();
+}
+
+/** 打开弹层即回显当前真实主题，并读取服务器设置（草稿优先显示） */
 watch(
   () => props.modelValue,
   (open) => {
     if (!open) return;
     theme.value = resolveTheme(storage, systemPrefersDark);
     applyToDom(theme.value);
+    draftValues.value = readDraft();
+    void loadServerSettings().catch(() => undefined);
   },
 );
 
-defineExpose({ active, tabs, theme, SETTINGS_TABS });
+defineExpose({
+  active,
+  tabs,
+  theme,
+  SETTINGS_TABS,
+  serverView,
+  serverSnapshot,
+  loadServerSettings,
+  persistServerSettings,
+  restoreServerSettings,
+  saveServerDraft,
+  draftValues,
+  personalValues,
+  mergedPersonalValues,
+  markPersonalDirty,
+});
+
+onMounted(() => {
+  serverUnsubscribe = serverPersistence.subscribe((next) => {
+    serverView.value = next;
+  });
+});
+
+onUnmounted(() => {
+  serverUnsubscribe?.();
+  serverUnsubscribe = null;
+});
 </script>
 
 <style scoped>
@@ -610,6 +814,25 @@ defineExpose({ active, tabs, theme, SETTINGS_TABS });
   font-size: var(--text-caption);
   color: var(--text-muted);
   line-height: 1.6;
+}
+.sync-state {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sync-state small {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+.sync-state[data-state="saved"] {
+  color: var(--color-success-text);
+}
+.sync-state[data-state="error"] {
+  color: var(--color-danger);
+}
+.sync-state[data-state="loading"],
+.sync-state[data-state="saving"] {
+  color: var(--color-primary-text);
 }
 .sk {
   display: block;

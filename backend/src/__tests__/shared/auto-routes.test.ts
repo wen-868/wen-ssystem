@@ -68,7 +68,8 @@ const EXPECTED_PREFIXES: readonly string[] = [
   "/api/admin/sys-users", "/api/admin/system", "/api/admin/system/audit-logs",
   "/api/admin/system/roles", "/api/admin/tenant-usage", "/api/admin/trace",
   "/api/admin/transfer-orders", "/api/admin/transfers", "/api/admin/unit-groups",
-  "/api/admin/units", "/api/admin/warehouses", "/api/app", "/api/custom-report",
+  "/api/admin/units", "/api/admin/warehouses", "/api/admin/workbench-settings",
+  "/api/app", "/api/custom-report",
   "/api/department", "/api/instant-retail", "/api/marketing-asset", "/api/marketing/bargain",
   "/api/marketing/group-buy", "/api/marketing/seckill", "/api/miniapp", "/api/miniapp-config",
   "/api/miniapp-order-sync", "/api/miniapp/cart", "/api/miniapp/marketing",
@@ -110,7 +111,7 @@ const EXPECTED_PREFIXES: readonly string[] = [
 ];
 
 /**
- * src/routes/ 下的路由文件清单（190 个）。
+ * src/routes/ 下的路由文件清单（191 个）。
  * 用于「新增文件护栏」：目录里新出现的 *.routes.ts 若不在此清单/豁免表内 ⇒ 判红。
  */
 const EXPECTED_FILES: readonly string[] = [
@@ -181,6 +182,7 @@ const EXPECTED_FILES: readonly string[] = [
   "trace.routes.ts", "transfer-order.routes.ts", "transfer.routes.ts", "unit-group.routes.ts",
   "unit.routes.ts", "user-session.routes.ts", "warehouse.routes.ts", "wechat.routes.ts",
   "workbench.routes.ts",
+  "workbench-settings.routes.ts",
 ];
 
 /**
@@ -202,7 +204,7 @@ const EXEMPT_FILES: readonly string[] = [];
  *   单个共享文件掉线时该前缀仍被其他文件注册 ⇒ toContain 抓不到；
  *   但注册总数必然下降 ⇒ 本条必红。因快照中**每个文件都贡献 ≥1 条注册**，故总数守恒等价于「无文件掉线」。
  */
-const EXPECTED_REGISTRATION_COUNT = 226;
+const EXPECTED_REGISTRATION_COUNT = 227;
 
 /**
  * 耗时基线告警（治标 ②）

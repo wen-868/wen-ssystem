@@ -130,3 +130,117 @@ export interface CapabilityState {
 export function unavailableCapability(tab: SettingTab): CapabilityState {
   return { state: "unavailable", message: `${tab.label} · 暂不可用：${tab.note}` };
 }
+
+export type SettingsPersistenceState =
+  | "idle"
+  | "loading"
+  | "dirty"
+  | "saving"
+  | "saved"
+  | "error";
+
+export interface SettingsPersistenceSnapshot {
+  version: number;
+  revision: number;
+  updatedAt: string | null;
+  values: Record<string, string | number | boolean | null>;
+  changedKeys?: string[];
+  resetKeys?: string[];
+  auditLogId?: number;
+}
+
+export interface SettingsPersistenceAdapter {
+  load(scope: "tenant" | "me"): Promise<SettingsPersistenceSnapshot>;
+  save(
+    scope: "tenant" | "me",
+    values: Record<string, string | number | boolean | null>,
+    baseRevision: number | null,
+  ): Promise<SettingsPersistenceSnapshot>;
+  reset(
+    scope: "tenant" | "me",
+    keys?: string[],
+    baseRevision?: number | null,
+  ): Promise<SettingsPersistenceSnapshot>;
+}
+
+export interface SettingsPersistenceView {
+  state: SettingsPersistenceState;
+  revision: number;
+  updatedAt: string | null;
+  error: string;
+}
+
+/**
+ * 设置保存状态机：UI 只能从事实状态渲染，不得在请求返回前宣称“已同步”。
+ * 本机草稿由调用方持久化；该控制器负责服务端 load/save/reset 与失败重试。
+ */
+export function createSettingsPersistence(adapter: SettingsPersistenceAdapter) {
+  let view: SettingsPersistenceView = {
+    state: "idle",
+    revision: 0,
+    updatedAt: null,
+    error: "",
+  };
+  const listeners = new Set<(next: SettingsPersistenceView) => void>();
+  const emit = () => listeners.forEach((listener) => listener({ ...view }));
+
+  function update(patch: Partial<SettingsPersistenceView>): void {
+    view = { ...view, ...patch };
+    emit();
+  }
+
+  return {
+    get(): SettingsPersistenceView {
+      return { ...view };
+    },
+    subscribe(listener: (next: SettingsPersistenceView) => void): () => void {
+      listeners.add(listener);
+      listener({ ...view });
+      return () => listeners.delete(listener);
+    },
+    markDirty(): void {
+      update({ state: "dirty", error: "" });
+    },
+    async load(scope: "tenant" | "me"): Promise<SettingsPersistenceSnapshot> {
+      update({ state: "loading", error: "" });
+      try {
+        const snapshot = await adapter.load(scope);
+        update({ state: "saved", revision: snapshot.revision, updatedAt: snapshot.updatedAt, error: "" });
+        return snapshot;
+      } catch (error) {
+        update({ state: "error", error: error instanceof Error ? error.message : "设置加载失败" });
+        throw error;
+      }
+    },
+    async save(
+      scope: "tenant" | "me",
+      values: Record<string, string | number | boolean | null>,
+      baseRevision: number | null = view.revision,
+    ): Promise<SettingsPersistenceSnapshot> {
+      update({ state: "saving", error: "" });
+      try {
+        const snapshot = await adapter.save(scope, values, baseRevision);
+        update({ state: "saved", revision: snapshot.revision, updatedAt: snapshot.updatedAt, error: "" });
+        return snapshot;
+      } catch (error) {
+        update({ state: "error", error: error instanceof Error ? error.message : "设置保存失败" });
+        throw error;
+      }
+    },
+    async reset(
+      scope: "tenant" | "me",
+      keys?: string[],
+      baseRevision: number | null = view.revision,
+    ): Promise<SettingsPersistenceSnapshot> {
+      update({ state: "saving", error: "" });
+      try {
+        const snapshot = await adapter.reset(scope, keys, baseRevision);
+        update({ state: "saved", revision: snapshot.revision, updatedAt: snapshot.updatedAt, error: "" });
+        return snapshot;
+      } catch (error) {
+        update({ state: "error", error: error instanceof Error ? error.message : "恢复默认失败" });
+        throw error;
+      }
+    },
+  };
+}
