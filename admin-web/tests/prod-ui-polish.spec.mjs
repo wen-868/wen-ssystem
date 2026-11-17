@@ -11,6 +11,7 @@ const subnav = readFileSync(join(root, "src/layouts/WorkbenchSubnav.vue"), "utf8
 const messageCard = readFileSync(join(root, "src/components/AiChat/AiMessageCard.vue"), "utf8");
 const feed = readFileSync(join(root, "src/components/workbench/AiFeedView.vue"), "utf8");
 const composer = readFileSync(join(root, "src/components/workbench/AiChatComposer.vue"), "utf8");
+const sidePanel = readFileSync(join(root, "src/components/AiChat/AiSidePanel.vue"), "utf8");
 
 const checks = [];
 function check(name, fn) {
@@ -67,6 +68,16 @@ check("员工选择无下拉箭头，点击姓名弹出真实员工列表", () =
   assert.match(composer, /class="cmp-employee-btn"/);
   assert.match(composer, /v-for="group in employeeGroups"/);
   assert.match(composer, /暂无真实数字员工/);
+});
+
+check("会话输入区不再有全宽白色渐变背景条", () => {
+  assert.doesNotMatch(sidePanel, /linear-gradient\(to bottom, transparent/);
+  assert.match(sidePanel, /\.ai-input-area[\s\S]*?background:\s*transparent/);
+});
+
+check("两处员工选择统一在左侧且样式一致", () => {
+  assert.match(composer, /\.cmp-employee-wrap \{[^}]*margin-left:\s*8px/);
+  assert.match(sidePanel, /\.ai-employee-wrap \{[^}]*margin-left:\s*8px/);
 });
 
 console.log(`prod-ui-polish: ${checks.length} passed / 0 failed`);

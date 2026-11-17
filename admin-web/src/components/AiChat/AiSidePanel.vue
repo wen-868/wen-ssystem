@@ -853,7 +853,7 @@ onBeforeUnmount(() => {
   z-index: 5;
   padding: 10px 18px 16px;
   border-top: 0;
-  background: linear-gradient(to bottom, transparent, var(--gray-0) 28%, var(--gray-0));
+  background: transparent;
   flex-shrink: 0;
   pointer-events: none;
 }
@@ -865,7 +865,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border-light);
   border-radius: 22px;
   background: var(--gray-0);
-  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.08);
+  box-shadow: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;
   pointer-events: auto;
 }
@@ -891,7 +891,7 @@ onBeforeUnmount(() => {
 }
 .ai-input-box:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.12), var(--shadow-focus);
+  box-shadow: none;
 }
 
 .ai-inline-att {
