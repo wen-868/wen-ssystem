@@ -58,31 +58,37 @@
               </button>
             </div>
           </div>
-          <el-select
-            :model-value="selectedEmployeeUid"
-            class="cmp-employee-select"
-            size="small"
+        </div>
+        <div class="cmp-employee-wrap">
+          <button
+            type="button"
+            class="cmp-employee-btn"
             :disabled="streaming"
-            filterable
-            @visible-change="employeeMenuOpen = $event"
             data-testid="composer-employee-select"
             aria-label="选择当前对话的数字员工"
-            @change="onEmployeeChange"
+            :aria-expanded="employeeMenuOpen"
+            @click="employeeMenuOpen = !employeeMenuOpen"
           >
-            <el-option label="总负责人" value="__supervisor" />
-            <el-option-group
-              v-for="group in employeeGroups"
-              :key="group.name"
-              :label="group.name"
-            >
-              <el-option
+            {{ selectedEmployeeLabel }}
+          </button>
+          <div v-if="employeeMenuOpen" class="cmp-employee-menu" data-testid="composer-employee-menu">
+            <button type="button" class="cmp-emp-item" @click="onEmployeeChange('__supervisor')">
+              <strong>总负责人</strong><small>系统调度角色</small>
+            </button>
+            <template v-for="group in employeeGroups" :key="group.name">
+              <p class="cmp-emp-group">{{ group.name }}</p>
+              <button
                 v-for="staff in group.staffs"
                 :key="staff.employeeUid"
-                :label="`${staff.name} · ${staff.post}`"
-                :value="staff.employeeUid"
-              />
-            </el-option-group>
-          </el-select>
+                type="button"
+                class="cmp-emp-item"
+                @click="onEmployeeChange(staff.employeeUid || '__supervisor')"
+              >
+                <strong>{{ staff.name }}</strong><small>{{ staff.post }}</small>
+              </button>
+            </template>
+            <p v-if="employeeGroups.length === 0" class="cmp-emp-empty">暂无真实数字员工</p>
+          </div>
         </div>
         <button
           type="button"
@@ -145,7 +151,9 @@ const inputExpanded = computed(
 );
 const employeeGroups = computed(() => props.employeeGroups ?? []);
 const selectedEmployeeUid = computed(() => props.employee?.employeeUid ?? "__supervisor");
+const selectedEmployeeLabel = computed(() => props.employee?.name || "总负责人");
 function onEmployeeChange(value: string): void {
+  employeeMenuOpen.value = false;
   emit("employee-change", value || "__supervisor");
 }
 const primaryActionTitle = computed(() => {
@@ -373,14 +381,68 @@ function submit(): void {
   gap: 7px;
   min-width: 0;
 }
-.cmp-employee-select {
-  width: 154px;
+.cmp-toolbar-left {
+  flex: 1;
 }
-.cmp-employee-select :deep(.el-select__wrapper) {
-  min-height: 28px;
-  border-radius: 999px;
-  box-shadow: none;
+.cmp-employee-wrap {
+  position: relative;
+  margin-left: auto;
+}
+.cmp-employee-btn {
+  border: 0;
   background: transparent;
+  color: var(--wb-ink2, #6b7280);
+  font-size: 12px;
+  line-height: 28px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+.cmp-employee-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cmp-employee-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: 220px;
+  max-height: 280px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--wb-line, #e5e7eb);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  z-index: 30;
+}
+.cmp-emp-group {
+  margin: 8px 8px 4px;
+  font-size: 11px;
+  color: #98a2b3;
+}
+.cmp-emp-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.cmp-emp-item:hover {
+  background: #f3f4f6;
+}
+.cmp-emp-item small,
+.cmp-emp-empty {
+  font-size: 11px;
+  color: #98a2b3;
+}
+.cmp-emp-empty {
+  margin: 8px;
 }
 .cmp-primary-btn {
   width: 30px;

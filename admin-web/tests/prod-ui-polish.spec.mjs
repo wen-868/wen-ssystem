@@ -62,5 +62,12 @@ check("输入框不再有大范围投影背景条", () => {
   assert.match(composer, /\.cmp-form[\s\S]*?box-shadow:\s*none/);
 });
 
+check("员工选择无下拉箭头，点击姓名弹出真实员工列表", () => {
+  assert.doesNotMatch(composer, /<el-select/);
+  assert.match(composer, /class="cmp-employee-btn"/);
+  assert.match(composer, /v-for="group in employeeGroups"/);
+  assert.match(composer, /暂无真实数字员工/);
+});
+
 console.log(`prod-ui-polish: ${checks.length} passed / 0 failed`);
 for (const name of checks) console.log(`PASS  ${name}`);

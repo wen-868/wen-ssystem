@@ -192,7 +192,12 @@ await run("单会话窗口：输入框内选员工，默认总负责人，切换
   const shell = read("layouts/WorkbenchShell.vue");
   assert.ok(composer.includes('data-testid="composer-employee-select"'), "信息流输入框缺少数字员工选择器");
   assert.ok(side.includes('data-testid="chat-employee-select"'), "会话输入框缺少数字员工选择器");
-  assert.ok(composer.includes('label="总负责人"') && side.includes('label="总负责人"'), "员工选择器默认项不是总负责人");
+  assert.ok(
+    composer.includes('props.employee?.name || "总负责人"') &&
+      composer.includes("<strong>总负责人</strong>") &&
+      side.includes('label="总负责人"'),
+    "员工选择器默认项不是总负责人",
+  );
   assert.ok(side.includes('<strong>{{ activeEmployee?.name || "总负责人" }}</strong>'), "空选择时身份栏未回显总负责人");
   assert.ok(shell.includes("selectAiEmployeeByUid") && shell.includes('@employee-change="selectAiEmployeeByUid"'), "壳层未统一持有员工选择状态");
   assert.ok(!side.includes("`emp_${employee.employeeUid}`"), "切换员工仍生成独立员工会话窗口");
