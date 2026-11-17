@@ -2,8 +2,7 @@
   <section class="fdv" aria-label="日常经营" data-testid="feed-view">
     <header class="fdv-head">
       <div class="fdv-hi">
-        <!-- S4：主区标题「日常经营」（feed 面 = 会话面入口，晨报经「问智享AI」进入会话首条） -->
-        <div class="fdv-name" data-testid="daily-op-title">日常经营</div>
+        <!-- 标题只在全局顶栏出现；信息流主区只保留问候与摘要，避免同屏重复「日常经营」。 -->
         <div class="fdv-sub">{{ greeting }}，{{ userName || "同事" }} · {{ todayLabel }} · {{ feedSummary }}</div>
       </div>
       <span v-if="socketOnline" class="fdv-live" data-testid="feed-live">
@@ -650,14 +649,10 @@ function openMessages(): void {
   gap: 12px;
   margin-bottom: 12px;
 }
-.fdv-name {
-  font-size: 19px;
-  font-weight: 700;
-  color: var(--wb-ink, #16181d);
-}
 .fdv-sub {
-  margin-top: 3px;
-  font-size: 12px;
+  margin-top: 0;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--wb-ink2, #8a8f98);
 }
 .fdv-live {
@@ -1321,9 +1316,6 @@ function openMessages(): void {
   }
   .fdv-head {
     flex-wrap: wrap;
-  }
-  .fdv-name {
-    overflow-wrap: anywhere;
   }
   .wb-kpis,
   .wfb-nav4 {

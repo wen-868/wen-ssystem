@@ -2,15 +2,15 @@
   <aside class="ai-side-panel">
     <!-- 对话主体：明确当前是与总台助手还是某位数字员工沟通 -->
     <header class="ai-agent-head" data-testid="chat-agent-identity">
-      <span class="ai-agent-avatar">{{ activeEmployee ? activeEmployee.name.slice(0, 1) : "智" }}</span>
+      <span class="ai-agent-avatar">{{ activeEmployee ? activeEmployee.name.slice(0, 1) : "总" }}</span>
       <span class="ai-agent-copy">
-        <strong>{{ activeEmployee?.name || "智享 AI 助手" }}</strong>
+        <strong>{{ activeEmployee?.name || "总负责人" }}</strong>
         <small v-if="activeEmployee">
           {{ activeEmployee.post }}<template v-if="activeEmployee.department"> · {{ activeEmployee.department }}</template>
         </small>
-        <small v-else>总台协调助手 · 自动分派数字员工</small>
+        <small v-else>统一调度数字员工 · 当前会话持续保留</small>
       </span>
-      <span class="ai-agent-kind">{{ activeEmployee ? "数字员工" : "总台助手" }}</span>
+      <span class="ai-agent-kind">{{ activeEmployee ? "数字员工" : "总负责人" }}</span>
       <span v-if="activeEmployee" class="ai-agent-collab">
         {{ activeEmployee.collaborators.length ? `可协同：${activeEmployee.collaborators.map((e) => e.name).join("、")}` : "独立执行" }}
       </span>
@@ -64,41 +64,73 @@
           </el-button>
         </div>
       </div>
-      <div class="ai-input-box">
+      <div
+        class="ai-input-box"
+        :class="{ 'is-expanded': inputExpanded }"
+        @focusin="inputFocused = true"
+        @focusout="onInputFocusOut"
+      >
         <el-input
           v-model="input"
           type="textarea"
-          :autosize="{ minRows: 2, maxRows: 6 }"
+          :autosize="{ minRows: inputExpanded ? 2 : 1, maxRows: 6 }"
           resize="none"
           placeholder="输入问题，Enter 发送"
           :disabled="streaming"
           @keydown.enter.exact.prevent="sendMessage"
         />
         <div class="ai-input-toolbar">
-          <div class="ai-inline-att">
-            <button
-              type="button"
-              class="ai-inline-plus"
-              :disabled="streaming"
-              title="添加附件（图片 / 文件）"
-              data-testid="chat-att-btn"
-              @click="attMenuOpen = !attMenuOpen"
-            >
-              <el-icon :size="16"><Plus /></el-icon>
-            </button>
-            <div v-if="attMenuOpen" class="ai-att-menu" data-testid="chat-att-menu">
-              <button type="button" data-testid="chat-att-image" @click="pickImageFromMenu">
-                图片（AI 识别后随消息发送）
-              </button>
+          <div class="ai-toolbar-left">
+            <div class="ai-inline-att">
               <button
                 type="button"
-                class="is-pending"
-                data-testid="chat-att-file"
-                @click="attachFileUnsupported"
+                class="ai-inline-plus"
+                :disabled="streaming"
+                title="添加附件（图片 / 文件）"
+                data-testid="chat-att-btn"
+                @click="attMenuOpen = !attMenuOpen"
               >
-                文件 · 暂不支持
+                <el-icon :size="16"><Plus /></el-icon>
               </button>
+              <div v-if="attMenuOpen" class="ai-att-menu" data-testid="chat-att-menu">
+                <button type="button" data-testid="chat-att-image" @click="pickImageFromMenu">
+                  图片（AI 识别后随消息发送）
+                </button>
+                <button
+                  type="button"
+                  class="is-pending"
+                  data-testid="chat-att-file"
+                  @click="attachFileUnsupported"
+                >
+                  文件 · 暂不支持
+                </button>
+              </div>
             </div>
+            <el-select
+              :model-value="selectedEmployeeUid"
+              class="ai-employee-select"
+              size="small"
+              :disabled="streaming"
+              filterable
+              @visible-change="employeeMenuOpen = $event"
+              data-testid="chat-employee-select"
+              aria-label="选择当前对话的数字员工"
+              @change="onEmployeeChange"
+            >
+              <el-option label="总负责人" value="__supervisor" />
+              <el-option-group
+                v-for="group in employeeGroups"
+                :key="group.name"
+                :label="group.name"
+              >
+                <el-option
+                  v-for="staff in group.staffs"
+                  :key="staff.employeeUid"
+                  :label="`${staff.name} · ${staff.post}`"
+                  :value="staff.employeeUid"
+                />
+              </el-option-group>
+            </el-select>
           </div>
           <el-button
             circle
@@ -151,27 +183,43 @@ import {
   revokeAiOperation,
   sendChatMessage,
 } from "../../api/ai";
+import type { ActiveAiEmployee, DirectoryGroup } from "../../shared/workbench/agent-directory";
+
+const props = defineProps<{
+  employee?: ActiveAiEmployee | null;
+  employeeGroups?: readonly DirectoryGroup[];
+}>();
 
 const input = ref("");
+const inputFocused = ref(false);
+const employeeMenuOpen = ref(false);
 const streaming = ref(false);
 const conversationId = ref<string | undefined>(undefined);
 const messages = ref<AiChatMessage[]>([]);
 const abortController = ref<AbortController | null>(null);
 const listEl = ref<HTMLElement | null>(null);
-type ActiveAiEmployee = {
-  employeeUid: string;
-  name: string;
-  post: string;
-  department?: string;
-  collaborators: Array<{ employeeUid: string; name: string; post: string }>;
-};
-const activeEmployee = ref<ActiveAiEmployee | null>(null);
+const activeEmployee = computed(() => props.employee ?? null);
+const employeeGroups = computed(() => props.employeeGroups ?? []);
+const selectedEmployeeUid = computed(() => activeEmployee.value?.employeeUid ?? "__supervisor");
+const inputExpanded = computed(
+  () => inputFocused.value || hasInput.value || attMenuOpen.value || employeeMenuOpen.value,
+);
+function onEmployeeChange(employeeUid: string): void {
+  emit("employee-change", employeeUid || "__supervisor");
+}
+function onInputFocusOut(event: FocusEvent): void {
+  const next = event.relatedTarget as Node | null;
+  if (!next || !(event.currentTarget as HTMLElement).contains(next)) {
+    inputFocused.value = false;
+  }
+}
 
 /** 会话状态上报：供 AI 主交互面显示故障横幅并一键切回人工（不改变内部对话逻辑） */
 const emit = defineEmits<{
   (event: "status", payload: { state: "idle" | "streaming" | "error"; message?: string }): void;
   /** 服务端会话 ID 回传（POST /api/chat 的 done 事件）：会话列表据此显示真实当前会话 */
   (event: "conversation", conversationId: string): void;
+  (event: "employee-change", employeeUid: string): void;
   (event: "open-form", action: AiNativeFormAction): void;
 }>();
 
@@ -359,9 +407,8 @@ const visibleMessages = computed(() => messages.value.filter((m) => m.kind !== "
 function clearChat(): void {
   if (streaming.value) abortCurrent();
   messages.value = [];
-  conversationId.value = activeEmployee.value?.employeeUid
-    ? `emp_${activeEmployee.value.employeeUid}_${createAiConversationId().replace(/^sess_/, "")}`
-    : createAiConversationId();
+  conversationId.value = createAiConversationId();
+  emit("employee-change", "__supervisor");
   emit("conversation", conversationId.value);
 }
 
@@ -418,14 +465,6 @@ async function loadConversation(sessionId: string, options?: { silentEmpty?: boo
     emit("status", { state: "error", message });
     ElMessage.error(message);
   }
-}
-
-/** 进入某位数字员工的独立对话框：显示身份、可调度下级，并恢复其历史会话。 */
-async function selectEmployee(employee: ActiveAiEmployee): Promise<void> {
-  activeEmployee.value = employee;
-  const sessionId = `emp_${employee.employeeUid}`;
-  await loadConversation(sessionId, { silentEmpty: true });
-  emit("status", { state: "idle" });
 }
 
 function pushMessage(partial: Omit<AiChatMessage, "id" | "createdAt">): AiChatMessage {
@@ -638,7 +677,6 @@ defineExpose({
   sendText: sendSuggestion,
   clearChat,
   loadConversation,
-  selectEmployee,
   getConversationId: () => conversationId.value ?? null,
 });
 
@@ -823,15 +861,18 @@ onBeforeUnmount(() => {
 }
 
 .ai-input-box :deep(.el-textarea__inner) {
-  min-height: 44px !important;
+  min-height: 24px !important;
   border-radius: 0;
   background: transparent;
   border: 0;
   padding: 6px 8px 3px;
   font-size: 13px;
   line-height: 1.5;
-  transition: none;
+  transition: min-height 180ms ease, height 180ms ease;
   box-shadow: none;
+}
+.ai-input-box.is-expanded :deep(.el-textarea__inner) {
+  min-height: 44px !important;
 }
 .ai-input-box :deep(.el-textarea__inner:focus) {
   background: transparent;
@@ -873,12 +914,28 @@ onBeforeUnmount(() => {
   gap: 8px;
   padding: 0 2px;
 }
+.ai-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.ai-employee-select {
+  width: 154px;
+}
+.ai-employee-select :deep(.el-select__wrapper) {
+  min-height: 28px;
+  border-radius: 999px;
+  box-shadow: none;
+  background: transparent;
+}
 
 .ai-primary-btn {
   width: 30px;
   height: 30px;
   padding: 0;
   font-size: 14px;
+  border-radius: 50%;
 }
 
 .ai-pending-row {

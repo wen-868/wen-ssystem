@@ -76,7 +76,13 @@ const { PARITY, PARITY_ACTION_ROWS, projectParityRuntime } = await import(
   "../src/shared/workbench/parity-ledger.ts"
 );
 
-const EXPECTED_BRIDGE_COUNT = 10;
+// 桥扩条（MS-WB-CONTENT-WIRING-B-01，业主 2026-11-15 授权）：旧 10 条矩阵证据 + 新 10 条 menu-bridge-alignment.md
+const EXPECTED_BRIDGE_COUNT = 20;
+// 有意双码：旧死条目 marketing:flash-sale（隔离库无此码）与现存活码 marketing:seckill 同指营销限时抢购页；
+// resolveMenuAccess 的 business set 按 routeName 去重，无歧义。除此之外不得再有重复 routeName。
+const EXPECTED_DUPLICATE_ROUTE_NAMES = [
+  ["marketing-flash-sale", ["marketing:flash-sale", "marketing:seckill"]],
+];
 const EXPECTED_VISIBLE_ROUTES = [
   "dashboard",
   "finance-reconciliation",
@@ -107,7 +113,13 @@ function serverRows(codes, status = "1") {
   }));
 }
 
-const FULL_MENU_CODES = SERVER_MENU_BRIDGE.map((entry) => entry.serverCode);
+// WORKBENCH-04 契约 fixture：固定取**旧 10 条**桥码（10-route-menu-matrix.md「可对齐」全集），
+// 与桥扩条解耦——本文件断言的是「服务端菜单 ∩ manifest ∩ 角色」链路语义与 fail-closed 判定，
+// 数值不随桥条数漂移。MS-WB-CONTENT-WIRING-B-01 扩条后的**当前生产桥 20 码**口径由
+// tests/wb-menu-wiring.spec.mjs（§二/§三 19 条契约）与 E2E 真实登录完整覆盖，此处不重复。
+const FULL_MENU_CODES = SERVER_MENU_BRIDGE
+  .filter((entry) => entry.evidence.startsWith("10-route-menu-matrix.md:"))
+  .map((entry) => entry.serverCode);
 
 const results = [];
 async function run(name, fn) {
@@ -131,16 +143,25 @@ function walk(dir) {
   return out;
 }
 
-await run("桥接表：10 条显式映射，serverCode 唯一，均带矩阵行号证据", () => {
-  assert.equal(SERVER_MENU_BRIDGE.length, EXPECTED_BRIDGE_COUNT, "桥接条目应为 10");
+await run("桥接表：20 条显式映射，serverCode 唯一，重复 routeName 仅登记 1 组，证据带行号", () => {
+  assert.equal(SERVER_MENU_BRIDGE.length, EXPECTED_BRIDGE_COUNT, "桥接条目应为 20（旧 10 + 新 10）");
   const codes = SERVER_MENU_BRIDGE.map((entry) => entry.serverCode);
   assert.equal(new Set(codes).size, codes.length, "serverCode 不得重复");
-  const routes = SERVER_MENU_BRIDGE.map((entry) => entry.routeName);
-  assert.equal(new Set(routes).size, routes.length, "同一 routeName 不得被两个服务端菜单码冒名映射");
+  // 同一 routeName 多码映射只允许「有意登记」的那一组，防止未来静默引入未登记的冒名映射
+  const byRoute = new Map();
   for (const entry of SERVER_MENU_BRIDGE) {
-    assert.match(entry.evidence, /^10-route-menu-matrix\.md:\d+$/, `证据格式不合法：${entry.serverCode}`);
+    byRoute.set(entry.routeName, [...(byRoute.get(entry.routeName) ?? []), entry.serverCode]);
   }
-  return `${SERVER_MENU_BRIDGE.length} 条（含 2 条白名单缺失，见下）`;
+  const duplicates = [...byRoute].filter(([, owners]) => owners.length > 1);
+  assert.deepEqual(duplicates, EXPECTED_DUPLICATE_ROUTE_NAMES, "重复 routeName 必须恰为已登记的双码组");
+  for (const entry of SERVER_MENU_BRIDGE) {
+    assert.match(
+      entry.evidence,
+      /^(10-route-menu-matrix\.md|menu-bridge-alignment\.md):\d+$/,
+      `证据格式不合法：${entry.serverCode}`,
+    );
+  }
+  return `${SERVER_MENU_BRIDGE.length} 条（旧 10 矩阵 + 新 10 对齐证据；重复 routeName ${duplicates.length} 组已登记）`;
 });
 
 await run("正常菜单：10 码 → 8 条白名单路由；system / finance-expenses 登记为不可路由", () => {

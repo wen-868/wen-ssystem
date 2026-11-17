@@ -28,15 +28,17 @@ const feedView = read("components/workbench/AiFeedView.vue");
 const composer = read("components/workbench/AiChatComposer.vue");
 const shell = read("layouts/WorkbenchShell.vue");
 
-// ── 1. 主区标题「日常经营」 ──────────────────────────────────────────
-// S4 标题只保留全局顶栏一处；会话内部不再重复标题。
+// ── 1. 标题只在全局顶栏出现一次 ─────────────────────────────────────
 assert.ok(!sidePanel.includes('data-testid="daily-op-title"'), "S4-1 AiSidePanel 仍重复渲染「日常经营」标题");
 assert.ok(!sidePanel.includes('class="ai-header"'), "S4-1 AiSidePanel 仍保留重复标题栏");
-assert.ok(shell.includes('return "日常经营"'), "S4-1 全局顶栏缺少「日常经营」标题");
 assert.ok(
-  feedView.includes('data-testid="daily-op-title"') &&
-    feedView.includes("日常经营"),
-  "S4-1 AiFeedView 缺少「日常经营」标题",
+  shell.includes("selectedGroupLabel.value") && shell.includes('?? "工作台"'),
+  "S4-1 全局顶栏未跟随一级选择，且缺少工作台默认标题",
+);
+assert.ok(
+  !feedView.includes('data-testid="daily-op-title"') &&
+    !feedView.includes('class="fdv-name"'),
+  "S4-1 AiFeedView 仍在信息流主区重复渲染「日常经营」标题",
 );
 
 // ── 2. 晨报作为首条会话内容（真实 SSE 发送，一次性防重复） ──────────
@@ -259,7 +261,7 @@ console.log(
   [
     "",
     "S4 中央 AI 日常经营面 · 结构断言全部通过",
-    "- 主区标题「日常经营」：AiSidePanel（会话面本体）+ AiFeedView（feed 面）双落点",
+    "- 标题唯一性：仅全局顶栏渲染标题；工作台位显示「工作台」，一级模块跟随选择联动",
     "- 晨报首条：AiSidePanel 挂载自动发送（briefingSent 一次性）+ 真实 SSE，不本地伪造",
     "- 输入计数=1：AiSidePanel textarea 唯一；AiChatPanel 无第二输入；chat 态 composer 不渲染",
     "- 链复用：sendChatMessage(SSE) + confirm/cancel/revoke；AiChatPanel 无自建网络调用",

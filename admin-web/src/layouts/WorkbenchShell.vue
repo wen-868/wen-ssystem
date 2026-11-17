@@ -212,8 +212,11 @@
             ref="chatPanel"
             class="wb-chat-main"
             style="width: 100%; flex: 1"
+            :employee="activeAiEmployee"
+            :employee-groups="aiEmployeeDirectory.groups"
             @status="handleAiStatus"
             @conversation="handleAiConversation"
+            @employee-change="selectAiEmployeeByUid"
             @fallback="switchMode('human')"
             @open-form="openAiNativeForm"
           />
@@ -254,6 +257,9 @@
         v-if="!showChatComposer"
         :compact="effectiveMode === 'human'"
         :streaming="aiSessionState === 'streaming'"
+        :employee="activeAiEmployee"
+        :employee-groups="aiEmployeeDirectory.groups"
+        @employee-change="selectAiEmployeeByUid"
         @send="enterChatAndSend"
       />
     </div>
@@ -374,6 +380,13 @@ import {
   shouldSkipMenuBridgeTrimming,
 } from "../shared/workbench/wb-uiux-injection";
 import { buildPageDelegation, selectPageActionRows } from "../shared/workbench/ai-bridge";
+import {
+  loadAgentDirectory,
+  type ActiveAiEmployee,
+  type AgentDirectory,
+  type DirectoryGroup,
+  type DirectoryStaff,
+} from "../shared/workbench/agent-directory";
 import {
   isWorkbenchShellV2Enabled,
   setWorkbenchMode,
@@ -601,6 +614,7 @@ async function loadPendingReview(): Promise<void> {
 onMounted(() => {
   loadMenus();
   loadPendingReview();
+  void loadAiEmployees();
   // WORKBENCH-13-F3 §三.C.9：新壳真实接入更新检查（检查器内部 catch ⇒ 失败静默降级，不阻塞工作台）。
   // 旧壳回滚（!shellEnabled）时 MainLayout 自身已调用，这里只挂生产新壳，避免双通知。
   if (shellEnabled) void checkWebUpdate();
@@ -885,11 +899,18 @@ function groupIcon(groupCode: string): Component {
   return GROUP_ICONS[groupCode] ?? Grid;
 }
 
+const selectedGroupLabel = computed(() => {
+  const decorated = railModules.value.find((group) => group.groupCode === selectedGroupCode.value);
+  if (decorated) return decorated.protoLabel;
+  return railGroups.value.find((group) => group.groupCode === selectedGroupCode.value)?.title ?? "工作台";
+});
+
 const topTitle = computed(() => {
   if (isCashierRoute.value) return "收银台";
   if (effectiveMode.value === "human") return pageTitle.value;
-  // （UI-PARITY-BASE + DELTA-CONTRACT top_bar.left）AI 模式顶栏标题 = 日常经营（会话面即日常经营）
-  return "日常经营";
+  // AI 模式顶栏跟随当前一级选择：一级模块显示模块名，工作台位显示工作台。
+  // 进入具体二级业务页后 effectiveMode=human，继续由 route.meta.title 提供页面标题。
+  return selectedGroupLabel.value;
 });
 
 const pageTitle = computed(() => {
@@ -931,17 +952,62 @@ const settingsAccount = computed(() =>
 const aiSessionState = ref<"idle" | "streaming" | "error">("idle");
 const currentAiConversationId = ref("");
 const aiHistoryRevision = ref(0);
+const aiEmployeeDirectory = ref<AgentDirectory>({
+  state: "loading",
+  groups: [],
+  message: "正在加载数字员工",
+  enabledCount: 0,
+});
+const activeAiEmployee = ref<ActiveAiEmployee | null>(null);
+
+function flattenEmployees(groups: readonly DirectoryGroup[]): DirectoryStaff[] {
+  return groups.flatMap((group) => group.staffs).filter((staff) => Boolean(staff.employeeUid));
+}
+
+function employeeSelection(staff: DirectoryStaff, groups: readonly DirectoryGroup[]): ActiveAiEmployee {
+  const all = flattenEmployees(groups);
+  return {
+    employeeUid: staff.employeeUid as string,
+    name: staff.name,
+    post: staff.post,
+    department: staff.summary || undefined,
+    collaborators: (staff.dispatchUids ?? [])
+      .map((uid) => all.find((candidate) => candidate.employeeUid === uid))
+      .filter((candidate): candidate is DirectoryStaff => Boolean(candidate))
+      .map((candidate) => ({
+        employeeUid: candidate.employeeUid as string,
+        name: candidate.name,
+        post: candidate.post,
+      })),
+  };
+}
+
+function selectAiEmployeeByUid(employeeUid: string): void {
+  if (!employeeUid || employeeUid === "__supervisor") {
+    activeAiEmployee.value = null;
+    return;
+  }
+  const staff = flattenEmployees(aiEmployeeDirectory.value.groups).find(
+    (candidate) => candidate.employeeUid === employeeUid,
+  );
+  activeAiEmployee.value = staff ? employeeSelection(staff, aiEmployeeDirectory.value.groups) : null;
+}
+
+async function loadAiEmployees(): Promise<void> {
+  aiEmployeeDirectory.value = await loadAgentDirectory();
+  const selectedUid = activeAiEmployee.value?.employeeUid;
+  if (selectedUid) {
+    const staff = flattenEmployees(aiEmployeeDirectory.value.groups).find(
+      (candidate) => candidate.employeeUid === selectedUid,
+    );
+    if (staff) activeAiEmployee.value = employeeSelection(staff, aiEmployeeDirectory.value.groups);
+  }
+}
+
 const chatPanel = ref<{
   sendQuickCommand?: (text: string) => void;
   newConversation?: () => void;
   loadConversation?: (conversationId: string) => void;
-  selectEmployee?: (employee: {
-    employeeUid: string;
-    name: string;
-    post: string;
-    department?: string;
-    collaborators: Array<{ employeeUid: string; name: string; post: string }>;
-  }) => void;
 } | null>(null);
 
 function handleAiStatus(payload: { state: "idle" | "streaming" | "error" }): void {
@@ -957,25 +1023,21 @@ function handleAiConversation(conversationId: string): void {
 function startNewConversation(): void {
   setWorkbenchMode("ai");
   face.value = "chat";
+  activeAiEmployee.value = null;
   chatPanel.value?.newConversation?.();
 }
 
 function openAiConversation(conversationId: string): void {
   setWorkbenchMode("ai");
   face.value = "chat";
+  activeAiEmployee.value = null;
   nextTick(() => chatPanel.value?.loadConversation?.(conversationId));
 }
 
-function openAiEmployee(employee: {
-  employeeUid: string;
-  name: string;
-  post: string;
-  department?: string;
-  collaborators: Array<{ employeeUid: string; name: string; post: string }>;
-}): void {
+function openAiEmployee(employee: ActiveAiEmployee): void {
   setWorkbenchMode("ai");
   face.value = "chat";
-  nextTick(() => chatPanel.value?.selectEmployee?.(employee));
+  activeAiEmployee.value = employee;
 }
 
 /** 底部输入区 / feed 提问：切 AI 会话面并发送（原型：信息流态直接发消息） */
