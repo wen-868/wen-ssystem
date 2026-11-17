@@ -1317,7 +1317,7 @@ html[data-wb-theme="dark"] .wb-shell {
   margin: 0 auto;
   max-height: none;
   border-radius: 22px;
-  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.08);
+  box-shadow: none;
   pointer-events: auto;
 }
 .wb-main :deep(.cmp .cmp-hint),

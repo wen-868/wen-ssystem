@@ -333,13 +333,13 @@ function submit(): void {
   border-radius: 22px;
   padding: 5px 8px 7px;
   background: var(--wb-panel, #fff);
-  box-shadow: 0 8px 30px rgba(22, 24, 29, 0.08);
+  box-shadow: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   pointer-events: auto;
 }
 .cmp-form:focus-within {
   border-color: var(--wb-primary, #2563eb);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: none;
 }
 .cmp-input {
   flex: 1;

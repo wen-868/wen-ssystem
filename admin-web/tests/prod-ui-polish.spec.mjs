@@ -10,6 +10,7 @@ const panel = readFileSync(join(root, "src/components/workbench/AiChatPanel.vue"
 const subnav = readFileSync(join(root, "src/layouts/WorkbenchSubnav.vue"), "utf8");
 const messageCard = readFileSync(join(root, "src/components/AiChat/AiMessageCard.vue"), "utf8");
 const feed = readFileSync(join(root, "src/components/workbench/AiFeedView.vue"), "utf8");
+const composer = readFileSync(join(root, "src/components/workbench/AiChatComposer.vue"), "utf8");
 
 const checks = [];
 function check(name, fn) {
@@ -54,6 +55,11 @@ check("对话消息显示双方姓名", () => {
 
 check("业务动态查看单据时打开销售单详情", () => {
   assert.match(feed, /router\.push\(`\/sale-bills\/\$\{encodeURIComponent\(billNo\)\}`\)/);
+});
+
+check("输入框不再有大范围投影背景条", () => {
+  assert.doesNotMatch(composer, /box-shadow:\s*0 8px 30px/);
+  assert.match(composer, /\.cmp-form[\s\S]*?box-shadow:\s*none/);
 });
 
 console.log(`prod-ui-polish: ${checks.length} passed / 0 failed`);
