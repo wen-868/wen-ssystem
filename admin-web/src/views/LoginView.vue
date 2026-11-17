@@ -106,21 +106,6 @@
           >
             立即登录
           </el-button>
-          <div class="demo-login-divider">
-            <span class="demo-divider-line" />
-            <span class="demo-divider-text">或</span>
-            <span class="demo-divider-line" />
-          </div>
-          <el-button
-            size="large"
-            class="demo-login-btn"
-            :loading="loading"
-            @click="handleDemoLogin"
-          >
-            <el-icon class="demo-login-icon"><Van /></el-icon>
-            演示登录（一键进入）
-          </el-button>
-          <p class="demo-login-tip">无需输入，自动填入演示账号并登录</p>
         </el-form>
 
         <div class="register-hint">
@@ -173,7 +158,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { ChatDotRound, Goods, OfficeBuilding, Van } from "@element-plus/icons-vue";
-import { DEMO_ACCOUNT, DEMO_PASSWORD, adminLogin, seedDemoData } from "../api";
+import { adminLogin } from "../api";
 import { useAuthStore } from "../stores/auth";
 import { resolveLandingPath } from "../router/landing";
 
@@ -228,43 +213,6 @@ async function handleLogin() {
   }
 }
 
-/**
- * 演示登录（一键两步合一，C6-9）：
- *   ① 先把演示账号与口令填入表单（明文进表单，密码框由组件自身掩码显示），用户零输入；
- *   ② 随即自动提交正常登录 adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD)，用户无需第二次点击。
- *
- * S3-173 ②：**已删除「锁定 ⇒ 降级免密 demoLogin()」分支**。
- *   依据：S3-172 已让演示账号在后端永不被账号锁定 / 限流阻断（auth.service + login-fail-limiter 定向豁免）；
- *   而免密通道 /admin/auth/demo-login 自 S3-165 起在生产一律 403 ⇒ 降级分支是死代码 ＋ 对用户的错误承诺。
- *   失败一律原样报错，不降级、不假装。
- * 凭据唯一出处：src/api/common.ts 的 DEMO_ACCOUNT / DEMO_PASSWORD（构建期由 VITE_DEMO_* 覆盖）。
- */
-async function handleDemoLogin() {
-  loading.value = true;
-  // ① 自动填入演示凭据（明文进表单，密码框自身以掩码显示；非假占位）
-  loginForm.username = DEMO_ACCOUNT;
-  loginForm.password = DEMO_PASSWORD;
-  try {
-    // ② 自动提交正常登录（用户不需要再点第二次）
-    const res: any = await adminLogin(DEMO_ACCOUNT, DEMO_PASSWORD);
-    const token = res.token || res.data?.token;
-    if (token) {
-      const csrfToken = res.csrfToken || res.data?.csrfToken;
-      const userInfo: any = { ...(res.data?.user || res.user || {}), demo: true };
-      auth.setAuth(token, userInfo, csrfToken);
-      ElMessage.success("登录成功");
-      // 幂等初始化演示数据（失败不阻塞进入）
-      seedDemoData().catch(() => {});
-      router.push(resolveLandingPath(auth.userRoles, auth.user?.defaultHomepage, router.getRoutes()));
-    } else {
-      ElMessage.error("演示登录失败：未获取到 token");
-    }
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.msg || "演示登录失败，请稍后再试");
-  } finally {
-    loading.value = false;
-  }
-}
 </script>
 
 <style scoped>
@@ -571,53 +519,6 @@ async function handleDemoLogin() {
 .login-submit:hover {
   background: linear-gradient(135deg, #4C7DF5 0%, #3663DE 100%);
   box-shadow: 0 10px 22px rgba(47, 91, 214, 0.34);
-}
-
-.demo-login-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 18px 0 14px;
-}
-
-.demo-divider-line {
-  flex: 1;
-  height: 1px;
-  background: var(--border-light);
-}
-
-.demo-divider-text {
-  font-size: 12px;
-  color: var(--text-placeholder);
-}
-
-.demo-login-btn {
-  width: 100%;
-  height: 44px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 10px;
-  border: 1px dashed var(--color-primary);
-  color: var(--color-primary);
-  background: rgba(63, 111, 239, 0.04);
-}
-
-.demo-login-btn:hover {
-  background: rgba(63, 111, 239, 0.1);
-  border: 1px dashed var(--color-primary);
-  color: var(--color-primary);
-}
-
-.demo-login-icon {
-  margin-right: 4px;
-}
-
-.demo-login-tip {
-  margin: 10px 0 0;
-  text-align: center;
-  font-size: 12px;
-  /* WCAG AA 修复：原 #cccccc 对比度 1.6:1 不达标，改 #595959（≥4.5:1） */
-  color: #595959;
 }
 
 .login-form :deep(.el-input__wrapper) {
