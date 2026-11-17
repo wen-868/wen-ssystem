@@ -19,6 +19,14 @@ check("AI 聊天主面使用白色工作区画布", () => {
   assert.match(shell, /\.wb-view\[data-view="chat"\]\s*\{[^}]*background:\s*var\(--wb-bg,\s*#ffffff\)/s);
 });
 
+check("AI 信息流主面使用白色工作区画布", () => {
+  assert.match(shell, /\.wb-view\[data-view="feed"\]\s*\{[^}]*background:\s*var\(--wb-bg,\s*#ffffff\)/s);
+});
+
+check("人工层顶栏跟随一级模块，不重复业务页标题", () => {
+  assert.match(shell, /effectiveMode\.value\s*===\s*"human"\)\s*return\s+selectedGroupLabel\.value/);
+});
+
 check("归档缺失按空会话恢复，不抛红条", () => {
   assert.match(panel, /loadConversation\?\.\(conversationId,\s*\{\s*silentEmpty:\s*true\s*\}\)/);
 });

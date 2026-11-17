@@ -907,7 +907,9 @@ const selectedGroupLabel = computed(() => {
 
 const topTitle = computed(() => {
   if (isCashierRoute.value) return "收银台";
-  if (effectiveMode.value === "human") return pageTitle.value;
+  // 人工层顶栏跟随一级模块，页面自身标题由业务表单承担；
+  // 若继续用 route.meta.title，会与二级栏激活卡、业务页头形成三重同名标题。
+  if (effectiveMode.value === "human") return selectedGroupLabel.value;
   // AI 模式顶栏跟随当前一级选择：一级模块显示模块名，工作台位显示工作台。
   // 进入具体二级业务页后 effectiveMode=human，继续由 route.meta.title 提供页面标题。
   // 工作台位的二级栏已有「工作台/收银台」模式胶囊，顶栏再叫「工作台」会形成重复标题。
@@ -1703,6 +1705,9 @@ html[data-wb-theme="dark"] .wb-shell {
   background: var(--wb-bg, #ffffff);
 }
 .wb-view[data-view="chat"] {
+  background: var(--wb-bg, #ffffff);
+}
+.wb-view[data-view="feed"] {
   background: var(--wb-bg, #ffffff);
 }
 .wb-view-manual.shown {
