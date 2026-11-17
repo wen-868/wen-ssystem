@@ -448,7 +448,7 @@ function removeProductRow(index: number) {
 async function searchCustomers(query: string) {
   customerLoading.value = true;
   try {
-    const res = await api.get("/members", {
+    const res = await api.get("/admin/members", {
       params: query ? { keyword: query, pageSize: 20 } : { pageSize: 50 }
     });
     customerOptions.value = res.data?.data || res.data?.list || [];
@@ -559,7 +559,7 @@ onMounted(async () => {
 async function searchProducts(query: string, index: number) {
   if (!query || query.length < 1) return;
   try {
-    const res = await api.get("/products", { params: { keyword: query, pageSize: 20 } });
+    const res = await api.get("/admin/products", { params: { keyword: query, pageSize: 20 } });
     productOptions.value[index] = res.data?.data || res.data?.list || [];
   } catch (e) {
     console.error("搜索商品失败", e);
@@ -659,7 +659,7 @@ async function handleSubmit(print = false) {
       discountAmount: form.discountAmount,
       roundingAmount: form.wipeAmount
     };
-    const res = await api.post("/sale-bills", payload);
+    const res = await api.post("/store/sale-bills", payload);
     const billNo = res.data?.data?.billNo || res.data?.billNo;
     ElMessage.success(`销售单 ${billNo || ""} 创建成功`);
     // 创建完成直接跳转到当前销售单详情页
