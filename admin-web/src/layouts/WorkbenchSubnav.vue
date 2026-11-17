@@ -416,9 +416,8 @@ interface ProductionCard {
 const productionCards = computed<ProductionCard[]>(() => {
   if (props.mode === "pos") return [];
   if (props.mode === "module") {
-    return props.productionSnapshot.subnav
-      .filter((entry) => entry.moduleKey === activePrototypeKey.value)
-      .map((entry) => ({ label: entry.label, routeName: entry.routeName, path: entry.path }));
+    // 二级栏平铺：模块态只用下方单一入口网格，不再拆「精选卡 + 其余入口」两段
+    return [];
   }
   const eligible = props.groups
     .flatMap((group) => group.items)

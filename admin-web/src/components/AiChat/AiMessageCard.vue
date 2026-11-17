@@ -1,5 +1,8 @@
 <template>
   <div class="ai-message" :class="[`is-${message.role}`, `kind-${message.kind}`]">
+    <div class="msg-sender">
+      {{ message.role === "user" ? userName : employeeName }}
+    </div>
     <!-- 用户消息 -->
     <div v-if="message.role === 'user'" class="bubble user-bubble">
       {{ message.content }}
@@ -133,7 +136,10 @@ import {
   type AiNativeFormAction,
 } from "../../shared/workbench/ai-form-bridge";
 
-const props = defineProps<{ message: AiChatMessage }>();
+const props = withDefaults(
+  defineProps<{ message: AiChatMessage; employeeName?: string; userName?: string }>(),
+  { employeeName: "总负责人", userName: "我" },
+);
 
 const emit = defineEmits<{
   (e: "confirm", messageId: string, confirmationId: string): void;
@@ -313,14 +319,23 @@ function toolSummary(message: AiChatMessage): string {
 <style scoped>
 .ai-message {
   display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .ai-message.is-user {
-  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .ai-message.is-assistant {
-  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.msg-sender {
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #8a93a6;
 }
 
 .bubble {

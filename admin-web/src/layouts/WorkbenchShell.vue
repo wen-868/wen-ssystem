@@ -1710,6 +1710,15 @@ html[data-wb-theme="dark"] .wb-shell {
 .wb-view[data-view="feed"] {
   background: var(--wb-bg, #ffffff);
 }
+/* 工作区画布统一圆角：feed / chat / manual 三层同一画布口径，不再一方角一圆角 */
+.wb-view {
+  border-radius: 16px;
+  overflow: hidden;
+}
+/* 对话页不重复顶部员工卡；员工身份在每条消息上呈现 */
+.wb-view[data-view="chat"] :deep(.ai-agent-head) {
+  display: none;
+}
 .wb-view-manual.shown {
   overflow: auto;
 }

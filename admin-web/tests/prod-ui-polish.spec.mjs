@@ -8,6 +8,8 @@ const root = join(here, "..");
 const shell = readFileSync(join(root, "src/layouts/WorkbenchShell.vue"), "utf8");
 const panel = readFileSync(join(root, "src/components/workbench/AiChatPanel.vue"), "utf8");
 const subnav = readFileSync(join(root, "src/layouts/WorkbenchSubnav.vue"), "utf8");
+const messageCard = readFileSync(join(root, "src/components/AiChat/AiMessageCard.vue"), "utf8");
+const feed = readFileSync(join(root, "src/components/workbench/AiFeedView.vue"), "utf8");
 
 const checks = [];
 function check(name, fn) {
@@ -38,6 +40,20 @@ check("工作台位顶栏改称经营总览，避免与模式胶囊重名", () =
 check("二级栏真实入口排除已展示的 productionCards（同路由不重复）", () => {
   assert.match(subnav, /dedupedRealEntries/);
   assert.match(subnav, /new Set\(productionCards\.value\.map\(\(entry\) => entry\.routeName\)\)/);
+});
+
+check("二级栏模块态单一平铺网格", () => {
+  assert.match(subnav, /二级栏平铺/);
+  assert.match(subnav, /if \(props\.mode === "module"\) \{[\s\S]*?return \[\];/);
+});
+
+check("对话消息显示双方姓名", () => {
+  assert.match(messageCard, /msg-sender/);
+  assert.match(messageCard, /message\.role === "user" \? userName : employeeName/);
+});
+
+check("业务动态查看单据时打开销售单详情", () => {
+  assert.match(feed, /router\.push\(`\/sale-bills\/\$\{encodeURIComponent\(billNo\)\}`\)/);
 });
 
 console.log(`prod-ui-polish: ${checks.length} passed / 0 failed`);

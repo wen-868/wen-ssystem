@@ -40,6 +40,8 @@
         v-for="m in visibleMessages"
         :key="m.id"
         :message="m"
+        :employee-name="activeEmployee?.name || '总负责人'"
+        user-name="我"
         @confirm="handleConfirm"
         @cancel="handleCancel"
         @revoke="handleRevoke"

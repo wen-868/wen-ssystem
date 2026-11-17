@@ -300,7 +300,7 @@
         </span>
         <span class="fdv-side">
           <span class="fdv-time">{{ shortTime(msg.createdAt) }}</span>
-          <button type="button" class="fdv-btn" @click="openMessages">查看</button>
+          <button type="button" class="fdv-btn" @click="openMessage(msg)">查看</button>
         </span>
       </div>
     </div>
@@ -618,6 +618,17 @@ onBeforeUnmount(() => {
 
 function openMessages(): void {
   router.push("/messages");
+}
+
+/** 业务动态优先打开对应单据详情；只有无法识别单号时才回落消息中心（不再一律跳信息中心）。 */
+function openMessage(msg: { title?: string; content?: string }): void {
+  const text = `${msg.title ?? ""} ${msg.content ?? ""}`;
+  const billNo = text.match(/\b(XS\d{8,})\b/i)?.[1];
+  if (billNo) {
+    router.push(`/sale-bills/${encodeURIComponent(billNo)}`);
+    return;
+  }
+  openMessages();
 }
 </script>
 
