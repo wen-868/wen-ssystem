@@ -98,7 +98,7 @@
       <div v-if="mode !== 'quick' && realEntries.length > 0" class="sn-zone" data-testid="second-nav-real-zone">
         <div class="sn-grid sn-grid-real">
           <button
-            v-for="entry in shownRealEntries"
+          v-for="entry in shownRealEntries"
             :key="entry.menuCode"
             type="button"
             class="sn-card sn-card-real"
@@ -111,8 +111,8 @@
             <span class="sn-card-tx">{{ entry.title }}</span>
           </button>
         </div>
-        <button v-if="realEntries.length > 8" type="button" class="sn-more" data-testid="second-nav-real-toggle" @click="expanded = !expanded">
-          {{ expanded ? "收起" : `展开全部 ${realEntries.length} 项` }}
+        <button v-if="dedupedRealEntries.length > 8" type="button" class="sn-more" data-testid="second-nav-real-toggle" @click="expanded = !expanded">
+          {{ expanded ? "收起" : `展开全部 ${dedupedRealEntries.length} 项` }}
         </button>
       </div>
 
@@ -443,7 +443,12 @@ const realEntries = computed<ManifestItem[]>(() => {
   return props.groups.flatMap((g) => g.items);
 });
 const expanded = ref(false);
-const shownRealEntries = computed(() => (expanded.value ? realEntries.value : realEntries.value.slice(0, 8)));
+/** 去重：productionCards 已展示的 routeName 不再在真实入口区重复渲染（同路由双卡=视觉重复） */
+const dedupedRealEntries = computed(() => {
+  const shown = new Set(productionCards.value.map((entry) => entry.routeName));
+  return realEntries.value.filter((entry) => !entry.routeName || !shown.has(entry.routeName));
+});
+const shownRealEntries = computed(() => (expanded.value ? dedupedRealEntries.value : dedupedRealEntries.value.slice(0, 8)));
 
 // ── 折叠态缩略条 ──
 const stripModules = computed(() =>
