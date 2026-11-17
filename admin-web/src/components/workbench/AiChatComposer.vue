@@ -58,37 +58,12 @@
               </button>
             </div>
           </div>
-          <div class="cmp-employee-wrap">
-          <button
-            type="button"
-            class="cmp-employee-btn"
+          <AiEmployeePicker
+            :employee="employee"
+            :groups="employeeGroups"
             :disabled="streaming"
-            data-testid="composer-employee-select"
-            aria-label="选择当前对话的数字员工"
-            :aria-expanded="employeeMenuOpen"
-            @click="employeeMenuOpen = !employeeMenuOpen"
-          >
-            {{ selectedEmployeeLabel }}
-          </button>
-          <div v-if="employeeMenuOpen" class="cmp-employee-menu" data-testid="composer-employee-menu">
-            <button type="button" class="cmp-emp-item" @click="onEmployeeChange('__supervisor')">
-              <strong>总负责人</strong><small>系统调度角色</small>
-            </button>
-            <template v-for="group in employeeGroups" :key="group.name">
-              <p class="cmp-emp-group">{{ group.name }}</p>
-              <button
-                v-for="staff in group.staffs"
-                :key="staff.employeeUid"
-                type="button"
-                class="cmp-emp-item"
-                @click="onEmployeeChange(staff.employeeUid || '__supervisor')"
-              >
-                <strong>{{ staff.name }}</strong><small>{{ staff.post }}</small>
-              </button>
-            </template>
-            <p v-if="employeeGroups.length === 0" class="cmp-emp-empty">暂无真实数字员工</p>
-          </div>
-          </div>
+            @change="onEmployeeChange"
+          />
         </div>
         <button
           type="button"
@@ -127,6 +102,7 @@
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
 import { Microphone, Promotion } from "@element-plus/icons-vue";
 import type { ActiveAiEmployee, DirectoryGroup } from "../../shared/workbench/agent-directory";
+import AiEmployeePicker from "./AiEmployeePicker.vue";
 
 const props = defineProps<{
   compact?: boolean;
@@ -143,17 +119,13 @@ const emit = defineEmits<{
 const text = ref("");
 const txtEl = ref<HTMLTextAreaElement | null>(null);
 const inputFocused = ref(false);
-const employeeMenuOpen = ref(false);
 const canSend = computed(() => text.value.trim().length > 0 && !props.streaming);
 const hasInput = computed(() => text.value.trim().length > 0);
 const inputExpanded = computed(
-  () => inputFocused.value || hasInput.value || attMenuOpen.value || employeeMenuOpen.value,
+  () => inputFocused.value || hasInput.value || attMenuOpen.value,
 );
 const employeeGroups = computed(() => props.employeeGroups ?? []);
-const selectedEmployeeUid = computed(() => props.employee?.employeeUid ?? "__supervisor");
-const selectedEmployeeLabel = computed(() => props.employee?.name || "总负责人");
 function onEmployeeChange(value: string): void {
-  employeeMenuOpen.value = false;
   emit("employee-change", value || "__supervisor");
 }
 const primaryActionTitle = computed(() => {
@@ -383,66 +355,6 @@ function submit(): void {
 }
 .cmp-toolbar-left {
   flex: 1;
-}
-.cmp-employee-wrap {
-  position: relative;
-  margin-left: 8px;
-}
-.cmp-employee-btn {
-  border: 0;
-  background: transparent;
-  color: var(--wb-ink2, #6b7280);
-  font-size: 12px;
-  line-height: 28px;
-  padding: 0 6px;
-  cursor: pointer;
-}
-.cmp-employee-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.cmp-employee-menu {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
-  width: 220px;
-  max-height: 280px;
-  overflow: auto;
-  padding: 6px;
-  border: 1px solid var(--wb-line, #e5e7eb);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-  z-index: 30;
-}
-.cmp-emp-group {
-  margin: 8px 8px 4px;
-  font-size: 11px;
-  color: #98a2b3;
-}
-.cmp-emp-item {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 8px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-.cmp-emp-item:hover {
-  background: #f3f4f6;
-}
-.cmp-emp-item small,
-.cmp-emp-empty {
-  font-size: 11px;
-  color: #98a2b3;
-}
-.cmp-emp-empty {
-  margin: 8px;
 }
 .cmp-primary-btn {
   width: 30px;

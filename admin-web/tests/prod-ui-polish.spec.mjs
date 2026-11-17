@@ -12,6 +12,7 @@ const messageCard = readFileSync(join(root, "src/components/AiChat/AiMessageCard
 const feed = readFileSync(join(root, "src/components/workbench/AiFeedView.vue"), "utf8");
 const composer = readFileSync(join(root, "src/components/workbench/AiChatComposer.vue"), "utf8");
 const sidePanel = readFileSync(join(root, "src/components/AiChat/AiSidePanel.vue"), "utf8");
+const employeePicker = readFileSync(join(root, "src/components/workbench/AiEmployeePicker.vue"), "utf8");
 
 const checks = [];
 function check(name, fn) {
@@ -64,10 +65,10 @@ check("输入框不再有大范围投影背景条", () => {
 });
 
 check("员工选择无下拉箭头，点击姓名弹出真实员工列表", () => {
-  assert.doesNotMatch(composer, /<el-select/);
-  assert.match(composer, /class="cmp-employee-btn"/);
-  assert.match(composer, /v-for="group in employeeGroups"/);
-  assert.match(composer, /暂无真实数字员工/);
+  assert.doesNotMatch(employeePicker, /<el-select/);
+  assert.match(employeePicker, /class="aep-btn"/);
+  assert.match(employeePicker, /v-for="group in groups"/);
+  assert.match(employeePicker, /暂无真实数字员工/);
 });
 
 check("会话输入区不再有全宽白色渐变背景条", () => {
@@ -76,8 +77,9 @@ check("会话输入区不再有全宽白色渐变背景条", () => {
 });
 
 check("两处员工选择统一在左侧且样式一致", () => {
-  assert.match(composer, /\.cmp-employee-wrap \{[^}]*margin-left:\s*8px/);
-  assert.match(sidePanel, /\.ai-employee-wrap \{[^}]*margin-left:\s*8px/);
+  assert.match(composer, /<AiEmployeePicker/);
+  assert.match(sidePanel, /<AiEmployeePicker/);
+  assert.match(employeePicker, /\.aep \{[^}]*margin-left:\s*8px/s);
 });
 
 console.log(`prod-ui-polish: ${checks.length} passed / 0 failed`);

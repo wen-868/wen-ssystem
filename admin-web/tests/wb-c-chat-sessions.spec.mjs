@@ -190,12 +190,11 @@ await run("单会话窗口：输入框内选员工，默认总负责人，切换
   const side = read("components/AiChat/AiSidePanel.vue");
   const composer = read("components/workbench/AiChatComposer.vue");
   const shell = read("layouts/WorkbenchShell.vue");
-  assert.ok(composer.includes('data-testid="composer-employee-select"'), "信息流输入框缺少数字员工选择器");
-  assert.ok(side.includes('data-testid="chat-employee-select"'), "会话输入框缺少数字员工选择器");
+  assert.ok(composer.includes("<AiEmployeePicker"), "信息流输入框缺少共享数字员工选择器");
+  assert.ok(side.includes("<AiEmployeePicker"), "会话输入框缺少共享数字员工选择器");
   assert.ok(
-    composer.includes('props.employee?.name || "总负责人"') &&
-      composer.includes("<strong>总负责人</strong>") &&
-      side.includes("<strong>总负责人</strong>"),
+    read("components/workbench/AiEmployeePicker.vue").includes('employee?.name || "总负责人"') &&
+      read("components/workbench/AiEmployeePicker.vue").includes("<strong>总负责人</strong>"),
     "员工选择器默认项不是总负责人",
   );
   assert.ok(side.includes('<strong>{{ activeEmployee?.name || "总负责人" }}</strong>'), "空选择时身份栏未回显总负责人");

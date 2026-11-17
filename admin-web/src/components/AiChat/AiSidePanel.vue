@@ -108,37 +108,12 @@
                 </button>
               </div>
             </div>
-            <div class="ai-employee-wrap">
-              <button
-                type="button"
-                class="ai-employee-btn"
-                :disabled="streaming"
-                data-testid="chat-employee-select"
-                aria-label="选择当前对话的数字员工"
-                :aria-expanded="employeeMenuOpen"
-                @click="employeeMenuOpen = !employeeMenuOpen"
-              >
-                {{ selectedEmployeeLabel }}
-              </button>
-              <div v-if="employeeMenuOpen" class="ai-employee-menu" data-testid="chat-employee-menu">
-                <button type="button" class="ai-emp-item" @click="onEmployeeChange('__supervisor')">
-                  <strong>总负责人</strong><small>系统调度角色</small>
-                </button>
-                <template v-for="group in employeeGroups" :key="group.name">
-                  <p class="ai-emp-group">{{ group.name }}</p>
-                  <button
-                    v-for="staff in group.staffs"
-                    :key="staff.employeeUid"
-                    type="button"
-                    class="ai-emp-item"
-                    @click="onEmployeeChange(staff.employeeUid || '__supervisor')"
-                  >
-                    <strong>{{ staff.name }}</strong><small>{{ staff.post }}</small>
-                  </button>
-                </template>
-                <p v-if="employeeGroups.length === 0" class="ai-emp-empty">暂无真实数字员工</p>
-              </div>
-            </div>
+            <AiEmployeePicker
+              :employee="activeEmployee"
+              :groups="employeeGroups"
+              :disabled="streaming"
+              @change="onEmployeeChange"
+            />
           </div>
           <el-button
             circle
@@ -178,6 +153,7 @@ import {
   Close,
 } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
+import AiEmployeePicker from "../workbench/AiEmployeePicker.vue";
 import { createMessageId, type AiChatMessage } from "./types";
 import {
   stageAiSalesOrderDraft,
@@ -200,7 +176,6 @@ const props = defineProps<{
 
 const input = ref("");
 const inputFocused = ref(false);
-const employeeMenuOpen = ref(false);
 const streaming = ref(false);
 const conversationId = ref<string | undefined>(undefined);
 const messages = ref<AiChatMessage[]>([]);
@@ -208,13 +183,10 @@ const abortController = ref<AbortController | null>(null);
 const listEl = ref<HTMLElement | null>(null);
 const activeEmployee = computed(() => props.employee ?? null);
 const employeeGroups = computed(() => props.employeeGroups ?? []);
-const selectedEmployeeUid = computed(() => activeEmployee.value?.employeeUid ?? "__supervisor");
-const selectedEmployeeLabel = computed(() => activeEmployee.value?.name || "总负责人");
 const inputExpanded = computed(
-  () => inputFocused.value || hasInput.value || attMenuOpen.value || employeeMenuOpen.value,
+  () => inputFocused.value || hasInput.value || attMenuOpen.value,
 );
 function onEmployeeChange(employeeUid: string): void {
-  employeeMenuOpen.value = false;
   emit("employee-change", employeeUid || "__supervisor");
 }
 function onInputFocusOut(event: FocusEvent): void {
@@ -931,67 +903,6 @@ onBeforeUnmount(() => {
   gap: 7px;
   min-width: 0;
 }
-.ai-employee-wrap {
-  position: relative;
-  margin-left: 8px;
-}
-.ai-employee-btn {
-  border: 0;
-  background: transparent;
-  color: var(--wb-ink2, #6b7280);
-  font-size: 12px;
-  line-height: 28px;
-  padding: 0 6px;
-  cursor: pointer;
-}
-.ai-employee-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.ai-employee-menu {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
-  width: 220px;
-  max-height: 280px;
-  overflow: auto;
-  padding: 6px;
-  border: 1px solid var(--wb-line, #e5e7eb);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-  z-index: 30;
-}
-.ai-emp-group {
-  margin: 8px 8px 4px;
-  font-size: 11px;
-  color: #98a2b3;
-}
-.ai-emp-item {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 8px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-.ai-emp-item:hover {
-  background: #f3f4f6;
-}
-.ai-emp-item small,
-.ai-emp-empty {
-  font-size: 11px;
-  color: #98a2b3;
-}
-.ai-emp-empty {
-  margin: 8px;
-}
-
 .ai-primary-btn {
   width: 30px;
   height: 30px;
