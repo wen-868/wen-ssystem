@@ -195,7 +195,7 @@ await run("单会话窗口：输入框内选员工，默认总负责人，切换
   assert.ok(
     composer.includes('props.employee?.name || "总负责人"') &&
       composer.includes("<strong>总负责人</strong>") &&
-      side.includes('label="总负责人"'),
+      side.includes("<strong>总负责人</strong>"),
     "员工选择器默认项不是总负责人",
   );
   assert.ok(side.includes('<strong>{{ activeEmployee?.name || "总负责人" }}</strong>'), "空选择时身份栏未回显总负责人");

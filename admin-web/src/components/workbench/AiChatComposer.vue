@@ -58,8 +58,7 @@
               </button>
             </div>
           </div>
-        </div>
-        <div class="cmp-employee-wrap">
+          <div class="cmp-employee-wrap">
           <button
             type="button"
             class="cmp-employee-btn"
@@ -88,6 +87,7 @@
               </button>
             </template>
             <p v-if="employeeGroups.length === 0" class="cmp-emp-empty">暂无真实数字员工</p>
+          </div>
           </div>
         </div>
         <button
@@ -386,7 +386,7 @@ function submit(): void {
 }
 .cmp-employee-wrap {
   position: relative;
-  margin-left: auto;
+  margin-left: 8px;
 }
 .cmp-employee-btn {
   border: 0;
