@@ -910,7 +910,8 @@ const topTitle = computed(() => {
   if (effectiveMode.value === "human") return pageTitle.value;
   // AI 模式顶栏跟随当前一级选择：一级模块显示模块名，工作台位显示工作台。
   // 进入具体二级业务页后 effectiveMode=human，继续由 route.meta.title 提供页面标题。
-  return selectedGroupLabel.value;
+  // 工作台位的二级栏已有「工作台/收银台」模式胶囊，顶栏再叫「工作台」会形成重复标题。
+  return selectedGroupLabel.value === "工作台" ? "经营总览" : selectedGroupLabel.value;
 });
 
 const pageTitle = computed(() => {
@@ -1699,6 +1700,9 @@ html[data-wb-theme="dark"] .wb-shell {
    不是页面画布 ⇒ 这是 token 误映射，不是壳层已验收口径（F2/F3 的测试与证据都不含该色，逐条 grep 过）。
    WORKBENCH-13B §三.A.4 的门禁把 pageRoot 底色读成 244,246,248 vs 原型 255,255,255 ⇒ 本行按原型改回 #ffffff。 */
 .wb-view-manual {
+  background: var(--wb-bg, #ffffff);
+}
+.wb-view[data-view="chat"] {
   background: var(--wb-bg, #ffffff);
 }
 .wb-view-manual.shown {

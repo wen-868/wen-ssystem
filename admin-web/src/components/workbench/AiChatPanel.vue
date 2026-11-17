@@ -44,7 +44,7 @@ const AiSidePanel = defineAsyncComponent(() => import("../AiChat/AiSidePanel.vue
 type PanelExposed = {
   sendText?: (text: string) => void;
   clearChat?: () => void;
-  loadConversation?: (conversationId: string) => void;
+  loadConversation?: (conversationId: string, options?: { silentEmpty?: boolean }) => void;
   getConversationId?: () => string | null;
 };
 
@@ -88,7 +88,8 @@ function newConversation(): void {
 }
 
 function loadConversation(conversationId: string): void {
-  panelRef.value?.loadConversation?.(conversationId);
+  // 归档缺失的会话按空会话恢复，不弹「AI 会话不可用」红条（新对话本来就没有归档）
+  panelRef.value?.loadConversation?.(conversationId, { silentEmpty: true });
 }
 
 defineExpose({ sendQuickCommand, newConversation, loadConversation });
