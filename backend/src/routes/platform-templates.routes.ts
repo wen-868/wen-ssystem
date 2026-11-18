@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-template.controller";
 
@@ -18,19 +19,19 @@ export const platformTemplatesRouter = Router();
 // GET /api/platform/templates/init - 初始化模板列表（含 copyConfigs）
 platformTemplatesRouter.get("/init", asyncHandler(controller.listInitTemplates));
 // POST /api/platform/templates/init - 新建初始化模板 + version=1 版本快照
-platformTemplatesRouter.post("/init", asyncHandler(controller.createInitTemplate));
+platformTemplatesRouter.post("/init", requirePlatformPermission("sysconfig:manage"), asyncHandler(controller.createInitTemplate));
 // GET /api/platform/templates/init/:id/versions - 版本记录（写出在 PUT /init/:id 之前）
 platformTemplatesRouter.get("/init/:id/versions", asyncHandler(controller.listInitTemplateVersions));
 // PUT /api/platform/templates/init/:id - 编辑 + version+1 + 版本快照
-platformTemplatesRouter.put("/init/:id", asyncHandler(controller.updateInitTemplate));
+platformTemplatesRouter.put("/init/:id", requirePlatformPermission("sysconfig:manage"), asyncHandler(controller.updateInitTemplate));
 
 // ─── 公共打印模板：列表 / 上传 / 设为公共 ──────────────────────
 // GET /api/platform/templates/print?billType= - 公共打印模板列表（billType 可选）
 platformTemplatesRouter.get("/print", asyncHandler(controller.listPrintTemplates));
 // POST /api/platform/templates/print/upload - 上传模板（具体路径，放在 /print/:id/... 之前）
-platformTemplatesRouter.post("/print/upload", asyncHandler(controller.uploadPrintTemplate));
+platformTemplatesRouter.post("/print/upload", requirePlatformPermission("sysconfig:manage"), asyncHandler(controller.uploadPrintTemplate));
 // POST /api/platform/templates/print/:id/public - 设为公共模板
-platformTemplatesRouter.post("/print/:id/public", asyncHandler(controller.setPrintTemplatePublic));
+platformTemplatesRouter.post("/print/:id/public", requirePlatformPermission("sysconfig:manage"), asyncHandler(controller.setPrintTemplatePublic));
 
 // ─── 导入 / 导出模板：列表 / 新增 / 下载 ───────────────────────
 // GET /api/platform/templates/import-export?direction= - 模板清单

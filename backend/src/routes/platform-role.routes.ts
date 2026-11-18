@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-role.controller";
 
@@ -17,19 +18,19 @@ import * as controller from "../controllers/platform/platform-role.controller";
 
 /** /api/platform/admins/roles —— 平台角色列表 */
 export const platformAdminsRouter = Router();
-platformAdminsRouter.get("/roles", asyncHandler(controller.listRoles));
+platformAdminsRouter.get("/roles", requirePlatformPermission("tenant:view"), asyncHandler(controller.listRoles));
 
 /** /api/platform/permissions/catalog —— 权限点目录 */
 export const platformPermissionsRouter = Router();
-platformPermissionsRouter.get("/catalog", asyncHandler(controller.getPermissionCatalog));
+platformPermissionsRouter.get("/catalog", requirePlatformPermission("tenant:view"), asyncHandler(controller.getPermissionCatalog));
 
 /** /api/platform/roles —— 角色增删改 + 权限矩阵读写 */
 export const platformRolesRouter = Router();
-platformRolesRouter.post("/", asyncHandler(controller.createRole));
-platformRolesRouter.get("/:id/permissions", asyncHandler(controller.getRolePermissions));
-platformRolesRouter.put("/:id/permissions", asyncHandler(controller.replaceRolePermissions));
-platformRolesRouter.put("/:id", asyncHandler(controller.updateRole));
-platformRolesRouter.delete("/:id", asyncHandler(controller.deleteRole));
+platformRolesRouter.post("/", requirePlatformPermission("tenant:manage"), asyncHandler(controller.createRole));
+platformRolesRouter.get("/:id/permissions", requirePlatformPermission("tenant:view"), asyncHandler(controller.getRolePermissions));
+platformRolesRouter.put("/:id/permissions", requirePlatformPermission("tenant:manage"), asyncHandler(controller.replaceRolePermissions));
+platformRolesRouter.put("/:id", requirePlatformPermission("tenant:manage"), asyncHandler(controller.updateRole));
+platformRolesRouter.delete("/:id", requirePlatformPermission("tenant:manage"), asyncHandler(controller.deleteRole));
 
 export const routeConfigs: RouteConfig[] = [
   {

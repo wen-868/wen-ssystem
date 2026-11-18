@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as agentController from "../controllers/platform/platform-agent.controller";
 import * as levelController from "../controllers/platform/platform-agent-level.controller";
@@ -34,15 +35,15 @@ export const platformAgentRouter = Router();
 
 // ─── 层级权益配置（3 条；表 t_agent_level / 迁移 187）─────────────────────────
 platformAgentRouter.get("/levels", asyncHandler(levelController.listAgentLevels));
-platformAgentRouter.post("/levels", asyncHandler(levelController.createAgentLevel));
-platformAgentRouter.put("/levels/:id", asyncHandler(levelController.updateAgentLevel));
+platformAgentRouter.post("/levels", requirePlatformPermission("marketing:manage"), asyncHandler(levelController.createAgentLevel));
+platformAgentRouter.put("/levels/:id", requirePlatformPermission("marketing:manage"), asyncHandler(levelController.updateAgentLevel));
 
 // ─── 代理商档案（5 条；表 t_agent  / 迁移 186）──────────────────────────────
 platformAgentRouter.get("/", asyncHandler(agentController.listAgents));
-platformAgentRouter.post("/", asyncHandler(agentController.createAgent));
+platformAgentRouter.post("/", requirePlatformPermission("marketing:manage"), asyncHandler(agentController.createAgent));
 platformAgentRouter.get("/:id", asyncHandler(agentController.getAgent));
-platformAgentRouter.put("/:id", asyncHandler(agentController.updateAgent));
-platformAgentRouter.post("/:id/status", asyncHandler(agentController.changeAgentStatus));
+platformAgentRouter.put("/:id", requirePlatformPermission("marketing:manage"), asyncHandler(agentController.updateAgent));
+platformAgentRouter.post("/:id/status", requirePlatformPermission("marketing:manage"), asyncHandler(agentController.changeAgentStatus));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

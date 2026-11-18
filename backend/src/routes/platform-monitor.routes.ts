@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import { trackRequest, getMonitorStats } from "../controllers/platform/platform-monitor.controller";
 import * as adminMonitor from "../controllers/admin/monitor.controller";
@@ -31,7 +32,7 @@ platformMonitorRouter.get("/slow-queries", (_req, res) => {
 platformMonitorRouter.get("/expiring-tenants", adminMonitor.getExpiringTenantsCtrl);
 
 // POST /api/platform/monitor/notify-expiring - 通知即将到期租户
-platformMonitorRouter.post("/notify-expiring", adminMonitor.notifyExpiringTenantsCtrl);
+platformMonitorRouter.post("/notify-expiring", requirePlatformPermission("monitor:manage"), adminMonitor.notifyExpiringTenantsCtrl);
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/monitor",

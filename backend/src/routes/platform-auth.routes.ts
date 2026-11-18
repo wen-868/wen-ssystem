@@ -3,6 +3,7 @@ import rateLimit from "express-rate-limit";
 import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
 import { requirePlatformAuth } from "../middleware/auth";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { csrfMiddleware } from "../middleware/csrf";
 import { requireCaptcha } from "../middleware/captcha-guard";
 import { loginFailLimiters, captchaFailLimiters } from "../middleware/login-fail-limiter";
@@ -43,7 +44,7 @@ platformAuthRouter.post(
 );
 platformAuthRouter.get("/me", requirePlatformAuth, asyncHandler(getPlatformMe));
 // 写操作接口需挂载 csrfMiddleware（routeConfig.auth="none"，auto-routes 不会附加）
-platformAuthRouter.post("/admin/create", requirePlatformAuth, csrfMiddleware, asyncHandler(createPlatformAdmin));
+platformAuthRouter.post("/admin/create", requirePlatformAuth, requirePlatformPermission("tenant:manage"), csrfMiddleware, asyncHandler(createPlatformAdmin));
 
 // ── 平台管理员双因素认证（MFA，S3-58-F1 R3，默认不强制）──
 // 登录二次验证的爆破面：挑战令牌 TTL 5 分钟、动态码仅 6 位数字，

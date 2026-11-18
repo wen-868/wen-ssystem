@@ -74,6 +74,15 @@ vi.mock("../../shared/response", () => ({
   fail: vi.fn((msg, code = "400") => ({ code, msg, traceId: "test-trace" })),
 }));
 
+/**
+ * MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01：本文件测的是租户端点业务行为（透传/400/404/500），不是 RBAC
+ * ⇒ 平台权限中间件替换为放行桩（与 platform-open-api-keys.test.ts 同款范式）。权限判定的两侧反测
+ * 在 routes/platform-rbac-pilot.test.ts 与本卡新增的 platform-write-guard.test.ts，本文件不重复。
+ */
+vi.mock("../../middleware/platform-rbac", () => ({
+  requirePlatformPermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 vi.mock("../../middleware/auth", () => ({
   requireAuthWithTenant: [],
   requireAuth: (_req: any, _res: any, next: any) => next(),

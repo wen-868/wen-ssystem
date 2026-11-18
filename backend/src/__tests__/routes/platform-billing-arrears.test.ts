@@ -39,6 +39,15 @@ vi.mock("../../shared/db", () => ({
 }));
 
 /**
+ * MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01：本文件测的是欠费/催缴业务行为，不是 RBAC ⇒ 平台权限
+ * 中间件替换为放行桩（与 platform-open-api-keys.test.ts 同款范式）；权限判定反测见
+ * platform-rbac-pilot.test.ts / platform-write-guard.test.ts。
+ */
+vi.mock("../../middleware/platform-rbac", () => ({
+  requirePlatformPermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
+/**
  * 短信探针：把短信服务整体替换为桩，用于断言「催缴不接短信通道」。
  * 本用例组结束后 `sendSms` 调用次数必须为 0。
  */

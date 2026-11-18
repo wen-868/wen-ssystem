@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/platform-promo-code.controller";
 
@@ -25,10 +26,10 @@ import * as controller from "../controllers/platform/platform-promo-code.control
 
 export const platformPromoCodeRouter = Router();
 
-platformPromoCodeRouter.get("/", asyncHandler(controller.listPromoCodes));
-platformPromoCodeRouter.post("/", asyncHandler(controller.createPromoCode));
-platformPromoCodeRouter.post("/:id/disable", asyncHandler(controller.disablePromoCode));
-platformPromoCodeRouter.get("/:code/attributions", asyncHandler(controller.listAttributionsByCode));
+platformPromoCodeRouter.get("/", requirePlatformPermission("marketing:view"), asyncHandler(controller.listPromoCodes));
+platformPromoCodeRouter.post("/", requirePlatformPermission("marketing:manage"), asyncHandler(controller.createPromoCode));
+platformPromoCodeRouter.post("/:id/disable", requirePlatformPermission("marketing:manage"), asyncHandler(controller.disablePromoCode));
+platformPromoCodeRouter.get("/:code/attributions", requirePlatformPermission("marketing:view"), asyncHandler(controller.listAttributionsByCode));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

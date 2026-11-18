@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as subscriptionApplyController from "../controllers/platform/platform-subscription-apply.controller";
 
@@ -12,7 +13,7 @@ platformSubscriptionAppliesRouter.get("/", asyncHandler(subscriptionApplyControl
 platformSubscriptionAppliesRouter.get("/:id", asyncHandler(subscriptionApplyController.getApply));
 
 // PUT /api/platform/subscription-applies/:id/audit — 审核（通过/驳回）
-platformSubscriptionAppliesRouter.put("/:id/audit", asyncHandler(subscriptionApplyController.auditApply));
+platformSubscriptionAppliesRouter.put("/:id/audit", requirePlatformPermission("billing:manage"), asyncHandler(subscriptionApplyController.auditApply));
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/subscription-applies",

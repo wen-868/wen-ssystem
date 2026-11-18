@@ -36,6 +36,15 @@ vi.mock("../../shared/db", () => ({
   pool: { query: hoisted.poolQuery },
 }));
 
+/**
+ * MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01：本文件测的是监控运维业务行为，不是 RBAC ⇒ 平台权限
+ * 中间件替换为放行桩（与 platform-open-api-keys.test.ts 同款范式）；权限判定反测见
+ * platform-rbac-pilot.test.ts / platform-write-guard.test.ts。
+ */
+vi.mock("../../middleware/platform-rbac", () => ({
+  requirePlatformPermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 import { platformMonitorOpsRouter, routeConfig } from "../../routes/platform-monitor-ops.routes";
 import { platformMonitorRouter } from "../../routes/platform-monitor.routes";
 import { requirePlatformAuth } from "../../middleware/auth";

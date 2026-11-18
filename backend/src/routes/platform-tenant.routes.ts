@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
+import { requirePlatformPermission } from "../middleware/platform-rbac";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/tenant.controller";
 import * as usageController from "../controllers/platform/tenant-usage.controller";
@@ -36,17 +37,17 @@ platformTenantRouter.get("/:id/quota", asyncHandler(quotaController.getTenantQuo
 platformTenantRouter.get("/:id/overview", overviewController.getTenantOverviewCtrl);
 
 // POST /api/platform/tenants - 创建租户
-platformTenantRouter.post("/", asyncHandler(controller.createPlatformTenant));
+platformTenantRouter.post("/", requirePlatformPermission("tenant:manage"), asyncHandler(controller.createPlatformTenant));
 
 // PUT /api/platform/tenants/:id - 更新租户
-platformTenantRouter.put("/:id", asyncHandler(controller.updatePlatformTenant));
+platformTenantRouter.put("/:id", requirePlatformPermission("tenant:manage"), asyncHandler(controller.updatePlatformTenant));
 
 // POST /api/platform/tenants/:id/toggle - 启用/禁用租户
-platformTenantRouter.post("/:id/toggle", asyncHandler(controller.togglePlatformTenantStatus));
+platformTenantRouter.post("/:id/toggle", requirePlatformPermission("tenant:manage"), asyncHandler(controller.togglePlatformTenantStatus));
 
 // C1-2 A4/A5：代登录 / 临时扩容（写操作，均写 t_platform_audit_log 留痕）
-platformTenantRouter.post("/:id/proxy-login", opsController.proxyLoginCtrl);
-platformTenantRouter.post("/:id/quota-expand", opsController.expandTenantQuotaCtrl);
+platformTenantRouter.post("/:id/proxy-login", requirePlatformPermission("tenant:manage"), opsController.proxyLoginCtrl);
+platformTenantRouter.post("/:id/quota-expand", requirePlatformPermission("tenant:manage"), opsController.expandTenantQuotaCtrl);
 
 // S3-172：平台超管代重置「指定租户」账号口令（写操作，写 t_platform_audit_log 留痕）。
 // 路径里的 :tenantId 必须与该账号的 tenant_id 同时命中才动手（跨租户 ⇒ 404，见 service）。
@@ -54,6 +55,7 @@ platformTenantRouter.post("/:id/quota-expand", opsController.expandTenantQuotaCt
 // routeConfig.auth="requirePlatformAuth" 统一附加（与上面两条写操作同门）。
 platformTenantRouter.post(
   "/:tenantId/users/:userId/reset-password",
+  requirePlatformPermission("tenant:manage"),
   asyncHandler(opsController.resetTenantUserPasswordCtrl)
 );
 

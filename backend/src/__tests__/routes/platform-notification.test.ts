@@ -32,6 +32,15 @@ vi.mock("../../services/platform/platform-notification.service", () => ({
   markAllNotificationsRead: mocks.markAllNotificationsRead,
 }));
 
+/**
+ * MS-TOTAL-PLATFORM-SUPPORT-WRITE-GUARD-01：本文件测的是通知端点业务行为（路径钉死/401/400/业务码），
+ * 不是 RBAC ⇒ 平台权限中间件替换为放行桩（与 platform-open-api-keys.test.ts 同款范式）。
+ * 权限判定反测见 platform-rbac-pilot.test.ts / platform-write-guard.test.ts。
+ */
+vi.mock("../../middleware/platform-rbac", () => ({
+  requirePlatformPermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 import { AppError } from "../../shared/app-error";
 import { routeConfigs, platformNotificationRouter } from "../../routes/platform-notification.routes";
 import { requirePlatformAuth } from "../../middleware/auth";
